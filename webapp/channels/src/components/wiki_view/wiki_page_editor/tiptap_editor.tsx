@@ -49,6 +49,7 @@ import type {GlobalState} from 'types/store';
 
 import {createChannelMentionSuggestion} from './channel_mention_mm_bridge';
 import CommentAnchor from './comment_anchor_mark';
+import CommentHighlightPlugin, {COMMENT_HIGHLIGHT_PLUGIN_KEY} from './comment_highlight_plugin';
 import {uploadImageForEditor, validateImageFile} from './file_upload_helper';
 import FormattingBarBubble from './formatting_bar_bubble';
 import InlineCommentExtension from './inline_comment_extension';
@@ -126,10 +127,10 @@ const HeadingIdPlugin = Extension.create({
     },
 });
 
-// Simplified anchor type - only text and anchor_id needed
+// Anchor type - matches InlineAnchor from inline_comment_extension.tsx
 export type InlineAnchorData = {
-    text: string;
     anchor_id: string;
+    text: string;
 };
 
 type Props = {
@@ -377,6 +378,11 @@ const TipTapEditor = ({
                 onAddComment: onCreateInlineComment,
                 onCommentClick,
                 editable,
+            }),
+
+            // Decoration-based highlighting for comments without marks
+            CommentHighlightPlugin.configure({
+                onCommentClick,
             }),
             Table.configure({
                 resizable: true,
@@ -688,47 +694,37 @@ const TipTapEditor = ({
         }
     }, [teamId, editable]); // Removed dispatch from dependencies
 
-    // Update inline comments when they change
-    // Uses simple DOM manipulation to add/remove .comment-anchor-active class
+    // Update inline comments in both extensions when they change
     useEffect(() => {
-        if (editor && (editor.storage as any).inlineComment) {
-            (editor.storage as any).inlineComment.comments = inlineComments;
-
-            // Function to update anchor classes in the DOM
-            const updateAnchorClasses = () => {
-                // Build a set of active anchor IDs (comments that are not resolved)
-                const activeAnchorIds = new Set(
-                    inlineComments.
-                        map((c) => c.props?.inline_anchor?.anchor_id).
-                        filter(Boolean),
-                );
-
-                // Find all comment anchor elements in the editor DOM
-                const editorElement = editor.view.dom;
-                const anchorElements = editorElement.querySelectorAll('[id^="ic-"]');
-
-                anchorElements.forEach((element) => {
-                    const id = element.getAttribute('id');
-                    const anchorId = id?.replace('ic-', '');
-
-                    if (anchorId && activeAnchorIds.has(anchorId)) {
-                        element.classList.add('comment-anchor-active');
-                    } else {
-                        element.classList.remove('comment-anchor-active');
-                    }
-                });
-            };
-
-            // Run immediately
-            updateAnchorClasses();
-
-            // Also run after a short delay to handle editor re-renders
-            // This ensures the classes are applied after TipTap finishes rendering
-            const timeoutId = setTimeout(updateAnchorClasses, 100);
-
-            return () => clearTimeout(timeoutId);
+        if (!editor) {
+            return undefined;
         }
-        return undefined;
+
+        // Update storage for click handling
+        if ((editor.storage as any).inlineComment) {
+            (editor.storage as any).inlineComment.comments = inlineComments;
+        }
+
+        // Update decoration plugin and trigger rebuild
+        if ((editor.storage as any).commentHighlight) {
+            (editor.storage as any).commentHighlight.comments = inlineComments;
+            editor.view.dispatch(editor.state.tr.setMeta(COMMENT_HIGHLIGHT_PLUGIN_KEY, true));
+        }
+
+        // Update DOM classes for mark-based anchors
+        const updateAnchorClasses = () => {
+            const activeIds = new Set(
+                inlineComments.map((c) => c.props?.inline_anchor?.anchor_id).filter(Boolean),
+            );
+            editor.view.dom.querySelectorAll('[id^="ic-"]').forEach((el) => {
+                const anchorId = el.getAttribute('id')?.replace('ic-', '');
+                el.classList.toggle('comment-anchor-active', Boolean(anchorId && activeIds.has(anchorId)));
+            });
+        };
+
+        updateAnchorClasses();
+        const timeoutId = setTimeout(updateAnchorClasses, 100);
+        return () => clearTimeout(timeoutId);
     }, [editor, inlineComments]);
 
     // Remove marks for deleted comments (only when explicitly deleted, not resolved)
@@ -1002,33 +998,26 @@ const TipTapEditor = ({
             return;
         }
 
-        const {state} = editor;
         const {from, to} = selection;
 
-        // Validate: selection must be within a single block (no multi-paragraph anchors)
-        const $from = state.doc.resolve(from);
-        const $to = state.doc.resolve(to);
+        // Validate: selection must be within a single block
+        const $from = editor.state.doc.resolve(from);
+        const $to = editor.state.doc.resolve(to);
         if ($from.parent !== $to.parent) {
-            // Show toast: multi-paragraph selection not allowed
-            // For now, just return silently - the UI should prevent this
             return;
         }
 
-        // Generate a unique anchor ID
         const anchorId = generateId();
 
-        // Apply the CommentAnchor mark to the selected text
-        editor.chain().
-            setMark('commentAnchor', {anchorId}).
-            run();
+        // Apply mark only in edit mode (decorations handle view mode)
+        if (editable) {
+            editor.chain().setMark('commentAnchor', {anchorId}).run();
+        }
 
-        // Create simplified anchor data with just text and anchor_id
-        const anchor = {
-            text: selection.text,
+        onCreateInlineComment({
             anchor_id: anchorId,
-        };
-
-        onCreateInlineComment(anchor);
+            text: selection.text,
+        });
     };
 
     const handleAIRewrite = () => {

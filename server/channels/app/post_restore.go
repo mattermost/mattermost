@@ -34,9 +34,9 @@ func (a *App) RestorePostVersion(rctx request.CTX, userID, postID, restoreVersio
 		return nil, model.NewAppError("RestorePostVersion", "app.post.restore_post_version.not_an_history_item.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	// the user needs to be the author of the post
-	// this is only a safeguard and this should never happen in practice.
-	if toRestorePostVersion.UserId != userID {
+	// For regular posts, the user needs to be the author.
+	// For pages, API layer already checked page permissions, so skip ownership check.
+	if !IsPagePost(toRestorePostVersion) && toRestorePostVersion.UserId != userID {
 		return nil, model.NewAppError("RestorePostVersion", "app.post.restore_post_version.not_allowed.app_error", nil, "", http.StatusForbidden)
 	}
 

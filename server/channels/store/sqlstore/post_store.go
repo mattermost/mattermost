@@ -30,10 +30,11 @@ var wildCardRegex = regexp.MustCompile(`\*($| )`)
 
 const (
 	// regularPostsFilter excludes page content posts from regular channel feeds.
-	// Page posts (page, page_mention, page_comment) are stored as Posts but displayed in the wiki UI, not the channel feed.
+	// Page posts (page, page_mention) are stored as Posts but displayed in the wiki UI, not the channel feed.
+	// Page comments (page_comment) ARE displayed in the channel feed so all channel members can see them.
 	// System notification posts (system_wiki_added, system_page_added, etc.) ARE
 	// displayed in the channel feed to notify users about wiki/page activity.
-	regularPostsFilter = "(Type NOT IN ('page', 'page_mention', 'page_comment') OR Type IS NULL)"
+	regularPostsFilter = "(Type NOT IN ('page', 'page_mention') OR Type IS NULL)"
 )
 
 type SqlPostStore struct {
@@ -96,13 +97,17 @@ func PagePostTypes() []string {
 // AddRegularPostsFilter adds the page exclusion filter to a query builder.
 // Use this for any query that should operate only on messages, not pages.
 // tableAlias should be the alias used for the Posts table in the query (e.g., "p" or "Posts").
+// Note: page_comment is NOT excluded - it should appear in channel feeds.
 // This is a standalone function (not a method) so it can be used by any store file.
 func AddRegularPostsFilter(qb sq.SelectBuilder, tableAlias string) sq.SelectBuilder {
 	if tableAlias == "" {
 		tableAlias = "Posts"
 	}
+	// Exclude only page and page_mention from channel feeds
+	// page_comment is intentionally NOT excluded so inline comments appear in the channel
+	excludedTypes := []string{model.PostTypePage, model.PostTypePageMention}
 	return qb.Where(sq.Or{
-		sq.NotEq{tableAlias + ".Type": PagePostTypes()},
+		sq.NotEq{tableAlias + ".Type": excludedTypes},
 		sq.Eq{tableAlias + ".Type": nil},
 	})
 }

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState, useCallback, useRef} from 'react';
+import React, {useEffect, useState, useCallback, useRef, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -42,8 +42,16 @@ const AllWikiThreads = ({wikiId, onThreadClick}: Props) => {
     const didInitialLoad = useRef(false);
     const untitledText = formatMessage({id: 'wiki.untitled_page', defaultMessage: 'Untitled'});
 
+    // Store pages in a ref so fetchAllThreads can access current pages without depending on the array reference
+    const pagesRef = useRef(pages);
+    pagesRef.current = pages;
+
+    // Create a stable string of page IDs to use as dependency - only changes when actual page set changes
+    const pageIds = useMemo(() => pages.map((p) => p.id).sort().join(','), [pages]);
+
     const fetchAllThreads = useCallback(async () => {
-        if (!pages || pages.length === 0) {
+        const currentPages = pagesRef.current;
+        if (!currentPages || currentPages.length === 0) {
             setLoading(false);
             return;
         }
@@ -55,7 +63,7 @@ const AllWikiThreads = ({wikiId, onThreadClick}: Props) => {
 
         // Fetch all page comments in parallel for better performance
         const results = await Promise.all(
-            pages.map(async (page) => {
+            currentPages.map(async (page) => {
                 try {
                     const result = await dispatch(getPageComments(wikiId, page.id));
                     const comments = (result as ActionResult<Post[]>).data || [];
@@ -84,7 +92,7 @@ const AllWikiThreads = ({wikiId, onThreadClick}: Props) => {
         setPageThreads(threadsData);
         setLoading(false);
         didInitialLoad.current = true;
-    }, [dispatch, pages, wikiId]);
+    }, [dispatch, wikiId, pageIds, untitledText]); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
         fetchAllThreads();

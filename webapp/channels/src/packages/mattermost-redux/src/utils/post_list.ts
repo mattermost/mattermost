@@ -24,7 +24,9 @@ export const DATE_LINE = 'date-';
 export const START_OF_NEW_MESSAGES = 'start-of-new-messages-';
 export const MAX_COMBINED_SYSTEM_POSTS = 100;
 
-const PAGE_POST_TYPES = [Posts.POST_TYPES.PAGE, Posts.POST_TYPES.PAGE_COMMENT];
+// Only filter out page content posts from channel feed, NOT comments.
+// Page comments (inline comments) should appear in the channel feed.
+const PAGE_POST_TYPES = [Posts.POST_TYPES.PAGE];
 
 interface PostFilterOptions {
     postIds: string[];
@@ -81,7 +83,7 @@ export function makeFilterPostsAndAddSeparators() {
                     continue;
                 }
 
-                // Filter out page posts from channel timelines
+                // Filter out page content posts from channel timelines (but show page comments)
                 if (PAGE_POST_TYPES.includes(post.type)) {
                     continue;
                 }

@@ -6,10 +6,10 @@ import {Plugin, PluginKey} from '@tiptap/pm/state';
 
 import {ANCHOR_ID_PREFIX} from './comment_anchor_mark';
 
-// Simplified anchor type - only text and anchor_id needed
+// Anchor type for inline comments
 export type InlineAnchor = {
-    text: string;
     anchor_id: string;
+    text: string;
 };
 
 export type InlineCommentConfig = {

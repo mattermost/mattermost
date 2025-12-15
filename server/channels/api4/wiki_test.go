@@ -1230,7 +1230,7 @@ func TestPageCommentsE2E(t *testing.T) {
 		require.Equal(t, topLevelComment.Id, reply.Props[model.PagePropsParentCommentID], "Reply props should contain parent_comment_id")
 	})
 
-	t.Run("page comments do NOT appear in channel feed (GetPostsForChannel)", func(t *testing.T) {
+	t.Run("inline comments appear in channel feed (GetPostsForChannel)", func(t *testing.T) {
 		regularPost, appErr := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
@@ -1238,32 +1238,40 @@ func TestPageCommentsE2E(t *testing.T) {
 		}, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 
-		_, resp, err := th.Client.CreatePageComment(context.Background(), createdWiki.Id, page.Id, "Page comment should not appear in feed")
-		require.NoError(t, err)
-		CheckCreatedStatus(t, resp)
+		// Create inline comments directly via app layer (client doesn't support inline_anchor parameter)
+		inlineAnchor := map[string]any{
+			"text":      "test anchor text",
+			"anchor_id": model.NewId(),
+		}
+		inlineComment1, appErr := th.App.CreatePageComment(th.Context, page.Id, "Inline comment should appear in feed", inlineAnchor)
+		require.Nil(t, appErr)
 
-		_, resp, err = th.Client.CreatePageComment(context.Background(), createdWiki.Id, page.Id, "Another page comment")
-		require.NoError(t, err)
-		CheckCreatedStatus(t, resp)
+		inlineComment2, appErr := th.App.CreatePageComment(th.Context, page.Id, "Another inline comment", inlineAnchor)
+		require.Nil(t, appErr)
 
 		channelPosts, resp, err := th.Client.GetPostsForChannel(context.Background(), th.BasicChannel.Id, 0, 100, "", false, false)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
 		foundRegularPost := false
-		foundPageComments := 0
+		foundInlineComment1 := false
+		foundInlineComment2 := false
 
 		for _, post := range channelPosts.Posts {
 			if post.Id == regularPost.Id {
 				foundRegularPost = true
 			}
-			if post.Type == model.PostTypePageComment {
-				foundPageComments++
+			if post.Id == inlineComment1.Id {
+				foundInlineComment1 = true
+			}
+			if post.Id == inlineComment2.Id {
+				foundInlineComment2 = true
 			}
 		}
 
 		require.True(t, foundRegularPost, "Regular post should appear in channel feed")
-		require.Equal(t, 0, foundPageComments, "Page comments should NOT appear in channel feed")
+		require.True(t, foundInlineComment1, "First inline comment should appear in channel feed")
+		require.True(t, foundInlineComment2, "Second inline comment should appear in channel feed")
 	})
 
 	t.Run("pages do NOT appear in channel feed (consistent with Slack Canvas UX)", func(t *testing.T) {
@@ -1299,10 +1307,14 @@ func TestPageCommentsE2E(t *testing.T) {
 		require.Equal(t, 0, foundPages, "Pages should NOT appear in channel feed (consistent with Slack Canvas UX)")
 	})
 
-	t.Run("page comments do NOT appear in channel search", func(t *testing.T) {
-		_, resp, err := th.Client.CreatePageComment(context.Background(), createdWiki.Id, page.Id, "Unique search term: xyzabc123")
-		require.NoError(t, err)
-		CheckCreatedStatus(t, resp)
+	t.Run("inline comments do NOT appear in channel search", func(t *testing.T) {
+		// Create inline comment directly via app layer
+		inlineAnchor := map[string]any{
+			"text":      "search test anchor text",
+			"anchor_id": model.NewId(),
+		}
+		_, appErr := th.App.CreatePageComment(th.Context, page.Id, "Unique search term: xyzabc123", inlineAnchor)
+		require.Nil(t, appErr)
 
 		regularPost, appErr := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
@@ -1326,7 +1338,7 @@ func TestPageCommentsE2E(t *testing.T) {
 				foundPageComment = true
 			}
 		}
-		require.False(t, foundPageComment, "Page comments should NOT appear in channel search results")
+		require.False(t, foundPageComment, "Inline comments should NOT appear in channel search results")
 
 		term2 := "qwerty456"
 		isOr2 := false

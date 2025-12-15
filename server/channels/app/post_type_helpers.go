@@ -6,9 +6,10 @@ package app
 import "github.com/mattermost/mattermost/server/public/model"
 
 // shouldSkipWebSocketPublish returns true if this post type handles WebSocket events separately.
-// Pages and page comments use custom WebSocket event handling in their respective functions.
+// Pages use custom WebSocket event handling in their respective functions.
+// Page comments use standard WebSocket events so they appear in the channel feed.
 func shouldSkipWebSocketPublish(post *model.Post) bool {
-	return post.Type == model.PostTypePage || post.Type == model.PostTypePageComment
+	return post.Type == model.PostTypePage
 }
 
 // shouldCallAfterCreateHook returns true if this post type needs after-create processing.

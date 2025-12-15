@@ -9,8 +9,8 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import {createPageComment} from 'actions/pages';
 
 type CommentAnchor = {
-    text: string;
     anchor_id: string;
+    text: string;
 };
 
 export const useInlineComments = (pageId?: string, wikiId?: string, onCommentCreated?: (commentId: string) => void) => {
@@ -29,8 +29,8 @@ export const useInlineComments = (pageId?: string, wikiId?: string, onCommentCre
         }
 
         const inlineAnchor = {
-            text: commentAnchor.text,
             anchor_id: commentAnchor.anchor_id,
+            text: commentAnchor.text,
         };
 
         try {

@@ -267,3 +267,76 @@ test('restores previous page version from version history', {tag: '@pages'}, asy
     // * Verify version history now shows 3 historical versions
     await expect(historyItems).toHaveCount(3, {timeout: ELEMENT_TIMEOUT});
 });
+
+/**
+ * @objective Verify non-author users can restore page versions
+ */
+test('allows non-author to restore page version', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+
+    // # User 1 creates page and makes edits
+    const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user);
+    await channelsPage1.goto(team.name, channel.name);
+
+    const wiki = await createWikiThroughUI(page1, `Restore Wiki ${await pw.random.id()}`);
+    const createdPage = await createPageThroughUI(page1, 'Shared Restore Page', 'Version 1: Original by user1');
+
+    // # Make edits to create version history
+    await editPageThroughUI(page1, '\n\nVersion 2: Edit by user1');
+    await page1.waitForTimeout(AUTOSAVE_WAIT);
+
+    await editPageThroughUI(page1, '\n\nVersion 3: Another edit');
+    await page1.waitForTimeout(AUTOSAVE_WAIT);
+
+    // # User 2 (non-author) joins channel
+    const user2Data = await createRandomUser('user2');
+    const user2 = await adminClient.createUser(user2Data, '', '');
+    user2.password = user2Data.password;
+    await adminClient.addToTeam(team.id, user2.id);
+    await adminClient.addToChannel(user2.id, channel.id);
+
+    // Close user1 page after user2 is set up
+    await page1.close();
+
+    const {page: page2} = await pw.testBrowser.login(user2);
+
+    // # Navigate directly to the wiki page URL
+    const wikiPageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, createdPage.id);
+    await page2.goto(wikiPageUrl);
+    await page2.waitForLoadState('networkidle');
+
+    // # Wait for wiki view to load
+    await page2.waitForSelector('[data-testid="wiki-view"]', {state: 'visible', timeout: PAGE_LOAD_TIMEOUT});
+
+    // # Ensure hierarchy panel is open
+    await ensurePanelOpen(page2);
+
+    // # Open version history as non-author
+    await openVersionHistoryModal(page2, 'Shared Restore Page');
+
+    // * Verify version history shows 2 historical versions
+    const historyItems = getVersionHistoryItems(page2);
+    await expect(historyItems).toHaveCount(2, {timeout: ELEMENT_TIMEOUT});
+
+    // # Non-author restores a previous version
+    await restorePageVersion(page2, 0);
+
+    // * Verify version history modal closes after restore
+    const versionModal = getVersionHistoryModal(page2);
+    await expect(versionModal).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // # Wait for WebSocket event to propagate
+    await page2.waitForTimeout(WEBSOCKET_WAIT);
+
+    // * Verify page content shows the restored version
+    const wikiView = page2.locator('[data-testid="wiki-view"]');
+    await expect(wikiView).toContainText('Version 2: Edit by user1');
+    await expect(wikiView).not.toContainText('Version 3: Another edit');
+
+    // # Reopen version history to verify restore created a new version
+    await openVersionHistoryModal(page2, 'Shared Restore Page');
+
+    // * Verify version history now shows 3 historical versions
+    await expect(historyItems).toHaveCount(3, {timeout: ELEMENT_TIMEOUT});
+});

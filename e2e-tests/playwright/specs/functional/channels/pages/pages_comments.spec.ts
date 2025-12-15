@@ -6,6 +6,7 @@ import {
     createWikiThroughUI,
     createPageThroughUI,
     createTestChannel,
+    createTestUserInChannel,
     getNewPageButton,
     fillCreatePageModal,
     ensurePanelOpen,
@@ -36,6 +37,7 @@ import {
     pressModifierKey,
     ELEMENT_TIMEOUT,
     WEBSOCKET_WAIT,
+    HIERARCHY_TIMEOUT,
 } from './test_helpers';
 
 /**
@@ -505,6 +507,60 @@ test('clicks inline comment marker to open RHS', {tag: '@pages'}, async ({pw, sh
     const markerClass = await commentMarker.getAttribute('class');
     expect(markerClass).toBeTruthy();
 });
+
+/**
+ * @objective Verify inline comment highlight persists after navigating away and back
+ */
+test(
+    'inline comment highlight persists after navigating away and back',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+
+        const {page, channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
+
+        // # Create wiki and page with content (createWikiAndPage publishes automatically)
+        await createWikiAndPage(
+            page,
+            `Navigation Wiki ${await pw.random.id()}`,
+            'Page with comment',
+            'This text will have a comment',
+        );
+        await page.waitForTimeout(500);
+
+        // # In view mode, select text and add inline comment using the view mode toolbar
+        await selectTextInEditor(page);
+        const addCommentButton = page.locator('[data-testid="inline-comment-add-button"]');
+        await expect(addCommentButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await addCommentButton.click();
+        const commentModal = page.getByRole('dialog', {name: 'Add Comment'});
+        await expect(commentModal).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await fillAndSubmitCommentModal(page, commentModal, 'Persistent comment');
+
+        // * Verify marker is visible before navigation
+        await verifyCommentMarkerVisible(page);
+
+        // # Navigate away to town-square
+        await channelsPage.goto(team.name, 'town-square');
+        await channelsPage.toBeVisible();
+
+        // # Navigate back to the wiki channel and open the page
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
+        const wikiTab = page.locator('[role="tab"]').filter({hasText: 'Navigation Wiki'});
+        await wikiTab.click();
+        await ensurePanelOpen(page);
+        const pageNode = page.locator('[data-testid="page-tree-node"]').filter({hasText: 'Page with comment'});
+        await pageNode.click();
+        await page.waitForTimeout(1000);
+
+        // * Verify inline comment marker is still visible after navigation
+        await verifyCommentMarkerVisible(page);
+    },
+);
 
 /**
  * @objective Verify clicking same comment marker again closes RHS (toggle)
@@ -1286,3 +1342,113 @@ test('enables inline comments after publishing a new page', {tag: '@pages'}, asy
     );
     await expect(inlineCommentButton).toBeVisible();
 });
+
+/**
+ * @objective Verify that inline comment anchor remains highlighted after entering edit mode
+ *
+ * @precondition
+ * Page has an existing inline comment with anchor
+ */
+test(
+    'inline comment anchor remains highlighted after entering edit mode',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+
+        const {page, channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
+
+        // # Setup: Create wiki, page, add comment, and publish
+        const {marker} = await setupPageWithComment(
+            page,
+            `Edit Mode Highlight Wiki ${await pw.random.id()}`,
+            'Highlight Test Page',
+            'This text has a comment that should remain highlighted in edit mode',
+            'Test comment for edit mode',
+        );
+
+        // * Verify comment marker is visible and has active highlight class in view mode
+        await expect(marker!).toBeVisible();
+        const viewModeClass = await marker!.getAttribute('class');
+        expect(viewModeClass).toContain('comment-anchor-active');
+
+        // # Enter edit mode
+        await enterEditMode(page);
+
+        // # Wait for editor to fully load
+        const editor = getEditor(page);
+        await editor.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+
+        // * Verify the comment anchor is still visible in edit mode
+        const editModeMarker = page.locator('[id^="ic-"], .comment-anchor').first();
+        await expect(editModeMarker).toBeVisible({timeout: HIERARCHY_TIMEOUT});
+
+        // * Verify the anchor has the active highlight class in edit mode
+        // This is the critical assertion - the anchor should be highlighted after entering edit mode
+        await expect(async () => {
+            const editModeClass = await editModeMarker.getAttribute('class');
+            expect(editModeClass).toContain('comment-anchor-active');
+        }).toPass({timeout: HIERARCHY_TIMEOUT});
+    },
+);
+
+/**
+ * @objective Verify that other channel members see inline comments in the channel feed
+ *
+ * @precondition
+ * Two users have access to the same channel
+ * User1 creates an inline comment on a page
+ */
+test(
+    'other channel members see inline comments in the channel feed',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user: user1, adminClient} = sharedPagesSetup;
+        const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+
+        // # Create user2 FIRST and add to channel (before any comments are created)
+        // This ensures user2 is a channel member when the comment is posted
+        const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
+
+        // # User1 logs in and creates wiki with page
+        const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
+        await channelsPage1.goto(team.name, channel.name);
+        await channelsPage1.toBeVisible();
+
+        // # Create wiki and page
+        await createWikiThroughUI(page1, `Channel Feed Wiki ${await pw.random.id()}`);
+        const pageTitle = `Channel Feed Page ${await pw.random.id()}`;
+        const pageContent = 'This content will have an inline comment that should be visible in the channel feed';
+        await createPageThroughUI(page1, pageTitle, pageContent);
+
+        // # User1 adds an inline comment
+        await enterEditMode(page1);
+        const commentText = `Inline comment visible in channel ${await pw.random.id()}`;
+        await addInlineCommentInEditMode(page1, commentText);
+        await publishPage(page1);
+
+        // * Verify comment marker is visible for user1
+        await verifyCommentMarkerVisible(page1);
+
+        // # User2 logs in and navigates to the channel
+        const {page: page2, channelsPage: channelsPage2} = await pw.testBrowser.login(user2);
+        await channelsPage2.goto(team.name, channel.name);
+        await channelsPage2.toBeVisible();
+
+        // * Wait for channel to fully load
+        await page2.waitForLoadState('networkidle');
+
+        // * Verify User2 sees the inline comment in the channel feed
+        // The comment should appear as a post in the channel
+        const channelFeed = page2.locator('#postListContent');
+        await expect(channelFeed).toContainText(commentText, {timeout: HIERARCHY_TIMEOUT});
+
+        // * Verify the comment shows the "Commented on the page:" context
+        await expect(channelFeed).toContainText('Commented on the page:', {timeout: HIERARCHY_TIMEOUT});
+
+        // # Cleanup
+        await page2.close();
+    },
+);

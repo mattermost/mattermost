@@ -1409,10 +1409,18 @@ func restorePostVersion(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// user can only restore their own posts
-	if c.AppContext.Session().UserId != toRestorePost.UserId {
-		c.SetPermissionError(model.PermissionEditPost)
-		return
+	// Pages use page-specific permissions; regular posts require ownership
+	if app.RequiresPageModifyPermission(toRestorePost) {
+		if permErr := c.App.HasPermissionToModifyPage(c.AppContext, c.AppContext.Session(), toRestorePost, app.PageOperationEdit, "restorePostVersion"); permErr != nil {
+			c.Err = permErr
+			return
+		}
+	} else {
+		// user can only restore their own posts
+		if c.AppContext.Session().UserId != toRestorePost.UserId {
+			c.SetPermissionError(model.PermissionEditPost)
+			return
+		}
 	}
 
 	postPatchChecks(c, auditRec, &toRestorePost.Message)
