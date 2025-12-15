@@ -1018,7 +1018,6 @@ export function handlePageTitleUpdatedEvent(msg) {
 
     const updatedPage = {
         ...existingPage,
-        message: title,
         props: {
             ...existingPage.props,
             title,

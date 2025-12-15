@@ -638,15 +638,18 @@ export async function createPageThroughUI(page: Page, pageTitle: string, pageCon
     await page.evaluate((content) => {
         const editorInstance = (window as any).__tiptapEditor;
         if (editorInstance) {
-            editorInstance.commands.setContent({
-                type: 'doc',
-                content: [
-                    {
-                        type: 'paragraph',
-                        content: [{type: 'text', text: content}],
-                    },
-                ],
-            }, true); // emitUpdate: true - triggers onUpdate callback for autosave
+            editorInstance.commands.setContent(
+                {
+                    type: 'doc',
+                    content: [
+                        {
+                            type: 'paragraph',
+                            content: [{type: 'text', text: content}],
+                        },
+                    ],
+                },
+                true,
+            ); // emitUpdate: true - triggers onUpdate callback for autosave
             // Trigger focus to ensure content change is registered
             editorInstance.commands.focus();
         }
@@ -747,15 +750,18 @@ export async function createChildPageThroughContextMenu(
     await page.evaluate((content) => {
         const editorInstance = (window as any).__tiptapEditor;
         if (editorInstance) {
-            editorInstance.commands.setContent({
-                type: 'doc',
-                content: [
-                    {
-                        type: 'paragraph',
-                        content: [{type: 'text', text: content}],
-                    },
-                ],
-            }, true); // emitUpdate: true - triggers onUpdate callback for autosave
+            editorInstance.commands.setContent(
+                {
+                    type: 'doc',
+                    content: [
+                        {
+                            type: 'paragraph',
+                            content: [{type: 'text', text: content}],
+                        },
+                    ],
+                },
+                true,
+            ); // emitUpdate: true - triggers onUpdate callback for autosave
             // Trigger focus to ensure content change is registered
             editorInstance.commands.focus();
         }
