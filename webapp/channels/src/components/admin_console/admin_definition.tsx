@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 /* eslint-disable max-lines */
-/* eslint-disable formatjs/enforce-placeholders -- Admin definition uses help_text_values and runtime injection for placeholders, which ESLint cannot statically analyze */
 
 import React from 'react';
 import {FormattedMessage, defineMessage, defineMessages} from 'react-intl';
