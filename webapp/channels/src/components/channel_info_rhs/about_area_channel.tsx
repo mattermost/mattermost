@@ -7,6 +7,7 @@ import styled from 'styled-components';
 
 import type {Channel} from '@mattermost/types/channels';
 
+import CopyButton from 'components/copy_button';
 import Markdown from 'components/markdown';
 
 import EditableArea from './components/editable_area';
@@ -21,13 +22,20 @@ const ChannelName = styled.div`
 `;
 
 const ChannelId = styled.div`
-    margin-bottom: 12px;
+    padding: 4px 0;
+    margin-bottom: 8px;
     font-size: 11px;
     line-height: 16px;
     letter-spacing: 0.02em;
     color: rgba(var(--center-channel-color-rgb), 0.75);
     &:not(:last-child) {
-        margin-bottom: 4px;
+        margin-bottom: 0px;
+    }
+    .post-code__clipboard {
+        opacity: 0;
+    }
+    &:hover .post-code__clipboard {
+        opacity: 1;
     }
 `;
 
@@ -51,6 +59,18 @@ const ChannelDescriptionHeading = styled.div`
 
 const ChannelHeader = styled.div`
     margin-bottom: 12px;
+`;
+
+const SmallCopyButton = styled(CopyButton)`
+    i {
+        font-size: 14px;
+        margin-left: 4px;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+
+        &:hover {
+            color: rgba(var(--center-channel-color-rgb), 0.88);
+        }
+    }
 `;
 
 interface Props {
@@ -128,9 +148,17 @@ const AboutAreaChannel = ({channel, canEditChannelProperties, actions}: Props) =
 
             <ChannelId>
                 {formatMessage({id: 'channel_info_rhs.about_area_handle', defaultMessage: 'Channel handle:'})} {channel.name}
+                <SmallCopyButton
+                    content={channel.name}
+                    isForText={true}
+                />
             </ChannelId>
             <ChannelId>
                 {formatMessage({id: 'channel_info_rhs.about_area_id', defaultMessage: 'ID:'})} {channel.id}
+                <SmallCopyButton
+                    content={channel.id}
+                    isForText={true}
+                />
             </ChannelId>
 
         </>
