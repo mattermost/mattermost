@@ -1,9 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ReactNode} from 'react';
 import React, {useCallback} from 'react';
-import {useIntl} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
+
+import {GlobeIcon, PlusIcon} from '@mattermost/compass-icons/components';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import Permissions from 'mattermost-redux/constants/permissions';
@@ -12,14 +15,11 @@ import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {haveICurrentChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
-import {setAddChannelCtaDropdown} from 'actions/views/add_channel_dropdown';
 import {openModal} from 'actions/views/modals';
-import {isAddChannelCtaDropdownOpen} from 'selectors/views/add_channel_dropdown';
 
 import BrowseChannels from 'components/browse_channels';
+import * as Menu from 'components/menu';
 import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
-import Menu from 'components/widgets/menu/menu';
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {ModalIdentifiers, Preferences, Touched} from 'utils/constants';
 
@@ -35,20 +35,12 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
     const canCreatePrivateChannel = useSelector((state: GlobalState) => haveICurrentChannelPermission(state, Permissions.CREATE_PRIVATE_CHANNEL));
     const canCreateChannel = canCreatePrivateChannel || canCreatePublicChannel;
     const canJoinPublicChannel = useSelector((state: GlobalState) => haveICurrentChannelPermission(state, Permissions.JOIN_PUBLIC_CHANNELS));
-    const isAddChannelCtaOpen = useSelector(isAddChannelCtaDropdownOpen);
     const currentUserId = useSelector(getCurrentUserId);
-    const openAddChannelsCtaOpen = useCallback((open: boolean) => {
-        dispatch(setAddChannelCtaDropdown(open));
-    }, []);
 
     let buttonClass = 'SidebarChannelNavigator__addChannelsCtaLhsButton';
 
     if (!touchedAddChannelsCtaButton) {
         buttonClass += ' SidebarChannelNavigator__addChannelsCtaLhsButton--untouched';
-    }
-
-    if ((!canCreateChannel && !canJoinPublicChannel) || !currentTeamId) {
-        return null;
     }
 
     const showMoreChannelsModal = () => {
@@ -66,62 +58,45 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
     };
 
     const renderDropdownItems = () => {
-        let joinPublicChannel;
+        const items: ReactNode[] = [];
         if (canJoinPublicChannel) {
-            joinPublicChannel = (
-                <Menu.ItemAction
+            items.push(
+                <Menu.Item
+                    key='showMoreChannels'
                     id='showMoreChannels'
                     onClick={showMoreChannelsModal}
-                    icon={<i className='icon-globe'/>}
-                    text={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.browseChannels', defaultMessage: 'Browse channels'})}
-                />
+                    leadingElement={<GlobeIcon size={18}/>}
+                    labels={
+                        <FormattedMessage
+                            id='sidebar_left.add_channel_dropdown.browseChannels'
+                            defaultMessage='Browse channels'
+                        />
+                    }
+                />,
             );
         }
 
-        let createChannel;
         if (canCreateChannel) {
-            createChannel = (
-                <Menu.ItemAction
+            items.push(
+                <Menu.Item
+                    key='showNewChannel'
                     id='showNewChannel'
                     onClick={showNewChannelModal}
-                    icon={<i className='icon-plus'/>}
-                    text={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.createNewChannel', defaultMessage: 'Create new channel'})}
-                />
+                    leadingElement={<PlusIcon size={18}/>}
+                    labels={
+                        <FormattedMessage
+                            id='sidebar_left.add_channel_dropdown.createNewChannel'
+                            defaultMessage='Create new channel'
+                        />
+                    }
+                />,
             );
         }
 
-        return (
-            <>
-                <Menu.Group>
-                    {createChannel}
-                    {joinPublicChannel}
-                </Menu.Group>
-            </>
-        );
+        return items;
     };
 
-    const addChannelsButton = (btnCallback?: () => void) => {
-        const handleClick = () => btnCallback?.();
-        return (
-            <button
-                className={buttonClass}
-                id={'addChannelsCta'}
-                aria-label={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.dropdownAriaLabel', defaultMessage: 'Add Channel Dropdown'})}
-                onClick={handleClick}
-            >
-                <div
-                    aria-label={intl.formatMessage({id: 'sidebar_left.sidebar_channel_navigator.addChannelsCta', defaultMessage: 'Add channels'})}
-                >
-                    <i className='icon-plus-box'/>
-                    <span>
-                        {intl.formatMessage({id: 'sidebar_left.addChannelsCta', defaultMessage: 'Add Channels'})}
-                    </span>
-                </div>
-            </button>
-        );
-    };
-
-    const storePreferencesAndTrackEvent = () => {
+    const storePreferencesAndTrackEvent = useCallback(() => {
         if (!touchedAddChannelsCtaButton) {
             dispatch(savePreferences(
                 currentUserId,
@@ -133,35 +108,66 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
                 }],
             ));
         }
-    };
+    }, [currentUserId, dispatch, touchedAddChannelsCtaButton]);
 
-    const trackOpen = (opened: boolean) => {
-        openAddChannelsCtaOpen(opened);
-        storePreferencesAndTrackEvent();
-    };
+    const handleMenuToggle = useCallback((isOpen: boolean) => {
+        if (isOpen) {
+            storePreferencesAndTrackEvent();
+        }
+    }, [storePreferencesAndTrackEvent]);
+
+    if ((!canCreateChannel && !canJoinPublicChannel) || !currentTeamId) {
+        return null;
+    }
+
+    const buttonContents = (
+        <>
+            <i
+                className='icon-plus-box'
+                aria-hidden={true}
+            />
+            <FormattedMessage
+                id='sidebar_left.addChannelsCta'
+                defaultMessage='Add Channels'
+            />
+        </>
+    );
 
     if (!canCreateChannel) {
         const browseChannelsAction = () => {
             showMoreChannelsModal();
             storePreferencesAndTrackEvent();
         };
-        return addChannelsButton(browseChannelsAction);
+
+        return (
+            <button
+                className={buttonClass}
+                id={'addChannelsCta'}
+                onClick={browseChannelsAction}
+            >
+                {buttonContents}
+            </button>
+        );
     }
 
     return (
-        <MenuWrapper
-            className='AddChannelsCtaDropdown'
-            onToggle={trackOpen}
-            open={isAddChannelCtaOpen}
+        <Menu.Container
+            anchorOrigin={{vertical: 'bottom', horizontal: 'center'}}
+            transformOrigin={{vertical: 'top', horizontal: 'center'}}
+            menuButton={{
+                id: 'addChannelsCta',
+                class: buttonClass,
+                children: buttonContents,
+            }}
+            menu={{
+                id: 'AddChannelCtaDropdown',
+                className: 'AddChannelsCtaDropdown',
+                'aria-label': intl.formatMessage({id: 'sidebar_left.addChannelsCta', defaultMessage: 'Add Channels'}),
+                onToggle: handleMenuToggle,
+            }}
         >
-            {addChannelsButton()}
-            <Menu
-                id='AddChannelCtaDropdown'
-                ariaLabel={intl.formatMessage({id: 'sidebar_left.add_channel_cta_dropdown.dropdownAriaLabel', defaultMessage: 'Add Channels Dropdown'})}
-            >
-                {renderDropdownItems()}
-            </Menu>
-        </MenuWrapper>
+            {renderDropdownItems()}
+        </Menu.Container>
     );
 };
 

@@ -176,8 +176,10 @@ $sidebarOpacityAnimationDuration: 0.15s;
         &__inviteMembersLhsButton,
         &__addChannelsCtaLhsButton {
             display: flex;
-            padding: 6px 0;
-            margin-left: 15px;
+            padding-top: 6px;
+            padding-right: 0px;
+            padding-bottom: 6px;
+            padding-left: 15px;
             color: rgba(var(--sidebar-text-rgb), 0.64);
             line-height: 20px;
             list-style: none;
@@ -200,7 +202,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
 
         &__addChannelsCtaLhsButton {
             border: none;
-            margin-left: 0;
             background: none;
 
             div {
@@ -637,19 +638,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
 
             .SidebarChannelGroupHeader_groupButton {
                 border-radius: 4px;
-            }
-        }
-    }
-
-    .AddChannelsCtaDropdown .dropdown-menu {
-        min-width: 210px !important;
-        margin-left: 20px;
-
-        .MenuItem button span {
-            color: rgba(var(--center-channel-color-rgb), 0.9);
-
-            i {
-                color: rgba(var(--center-channel-color-rgb), 0.64);
             }
         }
     }
