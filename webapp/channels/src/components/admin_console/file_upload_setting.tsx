@@ -31,18 +31,6 @@ const FileUploadSetting = ({
 }: Props) => {
     const [fileNameFromState, setFileNameFromState] = useState<string | null>(null);
 
-    /**
-     * 'serverError' state in the class component is never updated and is set to the
-     * 'error' received in the props.
-     *
-     * Since the state is never updated and is only used when checking if it has a value,
-     * it might as well be the same as using the prop directly, so I'll do just that.
-     *
-     * Delete this comment after PR review.
-     */
-
-    // const [serverErrorFromState, setServerErrorFromState] = useState<string | undefined>(errorFromProps);
-
     const [isUploading, setIsUploading] = useState(false);
     const [isFileSelected, setIsFileSelected] = useState(false);
 
