@@ -155,8 +155,7 @@ func (s *SqlDraftStore) Upsert(draft *model.Draft) (*model.Draft, error) {
 func (s *SqlDraftStore) UpsertPageDraft(draft *model.Draft) (*model.Draft, error) {
 	draft.PreSave()
 
-	maxDraftSize := s.GetMaxDraftSize()
-	if err := draft.IsValid(maxDraftSize); err != nil {
+	if err := draft.BaseIsValid(); err != nil {
 		return nil, err
 	}
 
@@ -187,8 +186,7 @@ func (s *SqlDraftStore) UpsertPageDraft(draft *model.Draft) (*model.Draft, error
 func (s *SqlDraftStore) UpsertPageDraftT(transaction *sqlxTxWrapper, draft *model.Draft) (*model.Draft, error) {
 	draft.PreSave()
 
-	maxDraftSize := s.GetMaxDraftSize()
-	if err := draft.IsValid(maxDraftSize); err != nil {
+	if err := draft.BaseIsValid(); err != nil {
 		return nil, err
 	}
 
@@ -588,7 +586,11 @@ func (s *SqlDraftStore) CreatePageDraft(content *model.PageContent) (*model.Page
 		return nil, errors.Wrapf(err, "failed to create page draft with pageId=%s, userId=%s", content.PageId, content.UserId)
 	}
 
-	return s.GetPageDraft(content.PageId, content.UserId)
+	// Return the content directly instead of re-reading from replica
+	// to avoid read-after-write consistency issues with replica lag.
+	// HasPublishedVersion is false for newly created drafts.
+	content.HasPublishedVersion = false
+	return content, nil
 }
 
 // UpsertPageDraftContent creates or updates a page draft with optimistic locking.
@@ -982,20 +984,41 @@ func (s *SqlDraftStore) CreateDraftFromPublished(pageId, userId string) (*model.
 
 	now := model.GetMillis()
 
-	// Copy from published to new draft row
+	// Copy from published to new draft row and return the inserted data
 	// UserId = '' means published (source), UserId = $1 (non-empty) means draft (destination)
-	_, err = s.GetMaster().Exec(`
+	// Use RETURNING to avoid read-after-write consistency issues with replica lag
+	var content model.PageContent
+	var contentJSON string
+	err = s.GetMaster().QueryRow(`
 		INSERT INTO PageContents (PageId, UserId, WikiId, Title, Content, SearchText, BaseUpdateAt, CreateAt, UpdateAt, DeleteAt)
 		SELECT PageId, $1, WikiId, Title, Content, SearchText, UpdateAt, $2, $2, 0
 		FROM PageContents
-		WHERE PageId = $3 AND UserId = ''`,
-		userId, now, pageId)
+		WHERE PageId = $3 AND UserId = ''
+		RETURNING PageId, UserId, WikiId, Title, Content, SearchText, BaseUpdateAt, CreateAt, UpdateAt, DeleteAt`,
+		userId, now, pageId).Scan(
+		&content.PageId,
+		&content.UserId,
+		&content.WikiId,
+		&content.Title,
+		&contentJSON,
+		&content.SearchText,
+		&content.BaseUpdateAt,
+		&content.CreateAt,
+		&content.UpdateAt,
+		&content.DeleteAt,
+	)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create draft from published")
 	}
 
-	return s.GetPageDraft(pageId, userId)
+	if err := content.SetDocumentJSON(contentJSON); err != nil {
+		return nil, errors.Wrap(err, "failed to parse content JSON")
+	}
+
+	// HasPublishedVersion is true since we're copying from a published page
+	content.HasPublishedVersion = true
+	return &content, nil
 }
 
 // PermanentDeletePageDraftsByUser removes all page drafts for a user

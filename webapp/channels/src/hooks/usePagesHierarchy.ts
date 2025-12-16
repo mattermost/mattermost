@@ -6,7 +6,6 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import {
     toggleNodeExpanded,
-    setSelectedPage,
     expandAncestors,
     togglePagesPanel,
     openPagesPanel,
@@ -16,7 +15,6 @@ import {
 import {
     getPagesTree,
     getExpandedNodes,
-    getSelectedPageId,
     getIsPanesPanelCollapsed,
     getLastViewedPage,
 } from 'selectors/pages_hierarchy';
@@ -35,17 +33,12 @@ export function usePagesHierarchy(wikiId: string) {
 
     const tree = useSelector((state: GlobalState) => getPagesTree(state, wikiId));
     const expandedNodes = useSelector((state: GlobalState) => getExpandedNodes(state, wikiId));
-    const selectedPageId = useSelector(getSelectedPageId);
     const isPanelCollapsed = useSelector(getIsPanesPanelCollapsed);
     const lastViewedPage = useSelector((state: GlobalState) => getLastViewedPage(state, wikiId));
 
     const toggleExpanded = useCallback((nodeId: string) => {
         dispatch(toggleNodeExpanded(wikiId, nodeId));
     }, [dispatch, wikiId]);
-
-    const selectPage = useCallback((pageId: string | null) => {
-        dispatch(setSelectedPage(pageId));
-    }, [dispatch]);
 
     const expandNodeAncestors = useCallback((ancestorIds: string[]) => {
         dispatch(expandAncestors(wikiId, ancestorIds));
@@ -74,11 +67,9 @@ export function usePagesHierarchy(wikiId: string) {
     return {
         tree,
         expandedNodes,
-        selectedPageId,
         isPanelCollapsed,
         lastViewedPage,
         toggleExpanded,
-        selectPage,
         expandNodeAncestors,
         togglePanel,
         openPanel,

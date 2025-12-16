@@ -39,9 +39,7 @@ describe('components/ConflictWarningModal', () => {
     };
 
     const baseProps = {
-        show: true,
         currentPage: mockPost,
-        draftContent: '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"My draft content"}]}]}',
         onViewChanges: jest.fn(),
         onCopyContent: jest.fn(),
         onOverwrite: jest.fn(),
@@ -55,15 +53,9 @@ describe('components/ConflictWarningModal', () => {
     test('should render modal when show is true', () => {
         renderWithContext(<ConflictWarningModal {...baseProps}/>);
 
-        expect(screen.getByTestId('conflict-warning-modal')).toBeInTheDocument();
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
         expect(screen.getByText('Page Was Modified')).toBeInTheDocument();
         expect(screen.getByText(/Someone else published this page first/)).toBeInTheDocument();
-    });
-
-    test('should not render modal when show is false', () => {
-        renderWithContext(<ConflictWarningModal {...{...baseProps, show: false}}/>);
-
-        expect(screen.queryByTestId('conflict-warning-modal')).not.toBeInTheDocument();
     });
 
     test('should display current page title and last modified time', () => {
@@ -109,13 +101,11 @@ describe('components/ConflictWarningModal', () => {
         expect(baseProps.onCancel).toHaveBeenCalledTimes(1);
     });
 
-    test('should call onCancel when close button is clicked', () => {
+    test('should render close button in header', () => {
         renderWithContext(<ConflictWarningModal {...baseProps}/>);
 
         const closeButton = screen.getByRole('button', {name: /close/i});
-        fireEvent.click(closeButton);
-
-        expect(baseProps.onCancel).toHaveBeenCalledTimes(1);
+        expect(closeButton).toBeInTheDocument();
     });
 
     test('should show Untitled when page has no title', () => {

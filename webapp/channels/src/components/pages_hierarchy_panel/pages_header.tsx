@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {useIntl} from 'react-intl';
 
 type Props = {
     title: string;
@@ -11,6 +12,8 @@ type Props = {
 };
 
 const PagesHeader = ({title, onNewPage, onCollapse, isCreating}: Props) => {
+    const {formatMessage} = useIntl();
+
     return (
         <div
             className='PagesHierarchyPanel__header'
@@ -20,7 +23,7 @@ const PagesHeader = ({title, onNewPage, onCollapse, isCreating}: Props) => {
                 <button
                     className='PagesHierarchyPanel__collapseButton btn btn-icon btn-sm'
                     onClick={onCollapse}
-                    aria-label='Collapse pages panel'
+                    aria-label={formatMessage({id: 'pages_panel.collapse', defaultMessage: 'Collapse pages panel'})}
                     data-testid='pages-panel-collapse-button'
                 >
                     <i className='icon icon-menu-variant'/>
@@ -35,7 +38,7 @@ const PagesHeader = ({title, onNewPage, onCollapse, isCreating}: Props) => {
             <button
                 className='PagesHierarchyPanel__newPage btn btn-icon btn-sm'
                 onClick={onNewPage}
-                aria-label='Create new page'
+                aria-label={formatMessage({id: 'pages_panel.create_new_page', defaultMessage: 'Create new page'})}
                 disabled={isCreating}
                 data-testid='new-page-button'
             >

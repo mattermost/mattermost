@@ -8,7 +8,10 @@ import {
     createWikiThroughUI,
     createPageThroughUI,
     enterEditMode,
+    getEditor,
     getEditorAndWait,
+    getHierarchyPanel,
+    getPageViewerContent,
     publishPage,
     createTestUserInChannel,
     selectAllText,
@@ -53,7 +56,7 @@ test.skip(
         await user2Page.goto(wikiPageUrl);
         await user2Page.waitForLoadState('networkidle');
 
-        const user2HierarchyPanel = user2Page.locator('[data-testid="pages-hierarchy-panel"]');
+        const user2HierarchyPanel = getHierarchyPanel(user2Page);
         await user2HierarchyPanel.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
 
         const pageNode = user2HierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle});
@@ -69,7 +72,7 @@ test.skip(
         await editor2.pressSequentially(' - User 2 is typing...');
 
         // # User 1 enters edit mode and publishes
-        const hierarchyPanel1 = page1.locator('[data-testid="pages-hierarchy-panel"]');
+        const hierarchyPanel1 = getHierarchyPanel(page1);
         const pageNode1 = hierarchyPanel1.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle});
         await pageNode1.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
         await pageNode1.click();
@@ -84,7 +87,7 @@ test.skip(
         await page1.waitForTimeout(AUTOSAVE_WAIT);
 
         // * Verify User 1's publish succeeded
-        const pageContent1 = page1.locator('[data-testid="page-viewer-content"]');
+        const pageContent1 = getPageViewerContent(page1);
         await expect(pageContent1).toContainText('User 1 published changes');
 
         // * Verify User 2 sees a notification/banner that page was modified
@@ -140,7 +143,7 @@ test.skip(
         await editButton2.click();
 
         // # User 1 publishes first
-        const editor1 = page1.locator('.ProseMirror').first();
+        const editor1 = getEditor(page1);
         await editor1.click();
         await editor1.pressSequentially(' User 1 changes');
 
@@ -149,7 +152,7 @@ test.skip(
         await page1.waitForLoadState('networkidle');
 
         // # User 2 tries to publish
-        const editor2 = user2Page.locator('.ProseMirror').first();
+        const editor2 = getEditor(user2Page);
         await editor2.click();
         await editor2.pressSequentially(' User 2 changes');
 
@@ -164,7 +167,7 @@ test.skip(
 
         // * Verify User 2's editor reloads with User 1's changes
         await user2Page.waitForLoadState('networkidle');
-        const editorContent2 = user2Page.locator('.ProseMirror').first();
+        const editorContent2 = getEditor(user2Page);
         await expect(editorContent2).toContainText('User 1 changes');
     },
 );
@@ -203,7 +206,7 @@ test.skip(
         await editButton2.click();
 
         // # User 1 publishes
-        const editor1 = page1.locator('.ProseMirror').first();
+        const editor1 = getEditor(page1);
         await editor1.click();
         await editor1.pressSequentially(' - Version A');
 
@@ -212,7 +215,7 @@ test.skip(
         await page1.waitForLoadState('networkidle');
 
         // # User 2 tries to overwrite
-        const editor2 = user2Page.locator('.ProseMirror').first();
+        const editor2 = getEditor(user2Page);
         await editor2.click();
         await editor2.pressSequentially(' - Version B');
 
@@ -290,11 +293,21 @@ test.skip(
 
 /**
  * @objective Verify system handles non-conflicting edits gracefully
+ *
+ * @precondition
+ * Intelligent merging is implemented (currently not available - this test documents expected behavior)
  */
 test.skip(
     'preserves both users changes when merging non-conflicting edits',
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
+        // SKIPPED: This test documents expected behavior for intelligent merging of non-conflicting edits.
+        // Currently, the system uses simple conflict detection (version-based) which shows a conflict
+        // modal even when edits are in different sections. Intelligent merging would require:
+        // 1. Diff-based conflict detection at the section/paragraph level
+        // 2. Automatic merging when changes don't overlap
+        // This test should be unskipped when intelligent merging is implemented.
+
         const {team, user: user1, adminClient} = sharedPagesSetup;
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
@@ -304,7 +317,7 @@ test.skip(
         await channelsPage.toBeVisible();
 
         const wiki = await createWikiThroughUI(page1, `Merge Wiki ${await pw.random.id()}`);
-        const page = await createPageThroughUI(page1, 'Merge Test', 'Section A content.\n\nSection B content.');
+        const testPage = await createPageThroughUI(page1, 'Merge Test', 'Section A content.\n\nSection B content.');
 
         // # Create user2 and add to channel
         const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
@@ -314,7 +327,7 @@ test.skip(
         await editButton1.click();
 
         const {page: user2Page} = await pw.testBrowser.login(user2);
-        await user2Page.goto(buildChannelPageUrl(pw.url, team.name, channel.name, wiki.id, page.id));
+        await user2Page.goto(buildChannelPageUrl(pw.url, team.name, channel.name, wiki.id, testPage.id));
         await user2Page.waitForLoadState('networkidle');
 
         const editButton2 = user2Page.locator('[data-testid="wiki-page-edit-button"]').first();
@@ -322,7 +335,7 @@ test.skip(
         await editButton2.click();
 
         // # User 1 edits Section A
-        const editor1 = page1.locator('.ProseMirror').first();
+        const editor1 = getEditor(page1);
         await editor1.click();
 
         // Select and replace "Section A content"
@@ -334,7 +347,7 @@ test.skip(
         await page1.waitForLoadState('networkidle');
 
         // # User 2 tries to edit Section B (different section)
-        const editor2 = user2Page.locator('.ProseMirror').first();
+        const editor2 = getEditor(user2Page);
         await editor2.click();
 
         // Replace content with modified Section B
@@ -343,11 +356,39 @@ test.skip(
 
         const publishButton2 = user2Page.locator('[data-testid="wiki-page-publish-button"]').first();
         await publishButton2.click();
-
-        // * Implementation-specific: Either both changes are preserved (intelligent merging)
-        // OR User 2 sees conflict (simple conflict detection)
-        // This test documents the expected behavior
         await user2Page.waitForLoadState('networkidle');
+        await user2Page.waitForTimeout(EDITOR_LOAD_WAIT);
+
+        // * With intelligent merging: Both changes should be preserved
+        // Check if conflict modal appears (current behavior) or changes merged (expected behavior)
+        const conflictModal = user2Page
+            .locator('.conflict-warning-modal, .modal:has-text("Page Was Modified")')
+            .first();
+        const hasConflict = await conflictModal.isVisible({timeout: WEBSOCKET_WAIT}).catch(() => false);
+
+        if (hasConflict) {
+            // Current behavior: Simple conflict detection shows conflict modal
+            // User 2 should choose to overwrite to save their changes
+            const overwriteButton = conflictModal.getByRole('button', {name: /Overwrite/i});
+            await overwriteButton.click();
+            await user2Page.waitForLoadState('networkidle');
+        }
+
+        // * Verify User 2's content was saved
+        const pageViewer2 = getPageViewerContent(user2Page);
+        await expect(pageViewer2).toBeVisible({timeout: HIERARCHY_TIMEOUT});
+        await expect(pageViewer2).toContainText('Section B modified by User 2');
+
+        // * Verify via API that the page was saved (authoritative check)
+        const serverPage = await adminClient.getPage(wiki.id, testPage.id);
+        expect(serverPage.message).toContain('Section B modified by User 2');
+
+        // Note: With simple conflict detection, User 1's changes may be lost
+        // With intelligent merging, both changes would be preserved:
+        // expect(serverPage.message).toContain('Section A modified by User 1');
+        // expect(serverPage.message).toContain('Section B modified by User 2');
+
+        await user2Page.close();
     },
 );
 
@@ -433,7 +474,7 @@ test(
         }
 
         // * Verify User 2's content was saved via UI (first write wins)
-        const pageViewer2 = page2.locator('[data-testid="page-viewer-content"]');
+        const pageViewer2 = getPageViewerContent(page2);
         await expect(pageViewer2).toBeVisible({timeout: HIERARCHY_TIMEOUT});
         await expect(pageViewer2).toContainText('User 2 edit');
         await expect(pageViewer2).toContainText('Original content');
@@ -475,7 +516,7 @@ test(
         // * Verify via User 2's view - User 2's content remains unchanged
         await page2.reload();
         await page2.waitForLoadState('networkidle');
-        const pageViewer2After = page2.locator('[data-testid="page-viewer-content"]');
+        const pageViewer2After = getPageViewerContent(page2);
         await expect(pageViewer2After).toBeVisible({timeout: ELEMENT_TIMEOUT});
         await expect(pageViewer2After).toContainText('User 2 edit');
         await expect(pageViewer2After).not.toContainText('User 1 edit');
@@ -564,7 +605,7 @@ test(
         }
 
         // * Verify User 2's content was saved (first write)
-        const pageViewer2 = page2.locator('[data-testid="page-viewer-content"]');
+        const pageViewer2 = getPageViewerContent(page2);
         await expect(pageViewer2).toBeVisible({timeout: HIERARCHY_TIMEOUT});
         await expect(pageViewer2).toContainText('User 2 edit');
 
@@ -599,7 +640,7 @@ test(
 
         // * Verify User 1's content now replaces User 2's (escape hatch worked)
         await page1.waitForLoadState('networkidle');
-        const pageViewer1 = page1.locator('[data-testid="page-viewer-content"]');
+        const pageViewer1 = getPageViewerContent(page1);
         await expect(pageViewer1).toBeVisible({timeout: ELEMENT_TIMEOUT});
         await expect(pageViewer1).toContainText('User 1 edit');
         await expect(pageViewer1).toContainText('Original content');
@@ -608,7 +649,7 @@ test(
         // * Verify via User 2's view - User 1's content now visible
         await page2.reload();
         await page2.waitForLoadState('networkidle');
-        const pageViewer2After = page2.locator('[data-testid="page-viewer-content"]');
+        const pageViewer2After = getPageViewerContent(page2);
         await expect(pageViewer2After).toBeVisible({timeout: ELEMENT_TIMEOUT});
         await expect(pageViewer2After).toContainText('User 1 edit');
         await expect(pageViewer2After).not.toContainText('User 2 edit');
@@ -654,7 +695,7 @@ test.skip(
         const createdPage = await createPageThroughUI(page1, pageTitle, originalContent);
 
         // # User 1 enters edit mode
-        const hierarchyPanel = page1.locator('[data-testid="pages-hierarchy-panel"]');
+        const hierarchyPanel = getHierarchyPanel(page1);
         const pageNode = hierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle});
         await pageNode.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
         await pageNode.click();
@@ -672,7 +713,7 @@ test.skip(
         await user2Page.goto(wikiPageUrl);
         await user2Page.waitForLoadState('networkidle');
 
-        const user2HierarchyPanel = user2Page.locator('[data-testid="pages-hierarchy-panel"]');
+        const user2HierarchyPanel = getHierarchyPanel(user2Page);
         await user2HierarchyPanel.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
 
         const pageNode2 = user2HierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle});
@@ -717,7 +758,7 @@ test.skip(
         await newPage.waitForLoadState('networkidle');
 
         // * Verify the new tab shows the published content (User 1's version)
-        const newPageViewer = newPage.locator('[data-testid="page-viewer-content"]');
+        const newPageViewer = getPageViewerContent(newPage);
         await expect(newPageViewer).toBeVisible({timeout: ELEMENT_TIMEOUT});
         await expect(newPageViewer).toContainText('User 1 version');
         await expect(newPageViewer).not.toContainText('User 2 version');
@@ -756,7 +797,7 @@ test(
         const createdPage = await createPageThroughUI(page1, pageTitle, originalContent);
 
         // # User 1 enters edit mode
-        const hierarchyPanel = page1.locator('[data-testid="pages-hierarchy-panel"]');
+        const hierarchyPanel = getHierarchyPanel(page1);
         const pageNode = hierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle});
         await pageNode.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
         await pageNode.click();
@@ -774,7 +815,7 @@ test(
         await user2Page.goto(wikiPageUrl);
         await user2Page.waitForLoadState('networkidle');
 
-        const user2HierarchyPanel = user2Page.locator('[data-testid="pages-hierarchy-panel"]');
+        const user2HierarchyPanel = getHierarchyPanel(user2Page);
         await user2HierarchyPanel.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
 
         const pageNode2 = user2HierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle});
@@ -849,7 +890,7 @@ test('stays in edit mode when Cancel clicked in conflict modal', {tag: '@pages'}
     const createdPage = await createPageThroughUI(page1, pageTitle, originalContent);
 
     // # User 1 enters edit mode
-    const hierarchyPanel = page1.locator('[data-testid="pages-hierarchy-panel"]');
+    const hierarchyPanel = getHierarchyPanel(page1);
     const pageNode = hierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle});
     await pageNode.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
     await pageNode.click();
@@ -867,7 +908,7 @@ test('stays in edit mode when Cancel clicked in conflict modal', {tag: '@pages'}
     await user2Page.goto(wikiPageUrl);
     await user2Page.waitForLoadState('networkidle');
 
-    const user2HierarchyPanel = user2Page.locator('[data-testid="pages-hierarchy-panel"]');
+    const user2HierarchyPanel = getHierarchyPanel(user2Page);
     await user2HierarchyPanel.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
 
     const pageNode2 = user2HierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle});

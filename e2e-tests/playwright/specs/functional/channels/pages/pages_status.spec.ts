@@ -8,6 +8,7 @@ import {
     createPageThroughUI,
     createTestChannel,
     DEFAULT_PAGE_STATUS,
+    getEditor,
     getNewPageButton,
     fillCreatePageModal,
     PAGE_STATUSES,
@@ -237,7 +238,7 @@ test(
 
         // # Fill in page content and publish
 
-        const editor = page.locator('.ProseMirror');
+        const editor = getEditor(page);
         await editor.click();
         await editor.fill('Test content');
 
@@ -403,7 +404,7 @@ test('persists status selected in draft mode after publishing', {tag: '@pages'},
 
     // # Enter page content
 
-    const editor = page.locator('.ProseMirror');
+    const editor = getEditor(page);
     await editor.click();
     await editor.fill('This is draft content');
 
@@ -455,7 +456,7 @@ test('persists status through draft autosave and browser refresh', {tag: '@pages
     await page.waitForLoadState('networkidle');
 
     // # Enter content
-    const editor = page.locator('.ProseMirror');
+    const editor = getEditor(page);
     await editor.click();
     await editor.fill('Content with status');
 
@@ -525,7 +526,7 @@ test(
         await page.waitForLoadState('networkidle');
 
         // # Enter page content
-        const editor = page.locator('.ProseMirror');
+        const editor = getEditor(page);
         await editor.click();
         await editor.fill('Testing immediate publish after status change');
 
@@ -598,7 +599,7 @@ test('persists status when updating existing page through draft', {tag: '@pages'
     await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // # Update the content
-    const editor = page.locator('.ProseMirror');
+    const editor = getEditor(page);
     await editor.click();
     await page.keyboard.press('End');
     await editor.type(' Updated content');

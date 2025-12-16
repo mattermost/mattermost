@@ -5,6 +5,7 @@ import {expect, test} from './pages_test_fixture';
 import {
     createWikiThroughUI,
     getNewPageButton,
+    getPageViewerContent,
     fillCreatePageModal,
     waitForPageInHierarchy,
     publishCurrentPage,
@@ -123,7 +124,7 @@ test(
         expect(translationErrors).toHaveLength(0);
 
         // * Verify page published successfully
-        const pageContent = page.locator('[data-testid="page-viewer-content"]');
+        const pageContent = getPageViewerContent(page);
         await expect(pageContent).toBeVisible();
         await expect(pageContent).toContainText('Heading from Confluence');
 

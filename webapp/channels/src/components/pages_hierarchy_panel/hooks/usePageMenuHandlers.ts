@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {useState, useCallback, useMemo} from 'react';
+import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import type {Post} from '@mattermost/types/posts';
@@ -11,15 +12,20 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {removePageDraft, savePageDraft} from 'actions/page_drafts';
 import {createPage, deletePage, duplicatePage, loadChannelWikis, loadPages, movePageToWiki, updatePage} from 'actions/pages';
+import {openModal} from 'actions/views/modals';
 import {expandAncestors} from 'actions/views/pages_hierarchy';
 
-import {PageDisplayTypes} from 'utils/constants';
+import DeletePageModal from 'components/delete_page_modal';
+import MovePageModal from 'components/move_page_modal';
+import TextInputModal from 'components/text_input_modal';
+
+import {ModalIdentifiers, PageDisplayTypes} from 'utils/constants';
 import {getPageTitle} from 'utils/post_utils';
 
 import type {PostDraft} from 'types/store/draft';
 
 import type {DraftPage} from '../utils/tree_builder';
-import {convertDraftToPagePost} from '../utils/tree_builder';
+import {convertDraftToPagePost, getDescendantIds} from '../utils/tree_builder';
 
 type UsePageMenuHandlersProps = {
     wikiId: string;
@@ -32,6 +38,7 @@ type UsePageMenuHandlersProps = {
 
 export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSelect, onCancelAutosave}: UsePageMenuHandlersProps) => {
     const dispatch = useDispatch();
+    const {formatMessage} = useIntl();
 
     // Convert drafts to Post-like objects and combine with pages
     // If a draft exists for a page, it should replace the published page in the list
@@ -46,9 +53,6 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         return [...pagesWithoutDrafts, ...draftPosts];
     }, [pages, drafts]);
 
-    const [showCreatePageModal, setShowCreatePageModal] = useState(false);
-    const [showMoveModal, setShowMoveModal] = useState(false);
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [createPageParent, setCreatePageParent] = useState<{id: string; title: string} | null>(null);
     const [pageToMove, setPageToMove] = useState<{pageId: string; pageTitle: string; hasChildren: boolean} | null>(null);
     const [pageToDelete, setPageToDelete] = useState<{page: Post; childCount: number} | null>(null);
@@ -57,71 +61,103 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
     const [creatingPage, setCreatingPage] = useState(false);
     const [showBookmarkModal, setShowBookmarkModal] = useState(false);
     const [pageToBookmark, setPageToBookmark] = useState<{pageId: string; pageTitle: string} | null>(null);
-    const [showRenameModal, setShowRenameModal] = useState(false);
     const [pageToRename, setPageToRename] = useState<{pageId: string; currentTitle: string} | null>(null);
     const [renamingPage, setRenamingPage] = useState(false);
 
-    const getDescendantCount = useCallback((pageId: string): number => {
-        const children = allPages.filter((p) => p.page_parent_id === pageId);
-        let count = children.length;
-        children.forEach((child) => {
-            count += getDescendantCount(child.id);
-        });
-        return count;
-    }, [allPages]);
+    const handleCreateRootPage = useCallback(() => {
+        if (creatingPage) {
+            return;
+        }
 
-    const getAllDescendantIds = useCallback((pageId: string): string[] => {
-        const children = allPages.filter((p) => p.page_parent_id === pageId);
-        const descendantIds: string[] = [];
-        children.forEach((child) => {
-            descendantIds.push(child.id);
-            descendantIds.push(...getAllDescendantIds(child.id));
-        });
-        return descendantIds;
-    }, [allPages]);
+        setCreatePageParent(null);
+
+        dispatch(openModal({
+            modalId: ModalIdentifiers.PAGE_CREATE,
+            dialogType: TextInputModal,
+            dialogProps: {
+                title: formatMessage({id: 'pages_panel.create_modal.title', defaultMessage: 'Create New Page'}),
+                fieldLabel: formatMessage({id: 'pages_panel.modal.field_label', defaultMessage: 'Page title'}),
+                placeholder: formatMessage({id: 'pages_panel.modal.placeholder', defaultMessage: 'Enter page title...'}),
+                helpText: formatMessage({id: 'pages_panel.create_modal.help_text', defaultMessage: 'A new draft will be created for you to edit.'}),
+                confirmButtonText: formatMessage({id: 'pages_panel.create_modal.confirm', defaultMessage: 'Create'}),
+                maxLength: 255,
+                ariaLabel: formatMessage({id: 'pages_panel.create_modal.aria_label', defaultMessage: 'Create Page'}),
+                inputTestId: 'create-page-modal-title-input',
+                modalId: ModalIdentifiers.PAGE_CREATE,
+                onConfirm: async (title: string) => {
+                    setCreatingPage(true);
+                    try {
+                        const result = await dispatch(createPage(wikiId, title, undefined)) as ActionResult<string>;
+                        if (result.error) {
+                            throw result.error;
+                        }
+                        if (result.data) {
+                            const draftId = result.data;
+                            onPageSelect?.(draftId, true);
+                        }
+                    } finally {
+                        setCreatingPage(false);
+                    }
+                },
+                onCancel: () => {},
+            },
+        }));
+    }, [creatingPage, dispatch, formatMessage, wikiId, onPageSelect]);
 
     const handleCreateChild = useCallback((pageId: string) => {
         if (creatingPage) {
             return;
         }
         const parentPage = allPages.find((p) => p.id === pageId);
+        const parentTitle = getPageTitle(parentPage);
+
         setCreatePageParent({
             id: pageId,
-            title: getPageTitle(parentPage),
+            title: parentTitle,
         });
-        setShowCreatePageModal(true);
-    }, [allPages, creatingPage]);
 
-    const handleConfirmCreatePage = useCallback(async (title: string) => {
-        setCreatingPage(true);
-        try {
-            const parentPageId = createPageParent?.id;
-            const result = await dispatch(createPage(wikiId, title, parentPageId)) as ActionResult<string>;
-            if (result.error) {
-                setCreatingPage(false);
-                throw result.error;
-            }
-
-            if (result.data) {
-                const draftId = result.data;
-                if (parentPageId) {
-                    dispatch(expandAncestors(wikiId, [parentPageId]));
-                }
-
-                // Pass true to indicate this is a new draft (not a published page)
-                onPageSelect?.(draftId, true);
-            }
-        } finally {
-            setCreatingPage(false);
-            setCreatePageParent(null);
-            setShowCreatePageModal(false);
-        }
-    }, [dispatch, createPageParent, wikiId, onPageSelect]);
-
-    const handleCancelCreatePage = useCallback(() => {
-        setShowCreatePageModal(false);
-        setCreatePageParent(null);
-    }, []);
+        dispatch(openModal({
+            modalId: ModalIdentifiers.PAGE_CREATE,
+            dialogType: TextInputModal,
+            dialogProps: {
+                title: formatMessage(
+                    {id: 'pages_panel.create_child_modal.title', defaultMessage: 'Create Child Page under "{parentTitle}"'},
+                    {parentTitle},
+                ),
+                fieldLabel: formatMessage({id: 'pages_panel.modal.field_label', defaultMessage: 'Page title'}),
+                placeholder: formatMessage({id: 'pages_panel.modal.placeholder', defaultMessage: 'Enter page title...'}),
+                helpText: formatMessage(
+                    {id: 'pages_panel.create_child_modal.help_text', defaultMessage: 'This page will be created as a child of "{parentTitle}".'},
+                    {parentTitle},
+                ),
+                confirmButtonText: formatMessage({id: 'pages_panel.create_modal.confirm', defaultMessage: 'Create'}),
+                maxLength: 255,
+                ariaLabel: formatMessage({id: 'pages_panel.create_modal.aria_label', defaultMessage: 'Create Page'}),
+                inputTestId: 'create-page-modal-title-input',
+                modalId: ModalIdentifiers.PAGE_CREATE,
+                onConfirm: async (title: string) => {
+                    setCreatingPage(true);
+                    try {
+                        const result = await dispatch(createPage(wikiId, title, pageId)) as ActionResult<string>;
+                        if (result.error) {
+                            throw result.error;
+                        }
+                        if (result.data) {
+                            const draftId = result.data;
+                            dispatch(expandAncestors(wikiId, [pageId]));
+                            onPageSelect?.(draftId, true);
+                        }
+                    } finally {
+                        setCreatingPage(false);
+                        setCreatePageParent(null);
+                    }
+                },
+                onCancel: () => {
+                    setCreatePageParent(null);
+                },
+            },
+        }));
+    }, [allPages, creatingPage, dispatch, formatMessage, wikiId, onPageSelect]);
 
     const handleRename = useCallback((pageId: string) => {
         if (renamingPage) {
@@ -134,65 +170,72 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
 
         const currentTitle = getPageTitle(page, '');
         setPageToRename({pageId, currentTitle});
-        setShowRenameModal(true);
-    }, [allPages, wikiId, renamingPage]);
 
-    const handleConfirmRename = useCallback(async (newTitle: string) => {
-        if (!pageToRename || !wikiId) {
-            return;
-        }
+        dispatch(openModal({
+            modalId: ModalIdentifiers.PAGE_RENAME,
+            dialogType: TextInputModal,
+            dialogProps: {
+                title: formatMessage({id: 'pages_panel.rename_modal.title', defaultMessage: 'Rename Page'}),
+                fieldLabel: formatMessage({id: 'pages_panel.modal.field_label', defaultMessage: 'Page title'}),
+                placeholder: formatMessage({id: 'pages_panel.modal.placeholder', defaultMessage: 'Enter page title...'}),
+                helpText: formatMessage({id: 'pages_panel.rename_modal.help_text', defaultMessage: 'The page will be renamed immediately.'}),
+                confirmButtonText: formatMessage({id: 'pages_panel.rename_modal.confirm', defaultMessage: 'Rename'}),
+                maxLength: 255,
+                initialValue: currentTitle,
+                ariaLabel: formatMessage({id: 'pages_panel.rename_modal.aria_label', defaultMessage: 'Rename Page'}),
+                inputTestId: 'rename-page-modal-title-input',
+                modalId: ModalIdentifiers.PAGE_RENAME,
+                onConfirm: async (newTitle: string) => {
+                    setRenamingPage(true);
+                    try {
+                        const isDraft = page.type === PageDisplayTypes.PAGE_DRAFT;
 
-        setRenamingPage(true);
-        try {
-            const page = allPages.find((p) => p.id === pageToRename.pageId);
-            const isDraft = page?.type === PageDisplayTypes.PAGE_DRAFT;
+                        if (isDraft) {
+                            const draft = drafts.find((d) => d.rootId === pageId);
 
-            if (isDraft) {
-                const draft = drafts.find((d) => d.rootId === pageToRename.pageId);
+                            if (draft) {
+                                onCancelAutosave?.();
 
-                if (draft) {
-                    onCancelAutosave?.();
+                                const {page_parent_id: pageParentId, has_published_version: hasPublishedVersion, ...otherProps} = draft.props || {};
+                                const propsToPreserve = {
+                                    ...(pageParentId !== undefined && {page_parent_id: pageParentId}),
+                                    ...(hasPublishedVersion !== undefined && {has_published_version: hasPublishedVersion}),
+                                    ...otherProps,
+                                };
 
-                    const {page_parent_id: pageParentId, has_published_version: hasPublishedVersion, ...otherProps} = draft.props || {};
-                    const propsToPreserve = {
-                        ...(pageParentId !== undefined && {page_parent_id: pageParentId}),
-                        ...(hasPublishedVersion !== undefined && {has_published_version: hasPublishedVersion}),
-                        ...otherProps,
-                    };
+                                const contentToSave = draft.message || '';
 
-                    const contentToSave = draft.message || '';
+                                const result = await dispatch(savePageDraft(
+                                    channelId,
+                                    wikiId,
+                                    pageId,
+                                    contentToSave,
+                                    newTitle,
+                                    draft.updateAt,
+                                    propsToPreserve,
+                                )) as ActionResult<boolean>;
 
-                    const result = await dispatch(savePageDraft(
-                        channelId,
-                        wikiId,
-                        pageToRename.pageId,
-                        contentToSave,
-                        newTitle,
-                        draft.updateAt,
-                        propsToPreserve,
-                    )) as ActionResult<boolean>;
-
-                    if (result.error) {
-                        throw result.error;
+                                if (result.error) {
+                                    throw result.error;
+                                }
+                            }
+                        } else {
+                            const result = await dispatch(updatePage(pageId, newTitle, wikiId)) as ActionResult<Post>;
+                            if (result.error) {
+                                throw result.error;
+                            }
+                        }
+                    } finally {
+                        setRenamingPage(false);
+                        setPageToRename(null);
                     }
-                }
-            } else {
-                const result = await dispatch(updatePage(pageToRename.pageId, newTitle, wikiId)) as ActionResult<Post>;
-                if (result.error) {
-                    throw result.error;
-                }
-            }
-        } finally {
-            setRenamingPage(false);
-            setPageToRename(null);
-            setShowRenameModal(false);
-        }
-    }, [dispatch, pageToRename, wikiId, allPages, channelId, drafts, onCancelAutosave]);
-
-    const handleCancelRename = useCallback(() => {
-        setShowRenameModal(false);
-        setPageToRename(null);
-    }, []);
+                },
+                onCancel: () => {
+                    setPageToRename(null);
+                },
+            },
+        }));
+    }, [allPages, wikiId, renamingPage, dispatch, formatMessage, drafts, channelId, onCancelAutosave]);
 
     const handleDuplicate = useCallback(async (pageId: string) => {
         const page = allPages.find((p) => p.id === pageId);
@@ -207,41 +250,65 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         }
     }, [allPages, wikiId, dispatch]);
 
+    const fetchPagesForWiki = useCallback(async (targetWikiId: string): Promise<Post[]> => {
+        try {
+            const wikisResult = await dispatch(loadChannelWikis(channelId));
+            const wikis = (wikisResult as ActionResult<Wiki[]>).data;
+            const targetWiki = wikis?.find((w) => w.id === targetWikiId);
+            if (targetWiki) {
+                const pagesResult = await dispatch(loadPages(targetWikiId));
+                return (pagesResult as ActionResult<Post[]>).data || [];
+            }
+            return [];
+        } catch (error) {
+            return [];
+        }
+    }, [channelId, dispatch]);
+
     const handleMove = useCallback(async (pageId: string) => {
         const page = allPages.find((p) => p.id === pageId);
         if (!page) {
             return;
         }
         const pageTitle = getPageTitle(page);
-        const childCount = getDescendantCount(pageId);
+        const childCount = getDescendantIds(allPages, pageId).length;
         const hasChildren = childCount > 0;
 
         try {
             const result = await dispatch(loadChannelWikis(channelId));
-            setAvailableWikis((result as ActionResult<Wiki[]>).data || []);
+            const wikis = (result as ActionResult<Wiki[]>).data || [];
+
+            // Store for reference
+            setAvailableWikis(wikis);
             setPageToMove({pageId, pageTitle, hasChildren});
-            setShowMoveModal(true);
+
+            // Open modal via modal manager
+            dispatch(openModal({
+                modalId: ModalIdentifiers.PAGE_MOVE,
+                dialogType: MovePageModal,
+                dialogProps: {
+                    pageId,
+                    pageTitle,
+                    currentWikiId: wikiId,
+                    availableWikis: wikis,
+                    fetchPagesForWiki,
+                    hasChildren,
+                    onConfirm: async (targetWikiId: string, parentPageIdArg?: string) => {
+                        try {
+                            await dispatch(movePageToWiki(pageId, wikiId, targetWikiId, parentPageIdArg));
+                        } finally {
+                            setPageToMove(null);
+                        }
+                    },
+                    onCancel: () => {
+                        setPageToMove(null);
+                    },
+                },
+            }));
         } catch (error) {
             // Error handled
         }
-    }, [allPages, channelId, dispatch, getDescendantCount]);
-
-    const handleMoveConfirm = useCallback(async (targetWikiId: string, parentPageId?: string) => {
-        if (!pageToMove) {
-            return;
-        }
-        try {
-            await dispatch(movePageToWiki(pageToMove.pageId, wikiId, targetWikiId, parentPageId));
-        } finally {
-            setShowMoveModal(false);
-            setPageToMove(null);
-        }
-    }, [dispatch, pageToMove, wikiId]);
-
-    const handleMoveCancel = useCallback(() => {
-        setShowMoveModal(false);
-        setPageToMove(null);
-    }, []);
+    }, [allPages, channelId, dispatch, wikiId, fetchPagesForWiki]);
 
     const handleDelete = useCallback((pageId: string) => {
         if (deletingPageId) {
@@ -252,62 +319,54 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
             return;
         }
         const isDraft = page.type === PageDisplayTypes.PAGE_DRAFT;
-        if (isDraft) {
-            setPageToDelete({page, childCount: 0});
-            setShowDeleteModal(true);
-            return;
-        }
-        const childCount = getDescendantCount(pageId);
+        const childCount = isDraft ? 0 : getDescendantIds(allPages, pageId).length;
+        const pageTitle = getPageTitle(page);
+
+        // Store page info for deletion tracking
         setPageToDelete({page, childCount});
-        setShowDeleteModal(true);
-    }, [allPages, deletingPageId, getDescendantCount]);
 
-    const handleDeleteConfirm = useCallback(async (deleteChildren: boolean) => {
-        if (!pageToDelete) {
-            return;
-        }
-        const {page} = pageToDelete;
-        const isDraft = page.type === PageDisplayTypes.PAGE_DRAFT;
-
-        setShowDeleteModal(false);
-        setDeletingPageId(page.id);
-
-        try {
-            if (isDraft) {
-                const result = await dispatch(removePageDraft(wikiId, page.id)) as ActionResult<boolean>;
-                if (result.error) {
-                    return;
-                }
-                onPageSelect?.('');
-            } else {
-                if (deleteChildren) {
-                    const descendantIds = getAllDescendantIds(page.id);
-                    for (const descendantId of descendantIds.reverse()) {
-                        // eslint-disable-next-line no-await-in-loop
-                        const result = await dispatch(deletePage(descendantId, wikiId)) as ActionResult<boolean>;
-                        if (result.error) {
-                            return;
+        // Open modal via modal manager
+        dispatch(openModal({
+            modalId: ModalIdentifiers.PAGE_DELETE,
+            dialogType: DeletePageModal,
+            dialogProps: {
+                pageTitle,
+                childCount,
+                onConfirm: async (deleteChildren: boolean) => {
+                    setDeletingPageId(page.id);
+                    try {
+                        if (isDraft) {
+                            const result = await dispatch(removePageDraft(wikiId, page.id)) as ActionResult<boolean>;
+                            if (result.error) {
+                                throw result.error;
+                            }
+                            onPageSelect?.('');
+                        } else {
+                            if (deleteChildren) {
+                                const descendantIds = getDescendantIds(allPages, page.id);
+                                for (const descendantId of descendantIds.reverse()) {
+                                    // eslint-disable-next-line no-await-in-loop
+                                    const result = await dispatch(deletePage(descendantId, wikiId)) as ActionResult<boolean>;
+                                    if (result.error) {
+                                        throw result.error;
+                                    }
+                                }
+                            }
+                            const result = await dispatch(deletePage(page.id, wikiId)) as ActionResult<boolean>;
+                            if (result.error) {
+                                throw result.error;
+                            }
+                            const parentId = page.page_parent_id || '';
+                            onPageSelect?.(parentId);
                         }
+                    } finally {
+                        setDeletingPageId(null);
+                        setPageToDelete(null);
                     }
-                }
-                const result = await dispatch(deletePage(page.id, wikiId)) as ActionResult<boolean>;
-                if (result.error) {
-                    return;
-                }
-
-                const parentId = page.page_parent_id || '';
-                onPageSelect?.(parentId);
-            }
-        } finally {
-            setDeletingPageId(null);
-            setPageToDelete(null);
-        }
-    }, [dispatch, pageToDelete, wikiId, getAllDescendantIds, onPageSelect]);
-
-    const handleDeleteCancel = useCallback(() => {
-        setShowDeleteModal(false);
-        setPageToDelete(null);
-    }, []);
+                },
+            },
+        }));
+    }, [allPages, deletingPageId, dispatch, wikiId, onPageSelect]);
 
     const handleBookmarkInChannel = useCallback((pageId: string) => {
         const page = allPages.find((p) => p.id === pageId);
@@ -345,24 +404,10 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         setPageToBookmark(null);
     }, []);
 
-    const fetchPagesForWiki = useCallback(async (targetWikiId: string): Promise<Post[]> => {
-        try {
-            const wikisResult = await dispatch(loadChannelWikis(channelId));
-            const wikis = (wikisResult as ActionResult<Wiki[]>).data;
-            const targetWiki = wikis?.find((w) => w.id === targetWikiId);
-            if (targetWiki) {
-                const pagesResult = await dispatch(loadPages(targetWikiId));
-                return (pagesResult as ActionResult<Post[]>).data || [];
-            }
-            return [];
-        } catch (error) {
-            return [];
-        }
-    }, [channelId, dispatch]);
-
     return {
 
         // Handlers
+        handleCreateRootPage,
         handleCreateChild,
         handleRename,
         handleDuplicate,
@@ -370,17 +415,9 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         handleDelete,
         handleBookmarkInChannel,
 
-        // Modal state
-        showCreatePageModal,
-        setShowCreatePageModal,
-        showMoveModal,
-        setShowMoveModal,
-        showDeleteModal,
-        setShowDeleteModal,
+        // Modal state (only bookmark remains inline)
         showBookmarkModal,
         setShowBookmarkModal,
-        showRenameModal,
-        setShowRenameModal,
 
         // Modal data
         createPageParent,
@@ -391,15 +428,7 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         pageToRename,
 
         // Modal handlers
-        handleConfirmCreatePage,
-        handleCancelCreatePage,
-        handleMoveConfirm,
-        handleMoveCancel,
-        handleDeleteConfirm,
-        handleDeleteCancel,
         handleBookmarkCancel,
-        handleConfirmRename,
-        handleCancelRename,
 
         // Helper
         fetchPagesForWiki,

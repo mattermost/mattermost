@@ -4,6 +4,7 @@
 import {TextSelection} from '@tiptap/pm/state';
 import {BubbleMenu} from '@tiptap/react/menus';
 import React from 'react';
+import {useIntl} from 'react-intl';
 
 import './inline_comment_button.scss';
 
@@ -13,6 +14,8 @@ type Props = {
 };
 
 const InlineCommentButton = ({editor, onCreateComment}: Props) => {
+    const {formatMessage} = useIntl();
+
     if (!editor) {
         return null;
     }
@@ -28,6 +31,8 @@ const InlineCommentButton = ({editor, onCreateComment}: Props) => {
             to: selection.to,
         });
     };
+
+    const addCommentLabel = formatMessage({id: 'inline_comment.add_comment', defaultMessage: 'Add comment'});
 
     return (
         <BubbleMenu
@@ -50,8 +55,8 @@ const InlineCommentButton = ({editor, onCreateComment}: Props) => {
                     type='button'
                     onClick={handleClick}
                     className='inline-comment-btn'
-                    aria-label='Add comment'
-                    title='Add comment'
+                    aria-label={addCommentLabel}
+                    title={addCommentLabel}
                     data-testid='inline-comment-submit'
                 >
                     <i className='icon icon-message-plus-outline'/>

@@ -22,6 +22,7 @@ import {
     getBreadcrumbCurrentPage,
     verifyBreadcrumbContains,
     getHierarchyPanel,
+    getPageViewerContent,
     deletePageWithOption,
     getEditorAndWait,
     openHierarchyNodeActionsMenu,
@@ -652,7 +653,7 @@ test('navigates page hierarchy depth of 10 levels', {tag: '@pages'}, async ({pw,
     await createChildPageThroughContextMenu(page, level9.id!, 'Level 10', 'Content at level 10');
 
     // * Verify deepest page content is displayed
-    const pageContent = page.locator('[data-testid="page-viewer-content"]');
+    const pageContent = getPageViewerContent(page);
     await expect(pageContent).toContainText('Content at level 10');
 
     // * Verify breadcrumb shows full hierarchy with all 10 levels
@@ -1128,7 +1129,7 @@ test('maintains stable page order when selecting pages', {tag: '@pages'}, async 
         await titleButton.click();
 
         // Wait for page content to load
-        const pageContent = page.locator('[data-testid="page-viewer-content"]');
+        const pageContent = getPageViewerContent(page);
         await expect(pageContent).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
         // * Verify order is still the same

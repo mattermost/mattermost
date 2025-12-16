@@ -3,6 +3,7 @@
 
 import type {History, Location} from 'history';
 import {useEffect, useLayoutEffect, useState, useCallback, useRef} from 'react';
+import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {Post} from '@mattermost/types/posts';
@@ -17,11 +18,17 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {savePageDraft} from 'actions/page_drafts';
 import {loadChannelDefaultPage, publishPageDraft, loadPage, loadWiki} from 'actions/pages';
+import {openModal, closeModal} from 'actions/views/modals';
 import {openPagesPanel, closePagesPanel} from 'actions/views/pages_hierarchy';
 import {openPageInEditMode} from 'actions/wiki_edit';
 import {getIsPanesPanelCollapsed} from 'selectors/pages_hierarchy';
 
-import {PagePropsKeys} from 'utils/constants';
+import ConflictWarningModal from 'components/conflict_warning_modal';
+import ConfirmOverwriteModal from 'components/conflict_warning_modal/confirm_overwrite_modal';
+import PageVersionHistoryModal from 'components/page_version_history';
+
+import {ModalIdentifiers, PagePropsKeys} from 'utils/constants';
+import {getPageTitle} from 'utils/post_utils';
 import {getWikiUrl, getTeamNameFromPath} from 'utils/url';
 
 import type {GlobalState} from 'types/store';
@@ -217,21 +224,6 @@ type UseWikiPageActionsResult = {
     handleContentChange: (content: string) => void;
     handleDraftStatusChange: (status: string) => void;
     cancelAutosave: () => void;
-    conflictModal: {
-        show: boolean;
-        currentPage: Post | null;
-        draftContent: string;
-        onViewChanges: () => void;
-        onCopyContent: () => void;
-        onOverwrite: () => void;
-        onCancel: () => void;
-    };
-    confirmOverwriteModal: {
-        show: boolean;
-        currentPage: Post | null;
-        onConfirm: () => void;
-        onCancel: () => void;
-    };
 };
 
 /**
@@ -258,9 +250,7 @@ export function useWikiPageActions(
     const currentDraftIdRef = useRef<string | null>(null);
 
     // Conflict modal state
-    const [showConflictModal, setShowConflictModal] = useState(false);
-    const [showConfirmOverwriteModal, setShowConfirmOverwriteModal] = useState(false);
-    const [conflictPageData, setConflictPageData] = useState<Post | null>(null);
+    const [, setConflictPageData] = useState<Post | null>(null);
     const conflictContentRef = useRef<string>('');
 
     // Initialize refs when draft changes. We deliberately use `useLayoutEffect`
@@ -485,8 +475,113 @@ export function useWikiPageActions(
                     ));
 
                     conflictContentRef.current = content;
-                    setConflictPageData(result.error.data.currentPage);
-                    setShowConflictModal(true);
+                    const conflictPage = result.error.data.currentPage as Post;
+                    setConflictPageData(conflictPage);
+
+                    // Open conflict modal via modal manager
+                    dispatch(openModal({
+                        modalId: ModalIdentifiers.PAGE_CONFLICT_WARNING,
+                        dialogType: ConflictWarningModal,
+                        dialogProps: {
+                            currentPage: conflictPage,
+                            onViewChanges: () => {
+                                if (conflictPage?.id && wikiId) {
+                                    const teamName = getTeamNameFromPath(location.pathname);
+                                    const pageUrl = getWikiUrl(teamName, channelId, wikiId, conflictPage.id);
+                                    window.open(pageUrl, '_blank');
+                                }
+                            },
+                            onCopyContent: async () => {
+                                if (conflictContentRef.current) {
+                                    const {extractPlaintextFromTipTapJSON} = await import('utils/tiptap_utils');
+                                    const plainText = extractPlaintextFromTipTapJSON(conflictContentRef.current);
+                                    navigator.clipboard.writeText(plainText || conflictContentRef.current);
+                                }
+                                dispatch(closeModal(ModalIdentifiers.PAGE_CONFLICT_WARNING));
+                            },
+                            onOverwrite: () => {
+                                // Close conflict modal and show confirmation modal
+                                dispatch(closeModal(ModalIdentifiers.PAGE_CONFLICT_WARNING));
+                                dispatch(openModal({
+                                    modalId: ModalIdentifiers.PAGE_CONFIRM_OVERWRITE,
+                                    dialogType: ConfirmOverwriteModal,
+                                    dialogProps: {
+                                        currentPage: conflictPage,
+                                        onConfirm: async () => {
+                                            dispatch(closeModal(ModalIdentifiers.PAGE_CONFIRM_OVERWRITE));
+
+                                            if (!wikiId || !currentDraft) {
+                                                return;
+                                            }
+
+                                            const overwriteContent = conflictContentRef.current || latestContentRef.current || currentDraft.message || '';
+                                            const overwriteTitle = latestTitleRef.current || currentDraft.props?.[PagePropsKeys.TITLE] || '';
+                                            const overwriteStatus = latestStatusRef.current === null ? (currentDraft.props?.[PagePropsKeys.PAGE_STATUS] as string | undefined) : latestStatusRef.current;
+                                            const overwriteDraftRootId = currentDraft.rootId;
+                                            const overwritePageParentIdFromDraft = currentDraft.props?.[PagePropsKeys.PAGE_PARENT_ID];
+
+                                            try {
+                                                const overwriteResult = await dispatch(publishPageDraft(
+                                                    wikiId,
+                                                    overwriteDraftRootId,
+                                                    overwritePageParentIdFromDraft || '',
+                                                    overwriteTitle,
+                                                    '',
+                                                    overwriteContent,
+                                                    overwriteStatus,
+                                                    true, // force = true
+                                                ));
+
+                                                if (overwriteResult.data) {
+                                                    const teamName = getTeamNameFromPath(location.pathname);
+                                                    const redirectUrl = getWikiUrl(teamName, channelId, wikiId, overwriteResult.data.id);
+                                                    history.replace(redirectUrl);
+                                                }
+                                            } catch (e) {
+                                                // Handle error silently
+                                            }
+                                        },
+                                        onCancel: () => {
+                                            // Go back to conflict modal
+                                            dispatch(closeModal(ModalIdentifiers.PAGE_CONFIRM_OVERWRITE));
+                                            dispatch(openModal({
+                                                modalId: ModalIdentifiers.PAGE_CONFLICT_WARNING,
+                                                dialogType: ConflictWarningModal,
+                                                dialogProps: {
+                                                    currentPage: conflictPage,
+                                                    onViewChanges: () => {
+                                                        if (conflictPage?.id && wikiId) {
+                                                            const teamName = getTeamNameFromPath(location.pathname);
+                                                            const pageUrl = getWikiUrl(teamName, channelId, wikiId, conflictPage.id);
+                                                            window.open(pageUrl, '_blank');
+                                                        }
+                                                    },
+                                                    onCopyContent: async () => {
+                                                        if (conflictContentRef.current) {
+                                                            const {extractPlaintextFromTipTapJSON} = await import('utils/tiptap_utils');
+                                                            const plainText = extractPlaintextFromTipTapJSON(conflictContentRef.current);
+                                                            navigator.clipboard.writeText(plainText || conflictContentRef.current);
+                                                        }
+                                                        dispatch(closeModal(ModalIdentifiers.PAGE_CONFLICT_WARNING));
+                                                    },
+                                                    onOverwrite: () => {
+                                                        // This will be handled by the modal itself opening ConfirmOverwrite
+                                                        dispatch(closeModal(ModalIdentifiers.PAGE_CONFLICT_WARNING));
+                                                    },
+                                                    onCancel: () => {
+                                                        // Just close the modal
+                                                    },
+                                                },
+                                            }));
+                                        },
+                                    },
+                                }));
+                            },
+                            onCancel: () => {
+                                // Just close the modal - handled by the modal itself
+                            },
+                        },
+                    }));
                     return;
                 }
                 return;
@@ -542,75 +637,6 @@ export function useWikiPageActions(
         ));
     }, [channelId, wikiId, draftId, currentDraft, dispatch]);
 
-    // Conflict modal handlers
-    const handleConflictViewChanges = useCallback(() => {
-        if (conflictPageData?.id && wikiId) {
-            const teamName = getTeamNameFromPath(location.pathname);
-            const pageUrl = getWikiUrl(teamName, channelId, wikiId, conflictPageData.id);
-            window.open(pageUrl, '_blank');
-        }
-    }, [conflictPageData, channelId, wikiId, location.pathname]);
-
-    const handleConflictCopyContent = useCallback(async () => {
-        if (conflictContentRef.current) {
-            const {extractPlaintextFromTipTapJSON} = await import('utils/tiptap_utils');
-            const plainText = extractPlaintextFromTipTapJSON(conflictContentRef.current);
-            navigator.clipboard.writeText(plainText || conflictContentRef.current);
-        }
-        setShowConflictModal(false);
-    }, []);
-
-    const handleConflictOverwrite = useCallback(() => {
-        // Close conflict modal and show confirmation modal
-        setShowConflictModal(false);
-        setShowConfirmOverwriteModal(true);
-    }, []);
-
-    const handleConfirmOverwrite = useCallback(async () => {
-        try {
-            setShowConfirmOverwriteModal(false);
-
-            if (!wikiId || !currentDraft) {
-                return;
-            }
-
-            const content = conflictContentRef.current || latestContentRef.current || currentDraft.message || '';
-            const title = latestTitleRef.current || currentDraft.props?.[PagePropsKeys.TITLE] || '';
-            const pageStatus = latestStatusRef.current === null ? (currentDraft.props?.[PagePropsKeys.PAGE_STATUS] as string | undefined) : latestStatusRef.current;
-            const draftRootId = currentDraft.rootId;
-            const pageParentIdFromDraft = currentDraft.props?.[PagePropsKeys.PAGE_PARENT_ID];
-
-            const result = await dispatch(publishPageDraft(
-                wikiId,
-                draftRootId,
-                pageParentIdFromDraft || '',
-                title,
-                '',
-                content,
-                pageStatus,
-                true, // force = true
-            ));
-
-            if (result.data) {
-                const teamName = getTeamNameFromPath(location.pathname);
-                const redirectUrl = getWikiUrl(teamName, channelId, wikiId, result.data.id);
-                history.replace(redirectUrl);
-            }
-        } catch (error) {
-            // Handle error silently
-        }
-    }, [wikiId, currentDraft, channelId, location.pathname, history, dispatch]);
-
-    const handleCancelConfirmOverwrite = useCallback(() => {
-        // Go back to conflict modal
-        setShowConfirmOverwriteModal(false);
-        setShowConflictModal(true);
-    }, []);
-
-    const handleConflictCancel = useCallback(() => {
-        setShowConflictModal(false);
-    }, []);
-
     const cancelAutosave = useCallback(() => {
         if (autosaveTimeoutRef.current) {
             clearTimeout(autosaveTimeoutRef.current);
@@ -625,21 +651,6 @@ export function useWikiPageActions(
         handleContentChange,
         handleDraftStatusChange,
         cancelAutosave,
-        conflictModal: {
-            show: showConflictModal,
-            currentPage: conflictPageData,
-            draftContent: conflictContentRef.current,
-            onViewChanges: handleConflictViewChanges,
-            onCopyContent: handleConflictCopyContent,
-            onOverwrite: handleConflictOverwrite,
-            onCancel: handleConflictCancel,
-        },
-        confirmOverwriteModal: {
-            show: showConfirmOverwriteModal,
-            currentPage: conflictPageData,
-            onConfirm: handleConfirmOverwrite,
-            onCancel: handleCancelConfirmOverwrite,
-        },
     };
 }
 
@@ -778,34 +789,46 @@ export function useAutoPageSelection({
     }, [pageId, draftId, allDrafts, newDrafts, allPages, channelId, wikiId, location.pathname, history, lastViewedPageId]);
 }
 
+type UseVersionHistoryParams = {
+    wikiId: string;
+    allPages: Post[];
+};
+
 type UseVersionHistoryResult = {
-    showVersionHistory: boolean;
-    versionHistoryPageId: string | null;
     handleVersionHistory: (pageId: string) => void;
-    handleCloseVersionHistory: () => void;
 };
 
 /**
- * Manages version history modal state.
+ * Manages version history modal via modal manager.
  */
-export function useVersionHistory(): UseVersionHistoryResult {
-    const [showVersionHistory, setShowVersionHistory] = useState(false);
-    const [versionHistoryPageId, setVersionHistoryPageId] = useState<string | null>(null);
+export function useVersionHistory({wikiId, allPages}: UseVersionHistoryParams): UseVersionHistoryResult {
+    const dispatch = useDispatch();
+    const {formatMessage} = useIntl();
+    const untitledText = formatMessage({id: 'wiki.untitled_page', defaultMessage: 'Untitled'});
 
     const handleVersionHistory = useCallback((targetPageId: string) => {
-        setVersionHistoryPageId(targetPageId);
-        setShowVersionHistory(true);
-    }, []);
+        const page = allPages.find((p) => p.id === targetPageId);
+        if (!page || !wikiId) {
+            return;
+        }
 
-    const handleCloseVersionHistory = useCallback(() => {
-        setShowVersionHistory(false);
-        setVersionHistoryPageId(null);
-    }, []);
+        const pageTitle = getPageTitle(page, untitledText);
+
+        dispatch(openModal({
+            modalId: ModalIdentifiers.PAGE_VERSION_HISTORY,
+            dialogType: PageVersionHistoryModal,
+            dialogProps: {
+                page,
+                pageTitle,
+                wikiId,
+                onVersionRestored: () => {
+                    dispatch(closeModal(ModalIdentifiers.PAGE_VERSION_HISTORY));
+                },
+            },
+        }));
+    }, [allPages, wikiId, untitledText, dispatch]);
 
     return {
-        showVersionHistory,
-        versionHistoryPageId,
         handleVersionHistory,
-        handleCloseVersionHistory,
     };
 }

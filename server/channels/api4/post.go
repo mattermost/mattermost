@@ -926,8 +926,8 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Pages use page-specific permissions; regular posts use generic edit permission
 	if app.RequiresPageModifyPermission(originalPost) {
-		if permErr := c.App.HasPermissionToModifyPage(c.AppContext, c.AppContext.Session(), originalPost, app.PageOperationEdit, "updatePost"); permErr != nil {
-			c.Err = permErr
+		pageWrapper := app.NewPageFromValidatedPost(originalPost)
+		if !c.CheckPagePermission(pageWrapper, app.PageOperationEdit) {
 			return
 		}
 	} else {
@@ -1033,8 +1033,8 @@ func postPatchChecks(c *Context, auditRec *model.AuditRecord, message *string) {
 
 	// Pages use page-specific permissions; regular posts use generic edit permission
 	if app.RequiresPageModifyPermission(originalPost) {
-		if err := c.App.HasPermissionToModifyPage(c.AppContext, c.AppContext.Session(), originalPost, app.PageOperationEdit, "patchPost"); err != nil {
-			c.Err = err
+		pageWrapper := app.NewPageFromValidatedPost(originalPost)
+		if !c.CheckPagePermission(pageWrapper, app.PageOperationEdit) {
 			return
 		}
 	} else {
@@ -1411,8 +1411,8 @@ func restorePostVersion(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Pages use page-specific permissions; regular posts require ownership
 	if app.RequiresPageModifyPermission(toRestorePost) {
-		if permErr := c.App.HasPermissionToModifyPage(c.AppContext, c.AppContext.Session(), toRestorePost, app.PageOperationEdit, "restorePostVersion"); permErr != nil {
-			c.Err = permErr
+		pageWrapper := app.NewPageFromValidatedPost(toRestorePost)
+		if !c.CheckPagePermission(pageWrapper, app.PageOperationEdit) {
 			return
 		}
 	} else {
@@ -1473,7 +1473,13 @@ func updatePageStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.SetPageStatus(c.AppContext, c.Params.PostId, req.Status); err != nil {
+	page, err := c.App.GetPage(c.AppContext, c.Params.PostId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if err := c.App.SetPageStatus(c.AppContext, page, req.Status); err != nil {
 		c.Err = err
 		return
 	}
@@ -1488,7 +1494,13 @@ func getPageStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	status, err := c.App.GetPageStatus(c.AppContext, c.Params.PostId)
+	page, err := c.App.GetPage(c.AppContext, c.Params.PostId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	status, err := c.App.GetPageStatus(c.AppContext, page)
 	if err != nil {
 		c.Err = err
 		return

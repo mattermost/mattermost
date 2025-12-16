@@ -499,7 +499,7 @@ func TestPublishPageDraft(t *testing.T) {
 		assert.JSONEq(t, newContent, updatedPage.Message)
 		assert.Equal(t, newTitle, updatedPage.Props["title"])
 
-		retrievedPage, getErr := th.App.GetPage(th.Context, originalPage.Id)
+		retrievedPage, getErr := th.App.GetPageWithContent(th.Context, originalPage.Id)
 		require.Nil(t, getErr)
 		assert.JSONEq(t, newContent, retrievedPage.Message)
 		assert.Equal(t, newTitle, retrievedPage.Props["title"])
@@ -574,7 +574,7 @@ func TestPublishPageDraft(t *testing.T) {
 		assert.Equal(t, channel.Id, publishedPage.ChannelId, "Page should be in correct channel")
 		assert.Equal(t, user.Id, publishedPage.UserId, "Page should be created by correct user")
 
-		retrievedPage, getErr := th.App.GetPage(th.Context, publishedPage.Id)
+		retrievedPage, getErr := th.App.GetPageWithContent(th.Context, publishedPage.Id)
 		require.Nil(t, getErr)
 		assert.Equal(t, model.PostTypePage, retrievedPage.Type)
 		assert.JSONEq(t, content, retrievedPage.Message)
@@ -662,7 +662,7 @@ func TestPublishPageDraft(t *testing.T) {
 		assert.JSONEq(t, malformedContent, publishedPage.Message, "Malformed content should be stored as-is")
 
 		// * Verify page can be retrieved
-		retrievedPage, getErr := th.App.GetPage(th.Context, publishedPage.Id)
+		retrievedPage, getErr := th.App.GetPageWithContent(th.Context, publishedPage.Id)
 		require.Nil(t, getErr, "Should be able to retrieve page with malformed content")
 		assert.JSONEq(t, malformedContent, retrievedPage.Message)
 	})
@@ -708,7 +708,8 @@ func TestPageDraftWhenPageDeleted(t *testing.T) {
 		require.NotNil(t, draftBefore)
 
 		// Delete the page
-		err = th.App.DeletePage(sessionCtx, page.Id)
+		pageWrapper := NewPageFromValidatedPost(page)
+		err = th.App.DeletePage(sessionCtx, pageWrapper)
 		require.Nil(t, err)
 
 		// Draft should still be accessible (content is preserved)
@@ -730,7 +731,8 @@ func TestPageDraftWhenPageDeleted(t *testing.T) {
 		require.Nil(t, err)
 
 		// Delete unrelated page
-		err = th.App.DeletePage(sessionCtx, pageToDelete.Id)
+		pageToDeleteWrapper := NewPageFromValidatedPost(pageToDelete)
+		err = th.App.DeletePage(sessionCtx, pageToDeleteWrapper)
 		require.Nil(t, err)
 
 		// New draft should be unaffected
@@ -770,7 +772,8 @@ func TestPageDraftWhenPageDeleted(t *testing.T) {
 		require.Nil(t, err)
 
 		// Delete the page
-		err = th.App.DeletePage(sessionCtx, page.Id)
+		pageWrapper := NewPageFromValidatedPost(page)
+		err = th.App.DeletePage(sessionCtx, pageWrapper)
 		require.Nil(t, err)
 
 		// Both drafts should be retained
@@ -800,7 +803,8 @@ func TestPageDraftWhenPageDeleted(t *testing.T) {
 		savedDraft, nErr := th.App.Srv().Store().Draft().Upsert(regularPostDraft)
 		require.NoError(t, nErr)
 
-		err := th.App.DeletePage(sessionCtx, page.Id)
+		pageWrapper := NewPageFromValidatedPost(page)
+		err := th.App.DeletePage(sessionCtx, pageWrapper)
 		require.Nil(t, err)
 
 		retrievedDraft, getErr := th.App.Srv().Store().Draft().Get(user.Id, channel.Id, "", false)

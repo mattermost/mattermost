@@ -7,10 +7,10 @@ import type {Dispatch} from 'redux';
 
 import {loadPageDraftsForWiki, removePageDraft} from 'actions/page_drafts';
 import {loadPages, createPage, updatePage, deletePage, movePageToWiki, duplicatePage} from 'actions/pages';
-import {toggleNodeExpanded, setSelectedPage, expandAncestors, closePagesPanel} from 'actions/views/pages_hierarchy';
+import {toggleNodeExpanded, expandAncestors, closePagesPanel} from 'actions/views/pages_hierarchy';
 import {getUnpublishedPageDraftsForWiki} from 'selectors/page_drafts';
 import {getPages, getPagesLoading} from 'selectors/pages';
-import {getExpandedNodes, getSelectedPageId, getIsPanesPanelCollapsed} from 'selectors/pages_hierarchy';
+import {getExpandedNodes, getIsPanesPanelCollapsed} from 'selectors/pages_hierarchy';
 
 import type {GlobalState} from 'types/store';
 
@@ -33,7 +33,6 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         drafts: getUnpublishedPageDraftsForWiki(state, wikiId),
         loading: getPagesLoading(state, wikiId),
         expandedNodes: getExpandedNodes(state, wikiId),
-        selectedPageId: getSelectedPageId(state),
         isPanelCollapsed: getIsPanesPanelCollapsed(state),
     };
 }
@@ -46,7 +45,6 @@ function mapDispatchToProps(dispatch: Dispatch) {
                 loadPageDraftsForWiki,
                 removePageDraft,
                 toggleNodeExpanded,
-                setSelectedPage,
                 expandAncestors,
                 createPage,
                 updatePage,

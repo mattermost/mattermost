@@ -7,6 +7,7 @@ import {
     createWikiThroughUI,
     createPageThroughUI,
     getNewPageButton,
+    getPageViewerContent,
     fillCreatePageModal,
     publishCurrentPage,
     getEditorAndWait,
@@ -159,7 +160,7 @@ test.skip('preserves scroll position when navigating back to page', {tag: '@page
     await publishCurrentPage(page);
 
     // # Scroll down
-    const pageContent = page.locator('[data-testid="page-viewer-content"]');
+    const pageContent = getPageViewerContent(page);
     await pageContent.evaluate((el) => (el.scrollTop = 1000));
 
     // Verify we scrolled

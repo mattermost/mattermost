@@ -85,19 +85,15 @@ func updatePageParent(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "new_parent_id", req.NewParentId)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
-	post, err := c.App.GetSinglePost(c.AppContext, c.Params.PageId, false)
+	page, err := c.App.GetPage(c.AppContext, c.Params.PageId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if post.Type != model.PostTypePage {
-		c.Err = model.NewAppError("updatePageParent", "api.wiki.update_page_parent.not_page.app_error", map[string]any{"PageId": c.Params.PageId}, "", http.StatusBadRequest)
-		return
-	}
+	// Type check is no longer needed - GetPage validates the post is of type PostTypePage
 
-	if err := c.App.HasPermissionToModifyPage(c.AppContext, c.AppContext.Session(), post, app.PageOperationEdit, "updatePageParent"); err != nil {
-		c.Err = err
+	if !c.CheckPagePermission(page, app.PageOperationEdit) {
 		return
 	}
 
@@ -158,12 +154,27 @@ func movePageToWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.HasPermissionToModifyPage(c.AppContext, c.AppContext.Session(), page, app.PageOperationEdit, "movePageToWiki"); err != nil {
+	if !c.CheckPagePermission(page, app.PageOperationEdit) {
+		return
+	}
+
+	targetWiki, err := c.App.GetWiki(c.AppContext, req.TargetWikiId)
+	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if appErr := c.App.MovePageToWiki(c.AppContext, c.Params.PageId, req.TargetWikiId, req.ParentPageId); appErr != nil {
+	targetChannel, chanErr := c.App.GetChannel(c.AppContext, targetWiki.ChannelId)
+	if chanErr != nil {
+		c.Err = chanErr
+		return
+	}
+
+	if !c.CheckChannelPagePermission(targetChannel, app.PageOperationCreate) {
+		return
+	}
+
+	if appErr := c.App.MovePageToWiki(c.AppContext, page, req.TargetWikiId, req.ParentPageId); appErr != nil {
 		c.Err = appErr
 		return
 	}
@@ -212,19 +223,18 @@ func duplicatePage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
-	page, err := c.App.GetSinglePost(c.AppContext, c.Params.PageId, false)
+	page, err := c.App.GetPage(c.AppContext, c.Params.PageId)
 	if err != nil {
-		c.Logger.Error("GetSinglePost failed in duplicatePage",
+		c.Logger.Error("GetPage failed in duplicatePage",
 			mlog.String("page_id", c.Params.PageId),
 			mlog.Err(err),
 		)
 		c.Err = err
 		return
 	}
-	c.Logger.Info("GetSinglePost succeeded", mlog.String("page_id", page.Id))
+	c.Logger.Info("GetPage succeeded", mlog.String("page_id", page.Id()))
 
-	if err = c.App.HasPermissionToModifyPage(c.AppContext, c.AppContext.Session(), page, app.PageOperationRead, "duplicatePage"); err != nil {
-		c.Err = err
+	if !c.CheckPagePermission(page, app.PageOperationRead) {
 		return
 	}
 
@@ -240,29 +250,11 @@ func duplicatePage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	switch channel.Type {
-	case model.ChannelTypeOpen, model.ChannelTypePrivate:
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), targetWiki.ChannelId, model.PermissionCreatePage) {
-			c.SetPermissionError(model.PermissionCreatePage)
-			return
-		}
-	case model.ChannelTypeGroup, model.ChannelTypeDirect:
-		// For DM/Group channels: check guest status first (prevents info leakage), then membership
-		if c.AppContext.Session().IsGuest() {
-			c.Err = model.NewAppError("duplicatePage", "api.page.duplicate.direct_or_group_channels_by_guests.forbidden.app_error", nil, "", http.StatusForbidden)
-			return
-		}
-
-		if _, errGet := c.App.GetChannelMember(c.AppContext, channel.Id, c.AppContext.Session().UserId); errGet != nil {
-			c.Err = model.NewAppError("duplicatePage", "api.page.duplicate.direct_or_group_channels.forbidden.app_error", nil, errGet.Message, http.StatusForbidden)
-			return
-		}
-	default:
-		c.Err = model.NewAppError("duplicatePage", "api.page.duplicate.invalid_channel_type", nil, "", http.StatusBadRequest)
+	if !c.CheckChannelPagePermission(channel, app.PageOperationCreate) {
 		return
 	}
 
-	duplicatedPage, appErr := c.App.DuplicatePage(c.AppContext, c.Params.PageId, req.TargetWikiId, req.ParentPageId, req.Title, c.AppContext.Session().UserId)
+	duplicatedPage, appErr := c.App.DuplicatePage(c.AppContext, page, req.TargetWikiId, req.ParentPageId, req.Title, c.AppContext.Session().UserId)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -291,10 +283,8 @@ func getPageBreadcrumb(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if page.Type != model.PostTypePage {
-		c.SetInvalidParam("page_id")
-		return
-	}
+	// Type check is no longer needed - ValidatePageBelongsToWiki uses GetPage
+	// which already validates the post is of type PostTypePage
 
 	wiki, appErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
 	if appErr != nil {
@@ -313,12 +303,11 @@ func getPageBreadcrumb(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.HasPermissionToModifyPage(c.AppContext, c.AppContext.Session(), page, app.PageOperationRead, "getPageBreadcrumb"); err != nil {
-		c.Err = err
+	if !c.CheckPagePermission(page, app.PageOperationRead) {
 		return
 	}
 
-	breadcrumbPath, appErr := c.App.BuildBreadcrumbPath(c.AppContext, page, wiki, channel)
+	breadcrumbPath, appErr := c.App.BuildBreadcrumbPath(c.AppContext, page.Post(), wiki, channel)
 	if appErr != nil {
 		c.Err = appErr
 		return

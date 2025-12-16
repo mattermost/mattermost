@@ -63,16 +63,6 @@ export function getPageActionsMenuLocator(page: Page, pageId?: string): Locator 
 }
 
 /**
- * Gets the outline toggle button from the page actions menu.
- * Menu.Item renders as <li> (MuiMenuItem), so we use data-testid for reliable selection.
- * @param contextMenu - Locator for the page actions menu
- * @returns Locator for the show/hide outline menu item
- */
-export function getOutlineToggleMenuItem(contextMenu: Locator): Locator {
-    return contextMenu.locator('[data-testid="page-context-menu-show-outline"]').first();
-}
-
-/**
  * Opens the page actions menu for a page node in the hierarchy panel
  * @param page - Playwright page object
  * @param pageNode - Locator for the page tree node
@@ -946,6 +936,15 @@ export async function getPageOutlineInHierarchy(page: Page, pageTitle: string) {
 }
 
 /**
+ * Gets the outline toggle menu item from a context menu
+ * @param contextMenu - The context menu locator
+ * @returns Locator for the outline toggle menu item
+ */
+function getOutlineToggleMenuItem(contextMenu: Locator): Locator {
+    return contextMenu.locator('[data-testid="page-context-menu-show-outline"]');
+}
+
+/**
  * Shows the outline for a page using the context menu
  * @param page - Playwright page object
  * @param pageId - ID of the page to show outline for
@@ -1118,7 +1117,17 @@ export async function publishCurrentPage(page: Page) {
  * @param page - Playwright page object
  */
 export async function clearEditorContent(page: Page) {
-    await page.keyboard.press('Control+A');
+    // # Click on editor first to ensure focus
+    let editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
+    if (!(await editor.isVisible({timeout: EDITOR_LOAD_WAIT}).catch(() => false))) {
+        editor = page.locator('.ProseMirror').first();
+    }
+    await editor.click();
+    await page.waitForTimeout(SHORT_WAIT / 5);
+
+    // # Select all and delete - use platform-aware shortcut
+    const isMac = process.platform === 'darwin';
+    await page.keyboard.press(isMac ? 'Meta+A' : 'Control+A');
     await page.keyboard.press('Backspace');
     await page.waitForTimeout(SHORT_WAIT / 2.5);
 }
@@ -1145,8 +1154,9 @@ export async function createDraftThroughUI(page: Page, draftTitle: string, draft
     // # Fill draft content in TipTap editor
     await editor.click();
 
-    // Clear any existing content first
-    await page.keyboard.press('Control+A');
+    // Clear any existing content first - use platform-aware shortcut
+    const isMac = process.platform === 'darwin';
+    await page.keyboard.press(isMac ? 'Meta+A' : 'Control+A');
     await page.keyboard.press('Backspace');
     await page.waitForTimeout(SHORT_WAIT / 2.5);
 
@@ -1271,6 +1281,15 @@ export function getWikiTab(page: Page, wikiTitle: string): Locator {
 }
 
 /**
+ * Gets all wiki tabs from the unified channel tabs bar
+ * @param page - Playwright page object
+ * @returns Locator for all wiki tabs
+ */
+export function getAllWikiTabs(page: Page): Locator {
+    return page.locator('.channel-tabs-container__tab-wrapper--wiki');
+}
+
+/**
  * Extracts wiki ID from a wiki tab element
  * @param page - Playwright page object
  * @param wikiName - Name of the wiki
@@ -1357,15 +1376,6 @@ export async function deleteWikiThroughTabMenu(page: Page, wikiTitle: string) {
 export async function verifyWikiTabExists(page: Page, wikiTitle: string): Promise<boolean> {
     const wikiTab = getWikiTab(page, wikiTitle);
     return wikiTab.isVisible();
-}
-
-/**
- * Gets all wiki tab wrappers in the current channel
- * @param page - Playwright page object
- * @returns Locator for all wiki tab wrappers
- */
-export function getAllWikiTabs(page: Page): Locator {
-    return page.locator('.channel-tabs-container__tab-wrapper--wiki');
 }
 
 /**
@@ -3492,15 +3502,6 @@ export async function verifyPageNotInHierarchy(page: Page, pageTitle: string, ti
     const hierarchyPanel = getHierarchyPanel(page);
     const pageNode = hierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle});
     await expect(pageNode).not.toBeVisible({timeout});
-}
-
-/**
- * Gets the page title input locator
- * @param page - Playwright page object
- * @returns The title input locator
- */
-export function getPageTitleInput(page: Page): Locator {
-    return page.locator('[data-testid="wiki-page-title-input"]').first();
 }
 
 /**

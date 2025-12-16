@@ -71,14 +71,12 @@ describe('components/pages_hierarchy_panel/PagesHierarchyPanel', () => {
             drafts: mockDrafts,
             loading: false,
             expandedNodes: {},
-            selectedPageId: null,
             isPanelCollapsed: false,
             actions: {
                 loadPages: jest.fn().mockResolvedValue({data: mockPages}),
                 loadPageDraftsForWiki: jest.fn().mockResolvedValue({data: mockDrafts}),
                 removePageDraft: jest.fn().mockResolvedValue({data: true}),
                 toggleNodeExpanded: jest.fn(),
-                setSelectedPage: jest.fn(),
                 expandAncestors: jest.fn(),
                 createPage: jest.fn().mockResolvedValue({data: 'draft-new'}),
                 updatePage: jest.fn().mockResolvedValue({data: mockPages[0]}),
@@ -176,7 +174,7 @@ describe('components/pages_hierarchy_panel/PagesHierarchyPanel', () => {
     });
 
     describe('Lifecycle - Data Loading', () => {
-        test('should set selected page when currentPageId changes', () => {
+        test('should expand ancestors when currentPageId changes to a nested page', () => {
             const baseProps = getBaseProps();
             const {rerender} = renderWithContext(<PagesHierarchyPanel {...baseProps}/>, getInitialState());
 
@@ -186,15 +184,17 @@ describe('components/pages_hierarchy_panel/PagesHierarchyPanel', () => {
             />, /* eslint-disable-line react/jsx-closing-bracket-location */
             );
 
-            expect(baseProps.actions.setSelectedPage).toHaveBeenCalledWith(childPageId);
+            // Should expand ancestors to show path to current page
+            expect(baseProps.actions.expandAncestors).toHaveBeenCalledWith(mockWikiId, [rootPage1Id]);
         });
 
-        test('should not set selected page if currentPageId equals selectedPageId', () => {
+        test('should not expand ancestors when currentPageId does not change', () => {
             const baseProps = getBaseProps();
-            const props = {...baseProps, currentPageId: rootPage1Id, selectedPageId: rootPage1Id};
+            const props = {...baseProps, currentPageId: rootPage1Id};
             renderWithContext(<PagesHierarchyPanel {...props}/>, getInitialState());
 
-            expect(baseProps.actions.setSelectedPage).not.toHaveBeenCalled();
+            // Root page has no ancestors to expand
+            expect(baseProps.actions.expandAncestors).not.toHaveBeenCalled();
         });
     });
 

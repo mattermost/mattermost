@@ -56,7 +56,7 @@ func (a *App) createThreadEntryForPageComment(post *model.Post, channel *model.C
 
 // GetPageComments retrieves all comments (including inline comments) for a page
 func (a *App) GetPageComments(rctx request.CTX, pageID string) ([]*model.Post, *model.AppError) {
-	if _, err := a.getPagePost(rctx, pageID); err != nil {
+	if _, err := a.GetPage(rctx, pageID); err != nil {
 		return nil, model.NewAppError("GetPageComments",
 			"app.page.get_comments.page_not_found.app_error",
 			nil, "", http.StatusNotFound).Wrap(err)
@@ -83,7 +83,7 @@ func (a *App) GetPageComments(rctx request.CTX, pageID string) ([]*model.Post, *
 
 // CreatePageComment creates a top-level comment on a page
 func (a *App) CreatePageComment(rctx request.CTX, pageID, message string, inlineAnchor map[string]any) (*model.Post, *model.AppError) {
-	page, err := a.getPagePost(rctx, pageID)
+	page, err := a.GetPage(rctx, pageID)
 	if err != nil {
 		if err.Id == "app.page.get.not_a_page.app_error" {
 			return nil, model.NewAppError("CreatePageComment",
@@ -95,7 +95,7 @@ func (a *App) CreatePageComment(rctx request.CTX, pageID, message string, inline
 			nil, "", http.StatusNotFound).Wrap(err)
 	}
 
-	channel, chanErr := a.GetChannel(rctx, page.ChannelId)
+	channel, chanErr := a.GetChannel(rctx, page.ChannelId())
 	if chanErr != nil {
 		return nil, chanErr
 	}
@@ -117,7 +117,7 @@ func (a *App) CreatePageComment(rctx request.CTX, pageID, message string, inline
 	}
 
 	comment := &model.Post{
-		ChannelId: page.ChannelId,
+		ChannelId: page.ChannelId(),
 		UserId:    rctx.Session().UserId,
 		RootId:    rootID,
 		Message:   message,
@@ -139,7 +139,7 @@ func (a *App) CreatePageComment(rctx request.CTX, pageID, message string, inline
 
 // CreatePageCommentReply creates a reply to a page comment (one level of nesting only)
 func (a *App) CreatePageCommentReply(rctx request.CTX, pageID, parentCommentID, message string) (*model.Post, *model.AppError) {
-	page, err := a.getPagePost(rctx, pageID)
+	page, err := a.GetPage(rctx, pageID)
 	if err != nil {
 		return nil, model.NewAppError("CreatePageCommentReply",
 			"app.page.create_comment_reply.page_not_found.app_error",
@@ -165,7 +165,7 @@ func (a *App) CreatePageCommentReply(rctx request.CTX, pageID, parentCommentID, 
 			nil, "Can only reply to top-level comments", http.StatusBadRequest)
 	}
 
-	channel, chanErr := a.GetChannel(rctx, page.ChannelId)
+	channel, chanErr := a.GetChannel(rctx, page.ChannelId())
 	if chanErr != nil {
 		return nil, chanErr
 	}
@@ -186,7 +186,7 @@ func (a *App) CreatePageCommentReply(rctx request.CTX, pageID, parentCommentID, 
 	}
 
 	reply := &model.Post{
-		ChannelId: page.ChannelId,
+		ChannelId: page.ChannelId(),
 		UserId:    rctx.Session().UserId,
 		RootId:    rootID,
 		Message:   message,
@@ -261,7 +261,7 @@ func (a *App) CanResolvePageComment(rctx request.CTX, session *model.Session, co
 		return true
 	}
 
-	return a.SessionHasPermissionToChannel(rctx, *session, page.ChannelId, model.PermissionManageChannelRoles)
+	return a.SessionHasPermissionToChannel(rctx, *session, page.ChannelId, model.PermissionCreatePost)
 }
 
 func (a *App) ResolvePageComment(rctx request.CTX, commentId string, userId string) (*model.Post, *model.AppError) {

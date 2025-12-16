@@ -101,7 +101,9 @@ func (a *App) UpsertPageDraft(rctx request.CTX, userId, wikiId, pageId, contentJ
 		draft.SetProps(props)
 	}
 	if _, draftErr := a.Srv().Store().Draft().UpsertPageDraft(draft); draftErr != nil {
-		rctx.Logger().Warn("Failed to upsert draft metadata", mlog.Err(draftErr))
+		rctx.Logger().Error("Failed to upsert draft metadata", mlog.Err(draftErr))
+		return nil, model.NewAppError("UpsertPageDraft", "app.draft.save_page.metadata_error",
+			nil, "", http.StatusInternalServerError).Wrap(draftErr)
 	}
 
 	// Return combined PageDraft
@@ -372,15 +374,9 @@ func (a *App) resolveDraftContent(draft *model.PageDraft, providedMessage string
 }
 
 func (a *App) validateDraftPermissions(rctx request.CTX, draft *model.PageDraft, channel *model.Channel) *model.AppError {
-	session := rctx.Session()
-
-	// Check if this is an update to an existing page
-	existingPage, _ := a.GetSinglePost(rctx, draft.PageId, false)
-	if IsPagePost(existingPage) {
-		return a.HasPermissionToModifyPage(rctx, session, existingPage, PageOperationEdit, "validateDraftPermissions")
-	}
-
-	return a.checkPagePermissionInChannel(rctx, session.UserId, channel, PageOperationCreate, "validateDraftPermissions")
+	// Permission checks are now performed in the API layer (page_drafts_api.go)
+	// This function is kept for backward compatibility but no longer performs permission validation
+	return nil
 }
 
 func (a *App) validateParentPage(rctx request.CTX, parentId string, wiki *model.Wiki) *model.AppError {
@@ -388,12 +384,12 @@ func (a *App) validateParentPage(rctx request.CTX, parentId string, wiki *model.
 		return nil
 	}
 
-	parentPage, err := a.getPagePost(rctx, parentId)
+	parentPage, err := a.GetPage(rctx, parentId)
 	if err != nil {
 		return model.NewAppError("validateParentPage", "api.page.publish.parent_not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
 	}
 
-	if parentPage.ChannelId != wiki.ChannelId {
+	if parentPage.ChannelId() != wiki.ChannelId {
 		return model.NewAppError("validateParentPage", "api.page.publish.parent_different_channel.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -479,7 +475,9 @@ func (a *App) applyDraftPageStatus(rctx request.CTX, page *model.Post, draft *mo
 		return
 	}
 
-	if err := a.SetPageStatus(rctx, page.Id, statusValue); err != nil {
+	// Wrap the post in a Page - we know it's a page since we just created/updated it
+	pageWrapper := NewPageFromValidatedPost(page)
+	if err := a.SetPageStatus(rctx, pageWrapper, statusValue); err != nil {
 		logLevel := mlog.LvlWarn
 		if isUpdate {
 			logLevel = mlog.LvlError
@@ -497,7 +495,7 @@ func (a *App) updatePageFromDraft(rctx request.CTX, pageId, wikiId, parentId, ti
 		mlog.String("wiki_id", wikiId),
 		mlog.Bool("force", force))
 
-	existingPost, err := a.GetSinglePost(rctx, pageId, false)
+	page, err := a.GetPage(rctx, pageId)
 	if err != nil {
 		return nil, model.NewAppError("updatePageFromDraft", "app.draft.publish_page.get_existing_error",
 			nil, "", http.StatusInternalServerError).Wrap(err)
@@ -507,12 +505,12 @@ func (a *App) updatePageFromDraft(rctx request.CTX, pageId, wikiId, parentId, ti
 		return nil, circErr
 	}
 
-	updatedPost, err := a.UpdatePageWithOptimisticLocking(rctx, pageId, title, content, searchText, baseEditAt, force)
+	updatedPost, err := a.UpdatePageWithOptimisticLocking(rctx, page, title, content, searchText, baseEditAt, force)
 	if err != nil {
 		return nil, err
 	}
 
-	if parentId != existingPost.PageParentId {
+	if parentId != page.PageParentId() {
 		if parentErr := a.ChangePageParent(rctx, pageId, parentId); parentErr != nil {
 			return nil, parentErr
 		}
@@ -547,8 +545,7 @@ func (a *App) applyDraftToPage(rctx request.CTX, draft *model.PageDraft, wikiId,
 
 	// With unified page ID model, check if a published page exists with this draft's PageId
 	var isUpdate bool
-	existingPage, _ := a.GetSinglePost(rctx, draft.PageId, false)
-	if IsPagePost(existingPage) {
+	if _, getErr := a.GetPage(rctx, draft.PageId); getErr == nil {
 		isUpdate = true
 	}
 

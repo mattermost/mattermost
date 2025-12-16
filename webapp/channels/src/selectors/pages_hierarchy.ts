@@ -19,11 +19,6 @@ export function getExpandedNodes(state: GlobalState, wikiId: string): {[pageId: 
     return state.views.pagesHierarchy.expandedNodes[wikiId] || {};
 }
 
-// Get selected page ID
-export function getSelectedPageId(state: GlobalState): string | null {
-    return state.views.pagesHierarchy.selectedPageId;
-}
-
 // Check if a specific node is expanded
 export function isNodeExpanded(state: GlobalState, wikiId: string, nodeId: string): boolean {
     const expandedNodes = getExpandedNodes(state, wikiId);

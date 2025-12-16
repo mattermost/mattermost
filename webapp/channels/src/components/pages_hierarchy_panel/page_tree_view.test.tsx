@@ -64,7 +64,7 @@ describe('components/pages_hierarchy_panel/PageTreeView', () => {
         return {
             tree,
             expandedNodes: {},
-            selectedPageId: null,
+            currentPageId: undefined,
             onNodeSelect: jest.fn(),
             onToggleExpand: jest.fn(),
         };
@@ -126,7 +126,7 @@ describe('components/pages_hierarchy_panel/PageTreeView', () => {
             const baseProps = getBaseProps();
             const props = {
                 ...baseProps,
-                selectedPageId: rootPage1Id,
+                currentPageId: rootPage1Id,
             };
             const {container} = renderWithContext(<PageTreeView {...props}/>, getInitialState());
 

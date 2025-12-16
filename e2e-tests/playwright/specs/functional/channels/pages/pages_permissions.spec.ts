@@ -12,12 +12,12 @@ import {
     createPageThroughUI,
     createTestChannel,
     getNewPageButton,
+    getPageViewerContent,
     openPageActionsMenu,
     clickPageContextMenuItem,
     buildWikiPageUrl,
     waitForPageViewerLoad,
     getEditorAndWait,
-    EDITOR_LOAD_WAIT,
     AUTOSAVE_WAIT,
     ELEMENT_TIMEOUT,
 } from './test_helpers';
@@ -88,21 +88,31 @@ test('prevents non-member from viewing wiki', {tag: '@pages'}, async ({pw, share
         await nonMemberPage.goto(buildChannelPageUrl(pw.url, team.name, privateChannel.name, wiki.id, testPage.id));
         await nonMemberPage.waitForLoadState('networkidle');
 
-        // * Verify access denied (error page, redirect, or permission message)
-        // Wait for redirect to complete or error message to appear
-        await expect(async () => {
-            const currentUrl = nonMemberPage.url();
-            const isAccessDenied =
-                currentUrl.includes('error') || currentUrl.includes('unauthorized') || !currentUrl.includes(wiki.id);
+        // * Verify access denied - user should NOT see the wiki content
+        // The system should either redirect the user away from the wiki page,
+        // or show an error state. Either way, the wiki content should not be accessible.
 
-            if (!isAccessDenied) {
-                // Check for permission error message on page
-                const errorMessage = nonMemberPage.locator('text=/permission|access denied|unauthorized/i').first();
-                await expect(errorMessage).toBeVisible();
-            } else {
-                expect(isAccessDenied).toBe(true);
-            }
-        }).toPass({timeout: EDITOR_LOAD_WAIT});
+        // Wait for navigation/error handling to complete
+        await nonMemberPage.waitForTimeout(2000);
+
+        // Check that user was redirected away from the wiki page (URL no longer contains wiki.id)
+        const currentUrl = nonMemberPage.url();
+        const wasRedirectedAway = !currentUrl.includes(wiki.id);
+
+        if (wasRedirectedAway) {
+            // User was redirected - this is the expected behavior for access denial
+            expect(wasRedirectedAway).toBe(true);
+        } else {
+            // If not redirected, verify error message is displayed
+            const errorMessage = nonMemberPage.locator('[data-testid="error-page"], [data-testid="access-denied"]');
+            await expect(errorMessage).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        }
+
+        // Additionally verify the page content is NOT visible (regardless of URL)
+        // Use not.toBeVisible() instead of not.toContainText() because when properly denied access,
+        // the page-viewer-content element doesn't exist at all (user is redirected away)
+        const pageContent = getPageViewerContent(nonMemberPage);
+        await expect(pageContent).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
     } finally {
         // # Cleanup: Delete the private channel
         await adminClient.deleteChannel(privateChannel.id);
@@ -160,7 +170,7 @@ test('allows channel admin to delete any page', {tag: '@pages'}, async ({pw, sha
 
     // # Create wiki and page through UI
     await createWikiThroughUI(page, `Admin Delete Wiki ${await pw.random.id()}`);
-    await createPageThroughUI(page, 'Page to Delete', 'Content');
+    const createdPage = await createPageThroughUI(page, 'Page to Delete', 'Content');
 
     // # Open page actions menu
     await openPageActionsMenu(page);
@@ -171,6 +181,24 @@ test('allows channel admin to delete any page', {tag: '@pages'}, async ({pw, sha
 
     const isDisabled = await deleteMenuItem.isDisabled();
     expect(isDisabled).toBe(false);
+
+    // # Click delete menu item
+    await deleteMenuItem.click();
+
+    // # Handle confirmation modal
+    const confirmModal = page.getByRole('dialog', {name: /Delete|Confirm/i});
+    await expect(confirmModal).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    const confirmButton = confirmModal.locator('[data-testid="delete-button"], [data-testid="confirm-button"]').first();
+    await confirmButton.click();
+
+    // * Verify modal closes
+    await expect(confirmModal).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // * Verify page no longer appears in hierarchy
+    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const deletedPageNode = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${createdPage.id}"]`);
+    await expect(deletedPageNode).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
 });
 
 /**
@@ -252,7 +280,7 @@ test.skip(
 
         // * Verify page content is accessible
         await waitForPageViewerLoad(page);
-        const pageContent = page.locator('[data-testid="page-viewer-content"]');
+        const pageContent = getPageViewerContent(page);
         await expect(pageContent).toContainText('Content');
     },
 );
@@ -299,7 +327,7 @@ test('restricts page actions based on channel permissions', {tag: '@pages'}, asy
 
     // * Verify page is viewable
     await waitForPageViewerLoad(guestPage);
-    const pageContent = guestPage.locator('[data-testid="page-viewer-content"]');
+    const pageContent = getPageViewerContent(guestPage);
     await expect(pageContent).toContainText('Protected content');
 
     // * Verify edit button is not enabled

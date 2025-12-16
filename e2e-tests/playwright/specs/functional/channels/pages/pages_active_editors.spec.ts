@@ -7,7 +7,9 @@ import {
     buildWikiPageUrl,
     createWikiThroughUI,
     createTestChannel,
+    getEditor,
     getEditorAndWait,
+    getPageViewerContent,
     typeInEditor,
     fillCreatePageModal,
     getNewPageButton,
@@ -299,7 +301,7 @@ test('displays overflow count when more than 3 editors', {tag: '@pages'}, async 
         await userPage.goto(wikiPageUrl);
         await userPage.waitForLoadState('networkidle');
 
-        const pageViewer = userPage.locator('[data-testid="page-viewer-content"]');
+        const pageViewer = getPageViewerContent(userPage);
         await pageViewer.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
 
         await enterEditMode(userPage);
@@ -405,7 +407,7 @@ test.skip('removes editor from indicator when user navigates away', {tag: '@page
     await enterEditMode(page2);
 
     // * Editor should show existing draft content when returning
-    const editorContent = page2.locator('.ProseMirror');
+    const editorContent = getEditor(page2);
     await expect(editorContent).toContainText('User 2 editing');
 
     await page2.close();

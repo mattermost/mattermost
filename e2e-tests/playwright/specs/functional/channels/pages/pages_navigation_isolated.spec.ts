@@ -8,6 +8,7 @@ import {
     createChildPageThroughContextMenu,
     createTestChannel,
     getBreadcrumb,
+    getPageViewerContent,
 } from './test_helpers';
 
 /**
@@ -32,7 +33,7 @@ test(
         const parentPage = await createPageThroughUI(page, 'Parent Page', 'Parent content');
 
         // * Verify parent page is currently displayed with content
-        const pageViewerContent = page.locator('[data-testid="page-viewer-content"]');
+        const pageViewerContent = getPageViewerContent(page);
         await expect(pageViewerContent).toContainText('Parent content');
 
         // # Create child page - this navigates away from parent

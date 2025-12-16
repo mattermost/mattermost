@@ -6,6 +6,7 @@ import {
     createWikiThroughUI,
     createPageThroughUI,
     createTestChannel,
+    getEditor,
     waitForEditModeReady,
     addInlineCommentInEditMode,
     verifyCommentMarkerVisible,
@@ -272,7 +273,7 @@ test('preserves single anchor when editing nearby text', {tag: '@pages'}, async 
     await waitForEditModeReady(page);
 
     // Type at the beginning
-    const editor = page.locator('.ProseMirror').first();
+    const editor = getEditor(page);
     await editor.click();
     await page.keyboard.press('Home');
     await page.keyboard.type('NEW: ');

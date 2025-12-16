@@ -6,6 +6,7 @@ import {
     createWikiThroughUI,
     createPageThroughUI,
     getNewPageButton,
+    getPageViewerContent,
     fillCreatePageModal,
     publishCurrentPage,
     getEditorAndWait,
@@ -207,7 +208,7 @@ test('searches pages by content using global search', {tag: '@pages'}, async ({p
     await expect(pageTitleElement).toHaveText(pageTitle);
 
     // * Verify the page content is visible
-    const pageContent = page.locator('[data-testid="page-viewer-content"]');
+    const pageContent = getPageViewerContent(page);
     await expect(pageContent).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await expect(pageContent).toContainText(uniqueContent);
 });

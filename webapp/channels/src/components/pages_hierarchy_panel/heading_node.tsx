@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback} from 'react';
+import {useIntl} from 'react-intl';
 import {useHistory} from 'react-router-dom';
 
 import {scrollToHeading} from 'utils/page_outline';
@@ -20,6 +21,7 @@ interface HeadingNodeProps {
 }
 
 const HeadingNode: React.FC<HeadingNodeProps> = ({heading, pageId, currentPageId, teamName, wikiId, channelId}) => {
+    const {formatMessage} = useIntl();
     const history = useHistory();
 
     const paddingLeft = ((heading.level - 1) * 12) + 18;
@@ -52,7 +54,10 @@ const HeadingNode: React.FC<HeadingNodeProps> = ({heading, pageId, currentPageId
                 onClick={handleClick}
                 role='treeitem'
                 aria-level={heading.level}
-                aria-label={`Heading level ${heading.level}: ${heading.text}`}
+                aria-label={formatMessage(
+                    {id: 'heading_node.aria_label', defaultMessage: 'Heading level {level}: {text}'},
+                    {level: heading.level, text: heading.text},
+                )}
             >
                 <span className='HeadingNode__text'>{heading.text}</span>
             </button>

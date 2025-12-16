@@ -20,17 +20,6 @@ export function toggleNodeExpanded(wikiId: string, nodeId: string): ActionFunc {
     };
 }
 
-export function setSelectedPage(pageId: string | null): ActionFunc {
-    return (dispatch) => {
-        dispatch({
-            type: ActionTypes.SET_SELECTED_PAGE,
-            data: {pageId},
-        });
-
-        return {data: true};
-    };
-}
-
 export function expandAncestors(wikiId: string, ancestorIds: string[]): ActionFunc {
     return (dispatch) => {
         dispatch({

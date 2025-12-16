@@ -47,6 +47,13 @@ import {generateId} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
+// Extend Window interface for E2E testing
+declare global {
+    interface Window {
+        e2eTiptapEditor?: Editor;
+    }
+}
+
 import {createChannelMentionSuggestion} from './channel_mention_mm_bridge';
 import CommentAnchor from './comment_anchor_mark';
 import CommentHighlightPlugin, {COMMENT_HIGHLIGHT_PLUGIN_KEY} from './comment_highlight_plugin';
@@ -72,10 +79,10 @@ const HeadingWithId = Heading.extend({
             },
             id: {
                 default: null,
-                parseHTML: (element: any) => element.getAttribute('id'),
-                renderHTML: (attributes: any) => {
+                parseHTML: (element: HTMLElement) => element.getAttribute('id'),
+                renderHTML: (attributes: Record<string, unknown>) => {
                     if (attributes.id) {
-                        return {id: attributes.id};
+                        return {id: attributes.id as string};
                     }
                     return {};
                 },
@@ -246,9 +253,6 @@ const TipTapEditor = ({
     const currentTeam = useSelector(getCurrentTeam);
     const editorRef = useRef<Editor | null>(null);
 
-    const [showLinkModal, setShowLinkModal] = useState(false);
-    const [selectedText, setSelectedText] = useState('');
-    const [showImageUrlModal, setShowImageUrlModal] = useState(false);
     const [, setServerError] = useState<(ServerError & {submittedMessage?: string}) | null>(null);
 
     const autocompleteGroups = useSelector((state: GlobalState) => {
@@ -349,10 +353,43 @@ const TipTapEditor = ({
                 addKeyboardShortcuts() {
                     return {
                         'Mod-l': () => {
+                            if (!pages) {
+                                return false;
+                            }
                             const {from, to} = this.editor.state.selection;
                             const text = this.editor.state.doc.textBetween(from, to, '');
-                            setSelectedText(text);
-                            setShowLinkModal(true);
+                            dispatch(openModal({
+                                modalId: ModalIdentifiers.PAGE_LINK,
+                                dialogType: PageLinkModal,
+                                dialogProps: {
+                                    pages,
+                                    wikiId: wikiId || '',
+                                    onSelect: (pageId: string, pageTitle: string, pageWikiId: string, linkText: string) => {
+                                        const currentEditor = editorRef.current;
+                                        if (!currentEditor) {
+                                            return;
+                                        }
+                                        const url = getWikiUrl(currentTeam?.name || 'team', channelId || '', pageWikiId, pageId);
+                                        const {from: selFrom, to: selTo} = currentEditor.state.selection;
+                                        currentEditor.
+                                            chain().
+                                            focus().
+                                            deleteRange({from: selFrom, to: selTo}).
+                                            insertContent({
+                                                type: 'text',
+                                                text: linkText,
+                                                marks: [{type: 'link', attrs: {href: url}}],
+                                            }).
+                                            command(({tr}) => {
+                                                tr.removeStoredMark(currentEditor.schema.marks.link);
+                                                return true;
+                                            }).
+                                            run();
+                                    },
+                                    onCancel: () => {},
+                                    initialLinkText: text,
+                                },
+                            }));
                             return true;
                         },
                     };
@@ -399,11 +436,64 @@ const TipTapEditor = ({
         if (editable) {
             exts.push(SlashCommandExtension.configure({
                 onOpenLinkModal: () => {
-                    setShowLinkModal(true);
+                    if (!pages) {
+                        return;
+                    }
+                    dispatch(openModal({
+                        modalId: ModalIdentifiers.PAGE_LINK,
+                        dialogType: PageLinkModal,
+                        dialogProps: {
+                            pages,
+                            wikiId: wikiId || '',
+                            onSelect: (pageId: string, pageTitle: string, pageWikiId: string, linkText: string) => {
+                                const currentEditor = editorRef.current;
+                                if (!currentEditor) {
+                                    return;
+                                }
+                                const url = getWikiUrl(currentTeam?.name || 'team', channelId || '', pageWikiId, pageId);
+                                const {from: selFrom, to: selTo} = currentEditor.state.selection;
+                                currentEditor.
+                                    chain().
+                                    focus().
+                                    deleteRange({from: selFrom, to: selTo}).
+                                    insertContent({
+                                        type: 'text',
+                                        text: linkText,
+                                        marks: [{type: 'link', attrs: {href: url}}],
+                                    }).
+                                    command(({tr}) => {
+                                        tr.removeStoredMark(currentEditor.schema.marks.link);
+                                        return true;
+                                    }).
+                                    run();
+                            },
+                            onCancel: () => {},
+                            initialLinkText: '',
+                        },
+                    }));
                 },
                 onOpenImageModal: () => {
                     if (!channelId || !uploadsEnabled) {
-                        setShowImageUrlModal(true);
+                        dispatch(openModal({
+                            modalId: ModalIdentifiers.PAGE_IMAGE_URL,
+                            dialogType: TextInputModal,
+                            dialogProps: {
+                                title: 'Insert Image',
+                                placeholder: 'https://example.com/image.png',
+                                helpText: 'Enter the URL of the image to insert (must be https://)',
+                                confirmButtonText: 'Insert',
+                                cancelButtonText: 'Cancel',
+                                maxLength: 2048,
+                                onConfirm: (url: string) => {
+                                    const currentEditor = editorRef.current;
+                                    const validatedUrl = validateImageUrl(url);
+                                    if (validatedUrl && currentEditor) {
+                                        currentEditor.chain().focus().setImage({src: validatedUrl}).run();
+                                    }
+                                },
+                                onCancel: () => {},
+                            },
+                        }));
                         return;
                     }
 
@@ -618,6 +708,10 @@ const TipTapEditor = ({
         handleAutocompleteUsers,
         handleSearchGroups,
         handleAutocompleteChannels,
+        pages,
+        wikiId,
+        currentTeam,
+        dispatch,
     ]);
 
     const editor = useEditor({
@@ -645,16 +739,13 @@ const TipTapEditor = ({
 
         // Expose editor for E2E testing
         if (editor) {
-            // eslint-disable-next-line no-underscore-dangle
-            (window as any).__tiptapEditor = editor;
+            window.e2eTiptapEditor = editor;
         }
 
         return () => {
             editorRef.current = null;
-            // eslint-disable-next-line no-underscore-dangle
-            if ((window as any).__tiptapEditor === editor) {
-                // eslint-disable-next-line no-underscore-dangle
-                delete (window as any).__tiptapEditor;
+            if (window.e2eTiptapEditor === editor) {
+                delete window.e2eTiptapEditor;
             }
         };
     }, [editor]);
@@ -778,7 +869,7 @@ const TipTapEditor = ({
 
                     const channel = channels[mentionChannelId];
                     const history = getHistory();
-                    const teamUrl = (window as any).basename || '';
+                    const teamUrl = window.basename || '';
                     const channelUrl = `${teamUrl}/${currentTeamData.name}/channels/${channel.name}`;
                     history.push(channelUrl);
                 }
@@ -808,7 +899,7 @@ const TipTapEditor = ({
 
                 if (href) {
                     const currentOrigin = window.location.origin;
-                    const currentBasename = (window as any).basename || '';
+                    const currentBasename = window.basename || '';
 
                     // Check if link is internal (same origin or relative path)
                     const isInternalLink = href.startsWith('/') ||
@@ -944,6 +1035,46 @@ const TipTapEditor = ({
             run();
     }, [editor, currentTeam, channelId]);
 
+    const openPageLinkModal = useCallback((initialText?: string) => {
+        if (!pages) {
+            return;
+        }
+        dispatch(openModal({
+            modalId: ModalIdentifiers.PAGE_LINK,
+            dialogType: PageLinkModal,
+            dialogProps: {
+                pages,
+                wikiId: wikiId || '',
+                onSelect: handlePageSelect,
+                onCancel: () => {},
+                initialLinkText: initialText,
+            },
+        }));
+    }, [dispatch, pages, wikiId, handlePageSelect]);
+
+    const openImageUrlModal = useCallback(() => {
+        const currentEditor = editorRef.current;
+        dispatch(openModal({
+            modalId: ModalIdentifiers.PAGE_IMAGE_URL,
+            dialogType: TextInputModal,
+            dialogProps: {
+                title: 'Insert Image',
+                placeholder: 'https://example.com/image.png',
+                helpText: 'Enter the URL of the image to insert (must be https://)',
+                confirmButtonText: 'Insert',
+                cancelButtonText: 'Cancel',
+                maxLength: 2048,
+                onConfirm: (url: string) => {
+                    const validatedUrl = validateImageUrl(url);
+                    if (validatedUrl && currentEditor) {
+                        currentEditor.chain().focus().setImage({src: validatedUrl}).run();
+                    }
+                },
+                onCancel: () => {},
+            },
+        }));
+    }, [dispatch]);
+
     const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
         // Intercept Ctrl+L (or Cmd+L on Mac) to prevent global handler
         if ((e.ctrlKey || e.metaKey) && e.key === 'l') {
@@ -953,11 +1084,10 @@ const TipTapEditor = ({
 
                 const {from, to} = editor.state.selection;
                 const text = editor.state.doc.textBetween(from, to, '');
-                setSelectedText(text);
-                setShowLinkModal(true);
+                openPageLinkModal(text);
             }
         }
-    }, [editor, pages]);
+    }, [editor, pages, openPageLinkModal]);
 
     if (!editor) {
         return null;
@@ -966,13 +1096,12 @@ const TipTapEditor = ({
     const setLink = () => {
         const {from, to} = editor.state.selection;
         const text = editor.state.doc.textBetween(from, to, '');
-        setSelectedText(text);
-        setShowLinkModal(true);
+        openPageLinkModal(text);
     };
 
     const addImage = () => {
         if (!channelId || !uploadsEnabled) {
-            setShowImageUrlModal(true);
+            openImageUrlModal();
             return;
         }
 
@@ -1059,37 +1188,6 @@ const TipTapEditor = ({
                 />
             )}
             {editor && isAIAvailable && rewriteControl}
-
-            {showLinkModal && pages && (
-                <PageLinkModal
-                    pages={pages}
-                    wikiId={wikiId || ''}
-                    onSelect={handlePageSelect}
-                    onCancel={() => setShowLinkModal(false)}
-                    initialLinkText={selectedText}
-                />
-            )}
-
-            {showImageUrlModal && (
-                <TextInputModal
-                    show={showImageUrlModal}
-                    title='Insert Image'
-                    placeholder='https://example.com/image.png'
-                    helpText='Enter the URL of the image to insert (must be https://)'
-                    confirmButtonText='Insert'
-                    cancelButtonText='Cancel'
-                    maxLength={2048}
-                    onConfirm={(url) => {
-                        const validatedUrl = validateImageUrl(url);
-                        if (validatedUrl) {
-                            editor.chain().focus().setImage({src: validatedUrl}).run();
-                        }
-                        setShowImageUrlModal(false);
-                    }}
-                    onCancel={() => setShowImageUrlModal(false)}
-                />
-            )}
-
         </div>
     );
 };

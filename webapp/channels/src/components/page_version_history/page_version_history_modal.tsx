@@ -11,10 +11,13 @@ import type {Post} from '@mattermost/types/posts';
 import {restorePostVersion} from 'mattermost-redux/actions/posts';
 
 import {getPageVersionHistory} from 'actions/pages';
+import {closeModal} from 'actions/views/modals';
 
 import Scrollbars from 'components/common/scrollbars';
 import AlertIcon from 'components/common/svg_images_components/alert_svg';
 import LoadingScreen from 'components/loading_screen';
+
+import {ModalIdentifiers} from 'utils/constants';
 
 import PageVersionHistoryItem from './page_version_history_item';
 
@@ -24,7 +27,6 @@ type Props = {
     page: Post;
     pageTitle: string;
     wikiId: string;
-    onClose: () => void;
     onVersionRestored?: () => void;
 };
 
@@ -32,7 +34,6 @@ const PageVersionHistoryModal = ({
     page,
     pageTitle,
     wikiId,
-    onClose,
     onVersionRestored,
 }: Props) => {
     const {formatMessage} = useIntl();
@@ -40,6 +41,10 @@ const PageVersionHistoryModal = ({
     const [versionHistory, setVersionHistory] = useState<Post[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [hasError, setHasError] = useState<boolean>(false);
+
+    const handleClose = () => {
+        dispatch(closeModal(ModalIdentifiers.PAGE_VERSION_HISTORY));
+    };
 
     useEffect(() => {
         const fetchVersionHistory = async () => {
@@ -126,10 +131,10 @@ const PageVersionHistoryModal = ({
 
     return (
         <GenericModal
-            onExited={onClose}
+            onExited={handleClose}
             modalHeaderText={`${title}: ${pageTitle}`}
             compassDesign={true}
-            handleCancel={onClose}
+            handleCancel={handleClose}
             className='page-version-history-modal'
             bodyPadding={false}
         >

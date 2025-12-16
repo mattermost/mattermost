@@ -168,15 +168,11 @@ func (a *App) ChangePageParent(rctx request.CTX, postID string, newParentID stri
 		}
 	}()
 
-	post, err := a.getPagePost(rctx, postID)
+	page, err := a.GetPage(rctx, postID)
 	if err != nil {
 		return model.NewAppError("ChangePageParent", "app.page.change_parent.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
 	}
-
-	session := rctx.Session()
-	if err := a.HasPermissionToModifyPage(rctx, session, post, PageOperationEdit, "ChangePageParent"); err != nil {
-		return err
-	}
+	post := page.Post()
 
 	// Store old parent ID for websocket broadcast
 	oldParentID := post.PageParentId
@@ -189,11 +185,11 @@ func (a *App) ChangePageParent(rctx request.CTX, postID string, newParentID stri
 			return model.NewAppError("ChangePageParent", "app.page.change_parent.circular_reference.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		parentPost, parentErr := a.getPagePost(rctx, newParentID)
+		parentPage, parentErr := a.GetPage(rctx, newParentID)
 		if parentErr != nil {
 			return model.NewAppError("ChangePageParent", "app.page.change_parent.invalid_parent.app_error", nil, "", http.StatusBadRequest).Wrap(parentErr)
 		}
-		if parentPost.ChannelId != post.ChannelId {
+		if parentPage.ChannelId() != post.ChannelId {
 			return model.NewAppError("ChangePageParent", "app.page.change_parent.parent_different_channel.app_error", nil, "", http.StatusBadRequest)
 		}
 

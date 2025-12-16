@@ -6,7 +6,10 @@ import {
     createTestChannel,
     createWikiThroughUI,
     createPageThroughUI,
+    getEditor,
+    getHierarchyPanel,
     getNewPageButton,
+    getPageViewerContent,
     fillCreatePageModal,
     publishCurrentPage,
     getEditorAndWait,
@@ -54,19 +57,19 @@ test('renames new draft page and preserves content', {tag: '@pages'}, async ({pw
     await renamePageViaContextMenu(page, originalTitle, newTitle);
 
     // * Verify title is updated in hierarchy
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const hierarchyPanel = getHierarchyPanel(page);
     await expect(hierarchyPanel).toContainText(newTitle);
     await expect(hierarchyPanel).not.toContainText(originalTitle);
 
     // * Verify content is still preserved in the editor
-    const editor = page.locator('.ProseMirror');
+    const editor = getEditor(page);
     await expect(editor).toContainText(pageContent);
 
     // # Publish the page to verify content was preserved through rename
     await publishCurrentPage(page);
 
     // * Verify published page shows the new title and original content
-    const pageViewer = page.locator('[data-testid="page-viewer-content"]');
+    const pageViewer = getPageViewerContent(page);
     await expect(pageViewer).toBeVisible();
     await expect(pageViewer).toContainText(pageContent);
 
@@ -94,7 +97,7 @@ test('renames published page and preserves content', {tag: '@pages'}, async ({pw
     await createPageThroughUI(page, originalTitle, pageContent);
 
     // * Verify page is published and content is visible
-    const pageViewer = page.locator('[data-testid="page-viewer-content"]');
+    const pageViewer = getPageViewerContent(page);
     await expect(pageViewer).toContainText(pageContent);
 
     // # Rename the published page via context menu
@@ -102,7 +105,7 @@ test('renames published page and preserves content', {tag: '@pages'}, async ({pw
     await renamePageViaContextMenu(page, originalTitle, newTitle);
 
     // * Verify title is updated in hierarchy
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const hierarchyPanel = getHierarchyPanel(page);
     await expect(hierarchyPanel).toContainText(newTitle);
     await expect(hierarchyPanel).not.toContainText(originalTitle);
 
@@ -138,7 +141,7 @@ test('renames page during edit mode and preserves content', {tag: '@pages'}, asy
     await enterEditMode(page);
 
     // # Get editor locator and add new content
-    const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
+    const editor = getEditor(page);
     await editor.click();
     await page.keyboard.press('End');
 
@@ -159,7 +162,7 @@ test('renames page during edit mode and preserves content', {tag: '@pages'}, asy
 
     // * Verify editor still contains the content (original + additional)
     // Re-locate editor since state may have changed
-    const editorAfterRename = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
+    const editorAfterRename = getEditor(page);
     await expect(editorAfterRename).toContainText(originalContent);
     await expect(editorAfterRename).toContainText(additionalContent.trim());
 
@@ -169,7 +172,7 @@ test('renames page during edit mode and preserves content', {tag: '@pages'}, asy
     await page.waitForLoadState('networkidle');
 
     // * Verify published page has new title and all content preserved
-    const pageViewer = page.locator('[data-testid="page-viewer-content"]');
+    const pageViewer = getPageViewerContent(page);
     await expect(pageViewer).toBeVisible();
     await expect(pageViewer).toContainText(originalContent);
     await expect(pageViewer).toContainText(additionalContent.trim());
@@ -220,7 +223,7 @@ test('renames page with complex content and preserves formatting', {tag: '@pages
     await renamePageViaContextMenu(page, originalTitle, newTitle);
 
     // * Verify all paragraphs are still in the editor
-    const editor = page.locator('.ProseMirror');
+    const editor = getEditor(page);
     await expect(editor).toContainText(paragraph1);
     await expect(editor).toContainText(paragraph2);
     await expect(editor).toContainText(paragraph3);
@@ -228,7 +231,7 @@ test('renames page with complex content and preserves formatting', {tag: '@pages
     // # Publish and verify
     await publishCurrentPage(page);
 
-    const pageViewer = page.locator('[data-testid="page-viewer-content"]');
+    const pageViewer = getPageViewerContent(page);
     await expect(pageViewer).toContainText(paragraph1);
     await expect(pageViewer).toContainText(paragraph2);
     await expect(pageViewer).toContainText(paragraph3);
@@ -271,11 +274,11 @@ test('multiple consecutive renames preserve content', {tag: '@pages'}, async ({p
     await page.waitForTimeout(SHORT_WAIT);
 
     // * Verify final title is correct
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const hierarchyPanel = getHierarchyPanel(page);
     await expect(hierarchyPanel).toContainText(rename3);
 
     // * Verify content is still preserved after all renames
-    const pageViewer = page.locator('[data-testid="page-viewer-content"]');
+    const pageViewer = getPageViewerContent(page);
     await expect(pageViewer).toContainText(pageContent);
 
     // * Verify content is NOT any of the titles
@@ -315,7 +318,7 @@ test('verifies content is not replaced with title after rename', {tag: '@pages'}
     await renamePageViaContextMenu(page, originalTitle, newTitle);
 
     // * Get the page content after rename
-    const pageViewer = page.locator('[data-testid="page-viewer-content"]');
+    const pageViewer = getPageViewerContent(page);
     const contentText = await pageViewer.textContent();
 
     // * Verify content length is significantly longer than title (content should not be replaced by title)

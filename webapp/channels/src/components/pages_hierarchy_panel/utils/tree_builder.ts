@@ -160,6 +160,26 @@ export function getAncestorIds(pages: PageOrDraft[], pageId: string, pageMap?: M
 }
 
 /**
+ * Get all descendant IDs for a given page (for move/delete operations)
+ * Returns IDs in depth-first order (children before grandchildren at each level)
+ */
+export function getDescendantIds(pages: PageOrDraft[], pageId: string): string[] {
+    const descendantIds: string[] = [];
+
+    const findDescendants = (parentId: string) => {
+        pages.forEach((page) => {
+            if (page.page_parent_id === parentId) {
+                descendantIds.push(page.id);
+                findDescendants(page.id);
+            }
+        });
+    };
+
+    findDescendants(pageId);
+    return descendantIds;
+}
+
+/**
  * Check if targetNode is a descendant of sourceNode
  * Used for drag-and-drop validation to prevent dropping a page into its own subtree
  */

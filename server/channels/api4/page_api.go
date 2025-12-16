@@ -42,7 +42,8 @@ func getWikiPage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, ok := c.ValidatePageBelongsToWiki(); !ok {
+	pagePost, ok := c.ValidatePageBelongsToWiki()
+	if !ok {
 		return
 	}
 
@@ -56,8 +57,12 @@ func getWikiPage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// GetPage loads page content from PageContent table and checks permissions
-	page, appErr := c.App.GetPage(c.AppContext, c.Params.PageId)
+	if !c.CheckPagePermission(pagePost, app.PageOperationRead) {
+		return
+	}
+
+	// GetPageWithContent loads page content from PageContent table and checks permissions
+	page, appErr := c.App.GetPageWithContent(c.AppContext, c.Params.PageId)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -80,12 +85,12 @@ func deletePage(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("wiki_id", c.Params.WikiId)
 	auditRec.AddMeta("page_id", c.Params.PageId)
 
-	wiki, _, ok := c.RequirePageModifyPermission(app.PageOperationDelete, "deletePage")
+	wiki, page, ok := c.RequirePageModifyPermission(app.PageOperationDelete, "deletePage")
 	if !ok {
 		return
 	}
 
-	if appErr := c.App.DeleteWikiPage(c.AppContext, c.Params.PageId, c.Params.WikiId); appErr != nil {
+	if appErr := c.App.DeleteWikiPage(c.AppContext, page, c.Params.WikiId); appErr != nil {
 		c.Err = appErr
 		return
 	}
@@ -173,12 +178,12 @@ func updatePage(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("wiki_id", c.Params.WikiId)
 	auditRec.AddMeta("page_id", c.Params.PageId)
 
-	_, _, ok := c.RequirePageModifyPermission(app.PageOperationEdit, "updatePage")
+	_, page, ok := c.RequirePageModifyPermission(app.PageOperationEdit, "updatePage")
 	if !ok {
 		return
 	}
 
-	updatedPage, appErr := c.App.UpdatePage(c.AppContext, c.Params.PageId, req.Title, req.Content, req.SearchText)
+	updatedPage, appErr := c.App.UpdatePage(c.AppContext, page, req.Title, req.Content, req.SearchText)
 	if appErr != nil {
 		c.Err = appErr
 		return

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useEffect, useMemo, useState, useCallback} from 'react';
+import React, {useEffect, useMemo, useState, useCallback, useRef} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
@@ -14,11 +14,6 @@ import type {DraftPage, TreeNode} from 'selectors/pages_hierarchy';
 import {buildTree, getAncestorIds} from 'selectors/pages_hierarchy';
 
 import BookmarkChannelSelect from 'components/bookmark_channel_select';
-import DeletePageModal from 'components/delete_page_modal';
-import MovePageModal from 'components/move_page_modal';
-import TextInputModal from 'components/text_input_modal';
-
-import {getPageTitle} from 'utils/post_utils';
 
 import type {PostDraft} from 'types/store/draft';
 
@@ -44,14 +39,12 @@ type Props = {
     drafts: PostDraft[];
     loading: boolean;
     expandedNodes: {[pageId: string]: boolean};
-    selectedPageId: string | null;
     isPanelCollapsed: boolean;
     actions: {
         loadPages: (wikiId: string) => Promise<{data?: Post[]; error?: ServerError}>;
         loadPageDraftsForWiki: (wikiId: string) => Promise<{data?: PostDraft[]; error?: ServerError}>;
         removePageDraft: (wikiId: string, draftId: string) => Promise<{data?: boolean; error?: ServerError}>;
         toggleNodeExpanded: (wikiId: string, nodeId: string) => void;
-        setSelectedPage: (pageId: string | null) => void;
         expandAncestors: (wikiId: string, ancestorIds: string[]) => void;
         createPage: (wikiId: string, title: string, pageParentId?: string) => Promise<{data?: string; error?: ServerError}>;
         updatePage: (pageId: string, newTitle: string, wikiId: string) => Promise<{data?: Post; error?: ServerError}>;
@@ -73,7 +66,6 @@ const PagesHierarchyPanel = ({
     drafts,
     loading,
     expandedNodes,
-    selectedPageId,
     isPanelCollapsed,
     actions,
 }: Props) => {
@@ -81,6 +73,9 @@ const PagesHierarchyPanel = ({
     const {formatMessage} = useIntl();
     const untitledText = formatMessage({id: 'wiki.untitled_page', defaultMessage: 'Untitled'});
     const [searchQuery, setSearchQuery] = useState('');
+
+    // Track previous currentPageId to prevent unnecessary ancestor expansions
+    const prevCurrentPageIdRef = useRef<string | undefined>(currentPageId);
 
     // Data loading moved to parent WikiView component to prevent duplicate API calls
     // Pages and drafts are loaded once at WikiView level and passed down via Redux
@@ -124,10 +119,11 @@ const PagesHierarchyPanel = ({
         return new Map(allPagesAndDrafts.map((p) => [p.id, p]));
     }, [allPagesAndDrafts]);
 
-    // Set selected page and expand ancestors when currentPageId changes
+    // Expand ancestors when currentPageId changes to show path to current page
     useEffect(() => {
-        if (currentPageId && currentPageId !== selectedPageId) {
-            actions.setSelectedPage(currentPageId);
+        if (currentPageId && currentPageId !== prevCurrentPageIdRef.current) {
+            // Update the ref to track the current page
+            prevCurrentPageIdRef.current = currentPageId;
 
             // Expand ancestors to show path to current page
             // Only expand when navigating to a new page, not on every render
@@ -137,7 +133,7 @@ const PagesHierarchyPanel = ({
                 actions.expandAncestors(wikiId, ancestorIds);
             }
         }
-    }, [currentPageId, pages, wikiId, pageMap, selectedPageId, actions]);
+    }, [currentPageId, pages, wikiId, pageMap, actions]);
 
     // Build tree from flat pages (including drafts)
     // Uses allPagesAndDrafts which combines published pages with draft-only pages
@@ -175,8 +171,6 @@ const PagesHierarchyPanel = ({
     }, [searchQuery, filteredTree, expandedNodes]);
 
     const handlePageSelect = (pageId: string) => {
-        actions.setSelectedPage(pageId);
-
         // Check if this is a new draft (not an edit of published page)
         // New drafts have has_published_version = false/undefined
         const isNewDraft = drafts.some((draft) => draft.rootId === pageId && !draft.props?.has_published_version);
@@ -191,7 +185,7 @@ const PagesHierarchyPanel = ({
         if (menuHandlers.creatingPage) {
             return;
         }
-        menuHandlers.setShowCreatePageModal(true);
+        menuHandlers.handleCreateRootPage();
     };
 
     if (loading && pages.length === 0) {
@@ -249,7 +243,6 @@ const PagesHierarchyPanel = ({
                     <PageTreeView
                         tree={filteredTree}
                         expandedNodes={effectiveExpandedNodes}
-                        selectedPageId={selectedPageId}
                         currentPageId={currentPageId}
                         onNodeSelect={handlePageSelect}
                         onToggleExpand={handleToggleExpanded}
@@ -267,47 +260,6 @@ const PagesHierarchyPanel = ({
                 )}
             </div>
 
-            {/* Delete confirmation modal */}
-            {menuHandlers.showDeleteModal && menuHandlers.pageToDelete && (
-                <DeletePageModal
-                    pageTitle={getPageTitle(menuHandlers.pageToDelete.page, untitledText)}
-                    childCount={menuHandlers.pageToDelete.childCount}
-                    onConfirm={menuHandlers.handleDeleteConfirm}
-                    onCancel={menuHandlers.handleDeleteCancel}
-                    onExited={menuHandlers.handleDeleteCancel}
-                />
-            )}
-
-            {/* Move page to wiki modal */}
-            {menuHandlers.showMoveModal && menuHandlers.pageToMove && (
-                <MovePageModal
-                    pageId={menuHandlers.pageToMove.pageId}
-                    pageTitle={menuHandlers.pageToMove.pageTitle}
-                    currentWikiId={wikiId}
-                    availableWikis={menuHandlers.availableWikis}
-                    fetchPagesForWiki={menuHandlers.fetchPagesForWiki}
-                    hasChildren={menuHandlers.pageToMove.hasChildren}
-                    onConfirm={menuHandlers.handleMoveConfirm}
-                    onCancel={menuHandlers.handleMoveCancel}
-                />
-            )}
-
-            {/* Create page modal */}
-            <TextInputModal
-                show={menuHandlers.showCreatePageModal}
-                title={menuHandlers.createPageParent ? formatMessage({id: 'pages_panel.create_child_modal.title', defaultMessage: 'Create Child Page under "{parentTitle}"'}, {parentTitle: menuHandlers.createPageParent.title}) : formatMessage({id: 'pages_panel.create_modal.title', defaultMessage: 'Create New Page'})}
-                fieldLabel={formatMessage({id: 'pages_panel.modal.field_label', defaultMessage: 'Page title'})}
-                placeholder={formatMessage({id: 'pages_panel.modal.placeholder', defaultMessage: 'Enter page title...'})}
-                helpText={menuHandlers.createPageParent ? formatMessage({id: 'pages_panel.create_child_modal.help_text', defaultMessage: 'This page will be created as a child of "{parentTitle}".'}, {parentTitle: menuHandlers.createPageParent.title}) : formatMessage({id: 'pages_panel.create_modal.help_text', defaultMessage: 'A new draft will be created for you to edit.'})}
-                confirmButtonText={formatMessage({id: 'pages_panel.create_modal.confirm', defaultMessage: 'Create'})}
-                maxLength={255}
-                ariaLabel={formatMessage({id: 'pages_panel.create_modal.aria_label', defaultMessage: 'Create Page'})}
-                inputTestId='create-page-modal-title-input'
-                onConfirm={menuHandlers.handleConfirmCreatePage}
-                onCancel={menuHandlers.handleCancelCreatePage}
-                onHide={() => menuHandlers.setShowCreatePageModal(false)}
-            />
-
             {/* Bookmark in channel modal */}
             {menuHandlers.showBookmarkModal && menuHandlers.pageToBookmark && (
                 <BookmarkChannelSelect
@@ -317,22 +269,6 @@ const PagesHierarchyPanel = ({
                 />
             )}
 
-            {/* Rename page modal */}
-            <TextInputModal
-                show={menuHandlers.showRenameModal}
-                title={formatMessage({id: 'pages_panel.rename_modal.title', defaultMessage: 'Rename Page'})}
-                fieldLabel={formatMessage({id: 'pages_panel.modal.field_label', defaultMessage: 'Page title'})}
-                placeholder={formatMessage({id: 'pages_panel.modal.placeholder', defaultMessage: 'Enter page title...'})}
-                helpText={formatMessage({id: 'pages_panel.rename_modal.help_text', defaultMessage: 'The page will be renamed immediately.'})}
-                confirmButtonText={formatMessage({id: 'pages_panel.rename_modal.confirm', defaultMessage: 'Rename'})}
-                maxLength={255}
-                initialValue={menuHandlers.pageToRename?.currentTitle || ''}
-                ariaLabel={formatMessage({id: 'pages_panel.rename_modal.aria_label', defaultMessage: 'Rename Page'})}
-                inputTestId='rename-page-modal-title-input'
-                onConfirm={menuHandlers.handleConfirmRename}
-                onCancel={menuHandlers.handleCancelRename}
-                onHide={() => menuHandlers.setShowRenameModal(false)}
-            />
         </div>
     );
 };

@@ -121,7 +121,7 @@ const WikiPageEditor = ({
                 <input
                     type='text'
                     className='page-title-input'
-                    placeholder='Untitled page...'
+                    placeholder={formatMessage({id: 'wiki.page_title_placeholder', defaultMessage: 'Untitled page...'})}
                     value={localTitle}
                     onChange={(e) => handleTitleChange(e.target.value)}
                     data-testid='wiki-page-title-input'
@@ -191,7 +191,7 @@ const WikiPageEditor = ({
                 <TipTapEditor
                     content={content}
                     onContentChange={onContentChange}
-                    placeholder="Type '/' to insert objects or start writing..."
+                    placeholder={formatMessage({id: 'wiki.editor_placeholder', defaultMessage: "Type '/' to insert objects or start writing..."})}
                     editable={true}
                     currentUserId={currentUserId}
                     channelId={channelId}

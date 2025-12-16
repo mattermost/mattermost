@@ -8,6 +8,10 @@ import {GenericModal} from '@mattermost/components';
 import type {Post} from '@mattermost/types/posts';
 import type {Wiki} from '@mattermost/types/wikis';
 
+import {getDescendantIds} from 'components/pages_hierarchy_panel/utils/tree_builder';
+
+import {getPageTitle} from 'utils/post_utils';
+
 import './page_destination_modal.scss';
 
 type Props = {
@@ -69,19 +73,9 @@ const PageDestinationModal = ({
         fetchPages();
     }, [selectedWikiId, fetchPagesForWiki]);
 
-    // Build descendant map to prevent circular references
+    // Build descendant set to prevent circular references
     const descendantIds = useMemo(() => {
-        const ids = new Set<string>();
-        const findDescendants = (id: string) => {
-            allPages.forEach((page) => {
-                if (page.page_parent_id === id && page.id !== pageId) {
-                    ids.add(page.id);
-                    findDescendants(page.id);
-                }
-            });
-        };
-        findDescendants(pageId);
-        return ids;
+        return new Set(getDescendantIds(allPages, pageId));
     }, [allPages, pageId]);
 
     // Filter pages for selected wiki
@@ -109,7 +103,7 @@ const PageDestinationModal = ({
         }
         const query = searchQuery.toLowerCase();
         return targetPages.filter((page) => {
-            const title = typeof page.props?.title === 'string' ? page.props.title : '';
+            const title = getPageTitle(page, '');
             const searchText = title || page.message || '';
             return searchText.toLowerCase().includes(query);
         });
@@ -235,8 +229,7 @@ const PageDestinationModal = ({
                             )}
 
                             {filteredPages.map((page) => {
-                                const title = typeof page.props?.title === 'string' ? page.props.title : '';
-                                const displayTitle = title || page.message || untitledText;
+                                const displayTitle = getPageTitle(page, '') || page.message || untitledText;
                                 return (
                                     <button
                                         key={page.id}

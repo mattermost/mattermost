@@ -9,6 +9,7 @@ import {
     createTestChannel,
     buildWikiPageUrl,
     getHierarchyPanel,
+    getPageViewerContent,
     getBreadcrumb,
     getBreadcrumbWikiName,
     getBreadcrumbLinks,
@@ -129,7 +130,7 @@ test('navigates using breadcrumbs', {tag: '@pages'}, async ({pw, sharedPagesSetu
     await page.waitForLoadState('networkidle');
 
     // * Verify navigated to parent page
-    const pageContent = page.locator('[data-testid="page-viewer-content"]');
+    const pageContent = getPageViewerContent(page);
     await expect(pageContent).toContainText('Parent content', {timeout: PAGE_LOAD_TIMEOUT});
 
     // * Verify wiki name is displayed in breadcrumb but not clickable
@@ -183,7 +184,7 @@ test('navigates to correct page via URL routing', {tag: '@pages'}, async ({pw, s
     const testPage = await createPageThroughUI(page, 'URL Test Page', 'URL routing test content');
 
     // * Verify correct page is displayed
-    const pageContent = page.locator('[data-testid="page-viewer-content"]');
+    const pageContent = getPageViewerContent(page);
     await expect(pageContent).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await expect(pageContent).toContainText('URL routing test content');
 
@@ -221,7 +222,7 @@ test('opens page from deep link shared externally', {tag: '@pages'}, async ({pw,
     await page.waitForLoadState('networkidle');
 
     // * Verify page loaded correctly
-    const pageContent = page.locator('[data-testid="page-viewer-content"]');
+    const pageContent = getPageViewerContent(page);
     await expect(pageContent).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await expect(pageContent).toContainText('Deep link test content');
 
@@ -258,7 +259,7 @@ test('maintains page state with browser back and forward buttons', {tag: '@pages
     await page.waitForLoadState('networkidle');
 
     // * Verify page1 content
-    const pageContent = page.locator('[data-testid="page-viewer-content"]');
+    const pageContent = getPageViewerContent(page);
     await expect(pageContent).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await expect(pageContent).toContainText('First page content');
 
@@ -360,7 +361,7 @@ test('preserves page content after browser refresh', {tag: '@pages'}, async ({pw
     await createPageThroughUI(page, 'Refresh Test Page', 'Content that should persist after refresh');
 
     // * Verify page was created and is visible
-    const pageContent = page.locator('[data-testid="page-viewer-content"]');
+    const pageContent = getPageViewerContent(page);
     await expect(pageContent).toBeVisible();
     await expect(pageContent).toContainText('Content that should persist after refresh');
 
@@ -403,7 +404,7 @@ test('toggles fullscreen mode and accesses comments', {tag: '@pages'}, async ({p
     await createPageThroughUI(page, 'Fullscreen Test Page', 'This is fullscreen test content');
 
     // * Verify page is visible
-    const pageContent = page.locator('[data-testid="page-viewer-content"]');
+    const pageContent = getPageViewerContent(page);
     await expect(pageContent).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await expect(pageContent).toContainText('This is fullscreen test content');
 

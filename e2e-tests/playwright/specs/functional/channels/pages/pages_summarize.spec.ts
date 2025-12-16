@@ -8,6 +8,7 @@ import {
     createWikiThroughUI,
     createTestChannel,
     checkAIPluginAvailability,
+    getPageViewerContent,
     openAIActionsMenu,
     clickAIActionsMenuItem,
     createPostsForSummarization,
@@ -218,7 +219,7 @@ test('creates page with summarized content from channel thread', {tag: '@pages'}
     await pageLink.click();
 
     // * Verify page viewer is displayed with content
-    const pageViewer = page.locator('[data-testid="page-viewer-content"]');
+    const pageViewer = getPageViewerContent(page);
     await expect(pageViewer).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // * Verify page has some content (AI-generated summary)

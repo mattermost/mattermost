@@ -2,90 +2,104 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useDispatch} from 'react-redux';
 
+import {GenericModal} from '@mattermost/components';
 import type {Post} from '@mattermost/types/posts';
 
+import {closeModal} from 'actions/views/modals';
+
+import {ModalIdentifiers} from 'utils/constants';
 import {getPageTitle} from 'utils/post_utils';
 
 import './conflict_warning_modal.scss';
 
 export type ConflictWarningModalProps = {
-    show: boolean;
     currentPage: Post;
-    draftContent: string;
     onViewChanges: () => void;
     onCopyContent: () => void;
     onOverwrite: () => void;
     onCancel: () => void;
+    onExited?: () => void;
 };
 
 export default function ConflictWarningModal({
-    show,
     currentPage,
     onViewChanges,
     onCopyContent,
     onOverwrite,
     onCancel,
+    onExited,
 }: ConflictWarningModalProps) {
+    const dispatch = useDispatch();
     const {formatMessage} = useIntl();
     const untitledText = formatMessage({id: 'wiki.untitled_page', defaultMessage: 'Untitled'});
 
+    const handleClose = () => {
+        dispatch(closeModal(ModalIdentifiers.PAGE_CONFLICT_WARNING));
+        onCancel();
+    };
+
+    const handleOverwrite = () => {
+        dispatch(closeModal(ModalIdentifiers.PAGE_CONFLICT_WARNING));
+        onOverwrite();
+    };
+
+    const modalTitle = formatMessage({id: 'conflict_warning.title', defaultMessage: 'Page Was Modified'});
+
     return (
-        <Modal
-            show={show}
-            onHide={onCancel}
-            backdrop='static'
+        <GenericModal
             className='conflict-warning-modal'
-            data-testid='conflict-warning-modal'
+            dataTestId='conflict-warning-modal'
+            ariaLabel={modalTitle}
+            modalHeaderText={modalTitle}
+            compassDesign={true}
+            keyboardEscape={true}
+            enforceFocus={false}
+            handleConfirm={handleOverwrite}
+            handleCancel={handleClose}
+            onExited={onExited}
+            confirmButtonText={formatMessage({id: 'conflict_warning.overwrite', defaultMessage: 'Overwrite Anyway'})}
+            cancelButtonText={formatMessage({id: 'conflict_warning.cancel', defaultMessage: 'Cancel'})}
+            isDeleteModal={true}
+            autoCloseOnConfirmButton={false}
+            autoCloseOnCancelButton={false}
         >
-            <Modal.Header closeButton={true}>
-                <Modal.Title>
+            <div className='conflict-warning-content'>
+                <p className='conflict-warning-primary'>
+                    <i className='icon icon-information-outline'/>
                     <FormattedMessage
-                        id='conflict_warning.title'
-                        defaultMessage='Page Was Modified'
+                        id='conflict_warning.first_write_message'
+                        defaultMessage='Someone else published this page first while you were editing. Your changes have been preserved as a draft.'
                     />
-                </Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
-                <div className='conflict-warning-content'>
-                    <p className='conflict-warning-primary'>
-                        <i className='icon icon-information-outline'/>
+                </p>
+                <div className='conflict-warning-info'>
+                    <strong>
                         <FormattedMessage
-                            id='conflict_warning.first_write_message'
-                            defaultMessage='Someone else published this page first while you were editing. Your changes have been preserved as a draft.'
+                            id='conflict_warning.page_title'
+                            defaultMessage='Page: {title}'
+                            values={{title: getPageTitle(currentPage, untitledText)}}
                         />
-                    </p>
-                    <div className='conflict-warning-info'>
-                        <strong>
-                            <FormattedMessage
-                                id='conflict_warning.page_title'
-                                defaultMessage='Page: {title}'
-                                values={{title: getPageTitle(currentPage, untitledText)}}
-                            />
-                        </strong>
-                        <br/>
-                        <FormattedMessage
-                            id='conflict_warning.last_modified'
-                            defaultMessage='Last modified: {time}'
-                            values={{
-                                time: new Date(currentPage.update_at).toLocaleString(),
-                            }}
-                        />
-                    </div>
-                    <p className='conflict-warning-options'>
-                        <FormattedMessage
-                            id='conflict_warning.options_message'
-                            defaultMessage='You can view their changes, continue editing your draft to merge manually, or overwrite their version with yours.'
-                        />
-                    </p>
+                    </strong>
+                    <br/>
+                    <FormattedMessage
+                        id='conflict_warning.last_modified'
+                        defaultMessage='Last modified: {time}'
+                        values={{
+                            time: new Date(currentPage.update_at).toLocaleString(),
+                        }}
+                    />
                 </div>
-            </Modal.Body>
-            <Modal.Footer>
-                <div className='conflict-warning-actions-left'>
+                <p className='conflict-warning-options'>
+                    <FormattedMessage
+                        id='conflict_warning.options_message'
+                        defaultMessage='You can view their changes, continue editing your draft to merge manually, or overwrite their version with yours.'
+                    />
+                </p>
+                <div className='conflict-warning-actions'>
                     <button
-                        className='btn btn-link'
+                        className='btn btn-tertiary'
                         onClick={onViewChanges}
                     >
                         <FormattedMessage
@@ -94,7 +108,7 @@ export default function ConflictWarningModal({
                         />
                     </button>
                     <button
-                        className='btn btn-link'
+                        className='btn btn-tertiary'
                         onClick={onCopyContent}
                     >
                         <FormattedMessage
@@ -103,27 +117,7 @@ export default function ConflictWarningModal({
                         />
                     </button>
                 </div>
-                <div className='conflict-warning-actions-right'>
-                    <button
-                        className='btn btn-default'
-                        onClick={onCancel}
-                    >
-                        <FormattedMessage
-                            id='conflict_warning.cancel'
-                            defaultMessage='Cancel'
-                        />
-                    </button>
-                    <button
-                        className='btn btn-danger'
-                        onClick={onOverwrite}
-                    >
-                        <FormattedMessage
-                            id='conflict_warning.overwrite'
-                            defaultMessage='Overwrite Anyway'
-                        />
-                    </button>
-                </div>
-            </Modal.Footer>
-        </Modal>
+            </div>
+        </GenericModal>
     );
 }

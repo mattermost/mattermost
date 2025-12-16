@@ -203,7 +203,7 @@ func TestCreatePage(t *testing.T) {
 
 		_, pageErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, regularPost.Id, "Invalid Child", "", th.BasicUser.Id, "", "")
 		require.NotNil(t, pageErr, "Should fail when parent is not a page")
-		require.Equal(t, "app.page.create.parent_not_page.app_error", pageErr.Id)
+		require.Equal(t, "app.page.create.invalid_parent.app_error", pageErr.Id)
 	})
 
 	t.Run("fails when parent is in different channel", func(t *testing.T) {
@@ -271,20 +271,22 @@ func TestMovePageToWiki(t *testing.T) {
 		createdTargetWiki, err := th.App.CreateWiki(th.Context, targetWiki, th.BasicUser.Id)
 		require.Nil(t, err)
 
-		page, err := th.App.CreateWikiPage(th.Context, createdSourceWiki.Id, "", "Page to Move", "", th.BasicUser.Id, "", "")
+		createdPage, err := th.App.CreateWikiPage(th.Context, createdSourceWiki.Id, "", "Page to Move", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
-		require.NotNil(t, page)
+		require.NotNil(t, createdPage)
 
 		th.Context.Session().UserId = th.BasicUser.Id
 
-		appErr := th.App.MovePageToWiki(th.Context, page.Id, createdTargetWiki.Id, nil)
+		page, appErr := th.App.GetPage(th.Context, createdPage.Id)
+		require.Nil(t, appErr)
+		appErr = th.App.MovePageToWiki(th.Context, page, createdTargetWiki.Id, nil)
 		require.Nil(t, appErr)
 
-		wikiId, wikiErr := th.App.GetWikiIdForPage(th.Context, page.Id)
+		wikiId, wikiErr := th.App.GetWikiIdForPage(th.Context, createdPage.Id)
 		require.Nil(t, wikiErr)
 		require.Equal(t, createdTargetWiki.Id, wikiId)
 
-		movedPage, pageErr := th.App.GetSinglePost(th.Context, page.Id, false)
+		movedPage, pageErr := th.App.GetSinglePost(th.Context, page.Id(), false)
 		require.Nil(t, pageErr)
 		require.Empty(t, movedPage.PageParentId, "Moved page should become root")
 	})
@@ -323,7 +325,10 @@ func TestMovePageToWiki(t *testing.T) {
 
 		th.Context.Session().UserId = th.BasicUser.Id
 
-		appErr := th.App.MovePageToWiki(th.Context, parentPage.Id, createdTargetWiki.Id, nil)
+		parentPageWrapper, appErr := th.App.GetPage(th.Context, parentPage.Id)
+		require.Nil(t, appErr)
+
+		appErr = th.App.MovePageToWiki(th.Context, parentPageWrapper, createdTargetWiki.Id, nil)
 		require.Nil(t, appErr)
 
 		parentWikiId, err := th.App.GetWikiIdForPage(th.Context, parentPage.Id)
@@ -363,17 +368,10 @@ func TestMovePageToWiki(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 		th.SetupPagePermissions()
 
-		targetWiki := &model.Wiki{
-			ChannelId: th.BasicChannel.Id,
-			Title:     "Target Wiki",
-		}
-
-		createdTargetWiki, err := th.App.CreateWiki(th.Context, targetWiki, th.BasicUser.Id)
-		require.Nil(t, err)
-
-		appErr := th.App.MovePageToWiki(th.Context, model.NewId(), createdTargetWiki.Id, nil)
+		// GetPage validates the page exists - error happens at entry point
+		_, appErr := th.App.GetPage(th.Context, model.NewId())
 		require.NotNil(t, appErr)
-		require.Equal(t, "app.page.move.page_not_found", appErr.Id)
+		require.Contains(t, appErr.Id, "page")
 	})
 
 	t.Run("fails when target wiki does not exist", func(t *testing.T) {
@@ -388,10 +386,13 @@ func TestMovePageToWiki(t *testing.T) {
 		createdSourceWiki, err := th.App.CreateWiki(th.Context, sourceWiki, th.BasicUser.Id)
 		require.Nil(t, err)
 
-		page, err := th.App.CreateWikiPage(th.Context, createdSourceWiki.Id, "", "Page to Move", "", th.BasicUser.Id, "", "")
+		createdPage, err := th.App.CreateWikiPage(th.Context, createdSourceWiki.Id, "", "Page to Move", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		appErr := th.App.MovePageToWiki(th.Context, page.Id, model.NewId(), nil)
+		page, appErr := th.App.GetPage(th.Context, createdPage.Id)
+		require.Nil(t, appErr)
+
+		appErr = th.App.MovePageToWiki(th.Context, page, model.NewId(), nil)
 		require.NotNil(t, appErr)
 		require.Equal(t, "app.page.move.target_wiki_not_found", appErr.Id)
 	})
@@ -408,10 +409,13 @@ func TestMovePageToWiki(t *testing.T) {
 		createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 		require.Nil(t, err)
 
-		page, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Page", "", th.BasicUser.Id, "", "")
+		createdPage, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Page", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		appErr := th.App.MovePageToWiki(th.Context, page.Id, createdWiki.Id, nil)
+		page, appErr := th.App.GetPage(th.Context, createdPage.Id)
+		require.Nil(t, appErr)
+
+		appErr = th.App.MovePageToWiki(th.Context, page, createdWiki.Id, nil)
 		require.Nil(t, appErr, "Moving to same wiki should succeed (idempotent)")
 	})
 
@@ -446,91 +450,15 @@ func TestMovePageToWiki(t *testing.T) {
 		createdTargetWiki, err := th.App.CreateWiki(th.Context, targetWiki, th.BasicUser.Id)
 		require.Nil(t, err)
 
-		page, err := th.App.CreateWikiPage(th.Context, createdSourceWiki.Id, "", "Page to Move", "", th.BasicUser.Id, "", "")
+		createdPage, err := th.App.CreateWikiPage(th.Context, createdSourceWiki.Id, "", "Page to Move", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		appErr := th.App.MovePageToWiki(th.Context, page.Id, createdTargetWiki.Id, nil)
+		page, appErr := th.App.GetPage(th.Context, createdPage.Id)
+		require.Nil(t, appErr)
+
+		appErr = th.App.MovePageToWiki(th.Context, page, createdTargetWiki.Id, nil)
 		require.NotNil(t, appErr)
 		require.Equal(t, "app.page.move.cross_channel_not_supported", appErr.Id)
-	})
-
-	t.Run("fails when user has no permission to edit source wiki", func(t *testing.T) {
-		th := Setup(t).InitBasic(t)
-		th.SetupPagePermissions()
-
-		sourceWiki := &model.Wiki{
-			ChannelId: th.BasicChannel.Id,
-			Title:     "Source Wiki",
-		}
-
-		targetWiki := &model.Wiki{
-			ChannelId: th.BasicChannel.Id,
-			Title:     "Target Wiki",
-		}
-
-		createdSourceWiki, err := th.App.CreateWiki(th.Context, sourceWiki, th.BasicUser.Id)
-		require.Nil(t, err)
-
-		createdTargetWiki, err := th.App.CreateWiki(th.Context, targetWiki, th.BasicUser.Id)
-		require.Nil(t, err)
-
-		page, err := th.App.CreateWikiPage(th.Context, createdSourceWiki.Id, "", "Page to Move", "", th.BasicUser.Id, "", "")
-		require.Nil(t, err)
-
-		th.RemovePermissionFromRole(t, model.PermissionEditPage.Id, model.ChannelUserRoleId)
-
-		otherUser := th.CreateUser(t)
-		_, _, addTeamErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, otherUser.Id, "")
-		require.Nil(t, addTeamErr)
-		_, memberErr := th.App.AddUserToChannel(th.Context, otherUser, th.BasicChannel, false)
-		require.Nil(t, memberErr)
-
-		th.Context.Session().UserId = otherUser.Id
-
-		appErr := th.App.MovePageToWiki(th.Context, page.Id, createdTargetWiki.Id, nil)
-		require.NotNil(t, appErr)
-		require.Contains(t, appErr.Id, "permission")
-	})
-
-	t.Run("fails when user has no permission to create in target wiki", func(t *testing.T) {
-		th := Setup(t).InitBasic(t)
-		th.SetupPagePermissions()
-
-		sourceWiki := &model.Wiki{
-			ChannelId: th.BasicChannel.Id,
-			Title:     "Source Wiki",
-		}
-
-		targetWiki := &model.Wiki{
-			ChannelId: th.BasicChannel.Id,
-			Title:     "Target Wiki",
-		}
-
-		createdSourceWiki, err := th.App.CreateWiki(th.Context, sourceWiki, th.BasicUser.Id)
-		require.Nil(t, err)
-
-		createdTargetWiki, err := th.App.CreateWiki(th.Context, targetWiki, th.BasicUser.Id)
-		require.Nil(t, err)
-
-		page, err := th.App.CreateWikiPage(th.Context, createdSourceWiki.Id, "", "Page to Move", "", th.BasicUser.Id, "", "")
-		require.Nil(t, err)
-
-		th.RemovePermissionFromRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
-
-		otherUser := th.CreateUser(t)
-		_, _, addTeamErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, otherUser.Id, "")
-		require.Nil(t, addTeamErr)
-		_, memberErr := th.App.AddUserToChannel(th.Context, otherUser, th.BasicChannel, false)
-		require.Nil(t, memberErr)
-
-		updateErr := th.App.Srv().Store().User().UpdateLastLogin(otherUser.Id, model.GetMillis())
-		require.NoError(t, updateErr)
-
-		th.Context.Session().UserId = otherUser.Id
-
-		appErr := th.App.MovePageToWiki(th.Context, page.Id, createdTargetWiki.Id, nil)
-		require.NotNil(t, appErr)
-		require.Contains(t, appErr.Id, "permission")
 	})
 }
 
@@ -558,17 +486,20 @@ func TestDuplicatePage(t *testing.T) {
 		require.Nil(t, err)
 
 		originalContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Original content"}]}]}`
-		page, err := th.App.CreateWikiPage(th.Context, createdSourceWiki.Id, "", "Original Page", originalContent, th.BasicUser.Id, "search text", "")
+		createdPage, err := th.App.CreateWikiPage(th.Context, createdSourceWiki.Id, "", "Original Page", originalContent, th.BasicUser.Id, "search text", "")
 		require.Nil(t, err)
-		require.NotNil(t, page)
+		require.NotNil(t, createdPage)
 
 		th.Context.Session().UserId = th.BasicUser.Id
 
-		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, createdTargetWiki.Id, nil, nil, th.BasicUser.Id)
+		page, appErr := th.App.GetPage(th.Context, createdPage.Id)
+		require.Nil(t, appErr)
+
+		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page, createdTargetWiki.Id, nil, nil, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		require.NotNil(t, duplicatedPage)
 
-		require.NotEqual(t, page.Id, duplicatedPage.Id, "Duplicated page should have new ID")
+		require.NotEqual(t, page.Id(), duplicatedPage.Id, "Duplicated page should have new ID")
 		require.Equal(t, "Copy of Original Page", duplicatedPage.Props["title"], "Should have default duplicate title")
 		require.Equal(t, th.BasicChannel.Id, duplicatedPage.ChannelId, "Should be in same channel")
 		require.Empty(t, duplicatedPage.PageParentId, "Should be root level")
@@ -598,16 +529,19 @@ func TestDuplicatePage(t *testing.T) {
 		createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 		require.Nil(t, err)
 
-		page, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Page to Duplicate", "", th.BasicUser.Id, "", "")
+		createdPage, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Page to Duplicate", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		th.Context.Session().UserId = th.BasicUser.Id
 
-		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, createdWiki.Id, nil, nil, th.BasicUser.Id)
+		page, appErr := th.App.GetPage(th.Context, createdPage.Id)
+		require.Nil(t, appErr)
+
+		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page, createdWiki.Id, nil, nil, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		require.NotNil(t, duplicatedPage)
 
-		require.NotEqual(t, page.Id, duplicatedPage.Id)
+		require.NotEqual(t, page.Id(), duplicatedPage.Id)
 		require.Equal(t, "Copy of Page to Duplicate", duplicatedPage.Props["title"])
 
 		wikiId, wikiErr := th.App.GetWikiIdForPage(th.Context, duplicatedPage.Id)
@@ -627,13 +561,16 @@ func TestDuplicatePage(t *testing.T) {
 		createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 		require.Nil(t, err)
 
-		page, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Original", "", th.BasicUser.Id, "", "")
+		createdPage, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Original", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		th.Context.Session().UserId = th.BasicUser.Id
 
+		page, appErr := th.App.GetPage(th.Context, createdPage.Id)
+		require.Nil(t, appErr)
+
 		customTitle := "My Custom Title"
-		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, createdWiki.Id, nil, &customTitle, th.BasicUser.Id)
+		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page, createdWiki.Id, nil, &customTitle, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, customTitle, duplicatedPage.Props["title"], "Should use custom title")
 	})
@@ -653,12 +590,15 @@ func TestDuplicatePage(t *testing.T) {
 		parentPage, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Parent Page", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		page, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, parentPage.Id, "Page to Duplicate", "", th.BasicUser.Id, "", "")
+		createdPage, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, parentPage.Id, "Page to Duplicate", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		th.Context.Session().UserId = th.BasicUser.Id
 
-		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, createdWiki.Id, nil, nil, th.BasicUser.Id)
+		page, appErr := th.App.GetPage(th.Context, createdPage.Id)
+		require.Nil(t, appErr)
+
+		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page, createdWiki.Id, nil, nil, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, parentPage.Id, duplicatedPage.PageParentId, "Should preserve parent from source page")
 	})
@@ -686,12 +626,15 @@ func TestDuplicatePage(t *testing.T) {
 		createdTargetWiki, err := th.App.CreateWiki(th.Context, targetWiki, th.BasicUser.Id)
 		require.Nil(t, err)
 
-		page, err := th.App.CreateWikiPage(th.Context, createdSourceWiki.Id, "", "Page", "", th.BasicUser.Id, "", "")
+		createdPage, err := th.App.CreateWikiPage(th.Context, createdSourceWiki.Id, "", "Page", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		th.Context.Session().UserId = th.BasicUser.Id
 
-		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, createdTargetWiki.Id, nil, nil, th.BasicUser.Id)
+		page, appErr := th.App.GetPage(th.Context, createdPage.Id)
+		require.Nil(t, appErr)
+
+		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page, createdTargetWiki.Id, nil, nil, th.BasicUser.Id)
 		require.NotNil(t, appErr)
 		require.Nil(t, duplicatedPage)
 		require.Contains(t, appErr.Id, "cross_channel_not_supported")
@@ -701,20 +644,10 @@ func TestDuplicatePage(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 		th.SetupPagePermissions()
 
-		wiki := &model.Wiki{
-			ChannelId: th.BasicChannel.Id,
-			Title:     "Test Wiki",
-		}
-
-		createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
-		require.Nil(t, err)
-
-		th.Context.Session().UserId = th.BasicUser.Id
-
-		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, "nonexistent", createdWiki.Id, nil, nil, th.BasicUser.Id)
+		// GetPage validates the page exists - error happens at entry point
+		_, appErr := th.App.GetPage(th.Context, "nonexistent")
 		require.NotNil(t, appErr)
-		require.Nil(t, duplicatedPage)
-		require.Contains(t, appErr.Id, "source_not_found")
+		require.Contains(t, appErr.Id, "page")
 	})
 
 	t.Run("fails when target wiki not found", func(t *testing.T) {
@@ -729,12 +662,15 @@ func TestDuplicatePage(t *testing.T) {
 		createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 		require.Nil(t, err)
 
-		page, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Page", "", th.BasicUser.Id, "", "")
+		createdPage, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Page", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		th.Context.Session().UserId = th.BasicUser.Id
 
-		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, "nonexistent", nil, nil, th.BasicUser.Id)
+		page, appErr := th.App.GetPage(th.Context, createdPage.Id)
+		require.Nil(t, appErr)
+
+		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page, "nonexistent", nil, nil, th.BasicUser.Id)
 		require.NotNil(t, appErr)
 		require.Nil(t, duplicatedPage)
 		require.Contains(t, appErr.Id, "target_wiki_not_found")
@@ -757,12 +693,15 @@ func TestDuplicatePage(t *testing.T) {
 			longTitle.WriteString("A")
 		}
 
-		page, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", longTitle.String()[:255], "", th.BasicUser.Id, "", "")
+		createdPage, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", longTitle.String()[:255], "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		th.Context.Session().UserId = th.BasicUser.Id
 
-		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, createdWiki.Id, nil, nil, th.BasicUser.Id)
+		page, appErr := th.App.GetPage(th.Context, createdPage.Id)
+		require.Nil(t, appErr)
+
+		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page, createdWiki.Id, nil, nil, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
 		duplicateTitle := duplicatedPage.GetPageTitle()
@@ -908,13 +847,16 @@ func TestSystemMessages_PageUpdated(t *testing.T) {
 	createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 	require.Nil(t, err)
 
-	page, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Test Page", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Original"}]}]}`, th.BasicUser.Id, "Original", "")
+	createdPage, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Test Page", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Original"}]}]}`, th.BasicUser.Id, "Original", "")
 	require.Nil(t, appErr)
-	require.NotNil(t, page)
+	require.NotNil(t, createdPage)
+
+	page, appErr := th.App.GetPage(th.Context, createdPage.Id)
+	require.Nil(t, appErr)
 
 	t.Run("creates system message on first page update", func(t *testing.T) {
 		th.Context.Session().UserId = th.BasicUser.Id
-		_, appErr := th.App.UpdatePage(th.Context, page.Id, "Updated Title", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Updated"}]}]}`, "Updated")
+		_, appErr := th.App.UpdatePage(th.Context, page, "Updated Title", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Updated"}]}]}`, "Updated")
 		require.Nil(t, appErr)
 
 		postList, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
@@ -936,7 +878,7 @@ func TestSystemMessages_PageUpdated(t *testing.T) {
 		require.NotNil(t, systemPost, "Should have created a system_page_updated post")
 		require.Equal(t, th.BasicChannel.Id, systemPost.ChannelId)
 		require.Equal(t, th.BasicUser.Id, systemPost.UserId)
-		require.Equal(t, page.Id, systemPost.Props["page_id"])
+		require.Equal(t, page.Id(), systemPost.Props["page_id"])
 		require.Equal(t, "Updated Title", systemPost.Props["page_title"])
 		require.Equal(t, createdWiki.Id, systemPost.Props["wiki_id"])
 		require.Equal(t, createdWiki.Title, systemPost.Props["wiki_title"])
@@ -952,10 +894,10 @@ func TestSystemMessages_PageUpdated(t *testing.T) {
 	t.Run("consolidates multiple updates within 2 hours", func(t *testing.T) {
 		th.Context.Session().UserId = th.BasicUser.Id
 
-		_, appErr := th.App.UpdatePage(th.Context, page.Id, "First Update", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"First update"}]}]}`, "First update")
+		_, appErr := th.App.UpdatePage(th.Context, page, "First Update", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"First update"}]}]}`, "First update")
 		require.Nil(t, appErr)
 
-		_, appErr = th.App.UpdatePage(th.Context, page.Id, "", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Second update"}]}]}`, "Second update")
+		_, appErr = th.App.UpdatePage(th.Context, page, "", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Second update"}]}]}`, "Second update")
 		require.Nil(t, appErr)
 
 		postList, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
@@ -980,7 +922,7 @@ func TestSystemMessages_PageUpdated(t *testing.T) {
 		require.NotNil(t, latestUpdatePost)
 		require.Equal(t, 3, int(latestUpdatePost.Props["update_count"].(float64)), "Update count should be 3 (first subtest + 2 updates)")
 
-		_, appErr = th.App.UpdatePage(th.Context, page.Id, "", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Third update"}]}]}`, "Third update")
+		_, appErr = th.App.UpdatePage(th.Context, page, "", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Third update"}]}]}`, "Third update")
 		require.Nil(t, appErr)
 
 		postList, appErr = th.App.GetPostsPage(th.Context, model.GetPostsOptions{
@@ -1013,12 +955,12 @@ func TestSystemMessages_PageUpdated(t *testing.T) {
 
 		session1, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id})
 		require.Nil(t, err)
-		_, appErr = th.App.UpdatePage(th.Context.WithSession(session1), page.Id, "Update by User1", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"User1 update"}]}]}`, "User1 update")
+		_, appErr = th.App.UpdatePage(th.Context.WithSession(session1), page, "Update by User1", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"User1 update"}]}]}`, "User1 update")
 		require.Nil(t, appErr)
 
 		session2, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser2.Id})
 		require.Nil(t, err)
-		_, appErr = th.App.UpdatePage(th.Context.WithSession(session2), page.Id, "Update by User2", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"User2 update"}]}]}`, "User2 update")
+		_, appErr = th.App.UpdatePage(th.Context.WithSession(session2), page, "Update by User2", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"User2 update"}]}]}`, "User2 update")
 		require.Nil(t, appErr)
 
 		postList, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{

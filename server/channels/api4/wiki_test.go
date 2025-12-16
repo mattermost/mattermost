@@ -2547,7 +2547,9 @@ func TestUpdatePageStatus(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, model.BuildResponse(httpResp))
 
-		status, appErr := th.App.GetPageStatus(th.Context, page.Id)
+		pageObj, appErr := th.App.GetPage(th.Context, page.Id)
+		require.Nil(t, appErr)
+		status, appErr := th.App.GetPageStatus(th.Context, pageObj)
 		require.Nil(t, appErr)
 		require.Equal(t, model.PageStatusDone, status)
 	})
@@ -2622,7 +2624,9 @@ func TestGetPageStatus(t *testing.T) {
 	})
 
 	t.Run("successfully get updated status", func(t *testing.T) {
-		appErr := th.App.SetPageStatus(th.Context, page.Id, model.PageStatusDone)
+		pageObj, appErr := th.App.GetPage(th.Context, page.Id)
+		require.Nil(t, appErr)
+		appErr = th.App.SetPageStatus(th.Context, pageObj, model.PageStatusDone)
 		require.Nil(t, appErr)
 
 		httpResp, err := th.Client.DoAPIGet(context.Background(), "/posts/"+page.Id+"/status", "")

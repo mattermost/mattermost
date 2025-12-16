@@ -71,8 +71,7 @@ func createWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.HasPermissionToModifyWiki(c.AppContext, c.AppContext.Session(), channel, "createWiki"); err != nil {
-		c.Err = err
+	if !c.CheckWikiModifyPermission(channel) {
 		return
 	}
 
@@ -241,8 +240,7 @@ func moveWikiToChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.HasPermissionToModifyWiki(c.AppContext, c.AppContext.Session(), targetChannel, "moveWikiToChannel"); err != nil {
-		c.Err = err
+	if !c.CheckWikiModifyPermission(targetChannel) {
 		return
 	}
 

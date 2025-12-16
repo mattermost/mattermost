@@ -59,7 +59,7 @@ func HasRelaxedEditHistoryPermissions(post *model.Post) bool {
 }
 
 // RequiresPageModifyPermission returns true if this post type needs page-specific
-// permission checking (HasPermissionToModifyPage) instead of generic post permissions.
+// permission checking in the API layer instead of generic post permissions.
 func RequiresPageModifyPermission(post *model.Post) bool {
 	return IsPagePost(post)
 }

@@ -8,6 +8,7 @@ import {
     createChildPageThroughContextMenu,
     createTestChannel,
     ensurePanelOpen,
+    getPageViewerContent,
     waitForPageInHierarchy,
     waitForDuplicatedPageInHierarchy,
     duplicatePageThroughUI,
@@ -48,7 +49,7 @@ test('duplicates page to same wiki with default title', {tag: '@pages'}, async (
     await page.waitForLoadState('networkidle');
 
     // * Verify duplicated page content is the same as original
-    const pageContent = page.locator('[data-testid="page-viewer-content"]');
+    const pageContent = getPageViewerContent(page);
     await expect(pageContent).toContainText('Original content here');
 });
 
@@ -87,7 +88,7 @@ test('duplicates child page at same level as source', {tag: '@pages'}, async ({p
     await page.waitForLoadState('networkidle');
 
     // * Verify content is copied
-    const pageContent = page.locator('[data-testid="page-viewer-content"]');
+    const pageContent = getPageViewerContent(page);
     await expect(pageContent).toContainText('Child content');
 });
 
@@ -125,7 +126,7 @@ test('duplicates page content correctly', {tag: '@pages'}, async ({pw, sharedPag
     await page.waitForLoadState('networkidle');
 
     // * Verify content is duplicated
-    const pageContent = page.locator('[data-testid="page-viewer-content"]');
+    const pageContent = getPageViewerContent(page);
     await expect(pageContent).toContainText('This is the original page content with some text.');
 });
 
@@ -159,6 +160,6 @@ test('duplicates root page at root level', {tag: '@pages'}, async ({pw, sharedPa
     await page.waitForLoadState('networkidle');
 
     // * Verify content is copied
-    const pageContent = page.locator('[data-testid="page-viewer-content"]');
+    const pageContent = getPageViewerContent(page);
     await expect(pageContent).toContainText('First root content');
 });

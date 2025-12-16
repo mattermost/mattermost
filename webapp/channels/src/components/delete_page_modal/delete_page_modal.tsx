@@ -3,8 +3,13 @@
 
 import React, {useState, useCallback} from 'react';
 import {useIntl} from 'react-intl';
+import {useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
+
+import {closeModal} from 'actions/views/modals';
+
+import {ModalIdentifiers} from 'utils/constants';
 
 import './delete_page_modal.scss';
 
@@ -25,6 +30,7 @@ const DeletePageModal = ({
     onCancel,
     onExited,
 }: Props) => {
+    const dispatch = useDispatch();
     const {formatMessage} = useIntl();
     const [deleteChildren, setDeleteChildren] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -33,10 +39,11 @@ const DeletePageModal = ({
         setIsDeleting(true);
         try {
             await onConfirm(deleteChildren);
+            dispatch(closeModal(ModalIdentifiers.PAGE_DELETE));
         } catch {
             setIsDeleting(false);
         }
-    }, [deleteChildren, onConfirm]);
+    }, [deleteChildren, onConfirm, dispatch]);
 
     const modalTitle = formatMessage({id: 'delete_page_modal.title', defaultMessage: 'Delete Page'});
     const confirmText = formatMessage({id: 'delete_page_modal.confirm', defaultMessage: 'Delete'});

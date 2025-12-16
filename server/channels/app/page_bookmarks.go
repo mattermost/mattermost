@@ -10,20 +10,14 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-func (a *App) CreateBookmarkFromPage(rctx request.CTX, pageId string, channelId string, displayName string, emoji string, connectionId string) (*model.ChannelBookmarkWithFileInfo, *model.AppError) {
-	// Verify page exists
-	page, err := a.GetSinglePost(rctx, pageId, false)
-	if err != nil {
-		return nil, err
-	}
-
-	// Verify page type
-	if !IsPagePost(page) {
-		return nil, model.NewAppError("CreateBookmarkFromPage", "app.channel.bookmark.not_a_page.app_error", nil, "", http.StatusBadRequest)
-	}
+// CreateBookmarkFromPage creates a channel bookmark that links to a page.
+// Accepts a type-safe *Page that has already been validated.
+func (a *App) CreateBookmarkFromPage(rctx request.CTX, page *Page, channelId string, displayName string, emoji string, connectionId string) (*model.ChannelBookmarkWithFileInfo, *model.AppError) {
+	pageId := page.Id()
+	post := page.Post()
 
 	// Cross-channel permission check: user must have read access to page's channel
-	if !a.SessionHasPermissionToChannel(rctx, *rctx.Session(), page.ChannelId, model.PermissionReadChannel) {
+	if !a.SessionHasPermissionToChannel(rctx, *rctx.Session(), page.ChannelId(), model.PermissionReadChannel) {
 		return nil, model.NewAppError("CreateBookmarkFromPage", "app.channel.bookmark.no_permission_to_page_channel.app_error", nil, "", http.StatusForbidden)
 	}
 
@@ -37,7 +31,7 @@ func (a *App) CreateBookmarkFromPage(rctx request.CTX, pageId string, channelId 
 	}
 
 	// Get team name from page's channel
-	pageChannel, channelErr := a.GetChannel(rctx, page.ChannelId)
+	pageChannel, channelErr := a.GetChannel(rctx, page.ChannelId())
 	if channelErr != nil {
 		return nil, channelErr
 	}
@@ -49,14 +43,14 @@ func (a *App) CreateBookmarkFromPage(rctx request.CTX, pageId string, channelId 
 
 	// Use page title as display name if not provided
 	if displayName == "" {
-		displayName = page.GetPageTitle()
+		displayName = post.GetPageTitle()
 		if len(displayName) > model.DisplayNameMaxRunes {
 			displayName = displayName[:model.DisplayNameMaxRunes]
 		}
 	}
 
 	// Build internal page URL (relative path)
-	relativePath := model.BuildPageUrl(team.Name, page.ChannelId, wikiId, pageId)
+	relativePath := model.BuildPageUrl(team.Name, page.ChannelId(), wikiId, pageId)
 
 	// Convert to absolute URL using site URL
 	if a.Config().ServiceSettings.SiteURL == nil || *a.Config().ServiceSettings.SiteURL == "" {

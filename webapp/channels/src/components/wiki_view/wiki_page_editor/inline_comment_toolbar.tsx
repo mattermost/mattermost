@@ -4,6 +4,7 @@
 import {TextSelection} from '@tiptap/pm/state';
 import {BubbleMenu} from '@tiptap/react/menus';
 import React from 'react';
+import {useIntl} from 'react-intl';
 
 import './inline_comment_toolbar.scss';
 
@@ -14,6 +15,8 @@ type Props = {
 };
 
 const InlineCommentToolbar = ({editor, onCreateComment, onAIRewrite}: Props) => {
+    const {formatMessage} = useIntl();
+
     if (!editor) {
         return null;
     }
@@ -37,6 +40,9 @@ const InlineCommentToolbar = ({editor, onCreateComment, onAIRewrite}: Props) => 
         onAIRewrite();
     };
 
+    const aiAssistantLabel = formatMessage({id: 'inline_comment.ai_assistant', defaultMessage: 'AI assistant'});
+    const addCommentLabel = formatMessage({id: 'inline_comment.add_comment', defaultMessage: 'Add a comment'});
+
     return (
         <BubbleMenu
             editor={editor}
@@ -57,8 +63,8 @@ const InlineCommentToolbar = ({editor, onCreateComment, onAIRewrite}: Props) => 
                         type='button'
                         onClick={handleAIClick}
                         className='inline-comment-toolbar__icon-btn'
-                        aria-label='AI assistant'
-                        title='AI assistant'
+                        aria-label={aiAssistantLabel}
+                        title={aiAssistantLabel}
                         data-testid='inline-comment-ai-button'
                     >
                         <i className='icon icon-creation-outline'/>
@@ -68,8 +74,8 @@ const InlineCommentToolbar = ({editor, onCreateComment, onAIRewrite}: Props) => 
                     type='button'
                     onClick={handleCommentClick}
                     className='inline-comment-toolbar__icon-btn'
-                    aria-label='Add a comment'
-                    title='Add a comment'
+                    aria-label={addCommentLabel}
+                    title={addCommentLabel}
                     data-testid='inline-comment-add-button'
                 >
                     <i className='icon icon-message-plus-outline'/>

@@ -7,6 +7,7 @@ import {expect, test} from './pages_test_fixture';
 import {
     createWikiThroughUI,
     getNewPageButton,
+    getPageViewerContent,
     fillCreatePageModal,
     getEditorAndWait,
     selectTextInEditor,
@@ -289,7 +290,7 @@ test(
         await publishPage(page);
 
         // # Wait for page to be in view mode
-        const pageViewer = page.locator('[data-testid="page-viewer-content"]');
+        const pageViewer = getPageViewerContent(page);
         await expect(pageViewer).toBeVisible({timeout: EDITOR_LOAD_WAIT});
 
         // # Select text in view mode

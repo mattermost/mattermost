@@ -5,10 +5,14 @@ import {renderHook, act} from '@testing-library/react';
 
 import type {Post} from '@mattermost/types/posts';
 
+import {ModalIdentifiers} from 'utils/constants';
+
 import {usePageMenuHandlers} from './usePageMenuHandlers';
 
+const mockDispatch = jest.fn();
+
 jest.mock('react-redux', () => ({
-    useDispatch: () => jest.fn(),
+    useDispatch: () => mockDispatch,
     useSelector: (selector: any) => selector({
         entities: {
             users: {
@@ -16,6 +20,14 @@ jest.mock('react-redux', () => ({
             },
         },
     }),
+}));
+
+jest.mock('react-intl', () => ({
+    useIntl: () => ({
+        formatMessage: ({defaultMessage}: {defaultMessage: string}) => defaultMessage,
+    }),
+    defineMessages: (msgs: Record<string, unknown>) => msgs,
+    defineMessage: (msg: Record<string, unknown>) => msg,
 }));
 
 jest.mock('actions/pages', () => ({
@@ -30,10 +42,16 @@ jest.mock('actions/pages', () => ({
 
 jest.mock('actions/page_drafts', () => ({
     removePageDraft: jest.fn(),
+    savePageDraft: jest.fn(),
 }));
 
 jest.mock('actions/views/pages_hierarchy', () => ({
     expandAncestors: jest.fn(),
+}));
+
+jest.mock('actions/views/modals', () => ({
+    openModal: jest.fn((params) => ({type: 'OPEN_MODAL', ...params})),
+    closeModal: jest.fn((modalId) => ({type: 'CLOSE_MODAL', modalId})),
 }));
 
 describe('usePageMenuHandlers - Rename functionality', () => {
@@ -111,22 +129,28 @@ describe('usePageMenuHandlers - Rename functionality', () => {
         jest.clearAllMocks();
     });
 
-    test('should initialize with rename modal closed', () => {
+    test('should initialize with pageToRename as null', () => {
         const {result} = renderHook(() => usePageMenuHandlers(baseProps));
 
-        expect(result.current.showRenameModal).toBe(false);
         expect(result.current.pageToRename).toBeNull();
         expect(result.current.renamingPage).toBe(false);
     });
 
-    test('should open rename modal with page title when handleRename is called', () => {
+    test('should open rename modal via modal manager when handleRename is called', () => {
         const {result} = renderHook(() => usePageMenuHandlers(baseProps));
 
         act(() => {
             result.current.handleRename('page1');
         });
 
-        expect(result.current.showRenameModal).toBe(true);
+        expect(mockDispatch).toHaveBeenCalledWith(
+            expect.objectContaining({
+                modalId: ModalIdentifiers.PAGE_RENAME,
+                dialogProps: expect.objectContaining({
+                    initialValue: 'Original Page Title',
+                }),
+            }),
+        );
         expect(result.current.pageToRename).toEqual({
             pageId: 'page1',
             currentTitle: 'Original Page Title',
@@ -140,7 +164,14 @@ describe('usePageMenuHandlers - Rename functionality', () => {
             result.current.handleRename('page2');
         });
 
-        expect(result.current.showRenameModal).toBe(true);
+        expect(mockDispatch).toHaveBeenCalledWith(
+            expect.objectContaining({
+                modalId: ModalIdentifiers.PAGE_RENAME,
+                dialogProps: expect.objectContaining({
+                    initialValue: '',
+                }),
+            }),
+        );
         expect(result.current.pageToRename).toEqual({
             pageId: 'page2',
             currentTitle: '',
@@ -165,7 +196,6 @@ describe('usePageMenuHandlers - Rename functionality', () => {
             result.current.handleRename('page3');
         });
 
-        expect(result.current.showRenameModal).toBe(true);
         expect(result.current.pageToRename).toEqual({
             pageId: 'page3',
             currentTitle: '',
@@ -179,7 +209,7 @@ describe('usePageMenuHandlers - Rename functionality', () => {
             result.current.handleRename('nonexistent-page');
         });
 
-        expect(result.current.showRenameModal).toBe(false);
+        expect(mockDispatch).not.toHaveBeenCalled();
         expect(result.current.pageToRename).toBeNull();
     });
 
@@ -194,158 +224,253 @@ describe('usePageMenuHandlers - Rename functionality', () => {
             result.current.handleRename('page1');
         });
 
-        expect(result.current.showRenameModal).toBe(false);
+        expect(mockDispatch).not.toHaveBeenCalled();
         expect(result.current.pageToRename).toBeNull();
     });
+});
 
-    test('should allow opening rename modal for different page', () => {
-        const {result} = renderHook(() => usePageMenuHandlers(baseProps));
+describe('usePageMenuHandlers - Delete functionality', () => {
+    const mockPages: Post[] = [
+        {
+            id: 'page1',
+            create_at: 1234567890,
+            update_at: 1234567990,
+            delete_at: 0,
+            edit_at: 0,
+            is_pinned: false,
+            user_id: 'user123',
+            channel_id: 'channel123',
+            root_id: '',
+            original_id: '',
+            message: '',
+            type: '',
+            page_parent_id: '',
+            props: {
+                title: 'Page Title',
+            },
+            hashtags: '',
+            filenames: [],
+            file_ids: [],
+            pending_post_id: '',
+            reply_count: 0,
+            last_reply_at: 0,
+            participants: null,
+            metadata: {
+                embeds: [],
+                emojis: [],
+                files: [],
+                images: {},
+            },
+        },
+    ];
 
-        act(() => {
-            result.current.handleRename('page1');
-        });
+    const baseProps = {
+        wikiId: 'wiki123',
+        channelId: 'channel123',
+        pages: mockPages,
+        drafts: [],
+    };
 
-        expect(result.current.showRenameModal).toBe(true);
-        expect(result.current.pageToRename?.pageId).toBe('page1');
-
-        // Close the modal first
-        act(() => {
-            result.current.handleCancelRename();
-        });
-
-        // Now open for a different page
-        act(() => {
-            result.current.handleRename('page2');
-        });
-
-        expect(result.current.showRenameModal).toBe(true);
-        expect(result.current.pageToRename?.pageId).toBe('page2');
+    beforeEach(() => {
+        jest.clearAllMocks();
     });
 
-    test('should close rename modal when handleCancelRename is called', () => {
+    test('should open delete modal via modal manager when handleDelete is called', () => {
         const {result} = renderHook(() => usePageMenuHandlers(baseProps));
 
         act(() => {
-            result.current.handleRename('page1');
+            result.current.handleDelete('page1');
         });
 
-        expect(result.current.showRenameModal).toBe(true);
-
-        act(() => {
-            result.current.handleCancelRename();
+        expect(mockDispatch).toHaveBeenCalledWith(
+            expect.objectContaining({
+                modalId: ModalIdentifiers.PAGE_DELETE,
+                dialogProps: expect.objectContaining({
+                    pageTitle: 'Page Title',
+                    childCount: 0,
+                }),
+            }),
+        );
+        expect(result.current.pageToDelete).toEqual({
+            page: mockPages[0],
+            childCount: 0,
         });
-
-        expect(result.current.showRenameModal).toBe(false);
-        expect(result.current.pageToRename).toBeNull();
     });
 
-    test('should call setShowRenameModal to close modal', () => {
+    test('should not open delete modal when page is not found', () => {
         const {result} = renderHook(() => usePageMenuHandlers(baseProps));
 
         act(() => {
-            result.current.handleRename('page1');
-        });
-
-        expect(result.current.showRenameModal).toBe(true);
-
-        act(() => {
-            result.current.setShowRenameModal(false);
-        });
-
-        expect(result.current.showRenameModal).toBe(false);
-    });
-
-    test('should cleanup state after successful rename', async () => {
-        const mockDispatch = jest.fn().mockResolvedValue({data: mockPages[0]});
-        jest.spyOn(require('react-redux'), 'useDispatch').mockReturnValue(mockDispatch);
-
-        const {result} = renderHook(() => usePageMenuHandlers(baseProps));
-
-        act(() => {
-            result.current.handleRename('page1');
-        });
-
-        expect(result.current.pageToRename).not.toBeNull();
-
-        await act(async () => {
-            await result.current.handleConfirmRename('New Page Title');
-        });
-
-        expect(result.current.pageToRename).toBeNull();
-    });
-
-    test('should cleanup state after rename error', async () => {
-        const mockDispatch = jest.fn().mockResolvedValue({error: {message: 'Rename failed'}});
-        jest.spyOn(require('react-redux'), 'useDispatch').mockReturnValue(mockDispatch);
-
-        const {result} = renderHook(() => usePageMenuHandlers(baseProps));
-
-        act(() => {
-            result.current.handleRename('page1');
-        });
-
-        expect(result.current.pageToRename).not.toBeNull();
-
-        await act(async () => {
-            try {
-                await result.current.handleConfirmRename('New Page Title');
-            } catch (error) {
-                // Expected error from handleConfirmRename throwing result.error
-            }
-        });
-
-        expect(result.current.pageToRename).toBeNull();
-    });
-
-    test('should not proceed with rename when pageToRename is null', async () => {
-        const mockDispatch = jest.fn();
-        jest.spyOn(require('react-redux'), 'useDispatch').mockReturnValue(mockDispatch);
-
-        const {result} = renderHook(() => usePageMenuHandlers(baseProps));
-
-        await act(async () => {
-            await result.current.handleConfirmRename('New Page Title');
+            result.current.handleDelete('nonexistent-page');
         });
 
         expect(mockDispatch).not.toHaveBeenCalled();
+        expect(result.current.pageToDelete).toBeNull();
+    });
+});
+
+describe('usePageMenuHandlers - Create functionality', () => {
+    const baseProps = {
+        wikiId: 'wiki123',
+        channelId: 'channel123',
+        pages: [],
+        drafts: [],
+    };
+
+    beforeEach(() => {
+        jest.clearAllMocks();
     });
 
-    test('should not proceed with rename when wikiId is missing', async () => {
-        const mockDispatch = jest.fn();
-        jest.spyOn(require('react-redux'), 'useDispatch').mockReturnValue(mockDispatch);
+    test('should open create modal via modal manager when handleCreateRootPage is called', () => {
+        const {result} = renderHook(() => usePageMenuHandlers(baseProps));
 
-        const propsWithoutWiki = {
+        act(() => {
+            result.current.handleCreateRootPage();
+        });
+
+        expect(mockDispatch).toHaveBeenCalledWith(
+            expect.objectContaining({
+                modalId: ModalIdentifiers.PAGE_CREATE,
+            }),
+        );
+    });
+
+    test('should open create child modal via modal manager when handleCreateChild is called', () => {
+        const mockPages: Post[] = [
+            {
+                id: 'parent-page',
+                create_at: 1234567890,
+                update_at: 1234567990,
+                delete_at: 0,
+                edit_at: 0,
+                is_pinned: false,
+                user_id: 'user123',
+                channel_id: 'channel123',
+                root_id: '',
+                original_id: '',
+                message: '',
+                type: '',
+                page_parent_id: '',
+                props: {
+                    title: 'Parent Page',
+                },
+                hashtags: '',
+                filenames: [],
+                file_ids: [],
+                pending_post_id: '',
+                reply_count: 0,
+                last_reply_at: 0,
+                participants: null,
+                metadata: {
+                    embeds: [],
+                    emojis: [],
+                    files: [],
+                    images: {},
+                },
+            },
+        ];
+
+        const propsWithPages = {
             ...baseProps,
-            wikiId: '',
+            pages: mockPages,
         };
-        const {result} = renderHook(() => usePageMenuHandlers(propsWithoutWiki));
+
+        const {result} = renderHook(() => usePageMenuHandlers(propsWithPages));
 
         act(() => {
-            // Manually set pageToRename to test the guard clause
-            result.current.handleRename('page1');
+            result.current.handleCreateChild('parent-page');
         });
 
-        await act(async () => {
-            await result.current.handleConfirmRename('New Page Title');
+        expect(mockDispatch).toHaveBeenCalledWith(
+            expect.objectContaining({
+                modalId: ModalIdentifiers.PAGE_CREATE,
+            }),
+        );
+        expect(result.current.createPageParent).toEqual({
+            id: 'parent-page',
+            title: 'Parent Page',
         });
+    });
+});
 
-        expect(mockDispatch).not.toHaveBeenCalled();
+describe('usePageMenuHandlers - Move functionality', () => {
+    const mockPages: Post[] = [
+        {
+            id: 'page1',
+            create_at: 1234567890,
+            update_at: 1234567990,
+            delete_at: 0,
+            edit_at: 0,
+            is_pinned: false,
+            user_id: 'user123',
+            channel_id: 'channel123',
+            root_id: '',
+            original_id: '',
+            message: '',
+            type: '',
+            page_parent_id: '',
+            props: {
+                title: 'Page Title',
+            },
+            hashtags: '',
+            filenames: [],
+            file_ids: [],
+            pending_post_id: '',
+            reply_count: 0,
+            last_reply_at: 0,
+            participants: null,
+            metadata: {
+                embeds: [],
+                emojis: [],
+                files: [],
+                images: {},
+            },
+        },
+    ];
+
+    const baseProps = {
+        wikiId: 'wiki123',
+        channelId: 'channel123',
+        pages: mockPages,
+        drafts: [],
+    };
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockDispatch.mockResolvedValue({data: []});
     });
 
-    test('should reset renamingPage after operation completes', async () => {
-        const mockDispatch = jest.fn().mockResolvedValue({data: mockPages[0]});
-        jest.spyOn(require('react-redux'), 'useDispatch').mockReturnValue(mockDispatch);
-
+    test('should open move modal via modal manager when handleMove is called', async () => {
         const {result} = renderHook(() => usePageMenuHandlers(baseProps));
 
-        act(() => {
-            result.current.handleRename('page1');
+        await act(async () => {
+            await result.current.handleMove('page1');
         });
+
+        expect(mockDispatch).toHaveBeenCalledWith(
+            expect.objectContaining({
+                modalId: ModalIdentifiers.PAGE_MOVE,
+                dialogProps: expect.objectContaining({
+                    pageId: 'page1',
+                    pageTitle: 'Page Title',
+                    hasChildren: false,
+                }),
+            }),
+        );
+        expect(result.current.pageToMove).toEqual({
+            pageId: 'page1',
+            pageTitle: 'Page Title',
+            hasChildren: false,
+        });
+    });
+
+    test('should not open move modal when page is not found', async () => {
+        const {result} = renderHook(() => usePageMenuHandlers(baseProps));
 
         await act(async () => {
-            await result.current.handleConfirmRename('New Page Title');
+            await result.current.handleMove('nonexistent-page');
         });
 
-        expect(result.current.renamingPage).toBe(false);
+        expect(result.current.pageToMove).toBeNull();
     });
 });

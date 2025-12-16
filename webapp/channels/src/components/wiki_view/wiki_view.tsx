@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useRouteMatch, useHistory, useLocation} from 'react-router-dom';
 
@@ -37,12 +37,12 @@ import {handleAnchorHashNavigation} from './page_anchor';
 import PageViewer from './page_viewer';
 import WikiPageEditor from './wiki_page_editor';
 import WikiPageHeader from './wiki_page_header';
-import WikiViewModals from './wiki_view_modals';
 
 import './wiki_view.scss';
 
 const WikiView = () => {
     const dispatch = useDispatch();
+    const {formatMessage} = useIntl();
     const history = useHistory();
     const location = useLocation();
     const {params, path} = useRouteMatch<{pageId?: string; draftId?: string; channelId: string; wikiId: string}>();
@@ -58,9 +58,6 @@ const WikiView = () => {
 
     // Fullscreen state and handlers (extracted to hook)
     const {isFullscreen, toggleFullscreen} = useFullscreen();
-
-    // Version history modal state (extracted to hook)
-    const {showVersionHistory, versionHistoryPageId, handleVersionHistory, handleCloseVersionHistory} = useVersionHistory();
 
     // Cleanup stale published draft timestamps periodically
     usePublishedDraftCleanup();
@@ -136,6 +133,9 @@ const WikiView = () => {
     const allDrafts = useSelector((state: GlobalState) => (wikiId ? getPageDraftsForWiki(state, wikiId) : []));
     const newDrafts = useSelector((state: GlobalState) => (wikiId ? getNewDraftsForWiki(state, wikiId) : []));
     const allPages = useSelector((state: GlobalState) => (wikiId ? getPages(state, wikiId) : []));
+
+    // Version history modal via modal manager
+    const {handleVersionHistory} = useVersionHistory({wikiId: wikiId || '', allPages});
 
     // Get the actual channel ID from the page or draft (URL params may have wikiId in channelId position)
     const actualChannelId = currentPage?.channel_id || currentDraft?.channelId || allDrafts[0]?.channelId || channelId;
@@ -250,7 +250,7 @@ const WikiView = () => {
     // draft id in local state.
     // Phase 1 Refactor: Removed cleanup effect - no longer needed with route-based draft IDs
 
-    const {handleEdit, handlePublish, handleTitleChange, handleContentChange, handleDraftStatusChange, cancelAutosave, conflictModal, confirmOverwriteModal} = useWikiPageActions(
+    const {handleEdit, handlePublish, handleTitleChange, handleContentChange, handleDraftStatusChange, cancelAutosave} = useWikiPageActions(
         channelId,
         pageId,
         draftId,
@@ -343,6 +343,65 @@ const WikiView = () => {
         }
     }, [pageId, currentPage, isLoading, location.pathname, history]);
 
+    // Memoized header props to avoid inline IIFE recreation on every render
+    const headerProps = React.useMemo(() => {
+        if (isEmptyState) {
+            return null;
+        }
+
+        const currentPageIdForHeader = currentDraft ? draftId : (pageId || '');
+        const pageLink = currentPageIdForHeader && wikiId && channelId ? getWikiUrl(currentTeam?.name || 'team', channelId, wikiId, currentPageIdForHeader) : undefined;
+
+        // For drafts, wait until currentDraft is loaded to avoid breadcrumb issues
+        if (isDraft && draftId && !currentDraft) {
+            return null;
+        }
+
+        // Use refs to preserve draft parent ID and title across renders
+        const effectiveParentId = isDraft ? (currentDraft?.props?.page_parent_id || draftParentIdRef.current) : undefined;
+        const effectiveTitle = isDraft ? (currentDraft?.props?.title || draftTitleRef.current) : undefined;
+        const isExistingPage = currentDraft ? isEditingExistingPage(currentDraft) : false;
+
+        return {
+            wikiId: wikiId || '',
+            pageId: currentPageIdForHeader || '',
+            channelId: actualChannelId,
+            isDraft,
+            isExistingPage,
+            parentPageId: effectiveParentId,
+            draftTitle: effectiveTitle,
+            pageLink,
+        };
+    }, [isEmptyState, currentDraft, draftId, pageId, wikiId, channelId, currentTeam?.name, isDraft, actualChannelId]);
+
+    // Memoized editor props to avoid inline IIFE recreation on every render
+    const editorProps = React.useMemo(() => {
+        if (!draftId || !currentDraft || currentDraft.rootId !== draftId) {
+            return null;
+        }
+
+        const isExistingPage = isEditingExistingPage(currentDraft);
+        const publishedPageId = getPublishedPageIdFromDraft(currentDraft);
+
+        // Determine author: use original author if editing existing page, otherwise current user
+        const authorId = isExistingPage && publishedPageForDraft ? publishedPageForDraft.user_id : currentUserId;
+
+        return {
+            key: draftId,
+            title: currentDraft.props?.title || '',
+            content: currentDraft.message || '',
+            authorId,
+            currentUserId,
+            channelId: actualChannelId,
+            teamId,
+            pageId: isExistingPage ? publishedPageId : draftId,
+            wikiId,
+            showAuthor: true,
+            isExistingPage,
+            draftStatus: currentDraft.props?.page_status as string | undefined,
+        };
+    }, [draftId, currentDraft, publishedPageForDraft, currentUserId, actualChannelId, teamId, wikiId]);
+
     // DISABLED: Auto-updating RHS when navigating causes 60+ second render blocks
     // The RHS ThreadViewer mounting blocks PageViewer from rendering
     // Users can manually toggle RHS to update it to the new page
@@ -372,7 +431,7 @@ const WikiView = () => {
                         <button
                             className='WikiView__hamburgerButton btn btn-icon btn-sm'
                             onClick={handleOpenPagesPanel}
-                            aria-label='Open pages panel'
+                            aria-label={formatMessage({id: 'wiki_view.open_pages_panel', defaultMessage: 'Open pages panel'})}
                             data-testid='wiki-view-hamburger-button'
                         >
                             <i className='icon icon-menu-variant'/>
@@ -394,45 +453,23 @@ const WikiView = () => {
                         className={classNames('PagePane', {'PagePane--sidebarCollapsed': isPanesPanelCollapsed})}
                         data-testid='wiki-page-pane'
                     >
-                        {!isEmptyState && (() => {
-                            const currentPageIdForHeader = currentDraft ? draftId : (pageId || '');
-                            const pageLink = currentPageIdForHeader && wikiId && channelId ? getWikiUrl(currentTeam?.name || 'team', channelId, wikiId, currentPageIdForHeader) : undefined;
-
-                            // For drafts, wait until currentDraft is loaded to avoid breadcrumb issues
-                            if (isDraft && draftId && !currentDraft) {
-                                return null;
-                            }
-
-                            // Use refs to preserve draft parent ID and title across renders
-                            const effectiveParentId = isDraft ? (currentDraft?.props?.page_parent_id || draftParentIdRef.current) : undefined;
-                            const effectiveTitle = isDraft ? (currentDraft?.props?.title || draftTitleRef.current) : undefined;
-                            const isExistingPage = currentDraft ? isEditingExistingPage(currentDraft) : false;
-
-                            return (
-                                <WikiPageHeader
-                                    wikiId={wikiId || ''}
-                                    pageId={currentPageIdForHeader || ''}
-                                    channelId={actualChannelId}
-                                    isDraft={isDraft}
-                                    isExistingPage={isExistingPage}
-                                    parentPageId={effectiveParentId}
-                                    draftTitle={effectiveTitle}
-                                    onEdit={onEdit}
-                                    onPublish={handlePublish}
-                                    onToggleComments={handleToggleComments}
-                                    isFullscreen={isFullscreen}
-                                    onToggleFullscreen={toggleFullscreen}
-                                    onCreateChild={() => currentPageIdForHeader && menuHandlers.handleCreateChild(currentPageIdForHeader)}
-                                    onRename={() => currentPageIdForHeader && menuHandlers.handleRename(currentPageIdForHeader)}
-                                    onDuplicate={() => currentPageIdForHeader && menuHandlers.handleDuplicate(currentPageIdForHeader)}
-                                    onMove={() => currentPageIdForHeader && menuHandlers.handleMove(currentPageIdForHeader)}
-                                    onDelete={() => currentPageIdForHeader && menuHandlers.handleDelete(currentPageIdForHeader)}
-                                    onVersionHistory={() => currentPageIdForHeader && handleVersionHistory(currentPageIdForHeader)}
-                                    pageLink={pageLink}
-                                    canEdit={canEdit}
-                                />
-                            );
-                        })()}
+                        {headerProps && (
+                            <WikiPageHeader
+                                {...headerProps}
+                                onEdit={onEdit}
+                                onPublish={handlePublish}
+                                onToggleComments={handleToggleComments}
+                                isFullscreen={isFullscreen}
+                                onToggleFullscreen={toggleFullscreen}
+                                onCreateChild={() => headerProps.pageId && menuHandlers.handleCreateChild(headerProps.pageId)}
+                                onRename={() => headerProps.pageId && menuHandlers.handleRename(headerProps.pageId)}
+                                onDuplicate={() => headerProps.pageId && menuHandlers.handleDuplicate(headerProps.pageId)}
+                                onMove={() => headerProps.pageId && menuHandlers.handleMove(headerProps.pageId)}
+                                onDelete={() => headerProps.pageId && menuHandlers.handleDelete(headerProps.pageId)}
+                                onVersionHistory={() => headerProps.pageId && handleVersionHistory(headerProps.pageId)}
+                                canEdit={canEdit}
+                            />
+                        )}
                         <div
                             className='PagePane__content'
                             data-testid='wiki-page-content'
@@ -442,32 +479,14 @@ const WikiView = () => {
                                     <LoadingScreen/>
                                 </div>
                             )}
-                            {draftId && currentDraft && currentDraft.rootId === draftId && (() => {
-                                const isExistingPage = isEditingExistingPage(currentDraft);
-                                const publishedPageId = getPublishedPageIdFromDraft(currentDraft);
-
-                                // Determine author: use original author if editing existing page, otherwise current user
-                                const authorId = isExistingPage && publishedPageForDraft ? publishedPageForDraft.user_id : currentUserId;
-
-                                const editorProps = {
-                                    key: draftId,
-                                    title: currentDraft.props?.title || '',
-                                    content: currentDraft.message || '',
-                                    onTitleChange: handleTitleChange,
-                                    onContentChange: handleContentChange,
-                                    authorId,
-                                    currentUserId,
-                                    channelId: actualChannelId,
-                                    teamId,
-                                    pageId: isExistingPage ? publishedPageId : draftId,
-                                    wikiId,
-                                    showAuthor: true,
-                                    isExistingPage,
-                                    draftStatus: currentDraft.props?.page_status as string | undefined,
-                                    onDraftStatusChange: handleDraftStatusChange,
-                                };
-                                return <WikiPageEditor {...editorProps}/>;
-                            })()}
+                            {editorProps && (
+                                <WikiPageEditor
+                                    {...editorProps}
+                                    onTitleChange={handleTitleChange}
+                                    onContentChange={handleContentChange}
+                                    onDraftStatusChange={handleDraftStatusChange}
+                                />
+                            )}
                             {pageId && (currentPage || isLoading) && (
                                 <PageViewer
                                     key={pageId}
@@ -505,20 +524,6 @@ const WikiView = () => {
                             )}
                         </div>
                     </div>
-
-                    {/* All modals extracted to WikiViewModals component */}
-                    <WikiViewModals
-                        wikiId={wikiId || ''}
-                        allPages={allPages}
-                        menuHandlers={menuHandlers}
-                        versionHistory={{
-                            show: showVersionHistory,
-                            pageId: versionHistoryPageId,
-                        }}
-                        onCloseVersionHistory={handleCloseVersionHistory}
-                        conflictModal={conflictModal}
-                        confirmOverwriteModal={confirmOverwriteModal}
-                    />
                 </>
             )}
         </div>

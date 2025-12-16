@@ -3,10 +3,14 @@
 
 import React, {useState, useEffect, useCallback, useMemo} from 'react';
 import {useIntl} from 'react-intl';
+import {useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 import type {Post} from '@mattermost/types/posts';
 
+import {closeModal} from 'actions/views/modals';
+
+import {ModalIdentifiers} from 'utils/constants';
 import {getPageTitle} from 'utils/post_utils';
 
 import './page_link_modal.scss';
@@ -26,8 +30,14 @@ const PageLinkModal = ({
     onCancel,
     initialLinkText,
 }: Props) => {
+    const dispatch = useDispatch();
     const {formatMessage} = useIntl();
     const untitledText = formatMessage({id: 'wiki.untitled_page', defaultMessage: 'Untitled'});
+
+    const handleClose = useCallback(() => {
+        dispatch(closeModal(ModalIdentifiers.PAGE_LINK));
+        onCancel();
+    }, [dispatch, onCancel]);
     const [searchQuery, setSearchQuery] = useState('');
     const [linkText, setLinkText] = useState(initialLinkText || '');
     const [selectedIndex, setSelectedIndex] = useState(0);
@@ -46,8 +56,9 @@ const PageLinkModal = ({
             const title = getPageTitle(selectedPage, untitledText);
             const pageWikiId = (selectedPage as any).wiki_id || wikiId;
             onSelect(selectedPage.id, title, pageWikiId, linkText.trim());
+            dispatch(closeModal(ModalIdentifiers.PAGE_LINK));
         }
-    }, [filteredPages, selectedIndex, linkText, wikiId, onSelect, untitledText]);
+    }, [filteredPages, selectedIndex, linkText, wikiId, onSelect, untitledText, dispatch]);
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
         if (e.key === 'ArrowDown') {
@@ -76,8 +87,8 @@ const PageLinkModal = ({
             keyboardEscape={true}
             enforceFocus={false}
             handleConfirm={handleConfirm}
-            handleCancel={onCancel}
-            onExited={onCancel}
+            handleCancel={handleClose}
+            onExited={handleClose}
             confirmButtonText={formatMessage({id: 'page_link_modal.insert_link', defaultMessage: 'Insert Link'})}
             cancelButtonText={formatMessage({id: 'page_link_modal.cancel', defaultMessage: 'Cancel'})}
             isConfirmDisabled={filteredPages.length === 0 || !linkText.trim()}

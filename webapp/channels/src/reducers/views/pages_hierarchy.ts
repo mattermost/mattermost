@@ -10,7 +10,6 @@ import type {Heading} from 'utils/page_outline';
 
 type PagesHierarchyViewState = {
     expandedNodes: {[wikiId: string]: {[pageId: string]: boolean}};
-    selectedPageId: string | null;
     isPanelCollapsed: boolean;
     outlineExpandedNodes: {[pageId: string]: boolean};
     outlineCache: {[pageId: string]: Heading[]};
@@ -19,7 +18,6 @@ type PagesHierarchyViewState = {
 
 const initialState: PagesHierarchyViewState = {
     expandedNodes: {},
-    selectedPageId: null,
     isPanelCollapsed: false,
     outlineExpandedNodes: {},
     outlineCache: {},
@@ -42,14 +40,6 @@ export default function pagesHierarchyReducer(state = initialState, action: AnyA
                     [nodeId]: !isExpanded,
                 },
             },
-        };
-    }
-
-    case ActionTypes.SET_SELECTED_PAGE: {
-        const {pageId} = action.data;
-        return {
-            ...state,
-            selectedPageId: pageId,
         };
     }
 

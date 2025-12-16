@@ -76,13 +76,10 @@ func createPageComment(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if page.Type != model.PostTypePage {
-		c.Err = model.NewAppError("createPageComment", "api.wiki.create_comment.not_page.app_error", map[string]any{"PageId": c.Params.PageId}, "", http.StatusBadRequest)
-		return
-	}
+	// Type check is no longer needed - ValidatePageBelongsToWiki uses GetPage
+	// which already validates the post is of type PostTypePage
 
-	if err := c.App.HasPermissionToModifyPage(c.AppContext, c.AppContext.Session(), page, app.PageOperationRead, "createPageComment"); err != nil {
-		c.Err = err
+	if !c.CheckPagePermission(page, app.PageOperationRead) {
 		return
 	}
 
@@ -142,13 +139,10 @@ func createPageCommentReply(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if page.Type != model.PostTypePage {
-		c.Err = model.NewAppError("createPageCommentReply", "api.wiki.create_comment_reply.not_page.app_error", map[string]any{"PageId": c.Params.PageId}, "", http.StatusBadRequest)
-		return
-	}
+	// Type check is no longer needed - ValidatePageBelongsToWiki uses GetPage
+	// which already validates the post is of type PostTypePage
 
-	if err := c.App.HasPermissionToModifyPage(c.AppContext, c.AppContext.Session(), page, app.PageOperationRead, "createPageCommentReply"); err != nil {
-		c.Err = err
+	if !c.CheckPagePermission(page, app.PageOperationRead) {
 		return
 	}
 
@@ -255,7 +249,7 @@ func resolvePageComment(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !c.App.CanResolvePageComment(c.AppContext, c.AppContext.Session(), comment, c.Params.PageId) {
-		c.SetPermissionError(model.PermissionManageChannelRoles)
+		c.SetPermissionError(model.PermissionCreatePost)
 		return
 	}
 
@@ -297,7 +291,7 @@ func unresolvePageComment(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !c.App.CanResolvePageComment(c.AppContext, c.AppContext.Session(), comment, c.Params.PageId) {
-		c.SetPermissionError(model.PermissionManageChannelRoles)
+		c.SetPermissionError(model.PermissionCreatePost)
 		return
 	}
 

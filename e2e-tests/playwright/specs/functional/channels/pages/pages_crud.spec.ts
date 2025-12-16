@@ -12,6 +12,7 @@ import {
     deletePageThroughUI,
     editPageThroughUI,
     getHierarchyPanel,
+    getPageViewerContent,
     SHORT_WAIT,
 } from './test_helpers';
 
@@ -37,7 +38,7 @@ test('creates wiki and root page through full UI flow', {tag: '@pages'}, async (
     await createPageThroughUI(page, 'New Test Page', 'Page content here');
 
     // * Verify page created and content displayed
-    const pageContent = page.locator('[data-testid="page-viewer-content"]');
+    const pageContent = getPageViewerContent(page);
     await expect(pageContent).toBeVisible();
     await expect(pageContent).toContainText('Page content here');
 });
@@ -63,7 +64,7 @@ test('creates child page under parent', {tag: '@pages'}, async ({pw, sharedPages
     await createChildPageThroughContextMenu(page, parentPage.id!, 'Child Page', 'Child content');
 
     // * Verify child page created
-    const pageContent = page.locator('[data-testid="page-viewer-content"]');
+    const pageContent = getPageViewerContent(page);
     await expect(pageContent).toContainText('Child content');
 });
 
@@ -83,7 +84,7 @@ test('views published page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => 
     await createPageThroughUI(page, 'Test Page', 'Test content to view');
 
     // * Verify page content displayed
-    const pageContent = page.locator('[data-testid="page-viewer-content"]');
+    const pageContent = getPageViewerContent(page);
     await expect(pageContent).toBeVisible();
     await expect(pageContent).toContainText('Test content to view');
 });
@@ -107,7 +108,7 @@ test('updates existing page content', {tag: '@pages'}, async ({pw, sharedPagesSe
     await editPageThroughUI(page, 'Completely new updated content', true);
 
     // * Verify original content was replaced (not appended)
-    const pageContent = page.locator('[data-testid="page-viewer-content"]');
+    const pageContent = getPageViewerContent(page);
     await expect(pageContent).toContainText('Completely new updated content');
     await expect(pageContent).not.toContainText('Original content');
 });

@@ -39,6 +39,9 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
     const untitledText = formatMessage({id: 'wiki.untitled_page', defaultMessage: 'Untitled'});
+    const untitledPageText = formatMessage({id: 'wiki.untitled_page_full', defaultMessage: 'Untitled page'});
+    const pagesText = formatMessage({id: 'pages_panel.title', defaultMessage: 'Pages'});
+    const breadcrumbNavLabel = formatMessage({id: 'page_breadcrumb.navigation_label', defaultMessage: 'Page breadcrumb navigation'});
     const currentTeam = useSelector((state: GlobalState) => getCurrentTeam(state));
     const currentPage = useSelector((state: GlobalState) => (pageId ? getPost(state, pageId) : null));
     const pagesLoaded = useSelector((state: GlobalState) => arePagesLoaded(state, wikiId));
@@ -135,7 +138,7 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                                 items,
                                 current_page: {
                                     id: 'draft',
-                                    title: draftTitle || 'Untitled page',
+                                    title: draftTitle || untitledPageText,
                                     type: 'page',
                                     path: getWikiUrl(teamName, channelId, wikiId),
                                     channel_id: channelId,
@@ -164,7 +167,7 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                                 ],
                                 current_page: {
                                     id: 'draft',
-                                    title: draftTitle || 'Untitled page',
+                                    title: draftTitle || untitledPageText,
                                     type: 'page',
                                     path: getWikiUrl(teamName, channelId, wikiId),
                                     channel_id: channelId,
@@ -184,7 +187,7 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                             }],
                             current_page: {
                                 id: 'draft',
-                                title: draftTitle || 'Untitled page',
+                                title: draftTitle || untitledPageText,
                                 type: 'page',
                                 path: getWikiUrl(teamName, channelId, wikiId),
                                 channel_id: channelId,
@@ -253,7 +256,7 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
     if (error || !breadcrumbPath) {
         return (
             <div className={`PageBreadcrumb ${className || ''}`}>
-                <span className='breadcrumb-item'>{draftTitle || 'Pages'}</span>
+                <span className='breadcrumb-item'>{draftTitle || pagesText}</span>
             </div>
         );
     }
@@ -261,7 +264,7 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
     return (
         <nav
             className={`PageBreadcrumb ${className || ''}`}
-            aria-label='Page breadcrumb navigation'
+            aria-label={breadcrumbNavLabel}
             data-testid='breadcrumb'
         >
             <ol className='PageBreadcrumb__list'>
@@ -282,7 +285,10 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                                 to={item.path}
                                 className='PageBreadcrumb__link'
                                 data-testid='breadcrumb-link'
-                                aria-label={`Navigate to ${item.title}`}
+                                aria-label={formatMessage(
+                                    {id: 'page_breadcrumb.navigate_to', defaultMessage: 'Navigate to {title}'},
+                                    {title: item.title},
+                                )}
                             >
                                 {item.title}
                             </Link>

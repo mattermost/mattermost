@@ -9,6 +9,7 @@ import {createSelector} from 'mattermost-redux/selectors/create_selector';
 
 import {PagePropsKeys} from 'utils/constants';
 import {isDraftPageId} from 'utils/page_utils';
+import {getPageTitle} from 'utils/post_utils';
 import {getWikiUrl} from 'utils/url';
 
 import type {GlobalState} from 'types/store';
@@ -174,7 +175,7 @@ export const buildBreadcrumbFromRedux = (
     for (const ancestor of ancestors) {
         items.push({
             id: ancestor.id,
-            title: (ancestor.props?.[PagePropsKeys.TITLE] as string) || 'Untitled',
+            title: getPageTitle(ancestor),
             type: 'page',
             path: getWikiUrl(teamName, channelId, wikiId, ancestor.id),
             channel_id: channelId,
@@ -185,7 +186,7 @@ export const buildBreadcrumbFromRedux = (
         items,
         current_page: {
             id: page.id,
-            title: (page.props?.[PagePropsKeys.TITLE] as string) || 'Untitled',
+            title: getPageTitle(page),
             type: 'page',
             path: getWikiUrl(teamName, channelId, wikiId, page.id),
             channel_id: channelId,

@@ -120,7 +120,7 @@ const PageTreeNode = ({
                 <div
                     className='PageTreeNode__dragHandle'
                     {...dragHandleProps}
-                    title='Drag to move'
+                    title={formatMessage({id: 'page_tree_node.drag_to_move', defaultMessage: 'Drag to move'})}
                 >
                     <i className='icon-drag-vertical'/>
                 </div>

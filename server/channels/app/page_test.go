@@ -75,7 +75,7 @@ func TestCreatePageWithContent(t *testing.T) {
 		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", regularPost.Id, "", th.BasicUser.Id, "", "")
 		require.NotNil(t, err)
 		require.Nil(t, page)
-		require.Equal(t, "app.page.create.parent_not_page.app_error", err.Id)
+		require.Equal(t, "app.page.create.invalid_parent.app_error", err.Id)
 	})
 
 	t.Run("fails when parent is in different channel", func(t *testing.T) {
@@ -109,7 +109,7 @@ func TestCreatePageWithContent(t *testing.T) {
 	})
 }
 
-func TestGetPage(t *testing.T) {
+func TestGetPageWithContent(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	th.SetupPagePermissions()
 
@@ -120,7 +120,7 @@ func TestGetPage(t *testing.T) {
 		createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", validContent, th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		retrievedPage, err := th.App.GetPage(sessionCtx, createdPage.Id)
+		retrievedPage, err := th.App.GetPageWithContent(sessionCtx, createdPage.Id)
 		require.Nil(t, err)
 		require.NotNil(t, retrievedPage)
 		require.Equal(t, createdPage.Id, retrievedPage.Id)
@@ -128,7 +128,7 @@ func TestGetPage(t *testing.T) {
 	})
 
 	t.Run("fails for non-existent page", func(t *testing.T) {
-		page, err := th.App.GetPage(sessionCtx, model.NewId())
+		page, err := th.App.GetPageWithContent(sessionCtx, model.NewId())
 		require.NotNil(t, err)
 		require.Nil(t, page)
 	})
@@ -141,7 +141,7 @@ func TestGetPage(t *testing.T) {
 		}, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, postErr)
 
-		page, err := th.App.GetPage(sessionCtx, regularPost.Id)
+		page, err := th.App.GetPageWithContent(sessionCtx, regularPost.Id)
 		require.NotNil(t, err)
 		require.Nil(t, page)
 		require.Equal(t, "app.page.get.not_a_page.app_error", err.Id)
@@ -158,8 +158,11 @@ func TestUpdatePage(t *testing.T) {
 		createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Original Title", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
+		page, err := th.App.GetPage(sessionCtx, createdPage.Id)
+		require.Nil(t, err)
+
 		newContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Updated content"}]}]}`
-		updatedPage, err := th.App.UpdatePage(sessionCtx, createdPage.Id, "Updated Title", newContent, "")
+		updatedPage, err := th.App.UpdatePage(sessionCtx, page, "Updated Title", newContent, "")
 		require.Nil(t, err)
 		require.NotNil(t, updatedPage)
 		require.Equal(t, "Updated Title", updatedPage.Props["title"])
@@ -175,15 +178,18 @@ func TestUpdatePage(t *testing.T) {
 		createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
+		page, err := th.App.GetPage(sessionCtx, createdPage.Id)
+		require.Nil(t, err)
+
 		invalidContent := `{"invalid json`
-		updatedPage, err := th.App.UpdatePage(sessionCtx, createdPage.Id, "Test Page", invalidContent, "")
+		updatedPage, err := th.App.UpdatePage(sessionCtx, page, "Test Page", invalidContent, "")
 		require.NotNil(t, err)
 		require.Nil(t, updatedPage)
 		require.Equal(t, "app.page.update.invalid_content.app_error", err.Id)
 	})
 
 	t.Run("fails for non-existent page", func(t *testing.T) {
-		page, err := th.App.UpdatePage(sessionCtx, model.NewId(), "New Title", "", "")
+		page, err := th.App.GetPage(sessionCtx, model.NewId())
 		require.NotNil(t, err)
 		require.Nil(t, page)
 	})
@@ -192,9 +198,12 @@ func TestUpdatePage(t *testing.T) {
 		createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Original Title", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
+		page, err := th.App.GetPage(sessionCtx, createdPage.Id)
+		require.Nil(t, err)
+
 		// Title with BIDI control characters that should be stripped
 		titleWithBIDI := "Updated\u202ATitle\u202B"
-		updatedPage, err := th.App.UpdatePage(sessionCtx, createdPage.Id, titleWithBIDI, "", "")
+		updatedPage, err := th.App.UpdatePage(sessionCtx, page, titleWithBIDI, "", "")
 		require.Nil(t, err)
 		require.NotNil(t, updatedPage)
 		require.Equal(t, "UpdatedTitle", updatedPage.Props["title"], "BIDI characters should be stripped from title")
@@ -215,7 +224,10 @@ func TestDeletePage(t *testing.T) {
 		require.NoError(t, getErr)
 		require.NotNil(t, pageContent, "PageContent should exist before deletion")
 
-		err = th.App.DeletePage(sessionCtx, createdPage.Id)
+		page, err := th.App.GetPage(sessionCtx, createdPage.Id)
+		require.Nil(t, err)
+
+		err = th.App.DeletePage(sessionCtx, page)
 		require.Nil(t, err)
 
 		deletedPage, getErr := th.App.Srv().Store().Post().GetSingle(th.Context, createdPage.Id, true)
@@ -230,8 +242,9 @@ func TestDeletePage(t *testing.T) {
 	})
 
 	t.Run("fails for non-existent page", func(t *testing.T) {
-		err := th.App.DeletePage(sessionCtx, model.NewId())
+		page, err := th.App.GetPage(sessionCtx, model.NewId())
 		require.NotNil(t, err)
+		require.Nil(t, page)
 	})
 
 	t.Run("deleting parent page orphans children", func(t *testing.T) {
@@ -247,7 +260,9 @@ func TestDeletePage(t *testing.T) {
 		grandchild, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Grandchild", child1.Id, "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		err = th.App.DeletePage(sessionCtx, parent.Id)
+		parentPage, err := th.App.GetPage(sessionCtx, parent.Id)
+		require.Nil(t, err)
+		err = th.App.DeletePage(sessionCtx, parentPage)
 		require.Nil(t, err)
 
 		child1After, err := th.App.GetSinglePost(th.Context, child1.Id, false)
@@ -273,7 +288,9 @@ func TestDeletePage(t *testing.T) {
 		leaf, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Leaf", middle.Id, "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		err = th.App.DeletePage(sessionCtx, middle.Id)
+		middlePage, err := th.App.GetPage(sessionCtx, middle.Id)
+		require.Nil(t, err)
+		err = th.App.DeletePage(sessionCtx, middlePage)
 		require.Nil(t, err)
 
 		rootAfter, err := th.App.GetSinglePost(th.Context, root.Id, false)
@@ -292,7 +309,9 @@ func TestDeletePage(t *testing.T) {
 		child, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Child", parent.Id, "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		err = th.App.DeletePage(sessionCtx, parent.Id)
+		parentPage, err := th.App.GetPage(sessionCtx, parent.Id)
+		require.Nil(t, err)
+		err = th.App.DeletePage(sessionCtx, parentPage)
 		require.Nil(t, err)
 
 		_, err = th.App.GetPageChildren(sessionCtx, parent.Id, model.GetPostsOptions{})
@@ -319,7 +338,9 @@ func TestRestorePage(t *testing.T) {
 		require.NoError(t, getErr)
 		require.NotNil(t, originalContent)
 
-		err = th.App.DeletePage(sessionCtx, createdPage.Id)
+		page, err := th.App.GetPage(sessionCtx, createdPage.Id)
+		require.Nil(t, err)
+		err = th.App.DeletePage(sessionCtx, page)
 		require.Nil(t, err)
 
 		deletedPage, getErr := th.App.Srv().Store().Post().GetSingle(th.Context, createdPage.Id, true)
@@ -334,7 +355,9 @@ func TestRestorePage(t *testing.T) {
 		require.NotNil(t, deletedContent)
 		require.NotEqual(t, int64(0), deletedContent.DeleteAt, "PageContent should have DeleteAt set")
 
-		err = th.App.RestorePage(sessionCtx, createdPage.Id)
+		deletedPageWrapper, err := th.App.GetPageWithDeleted(sessionCtx, createdPage.Id)
+		require.Nil(t, err)
+		err = th.App.RestorePage(sessionCtx, deletedPageWrapper)
 		require.Nil(t, err, "RestorePage should not return an error")
 
 		restoredPost, getErr := th.App.Srv().Store().Post().GetSingle(th.Context, createdPage.Id, false)
@@ -353,16 +376,20 @@ func TestRestorePage(t *testing.T) {
 		require.NotEmpty(t, restoredContent.SearchText, "SearchText should be populated after restoration")
 	})
 
-	t.Run("fails to restore non-existent page", func(t *testing.T) {
-		err := th.App.RestorePage(sessionCtx, model.NewId())
-		require.NotNil(t, err)
+	t.Run("cannot get non-existent page for restoration", func(t *testing.T) {
+		// With the type-safe Page wrapper, you can't call RestorePage without first
+		// getting a valid *Page. This test verifies the entry point fails for non-existent pages.
+		_, err := th.App.GetPageWithDeleted(sessionCtx, model.NewId())
+		require.NotNil(t, err, "GetPageWithDeleted should fail for non-existent page")
 	})
 
 	t.Run("fails to restore already active page", func(t *testing.T) {
 		activePage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Active Page", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		err = th.App.RestorePage(sessionCtx, activePage.Id)
+		page, err := th.App.GetPage(sessionCtx, activePage.Id)
+		require.Nil(t, err)
+		err = th.App.RestorePage(sessionCtx, page)
 		require.NotNil(t, err, "Should fail to restore page that is not deleted")
 	})
 }
@@ -378,14 +405,18 @@ func TestPermanentDeletePage(t *testing.T) {
 		createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Page to Purge", "", pageContent, th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		err = th.App.DeletePage(sessionCtx, createdPage.Id)
+		page, err := th.App.GetPage(sessionCtx, createdPage.Id)
+		require.Nil(t, err)
+		err = th.App.DeletePage(sessionCtx, page)
 		require.Nil(t, err)
 
 		deletedContent, getErr := th.App.Srv().Store().Page().GetPageContentWithDeleted(createdPage.Id)
 		require.NoError(t, getErr, "Content should still exist after soft delete")
 		require.NotNil(t, deletedContent)
 
-		err = th.App.PermanentDeletePage(sessionCtx, createdPage.Id)
+		deletedPage, err := th.App.GetPageWithDeleted(sessionCtx, createdPage.Id)
+		require.Nil(t, err)
+		err = th.App.PermanentDeletePage(sessionCtx, deletedPage)
 		require.Nil(t, err)
 
 		_, getErr = th.App.Srv().Store().Post().GetSingle(th.Context, createdPage.Id, true)
@@ -395,9 +426,11 @@ func TestPermanentDeletePage(t *testing.T) {
 		require.Error(t, getErr, "PageContent should be permanently deleted")
 	})
 
-	t.Run("fails to permanently delete non-existent page", func(t *testing.T) {
-		err := th.App.PermanentDeletePage(sessionCtx, model.NewId())
-		require.NotNil(t, err)
+	t.Run("cannot get non-existent page for permanent deletion", func(t *testing.T) {
+		// With the type-safe Page wrapper, you can't call PermanentDeletePage without first
+		// getting a valid *Page. This test verifies the entry point fails for non-existent pages.
+		_, err := th.App.GetPageWithDeleted(sessionCtx, model.NewId())
+		require.NotNil(t, err, "GetPageWithDeleted should fail for non-existent page")
 	})
 }
 
@@ -761,194 +794,6 @@ func TestPageDepthLimit(t *testing.T) {
 		depth, err = th.App.calculatePageDepth(th.Context, level3.Id)
 		require.Nil(t, err)
 		require.Equal(t, 2, depth, "Level 3 page should have depth 2")
-	})
-}
-
-func TestHasPermissionToModifyPage(t *testing.T) {
-	th := Setup(t).InitBasic(t)
-
-	th.SetupPagePermissions()
-
-	t.Run("Create operation - public channel", func(t *testing.T) {
-		t.Run("user with create_page_public_channel permission succeeds", func(t *testing.T) {
-			page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "", "")
-			require.Nil(t, err)
-
-			session, _ := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id})
-			err = th.App.HasPermissionToModifyPage(th.Context, session, page, PageOperationCreate, "test")
-			require.Nil(t, err)
-		})
-
-		t.Run("user without create_page_public_channel permission fails", func(t *testing.T) {
-			page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "", "")
-			require.Nil(t, err)
-
-			guestRole, _ := th.App.GetRoleByName(th.Context, "channel_guest")
-			originalPerms := guestRole.Permissions
-			guestRole.Permissions = []string{model.PermissionReadPage.Id}
-			_, _ = th.App.UpdateRole(guestRole)
-			defer func() {
-				guestRole.Permissions = originalPerms
-				_, _ = th.App.UpdateRole(guestRole)
-			}()
-
-			guest := th.CreateGuest(t)
-			th.LinkUserToTeam(t, guest, th.BasicTeam)
-			th.AddUserToChannel(t, guest, th.BasicChannel)
-
-			session, _ := th.App.CreateSession(th.Context, &model.Session{UserId: guest.Id})
-			err = th.App.HasPermissionToModifyPage(th.Context, session, page, PageOperationCreate, "test")
-			require.NotNil(t, err)
-			require.Equal(t, "api.context.permissions.app_error", err.Id)
-		})
-	})
-
-	t.Run("Read operation - public channel", func(t *testing.T) {
-		t.Run("user with read_page_public_channel permission succeeds", func(t *testing.T) {
-			page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "", "")
-			require.Nil(t, err)
-
-			session, _ := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id})
-			err = th.App.HasPermissionToModifyPage(th.Context, session, page, PageOperationRead, "test")
-			require.Nil(t, err)
-		})
-	})
-
-	t.Run("Edit operation - public channel", func(t *testing.T) {
-		t.Run("author with edit_page_public_channel permission succeeds", func(t *testing.T) {
-			page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "", "")
-			require.Nil(t, err)
-
-			session, _ := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id})
-			err = th.App.HasPermissionToModifyPage(th.Context, session, page, PageOperationEdit, "test")
-			require.Nil(t, err)
-		})
-
-		t.Run("non-author with edit_page_public_channel permission can edit", func(t *testing.T) {
-			page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "", "")
-			require.Nil(t, err)
-
-			otherUser := th.CreateUser(t)
-			th.LinkUserToTeam(t, otherUser, th.BasicTeam)
-			th.AddUserToChannel(t, otherUser, th.BasicChannel)
-
-			session, _ := th.App.CreateSession(th.Context, &model.Session{UserId: otherUser.Id})
-			err = th.App.HasPermissionToModifyPage(th.Context, session, page, PageOperationEdit, "test")
-			require.Nil(t, err)
-		})
-
-		t.Run("user without edit_page_public_channel permission fails", func(t *testing.T) {
-			th.RemovePermissionFromRole(t, model.PermissionEditPage.Id, model.ChannelUserRoleId)
-			defer th.AddPermissionToRole(t, model.PermissionEditPage.Id, model.ChannelUserRoleId)
-
-			page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "", "")
-			require.Nil(t, err)
-
-			otherUser := th.CreateUser(t)
-			th.LinkUserToTeam(t, otherUser, th.BasicTeam)
-			th.AddUserToChannel(t, otherUser, th.BasicChannel)
-
-			session, _ := th.App.CreateSession(th.Context, &model.Session{UserId: otherUser.Id})
-			err = th.App.HasPermissionToModifyPage(th.Context, session, page, PageOperationEdit, "test")
-			require.NotNil(t, err)
-			require.Equal(t, "api.context.permissions.app_error", err.Id)
-		})
-
-		t.Run("any channel member can edit others' pages", func(t *testing.T) {
-			page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "", "")
-			require.Nil(t, err)
-
-			admin := th.CreateUser(t)
-			th.LinkUserToTeam(t, admin, th.BasicTeam)
-			th.AddUserToChannel(t, admin, th.BasicChannel)
-			_, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, admin.Id, "channel_user channel_admin")
-			require.Nil(t, appErr)
-
-			session, _ := th.App.CreateSession(th.Context, &model.Session{UserId: admin.Id})
-			err = th.App.HasPermissionToModifyPage(th.Context, session, page, PageOperationEdit, "test")
-			require.Nil(t, err)
-		})
-	})
-
-	t.Run("Delete operation - public channel", func(t *testing.T) {
-		t.Run("author with delete_page_public_channel permission succeeds", func(t *testing.T) {
-			page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "", "")
-			require.Nil(t, err)
-
-			session, _ := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id})
-			err = th.App.HasPermissionToModifyPage(th.Context, session, page, PageOperationDelete, "test")
-			require.Nil(t, err)
-		})
-
-		t.Run("non-author with delete_page_public_channel but without channel admin fails", func(t *testing.T) {
-			// Delete requires user to be page author OR channel admin (unlike edit, which allows any channel member)
-
-			page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "", "")
-			require.Nil(t, err)
-
-			otherUser := th.CreateUser(t)
-			th.LinkUserToTeam(t, otherUser, th.BasicTeam)
-			th.AddUserToChannel(t, otherUser, th.BasicChannel)
-
-			session, _ := th.App.CreateSession(th.Context, &model.Session{UserId: otherUser.Id})
-			err = th.App.HasPermissionToModifyPage(th.Context, session, page, PageOperationDelete, "test")
-			require.NotNil(t, err)
-			require.Equal(t, "api.context.permissions.app_error", err.Id)
-		})
-
-		t.Run("channel admin can delete others pages", func(t *testing.T) {
-			page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "", "")
-			require.Nil(t, err)
-
-			admin := th.CreateUser(t)
-			th.LinkUserToTeam(t, admin, th.BasicTeam)
-			th.AddUserToChannel(t, admin, th.BasicChannel)
-			_, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, admin.Id, "channel_user channel_admin")
-			require.Nil(t, appErr)
-
-			session, _ := th.App.CreateSession(th.Context, &model.Session{UserId: admin.Id})
-			err = th.App.HasPermissionToModifyPage(th.Context, session, page, PageOperationDelete, "test")
-			require.Nil(t, err)
-		})
-	})
-
-	t.Run("Private channel permissions", func(t *testing.T) {
-		privateChannel, err := th.App.CreateChannel(th.Context, &model.Channel{
-			TeamId:      th.BasicTeam.Id,
-			Name:        "private-channel",
-			DisplayName: "Private Channel",
-			Type:        model.ChannelTypePrivate,
-		}, false)
-		require.Nil(t, err)
-
-		_, err = th.App.AddUserToChannel(th.Context, th.BasicUser, privateChannel, false)
-		require.Nil(t, err)
-
-		t.Run("user with private channel permissions succeeds", func(t *testing.T) {
-			page, err := th.App.CreatePage(th.Context, privateChannel.Id, "Private Page", "", "", th.BasicUser.Id, "", "")
-			require.Nil(t, err)
-
-			session, _ := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id})
-			err = th.App.HasPermissionToModifyPage(th.Context, session, page, PageOperationCreate, "test")
-			require.Nil(t, err)
-		})
-	})
-
-	t.Run("DM and GM channels allow all operations for non-guests", func(t *testing.T) {
-		otherUser := th.CreateUser(t)
-		dmChannel, err := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, otherUser.Id)
-		require.Nil(t, err)
-
-		page, err := th.App.CreatePage(th.Context, dmChannel.Id, "DM Page", "", "", th.BasicUser.Id, "", "")
-		require.Nil(t, err)
-
-		session, _ := th.App.CreateSession(th.Context, &model.Session{UserId: otherUser.Id})
-
-		err = th.App.HasPermissionToModifyPage(th.Context, session, page, PageOperationCreate, "test")
-		require.Nil(t, err)
-
-		err = th.App.HasPermissionToModifyPage(th.Context, session, page, PageOperationRead, "test")
-		require.Nil(t, err)
 	})
 }
 
@@ -1428,33 +1273,39 @@ func TestGetPageStatus(t *testing.T) {
 
 	rctx := th.CreateSessionContext()
 
-	page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "", "")
+	createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "", "")
 	require.Nil(t, err)
-	require.NotNil(t, page)
+	require.NotNil(t, createdPage)
 
 	t.Run("returns default status when page has no status property", func(t *testing.T) {
-		status, appErr := th.App.GetPageStatus(rctx, page.Id)
+		page, appErr := th.App.GetPage(rctx, createdPage.Id)
+		require.Nil(t, appErr)
+		status, appErr := th.App.GetPageStatus(rctx, page)
 		require.Nil(t, appErr)
 		require.Equal(t, model.PageStatusInProgress, status)
 	})
 
 	t.Run("returns actual status after setting", func(t *testing.T) {
-		appErr := th.App.SetPageStatus(rctx, page.Id, model.PageStatusDone)
+		page, appErr := th.App.GetPage(rctx, createdPage.Id)
+		require.Nil(t, appErr)
+		appErr = th.App.SetPageStatus(rctx, page, model.PageStatusDone)
 		require.Nil(t, appErr)
 
-		status, appErr := th.App.GetPageStatus(rctx, page.Id)
+		page, appErr = th.App.GetPage(rctx, createdPage.Id)
+		require.Nil(t, appErr)
+		status, appErr := th.App.GetPageStatus(rctx, page)
 		require.Nil(t, appErr)
 		require.Equal(t, model.PageStatusDone, status)
 	})
 
-	t.Run("fails when page does not exist", func(t *testing.T) {
-		status, appErr := th.App.GetPageStatus(rctx, "invalid_page_id")
+	t.Run("cannot get status for non-existent page", func(t *testing.T) {
+		// With type-safe Page wrapper, invalid pages are caught at GetPage
+		_, appErr := th.App.GetPage(rctx, "invalid_page_id")
 		require.NotNil(t, appErr)
-		require.Empty(t, status)
-		require.Contains(t, appErr.Id, "page_not_found")
+		require.Contains(t, appErr.Id, "app.page.get.not_found")
 	})
 
-	t.Run("fails when post is not a page", func(t *testing.T) {
+	t.Run("cannot get status for non-page post", func(t *testing.T) {
 		regularPost, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
@@ -1462,9 +1313,9 @@ func TestGetPageStatus(t *testing.T) {
 		}, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, err)
 
-		status, appErr := th.App.GetPageStatus(rctx, regularPost.Id)
+		// With type-safe Page wrapper, non-page posts are caught at GetPage
+		_, appErr := th.App.GetPage(rctx, regularPost.Id)
 		require.NotNil(t, appErr)
-		require.Empty(t, status)
 		require.Contains(t, appErr.Id, "not_a_page")
 	})
 }
@@ -1475,30 +1326,42 @@ func TestSetPageStatus(t *testing.T) {
 
 	rctx := th.CreateSessionContext()
 
-	page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "", "")
+	createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "", "")
 	require.Nil(t, err)
 
 	t.Run("successfully sets page status", func(t *testing.T) {
-		appErr := th.App.SetPageStatus(rctx, page.Id, model.PageStatusInReview)
+		page, appErr := th.App.GetPage(rctx, createdPage.Id)
+		require.Nil(t, appErr)
+		appErr = th.App.SetPageStatus(rctx, page, model.PageStatusInReview)
 		require.Nil(t, appErr)
 
-		status, appErr := th.App.GetPageStatus(rctx, page.Id)
+		page, appErr = th.App.GetPage(rctx, createdPage.Id)
+		require.Nil(t, appErr)
+		status, appErr := th.App.GetPageStatus(rctx, page)
 		require.Nil(t, appErr)
 		require.Equal(t, model.PageStatusInReview, status)
 	})
 
 	t.Run("updates existing status", func(t *testing.T) {
-		appErr := th.App.SetPageStatus(rctx, page.Id, model.PageStatusRoughDraft)
+		page, appErr := th.App.GetPage(rctx, createdPage.Id)
+		require.Nil(t, appErr)
+		appErr = th.App.SetPageStatus(rctx, page, model.PageStatusRoughDraft)
 		require.Nil(t, appErr)
 
-		status, appErr := th.App.GetPageStatus(rctx, page.Id)
+		page, appErr = th.App.GetPage(rctx, createdPage.Id)
+		require.Nil(t, appErr)
+		status, appErr := th.App.GetPageStatus(rctx, page)
 		require.Nil(t, appErr)
 		require.Equal(t, model.PageStatusRoughDraft, status)
 
-		appErr = th.App.SetPageStatus(rctx, page.Id, model.PageStatusDone)
+		page, appErr = th.App.GetPage(rctx, createdPage.Id)
+		require.Nil(t, appErr)
+		appErr = th.App.SetPageStatus(rctx, page, model.PageStatusDone)
 		require.Nil(t, appErr)
 
-		status, appErr = th.App.GetPageStatus(rctx, page.Id)
+		page, appErr = th.App.GetPage(rctx, createdPage.Id)
+		require.Nil(t, appErr)
+		status, appErr = th.App.GetPageStatus(rctx, page)
 		require.Nil(t, appErr)
 		require.Equal(t, model.PageStatusDone, status)
 	})
@@ -1506,22 +1369,27 @@ func TestSetPageStatus(t *testing.T) {
 	t.Run("accepts all valid status values", func(t *testing.T) {
 		validStatuses := []string{model.PageStatusRoughDraft, model.PageStatusInProgress, model.PageStatusInReview, model.PageStatusDone}
 		for _, status := range validStatuses {
-			appErr := th.App.SetPageStatus(rctx, page.Id, status)
+			page, appErr := th.App.GetPage(rctx, createdPage.Id)
+			require.Nil(t, appErr)
+			appErr = th.App.SetPageStatus(rctx, page, status)
 			require.Nil(t, appErr, "Should accept status: %s", status)
 
-			retrievedStatus, appErr := th.App.GetPageStatus(rctx, page.Id)
+			page, appErr = th.App.GetPage(rctx, createdPage.Id)
+			require.Nil(t, appErr)
+			retrievedStatus, appErr := th.App.GetPageStatus(rctx, page)
 			require.Nil(t, appErr)
 			require.Equal(t, status, retrievedStatus)
 		}
 	})
 
-	t.Run("fails when page does not exist", func(t *testing.T) {
-		appErr := th.App.SetPageStatus(rctx, "invalid_page_id", model.PageStatusDone)
+	t.Run("cannot set status for non-existent page", func(t *testing.T) {
+		// With type-safe Page wrapper, invalid pages are caught at GetPage
+		_, appErr := th.App.GetPage(rctx, "invalid_page_id")
 		require.NotNil(t, appErr)
-		require.Contains(t, appErr.Id, "page_not_found")
+		require.Contains(t, appErr.Id, "app.page.get.not_found")
 	})
 
-	t.Run("fails when post is not a page", func(t *testing.T) {
+	t.Run("cannot set status for non-page post", func(t *testing.T) {
 		regularPost, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
@@ -1529,7 +1397,8 @@ func TestSetPageStatus(t *testing.T) {
 		}, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, err)
 
-		appErr := th.App.SetPageStatus(rctx, regularPost.Id, model.PageStatusDone)
+		// With type-safe Page wrapper, non-page posts are caught at GetPage
+		_, appErr := th.App.GetPage(rctx, regularPost.Id)
 		require.NotNil(t, appErr)
 		require.Contains(t, appErr.Id, "not_a_page")
 	})
@@ -1709,11 +1578,13 @@ func TestPageMentionSystemMessages(t *testing.T) {
 		require.Nil(t, updateErr)
 
 		initialContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"No mentions yet"}]}]}`
-		page, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Update Test Page", initialContent, th.BasicUser.Id, "", "")
+		createdPage, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Update Test Page", initialContent, th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
+		page, appErr := th.App.GetPage(rctx, createdPage.Id)
+		require.Nil(t, appErr)
 		updatedContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"mention","attrs":{"id":"` + user2.Id + `","label":"@` + user2.Username + `"}},{"type":"text","text":" added in update"}]}]}`
-		_, updatePageErr := th.App.UpdatePage(rctx, page.Id, "Update Test Page", updatedContent, "")
+		_, updatePageErr := th.App.UpdatePage(rctx, page, "Update Test Page", updatedContent, "")
 		require.Nil(t, updatePageErr)
 
 		allPosts, searchErr := th.App.Srv().Store().Post().GetPostsSince(th.Context, model.GetPostsSinceOptions{ChannelId: th.BasicChannel.Id, Time: 0}, true, map[string]bool{})
@@ -1721,7 +1592,7 @@ func TestPageMentionSystemMessages(t *testing.T) {
 
 		var mentionMessage *model.Post
 		for _, post := range allPosts.Posts {
-			if post.Type == model.PostTypePageMention && post.GetProp("page_id") == page.Id {
+			if post.Type == model.PostTypePageMention && post.GetProp("page_id") == page.Id() {
 				mentionMessage = post
 				break
 			}
@@ -1741,16 +1612,18 @@ func TestPageVersionHistory(t *testing.T) {
 
 	t.Run("PageContents versioned on edit", func(t *testing.T) {
 		// Create page
-		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Version Test", "", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Version 1"}]}]}`, th.BasicUser.Id, "", "")
+		createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Version Test", "", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Version 1"}]}]}`, th.BasicUser.Id, "", "")
 		require.Nil(t, err)
-		require.NotNil(t, page)
+		require.NotNil(t, createdPage)
 
 		// First edit
-		_, err = th.App.UpdatePage(sessionCtx, page.Id, "Version Test Updated", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Version 2"}]}]}`, "")
+		page, appErr := th.App.GetPage(sessionCtx, createdPage.Id)
+		require.Nil(t, appErr)
+		_, err = th.App.UpdatePage(sessionCtx, page, "Version Test Updated", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Version 2"}]}]}`, "")
 		require.Nil(t, err)
 
 		// Get edit history
-		historyList, histErr := th.App.GetEditHistoryForPost(page.Id)
+		historyList, histErr := th.App.GetEditHistoryForPost(createdPage.Id)
 		require.Nil(t, histErr)
 		require.NotNil(t, historyList)
 		require.Len(t, historyList, 1, "Should have 1 historical version")
@@ -1758,7 +1631,7 @@ func TestPageVersionHistory(t *testing.T) {
 		// Verify historical Post metadata exists
 		var historicalPost *model.Post
 		for _, p := range historyList {
-			if p.OriginalId == page.Id && p.DeleteAt > 0 {
+			if p.OriginalId == createdPage.Id && p.DeleteAt > 0 {
 				historicalPost = p
 				break
 			}
@@ -1778,11 +1651,13 @@ func TestPageVersionHistory(t *testing.T) {
 
 	t.Run("Non-author can view page history", func(t *testing.T) {
 		// Create page as BasicUser
-		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Shared Page", "", `{"type":"doc","content":[]}`, th.BasicUser.Id, "", "")
+		createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Shared Page", "", `{"type":"doc","content":[]}`, th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		// Edit as BasicUser
-		_, err = th.App.UpdatePage(sessionCtx, page.Id, "Shared Page Updated", `{"type":"doc","content":[]}`, "")
+		page, appErr := th.App.GetPage(sessionCtx, createdPage.Id)
+		require.Nil(t, appErr)
+		_, err = th.App.UpdatePage(sessionCtx, page, "Shared Page Updated", `{"type":"doc","content":[]}`, "")
 		require.Nil(t, err)
 
 		// BasicUser2 (not author) should be able to view history
@@ -1791,21 +1666,23 @@ func TestPageVersionHistory(t *testing.T) {
 
 	t.Run("Restore page version restores both content and title", func(t *testing.T) {
 		// Create page
-		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Original Title", "", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Original Content"}]}]}`, th.BasicUser.Id, "", "")
+		createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Original Title", "", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Original Content"}]}]}`, th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		// Edit page (change both title and content)
-		_, err = th.App.UpdatePage(sessionCtx, page.Id, "Updated Title", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Updated Content"}]}]}`, "")
+		page, appErr := th.App.GetPage(sessionCtx, createdPage.Id)
+		require.Nil(t, appErr)
+		_, err = th.App.UpdatePage(sessionCtx, page, "Updated Title", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Updated Content"}]}]}`, "")
 		require.Nil(t, err)
 
 		// Get historical version
-		historyList, histErr := th.App.GetEditHistoryForPost(page.Id)
+		historyList, histErr := th.App.GetEditHistoryForPost(createdPage.Id)
 		require.Nil(t, histErr)
 		require.Len(t, historyList, 1)
 
 		var historicalPostID string
 		for _, p := range historyList {
-			if p.OriginalId == page.Id && p.DeleteAt > 0 {
+			if p.OriginalId == createdPage.Id && p.DeleteAt > 0 {
 				historicalPostID = p.Id
 				break
 			}
@@ -1813,7 +1690,7 @@ func TestPageVersionHistory(t *testing.T) {
 		require.NotEmpty(t, historicalPostID)
 
 		// Restore to original version
-		restoredPost, restoreErr := th.App.RestorePostVersion(sessionCtx, th.BasicUser.Id, page.Id, historicalPostID)
+		restoredPost, restoreErr := th.App.RestorePostVersion(sessionCtx, th.BasicUser.Id, createdPage.Id, historicalPostID)
 		require.Nil(t, restoreErr)
 		require.NotNil(t, restoredPost)
 
@@ -1821,7 +1698,7 @@ func TestPageVersionHistory(t *testing.T) {
 		require.Equal(t, "Original Title", restoredPost.Props["title"], "Title should be restored")
 
 		// Verify content restored
-		restoredContent, contentErr := th.App.Srv().Store().Page().GetPageContent(page.Id)
+		restoredContent, contentErr := th.App.Srv().Store().Page().GetPageContent(createdPage.Id)
 		require.NoError(t, contentErr)
 		contentJSON, _ := restoredContent.GetDocumentJSON()
 		require.Contains(t, contentJSON, "Original Content", "Content should be restored")
@@ -1841,8 +1718,10 @@ func TestUpdatePageWithOptimisticLocking_Success(t *testing.T) {
 
 	baseEditAt := createdPage.EditAt
 
+	page, appErr := th.App.GetPage(sessionCtx, createdPage.Id)
+	require.Nil(t, appErr)
 	newContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Updated content"}]}]}`
-	updatedPage, err := th.App.UpdatePageWithOptimisticLocking(sessionCtx, createdPage.Id, "Updated Title", newContent, "updated search text", baseEditAt, false)
+	updatedPage, err := th.App.UpdatePageWithOptimisticLocking(sessionCtx, page, "Updated Title", newContent, "updated search text", baseEditAt, false)
 
 	require.Nil(t, err)
 	require.NotNil(t, updatedPage)
@@ -1869,8 +1748,10 @@ func TestUpdatePageWithOptimisticLocking_Conflict(t *testing.T) {
 	require.NotNil(t, createdPage)
 
 	// First update to establish a non-zero EditAt (newly created pages have EditAt=0)
+	page, appErr := th.App.GetPage(sessionCtx, createdPage.Id)
+	require.Nil(t, appErr)
 	firstUpdateContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"First update content"}]}]}`
-	firstUpdate, err := th.App.UpdatePageWithOptimisticLocking(sessionCtx, createdPage.Id, "First Update Title", firstUpdateContent, "first update search", 0, false)
+	firstUpdate, err := th.App.UpdatePageWithOptimisticLocking(sessionCtx, page, "First Update Title", firstUpdateContent, "first update search", 0, false)
 	require.Nil(t, err)
 	require.NotNil(t, firstUpdate)
 	require.Greater(t, firstUpdate.EditAt, int64(0), "After first update, EditAt should be non-zero")
@@ -1878,15 +1759,19 @@ func TestUpdatePageWithOptimisticLocking_Conflict(t *testing.T) {
 	// Both users start editing with the same baseline EditAt
 	baseEditAt := firstUpdate.EditAt
 
+	page, appErr = th.App.GetPage(sessionCtx, createdPage.Id)
+	require.Nil(t, appErr)
 	content1 := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"User 1 content"}]}]}`
-	updated1, err1 := th.App.UpdatePageWithOptimisticLocking(sessionCtx, createdPage.Id, "User 1 Title", content1, "user 1 search", baseEditAt, false)
+	updated1, err1 := th.App.UpdatePageWithOptimisticLocking(sessionCtx, page, "User 1 Title", content1, "user 1 search", baseEditAt, false)
 	require.Nil(t, err1)
 	require.NotNil(t, updated1)
 	require.Greater(t, updated1.EditAt, baseEditAt)
 
 	// User 2 tries to update with the stale baseline - should get conflict
+	page, appErr = th.App.GetPage(sessionCtx, createdPage.Id)
+	require.Nil(t, appErr)
 	content2 := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"User 2 content"}]}]}`
-	_, err2 := th.App.UpdatePageWithOptimisticLocking(sessionCtx, createdPage.Id, "User 2 Title", content2, "user 2 search", baseEditAt, false)
+	_, err2 := th.App.UpdatePageWithOptimisticLocking(sessionCtx, page, "User 2 Title", content2, "user 2 search", baseEditAt, false)
 
 	require.NotNil(t, err2)
 	require.Equal(t, "app.page.update.conflict.app_error", err2.Id)
@@ -1908,11 +1793,17 @@ func TestUpdatePageWithOptimisticLocking_DeletedPage(t *testing.T) {
 
 	baseEditAt := createdPage.EditAt
 
+	// Get page before deleting (we need to pass *Page to UpdatePageWithOptimisticLocking)
+	page, appErr := th.App.GetPage(sessionCtx, createdPage.Id)
+	require.Nil(t, appErr)
+
 	_, deleteErr := th.App.DeletePost(th.Context, createdPage.Id, th.BasicUser.Id)
 	require.Nil(t, deleteErr)
 
+	// Try to update with the page reference from before deletion
+	// UpdatePageWithOptimisticLocking internally fetches fresh from master for conflict detection
 	newContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Updated content"}]}]}`
-	_, updateErr := th.App.UpdatePageWithOptimisticLocking(sessionCtx, createdPage.Id, "Updated Title", newContent, "updated search", baseEditAt, false)
+	_, updateErr := th.App.UpdatePageWithOptimisticLocking(sessionCtx, page, "Updated Title", newContent, "updated search", baseEditAt, false)
 
 	require.NotNil(t, updateErr)
 	require.Equal(t, 404, updateErr.StatusCode)
@@ -1941,8 +1832,10 @@ func TestUpdatePageWithOptimisticLocking_ErrorDetailsIncludeModifier(t *testing.
 	require.NotNil(t, createdPage)
 
 	// First update to establish a non-zero EditAt (newly created pages have EditAt=0)
+	page, appErr := th.App.GetPage(user1Session, createdPage.Id)
+	require.Nil(t, appErr)
 	firstUpdateContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"First update content"}]}]}`
-	firstUpdate, err := th.App.UpdatePageWithOptimisticLocking(user1Session, createdPage.Id, "First Update Title", firstUpdateContent, "first update search", 0, false)
+	firstUpdate, err := th.App.UpdatePageWithOptimisticLocking(user1Session, page, "First Update Title", firstUpdateContent, "first update search", 0, false)
 	require.Nil(t, err)
 	require.NotNil(t, firstUpdate)
 	require.Greater(t, firstUpdate.EditAt, int64(0), "After first update, EditAt should be non-zero")
@@ -1951,14 +1844,18 @@ func TestUpdatePageWithOptimisticLocking_ErrorDetailsIncludeModifier(t *testing.
 	baseEditAt := firstUpdate.EditAt
 
 	// User 2 edits and publishes first
+	page, appErr = th.App.GetPage(user2Session, createdPage.Id)
+	require.Nil(t, appErr)
 	content2 := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"User 2 content"}]}]}`
-	updated2, err2 := th.App.UpdatePageWithOptimisticLocking(user2Session, createdPage.Id, "User 2 Title", content2, "user 2 search", baseEditAt, false)
+	updated2, err2 := th.App.UpdatePageWithOptimisticLocking(user2Session, page, "User 2 Title", content2, "user 2 search", baseEditAt, false)
 	require.Nil(t, err2)
 	require.NotNil(t, updated2)
 
 	// User 1 tries to update with the stale baseline - should get conflict with User 2's info
+	page, appErr = th.App.GetPage(user1Session, createdPage.Id)
+	require.Nil(t, appErr)
 	content1 := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"User 1 content"}]}]}`
-	_, err1 := th.App.UpdatePageWithOptimisticLocking(user1Session, createdPage.Id, "User 1 Title", content1, "user 1 search", baseEditAt, false)
+	_, err1 := th.App.UpdatePageWithOptimisticLocking(user1Session, page, "User 1 Title", content1, "user 1 search", baseEditAt, false)
 
 	require.NotNil(t, err1)
 	require.Equal(t, 409, err1.StatusCode)

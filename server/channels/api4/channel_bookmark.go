@@ -505,7 +505,13 @@ func createBookmarkFromPage(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	bookmark, appErr := c.App.CreateBookmarkFromPage(c.AppContext, req.PageId, c.Params.ChannelId, req.DisplayName, req.Emoji, connectionID)
+	page, appErr := c.App.GetPage(c.AppContext, req.PageId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	bookmark, appErr := c.App.CreateBookmarkFromPage(c.AppContext, page, c.Params.ChannelId, req.DisplayName, req.Emoji, connectionID)
 	if appErr != nil {
 		c.Err = appErr
 		return

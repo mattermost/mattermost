@@ -9,6 +9,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
 )
 
 func getPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -53,8 +54,7 @@ func savePageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.HasPermissionToModifyWiki(c.AppContext, c.AppContext.Session(), channel, "savePageDraft"); err != nil {
-		c.Err = err
+	if !c.CheckWikiModifyPermission(channel) {
 		return
 	}
 
@@ -114,8 +114,7 @@ func deletePageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.HasPermissionToModifyWiki(c.AppContext, c.AppContext.Session(), channel, "deletePageDraft"); err != nil {
-		c.Err = err
+	if !c.CheckWikiModifyPermission(channel) {
 		return
 	}
 
@@ -146,8 +145,7 @@ func movePageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.HasPermissionToModifyWiki(c.AppContext, c.AppContext.Session(), channel, "movePageDraft"); err != nil {
-		c.Err = err
+	if !c.CheckWikiModifyPermission(channel) {
 		return
 	}
 
@@ -212,8 +210,7 @@ func createPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.HasPermissionToModifyWiki(c.AppContext, c.AppContext.Session(), channel, "createPageDraft"); err != nil {
-		c.Err = err
+	if !c.CheckWikiModifyPermission(channel) {
 		return
 	}
 
@@ -275,8 +272,7 @@ func publishPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.HasPermissionToModifyWiki(c.AppContext, c.AppContext.Session(), channel, "publishPageDraft"); err != nil {
-		c.Err = err
+	if !c.CheckWikiModifyPermission(channel) {
 		return
 	}
 
@@ -289,6 +285,17 @@ func publishPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Set WikiId and PageId from URL params
 	opts.WikiId = c.Params.WikiId
 	opts.PageId = c.Params.PageId
+
+	// Check page permissions based on whether this creates a new page or updates existing
+	if existingPage, err := c.App.GetPage(c.AppContext, opts.PageId); err == nil {
+		if !c.CheckPagePermission(existingPage, app.PageOperationEdit) {
+			return
+		}
+	} else {
+		if !c.CheckChannelPagePermission(channel, app.PageOperationCreate) {
+			return
+		}
+	}
 
 	post, appErr := c.App.PublishPageDraft(c.AppContext, c.AppContext.Session().UserId, opts)
 	if appErr != nil {

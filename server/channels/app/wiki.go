@@ -16,38 +16,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func (a *App) HasPermissionToModifyWiki(rctx request.CTX, session *model.Session, channel *model.Channel, operationName string) *model.AppError {
-	switch channel.Type {
-	case model.ChannelTypeOpen:
-		if !a.SessionHasPermissionToChannel(rctx, *session, channel.Id, model.PermissionManagePublicChannelProperties) {
-			return model.NewAppError(operationName, "api.wiki.permission.app_error", nil, "", http.StatusForbidden)
-		}
-	case model.ChannelTypePrivate:
-		if !a.SessionHasPermissionToChannel(rctx, *session, channel.Id, model.PermissionManagePrivateChannelProperties) {
-			return model.NewAppError(operationName, "api.wiki.permission.app_error", nil, "", http.StatusForbidden)
-		}
-
-	case model.ChannelTypeGroup, model.ChannelTypeDirect:
-		if _, err := a.GetChannelMember(rctx, channel.Id, session.UserId); err != nil {
-			return model.NewAppError(operationName, "api.wiki.permission.direct_or_group_channels.app_error", nil, err.Message, http.StatusForbidden)
-		}
-
-		user, err := a.GetUser(session.UserId)
-		if err != nil {
-			return err
-		}
-
-		if user.IsGuest() {
-			return model.NewAppError(operationName, "api.wiki.permission.direct_or_group_channels_by_guests.app_error", nil, "", http.StatusForbidden)
-		}
-
-	default:
-		return model.NewAppError(operationName, "api.wiki.permission.forbidden.app_error", nil, "", http.StatusForbidden)
-	}
-
-	return nil
-}
-
 func (a *App) CreateWiki(rctx request.CTX, wiki *model.Wiki, userId string) (*model.Wiki, *model.AppError) {
 	rctx.Logger().Debug("Creating wiki", mlog.String("channel_id", wiki.ChannelId), mlog.String("title", wiki.Title))
 
@@ -205,10 +173,11 @@ func (a *App) GetWikiPages(rctx request.CTX, wikiId string, offset, limit int) (
 }
 
 func (a *App) AddPageToWiki(rctx request.CTX, pageId, wikiId string) *model.AppError {
-	post, err := a.getPagePost(rctx, pageId)
+	page, err := a.GetPage(rctx, pageId)
 	if err != nil {
 		return model.NewAppError("AddPageToWiki", "api.wiki.add.not_a_page", nil, "", http.StatusBadRequest).Wrap(err)
 	}
+	post := page.Post()
 
 	pageTitle := post.GetPageTitle()
 
@@ -300,7 +269,11 @@ func (a *App) AddPageToWiki(rctx request.CTX, pageId, wikiId string) *model.AppE
 	return nil
 }
 
-func (a *App) DeleteWikiPage(rctx request.CTX, pageId, wikiId string) *model.AppError {
+// DeleteWikiPage deletes a page from a wiki.
+// Accepts a type-safe *Page that has already been validated.
+func (a *App) DeleteWikiPage(rctx request.CTX, page *Page, wikiId string) *model.AppError {
+	pageId := page.Id()
+
 	rctx.Logger().Debug("Deleting wiki page", mlog.String("page_id", pageId), mlog.String("wiki_id", wikiId))
 
 	wiki, wikiErr := a.GetWiki(rctx, wikiId)
@@ -317,25 +290,16 @@ func (a *App) DeleteWikiPage(rctx request.CTX, pageId, wikiId string) *model.App
 		return model.NewAppError("DeleteWikiPage", "app.wiki.delete_page.deleted_channel.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	post, err := a.GetSinglePost(rctx, pageId, false)
-	if err != nil {
-		return err
-	}
-
-	if !IsPagePost(post) {
-		return model.NewAppError("DeleteWikiPage", "api.wiki.delete.not_a_page", nil, "", http.StatusBadRequest)
-	}
-
 	group, grpErr := a.GetPagePropertyGroup()
 	if grpErr != nil {
 		return model.NewAppError("DeleteWikiPage", "app.wiki.get_group.app_error", nil, "", http.StatusInternalServerError).Wrap(grpErr)
 	}
 
-	if deleteErr := a.Srv().Store().PropertyValue().DeleteForTarget(group.ID, "post", post.Id); deleteErr != nil {
+	if deleteErr := a.Srv().Store().PropertyValue().DeleteForTarget(group.ID, "post", pageId); deleteErr != nil {
 		return model.NewAppError("DeleteWikiPage", "app.wiki.delete_page.app_error", nil, "", http.StatusInternalServerError).Wrap(deleteErr)
 	}
 
-	if deletePageErr := a.DeletePage(rctx, pageId, wikiId); deletePageErr != nil {
+	if deletePageErr := a.DeletePage(rctx, page, wikiId); deletePageErr != nil {
 		return deletePageErr
 	}
 
@@ -377,7 +341,9 @@ func (a *App) CreateWikiPage(rctx request.CTX, wikiId, parentId, title, content,
 			mlog.String("wiki_id", wikiId),
 			mlog.Bool("is_child_page", isChild),
 			mlog.Err(linkErr))
-		if deleteErr := a.DeletePage(rctx, createdPage.Id); deleteErr != nil {
+		// Wrap in Page - we know it's a page since we just created it
+		pageWrapper := NewPageFromValidatedPost(createdPage)
+		if deleteErr := a.DeletePage(rctx, pageWrapper); deleteErr != nil {
 			rctx.Logger().Warn("Failed to delete page after wiki link failure", mlog.String("page_id", createdPage.Id), mlog.Err(deleteErr))
 		}
 		return nil, linkErr
@@ -465,128 +431,20 @@ func (a *App) getWikiIdFromPropertyValues(rctx request.CTX, pageId string) (stri
 	return wikiId, nil
 }
 
-type movePageContext struct {
-	page       *model.Post
-	sourceWiki *model.Wiki
-	targetWiki *model.Wiki
-	channel    *model.Channel
-}
-
-func (a *App) validateMovePageSource(rctx request.CTX, pageId, targetWikiId string) (*movePageContext, string, *model.AppError) {
-	page, err := a.GetSinglePost(rctx, pageId, false)
-	if err != nil {
-		return nil, "", model.NewAppError("validateMovePageSource", "app.page.move.page_not_found", nil, "", http.StatusNotFound).Wrap(err)
-	}
-
-	if !IsPagePost(page) {
-		return nil, "", model.NewAppError("validateMovePageSource", "app.page.move.not_a_page", nil, "", http.StatusBadRequest)
-	}
+// MovePageToWiki moves a page to a different wiki (or different parent in same wiki).
+// Accepts a type-safe *Page that has already been validated.
+func (a *App) MovePageToWiki(rctx request.CTX, page *Page, targetWikiId string, parentPageId *string) *model.AppError {
+	pageId := page.Id()
+	post := page.Post()
 
 	sourceWikiId, err := a.GetWikiIdForPage(rctx, pageId)
 	if err != nil {
-		return nil, "", model.NewAppError("validateMovePageSource", "app.page.move.source_wiki_not_found", nil, "", http.StatusNotFound).Wrap(err)
+		return model.NewAppError("MovePageToWiki", "app.page.move.source_wiki_not_found", nil, "", http.StatusNotFound).Wrap(err)
 	}
 
 	sourceWiki, err := a.GetWiki(rctx, sourceWikiId)
 	if err != nil {
-		return nil, "", model.NewAppError("validateMovePageSource", "app.page.move.source_wiki_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	ctx := &movePageContext{
-		page:       page,
-		sourceWiki: sourceWiki,
-	}
-
-	return ctx, sourceWikiId, nil
-}
-
-func (a *App) validateMovePageTarget(rctx request.CTX, ctx *movePageContext, targetWikiId string) *model.AppError {
-	targetWiki, err := a.GetWiki(rctx, targetWikiId)
-	if err != nil {
-		return model.NewAppError("validateMovePageTarget", "app.page.move.target_wiki_not_found", nil, "", http.StatusNotFound).Wrap(err)
-	}
-
-	if ctx.page.ChannelId != targetWiki.ChannelId {
-		return model.NewAppError("validateMovePageTarget", "app.page.move.cross_channel_not_supported", nil,
-			"Cross-channel moves not supported in Phase 1", http.StatusBadRequest)
-	}
-
-	if ctx.sourceWiki.ChannelId != targetWiki.ChannelId {
-		return model.NewAppError("validateMovePageTarget", "app.page.move.wiki_channel_mismatch", nil, "", http.StatusInternalServerError)
-	}
-
-	channel, err := a.GetChannel(rctx, targetWiki.ChannelId)
-	if err != nil {
-		return model.NewAppError("validateMovePageTarget", "app.page.move.channel_not_found", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	ctx.targetWiki = targetWiki
-	ctx.channel = channel
-	return nil
-}
-
-func (a *App) checkMovePagePermissions(rctx request.CTX, ctx *movePageContext) *model.AppError {
-	session := rctx.Session()
-
-	if err := a.HasPermissionToModifyPage(rctx, session, ctx.page, PageOperationEdit, "checkMovePagePermissions"); err != nil {
-		return err
-	}
-
-	return a.checkPagePermissionInChannel(rctx, session.UserId, ctx.channel, PageOperationCreate, "checkMovePagePermissions")
-}
-
-func (a *App) validateMovePageParent(rctx request.CTX, pageId, targetWikiId string, parentPageId *string) *model.AppError {
-	if parentPageId == nil || *parentPageId == "" {
-		return nil
-	}
-
-	parentPage, err := a.GetSinglePost(rctx, *parentPageId, false)
-	if err != nil {
-		return model.NewAppError("validateMovePageParent", "app.page.move.parent_not_found", nil,
-			"Parent page not found", http.StatusNotFound).Wrap(err)
-	}
-
-	if !IsPagePost(parentPage) {
-		return model.NewAppError("validateMovePageParent", "app.page.move.parent_not_a_page", nil,
-			"Parent must be a page", http.StatusBadRequest)
-	}
-
-	parentWikiId, err := a.GetWikiIdForPage(rctx, *parentPageId)
-	if err != nil {
-		return model.NewAppError("validateMovePageParent", "app.page.move.parent_wiki_not_found", nil,
-			"Could not determine parent's wiki", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if parentWikiId != targetWikiId {
-		return model.NewAppError("validateMovePageParent", "app.page.move.parent_wrong_wiki", nil,
-			"Parent page must be in target wiki", http.StatusBadRequest)
-	}
-
-	if *parentPageId == pageId {
-		return model.NewAppError("validateMovePageParent", "app.page.move.self_parent", nil,
-			"Cannot move page under itself", http.StatusBadRequest)
-	}
-
-	descendants, err := a.GetPageDescendants(rctx, pageId)
-	if err != nil {
-		return model.NewAppError("validateMovePageParent", "app.page.move.get_descendants_failed", nil,
-			"Failed to get page descendants", http.StatusInternalServerError).Wrap(err)
-	}
-
-	for _, descendant := range descendants.Posts {
-		if descendant.Id == *parentPageId {
-			return model.NewAppError("validateMovePageParent", "app.page.move.circular_reference", nil,
-				"Cannot move page under its own descendant", http.StatusBadRequest)
-		}
-	}
-
-	return nil
-}
-
-func (a *App) MovePageToWiki(rctx request.CTX, pageId, targetWikiId string, parentPageId *string) *model.AppError {
-	ctx, sourceWikiId, err := a.validateMovePageSource(rctx, pageId, targetWikiId)
-	if err != nil {
-		return err
+		return model.NewAppError("MovePageToWiki", "app.page.move.source_wiki_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if sourceWikiId == targetWikiId && parentPageId == nil {
@@ -596,51 +454,86 @@ func (a *App) MovePageToWiki(rctx request.CTX, pageId, targetWikiId string, pare
 		return nil
 	}
 
-	if err := a.validateMovePageTarget(rctx, ctx, targetWikiId); err != nil {
-		return err
+	targetWiki, err := a.GetWiki(rctx, targetWikiId)
+	if err != nil {
+		return model.NewAppError("MovePageToWiki", "app.page.move.target_wiki_not_found", nil, "", http.StatusNotFound).Wrap(err)
 	}
 
-	if err := a.checkMovePagePermissions(rctx, ctx); err != nil {
-		return err
+	if page.ChannelId() != targetWiki.ChannelId {
+		return model.NewAppError("MovePageToWiki", "app.page.move.cross_channel_not_supported", nil,
+			"Cross-channel moves not supported in Phase 1", http.StatusBadRequest)
 	}
 
-	if err := a.validateMovePageParent(rctx, pageId, targetWikiId, parentPageId); err != nil {
-		return err
+	if sourceWiki.ChannelId != targetWiki.ChannelId {
+		return model.NewAppError("MovePageToWiki", "app.page.move.wiki_channel_mismatch", nil, "", http.StatusInternalServerError)
+	}
+
+	if parentPageId != nil && *parentPageId != "" {
+		parentPage, parentErr := a.GetPage(rctx, *parentPageId)
+		if parentErr != nil {
+			return model.NewAppError("MovePageToWiki", "app.page.move.parent_not_found", nil,
+				"Parent page not found", http.StatusNotFound).Wrap(parentErr)
+		}
+
+		parentWikiId, err := a.GetWikiIdForPage(rctx, parentPage.Id())
+		if err != nil {
+			return model.NewAppError("MovePageToWiki", "app.page.move.parent_wiki_not_found", nil,
+				"Could not determine parent's wiki", http.StatusInternalServerError).Wrap(err)
+		}
+
+		if parentWikiId != targetWikiId {
+			return model.NewAppError("MovePageToWiki", "app.page.move.parent_wrong_wiki", nil,
+				"Parent page must be in target wiki", http.StatusBadRequest)
+		}
+
+		if *parentPageId == pageId {
+			return model.NewAppError("MovePageToWiki", "app.page.move.self_parent", nil,
+				"Cannot move page under itself", http.StatusBadRequest)
+		}
+
+		descendants, err := a.GetPageDescendants(rctx, pageId)
+		if err != nil {
+			return model.NewAppError("MovePageToWiki", "app.page.move.get_descendants_failed", nil,
+				"Failed to get page descendants", http.StatusInternalServerError).Wrap(err)
+		}
+
+		for _, descendant := range descendants.Posts {
+			if descendant.Id == *parentPageId {
+				return model.NewAppError("MovePageToWiki", "app.page.move.circular_reference", nil,
+					"Cannot move page under its own descendant", http.StatusBadRequest)
+			}
+		}
 	}
 
 	if err := a.Srv().Store().Wiki().MovePageToWiki(pageId, targetWikiId, parentPageId); err != nil {
 		return model.NewAppError("MovePageToWiki", "app.page.move.failed", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	pageTitle := ctx.page.GetPageTitle()
+	pageTitle := post.GetPageTitle()
 	rctx.Logger().Info("Page moved to wiki",
 		mlog.String("page_id", pageId),
 		mlog.String("page_title", pageTitle),
 		mlog.String("source_wiki_id", sourceWikiId),
-		mlog.String("source_wiki_title", ctx.sourceWiki.Title),
+		mlog.String("source_wiki_title", sourceWiki.Title),
 		mlog.String("target_wiki_id", targetWikiId),
-		mlog.String("target_wiki_title", ctx.targetWiki.Title),
-		mlog.String("channel_id", ctx.page.ChannelId),
+		mlog.String("target_wiki_title", targetWiki.Title),
+		mlog.String("channel_id", page.ChannelId()),
 		mlog.String("user_id", rctx.Session().UserId))
 
 	var newParentId string
 	if parentPageId != nil {
 		newParentId = *parentPageId
 	}
-	a.BroadcastPageMoved(pageId, ctx.page.PageParentId, newParentId, targetWikiId, ctx.page.ChannelId, ctx.page.UpdateAt, sourceWikiId)
+	a.BroadcastPageMoved(pageId, page.PageParentId(), newParentId, targetWikiId, page.ChannelId(), post.UpdateAt, sourceWikiId)
 
 	return nil
 }
 
-func (a *App) DuplicatePage(rctx request.CTX, sourcePageId, targetWikiId string, parentPageId *string, customTitle *string, userId string) (*model.Post, *model.AppError) {
-	sourcePage, err := a.GetSinglePost(rctx, sourcePageId, false)
-	if err != nil {
-		return nil, model.NewAppError("DuplicatePage", "app.page.duplicate.source_not_found", nil, "", http.StatusNotFound).Wrap(err)
-	}
-
-	if !IsPagePost(sourcePage) {
-		return nil, model.NewAppError("DuplicatePage", "app.page.duplicate.not_a_page", nil, "", http.StatusBadRequest)
-	}
+// DuplicatePage creates a copy of a page in the target wiki.
+// Accepts a type-safe *Page that has already been validated.
+func (a *App) DuplicatePage(rctx request.CTX, sourcePage *Page, targetWikiId string, parentPageId *string, customTitle *string, userId string) (*model.Post, *model.AppError) {
+	sourcePageId := sourcePage.Id()
+	sourcePost := sourcePage.Post()
 
 	sourceContent, contentErr := a.Srv().Store().Page().GetPageContent(sourcePageId)
 	if contentErr != nil {
@@ -652,7 +545,7 @@ func (a *App) DuplicatePage(rctx request.CTX, sourcePageId, targetWikiId string,
 		return nil, model.NewAppError("DuplicatePage", "app.page.duplicate.target_wiki_not_found", nil, "", http.StatusNotFound).Wrap(err)
 	}
 
-	if targetWiki.ChannelId != sourcePage.ChannelId {
+	if targetWiki.ChannelId != sourcePage.ChannelId() {
 		return nil, model.NewAppError("DuplicatePage", "app.page.duplicate.cross_channel_not_supported", nil, "", http.StatusBadRequest)
 	}
 
@@ -665,7 +558,7 @@ func (a *App) DuplicatePage(rctx request.CTX, sourcePageId, targetWikiId string,
 		return nil, model.NewAppError("DuplicatePage", "app.page.duplicate.channel_deleted", nil, "", http.StatusBadRequest)
 	}
 
-	originalTitle := sourcePage.GetPageTitle()
+	originalTitle := sourcePost.GetPageTitle()
 	var duplicateTitle string
 	if customTitle != nil && *customTitle != "" {
 		duplicateTitle = *customTitle
@@ -680,7 +573,7 @@ func (a *App) DuplicatePage(rctx request.CTX, sourcePageId, targetWikiId string,
 	if parentPageId != nil {
 		parentId = *parentPageId
 	} else {
-		parentId = sourcePage.PageParentId
+		parentId = sourcePage.PageParentId()
 	}
 
 	contentJSON, jsonErr := sourceContent.GetDocumentJSON()

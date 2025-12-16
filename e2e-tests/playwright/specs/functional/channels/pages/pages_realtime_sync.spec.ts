@@ -9,7 +9,9 @@ import {
     navigateToWikiView,
     navigateToPage,
     openMovePageModal,
+    getEditor,
     getHierarchyPanel,
+    getPageViewerContent,
     createTestUserInChannel,
     enterEditMode,
     getEditorAndWait,
@@ -73,7 +75,7 @@ test(
         // * Verify user2 can click on the page and view it
         await user2PageNode.click();
         await user2Page.waitForLoadState('networkidle');
-        const pageContent = user2Page.locator('[data-testid="page-viewer-content"]');
+        const pageContent = getPageViewerContent(user2Page);
         await expect(pageContent).toContainText('This is a test page created by user 1');
     },
 );
@@ -147,7 +149,7 @@ test(
         // * Verify user2 can click on the page and view it
         await user2PageNode.click();
         await user2Page.waitForLoadState('networkidle');
-        const pageContent = user2Page.locator('[data-testid="page-viewer-content"]');
+        const pageContent = getPageViewerContent(user2Page);
         await expect(pageContent).toContainText('This page will be moved');
     },
 );
@@ -186,7 +188,7 @@ test(
         await user2Page.waitForLoadState('networkidle');
 
         // * Verify User 2 sees original content
-        const user2PageContent = user2Page.locator('[data-testid="page-viewer-content"]');
+        const user2PageContent = getPageViewerContent(user2Page);
         await expect(user2PageContent).toBeVisible({timeout: HIERARCHY_TIMEOUT});
         await expect(user2PageContent).toContainText(originalContent);
 
@@ -202,7 +204,7 @@ test(
         await expect(editButton1).toBeVisible({timeout: ELEMENT_TIMEOUT});
         await editButton1.click();
 
-        const editor1 = page1.locator('.ProseMirror').first();
+        const editor1 = getEditor(page1);
         await editor1.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
         await editor1.click();
         const updatedContent = 'Updated version 2 - changed by User 1';
@@ -253,7 +255,7 @@ test(
         await user2Page.goto(wikiPageUrl);
         await user2Page.waitForLoadState('networkidle');
 
-        const user2PageContent = user2Page.locator('[data-testid="page-viewer-content"]');
+        const user2PageContent = getPageViewerContent(user2Page);
         await expect(user2PageContent).toBeVisible({timeout: HIERARCHY_TIMEOUT});
         await expect(user2PageContent).toContainText(version1);
 
@@ -266,7 +268,7 @@ test(
         const editButton1 = page1.locator('[data-testid="wiki-page-edit-button"]').first();
         await editButton1.click();
 
-        const editor1 = page1.locator('.ProseMirror').first();
+        const editor1 = getEditor(page1);
         await editor1.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
         await editor1.click();
 
@@ -286,7 +288,7 @@ test(
         await expect(editButton2).toBeVisible({timeout: ELEMENT_TIMEOUT});
         await editButton2.click();
 
-        const editor2 = page1.locator('.ProseMirror').first();
+        const editor2 = getEditor(page1);
         await editor2.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
         await editor2.click();
 
@@ -342,7 +344,7 @@ test(
         await user2Page.goto(pageAUrl);
         await user2Page.waitForLoadState('networkidle');
 
-        const user2PageContent = user2Page.locator('[data-testid="page-viewer-content"]');
+        const user2PageContent = getPageViewerContent(user2Page);
         await expect(user2PageContent).toContainText('Page A original content');
 
         // # User 2 navigates to Page B
@@ -366,7 +368,7 @@ test(
         await expect(editButton1).toBeVisible({timeout: ELEMENT_TIMEOUT});
         await editButton1.click();
 
-        const editor1 = page1.locator('.ProseMirror').first();
+        const editor1 = getEditor(page1);
         await editor1.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
         await editor1.click();
         const updatedContent = 'Page A UPDATED by User 1';
@@ -443,9 +445,9 @@ test(
         await user3Page.waitForLoadState('networkidle');
 
         // * Verify all three see Page A version 1
-        const page1Content = page1.locator('[data-testid="page-viewer-content"]');
-        const user2PageContent = user2Page.locator('[data-testid="page-viewer-content"]');
-        const user3PageContent = user3Page.locator('[data-testid="page-viewer-content"]');
+        const page1Content = getPageViewerContent(page1);
+        const user2PageContent = getPageViewerContent(user2Page);
+        const user3PageContent = getPageViewerContent(user3Page);
         await expect(page1Content).toContainText('Page A content - version 1');
         await expect(user2PageContent).toContainText('Page A content - version 1');
         await expect(user3PageContent).toContainText('Page A content - version 1');
@@ -542,14 +544,14 @@ test(
 );
 
 /**
- * @objective Verify that users editing a page (with unsaved drafts) are protected from external page updates
+ * @objective Verify that a user's active draft is preserved when another user publishes an update externally
  *
  * @precondition
  * Pages/Wiki feature is enabled on the server
- * Multiple users have access to the same channel
+ * Two users have access to the same channel
  */
 test(
-    'protects active drafts from being overwritten by external page publishes',
+    'preserves active draft when another user publishes page update',
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
         const {team, user: user1, adminClient} = sharedPagesSetup;
@@ -577,17 +579,15 @@ test(
         // # User 2 makes draft changes (not yet published)
         const user2Editor = await getEditorAndWait(user2Page);
         await typeInEditor(user2Page, 'User 2 draft changes - not yet published');
-        await user2Page.waitForTimeout(AUTOSAVE_WAIT); // Wait for draft to be saved to server
+        await user2Page.waitForTimeout(AUTOSAVE_WAIT);
 
         // * Verify User 2 sees their draft content in the editor
         const user2EditorContent = await user2Editor.textContent();
         expect(user2EditorContent).toContain('User 2 draft changes');
 
         // # Meanwhile, User 1 publishes an update to the same page via API
-        // First get current page to retrieve edit_at timestamp
         const currentPage = await adminClient.getPost(testPage.id);
 
-        // With unified IDs, editing an existing page uses the page's ID as the draft ID
         const externalUpdateContent = JSON.stringify({
             type: 'doc',
             content: [
@@ -601,29 +601,93 @@ test(
         await adminClient.savePageDraft(wiki.id, testPage.id, externalUpdateContent, pageTitle);
         await adminClient.publishPageDraft(
             wiki.id,
-            testPage.id, // pageId - unified ID
+            testPage.id,
             '',
             pageTitle,
             'external update',
             externalUpdateContent,
-            undefined, // pageStatus
-            undefined, // force
-            currentPage.edit_at, // base_edit_at - prevents conflict warning
+            undefined,
+            undefined,
+            currentPage.edit_at,
         );
 
         // * Verify User 2's draft content is NOT overwritten (draft isolation)
-        // Wait briefly for potential WebSocket events, then verify editor still has draft
         await expect(user2Editor).toContainText('User 2 draft changes', {timeout: WEBSOCKET_WAIT});
         await expect(user2Editor).not.toContainText('External update by User 1');
 
-        // # User 1 views the page (not editing) - should see the published version
+        // * Verify User 1 (viewer) sees the published version, not the draft
         await navigateToPage(page1, pw.url, team.name, channel.id, wiki.id, testPage.id);
         await verifyPageContentContains(page1, 'External update by User 1');
-        const page1Content = page1.locator('[data-testid="page-viewer-content"]');
+        const page1Content = getPageViewerContent(page1);
         const page1Text = await page1Content.textContent();
         expect(page1Text).not.toContain('User 2 draft changes');
 
-        // # Test scenario 2: User 3 clicks "Edit" on the updated page
+        await user2Page.close();
+    },
+);
+
+/**
+ * @objective Verify that a new user entering edit mode gets the latest published version, not another user's draft
+ *
+ * @precondition
+ * Pages/Wiki feature is enabled on the server
+ * Multiple users have access to the same channel
+ */
+test(
+    'new editor starts from published version not another user draft',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user: user1, adminClient} = sharedPagesSetup;
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+        // # User 1 creates a wiki and a page
+        const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
+        await channelsPage1.goto(team.name, channel.name);
+        await channelsPage1.toBeVisible();
+
+        const wiki = await createWikiThroughUI(page1, `New Editor Wiki ${await pw.random.id()}`);
+        const pageTitle = `Test Page ${await pw.random.id()}`;
+
+        const testPage = await createPageThroughUI(page1, pageTitle, 'Original published content');
+
+        // # User 2 starts editing and creates a draft
+        const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
+        const {page: user2Page} = await pw.testBrowser.login(user2);
+
+        await navigateToPage(user2Page, pw.url, team.name, channel.id, wiki.id, testPage.id);
+        await enterEditMode(user2Page);
+
+        await getEditorAndWait(user2Page);
+        await typeInEditor(user2Page, 'User 2 draft changes - not published');
+        await user2Page.waitForTimeout(AUTOSAVE_WAIT);
+
+        // # Admin publishes a new version via API
+        const currentPage = await adminClient.getPost(testPage.id);
+
+        const publishedContent = JSON.stringify({
+            type: 'doc',
+            content: [
+                {
+                    type: 'paragraph',
+                    content: [{type: 'text', text: 'Latest published version by admin'}],
+                },
+            ],
+        });
+
+        await adminClient.savePageDraft(wiki.id, testPage.id, publishedContent, pageTitle);
+        await adminClient.publishPageDraft(
+            wiki.id,
+            testPage.id,
+            '',
+            pageTitle,
+            'admin update',
+            publishedContent,
+            undefined,
+            undefined,
+            currentPage.edit_at,
+        );
+
+        // # User 3 opens the page and enters edit mode
         const {user: user3} = await createTestUserInChannel(pw, adminClient, team, channel, 'user3');
         const {page: user3Page} = await pw.testBrowser.login(user3);
 
@@ -633,60 +697,101 @@ test(
         // * Verify User 3 starts editing from the latest PUBLISHED version (not User 2's draft)
         const user3Editor = await getEditorAndWait(user3Page);
         const user3InitialContent = await user3Editor.textContent();
-        expect(user3InitialContent).toContain('External update by User 1');
+        expect(user3InitialContent).toContain('Latest published version by admin');
         expect(user3InitialContent).not.toContain('User 2 draft changes');
 
-        // # User 3 makes their own draft changes
+        await user2Page.close();
+        await user3Page.close();
+    },
+);
+
+/**
+ * @objective Verify that multiple users with concurrent drafts all remain isolated from external publishes
+ *
+ * @precondition
+ * Pages/Wiki feature is enabled on the server
+ * Multiple users have access to the same channel
+ */
+test(
+    'multiple concurrent drafts remain isolated from external publish',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user: user1, adminClient} = sharedPagesSetup;
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+        // # User 1 creates a wiki and a page
+        const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
+        await channelsPage1.goto(team.name, channel.name);
+        await channelsPage1.toBeVisible();
+
+        const wiki = await createWikiThroughUI(page1, `Concurrent Drafts Wiki ${await pw.random.id()}`);
+        const pageTitle = `Test Page ${await pw.random.id()}`;
+
+        const testPage = await createPageThroughUI(page1, pageTitle, 'Original content');
+
+        // # User 2 starts editing and creates a draft
+        const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
+        const {page: user2Page} = await pw.testBrowser.login(user2);
+
+        await navigateToPage(user2Page, pw.url, team.name, channel.id, wiki.id, testPage.id);
+        await enterEditMode(user2Page);
+
+        const user2Editor = await getEditorAndWait(user2Page);
+        await typeInEditor(user2Page, 'User 2 draft content');
+        await user2Page.waitForTimeout(AUTOSAVE_WAIT);
+
+        // # User 3 also starts editing (creates separate draft)
+        const {user: user3} = await createTestUserInChannel(pw, adminClient, team, channel, 'user3');
+        const {page: user3Page} = await pw.testBrowser.login(user3);
+
+        await navigateToPage(user3Page, pw.url, team.name, channel.id, wiki.id, testPage.id);
+        await enterEditMode(user3Page);
+
+        const user3Editor = await getEditorAndWait(user3Page);
         await clearEditorContent(user3Page);
-        await typeInEditor(user3Page, 'User 3 draft changes on top of published v2');
-        await user3Page.waitForTimeout(AUTOSAVE_WAIT); // Wait for draft to be saved to server
+        await typeInEditor(user3Page, 'User 3 draft content');
+        await user3Page.waitForTimeout(AUTOSAVE_WAIT);
 
-        // * Verify User 3's draft content is saved
-        const user3EditorContent = await user3Editor.textContent();
-        expect(user3EditorContent).toContain('User 3 draft changes');
+        // # Admin publishes an external update
+        const currentPage = await adminClient.getPost(testPage.id);
 
-        // # Another external publish happens (version 3)
-        // Get the latest page state (after version 2 was published)
-        const currentPageV2 = await adminClient.getPost(testPage.id);
-
-        // With unified IDs, editing an existing page uses the page's ID as the draft ID
-        const version3Content = JSON.stringify({
+        const externalContent = JSON.stringify({
             type: 'doc',
             content: [
                 {
                     type: 'paragraph',
-                    content: [{type: 'text', text: 'Version 3 published by admin'}],
+                    content: [{type: 'text', text: 'External publish by admin'}],
                 },
             ],
         });
 
-        await adminClient.savePageDraft(wiki.id, testPage.id, version3Content, pageTitle);
+        await adminClient.savePageDraft(wiki.id, testPage.id, externalContent, pageTitle);
         await adminClient.publishPageDraft(
             wiki.id,
-            testPage.id, // pageId - unified ID
+            testPage.id,
             '',
             pageTitle,
-            'version 3',
-            version3Content,
-            undefined, // pageStatus
-            undefined, // force
-            currentPageV2.update_at, // base_update_at - prevents conflict warning
+            'admin publish',
+            externalContent,
+            undefined,
+            undefined,
+            currentPage.edit_at,
         );
 
-        // * Verify BOTH User 2 and User 3 still have their drafts intact (not overwritten by v3)
-        await expect(user2Editor).toContainText('User 2 draft changes', {timeout: WEBSOCKET_WAIT});
-        await expect(user2Editor).not.toContainText('Version 3 published by admin');
+        // * Verify BOTH User 2 and User 3 still have their drafts intact
+        await expect(user2Editor).toContainText('User 2 draft content', {timeout: WEBSOCKET_WAIT});
+        await expect(user2Editor).not.toContainText('External publish by admin');
 
-        await expect(user3Editor).toContainText('User 3 draft changes', {timeout: WEBSOCKET_WAIT});
-        await expect(user3Editor).not.toContainText('Version 3 published by admin');
+        await expect(user3Editor).toContainText('User 3 draft content', {timeout: WEBSOCKET_WAIT});
+        await expect(user3Editor).not.toContainText('External publish by admin');
 
-        // * Verify a viewer (User 1) sees the latest published version (v3)
+        // * Verify viewer (User 1) sees the published version
         await page1.reload();
         await page1.waitForLoadState('networkidle');
-        await verifyPageContentContains(page1, 'Version 3 published by admin');
-        const page1ContentFinal = await page1.locator('[data-testid="page-viewer-content"]').textContent();
-        expect(page1ContentFinal).not.toContain('User 2 draft changes');
-        expect(page1ContentFinal).not.toContain('User 3 draft changes');
+        await verifyPageContentContains(page1, 'External publish by admin');
+        const page1ContentFinal = await getPageViewerContent(page1).textContent();
+        expect(page1ContentFinal).not.toContain('User 2 draft content');
+        expect(page1ContentFinal).not.toContain('User 3 draft content');
 
         await user2Page.close();
         await user3Page.close();

@@ -35,19 +35,14 @@ func (a *App) GetPagePropertyFieldByName(fieldName string) (*model.PropertyField
 	return field, nil
 }
 
-func (a *App) SetPageStatus(rctx request.CTX, pageId, status string) *model.AppError {
+// SetPageStatus sets the status property for a page.
+// Accepts a type-safe *Page that has already been validated.
+func (a *App) SetPageStatus(rctx request.CTX, page *Page, status string) *model.AppError {
+	pageId := page.Id()
+
 	rctx.Logger().Debug("SetPageStatus called",
 		mlog.String("page_id", pageId),
 		mlog.String("status", status))
-
-	post, getErr := a.GetSinglePost(rctx, pageId, false)
-	if getErr != nil {
-		return model.NewAppError("SetPageStatus", "app.page.set_status.page_not_found.app_error", nil, "", http.StatusNotFound).Wrap(getErr)
-	}
-
-	if !IsPagePost(post) {
-		return model.NewAppError("SetPageStatus", "app.page.set_status.not_a_page.app_error", nil, "", http.StatusBadRequest)
-	}
 
 	group, err := a.GetPagePropertyGroup()
 	if err != nil {
@@ -97,17 +92,12 @@ func (a *App) SetPageStatus(rctx request.CTX, pageId, status string) *model.AppE
 	return nil
 }
 
-func (a *App) GetPageStatus(rctx request.CTX, pageId string) (string, *model.AppError) {
+// GetPageStatus gets the status property for a page.
+// Accepts a type-safe *Page that has already been validated.
+func (a *App) GetPageStatus(rctx request.CTX, page *Page) (string, *model.AppError) {
+	pageId := page.Id()
+
 	rctx.Logger().Debug("GetPageStatus called", mlog.String("page_id", pageId))
-
-	post, getErr := a.GetSinglePost(rctx, pageId, false)
-	if getErr != nil {
-		return "", model.NewAppError("GetPageStatus", "app.page.get_status.page_not_found.app_error", nil, "", http.StatusNotFound).Wrap(getErr)
-	}
-
-	if !IsPagePost(post) {
-		return "", model.NewAppError("GetPageStatus", "app.page.get_status.not_a_page.app_error", nil, "", http.StatusBadRequest)
-	}
 
 	group, err := a.GetPagePropertyGroup()
 	if err != nil {

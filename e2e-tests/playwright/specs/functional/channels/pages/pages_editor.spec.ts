@@ -10,6 +10,7 @@ import {
     createPageThroughUI,
     createChildPageThroughContextMenu,
     getNewPageButton,
+    getPageViewerContent,
     openPageLinkModal,
     openPageLinkModalViaButton,
     waitForPageInHierarchy,
@@ -94,7 +95,7 @@ test('handles large content correctly', {tag: '@pages'}, async ({pw, sharedPages
     // * Verify publish succeeds
     await page.waitForLoadState('networkidle', {timeout: PAGE_LOAD_TIMEOUT});
 
-    const pageContent = page.locator('[data-testid="page-viewer-content"]');
+    const pageContent = getPageViewerContent(page);
     await expect(pageContent).toBeVisible();
     await expect(pageContent).toContainText('Lorem ipsum');
 });
@@ -136,7 +137,7 @@ test('handles Unicode and special characters correctly', {tag: '@pages'}, async 
     await page.waitForLoadState('networkidle');
 
     // * Verify persistence
-    const pageContent = page.locator('[data-testid="page-viewer-content"]');
+    const pageContent = getPageViewerContent(page);
     await expect(pageContent).toBeVisible();
     await expect(pageContent).toContainText(unicodeContent);
 
@@ -223,7 +224,7 @@ test('handles @user mentions in editor', {tag: '@pages'}, async ({pw, sharedPage
     await page.waitForLoadState('networkidle');
 
     // * Verify mention persists after publish
-    const pageContent = page.locator('[data-testid="page-viewer-content"]');
+    const pageContent = getPageViewerContent(page);
     await expect(pageContent).toBeVisible();
     await expect(pageContent).toContainText(mentionedUser.username);
 
@@ -290,7 +291,7 @@ test('handles ~channel mentions in editor', {tag: '@pages'}, async ({pw, sharedP
     await page.waitForLoadState('networkidle');
 
     // * Verify channel mention persists after publish
-    const pageContent = page.locator('[data-testid="page-viewer-content"]');
+    const pageContent = getPageViewerContent(page);
     await expect(pageContent).toBeVisible();
     await expect(pageContent).toContainText(mentionedChannel.name);
 
@@ -378,7 +379,7 @@ test('handles multiple user mentions in same page', {tag: '@pages'}, async ({pw,
     await page.waitForLoadState('networkidle');
 
     // * Verify both mentions persist after publish
-    const pageContent = page.locator('[data-testid="page-viewer-content"]');
+    const pageContent = getPageViewerContent(page);
     await expect(pageContent).toBeVisible();
     await expect(pageContent).toContainText(user1.username);
     await expect(pageContent).toContainText(user2.username);
@@ -658,7 +659,7 @@ test.skip(
         await authorPage.waitForLoadState('networkidle');
 
         // * Verify page is published
-        const pageContent = authorPage.locator('[data-testid="page-viewer-content"]');
+        const pageContent = getPageViewerContent(authorPage);
         await expect(pageContent).toBeVisible();
 
         // # Wait a moment for notification to be sent
@@ -934,7 +935,7 @@ test('navigates to linked page when link is clicked', {tag: '@pages'}, async ({p
     await page.waitForLoadState('networkidle');
 
     // * Verify page is published
-    const pageContent = page.locator('[data-testid="page-viewer-content"]');
+    const pageContent = getPageViewerContent(page);
     await expect(pageContent).toBeVisible();
     await expect(pageContent).toContainText('Navigate here:', {timeout: ELEMENT_TIMEOUT});
 
@@ -957,7 +958,7 @@ test('navigates to linked page when link is clicked', {tag: '@pages'}, async ({p
     await page.waitForLoadState('networkidle');
 
     // * Verify navigation by checking content changed to target page
-    const targetPageContent = page.locator('[data-testid="page-viewer-content"]');
+    const targetPageContent = getPageViewerContent(page);
     await expect(targetPageContent).toContainText('This is the linked page content', {timeout: PAGE_LOAD_TIMEOUT});
 });
 
@@ -1084,7 +1085,7 @@ test('inserts multiple page links in same page', {tag: '@pages'}, async ({pw, sh
     await page.waitForLoadState('networkidle');
 
     // * Verify all links persist after publish
-    const pageContent = page.locator('[data-testid="page-viewer-content"]');
+    const pageContent = getPageViewerContent(page);
     await expect(pageContent).toBeVisible();
 
     // * Verify all three links are present and clickable with their selected text
@@ -1264,7 +1265,7 @@ test('links to child pages in page hierarchy', {tag: '@pages'}, async ({pw, shar
     await page.waitForLoadState('networkidle');
 
     // # Wait for page viewer to show the published content and for edit button to appear (confirms publish complete)
-    const pageContent = page.locator('[data-testid="page-viewer-content"]');
+    const pageContent = getPageViewerContent(page);
     await expect(pageContent).toContainText('Link to child:', {timeout: ELEMENT_TIMEOUT});
 
     // Wait for the edit button to appear, confirming the page is in view mode
@@ -1287,7 +1288,7 @@ test('links to child pages in page hierarchy', {tag: '@pages'}, async ({pw, shar
     await page.waitForLoadState('networkidle');
 
     // * Verify the page shows the child page content
-    const childPageContent = page.locator('[data-testid="page-viewer-content"]');
+    const childPageContent = getPageViewerContent(page);
     await expect(childPageContent).toContainText('This is a child page', {timeout: PAGE_LOAD_TIMEOUT});
 });
 
@@ -1474,7 +1475,7 @@ test(
         expect(hasBodyTooLongError).toBe(false);
 
         // * Verify page was published successfully
-        const pageContent = page.locator('[data-testid="page-viewer-content"]');
+        const pageContent = getPageViewerContent(page);
         await expect(pageContent).toBeVisible({timeout: HIERARCHY_TIMEOUT});
         await expect(pageContent).toContainText('Lorem ipsum');
 
@@ -1594,7 +1595,7 @@ test('pastes image from clipboard without broken image icon', {tag: '@pages'}, a
     await page.waitForLoadState('networkidle');
 
     // * Verify page publishes successfully with the image
-    const pageContent = page.locator('[data-testid="page-viewer-content"]');
+    const pageContent = getPageViewerContent(page);
     await expect(pageContent).toBeVisible();
 
     // * Verify the image persists after publish

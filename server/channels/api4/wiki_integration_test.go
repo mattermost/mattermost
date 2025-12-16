@@ -343,11 +343,11 @@ func TestConcurrentPageHierarchyOperations(t *testing.T) {
 		require.Nil(t, appErr)
 		assert.Len(t, children.Posts, 2)
 
-		updatedChild1, appErr := th.App.GetPage(th.Context, child1.Id)
+		updatedChild1, appErr := th.App.GetPageWithContent(th.Context, child1.Id)
 		require.Nil(t, appErr)
 		assert.Equal(t, parentPage.Id, updatedChild1.PageParentId)
 
-		updatedChild2, appErr := th.App.GetPage(th.Context, child2.Id)
+		updatedChild2, appErr := th.App.GetPageWithContent(th.Context, child2.Id)
 		require.Nil(t, appErr)
 		assert.Equal(t, parentPage.Id, updatedChild2.PageParentId)
 	})
@@ -423,7 +423,7 @@ func TestPagePermissionsMultiUser(t *testing.T) {
 	t.Run("user2 cannot access private channel page", func(t *testing.T) {
 		th.Context.Session().UserId = th.BasicUser2.Id
 
-		_, appErr := th.App.GetPage(th.Context, privatePage.Id)
+		_, appErr := th.App.GetPageWithContent(th.Context, privatePage.Id)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "api.context.permissions.app_error", appErr.Id)
 	})
@@ -432,7 +432,7 @@ func TestPagePermissionsMultiUser(t *testing.T) {
 		th.AddUserToChannel(t, th.BasicUser2, privateChannel)
 
 		th.Context.Session().UserId = th.BasicUser2.Id
-		retrievedPage, appErr := th.App.GetPage(th.Context, privatePage.Id)
+		retrievedPage, appErr := th.App.GetPageWithContent(th.Context, privatePage.Id)
 		require.Nil(t, appErr)
 		assert.Equal(t, privatePage.Id, retrievedPage.Id)
 	})
@@ -442,7 +442,7 @@ func TestPagePermissionsMultiUser(t *testing.T) {
 		require.Nil(t, appErr)
 
 		th.Context.Session().UserId = th.BasicUser2.Id
-		_, appErr = th.App.GetPage(th.Context, privatePage.Id)
+		_, appErr = th.App.GetPageWithContent(th.Context, privatePage.Id)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "api.context.permissions.app_error", appErr.Id)
 	})

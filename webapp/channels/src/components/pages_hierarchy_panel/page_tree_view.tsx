@@ -89,7 +89,6 @@ const PageTreeNodeWrapper = React.memo(({
 type Props = {
     tree: TreeNode[];
     expandedNodes: {[pageId: string]: boolean};
-    selectedPageId: string | null;
     currentPageId?: string;
     onNodeSelect: (nodeId: string) => void;
     onToggleExpand: (nodeId: string) => void;
@@ -108,7 +107,6 @@ type Props = {
 const PageTreeView = ({
     tree,
     expandedNodes,
-    selectedPageId,
     currentPageId,
     onNodeSelect,
     onToggleExpand,
@@ -250,7 +248,7 @@ const PageTreeView = ({
                                             >
                                                 <PageTreeNodeWrapper
                                                     node={node}
-                                                    isSelected={node.id === selectedPageId}
+                                                    isSelected={node.id === currentPageId}
                                                     onNodeSelect={onNodeSelect}
                                                     onToggleExpand={onToggleExpand}
                                                     onCreateChild={onCreateChild}

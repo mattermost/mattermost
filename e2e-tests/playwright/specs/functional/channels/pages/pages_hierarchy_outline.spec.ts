@@ -9,7 +9,10 @@ import {
     addHeadingToEditor,
     fillCreatePageModal,
     navigateToWikiView,
+    getEditor,
+    getNewPageButton,
     getPageOutlineInHierarchy,
+    getPageViewerContent,
     showPageOutline,
     showPageOutlineViaRightClick,
     hidePageOutline,
@@ -45,11 +48,11 @@ test('toggles page outline visibility in hierarchy panel', {tag: '@pages'}, asyn
     const wiki = await createWikiThroughUI(page, `Outline Wiki ${await pw.random.id()}`);
 
     // # Create a page with headings through UI
-    const newPageButton = page.locator('[data-testid="new-page-button"]');
+    const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Feature Spec');
 
-    const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
+    const editor = getEditor(page);
     await editor.click();
 
     // # Type "Overview" and make it H2 using helper
@@ -153,7 +156,7 @@ test('updates outline in hierarchy when page headings change', {tag: '@pages'}, 
     await enterEditMode(page);
     await waitForEditModeReady(page);
 
-    const editor = page.locator('.ProseMirror').first();
+    const editor = getEditor(page);
     await editor.click();
 
     // # Clear existing content
@@ -272,13 +275,13 @@ test('clicks outline item in hierarchy to navigate to heading', {tag: '@pages'},
     await page.waitForLoadState('networkidle');
 
     // # Wait for page viewer to be visible (confirms we're in view mode)
-    await page.locator('[data-testid="page-viewer-content"]').waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+    await getPageViewerContent(page).waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
     // # Enter edit mode
     await enterEditMode(page);
     await waitForEditModeReady(page);
 
-    const editor = page.locator('.ProseMirror').first();
+    const editor = getEditor(page);
     await editor.click();
 
     // # Clear existing content
@@ -349,7 +352,7 @@ test(
         await enterEditMode(page);
         await waitForEditModeReady(page);
 
-        const editor1 = page.locator('.ProseMirror').first();
+        const editor1 = getEditor(page);
         await editor1.click();
         await selectAllText(page);
         await page.keyboard.press('Backspace');
@@ -366,7 +369,7 @@ test(
         await publishCurrentPage(page);
 
         // # Verify the heading was published correctly by checking page viewer
-        const pageViewer = page.locator('[data-testid="page-viewer-content"]');
+        const pageViewer = getPageViewerContent(page);
         const publishedHeading = pageViewer.locator('h1:has-text("Page 1 Heading")');
         await expect(publishedHeading).toBeVisible({timeout: ELEMENT_TIMEOUT});
 

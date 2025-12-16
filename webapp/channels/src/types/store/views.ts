@@ -229,7 +229,6 @@ export type ViewsState = {
 
     pagesHierarchy: {
         expandedNodes: {[wikiId: string]: {[pageId: string]: boolean}};
-        selectedPageId: string | null;
         isPanelCollapsed: boolean;
         outlineExpandedNodes: {[pageId: string]: boolean};
         outlineCache: {[pageId: string]: Heading[]};

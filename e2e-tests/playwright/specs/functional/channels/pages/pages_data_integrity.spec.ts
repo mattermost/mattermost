@@ -5,7 +5,9 @@ import {expect, test} from './pages_test_fixture';
 import {
     createWikiThroughUI,
     createPageThroughUI,
+    getEditor,
     getNewPageButton,
+    getPageViewerContent,
     fillCreatePageModal,
     publishCurrentPage,
     getEditorAndWait,
@@ -46,7 +48,7 @@ test('sanitizes XSS attempts in page content', {tag: '@pages'}, async ({pw, shar
 
     // * Verify page loads without crashing
 
-    const pageContent = page.locator('[data-testid="page-viewer-content"]');
+    const pageContent = getPageViewerContent(page);
     await expect(pageContent).toBeVisible();
 
     // * Verify no actual script tag in DOM
@@ -210,7 +212,7 @@ test('validates page title length and special characters', {tag: '@pages'}, asyn
     }
 
     // * Verify publish is blocked (still in editor)
-    const editorStillVisible = await page.locator('.ProseMirror').first().isVisible();
+    const editorStillVisible = await getEditor(page).first().isVisible();
     expect(editorStillVisible).toBe(true);
 
     // # Test special characters that might break URLs
@@ -225,7 +227,7 @@ test('validates page title length and special characters', {tag: '@pages'}, asyn
     await page.waitForTimeout(EDITOR_LOAD_WAIT); // Additional wait for page render
 
     // * Verify either sanitized/encoded and published, or validation error shown
-    const pageViewer = page.locator('[data-testid="page-viewer-content"]');
+    const pageViewer = getPageViewerContent(page);
     const pageViewerVisible = await pageViewer.isVisible().catch(() => false);
     const editorStillVisibleAfterPublish = await page
         .locator('.ProseMirror')

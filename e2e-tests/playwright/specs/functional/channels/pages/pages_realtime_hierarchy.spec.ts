@@ -10,7 +10,9 @@ import {
     verifyPageInHierarchy,
     verifyPageNotInHierarchy,
     openMovePageModal,
+    getEditor,
     getHierarchyPanel,
+    getPageViewerContent,
     createTestChannel,
     createTestUserInChannel,
     renamePageViaContextMenu,
@@ -180,7 +182,7 @@ test(
         await user2Page.waitForLoadState('networkidle');
 
         // * Verify user2 is viewing the page
-        const pageViewer = user2Page.locator('[data-testid="page-viewer-content"]');
+        const pageViewer = getPageViewerContent(user2Page);
         await expect(pageViewer).toBeVisible();
         await expect(pageViewer).toContainText('This page will be deleted');
 
@@ -411,7 +413,7 @@ test(
         await clickPageInHierarchy(user2Page, childTitle);
         await user2Page.waitForLoadState('networkidle');
 
-        const pageViewer = user2Page.locator('[data-testid="page-viewer-content"]');
+        const pageViewer = getPageViewerContent(user2Page);
         await expect(pageViewer).toContainText('Child page content');
 
         await user2Page.close();
@@ -539,7 +541,7 @@ test(
         await user2Page.waitForLoadState('networkidle');
 
         // * Verify user2 is viewing the page
-        const pageViewer = user2Page.locator('[data-testid="page-viewer-content"]');
+        const pageViewer = getPageViewerContent(user2Page);
         await expect(pageViewer).toBeVisible({timeout: HIERARCHY_TIMEOUT});
         await expect(pageViewer).toContainText('This page will be deleted with wiki');
 
@@ -721,7 +723,7 @@ test(
         await user2Page.waitForLoadState('networkidle');
 
         // * Verify user2 can view the page
-        const pageViewer = user2Page.locator('[data-testid="page-viewer-content"]');
+        const pageViewer = getPageViewerContent(user2Page);
         await expect(pageViewer).toBeVisible({timeout: HIERARCHY_TIMEOUT});
         await expect(pageViewer).toContainText('Content for permission test');
 
@@ -837,7 +839,7 @@ test(
         await user2Page.waitForTimeout(EDITOR_LOAD_WAIT);
 
         // * Verify editor is visible
-        const editor = user2Page.locator('.ProseMirror').first();
+        const editor = getEditor(user2Page);
         await expect(editor).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
         // # Setup WebSocket event logging
