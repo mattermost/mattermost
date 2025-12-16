@@ -76,12 +76,6 @@ func processRecapJob(logger mlog.LoggerIFace, job *model.Job, storeInstance stor
 			continue
 		}
 
-		if result.MessageCount == 0 {
-			logger.Debug("No posts to summarize", mlog.String("channel_id", channelID))
-			successfulChannels = append(successfulChannels, channelID)
-			continue
-		}
-
 		totalMessages += result.MessageCount
 		successfulChannels = append(successfulChannels, channelID)
 	}
