@@ -2,8 +2,8 @@
   "name": "@mattermost/webapp",
   "private": true,
   "engines": {
-    "node": ">=18.10.0",
-    "npm": "^9.0.0 || ^10.0.0"
+    "node": ">=24.11.0",
+    "npm": "^11.0.0"
   },
   "scripts": {
     "postinstall": "patch-package && npm run build --workspace=platform/types --workspace=platform/client --workspace=platform/components",
@@ -21,14 +21,15 @@
   },
   "dependencies": {
     "@mattermost/compass-icons": "0.1.52",
+    "react-intl": "7.1.14",
     "typescript": "5.6.3"
   },
   "devDependencies": {
-    "@babel/core": "7.22.0",
-    "@babel/preset-env": "7.21.5",
-    "@babel/preset-react": "7.18.6",
-    "@babel/preset-typescript": "7.21.5",
-    "@types/node": "20.19.18",
+    "@babel/core": "7.28.5",
+    "@babel/preset-env": "7.28.5",
+    "@babel/preset-react": "7.28.5",
+    "@babel/preset-typescript": "7.28.5",
+    "@types/node": "24.10.4",
     "babel-loader": "9.1.2",
     "babel-plugin-formatjs": "10.5.1",
     "babel-plugin-typescript-to-proptypes": "2.1.0",
@@ -49,9 +50,9 @@
     "strip-ansi": "7.1.0",
     "style-loader": "4.0.0",
     "typescript-eslint-language-service": "5.0.5",
-    "webpack": "5.95.0",
-    "webpack-cli": "5.1.4",
-    "webpack-dev-server": "5.1.0"
+    "webpack": "5.103.0",
+    "webpack-cli": "6.0.1",
+    "webpack-dev-server": "5.2.2"
   },
   "overrides": {
     "@deanwhillier/jest-matchmedia-mock": {
