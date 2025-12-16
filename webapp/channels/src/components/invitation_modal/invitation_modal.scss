@@ -1,5 +1,10 @@
 .InvitationModal {
     .modal-dialog {
+        @media screen and (min-width: 640px) {
+            position: absolute;
+            width: 600px;
+        }
+
         top: 50%;
         left: 50%;
         display: flex;
@@ -8,10 +13,6 @@
         margin: auto;
         transform: translate(-50%, -50%) !important;
 
-        @media screen and (min-width: 640px) {
-            position: absolute;
-            width: 600px;
-        }
     }
     &__header {
         padding-left: 0 !important;

@@ -163,7 +163,3 @@ docker-compose.override.yaml
 **/CLAUDE.local.md
 CLAUDE.md
 .cursorrules
-
-/.claude
-/.specify
-/specs

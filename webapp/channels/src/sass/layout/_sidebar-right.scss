@@ -3,8 +3,6 @@
 @use "utils/variables";
 
 .sidebar--right--width-holder {
-    width: var(--overrideRhsWidth, 400px);
-
     @media screen and (max-width: 768px) {
         display: none;
     }
@@ -12,13 +10,12 @@
     body:not(.layout-changing) & {
         transition: width 0.25s 0s ease-in, z-index 0.25s 0s step-end;
     }
+
+    width: var(--overrideRhsWidth, 400px);
 }
 
 .sidebar--right {
     width: var(--overrideRhsWidth, 400px);
-    height: 100%;
-    padding: 0;
-    transform: translateX(100%);
 
     &:not(.expanded):not(.resize-disabled) {
         min-width: 400px;
@@ -47,6 +44,10 @@
             max-width: 776px;
         }
     }
+
+    height: 100%;
+    padding: 0;
+    transform: translateX(100%);
 
     .sidebar-right__table {
         display: table;

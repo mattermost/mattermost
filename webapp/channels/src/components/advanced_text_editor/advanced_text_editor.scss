@@ -17,7 +17,13 @@
 }
 
 .AdvancedTextEditor {
+    &__ctr {
+        form {
+            padding: unset;
+        }
+    }
     position: relative;
+
     display: flex;
     width: 100%;
     flex-direction: row;
@@ -26,17 +32,6 @@
     margin: 0 auto;
     gap: 12px;
     justify-items: stretch;
-
-    /* stylelint-disable length-zero-no-unit */
-    --right-padding-for-scrollbar: 0px;
-    --right-padding-for-preview-button: 0px;
-    /* stylelint-enable length-zero-no-unit */
-
-    &__ctr {
-        form {
-            padding: unset;
-        }
-    }
 
     .sidebar--right & {
         padding-top: 12px;
@@ -78,6 +73,11 @@
             }
         }
     }
+
+    /* stylelint-disable length-zero-no-unit */
+    --right-padding-for-scrollbar: 0px;
+    --right-padding-for-preview-button: 0px;
+    /* stylelint-enable length-zero-no-unit */
 
     &.scroll {
         --right-padding-for-scrollbar: 8px;

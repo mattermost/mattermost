@@ -21,18 +21,6 @@
 }
 
 .GlobalThreads {
-    /* === Responsiveness === */
-    --list: minmax(min-content, 300px);
-    --pane: auto;
-
-    display: grid;
-    overflow: hidden;
-    grid-template-areas: 'list pane';
-
-    // 2-column
-    grid-template-columns: var(--list) var(--pane);
-    grid-template-rows: 1fr;
-
     .GlobalThreads___header {
         border-bottom: var(--border-default);
         grid-area: header;
@@ -74,6 +62,18 @@
         position: relative;
         overflow: hidden;
     }
+
+    /* === Responsiveness === */
+    --list: minmax(min-content, 300px);
+    --pane: auto;
+
+    display: grid;
+    overflow: hidden;
+    grid-template-areas: 'list pane';
+
+    // 2-column
+    grid-template-columns: var(--list) var(--pane);
+    grid-template-rows: 1fr;
 
     // single column
     @media screen and (max-width: 1020px) {

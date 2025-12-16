@@ -2,16 +2,6 @@
 // See LICENSE.txt for license information.
 
 .Drafts {
-    display: grid;
-    background: rgba(var(--center-channel-color-rgb), 0.04);
-    grid-template-areas:
-        'header'
-        'list';
-
-    // 2-column
-    grid-template-columns: var(--list);
-    grid-template-rows: 56px 1fr;
-
     &__header {
         border-bottom: var(--border-default);
         grid-area: header;
@@ -31,6 +21,16 @@
         height: calc(100% - 56px);
         flex-flow: column nowrap;
     }
+
+    display: grid;
+    background: rgba(var(--center-channel-color-rgb), 0.04);
+    grid-template-areas:
+        'header'
+        'list';
+
+    // 2-column
+    grid-template-columns: var(--list);
+    grid-template-rows: 56px 1fr;
 
     .no-results__wrapper > svg {
         margin-bottom: 20px;
