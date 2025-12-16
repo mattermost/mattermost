@@ -648,7 +648,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
         width: 100%;
         margin-top: -6px;
 
-        &:hover {
+        &:hover, &[aria-expanded=true] {
             background-color: var(--sidebar-text-hover-bg);
         }
     }
