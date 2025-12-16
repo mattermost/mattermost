@@ -1,0 +1,17 @@
+body.app__body #root .main-wrapper.rhs-popout {
+    display: flex;
+    border: none;
+    border-radius: 0;
+    margin: 0;
+
+    .sidebar--right {
+        width: 100%;
+        max-width: 100%;
+        transform: none;
+
+        .sidebar-right__body {
+            height: 100%;
+        }
+    }
+}
+

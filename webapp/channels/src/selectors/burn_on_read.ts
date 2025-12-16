@@ -22,10 +22,12 @@ export const isBurnOnReadEnabled = (state: GlobalState): boolean => {
 /**
  * Returns the configured duration (in minutes) that Burn-on-Read messages
  * remain visible after being opened by a recipient before auto-deleting.
+ * Converts from backend seconds storage to user-friendly minutes.
  */
 export const getBurnOnReadDurationMinutes = (state: GlobalState): number => {
     const config = getConfig(state);
-    return parseInt(config.BurnOnReadDurationMinutes || '10', 10);
+    const seconds = parseInt(config.BurnOnReadDurationSeconds || '600', 10);
+    return Math.floor(seconds / 60);
 };
 
 /**
