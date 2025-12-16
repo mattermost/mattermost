@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useCallback} from 'react';
+import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
@@ -61,6 +62,7 @@ const WikiPageHeader = ({
     pageLink,
     canEdit = true,
 }: Props) => {
+    const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const [showBookmarkModal, setShowBookmarkModal] = useState(false);
 
@@ -115,14 +117,14 @@ const WikiPageHeader = ({
                             className='PagePane__unpublished-indicator'
                             data-testid='wiki-page-unpublished-indicator'
                         >
-                            {'Unpublished changes'}
+                            {formatMessage({id: 'wiki_page_header.unpublished_changes', defaultMessage: 'Unpublished changes'})}
                         </span>
                     )}
                     {(!isDraft || isExistingPage) && (
                         <button
                             className='PagePane__icon-button btn btn-icon btn-sm'
-                            aria-label='Toggle comments'
-                            title='Toggle comments'
+                            aria-label={formatMessage({id: 'wiki_page_header.toggle_comments', defaultMessage: 'Toggle comments'})}
+                            title={formatMessage({id: 'wiki_page_header.toggle_comments', defaultMessage: 'Toggle comments'})}
                             onClick={onToggleComments}
                             data-testid='wiki-page-toggle-comments'
                         >
@@ -132,25 +134,31 @@ const WikiPageHeader = ({
                     {isDraft ? (
                         <button
                             className='PagePane__publish-button btn btn-primary'
-                            aria-label={isExistingPage ? 'Update' : 'Publish'}
-                            title={isExistingPage ? 'Update' : 'Publish'}
+                            aria-label={isExistingPage ?
+                                formatMessage({id: 'wiki_page_header.update', defaultMessage: 'Update'}) :
+                                formatMessage({id: 'wiki_page_header.publish', defaultMessage: 'Publish'})}
+                            title={isExistingPage ?
+                                formatMessage({id: 'wiki_page_header.update', defaultMessage: 'Update'}) :
+                                formatMessage({id: 'wiki_page_header.publish', defaultMessage: 'Publish'})}
                             onClick={onPublish}
                             data-testid='wiki-page-publish-button'
                         >
                             <i className='icon-check'/>
-                            {isExistingPage ? 'Update' : 'Publish'}
+                            {isExistingPage ?
+                                formatMessage({id: 'wiki_page_header.update', defaultMessage: 'Update'}) :
+                                formatMessage({id: 'wiki_page_header.publish', defaultMessage: 'Publish'})}
                         </button>
                     ) : (
                         <button
                             className='PagePane__edit-button btn btn-tertiary'
-                            aria-label='Edit'
-                            title='Edit'
+                            aria-label={formatMessage({id: 'wiki_page_header.edit', defaultMessage: 'Edit'})}
+                            title={formatMessage({id: 'wiki_page_header.edit', defaultMessage: 'Edit'})}
                             onClick={onEdit}
                             disabled={!canEdit}
                             data-testid='wiki-page-edit-button'
                         >
                             <i className='icon icon-pencil-outline'/>
-                            {'Edit'}
+                            {formatMessage({id: 'wiki_page_header.edit', defaultMessage: 'Edit'})}
                         </button>
                     )}
                     {pageId && (
@@ -172,8 +180,12 @@ const WikiPageHeader = ({
                     {onToggleFullscreen && (
                         <button
                             className='PagePane__icon-button btn btn-icon btn-sm'
-                            aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
-                            title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+                            aria-label={isFullscreen ?
+                                formatMessage({id: 'wiki_page_header.exit_fullscreen', defaultMessage: 'Exit fullscreen'}) :
+                                formatMessage({id: 'wiki_page_header.enter_fullscreen', defaultMessage: 'Enter fullscreen'})}
+                            title={isFullscreen ?
+                                formatMessage({id: 'wiki_page_header.exit_fullscreen', defaultMessage: 'Exit fullscreen'}) :
+                                formatMessage({id: 'wiki_page_header.enter_fullscreen', defaultMessage: 'Enter fullscreen'})}
                             onClick={onToggleFullscreen}
                             data-testid='wiki-page-fullscreen-button'
                         >
@@ -190,7 +202,7 @@ const WikiPageHeader = ({
                 <BookmarkChannelSelect
                     onSelect={handleChannelSelected}
                     onClose={handleCloseBookmarkModal}
-                    title='Bookmark in channel'
+                    title={formatMessage({id: 'wiki_page_header.bookmark_in_channel', defaultMessage: 'Bookmark in channel'})}
                 />
             )}
         </div>

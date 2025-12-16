@@ -52,7 +52,7 @@ func getWikiPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if wiki.DeleteAt != 0 {
-		c.Err = model.NewAppError("getWikiPage", "api.wiki.get_page.wiki_deleted", nil, "wiki has been deleted", http.StatusNotFound)
+		c.Err = model.NewAppError("getWikiPage", "api.wiki.get_page.wiki_deleted.app_error", nil, "", http.StatusNotFound)
 		return
 	}
 
@@ -80,24 +80,8 @@ func deletePage(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("wiki_id", c.Params.WikiId)
 	auditRec.AddMeta("page_id", c.Params.PageId)
 
-	wiki, _, ok := c.RequireWikiModifyPermission(app.WikiOperationDelete, "deletePage")
+	wiki, _, ok := c.RequirePageModifyPermission(app.PageOperationDelete, "deletePage")
 	if !ok {
-		return
-	}
-
-	page, pageErr := c.App.GetSinglePost(c.AppContext, c.Params.PageId, false)
-	if pageErr != nil {
-		c.Err = pageErr
-		return
-	}
-
-	if err := c.App.HasPermissionToModifyPage(c.AppContext, c.AppContext.Session(), page, app.PageOperationDelete, "deletePage"); err != nil {
-		c.Err = err
-		return
-	}
-
-	if page.ChannelId != wiki.ChannelId {
-		c.Err = model.NewAppError("deletePage", "api.wiki.delete.channel_mismatch", nil, "", http.StatusBadRequest)
 		return
 	}
 
@@ -134,7 +118,7 @@ func createPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("wiki_id", c.Params.WikiId)
 	auditRec.AddMeta("parent_id", req.PageParentId)
 
-	_, channel, ok := c.RequireWikiModifyPermission(app.WikiOperationEdit, "createPage")
+	_, channel, ok := c.RequireWikiModifyPermission("createPage")
 	if !ok {
 		return
 	}
@@ -173,10 +157,6 @@ func updatePage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, ok := c.ValidatePageBelongsToWiki(); !ok {
-		return
-	}
-
 	var req struct {
 		Title      string `json:"title,omitempty"`
 		Content    string `json:"content,omitempty"`
@@ -193,24 +173,8 @@ func updatePage(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("wiki_id", c.Params.WikiId)
 	auditRec.AddMeta("page_id", c.Params.PageId)
 
-	wiki, _, ok := c.RequireWikiModifyPermission(app.WikiOperationEdit, "updatePage")
+	_, _, ok := c.RequirePageModifyPermission(app.PageOperationEdit, "updatePage")
 	if !ok {
-		return
-	}
-
-	page, pageErr := c.App.GetSinglePost(c.AppContext, c.Params.PageId, false)
-	if pageErr != nil {
-		c.Err = pageErr
-		return
-	}
-
-	if err := c.App.HasPermissionToModifyPage(c.AppContext, c.AppContext.Session(), page, app.PageOperationEdit, "updatePage"); err != nil {
-		c.Err = err
-		return
-	}
-
-	if page.ChannelId != wiki.ChannelId {
-		c.Err = model.NewAppError("updatePage", "api.wiki.update_page.channel_mismatch", nil, "", http.StatusBadRequest)
 		return
 	}
 

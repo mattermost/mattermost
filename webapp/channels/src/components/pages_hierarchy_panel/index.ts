@@ -6,7 +6,7 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {loadPageDraftsForWiki, removePageDraft} from 'actions/page_drafts';
-import {loadPages, createPage, updatePage, deletePage, movePage, movePageToWiki, duplicatePage} from 'actions/pages';
+import {loadPages, createPage, updatePage, deletePage, movePageToWiki, duplicatePage} from 'actions/pages';
 import {toggleNodeExpanded, setSelectedPage, expandAncestors, closePagesPanel} from 'actions/views/pages_hierarchy';
 import {getUnpublishedPageDraftsForWiki} from 'selectors/page_drafts';
 import {getPages, getPagesLoading} from 'selectors/pages';
@@ -51,7 +51,6 @@ function mapDispatchToProps(dispatch: Dispatch) {
                 createPage,
                 updatePage,
                 deletePage,
-                movePage,
                 movePageToWiki,
                 duplicatePage,
                 closePagesPanel,

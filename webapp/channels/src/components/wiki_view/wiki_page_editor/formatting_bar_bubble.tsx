@@ -4,6 +4,7 @@
 import {TextSelection} from '@tiptap/pm/state';
 import {BubbleMenu} from '@tiptap/react/menus';
 import React, {useState, useEffect} from 'react';
+import {useIntl} from 'react-intl';
 
 import WithTooltip from 'components/with_tooltip';
 
@@ -21,6 +22,7 @@ type Props = {
 };
 
 const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddImage, onAddComment, onAIRewrite}: Props) => {
+    const {formatMessage} = useIntl();
     const [, setUpdateTrigger] = useState(0);
 
     useEffect(() => {
@@ -155,92 +157,92 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddImage, onA
 
                 {editor.isActive('table') && (
                     <>
-                        <WithTooltip title='Add Column Before'>
+                        <WithTooltip title={formatMessage({id: 'formatting_bar.add_column_before', defaultMessage: 'Add Column Before'})}>
                             <button
                                 type='button'
                                 onMouseDown={handleMouseDown}
                                 onClick={() => editor.chain().focus().addColumnBefore().run()}
                                 disabled={!editor.can().addColumnBefore()}
                                 className='formatting-btn'
-                                title='Add Column Before'
+                                title={formatMessage({id: 'formatting_bar.add_column_before', defaultMessage: 'Add Column Before'})}
                             >
                                 {'◀|'}
                             </button>
                         </WithTooltip>
 
-                        <WithTooltip title='Add Column After'>
+                        <WithTooltip title={formatMessage({id: 'formatting_bar.add_column_after', defaultMessage: 'Add Column After'})}>
                             <button
                                 type='button'
                                 onMouseDown={handleMouseDown}
                                 onClick={() => editor.chain().focus().addColumnAfter().run()}
                                 disabled={!editor.can().addColumnAfter()}
                                 className='formatting-btn'
-                                title='Add Column After'
+                                title={formatMessage({id: 'formatting_bar.add_column_after', defaultMessage: 'Add Column After'})}
                             >
                                 {'|▶'}
                             </button>
                         </WithTooltip>
 
-                        <WithTooltip title='Delete Column'>
+                        <WithTooltip title={formatMessage({id: 'formatting_bar.delete_column', defaultMessage: 'Delete Column'})}>
                             <button
                                 type='button'
                                 onMouseDown={handleMouseDown}
                                 onClick={() => editor.chain().focus().deleteColumn().run()}
                                 disabled={!editor.can().deleteColumn()}
                                 className='formatting-btn'
-                                title='Delete Column'
+                                title={formatMessage({id: 'formatting_bar.delete_column', defaultMessage: 'Delete Column'})}
                             >
                                 {'⊟|'}
                             </button>
                         </WithTooltip>
 
-                        <WithTooltip title='Add Row Before'>
+                        <WithTooltip title={formatMessage({id: 'formatting_bar.add_row_before', defaultMessage: 'Add Row Before'})}>
                             <button
                                 type='button'
                                 onMouseDown={handleMouseDown}
                                 onClick={() => editor.chain().focus().addRowBefore().run()}
                                 disabled={!editor.can().addRowBefore()}
                                 className='formatting-btn'
-                                title='Add Row Before'
+                                title={formatMessage({id: 'formatting_bar.add_row_before', defaultMessage: 'Add Row Before'})}
                             >
                                 {'▲═'}
                             </button>
                         </WithTooltip>
 
-                        <WithTooltip title='Add Row After'>
+                        <WithTooltip title={formatMessage({id: 'formatting_bar.add_row_after', defaultMessage: 'Add Row After'})}>
                             <button
                                 type='button'
                                 onMouseDown={handleMouseDown}
                                 onClick={() => editor.chain().focus().addRowAfter().run()}
                                 disabled={!editor.can().addRowAfter()}
                                 className='formatting-btn'
-                                title='Add Row After'
+                                title={formatMessage({id: 'formatting_bar.add_row_after', defaultMessage: 'Add Row After'})}
                             >
                                 {'═▼'}
                             </button>
                         </WithTooltip>
 
-                        <WithTooltip title='Delete Row'>
+                        <WithTooltip title={formatMessage({id: 'formatting_bar.delete_row', defaultMessage: 'Delete Row'})}>
                             <button
                                 type='button'
                                 onMouseDown={handleMouseDown}
                                 onClick={() => editor.chain().focus().deleteRow().run()}
                                 disabled={!editor.can().deleteRow()}
                                 className='formatting-btn'
-                                title='Delete Row'
+                                title={formatMessage({id: 'formatting_bar.delete_row', defaultMessage: 'Delete Row'})}
                             >
                                 {'⊟═'}
                             </button>
                         </WithTooltip>
 
-                        <WithTooltip title='Delete Table'>
+                        <WithTooltip title={formatMessage({id: 'formatting_bar.delete_table', defaultMessage: 'Delete Table'})}>
                             <button
                                 type='button'
                                 onMouseDown={handleMouseDown}
                                 onClick={() => editor.chain().focus().deleteTable().run()}
                                 disabled={!editor.can().deleteTable()}
                                 className='formatting-btn'
-                                title='Delete Table'
+                                title={formatMessage({id: 'formatting_bar.delete_table', defaultMessage: 'Delete Table'})}
                             >
                                 {'🗑'}
                             </button>
@@ -251,14 +253,14 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddImage, onA
                 {onAIRewrite && (
                     <>
                         <span className='toolbar-divider'/>
-                        <WithTooltip title='AI Rewrite'>
+                        <WithTooltip title={formatMessage({id: 'formatting_bar.ai_rewrite', defaultMessage: 'AI Rewrite'})}>
                             <button
                                 type='button'
                                 onMouseDown={handleMouseDown}
                                 onClick={onAIRewrite}
                                 className='formatting-btn'
-                                aria-label='AI Rewrite'
-                                title='AI Rewrite'
+                                aria-label={formatMessage({id: 'formatting_bar.ai_rewrite', defaultMessage: 'AI Rewrite'})}
+                                title={formatMessage({id: 'formatting_bar.ai_rewrite', defaultMessage: 'AI Rewrite'})}
                                 data-testid='ai-rewrite-button'
                             >
                                 <i className='icon icon-creation-outline'/>
@@ -269,7 +271,7 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddImage, onA
 
                 {onAddComment && (
                     <>
-                        <WithTooltip title='Add Comment'>
+                        <WithTooltip title={formatMessage({id: 'formatting_bar.add_comment', defaultMessage: 'Add Comment'})}>
                             <button
                                 type='button'
                                 onMouseDown={handleMouseDown}
@@ -285,8 +287,8 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddImage, onA
                                     });
                                 }}
                                 className='formatting-btn'
-                                aria-label='Add comment'
-                                title='Add Comment'
+                                aria-label={formatMessage({id: 'formatting_bar.add_comment', defaultMessage: 'Add comment'})}
+                                title={formatMessage({id: 'formatting_bar.add_comment', defaultMessage: 'Add Comment'})}
                                 data-testid='inline-comment-submit'
                             >
                                 <i className='icon icon-message-plus-outline'/>

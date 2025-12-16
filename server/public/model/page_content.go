@@ -15,6 +15,10 @@ import (
 
 const (
 	PageContentMaxSize = 10 * 1024 * 1024 // 10MB for TipTap JSON document
+
+	// TipTap document constants
+	TipTapDocType   = "doc"
+	EmptyTipTapJSON = `{"type":"doc","content":[]}`
 )
 
 type PageContent struct {
@@ -41,7 +45,7 @@ type TipTapDocument struct {
 // Scan implements the sql.Scanner interface for TipTapDocument
 func (td *TipTapDocument) Scan(value any) error {
 	if value == nil {
-		*td = TipTapDocument{Type: "doc", Content: []map[string]any{}}
+		*td = TipTapDocument{Type: TipTapDocType, Content: []map[string]any{}}
 		return nil
 	}
 
@@ -149,7 +153,7 @@ func (pc *PageContent) buildSearchText() string {
 func (pc *PageContent) SetDocumentJSON(contentJSON string) error {
 	if contentJSON == "" {
 		pc.Content = TipTapDocument{
-			Type:    "doc",
+			Type:    TipTapDocType,
 			Content: []map[string]any{},
 		}
 		return nil
@@ -345,7 +349,7 @@ func ValidateTipTapDocument(contentJSON string) error {
 	}
 
 	docType, ok := doc["type"].(string)
-	if !ok || docType != "doc" {
+	if !ok || docType != TipTapDocType {
 		return errors.New("content must be valid TipTap JSON with type: doc")
 	}
 

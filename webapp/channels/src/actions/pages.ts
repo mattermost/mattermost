@@ -19,6 +19,7 @@ import {loadPageDraftsForWiki} from 'actions/page_drafts';
 import {setGlobalItem, removeGlobalItem} from 'actions/storage';
 import {clearOutlineCache} from 'actions/views/pages_hierarchy';
 import {getPageDraft, getUserDraftKeysForPage, makePageDraftKey} from 'selectors/page_drafts';
+import {getWiki} from 'selectors/pages';
 
 import {PageConstants, PagePropsKeys} from 'utils/constants';
 import {getPageReceiveActions} from 'utils/page_utils';
@@ -293,6 +294,7 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
         const state = getState();
         const currentUserId = state.entities.users.currentUserId;
         const draft = getPageDraft(state, wikiId, draftId);
+        const wiki = getWiki(state, wikiId);
         const draftKey = makePageDraftKey(wikiId, draftId, currentUserId);
 
         if (!draft) {
@@ -307,6 +309,9 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
         // Use passed message if provided (latest content from editor), otherwise fall back to draft.message
         const draftMessage = message === undefined ? (draft.message || '') : message;
 
+        // Get channel_id from wiki (draft.channelId may be empty due to server transform setting it to '')
+        const channelId = wiki?.channel_id || draft.channelId || '';
+
         const pendingPageId = `pending-${Date.now()}`;
         const optimisticPage: Page = {
             id: pendingPageId,
@@ -316,7 +321,7 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
             edit_at: 0,
             is_pinned: false,
             user_id: state.entities.users.currentUserId || '',
-            channel_id: draft.channelId,
+            channel_id: channelId,
             root_id: '',
             original_id: '',
             page_parent_id: pageParentId || '',
@@ -571,63 +576,9 @@ export function deletePage(pageId: string, wikiId: string): ActionFuncAsync {
     };
 }
 
-// Move a page (change parent)
-export function movePage(pageId: string, newParentId: string, wikiId: string): ActionFuncAsync {
-    return async (dispatch, getState) => {
-        const state = getState();
-        const originalPost = state.entities.posts.posts[pageId];
-
-        if (!originalPost) {
-            return {error: new Error('Page not found')};
-        }
-
-        const optimisticPost = {
-            ...originalPost,
-            page_parent_id: newParentId || '',
-            update_at: Date.now(),
-        };
-
-        dispatch({
-            type: PostActionTypes.RECEIVED_POST,
-            data: optimisticPost,
-        });
-
-        try {
-            const data = await Client4.patchPost({
-                id: pageId,
-                page_parent_id: newParentId || '',
-            });
-
-            dispatch({
-                type: PostActionTypes.RECEIVED_POST,
-                data,
-            });
-
-            const timestamp = Date.now();
-            dispatch({
-                type: WikiTypes.INVALIDATE_PAGES,
-                data: {wikiId, timestamp},
-            });
-
-            return {data};
-        } catch (error) {
-            dispatch({
-                type: PostActionTypes.RECEIVED_POST,
-                data: originalPost,
-            });
-
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
-            return {error};
-        }
-    };
-}
-
 // Move a draft in hierarchy (used for drag-and-drop on drafts)
-// NOTE: This function doesn't have access to the autosave timeout from WikiView hooks.
-// The autosave is scoped to the editor component, and drag-and-drop happens in the hierarchy panel.
-// Since moves only update page_parent_id (not title/content), the race condition is less critical.
-// The autosave will preserve the correct title/content and only the parent might briefly conflict.
+// Uses a dedicated move endpoint that only updates page_parent_id prop,
+// avoiding race conditions with concurrent content autosave operations.
 function moveDraftInHierarchy(draftId: string, newParentId: string | null, wikiId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
@@ -652,16 +603,10 @@ function moveDraftInHierarchy(draftId: string, newParentId: string | null, wikiI
 
         if (syncedDraftsAreAllowedAndEnabled(state)) {
             try {
-                await Client4.savePageDraft(
-                    wikiId,
-                    draftId,
-                    draft.message || '',
-                    draft.props?.[PagePropsKeys.TITLE] || '',
-                    0,
-                    {[PagePropsKeys.PAGE_PARENT_ID]: newParentId || ''},
-                );
-            } catch (error) {
-                // Silently fail - draft will be updated on next save
+                await Client4.movePageDraft(wikiId, draftId, newParentId || '');
+            } catch {
+                // Ignore error - local state has been updated
+                // and the next autosave will sync the props
             }
         }
 

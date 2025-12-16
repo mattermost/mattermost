@@ -13,6 +13,7 @@ import {
     typeInEditor,
     renamePageViaContextMenu,
     enterEditMode,
+    getBreadcrumb,
     SHORT_WAIT,
     EDITOR_LOAD_WAIT,
 } from './test_helpers';
@@ -153,7 +154,7 @@ test('renames page during edit mode and preserves content', {tag: '@pages'}, asy
     await renamePageViaContextMenu(page, originalTitle, newTitle);
 
     // * Verify title is updated in breadcrumb (hierarchy may not refresh immediately)
-    const breadcrumb = page.locator('nav[aria-label="Page breadcrumb navigation"]');
+    const breadcrumb = getBreadcrumb(page);
     await expect(breadcrumb).toContainText(newTitle);
 
     // * Verify editor still contains the content (original + additional)

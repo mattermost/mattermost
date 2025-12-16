@@ -2,18 +2,8 @@
 // See LICENSE.txt for license information.
 
 import {loadPage} from 'actions/pages';
-import {
-    TOGGLE_NODE_EXPANDED,
-    SET_SELECTED_PAGE,
-    EXPAND_ANCESTORS,
-    TOGGLE_PAGES_PANEL,
-    OPEN_PAGES_PANEL,
-    CLOSE_PAGES_PANEL,
-    SET_OUTLINE_EXPANDED,
-    CLEAR_OUTLINE_CACHE,
-    SET_LAST_VIEWED_PAGE,
-} from 'reducers/views/pages_hierarchy';
 
+import {ActionTypes} from 'utils/constants';
 import {extractHeadingsFromContent} from 'utils/page_outline';
 import type {Heading} from 'utils/page_outline';
 
@@ -22,7 +12,7 @@ import type {ActionFunc, ActionFuncAsync, GlobalState} from 'types/store';
 export function toggleNodeExpanded(wikiId: string, nodeId: string): ActionFunc {
     return (dispatch) => {
         dispatch({
-            type: TOGGLE_NODE_EXPANDED,
+            type: ActionTypes.TOGGLE_PAGE_NODE_EXPANDED,
             data: {wikiId, nodeId},
         });
 
@@ -33,7 +23,7 @@ export function toggleNodeExpanded(wikiId: string, nodeId: string): ActionFunc {
 export function setSelectedPage(pageId: string | null): ActionFunc {
     return (dispatch) => {
         dispatch({
-            type: SET_SELECTED_PAGE,
+            type: ActionTypes.SET_SELECTED_PAGE,
             data: {pageId},
         });
 
@@ -44,7 +34,7 @@ export function setSelectedPage(pageId: string | null): ActionFunc {
 export function expandAncestors(wikiId: string, ancestorIds: string[]): ActionFunc {
     return (dispatch) => {
         dispatch({
-            type: EXPAND_ANCESTORS,
+            type: ActionTypes.EXPAND_PAGE_ANCESTORS,
             data: {wikiId, ancestorIds},
         });
 
@@ -55,7 +45,7 @@ export function expandAncestors(wikiId: string, ancestorIds: string[]): ActionFu
 export function togglePagesPanel(): ActionFunc {
     return (dispatch) => {
         dispatch({
-            type: TOGGLE_PAGES_PANEL,
+            type: ActionTypes.TOGGLE_PAGES_PANEL,
         });
 
         return {data: true};
@@ -65,7 +55,7 @@ export function togglePagesPanel(): ActionFunc {
 export function openPagesPanel(): ActionFunc {
     return (dispatch) => {
         dispatch({
-            type: OPEN_PAGES_PANEL,
+            type: ActionTypes.OPEN_PAGES_PANEL,
         });
 
         return {data: true};
@@ -75,7 +65,7 @@ export function openPagesPanel(): ActionFunc {
 export function closePagesPanel(): ActionFunc {
     return (dispatch) => {
         dispatch({
-            type: CLOSE_PAGES_PANEL,
+            type: ActionTypes.CLOSE_PAGES_PANEL,
         });
 
         return {data: true};
@@ -85,7 +75,7 @@ export function closePagesPanel(): ActionFunc {
 export function setOutlineExpanded(pageId: string, expanded: boolean, headings?: Heading[]): ActionFunc {
     return (dispatch) => {
         dispatch({
-            type: SET_OUTLINE_EXPANDED,
+            type: ActionTypes.SET_PAGE_OUTLINE_EXPANDED,
             data: {pageId, expanded, headings},
         });
 
@@ -100,7 +90,7 @@ export function togglePageOutline(pageId: string, pageContent?: string, wikiId?:
 
         if (isExpanded) {
             dispatch({
-                type: SET_OUTLINE_EXPANDED,
+                type: ActionTypes.SET_PAGE_OUTLINE_EXPANDED,
                 data: {pageId, expanded: false},
             });
         } else {
@@ -121,7 +111,7 @@ export function togglePageOutline(pageId: string, pageContent?: string, wikiId?:
             const headings = extractHeadingsFromContent(content || '');
 
             dispatch({
-                type: SET_OUTLINE_EXPANDED,
+                type: ActionTypes.SET_PAGE_OUTLINE_EXPANDED,
                 data: {pageId, expanded: true, headings},
             });
         }
@@ -133,7 +123,7 @@ export function togglePageOutline(pageId: string, pageContent?: string, wikiId?:
 export function clearOutlineCache(pageId: string): ActionFunc {
     return (dispatch) => {
         dispatch({
-            type: CLEAR_OUTLINE_CACHE,
+            type: ActionTypes.CLEAR_PAGE_OUTLINE_CACHE,
             data: {pageId},
         });
 
@@ -144,7 +134,7 @@ export function clearOutlineCache(pageId: string): ActionFunc {
 export function setLastViewedPage(wikiId: string, pageId: string): ActionFunc {
     return (dispatch) => {
         dispatch({
-            type: SET_LAST_VIEWED_PAGE,
+            type: ActionTypes.SET_LAST_VIEWED_PAGE,
             data: {wikiId, pageId},
         });
 

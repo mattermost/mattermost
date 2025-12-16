@@ -8,6 +8,8 @@ import {GenericModal} from '@mattermost/components';
 import type {Post} from '@mattermost/types/posts';
 import type {Wiki} from '@mattermost/types/wikis';
 
+import './page_destination_modal.scss';
+
 type Props = {
     pageId: string;
     pageTitle: string;
@@ -136,36 +138,20 @@ const PageDestinationModal = ({
             autoCloseOnConfirmButton={true}
             confirmButtonTestId={confirmButtonTestId}
         >
-            <div style={{padding: '16px 0'}}>
-                <div style={{marginBottom: '16px'}}>
+            <div className='PageDestinationModal__body'>
+                <div className='PageDestinationModal__pageTitle'>
                     <strong>{pageTitle}</strong>
                 </div>
 
                 {hasChildren && childrenWarningText && (
-                    <div
-                        style={{
-                            padding: '12px',
-                            marginBottom: '16px',
-                            backgroundColor: 'var(--center-channel-color-08)',
-                            borderRadius: '4px',
-                            border: '1px solid var(--center-channel-color-16)',
-                        }}
-                    >
-                        <div style={{display: 'flex', alignItems: 'flex-start'}}>
-                            <i
-                                className='icon icon-information-outline'
-                                style={{
-                                    fontSize: '18px',
-                                    marginRight: '8px',
-                                    marginTop: '2px',
-                                    color: 'var(--button-bg)',
-                                }}
-                            />
+                    <div className='PageDestinationModal__childrenWarning'>
+                        <div className='PageDestinationModal__childrenWarningContent'>
+                            <i className='icon icon-information-outline PageDestinationModal__childrenWarningIcon'/>
                             <div>
-                                <strong style={{display: 'block', marginBottom: '4px'}}>
+                                <strong className='PageDestinationModal__childrenWarningTitle'>
                                     {formatMessage({id: 'page_destination_modal.children_warning_title', defaultMessage: 'Child pages will be moved'})}
                                 </strong>
-                                <span style={{color: 'var(--center-channel-color-72)'}}>
+                                <span className='PageDestinationModal__childrenWarningText'>
                                     {childrenWarningText}
                                 </span>
                             </div>
@@ -174,24 +160,20 @@ const PageDestinationModal = ({
                 )}
 
                 {renderAdditionalInputs && (
-                    <div style={{marginBottom: '16px'}}>
+                    <div className='PageDestinationModal__additionalInputs'>
                         {renderAdditionalInputs()}
                     </div>
                 )}
 
                 <label
                     htmlFor='target-wiki-select'
-                    style={{
-                        display: 'block',
-                        marginBottom: '8px',
-                        fontWeight: 600,
-                    }}
+                    className='PageDestinationModal__label'
                 >
                     {formatMessage({id: 'page_destination_modal.select_wiki_label', defaultMessage: 'Select Target Wiki'})}
                 </label>
                 <select
                     id='target-wiki-select'
-                    className='form-control'
+                    className='form-control PageDestinationModal__select'
                     value={selectedWikiId}
                     onChange={(e) => {
                         setSelectedWikiId(e.target.value);
@@ -199,7 +181,6 @@ const PageDestinationModal = ({
                         setSearchQuery('');
                     }}
                     autoFocus={true}
-                    style={{width: '100%', marginBottom: '16px'}}
                 >
                     <option value=''>{formatMessage({id: 'page_destination_modal.select_wiki_placeholder', defaultMessage: '-- Select a wiki --'})}</option>
                     {availableWikis.map((wiki) => (
@@ -218,11 +199,7 @@ const PageDestinationModal = ({
                     <>
                         <label
                             htmlFor='parent-page-search'
-                            style={{
-                                display: 'block',
-                                marginBottom: '8px',
-                                fontWeight: 600,
-                            }}
+                            className='PageDestinationModal__label'
                         >
                             {formatMessage({id: 'page_destination_modal.parent_page_label', defaultMessage: 'Parent Page (Optional)'})}
                         </label>
@@ -230,47 +207,29 @@ const PageDestinationModal = ({
                         <input
                             id='parent-page-search'
                             type='text'
-                            className='form-control'
+                            className='form-control PageDestinationModal__searchInput'
                             placeholder={formatMessage({id: 'page_destination_modal.parent_page_placeholder', defaultMessage: 'Search for a parent page...'})}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            style={{width: '100%', marginBottom: '8px'}}
                         />
 
-                        <div
-                            style={{
-                                maxHeight: '200px',
-                                overflowY: 'auto',
-                                border: '1px solid var(--center-channel-color-16)',
-                                borderRadius: '4px',
-                                marginBottom: '16px',
-                            }}
-                        >
+                        <div className='PageDestinationModal__pageList'>
                             <button
                                 type='button'
+                                className={`PageDestinationModal__pageOption ${parentPageId === undefined ? 'PageDestinationModal__pageOption--selected' : ''}`}
                                 onClick={() => setParentPageId(undefined)}
-                                style={{
-                                    width: '100%',
-                                    padding: '8px 12px',
-                                    border: 'none',
-                                    background: parentPageId === undefined ? 'var(--button-bg)' : 'transparent',
-                                    color: parentPageId === undefined ? 'var(--button-color)' : 'inherit',
-                                    textAlign: 'left',
-                                    cursor: 'pointer',
-                                    borderBottom: '1px solid var(--center-channel-color-16)',
-                                }}
                             >
                                 {formatMessage({id: 'page_destination_modal.root_level', defaultMessage: 'Root level (no parent)'})}
                             </button>
 
                             {filteredPages.length === 0 && searchQuery && (
-                                <div style={{padding: '12px', color: 'var(--center-channel-color-64)'}}>
+                                <div className='PageDestinationModal__emptyMessage'>
                                     {formatMessage({id: 'page_destination_modal.no_pages_matching', defaultMessage: 'No pages found matching "{query}"'}, {query: searchQuery})}
                                 </div>
                             )}
 
                             {filteredPages.length === 0 && !searchQuery && targetPages.length === 0 && (
-                                <div style={{padding: '12px', color: 'var(--center-channel-color-64)'}}>
+                                <div className='PageDestinationModal__emptyMessage'>
                                     {formatMessage({id: 'page_destination_modal.no_pages_available', defaultMessage: 'No pages available in this wiki'})}
                                 </div>
                             )}
@@ -283,17 +242,8 @@ const PageDestinationModal = ({
                                         key={page.id}
                                         type='button'
                                         data-page-id={page.id}
+                                        className={`PageDestinationModal__pageOption ${parentPageId === page.id ? 'PageDestinationModal__pageOption--selected' : ''}`}
                                         onClick={() => setParentPageId(page.id)}
-                                        style={{
-                                            width: '100%',
-                                            padding: '8px 12px',
-                                            border: 'none',
-                                            background: parentPageId === page.id ? 'var(--button-bg)' : 'transparent',
-                                            color: parentPageId === page.id ? 'var(--button-color)' : 'inherit',
-                                            textAlign: 'left',
-                                            cursor: 'pointer',
-                                            borderBottom: '1px solid var(--center-channel-color-16)',
-                                        }}
                                     >
                                         {displayTitle}
                                     </button>
@@ -303,12 +253,7 @@ const PageDestinationModal = ({
                     </>
                 )}
 
-                <small
-                    style={{
-                        display: 'block',
-                        color: 'var(--center-channel-color-64)',
-                    }}
-                >
+                <small className='PageDestinationModal__helpText'>
                     {helpText(selectedWikiId, currentWikiId)}
                 </small>
             </div>

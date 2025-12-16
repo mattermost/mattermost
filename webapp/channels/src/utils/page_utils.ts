@@ -9,6 +9,7 @@ import {WikiTypes} from 'mattermost-redux/action_types';
 import {PostTypes} from 'mattermost-redux/constants';
 
 import {Locations, PagePropsKeys} from 'utils/constants';
+import {getPageTitle} from 'utils/post_utils';
 
 import type {PostDraft} from 'types/store/draft';
 
@@ -93,7 +94,7 @@ export function getPageDisplayMessage(
         return null;
     }
 
-    const title = (post.props?.[PagePropsKeys.TITLE] as string) || 'Untitled Page';
+    const title = getPageTitle(post, 'Untitled Page');
     const searchText = post.props?.search_text as string;
 
     // Priority 1: search_text from Props (used in search results)

@@ -36,7 +36,7 @@ func (a *App) GetPagePropertyFieldByName(fieldName string) (*model.PropertyField
 }
 
 func (a *App) SetPageStatus(rctx request.CTX, pageId, status string) *model.AppError {
-	rctx.Logger().Info("SetPageStatus called",
+	rctx.Logger().Debug("SetPageStatus called",
 		mlog.String("page_id", pageId),
 		mlog.String("status", status))
 
@@ -55,7 +55,7 @@ func (a *App) SetPageStatus(rctx request.CTX, pageId, status string) *model.AppE
 		return model.NewAppError("SetPageStatus", "app.page.get_group.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	rctx.Logger().Info("SetPageStatus: property group found", mlog.String("group_id", group.ID))
+	rctx.Logger().Debug("SetPageStatus: property group found", mlog.String("group_id", group.ID))
 
 	statusField, err := a.Srv().propertyService.GetPropertyFieldByName(group.ID, "", pagePropertyNameStatus)
 	if err != nil {
@@ -63,7 +63,7 @@ func (a *App) SetPageStatus(rctx request.CTX, pageId, status string) *model.AppE
 		return model.NewAppError("SetPageStatus", "app.page.get_status_field.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	rctx.Logger().Info("SetPageStatus: status field found", mlog.String("field_id", statusField.ID))
+	rctx.Logger().Debug("SetPageStatus: status field found", mlog.String("field_id", statusField.ID))
 
 	if err := a.validatePageStatus(statusField, status); err != nil {
 		rctx.Logger().Error("SetPageStatus: validation failed", mlog.Err(err))
@@ -78,7 +78,7 @@ func (a *App) SetPageStatus(rctx request.CTX, pageId, status string) *model.AppE
 		Value:      json.RawMessage(strconv.Quote(status)),
 	}
 
-	rctx.Logger().Info("SetPageStatus: upserting property value",
+	rctx.Logger().Debug("SetPageStatus: upserting property value",
 		mlog.String("target_id", pageId),
 		mlog.String("group_id", group.ID),
 		mlog.String("field_id", statusField.ID),
@@ -90,7 +90,7 @@ func (a *App) SetPageStatus(rctx request.CTX, pageId, status string) *model.AppE
 		return model.NewAppError("SetPageStatus", "app.page.set_status.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	rctx.Logger().Info("SetPageStatus: successfully saved status",
+	rctx.Logger().Debug("SetPageStatus: successfully saved status",
 		mlog.String("page_id", pageId),
 		mlog.String("status", status))
 
@@ -98,7 +98,7 @@ func (a *App) SetPageStatus(rctx request.CTX, pageId, status string) *model.AppE
 }
 
 func (a *App) GetPageStatus(rctx request.CTX, pageId string) (string, *model.AppError) {
-	rctx.Logger().Info("GetPageStatus called", mlog.String("page_id", pageId))
+	rctx.Logger().Debug("GetPageStatus called", mlog.String("page_id", pageId))
 
 	post, getErr := a.GetSinglePost(rctx, pageId, false)
 	if getErr != nil {
@@ -115,7 +115,7 @@ func (a *App) GetPageStatus(rctx request.CTX, pageId string) (string, *model.App
 		return "", model.NewAppError("GetPageStatus", "app.page.get_group.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	rctx.Logger().Info("GetPageStatus: property group found", mlog.String("group_id", group.ID))
+	rctx.Logger().Debug("GetPageStatus: property group found", mlog.String("group_id", group.ID))
 
 	statusField, err := a.Srv().propertyService.GetPropertyFieldByName(group.ID, "", pagePropertyNameStatus)
 	if err != nil {
@@ -123,7 +123,7 @@ func (a *App) GetPageStatus(rctx request.CTX, pageId string) (string, *model.App
 		return "", model.NewAppError("GetPageStatus", "app.page.get_status_field.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	rctx.Logger().Info("GetPageStatus: status field found", mlog.String("field_id", statusField.ID))
+	rctx.Logger().Debug("GetPageStatus: status field found", mlog.String("field_id", statusField.ID))
 
 	searchOpts := model.PropertyValueSearchOpts{
 		TargetIDs: []string{pageId},
@@ -131,7 +131,7 @@ func (a *App) GetPageStatus(rctx request.CTX, pageId string) (string, *model.App
 		PerPage:   1,
 	}
 
-	rctx.Logger().Info("GetPageStatus: searching property values",
+	rctx.Logger().Debug("GetPageStatus: searching property values",
 		mlog.String("group_id", group.ID),
 		mlog.String("field_id", statusField.ID),
 		mlog.String("target_id", pageId))
@@ -151,7 +151,7 @@ func (a *App) GetPageStatus(rctx request.CTX, pageId string) (string, *model.App
 		return model.PageStatusInProgress, nil
 	}
 
-	rctx.Logger().Info("GetPageStatus: found property values", mlog.Int("count", len(values)))
+	rctx.Logger().Debug("GetPageStatus: found property values", mlog.Int("count", len(values)))
 
 	var status string
 	if err := json.Unmarshal(values[0].Value, &status); err != nil {
@@ -162,7 +162,7 @@ func (a *App) GetPageStatus(rctx request.CTX, pageId string) (string, *model.App
 		return model.PageStatusInProgress, nil
 	}
 
-	rctx.Logger().Info("GetPageStatus: returning status",
+	rctx.Logger().Debug("GetPageStatus: returning status",
 		mlog.String("page_id", pageId),
 		mlog.String("status", status))
 

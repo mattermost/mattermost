@@ -2,12 +2,11 @@
 // See LICENSE.txt for license information.
 
 import {useState, useCallback, useMemo} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch} from 'react-redux';
 
 import type {Post} from '@mattermost/types/posts';
 import type {Wiki} from '@mattermost/types/wikis';
 
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {removePageDraft, savePageDraft} from 'actions/page_drafts';
@@ -15,9 +14,12 @@ import {createPage, deletePage, duplicatePage, loadChannelWikis, loadPages, move
 import {expandAncestors} from 'actions/views/pages_hierarchy';
 
 import {PageDisplayTypes} from 'utils/constants';
+import {getPageTitle} from 'utils/post_utils';
 
-import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
+
+import type {DraftPage} from '../utils/tree_builder';
+import {convertDraftToPagePost} from '../utils/tree_builder';
 
 type UsePageMenuHandlersProps = {
     wikiId: string;
@@ -30,43 +32,11 @@ type UsePageMenuHandlersProps = {
 
 export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSelect, onCancelAutosave}: UsePageMenuHandlersProps) => {
     const dispatch = useDispatch();
-    const currentUserId = useSelector((state: GlobalState) => getCurrentUserId(state));
 
     // Convert drafts to Post-like objects and combine with pages
     // If a draft exists for a page, it should replace the published page in the list
     const allPages = useMemo(() => {
-        const draftPosts: Post[] = drafts.map((draft): Post => ({
-            id: draft.rootId,
-            create_at: draft.createAt || 0,
-            update_at: draft.updateAt || 0,
-            edit_at: 0,
-            delete_at: 0,
-            is_pinned: false,
-            user_id: currentUserId,
-            channel_id: draft.channelId,
-            root_id: '',
-            original_id: '',
-            message: draft.message,
-            type: PageDisplayTypes.PAGE_DRAFT,
-            page_parent_id: draft.props?.page_parent_id || '',
-            props: {
-                ...draft.props,
-                title: draft.props?.title || 'Untitled',
-            },
-            hashtags: '',
-            filenames: [],
-            file_ids: [],
-            pending_post_id: '',
-            reply_count: 0,
-            last_reply_at: 0,
-            participants: null,
-            metadata: {
-                embeds: [],
-                emojis: [],
-                files: [],
-                images: {},
-            },
-        }));
+        const draftPosts: DraftPage[] = drafts.map((draft) => convertDraftToPagePost(draft));
 
         // Create a map of draft IDs for quick lookup
         const draftIds = new Set(draftPosts.map((d) => d.id));
@@ -74,7 +44,7 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         // Filter out published pages that have drafts, then add the drafts
         const pagesWithoutDrafts = pages.filter((p) => !draftIds.has(p.id));
         return [...pagesWithoutDrafts, ...draftPosts];
-    }, [pages, drafts, currentUserId]);
+    }, [pages, drafts]);
 
     const [showCreatePageModal, setShowCreatePageModal] = useState(false);
     const [showMoveModal, setShowMoveModal] = useState(false);
@@ -115,10 +85,9 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
             return;
         }
         const parentPage = allPages.find((p) => p.id === pageId);
-        const parentTitle = parentPage?.props?.title as string | undefined;
         setCreatePageParent({
             id: pageId,
-            title: parentTitle || 'Untitled',
+            title: getPageTitle(parentPage),
         });
         setShowCreatePageModal(true);
     }, [allPages, creatingPage]);
@@ -163,7 +132,7 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
             return;
         }
 
-        const currentTitle = (page.props?.title as string | undefined) || page.message || '';
+        const currentTitle = getPageTitle(page, '');
         setPageToRename({pageId, currentTitle});
         setShowRenameModal(true);
     }, [allPages, wikiId, renamingPage]);
@@ -243,14 +212,14 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         if (!page) {
             return;
         }
-        const pageTitle = page.props?.title || page.message || 'Untitled';
+        const pageTitle = getPageTitle(page);
         const childCount = getDescendantCount(pageId);
         const hasChildren = childCount > 0;
 
         try {
             const result = await dispatch(loadChannelWikis(channelId));
             setAvailableWikis((result as ActionResult<Wiki[]>).data || []);
-            setPageToMove({pageId, pageTitle: String(pageTitle), hasChildren});
+            setPageToMove({pageId, pageTitle, hasChildren});
             setShowMoveModal(true);
         } catch (error) {
             // Error handled
@@ -355,8 +324,8 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
                 // Find the actual published page
                 const actualPage = pages.find((p) => p.id === actualPageId);
                 if (actualPage) {
-                    const pageTitle = actualPage.props?.title || actualPage.message || 'Untitled';
-                    setPageToBookmark({pageId: actualPageId, pageTitle: String(pageTitle)});
+                    const pageTitle = getPageTitle(actualPage);
+                    setPageToBookmark({pageId: actualPageId, pageTitle});
                     setShowBookmarkModal(true);
                     return;
                 }
@@ -366,8 +335,8 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
             return;
         }
 
-        const pageTitle = page.props?.title || page.message || 'Untitled';
-        setPageToBookmark({pageId, pageTitle: String(pageTitle)});
+        const pageTitle = getPageTitle(page);
+        setPageToBookmark({pageId, pageTitle});
         setShowBookmarkModal(true);
     }, [allPages, pages]);
 

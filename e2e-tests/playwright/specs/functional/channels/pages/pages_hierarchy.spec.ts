@@ -17,6 +17,9 @@ import {
     navigateToWikiView,
     navigateToPage,
     getBreadcrumb,
+    getBreadcrumbWikiName,
+    getBreadcrumbLinks,
+    getBreadcrumbCurrentPage,
     verifyBreadcrumbContains,
     getHierarchyPanel,
     deletePageWithOption,
@@ -161,16 +164,16 @@ test('moves page to new parent within same wiki', {tag: '@pages'}, async ({pw, s
     await expect(breadcrumb).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // * Verify wiki name (not a link anymore)
-    const wikiName = breadcrumb.locator('.PageBreadcrumb__wiki-name');
+    const wikiName = getBreadcrumbWikiName(page);
     await expect(wikiName).toContainText(wiki.title);
 
     // * Verify page links (only the ancestor pages, not wiki or current page)
-    const breadcrumbLinks = breadcrumb.locator('.PageBreadcrumb__link');
+    const breadcrumbLinks = getBreadcrumbLinks(page);
     await expect(breadcrumbLinks).toHaveCount(1);
     await expect(breadcrumbLinks.nth(0)).toContainText('Page 1');
 
-    const currentPage = breadcrumb.locator('[aria-current="page"]');
-    await expect(currentPage).toContainText('Page 2');
+    const currentPageElement = getBreadcrumbCurrentPage(page);
+    await expect(currentPageElement).toContainText('Page 2');
 });
 
 /**
@@ -276,15 +279,15 @@ test('moves page between wikis', {tag: '@pages'}, async ({pw, sharedPagesSetup})
     await expect(breadcrumb).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // * Verify wiki name (not a link anymore)
-    const wikiName = breadcrumb.locator('.PageBreadcrumb__wiki-name');
+    const wikiName = getBreadcrumbWikiName(page);
     await expect(wikiName).toContainText(wiki2.title);
 
     // * Verify no page links (page is at wiki root)
-    const breadcrumbLinks = breadcrumb.locator('.PageBreadcrumb__link');
+    const breadcrumbLinks = getBreadcrumbLinks(page);
     await expect(breadcrumbLinks).toHaveCount(0);
 
-    const currentPage = breadcrumb.locator('[aria-current="page"]');
-    await expect(currentPage).toContainText('Page to Move');
+    const currentPageElement = getBreadcrumbCurrentPage(page);
+    await expect(currentPageElement).toContainText('Page to Move');
 });
 
 /**
@@ -377,21 +380,21 @@ test('moves page to child of another page in same wiki', {tag: '@pages'}, async 
     await movedPageNode.click();
 
     // * Verify breadcrumbs reflect full hierarchy: Wiki > Parent Page > Existing Child > Page to Move
-    const breadcrumb = page.locator('[data-testid="breadcrumb"]');
+    const breadcrumb = getBreadcrumb(page);
     await expect(breadcrumb).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // * Verify wiki name (not a link anymore)
-    const wikiName = breadcrumb.locator('.PageBreadcrumb__wiki-name');
+    const wikiName = getBreadcrumbWikiName(page);
     await expect(wikiName).toContainText(wiki.title);
 
     // * Verify page links (only the ancestor pages, not wiki or current page)
-    const breadcrumbLinks = breadcrumb.locator('.PageBreadcrumb__link');
+    const breadcrumbLinks = getBreadcrumbLinks(page);
     await expect(breadcrumbLinks).toHaveCount(2);
     await expect(breadcrumbLinks.nth(0)).toContainText('Parent Page');
     await expect(breadcrumbLinks.nth(1)).toContainText('Existing Child');
 
-    const currentPage = breadcrumb.locator('[aria-current="page"]');
-    await expect(currentPage).toContainText('Page to Move');
+    const currentPageElement = getBreadcrumbCurrentPage(page);
+    await expect(currentPageElement).toContainText('Page to Move');
 });
 
 /**
@@ -483,17 +486,17 @@ test('moves page to child of another page in different wiki', {tag: '@pages'}, a
     await expect(breadcrumb).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // * Verify wiki name (not a link anymore)
-    const wikiName = breadcrumb.locator('.PageBreadcrumb__wiki-name');
+    const wikiName = getBreadcrumbWikiName(page);
     await expect(wikiName).toContainText(wiki2.title);
 
     // * Verify page links (only the ancestor pages, not wiki or current page)
-    const breadcrumbLinks = breadcrumb.locator('.PageBreadcrumb__link');
+    const breadcrumbLinks = getBreadcrumbLinks(page);
     await expect(breadcrumbLinks).toHaveCount(2);
     await expect(breadcrumbLinks.nth(0)).toContainText('Parent in Wiki 2');
     await expect(breadcrumbLinks.nth(1)).toContainText('Child in Wiki 2');
 
-    const currentPage = breadcrumb.locator('[aria-current="page"]');
-    await expect(currentPage).toContainText('Page to Move');
+    const currentPageElement = getBreadcrumbCurrentPage(page);
+    await expect(currentPageElement).toContainText('Page to Move');
 });
 
 /**
@@ -669,7 +672,7 @@ test('navigates page hierarchy depth of 10 levels', {tag: '@pages'}, async ({pw,
     await verifyBreadcrumbContains(page, 'Level 10');
 
     // * Verify breadcrumb has all expected links (at least 9 ancestor links)
-    const breadcrumbLinks = breadcrumb.locator('a');
+    const breadcrumbLinks = getBreadcrumbLinks(page);
     const linkCount = await breadcrumbLinks.count();
     expect(linkCount).toBeGreaterThanOrEqual(9); // At minimum, 9 ancestor links (current page may not be a link)
 });

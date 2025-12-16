@@ -33,7 +33,7 @@ func (a *App) CreateBookmarkFromPage(rctx request.CTX, pageId string, channelId 
 		return nil, model.NewAppError("CreateBookmarkFromPage", "app.channel.bookmark.page_missing_wiki_id.app_error", nil, "", http.StatusBadRequest).Wrap(wikiErr)
 	}
 	if wikiId == "" {
-		return nil, model.NewAppError("CreateBookmarkFromPage", "app.channel.bookmark.page_missing_wiki_id.app_error", nil, "wiki_id is empty", http.StatusBadRequest)
+		return nil, model.NewAppError("CreateBookmarkFromPage", "app.channel.bookmark.page_missing_wiki_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	// Get team name from page's channel
@@ -60,7 +60,7 @@ func (a *App) CreateBookmarkFromPage(rctx request.CTX, pageId string, channelId 
 
 	// Convert to absolute URL using site URL
 	if a.Config().ServiceSettings.SiteURL == nil || *a.Config().ServiceSettings.SiteURL == "" {
-		return nil, model.NewAppError("CreateBookmarkFromPage", "app.channel.bookmark.site_url_required.app_error", nil, "SiteURL must be configured to create page bookmarks", http.StatusInternalServerError)
+		return nil, model.NewAppError("CreateBookmarkFromPage", "app.channel.bookmark.site_url_required.app_error", nil, "", http.StatusInternalServerError)
 	}
 	siteURL := *a.Config().ServiceSettings.SiteURL
 	pageUrl := siteURL + relativePath

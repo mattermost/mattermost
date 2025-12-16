@@ -17,6 +17,7 @@ import LoadingScreen from 'components/loading_screen';
 import ProfilePicture from 'components/profile_picture';
 import UserProfile from 'components/user_profile';
 
+import {getPageTitle} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -111,7 +112,7 @@ const PageViewer = ({pageId, wikiId}: Props) => {
         return <LoadingScreen/>;
     }
 
-    const pageTitle = (page.props?.title as string | undefined) || 'Untitled Page';
+    const pageTitle = getPageTitle(page, 'Untitled Page');
 
     return (
         <div

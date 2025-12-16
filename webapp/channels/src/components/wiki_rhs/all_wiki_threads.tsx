@@ -18,6 +18,7 @@ import LoadingScreen from 'components/loading_screen';
 import WebSocketClient from 'client/web_websocket_client';
 import {SocketEvents} from 'utils/constants';
 import {pageInlineCommentHasAnchor} from 'utils/page_utils';
+import {getPageTitle} from 'utils/post_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -74,7 +75,7 @@ const AllWikiThreads = ({wikiId, onThreadClick}: Props) => {
                     if (inlineComments.length > 0) {
                         return {
                             pageId: page.id,
-                            pageTitle: (page.props?.title as string) || untitledText,
+                            pageTitle: getPageTitle(page, untitledText),
                             threadCount: inlineComments.length,
                             threads: inlineComments as Post[],
                         };

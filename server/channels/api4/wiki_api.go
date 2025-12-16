@@ -71,7 +71,7 @@ func createWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.HasPermissionToModifyWiki(c.AppContext, c.AppContext.Session(), channel, app.WikiOperationCreate, "createWiki"); err != nil {
+	if err := c.App.HasPermissionToModifyWiki(c.AppContext, c.AppContext.Session(), channel, "createWiki"); err != nil {
 		c.Err = err
 		return
 	}
@@ -154,7 +154,7 @@ func updateWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	auditRec.AddMeta("wiki_id", wiki.Id)
 
-	oldWiki, _, ok := c.RequireWikiModifyPermission(app.WikiOperationEdit, "updateWiki")
+	oldWiki, _, ok := c.RequireWikiModifyPermission("updateWiki")
 	if !ok {
 		return
 	}
@@ -193,7 +193,7 @@ func deleteWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	auditRec.AddMeta("wiki_id", c.Params.WikiId)
 
-	oldWiki, _, ok := c.RequireWikiModifyPermission(app.WikiOperationDelete, "deleteWiki")
+	oldWiki, _, ok := c.RequireWikiModifyPermission("deleteWiki")
 	if !ok {
 		return
 	}
@@ -230,7 +230,7 @@ func moveWikiToChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wiki, _, ok := c.RequireWikiModifyPermission(app.WikiOperationDelete, "moveWikiToChannel")
+	wiki, _, ok := c.RequireWikiModifyPermission("moveWikiToChannel")
 	if !ok {
 		return
 	}
@@ -241,7 +241,7 @@ func moveWikiToChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.HasPermissionToModifyWiki(c.AppContext, c.AppContext.Session(), targetChannel, app.WikiOperationCreate, "moveWikiToChannel"); err != nil {
+	if err := c.App.HasPermissionToModifyWiki(c.AppContext, c.AppContext.Session(), targetChannel, "moveWikiToChannel"); err != nil {
 		c.Err = err
 		return
 	}

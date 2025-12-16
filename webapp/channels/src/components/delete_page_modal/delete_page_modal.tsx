@@ -11,21 +11,31 @@ import './delete_page_modal.scss';
 type Props = {
     pageTitle: string;
     childCount: number;
-    onConfirm: (deleteChildren: boolean) => void;
-    onCancel: () => void;
+    onConfirm: (deleteChildren: boolean) => void | Promise<void>;
+    onCancel?: () => void;
+    onExited: () => void;
 };
+
+const noop = () => {};
 
 const DeletePageModal = ({
     pageTitle,
     childCount,
     onConfirm,
     onCancel,
+    onExited,
 }: Props) => {
     const {formatMessage} = useIntl();
     const [deleteChildren, setDeleteChildren] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
-    const handleConfirm = useCallback(() => {
-        onConfirm(deleteChildren);
+    const handleConfirm = useCallback(async () => {
+        setIsDeleting(true);
+        try {
+            await onConfirm(deleteChildren);
+        } catch {
+            setIsDeleting(false);
+        }
     }, [deleteChildren, onConfirm]);
 
     const modalTitle = formatMessage({id: 'delete_page_modal.title', defaultMessage: 'Delete Page'});
@@ -40,12 +50,13 @@ const DeletePageModal = ({
             keyboardEscape={true}
             enforceFocus={false}
             handleConfirm={handleConfirm}
-            handleCancel={onCancel}
-            onExited={onCancel}
+            handleCancel={onCancel ?? noop}
+            onExited={onExited}
             confirmButtonText={confirmText}
-            confirmButtonClassName='btn-danger'
+            isDeleteModal={true}
+            isConfirmDisabled={isDeleting}
             confirmButtonTestId='delete-button'
-            autoCloseOnConfirmButton={true}
+            autoCloseOnConfirmButton={false}
         >
             <div className='DeletePageModal__body'>
                 <p className='DeletePageModal__warning'>

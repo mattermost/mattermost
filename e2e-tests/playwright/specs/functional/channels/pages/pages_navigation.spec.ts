@@ -9,6 +9,9 @@ import {
     createTestChannel,
     buildWikiPageUrl,
     getHierarchyPanel,
+    getBreadcrumb,
+    getBreadcrumbWikiName,
+    getBreadcrumbLinks,
     SHORT_WAIT,
     AUTOSAVE_WAIT,
     ELEMENT_TIMEOUT,
@@ -39,7 +42,7 @@ test('displays breadcrumb navigation for nested pages', {tag: '@pages'}, async (
     await createChildPageThroughContextMenu(page, parent.id!, 'Child Page', 'Child content');
 
     // * Verify breadcrumb shows full hierarchy
-    const breadcrumb = page.locator('[data-testid="breadcrumb"], .breadcrumb').first();
+    const breadcrumb = getBreadcrumb(page);
     await expect(breadcrumb).toBeVisible({timeout: ELEMENT_TIMEOUT});
     const breadcrumbText = await breadcrumb.textContent();
 
@@ -57,7 +60,7 @@ test('displays breadcrumb navigation for nested pages', {tag: '@pages'}, async (
     expect(parentIndex).toBeLessThan(childIndex);
 
     // # Click grandparent in breadcrumb
-    const grandparentLink = breadcrumb.locator('text="Grandparent Page"').first();
+    const grandparentLink = getBreadcrumbLinks(page).filter({hasText: 'Grandparent Page'}).first();
     await expect(grandparentLink).toBeVisible();
     await grandparentLink.click();
     await page.waitForLoadState('networkidle');
@@ -87,7 +90,7 @@ test('displays page breadcrumbs', {tag: '@pages'}, async ({pw, sharedPagesSetup}
     await createChildPageThroughContextMenu(page, parentPage.id!, 'Child Page', 'Child content');
 
     // * Verify breadcrumb is visible
-    const breadcrumb = page.locator('[data-testid="breadcrumb"]');
+    const breadcrumb = getBreadcrumb(page);
     await expect(breadcrumb).toBeVisible();
 
     // * Verify breadcrumb contains wiki title
@@ -120,7 +123,7 @@ test('navigates using breadcrumbs', {tag: '@pages'}, async ({pw, sharedPagesSetu
     await createChildPageThroughContextMenu(page, parentPage.id!, 'Child Page', 'Child content');
 
     // # Click parent page link in breadcrumb
-    const breadcrumb = page.locator('[data-testid="breadcrumb"]');
+    const breadcrumb = getBreadcrumb(page);
     const parentLink = breadcrumb.getByRole('link', {name: 'Parent Page'});
     await parentLink.click();
     await page.waitForLoadState('networkidle');
@@ -130,7 +133,7 @@ test('navigates using breadcrumbs', {tag: '@pages'}, async ({pw, sharedPagesSetu
     await expect(pageContent).toContainText('Parent content', {timeout: PAGE_LOAD_TIMEOUT});
 
     // * Verify wiki name is displayed in breadcrumb but not clickable
-    const wikiNameElement = breadcrumb.locator('.PageBreadcrumb__wiki-name');
+    const wikiNameElement = getBreadcrumbWikiName(page);
     await expect(wikiNameElement).toBeVisible();
     await expect(wikiNameElement).toContainText(wikiName);
 });
@@ -157,7 +160,7 @@ test('displays breadcrumbs for draft of child page', {tag: '@pages'}, async ({pw
     // * Verify breadcrumb shows parent → draft
     // Wait for draft to be fully saved and breadcrumb to update
     await expect(async () => {
-        const breadcrumb = page.locator('[data-testid="breadcrumb"]');
+        const breadcrumb = getBreadcrumb(page);
         const breadcrumbText = await breadcrumb.textContent();
         expect(breadcrumbText).toContain('Parent Page');
         expect(breadcrumbText).toMatch(/Child Draft|Untitled/);

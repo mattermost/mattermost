@@ -9,7 +9,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/app"
 )
 
 func getPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -54,7 +53,7 @@ func savePageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.HasPermissionToModifyWiki(c.AppContext, c.AppContext.Session(), channel, app.WikiOperationEdit, "savePageDraft"); err != nil {
+	if err := c.App.HasPermissionToModifyWiki(c.AppContext, c.AppContext.Session(), channel, "savePageDraft"); err != nil {
 		c.Err = err
 		return
 	}
@@ -115,12 +114,53 @@ func deletePageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.HasPermissionToModifyWiki(c.AppContext, c.AppContext.Session(), channel, app.WikiOperationEdit, "deletePageDraft"); err != nil {
+	if err := c.App.HasPermissionToModifyWiki(c.AppContext, c.AppContext.Session(), channel, "deletePageDraft"); err != nil {
 		c.Err = err
 		return
 	}
 
 	if appErr := c.App.DeletePageDraft(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId, c.Params.PageId); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	ReturnStatusOK(w)
+}
+
+func movePageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireWikiId()
+	c.RequirePageId()
+	if c.Err != nil {
+		return
+	}
+
+	wiki, appErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	channel, appErr := c.App.GetChannel(c.AppContext, wiki.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if err := c.App.HasPermissionToModifyWiki(c.AppContext, c.AppContext.Session(), channel, "movePageDraft"); err != nil {
+		c.Err = err
+		return
+	}
+
+	var req struct {
+		ParentId string `json:"parent_id"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		c.SetInvalidParamWithErr("request", err)
+		return
+	}
+
+	if appErr := c.App.MovePageDraft(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId, c.Params.PageId, req.ParentId); appErr != nil {
 		c.Err = appErr
 		return
 	}
@@ -172,7 +212,7 @@ func createPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.HasPermissionToModifyWiki(c.AppContext, c.AppContext.Session(), channel, app.WikiOperationEdit, "createPageDraft"); err != nil {
+	if err := c.App.HasPermissionToModifyWiki(c.AppContext, c.AppContext.Session(), channel, "createPageDraft"); err != nil {
 		c.Err = err
 		return
 	}
@@ -190,8 +230,7 @@ func createPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Generate server-side page ID
 	pageId := model.NewId()
 
-	// Empty TipTap document JSON
-	placeholderContent := `{"type":"doc","content":[]}`
+	placeholderContent := model.EmptyTipTapJSON
 
 	c.Logger.Debug("Creating new page draft",
 		mlog.String("wiki_id", c.Params.WikiId),
@@ -236,7 +275,7 @@ func publishPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.HasPermissionToModifyWiki(c.AppContext, c.AppContext.Session(), channel, app.WikiOperationEdit, "publishPageDraft"); err != nil {
+	if err := c.App.HasPermissionToModifyWiki(c.AppContext, c.AppContext.Session(), channel, "publishPageDraft"); err != nil {
 		c.Err = err
 		return
 	}

@@ -7,6 +7,8 @@ import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {Post} from '@mattermost/types/posts';
 
+import {getPageTitle} from 'utils/post_utils';
+
 import './conflict_warning_modal.scss';
 
 export type ConflictWarningModalProps = {
@@ -60,7 +62,7 @@ export default function ConflictWarningModal({
                             <FormattedMessage
                                 id='conflict_warning.page_title'
                                 defaultMessage='Page: {title}'
-                                values={{title: (currentPage.props?.title as string | undefined) || untitledText}}
+                                values={{title: getPageTitle(currentPage, untitledText)}}
                             />
                         </strong>
                         <br/>

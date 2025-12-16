@@ -13,7 +13,7 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {loadWiki, getPageBreadcrumb} from 'actions/pages';
 import {getPageDraftsForWiki} from 'selectors/page_drafts';
-import {arePagesLoaded, buildBreadcrumbFromRedux} from 'selectors/pages';
+import {arePagesLoaded, buildBreadcrumbFromRedux, getWiki} from 'selectors/pages';
 
 import {getWikiUrl} from 'utils/url';
 
@@ -42,8 +42,21 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
     const currentTeam = useSelector((state: GlobalState) => getCurrentTeam(state));
     const currentPage = useSelector((state: GlobalState) => (pageId ? getPost(state, pageId) : null));
     const pagesLoaded = useSelector((state: GlobalState) => arePagesLoaded(state, wikiId));
+    const allDrafts = useSelector((state: GlobalState) => getPageDraftsForWiki(state, wikiId));
+    const wiki = useSelector((state: GlobalState) => getWiki(state, wikiId));
 
     const teamName = currentTeam?.name || 'team';
+
+    // Build breadcrumb from Redux for published pages (when pages are loaded)
+    // Memoize by serializing to avoid infinite loops from new object references
+    const reduxBreadcrumbJson = useSelector((state: GlobalState) => {
+        if (!isDraft && pageId && pagesLoaded) {
+            const breadcrumb = buildBreadcrumbFromRedux(state, wikiId, pageId, channelId, teamName);
+            return breadcrumb ? JSON.stringify(breadcrumb) : null;
+        }
+        return null;
+    });
+    const reduxBreadcrumb = reduxBreadcrumbJson ? JSON.parse(reduxBreadcrumbJson) as BreadcrumbPath : null;
 
     // Helper to fix breadcrumb item paths - use /wiki/ route not /channels/
     const fixBreadcrumbPath = (item: BreadcrumbPath['items'][0]): BreadcrumbPath['items'][0] => ({
@@ -56,10 +69,6 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
             setIsLoading(true);
             setError(null);
             try {
-                // Get drafts at the time this effect runs (not reactive to draft changes)
-                const state = dispatch((_, getState) => getState()) as any;
-                const allDrafts = getPageDraftsForWiki(state, wikiId);
-
                 // Helper to check if an ID is a draft
                 const isDraftId = (id: string): boolean => {
                     return allDrafts.some((draft: PostDraft) => draft.rootId === id);
@@ -71,8 +80,8 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                 };
 
                 // Load wiki into Redux if not already cached
-                const wikiResult = await dispatch(loadWiki(wikiId));
-                const loadedWiki = wikiResult.data;
+                await dispatch(loadWiki(wikiId));
+                const loadedWiki = wiki;
                 if (isDraft) {
                     if (parentPageId) {
                         // Check if parent is also a draft
@@ -196,23 +205,14 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                     // Load wiki metadata if not already in Redux
                     await dispatch(loadWiki(wikiId));
 
-                    // Get current state and build breadcrumb from Redux
-                    const state = dispatch((_, getState) => getState()) as any;
-                    const breadcrumb = buildBreadcrumbFromRedux(
-                        state,
-                        wikiId,
-                        pageId,
-                        channelId,
-                        currentTeam?.name || 'team',
-                    );
-
-                    if (!breadcrumb) {
+                    // Use breadcrumb from selector (recalculated when state changes)
+                    if (!reduxBreadcrumb) {
                         setError('Failed to load breadcrumb');
                         setIsLoading(false);
                         return;
                     }
 
-                    setBreadcrumbPath(breadcrumb as BreadcrumbPath);
+                    setBreadcrumbPath(reduxBreadcrumb);
                 } else if (loadedWiki) {
                     // No page selected - show wiki name only
                     setBreadcrumbPath({
@@ -236,7 +236,7 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
         if (wikiId) {
             fetchBreadcrumb();
         }
-    }, [wikiId, pageId, channelId, isDraft, parentPageId, draftTitle, currentTeam?.name, currentPage?.update_at, currentPage?.page_parent_id, currentPage?.props?.page_parent_id, currentPage?.props?.wiki_id, pagesLoaded, dispatch]);
+    }, [wikiId, pageId, channelId, isDraft, parentPageId, draftTitle, currentTeam?.name, currentPage?.update_at, currentPage?.page_parent_id, currentPage?.props?.page_parent_id, currentPage?.props?.wiki_id, pagesLoaded, dispatch, allDrafts, wiki, reduxBreadcrumbJson]);
 
     if (isLoading) {
         return (
@@ -271,13 +271,17 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                         className='PageBreadcrumb__item'
                     >
                         {item.type === 'wiki' ? (
-                            <span className='PageBreadcrumb__wiki-name'>
+                            <span
+                                className='PageBreadcrumb__wiki-name'
+                                data-testid='breadcrumb-wiki-name'
+                            >
                                 {item.title}
                             </span>
                         ) : (
                             <Link
                                 to={item.path}
                                 className='PageBreadcrumb__link'
+                                data-testid='breadcrumb-link'
                                 aria-label={`Navigate to ${item.title}`}
                             >
                                 {item.title}
@@ -290,6 +294,7 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                     <span
                         className='PageBreadcrumb__current'
                         aria-current='page'
+                        data-testid='breadcrumb-current'
                     >
                         {breadcrumbPath.current_page.title}
                     </span>

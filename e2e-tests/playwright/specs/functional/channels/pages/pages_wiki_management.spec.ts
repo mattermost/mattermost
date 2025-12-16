@@ -26,6 +26,7 @@ import {
     getHierarchyPanel,
     getPageViewerContent,
     getBreadcrumb,
+    getBreadcrumbLinks,
     verifyBreadcrumbContains,
     verifyPageContentContains,
     uniqueName,
@@ -177,7 +178,7 @@ test('updates both wiki tab and wiki title when renamed', {tag: '@pages'}, async
     await expect(page).toHaveURL(/\/wiki\/[^/]+\/[^/]+/);
 
     // * Verify wiki name is displayed in breadcrumb
-    const breadcrumb = page.locator('[data-testid="breadcrumb"]').first();
+    const breadcrumb = getBreadcrumb(page);
     await expect(breadcrumb).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await expect(breadcrumb).toContainText(updatedName);
 });
@@ -311,7 +312,7 @@ test('maintains breadcrumb navigation after wiki rename', {tag: '@pages'}, async
     await verifyBreadcrumbContains(page, 'Child Page');
 
     // # Click on parent in breadcrumb to navigate back
-    const parentBreadcrumbLink = breadcrumb.locator('.PageBreadcrumb__link').filter({hasText: 'Parent Page'}).first();
+    const parentBreadcrumbLink = getBreadcrumbLinks(page).filter({hasText: 'Parent Page'}).first();
     await expect(parentBreadcrumbLink).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await parentBreadcrumbLink.click();
 

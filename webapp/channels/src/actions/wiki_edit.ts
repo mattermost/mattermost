@@ -6,6 +6,8 @@ import type {Post} from '@mattermost/types/posts';
 import {savePageDraft} from 'actions/page_drafts';
 import {hasUnsavedChanges, getPageDraft} from 'selectors/page_drafts';
 
+import {getPageTitle} from 'utils/post_utils';
+
 import type {ActionFuncAsync, GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 
@@ -63,7 +65,7 @@ export function openPageInEditMode(
     return async (dispatch, getState) => {
         const state = getState();
         const pageId = page.id;
-        const pageTitle = (page.props?.title as string | undefined) || 'Untitled page';
+        const pageTitle = getPageTitle(page, 'Untitled page');
         const pageParentId = page.page_parent_id;
         const pageStatusFromProps = page.props?.page_status as string | undefined;
 

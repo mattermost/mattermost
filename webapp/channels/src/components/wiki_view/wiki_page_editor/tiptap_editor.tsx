@@ -1064,8 +1064,6 @@ const TipTapEditor = ({
                 <PageLinkModal
                     pages={pages}
                     wikiId={wikiId || ''}
-                    channelId={channelId || ''}
-                    teamName={currentTeam?.name || 'team'}
                     onSelect={handlePageSelect}
                     onCancel={() => setShowLinkModal(false)}
                     initialLinkText={selectedText}

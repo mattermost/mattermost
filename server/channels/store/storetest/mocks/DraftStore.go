@@ -481,6 +481,24 @@ func (_m *DraftStore) UpdatePropsOnly(userId string, wikiId string, draftId stri
 	return r0
 }
 
+// UpdateDraftParent provides a mock function with given fields: userId, wikiId, draftId, newParentId
+func (_m *DraftStore) UpdateDraftParent(userId string, wikiId string, draftId string, newParentId string) error {
+	ret := _m.Called(userId, wikiId, draftId, newParentId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateDraftParent")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, string, string) error); ok {
+		r0 = rf(userId, wikiId, draftId, newParentId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Upsert provides a mock function with given fields: d
 func (_m *DraftStore) Upsert(d *model.Draft) (*model.Draft, error) {
 	ret := _m.Called(d)

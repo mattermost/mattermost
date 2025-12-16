@@ -3,7 +3,10 @@
 
 import type {Post} from '@mattermost/types/posts';
 
-import type {PageDisplayTypes} from 'utils/constants';
+import {PageDisplayTypes} from 'utils/constants';
+import {getPageTitle} from 'utils/post_utils';
+
+import type {PostDraft} from 'types/store/draft';
 
 export type Page = Post;
 
@@ -22,6 +25,46 @@ export type TreeNode = {
     parentId: string | null;
 };
 
+const DEFAULT_UNTITLED = 'Untitled';
+
+/**
+ * Convert a PostDraft to a DraftPage object for tree display
+ */
+export function convertDraftToPagePost(draft: PostDraft, untitledText: string = DEFAULT_UNTITLED): DraftPage {
+    return {
+        id: draft.rootId,
+        create_at: draft.createAt || 0,
+        update_at: draft.updateAt || 0,
+        delete_at: 0,
+        edit_at: 0,
+        is_pinned: false,
+        user_id: '',
+        channel_id: draft.channelId,
+        root_id: '',
+        original_id: '',
+        message: draft.message,
+        type: PageDisplayTypes.PAGE_DRAFT,
+        page_parent_id: draft.props?.page_parent_id || '',
+        props: {
+            ...draft.props,
+            title: draft.props?.title || untitledText,
+        },
+        hashtags: '',
+        filenames: [],
+        file_ids: [],
+        pending_post_id: '',
+        reply_count: 0,
+        last_reply_at: 0,
+        participants: null,
+        metadata: {
+            embeds: [],
+            emojis: [],
+            files: [],
+            images: {},
+        },
+    };
+}
+
 /**
  * Build a tree structure from a flat list of pages
  * Pages are connected via page_parent_id field
@@ -37,7 +80,7 @@ export function buildTree(pages: PageOrDraft[]): TreeNode[] {
 
     // First pass: Create all nodes and preserve original order
     pages.forEach((page, index) => {
-        const title = (page.props?.title as string | undefined) || page.message || 'Untitled';
+        const title = getPageTitle(page);
 
         nodeMap.set(page.id, {
             id: page.id,

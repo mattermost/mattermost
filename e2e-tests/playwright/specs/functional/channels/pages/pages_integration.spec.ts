@@ -18,6 +18,7 @@ import {
     fillAndSubmitCommentModal,
     fillCreatePageModal,
     getBreadcrumb,
+    getBreadcrumbLinks,
     getEditorAndWait,
     getHierarchyPanel,
     getNewPageButton,
@@ -291,7 +292,7 @@ test(
         // # Navigate back to level 1 via breadcrumb
         const breadcrumb = getBreadcrumb(page);
         await breadcrumb.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
-        const level1Link = breadcrumb.locator('text="Level 1 Page"').first();
+        const level1Link = getBreadcrumbLinks(page).filter({hasText: 'Level 1 Page'}).first();
         await level1Link.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
         await level1Link.click();
         await page.waitForLoadState('networkidle');
@@ -517,7 +518,7 @@ test('executes complex multi-feature workflow end-to-end', {tag: '@pages'}, asyn
     // # Step 7: Navigate via breadcrumb
     const breadcrumb = getBreadcrumb(page);
     await breadcrumb.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
-    const rootLink = breadcrumb.locator('text="Root Project Page"').first();
+    const rootLink = getBreadcrumbLinks(page).filter({hasText: 'Root Project Page'}).first();
     await rootLink.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
     await rootLink.click();
     await page.waitForLoadState('networkidle');

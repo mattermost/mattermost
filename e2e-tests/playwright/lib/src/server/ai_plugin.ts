@@ -226,7 +226,6 @@ export async function configureAIPlugin(adminClient: Client4): Promise<void> {
     };
 
     // Save configuration
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await adminClient.updateConfig(aiPluginConfig as any);
 
     // Verify configuration was saved correctly

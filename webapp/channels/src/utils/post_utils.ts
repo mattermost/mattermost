@@ -888,3 +888,27 @@ export function canEditPage(state: GlobalState, page: Post, channel: Channel): b
 
     return haveIChannelPermission(state, channel.team_id, channel.id, Permissions.EDIT_PAGE);
 }
+
+const DEFAULT_PAGE_TITLE = 'Untitled';
+
+/**
+ * Gets the display title for a page post.
+ * @param page - The page post object (or partial with props)
+ * @param defaultTitle - The fallback title if no title is found (defaults to 'Untitled')
+ * @returns The page title string
+ */
+export function getPageTitle(
+    page: Pick<Post, 'props'> | null | undefined,
+    defaultTitle: string = DEFAULT_PAGE_TITLE,
+): string {
+    if (!page) {
+        return defaultTitle;
+    }
+
+    const propsTitle = page.props?.title as string | undefined;
+    if (propsTitle) {
+        return propsTitle;
+    }
+
+    return defaultTitle;
+}

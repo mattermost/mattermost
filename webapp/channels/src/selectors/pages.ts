@@ -7,14 +7,11 @@ import type {BreadcrumbPath} from '@mattermost/types/wikis';
 import {PostTypes} from 'mattermost-redux/constants/posts';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 
-import {PageDisplayTypes, PagePropsKeys} from 'utils/constants';
+import {PagePropsKeys} from 'utils/constants';
 import {isDraftPageId} from 'utils/page_utils';
 import {getWikiUrl} from 'utils/url';
 
 import type {GlobalState} from 'types/store';
-
-// Suppress unused variable warning - PageDisplayTypes is used in comments and future code
-export {PageDisplayTypes};
 
 // Get single page
 export const getPage = (state: GlobalState, pageId: string): Post | undefined => {

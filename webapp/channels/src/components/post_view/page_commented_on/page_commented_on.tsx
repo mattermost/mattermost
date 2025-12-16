@@ -19,7 +19,10 @@ import UserProfile from 'components/user_profile';
 import {getPageAnchorUrl} from 'components/wiki_view/page_anchor';
 
 import {isPageComment, getPageInlineAnchorText, getPageInlineAnchorId} from 'utils/page_utils';
+import {getPageTitle} from 'utils/post_utils';
 import {getWikiUrl} from 'utils/url';
+
+import './page_commented_on.scss';
 
 type Props = {
     onCommentClick?: (e: React.MouseEvent, pagePost: Post | null) => void;
@@ -64,21 +67,18 @@ function PageCommentedOn({onCommentClick, rootId, showUserHeader = false}: Props
     };
 
     if (shouldRender) {
-        const pageTitle = (pagePost.props?.title as string) || 'Untitled Page';
+        const pageTitle = getPageTitle(pagePost, 'Untitled Page');
         const anchorText = getPageInlineAnchorText(rootPost);
 
         return (
-            <>
+            <div className='PageCommentedOn'>
                 {showUserHeader && rootPost && (
-                    <div
-                        className='post__header'
-                        style={{display: 'flex', alignItems: 'center', marginBottom: '8px'}}
-                    >
+                    <div className='post__header PageCommentedOn__header'>
                         <PostProfilePicture
                             post={rootPost}
                             userId={rootPost.user_id}
                         />
-                        <div style={{marginLeft: '12px', display: 'flex', alignItems: 'center', gap: '8px'}}>
+                        <div className='PageCommentedOn__userInfo'>
                             <UserProfile
                                 userId={rootPost.user_id}
                                 channelId={rootPost.channel_id}
@@ -101,16 +101,15 @@ function PageCommentedOn({onCommentClick, rootId, showUserHeader = false}: Props
                         />
                         {' '}
                         <a
-                            className='theme'
+                            className='theme PageCommentedOn__pageLink'
                             href='#'
                             onClick={handleClick}
-                            style={{cursor: 'pointer'}}
                         >
                             {pageTitle}
                         </a>
                     </span>
                     {anchorText && (
-                        <div style={{marginTop: '8px'}}>
+                        <div className='PageCommentedOn__anchorContext'>
                             <InlineCommentContext
                                 anchorText={anchorText}
                                 anchorId={anchorId || undefined}
@@ -120,7 +119,7 @@ function PageCommentedOn({onCommentClick, rootId, showUserHeader = false}: Props
                         </div>
                     )}
                     {rootPost?.message && (
-                        <div style={{marginTop: '8px', fontSize: '14px', lineHeight: '20px', color: 'var(--center-channel-color)'}}>
+                        <div className='PageCommentedOn__message'>
                             <Markdown
                                 message={rootPost.message}
                                 options={{mentionHighlight: false}}
@@ -128,34 +127,35 @@ function PageCommentedOn({onCommentClick, rootId, showUserHeader = false}: Props
                         </div>
                     )}
                 </div>
-            </>
+            </div>
         );
     }
 
     if (rootPost?.type === PostTypes.PAGE) {
-        const pageTitle = (rootPost.props?.title as string) || 'Untitled Page';
+        const pageTitle = getPageTitle(rootPost, 'Untitled Page');
         return (
-            <div
-                data-testid='post-link'
-                className='post__link'
-            >
-                <span>
-                    <FormattedMessage
-                        id='threading.pageComment.context'
-                        defaultMessage='Commented on the page:'
-                    />
-                    {' '}
-                    <a
-                        className='theme'
-                        href='#'
-                        onClick={(e) => {
-                            onCommentClick?.(e, rootPost);
-                        }}
-                        style={{cursor: 'pointer'}}
-                    >
-                        {pageTitle}
-                    </a>
-                </span>
+            <div className='PageCommentedOn'>
+                <div
+                    data-testid='post-link'
+                    className='post__link'
+                >
+                    <span>
+                        <FormattedMessage
+                            id='threading.pageComment.context'
+                            defaultMessage='Commented on the page:'
+                        />
+                        {' '}
+                        <a
+                            className='theme PageCommentedOn__pageLink'
+                            href='#'
+                            onClick={(e) => {
+                                onCommentClick?.(e, rootPost);
+                            }}
+                        >
+                            {pageTitle}
+                        </a>
+                    </span>
+                </div>
             </div>
         );
     }

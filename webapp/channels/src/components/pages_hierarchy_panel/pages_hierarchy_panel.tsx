@@ -18,7 +18,7 @@ import DeletePageModal from 'components/delete_page_modal';
 import MovePageModal from 'components/move_page_modal';
 import TextInputModal from 'components/text_input_modal';
 
-import {PageDisplayTypes} from 'utils/constants';
+import {getPageTitle} from 'utils/post_utils';
 
 import type {PostDraft} from 'types/store/draft';
 
@@ -26,6 +26,7 @@ import {usePageMenuHandlers} from './hooks/usePageMenuHandlers';
 import PageSearchBar from './page_search_bar';
 import PageTreeView from './page_tree_view';
 import PagesHeader from './pages_header';
+import {convertDraftToPagePost} from './utils/tree_builder';
 import {filterTreeBySearch} from './utils/tree_flattener';
 
 import './pages_hierarchy_panel.scss';
@@ -55,7 +56,6 @@ type Props = {
         createPage: (wikiId: string, title: string, pageParentId?: string) => Promise<{data?: string; error?: ServerError}>;
         updatePage: (pageId: string, newTitle: string, wikiId: string) => Promise<{data?: Post; error?: ServerError}>;
         deletePage: (pageId: string, wikiId: string) => Promise<{data?: boolean; error?: ServerError}>;
-        movePage: (pageId: string, newParentId: string, wikiId: string) => Promise<{data?: Post; error?: ServerError}>;
         movePageToWiki: (pageId: string, sourceWikiId: string, targetWikiId: string, parentPageId?: string) => Promise<{data?: boolean; error?: ServerError}>;
         duplicatePage: (pageId: string, sourceWikiId: string, targetWikiId: string, parentPageId?: string, customTitle?: string) => Promise<{data?: Post; error?: ServerError}>;
         closePagesPanel: () => void;
@@ -105,42 +105,10 @@ const PagesHierarchyPanel = ({
     // Only include drafts for pages that don't exist yet (first-time drafts)
     // Drafts for existing pages will show "Unpublished changes" on the published page instead
     const draftPosts: DraftPage[] = useMemo(() => {
-        return drafts.filter((draft) => !draft.props?.has_published_version).
-            map((draft): DraftPage => {
-                return {
-                    id: draft.rootId,
-                    create_at: draft.createAt,
-                    update_at: draft.updateAt,
-                    delete_at: 0,
-                    edit_at: 0,
-                    is_pinned: false,
-                    user_id: '',
-                    channel_id: draft.channelId,
-                    root_id: '',
-                    original_id: '',
-                    message: draft.message,
-                    type: PageDisplayTypes.PAGE_DRAFT,
-                    page_parent_id: draft.props?.page_parent_id || '',
-                    props: {
-                        ...draft.props,
-                        title: draft.props?.title || untitledText,
-                    },
-                    hashtags: '',
-                    filenames: [],
-                    file_ids: [],
-                    pending_post_id: '',
-                    reply_count: 0,
-                    last_reply_at: 0,
-                    participants: null,
-                    metadata: {
-                        embeds: [],
-                        emojis: [],
-                        files: [],
-                        images: {},
-                    },
-                };
-            });
-    }, [drafts]);
+        return drafts.
+            filter((draft) => !draft.props?.has_published_version).
+            map((draft) => convertDraftToPagePost(draft, untitledText));
+    }, [drafts, untitledText]);
 
     // Combine pages and drafts for tree display
     // Filter out drafts whose IDs already exist as published pages to avoid duplicates
@@ -275,9 +243,7 @@ const PagesHierarchyPanel = ({
                         className='PagesHierarchyPanel__empty'
                         data-testid='pages-hierarchy-empty'
                     >
-                        {searchQuery ?
-                            formatMessage({id: 'pages_panel.no_results', defaultMessage: 'No pages found'}) :
-                            formatMessage({id: 'pages_panel.empty', defaultMessage: 'No pages yet'})}
+                        {searchQuery ? formatMessage({id: 'pages_panel.no_results', defaultMessage: 'No pages found'}) : formatMessage({id: 'pages_panel.empty', defaultMessage: 'No pages yet'})}
                     </div>
                 ) : (
                     <PageTreeView
@@ -304,10 +270,11 @@ const PagesHierarchyPanel = ({
             {/* Delete confirmation modal */}
             {menuHandlers.showDeleteModal && menuHandlers.pageToDelete && (
                 <DeletePageModal
-                    pageTitle={(menuHandlers.pageToDelete.page.props?.title as string | undefined) || menuHandlers.pageToDelete.page.message || untitledText}
+                    pageTitle={getPageTitle(menuHandlers.pageToDelete.page, untitledText)}
                     childCount={menuHandlers.pageToDelete.childCount}
                     onConfirm={menuHandlers.handleDeleteConfirm}
                     onCancel={menuHandlers.handleDeleteCancel}
+                    onExited={menuHandlers.handleDeleteCancel}
                 />
             )}
 
@@ -328,14 +295,10 @@ const PagesHierarchyPanel = ({
             {/* Create page modal */}
             <TextInputModal
                 show={menuHandlers.showCreatePageModal}
-                title={menuHandlers.createPageParent ?
-                    formatMessage({id: 'pages_panel.create_child_modal.title', defaultMessage: 'Create Child Page under "{parentTitle}"'}, {parentTitle: menuHandlers.createPageParent.title}) :
-                    formatMessage({id: 'pages_panel.create_modal.title', defaultMessage: 'Create New Page'})}
+                title={menuHandlers.createPageParent ? formatMessage({id: 'pages_panel.create_child_modal.title', defaultMessage: 'Create Child Page under "{parentTitle}"'}, {parentTitle: menuHandlers.createPageParent.title}) : formatMessage({id: 'pages_panel.create_modal.title', defaultMessage: 'Create New Page'})}
                 fieldLabel={formatMessage({id: 'pages_panel.modal.field_label', defaultMessage: 'Page title'})}
                 placeholder={formatMessage({id: 'pages_panel.modal.placeholder', defaultMessage: 'Enter page title...'})}
-                helpText={menuHandlers.createPageParent ?
-                    formatMessage({id: 'pages_panel.create_child_modal.help_text', defaultMessage: 'This page will be created as a child of "{parentTitle}".'}, {parentTitle: menuHandlers.createPageParent.title}) :
-                    formatMessage({id: 'pages_panel.create_modal.help_text', defaultMessage: 'A new draft will be created for you to edit.'})}
+                helpText={menuHandlers.createPageParent ? formatMessage({id: 'pages_panel.create_child_modal.help_text', defaultMessage: 'This page will be created as a child of "{parentTitle}".'}, {parentTitle: menuHandlers.createPageParent.title}) : formatMessage({id: 'pages_panel.create_modal.help_text', defaultMessage: 'A new draft will be created for you to edit.'})}
                 confirmButtonText={formatMessage({id: 'pages_panel.create_modal.confirm', defaultMessage: 'Create'})}
                 maxLength={255}
                 ariaLabel={formatMessage({id: 'pages_panel.create_modal.aria_label', defaultMessage: 'Create Page'})}

@@ -1071,6 +1071,7 @@ type DraftStore interface {
 	DeleteOrphanDraftsByCreateAtAndUserId(createAt int64, userID string) error
 	PermanentDeleteByUser(userId string) error
 	UpdatePropsOnly(userId, wikiId, draftId string, props map[string]any, expectedUpdateAt int64) error
+	UpdateDraftParent(userId, wikiId, draftId, newParentId string) error
 
 	// Page draft content methods (PageContents table with status='draft')
 	// With unified page ID model, drafts are stored in PageContents table

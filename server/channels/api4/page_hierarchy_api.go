@@ -92,7 +92,7 @@ func updatePageParent(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if post.Type != model.PostTypePage {
-		c.Err = model.NewAppError("updatePageParent", "api.wiki.update_page_parent.not_page.app_error", nil, "pageId="+c.Params.PageId, http.StatusBadRequest)
+		c.Err = model.NewAppError("updatePageParent", "api.wiki.update_page_parent.not_page.app_error", map[string]any{"PageId": c.Params.PageId}, "", http.StatusBadRequest)
 		return
 	}
 
@@ -148,7 +148,7 @@ func movePageToWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
-	sourceWiki, _, ok := c.RequireWikiModifyPermission(app.WikiOperationEdit, "movePageToWiki")
+	sourceWiki, _, ok := c.RequireWikiModifyPermission("movePageToWiki")
 	if !ok {
 		return
 	}

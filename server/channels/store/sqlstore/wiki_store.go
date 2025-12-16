@@ -119,7 +119,7 @@ func (s *SqlWikiStore) CreateWikiWithDefaultPage(wiki *model.Wiki, userId string
 	pageId := model.NewId()
 	now := model.GetMillis()
 
-	contentJSON := `{"type":"doc","content":[]}`
+	contentJSON := model.EmptyTipTapJSON
 
 	// Insert into PageContents table with UserId set (non-empty UserId = draft)
 	contentBuilder := s.getQueryBuilder().

@@ -14,6 +14,7 @@ import InlineCommentContext from 'components/inline_comment_context';
 import Markdown from 'components/markdown';
 import {getPageAnchorUrl} from 'components/wiki_view/page_anchor';
 
+import {getPageTitle} from 'utils/post_utils';
 import {getWikiUrl} from 'utils/url';
 
 import type {GlobalState} from 'types/store';
@@ -81,7 +82,7 @@ export function renderPageCommentPreview(
                         e.currentTarget.style.textDecoration = 'none';
                     }}
                 >
-                    {(pagePost.props?.title as string) || 'Untitled Page'}
+                    {getPageTitle(pagePost, 'Untitled Page')}
                 </a>
             </div>
             {anchorText && (
@@ -110,7 +111,7 @@ export function renderPageCommentPreview(
 export function renderPagePreview(post: Post, hasReplies: boolean): JSX.Element {
     if (hasReplies) {
         return (
-            <InlineCommentContext anchorText={(post.props?.title as string) || 'Untitled Page'}/>
+            <InlineCommentContext anchorText={getPageTitle(post, 'Untitled Page')}/>
         );
     }
 
@@ -118,7 +119,7 @@ export function renderPagePreview(post: Post, hasReplies: boolean): JSX.Element 
         <div>
             <i className='icon icon-file-document-outline'/>
             {' '}
-            {(post.props?.title as string) || 'Untitled Page'}
+            {getPageTitle(post, 'Untitled Page')}
         </div>
     );
 }

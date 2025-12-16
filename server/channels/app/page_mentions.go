@@ -285,8 +285,7 @@ func (a *App) sendPageMentionNotifications(rctx request.CTX, page *model.Post, c
 			mlog.String("context", mentionContext),
 			mlog.Int("context_length", len(mentionContext)))
 
-		teamURL := fmt.Sprintf("/%s", team.Name)
-		pageURL := fmt.Sprintf("%s/wiki/%s/%s/%s", teamURL, channel.Id, wikiId, page.Id)
+		pageURL := model.BuildPageUrl(team.Name, channel.Id, wikiId, page.Id)
 		postMessage := fmt.Sprintf("Mentioned @%s on the page: [%s](%s)\n\n%s",
 			mentionedUser.Username,
 			pageTitle,

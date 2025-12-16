@@ -5,18 +5,8 @@ import type {AnyAction} from 'redux';
 
 import {UserTypes} from 'mattermost-redux/action_types';
 
+import {ActionTypes} from 'utils/constants';
 import type {Heading} from 'utils/page_outline';
-
-export const TOGGLE_NODE_EXPANDED = 'pages_hierarchy/TOGGLE_NODE_EXPANDED';
-export const SET_SELECTED_PAGE = 'pages_hierarchy/SET_SELECTED_PAGE';
-export const EXPAND_ANCESTORS = 'pages_hierarchy/EXPAND_ANCESTORS';
-export const TOGGLE_PAGES_PANEL = 'pages_hierarchy/TOGGLE_PAGES_PANEL';
-export const OPEN_PAGES_PANEL = 'pages_hierarchy/OPEN_PAGES_PANEL';
-export const CLOSE_PAGES_PANEL = 'pages_hierarchy/CLOSE_PAGES_PANEL';
-export const SET_OUTLINE_EXPANDED = 'pages_hierarchy/SET_OUTLINE_EXPANDED';
-export const TOGGLE_OUTLINE_EXPANDED = 'pages_hierarchy/TOGGLE_OUTLINE_EXPANDED';
-export const CLEAR_OUTLINE_CACHE = 'pages_hierarchy/CLEAR_OUTLINE_CACHE';
-export const SET_LAST_VIEWED_PAGE = 'pages_hierarchy/SET_LAST_VIEWED_PAGE';
 
 type PagesHierarchyViewState = {
     expandedNodes: {[wikiId: string]: {[pageId: string]: boolean}};
@@ -38,7 +28,7 @@ const initialState: PagesHierarchyViewState = {
 
 export default function pagesHierarchyReducer(state = initialState, action: AnyAction): PagesHierarchyViewState {
     switch (action.type) {
-    case TOGGLE_NODE_EXPANDED: {
+    case ActionTypes.TOGGLE_PAGE_NODE_EXPANDED: {
         const {wikiId, nodeId} = action.data;
         const wikiExpanded = state.expandedNodes[wikiId] || {};
         const isExpanded = wikiExpanded[nodeId] || false;
@@ -55,7 +45,7 @@ export default function pagesHierarchyReducer(state = initialState, action: AnyA
         };
     }
 
-    case SET_SELECTED_PAGE: {
+    case ActionTypes.SET_SELECTED_PAGE: {
         const {pageId} = action.data;
         return {
             ...state,
@@ -63,7 +53,7 @@ export default function pagesHierarchyReducer(state = initialState, action: AnyA
         };
     }
 
-    case EXPAND_ANCESTORS: {
+    case ActionTypes.EXPAND_PAGE_ANCESTORS: {
         const {wikiId, ancestorIds} = action.data;
         const wikiExpanded = state.expandedNodes[wikiId] || {};
 
@@ -82,25 +72,25 @@ export default function pagesHierarchyReducer(state = initialState, action: AnyA
         };
     }
 
-    case TOGGLE_PAGES_PANEL:
+    case ActionTypes.TOGGLE_PAGES_PANEL:
         return {
             ...state,
             isPanelCollapsed: !state.isPanelCollapsed,
         };
 
-    case OPEN_PAGES_PANEL:
+    case ActionTypes.OPEN_PAGES_PANEL:
         return {
             ...state,
             isPanelCollapsed: false,
         };
 
-    case CLOSE_PAGES_PANEL:
+    case ActionTypes.CLOSE_PAGES_PANEL:
         return {
             ...state,
             isPanelCollapsed: true,
         };
 
-    case SET_OUTLINE_EXPANDED: {
+    case ActionTypes.SET_PAGE_OUTLINE_EXPANDED: {
         const {pageId, expanded, headings} = action.data;
         const newState = {
             ...state,
@@ -120,7 +110,7 @@ export default function pagesHierarchyReducer(state = initialState, action: AnyA
         return newState;
     }
 
-    case TOGGLE_OUTLINE_EXPANDED: {
+    case ActionTypes.TOGGLE_PAGE_OUTLINE_EXPANDED: {
         const {pageId} = action.data;
         const currentlyExpanded = state.outlineExpandedNodes[pageId] || false;
 
@@ -133,7 +123,7 @@ export default function pagesHierarchyReducer(state = initialState, action: AnyA
         };
     }
 
-    case CLEAR_OUTLINE_CACHE: {
+    case ActionTypes.CLEAR_PAGE_OUTLINE_CACHE: {
         const {pageId} = action.data;
         const restCache = {...state.outlineCache};
         Reflect.deleteProperty(restCache, pageId);
@@ -148,7 +138,7 @@ export default function pagesHierarchyReducer(state = initialState, action: AnyA
         };
     }
 
-    case SET_LAST_VIEWED_PAGE: {
+    case ActionTypes.SET_LAST_VIEWED_PAGE: {
         const {wikiId, pageId} = action.data;
         return {
             ...state,

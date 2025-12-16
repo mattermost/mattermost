@@ -648,7 +648,7 @@ func TestChangePageParent(t *testing.T) {
 
 		err = th.App.ChangePageParent(sessionCtx, child.Id, parentInOtherChannel.Id)
 		require.NotNil(t, err)
-		require.Equal(t, "app.page.change_parent.invalid_parent.app_error", err.Id)
+		require.Equal(t, "app.page.change_parent.parent_different_channel.app_error", err.Id)
 	})
 }
 

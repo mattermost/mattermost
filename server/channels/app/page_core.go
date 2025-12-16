@@ -148,10 +148,10 @@ func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, conte
 	title = strings.TrimSpace(title)
 	title = model.SanitizeUnicode(title)
 	if title == "" {
-		return nil, model.NewAppError("CreatePage", "app.page.create.missing_title.app_error", nil, "title is required for pages", http.StatusBadRequest)
+		return nil, model.NewAppError("CreatePage", "app.page.create.missing_title.app_error", nil, "", http.StatusBadRequest)
 	}
 	if len(title) > model.MaxPageTitleLength {
-		return nil, model.NewAppError("CreatePage", "app.page.create.title_too_long.app_error", nil, fmt.Sprintf("title must be %d characters or less", model.MaxPageTitleLength), http.StatusBadRequest)
+		return nil, model.NewAppError("CreatePage", "app.page.create.title_too_long.app_error", map[string]any{"MaxLength": model.MaxPageTitleLength}, "", http.StatusBadRequest)
 	}
 
 	channel, chanErr := a.GetChannel(rctx, channelID)
@@ -160,7 +160,7 @@ func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, conte
 	}
 
 	if channel.DeleteAt != 0 {
-		return nil, model.NewAppError("CreatePage", "app.page.create.deleted_channel.app_error", nil, "channel is archived", http.StatusBadRequest)
+		return nil, model.NewAppError("CreatePage", "app.page.create.deleted_channel.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if permErr := a.checkPagePermissionInChannel(rctx, userID, channel, PageOperationCreate, "CreatePage"); permErr != nil {
@@ -170,13 +170,13 @@ func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, conte
 	if pageParentID != "" {
 		parentPost, err := a.GetSinglePost(rctx, pageParentID, false)
 		if err != nil {
-			return nil, model.NewAppError("CreatePage", "app.page.create.invalid_parent.app_error", nil, "parent page not found", http.StatusBadRequest).Wrap(err)
+			return nil, model.NewAppError("CreatePage", "app.page.create.invalid_parent.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 		if !IsPagePost(parentPost) {
-			return nil, model.NewAppError("CreatePage", "app.page.create.parent_not_page.app_error", nil, "parent must be a page", http.StatusBadRequest)
+			return nil, model.NewAppError("CreatePage", "app.page.create.parent_not_page.app_error", nil, "", http.StatusBadRequest)
 		}
 		if parentPost.ChannelId != channelID {
-			return nil, model.NewAppError("CreatePage", "app.page.create.parent_different_channel.app_error", nil, "parent must be in same channel", http.StatusBadRequest)
+			return nil, model.NewAppError("CreatePage", "app.page.create.parent_different_channel.app_error", nil, "", http.StatusBadRequest)
 		}
 
 		parentDepth, depthErr := a.calculatePageDepth(rctx, pageParentID)
@@ -186,8 +186,7 @@ func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, conte
 		newPageDepth := parentDepth + 1
 		if newPageDepth > model.PostPageMaxDepth {
 			return nil, model.NewAppError("CreatePage", "app.page.create.max_depth_exceeded.app_error",
-				map[string]any{"MaxDepth": model.PostPageMaxDepth},
-				"page hierarchy cannot exceed maximum depth", http.StatusBadRequest)
+				map[string]any{"MaxDepth": model.PostPageMaxDepth}, "", http.StatusBadRequest)
 		}
 	}
 
@@ -249,13 +248,11 @@ func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, conte
 func (a *App) getPagePost(rctx request.CTX, pageID string) (*model.Post, *model.AppError) {
 	post, err := a.Srv().Store().Post().GetSingle(sqlstore.RequestContextWithMaster(rctx), pageID, false)
 	if err != nil {
-		return nil, model.NewAppError("getPagePost", "app.page.get.not_found.app_error",
-			nil, "page not found", http.StatusNotFound).Wrap(err)
+		return nil, model.NewAppError("getPagePost", "app.page.get.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
 	}
 
 	if !IsPagePost(post) {
-		return nil, model.NewAppError("getPagePost", "app.page.get.not_a_page.app_error",
-			nil, "post is not a page", http.StatusBadRequest)
+		return nil, model.NewAppError("getPagePost", "app.page.get.not_a_page.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return post, nil
@@ -430,11 +427,11 @@ func (a *App) loadPageContentForPost(post *model.Post) *model.AppError {
 func (a *App) UpdatePage(rctx request.CTX, pageID, title, content, searchText string) (*model.Post, *model.AppError) {
 	post, err := a.GetSinglePost(rctx, pageID, false)
 	if err != nil {
-		return nil, model.NewAppError("UpdatePage", "app.page.update.not_found.app_error", nil, "page not found", http.StatusNotFound).Wrap(err)
+		return nil, model.NewAppError("UpdatePage", "app.page.update.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
 	}
 
 	if !IsPagePost(post) {
-		return nil, model.NewAppError("UpdatePage", "app.page.update.not_a_page.app_error", nil, "post is not a page", http.StatusBadRequest)
+		return nil, model.NewAppError("UpdatePage", "app.page.update.not_a_page.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	session := rctx.Session()
@@ -445,7 +442,7 @@ func (a *App) UpdatePage(rctx request.CTX, pageID, title, content, searchText st
 	if title != "" {
 		title = model.SanitizeUnicode(title)
 		if len(title) > model.MaxPageTitleLength {
-			return nil, model.NewAppError("UpdatePage", "app.page.update.title_too_long.app_error", nil, fmt.Sprintf("title must be %d characters or less", model.MaxPageTitleLength), http.StatusBadRequest)
+			return nil, model.NewAppError("UpdatePage", "app.page.update.title_too_long.app_error", map[string]any{"MaxLength": model.MaxPageTitleLength}, "", http.StatusBadRequest)
 		}
 	}
 
@@ -453,7 +450,7 @@ func (a *App) UpdatePage(rctx request.CTX, pageID, title, content, searchText st
 	if storeErr != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(storeErr, &nfErr) {
-			return nil, model.NewAppError("UpdatePage", "app.page.update.not_found.app_error", nil, "page not found", http.StatusNotFound).Wrap(storeErr)
+			return nil, model.NewAppError("UpdatePage", "app.page.update.not_found.app_error", nil, "", http.StatusNotFound).Wrap(storeErr)
 		}
 		if strings.Contains(storeErr.Error(), "invalid_content") {
 			return nil, model.NewAppError("UpdatePage", "app.page.update.invalid_content.app_error", nil, "", http.StatusBadRequest).Wrap(storeErr)
@@ -502,11 +499,11 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, pageID, title, c
 	// This is critical for conflict detection - we need the latest EditAt value
 	post, err := a.GetSinglePost(sqlstore.RequestContextWithMaster(rctx), pageID, false)
 	if err != nil {
-		return nil, model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.not_found.app_error", nil, "page not found", http.StatusNotFound).Wrap(err)
+		return nil, model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
 	}
 
 	if !IsPagePost(post) {
-		return nil, model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.not_a_page.app_error", nil, "post is not a page", http.StatusBadRequest)
+		return nil, model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.not_a_page.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	session := rctx.Session()
@@ -517,7 +514,7 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, pageID, title, c
 	if title != "" {
 		title = model.SanitizeUnicode(title)
 		if len(title) > model.MaxPageTitleLength {
-			return nil, model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.title_too_long.app_error", nil, fmt.Sprintf("title must be %d characters or less", model.MaxPageTitleLength), http.StatusBadRequest)
+			return nil, model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.title_too_long.app_error", map[string]any{"MaxLength": model.MaxPageTitleLength}, "", http.StatusBadRequest)
 		}
 	}
 
@@ -537,8 +534,7 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, pageID, title, c
 		}
 
 		return nil, model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.conflict.app_error",
-			map[string]any{"ModifiedBy": modifiedBy, "ModifiedAt": modifiedAt},
-			fmt.Sprintf("page was modified by another user, modified_by=%s, edit_at=%d", modifiedBy, modifiedAt), http.StatusConflict)
+			map[string]any{"ModifiedBy": modifiedBy, "ModifiedAt": modifiedAt}, fmt.Sprintf("modified_by=%s edit_at=%d", modifiedBy, modifiedAt), http.StatusConflict)
 	}
 
 	if title != "" {
@@ -555,12 +551,10 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, pageID, title, c
 	if storeErr != nil {
 		var notFoundErr *store.ErrNotFound
 		if errors.As(storeErr, &notFoundErr) {
-			return nil, model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.not_found.app_error",
-				nil, "page not found or was deleted", http.StatusNotFound)
+			return nil, model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.not_found.app_error", nil, "", http.StatusNotFound)
 		}
 
-		return nil, model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.store_error.app_error",
-			nil, "", http.StatusInternalServerError).Wrap(storeErr)
+		return nil, model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.store_error.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
 	}
 
 	if content != "" {
@@ -591,11 +585,11 @@ func (a *App) DeletePage(rctx request.CTX, pageID string, wikiId ...string) *mod
 
 	post, err := a.GetSinglePost(rctx, pageID, false)
 	if err != nil {
-		return model.NewAppError("DeletePage", "app.page.delete.not_found.app_error", nil, "page not found", http.StatusNotFound).Wrap(err)
+		return model.NewAppError("DeletePage", "app.page.delete.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
 	}
 
 	if !IsPagePost(post) {
-		return model.NewAppError("DeletePage", "app.page.delete.not_a_page.app_error", nil, "post is not a page", http.StatusBadRequest)
+		return model.NewAppError("DeletePage", "app.page.delete.not_a_page.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	session := rctx.Session()
@@ -894,7 +888,7 @@ func convertPlainTextToTipTapJSON(plainText string) string {
 
 	// Build final TipTap document
 	doc := map[string]any{
-		"type":    "doc",
+		"type":    model.TipTapDocType,
 		"content": contentNodes,
 	}
 
@@ -902,7 +896,7 @@ func convertPlainTextToTipTapJSON(plainText string) string {
 	jsonBytes, err := json.Marshal(doc)
 	if err != nil {
 		// Fallback: return empty document
-		return `{"type":"doc","content":[]}`
+		return model.EmptyTipTapJSON
 	}
 
 	return string(jsonBytes)

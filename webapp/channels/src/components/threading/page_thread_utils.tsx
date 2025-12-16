@@ -9,6 +9,7 @@ import type {Post} from '@mattermost/types/posts';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 
 import {isPageComment, isPagePost, isPageInlineComment} from 'utils/page_utils';
+import {getPageTitle} from 'utils/post_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -23,7 +24,7 @@ export function renderThreadPaneHeaderTitle(
     if (isPageComment(post) && pagePost) {
         return (
             <span className='separated'>
-                {(pagePost.props?.title as string) || 'Untitled Page'}
+                {getPageTitle(pagePost, 'Untitled Page')}
             </span>
         );
     }
@@ -31,7 +32,7 @@ export function renderThreadPaneHeaderTitle(
     if (isPagePost(post)) {
         return (
             <span className='separated'>
-                {(post.props?.title as string) || 'Untitled Page'}
+                {getPageTitle(post, 'Untitled Page')}
             </span>
         );
     }

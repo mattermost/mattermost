@@ -7,6 +7,8 @@ import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {Post} from '@mattermost/types/posts';
 
+import {getPageTitle} from 'utils/post_utils';
+
 export type ConfirmOverwriteModalProps = {
     show: boolean;
     currentPage: Post;
@@ -58,7 +60,7 @@ export default function ConfirmOverwriteModal({
                             <FormattedMessage
                                 id='confirm_overwrite.page_title'
                                 defaultMessage='Page: {title}'
-                                values={{title: (currentPage.props?.title as string | undefined) || untitledText}}
+                                values={{title: getPageTitle(currentPage, untitledText)}}
                             />
                         </strong>
                         <br/>

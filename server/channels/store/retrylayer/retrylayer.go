@@ -4857,6 +4857,27 @@ func (s *RetryLayerDraftStore) UpdatePropsOnly(userId string, wikiId string, dra
 
 }
 
+func (s *RetryLayerDraftStore) UpdateDraftParent(userId string, wikiId string, draftId string, newParentId string) error {
+
+	tries := 0
+	for {
+		err := s.DraftStore.UpdateDraftParent(userId, wikiId, draftId, newParentId)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerDraftStore) Upsert(d *model.Draft) (*model.Draft, error) {
 
 	tries := 0

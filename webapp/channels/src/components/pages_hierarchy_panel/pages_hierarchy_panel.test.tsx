@@ -83,7 +83,6 @@ describe('components/pages_hierarchy_panel/PagesHierarchyPanel', () => {
                 createPage: jest.fn().mockResolvedValue({data: 'draft-new'}),
                 updatePage: jest.fn().mockResolvedValue({data: mockPages[0]}),
                 deletePage: jest.fn().mockResolvedValue({data: true}),
-                movePage: jest.fn().mockResolvedValue({data: mockPages[0]}),
                 movePageToWiki: jest.fn().mockResolvedValue({data: true}),
                 duplicatePage: jest.fn().mockResolvedValue({data: mockPages[0]}),
                 closePagesPanel: jest.fn(),

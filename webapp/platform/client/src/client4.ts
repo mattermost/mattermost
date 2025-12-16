@@ -4786,6 +4786,13 @@ export default class Client4 {
         );
     };
 
+    movePageDraft = (wikiId: string, pageId: string, parentId: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getWikiRoute(wikiId)}/drafts/${pageId}/move`,
+            {method: 'post', body: JSON.stringify({parent_id: parentId})},
+        );
+    };
+
     notifyPageEditorStopped = (wikiId: string, pageId: string) => {
         // Use keepalive to ensure request completes even if page is navigating away
         return this.doFetch<null>(

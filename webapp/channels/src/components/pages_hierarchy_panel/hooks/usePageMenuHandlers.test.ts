@@ -133,7 +133,7 @@ describe('usePageMenuHandlers - Rename functionality', () => {
         });
     });
 
-    test('should use message as fallback title when props.title is missing', () => {
+    test('should use empty string as title when props.title is missing', () => {
         const {result} = renderHook(() => usePageMenuHandlers(baseProps));
 
         act(() => {
@@ -143,7 +143,7 @@ describe('usePageMenuHandlers - Rename functionality', () => {
         expect(result.current.showRenameModal).toBe(true);
         expect(result.current.pageToRename).toEqual({
             pageId: 'page2',
-            currentTitle: 'Fallback Title',
+            currentTitle: '',
         });
     });
 

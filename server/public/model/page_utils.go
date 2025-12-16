@@ -29,3 +29,8 @@ func IsPageUrl(url string) bool {
 func BuildPageUrl(teamName, channelId, wikiId, pageId string) string {
 	return fmt.Sprintf("/%s/wiki/%s/%s/%s", teamName, channelId, wikiId, pageId)
 }
+
+// BuildWikiUrl constructs a wiki root URL from components
+func BuildWikiUrl(teamName, channelId, wikiId string) string {
+	return fmt.Sprintf("/%s/wiki/%s/%s", teamName, channelId, wikiId)
+}

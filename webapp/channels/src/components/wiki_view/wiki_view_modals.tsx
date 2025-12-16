@@ -14,6 +14,8 @@ import PageVersionHistoryModal from 'components/page_version_history';
 import type {usePageMenuHandlers} from 'components/pages_hierarchy_panel/hooks/usePageMenuHandlers';
 import TextInputModal from 'components/text_input_modal';
 
+import {getPageTitle} from 'utils/post_utils';
+
 type MenuHandlers = ReturnType<typeof usePageMenuHandlers>;
 
 type ConflictModalProps = {
@@ -65,10 +67,11 @@ const WikiViewModals: React.FC<WikiViewModalsProps> = ({
             {/* Delete page modal */}
             {menuHandlers.showDeleteModal && menuHandlers.pageToDelete && (
                 <DeletePageModal
-                    pageTitle={(menuHandlers.pageToDelete.page.props?.title as string | undefined) || menuHandlers.pageToDelete.page.message || untitledText}
+                    pageTitle={getPageTitle(menuHandlers.pageToDelete.page, untitledText)}
                     childCount={menuHandlers.pageToDelete.childCount}
                     onConfirm={menuHandlers.handleDeleteConfirm}
                     onCancel={menuHandlers.handleDeleteCancel}
+                    onExited={menuHandlers.handleDeleteCancel}
                 />
             )}
 
@@ -131,7 +134,7 @@ const WikiViewModals: React.FC<WikiViewModalsProps> = ({
                 if (!versionHistoryPage) {
                     return null;
                 }
-                const pageTitle = (versionHistoryPage.props?.title as string | undefined) || versionHistoryPage.message || untitledText;
+                const pageTitle = getPageTitle(versionHistoryPage, untitledText);
                 return (
                     <PageVersionHistoryModal
                         page={versionHistoryPage}

@@ -7,20 +7,15 @@ import {
     createWikiThroughUI,
     createPageThroughUI,
     createTestChannel,
+    DEFAULT_PAGE_STATUS,
     getNewPageButton,
     fillCreatePageModal,
+    PAGE_STATUSES,
     publishCurrentPage,
     AUTOSAVE_WAIT,
     HIERARCHY_TIMEOUT,
     PAGE_LOAD_TIMEOUT,
 } from './test_helpers';
-
-/**
- * Page status display names
- * These are stored directly in the backend as human-readable values
- * Source: server/public/model/wiki.go (PageStatus constants)
- */
-const PAGE_STATUSES = ['Rough draft', 'In progress', 'In review', 'Done'] as const;
 
 /**
  * @objective Verify default page status is set to 'in_progress' when creating a new page without selecting status
@@ -50,9 +45,9 @@ test(
         const statusDisplay = page.locator('[data-testid="page-viewer-status"]');
         await expect(statusDisplay).toBeVisible();
 
-        // * Verify default status is 'In progress'
+        // * Verify default status
         const statusText = await statusDisplay.textContent();
-        expect(statusText?.trim()).toBe('In progress');
+        expect(statusText?.trim()).toBe(DEFAULT_PAGE_STATUS);
     },
 );
 
@@ -362,7 +357,7 @@ test('updates status display after edit and update', {tag: '@pages'}, async ({pw
     await page.waitForLoadState('networkidle');
 
     // # Change status to a different value
-    const targetStatusLabel = initialLabel === 'In progress' ? 'Done' : 'In progress';
+    const targetStatusLabel = initialLabel === DEFAULT_PAGE_STATUS ? 'Done' : DEFAULT_PAGE_STATUS;
 
     const statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
     await statusSelector.click();

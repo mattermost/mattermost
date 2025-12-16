@@ -170,7 +170,7 @@ func (a *App) ChangePageParent(rctx request.CTX, postID string, newParentID stri
 
 	post, err := a.getPagePost(rctx, postID)
 	if err != nil {
-		return model.NewAppError("ChangePageParent", "app.page.change_parent.not_found.app_error", nil, "page not found", http.StatusNotFound).Wrap(err)
+		return model.NewAppError("ChangePageParent", "app.page.change_parent.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
 	}
 
 	session := rctx.Session()
@@ -186,25 +186,25 @@ func (a *App) ChangePageParent(rctx request.CTX, postID string, newParentID stri
 
 	if newParentID != "" {
 		if newParentID == postID {
-			return model.NewAppError("ChangePageParent", "app.page.change_parent.circular_reference.app_error", nil, "cannot set page as its own parent", http.StatusBadRequest)
+			return model.NewAppError("ChangePageParent", "app.page.change_parent.circular_reference.app_error", nil, "", http.StatusBadRequest)
 		}
 
 		parentPost, parentErr := a.getPagePost(rctx, newParentID)
 		if parentErr != nil {
-			return model.NewAppError("ChangePageParent", "app.page.change_parent.invalid_parent.app_error", nil, "parent page not found", http.StatusBadRequest).Wrap(parentErr)
+			return model.NewAppError("ChangePageParent", "app.page.change_parent.invalid_parent.app_error", nil, "", http.StatusBadRequest).Wrap(parentErr)
 		}
 		if parentPost.ChannelId != post.ChannelId {
-			return model.NewAppError("ChangePageParent", "app.page.change_parent.invalid_parent.app_error", nil, "parent must be a page in the same channel", http.StatusBadRequest)
+			return model.NewAppError("ChangePageParent", "app.page.change_parent.parent_different_channel.app_error", nil, "", http.StatusBadRequest)
 		}
 
 		ancestors, ancestorErr := a.Srv().Store().Page().GetPageAncestors(newParentID)
 		if ancestorErr != nil {
-			return model.NewAppError("ChangePageParent", "app.page.change_parent.get_ancestors.app_error", nil, "failed to validate page hierarchy", http.StatusInternalServerError).Wrap(ancestorErr)
+			return model.NewAppError("ChangePageParent", "app.page.change_parent.get_ancestors.app_error", nil, "", http.StatusInternalServerError).Wrap(ancestorErr)
 		}
 
 		for _, ancestor := range ancestors.Posts {
 			if ancestor.Id == postID {
-				return model.NewAppError("ChangePageParent", "app.page.change_parent.circular_reference.app_error", nil, "cannot move page to its own descendant", http.StatusBadRequest)
+				return model.NewAppError("ChangePageParent", "app.page.change_parent.circular_reference.app_error", nil, "", http.StatusBadRequest)
 			}
 		}
 
@@ -215,8 +215,7 @@ func (a *App) ChangePageParent(rctx request.CTX, postID string, newParentID stri
 		newPageDepth := parentDepth + 1
 		if newPageDepth > model.PostPageMaxDepth {
 			return model.NewAppError("ChangePageParent", "app.page.change_parent.max_depth_exceeded.app_error",
-				map[string]any{"MaxDepth": model.PostPageMaxDepth},
-				"page hierarchy cannot exceed maximum depth", http.StatusBadRequest)
+				map[string]any{"MaxDepth": model.PostPageMaxDepth}, "", http.StatusBadRequest)
 		}
 	}
 
@@ -304,7 +303,7 @@ func (a *App) BuildBreadcrumbPath(rctx request.CTX, page *model.Post, wiki *mode
 		Id:        wikiId,
 		Title:     wiki.Title,
 		Type:      "wiki",
-		Path:      "/" + team.Name + "/channels/" + page.ChannelId + "?wikiId=" + wikiId,
+		Path:      model.BuildWikiUrl(team.Name, page.ChannelId, wikiId),
 		ChannelId: page.ChannelId,
 	}
 	breadcrumbItems = append(breadcrumbItems, wikiRoot)
@@ -316,7 +315,7 @@ func (a *App) BuildBreadcrumbPath(rctx request.CTX, page *model.Post, wiki *mode
 					Id:        ancestor.Id,
 					Title:     ancestor.GetPageTitle(),
 					Type:      "page",
-					Path:      "/" + team.Name + "/channels/" + page.ChannelId + "/" + ancestor.Id + "?wikiId=" + wikiId,
+					Path:      model.BuildPageUrl(team.Name, ancestor.ChannelId, wikiId, ancestor.Id),
 					ChannelId: ancestor.ChannelId,
 				}
 				breadcrumbItems = append(breadcrumbItems, item)
@@ -328,7 +327,7 @@ func (a *App) BuildBreadcrumbPath(rctx request.CTX, page *model.Post, wiki *mode
 		Id:        page.Id,
 		Title:     page.GetPageTitle(),
 		Type:      "page",
-		Path:      "/" + team.Name + "/channels/" + page.ChannelId + "/" + page.Id + "?wikiId=" + wikiId,
+		Path:      model.BuildPageUrl(team.Name, page.ChannelId, wikiId, page.Id),
 		ChannelId: page.ChannelId,
 	}
 

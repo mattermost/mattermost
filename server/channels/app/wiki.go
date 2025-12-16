@@ -16,15 +16,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-type WikiOperation int
-
-const (
-	WikiOperationCreate WikiOperation = iota
-	WikiOperationEdit
-	WikiOperationDelete
-)
-
-func (a *App) HasPermissionToModifyWiki(rctx request.CTX, session *model.Session, channel *model.Channel, operation WikiOperation, operationName string) *model.AppError {
+func (a *App) HasPermissionToModifyWiki(rctx request.CTX, session *model.Session, channel *model.Channel, operationName string) *model.AppError {
 	switch channel.Type {
 	case model.ChannelTypeOpen:
 		if !a.SessionHasPermissionToChannel(rctx, *session, channel.Id, model.PermissionManagePublicChannelProperties) {
@@ -65,7 +57,7 @@ func (a *App) CreateWiki(rctx request.CTX, wiki *model.Wiki, userId string) (*mo
 	}
 
 	if channel.DeleteAt != 0 {
-		return nil, model.NewAppError("CreateWiki", "app.wiki.create.deleted_channel.app_error", nil, "channel is archived", http.StatusBadRequest)
+		return nil, model.NewAppError("CreateWiki", "app.wiki.create.deleted_channel.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	savedWiki, err := a.Srv().Store().Wiki().CreateWikiWithDefaultPage(wiki, userId)
@@ -116,7 +108,7 @@ func (a *App) UpdateWiki(rctx request.CTX, wiki *model.Wiki) (*model.Wiki, *mode
 	}
 
 	if channel.DeleteAt != 0 {
-		return nil, model.NewAppError("UpdateWiki", "app.wiki.update.deleted_channel.app_error", nil, "channel is archived", http.StatusBadRequest)
+		return nil, model.NewAppError("UpdateWiki", "app.wiki.update.deleted_channel.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	wiki.PreUpdate()
@@ -322,7 +314,7 @@ func (a *App) DeleteWikiPage(rctx request.CTX, pageId, wikiId string) *model.App
 	}
 
 	if channel.DeleteAt != 0 {
-		return model.NewAppError("DeleteWikiPage", "app.wiki.delete_page.deleted_channel.app_error", nil, "channel is archived", http.StatusBadRequest)
+		return model.NewAppError("DeleteWikiPage", "app.wiki.delete_page.deleted_channel.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	post, err := a.GetSinglePost(rctx, pageId, false)
@@ -540,7 +532,7 @@ func (a *App) checkMovePagePermissions(rctx request.CTX, ctx *movePageContext) *
 		return err
 	}
 
-	return a.checkPageCreatePermission(rctx, session, ctx.channel)
+	return a.checkPagePermissionInChannel(rctx, session.UserId, ctx.channel, PageOperationCreate, "checkMovePagePermissions")
 }
 
 func (a *App) validateMovePageParent(rctx request.CTX, pageId, targetWikiId string, parentPageId *string) *model.AppError {

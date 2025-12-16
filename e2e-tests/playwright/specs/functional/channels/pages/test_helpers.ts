@@ -26,6 +26,18 @@ export const DRAG_ANIMATION_WAIT = 1500; // Wait for drag-and-drop animations to
 export const STALE_CLEANUP_TIMEOUT = 65000; // Timeout for stale editor cleanup (60s + buffer)
 
 /**
+ * Valid page status values - mirrors server/public/model/wiki.go constants.
+ * These are stored directly in the backend as human-readable values.
+ */
+export const PAGE_STATUSES = ['Rough draft', 'In progress', 'In review', 'Done'] as const;
+
+/**
+ * Default page status for newly published pages.
+ * Maps to PageStatusInProgress from server/public/model/wiki.go
+ */
+export const DEFAULT_PAGE_STATUS = 'In progress' as const;
+
+/**
  * Generates a unique name with a timestamp suffix.
  * Use this instead of `pw.random.id()` to avoid async/await issues.
  * @param prefix - The prefix for the name (e.g., 'Test Wiki', 'Test Channel')
@@ -629,33 +641,16 @@ export async function createPageThroughUI(page: Page, pageTitle: string, pageCon
     await editor.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
     await editor.waitFor({state: 'attached', timeout: ELEMENT_TIMEOUT});
 
-    // # Fill page content in TipTap editor
-    // Use direct content manipulation via TipTap editor instance to avoid focus issues with RHS
+    // # Fill page content in TipTap editor using real user interaction
     await editor.click({timeout: HIERARCHY_TIMEOUT, force: false});
     await page.waitForTimeout(SHORT_WAIT * 0.6);
 
-    // Set content directly via TipTap editor API (exposed via window.__tiptapEditor)
-    await page.evaluate((content) => {
-        const editorInstance = (window as any).__tiptapEditor;
-        if (editorInstance) {
-            editorInstance.commands.setContent(
-                {
-                    type: 'doc',
-                    content: [
-                        {
-                            type: 'paragraph',
-                            content: [{type: 'text', text: content}],
-                        },
-                    ],
-                },
-                true,
-            ); // emitUpdate: true - triggers onUpdate callback for autosave
-            // Trigger focus to ensure content change is registered
-            editorInstance.commands.focus();
-        }
-    }, pageContent);
+    // Type content using real keyboard input (tests actual user interaction)
+    if (pageContent) {
+        await page.keyboard.type(pageContent);
+    }
 
-    // Wait for content to be set and registered
+    // Wait for content to be typed and registered
     await page.waitForTimeout(SHORT_WAIT * 0.6);
 
     // Wait for auto-save to complete (500ms debounce + network + buffer)
@@ -741,33 +736,16 @@ export async function createChildPageThroughContextMenu(
     await editor.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
     await editor.waitFor({state: 'attached', timeout: ELEMENT_TIMEOUT});
 
-    // # Fill page content in TipTap editor
-    // Use direct content manipulation via TipTap editor instance to avoid focus issues with RHS
+    // # Fill page content in TipTap editor using real user interaction
     await editor.click({timeout: HIERARCHY_TIMEOUT, force: false});
     await page.waitForTimeout(SHORT_WAIT * 0.6);
 
-    // Set content directly via TipTap editor API (exposed via window.__tiptapEditor)
-    await page.evaluate((content) => {
-        const editorInstance = (window as any).__tiptapEditor;
-        if (editorInstance) {
-            editorInstance.commands.setContent(
-                {
-                    type: 'doc',
-                    content: [
-                        {
-                            type: 'paragraph',
-                            content: [{type: 'text', text: content}],
-                        },
-                    ],
-                },
-                true,
-            ); // emitUpdate: true - triggers onUpdate callback for autosave
-            // Trigger focus to ensure content change is registered
-            editorInstance.commands.focus();
-        }
-    }, pageContent);
+    // Type content using real keyboard input (tests actual user interaction)
+    if (pageContent) {
+        await page.keyboard.type(pageContent);
+    }
 
-    // Wait for content to be set and registered
+    // Wait for content to be typed and registered
     await page.waitForTimeout(SHORT_WAIT * 0.6);
 
     // Wait for auto-save to complete (500ms debounce + network + buffer)
@@ -1558,6 +1536,33 @@ export async function moveWikiToChannel(page: Page, wikiName: string, targetChan
  */
 export function getBreadcrumb(page: Page): Locator {
     return page.locator('[data-testid="breadcrumb"]').first();
+}
+
+/**
+ * Gets the breadcrumb wiki name locator
+ * @param page - Playwright page object
+ * @returns The breadcrumb wiki name locator
+ */
+export function getBreadcrumbWikiName(page: Page): Locator {
+    return getBreadcrumb(page).locator('[data-testid="breadcrumb-wiki-name"]');
+}
+
+/**
+ * Gets the breadcrumb links (ancestor pages)
+ * @param page - Playwright page object
+ * @returns The breadcrumb links locator
+ */
+export function getBreadcrumbLinks(page: Page): Locator {
+    return getBreadcrumb(page).locator('[data-testid="breadcrumb-link"]');
+}
+
+/**
+ * Gets the breadcrumb current page locator
+ * @param page - Playwright page object
+ * @returns The breadcrumb current page locator
+ */
+export function getBreadcrumbCurrentPage(page: Page): Locator {
+    return getBreadcrumb(page).locator('[data-testid="breadcrumb-current"]');
 }
 
 /**
@@ -2352,13 +2357,11 @@ export async function deletePageThroughUI(page: Page, pageTitle: string) {
 
 /**
  * Deletes the default draft page through the UI using the sidebar context menu
- * This helper specifically targets draft nodes identified by the draft-badge
+ * This helper specifically targets draft nodes identified by the data-is-draft attribute
  * @param page - Playwright page object
  */
 export async function deleteDefaultDraftThroughUI(page: Page) {
-    const draftNode = page
-        .locator('[data-testid="page-tree-node"]')
-        .filter({has: page.locator('[data-testid="draft-badge"]')});
+    const draftNode = page.locator('[data-testid="page-tree-node"][data-is-draft="true"]');
     await draftNode.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
 
     // Click the menu button on the draft node

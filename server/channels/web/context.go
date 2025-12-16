@@ -790,7 +790,7 @@ func (c *Context) RequirePageId() *Context {
 	return c
 }
 
-func (c *Context) RequireWikiModifyPermission(op app.WikiOperation, callerContext string) (*model.Wiki, *model.Channel, bool) {
+func (c *Context) RequireWikiModifyPermission(callerContext string) (*model.Wiki, *model.Channel, bool) {
 	if c.Err != nil {
 		return nil, nil, false
 	}
@@ -807,7 +807,7 @@ func (c *Context) RequireWikiModifyPermission(op app.WikiOperation, callerContex
 		return nil, nil, false
 	}
 
-	if err := c.App.HasPermissionToModifyWiki(c.AppContext, c.AppContext.Session(), channel, op, callerContext); err != nil {
+	if err := c.App.HasPermissionToModifyWiki(c.AppContext, c.AppContext.Session(), channel, callerContext); err != nil {
 		c.Err = err
 		return nil, nil, false
 	}
@@ -877,4 +877,42 @@ func (c *Context) ValidatePageBelongsToWiki() (*model.Post, bool) {
 
 func (c *Context) GetRemoteID(r *http.Request) string {
 	return r.Header.Get(model.HeaderRemoteclusterId)
+}
+
+// RequirePageModifyPermission validates a page can be modified by the current user.
+// It performs all permission checks needed for page modification operations:
+// 1. Validates page belongs to the wiki specified in the URL
+// 2. Checks wiki modify permission
+// 3. Checks page-level modify permission for the specified operation
+// 4. Validates page's channel matches wiki's channel
+func (c *Context) RequirePageModifyPermission(operation app.PageOperation, callerContext string) (*model.Wiki, *model.Post, bool) {
+	if c.Err != nil {
+		return nil, nil, false
+	}
+
+	// Get page and validate it belongs to this wiki
+	page, ok := c.ValidatePageBelongsToWiki()
+	if !ok {
+		return nil, nil, false
+	}
+
+	// Check wiki modify permission
+	wiki, _, ok := c.RequireWikiModifyPermission(callerContext)
+	if !ok {
+		return nil, nil, false
+	}
+
+	// Check page-level modify permission
+	if err := c.App.HasPermissionToModifyPage(c.AppContext, c.AppContext.Session(), page, operation, callerContext); err != nil {
+		c.Err = err
+		return nil, nil, false
+	}
+
+	// Validate channel match
+	if page.ChannelId != wiki.ChannelId {
+		c.Err = model.NewAppError(callerContext, "api.wiki.page_channel_mismatch", nil, "", http.StatusBadRequest)
+		return nil, nil, false
+	}
+
+	return wiki, page, true
 }

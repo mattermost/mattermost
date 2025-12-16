@@ -47,7 +47,7 @@ func (a *App) UpsertPageDraft(rctx request.CTX, userId, wikiId, pageId, contentJ
 	}
 
 	if channel.DeleteAt != 0 {
-		return nil, model.NewAppError("UpsertPageDraft", "app.draft.save_page.deleted_channel.app_error", nil, "channel is archived", http.StatusBadRequest)
+		return nil, model.NewAppError("UpsertPageDraft", "app.draft.save_page.deleted_channel.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	// Auto-convert plain text to TipTap JSON if content is not already valid JSON
@@ -237,6 +237,37 @@ func (a *App) DeletePageDraft(rctx request.CTX, userId, wikiId, pageId string) *
 	return nil
 }
 
+// MovePageDraft moves a draft to a new parent in the hierarchy.
+// This only updates the page_parent_id prop in the Drafts table, not touching the content in PageContents.
+// This avoids race conditions with concurrent content autosave operations.
+func (a *App) MovePageDraft(rctx request.CTX, userId, wikiId, pageId, newParentId string) *model.AppError {
+	wiki, wikiErr := a.GetWiki(rctx, wikiId)
+	if wikiErr != nil {
+		return model.NewAppError("MovePageDraft", "app.draft.move_page.wiki_not_found.app_error", nil, "", http.StatusNotFound).Wrap(wikiErr)
+	}
+
+	if err := a.Srv().Store().Draft().UpdateDraftParent(userId, wikiId, pageId, newParentId); err != nil {
+		var nfErr *store.ErrNotFound
+		if errors.As(err, &nfErr) {
+			return model.NewAppError("MovePageDraft", "app.draft.move_page.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		}
+		return model.NewAppError("MovePageDraft", "app.draft.move_page.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	message := model.NewWebSocketEvent(model.WebsocketEventDraftUpdated, "", wiki.ChannelId, userId, nil, "")
+	message.Add("page_id", pageId)
+	message.Add("user_id", userId)
+	message.Add("parent_changed", true)
+	message.Add("new_parent_id", newParentId)
+	message.SetBroadcast(&model.WebsocketBroadcast{
+		ChannelId:           wiki.ChannelId,
+		ReliableClusterSend: true,
+	})
+	a.Publish(message)
+
+	return nil
+}
+
 // GetPageDraftsForWiki fetches all page drafts for a wiki from both tables
 func (a *App) GetPageDraftsForWiki(rctx request.CTX, userId, wikiId string) ([]*model.PageDraft, *model.AppError) {
 	rctx.Logger().Debug("Getting page drafts for wiki",
@@ -254,7 +285,7 @@ func (a *App) GetPageDraftsForWiki(rctx request.CTX, userId, wikiId string) ([]*
 	}
 
 	if channel.DeleteAt != 0 {
-		return nil, model.NewAppError("GetPageDraftsForWiki", "app.draft.get_wiki_drafts.deleted_channel.app_error", nil, "channel is archived", http.StatusBadRequest)
+		return nil, model.NewAppError("GetPageDraftsForWiki", "app.draft.get_wiki_drafts.deleted_channel.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	// Fetch content from PageContents table with status='draft'
@@ -349,37 +380,7 @@ func (a *App) validateDraftPermissions(rctx request.CTX, draft *model.PageDraft,
 		return a.HasPermissionToModifyPage(rctx, session, existingPage, PageOperationEdit, "validateDraftPermissions")
 	}
 
-	return a.checkPageCreatePermission(rctx, session, channel)
-}
-
-func (a *App) checkPageCreatePermission(rctx request.CTX, session *model.Session, channel *model.Channel) *model.AppError {
-	switch channel.Type {
-	case model.ChannelTypeOpen, model.ChannelTypePrivate:
-		permission := getPagePermission(PageOperationCreate)
-		if permission == nil {
-			return model.NewAppError("checkPageCreatePermission", "api.page.permission.invalid_channel_type", nil, "", http.StatusForbidden)
-		}
-		if !a.HasPermissionToChannel(rctx, session.UserId, channel.Id, permission) {
-			return model.NewAppError("checkPageCreatePermission", "api.context.permissions.app_error", nil, "", http.StatusForbidden)
-		}
-
-	case model.ChannelTypeGroup, model.ChannelTypeDirect:
-		if _, err := a.GetChannelMember(rctx, channel.Id, session.UserId); err != nil {
-			return model.NewAppError("checkPageCreatePermission", "api.page.permission.no_channel_access", nil, "", http.StatusForbidden)
-		}
-		user, err := a.GetUser(session.UserId)
-		if err != nil {
-			return err
-		}
-		if user.IsGuest() {
-			return model.NewAppError("checkPageCreatePermission", "api.page.permission.guest_cannot_modify", nil, "", http.StatusForbidden)
-		}
-
-	default:
-		return model.NewAppError("checkPageCreatePermission", "api.page.permission.invalid_channel_type", nil, "", http.StatusForbidden)
-	}
-
-	return nil
+	return a.checkPagePermissionInChannel(rctx, session.UserId, channel, PageOperationCreate, "validateDraftPermissions")
 }
 
 func (a *App) validateParentPage(rctx request.CTX, parentId string, wiki *model.Wiki) *model.AppError {

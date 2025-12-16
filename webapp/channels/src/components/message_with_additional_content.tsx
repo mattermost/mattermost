@@ -11,6 +11,7 @@ import PostBodyAdditionalContent from 'components/post_view/post_body_additional
 import PostMessageView from 'components/post_view/post_message_view';
 
 import {isPagePost} from 'utils/page_utils';
+import {getPageTitle} from 'utils/post_utils';
 import {extractPlaintextFromTipTapJSON} from 'utils/tiptap_utils';
 
 import type {PluginsState} from 'types/store/plugins';
@@ -32,7 +33,7 @@ export default function MessageWithAdditionalContent({post, isEmbedVisible, plug
     let msg;
 
     if (isPagePost(post)) {
-        const pageTitle = (post.props?.title as string) || 'Untitled Page';
+        const pageTitle = getPageTitle(post, 'Untitled Page');
         let plainText = '';
 
         try {

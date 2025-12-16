@@ -7,6 +7,7 @@ import {
     createPageThroughUI,
     createChildPageThroughContextMenu,
     createTestChannel,
+    getBreadcrumb,
 } from './test_helpers';
 
 /**
@@ -41,7 +42,7 @@ test(
         await expect(pageViewerContent).toContainText('Child content');
 
         // # Click breadcrumb to go back to parent
-        const breadcrumb = page.locator('[data-testid="breadcrumb"]');
+        const breadcrumb = getBreadcrumb(page);
         const parentLink = breadcrumb.getByRole('link', {name: 'Parent Page'});
         await parentLink.click();
         await page.waitForLoadState('networkidle');

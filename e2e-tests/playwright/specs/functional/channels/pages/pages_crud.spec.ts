@@ -7,6 +7,7 @@ import {
     createPageThroughUI,
     createTestChannel,
     createWikiThroughUI,
+    DEFAULT_PAGE_STATUS,
     deleteDefaultDraftThroughUI,
     deletePageThroughUI,
     editPageThroughUI,
@@ -155,9 +156,7 @@ test('wiki starts with default draft page', {tag: '@pages'}, async ({pw, sharedP
     await createWikiThroughUI(page, `New Wiki ${await pw.random.id()}`);
 
     // * Verify default draft page appears in sidebar
-    const draftNode = page
-        .locator('[data-testid="page-tree-node"]')
-        .filter({has: page.locator('[data-testid="draft-badge"]')});
+    const draftNode = page.locator('[data-testid="page-tree-node"][data-is-draft="true"]');
     await expect(draftNode).toBeVisible();
 });
 
@@ -235,10 +234,10 @@ test('displays page metadata', {tag: '@pages'}, async ({pw, sharedPagesSetup}) =
     await expect(author).toContainText('By');
     await expect(author).toContainText(user.username);
 
-    // * Verify status displays "In progress" (default status for published pages)
+    // * Verify status displays default status for published pages
     const status = page.locator('[data-testid="page-viewer-status"]');
     await expect(status).toBeVisible();
-    await expect(status).toContainText('In progress');
+    await expect(status).toContainText(DEFAULT_PAGE_STATUS);
 });
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -2240,8 +2240,9 @@ func TestGetPageBreadcrumb(t *testing.T) {
 		CheckOKStatus(t, resp)
 		require.NotNil(t, breadcrumb)
 		require.Contains(t, breadcrumb.Items[0].Path, th.BasicTeam.Name)
+		require.Contains(t, breadcrumb.Items[0].Path, "/wiki/")
 		require.Contains(t, breadcrumb.Items[0].Path, th.BasicChannel.Id)
-		require.Contains(t, breadcrumb.Items[0].Path, "wikiId="+createdWiki.Id)
+		require.Contains(t, breadcrumb.Items[0].Path, createdWiki.Id)
 		require.Contains(t, breadcrumb.CurrentPage.Path, page.Id)
 	})
 

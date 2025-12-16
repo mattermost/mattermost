@@ -515,6 +515,54 @@ func (s *SqlDraftStore) UpdatePropsOnly(userId, wikiId, draftId string, props ma
 	return nil
 }
 
+// UpdateDraftParent atomically updates only the page_parent_id prop in the Drafts table.
+// This is used for move operations and does not touch the PageContents table (content/title).
+// It uses a read-modify-write pattern to merge the new parent_id into existing props.
+func (s *SqlDraftStore) UpdateDraftParent(userId, wikiId, draftId, newParentId string) error {
+	// First, get the current draft to read its props
+	draft, err := s.Get(userId, wikiId, draftId, false)
+	if err != nil {
+		return errors.Wrapf(err, "failed to get draft for move userId=%s, wikiId=%s, draftId=%s", userId, wikiId, draftId)
+	}
+
+	// Merge the new parent_id into existing props
+	props := draft.GetProps()
+	if props == nil {
+		props = make(map[string]any)
+	}
+	props[model.DraftPropsPageParentID] = newParentId
+
+	propsJSON := model.StringInterfaceToJSON(props)
+	newUpdateAt := model.GetMillis()
+
+	// Update only the props and updateAt, no optimistic locking on content
+	query := s.getQueryBuilder().
+		Update("Drafts").
+		Set("Props", propsJSON).
+		Set("UpdateAt", newUpdateAt).
+		Where(sq.Eq{
+			"UserId":    userId,
+			"ChannelId": wikiId,
+			"RootId":    draftId,
+		})
+
+	result, err := s.GetMaster().ExecBuilder(query)
+	if err != nil {
+		return errors.Wrapf(err, "failed to update parent for draft userId=%s, wikiId=%s, draftId=%s", userId, wikiId, draftId)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, "failed to get rows affected")
+	}
+
+	if rowsAffected == 0 {
+		return store.NewErrNotFound("Draft", draftId)
+	}
+
+	return nil
+}
+
 // Page draft content methods - Unified PageContent model (drafts stored in PageContents with status='draft')
 
 // CreatePageDraft creates a new page draft in the PageContents table

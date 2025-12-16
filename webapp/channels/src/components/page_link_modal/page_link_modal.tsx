@@ -7,13 +7,13 @@ import {useIntl} from 'react-intl';
 import {GenericModal} from '@mattermost/components';
 import type {Post} from '@mattermost/types/posts';
 
+import {getPageTitle} from 'utils/post_utils';
+
 import './page_link_modal.scss';
 
 type Props = {
     pages: Post[];
     wikiId: string;
-    channelId: string;
-    teamName: string;
     onSelect: (pageId: string, pageTitle: string, pageWikiId: string, linkText: string) => void;
     onCancel: () => void;
     initialLinkText?: string;
@@ -22,10 +22,6 @@ type Props = {
 const PageLinkModal = ({
     pages,
     wikiId,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    channelId,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    teamName,
     onSelect,
     onCancel,
     initialLinkText,
@@ -38,7 +34,7 @@ const PageLinkModal = ({
 
     const filteredPages = useMemo(() => {
         return pages.filter((page) => {
-            const title = (page.props?.title as string) || untitledText;
+            const title = getPageTitle(page, untitledText);
             return title.toLowerCase().includes(searchQuery.toLowerCase());
         }).slice(0, 10);
     }, [pages, searchQuery, untitledText]);
@@ -47,7 +43,7 @@ const PageLinkModal = ({
         const idx = indexOverride === undefined ? selectedIndex : indexOverride;
         const selectedPage = filteredPages[idx];
         if (selectedPage && linkText.trim()) {
-            const title = (selectedPage.props?.title as string) || untitledText;
+            const title = getPageTitle(selectedPage, untitledText);
             const pageWikiId = (selectedPage as any).wiki_id || wikiId;
             onSelect(selectedPage.id, title, pageWikiId, linkText.trim());
         }
@@ -74,16 +70,16 @@ const PageLinkModal = ({
         <GenericModal
             className='PageLinkModal'
             dataTestId='page-link-modal'
-            ariaLabel='Link to Page'
-            modalHeaderText='Link to a page'
+            ariaLabel={formatMessage({id: 'page_link_modal.aria_label', defaultMessage: 'Link to Page'})}
+            modalHeaderText={formatMessage({id: 'page_link_modal.header', defaultMessage: 'Link to a page'})}
             compassDesign={true}
             keyboardEscape={true}
             enforceFocus={false}
             handleConfirm={handleConfirm}
             handleCancel={onCancel}
             onExited={onCancel}
-            confirmButtonText='Insert Link'
-            cancelButtonText='Cancel'
+            confirmButtonText={formatMessage({id: 'page_link_modal.insert_link', defaultMessage: 'Insert Link'})}
+            cancelButtonText={formatMessage({id: 'page_link_modal.cancel', defaultMessage: 'Cancel'})}
             isConfirmDisabled={filteredPages.length === 0 || !linkText.trim()}
             autoCloseOnConfirmButton={true}
         >
@@ -92,7 +88,7 @@ const PageLinkModal = ({
                     htmlFor='page-search-input'
                     className='PageLinkModal__label'
                 >
-                    {'Search for a page'}
+                    {formatMessage({id: 'page_link_modal.search_label', defaultMessage: 'Search for a page'})}
                 </label>
                 <div className='PageLinkModal__search-wrapper'>
                     <i className='icon icon-magnify PageLinkModal__search-icon'/>
@@ -100,7 +96,7 @@ const PageLinkModal = ({
                         id='page-search-input'
                         type='text'
                         className='form-control PageLinkModal__search-input'
-                        placeholder='Type to search...'
+                        placeholder={formatMessage({id: 'page_link_modal.search_placeholder', defaultMessage: 'Type to search...'})}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         onKeyDown={handleKeyDown}
@@ -112,7 +108,9 @@ const PageLinkModal = ({
                     {filteredPages.length === 0 ? (
                         <div className='PageLinkModal__empty-state'>
                             <i className='icon icon-file-document-outline PageLinkModal__empty-icon'/>
-                            {searchQuery ? 'No pages found' : 'No pages available'}
+                            {searchQuery ?
+                                formatMessage({id: 'page_link_modal.no_pages_found', defaultMessage: 'No pages found'}) :
+                                formatMessage({id: 'page_link_modal.no_pages_available', defaultMessage: 'No pages available'})}
                         </div>
                     ) : (
                         filteredPages.map((page, index) => {
@@ -129,7 +127,7 @@ const PageLinkModal = ({
                                 >
                                     <i className='icon icon-file-document-outline PageLinkModal__page-icon'/>
                                     <span className='PageLinkModal__page-title'>
-                                        {(page.props?.title as string) || untitledText}
+                                        {getPageTitle(page, untitledText)}
                                     </span>
                                     {isSelected && (
                                         <i className='icon icon-check PageLinkModal__selected-icon'/>
@@ -144,25 +142,26 @@ const PageLinkModal = ({
                     htmlFor='link-text-input'
                     className='PageLinkModal__label'
                 >
-                    {'Link text'}
+                    {formatMessage({id: 'page_link_modal.link_text_label', defaultMessage: 'Link text'})}
                 </label>
                 <input
                     id='link-text-input'
                     type='text'
                     className='form-control PageLinkModal__link-input'
-                    placeholder={(filteredPages[selectedIndex]?.props?.title as string) || 'Leave empty to use page title'}
+                    placeholder={getPageTitle(filteredPages[selectedIndex], formatMessage({id: 'page_link_modal.link_text_placeholder', defaultMessage: 'Leave empty to use page title'}))}
                     value={linkText}
                     onChange={(e) => setLinkText(e.target.value)}
                     onKeyDown={handleKeyDown}
                 />
                 <small className='PageLinkModal__help-text'>
-                    {'Use '}
-                    <kbd className='PageLinkModal__kbd'>{'↑'}</kbd>
-                    {' / '}
-                    <kbd className='PageLinkModal__kbd'>{'↓'}</kbd>
-                    {' to navigate, '}
-                    <kbd className='PageLinkModal__kbd'>{'Enter'}</kbd>
-                    {' to select'}
+                    {formatMessage(
+                        {id: 'page_link_modal.keyboard_help', defaultMessage: 'Use {up} / {down} to navigate, {enter} to select'},
+                        {
+                            up: <kbd className='PageLinkModal__kbd'>{'↑'}</kbd>,
+                            down: <kbd className='PageLinkModal__kbd'>{'↓'}</kbd>,
+                            enter: <kbd className='PageLinkModal__kbd'>{'Enter'}</kbd>,
+                        },
+                    )}
                 </small>
             </div>
         </GenericModal>

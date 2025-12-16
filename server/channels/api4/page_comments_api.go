@@ -77,7 +77,7 @@ func createPageComment(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if page.Type != model.PostTypePage {
-		c.Err = model.NewAppError("createPageComment", "api.wiki.create_comment.not_page.app_error", nil, "pageId="+c.Params.PageId, http.StatusBadRequest)
+		c.Err = model.NewAppError("createPageComment", "api.wiki.create_comment.not_page.app_error", map[string]any{"PageId": c.Params.PageId}, "", http.StatusBadRequest)
 		return
 	}
 
@@ -143,7 +143,7 @@ func createPageCommentReply(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	if page.Type != model.PostTypePage {
-		c.Err = model.NewAppError("createPageCommentReply", "api.wiki.create_comment_reply.not_page.app_error", nil, "pageId="+c.Params.PageId, http.StatusBadRequest)
+		c.Err = model.NewAppError("createPageCommentReply", "api.wiki.create_comment_reply.not_page.app_error", map[string]any{"PageId": c.Params.PageId}, "", http.StatusBadRequest)
 		return
 	}
 

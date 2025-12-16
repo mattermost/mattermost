@@ -135,8 +135,6 @@ describe('PageLinkModal', () => {
     const baseProps = {
         pages: mockPages,
         wikiId: 'wiki123',
-        channelId: 'channel456',
-        teamName: 'engineering',
         onSelect: jest.fn(),
         onCancel: jest.fn(),
     };
