@@ -1136,6 +1136,50 @@ func TestShouldSendPushNotifications(t *testing.T) {
 		result := th.App.ShouldSendPushNotification(th.Context, user, channelNotifyProps, false, status, post, false)
 		assert.False(t, result)
 	})
+
+	t.Run("should return false if recipient is a bot", func(t *testing.T) {
+		botUser := &model.User{Id: model.NewId(), Email: "bot@test.com", IsBot: true, NotifyProps: make(map[string]string)}
+		botUser.NotifyProps[model.PushNotifyProp] = model.UserNotifyAll
+
+		post := &model.Post{UserId: model.NewId(), ChannelId: model.NewId()}
+
+		channelNotifyProps := map[string]string{model.PushNotifyProp: model.ChannelNotifyAll}
+
+		status := &model.Status{UserId: botUser.Id, Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
+
+		result := th.App.ShouldSendPushNotification(th.Context, botUser, channelNotifyProps, true, status, post, false)
+		assert.False(t, result)
+	})
+
+	t.Run("should return false if recipient is a bot even with force notification", func(t *testing.T) {
+		botUser := &model.User{Id: model.NewId(), Email: "bot@test.com", IsBot: true, NotifyProps: make(map[string]string)}
+		botUser.NotifyProps[model.PushNotifyProp] = model.UserNotifyAll
+
+		post := &model.Post{UserId: model.NewId(), ChannelId: model.NewId()}
+		post.AddProp(model.PostPropsForceNotification, model.NewId())
+
+		channelNotifyProps := map[string]string{model.PushNotifyProp: model.ChannelNotifyAll}
+
+		status := &model.Status{UserId: botUser.Id, Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
+
+		result := th.App.ShouldSendPushNotification(th.Context, botUser, channelNotifyProps, true, status, post, false)
+		assert.False(t, result)
+	})
+
+	t.Run("should return true for regular user even when post author is a bot", func(t *testing.T) {
+		botId := model.NewId()
+		regularUser := &model.User{Id: model.NewId(), Email: "user@test.com", IsBot: false, NotifyProps: make(map[string]string)}
+		regularUser.NotifyProps[model.PushNotifyProp] = model.UserNotifyAll
+
+		post := &model.Post{UserId: botId, ChannelId: model.NewId()}
+
+		channelNotifyProps := map[string]string{model.PushNotifyProp: model.ChannelNotifyAll}
+
+		status := &model.Status{UserId: regularUser.Id, Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
+
+		result := th.App.ShouldSendPushNotification(th.Context, regularUser, channelNotifyProps, true, status, post, false)
+		assert.True(t, result)
+	})
 }
 
 // testPushNotificationHandler is an HTTP handler to record push notifications
@@ -1272,7 +1316,10 @@ func TestClearPushNotificationSync(t *testing.T) {
 	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
-	mockSystemStore.On("Get").Return(model.StringMap{model.SystemServerId: model.NewId()}, nil)
+
+	diagnosticID := model.NewId()
+	mockSystemStore.On("Get").Return(model.StringMap{model.SystemServerId: diagnosticID}, nil)
+	mockSystemStore.On("GetByNameWithContext", mock.Anything, model.SystemServerId).Return(&model.System{Name: model.SystemServerId, Value: diagnosticID}, nil)
 
 	mockSessionStore := mocks.SessionStore{}
 	mockSessionStore.On("GetSessionsWithActiveDeviceIds", mock.AnythingOfType("string")).Return([]*model.Session{sess1, sess2}, nil)
@@ -1349,7 +1396,10 @@ func TestUpdateMobileAppBadgeSync(t *testing.T) {
 	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
-	mockSystemStore.On("Get").Return(model.StringMap{model.SystemServerId: model.NewId()}, nil)
+
+	diagnosticID := model.NewId()
+	mockSystemStore.On("Get").Return(model.StringMap{model.SystemServerId: diagnosticID}, nil)
+	mockSystemStore.On("GetByNameWithContext", mock.Anything, model.SystemServerId).Return(&model.System{Name: model.SystemServerId, Value: diagnosticID}, nil)
 
 	mockSessionStore := mocks.SessionStore{}
 	mockSessionStore.On("GetSessionsWithActiveDeviceIds", mock.AnythingOfType("string")).Return([]*model.Session{sess1, sess2}, nil)
@@ -1422,7 +1472,10 @@ func TestSendAckToPushProxy(t *testing.T) {
 	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
-	mockSystemStore.On("Get").Return(model.StringMap{model.SystemServerId: model.NewId()}, nil)
+
+	diagnosticID := model.NewId()
+	mockSystemStore.On("Get").Return(model.StringMap{model.SystemServerId: diagnosticID}, nil)
+	mockSystemStore.On("GetByNameWithContext", mock.Anything, model.SystemServerId).Return(&model.System{Name: model.SystemServerId, Value: diagnosticID}, nil)
 
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Post").Return(&mockPostStore)
@@ -1667,7 +1720,10 @@ func BenchmarkPushNotificationThroughput(b *testing.B) {
 	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
-	mockSystemStore.On("Get").Return(model.StringMap{model.SystemServerId: model.NewId()}, nil)
+
+	diagnosticID := model.NewId()
+	mockSystemStore.On("Get").Return(model.StringMap{model.SystemServerId: diagnosticID}, nil)
+	mockSystemStore.On("GetByNameWithContext", mock.Anything, model.SystemServerId).Return(&model.System{Name: model.SystemServerId, Value: diagnosticID}, nil)
 
 	mockSessionStore := mocks.SessionStore{}
 	mockPreferenceStore := mocks.PreferenceStore{}
