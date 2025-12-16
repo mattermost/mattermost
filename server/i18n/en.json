@@ -4867,15 +4867,11 @@
     "translation": "Cannot create comment reply: post is not a page."
   },
   {
-    "id": "api.wiki.delete.channel_mismatch",
-    "translation": "Page channel does not match wiki channel."
-  },
-  {
     "id": "api.wiki.delete.not_a_page",
     "translation": "Post is not a page."
   },
   {
-    "id": "api.wiki.get_page.wiki_deleted",
+    "id": "api.wiki.get_page.wiki_deleted.app_error",
     "translation": "Wiki has been deleted."
   },
   {
@@ -4889,6 +4885,10 @@
   {
     "id": "api.wiki.not_found",
     "translation": "Wiki not found."
+  },
+  {
+    "id": "api.wiki.page_channel_mismatch",
+    "translation": "Page channel does not match wiki channel."
   },
   {
     "id": "api.wiki.page_not_found",
@@ -4917,10 +4917,6 @@
   {
     "id": "api.wiki.permission.forbidden.app_error",
     "translation": "You do not have permission to access this wiki."
-  },
-  {
-    "id": "api.wiki.update_page.channel_mismatch",
-    "translation": "Page and wiki must belong to the same channel."
   },
   {
     "id": "api.wiki.update_page_parent.not_page.app_error",
@@ -5909,6 +5905,18 @@
   {
     "id": "app.draft.get_wiki_drafts_metadata.app_error",
     "translation": "Unable to get wiki page draft metadata."
+  },
+  {
+    "id": "app.draft.move_page.app_error",
+    "translation": "Unable to move page draft."
+  },
+  {
+    "id": "app.draft.move_page.not_found.app_error",
+    "translation": "Page draft not found for move."
+  },
+  {
+    "id": "app.draft.move_page.wiki_not_found.app_error",
+    "translation": "Wiki not found for page draft move."
   },
   {
     "id": "app.draft.publish_page.content_error",
@@ -7093,6 +7101,10 @@
   {
     "id": "app.page.change_parent.not_found.app_error",
     "translation": "Page not found for parent change."
+  },
+  {
+    "id": "app.page.change_parent.parent_different_channel.app_error",
+    "translation": "Parent page must be in the same channel."
   },
   {
     "id": "app.page.create.deleted_channel.app_error",

@@ -1366,6 +1366,62 @@
         "403":
           $ref: "#/components/responses/Forbidden"
 
+  /api/v4/wikis/{wiki_id}/drafts/{draft_id}/move:
+    post:
+      tags:
+        - wikis
+      summary: Move page draft to another wiki
+      description: |
+        Moves a page draft from one wiki to another.
+
+        __Minimum server version__: TBD
+
+        ##### Permissions
+        Must be the draft owner and have `create_post` permission in the target wiki's channel.
+      operationId: MovePageDraft
+      parameters:
+        - name: wiki_id
+          in: path
+          description: Source wiki GUID
+          required: true
+          schema:
+            type: string
+        - name: draft_id
+          in: path
+          description: Draft GUID
+          required: true
+          schema:
+            type: string
+            pattern: '[A-Za-z0-9-]+'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - target_wiki_id
+              properties:
+                target_wiki_id:
+                  type: string
+                  description: The ID of the wiki to move the draft to
+        description: Target wiki information
+        required: true
+      responses:
+        "200":
+          description: Draft move successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Draft"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   /api/v4/channels/{channel_id}/pages:
     get:
       tags:
