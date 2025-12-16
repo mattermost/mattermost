@@ -499,7 +499,6 @@ function PostComponent(props: Props) {
         {
             'post--edited': PostUtils.isEdited(post),
             'search-item-snippet': isSearchResultItem,
-            'post-message__shimmer': props.isChannelAutotranslated && isTranslating,
         },
     );
 
@@ -715,6 +714,9 @@ function PostComponent(props: Props) {
                 onMouseOver={handleMouseOver}
                 onMouseLeave={handleMouseLeave}
             >
+                {props.isChannelAutotranslated && isTranslating && (
+                    <div className='post-message__shimmer'/>
+                )}
                 {(Boolean(isSearchResultItem) || (props.location !== Locations.CENTER && props.isFlagged)) &&
                     <div
                         className='search-channel__name__container'
@@ -749,7 +751,9 @@ function PostComponent(props: Props) {
                     channelId={post.channel_id}
                 />
                 <div
-                    className={`post__content ${props.center ? 'center' : ''}`}
+                    className={classNames('post__content', {
+                        center: props.center,
+                    })}
                     data-testid='postContent'
                 >
                     <div className='post__img'>

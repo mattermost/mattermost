@@ -2,16 +2,13 @@
 // See LICENSE.txt for license information.
 
 .ShowTranslationModal {
-    min-width: 42vw;
-
-    &__body {
-        padding: 20px;
-    }
+    min-width: 960px;
 
     &__content {
         display: flex;
         flex-direction: row;
         gap: 16px;
+        padding-bottom: 32px;
     }
 
     &__messageBlock {
@@ -34,7 +31,7 @@
     }
 
     &__languageText {
-        color: var(--center-channel-color);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 12px;
         font-weight: 600;
         text-transform: uppercase;

@@ -1654,10 +1654,10 @@
         }
     }
 
-    .post__translation-icon-processing {
-        margin-left: 4px;
+    .post__translation-icon-processing {        
         color: rgba(var(--center-channel-color-rgb), 0.73);
         font-size: 10px;
+        line-height: 16px;
     }
 
     .post_permalink_mobile_view {
@@ -2297,16 +2297,21 @@
 }
 
 .post-message__shimmer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     animation: shimmer 3.5s linear infinite;
     background: linear-gradient(
         92deg,
-        rgba(var(--center-channel-color-rgb), 0) 0%,
-        rgba(var(--center-channel-color-rgb), 0.08) 40%,
-        rgba(var(--center-channel-color-rgb), 0.16) 50%,
-        rgba(var(--center-channel-color-rgb), 0.08) 60%,
-        rgba(var(--center-channel-color-rgb), 0) 100%
+        rgba(var(--center-channel-color-rgb), 0.08) 0%,
+        rgba(var(--center-channel-color-rgb), 0.16) 40%,
+        rgba(var(--center-channel-color-rgb), 0.24) 50%,
+        rgba(var(--center-channel-color-rgb), 0.16) 60%,
+        rgba(var(--center-channel-color-rgb), 0.08) 100%
     );
-    background-size: 300% 100%;
+    background-size: 200% 100%;
 }
 
 @keyframes shimmer {

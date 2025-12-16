@@ -166,8 +166,8 @@ class ChannelHeader extends React.PureComponent<Props> {
         if (this.props.isChannelAutotranslated) {
             autotranslationMessage = (
                 <WithTooltip
-                    title={this.props.intl.formatMessage({id: 'channel_header.autotranslationMessage', defaultMessage: 'Auto-translation is enabled'})}
-                    hint={this.props.intl.formatMessage({id: 'channel_header.autotranslationMessage', defaultMessage: 'Message data is sent to an external service for translation'})}
+                    title={this.props.intl.formatMessage({id: 'channel_header.autotranslationMessage.tooltip.title', defaultMessage: 'Auto-translation is enabled'})}
+                    hint={this.props.intl.formatMessage({id: 'channel_header.autotranslationMessage.tooltip.hint', defaultMessage: 'Message data is sent to an external service for translation'})}
                 >
                     <div className='autotranslation-header'>
                         <Tag

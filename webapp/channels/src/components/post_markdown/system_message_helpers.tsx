@@ -376,7 +376,7 @@ function renderAutoTranslationChangeMessage(post: Post): ReactNode {
     if (enabled) {
         return (
             <FormattedMessage
-                id='api.channel.auto_translation_change.message'
+                id='api.channel.auto_translation_change.message.enabled'
                 defaultMessage='{username} enabled Auto-translation for this channel. All new messages will appear in your preferred language.'
                 values={{username}}
             />
@@ -384,7 +384,7 @@ function renderAutoTranslationChangeMessage(post: Post): ReactNode {
     }
     return (
         <FormattedMessage
-            id='api.channel.auto_translation_change.message'
+            id='api.channel.auto_translation_change.message.disabled'
             defaultMessage='{username} disabled Auto-translation for this channel. All messages will appear in the original language.'
             values={{username}}
         />

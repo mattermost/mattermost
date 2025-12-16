@@ -38,17 +38,16 @@ function PostHeaderTranslateIcon({
     if (translationState === 'ready') {
         return (
             <WithTooltip
-                title={formatMessage({id: 'post_info.translation_icon', defaultMessage: 'Auto-translated'})}
-                hint={formatMessage({id: 'post_info.translation_icon', defaultMessage: 'Click to view original'})}
+                title={formatMessage({id: 'post_info.translation_icon.title', defaultMessage: 'Auto-translated'})}
+                hint={formatMessage({id: 'post_info.translation_icon.hint', defaultMessage: 'Click to view original'})}
             >
                 <button
-                    className='btn btn-icon btn-xs'
+                    className='btn btn-icon btn-xs btn-compact'
                     onClick={handleTranslationClick}
                     aria-label={formatMessage({id: 'post_info.translation_icon', defaultMessage: 'This post has been translated'})}
                 >
                     <TranslateIcon
                         size={12}
-                        className='icon icon--small'
                         aria-label={formatMessage({
                             id: 'post_info.translation_icon',
                             defaultMessage: 'This post has been translated',
@@ -61,9 +60,11 @@ function PostHeaderTranslateIcon({
 
     if (translationState === 'processing') {
         return (
-            <i className='post__translation-icon-processing'>
-                <LoadingSpinner text={formatMessage({id: 'post_info.translation_icon_processing', defaultMessage: 'Translating...'})}/>
-            </i>
+            <div>
+                <i className='post__translation-icon-processing'>
+                    <LoadingSpinner text={formatMessage({id: 'post_info.translation_icon_processing', defaultMessage: 'Translating...'})}/>
+                </i>
+            </div>
         );
     }
 

@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import noop from 'lodash/noop';
 import React, {useCallback, useMemo, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
@@ -11,8 +10,11 @@ import type {Channel} from '@mattermost/types/channels';
 import {setMyChannelAutotranslation} from 'mattermost-redux/actions/channels';
 
 import {sendEphemeralPost} from 'actions/global_actions';
+import {closeModal} from 'actions/views/modals';
 
 import ConfirmModal from 'components/confirm_modal';
+
+import {ModalIdentifiers} from 'utils/constants';
 
 type Props = {
     channel: Channel;
@@ -22,7 +24,10 @@ const DisableAutotranslationModal = ({channel}: Props) => {
     const dispatch = useDispatch();
     const [show, setShow] = useState(true);
 
-    const handleHide = useCallback(() => setShow(false), []);
+    const handleHide = useCallback(() => {
+        setShow(false);
+        dispatch(closeModal(ModalIdentifiers.DISABLE_AUTOTRANSLATION_CONFIRM));
+    }, [dispatch]);
 
     const handleConfirm = useCallback(async () => {
         handleHide();
@@ -75,7 +80,7 @@ const DisableAutotranslationModal = ({channel}: Props) => {
             cancelButtonText={texts.cancelButtonText}
             onConfirm={handleConfirm}
             onCancel={handleHide}
-            onExited={noop}
+            onExited={handleHide}
             modalClass='disableAutotranslationConfirmModal'
         />
     );

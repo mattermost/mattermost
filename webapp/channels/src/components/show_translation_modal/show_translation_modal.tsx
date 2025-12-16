@@ -54,59 +54,57 @@ function ShowTranslationModal({postId, onExited, onHide}: Props) {
                 defaultMessage: 'Show Translation',
             })}
         >
-            <div className='ShowTranslationModal__body'>
-                <div className='ShowTranslationModal__content'>
-                    {/* Original Message */}
-                    <div className='ShowTranslationModal__messageBlock ShowTranslationModal__messageBlock--original'>
-                        <div className='ShowTranslationModal__badgeContainer'>
-                            <span className='ShowTranslationModal__languageText'>
-                                {originalLanguage === 'unknown' ? intl.formatMessage({
-                                    id: 'show_translation.unknown_language',
-                                    defaultMessage: 'Unknown',
-                                }) : intl.formatDisplayName(originalLanguage, {type: 'language'})}
-                            </span>
-                            <Tag
-                                text={intl.formatMessage({
-                                    id: 'show_translation.original_badge',
-                                    defaultMessage: 'ORIGINAL',
-                                })}
-                                variant='info'
-                                size='sm'
-                            />
-                        </div>
-                        <div className='ShowTranslationModal__postContent'>
-                            <PostMessageView
-                                post={post}
-                                isRHS={false}
-                                isChannelAutotranslated={false}
-                                userLanguage={intl.locale}
-                            />
-                        </div>
+            <div className='ShowTranslationModal__content'>
+                {/* Original Message */}
+                <div className='ShowTranslationModal__messageBlock ShowTranslationModal__messageBlock--original'>
+                    <div className='ShowTranslationModal__badgeContainer'>
+                        <span className='ShowTranslationModal__languageText'>
+                            {originalLanguage === 'unknown' ? intl.formatMessage({
+                                id: 'show_translation.unknown_language',
+                                defaultMessage: 'Unknown',
+                            }) : intl.formatDisplayName(originalLanguage, {type: 'language'})}
+                        </span>
+                        <Tag
+                            text={intl.formatMessage({
+                                id: 'show_translation.original_badge',
+                                defaultMessage: 'ORIGINAL',
+                            })}
+                            variant='info'
+                            size='xs'
+                        />
                     </div>
+                    <div className='ShowTranslationModal__postContent'>
+                        <PostMessageView
+                            post={post}
+                            isRHS={false}
+                            isChannelAutotranslated={false}
+                            userLanguage={intl.locale}
+                        />
+                    </div>
+                </div>
 
-                    {/* Translated Message */}
-                    <div className='ShowTranslationModal__messageBlock ShowTranslationModal__messageBlock--translated'>
-                        <div className='ShowTranslationModal__badgeContainer'>
-                            <span className='ShowTranslationModal__languageText'>
-                                {intl.formatDisplayName(intl.locale, {type: 'language'})}
-                            </span>
-                            <Tag
-                                text={intl.formatMessage({
-                                    id: 'show_translation.auto_translated_badge',
-                                    defaultMessage: 'AUTO-TRANSLATED',
-                                })}
-                                variant='default'
-                                size='sm'
-                            />
-                        </div>
-                        <div className='ShowTranslationModal__postContent'>
-                            <PostMessageView
-                                post={post}
-                                isRHS={false}
-                                isChannelAutotranslated={true}
-                                userLanguage={intl.locale}
-                            />
-                        </div>
+                {/* Translated Message */}
+                <div className='ShowTranslationModal__messageBlock ShowTranslationModal__messageBlock--translated'>
+                    <div className='ShowTranslationModal__badgeContainer'>
+                        <span className='ShowTranslationModal__languageText'>
+                            {intl.formatDisplayName(intl.locale, {type: 'language'})}
+                        </span>
+                        <Tag
+                            text={intl.formatMessage({
+                                id: 'show_translation.auto_translated_badge',
+                                defaultMessage: 'AUTO-TRANSLATED',
+                            })}
+                            variant='default'
+                            size='xs'
+                        />
+                    </div>
+                    <div className='ShowTranslationModal__postContent'>
+                        <PostMessageView
+                            post={post}
+                            isRHS={false}
+                            isChannelAutotranslated={true}
+                            userLanguage={intl.locale}
+                        />
                     </div>
                 </div>
             </div>

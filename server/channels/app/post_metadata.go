@@ -802,6 +802,8 @@ func (a *App) getLinkMetadataForPermalink(rctx request.CTX, requestURL string) (
 		permalink = &model.Permalink{PreviewPost: model.NewPreviewPost(referencedPostWithMetadata, referencedTeam, referencedChannel)}
 	}
 
+	a.populatePostListTranslations(rctx, &model.PostList{Posts: map[string]*model.Post{permalink.PreviewPost.Post.Id: permalink.PreviewPost.Post}})
+
 	return permalink, nil
 }
 
