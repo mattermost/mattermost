@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@mattermost/compass-icons": "0.1.52",
+    "react-intl": "7.1.14",
     "typescript": "5.6.3"
   },
   "devDependencies": {

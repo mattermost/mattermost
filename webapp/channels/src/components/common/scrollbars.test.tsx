@@ -7,7 +7,6 @@ import {fireEvent, render} from 'tests/react_testing_utils';
 
 import Scrollbars from './scrollbars';
 
-// Mock getComputedStyle to handle pseudo elements (not implemented in jsdom 25+)
 const originalGetComputedStyle = window.getComputedStyle;
 beforeAll(() => {
     window.getComputedStyle = (elt: Element, pseudoElt?: string | null) => {

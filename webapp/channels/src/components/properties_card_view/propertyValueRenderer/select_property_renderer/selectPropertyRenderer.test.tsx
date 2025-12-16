@@ -86,8 +86,6 @@ describe('SelectPropertyRenderer', () => {
     });
 
     it('should render select property with default light_gray color', () => {
-        // Note: baseField uses 'light_gray' (American spelling) but component
-        // switch case uses 'light_grey' (British spelling), so this falls to default
         const field = baseField;
         const value = {value: 'option4'} as PropertyValue<string>;
 

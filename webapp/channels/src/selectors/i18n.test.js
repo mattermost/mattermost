@@ -70,7 +70,6 @@ describe('selectors/i18n', () => {
         });
 
         describe('locale from query parameter', () => {
-            // In jsdom 25+, we use history.replaceState to change the URL without navigation errors
             const setWindowLocaleQueryParameter = (locale) => {
                 const url = new URL(window.location.href);
                 url.searchParams.set('locale', locale);

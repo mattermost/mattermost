@@ -318,7 +318,6 @@ describe('components/login/Login', () => {
 
         const button = screen.getByRole('link', {name: 'Gitlab Icon GitLab 2'});
 
-        // In jsdom 25+, style is a CSSStyleDeclaration and colors are normalized to rgb
         expect(button.style.color).toBe('rgb(0, 255, 0)');
         expect(button.style.borderColor).toBe('rgb(0, 255, 0)');
     });
@@ -373,7 +372,6 @@ describe('components/login/Login', () => {
 
         const button = screen.getByRole('link', {name: 'OpenID Icon OpenID 2'});
 
-        // In jsdom 25+, style is a CSSStyleDeclaration and colors are normalized to rgb
         expect(button.style.color).toBe('rgb(0, 255, 0)');
         expect(button.style.borderColor).toBe('rgb(0, 255, 0)');
     });

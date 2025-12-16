@@ -77,8 +77,6 @@ describe('components/Menu', () => {
 
         const menu = screen.getByRole('menu');
 
-        // In Jest 30 / jsdom 25+, toHaveStyle can have issues with style property names.
-        // Using direct style property checks for reliability.
         expect(menu.style.maxHeight).toBe('200px');
         expect(menu.style.backgroundColor).toBe('red');
     });

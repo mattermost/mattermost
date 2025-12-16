@@ -27,9 +27,6 @@ configure({adapter: new Adapter()});
 
 global.window = Object.create(window);
 
-// Note: window.location.reload mocking is handled by custom-jsdom-environment.ts
-// The custom environment makes reload mockable while preserving jsdom 25+ behavior.
-
 // The current version of jsdom that's used by jest-environment-jsdom 29 doesn't support fetch, so we have to
 // use node-fetch despite some mismatched parameters.
 globalThis.fetch = nodeFetch as unknown as typeof fetch;
@@ -111,8 +108,6 @@ afterEach(() => {
         }
 
         // jsdom doesn't implement navigation, but this is expected behavior in tests
-        // that manipulate window.location. This is not a real error.
-        // Also handle getComputedStyle pseudo element errors from simplebar and similar libraries.
         const errorStr = call[0] instanceof Error ? call[0].message : String(call[0]);
         if (errorStr.includes('Not implemented:')) {
             continue;
