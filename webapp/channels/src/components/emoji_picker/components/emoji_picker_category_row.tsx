@@ -15,6 +15,8 @@ interface Props {
 }
 
 function EmojiPickerCategoryRow({categoryName, style}: Props) {
+    const category = EMOJI_CATEGORIES[categoryName];
+
     return (
         <div
             className='emoji-picker__row'
@@ -25,7 +27,7 @@ function EmojiPickerCategoryRow({categoryName, style}: Props) {
                 className='emoji-picker__category-header'
                 id={`emojipickercat-${categoryName}`}
             >
-                <FormattedMessage {...EMOJI_CATEGORIES[categoryName].label}/>
+                <FormattedMessage {...category.label}/>
             </div>
         </div>
     );

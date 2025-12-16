@@ -210,9 +210,11 @@ export default function AboutBuildModal(props: Props) {
     );
 
     const getServerVersionString = () => {
+        const version = config.BuildNumber === 'dev' ? config.BuildNumber : config.Version;
+        const fipsSuffix = config.IsFipsEnabled === 'true' ? ' (FIPS)' : '';
         return intl.formatMessage(
             {id: 'about.serverVersion', defaultMessage: 'Server Version:'},
-        ) + '\u00a0' + (config.BuildNumber === 'dev' ? config.BuildNumber : config.Version);
+        ) + '\u00a0' + version + fipsSuffix;
     };
 
     const getDesktopVersionString = () => {

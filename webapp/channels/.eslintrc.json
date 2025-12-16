@@ -65,6 +65,10 @@
               "name": "mattermost-redux/types/actions",
               "importNames": ["DispatchFunc", "GetStateFunc", "ActionFunc", "ActionFuncAsync", "ThunkActionFunc"],
               "message": "Use the web app version of it from types/store"
+            }],
+            "patterns": [{
+              "group": ["@mattermost/client/src/*", "@mattermost/components/src/*", "@mattermost/types/src/*"],
+              "message": "Don't include the src folder when importing from packages in webapp/platform"
             }]
           }
         ]

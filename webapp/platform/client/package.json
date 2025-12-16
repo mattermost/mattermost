@@ -40,7 +40,7 @@
     "check": "eslint --ext .js,.jsx,.tsx,.ts ./src --quiet",
     "run": "tsc --watch --preserveWatchOutput",
     "test": "jest",
-    "test-ci": "jest --ci --forceExit --detectOpenHandles --maxWorkers=100%",
+    "test-ci": "jest --ci --forceExit --detectOpenHandles --maxWorkers=100% --logHeapUsage",
     "clean": "rm -rf lib node_modules *.tsbuildinfo"
   }
 }

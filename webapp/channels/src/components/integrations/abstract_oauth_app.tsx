@@ -318,6 +318,7 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
             </SystemPermissionGate>
         );
 
+        const isEditing = Boolean(this.props.initialApp?.id);
         const publicClient = (
             <div className='form-group'>
                 <label
@@ -337,6 +338,7 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
                             name='is_public'
                             checked={this.state.is_public}
                             onChange={this.updatePublic}
+                            disabled={isEditing}
                         />
                         <FormattedMessage
                             id='installed_oauth_apps.public.yes'
@@ -350,6 +352,7 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
                             name='is_public'
                             checked={!this.state.is_public}
                             onChange={this.updatePublic}
+                            disabled={isEditing}
                         />
                         <FormattedMessage
                             id='installed_oauth_apps.public.no'
@@ -359,7 +362,7 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
                     <div className='form__help'>
                         <FormattedMessage
                             id='add_oauth_app.public.help'
-                            defaultMessage='If true, the OAuth 2.0 application is a public client (no client secret). Public clients must use PKCE for authorization. If false, the application is a confidential client with a client secret.'
+                            defaultMessage='If true, the OAuth 2.0 application is a public client (no client secret). Public clients must use PKCE for authorization. If false, the application is a confidential client with a client secret. This setting cannot be changed after the application is created.'
                         />
                     </div>
                 </div>
