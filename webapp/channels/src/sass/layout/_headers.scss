@@ -379,9 +379,9 @@
         align-items: center;
         margin: 0;
         font-size: 12px;
+        gap: 8px;
         line-height: 24px;
         text-overflow: ellipsis;
-        gap: 8px;
 
         span[data-emoticon] {
             .emoticon {
