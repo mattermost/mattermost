@@ -2886,6 +2886,16 @@ func (c *Client4) MoveChannel(ctx context.Context, channelId, teamId string, for
 	return DecodeJSONFromResponse[*Channel](r)
 }
 
+// GetDirectOrGroupMessageMembersCommonTeams returns the set of teams in common for members of a DM/GM channel.
+func (c *Client4) GetDirectOrGroupMessageMembersCommonTeams(ctx context.Context, channelId string) ([]*Team, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.channelRoute(channelId)+"/common_teams", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*Team](r)
+}
+
 // GetChannelByName returns a channel based on the provided channel name and team id strings.
 func (c *Client4) GetChannelByName(ctx context.Context, channelName, teamId string, etag string) (*Channel, *Response, error) {
 	r, err := c.DoAPIGet(ctx, c.channelByNameRoute(channelName, teamId), etag)
