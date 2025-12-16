@@ -1658,6 +1658,10 @@
         color: rgba(var(--center-channel-color-rgb), 0.73);
         font-size: 10px;
         line-height: 16px;
+        
+        .LoadingSpinner.with-text .spinner {
+            margin-right: 3px;
+        }
     }
 
     .post_permalink_mobile_view {
@@ -2302,19 +2306,22 @@
     right: 0;
     bottom: 0;
     left: 0;
-    animation: shimmer 3.5s linear infinite;
+    z-index: 999;
+    border-radius: 4px;
+    animation: post-message-shimmer 3.5s linear infinite;
     background: linear-gradient(
-        92deg,
-        rgba(var(--center-channel-color-rgb), 0.08) 0%,
-        rgba(var(--center-channel-color-rgb), 0.16) 40%,
-        rgba(var(--center-channel-color-rgb), 0.24) 50%,
-        rgba(var(--center-channel-color-rgb), 0.16) 60%,
-        rgba(var(--center-channel-color-rgb), 0.08) 100%
+        110deg,
+        rgba(var(--center-channel-bg-rgb), 0.40) 0%,
+        rgba(var(--center-channel-bg-rgb), 0.40) 40%,
+        var(--center-channel-bg) 50%,
+        rgba(var(--center-channel-bg-rgb), 0.40) 60%,
+        rgba(var(--center-channel-bg-rgb), 0.40) 100%
     );
-    background-size: 200% 100%;
+    background-size: 300% 100%;
+    pointer-events: none;
 }
 
-@keyframes shimmer {
+@keyframes post-message-shimmer {
     0% {
         background-position: 200% 0;
     }
