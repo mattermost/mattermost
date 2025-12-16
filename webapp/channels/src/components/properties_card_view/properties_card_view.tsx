@@ -23,6 +23,7 @@ export type PostPreviewFieldMetadata = {
     fetchDeletedPost?: boolean;
     getChannel?: (channelId: string) => Promise<Channel>;
     getTeam?: (teamId: string) => Promise<Team>;
+    generateFileDownloadUrl?: (fileId: string) => string;
 };
 
 export type UserPropertyMetadata = {

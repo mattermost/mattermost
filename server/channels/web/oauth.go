@@ -29,7 +29,8 @@ const (
 
 func (w *Web) InitOAuth() {
 	// OAuth 2.0 Authorization Server Metadata endpoint (RFC 8414)
-	w.MainRouter.Handle(model.OAuthMetadataEndpoint, w.APIHandlerTrustRequester(getAuthorizationServerMetadata)).Methods(http.MethodGet)
+	// Match the exact path and any path with additional segments after it
+	w.MainRouter.PathPrefix(model.OAuthMetadataEndpoint).Handler(w.APIHandlerTrustRequester(getAuthorizationServerMetadata)).Methods(http.MethodGet)
 
 	// API version independent OAuth 2.0 as a service provider endpoints
 	w.MainRouter.Handle(model.OAuthAuthorizeEndpoint, w.APIHandlerTrustRequester(authorizeOAuthPage)).Methods(http.MethodGet)
@@ -42,6 +43,9 @@ func (w *Web) InitOAuth() {
 	w.MainRouter.Handle("/oauth/{service:[A-Za-z0-9]+}/login", w.APIHandler(loginWithOAuth)).Methods(http.MethodGet)
 	w.MainRouter.Handle("/oauth/{service:[A-Za-z0-9]+}/mobile_login", w.APIHandler(mobileLoginWithOAuth)).Methods(http.MethodGet)
 	w.MainRouter.Handle("/oauth/{service:[A-Za-z0-9]+}/signup", w.APIHandler(signupWithOAuth)).Methods(http.MethodGet)
+
+	// Intune MAM authentication endpoint
+	w.MainRouter.Handle("/oauth/intune", w.APIHandler(loginByIntune)).Methods(http.MethodPost)
 
 	// Old endpoints for backwards compatibility, needed to not break SSO for any old setups
 	w.MainRouter.Handle("/api/v3/oauth/{service:[A-Za-z0-9]+}/complete", w.APIHandler(completeOAuth)).Methods(http.MethodGet)
@@ -622,5 +626,54 @@ func getAuthorizationServerMetadata(c *Context, w http.ResponseWriter, r *http.R
 
 	if err := json.NewEncoder(w).Encode(metadata); err != nil {
 		c.Logger.Warn("Error writing authorization server metadata response", mlog.Err(err))
+	}
+}
+
+// loginByIntune handles authentication using Microsoft Intune MAM with Entra ID tokens
+func loginByIntune(c *Context, w http.ResponseWriter, r *http.Request) {
+	var req model.IntuneLoginRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		c.SetInvalidParamWithErr("request_body", err)
+		return
+	}
+
+	if req.AccessToken == "" {
+		c.SetInvalidParam("access_token")
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("login_by_intune", model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	c.LogAudit("attempt")
+
+	// Authenticate user via Intune MAM
+	user, err := c.App.LoginByIntune(c.AppContext, req.AccessToken)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.AddMeta("obtained_user_id", user.Id)
+	c.LogAuditWithUserId(user.Id, "obtained user")
+
+	isMobile := req.DeviceId != ""
+	session, err := c.App.DoLogin(c.AppContext, w, r, user, req.DeviceId, isMobile, true, false)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	c.AppContext = c.AppContext.WithSession(session)
+
+	c.App.AttachSessionCookies(c.AppContext, w, r)
+
+	auditRec.Success()
+	c.LogAuditWithUserId(user.Id, "success")
+
+	user.Sanitize(map[string]bool{})
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		c.Logger.Warn("Failed to encode user response", mlog.Err(err))
 	}
 }

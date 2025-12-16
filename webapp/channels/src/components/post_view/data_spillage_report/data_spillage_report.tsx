@@ -11,6 +11,7 @@ import type {Post} from '@mattermost/types/posts';
 import type {NameMappedPropertyFields, PropertyValue} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
+import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
 
 import AtMention from 'components/at_mention';
 import {useContentFlaggingFields, usePostContentFlaggingValues} from 'components/common/hooks/useContentFlaggingFields';
@@ -144,6 +145,7 @@ export function DataSpillageReport({post, isRHS}: Props) {
                 fetchDeletedPost: true,
                 getChannel: getChannel(reportedPostId),
                 getTeam: getTeam(reportedPostId),
+                generateFileDownloadUrl: generateFileDownloadUrl(reportedPostId),
             },
             reporting_comment: {
                 placeholder: formatMessage({id: 'data_spillage_report_post.reporting_comment.placeholder', defaultMessage: 'No comment'}),
@@ -243,4 +245,8 @@ function getTeam(flaggedPostId: string) {
     return (teamId: string) => {
         return Client4.getTeam(teamId, true, flaggedPostId);
     };
+}
+
+function generateFileDownloadUrl(flaggedPostId: string) {
+    return (fileId: string) => getFileDownloadUrl(fileId, true, flaggedPostId);
 }
