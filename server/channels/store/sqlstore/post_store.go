@@ -1915,82 +1915,6 @@ func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int, ski
 }
 
 func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, skipFetchThreads bool, includeDeleted bool) ([]*model.Post, error) {
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		return s.getParentsPostsPostgreSQL(channelId, offset, limit, skipFetchThreads, includeDeleted)
-	}
-
-	deleteAtCondition := "AND DeleteAt = 0"
-	if includeDeleted {
-		deleteAtCondition = ""
-	}
-
-	// query parent Ids first
-	roots := []string{}
-	rootQuery := `
-		SELECT DISTINCT
-			q.RootId
-		FROM
-			(SELECT
-				Posts.RootId
-			FROM
-				Posts
-			WHERE
-				ChannelId = ? ` + deleteAtCondition + `
-			ORDER BY CreateAt DESC
-			LIMIT ? OFFSET ?) q
-		WHERE q.RootId != ''`
-
-	err := s.GetReplica().Select(&roots, rootQuery, channelId, limit, offset)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to find Posts")
-	}
-	if len(roots) == 0 {
-		return nil, nil
-	}
-
-	cols := []string{"p.*"}
-	var where sq.Sqlizer
-	where = sq.Eq{"p.Id": roots}
-	if skipFetchThreads {
-		col := "(SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END)) as ReplyCount"
-		if !includeDeleted {
-			col = "(SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount"
-		}
-		cols = append(cols, col)
-	} else {
-		where = sq.Or{
-			where,
-			sq.Eq{"p.RootId": roots},
-		}
-	}
-
-	query := s.getQueryBuilder().
-		Select(cols...).
-		From("Posts p").
-		Where(sq.And{
-			where,
-			sq.Eq{"p.ChannelId": channelId},
-		}).
-		OrderBy("p.CreateAt")
-
-	if !includeDeleted {
-		query = query.Where(sq.Eq{"p.DeleteAt": 0})
-	}
-
-	sql, args, err := query.ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "ParentPosts_Tosql")
-	}
-
-	posts := []*model.Post{}
-	err = s.GetReplica().Select(&posts, sql, args...)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to find Posts")
-	}
-	return posts, nil
-}
-
-func (s *SqlPostStore) getParentsPostsPostgreSQL(channelId string, offset int, limit int, skipFetchThreads bool, includeDeleted bool) ([]*model.Post, error) {
 	posts := []*model.Post{}
 	replyCountQuery := ""
 	onStatement := "q1.RootId = q2.Id"
@@ -2352,9 +2276,8 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.AnalyticsRows, error) {
 	var args []any
 	query :=
-		`SELECT DISTINCT
-		        DATE(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
-		        COUNT(DISTINCT Posts.UserId) AS Value
+		`SELECT
+			TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name, COUNT(DISTINCT Posts.UserId) AS Value
 		FROM Posts`
 
 	if teamId != "" {
@@ -2365,28 +2288,9 @@ func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.A
 	}
 
 	query += ` Posts.CreateAt >= ? AND Posts.CreateAt <= ?
-		GROUP BY DATE(FROM_UNIXTIME(Posts.CreateAt / 1000))
+		GROUP BY DATE(TO_TIMESTAMP(Posts.CreateAt / 1000))
 		ORDER BY Name DESC
 		LIMIT 30`
-
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		query =
-			`SELECT
-				TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name, COUNT(DISTINCT Posts.UserId) AS Value
-			FROM Posts`
-
-		if teamId != "" {
-			query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = ? AND"
-			args = []any{teamId}
-		} else {
-			query += " WHERE"
-		}
-
-		query += ` Posts.CreateAt >= ? AND Posts.CreateAt <= ?
-			GROUP BY DATE(TO_TIMESTAMP(Posts.CreateAt / 1000))
-			ORDER BY Name DESC
-			LIMIT 30`
-	}
 
 	end := utils.MillisFromTime(utils.EndOfDay(utils.Yesterday()))
 	start := utils.MillisFromTime(utils.StartOfDay(utils.Yesterday().AddDate(0, 0, -31)))
@@ -2463,56 +2367,16 @@ func (s *SqlPostStore) countPostsByDay(teamID, startDay, endDay string) (model.A
 
 // TODO: convert to squirrel HW
 func (s *SqlPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCountsOptions) (model.AnalyticsRows, error) {
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		endDay := utils.Yesterday().Format("2006-01-02")
-		startDay := utils.Yesterday().AddDate(0, 0, -31).Format("2006-01-02")
-		if options.YesterdayOnly {
-			startDay = utils.Yesterday().AddDate(0, 0, -1).Format("2006-01-02")
-		}
-		// Use materialized views
-		if options.BotsOnly {
-			return s.countBotPostsByDay(options.TeamId, startDay, endDay)
-		}
-		return s.countPostsByDay(options.TeamId, startDay, endDay)
-	}
-
-	var args []any
-	query :=
-		`SELECT
-		        DATE(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
-		        COUNT(Posts.Id) AS Value
-		    FROM Posts`
-
-	if options.BotsOnly {
-		query += " INNER JOIN Bots ON Posts.UserId = Bots.Userid"
-	}
-
-	if options.TeamId != "" {
-		query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = ? AND"
-		args = []any{options.TeamId}
-	} else {
-		query += " WHERE"
-	}
-
-	query += ` Posts.CreateAt <= ?
-		            AND Posts.CreateAt >= ?
-		GROUP BY DATE(FROM_UNIXTIME(Posts.CreateAt / 1000))
-		ORDER BY Name DESC
-		LIMIT 30`
-
-	end := utils.MillisFromTime(utils.EndOfDay(utils.Yesterday()))
-	start := utils.MillisFromTime(utils.StartOfDay(utils.Yesterday().AddDate(0, 0, -31)))
+	endDay := utils.Yesterday().Format("2006-01-02")
+	startDay := utils.Yesterday().AddDate(0, 0, -31).Format("2006-01-02")
 	if options.YesterdayOnly {
-		start = utils.MillisFromTime(utils.StartOfDay(utils.Yesterday().AddDate(0, 0, -1)))
+		startDay = utils.Yesterday().AddDate(0, 0, -1).Format("2006-01-02")
 	}
-	args = append(args, end, start)
-
-	rows := model.AnalyticsRows{}
-	err := s.GetReplica().Select(&rows, query, args...)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to find Posts with teamId=%s", options.TeamId)
+	// Use materialized views
+	if options.BotsOnly {
+		return s.countBotPostsByDay(options.TeamId, startDay, endDay)
 	}
-	return rows, nil
+	return s.countPostsByDay(options.TeamId, startDay, endDay)
 }
 
 func (s *SqlPostStore) countByTeam(teamID string) (int64, error) {
@@ -2534,11 +2398,7 @@ func (s *SqlPostStore) countByTeam(teamID string) (int64, error) {
 }
 
 func (s *SqlPostStore) AnalyticsPostCountByTeam(teamID string) (int64, error) {
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		return s.countByTeam(teamID)
-	}
-
-	return s.AnalyticsPostCount(&model.PostCountOptions{TeamId: teamID})
+	return s.countByTeam(teamID)
 }
 
 func (s *SqlPostStore) AnalyticsPostCount(options *model.PostCountOptions) (int64, error) {
@@ -2722,12 +2582,7 @@ func (s *SqlPostStore) PermanentDeleteBatchForRetentionPolicies(retentionPolicyB
 }
 
 func (s *SqlPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
-	var query string
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		query = "DELETE from Posts WHERE Id = any (array (SELECT Id FROM Posts WHERE CreateAt < ? LIMIT ?))"
-	} else {
-		query = "DELETE from Posts WHERE CreateAt < ? LIMIT ?"
-	}
+	query := "DELETE from Posts WHERE Id = any (array (SELECT Id FROM Posts WHERE CreateAt < ? LIMIT ?))"
 
 	sqlResult, err := s.GetMaster().Exec(query, endTime, limit)
 	if err != nil {
@@ -2758,22 +2613,18 @@ func (s *SqlPostStore) GetOldest() (*model.Post, error) {
 func (s *SqlPostStore) determineMaxPostSize() int {
 	var maxPostSizeBytes int32
 
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		// The Post.Message column in Postgres has historically been VARCHAR(4000), but
-		// may be manually enlarged to support longer posts.
-		if err := s.GetReplica().Get(&maxPostSizeBytes, `
-			SELECT
-				COALESCE(character_maximum_length, 0)
-			FROM
-				information_schema.columns
-			WHERE
-				table_name = 'posts'
-			AND	column_name = 'message'
-		`); err != nil {
-			mlog.Warn("Unable to determine the maximum supported post size", mlog.Err(err))
-		}
-	} else {
-		mlog.Error("No implementation found to determine the maximum supported post size")
+	// The Post.Message column in Postgres has historically been VARCHAR(4000), but
+	// may be manually enlarged to support longer posts.
+	if err := s.GetReplica().Get(&maxPostSizeBytes, `
+		SELECT
+			COALESCE(character_maximum_length, 0)
+		FROM
+			information_schema.columns
+		WHERE
+			table_name = 'posts'
+		AND	column_name = 'message'
+	`); err != nil {
+		mlog.Warn("Unable to determine the maximum supported post size", mlog.Err(err))
 	}
 
 	// Assume a worst-case representation of four bytes per rune.
@@ -3158,14 +3009,7 @@ func (s *SqlPostStore) updateThreadAfterReplyDeletion(transaction *sqlxTxWrapper
 		updateQuery := s.getQueryBuilder().Update("Threads")
 
 		if count == 0 {
-			if s.DriverName() == model.DatabaseDriverPostgres {
-				updateQuery = updateQuery.Set("Participants", sq.Expr("Participants - ?", userId))
-			} else {
-				updateQuery = updateQuery.
-					Set("Participants", sq.Expr(
-						`IFNULL(JSON_REMOVE(Participants, JSON_UNQUOTE(JSON_SEARCH(Participants, 'one', ?))), Participants)`, userId,
-					))
-			}
+			updateQuery = updateQuery.Set("Participants", sq.Expr("Participants - ?", userId))
 		}
 
 		lastReplyAtSubquery := sq.Select("COALESCE(MAX(CreateAt), 0)").
@@ -3459,19 +3303,17 @@ func (s *SqlPostStore) GetPostReminderMetadata(postID string) (*store.PostRemind
 }
 
 func (s *SqlPostStore) RefreshPostStats() error {
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		// CONCURRENTLY is not used deliberately because as per Postgres docs,
-		// not using CONCURRENTLY takes less resources and completes faster
-		// at the expense of locking the mat view. Since viewing admin console
-		// is not a very frequent activity, we accept the tradeoff to let the
-		// refresh happen as fast as possible.
-		if _, err := s.GetMaster().Exec("REFRESH MATERIALIZED VIEW posts_by_team_day"); err != nil {
-			return errors.Wrap(err, "error refreshing materialized view posts_by_team_day")
-		}
+	// CONCURRENTLY is not used deliberately because as per Postgres docs,
+	// not using CONCURRENTLY takes less resources and completes faster
+	// at the expense of locking the mat view. Since viewing admin console
+	// is not a very frequent activity, we accept the tradeoff to let the
+	// refresh happen as fast as possible.
+	if _, err := s.GetMaster().Exec("REFRESH MATERIALIZED VIEW posts_by_team_day"); err != nil {
+		return errors.Wrap(err, "error refreshing materialized view posts_by_team_day")
+	}
 
-		if _, err := s.GetMaster().Exec("REFRESH MATERIALIZED VIEW bot_posts_by_team_day"); err != nil {
-			return errors.Wrap(err, "error refreshing materialized view bot_posts_by_team_day")
-		}
+	if _, err := s.GetMaster().Exec("REFRESH MATERIALIZED VIEW bot_posts_by_team_day"); err != nil {
+		return errors.Wrap(err, "error refreshing materialized view bot_posts_by_team_day")
 	}
 
 	return nil
