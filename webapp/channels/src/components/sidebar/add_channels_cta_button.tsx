@@ -25,6 +25,10 @@ import {ModalIdentifiers, Preferences, Touched} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
+// Left-align the menu with the icon in the LHS
+const anchorOrigin = {vertical: 'bottom', horizontal: 'left'} as const;
+const transformOrigin = {vertical: 'top', horizontal: -20} as const;
+
 const AddChannelsCtaButton = (): JSX.Element | null => {
     const dispatch = useDispatch();
     const currentTeamId = useSelector(getCurrentTeamId);
@@ -152,8 +156,8 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
 
     return (
         <Menu.Container
-            anchorOrigin={{vertical: 'bottom', horizontal: 'center'}}
-            transformOrigin={{vertical: 'top', horizontal: 'center'}}
+            anchorOrigin={anchorOrigin}
+            transformOrigin={transformOrigin}
             menuButton={{
                 id: 'addChannelsCta',
                 class: buttonClass,
