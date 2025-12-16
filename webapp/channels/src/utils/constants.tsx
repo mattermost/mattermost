@@ -365,6 +365,8 @@ export const ModalIdentifiers = {
     USER_SETTINGS: 'user_settings',
     QUICK_SWITCH: 'quick_switch',
     REMOVED_FROM_CHANNEL: 'removed_from_channel',
+    SHOW_TRANSLATION: 'show_translation',
+    DISABLE_AUTOTRANSLATION_CONFIRM: 'disable_autotranslation_confirm',
     EMAIL_INVITE: 'email_invite',
     INTERACTIVE_DIALOG: 'interactive_dialog',
     APPS_MODAL: 'apps_modal',
@@ -703,6 +705,7 @@ export const SocketEvents = {
     CPA_FIELD_DELETED: 'custom_profile_attributes_field_deleted',
     CPA_VALUES_UPDATED: 'custom_profile_attributes_values_updated',
     CONTENT_FLAGGING_REPORT_VALUE_CHANGED: 'content_flagging_report_value_updated',
+    POST_TRANSLATION_UPDATED: 'post_translation_updated',
 };
 
 export const TutorialSteps = {
@@ -809,6 +812,7 @@ export const PostTypes = {
     CUSTOM_CALLS: 'custom_calls',
     CUSTOM_CALLS_RECORDING: 'custom_calls_recording',
     CUSTOM_DATA_SPILLAGE_REPORT: 'custom_spillage_report',
+    AUTO_TRANSLATION_CHANGE: 'system_autotranslation',
     BURN_ON_READ: 'burn_on_read',
 };
 

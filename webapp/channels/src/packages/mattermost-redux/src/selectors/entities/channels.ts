@@ -34,6 +34,7 @@ import {
     getMyCurrentChannelMembership as getMyCurrentChannelMembershipInternal,
     getUsers,
 } from 'mattermost-redux/selectors/entities/common';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {
     getTeammateNameDisplaySetting,
     isCollapsedThreadsEnabled,
@@ -1454,4 +1455,26 @@ export const isDeactivatedDirectChannel = (state: GlobalState, channelId: string
 export function getChannelBanner(state: GlobalState, channelId: string): ChannelBanner | undefined {
     const channel = getChannel(state, channelId);
     return channel ? channel.banner_info : undefined;
+}
+
+export function getChannelAutotranslation(state: GlobalState, channelId: string): boolean {
+    const channel = getChannel(state, channelId);
+    const config = getConfig(state);
+
+    return Boolean(channel?.autotranslation && config?.EnableAutoTranslation === 'true');
+}
+
+export function getMyChannelAutotranslation(state: GlobalState, channelId: string): boolean {
+    const channel = getChannel(state, channelId);
+    const myChannelMember = getMyChannelMember(state, channelId);
+    const config = getConfig(state);
+    return Boolean(
+        config?.EnableAutoTranslation === 'true' &&
+        channel?.autotranslation &&
+        myChannelMember?.autotranslation,
+    );
+}
+
+export function isChannelAutotranslated(state: GlobalState, channelId: string): boolean {
+    return getMyChannelAutotranslation(state, channelId);
 }

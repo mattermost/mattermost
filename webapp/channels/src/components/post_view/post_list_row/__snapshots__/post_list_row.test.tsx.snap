@@ -45,6 +45,7 @@ exports[`components/post_view/post_list_row should render channel intro message 
 exports[`components/post_view/post_list_row should render combined post 1`] = `
 <Connect(Connect(ErrorBoundary(PostComponent)))
   combinedId="user-activity-1234-5678"
+  isChannelAutotranslated={false}
   isLastPost={false}
   location="CENTER"
   previousPostId="abcd"
@@ -102,6 +103,7 @@ exports[`components/post_view/post_list_row should render new messages line 1`] 
 
 exports[`components/post_view/post_list_row should render post 1`] = `
 <Connect(ErrorBoundary(PostComponent))
+  isChannelAutotranslated={false}
   isLastPost={false}
   location="CENTER"
   post={

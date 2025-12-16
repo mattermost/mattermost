@@ -395,11 +395,46 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
         };
     }
 
+    case PostTypes.POST_TRANSLATION_UPDATED: {
+        const data: PostTranslationUpdateData = action.data;
+        if (!state[data.object_id]) {
+            return state;
+        }
+
+        const translations = state[data.object_id].metadata?.translations || {};
+        const newTranslations = {
+            ...translations,
+            [data.language]: {
+                lang: data.language,
+                object: data.translation ? JSON.parse(data.translation) : undefined,
+                state: data.state,
+                source_lang: data.src_lang,
+            }};
+        return {
+            ...state,
+            [data.object_id]: {
+                ...state[data.object_id],
+                metadata: {
+                    ...state[data.object_id].metadata,
+                    translations: newTranslations,
+                },
+            },
+        };
+    }
+
     case UserTypes.LOGOUT_SUCCESS:
         return {};
     default:
         return state;
     }
+}
+
+type PostTranslationUpdateData = {
+    language: string;
+    object_id: string;
+    src_lang: string;
+    state: 'ready' | 'skipped' | 'processing' | 'unavailable';
+    translation: string;
 }
 
 function handlePostReceived(nextState: any, post: Post, nestedPermalinkLevel?: number) {
@@ -541,7 +576,13 @@ export function handlePendingPosts(state: string[] = [], action: MMReduxAction) 
 export function postsInChannel(state: Record<string, PostOrderBlock[]> = {}, action: MMReduxAction, prevPosts: IDMappedObjects<Post>, nextPosts: Record<string, Post>) {
     switch (action.type) {
     case PostTypes.RESET_POSTS_IN_CHANNEL: {
-        return {};
+        const {channelId} = action;
+        if (!channelId) {
+            return {};
+        }
+        const nextState = {...state};
+        Reflect.deleteProperty(nextState, channelId);
+        return nextState;
     }
     case PostTypes.RECEIVED_NEW_POST: {
         const post = action.data as Post;

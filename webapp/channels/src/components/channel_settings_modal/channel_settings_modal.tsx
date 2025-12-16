@@ -13,7 +13,7 @@ import type {Channel} from '@mattermost/types/channels';
 
 import Permissions from 'mattermost-redux/constants/permissions';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import {
@@ -68,7 +68,9 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
     );
     const hasManageChannelBannerPermission = (channel.type === 'O' && canManagePublicChannelBanner) || (channel.type === 'P' && canManagePrivateChannelBanner);
 
-    const shouldShowConfigurationTab = channelBannerEnabled && hasManageChannelBannerPermission;
+    const channelTranslationEnabled = useSelector((state: GlobalState) => getConfig(state)?.EnableAutoTranslation === 'true');
+    const canManageBanner = channelBannerEnabled && hasManageChannelBannerPermission;
+    const shouldShowConfigurationTab = canManageBanner || channelTranslationEnabled;
 
     const canArchivePrivateChannels = useSelector((state: GlobalState) =>
         haveIChannelPermission(state, channel.team_id, channel.id, Permissions.DELETE_PRIVATE_CHANNEL),
@@ -191,6 +193,8 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
                 channel={channel}
                 setAreThereUnsavedChanges={setAreThereUnsavedChanges}
                 showTabSwitchError={showTabSwitchError}
+                channelTranslationEnabled={channelTranslationEnabled}
+                canManageBanner={canManageBanner}
             />
         );
     };

@@ -4,6 +4,7 @@ exports[`plugins/PostMessageView should match snapshot with extended post type 1
 <PostMessageView
   currentRelativeTeamUrl="team_url"
   enableFormatting={true}
+  isChannelAutotranslated={false}
   isRHS={false}
   options={Object {}}
   pluginPostTypes={
@@ -53,6 +54,7 @@ exports[`plugins/PostMessageView should match snapshot with extended post type 1
       "type": "Denim",
     }
   }
+  userLanguage="en"
 >
   <PostTypePlugin
     isRHS={false}

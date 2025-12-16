@@ -63,6 +63,7 @@ const mockChannelWithBanner = TestHelper.getChannelMock({
 const baseProps = {
     channel: mockChannel,
     setAreThereUnsavedChanges: jest.fn(),
+    canManageBanner: true,
 };
 
 describe('ChannelSettingsConfigurationTab', () => {
@@ -176,6 +177,7 @@ describe('ChannelSettingsConfigurationTab', () => {
         // Verify patchChannel was called with the updated values
         expect(patchChannel).toHaveBeenCalledWith('channel1', {
             ...mockChannel,
+            autotranslation: false,
             banner_info: {
                 enabled: true,
                 text: 'New banner text',
@@ -352,6 +354,7 @@ describe('ChannelSettingsConfigurationTab', () => {
             <ChannelSettingsConfigurationTab
                 channel={channelWithValidColor}
                 setAreThereUnsavedChanges={jest.fn()}
+                canManageBanner={true}
             />,
         );
 
@@ -404,6 +407,7 @@ describe('ChannelSettingsConfigurationTab', () => {
         // Verify patchChannel was called with the trimmed values
         expect(patchChannel).toHaveBeenCalledWith('channel1', {
             ...mockChannelWithBanner,
+            autotranslation: false,
             banner_info: {
                 enabled: true,
                 text: 'Banner text with whitespace', // Whitespace should be trimmed

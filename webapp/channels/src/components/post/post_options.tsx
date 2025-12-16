@@ -55,6 +55,7 @@ type Props = {
     isPostBeingEdited?: boolean;
     canDelete?: boolean;
     pluginActions: PostActionComponent[];
+    isChannelAutotranslated: boolean;
     isBurnOnReadPost?: boolean;
     shouldDisplayBurnOnReadConcealed?: boolean;
     actions: {
@@ -239,6 +240,7 @@ const PostOptions = (props: Props): JSX.Element => {
                 isReadOnly={isReadOnly || channelIsArchived}
                 isMenuOpen={showDotMenu}
                 enableEmojiPicker={props.enableEmojiPicker}
+                isChannelAutotranslated={props.isChannelAutotranslated}
             />
         </li>
     );
