@@ -3166,15 +3166,11 @@ func (s SqlChannelStore) AutocompleteInTeamForSearch(teamID string, userID strin
 		args = append(likeArgs, fullArgs...)
 	}
 
-	var err error
-
 	// since the UNION is not part of squirrel, we need to assemble it and then update
 	// the placeholders manually
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		sql, err = sq.Dollar.ReplacePlaceholders(sql)
-		if err != nil {
-			return nil, errors.Wrap(err, "AutocompleteInTeamForSearch_Placeholder")
-		}
+	sql, err := sq.Dollar.ReplacePlaceholders(sql)
+	if err != nil {
+		return nil, errors.Wrap(err, "AutocompleteInTeamForSearch_Placeholder")
 	}
 
 	// query the database
@@ -3341,13 +3337,9 @@ func (s SqlChannelStore) channelSearchQuery(opts *store.ChannelSearchOpts) sq.Se
 			InnerJoin("RetentionPoliciesChannels ON c.Id = RetentionPoliciesChannels.ChannelId").
 			Where(sq.Eq{"RetentionPoliciesChannels.PolicyId": opts.PolicyID})
 	} else if opts.ExcludePolicyConstrained {
-		if s.DriverName() == model.DatabaseDriverPostgres {
-			query = query.
-				LeftJoin("RetentionPoliciesChannels ON c.Id = RetentionPoliciesChannels.ChannelId").
-				Where("RetentionPoliciesChannels.ChannelId IS NULL")
-		} else {
-			query = query.Where(sq.Expr(`c.Id NOT IN (SELECT ChannelId FROM RetentionPoliciesChannels)`))
-		}
+		query = query.
+			LeftJoin("RetentionPoliciesChannels ON c.Id = RetentionPoliciesChannels.ChannelId").
+			Where("RetentionPoliciesChannels.ChannelId IS NULL")
 	} else if opts.IncludePolicyID {
 		query = query.
 			LeftJoin("RetentionPoliciesChannels ON c.Id = RetentionPoliciesChannels.ChannelId")
@@ -3422,11 +3414,7 @@ func (s SqlChannelStore) channelSearchQuery(opts *store.ChannelSearchOpts) sq.Se
 	if opts.ExcludeAccessControlPolicyEnforced {
 		query = query.Where("c.Id NOT IN (SELECT ID From AccessControlPolicies WHERE Type = ?)", model.AccessControlPolicyTypeChannel)
 	} else if opts.ParentAccessControlPolicyId != "" {
-		if s.DriverName() == model.DatabaseDriverPostgres {
-			query = query.Where(sq.Expr("c.Id IN (SELECT ID From AccessControlPolicies WHERE Type = ? AND Data->'imports' @> ?)", model.AccessControlPolicyTypeChannel, fmt.Sprintf("%q", opts.ParentAccessControlPolicyId)))
-		} else {
-			query = query.Where(sq.Expr("c.Id IN (SELECT ID From AccessControlPolicies WHERE Type = ? AND JSON_CONTAINS(JSON_EXTRACT(Data, '$.imports'), ?))", model.AccessControlPolicyTypeChannel, fmt.Sprintf("%q", opts.ParentAccessControlPolicyId)))
-		}
+		query = query.Where(sq.Expr("c.Id IN (SELECT ID From AccessControlPolicies WHERE Type = ? AND Data->'imports' @> ?)", model.AccessControlPolicyTypeChannel, fmt.Sprintf("%q", opts.ParentAccessControlPolicyId)))
 	} else if opts.AccessControlPolicyEnforced {
 		query = query.InnerJoin("AccessControlPolicies acp ON acp.ID = c.Id")
 	}
@@ -3504,11 +3492,7 @@ func (s SqlChannelStore) buildLIKEClause(term string, searchColumns string) (lik
 	// Prepare the LIKE portion of the query.
 	var searchFields []string
 	for field := range strings.SplitSeq(searchColumns, ", ") {
-		if s.DriverName() == model.DatabaseDriverPostgres {
-			searchFields = append(searchFields, fmt.Sprintf("lower(%s) LIKE lower(%s) escape '*'", field, ":LikeTerm"))
-		} else {
-			searchFields = append(searchFields, fmt.Sprintf("%s LIKE %s escape '*'", field, ":LikeTerm"))
-		}
+		searchFields = append(searchFields, fmt.Sprintf("lower(%s) LIKE lower(%s) escape '*'", field, ":LikeTerm"))
 	}
 
 	likeClause = fmt.Sprintf("(%s)", strings.Join(searchFields, " OR "))
@@ -3530,13 +3514,8 @@ func (s SqlChannelStore) buildLIKEClauseX(term string, searchColumns ...string) 
 	var searchFields sq.Or
 
 	for _, field := range searchColumns {
-		if s.DriverName() == model.DatabaseDriverPostgres {
-			expr := fmt.Sprintf("LOWER(%s) LIKE LOWER(?) ESCAPE '*'", field)
-			searchFields = append(searchFields, sq.Expr(expr, likeTerm))
-		} else {
-			expr := fmt.Sprintf("%s LIKE ? ESCAPE '*'", field)
-			searchFields = append(searchFields, sq.Expr(expr, likeTerm))
-		}
+		expr := fmt.Sprintf("LOWER(%s) LIKE LOWER(?) ESCAPE '*'", field)
+		searchFields = append(searchFields, sq.Expr(expr, likeTerm))
 	}
 
 	return searchFields
@@ -3584,31 +3563,19 @@ func (s SqlChannelStore) buildFulltextClauseX(term string, searchColumns ...stri
 	}, fulltextTerm)
 
 	// Prepare the FULLTEXT portion of the query.
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		// remove all pipes |
-		fulltextTerm = strings.ReplaceAll(fulltextTerm, "|", "")
+	// remove all pipes |
+	fulltextTerm = strings.ReplaceAll(fulltextTerm, "|", "")
 
-		// split the search term and append :* to each part
-		splitTerm := strings.Fields(fulltextTerm)
-		for i, t := range splitTerm {
-			splitTerm[i] = t + ":*"
-		}
-
-		// join the search term with &
-		fulltextTerm = strings.Join(splitTerm, " & ")
-
-		expr := fmt.Sprintf("((to_tsvector('%[1]s', %[2]s)) @@ to_tsquery('%[1]s', ?))", s.pgDefaultTextSearchConfig, strings.Join(searchColumns, " || ' ' || "))
-		return sq.Expr(expr, fulltextTerm)
-	}
-
+	// split the search term and append :* to each part
 	splitTerm := strings.Fields(fulltextTerm)
 	for i, t := range splitTerm {
-		splitTerm[i] = "+" + t + "*"
+		splitTerm[i] = t + ":*"
 	}
 
-	fulltextTerm = strings.Join(splitTerm, " ")
+	// join the search term with &
+	fulltextTerm = strings.Join(splitTerm, " & ")
 
-	expr := fmt.Sprintf("MATCH(%s) AGAINST (? IN BOOLEAN MODE)", strings.Join(searchColumns, ", "))
+	expr := fmt.Sprintf("((to_tsvector('%[1]s', %[2]s)) @@ to_tsquery('%[1]s', ?))", s.pgDefaultTextSearchConfig, strings.Join(searchColumns, " || ' ' || "))
 	return sq.Expr(expr, fulltextTerm)
 }
 
@@ -3640,71 +3607,42 @@ func (s SqlChannelStore) searchClause(term string) sq.Sqlizer {
 	}
 }
 
-func (s SqlChannelStore) searchGroupChannelsQuery(userId, term string, isPostgreSQL bool) sq.SelectBuilder {
-	var baseLikeTerm string
+func (s SqlChannelStore) searchGroupChannelsQuery(userId, term string) sq.SelectBuilder {
+	baseLikeTerm := "ARRAY_TO_STRING(ARRAY_AGG(u.Username), ', ') LIKE ?"
 	terms := strings.Fields((strings.ToLower(term)))
 
 	having := sq.And{}
 
-	if isPostgreSQL {
-		baseLikeTerm = "ARRAY_TO_STRING(ARRAY_AGG(u.Username), ', ') LIKE ?"
-		cc := s.getSubQueryBuilder().Select("c.Id").
-			From("Channels c").
-			Join("ChannelMembers cm ON c.Id=cm.ChannelId").
-			Join("Users u on u.Id = cm.UserId").
-			Where(sq.Eq{
-				"c.Type": model.ChannelTypeGroup,
-				"u.id":   userId,
-			}).
-			GroupBy("c.Id")
-
-		for _, term := range terms {
-			term = sanitizeSearchTerm(term, "\\")
-			having = append(having, sq.Expr(baseLikeTerm, "%"+term+"%"))
-		}
-
-		subq := s.getSubQueryBuilder().Select("cc.id").
-			FromSelect(cc, "cc").
-			Join("ChannelMembers cm On cc.Id = cm.ChannelId").
-			Join("Users u On u.Id = cm.UserId").
-			GroupBy("cc.Id").
-			Having(having).
-			Limit(model.ChannelSearchDefaultLimit)
-
-		return s.getQueryBuilder().Select(channelSliceColumns(true)...).
-			From("Channels").
-			Where(sq.Expr("Id IN (?)", subq))
-	}
-
-	baseLikeTerm = "GROUP_CONCAT(u.Username SEPARATOR ', ') LIKE ?"
+	cc := s.getSubQueryBuilder().Select("c.Id").
+		From("Channels c").
+		Join("ChannelMembers cm ON c.Id=cm.ChannelId").
+		Join("Users u on u.Id = cm.UserId").
+		Where(sq.Eq{
+			"c.Type": model.ChannelTypeGroup,
+			"u.id":   userId,
+		}).
+		GroupBy("c.Id")
 
 	for _, term := range terms {
 		term = sanitizeSearchTerm(term, "\\")
 		having = append(having, sq.Expr(baseLikeTerm, "%"+term+"%"))
 	}
 
-	cc := s.getSubQueryBuilder().Select(channelSliceColumns(true, "c")...).
-		From("Channels c").
-		Join("ChannelMembers cm ON c.Id=cm.ChannelId").
-		Join("Users u on u.Id = cm.UserId").
-		Where(sq.Eq{
-			"c.Type": model.ChannelTypeGroup,
-			"u.Id":   userId,
-		}).
-		GroupBy("c.Id")
-
-	return s.getQueryBuilder().Select(channelSliceColumns(true, "cc")...).
+	subq := s.getSubQueryBuilder().Select("cc.id").
 		FromSelect(cc, "cc").
-		Join("ChannelMembers cm on cc.Id = cm.ChannelId").
-		Join("Users u on u.Id = cm.UserId").
+		Join("ChannelMembers cm On cc.Id = cm.ChannelId").
+		Join("Users u On u.Id = cm.UserId").
 		GroupBy("cc.Id").
 		Having(having).
 		Limit(model.ChannelSearchDefaultLimit)
+
+	return s.getQueryBuilder().Select(channelSliceColumns(true)...).
+		From("Channels").
+		Where(sq.Expr("Id IN (?)", subq))
 }
 
 func (s SqlChannelStore) SearchGroupChannels(userId, term string) (model.ChannelList, error) {
-	isPostgreSQL := s.DriverName() == model.DatabaseDriverPostgres
-	query := s.searchGroupChannelsQuery(userId, term, isPostgreSQL)
+	query := s.searchGroupChannelsQuery(userId, term)
 
 	sql, params, err := query.ToSql()
 	if err != nil {
