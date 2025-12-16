@@ -78,11 +78,11 @@ class RhsHeaderPost extends React.PureComponent<Props> {
     };
 
     popout = async () => {
-        const {currentTeam, intl, rootPostId, focusPost, currentUserId} = this.props;
+        const {currentTeam, intl, rootPostId, focusPost, currentUserId, channel} = this.props;
         if (!currentTeam) {
             return;
         }
-        await popoutThread(intl, rootPostId, currentTeam.name, (postId, returnTo) => {
+        await popoutThread(intl, rootPostId, currentTeam.name, channel?.type === 'D' || channel?.type === 'G', (postId, returnTo) => {
             focusPost(postId, returnTo, currentUserId, {skipRedirectReplyPermalink: true});
         });
     };

@@ -44,10 +44,13 @@ describe('popout_windows', () => {
     const mockIntl = {
         formatMessage: jest.fn(({id, defaultMessage}) => {
             if (id === 'thread_popout.title') {
-                return 'Thread - {channelName} - {teamName}';
+                return 'Thread - {channelName} - {teamName} - {serverName}';
+            }
+            if (id === 'thread_popout.title.dm') {
+                return 'Thread - {channelName} - {serverName}';
             }
             if (id === 'rhs_plugin_popout.title') {
-                return '{serverName} - {pluginDisplayName}';
+                return '{pluginDisplayName} - {serverName}';
             }
             return defaultMessage;
         }),
@@ -74,13 +77,13 @@ describe('popout_windows', () => {
             };
             mockDesktopApp.setupDesktopPopout.mockResolvedValue(mockListeners);
 
-            await popoutThread(mockIntl, 'thread-123', 'test-team', mockOnFocusPost);
+            await popoutThread(mockIntl, 'thread-123', 'test-team', false, mockOnFocusPost);
 
             expect(mockDesktopApp.setupDesktopPopout).toHaveBeenCalledWith(
                 '/_popout/thread/test-team/thread-123',
                 {
                     isRHS: true,
-                    titleTemplate: 'Thread - {channelName} - {teamName}',
+                    titleTemplate: 'Thread - {channelName} - {teamName} - {serverName}',
                 },
             );
         });
@@ -94,7 +97,7 @@ describe('popout_windows', () => {
             };
             getMockSetupBrowserPopout().mockReturnValue(mockListeners);
 
-            await popoutThread(mockIntl, 'thread-123', 'test-team', mockOnFocusPost);
+            await popoutThread(mockIntl, 'thread-123', 'test-team', false, mockOnFocusPost);
 
             expect(getMockSetupBrowserPopout()).toHaveBeenCalledWith(
                 '/_popout/thread/test-team/thread-123',
@@ -110,7 +113,7 @@ describe('popout_windows', () => {
             };
             mockDesktopApp.setupDesktopPopout.mockResolvedValue(mockListeners);
 
-            const result = await popoutThread(mockIntl, 'thread-123', 'test-team', mockOnFocusPost);
+            const result = await popoutThread(mockIntl, 'thread-123', 'test-team', false, mockOnFocusPost);
 
             expect(result).toEqual(mockListeners);
         });
@@ -125,7 +128,7 @@ describe('popout_windows', () => {
             };
             mockDesktopApp.setupDesktopPopout.mockResolvedValue(mockListeners);
 
-            await popoutThread(mockIntl, 'thread-123', 'test-team', mockOnFocusPost);
+            await popoutThread(mockIntl, 'thread-123', 'test-team', false, mockOnFocusPost);
 
             expect(mockListener).toHaveBeenCalledTimes(1);
             const registeredListener = mockListener.mock.calls[0][0];
@@ -153,7 +156,7 @@ describe('popout_windows', () => {
                 '/_popout/rhs/test-team/test-channel/plugin/test-plugin-id',
                 {
                     isRHS: true,
-                    titleTemplate: '{serverName} - {pluginDisplayName}',
+                    titleTemplate: '{pluginDisplayName} - {serverName}',
                 },
             );
         });

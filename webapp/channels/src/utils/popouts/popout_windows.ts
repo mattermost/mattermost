@@ -26,16 +26,25 @@ export async function popoutThread(
     intl: IntlShape,
     threadId: string,
     teamName: string,
+    isDMorGM: boolean,
     onFocusPost: (postId: string, returnTo: string) => void,
 ) {
+    let titleTemplate = intl.formatMessage({
+        id: 'thread_popout.title',
+        defaultMessage: 'Thread - {channelName} - {teamName} - {serverName}',
+    });
+
+    if (isDMorGM) {
+        titleTemplate = intl.formatMessage({
+            id: 'thread_popout.title.dm',
+            defaultMessage: 'Thread - {channelName} - {serverName}',
+        });
+    }
     const popoutListeners = await popout(
         `/_popout/thread/${teamName}/${threadId}`,
         {
             isRHS: true,
-            titleTemplate: intl.formatMessage({
-                id: 'thread_popout.title',
-                defaultMessage: 'Thread - {channelName} - {teamName}',
-            }),
+            titleTemplate,
         },
     );
 
@@ -65,7 +74,7 @@ export async function popoutRhsPlugin(
             isRHS: true,
             titleTemplate: intl.formatMessage({
                 id: 'rhs_plugin_popout.title',
-                defaultMessage: '{serverName} - {pluginDisplayName}',
+                defaultMessage: '{pluginDisplayName} - {serverName}',
             }, {serverName: '{serverName}', pluginDisplayName}),
         },
     );

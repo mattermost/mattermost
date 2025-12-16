@@ -83,7 +83,7 @@ const ThreadPane = ({
     }, [dispatch, currentUserId, currentTeamId, threadId, isFollowing]);
 
     const popout = useCallback(() => {
-        popoutThread(intl, threadId, team, (postId, returnTo) => {
+        popoutThread(intl, threadId, team, channel?.type === 'D' || channel?.type === 'G', (postId, returnTo) => {
             dispatch(focusPost(postId, returnTo, currentUserId, {skipRedirectReplyPermalink: true}));
         });
     }, [threadId, team, intl, dispatch, currentUserId]);

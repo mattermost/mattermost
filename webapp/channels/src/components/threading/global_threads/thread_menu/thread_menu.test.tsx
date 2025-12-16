@@ -17,6 +17,7 @@ import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
 import Menu from 'components/widgets/menu/menu';
 
 import {fakeDate} from 'tests/helpers/date';
+import {TestHelper} from 'utils/test_helper';
 import {copyToClipboard} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -56,10 +57,12 @@ jest.mock('react-redux', () => ({
 
 describe('components/threading/common/thread_menu', () => {
     let props: ComponentProps<typeof ThreadMenu>;
+    const threadId = '1y8hpek81byspd4enyk9mp1ncw';
+    const channelId = 'channel-id-123';
 
     beforeEach(() => {
         props = {
-            threadId: '1y8hpek81byspd4enyk9mp1ncw',
+            threadId,
             unreadTimestamp: 1610486901110,
             hasUnreads: false,
             isFollowing: false,
@@ -68,7 +71,31 @@ describe('components/threading/common/thread_menu', () => {
             ),
         };
 
-        mockState = {entities: {preferences: {myPreferences: {}}}} as GlobalState;
+        const post = TestHelper.getPostMock({
+            id: threadId,
+            channel_id: channelId,
+        });
+        const channel = TestHelper.getChannelMock({
+            id: channelId,
+        });
+
+        mockState = {
+            entities: {
+                preferences: {
+                    myPreferences: {},
+                },
+                posts: {
+                    posts: {
+                        [threadId]: post,
+                    },
+                },
+                channels: {
+                    channels: {
+                        [channelId]: channel,
+                    },
+                },
+            },
+        } as unknown as GlobalState;
     });
 
     test('should match snapshot', () => {

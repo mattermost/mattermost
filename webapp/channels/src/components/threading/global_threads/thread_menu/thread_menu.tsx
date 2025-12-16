@@ -9,7 +9,8 @@ import {useDispatch, useSelector} from 'react-redux';
 import type {UserThread} from '@mattermost/types/threads';
 
 import {setThreadFollow, updateThreadRead, markLastPostInThreadAsUnread} from 'mattermost-redux/actions/threads';
-import {isPostFlagged} from 'mattermost-redux/selectors/entities/posts';
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getPost, isPostFlagged} from 'mattermost-redux/selectors/entities/posts';
 
 import {
     flagPost as savePost,
@@ -60,6 +61,8 @@ function ThreadMenu({
     } = useThreadRouting();
 
     const isSaved = useSelector((state: GlobalState) => isPostFlagged(state, threadId));
+    const post = useSelector((state: GlobalState) => getPost(state, threadId));
+    const channel = useSelector((state: GlobalState) => getChannel(state, post.channel_id));
     const readAloud = useReadout();
 
     const handleReadUnread = useCallback(() => {
@@ -88,10 +91,10 @@ function ThreadMenu({
     ]);
 
     const popout = useCallback(() => {
-        popoutThread(intl, threadId, team, (postId, returnTo) => {
+        popoutThread(intl, threadId, team, channel?.type === 'D' || channel?.type === 'G', (postId, returnTo) => {
             dispatch(focusPost(postId, returnTo, currentUserId, {skipRedirectReplyPermalink: true}));
         });
-    }, [threadId, team, intl, dispatch, currentUserId]);
+    }, [threadId, team, intl, dispatch, currentUserId, channel]);
 
     return (
         <MenuWrapper
