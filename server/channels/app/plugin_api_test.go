@@ -880,6 +880,38 @@ func TestPluginAPISavePluginConfig(t *testing.T) {
 	assert.Equal(t, expectedConfiguration, savedConfiguration)
 }
 
+func TestPluginAPISavePluginConfigPreservesOtherPlugins(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	otherPluginConfig := map[string]any{
+		"setting1": "value1",
+		"setting2": "value2",
+	}
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.PluginSettings.Plugins["otherplugin"] = otherPluginConfig
+	})
+
+	manifest := &model.Manifest{
+		Id: "pluginid",
+		SettingsSchema: &model.PluginSettingsSchema{
+			Settings: []*model.PluginSetting{
+				{Key: "MyStringSetting", Type: "text"},
+			},
+		},
+	}
+
+	api := NewPluginAPI(th.App, th.Context, manifest)
+
+	pluginConfig := map[string]any{"mystringsetting": "str"}
+	appErr := api.SavePluginConfig(pluginConfig)
+	require.Nil(t, appErr)
+
+	cfg := th.App.Config()
+	assert.Contains(t, cfg.PluginSettings.Plugins, "otherplugin")
+	assert.Equal(t, otherPluginConfig, cfg.PluginSettings.Plugins["otherplugin"])
+}
+
 func TestPluginAPILoadPluginConfiguration(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
@@ -1760,6 +1792,116 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 	)
 
 	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("testplugininterclient")
+	require.NoError(t, err)
+	_, ret := hooks.MessageWillBePosted(nil, nil)
+	assert.Equal(t, "ok", ret)
+}
+
+func TestInterpluginPluginHTTPWithBodyAfterWriteHeader(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	setupMultiPluginAPITest(t,
+		[]string{
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"bytes"
+			"net/http"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path == "/api/v2/test" {
+				if r.URL.Query().Get("abc") != "xyz" {
+					return
+				}
+
+				if r.Header.Get("Mattermost-Plugin-ID") != "testpluginbodyafter" {
+					return
+				}
+
+				w.WriteHeader(598)
+				buf := bytes.Buffer{}
+				buf.ReadFrom(r.Body)
+				resp := "we got:" + buf.String()
+				w.Write([]byte(resp))
+			}
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+		`,
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
+			"bytes"
+			"net/http"
+			"io"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+			buf := bytes.Buffer{}
+			buf.WriteString("This is the request body")
+			req, err := http.NewRequest("POST", "/testpluginbodyafterserver/api/v2/test?abc=xyz", &buf)
+			if err != nil {
+				return nil, err.Error()
+			}
+			req.Header.Add("Mattermost-User-Id", "userid")
+			resp := p.API.PluginHTTP(req)
+			if resp == nil {
+				return nil, "Nil resp"
+			}
+			if resp.Body == nil {
+				return nil, "Nil body"
+			}
+			respbody, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return nil, err.Error()
+			}
+			if resp.StatusCode != 598 {
+				return nil, "wrong status " + string(respbody)
+			}
+
+			if string(respbody) !=  "we got:This is the request body" {
+				return nil, "wrong response: " + string(respbody)
+			}
+
+			return nil, "ok"
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+		`,
+		},
+		[]string{
+			`{"id": "testpluginbodyafterserver", "server": {"executable": "backend.exe"}}`,
+			`{"id": "testpluginbodyafter", "server": {"executable": "backend.exe"}}`,
+		},
+		[]string{
+			"testpluginbodyafterserver",
+			"testpluginbodyafter",
+		},
+		true,
+		th.App,
+		th.Context,
+	)
+
+	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("testpluginbodyafter")
 	require.NoError(t, err)
 	_, ret := hooks.MessageWillBePosted(nil, nil)
 	assert.Equal(t, "ok", ret)

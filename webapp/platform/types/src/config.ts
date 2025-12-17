@@ -24,6 +24,7 @@ export type ClientConfig = {
     BuildHash: string;
     BuildHashEnterprise: string;
     BuildNumber: string;
+    IsFipsEnabled: string;
     CollapsedThreads: CollapsedThreads;
     CustomBrandText: string;
     CustomDescriptionText: string;
@@ -76,6 +77,7 @@ export type ClientConfig = {
     EnableFile: string;
     EnableGifPicker: string;
     EnableGuestAccounts: string;
+    EnableGuestMagicLink: string;
     EnableIncomingWebhooks: string;
     EnableJoinLeaveMessageByDefault: string;
     EnableLatex: string;
@@ -226,6 +228,11 @@ export type ClientConfig = {
     ScheduledPosts: string;
     DeleteAccountLink: string;
     ContentFlaggingEnabled: 'true' | 'false';
+
+    // Burn on Read Settings
+    EnableBurnOnRead: string;
+    BurnOnReadDurationSeconds: string;
+    BurnOnReadMaximumTimeToLiveSeconds: string;
 
     // Access Control Settings
     EnableAttributeBasedAccessControl: string;
@@ -802,6 +809,14 @@ export type NativeAppSettings = {
     MobileJailbreakProtection: boolean;
     MobileEnableSecureFilePreview: boolean;
     MobileAllowPdfLinkNavigation: boolean;
+    EnableIntuneMAM: boolean;
+};
+
+export type IntuneSettings = {
+    Enable: boolean;
+    TenantId?: string;
+    ClientId?: string;
+    AuthService?: string;
 };
 
 export type ClusterSettings = {
@@ -956,6 +971,7 @@ export type GuestAccountsSettings = {
     AllowEmailAccounts: boolean;
     EnforceMultifactorAuthentication: boolean;
     RestrictCreationToDomains: string;
+    EnableGuestMagicLink: boolean;
 };
 
 export type ImageProxySettings = {
@@ -1046,6 +1062,7 @@ export type AdminConfig = {
     LocalizationSettings: LocalizationSettings;
     SamlSettings: SamlSettings;
     NativeAppSettings: NativeAppSettings;
+    IntuneSettings: IntuneSettings;
     ClusterSettings: ClusterSettings;
     MetricsSettings: MetricsSettings;
     ExperimentalSettings: ExperimentalSettings;

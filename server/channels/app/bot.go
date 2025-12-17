@@ -353,6 +353,37 @@ func (a *App) GetBots(rctx request.CTX, options *model.BotGetOptions) (model.Bot
 	return bots, nil
 }
 
+// IsBotOwnedByCurrentUserOrPlugin checks if the given user ID is a bot owned by the current session's user or by a plugin.
+func (a *App) IsBotOwnedByCurrentUserOrPlugin(rctx request.CTX, userID string) (bool, *model.AppError) {
+	bot, appErr := a.GetBot(rctx, userID, false)
+	if appErr != nil {
+		return false, appErr
+	}
+
+	if bot.OwnerId == rctx.Session().UserId {
+		return true, nil
+	}
+
+	pluginsEnvironment := a.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
+		return false, nil
+	}
+
+	availablePlugins, err := pluginsEnvironment.Available()
+	if err != nil {
+		return false, model.NewAppError("IsBotOwnedByCurrentUserOrPlugin", "app.plugin.get_plugins.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	pluginIDs := make(map[string]bool, len(availablePlugins))
+	for _, plugin := range availablePlugins {
+		if plugin.Manifest != nil {
+			pluginIDs[plugin.Manifest.Id] = true
+		}
+	}
+
+	return pluginIDs[bot.OwnerId], nil
+}
+
 // UpdateBotActive marks a bot as active or inactive, along with its corresponding user.
 func (a *App) UpdateBotActive(rctx request.CTX, botUserId string, active bool) (*model.Bot, *model.AppError) {
 	user, nErr := a.Srv().Store().User().Get(context.Background(), botUserId)

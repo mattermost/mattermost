@@ -872,6 +872,17 @@ func (c *Client4) LoginWithDesktopToken(ctx context.Context, token, deviceId str
 	return DecodeJSONFromResponse[*User](r)
 }
 
+func (c *Client4) LoginType(ctx context.Context, loginId string) (*LoginTypeResponse, *Response, error) {
+	m := make(map[string]string)
+	m["login_id"] = loginId
+	r, err := c.DoAPIPostJSON(ctx, "/users/login/type", m)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*LoginTypeResponse](r)
+}
+
 // Logout terminates the current user's session.
 func (c *Client4) Logout(ctx context.Context) (*Response, error) {
 	r, err := c.DoAPIPost(ctx, "/users/logout", "")
@@ -2873,6 +2884,16 @@ func (c *Client4) MoveChannel(ctx context.Context, channelId, teamId string, for
 	}
 	defer closeBody(r)
 	return DecodeJSONFromResponse[*Channel](r)
+}
+
+// GetDirectOrGroupMessageMembersCommonTeams returns the set of teams in common for members of a DM/GM channel.
+func (c *Client4) GetDirectOrGroupMessageMembersCommonTeams(ctx context.Context, channelId string) ([]*Team, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.channelRoute(channelId)+"/common_teams", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*Team](r)
 }
 
 // GetChannelByName returns a channel based on the provided channel name and team id strings.
@@ -7771,4 +7792,25 @@ func (c *Client4) SetAccessControlPolicyActive(ctx context.Context, update Acces
 	}
 
 	return policies, BuildResponse(r), nil
+}
+
+func (c *Client4) RevealPost(ctx context.Context, postID string) (*Post, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.postRoute(postID)+"/reveal", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	return DecodeJSONFromResponse[*Post](r)
+}
+
+// BurnPost burns a burn-on-read post. If the user is the author, the post will be permanently deleted.
+// If the user is not the author, the post will be expired for that user by updating their read receipt expiration time.
+func (c *Client4) BurnPost(ctx context.Context, postID string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.postRoute(postID)+"/burn")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
 }
