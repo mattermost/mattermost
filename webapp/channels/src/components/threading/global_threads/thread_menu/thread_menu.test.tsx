@@ -31,6 +31,10 @@ jest.mock('utils/utils');
 jest.mock('hooks/useReadout', () => ({
     useReadout: () => jest.fn(),
 }));
+jest.mock('utils/popouts/popout_windows', () => ({
+    canPopout: jest.fn(() => true),
+    popoutThread: jest.fn(),
+}));
 
 const mockRouting = {
     params: {

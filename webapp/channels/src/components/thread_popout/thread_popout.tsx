@@ -2,8 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useMemo} from 'react';
+import {defineMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useParams} from 'react-router-dom';
+
+import type {Channel} from '@mattermost/types/channels';
 
 import {fetchChannelsAndMembers, selectChannel} from 'mattermost-redux/actions/channels';
 import {getPostThread} from 'mattermost-redux/actions/posts';
@@ -11,6 +14,7 @@ import {extractUserIdsAndMentionsFromPosts} from 'mattermost-redux/actions/statu
 import {selectTeam} from 'mattermost-redux/actions/teams';
 import {getThread} from 'mattermost-redux/actions/threads';
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getTeamByName} from 'mattermost-redux/selectors/entities/teams';
 import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
@@ -23,7 +27,21 @@ import ThreadPane from 'components/threading/global_threads/thread_pane';
 import ThreadViewer from 'components/threading/thread_viewer';
 import UnreadsStatusHandler from 'components/unreads_status_handler';
 
+import usePopoutTitle from 'utils/popouts/use_popout_title';
+
 import type {GlobalState} from 'types/store';
+
+const THREAD_POPOUT_TITLE = defineMessage({
+    id: 'thread_popout.title',
+    defaultMessage: 'Thread - {channelName} - {teamName} - {serverName}',
+});
+const THREAD_POPOUT_TITLE_DM = defineMessage({
+    id: 'thread_popout.title.dm',
+    defaultMessage: 'Thread - {channelName} - {serverName}',
+});
+export function getThreadPopoutTitle(channel?: Channel) {
+    return channel?.type === 'D' || channel?.type === 'G' ? THREAD_POPOUT_TITLE_DM : THREAD_POPOUT_TITLE;
+}
 
 export default function ThreadPopout() {
     const dispatch = useDispatch();
@@ -34,12 +52,15 @@ export default function ThreadPopout() {
 
     const post = usePost(postId);
     const team = useSelector((state: GlobalState) => getTeamByName(state, teamName));
+    const channel = useSelector((state: GlobalState) => getChannel(state, post?.channel_id ?? ''));
     const thread = useSelector((state: GlobalState) => {
         if (!post) {
             return undefined;
         }
         return getThreadOrSynthetic(state, post);
     });
+
+    usePopoutTitle(getThreadPopoutTitle(channel));
 
     const channelId = post?.channel_id;
     useEffect(() => {

@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {IntlShape} from 'react-intl';
-
 import type {PopoutViewProps} from '@mattermost/desktop-api';
 
 import {Client4} from 'mattermost-redux/client';
@@ -23,23 +21,11 @@ export function registerRHSPluginPopoutListener(pluginId: string, onPopoutOpened
 
 export const FOCUS_REPLY_POST = 'focus-reply-post';
 export async function popoutThread(
-    intl: IntlShape,
+    titleTemplate: string,
     threadId: string,
     teamName: string,
-    isDMorGM: boolean,
     onFocusPost: (postId: string, returnTo: string) => void,
 ) {
-    let titleTemplate = intl.formatMessage({
-        id: 'thread_popout.title',
-        defaultMessage: 'Thread - {channelName} - {teamName} - {serverName}',
-    });
-
-    if (isDMorGM) {
-        titleTemplate = intl.formatMessage({
-            id: 'thread_popout.title.dm',
-            defaultMessage: 'Thread - {channelName} - {serverName}',
-        });
-    }
     const popoutListeners = await popout(
         `/_popout/thread/${teamName}/${threadId}`,
         {
@@ -62,9 +48,8 @@ export async function popoutThread(
 }
 
 export async function popoutRhsPlugin(
-    intl: IntlShape,
+    titleTemplate: string,
     pluginId: string,
-    pluginDisplayName: string,
     teamName: string,
     channelName: string,
 ) {
@@ -72,10 +57,7 @@ export async function popoutRhsPlugin(
         `/_popout/rhs/${teamName}/${channelName}/plugin/${pluginId}`,
         {
             isRHS: true,
-            titleTemplate: intl.formatMessage({
-                id: 'rhs_plugin_popout.title',
-                defaultMessage: '{pluginDisplayName} - {serverName}',
-            }, {serverName: '{serverName}', pluginDisplayName}),
+            titleTemplate,
         },
     );
 
