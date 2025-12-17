@@ -173,6 +173,7 @@ const WikiPageHeader = ({
                             onDelete={onDelete}
                             onVersionHistory={onVersionHistory}
                             isDraft={isDraft}
+                            canDuplicate={!isDraft || isExistingPage}
                             pageLink={pageLink}
                             buttonTestId='wiki-page-more-actions'
                         />

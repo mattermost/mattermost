@@ -39,6 +39,7 @@ type Props = {
     onDelete?: () => void;
     onVersionHistory?: () => void;
     isDraft?: boolean;
+    canDuplicate?: boolean;
     pageLink?: string;
     buttonClassName?: string;
     buttonLabel?: string;
@@ -56,6 +57,7 @@ const PageActionsMenu = ({
     onDelete,
     onVersionHistory,
     isDraft = false,
+    canDuplicate = true,
     pageLink,
     buttonClassName = 'PagePane__icon-button btn btn-icon btn-sm',
     buttonLabel,
@@ -171,13 +173,15 @@ const PageActionsMenu = ({
                     onClick={onBookmarkInChannel}
                 />
             )}
-            <Menu.Item
-                id='page-menu-duplicate'
-                data-testid='page-context-menu-duplicate'
-                leadingElement={<ContentCopyIcon size={18}/>}
-                labels={<span>{duplicatePageLabel}</span>}
-                onClick={onDuplicate}
-            />
+            {canDuplicate && (
+                <Menu.Item
+                    id='page-menu-duplicate'
+                    data-testid='page-context-menu-duplicate'
+                    leadingElement={<ContentCopyIcon size={18}/>}
+                    labels={<span>{duplicatePageLabel}</span>}
+                    onClick={onDuplicate}
+                />
+            )}
             <Menu.Item
                 id='page-menu-export-pdf'
                 data-testid='page-context-menu-export-pdf'

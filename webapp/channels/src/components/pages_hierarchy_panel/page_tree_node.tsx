@@ -201,6 +201,7 @@ const PageTreeNode = ({
                     onDelete={handleDelete}
                     onVersionHistory={handleVersionHistory}
                     isDraft={node.page.type === PageDisplayTypes.PAGE_DRAFT}
+                    canDuplicate={node.page.type !== PageDisplayTypes.PAGE_DRAFT || isEditingExistingPage(node.page)}
                     pageLink={pageLink}
                     buttonClassName='PageTreeNode__menuButton'
                     buttonLabel='Page menu'
