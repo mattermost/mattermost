@@ -2485,7 +2485,7 @@ func getDirectOrGroupMessageMembersCommonTeams(c *Context, w http.ResponseWriter
 		return
 	}
 
-	teams, appErr := c.App.GetDirectOrGroupMessageMembersCommonTeams(c.AppContext, c.Params.ChannelId)
+	teams, appErr := c.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(c.AppContext, c.Params.ChannelId)
 	if appErr != nil {
 		c.Err = appErr
 		return
