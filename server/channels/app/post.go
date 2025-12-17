@@ -1100,7 +1100,7 @@ func (a *App) GetPostsPage(rctx request.CTX, options model.GetPostsOptions) (*mo
 	}
 
 	var appErr *model.AppError
-	postList, appErr = a.RevealBurnOnReadPostsForUser(rctx, postList, options.UserId)
+	postList, appErr = a.revealBurnOnReadPostsForUser(rctx, postList, options.UserId)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1128,7 +1128,7 @@ func (a *App) GetPosts(rctx request.CTX, channelID string, offset int, limit int
 	}
 
 	var appErr *model.AppError
-	postList, appErr = a.RevealBurnOnReadPostsForUser(rctx, postList, rctx.Session().UserId)
+	postList, appErr = a.revealBurnOnReadPostsForUser(rctx, postList, rctx.Session().UserId)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1157,7 +1157,7 @@ func (a *App) GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions
 	}
 
 	var appErr *model.AppError
-	postList, appErr = a.RevealBurnOnReadPostsForUser(rctx, postList, options.UserId)
+	postList, appErr = a.revealBurnOnReadPostsForUser(rctx, postList, options.UserId)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1179,20 +1179,9 @@ func (a *App) GetSinglePost(rctx request.CTX, postID string, includeDeleted bool
 		}
 	}
 
-	if post.Type == model.PostTypeBurnOnRead {
-		tmpPostList := model.NewPostList()
-		tmpPostList.AddPost(post)
-
-		postList, appErr := a.RevealBurnOnReadPostsForUser(rctx, tmpPostList, rctx.Session().UserId)
-		if appErr != nil {
-			return nil, appErr
-		}
-
-		var ok bool
-		post, ok = postList.Posts[post.Id]
-		if !ok {
-			return nil, model.NewAppError("GetSinglePost", "app.post.get.app_error", nil, "", http.StatusNotFound)
-		}
+	post, appErr := a.revealSingleBurnOnReadPost(rctx, post, rctx.Session().UserId)
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	firstInaccessiblePostTime, appErr := a.isInaccessiblePost(post)
@@ -1224,7 +1213,7 @@ func (a *App) GetPostThread(rctx request.CTX, postID string, opts model.GetPosts
 	}
 
 	var appErr *model.AppError
-	posts, appErr = a.RevealBurnOnReadPostsForUser(rctx, posts, userID)
+	posts, appErr = a.revealBurnOnReadPostsForUser(rctx, posts, userID)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1328,7 +1317,7 @@ func (a *App) GetPermalinkPost(rctx request.CTX, postID string, userID string) (
 	}
 
 	var appErr *model.AppError
-	list, appErr = a.RevealBurnOnReadPostsForUser(rctx, list, userID)
+	list, appErr = a.revealBurnOnReadPostsForUser(rctx, list, userID)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1369,7 +1358,7 @@ func (a *App) GetPostsBeforePost(rctx request.CTX, options model.GetPostsOptions
 	}
 
 	var appErr *model.AppError
-	postList, appErr = a.RevealBurnOnReadPostsForUser(rctx, postList, options.UserId)
+	postList, appErr = a.revealBurnOnReadPostsForUser(rctx, postList, options.UserId)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1405,7 +1394,7 @@ func (a *App) GetPostsAfterPost(rctx request.CTX, options model.GetPostsOptions)
 	}
 
 	var appErr *model.AppError
-	postList, appErr = a.RevealBurnOnReadPostsForUser(rctx, postList, options.UserId)
+	postList, appErr = a.revealBurnOnReadPostsForUser(rctx, postList, options.UserId)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1449,7 +1438,7 @@ func (a *App) GetPostsAroundPost(rctx request.CTX, before bool, options model.Ge
 	}
 
 	var appErr *model.AppError
-	postList, appErr = a.RevealBurnOnReadPostsForUser(rctx, postList, options.UserId)
+	postList, appErr = a.revealBurnOnReadPostsForUser(rctx, postList, options.UserId)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1778,6 +1767,10 @@ func (a *App) searchPostsInTeam(teamID string, userID string, paramsList []*mode
 		return nil, appErr
 	}
 
+	if appErr := a.filterBurnOnReadPosts(posts); appErr != nil {
+		return nil, appErr
+	}
+
 	return posts, nil
 }
 
@@ -1939,6 +1932,10 @@ func (a *App) SearchPostsForUser(rctx request.CTX, terms string, userID string, 
 	}
 
 	if appErr := a.filterInaccessiblePosts(postSearchResults.PostList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
+		return nil, appErr
+	}
+
+	if appErr := a.filterBurnOnReadPosts(postSearchResults.PostList); appErr != nil {
 		return nil, appErr
 	}
 
@@ -3387,45 +3384,6 @@ func (a *App) getBurnOnReadPost(rctx request.CTX, post *model.Post) (*model.Post
 	clone.Message = tmpPost.Message
 	clone.FileIds = tmpPost.FileIDs
 	return clone, nil
-}
-
-// RevealBurnOnReadPostsForUser processes burn-on-read posts in a post list for a specific user,
-// revealing posts that the user has access to and handling expired receipts.
-func (a *App) RevealBurnOnReadPostsForUser(rctx request.CTX, postList *model.PostList, userID string) (*model.PostList, *model.AppError) {
-	for _, post := range postList.BurnOnReadPosts {
-		// If user is the author, reveal the post with recipients
-		if post.UserId == userID {
-			if err := a.revealPostForAuthor(rctx, postList, post); err != nil {
-				return nil, err
-			}
-			continue
-		}
-
-		// Get user's read receipt for this post
-		receipt, err := a.getUserReadReceipt(rctx, post.Id, userID)
-		if err != nil {
-			return nil, err
-		}
-
-		// If no receipt exists, show unrevealed message
-		if receipt == nil {
-			a.setUnrevealedPost(postList, post.Id)
-			continue
-		}
-
-		// If receipt expired, remove post from list
-		if a.isReceiptExpired(receipt) {
-			a.removePostFromList(postList, post.Id)
-			continue
-		}
-
-		// Reveal post with expiration metadata
-		if err := a.revealPostForUser(rctx, postList, post, receipt); err != nil {
-			return nil, err
-		}
-	}
-
-	return postList, nil
 }
 
 // revealPostForAuthor reveals a burn-on-read post for its author, including recipient list.
