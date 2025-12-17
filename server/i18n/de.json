@@ -11490,5 +11490,89 @@
   {
     "id": "store.sql_autotranslation.set_user_enabled.app_error",
     "translation": "Der Status \"Benutzerautoübersetzung aktiviert\" konnte nicht gesetzt werden."
+  },
+  {
+    "id": "api.post.burn_post.user_not_in_channel.app_error",
+    "translation": "Du hast nicht die Erlaubnis, diesen Beitrag als Löschen-nach-Lesen zu markieren. Du musst ein Mitglied des Kanals sein."
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.app_error",
+    "translation": "Beim Erstellen einer Löschen-nach-Lesen-Nachricht ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.config.app_error",
+    "translation": "Löschen-nach-Lesen Nachrichten, sind nicht aktiviert. Bitte aktiviere das Feature-Flag und die Service-Einstellung."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.license.app_error",
+    "translation": "Für Löschen-nach-Lesen-Beiträge ist eine Enterprise Advanced-Lizenz erforderlich."
+  },
+  {
+    "id": "api.post.get_link_metadata_for_permalink.burn_on_read.app_error",
+    "translation": "Link-Metadaten für Löschen-nach-Lesen-Permalink können nicht abgerufen werden."
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_burn_on_read_post.error",
+    "translation": "Löschen-nach-Lesen Nachrichten können nicht aktualisiert werden."
+  },
+  {
+    "id": "api.post.reveal_post.cannot_reveal_own_post.app_error",
+    "translation": "Du kannst deine eigene Löschen-nach-Lesen Nachricht nicht aufdecken."
+  },
+  {
+    "id": "api.post.reveal_post.disabled.app_error",
+    "translation": "Die Löschen-nach-Lesen-Funktion ist nicht aktiviert oder erfordert eine Enterprise Advanced-Lizenz."
+  },
+  {
+    "id": "api.post.reveal_post.user_not_in_channel.app_error",
+    "translation": "Du hast keine Erlaubnis, diesen Beitrag aufzudecken. Du musst ein Mitglied des Kanals sein."
+  },
+  {
+    "id": "api.post.update_post.burn_on_read.app_error",
+    "translation": "Löschen-nach-Lesen Nachrichten können nicht bearbeitet werden."
+  },
+  {
+    "id": "api.reaction.save.burn_on_read.app_error",
+    "translation": "Du kannst nicht auf eine Löschen-nach-Lesen-Nachricht reagieren."
+  },
+  {
+    "id": "api.user.login_by_intune.account_locked.app_error",
+    "translation": "Dein Konto wurde deaktiviert. Bitte wende dich an deinen Systemadministrator."
+  },
+  {
+    "id": "api.user.login_by_intune.bot_login_forbidden.app_error",
+    "translation": "Bot-Konten können sich nicht mit der Microsoft-Authentifizierung anmelden."
+  },
+  {
+    "id": "api.user.login_by_intune.not_available.app_error",
+    "translation": "Die Microsoft Intune-Authentifizierung ist nicht verfügbar."
+  },
+  {
+    "id": "api.user.login_by_intune.not_configured.app_error",
+    "translation": "Die Microsoft Intune-Authentifizierung ist nicht konfiguriert."
+  },
+  {
+    "id": "api.user.oauth_to_email.magic_link.app_error",
+    "translation": "Magic Link ist die einzige verfügbare Anmeldemethode für dieses Konto."
+  },
+  {
+    "id": "api.user.update_password.magic_link.app_error",
+    "translation": "Das Passwort für Magic Link-Konten kann nicht aktualisiert werden."
+  },
+  {
+    "id": "app.burn_post.not_burn_on_read.app_error",
+    "translation": "Diese Nachricht ist nicht als Lesen-nach-Löschen markiert und kann nicht entfernt werden."
+  },
+  {
+    "id": "app.burn_post.not_revealed.app_error",
+    "translation": "Diese Lesen-nach-Löschen Nachricht ist noch nicht aufgedeckt worden. Du musst sie vor dem Löschen aufdecken."
+  },
+  {
+    "id": "app.burn_post.read_receipt.get.error",
+    "translation": "Beim Abrufen des Lesebelegs ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "app.burn_post.read_receipt.update.error",
+    "translation": "Beim Aktualisieren des Lesebelegs ist ein Fehler aufgetreten."
   }
 ]
