@@ -105,11 +105,7 @@ const ConfigurationAnnouncementBar = (props: Props) => {
         }
 
         const daysUntilLicenseExpires = daysToLicenseExpire(props.license);
-        // TODO: Remove this test condition - temporarily always showing banner for testing
-        // Original condition: isTrialLicense(props.license) && typeof daysUntilLicenseExpires !== 'undefined' && daysUntilLicenseExpires <= 14 && !props.dismissedExpiringTrialLicense
-        if (true) {
-            // Use default value for testing if daysUntilLicenseExpires is undefined
-            const displayDays = typeof daysUntilLicenseExpires !== 'undefined' ? daysUntilLicenseExpires : 4;
+        if (isTrialLicense(props.license) && typeof daysUntilLicenseExpires !== 'undefined' && daysUntilLicenseExpires <= 14 && !props.dismissedExpiringTrialLicense) {
             const purchaseLicense = (
                 <PurchaseLink
                     className='btn btn-tertiary btn-xs btn-inverted annnouncementBar__purchaseNow'
@@ -133,7 +129,7 @@ const ConfigurationAnnouncementBar = (props: Props) => {
                         defaultMessage='There are {days} days left on your free trial.'
                         tagName='strong'
                         values={{
-                            days: displayDays,
+                            days: daysUntilLicenseExpires,
                         }}
                     />
                 </>
@@ -142,7 +138,7 @@ const ConfigurationAnnouncementBar = (props: Props) => {
             let announcementBarType = AnnouncementBarTypes.ANNOUNCEMENT;
 
             const {w: width} = getViewportSize();
-            if (displayDays < 1) {
+            if (daysUntilLicenseExpires < 1) {
                 const viewportBasedMessage = width < Constants.MOBILE_SCREEN_WIDTH ? formatMessage({
                     id: 'announcement_bar.error.trial_license_expiring_last_day.short',
                     defaultMessage: 'This is the last day of your free trial.'},
