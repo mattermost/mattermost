@@ -925,19 +925,6 @@ func (ss *SqlStore) hasLicense() bool {
 	return hasLicense
 }
 
-func convertMySQLFullTextColumnsToPostgres(columnNames string) string {
-	columns := strings.Split(columnNames, ", ")
-	var concatenatedColumnNames strings.Builder
-	for i, c := range columns {
-		concatenatedColumnNames.WriteString(c)
-		if i < len(columns)-1 {
-			concatenatedColumnNames.WriteString(" || ' ' || ")
-		}
-	}
-
-	return concatenatedColumnNames.String()
-}
-
 // IsDuplicate checks whether an error is a duplicate key error, which comes when processes are competing on creating the same
 // tables in the database.
 func IsDuplicate(err error) bool {

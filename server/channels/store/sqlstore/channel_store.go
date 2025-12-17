@@ -3147,7 +3147,7 @@ func (s SqlChannelStore) AutocompleteInTeamForSearch(teamID string, userID strin
 		}
 	} else {
 		// build the full text search clause
-		full := s.buildFulltextClauseX(term, "Name", "DisplayName", "Purpose")
+		full := s.buildFulltextClause(term, "Name", "DisplayName", "Purpose")
 		// build the LIKE query
 		likeSQL, likeArgs, err := query.Where(like).ToSql()
 		if err != nil {
@@ -3360,12 +3360,10 @@ func (s SqlChannelStore) channelSearchQuery(opts *store.ChannelSearchOpts) sq.Se
 			likeTerms[i] = likeTerm
 		}
 		likeClause = strings.ReplaceAll(likeClause, ":LikeTerm", "?")
-		fulltextClause, fulltextTerm := s.buildFulltextClause(opts.Term, "c.Name, c.DisplayName, c.Purpose")
-		fulltextClause = strings.ReplaceAll(fulltextClause, ":FulltextTerm", "?")
 
 		query = query.Where(sq.Or{
 			sq.Expr(likeClause, likeTerms...),
-			sq.Expr(fulltextClause, fulltextTerm),
+			s.buildFulltextClause(opts.Term, "c.Name", "c.DisplayName", "c.Purpose"),
 		})
 	}
 
@@ -3523,56 +3521,25 @@ func (s SqlChannelStore) buildLIKEClauseX(term string, searchColumns ...string) 
 
 const spaceFulltextSearchChars = "<>+-()~:*\"!@&"
 
-func (s SqlChannelStore) buildFulltextClause(term string, searchColumns string) (fulltextClause, fulltextTerm string) {
-	// Copy the terms as we will need to prepare them differently for each search type.
-	fulltextTerm = term
-
+func (s SqlChannelStore) buildFulltextClause(term string, searchColumns ...string) sq.Sqlizer {
 	// These chars must be treated as spaces in the fulltext query.
-	fulltextTerm = strings.Map(func(r rune) rune {
+	fulltextTerm := strings.Map(func(r rune) rune {
 		if strings.ContainsRune(spaceFulltextSearchChars, r) {
 			return ' '
 		}
 		return r
-	}, fulltextTerm)
+	}, term)
 
-	// Prepare the FULLTEXT portion of the query.
+	// Remove all pipes |
 	fulltextTerm = strings.ReplaceAll(fulltextTerm, "|", "")
 
-	splitTerm := strings.Fields(fulltextTerm)
-	for i, t := range strings.Fields(fulltextTerm) {
-		splitTerm[i] = t + ":*"
-	}
-
-	fulltextTerm = strings.Join(splitTerm, " & ")
-
-	fulltextClause = fmt.Sprintf("((to_tsvector('%[1]s', %[2]s)) @@ to_tsquery('%[1]s', :FulltextTerm))", s.pgDefaultTextSearchConfig, convertMySQLFullTextColumnsToPostgres(searchColumns))
-
-	return
-}
-
-func (s SqlChannelStore) buildFulltextClauseX(term string, searchColumns ...string) sq.Sqlizer {
-	// Copy the terms as we will need to prepare them differently for each search type.
-	fulltextTerm := term
-
-	// These chars must be treated as spaces in the fulltext query.
-	fulltextTerm = strings.Map(func(r rune) rune {
-		if strings.ContainsRune(spaceFulltextSearchChars, r) {
-			return ' '
-		}
-		return r
-	}, fulltextTerm)
-
-	// Prepare the FULLTEXT portion of the query.
-	// remove all pipes |
-	fulltextTerm = strings.ReplaceAll(fulltextTerm, "|", "")
-
-	// split the search term and append :* to each part
+	// Split the search term and append :* to each part for prefix matching
 	splitTerm := strings.Fields(fulltextTerm)
 	for i, t := range splitTerm {
 		splitTerm[i] = t + ":*"
 	}
 
-	// join the search term with &
+	// Join the search terms with & for AND matching
 	fulltextTerm = strings.Join(splitTerm, " & ")
 
 	expr := fmt.Sprintf("((to_tsvector('%[1]s', %[2]s)) @@ to_tsquery('%[1]s', ?))", s.pgDefaultTextSearchConfig, strings.Join(searchColumns, " || ' ' || "))
@@ -3600,10 +3567,9 @@ func (s SqlChannelStore) searchClause(term string) sq.Sqlizer {
 		return nil
 	}
 
-	fulltextClause := s.buildFulltextClauseX(term, "c.Name", "c.DisplayName", "c.Purpose")
 	return sq.Or{
 		likeClause,
-		fulltextClause,
+		s.buildFulltextClause(term, "c.Name", "c.DisplayName", "c.Purpose"),
 	}
 }
 
