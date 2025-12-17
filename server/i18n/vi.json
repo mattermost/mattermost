@@ -9004,5 +9004,13 @@
   {
     "id": "api.channel.add_user.to.channel.rejected",
     "translation": "Người dùng không có các thuộc tính cần thiết để tham gia kênh."
+  },
+  {
+    "id": "api.channel.create_group.remote_restricted.app_error",
+    "translation": "Không thể tạo một kênh nhắn tin theo nhóm cho người dùng từ xa"
+  },
+  {
+    "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
+    "translation": "ID của kênh này không trùng với ID của kênh có bài viết được gắn cờ."
   }
 ]
