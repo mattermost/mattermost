@@ -5,7 +5,6 @@ package sqlstore
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -817,26 +816,14 @@ func (s *SqlRetentionPolicyStore) GetChannelPoliciesCountForUser(userID string) 
 	return count, nil
 }
 
-func scanRetentionIdsForDeletion(rows *sql.Rows, isPostgres bool) ([]*model.RetentionIdsForDeletion, error) {
+func scanRetentionIdsForDeletion(rows *sql.Rows) ([]*model.RetentionIdsForDeletion, error) {
 	idsForDeletion := []*model.RetentionIdsForDeletion{}
 	for rows.Next() {
 		var row model.RetentionIdsForDeletion
-		if isPostgres {
-			if err := rows.Scan(
-				&row.Id, &row.TableName, pq.Array(&row.Ids),
-			); err != nil {
-				return nil, errors.Wrap(err, "unable to scan columns")
-			}
-		} else {
-			var ids []byte
-			if err := rows.Scan(
-				&row.Id, &row.TableName, &ids,
-			); err != nil {
-				return nil, errors.Wrap(err, "unable to scan columns")
-			}
-			if err := json.Unmarshal(ids, &row.Ids); err != nil {
-				return nil, errors.Wrap(err, "failed to unmarshal ids")
-			}
+		if err := rows.Scan(
+			&row.Id, &row.TableName, pq.Array(&row.Ids),
+		); err != nil {
+			return nil, errors.Wrap(err, "unable to scan columns")
 		}
 
 		idsForDeletion = append(idsForDeletion, &row)
@@ -867,8 +854,7 @@ func (s *SqlRetentionPolicyStore) GetIdsForDeletionByTableName(tableName string,
 	}
 	defer rows.Close()
 
-	isPostgres := s.DriverName() == model.DatabaseDriverPostgres
-	idsForDeletion, err := scanRetentionIdsForDeletion(rows, isPostgres)
+	idsForDeletion, err := scanRetentionIdsForDeletion(rows)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to scan ids for deletion")
 	}
@@ -880,18 +866,8 @@ func insertRetentionIdsForDeletion(txn *sqlxTxWrapper, row *model.RetentionIdsFo
 	row.PreSave()
 	insertBuilder := s.getQueryBuilder().
 		Insert("RetentionIdsForDeletion").
-		Columns("Id", "TableName", "Ids")
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		insertBuilder = insertBuilder.
-			Values(row.Id, row.TableName, pq.Array(row.Ids))
-	} else {
-		jsonIds, err := json.Marshal(row.Ids)
-		if err != nil {
-			return err
-		}
-		insertBuilder = insertBuilder.
-			Values(row.Id, row.TableName, jsonIds)
-	}
+		Columns("Id", "TableName", "Ids").
+		Values(row.Id, row.TableName, pq.Array(row.Ids))
 	insertQuery, insertArgs, err := insertBuilder.ToSql()
 	if err != nil {
 		return err
