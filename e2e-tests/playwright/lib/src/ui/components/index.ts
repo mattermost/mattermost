@@ -44,11 +44,16 @@ import DeletePostConfirmationDialog from './channels/delete_post_confirmation_di
 import RestorePostConfirmationDialog from './channels/restore_post_confirmation_dialog';
 import SystemConsoleFeatureDiscovery from './system_console/sections/system_users/feature_discovery';
 import SystemConsoleMobileSecurity from './system_console/sections/system_users/mobile_security';
+import SystemConsoleSelfDeletingMessages from './system_console/sections/self_deleting_messages';
 import ScheduledPost from './channels/scheduled_post';
 import SendMessageNowModal from './channels/send_message_now_modal';
 import DeleteScheduledPostModal from './channels/delete_scheduled_post_modal';
 import DraftPost from './channels/draft_post';
 import FlagPostConfirmationDialog from './channels/flag_post_confirmation_dialog';
+import BurnOnReadBadge from './channels/burn_on_read_badge';
+import BurnOnReadTimerChip from './channels/burn_on_read_timer_chip';
+import BurnOnReadConcealedPlaceholder from './channels/burn_on_read_concealed_placeholder';
+import BurnOnReadConfirmationModal from './channels/burn_on_read_confirmation_modal';
 
 const components = {
     GlobalHeader,
@@ -91,6 +96,7 @@ const components = {
     SystemUsersColumnToggleMenu,
     SystemConsoleFeatureDiscovery,
     SystemConsoleMobileSecurity,
+    SystemConsoleSelfDeletingMessages,
     MessagePriority,
     UserProfilePopover,
     UserAccountMenu,
@@ -99,6 +105,10 @@ const components = {
     DeletePostConfirmationDialog,
     RestorePostConfirmationDialog,
     ProfileModal,
+    BurnOnReadBadge,
+    BurnOnReadTimerChip,
+    BurnOnReadConcealedPlaceholder,
+    BurnOnReadConfirmationModal,
 };
 
 export {
@@ -143,6 +153,7 @@ export {
     SystemUsersColumnToggleMenu,
     SystemConsoleFeatureDiscovery,
     SystemConsoleMobileSecurity,
+    SystemConsoleSelfDeletingMessages,
     MessagePriority,
     UserProfilePopover,
     UserAccountMenu,
@@ -151,4 +162,8 @@ export {
     DeletePostConfirmationDialog,
     RestorePostConfirmationDialog,
     ProfileModal,
+    BurnOnReadBadge,
+    BurnOnReadTimerChip,
+    BurnOnReadConcealedPlaceholder,
+    BurnOnReadConfirmationModal,
 };
