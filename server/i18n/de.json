@@ -11574,5 +11574,105 @@
   {
     "id": "app.burn_post.read_receipt.update.error",
     "translation": "Beim Aktualisieren des Lesebelegs ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "app.post.get_post.app_error",
+    "translation": "Beim Abrufen des Löschen-nach-Lesen Nachrichten-Inhalts ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "app.reveal_post.cannot_reveal_own_post.app_error",
+    "translation": "Du kannst deine eigene Löschen-nach-Lesen Nachricht nicht aufdecken."
+  },
+  {
+    "id": "app.reveal_post.missing_expire_at.app_error",
+    "translation": "Der Löschen-nach-Lesen Nachricht fehlt die erforderliche Verfallszeit."
+  },
+  {
+    "id": "app.reveal_post.not_burn_on_read.app_error",
+    "translation": "Diese Nachricht ist keine Löschen-nach-Lesen Nachricht und kann nicht aufgedeckt werden."
+  },
+  {
+    "id": "app.reveal_post.post_expired.app_error",
+    "translation": "Diese Löschen-nach-Lesen-Nachricht ist abgelaufen und kann nicht mehr angezeigt werden."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.get.error",
+    "translation": "Beim Abrufen des Lesebelegs ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.get_unread_count.error",
+    "translation": "Es ist nicht möglich, die Ungelesen-Anzahl des Lesen-Belegs zu ermitteln."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.save.error",
+    "translation": "Beim Speichern des Lesebelegs ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "app.reveal_post.read_receipt_expired.error",
+    "translation": "Dein Zugang zu dieser Löschen-nach-Lesen Nachricht ist abgelaufen."
+  },
+  {
+    "id": "ent.intune.login.account_not_found.app_error",
+    "translation": "Dein Konto ist noch nicht vollständig eingerichtet. Bitte melde dich zuerst über das Web oder die Desktop App bei Mattermost an."
+  },
+  {
+    "id": "ent.intune.login.extract_auth_data.app_error",
+    "translation": "Die Authentifizierung ist fehlgeschlagen. Bitte versuche es erneut oder wende dich an deinen Systemadministrator."
+  },
+  {
+    "id": "ent.intune.login.not_configured.app_error",
+    "translation": "Die Microsoft Intune-Authentifizierung ist nicht konfiguriert."
+  },
+  {
+    "id": "ent.intune.validate_token.invalid_tenant_id.app_error",
+    "translation": "Authentifizierung fehlgeschlagen. Ungültige Konfiguration."
+  },
+  {
+    "id": "ent.intune.validate_token.invalid_token.app_error",
+    "translation": "Authentifizierung fehlgeschlagen. Bitte versuche es erneut."
+  },
+  {
+    "id": "ent.intune.validate_token.jwks_init.app_error",
+    "translation": "Die Initialisierung des Authentifizierungsdienstes ist fehlgeschlagen. Bitte wende dich an deinen Systemadministrator."
+  },
+  {
+    "id": "ent.intune.validate_token.missing_claims.app_error",
+    "translation": "Authentifizierung fehlgeschlagen. Die erforderlichen Benutzerinformationen fehlen."
+  },
+  {
+    "id": "ent.intune.validate_token.token_expired.app_error",
+    "translation": "Die Authentifizierungssitzung ist abgelaufen. Bitte versuche, dich erneut anzumelden."
+  },
+  {
+    "id": "model.config.is_valid.intune_auth_service.app_error",
+    "translation": "Der Intune MAM Auth Service ist erforderlich, wenn Intune aktiviert ist."
+  },
+  {
+    "id": "model.config.is_valid.intune_auth_service_invalid.app_error",
+    "translation": "Der Intune MAM Auth Service muss entweder \"office365\" oder \"saml\" sein."
+  },
+  {
+    "id": "model.config.is_valid.intune_client_id.app_error",
+    "translation": "Die Intune MAM Client ID ist erforderlich, wenn Intune aktiviert ist."
+  },
+  {
+    "id": "model.config.is_valid.intune_client_id_format.app_error",
+    "translation": "Die Intune MAM Client ID muss eine gültige UUID sein."
+  },
+  {
+    "id": "model.config.is_valid.intune_requires_office365.app_error",
+    "translation": "Für Intune MAM muss OpenID Connect (Office 365) aktiviert sein, wenn der Auth Service auf \"office365\" eingestellt ist."
+  },
+  {
+    "id": "model.config.is_valid.intune_requires_saml.app_error",
+    "translation": "Für Intune MAM muss SAML aktiviert sein, wenn der Auth Service auf \"saml\" eingestellt ist."
+  },
+  {
+    "id": "model.config.is_valid.intune_tenant_id.app_error",
+    "translation": "Die Intune MAM Tenant ID ist erforderlich, wenn Intune aktiviert ist."
+  },
+  {
+    "id": "model.config.is_valid.intune_tenant_id_format.app_error",
+    "translation": "Die Intune MAM Tenant ID muss eine gültige UUID sein."
   }
 ]
