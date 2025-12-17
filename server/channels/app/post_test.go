@@ -4870,3 +4870,198 @@ func TestBurnPost(t *testing.T) {
 		require.LessOrEqual(t, receipt.ExpireAt, model.GetMillis())
 	})
 }
+
+func TestGetFlaggedPostsWithExpiredBurnOnRead(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
+	t.Cleanup(func() {
+		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
+	})
+
+	th := Setup(t).InitBasic(t)
+
+	// Create a second user for testing
+	user2 := th.CreateUser(t)
+	th.LinkUserToTeam(t, user2, th.BasicTeam)
+	th.AddUserToChannel(t, user2, th.BasicChannel)
+
+	t.Run("expired burn-on-read post should not be returned in flagged posts", func(t *testing.T) {
+		enableBoRFeature(th)
+
+		// Create a burn-on-read post
+		borPost := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "burn on read message",
+			Type:      model.PostTypeBurnOnRead,
+		}
+		borPost.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(10*1000)) // 10 seconds
+
+		createdPost, appErr := th.App.CreatePost(th.Context, borPost, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+		require.NotNil(t, createdPost)
+
+		// User2 reveals the post
+		revealedPost, appErr := th.App.RevealPost(th.Context, createdPost, user2.Id, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, revealedPost)
+
+		// User2 saves/flags the post
+		preference := model.Preference{
+			UserId:   user2.Id,
+			Category: model.PreferenceCategoryFlaggedPost,
+			Name:     createdPost.Id,
+			Value:    "true",
+		}
+		err := th.App.Srv().Store().Preference().Save(model.Preferences{preference})
+		require.NoError(t, err)
+
+		// Verify post appears in flagged posts before expiration
+		flaggedPosts, appErr := th.App.GetFlaggedPosts(th.Context, user2.Id, 0, 10)
+		require.Nil(t, appErr)
+		require.NotNil(t, flaggedPosts)
+		require.Contains(t, flaggedPosts.Order, createdPost.Id)
+		require.NotNil(t, flaggedPosts.Posts[createdPost.Id])
+
+		// Simulate expiration by updating the receipt's ExpireAt to the past
+		receipt, err := th.App.Srv().Store().ReadReceipt().Get(th.Context, createdPost.Id, user2.Id)
+		require.NoError(t, err)
+		require.NotNil(t, receipt)
+
+		receipt.ExpireAt = model.GetMillis() - 1000 // 1 second in the past
+		_, err = th.App.Srv().Store().ReadReceipt().Update(th.Context, receipt)
+		require.NoError(t, err)
+
+		// Get flagged posts again - expired post should be filtered out
+		flaggedPosts, appErr = th.App.GetFlaggedPosts(th.Context, user2.Id, 0, 10)
+		require.Nil(t, appErr)
+		require.NotNil(t, flaggedPosts)
+		require.NotContains(t, flaggedPosts.Order, createdPost.Id, "Expired burn-on-read post should not be in flagged posts")
+		require.Nil(t, flaggedPosts.Posts[createdPost.Id], "Expired burn-on-read post should not be in posts map")
+	})
+
+	t.Run("expired burn-on-read post should not be returned in flagged posts for team", func(t *testing.T) {
+		enableBoRFeature(th)
+
+		// Create a burn-on-read post
+		borPost := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "burn on read team message",
+			Type:      model.PostTypeBurnOnRead,
+		}
+		borPost.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(10*1000))
+
+		createdPost, appErr := th.App.CreatePost(th.Context, borPost, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		// User2 reveals and flags the post
+		revealedPost, appErr := th.App.RevealPost(th.Context, createdPost, user2.Id, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, revealedPost)
+
+		preference := model.Preference{
+			UserId:   user2.Id,
+			Category: model.PreferenceCategoryFlaggedPost,
+			Name:     createdPost.Id,
+			Value:    "true",
+		}
+		err := th.App.Srv().Store().Preference().Save(model.Preferences{preference})
+		require.NoError(t, err)
+
+		// Expire the receipt
+		receipt, err := th.App.Srv().Store().ReadReceipt().Get(th.Context, createdPost.Id, user2.Id)
+		require.NoError(t, err)
+		receipt.ExpireAt = model.GetMillis() - 1000
+		_, err = th.App.Srv().Store().ReadReceipt().Update(th.Context, receipt)
+		require.NoError(t, err)
+
+		// Get flagged posts for team
+		flaggedPosts, appErr := th.App.GetFlaggedPostsForTeam(th.Context, user2.Id, th.BasicTeam.Id, 0, 10)
+		require.Nil(t, appErr)
+		require.NotContains(t, flaggedPosts.Order, createdPost.Id)
+	})
+
+	t.Run("expired burn-on-read post should not be returned in flagged posts for channel", func(t *testing.T) {
+		enableBoRFeature(th)
+
+		// Create a burn-on-read post
+		borPost := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "burn on read channel message",
+			Type:      model.PostTypeBurnOnRead,
+		}
+		borPost.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(10*1000))
+
+		createdPost, appErr := th.App.CreatePost(th.Context, borPost, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		// User2 reveals and flags the post
+		revealedPost, appErr := th.App.RevealPost(th.Context, createdPost, user2.Id, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, revealedPost)
+
+		preference := model.Preference{
+			UserId:   user2.Id,
+			Category: model.PreferenceCategoryFlaggedPost,
+			Name:     createdPost.Id,
+			Value:    "true",
+		}
+		err := th.App.Srv().Store().Preference().Save(model.Preferences{preference})
+		require.NoError(t, err)
+
+		// Expire the receipt
+		receipt, err := th.App.Srv().Store().ReadReceipt().Get(th.Context, createdPost.Id, user2.Id)
+		require.NoError(t, err)
+		receipt.ExpireAt = model.GetMillis() - 1000
+		_, err = th.App.Srv().Store().ReadReceipt().Update(th.Context, receipt)
+		require.NoError(t, err)
+
+		// Get flagged posts for channel
+		flaggedPosts, appErr := th.App.GetFlaggedPostsForChannel(th.Context, user2.Id, th.BasicChannel.Id, 0, 10)
+		require.Nil(t, appErr)
+		require.NotContains(t, flaggedPosts.Order, createdPost.Id)
+	})
+
+	t.Run("non-expired burn-on-read post should appear in flagged posts", func(t *testing.T) {
+		enableBoRFeature(th)
+
+		// Create a burn-on-read post with long expiration
+		borPost := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "burn on read message still valid",
+			Type:      model.PostTypeBurnOnRead,
+		}
+		borPost.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(3600*1000)) // 1 hour
+
+		createdPost, appErr := th.App.CreatePost(th.Context, borPost, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		// User2 reveals and flags the post
+		revealedPost, appErr := th.App.RevealPost(th.Context, createdPost, user2.Id, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, revealedPost)
+
+		preference := model.Preference{
+			UserId:   user2.Id,
+			Category: model.PreferenceCategoryFlaggedPost,
+			Name:     createdPost.Id,
+			Value:    "true",
+		}
+		err := th.App.Srv().Store().Preference().Save(model.Preferences{preference})
+		require.NoError(t, err)
+
+		// Get flagged posts - post should be present
+		flaggedPosts, appErr := th.App.GetFlaggedPosts(th.Context, user2.Id, 0, 10)
+		require.Nil(t, appErr)
+		require.Contains(t, flaggedPosts.Order, createdPost.Id, "Non-expired burn-on-read post should be in flagged posts")
+		require.NotNil(t, flaggedPosts.Posts[createdPost.Id])
+
+		// Verify metadata is populated correctly
+		post := flaggedPosts.Posts[createdPost.Id]
+		require.NotNil(t, post.Metadata)
+		require.NotZero(t, post.Metadata.ExpireAt)
+		require.Greater(t, post.Metadata.ExpireAt, model.GetMillis())
+	})
+}
