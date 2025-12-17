@@ -564,7 +564,8 @@ func TestUpdateTeamInviteUserPermission(t *testing.T) {
 		th.AddPermissionToRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
 
 		team.AllowOpenInvite = true
-		updatedTeam, _, err := th.Client.UpdateTeam(context.Background(), team)
+		var updatedTeam *model.Team
+		updatedTeam, _, err = th.Client.UpdateTeam(context.Background(), team)
 		require.NoError(t, err)
 		require.True(t, updatedTeam.AllowOpenInvite)
 
@@ -582,12 +583,14 @@ func TestUpdateTeamInviteUserPermission(t *testing.T) {
 
 		// Attempt to change AllowOpenInvite to true
 		team.AllowOpenInvite = true
-		_, resp, err := th.Client.UpdateTeam(context.Background(), team)
+		var resp *model.Response
+		_, resp, err = th.Client.UpdateTeam(context.Background(), team)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 
 		// Verify the team's AllowOpenInvite didn't change
-		fetchedTeam, _, err := th.SystemAdminClient.GetTeam(context.Background(), team.Id, "")
+		var fetchedTeam *model.Team
+		fetchedTeam, _, err = th.SystemAdminClient.GetTeam(context.Background(), team.Id, "")
 		require.NoError(t, err)
 		require.False(t, fetchedTeam.AllowOpenInvite, "AllowOpenInvite should still be false")
 	})
@@ -599,12 +602,14 @@ func TestUpdateTeamInviteUserPermission(t *testing.T) {
 
 		// Attempt to change AllowedDomains
 		team.AllowedDomains = "example.com"
-		_, resp, err := th.Client.UpdateTeam(context.Background(), team)
+		var resp *model.Response
+		_, resp, err = th.Client.UpdateTeam(context.Background(), team)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 
 		// Verify the team's AllowedDomains didn't change
-		fetchedTeam, _, err := th.SystemAdminClient.GetTeam(context.Background(), team.Id, "")
+		var fetchedTeam *model.Team
+		fetchedTeam, _, err = th.SystemAdminClient.GetTeam(context.Background(), team.Id, "")
 		require.NoError(t, err)
 		require.Empty(t, fetchedTeam.AllowedDomains, "AllowedDomains should still be empty")
 	})
@@ -621,7 +626,8 @@ func TestUpdateTeamInviteUserPermission(t *testing.T) {
 		// Change DisplayName and Description (should succeed)
 		team.DisplayName = "Updated Display Name"
 		team.Description = "Updated Description"
-		updatedTeam, _, err := th.Client.UpdateTeam(context.Background(), team)
+		var updatedTeam *model.Team
+		updatedTeam, _, err = th.Client.UpdateTeam(context.Background(), team)
 		require.NoError(t, err)
 		require.Equal(t, "Updated Display Name", updatedTeam.DisplayName)
 		require.Equal(t, "Updated Description", updatedTeam.Description)
@@ -638,7 +644,8 @@ func TestUpdateTeamInviteUserPermission(t *testing.T) {
 
 		// System admin should be able to change AllowOpenInvite
 		team.AllowOpenInvite = true
-		updatedTeam, _, err := th.SystemAdminClient.UpdateTeam(context.Background(), team)
+		var updatedTeam *model.Team
+		updatedTeam, _, err = th.SystemAdminClient.UpdateTeam(context.Background(), team)
 		require.NoError(t, err)
 		require.True(t, updatedTeam.AllowOpenInvite)
 	})
