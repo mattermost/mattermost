@@ -31,7 +31,15 @@ func (a *App) canSendPushNotifications() bool {
 	}
 
 	pushServer := *a.Config().EmailSettings.PushNotificationServer
-	if license := a.Srv().License(); pushServer == model.MHPNS && (license == nil || !*license.Features.MHPNS) {
+	// Check for MHPNS servers (both current and legacy DNS aliases)
+	isMHPNSServer := pushServer == model.MHPNS ||
+		pushServer == model.MHPNSLegacyUS ||
+		pushServer == model.MHPNSLegacyDE ||
+		pushServer == model.MHPNSGlobal ||
+		pushServer == model.MHPNSUS ||
+		pushServer == model.MHPNSEU ||
+		pushServer == model.MHPNSAP
+	if license := a.Srv().License(); isMHPNSServer && (license == nil || !*license.Features.MHPNS) {
 		a.Log().LogM(mlog.MlvlNotificationWarn, "Push notifications are disabled - license missing",
 			mlog.String("status", model.NotificationStatusNotSent),
 			mlog.String("reason", "push_disabled_license"),
@@ -164,7 +172,17 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 		mlog.String("post_id", post.Id),
 	)
 
-	mentions, keywords := a.getExplicitMentionsAndKeywords(rctx, post, channel, profileMap, groups, channelMemberNotifyPropsMap, parentPostList)
+	var mentions *MentionResults
+	var keywords MentionKeywords
+	if post.Type == model.PostTypeBurnOnRead {
+		borPost, appErr := a.getBurnOnReadPost(store.RequestContextWithMaster(rctx), post)
+		if appErr != nil {
+			return nil, appErr
+		}
+		mentions, keywords = a.getExplicitMentionsAndKeywords(rctx, borPost, channel, profileMap, groups, channelMemberNotifyPropsMap, parentPostList)
+	} else {
+		mentions, keywords = a.getExplicitMentionsAndKeywords(rctx, post, channel, profileMap, groups, channelMemberNotifyPropsMap, parentPostList)
+	}
 
 	var allActivityPushUserIds []string
 	if channel.Type != model.ChannelTypeDirect {

@@ -732,6 +732,10 @@
     "translation": "Email invite(s) sent"
   },
   {
+    "id": "api.command.move_command.creator_no_permission.app_error",
+    "translation": "No permission to move command"
+  },
+  {
     "id": "api.command.team_mismatch.app_error",
     "translation": "Unable to update commands across teams."
   },
@@ -2149,8 +2153,16 @@
     "translation": "Unable to get the file size."
   },
   {
+    "id": "api.file.get_file.invalid_flagged_post.app_error",
+    "translation": "Mismatched flagged post ID specified."
+  },
+  {
     "id": "api.file.get_file.public_invalid.app_error",
     "translation": "The public link does not appear to be valid."
+  },
+  {
+    "id": "api.file.get_file_info.app_error",
+    "translation": "Failed to get file info."
   },
   {
     "id": "api.file.get_file_preview.no_preview.app_error",
@@ -2473,6 +2485,10 @@
     "translation": "E10 or E20 license required to use this endpoint."
   },
   {
+    "id": "api.oauth.allow_oauth.pkce_required_public.app_error",
+    "translation": "PKCE (Proof Key for Code Exchange) is required for public OAuth clients using authorization code flow."
+  },
+  {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
     "translation": "invalid_request: Supplied redirect_uri did not match registered callback_url."
   },
@@ -2483,6 +2499,18 @@
   {
     "id": "api.oauth.auth_complete",
     "translation": "Authentication complete"
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.disabled.app_error",
+    "translation": "OAuth service provider is disabled."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.invalid_url.app_error",
+    "translation": "Invalid URL configuration for authorization server metadata."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.site_url_required.app_error",
+    "translation": "Site URL must be configured to provide authorization server metadata."
   },
   {
     "id": "api.oauth.authorize_oauth.disabled.app_error",
@@ -2499,10 +2527,6 @@
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
     "translation": "invalid_request: Bad client_id."
-  },
-  {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Missing client_secret."
   },
   {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
@@ -2557,12 +2581,20 @@
     "translation": "invalid_grant: Invalid refresh token."
   },
   {
+    "id": "api.oauth.get_access_token.resource_mismatch.app_error",
+    "translation": "Resource parameter mismatch between authorization and token requests."
+  },
+  {
     "id": "api.oauth.invalid_state_token.app_error",
     "translation": "Invalid state token."
   },
   {
     "id": "api.oauth.redirecting_back",
     "translation": "Redirecting you back to the app."
+  },
+  {
+    "id": "api.oauth.regenerate_secret.public_client.app_error",
+    "translation": "invalid_request: Cannot regenerate secret for public OAuth clients."
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
@@ -2625,6 +2657,10 @@
     "translation": "Unable to verify plugin signature."
   },
   {
+    "id": "api.post.burn_post.user_not_in_channel.app_error",
+    "translation": "You do not have permission to burn this post. You must be a member of the channel."
+  },
+  {
     "id": "api.post.check_for_out_of_channel_group_users.message.none",
     "translation": "@{{.GroupName}} has no members on this team"
   },
@@ -2651,6 +2687,10 @@
   {
     "id": "api.post.check_for_out_of_team_mentions.message.one",
     "translation": "@{{.Username}} didn't get notified by this mention because they aren't a member of this team."
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.app_error",
+    "translation": "An error occurred while creating a burn-on-read post."
   },
   {
     "id": "api.post.create_post.can_not_post_in_restricted_dm.error",
@@ -2721,8 +2761,20 @@
     "translation": "Unable to get the pending post."
   },
   {
+    "id": "api.post.fill_in_post_props.burn_on_read.config.app_error",
+    "translation": "Burn-on-read posts are not enabled. Please enable the feature flag and service setting."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.license.app_error",
+    "translation": "Burn-on-read posts require an Enterprise Advanced license."
+  },
+  {
     "id": "api.post.fill_in_post_props.invalid_ai_generated_user.app_error",
     "translation": "The AI-generated user must be either the post creator or a bot."
+  },
+  {
+    "id": "api.post.get_link_metadata_for_permalink.burn_on_read.app_error",
+    "translation": "Cannot retrieve link metadata for burn-on-read post permalink."
   },
   {
     "id": "api.post.get_message_for_notification.files_sent",
@@ -2739,12 +2791,20 @@
     }
   },
   {
+    "id": "api.post.get_posts_for_reporting.channel_not_found",
+    "translation": "Channel not found"
+  },
+  {
     "id": "api.post.move_thread.disabled.app_error",
     "translation": "Thread moving is disabled"
   },
   {
     "id": "api.post.move_thread.no_permission",
     "translation": "You do not have permission to move this thread."
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_burn_on_read_post.error",
+    "translation": "Burn-on-read posts cannot be updated."
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
@@ -2781,6 +2841,18 @@
   {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": "The number of Post IDs received has exceeded the maximum size of {{.MaxLength}}"
+  },
+  {
+    "id": "api.post.reveal_post.cannot_reveal_own_post.app_error",
+    "translation": "You cannot reveal your own burn-on-read post."
+  },
+  {
+    "id": "api.post.reveal_post.disabled.app_error",
+    "translation": "Burn-on-read feature is not enabled or requires an Enterprise Advanced license."
+  },
+  {
+    "id": "api.post.reveal_post.user_not_in_channel.app_error",
+    "translation": "You do not have permission to reveal this post. You must be a member of the channel."
   },
   {
     "id": "api.post.search_files.invalid_body.app_error",
@@ -2825,6 +2897,10 @@
   {
     "id": "api.post.send_notifications_and_forget.push_message",
     "translation": "sent you a message."
+  },
+  {
+    "id": "api.post.update_post.burn_on_read.app_error",
+    "translation": "Burn-on-read posts cannot be edited."
   },
   {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
@@ -2921,6 +2997,10 @@
   {
     "id": "api.reaction.save.archived_channel.app_error",
     "translation": "You cannot react in an archived channel."
+  },
+  {
+    "id": "api.reaction.save.burn_on_read.app_error",
+    "translation": "You cannot react to a burn-on-read post."
   },
   {
     "id": "api.reaction.save.restricted_dm.error",
@@ -3335,6 +3415,10 @@
     "translation": "Guest accounts are disabled"
   },
   {
+    "id": "api.team.invite_guests_to_channels.guest_magic_link_disabled.error",
+    "translation": "Guest magic link is not enabled"
+  },
+  {
     "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
     "translation": "Invalid or missing request body."
   },
@@ -3645,6 +3729,26 @@
   {
     "id": "api.templates.email_warning",
     "translation": "If you did not make this change, please contact the system administrator."
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.footer.info",
+    "translation": "This email was sent to you because someone requested a login link for Mattermost. If you did not request this, you can safely ignore this email."
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.footer.title",
+    "translation": "Didn't request this email?"
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.subtitle",
+    "translation": "Click the button below to sign in to your account. Remember not to share this link with anyone else."
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.title",
+    "translation": "Sign in to Mattermost"
+  },
+  {
+    "id": "api.templates.guest_magic_link_subject",
+    "translation": "Sign in to {{ .SiteName }}"
   },
   {
     "id": "api.templates.invite_body.button",
@@ -4243,6 +4347,26 @@
     "translation": "Access control service unavailable. Cannot filter users for ABAC-enabled channel."
   },
   {
+    "id": "api.user.guest_magic_link.expired_token.app_error",
+    "translation": "This invitation link has expired."
+  },
+  {
+    "id": "api.user.guest_magic_link.invalid_token.app_error",
+    "translation": "Invalid invitation link."
+  },
+  {
+    "id": "api.user.guest_magic_link.invalid_token_type.app_error",
+    "translation": "Invalid invitation link type."
+  },
+  {
+    "id": "api.user.guest_magic_link.missing_token.app_error",
+    "translation": "Missing invitation token."
+  },
+  {
+    "id": "api.user.guest_magic_link.username_generation_failed.app_error",
+    "translation": "Could not generate a unique username. Please contact your system administrator."
+  },
+  {
     "id": "api.user.invalidate_password_recovery_tokens.error",
     "translation": "Unable to get tokens by type when invalidating password recovery tokens"
   },
@@ -4291,6 +4415,10 @@
     "translation": "Your license does not support guest accounts"
   },
   {
+    "id": "api.user.login.guest_magic_link.disabled.error",
+    "translation": "Login with magic link is disabled."
+  },
+  {
     "id": "api.user.login.inactive.app_error",
     "translation": "Login failed because your account has been deactivated.  Please contact an administrator."
   },
@@ -4327,6 +4455,22 @@
     "translation": "CWS token is not valid"
   },
   {
+    "id": "api.user.login_by_intune.account_locked.app_error",
+    "translation": "Your account has been deactivated. Please contact your system administrator."
+  },
+  {
+    "id": "api.user.login_by_intune.bot_login_forbidden.app_error",
+    "translation": "Bot accounts cannot sign in using Microsoft authentication."
+  },
+  {
+    "id": "api.user.login_by_intune.not_available.app_error",
+    "translation": "Microsoft Intune authentication is not available."
+  },
+  {
+    "id": "api.user.login_by_intune.not_configured.app_error",
+    "translation": "Microsoft Intune authentication is not configured."
+  },
+  {
     "id": "api.user.login_by_oauth.bot_login_forbidden.app_error",
     "translation": "Bot login is forbidden."
   },
@@ -4355,12 +4499,20 @@
     "translation": "Update password failed because context user_id did not match provided user's id."
   },
   {
+    "id": "api.user.oauth_to_email.magic_link.app_error",
+    "translation": "Magic Link is the only sign-in method available for this account."
+  },
+  {
     "id": "api.user.oauth_to_email.not_available.app_error",
     "translation": "Authentication Transfer not configured or available on this server."
   },
   {
     "id": "api.user.patch_user.login_provider_attribute_set.app_error",
     "translation": "Field '{{.Field}}' must be set through user's login provider."
+  },
+  {
+    "id": "api.user.promote_guest_to_user.magic_link_enabled.app_error",
+    "translation": "Unable to convert the guest to regular user because the guest uses magic link authentication."
   },
   {
     "id": "api.user.promote_guest_to_user.no_guest.app_error",
@@ -4415,6 +4567,10 @@
     "translation": "Failed to send email change verification email successfully"
   },
   {
+    "id": "api.user.send_password_reset.guest_magic_link.app_error",
+    "translation": "Unable to reset password for guest magic link accounts."
+  },
+  {
     "id": "api.user.send_password_reset.send.app_error",
     "translation": "Failed to send password reset email successfully."
   },
@@ -4461,6 +4617,10 @@
   {
     "id": "api.user.update_password.incorrect.app_error",
     "translation": "The \"Current Password\" you entered is incorrect. Please check that Caps Lock is off and try again."
+  },
+  {
+    "id": "api.user.update_password.magic_link.app_error",
+    "translation": "Cannot update password for Magic Link accounts."
   },
   {
     "id": "api.user.update_password.menu",
@@ -4741,6 +4901,22 @@
   {
     "id": "app.bot.update.app_error",
     "translation": "Unable to update the bot."
+  },
+  {
+    "id": "app.burn_post.not_burn_on_read.app_error",
+    "translation": "This post is not a burn-on-read post and cannot be burned."
+  },
+  {
+    "id": "app.burn_post.not_revealed.app_error",
+    "translation": "This burn-on-read post has not been revealed yet. You must reveal it before burning."
+  },
+  {
+    "id": "app.burn_post.read_receipt.get.error",
+    "translation": "An error occurred while retrieving the read receipt."
+  },
+  {
+    "id": "app.burn_post.read_receipt.update.error",
+    "translation": "An error occurred while updating the read receipt."
   },
   {
     "id": "app.channel.add_member.deleted_user.app_error",
@@ -5413,6 +5589,10 @@
   {
     "id": "app.custom_profile_attributes.list_property_values.app_error",
     "translation": "Unable to get custom profile attribute values"
+  },
+  {
+    "id": "app.custom_profile_attributes.patch_field.app_error",
+    "translation": "Unable to patch Custom Profile Attribute field"
   },
   {
     "id": "app.custom_profile_attributes.property_field_conversion.app_error",
@@ -6719,6 +6899,10 @@
     "translation": "Could not unassign access control policy from channels."
   },
   {
+    "id": "app.pap.update_access_control_policies_active.app_error",
+    "translation": "Could not update active status of access control policies."
+  },
+  {
     "id": "app.pap.update_access_control_policy_active.app_error",
     "translation": "Could not change active status of access control policy."
   },
@@ -6963,6 +7147,10 @@
     "translation": "Unable to get the flagged posts."
   },
   {
+    "id": "app.post.get_post.app_error",
+    "translation": "An error occurred while retrieving the burn-on-read post content."
+  },
+  {
     "id": "app.post.get_post_after_time.app_error",
     "translation": "Unable to get post after time bound."
   },
@@ -6981,6 +7169,18 @@
   {
     "id": "app.post.get_posts_created_at.app_error",
     "translation": "Unable to get the posts for the channel."
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.app_error",
+    "translation": "Unable to retrieve posts for reporting."
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.invalid_input_error",
+    "translation": "Unable to retrieve posts for reporting. Invalid input."
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.license_error",
+    "translation": "Your license does not support reporting on posts."
   },
   {
     "id": "app.post.get_posts_since.app_error",
@@ -7049,6 +7249,22 @@
   {
     "id": "app.post.restore_post_version.not_valid_post_history_item.app_error",
     "translation": "The provided post history ID does not correspond to a post history item."
+  },
+  {
+    "id": "app.post.rewrite.agent_call_failed",
+    "translation": "Failed to call AI agent."
+  },
+  {
+    "id": "app.post.rewrite.empty_response",
+    "translation": "Empty response from AI."
+  },
+  {
+    "id": "app.post.rewrite.invalid_action",
+    "translation": "Invalid rewrite action."
+  },
+  {
+    "id": "app.post.rewrite.parse_response_failed",
+    "translation": "Failed to parse rewrite response from AI."
   },
   {
     "id": "app.post.save.app_error",
@@ -7205,6 +7421,38 @@
   {
     "id": "app.report.start_users_batch_export.started_export",
     "translation": "You've started an export of user data for {{.DateRange}}. When the export is complete, a CSV file will be delivered to you in this direct message."
+  },
+  {
+    "id": "app.reveal_post.cannot_reveal_own_post.app_error",
+    "translation": "You cannot reveal your own burn-on-read post."
+  },
+  {
+    "id": "app.reveal_post.missing_expire_at.app_error",
+    "translation": "The burn-on-read post is missing the required expiration time."
+  },
+  {
+    "id": "app.reveal_post.not_burn_on_read.app_error",
+    "translation": "This post is not a burn-on-read post and cannot be revealed."
+  },
+  {
+    "id": "app.reveal_post.post_expired.app_error",
+    "translation": "This burn-on-read post has expired and can no longer be revealed."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.get.error",
+    "translation": "An error occurred while retrieving the read receipt."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.get_unread_count.error",
+    "translation": "Unable to get the unread count for the read receipt."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.save.error",
+    "translation": "An error occurred while saving the read receipt."
+  },
+  {
+    "id": "app.reveal_post.read_receipt_expired.error",
+    "translation": "Your access to this burn-on-read post has expired."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
@@ -8457,6 +8705,38 @@
     "translation": "Your license does not support ID Loaded Push Notifications."
   },
   {
+    "id": "ent.intune.login.account_not_found.app_error",
+    "translation": "Your account isn't fully set up yet. Please sign in to Mattermost via the web or desktop app first."
+  },
+  {
+    "id": "ent.intune.login.extract_auth_data.app_error",
+    "translation": "Authentication failed. Please try again or contact your system administrator."
+  },
+  {
+    "id": "ent.intune.login.not_configured.app_error",
+    "translation": "Microsoft Intune authentication is not configured."
+  },
+  {
+    "id": "ent.intune.validate_token.invalid_tenant_id.app_error",
+    "translation": "Authentication failed. Invalid configuration."
+  },
+  {
+    "id": "ent.intune.validate_token.invalid_token.app_error",
+    "translation": "Authentication failed. Please try again."
+  },
+  {
+    "id": "ent.intune.validate_token.jwks_init.app_error",
+    "translation": "Authentication service initialization failed. Please contact your system administrator."
+  },
+  {
+    "id": "ent.intune.validate_token.missing_claims.app_error",
+    "translation": "Authentication failed. Required user information is missing."
+  },
+  {
+    "id": "ent.intune.validate_token.token_expired.app_error",
+    "translation": "Authentication session has expired. Please try signing in again."
+  },
+  {
     "id": "ent.jobs.start_synchronize_job.timeout",
     "translation": "Reached AD/LDAP synchronization job timeout."
   },
@@ -8715,6 +8995,54 @@
   {
     "id": "ent.outgoing_oauth_connections.update_connection.audience_invalid",
     "translation": "The provided audience is invalid: {{ .Error }}"
+  },
+  {
+    "id": "ent.push_proxy.delete.app_error",
+    "translation": "Failed to delete push proxy auth token."
+  },
+  {
+    "id": "ent.push_proxy.generate.bad_status.app_error",
+    "translation": "Failed to get auth token from push proxy server."
+  },
+  {
+    "id": "ent.push_proxy.generate.create_request.app_error",
+    "translation": "Failed to create HTTP request for push proxy auth."
+  },
+  {
+    "id": "ent.push_proxy.generate.empty_token.app_error",
+    "translation": "Push proxy returned empty auth token."
+  },
+  {
+    "id": "ent.push_proxy.generate.encrypt.app_error",
+    "translation": "Failed to encrypt payload for push proxy auth."
+  },
+  {
+    "id": "ent.push_proxy.generate.http_request.app_error",
+    "translation": "Failed to send HTTP request to push proxy."
+  },
+  {
+    "id": "ent.push_proxy.generate.marshal.app_error",
+    "translation": "Failed to marshal payload for push proxy auth."
+  },
+  {
+    "id": "ent.push_proxy.generate.marshal_request.app_error",
+    "translation": "Failed to marshal request body for push proxy auth."
+  },
+  {
+    "id": "ent.push_proxy.generate.no_key.app_error",
+    "translation": "No encryption key available for push proxy auth."
+  },
+  {
+    "id": "ent.push_proxy.generate.parse_response.app_error",
+    "translation": "Failed to parse response from push proxy auth endpoint."
+  },
+  {
+    "id": "ent.push_proxy.generate.save_system.app_error",
+    "translation": "Failed to save auth token."
+  },
+  {
+    "id": "ent.push_proxy.worker.interface_nil.app_error",
+    "translation": "Push proxy interface is nil."
   },
   {
     "id": "ent.saml.attribute.app_error",
@@ -8997,6 +9325,26 @@
     "translation": "Invalid client id."
   },
   {
+    "id": "model.authorize.is_valid.code_challenge.app_error",
+    "translation": "Code challenge is required when using PKCE."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge.format.app_error",
+    "translation": "Code challenge must be base64url-encoded (using characters A-Z, a-z, 0-9, -, _)."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge.length.app_error",
+    "translation": "Code challenge must be between 43 and 128 characters long."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge_method.app_error",
+    "translation": "Code challenge method is required when using PKCE."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge_method.unsupported.app_error",
+    "translation": "Only 'S256' code challenge method is supported."
+  },
+  {
     "id": "model.authorize.is_valid.create_at.app_error",
     "translation": "Create at must be a valid time."
   },
@@ -9007,6 +9355,22 @@
   {
     "id": "model.authorize.is_valid.redirect_uri.app_error",
     "translation": "Invalid redirect uri."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.has_fragment.app_error",
+    "translation": "Resource parameter cannot contain a fragment component."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.invalid_uri.app_error",
+    "translation": "Resource parameter must be a valid URI."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.length.app_error",
+    "translation": "Resource parameter cannot exceed 512 characters."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.not_absolute.app_error",
+    "translation": "Resource parameter must be an absolute URI."
   },
   {
     "id": "model.authorize.is_valid.response_type.app_error",
@@ -9023,6 +9387,22 @@
   {
     "id": "model.authorize.is_valid.user_id.app_error",
     "translation": "Invalid user id."
+  },
+  {
+    "id": "model.authorize.validate_pkce.not_used_in_auth.app_error",
+    "translation": "PKCE code verifier provided but PKCE was not used during authorization."
+  },
+  {
+    "id": "model.authorize.validate_pkce.public_client_required.app_error",
+    "translation": "PKCE (Proof Key for Code Exchange) is required for public clients."
+  },
+  {
+    "id": "model.authorize.validate_pkce.verification_failed.app_error",
+    "translation": "PKCE code verifier does not match the code challenge."
+  },
+  {
+    "id": "model.authorize.validate_pkce.verifier_required.app_error",
+    "translation": "PKCE code verifier is required when PKCE is used."
   },
   {
     "id": "model.bot.is_valid.create_at.app_error",
@@ -9585,6 +9965,38 @@
     "translation": "Invalid value for RetentionDays. Value is too low."
   },
   {
+    "id": "model.config.is_valid.intune_auth_service.app_error",
+    "translation": "Intune MAM Auth Service is required when Intune is enabled."
+  },
+  {
+    "id": "model.config.is_valid.intune_auth_service_invalid.app_error",
+    "translation": "Intune MAM Auth Service must be either 'office365' or 'saml'."
+  },
+  {
+    "id": "model.config.is_valid.intune_client_id.app_error",
+    "translation": "Intune MAM Client ID is required when Intune is enabled."
+  },
+  {
+    "id": "model.config.is_valid.intune_client_id_format.app_error",
+    "translation": "Intune MAM Client ID must be a valid UUID."
+  },
+  {
+    "id": "model.config.is_valid.intune_requires_office365.app_error",
+    "translation": "Intune MAM requires OpenID Connect (Office 365) to be enabled when Auth Service is set to 'office365'."
+  },
+  {
+    "id": "model.config.is_valid.intune_requires_saml.app_error",
+    "translation": "Intune MAM requires SAML to be enabled when Auth Service is set to 'saml'."
+  },
+  {
+    "id": "model.config.is_valid.intune_tenant_id.app_error",
+    "translation": "Intune MAM Tenant ID is required when Intune is enabled."
+  },
+  {
+    "id": "model.config.is_valid.intune_tenant_id_format.app_error",
+    "translation": "Intune MAM Tenant ID must be a valid UUID."
+  },
+  {
     "id": "model.config.is_valid.invalid_redis_db.app_error",
     "translation": "Redis DB must have a value greater or equal to zero."
   },
@@ -9937,6 +10349,30 @@
     "translation": "Invalid value for write timeout."
   },
   {
+    "id": "model.dcr.is_valid.client_name.app_error",
+    "translation": "Client name must be 64 characters or less."
+  },
+  {
+    "id": "model.dcr.is_valid.client_uri_format.app_error",
+    "translation": "Invalid client URI format."
+  },
+  {
+    "id": "model.dcr.is_valid.client_uri_length.app_error",
+    "translation": "Client URI must be less than 256 characters."
+  },
+  {
+    "id": "model.dcr.is_valid.redirect_uri_format.app_error",
+    "translation": "Invalid redirect URI format."
+  },
+  {
+    "id": "model.dcr.is_valid.redirect_uris.app_error",
+    "translation": "At least one redirect URI is required."
+  },
+  {
+    "id": "model.dcr.is_valid.unsupported_auth_method.app_error",
+    "translation": "Unsupported token_endpoint_auth_method supplied."
+  },
+  {
     "id": "model.draft.is_valid.channel_id.app_error",
     "translation": "Invalid channel id."
   },
@@ -10241,6 +10677,22 @@
     "translation": "Update at must be a valid time."
   },
   {
+    "id": "model.oauth.validate_grant.credentials.app_error",
+    "translation": "Invalid client credentials."
+  },
+  {
+    "id": "model.oauth.validate_grant.pkce_required.app_error",
+    "translation": "PKCE (Proof Key for Code Exchange) is required for public clients."
+  },
+  {
+    "id": "model.oauth.validate_grant.public_client_refresh_token.app_error",
+    "translation": "Public clients cannot use refresh token grant type."
+  },
+  {
+    "id": "model.oauth.validate_grant.public_client_secret.app_error",
+    "translation": "Public clients must not provide a client secret."
+  },
+  {
     "id": "model.outgoing_hook.icon_url.app_error",
     "translation": "Invalid icon."
   },
@@ -10381,6 +10833,34 @@
     "translation": "Channel notifications are disabled in {{.ChannelName}}. The {{.Mention}} did not trigger any notifications."
   },
   {
+    "id": "model.post.decode_cursor.invalid_base64",
+    "translation": "Invalid cursor format: unable to decode base64."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_exclude_system_posts",
+    "translation": "Invalid cursor format: exclude_system_posts must be a boolean."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_format",
+    "translation": "Invalid cursor format: expected 8 parts."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_include_deleted",
+    "translation": "Invalid cursor format: include_deleted must be a boolean."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_timestamp",
+    "translation": "Invalid cursor format: timestamp must be an integer."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_version",
+    "translation": "Invalid cursor format: version must be an integer."
+  },
+  {
+    "id": "model.post.decode_cursor.unsupported_version",
+    "translation": "Unsupported cursor version."
+  },
+  {
     "id": "model.post.is_valid.channel_id.app_error",
     "translation": "Invalid channel id."
   },
@@ -10431,6 +10911,22 @@
   {
     "id": "model.post.is_valid.user_id.app_error",
     "translation": "Invalid user id."
+  },
+  {
+    "id": "model.post.query_params.invalid_channel_id",
+    "translation": "Invalid channel id."
+  },
+  {
+    "id": "model.post.query_params.invalid_cursor_id",
+    "translation": "Invalid cursor id."
+  },
+  {
+    "id": "model.post.query_params.invalid_sort_direction",
+    "translation": "Invalid sort direction."
+  },
+  {
+    "id": "model.post.query_params.invalid_time_field",
+    "translation": "Invalid time field."
   },
   {
     "id": "model.preference.is_valid.category.app_error",
@@ -10879,6 +11375,66 @@
   {
     "id": "sharedchannel.permalink.not_found",
     "translation": "This post contains permalinks to other channels which may not be visible to users in other sites."
+  },
+  {
+    "id": "store.sql_autotranslation.channel_not_found",
+    "translation": "Channel not found."
+  },
+  {
+    "id": "store.sql_autotranslation.get.app_error",
+    "translation": "Unable to get translation."
+  },
+  {
+    "id": "store.sql_autotranslation.get_active_languages.app_error",
+    "translation": "Unable to get active languages."
+  },
+  {
+    "id": "store.sql_autotranslation.get_channel_enabled.app_error",
+    "translation": "Unable to get channel autotranslation enabled status."
+  },
+  {
+    "id": "store.sql_autotranslation.get_user_enabled.app_error",
+    "translation": "Unable to get user autotranslation enabled status."
+  },
+  {
+    "id": "store.sql_autotranslation.get_user_language.app_error",
+    "translation": "Unable to get user language."
+  },
+  {
+    "id": "store.sql_autotranslation.is_channel_enabled.app_error",
+    "translation": "Unable to get channel autotranslation enabled status."
+  },
+  {
+    "id": "store.sql_autotranslation.member_not_found",
+    "translation": "Member not found."
+  },
+  {
+    "id": "store.sql_autotranslation.meta_json.app_error",
+    "translation": "Failed to parse translation metadata JSON."
+  },
+  {
+    "id": "store.sql_autotranslation.query_build_error",
+    "translation": "Failed to build query."
+  },
+  {
+    "id": "store.sql_autotranslation.save.app_error",
+    "translation": "Unable to save translation."
+  },
+  {
+    "id": "store.sql_autotranslation.save.invalid_translation",
+    "translation": "Translation validation failed. The translation object is invalid."
+  },
+  {
+    "id": "store.sql_autotranslation.save.meta_json.app_error",
+    "translation": "Failed to serialize translation metadata to JSON."
+  },
+  {
+    "id": "store.sql_autotranslation.set_channel_enabled.app_error",
+    "translation": "Unable to set channel autotranslation enabled status."
+  },
+  {
+    "id": "store.sql_autotranslation.set_user_enabled.app_error",
+    "translation": "Unable to set user autotranslation enabled status."
   },
   {
     "id": "store.sql_bot.get.missing.app_error",

@@ -92,7 +92,7 @@ test('MM-63378 System Manager without team access permissions cannot view team d
     await adminClient.updateUserRoles(systemManagerUser.id, 'system_user system_manager');
 
     // Create another team of which the user is not a member.
-    const otherTeam = await adminClient.createTeam(pw.random.team());
+    const otherTeam = await adminClient.createTeam(await pw.random.team());
 
     // Login as the user
     const {systemConsolePage} = await pw.testBrowser.login(systemManagerUser);

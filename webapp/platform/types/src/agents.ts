@@ -9,17 +9,8 @@ export type Agent = {
     service_type: string;
 };
 
-export type AgentsResponse = {
-    agents: Agent[];
-};
-
 export type LLMService = {
     id: string;
     name: string;
     type: string;
 };
-
-export type ServicesResponse = {
-    services: LLMService[];
-};
-

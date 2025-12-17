@@ -67,7 +67,7 @@ describe('components/integrations/AbstractOAuthApp', () => {
             return jest.fn();
         }});
 
-        expect(action).not.toBeCalled();
+        expect(action).not.toHaveBeenCalled();
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -82,7 +82,7 @@ describe('components/integrations/AbstractOAuthApp', () => {
             return jest.fn();
         }});
 
-        expect(action).toBeCalled();
+        expect(action).toHaveBeenCalled();
     });
 
     test('should have correct state when updateName is called', () => {
@@ -200,6 +200,60 @@ describe('components/integrations/AbstractOAuthApp', () => {
         );
 
         wrapper.setState({...newState, homepage: ''});
+        wrapper.instance().handleSubmit(evt);
+        expect(wrapper.state('saving')).toEqual(false);
+        expect(wrapper.state('clientError')).toEqual(
+            <FormattedMessage
+                defaultMessage='Homepage for the OAuth 2.0 application is required.'
+                id='add_oauth_app.homepageRequired'
+            />,
+        );
+    });
+
+    test('should not require description and homepage for dynamically registered apps', () => {
+        const dynamicApp = {
+            ...initialApp,
+            is_dynamically_registered: true,
+        };
+        const props = {...baseProps, action, initialApp: dynamicApp};
+        const wrapper = shallow<AbstractOAuthApp>(
+            <AbstractOAuthApp {...props}/>,
+        );
+
+        const newState = {saving: false, name: 'name', description: '', homepage: '', callbackUrls: 'https://test.com/callback'};
+        const evt = {preventDefault: jest.fn()} as any;
+
+        wrapper.setState(newState);
+        wrapper.instance().handleSubmit(evt);
+        expect(wrapper.state('saving')).toEqual(true);
+        expect(wrapper.state('clientError')).toEqual('');
+        expect(action).toHaveBeenCalled();
+    });
+
+    test('should still require description and homepage for regular OAuth apps', () => {
+        const regularApp = {
+            ...initialApp,
+            is_dynamically_registered: false,
+        };
+        const props = {...baseProps, action, initialApp: regularApp};
+        const wrapper = shallow<AbstractOAuthApp>(
+            <AbstractOAuthApp {...props}/>,
+        );
+
+        const newState = {saving: false, name: 'name', description: '', homepage: '', callbackUrls: 'https://test.com/callback'};
+        const evt = {preventDefault: jest.fn()} as any;
+
+        wrapper.setState({...newState, description: ''});
+        wrapper.instance().handleSubmit(evt);
+        expect(wrapper.state('saving')).toEqual(false);
+        expect(wrapper.state('clientError')).toEqual(
+            <FormattedMessage
+                defaultMessage='Description for the OAuth 2.0 application is required.'
+                id='add_oauth_app.descriptionRequired'
+            />,
+        );
+
+        wrapper.setState({...newState, description: 'test', homepage: ''});
         wrapper.instance().handleSubmit(evt);
         expect(wrapper.state('saving')).toEqual(false);
         expect(wrapper.state('clientError')).toEqual(

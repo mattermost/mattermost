@@ -43,6 +43,7 @@ type Client interface {
 	SearchTeams(ctx context.Context, search *model.TeamSearch) ([]*model.Team, *model.Response, error)
 	GetPost(ctx context.Context, postID string, etag string) (*model.Post, *model.Response, error)
 	CreatePost(ctx context.Context, post *model.Post) (*model.Post, *model.Response, error)
+	RevealPost(ctx context.Context, postID string) (*model.Post, *model.Response, error)
 	GetPostsForChannel(ctx context.Context, channelID string, page, perPage int, etag string, collapsedThreads bool, includeDeleted bool) (*model.PostList, *model.Response, error)
 	GetPostsSince(ctx context.Context, channelID string, since int64, collapsedThreads bool) (*model.PostList, *model.Response, error)
 	DoAPIPost(ctx context.Context, url string, data string) (*http.Response, error)
@@ -173,4 +174,5 @@ type Client interface {
 	ListCPAValues(ctx context.Context, userID string) (map[string]json.RawMessage, *model.Response, error)
 	PatchCPAValues(ctx context.Context, values map[string]json.RawMessage) (map[string]json.RawMessage, *model.Response, error)
 	PatchCPAValuesForUser(ctx context.Context, userID string, values map[string]json.RawMessage) (map[string]json.RawMessage, *model.Response, error)
+	GetPostsForReporting(ctx context.Context, options model.ReportPostOptions, cursor model.ReportPostOptionsCursor) (*model.ReportPostListResponse, *model.Response, error)
 }

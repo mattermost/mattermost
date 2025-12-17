@@ -148,18 +148,18 @@ func Fuzz(data []byte) int {
 	// We don't want to close anything down as the fuzzer will keep on running forever.
 	startServerOnce.Do(func() {
 		t := &testing.T{}
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 
 		s := httptest.NewServer(dummyWebsocketHandler())
 
 		th.Server.HubStart()
 
-		u1 := th.CreateUser()
-		u2 := th.CreateUser()
-		u3 := th.CreateUser()
+		u1 := th.CreateUser(t)
+		u2 := th.CreateUser(t)
+		u3 := th.CreateUser(t)
 
-		t1 := th.CreateTeam()
-		t2 := th.CreateTeam()
+		t1 := th.CreateTeam(t)
+		t2 := th.CreateTeam(t)
 
 		ch1 := th.CreateDmChannel(u1)
 		ch2 := th.CreateChannel(t1)

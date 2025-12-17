@@ -20,8 +20,8 @@ async function setupAndGetRandomUser(pw: PlaywrightExtended) {
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Create a random user to edit for
-    const user = await adminClient.createUser(pw.random.user(), '', '');
-    const team = await adminClient.createTeam(pw.random.team());
+    const user = await adminClient.createUser(await pw.random.user(), '', '');
+    const team = await adminClient.createTeam(await pw.random.team());
     await adminClient.addToTeam(team.id, user.id);
 
     // # Visit system console
@@ -156,7 +156,7 @@ test('MM-T5520-4 should reset the users password', async ({pw}) => {
 
     // # Enter a random password and click Save
     const passwordInput = systemConsolePage.page.locator('input[type="password"]');
-    await passwordInput.fill(pw.random.id());
+    await passwordInput.fill(await pw.random.id());
     await systemConsolePage.clickResetButton();
 
     // * Verify that the modal closed and no error showed
@@ -165,7 +165,7 @@ test('MM-T5520-4 should reset the users password', async ({pw}) => {
 
 test('MM-T5520-5 should change the users email', async ({pw}) => {
     const {getUser, systemConsolePage} = await setupAndGetRandomUser(pw);
-    const newEmail = `${pw.random.id()}@example.com`;
+    const newEmail = `${await pw.random.id()}@example.com`;
 
     // # Open menu and click Update Email
     await systemConsolePage.systemUsers.actionMenuButtons[0].click();
@@ -173,7 +173,7 @@ test('MM-T5520-5 should change the users email', async ({pw}) => {
     await updateEmail.click();
 
     // # Enter a random password and click Save
-    const emailInput = await systemConsolePage.page.locator('input[type="email"]');
+    const emailInput = systemConsolePage.page.locator('input[type="email"]');
     await emailInput.fill(newEmail);
     await systemConsolePage.clickResetButton();
 
@@ -191,7 +191,7 @@ test('MM-T5520-6 should revoke sessions', async ({pw}) => {
 
     // # Open menu and revoke sessions
     await systemConsolePage.systemUsers.actionMenuButtons[0].click();
-    const removeSessions = await systemConsolePage.systemUsersActionMenus[0].getMenuItem('Remove sessions');
+    const removeSessions = await systemConsolePage.systemUsersActionMenus[0].getMenuItem('Revoke sessions');
     await removeSessions.click();
 
     // # Press confirm on the modal

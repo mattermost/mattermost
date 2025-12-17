@@ -73,19 +73,19 @@ describe('components/AddGroupsToTeamModal', () => {
 
         wrapper.setState({values: []});
         await instance.handleSubmit();
-        expect(actions.linkGroupSyncable).not.toBeCalled();
-        expect(instance.handleResponse).not.toBeCalled();
-        expect(instance.handleHide).not.toBeCalled();
+        expect(actions.linkGroupSyncable).not.toHaveBeenCalled();
+        expect(instance.handleResponse).not.toHaveBeenCalled();
+        expect(instance.handleHide).not.toHaveBeenCalled();
 
         wrapper.setState({saving: false, values: [{id: 'id_1'}, {id: 'id_2'}]});
         await instance.handleSubmit();
-        expect(actions.linkGroupSyncable).toBeCalled();
+        expect(actions.linkGroupSyncable).toHaveBeenCalled();
         expect(actions.linkGroupSyncable).toHaveBeenCalledTimes(2);
-        expect(actions.linkGroupSyncable).toBeCalledWith('id_1', baseProps.currentTeamId, SyncableType.Team, {auto_add: true, scheme_admin: false});
-        expect(actions.linkGroupSyncable).toBeCalledWith('id_2', baseProps.currentTeamId, SyncableType.Team, {auto_add: true, scheme_admin: false});
+        expect(actions.linkGroupSyncable).toHaveBeenCalledWith('id_1', baseProps.currentTeamId, SyncableType.Team, {auto_add: true, scheme_admin: false});
+        expect(actions.linkGroupSyncable).toHaveBeenCalledWith('id_2', baseProps.currentTeamId, SyncableType.Team, {auto_add: true, scheme_admin: false});
 
-        expect(instance.handleResponse).toBeCalledTimes(2);
-        expect(instance.handleHide).not.toBeCalled();
+        expect(instance.handleResponse).toHaveBeenCalledTimes(2);
+        expect(instance.handleHide).not.toHaveBeenCalled();
         expect(wrapper.state('saving')).toEqual(true);
     });
 
@@ -133,13 +133,13 @@ describe('components/AddGroupsToTeamModal', () => {
 
         instance.search('');
         expect(baseProps.actions.setModalSearchTerm).toHaveBeenCalledTimes(1);
-        expect(baseProps.actions.setModalSearchTerm).toBeCalledWith('');
+        expect(baseProps.actions.setModalSearchTerm).toHaveBeenCalledWith('');
 
         const searchTerm = 'term';
         instance.search(searchTerm);
         expect(wrapper.state('loadingGroups')).toEqual(true);
         expect(baseProps.actions.setModalSearchTerm).toHaveBeenCalledTimes(2);
-        expect(baseProps.actions.setModalSearchTerm).toBeCalledWith(searchTerm);
+        expect(baseProps.actions.setModalSearchTerm).toHaveBeenCalledWith(searchTerm);
     });
 
     test('should match state when handleDelete is called', () => {

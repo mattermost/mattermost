@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/team_members_dropdown should match snapshot for a bot with group-constrained team 1`] = `
 <Fragment>

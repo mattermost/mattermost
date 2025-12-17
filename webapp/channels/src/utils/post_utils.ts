@@ -635,10 +635,27 @@ export function areConsecutivePostsBySameUser(post: Post, previousPost: Post): b
     if (!(post && previousPost)) {
         return false;
     }
-    return post.user_id === previousPost.user_id && // The post is by the same user
-        post.create_at - previousPost.create_at <= Posts.POST_COLLAPSE_TIMEOUT && // And was within a short time period
-        !(post.props && post.props.from_webhook) && !(previousPost.props && previousPost.props.from_webhook) && // And neither is from a webhook
-        !isSystemMessage(post) && !isSystemMessage(previousPost); // And neither is a system message
+
+    const sameUser = post.user_id === previousPost.user_id;
+    const withinTimeWindow = post.create_at - previousPost.create_at <= Posts.POST_COLLAPSE_TIMEOUT;
+    const notFromWebhook = !(post.props && post.props.from_webhook) && !(previousPost.props && previousPost.props.from_webhook);
+    const notSystemMessage = !isSystemMessage(post) && !isSystemMessage(previousPost);
+    const sameAiGeneratedStatus = post.props?.ai_generated_by === previousPost.props?.ai_generated_by;
+    const notBoRMessage = post.type !== Constants.PostTypes.BURN_ON_READ && previousPost.type !== Constants.PostTypes.BURN_ON_READ; // And neither is a burn-on-read post
+
+    return sameUser &&
+        withinTimeWindow &&
+        notFromWebhook &&
+        notSystemMessage &&
+        sameAiGeneratedStatus &&
+        notBoRMessage;
+}
+
+// Checks if a post has valid AI-generated metadata
+export function hasAiGeneratedMetadata(post: Post): boolean {
+    return Boolean(post.props && post.props.ai_generated_by && post.props.ai_generated_by_username) &&
+        typeof post.props.ai_generated_by === 'string' &&
+        typeof post.props.ai_generated_by_username === 'string';
 }
 
 // Constructs the URL of a post.

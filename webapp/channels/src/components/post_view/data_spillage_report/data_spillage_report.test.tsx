@@ -337,6 +337,7 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
         usePropertyCardViewPostLoader.mockReturnValue(reportedPost);
 
         Client4.getFlaggedPost = jest.fn().mockResolvedValue(reportedPost);
+        Client4.getChannel = jest.fn().mockResolvedValue(reportedPostChannel);
     });
 
     it('should render selected fields when not in RHS', async () => {

@@ -12,7 +12,7 @@
     "run": "rollup -c --watch",
     "test": "cross-env TZ=Etc/UTC jest",
     "test:updatesnapshot": "cross-env TZ=Etc/UTC jest --updateSnapshot",
-    "test-ci": "cross-env TZ=Etc/UTC jest",
+    "test-ci": "cross-env TZ=Etc/UTC jest --ci --forceExit --detectOpenHandles --maxWorkers=100% --logHeapUsage",
     "clean": "rm -rf dist node_modules tsconfig.tsbuildinfo .rollup.cache"
   },
   "devDependencies": {
@@ -39,7 +39,7 @@
   },
   "peerDependencies": {
     "@babel/runtime-corejs3": "^7.17.8",
-    "@mattermost/compass-icons": "0.1.49",
+    "@mattermost/compass-icons": "0.1.52",
     "classnames": "^2.3.1",
     "lodash": "^4.17.21",
     "react-intl": "*",
