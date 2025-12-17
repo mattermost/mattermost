@@ -15,6 +15,9 @@ import (
 	"sync"
 	"time"
 
+	"maps"
+	"slices"
+
 	agentclient "github.com/mattermost/mattermost-plugin-ai/public/bridgeclient"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
@@ -1780,23 +1783,18 @@ func (a *App) FilterPostsByChannelPermissions(rctx request.CTX, postList *model.
 		return nil
 	}
 
-	channelIDsMap := make(map[string]bool)
-	channelIDs := []string{}
+	channels := make(map[string]*model.Channel)
 	for _, post := range postList.Posts {
-		if post.ChannelId != "" && !channelIDsMap[post.ChannelId] {
-			channelIDsMap[post.ChannelId] = true
-			channelIDs = append(channelIDs, post.ChannelId)
+		if post.ChannelId != "" {
+			channels[post.ChannelId] = nil
 		}
 	}
 
-	channels := make(map[string]*model.Channel)
-	if len(channelIDs) > 0 {
+	if len(channels) > 0 {
+		channelIDs := slices.Collect(maps.Keys(channels))
 		channelList, err := a.GetChannels(rctx, channelIDs)
 		if err != nil {
-			// If we can't get channels, filter out all posts
-			postList.Posts = make(map[string]*model.Post)
-			postList.Order = []string{}
-			return nil
+			return err
 		}
 		for _, channel := range channelList {
 			channels[channel.Id] = channel
@@ -1813,17 +1811,16 @@ func (a *App) FilterPostsByChannelPermissions(rctx request.CTX, postList *model.
 			continue
 		}
 
-		allowed, ok := channelReadPermission[post.ChannelId]
-		if !ok {
-			allowed = false
-			channel, ok := channels[post.ChannelId]
-			if ok {
+		if _, ok := channelReadPermission[post.ChannelId]; !ok {
+			channel := channels[post.ChannelId]
+			allowed := false
+			if channel != nil {
 				allowed = a.HasPermissionToReadChannel(rctx, userID, channel)
 			}
 			channelReadPermission[post.ChannelId] = allowed
 		}
 
-		if allowed {
+		if channelReadPermission[post.ChannelId] {
 			filteredPosts[postID] = post
 			filteredOrder = append(filteredOrder, postID)
 		}

@@ -22,6 +22,9 @@ import (
 	"sync"
 	"time"
 
+	"maps"
+	"slices"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -1496,22 +1499,18 @@ func (a *App) FilterFilesByChannelPermissions(rctx request.CTX, fileList *model.
 		return nil
 	}
 
-	channelIDsMap := make(map[string]bool)
-	channelIDs := []string{}
+	channels := make(map[string]*model.Channel)
 	for _, fileInfo := range fileList.FileInfos {
-		if fileInfo.ChannelId != "" && !channelIDsMap[fileInfo.ChannelId] {
-			channelIDsMap[fileInfo.ChannelId] = true
-			channelIDs = append(channelIDs, fileInfo.ChannelId)
+		if fileInfo.ChannelId != "" {
+			channels[fileInfo.ChannelId] = nil
 		}
 	}
 
-	channels := make(map[string]*model.Channel)
-	if len(channelIDs) > 0 {
+	if len(channels) > 0 {
+		channelIDs := slices.Collect(maps.Keys(channels))
 		channelList, err := a.GetChannels(rctx, channelIDs)
 		if err != nil {
-			fileList.FileInfos = make(map[string]*model.FileInfo)
-			fileList.Order = []string{}
-			return nil
+			return err
 		}
 		for _, channel := range channelList {
 			channels[channel.Id] = channel
@@ -1528,17 +1527,16 @@ func (a *App) FilterFilesByChannelPermissions(rctx request.CTX, fileList *model.
 			continue
 		}
 
-		allowed, ok := channelReadPermission[fileInfo.ChannelId]
-		if !ok {
-			allowed = false
-			channel, ok := channels[fileInfo.ChannelId]
-			if ok {
+		if _, ok := channelReadPermission[fileInfo.ChannelId]; !ok {
+			channel := channels[fileInfo.ChannelId]
+			allowed := false
+			if channel != nil {
 				allowed = a.HasPermissionToReadChannel(rctx, userID, channel)
 			}
 			channelReadPermission[fileInfo.ChannelId] = allowed
 		}
 
-		if allowed {
+		if channelReadPermission[fileInfo.ChannelId] {
 			filteredFiles[fileID] = fileInfo
 			filteredOrder = append(filteredOrder, fileID)
 		}
