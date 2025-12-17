@@ -1235,13 +1235,20 @@ func (a *App) GetPostThread(rctx request.CTX, postID string, opts model.GetPosts
 	return posts, nil
 }
 
-func (a *App) GetFlaggedPosts(userID string, offset int, limit int) (*model.PostList, *model.AppError) {
+func (a *App) GetFlaggedPosts(rctx request.CTX, userID string, offset int, limit int) (*model.PostList, *model.AppError) {
 	postList, err := a.Srv().Store().Post().GetFlaggedPosts(userID, offset, limit)
 	if err != nil {
 		return nil, model.NewAppError("GetFlaggedPosts", "app.post.get_flagged_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if appErr := a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
+	// Process burn-on-read posts for the requesting user
+	var appErr *model.AppError
+	postList, appErr = a.RevealBurnOnReadPostsForUser(rctx, postList, userID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	if appErr = a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
 
@@ -1250,13 +1257,20 @@ func (a *App) GetFlaggedPosts(userID string, offset int, limit int) (*model.Post
 	return postList, nil
 }
 
-func (a *App) GetFlaggedPostsForTeam(userID, teamID string, offset int, limit int) (*model.PostList, *model.AppError) {
+func (a *App) GetFlaggedPostsForTeam(rctx request.CTX, userID, teamID string, offset int, limit int) (*model.PostList, *model.AppError) {
 	postList, err := a.Srv().Store().Post().GetFlaggedPostsForTeam(userID, teamID, offset, limit)
 	if err != nil {
 		return nil, model.NewAppError("GetFlaggedPostsForTeam", "app.post.get_flagged_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if appErr := a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
+	// Process burn-on-read posts for the requesting user
+	var appErr *model.AppError
+	postList, appErr = a.RevealBurnOnReadPostsForUser(rctx, postList, userID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	if appErr = a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
 
@@ -1265,13 +1279,20 @@ func (a *App) GetFlaggedPostsForTeam(userID, teamID string, offset int, limit in
 	return postList, nil
 }
 
-func (a *App) GetFlaggedPostsForChannel(userID, channelID string, offset int, limit int) (*model.PostList, *model.AppError) {
+func (a *App) GetFlaggedPostsForChannel(rctx request.CTX, userID, channelID string, offset int, limit int) (*model.PostList, *model.AppError) {
 	postList, err := a.Srv().Store().Post().GetFlaggedPostsForChannel(userID, channelID, offset, limit)
 	if err != nil {
 		return nil, model.NewAppError("GetFlaggedPostsForChannel", "app.post.get_flagged_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if appErr := a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
+	// Process burn-on-read posts for the requesting user
+	var appErr *model.AppError
+	postList, appErr = a.RevealBurnOnReadPostsForUser(rctx, postList, userID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	if appErr = a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
 
