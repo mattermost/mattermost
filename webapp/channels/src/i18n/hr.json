@@ -916,8 +916,6 @@
   "claim.oauth_to_email.pwdNotMatch": "Lozinke se ne poklapaju.",
   "cloud.fetch_error.retry": "Pokušaj ponovo",
   "collapsed_reply_threads_modal.confirm": "Razumijem",
-  "collapsed_reply_threads_modal.skip_tour": "Preskoči prezentaciju",
-  "collapsed_reply_threads_modal.take_the_tour": "Pogledaj prezentaciju",
   "commercial_support.title": "Komercijalna podrška",
   "confirm_modal.cancel": "Odustani",
   "confirm_switch_to_yearly_modal.confirm": "Potvrdi",
