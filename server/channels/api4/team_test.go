@@ -503,6 +503,114 @@ func TestUpdateTeam(t *testing.T) {
 	})
 }
 
+func TestUpdateTeamInviteUserPermission(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	// Create a team with AllowOpenInvite=false
+	team := &model.Team{
+		DisplayName:     "Test Team",
+		Name:            GenerateTestTeamName(),
+		Email:           th.GenerateTestEmail(),
+		Type:            model.TeamOpen,
+		AllowOpenInvite: false,
+	}
+	team, _, err := th.Client.CreateTeam(context.Background(), team)
+	require.NoError(t, err)
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+	defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
+
+	t.Run("user with InviteUser permission can change AllowOpenInvite", func(t *testing.T) {
+		th.AddPermissionToRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
+
+		team.AllowOpenInvite = true
+		var updatedTeam *model.Team
+		updatedTeam, _, err = th.Client.UpdateTeam(context.Background(), team)
+		require.NoError(t, err)
+		require.True(t, updatedTeam.AllowOpenInvite)
+
+		// Reset for next test
+		team.AllowOpenInvite = false
+		updatedTeam, _, err = th.Client.UpdateTeam(context.Background(), team)
+		require.NoError(t, err)
+		require.False(t, updatedTeam.AllowOpenInvite)
+	})
+
+	t.Run("user without InviteUser permission cannot change AllowOpenInvite", func(t *testing.T) {
+		// Remove InviteUser permission from team user and admin roles
+		th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+
+		// Attempt to change AllowOpenInvite to true
+		team.AllowOpenInvite = true
+		var resp *model.Response
+		_, resp, err = th.Client.UpdateTeam(context.Background(), team)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		// Verify the team's AllowOpenInvite didn't change
+		var fetchedTeam *model.Team
+		fetchedTeam, _, err = th.SystemAdminClient.GetTeam(context.Background(), team.Id, "")
+		require.NoError(t, err)
+		require.False(t, fetchedTeam.AllowOpenInvite, "AllowOpenInvite should still be false")
+	})
+
+	t.Run("user without InviteUser permission cannot change AllowedDomains", func(t *testing.T) {
+		// Remove InviteUser permission from team user and admin roles
+		th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+
+		// Attempt to change AllowedDomains
+		team.AllowedDomains = "example.com"
+		var resp *model.Response
+		_, resp, err = th.Client.UpdateTeam(context.Background(), team)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		// Verify the team's AllowedDomains didn't change
+		var fetchedTeam *model.Team
+		fetchedTeam, _, err = th.SystemAdminClient.GetTeam(context.Background(), team.Id, "")
+		require.NoError(t, err)
+		require.Empty(t, fetchedTeam.AllowedDomains, "AllowedDomains should still be empty")
+	})
+
+	t.Run("user without InviteUser permission can change other fields", func(t *testing.T) {
+		// Remove InviteUser permission
+		th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+
+		// Refetch the team to get clean state
+		team, _, err = th.SystemAdminClient.GetTeam(context.Background(), team.Id, "")
+		require.NoError(t, err)
+
+		// Change DisplayName and Description (should succeed)
+		team.DisplayName = "Updated Display Name"
+		team.Description = "Updated Description"
+		var updatedTeam *model.Team
+		updatedTeam, _, err = th.Client.UpdateTeam(context.Background(), team)
+		require.NoError(t, err)
+		require.Equal(t, "Updated Display Name", updatedTeam.DisplayName)
+		require.Equal(t, "Updated Description", updatedTeam.Description)
+	})
+
+	t.Run("system admin can change AllowOpenInvite regardless of permissions", func(t *testing.T) {
+		// Remove InviteUser permission for regular roles
+		th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+
+		// Refetch the team
+		team, _, err = th.SystemAdminClient.GetTeam(context.Background(), team.Id, "")
+		require.NoError(t, err)
+
+		// System admin should be able to change AllowOpenInvite
+		team.AllowOpenInvite = true
+		var updatedTeam *model.Team
+		updatedTeam, _, err = th.SystemAdminClient.UpdateTeam(context.Background(), team)
+		require.NoError(t, err)
+		require.True(t, updatedTeam.AllowOpenInvite)
+	})
+}
+
 func TestUpdateTeamPrivacyInvitePermissions(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
