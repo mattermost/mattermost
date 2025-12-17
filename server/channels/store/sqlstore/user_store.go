@@ -1478,11 +1478,7 @@ func (us SqlUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime in
 	query := us.getQueryBuilder().Select("COUNT(*)").From("Status AS s").Where("LastActivityAt > ? AND LastActivityAt <= ?", startTime, endTime)
 
 	if !options.IncludeBotAccounts {
-		if us.DriverName() == model.DatabaseDriverPostgres {
-			query = query.LeftJoin("Bots ON s.UserId = Bots.UserId").Where("Bots.UserId IS NULL")
-		} else {
-			query = query.Where(sq.Expr("UserId NOT IN (SELECT UserId FROM Bots)"))
-		}
+		query = query.LeftJoin("Bots ON s.UserId = Bots.UserId").Where("Bots.UserId IS NULL")
 	}
 
 	if !options.IncludeRemoteUsers || !options.IncludeDeleted {
@@ -2287,11 +2283,7 @@ func (us SqlUserStore) IsEmpty(excludeBots bool) (bool, error) {
 		From("Users")
 
 	if excludeBots {
-		if us.DriverName() == model.DatabaseDriverPostgres {
-			builder = builder.LeftJoin("Bots ON Users.Id = Bots.UserId").Where("Bots.UserId IS NULL")
-		} else {
-			builder = builder.Where(sq.Expr("Users.Id NOT IN (SELECT UserId FROM Bots)"))
-		}
+		builder = builder.LeftJoin("Bots ON Users.Id = Bots.UserId").Where("Bots.UserId IS NULL")
 	}
 
 	builder = builder.Suffix(")")
