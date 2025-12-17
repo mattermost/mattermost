@@ -385,7 +385,6 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                             fileInfo={fileInfo as FileInfo}
                             fileUrl={fileUrl}
                             getContent={this.getContent}
-                            className='file-preview-modal__code-preview'
                         />
                     );
                 } else {

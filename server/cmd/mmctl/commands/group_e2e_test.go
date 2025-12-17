@@ -13,7 +13,7 @@ import (
 )
 
 func (s *MmctlE2ETestSuite) TestChannelGroupEnableCmd() {
-	s.SetupEnterpriseTestHelper().InitBasic()
+	s.SetupEnterpriseTestHelper().InitBasic(s.T())
 
 	channelName := api4.GenerateTestChannelName()
 	channel, appErr := s.th.App.CreateChannel(s.th.Context, &model.Channel{
@@ -84,7 +84,7 @@ func (s *MmctlE2ETestSuite) TestChannelGroupEnableCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestChannelGroupDisableCmd() {
-	s.SetupEnterpriseTestHelper().InitBasic()
+	s.SetupEnterpriseTestHelper().InitBasic(s.T())
 
 	channelName := api4.GenerateTestChannelName()
 	channel, appErr := s.th.App.CreateChannel(s.th.Context, &model.Channel{
@@ -161,7 +161,7 @@ func (s *MmctlE2ETestSuite) TestChannelGroupDisableCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestListLdapGroupsCmd() {
-	s.SetupEnterpriseTestHelper().InitBasic()
+	s.SetupEnterpriseTestHelper().InitBasic(s.T())
 	configForLdap(s.th)
 
 	s.Run("MM-T3977 Should not allow regular user to list LDAP groups", func() {
@@ -186,7 +186,7 @@ func (s *MmctlE2ETestSuite) TestListLdapGroupsCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestChannelGroupStatusCmd() {
-	s.SetupEnterpriseTestHelper().InitBasic()
+	s.SetupEnterpriseTestHelper().InitBasic(s.T())
 
 	channelName := api4.GenerateTestChannelName()
 	channel, appErr := s.th.App.CreateChannel(s.th.Context, &model.Channel{
@@ -239,7 +239,7 @@ func (s *MmctlE2ETestSuite) TestChannelGroupStatusCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestChannelGroupListCmd() {
-	s.SetupEnterpriseTestHelper().InitBasic()
+	s.SetupEnterpriseTestHelper().InitBasic(s.T())
 
 	channelName := api4.GenerateTestChannelName()
 	channel, appErr := s.th.App.CreateChannel(s.th.Context, &model.Channel{
@@ -303,7 +303,7 @@ func (s *MmctlE2ETestSuite) TestChannelGroupListCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestTeamGroupDisableCmd() {
-	s.SetupEnterpriseTestHelper().InitBasic()
+	s.SetupEnterpriseTestHelper().InitBasic(s.T())
 
 	team, _, cleanUpFn := createTestGroupTeam(s)
 	defer cleanUpFn()
@@ -343,7 +343,7 @@ func (s *MmctlE2ETestSuite) TestTeamGroupDisableCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestTeamGroupEnableCmd() {
-	s.SetupEnterpriseTestHelper().InitBasic()
+	s.SetupEnterpriseTestHelper().InitBasic(s.T())
 
 	team, _, cleanUpFn := createTestGroupTeam(s)
 	defer cleanUpFn()
@@ -379,7 +379,7 @@ func (s *MmctlE2ETestSuite) TestTeamGroupEnableCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestTeamGroupStatusCmd() {
-	s.SetupEnterpriseTestHelper().InitBasic()
+	s.SetupEnterpriseTestHelper().InitBasic(s.T())
 
 	team, _, cleanUpFn := createTestGroupTeam(s)
 	defer func() {
@@ -437,7 +437,7 @@ func (s *MmctlE2ETestSuite) TestTeamGroupStatusCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestTeamGroupListCmd() {
-	s.SetupEnterpriseTestHelper().InitBasic()
+	s.SetupEnterpriseTestHelper().InitBasic(s.T())
 
 	team, group, cleanUpFn := createTestGroupTeam(s)
 	defer func() {
@@ -509,7 +509,7 @@ func createTestGroupTeam(s *MmctlE2ETestSuite) (*model.Team, *model.Group, func(
 }
 
 func (s *MmctlE2ETestSuite) TestUserGroupRestoreCmd() {
-	s.SetupEnterpriseTestHelper().InitBasic()
+	s.SetupEnterpriseTestHelper().InitBasic(s.T())
 
 	// create group
 	id := model.NewId()
@@ -534,12 +534,12 @@ func (s *MmctlE2ETestSuite) TestUserGroupRestoreCmd() {
 		_, appErr := s.th.App.DeleteGroup(group.Id)
 		s.Require().Nil(appErr)
 
-		s.th.RemovePermissionFromRole(model.PermissionRestoreCustomGroup.Id, model.SystemUserRoleId)
+		s.th.RemovePermissionFromRole(s.T(), model.PermissionRestoreCustomGroup.Id, model.SystemUserRoleId)
 		err := userGroupRestoreCmdF(s.th.Client, &cobra.Command{}, []string{group.Id})
 		s.Require().NotNil(err)
 		s.Require().Equal(err.Error(), "You do not have the appropriate permissions.")
 
-		s.th.AddPermissionToRole(model.PermissionRestoreCustomGroup.Id, model.SystemUserRoleId)
+		s.th.AddPermissionToRole(s.T(), model.PermissionRestoreCustomGroup.Id, model.SystemUserRoleId)
 		err = userGroupRestoreCmdF(s.th.Client, &cobra.Command{}, []string{group.Id})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)

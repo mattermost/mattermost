@@ -1228,6 +1228,22 @@ func (mr *MockClientMockRecorder) GetPostsForChannel(arg0, arg1, arg2, arg3, arg
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPostsForChannel", reflect.TypeOf((*MockClient)(nil).GetPostsForChannel), arg0, arg1, arg2, arg3, arg4, arg5, arg6)
 }
 
+// GetPostsForReporting mocks base method.
+func (m *MockClient) GetPostsForReporting(arg0 context.Context, arg1 model.ReportPostOptions, arg2 model.ReportPostOptionsCursor) (*model.ReportPostListResponse, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPostsForReporting", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*model.ReportPostListResponse)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetPostsForReporting indicates an expected call of GetPostsForReporting.
+func (mr *MockClientMockRecorder) GetPostsForReporting(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPostsForReporting", reflect.TypeOf((*MockClient)(nil).GetPostsForReporting), arg0, arg1, arg2)
+}
+
 // GetPostsSince mocks base method.
 func (m *MockClient) GetPostsSince(arg0 context.Context, arg1 string, arg2 int64, arg3 bool) (*model.PostList, *model.Response, error) {
 	m.ctrl.T.Helper()
@@ -2137,6 +2153,22 @@ func (m *MockClient) RestoreTeam(arg0 context.Context, arg1 string) (*model.Team
 func (mr *MockClientMockRecorder) RestoreTeam(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RestoreTeam", reflect.TypeOf((*MockClient)(nil).RestoreTeam), arg0, arg1)
+}
+
+// RevealPost mocks base method.
+func (m *MockClient) RevealPost(arg0 context.Context, arg1 string) (*model.Post, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RevealPost", arg0, arg1)
+	ret0, _ := ret[0].(*model.Post)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// RevealPost indicates an expected call of RevealPost.
+func (mr *MockClientMockRecorder) RevealPost(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevealPost", reflect.TypeOf((*MockClient)(nil).RevealPost), arg0, arg1)
 }
 
 // RevokeUserAccessToken mocks base method.

@@ -95,6 +95,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		LogBuffer:         buffer,
 		TestLogger:        testLogger,
 		IncludeCacheLayer: includeCacheLayer,
+		tempWorkspace:     tempWorkspace,
 	}
 
 	if enterprise {
@@ -137,10 +138,6 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		*cfg.PasswordSettings.Number = false
 	})
 
-	if th.tempWorkspace == "" {
-		th.tempWorkspace = tempWorkspace
-	}
-
 	tb.Cleanup(func() {
 		if th.IncludeCacheLayer {
 			// Clean all the caches
@@ -148,25 +145,30 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 			require.Nil(tb, appErr)
 		}
 
-		done := make(chan bool)
-		go func() {
-			th.Server.Shutdown()
-			close(done)
-		}()
+		th.ShutdownApp()
 
-		select {
-		case <-done:
-		case <-time.After(30 * time.Second):
-			// Use require.FailNow to terminate all tests in this package, otherwise the
-			// still running App could spuriously fail subsequent tests.
-			require.FailNow(tb, "failed to shutdown App within 30 seconds")
-		}
 		if th.tempWorkspace != "" {
 			os.RemoveAll(th.tempWorkspace)
 		}
 	})
 
 	return th
+}
+
+func (th *TestHelper) ShutdownApp() {
+	done := make(chan bool)
+	go func() {
+		th.Server.Shutdown()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(30 * time.Second):
+		// panic instead of fatal to terminate all tests in this package, otherwise the
+		// still running App could spuriously fail subsequent tests.
+		panic("failed to shutdown App within 30 seconds")
+	}
 }
 
 func getLicense(enterprise bool, cfg *model.Config) *model.License {

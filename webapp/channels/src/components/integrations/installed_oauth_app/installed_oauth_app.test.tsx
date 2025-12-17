@@ -88,7 +88,7 @@ describe('components/integrations/InstalledOAuthApp', () => {
         );
         wrapper.find('#regenerateSecretButton').simulate('click', {preventDefault: jest.fn()});
 
-        expect(baseProps.onRegenerateSecret).toBeCalled();
+        expect(baseProps.onRegenerateSecret).toHaveBeenCalled();
         expect(baseProps.onRegenerateSecret).toHaveBeenCalledWith(oauthApp.id);
     });
 
@@ -133,7 +133,7 @@ describe('components/integrations/InstalledOAuthApp', () => {
 
         expect(wrapper.find('#regenerateSecretButton').exists()).toBe(true);
         wrapper.find('#regenerateSecretButton').simulate('click', {preventDefault: jest.fn()});
-        expect(baseProps.onRegenerateSecret).toBeCalled();
+        expect(baseProps.onRegenerateSecret).toHaveBeenCalled();
         expect(baseProps.onRegenerateSecret).toHaveBeenCalledWith(oauthApp.id);
     });
 
@@ -146,7 +146,7 @@ describe('components/integrations/InstalledOAuthApp', () => {
 
         expect(wrapper.find(DeleteIntegrationLink).exists()).toBe(true);
         wrapper.find(DeleteIntegrationLink).props().onDelete();
-        expect(newOnDelete).toBeCalled();
+        expect(newOnDelete).toHaveBeenCalled();
         expect(newOnDelete).toHaveBeenCalledWith(oauthApp);
     });
 });

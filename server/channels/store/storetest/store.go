@@ -69,7 +69,10 @@ type Store struct {
 	PropertyValueStore              mocks.PropertyValueStore
 	AccessControlPolicyStore        mocks.AccessControlPolicyStore
 	AttributesStore                 mocks.AttributesStore
+	AutoTranslationStore            mocks.AutoTranslationStore
 	ContentFlaggingStore            mocks.ContentFlaggingStore
+	ReadReceiptStore                mocks.ReadReceiptStore
+	TemporaryPostStore              mocks.TemporaryPostStore
 }
 
 func (s *Store) Logger() mlog.LoggerIFace                      { return s.logger }
@@ -159,10 +162,19 @@ func (s *Store) AccessControlPolicy() store.AccessControlPolicyStore {
 func (s *Store) Attributes() store.AttributesStore {
 	return &s.AttributesStore
 }
+func (s *Store) AutoTranslation() store.AutoTranslationStore {
+	return &s.AutoTranslationStore
+}
+
 func (s *Store) ContentFlagging() store.ContentFlaggingStore {
 	return &s.ContentFlaggingStore
 }
-
+func (s *Store) ReadReceipt() store.ReadReceiptStore {
+	return &s.ReadReceiptStore
+}
+func (s *Store) TemporaryPost() store.TemporaryPostStore {
+	return &s.TemporaryPostStore
+}
 func (s *Store) GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error) {
 	return &model.SupportPacketDatabaseSchema{
 		Tables: []model.DatabaseTable{},
@@ -213,6 +225,9 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.ScheduledPostStore,
 		&s.AccessControlPolicyStore,
 		&s.AttributesStore,
+		&s.AutoTranslationStore,
 		&s.ContentFlaggingStore,
+		&s.ReadReceiptStore,
+		&s.TemporaryPostStore,
 	)
 }

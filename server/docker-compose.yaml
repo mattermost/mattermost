@@ -167,8 +167,8 @@ services:
     depends_on:
       - leader
     volumes:
-      - './../:/home/mattermost-server'
-      - './../../enterprise:/home/enterprise'
+      - './../:/home/mattermost-server:Z'
+      - './../../enterprise:/home/enterprise:Z'
     healthcheck:
       test: ["CMD", "curl", "-f", "http://follower:8065/api/v4/system/ping"]
       interval: 5s
@@ -204,8 +204,8 @@ services:
     depends_on:
       - leader
     volumes:
-      - './../:/home/mattermost-server'
-      - './../../enterprise:/home/enterprise'
+      - './../:/home/mattermost-server:Z'
+      - './../../enterprise:/home/enterprise:Z'
     healthcheck:
       test: ["CMD", "curl", "-f", "http://follower2:8065/api/v4/system/ping"]
       interval: 5s
@@ -228,7 +228,7 @@ services:
     networks:
       - mm-test
     volumes:
-      - ./build/docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./build/docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:Z
     restart: on-failure
     depends_on:
       leader:

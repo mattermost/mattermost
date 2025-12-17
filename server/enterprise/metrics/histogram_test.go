@@ -16,7 +16,6 @@ import (
 
 func TestWrappedObserver(t *testing.T) {
 	th := api4.Setup(t)
-	defer th.TearDown()
 
 	h := NewHistogramVec(prometheus.HistogramOpts{
 		Namespace: MetricsNamespace,

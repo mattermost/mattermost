@@ -14,13 +14,13 @@ test('MM-T5521-7 Should be able to filter users with team filter', async ({pw}) 
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Create a team with a user
-    const team1 = await adminClient.createTeam(pw.random.team());
-    const user1 = await adminClient.createUser(pw.random.user(), '', '');
+    const team1 = await adminClient.createTeam(await pw.random.team());
+    const user1 = await adminClient.createUser(await pw.random.user(), '', '');
     await adminClient.addToTeam(team1.id, user1.id);
 
     // # Create another team with a user
-    const team2 = await adminClient.createTeam(pw.random.team());
-    const user2 = await adminClient.createUser(pw.random.user(), '', '');
+    const team2 = await adminClient.createTeam(await pw.random.team());
+    const user2 = await adminClient.createUser(await pw.random.user(), '', '');
     await adminClient.addToTeam(team2.id, user2.id);
 
     // # Visit system console
@@ -62,11 +62,11 @@ test('MM-T5521-8 Should be able to filter users with role filter', async ({pw}) 
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Create a guest user
-    const guestUser = await adminClient.createUser(pw.random.user(), '', '');
+    const guestUser = await adminClient.createUser(await pw.random.user(), '', '');
     await adminClient.updateUserRoles(guestUser.id, 'system_guest');
 
     // # Create a regular user
-    const regularUser = await adminClient.createUser(pw.random.user(), '', '');
+    const regularUser = await adminClient.createUser(await pw.random.user(), '', '');
 
     // # Visit system console
     await systemConsolePage.goto();
@@ -117,11 +117,11 @@ test('MM-T5521-9 Should be able to filter users with status filter', async ({pw}
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Create a user and then deactivate it
-    const deactivatedUser = await adminClient.createUser(pw.random.user(), '', '');
+    const deactivatedUser = await adminClient.createUser(await pw.random.user(), '', '');
     await adminClient.updateUserActive(deactivatedUser.id, false);
 
     // # Create a regular user
-    const regularUser = await adminClient.createUser(pw.random.user(), '', '');
+    const regularUser = await adminClient.createUser(await pw.random.user(), '', '');
 
     // # Visit system console
     await systemConsolePage.goto();

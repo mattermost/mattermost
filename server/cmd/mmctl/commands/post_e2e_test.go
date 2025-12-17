@@ -13,7 +13,7 @@ import (
 )
 
 func (s *MmctlE2ETestSuite) TestPostListCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	var createNewChannelAndPosts = func() (string, *model.Post, *model.Post) {
 		channelName := model.NewRandomString(10)
@@ -109,7 +109,7 @@ func (s *MmctlE2ETestSuite) TestPostListCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestPostCreateCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.Run("Create a post for System Admin Client", func() {
 		printer.Clean()
