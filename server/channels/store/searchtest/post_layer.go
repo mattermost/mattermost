@@ -63,6 +63,11 @@ var searchPostStoreTests = []searchTest{
 		Tags: []string{EngineElasticSearch},
 	},
 	{
+		Name: "Should be able to search for CJK using analyzer plugins",
+		Fn:   testCJKSearchWithAnalyzers,
+		Tags: []string{EngineElasticSearch, EnableCJKAnalyzers},
+	},
+	{
 		Name: "Should be able to search for alternative spellings of words",
 		Fn:   testSearchAlternativeSpellings,
 		Tags: []string{EngineElasticSearch},
@@ -611,6 +616,178 @@ func testSearchMarkdownUnderscores(t *testing.T, th *SearchTestHelper) {
 
 		require.Len(t, results.Posts, 1)
 		th.checkPostInSearchResults(t, p1.Id, results.Posts)
+	})
+}
+
+func testCJKSearchWithAnalyzers(t *testing.T, th *SearchTestHelper) {
+	t.Run("Korean searchs using nori analyzer", func(t *testing.T) {
+		p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "한글", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		p2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "한국", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		p3, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "소고기덮밥", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		p4, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "치킨덮밥", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		p5, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "오늘 회의실 예약 meeting", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		defer th.deleteUserPosts(th.User.Id)
+
+		t.Run("should be able to search with wildcard and exact search", func(t *testing.T) {
+			// Exact search
+			params := &model.SearchParams{Terms: "한글"}
+			results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
+			require.Len(t, results.Posts, 1)
+			th.checkPostInSearchResults(t, p1.Id, results.Posts)
+
+			// Wildcard search
+			params = &model.SearchParams{Terms: "한*"}
+			results, err = th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
+			require.Len(t, results.Posts, 2)
+			th.checkPostInSearchResults(t, p1.Id, results.Posts)
+			th.checkPostInSearchResults(t, p2.Id, results.Posts)
+		})
+
+		t.Run("should be able to search using compound word segmentation", func(t *testing.T) {
+			params := &model.SearchParams{Terms: "덮밥"}
+			results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
+			require.Len(t, results.Posts, 2)
+			th.checkPostInSearchResults(t, p3.Id, results.Posts)
+			th.checkPostInSearchResults(t, p4.Id, results.Posts)
+		})
+
+		t.Run("should search in mixed Korean and English content", func(t *testing.T) {
+			params := &model.SearchParams{Terms: "회의실"}
+			results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
+			require.Len(t, results.Posts, 1)
+			th.checkPostInSearchResults(t, p5.Id, results.Posts)
+		})
+
+		t.Run("should search using phrase search", func(t *testing.T) {
+			params := &model.SearchParams{Terms: "\"오늘 회의실\""}
+			results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
+			require.Len(t, results.Posts, 1)
+			th.checkPostInSearchResults(t, p5.Id, results.Posts)
+		})
+	})
+
+	t.Run("Japanese searches using kuromoji analyzer", func(t *testing.T) {
+		p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "東京", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		p2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "東北", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		p3, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "関西国際空港から出発", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		p4, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "成田空港に到着", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		p5, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "今日の会議は中止です", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		p6, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "projectの締め切りは来週", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		defer th.deleteUserPosts(th.User.Id)
+
+		t.Run("should be able to search using wildcard and exact search", func(t *testing.T) {
+			// Exact match
+			params := &model.SearchParams{Terms: "東京"}
+			results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
+			require.Len(t, results.Posts, 1)
+			th.checkPostInSearchResults(t, p1.Id, results.Posts)
+
+			// Wildcard search
+			params = &model.SearchParams{Terms: "東*"}
+			results, err = th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
+			require.Len(t, results.Posts, 2)
+			th.checkPostInSearchResults(t, p1.Id, results.Posts)
+			th.checkPostInSearchResults(t, p2.Id, results.Posts)
+		})
+
+		t.Run("should search compound words via segmentation", func(t *testing.T) {
+			params := &model.SearchParams{Terms: "空港"}
+			results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
+			require.Len(t, results.Posts, 2)
+			th.checkPostInSearchResults(t, p3.Id, results.Posts)
+			th.checkPostInSearchResults(t, p4.Id, results.Posts)
+		})
+
+		t.Run("should search in mixed Japanese and English content", func(t *testing.T) {
+			params := &model.SearchParams{Terms: "締め切り"}
+			results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
+			require.Len(t, results.Posts, 1)
+			th.checkPostInSearchResults(t, p6.Id, results.Posts)
+		})
+
+		t.Run("should search using phrase search", func(t *testing.T) {
+			params := &model.SearchParams{Terms: "\"今日の会議\""}
+			results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
+			require.Len(t, results.Posts, 1)
+			th.checkPostInSearchResults(t, p5.Id, results.Posts)
+		})
+	})
+
+	t.Run("Chinese searches using smartcn analyzer", func(t *testing.T) {
+		p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "电脑", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		p2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "电话", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		p3, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "软件工程师", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		p4, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "硬件工程师", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		p5, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "今天开会讨论API接口", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+		defer th.deleteUserPosts(th.User.Id)
+
+		t.Run("should be able to search using wildcard and exact search", func(t *testing.T) {
+			// Exact search
+			params := &model.SearchParams{Terms: "电脑"}
+			results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
+			require.Len(t, results.Posts, 1)
+			th.checkPostInSearchResults(t, p1.Id, results.Posts)
+
+			// Wildcard search
+			params = &model.SearchParams{Terms: "电*"}
+			results, err = th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
+			require.Len(t, results.Posts, 2)
+			th.checkPostInSearchResults(t, p1.Id, results.Posts)
+			th.checkPostInSearchResults(t, p2.Id, results.Posts)
+		})
+
+		t.Run("should search compound words via segmentation", func(t *testing.T) {
+			params := &model.SearchParams{Terms: "工程师"}
+			results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
+			require.Len(t, results.Posts, 2)
+			th.checkPostInSearchResults(t, p3.Id, results.Posts)
+			th.checkPostInSearchResults(t, p4.Id, results.Posts)
+		})
+
+		t.Run("should search in mixed Chinese and English content", func(t *testing.T) {
+			params := &model.SearchParams{Terms: "接口"}
+			results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
+			require.Len(t, results.Posts, 1)
+			th.checkPostInSearchResults(t, p5.Id, results.Posts)
+		})
+
+		t.Run("should search using phrase search", func(t *testing.T) {
+			params := &model.SearchParams{Terms: "\"今天开会\""}
+			results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
+			require.Len(t, results.Posts, 1)
+			th.checkPostInSearchResults(t, p5.Id, results.Posts)
+		})
 	})
 }
 

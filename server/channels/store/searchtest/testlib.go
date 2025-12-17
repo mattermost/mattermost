@@ -16,9 +16,13 @@ const (
 	EngineElasticSearch = "elasticsearch"
 )
 
+const (
+	EnableCJKAnalyzers = "cjk"
+)
+
 type SearchTestEngine struct {
 	Driver     string
-	BeforeTest func(*testing.T, store.Store)
+	BeforeTest func(*testing.T, store.Store, []string)
 	AfterTest  func(*testing.T, store.Store)
 }
 
@@ -63,7 +67,7 @@ func runTestSearch(t *testing.T, testEngine *SearchTestEngine, tests []searchTes
 		}
 
 		if testEngine.BeforeTest != nil {
-			testEngine.BeforeTest(t, th.Store)
+			testEngine.BeforeTest(t, th.Store, test.Tags)
 		}
 		testName := test.Name
 		testFn := test.Fn

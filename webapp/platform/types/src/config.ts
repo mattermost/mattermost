@@ -874,6 +874,7 @@ export type ElasticsearchSettings = {
     Password: string;
     EnableIndexing: boolean;
     EnableSearching: boolean;
+    EnableCJKAnalyzers: boolean;
     EnableAutocomplete: boolean;
     Sniff: boolean;
     PostIndexReplicas: number;

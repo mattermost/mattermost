@@ -68,6 +68,7 @@ func (s *ElasticsearchInterfaceTestSuite) SetupSuite() {
 	s.th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ElasticsearchSettings.EnableIndexing = true
 		*cfg.ElasticsearchSettings.EnableSearching = true
+		*cfg.ElasticsearchSettings.EnableCJKAnalyzers = false
 		*cfg.ElasticsearchSettings.EnableAutocomplete = true
 		*cfg.ElasticsearchSettings.LiveIndexingBatchSize = 1
 		*cfg.SqlSettings.DisableDatabaseSearch = true
