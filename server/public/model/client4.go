@@ -200,35 +200,35 @@ func (c *Client4) reportsRoute() clientRoute {
 }
 
 func (c *Client4) userRoute(userId string) clientRoute {
-	return c.usersRoute().JoinSegments(userId)
+	return c.usersRoute().Join(userId)
 }
 
 func (c *Client4) userThreadsRoute(userID, teamID string) clientRoute {
-	return c.userRoute(userID).JoinRoutes(c.teamRoute(teamID)).JoinSegments("threads")
+	return c.userRoute(userID).Join(c.teamRoute(teamID), "threads")
 }
 
 func (c *Client4) userThreadRoute(userId, teamId, threadId string) clientRoute {
-	return c.userThreadsRoute(userId, teamId).JoinSegments(threadId)
+	return c.userThreadsRoute(userId, teamId).Join(threadId)
 }
 
 func (c *Client4) userCategoryRoute(userID, teamID string) clientRoute {
-	return c.userRoute(userID).JoinRoutes(c.teamRoute(teamID)).JoinSegments("channels", "categories")
+	return c.userRoute(userID).Join(c.teamRoute(teamID), "channels", "categories")
 }
 
 func (c *Client4) userAccessTokensRoute() clientRoute {
-	return c.usersRoute().JoinSegments("tokens")
+	return c.usersRoute().Join("tokens")
 }
 
 func (c *Client4) userAccessTokenRoute(tokenId string) clientRoute {
-	return c.usersRoute().JoinSegments("tokens", tokenId)
+	return c.usersRoute().Join("tokens", tokenId)
 }
 
 func (c *Client4) userByUsernameRoute(userName string) clientRoute {
-	return c.usersRoute().JoinSegments("username", userName)
+	return c.usersRoute().Join("username", userName)
 }
 
 func (c *Client4) userByEmailRoute(email string) clientRoute {
-	return c.usersRoute().JoinSegments("email", email)
+	return c.usersRoute().Join("email", email)
 }
 
 func (c *Client4) botsRoute() clientRoute {
@@ -236,7 +236,7 @@ func (c *Client4) botsRoute() clientRoute {
 }
 
 func (c *Client4) botRoute(botUserId string) clientRoute {
-	return c.botsRoute().JoinSegments(botUserId)
+	return c.botsRoute().Join(botUserId)
 }
 
 func (c *Client4) teamsRoute() clientRoute {
@@ -244,31 +244,31 @@ func (c *Client4) teamsRoute() clientRoute {
 }
 
 func (c *Client4) teamRoute(teamId string) clientRoute {
-	return c.teamsRoute().JoinSegments(teamId)
+	return c.teamsRoute().Join(teamId)
 }
 
 func (c *Client4) teamAutoCompleteCommandsRoute(teamId string) clientRoute {
-	return c.teamsRoute().JoinSegments(teamId, "commands", "autocomplete")
+	return c.teamsRoute().Join(teamId, "commands", "autocomplete")
 }
 
 func (c *Client4) teamByNameRoute(teamName string) clientRoute {
-	return c.teamsRoute().JoinSegments("name", teamName)
+	return c.teamsRoute().Join("name", teamName)
 }
 
 func (c *Client4) teamMemberRoute(teamId, userId string) clientRoute {
-	return c.teamRoute(teamId).JoinSegments("members", userId)
+	return c.teamRoute(teamId).Join("members", userId)
 }
 
 func (c *Client4) teamMembersRoute(teamId string) clientRoute {
-	return c.teamRoute(teamId).JoinSegments("members")
+	return c.teamRoute(teamId).Join("members")
 }
 
 func (c *Client4) teamStatsRoute(teamId string) clientRoute {
-	return c.teamRoute(teamId).JoinSegments("stats")
+	return c.teamRoute(teamId).Join("stats")
 }
 
 func (c *Client4) teamImportRoute(teamId string) clientRoute {
-	return c.teamRoute(teamId).JoinSegments("import")
+	return c.teamRoute(teamId).Join("import")
 }
 
 func (c *Client4) channelsRoute() clientRoute {
@@ -276,31 +276,31 @@ func (c *Client4) channelsRoute() clientRoute {
 }
 
 func (c *Client4) channelsForTeamRoute(teamId string) clientRoute {
-	return c.teamRoute(teamId).JoinSegments("channels")
+	return c.teamRoute(teamId).Join("channels")
 }
 
 func (c *Client4) channelRoute(channelId string) clientRoute {
-	return c.channelsRoute().JoinSegments(channelId)
+	return c.channelsRoute().Join(channelId)
 }
 
 func (c *Client4) channelByNameRoute(channelName, teamId string) clientRoute {
-	return c.teamRoute(teamId).JoinSegments("channels", "name", channelName)
+	return c.teamRoute(teamId).Join("channels", "name", channelName)
 }
 
 func (c *Client4) channelsForTeamForUserRoute(teamId, userId string) clientRoute {
-	return c.userRoute(userId).JoinRoutes(c.teamRoute(teamId)).JoinSegments("channels")
+	return c.userRoute(userId).Join(c.teamRoute(teamId), "channels")
 }
 
 func (c *Client4) channelByNameForTeamNameRoute(channelName, teamName string) clientRoute {
-	return c.teamByNameRoute(teamName).JoinSegments("channels", "name", channelName)
+	return c.teamByNameRoute(teamName).Join("channels", "name", channelName)
 }
 
 func (c *Client4) channelMembersRoute(channelId string) clientRoute {
-	return c.channelRoute(channelId).JoinSegments("members")
+	return c.channelRoute(channelId).Join("members")
 }
 
 func (c *Client4) channelMemberRoute(channelId, userId string) clientRoute {
-	return c.channelMembersRoute(channelId).JoinSegments(userId)
+	return c.channelMembersRoute(channelId).Join(userId)
 }
 
 func (c *Client4) postsRoute() clientRoute {
@@ -312,7 +312,7 @@ func (c *Client4) contentFlaggingRoute() clientRoute {
 }
 
 func (c *Client4) postsEphemeralRoute() clientRoute {
-	return newClientRoute("posts").JoinSegments("ephemeral")
+	return newClientRoute("posts").Join("ephemeral")
 }
 
 func (c *Client4) configRoute() clientRoute {
@@ -324,7 +324,7 @@ func (c *Client4) licenseRoute() clientRoute {
 }
 
 func (c *Client4) postRoute(postId string) clientRoute {
-	return c.postsRoute().JoinSegments(postId)
+	return c.postsRoute().Join(postId)
 }
 
 func (c *Client4) filesRoute() clientRoute {
@@ -332,7 +332,7 @@ func (c *Client4) filesRoute() clientRoute {
 }
 
 func (c *Client4) fileRoute(fileId string) clientRoute {
-	return c.filesRoute().JoinSegments(fileId)
+	return c.filesRoute().Join(fileId)
 }
 
 func (c *Client4) uploadsRoute() clientRoute {
@@ -340,7 +340,7 @@ func (c *Client4) uploadsRoute() clientRoute {
 }
 
 func (c *Client4) uploadRoute(uploadId string) clientRoute {
-	return c.uploadsRoute().JoinSegments(uploadId)
+	return c.uploadsRoute().Join(uploadId)
 }
 
 func (c *Client4) pluginsRoute() clientRoute {
@@ -348,7 +348,7 @@ func (c *Client4) pluginsRoute() clientRoute {
 }
 
 func (c *Client4) pluginRoute(pluginId string) clientRoute {
-	return c.pluginsRoute().JoinSegments(pluginId)
+	return c.pluginsRoute().Join(pluginId)
 }
 
 func (c *Client4) systemRoute() clientRoute {
@@ -360,11 +360,11 @@ func (c *Client4) cloudRoute() clientRoute {
 }
 
 func (c *Client4) testEmailRoute() clientRoute {
-	return newClientRoute("email").JoinSegments("test")
+	return newClientRoute("email").Join("test")
 }
 
 func (c *Client4) testNotificationRoute() clientRoute {
-	return newClientRoute("notifications").JoinSegments("test")
+	return newClientRoute("notifications").Join("test")
 }
 
 func (c *Client4) usageRoute() clientRoute {
@@ -372,11 +372,11 @@ func (c *Client4) usageRoute() clientRoute {
 }
 
 func (c *Client4) testSiteURLRoute() clientRoute {
-	return newClientRoute("site_url").JoinSegments("test")
+	return newClientRoute("site_url").Join("test")
 }
 
 func (c *Client4) testS3Route() clientRoute {
-	return newClientRoute("file").JoinSegments("s3_test")
+	return newClientRoute("file").Join("s3_test")
 }
 
 func (c *Client4) databaseRoute() clientRoute {
@@ -392,43 +392,43 @@ func (c *Client4) clusterRoute() clientRoute {
 }
 
 func (c *Client4) incomingWebhooksRoute() clientRoute {
-	return newClientRoute("hooks").JoinSegments("incoming")
+	return newClientRoute("hooks").Join("incoming")
 }
 
 func (c *Client4) incomingWebhookRoute(hookID string) clientRoute {
-	return c.incomingWebhooksRoute().JoinSegments(hookID)
+	return c.incomingWebhooksRoute().Join(hookID)
 }
 
 func (c *Client4) complianceReportsRoute() clientRoute {
-	return newClientRoute("compliance").JoinSegments("reports")
+	return newClientRoute("compliance").Join("reports")
 }
 
 func (c *Client4) complianceReportRoute(reportId string) clientRoute {
-	return c.complianceReportsRoute().JoinSegments(reportId)
+	return c.complianceReportsRoute().Join(reportId)
 }
 
 func (c *Client4) complianceReportDownloadRoute(reportId string) clientRoute {
-	return c.complianceReportsRoute().JoinSegments(reportId, "download")
+	return c.complianceReportsRoute().Join(reportId, "download")
 }
 
 func (c *Client4) outgoingWebhooksRoute() clientRoute {
-	return newClientRoute("hooks").JoinSegments("outgoing")
+	return newClientRoute("hooks").Join("outgoing")
 }
 
 func (c *Client4) outgoingWebhookRoute(hookID string) clientRoute {
-	return c.outgoingWebhooksRoute().JoinSegments(hookID)
+	return c.outgoingWebhooksRoute().Join(hookID)
 }
 
 func (c *Client4) preferencesRoute(userId string) clientRoute {
-	return c.userRoute(userId).JoinSegments("preferences")
+	return c.userRoute(userId).Join("preferences")
 }
 
 func (c *Client4) userStatusRoute(userId string) clientRoute {
-	return c.userRoute(userId).JoinSegments("status")
+	return c.userRoute(userId).Join("status")
 }
 
 func (c *Client4) userStatusesRoute() clientRoute {
-	return c.usersRoute().JoinSegments("status")
+	return c.usersRoute().Join("status")
 }
 
 func (c *Client4) samlRoute() clientRoute {
@@ -448,7 +448,7 @@ func (c *Client4) dataRetentionRoute() clientRoute {
 }
 
 func (c *Client4) dataRetentionPolicyRoute(policyID string) clientRoute {
-	return c.dataRetentionRoute().JoinSegments("policies", policyID)
+	return c.dataRetentionRoute().Join("policies", policyID)
 }
 
 func (c *Client4) elasticsearchRoute() clientRoute {
@@ -460,11 +460,11 @@ func (c *Client4) commandsRoute() clientRoute {
 }
 
 func (c *Client4) commandRoute(commandId string) clientRoute {
-	return c.commandsRoute().JoinSegments(commandId)
+	return c.commandsRoute().Join(commandId)
 }
 
 func (c *Client4) commandMoveRoute(commandId string) clientRoute {
-	return c.commandsRoute().JoinSegments(commandId, "move")
+	return c.commandsRoute().Join(commandId, "move")
 }
 
 func (c *Client4) draftsRoute() clientRoute {
@@ -476,11 +476,11 @@ func (c *Client4) emojisRoute() clientRoute {
 }
 
 func (c *Client4) emojiRoute(emojiId string) clientRoute {
-	return c.emojisRoute().JoinSegments(emojiId)
+	return c.emojisRoute().Join(emojiId)
 }
 
 func (c *Client4) emojiByNameRoute(name string) clientRoute {
-	return c.emojisRoute().JoinSegments("name", name)
+	return c.emojisRoute().Join("name", name)
 }
 
 func (c *Client4) reactionsRoute() clientRoute {
@@ -492,23 +492,23 @@ func (c *Client4) oAuthRoute() clientRoute {
 }
 
 func (c *Client4) oAuthAppsRoute() clientRoute {
-	return c.oAuthRoute().JoinSegments("apps")
+	return c.oAuthRoute().Join("apps")
 }
 
 func (c *Client4) oAuthAppRoute(appId string) clientRoute {
-	return c.oAuthAppsRoute().JoinSegments(appId)
+	return c.oAuthAppsRoute().Join(appId)
 }
 
 func (c *Client4) oAuthRegisterRoute() clientRoute {
-	return c.oAuthAppsRoute().JoinSegments("register")
+	return c.oAuthAppsRoute().Join("register")
 }
 
 func (c *Client4) outgoingOAuthConnectionsRoute() clientRoute {
-	return c.oAuthRoute().JoinSegments("outgoing_connections")
+	return c.oAuthRoute().Join("outgoing_connections")
 }
 
 func (c *Client4) outgoingOAuthConnectionRoute(id string) clientRoute {
-	return c.outgoingOAuthConnectionsRoute().JoinSegments(id)
+	return c.outgoingOAuthConnectionsRoute().Join(id)
 }
 
 func (c *Client4) jobsRoute() clientRoute {
@@ -524,7 +524,7 @@ func (c *Client4) schemesRoute() clientRoute {
 }
 
 func (c *Client4) schemeRoute(id string) clientRoute {
-	return c.schemesRoute().JoinSegments(id)
+	return c.schemesRoute().Join(id)
 }
 
 func (c *Client4) analyticsRoute() clientRoute {
@@ -532,19 +532,19 @@ func (c *Client4) analyticsRoute() clientRoute {
 }
 
 func (c *Client4) timezonesRoute() clientRoute {
-	return c.systemRoute().JoinSegments("timezones")
+	return c.systemRoute().Join("timezones")
 }
 
 func (c *Client4) channelSchemeRoute(channelId string) clientRoute {
-	return c.channelsRoute().JoinSegments(channelId, "scheme")
+	return c.channelsRoute().Join(channelId, "scheme")
 }
 
 func (c *Client4) teamSchemeRoute(teamId string) clientRoute {
-	return c.teamsRoute().JoinSegments(teamId, "scheme")
+	return c.teamsRoute().Join(teamId, "scheme")
 }
 
 func (c *Client4) totalUsersStatsRoute() clientRoute {
-	return c.usersRoute().JoinSegments("stats")
+	return c.usersRoute().Join("stats")
 }
 
 func (c *Client4) redirectLocationRoute() clientRoute {
@@ -556,7 +556,7 @@ func (c *Client4) serverBusyRoute() clientRoute {
 }
 
 func (c *Client4) userTermsOfServiceRoute(userId string) clientRoute {
-	return c.userRoute(userId).JoinSegments("terms_of_service")
+	return c.userRoute(userId).Join("terms_of_service")
 }
 
 func (c *Client4) termsOfServiceRoute() clientRoute {
@@ -568,20 +568,20 @@ func (c *Client4) groupsRoute() clientRoute {
 }
 
 func (c *Client4) publishUserTypingRoute(userId string) clientRoute {
-	return c.userRoute(userId).JoinSegments("typing")
+	return c.userRoute(userId).Join("typing")
 }
 
 func (c *Client4) groupRoute(groupID string) clientRoute {
-	return c.groupsRoute().JoinSegments(groupID)
+	return c.groupsRoute().Join(groupID)
 }
 
 func (c *Client4) groupSyncablesRoute(groupID string, syncableType GroupSyncableType) clientRoute {
 	syncTypeElem := strings.ToLower(syncableType.String()) + "s"
-	return c.groupRoute(groupID).JoinSegments(syncTypeElem)
+	return c.groupRoute(groupID).Join(syncTypeElem)
 }
 
 func (c *Client4) groupSyncableRoute(groupID, syncableID string, syncableType GroupSyncableType) clientRoute {
-	return c.groupSyncablesRoute(groupID, syncableType).JoinSegments(syncableID)
+	return c.groupSyncablesRoute(groupID, syncableType).Join(syncableID)
 }
 
 func (c *Client4) importsRoute() clientRoute {
@@ -593,11 +593,11 @@ func (c *Client4) exportsRoute() clientRoute {
 }
 
 func (c *Client4) exportRoute(name string) clientRoute {
-	return c.exportsRoute().JoinSegments(name)
+	return c.exportsRoute().Join(name)
 }
 
 func (c *Client4) importRoute(name string) clientRoute {
-	return c.importsRoute().JoinSegments(name)
+	return c.importsRoute().Join(name)
 }
 
 func (c *Client4) remoteClusterRoute() clientRoute {
@@ -605,11 +605,11 @@ func (c *Client4) remoteClusterRoute() clientRoute {
 }
 
 func (c *Client4) sharedChannelRemotesRoute(remoteId string) clientRoute {
-	return c.remoteClusterRoute().JoinSegments(remoteId, "sharedchannelremotes")
+	return c.remoteClusterRoute().Join(remoteId, "sharedchannelremotes")
 }
 
 func (c *Client4) channelRemoteRoute(remoteId, channelId string) clientRoute {
-	return c.remoteClusterRoute().JoinSegments(remoteId, "channels", channelId)
+	return c.remoteClusterRoute().Join(remoteId, "channels", channelId)
 }
 
 func (c *Client4) sharedChannelsRoute() clientRoute {
@@ -633,11 +633,11 @@ func (c *Client4) customProfileAttributesRoute() clientRoute {
 }
 
 func (c *Client4) bookmarksRoute(channelId string) clientRoute {
-	return c.channelRoute(channelId).JoinSegments("bookmarks")
+	return c.channelRoute(channelId).Join("bookmarks")
 }
 
 func (c *Client4) bookmarkRoute(channelId, bookmarkId string) clientRoute {
-	return c.bookmarksRoute(channelId).JoinSegments(bookmarkId)
+	return c.bookmarksRoute(channelId).Join(bookmarkId)
 }
 
 func (c *Client4) clientPerfMetricsRoute() clientRoute {
@@ -645,19 +645,19 @@ func (c *Client4) clientPerfMetricsRoute() clientRoute {
 }
 
 func (c *Client4) userCustomProfileAttributesRoute(userID string) clientRoute {
-	return c.userRoute(userID).JoinSegments("custom_profile_attributes")
+	return c.userRoute(userID).Join("custom_profile_attributes")
 }
 
 func (c *Client4) customProfileAttributeFieldsRoute() clientRoute {
-	return c.customProfileAttributesRoute().JoinSegments("fields")
+	return c.customProfileAttributesRoute().Join("fields")
 }
 
 func (c *Client4) customProfileAttributeFieldRoute(fieldID string) clientRoute {
-	return c.customProfileAttributeFieldsRoute().JoinSegments(fieldID)
+	return c.customProfileAttributeFieldsRoute().Join(fieldID)
 }
 
 func (c *Client4) customProfileAttributeValuesRoute() clientRoute {
-	return c.customProfileAttributesRoute().JoinSegments("values")
+	return c.customProfileAttributesRoute().Join("values")
 }
 
 func (c *Client4) accessControlPoliciesRoute() clientRoute {
@@ -665,11 +665,11 @@ func (c *Client4) accessControlPoliciesRoute() clientRoute {
 }
 
 func (c *Client4) celRoute() clientRoute {
-	return c.accessControlPoliciesRoute().JoinSegments("cel")
+	return c.accessControlPoliciesRoute().Join("cel")
 }
 
 func (c *Client4) accessControlPolicyRoute(policyID string) clientRoute {
-	return c.accessControlPoliciesRoute().JoinSegments(url.PathEscape(policyID))
+	return c.accessControlPoliciesRoute().Join(url.PathEscape(policyID))
 }
 
 func (c *Client4) logsRoute() clientRoute {
@@ -906,7 +906,7 @@ func (c *Client4) Logout(ctx context.Context) (*Response, error) {
 
 // SwitchAccountType changes a user's login type from one type to another.
 func (c *Client4) SwitchAccountType(ctx context.Context, switchRequest *SwitchRequest) (string, *Response, error) {
-	route, err := c.usersRoute().JoinSegments("login", "switch").String()
+	route, err := c.usersRoute().Join("login", "switch").String()
 	if err != nil {
 		return "", nil, err
 	}
@@ -1042,7 +1042,7 @@ func (c *Client4) AutocompleteUsersInTeam(ctx context.Context, teamId string, us
 	values.Set("in_team", teamId)
 	values.Set("name", username)
 	values.Set("limit", strconv.Itoa(limit))
-	routeURL, err := c.usersRoute().JoinSegments("autocomplete").URL()
+	routeURL, err := c.usersRoute().Join("autocomplete").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1062,7 +1062,7 @@ func (c *Client4) AutocompleteUsersInChannel(ctx context.Context, teamId string,
 	values.Set("in_channel", channelId)
 	values.Set("name", username)
 	values.Set("limit", strconv.Itoa(limit))
-	routeURL, err := c.usersRoute().JoinSegments("autocomplete").URL()
+	routeURL, err := c.usersRoute().Join("autocomplete").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1080,7 +1080,7 @@ func (c *Client4) AutocompleteUsers(ctx context.Context, username string, limit 
 	values := url.Values{}
 	values.Set("name", username)
 	values.Set("limit", strconv.Itoa(limit))
-	routeURL, err := c.usersRoute().JoinSegments("autocomplete").URL()
+	routeURL, err := c.usersRoute().Join("autocomplete").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1095,7 +1095,7 @@ func (c *Client4) AutocompleteUsers(ctx context.Context, username string, limit 
 
 // GetDefaultProfileImage gets the default user's profile image. Must be logged in.
 func (c *Client4) GetDefaultProfileImage(ctx context.Context, userId string) ([]byte, *Response, error) {
-	route, err := c.userRoute(userId).JoinSegments("image", "default").String()
+	route, err := c.userRoute(userId).Join("image", "default").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1109,7 +1109,7 @@ func (c *Client4) GetDefaultProfileImage(ctx context.Context, userId string) ([]
 
 // GetProfileImage gets user's profile image. Must be logged in.
 func (c *Client4) GetProfileImage(ctx context.Context, userId, etag string) ([]byte, *Response, error) {
-	route, err := c.userRoute(userId).JoinSegments("image").String()
+	route, err := c.userRoute(userId).Join("image").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1389,7 +1389,7 @@ func (c *Client4) GetUsersInGroupByDisplayName(ctx context.Context, groupID stri
 
 // GetUsersByIds returns a list of users based on the provided user ids.
 func (c *Client4) GetUsersByIds(ctx context.Context, userIds []string) ([]*User, *Response, error) {
-	route, err := c.usersRoute().JoinSegments("ids").String()
+	route, err := c.usersRoute().Join("ids").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1408,7 +1408,7 @@ func (c *Client4) GetUsersByIdsWithOptions(ctx context.Context, userIds []string
 		v.Set("since", fmt.Sprintf("%d", options.Since))
 	}
 
-	routeURL, err := c.usersRoute().JoinSegments("ids").URL()
+	routeURL, err := c.usersRoute().Join("ids").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1426,7 +1426,7 @@ func (c *Client4) GetUsersByIdsWithOptions(ctx context.Context, userIds []string
 
 // GetUsersByUsernames returns a list of users based on the provided usernames.
 func (c *Client4) GetUsersByUsernames(ctx context.Context, usernames []string) ([]*User, *Response, error) {
-	route, err := c.usersRoute().JoinSegments("usernames").String()
+	route, err := c.usersRoute().Join("usernames").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1441,7 +1441,7 @@ func (c *Client4) GetUsersByUsernames(ctx context.Context, usernames []string) (
 // GetUsersByGroupChannelIds returns a map with channel ids as keys
 // and a list of users as values based on the provided user ids.
 func (c *Client4) GetUsersByGroupChannelIds(ctx context.Context, groupChannelIds []string) (map[string][]*User, *Response, error) {
-	route, err := c.usersRoute().JoinSegments("group_channels").String()
+	route, err := c.usersRoute().Join("group_channels").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1455,7 +1455,7 @@ func (c *Client4) GetUsersByGroupChannelIds(ctx context.Context, groupChannelIds
 
 // SearchUsers returns a list of users based on some search criteria.
 func (c *Client4) SearchUsers(ctx context.Context, search *UserSearch) ([]*User, *Response, error) {
-	route, err := c.usersRoute().JoinSegments("search").String()
+	route, err := c.usersRoute().Join("search").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1483,7 +1483,7 @@ func (c *Client4) UpdateUser(ctx context.Context, user *User) (*User, *Response,
 
 // PatchUser partially updates a user in the system. Any missing fields are not updated.
 func (c *Client4) PatchUser(ctx context.Context, userId string, patch *UserPatch) (*User, *Response, error) {
-	route, err := c.userRoute(userId).JoinSegments("patch").String()
+	route, err := c.userRoute(userId).Join("patch").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1497,7 +1497,7 @@ func (c *Client4) PatchUser(ctx context.Context, userId string, patch *UserPatch
 
 // UpdateUserAuth updates a user AuthData (uthData, authService and password) in the system.
 func (c *Client4) UpdateUserAuth(ctx context.Context, userId string, userAuth *UserAuth) (*UserAuth, *Response, error) {
-	route, err := c.userRoute(userId).JoinSegments("auth").String()
+	route, err := c.userRoute(userId).Join("auth").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1517,7 +1517,7 @@ func (c *Client4) UpdateUserMfa(ctx context.Context, userId, code string, activa
 	requestBody["activate"] = activate
 	requestBody["code"] = code
 
-	route, err := c.userRoute(userId).JoinSegments("mfa").String()
+	route, err := c.userRoute(userId).Join("mfa").String()
 	if err != nil {
 		return nil, err
 	}
@@ -1532,7 +1532,7 @@ func (c *Client4) UpdateUserMfa(ctx context.Context, userId, code string, activa
 // GenerateMfaSecret will generate a new MFA secret for a user and return it as a string and
 // as a base64 encoded image QR code.
 func (c *Client4) GenerateMfaSecret(ctx context.Context, userId string) (*MfaSecret, *Response, error) {
-	route, err := c.userRoute(userId).JoinSegments("mfa", "generate").String()
+	route, err := c.userRoute(userId).Join("mfa", "generate").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1547,7 +1547,7 @@ func (c *Client4) GenerateMfaSecret(ctx context.Context, userId string) (*MfaSec
 // UpdateUserPassword updates a user's password. Must be logged in as the user or be a system administrator.
 func (c *Client4) UpdateUserPassword(ctx context.Context, userId, currentPassword, newPassword string) (*Response, error) {
 	requestBody := map[string]string{"current_password": currentPassword, "new_password": newPassword}
-	route, err := c.userRoute(userId).JoinSegments("password").String()
+	route, err := c.userRoute(userId).Join("password").String()
 	if err != nil {
 		return nil, err
 	}
@@ -1562,7 +1562,7 @@ func (c *Client4) UpdateUserPassword(ctx context.Context, userId, currentPasswor
 // UpdateUserHashedPassword updates a user's password with an already-hashed password. Must be a system administrator.
 func (c *Client4) UpdateUserHashedPassword(ctx context.Context, userId, newHashedPassword string) (*Response, error) {
 	requestBody := map[string]string{"already_hashed": "true", "new_password": newHashedPassword}
-	route, err := c.userRoute(userId).JoinSegments("password").String()
+	route, err := c.userRoute(userId).Join("password").String()
 	if err != nil {
 		return nil, err
 	}
@@ -1576,7 +1576,7 @@ func (c *Client4) UpdateUserHashedPassword(ctx context.Context, userId, newHashe
 
 // PromoteGuestToUser convert a guest into a regular user
 func (c *Client4) PromoteGuestToUser(ctx context.Context, guestId string) (*Response, error) {
-	route, err := c.userRoute(guestId).JoinSegments("promote").String()
+	route, err := c.userRoute(guestId).Join("promote").String()
 	if err != nil {
 		return nil, err
 	}
@@ -1590,7 +1590,7 @@ func (c *Client4) PromoteGuestToUser(ctx context.Context, guestId string) (*Resp
 
 // DemoteUserToGuest convert a regular user into a guest
 func (c *Client4) DemoteUserToGuest(ctx context.Context, guestId string) (*Response, error) {
-	route, err := c.userRoute(guestId).JoinSegments("demote").String()
+	route, err := c.userRoute(guestId).Join("demote").String()
 	if err != nil {
 		return nil, err
 	}
@@ -1605,7 +1605,7 @@ func (c *Client4) DemoteUserToGuest(ctx context.Context, guestId string) (*Respo
 // UpdateUserRoles updates a user's roles in the system. A user can have "system_user" and "system_admin" roles.
 func (c *Client4) UpdateUserRoles(ctx context.Context, userId, roles string) (*Response, error) {
 	requestBody := map[string]string{"roles": roles}
-	route, err := c.userRoute(userId).JoinSegments("roles").String()
+	route, err := c.userRoute(userId).Join("roles").String()
 	if err != nil {
 		return nil, err
 	}
@@ -1621,7 +1621,7 @@ func (c *Client4) UpdateUserRoles(ctx context.Context, userId, roles string) (*R
 func (c *Client4) UpdateUserActive(ctx context.Context, userId string, active bool) (*Response, error) {
 	requestBody := make(map[string]any)
 	requestBody["active"] = active
-	route, err := c.userRoute(userId).JoinSegments("active").String()
+	route, err := c.userRoute(userId).Join("active").String()
 	if err != nil {
 		return nil, err
 	}
@@ -1636,7 +1636,7 @@ func (c *Client4) UpdateUserActive(ctx context.Context, userId string, active bo
 
 // ResetFailedAttempts resets the number of failed attempts for a user.
 func (c *Client4) ResetFailedAttempts(ctx context.Context, userId string) (*Response, error) {
-	route, err := c.userRoute(userId).JoinSegments("reset_failed_attempts").String()
+	route, err := c.userRoute(userId).Join("reset_failed_attempts").String()
 	if err != nil {
 		return nil, err
 	}
@@ -1679,7 +1679,7 @@ func (c *Client4) PermanentDeleteUser(ctx context.Context, userId string) (*Resp
 
 // ConvertUserToBot converts a user to a bot user.
 func (c *Client4) ConvertUserToBot(ctx context.Context, userId string) (*Bot, *Response, error) {
-	route, err := c.userRoute(userId).JoinSegments("convert_to_bot").String()
+	route, err := c.userRoute(userId).Join("convert_to_bot").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1697,7 +1697,7 @@ func (c *Client4) ConvertBotToUser(ctx context.Context, userId string, userPatch
 	if setSystemAdmin {
 		query = "?set_system_admin=true"
 	}
-	route, err := c.botRoute(userId).JoinSegments("convert_to_user").String()
+	route, err := c.botRoute(userId).Join("convert_to_user").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1727,7 +1727,7 @@ func (c *Client4) PermanentDeleteAllUsers(ctx context.Context) (*Response, error
 // provided email.
 func (c *Client4) SendPasswordResetEmail(ctx context.Context, email string) (*Response, error) {
 	requestBody := map[string]string{"email": email}
-	route, err := c.usersRoute().JoinSegments("password", "reset", "send").String()
+	route, err := c.usersRoute().Join("password", "reset", "send").String()
 	if err != nil {
 		return nil, err
 	}
@@ -1742,7 +1742,7 @@ func (c *Client4) SendPasswordResetEmail(ctx context.Context, email string) (*Re
 // ResetPassword uses a recovery code to update reset a user's password.
 func (c *Client4) ResetPassword(ctx context.Context, token, newPassword string) (*Response, error) {
 	requestBody := map[string]string{"token": token, "new_password": newPassword}
-	route, err := c.usersRoute().JoinSegments("password", "reset").String()
+	route, err := c.usersRoute().Join("password", "reset").String()
 	if err != nil {
 		return nil, err
 	}
@@ -1756,7 +1756,7 @@ func (c *Client4) ResetPassword(ctx context.Context, token, newPassword string) 
 
 // GetSessions returns a list of sessions based on the provided user id string.
 func (c *Client4) GetSessions(ctx context.Context, userId, etag string) ([]*Session, *Response, error) {
-	route, err := c.userRoute(userId).JoinSegments("sessions").String()
+	route, err := c.userRoute(userId).Join("sessions").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1771,7 +1771,7 @@ func (c *Client4) GetSessions(ctx context.Context, userId, etag string) ([]*Sess
 // RevokeSession revokes a user session based on the provided user id and session id strings.
 func (c *Client4) RevokeSession(ctx context.Context, userId, sessionId string) (*Response, error) {
 	requestBody := map[string]string{"session_id": sessionId}
-	route, err := c.userRoute(userId).JoinSegments("sessions", "revoke").String()
+	route, err := c.userRoute(userId).Join("sessions", "revoke").String()
 	if err != nil {
 		return nil, err
 	}
@@ -1785,7 +1785,7 @@ func (c *Client4) RevokeSession(ctx context.Context, userId, sessionId string) (
 
 // RevokeAllSessions revokes all sessions for the provided user id string.
 func (c *Client4) RevokeAllSessions(ctx context.Context, userId string) (*Response, error) {
-	route, err := c.userRoute(userId).JoinSegments("sessions", "revoke", "all").String()
+	route, err := c.userRoute(userId).Join("sessions", "revoke", "all").String()
 	if err != nil {
 		return nil, err
 	}
@@ -1799,7 +1799,7 @@ func (c *Client4) RevokeAllSessions(ctx context.Context, userId string) (*Respon
 
 // RevokeAllSessions revokes all sessions for all the users.
 func (c *Client4) RevokeSessionsFromAllUsers(ctx context.Context) (*Response, error) {
-	route, err := c.usersRoute().JoinSegments("sessions", "revoke", "all").String()
+	route, err := c.usersRoute().Join("sessions", "revoke", "all").String()
 	if err != nil {
 		return nil, err
 	}
@@ -1813,7 +1813,7 @@ func (c *Client4) RevokeSessionsFromAllUsers(ctx context.Context) (*Response, er
 
 // AttachDeviceProps attaches a mobile device ID to the current session and other props.
 func (c *Client4) AttachDeviceProps(ctx context.Context, newProps map[string]string) (*Response, error) {
-	route, err := c.usersRoute().JoinSegments("sessions", "device").String()
+	route, err := c.usersRoute().Join("sessions", "device").String()
 	if err != nil {
 		return nil, err
 	}
@@ -1835,7 +1835,7 @@ func (c *Client4) GetTeamsUnreadForUser(ctx context.Context, userId, teamIdToExc
 		values.Set("exclude_team", teamIdToExclude)
 	}
 	values.Set("include_collapsed_threads", c.boolString(includeCollapsedThreads))
-	routeURL, err := c.userRoute(userId).JoinSegments("teams", "unread").URL()
+	routeURL, err := c.userRoute(userId).Join("teams", "unread").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1853,7 +1853,7 @@ func (c *Client4) GetUserAudits(ctx context.Context, userId string, page int, pe
 	values := url.Values{}
 	values.Set("page", strconv.Itoa(page))
 	values.Set("per_page", strconv.Itoa(perPage))
-	routeURL, err := c.userRoute(userId).JoinSegments("audits").URL()
+	routeURL, err := c.userRoute(userId).Join("audits").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1869,7 +1869,7 @@ func (c *Client4) GetUserAudits(ctx context.Context, userId string, page int, pe
 // VerifyUserEmail will verify a user's email using the supplied token.
 func (c *Client4) VerifyUserEmail(ctx context.Context, token string) (*Response, error) {
 	requestBody := map[string]string{"token": token}
-	route, err := c.usersRoute().JoinSegments("email", "verify").String()
+	route, err := c.usersRoute().Join("email", "verify").String()
 	if err != nil {
 		return nil, err
 	}
@@ -1883,7 +1883,7 @@ func (c *Client4) VerifyUserEmail(ctx context.Context, token string) (*Response,
 
 // VerifyUserEmailWithoutToken will verify a user's email by its Id. (Requires manage system role)
 func (c *Client4) VerifyUserEmailWithoutToken(ctx context.Context, userId string) (*User, *Response, error) {
-	route, err := c.userRoute(userId).JoinSegments("email", "verify", "member").String()
+	route, err := c.userRoute(userId).Join("email", "verify", "member").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1900,7 +1900,7 @@ func (c *Client4) VerifyUserEmailWithoutToken(ctx context.Context, userId string
 // email address.
 func (c *Client4) SendVerificationEmail(ctx context.Context, email string) (*Response, error) {
 	requestBody := map[string]string{"email": email}
-	route, err := c.usersRoute().JoinSegments("email", "verify", "send").String()
+	route, err := c.usersRoute().Join("email", "verify", "send").String()
 	if err != nil {
 		return nil, err
 	}
@@ -1914,7 +1914,7 @@ func (c *Client4) SendVerificationEmail(ctx context.Context, email string) (*Res
 
 // SetDefaultProfileImage resets the profile image to a default generated one.
 func (c *Client4) SetDefaultProfileImage(ctx context.Context, userId string) (*Response, error) {
-	route, err := c.userRoute(userId).JoinSegments("image").String()
+	route, err := c.userRoute(userId).Join("image").String()
 	if err != nil {
 		return nil, err
 	}
@@ -1943,7 +1943,7 @@ func (c *Client4) SetProfileImage(ctx context.Context, userId string, data []byt
 		return nil, fmt.Errorf("failed to close multipart writer: %w", err)
 	}
 
-	route, err := c.userRoute(userId).JoinSegments("image").String()
+	route, err := c.userRoute(userId).Join("image").String()
 	if err != nil {
 		return nil, err
 	}
@@ -1962,7 +1962,7 @@ func (c *Client4) SetProfileImage(ctx context.Context, userId string, data []byt
 // permission. A non-blank description is required.
 func (c *Client4) CreateUserAccessToken(ctx context.Context, userId, description string) (*UserAccessToken, *Response, error) {
 	requestBody := map[string]string{"description": description}
-	route, err := c.userRoute(userId).JoinSegments("tokens").String()
+	route, err := c.userRoute(userId).Join("tokens").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -2019,7 +2019,7 @@ func (c *Client4) GetUserAccessTokensForUser(ctx context.Context, userId string,
 	values := url.Values{}
 	values.Set("page", strconv.Itoa(page))
 	values.Set("per_page", strconv.Itoa(perPage))
-	routeURL, err := c.userRoute(userId).JoinSegments("tokens").URL()
+	routeURL, err := c.userRoute(userId).Join("tokens").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -2037,7 +2037,7 @@ func (c *Client4) GetUserAccessTokensForUser(ctx context.Context, userId string,
 // 'edit_other_users' permission.
 func (c *Client4) RevokeUserAccessToken(ctx context.Context, tokenId string) (*Response, error) {
 	requestBody := map[string]string{"token_id": tokenId}
-	route, err := c.usersRoute().JoinSegments("tokens", "revoke").String()
+	route, err := c.usersRoute().Join("tokens", "revoke").String()
 	if err != nil {
 		return nil, err
 	}
@@ -2051,7 +2051,7 @@ func (c *Client4) RevokeUserAccessToken(ctx context.Context, tokenId string) (*R
 
 // SearchUserAccessTokens returns user access tokens matching the provided search term.
 func (c *Client4) SearchUserAccessTokens(ctx context.Context, search *UserAccessTokenSearch) ([]*UserAccessToken, *Response, error) {
-	route, err := c.usersRoute().JoinSegments("tokens", "search").String()
+	route, err := c.usersRoute().Join("tokens", "search").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -2068,7 +2068,7 @@ func (c *Client4) SearchUserAccessTokens(ctx context.Context, search *UserAccess
 // 'edit_other_users' permission.
 func (c *Client4) DisableUserAccessToken(ctx context.Context, tokenId string) (*Response, error) {
 	requestBody := map[string]string{"token_id": tokenId}
-	route, err := c.usersRoute().JoinSegments("tokens", "disable").String()
+	route, err := c.usersRoute().Join("tokens", "disable").String()
 	if err != nil {
 		return nil, err
 	}
@@ -2085,7 +2085,7 @@ func (c *Client4) DisableUserAccessToken(ctx context.Context, tokenId string) (*
 // 'edit_other_users' permission.
 func (c *Client4) EnableUserAccessToken(ctx context.Context, tokenId string) (*Response, error) {
 	requestBody := map[string]string{"token_id": tokenId}
-	route, err := c.usersRoute().JoinSegments("tokens", "enable").String()
+	route, err := c.usersRoute().Join("tokens", "enable").String()
 	if err != nil {
 		return nil, err
 	}
@@ -2136,7 +2136,7 @@ func (c *Client4) GetUsersForReporting(ctx context.Context, options *UserReportO
 		values.Set("date_range", options.DateRange)
 	}
 
-	routeURL, err := c.reportsRoute().JoinSegments("users").URL()
+	routeURL, err := c.reportsRoute().Join("users").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -2266,7 +2266,7 @@ func (c *Client4) GetBotsOrphaned(ctx context.Context, page, perPage int, etag s
 
 // DisableBot disables the given bot in the system.
 func (c *Client4) DisableBot(ctx context.Context, botUserId string) (*Bot, *Response, error) {
-	route, err := c.botRoute(botUserId).JoinSegments("disable").String()
+	route, err := c.botRoute(botUserId).Join("disable").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -2280,7 +2280,7 @@ func (c *Client4) DisableBot(ctx context.Context, botUserId string) (*Bot, *Resp
 
 // EnableBot disables the given bot in the system.
 func (c *Client4) EnableBot(ctx context.Context, botUserId string) (*Bot, *Response, error) {
-	route, err := c.botRoute(botUserId).JoinSegments("enable").String()
+	route, err := c.botRoute(botUserId).Join("enable").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -2294,7 +2294,7 @@ func (c *Client4) EnableBot(ctx context.Context, botUserId string) (*Bot, *Respo
 
 // AssignBot assigns the given bot to the given user
 func (c *Client4) AssignBot(ctx context.Context, botUserId, newOwnerId string) (*Bot, *Response, error) {
-	route, err := c.botRoute(botUserId).JoinSegments("assign", newOwnerId).String()
+	route, err := c.botRoute(botUserId).Join("assign", newOwnerId).String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -2433,7 +2433,7 @@ func (c *Client4) GetTeamByName(ctx context.Context, name, etag string) (*Team, 
 
 // SearchTeams returns teams matching the provided search term.
 func (c *Client4) SearchTeams(ctx context.Context, search *TeamSearch) ([]*Team, *Response, error) {
-	route, err := c.teamsRoute().JoinSegments("search").String()
+	route, err := c.teamsRoute().Join("search").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -2453,7 +2453,7 @@ func (c *Client4) SearchTeamsPaged(ctx context.Context, search *TeamSearch) ([]*
 	if search.PerPage == nil {
 		search.PerPage = NewPointer(100)
 	}
-	route, err := c.teamsRoute().JoinSegments("search").String()
+	route, err := c.teamsRoute().Join("search").String()
 	if err != nil {
 		return nil, 0, nil, err
 	}
@@ -2471,7 +2471,7 @@ func (c *Client4) SearchTeamsPaged(ctx context.Context, search *TeamSearch) ([]*
 
 // TeamExists returns true or false if the team exist or not.
 func (c *Client4) TeamExists(ctx context.Context, name, etag string) (bool, *Response, error) {
-	route, err := c.teamByNameRoute(name).JoinSegments("exists").String()
+	route, err := c.teamByNameRoute(name).Join("exists").String()
 	if err != nil {
 		return false, nil, err
 	}
@@ -2486,7 +2486,7 @@ func (c *Client4) TeamExists(ctx context.Context, name, etag string) (bool, *Res
 // GetTeamsForUser returns a list of teams a user is on. Must be logged in as the user
 // or be a system administrator.
 func (c *Client4) GetTeamsForUser(ctx context.Context, userId, etag string) ([]*Team, *Response, error) {
-	route, err := c.userRoute(userId).JoinSegments("teams").String()
+	route, err := c.userRoute(userId).Join("teams").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -2515,7 +2515,7 @@ func (c *Client4) GetTeamMember(ctx context.Context, teamId, userId, etag string
 // UpdateTeamMemberRoles will update the roles on a team for a user.
 func (c *Client4) UpdateTeamMemberRoles(ctx context.Context, teamId, userId, newRoles string) (*Response, error) {
 	requestBody := map[string]string{"roles": newRoles}
-	route, err := c.teamMemberRoute(teamId, userId).JoinSegments("roles").String()
+	route, err := c.teamMemberRoute(teamId, userId).Join("roles").String()
 	if err != nil {
 		return nil, err
 	}
@@ -2529,7 +2529,7 @@ func (c *Client4) UpdateTeamMemberRoles(ctx context.Context, teamId, userId, new
 
 // UpdateTeamMemberSchemeRoles will update the scheme-derived roles on a team for a user.
 func (c *Client4) UpdateTeamMemberSchemeRoles(ctx context.Context, teamId string, userId string, schemeRoles *SchemeRoles) (*Response, error) {
-	route, err := c.teamMemberRoute(teamId, userId).JoinSegments("schemeRoles").String()
+	route, err := c.teamMemberRoute(teamId, userId).Join("schemeRoles").String()
 	if err != nil {
 		return nil, err
 	}
@@ -2557,7 +2557,7 @@ func (c *Client4) UpdateTeam(ctx context.Context, team *Team) (*Team, *Response,
 
 // PatchTeam partially updates a team. Any missing fields are not updated.
 func (c *Client4) PatchTeam(ctx context.Context, teamId string, patch *TeamPatch) (*Team, *Response, error) {
-	route, err := c.teamRoute(teamId).JoinSegments("patch").String()
+	route, err := c.teamRoute(teamId).Join("patch").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -2571,7 +2571,7 @@ func (c *Client4) PatchTeam(ctx context.Context, teamId string, patch *TeamPatch
 
 // RestoreTeam restores a previously deleted team.
 func (c *Client4) RestoreTeam(ctx context.Context, teamId string) (*Team, *Response, error) {
-	route, err := c.teamRoute(teamId).JoinSegments("restore").String()
+	route, err := c.teamRoute(teamId).Join("restore").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -2585,7 +2585,7 @@ func (c *Client4) RestoreTeam(ctx context.Context, teamId string) (*Team, *Respo
 
 // RegenerateTeamInviteId requests a new invite ID to be generated.
 func (c *Client4) RegenerateTeamInviteId(ctx context.Context, teamId string) (*Team, *Response, error) {
-	route, err := c.teamRoute(teamId).JoinSegments("regenerate_invite_id").String()
+	route, err := c.teamRoute(teamId).Join("regenerate_invite_id").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -2631,7 +2631,7 @@ func (c *Client4) PermanentDeleteTeam(ctx context.Context, teamId string) (*Resp
 // the corresponding AllowOpenInvite appropriately.
 func (c *Client4) UpdateTeamPrivacy(ctx context.Context, teamId string, privacy string) (*Team, *Response, error) {
 	requestBody := map[string]string{"privacy": privacy}
-	route, err := c.teamRoute(teamId).JoinSegments("privacy").String()
+	route, err := c.teamRoute(teamId).Join("privacy").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -2684,7 +2684,7 @@ func (c *Client4) GetTeamMembersSortAndWithoutDeletedUsers(ctx context.Context, 
 
 // GetTeamMembersForUser returns the team members for a user.
 func (c *Client4) GetTeamMembersForUser(ctx context.Context, userId string, etag string) ([]*TeamMember, *Response, error) {
-	route, err := c.userRoute(userId).JoinSegments("teams", "members").String()
+	route, err := c.userRoute(userId).Join("teams", "members").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -2699,7 +2699,12 @@ func (c *Client4) GetTeamMembersForUser(ctx context.Context, userId string, etag
 // GetTeamMembersByIds will return an array of team members based on the
 // team id and a list of user ids provided. Must be authenticated.
 func (c *Client4) GetTeamMembersByIds(ctx context.Context, teamId string, userIds []string) ([]*TeamMember, *Response, error) {
-	r, err := c.DoAPIPostJSON(ctx, fmt.Sprintf("/teams/%v/members/ids", teamId), userIds)
+	route, err := c.teamMembersRoute(teamId).Join("ids").String()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	r, err := c.DoAPIPostJSON(ctx, route, userIds)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2728,7 +2733,7 @@ func (c *Client4) AddTeamMemberFromInvite(ctx context.Context, token, inviteId s
 	values := url.Values{}
 	values.Set("invite_id", inviteId)
 	values.Set("token", token)
-	routeURL, err := c.teamsRoute().JoinSegments("members", "invite").URL()
+	routeURL, err := c.teamsRoute().Join("members", "invite").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -2748,7 +2753,7 @@ func (c *Client4) AddTeamMembers(ctx context.Context, teamId string, userIds []s
 		member := &TeamMember{TeamId: teamId, UserId: userId}
 		members = append(members, member)
 	}
-	route, err := c.teamMembersRoute(teamId).JoinSegments("batch").String()
+	route, err := c.teamMembersRoute(teamId).Join("batch").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -2767,7 +2772,7 @@ func (c *Client4) AddTeamMembersGracefully(ctx context.Context, teamId string, u
 		member := &TeamMember{TeamId: teamId, UserId: userId}
 		members = append(members, member)
 	}
-	routeURL, err := c.teamMembersRoute(teamId).JoinSegments("batch").URL()
+	routeURL, err := c.teamMembersRoute(teamId).Join("batch").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -2828,7 +2833,7 @@ func (c *Client4) GetTotalUsersStats(ctx context.Context, etag string) (*UsersSt
 // unread messages and mentions the user has for the specified team.
 // Must be authenticated.
 func (c *Client4) GetTeamUnread(ctx context.Context, teamId, userId string) (*TeamUnread, *Response, error) {
-	route, err := c.userRoute(userId).JoinRoutes(c.teamRoute(teamId)).JoinSegments("unread").String()
+	route, err := c.userRoute(userId).Join(c.teamRoute(teamId), "unread").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -2890,7 +2895,7 @@ func (c *Client4) ImportTeam(ctx context.Context, data []byte, filesize int, imp
 
 // InviteUsersToTeam invite users by email to the team.
 func (c *Client4) InviteUsersToTeam(ctx context.Context, teamId string, userEmails []string) (*Response, error) {
-	route, err := c.teamRoute(teamId).JoinSegments("invite", "email").String()
+	route, err := c.teamRoute(teamId).Join("invite", "email").String()
 	if err != nil {
 		return nil, err
 	}
@@ -2909,7 +2914,7 @@ func (c *Client4) InviteGuestsToTeam(ctx context.Context, teamId string, userEma
 		Channels: channels,
 		Message:  message,
 	}
-	route, err := c.teamRoute(teamId).JoinSegments("invite-guests", "email").String()
+	route, err := c.teamRoute(teamId).Join("invite-guests", "email").String()
 	if err != nil {
 		return nil, err
 	}
@@ -2923,7 +2928,7 @@ func (c *Client4) InviteGuestsToTeam(ctx context.Context, teamId string, userEma
 
 // InviteUsersToTeam invite users by email to the team.
 func (c *Client4) InviteUsersToTeamGracefully(ctx context.Context, teamId string, userEmails []string) ([]*EmailInviteWithError, *Response, error) {
-	routeURL, err := c.teamRoute(teamId).JoinSegments("invite", "email").URL()
+	routeURL, err := c.teamRoute(teamId).Join("invite", "email").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -2943,7 +2948,7 @@ func (c *Client4) InviteUsersToTeamAndChannelsGracefully(ctx context.Context, te
 		ChannelIds: channelIds,
 		Message:    message,
 	}
-	routeURL, err := c.teamRoute(teamId).JoinSegments("invite", "email").URL()
+	routeURL, err := c.teamRoute(teamId).Join("invite", "email").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -2963,7 +2968,7 @@ func (c *Client4) InviteGuestsToTeamGracefully(ctx context.Context, teamId strin
 		Channels: channels,
 		Message:  message,
 	}
-	routeURL, err := c.teamRoute(teamId).JoinSegments("invite-guests", "email").URL()
+	routeURL, err := c.teamRoute(teamId).Join("invite-guests", "email").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -2978,7 +2983,7 @@ func (c *Client4) InviteGuestsToTeamGracefully(ctx context.Context, teamId strin
 
 // InvalidateEmailInvites will invalidate active email invitations that have not been accepted by the user.
 func (c *Client4) InvalidateEmailInvites(ctx context.Context) (*Response, error) {
-	route, err := c.teamsRoute().JoinSegments("invites", "email").String()
+	route, err := c.teamsRoute().Join("invites", "email").String()
 	if err != nil {
 		return nil, err
 	}
@@ -2992,7 +2997,7 @@ func (c *Client4) InvalidateEmailInvites(ctx context.Context) (*Response, error)
 
 // GetTeamInviteInfo returns a team object from an invite id containing sanitized information.
 func (c *Client4) GetTeamInviteInfo(ctx context.Context, inviteId string) (*Team, *Response, error) {
-	route, err := c.teamsRoute().JoinSegments("invite", inviteId).String()
+	route, err := c.teamsRoute().Join("invite", inviteId).String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -3022,7 +3027,7 @@ func (c *Client4) SetTeamIcon(ctx context.Context, teamId string, data []byte) (
 		return nil, fmt.Errorf("failed to close multipart writer for team icon: %w", err)
 	}
 
-	route, err := c.teamRoute(teamId).JoinSegments("image").String()
+	route, err := c.teamRoute(teamId).Join("image").String()
 	if err != nil {
 		return nil, err
 	}
@@ -3036,7 +3041,7 @@ func (c *Client4) SetTeamIcon(ctx context.Context, teamId string, data []byte) (
 
 // GetTeamIcon gets the team icon of the team.
 func (c *Client4) GetTeamIcon(ctx context.Context, teamId, etag string) ([]byte, *Response, error) {
-	route, err := c.teamRoute(teamId).JoinSegments("image").String()
+	route, err := c.teamRoute(teamId).Join("image").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -3050,7 +3055,7 @@ func (c *Client4) GetTeamIcon(ctx context.Context, teamId, etag string) ([]byte,
 
 // RemoveTeamIcon updates LastTeamIconUpdate to 0 which indicates team icon is removed.
 func (c *Client4) RemoveTeamIcon(ctx context.Context, teamId string) (*Response, error) {
-	route, err := c.teamRoute(teamId).JoinSegments("image").String()
+	route, err := c.teamRoute(teamId).Join("image").String()
 	if err != nil {
 		return nil, err
 	}
@@ -3153,7 +3158,7 @@ func (c *Client4) UpdateChannel(ctx context.Context, channel *Channel) (*Channel
 
 // PatchChannel partially updates a channel. Any missing fields are not updated.
 func (c *Client4) PatchChannel(ctx context.Context, channelId string, patch *ChannelPatch) (*Channel, *Response, error) {
-	route, err := c.channelRoute(channelId).JoinSegments("patch").String()
+	route, err := c.channelRoute(channelId).Join("patch").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -3168,7 +3173,7 @@ func (c *Client4) PatchChannel(ctx context.Context, channelId string, patch *Cha
 // UpdateChannelPrivacy updates channel privacy
 func (c *Client4) UpdateChannelPrivacy(ctx context.Context, channelId string, privacy ChannelType) (*Channel, *Response, error) {
 	requestBody := map[string]string{"privacy": string(privacy)}
-	route, err := c.channelRoute(channelId).JoinSegments("privacy").String()
+	route, err := c.channelRoute(channelId).Join("privacy").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -3182,7 +3187,7 @@ func (c *Client4) UpdateChannelPrivacy(ctx context.Context, channelId string, pr
 
 // RestoreChannel restores a previously deleted channel. Any missing fields are not updated.
 func (c *Client4) RestoreChannel(ctx context.Context, channelId string) (*Channel, *Response, error) {
-	route, err := c.channelRoute(channelId).JoinSegments("restore").String()
+	route, err := c.channelRoute(channelId).Join("restore").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -3198,7 +3203,7 @@ func (c *Client4) RestoreChannel(ctx context.Context, channelId string) (*Channe
 // ids provided.
 func (c *Client4) CreateDirectChannel(ctx context.Context, userId1, userId2 string) (*Channel, *Response, error) {
 	requestBody := []string{userId1, userId2}
-	route, err := c.channelsRoute().JoinSegments("direct").String()
+	route, err := c.channelsRoute().Join("direct").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -3212,7 +3217,7 @@ func (c *Client4) CreateDirectChannel(ctx context.Context, userId1, userId2 stri
 
 // CreateGroupChannel creates a group message channel based on userIds provided.
 func (c *Client4) CreateGroupChannel(ctx context.Context, userIds []string) (*Channel, *Response, error) {
-	route, err := c.channelsRoute().JoinSegments("group").String()
+	route, err := c.channelsRoute().Join("group").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -3262,7 +3267,7 @@ func (c *Client4) GetChannelAsContentReviewer(ctx context.Context, channelId, et
 func (c *Client4) GetChannelStats(ctx context.Context, channelId string, etag string, excludeFilesCount bool) (*ChannelStats, *Response, error) {
 	values := url.Values{}
 	values.Set("exclude_files_count", c.boolString(excludeFilesCount))
-	routeURL, err := c.channelRoute(channelId).JoinSegments("stats").URL()
+	routeURL, err := c.channelRoute(channelId).Join("stats").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -3278,7 +3283,7 @@ func (c *Client4) GetChannelStats(ctx context.Context, channelId string, etag st
 
 // GetChannelsMemberCount get channel member count for a given array of channel ids
 func (c *Client4) GetChannelsMemberCount(ctx context.Context, channelIDs []string) (map[string]int64, *Response, error) {
-	route, err := c.channelsRoute().JoinSegments("stats", "member_count").String()
+	route, err := c.channelsRoute().Join("stats", "member_count").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -3292,7 +3297,7 @@ func (c *Client4) GetChannelsMemberCount(ctx context.Context, channelIDs []strin
 
 // GetChannelMembersTimezones gets a list of timezones for a channel.
 func (c *Client4) GetChannelMembersTimezones(ctx context.Context, channelId string) ([]string, *Response, error) {
-	route, err := c.channelRoute(channelId).JoinSegments("timezones").String()
+	route, err := c.channelRoute(channelId).Join("timezones").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -3306,7 +3311,7 @@ func (c *Client4) GetChannelMembersTimezones(ctx context.Context, channelId stri
 
 // GetPinnedPosts gets a list of pinned posts.
 func (c *Client4) GetPinnedPosts(ctx context.Context, channelId string, etag string) (*PostList, *Response, error) {
-	route, err := c.channelRoute(channelId).JoinSegments("pinned").String()
+	route, err := c.channelRoute(channelId).Join("pinned").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -3323,7 +3328,7 @@ func (c *Client4) GetPrivateChannelsForTeam(ctx context.Context, teamId string, 
 	values := url.Values{}
 	values.Set("page", strconv.Itoa(page))
 	values.Set("per_page", strconv.Itoa(perPage))
-	routeURL, err := c.channelsForTeamRoute(teamId).JoinSegments("private").URL()
+	routeURL, err := c.channelsForTeamRoute(teamId).Join("private").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -3359,7 +3364,7 @@ func (c *Client4) GetDeletedChannelsForTeam(ctx context.Context, teamId string, 
 	values := url.Values{}
 	values.Set("page", strconv.Itoa(page))
 	values.Set("per_page", strconv.Itoa(perPage))
-	routeURL, err := c.channelsForTeamRoute(teamId).JoinSegments("deleted").URL()
+	routeURL, err := c.channelsForTeamRoute(teamId).Join("deleted").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -3374,7 +3379,7 @@ func (c *Client4) GetDeletedChannelsForTeam(ctx context.Context, teamId string, 
 
 // GetPublicChannelsByIdsForTeam returns a list of public channels based on provided team id string.
 func (c *Client4) GetPublicChannelsByIdsForTeam(ctx context.Context, teamId string, channelIds []string) ([]*Channel, *Response, error) {
-	route, err := c.channelsForTeamRoute(teamId).JoinSegments("ids").String()
+	route, err := c.channelsForTeamRoute(teamId).Join("ids").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -3408,7 +3413,7 @@ func (c *Client4) GetChannelsForTeamAndUserWithLastDeleteAt(ctx context.Context,
 	values := url.Values{}
 	values.Set("include_deleted", c.boolString(includeDeleted))
 	values.Set("last_delete_at", strconv.Itoa(lastDeleteAt))
-	routeURL, err := c.userRoute(userId).JoinRoutes(c.teamRoute(teamId)).JoinSegments("channels").URL()
+	routeURL, err := c.userRoute(userId).Join(c.teamRoute(teamId), "channels").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -3426,7 +3431,7 @@ func (c *Client4) GetChannelsForTeamAndUserWithLastDeleteAt(ctx context.Context,
 func (c *Client4) GetChannelsForUserWithLastDeleteAt(ctx context.Context, userID string, lastDeleteAt int) ([]*Channel, *Response, error) {
 	values := url.Values{}
 	values.Set("last_delete_at", strconv.Itoa(lastDeleteAt))
-	routeURL, err := c.userRoute(userID).JoinSegments("channels").URL()
+	routeURL, err := c.userRoute(userID).Join("channels").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -3442,7 +3447,7 @@ func (c *Client4) GetChannelsForUserWithLastDeleteAt(ctx context.Context, userID
 
 // SearchChannels returns the channels on a team matching the provided search term.
 func (c *Client4) SearchChannels(ctx context.Context, teamId string, search *ChannelSearch) ([]*Channel, *Response, error) {
-	route, err := c.channelsForTeamRoute(teamId).JoinSegments("search").String()
+	route, err := c.channelsForTeamRoute(teamId).Join("search").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -3456,7 +3461,7 @@ func (c *Client4) SearchChannels(ctx context.Context, teamId string, search *Cha
 
 // SearchAllChannels search in all the channels. Must be a system administrator.
 func (c *Client4) SearchAllChannels(ctx context.Context, search *ChannelSearch) (ChannelListWithTeamData, *Response, error) {
-	route, err := c.channelsRoute().JoinSegments("search").String()
+	route, err := c.channelsRoute().Join("search").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -3477,7 +3482,7 @@ func (c *Client4) SearchAllChannelsForUser(ctx context.Context, term string) (Ch
 		Term: term,
 	}
 
-	routeURL, err := c.channelsRoute().JoinSegments("search").URL()
+	routeURL, err := c.channelsRoute().Join("search").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -3493,7 +3498,7 @@ func (c *Client4) SearchAllChannelsForUser(ctx context.Context, term string) (Ch
 
 // SearchAllChannelsPaged searches all the channels and returns the results paged with the total count.
 func (c *Client4) SearchAllChannelsPaged(ctx context.Context, search *ChannelSearch) (*ChannelsWithCount, *Response, error) {
-	route, err := c.channelsRoute().JoinSegments("search").String()
+	route, err := c.channelsRoute().Join("search").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -3507,7 +3512,7 @@ func (c *Client4) SearchAllChannelsPaged(ctx context.Context, search *ChannelSea
 
 // SearchGroupChannels returns the group channels of the user whose members' usernames match the search term.
 func (c *Client4) SearchGroupChannels(ctx context.Context, search *ChannelSearch) ([]*Channel, *Response, error) {
-	route, err := c.channelsRoute().JoinSegments("group", "search").String()
+	route, err := c.channelsRoute().Join("group", "search").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -3554,7 +3559,7 @@ func (c *Client4) MoveChannel(ctx context.Context, channelId, teamId string, for
 		"team_id": teamId,
 		"force":   force,
 	}
-	route, err := c.channelRoute(channelId).JoinSegments("move").String()
+	route, err := c.channelRoute(channelId).Join("move").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -3647,7 +3652,7 @@ func (c *Client4) GetChannelMembersWithTeamData(ctx context.Context, userID stri
 	values := url.Values{}
 	values.Set("page", strconv.Itoa(page))
 	values.Set("per_page", strconv.Itoa(perPage))
-	routeURL, err := c.userRoute(userID).JoinSegments("channel_members").URL()
+	routeURL, err := c.userRoute(userID).Join("channel_members").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -3695,7 +3700,7 @@ func (c *Client4) GetChannelMembersWithTeamData(ctx context.Context, userID stri
 
 // GetChannelMembersByIds gets the channel members in a channel for a list of user ids.
 func (c *Client4) GetChannelMembersByIds(ctx context.Context, channelId string, userIds []string) (ChannelMembers, *Response, error) {
-	route, err := c.channelMembersRoute(channelId).JoinSegments("ids").String()
+	route, err := c.channelMembersRoute(channelId).Join("ids").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -3723,7 +3728,7 @@ func (c *Client4) GetChannelMember(ctx context.Context, channelId, userId, etag 
 
 // GetChannelMembersForUser gets all the channel members for a user on a team.
 func (c *Client4) GetChannelMembersForUser(ctx context.Context, userId, teamId, etag string) (ChannelMembers, *Response, error) {
-	route, err := c.userRoute(userId).JoinSegments("teams", fmt.Sprintf("%v", teamId)).JoinSegments("channels", "members").String()
+	route, err := c.userRoute(userId).Join("teams", teamId, "channels", "members").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -3737,7 +3742,7 @@ func (c *Client4) GetChannelMembersForUser(ctx context.Context, userId, teamId, 
 
 // ViewChannel performs a view action for a user. Synonymous with switching channels or marking channels as read by a user.
 func (c *Client4) ViewChannel(ctx context.Context, userId string, view *ChannelView) (*ChannelViewResponse, *Response, error) {
-	url, err := c.channelsRoute().JoinSegments("members", fmt.Sprintf("%v", userId)).JoinSegments("view").String()
+	url, err := c.channelsRoute().Join("members", userId, "view").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -3751,7 +3756,7 @@ func (c *Client4) ViewChannel(ctx context.Context, userId string, view *ChannelV
 
 // ReadMultipleChannels performs a view action on several channels at the same time for a user.
 func (c *Client4) ReadMultipleChannels(ctx context.Context, userId string, channelIds []string) (*ChannelViewResponse, *Response, error) {
-	url, err := c.channelsRoute().JoinSegments("members", fmt.Sprintf("%v", userId)).JoinSegments("mark_read").String()
+	url, err := c.channelsRoute().Join("members", userId, "mark_read").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -3766,7 +3771,7 @@ func (c *Client4) ReadMultipleChannels(ctx context.Context, userId string, chann
 // GetChannelUnread will return a ChannelUnread object that contains the number of
 // unread messages and mentions for a user.
 func (c *Client4) GetChannelUnread(ctx context.Context, channelId, userId string) (*ChannelUnread, *Response, error) {
-	route, err := c.userRoute(userId).JoinRoutes(c.channelRoute(channelId)).JoinSegments("unread").String()
+	route, err := c.userRoute(userId).Join(c.channelRoute(channelId), "unread").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -3781,7 +3786,7 @@ func (c *Client4) GetChannelUnread(ctx context.Context, channelId, userId string
 // UpdateChannelRoles will update the roles on a channel for a user.
 func (c *Client4) UpdateChannelRoles(ctx context.Context, channelId, userId, roles string) (*Response, error) {
 	requestBody := map[string]string{"roles": roles}
-	route, err := c.channelMemberRoute(channelId, userId).JoinSegments("roles").String()
+	route, err := c.channelMemberRoute(channelId, userId).Join("roles").String()
 	if err != nil {
 		return nil, err
 	}
@@ -3795,7 +3800,7 @@ func (c *Client4) UpdateChannelRoles(ctx context.Context, channelId, userId, rol
 
 // UpdateChannelMemberSchemeRoles will update the scheme-derived roles on a channel for a user.
 func (c *Client4) UpdateChannelMemberSchemeRoles(ctx context.Context, channelId string, userId string, schemeRoles *SchemeRoles) (*Response, error) {
-	route, err := c.channelMemberRoute(channelId, userId).JoinSegments("schemeRoles").String()
+	route, err := c.channelMemberRoute(channelId, userId).Join("schemeRoles").String()
 	if err != nil {
 		return nil, err
 	}
@@ -3809,7 +3814,7 @@ func (c *Client4) UpdateChannelMemberSchemeRoles(ctx context.Context, channelId 
 
 // UpdateChannelNotifyProps will update the notification properties on a channel for a user.
 func (c *Client4) UpdateChannelNotifyProps(ctx context.Context, channelId, userId string, props map[string]string) (*Response, error) {
-	route, err := c.channelMemberRoute(channelId, userId).JoinSegments("notify_props").String()
+	route, err := c.channelMemberRoute(channelId, userId).Join("notify_props").String()
 	if err != nil {
 		return nil, err
 	}
@@ -3884,7 +3889,7 @@ func (c *Client4) RemoveUserFromChannel(ctx context.Context, channelId, userId s
 func (c *Client4) AutocompleteChannelsForTeam(ctx context.Context, teamId, name string) (ChannelList, *Response, error) {
 	values := url.Values{}
 	values.Set("name", name)
-	routeURL, err := c.channelsForTeamRoute(teamId).JoinSegments("autocomplete").URL()
+	routeURL, err := c.channelsForTeamRoute(teamId).Join("autocomplete").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -3901,7 +3906,7 @@ func (c *Client4) AutocompleteChannelsForTeam(ctx context.Context, teamId, name 
 func (c *Client4) AutocompleteChannelsForTeamForSearch(ctx context.Context, teamId, name string) (ChannelList, *Response, error) {
 	values := url.Values{}
 	values.Set("name", name)
-	routeURL, err := c.channelsForTeamRoute(teamId).JoinSegments("search_autocomplete").URL()
+	routeURL, err := c.channelsForTeamRoute(teamId).Join("search_autocomplete").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -3960,7 +3965,7 @@ func (c *Client4) UpdatePost(ctx context.Context, postId string, post *Post) (*P
 
 // PatchPost partially updates a post. Any missing fields are not updated.
 func (c *Client4) PatchPost(ctx context.Context, postId string, patch *PostPatch) (*Post, *Response, error) {
-	route, err := c.postRoute(postId).JoinSegments("patch").String()
+	route, err := c.postRoute(postId).Join("patch").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -3975,7 +3980,7 @@ func (c *Client4) PatchPost(ctx context.Context, postId string, patch *PostPatch
 // SetPostUnread marks channel where post belongs as unread on the time of the provided post.
 func (c *Client4) SetPostUnread(ctx context.Context, userId string, postId string, collapsedThreadsSupported bool) (*Response, error) {
 	reqData := map[string]bool{"collapsed_threads_supported": collapsedThreadsSupported}
-	route, err := c.userRoute(userId).JoinRoutes(c.postRoute(postId)).JoinSegments("set_unread").String()
+	route, err := c.userRoute(userId).Join(c.postRoute(postId), "set_unread").String()
 	if err != nil {
 		return nil, err
 	}
@@ -3991,7 +3996,7 @@ func (c *Client4) SetPostUnread(ctx context.Context, userId string, postId strin
 // The time needs to be in UTC epoch in seconds. It is always truncated to a
 // 5 minute resolution minimum.
 func (c *Client4) SetPostReminder(ctx context.Context, reminder *PostReminder) (*Response, error) {
-	route, err := c.userRoute(reminder.UserId).JoinRoutes(c.postRoute(reminder.PostId)).JoinSegments("reminder").String()
+	route, err := c.userRoute(reminder.UserId).Join(c.postRoute(reminder.PostId), "reminder").String()
 	if err != nil {
 		return nil, err
 	}
@@ -4005,7 +4010,7 @@ func (c *Client4) SetPostReminder(ctx context.Context, reminder *PostReminder) (
 
 // PinPost pin a post based on provided post id string.
 func (c *Client4) PinPost(ctx context.Context, postId string) (*Response, error) {
-	route, err := c.postRoute(postId).JoinSegments("pin").String()
+	route, err := c.postRoute(postId).Join("pin").String()
 	if err != nil {
 		return nil, err
 	}
@@ -4019,7 +4024,7 @@ func (c *Client4) PinPost(ctx context.Context, postId string) (*Response, error)
 
 // UnpinPost unpin a post based on provided post id string.
 func (c *Client4) UnpinPost(ctx context.Context, postId string) (*Response, error) {
-	route, err := c.postRoute(postId).JoinSegments("unpin").String()
+	route, err := c.postRoute(postId).Join("unpin").String()
 	if err != nil {
 		return nil, err
 	}
@@ -4093,7 +4098,7 @@ func (c *Client4) PermanentDeletePost(ctx context.Context, postId string) (*Resp
 func (c *Client4) GetPostThread(ctx context.Context, postId string, etag string, collapsedThreads bool) (*PostList, *Response, error) {
 	values := url.Values{}
 	values.Set("collapsedThreads", c.boolString(collapsedThreads))
-	routeURL, err := c.postRoute(postId).JoinSegments("thread").URL()
+	routeURL, err := c.postRoute(postId).Join("thread").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -4108,7 +4113,7 @@ func (c *Client4) GetPostThread(ctx context.Context, postId string, etag string,
 
 // GetPostThreadWithOpts gets a post with all the other posts in the same thread.
 func (c *Client4) GetPostThreadWithOpts(ctx context.Context, postID string, etag string, opts GetPostsOptions) (*PostList, *Response, error) {
-	urlVal, err := c.postRoute(postID).JoinSegments("thread").String()
+	urlVal, err := c.postRoute(postID).Join("thread").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -4158,7 +4163,7 @@ func (c *Client4) GetPostsForChannel(ctx context.Context, channelId string, page
 	values.Set("per_page", strconv.Itoa(perPage))
 	values.Set("collapsedThreads", c.boolString(collapsedThreads))
 	values.Set("include_deleted", c.boolString(includeDeleted))
-	routeURL, err := c.channelRoute(channelId).JoinSegments("posts").URL()
+	routeURL, err := c.channelRoute(channelId).Join("posts").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -4173,7 +4178,7 @@ func (c *Client4) GetPostsForChannel(ctx context.Context, channelId string, page
 
 // GetPostsByIds gets a list of posts by taking an array of post ids
 func (c *Client4) GetPostsByIds(ctx context.Context, postIds []string) ([]*Post, *Response, error) {
-	route, err := c.postsRoute().JoinSegments("ids").String()
+	route, err := c.postsRoute().Join("ids").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -4191,7 +4196,7 @@ func (c *Client4) GetEditHistoryForPost(ctx context.Context, postId string) ([]*
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to marshal edit history request: %w", err)
 	}
-	route, err := c.postRoute(postId).JoinSegments("edit_history").String()
+	route, err := c.postRoute(postId).Join("edit_history").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -4208,7 +4213,7 @@ func (c *Client4) GetFlaggedPostsForUser(ctx context.Context, userId string, pag
 	values := url.Values{}
 	values.Set("page", strconv.Itoa(page))
 	values.Set("per_page", strconv.Itoa(perPage))
-	routeURL, err := c.userRoute(userId).JoinSegments("posts", "flagged").URL()
+	routeURL, err := c.userRoute(userId).Join("posts", "flagged").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -4231,7 +4236,7 @@ func (c *Client4) GetFlaggedPostsForUserInTeam(ctx context.Context, userId strin
 	values.Set("team_id", teamId)
 	values.Set("page", strconv.Itoa(page))
 	values.Set("per_page", strconv.Itoa(perPage))
-	routeURL, err := c.userRoute(userId).JoinSegments("posts", "flagged").URL()
+	routeURL, err := c.userRoute(userId).Join("posts", "flagged").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -4254,7 +4259,7 @@ func (c *Client4) GetFlaggedPostsForUserInChannel(ctx context.Context, userId st
 	values.Set("channel_id", channelId)
 	values.Set("page", strconv.Itoa(page))
 	values.Set("per_page", strconv.Itoa(perPage))
-	routeURL, err := c.userRoute(userId).JoinSegments("posts", "flagged").URL()
+	routeURL, err := c.userRoute(userId).Join("posts", "flagged").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -4272,7 +4277,7 @@ func (c *Client4) GetPostsSince(ctx context.Context, channelId string, time int6
 	values := url.Values{}
 	values.Set("since", strconv.FormatInt(time, 10))
 	values.Set("collapsedThreads", c.boolString(collapsedThreads))
-	routeURL, err := c.channelRoute(channelId).JoinSegments("posts").URL()
+	routeURL, err := c.channelRoute(channelId).Join("posts").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -4293,7 +4298,7 @@ func (c *Client4) GetPostsAfter(ctx context.Context, channelId, postId string, p
 	values.Set("after", postId)
 	values.Set("collapsedThreads", c.boolString(collapsedThreads))
 	values.Set("include_deleted", c.boolString(includeDeleted))
-	routeURL, err := c.channelRoute(channelId).JoinSegments("posts").URL()
+	routeURL, err := c.channelRoute(channelId).Join("posts").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -4314,7 +4319,7 @@ func (c *Client4) GetPostsBefore(ctx context.Context, channelId, postId string, 
 	values.Set("before", postId)
 	values.Set("collapsedThreads", c.boolString(collapsedThreads))
 	values.Set("include_deleted", c.boolString(includeDeleted))
-	routeURL, err := c.channelRoute(channelId).JoinSegments("posts").URL()
+	routeURL, err := c.channelRoute(channelId).Join("posts").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -4329,7 +4334,7 @@ func (c *Client4) GetPostsBefore(ctx context.Context, channelId, postId string, 
 
 // MoveThread moves a thread based on provided post id, and channel id string.
 func (c *Client4) MoveThread(ctx context.Context, postId string, params *MoveThreadParams) (*Response, error) {
-	route, err := c.postRoute(postId).JoinSegments("move").String()
+	route, err := c.postRoute(postId).Join("move").String()
 	if err != nil {
 		return nil, err
 	}
@@ -4347,7 +4352,7 @@ func (c *Client4) GetPostsAroundLastUnread(ctx context.Context, userId, channelI
 	values.Set("limit_before", strconv.Itoa(limitBefore))
 	values.Set("limit_after", strconv.Itoa(limitAfter))
 	values.Set("collapsedThreads", c.boolString(collapsedThreads))
-	routeURL, err := c.userRoute(userId).JoinRoutes(c.channelRoute(channelId)).JoinSegments("posts", "unread").URL()
+	routeURL, err := c.userRoute(userId).Join(c.channelRoute(channelId), "posts", "unread").URL()
 
 	if err != nil {
 		return nil, nil, err
@@ -4364,7 +4369,7 @@ func (c *Client4) GetPostsAroundLastUnread(ctx context.Context, userId, channelI
 }
 
 func (c *Client4) CreateScheduledPost(ctx context.Context, scheduledPost *ScheduledPost) (*ScheduledPost, *Response, error) {
-	route, err := c.postsRoute().JoinSegments("schedule").String()
+	route, err := c.postsRoute().Join("schedule").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -4379,7 +4384,7 @@ func (c *Client4) CreateScheduledPost(ctx context.Context, scheduledPost *Schedu
 func (c *Client4) GetUserScheduledPosts(ctx context.Context, teamId string, includeDirectChannels bool) (map[string][]*ScheduledPost, *Response, error) {
 	values := url.Values{}
 	values.Set("includeDirectChannels", fmt.Sprintf("%t", includeDirectChannels))
-	routeURL, err := c.postsRoute().JoinSegments("scheduled", "team", teamId).URL()
+	routeURL, err := c.postsRoute().Join("scheduled", "team", teamId).URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -4393,7 +4398,7 @@ func (c *Client4) GetUserScheduledPosts(ctx context.Context, teamId string, incl
 }
 
 func (c *Client4) UpdateScheduledPost(ctx context.Context, scheduledPost *ScheduledPost) (*ScheduledPost, *Response, error) {
-	route, err := c.postsRoute().JoinSegments("schedule", scheduledPost.Id).String()
+	route, err := c.postsRoute().Join("schedule", scheduledPost.Id).String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -4407,7 +4412,7 @@ func (c *Client4) UpdateScheduledPost(ctx context.Context, scheduledPost *Schedu
 }
 
 func (c *Client4) DeleteScheduledPost(ctx context.Context, scheduledPostId string) (*ScheduledPost, *Response, error) {
-	route, err := c.postsRoute().JoinSegments("schedule", scheduledPostId).String()
+	route, err := c.postsRoute().Join("schedule", scheduledPostId).String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -4430,7 +4435,7 @@ func (c *Client4) GetPostsForReporting(ctx context.Context, options ReportPostOp
 		ReportPostOptionsCursor: cursor,
 	}
 
-	route, err := c.reportsRoute().JoinSegments("posts").String()
+	route, err := c.reportsRoute().Join("posts").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -4444,7 +4449,7 @@ func (c *Client4) GetPostsForReporting(ctx context.Context, options ReportPostOp
 }
 
 func (c *Client4) FlagPostForContentReview(ctx context.Context, postId string, flagRequest *FlagContentRequest) (*Response, error) {
-	route, err := c.contentFlaggingRoute().JoinSegments("post", postId, "flag").String()
+	route, err := c.contentFlaggingRoute().Join("post", postId, "flag").String()
 	if err != nil {
 		return nil, err
 	}
@@ -4458,7 +4463,7 @@ func (c *Client4) FlagPostForContentReview(ctx context.Context, postId string, f
 }
 
 func (c *Client4) GetContentFlaggedPost(ctx context.Context, postId string) (*Post, *Response, error) {
-	route, err := c.contentFlaggingRoute().JoinSegments("post", postId).String()
+	route, err := c.contentFlaggingRoute().Join("post", postId).String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -4472,7 +4477,7 @@ func (c *Client4) GetContentFlaggedPost(ctx context.Context, postId string) (*Po
 }
 
 func (c *Client4) GetFlaggingConfiguration(ctx context.Context) (*ContentFlaggingReportingConfig, *Response, error) {
-	route, err := c.contentFlaggingRoute().JoinSegments("flag", "config").String()
+	route, err := c.contentFlaggingRoute().Join("flag", "config").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -4485,7 +4490,7 @@ func (c *Client4) GetFlaggingConfiguration(ctx context.Context) (*ContentFlaggin
 }
 
 func (c *Client4) GetTeamPostFlaggingFeatureStatus(ctx context.Context, teamId string) (map[string]bool, *Response, error) {
-	route, err := c.contentFlaggingRoute().JoinSegments("team", teamId, "status").String()
+	route, err := c.contentFlaggingRoute().Join("team", teamId, "status").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -4499,7 +4504,7 @@ func (c *Client4) GetTeamPostFlaggingFeatureStatus(ctx context.Context, teamId s
 }
 
 func (c *Client4) SaveContentFlaggingSettings(ctx context.Context, config *ContentFlaggingSettingsRequest) (*Response, error) {
-	route, err := c.contentFlaggingRoute().JoinSegments("config").String()
+	route, err := c.contentFlaggingRoute().Join("config").String()
 	if err != nil {
 		return nil, err
 	}
@@ -4512,7 +4517,7 @@ func (c *Client4) SaveContentFlaggingSettings(ctx context.Context, config *Conte
 }
 
 func (c *Client4) GetContentFlaggingSettings(ctx context.Context) (*ContentFlaggingSettingsRequest, *Response, error) {
-	route, err := c.contentFlaggingRoute().JoinSegments("config").String()
+	route, err := c.contentFlaggingRoute().Join("config").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -4525,7 +4530,7 @@ func (c *Client4) GetContentFlaggingSettings(ctx context.Context) (*ContentFlagg
 }
 
 func (c *Client4) AssignContentFlaggingReviewer(ctx context.Context, postId, reviewerId string) (*Response, error) {
-	route, err := c.contentFlaggingRoute().JoinSegments("post", postId, "assign", reviewerId).String()
+	route, err := c.contentFlaggingRoute().Join("post", postId, "assign", reviewerId).String()
 	if err != nil {
 		return BuildResponse(nil), err
 	}
@@ -4541,7 +4546,7 @@ func (c *Client4) AssignContentFlaggingReviewer(ctx context.Context, postId, rev
 func (c *Client4) SearchContentFlaggingReviewers(ctx context.Context, teamID, term string) ([]*User, *Response, error) {
 	values := url.Values{}
 	values.Set("term", term)
-	routeURL, err := c.contentFlaggingRoute().JoinSegments("team", teamID, "reviewers", "search").URL()
+	routeURL, err := c.contentFlaggingRoute().Join("team", teamID, "reviewers", "search").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -4566,12 +4571,12 @@ func (c *Client4) SearchFiles(ctx context.Context, teamId string, terms string, 
 
 // SearchFilesWithParams returns any posts with matching terms string.
 func (c *Client4) SearchFilesWithParams(ctx context.Context, teamId string, params *SearchParameter) (*FileInfoList, *Response, error) {
-	route, err := c.teamRoute(teamId).JoinSegments("files", "search").String()
+	route, err := c.teamRoute(teamId).Join("files", "search").String()
 	if err != nil {
 		return nil, nil, err
 	}
 	if teamId == "" {
-		route, err = c.filesRoute().JoinSegments("search").String()
+		route, err = c.filesRoute().Join("search").String()
 		if err != nil {
 			return nil, nil, err
 		}
@@ -4607,13 +4612,13 @@ func (c *Client4) SearchPostsWithParams(ctx context.Context, teamId string, para
 	var route string
 	if teamId == "" {
 		var err error
-		route, err = c.postsRoute().JoinSegments("search").String()
+		route, err = c.postsRoute().Join("search").String()
 		if err != nil {
 			return nil, nil, err
 		}
 	} else {
 		var err error
-		route, err = c.teamRoute(teamId).JoinSegments("posts", "search").String()
+		route, err = c.teamRoute(teamId).Join("posts", "search").String()
 		if err != nil {
 			return nil, nil, err
 		}
@@ -4632,13 +4637,13 @@ func (c *Client4) SearchPostsWithMatches(ctx context.Context, teamId string, ter
 	var route string
 	if teamId == "" {
 		var err error
-		route, err = c.postsRoute().JoinSegments("search").String()
+		route, err = c.postsRoute().Join("search").String()
 		if err != nil {
 			return nil, nil, err
 		}
 	} else {
 		var err error
-		route, err = c.teamRoute(teamId).JoinSegments("posts", "search").String()
+		route, err = c.teamRoute(teamId).Join("posts", "search").String()
 		if err != nil {
 			return nil, nil, err
 		}
@@ -4653,7 +4658,7 @@ func (c *Client4) SearchPostsWithMatches(ctx context.Context, teamId string, ter
 
 // DoPostAction performs a post action.
 func (c *Client4) DoPostAction(ctx context.Context, postId, actionId string) (*Response, error) {
-	route, err := c.postRoute(postId).JoinSegments("actions", actionId).String()
+	route, err := c.postRoute(postId).Join("actions", actionId).String()
 	if err != nil {
 		return nil, err
 	}
@@ -4667,7 +4672,7 @@ func (c *Client4) DoPostAction(ctx context.Context, postId, actionId string) (*R
 
 // DoPostActionWithCookie performs a post action with extra arguments
 func (c *Client4) DoPostActionWithCookie(ctx context.Context, postId, actionId, selected, cookieStr string) (*Response, error) {
-	route, err := c.postRoute(postId).JoinSegments("actions", actionId).String()
+	route, err := c.postRoute(postId).Join("actions", actionId).String()
 	if err != nil {
 		return nil, err
 	}
@@ -4835,7 +4840,7 @@ func (c *Client4) DownloadFile(ctx context.Context, fileId string, download bool
 
 // GetFileThumbnail gets the bytes for a file by id.
 func (c *Client4) GetFileThumbnail(ctx context.Context, fileId string) ([]byte, *Response, error) {
-	route, err := c.fileRoute(fileId).JoinSegments("thumbnail").String()
+	route, err := c.fileRoute(fileId).Join("thumbnail").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -4851,7 +4856,7 @@ func (c *Client4) GetFileThumbnail(ctx context.Context, fileId string) ([]byte, 
 func (c *Client4) DownloadFileThumbnail(ctx context.Context, fileId string, download bool) ([]byte, *Response, error) {
 	values := url.Values{}
 	values.Set("download", c.boolString(download))
-	routeURL, err := c.fileRoute(fileId).JoinSegments("thumbnail").URL()
+	routeURL, err := c.fileRoute(fileId).Join("thumbnail").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -4866,7 +4871,7 @@ func (c *Client4) DownloadFileThumbnail(ctx context.Context, fileId string, down
 
 // GetFileLink gets the public link of a file by id.
 func (c *Client4) GetFileLink(ctx context.Context, fileId string) (string, *Response, error) {
-	route, err := c.fileRoute(fileId).JoinSegments("link").String()
+	route, err := c.fileRoute(fileId).Join("link").String()
 	if err != nil {
 		return "", nil, err
 	}
@@ -4884,7 +4889,7 @@ func (c *Client4) GetFileLink(ctx context.Context, fileId string) (string, *Resp
 
 // GetFilePreview gets the bytes for a file by id.
 func (c *Client4) GetFilePreview(ctx context.Context, fileId string) ([]byte, *Response, error) {
-	route, err := c.fileRoute(fileId).JoinSegments("preview").String()
+	route, err := c.fileRoute(fileId).Join("preview").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -4900,7 +4905,7 @@ func (c *Client4) GetFilePreview(ctx context.Context, fileId string) ([]byte, *R
 func (c *Client4) DownloadFilePreview(ctx context.Context, fileId string, download bool) ([]byte, *Response, error) {
 	values := url.Values{}
 	values.Set("download", c.boolString(download))
-	routeURL, err := c.fileRoute(fileId).JoinSegments("preview").URL()
+	routeURL, err := c.fileRoute(fileId).Join("preview").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -4915,7 +4920,7 @@ func (c *Client4) DownloadFilePreview(ctx context.Context, fileId string, downlo
 
 // GetFileInfo gets all the file info objects.
 func (c *Client4) GetFileInfo(ctx context.Context, fileId string) (*FileInfo, *Response, error) {
-	route, err := c.fileRoute(fileId).JoinSegments("info").String()
+	route, err := c.fileRoute(fileId).Join("info").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -4929,7 +4934,7 @@ func (c *Client4) GetFileInfo(ctx context.Context, fileId string) (*FileInfo, *R
 
 // GetFileInfosForPost gets all the file info objects attached to a post.
 func (c *Client4) GetFileInfosForPost(ctx context.Context, postId string, etag string) ([]*FileInfo, *Response, error) {
-	route, err := c.postRoute(postId).JoinSegments("files", "info").String()
+	route, err := c.postRoute(postId).Join("files", "info").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -4943,7 +4948,7 @@ func (c *Client4) GetFileInfosForPost(ctx context.Context, postId string, etag s
 
 // GetFileInfosForPost gets all the file info objects attached to a post, including deleted
 func (c *Client4) GetFileInfosForPostIncludeDeleted(ctx context.Context, postId string, etag string) ([]*FileInfo, *Response, error) {
-	routeURL, err := c.postRoute(postId).JoinSegments("files", "info").URL()
+	routeURL, err := c.postRoute(postId).Join("files", "info").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -4963,7 +4968,7 @@ func (c *Client4) GetFileInfosForPostIncludeDeleted(ctx context.Context, postId 
 // GenerateSupportPacket generates and downloads a Support Packet.
 // It returns a ReadCloser to the packet and the filename. The caller needs to close the ReadCloser.
 func (c *Client4) GenerateSupportPacket(ctx context.Context) (io.ReadCloser, string, *Response, error) {
-	route, err := c.systemRoute().JoinSegments("support_packet").String()
+	route, err := c.systemRoute().Join("support_packet").String()
 	if err != nil {
 		return nil, "", nil, err
 	}
@@ -5012,7 +5017,7 @@ func (c *Client4) GetPingWithFullServerStatus(ctx context.Context) (map[string]a
 
 // GetPingWithOptions will return the status according to the options
 func (c *Client4) GetPingWithOptions(ctx context.Context, options SystemPingOptions) (map[string]any, *Response, error) {
-	pingURL, err := c.systemRoute().JoinSegments("ping").URL()
+	pingURL, err := c.systemRoute().Join("ping").URL()
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not parse query: %w", err)
 	}
@@ -5033,7 +5038,7 @@ func (c *Client4) GetPingWithOptions(ctx context.Context, options SystemPingOpti
 }
 
 func (c *Client4) GetServerLimits(ctx context.Context) (*ServerLimits, *Response, error) {
-	route, err := c.limitsRoute().JoinSegments("server").String()
+	route, err := c.limitsRoute().Join("server").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -5143,7 +5148,7 @@ func (c *Client4) GetConfigWithOptions(ctx context.Context, options GetConfigOpt
 
 // ReloadConfig will reload the server configuration.
 func (c *Client4) ReloadConfig(ctx context.Context) (*Response, error) {
-	route, err := c.configRoute().JoinSegments("reload").String()
+	route, err := c.configRoute().Join("reload").String()
 	if err != nil {
 		return nil, err
 	}
@@ -5157,7 +5162,7 @@ func (c *Client4) ReloadConfig(ctx context.Context) (*Response, error) {
 
 // GetClientConfig will retrieve the parts of the server configuration needed by the client.
 func (c *Client4) GetClientConfig(ctx context.Context, etag string) (map[string]string, *Response, error) {
-	route, err := c.configRoute().JoinSegments("client").String()
+	route, err := c.configRoute().Join("client").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -5173,7 +5178,7 @@ func (c *Client4) GetClientConfig(ctx context.Context, etag string) (map[string]
 // are set to true if the corresponding config setting is set through an environment variable.
 // Settings that haven't been set through environment variables will be missing from the map.
 func (c *Client4) GetEnvironmentConfig(ctx context.Context) (map[string]any, *Response, error) {
-	route, err := c.configRoute().JoinSegments("environment").String()
+	route, err := c.configRoute().Join("environment").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -5191,7 +5196,7 @@ func (c *Client4) GetOldClientLicense(ctx context.Context, etag string) (map[str
 	values := url.Values{}
 	values.Set("format", "old")
 
-	routeURL, err := c.licenseRoute().JoinSegments("client").URL()
+	routeURL, err := c.licenseRoute().Join("client").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -5207,7 +5212,7 @@ func (c *Client4) GetOldClientLicense(ctx context.Context, etag string) (map[str
 
 // DatabaseRecycle will recycle the connections. Discard current connection and get new one.
 func (c *Client4) DatabaseRecycle(ctx context.Context) (*Response, error) {
-	route, err := c.databaseRoute().JoinSegments("recycle").String()
+	route, err := c.databaseRoute().Join("recycle").String()
 	if err != nil {
 		return nil, err
 	}
@@ -5221,7 +5226,7 @@ func (c *Client4) DatabaseRecycle(ctx context.Context) (*Response, error) {
 
 // InvalidateCaches will purge the cache and can affect the performance while is cleaning.
 func (c *Client4) InvalidateCaches(ctx context.Context) (*Response, error) {
-	route, err := c.cacheRoute().JoinSegments("invalidate").String()
+	route, err := c.cacheRoute().Join("invalidate").String()
 	if err != nil {
 		return nil, err
 	}
@@ -5255,7 +5260,7 @@ func (c *Client4) MigrateConfig(ctx context.Context, from, to string) (*Response
 	m := make(map[string]string, 2)
 	m["from"] = from
 	m["to"] = to
-	route, err := c.configRoute().JoinSegments("migrate").String()
+	route, err := c.configRoute().Join("migrate").String()
 	if err != nil {
 		return nil, err
 	}
@@ -5315,7 +5320,7 @@ func (c *Client4) RemoveLicenseFile(ctx context.Context) (*Response, error) {
 // GetLicenseLoadMetric retrieves the license load metric from the server.
 // The load is calculated as (monthly active users / licensed users) * 1000.
 func (c *Client4) GetLicenseLoadMetric(ctx context.Context) (map[string]int, *Response, error) {
-	route, err := c.licenseRoute().JoinSegments("load_metric").String()
+	route, err := c.licenseRoute().Join("load_metric").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -5335,7 +5340,7 @@ func (c *Client4) GetAnalyticsOld(ctx context.Context, name, teamId string) (Ana
 	values := url.Values{}
 	values.Set("name", name)
 	values.Set("team_id", teamId)
-	routeURL, err := c.analyticsRoute().JoinSegments("old").URL()
+	routeURL, err := c.analyticsRoute().Join("old").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -5562,7 +5567,7 @@ func (c *Client4) GetOutgoingWebhooksForTeam(ctx context.Context, teamId string,
 
 // RegenOutgoingHookToken regenerate the outgoing webhook token.
 func (c *Client4) RegenOutgoingHookToken(ctx context.Context, hookId string) (*OutgoingWebhook, *Response, error) {
-	route, err := c.outgoingWebhookRoute(hookId).JoinSegments("regen_token").String()
+	route, err := c.outgoingWebhookRoute(hookId).Join("regen_token").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -5620,7 +5625,7 @@ func (c *Client4) UpdatePreferences(ctx context.Context, userId string, preferen
 
 // DeletePreferences deletes the user's preferences.
 func (c *Client4) DeletePreferences(ctx context.Context, userId string, preferences Preferences) (*Response, error) {
-	route, err := c.preferencesRoute(userId).JoinSegments("delete").String()
+	route, err := c.preferencesRoute(userId).Join("delete").String()
 	if err != nil {
 		return nil, err
 	}
@@ -5634,7 +5639,7 @@ func (c *Client4) DeletePreferences(ctx context.Context, userId string, preferen
 
 // GetPreferencesByCategory returns the user's preferences from the provided category string.
 func (c *Client4) GetPreferencesByCategory(ctx context.Context, userId string, category string) (Preferences, *Response, error) {
-	url, err := c.preferencesRoute(userId).JoinSegments(category).String()
+	url, err := c.preferencesRoute(userId).Join(category).String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -5648,7 +5653,7 @@ func (c *Client4) GetPreferencesByCategory(ctx context.Context, userId string, c
 
 // GetPreferenceByCategoryAndName returns the user's preferences from the provided category and preference name string.
 func (c *Client4) GetPreferenceByCategoryAndName(ctx context.Context, userId string, category string, preferenceName string) (*Preference, *Response, error) {
-	url, err := c.preferencesRoute(userId).JoinSegments(category, "name", preferenceName).String()
+	url, err := c.preferencesRoute(userId).Join(category, "name", preferenceName).String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -5664,7 +5669,7 @@ func (c *Client4) GetPreferenceByCategoryAndName(ctx context.Context, userId str
 
 // GetSamlMetadata returns metadata for the SAML configuration.
 func (c *Client4) GetSamlMetadata(ctx context.Context) (string, *Response, error) {
-	route, err := c.samlRoute().JoinSegments("metadata").String()
+	route, err := c.samlRoute().Join("metadata").String()
 	if err != nil {
 		return "", nil, err
 	}
@@ -5711,7 +5716,7 @@ func (c *Client4) UploadSamlIdpCertificate(ctx context.Context, data []byte, fil
 		return nil, fmt.Errorf("failed to prepare SAML IDP certificate for upload: %w", err)
 	}
 
-	route, err := c.samlRoute().JoinSegments("certificate", "idp").String()
+	route, err := c.samlRoute().Join("certificate", "idp").String()
 	if err != nil {
 		return nil, err
 	}
@@ -5728,7 +5733,7 @@ func (c *Client4) UploadSamlPublicCertificate(ctx context.Context, data []byte, 
 		return nil, fmt.Errorf("failed to prepare SAML public certificate for upload: %w", err)
 	}
 
-	route, err := c.samlRoute().JoinSegments("certificate", "public").String()
+	route, err := c.samlRoute().Join("certificate", "public").String()
 	if err != nil {
 		return nil, err
 	}
@@ -5745,7 +5750,7 @@ func (c *Client4) UploadSamlPrivateCertificate(ctx context.Context, data []byte,
 		return nil, fmt.Errorf("failed to prepare SAML private certificate for upload: %w", err)
 	}
 
-	route, err := c.samlRoute().JoinSegments("certificate", "private").String()
+	route, err := c.samlRoute().Join("certificate", "private").String()
 	if err != nil {
 		return nil, err
 	}
@@ -5756,7 +5761,7 @@ func (c *Client4) UploadSamlPrivateCertificate(ctx context.Context, data []byte,
 
 // DeleteSamlIdpCertificate deletes the SAML IDP certificate from the server and updates the config to not use it and disable SAML.
 func (c *Client4) DeleteSamlIdpCertificate(ctx context.Context) (*Response, error) {
-	route, err := c.samlRoute().JoinSegments("certificate", "idp").String()
+	route, err := c.samlRoute().Join("certificate", "idp").String()
 	if err != nil {
 		return nil, err
 	}
@@ -5770,7 +5775,7 @@ func (c *Client4) DeleteSamlIdpCertificate(ctx context.Context) (*Response, erro
 
 // DeleteSamlPublicCertificate deletes the SAML IDP certificate from the server and updates the config to not use it and disable SAML.
 func (c *Client4) DeleteSamlPublicCertificate(ctx context.Context) (*Response, error) {
-	route, err := c.samlRoute().JoinSegments("certificate", "public").String()
+	route, err := c.samlRoute().Join("certificate", "public").String()
 	if err != nil {
 		return nil, err
 	}
@@ -5784,7 +5789,7 @@ func (c *Client4) DeleteSamlPublicCertificate(ctx context.Context) (*Response, e
 
 // DeleteSamlPrivateCertificate deletes the SAML IDP certificate from the server and updates the config to not use it and disable SAML.
 func (c *Client4) DeleteSamlPrivateCertificate(ctx context.Context) (*Response, error) {
-	route, err := c.samlRoute().JoinSegments("certificate", "private").String()
+	route, err := c.samlRoute().Join("certificate", "private").String()
 	if err != nil {
 		return nil, err
 	}
@@ -5798,7 +5803,7 @@ func (c *Client4) DeleteSamlPrivateCertificate(ctx context.Context) (*Response, 
 
 // GetSamlCertificateStatus returns metadata for the SAML configuration.
 func (c *Client4) GetSamlCertificateStatus(ctx context.Context) (*SamlCertificateStatus, *Response, error) {
-	route, err := c.samlRoute().JoinSegments("certificate", "status").String()
+	route, err := c.samlRoute().Join("certificate", "status").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -5813,7 +5818,7 @@ func (c *Client4) GetSamlCertificateStatus(ctx context.Context) (*SamlCertificat
 func (c *Client4) GetSamlMetadataFromIdp(ctx context.Context, samlMetadataURL string) (*SamlMetadataResponse, *Response, error) {
 	requestBody := make(map[string]string)
 	requestBody["saml_metadata_url"] = samlMetadataURL
-	route, err := c.samlRoute().JoinSegments("metadatafromidp").String()
+	route, err := c.samlRoute().Join("metadatafromidp").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -5833,7 +5838,7 @@ func (c *Client4) ResetSamlAuthDataToEmail(ctx context.Context, includeDeleted b
 		"dry_run":         dryRun,
 		"user_ids":        userIDs,
 	}
-	route, err := c.samlRoute().JoinSegments("reset_auth_data").String()
+	route, err := c.samlRoute().Join("reset_auth_data").String()
 	if err != nil {
 		return 0, nil, err
 	}
@@ -5915,7 +5920,7 @@ func (c *Client4) DownloadComplianceReport(ctx context.Context, reportId string)
 
 // GetClusterStatus returns the status of all the configured cluster nodes.
 func (c *Client4) GetClusterStatus(ctx context.Context) ([]*ClusterInfo, *Response, error) {
-	route, err := c.clusterRoute().JoinSegments("status").String()
+	route, err := c.clusterRoute().Join("status").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -5931,7 +5936,7 @@ func (c *Client4) GetClusterStatus(ctx context.Context) ([]*ClusterInfo, *Respon
 
 // SyncLdap starts a run of the LDAP sync job.
 func (c *Client4) SyncLdap(ctx context.Context) (*Response, error) {
-	route, err := c.ldapRoute().JoinSegments("sync").String()
+	route, err := c.ldapRoute().Join("sync").String()
 	if err != nil {
 		return nil, err
 	}
@@ -5946,7 +5951,7 @@ func (c *Client4) SyncLdap(ctx context.Context) (*Response, error) {
 // TestLdap will attempt to connect to the configured LDAP server and return OK if configured
 // correctly.
 func (c *Client4) TestLdap(ctx context.Context) (*Response, error) {
-	route, err := c.ldapRoute().JoinSegments("test").String()
+	route, err := c.ldapRoute().Join("test").String()
 	if err != nil {
 		return nil, err
 	}
@@ -5960,7 +5965,7 @@ func (c *Client4) TestLdap(ctx context.Context) (*Response, error) {
 
 // GetLdapGroups retrieves the immediate child groups of the given parent group.
 func (c *Client4) GetLdapGroups(ctx context.Context) ([]*Group, *Response, error) {
-	path, err := c.ldapRoute().JoinSegments("groups").String()
+	path, err := c.ldapRoute().Join("groups").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -5987,7 +5992,7 @@ func (c *Client4) GetLdapGroups(ctx context.Context) ([]*Group, *Response, error
 
 // LinkLdapGroup creates or undeletes a Mattermost group and associates it to the given LDAP group DN.
 func (c *Client4) LinkLdapGroup(ctx context.Context, dn string) (*Group, *Response, error) {
-	path, err := c.ldapRoute().JoinSegments("groups", dn, "link").String()
+	path, err := c.ldapRoute().Join("groups", dn, "link").String()
 	if err != nil {
 		return nil, BuildResponse(nil), err
 	}
@@ -6002,7 +6007,7 @@ func (c *Client4) LinkLdapGroup(ctx context.Context, dn string) (*Group, *Respon
 
 // UnlinkLdapGroup deletes the Mattermost group associated with the given LDAP group DN.
 func (c *Client4) UnlinkLdapGroup(ctx context.Context, dn string) (*Group, *Response, error) {
-	path, err := c.ldapRoute().JoinSegments("groups", dn, "link").String()
+	path, err := c.ldapRoute().Join("groups", dn, "link").String()
 	if err != nil {
 		return nil, BuildResponse(nil), err
 	}
@@ -6017,7 +6022,7 @@ func (c *Client4) UnlinkLdapGroup(ctx context.Context, dn string) (*Group, *Resp
 
 // MigrateIdLdap migrates the LDAP enabled users to given attribute
 func (c *Client4) MigrateIdLdap(ctx context.Context, toAttribute string) (*Response, error) {
-	route, err := c.ldapRoute().JoinSegments("migrateid").String()
+	route, err := c.ldapRoute().Join("migrateid").String()
 	if err != nil {
 		return nil, err
 	}
@@ -6032,7 +6037,7 @@ func (c *Client4) MigrateIdLdap(ctx context.Context, toAttribute string) (*Respo
 }
 
 func (c *Client4) GetGroupsByNames(ctx context.Context, names []string) ([]*Group, *Response, error) {
-	path, err := c.groupsRoute().JoinSegments("names").String()
+	path, err := c.groupsRoute().Join("names").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -6055,7 +6060,7 @@ func (c *Client4) GetGroupsByChannel(ctx context.Context, channelId string, opts
 		values.Set("page", strconv.Itoa(opts.PageOpts.Page))
 		values.Set("per_page", strconv.Itoa(opts.PageOpts.PerPage))
 	}
-	pathURL, err := c.channelRoute(channelId).JoinSegments("groups").URL()
+	pathURL, err := c.channelRoute(channelId).Join("groups").URL()
 	if err != nil {
 		return nil, 0, nil, err
 	}
@@ -6088,7 +6093,7 @@ func (c *Client4) GetGroupsByTeam(ctx context.Context, teamId string, opts Group
 		values.Set("page", strconv.Itoa(opts.PageOpts.Page))
 		values.Set("per_page", strconv.Itoa(opts.PageOpts.PerPage))
 	}
-	pathURL, err := c.teamRoute(teamId).JoinSegments("groups").URL()
+	pathURL, err := c.teamRoute(teamId).Join("groups").URL()
 	if err != nil {
 		return nil, 0, nil, err
 	}
@@ -6121,7 +6126,7 @@ func (c *Client4) GetGroupsAssociatedToChannelsByTeam(ctx context.Context, teamI
 		values.Set("page", strconv.Itoa(opts.PageOpts.Page))
 		values.Set("per_page", strconv.Itoa(opts.PageOpts.PerPage))
 	}
-	pathURL, err := c.teamRoute(teamId).JoinSegments("groups_by_channels").URL()
+	pathURL, err := c.teamRoute(teamId).Join("groups_by_channels").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -6180,7 +6185,7 @@ func (c *Client4) GetGroups(ctx context.Context, opts GroupSearchOpts) ([]*Group
 
 // GetGroupsByUserId retrieves Mattermost Groups for a user
 func (c *Client4) GetGroupsByUserId(ctx context.Context, userId string) ([]*Group, *Response, error) {
-	path, err := c.usersRoute().JoinSegments(userId, "groups").String()
+	path, err := c.usersRoute().Join(userId, "groups").String()
 	if err != nil {
 		return nil, BuildResponse(nil), err
 	}
@@ -6194,7 +6199,7 @@ func (c *Client4) GetGroupsByUserId(ctx context.Context, userId string) ([]*Grou
 }
 
 func (c *Client4) MigrateAuthToLdap(ctx context.Context, fromAuthService string, matchField string, force bool) (*Response, error) {
-	route, err := c.usersRoute().JoinSegments("migrate_auth", "ldap").String()
+	route, err := c.usersRoute().Join("migrate_auth", "ldap").String()
 	if err != nil {
 		return nil, err
 	}
@@ -6211,7 +6216,7 @@ func (c *Client4) MigrateAuthToLdap(ctx context.Context, fromAuthService string,
 }
 
 func (c *Client4) MigrateAuthToSaml(ctx context.Context, fromAuthService string, usersMap map[string]string, auto bool) (*Response, error) {
-	route, err := c.usersRoute().JoinSegments("migrate_auth", "saml").String()
+	route, err := c.usersRoute().Join("migrate_auth", "saml").String()
 	if err != nil {
 		return nil, err
 	}
@@ -6234,7 +6239,7 @@ func (c *Client4) UploadLdapPublicCertificate(ctx context.Context, data []byte) 
 		return nil, fmt.Errorf("failed to prepare LDAP public certificate for upload: %w", err)
 	}
 
-	route, err := c.ldapRoute().JoinSegments("certificate", "public").String()
+	route, err := c.ldapRoute().Join("certificate", "public").String()
 	if err != nil {
 		return nil, err
 	}
@@ -6250,7 +6255,7 @@ func (c *Client4) UploadLdapPrivateCertificate(ctx context.Context, data []byte)
 		return nil, fmt.Errorf("failed to prepare LDAP private certificate for upload: %w", err)
 	}
 
-	route, err := c.ldapRoute().JoinSegments("certificate", "private").String()
+	route, err := c.ldapRoute().Join("certificate", "private").String()
 	if err != nil {
 		return nil, err
 	}
@@ -6261,7 +6266,7 @@ func (c *Client4) UploadLdapPrivateCertificate(ctx context.Context, data []byte)
 
 // DeleteLdapPublicCertificate deletes the LDAP IDP certificate from the server and updates the config to not use it and disable LDAP.
 func (c *Client4) DeleteLdapPublicCertificate(ctx context.Context) (*Response, error) {
-	route, err := c.ldapRoute().JoinSegments("certificate", "public").String()
+	route, err := c.ldapRoute().Join("certificate", "public").String()
 	if err != nil {
 		return nil, err
 	}
@@ -6275,7 +6280,7 @@ func (c *Client4) DeleteLdapPublicCertificate(ctx context.Context) (*Response, e
 
 // DeleteLDAPPrivateCertificate deletes the LDAP IDP certificate from the server and updates the config to not use it and disable LDAP.
 func (c *Client4) DeleteLdapPrivateCertificate(ctx context.Context) (*Response, error) {
-	route, err := c.ldapRoute().JoinSegments("certificate", "private").String()
+	route, err := c.ldapRoute().Join("certificate", "private").String()
 	if err != nil {
 		return nil, err
 	}
@@ -6313,7 +6318,7 @@ func (c *Client4) GetAudits(ctx context.Context, page int, perPage int, etag str
 
 // GetBrandImage retrieves the previously uploaded brand image.
 func (c *Client4) GetBrandImage(ctx context.Context) ([]byte, *Response, error) {
-	route, err := c.brandRoute().JoinSegments("image").String()
+	route, err := c.brandRoute().Join("image").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -6332,7 +6337,7 @@ func (c *Client4) GetBrandImage(ctx context.Context) ([]byte, *Response, error) 
 
 // DeleteBrandImage deletes the brand image for the system.
 func (c *Client4) DeleteBrandImage(ctx context.Context) (*Response, error) {
-	route, err := c.brandRoute().JoinSegments("image").String()
+	route, err := c.brandRoute().Join("image").String()
 	if err != nil {
 		return nil, err
 	}
@@ -6361,7 +6366,7 @@ func (c *Client4) UploadBrandImage(ctx context.Context, data []byte) (*Response,
 		return nil, fmt.Errorf("failed to close multipart writer for brand image upload: %w", err)
 	}
 
-	route, err := c.brandRoute().JoinSegments("image").String()
+	route, err := c.brandRoute().Join("image").String()
 	if err != nil {
 		return nil, err
 	}
@@ -6397,7 +6402,7 @@ func (c *Client4) GetLogs(ctx context.Context, page, perPage int) ([]string, *Re
 
 // Download logs as mattermost.log file
 func (c *Client4) DownloadLogs(ctx context.Context) ([]byte, *Response, error) {
-	route, err := c.logsRoute().JoinSegments("download").String()
+	route, err := c.logsRoute().Join("download").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -6490,7 +6495,7 @@ func (c *Client4) GetOAuthApp(ctx context.Context, appId string) (*OAuthApp, *Re
 
 // GetOAuthAppInfo gets a sanitized version of a registered OAuth 2.0 client application with Mattermost acting as an OAuth 2.0 service provider.
 func (c *Client4) GetOAuthAppInfo(ctx context.Context, appId string) (*OAuthApp, *Response, error) {
-	route, err := c.oAuthAppRoute(appId).JoinSegments("info").String()
+	route, err := c.oAuthAppRoute(appId).Join("info").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -6518,7 +6523,7 @@ func (c *Client4) DeleteOAuthApp(ctx context.Context, appId string) (*Response, 
 
 // RegenerateOAuthAppSecret regenerates the client secret for a registered OAuth 2.0 client application.
 func (c *Client4) RegenerateOAuthAppSecret(ctx context.Context, appId string) (*OAuthApp, *Response, error) {
-	route, err := c.oAuthAppRoute(appId).JoinSegments("regen_secret").String()
+	route, err := c.oAuthAppRoute(appId).Join("regen_secret").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -6554,7 +6559,7 @@ func (c *Client4) GetAuthorizedOAuthAppsForUser(ctx context.Context, userId stri
 	values := url.Values{}
 	values.Set("page", strconv.Itoa(page))
 	values.Set("per_page", strconv.Itoa(perPage))
-	routeURL, err := c.userRoute(userId).JoinSegments("oauth", "apps", "authorized").URL()
+	routeURL, err := c.userRoute(userId).Join("oauth", "apps", "authorized").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -6695,7 +6700,7 @@ func (c *Client4) CreateOutgoingOAuthConnection(ctx context.Context, connection 
 // TestElasticsearch will attempt to connect to the configured Elasticsearch server and return OK if configured.
 // correctly.
 func (c *Client4) TestElasticsearch(ctx context.Context) (*Response, error) {
-	route, err := c.elasticsearchRoute().JoinSegments("test").String()
+	route, err := c.elasticsearchRoute().Join("test").String()
 	if err != nil {
 		return nil, err
 	}
@@ -6709,7 +6714,7 @@ func (c *Client4) TestElasticsearch(ctx context.Context) (*Response, error) {
 
 // PurgeElasticsearchIndexes immediately deletes all Elasticsearch indexes.
 func (c *Client4) PurgeElasticsearchIndexes(ctx context.Context) (*Response, error) {
-	route, err := c.elasticsearchRoute().JoinSegments("purge_indexes").String()
+	route, err := c.elasticsearchRoute().Join("purge_indexes").String()
 	if err != nil {
 		return nil, err
 	}
@@ -6725,7 +6730,7 @@ func (c *Client4) PurgeElasticsearchIndexes(ctx context.Context) (*Response, err
 
 // GetDataRetentionPolicy will get the current global data retention policy details.
 func (c *Client4) GetDataRetentionPolicy(ctx context.Context) (*GlobalRetentionPolicy, *Response, error) {
-	route, err := c.dataRetentionRoute().JoinSegments("policy").String()
+	route, err := c.dataRetentionRoute().Join("policy").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -6756,7 +6761,7 @@ func (c *Client4) GetDataRetentionPoliciesCount(ctx context.Context) (int64, *Re
 	type CountBody struct {
 		TotalCount int64 `json:"total_count"`
 	}
-	route, err := c.dataRetentionRoute().JoinSegments("policies_count").String()
+	route, err := c.dataRetentionRoute().Join("policies_count").String()
 	if err != nil {
 		return 0, nil, err
 	}
@@ -6776,7 +6781,7 @@ func (c *Client4) GetDataRetentionPolicies(ctx context.Context, page, perPage in
 	values := url.Values{}
 	values.Set("page", strconv.Itoa(page))
 	values.Set("per_page", strconv.Itoa(perPage))
-	routeURL, err := c.dataRetentionRoute().JoinSegments("policies").URL()
+	routeURL, err := c.dataRetentionRoute().Join("policies").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -6792,7 +6797,7 @@ func (c *Client4) GetDataRetentionPolicies(ctx context.Context, page, perPage in
 // CreateDataRetentionPolicy will create a new granular data retention policy which will be applied to
 // the specified teams and channels. The Id field of `policy` must be empty.
 func (c *Client4) CreateDataRetentionPolicy(ctx context.Context, policy *RetentionPolicyWithTeamAndChannelIDs) (*RetentionPolicyWithTeamAndChannelCounts, *Response, error) {
-	route, err := c.dataRetentionRoute().JoinSegments("policies").String()
+	route, err := c.dataRetentionRoute().Join("policies").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -6838,7 +6843,7 @@ func (c *Client4) GetTeamsForRetentionPolicy(ctx context.Context, policyID strin
 	values := url.Values{}
 	values.Set("page", strconv.Itoa(page))
 	values.Set("per_page", strconv.Itoa(perPage))
-	routeURL, err := c.dataRetentionPolicyRoute(policyID).JoinSegments("teams").URL()
+	routeURL, err := c.dataRetentionPolicyRoute(policyID).Join("teams").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -6852,7 +6857,7 @@ func (c *Client4) GetTeamsForRetentionPolicy(ctx context.Context, policyID strin
 
 // SearchTeamsForRetentionPolicy will search the teams to which the specified policy is currently applied.
 func (c *Client4) SearchTeamsForRetentionPolicy(ctx context.Context, policyID string, term string) ([]*Team, *Response, error) {
-	route, err := c.dataRetentionPolicyRoute(policyID).JoinSegments("teams", "search").String()
+	route, err := c.dataRetentionPolicyRoute(policyID).Join("teams", "search").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -6866,7 +6871,7 @@ func (c *Client4) SearchTeamsForRetentionPolicy(ctx context.Context, policyID st
 // AddTeamsToRetentionPolicy will add the specified teams to the granular data retention policy
 // with the specified ID.
 func (c *Client4) AddTeamsToRetentionPolicy(ctx context.Context, policyID string, teamIDs []string) (*Response, error) {
-	route, err := c.dataRetentionPolicyRoute(policyID).JoinSegments("teams").String()
+	route, err := c.dataRetentionPolicyRoute(policyID).Join("teams").String()
 	if err != nil {
 		return nil, err
 	}
@@ -6881,7 +6886,7 @@ func (c *Client4) AddTeamsToRetentionPolicy(ctx context.Context, policyID string
 // RemoveTeamsFromRetentionPolicy will remove the specified teams from the granular data retention policy
 // with the specified ID.
 func (c *Client4) RemoveTeamsFromRetentionPolicy(ctx context.Context, policyID string, teamIDs []string) (*Response, error) {
-	route, err := c.dataRetentionPolicyRoute(policyID).JoinSegments("teams").String()
+	route, err := c.dataRetentionPolicyRoute(policyID).Join("teams").String()
 	if err != nil {
 		return nil, err
 	}
@@ -6898,7 +6903,7 @@ func (c *Client4) GetChannelsForRetentionPolicy(ctx context.Context, policyID st
 	values := url.Values{}
 	values.Set("page", strconv.Itoa(page))
 	values.Set("per_page", strconv.Itoa(perPage))
-	routeURL, err := c.dataRetentionPolicyRoute(policyID).JoinSegments("channels").URL()
+	routeURL, err := c.dataRetentionPolicyRoute(policyID).Join("channels").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -6912,7 +6917,7 @@ func (c *Client4) GetChannelsForRetentionPolicy(ctx context.Context, policyID st
 
 // SearchChannelsForRetentionPolicy will search the channels to which the specified policy is currently applied.
 func (c *Client4) SearchChannelsForRetentionPolicy(ctx context.Context, policyID string, term string) (ChannelListWithTeamData, *Response, error) {
-	route, err := c.dataRetentionPolicyRoute(policyID).JoinSegments("channels", "search").String()
+	route, err := c.dataRetentionPolicyRoute(policyID).Join("channels", "search").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -6926,7 +6931,7 @@ func (c *Client4) SearchChannelsForRetentionPolicy(ctx context.Context, policyID
 // AddChannelsToRetentionPolicy will add the specified channels to the granular data retention policy
 // with the specified ID.
 func (c *Client4) AddChannelsToRetentionPolicy(ctx context.Context, policyID string, channelIDs []string) (*Response, error) {
-	route, err := c.dataRetentionPolicyRoute(policyID).JoinSegments("channels").String()
+	route, err := c.dataRetentionPolicyRoute(policyID).Join("channels").String()
 	if err != nil {
 		return nil, err
 	}
@@ -6941,7 +6946,7 @@ func (c *Client4) AddChannelsToRetentionPolicy(ctx context.Context, policyID str
 // RemoveChannelsFromRetentionPolicy will remove the specified channels from the granular data retention policy
 // with the specified ID.
 func (c *Client4) RemoveChannelsFromRetentionPolicy(ctx context.Context, policyID string, channelIDs []string) (*Response, error) {
-	route, err := c.dataRetentionPolicyRoute(policyID).JoinSegments("channels").String()
+	route, err := c.dataRetentionPolicyRoute(policyID).Join("channels").String()
 	if err != nil {
 		return nil, err
 	}
@@ -6955,7 +6960,7 @@ func (c *Client4) RemoveChannelsFromRetentionPolicy(ctx context.Context, policyI
 
 // GetTeamPoliciesForUser will get the data retention policies for the teams to which a user belongs.
 func (c *Client4) GetTeamPoliciesForUser(ctx context.Context, userID string, offset, limit int) (*RetentionPolicyForTeamList, *Response, error) {
-	route, err := c.userRoute(userID).JoinSegments("data_retention", "team_policies").String()
+	route, err := c.userRoute(userID).Join("data_retention", "team_policies").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -6968,7 +6973,7 @@ func (c *Client4) GetTeamPoliciesForUser(ctx context.Context, userID string, off
 
 // GetChannelPoliciesForUser will get the data retention policies for the channels to which a user belongs.
 func (c *Client4) GetChannelPoliciesForUser(ctx context.Context, userID string, offset, limit int) (*RetentionPolicyForChannelList, *Response, error) {
-	route, err := c.userRoute(userID).JoinSegments("data_retention", "channel_policies").String()
+	route, err := c.userRoute(userID).Join("data_retention", "channel_policies").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -6997,7 +7002,7 @@ func (c *Client4) UpsertDraft(ctx context.Context, draft *Draft) (*Draft, *Respo
 
 // GetDrafts will get all drafts for a user
 func (c *Client4) GetDrafts(ctx context.Context, userId, teamId string) ([]*Draft, *Response, error) {
-	route, err := c.userRoute(userId).JoinRoutes(c.teamRoute(teamId)).JoinSegments("drafts").String()
+	route, err := c.userRoute(userId).Join(c.teamRoute(teamId), "drafts").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -7010,7 +7015,7 @@ func (c *Client4) GetDrafts(ctx context.Context, userId, teamId string) ([]*Draf
 }
 
 func (c *Client4) DeleteDraft(ctx context.Context, userId, channelId, rootId string) (*Draft, *Response, error) {
-	route, err := c.userRoute(userId).JoinRoutes(c.channelRoute(channelId)).JoinSegments("drafts").String()
+	route, err := c.userRoute(userId).Join(c.channelRoute(channelId), "drafts").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -7103,7 +7108,7 @@ func (c *Client4) ListCommands(ctx context.Context, teamId string, customOnly bo
 func (c *Client4) ListCommandAutocompleteSuggestions(ctx context.Context, userInput, teamId string) ([]AutocompleteSuggestion, *Response, error) {
 	values := url.Values{}
 	values.Set("user_input", userInput)
-	routeURL, err := c.teamRoute(teamId).JoinSegments("commands", "autocomplete_suggestions").URL()
+	routeURL, err := c.teamRoute(teamId).Join("commands", "autocomplete_suggestions").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -7118,7 +7123,7 @@ func (c *Client4) ListCommandAutocompleteSuggestions(ctx context.Context, userIn
 
 // GetCommandById will retrieve a command by id.
 func (c *Client4) GetCommandById(ctx context.Context, cmdId string) (*Command, *Response, error) {
-	url, err := c.commandsRoute().JoinSegments(cmdId).String()
+	url, err := c.commandsRoute().Join(cmdId).String()
 	if err != nil {
 		return nil, BuildResponse(nil), err
 	}
@@ -7136,7 +7141,7 @@ func (c *Client4) ExecuteCommand(ctx context.Context, channelId, command string)
 		ChannelId: channelId,
 		Command:   command,
 	}
-	route, err := c.commandsRoute().JoinSegments("execute").String()
+	route, err := c.commandsRoute().Join("execute").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -7161,7 +7166,7 @@ func (c *Client4) ExecuteCommandWithTeam(ctx context.Context, channelId, teamId,
 		TeamId:    teamId,
 		Command:   command,
 	}
-	route, err := c.commandsRoute().JoinSegments("execute").String()
+	route, err := c.commandsRoute().Join("execute").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -7194,7 +7199,7 @@ func (c *Client4) ListAutocompleteCommands(ctx context.Context, teamId string) (
 
 // RegenCommandToken will create a new token if the user have the right permissions.
 func (c *Client4) RegenCommandToken(ctx context.Context, commandId string) (string, *Response, error) {
-	route, err := c.commandRoute(commandId).JoinSegments("regen_token").String()
+	route, err := c.commandRoute(commandId).Join("regen_token").String()
 	if err != nil {
 		return "", nil, err
 	}
@@ -7228,7 +7233,7 @@ func (c *Client4) GetUserStatus(ctx context.Context, userId, etag string) (*Stat
 
 // GetUsersStatusesByIds returns a list of users status based on the provided user ids.
 func (c *Client4) GetUsersStatusesByIds(ctx context.Context, userIds []string) ([]*Status, *Response, error) {
-	route, err := c.userStatusesRoute().JoinSegments("ids").String()
+	route, err := c.userStatusesRoute().Join("ids").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -7258,7 +7263,7 @@ func (c *Client4) UpdateUserStatus(ctx context.Context, userId string, userStatu
 // The returned CustomStatus object is the same as the one passed, and it should be just
 // ignored. It's only kept to maintain compatibility.
 func (c *Client4) UpdateUserCustomStatus(ctx context.Context, userId string, userCustomStatus *CustomStatus) (*CustomStatus, *Response, error) {
-	route, err := c.userStatusRoute(userId).JoinSegments("custom").String()
+	route, err := c.userStatusRoute(userId).Join("custom").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -7275,7 +7280,7 @@ func (c *Client4) UpdateUserCustomStatus(ctx context.Context, userId string, use
 
 // RemoveUserCustomStatus remove a user's custom status based on the provided user id string.
 func (c *Client4) RemoveUserCustomStatus(ctx context.Context, userId string) (*Response, error) {
-	route, err := c.userStatusRoute(userId).JoinSegments("custom").String()
+	route, err := c.userStatusRoute(userId).Join("custom").String()
 	if err != nil {
 		return nil, err
 	}
@@ -7289,7 +7294,7 @@ func (c *Client4) RemoveUserCustomStatus(ctx context.Context, userId string) (*R
 
 // RemoveRecentUserCustomStatus remove a recent user's custom status based on the provided user id string.
 func (c *Client4) RemoveRecentUserCustomStatus(ctx context.Context, userId string) (*Response, error) {
-	route, err := c.userStatusRoute(userId).JoinSegments("custom", "recent").String()
+	route, err := c.userStatusRoute(userId).Join("custom", "recent").String()
 	if err != nil {
 		return nil, err
 	}
@@ -7385,7 +7390,7 @@ func (c *Client4) GetSortedEmojiList(ctx context.Context, page, perPage int, sor
 
 // GetEmojisByNames takes an array of custom emoji names and returns an array of those emojis.
 func (c *Client4) GetEmojisByNames(ctx context.Context, names []string) ([]*Emoji, *Response, error) {
-	route, err := c.emojisRoute().JoinSegments("names").String()
+	route, err := c.emojisRoute().Join("names").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -7441,7 +7446,7 @@ func (c *Client4) GetEmojiByName(ctx context.Context, name string) (*Emoji, *Res
 
 // GetEmojiImage returns the emoji image.
 func (c *Client4) GetEmojiImage(ctx context.Context, emojiId string) ([]byte, *Response, error) {
-	route, err := c.emojiRoute(emojiId).JoinSegments("image").String()
+	route, err := c.emojiRoute(emojiId).Join("image").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -7455,7 +7460,7 @@ func (c *Client4) GetEmojiImage(ctx context.Context, emojiId string) ([]byte, *R
 
 // SearchEmoji returns a list of emoji matching some search criteria.
 func (c *Client4) SearchEmoji(ctx context.Context, search *EmojiSearch) ([]*Emoji, *Response, error) {
-	route, err := c.emojisRoute().JoinSegments("search").String()
+	route, err := c.emojisRoute().Join("search").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -7471,7 +7476,7 @@ func (c *Client4) SearchEmoji(ctx context.Context, search *EmojiSearch) ([]*Emoj
 func (c *Client4) AutocompleteEmoji(ctx context.Context, name string, etag string) ([]*Emoji, *Response, error) {
 	values := url.Values{}
 	values.Set("name", name)
-	routeURL, err := c.emojisRoute().JoinSegments("autocomplete").URL()
+	routeURL, err := c.emojisRoute().Join("autocomplete").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -7502,7 +7507,7 @@ func (c *Client4) SaveReaction(ctx context.Context, reaction *Reaction) (*Reacti
 
 // GetReactions returns a list of reactions to a post.
 func (c *Client4) GetReactions(ctx context.Context, postId string) ([]*Reaction, *Response, error) {
-	route, err := c.postRoute(postId).JoinSegments("reactions").String()
+	route, err := c.postRoute(postId).Join("reactions").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -7516,7 +7521,7 @@ func (c *Client4) GetReactions(ctx context.Context, postId string) ([]*Reaction,
 
 // DeleteReaction deletes reaction of a user in a post.
 func (c *Client4) DeleteReaction(ctx context.Context, reaction *Reaction) (*Response, error) {
-	route, err := c.userRoute(reaction.UserId).JoinRoutes(c.postRoute(reaction.PostId)).JoinSegments("reactions", reaction.EmojiName).String()
+	route, err := c.userRoute(reaction.UserId).Join(c.postRoute(reaction.PostId), "reactions", reaction.EmojiName).String()
 	if err != nil {
 		return nil, err
 	}
@@ -7530,7 +7535,7 @@ func (c *Client4) DeleteReaction(ctx context.Context, reaction *Reaction) (*Resp
 
 // FetchBulkReactions returns a map of postIds and corresponding reactions
 func (c *Client4) GetBulkReactions(ctx context.Context, postIds []string) (map[string][]*Reaction, *Response, error) {
-	route, err := c.postsRoute().JoinSegments("ids", "reactions").String()
+	route, err := c.postsRoute().Join("ids", "reactions").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -7562,7 +7567,7 @@ func (c *Client4) GetSupportedTimezone(ctx context.Context) ([]string, *Response
 
 // GetJob gets a single job.
 func (c *Client4) GetJob(ctx context.Context, id string) (*Job, *Response, error) {
-	route, err := c.jobsRoute().JoinSegments(id).String()
+	route, err := c.jobsRoute().Join(id).String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -7599,7 +7604,7 @@ func (c *Client4) GetJobsByType(ctx context.Context, jobType string, page int, p
 	values := url.Values{}
 	values.Set("page", strconv.Itoa(page))
 	values.Set("per_page", strconv.Itoa(perPage))
-	routeURL, err := c.jobsRoute().JoinSegments("type", jobType).URL()
+	routeURL, err := c.jobsRoute().Join("type", jobType).URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -7628,7 +7633,7 @@ func (c *Client4) CreateJob(ctx context.Context, job *Job) (*Job, *Response, err
 
 // CancelJob requests the cancellation of the job with the provided Id.
 func (c *Client4) CancelJob(ctx context.Context, jobId string) (*Response, error) {
-	route, err := c.jobsRoute().JoinSegments(jobId, "cancel").String()
+	route, err := c.jobsRoute().Join(jobId, "cancel").String()
 	if err != nil {
 		return nil, err
 	}
@@ -7642,7 +7647,7 @@ func (c *Client4) CancelJob(ctx context.Context, jobId string) (*Response, error
 
 // DownloadJob downloads the results of the job
 func (c *Client4) DownloadJob(ctx context.Context, jobId string) ([]byte, *Response, error) {
-	route, err := c.jobsRoute().JoinSegments(jobId, "download").String()
+	route, err := c.jobsRoute().Join(jobId, "download").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -7656,7 +7661,7 @@ func (c *Client4) DownloadJob(ctx context.Context, jobId string) ([]byte, *Respo
 
 // UpdateJobStatus updates the status of a job
 func (c *Client4) UpdateJobStatus(ctx context.Context, jobId string, status string, force bool) (*Response, error) {
-	route, err := c.jobsRoute().JoinSegments(jobId, "status").String()
+	route, err := c.jobsRoute().Join(jobId, "status").String()
 	if err != nil {
 		return nil, err
 	}
@@ -7690,7 +7695,7 @@ func (c *Client4) GetAllRoles(ctx context.Context) ([]*Role, *Response, error) {
 
 // GetRole gets a single role by ID.
 func (c *Client4) GetRole(ctx context.Context, id string) (*Role, *Response, error) {
-	route, err := c.rolesRoute().JoinSegments(id).String()
+	route, err := c.rolesRoute().Join(id).String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -7704,7 +7709,7 @@ func (c *Client4) GetRole(ctx context.Context, id string) (*Role, *Response, err
 
 // GetRoleByName gets a single role by Name.
 func (c *Client4) GetRoleByName(ctx context.Context, name string) (*Role, *Response, error) {
-	route, err := c.rolesRoute().JoinSegments("name", name).String()
+	route, err := c.rolesRoute().Join("name", name).String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -7718,7 +7723,7 @@ func (c *Client4) GetRoleByName(ctx context.Context, name string) (*Role, *Respo
 
 // GetRolesByNames returns a list of roles based on the provided role names.
 func (c *Client4) GetRolesByNames(ctx context.Context, roleNames []string) ([]*Role, *Response, error) {
-	route, err := c.rolesRoute().JoinSegments("names").String()
+	route, err := c.rolesRoute().Join("names").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -7732,7 +7737,7 @@ func (c *Client4) GetRolesByNames(ctx context.Context, roleNames []string) ([]*R
 
 // PatchRole partially updates a role in the system. Any missing fields are not updated.
 func (c *Client4) PatchRole(ctx context.Context, roleId string, patch *RolePatch) (*Role, *Response, error) {
-	route, err := c.rolesRoute().JoinSegments(roleId, "patch").String()
+	route, err := c.rolesRoute().Join(roleId, "patch").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -7809,7 +7814,7 @@ func (c *Client4) DeleteScheme(ctx context.Context, id string) (*Response, error
 
 // PatchScheme partially updates a scheme in the system. Any missing fields are not updated.
 func (c *Client4) PatchScheme(ctx context.Context, id string, patch *SchemePatch) (*Scheme, *Response, error) {
-	route, err := c.schemeRoute(id).JoinSegments("patch").String()
+	route, err := c.schemeRoute(id).Join("patch").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -7826,7 +7831,7 @@ func (c *Client4) GetTeamsForScheme(ctx context.Context, schemeId string, page i
 	values := url.Values{}
 	values.Set("page", strconv.Itoa(page))
 	values.Set("per_page", strconv.Itoa(perPage))
-	routeURL, err := c.schemeRoute(schemeId).JoinSegments("teams").URL()
+	routeURL, err := c.schemeRoute(schemeId).Join("teams").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -7844,7 +7849,7 @@ func (c *Client4) GetChannelsForScheme(ctx context.Context, schemeId string, pag
 	values := url.Values{}
 	values.Set("page", strconv.Itoa(page))
 	values.Set("per_page", strconv.Itoa(perPage))
-	routeURL, err := c.schemeRoute(schemeId).JoinSegments("channels").URL()
+	routeURL, err := c.schemeRoute(schemeId).Join("channels").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -7908,7 +7913,7 @@ func (c *Client4) InstallPluginFromURL(ctx context.Context, downloadURL string, 
 	values := url.Values{}
 	values.Set("plugin_download_url", downloadURL)
 	values.Set("force", c.boolString(force))
-	urlVal, err := c.pluginsRoute().JoinSegments("install_from_url").URL()
+	urlVal, err := c.pluginsRoute().Join("install_from_url").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -7924,7 +7929,7 @@ func (c *Client4) InstallPluginFromURL(ctx context.Context, downloadURL string, 
 
 // InstallMarketplacePlugin will install marketplace plugin.
 func (c *Client4) InstallMarketplacePlugin(ctx context.Context, request *InstallMarketplacePluginRequest) (*Manifest, *Response, error) {
-	route, err := c.pluginsRoute().JoinSegments("marketplace").String()
+	route, err := c.pluginsRoute().Join("marketplace").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -7940,7 +7945,7 @@ func (c *Client4) InstallMarketplacePlugin(ctx context.Context, request *Install
 //
 // Only available in local mode, and currently only used for testing.
 func (c *Client4) ReattachPlugin(ctx context.Context, request *PluginReattachRequest) (*Response, error) {
-	route, err := c.pluginsRoute().JoinSegments("reattach").String()
+	route, err := c.pluginsRoute().Join("reattach").String()
 	if err != nil {
 		return nil, err
 	}
@@ -7957,7 +7962,7 @@ func (c *Client4) ReattachPlugin(ctx context.Context, request *PluginReattachReq
 //
 // Only available in local mode, and currently only used for testing.
 func (c *Client4) DetachPlugin(ctx context.Context, pluginID string) (*Response, error) {
-	route, err := c.pluginRoute(pluginID).JoinSegments("detach").String()
+	route, err := c.pluginRoute(pluginID).Join("detach").String()
 	if err != nil {
 		return nil, err
 	}
@@ -7987,7 +7992,7 @@ func (c *Client4) GetPlugins(ctx context.Context) (*PluginsResponse, *Response, 
 // GetPluginStatuses will return the plugins installed on any server in the cluster, for reporting
 // to the administrator via the system console.
 func (c *Client4) GetPluginStatuses(ctx context.Context) (PluginStatuses, *Response, error) {
-	route, err := c.pluginsRoute().JoinSegments("statuses").String()
+	route, err := c.pluginsRoute().Join("statuses").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -8015,7 +8020,7 @@ func (c *Client4) RemovePlugin(ctx context.Context, id string) (*Response, error
 
 // GetWebappPlugins will return a list of plugins that the webapp should download.
 func (c *Client4) GetWebappPlugins(ctx context.Context) ([]*Manifest, *Response, error) {
-	route, err := c.pluginsRoute().JoinSegments("webapp").String()
+	route, err := c.pluginsRoute().Join("webapp").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -8029,7 +8034,7 @@ func (c *Client4) GetWebappPlugins(ctx context.Context) ([]*Manifest, *Response,
 
 // EnablePlugin will enable an plugin installed.
 func (c *Client4) EnablePlugin(ctx context.Context, id string) (*Response, error) {
-	route, err := c.pluginRoute(id).JoinSegments("enable").String()
+	route, err := c.pluginRoute(id).Join("enable").String()
 	if err != nil {
 		return nil, err
 	}
@@ -8043,7 +8048,7 @@ func (c *Client4) EnablePlugin(ctx context.Context, id string) (*Response, error
 
 // DisablePlugin will disable an enabled plugin.
 func (c *Client4) DisablePlugin(ctx context.Context, id string) (*Response, error) {
-	route, err := c.pluginRoute(id).JoinSegments("disable").String()
+	route, err := c.pluginRoute(id).Join("disable").String()
 	if err != nil {
 		return nil, err
 	}
@@ -8057,7 +8062,7 @@ func (c *Client4) DisablePlugin(ctx context.Context, id string) (*Response, erro
 
 // GetMarketplacePlugins will return a list of plugins that an admin can install.
 func (c *Client4) GetMarketplacePlugins(ctx context.Context, filter *MarketplacePluginFilter) ([]*MarketplacePlugin, *Response, error) {
-	route, err := c.pluginsRoute().JoinSegments("marketplace").String()
+	route, err := c.pluginsRoute().Join("marketplace").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -8279,7 +8284,7 @@ func (c *Client4) DeleteGroup(ctx context.Context, groupID string) (*Group, *Res
 }
 
 func (c *Client4) RestoreGroup(ctx context.Context, groupID string, etag string) (*Group, *Response, error) {
-	route, err := c.groupRoute(groupID).JoinSegments("restore").String()
+	route, err := c.groupRoute(groupID).Join("restore").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -8292,7 +8297,7 @@ func (c *Client4) RestoreGroup(ctx context.Context, groupID string, etag string)
 }
 
 func (c *Client4) PatchGroup(ctx context.Context, groupID string, patch *GroupPatch) (*Group, *Response, error) {
-	route, err := c.groupRoute(groupID).JoinSegments("patch").String()
+	route, err := c.groupRoute(groupID).Join("patch").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -8305,7 +8310,7 @@ func (c *Client4) PatchGroup(ctx context.Context, groupID string, patch *GroupPa
 }
 
 func (c *Client4) GetGroupMembers(ctx context.Context, groupID string) (*GroupMemberList, *Response, error) {
-	route, err := c.groupRoute(groupID).JoinSegments("members").String()
+	route, err := c.groupRoute(groupID).Join("members").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -8318,7 +8323,7 @@ func (c *Client4) GetGroupMembers(ctx context.Context, groupID string) (*GroupMe
 }
 
 func (c *Client4) UpsertGroupMembers(ctx context.Context, groupID string, userIds *GroupModifyMembers) ([]*GroupMember, *Response, error) {
-	route, err := c.groupRoute(groupID).JoinSegments("members").String()
+	route, err := c.groupRoute(groupID).Join("members").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -8331,7 +8336,7 @@ func (c *Client4) UpsertGroupMembers(ctx context.Context, groupID string, userId
 }
 
 func (c *Client4) DeleteGroupMembers(ctx context.Context, groupID string, userIds *GroupModifyMembers) ([]*GroupMember, *Response, error) {
-	route, err := c.groupRoute(groupID).JoinSegments("members").String()
+	route, err := c.groupRoute(groupID).Join("members").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -8344,7 +8349,7 @@ func (c *Client4) DeleteGroupMembers(ctx context.Context, groupID string, userId
 }
 
 func (c *Client4) LinkGroupSyncable(ctx context.Context, groupID, syncableID string, syncableType GroupSyncableType, patch *GroupSyncablePatch) (*GroupSyncable, *Response, error) {
-	url, err := c.groupSyncableRoute(groupID, syncableID, syncableType).JoinSegments("link").String()
+	url, err := c.groupSyncableRoute(groupID, syncableID, syncableType).Join("link").String()
 	if err != nil {
 		return nil, BuildResponse(nil), err
 	}
@@ -8357,7 +8362,7 @@ func (c *Client4) LinkGroupSyncable(ctx context.Context, groupID, syncableID str
 }
 
 func (c *Client4) UnlinkGroupSyncable(ctx context.Context, groupID, syncableID string, syncableType GroupSyncableType) (*Response, error) {
-	url, err := c.groupSyncableRoute(groupID, syncableID, syncableType).JoinSegments("link").String()
+	url, err := c.groupSyncableRoute(groupID, syncableID, syncableType).Join("link").String()
 	if err != nil {
 		return BuildResponse(nil), err
 	}
@@ -8396,7 +8401,7 @@ func (c *Client4) GetGroupSyncables(ctx context.Context, groupID string, syncabl
 }
 
 func (c *Client4) PatchGroupSyncable(ctx context.Context, groupID, syncableID string, syncableType GroupSyncableType, patch *GroupSyncablePatch) (*GroupSyncable, *Response, error) {
-	route, err := c.groupSyncableRoute(groupID, syncableID, syncableType).JoinSegments("patch").String()
+	route, err := c.groupSyncableRoute(groupID, syncableID, syncableType).Join("patch").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -8414,7 +8419,7 @@ func (c *Client4) TeamMembersMinusGroupMembers(ctx context.Context, teamID strin
 	values.Set("group_ids", groupIDStr)
 	values.Set("page", strconv.Itoa(page))
 	values.Set("per_page", strconv.Itoa(perPage))
-	routeURL, err := c.teamRoute(teamID).JoinSegments("members_minus_group_members").URL()
+	routeURL, err := c.teamRoute(teamID).Join("members_minus_group_members").URL()
 	if err != nil {
 		return nil, 0, nil, err
 	}
@@ -8438,7 +8443,7 @@ func (c *Client4) ChannelMembersMinusGroupMembers(ctx context.Context, channelID
 	values.Set("group_ids", groupIDStr)
 	values.Set("page", strconv.Itoa(page))
 	values.Set("per_page", strconv.Itoa(perPage))
-	routeURL, err := c.channelRoute(channelID).JoinSegments("members_minus_group_members").URL()
+	routeURL, err := c.channelRoute(channelID).Join("members_minus_group_members").URL()
 	if err != nil {
 		return nil, 0, nil, err
 	}
@@ -8456,7 +8461,7 @@ func (c *Client4) ChannelMembersMinusGroupMembers(ctx context.Context, channelID
 }
 
 func (c *Client4) PatchConfig(ctx context.Context, config *Config) (*Config, *Response, error) {
-	route, err := c.configRoute().JoinSegments("patch").String()
+	route, err := c.configRoute().Join("patch").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -8469,7 +8474,7 @@ func (c *Client4) PatchConfig(ctx context.Context, config *Config) (*Config, *Re
 }
 
 func (c *Client4) GetChannelModerations(ctx context.Context, channelID string, etag string) ([]*ChannelModeration, *Response, error) {
-	route, err := c.channelRoute(channelID).JoinSegments("moderations").String()
+	route, err := c.channelRoute(channelID).Join("moderations").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -8482,7 +8487,7 @@ func (c *Client4) GetChannelModerations(ctx context.Context, channelID string, e
 }
 
 func (c *Client4) PatchChannelModerations(ctx context.Context, channelID string, patch []*ChannelModerationPatch) ([]*ChannelModeration, *Response, error) {
-	route, err := c.channelRoute(channelID).JoinSegments("moderations", "patch").String()
+	route, err := c.channelRoute(channelID).Join("moderations", "patch").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -8495,7 +8500,7 @@ func (c *Client4) PatchChannelModerations(ctx context.Context, channelID string,
 }
 
 func (c *Client4) GetKnownUsers(ctx context.Context) ([]string, *Response, error) {
-	route, err := c.usersRoute().JoinSegments("known").String()
+	route, err := c.usersRoute().Join("known").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -8524,7 +8529,7 @@ func (c *Client4) PublishUserTyping(ctx context.Context, userID string, typingRe
 func (c *Client4) GetChannelMemberCountsByGroup(ctx context.Context, channelID string, includeTimezones bool, etag string) ([]*ChannelMemberCountByGroup, *Response, error) {
 	values := url.Values{}
 	values.Set("include_timezones", c.boolString(includeTimezones))
-	routeURL, err := c.channelRoute(channelID).JoinSegments("member_counts_by_group").URL()
+	routeURL, err := c.channelRoute(channelID).Join("member_counts_by_group").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -8561,7 +8566,7 @@ func (c *Client4) RequestTrialLicense(ctx context.Context, users int) (*Response
 
 // GetGroupStats retrieves stats for a Mattermost Group
 func (c *Client4) GetGroupStats(ctx context.Context, groupID string) (*GroupStats, *Response, error) {
-	route, err := c.groupRoute(groupID).JoinSegments("stats").String()
+	route, err := c.groupRoute(groupID).Join("stats").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -8614,7 +8619,7 @@ func (c *Client4) UpdateSidebarCategoriesForTeamForUser(ctx context.Context, use
 }
 
 func (c *Client4) GetSidebarCategoryOrderForTeamForUser(ctx context.Context, userID, teamID, etag string) ([]string, *Response, error) {
-	route, err := c.userCategoryRoute(userID, teamID).JoinSegments("order").String()
+	route, err := c.userCategoryRoute(userID, teamID).Join("order").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -8627,7 +8632,7 @@ func (c *Client4) GetSidebarCategoryOrderForTeamForUser(ctx context.Context, use
 }
 
 func (c *Client4) UpdateSidebarCategoryOrderForTeamForUser(ctx context.Context, userID, teamID string, order []string) ([]string, *Response, error) {
-	route, err := c.userCategoryRoute(userID, teamID).JoinSegments("order").String()
+	route, err := c.userCategoryRoute(userID, teamID).Join("order").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -8640,7 +8645,7 @@ func (c *Client4) UpdateSidebarCategoryOrderForTeamForUser(ctx context.Context, 
 }
 
 func (c *Client4) GetSidebarCategoryForTeamForUser(ctx context.Context, userID, teamID, categoryID, etag string) (*SidebarCategoryWithChannels, *Response, error) {
-	route, err := c.userCategoryRoute(userID, teamID).JoinSegments(categoryID).String()
+	route, err := c.userCategoryRoute(userID, teamID).Join(categoryID).String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -8653,7 +8658,7 @@ func (c *Client4) GetSidebarCategoryForTeamForUser(ctx context.Context, userID, 
 }
 
 func (c *Client4) UpdateSidebarCategoryForTeamForUser(ctx context.Context, userID, teamID, categoryID string, category *SidebarCategoryWithChannels) (*SidebarCategoryWithChannels, *Response, error) {
-	route, err := c.userCategoryRoute(userID, teamID).JoinSegments(categoryID).String()
+	route, err := c.userCategoryRoute(userID, teamID).Join(categoryID).String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -8667,7 +8672,7 @@ func (c *Client4) UpdateSidebarCategoryForTeamForUser(ctx context.Context, userI
 
 // DeleteSidebarCategoryForTeamForUser deletes a sidebar category for a user in a team.
 func (c *Client4) DeleteSidebarCategoryForTeamForUser(ctx context.Context, userId string, teamId string, categoryId string) (*Response, error) {
-	url, err := c.userCategoryRoute(userId, teamId).JoinSegments(categoryId).String()
+	url, err := c.userCategoryRoute(userId, teamId).Join(categoryId).String()
 	if err != nil {
 		return BuildResponse(nil), err
 	}
@@ -8718,7 +8723,7 @@ func (c *Client4) MarkNoticesViewed(ctx context.Context, ids []string) (*Respons
 }
 
 func (c *Client4) CompleteOnboarding(ctx context.Context, request *CompleteOnboardingRequest) (*Response, error) {
-	route, err := c.systemRoute().JoinSegments("onboarding", "complete").String()
+	route, err := c.systemRoute().Join("onboarding", "complete").String()
 	if err != nil {
 		return nil, err
 	}
@@ -8762,7 +8767,7 @@ func (c *Client4) GetUpload(ctx context.Context, uploadId string) (*UploadSessio
 // GetUploadsForUser returns the upload sessions created by the specified
 // userId.
 func (c *Client4) GetUploadsForUser(ctx context.Context, userId string) ([]*UploadSession, *Response, error) {
-	route, err := c.userRoute(userId).JoinSegments("uploads").String()
+	route, err := c.userRoute(userId).Join("uploads").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -8794,7 +8799,7 @@ func (c *Client4) UploadData(ctx context.Context, uploadId string, data io.Reade
 
 func (c *Client4) UpdatePassword(ctx context.Context, userId, currentPassword, newPassword string) (*Response, error) {
 	requestBody := map[string]string{"current_password": currentPassword, "new_password": newPassword}
-	route, err := c.userRoute(userId).JoinSegments("password").String()
+	route, err := c.userRoute(userId).Join("password").String()
 	if err != nil {
 		return nil, err
 	}
@@ -8809,7 +8814,7 @@ func (c *Client4) UpdatePassword(ctx context.Context, userId, currentPassword, n
 // Cloud Section
 
 func (c *Client4) GetCloudProducts(ctx context.Context) ([]*Product, *Response, error) {
-	route, err := c.cloudRoute().JoinSegments("products").String()
+	route, err := c.cloudRoute().Join("products").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -8822,7 +8827,7 @@ func (c *Client4) GetCloudProducts(ctx context.Context) ([]*Product, *Response, 
 }
 
 func (c *Client4) GetSelfHostedProducts(ctx context.Context) ([]*Product, *Response, error) {
-	route, err := c.cloudRoute().JoinSegments("products", "selfhosted").String()
+	route, err := c.cloudRoute().Join("products", "selfhosted").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -8835,7 +8840,7 @@ func (c *Client4) GetSelfHostedProducts(ctx context.Context) ([]*Product, *Respo
 }
 
 func (c *Client4) GetProductLimits(ctx context.Context) (*ProductLimits, *Response, error) {
-	route, err := c.cloudRoute().JoinSegments("limits").String()
+	route, err := c.cloudRoute().Join("limits").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -8876,7 +8881,7 @@ func (c *Client4) ApplyIPFilters(ctx context.Context, allowedRanges *AllowedIPRa
 }
 
 func (c *Client4) GetMyIP(ctx context.Context) (*GetIPAddressResponse, *Response, error) {
-	route, err := c.ipFiltersRoute().JoinSegments("my_ip").String()
+	route, err := c.ipFiltersRoute().Join("my_ip").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -8890,7 +8895,7 @@ func (c *Client4) GetMyIP(ctx context.Context) (*GetIPAddressResponse, *Response
 }
 
 func (c *Client4) ValidateWorkspaceBusinessEmail(ctx context.Context) (*Response, error) {
-	route, err := c.cloudRoute().JoinSegments("validate-workspace-business-email").String()
+	route, err := c.cloudRoute().Join("validate-workspace-business-email").String()
 	if err != nil {
 		return nil, err
 	}
@@ -8926,7 +8931,7 @@ func (c *Client4) TriggerNotifyAdmin(ctx context.Context, nr *NotifyAdminToUpgra
 }
 
 func (c *Client4) ValidateBusinessEmail(ctx context.Context, email *ValidateBusinessEmailRequest) (*Response, error) {
-	route, err := c.cloudRoute().JoinSegments("validate-business-email").String()
+	route, err := c.cloudRoute().Join("validate-business-email").String()
 	if err != nil {
 		return nil, err
 	}
@@ -8940,7 +8945,7 @@ func (c *Client4) ValidateBusinessEmail(ctx context.Context, email *ValidateBusi
 }
 
 func (c *Client4) GetCloudCustomer(ctx context.Context) (*CloudCustomer, *Response, error) {
-	route, err := c.cloudRoute().JoinSegments("customer").String()
+	route, err := c.cloudRoute().Join("customer").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -8953,7 +8958,7 @@ func (c *Client4) GetCloudCustomer(ctx context.Context) (*CloudCustomer, *Respon
 }
 
 func (c *Client4) GetSubscription(ctx context.Context) (*Subscription, *Response, error) {
-	route, err := c.cloudRoute().JoinSegments("subscription").String()
+	route, err := c.cloudRoute().Join("subscription").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -8966,7 +8971,7 @@ func (c *Client4) GetSubscription(ctx context.Context) (*Subscription, *Response
 }
 
 func (c *Client4) GetInvoicesForSubscription(ctx context.Context) ([]*Invoice, *Response, error) {
-	route, err := c.cloudRoute().JoinSegments("subscription", "invoices").String()
+	route, err := c.cloudRoute().Join("subscription", "invoices").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -8979,7 +8984,7 @@ func (c *Client4) GetInvoicesForSubscription(ctx context.Context) ([]*Invoice, *
 }
 
 func (c *Client4) UpdateCloudCustomer(ctx context.Context, customerInfo *CloudCustomerInfo) (*CloudCustomer, *Response, error) {
-	route, err := c.cloudRoute().JoinSegments("customer").String()
+	route, err := c.cloudRoute().Join("customer").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -8992,7 +8997,7 @@ func (c *Client4) UpdateCloudCustomer(ctx context.Context, customerInfo *CloudCu
 }
 
 func (c *Client4) UpdateCloudCustomerAddress(ctx context.Context, address *Address) (*CloudCustomer, *Response, error) {
-	route, err := c.cloudRoute().JoinSegments("customer", "address").String()
+	route, err := c.cloudRoute().Join("customer", "address").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -9080,7 +9085,7 @@ func (c *Client4) DownloadExport(ctx context.Context, name string, wr io.Writer,
 }
 
 func (c *Client4) GeneratePresignedURL(ctx context.Context, name string) (*PresignURLResponse, *Response, error) {
-	route, err := c.exportRoute(name).JoinSegments("presign-url").String()
+	route, err := c.exportRoute(name).Join("presign-url").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -9141,7 +9146,7 @@ func (c *Client4) GetUserThreads(ctx context.Context, userId, teamId string, opt
 }
 
 func (c *Client4) DownloadComplianceExport(ctx context.Context, jobId string, wr io.Writer) (string, error) {
-	route, err := c.jobsRoute().JoinSegments(jobId, "download").String()
+	route, err := c.jobsRoute().Join(jobId, "download").String()
 	if err != nil {
 		return "", err
 	}
@@ -9188,7 +9193,7 @@ func (c *Client4) GetUserThread(ctx context.Context, userId, teamId, threadId st
 }
 
 func (c *Client4) UpdateThreadsReadForUser(ctx context.Context, userId, teamId string) (*Response, error) {
-	route, err := c.userThreadsRoute(userId, teamId).JoinSegments("read").String()
+	route, err := c.userThreadsRoute(userId, teamId).Join("read").String()
 	if err != nil {
 		return BuildResponse(nil), err
 	}
@@ -9202,7 +9207,7 @@ func (c *Client4) UpdateThreadsReadForUser(ctx context.Context, userId, teamId s
 }
 
 func (c *Client4) SetThreadUnreadByPostId(ctx context.Context, userId, teamId, threadId, postId string) (*ThreadResponse, *Response, error) {
-	route, err := c.userThreadRoute(userId, teamId, threadId).JoinSegments("set_unread", postId).String()
+	route, err := c.userThreadRoute(userId, teamId, threadId).Join("set_unread", postId).String()
 	if err != nil {
 		return nil, BuildResponse(nil), err
 	}
@@ -9215,7 +9220,7 @@ func (c *Client4) SetThreadUnreadByPostId(ctx context.Context, userId, teamId, t
 }
 
 func (c *Client4) UpdateThreadReadForUser(ctx context.Context, userId, teamId, threadId string, timestamp int64) (*ThreadResponse, *Response, error) {
-	route, err := c.userThreadRoute(userId, teamId, threadId).JoinSegments("read", fmt.Sprintf("%d", timestamp)).String()
+	route, err := c.userThreadRoute(userId, teamId, threadId).Join("read", fmt.Sprintf("%d", timestamp)).String()
 	if err != nil {
 		return nil, BuildResponse(nil), err
 	}
@@ -9228,7 +9233,7 @@ func (c *Client4) UpdateThreadReadForUser(ctx context.Context, userId, teamId, t
 }
 
 func (c *Client4) UpdateThreadFollowForUser(ctx context.Context, userId, teamId, threadId string, state bool) (*Response, error) {
-	route, err := c.userThreadRoute(userId, teamId, threadId).JoinSegments("following").String()
+	route, err := c.userThreadRoute(userId, teamId, threadId).Join("following").String()
 	if err != nil {
 		return nil, err
 	}
@@ -9250,7 +9255,7 @@ func (c *Client4) GetAllSharedChannels(ctx context.Context, teamID string, page,
 	values := url.Values{}
 	values.Set("page", strconv.Itoa(page))
 	values.Set("per_page", strconv.Itoa(perPage))
-	urlVal, err := c.sharedChannelsRoute().JoinSegments(teamID).URL()
+	urlVal, err := c.sharedChannelsRoute().Join(teamID).URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -9265,7 +9270,7 @@ func (c *Client4) GetAllSharedChannels(ctx context.Context, teamID string, page,
 }
 
 func (c *Client4) GetRemoteClusterInfo(ctx context.Context, remoteID string) (RemoteClusterInfo, *Response, error) {
-	url, err := c.sharedChannelsRoute().JoinSegments("remote_info", remoteID).String()
+	url, err := c.sharedChannelsRoute().Join("remote_info", remoteID).String()
 	if err != nil {
 		return RemoteClusterInfo{}, BuildResponse(nil), err
 	}
@@ -9345,7 +9350,7 @@ func (c *Client4) CreateRemoteCluster(ctx context.Context, rcWithPassword *Remot
 }
 
 func (c *Client4) RemoteClusterAcceptInvite(ctx context.Context, rcAcceptInvite *RemoteClusterAcceptInvite) (*RemoteCluster, *Response, error) {
-	url, err := c.remoteClusterRoute().JoinSegments("accept_invite").String()
+	url, err := c.remoteClusterRoute().Join("accept_invite").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -9358,7 +9363,7 @@ func (c *Client4) RemoteClusterAcceptInvite(ctx context.Context, rcAcceptInvite 
 }
 
 func (c *Client4) GenerateRemoteClusterInvite(ctx context.Context, remoteClusterId, password string) (string, *Response, error) {
-	url, err := c.remoteClusterRoute().JoinSegments(remoteClusterId, "generate_invite").String()
+	url, err := c.remoteClusterRoute().Join(remoteClusterId, "generate_invite").String()
 	if err != nil {
 		return "", BuildResponse(nil), err
 	}
@@ -9371,7 +9376,7 @@ func (c *Client4) GenerateRemoteClusterInvite(ctx context.Context, remoteCluster
 }
 
 func (c *Client4) GetRemoteCluster(ctx context.Context, remoteClusterId string) (*RemoteCluster, *Response, error) {
-	route, err := c.remoteClusterRoute().JoinSegments(remoteClusterId).String()
+	route, err := c.remoteClusterRoute().Join(remoteClusterId).String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -9384,7 +9389,7 @@ func (c *Client4) GetRemoteCluster(ctx context.Context, remoteClusterId string) 
 }
 
 func (c *Client4) PatchRemoteCluster(ctx context.Context, remoteClusterId string, patch *RemoteClusterPatch) (*RemoteCluster, *Response, error) {
-	url, err := c.remoteClusterRoute().JoinSegments(remoteClusterId).String()
+	url, err := c.remoteClusterRoute().Join(remoteClusterId).String()
 	if err != nil {
 		return nil, BuildResponse(nil), err
 	}
@@ -9397,7 +9402,7 @@ func (c *Client4) PatchRemoteCluster(ctx context.Context, remoteClusterId string
 }
 
 func (c *Client4) DeleteRemoteCluster(ctx context.Context, remoteClusterId string) (*Response, error) {
-	route, err := c.remoteClusterRoute().JoinSegments(remoteClusterId).String()
+	route, err := c.remoteClusterRoute().Join(remoteClusterId).String()
 	if err != nil {
 		return BuildResponse(nil), err
 	}
@@ -9449,7 +9454,7 @@ func (c *Client4) GetSharedChannelRemotesByRemoteCluster(ctx context.Context, re
 }
 
 func (c *Client4) InviteRemoteClusterToChannel(ctx context.Context, remoteId, channelId string) (*Response, error) {
-	url, err := c.channelRemoteRoute(remoteId, channelId).JoinSegments("invite").String()
+	url, err := c.channelRemoteRoute(remoteId, channelId).Join("invite").String()
 	if err != nil {
 		return BuildResponse(nil), err
 	}
@@ -9462,7 +9467,7 @@ func (c *Client4) InviteRemoteClusterToChannel(ctx context.Context, remoteId, ch
 }
 
 func (c *Client4) UninviteRemoteClusterToChannel(ctx context.Context, remoteId, channelId string) (*Response, error) {
-	url, err := c.channelRemoteRoute(remoteId, channelId).JoinSegments("uninvite").String()
+	url, err := c.channelRemoteRoute(remoteId, channelId).Join("uninvite").String()
 	if err != nil {
 		return BuildResponse(nil), err
 	}
@@ -9476,7 +9481,7 @@ func (c *Client4) UninviteRemoteClusterToChannel(ctx context.Context, remoteId, 
 
 func (c *Client4) GetAncillaryPermissions(ctx context.Context, subsectionPermissions []string) ([]string, *Response, error) {
 	var returnedPermissions []string
-	url, err := c.permissionsRoute().JoinSegments("ancillary").String()
+	url, err := c.permissionsRoute().Join("ancillary").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -9492,7 +9497,7 @@ func (c *Client4) GetUsersWithInvalidEmails(ctx context.Context, page, perPage i
 	values := url.Values{}
 	values.Set("page", strconv.Itoa(page))
 	values.Set("per_page", strconv.Itoa(perPage))
-	routeURL, err := c.usersRoute().JoinSegments("invalid_emails").URL()
+	routeURL, err := c.usersRoute().Join("invalid_emails").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -9506,7 +9511,7 @@ func (c *Client4) GetUsersWithInvalidEmails(ctx context.Context, page, perPage i
 }
 
 func (c *Client4) GetAppliedSchemaMigrations(ctx context.Context) ([]AppliedMigration, *Response, error) {
-	route, err := c.systemRoute().JoinSegments("schema", "version").String()
+	route, err := c.systemRoute().Join("schema", "version").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -9522,7 +9527,7 @@ func (c *Client4) GetAppliedSchemaMigrations(ctx context.Context) ([]AppliedMigr
 
 // GetPostsUsage returns rounded off total usage of posts for the instance
 func (c *Client4) GetPostsUsage(ctx context.Context) (*PostsUsage, *Response, error) {
-	route, err := c.usageRoute().JoinSegments("posts").String()
+	route, err := c.usageRoute().Join("posts").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -9537,7 +9542,7 @@ func (c *Client4) GetPostsUsage(ctx context.Context) (*PostsUsage, *Response, er
 // GetStorageUsage returns the file storage usage for the instance,
 // rounded down the most signigicant digit
 func (c *Client4) GetStorageUsage(ctx context.Context) (*StorageUsage, *Response, error) {
-	route, err := c.usageRoute().JoinSegments("storage").String()
+	route, err := c.usageRoute().Join("storage").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -9551,7 +9556,7 @@ func (c *Client4) GetStorageUsage(ctx context.Context) (*StorageUsage, *Response
 
 // GetTeamsUsage returns total usage of teams for the instance
 func (c *Client4) GetTeamsUsage(ctx context.Context) (*TeamsUsage, *Response, error) {
-	route, err := c.usageRoute().JoinSegments("teams").String()
+	route, err := c.usageRoute().Join("teams").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -9564,7 +9569,7 @@ func (c *Client4) GetTeamsUsage(ctx context.Context) (*TeamsUsage, *Response, er
 }
 
 func (c *Client4) GetPostInfo(ctx context.Context, postId string) (*PostInfo, *Response, error) {
-	route, err := c.postRoute(postId).JoinSegments("info").String()
+	route, err := c.postRoute(postId).Join("info").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -9577,7 +9582,7 @@ func (c *Client4) GetPostInfo(ctx context.Context, postId string) (*PostInfo, *R
 }
 
 func (c *Client4) AcknowledgePost(ctx context.Context, postId, userId string) (*PostAcknowledgement, *Response, error) {
-	route, err := c.userRoute(userId).JoinRoutes(c.postRoute(postId)).JoinSegments("ack").String()
+	route, err := c.userRoute(userId).Join(c.postRoute(postId), "ack").String()
 	if err != nil {
 		return nil, BuildResponse(nil), err
 	}
@@ -9590,7 +9595,7 @@ func (c *Client4) AcknowledgePost(ctx context.Context, postId, userId string) (*
 }
 
 func (c *Client4) UnacknowledgePost(ctx context.Context, postId, userId string) (*Response, error) {
-	route, err := c.userRoute(userId).JoinRoutes(c.postRoute(postId)).JoinSegments("ack").String()
+	route, err := c.userRoute(userId).Join(c.postRoute(postId), "ack").String()
 	if err != nil {
 		return BuildResponse(nil), err
 	}
@@ -9604,7 +9609,7 @@ func (c *Client4) UnacknowledgePost(ctx context.Context, postId, userId string) 
 }
 
 func (c *Client4) AddUserToGroupSyncables(ctx context.Context, userID string) (*Response, error) {
-	route, err := c.ldapRoute().JoinSegments("users", userID, "group_sync_memberships").String()
+	route, err := c.ldapRoute().Join("users", userID, "group_sync_memberships").String()
 	if err != nil {
 		return BuildResponse(nil), err
 	}
@@ -9618,7 +9623,7 @@ func (c *Client4) AddUserToGroupSyncables(ctx context.Context, userID string) (*
 }
 
 func (c *Client4) CheckCWSConnection(ctx context.Context, userId string) (*Response, error) {
-	route, err := c.cloudRoute().JoinSegments("healthz").String()
+	route, err := c.cloudRoute().Join("healthz").String()
 	if err != nil {
 		return nil, err
 	}
@@ -9661,7 +9666,7 @@ func (c *Client4) UpdateChannelBookmark(ctx context.Context, channelId, bookmark
 
 // UpdateChannelBookmarkSortOrder updates a channel bookmark's sort order based on the provided new index.
 func (c *Client4) UpdateChannelBookmarkSortOrder(ctx context.Context, channelId, bookmarkId string, sortOrder int64) ([]*ChannelBookmarkWithFileInfo, *Response, error) {
-	route, err := c.bookmarkRoute(channelId, bookmarkId).JoinSegments("sort_order").String()
+	route, err := c.bookmarkRoute(channelId, bookmarkId).Join("sort_order").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -9734,7 +9739,7 @@ func (c *Client4) GetFilteredUsersStats(ctx context.Context, options *UserCountO
 		v.Set("team_roles", strings.Join(options.TeamRoles, ","))
 	}
 
-	routeURL, err := c.usersRoute().JoinSegments("stats", "filtered").URL()
+	routeURL, err := c.usersRoute().Join("stats", "filtered").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -9748,7 +9753,7 @@ func (c *Client4) GetFilteredUsersStats(ctx context.Context, options *UserCountO
 }
 
 func (c *Client4) RestorePostVersion(ctx context.Context, postId, versionId string) (*Post, *Response, error) {
-	route, err := c.postRoute(postId).JoinSegments("restore", versionId).String()
+	route, err := c.postRoute(postId).Join("restore", versionId).String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -9853,7 +9858,7 @@ func (c *Client4) PatchCPAValuesForUser(ctx context.Context, userID string, valu
 }
 
 func (c *Client4) GetPostPropertyValues(ctx context.Context, postId string) ([]PropertyValue, *Response, error) {
-	route, err := c.contentFlaggingRoute().JoinSegments("post", postId, "field_values").String()
+	route, err := c.contentFlaggingRoute().Join("post", postId, "field_values").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -9919,7 +9924,7 @@ func (c *Client4) CheckExpression(ctx context.Context, expression string, channe
 	if len(channelId) > 0 && channelId[0] != "" {
 		checkExpressionRequest.ChannelId = channelId[0]
 	}
-	route, err := c.celRoute().JoinSegments("check").String()
+	route, err := c.celRoute().Join("check").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -9932,7 +9937,7 @@ func (c *Client4) CheckExpression(ctx context.Context, expression string, channe
 }
 
 func (c *Client4) TestExpression(ctx context.Context, params QueryExpressionParams) (*AccessControlPolicyTestResponse, *Response, error) {
-	route, err := c.celRoute().JoinSegments("test").String()
+	route, err := c.celRoute().Join("test").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -9945,7 +9950,7 @@ func (c *Client4) TestExpression(ctx context.Context, params QueryExpressionPara
 }
 
 func (c *Client4) SearchAccessControlPolicies(ctx context.Context, options AccessControlPolicySearch) (*AccessControlPoliciesWithCount, *Response, error) {
-	route, err := c.accessControlPoliciesRoute().JoinSegments("search").String()
+	route, err := c.accessControlPoliciesRoute().Join("search").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -9963,7 +9968,7 @@ func (c *Client4) AssignAccessControlPolicies(ctx context.Context, policyID stri
 	}
 	assignments.ChannelIds = resourceIDs
 
-	route, err := c.accessControlPolicyRoute(policyID).JoinSegments("assign").String()
+	route, err := c.accessControlPolicyRoute(policyID).Join("assign").String()
 	if err != nil {
 		return nil, err
 	}
@@ -9982,7 +9987,7 @@ func (c *Client4) UnassignAccessControlPolicies(ctx context.Context, policyID st
 	}
 	unassignments.ChannelIds = resourceIDs
 
-	route, err := c.accessControlPolicyRoute(policyID).JoinSegments("unassign").String()
+	route, err := c.accessControlPolicyRoute(policyID).Join("unassign").String()
 	if err != nil {
 		return nil, err
 	}
@@ -9999,7 +10004,7 @@ func (c *Client4) GetChannelsForAccessControlPolicy(ctx context.Context, policyI
 	values := url.Values{}
 	values.Set("after", after)
 	values.Set("limit", strconv.Itoa(limit))
-	routeURL, err := c.accessControlPolicyRoute(policyID).JoinSegments("resources", "channels").URL()
+	routeURL, err := c.accessControlPolicyRoute(policyID).Join("resources", "channels").URL()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -10013,7 +10018,7 @@ func (c *Client4) GetChannelsForAccessControlPolicy(ctx context.Context, policyI
 }
 
 func (c *Client4) SearchChannelsForAccessControlPolicy(ctx context.Context, policyID string, options ChannelSearch) (*ChannelsWithCount, *Response, error) {
-	route, err := c.accessControlPolicyRoute(policyID).JoinSegments("resources", "channels", "search").String()
+	route, err := c.accessControlPolicyRoute(policyID).Join("resources", "channels", "search").String()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -10026,7 +10031,7 @@ func (c *Client4) SearchChannelsForAccessControlPolicy(ctx context.Context, poli
 }
 
 func (c *Client4) SetAccessControlPolicyActive(ctx context.Context, update AccessControlPolicyActiveUpdateRequest) ([]*AccessControlPolicy, *Response, error) {
-	route, err := c.accessControlPoliciesRoute().JoinSegments("activate").String()
+	route, err := c.accessControlPoliciesRoute().Join("activate").String()
 	if err != nil {
 		return nil, nil, err
 	}

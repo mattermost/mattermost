@@ -9,28 +9,26 @@ type clientRoute struct {
 	segments []string
 }
 
-func clean(segment string) string {
-	s := url.PathEscape(segment)
-	return strings.ReplaceAll(s, "..", "")
+func cleanSegment(segment string) string {
+	s := strings.ReplaceAll(segment, "..", "")
+	return url.PathEscape(s)
 }
 
 func newClientRoute(segment string) clientRoute {
-	return clientRoute{
-		[]string{clean(segment)},
-	}
+	return clientRoute{}.Join(segment)
 }
 
-func (r clientRoute) JoinRoutes(newRoutes ...clientRoute) clientRoute {
-	for _, newRoute := range newRoutes {
-		r.segments = append(r.segments, newRoute.segments...)
-	}
-	return r
-}
-
-func (r clientRoute) JoinSegments(segments ...string) clientRoute {
+func (r clientRoute) Join(segments ...any) clientRoute {
 	for _, segment := range segments {
-		r.segments = append(r.segments, clean(segment))
+		if s, ok := segment.(string); ok {
+			r.segments = append(r.segments, cleanSegment(s))
+		}
+
+		if s, ok := segment.(clientRoute); ok {
+			r.segments = append(r.segments, s.segments...)
+		}
 	}
+
 	return r
 }
 

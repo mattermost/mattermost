@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -63,7 +64,7 @@ func TestClientRouteJoinRoute(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := tt.base.JoinRoutes(tt.join)
+			result := tt.base.Join(tt.join)
 			str, err := result.String()
 			if tt.wantErr {
 				require.Error(t, err)
@@ -115,7 +116,7 @@ func TestClientRouteJoinSegment(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := tt.base.JoinSegments(tt.segment)
+			result := tt.base.Join(tt.segment)
 			str, err := result.String()
 			if tt.wantErr {
 				require.Error(t, err)
@@ -127,46 +128,46 @@ func TestClientRouteJoinSegment(t *testing.T) {
 	}
 }
 
-func TestClientRouteJoinSegments(t *testing.T) {
+func TestClientRouteJoin(t *testing.T) {
 	tests := []struct {
 		name     string
 		base     clientRoute
-		segments []string
+		segments []any
 		expected string
 		wantErr  bool
 	}{
 		{
 			name:     "multiple valid segments",
 			base:     newClientRoute("api"),
-			segments: []string{"v4", "users", "me"},
+			segments: []any{"v4", "users", "me"},
 			expected: "/api/v4/users/me",
 			wantErr:  false,
 		},
 		{
 			name:     "no segments",
 			base:     newClientRoute("api"),
-			segments: []string{},
+			segments: []any{},
 			expected: "/api",
 			wantErr:  false,
 		},
 		{
 			name:     "segment with slash - escaped",
 			base:     newClientRoute("api"),
-			segments: []string{"v4", "users/me"},
+			segments: []any{"v4", "users/me"},
 			expected: "/api/v4/users%2Fme",
 			wantErr:  false,
 		},
 		{
 			name:     "empty segment",
 			base:     newClientRoute("api"),
-			segments: []string{"v4", "users", "", "me"},
+			segments: []any{"v4", "users", "", "me"},
 			expected: "/api/v4/users/me",
 			wantErr:  false,
 		},
 		{
 			name:     "empty segment at the end",
 			base:     newClientRoute("api"),
-			segments: []string{"v4", "users", ""},
+			segments: []any{"v4", "users", ""},
 			expected: "/api/v4/users/",
 			wantErr:  false,
 		},
@@ -174,7 +175,7 @@ func TestClientRouteJoinSegments(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := tt.base.JoinSegments(tt.segments...)
+			result := tt.base.Join(tt.segments...)
 			str, err := result.String()
 			if tt.wantErr {
 				require.Error(t, err)
@@ -195,7 +196,7 @@ func TestClientRouteURL(t *testing.T) {
 	}{
 		{
 			name:        "simple route",
-			route:       newClientRoute("api").JoinRoutes(newClientRoute("v4")),
+			route:       newClientRoute("api").Join(newClientRoute("v4")),
 			expectedURL: "/api/v4",
 			wantErr:     false,
 		},
@@ -207,7 +208,7 @@ func TestClientRouteURL(t *testing.T) {
 		},
 		{
 			name:        "complex route",
-			route:       newClientRoute("api").JoinRoutes(newClientRoute("v4")).JoinSegments("users"),
+			route:       newClientRoute("api").Join(newClientRoute("v4"), "users"),
 			expectedURL: "/api/v4/users",
 			wantErr:     false,
 		},
@@ -249,14 +250,26 @@ func TestClientRouteString(t *testing.T) {
 		},
 		{
 			name:     "complex route",
-			route:    newClientRoute("api").JoinRoutes(newClientRoute("v4")).JoinSegments("users", "me"),
+			route:    newClientRoute("api").Join(newClientRoute("v4"), "users", "me"),
 			expected: "/api/v4/users/me",
 			wantErr:  false,
 		},
 		{
 			name:     "route with special characters",
-			route:    newClientRoute("api").JoinSegments("hello world"),
+			route:    newClientRoute("api").Join("hello world"),
 			expected: "/api/hello%20world",
+			wantErr:  false,
+		},
+		{
+			name:     "route with special characters",
+			route:    newClientRoute("").Join(".."),
+			expected: "/",
+			wantErr:  false,
+		},
+		{
+			name:     "route with control characters, which make url.JoinPath to error out",
+			route:    newClientRoute("[fe80::1%en0]"),
+			expected: "/%5Bfe80::1%25en0%5D",
 			wantErr:  false,
 		},
 	}
@@ -286,7 +299,7 @@ func TestClientRouteLeadingSlash(t *testing.T) {
 		},
 		{
 			name:  "multiple segments",
-			route: newClientRoute("api").JoinSegments("v4"),
+			route: newClientRoute("api").Join("v4"),
 		},
 	}
 
@@ -304,3 +317,85 @@ func TestClientRouteLeadingSlash(t *testing.T) {
 		})
 	}
 }
+
+func TestClean(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "simple string",
+			input:    "api",
+			expected: "api",
+		},
+		{
+			name:     "string with spaces",
+			input:    "hello world",
+			expected: "hello%20world",
+		},
+		{
+			name:     "string with slashes",
+			input:    "api/v4",
+			expected: "api%2Fv4",
+		},
+		{
+			name:     "just two dots",
+			input:    "..",
+			expected: "",
+		},
+		{
+			name:     "two dots at start",
+			input:    "../api",
+			expected: "%2Fapi",
+		},
+		{
+			name:     "two dots at end",
+			input:    "api/..",
+			expected: "api%2F",
+		},
+		{
+			name:     "two dots in middle",
+			input:    "api/../v4",
+			expected: "api%2F%2Fv4",
+		},
+		{
+			name:     "multiple two dots",
+			input:    "../../api",
+			expected: "%2F%2Fapi",
+		},
+		{
+			name:     "empty string",
+			input:    "",
+			expected: "",
+		},
+		{
+			name:     "special characters",
+			input:    "user@example.com",
+			expected: "user@example.com",
+		},
+		{
+			name:     "single dot",
+			input:    ".",
+			expected: ".",
+		},
+		{
+			name:     "three dots",
+			input:    "...",
+			expected: ".",
+		},
+		{
+			name:     "four dots",
+			input:    "....",
+			expected: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := cleanSegment(tt.input)
+			require.Equal(t, tt.expected, result)
+		})
+	}
+}
+
