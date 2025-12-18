@@ -41,6 +41,9 @@ func getMockStore(t *testing.T) *mocks.Store {
 	mockReactionsStore.On("GetForPost", "123", true).Return([]*model.Reaction{&fakeReaction}, nil)
 	mockStore.On("Reaction").Return(&mockReactionsStore)
 
+	mockAutoTranslationStore := mocks.AutoTranslationStore{}
+	mockStore.On("AutoTranslation").Return(&mockAutoTranslationStore)
+
 	fakeRole := model.Role{Id: "123", Name: "role-name"}
 	fakeRole2 := model.Role{Id: "456", Name: "role-name2"}
 	mockRolesStore := mocks.RoleStore{}

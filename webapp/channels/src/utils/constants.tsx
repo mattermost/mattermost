@@ -827,6 +827,7 @@ export const PostTypes = {
     CUSTOM_CALLS: 'custom_calls',
     CUSTOM_CALLS_RECORDING: 'custom_calls_recording',
     CUSTOM_DATA_SPILLAGE_REPORT: 'custom_spillage_report',
+    BURN_ON_READ: 'burn_on_read',
 };
 
 export const StatTypes = keyMirror({
@@ -1627,6 +1628,7 @@ export const Constants = {
     EMAIL_SERVICE: 'email',
     LDAP_SERVICE: 'ldap',
     SAML_SERVICE: 'saml',
+    MAGIC_LINK_SERVICE: 'guest_magic_link',
     USERNAME_SERVICE: 'username',
     SIGNIN_CHANGE: 'signin_change',
     PASSWORD_CHANGE: 'password_change',

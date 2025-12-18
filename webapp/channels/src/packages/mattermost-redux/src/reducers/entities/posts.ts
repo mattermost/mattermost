@@ -279,6 +279,28 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
         };
     }
 
+    case PostTypes.REVEAL_BURN_ON_READ_SUCCESS: {
+        const {post, expireAt} = action.data;
+
+        if (!state[post.id]) {
+            return state;
+        }
+
+        return {
+            ...state,
+            [post.id]: {
+                ...state[post.id],
+                ...post,
+                props: {
+                    ...state[post.id].props,
+                    ...post.props,
+                    revealed: true,
+                    expire_at: expireAt,
+                },
+            },
+        };
+    }
+
     case ChannelTypes.LEAVE_CHANNEL: {
         const channelId = action.data.id;
 

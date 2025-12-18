@@ -4,7 +4,7 @@
 import classNames from 'classnames';
 import React, {useCallback, useEffect, useRef, useState, useMemo} from 'react';
 import type {MouseEvent} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {Emoji} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';
@@ -24,6 +24,8 @@ import PriorityLabel from 'components/post_priority/post_priority_label';
 import PostProfilePicture from 'components/post_profile_picture';
 import PostAcknowledgements from 'components/post_view/acknowledgements';
 import AiGeneratedIndicator from 'components/post_view/ai_generated_indicator/ai_generated_indicator';
+import BurnOnReadBadge from 'components/post_view/burn_on_read_badge';
+import BurnOnReadConcealedPlaceholder from 'components/post_view/burn_on_read_concealed_placeholder';
 import CommentedOn from 'components/post_view/commented_on/commented_on';
 import FailedPostOptions from 'components/post_view/failed_post_options';
 import PostAriaLabelDiv from 'components/post_view/post_aria_label_div';
@@ -39,7 +41,7 @@ import InfoSmallIcon from 'components/widgets/icons/info_small_icon';
 import WithTooltip from 'components/with_tooltip';
 
 import {getHistory} from 'utils/browser_history';
-import Constants, {A11yCustomEventTypes, AppEvents, Locations} from 'utils/constants';
+import Constants, {A11yCustomEventTypes, AppEvents, Locations, PostTypes} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 import * as PostUtils from 'utils/post_utils';
@@ -97,6 +99,7 @@ export type Props = {
         closeRightHandSide: () => void;
         selectPostCard: (post: Post) => void;
         setRhsExpanded: (rhsExpanded: boolean) => void;
+        revealBurnOnReadPost: (postId: string) => void;
     };
     timestampProps?: Partial<TimestampProps>;
     shouldHighlight?: boolean;
@@ -117,10 +120,13 @@ export type Props = {
     isCardOpen?: boolean;
     canDelete?: boolean;
     pluginActions: PostActionComponent[];
+    shouldDisplayBurnOnReadConcealed?: boolean;
+    isBurnOnReadEnabled?: boolean;
 };
 
 function PostComponent(props: Props) {
     const {post, shouldHighlight, togglePostMenu} = props;
+    const {formatMessage} = useIntl();
 
     const isSearchResultItem = (props.matches && props.matches.length > 0) || props.isMentionSearch || (props.term && props.term.length > 0);
     const isRHS = props.location === Locations.RHS_ROOT || props.location === Locations.RHS_COMMENT || props.location === Locations.SEARCH;
@@ -135,6 +141,8 @@ function PostComponent(props: Props) {
     const [fadeOutHighlight, setFadeOutHighlight] = useState(false);
     const [alt, setAlt] = useState(false);
     const [hasReceivedA11yFocus, setHasReceivedA11yFocus] = useState(false);
+    const [burnOnReadRevealing, setBurnOnReadRevealing] = useState(false);
+    const [burnOnReadRevealError, setBurnOnReadRevealError] = useState<string | null>(null);
 
     const isSystemMessage = PostUtils.isSystemMessage(post);
     const fromAutoResponder = PostUtils.fromAutoResponder(post);
@@ -397,6 +405,37 @@ function PostComponent(props: Props) {
         }
     }, [handleCommentClick, handleJumpClick, props.currentTeam?.id, teamId]);
 
+    const handleRevealBurnOnRead = useCallback(async (postId: string) => {
+        setBurnOnReadRevealing(true);
+        setBurnOnReadRevealError(null);
+
+        const result = await props.actions.revealBurnOnReadPost(postId) as any;
+
+        setBurnOnReadRevealing(false);
+
+        if (result?.error) {
+            // Handle different error types with i18n
+            let errorMessage = formatMessage({
+                id: 'post.burn_on_read.reveal_error.generic',
+                defaultMessage: 'Failed to reveal message. Please try again.',
+            });
+
+            if (result.error.status_code === 404) {
+                errorMessage = formatMessage({
+                    id: 'post.burn_on_read.reveal_error.not_found',
+                    defaultMessage: 'This message is no longer available.',
+                });
+            } else if (result.error.status_code === 403) {
+                errorMessage = formatMessage({
+                    id: 'post.burn_on_read.reveal_error.forbidden',
+                    defaultMessage: "You don't have permission to view this message.",
+                });
+            }
+
+            setBurnOnReadRevealError(errorMessage);
+        }
+    }, [props.actions, formatMessage]);
+
     const postClass = classNames('post__body', {'post--edited': PostUtils.isEdited(post), 'search-item-snippet': isSearchResultItem});
 
     let comment;
@@ -443,33 +482,51 @@ function PostComponent(props: Props) {
         }
     }
 
-    const message = isSearchResultItem ? (
-        <PostBodyAdditionalContent
-            post={post}
-            options={{
-                searchTerm: props.term,
-                searchMatches: props.matches,
-            }}
-        >
-            <PostMessageContainer
+    // Determine if we should show concealed placeholder for burn-on-read posts
+    const showConcealedPlaceholder = props.shouldDisplayBurnOnReadConcealed && post.type === PostTypes.BURN_ON_READ;
+
+    let message;
+    if (showConcealedPlaceholder) {
+        message = (
+            <BurnOnReadConcealedPlaceholder
+                postId={post.id}
+                authorName={props.displayName || post.user_id}
+                onReveal={handleRevealBurnOnRead}
+                loading={burnOnReadRevealing}
+                error={burnOnReadRevealError}
+            />
+        );
+    } else if (isSearchResultItem) {
+        message = (
+            <PostBodyAdditionalContent
                 post={post}
                 options={{
                     searchTerm: props.term,
                     searchMatches: props.matches,
-                    mentionHighlight: props.isMentionSearch,
                 }}
+            >
+                <PostMessageContainer
+                    post={post}
+                    options={{
+                        searchTerm: props.term,
+                        searchMatches: props.matches,
+                        mentionHighlight: props.isMentionSearch,
+                    }}
+                    isRHS={isRHS}
+                />
+            </PostBodyAdditionalContent>
+        );
+    } else {
+        message = (
+            <MessageWithAdditionalContent
+                post={post}
+                isEmbedVisible={props.isEmbedVisible}
+                pluginPostTypes={props.pluginPostTypes}
                 isRHS={isRHS}
+                compactDisplay={props.compactDisplay}
             />
-        </PostBodyAdditionalContent>
-    ) : (
-        <MessageWithAdditionalContent
-            post={post}
-            isEmbedVisible={props.isEmbedVisible}
-            pluginPostTypes={props.pluginPostTypes}
-            isRHS={isRHS}
-            compactDisplay={props.compactDisplay}
-        />
-    );
+        );
+    }
 
     const slotBasedOnEditOrMessageView = props.isPostBeingEdited ? AutoHeightSlots.SLOT2 : AutoHeightSlots.SLOT1;
     const threadFooter = props.location !== Locations.RHS_ROOT && props.isCollapsedThreadsEnabled && !post.root_id && (props.hasReplies || post.is_following) ? (
@@ -507,6 +564,23 @@ function PostComponent(props: Props) {
         priority = <span className='d-flex mr-2 ml-1'><PriorityLabel priority={post.metadata.priority.priority}/></span>;
     }
 
+    // Burn-on-Read badge logic
+    // Only show badge on first post in a series (not on consecutive posts)
+    let burnOnReadBadge;
+    if (props.isBurnOnReadEnabled && post.type === PostTypes.BURN_ON_READ && post.state !== Posts.POST_DELETED && !props.isConsecutivePost) {
+        const isSender = post.user_id === props.currentUserId;
+        const revealed = post.props?.revealed === true;
+
+        burnOnReadBadge = (
+            <BurnOnReadBadge
+                postId={post.id}
+                isSender={isSender}
+                revealed={revealed}
+                onReveal={handleRevealBurnOnRead}
+            />
+        );
+    }
+
     let postAriaLabelDivTestId = '';
     if (props.location === Locations.CENTER) {
         postAriaLabelDivTestId = 'postView';
@@ -514,7 +588,8 @@ function PostComponent(props: Props) {
         postAriaLabelDivTestId = 'rhsPostView';
     }
 
-    const showFileAttachments = post.file_ids && post.file_ids.length > 0 && !props.isPostBeingEdited;
+    // Don't show file attachments for concealed burn-on-read posts (attachments only fetched after reveal)
+    const showFileAttachments = post.file_ids && post.file_ids.length > 0 && !props.isPostBeingEdited && !showConcealedPlaceholder;
 
     return (
         <>
@@ -589,12 +664,12 @@ function PostComponent(props: Props) {
                                     />
                                 }
                                 {priority}
-                                {Boolean(post.props && post.props.ai_generated_by && post.props.ai_generated_by_username) &&
-                                    typeof post.props.ai_generated_by === 'string' &&
-                                    typeof post.props.ai_generated_by_username === 'string' && (
+                                {burnOnReadBadge}
+                                {((!props.compactDisplay && !(hasSameRoot(props) && props.isConsecutivePost)) || (props.compactDisplay && isRHS)) &&
+                                    PostUtils.hasAiGeneratedMetadata(post) && (
                                     <AiGeneratedIndicator
-                                        userId={post.props.ai_generated_by}
-                                        username={post.props.ai_generated_by_username}
+                                        userId={post.props.ai_generated_by as string}
+                                        username={post.props.ai_generated_by_username as string}
                                         postAuthorId={post.user_id}
                                     />
                                 )}

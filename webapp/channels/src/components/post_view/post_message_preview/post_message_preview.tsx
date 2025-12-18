@@ -13,10 +13,13 @@ import {ensureString} from 'mattermost-redux/utils/post_utils';
 
 import FileAttachmentListContainer from 'components/file_attachment_list';
 import PriorityLabel from 'components/post_priority/post_priority_label';
+import AiGeneratedIndicator from 'components/post_view/ai_generated_indicator/ai_generated_indicator';
 import PostAttachmentOpenGraph from 'components/post_view/post_attachment_opengraph';
 import PostMessageView from 'components/post_view/post_message_view';
 import Timestamp from 'components/timestamp';
 import UserProfileComponent from 'components/user_profile';
+
+import * as PostUtils from 'utils/post_utils';
 
 import PreviewPostAvatar from './avatar/avatar';
 
@@ -160,6 +163,13 @@ const PostMessagePreview = (props: Props) => {
                             <span className='d-flex mr-2 ml-1'>
                                 <PriorityLabel priority={previewPost.metadata.priority.priority}/>
                             </span>
+                        )}
+                        {PostUtils.hasAiGeneratedMetadata(previewPost) && (
+                            <AiGeneratedIndicator
+                                userId={previewPost.props.ai_generated_by as string}
+                                username={previewPost.props.ai_generated_by_username as string}
+                                postAuthorId={previewPost.user_id}
+                            />
                         )}
                     </div>
                 </div>

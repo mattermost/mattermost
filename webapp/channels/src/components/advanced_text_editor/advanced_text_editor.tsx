@@ -77,6 +77,8 @@ import SendButton from './send_button';
 import ShowFormat from './show_formatting';
 import TexteditorActions from './texteditor_actions';
 import ToggleFormattingBar from './toggle_formatting_bar';
+import UnifiedLabelsWrapper from './unified_labels_wrapper';
+import useBurnOnRead from './use_burn_on_read';
 import useEditorEmojiPicker from './use_editor_emoji_picker';
 import useKeyHandler from './use_key_handler';
 import useOrientationHandler from './use_orientation_handler';
@@ -350,7 +352,11 @@ const AdvancedTextEditor = ({
         additionalControl: priorityAdditionalControl,
         isValidPersistentNotifications,
         onSubmitCheck: prioritySubmitCheck,
-    } = usePriority(draft, handleDraftChange, focusTextbox, showPreview);
+    } = usePriority(draft, handleDraftChange, focusTextbox, showPreview, false);
+    const {
+        labels: burnOnReadLabels,
+        additionalControl: burnOnReadAdditionalControl,
+    } = useBurnOnRead(draft, handleDraftChange, focusTextbox, showPreview, false);
     const [handleSubmit, errorClass] = useSubmit(
         draft,
         postError,
@@ -395,6 +401,22 @@ const AdvancedTextEditor = ({
             metadata: {},
         });
     }, [handleDraftChange, channelId, rootId]);
+
+    // Unified handler to remove all labels (priority + burn on read)
+    const handleRemoveAllLabels = useCallback(() => {
+        // Remove both priority and burn_on_read in a single draft update
+        const updatedDraft = {
+            ...draft,
+        };
+
+        // Remove both priority and burn_on_read from metadata
+        // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unused-vars
+        const {priority: _priority, burn_on_read: _burnOnRead, ...restMetadata} = updatedDraft.metadata || {};
+        updatedDraft.metadata = restMetadata;
+
+        handleDraftChange(updatedDraft, {instant: true});
+        focusTextbox();
+    }, [draft, handleDraftChange, focusTextbox]);
 
     const handleSubmitWrapper = useCallback(() => {
         const isEmptyPost = isPostDraftEmpty(draft);
@@ -687,8 +709,9 @@ const AdvancedTextEditor = ({
     const additionalControls = useMemo(() => [
         !isInEditMode && priorityAdditionalControl,
         aiRewriteEnabled && aiRewriteAdditionalControl,
+        !isInEditMode && burnOnReadAdditionalControl,
         ...(pluginItems || []),
-    ].filter(Boolean), [pluginItems, priorityAdditionalControl, aiRewriteAdditionalControl, isInEditMode, aiRewriteEnabled]);
+    ].filter(Boolean), [pluginItems, priorityAdditionalControl, aiRewriteAdditionalControl, isInEditMode, aiRewriteEnabled, burnOnReadAdditionalControl]);
 
     const formattingBar = (
         <AutoHeightSwitcher
@@ -784,9 +807,18 @@ const AdvancedTextEditor = ({
                         tabIndex={-1}
                         className='AdvancedTextEditor__cell a11y__region'
                     >
-                        {!isInEditMode && priorityLabels}
+                        {!isInEditMode && (priorityLabels || burnOnReadLabels) && (
+                            <div className='AdvancedTextEditor__labels'>
+                                <UnifiedLabelsWrapper
+                                    priorityLabels={priorityLabels}
+                                    burnOnReadLabels={burnOnReadLabels}
+                                    onRemoveAll={handleRemoveAllLabels}
+                                    canRemove={!showPreview}
+                                />
+                            </div>
+                        )}
                         <Textbox
-                            hasLabels={isInEditMode ? false : Boolean(priorityLabels)}
+                            hasLabels={isInEditMode ? false : Boolean(priorityLabels || burnOnReadLabels)}
                             suggestionList={location === Locations.RHS_COMMENT ? RhsSuggestionList : SuggestionList}
                             onChange={handleChange}
                             onKeyPress={postMsgKeyPress}

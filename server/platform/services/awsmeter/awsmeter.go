@@ -4,17 +4,16 @@
 package awsmeter
 
 import (
+	"context"
 	"encoding/json"
 	"os"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds"
-	"github.com/aws/aws-sdk-go/aws/ec2metadata"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/marketplacemetering"
-	"github.com/aws/aws-sdk-go/service/marketplacemetering/marketplacemeteringiface"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials/ec2rolecreds"
+	"github.com/aws/aws-sdk-go-v2/feature/ec2/imds"
+	"github.com/aws/aws-sdk-go-v2/service/marketplacemetering"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -28,15 +27,19 @@ type AwsMeter struct {
 	config  *model.Config
 }
 
+type MeteringService interface {
+	MeterUsage(ctx context.Context, input *marketplacemetering.MeterUsageInput, optFns ...func(*marketplacemetering.Options)) (*marketplacemetering.MeterUsageOutput, error)
+}
+
 type AWSMeterService struct {
 	AwsDryRun      bool
 	AwsProductCode string
-	AwsMeteringSvc marketplacemeteringiface.MarketplaceMeteringAPI
+	AwsMeteringSvc MeteringService
 }
 
 type AWSMeterReport struct {
 	Dimension string    `json:"dimension"`
-	Value     int64     `json:"value"`
+	Value     int32     `json:"value"`
 	Timestamp time.Time `json:"timestamp"`
 }
 
@@ -45,13 +48,13 @@ func (o *AWSMeterReport) ToJSON() string {
 	return string(b)
 }
 
-func New(store store.Store, config *model.Config) *AwsMeter {
+func New(ctx context.Context, store store.Store, config *model.Config) *AwsMeter {
 	svc := &AWSMeterService{
 		AwsDryRun:      false,
 		AwsProductCode: "12345", //TODO
 	}
 
-	service, err := newAWSMarketplaceMeteringService()
+	service, err := newAWSMarketplaceMeteringService(ctx)
 	if err != nil {
 		mlog.Debug("Could not create AWS metering service", mlog.String("error", err.Error()))
 		return nil
@@ -65,28 +68,27 @@ func New(store store.Store, config *model.Config) *AwsMeter {
 	}
 }
 
-func newAWSMarketplaceMeteringService() (*marketplacemetering.MarketplaceMetering, error) {
+func newAWSMarketplaceMeteringService(ctx context.Context) (*marketplacemetering.Client, error) {
 	region := os.Getenv("AWS_REGION")
-	s, err := session.NewSession(&aws.Config{Region: &region})
-	if err != nil {
-		return nil, err
-	}
+	imdsClient := imds.New(imds.Options{})
+	credsProvider := ec2rolecreds.New(func(o *ec2rolecreds.Options) { o.Client = imdsClient })
 
-	creds := credentials.NewChainCredentials(
-		[]credentials.Provider{
-			&ec2rolecreds.EC2RoleProvider{
-				Client: ec2metadata.New(s),
-			},
-		})
+	creds := aws.NewCredentialsCache(credsProvider)
 
-	_, err = creds.Get()
+	_, err := creds.Retrieve(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot obtain credentials")
 	}
 
-	return marketplacemetering.New(session.Must(session.NewSession(&aws.Config{
-		Credentials: creds,
-	}))), nil
+	cfg, err := config.LoadDefaultConfig(ctx,
+		config.WithRegion(region),
+		config.WithCredentialsProvider(creds),
+	)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to load default config with EC2 credentials provider")
+	}
+
+	return marketplacemetering.NewFromConfig(cfg), nil
 }
 
 // a report entry is for all metrics
@@ -94,7 +96,7 @@ func (awsm *AwsMeter) GetUserCategoryUsage(dimensions []string, startTime time.T
 	reports := make([]*AWSMeterReport, 0)
 
 	for _, dimension := range dimensions {
-		var userCount int64
+		var userCount int32
 		var err error
 
 		switch dimension {
@@ -121,9 +123,9 @@ func (awsm *AwsMeter) GetUserCategoryUsage(dimensions []string, startTime time.T
 	return reports
 }
 
-func (awsm *AwsMeter) ReportUserCategoryUsage(reports []*AWSMeterReport) error {
+func (awsm *AwsMeter) ReportUserCategoryUsage(ctx context.Context, reports []*AWSMeterReport) error {
 	for _, report := range reports {
-		err := sendReportToMeteringService(awsm.service, report)
+		err := sendReportToMeteringService(ctx, awsm.service, report)
 		if err != nil {
 			return err
 		}
@@ -131,16 +133,16 @@ func (awsm *AwsMeter) ReportUserCategoryUsage(reports []*AWSMeterReport) error {
 	return nil
 }
 
-func sendReportToMeteringService(ams *AWSMeterService, report *AWSMeterReport) error {
+func sendReportToMeteringService(ctx context.Context, ams *AWSMeterService, report *AWSMeterReport) error {
 	params := &marketplacemetering.MeterUsageInput{
 		DryRun:         aws.Bool(ams.AwsDryRun),
 		ProductCode:    aws.String(ams.AwsProductCode),
 		UsageDimension: aws.String(report.Dimension),
-		UsageQuantity:  aws.Int64(report.Value),
+		UsageQuantity:  aws.Int32(report.Value),
 		Timestamp:      aws.Time(report.Timestamp),
 	}
 
-	resp, err := ams.AwsMeteringSvc.MeterUsage(params)
+	resp, err := ams.AwsMeteringSvc.MeterUsage(ctx, params)
 	if err != nil {
 		return errors.Wrap(err, "Invalid metering service id.")
 	}

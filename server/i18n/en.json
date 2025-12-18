@@ -3371,6 +3371,10 @@
     "translation": "Guest accounts are disabled"
   },
   {
+    "id": "api.team.invite_guests_to_channels.guest_magic_link_disabled.error",
+    "translation": "Guest magic link is not enabled"
+  },
+  {
     "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
     "translation": "Invalid or missing request body."
   },
@@ -3681,6 +3685,26 @@
   {
     "id": "api.templates.email_warning",
     "translation": "If you did not make this change, please contact the system administrator."
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.footer.info",
+    "translation": "This email was sent to you because someone requested a login link for Mattermost. If you did not request this, you can safely ignore this email."
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.footer.title",
+    "translation": "Didn't request this email?"
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.subtitle",
+    "translation": "Click the button below to sign in to your account. Remember not to share this link with anyone else."
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.title",
+    "translation": "Sign in to Mattermost"
+  },
+  {
+    "id": "api.templates.guest_magic_link_subject",
+    "translation": "Sign in to {{ .SiteName }}"
   },
   {
     "id": "api.templates.invite_body.button",
@@ -4279,6 +4303,26 @@
     "translation": "Access control service unavailable. Cannot filter users for ABAC-enabled channel."
   },
   {
+    "id": "api.user.guest_magic_link.expired_token.app_error",
+    "translation": "This invitation link has expired."
+  },
+  {
+    "id": "api.user.guest_magic_link.invalid_token.app_error",
+    "translation": "Invalid invitation link."
+  },
+  {
+    "id": "api.user.guest_magic_link.invalid_token_type.app_error",
+    "translation": "Invalid invitation link type."
+  },
+  {
+    "id": "api.user.guest_magic_link.missing_token.app_error",
+    "translation": "Missing invitation token."
+  },
+  {
+    "id": "api.user.guest_magic_link.username_generation_failed.app_error",
+    "translation": "Could not generate a unique username. Please contact your system administrator."
+  },
+  {
     "id": "api.user.invalidate_password_recovery_tokens.error",
     "translation": "Unable to get tokens by type when invalidating password recovery tokens"
   },
@@ -4325,6 +4369,10 @@
   {
     "id": "api.user.login.guest_accounts.license.error",
     "translation": "Your license does not support guest accounts"
+  },
+  {
+    "id": "api.user.login.guest_magic_link.disabled.error",
+    "translation": "Login with magic link is disabled."
   },
   {
     "id": "api.user.login.inactive.app_error",
@@ -4399,6 +4447,10 @@
     "translation": "Field '{{.Field}}' must be set through user's login provider."
   },
   {
+    "id": "api.user.promote_guest_to_user.magic_link_enabled.app_error",
+    "translation": "Unable to convert the guest to regular user because the guest uses magic link authentication."
+  },
+  {
     "id": "api.user.promote_guest_to_user.no_guest.app_error",
     "translation": "Unable to convert the guest to regular user because is not a guest."
   },
@@ -4449,6 +4501,10 @@
   {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "Failed to send email change verification email successfully"
+  },
+  {
+    "id": "api.user.send_password_reset.guest_magic_link.app_error",
+    "translation": "Unable to reset password for guest magic link accounts."
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
@@ -6759,6 +6815,10 @@
     "translation": "Could not unassign access control policy from channels."
   },
   {
+    "id": "app.pap.update_access_control_policies_active.app_error",
+    "translation": "Could not update active status of access control policies."
+  },
+  {
     "id": "app.pap.update_access_control_policy_active.app_error",
     "translation": "Could not change active status of access control policy."
   },
@@ -7743,6 +7803,10 @@
   {
     "id": "app.update_error",
     "translation": "update error"
+  },
+  {
+    "id": "app.update_scheduled_post.convert_to_post.error",
+    "translation": "Unable to convert scheduled post to post format."
   },
   {
     "id": "app.update_scheduled_post.existing_scheduled_post.not_exist",
@@ -11131,6 +11195,66 @@
   {
     "id": "sharedchannel.permalink.not_found",
     "translation": "This post contains permalinks to other channels which may not be visible to users in other sites."
+  },
+  {
+    "id": "store.sql_autotranslation.channel_not_found",
+    "translation": "Channel not found."
+  },
+  {
+    "id": "store.sql_autotranslation.get.app_error",
+    "translation": "Unable to get translation."
+  },
+  {
+    "id": "store.sql_autotranslation.get_active_languages.app_error",
+    "translation": "Unable to get active languages."
+  },
+  {
+    "id": "store.sql_autotranslation.get_channel_enabled.app_error",
+    "translation": "Unable to get channel autotranslation enabled status."
+  },
+  {
+    "id": "store.sql_autotranslation.get_user_enabled.app_error",
+    "translation": "Unable to get user autotranslation enabled status."
+  },
+  {
+    "id": "store.sql_autotranslation.get_user_language.app_error",
+    "translation": "Unable to get user language."
+  },
+  {
+    "id": "store.sql_autotranslation.is_channel_enabled.app_error",
+    "translation": "Unable to get channel autotranslation enabled status."
+  },
+  {
+    "id": "store.sql_autotranslation.member_not_found",
+    "translation": "Member not found."
+  },
+  {
+    "id": "store.sql_autotranslation.meta_json.app_error",
+    "translation": "Failed to parse translation metadata JSON."
+  },
+  {
+    "id": "store.sql_autotranslation.query_build_error",
+    "translation": "Failed to build query."
+  },
+  {
+    "id": "store.sql_autotranslation.save.app_error",
+    "translation": "Unable to save translation."
+  },
+  {
+    "id": "store.sql_autotranslation.save.invalid_translation",
+    "translation": "Translation validation failed. The translation object is invalid."
+  },
+  {
+    "id": "store.sql_autotranslation.save.meta_json.app_error",
+    "translation": "Failed to serialize translation metadata to JSON."
+  },
+  {
+    "id": "store.sql_autotranslation.set_channel_enabled.app_error",
+    "translation": "Unable to set channel autotranslation enabled status."
+  },
+  {
+    "id": "store.sql_autotranslation.set_user_enabled.app_error",
+    "translation": "Unable to set user autotranslation enabled status."
   },
   {
     "id": "store.sql_bot.get.missing.app_error",

@@ -95,6 +95,7 @@ type Store interface {
 	PropertyValue() PropertyValueStore
 	AccessControlPolicy() AccessControlPolicyStore
 	Attributes() AttributesStore
+	AutoTranslation() AutoTranslationStore
 	GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error)
 	ContentFlagging() ContentFlaggingStore
 }
@@ -470,7 +471,7 @@ type UserStore interface {
 	GetSystemAdminProfiles() (map[string]*model.User, error)
 	PermanentDelete(rctx request.CTX, userID string) error
 	AnalyticsActiveCount(timestamp int64, options model.UserCountOptions) (int64, error)
-	AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int64, error)
+	AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int32, error)
 	GetUnreadCount(userID string, isCRTEnabled bool) (int64, error)
 	GetUnreadCountForChannel(userID string, channelID string) (int64, error)
 	GetAnyUnreadPostCountForChannel(userID string, channelID string) (int64, error)
@@ -499,6 +500,7 @@ type UserStore interface {
 	PromoteGuestToUser(userID string) error
 	DemoteUserToGuest(userID string) (*model.User, error)
 	DeactivateGuests() ([]string, error)
+	DeactivateMagicLinkGuests() ([]string, error)
 	AutocompleteUsersInChannel(rctx request.CTX, teamID, channelID, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error)
 	GetKnownUsers(userID string) ([]string, error)
 	IsEmpty(excludeBots bool) (bool, error)
@@ -700,6 +702,7 @@ type TokenStore interface {
 	Cleanup(expiryTime int64)
 	GetAllTokensByType(tokenType string) ([]*model.Token, error)
 	RemoveAllTokensByType(tokenType string) error
+	GetTokenByTypeAndEmail(tokenType string, email string) (*model.Token, error)
 }
 
 type DesktopTokensStore interface {
@@ -1137,6 +1140,7 @@ type AccessControlPolicyStore interface {
 	Save(rctx request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, error)
 	Delete(rctx request.CTX, id string) error
 	SetActiveStatus(rctx request.CTX, id string, active bool) (*model.AccessControlPolicy, error)
+	SetActiveStatusMultiple(rctx request.CTX, list []model.AccessControlPolicyActiveUpdate) ([]*model.AccessControlPolicy, error)
 	Get(rctx request.CTX, id string) (*model.AccessControlPolicy, error)
 	SearchPolicies(rctx request.CTX, opts model.AccessControlPolicySearch) ([]*model.AccessControlPolicy, int64, error)
 }
@@ -1146,6 +1150,28 @@ type AttributesStore interface {
 	GetSubject(rctx request.CTX, ID, groupID string) (*model.Subject, error)
 	SearchUsers(rctx request.CTX, opts model.SubjectSearchOptions) ([]*model.User, int64, error)
 	GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error)
+}
+
+type AutoTranslationStore interface {
+	IsChannelEnabled(channelID string) (bool, *model.AppError)
+	SetChannelEnabled(channelID string, enabled bool) *model.AppError
+	IsUserEnabled(userID, channelID string) (bool, *model.AppError)
+	SetUserEnabled(userID, channelID string, enabled bool) *model.AppError
+	GetUserLanguage(userID, channelID string) (string, *model.AppError)
+	// GetActiveDestinationLanguages returns distinct locales of users who have auto-translation enabled.
+	// Optional filterUserIDs parameter restricts results to specific user IDs (typically those with active WebSocket connections).
+	// Pass nil for filterUserIDs to include all users, or a pointer to a slice to filter to specific users.
+	GetActiveDestinationLanguages(channelID, excludeUserID string, filterUserIDs []string) ([]string, *model.AppError)
+	Get(objectID, dstLang string) (*model.Translation, *model.AppError)
+	Save(translation *model.Translation) *model.AppError
+
+	ClearCaches()
+	// InvalidateUserAutoTranslation invalidates all auto-translation caches for a user in a channel.
+	// This is called when a user is removed from a channel.
+	InvalidateUserAutoTranslation(userID, channelID string)
+	// InvalidateUserLocaleCache invalidates all language caches for a user across all channels.
+	// This is called when a user changes their locale preference.
+	InvalidateUserLocaleCache(userID string)
 }
 
 type ContentFlaggingStore interface {

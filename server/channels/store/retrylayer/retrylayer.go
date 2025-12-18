@@ -23,6 +23,7 @@ type RetryLayer struct {
 	AccessControlPolicyStore        store.AccessControlPolicyStore
 	AttributesStore                 store.AttributesStore
 	AuditStore                      store.AuditStore
+	AutoTranslationStore            store.AutoTranslationStore
 	BotStore                        store.BotStore
 	ChannelStore                    store.ChannelStore
 	ChannelBookmarkStore            store.ChannelBookmarkStore
@@ -84,6 +85,10 @@ func (s *RetryLayer) Attributes() store.AttributesStore {
 
 func (s *RetryLayer) Audit() store.AuditStore {
 	return s.AuditStore
+}
+
+func (s *RetryLayer) AutoTranslation() store.AutoTranslationStore {
+	return s.AutoTranslationStore
 }
 
 func (s *RetryLayer) Bot() store.BotStore {
@@ -294,6 +299,11 @@ type RetryLayerAttributesStore struct {
 
 type RetryLayerAuditStore struct {
 	store.AuditStore
+	Root *RetryLayer
+}
+
+type RetryLayerAutoTranslationStore struct {
+	store.AutoTranslationStore
 	Root *RetryLayer
 }
 
@@ -658,6 +668,27 @@ func (s *RetryLayerAccessControlPolicyStore) SetActiveStatus(rctx request.CTX, i
 
 }
 
+func (s *RetryLayerAccessControlPolicyStore) SetActiveStatusMultiple(rctx request.CTX, list []model.AccessControlPolicyActiveUpdate) ([]*model.AccessControlPolicy, error) {
+
+	tries := 0
+	for {
+		result, err := s.AccessControlPolicyStore.SetActiveStatusMultiple(rctx, list)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error) {
 
 	tries := 0
@@ -802,6 +833,72 @@ func (s *RetryLayerAuditStore) Save(audit *model.Audit) error {
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
+
+}
+
+func (s *RetryLayerAutoTranslationStore) ClearCaches() {
+
+	s.AutoTranslationStore.ClearCaches()
+
+}
+
+func (s *RetryLayerAutoTranslationStore) Get(objectID string, dstLang string) (*model.Translation, *model.AppError) {
+
+	return s.AutoTranslationStore.Get(objectID, dstLang)
+
+}
+
+func (s *RetryLayerAutoTranslationStore) GetActiveDestinationLanguages(channelID string, excludeUserID string, filterUserIDs []string) ([]string, *model.AppError) {
+
+	return s.AutoTranslationStore.GetActiveDestinationLanguages(channelID, excludeUserID, filterUserIDs)
+
+}
+
+func (s *RetryLayerAutoTranslationStore) GetUserLanguage(userID string, channelID string) (string, *model.AppError) {
+
+	return s.AutoTranslationStore.GetUserLanguage(userID, channelID)
+
+}
+
+func (s *RetryLayerAutoTranslationStore) InvalidateUserAutoTranslation(userID string, channelID string) {
+
+	s.AutoTranslationStore.InvalidateUserAutoTranslation(userID, channelID)
+
+}
+
+func (s *RetryLayerAutoTranslationStore) InvalidateUserLocaleCache(userID string) {
+
+	s.AutoTranslationStore.InvalidateUserLocaleCache(userID)
+
+}
+
+func (s *RetryLayerAutoTranslationStore) IsChannelEnabled(channelID string) (bool, *model.AppError) {
+
+	return s.AutoTranslationStore.IsChannelEnabled(channelID)
+
+}
+
+func (s *RetryLayerAutoTranslationStore) IsUserEnabled(userID string, channelID string) (bool, *model.AppError) {
+
+	return s.AutoTranslationStore.IsUserEnabled(userID, channelID)
+
+}
+
+func (s *RetryLayerAutoTranslationStore) Save(translation *model.Translation) *model.AppError {
+
+	return s.AutoTranslationStore.Save(translation)
+
+}
+
+func (s *RetryLayerAutoTranslationStore) SetChannelEnabled(channelID string, enabled bool) *model.AppError {
+
+	return s.AutoTranslationStore.SetChannelEnabled(channelID, enabled)
+
+}
+
+func (s *RetryLayerAutoTranslationStore) SetUserEnabled(userID string, channelID string, enabled bool) *model.AppError {
+
+	return s.AutoTranslationStore.SetUserEnabled(userID, channelID, enabled)
 
 }
 
@@ -14398,6 +14495,27 @@ func (s *RetryLayerTokenStore) GetByToken(token string) (*model.Token, error) {
 
 }
 
+func (s *RetryLayerTokenStore) GetTokenByTypeAndEmail(tokenType string, email string) (*model.Token, error) {
+
+	tries := 0
+	for {
+		result, err := s.TokenStore.GetTokenByTypeAndEmail(tokenType, email)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerTokenStore) RemoveAllTokensByType(tokenType string) error {
 
 	tries := 0
@@ -14566,7 +14684,7 @@ func (s *RetryLayerUserStore) AnalyticsActiveCount(timestamp int64, options mode
 
 }
 
-func (s *RetryLayerUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int64, error) {
+func (s *RetryLayerUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int32, error) {
 
 	tries := 0
 	for {
@@ -14745,6 +14863,27 @@ func (s *RetryLayerUserStore) DeactivateGuests() ([]string, error) {
 	tries := 0
 	for {
 		result, err := s.UserStore.DeactivateGuests()
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerUserStore) DeactivateMagicLinkGuests() ([]string, error) {
+
+	tries := 0
+	for {
+		result, err := s.UserStore.DeactivateMagicLinkGuests()
 		if err == nil {
 			return result, nil
 		}
@@ -17075,6 +17214,7 @@ func New(childStore store.Store) *RetryLayer {
 	newStore.AccessControlPolicyStore = &RetryLayerAccessControlPolicyStore{AccessControlPolicyStore: childStore.AccessControlPolicy(), Root: &newStore}
 	newStore.AttributesStore = &RetryLayerAttributesStore{AttributesStore: childStore.Attributes(), Root: &newStore}
 	newStore.AuditStore = &RetryLayerAuditStore{AuditStore: childStore.Audit(), Root: &newStore}
+	newStore.AutoTranslationStore = &RetryLayerAutoTranslationStore{AutoTranslationStore: childStore.AutoTranslation(), Root: &newStore}
 	newStore.BotStore = &RetryLayerBotStore{BotStore: childStore.Bot(), Root: &newStore}
 	newStore.ChannelStore = &RetryLayerChannelStore{ChannelStore: childStore.Channel(), Root: &newStore}
 	newStore.ChannelBookmarkStore = &RetryLayerChannelBookmarkStore{ChannelBookmarkStore: childStore.ChannelBookmark(), Root: &newStore}
