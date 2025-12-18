@@ -216,6 +216,14 @@ func (ps *PlatformService) InvalidateCacheForChannelPosts(channelID string) {
 	ps.Store.Post().InvalidateLastPostTimeCache(channelID)
 }
 
+func (ps *PlatformService) InvalidateCacheForReadReceipts(postID string) {
+	ps.Store.ReadReceipt().InvalidateReadReceiptForPostsCache(postID)
+}
+
+func (ps *PlatformService) InvalidateCacheForTemporaryPost(id string) {
+	ps.Store.TemporaryPost().InvalidateTemporaryPost(id)
+}
+
 func (ps *PlatformService) InvalidateCacheForUser(userID string) {
 	ps.InvalidateChannelCacheForUser(userID)
 	ps.Store.User().InvalidateProfileCacheForUser(userID)

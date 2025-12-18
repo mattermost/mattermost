@@ -12,8 +12,6 @@ import KeyboardShortcutSequence, {
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import PopoutButton from 'components/popout_button';
 import FollowButton from 'components/threading/common/follow_button';
-import CRTThreadsPaneTutorialTip
-    from 'components/tours/crt_tour/crt_threads_pane_tutorial_tip';
 import WithTooltip from 'components/with_tooltip';
 
 import {getHistory} from 'utils/browser_history';
@@ -32,7 +30,6 @@ type Props = WrappedComponentProps & {
     isCollapsedThreadsEnabled: boolean;
     isFollowingThread?: boolean;
     currentTeam?: Team;
-    showThreadsTutorialTip: boolean;
     currentUserId: string;
     setRhsExpanded: (b: boolean) => void;
     showMentions: () => void;
@@ -246,7 +243,6 @@ class RhsHeaderPost extends React.PureComponent<Props> {
                         </button>
                     </WithTooltip>
                 </div>
-                {this.props.showThreadsTutorialTip && <CRTThreadsPaneTutorialTip/>}
             </div>
         );
     }
