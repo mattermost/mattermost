@@ -14,7 +14,7 @@ import {extractUserIdsAndMentionsFromPosts} from 'mattermost-redux/actions/statu
 import {selectTeam} from 'mattermost-redux/actions/teams';
 import {getThread} from 'mattermost-redux/actions/threads';
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
-import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getChannel, getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getTeamByName} from 'mattermost-redux/selectors/entities/teams';
 import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
@@ -23,10 +23,12 @@ import {loadStatusesByIds} from 'actions/status_actions';
 import {markThreadAsRead} from 'actions/views/threads';
 
 import {usePost} from 'components/common/hooks/usePost';
+import {useUser} from 'components/common/hooks/useUser';
 import ThreadPane from 'components/threading/global_threads/thread_pane';
 import ThreadViewer from 'components/threading/thread_viewer';
 import UnreadsStatusHandler from 'components/unreads_status_handler';
 
+import {Constants} from 'utils/constants';
 import usePopoutTitle from 'utils/popouts/use_popout_title';
 import {isDesktopApp} from 'utils/user_agent';
 
@@ -54,6 +56,8 @@ export default function ThreadPopout() {
     const post = usePost(postId);
     const team = useSelector((state: GlobalState) => getTeamByName(state, teamName));
     const channel = useSelector((state: GlobalState) => getChannel(state, post?.channel_id ?? ''));
+    const currentChannel = useSelector(getCurrentChannel);
+    const dmUser = useUser(currentChannel?.type === Constants.DM_CHANNEL && currentChannel.teammate_id ? currentChannel.teammate_id : '');
     const thread = useSelector((state: GlobalState) => {
         if (!post) {
             return undefined;
@@ -118,7 +122,7 @@ export default function ThreadPopout() {
         };
     }, []);
 
-    if (!thread) {
+    if (!thread || (channel?.type === Constants.DM_CHANNEL && !dmUser)) {
         return null;
     }
 
