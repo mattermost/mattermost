@@ -9953,6 +9953,10 @@
     "translation": "Invalid group unread channels for service settings. Must be 'disabled', 'default_on', or 'default_off'."
   },
   {
+    "id": "model.config.is_valid.guest_accounts.cannot_enforce_multifactor_authentication_when_guest_magic_link_is_enabled.app_error",
+    "translation": "You cannot enforce multifactor authentication for guest accounts when magic link authentication is enabled."
+  },
+  {
     "id": "model.config.is_valid.image_decoder_concurrency.app_error",
     "translation": "Invalid decoder concurrency {{.Value}}. Should be a positive number or -1."
   },
