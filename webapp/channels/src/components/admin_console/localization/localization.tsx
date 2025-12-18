@@ -74,7 +74,7 @@ const messages = defineMessages({
     },
     enableExperimentalLocalesDescription: {
         id: 'admin.general.localization.enableExperimentalLocalesDescription',
-        defaultMessage: 'When true, it allows users to select experimental (e.g. in progress) languages.',
+        defaultMessage: 'When true, it allows users to select experimental (e.g., in progress) languages.',
     },
 });
 
