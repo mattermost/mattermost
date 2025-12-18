@@ -73,18 +73,13 @@ func (a *App) UpdateScheduledPost(rctx request.CTX, userId string, scheduledPost
 		return nil, validationErr
 	}
 
-	// validate the scheduled post belongs to the said user
 	existingScheduledPost, err := a.Srv().Store().ScheduledPost().Get(scheduledPost.Id)
 	if err != nil {
 		return nil, model.NewAppError("app.UpdateScheduledPost", "app.update_scheduled_post.get_scheduled_post.error", map[string]any{"user_id": userId, "scheduled_post_id": scheduledPost.Id}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if existingScheduledPost == nil {
-		return nil, model.NewAppError("app.UpdateScheduledPost", "app.update_scheduled_post.existing_scheduled_post.not_exist", map[string]any{"user_id": userId, "scheduled_post_id": scheduledPost.Id}, "", http.StatusNotFound)
-	}
-
-	if existingScheduledPost.UserId != userId {
-		return nil, model.NewAppError("app.UpdateScheduledPost", "app.update_scheduled_post.update_permission.error", map[string]any{"user_id": userId, "scheduled_post_id": scheduledPost.Id}, "", http.StatusForbidden)
+		return nil, model.NewAppError("app.UpdateScheduledPost", "app.update_scheduled_post.existing_scheduled_post.not_exist", map[string]any{"user_id": userId, "scheduled_post_id": scheduledPost.Id}, "", http.StatusInternalServerError)
 	}
 
 	// This step is not required for update but is useful as we want to return the
