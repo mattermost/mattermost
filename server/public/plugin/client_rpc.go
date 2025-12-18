@@ -58,7 +58,7 @@ import (
 
 var hookNameToId = make(map[string]int)
 
-// hooksRPCClient is the client-side RPC proxy that runs in the Mattermost server process.
+// hooksRPCClient is the client-side RPC proxy that runs in the Mattermost server process and connects to to the [hooksRPCServer] on the plugin side.
 // It implements the Hooks interface and forwards hook invocations to plugins running in
 // separate processes via RPC.
 //
@@ -78,7 +78,7 @@ type hooksRPCClient struct {
 	doneWg      sync.WaitGroup
 }
 
-// hooksRPCServer is the server-side RPC handler that runs in the plugin process.
+// hooksRPCServer is the server-side RPC handler that runs in the plugin process and receives requests from [hooksRPCClient].
 // It receives hook invocations from hooksRPCClient (in the Mattermost server) and
 // delegates them to the actual plugin implementation.
 //
@@ -113,7 +113,7 @@ func (p *hooksPlugin) Client(b *plugin.MuxBroker, client *rpc.Client) (any, erro
 	}, nil
 }
 
-// apiRPCClient is the client-side RPC proxy that runs in the plugin process.
+// apiRPCClient is the client-side RPC proxy that runs in the plugin process and connects to the [apiRPCServer] on the Mattermost server side.
 // It implements the API interface and allows plugins to call Mattermost server
 // APIs (e.g., GetUser, CreatePost) by forwarding requests via RPC to apiRPCServer.
 //
@@ -123,7 +123,7 @@ type apiRPCClient struct {
 	muxBroker *plugin.MuxBroker
 }
 
-// apiRPCServer is the server-side RPC handler that runs in the Mattermost server process.
+// apiRPCServer is the server-side RPC handler that runs in the Mattermost server process and receives requests from [apiRPCClient].
 // It receives API calls from plugins (via apiRPCClient) and delegates them to the actual
 // Mattermost API implementation.
 //
