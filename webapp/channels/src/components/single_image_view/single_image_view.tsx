@@ -13,7 +13,7 @@ import {getFilePreviewUrl, getFileUrl, getFileThumbnailUrl} from 'mattermost-red
 import FilePreviewModal from 'components/file_preview_modal';
 import SizeAwareImage from 'components/size_aware_image';
 
-import {FileTypes, ModalIdentifiers} from 'utils/constants';
+import {FileTypes, HttpHeaders, ModalIdentifiers} from 'utils/constants';
 import {
     getFileType,
 } from 'utils/utils';
@@ -88,8 +88,8 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
 
         fetch(thumbnailUrl, options).then((response) => {
             if (this.mounted) {
-                // 423 Locked = rejected by plugin
-                const rejected = response.status === 423;
+                // 403 Forbidden with X-Reject-Reason header = rejected by plugin
+                const rejected = response.status === 403 && response.headers.get(HttpHeaders.REJECT_REASON) !== null;
                 this.setState({
                     thumbnailCheckComplete: true,
                     thumbnailRejected: rejected,

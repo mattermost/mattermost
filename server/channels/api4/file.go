@@ -666,8 +666,9 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	rejectionReason := runFileWillBeDownloadedHook(c.App, pluginContext, fileInfo, c.AppContext.Session().UserId, model.FileDownloadTypeFile, c.AppContext.T)
 
 	if rejectionReason != "" {
+		w.Header().Set(model.HeaderRejectReason, rejectionReason)
 		c.Err = model.NewAppError("getFile", "api.file.get_file.rejected_by_plugin",
-			map[string]any{"Reason": rejectionReason}, "", http.StatusLocked)
+			map[string]any{"Reason": rejectionReason}, "", http.StatusForbidden)
 		return
 	}
 
@@ -726,8 +727,9 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 	rejectionReason := runFileWillBeDownloadedHook(c.App, pluginContext, info, c.AppContext.Session().UserId, model.FileDownloadTypeThumbnail, c.AppContext.T)
 
 	if rejectionReason != "" {
+		w.Header().Set(model.HeaderRejectReason, rejectionReason)
 		c.Err = model.NewAppError("getFileThumbnail", "api.file.get_file_thumbnail.rejected_by_plugin",
-			map[string]any{"Reason": rejectionReason}, "", http.StatusLocked)
+			map[string]any{"Reason": rejectionReason}, "", http.StatusForbidden)
 		return
 	}
 
@@ -848,8 +850,9 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 	rejectionReason := runFileWillBeDownloadedHook(c.App, pluginContext, info, c.AppContext.Session().UserId, model.FileDownloadTypePreview, c.AppContext.T)
 
 	if rejectionReason != "" {
+		w.Header().Set(model.HeaderRejectReason, rejectionReason)
 		c.Err = model.NewAppError("getFilePreview", "api.file.get_file_preview.rejected_by_plugin",
-			map[string]any{"Reason": rejectionReason}, "", http.StatusLocked)
+			map[string]any{"Reason": rejectionReason}, "", http.StatusForbidden)
 		return
 	}
 
@@ -942,8 +945,9 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	rejectionReason := runFileWillBeDownloadedHook(c.App, pluginContext, info, "", model.FileDownloadTypePublic, c.AppContext.T) // Empty userID for public files
 
 	if rejectionReason != "" {
+		w.Header().Set(model.HeaderRejectReason, rejectionReason)
 		c.Err = model.NewAppError("getPublicFile", "api.file.get_public_file.rejected_by_plugin",
-			map[string]any{"Reason": rejectionReason}, "", http.StatusLocked)
+			map[string]any{"Reason": rejectionReason}, "", http.StatusForbidden)
 		utils.RenderWebAppError(c.App.Config(), w, r, c.Err, c.App.AsymmetricSigningKey())
 		return
 	}

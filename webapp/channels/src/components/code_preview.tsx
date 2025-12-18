@@ -99,7 +99,7 @@ const CodePreview = ({
             try {
                 const data = await fetch(fileUrl);
                 if (!data.ok) {
-                    // Handle HTTP error responses (including 423 Locked from plugin rejection)
+                    // Handle HTTP error responses (including 403 Forbidden from plugin rejection)
                     handleReceivedError();
                     return;
                 }

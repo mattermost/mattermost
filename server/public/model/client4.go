@@ -41,6 +41,7 @@ const (
 	HeaderFirstInaccessiblePostTime = "First-Inaccessible-Post-Time"
 	HeaderFirstInaccessibleFileTime = "First-Inaccessible-File-Time"
 	HeaderRange                     = "Range"
+	HeaderRejectReason              = "X-Reject-Reason"
 	STATUS                          = "status"
 	StatusOk                        = "OK"
 	StatusFail                      = "FAIL"
