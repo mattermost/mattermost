@@ -5031,15 +5031,16 @@ func (s *apiRPCServer) OpenInteractiveDialog(args *Z_OpenInteractiveDialogArgs, 
 type Z_SendToastMessageArgs struct {
 	A string
 	B string
-	C model.SendToastMessageOptions
+	C string
+	D model.SendToastMessageOptions
 }
 
 type Z_SendToastMessageReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) SendToastMessage(userID, message string, options model.SendToastMessageOptions) *model.AppError {
-	_args := &Z_SendToastMessageArgs{userID, message, options}
+func (g *apiRPCClient) SendToastMessage(userID, connectionID, message string, options model.SendToastMessageOptions) *model.AppError {
+	_args := &Z_SendToastMessageArgs{userID, connectionID, message, options}
 	_returns := &Z_SendToastMessageReturns{}
 	if err := g.client.Call("Plugin.SendToastMessage", _args, _returns); err != nil {
 		log.Printf("RPC call to SendToastMessage API failed: %s", err.Error())
@@ -5049,9 +5050,9 @@ func (g *apiRPCClient) SendToastMessage(userID, message string, options model.Se
 
 func (s *apiRPCServer) SendToastMessage(args *Z_SendToastMessageArgs, returns *Z_SendToastMessageReturns) error {
 	if hook, ok := s.impl.(interface {
-		SendToastMessage(userID, message string, options model.SendToastMessageOptions) *model.AppError
+		SendToastMessage(userID, connectionID, message string, options model.SendToastMessageOptions) *model.AppError
 	}); ok {
-		returns.A = hook.SendToastMessage(args.A, args.B, args.C)
+		returns.A = hook.SendToastMessage(args.A, args.B, args.C, args.D)
 	} else {
 		return encodableError(fmt.Errorf("API SendToastMessage called but not implemented."))
 	}

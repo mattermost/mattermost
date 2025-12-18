@@ -10,7 +10,7 @@ import (
 )
 
 // SendToastMessage sends a toast notification to a specific user or user session via WebSocket.
-func (a *App) SendToastMessage(userID, message string, options model.SendToastMessageOptions) *model.AppError {
+func (a *App) SendToastMessage(userID, connectionID, message string, options model.SendToastMessageOptions) *model.AppError {
 	if userID == "" {
 		return model.NewAppError("SendToastMessage", "app.toast.send_toast_message.user_id.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -26,7 +26,7 @@ func (a *App) SendToastMessage(userID, message string, options model.SendToastMe
 
 	broadcast := &model.WebsocketBroadcast{
 		UserId:       userID,
-		ConnectionId: options.ConnectionID,
+		ConnectionId: connectionID,
 	}
 
 	event := model.NewWebSocketEvent(model.WebsocketEventShowToast, "", "", userID, nil, "")

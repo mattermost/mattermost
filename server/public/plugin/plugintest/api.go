@@ -5203,17 +5203,17 @@ func (_m *API) SendPushNotification(notification *model.PushNotification, userID
 	return r0
 }
 
-// SendToastMessage provides a mock function with given fields: userID, message, options
-func (_m *API) SendToastMessage(userID string, message string, options model.SendToastMessageOptions) *model.AppError {
-	ret := _m.Called(userID, message, options)
+// SendToastMessage provides a mock function with given fields: userID, connectionID, message, options
+func (_m *API) SendToastMessage(userID string, connectionID string, message string, options model.SendToastMessageOptions) *model.AppError {
+	ret := _m.Called(userID, connectionID, message, options)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SendToastMessage")
 	}
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, string, model.SendToastMessageOptions) *model.AppError); ok {
-		r0 = rf(userID, message, options)
+	if rf, ok := ret.Get(0).(func(string, string, string, model.SendToastMessageOptions) *model.AppError); ok {
+		r0 = rf(userID, connectionID, message, options)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)

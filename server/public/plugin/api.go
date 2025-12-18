@@ -862,11 +862,11 @@ type API interface {
 
 	// SendToastMessage sends a toast notification to a specific user or user session.
 	// The userID parameter specifies the user to send the toast to (all their sessions).
-	// If options.ConnectionID is set, the toast will only be sent to that specific connection.
+	// If connectionID is set, the toast will only be sent to that specific connection.
 	//
 	// @tag Frontend
 	// Minimum server version: 11.4
-	SendToastMessage(userID, message string, options model.SendToastMessageOptions) *model.AppError
+	SendToastMessage(userID, connectionID, message string, options model.SendToastMessageOptions) *model.AppError
 
 	// Plugin Section
 

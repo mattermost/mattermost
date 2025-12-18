@@ -19,7 +19,7 @@ func TestSendToastMessage(t *testing.T) {
 		options := model.SendToastMessageOptions{
 			Position: "bottom-right",
 		}
-		err := th.App.SendToastMessage("", "Test message", options)
+		err := th.App.SendToastMessage("", "test-connection-id", "Test message", options)
 		require.NotNil(t, err)
 		assert.Equal(t, "app.toast.send_toast_message.user_id.app_error", err.Id)
 	})
@@ -28,7 +28,7 @@ func TestSendToastMessage(t *testing.T) {
 		options := model.SendToastMessageOptions{
 			Position: "bottom-right",
 		}
-		err := th.App.SendToastMessage(th.BasicUser.Id, "", options)
+		err := th.App.SendToastMessage(th.BasicUser.Id, "test-connection-id", "", options)
 		require.NotNil(t, err)
 		assert.Equal(t, "app.toast.send_toast_message.message.app_error", err.Id)
 	})
@@ -37,22 +37,21 @@ func TestSendToastMessage(t *testing.T) {
 		options := model.SendToastMessageOptions{
 			Position: "top-center",
 		}
-		err := th.App.SendToastMessage(th.BasicUser.Id, "Test toast message", options)
+		err := th.App.SendToastMessage(th.BasicUser.Id, "test-connection-id", "Test toast message", options)
 		require.Nil(t, err)
 	})
 
 	t.Run("should successfully send toast to specific connection", func(t *testing.T) {
 		options := model.SendToastMessageOptions{
-			ConnectionID: "test-connection-id",
-			Position:     "bottom-left",
+			Position: "bottom-left",
 		}
-		err := th.App.SendToastMessage(th.BasicUser.Id, "Test toast message", options)
+		err := th.App.SendToastMessage(th.BasicUser.Id, "test-connection-id", "Test toast message", options)
 		require.Nil(t, err)
 	})
 
 	t.Run("should successfully send toast without position (default should be used)", func(t *testing.T) {
 		options := model.SendToastMessageOptions{}
-		err := th.App.SendToastMessage(th.BasicUser.Id, "Test toast message", options)
+		err := th.App.SendToastMessage(th.BasicUser.Id, "test-connection-id", "Test toast message", options)
 		require.Nil(t, err)
 	})
 }

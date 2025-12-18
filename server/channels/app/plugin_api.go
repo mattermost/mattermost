@@ -1095,8 +1095,8 @@ func (api *PluginAPI) PublishWebSocketEvent(event string, payload map[string]any
 	api.app.Publish(ev)
 }
 
-func (api *PluginAPI) SendToastMessage(userID, message string, options model.SendToastMessageOptions) *model.AppError {
-	return api.app.SendToastMessage(userID, message, options)
+func (api *PluginAPI) SendToastMessage(userID, connectionID, message string, options model.SendToastMessageOptions) *model.AppError {
+	return api.app.SendToastMessage(userID, connectionID, message, options)
 }
 
 func (api *PluginAPI) HasPermissionTo(userID string, permission *model.Permission) bool {
