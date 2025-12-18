@@ -1,7 +1,6 @@
 package model
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -398,4 +397,3 @@ func TestClean(t *testing.T) {
 		})
 	}
 }
-
