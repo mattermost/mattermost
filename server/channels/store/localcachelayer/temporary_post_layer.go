@@ -39,6 +39,11 @@ func (s LocalCacheTemporaryPostStore) InvalidateTemporaryPost(id string) {
 	}
 }
 
+func (s LocalCacheTemporaryPostStore) Save(rctx request.CTX, post *model.TemporaryPost) (*model.TemporaryPost, error) {
+	defer s.InvalidateTemporaryPost(post.ID)
+	return s.TemporaryPostStore.Save(rctx, post)
+}
+
 func (s LocalCacheTemporaryPostStore) Get(rctx request.CTX, id string) (*model.TemporaryPost, error) {
 	var post *model.TemporaryPost
 	if err := s.rootStore.doStandardReadCache(s.rootStore.temporaryPostCache, id, &post); err == nil {
