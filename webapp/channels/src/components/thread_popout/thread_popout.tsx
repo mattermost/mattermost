@@ -28,6 +28,7 @@ import ThreadViewer from 'components/threading/thread_viewer';
 import UnreadsStatusHandler from 'components/unreads_status_handler';
 
 import usePopoutTitle from 'utils/popouts/use_popout_title';
+import {isDesktopApp} from 'utils/user_agent';
 
 import type {GlobalState} from 'types/store';
 
@@ -123,7 +124,7 @@ export default function ThreadPopout() {
 
     return (
         <>
-            <UnreadsStatusHandler/>
+            {isDesktopApp() && <UnreadsStatusHandler/>}
             <ThreadPane
                 thread={thread}
             >
