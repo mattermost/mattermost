@@ -430,3 +430,49 @@ func TestGetCloudProducts(t *testing.T) {
 		require.Equal(t, returnedProducts[2].CrossSellsTo, "prod_test2")
 	})
 }
+
+func TestCheckCWSConnection(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("returns forbidden for non-cloud license", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.App.Srv().SetLicense(model.NewTestLicense())
+
+		cloud := mocks.CloudInterface{}
+		cloud.Mock.On("CheckCWSConnection", mock.Anything).Return(nil)
+
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = &cloud
+
+		r, err := th.Client.DoAPIGet(context.Background(), "/cloud/check-cws-connection", "")
+		require.Error(t, err)
+		closeBody(r)
+		require.Equal(t, http.StatusForbidden, r.StatusCode)
+	})
+
+	t.Run("returns OK for cloud license", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		cloud := mocks.CloudInterface{}
+		cloud.Mock.On("CheckCWSConnection", mock.Anything).Return(nil)
+
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = &cloud
+
+		r, err := th.Client.DoAPIGet(context.Background(), "/cloud/check-cws-connection", "")
+		require.NoError(t, err)
+		closeBody(r)
+		require.Equal(t, http.StatusOK, r.StatusCode)
+	})
+}
