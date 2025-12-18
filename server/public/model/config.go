@@ -241,7 +241,7 @@ const (
 	PluginSettingsDefaultEnableMarketplace  = true
 	PluginSettingsDefaultMarketplaceURL     = "https://api.integrations.mattermost.com"
 	PluginSettingsOldMarketplaceURL         = "https://marketplace.integrations.mattermost.com"
-	PluginSettingsDefaultHookTimeoutSeconds = 5
+	PluginSettingsDefaultHookTimeoutSeconds = 30
 
 	ComplianceExportDirectoryFormat                = "compliance-export-2006-01-02-15h04m"
 	ComplianceExportPath                           = "export"
@@ -3433,7 +3433,6 @@ type PluginSettings struct {
 	MarketplaceURL              *string                   `access:"plugins,write_restrictable,cloud_restrictable"`
 	SignaturePublicKeyFiles     []string                  `access:"plugins,write_restrictable,cloud_restrictable"`
 	ChimeraOAuthProxyURL        *string                   `access:"plugins,write_restrictable,cloud_restrictable"`
-	HookTimeoutSeconds          *int                      `access:"plugins,write_restrictable,cloud_restrictable"`
 }
 
 func (s *PluginSettings) SetDefaults(ls LogSettings) {
@@ -3515,10 +3514,6 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 
 	if s.ChimeraOAuthProxyURL == nil {
 		s.ChimeraOAuthProxyURL = NewPointer("")
-	}
-
-	if s.HookTimeoutSeconds == nil {
-		s.HookTimeoutSeconds = NewPointer(PluginSettingsDefaultHookTimeoutSeconds)
 	}
 }
 

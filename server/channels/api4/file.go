@@ -64,8 +64,7 @@ func runFileWillBeDownloadedHook(app *app.App, pluginContext *plugin.Context, fi
 
 	// Use configured timeout for file download hooks to prevent blocking user downloads
 	// and ensure security by blocking downloads if plugins are unresponsive
-	timeoutSeconds := *app.Config().PluginSettings.HookTimeoutSeconds
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeoutSeconds)*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(model.PluginSettingsDefaultHookTimeoutSeconds)*time.Second)
 	defer cancel()
 
 	var rejectionReason atomic.Value
@@ -102,8 +101,7 @@ func runFileWillBeDownloadedHook(app *app.App, pluginContext *plugin.Context, fi
 		timeoutMessage := translateFunc("api.file.get_file.plugin_hook_timeout")
 		app.Log().Warn("FileWillBeDownloaded hook timed out, blocking download",
 			mlog.String("file_id", fileInfo.Id),
-			mlog.String("user_id", userID),
-			mlog.Int("timeout_seconds", timeoutSeconds))
+			mlog.String("user_id", userID))
 		// Send websocket event to notify user of timeout
 		sendFileDownloadRejectedEvent(app, fileInfo, userID, timeoutMessage, downloadType)
 		return timeoutMessage
