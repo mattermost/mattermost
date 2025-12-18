@@ -13,6 +13,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"strconv"
+	"sync/atomic"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -67,33 +68,35 @@ func runFileWillBeDownloadedHook(app *app.App, pluginContext *plugin.Context, fi
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeoutSeconds)*time.Second)
 	defer cancel()
 
-	var rejectionReason string
+	var rejectionReason atomic.Value
 	done := make(chan struct{})
 
-	go func() {
+	app.Srv().Go(func() {
 		defer close(done)
 		app.Channels().RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-			rejectionReason = hooks.FileWillBeDownloaded(pluginContext, fileInfo, userID, downloadType)
+			rejectionReasonFromHook := hooks.FileWillBeDownloaded(pluginContext, fileInfo, userID, downloadType)
+			rejectionReason.Store(rejectionReasonFromHook)
 			app.Log().Debug("FileWillBeDownloaded hook called",
 				mlog.String("file_id", fileInfo.Id),
 				mlog.String("user_id", userID),
 				mlog.String("download_type", string(downloadType)),
-				mlog.String("rejection_reason", rejectionReason))
-			if rejectionReason != "" {
+				mlog.String("rejection_reason", rejectionReasonFromHook))
+			if rejectionReasonFromHook != "" {
 				return false // Stop execution if hook rejects
 			}
 			return true
 		}, plugin.FileWillBeDownloadedID)
-	}()
+	})
 
 	select {
 	case <-done:
 		// Hook completed normally
-		if rejectionReason != "" {
+		rejectionReasonString := rejectionReason.Load().(string)
+		if rejectionReasonString != "" {
 			// Send websocket event to notify user of rejection
-			sendFileDownloadRejectedEvent(app, fileInfo, userID, rejectionReason, downloadType)
+			sendFileDownloadRejectedEvent(app, fileInfo, userID, rejectionReasonString, downloadType)
 		}
-		return rejectionReason
+		return rejectionReasonString
 	case <-ctx.Done():
 		// Hook timed out - reject download for security
 		timeoutMessage := translateFunc("api.file.get_file.plugin_hook_timeout")
