@@ -175,7 +175,7 @@ func flagPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	checkForAllowedContentFlaggingPostTypes(c, post)
+	checkPostTypeFlaggable(c, post)
 	if c.Err != nil {
 		return
 	}
@@ -604,8 +604,8 @@ func assignFlaggedPostReviewer(c *Context, w http.ResponseWriter, r *http.Reques
 	writeOKResponse(w)
 }
 
-func checkForAllowedContentFlaggingPostTypes(c *Context, post *model.Post) {
-	if post.Type == model.PostTypeBurnOnRead {
-		c.Err = model.NewAppError("checkForAllowedContentFlaggingPostTypes", "api.content_flagging.error.invalid_post_type", map[string]any{"PostType": post.Type}, "", http.StatusBadRequest)
+func checkPostTypeFlaggable(c *Context, post *model.Post) {
+	if post.Type == model.PostTypeBurnOnRead || strings.HasPrefix(post.Type, model.PostSystemMessagePrefix) {
+		c.Err = model.NewAppError("checkPostTypeFlaggable", "api.content_flagging.error.invalid_post_type", map[string]any{"PostType": post.Type}, "", http.StatusBadRequest)
 	}
 }
