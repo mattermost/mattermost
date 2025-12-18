@@ -1275,15 +1275,24 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                             }
                             footer={
                                 <>
-                                    <button
-                                        className='btn btn-secondary'
-                                        onClick={this.toggleOpenModalResetPassword}
+                                    <WithTooltip
+                                        title={defineMessage({
+                                            id: 'admin.user_item.resetPassword.magicLink.tooltip',
+                                            defaultMessage: 'Cannot reset password for Magic Link accounts.',
+                                        })}
+                                        disabled={this.state.user?.auth_service !== Constants.MAGIC_LINK_SERVICE}
                                     >
-                                        <FormattedMessage
-                                            id='admin.user_item.resetPwd'
-                                            defaultMessage='Reset Password'
-                                        />
-                                    </button>
+                                        <button
+                                            className='btn btn-secondary'
+                                            onClick={this.toggleOpenModalResetPassword}
+                                            disabled={this.state.user?.auth_service === Constants.MAGIC_LINK_SERVICE}
+                                        >
+                                            <FormattedMessage
+                                                id='admin.user_item.resetPwd'
+                                                defaultMessage='Reset Password'
+                                            />
+                                        </button>
+                                    </WithTooltip>
                                     {this.state.user?.mfa_active && (
                                         <button
                                             className='btn btn-secondary'
@@ -1544,6 +1553,11 @@ export function getUserAuthenticationTextField(intl: IntlShape, mfaEnabled: Prop
             service = intl.formatMessage({
                 id: 'admin.oauth.office365',
                 defaultMessage: 'Entra ID',
+            });
+        } else if (user.auth_service === Constants.MAGIC_LINK_SERVICE) {
+            service = intl.formatMessage({
+                id: 'admin.userManagement.userDetail.magicLink',
+                defaultMessage: 'Magic Link',
             });
         } else {
             service = toTitleCase(user.auth_service);
