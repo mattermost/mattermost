@@ -189,6 +189,7 @@ const ChannelInfoRhs = ({
             className='sidebar-right__body'
         >
             <Header
+                channel={channel}
                 isMobile={isMobile}
                 onClose={actions.closeRightHandSide}
             />

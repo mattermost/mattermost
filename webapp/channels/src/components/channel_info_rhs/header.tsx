@@ -5,9 +5,12 @@ import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import styled from 'styled-components';
 
+import type {Channel} from '@mattermost/types/channels';
+
 import WithTooltip from 'components/with_tooltip';
 
 interface Props {
+    channel: Channel;
     isMobile: boolean;
     onClose: () => void;
 }
@@ -16,7 +19,7 @@ const HeaderTitle = styled.span`
     line-height: 2.4rem;
 `;
 
-const Header = ({isMobile, onClose}: Props) => {
+const Header = ({channel, isMobile, onClose}: Props) => {
     const {formatMessage} = useIntl();
 
     return (
@@ -42,6 +45,13 @@ const Header = ({isMobile, onClose}: Props) => {
                             defaultMessage='Info'
                         />
                     </HeaderTitle>
+                    {channel.display_name &&
+                    <span
+                        className='style--none sidebar--right__title__subtitle'
+                    >
+                        {channel.display_name}
+                    </span>
+                    }
                 </h2>
             </span>
 

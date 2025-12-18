@@ -270,7 +270,7 @@ describe('Channel Info RHS', () => {
                 cy.get('#channel-info-btn').click();
 
                 // # Click on "Notification Preferences"
-                cy.uiGetRHS().findByText('Notification Preferences').should('be.visible').click();
+                cy.uiGetRHS().findByTestId('channel_info_rhs-menu').findByText('Notification Preferences').scrollIntoView().should('be.visible').click();
 
                 // * Ensures the modal is there
                 cy.get('.ChannelNotificationModal').should('be.visible');
@@ -288,7 +288,7 @@ describe('Channel Info RHS', () => {
                 });
 
                 // * Channel Settings item is visible in RHS menu
-                cy.uiGetRHS().findByTestId('channel_info_rhs-menu').findByText('Channel Settings').should('be.visible').click();
+                cy.uiGetRHS().findByTestId('channel_info_rhs-menu').findByText('Channel Settings').scrollIntoView().should('be.visible').click();
 
                 // * Channel Settings modal opens
                 cy.get('.ChannelSettingsModal').should('be.visible');
@@ -301,7 +301,7 @@ describe('Channel Info RHS', () => {
                 cy.get('#channel-info-btn').click();
 
                 // # Click on "Files"
-                cy.uiGetRHS().findByTestId('channel_info_rhs-menu').findByText('Files').should('be.visible').click();
+                cy.uiGetRHS().findByTestId('channel_info_rhs-menu').findByText('Files').scrollIntoView().should('be.visible').click();
 
                 // * Ensure we see the files RHS
                 cy.uiGetRHS().findByText('No files yet').should('be.visible');
@@ -328,10 +328,10 @@ describe('Channel Info RHS', () => {
                 cy.get('#channel-info-btn').click();
 
                 // # Click on "Pinned Messages"
-                cy.uiGetRHS().findByTestId('channel_info_rhs-menu').findByText('Pinned messages').should('be.visible').click();
+                cy.uiGetRHS().findByTestId('channel_info_rhs-menu').findByText('Pinned messages').scrollIntoView().should('be.visible').click();
 
                 // * Ensure we see the Pinned Post RHS
-                cy.uiGetRHS().findByText('Hello channel info rhs spec').should('be.visible');
+                cy.uiGetRHS().findByText('Hello channel info rhs spec').first().should('be.visible');
 
                 // # Click the Back Icon
                 cy.uiGetRHS().get('[aria-label="Back Icon"]').click();
@@ -347,7 +347,7 @@ describe('Channel Info RHS', () => {
                 cy.get('#channel-info-btn').click();
 
                 // # Click on "Members"
-                cy.uiGetRHS().findByTestId('channel_info_rhs-menu').findByText('Members').should('be.visible').click();
+                cy.uiGetRHS().findByTestId('channel_info_rhs-menu').findByText('Members').scrollIntoView().should('be.visible').click();
 
                 // * Ensure we see the members
                 cy.uiGetRHS().contains('sysadmin').should('be.visible');
@@ -450,7 +450,7 @@ describe('Channel Info RHS', () => {
                 cy.get('#channel-info-btn').click();
 
                 // # Click on "Notification Preferences"
-                cy.uiGetRHS().findByText('Notification Preferences').should('be.visible').click();
+                cy.uiGetRHS().findByTestId('channel_info_rhs-menu').findByText('Notification Preferences').scrollIntoView().should('be.visible').click();
 
                 // * Ensures the modal is there
                 cy.get('.ChannelNotificationModal').should('be.visible');
