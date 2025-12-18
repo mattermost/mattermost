@@ -1243,7 +1243,7 @@ func (a *App) GetFlaggedPosts(rctx request.CTX, userID string, offset int, limit
 
 	// Process burn-on-read posts for the requesting user
 	var appErr *model.AppError
-	postList, appErr = a.RevealBurnOnReadPostsForUser(rctx, postList, userID)
+	postList, appErr = a.revealBurnOnReadPostsForUser(rctx, postList, userID)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1265,7 +1265,7 @@ func (a *App) GetFlaggedPostsForTeam(rctx request.CTX, userID, teamID string, of
 
 	// Process burn-on-read posts for the requesting user
 	var appErr *model.AppError
-	postList, appErr = a.RevealBurnOnReadPostsForUser(rctx, postList, userID)
+	postList, appErr = a.revealBurnOnReadPostsForUser(rctx, postList, userID)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1287,7 +1287,7 @@ func (a *App) GetFlaggedPostsForChannel(rctx request.CTX, userID, channelID stri
 
 	// Process burn-on-read posts for the requesting user
 	var appErr *model.AppError
-	postList, appErr = a.RevealBurnOnReadPostsForUser(rctx, postList, userID)
+	postList, appErr = a.revealBurnOnReadPostsForUser(rctx, postList, userID)
 	if appErr != nil {
 		return nil, appErr
 	}
