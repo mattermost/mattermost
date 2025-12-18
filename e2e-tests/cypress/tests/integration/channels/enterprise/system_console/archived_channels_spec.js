@@ -29,8 +29,8 @@ describe('Archived channels', () => {
             // # Archive the public channel
             cy.apiDeleteChannel(testChannel.id);
 
-            // # Create and archive a private channel
-            cy.apiCreateChannel(team.id, 'private-archive', 'Private Archive Test', 'P').then(({channel: privateChannel}) => {
+            // # Create and archive a private channel with a prefix to ensure proper sorting
+            cy.apiCreateChannel(team.id, '000-private-archive', '000 Private Archive Test', 'P').then(({channel: privateChannel}) => {
                 testPrivateChannel = privateChannel;
                 cy.apiDeleteChannel(privateChannel.id);
             });
