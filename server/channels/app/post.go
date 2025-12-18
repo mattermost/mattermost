@@ -1939,7 +1939,7 @@ func (a *App) SearchPostsForUser(rctx request.CTX, terms string, userID string, 
 	}
 
 	if appErr := a.FilterPostsByChannelPermissions(rctx, postSearchResults.PostList, userID); appErr != nil {
-    return nil, appErr
+		return nil, appErr
 	}
 
 	if appErr := a.filterBurnOnReadPosts(postSearchResults.PostList); appErr != nil {

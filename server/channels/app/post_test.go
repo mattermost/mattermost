@@ -4669,7 +4669,7 @@ func TestFilterPostsByChannelPermissions(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Len(t, postList.Posts, 0)
 		require.Len(t, postList.Order, 0)
-  })
+	})
 }
 
 func TestRevealPost(t *testing.T) {
