@@ -861,7 +861,7 @@ type API interface {
 	OpenInteractiveDialog(dialog model.OpenDialogRequest) *model.AppError
 
 	// SendToastMessage sends a toast notification to a specific user or user session.
-	// The userID parameter specifies the user to send the toast to (all their sessions).
+	// The userID parameter specifies the user to send the toast to.
 	// If connectionID is set, the toast will only be sent to that specific connection.
 	//
 	// @tag Frontend

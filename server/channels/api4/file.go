@@ -56,13 +56,7 @@ func sendFileDownloadRejectedEvent(app *app.App, info *model.FileInfo, userID st
 // If the hook times out, the download is blocked for security reasons.
 // downloadType should be one of model.FileDownloadType constants
 func runFileWillBeDownloadedHook(app *app.App, pluginContext *plugin.Context, fileInfo *model.FileInfo, userID string, downloadType model.FileDownloadType, translateFunc func(string, ...any) string) string {
-	// Check if plugins are enabled and environment is available
-	if app.GetPluginsEnvironment() == nil {
-		app.Log().Debug("Plugin environment not available, skipping FileWillBeDownloaded hook")
-		return ""
-	}
-
-	// Use configured timeout for file download hooks to prevent blocking user downloads
+	// Use default timeout for file download hooks to prevent blocking user downloads
 	// and ensure security by blocking downloads if plugins are unresponsive
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(model.PluginSettingsDefaultHookTimeoutSeconds)*time.Second)
 	defer cancel()

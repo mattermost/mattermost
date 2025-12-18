@@ -251,8 +251,6 @@ type Hooks interface {
 	//   - model.FileDownloadTypePreview: Preview image request
 	//   - model.FileDownloadTypePublic: Public link access (userID will be empty string in this case)
 	//
-	// Note that this method will be called for files requested by users with appropriate permissions.
-	//
 	// Minimum server version: 11.4
 	FileWillBeDownloaded(c *Context, fileInfo *model.FileInfo, userID string, downloadType model.FileDownloadType) string
 

@@ -727,11 +727,6 @@ func (s *apiRPCServer) PluginHTTP(args *Z_PluginHTTPArgs, returns *Z_PluginHTTPR
 	return nil
 }
 
-func init() {
-	hookNameToId["FileWillBeUploaded"] = FileWillBeUploadedID
-	hookNameToId["FileWillBeDownloaded"] = FileWillBeDownloadedID
-}
-
 type Z_FileWillBeUploadedArgs struct {
 	A                     *Context
 	B                     *model.FileInfo

@@ -1621,10 +1621,6 @@ func TestHeadRequestsFileEndpoints(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	client := th.Client
 
-	if *th.App.Config().FileSettings.DriverName == "" {
-		t.Skip("skipping because no file driver is enabled")
-	}
-
 	// Upload a test file
 	sent, err := testutils.ReadTestFile("test.png")
 	require.NoError(t, err)
