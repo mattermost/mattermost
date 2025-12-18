@@ -4343,6 +4343,8 @@
   "error.local_storage.help3": "Use a supported browser (IE 11, Chrome 61+, Firefox 60+, Safari 12+, Edge 42+)",
   "error.local_storage.message": "Mattermost was unable to load because a setting in your browser prevents the use of its local storage features. To allow Mattermost to load, try the following actions:",
   "error.local_storage.title": "Cannot Load Mattermost",
+  "error.magic_link_already_logged_in.message": "You are already logged in. Log out and try again.",
+  "error.magic_link_already_logged_in.title": "Cannot log you in with a Magic Link",
   "error.not_found.message": "The page you were trying to reach does not exist",
   "error.not_found.title": "Page Not Found",
   "error.oauth_access_denied": "You must authorize Mattermost to log in with {service}.",
