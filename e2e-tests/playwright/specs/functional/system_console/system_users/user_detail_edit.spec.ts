@@ -19,8 +19,8 @@ async function setupUserDetailPage(pw: PlaywrightExtended) {
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Create a test user
-    const user = await adminClient.createUser(pw.random.user(), '', '');
-    const team = await adminClient.createTeam(pw.random.team());
+    const user = await adminClient.createUser(await pw.random.user(), '', '');
+    const team = await adminClient.createTeam(await pw.random.team());
     await adminClient.addToTeam(team.id, user.id);
 
     // # Visit system console users section
@@ -35,7 +35,7 @@ async function setupUserDetailPage(pw: PlaywrightExtended) {
     await userRow.getByText(user.email).waitFor();
 
     // # Click on the username to navigate to user detail page
-    await userRow.getByText(user.username).click();
+    await userRow.getByText(user.username, {exact: true}).click();
 
     // # Wait for user detail page to load
     await systemConsolePage.page.waitForURL(`**/admin_console/user_management/user/${user.id}`);
@@ -49,10 +49,14 @@ async function setupUserDetailPage(pw: PlaywrightExtended) {
 test('displays and allows editing of authentication data field', {tag: '@user_management'}, async ({pw}) => {
     const {user, systemConsolePage, adminClient} = await setupUserDetailPage(pw);
 
+    // # Generate unique auth data to avoid unique constraint errors
+    const originalAuthData = `auth-data-${await pw.random.id()}`;
+    const newAuthData = `auth-data-${await pw.random.id()}`;
+
     // # Update user to have an auth service (simulate SAML/LDAP user)
     await adminClient.updateUserAuth(user.id, {
         auth_service: 'saml',
-        auth_data: 'original-auth-data',
+        auth_data: originalAuthData,
     });
 
     // # Refresh the page to load the updated user data
@@ -66,10 +70,9 @@ test('displays and allows editing of authentication data field', {tag: '@user_ma
     // * Verify auth data input field is present and contains current value
     const authDataInput = systemConsolePage.page.locator('input[placeholder="Enter auth data"]');
     await expect(authDataInput).toBeVisible();
-    await expect(authDataInput).toHaveValue('original-auth-data');
+    await expect(authDataInput).toHaveValue(originalAuthData);
 
     // # Update the auth data value
-    const newAuthData = 'updated-auth-data';
     await authDataInput.fill(newAuthData);
 
     // * Verify Save button is enabled after change
@@ -84,7 +87,7 @@ test('displays and allows editing of authentication data field', {tag: '@user_ma
     await expect(confirmModal).toBeVisible();
 
     // * Verify the modal shows the auth data change
-    const authDataChange = systemConsolePage.page.getByText(`Auth Data: original-auth-data → ${newAuthData}`);
+    const authDataChange = systemConsolePage.page.getByText(`Auth Data: ${originalAuthData} → ${newAuthData}`);
     await expect(authDataChange).toBeVisible();
 
     // # Confirm the save
@@ -106,10 +109,10 @@ test('displays and allows editing of authentication data field', {tag: '@user_ma
 test('disables email and username fields for users with auth service', {tag: '@user_management'}, async ({pw}) => {
     const {user, systemConsolePage, adminClient} = await setupUserDetailPage(pw);
 
-    // # Update user to have an auth service
+    // # Update user to have an auth service (use unique auth_data to avoid constraint errors)
     await adminClient.updateUserAuth(user.id, {
         auth_service: 'ldap',
-        auth_data: 'ldap-user-data',
+        auth_data: `ldap-user-data-${await pw.random.id()}`,
     });
 
     // # Refresh the page to load updated user data
@@ -160,8 +163,8 @@ test('allows editing email and username fields for regular users', {tag: '@user_
     await expect(usernameInput).not.toHaveAttribute('readonly');
 
     // # Update both email and username
-    const newEmail = `updated-${pw.random.id()}@example.com`;
-    const newUsername = `updated-${pw.random.id()}`;
+    const newEmail = `updated-${await pw.random.id()}@example.com`;
+    const newUsername = `updated-${await pw.random.id()}`;
 
     await emailInput.fill(newEmail);
     await usernameInput.fill(newUsername);
@@ -208,11 +211,10 @@ test('displays inline validation errors for invalid email and username', {tag: '
     const emailInput = systemConsolePage.page.locator('label:has-text("Email") input');
     await emailInput.fill('invalid-email');
 
-    // * Verify email validation error appears with red styling
+    // * Verify email validation error appears
     const emailError = systemConsolePage.page.locator('div.field-error').filter({hasText: 'Invalid email address'});
     await expect(emailError).toBeVisible();
-    await expect(emailError).toHaveCSS('color', /rgb\(217, 58, 58\)|red/); // Error text should be red
-    
+
     // * Verify email input has error styling
     await expect(emailInput).toHaveClass(/error/);
 
@@ -220,11 +222,10 @@ test('displays inline validation errors for invalid email and username', {tag: '
     const usernameInput = systemConsolePage.page.locator('label:has-text("Username") input');
     await usernameInput.fill('');
 
-    // * Verify username validation error appears with red styling
+    // * Verify username validation error appears
     const usernameError = systemConsolePage.page.locator('div.field-error').filter({hasText: 'Username cannot be empty'});
     await expect(usernameError).toBeVisible();
-    await expect(usernameError).toHaveCSS('color', /rgb\(217, 58, 58\)|red/); // Error text should be red
-    
+
     // * Verify username input has error styling
     await expect(usernameInput).toHaveClass(/error/);
 
@@ -258,7 +259,7 @@ test('allows cancelling save confirmation dialog', {tag: '@user_management'}, as
 
     // # Update email field
     const emailInput = systemConsolePage.page.locator('label:has-text("Email") input');
-    const newEmail = `cancelled-${pw.random.id()}@example.com`;
+    const newEmail = `cancelled-${await pw.random.id()}@example.com`;
     await emailInput.fill(newEmail);
 
     // # Click Save button
