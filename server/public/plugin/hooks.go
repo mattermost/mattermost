@@ -253,7 +253,7 @@ type Hooks interface {
 	//
 	// Note that this method will be called for files requested by users with appropriate permissions.
 	//
-	// Minimum server version: 11.3
+	// Minimum server version: 11.4
 	FileWillBeDownloaded(c *Context, fileInfo *model.FileInfo, userID string, downloadType model.FileDownloadType) string
 
 	// ReactionHasBeenAdded is invoked after the reaction has been committed to the database.
