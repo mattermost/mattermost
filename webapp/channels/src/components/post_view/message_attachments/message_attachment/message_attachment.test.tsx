@@ -376,9 +376,16 @@ describe('components/post_view/MessageAttachment', () => {
             // Update wrapper to get latest state
             wrapper.update();
 
-            // Should show default error message
-            expect(wrapper.state('actionError')).toBe('Action failed to execute');
-            expect(wrapper.find('.control-label').text()).toBe('Action failed to execute');
+            // Should show default error message as FormattedMessage component
+            const actionError = wrapper.state('actionError');
+            expect(actionError).not.toBeNull();
+            expect(React.isValidElement(actionError)).toBe(true);
+
+            // Verify FormattedMessage props
+            if (React.isValidElement(actionError)) {
+                expect(actionError.props.id).toBe('post.message_attachment.action_failed');
+                expect(actionError.props.defaultMessage).toBe('Action failed to execute');
+            }
             done();
         });
     });
