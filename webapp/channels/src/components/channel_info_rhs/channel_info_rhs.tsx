@@ -30,6 +30,13 @@ import Header from './header';
 import Menu from './menu';
 import TopButtons from './top_buttons';
 
+const Container = styled.div`
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow-y: auto;
+`;
+
 const Divider = styled.div`
     width: 88%;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.04);
@@ -193,75 +200,77 @@ const ChannelInfoRhs = ({
                 isMobile={isMobile}
                 onClose={actions.closeRightHandSide}
             />
-            {isArchived && (
-                <ArchivedNoticeContainer className='sectionNoticeContainer warning'>
-                    <ArchivedNotice className='sectionNoticeContent'>
-                        <i className='icon icon-archive-outline sectionNoticeIcon'/>
-                        <div className='sectionNoticeBody'>
-                            <h4 className='sectionNoticeTitle'>
-                                <FormattedMessage
-                                    id='channel_info_rhs.archived.title'
-                                    defaultMessage='This channel is archived.'
-                                />
-                                {channel.name !== Constants.DEFAULT_CHANNEL && (
-                                    <ChannelPermissionGate
-                                        channelId={channel.id}
-                                        teamId={channel.team_id}
-                                        permissions={[Permissions.MANAGE_TEAM]}
-                                    >
-                                        <button
-                                            type='button'
-                                            className='sectionNoticeButton btn btn-link'
-                                            onClick={() => {
-                                                openUnarchiveChannel();
-                                            }}
+            <Container>
+                {isArchived && (
+                    <ArchivedNoticeContainer className='sectionNoticeContainer warning'>
+                        <ArchivedNotice className='sectionNoticeContent'>
+                            <i className='icon icon-archive-outline sectionNoticeIcon'/>
+                            <div className='sectionNoticeBody'>
+                                <h4 className='sectionNoticeTitle'>
+                                    <FormattedMessage
+                                        id='channel_info_rhs.archived.title'
+                                        defaultMessage='This channel is archived.'
+                                    />
+                                    {channel.name !== Constants.DEFAULT_CHANNEL && (
+                                        <ChannelPermissionGate
+                                            channelId={channel.id}
+                                            teamId={channel.team_id}
+                                            permissions={[Permissions.MANAGE_TEAM]}
                                         >
-                                            <FormattedMessage
-                                                id='channel_info_rhs.archived.unarchive'
-                                                defaultMessage='Unarchive'
-                                            />
-                                        </button>
-                                    </ChannelPermissionGate>
-                                )}
-                            </h4>
-                        </div>
-                    </ArchivedNotice>
-                </ArchivedNoticeContainer>
-            )}
-            <TopButtons
-                channelType={channel.type}
-                channelURL={channelURL}
-                isFavorite={isFavorite}
-                isMuted={isMuted}
-                isInvitingPeople={isInvitingPeople}
-                isArchived={isArchived}
-                canAddPeople={!isArchived && canManageMembers}
-                actions={{toggleFavorite, toggleMute, addPeople}}
-            />
-            <AboutArea
-                channel={channel}
-                dmUser={dmUser}
-                gmUsers={gmUsers}
-                canEditChannelProperties={canEditChannelProperties}
-                actions={{
-                    editChannelName,
-                    editChannelHeader,
-                    editChannelPurpose,
-                }}
-            />
-            <Divider/>
-            <Menu
-                channel={channel}
-                channelStats={channelStats}
-                isArchived={isArchived}
-                actions={{
-                    openNotificationSettings,
-                    showChannelFiles: actions.showChannelFiles,
-                    showPinnedPosts: actions.showPinnedPosts,
-                    showChannelMembers: actions.showChannelMembers,
-                    getChannelStats: actions.getChannelStats,
-                }}
-            />
+                                            <button
+                                                type='button'
+                                                className='sectionNoticeButton btn btn-link'
+                                                onClick={() => {
+                                                    openUnarchiveChannel();
+                                                }}
+                                            >
+                                                <FormattedMessage
+                                                    id='channel_info_rhs.archived.unarchive'
+                                                    defaultMessage='Unarchive'
+                                                />
+                                            </button>
+                                        </ChannelPermissionGate>
+                                    )}
+                                </h4>
+                            </div>
+                        </ArchivedNotice>
+                    </ArchivedNoticeContainer>
+                )}
+                <TopButtons
+                    channelType={channel.type}
+                    channelURL={channelURL}
+                    isFavorite={isFavorite}
+                    isMuted={isMuted}
+                    isInvitingPeople={isInvitingPeople}
+                    isArchived={isArchived}
+                    canAddPeople={!isArchived && canManageMembers}
+                    actions={{toggleFavorite, toggleMute, addPeople}}
+                />
+                <AboutArea
+                    channel={channel}
+                    dmUser={dmUser}
+                    gmUsers={gmUsers}
+                    canEditChannelProperties={canEditChannelProperties}
+                    actions={{
+                        editChannelName,
+                        editChannelHeader,
+                        editChannelPurpose,
+                    }}
+                />
+                <Divider/>
+                <Menu
+                    channel={channel}
+                    channelStats={channelStats}
+                    isArchived={isArchived}
+                    actions={{
+                        openNotificationSettings,
+                        showChannelFiles: actions.showChannelFiles,
+                        showPinnedPosts: actions.showPinnedPosts,
+                        showChannelMembers: actions.showChannelMembers,
+                        getChannelStats: actions.getChannelStats,
+                    }}
+                />
+            </Container>
         </div>
     );
 };
