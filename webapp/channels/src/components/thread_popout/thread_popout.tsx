@@ -122,7 +122,7 @@ export default function ThreadPopout() {
         };
     }, []);
 
-    if (!thread || (channel?.type === Constants.DM_CHANNEL && !dmUser)) {
+    if (!thread) {
         return null;
     }
 
