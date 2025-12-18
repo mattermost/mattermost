@@ -3573,7 +3573,12 @@ func (c *Client4) MoveChannel(ctx context.Context, channelId, teamId string, for
 
 // GetDirectOrGroupMessageMembersCommonTeams returns the set of teams in common for members of a DM/GM channel.
 func (c *Client4) GetDirectOrGroupMessageMembersCommonTeams(ctx context.Context, channelId string) ([]*Team, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.channelRoute(channelId)+"/common_teams", "")
+	route, err := c.channelRoute(channelId).Join("common_teams").String()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	r, err := c.DoAPIGet(ctx, route, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -10060,7 +10065,12 @@ func (c *Client4) SetAccessControlPolicyActive(ctx context.Context, update Acces
 }
 
 func (c *Client4) RevealPost(ctx context.Context, postID string) (*Post, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.postRoute(postID)+"/reveal", "")
+	route, err := c.postRoute(postID).Join("reveal").String()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	r, err := c.DoAPIGet(ctx, route, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -10072,7 +10082,12 @@ func (c *Client4) RevealPost(ctx context.Context, postID string) (*Post, *Respon
 // BurnPost burns a burn-on-read post. If the user is the author, the post will be permanently deleted.
 // If the user is not the author, the post will be expired for that user by updating their read receipt expiration time.
 func (c *Client4) BurnPost(ctx context.Context, postID string) (*Response, error) {
-	r, err := c.DoAPIDelete(ctx, c.postRoute(postID)+"/burn")
+	route, err := c.postRoute(postID).Join("burn").String()
+	if err != nil {
+		return nil, err
+	}
+
+	r, err := c.DoAPIDelete(ctx, route)
 	if err != nil {
 		return BuildResponse(r), err
 	}
