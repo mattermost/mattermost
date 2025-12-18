@@ -57,7 +57,7 @@ export default function ThreadPopout() {
     const team = useSelector((state: GlobalState) => getTeamByName(state, teamName));
     const channel = useSelector((state: GlobalState) => getChannel(state, post?.channel_id ?? ''));
     const currentChannel = useSelector(getCurrentChannel);
-    const dmUser = useUser(currentChannel?.type === Constants.DM_CHANNEL && currentChannel.teammate_id ? currentChannel.teammate_id : '');
+    useUser(currentChannel?.type === Constants.DM_CHANNEL && currentChannel.teammate_id ? currentChannel.teammate_id : '');
     const thread = useSelector((state: GlobalState) => {
         if (!post) {
             return undefined;
