@@ -889,6 +889,7 @@ export const ErrorPageTypes = {
     CHANNEL_NOT_FOUND: 'channel_not_found',
     POST_NOT_FOUND: 'post_not_found',
     CLOUD_ARCHIVED: 'cloud_archived',
+    MAGIC_LINK_ALREADY_LOGGED_IN: 'magic_link_already_logged_in',
 };
 
 export const JobTypes = {
@@ -1607,7 +1608,7 @@ export const Constants = {
     EMAIL_SERVICE: 'email',
     LDAP_SERVICE: 'ldap',
     SAML_SERVICE: 'saml',
-    MAGIC_LINK_SERVICE: 'guest_magic_link',
+    MAGIC_LINK_SERVICE: 'magic_link',
     USERNAME_SERVICE: 'username',
     SIGNIN_CHANGE: 'signin_change',
     PASSWORD_CHANGE: 'password_change',

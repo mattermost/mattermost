@@ -4499,6 +4499,10 @@
     "translation": "Update password failed because context user_id did not match provided user's id."
   },
   {
+    "id": "api.user.oauth_to_email.magic_link.app_error",
+    "translation": "Magic Link is the only sign-in method available for this account."
+  },
+  {
     "id": "api.user.oauth_to_email.not_available.app_error",
     "translation": "Authentication Transfer not configured or available on this server."
   },
@@ -4613,6 +4617,10 @@
   {
     "id": "api.user.update_password.incorrect.app_error",
     "translation": "The \"Current Password\" you entered is incorrect. Please check that Caps Lock is off and try again."
+  },
+  {
+    "id": "api.user.update_password.magic_link.app_error",
+    "translation": "Cannot update password for Magic Link accounts."
   },
   {
     "id": "api.user.update_password.menu",
@@ -9939,6 +9947,10 @@
   {
     "id": "model.config.is_valid.group_unread_channels.app_error",
     "translation": "Invalid group unread channels for service settings. Must be 'disabled', 'default_on', or 'default_off'."
+  },
+  {
+    "id": "model.config.is_valid.guest_accounts.cannot_enforce_multifactor_authentication_when_guest_magic_link_is_enabled.app_error",
+    "translation": "You cannot enforce multifactor authentication for guest accounts when magic link authentication is enabled."
   },
   {
     "id": "model.config.is_valid.image_decoder_concurrency.app_error",
