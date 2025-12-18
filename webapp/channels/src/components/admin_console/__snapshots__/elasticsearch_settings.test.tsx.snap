@@ -335,6 +335,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="This purges the channels index and re-indexes all channels in the database, from oldest to newest. Channel autocomplete is available during indexing but search results may be incomplete until the indexing job is complete.
+
 <b>Note- Please ensure no other indexing job is in progress in the table above.</b>"
             id="admin.elasticsearch.rebuildChannelsIndex.helpText"
             values={
@@ -827,6 +828,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="This purges the channels index and re-indexes all channels in the database, from oldest to newest. Channel autocomplete is available during indexing but search results may be incomplete until the indexing job is complete.
+
 <b>Note- Please ensure no other indexing job is in progress in the table above.</b>"
             id="admin.elasticsearch.rebuildChannelsIndex.helpText"
             values={
