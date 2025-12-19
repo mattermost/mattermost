@@ -85,4 +85,8 @@ export default class SystemConsolePage {
     async clickResetButton() {
         await this.saveChangesModal.container.locator('button.btn-primary:has-text("Reset")').click();
     }
+
+    async clickUpdateEmailButton() {
+        await this.saveChangesModal.container.locator('button.btn-primary:has-text("Update")').click();
+    }
 }
