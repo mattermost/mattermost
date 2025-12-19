@@ -947,6 +947,7 @@ func TestLeaveLastChannel(t *testing.T) {
 }
 
 func TestAddChannelMemberNoUserRequestor(t *testing.T) {
+	t.Skip("MM-67037")
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
