@@ -3303,25 +3303,36 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 				teamIdByChannelId[channelId] = teamId
 			}
 
-			// Atomically ensure the thread exists.
-			_, err := transaction.Exec(`
-				INSERT INTO Threads (PostId, ChannelId, ReplyCount, LastReplyAt, Participants, ThreadTeamId)
-				VALUES ($1, $2, 0, 0, '[]'::jsonb, $3)
-				ON CONFLICT (PostId) DO NOTHING
-			`, rootId, channelId, teamId)
+			// Atomically ensure the thread exists
+			insertBuilder := s.getQueryBuilder().
+				Insert("Threads").
+				Columns("PostId", "ChannelId", "ReplyCount", "LastReplyAt", "Participants", "ThreadTeamId").
+				Values(rootId, channelId, 0, 0, sq.Expr("'[]'::jsonb"), teamId).
+				Suffix("ON CONFLICT (PostId) DO NOTHING")
 
+			insertSql, insertArgs, err := insertBuilder.ToSql()
 			if err != nil {
+				return errors.Wrap(err, "updateThreadsFromPosts_insert_ToSql")
+			}
+
+			if _, err := transaction.Exec(insertSql, insertArgs...); err != nil {
 				return err
 			}
 
-			// Re-select the thread FOR UPDATE.
+			// Re-select the thread FOR UPDATE
+			selBuilder := s.getQueryBuilder().
+				Select("PostId, ChannelId, ReplyCount, LastReplyAt, Participants, COALESCE(ThreadDeleteAt, 0) AS DeleteAt").
+				From("Threads").
+				Where(sq.Eq{"PostId": rootId}).
+				Suffix("FOR UPDATE")
+
+			selSql, selArgs, err := selBuilder.ToSql()
+			if err != nil {
+				return errors.Wrap(err, "updateThreadsFromPosts_select_ToSql")
+			}
+
 			thread = &model.Thread{}
-			err = transaction.Get(thread, `
-				SELECT 
-					PostId, ChannelId, ReplyCount, LastReplyAt, Participants, COALESCE(ThreadDeleteAt, 0) AS DeleteAt
-				FROM Threads 
-				WHERE PostId=$1 FOR UPDATE
-			`, rootId)
+			err = transaction.Get(thread, selSql, selArgs...)
 
 			// If the thread still doesn't exist after the insert race, we have a fatal error.
 			if err != nil {
