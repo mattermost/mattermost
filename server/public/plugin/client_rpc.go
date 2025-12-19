@@ -287,6 +287,7 @@ func (s *hooksRPCServer) OnActivate(args *Z_OnActivateArgs, returns *Z_OnActivat
 
 	dbClient := &dbRPCClient{
 		client: rpc.NewClient(conn2),
+		api:    s.apiRPCClient,
 	}
 
 	if mmplugin, ok := s.impl.(interface {

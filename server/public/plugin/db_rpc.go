@@ -5,7 +5,6 @@ package plugin
 
 import (
 	"database/sql/driver"
-	"log"
 	"net/rpc"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -16,6 +15,7 @@ import (
 // new methods to be added very frequently.
 type dbRPCClient struct {
 	client *rpc.Client
+	api    API
 }
 
 // dbRPCServer is the server-side component which is responsible for calling
@@ -460,66 +460,18 @@ func (db *dbRPCServer) RowsColumnTypePrecisionScale(args *Z_DbRowsColumnArg, ret
 	return nil
 }
 
-type Z_DbLogErrorArgs struct {
-	A string
-	B []any
-}
-
-type Z_DbLogErrorReturns struct{}
-
 func (db *dbRPCClient) LogError(msg string, keyValuePairs ...any) {
-	stringifiedPairs := stringifyToObjects(keyValuePairs)
-	_args := &Z_DbLogErrorArgs{msg, stringifiedPairs}
-	_returns := &Z_DbLogErrorReturns{}
-	if err := db.client.Call("Plugin.LogError", _args, _returns); err != nil {
-		log.Printf("RPC call to LogError API failed: %s", err.Error())
-	}
+	db.api.LogError(msg, keyValuePairs...)
 }
-
-type Z_DbLogWarnArgs struct {
-	A string
-	B []any
-}
-
-type Z_DbLogWarnReturns struct{}
 
 func (db *dbRPCClient) LogWarn(msg string, keyValuePairs ...any) {
-	stringifiedPairs := stringifyToObjects(keyValuePairs)
-	_args := &Z_DbLogWarnArgs{msg, stringifiedPairs}
-	_returns := &Z_DbLogWarnReturns{}
-	if err := db.client.Call("Plugin.LogWarn", _args, _returns); err != nil {
-		db.LogError("RPC call to LogWarn API failed", mlog.Err(err))
-	}
+	db.api.LogWarn(msg, keyValuePairs...)
 }
-
-type Z_DbLogInfoArgs struct {
-	A string
-	B []any
-}
-
-type Z_DbLogInfoReturns struct{}
 
 func (db *dbRPCClient) LogInfo(msg string, keyValuePairs ...any) {
-	stringifiedPairs := stringifyToObjects(keyValuePairs)
-	_args := &Z_DbLogInfoArgs{msg, stringifiedPairs}
-	_returns := &Z_DbLogInfoReturns{}
-	if err := db.client.Call("Plugin.LogInfo", _args, _returns); err != nil {
-		db.LogError("RPC call to LogInfo API failed", mlog.Err(err))
-	}
+	db.api.LogInfo(msg, keyValuePairs...)
 }
-
-type Z_DbLogDebugArgs struct {
-	A string
-	B []any
-}
-
-type Z_DbLogDebugReturns struct{}
 
 func (db *dbRPCClient) LogDebug(msg string, keyValuePairs ...any) {
-	stringifiedPairs := stringifyToObjects(keyValuePairs)
-	_args := &Z_DbLogDebugArgs{msg, stringifiedPairs}
-	_returns := &Z_DbLogDebugReturns{}
-	if err := db.client.Call("Plugin.LogDebug", _args, _returns); err != nil {
-		db.LogError("RPC call to LogDebug API failed: %s", mlog.Err(err))
-	}
+	db.api.LogDebug(msg, keyValuePairs...)
 }
