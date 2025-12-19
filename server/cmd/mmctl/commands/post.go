@@ -41,6 +41,14 @@ var PostListCmd = &cobra.Command{
 	RunE: withClient(postListCmdF),
 }
 
+var PostRevealCmd = &cobra.Command{
+	Use:     "reveal [post]",
+	Short:   "Reveal a post",
+	Example: `  post reveal udjmt396tjghi8wnsk3a1qs1sw`,
+	Args:    cobra.ExactArgs(1),
+	RunE:    withClient(revealPostCmdF),
+}
+
 var PostDeleteCmd = &cobra.Command{
 	Use:   "delete [posts]",
 	Short: "Mark posts as deleted or permanently delete posts with the --permanent flag",
@@ -65,6 +73,7 @@ const (
 func init() {
 	PostCreateCmd.Flags().StringP("message", "m", "", "Message for the post")
 	PostCreateCmd.Flags().StringP("reply-to", "r", "", "Post id to reply to")
+	PostCreateCmd.Flags().BoolP("burn-on-read", "b", false, "Message will be deleted after a certain time after being read")
 
 	PostListCmd.Flags().IntP("number", "n", 20, "Number of messages to list")
 	PostListCmd.Flags().BoolP("show-ids", "i", false, "Show posts ids")
@@ -78,6 +87,7 @@ func init() {
 		PostCreateCmd,
 		PostListCmd,
 		PostDeleteCmd,
+		PostRevealCmd,
 	)
 
 	RootCmd.AddCommand(PostCmd)
@@ -109,6 +119,10 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		ChannelId: channel.Id,
 		Message:   message,
 		RootId:    replyTo,
+	}
+
+	if burnOnRead, _ := cmd.Flags().GetBool("burn-on-read"); burnOnRead {
+		post.Type = model.PostTypeBurnOnRead
 	}
 
 	url := "/posts" + "?set_online=false"
@@ -157,15 +171,26 @@ func printPost(c client.Client, post *model.Post, usernames map[string]string, s
 	postTime := model.GetTimeForMillis(post.CreateAt)
 	createdAt := postTime.Format(PostTimeFormat)
 
+	var templatedMessage string
+
 	if showTimestamp {
-		printer.PrintT(fmt.Sprintf("\u001b[32m%s\u001b[0m \u001b[34;1m[%s]\u001b[0m {{.Message}}", createdAt, username), post)
+		templatedMessage = fmt.Sprintf("{{ if eq .Type \"burn_on_read\" }}🔥 {{ end }}\u001b[32m%s\u001b[0m \u001b[34;1m[%s]\u001b[0m {{.Message}}", createdAt, username)
 	} else {
 		if showIds {
-			printer.PrintT(fmt.Sprintf("\u001b[31m%s\u001b[0m \u001b[34;1m[%s]\u001b[0m {{.Message}}", post.Id, username), post)
+			templatedMessage = fmt.Sprintf("{{ if eq .Type \"burn_on_read\" }}🔥 {{ end }}\u001b[31m%s\u001b[0m \u001b[34;1m[%s]\u001b[0m {{.Message}}", post.Id, username)
 		} else {
-			printer.PrintT(fmt.Sprintf("\u001b[34;1m[%s]\u001b[0m {{.Message}}", username), post)
+			templatedMessage = fmt.Sprintf("{{ if eq .Type \"burn_on_read\" }}🔥 {{ end }}\u001b[34;1m[%s]\u001b[0m {{.Message}}", username)
 		}
 	}
+
+	if post.Type == model.PostTypeBurnOnRead {
+		expireAt := post.Metadata.ExpireAt
+		if expireAt != 0 {
+			dur := time.Until(time.UnixMilli(expireAt))
+			templatedMessage = fmt.Sprintf("%s (expires in %s)", templatedMessage, dur.String())
+		}
+	}
+	printer.PrintT(templatedMessage, post)
 }
 
 func getPostList(client client.Client, channelID, since string, perPage int) (*model.PostList, *model.Response, error) {
@@ -275,4 +300,14 @@ func deletePostsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		printer.Print(fmt.Sprintf("%s successfully deleted", postID))
 	}
 	return result.ErrorOrNil()
+}
+
+func revealPostCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	postID := args[0]
+	post, _, err := c.RevealPost(context.TODO(), postID)
+	if err != nil {
+		return err
+	}
+	printPost(c, post, map[string]string{}, false, false)
+	return nil
 }

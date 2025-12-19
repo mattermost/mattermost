@@ -19,7 +19,7 @@ import (
 )
 
 func (s *MmctlE2ETestSuite) TestListChannelsCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	var assertChannelNames = func(want []string, lines []any) {
 		var got []string
@@ -84,7 +84,7 @@ func (s *MmctlE2ETestSuite) TestListChannelsCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestSearchChannelCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.RunForAllClients("Search nonexistent channel", func(c client.Client) {
 		printer.Clean()
@@ -161,7 +161,7 @@ func (s *MmctlE2ETestSuite) TestSearchChannelCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestCreateChannelCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.RunForAllClients("create channel successfully", func(c client.Client) {
 		printer.Clean()
@@ -234,7 +234,7 @@ func (s *MmctlE2ETestSuite) TestCreateChannelCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestArchiveChannelsCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.Run("Archive channel", func() {
 		printer.Clean()
@@ -272,7 +272,7 @@ func (s *MmctlE2ETestSuite) TestArchiveChannelsCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestUnarchiveChannelsCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.Run("Unarchive channel", func() {
 		printer.Clean()
@@ -318,7 +318,7 @@ func (s *MmctlE2ETestSuite) TestUnarchiveChannelsCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestDeleteChannelsCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	previousConfig := s.th.App.Config().ServiceSettings.EnableAPIChannelDeletion
 	s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIChannelDeletion = true })
@@ -463,7 +463,7 @@ func (s *MmctlE2ETestSuite) TestDeleteChannelsCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestChannelRenameCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	initChannelName := api4.GenerateTestChannelName()
 	initChannelDisplayName := "dn_" + initChannelName
@@ -574,7 +574,7 @@ func (s *MmctlE2ETestSuite) TestChannelRenameCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 	initChannelName := api4.GenerateTestChannelName()
 	channel, appErr := s.th.App.CreateChannel(s.th.Context, &model.Channel{
 		TeamId:      s.th.BasicTeam.Id,
@@ -637,7 +637,6 @@ func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 	s.RunForSystemAdminAndLocal("Moving channel which is already moved to particular team", func(c client.Client) {
 		printer.Clean()
 
-		s.SetupTestHelper().InitBasic()
 		initChannelName := api4.GenerateTestChannelName()
 		channel, appErr = s.th.App.CreateChannel(s.th.Context, &model.Channel{
 			TeamId:      s.th.BasicTeam.Id,

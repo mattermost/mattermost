@@ -5116,10 +5116,6 @@
     "translation": "invalid_request: Bad grant_type."
   },
   {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Missing client_secret."
-  },
-  {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
     "translation": "invalid_request: Bad client_id."
   },
@@ -10919,10 +10915,6 @@
   {
     "id": "app.content_flagging.permanently_delete.update_property_value.app_error",
     "translation": "Failed to update flagged post status when permanently deleting flagged post."
-  },
-  {
-    "id": "app.content_flagging.restore_file_info.app_error",
-    "translation": "Failed to restore file info for the flagged post."
   },
   {
     "id": "app.content_flagging.save_reviewer_settings.app_error",

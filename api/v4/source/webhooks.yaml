@@ -38,6 +38,9 @@
                   type: string
                   description: The profile picture this incoming webhook will use when
                     posting.
+                channel_locked:
+                  type: boolean
+                  description: Whether the webhook is locked to the channel.
         description: Incoming webhook to be created
         required: true
       responses:
@@ -221,6 +224,9 @@
                   type: string
                   description: The profile picture this incoming webhook will use when
                     posting.
+                channel_locked:
+                  type: boolean
+                  description: Whether the webhook is locked to the channel.
         description: Incoming webhook to be updated
         required: true
       responses:
