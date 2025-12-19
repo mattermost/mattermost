@@ -86,8 +86,14 @@ describe('Signup Email page', () => {
         cy.get('#saveSetting').should('contain', 'Create Account').and('be.disabled');
 
         // * Check terms and privacy links (now part of checkbox label)
-        cy.get(`label[for="signup-body-card-form-check-terms-and-privacy"] [href="${config.SupportSettings.TermsOfServiceLink || TERMS_OF_SERVICE_LINK}"]`).should('be.visible');
-        cy.get(`label[for="signup-body-card-form-check-terms-and-privacy"] [href="${config.SupportSettings.PrivacyPolicyLink || PRIVACY_POLICY_LINK}"]`).should('be.visible');
+        cy.get('label[for="signup-body-card-form-check-terms-and-privacy"]').within(() => {
+            cy.findByText('Acceptable Use Policy').should('be.visible').
+                and('have.attr', 'href').
+                and('include', config.SupportSettings.TermsOfServiceLink || TERMS_OF_SERVICE_LINK);
+            cy.findByText('Privacy Policy').should('be.visible').
+                and('have.attr', 'href').
+                and('include', config.SupportSettings.PrivacyPolicyLink || PRIVACY_POLICY_LINK);
+        });
     });
 
     it('should match elements, footer', () => {
