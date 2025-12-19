@@ -14,6 +14,7 @@ import {RequestStatus} from 'mattermost-redux/constants';
 import * as useCWSAvailabilityCheckAll from 'components/common/hooks/useCWSAvailabilityCheck';
 import SaveButton from 'components/save_button';
 import Signup from 'components/signup/signup';
+import CheckInput from 'components/widgets/inputs/check';
 import Input from 'components/widgets/inputs/input/input';
 import PasswordInput from 'components/widgets/inputs/password_input/password_input';
 
@@ -225,6 +226,9 @@ describe('components/signup/Signup', () => {
         const passwordInput = wrapper.find(PasswordInput).first().find('input').first();
         passwordInput.simulate('change', {target: {value: 'password'}});
 
+        const termsCheckbox = wrapper.find(CheckInput).first().find('input').first();
+        termsCheckbox.simulate('change');
+
         const saveButton = wrapper.find(SaveButton).first();
         expect(saveButton.props().disabled).toEqual(false);
 
@@ -261,6 +265,9 @@ describe('components/signup/Signup', () => {
 
         const passwordInput = wrapper.find(PasswordInput).first().find('input').first();
         passwordInput.simulate('change', {target: {value: 'password'}});
+
+        const termsCheckbox = wrapper.find(CheckInput).first().find('input').first();
+        termsCheckbox.simulate('change');
 
         const saveButton = wrapper.find(SaveButton).first();
         expect(saveButton.props().disabled).toEqual(false);
@@ -361,45 +368,44 @@ describe('components/signup/Signup', () => {
         });
     });
 
-    it('should show newsletter check box opt-in for self-hosted non airgapped workspaces', async () => {
-        jest.spyOn(useCWSAvailabilityCheckAll, 'default').mockImplementation(() => useCWSAvailabilityCheckAll.CSWAvailabilityCheckTypes.Available);
-        mockLicense = {IsLicensed: 'true', Cloud: 'false'};
+    it('should show terms and privacy checkbox', async () => {
+        mockConfig.TermsOfServiceLink = 'https://mattermost.com/terms';
+        mockConfig.PrivacyPolicyLink = 'https://mattermost.com/privacy';
 
         const {container: signupContainer} = renderWithContext(
             <Signup/>,
         );
 
-        screen.getByTestId('signup-body-card-form-check-newsletter');
-        const checkInput = screen.getByTestId('signup-body-card-form-check-newsletter');
+        const checkInput = screen.getByRole('checkbox', {name: /terms and privacy policy checkbox/i});
         expect(checkInput).toHaveAttribute('type', 'checkbox');
+        expect(checkInput).not.toBeChecked();
 
-        expect(signupContainer).toHaveTextContent('I would like to receive Mattermost security updates via newsletter. By subscribing, I consent to receive emails from Mattermost with product updates, promotions, and company news. I have read the Privacy Policy and understand that I can unsubscribe at any time');
+        expect(signupContainer).toHaveTextContent('I agree to the Acceptable Use Policy and the Privacy Policy');
     });
 
-    it('should NOT show newsletter check box opt-in for self-hosted AND airgapped workspaces', async () => {
-        jest.spyOn(useCWSAvailabilityCheckAll, 'default').mockImplementation(() => useCWSAvailabilityCheckAll.CSWAvailabilityCheckTypes.Unavailable);
-        mockLicense = {IsLicensed: 'true', Cloud: 'false'};
+    it('should require terms acceptance before enabling submit button', async () => {
+        renderWithContext(<Signup/>, mockState);
 
-        const {container: signupContainer} = renderWithContext(
-            <Signup/>,
-        );
+        const emailInput = screen.getByTestId('signup-body-card-form-email-input');
+        const usernameInput = screen.getByTestId('signup-body-card-form-name-input');
+        const passwordInput = screen.getByTestId('signup-body-card-form-password-input');
+        const termsCheckbox = screen.getByRole('checkbox', {name: /terms and privacy policy checkbox/i});
+        const submitButton = screen.getByText('Create account');
 
-        expect(() => screen.getByTestId('signup-body-card-form-check-newsletter')).toThrow();
-        expect(signupContainer).toHaveTextContent('Interested in receiving Mattermost security, product, promotions, and company updates updates via newsletter?Sign up at https://mattermost.com/security-updates/.');
-    });
+        // Fill in all fields but don't check terms
+        fireEvent.change(emailInput, {target: {value: 'test@example.com'}});
+        fireEvent.change(usernameInput, {target: {value: 'testuser'}});
+        fireEvent.change(passwordInput, {target: {value: 'ValidPassword123!'}});
 
-    it('should show newsletter related opt-in or text for cloud', async () => {
-        jest.spyOn(useCWSAvailabilityCheckAll, 'default').mockImplementation(() => useCWSAvailabilityCheckAll.CSWAvailabilityCheckTypes.Available);
-        mockLicense = {IsLicensed: 'true', Cloud: 'true'};
+        // Submit button should be disabled
+        expect(submitButton).toBeDisabled();
 
-        const {container: signupContainer} = renderWithContext(
-            <Signup/>,
-        );
+        // Check terms
+        fireEvent.click(termsCheckbox);
 
-        screen.getByTestId('signup-body-card-form-check-newsletter');
-        const checkInput = screen.getByTestId('signup-body-card-form-check-newsletter');
-        expect(checkInput).toHaveAttribute('type', 'checkbox');
-
-        expect(signupContainer).toHaveTextContent('I would like to receive Mattermost security updates via newsletter. By subscribing, I consent to receive emails from Mattermost with product updates, promotions, and company news. I have read the Privacy Policy and understand that I can unsubscribe at any time');
+        // Now submit button should be enabled
+        await waitFor(() => {
+            expect(submitButton).not.toBeDisabled();
+        });
     });
 });
