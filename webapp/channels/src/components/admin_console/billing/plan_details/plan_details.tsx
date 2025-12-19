@@ -4,8 +4,9 @@
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {Tag} from '@mattermost/design-system';
+
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
-import Tag from 'components/widgets/tag/tag';
 
 import {CloudProducts} from 'utils/constants';
 

@@ -5,6 +5,7 @@ import {shallow} from 'enzyme';
 import React from 'react';
 import type {ComponentProps} from 'react';
 
+import {Tag} from '@mattermost/design-system';
 import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
 import type {UserThread} from '@mattermost/types/threads';
@@ -12,8 +13,6 @@ import type {UserThread} from '@mattermost/types/threads';
 import {markLastPostInThreadAsUnread, updateThreadRead} from 'mattermost-redux/actions/threads';
 
 import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
-
-import Tag from 'components/widgets/tag/tag';
 
 import {WindowSizes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';

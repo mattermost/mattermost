@@ -8,6 +8,11 @@ import {CustomStatusDuration} from '@mattermost/types/users';
 
 import CustomStatusSuggestion from './custom_status_suggestion';
 
+// Mock the useEmojiImageUrl hook
+jest.mock('utils/emoji_utils', () => ({
+    useEmojiImageUrl: jest.fn(() => 'mocked-emoji-url'),
+}));
+
 describe('components/custom_status/custom_status_emoji', () => {
     const baseProps = {
         handleSuggestionClick: jest.fn(),

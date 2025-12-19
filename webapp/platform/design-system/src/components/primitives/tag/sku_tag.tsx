@@ -4,10 +4,19 @@
 import classNames from 'classnames';
 import React, {useMemo} from 'react';
 
-import {LicenseSkus} from 'utils/constants';
-
 import Tag from './tag';
 import type {TagSize} from './tag';
+
+// License SKU types - duplicated from utils/constants to avoid import issues
+export enum LicenseSkus {
+    E10 = 'E10',
+    E20 = 'E20',
+    Starter = 'starter',
+    Professional = 'professional',
+    Enterprise = 'enterprise',
+    EnterpriseAdvanced = 'advanced',
+    Entry = 'entry',
+}
 
 type Props = {
     className?: string;

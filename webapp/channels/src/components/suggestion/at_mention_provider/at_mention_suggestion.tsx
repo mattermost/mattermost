@@ -5,17 +5,16 @@ import React from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {BotTag, Tag} from '@mattermost/design-system';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import usePrefixedIds, {joinIds} from 'components/common/hooks/usePrefixedIds';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
+import GuestTag from 'components/guest_tag';
 import SharedUserIndicator from 'components/shared_user_indicator';
 import StatusIcon from 'components/status_icon';
-import BotTag from 'components/widgets/tag/bot_tag';
-import GuestTag from 'components/widgets/tag/guest_tag';
-import Tag from 'components/widgets/tag/tag';
 import Avatar from 'components/widgets/users/avatar';
 
 import * as Utils from 'utils/utils';

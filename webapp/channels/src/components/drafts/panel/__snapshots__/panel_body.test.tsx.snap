@@ -622,33 +622,30 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                             priority="important"
                             size="xs"
                           >
-                            <Memo(Tag)
+                            <Tag
                               data-testid="post-priority-label"
-                              icon="alert-circle-outline"
+                              icon={<AlertCircleOutlineIcon />}
                               size="xs"
                               text="Important"
                               uppercase={true}
                               variant="info"
                             >
-                              <TagWrapper
-                                as="div"
-                                className="Tag Tag--info Tag--xs"
+                              <div
+                                aria-label="Important"
+                                className="Tag Tag--xs Tag--info Tag--uppercase"
                                 data-testid="post-priority-label"
-                                uppercase={true}
                               >
-                                <div
-                                  className="TagWrapper-kezsCu cA-dXXM Tag Tag--info Tag--xs"
-                                  data-testid="post-priority-label"
+                                <span
+                                  aria-hidden="true"
+                                  className="Tag__icon"
                                 >
-                                  <AlertCircleOutlineIcon
-                                    size={10}
-                                  >
+                                  <AlertCircleOutlineIcon>
                                     <svg
                                       fill="currentColor"
-                                      height={10}
+                                      height="1em"
                                       version="1.1"
                                       viewBox="0 0 24 24"
-                                      width={10}
+                                      width="1em"
                                       xmlns="http://www.w3.org/2000/svg"
                                     >
                                       <path
@@ -656,16 +653,14 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                                       />
                                     </svg>
                                   </AlertCircleOutlineIcon>
-                                  <TagText>
-                                    <span
-                                      className="TagText-bWoQAI beIloY"
-                                    >
-                                      Important
-                                    </span>
-                                  </TagText>
-                                </div>
-                              </TagWrapper>
-                            </Memo(Tag)>
+                                </span>
+                                <span
+                                  className="Tag__text"
+                                >
+                                  Important
+                                </span>
+                              </div>
+                            </Tag>
                           </PriorityLabel>
                         </div>
                       </Memo(PriorityLabels)>

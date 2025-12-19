@@ -4,8 +4,10 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 
+import {AlertOutlineIcon} from '@mattermost/compass-icons/components';
+import {Tag} from '@mattermost/design-system';
+
 import {useDesktopAppNotificationPermission} from 'components/common/hooks/use_desktop_notification_permission';
-import Tag from 'components/widgets/tag/tag';
 
 import {
     getNotificationPermission,
@@ -24,7 +26,7 @@ export default function NotificationPermissionTitleTag() {
             <Tag
                 size='sm'
                 variant='danger'
-                icon='alert-outline'
+                icon={<AlertOutlineIcon size={16}/>}
                 text={formatMessage({
                     id: 'user.settings.notifications.desktopAndMobile.notificationSection.noPermissionIssueTag',
                     defaultMessage: 'Not supported',
@@ -42,7 +44,7 @@ export default function NotificationPermissionTitleTag() {
             <Tag
                 size='sm'
                 variant='dangerDim'
-                icon='alert-outline'
+                icon={<AlertOutlineIcon size={16}/>}
                 text={formatMessage({
                     id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionIssueTag',
                     defaultMessage: 'Permission required',

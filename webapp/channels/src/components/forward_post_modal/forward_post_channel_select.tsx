@@ -14,6 +14,7 @@ import {
     LockOutlineIcon,
     MessageTextOutlineIcon,
 } from '@mattermost/compass-icons/components';
+import {BotTag} from '@mattermost/design-system';
 import type {Channel} from '@mattermost/types/channels';
 
 import {getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
@@ -22,12 +23,11 @@ import {getCurrentUserId, getStatusForUserId, getUser} from 'mattermost-redux/se
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
+import GuestTag from 'components/guest_tag';
 import ProfilePicture from 'components/profile_picture';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
 import {flattenItems, type ProviderResults} from 'components/suggestion/suggestion_results';
 import SwitchChannelProvider from 'components/suggestion/switch_channel_provider';
-import BotTag from 'components/widgets/tag/bot_tag';
-import GuestTag from 'components/widgets/tag/guest_tag';
 
 import Constants from 'utils/constants';
 import * as Utils from 'utils/utils';

@@ -139,7 +139,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
       <div
         className="fileMetadata"
       >
-        <Memo(Tag)
+        <Tag
           className="file-search-channel-name"
           text={
             <Memo(MemoizedFormattedMessage)
@@ -246,7 +246,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
       <div
         className="fileMetadata"
       >
-        <Memo(Tag)
+        <Tag
           className="file-search-channel-name"
           text={
             <Memo(MemoizedFormattedMessage)
@@ -353,7 +353,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
       <div
         className="fileMetadata"
       >
-        <Memo(Tag)
+        <Tag
           className="file-search-channel-name"
           text="test"
         />

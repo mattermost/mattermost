@@ -8,6 +8,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {DotsVerticalIcon} from '@mattermost/compass-icons/components';
+import {Tag} from '@mattermost/design-system';
 import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
@@ -28,7 +29,6 @@ import {makeGetMentionKeysForPost} from 'components/post_markdown';
 import PriorityBadge from 'components/post_priority/post_priority_badge';
 import ThreadButton from 'components/threading/common/thread_button';
 import Timestamp from 'components/timestamp';
-import Tag from 'components/widgets/tag/tag';
 import Avatars from 'components/widgets/users/avatars';
 
 import * as Utils from 'utils/utils';

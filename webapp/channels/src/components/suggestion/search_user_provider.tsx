@@ -4,11 +4,11 @@
 import React from 'react';
 import {defineMessage} from 'react-intl';
 
+import {BotTag} from '@mattermost/design-system';
 import type {UserAutocomplete} from '@mattermost/types/autocomplete';
 import type {UserProfile} from '@mattermost/types/users';
 
 import SharedUserIndicator from 'components/shared_user_indicator';
-import BotTag from 'components/widgets/tag/bot_tag';
 import Avatar from 'components/widgets/users/avatar';
 
 import * as Utils from 'utils/utils';

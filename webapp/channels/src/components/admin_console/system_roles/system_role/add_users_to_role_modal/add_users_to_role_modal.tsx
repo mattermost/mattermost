@@ -6,6 +6,7 @@ import {Modal} from 'react-bootstrap';
 import type {IntlShape} from 'react-intl';
 import {injectIntl, FormattedMessage, defineMessage} from 'react-intl';
 
+import {BotTag} from '@mattermost/design-system';
 import type {Role} from '@mattermost/types/roles';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -14,11 +15,10 @@ import {filterProfiles} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {filterProfilesStartingWithTerm, profileListToMap, isGuest} from 'mattermost-redux/utils/user_utils';
 
+import GuestTag from 'components/guest_tag';
 import MultiSelect from 'components/multiselect/multiselect';
 import type {Value} from 'components/multiselect/multiselect';
 import ProfilePicture from 'components/profile_picture';
-import BotTag from 'components/widgets/tag/bot_tag';
-import GuestTag from 'components/widgets/tag/guest_tag';
 
 import {displayEntireNameForUser} from 'utils/utils';
 

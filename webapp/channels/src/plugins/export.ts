@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {BotTag} from '@mattermost/design-system';
+
 import {notifyMe} from 'actions/notification_actions';
 import {openModal} from 'actions/views/modals';
 import {closeRightHandSide, selectPostById} from 'actions/views/rhs';
@@ -15,7 +17,6 @@ import StartTrialFormModal from 'components/start_trial_form_modal';
 import ThreadViewer from 'components/threading/thread_viewer';
 import Timestamp from 'components/timestamp';
 import UserSettingsModal from 'components/user_settings/modal';
-import BotTag from 'components/widgets/tag/bot_tag';
 import Avatar from 'components/widgets/users/avatar';
 
 import {getHistory} from 'utils/browser_history';
