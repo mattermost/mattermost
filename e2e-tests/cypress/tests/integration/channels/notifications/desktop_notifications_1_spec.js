@@ -200,7 +200,7 @@ describe('Desktop notifications', () => {
         changeTeammateNameDisplayAs('#name_formatFormatC');
 
         const actualMsg = `@${testUser.username} How are things?`;
-        const expected = `@${otherUser.first_name} ${otherUser.last_name}: @${testUser.username} How are things?`;
+        const expected = `@${otherUser.first_name} ${otherUser.last_name}: @${testUser.first_name} ${testUser.last_name} How are things?`;
 
         cy.apiGetChannelByName(testTeam.name, 'Off-Topic').then(({channel}) => {
             // # Have another user send a post.
