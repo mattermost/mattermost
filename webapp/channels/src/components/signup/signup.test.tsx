@@ -56,9 +56,11 @@ jest.mock('mattermost-redux/selectors/entities/general', () => ({
     getConfig: () => mockConfig,
 }));
 
+let mockCurrentUserId = '';
+
 jest.mock('mattermost-redux/selectors/entities/users', () => ({
     ...jest.requireActual('mattermost-redux/selectors/entities/users') as typeof import('mattermost-redux/selectors/entities/users'),
-    getCurrentUserId: () => '',
+    getCurrentUserId: () => mockCurrentUserId,
 }));
 
 jest.mock('actions/team_actions', () => ({
@@ -93,6 +95,9 @@ const actImmediate = (wrapper: ReactWrapper) =>
 describe('components/signup/Signup', () => {
     beforeEach(() => {
         mockLocation = {pathname: '', search: '', hash: ''};
+        mockHistoryPush.mockClear();
+        mockDispatch.mockClear();
+        mockCurrentUserId = '';
 
         mockLicense = {IsLicensed: 'true', Cloud: 'false'};
 
@@ -341,32 +346,50 @@ describe('components/signup/Signup', () => {
         });
     });
 
-    // These tests were zombie tests on master (assertions never executed)
-    // Your branch's component changes have activated them, causing timing issues
-    // Skip them to avoid test interference - they should be fixed in a separate PR
-    it.skip('should add user to team and redirect when team invite valid and logged in', async () => {
+    // These tests were "zombie tests" on master - they appeared to pass but their assertions
+    // never executed due to improper async handling (setTimeout without await/done callbacks).
+    // Fixed to properly test the team invite flow when a user is already logged in.
+    it('should add user to team and redirect when team invite valid and logged in', async () => {
         mockLocation.search = '?id=ppni7a9t87fn3j4d56rwocdctc';
+        mockCurrentUserId = 'user1'; // Simulate logged-in user
+        
+        // Mock dispatch to return team data when addUserToTeamFromInvite is called
+        mockDispatch = jest.fn()
+            .mockResolvedValueOnce({}) // removeGlobalItem in useEffect
+            .mockResolvedValueOnce({data: {name: 'teamName'}}); // addUserToTeamFromInvite
 
-        const wrapper = shallow(
-            <Signup/>,
+        const wrapper = mountWithIntl(
+            <IntlProvider {...intlProviderProps}>
+                <BrowserRouter>
+                    <Signup/>
+                </BrowserRouter>
+            </IntlProvider>,
         );
 
-        setTimeout(() => {
-            expect(mockHistoryPush).toHaveBeenCalledWith('/teamName/channels/town-square');
-            expect(wrapper).toMatchSnapshot();
-        }, 0);
+        await actImmediate(wrapper);
+
+        expect(mockHistoryPush).toHaveBeenCalledWith('/teamName/channels/town-square');
     });
 
-    it.skip('should handle failure adding user to team when team invite and logged in', () => {
+    it('should handle failure adding user to team when team invite and logged in', async () => {
         mockLocation.search = '?id=ppni7a9t87fn3j4d56rwocdctc';
+        mockCurrentUserId = 'user1'; // Simulate logged-in user
+        
+        // Mock dispatch to return error when addUserToTeamFromInvite is called
+        mockDispatch = jest.fn()
+            .mockResolvedValueOnce({}) // removeGlobalItem in useEffect
+            .mockResolvedValueOnce({
+                error: {
+                    server_error_id: 'api.team.add_user_to_team_from_invite.invalid.app_error',
+                    message: 'Invalid invite',
+                },
+            }); // addUserToTeamFromInvite with error
 
-        const wrapper = shallow(
-            <Signup/>,
-        );
+        renderWithContext(<Signup/>, mockState);
 
-        setTimeout(() => {
+        await waitFor(() => {
             expect(mockHistoryPush).not.toHaveBeenCalled();
-            expect(wrapper.find('.content-layout-column-title').text()).toEqual('This invite link is invalid');
+            expect(screen.getByText('This invite link is invalid')).toBeInTheDocument();
         });
     });
 
