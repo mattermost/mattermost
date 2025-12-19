@@ -90,15 +90,15 @@ export const PlaceholderContainer = styled.div`
     display: flex;
     place-items: center;
     flex-direction: column;
-    gap: 5px;
-
-    svg {
-        margin: 24px;
-    }
+    gap: 24px;
 
     hgroup {
         text-align: center;
-        margin-bottom: 24px;
+
+        p {
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+            margin-bottom: 0;
+        }
     }
 `;
 
