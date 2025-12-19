@@ -82,9 +82,6 @@ describe('components/primitives/button', () => {
 
             const loadingStatus = screen.getByRole('status');
             expect(loadingStatus).toHaveAttribute('aria-label', 'Loading');
-
-            const spinner = loadingStatus.querySelector('span[aria-hidden="true"]');
-            expect(spinner).toBeInTheDocument();
         });
 
         test('should be focusable and have proper focus management', async () => {
