@@ -157,7 +157,7 @@ func (a *App) FlagPost(rctx request.CTX, post *model.Post, teamId, reportingUser
 		})
 	}
 
-	_, err = a.Srv().propertyService.CreatePropertyValues(propertyValues)
+	_, err = a.Srv().propertyAccessService.CreatePropertyValues(anonymousCallerId, propertyValues)
 	if err != nil {
 		return model.NewAppError("FlagPost", "app.content_flagging.create_property_values.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -224,7 +224,7 @@ func (a *App) setContentFlaggingPropertiesForThreadReplies(post *model.Post, con
 		})
 	}
 
-	_, err = a.Srv().propertyService.CreatePropertyValues(propertyValues)
+	_, err = a.Srv().propertyAccessService.CreatePropertyValues(anonymousCallerId, propertyValues)
 	if err != nil {
 		return model.NewAppError("setContentFlaggingPropertiesForThreadReplies", "app.content_flagging.set_thread_replies_properties.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -233,7 +233,7 @@ func (a *App) setContentFlaggingPropertiesForThreadReplies(post *model.Post, con
 }
 
 func (a *App) ContentFlaggingGroupId() (string, *model.AppError) {
-	group, err := a.Srv().propertyService.GetPropertyGroup(model.ContentFlaggingGroupName)
+	group, err := a.Srv().propertyAccessService.GetPropertyGroup(model.ContentFlaggingGroupName)
 	if err != nil {
 		return "", model.NewAppError("getContentFlaggingGroupId", "app.content_flagging.get_group.error", nil, "", http.StatusInternalServerError)
 	}
@@ -246,13 +246,13 @@ func (a *App) GetPostContentFlaggingPropertyValue(postId, propertyFieldName stri
 		return nil, appErr
 	}
 
-	statusPropertyField, err := a.Srv().propertyService.GetPropertyFieldByName(groupId, "", propertyFieldName)
+	statusPropertyField, err := a.Srv().propertyAccessService.GetPropertyFieldByName(anonymousCallerId, groupId, "", propertyFieldName)
 	if err != nil {
 		return nil, model.NewAppError("GetPostContentFlaggingPropertyValue", "app.content_flagging.get_status_property.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	searchOptions := model.PropertyValueSearchOpts{TargetIDs: []string{postId}, PerPage: CONTENT_FLAGGING_MAX_PROPERTY_VALUES, FieldID: statusPropertyField.ID}
-	propertyValues, err := a.Srv().propertyService.SearchPropertyValues(groupId, searchOptions)
+	propertyValues, err := a.Srv().propertyAccessService.SearchPropertyValues(anonymousCallerId, groupId, searchOptions)
 	if err != nil {
 		return nil, model.NewAppError("GetPostContentFlaggingPropertyValue", "app.content_flagging.search_status_property.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -291,7 +291,7 @@ func (a *App) canFlagPost(groupId, postId, userLocal string) *model.AppError {
 }
 
 func (a *App) GetContentFlaggingMappedFields(groupId string) (map[string]*model.PropertyField, *model.AppError) {
-	fields, err := a.Srv().propertyService.SearchPropertyFields(groupId, model.PropertyFieldSearchOpts{PerPage: CONTENT_FLAGGING_MAX_PROPERTY_FIELDS})
+	fields, err := a.Srv().propertyAccessService.SearchPropertyFields(anonymousCallerId, groupId, model.PropertyFieldSearchOpts{PerPage: CONTENT_FLAGGING_MAX_PROPERTY_FIELDS})
 	if err != nil {
 		return nil, model.NewAppError("GetContentFlaggingMappedFields", "app.content_flagging.search_property_fields.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -365,7 +365,7 @@ func (a *App) createContentReviewPost(rctx request.CTX, flaggedPostId, teamId, r
 			FieldID:    flaggedPostIdFieldId,
 			Value:      json.RawMessage(fmt.Sprintf(`"%s"`, flaggedPostId)),
 		}
-		_, err := a.Srv().propertyService.CreatePropertyValue(propertyValue)
+		_, err := a.Srv().propertyAccessService.CreatePropertyValue(anonymousCallerId, propertyValue)
 		if err != nil {
 			rctx.Logger().Error("Failed to create content review post property value in one of the channels", mlog.Err(err), mlog.String("channel_id", channel.Id), mlog.String("team_id", teamId), mlog.String("post_id", createdPost.Id))
 		}
@@ -528,7 +528,7 @@ func (a *App) GetPostContentFlaggingPropertyValues(postId string) ([]*model.Prop
 		return nil, appErr
 	}
 
-	propertyValues, err := a.Srv().propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{TargetIDs: []string{postId}, PerPage: CONTENT_FLAGGING_MAX_PROPERTY_VALUES})
+	propertyValues, err := a.PropertyAccessService().SearchPropertyValues(anonymousCallerId, groupId, model.PropertyValueSearchOpts{TargetIDs: []string{postId}, PerPage: CONTENT_FLAGGING_MAX_PROPERTY_VALUES})
 	if err != nil {
 		return nil, model.NewAppError("GetPostContentFlaggingPropertyValues", "app.content_flagging.search_property_values.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -654,13 +654,13 @@ func (a *App) PermanentDeleteFlaggedPost(rctx request.CTX, actionRequest *model.
 		},
 	}
 
-	_, err = a.Srv().propertyService.CreatePropertyValues(propertyValues)
+	_, err = a.Srv().propertyAccessService.CreatePropertyValues(anonymousCallerId, propertyValues)
 	if err != nil {
 		return model.NewAppError("PermanentlyRemoveFlaggedPost", "app.content_flagging.create_property_values.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	status.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusRemoved))
-	_, err = a.Srv().propertyService.UpdatePropertyValue(groupId, status)
+	_, err = a.Srv().propertyAccessService.UpdatePropertyValue(anonymousCallerId, groupId, status)
 	if err != nil {
 		return model.NewAppError("PermanentlyRemoveFlaggedPost", "app.content_flagging.permanently_delete.update_property_value.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -765,13 +765,13 @@ func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContent
 		},
 	}
 
-	_, err = a.Srv().propertyService.CreatePropertyValues(propertyValues)
+	_, err = a.Srv().propertyAccessService.CreatePropertyValues(anonymousCallerId, propertyValues)
 	if err != nil {
 		return model.NewAppError("KeepFlaggedPost", "app.content_flagging.create_property_values.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	status.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusRetained))
-	_, err = a.Srv().propertyService.UpdatePropertyValue(groupId, status)
+	_, err = a.Srv().propertyAccessService.UpdatePropertyValue(anonymousCallerId, groupId, status)
 	if err != nil {
 		return model.NewAppError("KeepFlaggedPost", "app.content_flagging.keep_post.status_update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -977,14 +977,14 @@ func (a *App) AssignFlaggedPostReviewer(rctx request.CTX, flaggedPostId, flagged
 		Value:      json.RawMessage(fmt.Sprintf(`"%s"`, reviewerId)),
 	}
 
-	assigneePropertyValue, err := a.Srv().propertyService.UpsertPropertyValue(assigneePropertyValue)
+	assigneePropertyValue, err := a.Srv().propertyAccessService.UpsertPropertyValue(anonymousCallerId, assigneePropertyValue)
 	if err != nil {
 		return model.NewAppError("AssignFlaggedPostReviewer", "app.content_flagging.assign_reviewer.upsert_property_value.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if status == model.ContentFlaggingStatusPending {
 		statusPropertyValue.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusAssigned))
-		statusPropertyValue, err = a.Srv().propertyService.UpdatePropertyValue(groupId, statusPropertyValue)
+		statusPropertyValue, err = a.Srv().propertyAccessService.UpdatePropertyValue(anonymousCallerId, groupId, statusPropertyValue)
 		if err != nil {
 			return model.NewAppError("AssignFlaggedPostReviewer", "app.content_flagging.assign_reviewer.update_status_property_value.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -1195,7 +1195,7 @@ func (a *App) getReviewerPostsForFlaggedPost(contentFlaggingGroupId, flaggedPost
 	var propertyValues []*model.PropertyValue
 
 	for {
-		batch, err := a.Srv().propertyService.SearchPropertyValues(contentFlaggingGroupId, searchOptions)
+		batch, err := a.Srv().propertyAccessService.SearchPropertyValues(anonymousCallerId, contentFlaggingGroupId, searchOptions)
 		if err != nil {
 			return nil, model.NewAppError("getReviewerPostsForFlaggedPost", "app.content_flagging.search_reviewer_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}

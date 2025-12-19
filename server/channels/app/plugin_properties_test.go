@@ -434,4 +434,682 @@ func TestPluginProperties(t *testing.T) {
 		appErr := th.App.ch.RemovePlugin(pluginIDs[0])
 		require.Nil(t, appErr)
 	})
+
+	t.Run("test plugin-created CPA field gets source_plugin_id", func(t *testing.T) {
+		cpaGroupID, err := th.App.CpaGroupID()
+		require.NoError(t, err)
+
+		tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
+			package main
+
+			import (
+				"fmt"
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) OnActivate() error {
+				// Create a CPA field
+				field := &model.PropertyField{
+					GroupID: "` + cpaGroupID + `",
+					Name:    "CPA Test Field",
+					Type:    model.PropertyFieldTypeText,
+				}
+
+				createdField, err := p.API.CreatePropertyField(field)
+				if err != nil {
+					return fmt.Errorf("failed to create CPA field: %w", err)
+				}
+
+				// Verify source_plugin_id was automatically set
+				if createdField.Attrs == nil {
+					return fmt.Errorf("field attrs is nil")
+				}
+
+				sourcePluginID, ok := createdField.Attrs["source_plugin_id"].(string)
+				if !ok {
+					return fmt.Errorf("source_plugin_id not found in attrs")
+				}
+
+				if sourcePluginID != p.API.GetPluginID() {
+					return fmt.Errorf("source_plugin_id mismatch: expected %s, got %s", p.API.GetPluginID(), sourcePluginID)
+				}
+
+				return nil
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`}, th.App, th.NewPluginAPI)
+		defer tearDown()
+		require.Len(t, activationErrors, 1)
+		require.NoError(t, activationErrors[0])
+
+		// Clean up
+		err2 := th.App.DisablePlugin(pluginIDs[0])
+		require.Nil(t, err2)
+		appErr := th.App.ch.RemovePlugin(pluginIDs[0])
+		require.Nil(t, appErr)
+	})
+
+	t.Run("test plugin can update its own protected field", func(t *testing.T) {
+		cpaGroupID, err := th.App.CpaGroupID()
+		require.NoError(t, err)
+
+		tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
+			package main
+
+			import (
+				"fmt"
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) OnActivate() error {
+				// Create a protected CPA field
+				field := &model.PropertyField{
+					GroupID: "` + cpaGroupID + `",
+					Name:    "Protected Field",
+					Type:    model.PropertyFieldTypeText,
+					Attrs: map[string]any{
+						"protected": true,
+					},
+				}
+
+				createdField, err := p.API.CreatePropertyField(field)
+				if err != nil {
+					return fmt.Errorf("failed to create protected field: %w", err)
+				}
+
+				// Try to update the protected field (should succeed since we created it)
+				createdField.Name = "Updated Protected Field"
+				updatedField, err := p.API.UpdatePropertyField("` + cpaGroupID + `", createdField)
+				if err != nil {
+					return fmt.Errorf("failed to update own protected field: %w", err)
+				}
+
+				if updatedField.Name != "Updated Protected Field" {
+					return fmt.Errorf("field name not updated correctly")
+				}
+
+				return nil
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`}, th.App, th.NewPluginAPI)
+		defer tearDown()
+		require.Len(t, activationErrors, 1)
+		require.NoError(t, activationErrors[0])
+
+		// Clean up
+		err2 := th.App.DisablePlugin(pluginIDs[0])
+		require.Nil(t, err2)
+		appErr := th.App.ch.RemovePlugin(pluginIDs[0])
+		require.Nil(t, appErr)
+	})
+
+	t.Run("test plugin cannot update another plugin's protected field", func(t *testing.T) {
+		cpaGroupID, err := th.App.CpaGroupID()
+		require.NoError(t, err)
+
+		// Both plugins in same environment
+		tearDown, _, activationErrors := SetAppEnvironmentWithPlugins(t, []string{
+			// Plugin 1: creates a protected field
+			`
+			package main
+
+			import (
+				"fmt"
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) OnActivate() error {
+				// Create a protected CPA field
+				field := &model.PropertyField{
+					GroupID: "` + cpaGroupID + `",
+					Name:    "Plugin1 Protected Field",
+					Type:    model.PropertyFieldTypeText,
+					Attrs: map[string]any{
+						"protected": true,
+					},
+				}
+
+				_, err := p.API.CreatePropertyField(field)
+				if err != nil {
+					return fmt.Errorf("failed to create protected field: %w", err)
+				}
+
+				return nil
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+			// Plugin 2: tries to update plugin1's field
+			`
+			package main
+
+			import (
+				"fmt"
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) OnActivate() error {
+				// Search for plugin1's protected field
+				fields, err := p.API.SearchPropertyFields("` + cpaGroupID + `", model.PropertyFieldSearchOpts{PerPage: 100})
+				if err != nil {
+					return fmt.Errorf("failed to search fields: %w", err)
+				}
+
+				var plugin1Field *model.PropertyField
+				for _, field := range fields {
+					if field.Name == "Plugin1 Protected Field" {
+						plugin1Field = field
+						break
+					}
+				}
+
+				if plugin1Field == nil {
+					return fmt.Errorf("plugin1 field not found")
+				}
+
+				// Attempt to update it (should fail)
+				plugin1Field.Name = "Hacked By Plugin2"
+				_, err = p.API.UpdatePropertyField("` + cpaGroupID + `", plugin1Field)
+				if err == nil {
+					return fmt.Errorf("expected error when updating another plugin's protected field, but got none")
+				}
+
+				// Error is expected
+				return nil
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+		require.Len(t, activationErrors, 2)
+		require.NoError(t, activationErrors[0])
+		require.NoError(t, activationErrors[1])
+	})
+
+	t.Run("test plugin can delete its own protected field", func(t *testing.T) {
+		cpaGroupID, err := th.App.CpaGroupID()
+		require.NoError(t, err)
+
+		tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
+			package main
+
+			import (
+				"fmt"
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) OnActivate() error {
+				// Create a protected CPA field
+				field := &model.PropertyField{
+					GroupID: "` + cpaGroupID + `",
+					Name:    "Field To Delete",
+					Type:    model.PropertyFieldTypeText,
+					Attrs: map[string]any{
+						"protected": true,
+					},
+				}
+
+				createdField, err := p.API.CreatePropertyField(field)
+				if err != nil {
+					return fmt.Errorf("failed to create protected field: %w", err)
+				}
+
+				// Try to delete the protected field (should succeed since we created it)
+				err = p.API.DeletePropertyField("` + cpaGroupID + `", createdField.ID)
+				if err != nil {
+					return fmt.Errorf("failed to delete own protected field: %w", err)
+				}
+
+				return nil
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`}, th.App, th.NewPluginAPI)
+		defer tearDown()
+		require.Len(t, activationErrors, 1)
+		require.NoError(t, activationErrors[0])
+
+		// Clean up
+		err2 := th.App.DisablePlugin(pluginIDs[0])
+		require.Nil(t, err2)
+		appErr := th.App.ch.RemovePlugin(pluginIDs[0])
+		require.Nil(t, appErr)
+	})
+
+	t.Run("test plugin cannot delete another plugin's protected field", func(t *testing.T) {
+		cpaGroupID, err := th.App.CpaGroupID()
+		require.NoError(t, err)
+
+		// Both plugins in same environment
+		tearDown, _, activationErrors := SetAppEnvironmentWithPlugins(t, []string{
+			// Plugin 1: creates a protected field
+			`
+			package main
+
+			import (
+				"fmt"
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) OnActivate() error {
+				field := &model.PropertyField{
+					GroupID: "` + cpaGroupID + `",
+					Name:    "Plugin1 Field To Keep",
+					Type:    model.PropertyFieldTypeText,
+					Attrs: map[string]any{
+						"protected": true,
+					},
+				}
+
+				_, err := p.API.CreatePropertyField(field)
+				if err != nil {
+					return fmt.Errorf("failed to create protected field: %w", err)
+				}
+
+				return nil
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+			// Plugin 2: tries to delete plugin1's field
+			`
+			package main
+
+			import (
+				"fmt"
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) OnActivate() error {
+				// Search for plugin1's protected field
+				fields, err := p.API.SearchPropertyFields("` + cpaGroupID + `", model.PropertyFieldSearchOpts{PerPage: 100})
+				if err != nil {
+					return fmt.Errorf("failed to search fields: %w", err)
+				}
+
+				var plugin1Field *model.PropertyField
+				for _, field := range fields {
+					if field.Name == "Plugin1 Field To Keep" {
+						plugin1Field = field
+						break
+					}
+				}
+
+				if plugin1Field == nil {
+					return fmt.Errorf("plugin1 field not found")
+				}
+
+				// Attempt to delete it (should fail)
+				err = p.API.DeletePropertyField("` + cpaGroupID + `", plugin1Field.ID)
+				if err == nil {
+					return fmt.Errorf("expected error when deleting another plugin's protected field, but got none")
+				}
+
+				// Error is expected
+				return nil
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+		require.Len(t, activationErrors, 2)
+		require.NoError(t, activationErrors[0])
+		require.NoError(t, activationErrors[1])
+	})
+
+	t.Run("test plugin can update values for its own protected field", func(t *testing.T) {
+		cpaGroupID, err := th.App.CpaGroupID()
+		require.NoError(t, err)
+
+		tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
+			package main
+
+			import (
+				"fmt"
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) OnActivate() error {
+				// Create a protected CPA field
+				field := &model.PropertyField{
+					GroupID: "` + cpaGroupID + `",
+					Name:    "Protected Field With Values",
+					Type:    model.PropertyFieldTypeText,
+					Attrs: map[string]any{
+						"protected": true,
+					},
+				}
+
+				createdField, err := p.API.CreatePropertyField(field)
+				if err != nil {
+					return fmt.Errorf("failed to create protected field: %w", err)
+				}
+
+				// Create a value for this field
+				targetID := model.NewId()
+				value := &model.PropertyValue{
+					GroupID:    "` + cpaGroupID + `",
+					FieldID:    createdField.ID,
+					TargetID:   targetID,
+					TargetType: "user",
+					Value:      []byte("\"initial value\""),
+				}
+
+				createdValue, err := p.API.CreatePropertyValue(value)
+				if err != nil {
+					return fmt.Errorf("failed to create value: %w", err)
+				}
+
+				// Update the value (should succeed)
+				createdValue.Value = []byte("\"updated value\"")
+				updatedValue, err := p.API.UpdatePropertyValue("` + cpaGroupID + `", createdValue)
+				if err != nil {
+					return fmt.Errorf("failed to update value for own protected field: %w", err)
+				}
+
+				if string(updatedValue.Value) != "\"updated value\"" {
+					return fmt.Errorf("value not updated correctly")
+				}
+
+				return nil
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`}, th.App, th.NewPluginAPI)
+		defer tearDown()
+		require.Len(t, activationErrors, 1)
+		require.NoError(t, activationErrors[0])
+
+		// Clean up
+		err2 := th.App.DisablePlugin(pluginIDs[0])
+		require.Nil(t, err2)
+		appErr := th.App.ch.RemovePlugin(pluginIDs[0])
+		require.Nil(t, appErr)
+	})
+
+	t.Run("test plugin cannot update values for another plugin's protected field", func(t *testing.T) {
+		cpaGroupID, err := th.App.CpaGroupID()
+		require.NoError(t, err)
+
+		testTargetID := model.NewId()
+
+		// Both plugins in same environment
+		tearDown, _, activationErrors := SetAppEnvironmentWithPlugins(t, []string{
+			// Plugin 1: creates a protected field with a value
+			`
+			package main
+
+			import (
+				"fmt"
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) OnActivate() error {
+				field := &model.PropertyField{
+					GroupID: "` + cpaGroupID + `",
+					Name:    "Plugin1 Field With Protected Values",
+					Type:    model.PropertyFieldTypeText,
+					Attrs: map[string]any{
+						"protected": true,
+					},
+				}
+
+				createdField, err := p.API.CreatePropertyField(field)
+				if err != nil {
+					return fmt.Errorf("failed to create protected field: %w", err)
+				}
+
+				// Create a value
+				value := &model.PropertyValue{
+					GroupID:    "` + cpaGroupID + `",
+					FieldID:    createdField.ID,
+					TargetID:   "` + testTargetID + `",
+					TargetType: "user",
+					Value:      []byte("\"plugin1 value\""),
+				}
+
+				_, err = p.API.CreatePropertyValue(value)
+				if err != nil {
+					return fmt.Errorf("failed to create value: %w", err)
+				}
+
+				return nil
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+			// Plugin 2: tries to update plugin1's field value
+			`
+			package main
+
+			import (
+				"fmt"
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) OnActivate() error {
+				// Search for plugin1's protected field
+				fields, err := p.API.SearchPropertyFields("` + cpaGroupID + `", model.PropertyFieldSearchOpts{PerPage: 100})
+				if err != nil {
+					return fmt.Errorf("failed to search fields: %w", err)
+				}
+
+				var plugin1Field *model.PropertyField
+				for _, field := range fields {
+					if field.Name == "Plugin1 Field With Protected Values" {
+						plugin1Field = field
+						break
+					}
+				}
+
+				if plugin1Field == nil {
+					return fmt.Errorf("plugin1 field not found")
+				}
+
+				// Try to update the value (should fail)
+				value := &model.PropertyValue{
+					GroupID:    "` + cpaGroupID + `",
+					FieldID:    plugin1Field.ID,
+					TargetID:   "` + testTargetID + `",
+					TargetType: "user",
+					Value:      []byte("\"hacked by plugin2\""),
+				}
+
+				_, err = p.API.UpsertPropertyValue(value)
+				if err == nil {
+					return fmt.Errorf("expected error when updating another plugin's protected field value, but got none")
+				}
+
+				// Error is expected
+				return nil
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+		require.Len(t, activationErrors, 2)
+		require.NoError(t, activationErrors[0])
+		require.NoError(t, activationErrors[1])
+	})
+
+	t.Run("test plugin can modify non-protected CPA fields from other plugins", func(t *testing.T) {
+		cpaGroupID, err := th.App.CpaGroupID()
+		require.NoError(t, err)
+
+		// Both plugins in same environment
+		tearDown, _, activationErrors := SetAppEnvironmentWithPlugins(t, []string{
+			// Plugin 1: creates a NON-protected field
+			`
+			package main
+
+			import (
+				"fmt"
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) OnActivate() error {
+				field := &model.PropertyField{
+					GroupID: "` + cpaGroupID + `",
+					Name:    "Non-Protected Field",
+					Type:    model.PropertyFieldTypeText,
+					// Note: protected is not set
+				}
+
+				_, err := p.API.CreatePropertyField(field)
+				if err != nil {
+					return fmt.Errorf("failed to create non-protected field: %w", err)
+				}
+
+				return nil
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+			// Plugin 2: modifies plugin1's non-protected field
+			`
+			package main
+
+			import (
+				"fmt"
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) OnActivate() error {
+				// Search for plugin1's non-protected field
+				fields, err := p.API.SearchPropertyFields("` + cpaGroupID + `", model.PropertyFieldSearchOpts{PerPage: 100})
+				if err != nil {
+					return fmt.Errorf("failed to search fields: %w", err)
+				}
+
+				var plugin1Field *model.PropertyField
+				for _, field := range fields {
+					if field.Name == "Non-Protected Field" {
+						plugin1Field = field
+						break
+					}
+				}
+
+				if plugin1Field == nil {
+					return fmt.Errorf("plugin1 field not found")
+				}
+
+				// Update it (should succeed since it's not protected)
+				plugin1Field.Name = "Modified By Plugin2"
+				_, err = p.API.UpdatePropertyField("` + cpaGroupID + `", plugin1Field)
+				if err != nil {
+					return fmt.Errorf("failed to update non-protected field: %w", err)
+				}
+
+				return nil
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+		require.Len(t, activationErrors, 2)
+		require.NoError(t, activationErrors[0])
+		require.NoError(t, activationErrors[1])
+
+		// Verify the field was actually updated
+		updatedFields, appErr := th.App.ListCPAFields("")
+		require.Nil(t, appErr)
+		var fieldWasUpdated bool
+		for _, field := range updatedFields {
+			if field.Name == "Modified By Plugin2" {
+				fieldWasUpdated = true
+				break
+			}
+		}
+		require.True(t, fieldWasUpdated, "Non-protected field should have been updated by plugin2")
+	})
 }
