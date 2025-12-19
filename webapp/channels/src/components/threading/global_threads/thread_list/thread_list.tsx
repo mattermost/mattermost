@@ -12,22 +12,16 @@ import WithTooltip from '@mattermost/design-system/src/components/primitives/wit
 import type {UserThread} from '@mattermost/types/threads';
 
 import {getThreadsForCurrentTeam, markAllThreadsInTeamRead} from 'mattermost-redux/actions/threads';
-import {getInt} from 'mattermost-redux/selectors/entities/preferences';
 import {getThreadCountsInCurrentTeam} from 'mattermost-redux/selectors/entities/threads';
 
 import {closeModal, openModal} from 'actions/views/modals';
-import {getIsMobileView} from 'selectors/views/browser';
 
 import NoResultsIndicator from 'components/no_results_indicator';
-import CRTListTutorialTip from 'components/tours/crt_tour/crt_list_tutorial_tip';
-import CRTUnreadTutorialTip from 'components/tours/crt_tour/crt_unread_tutorial_tip';
 import Header from 'components/widgets/header';
 
-import {A11yClassNames, Constants, CrtTutorialSteps, ModalIdentifiers, Preferences} from 'utils/constants';
+import {A11yClassNames, Constants, ModalIdentifiers} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {a11yFocus, mod} from 'utils/utils';
-
-import type {GlobalState} from 'types/store';
 
 import VirtualizedThreadList from './virtualized_thread_list';
 
@@ -62,14 +56,10 @@ const ThreadList = ({
     unreadIds,
     ids,
 }: PropsWithChildren<Props>) => {
-    const isMobileView = useSelector(getIsMobileView);
     const unread = ThreadFilter.unread === currentFilter;
     const data = unread ? unreadIds : ids;
     const ref = React.useRef<HTMLDivElement>(null);
     const {currentTeamId, currentUserId, clear, select} = useThreadRouting();
-    const tipStep = useSelector((state: GlobalState) => getInt(state, Preferences.CRT_TUTORIAL_STEP, currentUserId));
-    const showListTutorialTip = tipStep === CrtTutorialSteps.LIST_POPOVER;
-    const showUnreadTutorialTip = tipStep === CrtTutorialSteps.UNREAD_POPOVER;
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
@@ -236,7 +226,6 @@ const ThreadList = ({
                                     defaultMessage='Unreads'
                                 />
                             </ThreadButton>
-                            {showUnreadTutorialTip && <CRTUnreadTutorialTip/>}
                         </div>
                     </div>
                 )}
@@ -281,7 +270,6 @@ const ThreadList = ({
                     isLoading={isLoading}
                     addNoMoreResultsItem={hasLoaded && !unread}
                 />
-                {showListTutorialTip && !isMobileView && <CRTListTutorialTip/>}
                 {unread && !someUnread && isEmpty(unreadIds) ? (
                     <NoResultsIndicator
                         expanded={true}

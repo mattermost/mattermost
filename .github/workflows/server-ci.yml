@@ -1,3 +1,8 @@
+# NOTE: This workflow name is referenced by other workflows:
+# - server-ci-artifacts.yml
+# - server-ci-report.yml
+# - sentry.yaml
+# If you rename this workflow, be sure to update those workflows as well.
 name: Server CI
 # on:
 #   push:
@@ -222,8 +227,9 @@ jobs:
       fips-enabled: true
   test-coverage:
     name: Generate Test Coverage
-    # Skip coverage generation for cherry-pick PRs into release branches.
-    if: ${{ github.event_name != 'pull_request' || !startsWith(github.event.pull_request.base.ref, 'release-') }}
+    # Disabled: Running out of memory and causing spurious failures.
+    # Old condition: ${{ github.event_name != 'pull_request' || !startsWith(github.event.pull_request.base.ref, 'release-') }}
+    if: false
     needs: go
     uses: ./.github/workflows/server-test-template.yml
     secrets: inherit

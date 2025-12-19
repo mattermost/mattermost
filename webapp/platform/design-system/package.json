@@ -1,6 +1,6 @@
 {
   "name": "@mattermost/design-system",
-  "version": "11.1.0",
+  "version": "11.3.0",
   "private": true,
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
@@ -18,7 +18,7 @@
   },
   "devDependencies": {
     "@babel/plugin-transform-runtime": "^7.17.0",
-    "@mattermost/types": "^11.1.0",
+    "@mattermost/types": "^11.3.0",
     "@rollup/plugin-babel": "^5.3.1",
     "@rollup/plugin-commonjs": "^21.0.2",
     "@rollup/plugin-node-resolve": "^13.1.3",

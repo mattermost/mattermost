@@ -95,15 +95,19 @@ export default function TeamButton({
         } else {
             teamClass = 'special';
         }
-        ariaLabel = formatMessage({
-            id: 'team.button.unread.ariaLabel',
-            defaultMessage: '{teamName} team unread',
-        },
-        {
-            teamName: displayName,
-        });
 
-        if (mentions) {
+        // Only update ariaLabel for actual team buttons with unread status, not for create/join team buttons
+        if (unread && isNotCreateTeamButton && !otherProps.isInProduct) {
+            ariaLabel = formatMessage({
+                id: 'team.button.unread.ariaLabel',
+                defaultMessage: '{teamName} team unread',
+            },
+            {
+                teamName: displayName,
+            });
+        }
+
+        if (mentions && isNotCreateTeamButton) {
             ariaLabel = formatMessage({
                 id: 'team.button.mentions.ariaLabel',
                 defaultMessage: '{teamName} team, {mentionCount} mentions',

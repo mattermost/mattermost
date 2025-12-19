@@ -24,6 +24,7 @@ import {ModalIdentifiers} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import messageHtmlToComponent from 'utils/message_html_to_component';
 import * as NotificationSounds from 'utils/notification_sounds';
+import {sendToParent, onMessageFromParent, isPopoutWindow, canPopout} from 'utils/popouts/popout_windows';
 import {formatText} from 'utils/text_formatting';
 import {useWebSocket, useWebSocketClient, WebSocketContext} from 'utils/use_websocket';
 import {imageURLForUser} from 'utils/utils';
@@ -65,6 +66,12 @@ interface WindowWithLibraries {
         sendDesktopNotificationToMe: typeof notifyMe;
         openUserSettings: (dialogProps: any) => void;
         browserHistory: ReturnType<typeof getHistory>;
+        popouts: {
+            sendToParent: typeof sendToParent;
+            onMessageFromParent: typeof onMessageFromParent;
+            isPopoutWindow: typeof isPopoutWindow;
+            canPopout: typeof canPopout;
+        };
     };
     openPricingModal: () => void;
     Components: {
@@ -135,6 +142,12 @@ window.WebappUtils = {
         dialogType: UserSettingsModal,
         dialogProps,
     }),
+    popouts: {
+        sendToParent,
+        onMessageFromParent,
+        isPopoutWindow,
+        canPopout,
+    },
 };
 
 // For plugins, we provide a simple function that always tries to open the external pricing page

@@ -7,13 +7,16 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
+import PopoutButton from 'components/popout_button';
 
 import {RHSStates} from 'utils/constants';
+import {isPopoutWindow} from 'utils/popouts/popout_windows';
 
 import type {PropsFromRedux} from './index';
 
 export interface Props extends PropsFromRedux {
     children: React.ReactNode;
+    newWindowHandler?: () => void;
 }
 
 function SearchResultsHeader(props: Props) {
@@ -69,7 +72,7 @@ function SearchResultsHeader(props: Props) {
                 {props.children}
             </span>
             <div className='pull-right'>
-                {showExpand && (
+                {showExpand && !isPopoutWindow() && (
                     <WithTooltip
                         title={sidebarTooltipContent}
                     >
@@ -90,27 +93,32 @@ function SearchResultsHeader(props: Props) {
                         </button>
                     </WithTooltip>
                 )}
-                <WithTooltip
-                    title={
-                        <FormattedMessage
-                            id='rhs_header.closeSidebarTooltip'
-                            defaultMessage='Close'
-                        />
-                    }
-                >
-                    <button
-                        id='searchResultsCloseButton'
-                        type='button'
-                        className='sidebar--right__close btn btn-icon btn-sm'
-                        aria-label='Close'
-                        onClick={props.actions.closeRightHandSide}
+                {props.newWindowHandler && (
+                    <PopoutButton onClick={props.newWindowHandler}/>
+                )}
+                {!isPopoutWindow() &&
+                    <WithTooltip
+                        title={
+                            <FormattedMessage
+                                id='rhs_header.closeSidebarTooltip'
+                                defaultMessage='Close'
+                            />
+                        }
                     >
-                        <i
-                            className='icon icon-close'
-                            aria-label={formatMessage({id: 'rhs_header.closeTooltip.icon', defaultMessage: 'Close Sidebar Icon'})}
-                        />
-                    </button>
-                </WithTooltip>
+                        <button
+                            id='searchResultsCloseButton'
+                            type='button'
+                            className='sidebar--right__close btn btn-icon btn-sm'
+                            aria-label='Close'
+                            onClick={props.actions.closeRightHandSide}
+                        >
+                            <i
+                                className='icon icon-close'
+                                aria-label={formatMessage({id: 'rhs_header.closeTooltip.icon', defaultMessage: 'Close Sidebar Icon'})}
+                            />
+                        </button>
+                    </WithTooltip>
+                }
             </div>
         </div>
     );
