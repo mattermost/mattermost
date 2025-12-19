@@ -138,25 +138,16 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     const [teamName, setTeamName] = useState(parsedTeamName ?? '');
     const [alertBanner, setAlertBanner] = useState<AlertBannerProps | null>(null);
     const [isMobileView, setIsMobileView] = useState(false);
-    const [subscribeToSecurityNewsletter, setSubscribeToSecurityNewsletter] = useState(false);
+    const [acceptedTerms, setAcceptedTerms] = useState(false);
     const [submitClicked, setSubmitClicked] = useState(false);
 
     const enableExternalSignup = enableSignUpWithGitLab || enableSignUpWithOffice365 || enableSignUpWithGoogle || enableSignUpWithOpenId || enableLDAP || enableSAML;
     const hasError = Boolean(emailError || nameError || passwordError || serverError || alertBanner);
-    const canSubmit = Boolean(email && name && password) && !hasError && !loading;
+    const canSubmit = Boolean(email && name && password && acceptedTerms) && !hasError && !loading;
     const passwordConfig = useSelector(getPasswordConfig);
     const {error: passwordInfo} = isValidPassword('', passwordConfig, intl);
 
     const [desktopLoginLink, setDesktopLoginLink] = useState('');
-
-    const subscribeToSecurityNewsletterFunc = () => {
-        try {
-            Client4.subscribeToNewsletter({email, subscribed_content: 'security_newsletter'});
-        } catch (error) {
-            // eslint-disable-next-line no-console
-            console.error(error);
-        }
-    };
 
     const getExternalSignupOptions = () => {
         const externalLoginOptions: ExternalLoginButtonType[] = [];
@@ -592,9 +583,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
             }
 
             await handleSignupSuccess(user, data!);
-            if (subscribeToSecurityNewsletter) {
-                subscribeToSecurityNewsletterFunc();
-            }
         } else {
             setIsWaiting(false);
         }
@@ -768,11 +756,11 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                     <CheckInput
                                         id='signup-body-card-form-check-terms-and-privacy'
                                         ariaLabel={formatMessage({id: 'signup.terms_and_privacy.checkmark.box', defaultMessage: 'Terms and privacy policy checkbox'})}
-                                        name='newsletter'
-                                        onChange={() => setSubscribeToSecurityNewsletter(!subscribeToSecurityNewsletter)}
+                                        name='terms'
+                                        onChange={() => setAcceptedTerms(!acceptedTerms)}
                                         text={
                                             formatMessage(
-                                                {id: 'signup.terms_and_privacy.checkmark.text', defaultMessage: 'I agree to the <termsOfUseLink>Acceptable Use Policy</termsOfUseLink> and the <privacyPolicyLink>Privacy Policy</privacyPolicyLink>'},
+                                                {id: 'signup.terms_and_privacy.checkmark.text', defaultMessage: 'I agree to the <termsOfUseLink>Acceptable Use Policy</termsOfUseLink> and the <privacyPolicyLink>Privacy Policy</privacyPolicyLink>'},
                                                 {
                                                     privacyPolicyLink: (chunks: React.ReactNode | React.ReactNodeArray) => (
                                                         <ExternalLink
@@ -792,7 +780,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                                     ),
                                                 },
                                             )}
-                                        checked={subscribeToSecurityNewsletter}
+                                        checked={acceptedTerms}
                                     />
                                     <SaveButton
                                         extraClasses='signup-body-card-form-button-submit large'
