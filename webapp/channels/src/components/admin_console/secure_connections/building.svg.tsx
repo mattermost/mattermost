@@ -16,18 +16,18 @@ function BuildingSvg() {
                 fillRule='evenodd'
                 clipRule='evenodd'
                 d='M106.534 105C119.472 94.0855 127.691 77.7525 127.691 59.5C127.691 26.6391 101.052 0 68.1909 0C35.33 0 8.69092 26.6391 8.69092 59.5C8.69092 77.7525 16.9097 94.0855 29.8483 105H106.534Z'
-                fill='#3F4350'
+                fill='var(--center-channel-color)'
                 fillOpacity='0.08'
             />
             <path
                 d='M133.265 57L133.265 48.2903L22.4626 48.2903L22.4625 38.5L6.26504 38.5'
-                stroke='#3F4350'
+                stroke='var(--center-channel-color)'
                 strokeOpacity='0.24'
                 strokeLinecap='round'
             />
             <path
                 d='M77.7324 19.9756L77.7324 36.0406L61.9649 36.0406'
-                stroke='#3F4350'
+                stroke='var(--center-channel-color)'
                 strokeOpacity='0.24'
                 strokeLinecap='round'
             />
@@ -37,7 +37,7 @@ function BuildingSvg() {
                 rx='1.4875'
                 ry='1.4875'
                 transform='matrix(-1 -1.74846e-07 -1.74846e-07 1 134.83 56)'
-                fill='#3F4350'
+                fill='var(--center-channel-color)'
                 fillOpacity='0.48'
             />
             <ellipse
@@ -46,7 +46,7 @@ function BuildingSvg() {
                 rx='1.4875'
                 ry='1.4875'
                 transform='matrix(-1 -1.74846e-07 -1.74846e-07 1 79.2202 17)'
-                fill='#3F4350'
+                fill='var(--center-channel-color)'
                 fillOpacity='0.48'
             />
             <ellipse
@@ -55,20 +55,20 @@ function BuildingSvg() {
                 rx='1.4875'
                 ry='1.4875'
                 transform='matrix(-1 -1.74846e-07 -1.74846e-07 1 7.74023 37)'
-                fill='#3F4350'
+                fill='var(--center-channel-color)'
                 fillOpacity='0.48'
             />
             <path
                 fillRule='evenodd'
                 clipRule='evenodd'
                 d='M18.7651 66H35.7651V105H22.7651H18.7651H15.7651H12.7651H5.76514V75.9574H15.7651V84.2553H18.7651V66ZM115.765 66H98.7651V105H110.765H115.765H118.765H121.765H129.765V86.7447H121.765V76.7872H115.765V66Z'
-                fill='white'
+                fill='var(--center-channel-bg)'
             />
             <path
                 fillRule='evenodd'
                 clipRule='evenodd'
                 d='M18.7651 66H35.7651V105H22.7651H18.7651H15.7651H12.7651H5.76514V75.9574H15.7651V84.2553H18.7651V66ZM115.765 66H98.7651V105H110.765H115.765H118.765H121.765H129.765V86.7447H121.765V76.7872H115.765V66Z'
-                fill='#3F4350'
+                fill='var(--center-channel-color)'
                 fillOpacity='0.24'
             />
             <rect
@@ -76,8 +76,8 @@ function BuildingSvg() {
                 y='31.5'
                 width='36'
                 height='71'
-                fill='white'
-                stroke='#3F4350'
+                fill='var(--center-channel-bg)'
+                stroke='var(--center-channel-color)'
                 strokeLinejoin='round'
             />
             <rect
@@ -85,24 +85,24 @@ function BuildingSvg() {
                 y='102'
                 width='72'
                 height='3'
-                fill='white'
+                fill='var(--center-channel-bg)'
             />
             <rect
                 x='32.2651'
                 y='102.5'
                 width='71'
                 height='2'
-                fill='#3F4350'
+                fill='var(--center-channel-color)'
                 fillOpacity='0.16'
-                stroke='#3F4350'
+                stroke='var(--center-channel-color)'
             />
             <rect
                 x='32.2651'
                 y='28.5'
                 width='40'
                 height='3'
-                fill='white'
-                stroke='#3F4350'
+                fill='var(--center-channel-bg)'
+                stroke='var(--center-channel-color)'
                 strokeLinejoin='round'
             />
             <rect
@@ -110,9 +110,9 @@ function BuildingSvg() {
                 y='28.5'
                 width='40'
                 height='3'
-                fill='#3F4350'
+                fill='var(--center-channel-color)'
                 fillOpacity='0.32'
-                stroke='#3F4350'
+                stroke='var(--center-channel-color)'
                 strokeLinejoin='round'
             />
             <rect
@@ -120,8 +120,8 @@ function BuildingSvg() {
                 y='25.5'
                 width='25'
                 height='3'
-                fill='white'
-                stroke='#3F4350'
+                fill='var(--center-channel-bg)'
+                stroke='var(--center-channel-color)'
                 strokeLinejoin='round'
             />
             <rect
@@ -129,9 +129,9 @@ function BuildingSvg() {
                 y='25.5'
                 width='25'
                 height='3'
-                fill='#3F4350'
+                fill='var(--center-channel-color)'
                 fillOpacity='0.32'
-                stroke='#3F4350'
+                stroke='var(--center-channel-color)'
                 strokeLinejoin='round'
             />
             <rect
@@ -139,7 +139,7 @@ function BuildingSvg() {
                 y='37'
                 width='25'
                 height='7'
-                fill='#3F4350'
+                fill='var(--center-channel-color)'
                 fillOpacity='0.16'
             />
             <rect
@@ -147,7 +147,7 @@ function BuildingSvg() {
                 y='48'
                 width='25'
                 height='7'
-                fill='#3F4350'
+                fill='var(--center-channel-color)'
                 fillOpacity='0.16'
             />
             <rect
@@ -155,7 +155,7 @@ function BuildingSvg() {
                 y='59'
                 width='25'
                 height='7'
-                fill='#3F4350'
+                fill='var(--center-channel-color)'
                 fillOpacity='0.16'
             />
             <rect
@@ -163,7 +163,7 @@ function BuildingSvg() {
                 y='43'
                 width='5'
                 height='59'
-                fill='#3F4350'
+                fill='var(--center-channel-color)'
                 fillOpacity='0.16'
             />
             <rect
@@ -171,7 +171,7 @@ function BuildingSvg() {
                 y='70'
                 width='25'
                 height='7'
-                fill='#3F4350'
+                fill='var(--center-channel-color)'
                 fillOpacity='0.16'
             />
             <rect
@@ -179,7 +179,7 @@ function BuildingSvg() {
                 y='81'
                 width='25'
                 height='7'
-                fill='#3F4350'
+                fill='var(--center-channel-color)'
                 fillOpacity='0.16'
             />
             <rect
@@ -187,7 +187,7 @@ function BuildingSvg() {
                 y='94'
                 width='9'
                 height='8'
-                fill='#3F4350'
+                fill='var(--center-channel-color)'
                 fillOpacity='0.16'
             />
             <rect
@@ -195,8 +195,8 @@ function BuildingSvg() {
                 y='43.5'
                 width='47'
                 height='61'
-                fill='white'
-                stroke='#3F4350'
+                fill='var(--center-channel-bg)'
+                stroke='var(--center-channel-color)'
                 strokeLinejoin='round'
             />
             <rect
@@ -204,7 +204,7 @@ function BuildingSvg() {
                 y='43.5'
                 width='47'
                 height='61'
-                stroke='#3F4350'
+                stroke='var(--center-channel-color)'
                 strokeLinejoin='round'
             />
             <rect
@@ -212,7 +212,7 @@ function BuildingSvg() {
                 y='48'
                 width='7'
                 height='8'
-                fill='#3F4350'
+                fill='var(--center-channel-color)'
                 fillOpacity='0.16'
             />
             <rect
@@ -220,7 +220,7 @@ function BuildingSvg() {
                 y='48'
                 width='7'
                 height='8'
-                fill='#3F4350'
+                fill='var(--center-channel-color)'
                 fillOpacity='0.16'
             />
             <rect
@@ -228,7 +228,7 @@ function BuildingSvg() {
                 y='48'
                 width='7'
                 height='8'
-                fill='#3F4350'
+                fill='var(--center-channel-color)'
                 fillOpacity='0.16'
             />
             <rect
@@ -236,7 +236,7 @@ function BuildingSvg() {
                 y='48'
                 width='7'
                 height='8'
-                fill='#3F4350'
+                fill='var(--center-channel-color)'
                 fillOpacity='0.16'
             />
             <rect
@@ -244,7 +244,7 @@ function BuildingSvg() {
                 y='59'
                 width='7'
                 height='8'
-                fill='#3F4350'
+                fill='var(--center-channel-color)'
                 fillOpacity='0.16'
             />
             <rect
@@ -252,7 +252,7 @@ function BuildingSvg() {
                 y='59'
                 width='7'
                 height='8'
-                fill='#3F4350'
+                fill='var(--center-channel-color)'
                 fillOpacity='0.16'
             />
             <rect
@@ -260,7 +260,7 @@ function BuildingSvg() {
                 y='59'
                 width='7'
                 height='8'
-                fill='#3F4350'
+                fill='var(--center-channel-color)'
                 fillOpacity='0.16'
             />
             <rect
@@ -268,7 +268,7 @@ function BuildingSvg() {
                 y='59'
                 width='7'
                 height='8'
-                fill='#3F4350'
+                fill='var(--center-channel-color)'
                 fillOpacity='0.16'
             />
             <rect
@@ -276,7 +276,7 @@ function BuildingSvg() {
                 y='70'
                 width='7'
                 height='8'
-                fill='#3F4350'
+                fill='var(--center-channel-color)'
                 fillOpacity='0.16'
             />
             <rect
@@ -284,7 +284,7 @@ function BuildingSvg() {
                 y='70'
                 width='7'
                 height='8'
-                fill='#3F4350'
+                fill='var(--center-channel-color)'
                 fillOpacity='0.16'
             />
             <rect
@@ -292,7 +292,7 @@ function BuildingSvg() {
                 y='70'
                 width='7'
                 height='8'
-                fill='#3F4350'
+                fill='var(--center-channel-color)'
                 fillOpacity='0.16'
             />
             <rect
@@ -300,7 +300,7 @@ function BuildingSvg() {
                 y='70'
                 width='7'
                 height='8'
-                fill='#3F4350'
+                fill='var(--center-channel-color)'
                 fillOpacity='0.16'
             />
             <rect
@@ -308,7 +308,7 @@ function BuildingSvg() {
                 y='81'
                 width='7'
                 height='8'
-                fill='#3F4350'
+                fill='var(--center-channel-color)'
                 fillOpacity='0.16'
             />
             <rect
@@ -316,7 +316,7 @@ function BuildingSvg() {
                 y='81'
                 width='7'
                 height='8'
-                fill='#3F4350'
+                fill='var(--center-channel-color)'
                 fillOpacity='0.16'
             />
             <rect
@@ -324,7 +324,7 @@ function BuildingSvg() {
                 y='81'
                 width='7'
                 height='8'
-                fill='#3F4350'
+                fill='var(--center-channel-color)'
                 fillOpacity='0.16'
             />
             <rect
@@ -332,7 +332,7 @@ function BuildingSvg() {
                 y='81'
                 width='7'
                 height='8'
-                fill='#3F4350'
+                fill='var(--center-channel-color)'
                 fillOpacity='0.16'
             />
             <rect
@@ -340,7 +340,7 @@ function BuildingSvg() {
                 y='35'
                 width='12'
                 height='6'
-                fill='#3F4350'
+                fill='var(--center-channel-color)'
                 fillOpacity='0.32'
             />
             <line
@@ -348,15 +348,15 @@ function BuildingSvg() {
                 y1='104.5'
                 x2='129.765'
                 y2='104.5'
-                stroke='#3F4350'
+                stroke='var(--center-channel-color)'
             />
             <rect
                 x='54.2651'
                 y='40.5'
                 width='53'
                 height='3'
-                fill='white'
-                stroke='#3F4350'
+                fill='var(--center-channel-bg)'
+                stroke='var(--center-channel-color)'
                 strokeLinejoin='round'
             />
             <rect
@@ -364,9 +364,9 @@ function BuildingSvg() {
                 y='40.5'
                 width='53'
                 height='3'
-                fill='#3F4350'
+                fill='var(--center-channel-color)'
                 fillOpacity='0.32'
-                stroke='#3F4350'
+                stroke='var(--center-channel-color)'
                 strokeLinejoin='round'
             />
             <rect
@@ -374,41 +374,41 @@ function BuildingSvg() {
                 y='92.5'
                 width='7'
                 height='12'
-                fill='#3F4350'
+                fill='var(--center-channel-color)'
                 fillOpacity='0.16'
-                stroke='#3F4350'
+                stroke='var(--center-channel-color)'
             />
             <rect
                 x='55.7651'
                 y='102'
                 width='51'
                 height='3'
-                fill='white'
+                fill='var(--center-channel-bg)'
             />
             <rect
                 x='56.2651'
                 y='102.5'
                 width='50'
                 height='2'
-                fill='#3F4350'
+                fill='var(--center-channel-color)'
                 fillOpacity='0.16'
-                stroke='#3F4350'
+                stroke='var(--center-channel-color)'
             />
             <rect
                 x='70.7651'
                 y='100'
                 width='21'
                 height='3'
-                fill='white'
+                fill='var(--center-channel-bg)'
             />
             <rect
                 x='71.2651'
                 y='100.5'
                 width='20'
                 height='2'
-                fill='#3F4350'
+                fill='var(--center-channel-color)'
                 fillOpacity='0.16'
-                stroke='#3F4350'
+                stroke='var(--center-channel-color)'
             />
         </svg>
     );

@@ -98,6 +98,7 @@ export const PlaceholderContainer = styled.div`
 
     hgroup {
         text-align: center;
+        margin-bottom: 24px;
     }
 `;
 
