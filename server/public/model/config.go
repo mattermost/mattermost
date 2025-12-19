@@ -980,7 +980,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.EnableBurnOnRead == nil {
-		s.EnableBurnOnRead = NewPointer(false)
+		s.EnableBurnOnRead = NewPointer(true)
 	}
 
 	if s.BurnOnReadDurationSeconds == nil {
