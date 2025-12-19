@@ -83,24 +83,24 @@
     }
 
     .users-emails-input__value-container {
-        margin-left: 2px;
         padding-left: 0;
+        margin-left: 2px;
     }
 
     .users-emails-input__input-container {
-        margin-left: 2px;
         padding-left: 8px;
+        margin-left: 2px;
     }
 
     .users-emails-input__placeholder {
-        color: rgba(var(--center-channel-color-rgb), 0.75);
-        margin-left: 2px;
         padding-left: 8px;
+        margin-left: 2px;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
     }
 
     .users-emails-input__input {
-        color: var(--center-channel-color);
         margin-left: 8px;
+        color: var(--center-channel-color);
 
         .a11y--focused {
             box-shadow: none;
