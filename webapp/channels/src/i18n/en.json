@@ -2702,7 +2702,7 @@
   "admin.service.maximumPayloadSizeDescription": "The maximum number of bytes allowed in the payload of incoming HTTP calls",
   "admin.service.mfaDesc": "When true, users with AD/LDAP or email login can add multi-factor authentication to their account using an authenticator app.",
   "admin.service.mfaTitle": "Enable Multi-factor Authentication:",
-  "admin.service.minimumHashtagLengthDescription": "Minimum number of characters in a hashtag. This must be greater than or equal to 2. MySQL databases must be configured to support searching strings shorter than three characters, <link>see documentation</link>.",
+  "admin.service.minimumHashtagLengthDescription": "Minimum number of characters in a hashtag. This must be greater than or equal to 2.",
   "admin.service.minimumHashtagLengthExample": "E.g.: \"3\"",
   "admin.service.minimumHashtagLengthTitle": "Minimum Hashtag Length:",
   "admin.service.mobileSessionHours": "Session Length Mobile (hours):",

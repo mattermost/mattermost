@@ -219,13 +219,8 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
         disabled={false}
         helpText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Minimum number of characters in a hashtag. This must be greater than or equal to 2. MySQL databases must be configured to support searching strings shorter than three characters, <link>see documentation</link>."
+            defaultMessage="Minimum number of characters in a hashtag. This must be greater than or equal to 2."
             id="admin.service.minimumHashtagLengthDescription"
-            values={
-              Object {
-                "link": [Function],
-              }
-            }
           />
         }
         id="minimumHashtagLength"

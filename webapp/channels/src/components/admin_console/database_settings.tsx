@@ -67,7 +67,7 @@ const messages = defineMessages({
     connMaxIdleTimeTitle: {id: 'admin.sql.connMaxIdleTimeTitle', defaultMessage: 'Maximum Connection Idle Time:'},
     connMaxIdleTimeDescription: {id: 'admin.sql.connMaxIdleTimeDescription', defaultMessage: 'Maximum idle time for a connection to the database in milliseconds.'},
     minimumHashtagLengthTitle: {id: 'admin.service.minimumHashtagLengthTitle', defaultMessage: 'Minimum Hashtag Length:'},
-    minimumHashtagLengthDescription: {id: 'admin.service.minimumHashtagLengthDescription', defaultMessage: 'Minimum number of characters in a hashtag. This must be greater than or equal to 2. MySQL databases must be configured to support searching strings shorter than three characters, <link>see documentation</link>.'},
+    minimumHashtagLengthDescription: {id: 'admin.service.minimumHashtagLengthDescription', defaultMessage: 'Minimum number of characters in a hashtag. This must be greater than or equal to 2.'},
     traceTitle: {id: 'admin.sql.traceTitle', defaultMessage: 'SQL Statement Logging: '},
     traceDescription: {id: 'admin.sql.traceDescription', defaultMessage: '(Development Mode) When true, executing SQL statements are written to the log.'},
 });
@@ -320,19 +320,7 @@ export default class DatabaseSettings extends OLDAdminSettings<Props, State> {
                     }
                     placeholder={defineMessage({id: 'admin.service.minimumHashtagLengthExample', defaultMessage: 'E.g.: "3"'})}
                     helpText={
-                        <FormattedMessage
-                            {...messages.minimumHashtagLengthDescription}
-                            values={{
-                                link: (msg) => (
-                                    <ExternalLink
-                                        location='database_settings'
-                                        href='https://dev.mysql.com/doc/refman/8.0/en/fulltext-fine-tuning.html'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            }}
-                        />
+                        <FormattedMessage {...messages.minimumHashtagLengthDescription}/>
                     }
                     value={this.state.minimumHashtagLength}
                     onChange={this.handleChange}
