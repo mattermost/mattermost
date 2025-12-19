@@ -18,7 +18,7 @@ func getWikiPages(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, _, ok := c.RequireWikiReadPermission(); !ok {
+	if _, _, ok := c.GetWikiForRead(); !ok {
 		return
 	}
 
@@ -47,7 +47,7 @@ func getWikiPage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wiki, _, ok := c.RequireWikiReadPermission()
+	wiki, _, ok := c.GetWikiForRead()
 	if !ok {
 		return
 	}
@@ -85,7 +85,7 @@ func deletePage(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("wiki_id", c.Params.WikiId)
 	auditRec.AddMeta("page_id", c.Params.PageId)
 
-	wiki, page, ok := c.RequirePageModifyPermission(app.PageOperationDelete, "deletePage")
+	wiki, page, ok := c.GetPageForModify(app.PageOperationDelete, "deletePage")
 	if !ok {
 		return
 	}
@@ -123,7 +123,7 @@ func createPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("wiki_id", c.Params.WikiId)
 	auditRec.AddMeta("parent_id", req.PageParentId)
 
-	_, channel, ok := c.RequireWikiModifyPermission("createPage")
+	_, channel, ok := c.GetWikiForModify("createPage")
 	if !ok {
 		return
 	}
@@ -178,7 +178,7 @@ func updatePage(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("wiki_id", c.Params.WikiId)
 	auditRec.AddMeta("page_id", c.Params.PageId)
 
-	_, page, ok := c.RequirePageModifyPermission(app.PageOperationEdit, "updatePage")
+	_, page, ok := c.GetPageForModify(app.PageOperationEdit, "updatePage")
 	if !ok {
 		return
 	}

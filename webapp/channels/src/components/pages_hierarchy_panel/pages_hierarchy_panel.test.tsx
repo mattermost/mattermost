@@ -73,8 +73,8 @@ describe('components/pages_hierarchy_panel/PagesHierarchyPanel', () => {
             expandedNodes: {},
             isPanelCollapsed: false,
             actions: {
-                loadPages: jest.fn().mockResolvedValue({data: mockPages}),
-                loadPageDraftsForWiki: jest.fn().mockResolvedValue({data: mockDrafts}),
+                fetchPages: jest.fn().mockResolvedValue({data: mockPages}),
+                fetchPageDraftsForWiki: jest.fn().mockResolvedValue({data: mockDrafts}),
                 removePageDraft: jest.fn().mockResolvedValue({data: true}),
                 toggleNodeExpanded: jest.fn(),
                 expandAncestors: jest.fn(),

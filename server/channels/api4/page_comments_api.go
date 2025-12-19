@@ -23,7 +23,7 @@ func getPageComments(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, channel, ok := c.RequireWikiReadPermission()
+	_, channel, ok := c.GetWikiForRead()
 	if !ok {
 		return
 	}
@@ -72,12 +72,9 @@ func createPageComment(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, _, ok := c.RequireWikiReadPermission(); !ok {
+	if _, _, ok := c.GetWikiForRead(); !ok {
 		return
 	}
-
-	// Type check is no longer needed - ValidatePageBelongsToWiki uses GetPage
-	// which already validates the post is of type PostTypePage
 
 	if !c.CheckPagePermission(page, app.PageOperationRead) {
 		return
@@ -130,7 +127,7 @@ func createPageCommentReply(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if _, _, ok := c.RequireWikiReadPermission(); !ok {
+	if _, _, ok := c.GetWikiForRead(); !ok {
 		return
 	}
 
@@ -138,9 +135,6 @@ func createPageCommentReply(c *Context, w http.ResponseWriter, r *http.Request) 
 	if !ok {
 		return
 	}
-
-	// Type check is no longer needed - ValidatePageBelongsToWiki uses GetPage
-	// which already validates the post is of type PostTypePage
 
 	if !c.CheckPagePermission(page, app.PageOperationRead) {
 		return

@@ -91,8 +91,6 @@ func updatePageParent(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Type check is no longer needed - GetPage validates the post is of type PostTypePage
-
 	if !c.CheckPagePermission(page, app.PageOperationEdit) {
 		return
 	}
@@ -144,7 +142,7 @@ func movePageToWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
-	sourceWiki, _, ok := c.RequireWikiModifyPermission("movePageToWiki")
+	sourceWiki, _, ok := c.GetWikiForModify("movePageToWiki")
 	if !ok {
 		return
 	}
@@ -282,9 +280,6 @@ func getPageBreadcrumb(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-
-	// Type check is no longer needed - ValidatePageBelongsToWiki uses GetPage
-	// which already validates the post is of type PostTypePage
 
 	wiki, appErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
 	if appErr != nil {

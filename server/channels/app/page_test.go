@@ -227,7 +227,7 @@ func TestDeletePage(t *testing.T) {
 		page, err := th.App.GetPage(sessionCtx, createdPage.Id)
 		require.Nil(t, err)
 
-		err = th.App.DeletePage(sessionCtx, page)
+		err = th.App.DeletePage(sessionCtx, page, "")
 		require.Nil(t, err)
 
 		deletedPage, getErr := th.App.Srv().Store().Post().GetSingle(th.Context, createdPage.Id, true)
@@ -262,7 +262,7 @@ func TestDeletePage(t *testing.T) {
 
 		parentPage, err := th.App.GetPage(sessionCtx, parent.Id)
 		require.Nil(t, err)
-		err = th.App.DeletePage(sessionCtx, parentPage)
+		err = th.App.DeletePage(sessionCtx, parentPage, "")
 		require.Nil(t, err)
 
 		child1After, err := th.App.GetSinglePost(th.Context, child1.Id, false)
@@ -290,7 +290,7 @@ func TestDeletePage(t *testing.T) {
 
 		middlePage, err := th.App.GetPage(sessionCtx, middle.Id)
 		require.Nil(t, err)
-		err = th.App.DeletePage(sessionCtx, middlePage)
+		err = th.App.DeletePage(sessionCtx, middlePage, "")
 		require.Nil(t, err)
 
 		rootAfter, err := th.App.GetSinglePost(th.Context, root.Id, false)
@@ -311,7 +311,7 @@ func TestDeletePage(t *testing.T) {
 
 		parentPage, err := th.App.GetPage(sessionCtx, parent.Id)
 		require.Nil(t, err)
-		err = th.App.DeletePage(sessionCtx, parentPage)
+		err = th.App.DeletePage(sessionCtx, parentPage, "")
 		require.Nil(t, err)
 
 		_, err = th.App.GetPageChildren(sessionCtx, parent.Id, model.GetPostsOptions{})
@@ -340,7 +340,7 @@ func TestRestorePage(t *testing.T) {
 
 		page, err := th.App.GetPage(sessionCtx, createdPage.Id)
 		require.Nil(t, err)
-		err = th.App.DeletePage(sessionCtx, page)
+		err = th.App.DeletePage(sessionCtx, page, "")
 		require.Nil(t, err)
 
 		deletedPage, getErr := th.App.Srv().Store().Post().GetSingle(th.Context, createdPage.Id, true)
@@ -407,7 +407,7 @@ func TestPermanentDeletePage(t *testing.T) {
 
 		page, err := th.App.GetPage(sessionCtx, createdPage.Id)
 		require.Nil(t, err)
-		err = th.App.DeletePage(sessionCtx, page)
+		err = th.App.DeletePage(sessionCtx, page, "")
 		require.Nil(t, err)
 
 		deletedContent, getErr := th.App.Srv().Store().Page().GetPageContentWithDeleted(createdPage.Id)

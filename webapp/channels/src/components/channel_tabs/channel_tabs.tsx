@@ -15,7 +15,7 @@ import type {getFile} from 'mattermost-redux/selectors/entities/files';
 import {getCurrentRelativeTeamUrl, getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {fetchChannelBookmarks} from 'actions/channel_bookmarks';
-import {loadChannelWikis, createWiki} from 'actions/pages';
+import {fetchChannelWikis, createWiki} from 'actions/pages';
 import {openModal, closeModal} from 'actions/views/modals';
 import {getChannelWikis} from 'selectors/pages';
 
@@ -197,7 +197,7 @@ function ChannelTabs({
     useEffect(() => {
         if (channelId) {
             dispatch(fetchChannelBookmarks(channelId));
-            dispatch(loadChannelWikis(channelId));
+            dispatch(fetchChannelWikis(channelId));
         }
     }, [channelId, dispatch]);
 

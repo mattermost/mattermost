@@ -18,13 +18,17 @@ import {getGlobalItem} from 'selectors/storage';
 import type {ActionFuncAsync, GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 
-type PageDraft = {
+/**
+ * LocalPageDraft is an internal type used for merging local and server drafts.
+ * It wraps a PostDraft with storage key and timestamp for reconciliation.
+ */
+type LocalPageDraft = {
     key: keyof GlobalState['storage']['storage'];
     value: PostDraft;
     timestamp: Date;
 };
 
-export function transformPageServerDraft(serverDraft: ServerPageDraft, wikiId: string, pageId: string, userId: string): PageDraft {
+export function transformPageServerDraft(serverDraft: ServerPageDraft, wikiId: string, pageId: string, userId: string): LocalPageDraft {
     const key = makePageDraftKey(wikiId, pageId, userId);
 
     return {
@@ -110,7 +114,7 @@ export function savePageDraft(
     };
 }
 
-export function loadPageDraft(wikiId: string, pageId: string): ActionFuncAsync<PostDraft | null> {
+export function fetchPageDraft(wikiId: string, pageId: string): ActionFuncAsync<PostDraft | null> {
     return async (_dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
@@ -125,12 +129,12 @@ export function loadPageDraft(wikiId: string, pageId: string): ActionFuncAsync<P
     };
 }
 
-export function loadPageDraftsForWiki(wikiId: string): ActionFuncAsync<PostDraft[]> {
+export function fetchPageDraftsForWiki(wikiId: string): ActionFuncAsync<PostDraft[]> {
     return async (dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
 
-        let serverDrafts: PageDraft[] = [];
+        let serverDrafts: LocalPageDraft[] = [];
         if (syncedDraftsAreAllowedAndEnabled(state)) {
             // Delegate to Redux layer for the API call
             const result = await dispatch(WikiActions.getPageDraftsForWiki(wikiId));
@@ -141,7 +145,7 @@ export function loadPageDraftsForWiki(wikiId: string): ActionFuncAsync<PostDraft
         }
 
         const prefix = makePageDraftPrefix(wikiId);
-        const localDrafts: PageDraft[] = [];
+        const localDrafts: LocalPageDraft[] = [];
 
         Object.keys(state.storage.storage).forEach((key) => {
             // Only include drafts for the current user
@@ -160,7 +164,7 @@ export function loadPageDraftsForWiki(wikiId: string): ActionFuncAsync<PostDraft
 
         const drafts = [...serverDrafts, ...localDrafts];
 
-        const draftsMap = new Map<string, PageDraft>();
+        const draftsMap = new Map<string, LocalPageDraft>();
         drafts.forEach((draft) => {
             const existing = draftsMap.get(draft.key);
             if (!existing || draft.timestamp > existing.timestamp) {

@@ -4,9 +4,10 @@
 import ActiveEditorsTypes from 'mattermost-redux/action_types/active_editors';
 import {Client4} from 'mattermost-redux/client';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFuncAsync, DispatchFunc} from 'mattermost-redux/types/actions';
+import type {ActionFuncAsync, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 import {logError} from './errors';
+import {getMissingProfilesByIds} from './users';
 
 const STALE_EDITOR_THRESHOLD = 5 * 60 * 1000;
 
@@ -21,23 +22,26 @@ export type PageActiveEditorsResponse = {
 };
 
 export function fetchActiveEditors(wikiId: string, pageId: string): ActionFuncAsync<ActiveEditorInfo[]> {
-    return async (dispatch: DispatchFunc, getState) => {
+    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const currentUserId = getCurrentUserId(getState());
 
         try {
             const response = await Client4.getPageActiveEditors(wikiId, pageId);
 
-            const editors = response.user_ids.
-                filter((userId: string) => userId !== currentUserId).
-                map((userId: string) => ({
-                    userId,
-                    lastActivity: response.last_activities[userId],
-                }));
+            const editorUserIds = response.user_ids.filter((userId: string) => userId !== currentUserId);
+            const editors = editorUserIds.map((userId: string) => ({
+                userId,
+                lastActivity: response.last_activities[userId],
+            }));
 
             dispatch({
                 type: ActiveEditorsTypes.RECEIVED_ACTIVE_EDITORS,
                 data: {pageId, editors},
             });
+
+            if (editorUserIds.length > 0) {
+                dispatch(getMissingProfilesByIds(editorUserIds));
+            }
 
             return {data: editors};
         } catch (error) {
@@ -48,7 +52,7 @@ export function fetchActiveEditors(wikiId: string, pageId: string): ActionFuncAs
 }
 
 export function handleDraftCreated(pageId: string, userId: string, timestamp: number): ActionFuncAsync {
-    return async (dispatch: DispatchFunc, getState) => {
+    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const currentUserId = getCurrentUserId(getState());
 
         if (userId === currentUserId) {
@@ -60,12 +64,14 @@ export function handleDraftCreated(pageId: string, userId: string, timestamp: nu
             data: {pageId, userId, lastActivity: timestamp},
         });
 
+        dispatch(getMissingProfilesByIds([userId]));
+
         return {data: true};
     };
 }
 
 export function handleDraftUpdated(pageId: string, userId: string, timestamp: number): ActionFuncAsync {
-    return async (dispatch: DispatchFunc, getState) => {
+    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const currentUserId = getCurrentUserId(getState());
 
         if (userId === currentUserId) {
@@ -76,6 +82,8 @@ export function handleDraftUpdated(pageId: string, userId: string, timestamp: nu
             type: ActiveEditorsTypes.ACTIVE_EDITOR_UPDATED,
             data: {pageId, userId, lastActivity: timestamp},
         });
+
+        dispatch(getMissingProfilesByIds([userId]));
 
         return {data: true};
     };

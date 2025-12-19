@@ -7,7 +7,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {loadPage} from 'actions/pages';
+import {fetchPage} from 'actions/pages';
 import {getPage, getPageStatus} from 'selectors/pages';
 
 import ActiveEditorsIndicator from 'components/active_editors_indicator/active_editors_indicator';
@@ -82,7 +82,7 @@ const PageViewer = ({pageId, wikiId}: Props) => {
         // Load page if it doesn't exist OR if it exists but has no content
         // (Pages from hierarchy don't have content loaded for performance)
         if (pageId && wikiId && isPageContentMissing) {
-            dispatch(loadPage(pageId, wikiId));
+            dispatch(fetchPage(pageId, wikiId));
         }
     }, [pageId, wikiId, isPageContentMissing, dispatch]);
 

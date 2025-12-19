@@ -3,8 +3,8 @@
 
 import type {ActionFuncAsync} from 'types/store';
 
-import {loadPageDraftsForWiki} from './page_drafts';
-import {loadPages} from './pages';
+import {fetchPageDraftsForWiki} from './page_drafts';
+import {fetchPages} from './pages';
 
 /**
  * Load all wiki data (pages, drafts) for a given wiki.
@@ -18,7 +18,7 @@ import {loadPages} from './pages';
  * @param wikiId - The ID of the wiki to load
  * @returns ActionFuncAsync that resolves when loading is complete
  */
-export function loadWikiBundle(wikiId: string): ActionFuncAsync {
+export function fetchWikiBundle(wikiId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
 
@@ -31,13 +31,13 @@ export function loadWikiBundle(wikiId: string): ActionFuncAsync {
 
         // Conditionally fetch pages if not cached
         if (needsPages) {
-            promises.push(dispatch(loadPages(wikiId)));
+            promises.push(dispatch(fetchPages(wikiId)));
         }
 
         // Always fetch drafts - they're transient and stored in localStorage.
-        // The loadPageDraftsForWiki action reads from localStorage and optionally
+        // The fetchPageDraftsForWiki action reads from localStorage and optionally
         // fetches server drafts, so it's lightweight and always needed.
-        promises.push(dispatch(loadPageDraftsForWiki(wikiId)));
+        promises.push(dispatch(fetchPageDraftsForWiki(wikiId)));
 
         await Promise.all(promises);
 
@@ -49,17 +49,17 @@ export function loadWikiBundle(wikiId: string): ActionFuncAsync {
  * Force reload wiki data, bypassing cache.
  * Used for explicit refresh actions (e.g., reconnect, manual refresh button).
  *
- * Unlike loadWikiBundle, this always fetches from the server regardless of cache state.
+ * Unlike fetchWikiBundle, this always fetches from the server regardless of cache state.
  *
  * @param wikiId - The ID of the wiki to reload
  * @returns ActionFuncAsync that resolves when reloading is complete
  */
-export function reloadWikiBundle(wikiId: string): ActionFuncAsync {
+export function refetchWikiBundle(wikiId: string): ActionFuncAsync {
     return async (dispatch) => {
         // Always fetch, regardless of cache state
         await Promise.all([
-            dispatch(loadPages(wikiId)),
-            dispatch(loadPageDraftsForWiki(wikiId)),
+            dispatch(fetchPages(wikiId)),
+            dispatch(fetchPageDraftsForWiki(wikiId)),
         ]);
 
         return {data: true};

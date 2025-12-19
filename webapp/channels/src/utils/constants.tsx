@@ -747,6 +747,8 @@ export const SocketEvents = {
     PAGE_TITLE_UPDATED: 'page_title_updated',
     PAGE_MOVED: 'page_moved',
     WIKI_UPDATED: 'wiki_updated',
+    PAGE_DRAFT_CREATED: 'page_draft_created',
+    PAGE_DRAFT_UPDATED: 'page_draft_updated',
     PAGE_DRAFT_DELETED: 'page_draft_deleted',
     PAGE_EDITOR_STOPPED: 'page_editor_stopped',
     PAGE_COMMENT_RESOLVED: 'page_comment_resolved',

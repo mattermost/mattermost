@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {loadPage} from 'actions/pages';
+import {fetchPage} from 'actions/pages';
 
 import {ActionTypes} from 'utils/constants';
 import {extractHeadingsFromContent} from 'utils/page_outline';
@@ -90,7 +90,7 @@ export function togglePageOutline(pageId: string, pageContent?: string, wikiId?:
 
                 // Only fetch from server if content is completely missing
                 if (!content && wikiId) {
-                    const result = await dispatch(loadPage(pageId, wikiId));
+                    const result = await dispatch(fetchPage(pageId, wikiId));
                     if (result.data) {
                         content = result.data.message || '';
                     }

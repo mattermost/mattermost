@@ -709,7 +709,7 @@ func TestPageDraftWhenPageDeleted(t *testing.T) {
 
 		// Delete the page
 		pageWrapper := NewPageFromValidatedPost(page)
-		err = th.App.DeletePage(sessionCtx, pageWrapper)
+		err = th.App.DeletePage(sessionCtx, pageWrapper, "")
 		require.Nil(t, err)
 
 		// Draft should still be accessible (content is preserved)
@@ -732,7 +732,7 @@ func TestPageDraftWhenPageDeleted(t *testing.T) {
 
 		// Delete unrelated page
 		pageToDeleteWrapper := NewPageFromValidatedPost(pageToDelete)
-		err = th.App.DeletePage(sessionCtx, pageToDeleteWrapper)
+		err = th.App.DeletePage(sessionCtx, pageToDeleteWrapper, "")
 		require.Nil(t, err)
 
 		// New draft should be unaffected
@@ -773,7 +773,7 @@ func TestPageDraftWhenPageDeleted(t *testing.T) {
 
 		// Delete the page
 		pageWrapper := NewPageFromValidatedPost(page)
-		err = th.App.DeletePage(sessionCtx, pageWrapper)
+		err = th.App.DeletePage(sessionCtx, pageWrapper, "")
 		require.Nil(t, err)
 
 		// Both drafts should be retained
@@ -804,7 +804,7 @@ func TestPageDraftWhenPageDeleted(t *testing.T) {
 		require.NoError(t, nErr)
 
 		pageWrapper := NewPageFromValidatedPost(page)
-		err := th.App.DeletePage(sessionCtx, pageWrapper)
+		err := th.App.DeletePage(sessionCtx, pageWrapper, "")
 		require.Nil(t, err)
 
 		retrievedDraft, getErr := th.App.Srv().Store().Draft().Get(user.Id, channel.Id, "", false)

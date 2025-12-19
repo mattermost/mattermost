@@ -19,7 +19,7 @@ func getPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, _, ok := c.RequireWikiReadPermission(); !ok {
+	if _, _, ok := c.GetWikiForRead(); !ok {
 		return
 	}
 
@@ -42,19 +42,7 @@ func savePageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wiki, appErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	channel, appErr := c.App.GetChannel(c.AppContext, wiki.ChannelId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	if !c.CheckWikiModifyPermission(channel) {
+	if _, _, ok := c.GetWikiForModify("savePageDraft"); !ok {
 		return
 	}
 
@@ -102,19 +90,7 @@ func deletePageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		mlog.String("page_id", c.Params.PageId),
 		mlog.String("user_id", c.AppContext.Session().UserId))
 
-	wiki, appErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	channel, appErr := c.App.GetChannel(c.AppContext, wiki.ChannelId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	if !c.CheckWikiModifyPermission(channel) {
+	if _, _, ok := c.GetWikiForModify("deletePageDraft"); !ok {
 		return
 	}
 
@@ -133,19 +109,7 @@ func movePageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wiki, appErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	channel, appErr := c.App.GetChannel(c.AppContext, wiki.ChannelId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	if !c.CheckWikiModifyPermission(channel) {
+	if _, _, ok := c.GetWikiForModify("movePageDraft"); !ok {
 		return
 	}
 
@@ -172,7 +136,7 @@ func getPageDraftsForWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, _, ok := c.RequireWikiReadPermission(); !ok {
+	if _, _, ok := c.GetWikiForRead(); !ok {
 		return
 	}
 
@@ -198,19 +162,7 @@ func createPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wiki, appErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	channel, appErr := c.App.GetChannel(c.AppContext, wiki.ChannelId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	if !c.CheckWikiModifyPermission(channel) {
+	if _, _, ok := c.GetWikiForModify("createPageDraft"); !ok {
 		return
 	}
 
@@ -260,19 +212,8 @@ func publishPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wiki, appErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	channel, appErr := c.App.GetChannel(c.AppContext, wiki.ChannelId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	if !c.CheckWikiModifyPermission(channel) {
+	_, channel, ok := c.GetWikiForModify("publishPageDraft")
+	if !ok {
 		return
 	}
 
@@ -317,7 +258,7 @@ func notifyEditorStopped(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wiki, _, ok := c.RequireWikiReadPermission()
+	wiki, _, ok := c.GetWikiForRead()
 	if !ok {
 		return
 	}

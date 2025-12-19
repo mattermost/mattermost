@@ -116,15 +116,14 @@ export default function pagesHierarchyReducer(state = initialState, action: AnyA
     case ActionTypes.CLEAR_PAGE_OUTLINE_CACHE: {
         const {pageId} = action.data;
         const restCache = {...state.outlineCache};
-        Reflect.deleteProperty(restCache, pageId);
-
-        const newExpandedNodes = {...state.outlineExpandedNodes};
-        Reflect.deleteProperty(newExpandedNodes, pageId);
+        delete restCache[pageId];
+        const restExpandedNodes = {...state.outlineExpandedNodes};
+        delete restExpandedNodes[pageId];
 
         return {
             ...state,
             outlineCache: restCache,
-            outlineExpandedNodes: newExpandedNodes,
+            outlineExpandedNodes: restExpandedNodes,
         };
     }
 

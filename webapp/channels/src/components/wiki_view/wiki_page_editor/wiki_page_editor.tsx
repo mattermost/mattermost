@@ -8,7 +8,7 @@ import {useSelector, useDispatch} from 'react-redux';
 import {getUser as getUserAction} from 'mattermost-redux/actions/users';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
 
-import {loadChannelPages} from 'actions/pages';
+import {fetchChannelPages} from 'actions/pages';
 import {getChannelPages} from 'selectors/pages';
 
 import ActiveEditorsIndicator from 'components/active_editors_indicator';
@@ -24,6 +24,7 @@ import TipTapEditor from './tiptap_editor';
 
 import {usePageInlineComments} from '../hooks/usePageInlineComments';
 import PageStatusSelector from '../page_status_selector';
+import {withWikiErrorBoundary} from '../wiki_error_boundary';
 
 type Props = {
     title: string;
@@ -79,7 +80,7 @@ const WikiPageEditor = ({
     // Fetch all pages in the channel for cross-wiki linking
     useEffect(() => {
         if (channelId) {
-            dispatch(loadChannelPages(channelId));
+            dispatch(fetchChannelPages(channelId));
         }
     }, [dispatch, channelId]);
 
@@ -217,4 +218,4 @@ const WikiPageEditor = ({
     );
 };
 
-export default WikiPageEditor;
+export default withWikiErrorBoundary(WikiPageEditor);

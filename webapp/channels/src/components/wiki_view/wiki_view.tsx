@@ -15,7 +15,7 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {openPagesPanel, setLastViewedPage} from 'actions/views/pages_hierarchy';
 import {closeRightHandSide, openWikiRhs} from 'actions/views/rhs';
 import {setWikiRhsMode} from 'actions/views/wiki_rhs';
-import {loadWikiBundle} from 'actions/wiki_actions';
+import {fetchWikiBundle} from 'actions/wiki_actions';
 import {getPageDraft, getPageDraftsForWiki, getNewDraftsForWiki} from 'selectors/page_drafts';
 import {getPage, getPages} from 'selectors/pages';
 import {getIsPanesPanelCollapsed, getLastViewedPage} from 'selectors/pages_hierarchy';
@@ -35,6 +35,7 @@ import type {GlobalState} from 'types/store';
 import {useWikiPageData, useWikiPageActions, useFullscreen, useAutoPageSelection, useVersionHistory} from './hooks';
 import {handleAnchorHashNavigation} from './page_anchor';
 import PageViewer from './page_viewer';
+import {withWikiErrorBoundary} from './wiki_error_boundary';
 import WikiPageEditor from './wiki_page_editor';
 import WikiPageHeader from './wiki_page_header';
 
@@ -69,7 +70,7 @@ const WikiView = () => {
     // Uses cache-first pattern: only fetches pages if not already loaded
     React.useEffect(() => {
         if (wikiId) {
-            dispatch(loadWikiBundle(wikiId));
+            dispatch(fetchWikiBundle(wikiId));
         }
     }, [wikiId, dispatch]);
 
@@ -111,24 +112,22 @@ const WikiView = () => {
         return pubPageId ? getPage(state, pubPageId) : null;
     });
 
+    // Preserve parent ID and title across renders to avoid breadcrumb flickering
+    // Consolidated ref-tracking: update refs when page/draft data changes
     const pageParentIdRef = React.useRef<string | undefined>(undefined);
+    const draftParentIdRef = React.useRef<string | undefined>(undefined);
+    const draftTitleRef = React.useRef<string | undefined>(undefined);
     React.useEffect(() => {
         if (currentPage?.page_parent_id) {
             pageParentIdRef.current = currentPage.page_parent_id;
         }
-    }, [currentPage?.page_parent_id]);
-
-    // Preserve draft's parent ID and title across renders to avoid breadcrumb flickering
-    const draftParentIdRef = React.useRef<string | undefined>(undefined);
-    const draftTitleRef = React.useRef<string | undefined>(undefined);
-    React.useEffect(() => {
         if (currentDraft?.props?.page_parent_id) {
             draftParentIdRef.current = currentDraft.props.page_parent_id;
         }
         if (currentDraft?.props?.title) {
             draftTitleRef.current = currentDraft.props.title;
         }
-    }, [currentDraft?.props?.page_parent_id, currentDraft?.props?.title]);
+    }, [currentPage?.page_parent_id, currentDraft?.props?.page_parent_id, currentDraft?.props?.title]);
 
     const allDrafts = useSelector((state: GlobalState) => (wikiId ? getPageDraftsForWiki(state, wikiId) : []));
     const newDrafts = useSelector((state: GlobalState) => (wikiId ? getNewDraftsForWiki(state, wikiId) : []));
@@ -140,8 +139,8 @@ const WikiView = () => {
     // Get the actual channel ID from the page or draft (URL params may have wikiId in channelId position)
     const actualChannelId = currentPage?.channel_id || currentDraft?.channelId || allDrafts[0]?.channelId || channelId;
 
-    // Phase 1 Refactor: isDraft now derived from route - draftId in URL means we're editing a draft
-    const isDraft = Boolean(draftId) || (!pageId && !draftId && (Boolean(currentDraft) || !currentPage));
+    // isDraft derived from route - draftId in URL (via /drafts/ path) means we're editing
+    const isDraft = Boolean(draftId);
 
     // Get the current channel for permission checks
     const currentChannel = useSelector((state: GlobalState) => getChannel(state, actualChannelId));
@@ -211,38 +210,31 @@ const WikiView = () => {
         history,
     });
 
-    // Check for openRhs query parameter and open RHS if requested
+    // Consolidated URL parameter handling: openRhs query param + anchor hash navigation
+    // Both handle post-load URL state processing
     React.useEffect(() => {
+        // Handle openRhs query parameter
         const searchParams = new URLSearchParams(location.search);
         if (searchParams.get('openRhs') === 'true' && pageId && !isWikiRhsOpen) {
             dispatch(openWikiRhs(pageId, wikiId || '', undefined));
             dispatch(setWikiRhsMode('comments'));
-
-            // Remove the query parameter from URL
             searchParams.delete('openRhs');
             const newSearch = searchParams.toString();
             const newUrl = `${location.pathname}${newSearch ? `?${newSearch}` : ''}`;
             history.replace(newUrl);
         }
-    }, [location.search, location.pathname, pageId, wikiId, isWikiRhsOpen, dispatch, history]);
 
-    // Handle anchor hash navigation when page loads or when switching to edit mode
-    // Wait for content to be ready (not loading) before attempting to scroll
-    React.useEffect(() => {
-        // pageId is set in view mode, draftId is set in edit mode (same ID, different route param)
+        // Handle anchor hash navigation when content is ready
         const contentId = pageId || draftId;
         if (!isLoading && contentId && location.hash) {
-            // Small delay to ensure TipTap has rendered the content
-            // Use longer delay for edit mode as editor takes more time to initialize
             const delay = draftId ? 300 : 100;
             const timeoutId = setTimeout(() => {
                 handleAnchorHashNavigation();
             }, delay);
-
             return () => clearTimeout(timeoutId);
         }
         return undefined;
-    }, [isLoading, pageId, draftId, location.hash]);
+    }, [location.search, location.pathname, location.hash, pageId, draftId, wikiId, isWikiRhsOpen, isLoading, dispatch, history]);
 
     // --------------------------------------------------------------------------
     // Clear editingDraftId when the draft is deleted or published while we are
@@ -530,4 +522,4 @@ const WikiView = () => {
     );
 };
 
-export default WikiView;
+export default withWikiErrorBoundary(WikiView);

@@ -25,6 +25,7 @@ export class TestConfig {
     percyEnabled: boolean;
     aiPluginApiKey: string;
     aiPluginEnabled: boolean;
+    aiPluginPath: string;
 
     constructor() {
         // Server
@@ -53,6 +54,7 @@ export class TestConfig {
         // AI Plugin
         this.aiPluginApiKey = process.env.PW_AI_PLUGIN_OPENAI_KEY || '';
         this.aiPluginEnabled = parseBool(process.env.PW_AI_PLUGIN_ENABLED, false);
+        this.aiPluginPath = process.env.PW_AI_PLUGIN_PATH || '';
     }
 }
 

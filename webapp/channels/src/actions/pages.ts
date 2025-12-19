@@ -15,7 +15,7 @@ import {Client4} from 'mattermost-redux/client';
 import {PostTypes} from 'mattermost-redux/constants/posts';
 import {isCollapsedThreadsEnabled, syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
-import {loadPageDraftsForWiki} from 'actions/page_drafts';
+import {fetchPageDraftsForWiki} from 'actions/page_drafts';
 import {setGlobalItem, removeGlobalItem} from 'actions/storage';
 import {clearOutlineCache} from 'actions/views/pages_hierarchy';
 import {getPageDraft, getUserDraftKeysForPage, makePageDraftKey} from 'selectors/page_drafts';
@@ -27,18 +27,18 @@ import {extractPlaintextFromTipTapJSON} from 'utils/tiptap_utils';
 
 import type {ActionFuncAsync} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
+import type {Page} from 'types/store/pages';
 
 export {createWiki};
 
-// Type alias: Pages are stored as Posts in the backend
-export type Page = Post;
+export type {Page} from 'types/store/pages';
 
 export const GET_PAGES_REQUEST = WikiTypes.GET_PAGES_REQUEST;
 export const GET_PAGES_SUCCESS = WikiTypes.GET_PAGES_SUCCESS;
 export const GET_PAGES_FAILURE = WikiTypes.GET_PAGES_FAILURE;
 
-// Load all pages for a wiki
-export function loadPages(wikiId: string): ActionFuncAsync<Post[]> {
+// Fetch all pages for a wiki
+export function fetchPages(wikiId: string): ActionFuncAsync<Post[]> {
     return async (dispatch, getState) => {
         dispatch({type: GET_PAGES_REQUEST, data: {wikiId}});
 
@@ -89,8 +89,8 @@ export function loadPages(wikiId: string): ActionFuncAsync<Post[]> {
     };
 }
 
-// Load all pages for a channel
-export function loadChannelPages(channelId: string): ActionFuncAsync {
+// Fetch all pages for a channel
+export function fetchChannelPages(channelId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         let data;
         try {
@@ -111,8 +111,8 @@ export function loadChannelPages(channelId: string): ActionFuncAsync {
     };
 }
 
-// Load all wikis for a channel
-export function loadChannelWikis(channelId: string): ActionFuncAsync {
+// Fetch all wikis for a channel
+export function fetchChannelWikis(channelId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         try {
             const wikis = await Client4.getChannelWikis(channelId);
@@ -133,8 +133,8 @@ export function loadChannelWikis(channelId: string): ActionFuncAsync {
     };
 }
 
-// Load single wiki and cache in Redux
-export function loadWiki(wikiId: string): ActionFuncAsync<Wiki> {
+// Fetch single wiki and cache in Redux
+export function fetchWiki(wikiId: string): ActionFuncAsync<Wiki> {
     return async (dispatch, getState) => {
         const state = getState();
         const existingWiki = state.entities.wikis?.byId?.[wikiId];
@@ -232,7 +232,7 @@ export function moveWikiToChannel(wikiId: string, targetChannelId: string): Acti
     };
 }
 
-export function loadPage(pageId: string, wikiId: string): ActionFuncAsync<Page> {
+export function fetchPage(pageId: string, wikiId: string): ActionFuncAsync<Page> {
     return async (dispatch, getState) => {
         let data: Page;
         try {
@@ -267,8 +267,8 @@ export function loadPage(pageId: string, wikiId: string): ActionFuncAsync<Page> 
     };
 }
 
-// Load default page for a channel's wiki
-export function loadChannelDefaultPage(channelId: string): ActionFuncAsync<Page> {
+// Fetch default page for a channel's wiki
+export function fetchChannelDefaultPage(channelId: string): ActionFuncAsync<Page> {
     return async (dispatch, getState) => {
         let data: Page;
         try {
@@ -471,7 +471,7 @@ export function createPage(wikiId: string, title: string, pageParentId?: string)
         try {
             const pageDraft = await Client4.createPageDraft(wikiId, title, pageParentId);
 
-            await dispatch(loadPageDraftsForWiki(wikiId));
+            await dispatch(fetchPageDraftsForWiki(wikiId));
 
             return {data: pageDraft.page_id};
         } catch (error) {

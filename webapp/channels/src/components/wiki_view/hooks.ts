@@ -17,7 +17,7 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {savePageDraft} from 'actions/page_drafts';
-import {loadChannelDefaultPage, publishPageDraft, loadPage, loadWiki} from 'actions/pages';
+import {fetchChannelDefaultPage, publishPageDraft, fetchPage, fetchWiki} from 'actions/pages';
 import {openModal, closeModal} from 'actions/views/modals';
 import {openPagesPanel, closePagesPanel} from 'actions/views/pages_hierarchy';
 import {openPageInEditMode} from 'actions/wiki_edit';
@@ -139,7 +139,7 @@ export function useWikiPageData(
                         const defaultChannel = 'town-square';
                         const teamName = currentTeamRef.current?.name || '';
                         setLoading(false);
-                        historyRef.current.push(`/error?type=channel_not_found&returnTo=/${teamName}/channels/${defaultChannel}`);
+                        historyRef.current.replace(`/error?type=channel_not_found&returnTo=/${teamName}/channels/${defaultChannel}`);
                         return;
                     }
                 }
@@ -150,7 +150,7 @@ export function useWikiPageData(
                 const defaultChannel = 'town-square';
                 const teamName = currentTeamRef.current?.name || '';
                 setLoading(false);
-                historyRef.current.push(`/error?type=channel_not_found&returnTo=/${teamName}/channels/${defaultChannel}`);
+                historyRef.current.replace(`/error?type=channel_not_found&returnTo=/${teamName}/channels/${defaultChannel}`);
                 return;
             }
 
@@ -159,7 +159,7 @@ export function useWikiPageData(
                     const hasPageContent = existingPage?.message?.trim();
 
                     if (!hasPageContent) {
-                        const result = await dispatch(loadPage(pageId, wikiId));
+                        const result = await dispatch(fetchPage(pageId, wikiId));
 
                         if (result.error && (result.error.status_code === 403 || result.error.status_code === 404)) {
                             const teamName = currentTeamRef.current?.name || '';
@@ -185,7 +185,7 @@ export function useWikiPageData(
             if (wikiId) {
                 // First check if wiki exists by trying to fetch it from Redux (or API if not cached)
                 // This will return 404 if wiki was deleted
-                const wikiResult = await dispatch(loadWiki(wikiId));
+                const wikiResult = await dispatch(fetchWiki(wikiId));
                 if (wikiResult.error) {
                     // Wiki was deleted or user doesn't have permission - redirect to channel
                     const teamName = currentTeamRef.current?.name || '';
@@ -199,7 +199,7 @@ export function useWikiPageData(
             } else {
                 // No wikiId - load default page if available (for channel wiki without explicit wikiId)
                 try {
-                    await dispatch(loadChannelDefaultPage(channelId));
+                    await dispatch(fetchChannelDefaultPage(channelId));
                 } catch (error) {
                     // Error loading default page - continue anyway
                 }

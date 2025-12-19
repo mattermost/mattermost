@@ -101,17 +101,20 @@ export const getDraftsLastInvalidated = (state: GlobalState, wikiId: string): nu
 };
 
 // Get all pages from all wikis in a channel (for cross-wiki linking)
+// Uses byChannel and byWiki indexes instead of scanning all posts
 export const getChannelPages = createSelector(
     'getChannelPages',
     (state: GlobalState) => state.entities.posts.posts,
-    (_state: GlobalState, channelId: string) => channelId,
-    (posts, channelId) => {
-        // Get all pages (type === PAGE) in this channel
-        return Object.values(posts).filter((post) =>
-            Boolean(post) &&
-            post.type === PostTypes.PAGE &&
-            post.channel_id === channelId,
-        );
+    (state: GlobalState, channelId: string) => state.entities.wikis?.byChannel?.[channelId],
+    (state: GlobalState) => state.entities.wikiPages?.byWiki,
+    (posts, wikiIds, byWiki) => {
+        if (!wikiIds || !byWiki) {
+            return [];
+        }
+        const pageIds = wikiIds.flatMap((wikiId: string) => byWiki[wikiId] || []);
+        return pageIds.
+            map((id: string) => posts[id]).
+            filter((post): post is Post => Boolean(post) && post.type === PostTypes.PAGE);
     },
 );
 

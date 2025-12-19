@@ -11,7 +11,7 @@ import type {BreadcrumbPath} from '@mattermost/types/wikis';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
-import {loadWiki, getPageBreadcrumb} from 'actions/pages';
+import {fetchWiki, getPageBreadcrumb} from 'actions/pages';
 import {getPageDraftsForWiki} from 'selectors/page_drafts';
 import {arePagesLoaded, buildBreadcrumbFromRedux, getWiki} from 'selectors/pages';
 
@@ -83,7 +83,7 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                 };
 
                 // Load wiki into Redux if not already cached
-                await dispatch(loadWiki(wikiId));
+                await dispatch(fetchWiki(wikiId));
                 const loadedWiki = wiki;
                 if (isDraft) {
                     if (parentPageId) {
@@ -201,12 +201,12 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                     // This avoids race condition when navigating via direct URL
                     if (!pagesLoaded) {
                         // Pages not loaded yet - stay in loading state
-                        // WikiView's loadWikiBundle will populate pages, triggering re-render
+                        // WikiView's fetchWikiBundle will populate pages, triggering re-render
                         return;
                     }
 
                     // Load wiki metadata if not already in Redux
-                    await dispatch(loadWiki(wikiId));
+                    await dispatch(fetchWiki(wikiId));
 
                     // Use breadcrumb from selector (recalculated when state changes)
                     if (!reduxBreadcrumb) {

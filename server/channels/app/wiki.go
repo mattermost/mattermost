@@ -343,7 +343,7 @@ func (a *App) CreateWikiPage(rctx request.CTX, wikiId, parentId, title, content,
 			mlog.Err(linkErr))
 		// Wrap in Page - we know it's a page since we just created it
 		pageWrapper := NewPageFromValidatedPost(createdPage)
-		if deleteErr := a.DeletePage(rctx, pageWrapper); deleteErr != nil {
+		if deleteErr := a.DeletePage(rctx, pageWrapper, ""); deleteErr != nil {
 			rctx.Logger().Warn("Failed to delete page after wiki link failure", mlog.String("page_id", createdPage.Id), mlog.Err(deleteErr))
 		}
 		return nil, linkErr

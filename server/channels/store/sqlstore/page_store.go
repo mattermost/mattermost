@@ -578,11 +578,19 @@ func (s *SqlPageStore) UpdatePageWithContent(rctx request.CTX, pageID, title, co
 			currentPost.EditAt = now
 			currentPost.UpdateAt = now
 
-			if _, execErr := transaction.NamedExec(`UPDATE Posts
-				SET EditAt=:EditAt,
-					UpdateAt=:UpdateAt,
-					Props=:Props
-				WHERE Id=:Id`, &currentPost); execErr != nil {
+			updateQuery := s.getQueryBuilder().
+				Update("Posts").
+				Set("EditAt", currentPost.EditAt).
+				Set("UpdateAt", currentPost.UpdateAt).
+				Set("Props", model.StringInterfaceToJSON(currentPost.Props)).
+				Where(sq.Eq{"Id": currentPost.Id})
+
+			updateSQL, updateArgs, buildErr := updateQuery.ToSql()
+			if buildErr != nil {
+				return errors.Wrap(buildErr, "failed to build update post query")
+			}
+
+			if _, execErr := transaction.Exec(updateSQL, updateArgs...); execErr != nil {
 				return errors.Wrap(execErr, "failed to update post with EditAt")
 			}
 

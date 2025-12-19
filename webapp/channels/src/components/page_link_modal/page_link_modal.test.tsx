@@ -137,6 +137,7 @@ describe('PageLinkModal', () => {
         wikiId: 'wiki123',
         onSelect: jest.fn(),
         onCancel: jest.fn(),
+        onExited: jest.fn(),
     };
 
     beforeEach(() => {
@@ -428,5 +429,35 @@ describe('PageLinkModal', () => {
         const firstPage = screen.getByText('Getting Started Guide').closest('[role="option"]');
         const checkIcon = firstPage?.querySelector('.icon-check');
         expect(checkIcon).toBeInTheDocument();
+    });
+
+    test('uses page title as fallback when link text is empty', () => {
+        renderWithContext(<PageLinkModal {...baseProps}/>);
+
+        const pageItem = screen.getByText('API Documentation').closest('[role="option"]');
+        fireEvent.click(pageItem!);
+
+        const insertButton = screen.getByText('Insert Link');
+        fireEvent.click(insertButton);
+
+        expect(baseProps.onSelect).toHaveBeenCalledWith('page2', 'API Documentation', 'wiki456', 'API Documentation');
+    });
+
+    test('uses page title as fallback when pressing Enter with empty link text', () => {
+        renderWithContext(<PageLinkModal {...baseProps}/>);
+
+        const searchInput = screen.getByPlaceholderText('Type to search...');
+
+        fireEvent.keyDown(searchInput, {key: 'ArrowDown'});
+        fireEvent.keyDown(searchInput, {key: 'Enter'});
+
+        expect(baseProps.onSelect).toHaveBeenCalledWith('page2', 'API Documentation', 'wiki456', 'API Documentation');
+    });
+
+    test('Insert Link button is enabled when pages available but link text empty', () => {
+        renderWithContext(<PageLinkModal {...baseProps}/>);
+
+        const insertButton = screen.getByText('Insert Link');
+        expect(insertButton).not.toBeDisabled();
     });
 });

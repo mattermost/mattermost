@@ -111,7 +111,7 @@ import {loadCustomEmojisIfNeeded} from 'actions/emoji_actions';
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
 import {sendDesktopNotification} from 'actions/notification_actions';
 import {transformPageServerDraft} from 'actions/page_drafts';
-import {loadPage} from 'actions/pages';
+import {fetchPage} from 'actions/pages';
 import {handleNewPost} from 'actions/post_actions';
 import * as StatusActions from 'actions/status_actions';
 import {setGlobalItem, removeGlobalItem} from 'actions/storage';
@@ -122,7 +122,7 @@ import {openModal} from 'actions/views/modals';
 import {closeRightHandSide} from 'actions/views/rhs';
 import {incrementWsErrorCount, resetWsErrorCount} from 'actions/views/system';
 import {updateThreadLastOpened} from 'actions/views/threads';
-import {reloadWikiBundle} from 'actions/wiki_actions';
+import {refetchWikiBundle} from 'actions/wiki_actions';
 import {makePageDraftKey} from 'selectors/page_drafts';
 import {getSelectedChannelId, getSelectedPost} from 'selectors/rhs';
 import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
@@ -313,7 +313,7 @@ export function reconnect() {
             const wikiId = wikiMatch[1];
 
             // Force reload to ensure we have latest data after reconnect
-            dispatch(reloadWikiBundle(wikiId));
+            dispatch(refetchWikiBundle(wikiId));
         }
     }
 
@@ -651,14 +651,18 @@ export function handleEvent(msg) {
     case SocketEvents.DRAFT_CREATED:
     case SocketEvents.DRAFT_UPDATED:
         dispatch(handleUpsertDraftEvent(msg));
-
-        // Handle active editors notification
-        if (msg.data.page_id && msg.data.user_id) {
-            dispatch(handleActiveEditorDraftUpdated(msg.data.page_id, msg.data.user_id, msg.data.timestamp));
-        }
         break;
     case SocketEvents.DRAFT_DELETED:
         dispatch(handleDeleteDraftEvent(msg));
+        break;
+    case SocketEvents.PAGE_DRAFT_CREATED:
+    case SocketEvents.PAGE_DRAFT_UPDATED:
+        dispatch(handleUpsertDraftEvent(msg));
+
+        // Handle active editors notification for page drafts
+        if (msg.data.page_id && msg.data.user_id) {
+            dispatch(handleActiveEditorDraftUpdated(msg.data.page_id, msg.data.user_id, msg.data.timestamp));
+        }
         break;
     case SocketEvents.PAGE_DRAFT_DELETED:
         // Handle active editors notification when page draft is deleted
@@ -1051,7 +1055,7 @@ export async function handlePageMovedEvent(msg) {
     // This handles the case where a page is moved to a wiki that the user is currently viewing
     // but hasn't loaded the source wiki
     if (!existingPage) {
-        const result = await dispatch(loadPage(pageId, wikiId));
+        const result = await dispatch(fetchPage(pageId, wikiId));
         if (result.error) {
             return;
         }
@@ -2049,11 +2053,11 @@ function handleUpsertDraftEvent(msg) {
             const pageId = draft.page_id;
 
             // Check if the page has already been published
-            // This prevents race condition where a draft_updated event arrives after the page was published
+            // This prevents race condition where a page_draft_updated event arrives after the page was published
             const state = doGetState();
 
             // Check if this draft was recently published
-            // This prevents stale DRAFT_UPDATED events from re-adding drafts in HA environments
+            // This prevents stale PAGE_DRAFT_UPDATED events from re-adding drafts in HA environments
             // IMPORTANT: If the draft exists in publishedDraftTimestamps, it means it was published.
             // We should ignore ALL incoming draft events for this ID, regardless of timestamps,
             // because the draft should no longer exist - it has been converted to a page.
@@ -2071,7 +2075,7 @@ function handleUpsertDraftEvent(msg) {
             // Update active editors for this page
             const userId = draft.user_id;
             const timestamp = draft.update_at;
-            const isCreate = msg.event === SocketEvents.DRAFT_CREATED;
+            const isCreate = msg.event === SocketEvents.PAGE_DRAFT_CREATED;
 
             const activeEditorAction = isCreate ?
                 handleActiveEditorDraftCreated(pageId, userId, timestamp) :

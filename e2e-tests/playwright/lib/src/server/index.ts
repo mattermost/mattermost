@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-export {configureAIPlugin, shouldSkipAITests} from './ai_plugin';
+export {configureAIPlugin, installAIPlugin, shouldSkipAITests} from './ai_plugin';
 export {makeClient} from './client';
 export {createRandomChannel} from './channel';
 export {getOnPremServerConfig, mergeWithOnPremServerConfig} from './default_config';

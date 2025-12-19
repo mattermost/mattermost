@@ -214,7 +214,8 @@ func (a *App) validatePageStatus(field *model.PropertyField, status string) *mod
 
 // EnrichPageWithProperties adds property values to page props before returning to client.
 // This method reuses the batch enrichment logic to avoid redundant DB queries.
-func (a *App) EnrichPageWithProperties(rctx request.CTX, page *model.Post) *model.AppError {
+// Set useMaster to true when calling after a write operation to ensure read-after-write consistency in HA.
+func (a *App) EnrichPageWithProperties(rctx request.CTX, page *model.Post, useMaster ...bool) *model.AppError {
 	if !IsPagePost(page) {
 		return nil
 	}
@@ -226,12 +227,13 @@ func (a *App) EnrichPageWithProperties(rctx request.CTX, page *model.Post) *mode
 		Order: []string{page.Id},
 	}
 
-	return a.EnrichPagesWithProperties(rctx, postList)
+	return a.EnrichPagesWithProperties(rctx, postList, useMaster...)
 }
 
 // EnrichPagesWithProperties enriches multiple pages with their property values
 // (page_status and wiki_id) in batched queries to minimize DB trips.
-func (a *App) EnrichPagesWithProperties(rctx request.CTX, postList *model.PostList) *model.AppError {
+// Set useMaster to true when calling after a write operation to ensure read-after-write consistency in HA.
+func (a *App) EnrichPagesWithProperties(rctx request.CTX, postList *model.PostList, useMaster ...bool) *model.AppError {
 	if postList == nil || len(postList.Posts) == 0 {
 		return nil
 	}
@@ -267,11 +269,20 @@ func (a *App) EnrichPagesWithProperties(rctx request.CTX, postList *model.PostLi
 		return nil
 	}
 
+	// Determine if we should use master DB for read-after-write consistency
+	shouldUseMaster := len(useMaster) > 0 && useMaster[0]
+
+	if shouldUseMaster {
+		rctx.Logger().Debug("EnrichPagesWithProperties: using master DB for read-after-write consistency",
+			mlog.Int("page_count", len(pageIds)))
+	}
+
 	// Batch fetch status property values in ONE query
 	statusSearchOpts := model.PropertyValueSearchOpts{
 		TargetIDs: pageIds,
 		FieldID:   statusField.ID,
 		PerPage:   len(pageIds),
+		UseMaster: shouldUseMaster,
 	}
 
 	statusValues, err := a.Srv().propertyService.SearchPropertyValues(group.ID, statusSearchOpts)
@@ -296,6 +307,7 @@ func (a *App) EnrichPagesWithProperties(rctx request.CTX, postList *model.PostLi
 			TargetIDs: pageIds,
 			FieldID:   wikiField.ID,
 			PerPage:   len(pageIds),
+			UseMaster: shouldUseMaster,
 		}
 
 		wikiValues, wikiErr := a.Srv().propertyService.SearchPropertyValues(group.ID, wikiSearchOpts)
@@ -334,6 +346,12 @@ func (a *App) EnrichPagesWithProperties(rctx request.CTX, postList *model.PostLi
 
 		page.SetProps(props)
 	}
+
+	rctx.Logger().Debug("EnrichPagesWithProperties: completed",
+		mlog.Int("pages_processed", len(pageIds)),
+		mlog.Int("statuses_found", len(statusMap)),
+		mlog.Int("wiki_ids_found", len(wikiMap)),
+		mlog.Bool("used_master", shouldUseMaster))
 
 	return nil
 }

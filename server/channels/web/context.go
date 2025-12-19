@@ -790,7 +790,7 @@ func (c *Context) RequirePageId() *Context {
 	return c
 }
 
-func (c *Context) RequireWikiModifyPermission(callerContext string) (*model.Wiki, *model.Channel, bool) {
+func (c *Context) GetWikiForModify(callerContext string) (*model.Wiki, *model.Channel, bool) {
 	if c.Err != nil {
 		return nil, nil, false
 	}
@@ -852,7 +852,7 @@ func (c *Context) hasWikiModifyPermission(channel *model.Channel) bool {
 	return true
 }
 
-func (c *Context) RequireWikiReadPermission() (*model.Wiki, *model.Channel, bool) {
+func (c *Context) GetWikiForRead() (*model.Wiki, *model.Channel, bool) {
 	if c.Err != nil {
 		return nil, nil, false
 	}
@@ -916,13 +916,13 @@ func (c *Context) GetRemoteID(r *http.Request) string {
 	return r.Header.Get(model.HeaderRemoteclusterId)
 }
 
-// RequirePageModifyPermission validates a page can be modified by the current user.
+// GetPageForModify validates a page can be modified by the current user.
 // It performs all permission checks needed for page modification operations:
 // 1. Validates page belongs to the wiki specified in the URL
 // 2. Checks wiki modify permission
 // 3. Checks page-level modify permission for the specified operation
 // 4. Validates page's channel matches wiki's channel
-func (c *Context) RequirePageModifyPermission(operation app.PageOperation, callerContext string) (*model.Wiki, *app.Page, bool) {
+func (c *Context) GetPageForModify(operation app.PageOperation, callerContext string) (*model.Wiki, *app.Page, bool) {
 	if c.Err != nil {
 		return nil, nil, false
 	}
@@ -934,7 +934,7 @@ func (c *Context) RequirePageModifyPermission(operation app.PageOperation, calle
 	}
 
 	// Check wiki modify permission
-	wiki, channel, ok := c.RequireWikiModifyPermission(callerContext)
+	wiki, channel, ok := c.GetWikiForModify(callerContext)
 	if !ok {
 		return nil, nil, false
 	}

@@ -98,7 +98,7 @@ func getWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wiki, _, ok := c.RequireWikiReadPermission()
+	wiki, _, ok := c.GetWikiForRead()
 	if !ok {
 		return
 	}
@@ -153,7 +153,7 @@ func updateWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	auditRec.AddMeta("wiki_id", wiki.Id)
 
-	oldWiki, _, ok := c.RequireWikiModifyPermission("updateWiki")
+	oldWiki, _, ok := c.GetWikiForModify("updateWiki")
 	if !ok {
 		return
 	}
@@ -192,7 +192,7 @@ func deleteWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	auditRec.AddMeta("wiki_id", c.Params.WikiId)
 
-	oldWiki, _, ok := c.RequireWikiModifyPermission("deleteWiki")
+	oldWiki, _, ok := c.GetWikiForModify("deleteWiki")
 	if !ok {
 		return
 	}
@@ -229,7 +229,7 @@ func moveWikiToChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wiki, _, ok := c.RequireWikiModifyPermission("moveWikiToChannel")
+	wiki, _, ok := c.GetWikiForModify("moveWikiToChannel")
 	if !ok {
 		return
 	}
@@ -284,7 +284,7 @@ func getPageActiveEditors(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, channel, ok := c.RequireWikiReadPermission()
+	_, channel, ok := c.GetWikiForRead()
 	if !ok {
 		return
 	}
@@ -326,7 +326,7 @@ func getPageVersionHistory(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, channel, ok := c.RequireWikiReadPermission()
+	_, channel, ok := c.GetWikiForRead()
 	if !ok {
 		return
 	}

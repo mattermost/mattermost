@@ -1,29 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Post} from '@mattermost/types/posts';
-
 import {PageDisplayTypes} from 'utils/constants';
 import {getPageTitle} from 'utils/post_utils';
 
 import type {PostDraft} from 'types/store/draft';
+import type {DraftPage, PageOrDraft, TreeNode} from 'types/store/pages';
 
-export type Page = Post;
-
-export type DraftPage = Omit<Post, 'type' | 'page_parent_id'> & {
-    type: typeof PageDisplayTypes.PAGE_DRAFT;
-    page_parent_id: string;
-};
-
-export type PageOrDraft = Page | DraftPage;
-
-export type TreeNode = {
-    id: string;
-    title: string;
-    page: PageOrDraft;
-    children: TreeNode[];
-    parentId: string | null;
-};
+export type {Page, DraftPage, PageOrDraft, TreeNode} from 'types/store/pages';
 
 const DEFAULT_UNTITLED = 'Untitled';
 

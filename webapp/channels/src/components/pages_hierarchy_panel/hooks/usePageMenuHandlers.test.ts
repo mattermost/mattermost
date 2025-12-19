@@ -34,8 +34,8 @@ jest.mock('actions/pages', () => ({
     createPage: jest.fn(),
     deletePage: jest.fn(),
     duplicatePage: jest.fn(),
-    loadChannelWikis: jest.fn(),
-    loadPages: jest.fn(),
+    fetchChannelWikis: jest.fn(),
+    fetchPages: jest.fn(),
     movePageToWiki: jest.fn(),
     updatePage: jest.fn(),
 }));

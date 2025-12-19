@@ -4,6 +4,8 @@
 import React, {useState} from 'react';
 import {useIntl} from 'react-intl';
 
+import type {PageDraftListItem} from 'types/store/pages';
+
 import './drafts_section.scss';
 
 // Time conversion constants (milliseconds)
@@ -11,15 +13,10 @@ const MS_PER_MINUTE = 60000;
 const MS_PER_HOUR = 3600000;
 const MS_PER_DAY = 86400000;
 
-export type PageDraft = {
-    id: string;
-    title: string;
-    lastModified: number;
-    pageParentId?: string;
-};
+export type {PageDraftListItem} from 'types/store/pages';
 
 type Props = {
-    drafts: PageDraft[];
+    drafts: PageDraftListItem[];
     currentDraftId?: string;
     onDraftSelect: (draftId: string) => void;
 };

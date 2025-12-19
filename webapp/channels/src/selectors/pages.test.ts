@@ -11,6 +11,7 @@ import {
     getPage,
     getPageAncestors,
     getPages,
+    getChannelPages,
     getPagesLoading,
     getPagesError,
 } from './pages';
@@ -263,6 +264,185 @@ describe('pages selectors', () => {
             pages.forEach((page) => {
                 expect(page).toBe(initialState.entities!.posts.posts[page.id]);
             });
+        });
+    });
+
+    describe('getChannelPages', () => {
+        const channelId = 'channel123';
+        const wiki1Id = 'wiki1';
+        const wiki2Id = 'wiki2';
+
+        const channelPage1: Post = {
+            ...mockPage1,
+            id: 'channelPage1',
+            channel_id: channelId,
+        };
+
+        const channelPage2: Post = {
+            ...mockPage1,
+            id: 'channelPage2',
+            channel_id: channelId,
+        };
+
+        const channelPage3: Post = {
+            ...mockPage1,
+            id: 'channelPage3',
+            channel_id: channelId,
+        };
+
+        test('should return pages from multiple wikis in a channel using indexes', () => {
+            const state: Partial<GlobalState> = {
+                entities: {
+                    posts: {
+                        posts: {
+                            channelPage1,
+                            channelPage2,
+                            channelPage3,
+                        },
+                    },
+                    wikis: {
+                        byId: {
+                            [wiki1Id]: {id: wiki1Id, channel_id: channelId, title: 'Wiki 1'},
+                            [wiki2Id]: {id: wiki2Id, channel_id: channelId, title: 'Wiki 2'},
+                        },
+                        byChannel: {
+                            [channelId]: [wiki1Id, wiki2Id],
+                        },
+                    },
+                    wikiPages: {
+                        byWiki: {
+                            [wiki1Id]: ['channelPage1', 'channelPage2'],
+                            [wiki2Id]: ['channelPage3'],
+                        },
+                        publishedDraftTimestamps: {},
+                    },
+                },
+            } as any;
+
+            const pages = getChannelPages(state as GlobalState, channelId);
+
+            expect(pages).toHaveLength(3);
+            expect(pages.map((p) => p.id)).toEqual(['channelPage1', 'channelPage2', 'channelPage3']);
+        });
+
+        test('should return empty array when byChannel index is missing', () => {
+            const state: Partial<GlobalState> = {
+                entities: {
+                    posts: {
+                        posts: {channelPage1},
+                    },
+                    wikis: {
+                        byId: {},
+                        byChannel: {},
+                    },
+                    wikiPages: {
+                        byWiki: {[wiki1Id]: ['channelPage1']},
+                        publishedDraftTimestamps: {},
+                    },
+                },
+            } as any;
+
+            const pages = getChannelPages(state as GlobalState, channelId);
+
+            expect(pages).toEqual([]);
+        });
+
+        test('should return empty array when byWiki index is missing', () => {
+            const state: Partial<GlobalState> = {
+                entities: {
+                    posts: {
+                        posts: {channelPage1},
+                    },
+                    wikis: {
+                        byId: {[wiki1Id]: {id: wiki1Id, channel_id: channelId}},
+                        byChannel: {[channelId]: [wiki1Id]},
+                    },
+                    wikiPages: {},
+                },
+            } as any;
+
+            const pages = getChannelPages(state as GlobalState, channelId);
+
+            expect(pages).toEqual([]);
+        });
+
+        test('should filter out non-PAGE posts', () => {
+            const regularPost: Post = {
+                ...mockPage1,
+                id: 'regularPost',
+                channel_id: channelId,
+                type: '' as any,
+            };
+
+            const state: Partial<GlobalState> = {
+                entities: {
+                    posts: {
+                        posts: {
+                            channelPage1,
+                            regularPost,
+                        },
+                    },
+                    wikis: {
+                        byId: {[wiki1Id]: {id: wiki1Id, channel_id: channelId}},
+                        byChannel: {[channelId]: [wiki1Id]},
+                    },
+                    wikiPages: {
+                        byWiki: {[wiki1Id]: ['channelPage1', 'regularPost']},
+                        publishedDraftTimestamps: {},
+                    },
+                },
+            } as any;
+
+            const pages = getChannelPages(state as GlobalState, channelId);
+
+            expect(pages).toHaveLength(1);
+            expect(pages[0].id).toBe('channelPage1');
+        });
+
+        test('should filter out missing posts', () => {
+            const state: Partial<GlobalState> = {
+                entities: {
+                    posts: {
+                        posts: {channelPage1},
+                    },
+                    wikis: {
+                        byId: {[wiki1Id]: {id: wiki1Id, channel_id: channelId}},
+                        byChannel: {[channelId]: [wiki1Id]},
+                    },
+                    wikiPages: {
+                        byWiki: {[wiki1Id]: ['channelPage1', 'missingPage']},
+                        publishedDraftTimestamps: {},
+                    },
+                },
+            } as any;
+
+            const pages = getChannelPages(state as GlobalState, channelId);
+
+            expect(pages).toHaveLength(1);
+            expect(pages[0].id).toBe('channelPage1');
+        });
+
+        test('should use memoization', () => {
+            const state: Partial<GlobalState> = {
+                entities: {
+                    posts: {
+                        posts: {channelPage1},
+                    },
+                    wikis: {
+                        byId: {[wiki1Id]: {id: wiki1Id, channel_id: channelId}},
+                        byChannel: {[channelId]: [wiki1Id]},
+                    },
+                    wikiPages: {
+                        byWiki: {[wiki1Id]: ['channelPage1']},
+                        publishedDraftTimestamps: {},
+                    },
+                },
+            } as any;
+
+            const pages1 = getChannelPages(state as GlobalState, channelId);
+            const pages2 = getChannelPages(state as GlobalState, channelId);
+
+            expect(pages1).toBe(pages2);
         });
     });
 

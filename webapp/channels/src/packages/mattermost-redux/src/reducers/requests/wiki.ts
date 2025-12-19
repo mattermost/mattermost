@@ -25,10 +25,8 @@ function loading(state: Record<string, boolean> = {}, action: AnyAction): Record
     }
     case WikiTypes.DELETED_WIKI: {
         const {wikiId} = action.data;
-
         const nextLoading = {...state};
-        Reflect.deleteProperty(nextLoading, wikiId);
-
+        delete nextLoading[wikiId];
         return nextLoading;
     }
     case UserTypes.LOGOUT_SUCCESS:
@@ -56,10 +54,8 @@ function error(state: Record<string, string | null> = {}, action: AnyAction): Re
     }
     case WikiTypes.DELETED_WIKI: {
         const {wikiId} = action.data;
-
         const nextError = {...state};
-        Reflect.deleteProperty(nextError, wikiId);
-
+        delete nextError[wikiId];
         return nextError;
     }
     case UserTypes.LOGOUT_SUCCESS:

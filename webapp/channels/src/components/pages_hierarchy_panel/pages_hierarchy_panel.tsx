@@ -14,6 +14,7 @@ import type {DraftPage, TreeNode} from 'selectors/pages_hierarchy';
 import {buildTree, getAncestorIds} from 'selectors/pages_hierarchy';
 
 import BookmarkChannelSelect from 'components/bookmark_channel_select';
+import {withWikiErrorBoundary} from 'components/wiki_view/wiki_error_boundary';
 
 import type {PostDraft} from 'types/store/draft';
 
@@ -41,8 +42,8 @@ type Props = {
     expandedNodes: {[pageId: string]: boolean};
     isPanelCollapsed: boolean;
     actions: {
-        loadPages: (wikiId: string) => Promise<{data?: Post[]; error?: ServerError}>;
-        loadPageDraftsForWiki: (wikiId: string) => Promise<{data?: PostDraft[]; error?: ServerError}>;
+        fetchPages: (wikiId: string) => Promise<{data?: Post[]; error?: ServerError}>;
+        fetchPageDraftsForWiki: (wikiId: string) => Promise<{data?: PostDraft[]; error?: ServerError}>;
         removePageDraft: (wikiId: string, draftId: string) => Promise<{data?: boolean; error?: ServerError}>;
         toggleNodeExpanded: (wikiId: string, nodeId: string) => void;
         expandAncestors: (wikiId: string, ancestorIds: string[]) => void;
@@ -273,4 +274,4 @@ const PagesHierarchyPanel = ({
     );
 };
 
-export default PagesHierarchyPanel;
+export default withWikiErrorBoundary(PagesHierarchyPanel);

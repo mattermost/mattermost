@@ -1,16 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect, useCallback, useMemo} from 'react';
+import React, {useState, useEffect, useCallback, useMemo, useRef} from 'react';
 import {useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 import type {Post} from '@mattermost/types/posts';
 
-import {closeModal} from 'actions/views/modals';
-
-import {ModalIdentifiers} from 'utils/constants';
 import {getPageTitle} from 'utils/post_utils';
 
 import './page_link_modal.scss';
@@ -19,28 +15,29 @@ type Props = {
     pages: Post[];
     wikiId: string;
     onSelect: (pageId: string, pageTitle: string, pageWikiId: string, linkText: string) => void;
-    onCancel: () => void;
+    onCancel?: () => void;
+    onExited: () => void;
     initialLinkText?: string;
 };
+
+const noop = () => {};
 
 const PageLinkModal = ({
     pages,
     wikiId,
     onSelect,
     onCancel,
+    onExited,
     initialLinkText,
 }: Props) => {
-    const dispatch = useDispatch();
     const {formatMessage} = useIntl();
     const untitledText = formatMessage({id: 'wiki.untitled_page', defaultMessage: 'Untitled'});
 
-    const handleClose = useCallback(() => {
-        dispatch(closeModal(ModalIdentifiers.PAGE_LINK));
-        onCancel();
-    }, [dispatch, onCancel]);
     const [searchQuery, setSearchQuery] = useState('');
     const [linkText, setLinkText] = useState(initialLinkText || '');
     const [selectedIndex, setSelectedIndex] = useState(0);
+    const [isConfirming, setIsConfirming] = useState(false);
+    const linkTextInputRef = useRef<HTMLInputElement>(null);
 
     const filteredPages = useMemo(() => {
         return pages.filter((page) => {
@@ -52,13 +49,14 @@ const PageLinkModal = ({
     const handleConfirm = useCallback((indexOverride?: number) => {
         const idx = indexOverride === undefined ? selectedIndex : indexOverride;
         const selectedPage = filteredPages[idx];
-        if (selectedPage && linkText.trim()) {
+        if (selectedPage) {
+            setIsConfirming(true);
             const title = getPageTitle(selectedPage, untitledText);
             const pageWikiId = (selectedPage as any).wiki_id || wikiId;
-            onSelect(selectedPage.id, title, pageWikiId, linkText.trim());
-            dispatch(closeModal(ModalIdentifiers.PAGE_LINK));
+            const finalLinkText = linkText.trim() || title;
+            onSelect(selectedPage.id, title, pageWikiId, finalLinkText);
         }
-    }, [filteredPages, selectedIndex, linkText, wikiId, onSelect, untitledText, dispatch]);
+    }, [filteredPages, selectedIndex, linkText, wikiId, onSelect, untitledText]);
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
         if (e.key === 'ArrowDown') {
@@ -77,6 +75,11 @@ const PageLinkModal = ({
         setSelectedIndex(0);
     }, [searchQuery]);
 
+    const handlePageSelect = useCallback((index: number) => {
+        setSelectedIndex(index);
+        linkTextInputRef.current?.focus();
+    }, []);
+
     return (
         <GenericModal
             className='PageLinkModal'
@@ -87,11 +90,11 @@ const PageLinkModal = ({
             keyboardEscape={true}
             enforceFocus={false}
             handleConfirm={handleConfirm}
-            handleCancel={handleClose}
-            onExited={handleClose}
+            handleCancel={onCancel ?? noop}
+            onExited={onExited}
             confirmButtonText={formatMessage({id: 'page_link_modal.insert_link', defaultMessage: 'Insert Link'})}
             cancelButtonText={formatMessage({id: 'page_link_modal.cancel', defaultMessage: 'Cancel'})}
-            isConfirmDisabled={filteredPages.length === 0 || !linkText.trim()}
+            isConfirmDisabled={filteredPages.length === 0 || isConfirming}
             autoCloseOnConfirmButton={true}
         >
             <div className='PageLinkModal__body'>
@@ -131,7 +134,7 @@ const PageLinkModal = ({
                                     key={page.id}
                                     role='option'
                                     aria-selected={isSelected}
-                                    onClick={() => setSelectedIndex(index)}
+                                    onClick={() => handlePageSelect(index)}
                                     onDoubleClick={() => handleConfirm(index)}
                                     className={`PageLinkModal__page-item ${isSelected ? 'PageLinkModal__page-item--selected' : ''}`}
                                     onKeyDown={handleKeyDown}
@@ -156,6 +159,7 @@ const PageLinkModal = ({
                     {formatMessage({id: 'page_link_modal.link_text_label', defaultMessage: 'Link text'})}
                 </label>
                 <input
+                    ref={linkTextInputRef}
                     id='link-text-input'
                     type='text'
                     className='form-control PageLinkModal__link-input'

@@ -9,6 +9,7 @@ export {getBlobFromAsset, getFileFromAsset} from './file';
 export {duration, wait} from './util';
 export {
     configureAIPlugin,
+    installAIPlugin,
     shouldSkipAITests,
     createPageViaDraft,
     getAdminClient,

@@ -122,7 +122,7 @@ func (a *App) UpsertPageDraft(rctx request.CTX, userId, wikiId, pageId, contentJ
 	}
 
 	// Send WebSocket event to notify other users of active editor
-	message := model.NewWebSocketEvent(model.WebsocketEventDraftUpdated, "", channel.Id, "", nil, "")
+	message := model.NewWebSocketEvent(model.WebsocketEventPageDraftUpdated, "", channel.Id, "", nil, "")
 	message.Add("page_id", pageId)
 	message.Add("user_id", userId)
 	message.Add("timestamp", savedContent.UpdateAt)
@@ -163,24 +163,28 @@ func (a *App) GetPageDraft(rctx request.CTX, userId, wikiId, pageId string) (*mo
 	content, err := a.Srv().Store().Draft().GetPageDraft(pageId, userId)
 	if err != nil {
 		var nfErr *store.ErrNotFound
-		if errors.As(err, &nfErr) {
+		switch {
+		case errors.As(err, &nfErr):
 			return nil, model.NewAppError("GetPageDraft", "app.draft.get_page_draft.not_found",
 				nil, "", http.StatusNotFound).Wrap(err)
+		default:
+			return nil, model.NewAppError("GetPageDraft", "app.draft.get_page_draft.app_error",
+				nil, "", http.StatusInternalServerError).Wrap(err)
 		}
-		return nil, model.NewAppError("GetPageDraft", "app.draft.get_page_draft.app_error",
-			nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// Fetch metadata from Drafts table using wikiId (page drafts store WikiId in ChannelId field)
 	draft, draftErr := a.Srv().Store().Draft().Get(userId, wikiId, pageId, false)
 	if draftErr != nil {
 		var nfErr *store.ErrNotFound
-		if errors.As(draftErr, &nfErr) {
+		switch {
+		case errors.As(draftErr, &nfErr):
 			return nil, model.NewAppError("GetPageDraft", "app.draft.get_page_draft_metadata.not_found",
 				nil, "", http.StatusNotFound).Wrap(draftErr)
+		default:
+			return nil, model.NewAppError("GetPageDraft", "app.draft.get_page_draft_metadata.app_error",
+				nil, "", http.StatusInternalServerError).Wrap(draftErr)
 		}
-		return nil, model.NewAppError("GetPageDraft", "app.draft.get_page_draft_metadata.app_error",
-			nil, "", http.StatusInternalServerError).Wrap(draftErr)
 	}
 
 	// Combine into PageDraft
@@ -213,12 +217,14 @@ func (a *App) DeletePageDraft(rctx request.CTX, userId, wikiId, pageId string) *
 	// Delete from PageContents table (status='draft')
 	if err := a.Srv().Store().Draft().DeletePageDraft(pageId, userId); err != nil {
 		var nfErr *store.ErrNotFound
-		if errors.As(err, &nfErr) {
+		switch {
+		case errors.As(err, &nfErr):
 			return model.NewAppError("DeletePageDraft", "app.draft.delete_page.app_error",
 				nil, "", http.StatusNotFound).Wrap(err)
+		default:
+			return model.NewAppError("DeletePageDraft", "app.draft.delete_page.app_error",
+				nil, "", http.StatusInternalServerError).Wrap(err)
 		}
-		return model.NewAppError("DeletePageDraft", "app.draft.delete_page.app_error",
-			nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// Also delete from Drafts metadata table (page drafts store WikiId in ChannelId field)
@@ -250,13 +256,15 @@ func (a *App) MovePageDraft(rctx request.CTX, userId, wikiId, pageId, newParentI
 
 	if err := a.Srv().Store().Draft().UpdateDraftParent(userId, wikiId, pageId, newParentId); err != nil {
 		var nfErr *store.ErrNotFound
-		if errors.As(err, &nfErr) {
+		switch {
+		case errors.As(err, &nfErr):
 			return model.NewAppError("MovePageDraft", "app.draft.move_page.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		default:
+			return model.NewAppError("MovePageDraft", "app.draft.move_page.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
-		return model.NewAppError("MovePageDraft", "app.draft.move_page.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventDraftUpdated, "", wiki.ChannelId, userId, nil, "")
+	message := model.NewWebSocketEvent(model.WebsocketEventPageDraftUpdated, "", wiki.ChannelId, userId, nil, "")
 	message.Add("page_id", pageId)
 	message.Add("user_id", userId)
 	message.Add("parent_changed", true)
@@ -454,10 +462,10 @@ func (a *App) validateCircularReference(rctx request.CTX, pageId, parentId strin
 	return nil
 }
 
-func (a *App) applyDraftPageStatus(rctx request.CTX, page *model.Post, draft *model.PageDraft, isUpdate bool) {
+func (a *App) applyDraftPageStatus(rctx request.CTX, page *model.Post, draft *model.PageDraft, isUpdate bool) *model.AppError {
 	rawStatus, exists := draft.Props[model.PagePropsPageStatus]
 	if !exists {
-		return
+		return nil
 	}
 
 	// Try string type assertion
@@ -467,26 +475,25 @@ func (a *App) applyDraftPageStatus(rctx request.CTX, page *model.Post, draft *mo
 		if rawStatus != nil {
 			statusValue = fmt.Sprintf("%v", rawStatus)
 		} else {
-			return
+			return nil
 		}
 	}
 
 	if statusValue == "" {
-		return
+		return nil
 	}
 
 	// Wrap the post in a Page - we know it's a page since we just created/updated it
 	pageWrapper := NewPageFromValidatedPost(page)
 	if err := a.SetPageStatus(rctx, pageWrapper, statusValue); err != nil {
-		logLevel := mlog.LvlWarn
-		if isUpdate {
-			logLevel = mlog.LvlError
-		}
-		rctx.Logger().Log(logLevel, "Failed to set page status from draft props",
+		rctx.Logger().Error("Failed to set page status from draft props",
 			mlog.String("page_id", page.Id),
 			mlog.String("status", statusValue),
+			mlog.Bool("is_update", isUpdate),
 			mlog.Err(err))
+		return err
 	}
+	return nil
 }
 
 func (a *App) updatePageFromDraft(rctx request.CTX, pageId, wikiId, parentId, title, content, searchText string, baseEditAt int64, force bool) (*model.Post, *model.AppError) {
@@ -561,7 +568,9 @@ func (a *App) applyDraftToPage(rctx request.CTX, draft *model.PageDraft, wikiId,
 		return nil, err
 	}
 
-	a.applyDraftPageStatus(rctx, page, draft, isUpdate)
+	// Apply status from draft. If this fails, we still return the page since
+	// the content was saved successfully. The error is logged in applyDraftPageStatus.
+	_ = a.applyDraftPageStatus(rctx, page, draft, isUpdate)
 
 	return page, nil
 }
@@ -677,8 +686,8 @@ func (a *App) PublishPageDraft(rctx request.CTX, userId string, opts model.Publi
 		return nil, err
 	}
 
-	// Enrich the page with properties immediately after publishing
-	if enrichErr := a.EnrichPageWithProperties(rctx, savedPost); enrichErr != nil {
+	// Enrich the page with properties immediately after publishing (use master for read-after-write consistency)
+	if enrichErr := a.EnrichPageWithProperties(rctx, savedPost, true); enrichErr != nil {
 		rctx.Logger().Warn("Failed to enrich published page with properties", mlog.String("page_id", savedPost.Id), mlog.Err(enrichErr))
 	}
 
@@ -735,7 +744,7 @@ func (a *App) updateChildDraftParentReferences(rctx request.CTX, userId, wikiId,
 		childDraft.Props = updatedProps
 		childDraft.UpdateAt = model.GetMillis()
 
-		message := model.NewWebSocketEvent(model.WebsocketEventDraftUpdated, "", childDraft.ChannelId, userId, nil, "")
+		message := model.NewWebSocketEvent(model.WebsocketEventPageDraftUpdated, "", childDraft.ChannelId, userId, nil, "")
 		draftJSON, jsonErr := json.Marshal(childDraft)
 		if jsonErr == nil {
 			message.Add("draft", string(draftJSON))

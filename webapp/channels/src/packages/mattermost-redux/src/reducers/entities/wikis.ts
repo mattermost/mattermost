@@ -97,7 +97,7 @@ export default function wikisReducer(state = initialState, action: AnyAction): W
         }
 
         const nextById = {...state.byId};
-        Reflect.deleteProperty(nextById, wikiId);
+        delete nextById[wikiId];
 
         return {
             ...state,

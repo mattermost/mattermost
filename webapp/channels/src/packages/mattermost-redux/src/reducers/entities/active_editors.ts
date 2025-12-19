@@ -56,11 +56,11 @@ function byPageId(
         }
 
         const nextPageState = {...state[pageId]};
-        Reflect.deleteProperty(nextPageState, userId);
+        delete nextPageState[userId];
 
         if (Object.keys(nextPageState).length === 0) {
             const nextState = {...state};
-            Reflect.deleteProperty(nextState, pageId);
+            delete nextState[pageId];
             return nextState;
         }
 
@@ -94,7 +94,7 @@ function byPageId(
 
         if (Object.keys(nextPageState).length === 0) {
             const nextState = {...state};
-            Reflect.deleteProperty(nextState, pageId);
+            delete nextState[pageId];
             return nextState;
         }
 

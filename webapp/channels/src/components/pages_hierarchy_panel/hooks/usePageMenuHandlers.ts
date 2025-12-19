@@ -11,7 +11,7 @@ import type {Wiki} from '@mattermost/types/wikis';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {removePageDraft, savePageDraft} from 'actions/page_drafts';
-import {createPage, deletePage, duplicatePage, loadChannelWikis, loadPages, movePageToWiki, updatePage} from 'actions/pages';
+import {createPage, deletePage, duplicatePage, fetchChannelWikis, fetchPages, movePageToWiki, updatePage} from 'actions/pages';
 import {openModal} from 'actions/views/modals';
 import {expandAncestors} from 'actions/views/pages_hierarchy';
 
@@ -252,11 +252,11 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
 
     const fetchPagesForWiki = useCallback(async (targetWikiId: string): Promise<Post[]> => {
         try {
-            const wikisResult = await dispatch(loadChannelWikis(channelId));
+            const wikisResult = await dispatch(fetchChannelWikis(channelId));
             const wikis = (wikisResult as ActionResult<Wiki[]>).data;
             const targetWiki = wikis?.find((w) => w.id === targetWikiId);
             if (targetWiki) {
-                const pagesResult = await dispatch(loadPages(targetWikiId));
+                const pagesResult = await dispatch(fetchPages(targetWikiId));
                 return (pagesResult as ActionResult<Post[]>).data || [];
             }
             return [];
@@ -275,7 +275,7 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         const hasChildren = childCount > 0;
 
         try {
-            const result = await dispatch(loadChannelWikis(channelId));
+            const result = await dispatch(fetchChannelWikis(channelId));
             const wikis = (result as ActionResult<Wiki[]>).data || [];
 
             // Store for reference

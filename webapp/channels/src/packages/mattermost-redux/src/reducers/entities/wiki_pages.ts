@@ -13,11 +13,20 @@ function byWiki(state: Record<string, string[]> = {}, action: AnyAction): Record
     switch (action.type) {
     case WikiTypes.GET_PAGES_SUCCESS: {
         const {wikiId, pages} = action.data;
-        const pageIds = pages.map((p: Post) => p.id);
+        const fetchedPageIds = pages.map((p: Post) => p.id);
+        const currentPageIds = state[wikiId] || [];
+
+        // Merge fetched pages with existing pages to prevent race condition:
+        // If a WebSocket event added a page while fetch was in-flight,
+        // preserve it by including page IDs from current state that aren't
+        // in the fetched result (they were added after fetch started)
+        const fetchedSet = new Set(fetchedPageIds);
+        const pagesAddedDuringFetch = currentPageIds.filter((id) => !fetchedSet.has(id));
+        const mergedPageIds = [...fetchedPageIds, ...pagesAddedDuringFetch];
 
         return {
             ...state,
-            [wikiId]: pageIds,
+            [wikiId]: mergedPageIds,
         };
     }
     case WikiTypes.RECEIVED_PAGE_IN_WIKI: {
@@ -99,10 +108,8 @@ function byWiki(state: Record<string, string[]> = {}, action: AnyAction): Record
     }
     case WikiTypes.DELETED_WIKI: {
         const {wikiId} = action.data;
-
         const nextByWiki = {...state};
-        Reflect.deleteProperty(nextByWiki, wikiId);
-
+        delete nextByWiki[wikiId];
         return nextByWiki;
     }
     case UserTypes.LOGOUT_SUCCESS:
@@ -124,10 +131,8 @@ function lastPagesInvalidated(state: Record<string, number> = {}, action: AnyAct
     }
     case WikiTypes.DELETED_WIKI: {
         const {wikiId} = action.data;
-
         const nextState = {...state};
-        Reflect.deleteProperty(nextState, wikiId);
-
+        delete nextState[wikiId];
         return nextState;
     }
     case UserTypes.LOGOUT_SUCCESS:
@@ -148,10 +153,8 @@ function lastDraftsInvalidated(state: Record<string, number> = {}, action: AnyAc
     }
     case WikiTypes.DELETED_WIKI: {
         const {wikiId} = action.data;
-
         const nextState = {...state};
-        Reflect.deleteProperty(nextState, wikiId);
-
+        delete nextState[wikiId];
         return nextState;
     }
     case UserTypes.LOGOUT_SUCCESS:

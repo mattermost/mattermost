@@ -5,22 +5,22 @@ import mockStore from 'tests/test_store';
 
 import * as draftsActions from './page_drafts';
 import * as pagesActions from './pages';
-import {loadWikiBundle, reloadWikiBundle} from './wiki_actions';
+import {fetchWikiBundle, refetchWikiBundle} from './wiki_actions';
 
 jest.mock('./pages');
 jest.mock('./page_drafts');
 
-const mockLoadPages = pagesActions.loadPages as jest.MockedFunction<typeof pagesActions.loadPages>;
-const mockLoadDrafts = draftsActions.loadPageDraftsForWiki as jest.MockedFunction<typeof draftsActions.loadPageDraftsForWiki>;
+const mockFetchPages = pagesActions.fetchPages as jest.MockedFunction<typeof pagesActions.fetchPages>;
+const mockFetchDrafts = draftsActions.fetchPageDraftsForWiki as jest.MockedFunction<typeof draftsActions.fetchPageDraftsForWiki>;
 
 describe('wiki_actions', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockLoadPages.mockReturnValue(() => Promise.resolve({data: []}));
-        mockLoadDrafts.mockReturnValue(() => Promise.resolve({data: []}));
+        mockFetchPages.mockReturnValue(() => Promise.resolve({data: []}));
+        mockFetchDrafts.mockReturnValue(() => Promise.resolve({data: []}));
     });
 
-    describe('loadWikiBundle', () => {
+    describe('fetchWikiBundle', () => {
         it('should fetch pages if cache is empty', async () => {
             const state = {
                 entities: {
@@ -38,10 +38,10 @@ describe('wiki_actions', () => {
 
             const testStore = await mockStore(state);
 
-            await testStore.dispatch(loadWikiBundle('wiki1'));
+            await testStore.dispatch(fetchWikiBundle('wiki1'));
 
-            expect(mockLoadPages).toHaveBeenCalledWith('wiki1');
-            expect(mockLoadDrafts).toHaveBeenCalledWith('wiki1');
+            expect(mockFetchPages).toHaveBeenCalledWith('wiki1');
+            expect(mockFetchDrafts).toHaveBeenCalledWith('wiki1');
         });
 
         it('should not fetch pages if cache is populated', async () => {
@@ -66,10 +66,10 @@ describe('wiki_actions', () => {
 
             const testStore = await mockStore(state);
 
-            await testStore.dispatch(loadWikiBundle('wiki1'));
+            await testStore.dispatch(fetchWikiBundle('wiki1'));
 
-            expect(mockLoadPages).not.toHaveBeenCalled();
-            expect(mockLoadDrafts).toHaveBeenCalledWith('wiki1');
+            expect(mockFetchPages).not.toHaveBeenCalled();
+            expect(mockFetchDrafts).toHaveBeenCalledWith('wiki1');
         });
 
         it('should handle empty wiki (cache with empty array)', async () => {
@@ -91,10 +91,10 @@ describe('wiki_actions', () => {
 
             const testStore = await mockStore(state);
 
-            await testStore.dispatch(loadWikiBundle('wiki1'));
+            await testStore.dispatch(fetchWikiBundle('wiki1'));
 
-            expect(mockLoadPages).not.toHaveBeenCalled();
-            expect(mockLoadDrafts).toHaveBeenCalledWith('wiki1');
+            expect(mockFetchPages).not.toHaveBeenCalled();
+            expect(mockFetchDrafts).toHaveBeenCalledWith('wiki1');
         });
 
         it('should always fetch drafts regardless of cache', async () => {
@@ -120,13 +120,13 @@ describe('wiki_actions', () => {
 
             const testStore = await mockStore(stateWithCache);
 
-            await testStore.dispatch(loadWikiBundle('wiki1'));
+            await testStore.dispatch(fetchWikiBundle('wiki1'));
 
-            expect(mockLoadDrafts).toHaveBeenCalledWith('wiki1');
+            expect(mockFetchDrafts).toHaveBeenCalledWith('wiki1');
         });
     });
 
-    describe('reloadWikiBundle', () => {
+    describe('refetchWikiBundle', () => {
         it('should always fetch regardless of cache state', async () => {
             const stateWithFullCache = {
                 entities: {
@@ -151,10 +151,10 @@ describe('wiki_actions', () => {
 
             const testStore = await mockStore(stateWithFullCache);
 
-            await testStore.dispatch(reloadWikiBundle('wiki1'));
+            await testStore.dispatch(refetchWikiBundle('wiki1'));
 
-            expect(mockLoadPages).toHaveBeenCalledWith('wiki1');
-            expect(mockLoadDrafts).toHaveBeenCalledWith('wiki1');
+            expect(mockFetchPages).toHaveBeenCalledWith('wiki1');
+            expect(mockFetchDrafts).toHaveBeenCalledWith('wiki1');
         });
 
         it('should fetch for empty cache as well', async () => {
@@ -174,10 +174,10 @@ describe('wiki_actions', () => {
 
             const testStore = await mockStore(stateWithEmptyCache);
 
-            await testStore.dispatch(reloadWikiBundle('wiki1'));
+            await testStore.dispatch(refetchWikiBundle('wiki1'));
 
-            expect(mockLoadPages).toHaveBeenCalledWith('wiki1');
-            expect(mockLoadDrafts).toHaveBeenCalledWith('wiki1');
+            expect(mockFetchPages).toHaveBeenCalledWith('wiki1');
+            expect(mockFetchDrafts).toHaveBeenCalledWith('wiki1');
         });
     });
 });

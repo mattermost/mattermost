@@ -83,7 +83,6 @@ func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, conte
 		}
 	}
 
-	// VALIDATE OR AUTO-CONVERT CONTENT
 	if content != "" {
 		trimmedContent := strings.TrimSpace(content)
 
@@ -123,7 +122,7 @@ func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, conte
 		return nil, model.NewAppError("CreatePage", "app.page.create.store_error.app_error", nil, "", http.StatusInternalServerError).Wrap(createErr)
 	}
 
-	if enrichErr := a.EnrichPageWithProperties(rctx, createdPage); enrichErr != nil {
+	if enrichErr := a.EnrichPageWithProperties(rctx, createdPage, true); enrichErr != nil {
 		return nil, enrichErr
 	}
 
@@ -229,37 +228,29 @@ func (a *App) GetPageWithContent(rctx request.CTX, pageID string) (*model.Post, 
 	return post, nil
 }
 
-// PageContentLoadOptions specifies what page content to load for a PostList.
-type PageContentLoadOptions struct {
-	// IncludeDeleted includes content for deleted pages (used for version history)
-	IncludeDeleted bool
-	// SearchTextOnly loads only search_text into Props instead of full document JSON
-	// This is more efficient for search results where full content isn't needed
-	SearchTextOnly bool
-}
-
 // LoadPageContentForPostList loads page content from the pagecontent table for any pages in the PostList.
 // This populates the Message field with the full page content stored in the pagecontent table.
 func (a *App) LoadPageContentForPostList(rctx request.CTX, postList *model.PostList) *model.AppError {
-	return a.loadPageContentForPostList(rctx, postList, PageContentLoadOptions{})
+	return a.loadPageContentForPostList(rctx, postList, false, false)
 }
 
 // LoadPageContentForPostListIncludingDeleted loads page content including historical (deleted) versions.
 // Use this for version history where posts have DeleteAt > 0.
 func (a *App) LoadPageContentForPostListIncludingDeleted(rctx request.CTX, postList *model.PostList) *model.AppError {
-	return a.loadPageContentForPostList(rctx, postList, PageContentLoadOptions{IncludeDeleted: true})
+	return a.loadPageContentForPostList(rctx, postList, true, false)
 }
 
 // EnrichPagesWithSearchText adds search_text to Props for pages in search results.
 // This is used for displaying page content in search results without modifying Post.Message.
 // Post.Message stays empty for pages; search_text in Props is used only for display.
 func (a *App) EnrichPagesWithSearchText(rctx request.CTX, postList *model.PostList) *model.AppError {
-	return a.loadPageContentForPostList(rctx, postList, PageContentLoadOptions{SearchTextOnly: true})
+	return a.loadPageContentForPostList(rctx, postList, false, true)
 }
 
-// loadPageContentForPostList is the unified implementation for loading page content.
-// It handles full content loading, search text only, and deleted content based on options.
-func (a *App) loadPageContentForPostList(rctx request.CTX, postList *model.PostList, opts PageContentLoadOptions) *model.AppError {
+// loadPageContentForPostList loads page content with options:
+// - includeDeleted: include content for deleted pages (for version history)
+// - searchTextOnly: load only search_text into Props instead of full document JSON
+func (a *App) loadPageContentForPostList(rctx request.CTX, postList *model.PostList, includeDeleted, searchTextOnly bool) *model.AppError {
 	if postList == nil || postList.Posts == nil {
 		return nil
 	}
@@ -278,7 +269,7 @@ func (a *App) loadPageContentForPostList(rctx request.CTX, postList *model.PostL
 	var pageContents []*model.PageContent
 	var contentErr error
 
-	if opts.IncludeDeleted {
+	if includeDeleted {
 		pageContents, contentErr = a.Srv().Store().Page().GetManyPageContentsWithDeleted(pageIDs)
 	} else {
 		pageContents, contentErr = a.Srv().Store().Page().GetManyPageContents(pageIDs)
@@ -299,13 +290,13 @@ func (a *App) loadPageContentForPostList(rctx request.CTX, postList *model.PostL
 
 		pageContent, found := contentMap[post.Id]
 		if !found {
-			if !opts.SearchTextOnly {
+			if !searchTextOnly {
 				post.Message = ""
 			}
 			continue
 		}
 
-		if opts.SearchTextOnly {
+		if searchTextOnly {
 			if pageContent.SearchText != "" {
 				if post.Props == nil {
 					post.Props = make(model.StringInterface)
@@ -381,7 +372,7 @@ func (a *App) UpdatePage(rctx request.CTX, page *Page, title, content, searchTex
 		a.handlePageMentions(rctx, updatedPost, updatedPost.ChannelId, content, session.UserId)
 	}
 
-	if enrichErr := a.EnrichPageWithProperties(rctx, updatedPost); enrichErr != nil {
+	if enrichErr := a.EnrichPageWithProperties(rctx, updatedPost, true); enrichErr != nil {
 		return nil, enrichErr
 	}
 
@@ -476,7 +467,7 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, page *Page, titl
 		a.handlePageMentions(rctx, updatedPost, updatedPost.ChannelId, content, session.UserId)
 	}
 
-	if enrichErr := a.EnrichPageWithProperties(rctx, updatedPost); enrichErr != nil {
+	if enrichErr := a.EnrichPageWithProperties(rctx, updatedPost, true); enrichErr != nil {
 		return nil, enrichErr
 	}
 
@@ -491,7 +482,7 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, page *Page, titl
 
 // DeletePage deletes a page. If wikiId is provided, it will be included in the broadcast event.
 // Accepts a type-safe *Page that has already been validated.
-func (a *App) DeletePage(rctx request.CTX, page *Page, wikiId ...string) *model.AppError {
+func (a *App) DeletePage(rctx request.CTX, page *Page, wikiId string) *model.AppError {
 	start := time.Now()
 	defer func() {
 		if a.Metrics() != nil {
@@ -506,12 +497,7 @@ func (a *App) DeletePage(rctx request.CTX, page *Page, wikiId ...string) *model.
 		return model.NewAppError("DeletePage", "app.page.delete.store_error.app_error", nil, "", http.StatusInternalServerError).Wrap(deleteErr)
 	}
 
-	// Use provided wikiId or empty string if not provided
-	wiki := ""
-	if len(wikiId) > 0 {
-		wiki = wikiId[0]
-	}
-	a.broadcastPageDeleted(pageID, wiki, page.ChannelId(), rctx.Session().UserId)
+	a.broadcastPageDeleted(pageID, wikiId, page.ChannelId(), rctx.Session().UserId)
 	return nil
 }
 
@@ -546,7 +532,7 @@ func (a *App) RestorePage(rctx request.CTX, page *Page) *model.AppError {
 
 	a.invalidateCacheForChannelPosts(restoredPost.ChannelId)
 
-	if enrichErr := a.EnrichPageWithProperties(rctx, restoredPost); enrichErr != nil {
+	if enrichErr := a.EnrichPageWithProperties(rctx, restoredPost, true); enrichErr != nil {
 		rctx.Logger().Warn("Failed to enrich restored page", mlog.String("page_id", pageID), mlog.Err(enrichErr))
 	}
 

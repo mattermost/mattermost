@@ -180,14 +180,6 @@ test('handles @user mentions in editor', {tag: '@pages'}, async ({pw, sharedPage
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
-    // DEBUG: Capture console logs to debug user mention suggestion
-    page.on('console', (msg) => {
-        if (msg.text().includes('UserMention')) {
-            // eslint-disable-next-line no-console
-            console.log(`[Browser Console] ${msg.type()}: ${msg.text()}`);
-        }
-    });
-
     // # Create wiki through UI
     await createWikiThroughUI(page, `Mention Wiki ${await pw.random.id()}`);
 
@@ -245,14 +237,6 @@ test('handles ~channel mentions in editor', {tag: '@pages'}, async ({pw, sharedP
     const mentionedChannel = await createTestChannel(adminClient, team.id, `mentioned-channel-${await pw.random.id()}`);
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
-
-    // DEBUG: Capture console logs to debug channel mention suggestion
-    page.on('console', (msg) => {
-        if (msg.text().includes('ChannelMention')) {
-            // eslint-disable-next-line no-console
-            console.log(`[Browser Console] ${msg.type()}: ${msg.text()}`);
-        }
-    });
 
     // # Create wiki through UI
     await createWikiThroughUI(page, `Channel Mention Wiki ${await pw.random.id()}`);
@@ -475,14 +459,6 @@ test('allows multiple mentions in same document without refresh', {tag: '@pages'
     const {user: user2} = await createTestUserInTeam(pw, adminClient, team, 'bob');
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
-
-    // DEBUG: Capture console logs
-    page.on('console', (msg) => {
-        if (msg.text().includes('Mention')) {
-            // eslint-disable-next-line no-console
-            console.log(`[Browser Console] ${msg.type()}: ${msg.text()}`);
-        }
-    });
 
     // # Create wiki through UI
     await createWikiThroughUI(page, `Multi Mention Bug Wiki ${await pw.random.id()}`);
@@ -961,6 +937,115 @@ test('navigates to linked page when link is clicked', {tag: '@pages'}, async ({p
     const targetPageContent = getPageViewerContent(page);
     await expect(targetPageContent).toContainText('This is the linked page content', {timeout: PAGE_LOAD_TIMEOUT});
 });
+
+/**
+ * @objective Verify /link slash command uses page title as fallback when link text is empty
+ *
+ * @precondition
+ * At least one page must exist to link to
+ */
+test(
+    'inserts page link via slash command using page title when link text empty',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+        // # Create wiki through UI
+        await createWikiThroughUI(page, `Slash Link Wiki ${await pw.random.id()}`);
+
+        // # Create target page to link to
+        const targetPage = await createPageThroughUI(page, 'Target Page For Slash Command');
+        await waitForPageInHierarchy(page, 'Target Page For Slash Command');
+
+        // # Create new page for linking
+        const newPageButton = getNewPageButton(page);
+        await newPageButton.click();
+        await fillCreatePageModal(page, 'Page With Slash Link');
+
+        // # Wait for navigation to the new draft page
+        await page
+            .locator('[data-testid="wiki-page-publish-button"]')
+            .waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
+
+        // # Wait for editor to load
+        const editor = await getEditorAndWait(page);
+
+        // # Wait for previously created pages to load in hierarchy
+        await waitForPageInHierarchy(page, 'Target Page For Slash Command', 15000);
+
+        // # Type /link to open slash command menu and select Link
+        await editor.click();
+        await page.keyboard.type('/link');
+
+        // * Verify slash command menu appears with Link option
+        const slashMenu = page.locator('.slash-command-menu');
+        await slashMenu.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+
+        const linkItem = slashMenu.locator('.slash-command-item').filter({hasText: 'Link'});
+        await expect(linkItem).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+        // # Press Enter to select the Link option
+        await page.keyboard.press('Enter');
+
+        // * Verify page link modal opens
+        const linkModal = page.locator('[data-testid="page-link-modal"]').first();
+        await expect(linkModal).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+        // # Search for target page
+        const searchInput = linkModal.locator('input[id="page-search-input"]');
+        await searchInput.fill('Target Page For Slash Command');
+
+        // * Verify target page appears in results
+        await expect(linkModal).toContainText('Target Page For Slash Command');
+
+        // # Select the target page by clicking on it
+        const targetPageOption = linkModal
+            .locator('[role="option"]')
+            .filter({hasText: 'Target Page For Slash Command'})
+            .first();
+        await targetPageOption.click();
+
+        // # Do NOT fill in link text - leave it empty to test fallback behavior
+        // The link text input should be empty
+        const linkTextInput = linkModal.locator('input[id="link-text-input"]');
+        await expect(linkTextInput).toHaveValue('');
+
+        // # Press Enter to confirm (using page title as fallback)
+        await page.keyboard.press('Enter');
+
+        // * Verify modal closes
+        await expect(linkModal).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+        // * Verify link was inserted with page title as link text (the fallback)
+        await page.waitForTimeout(EDITOR_LOAD_WAIT);
+        const editorContent = await editor.textContent();
+        expect(editorContent).toContain('Target Page For Slash Command');
+
+        // * Verify the link element exists with correct text
+        const pageLink = editor.locator('a').filter({hasText: 'Target Page For Slash Command'}).first();
+        await expect(pageLink).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+        // * Verify link href contains the target page ID
+        const href = await pageLink.getAttribute('href');
+        expect(href).toBeTruthy();
+        expect(href).toContain(targetPage.id);
+
+        // # Publish and verify persistence
+        await publishPage(page);
+        await page.waitForLoadState('networkidle');
+
+        // * Verify link persists after publish
+        const pageContent = getPageViewerContent(page);
+        await expect(pageContent).toBeVisible();
+        await expect(pageContent).toContainText('Target Page For Slash Command');
+
+        const publishedLink = pageContent.locator('a').filter({hasText: 'Target Page For Slash Command'}).first();
+        await expect(publishedLink).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    },
+);
 
 /**
  * @objective Verify multiple page links can be inserted in same page

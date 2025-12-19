@@ -280,14 +280,13 @@ const TipTapEditor = ({
     const team = useSelector((state: GlobalState) => (teamId ? getTeam(state, teamId) : undefined));
 
     // Refs to hold current values for event handlers (avoids stale closures)
+    // Consolidated ref updates in a single effect
     const channelsRef = useRef(allChannels);
     const teamRef = useRef(team);
     useEffect(() => {
         channelsRef.current = allChannels;
-    }, [allChannels]);
-    useEffect(() => {
         teamRef.current = team;
-    }, [team]);
+    }, [allChannels, team]);
 
     const handleImageUpload = useCallback(async (
         currentEditor: Editor,
@@ -766,24 +765,18 @@ const TipTapEditor = ({
         }
     }, [editable, editor]);
 
-    // Pre-fetch users for mentions when editor mounts
+    // Pre-fetch users and channels for mentions when editor mounts (consolidated)
     useEffect(() => {
-        if (channelId && editable) {
+        if (!editable) {
+            return;
+        }
+        if (channelId) {
             dispatch(autocompleteUsersInChannel('', channelId));
         }
-    }, [channelId, editable, dispatch]);
-
-    // Pre-fetch channels for channel mentions when editor mounts
-    useEffect(() => {
-        if (teamId && editable) {
-            // Pre-fetch with empty query to cache all channels
-            dispatch(autocompleteChannels('', () => {
-                // Channels are now cached in Redux store for instant channel mention results
-            }, () => {
-                // Error case - channels will still work but may be slower
-            }));
+        if (teamId) {
+            dispatch(autocompleteChannels('', () => {}, () => {}));
         }
-    }, [teamId, editable]); // Removed dispatch from dependencies
+    }, [channelId, teamId, editable, dispatch]);
 
     // Update inline comments in both extensions when they change
     useEffect(() => {
@@ -848,16 +841,18 @@ const TipTapEditor = ({
         }
     }, [editor, deletedAnchorIds, onDeletedAnchorIdsProcessed]);
 
-    // Handle clicks on channel mentions to navigate to channel
+    // Unified click handler: channel mentions, wiki page links, and images (view mode)
+    // Consolidates three separate click handlers into one
     useEffect(() => {
         if (!editor) {
             return undefined;
         }
 
-        const handleClick = (event: MouseEvent) => {
+        const handleEditorClick = (event: MouseEvent) => {
             const target = event.target as HTMLElement;
-            const channelMention = target.closest('.channel-mention[data-channel-id]');
 
+            // 1. Handle channel mention clicks
+            const channelMention = target.closest('.channel-mention[data-channel-id]');
             if (channelMention) {
                 const mentionChannelId = channelMention.getAttribute('data-channel-id');
                 const channels = channelsRef.current;
@@ -866,42 +861,22 @@ const TipTapEditor = ({
                 if (mentionChannelId && channels[mentionChannelId] && currentTeamData) {
                     event.preventDefault();
                     event.stopPropagation();
-
                     const channel = channels[mentionChannelId];
                     const history = getHistory();
                     const teamUrl = window.basename || '';
                     const channelUrl = `${teamUrl}/${currentTeamData.name}/channels/${channel.name}`;
                     history.push(channelUrl);
+                    return;
                 }
             }
-        };
 
-        const editorElement = editor.view.dom;
-        editorElement.addEventListener('click', handleClick);
-
-        return () => {
-            editorElement.removeEventListener('click', handleClick);
-        };
-    }, [editor]);
-
-    // Handle clicks on wiki page links to navigate without full reload
-    useEffect(() => {
-        if (!editor) {
-            return undefined;
-        }
-
-        const handleClick = (event: MouseEvent) => {
-            const target = event.target as HTMLElement;
+            // 2. Handle wiki page link clicks
             const wikiPageLink = target.closest('a.wiki-page-link');
-
             if (wikiPageLink) {
                 const href = wikiPageLink.getAttribute('href');
-
                 if (href) {
                     const currentOrigin = window.location.origin;
                     const currentBasename = window.basename || '';
-
-                    // Check if link is internal (same origin or relative path)
                     const isInternalLink = href.startsWith('/') ||
                         href.startsWith(currentOrigin) ||
                         href.startsWith(currentBasename);
@@ -909,100 +884,71 @@ const TipTapEditor = ({
                     if (isInternalLink) {
                         event.preventDefault();
                         event.stopPropagation();
-
                         const history = getHistory();
                         let relativePath = href;
-
-                        // Strip origin if present
                         if (href.startsWith(currentOrigin)) {
                             relativePath = href.substring(currentOrigin.length);
                         }
-
-                        // Strip basename if present
                         if (currentBasename && relativePath.startsWith(currentBasename)) {
                             relativePath = relativePath.substring(currentBasename.length);
                         }
-
                         history.push(relativePath);
+                        return;
+                    }
+                }
+            }
+
+            // 3. Handle image clicks in view mode only
+            if (!editable) {
+                let imageElement: HTMLImageElement | null = null;
+                if (target instanceof HTMLImageElement) {
+                    imageElement = target;
+                }
+                if (!imageElement) {
+                    imageElement = target.closest('img') as HTMLImageElement | null;
+                }
+                if (!imageElement && target instanceof HTMLElement) {
+                    imageElement = target.querySelector('img');
+                }
+
+                if (imageElement instanceof HTMLImageElement) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const src = imageElement.getAttribute('src');
+                    const alt = imageElement.getAttribute('alt') || 'Image';
+                    const title = imageElement.getAttribute('title') || alt;
+
+                    if (src) {
+                        const filename = title || alt;
+                        const lastDotIndex = filename.lastIndexOf('.');
+                        let extension = 'png';
+                        if (lastDotIndex !== -1 && lastDotIndex < filename.length - 1) {
+                            extension = filename.substring(lastDotIndex + 1).toLowerCase();
+                        }
+                        dispatch(openModal({
+                            modalId: ModalIdentifiers.FILE_PREVIEW_MODAL,
+                            dialogType: FilePreviewModal,
+                            dialogProps: {
+                                startIndex: 0,
+                                postId: pageId,
+                                fileInfos: [{
+                                    has_preview_image: false,
+                                    link: src,
+                                    extension,
+                                    name: filename,
+                                }],
+                            },
+                        }));
                     }
                 }
             }
         };
 
         const editorElement = editor.view.dom;
-        editorElement.addEventListener('click', handleClick);
+        editorElement.addEventListener('click', handleEditorClick);
 
         return () => {
-            editorElement.removeEventListener('click', handleClick);
-        };
-    }, [editor]);
-
-    // Handle clicks on images in view mode to open preview modal
-    useEffect(() => {
-        if (!editor || editable) {
-            return undefined;
-        }
-
-        const handleImageClick = (event: MouseEvent) => {
-            const target = event.target as HTMLElement;
-
-            // Check if clicked element is an image (any img tag, not just .wiki-image)
-            let imageElement: HTMLImageElement | null = null;
-            if (target instanceof HTMLImageElement) {
-                imageElement = target;
-            }
-
-            // Check if clicked element has an image parent
-            if (!imageElement) {
-                imageElement = target.closest('img') as HTMLImageElement | null;
-            }
-
-            // Check if clicked element is a wrapper containing an image (ImageResize wrapper)
-            if (!imageElement && target instanceof HTMLElement) {
-                imageElement = target.querySelector('img');
-            }
-
-            if (imageElement instanceof HTMLImageElement) {
-                event.preventDefault();
-                event.stopPropagation();
-
-                const src = imageElement.getAttribute('src');
-                const alt = imageElement.getAttribute('alt') || 'Image';
-                const title = imageElement.getAttribute('title') || alt;
-
-                if (src) {
-                    // Extract extension from title/alt (filename) instead of src (API URL)
-                    const filename = title || alt;
-                    const lastDotIndex = filename.lastIndexOf('.');
-                    let extension = 'png'; // default to png
-
-                    if (lastDotIndex !== -1 && lastDotIndex < filename.length - 1) {
-                        extension = filename.substring(lastDotIndex + 1).toLowerCase();
-                    }
-
-                    dispatch(openModal({
-                        modalId: ModalIdentifiers.FILE_PREVIEW_MODAL,
-                        dialogType: FilePreviewModal,
-                        dialogProps: {
-                            startIndex: 0,
-                            postId: pageId,
-                            fileInfos: [{
-                                has_preview_image: false,
-                                link: src,
-                                extension,
-                                name: filename,
-                            }],
-                        },
-                    }));
-                }
-            }
-        };
-
-        const editorElement = editor.view.dom;
-        editorElement.addEventListener('click', handleImageClick);
-
-        return () => {
-            editorElement.removeEventListener('click', handleImageClick);
+            editorElement.removeEventListener('click', handleEditorClick);
         };
     }, [editor, editable, dispatch, pageId]);
 
