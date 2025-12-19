@@ -206,19 +206,6 @@
                         row-gap: 24px;
                     }
                 }
-
-                .signup-body-card-agreement {
-                    margin-top: 32px;
-                    color: rgba(var(--center-channel-color-rgb), 0.75);
-                    font-size: 11px;
-                    line-height: 16px;
-
-                    a {
-                        @include mixins.link;
-
-                        font-size: 11px;
-                    }
-                }
             }
         }
 
