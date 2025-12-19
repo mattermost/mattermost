@@ -11,7 +11,6 @@ import type {ClientConfig} from '@mattermost/types/config';
 
 import {RequestStatus} from 'mattermost-redux/constants';
 
-import * as useCWSAvailabilityCheckAll from 'components/common/hooks/useCWSAvailabilityCheck';
 import SaveButton from 'components/save_button';
 import Signup from 'components/signup/signup';
 import CheckInput from 'components/widgets/inputs/check';
@@ -97,7 +96,10 @@ const actImmediate = (wrapper: ReactWrapper) =>
 
 describe('components/signup/Signup', () => {
     beforeEach(() => {
+        jest.useRealTimers(); // Reset to real timers
         mockLocation = {pathname: '', search: '', hash: ''};
+        mockHistoryPush.mockClear();
+        mockDispatch.mockClear();
 
         mockLicense = {IsLicensed: 'true', Cloud: 'false'};
 
@@ -302,12 +304,14 @@ describe('components/signup/Signup', () => {
         const emailInput = screen.getByTestId('signup-body-card-form-email-input');
         const usernameInput = screen.getByTestId('signup-body-card-form-name-input');
         const passwordInput = screen.getByTestId('signup-body-card-form-password-input');
+        const termsCheckbox = screen.getByRole('checkbox', {name: /terms and privacy policy checkbox/i});
         const submitButton = screen.getByText('Create account');
 
         // Submit with valid email and username but invalid password
         fireEvent.change(emailInput, {target: {value: 'test@example.com'}});
         fireEvent.change(usernameInput, {target: {value: 'testuser'}});
         fireEvent.change(passwordInput, {target: {value: '123'}});
+        fireEvent.click(termsCheckbox);
         fireEvent.click(submitButton);
 
         await waitFor(() => {
@@ -329,12 +333,14 @@ describe('components/signup/Signup', () => {
         const emailInput = screen.getByTestId('signup-body-card-form-email-input');
         const usernameInput = screen.getByTestId('signup-body-card-form-name-input');
         const passwordInput = screen.getByTestId('signup-body-card-form-password-input');
+        const termsCheckbox = screen.getByRole('checkbox', {name: /terms and privacy policy checkbox/i});
         const submitButton = screen.getByText('Create account');
 
         // Submit with valid data that will trigger server error
         fireEvent.change(emailInput, {target: {value: 'test@example.com'}});
         fireEvent.change(usernameInput, {target: {value: 'existinguser'}});
         fireEvent.change(passwordInput, {target: {value: 'password123'}});
+        fireEvent.click(termsCheckbox);
         fireEvent.click(submitButton);
 
         await waitFor(() => {
@@ -342,7 +348,7 @@ describe('components/signup/Signup', () => {
         });
     });
 
-    it('should add user to team and redirect when team invite valid and logged in', async () => {
+    it('should add user to team and redirect when team invite valid and logged in', (done) => {
         mockLocation.search = '?id=ppni7a9t87fn3j4d56rwocdctc';
 
         const wrapper = shallow(
@@ -352,10 +358,11 @@ describe('components/signup/Signup', () => {
         setTimeout(() => {
             expect(mockHistoryPush).toHaveBeenCalledWith('/teamName/channels/town-square');
             expect(wrapper).toMatchSnapshot();
+            done();
         }, 0);
     });
 
-    it('should handle failure adding user to team when team invite and logged in', () => {
+    it('should handle failure adding user to team when team invite and logged in', (done) => {
         mockLocation.search = '?id=ppni7a9t87fn3j4d56rwocdctc';
 
         const wrapper = shallow(
@@ -365,6 +372,7 @@ describe('components/signup/Signup', () => {
         setTimeout(() => {
             expect(mockHistoryPush).not.toHaveBeenCalled();
             expect(wrapper.find('.content-layout-column-title').text()).toEqual('This invite link is invalid');
+            done();
         });
     });
 
@@ -390,14 +398,14 @@ describe('components/signup/Signup', () => {
         const usernameInput = screen.getByTestId('signup-body-card-form-name-input');
         const passwordInput = screen.getByTestId('signup-body-card-form-password-input');
         const termsCheckbox = screen.getByRole('checkbox', {name: /terms and privacy policy checkbox/i});
-        const submitButton = screen.getByText('Create account');
 
         // Fill in all fields but don't check terms
         fireEvent.change(emailInput, {target: {value: 'test@example.com'}});
         fireEvent.change(usernameInput, {target: {value: 'testuser'}});
         fireEvent.change(passwordInput, {target: {value: 'ValidPassword123!'}});
 
-        // Submit button should be disabled
+        // Submit button should be disabled (SaveButton uses disabled prop on inner button)
+        const submitButton = screen.getByRole('button', {name: /Create account/i});
         expect(submitButton).toBeDisabled();
 
         // Check terms
@@ -405,7 +413,8 @@ describe('components/signup/Signup', () => {
 
         // Now submit button should be enabled
         await waitFor(() => {
-            expect(submitButton).not.toBeDisabled();
+            const enabledButton = screen.getByRole('button', {name: /Create account/i});
+            expect(enabledButton).not.toBeDisabled();
         });
     });
 });
