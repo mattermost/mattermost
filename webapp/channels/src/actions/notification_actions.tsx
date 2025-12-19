@@ -32,7 +32,7 @@ import DisplayNameMentionRenderer from 'utils/markdown/display_name_mention_rend
 import MentionableRenderer from 'utils/markdown/mentionable_renderer';
 import {DesktopNotificationSounds, ding} from 'utils/notification_sounds';
 import {showNotification} from 'utils/notifications';
-import {cjkrPattern, escapeRegex} from 'utils/text_formatting';
+import {cjkrPattern, convertEntityToCharacter, escapeRegex} from 'utils/text_formatting';
 import {isDesktopApp, isMobileApp} from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
@@ -217,7 +217,7 @@ const getNotificationUsername = (state: GlobalState, post: Post, msgProps: NewPo
 const replaceMentionsAndStripMarkdown = (state: GlobalState, text: string): string => {
     const teammateNameDisplay = getTeammateNameDisplaySetting(state);
     const renderer = new DisplayNameMentionRenderer(state, teammateNameDisplay);
-    return formatWithRenderer(text, renderer);
+    return convertEntityToCharacter(formatWithRenderer(text, renderer));
 };
 
 const getNotificationBody = (state: GlobalState, post: Post, msgProps: NewPostMessageProps) => {

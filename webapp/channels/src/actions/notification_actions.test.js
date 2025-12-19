@@ -675,6 +675,22 @@ describe('notification_actions', () => {
                     body: '@John Doe: Hi @Alice Liddell',
                 }));
             });
+
+            test('should not convert characters to percent-encoded HTML entities', async () => {
+                const store = makeTestStore('full_name');
+                const localPost = {
+                    ...post,
+                    id: 'post_teammate_display_test',
+                    user_id: 'user_id',
+                    message: '**Hi** @alice, I\'m John',
+                };
+
+                await store.dispatch(sendDesktopNotification(localPost, msgProps));
+
+                expect(spy).toHaveBeenCalledWith(expect.objectContaining({
+                    body: '@John Doe: Hi @Alice Liddell, I\'m John',
+                }));
+            });
         });
     });
 });
