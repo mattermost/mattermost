@@ -142,13 +142,11 @@ func (a *App) PreparePostForClient(rctx request.CTX, originalPost *model.Post, o
 	a.preparePostFilesForClient(rctx, post, opts)
 
 	if post.Type == model.PostTypeBurnOnRead {
-		// For the author/sender, fill ExpireAt from TemporaryPost table in case all recipients have revealed
-		// This is to make sure the timer countdown persists after page reloading
+		// For the sender, populate ExpireAt from TemporaryPost when all recipients have revealed.
+		// This ensures the countdown timer persists after page reload.
 		if post.UserId == rctx.Session().UserId && post.Metadata.ExpireAt == 0 {
-			// Check if all recipients have revealed by checking if unread count is 0
 			if unreadCount, err := a.Srv().Store().ReadReceipt().GetUnreadCountForPost(rctx, post); err == nil && unreadCount == 0 {
-				// All recipients revealed, get ExpireAt from temporary post if it exists
-				if tmpPost, err := a.Srv().Store().TemporaryPost().Get(rctx, post.Id); err == nil && tmpPost.ExpireAt > 0 {
+				if tmpPost, err := a.Srv().Store().TemporaryPost().Get(rctx, post.Id); err == nil {
 					post.Metadata.ExpireAt = tmpPost.ExpireAt
 				}
 			}
