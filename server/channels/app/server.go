@@ -129,7 +129,6 @@ type Server struct {
 	telemetryService      *telemetry.TelemetryService
 	userService           *users.UserService
 	teamService           *teams.TeamService
-	propertyService       *properties.PropertyService
 	propertyAccessService *PropertyAccessService
 
 	serviceMux           sync.RWMutex
@@ -233,7 +232,7 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to create teams service")
 	}
 
-	s.propertyService, err = properties.New(properties.ServiceConfig{
+	propertyService, err := properties.New(properties.ServiceConfig{
 		PropertyGroupStore: s.Store().PropertyGroup(),
 		PropertyFieldStore: s.Store().PropertyField(),
 		PropertyValueStore: s.Store().PropertyValue(),
@@ -243,7 +242,7 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	// Wrap PropertyService with access control layer to enforce caller-based permissions
-	s.propertyAccessService = NewPropertyAccessService(s.propertyService)
+	s.propertyAccessService = NewPropertyAccessService(propertyService)
 
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.

@@ -15,6 +15,9 @@ import (
 const (
 	// propertyAccessPaginationPageSize is the default page size for pagination when fetching property values
 	propertyAccessPaginationPageSize = 100
+	// anonymousCallerId can be used for calls to the service that aren't tied to a specific entity
+	// These calls will not be able to access any data that has access control restrictions.
+	anonymousCallerId = ""
 )
 
 // PropertyAccessService is a decorator around PropertyService that enforces

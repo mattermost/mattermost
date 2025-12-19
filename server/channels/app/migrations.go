@@ -617,14 +617,14 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 	}
 
 	// RegisterPropertyGroup is idempotent, so no need to check if group is already registered
-	group, err := s.propertyService.RegisterPropertyGroup(model.ContentFlaggingGroupName)
+	group, err := s.propertyAccessService.RegisterPropertyGroup(model.ContentFlaggingGroupName)
 	if err != nil {
 		return fmt.Errorf("failed to register Content Flagging group: %w", err)
 	}
 
 	// Using page size of 100 and not iterating through all pages because the
 	// number of fields are static and defined here and not expected to be more than 100 for now.
-	existingProperties, appErr := s.propertyService.SearchPropertyFields(group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+	existingProperties, appErr := s.propertyAccessService.SearchPropertyFields(anonymousCallerId, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
 	if appErr != nil {
 		return fmt.Errorf("failed to search for existing content flagging properties: %w", appErr)
 	}
@@ -718,13 +718,13 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 	}
 
 	for _, property := range propertiesToCreate {
-		if _, err := s.propertyService.CreatePropertyField(property); err != nil {
+		if _, err := s.propertyAccessService.CreatePropertyField(anonymousCallerId, property); err != nil {
 			return fmt.Errorf("failed to create content flagging property: %q, error: %w", property.Name, err)
 		}
 	}
 
 	if len(propertiesToUpdate) > 0 {
-		if _, err := s.propertyService.UpdatePropertyFields(group.ID, propertiesToUpdate); err != nil {
+		if _, err := s.propertyAccessService.UpdatePropertyFields(anonymousCallerId, group.ID, propertiesToUpdate); err != nil {
 			return fmt.Errorf("failed to update content flagging property fields: %w", err)
 		}
 	}

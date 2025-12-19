@@ -67,6 +67,9 @@ export type UserPropertyField = PropertyField & {
         ldap?: string;
         saml?: string;
         managed?: string;
+        protected?: boolean;
+        source_plugin_id?: string;
+        access_mode?: '' | 'source_only' | 'shared_only';
     };
 };
 
