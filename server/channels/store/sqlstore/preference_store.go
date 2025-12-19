@@ -224,15 +224,12 @@ func (s SqlPreferenceStore) DeleteCategoryAndName(category string, name string) 
 // DeleteOrphanedRows removes entries from Preferences (flagged post) when a
 // corresponding post no longer exists.
 func (s *SqlPreferenceStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
-	// We need the extra level of nesting to deal with MySQL's locking
 	const query = `
-	DELETE FROM Preferences WHERE Name IN (
-		SELECT Name FROM (
-			SELECT Preferences.Name FROM Preferences
-			LEFT JOIN Posts ON Preferences.Name = Posts.Id
-			WHERE Posts.Id IS NULL AND Category = ?
-			LIMIT ?
-		) AS A
+	DELETE FROM Preferences WHERE ctid IN (
+		SELECT Preferences.ctid FROM Preferences
+		LEFT JOIN Posts ON Preferences.Name = Posts.Id
+		WHERE Posts.Id IS NULL AND Category = $1
+		LIMIT $2
 	)`
 
 	result, err := s.GetMaster().Exec(query, model.PreferenceCategoryFlaggedPost, limit)

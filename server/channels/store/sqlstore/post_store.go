@@ -1739,10 +1739,7 @@ func (s *SqlPostStore) getPostsAround(rctx request.CTX, before bool, options mod
 	}
 	query = query.From("Posts p").
 		Where(conditions).
-		// Adding ChannelId and DeleteAt order columns
-		// to let mysql choose the "idx_posts_channel_id_delete_at_create_at" index always.
-		// See MM-24170.
-		OrderBy("p.ChannelId", "p.DeleteAt", "p.CreateAt "+sort).
+		OrderBy("p.CreateAt " + sort).
 		Limit(uint64(options.PerPage)).
 		Offset(uint64(offset))
 
@@ -1837,10 +1834,7 @@ func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before 
 		Select("Id").
 		From("Posts").
 		Where(conditions).
-		// Adding ChannelId and DeleteAt order columns
-		// to let mysql choose the "idx_posts_channel_id_delete_at_create_at" index always.
-		// See MM-23369.
-		OrderBy("Posts.ChannelId", "Posts.DeleteAt", "Posts.CreateAt "+sort).
+		OrderBy("Posts.CreateAt " + sort).
 		Limit(1)
 
 	queryString, args, err := query.ToSql()
@@ -1871,10 +1865,7 @@ func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64, collapsedT
 		Select("*").
 		From("Posts").
 		Where(conditions).
-		// Adding ChannelId and DeleteAt order columns
-		// to let mysql choose the "idx_posts_channel_id_delete_at_create_at" index always.
-		// See MM-23369.
-		OrderBy("Posts.ChannelId", "Posts.DeleteAt", "Posts.CreateAt ASC").
+		OrderBy("Posts.CreateAt ASC").
 		Limit(1)
 
 	queryString, args, err := query.ToSql()
@@ -3240,40 +3231,12 @@ func (s *SqlPostStore) SetPostReminder(reminder *model.PostReminder) error {
 	return nil
 }
 
-func (s *SqlPostStore) GetPostReminders(now int64) (_ []*model.PostReminder, err error) {
+func (s *SqlPostStore) GetPostReminders(now int64) ([]*model.PostReminder, error) {
 	reminders := []*model.PostReminder{}
-
-	transaction, err := s.GetMaster().Beginx()
+	err := s.GetMaster().Select(&reminders, `DELETE FROM PostReminders WHERE TargetTime <= $1 RETURNING PostId, UserId`, now)
 	if err != nil {
-		return nil, errors.Wrap(err, "begin_transaction")
+		return nil, errors.Wrap(err, "failed to get and delete post reminders")
 	}
-	defer finalizeTransactionX(transaction, &err)
-
-	err = transaction.Select(&reminders, `SELECT PostId, UserId
-		FROM PostReminders
-		WHERE TargetTime <= ?`, now)
-	if err != nil && err != sql.ErrNoRows {
-		return nil, errors.Wrap(err, "failed to get post reminders")
-	}
-
-	if err == sql.ErrNoRows {
-		// No need to execute delete statement if there's nothing to delete.
-		return reminders, nil
-	}
-
-	// TODO: https://mattermost.atlassian.net/browse/MM-63368
-	// Postgres supports RETURNING * in a DELETE statement, but MySQL doesn't.
-	// So we are stuck with 2 queries. Not taking separate paths for Postgres
-	// and MySQL for simplicity.
-	_, err = transaction.Exec(`DELETE from PostReminders WHERE TargetTime <= ?`, now)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to delete post reminders")
-	}
-
-	if err = transaction.Commit(); err != nil {
-		return nil, errors.Wrap(err, "commit_transaction")
-	}
-
 	return reminders, nil
 }
 

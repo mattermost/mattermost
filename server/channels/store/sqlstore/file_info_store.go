@@ -417,7 +417,7 @@ func (fs SqlFileInfoStore) AttachToPost(rctx request.CTX, fileId, postId, channe
 
 	count, err := sqlResult.RowsAffected()
 	if err != nil {
-		// RowsAffected should never fail with the MySQL or Postgres drivers
+		// RowsAffected should never fail with the Postgres driver
 		return errors.Wrap(err, "unable to retrieve rows affected")
 	} else if count == 0 {
 		// Could not attach the file to the post

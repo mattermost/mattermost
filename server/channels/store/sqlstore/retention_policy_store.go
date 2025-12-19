@@ -30,8 +30,7 @@ func newSqlRetentionPolicyStore(sqlStore *SqlStore, metrics einterfaces.MetricsI
 	}
 }
 
-// executePossiblyEmptyQuery only executes the query if it is non-empty. This helps avoid
-// having to check for MySQL, which, unlike Postgres, does not allow empty queries.
+// executePossiblyEmptyQuery only executes the query if it is non-empty.
 func executePossiblyEmptyQuery(txn *sqlxTxWrapper, query string, args ...any) (sql.Result, error) {
 	if query == "" {
 		return nil, nil
@@ -640,15 +639,11 @@ func subQueryIN(property string, query sq.SelectBuilder) sq.Sqlizer {
 // DeleteOrphanedRows removes entries from RetentionPoliciesChannels and RetentionPoliciesTeams
 // where a channel or team no longer exists.
 func (s *SqlRetentionPolicyStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
-	// We need the extra level of nesting to deal with MySQL's locking
-	rpcSubQuery := sq.Select("ChannelId").FromSelect(
-		sq.Select("ChannelId").
-			From("RetentionPoliciesChannels").
-			LeftJoin("Channels ON RetentionPoliciesChannels.ChannelId = Channels.Id").
-			Where("Channels.Id IS NULL").
-			Limit(uint64(limit)),
-		"A",
-	)
+	rpcSubQuery := sq.Select("ChannelId").
+		From("RetentionPoliciesChannels").
+		LeftJoin("Channels ON RetentionPoliciesChannels.ChannelId = Channels.Id").
+		Where("Channels.Id IS NULL").
+		Limit(uint64(limit))
 
 	rpcDeleteQuery, rpcArgs, err := s.getQueryBuilder().
 		Delete("RetentionPoliciesChannels").
@@ -658,15 +653,11 @@ func (s *SqlRetentionPolicyStore) DeleteOrphanedRows(limit int) (deleted int64, 
 		return int64(0), errors.Wrap(err, "retention_policies_channels_tosql")
 	}
 
-	// We need the extra level of nesting to deal with MySQL's locking
-	rptSubQuery := sq.Select("TeamId").FromSelect(
-		sq.Select("TeamId").
-			From("RetentionPoliciesTeams").
-			LeftJoin("Teams ON RetentionPoliciesTeams.TeamId = Teams.Id").
-			Where("Teams.Id IS NULL").
-			Limit(uint64(limit)),
-		"A",
-	)
+	rptSubQuery := sq.Select("TeamId").
+		From("RetentionPoliciesTeams").
+		LeftJoin("Teams ON RetentionPoliciesTeams.TeamId = Teams.Id").
+		Where("Teams.Id IS NULL").
+		Limit(uint64(limit))
 
 	rptDeleteQuery, rptArgs, err := s.getQueryBuilder().
 		Delete("RetentionPoliciesTeams").

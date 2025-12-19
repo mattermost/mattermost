@@ -4092,23 +4092,14 @@ func (s SqlChannelStore) UserBelongsToChannels(userId string, channelIds []strin
 
 // UpdateMembersRole updates all the members of channelID in the adminIDs string array to be admins and sets all other
 // users as not being admin.
-// It returns the list of userIDs whose roles got updated.
+// It returns the list of members whose roles got updated.
 //
 // TODO: parameterize adminIDs
-func (s SqlChannelStore) UpdateMembersRole(channelID string, adminIDs []string) (_ []*model.ChannelMember, err error) {
-	transaction, err := s.GetMaster().Beginx()
-	if err != nil {
-		return nil, err
-	}
-	defer finalizeTransactionX(transaction, &err)
-
-	// On MySQL it's not possible to update a table and select from it in the same query.
-	// A SELECT and a UPDATE query are needed.
-	// Once we only support PostgreSQL, this can be done in a single query using RETURNING.
-	query, args, err := s.getQueryBuilder().
-		Select(channelMemberSliceColumns()...).
-		From("ChannelMembers").
-		Where(sq.Eq{"ChannelID": channelID}).
+func (s SqlChannelStore) UpdateMembersRole(channelID string, adminIDs []string) ([]*model.ChannelMember, error) {
+	query := s.getQueryBuilder().
+		Update("ChannelMembers").
+		Set("SchemeAdmin", sq.Case().When(sq.Eq{"UserId": adminIDs}, "true").Else("false")).
+		Where(sq.Eq{"ChannelId": channelID}).
 		Where(sq.Or{sq.Eq{"SchemeGuest": false}, sq.Expr("SchemeGuest IS NULL")}).
 		Where(
 			sq.Or{
@@ -4123,40 +4114,12 @@ func (s SqlChannelStore) UpdateMembersRole(channelID string, adminIDs []string) 
 					sq.NotEq{"UserId": adminIDs},
 				},
 			},
-		).ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "channel_tosql")
-	}
+		).
+		Suffix("RETURNING " + strings.Join(channelMemberSliceColumns(), ", "))
 
 	var updatedMembers []*model.ChannelMember
-	if err = transaction.Select(&updatedMembers, query, args...); err != nil {
-		return nil, errors.Wrap(err, "failed to get list of updated users")
-	}
-
-	// Update SchemeAdmin field as the data from the SQL is not updated yet
-	for _, member := range updatedMembers {
-		if slices.Contains(adminIDs, member.UserId) {
-			member.SchemeAdmin = true
-		} else {
-			member.SchemeAdmin = false
-		}
-	}
-
-	query, args, err = s.getQueryBuilder().
-		Update("ChannelMembers").
-		Set("SchemeAdmin", sq.Case().When(sq.Eq{"UserId": adminIDs}, "true").Else("false")).
-		Where(sq.Eq{"ChannelId": channelID}).
-		Where(sq.Or{sq.Eq{"SchemeGuest": false}, sq.Expr("SchemeGuest IS NULL")}).ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "team_tosql")
-	}
-
-	if _, err = transaction.Exec(query, args...); err != nil {
+	if err := s.GetMaster().SelectBuilder(&updatedMembers, query); err != nil {
 		return nil, errors.Wrap(err, "failed to update ChannelMembers")
-	}
-
-	if err = transaction.Commit(); err != nil {
-		return nil, errors.Wrap(err, "commit_transaction")
 	}
 
 	return updatedMembers, nil
