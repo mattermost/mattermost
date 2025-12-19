@@ -352,11 +352,11 @@ describe('components/signup/Signup', () => {
     it('should add user to team and redirect when team invite valid and logged in', async () => {
         mockLocation.search = '?id=ppni7a9t87fn3j4d56rwocdctc';
         mockCurrentUserId = 'user1'; // Simulate logged-in user
-        
+
         // Mock dispatch to return team data when addUserToTeamFromInvite is called
-        mockDispatch = jest.fn()
-            .mockResolvedValueOnce({}) // removeGlobalItem in useEffect
-            .mockResolvedValueOnce({data: {name: 'teamName'}}); // addUserToTeamFromInvite
+        mockDispatch = jest.fn().
+            mockResolvedValueOnce({}). // removeGlobalItem in useEffect
+            mockResolvedValueOnce({data: {name: 'teamName'}}); // addUserToTeamFromInvite
 
         const wrapper = mountWithIntl(
             <IntlProvider {...intlProviderProps}>
@@ -374,11 +374,11 @@ describe('components/signup/Signup', () => {
     it('should handle failure adding user to team when team invite and logged in', async () => {
         mockLocation.search = '?id=ppni7a9t87fn3j4d56rwocdctc';
         mockCurrentUserId = 'user1'; // Simulate logged-in user
-        
+
         // Mock dispatch to return error when addUserToTeamFromInvite is called
-        mockDispatch = jest.fn()
-            .mockResolvedValueOnce({}) // removeGlobalItem in useEffect
-            .mockResolvedValueOnce({
+        mockDispatch = jest.fn().
+            mockResolvedValueOnce({}). // removeGlobalItem in useEffect
+            mockResolvedValueOnce({
                 error: {
                     server_error_id: 'api.team.add_user_to_team_from_invite.invalid.app_error',
                     message: 'Invalid invite',
