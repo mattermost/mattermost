@@ -18,7 +18,7 @@
         required: true
       responses:
         "201":
-          description: Reaction creation successful
+          description: Reaction created successfully
           content:
             application/json:
               schema:
@@ -90,7 +90,7 @@
             type: string
       responses:
         "200":
-          description: Reaction deletion successful
+          description: Reaction deleted successfully
           content:
             application/json:
               schema:
@@ -124,7 +124,7 @@
         required: true
       responses:
         "200":
-          description: Reactions retrieval successful
+          description: Reactions retrieved successfully
           content:
             application/json:
               schema:

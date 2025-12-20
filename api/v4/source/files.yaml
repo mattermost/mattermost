@@ -400,7 +400,7 @@
         required: true
       responses:
         "200":
-          description: Files list retrieval successful
+          description: Files list retrieved successfully
           content:
             application/json:
               schema:
@@ -468,7 +468,7 @@
         required: true
       responses:
         "200":
-          description: Files list retrieval successful
+          description: Files list retrieved successfully
           content:
             application/json:
               schema:

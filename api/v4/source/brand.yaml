@@ -13,7 +13,7 @@
       operationId: GetBrandImage
       responses:
         "200":
-          description: Brand image retrieval successful
+          description: Brand image retrieved successfully
           content:
             application/json:
               schema:
@@ -45,7 +45,7 @@
                 - image
       responses:
         "201":
-          description: Brand image upload successful
+          description: Brand image uploaded successfully
           content:
             application/json:
               schema:

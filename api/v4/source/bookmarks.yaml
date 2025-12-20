@@ -25,7 +25,7 @@
             format: int64
       responses:
         "201":
-          description: Channel Bookmarks retrieval successful
+          description: Channel Bookmarks retrieved successfully
           content:
             application/json:
               schema:
@@ -96,7 +96,7 @@
         required: true
       responses:
         "201":
-          description: Channel Bookmark creation successful
+          description: Channel Bookmark created successfully
           content:
             application/json:
               schema:
@@ -176,7 +176,7 @@
         required: true
       responses:
         "200":
-          description: Channel Bookmark update successful
+          description: Channel Bookmark updated successfully
           content:
             application/json:
               schema:
@@ -221,7 +221,7 @@
             type: string
       responses:
         "200":
-          description: Channel Bookmark deletion successful
+          description: Channel Bookmark deleted successfully
           content:
             application/json:
               schema:
@@ -276,7 +276,7 @@
               description: The new sort order for the Channel Bookmark
       responses:
         "200":
-          description: Channel Bookmark Sort Order update successful
+          description: Channel Bookmark Sort Order updated successfully
           content:
             application/json:
               schema:

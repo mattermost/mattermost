@@ -34,7 +34,7 @@
                 - plugin
       responses:
         "201":
-          description: Plugin upload successful
+          description: Plugin uploaded successfully
           content:
             application/json:
               schema:
@@ -67,7 +67,7 @@
       operationId: GetPlugins
       responses:
         "200":
-          description: Plugins retrieval successful
+          description: Plugins retrieved successfully
           content:
             application/json:
               schema:
@@ -122,7 +122,7 @@
             type: string
       responses:
         "201":
-          description: Plugin install successful
+          description: Plugin installed successfully
           content:
             application/json:
               schema:
@@ -413,7 +413,7 @@
             type: boolean
       responses:
         "200":
-          description: Plugins retrieval successful
+          description: Plugins retrieved successfully
           content:
             application/json:
               schema:

@@ -10,7 +10,7 @@
       operationId: CreateComplianceReport
       responses:
         "201":
-          description: Compliance report creation successful
+          description: Compliance report created successfully
           content:
             application/json:
               schema:
@@ -50,7 +50,7 @@
             default: 60
       responses:
         "200":
-          description: Compliance reports retrieval successful
+          description: Compliance reports retrieved successfully
           content:
             application/json:
               schema:
@@ -84,7 +84,7 @@
             type: string
       responses:
         "200":
-          description: Compliance report retrieval successful
+          description: Compliance report retrieved successfully
           content:
             application/json:
               schema:

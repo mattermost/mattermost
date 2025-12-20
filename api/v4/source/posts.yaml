@@ -64,7 +64,7 @@
         required: true
       responses:
         "201":
-          description: Post creation successful
+          description: Post created successfully
           content:
             application/json:
               schema:
@@ -116,7 +116,7 @@
         required: true
       responses:
         "201":
-          description: Post creation successful
+          description: Post created successfully
           content:
             application/json:
               schema:
@@ -155,7 +155,7 @@
             default: false
       responses:
         "200":
-          description: Post retrieval successful
+          description: Post retrieved successfully
           headers:
             Has-Inaccessible-Posts:
               schema:
@@ -192,7 +192,7 @@
             type: string
       responses:
         "200":
-          description: Post deletion successful
+          description: Post deleted successfully
           content:
             application/json:
               schema:
@@ -249,7 +249,7 @@
         required: true
       responses:
         "200":
-          description: Post update successful
+          description: Post updated successfully
           content:
             application/json:
               schema:
@@ -353,7 +353,7 @@
         required: true
       responses:
         "200":
-          description: Post patch successful
+          description: Post patched successfully
           content:
             application/json:
               schema:
@@ -439,7 +439,7 @@
             default: false
       responses:
         "200":
-          description: Post list retrieval successful
+          description: Post list retrieved successfully
           content:
             application/json:
               schema:
@@ -495,7 +495,7 @@
             default: 60
       responses:
         "200":
-          description: Post list retrieval successful
+          description: Post list retrieved successfully
           content:
             application/json:
               schema:
@@ -537,7 +537,7 @@
             default: false
       responses:
         "200":
-          description: File info retrieval successful
+          description: File info retrieved successfully
           content:
             application/json:
               schema:
@@ -612,7 +612,7 @@
             default: false
       responses:
         "200":
-          description: Post list retrieval successful
+          description: Post list retrieved successfully
           content:
             application/json:
               schema:
@@ -690,7 +690,7 @@
             default: false
       responses:
         "200":
-          description: Post list retrieval successful
+          description: Post list retrieved successfully
           content:
             application/json:
               schema:
@@ -758,7 +758,7 @@
         required: true
       responses:
         "200":
-          description: Post list retrieval successful
+          description: Post list retrieved successfully
           content:
             application/json:
               schema:
@@ -790,7 +790,7 @@
             type: string
       responses:
         "200":
-          description: Pinned post successful
+          description: Post pinned successfully
           content:
             application/json:
               schema:
@@ -823,7 +823,7 @@
             type: string
       responses:
         "200":
-          description: Unpinned post successful
+          description: Post unpinned successfully
           content:
             application/json:
               schema:
@@ -862,7 +862,7 @@
             type: string
       responses:
         "200":
-          description: Post action successful
+          description: Post action executed successfully
           content:
             application/json:
               schema:
@@ -896,7 +896,7 @@
         required: true
       responses:
         "200":
-          description: Post list retrieval successful
+          description: Post list retrieved successfully
           headers:
             Has-Inaccessible-Posts:
               schema:
@@ -1146,7 +1146,7 @@
             type: string
       responses:
         "200":
-          description: Post restored successful
+          description: Post restored successfully
           content:
             application/json:
               schema:

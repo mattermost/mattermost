@@ -13,7 +13,7 @@
       operationId: SyncLdap
       responses:
         "200":
-          description: LDAP sync successful
+          description: LDAP synced successfully
           content:
             application/json:
               schema:
@@ -35,7 +35,7 @@
       operationId: TestLdap
       responses:
         "200":
-          description: LDAP test successful
+          description: LDAP tested successfully
           content:
             application/json:
               schema:
@@ -66,7 +66,7 @@
               $ref: "#/components/schemas/LdapSettings"
       responses:
         "200":
-          description: LDAP connection test successful
+          description: LDAP connection tested successfully
           content:
             application/json:
               schema:
@@ -167,7 +167,7 @@
             default: 60
       responses:
         "200":
-          description: LDAP group page retrieval successful
+          description: LDAP group page retrieved successfully
           content:
             application/json:
               schema:
@@ -271,7 +271,7 @@
         required: true
       responses:
         "200":
-          description: Migration successful
+          description: LDAP ID attribute migrated successfully
           content:
             application/json:
               schema:
@@ -313,7 +313,7 @@
                 - certificate
       responses:
         "200":
-          description: LDAP certificate upload successful
+          description: LDAP certificate uploaded successfully
           content:
             application/json:
               schema:
@@ -377,7 +377,7 @@
                 - certificate
       responses:
         "200":
-          description: LDAP certificate upload successful
+          description: LDAP certificate uploaded successfully
           content:
             application/json:
               schema:

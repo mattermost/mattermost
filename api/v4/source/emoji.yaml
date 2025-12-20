@@ -28,7 +28,7 @@
                 - emoji
       responses:
         "201":
-          description: Emoji creation successful
+          description: Emoji created successfully
           content:
             application/json:
               schema:
@@ -77,7 +77,7 @@
             default: ""
       responses:
         "200":
-          description: Emoji list retrieval successful
+          description: Emoji list retrieved successfully
           content:
             application/json:
               schema:
@@ -109,7 +109,7 @@
             type: string
       responses:
         "200":
-          description: Emoji retrieval successful
+          description: Emoji retrieved successfully
           content:
             application/json:
               schema:
@@ -176,7 +176,7 @@
             type: string
       responses:
         "200":
-          description: Emoji retrieval successful
+          description: Emoji retrieved successfully
           content:
             application/json:
               schema:
@@ -208,7 +208,7 @@
             type: string
       responses:
         "200":
-          description: Emoji image retrieval successful
+          description: Emoji image retrieved successfully
         "401":
           $ref: "#/components/responses/Unauthorized"
         "403":
@@ -253,7 +253,7 @@
         required: true
       responses:
         "200":
-          description: Emoji list retrieval successful
+          description: Emoji list retrieved successfully
           content:
             application/json:
               schema:
@@ -293,7 +293,7 @@
             type: string
       responses:
         "200":
-          description: Emoji list retrieval successful
+          description: Emoji list retrieved successfully
           content:
             application/json:
               schema:
@@ -332,7 +332,7 @@
         required: true
       responses:
         "200":
-          description: Emoji list retrieval successful
+          description: Emoji list retrieved successfully
           content:
             application/json:
               schema:

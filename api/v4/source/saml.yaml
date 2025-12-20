@@ -10,7 +10,7 @@
       operationId: GetSamlMetadata
       responses:
         "200":
-          description: SAML metadata retrieval successful
+          description: SAML metadata retrieved successfully
           content:
             application/json:
               schema:
@@ -38,7 +38,7 @@
                   description: The URL from which to retrieve the SAML IDP data.
       responses:
         "200":
-          description: SAML metadata retrieval successful
+          description: SAML metadata retrieved successfully
           content:
             application/json:
               schema:
@@ -73,7 +73,7 @@
                 - certificate
       responses:
         "200":
-          description: SAML certificate upload successful
+          description: SAML certificate uploaded successfully
           content:
             application/json:
               schema:
@@ -140,7 +140,7 @@
                 - certificate
       responses:
         "200":
-          description: SAML certificate upload successful
+          description: SAML certificate uploaded successfully
           content:
             application/json:
               schema:
@@ -207,7 +207,7 @@
                 - certificate
       responses:
         "200":
-          description: SAML certificate upload successful
+          description: SAML certificate uploaded successfully
           content:
             application/json:
               schema:
@@ -261,7 +261,7 @@
       operationId: GetSamlCertificateStatus
       responses:
         "200":
-          description: SAML certificate status retrieval successful
+          description: SAML certificate status retrieved successfully
           content:
             application/json:
               schema:

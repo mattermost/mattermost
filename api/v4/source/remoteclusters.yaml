@@ -57,7 +57,7 @@
             type: boolean
       responses:
         "200":
-          description: Remote clusters fetch successful. Result might be empty.
+          description: Remote clusters fetched successfully. Result might be empty.
           content:
             application/json:
               schema:
@@ -102,7 +102,7 @@
                     of the response
       responses:
         "201":
-          description: Remote cluster creation successful
+          description: Remote cluster created successfully
           content:
             application/json:
               schema:
@@ -145,7 +145,7 @@
             type: string
       responses:
         "200":
-          description: Remote Cluster retrieval successful
+          description: Remote Cluster retrieved successfully
           content:
             application/json:
               schema:
@@ -186,7 +186,7 @@
                   description: The team where channels from invites are created
       responses:
         "200":
-          description: Remote Cluster patch successful
+          description: Remote Cluster patched successfully
           content:
             application/json:
               schema:
@@ -216,7 +216,7 @@
             type: string
       responses:
         "204":
-          description: Remote Cluster deletion successful
+          description: Remote Cluster deleted successfully
         "401":
           $ref: "#/components/responses/Unauthorized"
         "403":

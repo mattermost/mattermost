@@ -14,7 +14,7 @@
       operationId: GetClusterStatus
       responses:
         "200":
-          description: Cluster status retrieval successful
+          description: Cluster status retrieved successfully
           content:
             application/json:
               schema:
