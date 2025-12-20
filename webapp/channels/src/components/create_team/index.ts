@@ -8,7 +8,7 @@ import {getCloudSubscription as selectCloudSubscription} from 'mattermost-redux/
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
-import withUseGetUsageDelta from 'components/common/hocs/cloud/with_use_get_usage_deltas';
+import withUseGetUsageDelta from 'components/with_use_get_usage_deltas';
 
 import {isCloudLicense} from 'utils/license_utils';
 

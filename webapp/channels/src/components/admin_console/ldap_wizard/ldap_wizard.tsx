@@ -15,11 +15,11 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import SettingsGroup from 'components/admin_console/settings_group';
-import {useSectionNavigation} from 'components/common/hooks/useSectionNavigation';
 import FormError from 'components/form_error';
 import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
+import {useSectionNavigation} from 'hooks/useSectionNavigation';
 import Constants from 'utils/constants';
 
 import LDAPBooleanSetting from './ldap_boolean_setting';

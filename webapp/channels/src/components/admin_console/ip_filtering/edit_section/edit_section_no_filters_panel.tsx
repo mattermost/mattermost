@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import IPFilteringEarthSvg from 'components/common/svg_images_components/ip_filtering_earth_svg';
+import IPFilteringEarthSvg from 'components/svg_images_components/ip_filtering_earth_svg';
 
 type NoFiltersPanelProps = {
     setShowAddModal: (show: boolean) => void;

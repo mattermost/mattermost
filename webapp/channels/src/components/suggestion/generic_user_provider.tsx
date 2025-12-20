@@ -6,11 +6,11 @@ import React from 'react';
 import {Client4} from 'mattermost-redux/client';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
-import usePrefixedIds, {joinIds} from 'components/common/hooks/usePrefixedIds';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 import Avatar from 'components/widgets/users/avatar';
 
+import usePrefixedIds, {joinIds} from 'hooks/usePrefixedIds';
 import * as Utils from 'utils/utils';
 
 import type {UserAutocomplete, UserProfile} from './command_provider/app_command_parser/app_command_parser_dependencies.js';

@@ -7,8 +7,7 @@ import styled from 'styled-components';
 
 import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 
-import useCopyText from 'components/common/hooks/useCopyText';
-
+import useCopyText from 'hooks/useCopyText';
 import Constants from 'utils/constants';
 
 const ChannelInfoRhsTopButtons = styled.div`

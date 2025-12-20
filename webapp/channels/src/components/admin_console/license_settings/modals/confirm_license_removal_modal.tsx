@@ -10,7 +10,7 @@ import {GenericModal} from '@mattermost/components';
 import {closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
-import AlertSvg from 'components/common/svg_images_components/alert_svg';
+import AlertSvg from 'components/svg_images_components/alert_svg';
 
 import {ModalIdentifiers} from 'utils/constants';
 

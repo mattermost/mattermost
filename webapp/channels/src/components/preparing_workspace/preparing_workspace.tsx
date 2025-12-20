@@ -19,7 +19,7 @@ import {getCurrentTeam, getMyTeams} from 'mattermost-redux/selectors/entities/te
 import {isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import LogoSvg from 'components/common/svg_images_components/logo_dark_blue_svg';
+import LogoSvg from 'components/svg_images_components/logo_dark_blue_svg';
 
 import Constants from 'utils/constants';
 import {makeNewTeam} from 'utils/team_utils';

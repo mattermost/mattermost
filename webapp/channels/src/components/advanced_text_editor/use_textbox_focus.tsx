@@ -9,9 +9,9 @@ import {focusedRHS} from 'actions/views/rhs';
 import {getIsRhsExpanded, getIsRhsOpen} from 'selectors/rhs';
 import {getShouldFocusRHS} from 'selectors/views/rhs';
 
-import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import type TextboxClass from 'components/textbox/textbox';
 
+import useDidUpdate from 'hooks/useDidUpdate';
 import {shouldFocusMainTextbox} from 'utils/post_utils';
 import * as UserAgent from 'utils/user_agent';
 

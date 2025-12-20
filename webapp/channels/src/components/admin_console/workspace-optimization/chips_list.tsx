@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import Chip from 'components/common/chip/chip';
+import Chip from 'components/chip';
 
 import {ItemStatus} from './dashboard.type';
 

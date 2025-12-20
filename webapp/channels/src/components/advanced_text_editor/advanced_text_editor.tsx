@@ -30,9 +30,7 @@ import LocalStorageStore from 'stores/local_storage_store';
 
 import PostBoxIndicator from 'components/advanced_text_editor/post_box_indicator/post_box_indicator';
 import {makeAsyncComponent} from 'components/async_load';
-import AutoHeightSwitcher from 'components/common/auto_height_switcher';
-import useDidUpdate from 'components/common/hooks/useDidUpdate';
-import useGetAgentsBridgeEnabled from 'components/common/hooks/useGetAgentsBridgeEnabled';
+import AutoHeightSwitcher from 'components/auto_height_switcher';
 import DeletePostModal from 'components/delete_post_modal';
 import {
     DropOverlayIdCreateComment,
@@ -47,6 +45,8 @@ import type TextboxClass from 'components/textbox/textbox';
 import {OnboardingTourSteps, OnboardingTourStepsForGuestUsers, TutorialTourName} from 'components/tours/constant';
 import {SendMessageTour} from 'components/tours/onboarding_tour';
 
+import useDidUpdate from 'hooks/useDidUpdate';
+import useGetAgentsBridgeEnabled from 'hooks/useGetAgentsBridgeEnabled';
 import Constants, {
     Locations,
     StoragePrefixes,

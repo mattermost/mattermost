@@ -26,6 +26,7 @@ import {getChannelHeaderMenuPluginComponents} from 'selectors/plugins';
 import {getIsChannelBookmarksEnabled} from 'components/channel_bookmarks/utils';
 import * as Menu from 'components/menu';
 
+import {usePluginVisibilityInSharedChannel} from 'hooks/usePluginVisibilityInSharedChannel';
 import {Constants} from 'utils/constants';
 
 import ChannelDirectMenu from './channel_header_menu_items/channel_header_direct_menu';
@@ -35,7 +36,6 @@ import ChannelPublicPrivateMenu from './channel_header_menu_items/channel_header
 
 import ChannelHeaderTitleDirect from '../channel_header/channel_header_title_direct';
 import ChannelHeaderTitleGroup from '../channel_header/channel_header_title_group';
-import {usePluginVisibilityInSharedChannel} from '../common/hooks/usePluginVisibilityInSharedChannel';
 
 type Props = {
     dmUser?: UserProfile;

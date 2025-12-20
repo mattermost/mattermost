@@ -11,12 +11,12 @@ import type {ClientLicense} from '@mattermost/types/config';
 
 import {Client4} from 'mattermost-redux/client';
 
-import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
-import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import ExternalLink from 'components/external_link';
 import Tag from 'components/widgets/tag/tag';
 
+import useGetFeatureFlagValue from 'hooks/useGetFeatureFlagValue';
+import useOpenPricingModal from 'hooks/useOpenPricingModal';
+import useOpenSalesLink from 'hooks/useOpenSalesLink';
 import {FileTypes, LicenseLinks, LicenseSkus} from 'utils/constants';
 import {calculateOverageUserActivated} from 'utils/overage_team';
 import {getSkuDisplayName} from 'utils/subscription';
