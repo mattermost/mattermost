@@ -142,7 +142,7 @@
             type: string
       responses:
         "200":
-          description: Emoji delete successful
+          description: Emoji deleted successfully
           content:
             application/json:
               schema:

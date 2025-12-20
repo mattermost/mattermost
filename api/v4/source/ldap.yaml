@@ -339,7 +339,7 @@
       operationId: DeleteLdapPublicCertificate
       responses:
         "200":
-          description: LDAP certificate delete successful
+          description: LDAP certificate deleted successfully
           content:
             application/json:
               schema:
@@ -403,7 +403,7 @@
       operationId: DeleteLdapPrivateCertificate
       responses:
         "200":
-          description: LDAP certificate delete successful
+          description: LDAP certificate deleted successfully
           content:
             application/json:
               schema:

@@ -76,7 +76,7 @@
       operationId: DeleteBrandImage
       responses:
         "200":
-          description: Brand image succesfully deleted
+          description: Brand image successfully deleted
           content:
             application/json:
               schema:

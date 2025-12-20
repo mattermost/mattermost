@@ -1516,7 +1516,7 @@
         - users
       summary: Generate MFA secret
       description: >
-        Generates an multi-factor authentication secret for a user and returns
+        Generates a multi-factor authentication secret for a user and returns
         it as a string and as base64 encoded QR code image.
 
         ##### Permissions
@@ -2116,7 +2116,7 @@
         required: true
       responses:
         "200":
-          description: Email send successful if email exists
+          description: Email sent successfully if email exists
           content:
             application/json:
               schema:

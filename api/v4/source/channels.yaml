@@ -2015,7 +2015,7 @@
             type: string
       responses:
         "200":
-          description: "Retreived successfully"
+          description: "Retrieved successfully"
           content:
             application/json:
               schema:
@@ -2446,7 +2446,7 @@
             type: string
       responses:
         "200":
-          description: Category delete successful
+          description: Category deleted successfully
           content:
             application/json:
               schema:

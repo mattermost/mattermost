@@ -347,7 +347,7 @@
                 - image
       responses:
         "200":
-          description: SVG icon image set successful
+          description: SVG icon image set successfully
           content:
             application/json:
               schema:

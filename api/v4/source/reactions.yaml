@@ -46,7 +46,7 @@
             type: string
       responses:
         "200":
-          description: List reactions retrieve successful
+          description: List reactions retrieved successfully
           content:
             application/json:
               schema:

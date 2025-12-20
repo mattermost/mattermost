@@ -1218,7 +1218,7 @@
         required: true
       responses:
         "200":
-          description: Group list retrieval successfully
+          description: Group list retrieved successfully
           content:
             application/json:
               schema:

@@ -301,7 +301,7 @@
       operationId: GetPluginStatuses
       responses:
         "200":
-          description: Plugin status retreived successfully
+          description: Plugin status retrieved successfully
           content:
             application/json:
               schema:

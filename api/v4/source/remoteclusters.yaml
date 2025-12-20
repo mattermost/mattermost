@@ -161,7 +161,7 @@
         - remote clusters
       summary: Patch a remote cluster.
       description: |
-        Partially update a Remote Cluster by providing only the fields you want to update. Ommited fields will not be updated.
+        Partially update a Remote Cluster by providing only the fields you want to update. Omitted fields will not be updated.
 
         ##### Permissions
         `manage_secure_connections`

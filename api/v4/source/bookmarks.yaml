@@ -90,7 +90,7 @@
                   type: string
                   enum: [link, file]
                   description: |
-                    * `link` for channel bookmarks that reference a link. `link_url` is requied
+                    * `link` for channel bookmarks that reference a link. `link_url` is required
                     * `file` for channel bookmarks that reference a file. `file_id` is required
         description: Channel Bookmark object to be created
         required: true
@@ -115,7 +115,7 @@
       summary: Update channel bookmark
       description: |
         Partially update a channel bookmark by providing only the
-        fields you want to update. Ommited fields will not be
+        fields you want to update. Omitted fields will not be
         updated. The fields that can be updated are defined in the
         request body, all other provided fields will be ignored.
 
@@ -159,7 +159,7 @@
                   description: The order of the channel bookmark
                 link_url:
                   type: string
-                  description: The URL associated with the channel bookmark. Required for type bookmarks of type 'link'
+                  description: The URL associated with the channel bookmark. Required for bookmarks of type 'link'
                 image_url:
                   type: string
                   description: The URL of the image associated with the channel bookmark
@@ -170,7 +170,7 @@
                   type: string
                   enum: [link, file]
                   description: |
-                    * `link` for channel bookmarks that reference a link. `link_url` is requied
+                    * `link` for channel bookmarks that reference a link. `link_url` is required
                     * `file` for channel bookmarks that reference a file. `file_id` is required
         description: Channel Bookmark object to be updated
         required: true
@@ -243,7 +243,7 @@
       description: |
         Updates the order of a channel bookmark, setting its new order
         from the parameters and updating the rest of the bookmarks of
-        the channel to accomodate for this change.
+        the channel to accommodate for this change.
 
         __Minimum server version__: 9.5
 

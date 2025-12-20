@@ -1,6 +1,6 @@
 ## Contributing
 
-We're accepting pull requests! Specifically we're looking for documenation on routes defined [here](../server/channels/api4).
+We're accepting pull requests! Specifically we're looking for documentation on routes defined [here](../server/channels/api4).
 
 All the documentation is written in YAML and found in the [source](v4/source) directory.
 

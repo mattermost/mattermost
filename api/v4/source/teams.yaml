@@ -1081,7 +1081,7 @@
             type: string
       responses:
         "200":
-          description: Team icon successfully remove
+          description: Team icon successfully removed
           content:
             application/json:
               schema:

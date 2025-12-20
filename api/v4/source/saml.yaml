@@ -101,7 +101,7 @@
       operationId: DeleteSamlIdpCertificate
       responses:
         "200":
-          description: SAML certificate delete successful
+          description: SAML certificate deleted successfully
           content:
             application/json:
               schema:
@@ -168,7 +168,7 @@
       operationId: DeleteSamlPublicCertificate
       responses:
         "200":
-          description: SAML certificate delete successful
+          description: SAML certificate deleted successfully
           content:
             application/json:
               schema:
@@ -235,7 +235,7 @@
       operationId: DeleteSamlPrivateCertificate
       responses:
         "200":
-          description: SAML certificate delete successful
+          description: SAML certificate deleted successfully
           content:
             application/json:
               schema:

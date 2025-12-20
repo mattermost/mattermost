@@ -74,7 +74,7 @@
             default: false
       responses:
         "200":
-          description: List Commands retrieve successful
+          description: List Commands retrieved successfully
           content:
             application/json:
               schema:
