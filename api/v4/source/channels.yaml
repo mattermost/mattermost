@@ -40,7 +40,7 @@
       - name: include_total_count
         in: query
         description: >-
-          Appends a total count of returned channels inside the response object - ex: `{ "channels": [], "total_count" : 0 }`.      
+          Appends a total count of returned channels inside the response object - ex: `{ "channels": [], "total_count" : 0 }`.
         schema:
           type: boolean
           default: false
@@ -567,7 +567,7 @@
         interface. They can be viewed and unarchived in the **System Console > User Management > Channels** based on your license. Direct and group message channels cannot be deleted.
 
 
-        As of server version 5.28, optionally use the `permanent=true` query parameter to permanently delete the channel for compliance reasons. To use this feature `ServiceSettings.EnableAPIChannelDeletion` must be set to `true` in the server's configuration. 
+        As of server version 5.28, optionally use the `permanent=true` query parameter to permanently delete the channel for compliance reasons. To use this feature `ServiceSettings.EnableAPIChannelDeletion` must be set to `true` in the server's configuration.
         If you permanently delete a channel this action is not recoverable outside of a database backup.
 
 
@@ -2459,7 +2459,7 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-          
+
   "/api/v4/sharedchannels/{channel_id}/remotes":
     get:
       tags:
@@ -2467,9 +2467,9 @@
       summary: Get remote clusters for a shared channel
       description: |
         Gets the remote clusters information for a shared channel.
-        
+
         __Minimum server version__: 10.10
-        
+
         ##### Permissions
         Must be authenticated and have the `read_channel` permission for the channel.
       operationId: GetSharedChannelRemotes
@@ -2536,4 +2536,3 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-
