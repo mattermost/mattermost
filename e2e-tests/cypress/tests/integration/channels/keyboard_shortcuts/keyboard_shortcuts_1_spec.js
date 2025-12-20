@@ -378,6 +378,7 @@ describe('Keyboard Shortcuts', () => {
         cy.uiGetPostTextBox().should('be.focused');
 
         cy.get('[data-testid="searchBoxClose"] > .icon').click();
+
         // # Post a message and open RHS
         const message = `hello${Date.now()}`;
         cy.postMessage(message);
