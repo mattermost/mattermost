@@ -19,6 +19,7 @@ func (api *API) InitAccessControlPolicy() {
 	}
 	api.BaseRoutes.AccessControlPolicies.Handle("", api.APISessionRequired(createAccessControlPolicy)).Methods(http.MethodPut)
 	api.BaseRoutes.AccessControlPolicies.Handle("/search", api.APISessionRequired(searchAccessControlPolicies)).Methods(http.MethodPost)
+	api.BaseRoutes.AccessControlPolicies.Handle("/activate", api.APISessionRequired(setActiveStatus)).Methods(http.MethodPut)
 
 	api.BaseRoutes.AccessControlPolicies.Handle("/cel/check", api.APISessionRequired(checkExpression)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicies.Handle("/cel/test", api.APISessionRequired(testExpression)).Methods(http.MethodPost)
@@ -430,6 +431,42 @@ func updateActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(response); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func setActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+	var list model.AccessControlPolicyActiveUpdateRequest
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		c.SetInvalidParamWithErr("request", jsonErr)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventSetActiveStatus, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "requested", &list)
+
+	// Check if user has system admin permission OR channel-specific permission for this policy
+	hasManageSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+	if !hasManageSystemPermission {
+		for _, entry := range list.Entries {
+			hasChannelPermission := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, entry.ID, model.PermissionManageChannelAccessRules)
+			if !hasChannelPermission {
+				c.SetPermissionError(model.PermissionManageChannelAccessRules)
+				return
+			}
+		}
+	}
+
+	policies, appErr := c.App.UpdateAccessControlPoliciesActive(c.AppContext, list.Entries)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+	auditRec.Success()
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(policies); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

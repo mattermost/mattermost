@@ -202,12 +202,12 @@ describe('Verify Accessibility Support in different input fields', () => {
             cy.get('#FormattingControl_ul').should('be.focused').and('have.attr', 'aria-label', 'bulleted list').tab();
 
             // * Verify if the focus is on the numbered list button
-            cy.get('#FormattingControl_ol').should('be.focused').and('have.attr', 'aria-label', 'numbered list').tab().tab();
+            cy.get('#FormattingControl_ol').should('be.focused').and('have.attr', 'aria-label', 'numbered list').tab().tab().tab();
 
             // * Verify if the focus is on the formatting options button
             cy.get('#toggleFormattingBarButton').should('be.focused').and('have.attr', 'aria-label', 'formatting').tab();
 
-            // * Verify if the focus is on the attachment icon
+            // * Verify if the focus is on the attachment icon (skipping burn-on-read button when enabled)
             cy.get('#fileUploadButton').should('be.focused').and('have.attr', 'aria-label', 'attachment').tab();
 
             // * Verify if the focus is on the emoji picker
