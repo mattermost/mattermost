@@ -730,6 +730,11 @@ func (s *SqlThreadStore) UpdateMembership(membership *model.ThreadMembership) (*
 }
 
 func (s *SqlThreadStore) DeleteMembershipsForChannel(userID, channelID string) error {
+	return s.deleteMembershipsForChannelT(s.GetMaster(), userID, channelID)
+}
+
+// deleteMembershipsForChannelT deletes thread memberships within an existing transaction or db connection
+func (s *SqlThreadStore) deleteMembershipsForChannelT(db sqlxExecutor, userID, channelID string) error {
 	subQuery := s.getSubQueryBuilder().
 		Select("1").
 		From("Threads").
@@ -743,7 +748,7 @@ func (s *SqlThreadStore) DeleteMembershipsForChannel(userID, channelID string) e
 		Where(sq.Eq{"UserId": userID}).
 		Where(sq.Expr("EXISTS (?)", subQuery))
 
-	_, err := s.GetMaster().ExecBuilder(query)
+	_, err := db.ExecBuilder(query)
 	if err != nil {
 		return errors.Wrapf(err, "failed to remove thread memberships with userid=%s channelid=%s", userID, channelID)
 	}

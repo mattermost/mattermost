@@ -302,6 +302,36 @@ func (_m *ChannelStore) CountUrgentPostsAfter(channelID string, timestamp int64,
 	return r0, r1
 }
 
+// CreateChannelLink provides a mock function with given fields: rctx, link
+func (_m *ChannelStore) CreateChannelLink(rctx request.CTX, link *model.ChannelLink) (*model.ChannelLink, error) {
+	ret := _m.Called(rctx, link)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateChannelLink")
+	}
+
+	var r0 *model.ChannelLink
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.ChannelLink) (*model.ChannelLink, error)); ok {
+		return rf(rctx, link)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.ChannelLink) *model.ChannelLink); ok {
+		r0 = rf(rctx, link)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ChannelLink)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.ChannelLink) error); ok {
+		r1 = rf(rctx, link)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // CreateDirectChannel provides a mock function with given fields: rctx, userID, otherUserID, channelOptions
 func (_m *ChannelStore) CreateDirectChannel(rctx request.CTX, userID *model.User, otherUserID *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error) {
 	_va := make([]interface{}, len(channelOptions))
@@ -428,6 +458,24 @@ func (_m *ChannelStore) DeleteAllSidebarChannelForChannel(channelID string) erro
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(channelID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DeleteChannelLink provides a mock function with given fields: rctx, sourceID, destinationID
+func (_m *ChannelStore) DeleteChannelLink(rctx request.CTX, sourceID string, destinationID string) error {
+	ret := _m.Called(rctx, sourceID, destinationID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteChannelLink")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) error); ok {
+		r0 = rf(rctx, sourceID, destinationID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -1376,6 +1424,66 @@ func (_m *ChannelStore) GetGuestCount(channelID string, allowFromCache bool) (in
 
 	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
 		r1 = rf(channelID, allowFromCache)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetLinksForDestination provides a mock function with given fields: rctx, destinationID, sourceType
+func (_m *ChannelStore) GetLinksForDestination(rctx request.CTX, destinationID string, sourceType string) ([]*model.ChannelLink, error) {
+	ret := _m.Called(rctx, destinationID, sourceType)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetLinksForDestination")
+	}
+
+	var r0 []*model.ChannelLink
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) ([]*model.ChannelLink, error)); ok {
+		return rf(rctx, destinationID, sourceType)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) []*model.ChannelLink); ok {
+		r0 = rf(rctx, destinationID, sourceType)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.ChannelLink)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string) error); ok {
+		r1 = rf(rctx, destinationID, sourceType)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetLinksForSource provides a mock function with given fields: rctx, sourceID
+func (_m *ChannelStore) GetLinksForSource(rctx request.CTX, sourceID string) ([]*model.ChannelLink, error) {
+	ret := _m.Called(rctx, sourceID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetLinksForSource")
+	}
+
+	var r0 []*model.ChannelLink
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string) ([]*model.ChannelLink, error)); ok {
+		return rf(rctx, sourceID)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string) []*model.ChannelLink); ok {
+		r0 = rf(rctx, sourceID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.ChannelLink)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
+		r1 = rf(rctx, sourceID)
 	} else {
 		r1 = ret.Error(1)
 	}
