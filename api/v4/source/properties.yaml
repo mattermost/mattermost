@@ -1,0 +1,287 @@
+  "/api/v4/properties/{object_type}/fields":
+    post:
+      tags:
+        - properties
+      summary: Create a property field
+      description: >
+        Create a new property field for a specific object type (e.g., 'post', 'channel').
+      operationId: CreatePropertyField
+      parameters:
+        - name: object_type
+          in: path
+          description: The type of object this property field applies to
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - group_id
+                - name
+                - type
+                - target_type
+              properties:
+                group_id:
+                  type: string
+                  description: The ID of the group this property field belongs to
+                name:
+                  type: string
+                  description: The name of the property field
+                type:
+                  type: string
+                  description: The type of property
+                attrs:
+                  type: object
+                  description: Additional attributes for the property field
+                target_type:
+                  type: string
+                  description: The scope level of the property ('system', 'team', or 'channel')
+                target_id:
+                  type: string
+                  description: The ID of the target (empty for system-level, team ID for team-level, channel ID for channel-level)
+        description: Property field object to create
+        required: true
+      responses:
+        "201":
+          description: Property field creation successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PropertyField"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    get:
+      tags:
+        - properties
+      summary: Get property fields
+      description: >
+        Get a list of property fields for a specific object type. Filter by target_type and target_id to narrow results.
+      operationId: GetPropertyFields
+      parameters:
+        - name: object_type
+          in: path
+          description: The type of object to retrieve property fields for (e.g., 'post', 'channel')
+          required: true
+          schema:
+            type: string
+        - name: target_type
+          in: query
+          description: Filter by target type ('system', 'team', or 'channel')
+          schema:
+            type: string
+        - name: target_id
+          in: query
+          description: Filter by target ID (team ID or channel ID)
+          schema:
+            type: string
+        - name: group_id
+          in: query
+          description: Filter by group ID
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: The page to select.
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The number of property fields per page.
+          schema:
+            type: integer
+            default: 60
+      responses:
+        "200":
+          description: Property fields retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PropertyField"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  "/api/v4/properties/{object_type}/fields/{field_id}":
+    patch:
+      tags:
+        - properties
+      summary: Update a property field
+      description: >
+        Partially update a property field by providing only the fields you want to update. Omitted fields will not be updated.
+      operationId: UpdatePropertyField
+      parameters:
+        - name: object_type
+          in: path
+          description: The type of object this property field applies to (e.g., 'post', 'channel')
+          required: true
+          schema:
+            type: string
+        - name: field_id
+          in: path
+          description: Property field ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PropertyFieldPatch"
+        description: Property field patch object
+        required: true
+      responses:
+        "200":
+          description: Property field update successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PropertyField"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags:
+        - properties
+      summary: Delete a property field
+      description: >
+        Deletes a property field and all its associated values.
+      operationId: DeletePropertyField
+      parameters:
+        - name: object_type
+          in: path
+          description: The type of object this property field applies to (e.g., 'post', 'channel')
+          required: true
+          schema:
+            type: string
+        - name: field_id
+          in: path
+          description: Property field ID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Property field deletion successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  "/api/v4/properties/{object_type}/values/{target_id}":
+    get:
+      tags:
+        - properties
+      summary: Get property values for a target
+      description: >
+        Get all property values for a specific target (e.g., all property values for a specific post).
+      operationId: GetPropertyValues
+      parameters:
+        - name: object_type
+          in: path
+          description: The type of object (e.g., 'post', 'channel')
+          required: true
+          schema:
+            type: string
+        - name: target_id
+          in: path
+          description: The ID of the target object (e.g., post ID, channel ID)
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Property values retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PropertyValue"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      tags:
+        - properties
+      summary: Update property values for a target
+      description: >
+        Update one or more property values for a specific target. Only the provided property values will be updated; others remain unchanged.
+      operationId: UpdatePropertyValues
+      parameters:
+        - name: object_type
+          in: path
+          description: The type of object (e.g., 'post', 'channel')
+          required: true
+          schema:
+            type: string
+        - name: target_id
+          in: path
+          description: The ID of the target object (e.g., post ID, channel ID)
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                required:
+                  - field_id
+                  - value
+                properties:
+                  field_id:
+                    type: string
+                    description: The ID of the property field
+                  value:
+                    type: string
+                    description: The value to set for this property
+        description: Array of property values to update
+        required: true
+      responses:
+        "200":
+          description: Property values update successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PropertyValue"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
