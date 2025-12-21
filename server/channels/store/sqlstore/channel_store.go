@@ -51,11 +51,6 @@ type channelMember struct {
 }
 
 func NewMapFromChannelMemberModel(cm *model.ChannelMember) map[string]any {
-	var sourceID sql.NullString
-	if cm.SourceID != "" {
-		sourceID = sql.NullString{Valid: true, String: cm.SourceID}
-	}
-
 	return map[string]any{
 		"ChannelId":          cm.ChannelId,
 		"UserId":             cm.UserId,
@@ -71,7 +66,7 @@ func NewMapFromChannelMemberModel(cm *model.ChannelMember) map[string]any {
 		"SchemeGuest":        sql.NullBool{Valid: true, Bool: cm.SchemeGuest},
 		"SchemeUser":         sql.NullBool{Valid: true, Bool: cm.SchemeUser},
 		"SchemeAdmin":        sql.NullBool{Valid: true, Bool: cm.SchemeAdmin},
-		"SourceID":           sourceID,
+		"SourceID":           cm.SourceID,
 	}
 }
 
@@ -89,7 +84,7 @@ type channelMemberWithSchemeRoles struct {
 	SchemeGuest                   sql.NullBool
 	SchemeUser                    sql.NullBool
 	SchemeAdmin                   sql.NullBool
-	SourceID                      sql.NullString
+	SourceID                      string
 	TeamSchemeDefaultGuestRole    sql.NullString
 	TeamSchemeDefaultUserRole     sql.NullString
 	TeamSchemeDefaultAdminRole    sql.NullString
@@ -109,7 +104,7 @@ type channelMemberWithTeamWithSchemeRoles struct {
 type channelMemberWithTeamWithSchemeRolesList []channelMemberWithTeamWithSchemeRoles
 
 func channelMemberSliceColumns() []string {
-	return []string{"ChannelId", "UserId", "Roles", "LastViewedAt", "MsgCount", "MsgCountRoot", "MentionCount", "MentionCountRoot", "UrgentMentionCount", "NotifyProps", "LastUpdateAt", "SchemeUser", "SchemeAdmin", "SchemeGuest"}
+	return []string{"ChannelId", "UserId", "Roles", "LastViewedAt", "MsgCount", "MsgCountRoot", "MentionCount", "MentionCountRoot", "UrgentMentionCount", "NotifyProps", "LastUpdateAt", "SchemeUser", "SchemeAdmin", "SchemeGuest", "SourceID"}
 }
 
 // channelSliceColumns returns fields of the channel as a string slice.
@@ -202,6 +197,7 @@ func channelMemberToSlice(member *model.ChannelMember) []any {
 	resultSlice = append(resultSlice, member.SchemeUser)
 	resultSlice = append(resultSlice, member.SchemeAdmin)
 	resultSlice = append(resultSlice, member.SchemeGuest)
+	resultSlice = append(resultSlice, member.SourceID)
 	return resultSlice
 }
 
@@ -310,11 +306,6 @@ func (db channelMemberWithSchemeRoles) ToModel() *model.ChannelMember {
 		defaultChannelAdminRole = db.ChannelSchemeDefaultAdminRole.String
 	}
 
-	sourceID := ""
-	if db.SourceID.Valid {
-		sourceID = db.SourceID.String
-	}
-
 	rolesResult := getChannelRoles(
 		schemeGuest, schemeUser, schemeAdmin,
 		defaultTeamGuestRole, defaultTeamUserRole, defaultTeamAdminRole,
@@ -338,7 +329,7 @@ func (db channelMemberWithSchemeRoles) ToModel() *model.ChannelMember {
 		SchemeUser:         rolesResult.schemeUser,
 		SchemeGuest:        rolesResult.schemeGuest,
 		ExplicitRoles:      strings.Join(rolesResult.explicitRoles, " "),
-		SourceID:           sourceID,
+		SourceID:           db.SourceID,
 	}
 }
 
@@ -1677,12 +1668,35 @@ func (s SqlChannelStore) SaveMultipleMembers(members []*model.ChannelMember) ([]
 	return newMembers, nil
 }
 
-func (s SqlChannelStore) SaveMember(rctx request.CTX, member *model.ChannelMember) (*model.ChannelMember, error) {
-	newMembers, err := s.SaveMultipleMembers([]*model.ChannelMember{member})
+func (s SqlChannelStore) SaveMember(rctx request.CTX, member *model.ChannelMember) (_ *model.ChannelMember, err error) {
+	defer s.InvalidateAllChannelMembersForUser(member.UserId)
+
+	// Begin tx
+	tx, err := s.GetMaster().Beginx()
+	if err != nil {
+		return nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(tx, &err)
+
+	// Save the member using existing logic
+	newMembers, err := s.saveMultipleMembers([]*model.ChannelMember{member})
 	if err != nil {
 		return nil, err
 	}
-	return newMembers[0], nil
+	savedMember := newMembers[0]
+
+	// Propagate to linked channels if this is a direct membership
+	err = s.propagateMemberToLinkedChannelsT(tx, savedMember)
+	if err != nil {
+		return nil, err
+	}
+
+	// Commit transaction
+	if err := tx.Commit(); err != nil {
+		return nil, errors.Wrap(err, "commit_transaction")
+	}
+
+	return savedMember, nil
 }
 
 func (s SqlChannelStore) saveMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, error) {
@@ -2508,8 +2522,117 @@ func (s SqlChannelStore) RemoveMembers(rctx request.CTX, channelId string, userI
 	return nil
 }
 
-func (s SqlChannelStore) RemoveMember(rctx request.CTX, channelId string, userId string) error {
-	return s.RemoveMembers(rctx, channelId, []string{userId})
+func (s SqlChannelStore) RemoveMember(rctx request.CTX, channelId string, userId string) (err error) {
+	defer s.InvalidateAllChannelMembersForUser(userId)
+
+	// Begin transaction
+	transaction, err := s.GetMaster().Beginx()
+	if err != nil {
+		return errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	// Get the membership to check if it's synthetic
+	type dbMember struct {
+		ChannelId string
+		UserId    string
+		SourceID  string
+	}
+
+	getMemberQuery := s.getQueryBuilder().
+		Select("ChannelId", "UserId", "SourceID").
+		From("ChannelMembers").
+		Where(sq.Eq{"ChannelId": channelId, "UserId": userId})
+
+	var dbMem dbMember
+	err = transaction.GetBuilder(&dbMem, getMemberQuery)
+	if err != nil {
+		return errors.Wrap(err, "failed to get channel member")
+	}
+
+	// Cannot remove synthetic memberships directly
+	if dbMem.SourceID != "" {
+		return store.NewErrInvalidInput("ChannelMember", "SourceID",
+			"cannot remove synthetic membership directly, remove from source channel instead")
+	}
+
+	// Get all synthetic memberships that will be deleted (for leave event logging)
+	getSyntheticQuery := s.getQueryBuilder().
+		Select("ChannelId", "UserId").
+		From("ChannelMembers").
+		Where(sq.Eq{"UserId": userId, "SourceID": channelId})
+
+	type memberInfo struct {
+		ChannelId string
+		UserId    string
+	}
+	var syntheticMembers []memberInfo
+	if err = transaction.SelectBuilder(&syntheticMembers, getSyntheticQuery); err != nil {
+		return errors.Wrap(err, "failed to get synthetic memberships for leave events")
+	}
+
+	// Log leave events before deletion
+	leaveTime := model.GetMillis()
+	historyStore := s.SqlStore.ChannelMemberHistory().(*SqlChannelMemberHistoryStore)
+
+	// Log leave event for direct membership
+	if err = historyStore.logLeaveEventT(transaction, userId, channelId, leaveTime); err != nil {
+		return errors.Wrapf(err, "failed to log leave event for user %s in channel %s", userId, channelId)
+	}
+
+	// Log leave events for all synthetic memberships
+	for _, synthetic := range syntheticMembers {
+		if err = historyStore.logLeaveEventT(transaction, synthetic.UserId, synthetic.ChannelId, leaveTime); err != nil {
+			return errors.Wrapf(err, "failed to log leave event for synthetic member %s in channel %s", synthetic.UserId, synthetic.ChannelId)
+		}
+	}
+
+	// Delete thread memberships for direct membership
+	threadStore := s.SqlStore.Thread().(*SqlThreadStore)
+	if err = threadStore.deleteMembershipsForChannelT(transaction, userId, channelId); err != nil {
+		return errors.Wrapf(err, "failed to delete thread memberships for user %s in channel %s", userId, channelId)
+	}
+
+	// Delete thread memberships for all synthetic memberships
+	for _, synthetic := range syntheticMembers {
+		if err = threadStore.deleteMembershipsForChannelT(transaction, synthetic.UserId, synthetic.ChannelId); err != nil {
+			return errors.Wrapf(err, "failed to delete thread memberships for synthetic member %s in channel %s", synthetic.UserId, synthetic.ChannelId)
+		}
+	}
+
+	// Delete the direct membership
+	deleteMemberQuery := s.getQueryBuilder().
+		Delete("ChannelMembers").
+		Where(sq.Eq{"ChannelId": channelId, "UserId": userId})
+
+	if _, err = transaction.ExecBuilder(deleteMemberQuery); err != nil {
+		return errors.Wrap(err, "failed to delete channel member")
+	}
+
+	// Delete all synthetic memberships created from this source
+	deleteSyntheticQuery := s.getQueryBuilder().
+		Delete("ChannelMembers").
+		Where(sq.Eq{"UserId": userId, "SourceID": channelId})
+
+	if _, err = transaction.ExecBuilder(deleteSyntheticQuery); err != nil {
+		return errors.Wrap(err, "failed to delete synthetic memberships")
+	}
+
+	// Cleanup sidebarchannels table
+	deleteSidebarQuery := s.getQueryBuilder().
+		Delete("SidebarChannels").
+		Where(sq.Eq{"ChannelId": channelId, "UserId": userId})
+
+	if _, err = transaction.ExecBuilder(deleteSidebarQuery); err != nil {
+		return errors.Wrap(err, "failed to delete from sidebar channels")
+	}
+
+	// Commit transaction
+	if err := transaction.Commit(); err != nil {
+		return errors.Wrap(err, "commit_transaction")
+	}
+
+	return nil
 }
 
 func (s SqlChannelStore) RemoveAllDeactivatedMembers(rctx request.CTX, channelId string) error {

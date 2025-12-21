@@ -2111,11 +2111,11 @@ func (s *RetryLayerChannelStore) GetLinksForDestination(rctx request.CTX, destin
 
 }
 
-func (s *RetryLayerChannelStore) GetLinksForSource(rctx request.CTX, sourceID string, sourceType string) ([]*model.ChannelLink, error) {
+func (s *RetryLayerChannelStore) GetLinksForSource(rctx request.CTX, sourceID string) ([]*model.ChannelLink, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.GetLinksForSource(rctx, sourceID, sourceType)
+		result, err := s.ChannelStore.GetLinksForSource(rctx, sourceID)
 		if err == nil {
 			return result, nil
 		}

@@ -11,10 +11,10 @@ const (
 )
 
 type ChannelLink struct {
-	SourceID      string `json:"source_id" db:"sourceID"`
-	SourceType    string `json:"source_type" db:"sourceType"`
-	DestinationID string `json:"destination_id" db:"destinationID"`
-	CreateAt      int64  `json:"create_at" db:"createAt"`
+	SourceID      string `json:"source_id"`
+	SourceType    string `json:"source_type"`
+	DestinationID string `json:"destination_id"`
+	CreateAt      int64  `json:"create_at"`
 }
 
 func (cl *ChannelLink) IsValid() *AppError {

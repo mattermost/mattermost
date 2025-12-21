@@ -251,8 +251,8 @@ func GetDefaultChannelNotifyProps() StringMap {
 }
 
 // IsSynthetic returns true if this is a synthetic membership
-func (cm *ChannelMember) IsSynthetic() bool {
-	return cm.SourceID != ""
+func (o *ChannelMember) IsSynthetic() bool {
+	return o.SourceID != ""
 }
 
 type ChannelMemberIdentifier struct {

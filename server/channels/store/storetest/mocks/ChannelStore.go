@@ -1461,9 +1461,9 @@ func (_m *ChannelStore) GetLinksForDestination(rctx request.CTX, destinationID s
 	return r0, r1
 }
 
-// GetLinksForSource provides a mock function with given fields: rctx, sourceID, sourceType
-func (_m *ChannelStore) GetLinksForSource(rctx request.CTX, sourceID string, sourceType string) ([]*model.ChannelLink, error) {
-	ret := _m.Called(rctx, sourceID, sourceType)
+// GetLinksForSource provides a mock function with given fields: rctx, sourceID
+func (_m *ChannelStore) GetLinksForSource(rctx request.CTX, sourceID string) ([]*model.ChannelLink, error) {
+	ret := _m.Called(rctx, sourceID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetLinksForSource")
@@ -1471,19 +1471,19 @@ func (_m *ChannelStore) GetLinksForSource(rctx request.CTX, sourceID string, sou
 
 	var r0 []*model.ChannelLink
 	var r1 error
-	if rf, ok := ret.Get(0).(func(request.CTX, string, string) ([]*model.ChannelLink, error)); ok {
-		return rf(rctx, sourceID, sourceType)
+	if rf, ok := ret.Get(0).(func(request.CTX, string) ([]*model.ChannelLink, error)); ok {
+		return rf(rctx, sourceID)
 	}
-	if rf, ok := ret.Get(0).(func(request.CTX, string, string) []*model.ChannelLink); ok {
-		r0 = rf(rctx, sourceID, sourceType)
+	if rf, ok := ret.Get(0).(func(request.CTX, string) []*model.ChannelLink); ok {
+		r0 = rf(rctx, sourceID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.ChannelLink)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, string, string) error); ok {
-		r1 = rf(rctx, sourceID, sourceType)
+	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
+		r1 = rf(rctx, sourceID)
 	} else {
 		r1 = ret.Error(1)
 	}

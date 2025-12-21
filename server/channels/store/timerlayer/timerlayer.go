@@ -1874,10 +1874,10 @@ func (s *TimerLayerChannelStore) GetLinksForDestination(rctx request.CTX, destin
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetLinksForSource(rctx request.CTX, sourceID string, sourceType string) ([]*model.ChannelLink, error) {
+func (s *TimerLayerChannelStore) GetLinksForSource(rctx request.CTX, sourceID string) ([]*model.ChannelLink, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.GetLinksForSource(rctx, sourceID, sourceType)
+	result, err := s.ChannelStore.GetLinksForSource(rctx, sourceID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
