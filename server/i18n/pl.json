@@ -11574,5 +11574,109 @@
   {
     "id": "app.burn_post.read_receipt.get.error",
     "translation": "Wystąpił błąd podczas pobierania potwierdzenia odczytu."
+  },
+  {
+    "id": "app.burn_post.read_receipt.update.error",
+    "translation": "Wystąpił błąd podczas aktualizacji potwierdzenia odczytu."
+  },
+  {
+    "id": "app.post.get_post.app_error",
+    "translation": "Wystąpił błąd podczas pobierania treści postu do zniszczenia."
+  },
+  {
+    "id": "app.reveal_post.cannot_reveal_own_post.app_error",
+    "translation": "Nie możesz ujawnić własnego postu do zniszczenia."
+  },
+  {
+    "id": "app.reveal_post.missing_expire_at.app_error",
+    "translation": "W poście \"burn-on-read\" brakuje wymaganego czasu wygaśnięcia."
+  },
+  {
+    "id": "app.reveal_post.not_burn_on_read.app_error",
+    "translation": "Ten post nie jest postem typu burn-on-read i nie może zostać ujawniony."
+  },
+  {
+    "id": "app.reveal_post.post_expired.app_error",
+    "translation": "Ten post do zniszczenia wygasł i nie może być już wyświetlany."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.get.error",
+    "translation": "Wystąpił błąd podczas pobierania potwierdzenia odczytu."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.get_unread_count.error",
+    "translation": "Nie można uzyskać liczby nieprzeczytanych potwierdzeń odczytu."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.save.error",
+    "translation": "Wystąpił błąd podczas zapisywania potwierdzenia odczytu."
+  },
+  {
+    "id": "app.reveal_post.read_receipt_expired.error",
+    "translation": "Twój dostęp do tego posta wygasł."
+  },
+  {
+    "id": "ent.intune.login.account_not_found.app_error",
+    "translation": "Twoje konto nie jest jeszcze w pełni ustawione. Zaloguj się najpierw do Mattermost przez aplikację internetową lub komputerową."
+  },
+  {
+    "id": "ent.intune.login.extract_auth_data.app_error",
+    "translation": "Uwierzytelnianie nie powiodło się. Spróbuj ponownie lub skontaktuj się z administratorem systemu."
+  },
+  {
+    "id": "ent.intune.login.not_configured.app_error",
+    "translation": "Uwierzytelnianie Microsoft Intune nie jest skonfigurowane."
+  },
+  {
+    "id": "ent.intune.validate_token.invalid_tenant_id.app_error",
+    "translation": "Uwierzytelnianie nie powiodło się. Nieprawidłowa konfiguracja."
+  },
+  {
+    "id": "ent.intune.validate_token.invalid_token.app_error",
+    "translation": "Uwierzytelnianie nie powiodło się. Spróbuj ponownie."
+  },
+  {
+    "id": "ent.intune.validate_token.jwks_init.app_error",
+    "translation": "Inicjalizacja usługi uwierzytelniania nie powiodła się. Skontaktuj się z administratorem systemu."
+  },
+  {
+    "id": "ent.intune.validate_token.missing_claims.app_error",
+    "translation": "Uwierzytelnianie nie powiodło się. Brakuje wymaganych informacji o użytkowniku."
+  },
+  {
+    "id": "ent.intune.validate_token.token_expired.app_error",
+    "translation": "Sesja uwierzytelniania wygasła. Spróbuj zalogować się ponownie."
+  },
+  {
+    "id": "model.config.is_valid.intune_auth_service.app_error",
+    "translation": "Usługa uwierzytelniania Intune MAM jest wymagana, gdy usługa Intune jest włączona."
+  },
+  {
+    "id": "model.config.is_valid.intune_auth_service_invalid.app_error",
+    "translation": "Usługa uwierzytelniania Intune MAM musi mieć wartość \"office365\" lub \"saml\"."
+  },
+  {
+    "id": "model.config.is_valid.intune_client_id.app_error",
+    "translation": "Identyfikator klienta usługi Intune MAM jest wymagany, gdy usługa Intune jest włączona."
+  },
+  {
+    "id": "model.config.is_valid.intune_client_id_format.app_error",
+    "translation": "Identyfikator klienta usługi Intune MAM musi być prawidłowym identyfikatorem UUID."
+  },
+  {
+    "id": "model.config.is_valid.intune_requires_office365.app_error",
+    "translation": "Intune MAM wymaga, aby usługa OpenID Connect (Office 365) była włączona, gdy usługa uwierzytelniania jest ustawiona na \"office365\"."
+  },
+  {
+    "id": "model.config.is_valid.intune_requires_saml.app_error",
+    "translation": "Intune MAM wymaga włączenia SAML, gdy Auth Service jest ustawiony na \"saml\"."
+  },
+  {
+    "id": "model.config.is_valid.intune_tenant_id.app_error",
+    "translation": "Identyfikator dzierżawcy usługi Intune MAM jest wymagany, gdy usługa Intune jest włączona."
+  },
+  {
+    "id": "model.config.is_valid.intune_tenant_id_format.app_error",
+    "translation": "Identyfikator dzierżawcy usługi Intune MAM musi być prawidłowym identyfikatorem UUID."
   }
 ]
