@@ -521,7 +521,8 @@ func (a *App) updatePageFromDraft(rctx request.CTX, pageId, wikiId, parentId, ti
 		if parentErr := a.ChangePageParent(rctx, pageId, parentId); parentErr != nil {
 			return nil, parentErr
 		}
-		updatedPost, err = a.GetSinglePost(rctx, pageId, false)
+		// Use master context to avoid replica lag after parent change
+		updatedPost, err = a.GetSinglePost(RequestContextWithMaster(rctx), pageId, false)
 		if err != nil {
 			return nil, err
 		}
@@ -681,23 +682,44 @@ func (a *App) PublishPageDraft(rctx request.CTX, userId string, opts model.Publi
 		draft.Props[model.PagePropsPageStatus] = opts.PageStatus
 	}
 
+	// Check if this is creating a new page or updating an existing one (for rollback logic)
+	_, existingPageErr := a.GetPage(rctx, opts.PageId)
+	isNewPage := existingPageErr != nil
+
 	savedPost, err := a.applyDraftToPage(rctx, draft, opts.WikiId, opts.ParentId, opts.Title, opts.SearchText, opts.Content, userId, opts.BaseEditAt, opts.Force)
 	if err != nil {
 		return nil, err
 	}
 
 	// Enrich the page with properties immediately after publishing (use master for read-after-write consistency)
-	if enrichErr := a.EnrichPageWithProperties(rctx, savedPost, true); enrichErr != nil {
+	if enrichErr := a.EnrichPageWithProperties(RequestContextWithMaster(rctx), savedPost, true); enrichErr != nil {
 		rctx.Logger().Warn("Failed to enrich published page with properties", mlog.String("page_id", savedPost.Id), mlog.Err(enrichErr))
 	}
 
-	// Delete draft from both tables
+	// Delete draft from both tables - this MUST succeed to maintain consistency
 	if deleteErr := a.DeletePageDraft(rctx, userId, opts.WikiId, opts.PageId); deleteErr != nil {
-		rctx.Logger().Warn("Failed to delete draft after successful publish", mlog.String("page_id", opts.PageId), mlog.Err(deleteErr))
+		rctx.Logger().Error("Failed to delete draft after successful publish - attempting rollback",
+			mlog.String("page_id", opts.PageId), mlog.Err(deleteErr))
+
+		// Attempt rollback: delete the page we just created (only for new pages, not updates)
+		if isNewPage {
+			if page, pageErr := a.GetPage(rctx, savedPost.Id); pageErr == nil {
+				if rollbackErr := a.DeletePage(rctx, page, opts.WikiId); rollbackErr != nil {
+					rctx.Logger().Error("CRITICAL: Failed to rollback page creation after draft deletion failure - data inconsistency",
+						mlog.String("page_id", savedPost.Id),
+						mlog.String("draft_id", opts.PageId),
+						mlog.Err(rollbackErr))
+				}
+			}
+		}
+		return nil, model.NewAppError("PublishPageDraft", "app.draft.publish.delete_draft_failed.app_error",
+			nil, "failed to delete draft after publish", http.StatusInternalServerError).Wrap(deleteErr)
 	}
 
+	// Update child draft references - less critical, log error but don't fail the operation
 	if updateErr := a.updateChildDraftParentReferences(rctx, userId, opts.WikiId, opts.PageId, savedPost.Id); updateErr != nil {
-		rctx.Logger().Warn("Failed to update child draft parent references", mlog.Err(updateErr))
+		rctx.Logger().Error("Failed to update child draft parent references - child drafts may have stale parent IDs",
+			mlog.String("page_id", savedPost.Id), mlog.Err(updateErr))
 	}
 
 	if contentErr := a.loadPageContentForPost(savedPost); contentErr != nil {
@@ -738,6 +760,11 @@ func (a *App) updateChildDraftParentReferences(rctx request.CTX, userId, wikiId,
 
 		updateErr := a.Srv().Store().Draft().UpdatePropsOnly(userId, wikiId, pageId, updatedProps, childDraft.UpdateAt)
 		if updateErr != nil {
+			rctx.Logger().Warn("Failed to update child draft parent ID",
+				mlog.String("page_id", childDraft.PageId),
+				mlog.String("old_parent_id", oldPageId),
+				mlog.String("new_parent_id", newPageId),
+				mlog.Err(updateErr))
 			continue
 		}
 
@@ -746,10 +773,14 @@ func (a *App) updateChildDraftParentReferences(rctx request.CTX, userId, wikiId,
 
 		message := model.NewWebSocketEvent(model.WebsocketEventPageDraftUpdated, "", childDraft.ChannelId, userId, nil, "")
 		draftJSON, jsonErr := json.Marshal(childDraft)
-		if jsonErr == nil {
-			message.Add("draft", string(draftJSON))
-			a.Publish(message)
+		if jsonErr != nil {
+			rctx.Logger().Warn("Failed to marshal draft for WebSocket event",
+				mlog.String("page_id", childDraft.PageId),
+				mlog.Err(jsonErr))
+			continue
 		}
+		message.Add("draft", string(draftJSON))
+		a.Publish(message)
 	}
 
 	return nil

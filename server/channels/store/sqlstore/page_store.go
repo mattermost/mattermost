@@ -224,9 +224,9 @@ func (s *SqlPageStore) DeletePage(pageID string, deleteByID string) error {
 
 // Update updates a page (following MM pattern - no business logic, just UPDATE)
 // Returns store.ErrNotFound if page doesn't exist or was deleted
-func (s *SqlPageStore) Update(page *model.Post) (*model.Post, error) {
+func (s *SqlPageStore) Update(rctx request.CTX, page *model.Post) (*model.Post, error) {
 	if page.Type != model.PostTypePage {
-		return nil, fmt.Errorf("Update can only be used for page-type posts")
+		return nil, store.NewErrInvalidInput("Post", "Type", page.Type)
 	}
 
 	if page.Id == "" {
@@ -331,7 +331,6 @@ func (s *SqlPageStore) Update(page *model.Post) (*model.Post, error) {
 
 		// Create version history using the helper
 		oldPost := currentPost.Clone()
-		rctx := request.EmptyContext(s.Logger())
 		if historyErr := s.createPageVersionHistory(rctx, transaction, oldPost, oldContent, now, page.Id); historyErr != nil {
 			return historyErr
 		}
@@ -395,7 +394,7 @@ func (s *SqlPageStore) GetPageAncestors(postID string) (*model.PostList, error) 
 	query := buildPageHierarchyCTE(PageHierarchyAncestors, true, true)
 
 	posts := []*model.Post{}
-	if err := s.GetMaster().Select(&posts, query, postID); err != nil {
+	if err := s.GetReplica().Select(&posts, query, postID); err != nil {
 		return nil, errors.Wrapf(err, "failed to find ancestors for post_id=%s", postID)
 	}
 

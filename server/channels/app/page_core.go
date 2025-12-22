@@ -15,7 +15,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 )
 
 // PageOperation represents the type of operation being performed on a page
@@ -130,6 +129,9 @@ func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, conte
 		return nil, contentErr
 	}
 
+	// Invalidate cache so other nodes see the new page
+	a.invalidateCacheForChannelPosts(createdPage.ChannelId)
+
 	return createdPage, nil
 }
 
@@ -138,7 +140,7 @@ func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, conte
 // This is the primary entry point for fetching pages - validates type at construction.
 // Note: Uses master DB to avoid read-after-write issues with replica lag in cloud deployments.
 func (a *App) GetPage(rctx request.CTX, pageID string) (*Page, *model.AppError) {
-	post, err := a.Srv().Store().Post().GetSingle(sqlstore.RequestContextWithMaster(rctx), pageID, false)
+	post, err := a.Srv().Store().Post().GetSingle(RequestContextWithMaster(rctx), pageID, false)
 	if err != nil {
 		return nil, model.NewAppError("GetPage", "app.page.get.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
 	}
@@ -153,7 +155,7 @@ func (a *App) GetPage(rctx request.CTX, pageID string) (*Page, *model.AppError) 
 // GetPageWithDeleted fetches a page including soft-deleted pages.
 // Use for restore operations.
 func (a *App) GetPageWithDeleted(rctx request.CTX, pageID string) (*Page, *model.AppError) {
-	post, err := a.Srv().Store().Post().GetSingle(sqlstore.RequestContextWithMaster(rctx), pageID, true)
+	post, err := a.Srv().Store().Post().GetSingle(RequestContextWithMaster(rctx), pageID, true)
 	if err != nil {
 		return nil, model.NewAppError("GetPageWithDeleted", "app.page.get.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
 	}
@@ -382,6 +384,9 @@ func (a *App) UpdatePage(rctx request.CTX, page *Page, title, content, searchTex
 
 	a.handlePageUpdateNotification(rctx, updatedPost, session.UserId)
 
+	// Invalidate cache so other nodes see the update
+	a.invalidateCacheForChannelPosts(updatedPost.ChannelId)
+
 	// Broadcast title update if title was changed
 	if title != "" {
 		wikiId, _ := updatedPost.Props["wiki_id"].(string)
@@ -410,7 +415,7 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, page *Page, titl
 
 	// Use master context to avoid reading stale data from replicas in HA mode
 	// This is critical for conflict detection - we need the latest EditAt value
-	post, err := a.GetSinglePost(sqlstore.RequestContextWithMaster(rctx), pageID, false)
+	post, err := a.GetSinglePost(RequestContextWithMaster(rctx), pageID, false)
 	if err != nil {
 		return nil, model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
 	}
@@ -453,7 +458,7 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, page *Page, titl
 
 	post.Props["last_modified_by"] = session.UserId
 
-	updatedPost, storeErr := a.Srv().Store().Page().Update(post)
+	updatedPost, storeErr := a.Srv().Store().Page().Update(rctx, post)
 	if storeErr != nil {
 		var notFoundErr *store.ErrNotFound
 		if errors.As(storeErr, &notFoundErr) {
@@ -477,6 +482,9 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, page *Page, titl
 
 	a.handlePageUpdateNotification(rctx, updatedPost, session.UserId)
 
+	// Invalidate cache so other nodes see the update
+	a.invalidateCacheForChannelPosts(updatedPost.ChannelId)
+
 	return updatedPost, nil
 }
 
@@ -496,6 +504,9 @@ func (a *App) DeletePage(rctx request.CTX, page *Page, wikiId string) *model.App
 	if deleteErr := a.Srv().Store().Page().DeletePage(pageID, session.UserId); deleteErr != nil {
 		return model.NewAppError("DeletePage", "app.page.delete.store_error.app_error", nil, "", http.StatusInternalServerError).Wrap(deleteErr)
 	}
+
+	// Invalidate cache so other nodes see the deletion
+	a.invalidateCacheForChannelPosts(page.ChannelId())
 
 	a.broadcastPageDeleted(pageID, wikiId, page.ChannelId(), rctx.Session().UserId)
 	return nil

@@ -18,7 +18,7 @@ import type {Wiki} from '@mattermost/types/wikis';
 import {getCurrentTeam, getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 
 import {updateWiki, deleteWiki, moveWikiToChannel} from 'actions/pages';
-import {openModal, closeModal} from 'actions/views/modals';
+import {openModal} from 'actions/views/modals';
 
 import * as Menu from 'components/menu';
 import MoveWikiModal from 'components/move_wiki_modal';
@@ -99,17 +99,16 @@ function WikiTabMenu({wiki, channelId}: Props) {
             modalId: ModalIdentifiers.WIKI_MOVE,
             dialogType: MoveWikiModal,
             dialogProps: {
-                wikiId: wiki.id,
                 wikiTitle: wiki.title,
                 currentChannelId: channelId,
                 onConfirm: async (targetChannelId: string) => {
                     await dispatch(moveWikiToChannel(wiki.id, targetChannelId));
-                    dispatch(closeModal(ModalIdentifiers.WIKI_MOVE));
 
                     if (isViewingThisWiki && currentTeam) {
                         history.push(`${teamUrl}/channels/${channelId}`);
                     }
                 },
+                onExited: () => {},
             },
         }));
     }, [dispatch, wiki.id, wiki.title, channelId, isViewingThisWiki, currentTeam, history, teamUrl]);

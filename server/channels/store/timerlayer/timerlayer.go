@@ -6703,10 +6703,10 @@ func (s *TimerLayerPageStore) SavePageContent(pageContent *model.PageContent) (*
 	return result, err
 }
 
-func (s *TimerLayerPageStore) Update(page *model.Post) (*model.Post, error) {
+func (s *TimerLayerPageStore) Update(rctx request.CTX, page *model.Post) (*model.Post, error) {
 	start := time.Now()
 
-	result, err := s.PageStore.Update(page)
+	result, err := s.PageStore.Update(rctx, page)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

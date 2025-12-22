@@ -93,6 +93,9 @@ func (a *App) UpdateWiki(rctx request.CTX, wiki *model.Wiki) (*model.Wiki, *mode
 		return nil, model.NewAppError("UpdateWiki", "app.wiki.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	// Invalidate cache so other nodes see the update
+	a.invalidateCacheForChannelPosts(updatedWiki.ChannelId)
+
 	// Broadcast wiki update to all clients
 	a.BroadcastWikiUpdated(updatedWiki)
 
@@ -226,7 +229,11 @@ func (a *App) AddPageToWiki(rctx request.CTX, pageId, wikiId string) *model.AppE
 		return model.NewAppError("AddPageToWiki", "app.wiki.get_wiki_field.app_error", nil, "", http.StatusInternalServerError).Wrap(fldErr)
 	}
 
-	valueJSON, _ := json.Marshal(wikiId)
+	valueJSON, jsonErr := json.Marshal(wikiId)
+	if jsonErr != nil {
+		rctx.Logger().Warn("Failed to marshal wiki ID", mlog.String("wiki_id", wikiId), mlog.Err(jsonErr))
+		return model.NewAppError("AddPageToWiki", "app.wiki.marshal_wiki_id.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+	}
 	value := &model.PropertyValue{
 		TargetType: "post",
 		TargetID:   pageId,
@@ -508,6 +515,9 @@ func (a *App) MovePageToWiki(rctx request.CTX, page *Page, targetWikiId string, 
 	if err := a.Srv().Store().Wiki().MovePageToWiki(pageId, targetWikiId, parentPageId); err != nil {
 		return model.NewAppError("MovePageToWiki", "app.page.move.failed", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	// Invalidate cache so other nodes see the move
+	a.invalidateCacheForChannelPosts(page.ChannelId())
 
 	pageTitle := post.GetPageTitle()
 	rctx.Logger().Info("Page moved to wiki",

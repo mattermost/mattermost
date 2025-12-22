@@ -14,7 +14,7 @@ export interface FormattingAction {
     category: 'text' | 'block' | 'list' | 'media' | 'advanced';
     keyboardShortcut?: string;
     requiresModal?: boolean;
-    modalType?: 'link' | 'image';
+    modalType?: 'link' | 'image' | 'emoji';
 }
 
 export const FORMATTING_ACTIONS: FormattingAction[] = [
@@ -190,6 +190,34 @@ export const FORMATTING_ACTIONS: FormattingAction[] = [
         category: 'block',
     },
     {
+        id: 'callout',
+        title: 'Callout',
+        description: 'Highlight important information',
+        icon: 'icon-information-outline',
+        command: (editor: Editor) => {
+            const {from, to} = editor.state.selection;
+            const hasSelection = from !== to;
+
+            if (hasSelection) {
+                editor.chain().focus().setCallout({type: 'info'}).run();
+            } else {
+                // Slash command case: insert callout and let cursor be placed inside
+                // Don't try to manually set selection - let TipTap handle it
+                editor.chain().
+                    focus().
+                    insertContent({
+                        type: 'callout',
+                        attrs: {type: 'info'},
+                        content: [{type: 'paragraph'}],
+                    }).
+                    run();
+            }
+        },
+        isActive: (editor: Editor) => editor.isActive('callout'),
+        aliases: ['callout', 'alert', 'note', 'tip', 'warning', 'info'],
+        category: 'block',
+    },
+    {
         id: 'codeBlock',
         title: 'Code block',
         description: 'Code with highlighting',
@@ -229,14 +257,25 @@ export const FORMATTING_ACTIONS: FormattingAction[] = [
     },
     {
         id: 'image',
-        title: 'Image',
-        description: 'Add an image',
+        title: 'Image or Video',
+        description: 'Add an image or video file',
         icon: 'icon-image-outline',
         command: () => {}, // Handled by modal
-        aliases: ['picture', 'photo', 'img'],
+        aliases: ['picture', 'photo', 'img', 'video', 'media', 'mp4', 'mov'],
         category: 'media',
         requiresModal: true,
         modalType: 'image',
+    },
+    {
+        id: 'emoji',
+        title: 'Emoji',
+        description: 'Insert an emoji',
+        icon: 'icon-emoticon-happy-outline',
+        command: (/* editor */) => {}, // Handled by emoji picker
+        aliases: ['emoticon', 'smiley', 'face', 'reaction'],
+        category: 'media',
+        requiresModal: true,
+        modalType: 'emoji',
     },
     {
         id: 'horizontalRule',

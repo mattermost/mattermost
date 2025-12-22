@@ -17,11 +17,12 @@ const SLASH_MENU_HEIGHT = 400;
 // Global state for slash command menu to prevent conflicts between multiple editor instances
 let globalExitTimeout: ReturnType<typeof setTimeout> | null = null;
 let globalLastValidRange: {from: number; to: number} | null = null;
-let globalExtensionOptions: {onOpenLinkModal: () => void; onOpenImageModal: () => void} | null = null;
+let globalExtensionOptions: {onOpenLinkModal: () => void; onOpenImageModal: () => void; onOpenEmojiPicker: () => void} | null = null;
 
 type SlashCommandOptions = {
     onOpenLinkModal: () => void;
     onOpenImageModal: () => void;
+    onOpenEmojiPicker: () => void;
     suggestion: Partial<SuggestionOptions>;
 };
 
@@ -32,6 +33,7 @@ export const SlashCommandExtension = Extension.create<SlashCommandOptions>({
         return {
             onOpenLinkModal: () => {},
             onOpenImageModal: () => {},
+            onOpenEmojiPicker: () => {},
             suggestion: {
                 char: '/',
                 allowSpaces: false,
@@ -202,6 +204,11 @@ export const SlashCommandExtension = Extension.create<SlashCommandOptions>({
                         return;
                     }
 
+                    if (props.requiresModal && props.modalType === 'emoji') {
+                        globalExtensionOptions?.onOpenEmojiPicker();
+                        return;
+                    }
+
                     props.command(editor);
                 },
             } as Partial<SuggestionOptions>,
@@ -212,6 +219,7 @@ export const SlashCommandExtension = Extension.create<SlashCommandOptions>({
         globalExtensionOptions = {
             onOpenLinkModal: this.options.onOpenLinkModal,
             onOpenImageModal: this.options.onOpenImageModal,
+            onOpenEmojiPicker: this.options.onOpenEmojiPicker,
         };
 
         return [

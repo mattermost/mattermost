@@ -16,12 +16,12 @@ type Props = {
     editor: any;
     uploadsEnabled: boolean;
     onSetLink: () => void;
-    onAddImage: () => void;
+    onAddMedia: () => void;
     onAddComment?: (selection: {text: string; from: number; to: number}) => void;
     onAIRewrite?: () => void;
 };
 
-const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddImage, onAddComment, onAIRewrite}: Props) => {
+const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddMedia, onAddComment, onAIRewrite}: Props) => {
     const {formatMessage} = useIntl();
     const [, setUpdateTrigger] = useState(0);
 
@@ -84,7 +84,7 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddImage, onA
                         <button
                             type='button'
                             onMouseDown={handleMouseDown}
-                            onClick={onAddImage}
+                            onClick={onAddMedia}
                             className='formatting-btn'
                             title={action.title}
                         >

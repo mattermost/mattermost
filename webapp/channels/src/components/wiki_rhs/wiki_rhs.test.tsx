@@ -94,7 +94,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
 
             renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
 
-            expect(screen.getByLabelText('Expand Sidebar Icon')).toBeInTheDocument();
+            expect(screen.getByLabelText('Expand Sidebar')).toBeInTheDocument();
             expect(screen.getByLabelText('Close')).toBeInTheDocument();
         });
 
@@ -103,7 +103,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
 
             renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
 
-            const expandBtn = screen.getByLabelText('Expand Sidebar Icon');
+            const expandBtn = screen.getByLabelText('Expand Sidebar');
             expect(expandBtn.querySelector('.icon-arrow-expand')).toBeInTheDocument();
             expect(expandBtn.querySelector('.icon-arrow-collapse')).toBeInTheDocument();
         });
@@ -273,7 +273,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
 
             renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
 
-            const expandBtn = screen.getByLabelText('Expand Sidebar Icon');
+            const expandBtn = screen.getByLabelText('Expand Sidebar');
             await user.click(expandBtn);
 
             expect(toggleRhsExpanded).toHaveBeenCalledTimes(1);
@@ -287,7 +287,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
 
             renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
 
-            expect(screen.getByLabelText('Collapse Sidebar Icon')).toBeInTheDocument();
+            expect(screen.getByLabelText('Collapse Sidebar')).toBeInTheDocument();
         });
     });
 

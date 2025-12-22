@@ -180,6 +180,78 @@
             font-style: italic;
         }
 
+        // Callout blocks
+        .callout {
+            display: flex;
+            padding: 12px 16px;
+            border-radius: 4px;
+            border-left: 4px solid;
+            margin: 1em 0;
+            gap: 12px;
+
+            // Icon via pseudo-element
+            &::before {
+                flex-shrink: 0;
+                font-family: 'compass-icons';
+                font-size: 20px;
+                line-height: 1.4;
+            }
+
+            // Content wrapper - reset margins for nested content
+            > * {
+                min-width: 0;
+                flex: 1;
+
+                &:first-child {
+                    margin-top: 0;
+                }
+
+                &:last-child {
+                    margin-bottom: 0;
+                }
+            }
+
+            &.callout-info {
+                border-left-color: var(--button-bg);
+                background-color: rgba(var(--button-bg-rgb), 0.08);
+
+                &::before {
+                    color: var(--button-bg);
+                    content: '\f2fc'; // icon-information-outline
+                }
+            }
+
+            &.callout-warning {
+                border-left-color: var(--away-indicator);
+                background-color: rgba(var(--away-indicator-rgb), 0.08);
+
+                &::before {
+                    color: var(--away-indicator);
+                    content: '\f028'; // icon-alert-outline
+                }
+            }
+
+            &.callout-success {
+                border-left-color: var(--online-indicator);
+                background-color: rgba(var(--online-indicator-rgb), 0.08);
+
+                &::before {
+                    color: var(--online-indicator);
+                    content: '\f0e1'; // icon-check-circle
+                }
+            }
+
+            &.callout-error {
+                border-left-color: var(--error-text);
+                background-color: rgba(var(--error-text-rgb), 0.08);
+
+                &::before {
+                    color: var(--error-text);
+                    content: '\f159'; // icon-close-circle
+                }
+            }
+        }
+
         pre {
             padding: 12px;
             border: 1px solid var(--center-channel-color-08);
@@ -233,6 +305,24 @@
             &:hover {
                 opacity: 0.9;
             }
+        }
+
+        // Video styling
+        video,
+        video.wiki-video {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            margin: 1em 0;
+            background-color: var(--center-channel-color-04);
+        }
+
+        // Selected video node styling
+        video.ProseMirror-selectednode,
+        .ProseMirror-selectednode video {
+            outline: 2px solid var(--button-bg);
+            outline-offset: 2px;
         }
 
         // ImageResize extension wraps images in a div with inline styles

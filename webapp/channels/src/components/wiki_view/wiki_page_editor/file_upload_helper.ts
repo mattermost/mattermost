@@ -34,10 +34,24 @@ export type FileValidationResult = {
 };
 
 /**
- * Validate file for upload (adapted from FileUpload component)
- * Checks file size and type for images
+ * Check if a file is a supported media type (image or video)
  */
-export function validateImageFile(
+export function isMediaFile(file: File): boolean {
+    return file.type.startsWith('image/') || file.type.startsWith('video/');
+}
+
+/**
+ * Check if a file is a video
+ */
+export function isVideoFile(file: File): boolean {
+    return file.type.startsWith('video/');
+}
+
+/**
+ * Validate file for upload (adapted from FileUpload component)
+ * Checks file size and type for images and videos
+ */
+export function validateMediaFile(
     file: File,
     maxFileSize: number,
     intl: IntlShape,
@@ -65,13 +79,13 @@ export function validateImageFile(
         };
     }
 
-    // Check if it's an image
-    if (!file.type.startsWith('image/')) {
+    // Check if it's an image or video
+    if (!isMediaFile(file)) {
         return {
             valid: false,
             error: intl.formatMessage({
-                id: 'file_upload.image_only',
-                defaultMessage: 'Only image files can be uploaded to the editor',
+                id: 'file_upload.media_only',
+                defaultMessage: 'Only image and video files can be uploaded to the editor',
             }),
         };
     }
@@ -80,14 +94,14 @@ export function validateImageFile(
 }
 
 /**
- * Upload image file using Mattermost's existing uploadFile action
+ * Upload media file (image or video) using Mattermost's existing uploadFile action
  * This is a thin wrapper that adapts MM's uploadFile for TipTap editor use
  *
  * @param options Upload options
  * @param dispatch Redux dispatch function
  * @returns XMLHttpRequest for upload tracking/cancellation
  */
-export function uploadImageForEditor(
+export function uploadMediaForEditor(
     options: FileUploadOptions,
     dispatch: Dispatch,
 ): XMLHttpRequest {
@@ -169,8 +183,8 @@ export function validateMultipleFiles(
             continue;
         }
 
-        // Check if it's an image
-        if (!file.type.startsWith('image/')) {
+        // Check if it's an image or video
+        if (!isMediaFile(file)) {
             continue;
         }
 

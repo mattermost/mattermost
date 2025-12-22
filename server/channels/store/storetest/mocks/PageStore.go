@@ -495,9 +495,9 @@ func (_m *PageStore) SavePageContent(pageContent *model.PageContent) (*model.Pag
 	return r0, r1
 }
 
-// Update provides a mock function with given fields: page
-func (_m *PageStore) Update(page *model.Post) (*model.Post, error) {
-	ret := _m.Called(page)
+// Update provides a mock function with given fields: rctx, page
+func (_m *PageStore) Update(rctx request.CTX, page *model.Post) (*model.Post, error) {
+	ret := _m.Called(rctx, page)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Update")
@@ -505,19 +505,19 @@ func (_m *PageStore) Update(page *model.Post) (*model.Post, error) {
 
 	var r0 *model.Post
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*model.Post) (*model.Post, error)); ok {
-		return rf(page)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post) (*model.Post, error)); ok {
+		return rf(rctx, page)
 	}
-	if rf, ok := ret.Get(0).(func(*model.Post) *model.Post); ok {
-		r0 = rf(page)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post) *model.Post); ok {
+		r0 = rf(rctx, page)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Post)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*model.Post) error); ok {
-		r1 = rf(page)
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.Post) error); ok {
+		r1 = rf(rctx, page)
 	} else {
 		r1 = ret.Error(1)
 	}

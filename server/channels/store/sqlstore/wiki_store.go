@@ -534,13 +534,18 @@ func (s *SqlWikiStore) MovePageToWiki(pageId, targetWikiId string, parentPageId 
 		newParentId = *parentPageId
 	}
 
-	updatePostQuery := `
-		UPDATE Posts
-		SET PageParentId = ?, UpdateAt = ?
-		WHERE Id = ? AND DeleteAt = 0
-	`
+	updatePostQuery := s.getQueryBuilder().
+		Update("Posts").
+		Set("PageParentId", newParentId).
+		Set("UpdateAt", updateAt).
+		Where(sq.Eq{"Id": pageId, "DeleteAt": 0})
 
-	if _, err = transaction.Exec(updatePostQuery, newParentId, updateAt, pageId); err != nil {
+	updatePostSQL, updatePostArgs, err := updatePostQuery.ToSql()
+	if err != nil {
+		return errors.Wrap(err, "failed to build update page parent query")
+	}
+
+	if _, err = transaction.Exec(updatePostSQL, updatePostArgs...); err != nil {
 		return errors.Wrap(err, "failed to update page parent")
 	}
 
@@ -772,7 +777,7 @@ func (s *SqlWikiStore) SetWikiIdInPostProps(pageId, wikiId string) error {
 	}
 
 	if rowsAffected == 0 {
-		return errors.New("page not found or already deleted")
+		return store.NewErrNotFound("Post", pageId)
 	}
 
 	return nil

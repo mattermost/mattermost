@@ -38,6 +38,92 @@ export const PAGE_STATUSES = ['Rough draft', 'In progress', 'In review', 'Done']
 export const DEFAULT_PAGE_STATUS = 'In progress' as const;
 
 /**
+ * Maximum allowed nesting depth for page hierarchy
+ */
+export const MAX_PAGE_DEPTH = 10;
+
+// ============================================================================
+// TipTap Content Builders
+// ============================================================================
+
+/**
+ * Creates a simple TipTap document with a single paragraph
+ * @param text - The text content for the paragraph
+ * @returns TipTap document structure
+ */
+export function createPageContent(text: string) {
+    return {
+        type: 'doc' as const,
+        content: [
+            {
+                type: 'paragraph',
+                content: [{type: 'text', text}],
+            },
+        ],
+    };
+}
+
+/**
+ * Creates a TipTap heading node
+ * @param level - Heading level (1-6)
+ * @param text - The heading text
+ * @returns TipTap heading node
+ */
+export function createHeadingNode(level: 1 | 2 | 3 | 4 | 5 | 6, text: string) {
+    return {
+        type: 'heading',
+        attrs: {level},
+        content: [{type: 'text', text}],
+    };
+}
+
+/**
+ * Creates a TipTap paragraph node
+ * @param text - The paragraph text
+ * @returns TipTap paragraph node
+ */
+export function createParagraphNode(text: string) {
+    return {
+        type: 'paragraph',
+        content: [{type: 'text', text}],
+    };
+}
+
+/**
+ * Creates a TipTap bullet list node
+ * @param items - Array of text items for the list
+ * @returns TipTap bulletList node
+ */
+export function createBulletListNode(items: string[]) {
+    return {
+        type: 'bulletList',
+        content: items.map((text) => ({
+            type: 'listItem',
+            content: [
+                {
+                    type: 'paragraph',
+                    content: [{type: 'text', text}],
+                },
+            ],
+        })),
+    };
+}
+
+/**
+ * Creates a TipTap document with rich content (heading, paragraph, bullet list)
+ * @param heading - The heading text
+ * @param paragraph - The paragraph text
+ * @param bulletItems - Array of bullet list items
+ * @returns TipTap document structure with rich content
+ */
+export function createRichPageContent(heading: string, paragraph: string, bulletItems: string[]) {
+    return {
+        type: 'doc' as const,
+        content: [createHeadingNode(1, heading), createParagraphNode(paragraph), createBulletListNode(bulletItems)],
+    };
+}
+
+/**
  * Generates a unique name with a timestamp suffix.
  * Use this instead of `pw.random.id()` to avoid async/await issues.
  * @param prefix - The prefix for the name (e.g., 'Test Wiki', 'Test Channel')
@@ -3541,4 +3627,107 @@ export async function loginAndNavigateToChannel(
     await page.waitForLoadState('networkidle');
     await channelsPage.toBeVisible();
     return {page, channelsPage};
+}
+
+/**
+ * Interface for shared pages setup from test fixtures
+ */
+export interface SharedPagesSetup {
+    team: Team;
+    user: UserProfile;
+    adminClient: Client4;
+}
+
+/**
+ * Complete setup for a test that needs a wiki page in edit mode.
+ * Combines login, navigation, wiki creation, and page creation into one call.
+ * @param pw - Playwright extended object from test fixture
+ * @param sharedPagesSetup - Shared setup containing team, user, and adminClient
+ * @param wikiNamePrefix - Prefix for the wiki name (timestamp will be appended)
+ * @param pageTitle - Title for the new page
+ * @param channelName - Optional channel name (defaults to 'town-square')
+ * @returns Object containing page and editor locator
+ */
+export async function setupWikiPageInEditMode(
+    pw: any,
+    sharedPagesSetup: SharedPagesSetup,
+    wikiNamePrefix: string,
+    pageTitle: string,
+    channelName: string = 'town-square',
+): Promise<{page: Page; editor: Locator}> {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, channelName);
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+    await createWikiThroughUI(page, uniqueName(wikiNamePrefix));
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, pageTitle);
+    const editor = await getEditorAndWait(page);
+
+    return {page, editor};
+}
+
+/**
+ * Inserts a block via slash command and returns the block locator.
+ * Waits for the block to be visible before returning.
+ * @param page - Playwright page object
+ * @param editor - Editor locator
+ * @param menuItem - The menu item text to click (e.g., 'Callout', 'Code block')
+ * @param blockSelector - CSS selector for the block element (e.g., '.callout', '.code-block')
+ * @param query - Optional query to filter the slash menu
+ * @returns Locator for the inserted block
+ */
+export async function insertBlockViaSlashCommand(
+    page: Page,
+    editor: Locator,
+    menuItem: string,
+    blockSelector: string,
+    query?: string,
+): Promise<Locator> {
+    await insertViaSlashCommand(page, menuItem, query);
+    const block = editor.locator(blockSelector);
+    await expect(block).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    return block;
+}
+
+/**
+ * Clicks inside a block element and types text.
+ * Useful for blocks where the cursor isn't automatically positioned inside after insertion.
+ * @param page - Playwright page object
+ * @param block - Locator for the block element
+ * @param text - Text to type inside the block
+ */
+export async function typeInsideBlock(page: Page, block: Locator, text: string): Promise<void> {
+    await block.click();
+    await page.keyboard.type(text);
+}
+
+/**
+ * Verifies common block attributes (data-type, role, aria-label, class).
+ * Only checks attributes that are provided in the options.
+ * @param block - Locator for the block element
+ * @param options - Object containing expected attribute values
+ */
+export async function verifyBlockAttributes(
+    block: Locator,
+    options: {
+        dataType?: string;
+        role?: string;
+        ariaLabel?: string;
+        classPattern?: RegExp;
+    },
+): Promise<void> {
+    if (options.dataType) {
+        await expect(block).toHaveAttribute('data-type', options.dataType);
+    }
+    if (options.role) {
+        await expect(block).toHaveAttribute('role', options.role);
+    }
+    if (options.ariaLabel) {
+        await expect(block).toHaveAttribute('aria-label', options.ariaLabel);
+    }
+    if (options.classPattern) {
+        await expect(block).toHaveClass(options.classPattern);
+    }
 }

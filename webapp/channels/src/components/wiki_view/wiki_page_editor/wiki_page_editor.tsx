@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
@@ -105,10 +105,10 @@ const WikiPageEditor = ({
         setLocalTitle(title);
     }, [title]);
 
-    const handleTitleChange = (newTitle: string) => {
+    const handleTitleChange = useCallback((newTitle: string) => {
         setLocalTitle(newTitle);
         onTitleChange(newTitle);
-    };
+    }, [onTitleChange]);
 
     return (
         <div
@@ -122,6 +122,7 @@ const WikiPageEditor = ({
                 <input
                     type='text'
                     className='page-title-input'
+                    aria-label={formatMessage({id: 'wiki.page_title_label', defaultMessage: 'Page title'})}
                     placeholder={formatMessage({id: 'wiki.page_title_placeholder', defaultMessage: 'Untitled page...'})}
                     value={localTitle}
                     onChange={(e) => handleTitleChange(e.target.value)}

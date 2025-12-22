@@ -1278,7 +1278,7 @@ type PageStore interface {
 
 	// Update updates a page (following MM pattern - no business logic, just UPDATE)
 	// Returns ErrNotFound if page doesn't exist or was deleted
-	Update(page *model.Post) (*model.Post, error)
+	Update(rctx request.CTX, page *model.Post) (*model.Post, error)
 
 	// GetPageVersionHistory fetches the version history for a page (limited to PostEditHistoryLimit versions)
 	GetPageVersionHistory(pageID string) ([]*model.Post, error)

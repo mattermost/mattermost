@@ -8271,11 +8271,11 @@ func (s *RetryLayerPageStore) SavePageContent(pageContent *model.PageContent) (*
 
 }
 
-func (s *RetryLayerPageStore) Update(page *model.Post) (*model.Post, error) {
+func (s *RetryLayerPageStore) Update(rctx request.CTX, page *model.Post) (*model.Post, error) {
 
 	tries := 0
 	for {
-		result, err := s.PageStore.Update(page)
+		result, err := s.PageStore.Update(rctx, page)
 		if err == nil {
 			return result, nil
 		}

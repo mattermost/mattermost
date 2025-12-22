@@ -91,7 +91,7 @@ const WikiRHS = ({pageId, wikiId, pageTitle, channelLoaded, activeTab, focusedIn
                         <button
                             type='button'
                             className='sidebar--right__expand btn btn-icon btn-sm'
-                            aria-label={isExpanded ? 'Collapse Sidebar Icon' : 'Expand Sidebar Icon'}
+                            aria-label={isExpanded ? formatMessage({id: 'wiki_rhs.collapse_sidebar', defaultMessage: 'Collapse Sidebar'}) : formatMessage({id: 'wiki_rhs.expand_sidebar', defaultMessage: 'Expand Sidebar'})}
                             onClick={actions.toggleRhsExpanded}
                             data-testid='wiki-rhs-expand-button'
                         >
@@ -106,7 +106,7 @@ const WikiRHS = ({pageId, wikiId, pageTitle, channelLoaded, activeTab, focusedIn
                         </button>
                         <button
                             className='WikiRHS__close-btn'
-                            aria-label='Close'
+                            aria-label={formatMessage({id: 'wiki_rhs.close', defaultMessage: 'Close'})}
                             onClick={actions.closeRightHandSide}
                             data-testid='wiki-rhs-close-button'
                         >
@@ -163,7 +163,7 @@ const WikiRHS = ({pageId, wikiId, pageTitle, channelLoaded, activeTab, focusedIn
                     <button
                         type='button'
                         className='sidebar--right__expand btn btn-icon btn-sm'
-                        aria-label={isExpanded ? 'Collapse Sidebar Icon' : 'Expand Sidebar Icon'}
+                        aria-label={isExpanded ? formatMessage({id: 'wiki_rhs.collapse_sidebar', defaultMessage: 'Collapse Sidebar'}) : formatMessage({id: 'wiki_rhs.expand_sidebar', defaultMessage: 'Expand Sidebar'})}
                         onClick={actions.toggleRhsExpanded}
                         data-testid='wiki-rhs-expand-button'
                     >
@@ -178,7 +178,7 @@ const WikiRHS = ({pageId, wikiId, pageTitle, channelLoaded, activeTab, focusedIn
                     </button>
                     <button
                         className='WikiRHS__close-btn'
-                        aria-label='Close'
+                        aria-label={formatMessage({id: 'wiki_rhs.close', defaultMessage: 'Close'})}
                         onClick={actions.closeRightHandSide}
                         data-testid='wiki-rhs-close-button'
                     >
@@ -197,7 +197,7 @@ const WikiRHS = ({pageId, wikiId, pageTitle, channelLoaded, activeTab, focusedIn
             >
                 <Tab
                     eventKey='page_comments'
-                    title='Page Comments'
+                    title={formatMessage({id: 'wiki_rhs.tab.page_comments', defaultMessage: 'Page Comments'})}
                     tabClassName='WikiRHS__tab'
                 >
                     <div
@@ -218,7 +218,12 @@ const WikiRHS = ({pageId, wikiId, pageTitle, channelLoaded, activeTab, focusedIn
                                 className='WikiRHS__empty-state'
                                 data-testid='wiki-rhs-loading'
                             >
-                                <p>{'Loading...'}</p>
+                                <p>
+                                    <FormattedMessage
+                                        id='wiki_rhs.loading'
+                                        defaultMessage='Loading...'
+                                    />
+                                </p>
                             </div>
                         )}
                         {!pageId && (
@@ -238,7 +243,7 @@ const WikiRHS = ({pageId, wikiId, pageTitle, channelLoaded, activeTab, focusedIn
                 </Tab>
                 <Tab
                     eventKey='all_threads'
-                    title='All Threads'
+                    title={formatMessage({id: 'wiki_rhs.tab.all_threads', defaultMessage: 'All Threads'})}
                     tabClassName='WikiRHS__tab'
                 >
                     <div

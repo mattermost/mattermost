@@ -3,6 +3,8 @@
 
 import type {Editor} from '@tiptap/react';
 
+import {DEFAULT_CALLOUT_TYPE} from './callout_extension';
+
 export interface SlashCommandItem {
     id: string;
     title: string;
@@ -72,6 +74,16 @@ export const SLASH_COMMANDS: SlashCommandItem[] = [
             editor.chain().focus().toggleBlockquote().run();
         },
         aliases: ['blockquote', 'citation'],
+    },
+    {
+        id: 'callout',
+        title: 'Callout',
+        description: 'Highlight important information',
+        icon: 'i',
+        command: (editor: Editor) => {
+            editor.chain().focus().setCallout({type: DEFAULT_CALLOUT_TYPE}).run();
+        },
+        aliases: ['callout', 'alert', 'note', 'tip', 'warning', 'info'],
     },
     {
         id: 'code_block',

@@ -20,6 +20,7 @@ import {useIntl} from 'react-intl';
 import {useSelector, useDispatch, shallowEqual} from 'react-redux';
 import ImageResize from 'tiptap-extension-resize-image';
 
+import type {Emoji} from '@mattermost/types/emojis';
 import type {ServerError} from '@mattermost/types/errors';
 import type {Post} from '@mattermost/types/posts';
 
@@ -27,6 +28,7 @@ import {getAllChannels} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getAssociatedGroupsForReference} from 'mattermost-redux/selectors/entities/groups';
 import {getCurrentTeam, getTeam} from 'mattermost-redux/selectors/entities/teams';
+import {getEmojiName, isSystemEmoji} from 'mattermost-redux/utils/emoji_utils';
 
 import {autocompleteChannels} from 'actions/channel_actions';
 import {autocompleteUsersInChannel} from 'actions/views/channel';
@@ -34,6 +36,7 @@ import {searchAssociatedGroupsForReference} from 'actions/views/group';
 import {openModal} from 'actions/views/modals';
 
 import useGetAgentsBridgeEnabled from 'components/common/hooks/useGetAgentsBridgeEnabled';
+import useEmojiPicker from 'components/emoji_picker/use_emoji_picker';
 import FilePreviewModal from 'components/file_preview_modal';
 import PageLinkModal from 'components/page_link_modal';
 import TextInputModal from 'components/text_input_modal';
@@ -54,17 +57,20 @@ declare global {
     }
 }
 
+import Callout from './callout_extension';
 import {createChannelMentionSuggestion} from './channel_mention_mm_bridge';
 import CommentAnchor from './comment_anchor_mark';
 import CommentHighlightPlugin, {COMMENT_HIGHLIGHT_PLUGIN_KEY} from './comment_highlight_plugin';
-import {uploadImageForEditor, validateImageFile} from './file_upload_helper';
+import {uploadMediaForEditor, validateMediaFile, isVideoFile} from './file_upload_helper';
 import FormattingBarBubble from './formatting_bar_bubble';
 import InlineCommentExtension from './inline_comment_extension';
 import InlineCommentToolbar from './inline_comment_toolbar';
+import LinkBubbleMenu from './link_bubble_menu';
 import {createMMentionSuggestion} from './mention_mm_bridge';
 import MentionNodeView from './mention_node_view';
 import {SlashCommandExtension} from './slash_command_extension';
 import usePageRewrite from './use_page_rewrite';
+import Video from './video_extension';
 
 import './tiptap_editor.scss';
 import 'components/advanced_text_editor/use_rewrite.scss';
@@ -254,6 +260,7 @@ const TipTapEditor = ({
     const editorRef = useRef<Editor | null>(null);
 
     const [, setServerError] = useState<(ServerError & {submittedMessage?: string}) | null>(null);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
     const autocompleteGroups = useSelector((state: GlobalState) => {
         if (!teamId || !channelId) {
@@ -288,40 +295,59 @@ const TipTapEditor = ({
         teamRef.current = team;
     }, [allChannels, team]);
 
-    const handleImageUpload = useCallback(async (
+    const handleMediaUpload = useCallback(async (
         currentEditor: Editor,
         file: File,
         position?: number,
     ) => {
-        const validation = validateImageFile(file, maxFileSize, intl);
+        const validation = validateMediaFile(file, maxFileSize, intl);
         if (!validation.valid) {
             return;
         }
 
         try {
-            await uploadImageForEditor({
+            await uploadMediaForEditor({
                 file,
                 channelId: channelId || '',
                 onSuccess: (result) => {
-                    const imageUrl = `/api/v4/files/${result.fileInfo.id}`;
-                    const imageAttrs = {
-                        src: imageUrl,
-                        alt: file.name,
-                        title: file.name,
-                    };
+                    const mediaUrl = `/api/v4/files/${result.fileInfo.id}`;
 
-                    if (position === undefined) {
-                        currentEditor.chain().focus().setImage(imageAttrs).run();
+                    if (isVideoFile(file)) {
+                        // Insert video node
+                        const videoAttrs = {
+                            src: mediaUrl,
+                            title: file.name,
+                        };
+
+                        if (position === undefined) {
+                            currentEditor.chain().focus().setVideo(videoAttrs).run();
+                        } else {
+                            currentEditor.chain().insertContentAt(position, {
+                                type: 'video',
+                                attrs: videoAttrs,
+                            }).focus().run();
+                        }
                     } else {
-                        currentEditor.chain().insertContentAt(position, {
-                            type: 'image',
-                            attrs: imageAttrs,
-                        }).focus().run();
+                        // Insert image node
+                        const imageAttrs = {
+                            src: mediaUrl,
+                            alt: file.name,
+                            title: file.name,
+                        };
+
+                        if (position === undefined) {
+                            currentEditor.chain().focus().setImage(imageAttrs).run();
+                        } else {
+                            currentEditor.chain().insertContentAt(position, {
+                                type: 'image',
+                                attrs: imageAttrs,
+                            }).focus().run();
+                        }
                     }
                 },
             }, dispatch);
         } catch {
-            // Upload error handled by uploadImageForEditor
+            // Primary error handling is in uploadMediaForEditor
         }
     }, [maxFileSize, intl, channelId]);
 
@@ -337,6 +363,47 @@ const TipTapEditor = ({
     const handleAutocompleteChannels = useCallback((term: string, success: any, error: any) => {
         return dispatch(autocompleteChannels(term, success, error)) as any;
     }, [dispatch]);
+
+    // Emoji picker click handler - converts emoji to insertable text
+    const handleEmojiClick = useCallback((emoji: Emoji) => {
+        const currentEditor = editorRef.current;
+        if (!currentEditor) {
+            return;
+        }
+
+        // Convert emoji to insertable text
+        let emojiChar: string;
+        if (isSystemEmoji(emoji)) {
+            // System emoji: convert unified code to Unicode for WYSIWYG display
+            emojiChar = emoji.unified.
+                split('-').
+                map((code) => String.fromCodePoint(parseInt(code, 16))).
+                join('');
+        } else {
+            // Custom emoji: use shortcode format
+            emojiChar = `:${getEmojiName(emoji)}:`;
+        }
+
+        currentEditor.chain().focus().insertContent(emojiChar).run();
+        setShowEmojiPicker(false);
+    }, []);
+
+    // Emoji picker hook integration
+    const {emojiPicker, setReference: setEmojiPickerReference} = useEmojiPicker({
+        showEmojiPicker,
+        setShowEmojiPicker,
+        onEmojiClick: handleEmojiClick,
+        enableGifPicker: false,
+    });
+
+    // Open emoji picker handler for slash command
+    const openEmojiPicker = useCallback(() => {
+        // Anchor picker to editor element
+        if (editorRef.current) {
+            setEmojiPickerReference(editorRef.current.view.dom);
+        }
+        setShowEmojiPicker(true);
+    }, [setEmojiPickerReference]);
 
     const extensions = useMemo(() => {
         const exts = [
@@ -409,6 +476,11 @@ const TipTapEditor = ({
                     class: 'wiki-image',
                 },
             }),
+            Video.configure({
+                HTMLAttributes: {
+                    class: 'wiki-video',
+                },
+            }),
             InlineCommentExtension.configure({
                 comments: [], // Start with empty array, update via useEffect below
                 onAddComment: onCreateInlineComment,
@@ -430,6 +502,7 @@ const TipTapEditor = ({
             TaskItem.configure({
                 nested: true,
             }),
+            Callout,
         ];
 
         if (editable) {
@@ -498,51 +571,54 @@ const TipTapEditor = ({
 
                     const input = document.createElement('input');
                     input.type = 'file';
-                    input.accept = 'image/png,image/jpeg,image/gif,image/webp,image/svg+xml';
+                    input.accept = 'image/png,image/jpeg,image/gif,image/webp,image/svg+xml,video/mp4,video/webm,video/quicktime';
                     input.multiple = false;
 
                     input.onchange = async (e) => {
                         const file = (e.target as HTMLInputElement).files?.[0];
                         const currentEditor = editorRef.current;
                         if (file && currentEditor) {
-                            await handleImageUpload(currentEditor, file);
+                            await handleMediaUpload(currentEditor, file);
                         }
                     };
 
                     input.click();
                 },
+                onOpenEmojiPicker: openEmojiPicker,
             }));
         }
 
-        // Add custom image paste handler to prevent duplicate images
+        // Add custom media paste handler for images and videos
         if (editable && uploadsEnabled && channelId) {
             exts.push(
                 Extension.create({
-                    name: 'imagePasteHandler',
+                    name: 'mediaPasteHandler',
 
                     addProseMirrorPlugins() {
                         const editor = this.editor;
 
                         return [
                             new Plugin({
-                                key: new PluginKey('imagePasteHandler'),
+                                key: new PluginKey('mediaPasteHandler'),
                                 props: {
                                     handleDOMEvents: {
                                         paste(view, event) {
                                             const items = Array.from(event.clipboardData?.items || []);
-                                            const imageItems = items.filter((item) => item.type.startsWith('image/'));
+                                            const mediaItems = items.filter((item) =>
+                                                item.type.startsWith('image/') || item.type.startsWith('video/'),
+                                            );
 
-                                            if (imageItems.length === 0) {
+                                            if (mediaItems.length === 0) {
                                                 return false;
                                             }
 
                                             event.preventDefault();
                                             event.stopPropagation();
 
-                                            imageItems.forEach((item) => {
+                                            mediaItems.forEach((item) => {
                                                 const file = item.getAsFile();
                                                 if (file) {
-                                                    handleImageUpload(editor, file);
+                                                    handleMediaUpload(editor, file);
                                                 }
                                             });
 
@@ -550,11 +626,11 @@ const TipTapEditor = ({
                                         },
                                         drop(view, event) {
                                             const files = Array.from(event.dataTransfer?.files || []);
-                                            const imageFiles = files.filter((file) =>
-                                                file.type.startsWith('image/'),
+                                            const mediaFiles = files.filter((file) =>
+                                                file.type.startsWith('image/') || file.type.startsWith('video/'),
                                             );
 
-                                            if (imageFiles.length === 0) {
+                                            if (mediaFiles.length === 0) {
                                                 return false;
                                             }
 
@@ -566,8 +642,8 @@ const TipTapEditor = ({
                                                 top: event.clientY,
                                             });
 
-                                            imageFiles.forEach((file) => {
-                                                handleImageUpload(
+                                            mediaFiles.forEach((file) => {
+                                                handleMediaUpload(
                                                     editor,
                                                     file,
                                                     pos?.pos,
@@ -700,13 +776,14 @@ const TipTapEditor = ({
         editable,
         uploadsEnabled,
         channelId,
-        handleImageUpload,
+        handleMediaUpload,
         currentUserId,
         teamId,
         autocompleteGroups,
         handleAutocompleteUsers,
         handleSearchGroups,
         handleAutocompleteChannels,
+        openEmojiPicker,
         pages,
         wikiId,
         currentTeam,
@@ -1045,7 +1122,7 @@ const TipTapEditor = ({
         openPageLinkModal(text);
     };
 
-    const addImage = () => {
+    const addMedia = () => {
         if (!channelId || !uploadsEnabled) {
             openImageUrlModal();
             return;
@@ -1054,13 +1131,13 @@ const TipTapEditor = ({
         // Create hidden file input (reusing MM pattern)
         const input = document.createElement('input');
         input.type = 'file';
-        input.accept = 'image/png,image/jpeg,image/gif,image/webp,image/svg+xml';
+        input.accept = 'image/png,image/jpeg,image/gif,image/webp,image/svg+xml,video/mp4,video/webm,video/quicktime';
         input.multiple = false;
 
         input.onchange = async (e) => {
             const file = (e.target as HTMLInputElement).files?.[0];
             if (file && editor) {
-                await handleImageUpload(editor, file);
+                await handleMediaUpload(editor, file);
             }
         };
 
@@ -1116,14 +1193,21 @@ const TipTapEditor = ({
                 const commentHandler = onCreateInlineComment ? handleCreateComment : undefined;
                 const aiRewriteHandler = isAIAvailable ? handleAIRewrite : undefined;
                 return (
-                    <FormattingBarBubble
-                        editor={editor}
-                        uploadsEnabled={uploadsEnabled && Boolean(channelId)}
-                        onSetLink={setLink}
-                        onAddImage={addImage}
-                        onAddComment={commentHandler}
-                        onAIRewrite={aiRewriteHandler}
-                    />
+                    <>
+                        <FormattingBarBubble
+                            editor={editor}
+                            uploadsEnabled={uploadsEnabled && Boolean(channelId)}
+                            onSetLink={setLink}
+                            onAddMedia={addMedia}
+                            onAddComment={commentHandler}
+                            onAIRewrite={aiRewriteHandler}
+                        />
+                        <LinkBubbleMenu
+                            editor={editor}
+                            onEditLink={setLink}
+                        />
+                        {emojiPicker}
+                    </>
                 );
             })()}
             {editor && !editable && onCreateInlineComment && (
