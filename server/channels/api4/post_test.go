@@ -34,6 +34,14 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 )
 
+// Helper to enable feature with license
+func enableBurnOnReadFeature(th *TestHelper) {
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.EnableBurnOnRead = model.NewPointer(true)
+	})
+}
+
 func TestCreatePost(t *testing.T) {
 	mainHelper.Parallel(t)
 
@@ -5555,14 +5563,6 @@ func TestRevealPost(t *testing.T) {
 	th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
 	th.AddUserToChannel(t, th.SystemAdminUser, th.BasicChannel)
 
-	// Helper to enable feature with license
-	enableFeature := func() {
-		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.EnableBurnOnRead = model.NewPointer(true)
-		})
-	}
-
 	// Helper to create burn-on-read post
 	createBurnOnReadPost := func(client *model.Client4, channel *model.Channel) *model.Post {
 		post := &model.Post{
@@ -5598,7 +5598,7 @@ func TestRevealPost(t *testing.T) {
 	}
 
 	t.Run("feature not enabled, should still allow reveal", func(t *testing.T) {
-		enableFeature()
+		enableBurnOnReadFeature(th)
 		post := createBurnOnReadPost(th.SystemAdminClient, th.BasicChannel)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -5616,7 +5616,7 @@ func TestRevealPost(t *testing.T) {
 	})
 
 	th.TestForRegularAndSystemAdminClients(t, func(t *testing.T, client *model.Client4) {
-		enableFeature()
+		enableBurnOnReadFeature(th)
 
 		regularPost := &model.Post{
 			ChannelId: th.BasicChannel.Id,
@@ -5636,7 +5636,7 @@ func TestRevealPost(t *testing.T) {
 	}, "reveal regular post")
 
 	th.TestForRegularAndSystemAdminClients(t, func(t *testing.T, client *model.Client4) {
-		enableFeature()
+		enableBurnOnReadFeature(th)
 
 		revealedPost, resp, err := th.Client.RevealPost(context.Background(), model.NewId())
 		require.Error(t, err)
@@ -5645,7 +5645,7 @@ func TestRevealPost(t *testing.T) {
 	}, "reveal non-existing post")
 
 	th.TestForRegularAndSystemAdminClients(t, func(t *testing.T, client *model.Client4) {
-		enableFeature()
+		enableBurnOnReadFeature(th)
 
 		post := createBurnOnReadPost(client, th.BasicChannel)
 
@@ -5657,7 +5657,7 @@ func TestRevealPost(t *testing.T) {
 	}, "try reveal own post")
 
 	th.TestForRegularAndSystemAdminClients(t, func(t *testing.T, client *model.Client4) {
-		enableFeature()
+		enableBurnOnReadFeature(th)
 		_, client2 := createSecondUser(th.BasicChannel)
 
 		post := createBurnOnReadPost(client2, th.BasicChannel)
@@ -5673,7 +5673,7 @@ func TestRevealPost(t *testing.T) {
 	}, "reveal someone elses post")
 
 	th.TestForRegularAndSystemAdminClients(t, func(t *testing.T, client *model.Client4) {
-		enableFeature()
+		enableBurnOnReadFeature(th)
 
 		post := &model.Post{
 			ChannelId: th.BasicChannel.Id,
@@ -5704,7 +5704,7 @@ func TestRevealPost(t *testing.T) {
 	}, "reveal expired post")
 
 	th.TestForRegularAndSystemAdminClients(t, func(t *testing.T, client *model.Client4) {
-		enableFeature()
+		enableBurnOnReadFeature(th)
 
 		_, client2 := createSecondUser(th.BasicChannel)
 		post := createBurnOnReadPost(client2, th.BasicChannel)
@@ -5731,7 +5731,7 @@ func TestRevealPost(t *testing.T) {
 	}, "reveal post with expired read receipt")
 
 	th.TestForRegularAndSystemAdminClients(t, func(t *testing.T, client *model.Client4) {
-		enableFeature()
+		enableBurnOnReadFeature(th)
 
 		_, client2 := createSecondUser(nil)
 
@@ -5773,16 +5773,8 @@ func TestCreateBurnOnReadPost(t *testing.T) {
 	th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
 	th.AddUserToChannel(t, th.SystemAdminUser, th.BasicChannel)
 
-	// Helper to enable feature with license
-	enableFeature := func() {
-		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.EnableBurnOnRead = model.NewPointer(true)
-		})
-	}
-
 	th.TestForRegularAndSystemAdminClients(t, func(t *testing.T, client *model.Client4) {
-		enableFeature()
+		enableBurnOnReadFeature(th)
 
 		post := &model.Post{
 			ChannelId: th.BasicChannel.Id,
@@ -5798,7 +5790,7 @@ func TestCreateBurnOnReadPost(t *testing.T) {
 	}, "create burn on read post")
 
 	t.Run("reveal burn on read post and verify in channel posts", func(t *testing.T) {
-		enableFeature()
+		enableBurnOnReadFeature(th)
 
 		// Create burn-on-read post with basic user
 		post := &model.Post{
@@ -5895,14 +5887,6 @@ func TestBurnPost(t *testing.T) {
 	th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
 	th.AddUserToChannel(t, th.SystemAdminUser, th.BasicChannel)
 
-	// Helper to enable feature with license
-	enableFeature := func() {
-		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.EnableBurnOnRead = model.NewPointer(true)
-		})
-	}
-
 	// Helper to create burn-on-read post
 	createBurnOnReadPost := func(client *model.Client4, channel *model.Channel) *model.Post {
 		post := &model.Post{
@@ -5938,7 +5922,7 @@ func TestBurnPost(t *testing.T) {
 	}
 
 	t.Run("feature not enabled, burn post allowed", func(t *testing.T) {
-		enableFeature()
+		enableBurnOnReadFeature(th)
 		post := createBurnOnReadPost(th.SystemAdminClient, th.BasicChannel)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -5954,7 +5938,7 @@ func TestBurnPost(t *testing.T) {
 	})
 
 	th.TestForRegularAndSystemAdminClients(t, func(t *testing.T, client *model.Client4) {
-		enableFeature()
+		enableBurnOnReadFeature(th)
 
 		regularPost := &model.Post{
 			ChannelId: th.BasicChannel.Id,
@@ -5971,7 +5955,7 @@ func TestBurnPost(t *testing.T) {
 	}, "burn regular post")
 
 	th.TestForRegularAndSystemAdminClients(t, func(t *testing.T, client *model.Client4) {
-		enableFeature()
+		enableBurnOnReadFeature(th)
 
 		resp, err := client.BurnPost(context.Background(), model.NewId())
 		require.Error(t, err)
@@ -5979,7 +5963,7 @@ func TestBurnPost(t *testing.T) {
 	}, "burn non-existing post")
 
 	th.TestForRegularAndSystemAdminClients(t, func(t *testing.T, client *model.Client4) {
-		enableFeature()
+		enableBurnOnReadFeature(th)
 
 		post := createBurnOnReadPost(client, th.BasicChannel)
 
@@ -5994,7 +5978,7 @@ func TestBurnPost(t *testing.T) {
 	}, "author burns own post - permanently deleted")
 
 	th.TestForRegularAndSystemAdminClients(t, func(t *testing.T, client *model.Client4) {
-		enableFeature()
+		enableBurnOnReadFeature(th)
 		_, client2 := createSecondUser(th.BasicChannel)
 
 		post := createBurnOnReadPost(client2, th.BasicChannel)
@@ -6006,7 +5990,7 @@ func TestBurnPost(t *testing.T) {
 	}, "non-author burns post without read receipt")
 
 	th.TestForRegularAndSystemAdminClients(t, func(t *testing.T, client *model.Client4) {
-		enableFeature()
+		enableBurnOnReadFeature(th)
 		_, client2 := createSecondUser(th.BasicChannel)
 		post := createBurnOnReadPost(client2, th.BasicChannel)
 
@@ -6055,7 +6039,7 @@ func TestBurnPost(t *testing.T) {
 	}, "non-author burns post with expired read receipt")
 
 	th.TestForRegularAndSystemAdminClients(t, func(t *testing.T, client *model.Client4) {
-		enableFeature()
+		enableBurnOnReadFeature(th)
 
 		_, client2 := createSecondUser(nil)
 
@@ -6085,7 +6069,7 @@ func TestBurnPost(t *testing.T) {
 	}, "user without channel access")
 
 	t.Run("unauthorized access", func(t *testing.T) {
-		enableFeature()
+		enableBurnOnReadFeature(th)
 
 		post := createBurnOnReadPost(th.Client, th.BasicChannel)
 

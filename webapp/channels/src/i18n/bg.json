@@ -3103,7 +3103,6 @@
   "claim.oauth_to_email.pwdNotMatch": "Паролите не съвпадат.",
   "claim.oauth_to_email.switchTo": "Превключете {type} към ел.поща и парола",
   "claim.oauth_to_email.title": "Превключете {type} профил към ел.поща",
-  "collapsed_reply_threads_modal.title": "Имате достъп до ранна бета версия на Свити отговори в разговорите",
   "combined_system_message.added_to_channel.many_expanded": "{users} и {lastUser} са **добавени в канала** от {actor}.",
   "combined_system_message.added_to_channel.one": "{firstUser} **е добавен в канала** от {actor}.",
   "combined_system_message.added_to_channel.one_you": "Вие бяхте **добавен в канала** от {actor}.",

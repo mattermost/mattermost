@@ -1766,6 +1766,10 @@
     "translation": "Content flagging feature is disabled."
   },
   {
+    "id": "api.content_flagging.error.invalid_post_type",
+    "translation": "Flagging a post of type '{{.PostType}}' is not allowed."
+  },
+  {
     "id": "api.content_flagging.error.license",
     "translation": "Your license does not support content flagging."
   },
@@ -10611,6 +10615,10 @@
   {
     "id": "model.config.is_valid.group_unread_channels.app_error",
     "translation": "Invalid group unread channels for service settings. Must be 'disabled', 'default_on', or 'default_off'."
+  },
+  {
+    "id": "model.config.is_valid.guest_accounts.cannot_enforce_multifactor_authentication_when_guest_magic_link_is_enabled.app_error",
+    "translation": "You cannot enforce multifactor authentication for guest accounts when magic link authentication is enabled."
   },
   {
     "id": "model.config.is_valid.image_decoder_concurrency.app_error",

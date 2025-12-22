@@ -36,7 +36,7 @@ import {
     markPostAsUnread,
 } from 'actions/post_actions';
 import {openModal, closeModal} from 'actions/views/modals';
-import {isBurnOnReadPost, shouldDisplayConcealedPlaceholder} from 'selectors/burn_on_read_posts';
+import {isBurnOnReadPost, isThisPostBurnOnReadPost, shouldDisplayConcealedPlaceholder} from 'selectors/burn_on_read_posts';
 import {makeCanWrangler} from 'selectors/posts';
 import {getIsMobileView} from 'selectors/views/browser';
 import {isPageCommentResolved} from 'selectors/wiki_posts';
@@ -108,11 +108,11 @@ function makeMapStateToProps() {
             }
         }
 
-        const canFlagContent = channel && !isSystemMessage(post) && contentFlaggingEnabledInTeam(state, channel.team_id);
         const isPageCommentPost = isPageComment(post);
         const isResolved = isPageCommentPost ? isPageCommentResolved(post) : false;
         const wikiId = isPageCommentPost ? (post.props?.wiki_id as string) : null;
         const pageId = isPageCommentPost ? (post.props?.page_id as string) : null;
+        const canFlagContent = channel && !isSystemMessage(post) && !isThisPostBurnOnReadPost(post) && contentFlaggingEnabledInTeam(state, channel.team_id);
 
         return {
             channelIsArchived: isArchivedChannel(channel),
