@@ -45,6 +45,7 @@ func (s *SqlScheduledPostStore) columns(prefix string) []string {
 		prefix + "ScheduledAt",
 		prefix + "ProcessedAt",
 		prefix + "ErrorCode",
+		prefix + "Type",
 	}
 }
 
@@ -63,6 +64,7 @@ func (s *SqlScheduledPostStore) scheduledPostToSlice(scheduledPost *model.Schedu
 		scheduledPost.ScheduledAt,
 		scheduledPost.ProcessedAt,
 		scheduledPost.ErrorCode,
+		scheduledPost.Type,
 	}
 }
 
@@ -241,6 +243,7 @@ func (s *SqlScheduledPostStore) toUpdateMap(scheduledPost *model.ScheduledPost) 
 		"ScheduledAt": scheduledPost.ScheduledAt,
 		"ProcessedAt": now,
 		"ErrorCode":   scheduledPost.ErrorCode,
+		"Type":        scheduledPost.Type,
 	}
 }
 
