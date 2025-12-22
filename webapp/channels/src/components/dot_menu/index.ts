@@ -35,7 +35,7 @@ import {
     markPostAsUnread,
 } from 'actions/post_actions';
 import {openModal, closeModal} from 'actions/views/modals';
-import {isBurnOnReadPost, shouldDisplayConcealedPlaceholder} from 'selectors/burn_on_read_posts';
+import {isBurnOnReadPost, isThisPostBurnOnReadPost, shouldDisplayConcealedPlaceholder} from 'selectors/burn_on_read_posts';
 import {makeCanWrangler} from 'selectors/posts';
 import {getIsMobileView} from 'selectors/views/browser';
 
@@ -105,7 +105,7 @@ function makeMapStateToProps() {
             }
         }
 
-        const canFlagContent = channel && !isSystemMessage(post) && contentFlaggingEnabledInTeam(state, channel.team_id);
+        const canFlagContent = channel && !isSystemMessage(post) && !isThisPostBurnOnReadPost(post) && contentFlaggingEnabledInTeam(state, channel.team_id);
 
         return {
             channelIsArchived: isArchivedChannel(channel),

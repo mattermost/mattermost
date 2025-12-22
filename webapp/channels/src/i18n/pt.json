@@ -1212,8 +1212,6 @@
   "admin.reporting.workspace_optimization.access.site_url.cta": "Configurar servidor da Web",
   "admin.reporting.workspace_optimization.access.site_url.title": "Servidor da Web mal configurado",
   "admin.reporting.workspace_optimization.updates.server_version.cta": "Transferir atualização",
-  "admin.reset_email.cancel": "Cancelar",
-  "admin.reset_password.cancel": "Cancelar",
   "admin.saml.adminAttrEx": "Exemplo: \"usertype=Admin\" or \"isAdmin=true\"",
   "admin.saml.signatureAlgorithmDescription.sha1": "Especifique o algoritmo de \"Assinatura\" utilizado para assinar o (RSAwithSHA1) solicitado. Por favor, veja mais informação fornecida em http://www.w3.org/2000/09/xmldsig#rsa-sha1",
   "admin.saml.signatureAlgorithmDescription.sha256": "Especifique o algoritmo de \"Assinatura\" utilizado para assinar o (RSAwithSHA1) solicitado. Por favor, veja mais informação fornecida na http://www.w3.org/2001/04/xmldsig-more#rsa-sha256 [secção 6.4.2 RSA (PKCS#1 v1.5)]",
