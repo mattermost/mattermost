@@ -3079,6 +3079,57 @@
         $ref: "#/components/responses/Unauthorized"
       "404":
         $ref: "#/components/responses/NotFound"
+  "/api/v4/users/{user_id}/teams/{team_id}/read":
+    put:
+      tags:
+        - channels
+      summary: Mark all channels and threads in a team as read
+      description: |
+        Mark all channels and threads in a team as read for a user.
+
+        ##### Permissions
+
+        Must be logged in as user or have `edit_other_users` permission. Must have `view_team` permission for the team.
+
+        __Minimum server version__: 11.3
+      operationId: MarkAllTeamChannelsRead
+      parameters:
+        - name: user_id
+          in: path
+          description: User ID to mark channels as read for
+          required: true
+          schema:
+            type: string
+        - name: team_id
+          in: path
+          description: Team ID to mark all channels as read in
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Team channels marked as read successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: Value should be "OK" if successful
+                  last_viewed_at_times:
+                    type: object
+                    description: A JSON object mapping channel IDs to the last viewed times
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
   "/api/v4/users/{user_id}/teams/{team_id}/threads/mention_counts":
     get:
       tags:

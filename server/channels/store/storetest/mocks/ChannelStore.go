@@ -1787,6 +1787,54 @@ func (_m *ChannelStore) GetMembersInfoByChannelIds(channelIDs []string) (map[str
 	return r0, r1
 }
 
+// GetMessagesWithUnreadAndMentions provides a mock function with given fields: rctx, userID, userNotifyProps
+func (_m *ChannelStore) GetMessagesWithUnreadAndMentions(rctx request.CTX, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error) {
+	ret := _m.Called(rctx, userID, userNotifyProps)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetMessagesWithUnreadAndMentions")
+	}
+
+	var r0 []string
+	var r1 []string
+	var r2 map[string]int64
+	var r3 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string, model.StringMap) ([]string, []string, map[string]int64, error)); ok {
+		return rf(rctx, userID, userNotifyProps)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string, model.StringMap) []string); ok {
+		r0 = rf(rctx, userID, userNotifyProps)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string, model.StringMap) []string); ok {
+		r1 = rf(rctx, userID, userNotifyProps)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(2).(func(request.CTX, string, model.StringMap) map[string]int64); ok {
+		r2 = rf(rctx, userID, userNotifyProps)
+	} else {
+		if ret.Get(2) != nil {
+			r2 = ret.Get(2).(map[string]int64)
+		}
+	}
+
+	if rf, ok := ret.Get(3).(func(request.CTX, string, model.StringMap) error); ok {
+		r3 = rf(rctx, userID, userNotifyProps)
+	} else {
+		r3 = ret.Error(3)
+	}
+
+	return r0, r1, r2, r3
+}
+
 // GetMoreChannels provides a mock function with given fields: teamID, userID, offset, limit
 func (_m *ChannelStore) GetMoreChannels(teamID string, userID string, offset int, limit int) (model.ChannelList, error) {
 	ret := _m.Called(teamID, userID, offset, limit)
@@ -2113,6 +2161,54 @@ func (_m *ChannelStore) GetTeamChannels(teamID string) (model.ChannelList, error
 	}
 
 	return r0, r1
+}
+
+// GetTeamChannelsWithUnreadAndMentions provides a mock function with given fields: rctx, teamID, userID, userNotifyProps
+func (_m *ChannelStore) GetTeamChannelsWithUnreadAndMentions(rctx request.CTX, teamID string, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error) {
+	ret := _m.Called(rctx, teamID, userID, userNotifyProps)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetTeamChannelsWithUnreadAndMentions")
+	}
+
+	var r0 []string
+	var r1 []string
+	var r2 map[string]int64
+	var r3 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, model.StringMap) ([]string, []string, map[string]int64, error)); ok {
+		return rf(rctx, teamID, userID, userNotifyProps)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, model.StringMap) []string); ok {
+		r0 = rf(rctx, teamID, userID, userNotifyProps)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string, model.StringMap) []string); ok {
+		r1 = rf(rctx, teamID, userID, userNotifyProps)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(2).(func(request.CTX, string, string, model.StringMap) map[string]int64); ok {
+		r2 = rf(rctx, teamID, userID, userNotifyProps)
+	} else {
+		if ret.Get(2) != nil {
+			r2 = ret.Get(2).(map[string]int64)
+		}
+	}
+
+	if rf, ok := ret.Get(3).(func(request.CTX, string, string, model.StringMap) error); ok {
+		r3 = rf(rctx, teamID, userID, userNotifyProps)
+	} else {
+		r3 = ret.Error(3)
+	}
+
+	return r0, r1, r2, r3
 }
 
 // GetTeamForChannel provides a mock function with given fields: channelID

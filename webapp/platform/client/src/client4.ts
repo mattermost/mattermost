@@ -1955,6 +1955,20 @@ export default class Client4 {
         );
     };
 
+    markAllInTeamAsRead = (userId: string, teamId: string) => {
+        return this.doFetch<ChannelViewResponse>(
+            `${this.getUserRoute(userId)}/teams/${teamId}/read`,
+            {method: 'put'},
+        );
+    };
+
+    markAllMessagesAsRead = (userId: string) => {
+        return this.doFetch<ChannelViewResponse>(
+            `${this.getChannelsRoute()}/members/${userId}/direct/read`,
+            {method: 'put'},
+        );
+    };
+
     autocompleteChannels = (teamId: string, name: string) => {
         return this.doFetch<Channel[]>(
             `${this.getTeamRoute(teamId)}/channels/autocomplete${buildQueryString({name})}`,

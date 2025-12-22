@@ -8,6 +8,7 @@ import {useSelector} from 'react-redux';
 
 import {isCallsEnabled} from 'selectors/calls';
 
+import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
@@ -85,6 +86,7 @@ interface Props {
 const KeyboardShortcutsModal = ({onExited}: Props): JSX.Element => {
     const [show, setShow] = useState(true);
     const contentRef = useRef<HTMLDivElement>(null);
+    const enableMarkAllReadShortcut = useGetFeatureFlagValue('EnableShiftEscapeToMarkAllRead') === 'true';
 
     const {formatMessage} = useIntl();
 
@@ -163,6 +165,7 @@ const KeyboardShortcutsModal = ({onExited}: Props): JSX.Element => {
                             <div className='section'>
                                 <div>
                                     <h3 className='section-title'><strong>{formatMessage(modalMessages.msgHeader)}</strong></h3>
+                                    {enableMarkAllReadShortcut && <KeyboardShortcutSequence shortcut={KEYBOARD_SHORTCUTS.markAllRead}/>}
                                     <div className='subsection'>
                                         <h4 className='subsection-title'>{formatMessage(modalMessages.msgInputHeader)}</h4>
                                         <KeyboardShortcutSequence shortcut={KEYBOARD_SHORTCUTS.msgEdit}/>

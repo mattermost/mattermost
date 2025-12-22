@@ -79,6 +79,9 @@ type FeatureFlags struct {
 	// Enable mobile SSO SAML code-exchange flow (no tokens in deep links)
 	MobileSSOCodeExchange bool
 
+	// Enable the SHIFT+ESC combo to mark _all_ chats, messages, and channels as read
+	EnableShiftEscapeToMarkAllRead bool
+
 	// FEATURE_FLAG_REMOVAL: AutoTranslation - Remove this when MVP is to be released
 	// Enable auto-translation feature for messages in channels
 	AutoTranslation bool
@@ -121,6 +124,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableMattermostEntry = true
 
 	f.MobileSSOCodeExchange = true
+	f.EnableShiftEscapeToMarkAllRead = false
 
 	// FEATURE_FLAG_REMOVAL: AutoTranslation - Remove this default when MVP is to be released
 	f.AutoTranslation = false

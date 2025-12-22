@@ -3,11 +3,10 @@
 
 import React, {memo} from 'react';
 import type {MessageDescriptor} from 'react-intl';
-import {defineMessage, FormattedMessage} from 'react-intl';
+import {defineMessage} from 'react-intl';
 
-import {ShortcutKey, ShortcutKeyVariant} from 'components/shortcut_key';
+import {ShortcutSequence, ShortcutKeyVariant} from 'components/shortcut_sequence';
 
-import {isMessageDescriptor} from 'utils/i18n';
 import {isMac} from 'utils/user_agent';
 
 export const ShortcutKeys = {
@@ -24,6 +23,10 @@ export const ShortcutKeys = {
     shift: defineMessage({
         id: 'shortcuts.generic.shift',
         defaultMessage: 'Shift',
+    }),
+    escape: defineMessage({
+        id: 'general_button.esc',
+        defaultMessage: 'Esc',
     }),
 };
 
@@ -45,28 +48,10 @@ function TooltipShortcut(props: Props) {
     }
 
     return (
-        <>
-            {shortcut.map((shortcutKey) => {
-                let key;
-                let content;
-                if (isMessageDescriptor(shortcutKey)) {
-                    key = shortcutKey.id;
-                    content = <FormattedMessage {...shortcutKey}/>;
-                } else {
-                    key = shortcutKey;
-                    content = shortcutKey;
-                }
-
-                return (
-                    <ShortcutKey
-                        key={key}
-                        variant={ShortcutKeyVariant.Tooltip}
-                    >
-                        {content}
-                    </ShortcutKey>
-                );
-            })}
-        </>
+        <ShortcutSequence
+            keys={shortcut}
+            variant={ShortcutKeyVariant.Tooltip}
+        />
     );
 }
 

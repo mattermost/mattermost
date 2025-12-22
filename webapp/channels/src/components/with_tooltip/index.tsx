@@ -50,6 +50,10 @@ export const ShortcutKeys = {
         id: 'shortcuts.generic.shift',
         defaultMessage: 'Shift',
     }),
+    esc: defineMessage({
+        id: 'general_button.esc',
+        defaultMessage: 'Esc',
+    }),
 };
 
 interface Props {

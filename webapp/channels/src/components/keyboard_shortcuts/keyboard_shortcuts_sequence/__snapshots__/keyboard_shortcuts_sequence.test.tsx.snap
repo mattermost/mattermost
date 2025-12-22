@@ -15,26 +15,31 @@ exports[`components/shortcuts/KeyboardShortcutsSequence should match snapshot wh
     <span>
       Keyboard shortcuts
     </span>
-    <ShortcutKey
-      key="⌘"
+    <ShortcutSequence
+      keys="⌘|/"
       variant="shortcut"
     >
-      <mark
-        className="shortcut-key shortcut-key--shortcut-modal"
+      <ShortcutKey
+        key="⌘"
+        variant="shortcut"
       >
-        ⌘
-      </mark>
-    </ShortcutKey>
-    <ShortcutKey
-      key="/"
-      variant="shortcut"
-    >
-      <mark
-        className="shortcut-key shortcut-key--shortcut-modal"
+        <mark
+          className="shortcut-key shortcut-key--shortcut-modal"
+        >
+          ⌘
+        </mark>
+      </ShortcutKey>
+      <ShortcutKey
+        key="/"
+        variant="shortcut"
       >
-        /
-      </mark>
-    </ShortcutKey>
+        <mark
+          className="shortcut-key shortcut-key--shortcut-modal"
+        >
+          /
+        </mark>
+      </ShortcutKey>
+    </ShortcutSequence>
   </div>
 </Memo(KeyboardShortcutSequence)>
 `;
@@ -54,57 +59,67 @@ exports[`components/shortcuts/KeyboardShortcutsSequence should match snapshot wi
     <span>
       Keyboard shortcuts
     </span>
-    <ShortcutKey
-      key="⌘"
+    <ShortcutSequence
+      keys="⌘||P"
       variant="shortcut"
     >
-      <mark
-        className="shortcut-key shortcut-key--shortcut-modal"
+      <ShortcutKey
+        key="⌘"
+        variant="shortcut"
       >
-        ⌘
-      </mark>
-    </ShortcutKey>
-    <ShortcutKey
-      key=""
-      variant="shortcut"
-    >
-      <mark
-        className="shortcut-key shortcut-key--shortcut-modal"
-      />
-    </ShortcutKey>
-    <ShortcutKey
-      key="P"
-      variant="shortcut"
-    >
-      <mark
-        className="shortcut-key shortcut-key--shortcut-modal"
+        <mark
+          className="shortcut-key shortcut-key--shortcut-modal"
+        >
+          ⌘
+        </mark>
+      </ShortcutKey>
+      <ShortcutKey
+        key=""
+        variant="shortcut"
       >
-        P
-      </mark>
-    </ShortcutKey>
+        <mark
+          className="shortcut-key shortcut-key--shortcut-modal"
+        />
+      </ShortcutKey>
+      <ShortcutKey
+        key="P"
+        variant="shortcut"
+      >
+        <mark
+          className="shortcut-key shortcut-key--shortcut-modal"
+        >
+          P
+        </mark>
+      </ShortcutKey>
+    </ShortcutSequence>
     <span>
       	|	
     </span>
-    <ShortcutKey
-      key="Ctrl"
+    <ShortcutSequence
+      keys="Ctrl|P"
       variant="shortcut"
     >
-      <mark
-        className="shortcut-key shortcut-key--shortcut-modal"
+      <ShortcutKey
+        key="Ctrl"
+        variant="shortcut"
       >
-        Ctrl
-      </mark>
-    </ShortcutKey>
-    <ShortcutKey
-      key="P"
-      variant="shortcut"
-    >
-      <mark
-        className="shortcut-key shortcut-key--shortcut-modal"
+        <mark
+          className="shortcut-key shortcut-key--shortcut-modal"
+        >
+          Ctrl
+        </mark>
+      </ShortcutKey>
+      <ShortcutKey
+        key="P"
+        variant="shortcut"
       >
-        P
-      </mark>
-    </ShortcutKey>
+        <mark
+          className="shortcut-key shortcut-key--shortcut-modal"
+        >
+          P
+        </mark>
+      </ShortcutKey>
+    </ShortcutSequence>
   </div>
 </Memo(KeyboardShortcutSequence)>
 `;
@@ -124,26 +139,31 @@ exports[`components/shortcuts/KeyboardShortcutsSequence should render sequence h
   <div
     className="shortcut-line"
   >
-    <ShortcutKey
-      key="⌘"
+    <ShortcutSequence
+      keys="⌘|/"
       variant="tooltip"
     >
-      <mark
-        className="shortcut-key shortcut-key--tooltip"
+      <ShortcutKey
+        key="⌘"
+        variant="tooltip"
       >
-        ⌘
-      </mark>
-    </ShortcutKey>
-    <ShortcutKey
-      key="/"
-      variant="tooltip"
-    >
-      <mark
-        className="shortcut-key shortcut-key--tooltip"
+        <mark
+          className="shortcut-key shortcut-key--tooltip"
+        >
+          ⌘
+        </mark>
+      </ShortcutKey>
+      <ShortcutKey
+        key="/"
+        variant="tooltip"
       >
-        /
-      </mark>
-    </ShortcutKey>
+        <mark
+          className="shortcut-key shortcut-key--tooltip"
+        >
+          /
+        </mark>
+      </ShortcutKey>
+    </ShortcutSequence>
   </div>
 </Memo(KeyboardShortcutSequence)>
 `;
@@ -161,26 +181,31 @@ exports[`components/shortcuts/KeyboardShortcutsSequence should render sequence w
   <div
     className="shortcut-line"
   >
-    <ShortcutKey
-      key="⌘"
+    <ShortcutSequence
+      keys="⌘|/"
       variant="shortcut"
     >
-      <mark
-        className="shortcut-key shortcut-key--shortcut-modal"
+      <ShortcutKey
+        key="⌘"
+        variant="shortcut"
       >
-        ⌘
-      </mark>
-    </ShortcutKey>
-    <ShortcutKey
-      key="/"
-      variant="shortcut"
-    >
-      <mark
-        className="shortcut-key shortcut-key--shortcut-modal"
+        <mark
+          className="shortcut-key shortcut-key--shortcut-modal"
+        >
+          ⌘
+        </mark>
+      </ShortcutKey>
+      <ShortcutKey
+        key="/"
+        variant="shortcut"
       >
-        /
-      </mark>
-    </ShortcutKey>
+        <mark
+          className="shortcut-key shortcut-key--shortcut-modal"
+        >
+          /
+        </mark>
+      </ShortcutKey>
+    </ShortcutSequence>
   </div>
 </Memo(KeyboardShortcutSequence)>
 `;
@@ -201,26 +226,31 @@ exports[`components/shortcuts/KeyboardShortcutsSequence should render sequence w
     <span>
       Keyboard shortcuts
     </span>
-    <ShortcutKey
-      key="⌘"
+    <ShortcutSequence
+      keys="⌘|/"
       variant="tooltip"
     >
-      <mark
-        className="shortcut-key shortcut-key--tooltip"
+      <ShortcutKey
+        key="⌘"
+        variant="tooltip"
       >
-        ⌘
-      </mark>
-    </ShortcutKey>
-    <ShortcutKey
-      key="/"
-      variant="tooltip"
-    >
-      <mark
-        className="shortcut-key shortcut-key--tooltip"
+        <mark
+          className="shortcut-key shortcut-key--tooltip"
+        >
+          ⌘
+        </mark>
+      </ShortcutKey>
+      <ShortcutKey
+        key="/"
+        variant="tooltip"
       >
-        /
-      </mark>
-    </ShortcutKey>
+        <mark
+          className="shortcut-key shortcut-key--tooltip"
+        >
+          /
+        </mark>
+      </ShortcutKey>
+    </ShortcutSequence>
   </div>
 </Memo(KeyboardShortcutSequence)>
 `;

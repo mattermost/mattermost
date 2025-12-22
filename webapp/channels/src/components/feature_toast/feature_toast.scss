@@ -1,0 +1,62 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+@use 'utils/variables';
+
+.feature_toast {
+    position: fixed;
+    z-index: variables.$z-index-popover;
+    top: 72px; // Below channel header (56px) + margin
+    right: 60px; // Clear app bar (44px) + margin
+    display: flex;
+    width: 386px;
+    align-items: flex-start;
+    padding: 24px;
+    border: var(--border-default);
+    border-radius: var(--radius-s);
+    background-color: var(--center-channel-bg);
+    gap: 12px;
+}
+
+.feature_toast__actions {
+    padding: 4px 0;
+}
+
+.feature_toast__header_content {
+    display: flex;
+    width: 100%;
+    align-items: flex-start;
+    gap: 8px;
+
+    h3 {
+        flex-grow: 1;
+        padding-top: 6px; // Align with 32px button
+        margin: 0;
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 20px;
+    }
+}
+
+.feature_toast__icon {
+    flex-shrink: 0;
+    margin-top: 4px; // Align with title text
+}
+
+.feature_toast__main_content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    align-items: baseline;
+    gap: 8px;
+
+    p {
+        margin: 0;
+    }
+
+    mark {
+        & + mark {
+            margin-left: 4px;
+        }
+    }
+}

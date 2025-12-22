@@ -35,7 +35,7 @@ export function useGlobalState<TVal>(
     const dispatch = useDispatch();
     const defaultSuffix = useSelector(currentUserAndTeamSuffix);
     const suffixToUse = suffix || defaultSuffix;
-    const storedKey = `${name}${suffixToUse}`;
+    const storedKey = createStoredKey(name, suffixToUse);
 
     const value = useSelector(makeGetGlobalItem(storedKey, initialValue), shallowEqual);
     const setValue = useCallback((newValue: TVal) => dispatch(setGlobalItem(storedKey, newValue)), [storedKey]);
@@ -45,3 +45,10 @@ export function useGlobalState<TVal>(
         setValue,
     ];
 }
+
+/**
+ * This seems verbose, but it is or use with
+ * existing class components.They can't use hooks,
+ * but will still want to have the same format as the hook.
+ */
+export const createStoredKey = (name: string, suffixToUse?: string) => `${name}${suffixToUse}`;
