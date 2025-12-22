@@ -5887,6 +5887,10 @@
     "translation": "Wiki not found for page draft move."
   },
   {
+    "id": "app.draft.publish.delete_draft_failed.app_error",
+    "translation": "Failed to delete draft after publishing."
+  },
+  {
     "id": "app.draft.publish_page.content_error",
     "translation": "Unable to resolve page draft content for publishing."
   },
@@ -8999,6 +9003,10 @@
   {
     "id": "app.wiki.get_wiki_for_page.post_not_found",
     "translation": "Post not found when getting wiki for page."
+  },
+  {
+    "id": "app.wiki.marshal_wiki_id.app_error",
+    "translation": "Unable to marshal wiki ID."
   },
   {
     "id": "app.wiki.move_wiki.store_error.app_error",
