@@ -76,6 +76,7 @@ const ModalController = makeAsyncComponent('ModalController', lazy(() => import(
 const AppBar = makeAsyncComponent('AppBar', lazy(() => import('components/app_bar/app_bar')));
 const ComponentLibrary = makeAsyncComponent('ComponentLibrary', lazy(() => import('components/component_library')));
 const PopoutController = makeAsyncComponent('PopoutController', lazy(() => import('components/popout_controller')));
+const Help = makeAsyncComponent('Help', lazy(() => import('components/help')));
 
 const Pluggable = makeAsyncPluggableComponent();
 
@@ -366,6 +367,10 @@ export default class Root extends React.PureComponent<Props, State> {
                     <LoggedInRoute
                         path={'/terms_of_service'}
                         component={TermsOfService}
+                    />
+                    <Route
+                        path={'/help/:page?'}
+                        component={Help}
                     />
                     <Route
                         path={'/landing'}

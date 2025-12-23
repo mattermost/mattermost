@@ -12,6 +12,8 @@ import type {Post} from '@mattermost/types/posts';
 import MessageSubmitError from 'components/message_submit_error';
 import MsgTyping from 'components/msg_typing';
 
+import HelpButton from './help_button';
+
 interface Props {
     postError?: ReactNode;
     errorClass: string | null;
@@ -20,6 +22,7 @@ interface Props {
     rootId: Post['id'];
     noArgumentHandleSubmit: () => void;
     isInEditMode: boolean;
+    showHelpLink: boolean;
 }
 
 export default function Footer({
@@ -30,6 +33,7 @@ export default function Footer({
     rootId,
     noArgumentHandleSubmit,
     isInEditMode,
+    showHelpLink,
 }: Props) {
     return (
         <div
@@ -55,6 +59,7 @@ export default function Footer({
                     rootId={rootId}
                 />
             )}
+            <HelpButton visible={showHelpLink}/>
         </div>
     );
 }
