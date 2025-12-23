@@ -1,0 +1,14 @@
+.globalHeader-left-controls-container {
+    display: flex;
+    align-items: center;
+    height: 40px;
+    flex-shrink: 0;
+    flex-basis: 30%;
+    gap: 12px;
+
+    .globalHeader-history-buttons {
+        display: flex;
+        align-items: center;
+        gap: 1px;
+    }
+}
