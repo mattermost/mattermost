@@ -3,6 +3,9 @@
 
 import {Locator, expect} from '@playwright/test';
 
+import BurnOnReadBadge from './burn_on_read_badge';
+import BurnOnReadConcealedPlaceholder from './burn_on_read_concealed_placeholder';
+import BurnOnReadTimerChip from './burn_on_read_timer_chip';
 import PostMenu from './post_menu';
 import ThreadFooter from './thread_footer';
 
@@ -17,6 +20,11 @@ export default class ChannelsPost {
     readonly postMenu;
     readonly threadFooter;
 
+    // Burn-on-Read elements
+    readonly burnOnReadBadge;
+    readonly burnOnReadTimerChip;
+    readonly concealedPlaceholder;
+
     constructor(container: Locator) {
         this.container = container;
 
@@ -28,6 +36,13 @@ export default class ChannelsPost {
 
         this.postMenu = new PostMenu(container.locator('.post-menu'));
         this.threadFooter = new ThreadFooter(container.locator('.ThreadFooter'));
+
+        // Burn-on-Read components
+        this.burnOnReadBadge = new BurnOnReadBadge(container.locator('.BurnOnReadBadge'));
+        this.burnOnReadTimerChip = new BurnOnReadTimerChip(container.locator('.BurnOnReadTimerChip'));
+        this.concealedPlaceholder = new BurnOnReadConcealedPlaceholder(
+            container.locator('.BurnOnReadConcealedPlaceholder'),
+        );
     }
 
     async toBeVisible() {
@@ -44,7 +59,10 @@ export default class ChannelsPost {
     async getId() {
         const id = await this.container.getAttribute('id');
         expect(id, 'No post ID found.').toBeTruthy();
-        return (id || '').substring('post_'.length);
+        // Remove 'post_' prefix and any timestamp suffix (format: postId:timestamp for combined posts)
+        const postIdWithPossibleTimestamp = (id || '').substring('post_'.length);
+        // Return just the post ID (before any colon)
+        return postIdWithPossibleTimestamp.split(':')[0];
     }
 
     async getProfileImage(username: string) {
@@ -84,5 +102,29 @@ export default class ChannelsPost {
      */
     async toContainText(text: string) {
         await expect(this.container).toContainText(text);
+    }
+
+    /**
+     * Check if this is a burn-on-read post
+     */
+    async isBurnOnReadPost(): Promise<boolean> {
+        // Check if BoR badge or timer chip is present
+        const hasBadge = await this.burnOnReadBadge.container.isVisible();
+        const hasTimer = await this.burnOnReadTimerChip.container.isVisible();
+        return hasBadge || hasTimer;
+    }
+
+    /**
+     * Check if the BoR post is concealed (not yet revealed)
+     */
+    async isConcealed(): Promise<boolean> {
+        return await this.concealedPlaceholder.container.isVisible();
+    }
+
+    /**
+     * Check if the BoR post is revealed
+     */
+    async isRevealed(): Promise<boolean> {
+        return !(await this.isConcealed());
     }
 }
