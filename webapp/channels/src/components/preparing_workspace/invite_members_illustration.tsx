@@ -8,6 +8,7 @@ const InviteMembersIllustration = (props: SVGProps<SVGSVGElement>) => (
     <svg
         width={651}
         height={534}
+        viewBox='0 0 651 534'
         fill='none'
         xmlns='http://www.w3.org/2000/svg'
         xmlnsXlink='http://www.w3.org/1999/xlink'

@@ -10,8 +10,8 @@ type SvgProps = {
 
 const EmptyBillingHistorySvg = (props: SvgProps) => (
     <svg
-        width={props.width ? props.width.toString() : '519'}
-        height={props.height ? props.height.toString() : '396'}
+        width={props.width ? props.width.toString() : '152'}
+        height={props.height ? props.height.toString() : '116'}
         viewBox='0 0 152 116'
         fill='none'
         xmlns='http://www.w3.org/2000/svg'
