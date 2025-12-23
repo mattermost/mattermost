@@ -15,7 +15,7 @@ import {temporarilySetPageLoadContext} from 'actions/telemetry_actions.jsx';
 import BrowserStore from 'stores/browser_store';
 
 import {makeAsyncComponent, makeAsyncPluggableComponent} from 'components/async_load';
-import GlobalHeader from 'components/global_header/global_header';
+import GlobalHeader from 'components/global_header';
 import {HFRoute} from 'components/header_footer_route/header_footer_route';
 import {HFTRoute, LoggedInHFTRoute} from 'components/header_footer_template_route';
 import InitialLoadingScreen from 'components/initial_loading_screen';
