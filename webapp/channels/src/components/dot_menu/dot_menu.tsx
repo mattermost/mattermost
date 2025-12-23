@@ -175,7 +175,6 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         location: Locations.CENTER,
     };
     private editDisableAction: DelayedAction;
-    private canPostBeForwarded: boolean;
 
     constructor(props: Props) {
         super(props);
@@ -186,8 +185,6 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             canEdit: props.canEdit && !props.isReadOnly,
             canDelete: props.canDelete && !props.isReadOnly,
         };
-
-        this.canPostBeForwarded = false;
     }
 
     static getDerivedStateFromProps(props: Props) {
@@ -332,7 +329,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
     };
 
     handleForwardMenuItemActivated = (): void => {
-        if (!this.canPostBeForwarded) {
+        if (!this.props.canForward) {
             // adding this early return since only hiding the Item from the menu is not enough,
             // since a user can always use the Shortcuts to activate the function as well
             return;
