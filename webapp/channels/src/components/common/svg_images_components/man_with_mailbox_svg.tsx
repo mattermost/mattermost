@@ -69,7 +69,7 @@ const Svg = (props: SvgProps) => (
             />
             <path
                 d='M48.9995 65.9045L104.116 23.957C126.174 40.7447 158.777 65.9045 158.777 65.9045V143.552H48.9995V65.9045Z'
-                fill='white'
+                fill='var(--center-channel-bg)'
                 stroke='var(--center-channel-color)'
                 strokeWidth='1.5'
                 strokeLinejoin='round'
@@ -102,7 +102,7 @@ const Svg = (props: SvgProps) => (
                     width='99.3525'
                     height='69.0075'
                     transform='rotate(90 138.396 38.9854)'
-                    fill='white'
+                    fill='var(--center-channel-bg)'
                     stroke='var(--center-channel-color)'
                     strokeWidth='1.5'
                 />
@@ -113,14 +113,14 @@ const Svg = (props: SvgProps) => (
             />
             <path
                 d='M97.5586 74.75L102.456 79.175L111.809 69.5'
-                stroke='white'
+                stroke='var(--center-channel-bg)'
                 strokeWidth='1.785'
                 strokeLinecap='round'
                 strokeLinejoin='round'
             />
             <path
                 d='M104.107 106.908L156.994 66.7969V142.659H50.7866V66.7969L104.107 106.908Z'
-                fill='white'
+                fill='var(--center-channel-bg)'
             />
             <path
                 d='M51.6797 67.689L104.108 106.959C125.09 91.2429 156.102 67.689 156.102 67.689'
