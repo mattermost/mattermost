@@ -8,7 +8,7 @@ import {renderWithContext} from 'tests/react_testing_utils';
 import * as productUtils from 'utils/products';
 import {TestHelper} from 'utils/test_helper';
 
-import GlobalHeader from './global_header';
+import GlobalHeader from './index';
 
 jest.mock('utils/products', () => ({
     useCurrentProductId: jest.fn(),
