@@ -1,40 +1,100 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
+import {screen} from '@testing-library/react';
 import React from 'react';
-import * as redux from 'react-redux';
 
-import GlobalHeader from 'components/global_header/global_header';
-
+import {renderWithContext} from 'tests/react_testing_utils';
 import * as productUtils from 'utils/products';
+import {TestHelper} from 'utils/test_helper';
 
-describe('components/global/global_header', () => {
-    test('should be disabled when global header is disabled', () => {
-        const spy = jest.spyOn(redux, 'useSelector');
-        spy.mockReturnValue(false);
-        const spyProduct = jest.spyOn(productUtils, 'useCurrentProductId');
-        spyProduct.mockReturnValue(null);
+import GlobalHeader from './global_header';
 
-        const wrapper = shallow(
-            <GlobalHeader/>,
-        );
+jest.mock('utils/products', () => ({
+    useCurrentProductId: jest.fn(),
+    isChannels: jest.fn(),
+    useProducts: jest.fn(),
+}));
 
-        // Global header should render null
-        expect(wrapper.type()).toEqual(null);
+describe('components/global/GlobalHeader', () => {
+    const initialState = {
+        entities: {
+            general: {
+                config: {},
+                license: {
+                    IsLicensed: 'false',
+                },
+            },
+            preferences: {
+                myPreferences: {},
+            },
+        },
+    };
+
+    beforeEach(() => {
+        jest.spyOn(productUtils, 'useCurrentProductId').mockReturnValue(null);
+        jest.spyOn(productUtils, 'isChannels').mockReturnValue(true);
     });
 
-    test('should be enabled when global header is enabled', () => {
-        const spy = jest.spyOn(redux, 'useSelector');
-        spy.mockReturnValue(true);
-        const spyProduct = jest.spyOn(productUtils, 'useCurrentProductId');
-        spyProduct.mockReturnValue(null);
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
 
-        const wrapper = shallow(
-            <GlobalHeader/>,
-        );
+    test('should not render when user is not logged in', () => {
+        const state = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                users: {
+                    currentUserId: '',
+                },
+            },
+        };
 
-        // Global header should not be null
-        expect(wrapper.type()).not.toEqual(null);
+        renderWithContext(<GlobalHeader/>, state);
+
+        expect(screen.queryByTestId('global-header')).not.toBeInTheDocument();
+    });
+
+    test('should not render in mobile view', () => {
+        const state = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                users: {
+                    currentUserId: 'user1',
+                },
+            },
+            views: {
+                browser: {
+                    windowSize: 'mobileView',
+                },
+            },
+        };
+
+        renderWithContext(<GlobalHeader/>, state);
+
+        expect(screen.queryByTestId('global-header')).not.toBeInTheDocument();
+    });
+
+    test('should render when user is logged in and not in mobile view', () => {
+        const user = TestHelper.getUserMock();
+
+        const state = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                users: {
+                    currentUserId: user.id,
+                    profiles: {
+                        [user.id]: user,
+                    },
+                },
+            },
+        };
+
+        renderWithContext(<GlobalHeader/>, state);
+
+        expect(screen.queryByText('TEAM EDITION')).toBeInTheDocument();
     });
 });
