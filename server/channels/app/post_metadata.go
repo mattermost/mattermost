@@ -142,6 +142,16 @@ func (a *App) PreparePostForClient(rctx request.CTX, originalPost *model.Post, o
 	a.preparePostFilesForClient(rctx, post, opts)
 
 	if post.Type == model.PostTypeBurnOnRead {
+		// For the sender, populate ExpireAt from TemporaryPost when all recipients have revealed.
+		// This ensures the countdown timer persists after page reload.
+		if post.UserId == rctx.Session().UserId && post.Metadata.ExpireAt == 0 {
+			if unreadCount, err := a.Srv().Store().ReadReceipt().GetUnreadCountForPost(rctx, post); err == nil && unreadCount == 0 {
+				if tmpPost, err := a.Srv().Store().TemporaryPost().Get(rctx, post.Id); err == nil {
+					post.Metadata.ExpireAt = tmpPost.ExpireAt
+				}
+			}
+		}
+
 		// if metadata expire is not set, it means the post is not revealed yet
 		// so we need to reset the metadata. Or, if the user is the author, we don't reset the metadata.
 		if post.Metadata.ExpireAt == 0 && post.UserId != rctx.Session().UserId {
