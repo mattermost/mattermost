@@ -28,7 +28,7 @@
         --bg-opacity: 0;
         --text-opacity: 0.56;
 
-        &:hover {
+        &:hover, &[aria-expanded="true"][aria-haspopup="true"] {
             --bg-opacity: 0.08;
             --text-opacity: 0.72;
         }
