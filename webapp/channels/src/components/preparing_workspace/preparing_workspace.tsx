@@ -14,7 +14,7 @@ import {sendEmailInvitesToTeamGracefully} from 'mattermost-redux/actions/teams';
 import {Client4} from 'mattermost-redux/client';
 import {General} from 'mattermost-redux/constants';
 import {getFirstAdminSetupComplete, getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getIsOnboardingFlowEnabled, getTheme} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeam, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 import {isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -24,6 +24,7 @@ import LogoSvg from 'components/common/svg_images_components/logo_dark_blue_svg'
 import Constants from 'utils/constants';
 import {makeNewTeam} from 'utils/team_utils';
 import {getSiteURL, teamNameToUrl} from 'utils/url';
+import {applyTheme, resetTheme} from 'utils/utils';
 
 import InviteMembers from './invite_members';
 import InviteMembersIllustration from './invite_members_illustration';
@@ -82,6 +83,7 @@ const PreparingWorkspace = ({
     });
     const isUserFirstAdmin = useSelector(isFirstAdmin);
     const onboardingFlowEnabled = useSelector(getIsOnboardingFlowEnabled);
+    const currentTheme = useSelector(getTheme);
 
     const currentTeam = useSelector(getCurrentTeam);
     const myTeams = useSelector(getMyTeams);
@@ -115,6 +117,15 @@ const PreparingWorkspace = ({
     const [form, setForm] = useState({
         ...emptyForm,
     });
+
+    // Apply denim theme on mount, restore user theme on unmount
+    useEffect(() => {
+        resetTheme();
+
+        return () => {
+            applyTheme(currentTheme);
+        };
+    }, []);
 
     useEffect(() => {
         if (!pluginsEnabled) {
@@ -259,11 +270,12 @@ const PreparingWorkspace = ({
     const adminRevisitedPage = firstAdminSetupComplete && submissionState === SubmissionStates.Presubmit;
     const shouldRedirect = !isUserFirstAdmin || adminRevisitedPage || !onboardingFlowEnabled;
 
-    useEffect(() => {
-        if (shouldRedirect) {
-            history.push('/');
-        }
-    }, [shouldRedirect]);
+    // Temporarily disabled redirect for viewing/testing
+    // useEffect(() => {
+    //     if (shouldRedirect) {
+    //         history.push('/');
+    //     }
+    // }, [shouldRedirect]);
 
     const getTransitionDirection = (step: WizardStep): AnimationReason => {
         const stepIndex = stepOrder.indexOf(step);
