@@ -12,6 +12,7 @@ import ChannelInfoRhs from 'components/channel_info_rhs';
 import ChannelMembersRhs from 'components/channel_members_rhs';
 import FileUploadOverlay from 'components/file_upload_overlay';
 import {DropOverlayIdRHS} from 'components/file_upload_overlay/file_upload_overlay';
+import FlaggedPostsPanel from 'components/flagged_posts_panel';
 import LoadingScreen from 'components/loading_screen';
 import PostEditHistory from 'components/post_edit_history';
 import ResizableRhs from 'components/resizable_sidebar/resizable_rhs';
@@ -298,6 +299,8 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             );
         } else if (postCardVisible) {
             content = <RhsCard previousRhsState={previousRhsState}/>;
+        } else if (this.props.isSavedPosts) {
+            content = <FlaggedPostsPanel/>;
         } else if (isPluginView) {
             content = <RhsPlugin/>;
         } else if (isChannelInfo) {
