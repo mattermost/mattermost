@@ -44,7 +44,7 @@ const RightControls = ({productId = null}: Props): JSX.Element => {
     const showCustomizeTip = useShowOnboardingTutorialStep(tourStep);
 
     return (
-        <div className='globalHeader-right-controls-container'>
+        <div className='globalHeader-rightControls'>
             <PlanUpgradeButton/>
             {isChannels(productId) ? (
                 <>
@@ -60,7 +60,7 @@ const RightControls = ({productId = null}: Props): JSX.Element => {
             )}
             <div
                 id='CustomizeYourExperienceTour'
-                className='globalHeader-right-controls-customize-your-experience-tour'
+                className='globalHeader-rightControls-customizeYourExperienceTour'
             >
                 {isChannels(productId) && (
                     <>

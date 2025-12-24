@@ -19,7 +19,7 @@ export type Props = {
 
 const CenterControls = ({productId = null}: Props): JSX.Element => {
     return (
-        <div className='globalHeader-center-controls-container'>
+        <div className='globalHeader-centerControls'>
             {isChannels(productId) ? (
                 <>
                     <GlobalSearchNav/>

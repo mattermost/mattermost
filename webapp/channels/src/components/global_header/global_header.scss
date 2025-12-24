@@ -1,6 +1,6 @@
 @use "utils/variables";
 
-.globalHeader-container {
+.globalHeader {
     position: relative;
     z-index: variables.$z-index-global-header;
     display: flex;

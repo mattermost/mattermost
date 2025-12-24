@@ -73,7 +73,18 @@ describe('ProductBranding', () => {
     test('should show Channels when on Channels product', () => {
         jest.spyOn(productUtils, 'useCurrentProduct').mockReturnValue(null);
 
-        renderWithContext(<ProductBranding/>);
+        const state = {
+            entities: {
+                general: {
+                    license: TestHelper.getLicenseMock({
+                        IsLicensed: 'true',
+                        SkuShortName: 'professional',
+                    }),
+                },
+            },
+        };
+
+        renderWithContext(<ProductBranding/>, state);
 
         expect(screen.getAllByText('Channels').length).toBeGreaterThan(0);
     });
@@ -83,7 +94,17 @@ describe('ProductBranding', () => {
             TestHelper.makeProduct(TopLevelProducts.PLAYBOOKS),
         );
 
-        renderWithContext(<ProductBranding/>);
+        const state = {
+            entities: {
+                general: {
+                    license: TestHelper.getLicenseMock({
+                        IsLicensed: 'true',
+                        SkuShortName: 'professional',
+                    }),
+                },
+            },
+        };
+        renderWithContext(<ProductBranding/>, state);
 
         expect(screen.getAllByText('Playbooks').length).toBeGreaterThan(0);
     });
@@ -93,7 +114,17 @@ describe('ProductBranding', () => {
             TestHelper.makeProduct(TopLevelProducts.BOARDS),
         );
 
-        renderWithContext(<ProductBranding/>);
+        const state = {
+            entities: {
+                general: {
+                    license: TestHelper.getLicenseMock({
+                        IsLicensed: 'true',
+                        SkuShortName: 'professional',
+                    }),
+                },
+            },
+        };
+        renderWithContext(<ProductBranding/>, state);
 
         expect(screen.getAllByText('Boards').length).toBeGreaterThan(0);
     });

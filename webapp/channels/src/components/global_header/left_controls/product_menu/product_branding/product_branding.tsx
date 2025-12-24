@@ -11,8 +11,6 @@ import {LicenseSkus} from 'utils/constants';
 import ProductBrandingFreeEdition from './product_branding_free_edition';
 import ProductBrandingLicencedEdition from './product_branding_licenced_edition';
 
-import './product_branding.scss';
-
 export function ProductBranding() {
     const license = useSelector(getLicense);
 

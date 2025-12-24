@@ -21,13 +21,13 @@ const ProductBrandingFreeEdition = (): JSX.Element => {
     }
 
     return (
-        <span className='globalHeader-productBranding-freeEdition'>
+        <span className='globalHeader-leftControls-productBranding-freeEdition'>
             <MattermostLogo
-                className='globalHeader-productBranding-freeEdition-logo'
+                className='globalHeader-leftControls-productBranding-freeEdition-logo'
                 width={116}
                 height={20}
             />
-            <span className='globalHeader-productBranding-freeEdition-badge'>
+            <span className='globalHeader-leftControls-productBranding-freeEdition-badge'>
                 {badgeText}
             </span>
         </span>

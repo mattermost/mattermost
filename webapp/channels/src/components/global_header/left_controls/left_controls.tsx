@@ -11,7 +11,7 @@ import ProductMenu from './product_menu';
 import './left_controls.scss';
 
 const LeftControls = (): JSX.Element => (
-    <div className='globalHeader-left-controls-container'>
+    <div className='globalHeader-leftControls'>
         <ProductMenu/>
         {isDesktopApp() && <HistoryButtons/>}
     </div>

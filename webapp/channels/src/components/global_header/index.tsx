@@ -33,7 +33,7 @@ const GlobalHeader = () => {
     return (
         <div
             id='global-header'
-            className='globalHeader-container'
+            className='globalHeader'
         >
             <LeftControls/>
             <CenterControls productId={currentProductID}/>

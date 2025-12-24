@@ -1,16 +1,16 @@
-.globalHeader-right-controls-container {
-    display: flex;
-    align-items: center;
-    height: 40px;
-    flex-shrink: 0;
+.globalHeader-rightControls {
     position: relative;
+    display: flex;
+    height: 40px;
     flex-basis: 30%;
+    flex-shrink: 0;
+    align-items: center;
     justify-content: flex-end;
     gap: 8px;
-}
 
-.globalHeader-right-controls-customize-your-experience-tour {
-    display: flex;
-    align-items: center;
-    height: 100%;
+    &-customizeYourExperienceTour {
+        display: flex;
+        height: 100%;
+        align-items: center;
+    }
 }

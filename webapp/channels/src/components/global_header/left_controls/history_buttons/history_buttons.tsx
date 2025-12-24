@@ -15,7 +15,7 @@ import WithTooltip from 'components/with_tooltip';
 
 import DesktopApp from 'utils/desktop_api';
 
-const HistoryButtons = (): JSX.Element => {
+export const HistoryButtons = () => {
     const history = useHistory();
     const intl = useIntl();
 
@@ -56,7 +56,7 @@ const HistoryButtons = (): JSX.Element => {
     }, []);
 
     return (
-        <div className='globalHeader-history-buttons'>
+        <div className='globalHeader-leftControls-historyButtons'>
             <WithTooltip
                 title={getTooltip(KEYBOARD_SHORTCUTS.browserChannelPrev)}
             >
@@ -80,5 +80,3 @@ const HistoryButtons = (): JSX.Element => {
         </div>
     );
 };
-
-export default HistoryButtons;

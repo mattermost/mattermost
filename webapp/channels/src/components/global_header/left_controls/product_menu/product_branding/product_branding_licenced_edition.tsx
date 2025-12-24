@@ -11,16 +11,16 @@ const ProductBranding = (): JSX.Element => {
     const currentProduct = useCurrentProduct();
 
     const ProductIcon = currentProduct?.switcherIcon ? glyphMap[currentProduct.switcherIcon] : ProductChannelsIcon;
-    const ProductName = currentProduct ? currentProduct.switcherText : 'Channels';
+    const productName = currentProduct ? currentProduct.switcherText : 'Channels';
 
     return (
-        <span className='globalHeader-productBranding-licencedEdition'>
+        <span className='globalHeader-leftControls-productBranding-licencedEdition'>
             <ProductIcon size={24}/>
             <h1 className='sr-only'>
-                {ProductName}
+                {productName}
             </h1>
-            <span className='globalHeader-productBranding-licencedEdition-heading'>
-                {ProductName}
+            <span className='globalHeader-leftControls-productBranding-licencedEdition-heading'>
+                {productName}
             </span>
         </span >
     );
