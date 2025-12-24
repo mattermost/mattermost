@@ -8,6 +8,7 @@ import type {DesktopNotificationPermission} from 'components/common/hooks/use_de
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import * as utilsNotifications from 'utils/notifications';
+import * as UserAgent from 'utils/user_agent';
 
 import NotificationPermissionSectionNotice from './index';
 
@@ -22,6 +23,15 @@ describe('NotificationPermissionSectionNotice', () => {
         renderWithContext(<NotificationPermissionSectionNotice/>);
 
         expect(screen.getByText('Browser notifications unsupported')).toBeInTheDocument();
+    });
+
+    test('should not render "Unsupported" notice for MS 365 mobile apps even when notifications are not supported', () => {
+        jest.spyOn(utilsNotifications, 'isNotificationAPISupported').mockReturnValue(false);
+        jest.spyOn(UserAgent, 'isM365Mobile').mockReturnValue(true);
+
+        const {container} = renderWithContext(<NotificationPermissionSectionNotice/>);
+
+        expect(container).toBeEmptyDOMElement();
     });
 
     test('should render "Never granted" notice when notifications are never granted', () => {
