@@ -288,11 +288,18 @@ export function isWithinCodeBlock(message: string, caretPosition: number): boole
     return Boolean(match && match.length % 2 !== 0);
 }
 
+export function isWithinLatex(message: string, caretPosition: number): boolean {
+    const match = message.substring(0, caretPosition).match(Constants.REGEX_LATEX);
+
+    return Boolean(match && match.length % 2 !== 0);
+}
+
 function sendOnCtrlEnter(message: string, ctrlOrMetaKeyPressed: boolean, isSendMessageOnCtrlEnter: boolean, caretPosition: number) {
     const inCodeBlock = isWithinCodeBlock(message, caretPosition);
-    if (isSendMessageOnCtrlEnter && ctrlOrMetaKeyPressed && !inCodeBlock) {
+    const inLatex = isWithinLatex(message, caretPosition);
+    if (isSendMessageOnCtrlEnter && ctrlOrMetaKeyPressed && !inCodeBlock && !inLatex) {
         return {allowSending: true};
-    } else if (!isSendMessageOnCtrlEnter && !inCodeBlock) {
+    } else if (!isSendMessageOnCtrlEnter && !inCodeBlock && !inLatex) {
         return {allowSending: true};
     } else if (ctrlOrMetaKeyPressed && inCodeBlock) {
         return canAutomaticallyCloseBackticks(message);
