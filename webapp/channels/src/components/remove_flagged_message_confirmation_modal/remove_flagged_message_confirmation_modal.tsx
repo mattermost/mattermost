@@ -63,7 +63,6 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
         id: 'keep_remove_flag_content_modal.action_remove.body',
         defaultMessage: 'You are about to remove a message authored by {flaggedPostAuthor} posed in the {flaggedPostChannel} channel and flagged for review by {reportingUser}.',
     }, {
-        br: <br/>,
         flaggedPostChannel: flaggedPostChannel?.display_name,
         reportingUser: <AtMention mentionName={reportingUser?.username || ''}/>,
         flaggedPostAuthor: <AtMention mentionName={flaggedPostAuthor?.username || ''}/>,
@@ -72,7 +71,6 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
         id: 'keep_remove_flag_content_modal.action_keep.body',
         defaultMessage: 'You are about to keep a flagged message authored by {flaggedPostAuthor} posed in the {flaggedPostChannel} channel and flagged for review by {reportingUser}.',
     }, {
-        br: <br/>,
         flaggedPostChannel: flaggedPostChannel?.display_name,
         reportingUser: <AtMention mentionName={reportingUser?.username || ''}/>,
         flaggedPostAuthor: <AtMention mentionName={flaggedPostAuthor?.username || ''}/>,

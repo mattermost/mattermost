@@ -131,6 +131,7 @@ const InstalledOutgoingOAuthConnections = (props: Props) => {
             emptyTextSearch={
                 <FormattedMessage
                     id='installed_outgoing_oauth_connections.emptySearch'
+                    // eslint-disable-next-line formatjs/enforce-placeholders -- searchTerm provided by BackstageList
                     defaultMessage='No Outgoing OAuth Connections match {searchTerm}'
                 />
             }

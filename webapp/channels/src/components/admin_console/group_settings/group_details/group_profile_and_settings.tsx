@@ -36,7 +36,7 @@ const GroupSettingsToggle = ({
         title={
             <FormattedMessage
                 id='admin.team_settings.team_details.groupDetailsToggle'
-                defaultMessage='Enable Group Mention'
+                defaultMessage='Enable Group Mentions'
             />
         }
         subTitle={

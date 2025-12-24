@@ -206,7 +206,7 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, oauth
       key="add_oauth_app.doneHelp"
     >
       <MemoizedFormattedMessage
-        defaultMessage="Your OAuth 2.0 application is set up. Please use the following Client ID and Client Secret when requesting authorization for your application (details at <link>oAuth 2 Applications</link>)."
+        defaultMessage="Your OAuth 2.0 application is set up. Please use the following Client ID and Client Secret when requesting authorization for your application (details at <link>oAuth 2.0 Applications</link>)."
         id="add_oauth_app.doneHelp"
         values={
           Object {
@@ -399,7 +399,7 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, outgo
       to="/team_test/integrations/outgoing-oauth2-connections"
     >
       <MemoizedFormattedMessage
-        defaultMessage="Outgoing OAuth 2.0 Connections"
+        defaultMessage="Outgoing OAuth Connections"
         id="installed_outgoing_oauth_connections.header"
       />
     </Link>
@@ -450,12 +450,11 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, outgo
       />
       <br />
       <MemoizedFormattedMessage
-        defaultMessage="<b>Client Secret</b>: \\\\*\\\\*\\\\*\\\\*\\\\*\\\\*\\\\*\\\\*"
+        defaultMessage="<b>Client Secret</b>: ********"
         id="add_outgoing_oauth_connection.clientSecret"
         values={
           Object {
             "b": [Function],
-            "secret": "",
           }
         }
       />

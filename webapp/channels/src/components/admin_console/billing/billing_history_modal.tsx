@@ -61,7 +61,7 @@ export default function BillingHistoryModal(props: BillingHistoryModalProps) {
             dialogClassName='a11y__modal'
         >
             <Modal.Header closeButton={true}>
-                <Modal.Title className='CloudBillingHistoryModal__title'>{formatMessage({id: 'cloud_billing_history_modal.title', defaultMessage: 'Unpaid Invoice(s)'})}</Modal.Title>
+                <Modal.Title className='CloudBillingHistoryModal__title'>{formatMessage({id: 'cloud_billing_history_modal.title', defaultMessage: 'Invoice(s)'})}</Modal.Title>
             </Modal.Header>
             <Modal.Body>
                 <BillingHistoryTable invoices={invoiceListToRecordList(props.invoices)}/>

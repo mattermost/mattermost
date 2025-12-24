@@ -208,7 +208,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                 <p key='add_oauth_app.doneHelp'>
                     <FormattedMessage
                         id='add_oauth_app.doneHelp.public'
-                        defaultMessage='Your OAuth 2.0 public client application is set up. Please use the following Client ID when requesting authorization for your application. Public clients must use PKCE for authorization (details at <link>oAuth 2 Applications</link>).'
+                        defaultMessage='Your OAuth 2.0 public client application is set up. Please use the following Client ID when requesting authorization for your application. Public clients must use PKCE for authorization (details at <link>oAuth 2.0 Applications</link>).'
                         values={{
                             link: (msg) => (
                                 <ExternalLink
@@ -227,7 +227,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                 <p key='add_oauth_app.doneHelp'>
                     <FormattedMessage
                         id='add_oauth_app.doneHelp'
-                        defaultMessage='Your OAuth 2.0 application is set up. Please use the following Client ID and Client Secret when requesting authorization for your application (details at <link>oAuth 2 Applications</link>).'
+                        defaultMessage='Your OAuth 2.0 application is set up. Please use the following Client ID and Client Secret when requesting authorization for your application (details at <link>oAuth 2.0 Applications</link>).'
                         values={{
                             link: (msg) => (
                                 <ExternalLink
@@ -300,14 +300,13 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
         );
     } else if (type === Constants.Integrations.OUTGOING_OAUTH_CONNECTIONS && outgoingOAuthConnection) {
         const clientId = outgoingOAuthConnection.client_id;
-        const clientSecret = outgoingOAuthConnection.client_secret;
         const username = outgoingOAuthConnection.credentials_username;
         const password = outgoingOAuthConnection.credentials_password;
 
         headerText = (
             <FormattedMessage
                 id='installed_outgoing_oauth_connections.header'
-                defaultMessage='Outgoing OAuth 2.0 Connections'
+                defaultMessage='Outgoing OAuth Connections'
             />
         );
 
@@ -343,9 +342,8 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                 <br/>
                 <FormattedMessage
                     id='add_outgoing_oauth_connection.clientSecret'
-                    defaultMessage='<b>Client Secret</b>: \*\*\*\*\*\*\*\*'
+                    defaultMessage='<b>Client Secret</b>: ********'
                     values={{
-                        secret: clientSecret,
                         b: (chunks) => <b>{chunks}</b>,
                     }}
                 />
@@ -417,10 +415,10 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
             <p>
                 <FormattedMessage
                     id='bots.manage.created.text'
-                    defaultMessage='Your bot account **{botname}** has been created successfully. Please use the following access token to connect to the bot (see [documentation](https://mattermost.com/pl/default-bot-accounts) for further details).'
+                    defaultMessage='Your bot account <strong>{botname}</strong> has been created successfully. Please use the following access token to connect to the bot (see <link>documentation</link> for further details).'
                     values={{
                         botname: bot.display_name || bot.username,
-                        b: (msg) => <b>{msg}</b>,
+                        strong: (msg) => <b>{msg}</b>,
                         link: (msg) => (
                             <ExternalLink
                                 href='https://mattermost.com/pl/default-bot-accounts'

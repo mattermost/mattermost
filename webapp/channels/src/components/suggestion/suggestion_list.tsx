@@ -147,21 +147,6 @@ export default class SuggestionList extends React.PureComponent<Props> {
         };
     }
 
-    renderDivider(type: string) {
-        const id = type ? 'suggestion.' + type : 'suggestion.default';
-        return (
-            <li
-                key={type + '-divider'}
-                className='suggestion-list__divider'
-                role='separator'
-            >
-                <h2>
-                    <FormattedMessage id={id}/>
-                </h2>
-            </li>
-        );
-    }
-
     renderNoResults() {
         return (
             <ul
