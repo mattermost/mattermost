@@ -27,7 +27,7 @@
                     type: string
       responses:
         "201":
-          description: Bot creation successful
+          description: Bot created successfully
           content:
             application/json:
               schema:
@@ -77,7 +77,7 @@
             type: boolean
       responses:
         "200":
-          description: Bot page retrieval successful
+          description: Bot page retrieved successfully
           content:
             application/json:
               schema:
@@ -131,7 +131,7 @@
                     type: string
       responses:
         "200":
-          description: Bot patch successful
+          description: Bot patched successfully
           content:
             application/json:
               schema:
@@ -347,7 +347,7 @@
                 - image
       responses:
         "200":
-          description: SVG icon image set successful
+          description: SVG icon image set successfully
           content:
             application/json:
               schema:
@@ -383,7 +383,7 @@
             type: string
       responses:
         "200":
-          description: Icon image deletion successful
+          description: Icon image deleted successfully
           content:
             application/json:
               schema:

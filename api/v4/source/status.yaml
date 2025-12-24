@@ -17,7 +17,7 @@
             type: string
       responses:
         "200":
-          description: User status retrieval successful
+          description: User status retrieved successfully
           content:
             application/json:
               schema:
@@ -68,7 +68,7 @@
         required: true
       responses:
         "200":
-          description: User status update successful
+          description: User status updated successfully
           content:
             application/json:
               schema:
@@ -98,7 +98,7 @@
         required: true
       responses:
         "200":
-          description: User statuses retrieval successful
+          description: User statuses retrieved successfully
           content:
             application/json:
               schema:
@@ -151,7 +151,7 @@
         required: true
       responses:
         "200":
-          description: User custom status update successful
+          description: User custom status updated successfully
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -175,7 +175,7 @@
             type: string
       responses:
         "200":
-          description: User custom status delete successful
+          description: User custom status deleted successfully
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -224,7 +224,7 @@
         required: true
       responses:
         "200":
-          description: User recent custom status delete successful
+          description: User recent custom status deleted successfully
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -273,7 +273,7 @@
         required: true
       responses:
         "200":
-          description: User recent custom status delete successful
+          description: User recent custom status deleted successfully
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":

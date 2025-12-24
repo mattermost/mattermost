@@ -836,15 +836,15 @@ components:
           description: The unique identifier for this incoming webhook
           type: string
         create_at:
-          description: The time in milliseconds a incoming webhook was created
+          description: The time in milliseconds an incoming webhook was created
           type: integer
           format: int64
         update_at:
-          description: The time in milliseconds a incoming webhook was last updated
+          description: The time in milliseconds an incoming webhook was last updated
           type: integer
           format: int64
         delete_at:
-          description: The time in milliseconds a incoming webhook was deleted
+          description: The time in milliseconds an incoming webhook was deleted
           type: integer
           format: int64
         channel_id:
@@ -864,15 +864,15 @@ components:
           description: The unique identifier for this outgoing webhook
           type: string
         create_at:
-          description: The time in milliseconds a outgoing webhook was created
+          description: The time in milliseconds an outgoing webhook was created
           type: integer
           format: int64
         update_at:
-          description: The time in milliseconds a outgoing webhook was last updated
+          description: The time in milliseconds an outgoing webhook was last updated
           type: integer
           format: int64
         delete_at:
-          description: The time in milliseconds a outgoing webhook was deleted
+          description: The time in milliseconds an outgoing webhook was deleted
           type: integer
           format: int64
         creator_id:
@@ -3584,7 +3584,7 @@ components:
             - direct_messages
             - favorites
     SidebarCategoryWithChannels:
-      description: User's sidebar category with it's channels
+      description: User's sidebar category with its channels
       type: object
       properties:
         id:

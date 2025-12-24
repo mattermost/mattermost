@@ -15,7 +15,7 @@
       operationId: ListAllCPAFields
       responses:
         "200":
-          description: Custom Profile Attributes fetch successful. Result may be empty.
+          description: Custom Profile Attributes fetched successfully. Result may be empty.
           content:
             application/json:
               schema:
@@ -85,7 +85,7 @@
                       description: "SAML attribute for syncing"
       responses:
         "201":
-          description: Custom Profile Attribute field creation successful
+          description: Custom Profile Attribute field created successfully
           content:
             application/json:
               schema:
@@ -169,7 +169,7 @@
                       description: "SAML attribute for syncing"
       responses:
         "200":
-          description: Custom Profile Attribute field patch successful
+          description: Custom Profile Attribute field patched successfully
           content:
             application/json:
               schema:
@@ -205,7 +205,7 @@
             type: string
       responses:
         "200":
-          description: Custom Profile Attribute field deletion successful
+          description: Custom Profile Attribute field deleted successfully
           content:
             application/json:
               schema:
@@ -256,7 +256,7 @@
                           type: string
       responses:
         "200":
-          description: Custom Profile Attribute values patch successful
+          description: Custom Profile Attribute values patched successfully
           content:
             application/json:
               schema:
@@ -293,7 +293,7 @@
       operationId: GetCPAGroup
       responses:
         "200":
-          description: Group fetch successful
+          description: Group fetched successfully
           content:
             application/json:
               schema:
@@ -331,7 +331,7 @@
             type: string
       responses:
         "200":
-          description: Custom Profile Attribute values fetch successful. Result may be empty.
+          description: Custom Profile Attribute values fetched successfully. Result may be empty.
           content:
             application/json:
             schema:
