@@ -19,6 +19,7 @@ Other useful resources:
 - [Developer documentation](https://developers.mattermost.com/) - Contribute code to Mattermost or build an integration via APIs, Webhooks, slash commands, Apps, and plugins.
 
 Table of contents
+
 =================
 
 - [Install Mattermost](#install-mattermost)
