@@ -8,6 +8,7 @@ import {useSelector} from 'react-redux';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
+import {RHS_PLUGIN_TITLE} from 'components/rhs_plugin_popout/rhs_plugin_popout';
 import SearchResultsHeader from 'components/search_results_header';
 
 import Pluggable from 'plugins/pluggable';
@@ -30,7 +31,18 @@ const RhsPlugin = ({showPluggable, pluggableId, title, pluginId}: Props) => {
 
     const newWindowHandler = useCallback(() => {
         if (pluginId && currentTeam && currentChannel) {
-            popoutRhsPlugin(intl, pluginId, pluginDisplayName ?? pluginId, currentTeam.name, currentChannel.name);
+            popoutRhsPlugin(
+                intl.formatMessage(
+                    RHS_PLUGIN_TITLE,
+                    {
+                        pluginDisplayName: pluginDisplayName ?? pluginId,
+                        serverName: '{serverName}',
+                    },
+                ),
+                pluginId,
+                currentTeam.name,
+                currentChannel.name,
+            );
         }
     }, [intl, pluginId, currentTeam, currentChannel, pluginDisplayName]);
 
