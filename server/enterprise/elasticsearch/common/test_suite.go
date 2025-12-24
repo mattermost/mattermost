@@ -5,10 +5,13 @@ package common
 
 import (
 	"encoding/json"
+	"slices"
+	"testing"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/api4"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/searchtest"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
 
@@ -29,6 +32,19 @@ type CommonTestSuite struct {
 func (c *CommonTestSuite) TestSearchStore() {
 	searchTestEngine := &searchtest.SearchTestEngine{
 		Driver: searchtest.EngineElasticSearch,
+		BeforeTest: func(t *testing.T, s store.Store, tags []string) {
+			enableCJK := slices.Contains(tags, searchtest.EnableCJKAnalyzers)
+			if enableCJK {
+				c.TH.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.ElasticsearchSettings.EnableCJKAnalyzers = true
+				})
+			}
+		},
+		AfterTest: func(t *testing.T, s store.Store) {
+			c.TH.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ElasticsearchSettings.EnableCJKAnalyzers = false
+			})
+		},
 	}
 
 	c.Run("TestSearchChannelStore", func() {
