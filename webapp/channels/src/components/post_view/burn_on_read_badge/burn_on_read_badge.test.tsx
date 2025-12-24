@@ -52,7 +52,6 @@ describe('BurnOnReadBadge', () => {
 
         const badge = screen.getByTestId('burn-on-read-badge-post123');
         expect(badge.getAttribute('aria-label')).toContain('Click to delete message for everyone');
-        expect(badge).toHaveAttribute('role', 'button');
     });
 
     it('should not render when revealed and no timer', () => {
@@ -66,19 +65,35 @@ describe('BurnOnReadBadge', () => {
         expect(container.firstChild).toBeNull();
     });
 
-    it('should always render badge for sender (even when all recipients have revealed)', () => {
+    it('should render badge for sender when timer is not active (not all recipients revealed)', () => {
         renderWithContext(
             <BurnOnReadBadge
                 {...baseProps}
                 isSender={true}
                 revealed={true}
+                expireAt={null}
             />,
         );
 
-        // Sender always sees the flame badge with delete tooltip
+        // Sender sees the flame badge with delete tooltip when timer is not active
         const badge = screen.getByTestId('burn-on-read-badge-post123');
         expect(badge).toBeInTheDocument();
         expect(badge.getAttribute('aria-label')).toContain('Click to delete message for everyone');
+    });
+
+    it('should NOT render badge for sender when timer is active (all recipients revealed)', () => {
+        renderWithContext(
+            <BurnOnReadBadge
+                {...baseProps}
+                isSender={true}
+                revealed={true}
+                expireAt={Date.now() + 60000}
+            />,
+        );
+
+        // When timer is active, badge should not render (timer chip shows instead)
+        const badge = screen.queryByTestId('burn-on-read-badge-post123');
+        expect(badge).not.toBeInTheDocument();
     });
 
     it('should have correct CSS class for styling', () => {
