@@ -65,3 +65,67 @@ func TestDraftPreSave(t *testing.T) {
 
 	assert.LessOrEqual(t, o.CreateAt, past)
 }
+
+func TestDraftIsPageDraft(t *testing.T) {
+	t.Run("channel draft without props", func(t *testing.T) {
+		draft := &Draft{
+			UserId:    NewId(),
+			ChannelId: NewId(),
+			RootId:    "",
+			Message:   "test message",
+		}
+		draft.PreSave()
+		assert.False(t, draft.IsPageDraft())
+	})
+
+	t.Run("channel draft with empty props", func(t *testing.T) {
+		draft := &Draft{
+			UserId:    NewId(),
+			ChannelId: NewId(),
+			RootId:    "",
+			Message:   "test message",
+			Props:     make(map[string]any),
+		}
+		assert.False(t, draft.IsPageDraft())
+	})
+
+	t.Run("page draft with title prop", func(t *testing.T) {
+		draft := &Draft{
+			UserId:    NewId(),
+			ChannelId: NewId(),
+			RootId:    NewId(),
+			Message:   "test message",
+		}
+		draft.SetProps(map[string]any{
+			"title": "Page Title",
+		})
+		assert.True(t, draft.IsPageDraft())
+	})
+
+	t.Run("page draft with page_id prop", func(t *testing.T) {
+		draft := &Draft{
+			UserId:    NewId(),
+			ChannelId: NewId(),
+			RootId:    NewId(),
+			Message:   "test message",
+		}
+		draft.SetProps(map[string]any{
+			PagePropsPageID: NewId(),
+		})
+		assert.True(t, draft.IsPageDraft())
+	})
+
+	t.Run("page draft with both title and page_id", func(t *testing.T) {
+		draft := &Draft{
+			UserId:    NewId(),
+			ChannelId: NewId(),
+			RootId:    NewId(),
+			Message:   "test message",
+		}
+		draft.SetProps(map[string]any{
+			"title":         "Page Title",
+			PagePropsPageID: NewId(),
+		})
+		assert.True(t, draft.IsPageDraft())
+	})
+}

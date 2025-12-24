@@ -14,6 +14,66 @@ type DraftStore struct {
 	mock.Mock
 }
 
+// CreateDraftFromPublished provides a mock function with given fields: pageId, userId
+func (_m *DraftStore) CreateDraftFromPublished(pageId string, userId string) (*model.PageContent, error) {
+	ret := _m.Called(pageId, userId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateDraftFromPublished")
+	}
+
+	var r0 *model.PageContent
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string) (*model.PageContent, error)); ok {
+		return rf(pageId, userId)
+	}
+	if rf, ok := ret.Get(0).(func(string, string) *model.PageContent); ok {
+		r0 = rf(pageId, userId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PageContent)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(pageId, userId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreatePageDraft provides a mock function with given fields: content
+func (_m *DraftStore) CreatePageDraft(content *model.PageContent) (*model.PageContent, error) {
+	ret := _m.Called(content)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreatePageDraft")
+	}
+
+	var r0 *model.PageContent
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.PageContent) (*model.PageContent, error)); ok {
+		return rf(content)
+	}
+	if rf, ok := ret.Get(0).(func(*model.PageContent) *model.PageContent); ok {
+		r0 = rf(content)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PageContent)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.PageContent) error); ok {
+		r1 = rf(content)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Delete provides a mock function with given fields: userID, channelID, rootID
 func (_m *DraftStore) Delete(userID string, channelID string, rootID string) error {
 	ret := _m.Called(userID, channelID, rootID)
@@ -86,6 +146,24 @@ func (_m *DraftStore) DeleteOrphanDraftsByCreateAtAndUserId(createAt int64, user
 	return r0
 }
 
+// DeletePageDraft provides a mock function with given fields: pageId, userId
+func (_m *DraftStore) DeletePageDraft(pageId string, userId string) error {
+	ret := _m.Called(pageId, userId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeletePageDraft")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(pageId, userId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Get provides a mock function with given fields: userID, channelID, rootID, includeDeleted
 func (_m *DraftStore) Get(userID string, channelID string, rootID string, includeDeleted bool) (*model.Draft, error) {
 	ret := _m.Called(userID, channelID, rootID, includeDeleted)
@@ -109,6 +187,36 @@ func (_m *DraftStore) Get(userID string, channelID string, rootID string, includ
 
 	if rf, ok := ret.Get(1).(func(string, string, string, bool) error); ok {
 		r1 = rf(userID, channelID, rootID, includeDeleted)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetActiveEditorsForPage provides a mock function with given fields: pageId, minUpdateAt
+func (_m *DraftStore) GetActiveEditorsForPage(pageId string, minUpdateAt int64) ([]*model.PageContent, error) {
+	ret := _m.Called(pageId, minUpdateAt)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetActiveEditorsForPage")
+	}
+
+	var r0 []*model.PageContent
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, int64) ([]*model.PageContent, error)); ok {
+		return rf(pageId, minUpdateAt)
+	}
+	if rf, ok := ret.Get(0).(func(string, int64) []*model.PageContent); ok {
+		r0 = rf(pageId, minUpdateAt)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PageContent)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, int64) error); ok {
+		r1 = rf(pageId, minUpdateAt)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -181,6 +289,96 @@ func (_m *DraftStore) GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(crea
 	return r0, r1, r2
 }
 
+// GetManyByRootIds provides a mock function with given fields: userID, channelID, rootIDs, includeDeleted
+func (_m *DraftStore) GetManyByRootIds(userID string, channelID string, rootIDs []string, includeDeleted bool) ([]*model.Draft, error) {
+	ret := _m.Called(userID, channelID, rootIDs, includeDeleted)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetManyByRootIds")
+	}
+
+	var r0 []*model.Draft
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, []string, bool) ([]*model.Draft, error)); ok {
+		return rf(userID, channelID, rootIDs, includeDeleted)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, []string, bool) []*model.Draft); ok {
+		r0 = rf(userID, channelID, rootIDs, includeDeleted)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Draft)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, []string, bool) error); ok {
+		r1 = rf(userID, channelID, rootIDs, includeDeleted)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetPageDraft provides a mock function with given fields: pageId, userId
+func (_m *DraftStore) GetPageDraft(pageId string, userId string) (*model.PageContent, error) {
+	ret := _m.Called(pageId, userId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPageDraft")
+	}
+
+	var r0 *model.PageContent
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string) (*model.PageContent, error)); ok {
+		return rf(pageId, userId)
+	}
+	if rf, ok := ret.Get(0).(func(string, string) *model.PageContent); ok {
+		r0 = rf(pageId, userId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PageContent)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(pageId, userId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetPageDraftsForUser provides a mock function with given fields: userId, wikiId
+func (_m *DraftStore) GetPageDraftsForUser(userId string, wikiId string) ([]*model.PageContent, error) {
+	ret := _m.Called(userId, wikiId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPageDraftsForUser")
+	}
+
+	var r0 []*model.PageContent
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string) ([]*model.PageContent, error)); ok {
+		return rf(userId, wikiId)
+	}
+	if rf, ok := ret.Get(0).(func(string, string) []*model.PageContent); ok {
+		r0 = rf(userId, wikiId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PageContent)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(userId, wikiId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // PermanentDeleteByUser provides a mock function with given fields: userId
 func (_m *DraftStore) PermanentDeleteByUser(userId string) error {
 	ret := _m.Called(userId)
@@ -192,6 +390,108 @@ func (_m *DraftStore) PermanentDeleteByUser(userId string) error {
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(userId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// PermanentDeletePageContentsByWiki provides a mock function with given fields: wikiId
+func (_m *DraftStore) PermanentDeletePageContentsByWiki(wikiId string) error {
+	ret := _m.Called(wikiId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PermanentDeletePageContentsByWiki")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(wikiId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// PermanentDeletePageDraftsByUser provides a mock function with given fields: userId
+func (_m *DraftStore) PermanentDeletePageDraftsByUser(userId string) error {
+	ret := _m.Called(userId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PermanentDeletePageDraftsByUser")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(userId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// PublishPageDraft provides a mock function with given fields: pageId, userId
+func (_m *DraftStore) PublishPageDraft(pageId string, userId string) (*model.PageContent, error) {
+	ret := _m.Called(pageId, userId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PublishPageDraft")
+	}
+
+	var r0 *model.PageContent
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string) (*model.PageContent, error)); ok {
+		return rf(pageId, userId)
+	}
+	if rf, ok := ret.Get(0).(func(string, string) *model.PageContent); ok {
+		r0 = rf(pageId, userId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PageContent)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(pageId, userId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpdatePropsOnly provides a mock function with given fields: userId, wikiId, draftId, props, expectedUpdateAt
+func (_m *DraftStore) UpdatePropsOnly(userId string, wikiId string, draftId string, props map[string]interface{}, expectedUpdateAt int64) error {
+	ret := _m.Called(userId, wikiId, draftId, props, expectedUpdateAt)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdatePropsOnly")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, string, map[string]interface{}, int64) error); ok {
+		r0 = rf(userId, wikiId, draftId, props, expectedUpdateAt)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UpdateDraftParent provides a mock function with given fields: userId, wikiId, draftId, newParentId
+func (_m *DraftStore) UpdateDraftParent(userId string, wikiId string, draftId string, newParentId string) error {
+	ret := _m.Called(userId, wikiId, draftId, newParentId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateDraftParent")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, string, string) error); ok {
+		r0 = rf(userId, wikiId, draftId, newParentId)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -222,6 +522,66 @@ func (_m *DraftStore) Upsert(d *model.Draft) (*model.Draft, error) {
 
 	if rf, ok := ret.Get(1).(func(*model.Draft) error); ok {
 		r1 = rf(d)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpsertPageDraft provides a mock function with given fields: d
+func (_m *DraftStore) UpsertPageDraft(d *model.Draft) (*model.Draft, error) {
+	ret := _m.Called(d)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpsertPageDraft")
+	}
+
+	var r0 *model.Draft
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.Draft) (*model.Draft, error)); ok {
+		return rf(d)
+	}
+	if rf, ok := ret.Get(0).(func(*model.Draft) *model.Draft); ok {
+		r0 = rf(d)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Draft)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.Draft) error); ok {
+		r1 = rf(d)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpsertPageDraftContent provides a mock function with given fields: pageId, userId, wikiId, content, title, lastUpdateAt
+func (_m *DraftStore) UpsertPageDraftContent(pageId string, userId string, wikiId string, content string, title string, lastUpdateAt int64) (*model.PageContent, error) {
+	ret := _m.Called(pageId, userId, wikiId, content, title, lastUpdateAt)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpsertPageDraftContent")
+	}
+
+	var r0 *model.PageContent
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, string, string, string, int64) (*model.PageContent, error)); ok {
+		return rf(pageId, userId, wikiId, content, title, lastUpdateAt)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, string, string, string, int64) *model.PageContent); ok {
+		r0 = rf(pageId, userId, wikiId, content, title, lastUpdateAt)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PageContent)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, string, string, string, int64) error); ok {
+		r1 = rf(pageId, userId, wikiId, content, title, lastUpdateAt)
 	} else {
 		r1 = ret.Error(1)
 	}

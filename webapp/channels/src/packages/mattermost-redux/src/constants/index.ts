@@ -6,7 +6,7 @@ import Files from './files';
 import General from './general';
 import Permissions from './permissions';
 import Plugins from './plugins';
-import Posts from './posts';
+import Posts, {PostTypes} from './posts';
 import Preferences from './preferences';
 import RequestStatus from './request_status';
 import Roles from './roles';
@@ -16,4 +16,4 @@ import Threads from './threads';
 import Users from './users';
 import WebsocketEvents from './websocket';
 
-export {General, Preferences, Posts, Files, RequestStatus, WebsocketEvents, Teams, Stats, Permissions, Emoji, Plugins, Users, Roles, Threads};
+export {General, Preferences, Posts, PostTypes, Files, RequestStatus, WebsocketEvents, Teams, Stats, Permissions, Emoji, Plugins, Users, Roles, Threads};

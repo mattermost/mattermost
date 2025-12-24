@@ -1,0 +1,186 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+// Figma Design Tokens
+$sidebar-width: 240px;
+$header-height: 32px;
+$search-height: 32px;
+$node-height: 32px;
+$node-indent: 20px;
+$node-base-padding: 16px;
+
+// Colors (from Figma)
+$sidebar-bg: var(--center-channel-bg);
+$sidebar-border: var(--border-default);
+$node-hover-bg: rgba(var(--center-channel-text-rgb), 0.08);
+$node-selected-bg: rgba(var(--button-bg-rgb), 0.08);
+$node-text: var(--center-channel-text);
+$node-text-muted: rgba(var(--center-channel-text-rgb), 0.75);
+
+// Shadows
+$elevation-2: 0px 4px 6px rgba(0, 0, 0, 0.12);
+
+// Spacing
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 12px;
+$spacing-lg: 16px;
+
+// Border radius
+$radius-sm: 4px;
+
+.PagesHierarchyPanel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    width: $sidebar-width;
+    height: 100%;
+    flex-direction: column;
+    padding: $spacing-md;
+    transition: left 0.2s ease-in-out;
+
+    &--collapsed {
+        // width: 0;
+        position: absolute;
+        left: calc(-1 * $sidebar-width);
+        padding: 0;
+        border-right: none;
+        box-shadow: none;
+
+        .PagesHierarchyPanel__header,
+        .PagesHierarchyPanel__search,
+        .PagesHierarchyPanel__tree,
+        .PagesHierarchyPanel__loading,
+        .PagesHierarchyPanel__empty {
+            display: none;
+        }
+    }
+}
+
+.PagesHierarchyPanel__header {
+    display: flex;
+    height: $header-height;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.PagesHierarchyPanel__title {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.PagesHierarchyPanel__title-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.PagesHierarchyPanel__newPage {
+    display: flex;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: $radius-sm;
+    background: transparent;
+    color: $node-text-muted;
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+        background: $node-hover-bg;
+        color: var(--button-bg);
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+}
+
+// Search (40px height)
+.PagesHierarchyPanel__search {
+    display: flex;
+    height: $search-height;
+    flex-shrink: 0;
+    align-items: center;
+    padding: 0 $spacing-sm;
+    border-radius: $radius-sm;
+    margin: $spacing-sm 0 $spacing-md 0;
+    background: rgba(var(--center-channel-text-rgb), 0.08);
+    gap: $spacing-sm;
+
+    &:hover {
+        background: rgba(var(--center-channel-text-rgb), 0.12);
+    }
+
+    .icon-magnify {
+        display: flex;
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+        align-items: center;
+        color: $node-text-muted;
+        font-size: 16px;
+    }
+
+    input {
+        flex: 1;
+        border: none;
+        background: transparent;
+        color: $node-text;
+        font-size: 14px;
+        outline: none;
+
+        &::placeholder {
+            color: var(--center-channel-color);
+        }
+    }
+}
+
+.PagesHierarchyPanel__clearSearch {
+    position: absolute;
+    right: 18px;
+    display: flex;
+    width: 20px;
+    height: 20px;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    cursor: pointer;
+
+    &:hover {
+        color: $node-text;
+    }
+}
+
+// Tree container
+.PagesHierarchyPanel__tree {
+    flex: 1;
+    padding: 0;
+    overflow-x: auto;
+    overflow-y: auto;
+}
+
+// Loading state
+.PagesHierarchyPanel__loading {
+    padding: $spacing-lg;
+    color: $node-text-muted;
+    font-size: 14px;
+    text-align: center;
+}
+
+// Empty state
+.PagesHierarchyPanel__empty {
+    padding: $spacing-lg;
+    color: $node-text-muted;
+    font-size: 14px;
+    text-align: center;
+}

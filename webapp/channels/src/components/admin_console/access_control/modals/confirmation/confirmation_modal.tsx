@@ -53,9 +53,7 @@ export default function PolicyConfirmationModal({active, onExited, onConfirm, ch
                         className={enforceImmediately ? 'btn-apply' : 'btn-save'}
                         onClick={() => onConfirm(enforceImmediately)}
                     >
-                        {enforceImmediately ?
-                            formatMessage({id: 'admin.access_control.edit_policy.apply_policy', defaultMessage: 'Apply policy'}) :
-                            formatMessage({id: 'admin.access_control.edit_policy.save_policy', defaultMessage: 'Save policy'})
+                        {enforceImmediately ? formatMessage({id: 'admin.access_control.edit_policy.apply_policy', defaultMessage: 'Apply policy'}) : formatMessage({id: 'admin.access_control.edit_policy.save_policy', defaultMessage: 'Save policy'})
                         }
                     </button>
                 </div>
@@ -91,15 +89,13 @@ export default function PolicyConfirmationModal({active, onExited, onConfirm, ch
             </div>
 
             <div className='confirmation'>
-                {enforceImmediately ?
-                    formatMessage({
-                        id: 'admin.access_control.policy.channels_affected',
-                        defaultMessage: 'Are you sure you want to save and apply the access control policy?',
-                    }) :
-                    formatMessage({
-                        id: 'admin.access_control.policy.save_only',
-                        defaultMessage: 'Are you sure you want to save this access control policy?',
-                    })
+                {enforceImmediately ? formatMessage({
+                    id: 'admin.access_control.policy.channels_affected',
+                    defaultMessage: 'Are you sure you want to save and apply the access control policy?',
+                }) : formatMessage({
+                    id: 'admin.access_control.policy.save_only',
+                    defaultMessage: 'Are you sure you want to save this access control policy?',
+                })
                 }
             </div>
         </GenericModal>

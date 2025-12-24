@@ -6,8 +6,10 @@ import {combineReducers} from 'redux';
 import {createMigrate, persistReducer, REHYDRATE} from 'redux-persist';
 import type {MigrationManifest, PersistedState} from 'redux-persist';
 
-import {UserTypes} from 'mattermost-redux/action_types';
+import {UserTypes, WikiTypes} from 'mattermost-redux/action_types';
 import {General} from 'mattermost-redux/constants';
+
+import {makePageDraftKey} from 'selectors/page_drafts';
 
 import {StoragePrefixes, StorageTypes} from 'utils/constants';
 import {getDraftInfoFromKey} from 'utils/storage_utils';
@@ -80,6 +82,17 @@ function storage(state: Record<string, any> = {}, action: MMAction) {
     }
     case StorageTypes.STORAGE_REHYDRATE: {
         return {...state, ...action.data};
+    }
+
+    case WikiTypes.DELETED_DRAFT: {
+        const {id, wikiId, userId} = action.data;
+        if (!id || !wikiId || !userId) {
+            return state;
+        }
+        const draftKey = makePageDraftKey(wikiId, id, userId);
+        const nextState = {...state};
+        Reflect.deleteProperty(nextState, draftKey);
+        return nextState;
     }
 
     case UserTypes.LOGOUT_SUCCESS:

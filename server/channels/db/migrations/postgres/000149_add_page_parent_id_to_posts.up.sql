@@ -1,0 +1,3 @@
+ALTER TABLE Posts ADD COLUMN IF NOT EXISTS PageParentId VARCHAR(26);
+
+UPDATE Posts SET PageParentId = '' WHERE PageParentId IS NULL;

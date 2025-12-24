@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState} from 'react';
-import type {ReactNode} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -108,7 +107,7 @@ const TrialBanner = ({
         case TrialLoadStatus.Failed:
             return formatMessage({id: 'start_trial.modal.failed', defaultMessage: 'Failed'});
         case TrialLoadStatus.Embargoed:
-            return formatMessage<ReactNode>(
+            return formatMessage(
                 {
                     id: 'admin.license.trial-request.embargoed',
                     defaultMessage: 'We were unable to process the request due to limitations for embargoed countries. <link>Learn more in our documentation</link>, or reach out to legal@mattermost.com for questions around export limitations.',

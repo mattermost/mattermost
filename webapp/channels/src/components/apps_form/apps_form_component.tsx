@@ -211,9 +211,7 @@ const initFormValues = (form: AppForm, timezone?: string): AppFormValues => {
 
                 // Round up to next time interval
                 const minutesMod = currentTime.minutes() % timePickerInterval;
-                const defaultMoment = minutesMod === 0 ?
-                    currentTime.clone().seconds(0).milliseconds(0) :
-                    currentTime.clone().add(timePickerInterval - minutesMod, 'minutes').seconds(0).milliseconds(0);
+                const defaultMoment = minutesMod === 0 ? currentTime.clone().seconds(0).milliseconds(0) : currentTime.clone().add(timePickerInterval - minutesMod, 'minutes').seconds(0).milliseconds(0);
                 defaultValue = momentToString(defaultMoment, true);
             }
 

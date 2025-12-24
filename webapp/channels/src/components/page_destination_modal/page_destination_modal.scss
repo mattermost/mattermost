@@ -1,0 +1,105 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.PageDestinationModal {
+    .PageDestinationModal__body {
+        padding: 16px 0;
+    }
+
+    .PageDestinationModal__pageTitle {
+        margin-bottom: 16px;
+        font-weight: 600;
+    }
+
+    .PageDestinationModal__childrenWarning {
+        padding: 12px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+        margin-bottom: 16px;
+        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+    }
+
+    .PageDestinationModal__childrenWarningContent {
+        display: flex;
+        align-items: flex-start;
+    }
+
+    .PageDestinationModal__childrenWarningIcon {
+        margin-top: 2px;
+        margin-right: 8px;
+        color: var(--button-bg);
+        font-size: 18px;
+    }
+
+    .PageDestinationModal__childrenWarningTitle {
+        display: block;
+        margin-bottom: 4px;
+        font-weight: 600;
+    }
+
+    .PageDestinationModal__childrenWarningText {
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+    }
+
+    .PageDestinationModal__additionalInputs {
+        margin-bottom: 16px;
+    }
+
+    .PageDestinationModal__label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+    }
+
+    .PageDestinationModal__select {
+        width: 100%;
+        margin-bottom: 16px;
+    }
+
+    .PageDestinationModal__searchInput {
+        width: 100%;
+        margin-bottom: 8px;
+    }
+
+    .PageDestinationModal__pageList {
+        max-height: 200px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+        margin-bottom: 16px;
+        overflow-y: auto;
+    }
+
+    .PageDestinationModal__pageOption {
+        width: 100%;
+        padding: 8px 12px;
+        border: none;
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        background: transparent;
+        color: inherit;
+        cursor: pointer;
+        text-align: left;
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+        }
+
+        &--selected {
+            background: var(--button-bg);
+            color: var(--button-color);
+
+            &:hover {
+                background: var(--button-bg);
+            }
+        }
+    }
+
+    .PageDestinationModal__emptyMessage {
+        padding: 12px;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+    }
+
+    .PageDestinationModal__helpText {
+        display: block;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+    }
+}

@@ -1,0 +1,30 @@
+.wiki-error-boundary {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    color: var(--center-channel-color);
+    text-align: center;
+
+    .icon {
+        margin-bottom: 16px;
+        color: var(--error-text);
+        font-size: 48px;
+    }
+
+    p {
+        margin-bottom: 16px;
+        font-size: 14px;
+    }
+
+    .btn-tertiary {
+        color: var(--button-bg);
+
+        &:hover {
+            background: rgba(var(--button-bg-rgb), 0.08);
+        }
+    }
+}
