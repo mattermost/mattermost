@@ -20,7 +20,6 @@ import {setCustomStatus, unsetCustomStatus, removeRecentCustomStatus} from 'matt
 import {Preferences} from 'mattermost-redux/constants';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
-import {loadCustomEmojisForRecentCustomStatuses} from 'actions/emoji_actions';
 import {closeModal} from 'actions/views/modals';
 import {makeGetCustomStatus, getRecentCustomStatuses, showStatusDropdownPulsatingDot, isCustomStatusExpired} from 'selectors/views/custom_status';
 
@@ -156,10 +155,6 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
         }
     };
 
-    const loadCustomEmojisForRecentStatuses = () => {
-        dispatch(loadCustomEmojisForRecentCustomStatuses());
-    };
-
     const handleStatusExpired = () => {
         if (customStatusExpired && currentCustomStatus) {
             dispatch(unsetCustomStatus());
@@ -168,7 +163,6 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
 
     useEffect(() => {
         handleCustomStatusInitializationState();
-        loadCustomEmojisForRecentStatuses();
         handleStatusExpired();
     }, []);
 
