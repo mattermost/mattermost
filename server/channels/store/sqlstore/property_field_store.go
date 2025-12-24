@@ -35,6 +35,7 @@ func (s *SqlPropertyFieldStore) Create(field *model.PropertyField) (*model.Prope
 	}
 
 	field.PreSave()
+	field.EnsureOptionIDs()
 
 	if err := field.IsValid(); err != nil {
 		return nil, errors.Wrap(err, "property_field_create_isvalid")
@@ -211,6 +212,7 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 
 	for i, field := range fields {
 		field.UpdateAt = updateTime
+		field.EnsureOptionIDs()
 		if vErr := field.IsValid(); vErr != nil {
 			return nil, errors.Wrap(vErr, "property_field_update_isvalid")
 		}

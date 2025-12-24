@@ -73,6 +73,61 @@ func testCreatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.Error(t, err)
 		require.Empty(t, field)
 	})
+
+	t.Run("should generate option IDs for multiselect fields without IDs", func(t *testing.T) {
+		multiselectField := &model.PropertyField{
+			GroupID: model.NewId(),
+			Name:    "Test Multiselect",
+			Type:    model.PropertyFieldTypeMultiselect,
+			Attrs: map[string]any{
+				"options": []any{
+					map[string]any{"name": "Option 1"},
+					map[string]any{"name": "Option 2"},
+					map[string]any{"name": "Option 3"},
+				},
+			},
+		}
+
+		field, err := ss.PropertyField().Create(multiselectField)
+		require.NoError(t, err)
+		require.NotZero(t, field.ID)
+
+		// Verify options have IDs generated
+		options := field.Attrs["options"].([]any)
+		require.Len(t, options, 3)
+
+		for i, opt := range options {
+			optMap := opt.(map[string]any)
+			require.NotEmpty(t, optMap["id"], "Option %d should have an ID", i)
+			require.Len(t, optMap["id"].(string), 26, "Option %d ID should be 26 characters", i)
+		}
+	})
+
+	t.Run("should preserve existing option IDs for multiselect fields", func(t *testing.T) {
+		existingID1 := model.NewId()
+		existingID2 := model.NewId()
+
+		multiselectField := &model.PropertyField{
+			GroupID: model.NewId(),
+			Name:    "Test Multiselect with IDs",
+			Type:    model.PropertyFieldTypeMultiselect,
+			Attrs: map[string]any{
+				"options": []any{
+					map[string]any{"id": existingID1, "name": "Option 1"},
+					map[string]any{"id": existingID2, "name": "Option 2"},
+				},
+			},
+		}
+
+		field, err := ss.PropertyField().Create(multiselectField)
+		require.NoError(t, err)
+
+		// Verify existing IDs are preserved
+		options := field.Attrs["options"].([]any)
+		require.Len(t, options, 2)
+		require.Equal(t, existingID1, options[0].(map[string]any)["id"])
+		require.Equal(t, existingID2, options[1].(map[string]any)["id"])
+	})
 }
 
 func testGetPropertyField(t *testing.T, _ request.CTX, ss store.Store) {
@@ -426,6 +481,87 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.Equal(t, model.PropertyFieldTypeSelect, updated2.Type)
 		require.ElementsMatch(t, []string{"x", "y", "z"}, updated2.Attrs["options"])
 		require.Greater(t, updated2.UpdateAt, updated2.CreateAt)
+	})
+
+	t.Run("should generate option IDs for multiselect fields on update", func(t *testing.T) {
+		// Create a multiselect field
+		multiselectField := &model.PropertyField{
+			GroupID: model.NewId(),
+			Name:    "Test Multiselect Update",
+			Type:    model.PropertyFieldTypeMultiselect,
+			Attrs: map[string]any{
+				"options": []any{
+					map[string]any{"name": "Original 1"},
+					map[string]any{"name": "Original 2"},
+				},
+			},
+		}
+
+		_, err := ss.PropertyField().Create(multiselectField)
+		require.NoError(t, err)
+		require.NotZero(t, multiselectField.ID)
+
+		// Update with new options without IDs
+		multiselectField.Attrs = map[string]any{
+			"options": []any{
+				map[string]any{"name": "Updated 1"},
+				map[string]any{"name": "Updated 2"},
+				map[string]any{"name": "Updated 3"},
+			},
+		}
+
+		updatedFields, err := ss.PropertyField().Update("", []*model.PropertyField{multiselectField})
+		require.NoError(t, err)
+		require.Len(t, updatedFields, 1)
+
+		// Verify options have IDs generated
+		options := updatedFields[0].Attrs["options"].([]any)
+		require.Len(t, options, 3)
+
+		for i, opt := range options {
+			optMap := opt.(map[string]any)
+			require.NotEmpty(t, optMap["id"], "Updated option %d should have an ID", i)
+			require.Len(t, optMap["id"].(string), 26, "Updated option %d ID should be 26 characters", i)
+		}
+	})
+
+	t.Run("should preserve existing option IDs on update", func(t *testing.T) {
+		existingID1 := model.NewId()
+		existingID2 := model.NewId()
+
+		// Create a multiselect field with IDs
+		multiselectField := &model.PropertyField{
+			GroupID: model.NewId(),
+			Name:    "Test Multiselect Preserve IDs",
+			Type:    model.PropertyFieldTypeMultiselect,
+			Attrs: map[string]any{
+				"options": []any{
+					map[string]any{"id": existingID1, "name": "Option 1"},
+					map[string]any{"id": existingID2, "name": "Option 2"},
+				},
+			},
+		}
+
+		_, err := ss.PropertyField().Create(multiselectField)
+		require.NoError(t, err)
+
+		// Update with same IDs
+		multiselectField.Attrs = map[string]any{
+			"options": []any{
+				map[string]any{"id": existingID1, "name": "Option 1 Updated"},
+				map[string]any{"id": existingID2, "name": "Option 2 Updated"},
+			},
+		}
+
+		updatedFields, err := ss.PropertyField().Update("", []*model.PropertyField{multiselectField})
+		require.NoError(t, err)
+		require.Len(t, updatedFields, 1)
+
+		// Verify existing IDs are preserved
+		options := updatedFields[0].Attrs["options"].([]any)
+		require.Len(t, options, 2)
+		require.Equal(t, existingID1, options[0].(map[string]any)["id"])
+		require.Equal(t, existingID2, options[1].(map[string]any)["id"])
 	})
 
 	t.Run("should not update any fields if one update is invalid", func(t *testing.T) {
