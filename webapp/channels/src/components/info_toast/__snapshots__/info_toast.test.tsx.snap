@@ -3,7 +3,7 @@
 exports[`components/InfoToast should match snapshot 1`] = `
 <div>
   <div
-    class="info-toast className toast-appear toast-appear-active"
+    class="info-toast info-toast--bottom-right className toast-appear toast-appear-active"
   >
     <svg
       fill="currentColor"
