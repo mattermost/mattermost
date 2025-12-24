@@ -209,6 +209,8 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
             } else if (isLinkInfo(fileInfo)) {
                 // For LinkInfo, use the link directly
                 previewUrl = fileInfo.link;
+                this.handleImageLoaded(index);
+                return;
             }
 
             Utils.loadImage(
