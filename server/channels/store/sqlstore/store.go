@@ -112,6 +112,7 @@ type SqlStoreStores struct {
 	Attributes                 store.AttributesStore
 	autotranslation            store.AutoTranslationStore
 	ContentFlagging            store.ContentFlaggingStore
+	recap                      store.RecapStore
 	readReceipt                store.ReadReceiptStore
 	temporaryPost              store.TemporaryPostStore
 }
@@ -265,6 +266,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.Attributes = newSqlAttributesStore(store, metrics)
 	store.stores.autotranslation = newSqlAutoTranslationStore(store)
 	store.stores.ContentFlagging = newContentFlaggingStore(store)
+	store.stores.recap = newSqlRecapStore(store)
 	store.stores.readReceipt = newSqlReadReceiptStore(store, metrics)
 	store.stores.temporaryPost = newSqlTemporaryPostStore(store, metrics)
 
@@ -884,6 +886,10 @@ func (ss *SqlStore) Attributes() store.AttributesStore {
 
 func (ss *SqlStore) AutoTranslation() store.AutoTranslationStore {
 	return ss.stores.autotranslation
+}
+
+func (ss *SqlStore) Recap() store.RecapStore {
+	return ss.stores.recap
 }
 
 func (ss *SqlStore) ReadReceipt() store.ReadReceiptStore {
