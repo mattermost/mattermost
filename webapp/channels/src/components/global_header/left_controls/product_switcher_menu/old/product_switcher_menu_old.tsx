@@ -24,11 +24,10 @@ import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {useCurrentProductId, useProducts, isChannels} from 'utils/products';
 
-import ProductBranding from './product_branding';
 import ProductMenuItem from './product_menu_item';
 import ProductMenuList from './product_menu_list';
 
-import {useClickOutsideRef} from '../../hooks';
+import ProductBranding from '../../product_branding';
 
 export const ProductMenuContainer = styled.nav`
     display: flex;
@@ -50,6 +49,7 @@ export const ProductMenuButton = styled.button.attrs(() => ({
     border: none;
     border-radius: 4px;
     padding: 3px 6px 3px 5px;
+    gap: 16px
 
     &:hover, &:focus {
         color: rgba(var(--sidebar-text-rgb), 0.56);
@@ -59,10 +59,6 @@ export const ProductMenuButton = styled.button.attrs(() => ({
     &:active {
         color: rgba(var(--sidebar-text-rgb), 0.56);
         background-color: rgba(var(--sidebar-text-rgb), 0.16);
-    }
-
-    > * + * {
-        margin-left: 8px;
     }
 `;
 
@@ -84,13 +80,6 @@ const ProductMenu = (): JSX.Element => {
         handleOnBoardingTaskData(visitSystemConsoleTaskName, steps.FINISHED);
         localStorage.setItem(OnboardingTaskCategory, 'true');
     };
-
-    useClickOutsideRef(menuRef, () => {
-        if (!switcherOpen) {
-            return;
-        }
-        dispatch(setProductMenuSwitcherOpen(false));
-    });
 
     const productItems = products?.map((product) => {
         let tourTip;

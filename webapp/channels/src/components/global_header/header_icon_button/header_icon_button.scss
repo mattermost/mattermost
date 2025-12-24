@@ -28,7 +28,7 @@
         --bg-opacity: 0;
         --text-opacity: 0.56;
 
-        &:hover, &[aria-expanded="true"][aria-haspopup="true"] {
+        &:hover {
             --bg-opacity: 0.08;
             --text-opacity: 0.72;
         }
@@ -43,7 +43,7 @@
             }
         }
 
-        &.HeaderIconButton--active, &:active {
+        &.HeaderIconButton--active, &:active, &[aria-expanded="true"][aria-haspopup="true"] {
             --bg-opacity: 0.16;
             --text-opacity: 1;
         }

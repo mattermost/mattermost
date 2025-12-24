@@ -10,9 +10,9 @@ import {TopLevelProducts} from 'utils/constants';
 import * as productUtils from 'utils/products';
 import {TestHelper} from 'utils/test_helper';
 
-import ProductMenu, {ProductMenuButton, ProductMenuContainer} from './product_menu';
 import ProductMenuItem from './product_menu_item';
 import ProductMenuList from './product_menu_list';
+import ProductMenu, {ProductMenuButton, ProductMenuContainer} from './product_switcher_menu_old';
 
 const spyProduct = jest.spyOn(productUtils, 'useCurrentProductId');
 spyProduct.mockReturnValue(null);

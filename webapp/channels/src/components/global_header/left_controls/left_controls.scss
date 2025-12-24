@@ -5,6 +5,7 @@
     flex-shrink: 0;
     align-items: center;
     gap: 12px;
+    margin-left: 8px; // This to align with the team sidebar icons
 
     &-historyButtons {
         display: flex;
