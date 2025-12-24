@@ -2,44 +2,30 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import styled from 'styled-components';
+import {useSelector} from 'react-redux';
 
-import glyphMap, {ProductChannelsIcon} from '@mattermost/compass-icons/components';
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
 
-import {useCurrentProduct} from 'utils/products';
+import {LicenseSkus} from 'utils/constants';
 
-const ProductBrandingContainer = styled.span`
-    display: flex;
-    align-items: center;
-`;
+import ProductBrandingFreeEdition from './product_branding_free_edition';
+import ProductBrandingLicencedEdition from './product_branding_licenced_edition';
 
-const ProductBrandingHeading = styled.span`
-    font-family: 'Metropolis';
-    font-size: 16px;
-    line-height: 24px;
-    font-weight: bold;
-    margin: 0;
-    color: inherit;
+import './product_branding.scss';
 
-    margin-left: 8px;
-`;
+export function ProductBranding() {
+    const license = useSelector(getLicense);
 
-const ProductBranding = (): JSX.Element => {
-    const currentProduct = useCurrentProduct();
+    const isFreeEdition = license.IsLicensed === 'false' || license.SkuShortName === LicenseSkus.Entry;
+    const isLicencedEdition = license.IsLicensed === 'true';
 
-    const Icon = currentProduct?.switcherIcon ? glyphMap[currentProduct.switcherIcon] : ProductChannelsIcon;
+    if (isFreeEdition) {
+        return <ProductBrandingFreeEdition/>;
+    }
 
-    return (
-        <ProductBrandingContainer tabIndex={-1}>
-            <Icon size={24}/>
-            <h1 className='sr-only'>
-                {currentProduct ? currentProduct.switcherText : 'Channels'}
-            </h1>
-            <ProductBrandingHeading>
-                {currentProduct ? currentProduct.switcherText : 'Channels'}
-            </ProductBrandingHeading>
-        </ProductBrandingContainer>
-    );
-};
+    if (isLicencedEdition) {
+        return <ProductBrandingLicencedEdition/>;
+    }
 
-export default ProductBranding;
+    return null;
+}

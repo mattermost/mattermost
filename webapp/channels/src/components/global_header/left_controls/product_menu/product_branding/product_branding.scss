@@ -1,0 +1,37 @@
+.globalHeader-productBranding-freeEdition {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    &-logo {
+        path {
+            fill: rgba(var(--sidebar-text-rgb), 0.75);
+        }
+    }
+
+    &-badge {
+        display: flex;
+        align-self: center;
+        padding: 2px 6px;
+        border-radius: var(--radius-s);
+        background: rgba(var(--sidebar-text-rgb), 0.08);
+        color: rgba(var(--sidebar-text-rgb), 0.75);
+        font-family: "Open Sans", sans-serif;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.025em;
+        line-height: 16px;
+    }
+}
+
+.globalHeader-productBranding-licencedEdition {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    &-heading {
+        font-family: "Metropolis";
+        font-size: 16px;
+        font-weight: bold;
+    }
+}
