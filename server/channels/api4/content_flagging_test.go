@@ -6,6 +6,7 @@ package api4
 import (
 	"context"
 	"net/http"
+	"os"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -416,6 +417,10 @@ func TestGetFlaggedPost(t *testing.T) {
 }
 
 func TestFlagPost(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
+	t.Cleanup(func() {
+		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
+	})
 	th := Setup(t).InitBasic(t)
 
 	client := th.Client
@@ -553,6 +558,36 @@ func TestFlagPost(t *testing.T) {
 		resp, err := client.FlagPostForContentReview(context.Background(), post.Id, flagRequest)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+
+	t.Run("Should not allow flagging a burn on read post", func(t *testing.T) {
+		enableBurnOnReadFeature(th)
+		defer th.RemoveLicense(t)
+
+		th.App.UpdateConfig(func(config *model.Config) {
+			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
+			config.ContentFlaggingSettings.SetDefaults()
+		})
+
+		post := &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "This is a burn on read post",
+			Type:      model.PostTypeBurnOnRead,
+		}
+
+		createdPost, response, err := client.CreatePost(context.Background(), post)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, response)
+
+		flagRequest := &model.FlagContentRequest{
+			Reason:  "spam",
+			Comment: "This is spam content",
+		}
+
+		response, err = client.FlagPostForContentReview(context.Background(), createdPost.Id, flagRequest)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, response)
 	})
 }
 

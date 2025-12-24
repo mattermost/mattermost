@@ -445,6 +445,24 @@ describe('components/dot_menu/DotMenu', () => {
         expect(flagPostOption).toBeNull();
     });
 
+    test('should not show flag post menu option for burn on read posts', () => {
+        const burnOnReadPost: Post = {
+            ...post1,
+            type: 'burn_on_read',
+        };
+        const props = {
+            ...baseProps,
+            post: burnOnReadPost,
+        };
+        renderWithContext(<DotMenuRoot {...props}/>, initialState);
+
+        const button = screen.getByTestId(`PostDotMenu-Button-${post1.id}`);
+        fireEvent.click(button);
+
+        const flagPostOption = screen.queryByTestId(`flag_post_${post1.id}`);
+        expect(flagPostOption).toBeNull();
+    });
+
     test('should show copy link for burn-on-read post sender', () => {
         const borPost = {
             ...post1,
