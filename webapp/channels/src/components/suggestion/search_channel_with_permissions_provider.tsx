@@ -22,6 +22,7 @@ import store from 'stores/redux_store';
 
 import usePrefixedIds from 'components/common/hooks/usePrefixedIds';
 
+import {getArchiveIconClassName} from 'utils/channel_utils';
 import {Constants} from 'utils/constants';
 
 import Provider from './provider';
@@ -50,7 +51,7 @@ const SearchChannelWithPermissionsSuggestion = React.forwardRef<HTMLLIElement, S
     if (channelIsArchived) {
         icon = (
             <i
-                className='icon icon--no-spacing icon-archive-outline'
+                className={`icon icon--no-spacing ${getArchiveIconClassName(channel.type)}`}
                 aria-label={formatMessage({
                     id: 'suggestion.archived_channel',
                     defaultMessage: 'Archived channel',

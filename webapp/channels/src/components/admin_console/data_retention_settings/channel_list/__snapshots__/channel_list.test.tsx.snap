@@ -112,6 +112,7 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
             >
               <GlobeIcon
                 className="channel-icon"
+                data-testid="DN-archive-icon"
               />
               <div
                 className="ChannelList__nameText"
@@ -258,6 +259,7 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
             >
               <GlobeIcon
                 className="channel-icon"
+                data-testid="DN-archive-icon"
               />
               <div
                 className="ChannelList__nameText"
@@ -292,6 +294,7 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
             >
               <GlobeIcon
                 className="channel-icon"
+                data-testid="DN-archive-icon"
               />
               <div
                 className="ChannelList__nameText"
@@ -326,6 +329,7 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
             >
               <GlobeIcon
                 className="channel-icon"
+                data-testid="DN-archive-icon"
               />
               <div
                 className="ChannelList__nameText"
@@ -360,6 +364,7 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
             >
               <GlobeIcon
                 className="channel-icon"
+                data-testid="DN-archive-icon"
               />
               <div
                 className="ChannelList__nameText"
@@ -394,6 +399,7 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
             >
               <GlobeIcon
                 className="channel-icon"
+                data-testid="DN-archive-icon"
               />
               <div
                 className="ChannelList__nameText"
@@ -428,6 +434,7 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
             >
               <GlobeIcon
                 className="channel-icon"
+                data-testid="DN-archive-icon"
               />
               <div
                 className="ChannelList__nameText"
@@ -462,6 +469,7 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
             >
               <GlobeIcon
                 className="channel-icon"
+                data-testid="DN-archive-icon"
               />
               <div
                 className="ChannelList__nameText"
@@ -496,6 +504,7 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
             >
               <GlobeIcon
                 className="channel-icon"
+                data-testid="DN-archive-icon"
               />
               <div
                 className="ChannelList__nameText"
@@ -530,6 +539,7 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
             >
               <GlobeIcon
                 className="channel-icon"
+                data-testid="DN-archive-icon"
               />
               <div
                 className="ChannelList__nameText"
@@ -564,6 +574,7 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
             >
               <GlobeIcon
                 className="channel-icon"
+                data-testid="DN-archive-icon"
               />
               <div
                 className="ChannelList__nameText"
