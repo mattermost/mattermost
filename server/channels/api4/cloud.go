@@ -605,6 +605,11 @@ func handleCheckCWSConnection(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	if !c.App.Channels().License().IsCloud() {
+		c.Err = model.NewAppError("Api4.handleCheckCWSConnection", "api.cloud.license_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	if err := c.App.Cloud().CheckCWSConnection(c.AppContext.Session().UserId); err != nil {
 		c.Err = model.NewAppError("Api4.handleCWSHealthCheck", "api.server.cws.health_check.app_error", nil, "CWS Server is not available.", http.StatusInternalServerError)
 		return
