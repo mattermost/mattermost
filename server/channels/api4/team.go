@@ -127,6 +127,12 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Don't sanitize the team here since the user will be a team admin and their session won't reflect that yet
+	// instead check the scheme roles for the team and if the user has the permission to invite users
+	_, schemeUserRole, schemeAdminRole, schemeErr := c.App.GetSchemeRolesForTeam(rteam.Id)
+	if schemeErr != nil || !c.App.RolesGrantPermission([]string{schemeUserRole, schemeAdminRole}, model.PermissionInviteUser.Id) {
+		// If we can't check permissions, fail secure by hiding the invite_id because the team is already created above
+		rteam.InviteId = ""
+	}
 
 	auditRec.Success()
 	auditRec.AddEventResultState(&team)
