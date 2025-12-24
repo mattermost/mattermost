@@ -5821,6 +5821,22 @@ func TestCreateBurnOnReadPost(t *testing.T) {
 		require.NotNil(t, revealedPostInChannel.Metadata)
 		require.NotZero(t, revealedPostInChannel.Metadata.ExpireAt)
 	})
+
+	t.Run("Create post send back pending post ID for post creator", func(t *testing.T) {
+		post := &model.Post{
+			ChannelId:     th.BasicChannel.Id,
+			UserId:        th.BasicUser.Id,
+			Message:       "burn on read message",
+			Type:          model.PostTypeBurnOnRead,
+			PendingPostId: model.NewId(),
+		}
+
+		createdPost, response, err := th.Client.CreatePost(context.Background(), post)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, response)
+		require.NotNil(t, createdPost)
+		require.Equal(t, post.PendingPostId, createdPost.PendingPostId)
+	})
 }
 
 func TestBurnPost(t *testing.T) {
