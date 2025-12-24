@@ -25,7 +25,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
     />
   </WithTooltip>
   <Menu
-    ariaLabel="Add Channel Dropdown"
+    ariaLabel="Help"
     id="AddChannelDropdown"
     openLeft={false}
     openUp={false}
@@ -96,7 +96,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
     />
   </WithTooltip>
   <Menu
-    ariaLabel="Add Channel Dropdown"
+    ariaLabel="Help"
     id="AddChannelDropdown"
     openLeft={false}
     openUp={false}
@@ -160,7 +160,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
     />
   </WithTooltip>
   <Menu
-    ariaLabel="Add Channel Dropdown"
+    ariaLabel="Help"
     id="AddChannelDropdown"
     openLeft={false}
     openUp={false}
