@@ -4,6 +4,7 @@
 import React from 'react';
 
 import IntlProvider from 'components/intl_provider';
+import ThemeProvider from 'components/theme_provider';
 
 import WebSocketClient from 'client/web_websocket_client';
 import {WebSocketContext} from 'utils/use_websocket';
@@ -16,7 +17,9 @@ export default function RootProvider(props: Props) {
     return (
         <IntlProvider>
             <WebSocketContext.Provider value={WebSocketClient}>
-                {props.children}
+                <ThemeProvider>
+                    {props.children}
+                </ThemeProvider>
             </WebSocketContext.Provider>
         </IntlProvider>
     );

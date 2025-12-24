@@ -6,8 +6,6 @@ import {shallow} from 'enzyme';
 import React from 'react';
 import {Link} from 'react-router-dom';
 
-import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
-
 import AnyTeamPermissionGate from 'components/permissions_gates/any_team_permission_gate';
 
 import EmojiList from './emoji_list';
@@ -15,21 +13,17 @@ import EmojiPage from './emoji_page';
 
 jest.mock('utils/utils', () => ({
     localizeMessage: jest.fn().mockReturnValue('Custom Emoji'),
-    resetTheme: jest.fn(),
-    applyTheme: jest.fn(),
 }));
 
 describe('EmojiPage', () => {
     const mockLoadRolesIfNeeded = jest.fn();
     const mockScrollToTop = jest.fn();
-    const mockCurrentTheme = {} as Theme;
 
     const defaultProps = {
         teamName: 'team',
         teamDisplayName: 'Team Display Name',
         siteName: 'Site Name',
         scrollToTop: mockScrollToTop,
-        currentTheme: mockCurrentTheme,
         actions: {
             loadRolesIfNeeded: mockLoadRolesIfNeeded,
         },
