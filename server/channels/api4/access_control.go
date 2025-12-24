@@ -64,7 +64,7 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 				return
 			}
 
-			hasChannelPermission := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, policy.ID, model.PermissionManageChannelAccessRules)
+			hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, policy.ID, model.PermissionManageChannelAccessRules)
 			if !hasChannelPermission {
 				c.SetPermissionError(model.PermissionManageChannelAccessRules)
 				return
@@ -197,7 +197,7 @@ func checkExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		// SECURE: Check specific channel permission
-		hasChannelPermission := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
+		hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
 		if !hasChannelPermission {
 			c.SetPermissionError(model.PermissionManageChannelAccessRules)
 			return
@@ -245,7 +245,7 @@ func testExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		// SECURE: Check specific channel permission
-		hasChannelPermission := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
+		hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
 		if !hasChannelPermission {
 			c.SetPermissionError(model.PermissionManageChannelAccessRules)
 			return
@@ -321,7 +321,7 @@ func validateExpressionAgainstRequester(c *Context, w http.ResponseWriter, r *ht
 		}
 
 		// SECURE: Check specific channel permission
-		hasChannelPermission := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
+		hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
 		if !hasChannelPermission {
 			c.SetPermissionError(model.PermissionManageChannelAccessRules)
 			return
@@ -450,7 +450,7 @@ func setActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	hasManageSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 	if !hasManageSystemPermission {
 		for _, entry := range list.Entries {
-			hasChannelPermission := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, entry.ID, model.PermissionManageChannelAccessRules)
+			hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, entry.ID, model.PermissionManageChannelAccessRules)
 			if !hasChannelPermission {
 				c.SetPermissionError(model.PermissionManageChannelAccessRules)
 				return
@@ -661,7 +661,7 @@ func getFieldsAutocomplete(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		// SECURE: Check specific channel permission
-		hasChannelPermission := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
+		hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
 		if !hasChannelPermission {
 			c.SetPermissionError(model.PermissionManageChannelAccessRules)
 			return
@@ -735,7 +735,7 @@ func convertToVisualAST(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		// SECURE: Check specific channel permission
-		hasChannelPermission := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
+		hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
 		if !hasChannelPermission {
 			c.SetPermissionError(model.PermissionManageChannelAccessRules)
 			return

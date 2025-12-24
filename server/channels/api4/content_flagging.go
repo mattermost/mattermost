@@ -169,7 +169,7 @@ func flagPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "postId", postId)
 	model.AddEventParameterToAuditRec(auditRec, "userId", userId)
 
-	post, appErr := c.App.GetPostIfAuthorized(c.AppContext, postId, c.AppContext.Session(), false)
+	post, appErr, _ := c.App.GetPostIfAuthorized(c.AppContext, postId, c.AppContext.Session(), false)
 	if appErr != nil {
 		c.Err = appErr
 		return
