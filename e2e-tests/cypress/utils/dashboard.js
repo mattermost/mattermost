@@ -9,15 +9,17 @@
  *   AUTOMATION_DASHBOARD_TOKEN=[token]
  */
 
-const fs = require('fs');
-const readFile = require('util').promisify(fs.readFile);
+import fs from 'fs';
+import {promisify} from 'util';
 
-const axios = require('axios');
-const chalk = require('chalk');
-const mime = require('mime-types');
+import axios from 'axios';
+import chalk from 'chalk';
+import mime from 'mime-types';
+import dotenv from 'dotenv';
 
-require('dotenv').config();
+dotenv.config({quiet: true});
 
+const readFile = promisify(fs.readFile);
 const timeout = 60 * 1000;
 
 const {
@@ -27,7 +29,7 @@ const {
 
 const connectionErrors = ['ECONNABORTED', 'ECONNREFUSED'];
 
-async function createAndStartCycle(data) {
+export async function createAndStartCycle(data) {
     const response = await axios({
         url: `${AUTOMATION_DASHBOARD_URL}/cycles/start`,
         headers: {
@@ -41,7 +43,7 @@ async function createAndStartCycle(data) {
     return response.data;
 }
 
-async function getSpecToTest({repo, branch, build, server}) {
+export async function getSpecToTest({repo, branch, build, server}) {
     try {
         const response = await axios({
             url: `${AUTOMATION_DASHBOARD_URL}/executions/specs/start?repo=${repo}&branch=${branch}&build=${build}`,
@@ -65,7 +67,7 @@ async function getSpecToTest({repo, branch, build, server}) {
     }
 }
 
-async function recordSpecResult(specId, spec, tests) {
+export async function recordSpecResult(specId, spec, tests) {
     try {
         const response = await axios({
             url: `${AUTOMATION_DASHBOARD_URL}/executions/specs/end?id=${specId}`,
@@ -90,7 +92,7 @@ async function recordSpecResult(specId, spec, tests) {
     }
 }
 
-async function updateCycle(id, cyclePatch) {
+export async function updateCycle(id, cyclePatch) {
     try {
         const response = await axios({
             url: `${AUTOMATION_DASHBOARD_URL}/cycles/${id}`,
@@ -115,7 +117,7 @@ async function updateCycle(id, cyclePatch) {
     }
 }
 
-async function uploadScreenshot(filePath, repo, branch, build) {
+export async function uploadScreenshot(filePath, repo, branch, build) {
     try {
         const contentType = mime.lookup(filePath);
         const extension = mime.extension(contentType);
@@ -149,11 +151,3 @@ async function uploadScreenshot(filePath, repo, branch, build) {
         return {error: 'Failed to upload a screenshot.'};
     }
 }
-
-module.exports = {
-    createAndStartCycle,
-    getSpecToTest,
-    recordSpecResult,
-    updateCycle,
-    uploadScreenshot,
-};
