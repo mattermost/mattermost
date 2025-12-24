@@ -26,15 +26,6 @@ module.exports = async () => {
 configure({adapter: new Adapter()});
 
 global.window = Object.create(window);
-Object.defineProperty(window, 'location', {
-    value: {
-        href: 'http://localhost:8065',
-        origin: 'http://localhost:8065',
-        port: '8065',
-        protocol: 'http:',
-        search: '',
-    },
-});
 
 // The current version of jsdom that's used by jest-environment-jsdom 29 doesn't support fetch, so we have to
 // use node-fetch despite some mismatched parameters.
@@ -113,6 +104,12 @@ afterEach(() => {
             //
             // Ideally, we wouldn't ignore these, but so many of our existing tests are set up in a way that we can't
             // fix this everywhere at the moment.
+            continue;
+        }
+
+        // jsdom doesn't implement navigation, but this is expected behavior in tests
+        const errorStr = call[0] instanceof Error ? call[0].message : String(call[0]);
+        if (errorStr.includes('Not implemented:')) {
             continue;
         }
 

@@ -4,7 +4,6 @@
 import classNames from 'classnames';
 import isEmpty from 'lodash/isEmpty';
 import React, {memo, useCallback, useEffect, useState} from 'react';
-import type {ReactNode} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch, shallowEqual} from 'react-redux';
 import {Link, useRouteMatch} from 'react-router-dom';
@@ -204,7 +203,7 @@ const GlobalThreads = () => {
                                 id: 'globalThreads.threadPane.unselectedTitle',
                                 defaultMessage: '{numUnread, plural, =0 {Looks like you’re all caught up} other {Catch up on your threads}}',
                             }, {numUnread})}
-                            subtitle={formatMessage<ReactNode>({
+                            subtitle={formatMessage({
                                 id: 'globalThreads.threadPane.unreadMessageLink',
                                 defaultMessage: 'You have {numUnread, plural, =0 {no unread threads} =1 {<link>{numUnread} thread</link>} other {<link>{numUnread} threads</link>}} {numUnread, plural, =0 {} other {with unread messages}}',
                             }, {
