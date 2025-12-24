@@ -14,6 +14,7 @@ import WithTooltip from 'components/with_tooltip';
 import Constants from 'utils/constants';
 
 import ColorChooser from '../color_chooser/color_chooser';
+import PrimaryColorChooser from './primary_color_chooser';
 
 const COPY_SUCCESS_INTERVAL = 3000;
 
@@ -462,6 +463,15 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
                 className='appearance-section pt-2'
                 aria-labelledby='customThemes'
             >
+                <PrimaryColorChooser
+                    theme={this.props.theme}
+                    onChange={(theme) => {
+                        this.props.updateTheme(theme);
+                        // Update the pastebox when theme changes via the color picker
+                        const copyTheme = this.setCopyTheme(theme);
+                        this.setState({copyTheme});
+                    }}
+                />
                 <div className='theme-elements row'>
                     <h4 className='theme-elements__header'>
                         <button
