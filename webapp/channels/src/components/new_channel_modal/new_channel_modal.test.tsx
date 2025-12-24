@@ -373,6 +373,9 @@ describe('components/new_channel_modal', () => {
     });
 
     test('should disable confirm button when server error', async () => {
+        // Mock createChannel to return an error
+        (createChannel as jest.Mock).mockReturnValue(() => Promise.resolve({error: {message: 'Something went wrong. Please try again.'}}));
+
         renderWithContext(
             <NewChannelModal/>,
             initialState,
@@ -399,10 +402,13 @@ describe('components/new_channel_modal', () => {
         expect(createChannelButton).toBeEnabled();
 
         // Submit
-        await act(async () => userEvent.click(createChannelButton));
+        await userEvent.click(createChannelButton);
 
-        const serverError = screen.getByText('Something went wrong. Please try again.');
-        expect(serverError).toBeInTheDocument();
+        // Wait for error message to appear
+        await waitFor(() => {
+            expect(screen.getByText('Something went wrong. Please try again.')).toBeInTheDocument();
+        });
+
         expect(createChannelButton).toBeDisabled();
     });
 

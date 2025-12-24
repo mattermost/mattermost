@@ -201,6 +201,21 @@ export function createPost(
             reply_count: 0,
         };
 
+        // Add current_team_id for DM/GM posts to enable proper channel mention resolution
+        // This prevents cross-team information disclosure and makes mention resolution deterministic
+        const channel = state.entities.channels.channels[post.channel_id];
+        const currentTeamId = state.entities.teams.currentTeamId;
+        if (channel && !channel.team_id && currentTeamId) {
+            // DM/GM channel - add current team context
+            newPost = {
+                ...newPost,
+                props: {
+                    ...newPost.props,
+                    current_team_id: currentTeamId,
+                },
+            };
+        }
+
         if (post.root_id) {
             newPost.reply_count = PostSelectors.getPostRepliesCount(state, post.root_id) + 1;
         }
