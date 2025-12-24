@@ -11,9 +11,9 @@ import type {ClientConfig} from '@mattermost/types/config';
 
 import {RequestStatus} from 'mattermost-redux/constants';
 
-import * as useCWSAvailabilityCheckAll from 'components/common/hooks/useCWSAvailabilityCheck';
 import SaveButton from 'components/save_button';
 import Signup from 'components/signup/signup';
+import CheckInput from 'components/widgets/inputs/check';
 import Input from 'components/widgets/inputs/input/input';
 import PasswordInput from 'components/widgets/inputs/password_input/password_input';
 
@@ -56,13 +56,16 @@ jest.mock('mattermost-redux/selectors/entities/general', () => ({
     getConfig: () => mockConfig,
 }));
 
+let mockCurrentUserId = '';
+
 jest.mock('mattermost-redux/selectors/entities/users', () => ({
     ...jest.requireActual('mattermost-redux/selectors/entities/users') as typeof import('mattermost-redux/selectors/entities/users'),
-    getCurrentUserId: () => '',
+    getCurrentUserId: () => mockCurrentUserId,
 }));
 
 jest.mock('actions/team_actions', () => ({
     ...jest.requireActual('actions/team_actions') as typeof import('actions/team_actions'),
+    addUserToTeamFromInvite: jest.fn().mockResolvedValue({data: {}}),
     addUsersToTeamFromInvite: jest.fn().mockResolvedValue({name: 'teamName'}),
 }));
 
@@ -74,11 +77,6 @@ jest.mock('mattermost-redux/actions/users', () => ({
 jest.mock('actions/views/login', () => ({
     ...jest.requireActual('actions/views/login') as typeof import('actions/views/login'),
     loginById: jest.fn().mockResolvedValue({data: {}}),
-}));
-
-jest.mock('actions/team_actions', () => ({
-    ...jest.requireActual('actions/team_actions') as typeof import('actions/team_actions'),
-    addUserToTeamFromInvite: jest.fn().mockResolvedValue({data: {}}),
 }));
 
 jest.mock('actions/storage');
@@ -97,6 +95,9 @@ const actImmediate = (wrapper: ReactWrapper) =>
 describe('components/signup/Signup', () => {
     beforeEach(() => {
         mockLocation = {pathname: '', search: '', hash: ''};
+        mockHistoryPush.mockClear();
+        mockDispatch.mockClear();
+        mockCurrentUserId = '';
 
         mockLicense = {IsLicensed: 'true', Cloud: 'false'};
 
@@ -225,6 +226,9 @@ describe('components/signup/Signup', () => {
         const passwordInput = wrapper.find(PasswordInput).first().find('input').first();
         passwordInput.simulate('change', {target: {value: 'password'}});
 
+        const termsCheckbox = wrapper.find(CheckInput).first().find('input').first();
+        termsCheckbox.simulate('change');
+
         const saveButton = wrapper.find(SaveButton).first();
         expect(saveButton.props().disabled).toEqual(false);
 
@@ -262,6 +266,9 @@ describe('components/signup/Signup', () => {
         const passwordInput = wrapper.find(PasswordInput).first().find('input').first();
         passwordInput.simulate('change', {target: {value: 'password'}});
 
+        const termsCheckbox = wrapper.find(CheckInput).first().find('input').first();
+        termsCheckbox.simulate('change');
+
         const saveButton = wrapper.find(SaveButton).first();
         expect(saveButton.props().disabled).toEqual(false);
 
@@ -295,12 +302,14 @@ describe('components/signup/Signup', () => {
         const emailInput = screen.getByTestId('signup-body-card-form-email-input');
         const usernameInput = screen.getByTestId('signup-body-card-form-name-input');
         const passwordInput = screen.getByTestId('signup-body-card-form-password-input');
+        const termsCheckbox = screen.getByRole('checkbox', {name: /terms and privacy policy checkbox/i});
         const submitButton = screen.getByText('Create account');
 
         // Submit with valid email and username but invalid password
         fireEvent.change(emailInput, {target: {value: 'test@example.com'}});
         fireEvent.change(usernameInput, {target: {value: 'testuser'}});
         fireEvent.change(passwordInput, {target: {value: '123'}});
+        fireEvent.click(termsCheckbox);
         fireEvent.click(submitButton);
 
         await waitFor(() => {
@@ -322,12 +331,14 @@ describe('components/signup/Signup', () => {
         const emailInput = screen.getByTestId('signup-body-card-form-email-input');
         const usernameInput = screen.getByTestId('signup-body-card-form-name-input');
         const passwordInput = screen.getByTestId('signup-body-card-form-password-input');
+        const termsCheckbox = screen.getByRole('checkbox', {name: /terms and privacy policy checkbox/i});
         const submitButton = screen.getByText('Create account');
 
         // Submit with valid data that will trigger server error
         fireEvent.change(emailInput, {target: {value: 'test@example.com'}});
         fireEvent.change(usernameInput, {target: {value: 'existinguser'}});
         fireEvent.change(passwordInput, {target: {value: 'password123'}});
+        fireEvent.click(termsCheckbox);
         fireEvent.click(submitButton);
 
         await waitFor(() => {
@@ -335,71 +346,92 @@ describe('components/signup/Signup', () => {
         });
     });
 
+    // These tests were "zombie tests" on master - they appeared to pass but their assertions
+    // never executed due to improper async handling (setTimeout without await/done callbacks).
+    // Fixed to properly test the team invite flow when a user is already logged in.
     it('should add user to team and redirect when team invite valid and logged in', async () => {
         mockLocation.search = '?id=ppni7a9t87fn3j4d56rwocdctc';
+        mockCurrentUserId = 'user1'; // Simulate logged-in user
 
-        const wrapper = shallow(
-            <Signup/>,
+        // Mock dispatch to return team data when addUserToTeamFromInvite is called
+        mockDispatch = jest.fn().
+            mockResolvedValueOnce({}). // removeGlobalItem in useEffect
+            mockResolvedValueOnce({data: {name: 'teamName'}}); // addUserToTeamFromInvite
+
+        const wrapper = mountWithIntl(
+            <IntlProvider {...intlProviderProps}>
+                <BrowserRouter>
+                    <Signup/>
+                </BrowserRouter>
+            </IntlProvider>,
         );
 
-        setTimeout(() => {
-            expect(mockHistoryPush).toHaveBeenCalledWith('/teamName/channels/town-square');
-            expect(wrapper).toMatchSnapshot();
-        }, 0);
+        await actImmediate(wrapper);
+
+        expect(mockHistoryPush).toHaveBeenCalledWith('/teamName/channels/town-square');
     });
 
-    it('should handle failure adding user to team when team invite and logged in', () => {
+    it('should handle failure adding user to team when team invite and logged in', async () => {
         mockLocation.search = '?id=ppni7a9t87fn3j4d56rwocdctc';
+        mockCurrentUserId = 'user1'; // Simulate logged-in user
 
-        const wrapper = shallow(
-            <Signup/>,
-        );
+        // Mock dispatch to return error when addUserToTeamFromInvite is called
+        mockDispatch = jest.fn().
+            mockResolvedValueOnce({}). // removeGlobalItem in useEffect
+            mockResolvedValueOnce({
+                error: {
+                    server_error_id: 'api.team.add_user_to_team_from_invite.invalid.app_error',
+                    message: 'Invalid invite',
+                },
+            }); // addUserToTeamFromInvite with error
 
-        setTimeout(() => {
+        renderWithContext(<Signup/>, mockState);
+
+        await waitFor(() => {
             expect(mockHistoryPush).not.toHaveBeenCalled();
-            expect(wrapper.find('.content-layout-column-title').text()).toEqual('This invite link is invalid');
+            expect(screen.getByText('This invite link is invalid')).toBeInTheDocument();
         });
     });
 
-    it('should show newsletter check box opt-in for self-hosted non airgapped workspaces', async () => {
-        jest.spyOn(useCWSAvailabilityCheckAll, 'default').mockImplementation(() => useCWSAvailabilityCheckAll.CSWAvailabilityCheckTypes.Available);
-        mockLicense = {IsLicensed: 'true', Cloud: 'false'};
+    it('should show terms and privacy checkbox', async () => {
+        mockConfig.TermsOfServiceLink = 'https://mattermost.com/terms';
+        mockConfig.PrivacyPolicyLink = 'https://mattermost.com/privacy';
 
         const {container: signupContainer} = renderWithContext(
             <Signup/>,
         );
 
-        screen.getByTestId('signup-body-card-form-check-newsletter');
-        const checkInput = screen.getByTestId('signup-body-card-form-check-newsletter');
+        const checkInput = screen.getByRole('checkbox', {name: /terms and privacy policy checkbox/i});
         expect(checkInput).toHaveAttribute('type', 'checkbox');
+        expect(checkInput).not.toBeChecked();
 
-        expect(signupContainer).toHaveTextContent('I would like to receive Mattermost security updates via newsletter. By subscribing, I consent to receive emails from Mattermost with product updates, promotions, and company news. I have read the Privacy Policy and understand that I can unsubscribe at any time');
+        expect(signupContainer).toHaveTextContent('I agree to the Acceptable Use Policy and the Privacy Policy');
     });
 
-    it('should NOT show newsletter check box opt-in for self-hosted AND airgapped workspaces', async () => {
-        jest.spyOn(useCWSAvailabilityCheckAll, 'default').mockImplementation(() => useCWSAvailabilityCheckAll.CSWAvailabilityCheckTypes.Unavailable);
-        mockLicense = {IsLicensed: 'true', Cloud: 'false'};
+    it('should require terms acceptance before enabling submit button', async () => {
+        renderWithContext(<Signup/>, mockState);
 
-        const {container: signupContainer} = renderWithContext(
-            <Signup/>,
-        );
+        const emailInput = screen.getByTestId('signup-body-card-form-email-input');
+        const usernameInput = screen.getByTestId('signup-body-card-form-name-input');
+        const passwordInput = screen.getByTestId('signup-body-card-form-password-input');
+        const termsCheckbox = screen.getByRole('checkbox', {name: /terms and privacy policy checkbox/i});
 
-        expect(() => screen.getByTestId('signup-body-card-form-check-newsletter')).toThrow();
-        expect(signupContainer).toHaveTextContent('Interested in receiving Mattermost security, product, promotions, and company updates updates via newsletter?Sign up at https://mattermost.com/security-updates/.');
-    });
+        // Fill in all fields but don't check terms
+        fireEvent.change(emailInput, {target: {value: 'test@example.com'}});
+        fireEvent.change(usernameInput, {target: {value: 'testuser'}});
+        fireEvent.change(passwordInput, {target: {value: 'ValidPassword123!'}});
 
-    it('should show newsletter related opt-in or text for cloud', async () => {
-        jest.spyOn(useCWSAvailabilityCheckAll, 'default').mockImplementation(() => useCWSAvailabilityCheckAll.CSWAvailabilityCheckTypes.Available);
-        mockLicense = {IsLicensed: 'true', Cloud: 'true'};
+        // Submit button should be disabled (SaveButton uses disabled prop on inner button)
+        const submitButton = screen.getByRole('button', {name: /Create account/i});
+        expect(submitButton).toBeDisabled();
 
-        const {container: signupContainer} = renderWithContext(
-            <Signup/>,
-        );
+        // Check terms
+        fireEvent.click(termsCheckbox);
 
-        screen.getByTestId('signup-body-card-form-check-newsletter');
-        const checkInput = screen.getByTestId('signup-body-card-form-check-newsletter');
-        expect(checkInput).toHaveAttribute('type', 'checkbox');
-
-        expect(signupContainer).toHaveTextContent('I would like to receive Mattermost security updates via newsletter. By subscribing, I consent to receive emails from Mattermost with product updates, promotions, and company news. I have read the Privacy Policy and understand that I can unsubscribe at any time');
+        // Now submit button should be enabled
+        await waitFor(() => {
+            const enabledButton = screen.getByRole('button', {name: /Create account/i});
+            expect(enabledButton).not.toBeDisabled();
+        });
     });
 });
