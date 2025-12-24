@@ -1,39 +1,22 @@
-.. _mmctl_user_list:
+.. _mmctl_report:
 
-mmctl user list
----------------
+mmctl report
+------------
 
-List users
+Reporting commands
 
 Synopsis
 ~~~~~~~~
 
 
-List all users
-
-::
-
-  mmctl user list [flags]
-
-Examples
-~~~~~~~~
-
-::
-
-    user list
+Reporting commands
 
 Options
 ~~~~~~~
 
 ::
 
-      --all            Fetch all users. --page flag will be ignored if provided
-  -h, --help           help for list
-      --inactive       If supplied, only users which are inactive will be fetched
-      --page int       Page number to fetch for the list of users
-      --per-page int   Number of users to be fetched (default 200)
-      --role string    If supplied, only users with the given role will be fetched
-      --team string    If supplied, only users belonging to this team will be listed
+  -h, --help   help for report
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -53,5 +36,6 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl user <mmctl_user.rst>`_ 	 - Management of users
+* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
+* `mmctl report posts <mmctl_report_posts.rst>`_ 	 - Retrieve posts for reporting purposes
 

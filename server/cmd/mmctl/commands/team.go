@@ -83,7 +83,7 @@ var RenameTeamCmd = &cobra.Command{
 	Use:     "rename [team]",
 	Short:   "Rename team",
 	Long:    "Rename an existing team",
-	Example: "  team rename old-team --display-name 'New Display Name'",
+	Example: "  team rename old-team --name mynewteam --display-name 'New Display Name'",
 	Args:    cobra.ExactArgs(1),
 	RunE:    withClient(renameTeamCmdF),
 }
@@ -110,6 +110,7 @@ func init() {
 	ModifyTeamsCmd.Flags().Bool("public", false, "Modify team to be public.")
 
 	// Add flag declaration for RenameTeam
+	RenameTeamCmd.Flags().String("name", "", "Team Name")
 	RenameTeamCmd.Flags().String("display-name", "", "Team Display Name")
 	_ = RenameTeamCmd.MarkFlagRequired("display-name")
 
@@ -268,20 +269,33 @@ func removeDuplicatesAndSortTeams(teams []*model.Team) []*model.Team {
 func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	oldTeamName := args[0]
 
-	newDisplayName, _ := cmd.Flags().GetString("display-name")
-	if newDisplayName == "" {
-		return errors.New("display-name is required")
-	}
-
 	team := getTeamFromTeamArg(c, oldTeamName)
 	if team == nil {
 		return errors.New("Unable to find team '" + oldTeamName + "', to see the all teams try 'team list' command")
 	}
 
-	team.DisplayName = newDisplayName
+	newName, err := cmd.Flags().GetString("name")
+	if err != nil {
+		return err
+	}
+	newDisplayName, err := cmd.Flags().GetString("display-name")
+	if err != nil {
+		return err
+	}
 
-	// Using UpdateTeam API Method to rename team
-	_, _, err := c.UpdateTeam(context.TODO(), team)
+	if newDisplayName == "" && newName == "" {
+		return errors.New("name or display name is required")
+	}
+
+	// Only update fields that were provided
+	if newName != "" {
+		team.Name = newName
+	}
+	if newDisplayName != "" {
+		team.DisplayName = newDisplayName
+	}
+
+	_, _, err = c.UpdateTeam(context.TODO(), team)
 	if err != nil {
 		return errors.New("Cannot rename team '" + oldTeamName + "', error : " + err.Error())
 	}
