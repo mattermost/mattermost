@@ -41,3 +41,31 @@ func postPriorityCheckWithContext(where string, c *Context, priority *model.Post
 		c.Err = appErr
 	}
 }
+
+// checkUploadFilePermissionForNewFiles checks upload_file permission only when
+// adding new files to a post, preventing permission bypass via cross-channel file attachments.
+func checkUploadFilePermissionForNewFiles(c *Context, newFileIds []string, originalPost *model.Post) {
+	if len(newFileIds) == 0 {
+		return
+	}
+
+	originalFileIDsMap := make(map[string]bool, len(originalPost.FileIds))
+	for _, fileID := range originalPost.FileIds {
+		originalFileIDsMap[fileID] = true
+	}
+
+	hasNewFiles := false
+	for _, fileID := range newFileIds {
+		if !originalFileIDsMap[fileID] {
+			hasNewFiles = true
+			break
+		}
+	}
+
+	if hasNewFiles {
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionUploadFile) {
+			c.SetPermissionError(model.PermissionUploadFile)
+			return
+		}
+	}
+}
