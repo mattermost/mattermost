@@ -126,13 +126,6 @@ const ProductMenu = (): JSX.Element => {
                     id={'product-switcher-menu'}
                     ariaLabel={'switcherOpen'}
                 >
-                    <ProductMenuItem
-                        destination={'/'}
-                        icon={'product-channels'}
-                        text={'Channels'}
-                        active={isChannels(currentProductID)}
-                        onClick={handleClick}
-                    />
                     {productItems}
                     <ProductMenuList
                         isMessaging={isChannels(currentProductID)}

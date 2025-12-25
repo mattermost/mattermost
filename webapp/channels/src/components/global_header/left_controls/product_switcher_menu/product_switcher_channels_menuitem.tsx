@@ -26,22 +26,21 @@ export default function ProductChannelsMenuItem({currentProductID, ...firstMenuI
 
     return (
         <Menu.Item
-            className='product-switcher-products-menu-item'
             leadingElement={(
                 <ProductChannelsIcon
-                    size={24}
+                    className='globalHeader-leftControls-productSwitcherMenu-productIcons'
+                    size={20}
                     aria-hidden='true'
                 />
             )}
             labels={(
-                <span>
+                <span className='globalHeader-leftControls-productSwitcherMenu-productLabels'>
                     {'Channels'}
                 </span>
             )}
             trailingElements={isChannelsProductActive && (
                 <CheckIcon
                     size={18}
-                    className='product-switcher-menu-item-checked'
                     aria-hidden='true'
                 />
             )}

@@ -60,15 +60,19 @@ function ProductSwitcherProductMenuItem(props: ProductSwitcherProductMenuItemPro
             className='product-switcher-products-menu-item'
             leadingElement={(
                 <Icon
-                    size={24}
+                    className='globalHeader-leftControls-productSwitcherMenu-productIcons'
+                    size={20}
                     aria-hidden='true'
                 />
             )}
-            labels={<span>{props.label}</span>}
+            labels={(
+                <span className='globalHeader-leftControls-productSwitcherMenu-productLabels'>
+                    {props.label}
+                </span>
+            )}
             trailingElements={props.isActive && (
                 <CheckIcon
                     size={18}
-                    className='product-switcher-menu-item-checked'
                     aria-hidden='true'
                 />
             )}

@@ -30,10 +30,10 @@ export function ProductSwitcherMenu(props: Props) {
                 id: ELEMENT_ID_FOR_PRODUCT_SWITCHER_MENU_BUTTON,
                 class: 'HeaderIconButton',
                 children: <i className='icon-products'/>,
-                'aria-label': formatMessage({id: 'global_header.productSwitchMenuButton.label', defaultMessage: 'Switch product'}),
+                'aria-label': formatMessage({id: 'globalHeader.productSwitchMenuButton.label', defaultMessage: 'Switch product'}),
             }}
             menuButtonTooltip={{
-                text: formatMessage({id: 'global_header.productSwitchMenuButton.label', defaultMessage: 'Switch product'}),
+                text: formatMessage({id: 'globalHeader.productSwitchMenuButton.label', defaultMessage: 'Switch product'}),
             }}
             menu={{
                 id: ELEMENT_ID_FOR_PRODUCT_SWITCHER_MENU,

@@ -53,3 +53,13 @@
         }
     }
 }
+
+.globalHeader-leftControls-productSwitcherMenu {
+    &-productIcons {
+        fill: var(--button-bg);
+    }
+
+    &-productLabels {
+        font-weight: 600;
+    }
+}
