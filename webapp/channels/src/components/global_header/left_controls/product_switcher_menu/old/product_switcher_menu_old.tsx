@@ -22,9 +22,8 @@ import {
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
-import {useCurrentProductId, useProducts, isChannels} from 'utils/products';
+import {useCurrentProductId, isChannels} from 'utils/products';
 
-import ProductMenuItem from './product_menu_item';
 import ProductMenuList from './product_menu_list';
 
 import ProductBranding from '../../product_branding';
@@ -64,7 +63,6 @@ export const ProductMenuButton = styled.button.attrs(() => ({
 
 const ProductMenu = (): JSX.Element => {
     const {formatMessage} = useIntl();
-    const products = useProducts();
     const dispatch = useDispatch();
     const switcherOpen = useSelector(isSwitcherOpen);
     const menuRef = useRef<HTMLDivElement>(null);
@@ -80,23 +78,6 @@ const ProductMenu = (): JSX.Element => {
         handleOnBoardingTaskData(visitSystemConsoleTaskName, steps.FINISHED);
         localStorage.setItem(OnboardingTaskCategory, 'true');
     };
-
-    const productItems = products?.map((product) => {
-        let tourTip;
-
-        return (
-            <ProductMenuItem
-                key={product.id}
-                destination={product.switcherLinkURL}
-                icon={product.switcherIcon}
-                text={product.switcherText}
-                active={product.id === currentProductID}
-                onClick={handleClick}
-                tourTip={tourTip}
-                id={`product-menu-item-${product.pluginId || product.id}`}
-            />
-        );
-    });
 
     return (
         <div ref={menuRef}>
@@ -126,7 +107,6 @@ const ProductMenu = (): JSX.Element => {
                     id={'product-switcher-menu'}
                     ariaLabel={'switcherOpen'}
                 >
-                    {productItems}
                     <ProductMenuList
                         isMessaging={isChannels(currentProductID)}
                         onClick={handleClick}

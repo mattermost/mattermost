@@ -73,6 +73,7 @@ function ProductSwitcherProductMenuItem(props: ProductSwitcherProductMenuItemPro
             trailingElements={props.isActive && (
                 <CheckIcon
                     size={18}
+                    className='globalHeader-leftControls-productSwitcherMenu-productCheckmark'
                     aria-hidden='true'
                 />
             )}
