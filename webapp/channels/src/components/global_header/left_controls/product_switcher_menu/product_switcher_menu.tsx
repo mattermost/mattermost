@@ -53,35 +53,4 @@ export function ProductSwitcherMenu(props: Props) {
             <ProductSwitcherIntegrationsMenuItem currentProductID={props.productId}/>
         </Menu.Container>
     );
-
-    // return (
-    //     <div ref={menuRef}>
-    //         <MenuWrapper
-    //             open={switcherOpen}
-    //         >
-    //             <ProductMenuContainer onClick={handleClick}>
-    //                 <ProductMenuButton
-    //                     aria-expanded={switcherOpen}
-    //                     aria-label={formatMessage({id: 'global_header.productSwitchMenu', defaultMessage: 'Product switch menu'})}
-    //                     aria-controls='product-switcher-menu'
-    //                 />
-    //             </ProductMenuContainer>
-    //             <MenuOld
-    //                 listId={'product-switcher-menu-dropdown'}
-    //                 className={'product-switcher-menu'}
-    //                 id={'product-switcher-menu'}
-    //                 ariaLabel={'switcherOpen'}
-    //             >
-    //                 <ProductMenuList
-    //                     isMessaging={isChannels(currentProductID)}
-    //                 />
-    //                 <MenuOld.Group>
-    //                     <MenuOld.StartTrial
-    //                         id='startTrial'
-    //                     />
-    //                 </MenuOld.Group>
-    //             </MenuOld>
-    //         </MenuWrapper>
-    //     </div>
-    // );
 }
