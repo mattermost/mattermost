@@ -35,25 +35,46 @@ export default function ProductSwitcherIntegrationsMenuItem(props: Props) {
     const haveEnabledSlashCommands = config.EnableCommands === 'true';
     const haveEnabledOAuthServiceProvider = config.EnableOAuthServiceProvider === 'true';
 
-    const havePermissionToManageSlashCommands = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, Permissions.MANAGE_SLASH_COMMANDS));
-    const havePermissionToManageOAuth = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, Permissions.MANAGE_OAUTH));
-    const havePermissionToManageIncomingWebhooks = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, Permissions.MANAGE_INCOMING_WEBHOOKS));
-    const havePermissionToManageOutgoingWebhooks = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, Permissions.MANAGE_OUTGOING_WEBHOOKS));
-    const havePermissionsToManageTeamIntegration = havePermissionToManageSlashCommands || havePermissionToManageOAuth || havePermissionToManageIncomingWebhooks || havePermissionToManageOutgoingWebhooks;
-
+    // Next we should also check if Bots are enabled or not but there is no global switch to turn on/off bots management, they are part of the application itself.
+    // We check if user have permission to manage bots instead.
     const havePermissionToManageBots = useSelector((state: GlobalState) => haveISystemPermission(state, {permission: Permissions.MANAGE_BOTS}));
     const havePermissionToManageOthersBots = useSelector((state: GlobalState) => haveISystemPermission(state, {permission: Permissions.MANAGE_OTHERS_BOTS}));
-    const havePermissionToManageSystemBots = havePermissionToManageBots || havePermissionToManageOthersBots;
+    const havePermissionToManageSomeBots = havePermissionToManageBots || havePermissionToManageOthersBots;
 
-    const areIntegrationsEnabled = haveEnabledIncomingWebhooks || haveEnabledOutgoingWebhooks || haveEnabledSlashCommands || haveEnabledOAuthServiceProvider || havePermissionsToManageTeamIntegration || havePermissionToManageSystemBots;
+    // We check some integrations are enabled because the integrations page lists all integrations, including those that are not enabled.
+    // further per integration check will be done in the integrations page.
+    const areSomeIntegrationsEnabled = haveEnabledIncomingWebhooks || haveEnabledOutgoingWebhooks || haveEnabledSlashCommands || haveEnabledOAuthServiceProvider || havePermissionToManageSomeBots;
+
+    // Next we check if user have permission to manage other's or own integrations one by one.
+
+    // 1. Incoming Webhooks
+    const havePermissionToManageIncomingWebhooks = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, Permissions.MANAGE_INCOMING_WEBHOOKS));
+    const havePermissionToManageOwnIncomingWebhooks = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, Permissions.MANAGE_OWN_INCOMING_WEBHOOKS));
+
+    // 2. Outgoing Webhooks
+    const havePermissionToManageOutgoingWebhooks = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, Permissions.MANAGE_OUTGOING_WEBHOOKS));
+    const havePermissionToManageOwnOutgoingWebhooks = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, Permissions.MANAGE_OWN_OUTGOING_WEBHOOKS));
+
+    // 3. Slash Commands
+    const havePermissionToManageSlashCommands = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, Permissions.MANAGE_SLASH_COMMANDS));
+    const havePermissionToManageOwnSlashCommands = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, Permissions.MANAGE_OWN_SLASH_COMMANDS));
+
+    // 4. OAuth
+    const havePermissionToManageOAuth = useSelector((state: GlobalState) => haveISystemPermission(state, {permission: Permissions.MANAGE_OAUTH}));
+
+    // 5. Bots
+    // We already checked if user have permission to manage bots or others bots above.
+
+    const canManageSomeIntegrations = havePermissionToManageIncomingWebhooks || havePermissionToManageOwnIncomingWebhooks || havePermissionToManageOutgoingWebhooks || havePermissionToManageOwnOutgoingWebhooks || havePermissionToManageSlashCommands || havePermissionToManageOwnSlashCommands || havePermissionToManageOAuth || havePermissionToManageSomeBots;
 
     const isChannelsProductActive = isChannels(props.currentProductID);
+    const canVisitIntegrationsPage = areSomeIntegrationsEnabled && canManageSomeIntegrations;
 
     if (!isChannelsProductActive) {
         return null;
     }
 
-    if (!areIntegrationsEnabled) {
+    if (!canVisitIntegrationsPage) {
         return null;
     }
 
