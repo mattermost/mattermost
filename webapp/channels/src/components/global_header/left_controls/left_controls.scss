@@ -55,7 +55,7 @@
 }
 
 .globalHeader-leftControls-productSwitcherMenu {
-    &-productIcons {
+    &-productIcons, &-productCheckmark {
         fill: var(--button-bg);
     }
 

@@ -41,6 +41,7 @@ export default function ProductChannelsMenuItem({currentProductID, ...firstMenuI
             trailingElements={isChannelsProductActive && (
                 <CheckIcon
                     size={18}
+                    className='globalHeader-leftControls-productSwitcherMenu-productCheckmark'
                     aria-hidden='true'
                 />
             )}
