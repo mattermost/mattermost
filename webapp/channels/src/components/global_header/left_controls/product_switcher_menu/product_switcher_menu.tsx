@@ -47,10 +47,10 @@ export function ProductSwitcherMenu(props: Props) {
             <ProductSwitcherProductsMenuItems
                 currentProductID={props.productId}
             />
-            <ProductSwitcherCloudTrialMenuItem/>
             <Menu.Separator/>
-            <ProductSwitcherIntegrationsMenuItem currentProductID={props.productId}/>
+            <ProductSwitcherCloudTrialMenuItem/>
             <ProductSwitcherSystemConsoleMenuItem/>
+            <ProductSwitcherIntegrationsMenuItem currentProductID={props.productId}/>
         </Menu.Container>
     );
 
