@@ -17,6 +17,7 @@ import {isChannels} from 'utils/products';
 import ProductSwitcherAboutMenuItem from './product_switcher_about_menuitem';
 import ProductSwitcherChannelsMenuItem from './product_switcher_channels_menuitem';
 import ProductSwitcherDownloadMenuItem from './product_switcher_download_menuitem';
+import ProductSwitcherEditionFooter from './product_switcher_edition_footer';
 import ProductSwitcherIntegrationsMenuItem from './product_switcher_integrations_menuitem';
 import ProductSwitcherMarketplaceMenuItem from './product_switcher_marketplace_menuitem';
 import ProductSwitcherProductsMenuItems from './product_switcher_products_menuitems';
@@ -68,7 +69,9 @@ export function ProductSwitcherMenu(props: Props) {
                 id: ELEMENT_ID_FOR_PRODUCT_SWITCHER_MENU,
                 minWidth: '225px',
                 maxWidth: '270px',
+                className: 'globalHeader-leftControls-productSwitcherMenu',
             }}
+            menuFooter={<ProductSwitcherEditionFooter/>}
         >
             <ProductSwitcherChannelsMenuItem
                 isChannelsProductActive={isChannelsProductActive}
