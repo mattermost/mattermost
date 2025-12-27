@@ -22,6 +22,7 @@ import ProductSwitcherMarketplaceMenuItem from './product_switcher_marketplace_m
 import ProductSwitcherProductsMenuItems from './product_switcher_products_menuitems';
 import ProductSwitcherSystemConsoleMenuItem from './product_switcher_system_console_menuitem';
 import ProductSwitcherCloudTrialMenuItem from './product_switcher_trial_menuitem';
+import ProductSwitcherUserGroupsMenuItem from './product_switcher_user_groups_menuitem';
 
 export const ELEMENT_ID_FOR_PRODUCT_SWITCHER_MENU = 'productSwitcherMenu';
 export const ELEMENT_ID_FOR_PRODUCT_SWITCHER_MENU_BUTTON = 'productSwitcherMenuButton';
@@ -43,6 +44,8 @@ export function ProductSwitcherMenu(props: Props) {
     const haveEnabledOAuthServiceProvider = config.EnableOAuthServiceProvider === 'true';
 
     const siteName = config.SiteName;
+
+    const isEnterpriseReady = config.BuildEnterpriseReady === 'true';
 
     const currentTeam = useSelector(getCurrentTeam);
     const currentTeamId = currentTeam?.id;
@@ -83,6 +86,9 @@ export function ProductSwitcherMenu(props: Props) {
                 haveEnabledSlashCommands={haveEnabledSlashCommands}
                 haveEnabledOAuthServiceProvider={haveEnabledOAuthServiceProvider}
                 currentTeamName={currentTeamName}
+            />
+            <ProductSwitcherUserGroupsMenuItem
+                isEnterpriseReady={isEnterpriseReady}
             />
             <ProductSwitcherMarketplaceMenuItem
                 isChannelsProductActive={isChannelsProductActive}
