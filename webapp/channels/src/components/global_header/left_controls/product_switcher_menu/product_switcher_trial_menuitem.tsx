@@ -3,11 +3,16 @@
 
 import moment from 'moment';
 import React, {useEffect} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedDate, FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {ArrowUpBoldCircleOutlineIcon} from '@mattermost/compass-icons/components';
+
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
-import {getCloudSubscription, getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
+import {
+    getCloudSubscription,
+    getSubscriptionProduct,
+} from 'mattermost-redux/selectors/entities/cloud';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
@@ -30,109 +35,103 @@ export default function ProductSwitcherCloudTrialMenuItem() {
     const isCloud = license?.Cloud === 'true';
 
     const subscription = useSelector(getCloudSubscription);
-    const freeTrialEndDay = moment(subscription?.trial_end_at).format('MMMM DD');
-
-    const subscriptionProduct = useSelector(getSubscriptionProduct);
     const isFreeTrial = subscription?.is_free_trial === 'true';
+    const subscriptionProduct = useSelector(getSubscriptionProduct);
     const isStarter = subscriptionProduct?.sku === CloudProducts.STARTER;
-    const someLimitNeedsAttention = useGetHighestThresholdCloudLimit(useGetUsage(), useGetLimits()[0]);
 
-    const openPricingModal = useOpenPricingModal();
+    const someLimitNeedsAttention = Boolean(useGetHighestThresholdCloudLimit(useGetUsage(), useGetLimits()[0]));
+
+    const {openPricingModal, isAirGapped} = useOpenPricingModal();
 
     useEffect(() => {
         dispatch(getPrevTrialLicense());
-    }, []);
+    }, [dispatch]);
 
+    // Don't show if not cloud
     if (!isCloud) {
         return null;
     }
 
+    // Don't show if some limit needs attention OR not on starter/trial
     if (Boolean(someLimitNeedsAttention) || (!isStarter && !isFreeTrial)) {
         return null;
     }
 
-    // for end users only display the trial information
+    // For end users only display the trial information
     if (!isAdmin && !isFreeTrial) {
         return null;
     }
 
-    let labels;
-    if (isFreeTrial) {
-        labels = (
-            <div className='MenuCloudTrial__free-trial'>
-                <h5 className='MenuCloudTrial__free-trial__content-title'>
-                    <FormattedMessage
-                        id='menu.cloudFree.enterpriseTrialTitle'
-                        defaultMessage='Enterprise Trial'
-                    />
-                </h5>
-                <div className='MenuCloudTrial__free-trial__content-section'>
-                    <div className='MenuCloudTrial__free-trial__content-section__icon-section'>
-                        <i className='icon-arrow-up-bold-circle-outline'/>
-                    </div>
-                    <FormattedMessage
-                        id='menu.cloudFree.enterpriseTrialDescription'
-                        defaultMessage='Your trial is active until {trialEndDay}. Discover our top Enterprise features. <openModalLink>Learn more</openModalLink>'
-                        values={
-                            {
-                                trialEndDay: freeTrialEndDay,
-                                openModalLink: (msg: string) => (
-                                    <a
-                                        className='open-trial-benefits-modal style-link'
-                                        onClick={isAdmin ? openTrialBenefitsModal : () => openPricingModal({trackingLocation: 'menu_cloud_trial'})}
-                                    >
-                                        {msg}
-                                    </a>
-                                ),
-                            }
-                        }
-                    />
-                </div>
-            </div>
-        );
-    } else {
-        // menu option displayed when the workspace is not running any trial
-        labels = (
-            <FormattedMessage
-                id='menu.cloudFree.postTrial.tryEnterprise'
-                defaultMessage='Interested in a limitless plan with high-security features? <openModalLink>See plans</openModalLink>'
-                values={
-                    {
-                        openModalLink: (msg: string) => (
-                            <a
-                                className='open-see-plans-modal style-link'
-                                onClick={() => openPricingModal({trackingLocation: 'menu_cloud_trial'})}
-                            >
-                                {msg}
-                            </a>
-                        ),
-                    }
-                }
-            />
-        );
+    // Don't show if air-gapped (no internet access for pricing modal)
+    if (isAirGapped) {
+        return null;
     }
 
-    function openTrialBenefitsModal() {
-        dispatch(openModal({
-            modalId: ModalIdentifiers.TRIAL_BENEFITS_MODAL,
-            dialogType: TrialBenefitsModal,
-        }));
+    function handleDiscoverEnterpriseFeaturesClick() {
+        if (isAdmin) {
+            dispatch(
+                openModal({
+                    modalId: ModalIdentifiers.TRIAL_BENEFITS_MODAL,
+                    dialogType: TrialBenefitsModal,
+                }),
+            );
+        } else {
+            openPricingModal();
+        }
+    }
+
+    function handleSeePlansClick() {
+        openPricingModal();
+    }
+
+    if (isFreeTrial) {
+        return (
+            <Menu.Item
+                className='globalHeader-leftControls-productSwitcherMenu-trialMenuItem'
+                leadingElement={<ArrowUpBoldCircleOutlineIcon size={18}/>}
+                labels={
+                    <>
+                        <FormattedMessage
+                            id='productSwitcherMenu.cloudTrial.isFreeTrial.primaryLabel'
+                            defaultMessage='Enterprise Advanced Trial'
+                        />
+                        <FormattedMessage
+                            id='productSwitcherMenu.cloudTrial.isFreeTrial.secondaryLabel'
+                            defaultMessage='Your trial is active until {trialEndDay}. Discover our top Enterprise features.'
+                            values={{
+                                trialEndDay: (
+                                    <FormattedDate
+                                        value={moment(subscription?.trial_end_at).toDate()}
+                                        year='numeric'
+                                        month='long'
+                                        day='2-digit'
+                                    />
+                                ),
+                            }}
+                        />
+                    </>
+                }
+                onClick={handleDiscoverEnterpriseFeaturesClick}
+            />
+        );
     }
 
     return (
-        <>
-            <Menu.Separator/>
-            <Menu.Item
-                className='product-switcher-products-menu-item'
-
-                // leadingElement={(
-                //     <Icon
-                //         size={24}
-                //         aria-hidden='true'
-                //     />
-                // )}
-                labels={labels}
-            />
-        </>
+        <Menu.Item
+            className='globalHeader-leftControls-productSwitcherMenu-trialMenuItem'
+            labels={
+                <>
+                    <FormattedMessage
+                        id='productSwitcherMenu.cloudTrial.noFreeTrial.primaryLabel'
+                        defaultMessage='Interested in a limitless plan with high-security features?'
+                    />
+                    <FormattedMessage
+                        id='productSwitcherMenu.cloudTrial.noFreeTrial.secondaryLabel'
+                        defaultMessage='See plans'
+                    />
+                </>
+            }
+            onClick={handleSeePlansClick}
+        />
     );
 }

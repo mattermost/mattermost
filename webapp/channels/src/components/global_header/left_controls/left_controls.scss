@@ -55,7 +55,8 @@
 }
 
 .globalHeader-leftControls-productSwitcherMenu {
-    &-channelsMenuItem, &-productMenuItem {
+    &-channelsMenuItem,
+    &-productMenuItem {
         .leading-element {
             svg {
                 fill: var(--button-bg);
@@ -74,8 +75,23 @@
             }
         }
     }
+
+    &-trialMenuItem[role="menuitem"] {
+        > div.label-elements {
+            flex: 1 1 0;
+            white-space: normal;
+        }
+
+        .leading-element {
+            svg {
+                fill: var(--button-bg);
+            }
+        }
+    }
 }
 
+// We placed the footer outside of the menu styling because the menu classname passes to the <ol> element of the menu
+// and the footer is sibling and not a child of the <ol> menu element.
 .globalHeader-leftControls-productSwitcherMenu-editionFooter {
     padding: 6px 20px;
     min-width: 225px;
