@@ -41,7 +41,7 @@ export default function ProductSwitcherSystemConsoleMenuItem() {
                 leadingElement={<ApplicationCogIcon size={18}/>}
                 labels={
                     <FormattedMessage
-                        id='productSwitcherMenu.systemConsole.label'
+                        id='globalHeader.productSwitcherMenu.systemConsoleMenuItem.label'
                         defaultMessage='System console'
                     />
                 }

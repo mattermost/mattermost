@@ -4,8 +4,8 @@
     flex-basis: 30%;
     flex-shrink: 0;
     align-items: center;
-    gap: 12px;
     margin-left: 8px; // This to align with the team sidebar icons
+    gap: 12px;
 
     &-historyButtons {
         display: flex;
@@ -93,12 +93,12 @@
 // We placed the footer outside of the menu styling because the menu classname passes to the <ol> element of the menu
 // and the footer is sibling and not a child of the <ol> menu element.
 .globalHeader-leftControls-productSwitcherMenu-editionFooter {
-    padding: 6px 20px;
+    display: flex;
     min-width: 225px;
     max-width: 270px;
-    display: flex;
     flex-direction: column;
     align-items: flex-start;
+    padding: 6px 20px;
     gap: 4px;
 
     .Tag {
@@ -106,8 +106,8 @@
     }
 
     &-label {
-        font-size: 12px;
         color: var(--center-channel-color);
+        font-size: 12px;
         line-height: 16px;
 
         a {

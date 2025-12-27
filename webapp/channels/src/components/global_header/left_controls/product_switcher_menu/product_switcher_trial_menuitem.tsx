@@ -92,11 +92,11 @@ export default function ProductSwitcherCloudTrialMenuItem() {
                 labels={
                     <>
                         <FormattedMessage
-                            id='productSwitcherMenu.cloudTrial.isFreeTrial.primaryLabel'
+                            id='globalHeader.productSwitcherMenu.trialMenuItem.isFreeTrial.primaryLabel'
                             defaultMessage='Enterprise Advanced Trial'
                         />
                         <FormattedMessage
-                            id='productSwitcherMenu.cloudTrial.isFreeTrial.secondaryLabel'
+                            id='globalHeader.productSwitcherMenu.trialMenuItem.isFreeTrial.secondaryLabel'
                             defaultMessage='Your trial is active until {trialEndDay}. Discover our top Enterprise features.'
                             values={{
                                 trialEndDay: (
@@ -122,11 +122,11 @@ export default function ProductSwitcherCloudTrialMenuItem() {
             labels={
                 <>
                     <FormattedMessage
-                        id='productSwitcherMenu.cloudTrial.noFreeTrial.primaryLabel'
+                        id='globalHeader.productSwitcherMenu.trialMenuItem.noFreeTrial.primaryLabel'
                         defaultMessage='Interested in a limitless plan with high-security features?'
                     />
                     <FormattedMessage
-                        id='productSwitcherMenu.cloudTrial.noFreeTrial.secondaryLabel'
+                        id='globalHeader.productSwitcherMenu.trialMenuItem.noFreeTrial.secondaryLabel'
                         defaultMessage='See plans'
                     />
                 </>

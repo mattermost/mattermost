@@ -52,7 +52,7 @@ export default function ProductSwitcherMarketplaceMenuItem(props: Props) {
                 leadingElement={<ViewGridPlusOutlineIcon size={18}/>}
                 labels={
                     <FormattedMessage
-                        id='productSwitcherMenu.marketplace.label'
+                        id='globalHeader.productSwitcherMenu.marketplaceMenuItem.label'
                         defaultMessage='App Marketplace'
                     />
                 }

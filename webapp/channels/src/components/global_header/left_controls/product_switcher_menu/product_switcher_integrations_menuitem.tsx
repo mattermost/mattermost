@@ -82,7 +82,7 @@ export default function ProductSwitcherIntegrationsMenuItem(props: Props) {
             leadingElement={<WebhookIncomingIcon size={18}/>}
             labels={
                 <FormattedMessage
-                    id='productSwitcherMenu.integrations.label'
+                    id='globalHeader.productSwitcherMenu.integrationsMenuItem.label'
                     defaultMessage='Integrations'
                 />
             }

@@ -36,7 +36,7 @@ export default function ProductSwitcherDownloadMenuItem(props: Props) {
             leadingElement={<DownloadOutlineIcon size={18}/>}
             labels={
                 <FormattedMessage
-                    id='productSwitcherMenu.downloadApps.label'
+                    id='globalHeader.productSwitcherMenu.downloadMenuItem.label'
                     defaultMessage='Download Apps'
                 />
             }

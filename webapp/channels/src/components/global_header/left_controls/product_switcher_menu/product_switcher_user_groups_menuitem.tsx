@@ -76,7 +76,7 @@ export default function ProductSwitcherUserGroupsMenuItem(props: Props) {
             leadingElement={<AccountMultipleOutlineIcon size={18}/>}
             labels={
                 <FormattedMessage
-                    id='productSwitcherMenu.userGroups.label'
+                    id='globalHeader.productSwitcherMenu.userGroupsMenuItem.label'
                     defaultMessage='User Groups'
                 />
             }

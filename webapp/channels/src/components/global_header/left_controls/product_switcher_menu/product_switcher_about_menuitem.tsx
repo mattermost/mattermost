@@ -33,7 +33,7 @@ export default function ProductSwitcherAboutMenuItem(props: Props) {
             leadingElement={<InformationOutlineIcon size={18}/>}
             labels={
                 <FormattedMessage
-                    id='productSwitcherMenu.about.label'
+                    id='globalHeader.productSwitcherMenu.aboutMenuItem.label'
                     defaultMessage='About {appTitle}'
                     values={{appTitle: props.siteName || 'Mattermost'}}
                 />
