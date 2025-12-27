@@ -67,8 +67,7 @@ export function ProductSwitcherMenu(props: Props) {
             }}
             menu={{
                 id: ELEMENT_ID_FOR_PRODUCT_SWITCHER_MENU,
-                minWidth: '225px',
-                maxWidth: '270px',
+                width: '240px',
                 className: 'globalHeader-leftControls-productSwitcherMenu',
             }}
             menuFooter={<ProductSwitcherEditionFooter/>}

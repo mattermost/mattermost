@@ -94,8 +94,7 @@
 // and the footer is sibling and not a child of the <ol> menu element.
 .globalHeader-leftControls-productSwitcherMenu-editionFooter {
     display: flex;
-    min-width: 225px;
-    max-width: 270px;
+    width: 240px;
     flex-direction: column;
     align-items: flex-start;
     padding: 6px 20px;
