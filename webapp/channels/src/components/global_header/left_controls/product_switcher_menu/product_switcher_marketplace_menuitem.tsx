@@ -6,11 +6,9 @@ import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {ViewGridPlusOutlineIcon} from '@mattermost/compass-icons/components';
-import type {ProductIdentifier} from '@mattermost/types/products';
 
 import {Permissions} from 'mattermost-redux/constants';
 import {isMarketplaceEnabled} from 'mattermost-redux/selectors/entities/general';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {openModal} from 'actions/views/modals';
 
@@ -19,22 +17,18 @@ import TeamPermissionGate from 'components/permissions_gates/team_permission_gat
 import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
 
 import {ModalIdentifiers} from 'utils/constants';
-import {isChannels} from 'utils/products';
 
 interface Props {
-    currentProductID: ProductIdentifier;
+    isChannelsProductActive: boolean;
+    currentTeamId?: string;
 }
 
 export default function ProductSwitcherMarketplaceMenuItem(props: Props) {
     const dispatch = useDispatch();
 
-    const teamId = useSelector(getCurrentTeamId);
-
     const isAppMarketplaceEnabled = useSelector(isMarketplaceEnabled);
 
-    const isChannelsProductActive = isChannels(props.currentProductID);
-
-    if (!isChannelsProductActive) {
+    if (!props.isChannelsProductActive) {
         return null;
     }
 
@@ -51,7 +45,7 @@ export default function ProductSwitcherMarketplaceMenuItem(props: Props) {
 
     return (
         <TeamPermissionGate
-            teamId={teamId}
+            teamId={props.currentTeamId}
             permissions={[Permissions.SYSCONSOLE_WRITE_PLUGINS]}
         >
             <Menu.Item

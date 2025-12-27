@@ -5,20 +5,15 @@ import React from 'react';
 import {useHistory} from 'react-router-dom';
 
 import {CheckIcon, ProductChannelsIcon} from '@mattermost/compass-icons/components';
-import type {ProductIdentifier} from '@mattermost/types/products';
 
 import * as Menu from 'components/menu';
 
-import {isChannels} from 'utils/products';
-
 interface Props extends Menu.FirstMenuItemProps {
-    currentProductID: ProductIdentifier;
+    isChannelsProductActive: boolean;
 }
 
-export default function ProductChannelsMenuItem({currentProductID, ...firstMenuItemProps}: Props) {
+export default function ProductChannelsMenuItem({isChannelsProductActive, ...firstMenuItemProps}: Props) {
     const history = useHistory();
-
-    const isChannelsProductActive = isChannels(currentProductID);
 
     function handleClick() {
         history.push('/');

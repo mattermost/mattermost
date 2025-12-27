@@ -7,43 +7,35 @@ import {useSelector} from 'react-redux';
 import {useHistory} from 'react-router-dom';
 
 import {WebhookIncomingIcon} from '@mattermost/compass-icons/components';
-import type {ProductIdentifier} from '@mattermost/types/products';
 
 import {Permissions} from 'mattermost-redux/constants';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {haveICurrentTeamPermission, haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
-import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import * as Menu from 'components/menu';
-
-import {isChannels} from 'utils/products';
 
 import type {GlobalState} from 'types/store';
 
 interface Props {
-    currentProductID: ProductIdentifier;
+    isChannelsProductActive: boolean;
+    haveEnabledIncomingWebhooks: boolean;
+    haveEnabledOutgoingWebhooks: boolean;
+    haveEnabledSlashCommands: boolean;
+    haveEnabledOAuthServiceProvider: boolean;
+    currentTeamName?: string;
 }
 
 export default function ProductSwitcherIntegrationsMenuItem(props: Props) {
     const history = useHistory();
 
-    const currentTeam = useSelector(getCurrentTeam);
-
-    const config = useSelector(getConfig);
-    const haveEnabledIncomingWebhooks = config.EnableIncomingWebhooks === 'true';
-    const haveEnabledOutgoingWebhooks = config.EnableOutgoingWebhooks === 'true';
-    const haveEnabledSlashCommands = config.EnableCommands === 'true';
-    const haveEnabledOAuthServiceProvider = config.EnableOAuthServiceProvider === 'true';
-
-    // Next we should also check if Bots are enabled or not but there is no global switch to turn on/off bots management, they are part of the application itself.
+    // There is no global switch to turn on/off bots management, they are part of the application itself.
     // We check if user have permission to manage bots instead.
     const havePermissionToManageBots = useSelector((state: GlobalState) => haveISystemPermission(state, {permission: Permissions.MANAGE_BOTS}));
     const havePermissionToManageOthersBots = useSelector((state: GlobalState) => haveISystemPermission(state, {permission: Permissions.MANAGE_OTHERS_BOTS}));
     const havePermissionToManageSomeBots = havePermissionToManageBots || havePermissionToManageOthersBots;
 
     // We check some integrations are enabled because the integrations page lists all integrations, including those that are not enabled.
-    // further per integration check will be done in the integrations page.
-    const areSomeIntegrationsEnabled = haveEnabledIncomingWebhooks || haveEnabledOutgoingWebhooks || haveEnabledSlashCommands || haveEnabledOAuthServiceProvider || havePermissionToManageSomeBots;
+    // further per integration permission check will be done in the integrations page.
+    const areSomeIntegrationsEnabled = props.haveEnabledIncomingWebhooks || props.haveEnabledOutgoingWebhooks || props.haveEnabledSlashCommands || props.haveEnabledOAuthServiceProvider || havePermissionToManageSomeBots;
 
     // Next we check if user have permission to manage other's or own integrations one by one.
 
@@ -67,10 +59,9 @@ export default function ProductSwitcherIntegrationsMenuItem(props: Props) {
 
     const canManageSomeIntegrations = havePermissionToManageIncomingWebhooks || havePermissionToManageOwnIncomingWebhooks || havePermissionToManageOutgoingWebhooks || havePermissionToManageOwnOutgoingWebhooks || havePermissionToManageSlashCommands || havePermissionToManageOwnSlashCommands || havePermissionToManageOAuth || havePermissionToManageSomeBots;
 
-    const isChannelsProductActive = isChannels(props.currentProductID);
     const canVisitIntegrationsPage = areSomeIntegrationsEnabled && canManageSomeIntegrations;
 
-    if (!isChannelsProductActive) {
+    if (!props.isChannelsProductActive) {
         return null;
     }
 
@@ -79,11 +70,11 @@ export default function ProductSwitcherIntegrationsMenuItem(props: Props) {
     }
 
     function handleClick() {
-        if (!currentTeam) {
+        if (!props.currentTeamName) {
             return;
         }
 
-        history.push(`/${currentTeam.name}/integrations`);
+        history.push(`/${props.currentTeamName}/integrations`);
     }
 
     return (

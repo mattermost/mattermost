@@ -3,27 +3,25 @@
 
 import React, {useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
-import {useSelector} from 'react-redux';
 
 import {DownloadOutlineIcon} from '@mattermost/compass-icons/components';
-
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import * as Menu from 'components/menu';
 
 import {makeUrlSafe} from 'utils/url';
 
-export default function ProductSwitcherDownloadMenuItem() {
-    const config = useSelector(getConfig);
-    const appDownloadLink = config.AppDownloadLink;
+type Props = {
+    appDownloadLink?: string;
+}
 
+export default function ProductSwitcherDownloadMenuItem(props: Props) {
     const safeAppDownloadLink = useMemo(() => {
-        if (!appDownloadLink) {
+        if (!props.appDownloadLink) {
             return '';
         }
 
-        return makeUrlSafe(appDownloadLink);
-    }, [appDownloadLink]);
+        return makeUrlSafe(props.appDownloadLink);
+    }, [props.appDownloadLink]);
 
     if (!safeAppDownloadLink) {
         return null;
