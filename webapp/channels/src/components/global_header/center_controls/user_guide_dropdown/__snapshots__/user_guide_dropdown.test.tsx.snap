@@ -8,20 +8,14 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
   onToggle={[Function]}
 >
   <WithTooltip
-    title={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Help"
-        id="channel_header.userHelpGuide"
-      />
-    }
+    title="Help"
   >
     <HeaderIconButton
-      active={false}
       aria-controls="AddChannelDropdown"
       aria-expanded={false}
+      aria-haspopup={true}
       aria-label="Help"
       icon="help-circle-outline"
-      onClick={[Function]}
     />
   </WithTooltip>
   <Menu
@@ -79,20 +73,14 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
   onToggle={[Function]}
 >
   <WithTooltip
-    title={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Help"
-        id="channel_header.userHelpGuide"
-      />
-    }
+    title="Help"
   >
     <HeaderIconButton
-      active={false}
       aria-controls="AddChannelDropdown"
       aria-expanded={false}
+      aria-haspopup={true}
       aria-label="Help"
       icon="help-circle-outline"
-      onClick={[Function]}
     />
   </WithTooltip>
   <Menu
@@ -143,20 +131,14 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
   onToggle={[Function]}
 >
   <WithTooltip
-    title={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Help"
-        id="channel_header.userHelpGuide"
-      />
-    }
+    title="Help"
   >
     <HeaderIconButton
-      active={false}
       aria-controls="AddChannelDropdown"
       aria-expanded={false}
+      aria-haspopup={true}
       aria-label="Help"
       icon="help-circle-outline"
-      onClick={[Function]}
     />
   </WithTooltip>
   <Menu

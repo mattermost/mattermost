@@ -173,7 +173,7 @@ exports[`components/global/product_switcher should match snapshot for Entry lice
           color="rgba(var(--sidebar-text-rgb), 0.56)"
           size={20}
         />
-        <ProductBrandingFreeEdition />
+        <ProductBranding />
       </ProductMenuButton>
     </ProductMenuContainer>
     <Menu
@@ -321,7 +321,7 @@ exports[`components/global/product_switcher should match snapshot without licens
           color="rgba(var(--sidebar-text-rgb), 0.56)"
           size={20}
         />
-        <ProductBrandingFreeEdition />
+        <ProductBranding />
       </ProductMenuButton>
     </ProductMenuContainer>
     <Menu

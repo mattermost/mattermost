@@ -2,10 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, injectIntl} from 'react-intl';
+import {injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
-import IconButton from 'components/global_header/header_icon_button';
+import HeaderIconButton from 'components/global_header/header_icon_button';
 import KeyboardShortcutsModal from 'components/keyboard_shortcuts/keyboard_shortcuts_modal/keyboard_shortcuts_modal';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
@@ -110,12 +110,6 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
 
     render() {
         const {intl} = this.props;
-        const tooltipText = (
-            <FormattedMessage
-                id={'channel_header.userHelpGuide'}
-                defaultMessage='Help'
-            />
-        );
 
         return (
             <MenuWrapper
@@ -124,15 +118,14 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
                 onToggle={this.buttonToggleState}
             >
                 <WithTooltip
-                    title={tooltipText}
+                    title={intl.formatMessage({id: 'channel_header.userHelpGuide', defaultMessage: 'Help'})}
                 >
-                    <IconButton
+                    <HeaderIconButton
                         icon={'help-circle-outline'}
-                        onClick={() => {}} // icon button currently requires onclick ... needs to revisit
-                        active={this.state.buttonActive}
+                        aria-label={intl.formatMessage({id: 'channel_header.userHelpGuide', defaultMessage: 'Help'})}
                         aria-controls='AddChannelDropdown'
                         aria-expanded={this.state.buttonActive}
-                        aria-label={intl.formatMessage({id: 'channel_header.userHelpGuide', defaultMessage: 'Help'})}
+                        aria-haspopup={true}
                     />
                 </WithTooltip>
                 <Menu

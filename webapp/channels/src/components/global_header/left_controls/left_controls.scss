@@ -1,0 +1,117 @@
+.globalHeader-leftControls {
+    display: flex;
+    height: 40px;
+    flex-basis: 30%;
+    flex-shrink: 0;
+    align-items: center;
+    margin-left: 8px; // This to align with the team sidebar icons
+    gap: 12px;
+
+    &-historyButtons {
+        display: flex;
+        align-items: center;
+        gap: 1px;
+    }
+
+    &-productBranding {
+        &-freeEdition {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            &-logo {
+                path {
+                    fill: rgba(var(--sidebar-text-rgb), 0.75);
+                }
+            }
+
+            &-badge {
+                display: flex;
+                align-self: center;
+                padding: 2px 6px;
+                border-radius: var(--radius-s);
+                background: rgba(var(--sidebar-text-rgb), 0.08);
+                color: rgba(var(--sidebar-text-rgb), 0.75);
+                font-family: "Open Sans", sans-serif;
+                font-size: 10px;
+                font-weight: 600;
+                letter-spacing: 0.025em;
+                line-height: 16px;
+            }
+        }
+
+        &-licencedEdition {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+
+            &-heading {
+                font-family: "Metropolis";
+                font-size: 16px;
+                font-weight: bold;
+            }
+        }
+    }
+}
+
+.globalHeader-leftControls-productSwitcherMenu {
+    &-channelsMenuItem,
+    &-productMenuItem {
+        .leading-element {
+            svg {
+                fill: var(--button-bg);
+            }
+        }
+
+        .label-elements {
+            > span {
+                font-weight: 600;
+            }
+        }
+
+        .trailing-elements {
+            svg {
+                fill: var(--button-bg);
+            }
+        }
+    }
+
+    &-trialMenuItem[role="menuitem"] {
+        > div.label-elements {
+            flex: 1 1 0;
+            white-space: normal;
+        }
+
+        .leading-element {
+            svg {
+                fill: var(--button-bg);
+            }
+        }
+    }
+}
+
+// We placed the footer outside of the menu styling because the menu classname passes to the <ol> element of the menu
+// and the footer is sibling and not a child of the <ol> menu element.
+.globalHeader-leftControls-productSwitcherMenu-editionFooter {
+    display: flex;
+    min-width: 225px;
+    max-width: 270px;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 6px 20px;
+    gap: 4px;
+
+    .Tag {
+        align-self: baseline;
+    }
+
+    &-label {
+        color: var(--center-channel-color);
+        font-size: 12px;
+        line-height: 16px;
+
+        a {
+            color: var(--link-color);
+        }
+    }
+}
