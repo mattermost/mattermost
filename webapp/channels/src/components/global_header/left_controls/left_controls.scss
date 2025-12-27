@@ -55,11 +55,47 @@
 }
 
 .globalHeader-leftControls-productSwitcherMenu {
-    &-productIcons, &-productCheckmark {
-        fill: var(--button-bg);
+    &-channelsMenuItem, &-productMenuItem {
+        .leading-element {
+            svg {
+                fill: var(--button-bg);
+            }
+        }
+
+        .label-elements {
+            > span {
+                font-weight: 600;
+            }
+        }
+
+        .trailing-elements {
+            svg {
+                fill: var(--button-bg);
+            }
+        }
+    }
+}
+
+.globalHeader-leftControls-productSwitcherMenu-editionFooter {
+    padding: 6px 20px;
+    min-width: 225px;
+    max-width: 270px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+
+    .Tag {
+        align-self: baseline;
     }
 
-    &-productLabels {
-        font-weight: 600;
+    &-label {
+        font-size: 12px;
+        color: var(--center-channel-color);
+        line-height: 16px;
+
+        a {
+            color: var(--link-color);
+        }
     }
 }

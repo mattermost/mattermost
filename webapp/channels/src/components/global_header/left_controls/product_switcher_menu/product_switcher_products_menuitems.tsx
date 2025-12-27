@@ -57,23 +57,21 @@ function ProductSwitcherProductMenuItem(props: ProductSwitcherProductMenuItemPro
 
     return (
         <Menu.Item
-            className='product-switcher-products-menu-item'
+            className='globalHeader-leftControls-productSwitcherMenu-productMenuItem'
             leadingElement={(
                 <Icon
-                    className='globalHeader-leftControls-productSwitcherMenu-productIcons'
                     size={20}
                     aria-hidden='true'
                 />
             )}
             labels={(
-                <span className='globalHeader-leftControls-productSwitcherMenu-productLabels'>
+                <span>
                     {props.label}
                 </span>
             )}
             trailingElements={props.isActive && (
                 <CheckIcon
                     size={18}
-                    className='globalHeader-leftControls-productSwitcherMenu-productCheckmark'
                     aria-hidden='true'
                 />
             )}
