@@ -83,6 +83,15 @@ interface Props {
     * Callback when the tooltip appears
    */
     onOpen?: () => void;
+
+    /**
+     * The trigger element for the tooltip.
+     * Note: If this is a custom function component, it must use React.forwardRef()
+     * to properly receive the ref needed for tooltip positioning.
+     * Native elements (div, button, etc.) and class components work automatically.
+     * eg. <WithTooltip><span>{'Hello'}</span></WithTooltip> - No need to forwardRef
+     * eg. <WithTooltip><MyCustomComponent/></WithTooltip> - "MyCustomComponent" MUST forwardRef
+     */
     children: ReactElement;
 
     forcedPlacement?: Placement;
