@@ -19,13 +19,13 @@ import {isChannels} from 'utils/products';
 import ProductSwitcherAboutMenuItem from './product_switcher_about_menuitem';
 import ProductSwitcherChannelsMenuItem from './product_switcher_channels_menuitem';
 import ProductSwitcherCloudLimitsFooter from './product_switcher_cloud_limits_footer';
+import ProductSwitcherCloudTrialMenuItem from './product_switcher_cloud_trial_menuitem';
 import ProductSwitcherDownloadMenuItem from './product_switcher_download_menuitem';
-import ProductSwitcherEditionFooter from './product_switcher_edition_footer';
+import ProductSwitcherEditionMenuItem from './product_switcher_edition_menuitem';
 import ProductSwitcherIntegrationsMenuItem from './product_switcher_integrations_menuitem';
 import ProductSwitcherMarketplaceMenuItem from './product_switcher_marketplace_menuitem';
 import ProductSwitcherProductsMenuItems from './product_switcher_products_menuitems';
 import ProductSwitcherSystemConsoleMenuItem from './product_switcher_system_console_menuitem';
-import ProductSwitcherCloudTrialMenuItem from './product_switcher_trial_menuitem';
 import ProductSwitcherUserGroupsMenuItem from './product_switcher_user_groups_menuitem';
 
 export const ELEMENT_ID_FOR_PRODUCT_SWITCHER_MENU = 'productSwitcherMenu';
@@ -80,14 +80,11 @@ export function ProductSwitcherMenu(props: Props) {
                 className: 'globalHeader-leftControls-productSwitcherMenu',
             }}
             menuFooter={
-                <>
-                    <ProductSwitcherEditionFooter/>
-                    <ProductSwitcherCloudLimitsFooter
-                        isUserAdmin={isUserAdmin}
-                        isCloudLicensed={isCloudLicensed}
-                        isFreeTrialSubscription={isFreeTrialSubscription}
-                    />
-                </>
+                <ProductSwitcherCloudLimitsFooter
+                    isUserAdmin={isUserAdmin}
+                    isCloudLicensed={isCloudLicensed}
+                    isFreeTrialSubscription={isFreeTrialSubscription}
+                />
             }
         >
             <ProductSwitcherChannelsMenuItem
@@ -123,6 +120,7 @@ export function ProductSwitcherMenu(props: Props) {
             />
             <ProductSwitcherDownloadMenuItem appDownloadLink={appDownloadLink}/>
             <ProductSwitcherAboutMenuItem siteName={siteName}/>
+            <ProductSwitcherEditionMenuItem/>
         </Menu.Container>
     );
 }

@@ -1,3 +1,5 @@
+$menuWidth: 240px;
+
 .globalHeader-leftControls {
     display: flex;
     height: 40px;
@@ -54,6 +56,13 @@
     }
 }
 
+@mixin wrapLongTextForMenuItem() {
+    > div.label-elements {
+        flex: 1 1 0;
+        white-space: normal;
+    }
+}
+
 .globalHeader-leftControls-productSwitcherMenu {
     &-channelsMenuItem,
     &-productMenuItem {
@@ -77,10 +86,7 @@
     }
 
     &-trialMenuItem[role="menuitem"] {
-        > div.label-elements {
-            flex: 1 1 0;
-            white-space: normal;
-        }
+        @include wrapLongTextForMenuItem();
 
         .leading-element {
             svg {
@@ -88,35 +94,28 @@
             }
         }
     }
-}
 
-// We placed the footers outside of the menu styling because the menu classname passes to the <ol> element of the menu
-// and the footer is sibling and not a child of the <ol> menu element.
+    &-editionMenuItem[role="menuitem"] {
+        @include wrapLongTextForMenuItem();
 
-$menuWidth: 240px;
-
-.globalHeader-leftControls-productSwitcherMenu-editionFooter {
-    display: flex;
-    width: $menuWidth;
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 6px 20px;
-    gap: 4px;
-
-    .Tag {
-        align-self: baseline;
-    }
-
-    > .footerlabel {
-        color: var(--center-channel-color);
-        font-size: 12px;
-        line-height: 16px;
-
-        a {
-            color: var(--link-color);
+        > div.label-elements {
+            > span.badgeLabel {
+                padding: 2px 6px;
+                border-radius: var(--radius-s);
+                background: rgba(var(--center-channel-color-rgb), 0.08);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
+                font-family: "Open Sans", sans-serif;
+                font-size: 10px;
+                font-weight: 600;
+                letter-spacing: 0.025em;
+                line-height: 16px;
+            }
         }
     }
 }
+
+// We placed the footer outside of the menu styling because the menu classname passes to the <ol> element of the menu
+// and the footer is sibling and not a child of the <ol> menu element.
 
 .globalHeader-leftControls-productSwitcherMenu-cloudLimitsFooter {
     display: flex;
