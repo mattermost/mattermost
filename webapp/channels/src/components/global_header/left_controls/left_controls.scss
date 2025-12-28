@@ -90,11 +90,14 @@
     }
 }
 
-// We placed the footer outside of the menu styling because the menu classname passes to the <ol> element of the menu
+// We placed the footers outside of the menu styling because the menu classname passes to the <ol> element of the menu
 // and the footer is sibling and not a child of the <ol> menu element.
+
+$menuWidth: 240px;
+
 .globalHeader-leftControls-productSwitcherMenu-editionFooter {
     display: flex;
-    width: 240px;
+    width: $menuWidth;
     flex-direction: column;
     align-items: flex-start;
     padding: 6px 20px;
@@ -104,13 +107,57 @@
         align-self: baseline;
     }
 
-    &-label {
+    > .footerlabel {
         color: var(--center-channel-color);
         font-size: 12px;
         line-height: 16px;
 
         a {
             color: var(--link-color);
+        }
+    }
+}
+
+.globalHeader-leftControls-productSwitcherMenu-cloudLimitsFooter {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 16px 20px;
+    width: $menuWidth;
+    color: var(--center-channel-color);
+    background-color: rgba(var(--mention-highlight-bg-rgb), 0.16);
+
+    &.usageAboveDangerThreshold {
+        background-color: rgba(var(--error-text-color-rgb), 0.16);
+    }
+
+    > .footerTitle {
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 20px;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 4px;
+    }
+
+    > .footerDescription {
+        font-size: 12px;
+        line-height: 16px;
+        margin-top: 4px;
+        margin-bottom: 12px;
+    }
+
+    > .footerUsage {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 18px;
+
+        > .footerUsageLabel {
+            font-size: 11px;
+            font-weight: 600;
+            line-height: 16px;
         }
     }
 }
