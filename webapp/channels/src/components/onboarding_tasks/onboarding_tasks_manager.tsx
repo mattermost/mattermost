@@ -239,7 +239,6 @@ export const useHandleOnBoardingTaskTrigger = () => {
             break;
         }
         case OnboardingTasksName.VISIT_SYSTEM_CONSOLE: {
-            // dispatch(setProductMenuSwitcherOpen(true));
             openMenu(ELEMENT_ID_FOR_PRODUCT_SWITCHER_MENU_BUTTON);
             dispatch(setShowOnboardingVisitConsoleTour(true));
             handleSaveData(taskName, TaskNameMapToSteps[taskName].STARTED);

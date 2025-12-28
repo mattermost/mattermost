@@ -10,7 +10,6 @@ import {isDesktopApp} from 'utils/user_agent';
 import HistoryButtons from './history_buttons';
 import ProductBranding from './product_branding';
 import ProductSwitcherMenu from './product_switcher_menu';
-import ProductSwitcherMenuOld from './product_switcher_menu/old/product_switcher_menu_old';
 
 import './left_controls.scss';
 
@@ -22,7 +21,6 @@ const LeftControls = (props: Props): JSX.Element => (
     <div className='globalHeader-leftControls'>
         <ProductSwitcherMenu productId={props.productId}/>
         <ProductBranding/>
-        <ProductSwitcherMenuOld/>
         {isDesktopApp() && <HistoryButtons/>}
     </div>
 );

@@ -34,6 +34,7 @@ type Props = {
     id: string;
 }
 
+// REMOVE THIS COMPONENT
 const MenuStartTrial = (props: Props): JSX.Element | null => {
     const {formatMessage} = useIntl();
 
