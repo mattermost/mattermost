@@ -37,7 +37,7 @@ import './menu.scss';
 export const ELEMENT_ID_FOR_MENU_BACKDROP = 'backdropForMenuComponent';
 
 const MENU_OPEN_ANIMATION_DURATION = 150;
-const MENU_CLOSE_ANIMATION_DURATION = 100;
+export const MENU_CLOSE_ANIMATION_DURATION = 100;
 
 type MenuButtonProps = {
     id: string;

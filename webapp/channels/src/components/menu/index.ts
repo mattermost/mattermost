@@ -3,7 +3,7 @@
 
 import './menu.scss';
 
-export {Menu as Container} from './menu';
+export {Menu as Container, MENU_CLOSE_ANIMATION_DURATION} from './menu';
 export {SubMenu} from './sub_menu';
 export {MenuItem as Item} from './menu_item';
 export {MenuItemInput as InputItem} from './menu_item_input';

@@ -15,6 +15,7 @@ import useGetUsage from 'components/common/hooks/useGetUsage';
 import useWords from 'components/common/hooks/useWords';
 import UsagePercentBar from 'components/common/usage_percent_bar';
 import * as Menu from 'components/menu';
+import {dismissMenu} from 'components/menu';
 
 import {ModalIdentifiers} from 'utils/constants';
 import {limitThresholds} from 'utils/limits';
@@ -48,10 +49,17 @@ export default function ProductSwitcherCloudLimitsFooter(props: Props) {
     const isCritical = usagePercent >= limitThresholds.danger;
 
     function handleInfoClick() {
-        dispatch(openModal({
-            modalId: ModalIdentifiers.CLOUD_LIMITS,
-            dialogType: LHSNearingLimitsModal,
-        }));
+        // Close the menu first to avoid focus conflicts with the opening of the modal next
+        dismissMenu();
+
+        // This case arises because footer is not part of menu item context and hence is not closed by that context.
+        // We wait for the menu close animation to complete before opening the modal to avoid focus conflicts.
+        setTimeout(() => {
+            dispatch(openModal({
+                modalId: ModalIdentifiers.CLOUD_LIMITS,
+                dialogType: LHSNearingLimitsModal,
+            }));
+        }, Menu.MENU_CLOSE_ANIMATION_DURATION);
     }
 
     return (
