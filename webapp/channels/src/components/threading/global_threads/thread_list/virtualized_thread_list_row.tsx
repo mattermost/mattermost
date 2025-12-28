@@ -7,7 +7,7 @@ import {areEqual} from 'react-window';
 
 import type {UserThread} from '@mattermost/types/threads';
 
-import {ChannelSearchSVG} from 'components/common/svg_images_components/channel_search_svg';
+import {SearchSVG} from 'components/common/svg_images_components/search_svg';
 import LoadingScreen from 'components/loading_screen';
 import NoResultsIndicator from 'components/no_results_indicator';
 import {NoResultsLayout} from 'components/no_results_indicator/types';
@@ -44,7 +44,7 @@ function Row({index, style, data}: Props) {
         return (
             <NoResultsIndicator
                 style={{...style, padding: '16px 16px 16px 24px', background: 'rgba(var(--center-channel-color-rgb), 0.04)'}}
-                iconGraphic={<ChannelSearchSVG/>}
+                iconGraphic={<SearchSVG className='no-results__icon'/>}
                 title={
                     <FormattedMessage
                         id='globalThreads.searchGuidance.title'
