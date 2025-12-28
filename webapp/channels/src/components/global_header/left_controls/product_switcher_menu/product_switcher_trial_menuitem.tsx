@@ -13,8 +13,6 @@ import {
     getCloudSubscription,
     getSubscriptionProduct,
 } from 'mattermost-redux/selectors/entities/cloud';
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
-import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import {openModal} from 'actions/views/modals';
 
@@ -27,15 +25,16 @@ import TrialBenefitsModal from 'components/trial_benefits_modal/trial_benefits_m
 
 import {ModalIdentifiers, CloudProducts} from 'utils/constants';
 
-export default function ProductSwitcherCloudTrialMenuItem() {
-    const dispatch = useDispatch();
-    const isAdmin = useSelector(isCurrentUserSystemAdmin);
+interface Props {
+    isUserAdmin: boolean;
+    isCloudLicensed: boolean;
+    isFreeTrialSubscription: boolean;
+}
 
-    const license = useSelector(getLicense);
-    const isCloud = license?.Cloud === 'true';
+export default function ProductSwitcherCloudTrialMenuItem(props: Props) {
+    const dispatch = useDispatch();
 
     const subscription = useSelector(getCloudSubscription);
-    const isFreeTrial = subscription?.is_free_trial === 'true';
     const subscriptionProduct = useSelector(getSubscriptionProduct);
     const isStarter = subscriptionProduct?.sku === CloudProducts.STARTER;
 
@@ -48,17 +47,17 @@ export default function ProductSwitcherCloudTrialMenuItem() {
     }, [dispatch]);
 
     // Don't show if not cloud
-    if (!isCloud) {
+    if (!props.isCloudLicensed) {
         return null;
     }
 
     // Don't show if some limit needs attention OR not on starter/trial
-    if (Boolean(someLimitNeedsAttention) || (!isStarter && !isFreeTrial)) {
+    if (Boolean(someLimitNeedsAttention) || (!isStarter && !props.isFreeTrialSubscription)) {
         return null;
     }
 
     // For end users only display the trial information
-    if (!isAdmin && !isFreeTrial) {
+    if (!props.isUserAdmin && !props.isFreeTrialSubscription) {
         return null;
     }
 
@@ -68,7 +67,7 @@ export default function ProductSwitcherCloudTrialMenuItem() {
     }
 
     function handleDiscoverEnterpriseFeaturesClick() {
-        if (isAdmin) {
+        if (props.isUserAdmin) {
             dispatch(
                 openModal({
                     modalId: ModalIdentifiers.TRIAL_BENEFITS_MODAL,
@@ -84,7 +83,7 @@ export default function ProductSwitcherCloudTrialMenuItem() {
         openPricingModal();
     }
 
-    if (isFreeTrial) {
+    if (props.isFreeTrialSubscription) {
         return (
             <Menu.Item
                 className='globalHeader-leftControls-productSwitcherMenu-trialMenuItem'

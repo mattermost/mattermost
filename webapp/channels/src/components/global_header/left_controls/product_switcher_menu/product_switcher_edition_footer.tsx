@@ -74,7 +74,7 @@ export default function ProductSwitcherEditionFooter() {
                     size='xs'
                     uppercase={true}
                 />
-                <div className='globalHeader-leftControls-productSwitcherMenu-editionFooter-label'>
+                <div className='footerlabel'>
                     {label}
                 </div>
             </li>

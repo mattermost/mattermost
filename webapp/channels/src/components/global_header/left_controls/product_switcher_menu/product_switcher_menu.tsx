@@ -7,8 +7,10 @@ import {useSelector} from 'react-redux';
 
 import type {ProductIdentifier} from '@mattermost/types/products';
 
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getCloudSubscription} from 'mattermost-redux/selectors/entities/cloud';
+import {getConfig, isCloudLicense} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import * as Menu from 'components/menu';
 
@@ -16,6 +18,7 @@ import {isChannels} from 'utils/products';
 
 import ProductSwitcherAboutMenuItem from './product_switcher_about_menuitem';
 import ProductSwitcherChannelsMenuItem from './product_switcher_channels_menuitem';
+import ProductSwitcherCloudLimitsFooter from './product_switcher_cloud_limits_footer';
 import ProductSwitcherDownloadMenuItem from './product_switcher_download_menuitem';
 import ProductSwitcherEditionFooter from './product_switcher_edition_footer';
 import ProductSwitcherIntegrationsMenuItem from './product_switcher_integrations_menuitem';
@@ -52,6 +55,12 @@ export function ProductSwitcherMenu(props: Props) {
     const currentTeamId = currentTeam?.id;
     const currentTeamName = currentTeam?.name;
 
+    const isUserAdmin = useSelector(isCurrentUserSystemAdmin);
+
+    const isCloudLicensed = useSelector(isCloudLicense);
+    const subscription = useSelector(getCloudSubscription);
+    const isFreeTrialSubscription = subscription?.is_free_trial === 'true';
+
     const isChannelsProductActive = isChannels(props.productId);
 
     return (
@@ -70,7 +79,16 @@ export function ProductSwitcherMenu(props: Props) {
                 width: '240px',
                 className: 'globalHeader-leftControls-productSwitcherMenu',
             }}
-            menuFooter={<ProductSwitcherEditionFooter/>}
+            menuFooter={
+                <>
+                    <ProductSwitcherEditionFooter/>
+                    <ProductSwitcherCloudLimitsFooter
+                        isUserAdmin={isUserAdmin}
+                        isCloudLicensed={isCloudLicensed}
+                        isFreeTrialSubscription={isFreeTrialSubscription}
+                    />
+                </>
+            }
         >
             <ProductSwitcherChannelsMenuItem
                 isChannelsProductActive={isChannelsProductActive}
@@ -79,7 +97,11 @@ export function ProductSwitcherMenu(props: Props) {
                 currentProductID={props.productId}
             />
             <Menu.Separator/>
-            <ProductSwitcherCloudTrialMenuItem/>
+            <ProductSwitcherCloudTrialMenuItem
+                isUserAdmin={isUserAdmin}
+                isCloudLicensed={isCloudLicensed}
+                isFreeTrialSubscription={isFreeTrialSubscription}
+            />
             <ProductSwitcherSystemConsoleMenuItem/>
             <ProductSwitcherIntegrationsMenuItem
                 isChannelsProductActive={isChannelsProductActive}
@@ -91,6 +113,9 @@ export function ProductSwitcherMenu(props: Props) {
             />
             <ProductSwitcherUserGroupsMenuItem
                 isEnterpriseReady={isEnterpriseReady}
+                isUserAdmin={isUserAdmin}
+                isCloudLicensed={isCloudLicensed}
+                isFreeTrialSubscription={isFreeTrialSubscription}
             />
             <ProductSwitcherMarketplaceMenuItem
                 isChannelsProductActive={isChannelsProductActive}

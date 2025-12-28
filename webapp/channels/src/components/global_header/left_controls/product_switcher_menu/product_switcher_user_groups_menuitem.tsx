@@ -7,10 +7,9 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import {AccountMultipleOutlineIcon} from '@mattermost/compass-icons/components';
 
-import {getCloudSubscription, getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
+import {getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import {openModal} from 'actions/views/modals';
 
@@ -20,25 +19,23 @@ import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_i
 
 import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
 import {CloudProducts, LicenseSkus, MattermostFeatures, ModalIdentifiers} from 'utils/constants';
-import {isCloudLicense} from 'utils/license_utils';
 
 type Props = {
+    isUserAdmin: boolean;
+    isCloudLicensed: boolean;
     isEnterpriseReady: boolean;
+    isFreeTrialSubscription: boolean;
 }
 
 export default function ProductSwitcherUserGroupsMenuItem(props: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
-    const isAdmin = useSelector(isCurrentUserSystemAdmin);
-
     const license = useSelector(getLicense);
 
-    const isCloud = isCloudLicense(license);
     const subscriptionProduct = useSelector(getSubscriptionProduct);
-    const isCloudStarterFree = isCloud && subscriptionProduct?.sku === CloudProducts.STARTER;
-    const subscription = useSelector(getCloudSubscription);
-    const isCloudFreeTrial = isCloud && subscription?.is_free_trial === 'true';
+    const isCloudStarterFree = props.isCloudLicensed && subscriptionProduct?.sku === CloudProducts.STARTER;
+    const isCloudFreeTrial = props.isCloudLicensed && props.isFreeTrialSubscription;
 
     const isSelfHostedStarter = props.isEnterpriseReady && (license.IsLicensed === 'false');
     const isSelfHostedFreeTrial = license.IsTrial === 'true';
@@ -68,7 +65,7 @@ export default function ProductSwitcherUserGroupsMenuItem(props: Props) {
         return null;
     }
 
-    const showRestrictedIndicator = isAdmin && (isStarterFree || isFreeTrial);
+    const showRestrictedIndicator = props.isUserAdmin && (isStarterFree || isFreeTrial);
 
     return (
         <Menu.Item
