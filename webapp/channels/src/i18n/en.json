@@ -4581,6 +4581,8 @@
   "globalHeader.productSwitcherMenu.aboutMenuItem.label": "About {appTitle}",
   "globalHeader.productSwitcherMenu.cloudLimitsFooter.infoButtonAriaLabel": "View limits",
   "globalHeader.productSwitcherMenu.downloadMenuItem.label": "Download Apps",
+  "globalHeader.productSwitcherMenu.editionMenuitem.entry": "Entry offers Enterprise Advance capabilities <b>with limits</b> designed to support evaluation. Learn more.",
+  "globalHeader.productSwitcherMenu.editionMenuitem.unsupported": "This is the free <b>unsupported</b> edition of Mattermost. See pricing.",
   "globalHeader.productSwitcherMenu.integrationsMenuItem.label": "Integrations",
   "globalHeader.productSwitcherMenu.marketplaceMenuItem.label": "App Marketplace",
   "globalHeader.productSwitcherMenu.menuButtonTooltip": "Switch product",
