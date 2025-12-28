@@ -120,32 +120,32 @@ $menuWidth: 240px;
 
 .globalHeader-leftControls-productSwitcherMenu-cloudLimitsFooter {
     display: flex;
+    width: $menuWidth;
     flex-direction: column;
     align-items: flex-start;
     padding: 16px 20px;
-    width: $menuWidth;
-    color: var(--center-channel-color);
     background-color: rgba(var(--mention-highlight-bg-rgb), 0.16);
+    color: var(--center-channel-color);
 
     &.usageAboveDangerThreshold {
         background-color: rgba(var(--error-text-color-rgb), 0.16);
     }
 
     > .footerTitle {
-        font-size: 14px;
-        font-weight: 600;
-        line-height: 20px;
         display: flex;
         flex-direction: row;
         align-items: center;
+        font-size: 14px;
+        font-weight: 600;
         gap: 4px;
+        line-height: 20px;
     }
 
     > .footerDescription {
-        font-size: 12px;
-        line-height: 16px;
         margin-top: 4px;
         margin-bottom: 12px;
+        font-size: 12px;
+        line-height: 16px;
     }
 
     > .footerUsage {
