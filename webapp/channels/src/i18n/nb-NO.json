@@ -3981,7 +3981,6 @@
   "login_mfa.token": "MFA-token",
   "manage_channel_groups_modal.search_placeholder": "Søk grupper",
   "manage_team_groups_modal.search_placeholder": "Søk i grupper",
-  "mark_all_threads_as_read_modal.cancel": "Avbryt",
   "mark_all_threads_as_read_modal.confirm": "Merk alle som lest",
   "mark_all_threads_as_read_modal.description": "Dette vil fjerne ulest-statusen og omtalemerker i alle trådene dine. Er du sikker?",
   "mark_all_threads_as_read_modal.title": "Marker alle trådene dine som lest?",

@@ -4805,7 +4805,6 @@
   "login_mfa.token": "Çok adımlı doğrulama kodu",
   "manage_channel_groups_modal.search_placeholder": "Grup arama",
   "manage_team_groups_modal.search_placeholder": "Grup arama",
-  "mark_all_threads_as_read_modal.cancel": "İptal",
   "mark_all_threads_as_read_modal.confirm": "Tümünü okunmuş olarak işaretle",
   "mark_all_threads_as_read_modal.description": "Bu işlem, tüm konu başlıklarınızdaki okunmamış durumunu ve anma duyurularını temizleyecek. Emin misiniz?",
   "mark_all_threads_as_read_modal.title": "Tüm konularınız okunmuş olarak işaretlensin mi?",

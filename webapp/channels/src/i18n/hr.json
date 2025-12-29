@@ -1180,7 +1180,6 @@
   "login_mfa.token": "Token višefaktorske autentifikacije",
   "manage_channel_groups_modal.search_placeholder": "Traži grupe",
   "manage_team_groups_modal.search_placeholder": "Traži grupe",
-  "mark_all_threads_as_read_modal.cancel": "Odustani",
   "mark_all_threads_as_read_modal.confirm": "Označi sve kao pročitane",
   "mark_as_read_confirm_modal.confirm": "Označi kao pročitano",
   "mark_as_read_confirm_modal.header": "Označi kao pročitano",

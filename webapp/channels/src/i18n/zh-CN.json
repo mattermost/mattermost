@@ -4928,7 +4928,6 @@
   "login_mfa.token": "多重验证令牌",
   "manage_channel_groups_modal.search_placeholder": "搜索群组",
   "manage_team_groups_modal.search_placeholder": "搜索群组",
-  "mark_all_threads_as_read_modal.cancel": "取消",
   "mark_all_threads_as_read_modal.confirm": "全部标记为已读",
   "mark_all_threads_as_read_modal.description": "这将清除您的所有话题上的未读状态和提及徽章。您确定吗？",
   "mark_all_threads_as_read_modal.title": "将您的所有话题标记为已读？",

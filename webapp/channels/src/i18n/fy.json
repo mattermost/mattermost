@@ -3306,7 +3306,6 @@
   "login_mfa.token": "MFA-token",
   "manage_channel_groups_modal.search_placeholder": "Zoek groepen",
   "manage_team_groups_modal.search_placeholder": "Zoek groepen",
-  "mark_all_threads_as_read_modal.cancel": "Annuleren",
   "mark_all_threads_as_read_modal.confirm": "Alles als gelezen markeren",
   "mark_all_threads_as_read_modal.description": "Dit zal de ongelezen status wissen en je vermelingen-badges op al jouw draadjes. Weet je dit zeker?",
   "mark_all_threads_as_read_modal.title": "Al jouw draadjes als gelezen markeren?",

@@ -4851,7 +4851,6 @@
   "login_mfa.token": "MFA Token",
   "manage_channel_groups_modal.search_placeholder": "Sök grupper",
   "manage_team_groups_modal.search_placeholder": "Sök grupper",
-  "mark_all_threads_as_read_modal.cancel": "Avbryt",
   "mark_all_threads_as_read_modal.confirm": "Markera alla som lästa",
   "mark_all_threads_as_read_modal.description": "Detta kommer att rensa status för olästa meddelanden och omnämnanden på alla dina trådar. Är du säker?",
   "mark_all_threads_as_read_modal.title": "Markera alla dina trådar som lästa?",

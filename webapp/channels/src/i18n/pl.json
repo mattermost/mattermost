@@ -4939,7 +4939,6 @@
   "login_mfa.token": "MFA Token",
   "manage_channel_groups_modal.search_placeholder": "Szukaj grup",
   "manage_team_groups_modal.search_placeholder": "Szukaj grup",
-  "mark_all_threads_as_read_modal.cancel": "Anuluj",
   "mark_all_threads_as_read_modal.confirm": "Oznacz wszystkie jako przeczytane",
   "mark_all_threads_as_read_modal.description": "To wyczyści stan nieprzeczytany i wymieni znaczniki na wszystkich twoich wątkach. Czy jesteś pewien?",
   "mark_all_threads_as_read_modal.title": "Oznaczyć wszystkie twoje wątki jako przeczytane?",

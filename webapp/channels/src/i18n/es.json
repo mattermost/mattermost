@@ -3479,7 +3479,6 @@
   "login_mfa.token": "Token MFA",
   "manage_channel_groups_modal.search_placeholder": "Buscar grupos",
   "manage_team_groups_modal.search_placeholder": "Buscar grupos",
-  "mark_all_threads_as_read_modal.cancel": "Cancelar",
   "marketplace_modal.install_plugins": "Instalar Plugins",
   "marketplace_modal.installing": "Instalando...",
   "marketplace_modal.list.configure": "Configurar",

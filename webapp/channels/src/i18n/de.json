@@ -4939,7 +4939,6 @@
   "login_mfa.token": "MFA Token",
   "manage_channel_groups_modal.search_placeholder": "Gruppen suchen",
   "manage_team_groups_modal.search_placeholder": "Gruppen suchen",
-  "mark_all_threads_as_read_modal.cancel": "Abbrechen",
   "mark_all_threads_as_read_modal.confirm": "Alles als gelesen markieren",
   "mark_all_threads_as_read_modal.description": "Dadurch wird der Status \"ungelesen\" gelöscht und die Zähler für alle deine Unterhaltungen werden entfernt. Bist du sicher?",
   "mark_all_threads_as_read_modal.title": "Alle deine Unterhaltungen als gelesen markieren?",
