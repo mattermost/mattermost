@@ -3428,7 +3428,6 @@
   "login_mfa.token": "MFA Token",
   "manage_channel_groups_modal.search_placeholder": "Tìm nhóm",
   "manage_team_groups_modal.search_placeholder": "Tìm nhóm",
-  "mark_all_threads_as_read_modal.cancel": "Huỷ",
   "mark_all_threads_as_read_modal.confirm": "Đánh dấu tất cả là đã đọc",
   "mark_all_threads_as_read_modal.description": "Điều này sẽ xóa trạng thái chưa đọc và đề cập huy hiệu trên tất cả các chủ đề của bạn. Bạn có chắc không?",
   "mark_all_threads_as_read_modal.title": "Đánh dấu tất cả các chủ đề của bạn là đã đọc?",

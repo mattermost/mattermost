@@ -4658,7 +4658,6 @@
   "login_mfa.token": "MFA token",
   "manage_channel_groups_modal.search_placeholder": "Hledat skupiny",
   "manage_team_groups_modal.search_placeholder": "Hledat skupiny",
-  "mark_all_threads_as_read_modal.cancel": "Zrušit",
   "mark_all_threads_as_read_modal.confirm": "Označit vše jako přečtené",
   "mark_all_threads_as_read_modal.description": "Tím vymažete stav nepřečtených a zmíníte odznaky ve všech vašich vláknech. Opravdu chcete pokračovat?",
   "mark_all_threads_as_read_modal.title": "Označit všechna svá vlákna jako přečtená?",

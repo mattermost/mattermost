@@ -11686,5 +11686,13 @@
   {
     "id": "model.config.is_valid.intune_tenant_id_format.app_error",
     "translation": "Intune MAM Tenant ID moet een geldige UUID zijn."
+  },
+  {
+    "id": "api.content_flagging.error.invalid_post_type",
+    "translation": "Het markeren van een bericht van het type '{{.PostType}}' is niet toegestaan."
+  },
+  {
+    "id": "model.config.is_valid.guest_accounts.cannot_enforce_multifactor_authentication_when_guest_magic_link_is_enabled.app_error",
+    "translation": "Je kunt multifactorauthenticatie niet afdwingen voor gastaccounts als magische linkauthenticatie is ingeschakeld."
   }
 ]

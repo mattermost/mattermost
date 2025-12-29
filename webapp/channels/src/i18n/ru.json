@@ -4075,7 +4075,6 @@
   "login_mfa.token": "Токен МФА",
   "manage_channel_groups_modal.search_placeholder": "Поиск групп",
   "manage_team_groups_modal.search_placeholder": "Поиск групп",
-  "mark_all_threads_as_read_modal.cancel": "Отмена",
   "mark_all_threads_as_read_modal.confirm": "Пометить всё как прочитанное",
   "mark_all_threads_as_read_modal.description": "Это очистит статус непрочитанного и упоминаний во всех ваших обсуждениях. Вы уверены?",
   "mark_all_threads_as_read_modal.title": "Пометить все свои обсуждения как прочитанные?",
