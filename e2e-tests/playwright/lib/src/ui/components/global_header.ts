@@ -10,7 +10,7 @@ export default class GlobalHeader {
     readonly container: Locator;
 
     readonly accountMenuButton;
-    readonly productSwitchMenu;
+    readonly switchProductMenuButton;
     readonly recentMentionsButton;
     readonly savedMessagesButton;
     readonly settingsButton;
@@ -22,7 +22,7 @@ export default class GlobalHeader {
         this.container = container;
 
         this.accountMenuButton = container.getByRole('button', {name: "'s account menu"});
-        this.productSwitchMenu = container.getByRole('button', {name: 'Product switch menu'});
+        this.switchProductMenuButton = container.getByRole('button', {name: 'Switch product menu'});
         this.recentMentionsButton = container.getByRole('button', {name: 'Recent mentions'});
         this.savedMessagesButton = container.getByRole('button', {name: 'Saved messages'});
         this.settingsButton = container.getByRole('button', {name: 'Settings'});
@@ -34,9 +34,11 @@ export default class GlobalHeader {
         await expect(this.container.getByRole('heading', {name})).toBeVisible();
     }
 
-    async switchProduct(name: string) {
-        await this.productSwitchMenu.click();
-        await this.container.getByRole('link', {name}).click();
+    async openSwitchProductMenu(name: string) {
+        await this.switchProductMenuButton.click();
+        await this.channelsPage.switchProductMenu.toBeVisible();
+
+        return this.channelsPage.switchProductMenu;
     }
 
     async openSettings() {
