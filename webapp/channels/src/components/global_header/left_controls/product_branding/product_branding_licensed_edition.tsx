@@ -14,12 +14,12 @@ const ProductBranding = (): JSX.Element => {
     const productName = currentProduct ? currentProduct.switcherText : 'Channels';
 
     return (
-        <span className='globalHeader-leftControls-productBranding-licencedEdition'>
+        <span className='globalHeader-leftControls-productBranding-licensedEdition'>
             <ProductIcon size={24}/>
             <h1 className='sr-only'>
                 {productName}
             </h1>
-            <span className='globalHeader-leftControls-productBranding-licencedEdition-heading'>
+            <span className='globalHeader-leftControls-productBranding-licensedEdition-heading'>
                 {productName}
             </span>
         </span >

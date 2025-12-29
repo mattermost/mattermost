@@ -23,9 +23,9 @@ export default function ProductSwitcherEditionFooter() {
 
     const isEntryLicense = isLicensedVersion && isEntrySKU;
 
-    let badgeLable = 'TEAM EDITION';
+    let badgeLabel = 'TEAM EDITION';
     if (isEntryLicense) {
-        badgeLable = 'ENTRY EDITION';
+        badgeLabel = 'ENTRY EDITION';
     }
 
     let label = (
@@ -72,7 +72,7 @@ export default function ProductSwitcherEditionFooter() {
                 className='globalHeader-leftControls-productSwitcherMenu-editionMenuItem'
                 labels={
                     <>
-                        <span className='badgeLabel'>{badgeLable}</span>
+                        <span className='badgeLabel'>{badgeLabel}</span>
                         {label}
                     </>
                 }
