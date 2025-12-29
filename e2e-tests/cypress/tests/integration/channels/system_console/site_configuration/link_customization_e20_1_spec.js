@@ -129,6 +129,10 @@ describe('SupportSettings', () => {
     });
 
     it('MM-T1038 - Customization App download link - Change to different', () => {
+        cy.window().then((win) => {
+            cy.stub(win, 'open').as('open');
+        });
+
         // # Edit links in the support email field
         const link = 'some_link';
         cy.findByTestId('NativeAppSettings.AppDownloadLinkinput').clear().type(link);
@@ -137,13 +141,11 @@ describe('SupportSettings', () => {
         saveSetting();
         backToTeam();
 
-        // # Open about modal
-        cy.uiOpenProductMenu().within(() => {
-            // * Verify that 'Download Apps' has expected link
-            cy.findByText('Download Apps').
-                parents('a').
-                should('have.attr', 'href', link);
-        });
+        // # Open about switch product menu and click on Download Apps menu item
+        cy.uiOpenSwitchProductMenu('Download Apps');
+
+        // * Verify that the link is opened in a new tab
+        cy.get('@open').should('have.been.calledWith', link, '_blank', 'noopener,noreferrer');
     });
 
     it('MM-T3289_1 - Help (Ask community link setting)', () => {

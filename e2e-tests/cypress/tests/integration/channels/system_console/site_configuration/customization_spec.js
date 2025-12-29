@@ -66,7 +66,7 @@ describe('Customization', () => {
         cy.visit('/');
 
         // # Open About Mattermost menu option
-        cy.uiOpenProductMenu(`About ${siteName}`);
+        cy.uiOpenSwitchProductMenu(`About ${siteName}`);
 
         // * Verify in the about modal that the new site name is being shown
         cy.get('#aboutModalLabel').should('be.visible').and('have.text', `About ${siteName}`);

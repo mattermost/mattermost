@@ -69,7 +69,7 @@ export function SwitchProductMenu(props: Props) {
                 id: ELEMENT_ID_FOR_SWITCH_PRODUCT_MENU_BUTTON,
                 class: 'HeaderIconButton', // Its the same classname as the HeaderIconButton component
                 children: <i className='icon-products'/>,
-                'aria-label': formatMessage({id: 'globalHeader.productSwitcherMenu.menuButtonAriaLabel', defaultMessage: 'Switch product menu'}),
+                'aria-label': formatMessage({id: 'globalHeader.productSwitcherMenu.ariaLabel', defaultMessage: 'Switch product menu'}),
             }}
             menuButtonTooltip={{
                 text: formatMessage({id: 'globalHeader.productSwitcherMenu.menuButtonTooltip', defaultMessage: 'Switch product'}),
@@ -78,6 +78,7 @@ export function SwitchProductMenu(props: Props) {
                 id: ELEMENT_ID_FOR_SWITCH_PRODUCT_MENU,
                 width: '240px',
                 className: 'globalHeader-leftControls-productSwitcherMenu',
+                'aria-label': formatMessage({id: 'globalHeader.productSwitcherMenu.ariaLabel', defaultMessage: 'Switch product menu'}),
             }}
             menuFooter={
                 <ProductSwitcherCloudLimitsFooter

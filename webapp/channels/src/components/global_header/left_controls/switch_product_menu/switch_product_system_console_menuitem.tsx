@@ -42,7 +42,7 @@ export default function ProductSwitcherSystemConsoleMenuItem() {
                 labels={
                     <FormattedMessage
                         id='globalHeader.productSwitcherMenu.systemConsoleMenuItem.label'
-                        defaultMessage='System console'
+                        defaultMessage='System Console'
                     />
                 }
                 trailingElements={showTour && (<VisitSystemConsoleTour/>)}
