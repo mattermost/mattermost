@@ -11,7 +11,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
     title="Help"
   >
     <HeaderIconButton
-      aria-controls="AddChannelDropdown"
+      aria-controls="userHelpGuide"
       aria-expanded={false}
       aria-haspopup={true}
       aria-label="Help"
@@ -19,8 +19,8 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
     />
   </WithTooltip>
   <Menu
-    ariaLabel="Add Channel Dropdown"
-    id="AddChannelDropdown"
+    ariaLabel="Help menu"
+    id="userHelpGuide"
     openLeft={false}
     openUp={false}
   >
@@ -76,7 +76,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
     title="Help"
   >
     <HeaderIconButton
-      aria-controls="AddChannelDropdown"
+      aria-controls="userHelpGuide"
       aria-expanded={false}
       aria-haspopup={true}
       aria-label="Help"
@@ -84,8 +84,8 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
     />
   </WithTooltip>
   <Menu
-    ariaLabel="Add Channel Dropdown"
-    id="AddChannelDropdown"
+    ariaLabel="Help menu"
+    id="userHelpGuide"
     openLeft={false}
     openUp={false}
   >
@@ -134,7 +134,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
     title="Help"
   >
     <HeaderIconButton
-      aria-controls="AddChannelDropdown"
+      aria-controls="userHelpGuide"
       aria-expanded={false}
       aria-haspopup={true}
       aria-label="Help"
@@ -142,8 +142,8 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
     />
   </WithTooltip>
   <Menu
-    ariaLabel="Add Channel Dropdown"
-    id="AddChannelDropdown"
+    ariaLabel="Help menu"
+    id="userHelpGuide"
     openLeft={false}
     openUp={false}
   >

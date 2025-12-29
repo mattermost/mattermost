@@ -3685,6 +3685,7 @@
   "channel_header.unmute": "Unmute Channel",
   "channel_header.unmuteConversation": "Unmute",
   "channel_header.userHelpGuide": "Help",
+  "channel_header.userHelpGuide.menuAriaLabel": "Help menu",
   "channel_header.viewMembers": "View Members",
   "channel_info_rhs.about_area_id": "ID:",
   "channel_info_rhs.about_area.add_channel_header": "Add a channel header",

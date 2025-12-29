@@ -121,18 +121,18 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
                     title={intl.formatMessage({id: 'channel_header.userHelpGuide', defaultMessage: 'Help'})}
                 >
                     <HeaderIconButton
+                        aria-controls='userHelpGuide'
                         icon={'help-circle-outline'}
                         aria-label={intl.formatMessage({id: 'channel_header.userHelpGuide', defaultMessage: 'Help'})}
-                        aria-controls='AddChannelDropdown'
                         aria-expanded={this.state.buttonActive}
                         aria-haspopup={true}
                     />
                 </WithTooltip>
                 <Menu
+                    id='userHelpGuide'
+                    ariaLabel={intl.formatMessage({id: 'channel_header.userHelpGuide.menuAriaLabel', defaultMessage: 'Help menu'})}
                     openLeft={false}
                     openUp={false}
-                    id='AddChannelDropdown'
-                    ariaLabel={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.dropdownAriaLabel', defaultMessage: 'Add Channel Dropdown'})}
                 >
                     {this.renderDropdownItems()}
                 </Menu>
