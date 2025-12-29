@@ -16,26 +16,26 @@ import * as Menu from 'components/menu';
 
 import {isChannels} from 'utils/products';
 
-import ProductSwitcherAboutMenuItem from './product_switcher_about_menuitem';
-import ProductSwitcherChannelsMenuItem from './product_switcher_channels_menuitem';
-import ProductSwitcherCloudLimitsFooter from './product_switcher_cloud_limits_footer';
-import ProductSwitcherCloudTrialMenuItem from './product_switcher_cloud_trial_menuitem';
-import ProductSwitcherDownloadMenuItem from './product_switcher_download_menuitem';
-import ProductSwitcherEditionMenuItem from './product_switcher_edition_menuitem';
-import ProductSwitcherIntegrationsMenuItem from './product_switcher_integrations_menuitem';
-import ProductSwitcherMarketplaceMenuItem from './product_switcher_marketplace_menuitem';
-import ProductSwitcherProductsMenuItems from './product_switcher_products_menuitems';
-import ProductSwitcherSystemConsoleMenuItem from './product_switcher_system_console_menuitem';
-import ProductSwitcherUserGroupsMenuItem from './product_switcher_user_groups_menuitem';
+import ProductSwitcherAboutMenuItem from './switch_product_about_menuitem';
+import ProductSwitcherChannelsMenuItem from './switch_product_channels_menuitem';
+import ProductSwitcherCloudLimitsFooter from './switch_product_cloud_limits_footer';
+import ProductSwitcherCloudTrialMenuItem from './switch_product_cloud_trial_menuitem';
+import ProductSwitcherDownloadMenuItem from './switch_product_download_menuitem';
+import ProductSwitcherEditionMenuItem from './switch_product_edition_menuitem';
+import ProductSwitcherIntegrationsMenuItem from './switch_product_integrations_menuitem';
+import ProductSwitcherMarketplaceMenuItem from './switch_product_marketplace_menuitem';
+import ProductSwitcherProductsMenuItems from './switch_product_products_menuitems';
+import ProductSwitcherSystemConsoleMenuItem from './switch_product_system_console_menuitem';
+import ProductSwitcherUserGroupsMenuItem from './switch_product_user_groups_menuitem';
 
-export const ELEMENT_ID_FOR_PRODUCT_SWITCHER_MENU = 'productSwitcherMenu';
-export const ELEMENT_ID_FOR_PRODUCT_SWITCHER_MENU_BUTTON = 'productSwitcherMenuButton';
+export const ELEMENT_ID_FOR_SWITCH_PRODUCT_MENU = 'switchProductMenu';
+export const ELEMENT_ID_FOR_SWITCH_PRODUCT_MENU_BUTTON = 'switchProductMenuButton';
 
 type Props = {
     productId: ProductIdentifier;
 }
 
-export function ProductSwitcherMenu(props: Props) {
+export function SwitchProductMenu(props: Props) {
     const {formatMessage} = useIntl();
 
     const config = useSelector(getConfig);
@@ -66,16 +66,16 @@ export function ProductSwitcherMenu(props: Props) {
     return (
         <Menu.Container
             menuButton={{
-                id: ELEMENT_ID_FOR_PRODUCT_SWITCHER_MENU_BUTTON,
+                id: ELEMENT_ID_FOR_SWITCH_PRODUCT_MENU_BUTTON,
                 class: 'HeaderIconButton', // Its the same classname as the HeaderIconButton component
                 children: <i className='icon-products'/>,
-                'aria-label': formatMessage({id: 'globalHeader.productSwitcherMenu.menuButtonTooltip', defaultMessage: 'Switch product'}),
+                'aria-label': formatMessage({id: 'globalHeader.productSwitcherMenu.menuButtonAriaLabel', defaultMessage: 'Switch product menu'}),
             }}
             menuButtonTooltip={{
                 text: formatMessage({id: 'globalHeader.productSwitcherMenu.menuButtonTooltip', defaultMessage: 'Switch product'}),
             }}
             menu={{
-                id: ELEMENT_ID_FOR_PRODUCT_SWITCHER_MENU,
+                id: ELEMENT_ID_FOR_SWITCH_PRODUCT_MENU,
                 width: '240px',
                 className: 'globalHeader-leftControls-productSwitcherMenu',
             }}

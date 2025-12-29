@@ -12,7 +12,7 @@ import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
 
-import ProductSwitcherCloudTrialMenuItem from './product_switcher_cloud_trial_menuitem';
+import ProductSwitcherCloudTrialMenuItem from './switch_product_cloud_trial_menuitem';
 
 jest.mock('components/common/hooks/useGetLimits', () => ({
     __esModule: true,

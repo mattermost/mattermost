@@ -9,7 +9,7 @@ import {
 } from 'tests/react_testing_utils';
 import {LimitTypes, limitThresholds} from 'utils/limits';
 
-import ProductSwitcherCloudLimitsFooter from './product_switcher_cloud_limits_footer';
+import ProductSwitcherCloudLimitsFooter from './switch_product_cloud_limits_footer';
 
 jest.mock('components/common/hooks/useGetLimits', () => ({
     __esModule: true,

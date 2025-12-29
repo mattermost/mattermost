@@ -9,7 +9,7 @@ import {isDesktopApp} from 'utils/user_agent';
 
 import HistoryButtons from './history_buttons';
 import ProductBranding from './product_branding';
-import ProductSwitcherMenu from './product_switcher_menu';
+import ProductSwitcherMenu from './switch_product_menu';
 
 import './left_controls.scss';
 

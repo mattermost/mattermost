@@ -10,7 +10,7 @@ import {TourTip, useMeasurePunchouts} from '@mattermost/components';
 import {setShowOnboardingVisitConsoleTour} from 'actions/views/onboarding_tasks';
 import {isShowOnboardingVisitConsoleTour} from 'selectors/views/onboarding_tasks';
 
-import {ELEMENT_ID_FOR_PRODUCT_SWITCHER_MENU} from 'components/global_header/left_controls/product_switcher_menu';
+import {ELEMENT_ID_FOR_SWITCH_PRODUCT_MENU} from 'components/global_header/left_controls/switch_product_menu';
 
 import {OnboardingTasksName, TaskNameMapToSteps} from './constants';
 import {useHandleOnBoardingTaskData} from './onboarding_tasks_manager';
@@ -45,7 +45,7 @@ export const VisitSystemConsoleTour = () => {
         </p>
     );
 
-    const overlayPunchOut = useMeasurePunchouts([ELEMENT_ID_FOR_PRODUCT_SWITCHER_MENU], [], {x: -2.5, y: -2.5, width: 5, height: 5});
+    const overlayPunchOut = useMeasurePunchouts([ELEMENT_ID_FOR_SWITCH_PRODUCT_MENU], [], {x: -2.5, y: -2.5, width: 5, height: 5});
 
     const onDismiss = (e: React.MouseEvent) => {
         e.stopPropagation();

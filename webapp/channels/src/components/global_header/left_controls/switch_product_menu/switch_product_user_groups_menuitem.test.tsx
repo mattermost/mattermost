@@ -12,7 +12,7 @@ import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
 
-import ProductSwitcherUserGroupsMenuItem from './product_switcher_user_groups_menuitem';
+import ProductSwitcherUserGroupsMenuItem from './switch_product_user_groups_menuitem';
 
 jest.mock('react-redux', () => ({
     ...jest.requireActual('react-redux'),

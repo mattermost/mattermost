@@ -12,7 +12,7 @@ import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
 
-import ProductSwitcherIntegrationsMenuItem from './product_switcher_integrations_menuitem';
+import ProductSwitcherIntegrationsMenuItem from './switch_product_integrations_menuitem';
 
 jest.mock('react-router-dom', () => ({
     ...jest.requireActual('react-router-dom'),

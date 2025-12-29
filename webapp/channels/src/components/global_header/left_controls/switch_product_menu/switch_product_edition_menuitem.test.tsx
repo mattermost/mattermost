@@ -11,7 +11,7 @@ import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
 
-import ProductSwitcherEditionFooter from './product_switcher_edition_menuitem';
+import ProductSwitcherEditionFooter from './switch_product_edition_menuitem';
 
 describe('ProductSwitcherEditionFooter', () => {
     const initialState: DeepPartial<GlobalState> = {
