@@ -4433,7 +4433,6 @@
   "login_mfa.token": "Токен БФА",
   "manage_channel_groups_modal.search_placeholder": "Пошук груп",
   "manage_team_groups_modal.search_placeholder": "Пошук груп",
-  "mark_all_threads_as_read_modal.cancel": "Скасувати",
   "mark_all_threads_as_read_modal.confirm": "Позначити все як прочитане",
   "mark_all_threads_as_read_modal.description": "Це очистить стан непрочитаних повідомлень та згадок на всіх ваших обговореннях. Ви впевнені?",
   "mark_all_threads_as_read_modal.title": "Позначити всі ваші обговорення як прочитані?",
