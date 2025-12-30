@@ -172,10 +172,10 @@ test('MM-T5520-5 should change the users email', async ({pw}) => {
     const updateEmail = await systemConsolePage.systemUsersActionMenus[0].getMenuItem('Update email');
     await updateEmail.click();
 
-    // # Enter a random password and click Save
+    // # Enter new email and click Update
     const emailInput = systemConsolePage.page.locator('input[type="email"]');
     await emailInput.fill(newEmail);
-    await systemConsolePage.clickResetButton();
+    await systemConsolePage.clickUpdateEmailButton();
 
     // * Verify that the modal closed
     await emailInput.waitFor({state: 'detached'});

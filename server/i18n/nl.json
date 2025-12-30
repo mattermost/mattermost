@@ -11502,5 +11502,197 @@
   {
     "id": "store.sql_autotranslation.set_user_enabled.app_error",
     "translation": "Kan automatische vertaling voor de gebruiker niet instellen."
+  },
+  {
+    "id": "api.post.burn_post.user_not_in_channel.app_error",
+    "translation": "Je hebt geen toestemming om dit bericht te verbranden. Je moet lid zijn van het kanaal."
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.app_error",
+    "translation": "Er is een fout opgetreden tijdens het maken van een burn-on-read bericht."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.config.app_error",
+    "translation": "Verbranden bij gelezen berichten is niet ingeschakeld. Schakel de feature flag en service-instelling in."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.license.app_error",
+    "translation": "Voor burn-on-read berichten is een Enterprise Advanced licentie nodig."
+  },
+  {
+    "id": "api.post.get_link_metadata_for_permalink.burn_on_read.app_error",
+    "translation": "Kan linkmetadata voor burn-on-read postpermalink niet ophalen."
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_burn_on_read_post.error",
+    "translation": "Burn-on-read berichten kunnen niet worden bijgewerkt."
+  },
+  {
+    "id": "api.post.reveal_post.cannot_reveal_own_post.app_error",
+    "translation": "Je kunt je eigen burn-on-read bericht niet onthullen."
+  },
+  {
+    "id": "api.post.reveal_post.disabled.app_error",
+    "translation": "De burn-on-read functie is niet ingeschakeld of vereist een Enterprise Advanced licentie."
+  },
+  {
+    "id": "api.post.reveal_post.user_not_in_channel.app_error",
+    "translation": "Je hebt geen toestemming om dit bericht te onthullen. Je moet lid zijn van het kanaal."
+  },
+  {
+    "id": "api.post.update_post.burn_on_read.app_error",
+    "translation": "Burn on read berichten kunnen niet worden bewerkt."
+  },
+  {
+    "id": "api.reaction.save.burn_on_read.app_error",
+    "translation": "Je kunt niet reageren op een burn-on-read bericht."
+  },
+  {
+    "id": "api.user.login_by_intune.account_locked.app_error",
+    "translation": "Je account is gedeactiveerd. Neem contact op met je systeembeheerder."
+  },
+  {
+    "id": "api.user.login_by_intune.bot_login_forbidden.app_error",
+    "translation": "Bot-accounts kunnen zich niet aanmelden met Microsoft-verificatie."
+  },
+  {
+    "id": "api.user.login_by_intune.not_available.app_error",
+    "translation": "Microsoft Intune-verificatie is niet beschikbaar."
+  },
+  {
+    "id": "api.user.login_by_intune.not_configured.app_error",
+    "translation": "Microsoft Intune-verificatie is niet geconfigureerd."
+  },
+  {
+    "id": "api.user.oauth_to_email.magic_link.app_error",
+    "translation": "Magische Link is de enige beschikbare aanmeldingsmethode voor dit account."
+  },
+  {
+    "id": "api.user.update_password.magic_link.app_error",
+    "translation": "Kan wachtwoord voor Magic Link-accounts niet bijwerken."
+  },
+  {
+    "id": "app.burn_post.not_burn_on_read.app_error",
+    "translation": "Deze post is geen burn-on-read post en kan niet worden vernietigd."
+  },
+  {
+    "id": "app.burn_post.not_revealed.app_error",
+    "translation": "Dit burn-on-read bericht is nog niet onthuld. Je moet het onthullen voordat je het verbrandt."
+  },
+  {
+    "id": "app.burn_post.read_receipt.get.error",
+    "translation": "Er is een fout opgetreden bij het ophalen van de leesbevestiging."
+  },
+  {
+    "id": "app.burn_post.read_receipt.update.error",
+    "translation": "Er is een fout opgetreden tijdens het bijwerken van de leesbevestiging."
+  },
+  {
+    "id": "app.post.get_post.app_error",
+    "translation": "Er is een fout opgetreden tijdens het ophalen van de burn-on-read berichtinhoud."
+  },
+  {
+    "id": "app.reveal_post.cannot_reveal_own_post.app_error",
+    "translation": "Je kunt je eigen burn-on-read bericht niet onthullen."
+  },
+  {
+    "id": "app.reveal_post.missing_expire_at.app_error",
+    "translation": "De burn-on-read post mist de vereiste verlooptijd."
+  },
+  {
+    "id": "app.reveal_post.not_burn_on_read.app_error",
+    "translation": "Deze post is geen burn-on-read post en kan niet worden onthuld."
+  },
+  {
+    "id": "app.reveal_post.post_expired.app_error",
+    "translation": "Deze burn-on-read post is verlopen en kan niet langer worden getoond."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.get.error",
+    "translation": "Er is een fout opgetreden bij het ophalen van de leesbevestiging."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.get_unread_count.error",
+    "translation": "Fout bij het ophalen van het aantal ongelezen bij de leesbevestiging."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.save.error",
+    "translation": "Er is een fout opgetreden bij het opslaan van de leesbevestiging."
+  },
+  {
+    "id": "app.reveal_post.read_receipt_expired.error",
+    "translation": "Je toegang tot deze burn-on-read post is verlopen."
+  },
+  {
+    "id": "ent.intune.login.account_not_found.app_error",
+    "translation": "Je account is nog niet volledig ingesteld. Meld je eerst aan bij Mattermost via het web of de desktop app."
+  },
+  {
+    "id": "ent.intune.login.extract_auth_data.app_error",
+    "translation": "Authenticatie mislukt. Probeer het opnieuw of neem contact op met je systeembeheerder."
+  },
+  {
+    "id": "ent.intune.login.not_configured.app_error",
+    "translation": "Microsoft Intune-verificatie is niet geconfigureerd."
+  },
+  {
+    "id": "ent.intune.validate_token.invalid_tenant_id.app_error",
+    "translation": "Authenticatie mislukt. Ongeldige configuratie."
+  },
+  {
+    "id": "ent.intune.validate_token.invalid_token.app_error",
+    "translation": "Authenticatie mislukt. Probeer het opnieuw."
+  },
+  {
+    "id": "ent.intune.validate_token.jwks_init.app_error",
+    "translation": "De initialisatie van de authenticatiedienst is mislukt. Neem contact op met je systeembeheerder."
+  },
+  {
+    "id": "ent.intune.validate_token.missing_claims.app_error",
+    "translation": "Authenticatie mislukt. Vereiste gebruikersinformatie ontbreekt."
+  },
+  {
+    "id": "ent.intune.validate_token.token_expired.app_error",
+    "translation": "Authenticatiesessie is verlopen. Probeer opnieuw in te loggen."
+  },
+  {
+    "id": "model.config.is_valid.intune_auth_service.app_error",
+    "translation": "Intune MAM Auth Service is vereist als Intune is ingeschakeld."
+  },
+  {
+    "id": "model.config.is_valid.intune_auth_service_invalid.app_error",
+    "translation": "Intune MAM Auth Service moet 'office365' of 'saml' zijn."
+  },
+  {
+    "id": "model.config.is_valid.intune_client_id.app_error",
+    "translation": "Intune MAM Client ID is vereist wanneer Intune is ingeschakeld."
+  },
+  {
+    "id": "model.config.is_valid.intune_client_id_format.app_error",
+    "translation": "Intune MAM Client ID moet een geldige UUID zijn."
+  },
+  {
+    "id": "model.config.is_valid.intune_requires_office365.app_error",
+    "translation": "Intune MAM vereist dat OpenId Connect (Office 365) is ingeschakeld wanneer Auth Service is ingesteld op 'office365'."
+  },
+  {
+    "id": "model.config.is_valid.intune_requires_saml.app_error",
+    "translation": "Intune MAM vereist dat SAML is ingeschakeld als Auth Service is ingesteld op 'saml'."
+  },
+  {
+    "id": "model.config.is_valid.intune_tenant_id.app_error",
+    "translation": "Intune MAM Tenant ID is vereist wanneer Intune is ingeschakeld."
+  },
+  {
+    "id": "model.config.is_valid.intune_tenant_id_format.app_error",
+    "translation": "Intune MAM Tenant ID moet een geldige UUID zijn."
+  },
+  {
+    "id": "api.content_flagging.error.invalid_post_type",
+    "translation": "Het markeren van een bericht van het type '{{.PostType}}' is niet toegestaan."
+  },
+  {
+    "id": "model.config.is_valid.guest_accounts.cannot_enforce_multifactor_authentication_when_guest_magic_link_is_enabled.app_error",
+    "translation": "Je kunt multifactorauthenticatie niet afdwingen voor gastaccounts als magische linkauthenticatie is ingeschakeld."
   }
 ]
