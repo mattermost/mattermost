@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ReactNodeArray} from 'prop-types';
 import React from 'react';
 import type {ReactNode} from 'react';
 import {defineMessage, useIntl} from 'react-intl';
@@ -40,7 +41,7 @@ export default function useWords(highestLimit: LimitSummary | false, isAdminUser
 
     const values = {
         callToAction,
-        a: (chunks: ReactNode) => {
+        a: (chunks: ReactNode | ReactNodeArray) => {
             if (isAirGapped) {
                 // Return plain text if air-gapped
                 return <>{chunks}</>;
