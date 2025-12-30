@@ -51,6 +51,7 @@ export default function useWords(highestLimit: LimitSummary | false, isAdminUser
                     id='view_plans_cta'
                     className='btn btn-link btn-xs'
                     onClick={openPricingModal}
+                    type='button'
                 >
                     {chunks}
                 </button>
