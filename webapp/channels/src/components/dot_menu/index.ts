@@ -114,6 +114,9 @@ function makeMapStateToProps() {
         const pageId = isPageCommentPost ? (post.props?.page_id as string) : null;
         const canFlagContent = channel && !isSystemMessage(post) && !isThisPostBurnOnReadPost(post) && contentFlaggingEnabledInTeam(state, channel.team_id);
 
+        const isBoRPost = isBurnOnReadPost(state, post.id);
+        const isPostSender = post.user_id === userId;
+
         return {
             channelIsArchived: isArchivedChannel(channel),
             components: state.plugins.components,
@@ -132,9 +135,20 @@ function makeMapStateToProps() {
             isMobileView: getIsMobileView(state),
             timezone: getCurrentTimezone(state),
             isMilitaryTime,
-            canMove: channel ? canWrangler(state, channel.type, threadReplyCount) : false,
+            canMove: channel && !isBoRPost ? canWrangler(state, channel.type, threadReplyCount) : false,
+            canReply: !systemMessage && !isBoRPost && ownProps.location === Locations.CENTER,
+            canForward: !systemMessage && !isBoRPost,
+            canFollowThread: !systemMessage && !isBoRPost && collapsedThreads && (
+                !ownProps.location ||
+                ownProps.location === Locations.CENTER ||
+                ownProps.location === Locations.RHS_ROOT ||
+                ownProps.location === Locations.RHS_COMMENT
+            ),
+            canPin: !systemMessage && !isBoRPost && !isArchivedChannel(channel),
+            canCopyText: !systemMessage && !isBoRPost,
+            canCopyLink: !systemMessage && (!isBoRPost || isPostSender),
             canFlagContent,
-            isBurnOnReadPost: isBurnOnReadPost(state, post.id),
+            isBurnOnReadPost: isBoRPost,
             isUnrevealedBurnOnReadPost: shouldDisplayConcealedPlaceholder(state, post.id),
             isPageComment: isPageCommentPost,
             isCommentResolved: isResolved,

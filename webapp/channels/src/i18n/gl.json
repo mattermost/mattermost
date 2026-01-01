@@ -1273,8 +1273,6 @@
   "admin.plugins.settings.automaticPrepackagedPlugins": "Activar os engadidos preempaquetados automaticamente:",
   "admin.plugins.settings.automaticPrepackagedPluginsDesc": "Cando é verdadeiro, o servidor detectará engadidos activados previamente no servidor e instalaraos automaticamente.",
   "admin.plugins.settings.enable": "Activar os engadidos: ",
-  "admin.reset_email.cancel": "Cancelar",
-  "admin.reset_password.cancel": "Cancelar",
   "admin.revoke_token_button.delete": "Eliminar",
   "admin.saml.emailAttrEx": "P. ex.: «Correo-e» ou «Correo-ePrincipal»",
   "admin.saml.idAttrTitle": "Atributo ID:",
