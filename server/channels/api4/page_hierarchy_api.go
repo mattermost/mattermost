@@ -19,24 +19,19 @@ func updatePageParent(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, ok := c.ValidatePageBelongsToWiki(); !ok {
+	// Check wiki modify permission first (includes channel deletion check)
+	if _, _, ok := c.GetWikiForModify("updatePageParent"); !ok {
 		return
 	}
 
-	wiki, appErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
-	if appErr != nil {
-		c.Err = appErr
+	// Validate page belongs to wiki and get page for permission check
+	page, ok := c.ValidatePageBelongsToWiki()
+	if !ok {
 		return
 	}
 
-	channel, appErr := c.App.GetChannel(c.AppContext, wiki.ChannelId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
-		c.SetPermissionError(model.PermissionReadChannelContent)
+	// Check page edit permission early
+	if !c.CheckPagePermission(page, app.PageOperationEdit) {
 		return
 	}
 
@@ -59,7 +54,11 @@ func updatePageParent(c *Context, w http.ResponseWriter, r *http.Request) {
 	if req.NewParentId != "" {
 		parentPost, err := c.App.GetSinglePost(c.AppContext, req.NewParentId, false)
 		if err != nil {
-			c.Err = model.NewAppError("updatePageParent", "api.wiki.update_page_parent.parent_not_found", nil, "", http.StatusBadRequest).Wrap(err)
+			statusCode := http.StatusBadRequest
+			if err.StatusCode == http.StatusInternalServerError {
+				statusCode = http.StatusInternalServerError
+			}
+			c.Err = model.NewAppError("updatePageParent", "api.wiki.update_page_parent.parent_not_found", nil, "", statusCode).Wrap(err)
 			return
 		}
 
@@ -84,16 +83,6 @@ func updatePageParent(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "page_id", c.Params.PageId)
 	model.AddEventParameterToAuditRec(auditRec, "new_parent_id", req.NewParentId)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
-
-	page, err := c.App.GetPage(c.AppContext, c.Params.PageId)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	if !c.CheckPagePermission(page, app.PageOperationEdit) {
-		return
-	}
 
 	if appErr := c.App.ChangePageParent(c.AppContext, c.Params.PageId, req.NewParentId); appErr != nil {
 		c.Err = appErr

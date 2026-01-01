@@ -65,20 +65,16 @@ func (a *App) UpsertPageDraft(rctx request.CTX, userId, wikiId, pageId, contentJ
 		}
 	}
 
-	// Upsert draft content using unified PageContent model with optimistic locking
-	savedContent, err := a.Srv().Store().Draft().UpsertPageDraftContent(pageId, userId, wikiId, processedContent, title, lastUpdateAt)
+	// Business logic for create-or-update decision (moved from Store layer)
+	savedContent, err := a.upsertPageDraftContent(rctx, pageId, userId, wikiId, processedContent, title, lastUpdateAt)
 	if err != nil {
-		var nfErr *store.ErrNotFound
 		var invErr *store.ErrInvalidInput
 		var confErr *store.ErrConflict
 
 		switch {
-		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("UpsertPageDraft", "app.draft.save_page.not_found",
-				nil, "", http.StatusNotFound).Wrap(err)
 		case errors.As(err, &invErr):
-			return nil, model.NewAppError("UpsertPageDraft", "app.draft.save_page.already_published",
-				nil, "", http.StatusConflict).Wrap(err)
+			return nil, model.NewAppError("UpsertPageDraft", "app.draft.save_page.invalid_content",
+				nil, "", http.StatusBadRequest).Wrap(err)
 		case errors.As(err, &confErr):
 			return nil, model.NewAppError("UpsertPageDraft", "app.draft.save_page.version_conflict",
 				nil, "", http.StatusConflict).Wrap(err)
@@ -121,27 +117,73 @@ func (a *App) UpsertPageDraft(rctx request.CTX, userId, wikiId, pageId, contentJ
 		HasPublishedVersion: savedContent.HasPublishedVersion,
 	}
 
-	// Send WebSocket event to notify other users of active editor
-	message := model.NewWebSocketEvent(model.WebsocketEventPageDraftUpdated, "", channel.Id, "", nil, "")
-	message.Add("page_id", pageId)
-	message.Add("user_id", userId)
-	message.Add("timestamp", savedContent.UpdateAt)
-	draftJSON, jsonErr := json.Marshal(combinedDraft)
-	if jsonErr == nil {
-		message.Add("draft", string(draftJSON))
-	}
-	message.SetBroadcast(&model.WebsocketBroadcast{
-		ChannelId:           channel.Id,
-		ReliableClusterSend: true,
-	})
-	a.Publish(message)
+	// Notify other users of active editor
+	a.BroadcastPageDraftUpdated(channel.Id, combinedDraft)
 
 	result = "success"
 	return combinedDraft, nil
 }
 
+// upsertPageDraftContent handles the create-or-update decision logic for page drafts.
+// This business logic was moved from the Store layer to maintain proper layer separation.
+// If lastUpdateAt == 0, creates or updates a draft for a new page.
+// If lastUpdateAt > 0, tries to update existing draft with optimistic locking;
+// if no draft exists, creates one with BaseUpdateAt set for conflict detection.
+func (a *App) upsertPageDraftContent(rctx request.CTX, pageId, userId, wikiId, content, title string, lastUpdateAt int64) (*model.PageContent, error) {
+	draftStore := a.Srv().Store().Draft()
+
+	// Check if draft already exists
+	exists, currentUpdateAt, err := draftStore.PageDraftExists(pageId, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	if lastUpdateAt == 0 {
+		// New page draft - try update first, then create
+		if exists {
+			// Draft exists, update it (no version check for new page drafts)
+			rowsAffected, updateErr := draftStore.UpdatePageDraftContent(pageId, userId, content, title, 0)
+			if updateErr != nil {
+				return nil, updateErr
+			}
+			if rowsAffected > 0 {
+				return draftStore.GetPageDraft(pageId, userId)
+			}
+		}
+		// No existing draft - create new one
+		draftContent := &model.PageContent{
+			PageId: pageId,
+			UserId: userId,
+			WikiId: wikiId,
+			Title:  title,
+		}
+		if setErr := draftContent.SetDocumentJSON(content); setErr != nil {
+			return nil, setErr
+		}
+		return draftStore.CreatePageDraft(draftContent)
+	}
+
+	// Editing existing page - use optimistic locking
+	if exists {
+		// Try to update with version check
+		rowsAffected, updateErr := draftStore.UpdatePageDraftContent(pageId, userId, content, title, lastUpdateAt)
+		if updateErr != nil {
+			return nil, updateErr
+		}
+		if rowsAffected > 0 {
+			return draftStore.GetPageDraft(pageId, userId)
+		}
+		// Update failed - check if version conflict
+		if currentUpdateAt != lastUpdateAt {
+			return nil, store.NewErrConflict("PageContent", fmt.Errorf("version_conflict"), "updateat mismatch")
+		}
+	}
+
+	// No draft exists for editing an existing page - create one with BaseUpdateAt
+	return draftStore.CreateDraftForExistingPage(pageId, userId, wikiId, content, title, lastUpdateAt)
+}
+
 // SavePageDraftWithMetadata is an alias for UpsertPageDraft for backward compatibility.
-// Deprecated: Use UpsertPageDraft instead.
 func (a *App) SavePageDraftWithMetadata(rctx request.CTX, userId, wikiId, pageId, contentJSON, title string, lastUpdateAt int64, props map[string]any) (*model.PageDraft, *model.AppError) {
 	return a.UpsertPageDraft(rctx, userId, wikiId, pageId, contentJSON, title, lastUpdateAt, props)
 }
@@ -232,15 +274,8 @@ func (a *App) DeletePageDraft(rctx request.CTX, userId, wikiId, pageId string) *
 		rctx.Logger().Warn("Failed to delete draft metadata", mlog.Err(err))
 	}
 
-	// Always send WebSocket event to notify other users that this editor stopped editing
-	message := model.NewWebSocketEvent(model.WebsocketEventPageDraftDeleted, "", wiki.ChannelId, "", nil, "")
-	message.Add("page_id", pageId)
-	message.Add("user_id", userId)
-	message.SetBroadcast(&model.WebsocketBroadcast{
-		ChannelId:           wiki.ChannelId,
-		ReliableClusterSend: true,
-	})
-	a.Publish(message)
+	// Notify other users that this editor stopped editing
+	a.BroadcastPageDraftDeleted(wiki.ChannelId, pageId, userId)
 
 	return nil
 }
@@ -264,16 +299,7 @@ func (a *App) MovePageDraft(rctx request.CTX, userId, wikiId, pageId, newParentI
 		}
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventPageDraftUpdated, "", wiki.ChannelId, userId, nil, "")
-	message.Add("page_id", pageId)
-	message.Add("user_id", userId)
-	message.Add("parent_changed", true)
-	message.Add("new_parent_id", newParentId)
-	message.SetBroadcast(&model.WebsocketBroadcast{
-		ChannelId:           wiki.ChannelId,
-		ReliableClusterSend: true,
-	})
-	a.Publish(message)
+	a.BroadcastPageDraftMoved(wiki.ChannelId, pageId, userId, newParentId)
 
 	return nil
 }
@@ -663,6 +689,51 @@ func (a *App) BroadcastWikiUpdated(wiki *model.Wiki) {
 	a.Publish(message)
 }
 
+// BroadcastPageDraftUpdated broadcasts a draft update to all clients with access to the channel.
+// This notifies other users of active editors and draft content changes.
+func (a *App) BroadcastPageDraftUpdated(channelId string, draft *model.PageDraft) {
+	message := model.NewWebSocketEvent(model.WebsocketEventPageDraftUpdated, "", channelId, "", nil, "")
+	message.Add("page_id", draft.PageId)
+	message.Add("user_id", draft.UserId)
+	message.Add("timestamp", draft.UpdateAt)
+	draftJSON, jsonErr := json.Marshal(draft)
+	if jsonErr == nil {
+		message.Add("draft", string(draftJSON))
+	}
+	message.SetBroadcast(&model.WebsocketBroadcast{
+		ChannelId:           channelId,
+		ReliableClusterSend: true,
+	})
+	a.Publish(message)
+}
+
+// BroadcastPageDraftDeleted broadcasts a draft deletion to all clients with access to the channel.
+// This notifies other users that an editor has stopped editing.
+func (a *App) BroadcastPageDraftDeleted(channelId, pageId, userId string) {
+	message := model.NewWebSocketEvent(model.WebsocketEventPageDraftDeleted, "", channelId, "", nil, "")
+	message.Add("page_id", pageId)
+	message.Add("user_id", userId)
+	message.SetBroadcast(&model.WebsocketBroadcast{
+		ChannelId:           channelId,
+		ReliableClusterSend: true,
+	})
+	a.Publish(message)
+}
+
+// BroadcastPageDraftMoved broadcasts a draft parent change to all clients with access to the channel.
+func (a *App) BroadcastPageDraftMoved(channelId, pageId, userId, newParentId string) {
+	message := model.NewWebSocketEvent(model.WebsocketEventPageDraftUpdated, "", channelId, userId, nil, "")
+	message.Add("page_id", pageId)
+	message.Add("user_id", userId)
+	message.Add("parent_changed", true)
+	message.Add("new_parent_id", newParentId)
+	message.SetBroadcast(&model.WebsocketBroadcast{
+		ChannelId:           channelId,
+		ReliableClusterSend: true,
+	})
+	a.Publish(message)
+}
+
 // PublishPageDraft publishes a draft as a page.
 // Uses PublishPageDraftOptions to consolidate the many parameters into a structured options object.
 func (a *App) PublishPageDraft(rctx request.CTX, userId string, opts model.PublishPageDraftOptions) (*model.Post, *model.AppError) {
@@ -683,8 +754,19 @@ func (a *App) PublishPageDraft(rctx request.CTX, userId string, opts model.Publi
 	}
 
 	// Check if this is creating a new page or updating an existing one (for rollback logic)
-	_, existingPageErr := a.GetPage(rctx, opts.PageId)
+	existingPage, existingPageErr := a.GetPage(rctx, opts.PageId)
 	isNewPage := existingPageErr != nil
+
+	// For updates, save original state for potential rollback
+	var originalContent *model.PageContent
+	var originalParentId string
+	if !isNewPage {
+		originalParentId = existingPage.PageParentId()
+		// Save original content from PageContents table
+		if content, contentErr := a.Srv().Store().Page().GetPageContent(opts.PageId); contentErr == nil {
+			originalContent = content
+		}
+	}
 
 	savedPost, err := a.applyDraftToPage(rctx, draft, opts.WikiId, opts.ParentId, opts.Title, opts.SearchText, opts.Content, userId, opts.BaseEditAt, opts.Force)
 	if err != nil {
@@ -701,8 +783,9 @@ func (a *App) PublishPageDraft(rctx request.CTX, userId string, opts model.Publi
 		rctx.Logger().Error("Failed to delete draft after successful publish - attempting rollback",
 			mlog.String("page_id", opts.PageId), mlog.Err(deleteErr))
 
-		// Attempt rollback: delete the page we just created (only for new pages, not updates)
+		// Attempt rollback based on whether this was a new page or an update
 		if isNewPage {
+			// For new pages: delete the newly created page
 			if page, pageErr := a.GetPage(rctx, savedPost.Id); pageErr == nil {
 				if rollbackErr := a.DeletePage(rctx, page, opts.WikiId); rollbackErr != nil {
 					rctx.Logger().Error("CRITICAL: Failed to rollback page creation after draft deletion failure - data inconsistency",
@@ -710,6 +793,14 @@ func (a *App) PublishPageDraft(rctx request.CTX, userId string, opts model.Publi
 						mlog.String("draft_id", opts.PageId),
 						mlog.Err(rollbackErr))
 				}
+			}
+		} else if originalContent != nil {
+			// For updates: restore original content
+			if rollbackErr := a.rollbackPageUpdate(rctx, savedPost.Id, originalContent, originalParentId, opts.ParentId); rollbackErr != nil {
+				rctx.Logger().Error("CRITICAL: Failed to rollback page update after draft deletion failure - data inconsistency",
+					mlog.String("page_id", savedPost.Id),
+					mlog.String("draft_id", opts.PageId),
+					mlog.Err(rollbackErr))
 			}
 		}
 		return nil, model.NewAppError("PublishPageDraft", "app.draft.publish.delete_draft_failed.app_error",
@@ -730,6 +821,32 @@ func (a *App) PublishPageDraft(rctx request.CTX, userId string, opts model.Publi
 	a.BroadcastPagePublished(savedPost, opts.WikiId, wiki.ChannelId, opts.PageId, userId)
 
 	return savedPost, nil
+}
+
+// rollbackPageUpdate restores a page to its original state after a failed publish operation.
+// This is used when draft deletion fails after a page update was successfully applied.
+func (a *App) rollbackPageUpdate(rctx request.CTX, pageId string, originalContent *model.PageContent, originalParentId, newParentId string) *model.AppError {
+	// Restore original content to PageContents table
+	if _, err := a.Srv().Store().Page().UpdatePageContent(originalContent); err != nil {
+		return model.NewAppError("rollbackPageUpdate", "app.draft.rollback.content_restore_failed",
+			nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Restore parent if it was changed
+	if originalParentId != newParentId {
+		if err := a.ChangePageParent(rctx, pageId, originalParentId); err != nil {
+			rctx.Logger().Warn("Failed to restore original parent during rollback - content was restored but hierarchy may be inconsistent",
+				mlog.String("page_id", pageId),
+				mlog.String("original_parent", originalParentId),
+				mlog.Err(err))
+		}
+	}
+
+	rctx.Logger().Info("Successfully rolled back page update",
+		mlog.String("page_id", pageId),
+		mlog.String("original_parent", originalParentId))
+
+	return nil
 }
 
 func (a *App) updateChildDraftParentReferences(rctx request.CTX, userId, wikiId, oldPageId, newPageId string) *model.AppError {
@@ -771,16 +888,7 @@ func (a *App) updateChildDraftParentReferences(rctx request.CTX, userId, wikiId,
 		childDraft.Props = updatedProps
 		childDraft.UpdateAt = model.GetMillis()
 
-		message := model.NewWebSocketEvent(model.WebsocketEventPageDraftUpdated, "", childDraft.ChannelId, userId, nil, "")
-		draftJSON, jsonErr := json.Marshal(childDraft)
-		if jsonErr != nil {
-			rctx.Logger().Warn("Failed to marshal draft for WebSocket event",
-				mlog.String("page_id", childDraft.PageId),
-				mlog.Err(jsonErr))
-			continue
-		}
-		message.Add("draft", string(draftJSON))
-		a.Publish(message)
+		a.BroadcastPageDraftUpdated(childDraft.ChannelId, childDraft)
 	}
 
 	return nil

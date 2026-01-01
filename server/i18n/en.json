@@ -2633,6 +2633,10 @@
     "translation": "Outgoing webhooks have been disabled by the system admin."
   },
   {
+    "id": "api.page.permission.guest_cannot_access",
+    "translation": "Guests cannot access pages."
+  },
+  {
     "id": "api.page.permission.guest_cannot_modify",
     "translation": "Guests cannot modify pages."
   },
@@ -4855,12 +4859,8 @@
     "translation": "Wiki has been deleted."
   },
   {
-    "id": "api.wiki.get_page_active_editors.not_a_page",
-    "translation": "Post is not a page."
-  },
-  {
-    "id": "api.wiki.get_page_version_history.not_a_page",
-    "translation": "Post is not a page."
+    "id": "api.wiki.get_pages.wiki_deleted.app_error",
+    "translation": "Wiki has been deleted."
   },
   {
     "id": "api.wiki.not_found",
@@ -5903,12 +5903,12 @@
     "translation": "Page draft not found for publishing."
   },
   {
-    "id": "app.draft.save.app_error",
-    "translation": "Unable to save the Draft."
+    "id": "app.draft.rollback.content_restore_failed",
+    "translation": "Failed to restore page content during rollback."
   },
   {
-    "id": "app.draft.save_page.already_published",
-    "translation": "Page draft has already been published."
+    "id": "app.draft.save.app_error",
+    "translation": "Unable to save the Draft."
   },
   {
     "id": "app.draft.save_page.app_error",
@@ -5923,12 +5923,12 @@
     "translation": "Cannot save draft for archived channel."
   },
   {
-    "id": "app.draft.save_page.metadata_error",
-    "translation": "Failed to save page draft metadata."
+    "id": "app.draft.save_page.invalid_content",
+    "translation": "Invalid page draft content."
   },
   {
-    "id": "app.draft.save_page.not_found",
-    "translation": "Page draft not found."
+    "id": "app.draft.save_page.metadata_error",
+    "translation": "Failed to save page draft metadata."
   },
   {
     "id": "app.draft.save_page.version_conflict",
@@ -7051,20 +7051,12 @@
     "translation": "We encountered an error updating the app."
   },
   {
-    "id": "app.page.calculate_depth.get_ancestors_error",
-    "translation": "Unable to get page ancestors for depth calculation."
-  },
-  {
     "id": "app.page.calculate_depth.not_found",
     "translation": "Page not found for depth calculation."
   },
   {
     "id": "app.page.change_parent.circular_reference.app_error",
     "translation": "Cannot change parent: would create circular reference."
-  },
-  {
-    "id": "app.page.change_parent.get_ancestors.app_error",
-    "translation": "Unable to get page ancestors."
   },
   {
     "id": "app.page.change_parent.invalid_parent.app_error",
@@ -7137,6 +7129,10 @@
   {
     "id": "app.page.create_comment_reply.reply_to_reply_not_allowed.app_error",
     "translation": "Cannot reply to a comment reply."
+  },
+  {
+    "id": "app.page.delete.content_error.app_error",
+    "translation": "Unable to delete page content."
   },
   {
     "id": "app.page.delete.store_error.app_error",

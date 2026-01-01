@@ -25,9 +25,36 @@ import {PageConstants, PagePropsKeys} from 'utils/constants';
 import {getPageReceiveActions} from 'utils/page_utils';
 import {extractPlaintextFromTipTapJSON} from 'utils/tiptap_utils';
 
-import type {ActionFuncAsync} from 'types/store';
+import type {ActionFuncAsync, DispatchFunc, GetStateFunc} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 import type {Page} from 'types/store/pages';
+
+/**
+ * handleApiError handles the common error handling pattern for API calls.
+ * This includes forcing logout if necessary and logging the error.
+ *
+ * @param error - The error from the API call
+ * @param dispatch - Redux dispatch function
+ * @param getState - Redux getState function
+ * @param options - Optional configuration
+ * @param options.showErrorBar - Whether to always show the error bar (default: false)
+ */
+function handleApiError(
+    error: unknown,
+    dispatch: DispatchFunc,
+    getState: GetStateFunc,
+    options?: {showErrorBar?: boolean},
+): void {
+    // Cast to any to match existing error handling patterns in the codebase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const err = error as any;
+    forceLogoutIfNecessary(err, dispatch, getState);
+    if (options?.showErrorBar) {
+        dispatch(logError(err, {errorBarMode: LogErrorBarMode.Always}));
+    } else {
+        dispatch(logError(err));
+    }
+}
 
 export {createWiki};
 
@@ -81,9 +108,8 @@ export function fetchPages(wikiId: string): ActionFuncAsync<Post[]> {
 
             return {data: pages};
         } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
+            handleApiError(error, dispatch, getState);
             dispatch({type: GET_PAGES_FAILURE, data: {wikiId, error}});
-            dispatch(logError(error));
             return {error};
         }
     };
@@ -96,8 +122,7 @@ export function fetchChannelPages(channelId: string): ActionFuncAsync {
         try {
             data = await Client4.getChannelPages(channelId);
         } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
+            handleApiError(error, dispatch, getState);
             return {error};
         }
 

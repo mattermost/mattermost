@@ -271,16 +271,8 @@ func getPageActiveEditors(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pageId := c.Params.PageId
-
-	page, err := c.App.GetSinglePost(c.AppContext, pageId, false)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	if page.Type != model.PostTypePage {
-		c.Err = model.NewAppError("getPageActiveEditors", "api.wiki.get_page_active_editors.not_a_page", nil, "", http.StatusBadRequest)
+	pagePost, ok := c.ValidatePageBelongsToWiki()
+	if !ok {
 		return
 	}
 
@@ -294,7 +286,11 @@ func getPageActiveEditors(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	activeEditors, appErr := c.App.GetPageActiveEditors(c.AppContext, pageId)
+	if !c.CheckPagePermission(pagePost, app.PageOperationRead) {
+		return
+	}
+
+	activeEditors, appErr := c.App.GetPageActiveEditors(c.AppContext, c.Params.PageId)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -313,16 +309,8 @@ func getPageVersionHistory(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pageId := c.Params.PageId
-
-	page, err := c.App.GetSinglePost(c.AppContext, pageId, false)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	if page.Type != model.PostTypePage {
-		c.Err = model.NewAppError("getPageVersionHistory", "api.wiki.get_page_version_history.not_a_page", nil, "", http.StatusBadRequest)
+	pagePost, ok := c.ValidatePageBelongsToWiki()
+	if !ok {
 		return
 	}
 
@@ -336,7 +324,11 @@ func getPageVersionHistory(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	versionHistory, appErr := c.App.GetPageVersionHistory(c.AppContext, pageId)
+	if !c.CheckPagePermission(pagePost, app.PageOperationRead) {
+		return
+	}
+
+	versionHistory, appErr := c.App.GetPageVersionHistory(c.AppContext, c.Params.PageId)
 	if appErr != nil {
 		c.Err = appErr
 		return

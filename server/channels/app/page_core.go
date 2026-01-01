@@ -490,6 +490,7 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, page *Page, titl
 
 // DeletePage deletes a page. If wikiId is provided, it will be included in the broadcast event.
 // Accepts a type-safe *Page that has already been validated.
+// The cascade delete decision (content, comments, post) is made here in the App layer.
 func (a *App) DeletePage(rctx request.CTX, page *Page, wikiId string) *model.AppError {
 	start := time.Now()
 	defer func() {
@@ -499,10 +500,25 @@ func (a *App) DeletePage(rctx request.CTX, page *Page, wikiId string) *model.App
 	}()
 
 	pageID := page.Id()
-
 	session := rctx.Session()
-	if deleteErr := a.Srv().Store().Page().DeletePage(pageID, session.UserId); deleteErr != nil {
-		return model.NewAppError("DeletePage", "app.page.delete.store_error.app_error", nil, "", http.StatusInternalServerError).Wrap(deleteErr)
+	pageStore := a.Srv().Store().Page()
+
+	// Delete page content (may not exist, which is OK)
+	if err := pageStore.DeletePageContent(pageID); err != nil {
+		var nfErr *store.ErrNotFound
+		if !errors.As(err, &nfErr) {
+			return model.NewAppError("DeletePage", "app.page.delete.content_error.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	// Delete page comments (may not exist, which is OK)
+	if err := pageStore.SoftDeletePageComments(pageID, session.UserId); err != nil {
+		rctx.Logger().Warn("Failed to delete page comments", mlog.String("page_id", pageID), mlog.Err(err))
+	}
+
+	// Delete the page post itself
+	if err := pageStore.SoftDeletePagePost(pageID, session.UserId); err != nil {
+		return model.NewAppError("DeletePage", "app.page.delete.store_error.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// Invalidate cache so other nodes see the deletion

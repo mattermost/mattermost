@@ -495,6 +495,42 @@ func (_m *PageStore) SavePageContent(pageContent *model.PageContent) (*model.Pag
 	return r0, r1
 }
 
+// SoftDeletePageComments provides a mock function with given fields: pageID, deleteByID
+func (_m *PageStore) SoftDeletePageComments(pageID string, deleteByID string) error {
+	ret := _m.Called(pageID, deleteByID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SoftDeletePageComments")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(pageID, deleteByID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// SoftDeletePagePost provides a mock function with given fields: pageID, deleteByID
+func (_m *PageStore) SoftDeletePagePost(pageID string, deleteByID string) error {
+	ret := _m.Called(pageID, deleteByID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SoftDeletePagePost")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(pageID, deleteByID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Update provides a mock function with given fields: rctx, page
 func (_m *PageStore) Update(rctx request.CTX, page *model.Post) (*model.Post, error) {
 	ret := _m.Called(rctx, page)

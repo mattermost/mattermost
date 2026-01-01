@@ -874,6 +874,19 @@ func (c *Context) GetWikiForRead() (*model.Wiki, *model.Channel, bool) {
 		return nil, nil, false
 	}
 
+	// Guests cannot access wiki/pages in DM/Group channels
+	if channel.Type == model.ChannelTypeGroup || channel.Type == model.ChannelTypeDirect {
+		user, userErr := c.App.GetUser(c.AppContext.Session().UserId)
+		if userErr != nil {
+			c.Err = userErr
+			return nil, nil, false
+		}
+		if user.IsGuest() {
+			c.Err = model.NewAppError("GetWikiForRead", "api.page.permission.guest_cannot_access", nil, "", http.StatusForbidden)
+			return nil, nil, false
+		}
+	}
+
 	return wiki, channel, true
 }
 
@@ -885,7 +898,7 @@ func (c *Context) ValidatePageBelongsToWiki() (*app.Page, bool) {
 	page, err := c.App.GetPage(c.AppContext, c.Params.PageId)
 	if err != nil {
 		c.Err = model.NewAppError("ValidatePageBelongsToWiki", "api.wiki.page_not_found",
-			nil, "", http.StatusNotFound).Wrap(err)
+			nil, "", err.StatusCode).Wrap(err)
 		return nil, false
 	}
 
@@ -901,7 +914,7 @@ func (c *Context) ValidatePageBelongsToWiki() (*app.Page, bool) {
 		// If the wiki doesn't exist, return 404; if it exists but page doesn't belong to it, return 400
 		if _, wikiErr := c.App.GetWiki(c.AppContext, c.Params.WikiId); wikiErr != nil {
 			c.Err = model.NewAppError("ValidatePageBelongsToWiki", "api.wiki.not_found",
-				nil, "", http.StatusNotFound).Wrap(wikiErr)
+				nil, "", wikiErr.StatusCode).Wrap(wikiErr)
 			return nil, false
 		}
 		c.Err = model.NewAppError("ValidatePageBelongsToWiki", "api.wiki.page_wiki_mismatch",
@@ -1009,7 +1022,11 @@ func (c *Context) hasPagePermission(channel *model.Channel, page *app.Page, oper
 				if page.UserId() != session.UserId {
 					member, memberErr := c.App.GetChannelMember(c.AppContext, channel.Id, session.UserId)
 					if memberErr != nil {
-						c.Err = model.NewAppError("hasPagePermission", "api.page.permission.no_channel_access", nil, "", http.StatusForbidden).Wrap(memberErr)
+						statusCode := http.StatusForbidden
+						if memberErr.StatusCode == http.StatusInternalServerError {
+							statusCode = http.StatusInternalServerError
+						}
+						c.Err = model.NewAppError("hasPagePermission", "api.page.permission.no_channel_access", nil, "", statusCode).Wrap(memberErr)
 						return false
 					}
 					if !member.SchemeAdmin {

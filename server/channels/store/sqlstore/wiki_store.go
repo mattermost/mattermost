@@ -554,17 +554,19 @@ func (s *SqlWikiStore) MovePageToWiki(pageId, targetWikiId string, parentPageId 
 		valueJSON = AppendBinaryFlag(valueJSON)
 	}
 
-	updateQuery := `
-		UPDATE PropertyValues
-		SET Value = ?, UpdateAt = ?
-		WHERE TargetID = ANY(?)
-		  AND TargetType = 'post'
-		  AND FieldID = ?
-		  AND GroupID = ?
-		  AND DeleteAt = 0
-	`
+	updateQuery := s.getQueryBuilder().
+		Update("PropertyValues").
+		Set("Value", valueJSON).
+		Set("UpdateAt", updateAt).
+		Where(sq.Eq{
+			"TargetID":   pageIDs,
+			"TargetType": "post",
+			"FieldID":    fieldID,
+			"GroupID":    groupID,
+			"DeleteAt":   0,
+		})
 
-	result, err := transaction.Exec(updateQuery, valueJSON, updateAt, pq.Array(pageIDs), fieldID, groupID)
+	result, err := transaction.ExecBuilder(updateQuery)
 	if err != nil {
 		return errors.Wrap(err, "failed to update property values for page subtree")
 	}
@@ -580,43 +582,31 @@ func (s *SqlWikiStore) MovePageToWiki(pageId, targetWikiId string, parentPageId 
 			mlog.Int("missing_count", missingCount),
 			mlog.String("page_id", pageId))
 
-		insertQuery := `
-			INSERT INTO PropertyValues (ID, TargetID, TargetType, GroupID, FieldID, Value, CreateAt, UpdateAt, DeleteAt)
-			SELECT ?, ps.Id, 'post', ?, ?, ?, ?, ?, 0
-			FROM unnest(?::text[]) ps(Id)
-			WHERE NOT EXISTS (
-				SELECT 1 FROM PropertyValues pv
-				WHERE pv.TargetID = ps.Id
-				  AND pv.FieldID = ?
-				  AND pv.GroupID = ?
-				  AND pv.DeleteAt = 0
-			)
-		`
+		// Use batch insert with ON CONFLICT DO NOTHING to insert PropertyValues only for pages that don't have them
+		insertBuilder := s.getQueryBuilder().
+			Insert("PropertyValues").
+			Columns("ID", "TargetID", "TargetType", "GroupID", "FieldID", "Value", "CreateAt", "UpdateAt", "DeleteAt")
 
-		if _, err = transaction.Exec(insertQuery,
-			model.NewId(),
-			groupID,
-			fieldID,
-			valueJSON,
-			updateAt,
-			updateAt,
-			pq.Array(pageIDs),
-			fieldID,
-			groupID,
-		); err != nil {
+		for _, pid := range pageIDs {
+			insertBuilder = insertBuilder.Values(model.NewId(), pid, "post", groupID, fieldID, valueJSON, updateAt, updateAt, 0)
+		}
+
+		// ON CONFLICT uses the unique partial index: idx_propertyvalues_unique (GroupID, TargetID, FieldID) WHERE DeleteAt = 0
+		insertBuilder = insertBuilder.SuffixExpr(sq.Expr("ON CONFLICT (GroupID, TargetID, FieldID) WHERE DeleteAt = 0 DO NOTHING"))
+
+		if _, err = transaction.ExecBuilder(insertBuilder); err != nil {
 			return errors.Wrap(err, "failed to create property values for orphaned pages")
 		}
 	}
 
 	// Update wiki_id in Post.Props for all pages in subtree (optimization for fast lookup)
-	updatePostPropsQuery := `
-		UPDATE Posts
-		SET Props = jsonb_set(COALESCE(Props, '{}'::jsonb), '{wiki_id}', $1::jsonb),
-		    UpdateAt = $2
-		WHERE Id = ANY($3) AND DeleteAt = 0
-	`
+	updatePostPropsQuery := s.getQueryBuilder().
+		Update("Posts").
+		Set("Props", sq.Expr("jsonb_set(COALESCE(Props, '{}'::jsonb), ?, ?::jsonb)", jsonKeyPath("wiki_id"), valueJSON)).
+		Set("UpdateAt", updateAt).
+		Where(sq.Eq{"Id": pageIDs, "DeleteAt": 0})
 
-	if _, err = transaction.Exec(updatePostPropsQuery, valueJSON, updateAt, pq.Array(pageIDs)); err != nil {
+	if _, err = transaction.ExecBuilder(updatePostPropsQuery); err != nil {
 		return errors.Wrap(err, "failed to update wiki_id in Post.Props for page subtree")
 	}
 
@@ -724,16 +714,19 @@ func (s *SqlWikiStore) MoveWikiToChannel(wikiId string, targetChannelId string, 
 			return nil, errors.Wrap(err, "failed to update comments channel")
 		}
 
-		updateInlineCommentsQuery := `
-			UPDATE Posts
-			SET ChannelId = $1, UpdateAt = $2
-			WHERE Type = $3
-			  AND RootId = ''
-			  AND Props->>'page_id' = ANY($4)
-			  AND DeleteAt = 0
-		`
+		// Update inline comments (comments with page_id in Props but empty RootId)
+		updateInlineCommentsQuery := s.getQueryBuilder().
+			Update("Posts").
+			Set("ChannelId", targetChannelId).
+			Set("UpdateAt", timestamp).
+			Where(sq.Eq{
+				"Type":     model.PostTypePageComment,
+				"RootId":   "",
+				"DeleteAt": 0,
+			}).
+			Where(sq.Expr("Props->>'page_id' = ANY(?)", pq.Array(pageIDs)))
 
-		if _, err = transaction.Exec(updateInlineCommentsQuery, targetChannelId, timestamp, model.PostTypePageComment, pq.Array(pageIDs)); err != nil {
+		if _, err = transaction.ExecBuilder(updateInlineCommentsQuery); err != nil {
 			return nil, errors.Wrap(err, "failed to update inline comments")
 		}
 	}
@@ -760,13 +753,12 @@ func (s *SqlWikiStore) MoveWikiToChannel(wikiId string, targetChannelId string, 
 }
 
 func (s *SqlWikiStore) SetWikiIdInPostProps(pageId, wikiId string) error {
-	query := `
-		UPDATE Posts
-		SET Props = jsonb_set(COALESCE(Props, '{}'::jsonb), ?, ?)
-		WHERE Id = ? AND DeleteAt = 0
-	`
+	updateQuery := s.getQueryBuilder().
+		Update("Posts").
+		Set("Props", sq.Expr("jsonb_set(COALESCE(Props, '{}'::jsonb), ?, ?)", jsonKeyPath("wiki_id"), jsonStringVal(wikiId))).
+		Where(sq.Eq{"Id": pageId, "DeleteAt": 0})
 
-	result, err := s.GetMaster().Exec(query, jsonKeyPath("wiki_id"), jsonStringVal(wikiId), pageId)
+	result, err := s.GetMaster().ExecBuilder(updateQuery)
 	if err != nil {
 		return errors.Wrap(err, "failed to update wiki_id in Post.Props")
 	}

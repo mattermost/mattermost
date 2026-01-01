@@ -1076,6 +1076,9 @@ type DraftStore interface {
 	// Page draft content methods (PageContents table with status='draft')
 	// With unified page ID model, drafts are stored in PageContents table
 	CreatePageDraft(content *model.PageContent) (*model.PageContent, error)
+	CreateDraftForExistingPage(pageId, userId, wikiId, content, title string, baseUpdateAt int64) (*model.PageContent, error)
+	PageDraftExists(pageId, userId string) (bool, int64, error)
+	UpdatePageDraftContent(pageId, userId, content, title string, expectedUpdateAt int64) (int64, error)
 	UpsertPageDraftContent(pageId, userId, wikiId, content, title string, lastUpdateAt int64) (*model.PageContent, error)
 	GetPageDraft(pageId, userId string) (*model.PageContent, error)
 	DeletePageDraft(pageId, userId string) error
@@ -1255,8 +1258,14 @@ type PageStore interface {
 	// GetPage fetches a page by ID
 	GetPage(pageID string, includeDeleted bool) (*model.Post, error)
 
-	// DeletePage soft-deletes a page and its content in a single transaction
+	// DeletePage soft-deletes a page and all its associated data (content and comments)
 	DeletePage(pageID string, deleteByID string) error
+
+	// SoftDeletePageComments soft-deletes all comments for a page
+	SoftDeletePageComments(pageID, deleteByID string) error
+
+	// SoftDeletePagePost soft-deletes the page post itself
+	SoftDeletePagePost(pageID, deleteByID string) error
 
 	// GetPageChildren fetches direct children of a page
 	GetPageChildren(postID string, options model.GetPostsOptions) (*model.PostList, error)

@@ -17,6 +17,20 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
+// PublishedPageContentUserId is the UserId value for published page content.
+// Published content has empty UserId; draft content has non-empty UserId (the author's ID).
+const PublishedPageContentUserId = ""
+
+// pageContentInsertColumns returns the columns for inserting page content.
+func pageContentInsertColumns() []string {
+	return []string{"PageId", "UserId", "Content", "SearchText", "CreateAt", "UpdateAt", "DeleteAt"}
+}
+
+// pageContentSelectColumns returns the columns for selecting page content (excludes UserId).
+func pageContentSelectColumns() []string {
+	return []string{"PageId", "Content", "SearchText", "CreateAt", "UpdateAt", "DeleteAt"}
+}
+
 type SqlPageStore struct {
 	*SqlStore
 	pageContentQuery sq.SelectBuilder
@@ -28,14 +42,7 @@ func newSqlPageStore(sqlStore *SqlStore) store.PageStore {
 	}
 
 	s.pageContentQuery = s.getQueryBuilder().
-		Select(
-			"PageId",
-			"Content",
-			"SearchText",
-			"CreateAt",
-			"UpdateAt",
-			"DeleteAt",
-		).
+		Select(pageContentSelectColumns()...).
 		From("PageContents")
 
 	return s
@@ -89,8 +96,8 @@ func (s *SqlPageStore) CreatePage(rctx request.CTX, post *model.Post, content, s
 		now := model.GetMillis()
 		contentInsertQuery := s.getQueryBuilder().
 			Insert("PageContents").
-			Columns("PageId", "UserId", "Content", "SearchText", "CreateAt", "UpdateAt", "DeleteAt").
-			Values(post.Id, "", contentJSON, pageContent.SearchText, now, now, 0)
+			Columns(pageContentInsertColumns()...).
+			Values(post.Id, PublishedPageContentUserId, contentJSON, pageContent.SearchText, now, now, 0)
 
 		contentQuery, contentArgs, buildErr := contentInsertQuery.ToSql()
 		if buildErr != nil {
@@ -149,77 +156,101 @@ func (s *SqlPageStore) GetPage(pageID string, includeDeleted bool) (*model.Post,
 	return &post, nil
 }
 
-func (s *SqlPageStore) DeletePage(pageID string, deleteByID string) error {
+// SoftDeletePageComments soft-deletes all comments for a page.
+// This is a pure data access method - the App layer decides when to call it.
+func (s *SqlPageStore) SoftDeletePageComments(pageID, deleteByID string) error {
 	if pageID == "" {
 		return store.NewErrInvalidInput("Post", "pageID", pageID)
 	}
 
 	now := model.GetMillis()
 
-	err := s.ExecuteInTransaction(func(transaction *sqlxTxWrapper) error {
-		deleteContentQuery := s.getQueryBuilder().
-			Update("PageContents").
-			Set("DeleteAt", now).
-			Where(sq.Eq{"PageId": pageID})
+	deleteCommentsQuery := s.getQueryBuilder().
+		Update("Posts").
+		Set("DeleteAt", now).
+		Set("UpdateAt", now).
+		Set("Props", sq.Expr("jsonb_set(Props, ?, ?)", jsonKeyPath(model.PostPropsDeleteBy), jsonStringVal(deleteByID))).
+		Where(sq.And{
+			sq.Expr("Props->>'page_id' = ?", pageID),
+			sq.Eq{"Type": model.PostTypePageComment},
+			sq.Eq{"DeleteAt": 0},
+		})
 
-		contentSQL, contentArgs, buildErr := deleteContentQuery.ToSql()
-		if buildErr != nil {
-			return errors.Wrap(buildErr, "failed to build delete content query")
+	commentsSQL, commentsArgs, buildErr := deleteCommentsQuery.ToSql()
+	if buildErr != nil {
+		return errors.Wrap(buildErr, "failed to build delete comments query")
+	}
+
+	if _, execErr := s.GetMaster().Exec(commentsSQL, commentsArgs...); execErr != nil {
+		return errors.Wrap(execErr, "failed to delete page comments")
+	}
+
+	return nil
+}
+
+// SoftDeletePagePost soft-deletes the page post itself.
+// This is a pure data access method - the App layer decides when to call it.
+func (s *SqlPageStore) SoftDeletePagePost(pageID, deleteByID string) error {
+	if pageID == "" {
+		return store.NewErrInvalidInput("Post", "pageID", pageID)
+	}
+
+	now := model.GetMillis()
+
+	deletePostQuery := s.getQueryBuilder().
+		Update("Posts").
+		Set("DeleteAt", now).
+		Set("UpdateAt", now).
+		Set("Props", sq.Expr("jsonb_set(Props, ?, ?)", jsonKeyPath(model.PostPropsDeleteBy), jsonStringVal(deleteByID))).
+		Where(sq.And{
+			sq.Eq{"Id": pageID},
+			sq.Eq{"Type": model.PostTypePage},
+		})
+
+	postSQL, postArgs, buildErr := deletePostQuery.ToSql()
+	if buildErr != nil {
+		return errors.Wrap(buildErr, "failed to build delete post query")
+	}
+
+	result, execErr := s.GetMaster().Exec(postSQL, postArgs...)
+	if execErr != nil {
+		return errors.Wrap(execErr, "failed to delete Post")
+	}
+
+	rowsAffected, _ := result.RowsAffected()
+	if rowsAffected == 0 {
+		return store.NewErrNotFound("Post", pageID)
+	}
+
+	return nil
+}
+
+// DeletePage soft-deletes a page and all its associated data (content and comments).
+// This method orchestrates the cascade delete for convenience but uses the atomic methods internally.
+func (s *SqlPageStore) DeletePage(pageID string, deleteByID string) error {
+	if pageID == "" {
+		return store.NewErrInvalidInput("Post", "pageID", pageID)
+	}
+
+	// Delete content first (may not exist, which is OK)
+	if err := s.DeletePageContent(pageID); err != nil {
+		var nfErr *store.ErrNotFound
+		if !errors.As(err, &nfErr) {
+			return errors.Wrap(err, "failed to delete PageContent")
 		}
+	}
 
-		if _, execErr := transaction.Exec(contentSQL, contentArgs...); execErr != nil {
-			return errors.Wrap(execErr, "failed to delete PageContent")
-		}
+	// Delete comments (may not exist, which is OK)
+	if err := s.SoftDeletePageComments(pageID, deleteByID); err != nil {
+		return errors.Wrap(err, "failed to delete page comments")
+	}
 
-		deleteCommentsQuery := s.getQueryBuilder().
-			Update("Posts").
-			Set("DeleteAt", now).
-			Set("UpdateAt", now).
-			Set("Props", sq.Expr("jsonb_set(Props, ?, ?)", jsonKeyPath(model.PostPropsDeleteBy), jsonStringVal(deleteByID))).
-			Where(sq.And{
-				sq.Expr("Props->>'page_id' = ?", pageID),
-				sq.Eq{"Type": model.PostTypePageComment},
-				sq.Eq{"DeleteAt": 0},
-			})
+	// Delete the page post itself
+	if err := s.SoftDeletePagePost(pageID, deleteByID); err != nil {
+		return err
+	}
 
-		commentsSQL, commentsArgs, buildErr := deleteCommentsQuery.ToSql()
-		if buildErr != nil {
-			return errors.Wrap(buildErr, "failed to build delete comments query")
-		}
-
-		if _, execErr := transaction.Exec(commentsSQL, commentsArgs...); execErr != nil {
-			return errors.Wrap(execErr, "failed to delete page comments")
-		}
-
-		deletePostQuery := s.getQueryBuilder().
-			Update("Posts").
-			Set("DeleteAt", now).
-			Set("UpdateAt", now).
-			Set("Props", sq.Expr("jsonb_set(Props, ?, ?)", jsonKeyPath(model.PostPropsDeleteBy), jsonStringVal(deleteByID))).
-			Where(sq.And{
-				sq.Eq{"Id": pageID},
-				sq.Eq{"Type": model.PostTypePage},
-			})
-
-		postSQL, postArgs, buildErr := deletePostQuery.ToSql()
-		if buildErr != nil {
-			return errors.Wrap(buildErr, "failed to build delete post query")
-		}
-
-		result, execErr := transaction.Exec(postSQL, postArgs...)
-		if execErr != nil {
-			return errors.Wrap(execErr, "failed to delete Post")
-		}
-
-		rowsAffected, _ := result.RowsAffected()
-		if rowsAffected == 0 {
-			return store.NewErrNotFound("Post", pageID)
-		}
-
-		return nil
-	})
-
-	return err
+	return nil
 }
 
 // Update updates a page (following MM pattern - no business logic, just UPDATE)
@@ -270,7 +301,7 @@ func (s *SqlPageStore) Update(rctx request.CTX, page *model.Post) (*model.Post, 
 		selectContentQuery := s.getQueryBuilder().
 			Select("PageId", "Content", "SearchText", "CreateAt", "UpdateAt", "DeleteAt").
 			From("PageContents").
-			Where(sq.Eq{"PageId": page.Id, "UserId": ""})
+			Where(sq.Eq{"PageId": page.Id, "UserId": PublishedPageContentUserId})
 
 		selectContentSQL, selectContentArgs, buildErr := selectContentQuery.ToSql()
 		if buildErr != nil {
@@ -316,7 +347,7 @@ func (s *SqlPageStore) Update(rctx request.CTX, page *model.Post) (*model.Post, 
 				Update("PageContents").
 				Set("Content", page.Message).
 				Set("UpdateAt", now).
-				Where(sq.Eq{"PageId": page.Id, "UserId": ""})
+				Where(sq.Eq{"PageId": page.Id, "UserId": PublishedPageContentUserId})
 
 			contentUpdateSQL, contentUpdateArgs, contentBuildErr := contentUpdateQuery.ToSql()
 			if contentBuildErr != nil {
@@ -512,7 +543,7 @@ func (s *SqlPageStore) UpdatePageWithContent(rctx request.CTX, pageID, title, co
 			selectQuery := s.getQueryBuilder().
 				Select("PageId", "Content", "SearchText", "CreateAt", "UpdateAt", "DeleteAt").
 				From("PageContents").
-				Where(sq.Eq{"PageId": pageID, "UserId": ""})
+				Where(sq.Eq{"PageId": pageID, "UserId": PublishedPageContentUserId})
 
 			selectSQL, selectArgs, buildErr := selectQuery.ToSql()
 			if buildErr != nil {
@@ -538,7 +569,7 @@ func (s *SqlPageStore) UpdatePageWithContent(rctx request.CTX, pageID, title, co
 				Set("Content", contentJSON).
 				Set("SearchText", pageContent.SearchText).
 				Set("UpdateAt", now).
-				Where(sq.Eq{"PageId": pageID, "UserId": ""})
+				Where(sq.Eq{"PageId": pageID, "UserId": PublishedPageContentUserId})
 
 			updateSQL, updateArgs, buildErr := updateQuery.ToSql()
 			if buildErr != nil {
@@ -818,8 +849,7 @@ func (s *SqlPageStore) SavePageContent(pageContent *model.PageContent) (*model.P
 }
 
 func (s *SqlPageStore) GetPageContent(pageID string) (*model.PageContent, error) {
-	// UserId = '' means published content (drafts have non-empty UserId)
-	query := s.pageContentQuery.Where(sq.Eq{"PageId": pageID, "UserId": "", "DeleteAt": 0})
+	query := s.pageContentQuery.Where(sq.Eq{"PageId": pageID, "UserId": PublishedPageContentUserId, "DeleteAt": 0})
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -855,8 +885,7 @@ func (s *SqlPageStore) GetManyPageContents(pageIDs []string) ([]*model.PageConte
 		return []*model.PageContent{}, nil
 	}
 
-	// UserId = '' means published content (drafts have non-empty UserId)
-	query := s.pageContentQuery.Where(sq.Eq{"PageId": pageIDs, "UserId": "", "DeleteAt": 0})
+	query := s.pageContentQuery.Where(sq.Eq{"PageId": pageIDs, "UserId": PublishedPageContentUserId, "DeleteAt": 0})
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -901,7 +930,7 @@ func (s *SqlPageStore) GetManyPageContents(pageIDs []string) ([]*model.PageConte
 
 func (s *SqlPageStore) GetPageContentWithDeleted(pageID string) (*model.PageContent, error) {
 	// UserId = '' means published content (drafts have non-empty UserId)
-	query := s.pageContentQuery.Where(sq.Eq{"PageId": pageID, "UserId": ""})
+	query := s.pageContentQuery.Where(sq.Eq{"PageId": pageID, "UserId": PublishedPageContentUserId})
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -938,7 +967,7 @@ func (s *SqlPageStore) GetManyPageContentsWithDeleted(pageIDs []string) ([]*mode
 	}
 
 	// UserId = '' means published content (drafts have non-empty UserId)
-	query := s.pageContentQuery.Where(sq.Eq{"PageId": pageIDs, "UserId": ""})
+	query := s.pageContentQuery.Where(sq.Eq{"PageId": pageIDs, "UserId": PublishedPageContentUserId})
 
 	queryString, args, err := query.ToSql()
 	if err != nil {

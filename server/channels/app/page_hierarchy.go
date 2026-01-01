@@ -193,9 +193,9 @@ func (a *App) ChangePageParent(rctx request.CTX, postID string, newParentID stri
 			return model.NewAppError("ChangePageParent", "app.page.change_parent.parent_different_channel.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		ancestors, ancestorErr := a.Srv().Store().Page().GetPageAncestors(newParentID)
+		ancestors, ancestorErr := a.GetPageAncestors(rctx, newParentID)
 		if ancestorErr != nil {
-			return model.NewAppError("ChangePageParent", "app.page.change_parent.get_ancestors.app_error", nil, "", http.StatusInternalServerError).Wrap(ancestorErr)
+			return ancestorErr
 		}
 
 		for _, ancestor := range ancestors.Posts {
@@ -258,13 +258,9 @@ func (a *App) calculatePageDepth(rctx request.CTX, pageID string) (int, *model.A
 		return 0, nil
 	}
 
-	ancestors, ancestorErr := a.Srv().Store().Page().GetPageAncestors(pageID)
+	ancestors, ancestorErr := a.GetPageAncestors(rctx, pageID)
 	if ancestorErr != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(ancestorErr, &nfErr) {
-			return 0, model.NewAppError("calculatePageDepth", "app.page.calculate_depth.get_ancestors_error", nil, "", http.StatusBadRequest).Wrap(ancestorErr)
-		}
-		return 0, model.NewAppError("calculatePageDepth", "app.page.calculate_depth.get_ancestors_error", nil, "", http.StatusInternalServerError).Wrap(ancestorErr)
+		return 0, ancestorErr
 	}
 
 	depth := len(ancestors.Posts)

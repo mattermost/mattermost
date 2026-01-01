@@ -34,6 +34,10 @@ import {getWikiUrl, getTeamNameFromPath} from 'utils/url';
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 
+// AUTOSAVE_DEBOUNCE_MS is the delay before autosaving draft changes.
+// This prevents excessive API calls while the user is actively typing.
+const AUTOSAVE_DEBOUNCE_MS = 500;
+
 type UseWikiPageDataResult = {
     isLoading: boolean;
 };
@@ -355,6 +359,16 @@ export function useWikiPageActions(
     currentDraftRef.current = currentDraft;
     dispatchRef.current = dispatch;
 
+    // Cleanup autosave timeout on unmount to prevent dispatch after unmount
+    useEffect(() => {
+        return () => {
+            if (autosaveTimeoutRef.current) {
+                clearTimeout(autosaveTimeoutRef.current);
+                autosaveTimeoutRef.current = null;
+            }
+        };
+    }, []);
+
     const scheduleAutosave = useCallback((options: {
         content?: string;
         title?: string;
@@ -390,7 +404,7 @@ export function useWikiPageActions(
                 undefined,
                 additionalProps,
             ));
-        }, 500);
+        }, AUTOSAVE_DEBOUNCE_MS);
     }, []);
 
     const handleTitleChange = useCallback((newTitle: string) => {

@@ -593,6 +593,92 @@ func (s *SqlDraftStore) CreatePageDraft(content *model.PageContent) (*model.Page
 	return content, nil
 }
 
+// PageDraftExists checks if a draft exists for the given pageId and userId.
+// Returns (exists, updateAt, error). This is a pure data access method with no business logic.
+func (s *SqlDraftStore) PageDraftExists(pageId, userId string) (bool, int64, error) {
+	query := s.getQueryBuilder().
+		Select("UpdateAt").
+		From("PageContents").
+		Where(sq.Eq{"PageId": pageId, "UserId": userId})
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return false, 0, errors.Wrap(err, "page_draft_exists_tosql")
+	}
+
+	var updateAt int64
+	err = s.GetReplica().QueryRow(queryString, args...).Scan(&updateAt)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, 0, nil
+		}
+		return false, 0, errors.Wrap(err, "failed to check draft existence")
+	}
+
+	return true, updateAt, nil
+}
+
+// UpdatePageDraftContent updates an existing draft's content and title.
+// Returns the number of rows affected. Returns 0 if no draft was found or version mismatch.
+// This is a pure data access method with no business logic - caller handles create-vs-update decision.
+// If expectedUpdateAt > 0, uses optimistic locking (only updates if UpdateAt matches).
+// If expectedUpdateAt == 0, updates unconditionally.
+func (s *SqlDraftStore) UpdatePageDraftContent(pageId, userId, content, title string, expectedUpdateAt int64) (int64, error) {
+	now := model.GetMillis()
+
+	// Validate content before attempting to store
+	validatedContent := &model.PageContent{}
+	if err := validatedContent.SetDocumentJSON(content); err != nil {
+		return 0, store.NewErrInvalidInput("PageContent", "content", err.Error())
+	}
+	validatedContentStr, err := validatedContent.GetDocumentJSON()
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to serialize validated content")
+	}
+
+	updateQuery := s.getQueryBuilder().
+		Update("PageContents").
+		Set("Content", validatedContentStr).
+		Set("Title", title).
+		Set("UpdateAt", now).
+		Where(sq.Eq{"PageId": pageId, "UserId": userId})
+
+	// Apply optimistic locking if expectedUpdateAt > 0
+	if expectedUpdateAt > 0 {
+		updateQuery = updateQuery.Where(sq.Eq{"UpdateAt": expectedUpdateAt})
+	}
+
+	queryString, args, err := updateQuery.ToSql()
+	if err != nil {
+		return 0, errors.Wrap(err, "update_page_draft_content_tosql")
+	}
+
+	result, err := s.GetMaster().Exec(queryString, args...)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to update draft content")
+	}
+
+	rowsAffected, _ := result.RowsAffected()
+	return rowsAffected, nil
+}
+
+// CreateDraftForExistingPage creates a draft for editing an existing published page.
+// BaseUpdateAt is set to the page's EditAt for conflict detection when publishing.
+// This is a pure data access method - the App layer decides when to call it.
+func (s *SqlDraftStore) CreateDraftForExistingPage(pageId, userId, wikiId, contentStr, title string, baseUpdateAt int64) (*model.PageContent, error) {
+	content := &model.PageContent{
+		PageId:       pageId,
+		UserId:       userId,
+		WikiId:       wikiId,
+		Title:        title,
+		BaseUpdateAt: baseUpdateAt,
+	}
+	if err := content.SetDocumentJSON(contentStr); err != nil {
+		return nil, errors.Wrap(err, "failed to parse content JSON")
+	}
+	return s.CreatePageDraft(content)
+}
+
 // UpsertPageDraftContent creates or updates a page draft with optimistic locking.
 // If lastUpdateAt == 0, creates or updates a draft for a new page.
 // If lastUpdateAt > 0, tries to update existing draft; if no draft exists, creates one
@@ -617,106 +703,118 @@ func (s *SqlDraftStore) UpsertPageDraftContent(pageId, userId, wikiId, contentSt
 	if lastUpdateAt == 0 {
 		// Try to update existing draft first (handles case where draft was created via POST endpoint)
 		// UserId != '' means it's a draft (status derived from UserId)
-		var result sql.Result
-		result, err = s.GetMaster().Exec(`
+		// Use RETURNING to get the updated row directly from master, avoiding read-after-write
+		// consistency issues with replica lag
+		var content model.PageContent
+		var contentJSON string
+		err = s.GetMaster().QueryRow(`
 			UPDATE PageContents
 			SET Content = $1, Title = $2, UpdateAt = $3
 			WHERE PageId = $4
 			  AND UserId = $5
-			  AND UserId != ''`,
-			validatedContentStr, title, now, pageId, userId)
+			  AND UserId != ''
+			RETURNING PageId, UserId, WikiId, Title, Content, SearchText, BaseUpdateAt, CreateAt, UpdateAt, DeleteAt,
+			          EXISTS(SELECT 1 FROM PageContents pc2 WHERE pc2.PageId = PageContents.PageId AND pc2.UserId = '')`,
+			validatedContentStr, title, now, pageId, userId).Scan(
+			&content.PageId,
+			&content.UserId,
+			&content.WikiId,
+			&content.Title,
+			&contentJSON,
+			&content.SearchText,
+			&content.BaseUpdateAt,
+			&content.CreateAt,
+			&content.UpdateAt,
+			&content.DeleteAt,
+			&content.HasPublishedVersion,
+		)
 
-		if err != nil {
+		if err == nil {
+			// Draft was updated successfully, parse the content JSON
+			if parseErr := content.SetDocumentJSON(contentJSON); parseErr != nil {
+				return nil, errors.Wrap(parseErr, "failed to parse returned content JSON")
+			}
+			return &content, nil
+		}
+
+		if err != sql.ErrNoRows {
 			return nil, errors.Wrap(err, "failed to update draft")
 		}
 
-		rowsAffected, _ := result.RowsAffected()
-		if rowsAffected > 0 {
-			// Draft was updated successfully
-			return s.GetPageDraft(pageId, userId)
-		}
-
-		// No existing draft, create a new one
+		// No existing draft (ErrNoRows), create a new one
 		// UserId being set means it's a draft (status derived from UserId)
-		content := &model.PageContent{
+		newContent := &model.PageContent{
 			PageId: pageId,
 			UserId: userId,
 			WikiId: wikiId,
 			Title:  title,
 		}
-		err = content.SetDocumentJSON(contentStr)
+		err = newContent.SetDocumentJSON(contentStr)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to parse content JSON")
 		}
-		return s.CreatePageDraft(content)
+		return s.CreatePageDraft(newContent)
 	}
 
 	// Try to update existing draft with optimistic locking
 	// UserId != '' means it's a draft (status derived from UserId)
-	result, err := s.GetMaster().Exec(`
+	// Use RETURNING to get the updated row directly from master, avoiding read-after-write
+	// consistency issues with replica lag
+	var content model.PageContent
+	var contentJSON string
+	err = s.GetMaster().QueryRow(`
 		UPDATE PageContents
 		SET Content = $1, Title = $2, UpdateAt = $3
 		WHERE PageId = $4
 		  AND UserId = $5
 		  AND UserId != ''
-		  AND UpdateAt = $6`,
-		validatedContentStr, title, now, pageId, userId, lastUpdateAt)
+		  AND UpdateAt = $6
+		RETURNING PageId, UserId, WikiId, Title, Content, SearchText, BaseUpdateAt, CreateAt, UpdateAt, DeleteAt,
+		          EXISTS(SELECT 1 FROM PageContents pc2 WHERE pc2.PageId = PageContents.PageId AND pc2.UserId = '')`,
+		validatedContentStr, title, now, pageId, userId, lastUpdateAt).Scan(
+		&content.PageId,
+		&content.UserId,
+		&content.WikiId,
+		&content.Title,
+		&contentJSON,
+		&content.SearchText,
+		&content.BaseUpdateAt,
+		&content.CreateAt,
+		&content.UpdateAt,
+		&content.DeleteAt,
+		&content.HasPublishedVersion,
+	)
 
-	if err != nil {
+	if err == nil {
+		// Draft was updated successfully, parse the content JSON
+		if parseErr := content.SetDocumentJSON(contentJSON); parseErr != nil {
+			return nil, errors.Wrap(parseErr, "failed to parse returned content JSON")
+		}
+		return &content, nil
+	}
+
+	if err != sql.ErrNoRows {
 		return nil, errors.Wrap(err, "failed to save draft")
 	}
 
-	rowsAffected, _ := result.RowsAffected()
-	if rowsAffected == 0 {
-		// Check why update failed: no draft exists, or version conflict
-		// Query for the user's draft row (UserId = userId, which is non-empty = draft)
-		query := s.getQueryBuilder().
-			Select("UpdateAt").
-			From("PageContents").
-			Where(sq.Eq{"PageId": pageId, "UserId": userId})
-
-		queryString, args, err := query.ToSql()
-		if err != nil {
-			// No draft exists - create one for editing an existing page
-			return s.createDraftForExistingPage(pageId, userId, wikiId, validatedContentStr, title, lastUpdateAt)
-		}
-
-		var updateAt int64
-		err = s.GetReplica().QueryRow(queryString, args...).Scan(&updateAt)
-		if err != nil {
-			if err == sql.ErrNoRows {
-				// No draft exists yet - create one for editing an existing page
-				return s.createDraftForExistingPage(pageId, userId, wikiId, validatedContentStr, title, lastUpdateAt)
-			}
-			return nil, errors.Wrap(err, "failed to check existing draft")
-		}
-
-		// Draft exists but UpdateAt doesn't match - version conflict
-		if updateAt != lastUpdateAt {
-			return nil, store.NewErrConflict("PageContent", errors.New("version_conflict"), "updateat mismatch")
-		}
-		// Should not reach here - create draft as fallback
-		return s.createDraftForExistingPage(pageId, userId, wikiId, validatedContentStr, title, lastUpdateAt)
+	// UPDATE returned no rows - either no draft exists, or version conflict
+	// Use the pure data access method to check existence
+	exists, updateAt, checkErr := s.PageDraftExists(pageId, userId)
+	if checkErr != nil {
+		return nil, errors.Wrap(checkErr, "failed to check existing draft")
 	}
 
-	return s.GetPageDraft(pageId, userId)
-}
+	if !exists {
+		// No draft exists yet - create one for editing an existing page
+		return s.CreateDraftForExistingPage(pageId, userId, wikiId, validatedContentStr, title, lastUpdateAt)
+	}
 
-// createDraftForExistingPage creates a draft for editing an existing published page.
-// BaseUpdateAt is set to the page's EditAt for conflict detection when publishing.
-func (s *SqlDraftStore) createDraftForExistingPage(pageId, userId, wikiId, contentStr, title string, baseUpdateAt int64) (*model.PageContent, error) {
-	// UserId being set means it's a draft (status derived from UserId)
-	content := &model.PageContent{
-		PageId:       pageId,
-		UserId:       userId,
-		WikiId:       wikiId,
-		Title:        title,
-		BaseUpdateAt: baseUpdateAt,
+	// Draft exists but UpdateAt doesn't match - version conflict
+	if updateAt != lastUpdateAt {
+		return nil, store.NewErrConflict("PageContent", errors.New("version_conflict"), "updateat mismatch")
 	}
-	if err := content.SetDocumentJSON(contentStr); err != nil {
-		return nil, errors.Wrap(err, "failed to parse content JSON")
-	}
-	return s.CreatePageDraft(content)
+	// Should not reach here - create draft as fallback
+	return s.CreateDraftForExistingPage(pageId, userId, wikiId, validatedContentStr, title, lastUpdateAt)
 }
 
 // GetPageDraft retrieves a draft by pageId and userId

@@ -18,7 +18,13 @@ func getWikiPages(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, _, ok := c.GetWikiForRead(); !ok {
+	wiki, _, ok := c.GetWikiForRead()
+	if !ok {
+		return
+	}
+
+	if wiki.DeleteAt != 0 {
+		c.Err = model.NewAppError("getWikiPages", "api.wiki.get_pages.wiki_deleted.app_error", nil, "", http.StatusNotFound)
 		return
 	}
 
@@ -218,6 +224,19 @@ func getChannelPages(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
+	}
+
+	// Guests cannot access pages in DM/Group channels
+	if channel.Type == model.ChannelTypeGroup || channel.Type == model.ChannelTypeDirect {
+		user, userErr := c.App.GetUser(c.AppContext.Session().UserId)
+		if userErr != nil {
+			c.Err = userErr
+			return
+		}
+		if user.IsGuest() {
+			c.Err = model.NewAppError("getChannelPages", "api.page.permission.guest_cannot_access", nil, "", http.StatusForbidden)
+			return
+		}
 	}
 
 	postList, err := c.App.GetChannelPages(c.AppContext, c.Params.ChannelId)
