@@ -384,7 +384,7 @@ func deleteChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddEventPriorState(oldBookmark)
 
-	bookmark, appErr := c.App.DeleteChannelBookmark(c.Params.ChannelBookmarkId, connectionID)
+	bookmark, appErr := c.App.DeleteChannelBookmark(c.AppContext, c.Params.ChannelBookmarkId, connectionID)
 	if appErr != nil {
 		c.Err = appErr
 		return

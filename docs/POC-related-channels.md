@@ -352,9 +352,9 @@ This integrates naturally into the existing Channel Info panel without adding ne
 ### Out of Scope for POC
 
 - AI/ML suggestions
-- Cross-team relationships
 - Relationship strength/weighting
 - Mobile support
+- Cross-team relationships (see Phase 3)
 
 ### Future Iterations
 
@@ -362,6 +362,181 @@ This integrates naturally into the existing Channel Info panel without adding ne
 - **Channel Directory:** Full searchable directory showing all channel relationships
 - **Browse Channels Integration:** "Related" tab in Browse Channels modal
 - **Dedicated RHS Panel:** Standalone panel for exploring relationships in depth
+
+---
+
+## Phase 3: Cross-Team Relationships
+
+Enable relationships between channels across different teams, useful for organizations with multiple teams that have related projects or shared contexts.
+
+### Use Cases
+
+1. **Shared Projects:** A project channel in Team A links to related channels in Team B
+2. **Cross-functional Teams:** Engineering team channel references Design team channel
+3. **Shared Channels:** Channels shared across teams naturally have cross-team relationships
+4. **Organization-wide Discovery:** Users can discover relevant channels outside their primary team
+
+### Data Model Changes
+
+#### Schema Update
+
+Add `team_id` tracking to relationships for cross-team queries:
+
+```sql
+ALTER TABLE channel_relationships
+ADD COLUMN source_team_id VARCHAR(26),
+ADD COLUMN target_team_id VARCHAR(26);
+
+CREATE INDEX idx_channel_rel_source_team ON channel_relationships(source_team_id);
+CREATE INDEX idx_channel_rel_target_team ON channel_relationships(target_team_id);
+
+-- Backfill existing relationships
+UPDATE channel_relationships cr
+SET source_team_id = c.teamid
+FROM channels c
+WHERE cr.source_channel_id = c.id;
+
+UPDATE channel_relationships cr
+SET target_team_id = c.teamid
+FROM channels c
+WHERE cr.target_channel_id = c.id;
+```
+
+#### Model Update
+
+```go
+type ChannelRelationship struct {
+    // ... existing fields
+    SourceTeamId    string `json:"source_team_id,omitempty"`
+    TargetTeamId    string `json:"target_team_id,omitempty"`
+}
+
+// IsCrossTeam returns true if the relationship spans different teams
+func (r *ChannelRelationship) IsCrossTeam() bool {
+    return r.SourceTeamId != "" && r.TargetTeamId != "" && r.SourceTeamId != r.TargetTeamId
+}
+```
+
+### API Changes
+
+#### New Endpoints
+
+```go
+// GET /api/v4/teams/{team_id}/channel-relationships
+// Returns all relationships involving channels in this team
+func getTeamChannelRelationships(c *Context, w http.ResponseWriter, r *http.Request)
+
+// GET /api/v4/channel-relationships/cross-team
+// Returns all cross-team relationships the user can see
+func getCrossTeamRelationships(c *Context, w http.ResponseWriter, r *http.Request)
+```
+
+#### Query Parameters
+
+```
+?include_cross_team=true    // Include cross-team relationships (default: false for POC)
+?target_team_id=xxx         // Filter to relationships with specific team
+```
+
+### Permission Model
+
+Cross-team relationships require careful permission handling:
+
+```go
+// CanViewCrossTeamRelationship checks if user can see a cross-team relationship
+func (a *App) CanViewCrossTeamRelationship(rctx request.CTX, userId string, rel *model.ChannelRelationship) bool {
+    // User must be member of at least one of the teams
+    sourceTeamMember := a.IsUserTeamMember(userId, rel.SourceTeamId)
+    targetTeamMember := a.IsUserTeamMember(userId, rel.TargetTeamId)
+
+    if !sourceTeamMember && !targetTeamMember {
+        return false
+    }
+
+    // User must have read access to both channels
+    sourceAccess := a.HasPermissionToChannel(rctx, userId, rel.SourceChannelId, model.PermissionReadChannel)
+    targetAccess := a.HasPermissionToChannel(rctx, userId, rel.TargetChannelId, model.PermissionReadChannel)
+
+    return sourceAccess && targetAccess
+}
+```
+
+### UI Changes
+
+#### Cross-Team Indicator
+
+Show visual indicator for cross-team relationships:
+
+```tsx
+const RelatedChannelItem: React.FC<Props> = ({relationship, channel}) => {
+    const isCrossTeam = relationship.source_team_id !== relationship.target_team_id;
+
+    return (
+        <div className="related-channel-item">
+            <ChannelIcon channel={channel} />
+            <span className="channel-name">{channel.display_name}</span>
+            {isCrossTeam && (
+                <Badge variant="info" size="sm">
+                    {targetTeam.display_name}
+                </Badge>
+            )}
+        </div>
+    );
+};
+```
+
+#### Team Filter
+
+Add team filtering in the Related Channels list:
+
+```tsx
+<FilterDropdown
+    options={[
+        {value: 'all', label: 'All Teams'},
+        {value: 'current', label: 'Current Team Only'},
+        ...availableTeams.map(t => ({value: t.id, label: t.display_name}))
+    ]}
+    value={teamFilter}
+    onChange={setTeamFilter}
+/>
+```
+
+### Store Changes
+
+```go
+// GetCrossTeamRelationships returns relationships that span multiple teams
+func (s *SqlChannelRelationshipStore) GetCrossTeamRelationships(userId string) ([]*model.ChannelRelationship, error)
+
+// GetRelationshipsByTeam returns all relationships involving a specific team
+func (s *SqlChannelRelationshipStore) GetRelationshipsByTeam(teamId string) ([]*model.ChannelRelationship, error)
+```
+
+### Configuration
+
+```go
+// Feature flag for cross-team relationships
+ServiceSettings.EnableCrossTeamChannelRelationships *bool `json:"EnableCrossTeamChannelRelationships"`
+```
+
+### Open Questions for Cross-Team
+
+1. **Discovery Scope:** Should users see cross-team relationships for channels they can't join?
+2. **Admin Controls:** Should admins be able to disable cross-team relationship creation?
+3. **Shared Channels:** How do shared channels (already cross-team) interact with this feature?
+4. **Performance:** Cross-team queries span more data - caching strategy needed?
+
+### Implementation Checklist
+
+- [ ] Add team_id columns to channel_relationships table
+- [ ] Update model with team fields and IsCrossTeam() helper
+- [ ] Add store methods for cross-team queries
+- [ ] Add permission checks for cross-team viewing
+- [ ] Create cross-team API endpoints
+- [ ] Add feature flag
+- [ ] Update UI with cross-team indicators
+- [ ] Add team filter to Related Channels list
+- [ ] Backfill migration for existing relationships
+- [ ] Performance testing with cross-team queries
 
 ---
 

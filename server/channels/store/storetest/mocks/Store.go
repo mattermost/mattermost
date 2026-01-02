@@ -182,6 +182,26 @@ func (_m *Store) ChannelMemberHistory() store.ChannelMemberHistoryStore {
 	return r0
 }
 
+// ChannelRelationship provides a mock function with no fields
+func (_m *Store) ChannelRelationship() store.ChannelRelationshipStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for ChannelRelationship")
+	}
+
+	var r0 store.ChannelRelationshipStore
+	if rf, ok := ret.Get(0).(func() store.ChannelRelationshipStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.ChannelRelationshipStore)
+		}
+	}
+
+	return r0
+}
+
 // CheckIntegrity provides a mock function with no fields
 func (_m *Store) CheckIntegrity() <-chan model.IntegrityCheckResult {
 	ret := _m.Called()

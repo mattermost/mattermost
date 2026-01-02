@@ -361,6 +361,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitDrafts()
 	api.InitIPFiltering()
 	api.InitChannelBookmarks()
+	api.InitChannelRelationships()
 	api.InitReports()
 	api.InitLimits()
 	api.InitOutgoingOAuthConnection()

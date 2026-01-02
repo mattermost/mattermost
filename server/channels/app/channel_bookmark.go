@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
@@ -46,6 +47,12 @@ func (a *App) CreateChannelBookmark(rctx request.CTX, newBookmark *model.Channel
 	}
 	message.Add("bookmark", string(bookmarkJSON))
 	a.Publish(message)
+
+	// Sync channel relationships based on bookmark URLs
+	if err := a.SyncBookmarkRelationships(rctx, bookmark.ChannelId); err != nil {
+		rctx.Logger().Warn("Failed to sync bookmark relationships", mlog.String("channel_id", bookmark.ChannelId), mlog.Err(err))
+	}
+
 	return bookmark, nil
 }
 
@@ -101,10 +108,15 @@ func (a *App) UpdateChannelBookmark(rctx request.CTX, updateBookmark *model.Chan
 	message.Add("bookmarks", string(bookmarkJSON))
 	a.Publish(message)
 
+	// Sync channel relationships based on bookmark URLs
+	if err := a.SyncBookmarkRelationships(rctx, updateBookmark.ChannelId); err != nil {
+		rctx.Logger().Warn("Failed to sync bookmark relationships", mlog.String("channel_id", updateBookmark.ChannelId), mlog.Err(err))
+	}
+
 	return response, nil
 }
 
-func (a *App) DeleteChannelBookmark(bookmarkId, connectionId string) (*model.ChannelBookmarkWithFileInfo, *model.AppError) {
+func (a *App) DeleteChannelBookmark(rctx request.CTX, bookmarkId, connectionId string) (*model.ChannelBookmarkWithFileInfo, *model.AppError) {
 	if err := a.Srv().Store().ChannelBookmark().Delete(bookmarkId, true); err != nil {
 		return nil, model.NewAppError("DeleteChannelBookmark", "app.channel.bookmark.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -121,6 +133,11 @@ func (a *App) DeleteChannelBookmark(bookmarkId, connectionId string) (*model.Cha
 	}
 	message.Add("bookmark", string(bookmarkJSON))
 	a.Publish(message)
+
+	// Sync channel relationships based on bookmark URLs
+	if err := a.SyncBookmarkRelationships(rctx, bookmark.ChannelId); err != nil {
+		rctx.Logger().Warn("Failed to sync bookmark relationships", mlog.String("channel_id", bookmark.ChannelId), mlog.Err(err))
+	}
 
 	return bookmark, nil
 }

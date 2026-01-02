@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {memo} from 'react';
+import {useIntl} from 'react-intl';
 import styled from 'styled-components';
 
 import type {Channel, ChannelStats} from '@mattermost/types/channels';
@@ -13,6 +14,7 @@ import ChannelNotificationsModal from 'components/channel_notifications_modal';
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import EditChannelPurposeModal from 'components/edit_channel_purpose_modal';
 import MoreDirectChannels from 'components/more_direct_channels';
+import RelatedChannelsList from 'components/related_channels';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
@@ -28,6 +30,21 @@ const Divider = styled.div`
     width: 88%;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.04);
     margin: 0 auto;
+`;
+
+const RelatedChannelsSection = styled.div`
+    padding: 16px 24px;
+`;
+
+const RelatedChannelsHeading = styled.div`
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 16px;
+    letter-spacing: 0.24px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
 `;
 
 export interface DMUser {
@@ -81,6 +98,7 @@ const ChannelInfoRhs = ({
     canManageProperties,
     actions,
 }: Props) => {
+    const {formatMessage} = useIntl();
     const currentUserId = currentUser.id;
     const channelURL = getSiteURL() + '/' + currentTeam.name + '/channels/' + channel.name;
 
@@ -183,6 +201,16 @@ const ChannelInfoRhs = ({
                     getChannelStats: actions.getChannelStats,
                 }}
             />
+            <Divider/>
+            <RelatedChannelsSection>
+                <RelatedChannelsHeading>
+                    {formatMessage({
+                        id: 'channel_info_rhs.related_channels.heading',
+                        defaultMessage: 'Related Channels',
+                    })}
+                </RelatedChannelsHeading>
+                <RelatedChannelsList channelId={channel.id}/>
+            </RelatedChannelsSection>
         </div>
     );
 };

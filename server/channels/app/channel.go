@@ -968,6 +968,10 @@ func (a *App) PatchChannel(rctx request.CTX, channel *model.Channel, patch *mode
 		if err = a.PostUpdateChannelHeaderMessage(rctx, userID, channel, oldChannelHeader, channel.Header); err != nil {
 			rctx.Logger().Warn(err.Error())
 		}
+		// Sync channel relationships based on header mentions and links
+		if syncErr := a.SyncHeaderRelationships(rctx, channel.Id, channel.Header); syncErr != nil {
+			rctx.Logger().Warn("Failed to sync header relationships", mlog.String("channel_id", channel.Id), mlog.Err(syncErr))
+		}
 	}
 
 	if channel.Purpose != oldChannelPurpose {

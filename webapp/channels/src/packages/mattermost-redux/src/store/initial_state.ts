@@ -75,6 +75,9 @@ const state: GlobalState = {
         channelBookmarks: {
             byChannelId: {},
         },
+        channelRelationships: {
+            byChannelId: {},
+        },
         posts: {
             posts: {},
             postsReplies: {},
