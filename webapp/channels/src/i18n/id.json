@@ -99,7 +99,6 @@
   "add_outgoing_webhook.displayName": "Judul",
   "admin.channel_settings.channel_details.isDefaultDescr": "Kanal default ini tidak dapat diubah menjadi kanal pribadi.",
   "admin.group_settings.group_detail.invalid_length": "Nama harus berupa 1 hingga 64 huruf kecil karakter alfanumerik.",
-  "admin.reset_password.titleReset": "Setel Ulang Sandi",
   "admin.user_item.resetPwd": "Setel Ulang Sandi",
   "announcement_bar.notification.email_verified": "Email terverifikasi",
   "announcement_bar.warn.contact_support_text": "Untuk memperbarui lisensi Anda, hubungi pusat bantuan di support@mattermost.com.",
