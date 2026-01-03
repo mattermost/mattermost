@@ -78,6 +78,17 @@ const PagesHierarchyPanel = ({
     // Track previous currentPageId to prevent unnecessary ancestor expansions
     const prevCurrentPageIdRef = useRef<string | undefined>(currentPageId);
 
+    // Refs for data used in effects to avoid unnecessary re-runs
+    // These allow the ancestor expansion effect to only trigger on currentPageId changes
+    const pagesRef = useRef(pages);
+    const actionsRef = useRef(actions);
+    useEffect(() => {
+        pagesRef.current = pages;
+    }, [pages]);
+    useEffect(() => {
+        actionsRef.current = actions;
+    }, [actions]);
+
     // Data loading moved to parent WikiView component to prevent duplicate API calls
     // Pages and drafts are loaded once at WikiView level and passed down via Redux
 
@@ -120,7 +131,14 @@ const PagesHierarchyPanel = ({
         return new Map(allPagesAndDrafts.map((p) => [p.id, p]));
     }, [allPagesAndDrafts]);
 
+    // Keep pageMap ref in sync for use in effect
+    const pageMapRef = useRef(pageMap);
+    useEffect(() => {
+        pageMapRef.current = pageMap;
+    }, [pageMap]);
+
     // Expand ancestors when currentPageId changes to show path to current page
+    // Uses refs to avoid running effect when pages/pageMap/actions change
     useEffect(() => {
         if (currentPageId && currentPageId !== prevCurrentPageIdRef.current) {
             // Update the ref to track the current page
@@ -129,12 +147,12 @@ const PagesHierarchyPanel = ({
             // Expand ancestors to show path to current page
             // Only expand when navigating to a new page, not on every render
             // This preserves user's manual collapse actions
-            const ancestorIds = getAncestorIds(pages, currentPageId, pageMap);
+            const ancestorIds = getAncestorIds(pagesRef.current, currentPageId, pageMapRef.current);
             if (ancestorIds.length > 0) {
-                actions.expandAncestors(wikiId, ancestorIds);
+                actionsRef.current.expandAncestors(wikiId, ancestorIds);
             }
         }
-    }, [currentPageId, pages, wikiId, pageMap, actions]);
+    }, [currentPageId, wikiId]);
 
     // Build tree from flat pages (including drafts)
     // Uses allPagesAndDrafts which combines published pages with draft-only pages

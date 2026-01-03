@@ -329,7 +329,7 @@ func TestCreateThreadEntryForPageComment(t *testing.T) {
 			},
 		}
 
-		appErr := th.App.createThreadEntryForPageComment(comment, th.BasicChannel)
+		appErr := th.App.createThreadEntryForPageComment(th.Context, comment, th.BasicChannel)
 		require.Nil(t, appErr)
 
 		thread, threadErr := th.App.Srv().Store().Thread().Get(comment.Id)
@@ -374,10 +374,10 @@ func TestCreateThreadEntryForPageComment(t *testing.T) {
 			},
 		}
 
-		appErr1 := th.App.createThreadEntryForPageComment(comment1, th.BasicChannel)
+		appErr1 := th.App.createThreadEntryForPageComment(th.Context, comment1, th.BasicChannel)
 		require.Nil(t, appErr1)
 
-		appErr2 := th.App.createThreadEntryForPageComment(comment2, th.BasicChannel)
+		appErr2 := th.App.createThreadEntryForPageComment(th.Context, comment2, th.BasicChannel)
 		require.Nil(t, appErr2)
 
 		thread1, threadErr1 := th.App.Srv().Store().Thread().Get(comment1.Id)
@@ -412,7 +412,7 @@ func TestCreateThreadEntryForPageComment(t *testing.T) {
 			},
 		}
 
-		appErr := th.App.createThreadEntryForPageComment(comment, th.BasicChannel)
+		appErr := th.App.createThreadEntryForPageComment(th.Context, comment, th.BasicChannel)
 		require.Nil(t, appErr)
 
 		thread, threadErr := th.App.Srv().Store().Thread().Get(comment.Id)
@@ -445,14 +445,14 @@ func TestCreateThreadEntryForPageComment(t *testing.T) {
 			},
 		}
 
-		appErr1 := th.App.createThreadEntryForPageComment(comment, th.BasicChannel)
+		appErr1 := th.App.createThreadEntryForPageComment(th.Context, comment, th.BasicChannel)
 		require.Nil(t, appErr1)
 
 		thread1, threadErr1 := th.App.Srv().Store().Thread().Get(comment.Id)
 		require.NoError(t, threadErr1)
 		require.NotNil(t, thread1)
 
-		appErr2 := th.App.createThreadEntryForPageComment(comment, th.BasicChannel)
+		appErr2 := th.App.createThreadEntryForPageComment(th.Context, comment, th.BasicChannel)
 		require.Nil(t, appErr2, "Second creation attempt should succeed (idempotent)")
 
 		thread2, threadErr2 := th.App.Srv().Store().Thread().Get(comment.Id)
@@ -478,7 +478,7 @@ func TestCreateThreadEntryForPageComment(t *testing.T) {
 			},
 		}
 
-		appErr := th.App.createThreadEntryForPageComment(comment, th.BasicChannel)
+		appErr := th.App.createThreadEntryForPageComment(th.Context, comment, th.BasicChannel)
 		require.Nil(t, appErr)
 
 		thread, threadErr := th.App.Srv().Store().Thread().Get(comment.Id)
@@ -514,7 +514,7 @@ func TestCreateThreadEntryForPageComment(t *testing.T) {
 			},
 		}
 
-		appErr := th.App.createThreadEntryForPageComment(comment, privateChannel)
+		appErr := th.App.createThreadEntryForPageComment(th.Context, comment, privateChannel)
 		require.Nil(t, appErr)
 
 		thread, threadErr := th.App.Srv().Store().Thread().Get(comment.Id)

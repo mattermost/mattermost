@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"testing"
@@ -49,6 +50,7 @@ func TestPageStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("ChangePageParent", func(t *testing.T) { testChangePageParent(t, rctx, ss) })
 	t.Run("GetCommentsForPage", func(t *testing.T) { testGetCommentsForPage(t, rctx, ss) })
 	t.Run("UpdatePageWithContent", func(t *testing.T) { testUpdatePageWithContent(t, rctx, ss) })
+	t.Run("ConcurrentOperations", func(t *testing.T) { testConcurrentOperations(t, rctx, ss) })
 
 	t.Cleanup(func() {
 		typesSQL := pagePostTypesSQL()
@@ -1284,7 +1286,7 @@ func testChangePageParent(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		time.Sleep(10 * time.Millisecond)
 
-		err = ss.Page().ChangePageParent(page.Id, newParent.Id)
+		err = ss.Page().ChangePageParent(page.Id, newParent.Id, page.UpdateAt)
 		require.NoError(t, err)
 
 		updatedPage, err := ss.Post().GetSingle(rctx, page.Id, false)
@@ -1319,7 +1321,7 @@ func testChangePageParent(t *testing.T, rctx request.CTX, ss store.Store) {
 		page, err = ss.Post().Save(rctx, page)
 		require.NoError(t, err)
 
-		err = ss.Page().ChangePageParent(page.Id, "")
+		err = ss.Page().ChangePageParent(page.Id, "", page.UpdateAt)
 		require.NoError(t, err)
 
 		updatedPage, err := ss.Post().GetSingle(rctx, page.Id, false)
@@ -1340,7 +1342,273 @@ func testChangePageParent(t *testing.T, rctx request.CTX, ss store.Store) {
 		newParent, err := ss.Post().Save(rctx, newParent)
 		require.NoError(t, err)
 
-		err = ss.Page().ChangePageParent("nonexistent", newParent.Id)
+		err = ss.Page().ChangePageParent("nonexistent", newParent.Id, 0)
 		require.Error(t, err)
+	})
+
+	t.Run("change page parent fails with stale UpdateAt (optimistic locking)", func(t *testing.T) {
+		newParent := &model.Post{
+			UserId:    userID,
+			ChannelId: channel.Id,
+			Message:   "New parent",
+			Type:      model.PostTypePage,
+			Props: map[string]any{
+				"title": "New Parent",
+			},
+		}
+		newParent, err := ss.Post().Save(rctx, newParent)
+		require.NoError(t, err)
+
+		page := &model.Post{
+			UserId:    userID,
+			ChannelId: channel.Id,
+			Message:   "Page",
+			Type:      model.PostTypePage,
+			Props: map[string]any{
+				"title": "Page",
+			},
+		}
+		page, err = ss.Post().Save(rctx, page)
+		require.NoError(t, err)
+
+		staleUpdateAt := page.UpdateAt
+
+		// Make a copy of the original for Update
+		originalPage := page.Clone()
+
+		// Simulate a concurrent modification by updating the page
+		page.Message = "Modified page"
+		_, err = ss.Post().Update(rctx, page, originalPage)
+		require.NoError(t, err)
+
+		// Now try to change parent with stale UpdateAt - should fail
+		err = ss.Page().ChangePageParent(page.Id, newParent.Id, staleUpdateAt)
+		require.Error(t, err)
+		var nfErr *store.ErrNotFound
+		assert.True(t, errors.As(err, &nfErr), "expected ErrNotFound for optimistic locking conflict")
+	})
+}
+
+func testConcurrentOperations(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamID := model.NewId()
+	channel, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      teamID,
+		DisplayName: "Concurrent Test Channel",
+		Name:        "channel" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	userID := model.NewId()
+
+	t.Run("concurrent page reads", func(t *testing.T) {
+		page := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypePage,
+			Message:   "Concurrent Read Page",
+			Props: model.StringInterface{
+				"title": "Test Page",
+			},
+		}
+		_, err = ss.Post().Save(rctx, page)
+		require.NoError(t, err)
+
+		const numReaders = 10
+		errChan := make(chan error, numReaders)
+
+		for range numReaders {
+			go func() {
+				result, getErr := ss.Page().GetChannelPages(channel.Id)
+				if getErr != nil {
+					errChan <- getErr
+					return
+				}
+				if result == nil {
+					errChan <- fmt.Errorf("nil result from GetChannelPages")
+					return
+				}
+				errChan <- nil
+			}()
+		}
+
+		for range numReaders {
+			readErr := <-errChan
+			require.NoError(t, readErr)
+		}
+	})
+
+	t.Run("concurrent page writes", func(t *testing.T) {
+		const numWriters = 5
+		errChan := make(chan error, numWriters)
+		pageIDChan := make(chan string, numWriters)
+
+		for i := range numWriters {
+			go func(idx int) {
+				page := &model.Post{
+					ChannelId: channel.Id,
+					UserId:    userID,
+					Type:      model.PostTypePage,
+					Message:   fmt.Sprintf("Concurrent Write Page %d", idx),
+					Props: model.StringInterface{
+						"title": fmt.Sprintf("Concurrent Page %d", idx),
+					},
+				}
+				savedPage, saveErr := ss.Post().Save(rctx, page)
+				if saveErr != nil {
+					errChan <- saveErr
+					pageIDChan <- ""
+					return
+				}
+				errChan <- nil
+				pageIDChan <- savedPage.Id
+			}(i)
+		}
+
+		var createdPages []string
+		for range numWriters {
+			writeErr := <-errChan
+			pageID := <-pageIDChan
+			require.NoError(t, writeErr)
+			if pageID != "" {
+				createdPages = append(createdPages, pageID)
+			}
+		}
+		require.Len(t, createdPages, numWriters, "all pages should be created")
+	})
+
+	t.Run("concurrent read-write on same page", func(t *testing.T) {
+		page := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypePage,
+			Message:   "Read-Write Test Page",
+			Props: model.StringInterface{
+				"title": "Original Title",
+			},
+		}
+		page, err = ss.Post().Save(rctx, page)
+		require.NoError(t, err)
+
+		const numOps = 10
+		errChan := make(chan error, numOps)
+
+		for i := range numOps {
+			if i%2 == 0 {
+				go func() {
+					_, readErr := ss.Post().GetSingle(rctx, page.Id, false)
+					errChan <- readErr
+				}()
+			} else {
+				go func() {
+					children, childErr := ss.Page().GetPageChildren(page.Id, model.GetPostsOptions{})
+					if childErr != nil {
+						errChan <- childErr
+						return
+					}
+					if children == nil {
+						errChan <- fmt.Errorf("nil children result")
+						return
+					}
+					errChan <- nil
+				}()
+			}
+		}
+
+		for range numOps {
+			opErr := <-errChan
+			require.NoError(t, opErr)
+		}
+	})
+
+	t.Run("concurrent hierarchy modifications", func(t *testing.T) {
+		parent := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypePage,
+			Message:   "Parent for Hierarchy Test",
+			Props: model.StringInterface{
+				"title": "Parent",
+			},
+		}
+		parent, err = ss.Post().Save(rctx, parent)
+		require.NoError(t, err)
+
+		const numChildren = 5
+		childPages := make([]*model.Post, numChildren)
+		for i := range numChildren {
+			child := &model.Post{
+				ChannelId:    channel.Id,
+				UserId:       userID,
+				Type:         model.PostTypePage,
+				Message:      fmt.Sprintf("Child %d", i),
+				PageParentId: parent.Id,
+				Props: model.StringInterface{
+					"title": fmt.Sprintf("Child %d", i),
+				},
+			}
+			child, err = ss.Post().Save(rctx, child)
+			require.NoError(t, err)
+			childPages[i] = child
+		}
+
+		errChan := make(chan error, numChildren)
+		for _, child := range childPages {
+			go func(c *model.Post) {
+				ancestors, ancestorErr := ss.Page().GetPageAncestors(c.Id)
+				if ancestorErr != nil {
+					errChan <- ancestorErr
+					return
+				}
+				if ancestors == nil || len(ancestors.Posts) == 0 {
+					errChan <- fmt.Errorf("expected at least 1 ancestor for child page")
+					return
+				}
+				errChan <- nil
+			}(child)
+		}
+
+		for range numChildren {
+			ancestorErr := <-errChan
+			require.NoError(t, ancestorErr)
+		}
+	})
+
+	t.Run("concurrent content updates", func(t *testing.T) {
+		page := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypePage,
+			Message:   "Content Update Test Page",
+			Props: model.StringInterface{
+				"title": "Content Test",
+			},
+		}
+		page, err = ss.Post().Save(rctx, page)
+		require.NoError(t, err)
+
+		const numUpdates = 3
+		errChan := make(chan error, numUpdates)
+
+		for i := range numUpdates {
+			go func(idx int) {
+				title := fmt.Sprintf("Updated Title %d", idx)
+				contentJSON := fmt.Sprintf(`{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Content %d"}]}]}`, idx)
+				searchText := fmt.Sprintf("Content %d", idx)
+
+				_, updateErr := ss.Page().UpdatePageWithContent(rctx, page.Id, title, contentJSON, searchText)
+				errChan <- updateErr
+			}(i)
+		}
+
+		for range numUpdates {
+			updateErr := <-errChan
+			require.NoError(t, updateErr)
+		}
+
+		finalPage, err := ss.Post().GetSingle(rctx, page.Id, false)
+		require.NoError(t, err)
+		require.NotNil(t, finalPage)
+		require.Contains(t, finalPage.Props["title"], "Updated Title")
 	})
 }

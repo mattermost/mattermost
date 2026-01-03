@@ -6,6 +6,7 @@ package app
 import (
 	"maps"
 	"net/http"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -17,7 +18,7 @@ import (
 func (a *App) handlePageCommentThreadCreation(rctx request.CTX, post *model.Post, user *model.User, channel *model.Channel) *model.AppError {
 	rctx.Logger().Debug("handlePageCommentThreadCreation called", mlog.String("post_id", post.Id), mlog.String("message", post.Message))
 
-	if err := a.createThreadEntryForPageComment(post, channel); err != nil {
+	if err := a.createThreadEntryForPageComment(rctx, post, channel); err != nil {
 		rctx.Logger().Error("Failed to create thread entry for page comment", mlog.Err(err))
 		return err
 	}
@@ -37,7 +38,7 @@ func (a *App) handlePageCommentThreadCreation(rctx request.CTX, post *model.Post
 }
 
 // createThreadEntryForPageComment creates a Thread table entry for a page comment post
-func (a *App) createThreadEntryForPageComment(post *model.Post, channel *model.Channel) *model.AppError {
+func (a *App) createThreadEntryForPageComment(rctx request.CTX, post *model.Post, channel *model.Channel) *model.AppError {
 	thread := &model.Thread{
 		PostId:       post.Id,
 		ChannelId:    post.ChannelId,
@@ -83,6 +84,12 @@ func (a *App) GetPageComments(rctx request.CTX, pageID string) ([]*model.Post, *
 
 // CreatePageComment creates a top-level comment on a page
 func (a *App) CreatePageComment(rctx request.CTX, pageID, message string, inlineAnchor map[string]any) (*model.Post, *model.AppError) {
+	if strings.TrimSpace(message) == "" {
+		return nil, model.NewAppError("CreatePageComment",
+			"app.page.create_comment.empty_message.app_error",
+			nil, "message cannot be empty", http.StatusBadRequest)
+	}
+
 	page, err := a.GetPage(rctx, pageID)
 	if err != nil {
 		if err.Id == "app.page.get.not_a_page.app_error" {
@@ -139,6 +146,12 @@ func (a *App) CreatePageComment(rctx request.CTX, pageID, message string, inline
 
 // CreatePageCommentReply creates a reply to a page comment (one level of nesting only)
 func (a *App) CreatePageCommentReply(rctx request.CTX, pageID, parentCommentID, message string) (*model.Post, *model.AppError) {
+	if strings.TrimSpace(message) == "" {
+		return nil, model.NewAppError("CreatePageCommentReply",
+			"app.page.create_comment_reply.empty_message.app_error",
+			nil, "message cannot be empty", http.StatusBadRequest)
+	}
+
 	page, err := a.GetPage(rctx, pageID)
 	if err != nil {
 		return nil, model.NewAppError("CreatePageCommentReply",
@@ -157,6 +170,13 @@ func (a *App) CreatePageCommentReply(rctx request.CTX, pageID, parentCommentID, 
 		return nil, model.NewAppError("CreatePageCommentReply",
 			"app.page.create_comment_reply.parent_not_comment.app_error",
 			nil, "parent is not a page comment", http.StatusBadRequest)
+	}
+
+	parentPageID, _ := parentComment.Props[model.PagePropsPageID].(string)
+	if parentPageID != pageID {
+		return nil, model.NewAppError("CreatePageCommentReply",
+			"app.page.create_comment_reply.parent_wrong_page.app_error",
+			nil, "parent comment does not belong to the specified page", http.StatusBadRequest)
 	}
 
 	if parentComment.Props[model.PagePropsParentCommentID] != nil {

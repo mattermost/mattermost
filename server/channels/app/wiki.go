@@ -37,6 +37,9 @@ func (a *App) CreateWiki(rctx request.CTX, wiki *model.Wiki, userId string) (*mo
 		mlog.String("wiki_id", savedWiki.Id),
 		mlog.String("channel_id", wiki.ChannelId))
 
+	// Invalidate cache so other nodes see the new wiki
+	a.invalidateCacheForChannelPosts(wiki.ChannelId)
+
 	a.sendWikiAddedNotification(rctx, savedWiki, channel, userId)
 
 	return savedWiki, nil
@@ -122,6 +125,9 @@ func (a *App) DeleteWiki(rctx request.CTX, wikiId, userId string) *model.AppErro
 		}
 		return model.NewAppError("DeleteWiki", "app.wiki.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	// Invalidate cache so other nodes see the deletion
+	a.invalidateCacheForChannelPosts(wiki.ChannelId)
 
 	channel, chanErr := a.GetChannel(rctx, wiki.ChannelId)
 	if chanErr == nil {

@@ -6,7 +6,6 @@ package app
 import (
 	"errors"
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -14,8 +13,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
-
-var pageHierarchyLock sync.Mutex
 
 // GetPageChildren fetches direct children of a page
 func (a *App) GetPageChildren(rctx request.CTX, postID string, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
@@ -159,7 +156,9 @@ func (a *App) calculateMaxDepthFromPostList(postList *model.PostList) int {
 	return maxDepth
 }
 
-// ChangePageParent updates the parent of a page
+// ChangePageParent updates the parent of a page.
+// Uses optimistic locking to handle concurrent modifications in HA cluster mode.
+// If another node modifies the page concurrently, returns a conflict error.
 func (a *App) ChangePageParent(rctx request.CTX, postID string, newParentID string) *model.AppError {
 	start := time.Now()
 	defer func() {
@@ -168,7 +167,8 @@ func (a *App) ChangePageParent(rctx request.CTX, postID string, newParentID stri
 		}
 	}()
 
-	page, err := a.GetPage(rctx, postID)
+	// Use master DB to avoid replica lag issues in HA
+	page, err := a.GetPage(rctx.With(RequestContextWithMaster), postID)
 	if err != nil {
 		return model.NewAppError("ChangePageParent", "app.page.change_parent.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
 	}
@@ -177,8 +177,14 @@ func (a *App) ChangePageParent(rctx request.CTX, postID string, newParentID stri
 	// Store old parent ID for websocket broadcast
 	oldParentID := post.PageParentId
 
-	pageHierarchyLock.Lock()
-	defer pageHierarchyLock.Unlock()
+	// Store UpdateAt for optimistic locking - will fail if page was modified concurrently
+	expectedUpdateAt := post.UpdateAt
+
+	// Get wiki ID for websocket broadcast
+	wikiID, wikiErr := a.GetWikiIdForPage(rctx, postID)
+	if wikiErr != nil {
+		return model.NewAppError("ChangePageParent", "app.page.change_parent.wiki_not_found.app_error", nil, "", http.StatusBadRequest).Wrap(wikiErr)
+	}
 
 	if newParentID != "" {
 		if newParentID == postID {
@@ -215,7 +221,8 @@ func (a *App) ChangePageParent(rctx request.CTX, postID string, newParentID stri
 		}
 	}
 
-	if storeErr := a.Srv().Store().Page().ChangePageParent(postID, newParentID); storeErr != nil {
+	// Use optimistic locking: only update if UpdateAt hasn't changed since we read the page
+	if storeErr := a.Srv().Store().Page().ChangePageParent(postID, newParentID, expectedUpdateAt); storeErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(storeErr, &nfErr):
@@ -226,14 +233,6 @@ func (a *App) ChangePageParent(rctx request.CTX, postID string, newParentID stri
 	}
 
 	a.invalidateCacheForChannelPosts(post.ChannelId)
-
-	wikiID, wikiErr := a.GetWikiIdForPage(rctx, postID)
-	if wikiErr != nil {
-		rctx.Logger().Warn("Could not get wiki ID for page, broadcasting with empty wiki ID",
-			mlog.String("page_id", postID),
-			mlog.Err(wikiErr))
-		wikiID = ""
-	}
 
 	// Broadcast page_moved websocket event
 	a.BroadcastPageMoved(postID, oldParentID, newParentID, wikiID, post.ChannelId, model.GetMillis())

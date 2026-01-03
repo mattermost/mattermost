@@ -407,12 +407,6 @@ func (a *App) resolveDraftContent(draft *model.PageDraft, providedMessage string
 	return content, nil
 }
 
-func (a *App) validateDraftPermissions(rctx request.CTX, draft *model.PageDraft, channel *model.Channel) *model.AppError {
-	// Permission checks are now performed in the API layer (page_drafts_api.go)
-	// This function is kept for backward compatibility but no longer performs permission validation
-	return nil
-}
-
 func (a *App) validateParentPage(rctx request.CTX, parentId string, wiki *model.Wiki) *model.AppError {
 	if parentId == "" {
 		return nil
@@ -456,10 +450,6 @@ func (a *App) validatePageDraftForPublish(rctx request.CTX, userId, wikiId, draf
 
 	channel, err := a.GetChannel(rctx, wiki.ChannelId)
 	if err != nil {
-		return nil, nil, nil, err
-	}
-
-	if err := a.validateDraftPermissions(rctx, draft, channel); err != nil {
 		return nil, nil, nil, err
 	}
 
@@ -813,7 +803,7 @@ func (a *App) PublishPageDraft(rctx request.CTX, userId string, opts model.Publi
 			mlog.String("page_id", savedPost.Id), mlog.Err(updateErr))
 	}
 
-	if contentErr := a.loadPageContentForPost(savedPost); contentErr != nil {
+	if contentErr := a.loadPageContentForPost(rctx, savedPost); contentErr != nil {
 		return nil, contentErr
 	}
 

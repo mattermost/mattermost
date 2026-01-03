@@ -841,7 +841,11 @@ func (s *SqlDraftStore) GetPageDraft(pageId, userId string) (*model.PageContent,
 	var content model.PageContent
 	var contentJSON string
 
-	if err := s.GetReplica().QueryRow(queryString, args...).Scan(
+	// Use GetMaster() for read-after-write consistency in HA mode.
+	// This prevents replication lag from causing stale draft data to be returned
+	// immediately after a write operation (e.g., rename), which would then be
+	// broadcast via WebSocket and overwrite the client's local state with stale data.
+	if err := s.GetMaster().QueryRow(queryString, args...).Scan(
 		&content.PageId,
 		&content.UserId,
 		&content.WikiId,

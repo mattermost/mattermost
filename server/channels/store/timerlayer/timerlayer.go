@@ -6415,10 +6415,10 @@ func (s *TimerLayerOutgoingOAuthConnectionStore) UpdateConnection(rctx request.C
 	return result, err
 }
 
-func (s *TimerLayerPageStore) ChangePageParent(postID string, newParentID string) error {
+func (s *TimerLayerPageStore) ChangePageParent(postID string, newParentID string, expectedUpdateAt int64) error {
 	start := time.Now()
 
-	err := s.PageStore.ChangePageParent(postID, newParentID)
+	err := s.PageStore.ChangePageParent(postID, newParentID, expectedUpdateAt)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -6459,6 +6459,22 @@ func (s *TimerLayerPageStore) DeletePage(pageID string, deleteByID string) error
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PageStore.DeletePage", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerPageStore) RestorePage(pageID string) error {
+	start := time.Now()
+
+	err := s.PageStore.RestorePage(pageID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PageStore.RestorePage", success, elapsed)
 	}
 	return err
 }

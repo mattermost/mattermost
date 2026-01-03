@@ -46,6 +46,13 @@ func savePageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check page edit permission if this is a draft for an existing page
+	if existingPage, err := c.App.GetPage(c.AppContext, c.Params.PageId); err == nil {
+		if !c.CheckPagePermission(existingPage, app.PageOperationEdit) {
+			return
+		}
+	}
+
 	var req struct {
 		Content      string         `json:"content"`
 		Title        string         `json:"title"`
@@ -212,6 +219,11 @@ func publishPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("publishPageDraft", model.AuditStatusFail)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+	auditRec.AddMeta("wiki_id", c.Params.WikiId)
+	auditRec.AddMeta("page_id", c.Params.PageId)
+
 	_, channel, ok := c.GetWikiForModify("publishPageDraft")
 	if !ok {
 		return
@@ -228,21 +240,28 @@ func publishPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 	opts.PageId = c.Params.PageId
 
 	// Check page permissions based on whether this creates a new page or updates existing
+	isNewPage := false
 	if existingPage, err := c.App.GetPage(c.AppContext, opts.PageId); err == nil {
 		if !c.CheckPagePermission(existingPage, app.PageOperationEdit) {
 			return
 		}
 	} else {
+		isNewPage = true
 		if !c.CheckChannelPagePermission(channel, app.PageOperationCreate) {
 			return
 		}
 	}
+	auditRec.AddMeta("is_new_page", isNewPage)
 
 	post, appErr := c.App.PublishPageDraft(c.AppContext, c.AppContext.Session().UserId, opts)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
+
+	auditRec.Success()
+	auditRec.AddEventResultState(post)
+	auditRec.AddEventObjectType("page")
 
 	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("Content-Type", "application/json")

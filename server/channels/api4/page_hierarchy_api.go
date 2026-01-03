@@ -52,18 +52,21 @@ func updatePageParent(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// If new parent is specified, verify it exists, is a page, and belongs to the same wiki
 	if req.NewParentId != "" {
-		parentPost, err := c.App.GetSinglePost(c.AppContext, req.NewParentId, false)
+		// GetPage validates the post exists and is a page type
+		parentPage, err := c.App.GetPage(c.AppContext, req.NewParentId)
 		if err != nil {
-			statusCode := http.StatusBadRequest
-			if err.StatusCode == http.StatusInternalServerError {
-				statusCode = http.StatusInternalServerError
+			if err.Id == "app.page.get.not_a_page.app_error" {
+				c.Err = model.NewAppError("updatePageParent", "api.wiki.update_page_parent.parent_not_page", nil, "", http.StatusBadRequest)
+				return
 			}
-			c.Err = model.NewAppError("updatePageParent", "api.wiki.update_page_parent.parent_not_found", nil, "", statusCode).Wrap(err)
+			c.Err = model.NewAppError("updatePageParent", "api.wiki.update_page_parent.parent_not_found", nil, "", http.StatusNotFound).Wrap(err)
 			return
 		}
 
-		if parentPost.Type != model.PostTypePage {
-			c.Err = model.NewAppError("updatePageParent", "api.wiki.update_page_parent.parent_not_page", nil, "", http.StatusBadRequest)
+		// Permission check: user must have access to parent page
+		// This is implicitly covered by GetWikiForModify (same wiki = same channel),
+		// but we verify explicitly for defense in depth
+		if !c.CheckPagePermission(parentPage, app.PageOperationRead) {
 			return
 		}
 

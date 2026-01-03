@@ -874,7 +874,7 @@ func TestPageDraftToPublishE2E(t *testing.T) {
 	})
 }
 
-func TestCreatePage(t *testing.T) {
+func TestCreatePageViaWikiApi(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -2420,7 +2420,7 @@ func TestUpdatePageParent(t *testing.T) {
 
 		resp, err = th.Client.UpdatePageParent(context.Background(), createdWiki.Id, page.Id, model.NewId())
 		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 	})
 
 	t.Run("fail when parent is not a page", func(t *testing.T) {

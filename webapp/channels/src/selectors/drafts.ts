@@ -4,7 +4,7 @@
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getMyActiveChannelIds} from 'mattermost-redux/selectors/entities/channels';
 
-import {getGlobalItem} from 'selectors/storage';
+import {getGlobalItem, getStorage} from 'selectors/storage';
 
 import {StoragePrefixes} from 'utils/constants';
 import {getDraftInfoFromKey} from 'utils/storage_utils';
@@ -24,12 +24,8 @@ export type DraftCountSelector = (state: GlobalState) => number;
 export function makeGetDraftsByPrefix(prefix: string): DraftSelector {
     return createSelector(
         'makeGetDraftsByPrefix',
-        (state: GlobalState) => state.storage?.storage,
+        getStorage,
         (storage) => {
-            if (!storage) {
-                return [];
-            }
-
             return Object.keys(storage).flatMap((key) => {
                 const item = storage[key];
                 if (

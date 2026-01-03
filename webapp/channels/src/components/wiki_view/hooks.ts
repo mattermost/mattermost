@@ -418,11 +418,16 @@ export function useWikiPageActions(
     }, [scheduleAutosave]);
 
     const handlePublish = useCallback(async () => {
-        if (!wikiId || !currentDraft) {
+        // Capture ref values at start to avoid stale closures after await
+        const capturedWikiId = wikiIdRef.current;
+        const capturedChannelId = channelIdRef.current;
+        const capturedDraft = currentDraftRef.current;
+
+        if (!capturedWikiId || !capturedDraft) {
             return;
         }
 
-        if (!currentDraft.rootId) {
+        if (!capturedDraft.rootId) {
             return;
         }
 
@@ -434,16 +439,16 @@ export function useWikiPageActions(
         }
 
         // Use the latest content and title from refs (may not be saved yet due to debounce)
-        const content = latestContentRef.current || currentDraft.message || '';
-        const title = latestTitleRef.current || currentDraft.props?.[PagePropsKeys.TITLE] || '';
-        const pageStatus = latestStatusRef.current === null ? (currentDraft.props?.[PagePropsKeys.PAGE_STATUS] as string | undefined) : latestStatusRef.current;
+        const content = latestContentRef.current || capturedDraft.message || '';
+        const title = latestTitleRef.current || capturedDraft.props?.[PagePropsKeys.TITLE] || '';
+        const pageStatus = latestStatusRef.current === null ? (capturedDraft.props?.[PagePropsKeys.PAGE_STATUS] as string | undefined) : latestStatusRef.current;
 
         if (!content || content.trim() === '') {
             return;
         }
 
-        const draftRootId = currentDraft.rootId;
-        const pageParentIdFromDraft = currentDraft.props?.[PagePropsKeys.PAGE_PARENT_ID];
+        const draftRootId = capturedDraft.rootId;
+        const pageParentIdFromDraft = capturedDraft.props?.[PagePropsKeys.PAGE_PARENT_ID];
 
         if (pageParentIdFromDraft && pageParentIdFromDraft.startsWith('draft-')) {
             const error = {
@@ -457,7 +462,7 @@ export function useWikiPageActions(
 
         try {
             const result = await dispatch(publishPageDraft(
-                wikiId,
+                capturedWikiId,
                 draftRootId,
                 pageParentIdFromDraft || '',
                 title,
@@ -475,12 +480,12 @@ export function useWikiPageActions(
                         clearTimeout(autosaveTimeoutRef.current);
                         autosaveTimeoutRef.current = null;
                     }
-                    const additionalProps = extractDraftAdditionalProps(currentDraft);
+                    const additionalProps = extractDraftAdditionalProps(capturedDraft);
 
                     // Await the save to ensure Redux is updated before showing the modal
                     await dispatch(savePageDraft(
-                        channelId,
-                        wikiId,
+                        capturedChannelId,
+                        capturedWikiId,
                         draftRootId,
                         content,
                         title,
@@ -493,15 +498,17 @@ export function useWikiPageActions(
                     setConflictPageData(conflictPage);
 
                     // Open conflict modal via modal manager
+                    // Note: Modal callbacks intentionally capture values at modal open time
+                    // so the modal operates on the data it was opened with
                     dispatch(openModal({
                         modalId: ModalIdentifiers.PAGE_CONFLICT_WARNING,
                         dialogType: ConflictWarningModal,
                         dialogProps: {
                             currentPage: conflictPage,
                             onViewChanges: () => {
-                                if (conflictPage?.id && wikiId) {
+                                if (conflictPage?.id && capturedWikiId) {
                                     const teamName = getTeamNameFromPath(location.pathname);
-                                    const pageUrl = getWikiUrl(teamName, channelId, wikiId, conflictPage.id);
+                                    const pageUrl = getWikiUrl(teamName, capturedChannelId, capturedWikiId, conflictPage.id);
                                     window.open(pageUrl, '_blank');
                                 }
                             },
@@ -524,19 +531,20 @@ export function useWikiPageActions(
                                         onConfirm: async () => {
                                             dispatch(closeModal(ModalIdentifiers.PAGE_CONFIRM_OVERWRITE));
 
-                                            if (!wikiId || !currentDraft) {
+                                            // Use captured values from when the conflict was detected
+                                            if (!capturedWikiId || !capturedDraft) {
                                                 return;
                                             }
 
-                                            const overwriteContent = conflictContentRef.current || latestContentRef.current || currentDraft.message || '';
-                                            const overwriteTitle = latestTitleRef.current || currentDraft.props?.[PagePropsKeys.TITLE] || '';
-                                            const overwriteStatus = latestStatusRef.current === null ? (currentDraft.props?.[PagePropsKeys.PAGE_STATUS] as string | undefined) : latestStatusRef.current;
-                                            const overwriteDraftRootId = currentDraft.rootId;
-                                            const overwritePageParentIdFromDraft = currentDraft.props?.[PagePropsKeys.PAGE_PARENT_ID];
+                                            const overwriteContent = conflictContentRef.current || latestContentRef.current || capturedDraft.message || '';
+                                            const overwriteTitle = latestTitleRef.current || capturedDraft.props?.[PagePropsKeys.TITLE] || '';
+                                            const overwriteStatus = latestStatusRef.current === null ? (capturedDraft.props?.[PagePropsKeys.PAGE_STATUS] as string | undefined) : latestStatusRef.current;
+                                            const overwriteDraftRootId = capturedDraft.rootId;
+                                            const overwritePageParentIdFromDraft = capturedDraft.props?.[PagePropsKeys.PAGE_PARENT_ID];
 
                                             try {
                                                 const overwriteResult = await dispatch(publishPageDraft(
-                                                    wikiId,
+                                                    capturedWikiId,
                                                     overwriteDraftRootId,
                                                     overwritePageParentIdFromDraft || '',
                                                     overwriteTitle,
@@ -548,7 +556,7 @@ export function useWikiPageActions(
 
                                                 if (overwriteResult.data) {
                                                     const teamName = getTeamNameFromPath(location.pathname);
-                                                    const redirectUrl = getWikiUrl(teamName, channelId, wikiId, overwriteResult.data.id);
+                                                    const redirectUrl = getWikiUrl(teamName, capturedChannelId, capturedWikiId, overwriteResult.data.id);
                                                     history.replace(redirectUrl);
                                                 }
                                             } catch (e) {
@@ -564,9 +572,9 @@ export function useWikiPageActions(
                                                 dialogProps: {
                                                     currentPage: conflictPage,
                                                     onViewChanges: () => {
-                                                        if (conflictPage?.id && wikiId) {
+                                                        if (conflictPage?.id && capturedWikiId) {
                                                             const teamName = getTeamNameFromPath(location.pathname);
-                                                            const pageUrl = getWikiUrl(teamName, channelId, wikiId, conflictPage.id);
+                                                            const pageUrl = getWikiUrl(teamName, capturedChannelId, capturedWikiId, conflictPage.id);
                                                             window.open(pageUrl, '_blank');
                                                         }
                                                     },
@@ -603,13 +611,13 @@ export function useWikiPageActions(
 
             if (result.data) {
                 const teamName = getTeamNameFromPath(location.pathname);
-                const redirectUrl = getWikiUrl(teamName, channelId, wikiId, result.data.id);
+                const redirectUrl = getWikiUrl(teamName, capturedChannelId, capturedWikiId, result.data.id);
                 history.replace(redirectUrl);
             }
         } catch (error) {
             // Unexpected error - already logged by publishPageDraft action
         }
-    }, [channelId, wikiId, currentDraft, draftId, location.pathname, history, dispatch]);
+    }, [location.pathname, history, dispatch]);
 
     const handleDraftStatusChange = useCallback((newStatus: string) => {
         if (!wikiId || !draftId || !currentDraft) {

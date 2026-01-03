@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useState, useCallback, useMemo} from 'react';
+import {useState, useCallback, useMemo, useRef, useEffect} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
@@ -52,6 +52,20 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         const pagesWithoutDrafts = pages.filter((p) => !draftIds.has(p.id));
         return [...pagesWithoutDrafts, ...draftPosts];
     }, [pages, drafts]);
+
+    // Refs to track latest values and avoid callback recreation on every page/draft change
+    const allPagesRef = useRef(allPages);
+    const pagesRef = useRef(pages);
+    const draftsRef = useRef(drafts);
+    useEffect(() => {
+        allPagesRef.current = allPages;
+    }, [allPages]);
+    useEffect(() => {
+        pagesRef.current = pages;
+    }, [pages]);
+    useEffect(() => {
+        draftsRef.current = drafts;
+    }, [drafts]);
 
     const [createPageParent, setCreatePageParent] = useState<{id: string; title: string} | null>(null);
     const [pageToMove, setPageToMove] = useState<{pageId: string; pageTitle: string; hasChildren: boolean} | null>(null);
@@ -108,7 +122,7 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         if (creatingPage) {
             return;
         }
-        const parentPage = allPages.find((p) => p.id === pageId);
+        const parentPage = allPagesRef.current.find((p) => p.id === pageId);
         const parentTitle = getPageTitle(parentPage);
 
         setCreatePageParent({
@@ -157,13 +171,13 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
                 },
             },
         }));
-    }, [allPages, creatingPage, dispatch, formatMessage, wikiId, onPageSelect]);
+    }, [creatingPage, dispatch, formatMessage, wikiId, onPageSelect]);
 
     const handleRename = useCallback((pageId: string) => {
         if (renamingPage) {
             return;
         }
-        const page = allPages.find((p) => p.id === pageId);
+        const page = allPagesRef.current.find((p) => p.id === pageId);
         if (!page || !wikiId) {
             return;
         }
@@ -191,7 +205,7 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
                         const isDraft = page.type === PageDisplayTypes.PAGE_DRAFT;
 
                         if (isDraft) {
-                            const draft = drafts.find((d) => d.rootId === pageId);
+                            const draft = draftsRef.current.find((d) => d.rootId === pageId);
 
                             if (draft) {
                                 onCancelAutosave?.();
@@ -235,10 +249,10 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
                 },
             },
         }));
-    }, [allPages, wikiId, renamingPage, dispatch, formatMessage, drafts, channelId, onCancelAutosave]);
+    }, [wikiId, renamingPage, dispatch, formatMessage, channelId, onCancelAutosave]);
 
     const handleDuplicate = useCallback(async (pageId: string) => {
-        const page = allPages.find((p) => p.id === pageId);
+        const page = allPagesRef.current.find((p) => p.id === pageId);
         if (!page) {
             return;
         }
@@ -248,7 +262,7 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         } catch (error) {
             // Error handled
         }
-    }, [allPages, wikiId, dispatch]);
+    }, [wikiId, dispatch]);
 
     const fetchPagesForWiki = useCallback(async (targetWikiId: string): Promise<Post[]> => {
         try {
@@ -266,12 +280,12 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
     }, [channelId, dispatch]);
 
     const handleMove = useCallback(async (pageId: string) => {
-        const page = allPages.find((p) => p.id === pageId);
+        const page = allPagesRef.current.find((p) => p.id === pageId);
         if (!page) {
             return;
         }
         const pageTitle = getPageTitle(page);
-        const childCount = getDescendantIds(allPages, pageId).length;
+        const childCount = getDescendantIds(allPagesRef.current, pageId).length;
         const hasChildren = childCount > 0;
 
         try {
@@ -308,18 +322,18 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         } catch (error) {
             // Error handled
         }
-    }, [allPages, channelId, dispatch, wikiId, fetchPagesForWiki]);
+    }, [channelId, dispatch, wikiId, fetchPagesForWiki]);
 
     const handleDelete = useCallback((pageId: string) => {
         if (deletingPageId) {
             return;
         }
-        const page = allPages.find((p) => p.id === pageId);
+        const page = allPagesRef.current.find((p) => p.id === pageId);
         if (!page) {
             return;
         }
         const isDraft = page.type === PageDisplayTypes.PAGE_DRAFT;
-        const childCount = isDraft ? 0 : getDescendantIds(allPages, pageId).length;
+        const childCount = isDraft ? 0 : getDescendantIds(allPagesRef.current, pageId).length;
         const pageTitle = getPageTitle(page);
 
         // Store page info for deletion tracking
@@ -343,7 +357,7 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
                             onPageSelect?.('');
                         } else {
                             if (deleteChildren) {
-                                const descendantIds = getDescendantIds(allPages, page.id);
+                                const descendantIds = getDescendantIds(allPagesRef.current, page.id);
                                 for (const descendantId of descendantIds.reverse()) {
                                     // eslint-disable-next-line no-await-in-loop
                                     const result = await dispatch(deletePage(descendantId, wikiId)) as ActionResult<boolean>;
@@ -366,10 +380,10 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
                 },
             },
         }));
-    }, [allPages, deletingPageId, dispatch, wikiId, onPageSelect]);
+    }, [deletingPageId, dispatch, wikiId, onPageSelect]);
 
     const handleBookmarkInChannel = useCallback((pageId: string) => {
-        const page = allPages.find((p) => p.id === pageId);
+        const page = allPagesRef.current.find((p) => p.id === pageId);
         if (!page) {
             return;
         }
@@ -381,7 +395,7 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
             const actualPageId = page.props?.page_id as string | undefined;
             if (actualPageId) {
                 // Find the actual published page
-                const actualPage = pages.find((p) => p.id === actualPageId);
+                const actualPage = pagesRef.current.find((p) => p.id === actualPageId);
                 if (actualPage) {
                     const pageTitle = getPageTitle(actualPage);
                     setPageToBookmark({pageId: actualPageId, pageTitle});
@@ -397,7 +411,7 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         const pageTitle = getPageTitle(page);
         setPageToBookmark({pageId, pageTitle});
         setShowBookmarkModal(true);
-    }, [allPages, pages]);
+    }, []);
 
     const handleBookmarkCancel = useCallback(() => {
         setShowBookmarkModal(false);

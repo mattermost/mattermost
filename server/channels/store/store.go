@@ -1261,6 +1261,9 @@ type PageStore interface {
 	// DeletePage soft-deletes a page and all its associated data (content and comments)
 	DeletePage(pageID string, deleteByID string) error
 
+	// RestorePage restores a soft-deleted page and its content in a single transaction
+	RestorePage(pageID string) error
+
 	// SoftDeletePageComments soft-deletes all comments for a page
 	SoftDeletePageComments(pageID, deleteByID string) error
 
@@ -1279,8 +1282,10 @@ type PageStore interface {
 	// GetChannelPages fetches all pages in a channel
 	GetChannelPages(channelID string) (*model.PostList, error)
 
-	// ChangePageParent updates the parent of a page
-	ChangePageParent(postID string, newParentID string) error
+	// ChangePageParent updates the parent of a page.
+	// Uses optimistic locking: only updates if UpdateAt matches expectedUpdateAt.
+	// Returns ErrNotFound if no rows affected (page not found or concurrent modification).
+	ChangePageParent(postID string, newParentID string, expectedUpdateAt int64) error
 
 	// UpdatePageWithContent updates a page's title and/or content and creates edit history
 	UpdatePageWithContent(rctx request.CTX, pageID, title, content, searchText string) (*model.Post, error)

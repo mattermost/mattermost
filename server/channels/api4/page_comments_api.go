@@ -19,7 +19,8 @@ func getPageComments(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, ok := c.ValidatePageBelongsToWiki(); !ok {
+	page, ok := c.ValidatePageBelongsToWiki()
+	if !ok {
 		return
 	}
 
@@ -30,6 +31,10 @@ func getPageComments(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if channel.DeleteAt != 0 {
 		c.SetPermissionError(model.PermissionReadChannel)
+		return
+	}
+
+	if !c.CheckPagePermission(page, app.PageOperationRead) {
 		return
 	}
 

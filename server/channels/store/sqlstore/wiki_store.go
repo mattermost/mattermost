@@ -104,46 +104,44 @@ func (s *SqlWikiStore) CreateWikiWithDefaultPage(wiki *model.Wiki, userId string
 		return nil, err
 	}
 
-	var err error
-	transaction, err := s.GetMaster().Beginx()
+	var savedWiki *model.Wiki
+	err := s.ExecuteInTransaction(func(transaction *sqlxTxWrapper) error {
+		var saveErr error
+		savedWiki, saveErr = s.SaveWikiT(transaction, wiki)
+		if saveErr != nil {
+			return errors.Wrap(saveErr, "save_wiki")
+		}
+
+		pageId := model.NewId()
+		now := model.GetMillis()
+
+		contentJSON := model.EmptyTipTapJSON
+
+		// Insert into PageContents table with UserId set (non-empty UserId = draft)
+		contentBuilder := s.getQueryBuilder().
+			Insert("PageContents").
+			Columns("PageId", "UserId", "WikiId", "Title", "Content", "SearchText", "BaseUpdateAt", "CreateAt", "UpdateAt", "DeleteAt").
+			Values(pageId, userId, savedWiki.Id, "Untitled page", contentJSON, "Untitled page", 0, now, now, 0)
+
+		if _, execErr := transaction.ExecBuilder(contentBuilder); execErr != nil {
+			return errors.Wrap(execErr, "create_default_draft_content")
+		}
+
+		// Insert into Drafts table for metadata storage (FileIds, Props)
+		// This ensures the draft can store file attachments before being published
+		draftBuilder := s.getQueryBuilder().
+			Insert("Drafts").
+			Columns("CreateAt", "UpdateAt", "DeleteAt", "Message", "RootId", "ChannelId", "WikiId", "UserId", "FileIds", "Props", "Priority", "Type").
+			Values(now, now, 0, "", pageId, savedWiki.Id, savedWiki.Id, userId, "[]", "{}", "{}", "")
+
+		if _, execErr := transaction.ExecBuilder(draftBuilder); execErr != nil {
+			return errors.Wrap(execErr, "create_default_draft_metadata")
+		}
+
+		return nil
+	})
 	if err != nil {
-		return nil, errors.Wrap(err, "begin_transaction")
-	}
-	defer finalizeTransactionX(transaction, &err)
-
-	savedWiki, err := s.SaveWikiT(transaction, wiki)
-	if err != nil {
-		return nil, errors.Wrap(err, "save_wiki")
-	}
-
-	pageId := model.NewId()
-	now := model.GetMillis()
-
-	contentJSON := model.EmptyTipTapJSON
-
-	// Insert into PageContents table with UserId set (non-empty UserId = draft)
-	contentBuilder := s.getQueryBuilder().
-		Insert("PageContents").
-		Columns("PageId", "UserId", "WikiId", "Title", "Content", "SearchText", "BaseUpdateAt", "CreateAt", "UpdateAt", "DeleteAt").
-		Values(pageId, userId, savedWiki.Id, "Untitled page", contentJSON, "Untitled page", 0, now, now, 0)
-
-	if _, err = transaction.ExecBuilder(contentBuilder); err != nil {
-		return nil, errors.Wrap(err, "create_default_draft_content")
-	}
-
-	// Insert into Drafts table for metadata storage (FileIds, Props)
-	// This ensures the draft can store file attachments before being published
-	draftBuilder := s.getQueryBuilder().
-		Insert("Drafts").
-		Columns("CreateAt", "UpdateAt", "DeleteAt", "Message", "RootId", "ChannelId", "WikiId", "UserId", "FileIds", "Props", "Priority", "Type").
-		Values(now, now, 0, "", pageId, savedWiki.Id, savedWiki.Id, userId, "[]", "{}", "{}", "")
-
-	if _, err = transaction.ExecBuilder(draftBuilder); err != nil {
-		return nil, errors.Wrap(err, "create_default_draft_metadata")
-	}
-
-	if err = transaction.Commit(); err != nil {
-		return nil, errors.Wrap(err, "commit_transaction")
+		return nil, err
 	}
 
 	return savedWiki, nil
@@ -408,91 +406,83 @@ func (s *SqlWikiStore) DeleteAllPagesForWiki(wikiId string) error {
 		return err
 	}
 
-	deleteAt := model.GetMillis()
+	return s.ExecuteInTransaction(func(transaction *sqlxTxWrapper) error {
+		deleteAt := model.GetMillis()
 
-	transaction, err := s.GetMaster().Beginx()
-	if err != nil {
-		return errors.Wrap(err, "begin_transaction")
-	}
-	defer finalizeTransactionX(transaction, &err)
-
-	// Find all post IDs linked to this wiki
-	var postIDs []string
-	propertyQuery := s.getQueryBuilder().
-		Select("pv.TargetID").
-		From("PropertyValues pv").
-		Where(sq.Eq{
-			"pv.TargetType": "post",
-			"pv.FieldID":    fieldID,
-			"pv.GroupID":    groupID,
-			"pv.DeleteAt":   0,
-		}).
-		Where("pv.Value = to_jsonb(?::text)", wikiId)
-
-	if err = transaction.SelectBuilder(&postIDs, propertyQuery); err != nil {
-		return errors.Wrap(err, "failed to find posts for wiki")
-	}
-
-	// Soft delete posts if any exist
-	if len(postIDs) > 0 {
-		postsUpdateQuery := s.getQueryBuilder().
-			Update("Posts").
-			Set("DeleteAt", deleteAt).
+		// Find all post IDs linked to this wiki
+		var postIDs []string
+		propertyQuery := s.getQueryBuilder().
+			Select("pv.TargetID").
+			From("PropertyValues pv").
 			Where(sq.Eq{
-				"Id":       postIDs,
-				"DeleteAt": 0,
-			})
+				"pv.TargetType": "post",
+				"pv.FieldID":    fieldID,
+				"pv.GroupID":    groupID,
+				"pv.DeleteAt":   0,
+			}).
+			Where("pv.Value = to_jsonb(?::text)", wikiId)
 
-		if _, err = transaction.ExecBuilder(postsUpdateQuery); err != nil {
-			return errors.Wrap(err, "failed to soft delete posts for wiki")
+		if selectErr := transaction.SelectBuilder(&postIDs, propertyQuery); selectErr != nil {
+			return errors.Wrap(selectErr, "failed to find posts for wiki")
 		}
 
-		// Soft delete property values
-		propertyValuesUpdateQuery := s.getQueryBuilder().
-			Update("PropertyValues").
-			Set("DeleteAt", deleteAt).
-			Where(sq.Eq{
-				"TargetType": "post",
-				"TargetID":   postIDs,
-				"FieldID":    fieldID,
-				"GroupID":    groupID,
-				"DeleteAt":   0,
-			})
+		// Soft delete posts if any exist
+		if len(postIDs) > 0 {
+			postsUpdateQuery := s.getQueryBuilder().
+				Update("Posts").
+				Set("DeleteAt", deleteAt).
+				Where(sq.Eq{
+					"Id":       postIDs,
+					"DeleteAt": 0,
+				})
 
-		if _, err = transaction.ExecBuilder(propertyValuesUpdateQuery); err != nil {
-			return errors.Wrap(err, "failed to soft delete property values for wiki")
+			if _, execErr := transaction.ExecBuilder(postsUpdateQuery); execErr != nil {
+				return errors.Wrap(execErr, "failed to soft delete posts for wiki")
+			}
+
+			// Soft delete property values
+			propertyValuesUpdateQuery := s.getQueryBuilder().
+				Update("PropertyValues").
+				Set("DeleteAt", deleteAt).
+				Where(sq.Eq{
+					"TargetType": "post",
+					"TargetID":   postIDs,
+					"FieldID":    fieldID,
+					"GroupID":    groupID,
+					"DeleteAt":   0,
+				})
+
+			if _, execErr := transaction.ExecBuilder(propertyValuesUpdateQuery); execErr != nil {
+				return errors.Wrap(execErr, "failed to soft delete property values for wiki")
+			}
+
+			// Soft delete page contents
+			pageContentsUpdateQuery := s.getQueryBuilder().
+				Update("PageContents").
+				Set("DeleteAt", deleteAt).
+				Where(sq.Eq{
+					"PageId":   postIDs,
+					"DeleteAt": 0,
+				})
+
+			if _, execErr := transaction.ExecBuilder(pageContentsUpdateQuery); execErr != nil {
+				return errors.Wrap(execErr, "failed to soft delete page contents for wiki")
+			}
 		}
 
-		// Soft delete page contents
-		pageContentsUpdateQuery := s.getQueryBuilder().
-			Update("PageContents").
-			Set("DeleteAt", deleteAt).
-			Where(sq.Eq{
-				"PageId":   postIDs,
-				"DeleteAt": 0,
-			})
+		// Delete all drafts from PageContents table for this wiki (hard delete since drafts are user-specific)
+		// UserId != '' indicates a draft
+		pageDraftsDeleteQuery := s.getQueryBuilder().
+			Delete("PageContents").
+			Where(sq.Eq{"WikiId": wikiId}).
+			Where(sq.NotEq{"UserId": ""})
 
-		if _, err = transaction.ExecBuilder(pageContentsUpdateQuery); err != nil {
-			return errors.Wrap(err, "failed to soft delete page contents for wiki")
+		if _, execErr := transaction.ExecBuilder(pageDraftsDeleteQuery); execErr != nil {
+			return errors.Wrap(execErr, "failed to delete page drafts for wiki")
 		}
-	}
 
-	// Delete all drafts from PageContents table for this wiki (hard delete since drafts are user-specific)
-	// UserId != '' indicates a draft
-	pageDraftsDeleteQuery := s.getQueryBuilder().
-		Delete("PageContents").
-		Where(sq.Eq{"WikiId": wikiId}).
-		Where(sq.NotEq{"UserId": ""})
-
-	if _, err = transaction.ExecBuilder(pageDraftsDeleteQuery); err != nil {
-		return errors.Wrap(err, "failed to delete page drafts for wiki")
-	}
-
-	if err = transaction.Commit(); err != nil {
-		return errors.Wrap(err, "commit_transaction")
-	}
-
-	return nil
+		return nil
+	})
 }
 
 func (s *SqlWikiStore) MovePageToWiki(pageId, targetWikiId string, parentPageId *string) error {
@@ -501,120 +491,112 @@ func (s *SqlWikiStore) MovePageToWiki(pageId, targetWikiId string, parentPageId 
 		return err
 	}
 
-	transaction, err := s.GetMaster().Beginx()
-	if err != nil {
-		return errors.Wrap(err, "begin_transaction")
-	}
-	defer finalizeTransactionX(transaction, &err)
+	return s.ExecuteInTransaction(func(transaction *sqlxTxWrapper) error {
+		updateAt := model.GetMillis()
 
-	updateAt := model.GetMillis()
+		recursiveCTE := `
+			WITH RECURSIVE page_subtree AS (
+				SELECT Id FROM Posts WHERE Id = ? AND Type = ? AND DeleteAt = 0
+				UNION ALL
+				SELECT p.Id FROM Posts p
+				INNER JOIN page_subtree ps ON p.PageParentId = ps.Id
+				WHERE p.Type = ? AND p.DeleteAt = 0
+			)
+			SELECT Id FROM page_subtree
+		`
 
-	recursiveCTE := `
-		WITH RECURSIVE page_subtree AS (
-			SELECT Id FROM Posts WHERE Id = ? AND Type = ? AND DeleteAt = 0
-			UNION ALL
-			SELECT p.Id FROM Posts p
-			INNER JOIN page_subtree ps ON p.PageParentId = ps.Id
-			WHERE p.Type = ? AND p.DeleteAt = 0
-		)
-		SELECT Id FROM page_subtree
-	`
-
-	var pageIDs []string
-	if err = transaction.Select(&pageIDs, recursiveCTE, pageId, model.PostTypePage, model.PostTypePage); err != nil {
-		return errors.Wrap(err, "failed to find page subtree")
-	}
-
-	if len(pageIDs) == 0 {
-		return store.NewErrNotFound("Page", pageId)
-	}
-
-	newParentId := ""
-	if parentPageId != nil && *parentPageId != "" {
-		newParentId = *parentPageId
-	}
-
-	updatePostQuery := s.getQueryBuilder().
-		Update("Posts").
-		Set("PageParentId", newParentId).
-		Set("UpdateAt", updateAt).
-		Where(sq.Eq{"Id": pageId, "DeleteAt": 0})
-
-	updatePostSQL, updatePostArgs, err := updatePostQuery.ToSql()
-	if err != nil {
-		return errors.Wrap(err, "failed to build update page parent query")
-	}
-
-	if _, err = transaction.Exec(updatePostSQL, updatePostArgs...); err != nil {
-		return errors.Wrap(err, "failed to update page parent")
-	}
-
-	valueJSON := []byte(strconv.Quote(targetWikiId))
-	if s.IsBinaryParamEnabled() {
-		valueJSON = AppendBinaryFlag(valueJSON)
-	}
-
-	updateQuery := s.getQueryBuilder().
-		Update("PropertyValues").
-		Set("Value", valueJSON).
-		Set("UpdateAt", updateAt).
-		Where(sq.Eq{
-			"TargetID":   pageIDs,
-			"TargetType": "post",
-			"FieldID":    fieldID,
-			"GroupID":    groupID,
-			"DeleteAt":   0,
-		})
-
-	result, err := transaction.ExecBuilder(updateQuery)
-	if err != nil {
-		return errors.Wrap(err, "failed to update property values for page subtree")
-	}
-
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return errors.Wrap(err, "failed to get rows affected")
-	}
-
-	if int(rowsAffected) < len(pageIDs) {
-		missingCount := len(pageIDs) - int(rowsAffected)
-		mlog.Warn("Some pages in subtree missing wiki PropertyValues, creating them",
-			mlog.Int("missing_count", missingCount),
-			mlog.String("page_id", pageId))
-
-		// Use batch insert with ON CONFLICT DO NOTHING to insert PropertyValues only for pages that don't have them
-		insertBuilder := s.getQueryBuilder().
-			Insert("PropertyValues").
-			Columns("ID", "TargetID", "TargetType", "GroupID", "FieldID", "Value", "CreateAt", "UpdateAt", "DeleteAt")
-
-		for _, pid := range pageIDs {
-			insertBuilder = insertBuilder.Values(model.NewId(), pid, "post", groupID, fieldID, valueJSON, updateAt, updateAt, 0)
+		var pageIDs []string
+		if selectErr := transaction.Select(&pageIDs, recursiveCTE, pageId, model.PostTypePage, model.PostTypePage); selectErr != nil {
+			return errors.Wrap(selectErr, "failed to find page subtree")
 		}
 
-		// ON CONFLICT uses the unique partial index: idx_propertyvalues_unique (GroupID, TargetID, FieldID) WHERE DeleteAt = 0
-		insertBuilder = insertBuilder.SuffixExpr(sq.Expr("ON CONFLICT (GroupID, TargetID, FieldID) WHERE DeleteAt = 0 DO NOTHING"))
-
-		if _, err = transaction.ExecBuilder(insertBuilder); err != nil {
-			return errors.Wrap(err, "failed to create property values for orphaned pages")
+		if len(pageIDs) == 0 {
+			return store.NewErrNotFound("Page", pageId)
 		}
-	}
 
-	// Update wiki_id in Post.Props for all pages in subtree (optimization for fast lookup)
-	updatePostPropsQuery := s.getQueryBuilder().
-		Update("Posts").
-		Set("Props", sq.Expr("jsonb_set(COALESCE(Props, '{}'::jsonb), ?, ?::jsonb)", jsonKeyPath("wiki_id"), valueJSON)).
-		Set("UpdateAt", updateAt).
-		Where(sq.Eq{"Id": pageIDs, "DeleteAt": 0})
+		newParentId := ""
+		if parentPageId != nil && *parentPageId != "" {
+			newParentId = *parentPageId
+		}
 
-	if _, err = transaction.ExecBuilder(updatePostPropsQuery); err != nil {
-		return errors.Wrap(err, "failed to update wiki_id in Post.Props for page subtree")
-	}
+		updatePostQuery := s.getQueryBuilder().
+			Update("Posts").
+			Set("PageParentId", newParentId).
+			Set("UpdateAt", updateAt).
+			Where(sq.Eq{"Id": pageId, "DeleteAt": 0})
 
-	if err = transaction.Commit(); err != nil {
-		return errors.Wrap(err, "commit_transaction")
-	}
+		updatePostSQL, updatePostArgs, buildErr := updatePostQuery.ToSql()
+		if buildErr != nil {
+			return errors.Wrap(buildErr, "failed to build update page parent query")
+		}
 
-	return nil
+		if _, execErr := transaction.Exec(updatePostSQL, updatePostArgs...); execErr != nil {
+			return errors.Wrap(execErr, "failed to update page parent")
+		}
+
+		valueJSON := []byte(strconv.Quote(targetWikiId))
+		if s.IsBinaryParamEnabled() {
+			valueJSON = AppendBinaryFlag(valueJSON)
+		}
+
+		updateQuery := s.getQueryBuilder().
+			Update("PropertyValues").
+			Set("Value", valueJSON).
+			Set("UpdateAt", updateAt).
+			Where(sq.Eq{
+				"TargetID":   pageIDs,
+				"TargetType": "post",
+				"FieldID":    fieldID,
+				"GroupID":    groupID,
+				"DeleteAt":   0,
+			})
+
+		result, execErr := transaction.ExecBuilder(updateQuery)
+		if execErr != nil {
+			return errors.Wrap(execErr, "failed to update property values for page subtree")
+		}
+
+		rowsAffected, rowsErr := result.RowsAffected()
+		if rowsErr != nil {
+			return errors.Wrap(rowsErr, "failed to get rows affected")
+		}
+
+		if int(rowsAffected) < len(pageIDs) {
+			missingCount := len(pageIDs) - int(rowsAffected)
+			mlog.Warn("Some pages in subtree missing wiki PropertyValues, creating them",
+				mlog.Int("missing_count", missingCount),
+				mlog.String("page_id", pageId))
+
+			// Use batch insert with ON CONFLICT DO NOTHING to insert PropertyValues only for pages that don't have them
+			insertBuilder := s.getQueryBuilder().
+				Insert("PropertyValues").
+				Columns("ID", "TargetID", "TargetType", "GroupID", "FieldID", "Value", "CreateAt", "UpdateAt", "DeleteAt")
+
+			for _, pid := range pageIDs {
+				insertBuilder = insertBuilder.Values(model.NewId(), pid, "post", groupID, fieldID, valueJSON, updateAt, updateAt, 0)
+			}
+
+			// ON CONFLICT uses the unique partial index: idx_propertyvalues_unique (GroupID, TargetID, FieldID) WHERE DeleteAt = 0
+			insertBuilder = insertBuilder.SuffixExpr(sq.Expr("ON CONFLICT (GroupID, TargetID, FieldID) WHERE DeleteAt = 0 DO NOTHING"))
+
+			if _, insertErr := transaction.ExecBuilder(insertBuilder); insertErr != nil {
+				return errors.Wrap(insertErr, "failed to create property values for orphaned pages")
+			}
+		}
+
+		// Update wiki_id in Post.Props for all pages in subtree (optimization for fast lookup)
+		updatePostPropsQuery := s.getQueryBuilder().
+			Update("Posts").
+			Set("Props", sq.Expr("jsonb_set(COALESCE(Props, '{}'::jsonb), ?, ?::jsonb)", jsonKeyPath("wiki_id"), valueJSON)).
+			Set("UpdateAt", updateAt).
+			Where(sq.Eq{"Id": pageIDs, "DeleteAt": 0})
+
+		if _, propsErr := transaction.ExecBuilder(updatePostPropsQuery); propsErr != nil {
+			return errors.Wrap(propsErr, "failed to update wiki_id in Post.Props for page subtree")
+		}
+
+		return nil
+	})
 }
 
 func (s *SqlWikiStore) MoveWikiToChannel(wikiId string, targetChannelId string, timestamp int64) (*model.Wiki, error) {
@@ -623,116 +605,113 @@ func (s *SqlWikiStore) MoveWikiToChannel(wikiId string, targetChannelId string, 
 		return nil, err
 	}
 
-	transaction, err := s.GetMaster().Beginx()
-	if err != nil {
-		return nil, errors.Wrap(err, "begin_transaction")
-	}
-	defer finalizeTransactionX(transaction, &err)
+	err = s.ExecuteInTransaction(func(transaction *sqlxTxWrapper) error {
+		recursiveCTE := `
+			WITH RECURSIVE wiki_pages AS (
+				SELECT DISTINCT pv.TargetID as page_id
+				FROM PropertyValues pv
+				WHERE pv.FieldID = ?
+				  AND pv.GroupID = ?
+				  AND pv.Value = to_jsonb(?::text)
+				  AND pv.TargetType = 'post'
+				  AND pv.DeleteAt = 0
+			),
+			page_subtree AS (
+				SELECT p.Id, p.PageParentId, p.ChannelId
+				FROM Posts p
+				INNER JOIN wiki_pages wp ON p.Id = wp.page_id
+				WHERE p.Type = ?
+				  AND p.DeleteAt = 0
 
-	recursiveCTE := `
-		WITH RECURSIVE wiki_pages AS (
-			SELECT DISTINCT pv.TargetID as page_id
-			FROM PropertyValues pv
-			WHERE pv.FieldID = ?
-			  AND pv.GroupID = ?
-			  AND pv.Value = to_jsonb(?::text)
-			  AND pv.TargetType = 'post'
-			  AND pv.DeleteAt = 0
-		),
-		page_subtree AS (
-			SELECT p.Id, p.PageParentId, p.ChannelId
-			FROM Posts p
-			INNER JOIN wiki_pages wp ON p.Id = wp.page_id
-			WHERE p.Type = ?
-			  AND p.DeleteAt = 0
+				UNION ALL
 
-			UNION ALL
+				SELECT p.Id, p.PageParentId, p.ChannelId
+				FROM Posts p
+				INNER JOIN page_subtree ps ON p.PageParentId = ps.Id
+				WHERE p.Type = ?
+				  AND p.DeleteAt = 0
+			)
+			SELECT Id FROM page_subtree
+		`
 
-			SELECT p.Id, p.PageParentId, p.ChannelId
-			FROM Posts p
-			INNER JOIN page_subtree ps ON p.PageParentId = ps.Id
-			WHERE p.Type = ?
-			  AND p.DeleteAt = 0
-		)
-		SELECT Id FROM page_subtree
-	`
+		var pageIDs []string
+		if selectErr := transaction.Select(&pageIDs, recursiveCTE, fieldID, groupID, wikiId, model.PostTypePage, model.PostTypePage); selectErr != nil {
+			return errors.Wrap(selectErr, "failed to find wiki pages")
+		}
 
-	var pageIDs []string
-	if err = transaction.Select(&pageIDs, recursiveCTE, fieldID, groupID, wikiId, model.PostTypePage, model.PostTypePage); err != nil {
-		return nil, errors.Wrap(err, "failed to find wiki pages")
-	}
-
-	updateWikiQuery := s.getQueryBuilder().
-		Update("Wikis").
-		Set("ChannelId", targetChannelId).
-		Set("UpdateAt", timestamp).
-		Where(sq.Eq{
-			"Id":       wikiId,
-			"DeleteAt": 0,
-		})
-
-	result, err := transaction.ExecBuilder(updateWikiQuery)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to update wiki channel")
-	}
-
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get rows affected")
-	}
-
-	if rowsAffected == 0 {
-		return nil, store.NewErrNotFound("Wiki", wikiId)
-	}
-
-	if len(pageIDs) > 0 {
-		updatePagesQuery := s.getQueryBuilder().
-			Update("Posts").
+		updateWikiQuery := s.getQueryBuilder().
+			Update("Wikis").
 			Set("ChannelId", targetChannelId).
 			Set("UpdateAt", timestamp).
 			Where(sq.Eq{
-				"Id":       pageIDs,
-				"Type":     model.PostTypePage,
+				"Id":       wikiId,
 				"DeleteAt": 0,
 			})
 
-		if _, err = transaction.ExecBuilder(updatePagesQuery); err != nil {
-			return nil, errors.Wrap(err, "failed to update pages channel")
+		result, execErr := transaction.ExecBuilder(updateWikiQuery)
+		if execErr != nil {
+			return errors.Wrap(execErr, "failed to update wiki channel")
 		}
 
-		updateCommentsQuery := s.getQueryBuilder().
-			Update("Posts").
-			Set("ChannelId", targetChannelId).
-			Set("UpdateAt", timestamp).
-			Where(sq.Eq{
-				"Type":     model.PostTypePageComment,
-				"RootId":   pageIDs,
-				"DeleteAt": 0,
-			})
-
-		if _, err = transaction.ExecBuilder(updateCommentsQuery); err != nil {
-			return nil, errors.Wrap(err, "failed to update comments channel")
+		rowsAffected, rowsErr := result.RowsAffected()
+		if rowsErr != nil {
+			return errors.Wrap(rowsErr, "failed to get rows affected")
 		}
 
-		// Update inline comments (comments with page_id in Props but empty RootId)
-		updateInlineCommentsQuery := s.getQueryBuilder().
-			Update("Posts").
-			Set("ChannelId", targetChannelId).
-			Set("UpdateAt", timestamp).
-			Where(sq.Eq{
-				"Type":     model.PostTypePageComment,
-				"RootId":   "",
-				"DeleteAt": 0,
-			}).
-			Where(sq.Expr("Props->>'page_id' = ANY(?)", pq.Array(pageIDs)))
-
-		if _, err = transaction.ExecBuilder(updateInlineCommentsQuery); err != nil {
-			return nil, errors.Wrap(err, "failed to update inline comments")
+		if rowsAffected == 0 {
+			return store.NewErrNotFound("Wiki", wikiId)
 		}
-	}
 
-	if err = transaction.Commit(); err != nil {
-		return nil, errors.Wrap(err, "commit_transaction")
+		if len(pageIDs) > 0 {
+			updatePagesQuery := s.getQueryBuilder().
+				Update("Posts").
+				Set("ChannelId", targetChannelId).
+				Set("UpdateAt", timestamp).
+				Where(sq.Eq{
+					"Id":       pageIDs,
+					"Type":     model.PostTypePage,
+					"DeleteAt": 0,
+				})
+
+			if _, pagesErr := transaction.ExecBuilder(updatePagesQuery); pagesErr != nil {
+				return errors.Wrap(pagesErr, "failed to update pages channel")
+			}
+
+			updateCommentsQuery := s.getQueryBuilder().
+				Update("Posts").
+				Set("ChannelId", targetChannelId).
+				Set("UpdateAt", timestamp).
+				Where(sq.Eq{
+					"Type":     model.PostTypePageComment,
+					"RootId":   pageIDs,
+					"DeleteAt": 0,
+				})
+
+			if _, commentsErr := transaction.ExecBuilder(updateCommentsQuery); commentsErr != nil {
+				return errors.Wrap(commentsErr, "failed to update comments channel")
+			}
+
+			// Update inline comments (comments with page_id in Props but empty RootId)
+			updateInlineCommentsQuery := s.getQueryBuilder().
+				Update("Posts").
+				Set("ChannelId", targetChannelId).
+				Set("UpdateAt", timestamp).
+				Where(sq.Eq{
+					"Type":     model.PostTypePageComment,
+					"RootId":   "",
+					"DeleteAt": 0,
+				}).
+				Where(sq.Expr("Props->>'page_id' = ANY(?)", pq.Array(pageIDs)))
+
+			if _, inlineErr := transaction.ExecBuilder(updateInlineCommentsQuery); inlineErr != nil {
+				return errors.Wrap(inlineErr, "failed to update inline comments")
+			}
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	var updatedWiki model.Wiki
@@ -742,11 +721,11 @@ func (s *SqlWikiStore) MoveWikiToChannel(wikiId string, targetChannelId string, 
 			"DeleteAt": 0,
 		})
 
-	if err = s.GetReplica().GetBuilder(&updatedWiki, getQuery); err != nil {
-		if err == sql.ErrNoRows {
+	if getErr := s.GetReplica().GetBuilder(&updatedWiki, getQuery); getErr != nil {
+		if getErr == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Wiki", wikiId)
 		}
-		return nil, errors.Wrap(err, "failed to fetch updated wiki")
+		return nil, errors.Wrap(getErr, "failed to fetch updated wiki")
 	}
 
 	return &updatedWiki, nil

@@ -7713,6 +7713,16 @@ func (c *Client4) GetPages(ctx context.Context, wikiId string, page, perPage int
 	return DecodeJSONFromResponse[[]*Post](r)
 }
 
+// GetChannelPages gets all pages for a channel.
+func (c *Client4) GetChannelPages(ctx context.Context, channelId string) (*PostList, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.channelRoute(channelId)+"/pages", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*PostList](r)
+}
+
 // CreatePage creates a new page in a wiki.
 func (c *Client4) CreatePage(ctx context.Context, wikiId, pageParentId, title string) (*Post, *Response, error) {
 	payload := map[string]string{
@@ -7745,6 +7755,21 @@ func (c *Client4) DeletePage(ctx context.Context, wikiId, pageId string) (*Respo
 	}
 	defer closeBody(r)
 	return BuildResponse(r), nil
+}
+
+// UpdatePage updates a page's title and/or content.
+func (c *Client4) UpdatePage(ctx context.Context, wikiId, pageId, title, content, searchText string) (*Post, *Response, error) {
+	payload := map[string]string{
+		"title":       title,
+		"content":     content,
+		"search_text": searchText,
+	}
+	r, err := c.DoAPIPutJSON(ctx, c.wikiPageRoute(wikiId, pageId), payload)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Post](r)
 }
 
 // MovePageToWiki moves a page from one wiki to another within the same channel.

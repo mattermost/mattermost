@@ -15,17 +15,17 @@ type PageStore struct {
 	mock.Mock
 }
 
-// ChangePageParent provides a mock function with given fields: postID, newParentID
-func (_m *PageStore) ChangePageParent(postID string, newParentID string) error {
-	ret := _m.Called(postID, newParentID)
+// ChangePageParent provides a mock function with given fields: postID, newParentID, expectedUpdateAt
+func (_m *PageStore) ChangePageParent(postID string, newParentID string, expectedUpdateAt int64) error {
+	ret := _m.Called(postID, newParentID, expectedUpdateAt)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ChangePageParent")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string) error); ok {
-		r0 = rf(postID, newParentID)
+	if rf, ok := ret.Get(0).(func(string, string, int64) error); ok {
+		r0 = rf(postID, newParentID, expectedUpdateAt)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -74,6 +74,24 @@ func (_m *PageStore) DeletePage(pageID string, deleteByID string) error {
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string) error); ok {
 		r0 = rf(pageID, deleteByID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// RestorePage provides a mock function with given fields: pageID
+func (_m *PageStore) RestorePage(pageID string) error {
+	ret := _m.Called(pageID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RestorePage")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(pageID)
 	} else {
 		r0 = ret.Error(0)
 	}

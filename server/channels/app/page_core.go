@@ -125,7 +125,7 @@ func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, conte
 		return nil, enrichErr
 	}
 
-	if contentErr := a.loadPageContentForPost(createdPage); contentErr != nil {
+	if contentErr := a.loadPageContentForPost(rctx, createdPage); contentErr != nil {
 		return nil, contentErr
 	}
 
@@ -321,7 +321,7 @@ func (a *App) loadPageContentForPostList(rctx request.CTX, postList *model.PostL
 // This is needed because page content is stored in a separate table, not in Posts.Message.
 // Returns nil if content is loaded successfully or if content is not found (acceptable for new pages).
 // Returns error for database issues or serialization failures.
-func (a *App) loadPageContentForPost(post *model.Post) *model.AppError {
+func (a *App) loadPageContentForPost(rctx request.CTX, post *model.Post) *model.AppError {
 	if post == nil {
 		return nil
 	}
@@ -378,7 +378,7 @@ func (a *App) UpdatePage(rctx request.CTX, page *Page, title, content, searchTex
 		return nil, enrichErr
 	}
 
-	if contentErr := a.loadPageContentForPost(updatedPost); contentErr != nil {
+	if contentErr := a.loadPageContentForPost(rctx, updatedPost); contentErr != nil {
 		return nil, contentErr
 	}
 
@@ -476,7 +476,7 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, page *Page, titl
 		return nil, enrichErr
 	}
 
-	if contentErr := a.loadPageContentForPost(updatedPost); contentErr != nil {
+	if contentErr := a.loadPageContentForPost(rctx, updatedPost); contentErr != nil {
 		return nil, contentErr
 	}
 
@@ -490,7 +490,7 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, page *Page, titl
 
 // DeletePage deletes a page. If wikiId is provided, it will be included in the broadcast event.
 // Accepts a type-safe *Page that has already been validated.
-// The cascade delete decision (content, comments, post) is made here in the App layer.
+// Uses atomic store operation to delete content, comments, and page post in a single transaction.
 func (a *App) DeletePage(rctx request.CTX, page *Page, wikiId string) *model.AppError {
 	start := time.Now()
 	defer func() {
@@ -501,23 +501,9 @@ func (a *App) DeletePage(rctx request.CTX, page *Page, wikiId string) *model.App
 
 	pageID := page.Id()
 	session := rctx.Session()
-	pageStore := a.Srv().Store().Page()
 
-	// Delete page content (may not exist, which is OK)
-	if err := pageStore.DeletePageContent(pageID); err != nil {
-		var nfErr *store.ErrNotFound
-		if !errors.As(err, &nfErr) {
-			return model.NewAppError("DeletePage", "app.page.delete.content_error.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
-	}
-
-	// Delete page comments (may not exist, which is OK)
-	if err := pageStore.SoftDeletePageComments(pageID, session.UserId); err != nil {
-		rctx.Logger().Warn("Failed to delete page comments", mlog.String("page_id", pageID), mlog.Err(err))
-	}
-
-	// Delete the page post itself
-	if err := pageStore.SoftDeletePagePost(pageID, session.UserId); err != nil {
+	// Atomic deletion of content, comments, and page post in a single transaction
+	if err := a.Srv().Store().Page().DeletePage(pageID, session.UserId); err != nil {
 		return model.NewAppError("DeletePage", "app.page.delete.store_error.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -530,6 +516,7 @@ func (a *App) DeletePage(rctx request.CTX, page *Page, wikiId string) *model.App
 
 // RestorePage restores a soft-deleted page.
 // Accepts a type-safe *Page that has already been validated.
+// Uses atomic store operation to restore content and page post in a single transaction.
 func (a *App) RestorePage(rctx request.CTX, page *Page) *model.AppError {
 	pageID := page.Id()
 	post := page.Post()
@@ -540,22 +527,17 @@ func (a *App) RestorePage(rctx request.CTX, page *Page) *model.AppError {
 	}
 
 	session := rctx.Session()
-	if err := a.Srv().Store().Page().RestorePageContent(pageID); err != nil {
-		var nfErr *store.ErrNotFound
-		if !errors.As(err, &nfErr) {
-			return model.NewAppError("RestorePage",
-				"app.page.restore.content_error.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
+
+	// Atomic restoration of content and page post in a single transaction
+	if err := a.Srv().Store().Page().RestorePage(pageID); err != nil {
+		return model.NewAppError("RestorePage",
+			"app.page.restore.store_error.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	// Update local copy for broadcasting (DB was updated by store)
 	restoredPost := post.Clone()
 	restoredPost.DeleteAt = 0
 	restoredPost.UpdateAt = model.GetMillis()
-	_, updateErr := a.Srv().Store().Post().Update(rctx, restoredPost, post)
-	if updateErr != nil {
-		return model.NewAppError("RestorePage",
-			"app.page.restore.post_error.app_error", nil, "", http.StatusInternalServerError).Wrap(updateErr)
-	}
 
 	a.invalidateCacheForChannelPosts(restoredPost.ChannelId)
 
@@ -741,7 +723,8 @@ func (a *App) sendPageEditedEvent(rctx request.CTX, page *model.Post) {
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", page.ChannelId, "", nil, "")
 	message.Add("post", pageJSON)
 	message.SetBroadcast(&model.WebsocketBroadcast{
-		ChannelId: page.ChannelId,
+		ChannelId:           page.ChannelId,
+		ReliableClusterSend: true,
 	})
 
 	a.Publish(message)

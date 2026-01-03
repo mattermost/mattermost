@@ -6,7 +6,7 @@ import isEqual from 'lodash/isEqual';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {getGlobalItem} from 'selectors/storage';
+import {getGlobalItem, getStorage} from 'selectors/storage';
 
 import {StoragePrefixes} from 'utils/constants';
 
@@ -95,16 +95,27 @@ function removeNullValues(obj: any): any {
     return obj;
 }
 
-export const hasUnsavedChanges: (state: GlobalState, wikiId: string, pageId: string, publishedContent: string) => boolean = (state: GlobalState, wikiId: string, pageId: string, publishedContent: string): boolean => {
-    const draft = getPageDraft(state, wikiId, pageId);
-    if (!draft) {
+/**
+ * Computes whether a draft has unsaved changes compared to published content.
+ * This is the core comparison logic, extracted for use in the memoized selector.
+ */
+function computeHasUnsavedChanges(draftMessage: string | undefined, publishedContent: string): boolean {
+    const draftContent = draftMessage || '';
+
+    // Fast path: if strings are exactly equal, no changes
+    if (draftContent === publishedContent) {
+        return false;
+    }
+
+    // Fast path: if both are empty strings, no changes
+    if (!draftContent && !publishedContent) {
         return false;
     }
 
     // For TipTap JSON content, do deep comparison instead of string comparison
     // This handles cases where JSON formatting differs but content is semantically identical
     try {
-        const draftJson = JSON.parse(draft.message || '{}');
+        const draftJson = JSON.parse(draftContent || '{}');
         const publishedJson = JSON.parse(publishedContent || '{}');
 
         // Handle the case where both are semantically empty
@@ -124,16 +135,34 @@ export const hasUnsavedChanges: (state: GlobalState, wikiId: string, pageId: str
 
         // Use lodash isEqual for deep comparison
         return !isEqual(normalizedDraft, normalizedPublished);
-    } catch (error) {
+    } catch {
         // Fallback to string comparison if JSON parsing fails
         // (though this shouldn't happen for TipTap content)
-        return draft.message !== publishedContent;
+        return draftContent !== publishedContent;
     }
-};
+}
+
+/**
+ * Memoized selector that checks if a page draft has unsaved changes.
+ * Uses createSelector to avoid expensive JSON parsing and deep comparison
+ * when inputs haven't changed.
+ */
+export const hasUnsavedChanges = createSelector(
+    'hasUnsavedChanges',
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    (state: GlobalState, wikiId: string, pageId: string, publishedContent: string) => getPageDraft(state, wikiId, pageId),
+    (_state: GlobalState, _wikiId: string, _pageId: string, publishedContent: string) => publishedContent,
+    (draft, publishedContent): boolean => {
+        if (!draft) {
+            return false;
+        }
+        return computeHasUnsavedChanges(draft.message, publishedContent);
+    },
+);
 
 export const getPageDraftsForWiki: (state: GlobalState, wikiId: string) => PostDraft[] = createSelector(
     'getPageDraftsForWiki',
-    (state: GlobalState) => state.storage.storage,
+    getStorage,
     (_state: GlobalState, wikiId: string) => wikiId,
     (state: GlobalState) => getCurrentUserId(state),
     (storage, wikiId, currentUserId): PostDraft[] => {
@@ -157,12 +186,13 @@ export const getPageDraftsForWiki: (state: GlobalState, wikiId: string) => PostD
 export const getUserDraftKeysForPage: (state: GlobalState, wikiId: string, pageId: string) => string[] = (state: GlobalState, wikiId: string, pageId: string): string[] => {
     const currentUserId = getCurrentUserId(state);
     const prefix = makePageDraftPrefix(wikiId);
+    const storage = getStorage(state);
     const keys: string[] = [];
 
-    Object.keys(state.storage.storage).forEach((key) => {
+    Object.keys(storage).forEach((key) => {
         // Only include keys for the current user
         if (key.startsWith(prefix) && key.endsWith(`_${currentUserId}`)) {
-            const draft = state.storage.storage[key];
+            const draft = storage[key];
             if (draft && typeof draft === 'object' && 'rootId' in draft && draft.rootId === pageId) {
                 keys.push(key);
             }

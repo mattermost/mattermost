@@ -16,8 +16,8 @@ import (
 // ExtractMentionsFromTipTapContent parses TipTap JSON and extracts user IDs from mention nodes.
 // TipTap stores mentions as nodes with type="mention" and attrs.id containing the user ID.
 // This is simpler than markdown parsing since IDs are explicit in the structure.
-func (a *App) ExtractMentionsFromTipTapContent(content string) ([]string, error) {
-	mlog.Trace("extractMentions.parsing", mlog.Int("content_length", len(content)))
+func (a *App) ExtractMentionsFromTipTapContent(rctx request.CTX, content string) ([]string, error) {
+	rctx.Logger().Trace("extractMentions.parsing", mlog.Int("content_length", len(content)))
 
 	var doc struct {
 		Type    string            `json:"type"`
@@ -25,26 +25,26 @@ func (a *App) ExtractMentionsFromTipTapContent(content string) ([]string, error)
 	}
 
 	if err := json.Unmarshal([]byte(content), &doc); err != nil {
-		mlog.Debug("extractMentions.parse_error", mlog.Err(err))
+		rctx.Logger().Debug("extractMentions.parse_error", mlog.Err(err))
 		return nil, err
 	}
 
-	mlog.Trace("extractMentions.parsed", mlog.String("doc_type", doc.Type), mlog.Int("content_nodes", len(doc.Content)))
+	rctx.Logger().Trace("extractMentions.parsed", mlog.String("doc_type", doc.Type), mlog.Int("content_nodes", len(doc.Content)))
 
 	mentionIDs := make(map[string]bool)
-	a.extractMentionsFromNodes(doc.Content, mentionIDs)
+	a.extractMentionsFromNodes(rctx, doc.Content, mentionIDs)
 
 	result := make([]string, 0, len(mentionIDs))
 	for id := range mentionIDs {
 		result = append(result, id)
 	}
 
-	mlog.Debug("extractMentions.complete", mlog.Int("mention_count", len(result)))
+	rctx.Logger().Debug("extractMentions.complete", mlog.Int("mention_count", len(result)))
 	return result, nil
 }
 
 // extractMentionsFromNodes recursively walks TipTap JSON nodes to find mentions
-func (a *App) extractMentionsFromNodes(nodes []json.RawMessage, mentionIDs map[string]bool) {
+func (a *App) extractMentionsFromNodes(rctx request.CTX, nodes []json.RawMessage, mentionIDs map[string]bool) {
 	for _, nodeRaw := range nodes {
 		var node struct {
 			Type  string `json:"type"`
@@ -55,19 +55,19 @@ func (a *App) extractMentionsFromNodes(nodes []json.RawMessage, mentionIDs map[s
 		}
 
 		if err := json.Unmarshal(nodeRaw, &node); err != nil {
-			mlog.Trace("extractMentions.node_parse_error", mlog.Err(err))
+			rctx.Logger().Trace("extractMentions.node_parse_error", mlog.Err(err))
 			continue
 		}
 
-		mlog.Trace("extractMentions.processing_node", mlog.String("node_type", node.Type))
+		rctx.Logger().Trace("extractMentions.processing_node", mlog.String("node_type", node.Type))
 
 		if node.Type == "mention" && node.Attrs != nil && node.Attrs.ID != "" {
-			mlog.Trace("extractMentions.found_mention", mlog.String("user_id", node.Attrs.ID))
+			rctx.Logger().Trace("extractMentions.found_mention", mlog.String("user_id", node.Attrs.ID))
 			mentionIDs[node.Attrs.ID] = true
 		}
 
 		if len(node.Content) > 0 {
-			a.extractMentionsFromNodes(node.Content, mentionIDs)
+			a.extractMentionsFromNodes(rctx, node.Content, mentionIDs)
 		}
 	}
 }
@@ -136,7 +136,7 @@ func (a *App) handlePageMentions(rctx request.CTX, page *model.Post, channelId, 
 		return
 	}
 
-	currentMentions, extractErr := a.ExtractMentionsFromTipTapContent(content)
+	currentMentions, extractErr := a.ExtractMentionsFromTipTapContent(rctx, content)
 	if extractErr != nil {
 		rctx.Logger().Warn("Failed to extract mentions from page content", mlog.String("page_id", page.Id), mlog.Err(extractErr))
 		return

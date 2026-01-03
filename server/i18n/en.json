@@ -7075,6 +7075,10 @@
     "translation": "Parent page must be in the same channel."
   },
   {
+    "id": "app.page.change_parent.wiki_not_found.app_error",
+    "translation": "Wiki not found for page."
+  },
+  {
     "id": "app.page.create.deleted_channel.app_error",
     "translation": "Cannot create page in an archived channel."
   },
@@ -7107,12 +7111,20 @@
     "translation": "Page title is too long."
   },
   {
+    "id": "app.page.create_comment.empty_message.app_error",
+    "translation": "Comment message cannot be empty."
+  },
+  {
     "id": "app.page.create_comment.not_a_page.app_error",
     "translation": "Cannot create comment: post is not a page."
   },
   {
     "id": "app.page.create_comment.page_not_found.app_error",
     "translation": "Page not found for comment."
+  },
+  {
+    "id": "app.page.create_comment_reply.empty_message.app_error",
+    "translation": "Comment reply message cannot be empty."
   },
   {
     "id": "app.page.create_comment_reply.page_not_found.app_error",
@@ -7127,12 +7139,12 @@
     "translation": "Parent comment not found."
   },
   {
-    "id": "app.page.create_comment_reply.reply_to_reply_not_allowed.app_error",
-    "translation": "Cannot reply to a comment reply."
+    "id": "app.page.create_comment_reply.parent_wrong_page.app_error",
+    "translation": "Parent comment is from a different page."
   },
   {
-    "id": "app.page.delete.content_error.app_error",
-    "translation": "Unable to delete page content."
+    "id": "app.page.create_comment_reply.reply_to_reply_not_allowed.app_error",
+    "translation": "Cannot reply to a comment reply."
   },
   {
     "id": "app.page.delete.store_error.app_error",
@@ -7259,10 +7271,6 @@
     "translation": "Parent page ID is required."
   },
   {
-    "id": "app.page.restore.content_error.app_error",
-    "translation": "Unable to restore page content."
-  },
-  {
     "id": "app.page.restore.get_content.app_error",
     "translation": "Unable to get page content for restore."
   },
@@ -7271,12 +7279,12 @@
     "translation": "Page is not deleted."
   },
   {
-    "id": "app.page.restore.post_error.app_error",
-    "translation": "Unable to restore page post."
-  },
-  {
     "id": "app.page.restore.serialize_content.app_error",
     "translation": "Unable to serialize page content for restore."
+  },
+  {
+    "id": "app.page.restore.store_error.app_error",
+    "translation": "Unable to restore page."
   },
   {
     "id": "app.page.restore.update_content.app_error",

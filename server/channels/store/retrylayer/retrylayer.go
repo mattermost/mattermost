@@ -7893,11 +7893,11 @@ func (s *RetryLayerOutgoingOAuthConnectionStore) UpdateConnection(rctx request.C
 
 }
 
-func (s *RetryLayerPageStore) ChangePageParent(postID string, newParentID string) error {
+func (s *RetryLayerPageStore) ChangePageParent(postID string, newParentID string, expectedUpdateAt int64) error {
 
 	tries := 0
 	for {
-		err := s.PageStore.ChangePageParent(postID, newParentID)
+		err := s.PageStore.ChangePageParent(postID, newParentID, expectedUpdateAt)
 		if err == nil {
 			return nil
 		}
@@ -7940,6 +7940,27 @@ func (s *RetryLayerPageStore) DeletePage(pageID string, deleteByID string) error
 	tries := 0
 	for {
 		err := s.PageStore.DeletePage(pageID, deleteByID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPageStore) RestorePage(pageID string) error {
+
+	tries := 0
+	for {
+		err := s.PageStore.RestorePage(pageID)
 		if err == nil {
 			return nil
 		}

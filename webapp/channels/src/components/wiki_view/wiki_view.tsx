@@ -133,6 +133,17 @@ const WikiView = () => {
     const newDrafts = useSelector((state: GlobalState) => (wikiId ? getNewDraftsForWiki(state, wikiId) : []));
     const allPages = useSelector((state: GlobalState) => (wikiId ? getPages(state, wikiId) : []));
 
+    // Refs to track latest values to avoid stale closures in async callbacks
+    const newDraftsRef = React.useRef(newDrafts);
+    React.useEffect(() => {
+        newDraftsRef.current = newDrafts;
+    }, [newDrafts]);
+
+    const pageIdRef = React.useRef(pageId);
+    React.useEffect(() => {
+        pageIdRef.current = pageId;
+    }, [pageId]);
+
     // Version history modal via modal manager
     const {handleVersionHistory} = useVersionHistory({wikiId: wikiId || '', allPages});
 
@@ -255,17 +266,20 @@ const WikiView = () => {
 
     // Auto-resume draft like Confluence (no modal prompt)
     const onEdit = React.useCallback(async () => {
+        // Capture pageId before await to avoid stale closure
+        const currentPageId = pageIdRef.current;
+
         const result = await handleEdit() as {error?: {id: string; data: any}} | {data: boolean} | undefined;
 
         // If draft exists, automatically navigate to it (Confluence-style auto-resume)
         if (result && 'error' in result && result.error?.id === 'api.page.edit.unsaved_draft_exists') {
-            if (pageId && wikiId) {
+            if (currentPageId && wikiId) {
                 const teamName = getTeamNameFromPath(location.pathname);
-                const draftPath = getWikiUrl(teamName, channelId, wikiId, pageId, true);
+                const draftPath = getWikiUrl(teamName, channelId, wikiId, currentPageId, true);
                 history.push(draftPath);
             }
         }
-    }, [handleEdit, pageId, wikiId, channelId, history, location]);
+    }, [handleEdit, wikiId, channelId, history, location]);
 
     const handleToggleComments = React.useCallback(() => {
         if (isWikiRhsOpen) {
@@ -295,9 +309,9 @@ const WikiView = () => {
 
         // Check if selected ID is a pure draft (new page, not yet published)
         // isDraftHint takes precedence when provided (avoids stale closure issue)
-        // Otherwise check newDrafts array (drafts without a PAGE_ID prop)
+        // Otherwise check newDraftsRef (current value via ref to avoid stale closure)
         // Published pages should always open in view mode, even if they have unsaved drafts
-        const isDraftPage = isDraftHint ?? newDrafts.some((draft) => draft.rootId === selectedPageId);
+        const isDraftPage = isDraftHint ?? newDraftsRef.current.some((draft) => draft.rootId === selectedPageId);
 
         const url = getWikiUrl(teamName, channelId, wikiId, selectedPageId, isDraftPage);
 
@@ -307,7 +321,7 @@ const WikiView = () => {
         if (isWikiRhsOpen && selectedPageId && !isDraftPage) {
             dispatch(openWikiRhs(selectedPageId, wikiId || '', undefined));
         }
-    }, [wikiId, channelId, dispatch, location.pathname, newDrafts, history, isWikiRhsOpen]);
+    }, [wikiId, channelId, dispatch, location.pathname, history, isWikiRhsOpen]);
 
     // Use shared menu handlers hook - it will combine pages and drafts internally
     const menuHandlers = usePageMenuHandlers({
@@ -365,6 +379,43 @@ const WikiView = () => {
             pageLink,
         };
     }, [isEmptyState, currentDraft, draftId, pageId, wikiId, channelId, currentTeam?.name, isDraft, actualChannelId]);
+
+    // Memoized header action callbacks to avoid recreating functions on every render
+    const handleCreateChild = React.useCallback(() => {
+        if (headerProps?.pageId) {
+            menuHandlers.handleCreateChild(headerProps.pageId);
+        }
+    }, [headerProps?.pageId, menuHandlers]);
+
+    const handleRename = React.useCallback(() => {
+        if (headerProps?.pageId) {
+            menuHandlers.handleRename(headerProps.pageId);
+        }
+    }, [headerProps?.pageId, menuHandlers]);
+
+    const handleDuplicate = React.useCallback(() => {
+        if (headerProps?.pageId) {
+            menuHandlers.handleDuplicate(headerProps.pageId);
+        }
+    }, [headerProps?.pageId, menuHandlers]);
+
+    const handleMove = React.useCallback(() => {
+        if (headerProps?.pageId) {
+            menuHandlers.handleMove(headerProps.pageId);
+        }
+    }, [headerProps?.pageId, menuHandlers]);
+
+    const handleHeaderDelete = React.useCallback(() => {
+        if (headerProps?.pageId) {
+            menuHandlers.handleDelete(headerProps.pageId);
+        }
+    }, [headerProps?.pageId, menuHandlers]);
+
+    const handleHeaderVersionHistory = React.useCallback(() => {
+        if (headerProps?.pageId) {
+            handleVersionHistory(headerProps.pageId);
+        }
+    }, [headerProps?.pageId, handleVersionHistory]);
 
     // Memoized editor props to avoid inline IIFE recreation on every render
     const editorProps = React.useMemo(() => {
@@ -453,12 +504,12 @@ const WikiView = () => {
                                 onToggleComments={handleToggleComments}
                                 isFullscreen={isFullscreen}
                                 onToggleFullscreen={toggleFullscreen}
-                                onCreateChild={() => headerProps.pageId && menuHandlers.handleCreateChild(headerProps.pageId)}
-                                onRename={() => headerProps.pageId && menuHandlers.handleRename(headerProps.pageId)}
-                                onDuplicate={() => headerProps.pageId && menuHandlers.handleDuplicate(headerProps.pageId)}
-                                onMove={() => headerProps.pageId && menuHandlers.handleMove(headerProps.pageId)}
-                                onDelete={() => headerProps.pageId && menuHandlers.handleDelete(headerProps.pageId)}
-                                onVersionHistory={() => headerProps.pageId && handleVersionHistory(headerProps.pageId)}
+                                onCreateChild={handleCreateChild}
+                                onRename={handleRename}
+                                onDuplicate={handleDuplicate}
+                                onMove={handleMove}
+                                onDelete={handleHeaderDelete}
+                                onVersionHistory={handleHeaderVersionHistory}
                                 canEdit={canEdit}
                             />
                         )}
