@@ -3,6 +3,21 @@
 
 package app
 
+// This file implements access control for property fields and values using three key mechanisms:
+//
+// 1. Protected Fields (protected attribute):
+//    - Protected fields can only be modified by their source plugin (identified by source_plugin_id)
+//    - Non-protected fields can be modified by any caller with appropriate access
+//
+// 2. Access Mode (access_mode attribute):
+//    - Controls read access to field metadata (like options) and values
+//    - Three modes:
+//      * Public (empty string, default): Everyone can read all data
+//      * Source-only: Only the source plugin can read full field options and values; others see empty options and no values
+//      * Shared-only: Callers can only see field options and values they share with the target
+//                     (Example: If Alice selected Apples and Bananas, and Bob selected Bananas and Oranges,
+//                      then Alice querying Bob's values would only see Bananas)
+
 import (
 	"encoding/json"
 	"fmt"
@@ -15,6 +30,8 @@ import (
 const (
 	// propertyAccessPaginationPageSize is the default page size for pagination when fetching property values
 	propertyAccessPaginationPageSize = 100
+	// propertyAccessMaxPaginationIterations is the maximum number of pagination iterations before returning an error
+	propertyAccessMaxPaginationIterations = 10
 )
 
 // PropertyAccessService is a decorator around PropertyService that enforces
@@ -397,28 +414,9 @@ func (pas *PropertyAccessService) UpdatePropertyValues(callerID string, groupID 
 		return values, nil
 	}
 
-	// Get unique field IDs
-	fieldIDs := make(map[string]struct{})
-	for _, value := range values {
-		fieldIDs[value.FieldID] = struct{}{}
-	}
-
-	// Convert map to slice
-	fieldIDSlice := make([]string, 0, len(fieldIDs))
-	for fieldID := range fieldIDs {
-		fieldIDSlice = append(fieldIDSlice, fieldID)
-	}
-
-	// Fetch all fields
-	fields, err := pas.propertyService.GetPropertyFields(groupID, fieldIDSlice)
+	fieldMap, err := pas.getFieldsForValues(values)
 	if err != nil {
 		return nil, fmt.Errorf("UpdatePropertyValues: %w", err)
-	}
-
-	// Build map for easy lookup
-	fieldMap := make(map[string]*model.PropertyField, len(fields))
-	for _, field := range fields {
-		fieldMap[field.ID] = field
 	}
 
 	// Check write access for all fields before updating any values
@@ -469,32 +467,9 @@ func (pas *PropertyAccessService) UpsertPropertyValues(callerID string, values [
 		return values, nil
 	}
 
-	// Get unique field IDs and group ID
-	fieldIDs := make(map[string]struct{})
-	var groupID string
-	for _, value := range values {
-		if groupID == "" {
-			groupID = value.GroupID
-		}
-		fieldIDs[value.FieldID] = struct{}{}
-	}
-
-	// Convert map to slice
-	fieldIDSlice := make([]string, 0, len(fieldIDs))
-	for fieldID := range fieldIDs {
-		fieldIDSlice = append(fieldIDSlice, fieldID)
-	}
-
-	// Fetch all fields
-	fields, err := pas.propertyService.GetPropertyFields(groupID, fieldIDSlice)
+	fieldMap, err := pas.getFieldsForValues(values)
 	if err != nil {
 		return nil, fmt.Errorf("UpsertPropertyValues: %w", err)
-	}
-
-	// Build map for easy lookup
-	fieldMap := make(map[string]*model.PropertyField, len(fields))
-	for _, field := range fields {
-		fieldMap[field.ID] = field
 	}
 
 	// Check write access for all fields before upserting any values
@@ -523,7 +498,7 @@ func (pas *PropertyAccessService) DeletePropertyValue(callerID string, groupID, 
 	// Get the value to find its field ID
 	value, err := pas.propertyService.GetPropertyValue(groupID, id)
 	if err != nil {
-		// Value doesn't exist - return nil to match original behavior (SQL DELETE with 0 rows affected)
+		// Value doesn't exist - return nil to match original behavior
 		return nil
 	}
 
@@ -550,8 +525,14 @@ func (pas *PropertyAccessService) DeletePropertyValuesForTarget(callerID string,
 	// Collect unique field IDs across all values without loading all values into memory
 	fieldIDs := make(map[string]struct{})
 	var cursor model.PropertyValueSearchCursor
+	iterations := 0
 
 	for {
+		iterations++
+		if iterations > propertyAccessMaxPaginationIterations {
+			return fmt.Errorf("DeletePropertyValuesForTarget: exceeded maximum pagination iterations (%d)", propertyAccessMaxPaginationIterations)
+		}
+
 		opts := model.PropertyValueSearchOpts{
 			TargetType: targetType,
 			TargetIDs:  []string{targetID},
@@ -650,7 +631,7 @@ func (pas *PropertyAccessService) getSourcePluginID(field *model.PropertyField) 
 }
 
 // getAccessMode extracts the access_mode from a PropertyField's attrs.
-// Returns "public" (empty string) if not set (default).
+// Returns empty string (public access mode) if not set (default).
 func (pas *PropertyAccessService) getAccessMode(field *model.PropertyField) string {
 	if field.Attrs == nil {
 		return model.PropertyAccessModePublic
@@ -730,8 +711,14 @@ func (pas *PropertyAccessService) getCallerValuesForField(groupID, fieldID, call
 
 	allValues := []*model.PropertyValue{}
 	var cursor model.PropertyValueSearchCursor
+	iterations := 0
 
 	for {
+		iterations++
+		if iterations > propertyAccessMaxPaginationIterations {
+			return nil, fmt.Errorf("getCallerValuesForField: exceeded maximum pagination iterations (%d)", propertyAccessMaxPaginationIterations)
+		}
+
 		opts := model.PropertyValueSearchOpts{
 			FieldID:   fieldID,
 			TargetIDs: []string{callerID},
