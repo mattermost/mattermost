@@ -860,7 +860,7 @@ func (es *Service) NewEmailTemplateData(locale string) templates.Data {
 				map[string]any{"SiteName": es.config().TeamSettings.SiteName}),
 			"SupportEmail": *es.config().SupportSettings.SupportEmail,
 			"Footer":       localT("api.templates.email_footer"),
-			"FooterV2":     localT("api.templates.email_footer_v2"),
+			"FooterV2":     localT("api.templates.email_footer_v2", map[string]any{"CurrentYear": time.Now().Year()}),
 			"Organization": organization,
 		},
 		HTML: map[string]template.HTML{},
