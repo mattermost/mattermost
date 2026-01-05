@@ -349,15 +349,6 @@ type DialogTimeExclusionRule struct {
 	After string `json:"after,omitempty"`
 }
 
-// DialogTimeExcludeConfig defines time exclusion configuration for datetime fields
-type DialogTimeExcludeConfig struct {
-	// TimezoneReference indicates whether exclusion times are in "UTC" or "local" timezone
-	TimezoneReference string `json:"timezone_reference"`
-	// Exclusions is an array of time ranges to exclude
-	// If ANY rule matches, the time is excluded (OR operation)
-	Exclusions []DialogTimeExclusionRule `json:"exclusions"`
-}
-
 // DialogDisabledDayRule defines a day or range of days to disable in date/datetime pickers
 // Supports all react-day-picker matcher types: specific dates, ranges, before/after, and days of week
 // Multiple rules can be combined - if ANY rule matches, the day is disabled (OR operation)
@@ -374,6 +365,38 @@ type DialogDisabledDayRule struct {
 	// DaysOfWeek disables specific days of the week (0=Sunday, 1=Monday, ..., 6=Saturday)
 	// Example: [0, 6] disables weekends, [1, 2, 3, 4, 5] disables weekdays
 	DaysOfWeek []int `json:"days_of_week,omitempty"`
+}
+
+// DialogExclusionConfig defines date and time exclusion rules for datetime fields
+// All rules are evaluated in the specified timezone
+type DialogExclusionConfig struct {
+	// TimezoneReference: IANA timezone (e.g., "Asia/Tokyo"), "UTC", or "local" (user's timezone)
+	TimezoneReference string `json:"timezone_reference"`
+	// ExcludedDays: Days to exclude from the calendar (evaluated in reference timezone)
+	ExcludedDays []DialogDisabledDayRule `json:"excluded_days,omitempty"`
+	// ExcludedTimes: Time ranges to exclude from the time picker (evaluated in reference timezone)
+	ExcludedTimes []DialogTimeExclusionRule `json:"excluded_times,omitempty"`
+}
+
+// DialogDateTimeConfig groups all date/datetime specific configuration
+// Note: For simple date ranges (min/max), use top-level MinDate/MaxDate fields
+// For advanced rules (weekends, timezone-aware, complex), use Exclusions.ExcludedDays
+type DialogDateTimeConfig struct {
+	// TimeInterval: Minutes between time options in dropdown (default: 60)
+	TimeInterval int `json:"time_interval,omitempty"`
+	// LocationTimezone: IANA timezone for display (e.g., "America/Denver")
+	LocationTimezone string `json:"location_timezone,omitempty"`
+	// IsRange: Enable date/datetime range selection (start and end)
+	IsRange bool `json:"is_range,omitempty"`
+	// AllowSingleDayRange: Allow start and end to be the same day in range mode
+	AllowSingleDayRange bool `json:"allow_single_day_range,omitempty"`
+	// RangeLayout: Layout for range fields - "horizontal" (side-by-side) or "vertical" (stacked)
+	RangeLayout string `json:"range_layout,omitempty"`
+	// AllowManualTimeEntry: Allow manual text entry for time instead of dropdown
+	AllowManualTimeEntry bool `json:"allow_manual_time_entry,omitempty"`
+	// Exclusions: Date and time exclusion rules (timezone-aware)
+	// Use ExcludedDays with Before/After for date ranges instead of top-level MinDate/MaxDate
+	Exclusions *DialogExclusionConfig `json:"exclusions,omitempty"`
 }
 
 type DialogElement struct {
@@ -393,16 +416,12 @@ type DialogElement struct {
 	MultiSelect   bool                 `json:"multiselect"`
 	Refresh       bool                 `json:"refresh,omitempty"`
 	// Date/datetime field specific properties
-	MinDate             string                   `json:"min_date,omitempty"`
-	MaxDate             string                   `json:"max_date,omitempty"`
-	DisabledDays        []DialogDisabledDayRule  `json:"disabled_days,omitempty"` // Rules for disabling specific days (dates, ranges, weekends, etc.)
-	TimeInterval        int                      `json:"time_interval,omitempty"`
-	IsRange             bool                     `json:"is_range,omitempty"`
-	ExcludeTime         *DialogTimeExcludeConfig `json:"exclude_time,omitempty"`
-	AllowSingleDayRange   bool                     `json:"allow_single_day_range,omitempty"`
-	RangeLayout           string                   `json:"range_layout,omitempty"`           // "horizontal" or "vertical"
-	LocationTimezone      string                   `json:"location_timezone,omitempty"`      // IANA timezone (e.g., "America/Denver") - overrides user's timezone for datetime fields only
-	AllowManualTimeEntry  bool                     `json:"allow_manual_time_entry,omitempty"` // Allow manual text entry for time instead of dropdown (datetime fields only)
+	MinDate      string `json:"min_date,omitempty"`      // Simple min date - for complex rules use DateTimeConfig.Exclusions.ExcludedDays
+	MaxDate      string `json:"max_date,omitempty"`      // Simple max date - for complex rules use DateTimeConfig.Exclusions.ExcludedDays
+	TimeInterval int    `json:"time_interval,omitempty"` // Time interval in minutes - can also use DateTimeConfig.TimeInterval
+
+	// Date/datetime field configuration (advanced features)
+	DateTimeConfig *DialogDateTimeConfig `json:"datetime_config,omitempty"`
 }
 
 type OpenDialogRequest struct {

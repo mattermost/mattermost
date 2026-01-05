@@ -45,16 +45,26 @@ const AppsFormDateTimeField: React.FC<Props> = ({
 }) => {
     const userTimezone = useSelector(getCurrentTimezone);
 
+    // Extract datetime config with fallback to top-level fields
+    const config = field.datetime_config || {};
+    const locationTimezone = config.location_timezone;
+    const timePickerInterval = config.time_interval ?? field.time_interval ?? DEFAULT_TIME_INTERVAL_MINUTES;
+    const isRange = config.is_range ?? false;
+    const allowSingleDayRange = config.allow_single_day_range ?? false;
+    const rangeLayout = config.range_layout;
+    const allowManualTimeEntry = config.allow_manual_time_entry ?? false;
+    const exclusions = config.exclusions;
+
     // Use location_timezone if specified, otherwise fall back to user's timezone
-    const timezone = field.location_timezone || userTimezone;
-    console.log('AppsFormDateTimeField - field.name:', field.name, 'location_timezone:', field.location_timezone, 'userTimezone:', userTimezone, 'final timezone:', timezone);
+    const timezone = locationTimezone || userTimezone;
+    console.log('AppsFormDateTimeField - field.name:', field.name, 'location_timezone:', locationTimezone, 'userTimezone:', userTimezone, 'final timezone:', timezone);
 
     // Show timezone indicator when location_timezone is set
-    const showTimezoneIndicator = !!field.location_timezone;
+    const showTimezoneIndicator = !!locationTimezone;
 
     const momentValue = useMemo(() => {
         console.log('momentValue useMemo - value:', value, 'timezone:', timezone);
-        if (field.is_range && Array.isArray(value)) {
+        if (isRange && Array.isArray(value)) {
             const parsedValues = value.map((val) => stringToMoment(val, timezone)).filter(Boolean);
             if (parsedValues.length > 0) {
                 return parsedValues;
@@ -69,8 +79,8 @@ const AppsFormDateTimeField: React.FC<Props> = ({
 
         // No automatic defaults - field starts empty
         // Apps can set a default value using the field.value property
-        return field.is_range ? null : null;
-    }, [value, timezone, field.is_range]);
+        return isRange ? null : null;
+    }, [value, timezone, isRange]);
 
     const handleDateTimeChange = useCallback((date: moment.Moment | null) => {
         if (!date) {
@@ -85,14 +95,13 @@ const AppsFormDateTimeField: React.FC<Props> = ({
         onChange(field.name, newValue);
     }, [field.name, onChange]);
 
-    const timePickerInterval = field.time_interval || DEFAULT_TIME_INTERVAL_MINUTES;
-
-    // Parse disabled days from field configuration (combines min_date, max_date, and disabled_days)
+    // Parse disabled days from field configuration
+    // Combines: min_date/max_date (legacy) + datetime_config.exclusions.excluded_days (new)
     const disabledDays = useMemo(() => {
-        console.log('apps_form_datetime_field - field:', field.name, 'disabled_days:', field.disabled_days, 'min_date:', field.min_date, 'max_date:', field.max_date);
+        console.log('apps_form_datetime_field - field:', field.name, 'exclusions:', exclusions, 'min_date:', field.min_date, 'max_date:', field.max_date);
         const disabled = [];
 
-        // Handle min_date and max_date (legacy support)
+        // Handle legacy min_date and max_date (simple date range)
         if (field.min_date) {
             const resolvedMinDate = resolveRelativeDate(field.min_date);
             const minDate = stringToDate(resolvedMinDate);
@@ -109,15 +118,18 @@ const AppsFormDateTimeField: React.FC<Props> = ({
             }
         }
 
-        // Parse disabled_days from field (new flexible approach)
-        const parsedDisabledDays = parseDisabledDays(field.disabled_days);
-        if (parsedDisabledDays) {
+        // Parse excluded_days from datetime_config.exclusions
+        // If timezone_reference is set, these rules need timezone-aware evaluation
+        // Pass them separately to DateTimeInput for dynamic processing
+        const parsedDisabledDays = parseDisabledDays(exclusions?.excluded_days);
+        if (parsedDisabledDays && !exclusions?.timezone_reference) {
+            // Only add if NOT timezone-aware (timezone-aware handled separately in DateTimeInput)
             disabled.push(...parsedDisabledDays);
         }
 
         console.log('apps_form_datetime_field - final disabled array:', disabled);
         return disabled.length > 0 ? disabled : undefined;
-    }, [field.min_date, field.max_date, field.disabled_days]);
+    }, [field.min_date, field.max_date, exclusions?.excluded_days, exclusions?.timezone_reference]);
 
     const startMoment = Array.isArray(momentValue) && momentValue.length > 0 && momentValue[0] ? momentValue[0] : null;
     const endMoment = Array.isArray(momentValue) && momentValue.length > 1 && momentValue[1] ? momentValue[1] : null;
@@ -133,8 +145,7 @@ const AppsFormDateTimeField: React.FC<Props> = ({
     // This handler just updates times and converts to strings
     const handleStartRangeChange = useCallback((rangeFrom: Date, rangeTo: Date | null) => {
         const currentTime = timezone ? moment.tz(timezone) : moment();
-        const timePickerInterval = field.time_interval || DEFAULT_TIME_INTERVAL_MINUTES;
-        const defaultTime = getNextAvailableTime(currentTime, timePickerInterval, field.exclude_time, timezone);
+        const defaultTime = getNextAvailableTime(currentTime, timePickerInterval, exclusions, timezone);
 
         const existingStart = Array.isArray(momentValue) && momentValue[0] ? momentValue[0] : null;
         const existingEnd = Array.isArray(momentValue) && momentValue[1] ? momentValue[1] : null;
@@ -156,14 +167,13 @@ const AppsFormDateTimeField: React.FC<Props> = ({
 
         const rangeValues = rangeDates.filter((v): v is string => Boolean(v));
         onChange(field.name, rangeValues.length > 0 ? rangeValues : null);
-    }, [onChange, field.name, timezone, momentValue, field.time_interval, field.exclude_time]);
+    }, [onChange, field.name, timezone, momentValue, timePickerInterval, exclusions]);
 
     // Handle range change from END field calendar
     // End field calendar should update the end date (keeping start)
     const handleEndRangeChange = useCallback((startDate: Date, endDate: Date | null) => {
         const currentTime = timezone ? moment.tz(timezone) : moment();
-        const timePickerInterval = field.time_interval || DEFAULT_TIME_INTERVAL_MINUTES;
-        const defaultTime = getNextAvailableTime(currentTime, timePickerInterval, field.exclude_time, timezone);
+        const defaultTime = getNextAvailableTime(currentTime, timePickerInterval, exclusions, timezone);
 
         // Always keep the existing start date
         const existingStart = Array.isArray(momentValue) && momentValue[0] ? momentValue[0] : (timezone ? moment.tz(timezone) : moment());
@@ -178,7 +188,7 @@ const AppsFormDateTimeField: React.FC<Props> = ({
 
         const rangeValues = rangeDates.filter((v): v is string => Boolean(v));
         onChange(field.name, rangeValues.length > 0 ? rangeValues : null);
-    }, [onChange, field.name, timezone, momentValue, field.time_interval, field.exclude_time]);
+    }, [onChange, field.name, timezone, momentValue, timePickerInterval, exclusions]);
 
     // Handle start time change
     const handleStartTimeChange = useCallback((newMoment: moment.Moment | null) => {
@@ -226,8 +236,8 @@ const AppsFormDateTimeField: React.FC<Props> = ({
         }
     }, [momentValue, onChange, field.name, timezone]);
 
-    if (field.is_range) {
-        const isVertical = field.range_layout === 'vertical';
+    if (isRange) {
+        const isVertical = rangeLayout === 'vertical';
         const containerStyle = isVertical ? {display: 'flex', flexDirection: 'column' as const, gap: '16px'} : {display: 'flex', gap: '16px'};
         const fieldStyle = isVertical ? {} : {flex: 1};
 
@@ -250,14 +260,15 @@ const AppsFormDateTimeField: React.FC<Props> = ({
                             relativeDate={false}
                             timePickerInterval={timePickerInterval}
                             allowPastDates={true}
-                            excludeTime={field.exclude_time}
+                            excludeTime={exclusions}
                             rangeMode={true}
                             rangeValue={rangeValueForCalendar}
                             isStartField={true}
                             onRangeChange={handleStartRangeChange}
-                            allowSingleDayRange={field.allow_single_day_range}
+                            allowSingleDayRange={allowSingleDayRange}
                             additionalDisabledDays={disabledDays}
-                            allowManualTimeEntry={field.allow_manual_time_entry}
+                            timezoneAwareExcludedDays={exclusions?.timezone_reference ? exclusions.excluded_days : undefined}
+                            allowManualTimeEntry={allowManualTimeEntry}
                         />
                     </div>
                     <div style={fieldStyle}>
@@ -271,14 +282,15 @@ const AppsFormDateTimeField: React.FC<Props> = ({
                             relativeDate={false}
                             timePickerInterval={timePickerInterval}
                             allowPastDates={true}
-                            excludeTime={field.exclude_time}
+                            excludeTime={exclusions}
                             rangeMode={true}
                             rangeValue={rangeValueForCalendar}
                             isStartField={false}
-                            allowManualTimeEntry={field.allow_manual_time_entry}
+                            allowManualTimeEntry={allowManualTimeEntry}
                             onRangeChange={handleEndRangeChange}
-                            allowSingleDayRange={field.allow_single_day_range}
+                            allowSingleDayRange={allowSingleDayRange}
                             additionalDisabledDays={disabledDays}
+                            timezoneAwareExcludedDays={exclusions?.timezone_reference ? exclusions.excluded_days : undefined}
                         />
                     </div>
                 </div>
@@ -300,12 +312,13 @@ const AppsFormDateTimeField: React.FC<Props> = ({
                 time={singleValue}
                 handleChange={handleDateTimeChange}
                 timezone={timezone}
-                relativeDate={!field.location_timezone}
+                relativeDate={!locationTimezone}
                 timePickerInterval={timePickerInterval}
                 allowPastDates={true}
-                excludeTime={field.exclude_time}
+                excludeTime={exclusions}
                 additionalDisabledDays={disabledDays}
-                allowManualTimeEntry={field.allow_manual_time_entry}
+                timezoneAwareExcludedDays={exclusions?.timezone_reference ? exclusions.excluded_days : undefined}
+                allowManualTimeEntry={allowManualTimeEntry}
             />
         </div>
     );

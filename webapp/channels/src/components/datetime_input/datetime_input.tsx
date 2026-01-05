@@ -9,7 +9,7 @@ import type {DayModifiers, DayPickerProps, Matcher} from 'react-day-picker';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import type {TimeExcludeConfig} from '@mattermost/types/apps';
+import type {ExclusionConfig, DayExclusionRule} from '@mattermost/types/apps';
 
 import {getCurrentLocale} from 'selectors/i18n';
 import {isUseMilitaryTime} from 'selectors/preferences';
@@ -38,7 +38,7 @@ export function getRoundedTime(value: Moment, roundedTo = CUSTOM_STATUS_TIME_PIC
 export function getNextAvailableTime(
     startTime: Moment,
     interval: number,
-    excludeConfig?: TimeExcludeConfig,
+    excludeConfig?: ExclusionConfig,
     timezone?: string,
 ): Moment {
     let candidateTime = getRoundedTime(startTime, interval);
@@ -144,8 +144,14 @@ export const parseTimeString = (input: string): {hours: number; minutes: number}
 };
 
 // Function to check if a time should be excluded
-const isTimeExcluded = (timeDate: Date, excludeConfig: TimeExcludeConfig | undefined, timezone?: string): boolean => {
-    if (!excludeConfig || !excludeConfig.exclusions || excludeConfig.exclusions.length === 0) {
+const isTimeExcluded = (timeDate: Date, excludeConfig: ExclusionConfig | undefined, timezone?: string): boolean => {
+    if (!excludeConfig) {
+        return false;
+    }
+
+    // If no time or day exclusions, nothing to check
+    if ((!excludeConfig.excluded_times || excludeConfig.excluded_times.length === 0) &&
+        (!excludeConfig.excluded_days || excludeConfig.excluded_days.length === 0)) {
         return false;
     }
 
@@ -153,48 +159,44 @@ const isTimeExcluded = (timeDate: Date, excludeConfig: TimeExcludeConfig | undef
     let timeStr: string;
     let exclusionTimesInLocalTz: Array<{start?: string; end?: string; before?: string; after?: string}>;
 
-    if (excludeConfig.timezone_reference === 'UTC') {
-        // Exclusion times are in UTC, convert them to local timezone for comparison
-        // If timezone is undefined, use the browser's actual timezone
-        const actualTimezone = timezone || new Intl.DateTimeFormat().resolvedOptions().timeZone;
-        const selectedDateTime = moment.tz(timeDate, actualTimezone);
-        timeStr = selectedDateTime.format('HH:mm');
+    const displayTimezone = timezone || new Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const selectedDateTime = moment.tz(timeDate, displayTimezone);
 
-        // Convert exclusion times from UTC to local timezone
-        // IMPORTANT: Use the actual date from selectedDateTime to get the correct UTC offset for that specific date
-        // This ensures DST transitions are handled correctly
-        exclusionTimesInLocalTz = excludeConfig.exclusions.map((exclusion) => {
-            const converted: {start?: string; end?: string; before?: string; after?: string} = {};
-            if (exclusion.start) {
-                // Create UTC time on the same date as selectedDateTime to get correct DST offset
-                const utcTime = moment.utc([selectedDateTime.year(), selectedDateTime.month(), selectedDateTime.date()]).add(moment.duration(exclusion.start));
-                const convertedTime = utcTime.clone().tz(actualTimezone);
-                converted.start = convertedTime.format('HH:mm');
-            }
-            if (exclusion.end) {
-                const utcTime = moment.utc([selectedDateTime.year(), selectedDateTime.month(), selectedDateTime.date()]).add(moment.duration(exclusion.end));
-                const convertedTime = utcTime.clone().tz(actualTimezone);
-                converted.end = convertedTime.format('HH:mm');
-            }
-            if (exclusion.before) {
-                const utcTime = moment.utc([selectedDateTime.year(), selectedDateTime.month(), selectedDateTime.date()]).add(moment.duration(exclusion.before));
-                const convertedTime = utcTime.clone().tz(actualTimezone);
-                converted.before = convertedTime.format('HH:mm');
-            }
-            if (exclusion.after) {
-                const utcTime = moment.utc([selectedDateTime.year(), selectedDateTime.month(), selectedDateTime.date()]).add(moment.duration(exclusion.after));
-                const convertedTime = utcTime.clone().tz(actualTimezone);
-                converted.after = convertedTime.format('HH:mm');
-            }
-            return converted;
-        });
+    // Determine the timezone for exclusion rules
+    let exclusionTimezone: string;
+    if (excludeConfig.timezone_reference === 'local') {
+        // "local" means user's display timezone
+        exclusionTimezone = displayTimezone;
+    } else if (excludeConfig.timezone_reference === 'UTC') {
+        // "UTC" is a specific timezone
+        exclusionTimezone = 'UTC';
     } else {
-        // Exclusion times are in local timezone, use directly
-        const selectedDateTime = timezone ? moment.tz(timeDate, timezone) : moment(timeDate);
-        timeStr = selectedDateTime.format('HH:mm');
-        exclusionTimesInLocalTz = excludeConfig.exclusions;
+        // IANA timezone (e.g., "Asia/Tokyo", "America/Chicago")
+        exclusionTimezone = excludeConfig.timezone_reference;
     }
 
+    // Convert the time being checked to the exclusion timezone for comparison
+    // This handles day boundary crossings correctly
+    const timeInExclusionTz = selectedDateTime.clone().tz(exclusionTimezone);
+    timeStr = timeInExclusionTz.format('HH:mm');
+
+    // Exclusion times are already in the exclusion timezone, use directly
+    exclusionTimesInLocalTz = excludeConfig.excluded_times || [];
+
+    // First check day-of-week exclusions
+    if (excludeConfig.excluded_days) {
+        for (const dayRule of excludeConfig.excluded_days) {
+            if (dayRule.days_of_week && dayRule.days_of_week.length > 0) {
+                const dayOfWeek = timeInExclusionTz.day(); // 0=Sunday, 6=Saturday
+                if (dayRule.days_of_week.includes(dayOfWeek)) {
+                    console.log('isTimeExcluded - EXCLUDED by day_of_week:', timeInExclusionTz.format('YYYY-MM-DD HH:mm dddd'), 'day:', dayOfWeek, 'excluded days:', dayRule.days_of_week);
+                    return true;
+                }
+            }
+        }
+    }
+
+    // Then check time exclusions
     for (const exclusion of exclusionTimesInLocalTz) {
         // Both start and end: exclude times from start (inclusive) to end (exclusive)
         if (exclusion.start && exclusion.end) {
@@ -234,8 +236,9 @@ type TimeInputManualProps = {
     time: Moment | null;
     timezone?: string;
     isMilitaryTime: boolean;
+    timePickerInterval?: number;
     onTimeChange: (time: Moment | null) => void;
-    excludeTime?: TimeExcludeConfig;
+    excludeTime?: ExclusionConfig;
     onValidationError?: (hasError: boolean) => void;
 }
 
@@ -243,6 +246,7 @@ const TimeInputManual: React.FC<TimeInputManualProps> = ({
     time,
     timezone,
     isMilitaryTime,
+    timePickerInterval,
     onTimeChange,
     excludeTime,
     onValidationError,
@@ -280,7 +284,7 @@ const TimeInputManual: React.FC<TimeInputManualProps> = ({
             return;
         }
 
-        // Create a moment with the parsed time
+        // Create a moment with the parsed time on the selected date
         const baseMoment = time ? time.clone() : getCurrentMomentForTimezone(timezone);
         let targetMoment: Moment;
 
@@ -302,21 +306,36 @@ const TimeInputManual: React.FC<TimeInputManualProps> = ({
             targetMoment = baseMoment;
         }
 
-        // Check if the time is excluded
-        if (excludeTime && isTimeExcluded(targetMoment.toDate(), excludeTime, timezone)) {
-            setTimeInputError(true);
-            onValidationError?.(true); // Notify parent of error
-            // Clear both the input display AND the stored value
-            setTimeInputValue('');
-            onTimeChange(null); // Clear the stored value to prevent submission
+        // Round the entered time to the timePickerInterval (from parent component)
+        const interval = timePickerInterval || 60;
+        const roundedMoment = getRoundedTime(targetMoment, interval);
+
+        console.log('Manual time entry - parsed:', targetMoment.format('HH:mm'),
+            'rounded to interval', interval, '→', roundedMoment.format('HH:mm'));
+
+        // Check if the rounded time is excluded
+        if (excludeTime && isTimeExcluded(roundedMoment.toDate(), excludeTime, timezone)) {
+            // Find next valid time using the same interval
+            const nextAvailableTime = getNextAvailableTime(roundedMoment, interval, excludeTime, timezone);
+
+            console.log('Manual time entry - rounded time excluded, auto-advancing to', nextAvailableTime.format('HH:mm'));
+
+            // Update the input display to show the adjusted time
+            const formatted = nextAvailableTime.format(isMilitaryTime ? 'HH:mm' : 'h:mm A');
+            setTimeInputValue(formatted);
+            onTimeChange(nextAvailableTime);
+            setTimeInputError(false);
+            onValidationError?.(false);
             return;
         }
 
-        // Valid time - update and clear any errors
-        onTimeChange(targetMoment);
+        // Valid time - update the display and save
+        const formatted = roundedMoment.format(isMilitaryTime ? 'HH:mm' : 'h:mm A');
+        setTimeInputValue(formatted);
+        onTimeChange(roundedMoment);
         setTimeInputError(false);
         onValidationError?.(false); // Clear error state in parent
-    }, [timeInputValue, time, timezone, onTimeChange, excludeTime, onValidationError]);
+    }, [timeInputValue, time, timezone, onTimeChange, excludeTime, onValidationError, isMilitaryTime, timePickerInterval]);
 
     const handleTimeInputKeyDown = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
         if (isKeyPressed(event as any, Constants.KeyCodes.ENTER)) {
@@ -438,7 +457,8 @@ type Props = {
     relativeDate?: boolean;
     timePickerInterval?: number;
     allowPastDates?: boolean;
-    excludeTime?: TimeExcludeConfig;
+    excludeTime?: ExclusionConfig;
+    timezoneAwareExcludedDays?: DayExclusionRule[]; // Excluded days to evaluate in excludeTime.timezone_reference
     rangeMode?: boolean;
     rangeValue?: {from?: Moment; to?: Moment};
     isStartField?: boolean;
@@ -461,6 +481,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
     timePickerInterval,
     allowPastDates = false,
     excludeTime,
+    timezoneAwareExcludedDays,
     allowSingleDayRange = false,
     additionalDisabledDays,
     allowManualTimeEntry = false,
@@ -499,32 +520,12 @@ const DateTimeInputContainer: React.FC<Props> = ({
         console.log('handleTimeChange called - selectedTime:', selectedTime.format(), 'hours:', selectedTime.hour(), 'minutes:', selectedTime.minute());
         console.log('handleTimeChange - timezone:', timezone);
 
-        // The selectedTime moment already has the correct timezone and time values
-        // We just need to apply it to the current date (or keep the selected time's date)
-        const baseMoment = time ? time.clone() : getCurrentMomentForTimezone(timezone);
-        console.log('handleTimeChange - baseMoment:', baseMoment.format());
-
-        // Update the time portion while keeping the date
-        if (timezone) {
-            const targetMoment = moment.tz([
-                baseMoment.year(),
-                baseMoment.month(),
-                baseMoment.date(),
-                selectedTime.hour(),
-                selectedTime.minute(),
-                0,
-                0,
-            ], timezone);
-            console.log('handleTimeChange - targetMoment:', targetMoment.format(), 'tz:', targetMoment.tz());
-            handleChange(targetMoment);
-        } else {
-            baseMoment.hour(selectedTime.hour());
-            baseMoment.minute(selectedTime.minute());
-            baseMoment.second(0);
-            baseMoment.millisecond(0);
-            handleChange(baseMoment);
-        }
-    }, [handleChange, timezone, time]);
+        // Use selectedTime directly - it already has the correct date and time from getTimeInIntervals
+        // This includes next-day dates for times after midnight
+        const targetMoment = selectedTime.clone().second(0).millisecond(0);
+        console.log('handleTimeChange - targetMoment:', targetMoment.format(), 'tz:', targetMoment.tz());
+        handleChange(targetMoment);
+    }, [handleChange]);
 
     const handleKeyDown = useCallback((event: KeyboardEvent) => {
         // Handle escape key for date picker when time menu is not open
@@ -551,6 +552,8 @@ const DateTimeInputContainer: React.FC<Props> = ({
         const currentTime = getCurrentMomentForTimezone(timezone);
         let startTime = moment(time).startOf('day');
 
+        console.log('=== setTimeAndOptions CALLED ===');
+        console.log('setTimeAndOptions - time:', time.format());
         console.log('setTimeAndOptions - timezone:', timezone, 'startTime:', startTime.format());
 
         // For form fields (allowPastDates=true), always start from beginning of day
@@ -562,53 +565,20 @@ const DateTimeInputContainer: React.FC<Props> = ({
         // Generate all time intervals first
         const allIntervals = getTimeInIntervals(startTime, timePickerInterval);
         console.log('setTimeAndOptions - generated intervals:', allIntervals.length, 'first:', allIntervals[0]?.format(), 'last:', allIntervals[allIntervals.length - 1]?.format());
+        console.log('setTimeAndOptions - excludeTime:', excludeTime);
 
         // Filter out excluded times
-        const filteredIntervals = allIntervals.filter((timeMoment) => !isTimeExcluded(timeMoment.toDate(), excludeTime, timezone));
+        const filteredIntervals = allIntervals.filter((timeMoment) => {
+            const excluded = isTimeExcluded(timeMoment.toDate(), excludeTime, timezone);
+            if (excluded) {
+                console.log('setTimeAndOptions - EXCLUDING:', timeMoment.format());
+            }
+            return !excluded;
+        });
         console.log('setTimeAndOptions - after filtering:', filteredIntervals.length, 'first:', filteredIntervals[0]?.format(), 'last:', filteredIntervals[filteredIntervals.length - 1]?.format());
 
-        // If we have filtered intervals and they don't start at midnight, it means there's a gap at the beginning
-        // Check if times wrap around midnight by seeing if there's a gap between consecutive intervals
-        // If so, rotate the array to put the largest contiguous block first
-        if (filteredIntervals.length > 1) {
-            // Find the largest gap between consecutive intervals
-            let largestGapIndex = -1;
-            let largestGapMinutes = 0;
-
-            for (let i = 0; i < filteredIntervals.length; i++) {
-                const current = filteredIntervals[i];
-                const next = filteredIntervals[(i + 1) % filteredIntervals.length];
-
-                // Calculate gap in minutes
-                let gapMinutes: number;
-                if (i === filteredIntervals.length - 1) {
-                    // Gap from last interval to first interval (wrapping around midnight)
-                    const endOfDay = current.clone().endOf('day');
-                    const startOfNextDay = next.clone().startOf('day');
-                    gapMinutes = next.diff(startOfNextDay, 'minutes') + endOfDay.diff(current, 'minutes');
-                } else {
-                    gapMinutes = next.diff(current, 'minutes');
-                }
-
-                if (gapMinutes > largestGapMinutes) {
-                    largestGapMinutes = gapMinutes;
-                    largestGapIndex = i;
-                }
-            }
-
-            // If we found a significant gap (more than 2x the interval), rotate the array
-            // so the times after the gap come first
-            if (largestGapIndex >= 0 && largestGapMinutes > timePickerInterval * 2) {
-                const rotatedIntervals = [
-                    ...filteredIntervals.slice(largestGapIndex + 1),
-                    ...filteredIntervals.slice(0, largestGapIndex + 1),
-                ];
-                console.log('setTimeAndOptions - rotated intervals, new first:', rotatedIntervals[0]?.format(), 'new last:', rotatedIntervals[rotatedIntervals.length - 1]?.format());
-                setTimeOptions(rotatedIntervals);
-                return;
-            }
-        }
-
+        // Use filtered intervals as-is in chronological order
+        // Don't rotate - show times for the selected date only
         setTimeOptions(filteredIntervals);
     };
 
@@ -621,15 +591,19 @@ const DateTimeInputContainer: React.FC<Props> = ({
         }
 
         // Only set default if we have meaningful exclude_time data (not empty object)
-        if (excludeTime && excludeTime.exclusions && excludeTime.exclusions.length > 0) {
-            // Always start with a properly rounded time
-            const roundedTime = getRoundedTime(time, timePickerInterval);
+        if (excludeTime && excludeTime.excluded_times && excludeTime.excluded_times.length > 0) {
+            // When manual time entry is enabled, don't round - preserve exact minutes
+            // Otherwise, round to the timePickerInterval for dropdown consistency
+            const roundedTime = allowManualTimeEntry ? time : getRoundedTime(time, timePickerInterval);
             const isRoundedTimeExcluded = isTimeExcluded(roundedTime.toDate(), excludeTime, timezone);
 
             if (isRoundedTimeExcluded) {
-                const nextAvailableTime = getNextAvailableTime(roundedTime, timePickerInterval || CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES, excludeTime, timezone);
+                // Use 1-minute intervals for manual entry, timePickerInterval for dropdown
+                const interval = allowManualTimeEntry ? 1 : (timePickerInterval || CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES);
+                const nextAvailableTime = getNextAvailableTime(roundedTime, interval, excludeTime, timezone);
                 handleChange(nextAvailableTime);
-            } else if (!time.isSame(roundedTime, 'minute')) {
+            } else if (!allowManualTimeEntry && !time.isSame(roundedTime, 'minute')) {
+                // Only auto-round when using dropdown (not manual entry)
                 handleChange(roundedTime);
             }
         }
@@ -648,8 +622,10 @@ const DateTimeInputContainer: React.FC<Props> = ({
                 baseTime.hour(effectiveTime.hours());
                 baseTime.minute(effectiveTime.minutes());
             }
-            const roundedTime = getRoundedTime(baseTime, timePickerInterval);
-            handleChange(roundedTime);
+            // When manual time entry is enabled, preserve exact minutes
+            // Otherwise, round to timePickerInterval for dropdown consistency
+            const finalTime = allowManualTimeEntry ? baseTime : getRoundedTime(baseTime, timePickerInterval);
+            handleChange(finalTime);
         } else {
             // Create moment in the target timezone with the selected date and current time
             if (timezone) {
@@ -801,9 +777,64 @@ const DateTimeInputContainer: React.FC<Props> = ({
             disabled.push(...additionalDisabledDays);
         }
 
+        // Add timezone-aware day exclusions
+        // These rules are evaluated in the exclusion timezone, not display timezone
+        if (timezoneAwareExcludedDays && excludeTime?.timezone_reference) {
+            const displayTz = timezone || new Intl.DateTimeFormat().resolvedOptions().timeZone;
+            const exclusionTz = excludeTime.timezone_reference === 'local' ? displayTz :
+                excludeTime.timezone_reference === 'UTC' ? 'UTC' :
+                    excludeTime.timezone_reference;
+
+            // Create custom matcher function for timezone-aware day-of-week rules
+            timezoneAwareExcludedDays.forEach((rule) => {
+                if (rule.days_of_week && rule.days_of_week.length > 0) {
+                    // Custom matcher: check if this calendar date would have ANY available times
+                    // that fall on non-excluded days in the exclusion timezone
+                    disabled.push((date: Date) => {
+                        const displayTz = timezone || new Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+                        // Get the time range that would be shown for this date
+                        // Use the excluded_times to determine the available times
+                        const dateMoment = moment.tz(date, displayTz).startOf('day');
+
+                        // Sample times throughout the day to check what days they fall on in exclusion timezone
+                        // Check at intervals matching the time picker interval
+                        const sampleInterval = timePickerInterval || 30;
+                        const sampleTimes: number[] = []; // Day-of-week values
+
+                        for (let minutes = 0; minutes < 24 * 60; minutes += sampleInterval) {
+                            const sampleTime = dateMoment.clone().add(minutes, 'minutes');
+
+                            // Check if this time would be excluded by time rules
+                            if (excludeTime?.excluded_times && isTimeExcluded(sampleTime.toDate(), excludeTime, displayTz)) {
+                                continue; // Skip excluded times
+                            }
+
+                            // Convert to exclusion timezone to get day-of-week
+                            const timeInExclusionTz = sampleTime.clone().tz(exclusionTz);
+                            const dayOfWeek = timeInExclusionTz.day();
+                            sampleTimes.push(dayOfWeek);
+                        }
+
+                        // If ANY available time falls on a non-excluded day, enable this calendar date
+                        const hasValidTime = sampleTimes.some((day) => !rule.days_of_week!.includes(day));
+
+                        console.log('timezoneAware matcher - date:', moment(date).format('YYYY-MM-DD ddd'),
+                            'available days in', exclusionTz, ':', [...new Set(sampleTimes)],
+                            'excluded:', rule.days_of_week,
+                            'hasValidTime:', hasValidTime,
+                            'DISABLED:', !hasValidTime);
+
+                        return !hasValidTime; // Disable if no valid times
+                    });
+                }
+                // TODO: Handle other rule types (before, after, from/to, specific dates) with timezone conversion
+            });
+        }
+
         console.log('datetime_input - final disabledDays:', disabled);
         return disabled.length > 0 ? disabled : undefined;
-    }, [rangeMode, isStartField, rangeValue, allowPastDates, currentTime, allowSingleDayRange, additionalDisabledDays]);
+    }, [rangeMode, isStartField, rangeValue, allowPastDates, currentTime, allowSingleDayRange, additionalDisabledDays, timezoneAwareExcludedDays, excludeTime, timezone]);
 
     const handleRangeSelect = useCallback((range: any) => {
         if (!range || !range.from) {
@@ -849,7 +880,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
 
     // Helper to convert a moment to a Date at midnight local time with the same calendar date
     // This is needed because react-day-picker expects Dates in local timezone
-    const momentToLocalDate = (m: Moment | undefined): Date | undefined => {
+    const momentToLocalDate = (m: Moment | null | undefined): Date | undefined => {
         if (!m) {
             return undefined;
         }
@@ -917,8 +948,10 @@ const DateTimeInputContainer: React.FC<Props> = ({
                         time={displayTime}
                         timezone={timezone}
                         isMilitaryTime={isMilitaryTime}
-                        onTimeChange={handleChange}
+                        timePickerInterval={timePickerInterval}
+                        onTimeChange={handleTimeChange}
                         excludeTime={excludeTime}
+                        onValidationError={setIsInteracting}
                     />
                 ) : (
                     <TimeInputDropdown

@@ -438,37 +438,22 @@ export function convertElement(element: DialogElement, options: ConversionOption
         }
     }
 
-    // Add date/datetime specific properties (new features that should pass through)
+    // Add date/datetime specific properties
     if (element.type === DialogElementTypes.DATE || element.type === DialogElementTypes.DATETIME) {
+        // Use datetime_config if provided, otherwise fall back to top-level fields
+        if (element.datetime_config) {
+            appField.datetime_config = element.datetime_config;
+        }
+
+        // Simple fallback fields (used when datetime_config is not provided)
         if (element.min_date !== undefined) {
             appField.min_date = String(element.min_date);
         }
         if (element.max_date !== undefined) {
             appField.max_date = String(element.max_date);
         }
-        if (element.disabled_days !== undefined) {
-            appField.disabled_days = element.disabled_days;
-        }
         if (element.time_interval !== undefined && element.type === DialogElementTypes.DATETIME) {
             appField.time_interval = Number(element.time_interval);
-        }
-        if (element.is_range !== undefined) {
-            appField.is_range = Boolean(element.is_range);
-        }
-        if (element.exclude_time !== undefined) {
-            appField.exclude_time = element.exclude_time;
-        }
-        if (element.allow_single_day_range !== undefined) {
-            appField.allow_single_day_range = Boolean(element.allow_single_day_range);
-        }
-        if (element.range_layout !== undefined) {
-            appField.range_layout = element.range_layout;
-        }
-        if (element.location_timezone !== undefined && element.type === DialogElementTypes.DATETIME) {
-            appField.location_timezone = element.location_timezone;
-        }
-        if (element.allow_manual_time_entry !== undefined && element.type === DialogElementTypes.DATETIME) {
-            appField.allow_manual_time_entry = Boolean(element.allow_manual_time_entry);
         }
     }
 

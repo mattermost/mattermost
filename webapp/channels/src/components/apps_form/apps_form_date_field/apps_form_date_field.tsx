@@ -24,19 +24,25 @@ const AppsFormDateField: React.FC<Props> = ({
     const intl = useIntl();
     const [isPopperOpen, setIsPopperOpen] = useState(false);
 
+    // Extract datetime config with fallback to top-level fields
+    const config = field.datetime_config || {};
+    const isRange = config.is_range ?? false;
+    const allowSingleDayRange = config.allow_single_day_range ?? false;
+    const exclusions = config.exclusions;
+
     const dateValue = useMemo(() => {
-        if (field.is_range && Array.isArray(value)) {
+        if (isRange && Array.isArray(value)) {
             return value.map((val) => stringToDate(val)).filter((d): d is Date => d !== null);
         }
         return stringToDate(value as string);
-    }, [value, field.is_range]);
+    }, [value, isRange]);
 
     const displayValue = useMemo(() => {
         if (!dateValue) {
             return '';
         }
 
-        if (field.is_range && Array.isArray(dateValue)) {
+        if (isRange && Array.isArray(dateValue)) {
             if (dateValue.length === 0) {
                 return '';
             }
@@ -97,7 +103,7 @@ const AppsFormDateField: React.FC<Props> = ({
     const handleDayClick = useCallback((day: Date) => {
         // Intercept clicks on the start date when we have a complete range
         // react-day-picker ignores these clicks, but we want to allow collapsing to single day
-        if (!field.is_range || !Array.isArray(dateValue) || dateValue.length < 2) {
+        if (!isRange || !Array.isArray(dateValue) || dateValue.length < 2) {
             return; // Let onSelect handle it
         }
 
@@ -119,7 +125,7 @@ const AppsFormDateField: React.FC<Props> = ({
 
         // If clicking on start date
         if (dayYear === fromYear && dayMonth === fromMonth && dayDay === fromDay) {
-            if (field.allow_single_day_range) {
+            if (allowSingleDayRange) {
                 // Collapse to single day range
                 const rangeValues = [dateToString(day), dateToString(day)].filter((v): v is string => Boolean(v));
                 onChange(field.name, rangeValues);
@@ -127,14 +133,14 @@ const AppsFormDateField: React.FC<Props> = ({
             }
             // If allow_single_day_range is false, do nothing (keep ignoring the click)
         }
-    }, [field.is_range, field.allow_single_day_range, field.name, dateValue, onChange]);
+    }, [isRange, allowSingleDayRange, field.name, dateValue, onChange]);
 
     const handleDateChange = useCallback((date: Date | {from?: Date; to?: Date} | undefined) => {
         if (!date) {
             return;
         }
 
-        if (field.is_range && typeof date === 'object' && 'from' in date) {
+        if (isRange && typeof date === 'object' && 'from' in date) {
             // Handle date range selection (DateRange object)
             if (!date.from) {
                 return;
@@ -145,7 +151,7 @@ const AppsFormDateField: React.FC<Props> = ({
             // Validate range.to based on allow_single_day_range
             if (date.to) {
                 // Check if allow_single_day_range is false and dates are the same day
-                if (!field.allow_single_day_range) {
+                if (!allowSingleDayRange) {
                     const fromYear = date.from.getFullYear();
                     const fromMonth = date.from.getMonth();
                     const fromDay = date.from.getDate();
@@ -179,18 +185,18 @@ const AppsFormDateField: React.FC<Props> = ({
             onChange(field.name, newValue);
             setIsPopperOpen(false);
         }
-    }, [field.name, field.is_range, field.allow_single_day_range, onChange]);
+    }, [field.name, isRange, allowSingleDayRange, onChange]);
 
     const handlePopperOpenState = useCallback((isOpen: boolean) => {
         setIsPopperOpen(isOpen);
     }, []);
 
     const disabledDays = useMemo(() => {
-        console.log('apps_form_date_field - field:', field.name, 'disabled_days:', field.disabled_days, 'min_date:', field.min_date, 'max_date:', field.max_date);
+        console.log('apps_form_date_field - field:', field.name, 'disabled_days:', exclusions?.excluded_days, 'min_date:', field.min_date, 'max_date:', field.max_date);
         const disabled = [];
 
         // For date ranges with allow_single_day_range = false, disable the start date when selecting end
-        if (field.is_range && !field.allow_single_day_range && Array.isArray(dateValue) && dateValue.length > 0 && dateValue[0]) {
+        if (isRange && !allowSingleDayRange && Array.isArray(dateValue) && dateValue.length > 0 && dateValue[0]) {
             const startDate = dateValue[0];
             const startYear = startDate.getFullYear();
             const startMonth = startDate.getMonth();
@@ -219,14 +225,14 @@ const AppsFormDateField: React.FC<Props> = ({
         }
 
         // Parse disabled_days from field (new flexible approach)
-        const parsedDisabledDays = parseDisabledDays(field.disabled_days);
+        const parsedDisabledDays = parseDisabledDays(exclusions?.excluded_days);
         if (parsedDisabledDays) {
             disabled.push(...parsedDisabledDays);
         }
 
         console.log('apps_form_date_field - final disabled array:', disabled);
         return disabled.length > 0 ? disabled : undefined;
-    }, [field.is_range, field.allow_single_day_range, field.min_date, field.max_date, field.disabled_days, dateValue]);
+    }, [isRange, allowSingleDayRange, field.min_date, field.max_date, exclusions?.excluded_days, dateValue]);
 
     const placeholder = field.hint || intl.formatMessage({
         id: 'apps_form.date_field.placeholder',
@@ -239,7 +245,7 @@ const AppsFormDateField: React.FC<Props> = ({
 
     // Prepare props for different modes
     const datePickerProps = useMemo(() => {
-        if (field.is_range) {
+        if (isRange) {
             // Range mode
             const rangeSelection = Array.isArray(dateValue) && dateValue.length > 0 && dateValue[0] ? {
                 from: dateValue[0],
@@ -265,7 +271,7 @@ const AppsFormDateField: React.FC<Props> = ({
             onSelect: handleDateChange,
             disabled: field.readonly ? true : disabledDays,
         };
-    }, [field.is_range, dateValue, handleDateChange, handleDayClick, field.readonly, disabledDays]);
+    }, [isRange, dateValue, handleDateChange, handleDayClick, field.readonly, disabledDays]);
 
     return (
         <div>

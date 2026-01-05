@@ -194,31 +194,38 @@ export type DialogElement = {
         value: any;
     }>;
     refresh?: boolean;
+
+    // Date/datetime configuration (advanced features)
+    datetime_config?: {
+        time_interval?: number;
+        location_timezone?: string;
+        is_range?: boolean;
+        allow_single_day_range?: boolean;
+        range_layout?: 'horizontal' | 'vertical';
+        allow_manual_time_entry?: boolean;
+        exclusions?: {
+            timezone_reference: string;
+            excluded_days?: Array<{
+                date?: string;
+                from?: string;
+                to?: string;
+                before?: string;
+                after?: string;
+                days_of_week?: number[];
+            }>;
+            excluded_times?: Array<{
+                start?: string;
+                end?: string;
+                before?: string;
+                after?: string;
+            }>;
+        };
+    };
+
+    // Simple date/datetime configuration (fallback when datetime_config not provided)
     min_date?: string;
     max_date?: string;
-    disabled_days?: Array<{
-        date?: string;
-        from?: string;
-        to?: string;
-        before?: string;
-        after?: string;
-        days_of_week?: number[];
-    }>;
     time_interval?: number;
-    is_range?: boolean;
-    exclude_time?: {
-        timezone_reference: string;
-        exclusions: Array<{
-            start?: string;
-            end?: string;
-            before?: string;
-            after?: string;
-        }>;
-    };
-    allow_single_day_range?: boolean;
-    range_layout?: 'horizontal' | 'vertical';
-    location_timezone?: string;
-    allow_manual_time_entry?: boolean;
 };
 
 export type SubmitDialogResponse = {

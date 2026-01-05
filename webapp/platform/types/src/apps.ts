@@ -437,28 +437,42 @@ function isAppSelectOption(v: unknown): v is AppSelectOption {
 
 export type AppFieldType = string;
 
-// Time exclusion configuration for datetime fields
+// Time exclusion rule for datetime fields
 // Times in HH:MM format (24-hour)
-// - start + end: exclude times from start (inclusive) to end (exclusive)
-//   Example: {start: "12:00", end: "13:00"} excludes 12:00 PM - 12:59 PM
-// - before: exclude all times before this time
-//   Example: {before: "09:00"} excludes everything before 9:00 AM
-// - after: exclude all times at and after this time
-//   Example: {after: "17:00"} excludes 5:00 PM onwards
 export type TimeExclusionRule = {
-    start?: string;
-    end?: string;
-    before?: string;
-    after?: string;
+    start?: string;  // Exclude from start (inclusive) to end (exclusive)
+    end?: string;    // Used with start to define a range
+    before?: string; // Exclude all times before this time
+    after?: string;  // Exclude all times at and after this time
 };
 
-export type TimeExcludeConfig = {
-    timezone_reference: string; // Required: "UTC" or "local"
+// Day exclusion rule for date/datetime fields
+export type DayExclusionRule = {
+    date?: string;        // Specific date: "2025-01-15", "today", "+7d"
+    from?: string;        // Range start (inclusive)
+    to?: string;          // Range end (inclusive)
+    before?: string;      // Exclude before this date
+    after?: string;       // Exclude after this date
+    days_of_week?: number[]; // 0=Sunday, 6=Saturday
+};
 
-    // Array of exclusion rules - if ANY rule matches, the time is excluded (OR operation)
-    // Multiple exclusions are useful for excluding multiple time windows (e.g., lunch breaks, meetings)
-    // Note: Multiple "only start" or "only end" exclusions will use the earliest/latest respectively
-    exclusions: TimeExclusionRule[];
+// Exclusion configuration for datetime fields
+// All rules are evaluated in the timezone_reference timezone
+export type ExclusionConfig = {
+    timezone_reference: string; // IANA timezone (e.g., "Asia/Tokyo"), "UTC", or "local"
+    excluded_days?: DayExclusionRule[];  // Days to exclude
+    excluded_times?: TimeExclusionRule[]; // Times to exclude
+};
+
+// DateTime field configuration
+export type DateTimeConfig = {
+    time_interval?: number;          // Minutes between time options (default: 60)
+    location_timezone?: string;      // IANA timezone for display
+    is_range?: boolean;              // Enable date/datetime range selection
+    allow_single_day_range?: boolean; // Allow start and end to be the same day
+    range_layout?: 'horizontal' | 'vertical'; // Layout for range fields
+    allow_manual_time_entry?: boolean; // Allow text entry for time
+    exclusions?: ExclusionConfig;    // Date and time exclusion rules
 };
 
 // This should go in mattermost-redux
@@ -492,24 +506,13 @@ export type AppField = {
     min_length?: number;
     max_length?: number;
 
-    // Date props
-    min_date?: string;
-    max_date?: string;
-    disabled_days?: Array<{
-        date?: string;
-        from?: string;
-        to?: string;
-        before?: string;
-        after?: string;
-        days_of_week?: number[];
-    }>;
-    time_interval?: number;
-    is_range?: boolean;
-    exclude_time?: TimeExcludeConfig;
-    allow_single_day_range?: boolean; // Allow start and end to be the same day in range mode
-    range_layout?: 'horizontal' | 'vertical'; // Layout for range fields: side-by-side or stacked
-    location_timezone?: string; // IANA timezone (e.g., "America/Denver") - overrides user's timezone for datetime fields only
-    allow_manual_time_entry?: boolean; // Allow manual text entry for time instead of dropdown (datetime fields only)
+    // Date/datetime configuration (advanced features)
+    datetime_config?: DateTimeConfig;
+
+    // Simple date/datetime configuration (fallback when datetime_config not provided)
+    min_date?: string;      // Simple min date
+    max_date?: string;      // Simple max date
+    time_interval?: number; // Time interval in minutes
 };
 
 /**
@@ -627,40 +630,92 @@ function isAppField(v: unknown): v is AppField {
         }
     }
 
-    if (field.disabled_days !== undefined) {
-        if (!Array.isArray(field.disabled_days)) {
+    // Validate datetime_config if present
+    if (field.datetime_config !== undefined) {
+        if (typeof field.datetime_config !== 'object') {
             return false;
         }
 
-        // Validate each disabled day rule
-        for (const rule of field.disabled_days) {
-            if (rule.date !== undefined && typeof rule.date !== 'string') {
+        const config = field.datetime_config;
+
+        if (config.time_interval !== undefined && typeof config.time_interval !== 'number') {
+            return false;
+        }
+
+        if (config.location_timezone !== undefined && typeof config.location_timezone !== 'string') {
+            return false;
+        }
+
+        // Validate exclusions if present
+        if (config.exclusions !== undefined) {
+            if (typeof config.exclusions !== 'object') {
                 return false;
             }
-            if (rule.from !== undefined && typeof rule.from !== 'string') {
+
+            const exc = config.exclusions;
+
+            if (typeof exc.timezone_reference !== 'string') {
                 return false;
             }
-            if (rule.to !== undefined && typeof rule.to !== 'string') {
-                return false;
-            }
-            if (rule.before !== undefined && typeof rule.before !== 'string') {
-                return false;
-            }
-            if (rule.after !== undefined && typeof rule.after !== 'string') {
-                return false;
-            }
-            if (rule.days_of_week !== undefined) {
-                if (!Array.isArray(rule.days_of_week)) {
+
+            // Validate excluded_days
+            if (exc.excluded_days !== undefined) {
+                if (!Array.isArray(exc.excluded_days)) {
                     return false;
                 }
-                // Validate each day is 0-6
-                if (!rule.days_of_week.every((day) => typeof day === 'number' && day >= 0 && day <= 6)) {
+
+                for (const rule of exc.excluded_days) {
+                    if (rule.date !== undefined && typeof rule.date !== 'string') {
+                        return false;
+                    }
+                    if (rule.from !== undefined && typeof rule.from !== 'string') {
+                        return false;
+                    }
+                    if (rule.to !== undefined && typeof rule.to !== 'string') {
+                        return false;
+                    }
+                    if (rule.before !== undefined && typeof rule.before !== 'string') {
+                        return false;
+                    }
+                    if (rule.after !== undefined && typeof rule.after !== 'string') {
+                        return false;
+                    }
+                    if (rule.days_of_week !== undefined) {
+                        if (!Array.isArray(rule.days_of_week)) {
+                            return false;
+                        }
+                        if (!rule.days_of_week.every((day) => typeof day === 'number' && day >= 0 && day <= 6)) {
+                            return false;
+                        }
+                    }
+                }
+            }
+
+            // Validate excluded_times
+            if (exc.excluded_times !== undefined) {
+                if (!Array.isArray(exc.excluded_times)) {
                     return false;
+                }
+
+                for (const rule of exc.excluded_times) {
+                    if (rule.start !== undefined && typeof rule.start !== 'string') {
+                        return false;
+                    }
+                    if (rule.end !== undefined && typeof rule.end !== 'string') {
+                        return false;
+                    }
+                    if (rule.before !== undefined && typeof rule.before !== 'string') {
+                        return false;
+                    }
+                    if (rule.after !== undefined && typeof rule.after !== 'string') {
+                        return false;
+                    }
                 }
             }
         }
     }
 
+    // Validate legacy time_interval fallback
     if (field.time_interval !== undefined && typeof field.time_interval !== 'number') {
         return false;
     }
