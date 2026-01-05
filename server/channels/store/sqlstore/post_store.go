@@ -3315,7 +3315,7 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 				return errors.Wrap(err, "updateThreadsFromPosts_insert_ToSql")
 			}
 
-			if _, err := transaction.Exec(insertSql, insertArgs...); err != nil {
+			if _, err = transaction.Exec(insertSql, insertArgs...); err != nil {
 				return err
 			}
 
