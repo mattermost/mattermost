@@ -16,7 +16,7 @@ import Constants from 'utils/constants';
 import type {GlobalState} from 'types/store';
 
 type Props = {
-    prefillMessage: (msg: string, shouldFocus: boolean) => void;
+    prefillMessage: (msg: string) => void;
     channelId: string;
     currentUserId: string;
 }
@@ -178,7 +178,7 @@ const PrewrittenChips = ({channelId, currentUserId, prefillMessage}: Props) => {
                         additionalMarkup={additionalMarkup}
                         values={values}
                         onClick={() => {
-                            prefillMessage(messageToPrefill, true);
+                            prefillMessage(messageToPrefill);
                         }}
                         otherOption={!message.id}
                         leadingIcon={leadingIcon}
