@@ -417,7 +417,7 @@ func (s SqlWebhookStore) AnalyticsOutgoingCount(teamId string) (int64, error) {
 			Where("DeleteAt = 0")
 
 	if teamId != "" {
-		queryBuilder = queryBuilder.Where("TeamId", teamId)
+		queryBuilder = queryBuilder.Where("TeamId = ?", teamId)
 	}
 
 	var count int64
