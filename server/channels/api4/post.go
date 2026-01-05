@@ -145,6 +145,9 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		rp = c.App.PreparePostForClient(masterCtx, revealedPost, &model.PreparePostForClientOpts{
 			IsNewPost: true,
 		})
+
+		// Send pending post ID back to client so it can update it in Redux store
+		rp.PendingPostId = post.PendingPostId
 	}
 
 	if err := rp.EncodeJSON(w); err != nil {
