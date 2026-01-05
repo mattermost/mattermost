@@ -3528,7 +3528,6 @@
   "login_mfa.token": "Token MFA",
   "manage_channel_groups_modal.search_placeholder": "Buscar grupos",
   "manage_team_groups_modal.search_placeholder": "Buscar grupos",
-  "mark_all_threads_as_read_modal.cancel": "Cancelar",
   "mark_all_threads_as_read_modal.confirm": "Marcar todas como lida",
   "mark_all_threads_as_read_modal.description": "Isso marcará todos seus tópicos como lidos. Tem certeza?",
   "mark_all_threads_as_read_modal.title": "Marcar todos os tópicos como lido?",

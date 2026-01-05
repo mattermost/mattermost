@@ -4748,7 +4748,6 @@
   "login_mfa.token": "多要素認証トークン",
   "manage_channel_groups_modal.search_placeholder": "グループを検索する",
   "manage_team_groups_modal.search_placeholder": "グループを検索する",
-  "mark_all_threads_as_read_modal.cancel": "キャンセル",
   "mark_all_threads_as_read_modal.confirm": "すべて既読にする",
   "mark_all_threads_as_read_modal.description": "これにより、すべてのスレッドから未読やメンションを示すバッジがクリアされます。本当に実行しますか?",
   "mark_all_threads_as_read_modal.title": "すべてのスレッドを既読にしますか?",

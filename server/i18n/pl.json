@@ -11678,5 +11678,13 @@
   {
     "id": "model.config.is_valid.intune_tenant_id_format.app_error",
     "translation": "Identyfikator dzierżawcy usługi Intune MAM musi być prawidłowym identyfikatorem UUID."
+  },
+  {
+    "id": "api.content_flagging.error.invalid_post_type",
+    "translation": "Oznaczanie postów typu '{{.PostType}}' jest niedozwolone."
+  },
+  {
+    "id": "model.config.is_valid.guest_accounts.cannot_enforce_multifactor_authentication_when_guest_magic_link_is_enabled.app_error",
+    "translation": "Nie możesz wymusić uwierzytelniania wieloskładnikowego dla kont gości, gdy włączone jest uwierzytelnianie magic link."
   }
 ]

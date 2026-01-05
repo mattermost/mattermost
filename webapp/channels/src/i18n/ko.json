@@ -4711,7 +4711,6 @@
   "login_mfa.token": "MFA 토큰",
   "manage_channel_groups_modal.search_placeholder": "그룹 찾기",
   "manage_team_groups_modal.search_placeholder": "그룹 찾기",
-  "mark_all_threads_as_read_modal.cancel": "취소",
   "mark_all_threads_as_read_modal.confirm": "모두 읽음으로 표시",
   "mark_all_threads_as_read_modal.description": "이렇게 하면 모든 스레드에서 읽지 않음 상태와 멘션 배지가 지워집니다. 확실하신가요?",
   "mark_all_threads_as_read_modal.title": "모든 스레드를 읽음으로 표시하시겠습니까?",

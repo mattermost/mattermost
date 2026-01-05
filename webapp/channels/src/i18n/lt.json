@@ -3469,7 +3469,6 @@
   "login_mfa.token": "PDV saugos kodas",
   "manage_channel_groups_modal.search_placeholder": "Ieškoti grupių",
   "manage_team_groups_modal.search_placeholder": "Ieškoti grupių",
-  "mark_all_threads_as_read_modal.cancel": "Atšaukti",
   "mark_all_threads_as_read_modal.confirm": "pažymėti visus kaip skaitytus",
   "mark_all_threads_as_read_modal.description": "Taip išvalysite neskaitytą būseną ir visose gijose paminėsite ženklelius. Ar tu tuo tikras?",
   "mark_all_threads_as_read_modal.title": "Pažymėkite visas savo temas kaip skaitytas?",
