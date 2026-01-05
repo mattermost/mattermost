@@ -73,8 +73,6 @@
   "admin.plugin.remove": "हटाउनुहोस्",
   "admin.plugin.remove_modal.overwrite": "हटाउनुहोस्",
   "admin.plugin.settingsButton": "सेटिंग्स",
-  "admin.reset_email.cancel": "क्यानसेल",
-  "admin.reset_password.cancel": "क्यानसेल",
   "admin.revoke_token_button.delete": "डिलित",
   "admin.security.password": "पासवर्ड",
   "admin.sidebar.email": "ईमेल",

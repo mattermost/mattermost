@@ -76,7 +76,7 @@ describe('components/admin_console/group_settings/group_details/GroupTeamsAndCha
             />,
         );
         wrapper.find('.fa-caret-right').simulate('click');
-        expect(onToggleCollapse).toBeCalledWith('xxxxxxxxxxxxxxxxxxxxxxxxxx');
+        expect(onToggleCollapse).toHaveBeenCalledWith('xxxxxxxxxxxxxxxxxxxxxxxxxx');
     });
 
     test('should call onRemoveItem on remove link click', () => {
@@ -96,7 +96,7 @@ describe('components/admin_console/group_settings/group_details/GroupTeamsAndCha
         wrapper.find('.btn-tertiary').simulate('click');
         expect(wrapper.instance().state.showConfirmationModal).toEqual(true);
         wrapper.instance().removeItem();
-        expect(onRemoveItem).toBeCalledWith(
+        expect(onRemoveItem).toHaveBeenCalledWith(
             'xxxxxxxxxxxxxxxxxxxxxxxxxx',
             'public-team',
         );

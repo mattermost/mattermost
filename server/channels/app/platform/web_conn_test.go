@@ -35,7 +35,6 @@ func (h *hookRunner) GetPluginsEnvironment() *plugin.Environment {
 
 func TestWebConnAddDeadQueue(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	wc := th.Service.NewWebConn(&WebConnConfig{
 		WebSocket: &websocket.Conn{},
@@ -64,7 +63,6 @@ func TestWebConnAddDeadQueue(t *testing.T) {
 
 func TestWebConnIsInDeadQueue(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	wc := th.Service.NewWebConn(&WebConnConfig{
 		WebSocket: &websocket.Conn{},
@@ -125,7 +123,6 @@ func TestWebConnIsInDeadQueue(t *testing.T) {
 
 func TestWebConnClearDeadQueue(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	wc := th.Service.NewWebConn(&WebConnConfig{
 		WebSocket: &websocket.Conn{},
@@ -145,7 +142,6 @@ func TestWebConnClearDeadQueue(t *testing.T) {
 
 func TestWebConnDrainDeadQueue(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	var dialConn = func(t *testing.T, th *TestHelper, addr net.Addr) *WebConn {
 		d := websocket.Dialer{}
