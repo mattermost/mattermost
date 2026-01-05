@@ -44,6 +44,17 @@ body {
     --gradient-edge-color: rgba(27, 29, 34, 0);
 }
 
+/* Apply dark mode based on OS preference automatically */
+@media (prefers-color-scheme: dark) {
+    .LoadingScreen {
+        --background-color: #191B1F;
+        --background-gradient: linear-gradient(152deg, rgba(221, 223, 228, 0.00) 0%, rgba(221, 223, 228, 0.04) 80, #191B1F);
+        --background-texture: rgba(221, 223, 228, 0.04);
+        --gradient-center-color: #1B1D22;
+        --gradient-edge-color: rgba(27, 29, 34, 0);
+    }
+}
+
 .LoadingScreen__background,
 .LoadingScreen__background > svg {
     position: absolute;
@@ -82,6 +93,13 @@ body {
 
 .LoadingAnimation--darkMode {
     --colour: white;
+}
+
+/* Apply dark mode based on OS preference automatically */
+@media (prefers-color-scheme: dark) {
+    .LoadingAnimation {
+        --colour: white;
+    }
 }
 
 .LoadingAnimation g,
