@@ -25,7 +25,7 @@ import Provider from '../provider';
 import type {Loading, ProviderResultsGroup} from '../suggestion_results';
 
 const profilesInChannelOptions = {active: true};
-const regexForAtMention = /(?:^|\W)@([\p{L}\d\-_. ]*)$/iu;
+const regexForAtMention = /(?:^|\W)([@＠]([\p{L}\d\-_. ]*))$/iu;
 
 type UserProfileWithLastViewAt = UserProfile & {last_viewed_at?: number};
 
@@ -63,6 +63,7 @@ export default class AtMentionProvider extends Provider {
     public data: any;
     public lastCompletedWord: string;
     public lastPrefixWithNoResults: string;
+    public triggerCharacter: string = '@';
     public getProfilesInChannel: (state: GlobalState, channelId: string, filters?: Filters | undefined) => UserProfile[];
     public addLastViewAtToProfiles: (state: GlobalState, profiles: UserProfile[]) => UserProfileWithLastViewAt[];
 
@@ -358,7 +359,7 @@ export default class AtMentionProvider extends Provider {
     }
 
     // updateMatches invokes the resultCallback with the metadata for rendering at mentions
-    updateMatches(resultCallback: ResultsCallback<unknown>, groups: Array<ProviderResultsGroup<UserProfile | Group | SpecialMention | Loading>>) {
+    updateMatches(resultCallback: ResultsCallback<unknown>, groups: Array<ProviderResultsGroup<UserProfile | Group | SpecialMention | Loading>>, matchedPretext: string) {
         if (groups.length === 0) {
             this.lastPrefixWithNoResults = this.latestPrefix;
         } else if (this.lastPrefixWithNoResults === this.latestPrefix) {
@@ -366,7 +367,7 @@ export default class AtMentionProvider extends Provider {
         }
 
         resultCallback({
-            matchedPretext: `@${this.latestPrefix}`,
+            matchedPretext,
             groups,
         });
     }
@@ -377,19 +378,21 @@ export default class AtMentionProvider extends Provider {
             return false;
         }
 
-        if (this.lastCompletedWord && captured[0].trim().startsWith(this.lastCompletedWord.trim())) {
+        const matchedPretext = captured[1];
+        const prefix = captured[2];
+
+        if (this.lastCompletedWord && prefix.trim().startsWith(this.lastCompletedWord.trim())) {
             // It appears we're still matching a channel handle that we already completed
             return false;
         }
 
-        const prefix = captured[1];
         if (this.lastPrefixWithNoResults && prefix.startsWith(this.lastPrefixWithNoResults)) {
             // Just give up since we know it won't return any results
             return false;
         }
 
         this.startNewRequest(prefix);
-        this.updateMatches(resultCallback, this.items());
+        this.updateMatches(resultCallback, this.items(), matchedPretext);
 
         // If we haven't gotten server-side results in 500 ms, add the loading indicator.
         let showLoadingIndicator: NodeJS.Timeout | null = setTimeout(() => {
@@ -397,7 +400,7 @@ export default class AtMentionProvider extends Provider {
                 return;
             }
 
-            this.updateMatches(resultCallback, [...this.items(), ...[otherMembersGroup()]]);
+            this.updateMatches(resultCallback, [...this.items(), ...[otherMembersGroup()]], matchedPretext);
 
             showLoadingIndicator = null;
         }, 500);
@@ -415,7 +418,7 @@ export default class AtMentionProvider extends Provider {
                 if (this.data && groupsData && groupsData.data) {
                     this.data.groups = groupsData.data;
                 }
-                this.updateMatches(resultCallback, this.items());
+                this.updateMatches(resultCallback, this.items(), matchedPretext);
             });
         });
 
@@ -423,7 +426,8 @@ export default class AtMentionProvider extends Provider {
     }
 
     handleCompleteWord(term: string) {
-        this.lastCompletedWord = term;
+        const termWithoutAt = term.replace(/^[@＠]/, '');
+        this.lastCompletedWord = termWithoutAt;
         this.lastPrefixWithNoResults = '';
     }
 

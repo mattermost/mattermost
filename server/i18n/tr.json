@@ -1185,10 +1185,6 @@
     "translation": "İstek geçersiz: client_id değeri hatalı."
   },
   {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "İstek geçersiz: İstemci parolası eksik."
-  },
-  {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
     "translation": "İstek geçersiz: İzin türü hatalı."
   },
@@ -5532,7 +5528,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 10+"
+    "translation": "Windows 11+"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
@@ -10933,7 +10929,7 @@
   },
   {
     "id": "app.content_flagging.keep_post.undelete.app_error",
-    "translation": "İşaretlenmiş ileti geri alınırken veri tabanındaki ileti güncellenemedi."
+    "translation": "İşaretlenmiş ileti ve ilişkili verileri silinmekten geri alınırken veri tabanındaki ileti güncellenemedi."
   },
   {
     "id": "app.content_flagging.no_status_property.app_error",
@@ -10946,10 +10942,6 @@
   {
     "id": "app.content_flagging.permanently_delete.update_property_value.app_error",
     "translation": "İşaretlenmiş ileti kalıcı olarak silinirken işaretlenmiş ileti durumu güncellenemedi."
-  },
-  {
-    "id": "app.content_flagging.restore_file_info.app_error",
-    "translation": "İşaretlenmiş iletinin dosya bilgileri geri yüklenemedi."
   },
   {
     "id": "app.content_flagging.search_property_fields.app_error",
@@ -11074,5 +11066,49 @@
   {
     "id": "app.content_flagging.search_team_reviewers.app_error",
     "translation": "Arama ifadesi takım içerik denetleyicilerinde aranamadı."
+  },
+  {
+    "id": "api.user.delete_channel.not_enabled.for_admin.app_error",
+    "translation": "Kalıcı kanal silme özelliği açılmamış. Bu komutu kullanabilmek için ServiceSettings.EnableAPIChannelDeletion seçeneği true olarak ayarlanmalıdır. Ayrıntılı bilgi almak için https://mattermost.com/pl/environment-configuration-settings adresine bakın."
+  },
+  {
+    "id": "api.user.delete_team.not_enabled.for_admin.app_error",
+    "translation": "Kalıcı takım silme özelliği açılmamış. Bu komutu kullanabilmek için ServiceSettings.EnableAPITeamDeletion seçeneği true olarak ayarlanmalıdır. Ayrıntılı bilgi almak için https://mattermost.com/pl/environment-configuration-settings adresine bakın."
+  },
+  {
+    "id": "api.user.delete_user.not_enabled.for_admin.app_error",
+    "translation": "Kalıcı kullanıcı silme özelliği açılmamış. Bu komutu kullanabilmek için ServiceSettings.EnableAPIUserDeletion seçeneği true olarak ayarlanmalıdır. Ayrıntılı bilgi almak için https://mattermost.com/pl/environment-configuration-settings adresine bakın."
+  },
+  {
+    "id": "app.agents.get_agents.app_error",
+    "translation": "Aracılar alınamadı."
+  },
+  {
+    "id": "app.agents.get_agents.bridge_call_failed",
+    "translation": "Köprü çağrısı yapılamadı."
+  },
+  {
+    "id": "app.agents.get_services.app_error",
+    "translation": "LLM hizmetleri alınamadı."
+  },
+  {
+    "id": "app.agents.get_services.bridge_call_failed",
+    "translation": "Köprü çağrısı yapılamadı."
+  },
+  {
+    "id": "app.content_flagging.get_thread_replies.app_error",
+    "translation": "İşaretlenmiş iletinin konu yanıtları alınamadı."
+  },
+  {
+    "id": "app.content_flagging.missing_manage_by_field.app_error",
+    "translation": "Yöneten özelliği alanı bulunamadı."
+  },
+  {
+    "id": "app.content_flagging.missing_status_field.app_error",
+    "translation": "Durum özellik alanı bulunamadı."
+  },
+  {
+    "id": "app.content_flagging.set_thread_replies_properties.app_error",
+    "translation": "İşaretlenmiş ileti için konu yanıtlarında özellik değerleri ayarlanamadı."
   }
 ]

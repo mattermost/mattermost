@@ -73,7 +73,7 @@ func requireFlaggedPost(c *Context, postId string) {
 		return
 	}
 
-	_, appErr := c.App.GetPostContentFlaggingStatusValue(postId)
+	_, appErr := c.App.GetPostContentFlaggingPropertyValue(postId, app.ContentFlaggingPropertyNameStatus)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -172,6 +172,11 @@ func flagPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	post, appErr := c.App.GetPostIfAuthorized(c.AppContext, postId, c.AppContext.Session(), false)
 	if appErr != nil {
 		c.Err = appErr
+		return
+	}
+
+	checkPostTypeFlaggable(c, post)
+	if c.Err != nil {
 		return
 	}
 
@@ -597,4 +602,10 @@ func assignFlaggedPostReviewer(c *Context, w http.ResponseWriter, r *http.Reques
 
 	auditRec.Success()
 	writeOKResponse(w)
+}
+
+func checkPostTypeFlaggable(c *Context, post *model.Post) {
+	if post.Type == model.PostTypeBurnOnRead || strings.HasPrefix(post.Type, model.PostSystemMessagePrefix) {
+		c.Err = model.NewAppError("checkPostTypeFlaggable", "api.content_flagging.error.invalid_post_type", map[string]any{"PostType": post.Type}, "", http.StatusBadRequest)
+	}
 }

@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/shortcuts/KeyboardShortcutsSequence should match snapshot when used for modal with description 1`] = `
 <Memo(KeyboardShortcutSequence)

@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/FileUploadOverlay should match snapshot when file upload is showing with no overlay type 1`] = `
 <div

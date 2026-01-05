@@ -218,11 +218,11 @@ describe('components/overage_users_banner', () => {
         renderWithContext(<OverageUsersBanner/>, store);
 
         fireEvent.click(screen.getByText(contactSalesTextLink));
-        expect(windowSpy).toBeCalledTimes(1);
+        expect(windowSpy).toHaveBeenCalledTimes(1);
 
         // only the email is encoded and other params are empty. See logic for useOpenSalesLink hook
         const salesLinkWithEncodedParams = 'https://mattermost.com/contact-sales/?qk=&qp=&qw=&qx=dGVzdEBtYXR0ZXJtb3N0LmNvbQ==&utm_source=mattermost&utm_medium=in-product';
-        expect(windowSpy).toBeCalledWith(salesLinkWithEncodedParams, '_blank');
+        expect(windowSpy).toHaveBeenCalledWith(salesLinkWithEncodedParams, '_blank');
     });
 
     it('should render the banner because we are over 5% and we have preferences from one old banner', () => {
@@ -269,8 +269,8 @@ describe('components/overage_users_banner', () => {
 
         fireEvent.click(screen.getByRole('link'));
 
-        expect(savePreferences).toBeCalledTimes(1);
-        expect(savePreferences).toBeCalledWith(store.entities.users.profiles.current_user.id, [{
+        expect(savePreferences).toHaveBeenCalledTimes(1);
+        expect(savePreferences).toHaveBeenCalledWith(store.entities.users.profiles.current_user.id, [{
             category: Preferences.OVERAGE_USERS_BANNER,
             name: `error_overage_seats_${licenseId.substring(0, 8)}`,
             user_id: store.entities.users.profiles.current_user.id,
@@ -315,10 +315,10 @@ describe('components/overage_users_banner', () => {
         renderWithContext(<OverageUsersBanner/>, store);
 
         fireEvent.click(screen.getByText(contactSalesTextLink));
-        expect(windowSpy).toBeCalledTimes(1);
+        expect(windowSpy).toHaveBeenCalledTimes(1);
 
         // only the email is encoded and other params are empty. See logic for useOpenSalesLink hook
         const salesLinkWithEncodedParams = 'https://mattermost.com/contact-sales/?qk=&qp=&qw=&qx=dGVzdEBtYXR0ZXJtb3N0LmNvbQ==&utm_source=mattermost&utm_medium=in-product';
-        expect(windowSpy).toBeCalledWith(salesLinkWithEncodedParams, '_blank');
+        expect(windowSpy).toHaveBeenCalledWith(salesLinkWithEncodedParams, '_blank');
     });
 });

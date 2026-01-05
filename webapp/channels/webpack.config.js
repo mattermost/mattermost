@@ -107,7 +107,9 @@ var config = {
                 test: /\.(png|eot|tiff|svg|woff2|woff|ttf|gif|mp3|jpg)$/,
                 type: 'asset/resource',
                 use: [
-                    {
+
+                    // Skip image optimizations during development to speed up build time
+                    !DEV && {
                         loader: 'image-webpack-loader',
                         options: {},
                     },

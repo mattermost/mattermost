@@ -82,8 +82,6 @@ type Store interface {
 	ReplicaLagTime() error
 	ReplicaLagAbs() error
 	CheckIntegrity() <-chan model.IntegrityCheckResult
-	SetContext(context context.Context)
-	Context() context.Context
 	Logger() mlog.LoggerIFace
 	NotifyAdmin() NotifyAdminStore
 	PostPriority() PostPriorityStore
@@ -97,8 +95,11 @@ type Store interface {
 	PropertyValue() PropertyValueStore
 	AccessControlPolicy() AccessControlPolicyStore
 	Attributes() AttributesStore
+	AutoTranslation() AutoTranslationStore
 	GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error)
 	ContentFlagging() ContentFlaggingStore
+	ReadReceipt() ReadReceiptStore
+	TemporaryPost() TemporaryPostStore
 }
 
 type RetentionPolicyStore interface {
@@ -383,6 +384,7 @@ type PostStore interface {
 	GetFlaggedPostsForChannel(userID, channelID string, offset int, limit int) (*model.PostList, error)
 	GetPostsBefore(rctx request.CTX, options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error)
 	GetPostsAfter(rctx request.CTX, options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error)
+	GetPostsForReporting(rctx request.CTX, queryParams model.ReportPostQueryParams) (*model.ReportPostListResponse, error)
 	GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error)
 	GetPostsByThread(threadID string, since int64) ([]*model.Post, error)
 	GetPostAfterTime(channelID string, timestamp int64, collapsedThreads bool) (*model.Post, error)
@@ -471,7 +473,7 @@ type UserStore interface {
 	GetSystemAdminProfiles() (map[string]*model.User, error)
 	PermanentDelete(rctx request.CTX, userID string) error
 	AnalyticsActiveCount(timestamp int64, options model.UserCountOptions) (int64, error)
-	AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int64, error)
+	AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int32, error)
 	GetUnreadCount(userID string, isCRTEnabled bool) (int64, error)
 	GetUnreadCountForChannel(userID string, channelID string) (int64, error)
 	GetAnyUnreadPostCountForChannel(userID string, channelID string) (int64, error)
@@ -500,6 +502,7 @@ type UserStore interface {
 	PromoteGuestToUser(userID string) error
 	DemoteUserToGuest(userID string) (*model.User, error)
 	DeactivateGuests() ([]string, error)
+	DeactivateMagicLinkGuests() ([]string, error)
 	AutocompleteUsersInChannel(rctx request.CTX, teamID, channelID, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error)
 	GetKnownUsers(userID string) ([]string, error)
 	IsEmpty(excludeBots bool) (bool, error)
@@ -616,7 +619,9 @@ type SystemStore interface {
 	SaveOrUpdate(system *model.System) error
 	Update(system *model.System) error
 	Get() (model.StringMap, error)
+	GetWithContext(rctx request.CTX) (model.StringMap, error)
 	GetByName(name string) (*model.System, error)
+	GetByNameWithContext(rctx request.CTX, name string) (*model.System, error)
 	PermanentDeleteByName(name string) (*model.System, error)
 	InsertIfExists(system *model.System) (*model.System, error)
 }
@@ -701,6 +706,7 @@ type TokenStore interface {
 	Cleanup(expiryTime int64)
 	GetAllTokensByType(tokenType string) ([]*model.Token, error)
 	RemoveAllTokensByType(tokenType string) error
+	GetTokenByTypeAndEmail(tokenType string, email string) (*model.Token, error)
 }
 
 type DesktopTokensStore interface {
@@ -1138,6 +1144,7 @@ type AccessControlPolicyStore interface {
 	Save(rctx request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, error)
 	Delete(rctx request.CTX, id string) error
 	SetActiveStatus(rctx request.CTX, id string, active bool) (*model.AccessControlPolicy, error)
+	SetActiveStatusMultiple(rctx request.CTX, list []model.AccessControlPolicyActiveUpdate) ([]*model.AccessControlPolicy, error)
 	Get(rctx request.CTX, id string) (*model.AccessControlPolicy, error)
 	SearchPolicies(rctx request.CTX, opts model.AccessControlPolicySearch) ([]*model.AccessControlPolicy, int64, error)
 }
@@ -1149,10 +1156,52 @@ type AttributesStore interface {
 	GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error)
 }
 
+type AutoTranslationStore interface {
+	IsChannelEnabled(channelID string) (bool, *model.AppError)
+	SetChannelEnabled(channelID string, enabled bool) *model.AppError
+	IsUserEnabled(userID, channelID string) (bool, *model.AppError)
+	SetUserEnabled(userID, channelID string, enabled bool) *model.AppError
+	GetUserLanguage(userID, channelID string) (string, *model.AppError)
+	// GetActiveDestinationLanguages returns distinct locales of users who have auto-translation enabled.
+	// Optional filterUserIDs parameter restricts results to specific user IDs (typically those with active WebSocket connections).
+	// Pass nil for filterUserIDs to include all users, or a pointer to a slice to filter to specific users.
+	GetActiveDestinationLanguages(channelID, excludeUserID string, filterUserIDs []string) ([]string, *model.AppError)
+	Get(objectID, dstLang string) (*model.Translation, *model.AppError)
+	Save(translation *model.Translation) *model.AppError
+
+	ClearCaches()
+	// InvalidateUserAutoTranslation invalidates all auto-translation caches for a user in a channel.
+	// This is called when a user is removed from a channel.
+	InvalidateUserAutoTranslation(userID, channelID string)
+	// InvalidateUserLocaleCache invalidates all language caches for a user across all channels.
+	// This is called when a user changes their locale preference.
+	InvalidateUserLocaleCache(userID string)
+}
+
 type ContentFlaggingStore interface {
 	SaveReviewerSettings(reviewerSettings model.ReviewerIDsSettings) error
 	GetReviewerSettings() (*model.ReviewerIDsSettings, error)
 	ClearCaches()
+}
+
+type ReadReceiptStore interface {
+	InvalidateReadReceiptForPostsCache(postID string)
+	Save(rctx request.CTX, receipt *model.ReadReceipt) (*model.ReadReceipt, error)
+	Update(rctx request.CTX, receipt *model.ReadReceipt) (*model.ReadReceipt, error)
+	Delete(rctx request.CTX, postID, userID string) error
+	DeleteByPost(rctx request.CTX, postID string) error
+	Get(rctx request.CTX, postID, userID string) (*model.ReadReceipt, error)
+	GetByPost(rctx request.CTX, postID string) ([]*model.ReadReceipt, error)
+	GetReadCountForPost(rctx request.CTX, postID string) (int64, error)
+	GetUnreadCountForPost(rctx request.CTX, post *model.Post) (int64, error)
+}
+
+type TemporaryPostStore interface {
+	InvalidateTemporaryPost(id string)
+	Save(rctx request.CTX, post *model.TemporaryPost) (*model.TemporaryPost, error)
+	Get(rctx request.CTX, id string) (*model.TemporaryPost, error)
+	Delete(rctx request.CTX, id string) error
+	GetExpiredPosts(rctx request.CTX) ([]string, error)
 }
 
 // ChannelSearchOpts contains options for searching channels.

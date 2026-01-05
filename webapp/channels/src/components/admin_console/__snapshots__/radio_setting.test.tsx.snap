@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/admin_console/RadioSetting should match snapshot 1`] = `
 <Memo(Settings)
@@ -6,53 +6,62 @@ exports[`components/admin_console/RadioSetting should match snapshot 1`] = `
   label="some label"
   setByEnv={false}
 >
-  <div
-    className="radio"
+  <label
+    className="RadioSetting__label"
     key="Engineering"
   >
-    <label>
-      <input
-        checked={false}
-        disabled={false}
-        name="string.id"
-        onChange={[Function]}
-        type="radio"
-        value="Engineering"
-      />
+    <input
+      checked={false}
+      className="RadioSetting__input"
+      disabled={false}
+      name="string.id"
+      onChange={[Function]}
+      type="radio"
+      value="Engineering"
+    />
+    <span
+      className="RadioSetting__text"
+    >
       this is engineering
-    </label>
-  </div>
-  <div
-    className="radio"
+    </span>
+  </label>
+  <label
+    className="RadioSetting__label"
     key="Sales"
   >
-    <label>
-      <input
-        checked={true}
-        disabled={false}
-        name="string.id"
-        onChange={[Function]}
-        type="radio"
-        value="Sales"
-      />
+    <input
+      checked={true}
+      className="RadioSetting__input"
+      disabled={false}
+      name="string.id"
+      onChange={[Function]}
+      type="radio"
+      value="Sales"
+    />
+    <span
+      className="RadioSetting__text"
+    >
       this is sales
-    </label>
-  </div>
-  <div
-    className="radio"
+    </span>
+  </label>
+  <label
+    className="RadioSetting__label"
     key="Administration"
   >
-    <label>
-      <input
-        checked={false}
-        disabled={false}
-        name="string.id"
-        onChange={[Function]}
-        type="radio"
-        value="Administration"
-      />
+    <input
+      checked={false}
+      className="RadioSetting__input"
+      disabled={false}
+      name="string.id"
+      onChange={[Function]}
+      type="radio"
+      value="Administration"
+    />
+    <span
+      className="RadioSetting__text"
+    >
       this is administration
-    </label>
-  </div>
+    </span>
+  </label>
 </Memo(Settings)>
 `;

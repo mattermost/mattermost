@@ -34,6 +34,7 @@ export const PostTypes = {
     REMINDER: 'reminder' as PostType,
     WRANGLER: 'system_wrangler' as PostType,
     GM_CONVERTED_TO_CHANNEL: 'system_gm_to_channel' as PostType,
+    BURN_ON_READ: 'burn_on_read' as PostType,
 };
 
 export default {
@@ -72,4 +73,21 @@ export default {
         PostTypes.LEAVE_TEAM,
         PostTypes.REMOVE_FROM_TEAM,
     ],
+    BURN_ON_READ: {
+        DURATION_1_MINUTE: 60,
+        DURATION_5_MINUTES: 300,
+        DURATION_10_MINUTES: 600,
+        DURATION_30_MINUTES: 1800,
+        DURATION_1_HOUR: 3600,
+        DURATION_8_HOURS: 28800,
+        DURATION_DEFAULT: 600,
+        MAX_TTL_2_MINUTES: 120,
+        MAX_TTL_5_MINUTES: 300,
+        MAX_TTL_1_DAY: 86400,
+        MAX_TTL_3_DAYS: 259200,
+        MAX_TTL_7_DAYS: 604800,
+        MAX_TTL_14_DAYS: 1209600,
+        MAX_TTL_30_DAYS: 2592000,
+        MAX_TTL_DEFAULT: 604800,
+    },
 };

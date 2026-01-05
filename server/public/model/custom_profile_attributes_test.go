@@ -14,7 +14,7 @@ import (
 )
 
 func TestNewCPAFieldFromPropertyField(t *testing.T) {
-	tests := []struct {
+	testCases := []struct {
 		name          string
 		propertyField *PropertyField
 		wantAttrs     CPAAttrs
@@ -79,7 +79,7 @@ func TestNewCPAFieldFromPropertyField(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "property field with empty attributes returns empty values",
+			name: "property field with empty attributes returns default values",
 			propertyField: &PropertyField{
 				ID:       NewId(),
 				GroupID:  CustomProfileAttributesPropertyGroupName,
@@ -89,7 +89,7 @@ func TestNewCPAFieldFromPropertyField(t *testing.T) {
 				UpdateAt: GetMillis(),
 			},
 			wantAttrs: CPAAttrs{
-				Visibility: "", // Pure conversion, no defaults (defaults provided by app layer)
+				Visibility: CustomProfileAttributesVisibilityWhenSet, // Defaults are applied during conversion
 				SortOrder:  0,
 				ValueType:  "",
 				Options:    nil,
@@ -98,11 +98,11 @@ func TestNewCPAFieldFromPropertyField(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			cpaField, err := NewCPAFieldFromPropertyField(tt.propertyField)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			cpaField, err := NewCPAFieldFromPropertyField(tc.propertyField)
 
-			if tt.wantErr {
+			if tc.wantErr {
 				require.Error(t, err)
 				return
 			}
@@ -111,23 +111,23 @@ func TestNewCPAFieldFromPropertyField(t *testing.T) {
 			require.NotNil(t, cpaField)
 
 			// Check that the PropertyField was copied correctly
-			assert.Equal(t, tt.propertyField.ID, cpaField.ID)
-			assert.Equal(t, tt.propertyField.GroupID, cpaField.GroupID)
-			assert.Equal(t, tt.propertyField.Name, cpaField.Name)
-			assert.Equal(t, tt.propertyField.Type, cpaField.Type)
+			assert.Equal(t, tc.propertyField.ID, cpaField.ID)
+			assert.Equal(t, tc.propertyField.GroupID, cpaField.GroupID)
+			assert.Equal(t, tc.propertyField.Name, cpaField.Name)
+			assert.Equal(t, tc.propertyField.Type, cpaField.Type)
 
 			// Check that the attributes were parsed correctly
-			assert.Equal(t, tt.wantAttrs.Visibility, cpaField.Attrs.Visibility)
-			assert.Equal(t, tt.wantAttrs.SortOrder, cpaField.Attrs.SortOrder)
-			assert.Equal(t, tt.wantAttrs.ValueType, cpaField.Attrs.ValueType)
+			assert.Equal(t, tc.wantAttrs.Visibility, cpaField.Attrs.Visibility)
+			assert.Equal(t, tc.wantAttrs.SortOrder, cpaField.Attrs.SortOrder)
+			assert.Equal(t, tc.wantAttrs.ValueType, cpaField.Attrs.ValueType)
 
 			// For options, we need to check length since IDs will be different
-			if tt.wantAttrs.Options != nil {
+			if tc.wantAttrs.Options != nil {
 				require.NotNil(t, cpaField.Attrs.Options)
-				assert.Len(t, cpaField.Attrs.Options, len(tt.wantAttrs.Options))
-				if len(tt.wantAttrs.Options) > 0 {
-					assert.Equal(t, tt.wantAttrs.Options[0].Name, cpaField.Attrs.Options[0].Name)
-					assert.Equal(t, tt.wantAttrs.Options[0].Color, cpaField.Attrs.Options[0].Color)
+				assert.Len(t, cpaField.Attrs.Options, len(tc.wantAttrs.Options))
+				if len(tc.wantAttrs.Options) > 0 {
+					assert.Equal(t, tc.wantAttrs.Options[0].Name, cpaField.Attrs.Options[0].Name)
+					assert.Equal(t, tc.wantAttrs.Options[0].Color, cpaField.Attrs.Options[0].Color)
 				}
 			} else {
 				assert.Nil(t, cpaField.Attrs.Options)
@@ -1130,6 +1130,484 @@ func TestCPAField_IsAdminManaged(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result := tt.field.IsAdminManaged()
 			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestCPAField_SetDefaults(t *testing.T) {
+	testCases := []struct {
+		name          string
+		field         *CPAField
+		expectedAttrs CPAAttrs
+	}{
+		{
+			name: "field with empty visibility should set default",
+			field: &CPAField{
+				Attrs: CPAAttrs{
+					Visibility: "",
+					SortOrder:  5.0,
+				},
+			},
+			expectedAttrs: CPAAttrs{
+				Visibility: CustomProfileAttributesVisibilityDefault,
+				SortOrder:  5.0,
+			},
+		},
+		{
+			name: "field with existing visibility should not change",
+			field: &CPAField{
+				Attrs: CPAAttrs{
+					Visibility: CustomProfileAttributesVisibilityAlways,
+					SortOrder:  10.0,
+				},
+			},
+			expectedAttrs: CPAAttrs{
+				Visibility: CustomProfileAttributesVisibilityAlways,
+				SortOrder:  10.0,
+			},
+		},
+		{
+			name: "field with zero values should set visibility default, keep sort order zero",
+			field: &CPAField{
+				Attrs: CPAAttrs{},
+			},
+			expectedAttrs: CPAAttrs{
+				Visibility: CustomProfileAttributesVisibilityDefault,
+				SortOrder:  0.0,
+			},
+		},
+		{
+			name: "field with hidden visibility should preserve it",
+			field: &CPAField{
+				Attrs: CPAAttrs{
+					Visibility: CustomProfileAttributesVisibilityHidden,
+					SortOrder:  3.5,
+				},
+			},
+			expectedAttrs: CPAAttrs{
+				Visibility: CustomProfileAttributesVisibilityHidden,
+				SortOrder:  3.5,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.field.SetDefaults()
+			assert.Equal(t, tc.expectedAttrs.Visibility, tc.field.Attrs.Visibility)
+			assert.Equal(t, tc.expectedAttrs.SortOrder, tc.field.Attrs.SortOrder)
+		})
+	}
+}
+
+func TestCPAField_Patch(t *testing.T) {
+	testCases := []struct {
+		name          string
+		field         *CPAField
+		patch         *PropertyFieldPatch
+		expectedField *CPAField
+		expectError   bool
+	}{
+		{
+			name: "patch name",
+			field: &CPAField{
+				PropertyField: PropertyField{
+					ID:       NewId(),
+					GroupID:  "group1",
+					Name:     "Original Name",
+					Type:     PropertyFieldTypeText,
+					CreateAt: 1000,
+					UpdateAt: 1000,
+				},
+				Attrs: CPAAttrs{
+					Visibility: CustomProfileAttributesVisibilityWhenSet,
+				},
+			},
+			patch: &PropertyFieldPatch{
+				Name: NewPointer("Updated Name"),
+			},
+			expectedField: &CPAField{
+				PropertyField: PropertyField{
+					Name: "Updated Name",
+					Type: PropertyFieldTypeText,
+				},
+				Attrs: CPAAttrs{
+					Visibility: CustomProfileAttributesVisibilityWhenSet,
+				},
+			},
+			expectError: false,
+		},
+		{
+			name: "patch type",
+			field: &CPAField{
+				PropertyField: PropertyField{
+					ID:       NewId(),
+					GroupID:  "group1",
+					Name:     "Test Field",
+					Type:     PropertyFieldTypeText,
+					CreateAt: 1000,
+					UpdateAt: 1000,
+				},
+				Attrs: CPAAttrs{
+					Visibility: CustomProfileAttributesVisibilityWhenSet,
+				},
+			},
+			patch: &PropertyFieldPatch{
+				Type: NewPointer(PropertyFieldTypeSelect),
+			},
+			expectedField: &CPAField{
+				PropertyField: PropertyField{
+					Name: "Test Field",
+					Type: PropertyFieldTypeSelect,
+				},
+				Attrs: CPAAttrs{
+					Visibility: CustomProfileAttributesVisibilityWhenSet,
+				},
+			},
+			expectError: false,
+		},
+		{
+			name: "patch visibility (attrs replacement - sort order is lost)",
+			field: &CPAField{
+				PropertyField: PropertyField{
+					ID:       NewId(),
+					GroupID:  "group1",
+					Name:     "Test Field",
+					Type:     PropertyFieldTypeText,
+					CreateAt: 1000,
+					UpdateAt: 1000,
+				},
+				Attrs: CPAAttrs{
+					Visibility: CustomProfileAttributesVisibilityWhenSet,
+					SortOrder:  1.0,
+				},
+			},
+			patch: &PropertyFieldPatch{
+				Attrs: &StringInterface{
+					CustomProfileAttributesPropertyAttrsVisibility: CustomProfileAttributesVisibilityAlways,
+				},
+			},
+			expectedField: &CPAField{
+				PropertyField: PropertyField{
+					Name: "Test Field",
+					Type: PropertyFieldTypeText,
+				},
+				Attrs: CPAAttrs{
+					Visibility: CustomProfileAttributesVisibilityAlways,
+					SortOrder:  0, // Lost because attrs is replaced, not merged
+				},
+			},
+			expectError: false,
+		},
+		{
+			name: "patch visibility preserving sort order (must include both in patch)",
+			field: &CPAField{
+				PropertyField: PropertyField{
+					ID:       NewId(),
+					GroupID:  "group1",
+					Name:     "Test Field",
+					Type:     PropertyFieldTypeText,
+					CreateAt: 1000,
+					UpdateAt: 1000,
+				},
+				Attrs: CPAAttrs{
+					Visibility: CustomProfileAttributesVisibilityWhenSet,
+					SortOrder:  1.0,
+				},
+			},
+			patch: &PropertyFieldPatch{
+				Attrs: &StringInterface{
+					CustomProfileAttributesPropertyAttrsVisibility: CustomProfileAttributesVisibilityAlways,
+					CustomProfileAttributesPropertyAttrsSortOrder:  1.0, // Must include to preserve
+				},
+			},
+			expectedField: &CPAField{
+				PropertyField: PropertyField{
+					Name: "Test Field",
+					Type: PropertyFieldTypeText,
+				},
+				Attrs: CPAAttrs{
+					Visibility: CustomProfileAttributesVisibilityAlways,
+					SortOrder:  1.0,
+				},
+			},
+			expectError: false,
+		},
+		{
+			name: "patch sort order",
+			field: &CPAField{
+				PropertyField: PropertyField{
+					ID:       NewId(),
+					GroupID:  "group1",
+					Name:     "Test Field",
+					Type:     PropertyFieldTypeText,
+					CreateAt: 1000,
+					UpdateAt: 1000,
+				},
+				Attrs: CPAAttrs{
+					Visibility: CustomProfileAttributesVisibilityWhenSet,
+					SortOrder:  1.0,
+				},
+			},
+			patch: &PropertyFieldPatch{
+				Attrs: &StringInterface{
+					CustomProfileAttributesPropertyAttrsSortOrder: 10.5,
+				},
+			},
+			expectedField: &CPAField{
+				PropertyField: PropertyField{
+					Name: "Test Field",
+					Type: PropertyFieldTypeText,
+				},
+				Attrs: CPAAttrs{
+					Visibility: CustomProfileAttributesVisibilityWhenSet,
+					SortOrder:  10.5,
+				},
+			},
+			expectError: false,
+		},
+		{
+			name: "patch managed attribute",
+			field: &CPAField{
+				PropertyField: PropertyField{
+					ID:       NewId(),
+					GroupID:  "group1",
+					Name:     "Test Field",
+					Type:     PropertyFieldTypeText,
+					CreateAt: 1000,
+					UpdateAt: 1000,
+				},
+				Attrs: CPAAttrs{
+					Visibility: CustomProfileAttributesVisibilityWhenSet,
+					Managed:    "",
+				},
+			},
+			patch: &PropertyFieldPatch{
+				Attrs: &StringInterface{
+					CustomProfileAttributesPropertyAttrsManaged: "admin",
+				},
+			},
+			expectedField: &CPAField{
+				PropertyField: PropertyField{
+					Name: "Test Field",
+					Type: PropertyFieldTypeText,
+				},
+				Attrs: CPAAttrs{
+					Visibility: CustomProfileAttributesVisibilityWhenSet,
+					Managed:    "admin",
+				},
+			},
+			expectError: false,
+		},
+		{
+			name: "patch LDAP attribute",
+			field: &CPAField{
+				PropertyField: PropertyField{
+					ID:       NewId(),
+					GroupID:  "group1",
+					Name:     "Test Field",
+					Type:     PropertyFieldTypeText,
+					CreateAt: 1000,
+					UpdateAt: 1000,
+				},
+				Attrs: CPAAttrs{
+					Visibility: CustomProfileAttributesVisibilityWhenSet,
+				},
+			},
+			patch: &PropertyFieldPatch{
+				Attrs: &StringInterface{
+					CustomProfileAttributesPropertyAttrsLDAP: "ldap_attribute",
+				},
+			},
+			expectedField: &CPAField{
+				PropertyField: PropertyField{
+					Name: "Test Field",
+					Type: PropertyFieldTypeText,
+				},
+				Attrs: CPAAttrs{
+					Visibility: CustomProfileAttributesVisibilityWhenSet,
+					LDAP:       "ldap_attribute",
+				},
+			},
+			expectError: false,
+		},
+		{
+			name: "patch options for select field",
+			field: &CPAField{
+				PropertyField: PropertyField{
+					ID:       NewId(),
+					GroupID:  "group1",
+					Name:     "Test Field",
+					Type:     PropertyFieldTypeSelect,
+					CreateAt: 1000,
+					UpdateAt: 1000,
+				},
+				Attrs: CPAAttrs{
+					Visibility: CustomProfileAttributesVisibilityWhenSet,
+					Options: []*CustomProfileAttributesSelectOption{
+						{ID: "opt1", Name: "Option 1"},
+					},
+				},
+			},
+			patch: &PropertyFieldPatch{
+				Attrs: &StringInterface{
+					PropertyFieldAttributeOptions: []*CustomProfileAttributesSelectOption{
+						{ID: "opt1", Name: "Option 1"},
+						{ID: "opt2", Name: "Option 2"},
+					},
+				},
+			},
+			expectedField: &CPAField{
+				PropertyField: PropertyField{
+					Name: "Test Field",
+					Type: PropertyFieldTypeSelect,
+				},
+				Attrs: CPAAttrs{
+					Visibility: CustomProfileAttributesVisibilityWhenSet,
+					Options: []*CustomProfileAttributesSelectOption{
+						{ID: "opt1", Name: "Option 1"},
+						{ID: "opt2", Name: "Option 2"},
+					},
+				},
+			},
+			expectError: false,
+		},
+		{
+			name: "patch with TargetID should clear it (CPA doesn't use targets)",
+			field: &CPAField{
+				PropertyField: PropertyField{
+					ID:       NewId(),
+					GroupID:  "group1",
+					Name:     "Test Field",
+					Type:     PropertyFieldTypeText,
+					CreateAt: 1000,
+					UpdateAt: 1000,
+				},
+				Attrs: CPAAttrs{
+					Visibility: CustomProfileAttributesVisibilityWhenSet,
+				},
+			},
+			patch: &PropertyFieldPatch{
+				Name:     NewPointer("Updated Name"),
+				TargetID: NewPointer("should-be-cleared"),
+			},
+			expectedField: &CPAField{
+				PropertyField: PropertyField{
+					Name:     "Updated Name",
+					Type:     PropertyFieldTypeText,
+					TargetID: "", // Should be empty
+				},
+				Attrs: CPAAttrs{
+					Visibility: CustomProfileAttributesVisibilityWhenSet,
+				},
+			},
+			expectError: false,
+		},
+		{
+			name: "patch with TargetType should clear it (CPA doesn't use targets)",
+			field: &CPAField{
+				PropertyField: PropertyField{
+					ID:       NewId(),
+					GroupID:  "group1",
+					Name:     "Test Field",
+					Type:     PropertyFieldTypeText,
+					CreateAt: 1000,
+					UpdateAt: 1000,
+				},
+				Attrs: CPAAttrs{
+					Visibility: CustomProfileAttributesVisibilityWhenSet,
+				},
+			},
+			patch: &PropertyFieldPatch{
+				Name:       NewPointer("Updated Name"),
+				TargetType: NewPointer("should-be-cleared"),
+			},
+			expectedField: &CPAField{
+				PropertyField: PropertyField{
+					Name:       "Updated Name",
+					Type:       PropertyFieldTypeText,
+					TargetType: "", // Should be empty
+				},
+				Attrs: CPAAttrs{
+					Visibility: CustomProfileAttributesVisibilityWhenSet,
+				},
+			},
+			expectError: false,
+		},
+		{
+			name: "patch multiple attributes at once",
+			field: &CPAField{
+				PropertyField: PropertyField{
+					ID:       NewId(),
+					GroupID:  "group1",
+					Name:     "Original Name",
+					Type:     PropertyFieldTypeText,
+					CreateAt: 1000,
+					UpdateAt: 1000,
+				},
+				Attrs: CPAAttrs{
+					Visibility: CustomProfileAttributesVisibilityWhenSet,
+					SortOrder:  1.0,
+					Managed:    "",
+				},
+			},
+			patch: &PropertyFieldPatch{
+				Name: NewPointer("New Name"),
+				Attrs: &StringInterface{
+					CustomProfileAttributesPropertyAttrsVisibility: CustomProfileAttributesVisibilityAlways,
+					CustomProfileAttributesPropertyAttrsSortOrder:  5.0,
+					CustomProfileAttributesPropertyAttrsManaged:    "admin",
+				},
+			},
+			expectedField: &CPAField{
+				PropertyField: PropertyField{
+					Name: "New Name",
+					Type: PropertyFieldTypeText,
+				},
+				Attrs: CPAAttrs{
+					Visibility: CustomProfileAttributesVisibilityAlways,
+					SortOrder:  5.0,
+					Managed:    "admin",
+				},
+			},
+			expectError: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.field.Patch(tc.patch)
+
+			if tc.expectError {
+				require.Error(t, err)
+				return
+			}
+
+			require.NoError(t, err)
+
+			// Check PropertyField attributes
+			assert.Equal(t, tc.expectedField.Name, tc.field.Name)
+			assert.Equal(t, tc.expectedField.Type, tc.field.Type)
+			assert.Equal(t, tc.expectedField.TargetID, tc.field.TargetID)
+			assert.Equal(t, tc.expectedField.TargetType, tc.field.TargetType)
+
+			// Check CPAAttrs
+			assert.Equal(t, tc.expectedField.Attrs.Visibility, tc.field.Attrs.Visibility)
+			assert.Equal(t, tc.expectedField.Attrs.SortOrder, tc.field.Attrs.SortOrder)
+			assert.Equal(t, tc.expectedField.Attrs.Managed, tc.field.Attrs.Managed)
+			assert.Equal(t, tc.expectedField.Attrs.LDAP, tc.field.Attrs.LDAP)
+			assert.Equal(t, tc.expectedField.Attrs.SAML, tc.field.Attrs.SAML)
+
+			// Check options if present
+			if tc.expectedField.Attrs.Options != nil {
+				require.Len(t, tc.field.Attrs.Options, len(tc.expectedField.Attrs.Options))
+				for i, expectedOpt := range tc.expectedField.Attrs.Options {
+					assert.Equal(t, expectedOpt.ID, tc.field.Attrs.Options[i].ID)
+					assert.Equal(t, expectedOpt.Name, tc.field.Attrs.Options[i].Name)
+				}
+			} else {
+				assert.Nil(t, tc.field.Attrs.Options)
+			}
 		})
 	}
 }

@@ -59,7 +59,7 @@ describe('components/LeaveTeamModal', () => {
         const instance = wrapper.instance() as LeaveTeamModal;
 
         expect(document.addEventListener).toHaveBeenCalledTimes(1);
-        expect(document.removeEventListener).not.toBeCalled();
+        expect(document.removeEventListener).not.toHaveBeenCalled();
 
         instance.componentWillUnmount();
 

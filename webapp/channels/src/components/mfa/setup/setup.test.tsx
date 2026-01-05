@@ -57,7 +57,7 @@ describe('components/mfa/setup', () => {
         const wrapper = shallow<Setup>(
             <Setup {...baseProps}/>,
         );
-        expect(generateMfaSecret).toBeCalled();
+        expect(generateMfaSecret).toHaveBeenCalled();
         await wrapper.instance().componentDidMount();
         expect(wrapper.state('secret')).toEqual('generated secret');
         expect(wrapper.state('qrCode')).toEqual('qrcode');
@@ -72,7 +72,7 @@ describe('components/mfa/setup', () => {
         wrapper.find('form').simulate('submit', {preventDefault: () => {}});
 
         await waitFor(() => {
-            expect(baseProps.actions.activateMfa).toBeCalledWith('testcodeinput');
+            expect(baseProps.actions.activateMfa).toHaveBeenCalledWith('testcodeinput');
         });
     });
 

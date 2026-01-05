@@ -14,7 +14,6 @@ import (
 
 func TestNewBulk(t *testing.T) {
 	th := api4.SetupEnterprise(t)
-	defer th.TearDown()
 	client := createTestClient(t, th.Context, th.App.Config(), th.App.FileBackend())
 
 	t.Run("zeroed bulksettings", func(t *testing.T) {
