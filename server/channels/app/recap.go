@@ -22,13 +22,15 @@ func (a *App) CreateRecap(rctx request.CTX, title string, channelIDs []string, a
 		}
 	}
 
+	timeNow := model.GetMillis()
+
 	// Create recap record
 	recap := &model.Recap{
 		Id:                model.NewId(),
 		UserId:            userID,
 		Title:             title,
-		CreateAt:          model.GetMillis(),
-		UpdateAt:          model.GetMillis(),
+		CreateAt:          timeNow,
+		UpdateAt:          timeNow,
 		DeleteAt:          0,
 		ReadAt:            0,
 		TotalMessageCount: 0,

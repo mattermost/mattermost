@@ -7416,7 +7416,7 @@
   },
   {
     "id": "app.recap.permission_denied",
-    "translation": "No permission for recap"
+    "translation": "No permission for recap."
   },
   {
     "id": "app.recap.save.app_error",
