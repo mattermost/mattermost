@@ -10,24 +10,11 @@ const ANIMATION_CLASS_FOR_COMPLETE_LOADER_HIDE = 'LoadingAnimation__shrink';
 const DESTROY_DELAY_AFTER_ANIMATION_END = 1000;
 const MINIMUM_LOADING_TIME = 2000; // Minimum time to show the loading screen (in ms)
 
-// Detect if OS is in dark mode
-function isOSDarkMode(): boolean {
-    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-}
-
-// Generate class names based on OS dark mode preference
-function getLoadingClasses() {
-    const darkModeClass = isOSDarkMode() ? ' LoadingScreen--darkMode' : '';
-    const darkModeAnimationClass = isOSDarkMode() ? ' LoadingAnimation--darkMode' : '';
-
-    return {
-        LOADING_CLASS_FOR_SCREEN: `LoadingScreen${darkModeClass}`,
-        LOADING_COMPLETE_CLASS_FOR_SCREEN: `LoadingScreen${darkModeClass} LoadingScreen--loaded`,
-        STATIC_CLASS_FOR_ANIMATION: `LoadingAnimation${darkModeAnimationClass}`,
-        LOADING_CLASS_FOR_ANIMATION: `LoadingAnimation${darkModeAnimationClass} LoadingAnimation--spinning LoadingAnimation--loading`,
-        LOADING_COMPLETE_CLASS_FOR_ANIMATION: `LoadingAnimation${darkModeAnimationClass} LoadingAnimation--spinning LoadingAnimation--loaded`,
-    };
-}
+const LOADING_CLASS_FOR_SCREEN = 'LoadingScreen';
+const LOADING_COMPLETE_CLASS_FOR_SCREEN = 'LoadingScreen LoadingScreen--loaded';
+const STATIC_CLASS_FOR_ANIMATION = 'LoadingAnimation';
+const LOADING_CLASS_FOR_ANIMATION = 'LoadingAnimation LoadingAnimation--spinning LoadingAnimation--loading';
+const LOADING_COMPLETE_CLASS_FOR_ANIMATION = 'LoadingAnimation LoadingAnimation--spinning LoadingAnimation--loaded';
 
 export class InitialLoadingScreenClass {
     private isLoading: boolean | null = true;
@@ -36,14 +23,12 @@ export class InitialLoadingScreenClass {
     private loadingAnimationElement: HTMLElement | null;
 
     private initialLoadingScreenCSS: HTMLLinkElement | null;
-    private loadingClasses: ReturnType<typeof getLoadingClasses>;
     private startTime: number | null = null;
 
     constructor() {
         this.loadingScreenElement = document.getElementById('initialPageLoadingScreen');
         this.loadingAnimationElement = document.getElementById('initialPageLoadingAnimation');
         this.initialLoadingScreenCSS = document.getElementById('initialLoadingScreenCSS') as HTMLLinkElement | null;
-        this.loadingClasses = getLoadingClasses();
 
         this.handleAnimationEndEvent = this.handleAnimationEndEvent.bind(this);
 
@@ -71,7 +56,7 @@ export class InitialLoadingScreenClass {
 
         if (event.animationName === ANIMATION_CLASS_FOR_MATTERMOST_LOGO_HIDE || event.animationName === ANIMATION_CLASS_FOR_COMPLETE_LOADER_HIDE) {
             if (!this.isLoading) {
-                this.loadingAnimationElement.className = this.loadingClasses.STATIC_CLASS_FOR_ANIMATION;
+                this.loadingAnimationElement.className = STATIC_CLASS_FOR_ANIMATION;
 
                 // Automatically destroy the loading screen after the animation has finished.
                 // Should be changed if we want to loading animation to start again.
@@ -129,8 +114,8 @@ export class InitialLoadingScreenClass {
         this.isLoading = true;
         this.startTime = Date.now();
 
-        this.loadingScreenElement.className = this.loadingClasses.LOADING_CLASS_FOR_SCREEN;
-        this.loadingAnimationElement.className = this.loadingClasses.LOADING_CLASS_FOR_ANIMATION;
+        this.loadingScreenElement.className = LOADING_CLASS_FOR_SCREEN;
+        this.loadingAnimationElement.className = LOADING_CLASS_FOR_ANIMATION;
     }
 
     public stop(pageType: string) {
@@ -150,8 +135,8 @@ export class InitialLoadingScreenClass {
 
             this.isLoading = false;
 
-            this.loadingScreenElement.className = this.loadingClasses.LOADING_COMPLETE_CLASS_FOR_SCREEN;
-            this.loadingAnimationElement.className = this.loadingClasses.LOADING_COMPLETE_CLASS_FOR_ANIMATION;
+            this.loadingScreenElement.className = LOADING_COMPLETE_CLASS_FOR_SCREEN;
+            this.loadingAnimationElement.className = LOADING_COMPLETE_CLASS_FOR_ANIMATION;
 
             measureAndReport({
                 name: Measure.SplashScreen,
