@@ -15,8 +15,8 @@ import (
 
 func TestSaveScheduledPost(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+
 	user1ConnID := model.NewId()
 
 	t.Run("base case", func(t *testing.T) {
@@ -223,12 +223,61 @@ func TestSaveScheduledPost(t *testing.T) {
 		require.NotNil(t, appErr)
 		require.Nil(t, createdScheduledPost)
 	})
+
+	t.Run("cannot save scheduled post in restricted DM", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.RestrictDirectMessage = model.DirectMessageTeam
+		})
+
+		// Create a DM channel between two users who don't share a team
+		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
+
+		// Ensure the two users do not share a team
+		teams, err := th.App.GetTeamsForUser(th.BasicUser.Id)
+		require.Nil(t, err)
+		for _, team := range teams {
+			teamErr := th.App.RemoveUserFromTeam(th.Context, team.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+			require.Nil(t, teamErr)
+		}
+		teams, err = th.App.GetTeamsForUser(th.BasicUser2.Id)
+		require.Nil(t, err)
+		for _, team := range teams {
+			teamErr := th.App.RemoveUserFromTeam(th.Context, team.Id, th.BasicUser2.Id, th.SystemAdminUser.Id)
+			require.Nil(t, teamErr)
+		}
+
+		// Create separate teams for each user
+		team1 := th.CreateTeam(t)
+		team2 := th.CreateTeam(t)
+		th.LinkUserToTeam(t, th.BasicUser, team1)
+		th.LinkUserToTeam(t, th.BasicUser2, team2)
+
+		scheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    th.BasicUser.Id,
+				ChannelId: dmChannel.Id,
+				Message:   "this is a scheduled post",
+			},
+			ScheduledAt: model.GetMillis() + 1000,
+		}
+
+		_, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost, user1ConnID)
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.save_scheduled_post.restricted_dm.error", appErr.Id)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+
+		// Reset config
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.RestrictDirectMessage = model.DirectMessageAny
+		})
+	})
 }
 
 func TestGetUserTeamScheduledPosts(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+
 	user1ConnID := model.NewId()
 
 	t.Run("should get created scheduled posts", func(t *testing.T) {
@@ -313,7 +362,7 @@ func TestGetUserTeamScheduledPosts(t *testing.T) {
 		}()
 
 		// create a dummy team
-		secondTeam := th.CreateTeam()
+		secondTeam := th.CreateTeam(t)
 		_, appErr = th.App.JoinUserToTeam(th.Context, secondTeam, th.BasicUser, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
@@ -328,7 +377,7 @@ func TestGetUserTeamScheduledPosts(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// create a GM. Since a GM needs at least 3 users, we'll create a third user first
-		thirdUser := th.CreateUser()
+		thirdUser := th.CreateUser(t)
 		_, appErr = th.App.JoinUserToTeam(th.Context, th.BasicTeam, thirdUser, thirdUser.Id)
 		require.Nil(t, appErr)
 
@@ -376,7 +425,7 @@ func TestGetUserTeamScheduledPosts(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// create a GM. Since a GM needs at least 3 users, we'll create a third user first
-		thirdUser := th.CreateUser()
+		thirdUser := th.CreateUser(t)
 		_, appErr = th.App.JoinUserToTeam(th.Context, th.BasicTeam, thirdUser, thirdUser.Id)
 		require.Nil(t, appErr)
 
@@ -424,12 +473,12 @@ func TestGetUserTeamScheduledPosts(t *testing.T) {
 
 	t.Run("should not be able to fetch scheduled posts for team user doesn't belong to", func(t *testing.T) {
 		// create a dummy team
-		team := th.CreateTeam()
+		team := th.CreateTeam(t)
 		_, appErr := th.App.JoinUserToTeam(th.Context, team, th.BasicUser, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
 		// create a channel in this team
-		channel := th.CreateChannel(th.Context, team)
+		channel := th.CreateChannel(t, team)
 
 		// create scheduled post
 		scheduledPost1 := &model.ScheduledPost{
@@ -462,8 +511,8 @@ func TestGetUserTeamScheduledPosts(t *testing.T) {
 
 func TestUpdateScheduledPost(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+
 	user1ConnID := model.NewId()
 
 	t.Run("base case", func(t *testing.T) {
@@ -628,8 +677,8 @@ func TestUpdateScheduledPost(t *testing.T) {
 	})
 
 	t.Run("should be able to update scheduled posts for channels user does not belong to", func(t *testing.T) {
-		channel := th.CreateChannel(th.Context, th.BasicTeam)
-		th.AddUserToChannel(th.BasicUser, channel)
+		channel := th.CreateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, th.BasicUser, channel)
 
 		scheduledPost := &model.ScheduledPost{
 			Draft: model.Draft{
@@ -645,7 +694,7 @@ func TestUpdateScheduledPost(t *testing.T) {
 		require.NotNil(t, createdScheduledPost)
 
 		// now user will leave the channel
-		appErr = th.RemoveUserFromChannel(th.BasicUser, channel)
+		appErr = th.RemoveUserFromChannel(t, th.BasicUser, channel)
 		require.Nil(t, appErr)
 
 		createdScheduledPost.Message = "Updated message"
@@ -672,12 +721,100 @@ func TestUpdateScheduledPost(t *testing.T) {
 		require.NotNil(t, appErr)
 		require.Nil(t, updatedScheduledPost)
 	})
+
+	t.Run("burn on read scheduled post - verify type is preserved on create and update", func(t *testing.T) {
+		// Create a scheduled post with burn on read type
+		userId := model.NewId()
+
+		channel, err := th.GetSqlStore().Channel().Save(th.Context, &model.Channel{
+			Name:        model.NewId(),
+			DisplayName: "Channel",
+			Type:        model.ChannelTypeOpen,
+		}, 1000)
+		require.NoError(t, err)
+
+		_, err = th.GetSqlStore().Channel().SaveMember(th.Context, &model.ChannelMember{
+			ChannelId:   channel.Id,
+			UserId:      userId,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+			SchemeGuest: false,
+			SchemeUser:  true,
+		})
+		require.NoError(t, err)
+
+		defer func() {
+			_ = th.GetSqlStore().Channel().Delete(channel.Id, model.GetMillis())
+			_ = th.GetSqlStore().Channel().RemoveMember(th.Context, channel.Id, userId)
+		}()
+
+		scheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    userId,
+				ChannelId: channel.Id,
+				Message:   "this is a burn on read scheduled post",
+				Type:      model.PostTypeBurnOnRead,
+			},
+			ScheduledAt: model.GetMillis() + 100000, // 100 seconds in the future
+		}
+
+		createdScheduledPost, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost, user1ConnID)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdScheduledPost)
+
+		require.Equal(t, model.PostTypeBurnOnRead, createdScheduledPost.Type)
+
+		fetchedScheduledPost, err := th.Server.Store().ScheduledPost().Get(createdScheduledPost.Id)
+		require.NoError(t, err)
+		require.NotNil(t, fetchedScheduledPost)
+		require.Equal(t, model.PostTypeBurnOnRead, fetchedScheduledPost.Type)
+
+		createdScheduledPost.Message = "Updated burn on read message"
+		createdScheduledPost.ScheduledAt = model.GetMillis() + 200000
+		// Try to change the type - it should NOT change
+		createdScheduledPost.Type = ""
+
+		updatedScheduledPost, appErr := th.App.UpdateScheduledPost(th.Context, userId, createdScheduledPost, user1ConnID)
+		require.Nil(t, appErr)
+		require.NotNil(t, updatedScheduledPost)
+
+		// Verify the type is NOT changed - it should still be burn on read
+		require.Equal(t, model.PostTypeBurnOnRead, updatedScheduledPost.Type)
+		require.Equal(t, "Updated burn on read message", updatedScheduledPost.Message)
+
+		// Fetch again from store to verify the type is still burn on read in the database
+		reFetchedScheduledPost, err := th.Server.Store().ScheduledPost().Get(createdScheduledPost.Id)
+		require.NoError(t, err)
+		require.NotNil(t, reFetchedScheduledPost)
+		require.Equal(t, model.PostTypeBurnOnRead, reFetchedScheduledPost.Type)
+
+		// Try another update with a different type value - verify the type is still NOT changed
+		existingPost, err := th.Server.Store().ScheduledPost().Get(createdScheduledPost.Id)
+		require.NoError(t, err)
+		existingPost.Message = "Another update attempt"
+		existingPost.ScheduledAt = model.GetMillis() + 300000
+		// Try to change the type to a different value - verify it doesn't change
+		existingPost.Type = "some_other_type"
+
+		updatedScheduledPost2, appErr := th.App.UpdateScheduledPost(th.Context, userId, existingPost, user1ConnID)
+		require.Nil(t, appErr)
+		require.NotNil(t, updatedScheduledPost2)
+
+		// Verify the type remains burn on read even when we try to change it to a different value
+		require.Equal(t, model.PostTypeBurnOnRead, updatedScheduledPost2.Type)
+
+		// Final verification from store
+		finalFetchedScheduledPost, err := th.Server.Store().ScheduledPost().Get(createdScheduledPost.Id)
+		require.NoError(t, err)
+		require.NotNil(t, finalFetchedScheduledPost)
+		require.Equal(t, model.PostTypeBurnOnRead, finalFetchedScheduledPost.Type)
+	})
 }
 
 func TestDeleteScheduledPost(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+
 	user1ConnID := model.NewId()
 
 	t.Run("base case", func(t *testing.T) {
@@ -761,8 +898,7 @@ func TestDeleteScheduledPost(t *testing.T) {
 
 func TestPublishScheduledPostEvent(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	userID := th.BasicUser.Id
 

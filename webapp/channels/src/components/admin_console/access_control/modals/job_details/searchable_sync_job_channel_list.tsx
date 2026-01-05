@@ -239,7 +239,7 @@ const SearchableSyncJobChannelList = (props: Props) => {
     }
 
     const input = (
-        <div className='filter-row filter-row--full'>
+        <div className='filter-row'>
             <span
                 id='searchIcon'
                 aria-hidden='true'

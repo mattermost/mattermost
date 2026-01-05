@@ -1438,3 +1438,80 @@ describe('makeGetProfilesForThread', () => {
         expect(getProfilesForThread(state, '1001')).toEqual([]);
     });
 });
+
+describe('getSearchResults', () => {
+    it('should return empty array when no search results', () => {
+        const state = {
+            entities: {
+                posts: {
+                    posts: {},
+                },
+                search: {
+                    results: [],
+                },
+            },
+        } as unknown as GlobalState;
+
+        const results = Selectors.getSearchResults(state);
+        expect(results).toEqual([]);
+    });
+
+    it('should return posts for valid search result IDs', () => {
+        const post1 = p({id: 'post1', message: 'Hello'});
+        const post2 = p({id: 'post2', message: 'World'});
+
+        const state = {
+            entities: {
+                posts: {
+                    posts: {
+                        post1,
+                        post2,
+                    },
+                },
+                search: {
+                    results: ['post1', 'post2'],
+                },
+            },
+        } as unknown as GlobalState;
+
+        const results = Selectors.getSearchResults(state);
+        expect(results).toEqual([post1, post2]);
+    });
+
+    it('should filter out non-existent posts from search results', () => {
+        const post1 = p({id: 'post1', message: 'Hello'});
+
+        const state = {
+            entities: {
+                posts: {
+                    posts: {
+                        post1,
+                    },
+                },
+                search: {
+                    results: ['post1', 'non_existent_post', 'another_missing_post'],
+                },
+            },
+        } as unknown as GlobalState;
+
+        const results = Selectors.getSearchResults(state);
+        expect(results).toEqual([post1]);
+        expect(results).toHaveLength(1);
+    });
+
+    it('should return empty array when all search result posts are non-existent', () => {
+        const state = {
+            entities: {
+                posts: {
+                    posts: {},
+                },
+                search: {
+                    results: ['non_existent_post1', 'non_existent_post2'],
+                },
+            },
+        } as unknown as GlobalState;
+
+        const results = Selectors.getSearchResults(state);
+        expect(results).toEqual([]);
+    });
+});

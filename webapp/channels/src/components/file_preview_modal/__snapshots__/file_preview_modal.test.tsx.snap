@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/FilePreviewModal should fall back to default preview if plugin does not need to override preview component 1`] = `
 <Modal
@@ -125,7 +125,6 @@ exports[`components/FilePreviewModal should fall back to default preview if plug
           onClick={[Function]}
         >
           <LoadingImagePreview
-            containerClass="view-image__loading"
             loading={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="Loading"
@@ -266,7 +265,6 @@ exports[`components/FilePreviewModal should match snapshot 1`] = `
           onClick={[Function]}
         >
           <LoadingImagePreview
-            containerClass="view-image__loading"
             loading={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="Loading"
@@ -407,7 +405,6 @@ exports[`components/FilePreviewModal should match snapshot for external file 1`]
           onClick={[Function]}
         >
           <LoadingImagePreview
-            containerClass="view-image__loading"
             loading={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="Loading"
@@ -1033,8 +1030,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded with .js file
           className="file-preview-modal__content"
           onClick={[Function]}
         >
-          <CodePreview
-            className="file-preview-modal__code-preview"
+          <Memo(CodePreview)
             fileInfo={
               Object {
                 "archived": false,

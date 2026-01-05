@@ -9,6 +9,7 @@ import type {Team} from '@mattermost/types/teams';
 
 import {getCurrentLocale} from 'selectors/i18n';
 
+import type {ValueType} from 'components/dropdown_input';
 import DropdownInput from 'components/dropdown_input';
 
 export type Props = {
@@ -21,8 +22,8 @@ const TeamSelector = (props: Props): JSX.Element => {
     const intl = useIntl();
     const {formatMessage} = intl;
 
-    const handleTeamChange = useCallback((e) => {
-        const teamId = e.value as string;
+    const handleTeamChange = useCallback((value: ValueType) => {
+        const teamId = value.value;
 
         setValue(props.teamsById[teamId]);
         props.onChange(teamId);

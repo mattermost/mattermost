@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`/components/cloud_start_trial/input_business_email should match snapshot 1`] = `
 <ForwardRef

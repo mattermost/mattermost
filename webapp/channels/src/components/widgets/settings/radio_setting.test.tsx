@@ -1,15 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
+
+import {render, screen} from 'tests/react_testing_utils';
 
 import RadioSetting from './radio_setting';
 
 describe('components/widgets/settings/RadioSetting', () => {
-    test('render component with required props', () => {
+    test('should render component with required props', () => {
         const onChange = jest.fn();
-        const wrapper = shallow(
+        render(
             <RadioSetting
                 id='string.id'
                 label='some label'
@@ -22,65 +24,33 @@ describe('components/widgets/settings/RadioSetting', () => {
                 onChange={onChange}
             />,
         );
-        expect(wrapper).toMatchInlineSnapshot(`
-<Setting
-  inputClassName=""
-  inputId="string.id"
-  label="some label"
-  labelClassName=""
->
-  <div
-    className="radio"
-    key="Engineering"
-  >
-    <label>
-      <input
-        checked={false}
-        name="string.id"
-        onChange={[Function]}
-        type="radio"
-        value="Engineering"
-      />
-      this is engineering
-    </label>
-  </div>
-  <div
-    className="radio"
-    key="Sales"
-  >
-    <label>
-      <input
-        checked={true}
-        name="string.id"
-        onChange={[Function]}
-        type="radio"
-        value="Sales"
-      />
-      this is sales
-    </label>
-  </div>
-  <div
-    className="radio"
-    key="Administration"
-  >
-    <label>
-      <input
-        checked={false}
-        name="string.id"
-        onChange={[Function]}
-        type="radio"
-        value="Administration"
-      />
-      this is administration
-    </label>
-  </div>
-</Setting>
-`);
+
+        expect(screen.getByText('some label')).toBeInTheDocument();
+
+        const engineeringRadio = screen.getByRole('radio', {name: 'this is engineering'});
+        expect(engineeringRadio).toBeInTheDocument();
+        expect(engineeringRadio).not.toBeChecked();
+        expect(engineeringRadio).toHaveAttribute('value', 'Engineering');
+
+        const salesRadio = screen.getByRole('radio', {name: 'this is sales'});
+        expect(salesRadio).toBeInTheDocument();
+        expect(salesRadio).toBeChecked();
+        expect(salesRadio).toHaveAttribute('value', 'Sales');
+
+        const adminRadio = screen.getByRole('radio', {name: 'this is administration'});
+        expect(adminRadio).toBeInTheDocument();
+        expect(adminRadio).not.toBeChecked();
+        expect(adminRadio).toHaveAttribute('value', 'Administration');
+
+        // All should have the same name attribute
+        expect(engineeringRadio).toHaveAttribute('name', 'string.id');
+        expect(salesRadio).toHaveAttribute('name', 'string.id');
+        expect(adminRadio).toHaveAttribute('name', 'string.id');
     });
 
-    test('onChange', () => {
+    test('should call onChange when radio option is clicked', async () => {
         const onChange = jest.fn();
-        const wrapper = shallow(
+        render(
             <RadioSetting
                 id='string.id'
                 label='some label'
@@ -94,7 +64,8 @@ describe('components/widgets/settings/RadioSetting', () => {
             />,
         );
 
-        wrapper.find('input').at(0).simulate('change', {target: {value: 'Administration'}});
+        const adminRadio = screen.getByRole('radio', {name: 'this is administration'});
+        await userEvent.click(adminRadio);
 
         expect(onChange).toHaveBeenCalledTimes(1);
         expect(onChange).toHaveBeenCalledWith('string.id', 'Administration');

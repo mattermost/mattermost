@@ -19,12 +19,12 @@ export default function ConfirmModalRedux(props: Props) {
 
     const [show, setShow] = useState(true);
 
-    const wrappedOnCancel = useCallback((checked) => {
+    const wrappedOnCancel = useCallback((checked: boolean) => {
         onCancel?.(checked);
 
         setShow(false);
     }, [onCancel]);
-    const wrappedOnConfirm = useCallback((checked) => {
+    const wrappedOnConfirm = useCallback((checked: boolean) => {
         onConfirm?.(checked);
 
         setShow(false);

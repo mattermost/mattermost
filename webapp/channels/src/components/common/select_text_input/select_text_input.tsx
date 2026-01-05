@@ -21,7 +21,7 @@ type Props = {
     placeholder: string;
     value: string[];
     handleNewSelection: (selection: string) => void;
-    onChange: (option?: SelectTextInputOption[] | null) => void;
+    onChange: (option?: readonly SelectTextInputOption[] | null) => void;
     id?: string;
     isClearable?: boolean;
     description?: string;
@@ -103,13 +103,13 @@ const SelectTextInput = ({placeholder, value, handleNewSelection, onChange, id, 
 
     return (
         <>
-            <CreatableSelect
+            <CreatableSelect<SelectTextInputOption, true>
                 id={id}
                 className='select-text-input'
                 styles={styles}
                 components={components}
                 isClearable={isClearable}
-                onChange={useCallback((value) => onChange(value as SelectTextInputOption[]), [onChange])}
+                onChange={useCallback((value: readonly SelectTextInputOption[]) => onChange(value), [onChange])}
                 inputValue={inputValue}
                 isMulti={true}
                 menuIsOpen={false}

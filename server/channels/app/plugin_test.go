@@ -5,22 +5,18 @@ package app
 
 import (
 	"archive/tar"
-	"bytes"
 	"compress/gzip"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
-	"net/http"
-	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"sort"
 	"testing"
 	"time"
 
-	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -40,7 +36,6 @@ func getHashedKey(key string) string {
 func TestPluginKeyValueStore(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	pluginID := "testpluginid"
 
@@ -141,7 +136,6 @@ func TestPluginKeyValueStore(t *testing.T) {
 func TestPluginKeyValueStoreCompareAndSet(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	pluginID := "testpluginid"
 
@@ -202,7 +196,6 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 
 	t.Run("storing a value without providing options works", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		result, err := th.App.SetPluginKeyWithOptions(pluginID, "key", []byte("value-1"), model.PluginKVSetOptions{})
 		assert.True(t, result)
@@ -216,7 +209,6 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 
 	t.Run("test that setting it atomic when it doesn't match doesn't change anything", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		err := th.App.SetPluginKey(pluginID, "key", []byte("value-1"))
 		require.Nil(t, err)
@@ -236,7 +228,6 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 
 	t.Run("test the atomic change with the proper old value", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		err := th.App.SetPluginKey(pluginID, "key", []byte("value-2"))
 		require.Nil(t, err)
@@ -256,7 +247,6 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 
 	t.Run("when new value is nil and old value matches with the current, it should delete the currently set value", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		// first set a value.
 		result, err := th.App.SetPluginKeyWithOptions(pluginID, "nil-test-key-2", []byte("value-1"), model.PluginKVSetOptions{})
@@ -278,7 +268,6 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 
 	t.Run("when new value is nil and there is a value set for the key already, it should delete the currently set value", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		// first set a value.
 		result, err := th.App.SetPluginKeyWithOptions(pluginID, "nil-test-key-3", []byte("value-1"), model.PluginKVSetOptions{})
@@ -303,7 +292,6 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 
 	t.Run("when old value is nil and there is no value set for the key before, it should set the new value", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		result, err := th.App.SetPluginKeyWithOptions(pluginID, "nil-test-key-4", []byte("value-1"), model.PluginKVSetOptions{
 			Atomic:   true,
@@ -319,7 +307,6 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 
 	t.Run("test that value is set and unset with ExpireInSeconds", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		result, err := th.App.SetPluginKeyWithOptions(pluginID, "key", []byte("value-1"), model.PluginKVSetOptions{
 			ExpireInSeconds: 1,
@@ -341,117 +328,9 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 	})
 }
 
-func TestServePluginRequest(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := Setup(t)
-	defer th.TearDown()
-
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
-
-	w := httptest.NewRecorder()
-	r := httptest.NewRequest("GET", "/plugins/foo/bar", nil)
-	th.App.ch.ServePluginRequest(w, r)
-	assert.Equal(t, http.StatusNotImplemented, w.Result().StatusCode)
-}
-
-func TestPrivateServePluginRequest(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := Setup(t)
-	defer th.TearDown()
-
-	testCases := []struct {
-		Description string
-		ConfigFunc  func(cfg *model.Config)
-		URL         string
-		ExpectedURL string
-	}{
-		{
-			"no subpath",
-			func(cfg *model.Config) {},
-			"/plugins/id/endpoint",
-			"/endpoint",
-		},
-		{
-			"subpath",
-			func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL += "/subpath" },
-			"/subpath/plugins/id/endpoint",
-			"/endpoint",
-		},
-	}
-
-	for _, testCase := range testCases {
-		t.Run(testCase.Description, func(t *testing.T) {
-			th.App.UpdateConfig(testCase.ConfigFunc)
-			expectedBody := []byte("body")
-			request := httptest.NewRequest(http.MethodGet, testCase.URL, bytes.NewReader(expectedBody))
-			recorder := httptest.NewRecorder()
-
-			handler := func(context *plugin.Context, w http.ResponseWriter, r *http.Request) {
-				assert.Equal(t, testCase.ExpectedURL, r.URL.Path)
-
-				body, _ := io.ReadAll(r.Body)
-				assert.Equal(t, expectedBody, body)
-			}
-
-			request = mux.SetURLVars(request, map[string]string{"plugin_id": "id"})
-
-			th.App.ch.servePluginRequest(recorder, request, handler)
-		})
-	}
-}
-
-func TestHandlePluginRequest(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.PluginSettings.Enable = false
-		*cfg.ServiceSettings.EnableUserAccessTokens = true
-	})
-
-	token, err := th.App.CreateUserAccessToken(th.Context, &model.UserAccessToken{
-		UserId: th.BasicUser.Id,
-	})
-	require.Nil(t, err)
-
-	var assertions func(*http.Request)
-	router := mux.NewRouter()
-	router.HandleFunc("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}/{anything:.*}", func(_ http.ResponseWriter, r *http.Request) {
-		th.App.ch.servePluginRequest(nil, r, func(_ *plugin.Context, _ http.ResponseWriter, r *http.Request) {
-			assertions(r)
-		})
-	})
-
-	r := httptest.NewRequest("GET", "/plugins/foo/bar", nil)
-	r.Header.Add("Authorization", "Bearer "+token.Token)
-	assertions = func(r *http.Request) {
-		assert.Equal(t, "/bar", r.URL.Path)
-		assert.Equal(t, th.BasicUser.Id, r.Header.Get("Mattermost-User-Id"))
-	}
-	router.ServeHTTP(nil, r)
-
-	r = httptest.NewRequest("GET", "/plugins/foo/bar?a=b&access_token="+token.Token+"&c=d", nil)
-	assertions = func(r *http.Request) {
-		assert.Equal(t, "/bar", r.URL.Path)
-		assert.Equal(t, "a=b&c=d", r.URL.RawQuery)
-		assert.Equal(t, th.BasicUser.Id, r.Header.Get("Mattermost-User-Id"))
-	}
-	router.ServeHTTP(nil, r)
-
-	r = httptest.NewRequest("GET", "/plugins/foo/bar?a=b&access_token=asdf&c=d", nil)
-	assertions = func(r *http.Request) {
-		assert.Equal(t, "/bar", r.URL.Path)
-		assert.Equal(t, "a=b&c=d", r.URL.RawQuery)
-		assert.Empty(t, r.Header.Get("Mattermost-User-Id"))
-	}
-	router.ServeHTTP(nil, r)
-}
-
 func TestGetPluginStatusesDisabled(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PluginSettings.Enable = false
@@ -465,7 +344,6 @@ func TestGetPluginStatusesDisabled(t *testing.T) {
 func TestGetPluginStatuses(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PluginSettings.Enable = true
@@ -485,7 +363,6 @@ func TestPluginSync(t *testing.T) {
 			filepath.Join(path, "development-private-key.asc"),
 		}
 	})
-	defer th.TearDown()
 
 	testCases := []struct {
 		Description string
@@ -642,7 +519,6 @@ func TestPluginSync(t *testing.T) {
 func TestChannelsPluginsInit(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	runNoPanicTest := func(t *testing.T) {
 		path, _ := fileutils.FindDir("tests")
@@ -672,7 +548,6 @@ func TestChannelsPluginsInit(t *testing.T) {
 func TestSyncPluginsActiveState(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PluginSettings.Enable = true
@@ -732,8 +607,7 @@ func TestSyncPluginsActiveState(t *testing.T) {
 func TestPluginPanicLogs(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should panic", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
 			`
@@ -781,8 +655,7 @@ func TestPluginPanicLogs(t *testing.T) {
 func TestPluginStatusActivateError(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should return error from OnActivate in plugin statuses", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		pluginSource := `
 		package main
@@ -842,7 +715,6 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 				filepath.Join(testsPath, "development-private-key.asc"),
 			}
 		})
-		t.Cleanup(th.TearDown)
 
 		// Make a prepackaged_plugins directory for use with the tests.
 		err := os.Mkdir(filepath.Join(th.tempWorkspace, prepackagedPluginsDir), os.ModePerm)
@@ -1379,7 +1251,6 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 func TestGetPluginStateOverride(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	t.Run("no override", func(t *testing.T) {
 		overrides, value := th.App.ch.getPluginStateOverride("focalboard")
@@ -1399,7 +1270,6 @@ func TestGetPluginStateOverride(t *testing.T) {
 			th2 := SetupConfig(t, func(cfg *model.Config) {
 				cfg.FeatureFlags.AppsEnabled = true
 			})
-			defer th2.TearDown()
 
 			overrides, value := th2.App.ch.getPluginStateOverride("com.mattermost.apps")
 			require.False(t, overrides)
@@ -1411,7 +1281,6 @@ func TestGetPluginStateOverride(t *testing.T) {
 			th2 := SetupConfig(t, func(cfg *model.Config) {
 				cfg.FeatureFlags.AppsEnabled = false
 			})
-			defer th2.TearDown()
 
 			overrides, value := th2.App.ch.getPluginStateOverride("com.mattermost.apps")
 			require.True(t, overrides)

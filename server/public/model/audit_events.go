@@ -11,6 +11,7 @@ const (
 	AuditEventDeleteAccessControlPolicy = "deleteAccessControlPolicy" // delete access control policy
 	AuditEventUnassignAccessPolicy      = "unassignAccessPolicy"      // remove access control policy from channels
 	AuditEventUpdateActiveStatus        = "updateActiveStatus"        // update active/inactive status of access control policy
+	AuditEventSetActiveStatus           = "setActiveStatus"           // set active/inactive status of multiple access control policies
 )
 
 // Audit & Certificates
@@ -221,6 +222,7 @@ const (
 	AuditEventLoginWithOAuth                             = "loginWithOAuth"                             // login using OAuth authentication provider
 	AuditEventMobileLoginWithOAuth                       = "mobileLoginWithOAuth"                       // mobile application login using OAuth authentication provider
 	AuditEventRegenerateOAuthAppSecret                   = "regenerateOAuthAppSecret"                   // regenerate secret key for OAuth app
+	AuditEventRegisterOAuthClient                        = "registerOAuthClient"                        // register OAuth client via dynamic client registration (RFC 7591)
 	AuditEventSignupWithOAuth                            = "signupWithOAuth"                            // create account using OAuth authentication provider
 	AuditEventUpdateOAuthApp                             = "updateOAuthApp"                             // update OAuth app
 	AuditEventUpdateOutgoingOAuthConnection              = "updateOutgoingOAuthConnection"              // update outgoing OAuth connection
@@ -251,6 +253,8 @@ const (
 	AuditEventSaveIsPinnedPost   = "saveIsPinnedPost"   // pin or unpin post
 	AuditEventSearchPosts        = "searchPosts"        // search for posts
 	AuditEventUpdatePost         = "updatePost"         // update post content
+	AuditEventRevealPost         = "revealPost"         // reveal a post that was hidden due to burn on read
+	AuditEventBurnPost           = "burnPost"           // burn a post that was hidden due to burn on read
 )
 
 // Preferences
@@ -426,4 +430,14 @@ const (
 	AuditEventRegenOutgoingHookToken  = "regenOutgoingHookToken"  // regenerate authentication token
 	AuditEventUpdateIncomingHook      = "updateIncomingHook"      // update incoming webhook
 	AuditEventUpdateOutgoingHook      = "updateOutgoingHook"      // update outgoing webhook
+)
+
+// Content Flagging
+const (
+	AuditEventFlagPost                     = "flagPost"                     // flag post for review
+	AuditEventGetFlaggedPost               = "getFlaggedPost"               // get flagged post details
+	AuditEventPermanentlyRemoveFlaggedPost = "permanentlyRemoveFlaggedPost" // permanently remove flagged post
+	AuditEventKeepFlaggedPost              = "keepFlaggedPost"              // keep flagged post
+	AuditEventUpdateContentFlaggingConfig  = "updateContentFlaggingConfig"  // update content flagging configuration
+	AuditEventSetReviewer                  = "setFlaggedPostReviewer"       // assign reviewer for flagged post
 )

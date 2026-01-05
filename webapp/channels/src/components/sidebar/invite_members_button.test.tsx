@@ -46,9 +46,7 @@ describe('components/sidebar/invite_members_button', () => {
         },
     };
 
-    const props = {
-        isAdmin: false,
-    };
+    const props = {};
 
     const store = mockStore(state);
     jest.spyOn(teams, 'getCurrentTeamId').mockReturnValue('team_id2sss');

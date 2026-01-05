@@ -16,7 +16,7 @@ import {TeamIcon} from 'components/widgets/team_icon/team_icon';
 
 import * as Utils from 'utils/utils';
 
-import {UserMultiSelector} from '../../user_multiselector/user_multiselector';
+import {UserSelector} from '../../user_multiselector/user_multiselector';
 
 import './team_reviewers_section.scss';
 
@@ -25,9 +25,10 @@ const GET_TEAMS_PAGE_SIZE = 10;
 type Props = {
     teamReviewersSetting: Record<string, TeamReviewerSetting>;
     onChange: (updatedTeamSettings: Record<string, TeamReviewerSetting>) => void;
+    disabled?: boolean;
 }
 
-export default function TeamReviewers({teamReviewersSetting, onChange}: Props): JSX.Element {
+export default function TeamReviewers({teamReviewersSetting, onChange, disabled}: Props): JSX.Element {
     const intl = useIntl();
     const dispatch = useDispatch();
 
@@ -141,10 +142,12 @@ export default function TeamReviewers({teamReviewersSetting, onChange}: Props): 
                     </div>
                 ),
                 reviewers: (
-                    <UserMultiSelector
+                    <UserSelector
+                        isMulti={true}
                         id={`team_content_reviewer_${team.id}`}
-                        initialValue={teamReviewersSetting[team.id]?.ReviewerIds || []}
-                        onChange={getHandleReviewersChange(team.id)}
+                        multiSelectInitialValue={teamReviewersSetting[team.id]?.ReviewerIds || []}
+                        multiSelectOnChange={getHandleReviewersChange(team.id)}
+                        disabled={disabled}
                     />
                 ),
                 enabled: (
@@ -154,11 +157,12 @@ export default function TeamReviewers({teamReviewersSetting, onChange}: Props): 
                         size='btn-md'
                         onToggle={getHandleToggle(team.id)}
                         toggled={teamReviewersSetting[team.id]?.Enabled || false}
+                        disabled={disabled}
                     />
                 ),
             },
         }));
-    }, [getHandleReviewersChange, getHandleToggle, intl, teamReviewersSetting, teams]);
+    }, [disabled, getHandleReviewersChange, getHandleToggle, intl, teamReviewersSetting, teams]);
 
     const nextPage = useCallback(() => {
         if ((page * GET_TEAMS_PAGE_SIZE) + GET_TEAMS_PAGE_SIZE < total) {
@@ -177,17 +181,33 @@ export default function TeamReviewers({teamReviewersSetting, onChange}: Props): 
         setPage(0); // Reset to first page on new search
     }, []);
 
+    const handleDisableForAllTeams = useCallback(() => {
+        const updatedTeamSettings: Record<string, TeamReviewerSetting> = {};
+
+        Object.entries(teamReviewersSetting).forEach(([teamId, teamSettings]) => {
+            updatedTeamSettings[teamId] = {
+                ...teamSettings,
+                Enabled: false,
+            };
+        });
+
+        onChange(updatedTeamSettings);
+    }, [onChange, teamReviewersSetting]);
+
     const disableAllBtn = useMemo(() => (
         <div className='TeamReviewers__disable-all'>
             <button
-                data-testid='copyText'
+                data-testid='disableForAllTeamsButton'
                 className='btn btn-link icon-close'
                 aria-label={intl.formatMessage({id: 'admin.contentFlagging.reviewerSettings.disableAll', defaultMessage: 'Disable for all teams'})}
+                disabled={disabled}
+                aria-disabled={disabled}
+                onClick={handleDisableForAllTeams}
             >
                 {intl.formatMessage({id: 'admin.contentFlagging.reviewerSettings.disableAll', defaultMessage: 'Disable for all teams'})}
             </button>
         </div>
-    ), [intl]);
+    ), [disabled, intl, handleDisableForAllTeams]);
 
     return (
         <div className='TeamReviewers'>
@@ -204,6 +224,7 @@ export default function TeamReviewers({teamReviewersSetting, onChange}: Props): 
                 onSearch={setSearchTerm}
                 extraComponent={disableAllBtn}
                 term={teamSearchTerm}
+                disabled={disabled}
             />
         </div>
     );

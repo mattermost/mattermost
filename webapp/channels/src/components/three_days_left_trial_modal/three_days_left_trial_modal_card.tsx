@@ -3,8 +3,6 @@
 
 import React from 'react';
 
-import {TELEMETRY_CATEGORIES} from 'utils/constants';
-
 import LearnMoreActionButton from './learn_more_action_button';
 
 import './three_days_left_trial_modal.scss';
@@ -48,12 +46,9 @@ const ThreeDaysLeftTrialCard = (
                     {description}
                     {(pageURL && buttonLabel) && (
                         <LearnMoreActionButton
-                            id={id}
                             route={pageURL}
                             message={buttonLabel}
                             onClick={onClose}
-                            telemetryCategory={TELEMETRY_CATEGORIES.CLOUD_THREE_DAYS_LEFT_MODAL}
-                            telemetryId={'three_days_left_trial'}
                         />
                     )}
                 </div>

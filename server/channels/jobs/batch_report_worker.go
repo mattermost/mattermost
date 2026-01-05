@@ -49,7 +49,7 @@ func MakeBatchReportWorker(
 	return worker
 }
 
-func (worker *BatchReportWorker) doBatch(rctx *request.Context, job *model.Job) bool {
+func (worker *BatchReportWorker) doBatch(rctx request.CTX, job *model.Job) bool {
 	reportData, nextData, done, err := worker.getData(job.Data)
 	if err != nil {
 		worker.logger.Error("Worker: Failed to get data for report batch. Exiting", mlog.Err(err))

@@ -1,5 +1,5 @@
 # First stage - Ubuntu with document processing dependencies and curl for downloading
-FROM ubuntu:noble-20250415.1@sha256:dc17125eaac86538c57da886e494a34489122fb6a3ebb6411153d742594c2ddc AS builder
+FROM ubuntu:noble-20251013@sha256:c35e29c9450151419d9448b0fd75374fec4fff364a27f176fb458d472dfc9e54 AS builder
 # Setting bash as our shell, and enabling pipefail option
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -7,7 +7,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ARG PUID=2000
 ARG PGID=2000
 # MM_PACKAGE build arguments controls which version of mattermost to install, defaults to latest stable enterprise
-# i.e. https://releases.mattermost.com/9.7.1/mattermost-9.7.1-linux-amd64.tar.gz
+# e.g. https://releases.mattermost.com/9.7.1/mattermost-9.7.1-linux-amd64.tar.gz
 ARG MM_PACKAGE="https://latest.mattermost.com/mattermost-enterprise-linux"
 
 # Install needed packages and indirect dependencies
@@ -41,6 +41,7 @@ FROM gcr.io/distroless/base-debian12
 # Some ENV variables
 ENV PATH="/mattermost/bin:${PATH}"
 ENV MM_SERVICESETTINGS_ENABLELOCALMODE="true"
+ENV MM_INSTALL_TYPE="docker"
 
 # Copy over metadata files needed by runtime
 COPY --from=builder /etc/mime.types /etc

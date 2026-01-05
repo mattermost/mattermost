@@ -41,7 +41,7 @@ export async function ensureLicense() {
     let license = await adminClient.getClientLicenseOld();
 
     if (license?.IsLicensed !== 'true') {
-        const config = await adminClient.getClientConfigOld();
+        const config = await adminClient.getClientConfig();
         expect(
             config.ServiceEnvironment === 'dev',
             'The trial license request fails in the local development environment. Please manually upload the test license.',

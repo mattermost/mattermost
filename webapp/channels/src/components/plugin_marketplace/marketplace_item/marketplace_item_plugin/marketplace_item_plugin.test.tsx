@@ -223,7 +223,6 @@ describe('components/MarketplaceItemPlugin', () => {
             iconData: 'icon',
             installing: false,
             isDefaultMarketplace: true,
-            trackEvent: jest.fn(() => {}),
             actions: {
                 installPlugin: jest.fn(() => {}),
                 closeMarketplaceModal: jest.fn(() => {}),
@@ -401,110 +400,6 @@ describe('components/MarketplaceItemPlugin', () => {
             );
 
             expect(wrapper).toMatchSnapshot();
-        });
-
-        describe('should track detailed event with default marketplace', () => {
-            test('on install', () => {
-                const props = {
-                    ...baseProps,
-                    isDefaultMarketplace: true,
-                };
-
-                const wrapper = shallow<MarketplaceItemPlugin>(
-                    <MarketplaceItemPlugin {...props}/>,
-                );
-
-                wrapper.instance().onInstall();
-                expect(props.trackEvent).toBeCalledWith('plugins', 'ui_marketplace_download', {
-                    plugin_id: 'id',
-                    version: '1.0.0',
-                    installed_version: '',
-                });
-            });
-
-            test('on update', () => {
-                const props = {
-                    ...baseProps,
-                    version: '2.0.0',
-                    installedVersion: '1.0.0',
-                    isDefaultMarketplace: true,
-                };
-
-                const wrapper = shallow<MarketplaceItemPlugin>(
-                    <MarketplaceItemPlugin {...props}/>,
-                );
-
-                wrapper.instance().onUpdate();
-                expect(props.trackEvent).toBeCalledWith('plugins', 'ui_marketplace_download_update', {
-                    plugin_id: 'id',
-                    version: '2.0.0',
-                    installed_version: '1.0.0',
-                });
-            });
-
-            test('but not configure', () => {
-                const props = {
-                    ...baseProps,
-                    version: '2.0.0',
-                    installedVersion: '1.0.0',
-                    isDefaultMarketplace: true,
-                };
-
-                const wrapper = shallow<MarketplaceItemPlugin>(
-                    <MarketplaceItemPlugin {...props}/>,
-                );
-
-                wrapper.instance().onConfigure();
-                expect(props.trackEvent).toBeCalledWith('plugins', 'ui_marketplace_configure');
-            });
-        });
-
-        describe('should track limited event with non-default marketplace', () => {
-            test('on install', () => {
-                const props = {
-                    ...baseProps,
-                    isDefaultMarketplace: false,
-                };
-
-                const wrapper = shallow<MarketplaceItemPlugin>(
-                    <MarketplaceItemPlugin {...props}/>,
-                );
-
-                wrapper.instance().onInstall();
-                expect(props.trackEvent).toBeCalledWith('plugins', 'ui_marketplace_download');
-            });
-
-            test('on update', () => {
-                const props = {
-                    ...baseProps,
-                    version: '2.0.0',
-                    installedVersion: '1.0.0',
-                    isDefaultMarketplace: false,
-                };
-
-                const wrapper = shallow<MarketplaceItemPlugin>(
-                    <MarketplaceItemPlugin {...props}/>,
-                );
-
-                wrapper.instance().onUpdate();
-                expect(props.trackEvent).toBeCalledWith('plugins', 'ui_marketplace_download_update');
-            });
-
-            test('on configure', () => {
-                const props = {
-                    ...baseProps,
-                    version: '2.0.0',
-                    installedVersion: '1.0.0',
-                    isDefaultMarketplace: false,
-                };
-
-                const wrapper = shallow<MarketplaceItemPlugin>(
-                    <MarketplaceItemPlugin {...props}/>,
-                );
-
-                wrapper.instance().onConfigure();
-                expect(props.trackEvent).toBeCalledWith('plugins', 'ui_marketplace_configure');
-            });
         });
     });
 });

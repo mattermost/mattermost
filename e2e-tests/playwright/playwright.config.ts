@@ -20,6 +20,9 @@ export default defineConfig({
             maxDiffPixelRatio: 0.0001,
             animations: 'disabled',
         },
+        toMatchAriaSnapshot: {
+            pathTemplate: '{testDir}/{testFilePath}-snapshots-a11y/{arg}{ext}',
+        },
     },
     use: {
         baseURL: testConfig.baseURL,

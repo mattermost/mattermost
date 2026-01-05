@@ -27,15 +27,16 @@ func newSqlOAuthStore(sqlStore *SqlStore) store.OAuthStore {
 	}
 
 	s.oAuthAppsSelectQuery = s.getQueryBuilder().
-		Select("o.Id", "o.CreatorId", "o.CreateAt", "o.UpdateAt", "o.ClientSecret", "o.Name", "o.Description", "o.IconURL", "o.CallbackUrls", "o.Homepage", "o.IsTrusted", "o.MattermostAppID").
+		Select("o.Id", "o.CreatorId", "o.CreateAt", "o.UpdateAt", "o.ClientSecret", "o.Name", "o.Description", "o.IconURL", "o.CallbackUrls", "o.Homepage", "o.IsTrusted", "o.MattermostAppID",
+			"o.IsDynamicallyRegistered").
 		From("OAuthApps o")
 
 	s.oAuthAccessDataQuery = s.getQueryBuilder().
-		Select("ClientId", "UserId", "Token", "RefreshToken", "RedirectUri", "ExpiresAt", "Scope").
+		Select("ClientId", "UserId", "Token", "RefreshToken", "RedirectUri", "ExpiresAt", "Scope", "Audience").
 		From("OAuthAccessData")
 
 	s.oAuthAuthDataQuery = s.getQueryBuilder().
-		Select("ClientId", "UserId", "Code", "ExpiresIn", "CreateAt", "RedirectUri", "State", "Scope").
+		Select("ClientId", "UserId", "Code", "ExpiresIn", "CreateAt", "RedirectUri", "State", "Scope", "CodeChallenge", "CodeChallengeMethod", "Resource").
 		From("OAuthAuthData")
 
 	return &s
@@ -52,9 +53,11 @@ func (as SqlOAuthStore) SaveApp(app *model.OAuthApp) (*model.OAuthApp, error) {
 	}
 
 	if _, err := as.GetMaster().NamedExec(`INSERT INTO OAuthApps
-		(Id, CreatorId, CreateAt, UpdateAt, ClientSecret, Name, Description, IconURL, CallbackUrls, Homepage, IsTrusted, MattermostAppID)
+		(Id, CreatorId, CreateAt, UpdateAt, ClientSecret, Name, Description, IconURL, CallbackUrls, Homepage, IsTrusted, MattermostAppID,
+		 IsDynamicallyRegistered)
 		VALUES
-		(:Id, :CreatorId, :CreateAt, :UpdateAt, :ClientSecret, :Name, :Description, :IconURL, :CallbackUrls, :Homepage, :IsTrusted, :MattermostAppID)`, app); err != nil {
+		(:Id, :CreatorId, :CreateAt, :UpdateAt, :ClientSecret, :Name, :Description, :IconURL, :CallbackUrls, :Homepage, :IsTrusted, :MattermostAppID,
+		 :IsDynamicallyRegistered)`, app); err != nil {
 		return nil, errors.Wrap(err, "failed to save OAuthApp")
 	}
 	return app, nil
@@ -84,7 +87,8 @@ func (as SqlOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, error) 
 	res, err := as.GetMaster().NamedExec(`UPDATE OAuthApps
 		SET UpdateAt=:UpdateAt, ClientSecret=:ClientSecret, Name=:Name,
 			Description=:Description, IconURL=:IconURL, CallbackUrls=:CallbackUrls,
-			Homepage=:Homepage, IsTrusted=:IsTrusted, MattermostAppID=:MattermostAppID
+			Homepage=:Homepage, IsTrusted=:IsTrusted, MattermostAppID=:MattermostAppID,
+			IsDynamicallyRegistered=:IsDynamicallyRegistered
 		WHERE Id=:Id`, app)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to update OAuthApp with id=%s", app.Id)
@@ -112,6 +116,7 @@ func (as SqlOAuthStore) GetApp(id string) (*model.OAuthApp, error) {
 	if app.Id == "" {
 		return nil, store.NewErrNotFound("OAuthApp", id)
 	}
+
 	return &app, nil
 }
 
@@ -179,9 +184,9 @@ func (as SqlOAuthStore) SaveAccessData(accessData *model.AccessData) (*model.Acc
 	}
 
 	if _, err := as.GetMaster().NamedExec(`INSERT INTO OAuthAccessData
-		(ClientId, UserId, Token, RefreshToken, RedirectUri, ExpiresAt, Scope)
+		(ClientId, UserId, Token, RefreshToken, RedirectUri, ExpiresAt, Scope, Audience)
 		VALUES
-		(:ClientId, :UserId, :Token, :RefreshToken, :RedirectUri, :ExpiresAt, :Scope)`, accessData); err != nil {
+		(:ClientId, :UserId, :Token, :RefreshToken, :RedirectUri, :ExpiresAt, :Scope, :Audience)`, accessData); err != nil {
 		return nil, errors.Wrap(err, "failed to save AccessData")
 	}
 	return accessData, nil
@@ -241,7 +246,7 @@ func (as SqlOAuthStore) UpdateAccessData(accessData *model.AccessData) (*model.A
 		return nil, err
 	}
 
-	if _, err := as.GetMaster().NamedExec("UPDATE OAuthAccessData SET Token = :Token, ExpiresAt = :ExpiresAt, RefreshToken = :RefreshToken WHERE ClientId = :ClientId AND UserID = :UserId", accessData); err != nil {
+	if _, err := as.GetMaster().NamedExec("UPDATE OAuthAccessData SET Token = :Token, ExpiresAt = :ExpiresAt, RefreshToken = :RefreshToken, Audience = :Audience WHERE ClientId = :ClientId AND UserID = :UserId", accessData); err != nil {
 		return nil, errors.Wrapf(err, "failed to update OAuthAccessData with userId=%s and clientId=%s", accessData.UserId, accessData.ClientId)
 	}
 	return accessData, nil
@@ -268,9 +273,9 @@ func (as SqlOAuthStore) SaveAuthData(authData *model.AuthData) (*model.AuthData,
 	}
 
 	if _, err := as.GetMaster().NamedExec(`INSERT INTO OAuthAuthData
-		(ClientId, UserId, Code, ExpiresIn, CreateAt, RedirectUri, State, Scope)
+		(ClientId, UserId, Code, ExpiresIn, CreateAt, RedirectUri, State, Scope, CodeChallenge, CodeChallengeMethod, Resource)
 		VALUES
-		(:ClientId, :UserId, :Code, :ExpiresIn, :CreateAt, :RedirectUri, :State, :Scope)`, authData); err != nil {
+		(:ClientId, :UserId, :Code, :ExpiresIn, :CreateAt, :RedirectUri, :State, :Scope, :CodeChallenge, :CodeChallengeMethod, :Resource)`, authData); err != nil {
 		return nil, errors.Wrap(err, "failed to save AuthData")
 	}
 	return authData, nil

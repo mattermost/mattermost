@@ -61,9 +61,9 @@ const LDAPCustomSetting = (props: Props) => {
     if (props.setting.showTitle) {
         return (
             <Setting
-                label={props.setting.label}
+                label={label}
                 inputId={props.setting.key}
-                helpText={props.setting.help_text}
+                helpText={helpText}
             >
                 {componentInstance}
             </Setting>

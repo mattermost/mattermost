@@ -611,11 +611,11 @@ describe('components/ProfilePopover', () => {
         };
 
         renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
-        await act(async () => {
-            expect(await screen.findByText('Private')).toBeInTheDocument();
-            expect(await screen.findByText('CO')).toBeInTheDocument();
-            expect(await screen.findByText('Seargent York')).toBeInTheDocument();
-        });
+
+        expect(await screen.findByText('Private')).toBeInTheDocument();
+        expect(await screen.findByText('CO')).toBeInTheDocument();
+        expect(await screen.findByText('Seargent York')).toBeInTheDocument();
+
         expect(screen.queryByText('Rank')).toBeInTheDocument();
         expect(screen.queryByText('Base')).not.toBeInTheDocument();
     });
@@ -648,10 +648,9 @@ describe('components/ProfilePopover', () => {
         };
 
         renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
-        await act(async () => {
-            expect(await screen.findByText('Engineering')).toBeInTheDocument();
-            expect(screen.queryByText('opt1')).not.toBeInTheDocument();
-        });
+
+        expect(await screen.findByText('Engineering')).toBeInTheDocument();
+        expect(screen.queryByText('opt1')).not.toBeInTheDocument();
     });
 
     test('should display multiselect attribute values correctly', async () => {
@@ -682,10 +681,9 @@ describe('components/ProfilePopover', () => {
         };
 
         renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
-        await act(async () => {
-            expect(await screen.findByText(/JavaScript/)).toBeInTheDocument();
-            expect(await screen.findByText(/Python/)).toBeInTheDocument();
-        });
+
+        expect(await screen.findByText(/JavaScript/)).toBeInTheDocument();
+        expect(await screen.findByText(/Python/)).toBeInTheDocument();
     });
 
     test('should not display attributes if user attributes is null', async () => {
@@ -757,9 +755,8 @@ describe('components/ProfilePopover', () => {
         };
 
         renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
-        await act(async () => {
-            expect(await screen.findByText('Private')).toBeInTheDocument();
-            expect(await screen.findByText('Seargent York')).toBeInTheDocument();
-        });
+
+        expect(await screen.findByText('Private')).toBeInTheDocument();
+        expect(await screen.findByText('Seargent York')).toBeInTheDocument();
     });
 });

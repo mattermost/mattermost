@@ -1,8 +1,9 @@
 {
   "about.buildnumber": "رقم النسخة:",
   "about.cloudEdition": "سحابة",
+  "about.copyright": "جميع الحقوق محفوظة 2015 - {currentYear} لماترموست",
+  "about.database": "قاعدة البيانات:",
   "about.date": "تاريخ الاصدار:",
-  "about.enterpriseEditione1": "النسخة المؤسسية",
   "about.teamEditiont0": "النسخة المحددة للفريق",
   "about.teamEditiont1": "النسخة المؤسسية"
 }

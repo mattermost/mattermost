@@ -14,21 +14,20 @@ import (
 
 func TestSidebarCategory(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	basicChannel2 := th.CreateChannel(th.Context, th.BasicTeam)
+	basicChannel2 := th.CreateChannel(t, th.BasicTeam)
 	defer func() {
 		err := th.App.PermanentDeleteChannel(th.Context, basicChannel2)
 		require.Nil(t, err)
 	}()
-	user := th.CreateUser()
+	user := th.CreateUser(t)
 	defer func() {
 		err := th.App.Srv().Store().User().PermanentDelete(th.Context, user.Id)
 		require.NoError(t, err)
 	}()
-	th.LinkUserToTeam(user, th.BasicTeam)
-	th.AddUserToChannel(user, basicChannel2)
+	th.LinkUserToTeam(t, user, th.BasicTeam)
+	th.AddUserToChannel(t, user, basicChannel2)
 
 	var createdCategory *model.SidebarCategoryWithChannels
 	t.Run("CreateSidebarCategory", func(t *testing.T) {
@@ -89,8 +88,7 @@ func TestSidebarCategory(t *testing.T) {
 func TestGetSidebarCategories(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should return the sidebar categories for the given user/team", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		_, err := th.App.CreateSidebarCategory(th.Context, th.BasicUser.Id, th.BasicTeam.Id, &model.SidebarCategoryWithChannels{
 			SidebarCategory: model.SidebarCategory{
@@ -107,12 +105,11 @@ func TestGetSidebarCategories(t *testing.T) {
 	})
 
 	t.Run("should create the initial categories even if migration hasn't ran yet", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		// Manually add the user to the team without going through the app layer to simulate a pre-existing user/team
 		// relationship that hasn't been migrated yet
-		team := th.CreateTeam()
+		team := th.CreateTeam(t)
 		_, err := th.App.Srv().Store().Team().SaveMember(th.Context, &model.TeamMember{
 			TeamId:     team.Id,
 			UserId:     th.BasicUser.Id,
@@ -126,8 +123,7 @@ func TestGetSidebarCategories(t *testing.T) {
 	})
 
 	t.Run("should return a store error if a db table is missing", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		// Temporarily renaming a table to force a DB error.
 		_, err := th.SQLStore.GetMaster().Exec("ALTER TABLE SidebarCategories RENAME TO SidebarCategoriesTest")
@@ -147,8 +143,7 @@ func TestGetSidebarCategories(t *testing.T) {
 func TestUpdateSidebarCategories(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should mute and unmute all channels in a category when it is muted or unmuted", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		categories, err := th.App.GetSidebarCategoriesForTeamForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
 		require.Nil(t, err)
@@ -156,11 +151,11 @@ func TestUpdateSidebarCategories(t *testing.T) {
 		channelsCategory := categories.Categories[1]
 
 		// Create some channels to be part of the channels category
-		channel1 := th.CreateChannel(th.Context, th.BasicTeam)
-		th.AddUserToChannel(th.BasicUser, channel1)
+		channel1 := th.CreateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, th.BasicUser, channel1)
 
-		channel2 := th.CreateChannel(th.Context, th.BasicTeam)
-		th.AddUserToChannel(th.BasicUser, channel2)
+		channel2 := th.CreateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, th.BasicUser, channel2)
 
 		// Mute the category
 		updated, err := th.App.UpdateSidebarCategories(th.Context, th.BasicUser.Id, th.BasicTeam.Id, []*model.SidebarCategoryWithChannels{
@@ -206,15 +201,14 @@ func TestUpdateSidebarCategories(t *testing.T) {
 	})
 
 	t.Run("should mute and unmute channels moved from an unmuted category to a muted one and back", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		// Create some channels
-		channel1 := th.CreateChannel(th.Context, th.BasicTeam)
-		th.AddUserToChannel(th.BasicUser, channel1)
+		channel1 := th.CreateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, th.BasicUser, channel1)
 
-		channel2 := th.CreateChannel(th.Context, th.BasicTeam)
-		th.AddUserToChannel(th.BasicUser, channel2)
+		channel2 := th.CreateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, th.BasicUser, channel2)
 
 		// And some categories
 		mutedCategory, err := th.App.CreateSidebarCategory(th.Context, th.BasicUser.Id, th.BasicTeam.Id, &model.SidebarCategoryWithChannels{
@@ -296,15 +290,14 @@ func TestUpdateSidebarCategories(t *testing.T) {
 	})
 
 	t.Run("should not mute or unmute channels moved between muted categories", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		// Create some channels
-		channel1 := th.CreateChannel(th.Context, th.BasicTeam)
-		th.AddUserToChannel(th.BasicUser, channel1)
+		channel1 := th.CreateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, th.BasicUser, channel1)
 
-		channel2 := th.CreateChannel(th.Context, th.BasicTeam)
-		th.AddUserToChannel(th.BasicUser, channel2)
+		channel2 := th.CreateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, th.BasicUser, channel2)
 
 		// And some categories
 		category1, err := th.App.CreateSidebarCategory(th.Context, th.BasicUser.Id, th.BasicTeam.Id, &model.SidebarCategoryWithChannels{
@@ -392,15 +385,14 @@ func TestUpdateSidebarCategories(t *testing.T) {
 	})
 
 	t.Run("should not mute or unmute channels moved between unmuted categories", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		// Create some channels
-		channel1 := th.CreateChannel(th.Context, th.BasicTeam)
-		th.AddUserToChannel(th.BasicUser, channel1)
+		channel1 := th.CreateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, th.BasicUser, channel1)
 
-		channel2 := th.CreateChannel(th.Context, th.BasicTeam)
-		th.AddUserToChannel(th.BasicUser, channel2)
+		channel2 := th.CreateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, th.BasicUser, channel2)
 
 		// And some categories
 		category1, err := th.App.CreateSidebarCategory(th.Context, th.BasicUser.Id, th.BasicTeam.Id, &model.SidebarCategoryWithChannels{

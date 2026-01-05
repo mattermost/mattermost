@@ -89,6 +89,7 @@ export const isEnterpriseLicense = (license?: ClientLicense) => {
     case LicenseSkus.Enterprise:
     case LicenseSkus.E20:
     case LicenseSkus.EnterpriseAdvanced:
+    case LicenseSkus.Entry:
         return true;
     }
 

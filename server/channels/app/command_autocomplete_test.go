@@ -206,7 +206,6 @@ func TestParseNamedArguments(t *testing.T) {
 func TestSuggestions(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	jira := createJiraAutocompleteData()
 	emptyCmdArgs := &model.CommandArgs{}
@@ -333,7 +332,6 @@ func TestSuggestions(t *testing.T) {
 func TestCommandWithOptionalArgs(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	command := createCommandWithOptionalArgs()
 	emptyCmdArgs := &model.CommandArgs{}
@@ -621,7 +619,6 @@ func createJiraAutocompleteData() *model.AutocompleteData {
 func TestDynamicListArgsForBuiltin(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	provider := &testCommandProvider{}
 	RegisterCommandProvider(provider)
@@ -663,14 +660,14 @@ func (p *testCommandProvider) GetCommand(a *App, T i18n.TranslateFunc) *model.Co
 	}
 }
 
-func (p *testCommandProvider) DoCommand(a *App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
+func (p *testCommandProvider) DoCommand(a *App, rctx request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
 	return &model.CommandResponse{
 		Text:         "I do nothing!",
 		ResponseType: model.CommandResponseTypeEphemeral,
 	}
 }
 
-func (p *testCommandProvider) GetAutoCompleteListItems(c request.CTX, a *App, commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) ([]model.AutocompleteListItem, error) {
+func (p *testCommandProvider) GetAutoCompleteListItems(rctx request.CTX, a *App, commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) ([]model.AutocompleteListItem, error) {
 	if arg.Name == "dynaArg" {
 		return []model.AutocompleteListItem{
 			{Item: "item1", Hint: "this is hint 1", HelpText: "This is help text 1."},

@@ -8,8 +8,10 @@ import ChannelsPost from './channels/post';
 import ChannelsCenterView from './channels/center_view';
 import ChannelsSidebarLeft from './channels/sidebar_left';
 import ChannelsSidebarRight from './channels/sidebar_right';
+import ChannelSettingsModal from './channels/channel_settings/channel_settings_modal';
 import DeletePostModal from './channels/delete_post_modal';
 import FindChannelsModal from './channels/find_channels_modal';
+import InvitePeopleModal from './channels/invite_people_modal';
 import SettingsModal from './channels/settings/settings_modal';
 import Footer from './footer';
 import GlobalHeader from './global_header';
@@ -27,6 +29,8 @@ import ScheduleMessageModal from './channels/schedule_message_modal';
 import ScheduledPostIndicator from './channels/scheduled_post_indicator';
 import ScheduledDraftModal from './channels/scheduled_draft_modal';
 import UserAccountMenu from './user_account_menu';
+import TeamMenu from './channels/team_menu';
+import TeamSettingsModal from './channels/team_settings/team_settings_modal';
 import ProfileModal from './channels/profile_modal';
 import UserProfilePopover from './channels/user_profile_popover';
 import SystemConsoleSidebar from './system_console/sidebar';
@@ -40,10 +44,12 @@ import DeletePostConfirmationDialog from './channels/delete_post_confirmation_di
 import RestorePostConfirmationDialog from './channels/restore_post_confirmation_dialog';
 import SystemConsoleFeatureDiscovery from './system_console/sections/system_users/feature_discovery';
 import SystemConsoleMobileSecurity from './system_console/sections/system_users/mobile_security';
+import SystemConsoleNotifications from './system_console/sections/site_configuration/notifications';
 import ScheduledPost from './channels/scheduled_post';
 import SendMessageNowModal from './channels/send_message_now_modal';
 import DeleteScheduledPostModal from './channels/delete_scheduled_post_modal';
 import DraftPost from './channels/draft_post';
+import FlagPostConfirmationDialog from './channels/flag_post_confirmation_dialog';
 
 const components = {
     GlobalHeader,
@@ -56,10 +62,13 @@ const components = {
     ChannelsPostCreate,
     ChannelsPostEdit,
     ChannelsPost,
+    ChannelSettingsModal,
     DraftPost,
     FindChannelsModal,
+    FlagPostConfirmationDialog,
     DeletePostModal,
     DeleteScheduledPostModal,
+    InvitePeopleModal,
     SettingsModal,
     PostDotMenu,
     PostMenu,
@@ -83,9 +92,12 @@ const components = {
     SystemUsersColumnToggleMenu,
     SystemConsoleFeatureDiscovery,
     SystemConsoleMobileSecurity,
+    SystemConsoleNotifications,
     MessagePriority,
     UserProfilePopover,
     UserAccountMenu,
+    TeamMenu,
+    TeamSettingsModal,
     DeletePostConfirmationDialog,
     RestorePostConfirmationDialog,
     ProfileModal,
@@ -103,10 +115,13 @@ export {
     ChannelsPostCreate,
     ChannelsPostEdit,
     ChannelsPost,
+    ChannelSettingsModal,
     DraftPost,
     FindChannelsModal,
+    FlagPostConfirmationDialog,
     DeletePostModal,
     DeleteScheduledPostModal,
+    InvitePeopleModal,
     SettingsModal,
     PostDotMenu,
     PostMenu,
@@ -130,9 +145,12 @@ export {
     SystemUsersColumnToggleMenu,
     SystemConsoleFeatureDiscovery,
     SystemConsoleMobileSecurity,
+    SystemConsoleNotifications,
     MessagePriority,
     UserProfilePopover,
     UserAccountMenu,
+    TeamMenu,
+    TeamSettingsModal,
     DeletePostConfirmationDialog,
     RestorePostConfirmationDialog,
     ProfileModal,

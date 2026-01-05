@@ -45,7 +45,7 @@ const ActionButton = ({
     actionExecuting,
     actionExecutingMessage,
 }: Props) => {
-    const handleActionClick = useCallback((e) => handleAction(e, action.options), [action.options, handleAction]);
+    const handleActionClick = useCallback((e: React.MouseEvent) => handleAction(e, action.options), [action.options, handleAction]);
     let hexColor: string | null | undefined;
 
     if (action.style) {

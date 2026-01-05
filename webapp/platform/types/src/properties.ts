@@ -15,7 +15,10 @@ export type PropertyField = {
     group_id: string;
     name: string;
     type: FieldType;
-    attrs?: {[key: string]: unknown};
+    attrs?: {
+        subType?: string;
+        [key: string]: unknown;
+    };
     target_id?: string;
     target_type?: string;
     create_at: number;
@@ -23,11 +26,14 @@ export type PropertyField = {
     delete_at: number;
 };
 
+export type NameMappedPropertyFields = {[key: PropertyField['name']]: PropertyField};
+
 export type PropertyValue<T> = {
     id: string;
     target_id: string;
     target_type: string;
     group_id: string;
+    field_id: string;
     value: T;
     create_at: number;
     update_at: number;
@@ -60,7 +66,19 @@ export type UserPropertyField = PropertyField & {
         options?: PropertyFieldOption[];
         ldap?: string;
         saml?: string;
+        managed?: string;
     };
+};
+
+export type SelectPropertyField = PropertyField & {
+    attrs?: {
+        editable?: boolean;
+        options?: PropertyFieldOption[];
+    };
+}
+
+export const supportsOptions = (field: UserPropertyField) => {
+    return field.type === 'select' || field.type === 'multiselect';
 };
 
 export type UserPropertyFieldPatch = Partial<Pick<UserPropertyField, 'name' | 'attrs' | 'type'>>;

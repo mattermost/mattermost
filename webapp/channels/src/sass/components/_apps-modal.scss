@@ -5,3 +5,21 @@
         }
     }
 }
+
+// Apply modal-overflow behavior for date/datetime fields - same as DND modal
+// This needs to be global like the existing modal-overflow class
+.modal-overflow {
+    overflow: visible !important;
+    
+    .modal-dialog {
+        overflow: visible !important;
+    }
+    
+    .modal-content {
+        overflow: visible !important;
+    }
+    
+    .modal-body {
+        overflow: visible !important;
+    }
+}

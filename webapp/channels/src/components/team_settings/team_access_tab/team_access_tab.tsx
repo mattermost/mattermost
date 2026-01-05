@@ -25,7 +25,7 @@ const generateAllowedDomainOptions = (allowedDomains?: string) => {
 
 type Props = PropsFromRedux & OwnProps;
 
-const AccessTab = ({closeModal, collapseModal, hasChangeTabError, hasChanges, setHasChangeTabError, setHasChanges, team, actions}: Props) => {
+const AccessTab = ({closeModal, collapseModal, hasChangeTabError, hasChanges, setHasChangeTabError, setHasChanges, setJustSaved, team, actions}: Props) => {
     const [allowedDomains, setAllowedDomains] = useState<string[]>(() => generateAllowedDomainOptions(team.allowed_domains));
     const [allowOpenInvite, setAllowOpenInvite] = useState<boolean>(team.allow_open_invite ?? false);
     const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>();
@@ -68,7 +68,8 @@ const AccessTab = ({closeModal, collapseModal, hasChangeTabError, hasChanges, se
         setSaveChangesPanelState('editing');
         setHasChanges(false);
         setHasChangeTabError(false);
-    }, [setHasChangeTabError, setHasChanges]);
+        setJustSaved(false); // Reset flag when panel closes
+    }, [setHasChangeTabError, setHasChanges, setJustSaved]);
 
     const handleCancel = useCallback(() => {
         setAllowedDomains(generateAllowedDomainOptions(team.allowed_domains));
@@ -93,7 +94,8 @@ const AccessTab = ({closeModal, collapseModal, hasChangeTabError, hasChanges, se
         }
         setSaveChangesPanelState('saved');
         setHasChangeTabError(false);
-    }, [handleAllowedDomainsSubmit, handleOpenInviteSubmit, setHasChangeTabError]);
+        setJustSaved(true); // Flag that save just completed
+    }, [handleAllowedDomainsSubmit, handleOpenInviteSubmit, setHasChangeTabError, setJustSaved]);
 
     return (
         <ModalSection

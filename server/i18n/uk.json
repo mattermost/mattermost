@@ -924,10 +924,6 @@
     "translation": "знизати плечима"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Новий формат для клієнтської конфігурації поки що не підтримується. Будь ласка, вкажіть format=old у рядку запиту."
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "Вибачте, ми не змогли знайти цю сторінку."
   },
@@ -1190,10 +1186,6 @@
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
     "translation": "invalid_request: Поганий client_id."
-  },
-  {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Відсутній client_secret."
   },
   {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
@@ -2078,14 +2070,6 @@
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "Вхід через ботів заборонено."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Спроба входу за допомогою експериментальної функції ClientSideCert без надання дійсного сертифікату."
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Спроба використання експериментальної можливості ClientSideCertEnable без дійсної Enterprise ліцензії."
   },
   {
     "id": "api.user.login.inactive.app_error",
@@ -3837,7 +3821,7 @@
   },
   {
     "id": "model.config.is_valid.sql_driver.app_error",
-    "translation": "Неправильне ім'я драйвера для налаштувань SQL. Має бути 'mysql' або 'postgres'."
+    "translation": "Неправильне ім'я драйвера для SQL-налаштувань. Повинно бути 'postgres'."
   },
   {
     "id": "model.config.is_valid.sql_idle.app_error",
@@ -4589,7 +4573,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 10+"
+    "translation": "Windows 11+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -4709,7 +4693,7 @@
   },
   {
     "id": "model.user.is_valid.auth_data_type.app_error",
-    "translation": "Неправильний користувач, дані авторизації повинні бути задані з типом авторизації."
+    "translation": "Недійсний користувач: дані автентифікації можна встановити лише в тому випадку, якщо користувач використовує для автентифікації зовнішню службу автентифікації, а не електронну пошту/пароль."
   },
   {
     "id": "model.user.is_valid.auth_data_pwd.app_error",
@@ -8128,10 +8112,6 @@
     "translation": "Неможливо створити користувача. Сервер перевищує ліміт безпечних користувачів. Зверніться до свого адміністратора з повідомленням: ERROR_SAFETY_LIMITS_EXCEEDED."
   },
   {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Не вдається отримати повідомлення для архівованого каналу"
-  },
-  {
     "id": "app.channel.bookmark.update_sort.invalid_input.app_error",
     "translation": "Не вдалося відсортувати закладку. Неправильне введення."
   },
@@ -8206,10 +8186,6 @@
   {
     "id": "api.user.update_user_roles.license.app_error",
     "translation": "Користувацькі схеми дозволів не підтримуються поточною ліцензією"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Не вдається отримати користувачів для архівованого каналу"
   },
   {
     "id": "app.channel.bookmark.delete.app_error",
@@ -9993,7 +9969,7 @@
   },
   {
     "id": "app.scheduled_post.error_reason.unknown",
-    "translation": "Невідома помилка"
+    "translation": "Невідома Помилка"
   },
   {
     "id": "app.scheduled_post.error_reason.user_deleted",
@@ -10162,10 +10138,6 @@
   {
     "id": "api.context.get_session.app_error",
     "translation": "Сеанс не знайдено."
-  },
-  {
-    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
-    "translation": "Неможливо отримати закладки для заархівованого каналу"
   },
   {
     "id": "app.custom_profile_attributes.count_property_fields.app_error",
@@ -10470,5 +10442,45 @@
   {
     "id": "api.team.invite_guests.policy_enforced_channel.app_error",
     "translation": "Неможливо запросити користувачів-гостей до цього каналу, оскільки він має обмеження доступу на основі атрибутів користувача."
+  },
+  {
+    "id": "api.access_control_policy.get_channels.limit.app_error",
+    "translation": "Обмеження на кількість каналів недійсне."
+  },
+  {
+    "id": "api.content_flagging.error.comment_required",
+    "translation": "Додайте коментар із поясненням, чому ви позначаєте це повідомлення."
+  },
+  {
+    "id": "api.content_flagging.error.comment_too_long",
+    "translation": "Причина позначення повідомлення не може бути довшою за {{.MaxLength}} символів."
+  },
+  {
+    "id": "api.content_flagging.error.disabled",
+    "translation": "Функція позначення вмісту вимкнена."
+  },
+  {
+    "id": "api.content_flagging.error.license",
+    "translation": "Ваша ліцензія не підтримує позначення вмісту."
+  },
+  {
+    "id": "api.content_flagging.error.not_available_on_team",
+    "translation": "Функція позначення вмісту не ввімкнена в цій команді."
+  },
+  {
+    "id": "api.content_flagging.error.post_not_in_progress",
+    "translation": "Позначений пост повинен мати статус очікує на розгляд або призначений, щоб його можна було зберегти або видалити."
+  },
+  {
+    "id": "api.content_flagging.error.reason_invalid",
+    "translation": "Невідома причина, вказана для позначення повідомлення."
+  },
+  {
+    "id": "api.content_flagging.error.reason_required",
+    "translation": "Будь ласка, виберіть причину для позначення цього повідомлення."
+  },
+  {
+    "id": "api.content_flagging.error.user_not_reviewer",
+    "translation": "Користувач не є рецензентом контенту."
   }
 ]

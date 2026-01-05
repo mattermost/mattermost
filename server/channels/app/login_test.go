@@ -13,43 +13,16 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-func TestCheckForClientSideCert(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := Setup(t)
-	defer th.TearDown()
-
-	tests := []struct {
-		pem           string
-		subject       string
-		expectedEmail string
-	}{
-		{"blah", "blah", ""},
-		{"blah", "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=test@test.com", "test@test.com"},
-		{"blah", "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/EmailAddress=test@test.com", ""},
-		{"blah", "CN=www.freesoft.org/EmailAddress=test@test.com, C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft", ""},
-	}
-
-	for _, tt := range tests {
-		r := &http.Request{Header: http.Header{}}
-		r.Header.Add("X-SSL-Client-Cert", tt.pem)
-		r.Header.Add("X-SSL-Client-Cert-Subject-DN", tt.subject)
-
-		_, _, actualEmail := th.App.CheckForClientSideCert(r)
-
-		require.Equal(t, actualEmail, tt.expectedEmail, "CheckForClientSideCert(%v): expected %v, actual %v", tt.subject, tt.expectedEmail, actualEmail)
-	}
-}
-
 func TestCWSLogin(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+
 	license := model.NewTestLicense()
 	license.Features.Cloud = model.NewPointer(true)
 	th.App.Srv().SetLicense(license)
 
 	t.Run("Should authenticate user when CWS login is enabled and tokens are equal", func(t *testing.T) {
-		token := model.NewToken(TokenTypeCWSAccess, "")
+		token := model.NewToken(model.TokenTypeCWSAccess, "")
 		defer func() {
 			appErr := th.App.DeleteToken(token)
 			require.Nil(t, appErr)
@@ -67,7 +40,7 @@ func TestCWSLogin(t *testing.T) {
 	})
 
 	t.Run("Should not authenticate the user when CWS token was used", func(t *testing.T) {
-		token := model.NewToken(TokenTypeCWSAccess, "")
+		token := model.NewToken(model.TokenTypeCWSAccess, "")
 		os.Setenv("CWS_CLOUD_TOKEN", token.Token)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 		defer func() {
@@ -77,6 +50,91 @@ func TestCWSLogin(t *testing.T) {
 
 		user, err := th.App.AuthenticateUserForLogin(th.Context, "", th.BasicUser.Username, "", "", token.Token, false)
 		require.NotNil(t, err)
+		require.Nil(t, user)
+	})
+}
+
+func TestGetUserForLogin(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	t.Run("Should get user with username when sign in with username is enabled", func(t *testing.T) {
+		th.UpdateConfig(t, func(config *model.Config) {
+			config.EmailSettings.EnableSignInWithUsername = model.NewPointer(true)
+		})
+
+		user, appErr := th.App.GetUserForLogin(th.Context, "", th.BasicUser.Username)
+		require.Nil(t, appErr)
+		require.NotNil(t, user)
+		require.Equal(t, th.BasicUser.Username, user.Username)
+	})
+
+	t.Run("Should not get user with username when sign in with username is disabled", func(t *testing.T) {
+		th.UpdateConfig(t, func(config *model.Config) {
+			config.EmailSettings.EnableSignInWithUsername = model.NewPointer(false)
+		})
+
+		user, appErr := th.App.GetUserForLogin(th.Context, "", th.BasicUser.Username)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		require.Nil(t, user)
+	})
+
+	t.Run("Should get user with email when sign in with email is enabled", func(t *testing.T) {
+		th.UpdateConfig(t, func(config *model.Config) {
+			config.EmailSettings.EnableSignInWithEmail = model.NewPointer(true)
+		})
+
+		user, appErr := th.App.GetUserForLogin(th.Context, "", th.BasicUser.Email)
+		require.Nil(t, appErr)
+		require.NotNil(t, user)
+		require.Equal(t, th.BasicUser.Username, user.Username)
+	})
+
+	t.Run("Should not user with email when sign in with email is disabled", func(t *testing.T) {
+		th.UpdateConfig(t, func(config *model.Config) {
+			config.EmailSettings.EnableSignInWithEmail = model.NewPointer(false)
+		})
+
+		user, appErr := th.App.GetUserForLogin(th.Context, "", th.BasicUser.Email)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		require.Nil(t, user)
+	})
+
+	t.Run("Should get user with user ID when sign in with email is enabled", func(t *testing.T) {
+		th.UpdateConfig(t, func(config *model.Config) {
+			config.EmailSettings.EnableSignInWithEmail = model.NewPointer(true)
+			config.EmailSettings.EnableSignInWithUsername = model.NewPointer(false)
+		})
+
+		user, appErr := th.App.GetUserForLogin(th.Context, th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, user)
+		require.Equal(t, th.BasicUser.Username, user.Username)
+	})
+
+	t.Run("Should get user with user ID when sign in with username is enabled", func(t *testing.T) {
+		th.UpdateConfig(t, func(config *model.Config) {
+			config.EmailSettings.EnableSignInWithEmail = model.NewPointer(false)
+			config.EmailSettings.EnableSignInWithUsername = model.NewPointer(true)
+		})
+
+		user, appErr := th.App.GetUserForLogin(th.Context, th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, user)
+		require.Equal(t, th.BasicUser.Username, user.Username)
+	})
+
+	t.Run("Should not get user with user ID when both sign in with email and username are disabled", func(t *testing.T) {
+		th.UpdateConfig(t, func(config *model.Config) {
+			config.EmailSettings.EnableSignInWithEmail = model.NewPointer(false)
+			config.EmailSettings.EnableSignInWithUsername = model.NewPointer(false)
+		})
+
+		user, appErr := th.App.GetUserForLogin(th.Context, th.BasicUser.Id, "")
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 		require.Nil(t, user)
 	})
 }

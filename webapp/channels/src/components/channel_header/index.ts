@@ -3,7 +3,6 @@
 
 import type {ConnectedProps} from 'react-redux';
 import {connect} from 'react-redux';
-import {withRouter} from 'react-router-dom';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
@@ -127,4 +126,4 @@ const connector = connect(makeMapStateToProps, mapDispatchToProps);
 
 export type PropsFromRedux = ConnectedProps<typeof connector>;
 
-export default withRouter(connector(ChannelHeader));
+export default connector(ChannelHeader);

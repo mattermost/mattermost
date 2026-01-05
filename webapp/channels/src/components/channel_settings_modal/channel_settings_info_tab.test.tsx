@@ -199,9 +199,7 @@ describe('ChannelSettingsInfoTab', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
 
         // Click the Save button in the SaveChangesPanel.
-        await act(async () => {
-            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
-        });
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
         // Verify patchChannel was called with the updated values (without type change).
         // Note: URL should remain unchanged when editing existing channels
@@ -242,9 +240,7 @@ describe('ChannelSettingsInfoTab', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
 
         // Click the Save button
-        await act(async () => {
-            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
-        });
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
         // Verify patchChannel was called with the trimmed values
         expect(patchChannel).toHaveBeenCalledWith('channel1', {
@@ -286,9 +282,7 @@ describe('ChannelSettingsInfoTab', () => {
         expect(screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
 
         // Click the Save button
-        await act(async () => {
-            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
-        });
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
         // Add a small delay to ensure all state updates are processed
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -315,9 +309,7 @@ describe('ChannelSettingsInfoTab', () => {
         expect(screen.queryByRole('button', {name: 'Save'})).toBeInTheDocument();
 
         // Click the Reset button.
-        await act(async () => {
-            await userEvent.click(screen.getByRole('button', {name: 'Reset'}));
-        });
+        await userEvent.click(screen.getByRole('button', {name: 'Reset'}));
 
         // Form should be reset to original values.
         expect(screen.getByRole('textbox', {name: 'Channel name'})).toHaveValue('Test Channel');
@@ -344,9 +336,7 @@ describe('ChannelSettingsInfoTab', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
 
         // Click the Save button.
-        await act(async () => {
-            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
-        });
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
         // SaveChangesPanel should show 'error' state.
         const errorMessage = screen.getByText(/There are errors in the form above/);
@@ -527,9 +517,7 @@ describe('ChannelSettingsInfoTab', () => {
         await userEvent.click(privateButton);
 
         // Click Save button
-        await act(async () => {
-            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
-        });
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
         // Verify the modal is shown
         expect(screen.getByTestId('convert-confirm-modal')).toBeInTheDocument();
@@ -548,14 +536,10 @@ describe('ChannelSettingsInfoTab', () => {
         await userEvent.click(privateButton);
 
         // Click Save button to show modal
-        await act(async () => {
-            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
-        });
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
         // Click confirm button in modal
-        await act(async () => {
-            await userEvent.click(screen.getByText(/Yes, Convert Channel/i));
-        });
+        await userEvent.click(screen.getByText(/Yes, Convert Channel/i));
 
         // Verify updateChannelPrivacy was called
         expect(updateChannelPrivacy).toHaveBeenCalledWith('channel1', 'P');
@@ -574,14 +558,10 @@ describe('ChannelSettingsInfoTab', () => {
         await userEvent.click(privateButton);
 
         // Click Save button to show modal
-        await act(async () => {
-            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
-        });
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
         // Click cancel button in modal
-        await act(async () => {
-            await userEvent.click(screen.getByText(/Cancel/i));
-        });
+        await userEvent.click(screen.getByText(/Cancel/i));
 
         // Verify updateChannelPrivacy was not called
         expect(updateChannelPrivacy).not.toHaveBeenCalled();
@@ -603,14 +583,10 @@ describe('ChannelSettingsInfoTab', () => {
         await userEvent.click(privateButton);
 
         // Click Save button to show modal
-        await act(async () => {
-            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
-        });
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
         // Click confirm button in modal
-        await act(async () => {
-            await userEvent.click(screen.getByText(/Yes, Convert Channel/i));
-        });
+        await userEvent.click(screen.getByText(/Yes, Convert Channel/i));
 
         // Verify error state is shown
         expect(screen.getByText(/There are errors in the form above/)).toBeInTheDocument();

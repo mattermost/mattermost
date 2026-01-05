@@ -12,7 +12,6 @@ import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {haveICurrentChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
-import {trackEvent} from 'actions/telemetry_actions';
 import {setAddChannelCtaDropdown} from 'actions/views/add_channel_dropdown';
 import {openModal} from 'actions/views/modals';
 import {isAddChannelCtaDropdownOpen} from 'selectors/views/add_channel_dropdown';
@@ -57,7 +56,6 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
             modalId: ModalIdentifiers.MORE_CHANNELS,
             dialogType: BrowseChannels,
         }));
-        trackEvent('ui', 'browse_channels_button_is_clicked');
     };
 
     const showNewChannelModal = () => {
@@ -65,7 +63,6 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
             modalId: ModalIdentifiers.NEW_CHANNEL_MODAL,
             dialogType: NewChannelModal,
         }));
-        trackEvent('ui', 'create_new_channel_button_is_clicked');
     };
 
     const renderDropdownItems = () => {
@@ -125,7 +122,6 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
     };
 
     const storePreferencesAndTrackEvent = () => {
-        trackEvent('ui', 'add_channels_cta_button_clicked');
         if (!touchedAddChannelsCtaButton) {
             dispatch(savePreferences(
                 currentUserId,
