@@ -270,12 +270,11 @@ const PreparingWorkspace = ({
     const adminRevisitedPage = firstAdminSetupComplete && submissionState === SubmissionStates.Presubmit;
     const shouldRedirect = !isUserFirstAdmin || adminRevisitedPage || !onboardingFlowEnabled;
 
-    // Temporarily disabled redirect for viewing/testing
-    // useEffect(() => {
-    //     if (shouldRedirect) {
-    //         history.push('/');
-    //     }
-    // }, [shouldRedirect]);
+    useEffect(() => {
+        if (shouldRedirect) {
+            history.push('/');
+        }
+    }, [shouldRedirect]);
 
     const getTransitionDirection = (step: WizardStep): AnimationReason => {
         const stepIndex = stepOrder.indexOf(step);
