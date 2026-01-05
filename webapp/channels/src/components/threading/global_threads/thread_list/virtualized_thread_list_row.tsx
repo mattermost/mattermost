@@ -59,7 +59,7 @@ function Row({index, style, data}: Props) {
                             searchShortcut: (
                                 <SearchShortcut
                                     className='thread-no-results-subtitle-shortcut'
-                                    variant={ShortcutKeyVariant.TutorialTip}
+                                    variant={ShortcutKeyVariant.Contrast}
                                 />
                             ),
                         }}
