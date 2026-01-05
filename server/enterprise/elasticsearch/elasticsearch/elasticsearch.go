@@ -12,7 +12,6 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
-	"unicode"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -90,6 +89,9 @@ func (es *ElasticsearchInterfaceImpl) IsIndexingSync() bool {
 }
 
 func (es *ElasticsearchInterfaceImpl) Start() *model.AppError {
+	if license := es.Platform.License(); license == nil || !*license.Features.Elasticsearch || !*es.Platform.Config().ElasticsearchSettings.EnableIndexing {
+		return nil
+	}
 
 	es.mutex.Lock()
 	defer es.mutex.Unlock()
@@ -309,25 +311,12 @@ func (es *ElasticsearchInterfaceImpl) getPostIndexNames() ([]string, error) {
 	return postIndexes, nil
 }
 
-func containsCJK(s string) bool {
-	for _, r := range s {
-		if unicode.Is(unicode.Han, r) || // Chinese characters (also used in Japanese)
-			unicode.Is(unicode.Hangul, r) || // Korean
-			unicode.Is(unicode.Hiragana, r) || // Japanese
-			unicode.Is(unicode.Katakana, r) { // Japanese
-			return true
-		}
-	}
-
-	return false
-}
-
 func (es *ElasticsearchInterfaceImpl) getFieldVariants(fieldName string, query string) []string {
 	variants := []string{fieldName}
 
 	if es.Platform.Config().ElasticsearchSettings.EnableCJKAnalyzers == nil ||
 		!*es.Platform.Config().ElasticsearchSettings.EnableCJKAnalyzers ||
-		!containsCJK(query) {
+		!common.ContainsCJK(query) {
 		return variants
 	}
 

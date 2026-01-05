@@ -33,7 +33,7 @@ func (c *CommonTestSuite) TestSearchStore() {
 	searchTestEngine := &searchtest.SearchTestEngine{
 		Driver: searchtest.EngineElasticSearch,
 		BeforeTest: func(t *testing.T, s store.Store, tags []string) {
-			enableCJK := slices.Contains(tags, searchtest.EnableCJKAnalyzers)
+			enableCJK := slices.Contains(tags, searchtest.CJKAnalyzers)
 			if enableCJK {
 				c.TH.App.UpdateConfig(func(cfg *model.Config) {
 					*cfg.ElasticsearchSettings.EnableCJKAnalyzers = true

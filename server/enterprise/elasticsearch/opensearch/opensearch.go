@@ -13,7 +13,6 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
-	"unicode"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -329,25 +328,12 @@ func (os *OpensearchInterfaceImpl) getPostIndexNames() ([]string, error) {
 	return postIndexes, nil
 }
 
-func containsCJK(s string) bool {
-	for _, r := range s {
-		if unicode.Is(unicode.Han, r) || // Chinese characters (also used in Japanese)
-			unicode.Is(unicode.Hangul, r) || // Korean
-			unicode.Is(unicode.Hiragana, r) || // Japanese
-			unicode.Is(unicode.Katakana, r) { // Japanese
-			return true
-		}
-	}
-
-	return false
-}
-
 func (os *OpensearchInterfaceImpl) getFieldVariants(fieldName string, query string) []string {
 	variants := []string{fieldName}
 
 	if os.Platform.Config().ElasticsearchSettings.EnableCJKAnalyzers == nil ||
 		!*os.Platform.Config().ElasticsearchSettings.EnableCJKAnalyzers ||
-		!containsCJK(query) {
+		!common.ContainsCJK(query) {
 		return variants
 	}
 

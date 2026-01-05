@@ -65,7 +65,7 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should be able to search for CJK using analyzer plugins",
 		Fn:   testCJKSearchWithAnalyzers,
-		Tags: []string{EngineElasticSearch, EnableCJKAnalyzers},
+		Tags: []string{EngineElasticSearch, CJKAnalyzers},
 	},
 	{
 		Name: "Should be able to search for alternative spellings of words",

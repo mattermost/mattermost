@@ -17,7 +17,7 @@ const (
 )
 
 const (
-	EnableCJKAnalyzers = "cjk"
+	CJKAnalyzers = "cjk"
 )
 
 type SearchTestEngine struct {
