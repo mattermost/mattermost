@@ -10232,6 +10232,38 @@ func (s *TimerLayerSystemStore) GetByName(name string) (*model.System, error) {
 	return result, err
 }
 
+func (s *TimerLayerSystemStore) GetByNameWithContext(rctx request.CTX, name string) (*model.System, error) {
+	start := time.Now()
+
+	result, err := s.SystemStore.GetByNameWithContext(rctx, name)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SystemStore.GetByNameWithContext", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerSystemStore) GetWithContext(rctx request.CTX) (model.StringMap, error) {
+	start := time.Now()
+
+	result, err := s.SystemStore.GetWithContext(rctx)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SystemStore.GetWithContext", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerSystemStore) InsertIfExists(system *model.System) (*model.System, error) {
 	start := time.Now()
 
