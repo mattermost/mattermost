@@ -5,7 +5,12 @@
     }
 
     &__location--center {
-        margin-top: calc(50vh - 240px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        margin-top: 0;
+        padding-bottom: 24px;
     }
 
     &__location--bottom {
