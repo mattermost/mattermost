@@ -17,7 +17,7 @@ import Input from 'components/widgets/inputs/input/input';
 import PasswordInput from 'components/widgets/inputs/password_input/password_input';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import {act, renderWithContext, screen, fireEvent, waitFor} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, waitFor, userEvent} from 'tests/react_testing_utils';
 import {WindowSizes} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -274,15 +274,24 @@ describe('components/signup/Signup', () => {
         renderWithContext(<Signup/>, mockState);
 
         const emailInput = screen.getByLabelText('Email address');
+        const usernameInput = screen.getByLabelText('Choose a Username');
+        const passwordInput = screen.getByLabelText('Choose a Password');
+        const termsCheckbox = screen.getByRole('checkbox', {name: /terms and privacy policy checkbox/i});
         const submitButton = screen.getByRole('button', {name: 'Create account'});
 
         // Submit with invalid email
-        fireEvent.change(emailInput, {target: {value: 'invalid-email'}});
-        fireEvent.click(submitButton);
+        await userEvent.type(emailInput, 'invalid-email');
+        await userEvent.type(usernameInput, 'testuser');
+        await userEvent.type(passwordInput, '123');
+        await userEvent.click(termsCheckbox);
 
-        await waitFor(() => {
-            expect(emailInput).toHaveFocus();
-        });
+        // The focus should no longer be on the email input before clicking submit
+        expect(emailInput).not.toHaveFocus();
+
+        await userEvent.click(submitButton);
+
+        // And now the focus should move back to the email input
+        expect(emailInput).toHaveFocus();
     });
 
     it('should focus password input when password validation fails', async () => {
@@ -295,15 +304,18 @@ describe('components/signup/Signup', () => {
         const submitButton = screen.getByText('Create account');
 
         // Submit with valid email and username but invalid password
-        fireEvent.change(emailInput, {target: {value: 'test@example.com'}});
-        fireEvent.change(usernameInput, {target: {value: 'testuser'}});
-        fireEvent.change(passwordInput, {target: {value: '123'}});
-        fireEvent.click(termsCheckbox);
-        fireEvent.click(submitButton);
+        await userEvent.type(emailInput, 'test@example.com');
+        await userEvent.type(usernameInput, 'testuser');
+        await userEvent.type(passwordInput, '123');
+        await userEvent.click(termsCheckbox);
 
-        await waitFor(() => {
-            expect(passwordInput).toHaveFocus();
-        });
+        // The focus should no longer be on the password input before clicking submit
+        expect(emailInput).not.toHaveFocus();
+
+        await userEvent.click(submitButton);
+
+        // And now the focus should move back to the password input
+        expect(passwordInput).toHaveFocus();
     });
 
     it('should focus username input when server returns username exists error', async () => {
@@ -324,15 +336,18 @@ describe('components/signup/Signup', () => {
         const submitButton = screen.getByText('Create account');
 
         // Submit with valid data that will trigger server error
-        fireEvent.change(emailInput, {target: {value: 'test@example.com'}});
-        fireEvent.change(usernameInput, {target: {value: 'existinguser'}});
-        fireEvent.change(passwordInput, {target: {value: 'password123'}});
-        fireEvent.click(termsCheckbox);
-        fireEvent.click(submitButton);
+        await userEvent.type(emailInput, 'test@example.com');
+        await userEvent.type(usernameInput, 'existinguser');
+        await userEvent.type(passwordInput, 'password123');
+        await userEvent.click(termsCheckbox);
 
-        await waitFor(() => {
-            expect(usernameInput).toHaveFocus();
-        });
+        // The focus should no longer be on the email input before clicking submit
+        expect(usernameInput).not.toHaveFocus();
+
+        await userEvent.click(submitButton);
+
+        // And now the focus should move back to the username input
+        expect(usernameInput).toHaveFocus();
     });
 
     it('should add user to team and redirect when team invite valid and logged in', async () => {
@@ -397,21 +412,19 @@ describe('components/signup/Signup', () => {
         const termsCheckbox = screen.getByRole('checkbox', {name: /terms and privacy policy checkbox/i});
 
         // Fill in all fields but don't check terms
-        fireEvent.change(emailInput, {target: {value: 'test@example.com'}});
-        fireEvent.change(usernameInput, {target: {value: 'testuser'}});
-        fireEvent.change(passwordInput, {target: {value: 'ValidPassword123!'}});
+        await userEvent.type(emailInput, 'test@example.com');
+        await userEvent.type(usernameInput, 'testuser');
+        await userEvent.type(passwordInput, 'ValidPassword123!');
 
         // Submit button should be disabled (SaveButton uses disabled prop on inner button)
         const submitButton = screen.getByRole('button', {name: /Create account/i});
         expect(submitButton).toBeDisabled();
 
         // Check terms
-        fireEvent.click(termsCheckbox);
+        await userEvent.click(termsCheckbox);
 
         // Now submit button should be enabled
-        await waitFor(() => {
-            const enabledButton = screen.getByRole('button', {name: /Create account/i});
-            expect(enabledButton).not.toBeDisabled();
-        });
+        const enabledButton = screen.getByRole('button', {name: /Create account/i});
+        expect(enabledButton).not.toBeDisabled();
     });
 });
