@@ -18,6 +18,8 @@ import Constants from 'utils/constants';
 import {DangerText, BorderlessInput, LinkButton} from './controls';
 import type {SectionHook} from './section_utils';
 import DotMenu from './user_properties_dot_menu';
+import OrphanedFieldDeleteButton from './user_properties_orphaned_delete_button';
+import {useIsFieldOrphaned} from './orphaned_fields_utils';
 import SelectType from './user_properties_type_menu';
 import type {UserPropertyFields} from './user_properties_utils';
 import {isCreatePending, useUserPropertyFields, ValidationWarningNameRequired, ValidationWarningNameTaken, ValidationWarningNameUnique} from './user_properties_utils';
@@ -232,17 +234,28 @@ export function UserPropertiesTable({
                         </ColHeaderRight>
                     );
                 },
-                cell: ({row}) => (
-                    <ActionsRoot>
-                        <DotMenu
-                            field={row.original}
-                            canCreate={canCreate}
-                            createField={createField}
-                            updateField={updateField}
-                            deleteField={deleteField}
-                        />
-                    </ActionsRoot>
-                ),
+                cell: ({row}) => {
+                    const isOrphaned = useIsFieldOrphaned(row.original);
+
+                    return (
+                        <ActionsRoot>
+                            {isOrphaned ? (
+                                <OrphanedFieldDeleteButton
+                                    field={row.original}
+                                    deleteField={deleteField}
+                                />
+                            ) : (
+                                <DotMenu
+                                    field={row.original}
+                                    canCreate={canCreate}
+                                    createField={createField}
+                                    updateField={updateField}
+                                    deleteField={deleteField}
+                                />
+                            )}
+                        </ActionsRoot>
+                    );
+                },
                 enableHiding: false,
                 enableSorting: false,
             }),

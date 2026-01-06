@@ -18,6 +18,7 @@ import {isKeyPressed} from 'utils/keyboard';
 import {DangerText} from './controls';
 import './user_properties_values.scss';
 import {useAttributeLinkModal} from './user_properties_dot_menu';
+import {useIsFieldOrphaned} from './orphaned_fields_utils';
 
 type Props = {
     field: UserPropertyField;
@@ -144,15 +145,25 @@ const UserPropertyValues = ({
 
     if (field.attrs?.protected) {
         const sourcePluginId = field.attrs?.source_plugin_id as string | undefined;
+        const isOrphaned = useIsFieldOrphaned(field);
+
         return (
             <>
                 <span className='user-property-field-values'>
                     <LockOutlineIcon size={18}/>
-                    <FormattedMessage
-                        id='admin.system_properties.user_properties.table.values.managed_by_plugin'
-                        defaultMessage='Managed by plugin: {pluginId}'
-                        values={{pluginId: sourcePluginId || 'unknown'}}
-                    />
+                    {isOrphaned ? (
+                        <FormattedMessage
+                            id='admin.system_properties.user_properties.table.values.plugin_removed'
+                            defaultMessage='Plugin removed: {pluginId}'
+                            values={{pluginId: sourcePluginId || 'unknown'}}
+                        />
+                    ) : (
+                        <FormattedMessage
+                            id='admin.system_properties.user_properties.table.values.managed_by_plugin'
+                            defaultMessage='Managed by plugin: {pluginId}'
+                            values={{pluginId: sourcePluginId || 'unknown'}}
+                        />
+                    )}
                 </span>
             </>
         );
