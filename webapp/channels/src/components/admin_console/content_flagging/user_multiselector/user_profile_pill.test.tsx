@@ -4,13 +4,15 @@
 import React from 'react';
 import type {MultiValueProps} from 'react-select/dist/declarations/src/components/MultiValue';
 
+import type {Group} from '@mattermost/types/groups';
+import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {fireEvent, renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import type {AutocompleteOptionType} from './user_multiselector';
-import {UserProfilePill} from './user_profile_pill';
+import {MultiUserProfilePill} from './user_profile_pill';
 
 describe('components/admin_console/content_flagging/user_multiselector/UserProfilePill', () => {
     const baseProps = {
@@ -24,7 +26,7 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
                 last_name: 'User',
                 email: 'test@example.com',
             }),
-        } as AutocompleteOptionType<UserProfile>,
+        } as AutocompleteOptionType<UserProfile | Group | Team>,
         innerProps: {},
         selectProps: {},
         removeProps: {
@@ -44,13 +46,13 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
         isMulti: true,
         isRtl: false,
         theme: {} as any,
-    } as unknown as MultiValueProps<AutocompleteOptionType<UserProfile>, true>;
+    } as unknown as MultiValueProps<AutocompleteOptionType<UserProfile | Group | Team>, true>;
 
     const initialState = {
         entities: {
             users: {
                 profiles: {
-                    'user-id-1': baseProps.data.raw,
+                    'user-id-1': baseProps.data.raw as UserProfile,
                 },
             },
             preferences: {
@@ -70,7 +72,7 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
 
     test('should render user profile pill with avatar and display name', () => {
         const {container} = renderWithContext(
-            <UserProfilePill {...baseProps}/>,
+            <MultiUserProfilePill {...baseProps}/>,
             initialState,
         );
 
@@ -79,7 +81,7 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
 
     test('should render with correct user display name', () => {
         const {container} = renderWithContext(
-            <UserProfilePill {...baseProps}/>,
+            <MultiUserProfilePill {...baseProps}/>,
             initialState,
         );
 
@@ -90,7 +92,7 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
 
     test('should render Avatar component with correct props', () => {
         const {container} = renderWithContext(
-            <UserProfilePill {...baseProps}/>,
+            <MultiUserProfilePill {...baseProps}/>,
             initialState,
         );
 
@@ -100,7 +102,7 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
 
     test('should render Remove component with close icon', () => {
         const {container} = renderWithContext(
-            <UserProfilePill {...baseProps}/>,
+            <MultiUserProfilePill {...baseProps}/>,
             initialState,
         );
 
@@ -118,7 +120,7 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
         };
 
         const {container} = renderWithContext(
-            <UserProfilePill {...propsWithClick}/>,
+            <MultiUserProfilePill {...propsWithClick}/>,
             initialState,
         );
 
@@ -140,10 +142,10 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
                     username: undefined,
                 },
             },
-        } as unknown as MultiValueProps<AutocompleteOptionType<UserProfile>, true>;
+        } as unknown as MultiValueProps<AutocompleteOptionType<UserProfile | Group | Team>, true>;
 
         const {container} = renderWithContext(
-            <UserProfilePill {...propsWithoutUsername}/>,
+            <MultiUserProfilePill {...propsWithoutUsername}/>,
             initialState,
         );
 
@@ -165,7 +167,7 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
         };
 
         const {container} = renderWithContext(
-            <UserProfilePill {...baseProps}/>,
+            <MultiUserProfilePill {...baseProps}/>,
             stateWithUsernameDisplay,
         );
 
@@ -175,7 +177,7 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
 
     test('should apply correct CSS classes', () => {
         const {container} = renderWithContext(
-            <UserProfilePill {...baseProps}/>,
+            <MultiUserProfilePill {...baseProps}/>,
             initialState,
         );
 

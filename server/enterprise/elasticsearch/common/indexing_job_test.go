@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -37,8 +38,8 @@ func TestBulkIndexChannelsWithDeletedChannels(t *testing.T) {
 
 	// Since these are open channels, GetAllChannelMemberIdsByChannelId won't be called
 	// But GetTeamMembersForChannel will be called for both channels
-	mockChannelStore.On("GetTeamMembersForChannel", "ch1").Return([]string{"team1"}, nil)
-	mockChannelStore.On("GetTeamMembersForChannel", "ch2").Return([]string{"team1"}, nil)
+	mockChannelStore.On("GetTeamMembersForChannel", mock.AnythingOfType("*request.Context"), "ch1").Return([]string{"team1"}, nil)
+	mockChannelStore.On("GetTeamMembersForChannel", mock.AnythingOfType("*request.Context"), "ch2").Return([]string{"team1"}, nil)
 
 	// Track which channels were actually indexed
 	indexedChannels := make(map[string]bool)

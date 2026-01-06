@@ -330,7 +330,7 @@ export class MessageExportSettings extends OLDAdminSettings<BaseProps & WrappedC
                     <FormattedMessage
                         {...messages.exportFormat_description_details}
                         values={{
-                            a: (chunks: string) => (
+                            a: (chunks) => (
                                 <Link to='/admin_console/environment/file_storage'>
                                     {chunks}
                                 </Link>

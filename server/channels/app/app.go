@@ -37,12 +37,12 @@ func New(options ...AppOption) *App {
 	return app
 }
 
-func (a *App) TelemetryId() string {
-	return a.Srv().TelemetryId()
+func (a *App) ServerId() string {
+	return a.Srv().ServerId()
 }
 
 func (s *Server) TemplatesContainer() *templates.Container {
-	return s.htmlTemplateWatcher
+	return s.htmlTemplates
 }
 
 func (s *Server) getFirstServerRunTimestamp() (int64, *model.AppError) {
@@ -65,9 +65,6 @@ func (a *App) Srv() *Server {
 }
 func (a *App) Log() *mlog.Logger {
 	return a.ch.srv.Log()
-}
-func (a *App) NotificationsLog() *mlog.Logger {
-	return a.ch.srv.NotificationsLog()
 }
 
 func (a *App) AccountMigration() einterfaces.AccountMigrationInterface {
@@ -102,6 +99,9 @@ func (a *App) Notification() einterfaces.NotificationInterface {
 }
 func (a *App) Saml() einterfaces.SamlInterface {
 	return a.ch.Saml
+}
+func (a *App) Intune() einterfaces.IntuneInterface {
+	return a.ch.Intune
 }
 func (a *App) Cloud() einterfaces.CloudInterface {
 	return a.ch.srv.Cloud

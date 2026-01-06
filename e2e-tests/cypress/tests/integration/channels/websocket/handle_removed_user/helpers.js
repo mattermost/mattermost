@@ -53,7 +53,7 @@ export function shouldRemoveMentionsInRHS(teamName, sidebarItemClass) {
 
     // # Post a unique message with a mention and retrieve its ID
     cy.apiGetMe().then(({user}) => {
-        var messageText = `${Date.now()} - mention to @${user.username} `;
+        const messageText = `${Date.now()} - mention to @${user.username} `;
         cy.postMessage(messageText);
 
         return cy.getLastPostId();
@@ -76,7 +76,7 @@ export function shouldRemoveSavedPostsInRHS(teamName, sidebarItemClass) {
     let postId;
 
     // # Post a unique message and retrieve its ID
-    var messageText = `${Date.now()} - post to save`;
+    const messageText = `${Date.now()} - post to save`;
     cy.postMessage(messageText);
 
     cy.getLastPostId().then((lastPostId) => {

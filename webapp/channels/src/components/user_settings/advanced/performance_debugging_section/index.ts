@@ -21,10 +21,8 @@ function mapStateToProps(state: GlobalState, props: OwnProps) {
     return {
         userId: props.adminMode ? props.userId : getCurrentUserId(state),
         disableClientPlugins: getBool(state, Preferences.CATEGORY_PERFORMANCE_DEBUGGING, Preferences.NAME_DISABLE_CLIENT_PLUGINS, undefined, userPreferences),
-        disableTelemetry: getBool(state, Preferences.CATEGORY_PERFORMANCE_DEBUGGING, Preferences.NAME_DISABLE_TELEMETRY, undefined, userPreferences),
         disableTypingMessages: getBool(state, Preferences.CATEGORY_PERFORMANCE_DEBUGGING, Preferences.NAME_DISABLE_TYPING_MESSAGES, undefined, userPreferences),
         performanceDebuggingEnabled: isPerformanceDebuggingEnabled(state),
-
     };
 }
 

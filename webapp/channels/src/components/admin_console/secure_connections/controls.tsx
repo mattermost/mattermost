@@ -132,7 +132,7 @@ export const Input = styled.input.attrs({className: 'form-control secure-connect
 type FormFieldProps = {
     label?: string;
     children: ReactNode | ReactNode[];
-    helpText?: string;
+    helpText?: string | ReactNode;
 }
 
 export const FormField = ({label, children, helpText}: FormFieldProps) => {

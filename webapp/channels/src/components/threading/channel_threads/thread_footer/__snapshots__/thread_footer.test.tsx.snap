@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/threading/channel_threads/thread_footer should match snapshot when a single message is followed 1`] = `
 <Memo(ThreadFooter)

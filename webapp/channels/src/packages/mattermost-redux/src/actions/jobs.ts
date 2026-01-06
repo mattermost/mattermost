@@ -10,7 +10,7 @@ import {bindClientFunc} from './helpers';
 
 import {General} from '../constants';
 
-export function createJob(job: JobTypeBase) {
+export function createJob(job: JobTypeBase & { data?: any }) {
     return bindClientFunc({
         clientFunc: Client4.createJob,
         onSuccess: JobTypes.RECEIVED_JOB,

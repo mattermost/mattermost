@@ -33,7 +33,7 @@ func newSqlOutgoingOAuthConnectionStore(sqlStore *SqlStore) store.OutgoingOAuthC
 	return &s
 }
 
-func (s *SqlOutgoingOAuthConnectionStore) SaveConnection(c request.CTX, conn *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnection, error) {
+func (s *SqlOutgoingOAuthConnectionStore) SaveConnection(rctx request.CTX, conn *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnection, error) {
 	if conn.Id != "" {
 		return nil, store.NewErrInvalidInput("OutgoingOAuthConnection", "Id", conn.Id)
 	}
@@ -52,7 +52,7 @@ func (s *SqlOutgoingOAuthConnectionStore) SaveConnection(c request.CTX, conn *mo
 	return conn, nil
 }
 
-func (s *SqlOutgoingOAuthConnectionStore) UpdateConnection(c request.CTX, conn *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnection, error) {
+func (s *SqlOutgoingOAuthConnectionStore) UpdateConnection(rctx request.CTX, conn *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnection, error) {
 	if conn.Id == "" {
 		return nil, store.NewErrInvalidInput("OutgoingOAuthConnection", "Id", conn.Id)
 	}
@@ -94,7 +94,7 @@ func (s *SqlOutgoingOAuthConnectionStore) UpdateConnection(c request.CTX, conn *
 	return conn, nil
 }
 
-func (s *SqlOutgoingOAuthConnectionStore) GetConnection(c request.CTX, id string) (*model.OutgoingOAuthConnection, error) {
+func (s *SqlOutgoingOAuthConnectionStore) GetConnection(rctx request.CTX, id string) (*model.OutgoingOAuthConnection, error) {
 	conn := &model.OutgoingOAuthConnection{}
 	query := s.tableSelectQuery.Where(sq.Eq{"Id": id})
 
@@ -107,7 +107,7 @@ func (s *SqlOutgoingOAuthConnectionStore) GetConnection(c request.CTX, id string
 	return conn, nil
 }
 
-func (s *SqlOutgoingOAuthConnectionStore) GetConnections(c request.CTX, filters model.OutgoingOAuthConnectionGetConnectionsFilter) ([]*model.OutgoingOAuthConnection, error) {
+func (s *SqlOutgoingOAuthConnectionStore) GetConnections(rctx request.CTX, filters model.OutgoingOAuthConnectionGetConnectionsFilter) ([]*model.OutgoingOAuthConnection, error) {
 	filters.SetDefaults()
 
 	conns := []*model.OutgoingOAuthConnection{}
@@ -121,14 +121,14 @@ func (s *SqlOutgoingOAuthConnectionStore) GetConnections(c request.CTX, filters 
 		query = query.Where(sq.Like{"Audiences": fmt.Sprint("%", filters.Audience, "%")})
 	}
 
-	if err := s.GetReplica().SelectBuilderCtx(c.Context(), &conns, query); err != nil {
+	if err := s.GetReplica().SelectBuilderCtx(rctx.Context(), &conns, query); err != nil {
 		return nil, errors.Wrap(err, "failed to get OutgoingOAuthConnections")
 	}
 
 	return conns, nil
 }
 
-func (s *SqlOutgoingOAuthConnectionStore) DeleteConnection(c request.CTX, id string) error {
+func (s *SqlOutgoingOAuthConnectionStore) DeleteConnection(rctx request.CTX, id string) error {
 	if _, err := s.GetMaster().Exec(`DELETE FROM OutgoingOAuthConnections WHERE Id=?`, id); err != nil {
 		return errors.Wrap(err, "failed to delete OutgoingOAuthConnection")
 	}

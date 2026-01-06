@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`component/add_user_to_group_multiselect should match snapshot with different submit button text 1`] = `
 <MultiSelect

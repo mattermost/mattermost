@@ -18,7 +18,7 @@ import (
 
 // ResolvePersistentNotification stops the persistent notifications, if a loggedInUserID(except the post owner) reacts, reply or ack on the post.
 // Post-owner can only delete the original post to stop the notifications.
-func (a *App) ResolvePersistentNotification(c request.CTX, post *model.Post, loggedInUserID string) *model.AppError {
+func (a *App) ResolvePersistentNotification(rctx request.CTX, post *model.Post, loggedInUserID string) *model.AppError {
 	// Ignore the post owner's actions to their own post
 	if loggedInUserID == post.UserId {
 		return nil
@@ -79,7 +79,7 @@ func (a *App) ResolvePersistentNotification(c request.CTX, post *model.Post, log
 }
 
 // DeletePersistentNotification stops the persistent notifications.
-func (a *App) DeletePersistentNotification(c request.CTX, post *model.Post) *model.AppError {
+func (a *App) DeletePersistentNotification(rctx request.CTX, post *model.Post) *model.AppError {
 	if !a.IsPersistentNotificationsEnabled() {
 		return nil
 	}
@@ -172,6 +172,18 @@ func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(pos
 		}
 		profileMap := channelProfileMap[channel.Id]
 
+		// Ensure the sender is always in the profile map: for example, system admins can post
+		// without being a member.
+		if _, ok := profileMap[post.UserId]; !ok {
+			var sender *model.User
+			sender, err = a.Srv().Store().User().Get(context.Background(), post.UserId)
+			if err != nil {
+				return errors.Wrapf(err, "failed to get profile for sender user %s for post %s", post.UserId, post.Id)
+			}
+
+			profileMap[post.UserId] = sender
+		}
+
 		mentions := &MentionResults{}
 		// In DMs, only the "other" user can be mentioned
 		if channel.Type == model.ChannelTypeDirect {
@@ -228,15 +240,12 @@ func (a *App) persistentNotificationsAuxiliaryData(channelsMap map[string]*model
 		}
 
 		channelKeywords[c.Id] = make(MentionKeywords, len(profileMap))
-		validProfileMap := make(map[string]*model.User, len(profileMap))
 		for userID, user := range profileMap {
-			if user.IsBot {
-				continue
+			if !user.IsBot {
+				channelKeywords[c.Id].AddUserKeyword(userID, "@"+user.Username)
 			}
-			validProfileMap[userID] = user
-			channelKeywords[c.Id].AddUserKeyword(userID, "@"+user.Username)
 		}
-		channelProfileMap[c.Id] = validProfileMap
+		channelProfileMap[c.Id] = profileMap
 	}
 	return channelGroupMap, channelProfileMap, channelKeywords, channelNotifyProps, nil
 }
@@ -302,15 +311,18 @@ func (a *App) sendPersistentNotifications(post *model.Post, channel *model.Chann
 			if user == nil {
 				continue
 			}
+			rctx := request.EmptyContext(a.Log().With(
+				mlog.String("receiver_id", userID),
+			))
 
 			status, err := a.GetStatus(userID)
 			if err != nil {
-				mlog.Warn("Unable to fetch online status", mlog.String("user_id", userID), mlog.Err(err))
+				mlog.Warn("Unable to fetch online status", mlog.Err(err))
 				status = &model.Status{UserId: userID, Status: model.StatusOffline, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 			}
 
 			isGM := channel.Type == model.ChannelTypeGroup
-			if a.ShouldSendPushNotification(profileMap[userID], channelNotifyProps[channel.Id][userID], true, status, post, isGM) {
+			if a.ShouldSendPushNotification(rctx, profileMap[userID], channelNotifyProps[channel.Id][userID], true, status, post, isGM) {
 				a.sendPushNotification(
 					notification,
 					user,
@@ -335,7 +347,7 @@ func (a *App) sendPersistentNotifications(post *model.Post, channel *model.Chann
 	}
 
 	if len(desktopUsers) != 0 {
-		post = a.PreparePostForClient(request.EmptyContext(a.Log()), post, false, false, true)
+		post = a.PreparePostForClient(request.EmptyContext(a.Log()), post, &model.PreparePostForClientOpts{IncludePriority: true})
 		postJSON, jsonErr := post.ToJSON()
 		if jsonErr != nil {
 			return errors.Wrapf(jsonErr, "failed to encode post to JSON")

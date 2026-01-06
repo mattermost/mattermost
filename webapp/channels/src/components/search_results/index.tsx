@@ -6,9 +6,7 @@ import {connect} from 'react-redux';
 import type {FileSearchResultItem} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
 
-import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getSearchFilesResults} from 'mattermost-redux/selectors/entities/files';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getSearchMatches, getSearchResults} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {makeAddDateSeparatorsForSearchResults} from 'mattermost-redux/utils/post_list';
@@ -32,31 +30,17 @@ function makeMapStateToProps() {
     let results: Post[];
     let fileResults: FileSearchResultItem[];
     let files: FileSearchResultItem[] = [];
-    let posts: Post[];
     const addDateSeparatorsForSearchResults = makeAddDateSeparatorsForSearchResults();
 
     return function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
-        const config = getConfig(state);
-
-        const viewArchivedChannels = config.ExperimentalViewArchivedChannels === 'true';
-
         const newResults = getSearchResults(state);
 
-        // Cache posts and channels
+        // Cache results
         if (newResults && newResults !== results) {
             results = newResults;
 
-            posts = [];
-            results.forEach((post) => {
-                if (!post) {
-                    return;
-                }
-
-                posts.push(post);
-            });
-
             if (ownProps.isPinnedPosts) {
-                results = results.sort((postA: Post|FileSearchResultItem, postB: Post|FileSearchResultItem) => postB.create_at - postA.create_at);
+                results = results.sort((postA: Post | FileSearchResultItem, postB: Post | FileSearchResultItem) => postB.create_at - postA.create_at);
             }
         }
 
@@ -69,11 +53,6 @@ function makeMapStateToProps() {
             files = [];
             fileResults.forEach((file) => {
                 if (!file) {
-                    return;
-                }
-
-                const channel = getChannel(state, file.channel_id);
-                if (channel && channel.delete_at !== 0 && !viewArchivedChannels) {
                     return;
                 }
 

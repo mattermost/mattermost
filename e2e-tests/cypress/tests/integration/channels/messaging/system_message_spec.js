@@ -23,8 +23,8 @@ function getLines(e) {
 
     const $wordSpans = $cont.find('span');
     const lineArray = [];
-    var lineIndex = 0;
-    var lineStart = true;
+    let lineIndex = 0;
+    let lineStart = true;
 
     $wordSpans.each(function handleWord(idx) {
         const top = Cypress.$(this).position().top;
@@ -33,7 +33,7 @@ function getLines(e) {
             lineArray[lineIndex] = [idx];
             lineStart = false;
         } else {
-            var $next = Cypress.$(this).next();
+            const $next = Cypress.$(this).next();
 
             if ($next.length) {
                 if ($next.position().top > top) {

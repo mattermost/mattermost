@@ -620,7 +620,9 @@
 .admin-sidebar {
     z-index: 10;
     display: flex;
+    overflow: clip;
     width: 220px;
+    min-height: 0;
     flex-direction: column;
     background: #111;
     grid-area: lhs;
@@ -705,6 +707,7 @@
         height: calc(100% - 68px);
         padding-bottom: 20px;
         margin-top: 1px;
+        overflow-x: hidden;
 
         ul {
             padding-bottom: 20px;

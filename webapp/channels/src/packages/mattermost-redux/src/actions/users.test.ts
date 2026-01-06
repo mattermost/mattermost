@@ -1716,7 +1716,7 @@ describe('Actions.Users', () => {
         const state = store.getState();
         const currentUser = state.entities.users.profiles[state.entities.users.currentUserId];
 
-        nock(Client4.getCustomProfileAttributeValuesRoute()).
+        nock(Client4.getUserRoute(currentUser.id) + '/custom_profile_attributes').
             patch('').
             query(true).
             reply(200, {

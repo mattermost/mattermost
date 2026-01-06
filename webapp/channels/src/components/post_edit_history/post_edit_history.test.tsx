@@ -6,10 +6,13 @@ import type {ComponentProps} from 'react';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {renderWithContext, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, waitForElementToBeRemoved} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import PostEditHistory from './post_edit_history';
+
+// jsdom doesn't implement scrolling, so we need to manually define this
+window.HTMLElement.prototype.scrollTo = jest.fn();
 
 describe('components/post_edit_history', () => {
     const baseProps: ComponentProps<typeof PostEditHistory> = {
@@ -35,23 +38,23 @@ describe('components/post_edit_history', () => {
         ];
         mock.mockResolvedValue(data);
 
-        const wrapper = await waitFor(() => {
-            return renderWithContext(<PostEditHistory {...baseProps}/>);
-        });
+        const wrapper = renderWithContext(<PostEditHistory {...baseProps}/>);
+
+        await waitForElementToBeRemoved(() => screen.queryByText('Loading'));
 
         expect(wrapper.container).toMatchSnapshot();
-        expect(mock).toBeCalledWith(baseProps.originalPost.id);
+        expect(mock).toHaveBeenCalledWith(baseProps.originalPost.id);
     });
 
     test('should display error screen if errors are present', async () => {
         const error = new Error('An example error');
         mock.mockRejectedValue(error);
 
-        const wrapper = await waitFor(() => {
-            return renderWithContext(<PostEditHistory {...baseProps}/>);
-        });
+        const wrapper = renderWithContext(<PostEditHistory {...baseProps}/>);
+
+        await waitForElementToBeRemoved(() => screen.queryByText('Loading'));
 
         expect(wrapper.container).toMatchSnapshot();
-        expect(mock).toBeCalledWith(baseProps.originalPost.id);
+        expect(mock).toHaveBeenCalledWith(baseProps.originalPost.id);
     });
 });

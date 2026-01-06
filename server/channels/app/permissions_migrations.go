@@ -21,58 +21,64 @@ type permissionTransformation struct {
 type permissionsMap []permissionTransformation
 
 const (
-	PermissionManageSystem                   = "manage_system"
-	PermissionManageTeam                     = "manage_team"
-	PermissionManageEmojis                   = "manage_emojis"
-	PermissionManageOthersEmojis             = "manage_others_emojis"
-	PermissionCreateEmojis                   = "create_emojis"
-	PermissionDeleteEmojis                   = "delete_emojis"
-	PermissionDeleteOthersEmojis             = "delete_others_emojis"
-	PermissionManageWebhooks                 = "manage_webhooks"
-	PermissionManageOthersWebhooks           = "manage_others_webhooks"
-	PermissionManageIncomingWebhooks         = "manage_incoming_webhooks"
-	PermissionManageOthersIncomingWebhooks   = "manage_others_incoming_webhooks"
-	PermissionManageOutgoingWebhooks         = "manage_outgoing_webhooks"
-	PermissionManageOthersOutgoingWebhooks   = "manage_others_outgoing_webhooks"
-	PermissionListPublicTeams                = "list_public_teams"
-	PermissionListPrivateTeams               = "list_private_teams"
-	PermissionJoinPublicTeams                = "join_public_teams"
-	PermissionJoinPrivateTeams               = "join_private_teams"
-	PermissionPermanentDeleteUser            = "permanent_delete_user"
-	PermissionCreateBot                      = "create_bot"
-	PermissionReadBots                       = "read_bots"
-	PermissionReadOthersBots                 = "read_others_bots"
-	PermissionManageBots                     = "manage_bots"
-	PermissionManageOthersBots               = "manage_others_bots"
-	PermissionDeletePublicChannel            = "delete_public_channel"
-	PermissionDeletePrivateChannel           = "delete_private_channel"
-	PermissionManagePublicChannelProperties  = "manage_public_channel_properties"
-	PermissionManagePrivateChannelProperties = "manage_private_channel_properties"
-	PermissionConvertPublicChannelToPrivate  = "convert_public_channel_to_private"
-	PermissionConvertPrivateChannelToPublic  = "convert_private_channel_to_public"
-	PermissionViewMembers                    = "view_members"
-	PermissionInviteUser                     = "invite_user"
-	PermissionInviteGuest                    = "invite_guest"
-	PermissionPromoteGuest                   = "promote_guest"
-	PermissionDemoteToGuest                  = "demote_to_guest"
-	PermissionUseChannelMentions             = "use_channel_mentions"
-	PermissionCreatePost                     = "create_post"
-	PermissionCreatePost_PUBLIC              = "create_post_public"
-	PermissionUseGroupMentions               = "use_group_mentions"
-	PermissionAddReaction                    = "add_reaction"
-	PermissionRemoveReaction                 = "remove_reaction"
-	PermissionManagePublicChannelMembers     = "manage_public_channel_members"
-	PermissionManagePrivateChannelMembers    = "manage_private_channel_members"
-	PermissionReadJobs                       = "read_jobs"
-	PermissionManageJobs                     = "manage_jobs"
-	PermissionReadOtherUsersTeams            = "read_other_users_teams"
-	PermissionEditOtherUsers                 = "edit_other_users"
-	PermissionReadPublicChannelGroups        = "read_public_channel_groups"
-	PermissionReadPrivateChannelGroups       = "read_private_channel_groups"
-	PermissionEditBrand                      = "edit_brand"
-	PermissionManageSharedChannels           = "manage_shared_channels"
-	PermissionManageSecureConnections        = "manage_secure_connections"
-	PermissionManageRemoteClusters           = "manage_remote_clusters" // deprecated; use `manage_secure_connections`
+	PermissionManageSystem                     = "manage_system"
+	PermissionManageTeam                       = "manage_team"
+	PermissionManageEmojis                     = "manage_emojis"
+	PermissionManageOthersEmojis               = "manage_others_emojis"
+	PermissionCreateEmojis                     = "create_emojis"
+	PermissionDeleteEmojis                     = "delete_emojis"
+	PermissionDeleteOthersEmojis               = "delete_others_emojis"
+	PermissionManageWebhooks                   = "manage_webhooks"
+	PermissionManageOthersWebhooks             = "manage_others_webhooks"
+	PermissionManageIncomingWebhooks           = "manage_incoming_webhooks"
+	PermissionManageOwnIncomingWebhooks        = "manage_own_incoming_webhooks"
+	PermissionManageOthersIncomingWebhooks     = "manage_others_incoming_webhooks"
+	PermissionManageOutgoingWebhooks           = "manage_outgoing_webhooks"
+	PermissionManageOwnOutgoingWebhooks        = "manage_own_outgoing_webhooks"
+	PermissionManageOthersOutgoingWebhooks     = "manage_others_outgoing_webhooks"
+	PermissionBypassIncomingWebhookChannelLock = "bypass_incoming_webhook_channel_lock"
+	PermissionListPublicTeams                  = "list_public_teams"
+	PermissionListPrivateTeams                 = "list_private_teams"
+	PermissionJoinPublicTeams                  = "join_public_teams"
+	PermissionJoinPrivateTeams                 = "join_private_teams"
+	PermissionPermanentDeleteUser              = "permanent_delete_user"
+	PermissionCreateBot                        = "create_bot"
+	PermissionReadBots                         = "read_bots"
+	PermissionReadOthersBots                   = "read_others_bots"
+	PermissionManageBots                       = "manage_bots"
+	PermissionManageOthersBots                 = "manage_others_bots"
+	PermissionManageSlashCommands              = "manage_slash_commands"
+	PermissionManageOwnSlashCommands           = "manage_own_slash_commands"
+	PermissionDeletePublicChannel              = "delete_public_channel"
+	PermissionDeletePrivateChannel             = "delete_private_channel"
+	PermissionManagePublicChannelProperties    = "manage_public_channel_properties"
+	PermissionManagePrivateChannelProperties   = "manage_private_channel_properties"
+	PermissionConvertPublicChannelToPrivate    = "convert_public_channel_to_private"
+	PermissionConvertPrivateChannelToPublic    = "convert_private_channel_to_public"
+	PermissionViewMembers                      = "view_members"
+	PermissionInviteUser                       = "invite_user"
+	PermissionInviteGuest                      = "invite_guest"
+	PermissionPromoteGuest                     = "promote_guest"
+	PermissionDemoteToGuest                    = "demote_to_guest"
+	PermissionUseChannelMentions               = "use_channel_mentions"
+	PermissionCreatePost                       = "create_post"
+	PermissionCreatePost_PUBLIC                = "create_post_public"
+	PermissionUseGroupMentions                 = "use_group_mentions"
+	PermissionAddReaction                      = "add_reaction"
+	PermissionRemoveReaction                   = "remove_reaction"
+	PermissionManagePublicChannelMembers       = "manage_public_channel_members"
+	PermissionManagePrivateChannelMembers      = "manage_private_channel_members"
+	PermissionReadJobs                         = "read_jobs"
+	PermissionManageJobs                       = "manage_jobs"
+	PermissionReadOtherUsersTeams              = "read_other_users_teams"
+	PermissionEditOtherUsers                   = "edit_other_users"
+	PermissionReadPublicChannelGroups          = "read_public_channel_groups"
+	PermissionReadPrivateChannelGroups         = "read_private_channel_groups"
+	PermissionEditBrand                        = "edit_brand"
+	PermissionManageSharedChannels             = "manage_shared_channels"
+	PermissionManageSecureConnections          = "manage_secure_connections"
+	PermissionManageOAuth                      = "manage_oauth"
+	PermissionManageRemoteClusters             = "manage_remote_clusters" // deprecated; use `manage_secure_connections`
 )
 
 // Deprecated: This function should only be used if a case arises where team and/or channel scheme roles do not need to be migrated.
@@ -271,6 +277,36 @@ func (a *App) getWebhooksPermissionsSplitMigration() (permissionsMap, error) {
 			On:     permissionExists(PermissionManageOthersWebhooks),
 			Add:    []string{PermissionManageOthersIncomingWebhooks, PermissionManageOthersOutgoingWebhooks},
 			Remove: []string{PermissionManageOthersWebhooks},
+		},
+	}, nil
+}
+
+func (a *App) getIntegrationsOwnPermissionsMigration() (permissionsMap, error) {
+	return permissionsMap{
+		permissionTransformation{
+			On:     permissionExists(PermissionManageIncomingWebhooks),
+			Add:    []string{PermissionManageOwnIncomingWebhooks, PermissionBypassIncomingWebhookChannelLock},
+			Remove: []string{PermissionManageIncomingWebhooks},
+		},
+		permissionTransformation{
+			On:     permissionExists(PermissionManageOutgoingWebhooks),
+			Add:    []string{PermissionManageOwnOutgoingWebhooks},
+			Remove: []string{PermissionManageOutgoingWebhooks},
+		},
+		permissionTransformation{
+			On:     permissionExists(PermissionManageSlashCommands),
+			Add:    []string{PermissionManageOwnSlashCommands},
+			Remove: []string{PermissionManageSlashCommands},
+		},
+		// Ensure system admin has the new "manage others" permissions
+		permissionTransformation{
+			On:  isExactRole(model.SystemAdminRoleId),
+			Add: []string{model.PermissionManageOthersIncomingWebhooks.Id, model.PermissionManageOthersOutgoingWebhooks.Id, model.PermissionManageOthersSlashCommands.Id},
+		},
+		// Ensure team admin (including scheme team admins) have the new "manage others" permissions
+		permissionTransformation{
+			On:  isRole(model.TeamAdminRoleId),
+			Add: []string{model.PermissionManageOthersIncomingWebhooks.Id, model.PermissionManageOthersOutgoingWebhooks.Id, model.PermissionManageOthersSlashCommands.Id},
 		},
 	}, nil
 }
@@ -1225,6 +1261,7 @@ func (s *Server) doPermissionsMigrations() error {
 	}{
 		{Key: model.MigrationKeyEmojiPermissionsSplit, Migration: a.getEmojisPermissionsSplitMigration},
 		{Key: model.MigrationKeyWebhookPermissionsSplit, Migration: a.getWebhooksPermissionsSplitMigration},
+		{Key: model.MigrationKeyIntegrationsOwnPermissions, Migration: a.getIntegrationsOwnPermissionsMigration},
 		{Key: model.MigrationKeyListJoinPublicPrivateTeams, Migration: a.getListJoinPublicPrivateTeamsPermissionsMigration},
 		{Key: model.MigrationKeyRemovePermanentDeleteUser, Migration: a.removePermanentDeleteUserMigration},
 		{Key: model.MigrationKeyAddBotPermissions, Migration: a.getAddBotPermissionsMigration},

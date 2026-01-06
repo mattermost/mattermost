@@ -13,16 +13,15 @@ import {ensureString} from 'mattermost-redux/utils/post_utils';
 
 import FileAttachmentListContainer from 'components/file_attachment_list';
 import PriorityLabel from 'components/post_priority/post_priority_label';
+import AiGeneratedIndicator from 'components/post_view/ai_generated_indicator/ai_generated_indicator';
 import PostAttachmentOpenGraph from 'components/post_view/post_attachment_opengraph';
 import PostMessageView from 'components/post_view/post_message_view';
 import Timestamp from 'components/timestamp';
 import UserProfileComponent from 'components/user_profile';
-import MattermostLogo from 'components/widgets/icons/mattermost_logo';
-import Avatar from 'components/widgets/users/avatar';
 
-import {Constants} from 'utils/constants';
 import * as PostUtils from 'utils/post_utils';
-import * as Utils from 'utils/utils';
+
+import PreviewPostAvatar from './avatar/avatar';
 
 import PostAttachmentContainer from '../post_attachment_container/post_attachment_container';
 
@@ -39,13 +38,15 @@ export type Props = OwnProps & {
     compactDisplay: boolean;
     isPostPriorityEnabled: boolean;
     handleFileDropdownOpened?: (open: boolean) => void;
+    overrideGenerateFileDownloadUrl?: (fileId: string) => string;
+    disableActions?: boolean;
     actions: {
         toggleEmbedVisibility: (id: string) => void;
     };
 };
 
 const PostMessagePreview = (props: Props) => {
-    const {currentTeamUrl, channelDisplayName, user, previewPost, metadata, isEmbedVisible, compactDisplay, preventClickAction, previewFooterMessage, handleFileDropdownOpened, isPostPriorityEnabled} = props;
+    const {currentTeamUrl, channelDisplayName, user, previewPost, metadata, isEmbedVisible, compactDisplay, preventClickAction, previewFooterMessage, handleFileDropdownOpened, isPostPriorityEnabled, overrideGenerateFileDownloadUrl, disableActions} = props;
 
     const toggleEmbedVisibility = () => {
         if (previewPost) {
@@ -53,51 +54,8 @@ const PostMessagePreview = (props: Props) => {
         }
     };
 
-    const getPostIconURL = (defaultURL: string, fromAutoResponder: boolean, fromWebhook: boolean): string => {
-        const {enablePostIconOverride, hasImageProxy, previewPost} = props;
-        const postProps = previewPost?.props;
-        const postIconOverrideURL = ensureString(postProps?.override_icon_url);
-        const useUserIcon = ensureString(postProps?.use_user_icon);
-
-        if (!fromAutoResponder && fromWebhook && !useUserIcon && enablePostIconOverride) {
-            if (postIconOverrideURL && postIconOverrideURL !== '') {
-                return PostUtils.getImageSrc(postIconOverrideURL, hasImageProxy);
-            }
-            return Constants.DEFAULT_WEBHOOK_LOGO;
-        }
-
-        return defaultURL;
-    };
-
     if (!previewPost) {
         return null;
-    }
-
-    const isBot = Boolean(user && user.is_bot);
-    const isSystemMessage = PostUtils.isSystemMessage(previewPost);
-    const fromWebhook = PostUtils.isFromWebhook(previewPost);
-    const fromAutoResponder = PostUtils.fromAutoResponder(previewPost);
-    const profileSrc = Utils.imageURLForUser(user?.id ?? '');
-    const src = getPostIconURL(profileSrc, fromAutoResponder, fromWebhook);
-
-    let avatar = (
-        <Avatar
-            size={'sm'}
-            url={src}
-            className={'avatar-post-preview'}
-        />
-    );
-    if (isSystemMessage && !fromWebhook && !isBot) {
-        avatar = (<MattermostLogo className='icon'/>);
-    } else if (user?.id) {
-        avatar = (
-            <Avatar
-                username={user.username}
-                size={'sm'}
-                url={src}
-                className={'avatar-post-preview'}
-            />
-        );
     }
 
     let fileAttachmentPreview = null;
@@ -109,6 +67,9 @@ const PostMessagePreview = (props: Props) => {
                 compactDisplay={compactDisplay}
                 isInPermalink={true}
                 handleFileDropdownOpened={handleFileDropdownOpened}
+                usePostAsSource={props.usePostAsSource}
+                overrideGenerateFileDownloadUrl={overrideGenerateFileDownloadUrl}
+                disableActions={disableActions}
             />
         );
     }
@@ -166,7 +127,15 @@ const PostMessagePreview = (props: Props) => {
                     <div className='col col__name'>
                         <div className='post__img'>
                             <span className='profile-icon'>
-                                {avatar}
+                                {
+                                    user &&
+                                    <PreviewPostAvatar
+                                        post={previewPost}
+                                        user={user}
+                                        enablePostIconOverride={props.enablePostIconOverride}
+                                        hasImageProxy={props.hasImageProxy}
+                                    />
+                                }
                             </span>
                         </div>
                     </div>
@@ -194,6 +163,13 @@ const PostMessagePreview = (props: Props) => {
                             <span className='d-flex mr-2 ml-1'>
                                 <PriorityLabel priority={previewPost.metadata.priority.priority}/>
                             </span>
+                        )}
+                        {PostUtils.hasAiGeneratedMetadata(previewPost) && (
+                            <AiGeneratedIndicator
+                                userId={previewPost.props.ai_generated_by as string}
+                                username={previewPost.props.ai_generated_by_username as string}
+                                postAuthorId={previewPost.user_id}
+                            />
                         )}
                     </div>
                 </div>

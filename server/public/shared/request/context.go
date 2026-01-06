@@ -63,33 +63,43 @@ func (c *Context) clone() *Context {
 func (c *Context) T(translationID string, args ...any) string {
 	return c.t(translationID, args...)
 }
+
 func (c *Context) GetT() i18n.TranslateFunc {
 	return c.t
 }
+
 func (c *Context) Session() *model.Session {
 	return &c.session
 }
+
 func (c *Context) RequestId() string {
 	return c.requestId
 }
+
 func (c *Context) IPAddress() string {
 	return c.ipAddress
 }
+
 func (c *Context) XForwardedFor() string {
 	return c.xForwardedFor
 }
+
 func (c *Context) Path() string {
 	return c.path
 }
+
 func (c *Context) UserAgent() string {
 	return c.userAgent
 }
+
 func (c *Context) AcceptLanguage() string {
 	return c.acceptLanguage
 }
+
 func (c *Context) Logger() mlog.LoggerIFace {
 	return c.logger
 }
+
 func (c *Context) Context() context.Context {
 	return c.context
 }
@@ -99,46 +109,59 @@ func (c *Context) WithT(t i18n.TranslateFunc) CTX {
 	rctx.t = t
 	return rctx
 }
+
 func (c *Context) WithSession(s *model.Session) CTX {
 	rctx := c.clone()
-	rctx.session = *s
+	if s == nil {
+		rctx.session = model.Session{}
+	} else {
+		rctx.session = *s
+	}
 	return rctx
 }
+
 func (c *Context) WithRequestId(s string) CTX {
 	rctx := c.clone()
 	rctx.requestId = s
 	return rctx
 }
+
 func (c *Context) WithIPAddress(s string) CTX {
 	rctx := c.clone()
 	rctx.ipAddress = s
 	return rctx
 }
+
 func (c *Context) WithXForwardedFor(s string) CTX {
 	rctx := c.clone()
 	rctx.xForwardedFor = s
 	return rctx
 }
+
 func (c *Context) WithPath(s string) CTX {
 	rctx := c.clone()
 	rctx.path = s
 	return rctx
 }
+
 func (c *Context) WithUserAgent(s string) CTX {
 	rctx := c.clone()
 	rctx.userAgent = s
 	return rctx
 }
+
 func (c *Context) WithAcceptLanguage(s string) CTX {
 	rctx := c.clone()
 	rctx.acceptLanguage = s
 	return rctx
 }
+
 func (c *Context) WithContext(ctx context.Context) CTX {
 	rctx := c.clone()
 	rctx.context = ctx
 	return rctx
 }
+
 func (c *Context) WithLogger(logger mlog.LoggerIFace) CTX {
 	rctx := c.clone()
 	rctx.logger = logger

@@ -504,8 +504,21 @@ function makeChannelSearchFilter(curState: GlobalState, channelPrefix: string) {
                     if (!user) {
                         continue;
                     }
-                    const {nickname, username} = user;
-                    userString = [nickname, username, Utils.getFullName(user)].join(SEPARATOR);
+                    const {nickname, username, email} = user;
+
+                    // Apply smart email search logic - include email based on whether @ is in search term
+                    const includeEmail = channelPrefixLower.includes('@');
+                    let emailPart = '';
+                    if (includeEmail && email) {
+                        emailPart = email;
+                    } else if (email) {
+                        emailPart = email.split('@')[0];
+                    }
+                    const searchParts = [nickname, username, Utils.getFullName(user)];
+                    if (emailPart) {
+                        searchParts.push(emailPart);
+                    }
+                    userString = searchParts.join(SEPARATOR);
                     userSearchStrings[userId] = userString;
                 }
                 searchString += userString;
@@ -696,8 +709,6 @@ export default class SwitchChannelProvider extends Provider {
         const channelFilter = makeChannelSearchFilter(this.store.getState(), channelPrefix);
 
         const state = this.store.getState();
-        const config = getConfig(state);
-        const viewArchivedChannels = config.ExperimentalViewArchivedChannels === 'true';
         const allUnreadChannelIds = getAllTeamsUnreadChannelIds(state);
         const allUnreadChannelIdsSet = new Set(allUnreadChannelIds);
         const currentUserId = getCurrentUserId(state);
@@ -717,9 +728,7 @@ export default class SwitchChannelProvider extends Provider {
                     continue;
                 }
 
-                if (!viewArchivedChannels && channelIsArchived) {
-                    continue;
-                } else if (channelIsArchived && members[channel.id]) {
+                if (channelIsArchived && members[channel.id]) {
                     wrappedChannel.type = Constants.ARCHIVED_CHANNEL;
                 } else if (newChannel.type === Constants.OPEN_CHANNEL) {
                     wrappedChannel.type = Constants.MENTION_PUBLIC_CHANNELS;

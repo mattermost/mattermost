@@ -45,10 +45,10 @@ describe('components/user_settings/display/render_emoticons_as_emoji/render_emot
         const {getByRole, getByLabelText} = renderWithContext(<RenderEmoticonsAsEmoji {...props}/>);
 
         const radioButtonOff = getByLabelText(/off/i);
-        userEvent.click(radioButtonOff);
+        await userEvent.click(radioButtonOff);
 
         const submitButton = getByRole('button', {name: /save/i});
-        userEvent.click(submitButton);
+        await userEvent.click(submitButton);
 
         expect(props.actions.savePreferences).toHaveBeenCalled();
         expect(props.updateSection).toHaveBeenCalledWith('');

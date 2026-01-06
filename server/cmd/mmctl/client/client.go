@@ -5,6 +5,7 @@ package client
 
 import (
 	"context"
+	"encoding/json"
 	"io"
 	"net/http"
 
@@ -42,6 +43,7 @@ type Client interface {
 	SearchTeams(ctx context.Context, search *model.TeamSearch) ([]*model.Team, *model.Response, error)
 	GetPost(ctx context.Context, postID string, etag string) (*model.Post, *model.Response, error)
 	CreatePost(ctx context.Context, post *model.Post) (*model.Post, *model.Response, error)
+	RevealPost(ctx context.Context, postID string) (*model.Post, *model.Response, error)
 	GetPostsForChannel(ctx context.Context, channelID string, page, perPage int, etag string, collapsedThreads bool, includeDeleted bool) (*model.PostList, *model.Response, error)
 	GetPostsSince(ctx context.Context, channelID string, since int64, collapsedThreads bool) (*model.PostList, *model.Response, error)
 	DoAPIPost(ctx context.Context, url string, data string) (*http.Response, error)
@@ -93,7 +95,7 @@ type Client interface {
 	DeleteCommand(ctx context.Context, commandID string) (*model.Response, error)
 	GetConfig(ctx context.Context) (*model.Config, *model.Response, error)
 	GetConfigWithOptions(ctx context.Context, options model.GetConfigOptions) (map[string]any, *model.Response, error)
-	GetOldClientConfig(ctx context.Context, etag string) (map[string]string, *model.Response, error)
+	GetClientConfig(ctx context.Context, etag string) (map[string]string, *model.Response, error)
 	UpdateConfig(context.Context, *model.Config) (*model.Config, *model.Response, error)
 	PatchConfig(context.Context, *model.Config) (*model.Config, *model.Response, error)
 	ReloadConfig(ctx context.Context) (*model.Response, error)
@@ -122,8 +124,8 @@ type Client interface {
 	MigrateAuthToLdap(ctx context.Context, fromAuthService string, matchField string, force bool) (*model.Response, error)
 	MigrateAuthToSaml(ctx context.Context, fromAuthService string, usersMap map[string]string, auto bool) (*model.Response, error)
 	GetPing(ctx context.Context) (string, *model.Response, error)
-	GetPingWithFullServerStatus(ctx context.Context) (map[string]string, *model.Response, error)
-	GetPingWithOptions(ctx context.Context, options model.SystemPingOptions) (map[string]string, *model.Response, error)
+	GetPingWithFullServerStatus(ctx context.Context) (map[string]any, *model.Response, error)
+	GetPingWithOptions(ctx context.Context, options model.SystemPingOptions) (map[string]any, *model.Response, error)
 	CreateUpload(ctx context.Context, us *model.UploadSession) (*model.UploadSession, *model.Response, error)
 	GetUpload(ctx context.Context, uploadID string) (*model.UploadSession, *model.Response, error)
 	GetUploadsForUser(ctx context.Context, userID string) ([]*model.UploadSession, *model.Response, error)
@@ -165,4 +167,12 @@ type Client interface {
 	DeletePreferences(ctx context.Context, userId string, preferences model.Preferences) (*model.Response, error)
 	PermanentDeletePost(ctx context.Context, postID string) (*model.Response, error)
 	DeletePost(ctx context.Context, postId string) (*model.Response, error)
+	ListCPAFields(ctx context.Context) ([]*model.PropertyField, *model.Response, error)
+	CreateCPAField(ctx context.Context, field *model.PropertyField) (*model.PropertyField, *model.Response, error)
+	PatchCPAField(ctx context.Context, fieldID string, patch *model.PropertyFieldPatch) (*model.PropertyField, *model.Response, error)
+	DeleteCPAField(ctx context.Context, fieldID string) (*model.Response, error)
+	ListCPAValues(ctx context.Context, userID string) (map[string]json.RawMessage, *model.Response, error)
+	PatchCPAValues(ctx context.Context, values map[string]json.RawMessage) (map[string]json.RawMessage, *model.Response, error)
+	PatchCPAValuesForUser(ctx context.Context, userID string, values map[string]json.RawMessage) (map[string]json.RawMessage, *model.Response, error)
+	GetPostsForReporting(ctx context.Context, options model.ReportPostOptions, cursor model.ReportPostOptionsCursor) (*model.ReportPostListResponse, *model.Response, error)
 }

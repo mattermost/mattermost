@@ -93,8 +93,6 @@
         "DataSource": "mmuser:mostest@tcp(localhost:3306)/mattermost_test?charset=utf8mb4\u0026readTimeout=30s\u0026writeTimeout=30s\u0026maxAllowedPacket=4194304",
         "DataSourceReplicas": [],
         "DataSourceSearchReplicas": [],
-        "MaxIdleConns": 20,
-        "MaxOpenConns": 300,
         "Trace": false,
         "AtRestEncryptKey": "jdh9iergmse3w9mt53snasugmmi9r6it",
         "QueryTimeout": 30
@@ -317,8 +315,6 @@
         "ListenAddress": ":8067"
     },
     "ExperimentalSettings": {
-        "ClientSideCertEnable": false,
-        "ClientSideCertCheck": "secondary"
     },
     "AnalyticsSettings": {
         "MaxUsersForStatistics": 2500

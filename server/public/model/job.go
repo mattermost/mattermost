@@ -44,6 +44,8 @@ const (
 	JobTypeDeleteDmsPreferencesMigration = "delete_dms_preferences_migration"
 	JobTypeMobileSessionMetadata         = "mobile_session_metadata"
 	JobTypeAccessControlSync             = "access_control_sync"
+	JobTypePushProxyAuth                 = "push_proxy_auth"
+	JobTypeDeleteExpiredPosts            = "delete_expired_posts"
 
 	JobStatusPending         = "pending"
 	JobStatusInProgress      = "in_progress"

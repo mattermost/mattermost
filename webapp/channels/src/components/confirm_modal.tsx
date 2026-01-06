@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {memo, useCallback, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
@@ -59,6 +59,11 @@ type Props = {
     checkboxText?: React.ReactNode;
 
     /*
+     * CSS class to apply to the checkbox container
+     */
+    checkboxClass?: string;
+
+    /*
      * If true, show the checkbox in the footer instead of the modal body
      */
     checkboxInFooter?: boolean;
@@ -72,6 +77,11 @@ type Props = {
      * Function called when the cancel button is pressed or the modal is hidden. Passes `true` if the checkbox is checked
      */
     onCancel?: (checked: boolean) => void;
+
+    /*
+     * Function called when the checkbox is changed. Passes `true` if the checkbox is checked
+     */
+    onCheckboxChange?: (checked: boolean) => void;
 
     /**
      * Function called when modal is dismissed
@@ -89,6 +99,11 @@ type Props = {
     hideConfirm?: boolean;
 
     /*
+     * Set to disable the confirm button
+     */
+    confirmDisabled?: boolean;
+
+    /*
      * The element that triggered the modal
      */
     focusOriginElement?: string;
@@ -101,136 +116,137 @@ type Props = {
     isStacked?: boolean;
 };
 
-type State = {
-    checked: boolean;
-}
+const ConfirmModal = ({
+    title = '',
+    message = '',
+    confirmButtonClass = 'btn btn-primary',
+    confirmButtonText = '',
+    modalClass = '',
+    id,
+    show,
+    focusOriginElement,
+    isStacked,
+    showCheckbox,
+    checkboxText,
+    checkboxClass,
+    checkboxInFooter,
+    cancelButtonText,
+    hideCancel,
+    hideConfirm,
+    confirmDisabled,
+    onConfirm,
+    onCancel,
+    onCheckboxChange,
+    onExited,
+}: Props) => {
+    const [checked, setChecked] = useState(false);
 
-export default class ConfirmModal extends React.Component<Props, State> {
-    static defaultProps = {
-        title: '',
-        message: '',
-        confirmButtonClass: 'btn btn-primary',
-        confirmButtonText: '',
-        modalClass: '',
-    };
+    const handleCheckboxChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setChecked(e.target.checked);
+        onCheckboxChange?.(e.target.checked);
+    }, [onCheckboxChange]);
 
-    constructor(props: Props) {
-        super(props);
+    const handleConfirm = useCallback(() => {
+        onConfirm?.(checked);
+    }, [checked, onConfirm]);
 
-        this.state = {
-            checked: false,
-        };
-    }
+    const handleCancel = useCallback(() => {
+        onCancel?.(checked);
+    }, [checked, onCancel]);
 
-    shouldComponentUpdate(nextProps: Props, nextState: State) {
-        return (
-            nextProps.show !== this.props.show ||
-            nextState.checked !== this.state.checked
+    const handleExited = useCallback(() => {
+        onExited?.();
+
+        if (focusOriginElement) {
+            focusElement(focusOriginElement, true);
+        }
+    }, [focusOriginElement, onExited]);
+
+    let checkbox;
+    if (showCheckbox) {
+        const checkboxContainerClass = checkboxClass || 'checkbox text-right mb-0';
+        checkbox = (
+            <div className={checkboxContainerClass}>
+                <label>
+                    <input
+                        type='checkbox'
+                        onChange={handleCheckboxChange}
+                        checked={checked}
+                    />
+                    {checkboxText}
+                </label>
+            </div>
         );
     }
 
-    handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({checked: e.target.checked});
-    };
+    let cancelText;
+    if (cancelButtonText) {
+        cancelText = cancelButtonText;
+    } else {
+        cancelText = (
+            <FormattedMessage
+                id='confirm_modal.cancel'
+                defaultMessage='Cancel'
+            />
+        );
+    }
 
-    handleConfirm = () => {
-        this.props.onConfirm?.(this.state.checked);
-    };
+    let cancelButton;
+    if (!hideCancel) {
+        cancelButton = (
+            <button
+                type='button'
+                data-testid='cancel-button'
+                className='btn btn-tertiary'
+                onClick={handleCancel}
+                id='cancelModalButton'
+            >
+                {cancelText}
+            </button>
+        );
+    }
 
-    handleCancel = () => {
-        this.props.onCancel?.(this.state.checked);
-    };
-
-    handleExited = () => {
-        this.props.onExited?.();
-        if (this.props.focusOriginElement) {
-            focusElement(this.props.focusOriginElement!, true);
-        }
-    };
-
-    render() {
-        let checkbox;
-        if (this.props.showCheckbox) {
-            checkbox = (
-                <div className='checkbox text-right mb-0'>
-                    <label>
-                        <input
-                            type='checkbox'
-                            onChange={this.handleCheckboxChange}
-                            checked={this.state.checked}
-                        />
-                        {this.props.checkboxText}
-                    </label>
-                </div>
-            );
-        }
-
-        let cancelText;
-        if (this.props.cancelButtonText) {
-            cancelText = this.props.cancelButtonText;
-        } else {
-            cancelText = (
-                <FormattedMessage
-                    id='confirm_modal.cancel'
-                    defaultMessage='Cancel'
-                />
-            );
-        }
-
-        let cancelButton;
-        if (!this.props.hideCancel) {
-            cancelButton = (
-                <button
-                    type='button'
-                    data-testid='cancel-button'
-                    className='btn btn-tertiary'
-                    onClick={this.handleCancel}
-                    id='cancelModalButton'
-                >
-                    {cancelText}
-                </button>
-            );
-        }
-
-        return (
-            <GenericModal
-                id={this.props.id || 'confirmModal'}
-                className={`ConfirmModal a11y__modal ${this.props.modalClass}`}
-                show={this.props.show}
-                onHide={this.handleCancel}
-                onExited={this.handleExited}
-                ariaLabelledby='confirmModalLabel'
-                compassDesign={true}
-                modalHeaderText={this.props.title}
-                isStacked={this.props.isStacked}
+    return (
+        <GenericModal
+            id={id || 'confirmModal'}
+            className={`ConfirmModal a11y__modal ${modalClass}`}
+            show={show}
+            onHide={handleCancel}
+            onExited={handleExited}
+            ariaLabelledby='confirmModalLabel'
+            compassDesign={true}
+            modalHeaderText={title}
+            isStacked={isStacked}
+        >
+            <div
+                data-testid={id}
             >
                 <div
-                    data-testid={this.props.id}
+                    className='ConfirmModal__body'
+                    id='confirmModalBody'
                 >
-                    <div
-                        className='ConfirmModal__body'
-                        id='confirmModalBody'
-                    >
-                        {this.props.message}
-                        {!this.props.checkboxInFooter && checkbox}
-                    </div>
-                    <div className='ConfirmModal__footer'>
-                        {this.props.checkboxInFooter && checkbox}
-                        {cancelButton}
-                        {!this.props.hideConfirm && (
-                            <button
-                                type='button'
-                                className={this.props.confirmButtonClass}
-                                onClick={this.handleConfirm}
-                                id='confirmModalButton'
-                                autoFocus={true}
-                            >
-                                {this.props.confirmButtonText}
-                            </button>
-                        )}
-                    </div>
+                    {message}
+                    {!checkboxInFooter && checkbox}
                 </div>
-            </GenericModal>
-        );
-    }
-}
+                <div className='ConfirmModal__footer'>
+                    {checkboxInFooter && checkbox}
+                    {cancelButton}
+                    {!hideConfirm && (
+                        <button
+                            type='button'
+                            className={confirmButtonClass}
+                            onClick={handleConfirm}
+                            id='confirmModalButton'
+                            autoFocus={true}
+                            disabled={confirmDisabled}
+                        >
+                            {confirmButtonText}
+                        </button>
+                    )}
+                </div>
+            </div>
+        </GenericModal>
+    );
+};
+
+export default memo(ConfirmModal);

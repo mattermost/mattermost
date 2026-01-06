@@ -27,7 +27,7 @@ describe('Messaging', () => {
         cy.uiGetPostTextBox().type('>' + messageParts[1]).type('{shift}{enter}{enter}');
         cy.uiGetPostTextBox().type('>' + messageParts[2]).type('{enter}');
 
-        var firstPartLeft;
+        let firstPartLeft;
         cy.getLastPostId().then((postId) => {
             // * There is only one blockquote, and therefore only one Quote icon
             cy.get(`#postMessageText_${postId} > blockquote`).should('have.length', 1);

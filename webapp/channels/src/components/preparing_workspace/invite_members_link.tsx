@@ -4,8 +4,6 @@
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import useCopyText from 'components/common/hooks/useCopyText';
 
 import './invite_members_link.scss';
@@ -20,7 +18,6 @@ const InviteMembersLink = ({
     inputAndButtonStyle = false,
 }: Props) => {
     const copyText = useCopyText({
-        trackCallback: () => trackEvent('first_admin_setup', 'admin_setup_click_copy_invite_link'),
         text: inviteURL,
     });
     const intl = useIntl();

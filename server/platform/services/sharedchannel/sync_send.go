@@ -470,7 +470,7 @@ func (scs *Service) handlePostError(postId string, task syncTask, rc *model.Remo
 	}
 
 	// Populate metadata for the retry post
-	post = scs.app.PreparePostForClient(request.EmptyContext(scs.server.Log()), post, false, false, true)
+	post = scs.app.PreparePostForClient(request.EmptyContext(scs.server.Log()), post, &model.PreparePostForClientOpts{IncludePriority: true})
 
 	syncMsg := model.NewSyncMsg(task.channelID)
 	syncMsg.Posts = []*model.Post{post}

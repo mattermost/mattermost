@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"unicode/utf8"
 )
 
 type PropertyFieldType string
@@ -19,6 +20,10 @@ const (
 	PropertyFieldTypeDate        PropertyFieldType = "date"
 	PropertyFieldTypeUser        PropertyFieldType = "user"
 	PropertyFieldTypeMultiuser   PropertyFieldType = "multiuser"
+
+	PropertyFieldNameMaxRunes       = 255
+	PropertyFieldTargetIDMaxRunes   = 255
+	PropertyFieldTargetTypeMaxRunes = 255
 )
 
 type PropertyField struct {
@@ -49,15 +54,16 @@ func (pf *PropertyField) Auditable() map[string]any {
 	}
 }
 
+// PreSave will set the Id if missing. It will also fill in the CreateAt, UpdateAt
+// times and ensure DeleteAt is 0. It should be run before saving the field to the db.
 func (pf *PropertyField) PreSave() {
 	if pf.ID == "" {
 		pf.ID = NewId()
 	}
 
-	if pf.CreateAt == 0 {
-		pf.CreateAt = GetMillis()
-	}
+	pf.CreateAt = GetMillis()
 	pf.UpdateAt = pf.CreateAt
+	pf.DeleteAt = 0
 }
 
 func (pf *PropertyField) IsValid() error {
@@ -71,6 +77,18 @@ func (pf *PropertyField) IsValid() error {
 
 	if pf.Name == "" {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "name", "Reason": "value cannot be empty"}, "id="+pf.ID, http.StatusBadRequest)
+	}
+
+	if utf8.RuneCountInString(pf.Name) > PropertyFieldNameMaxRunes {
+		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "name", "Reason": "value exceeds maximum length"}, "id="+pf.ID, http.StatusBadRequest)
+	}
+
+	if utf8.RuneCountInString(pf.TargetType) > PropertyFieldTargetTypeMaxRunes {
+		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "target_type", "Reason": "value exceeds maximum length"}, "id="+pf.ID, http.StatusBadRequest)
+	}
+
+	if utf8.RuneCountInString(pf.TargetID) > PropertyFieldTargetIDMaxRunes {
+		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "target_id", "Reason": "value exceeds maximum length"}, "id="+pf.ID, http.StatusBadRequest)
 	}
 
 	if pf.Type != PropertyFieldTypeText &&
@@ -114,6 +132,18 @@ func (pfp *PropertyFieldPatch) Auditable() map[string]any {
 func (pfp *PropertyFieldPatch) IsValid() error {
 	if pfp.Name != nil && *pfp.Name == "" {
 		return NewAppError("PropertyFieldPatch.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "name", "Reason": "value cannot be empty"}, "", http.StatusBadRequest)
+	}
+
+	if pfp.Name != nil && utf8.RuneCountInString(*pfp.Name) > PropertyFieldNameMaxRunes {
+		return NewAppError("PropertyFieldPatch.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "name", "Reason": "value exceeds maximum length"}, "", http.StatusBadRequest)
+	}
+
+	if pfp.TargetType != nil && utf8.RuneCountInString(*pfp.TargetType) > PropertyFieldTargetTypeMaxRunes {
+		return NewAppError("PropertyFieldPatch.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "target_type", "Reason": "value exceeds maximum length"}, "", http.StatusBadRequest)
+	}
+
+	if pfp.TargetID != nil && utf8.RuneCountInString(*pfp.TargetID) > PropertyFieldTargetIDMaxRunes {
+		return NewAppError("PropertyFieldPatch.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "target_id", "Reason": "value exceeds maximum length"}, "", http.StatusBadRequest)
 	}
 
 	if pfp.Type != nil &&
@@ -178,7 +208,8 @@ func (p PropertyFieldSearchCursor) IsValid() error {
 type PropertyFieldSearchOpts struct {
 	GroupID        string
 	TargetType     string
-	TargetID       string
+	TargetIDs      []string
+	SinceUpdateAt  int64 // UpdatedAt after which to send the items
 	IncludeDeleted bool
 	Cursor         PropertyFieldSearchCursor
 	PerPage        int

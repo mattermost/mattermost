@@ -125,7 +125,6 @@ services:
       - "MM_CLUSTERSETTINGS_ENABLE=true"
       - "MM_CLUSTERSETTINGS_CLUSTERNAME=mm_dev_cluster"
       - "MM_LOGSETTINGS_FILELOCATION=./logs/leader"
-      - "MM_NOTIFICATIONLOGSETTINGSS_FILELOCATION=./logs/leader"
     networks:
       - mm-test
     depends_on:
@@ -163,14 +162,13 @@ services:
       - "MM_CLUSTERSETTINGS_ENABLE=true"
       - "MM_CLUSTERSETTINGS_CLUSTERNAME=mm_dev_cluster"
       - "MM_LOGSETTINGS_FILELOCATION=./logs/follower"
-      - "MM_NOTIFICATIONLOGSETTINGSS_FILELOCATION=./logs/follower"
     networks:
       - mm-test
     depends_on:
       - leader
     volumes:
-      - './../:/home/mattermost-server'
-      - './../../enterprise:/home/enterprise'
+      - './../:/home/mattermost-server:Z'
+      - './../../enterprise:/home/enterprise:Z'
     healthcheck:
       test: ["CMD", "curl", "-f", "http://follower:8065/api/v4/system/ping"]
       interval: 5s
@@ -201,14 +199,13 @@ services:
       - "MM_CLUSTERSETTINGS_ENABLE=true"
       - "MM_CLUSTERSETTINGS_CLUSTERNAME=mm_dev_cluster"
       - "MM_LOGSETTINGS_FILELOCATION=./logs/follower2"
-      - "MM_NOTIFICATIONLOGSETTINGSS_FILELOCATION=./logs/follower2"
     networks:
       - mm-test
     depends_on:
       - leader
     volumes:
-      - './../:/home/mattermost-server'
-      - './../../enterprise:/home/enterprise'
+      - './../:/home/mattermost-server:Z'
+      - './../../enterprise:/home/enterprise:Z'
     healthcheck:
       test: ["CMD", "curl", "-f", "http://follower2:8065/api/v4/system/ping"]
       interval: 5s
@@ -231,7 +228,7 @@ services:
     networks:
       - mm-test
     volumes:
-      - ./build/docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./build/docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:Z
     restart: on-failure
     depends_on:
       leader:

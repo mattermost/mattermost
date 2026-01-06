@@ -1,0 +1,11 @@
+.GlobalSearchNav {
+    display: flex;
+    max-width: 432px;
+    flex: 1;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: initial;
+    padding: 0;
+    margin: 0;
+}

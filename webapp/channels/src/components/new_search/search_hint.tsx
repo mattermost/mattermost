@@ -12,7 +12,6 @@ type Props = {
     searchType: string;
     searchTerms: string;
     searchTeam: string;
-    showFilterHaveBeenReset: boolean;
     hasSelectedOption: boolean;
     isDate: boolean;
 }
@@ -49,7 +48,7 @@ const SearchFilter = styled.button`
     }
 `;
 
-const SearchHints = ({onSelectFilter, searchType, searchTerms, searchTeam, hasSelectedOption, isDate, showFilterHaveBeenReset}: Props): JSX.Element => {
+const SearchHints = ({onSelectFilter, searchType, searchTerms, searchTeam, hasSelectedOption, isDate}: Props): JSX.Element => {
     const intl = useIntl();
     let filters = searchHintOptions.filter((filter) => filter.searchTerm !== '-' && filter.searchTerm !== '""');
     if (searchType === 'files') {
@@ -63,18 +62,6 @@ const SearchHints = ({onSelectFilter, searchType, searchTerms, searchTeam, hasSe
 
     if (isDate) {
         return <></>;
-    }
-
-    if (showFilterHaveBeenReset) {
-        return (
-            <SearchHintsContainer id='searchHints'>
-                <i className='icon icon-refresh'/>
-                <FormattedMessage
-                    id='search_hint.reset_filters'
-                    defaultMessage='Your filters were reset because you chose a different team'
-                />
-            </SearchHintsContainer>
-        );
     }
 
     if (hasSelectedOption) {

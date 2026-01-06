@@ -13,6 +13,7 @@
 import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
+
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
 
 describe('Verify Accessibility Support in Modals & Dialogs', () => {
@@ -140,7 +141,7 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
     it('MM-T1468 Accessibility Support in Add people to Channel Dialog screen', () => {
         // # Add atleast 5 users
         for (let i = 0; i < 5; i++) {
-            cy.apiCreateUser().then(({user}) => { // eslint-disable-line
+            cy.apiCreateUser().then(({user}) => {
                 cy.apiAddUserToTeam(testTeam.id, user.id);
             });
         }
@@ -185,7 +186,9 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
                 should('have.attr', 'aria-live', 'polite').
                 and('have.attr', 'aria-atomic', 'true').
                 invoke('text').then((text) => {
-                    expect(text).equal(selectedRowText);
+                    // Check that the readout starts with the selected user since it may be followed by
+                    // "Already in Channel" depending on which user was selected
+                    expect(text).to.match(new RegExp(`^${selectedRowText}\\b`));
                 });
 
             // # Search for an invalid text and check if reader can read no results

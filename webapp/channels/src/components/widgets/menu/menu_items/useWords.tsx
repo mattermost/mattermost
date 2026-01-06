@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PrimitiveType, FormatXMLElementFn} from 'intl-messageformat';
 import React from 'react';
 import type {ReactNode} from 'react';
 import {defineMessage, useIntl} from 'react-intl';
@@ -19,7 +18,7 @@ interface Words {
     status: React.ReactNode;
 }
 
-export default function useWords(highestLimit: LimitSummary | false, isAdminUser: boolean, callerInfo: string): Words | false {
+export default function useWords(highestLimit: LimitSummary | false, isAdminUser: boolean): Words | false {
     const intl = useIntl();
     const {openPricingModal, isAirGapped} = useOpenPricingModal();
     if (!highestLimit) {
@@ -39,7 +38,7 @@ export default function useWords(highestLimit: LimitSummary | false, isAdminUser
         });
     }
 
-    const values: Record<string, PrimitiveType | FormatXMLElementFn<string, string> | ((chunks: React.ReactNode | React.ReactNodeArray) => JSX.Element)> = {
+    const values = {
         callToAction,
         a: (chunks: React.ReactNode | React.ReactNodeArray) => {
             if (isAirGapped) {
@@ -49,13 +48,13 @@ export default function useWords(highestLimit: LimitSummary | false, isAdminUser
             return (
                 <a
                     id='view_plans_cta'
-                    onClick={() => openPricingModal({trackingLocation: callerInfo})}
+                    onClick={openPricingModal}
                 >
                     {chunks}
                 </a>
             );
         },
-
+        limit: '',
     };
 
     let featureToNotifyOn = '';
@@ -78,7 +77,6 @@ export default function useWords(highestLimit: LimitSummary | false, isAdminUser
         values.a = (chunks: React.ReactNode | React.ReactNodeArray) => (
             <NotifyAdminCTA
                 ctaText={chunks}
-                callerInfo={callerInfo}
                 notifyRequestData={{
                     required_feature: featureToNotifyOn,
                     required_plan: LicenseSkus.Professional,

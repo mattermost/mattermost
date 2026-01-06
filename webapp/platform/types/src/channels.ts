@@ -69,6 +69,7 @@ export type Channel = {
     policy_id?: string | null;
     banner_info?: ChannelBanner;
     policy_enforced?: boolean;
+    policy_is_active?: boolean;
     default_category_name?: string;
 };
 
@@ -176,6 +177,7 @@ export type ChannelsState = {
     channelMemberCountsByGroup: RelationOneToOne<Channel, ChannelMemberCountsByGroup>;
     messageCounts: RelationOneToOne<Channel, ChannelMessageCount>;
     channelsMemberCount: Record<string, number>;
+    restrictedDMs: RelationOneToOne<Channel, boolean>;
 };
 
 export type ChannelModeration = {

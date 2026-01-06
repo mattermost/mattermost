@@ -230,8 +230,6 @@
   "admin.general.localization.serverLocaleTitle": "ຄ່າເລີ່ມຕົ້ນພາສາເຄື່ອງແມ່ຂ່າຍ:",
   "admin.gitlab.EnableMarkdownDesc": "1. ເຂົ້າສູ່ລະບົບບັນຊີ GitLab ຂອງທ່ານແລະໄປທີ່ Profile Settings -> Applications.\n2. ປ້ອນ Redirect URIs \"<your-mattermost-url>/login/gitlab/complete\" (ຕົວຢ່າງ: http://localhost:8065/login/gitlab/complete) ແລະ \"<your-mattermost-url>/signup/gitlab/complete\".\n3. ຫຼັງຈາກນັ້ນ, ໃຊ້ ຂົງເຂດ \"Application Secret Key\" ແລະ \"Application ID\" ຈາກ GitLab ເພື່ອໃຫ້ສໍາເລັດທາງເລືອກດ້ານລຸ່ມ.\n4. ປ້ອນປາຍທາງ URLs ດ້ານລຸ່ມ.",
   "admin.gitlab.clientSecretTitle": "Application Secret Key:",
-  "admin.gitlab.enableDescription": "When true, Mattermost allows team creation and account signup using GitLab OAuth.\n \n1. Log in to your GitLab account and go to Profile Settings -> Applications.\n2. Enter Redirect URIs \"<your-mattermost-url>/login/gitlab/complete\" (example: http://localhost:8065/login/gitlab/complete) and \"<your-mattermost-url>/signup/gitlab/complete\".\n3. Then use \"Application Secret Key\" and \"Application ID\" fields from GitLab to complete the options below.\n4. Complete the Endpoint URLs below.",
-  "admin.gitlab.enableTitle": "ເປີດໃຊ້ການກວດສອບສິດກັບ GitLab: ",
   "admin.gitlab.siteUrl": "GitLab URL ເວັບໄຊ: ",
   "admin.group_settings.group_details.group_profile.name": "ຊື່",
   "admin.group_settings.group_details.group_teams_and_channels_row.publicChannel": "ຊ່ອງ",

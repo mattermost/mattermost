@@ -1536,173 +1536,6 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 	})
 }
 
-func (s *MmctlUnitTestSuite) TestUpdateUserEmailCmd() {
-	s.Run("Two arguments are not provided", func() {
-		printer.Clean()
-
-		command := cobra.Command{}
-
-		err := updateUserEmailCmdF(s.client, &command, []string{})
-
-		s.Require().EqualError(err, "expected two arguments. See help text for details")
-	})
-
-	s.Run("Invalid email provided", func() {
-		printer.Clean()
-
-		userArg := "testUser"
-		emailArg := "invalidEmail"
-		command := cobra.Command{}
-
-		err := updateUserEmailCmdF(s.client, &command, []string{userArg, emailArg})
-
-		s.Require().EqualError(err, "invalid email: 'invalidEmail'")
-	})
-
-	s.Run("User not found using email, username or id as identifier", func() {
-		printer.Clean()
-
-		command := cobra.Command{}
-		userArg := "testUser"
-		emailArg := "example@example.com"
-
-		s.client.
-			EXPECT().
-			GetUserByUsername(context.TODO(), userArg, "").
-			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("no user found with the given username")).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetUser(context.TODO(), userArg, "").
-			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("no user found with the given id")).
-			Times(1)
-
-		err := updateUserEmailCmdF(s.client, &command, []string{userArg, emailArg})
-
-		s.Require().EqualError(err, "user testUser not found")
-	})
-
-	s.Run("Client returning error while updating user", func() {
-		printer.Clean()
-
-		command := cobra.Command{}
-		userArg := "testUser"
-		emailArg := "example@example.com"
-
-		currentUser := model.User{Username: "testUser", Password: "password", Email: "email"}
-
-		s.client.
-			EXPECT().
-			GetUserByUsername(context.TODO(), userArg, "").
-			Return(&currentUser, &model.Response{}, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			UpdateUser(context.TODO(), &currentUser).
-			Return(nil, &model.Response{}, errors.New("remote error")).
-			Times(1)
-
-		err := updateUserEmailCmdF(s.client, &command, []string{userArg, emailArg})
-
-		s.Require().EqualError(err, "remote error")
-	})
-
-	s.Run("User email is updated successfully using username as identifier", func() {
-		printer.Clean()
-
-		command := cobra.Command{}
-		userArg := "testUser"
-		emailArg := "example@example.com"
-
-		currentUser := model.User{Username: "testUser", Password: "password", Email: "email"}
-		updatedUser := model.User{Username: "testUser", Password: "password", Email: emailArg}
-
-		s.client.
-			EXPECT().
-			GetUserByUsername(context.TODO(), userArg, "").
-			Return(&currentUser, &model.Response{}, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			UpdateUser(context.TODO(), &currentUser).
-			Return(&updatedUser, &model.Response{}, nil).
-			Times(1)
-
-		err := updateUserEmailCmdF(s.client, &command, []string{userArg, emailArg})
-
-		s.Require().Nil(err)
-		s.Require().Equal(&updatedUser, printer.GetLines()[0])
-		s.Require().Len(printer.GetErrorLines(), 0)
-	})
-
-	s.Run("User email is updated successfully using email as identifier", func() {
-		printer.Clean()
-
-		command := cobra.Command{}
-		userArg := "user@email.com"
-		emailArg := "example@example.com"
-
-		currentUser := model.User{Username: "testUser", Password: "password", Email: "email"}
-		updatedUser := model.User{Username: "testUser", Password: "password", Email: emailArg}
-
-		s.client.
-			EXPECT().
-			GetUserByEmail(context.TODO(), userArg, "").
-			Return(&currentUser, &model.Response{}, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			UpdateUser(context.TODO(), &currentUser).
-			Return(&updatedUser, &model.Response{}, nil).
-			Times(1)
-
-		err := updateUserEmailCmdF(s.client, &command, []string{userArg, emailArg})
-
-		s.Require().Nil(err)
-		s.Require().Equal(&updatedUser, printer.GetLines()[0])
-		s.Require().Len(printer.GetErrorLines(), 0)
-	})
-
-	s.Run("User email is updated successfully using id as identifier", func() {
-		printer.Clean()
-
-		command := cobra.Command{}
-		userArg := "userId"
-		emailArg := "example@example.com"
-
-		currentUser := model.User{Username: "testUser", Password: "password", Email: "email"}
-		updatedUser := model.User{Username: "testUser", Password: "password", Email: emailArg}
-
-		s.client.
-			EXPECT().
-			GetUserByUsername(context.TODO(), userArg, "").
-			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("no user found with the given username")).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetUser(context.TODO(), userArg, "").
-			Return(&currentUser, &model.Response{}, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			UpdateUser(context.TODO(), &currentUser).
-			Return(&updatedUser, &model.Response{}, nil).
-			Times(1)
-
-		err := updateUserEmailCmdF(s.client, &command, []string{userArg, emailArg})
-
-		s.Require().Nil(err)
-		s.Require().Equal(&updatedUser, printer.GetLines()[0])
-		s.Require().Len(printer.GetErrorLines(), 0)
-	})
-}
-
 func (s *MmctlUnitTestSuite) TestResetUserMfaCmd() {
 	s.Run("One user without problems", func() {
 		printer.Clean()
@@ -2180,6 +2013,72 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		s.Require().Equal(&mockUser1, printer.GetLines()[0])
 		s.Require().Equal(&mockUser2, printer.GetLines()[1])
 	})
+
+	s.Run("Listing users for given role", func() {
+		printer.Clean()
+
+		email1 := "example1@example.com"
+		_ = model.User{Username: "ExampleUser1", Email: email1, Roles: "system_user"}
+		email2 := "example2@example.com"
+		mockUser2 := model.User{Username: "ExampleUser2", Email: email2, Roles: "system_user system_admin"}
+
+		role := "system_admin"
+
+		cmd := ResetListUsersCmd(s.T())
+		s.Require().NoError(cmd.Flags().Set("page", "0"))
+		s.Require().NoError(cmd.Flags().Set("per-page", "5"))
+		s.Require().NoError(cmd.Flags().Set("role", role))
+
+		s.client.
+			EXPECT().
+			GetUsersWithCustomQueryParameters(context.TODO(), 0, 5, "role="+role, "").
+			Return([]*model.User{&mockUser2}, &model.Response{}, nil).
+			Times(1)
+
+		err := listUsersCmdF(s.client, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(&mockUser2, printer.GetLines()[0])
+	})
+
+	s.Run("Listing all users for given role", func() {
+		printer.Clean()
+
+		email1 := "example1@example.com"
+		mockUser1 := model.User{Username: "ExampleUser1", Email: email1, Roles: "system_user"}
+		email2 := "example2@example.com"
+		mockUser2 := model.User{Username: "ExampleUser2", Email: email2, Roles: "system_user system_admin"}
+
+		role := "system_user"
+
+		cmd := ResetListUsersCmd(s.T())
+		s.Require().NoError(cmd.Flags().Set("page", "0"))
+		s.Require().NoError(cmd.Flags().Set("per-page", "1"))
+		s.Require().NoError(cmd.Flags().Set("role", role))
+		s.Require().NoError(cmd.Flags().Set("all", "true"))
+
+		s.client.
+			EXPECT().
+			GetUsersWithCustomQueryParameters(context.TODO(), 0, 1, "role="+role, "").
+			Return([]*model.User{&mockUser1}, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetUsersWithCustomQueryParameters(context.TODO(), 1, 1, "role="+role, "").
+			Return([]*model.User{&mockUser2}, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetUsersWithCustomQueryParameters(context.TODO(), 2, 1, "role="+role, "").
+			Return([]*model.User{}, &model.Response{}, nil).
+			Times(1)
+
+		err := listUsersCmdF(s.client, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 2)
+		s.Require().Equal(&mockUser1, printer.GetLines()[0])
+		s.Require().Equal(&mockUser2, printer.GetLines()[1])
+	})
 }
 
 func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
@@ -2621,9 +2520,10 @@ func (s *MmctlUnitTestSuite) TestUserConvertCmd() {
 			Times(1)
 
 		err := userConvertCmdF(s.client, cmd, []string{emailArg})
-		s.Require().NoError(err)
+		s.Require().Error(err)
+		s.Require().Equal("1 error occurred:\n\t* some-message\n\n", err.Error())
 		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
 	s.Run("got error while converting a bot to a user", func() {

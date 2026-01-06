@@ -62,7 +62,14 @@ func Run(args []string) error {
 		}
 	}()
 
-	return RootCmd.Execute()
+	err := RootCmd.Execute()
+	// Flush the printer first before printing any error
+	_ = printer.Flush()
+	if err != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "Error: %s\n", err.Error())
+	}
+
+	return err
 }
 
 func printPanic(x any) {
@@ -111,8 +118,6 @@ var RootCmd = &cobra.Command{
 			printer.PrintError(fmt.Sprintf("Per page value is greater than the maximum allowed. Mattermost might only return %d items.", MaxPageSize))
 		}
 	},
-	PersistentPostRun: func(cmd *cobra.Command, args []string) {
-		_ = printer.Flush()
-	},
-	SilenceUsage: true,
+	SilenceUsage:  true,
+	SilenceErrors: true,
 }

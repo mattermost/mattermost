@@ -17,7 +17,7 @@ function convertKeysToLowercase(obj) {
 }
 
 function getKnexClient({client, connection}) {
-    return require('knex')({client, connection}); // eslint-disable-line global-require
+    return require('knex')({client, connection});
 }
 
 // Reuse DB client connection

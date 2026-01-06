@@ -757,6 +757,26 @@ func (_m *SearchEngineInterface) Stop() *model.AppError {
 	return r0
 }
 
+// SyncBulkIndexChannels provides a mock function with given fields: rctx, channels, getUserIDsForChannel, teamMemberIDs
+func (_m *SearchEngineInterface) SyncBulkIndexChannels(rctx request.CTX, channels []*model.Channel, getUserIDsForChannel func(*model.Channel) ([]string, error), teamMemberIDs []string) *model.AppError {
+	ret := _m.Called(rctx, channels, getUserIDsForChannel, teamMemberIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SyncBulkIndexChannels")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, []*model.Channel, func(*model.Channel) ([]string, error), []string) *model.AppError); ok {
+		r0 = rf(rctx, channels, getUserIDsForChannel, teamMemberIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // TestConfig provides a mock function with given fields: rctx, cfg
 func (_m *SearchEngineInterface) TestConfig(rctx request.CTX, cfg *model.Config) *model.AppError {
 	ret := _m.Called(rctx, cfg)

@@ -9,7 +9,14 @@ export default defineConfig({
     downloadsFolder: 'tests/downloads',
     fixturesFolder: 'tests/fixtures',
     numTestsKeptInMemory: 0,
-    retries: 2,
+    retries: {
+
+        // 2 retries for cypress:run
+        runMode: 2,
+
+        // No retries for cypress:open
+        openMode: 0,
+    },
     screenshotsFolder: 'tests/screenshots',
     taskTimeout: 60000,
     video: true,
@@ -52,7 +59,7 @@ export default defineConfig({
     },
     e2e: {
         setupNodeEvents(on, config) {
-            return require('./tests/plugins/index.js')(on, config); // eslint-disable-line global-require
+            return require('./tests/plugins/index.js')(on, config);
         },
         baseUrl: process.env.MM_SERVICESETTINGS_SITEURL || 'http://localhost:8065',
         excludeSpecPattern: '**/node_modules/**/*',

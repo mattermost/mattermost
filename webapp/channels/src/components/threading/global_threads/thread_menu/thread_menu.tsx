@@ -18,8 +18,10 @@ import {
 import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
 
 import * as Menu from 'components/menu';
+import {focusPost} from 'components/permalink_view/actions';
 
 import {useReadout} from 'hooks/useReadout';
+import {canPopout, popoutThread} from 'utils/popouts/popout_windows';
 import {getSiteURL} from 'utils/url';
 import {copyToClipboard} from 'utils/utils';
 
@@ -40,7 +42,8 @@ function ThreadMenu({
     unreadTimestamp,
     hasUnreads,
 }: Props) {
-    const {formatMessage} = useIntl();
+    const intl = useIntl();
+    const {formatMessage} = intl;
     const dispatch = useDispatch();
     const {
         params: {
@@ -79,6 +82,12 @@ function ThreadMenu({
         unreadTimestamp,
     ]);
 
+    const popout = useCallback(() => {
+        popoutThread(intl, threadId, team, (postId, returnTo) => {
+            dispatch(focusPost(postId, returnTo, currentUserId, {skipRedirectReplyPermalink: true}));
+        });
+    }, [threadId, team, intl, dispatch, currentUserId]);
+
     return (
         <Menu.Container
             menuButton={{
@@ -102,6 +111,18 @@ function ThreadMenu({
                 id: `thread-menu-dropdown-${threadId}`,
             }}
         >
+            {!canPopout() && (
+                <Menu.Item
+                    labels={
+                        <FormattedMessage
+                            id='threading.threadMenu.openInNewWindow'
+                            defaultMessage='Open in new window'
+                        />
+                    }
+                    onClick={popout}
+                    leadingElement={<i className='icon icon-dock-window'/>}
+                />
+            )}
             <Menu.Item
                 labels={isFollowing ? (
                     <>

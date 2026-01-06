@@ -47,9 +47,23 @@ func (p *PropertyService) DeletePropertyField(groupID, fieldID string) error {
 
 // SearchPropertyFields searches for property fields with filtering options.
 //
-// Minimum server version: 10.10
-func (p *PropertyService) SearchPropertyFields(groupID, targetID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
-	return p.api.SearchPropertyFields(groupID, targetID, opts)
+// Minimum server version: 11.0
+func (p *PropertyService) SearchPropertyFields(groupID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
+	return p.api.SearchPropertyFields(groupID, opts)
+}
+
+// CountPropertyFields counts property fields for a group.
+//
+// Minimum server version: 11.0
+func (p *PropertyService) CountPropertyFields(groupID string, includeDeleted bool) (int64, error) {
+	return p.api.CountPropertyFields(groupID, includeDeleted)
+}
+
+// CountPropertyFieldsForTarget counts property fields for a specific target.
+//
+// Minimum server version: 11.0
+func (p *PropertyService) CountPropertyFieldsForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error) {
+	return p.api.CountPropertyFieldsForTarget(groupID, targetType, targetID, includeDeleted)
 }
 
 // CreatePropertyValue creates a new property value.
@@ -96,9 +110,9 @@ func (p *PropertyService) DeletePropertyValue(groupID, valueID string) error {
 
 // SearchPropertyValues searches for property values with filtering options.
 //
-// Minimum server version: 10.10
-func (p *PropertyService) SearchPropertyValues(groupID, targetID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
-	return p.api.SearchPropertyValues(groupID, targetID, opts)
+// Minimum server version: 11.0
+func (p *PropertyService) SearchPropertyValues(groupID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
+	return p.api.SearchPropertyValues(groupID, opts)
 }
 
 // RegisterPropertyGroup registers a new property group.

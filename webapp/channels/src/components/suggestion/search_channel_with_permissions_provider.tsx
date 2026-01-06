@@ -12,7 +12,6 @@ import {
     getChannelsInCurrentTeam,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getMyChannelMemberships} from 'mattermost-redux/selectors/entities/common';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserLocale} from 'mattermost-redux/selectors/entities/i18n';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
@@ -230,9 +229,6 @@ export default class SearchChannelWithPermissionsProvider extends Provider {
 
         const channelFilter = this.makeChannelSearchFilter(channelPrefix);
 
-        const config = getConfig(state);
-        const viewArchivedChannels = config.ExperimentalViewArchivedChannels === 'true';
-
         for (const channel of allChannels) {
             if (completedChannels[channel.id]) {
                 continue;
@@ -240,12 +236,9 @@ export default class SearchChannelWithPermissionsProvider extends Provider {
 
             if (channelFilter(channel)) {
                 const newChannel = Object.assign({}, channel);
-                const channelIsArchived = channel.delete_at !== 0;
 
                 const wrappedChannel = {channel: newChannel, name: newChannel.name, deactivated: false, type: newChannel.type};
-                if (!viewArchivedChannels && channelIsArchived) {
-                    continue;
-                } else if (!members[channel.id]) {
+                if (!members[channel.id]) {
                     continue;
                 } else if (channel.type !== Constants.OPEN_CHANNEL && channel.type !== Constants.PRIVATE_CHANNEL) {
                     continue;

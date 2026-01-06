@@ -6,7 +6,7 @@ import {useSelector} from 'react-redux';
 
 import {getChannelsInCategoryOrder} from 'selectors/views/channel_sidebar';
 
-import {render, screen} from 'tests/react_testing_utils';
+import {render, screen, userEvent} from 'tests/react_testing_utils';
 
 import type {FallbackProps} from '.';
 import withErrorBoundary from '.';
@@ -22,10 +22,10 @@ function renderFallbackWithRetry({clearError}: FallbackProps) {
 
 describe('withErrorBoundary', () => {
     const origError = console.error;
-    beforeAll(() => {
+    beforeEach(() => {
         console.error = jest.fn();
     });
-    afterAll(() => {
+    afterEach(() => {
         console.error = origError;
     });
 
@@ -98,7 +98,7 @@ describe('withErrorBoundary', () => {
         expect(screen.getByText('A rendering error occurred')).toBeVisible();
     });
 
-    test('the user should be able to retry rendering the component', () => {
+    test('the user should be able to retry rendering the component', async () => {
         let throwError = true;
 
         function TestComponent(): JSX.Element {
@@ -130,7 +130,7 @@ describe('withErrorBoundary', () => {
 
         throwError = false;
 
-        screen.getByText('Try again?').click();
+        await userEvent.click(screen.getByText('Try again?'));
 
         expect(screen.queryByText('A rendering error occurred')).toBeNull();
         expect(screen.queryByText('TestComponent 1,2,3')).toBeVisible();
