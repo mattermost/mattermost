@@ -6487,6 +6487,22 @@
     "translation": "User roles are not consistent with guest status."
   },
   {
+    "id": "app.import.validate_user_import_data.system_guest_missing_team_guest_roles.error",
+    "translation": "User is a system guest but does not have team guest roles in all teams. Team guest count: {{.TeamGuestCount}}, Total teams: {{.TotalTeams}}."
+  },
+  {
+    "id": "app.import.validate_user_import_data.system_guest_missing_channel_guest_roles.error",
+    "translation": "User is a system guest but does not have channel guest roles in all channels. Channel guest count: {{.ChannelGuestCount}}, Total channels: {{.TotalChannels}}."
+  },
+  {
+    "id": "app.import.validate_user_import_data.team_guest_missing_system_guest_role.error",
+    "translation": "User has team guest roles but is not a system guest."
+  },
+  {
+    "id": "app.import.validate_user_import_data.channel_guest_missing_system_guest_role.error",
+    "translation": "User has channel guest roles but is not a system guest."
+  },
+  {
     "id": "app.import.validate_user_import_data.invalid_image_path.error",
     "translation": "User profile image path is invalid: \"{{.Path}}\""
   },
