@@ -9,9 +9,10 @@ import {fetchChannelsAndMembers, getChannelMembers, selectChannel} from 'matterm
 import {selectTeam} from 'mattermost-redux/actions/teams';
 import {getChannelByName} from 'mattermost-redux/selectors/entities/channels';
 
-import {useTeamByName} from 'components/common/hooks/use_team';
 import RhsPluginPopout from 'components/rhs_plugin_popout';
 import UnreadsStatusHandler from 'components/unreads_status_handler';
+
+import {useTeamByName} from 'hooks/use_team';
 
 import type {GlobalState} from 'types/store';
 

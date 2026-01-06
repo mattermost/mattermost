@@ -13,17 +13,18 @@ import {Posts} from 'mattermost-redux/constants/index';
 import {isPostEphemeral} from 'mattermost-redux/utils/post_utils';
 
 import ActionsMenu from 'components/actions_menu';
-import CommentIcon from 'components/common/comment_icon';
-import {usePluginVisibilityInSharedChannel} from 'components/common/hooks/usePluginVisibilityInSharedChannel';
 import DotMenu from 'components/dot_menu';
 import PostFlagIcon from 'components/post_view/post_flag_icon';
 import PostReaction from 'components/post_view/post_reaction';
 import PostRecentReactions from 'components/post_view/post_recent_reactions';
 
+import {usePluginVisibilityInSharedChannel} from 'hooks/usePluginVisibilityInSharedChannel';
 import {Locations, Constants} from 'utils/constants';
 import {isSystemMessage, fromAutoResponder} from 'utils/post_utils';
 
 import type {PostActionComponent} from 'types/store/plugins';
+
+import PostCommentIcon from './post_comment_icon';
 
 type Props = {
     post: Post;
@@ -132,7 +133,7 @@ const PostOptions = (props: Props): JSX.Element => {
     if (showCommentIcon) {
         commentIcon = (
             <li>
-                <CommentIcon
+                <PostCommentIcon
                     handleCommentClick={props.handleCommentClick}
                     postId={post.id}
                     extraClass={commentIconExtraClass}
@@ -266,7 +267,7 @@ const PostOptions = (props: Props): JSX.Element => {
                 {flagIcon}
                 {props.canReply && !hasCRTFooter &&
                 <li>
-                    <CommentIcon
+                    <PostCommentIcon
                         location={props.location}
                         handleCommentClick={props.handleCommentClick}
                         commentCount={props.replyCount}

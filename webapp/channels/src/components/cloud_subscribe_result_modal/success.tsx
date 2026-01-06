@@ -10,8 +10,8 @@ import {getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud'
 import {closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
-import PaymentSuccessStandardSvg from 'components/common/svg_images_components/payment_success_standard_svg';
 import IconMessage from 'components/purchase_modal/icon_message';
+import PaymentSuccessStandardSvg from 'components/svg_images_components/payment_success_standard_svg';
 import FullScreenModal from 'components/widgets/modals/full_screen_modal';
 
 import {ModalIdentifiers} from 'utils/constants';

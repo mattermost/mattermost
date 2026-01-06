@@ -16,9 +16,9 @@ import {
 
 import CloudTrialBanner from 'components/admin_console/billing/billing_subscriptions/cloud_trial_banner';
 import CloudFetchError from 'components/cloud_fetch_error';
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
+import useOpenPricingModal from 'hooks/useOpenPricingModal';
 import {
     TrialPeriodDays,
 } from 'utils/constants';

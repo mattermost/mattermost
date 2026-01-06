@@ -6,10 +6,10 @@ import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {PropertyValue} from '@mattermost/types/properties';
 
-import {usePropertyCardViewTeamLoader} from 'components/common/hooks/usePropertyCardViewTeamLoader';
 import type {TeamFieldMetadata} from 'components/properties_card_view/properties_card_view';
 import {TeamIcon} from 'components/widgets/team_icon/team_icon';
 
+import {usePropertyCardViewTeamLoader} from 'hooks/usePropertyCardViewTeamLoader';
 import {imageURLForTeam} from 'utils/utils';
 
 import './team_property_renderer.scss';

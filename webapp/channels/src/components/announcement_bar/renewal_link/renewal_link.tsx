@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
+import useOpenSalesLink from 'hooks/useOpenSalesLink';
 
 import type {ModalData} from 'types/actions';
 

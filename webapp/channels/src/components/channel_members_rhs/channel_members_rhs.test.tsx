@@ -42,7 +42,7 @@ jest.mock('./search', () => {
 });
 
 // Mock the useAccessControlAttributes hook
-jest.mock('components/common/hooks/useAccessControlAttributes', () => {
+jest.mock('hooks/useAccessControlAttributes', () => {
     // Define the EntityType enum in the mock
     const EntityType = {
         Channel: 'channel',

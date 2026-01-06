@@ -7,8 +7,8 @@ import styled from 'styled-components';
 
 import type {NotifyAdminRequest} from '@mattermost/types/cloud';
 
-import {NotifyStatus, useGetNotifyAdmin} from 'components/common/hooks/useGetNotifyAdmin';
-import type {NotifyStatusValues} from 'components/common/hooks/useGetNotifyAdmin';
+import {NotifyStatus, useGetNotifyAdmin} from 'hooks/useGetNotifyAdmin';
+import type {NotifyStatusValues} from 'hooks/useGetNotifyAdmin';
 
 const Span = styled.span`
     font-family: 'Open Sans';

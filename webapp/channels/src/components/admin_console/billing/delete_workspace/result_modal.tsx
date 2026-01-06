@@ -9,9 +9,10 @@ import {useDispatch, useSelector} from 'react-redux';
 import {closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
-import {useOpenCloudZendeskSupportForm} from 'components/common/hooks/useOpenZendeskForm';
 import IconMessage from 'components/purchase_modal/icon_message';
 import FullScreenModal from 'components/widgets/modals/full_screen_modal';
+
+import {useOpenCloudZendeskSupportForm} from 'hooks/useOpenZendeskForm';
 
 import type {GlobalState} from 'types/store';
 

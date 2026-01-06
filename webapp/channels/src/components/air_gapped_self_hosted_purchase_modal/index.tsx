@@ -6,9 +6,9 @@ import {FormattedMessage} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
 
-import {useControlAirGappedSelfHostedPurchaseModal} from 'components/common/hooks/useControlModal';
-import CreditCardSvg from 'components/common/svg_images_components/credit_card_svg';
+import CreditCardSvg from 'components/svg_images_components/credit_card_svg';
 
+import {useControlAirGappedSelfHostedPurchaseModal} from 'hooks/useControlModal';
 import {CloudLinks} from 'utils/constants';
 
 import './content.scss';

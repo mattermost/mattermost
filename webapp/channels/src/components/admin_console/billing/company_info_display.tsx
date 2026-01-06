@@ -6,7 +6,7 @@ import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import BlockableLink from 'components/admin_console/blockable_link';
-import CompanySvg from 'components/common/svg_images_components/company_svg';
+import CompanySvg from 'components/svg_images_components/company_svg';
 
 import type {GlobalState} from 'types/store';
 

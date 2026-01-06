@@ -9,7 +9,7 @@ import styled from 'styled-components';
 import {getChannel, getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
 
-import Chip from 'components/common/chip/chip';
+import Chip from 'components/chip';
 
 import Constants from 'utils/constants';
 

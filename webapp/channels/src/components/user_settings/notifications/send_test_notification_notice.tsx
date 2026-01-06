@@ -6,8 +6,9 @@ import {useIntl} from 'react-intl';
 
 import {sendTestNotification} from 'actions/notification_actions';
 
-import {useExternalLink} from 'components/common/hooks/use_external_link';
 import SectionNotice from 'components/section_notice';
+
+import {useExternalLink} from 'hooks/use_external_link';
 
 const sectionNoticeContainerStyle: React.CSSProperties = {marginTop: 20};
 

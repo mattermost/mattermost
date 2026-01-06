@@ -11,10 +11,11 @@ import type {CloudUsage} from '@mattermost/types/cloud';
 import type {Team} from '@mattermost/types/teams';
 
 import AnnouncementBar from 'components/announcement_bar';
-import BackButton from 'components/common/back_button';
-import SiteNameAndDescription from 'components/common/site_name_and_description';
 import DisplayName from 'components/create_team/components/display_name';
 import TeamUrl from 'components/create_team/components/team_url';
+import SiteNameAndDescription from 'components/site_name_and_description';
+
+import HistoryBackButton from 'design_system/components/patterns/history_back_button';
 
 export type Props = {
 
@@ -111,7 +112,7 @@ export class CreateTeam extends React.PureComponent<Props & RouteComponentProps,
         return (
             <div>
                 <AnnouncementBar/>
-                <BackButton url={url}/>
+                <HistoryBackButton url={url}/>
                 <div className='col-sm-12'>
                     <div className='signup-team__container'>
                         <SiteNameAndDescription

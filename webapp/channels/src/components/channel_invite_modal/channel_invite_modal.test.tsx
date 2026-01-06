@@ -22,7 +22,7 @@ import {act, renderWithContext} from 'tests/react_testing_utils';
 type UserProfileValue = Value & UserProfile;
 
 // Mock the useAccessControlAttributes hook
-jest.mock('components/common/hooks/useAccessControlAttributes', () => {
+jest.mock('hooks/useAccessControlAttributes', () => {
     // Define the EntityType enum in the mock
     const EntityType = {
         Channel: 'channel',
@@ -546,7 +546,7 @@ describe('components/channel_invite_modal', () => {
 
     test('should show loading state for access attributes', () => {
         // Mock the useAccessControlAttributes hook to return loading state
-        const useAccessControlAttributesModule = require('components/common/hooks/useAccessControlAttributes');
+        const useAccessControlAttributesModule = require('hooks/useAccessControlAttributes');
         const useAccessControlAttributesMock = useAccessControlAttributesModule.default;
         useAccessControlAttributesMock.mockReturnValueOnce({
             structuredAttributes: [],
@@ -578,7 +578,7 @@ describe('components/channel_invite_modal', () => {
 
     test('should handle error state for access attributes', () => {
         // Mock the useAccessControlAttributes hook to return error state
-        const useAccessControlAttributesModule = require('components/common/hooks/useAccessControlAttributes');
+        const useAccessControlAttributesModule = require('hooks/useAccessControlAttributes');
         const useAccessControlAttributesMock = useAccessControlAttributesModule.default;
         useAccessControlAttributesMock.mockReturnValueOnce({
             structuredAttributes: [],

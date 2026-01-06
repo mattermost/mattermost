@@ -17,8 +17,8 @@ import {
     isMeMessage as checkIsMeMessage,
     isPostPendingOrFailed} from 'mattermost-redux/utils/post_utils';
 
+import AutoHeightSwitcher, {AutoHeightSlots} from 'components/auto_height_switcher';
 import BurnOnReadConfirmationModal from 'components/burn_on_read_confirmation_modal';
-import AutoHeightSwitcher, {AutoHeightSlots} from 'components/common/auto_height_switcher';
 import EditPost from 'components/edit_post';
 import FileAttachmentListContainer from 'components/file_attachment_list';
 import MessageWithAdditionalContent from 'components/message_with_additional_content';

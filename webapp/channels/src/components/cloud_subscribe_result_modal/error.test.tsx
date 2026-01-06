@@ -8,7 +8,7 @@ import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
 
 import SuccessModal from './error';
-jest.mock('components/common/hooks/useOpenSalesLink', () => ({
+jest.mock('hooks/useOpenSalesLink', () => ({
     __esModule: true,
     default: () => () => true,
 }));

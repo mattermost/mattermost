@@ -17,7 +17,7 @@ import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import {addUserToTeam} from 'actions/team_actions';
 
-import withUseGetUsageDelta from 'components/common/hocs/cloud/with_use_get_usage_deltas';
+import withUseGetUsageDelta from 'components/with_use_get_usage_deltas';
 
 import {isCloudLicense} from 'utils/license_utils';
 

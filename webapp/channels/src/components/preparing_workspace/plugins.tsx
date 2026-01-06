@@ -5,15 +5,15 @@ import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {CSSTransition} from 'react-transition-group';
 
-import MultiSelectCards from 'components/common/multi_select_cards';
-import GithubSVG from 'components/common/svg_images_components/github_svg';
-import GitlabSVG from 'components/common/svg_images_components/gitlab_svg';
-import JiraSVG from 'components/common/svg_images_components/jira_svg';
-import ServiceNowSVG from 'components/common/svg_images_components/servicenow_svg';
-import ZoomSVG from 'components/common/svg_images_components/zoom_svg';
 import ExternalLink from 'components/external_link';
+import GithubSVG from 'components/svg_images_components/github_svg';
+import GitlabSVG from 'components/svg_images_components/gitlab_svg';
+import JiraSVG from 'components/svg_images_components/jira_svg';
+import ServiceNowSVG from 'components/svg_images_components/servicenow_svg';
+import ZoomSVG from 'components/svg_images_components/zoom_svg';
 
 import Description from './description';
+import MultiSelectCards from './multi_select_cards';
 import PageBody from './page_body';
 import PageLine from './page_line';
 import SingleColumnLayout from './single_column_layout';

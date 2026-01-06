@@ -14,9 +14,9 @@ import {getOverageBannerPreferences} from 'mattermost-redux/selectors/entities/p
 import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import AnnouncementBar from 'components/announcement_bar/default_announcement_bar';
-import {useExpandOverageUsersCheck} from 'components/common/hooks/useExpandOverageUsersCheck';
-import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 
+import {useExpandOverageUsersCheck} from 'hooks/useExpandOverageUsersCheck';
+import useOpenSalesLink from 'hooks/useOpenSalesLink';
 import {StatTypes, Preferences, AnnouncementBarTypes} from 'utils/constants';
 import {calculateOverageUserActivated} from 'utils/overage_team';
 

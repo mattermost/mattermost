@@ -14,13 +14,13 @@ import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
 
 import AddGroupsToTeamModal from 'components/add_groups_to_team_modal';
 import ChannelNotificationsModal from 'components/channel_notifications_modal';
-import ChannelIntroPrivateSvg from 'components/common/svg_images_components/channel_intro_private_svg';
-import ChannelIntroPublicSvg from 'components/common/svg_images_components/channel_intro_public_svg';
-import ChannelIntroTownSquareSvg from 'components/common/svg_images_components/channel_intro_town_square_svg';
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
 import ProfilePicture from 'components/profile_picture';
+import ChannelIntroPrivateSvg from 'components/svg_images_components/channel_intro_private_svg';
+import ChannelIntroPublicSvg from 'components/svg_images_components/channel_intro_public_svg';
+import ChannelIntroTownSquareSvg from 'components/svg_images_components/channel_intro_town_square_svg';
 import ToggleModalButton from 'components/toggle_modal_button';
 import UserProfile from 'components/user_profile';
 

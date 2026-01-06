@@ -4,11 +4,11 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
-import CloudTrialSvg from 'components/common/svg_images_components/cloud_trial_svg';
-import PrivateCloudSvg from 'components/common/svg_images_components/private_cloud_svg';
 import ExternalLink from 'components/external_link';
+import CloudTrialSvg from 'components/svg_images_components/cloud_trial_svg';
+import PrivateCloudSvg from 'components/svg_images_components/private_cloud_svg';
 
+import useOpenSalesLink from 'hooks/useOpenSalesLink';
 import {CloudLinks, CloudProducts} from 'utils/constants';
 
 type Props = {

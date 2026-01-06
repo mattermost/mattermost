@@ -10,7 +10,7 @@ import TopButtons from './top_buttons';
 import type {Props} from './top_buttons';
 
 const mockOnCopyTextClick = jest.fn();
-jest.mock('../common/hooks/useCopyText', () => {
+jest.mock('hooks/useCopyText', () => {
     return jest.fn(() => {
         return {
             copiedRecently: false,

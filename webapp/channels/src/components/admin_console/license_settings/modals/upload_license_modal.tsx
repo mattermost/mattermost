@@ -17,9 +17,9 @@ import {closeModal} from 'actions/views/modals';
 import {getCurrentLocale} from 'selectors/i18n';
 import {isModalOpen} from 'selectors/views/modals';
 
-import FileSvg from 'components/common/svg_images_components/file_svg';
-import SuccessSvg from 'components/common/svg_images_components/success_svg';
-import UploadLicenseSvg from 'components/common/svg_images_components/upload_license';
+import FileSvg from 'components/svg_images_components/file_svg';
+import SuccessSvg from 'components/svg_images_components/success_svg';
+import UploadLicenseSvg from 'components/svg_images_components/upload_license';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {FileTypes, ModalIdentifiers} from 'utils/constants';

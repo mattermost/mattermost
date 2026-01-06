@@ -12,9 +12,8 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
-import useCopyText from 'components/common/hooks/useCopyText';
-
 import UsersEmailsInput from 'design_system/components/primitives/users_emails_input/users_emails_input';
+import useCopyText from 'hooks/useCopyText';
 import {Constants} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
 

@@ -5,8 +5,8 @@ import React, {useCallback, useEffect} from 'react';
 import {useIntl} from 'react-intl';
 import {useHistory} from 'react-router-dom';
 
-import AccessProblemSVG from 'components/common/svg_images_components/access_problem_svg';
 import type {CustomizeHeaderType} from 'components/header_footer_route/header_footer_route';
+import AccessProblemSVG from 'components/svg_images_components/access_problem_svg';
 
 import './access_problem.scss';
 

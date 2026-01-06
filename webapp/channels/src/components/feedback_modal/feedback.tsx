@@ -10,7 +10,7 @@ import type {Feedback} from '@mattermost/types/cloud';
 
 import {closeModal} from 'actions/views/modals';
 
-import RadioButtonGroup from 'components/common/radio_group';
+import RadioButtonGroup from 'components/radio_group';
 
 import {ModalIdentifiers} from 'utils/constants';
 

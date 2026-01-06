@@ -13,12 +13,12 @@ import {ProfilesInChannelSortBy} from 'mattermost-redux/actions/users';
 
 import AlertBanner from 'components/alert_banner';
 import ChannelInviteModal from 'components/channel_invite_modal';
-import useAccessControlAttributes, {EntityType} from 'components/common/hooks/useAccessControlAttributes';
 import ExternalLink from 'components/external_link';
 import MoreDirectChannels from 'components/more_direct_channels';
 import AlertTag from 'components/widgets/tag/alert_tag';
 import TagGroup from 'components/widgets/tag/tag_group';
 
+import useAccessControlAttributes, {EntityType} from 'hooks/useAccessControlAttributes';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 
 import type {ModalData} from 'types/actions';

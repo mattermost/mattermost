@@ -8,10 +8,11 @@ import type {
     PropertyValue,
 } from '@mattermost/types/properties';
 
-import {useUser} from 'components/common/hooks/useUser';
 import PreviewPostAvatar from 'components/post_view/post_message_preview/avatar/avatar';
 import type {UserPropertyMetadata} from 'components/properties_card_view/properties_card_view';
 import UserProfileComponent from 'components/user_profile';
+
+import {useUser} from 'hooks/useUser';
 
 import {SelectableUserPropertyRenderer} from './selectable_user_property_renderer';
 

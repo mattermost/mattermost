@@ -13,8 +13,7 @@ import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 
 import globalStore from 'stores/redux_store';
 
-import usePrefixedIds from 'components/common/hooks/usePrefixedIds';
-
+import usePrefixedIds from 'hooks/usePrefixedIds';
 import {Constants} from 'utils/constants';
 import * as UserAgent from 'utils/user_agent';
 

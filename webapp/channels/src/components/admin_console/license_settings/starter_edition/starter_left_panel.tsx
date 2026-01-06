@@ -5,8 +5,7 @@ import React from 'react';
 import type {RefObject} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
-
+import useOpenPricingModal from 'hooks/useOpenPricingModal';
 import {FileTypes} from 'utils/constants';
 
 import './starter_edition.scss';

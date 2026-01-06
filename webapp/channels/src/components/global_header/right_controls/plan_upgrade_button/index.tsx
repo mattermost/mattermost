@@ -12,8 +12,7 @@ import {getCloudSubscription as selectCloudSubscription, getSubscriptionProduct 
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
-
+import useOpenPricingModal from 'hooks/useOpenPricingModal';
 import {CloudProducts} from 'utils/constants';
 
 const PlanUpgradeButton = (): JSX.Element | null => {

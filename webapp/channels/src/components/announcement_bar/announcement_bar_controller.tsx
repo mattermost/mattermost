@@ -5,7 +5,7 @@ import React from 'react';
 
 import type {ClientLicense, ClientConfig, WarnMetricStatus} from '@mattermost/types/config';
 
-import withGetCloudSubscription from 'components/common/hocs/cloud/with_get_cloud_subscription';
+import withGetCloudSubscription from 'components/with_get_cloud_subscription';
 
 import CloudPreviewAnnouncementBar from './cloud_preview_announcement_bar';
 import CloudTrialAnnouncementBar from './cloud_trial_announcement_bar';

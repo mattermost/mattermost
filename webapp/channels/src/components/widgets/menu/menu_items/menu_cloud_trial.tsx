@@ -12,12 +12,12 @@ import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/user
 
 import {openModal} from 'actions/views/modals';
 
-import useGetHighestThresholdCloudLimit from 'components/common/hooks/useGetHighestThresholdCloudLimit';
-import useGetLimits from 'components/common/hooks/useGetLimits';
-import useGetUsage from 'components/common/hooks/useGetUsage';
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import TrialBenefitsModal from 'components/trial_benefits_modal/trial_benefits_modal';
 
+import useGetHighestThresholdCloudLimit from 'hooks/useGetHighestThresholdCloudLimit';
+import useGetLimits from 'hooks/useGetLimits';
+import useGetUsage from 'hooks/useGetUsage';
+import useOpenPricingModal from 'hooks/useOpenPricingModal';
 import {ModalIdentifiers, CloudProducts} from 'utils/constants';
 
 import './menu_item.scss';

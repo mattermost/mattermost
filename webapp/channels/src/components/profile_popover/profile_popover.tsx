@@ -17,8 +17,7 @@ import {getMembershipForEntities} from 'actions/views/profile_popover';
 import {getSelectedPost} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
 
-import {usePluginVisibilityInSharedChannel} from 'components/common/hooks/usePluginVisibilityInSharedChannel';
-
+import {usePluginVisibilityInSharedChannel} from 'hooks/usePluginVisibilityInSharedChannel';
 import Pluggable from 'plugins/pluggable';
 import {getHistory} from 'utils/browser_history';
 import {A11yCustomEventTypes, UserStatuses} from 'utils/constants';

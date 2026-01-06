@@ -9,9 +9,8 @@ import type {Subscription} from '@mattermost/types/cloud';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {UserProfile} from '@mattermost/types/users';
 
-import type {UseOpenPricingModalReturn} from 'components/common/hooks/useOpenPricingModal';
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
-
+import type {UseOpenPricingModalReturn} from 'hooks/useOpenPricingModal';
+import useOpenPricingModal from 'hooks/useOpenPricingModal';
 import {
     Preferences,
     CloudBanners,

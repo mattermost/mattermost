@@ -6,7 +6,7 @@ import {FormattedMessage} from 'react-intl';
 
 import {CheckIcon, ExclamationThickIcon} from '@mattermost/compass-icons/components';
 
-import CircularChart from 'components/common/circular_chart/circular_chart';
+import CircularChart from './circular_chart';
 
 import './dashboard.scss';
 

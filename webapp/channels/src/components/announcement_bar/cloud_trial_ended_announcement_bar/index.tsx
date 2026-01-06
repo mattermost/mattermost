@@ -15,10 +15,9 @@ import {
 } from 'mattermost-redux/selectors/entities/users';
 import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 
-import useGetLimits from 'components/common/hooks/useGetLimits';
-import useGetSubscription from 'components/common/hooks/useGetSubscription';
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
-
+import useGetLimits from 'hooks/useGetLimits';
+import useGetSubscription from 'hooks/useGetSubscription';
+import useOpenPricingModal from 'hooks/useOpenPricingModal';
 import {
     AnnouncementBarTypes,
     Preferences,

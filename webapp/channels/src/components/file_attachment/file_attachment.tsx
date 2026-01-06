@@ -11,11 +11,11 @@ import type {FileInfo} from '@mattermost/types/files';
 
 import {getFileThumbnailUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
 
-import {usePluginVisibilityInSharedChannel} from 'components/common/hooks/usePluginVisibilityInSharedChannel';
 import GetPublicModal from 'components/get_public_link_modal';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
+import {usePluginVisibilityInSharedChannel} from 'hooks/usePluginVisibilityInSharedChannel';
 import {Constants, FileTypes, ModalIdentifiers} from 'utils/constants';
 import {trimFilename} from 'utils/file_utils';
 import {

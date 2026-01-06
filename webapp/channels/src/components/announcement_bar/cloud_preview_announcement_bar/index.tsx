@@ -10,8 +10,7 @@ import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
 import {getCloudSubscription} from 'mattermost-redux/selectors/entities/cloud';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 
-import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
-
+import useOpenSalesLink from 'hooks/useOpenSalesLink';
 import {AnnouncementBarTypes} from 'utils/constants';
 
 import AnnouncementBar from '../default_announcement_bar';

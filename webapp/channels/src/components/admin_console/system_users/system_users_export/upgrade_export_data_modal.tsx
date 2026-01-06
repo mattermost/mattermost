@@ -4,9 +4,10 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
-import SetupSystemSvg from 'components/common/svg_images_components/setup_system';
 import ConfirmModalRedux from 'components/confirm_modal_redux';
+import SetupSystemSvg from 'components/svg_images_components/setup_system';
+
+import useOpenPricingModal from 'hooks/useOpenPricingModal';
 
 import './upgrade_export_data_modal.scss';
 

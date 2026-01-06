@@ -19,10 +19,11 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {loadStatusesByIds} from 'actions/status_actions';
 import {markThreadAsRead} from 'actions/views/threads';
 
-import {usePost} from 'components/common/hooks/usePost';
 import ThreadPane from 'components/threading/global_threads/thread_pane';
 import ThreadViewer from 'components/threading/thread_viewer';
 import UnreadsStatusHandler from 'components/unreads_status_handler';
+
+import {usePost} from 'hooks/usePost';
 
 import type {GlobalState} from 'types/store';
 

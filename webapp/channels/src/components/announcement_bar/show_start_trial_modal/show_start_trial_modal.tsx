@@ -11,9 +11,8 @@ import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selecto
 
 import {isModalOpen} from 'selectors/views/modals';
 
-import useGetTotalUsersNoBots from 'components/common/hooks/useGetTotalUsersNoBots';
-import useOpenStartTrialFormModal from 'components/common/hooks/useOpenStartTrialFormModal';
-
+import useGetTotalUsersNoBots from 'hooks/useGetTotalUsersNoBots';
+import useOpenStartTrialFormModal from 'hooks/useOpenStartTrialFormModal';
 import {
     Preferences,
     Constants,

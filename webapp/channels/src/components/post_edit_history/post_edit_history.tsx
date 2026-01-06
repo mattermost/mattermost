@@ -10,9 +10,9 @@ import type {Post} from '@mattermost/types/posts';
 
 import {getPostEditHistory} from 'mattermost-redux/actions/posts';
 
-import AlertIcon from 'components/common/svg_images_components/alert_svg';
 import LoadingScreen from 'components/loading_screen';
 import SearchResultsHeader from 'components/search_results_header';
+import AlertIcon from 'components/svg_images_components/alert_svg';
 
 import EditedPostItem from './edited_post_item';
 

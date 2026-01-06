@@ -4,9 +4,10 @@
 import React, {useCallback, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import SelectTextInput, {type SelectTextInputOption} from 'components/common/select_text_input/select_text_input';
 import CheckboxSettingItem from 'components/widgets/modals/components/checkbox_setting_item';
 import {type SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
+
+import SelectTextInput, {type SelectTextInputOption} from './select_text_input';
 
 type Props = {
     allowedDomains: string[];

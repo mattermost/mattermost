@@ -9,11 +9,10 @@ import {getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud'
 
 import {closeModal} from 'actions/views/modals';
 
-import useGetHighestThresholdCloudLimit from 'components/common/hooks/useGetHighestThresholdCloudLimit';
-import useGetLimits from 'components/common/hooks/useGetLimits';
-import useGetUsage from 'components/common/hooks/useGetUsage';
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
-
+import useGetHighestThresholdCloudLimit from 'hooks/useGetHighestThresholdCloudLimit';
+import useGetLimits from 'hooks/useGetLimits';
+import useGetUsage from 'hooks/useGetUsage';
+import useOpenPricingModal from 'hooks/useOpenPricingModal';
 import {ModalIdentifiers} from 'utils/constants';
 import type {Message} from 'utils/i18n';
 import {fallbackStarterLimits, asGBString, LimitTypes} from 'utils/limits';

@@ -8,11 +8,12 @@ import {Link} from 'react-router-dom';
 
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 
-import BackButton from 'components/common/back_button';
-import Logo from 'components/common/svg_images_components/logo_dark_blue_svg';
+import Logo from 'components/svg_images_components/logo_dark_blue_svg';
+
+import HistoryBackButton from 'design_system/components/patterns/history_back_button';
+import {LicenseSkus} from 'utils/constants';
 
 import './header.scss';
-import {LicenseSkus} from 'utils/constants';
 
 export type HeaderProps = {
     alternateLink?: React.ReactElement;
@@ -68,7 +69,7 @@ const Header = ({alternateLink, backButtonURL, onBackButtonClick}: HeaderProps) 
                 {alternateLink}
             </div>
             {onBackButtonClick && (
-                <BackButton
+                <HistoryBackButton
                     className='header-back-button'
                     url={backButtonURL}
                     onClick={onBackButtonClick}

@@ -7,10 +7,10 @@ import type {Channel} from '@mattermost/types/channels';
 
 import {getUserIdFromChannelName} from 'mattermost-redux/utils/channel_utils';
 
-import usePrefixedIds from 'components/common/hooks/usePrefixedIds';
 import BotTag from 'components/widgets/tag/bot_tag';
 import Avatar from 'components/widgets/users/avatar';
 
+import usePrefixedIds from 'hooks/usePrefixedIds';
 import Constants from 'utils/constants';
 import {imageURLForUser} from 'utils/utils';
 

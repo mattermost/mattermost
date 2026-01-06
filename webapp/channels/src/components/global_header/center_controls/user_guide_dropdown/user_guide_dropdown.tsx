@@ -140,7 +140,7 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
                     openLeft={false}
                     openUp={false}
                     id='AddChannelDropdown'
-                    ariaLabel={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.dropdownAriaLabel', defaultMessage: 'Add Channel Dropdown'})}
+                    ariaLabel={intl.formatMessage({id: 'channel_header.userHelpGuide', defaultMessage: 'Help'})}
                 >
                     {this.renderDropdownItems()}
                 </Menu>

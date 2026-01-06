@@ -1,0 +1,69 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`/components/RadioButtonGroup should match snapshot 1`] = `
+<div
+  className="radio-list"
+  data-testid=""
+>
+  <div
+    className="radio"
+    key="value1"
+  >
+    <RadioInput
+      checked={false}
+      className=""
+      dataTestId="test-string"
+      disabled={false}
+      handleChange={[Function]}
+      id="test-string"
+      name="test-string"
+      title={
+        <React.Fragment>
+          key1
+        </React.Fragment>
+      }
+      value="value1"
+    />
+  </div>
+  <div
+    className="radio"
+    key="value2"
+  >
+    <RadioInput
+      checked={true}
+      className="selected"
+      dataTestId="test-string"
+      disabled={false}
+      handleChange={[Function]}
+      id="test-string"
+      name="test-string"
+      title={
+        <React.Fragment>
+          key2
+        </React.Fragment>
+      }
+      value="value2"
+    />
+  </div>
+  <div
+    className="radio"
+    key="value3"
+  >
+    <RadioInput
+      checked={false}
+      className=""
+      dataTestId="test-string"
+      disabled={false}
+      handleChange={[Function]}
+      id="test-string"
+      name="test-string"
+      title={
+        <React.Fragment>
+          key3
+        </React.Fragment>
+      }
+      value="value3"
+    />
+  </div>
+</div>
+`;

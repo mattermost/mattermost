@@ -5,7 +5,7 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import AccessDeniedSvg from 'components/common/svg_images_components/access_denied_svg';
+import AccessDeniedSvg from 'components/svg_images_components/access_denied_svg';
 
 import './no_permissions_view.scss';
 

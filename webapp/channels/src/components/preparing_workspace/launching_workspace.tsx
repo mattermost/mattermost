@@ -8,7 +8,7 @@ import {CSSTransition} from 'react-transition-group';
 
 import {GeneralTypes} from 'mattermost-redux/action_types';
 
-import LogoSvg from 'components/common/svg_images_components/logo_dark_blue_svg';
+import LogoSvg from 'components/svg_images_components/logo_dark_blue_svg';
 
 import loadingIcon from 'images/spinner-48x48-blue.apng';
 

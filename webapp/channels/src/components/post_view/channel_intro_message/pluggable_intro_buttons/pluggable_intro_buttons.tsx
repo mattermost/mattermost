@@ -5,7 +5,7 @@ import React from 'react';
 
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 
-import {usePluginVisibilityInSharedChannel} from 'components/common/hooks/usePluginVisibilityInSharedChannel';
+import {usePluginVisibilityInSharedChannel} from 'hooks/usePluginVisibilityInSharedChannel';
 
 import type {ChannelIntroButtonAction} from 'types/store/plugins';
 

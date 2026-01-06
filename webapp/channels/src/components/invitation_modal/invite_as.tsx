@@ -12,8 +12,8 @@ import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/user
 
 import {closeModal, openModal} from 'actions/views/modals';
 
-import RadioGroup from 'components/common/radio_group';
 import InvitationModal from 'components/invitation_modal';
+import RadioGroup from 'components/radio_group';
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
 
 import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';

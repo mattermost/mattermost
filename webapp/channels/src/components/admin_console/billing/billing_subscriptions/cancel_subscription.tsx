@@ -4,8 +4,9 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {useOpenCloudZendeskSupportForm} from 'components/common/hooks/useOpenZendeskForm';
 import ExternalLink from 'components/external_link';
+
+import {useOpenCloudZendeskSupportForm} from 'hooks/useOpenZendeskForm';
 
 const CancelSubscription = () => {
     const description = `I am requesting that workspace "${window.location.host}" be deleted`;

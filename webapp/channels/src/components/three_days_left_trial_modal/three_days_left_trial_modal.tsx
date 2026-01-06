@@ -12,12 +12,12 @@ import {isModalOpen} from 'selectors/views/modals';
 
 import SystemRolesSVG from 'components/admin_console/feature_discovery/features/images/system_roles_svg';
 import WorkspaceLimitsPanel from 'components/cloud_usage_modal/workspace_limits_panel';
-import useGetLimits from 'components/common/hooks/useGetLimits';
-import useGetUsage from 'components/common/hooks/useGetUsage';
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
-import GuestAccessSvg from 'components/common/svg_images_components/guest_access_svg';
-import MonitorImacLikeSVG from 'components/common/svg_images_components/monitor_imaclike_svg';
+import GuestAccessSvg from 'components/svg_images_components/guest_access_svg';
+import MonitorImacLikeSVG from 'components/svg_images_components/monitor_imaclike_svg';
 
+import useGetLimits from 'hooks/useGetLimits';
+import useGetUsage from 'hooks/useGetUsage';
+import useOpenPricingModal from 'hooks/useOpenPricingModal';
 import {ConsolePages, DocLinks, ModalIdentifiers} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
