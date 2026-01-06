@@ -14,7 +14,7 @@ const config = {
         '/node_modules/',
         'mattermost-redux/src/selectors/create_selector',
     ],
-    coverageReporters: ['lcov', 'text-summary'],
+    coverageReporters: ['json', 'lcov', 'text-summary'],
     fakeTimers: {
         doNotFake: ['performance'],
     },
