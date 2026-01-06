@@ -19,7 +19,7 @@
   "about.hash": "Hash de version :",
   "about.hashee": "Hash de version EE :",
   "about.licensed": "Licence accordée à :",
-  "about.notice": "Mattermost est rendu possible grâce aux logiciels open source utilisés dans notre <linkServer>serveur</linkServer>, <linkDesktop>applications de bureau</linkDesktop> et <linkMobile>applications mobiles</linkMobile>.",
+  "about.notice": "Mattermost est rendu possible grâce aux logiciels open core utilisés dans notre <linkServer>serveur</linkServer>, <linkDesktop>applications de bureau</linkDesktop> et <linkMobile>applications mobiles</linkMobile>.",
   "about.privacy": "Politique de respect de la vie privée",
   "about.serverDisconnected": "déconnecté",
   "about.serverHostname": "Nom d’hôte :",

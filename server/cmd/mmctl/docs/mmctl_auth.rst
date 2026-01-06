@@ -36,7 +36,7 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
+* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Core, self-hosted Slack-alternative
 * `mmctl auth clean <mmctl_auth_clean.rst>`_ 	 - Clean all credentials
 * `mmctl auth current <mmctl_auth_current.rst>`_ 	 - Show current user credentials
 * `mmctl auth delete <mmctl_auth_delete.rst>`_ 	 - Delete an credentials

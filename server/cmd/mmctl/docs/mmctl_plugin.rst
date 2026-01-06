@@ -36,7 +36,7 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
+* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Core, self-hosted Slack-alternative
 * `mmctl plugin add <mmctl_plugin_add.rst>`_ 	 - Add plugins
 * `mmctl plugin delete <mmctl_plugin_delete.rst>`_ 	 - Delete plugins
 * `mmctl plugin disable <mmctl_plugin_disable.rst>`_ 	 - Disable plugins

@@ -11,7 +11,7 @@
   "about.hash": "Build Hash:",
   "about.hashee": "EE Build Hash:",
   "about.licensed": "Licenseret til:",
-  "about.notice": "Mattermost er gjort muligt af open source-software, der anvendes i vores <linkServer>server</linkServer>, <linkDesktop>desktop</linkDesktop> og <linkMobile>mobil</linkMobile> apps.",
+  "about.notice": "Mattermost er gjort muligt af open core-software, der anvendes i vores <linkServer>server</linkServer>, <linkDesktop>desktop</linkDesktop> og <linkMobile>mobil</linkMobile> apps.",
   "about.privacy": "Privatlivspolitik",
   "about.serverDisconnected": "frakoblet",
   "about.serverHostname": "Hostnavn:",

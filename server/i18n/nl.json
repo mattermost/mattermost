@@ -7340,7 +7340,7 @@
   },
   {
     "id": "api.templates.invite_body_footer.info",
-    "translation": "Mattermost is een flexibel, open source messaging platform dat veilige teamsamenwerking mogelijk maakt."
+    "translation": "Mattermost is een flexibel, open core messaging platform dat veilige teamsamenwerking mogelijk maakt."
   },
   {
     "id": "api.templates.invite_body.subTitle",
@@ -8359,7 +8359,7 @@
   },
   {
     "id": "api.command_help.success",
-    "translation": "Mattermost is een open source platform voor veilige communicatie, samenwerking, en regie van werk over tools en teams heen.\nMattermost bevat twee belangrijke tools:\n\n**Channels** - Blijf verbonden met je team via 1:1 en groepsberichten.\n**[Playbooks](/playbooks)** - Bouw en configureer herhaalbare processen om specifieke en voorspelbare resultaten te bereiken.\n\n[Documentatie en leidraden bekijken]({{.HelpLink}})"
+    "translation": "Mattermost is een open core platform voor veilige communicatie, samenwerking, en regie van werk over tools en teams heen.\nMattermost bevat twee belangrijke tools:\n\n**Channels** - Blijf verbonden met je team via 1:1 en groepsberichten.\n**[Playbooks](/playbooks)** - Bouw en configureer herhaalbare processen om specifieke en voorspelbare resultaten te bereiken.\n\n[Documentatie en leidraden bekijken]({{.HelpLink}})"
   },
   {
     "id": "ent.saml.configure.certificate_parse_error.app_error",

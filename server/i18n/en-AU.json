@@ -4637,7 +4637,7 @@
   },
   {
     "id": "api.templates.invite_body_footer.info",
-    "translation": "Mattermost is a flexible, open source messaging platform that enables secure team collaboration."
+    "translation": "Mattermost is a flexible, open core messaging platform that enables secure team collaboration."
   },
   {
     "id": "api.templates.invite_body.title",
@@ -8356,7 +8356,7 @@
   },
   {
     "id": "api.command_help.success",
-    "translation": "Mattermost is an open source platform for secure communication, collaboration, and orchestration of work across tools and teams.\nMattermost contains two key tools:\n\n**Channels** - Stay connected with your team via 1:1 and group messaging.\n**[Playbooks](/playbooks)** - Build and configure repeatable processes to achieve specific and predictable outcomes.\n\n[View documentation and guides]({{.HelpLink}})"
+    "translation": "Mattermost is an open core platform for secure communication, collaboration, and orchestration of work across tools and teams.\nMattermost contains two key tools:\n\n**Channels** - Stay connected with your team via 1:1 and group messaging.\n**[Playbooks](/playbooks)** - Build and configure repeatable processes to achieve specific and predictable outcomes.\n\n[View documentation and guides]({{.HelpLink}})"
   },
   {
     "id": "app.notify_admin.send_notification_post.app_error",

@@ -111,7 +111,7 @@ describe('Integrations', () => {
                 cy.findByText('(Only visible to you)').should('exist');
 
                 // * Check if we got ephemeral message of our selection
-                cy.contains('Mattermost is an open source platform for secure communication').should('exist');
+                cy.contains('Mattermost is an open core platform for secure communication').should('exist');
             });
         });
     });

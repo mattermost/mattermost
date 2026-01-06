@@ -36,7 +36,7 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
+* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Core, self-hosted Slack-alternative
 * `mmctl license remove <mmctl_license_remove.rst>`_ 	 - Remove the current license.
 * `mmctl license upload <mmctl_license_upload.rst>`_ 	 - Upload a license.
 * `mmctl license upload-string <mmctl_license_upload-string.rst>`_ 	 - Upload a license from a string.

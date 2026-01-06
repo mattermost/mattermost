@@ -91,7 +91,7 @@ func printPanic(x any) {
 
 var RootCmd = &cobra.Command{
 	Use:               "mmctl",
-	Short:             "Remote client for the Open Source, self-hosted Slack-alternative",
+	Short:             "Remote client for the Open Core, self-hosted Slack-alternative",
 	Long:              `Mattermost offers workplace messaging across web, PC and phones with archiving, search and integration with your existing systems. Documentation available at https://docs.mattermost.com`,
 	DisableAutoGenTag: true,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {

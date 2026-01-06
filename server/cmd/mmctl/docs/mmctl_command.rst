@@ -36,7 +36,7 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
+* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Core, self-hosted Slack-alternative
 * `mmctl command archive <mmctl_command_archive.rst>`_ 	 - Archive a slash command
 * `mmctl command create <mmctl_command_create.rst>`_ 	 - Create a custom slash command
 * `mmctl command list <mmctl_command_list.rst>`_ 	 - List all commands on specified teams.

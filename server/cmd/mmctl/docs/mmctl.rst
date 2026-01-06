@@ -3,7 +3,7 @@
 mmctl
 -----
 
-Remote client for the Open Source, self-hosted Slack-alternative
+Remote client for the Open Core, self-hosted Slack-alternative
 
 Synopsis
 ~~~~~~~~

@@ -6785,7 +6785,7 @@
   },
   {
     "id": "api.command_help.success",
-    "translation": "Mattermost je open source platforma pro bezpečnou komunikaci, spolupráci a orchestraci práce napříč nástroji a týmy.\nMattermost obsahuje dva klíčové nástroje:\n\n**Kanály** - Zůstaňte ve spojení se svým týmem prostřednictvím zpráv 1:1 a skupinových zpráv.\n**[Playbooks](/playbooks)** - Vytvářejte a konfigurujte opakovatelné procesy k dosažení konkrétních a předvídatelných výsledků.\n\n[Zobrazit dokumentaci a průvodce]({{.HelpLink}})"
+    "translation": "Mattermost je open core platforma pro bezpečnou komunikaci, spolupráci a orchestraci práce napříč nástroji a týmy.\nMattermost obsahuje dva klíčové nástroje:\n\n**Kanály** - Zůstaňte ve spojení se svým týmem prostřednictvím zpráv 1:1 a skupinových zpráv.\n**[Playbooks](/playbooks)** - Vytvářejte a konfigurujte opakovatelné procesy k dosažení konkrétních a předvídatelných výsledků.\n\n[Zobrazit dokumentaci a průvodce]({{.HelpLink}})"
   },
   {
     "id": "api.command_custom_status.clear.app_error",
@@ -7353,7 +7353,7 @@
   },
   {
     "id": "api.templates.invite_body_footer.info",
-    "translation": "Mattermost je flexibilní, open source platforma pro zasílání zpráv, která umožňuje bezpečnou týmovou spolupráci."
+    "translation": "Mattermost je flexibilní, open core platforma pro zasílání zpráv, která umožňuje bezpečnou týmovou spolupráci."
   },
   {
     "id": "api.templates.invite_body_footer.learn_more",

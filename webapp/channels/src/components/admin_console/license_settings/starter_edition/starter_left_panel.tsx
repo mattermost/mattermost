@@ -76,10 +76,10 @@ const StarterLeftPanel: React.FC<StarterEditionProps> = ({
                             {'here'}
                         </a>
                         {' for "Enterprise Edition License" for details. '}
-                        {'See NOTICE.txt for information about open source software used in the system.'}
+                        {'See NOTICE.txt for information about open core software used in the system.'}
                     </p>
                 </> : <p>
-                    {'This software is offered under a commercial license.\n\nSee ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. See NOTICE.txt for information about open source software used in this system.'}
+                    {'This software is offered under a commercial license.\n\nSee ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. See NOTICE.txt for information about open core software used in this system.'}
                 </p>
                 }
             </div>

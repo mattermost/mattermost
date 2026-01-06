@@ -75,5 +75,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
+* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Core, self-hosted Slack-alternative
 

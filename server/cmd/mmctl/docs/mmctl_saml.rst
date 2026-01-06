@@ -36,6 +36,6 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
+* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Core, self-hosted Slack-alternative
 * `mmctl saml auth-data-reset <mmctl_saml_auth-data-reset.rst>`_ 	 - Reset AuthData field to Email
 

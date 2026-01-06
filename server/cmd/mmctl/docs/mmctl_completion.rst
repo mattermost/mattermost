@@ -38,7 +38,7 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
+* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Core, self-hosted Slack-alternative
 * `mmctl completion bash <mmctl_completion_bash.rst>`_ 	 - Generate the autocompletion script for bash
 * `mmctl completion fish <mmctl_completion_fish.rst>`_ 	 - Generate the autocompletion script for fish
 * `mmctl completion powershell <mmctl_completion_powershell.rst>`_ 	 - Generate the autocompletion script for powershell

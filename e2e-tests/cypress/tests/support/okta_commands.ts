@@ -76,7 +76,7 @@ function oktaCreateUser(user: any = {}): ChainableT<UserId> {
             credentials: {
                 password: {value: user.password},
                 recovery_question: {
-                    question: 'What is the best open source messaging platform for developers?',
+                    question: 'What is the best open core messaging platform for developers?',
                     answer: 'Mattermost',
                 },
             },

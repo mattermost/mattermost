@@ -7117,7 +7117,7 @@
   },
   {
     "id": "api.templates.invite_body_footer.info",
-    "translation": "Mattermost to elastyczna platforma komunikacyjna typu open source, która umożliwia bezpieczną współpracę w zespole."
+    "translation": "Mattermost to elastyczna platforma komunikacyjna typu open core, która umożliwia bezpieczną współpracę w zespole."
   },
   {
     "id": "api.templates.invite_body.subTitle",
@@ -8361,7 +8361,7 @@
   },
   {
     "id": "api.command_help.success",
-    "translation": "Mattermost to platforma open source do bezpiecznej komunikacji, współpracy i orkiestracji pracy między narzędziami i zespołami.\nMattermost zawiera dwa kluczowe narzędzia:\n\n**Kanały** - Pozostań w kontakcie ze swoim zespołem poprzez wiadomości 1:1 i grupowe.\n**[Playbooki](/playbooki)** - Twórz i konfiguruj powtarzalne procesy, aby osiągnąć określone i przewidywalne wyniki.\n\n[Zobacz dokumentację i przewodniki]({{.HelpLink}})"
+    "translation": "Mattermost to platforma open core do bezpiecznej komunikacji, współpracy i orkiestracji pracy między narzędziami i zespołami.\nMattermost zawiera dwa kluczowe narzędzia:\n\n**Kanały** - Pozostań w kontakcie ze swoim zespołem poprzez wiadomości 1:1 i grupowe.\n**[Playbooki](/playbooki)** - Twórz i konfiguruj powtarzalne procesy, aby osiągnąć określone i przewidywalne wyniki.\n\n[Zobacz dokumentację i przewodniki]({{.HelpLink}})"
   },
   {
     "id": "app.notify_admin.send_notification_post.app_error",

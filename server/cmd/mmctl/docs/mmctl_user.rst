@@ -36,7 +36,7 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
+* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Core, self-hosted Slack-alternative
 * `mmctl user activate <mmctl_user_activate.rst>`_ 	 - Activate users
 * `mmctl user attributes <mmctl_user_attributes.rst>`_ 	 - Management of User Attributes
 * `mmctl user change-password <mmctl_user_change-password.rst>`_ 	 - Changes a user's password

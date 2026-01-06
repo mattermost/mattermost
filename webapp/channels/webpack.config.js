@@ -208,7 +208,7 @@ var config = {
             name: 'Mattermost',
             short_name: 'Mattermost',
             start_url: '..',
-            description: 'Mattermost is an open source, self-hosted Slack-alternative',
+            description: 'Mattermost is an open core, self-hosted Slack-alternative',
             background_color: '#ffffff',
             inject: true,
             ios: true,

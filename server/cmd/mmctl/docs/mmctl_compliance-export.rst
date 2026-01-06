@@ -36,7 +36,7 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
+* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Core, self-hosted Slack-alternative
 * `mmctl compliance-export cancel <mmctl_compliance-export_cancel.rst>`_ 	 - Cancel compliance export job
 * `mmctl compliance-export create <mmctl_compliance-export_create.rst>`_ 	 - Create a compliance export job, of type 'csv' or 'actiance' or 'globalrelay'
 * `mmctl compliance-export download <mmctl_compliance-export_download.rst>`_ 	 - Download compliance export file

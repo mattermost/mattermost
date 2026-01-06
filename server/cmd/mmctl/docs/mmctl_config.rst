@@ -36,7 +36,7 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
+* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Core, self-hosted Slack-alternative
 * `mmctl config edit <mmctl_config_edit.rst>`_ 	 - Edit the config
 * `mmctl config export <mmctl_config_export.rst>`_ 	 - Export the server configuration
 * `mmctl config get <mmctl_config_get.rst>`_ 	 - Get config setting

@@ -36,7 +36,7 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
+* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Core, self-hosted Slack-alternative
 * `mmctl extract job <mmctl_extract_job.rst>`_ 	 - List and show content extraction jobs
 * `mmctl extract run <mmctl_extract_run.rst>`_ 	 - Start a content extraction job.
 

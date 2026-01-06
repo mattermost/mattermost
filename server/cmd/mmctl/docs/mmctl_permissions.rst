@@ -36,7 +36,7 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
+* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Core, self-hosted Slack-alternative
 * `mmctl permissions add <mmctl_permissions_add.rst>`_ 	 - Add permissions to a role (EE Only)
 * `mmctl permissions remove <mmctl_permissions_remove.rst>`_ 	 - Remove permissions from a role (EE Only)
 * `mmctl permissions reset <mmctl_permissions_reset.rst>`_ 	 - Reset default permissions for role (EE Only)

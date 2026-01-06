@@ -36,7 +36,7 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
+* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Core, self-hosted Slack-alternative
 * `mmctl team archive <mmctl_team_archive.rst>`_ 	 - Archive teams
 * `mmctl team create <mmctl_team_create.rst>`_ 	 - Create a team
 * `mmctl team delete <mmctl_team_delete.rst>`_ 	 - Delete teams

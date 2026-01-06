@@ -383,7 +383,7 @@ export default function AboutBuildModal(props: Props) {
                     <p>
                         <FormattedMessage
                             id='about.notice'
-                            defaultMessage='Mattermost is made possible by the open source software used in our <linkServer>server</linkServer>, <linkDesktop>desktop</linkDesktop> and <linkMobile>mobile</linkMobile> apps.'
+                            defaultMessage='Mattermost is made possible by the open core software used in our <linkServer>server</linkServer>, <linkDesktop>desktop</linkDesktop> and <linkMobile>mobile</linkMobile> apps.'
                             values={{
                                 linkServer: (msg: React.ReactNode) => (
                                     <ExternalLink

@@ -21,7 +21,7 @@
   "about.hashee": "EE Build Hash:",
   "about.licensed": "Licensed to:",
   "about.loadmetric": "Load Metric:",
-  "about.notice": "Mattermost is made possible by the open source software used in our <linkServer>server</linkServer>, <linkDesktop>desktop</linkDesktop> and <linkMobile>mobile</linkMobile> apps.",
+  "about.notice": "Mattermost is made possible by the open core software used in our <linkServer>server</linkServer>, <linkDesktop>desktop</linkDesktop> and <linkMobile>mobile</linkMobile> apps.",
   "about.privacy": "Privacy Policy",
   "about.serverDisconnected": "disconnected",
   "about.serverHostname": "Hostname:",

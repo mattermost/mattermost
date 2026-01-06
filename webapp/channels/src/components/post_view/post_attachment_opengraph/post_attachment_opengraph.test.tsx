@@ -24,7 +24,7 @@ const preferenceKeys = {
 };
 
 const openGraphData = {
-    description: 'Mattermost is a secure, open source platform for communication, collaboration, and workflow orchestration across tools and teams.',
+    description: 'Mattermost is a secure, open core platform for communication, collaboration, and workflow orchestration across tools and teams.',
     images: [{
         height: 1256,
         secure_url: 'http://localhost:8065/api/v4/image?url=http%3A%2F%2Fmattermo…t.com%2Fwp-content%2Fuploads%2F2021%2F09%2FHomepage%402x.png',
@@ -32,7 +32,7 @@ const openGraphData = {
         url: '',
         width: 2400}],
     site_name: 'Mattermost.com',
-    title: 'Mattermost | Open Source Collaboration for Developers',
+    title: 'Mattermost | Open Core Collaboration for Developers',
     type: 'website',
     url: 'https://www.mattermost.com',
 };

@@ -36,7 +36,7 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
+* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Core, self-hosted Slack-alternative
 * `mmctl job list <mmctl_job_list.rst>`_ 	 - List the latest jobs
 * `mmctl job update <mmctl_job_update.rst>`_ 	 - Update the status of a job
 

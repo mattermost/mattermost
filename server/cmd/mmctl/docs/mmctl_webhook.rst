@@ -36,7 +36,7 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
+* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Core, self-hosted Slack-alternative
 * `mmctl webhook create-incoming <mmctl_webhook_create-incoming.rst>`_ 	 - Create incoming webhook
 * `mmctl webhook create-outgoing <mmctl_webhook_create-outgoing.rst>`_ 	 - Create outgoing webhook
 * `mmctl webhook delete <mmctl_webhook_delete.rst>`_ 	 - Delete webhooks

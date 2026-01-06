@@ -36,7 +36,7 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
+* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Core, self-hosted Slack-alternative
 * `mmctl bot assign <mmctl_bot_assign.rst>`_ 	 - Assign bot
 * `mmctl bot create <mmctl_bot_create.rst>`_ 	 - Create bot
 * `mmctl bot disable <mmctl_bot_disable.rst>`_ 	 - Disable bot

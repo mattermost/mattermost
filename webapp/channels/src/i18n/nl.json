@@ -21,7 +21,7 @@
   "about.hashee": "EE Compilatiehash:",
   "about.licensed": "Licentie verleend aan:",
   "about.loadmetric": "Metriek laden:",
-  "about.notice": "Mattermost wordt mogelijk gemaakt door de open source software die wordt gebruikt in onze apps <linkServer>server</linkServer>, <linkDesktop>desktop</linkDesktop> en <linkMobile>mobiel</linkMobile> apps.",
+  "about.notice": "Mattermost wordt mogelijk gemaakt door de open core software die wordt gebruikt in onze apps <linkServer>server</linkServer>, <linkDesktop>desktop</linkDesktop> en <linkMobile>mobiel</linkMobile> apps.",
   "about.privacy": "Privacybeleid",
   "about.serverDisconnected": "verbinding verbroken",
   "about.serverHostname": "Hostnaam:",

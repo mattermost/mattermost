@@ -10,7 +10,7 @@ Sample:
 ```
 title: "Mattermost Playbooks"
 copyright: "©2015-present Mattermost, Inc.  All Rights Reserved.  See LICENSE for license information."
-description: "This document includes a list of open source components used in Mattermost Playbooks, including those that have been modified."
+description: "This document includes a list of open core components used in Mattermost Playbooks, including those that have been modified."
 search:
   - "go.mod"
   - "client/go.mod"

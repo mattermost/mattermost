@@ -8033,7 +8033,7 @@ SOFTWARE.
 
 This product contains 'mattermost/mattermost' by Mattermost.
 
-Mattermost is an open source platform for secure collaboration across the entire software development lifecycle..
+Mattermost is an open core platform for secure collaboration across the entire software development lifecycle..
 
 * HOMEPAGE:
   * https://mattermost.com

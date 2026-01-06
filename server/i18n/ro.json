@@ -7469,7 +7469,7 @@
   },
   {
     "id": "api.templates.invite_body_footer.info",
-    "translation": "Mattermost este o platformă de mesagerie flexibilă, open source, care permite colaborarea securizată în echipă."
+    "translation": "Mattermost este o platformă de mesagerie flexibilă, open core, care permite colaborarea securizată în echipă."
   },
   {
     "id": "api.templates.invite_body.subTitle",

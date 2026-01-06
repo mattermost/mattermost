@@ -28,7 +28,7 @@ const TeamEdition: React.FC<TeamEditionProps> = ({openEELicenseModal}: TeamEditi
                     </a>
                     {' for “Enterprise Edition License” for details.'}
                 </p>
-                <p>{'See NOTICE.txt for information about open source software used in the system.'}</p>
+                <p>{'See NOTICE.txt for information about open core software used in the system.'}</p>
             </div>
         </div>
     );

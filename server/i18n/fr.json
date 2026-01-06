@@ -6617,7 +6617,7 @@
   },
   {
     "id": "api.templates.invite_body_footer.info",
-    "translation": "Mattermost est une plateforme de messagerie flexible et open source qui permet une collaboration avec votre équipe de façon sécurisée."
+    "translation": "Mattermost est une plateforme de messagerie flexible et open core qui permet une collaboration avec votre équipe de façon sécurisée."
   },
   {
     "id": "api.templates.invite_body.subTitle",
@@ -8377,7 +8377,7 @@
   },
   {
     "id": "api.command_help.success",
-    "translation": "Mattermost est une plateforme open source pour la communication sécurisée, la collaboration et l'orchestration du travail à travers les outils et les équipes.\nMattermost contient deux outils clés :\n\n**Canaux** - Restez en contact avec votre équipe via des messages 1:1 et de groupe.\n**[Playbooks](/playbooks)** - Créez et configurez des processus reproductibles pour obtenir des résultats spécifiques et prévisibles.\n\n[Voir la documentation et les guides]({{.HelpLink}})"
+    "translation": "Mattermost est une plateforme open core pour la communication sécurisée, la collaboration et l'orchestration du travail à travers les outils et les équipes.\nMattermost contient deux outils clés :\n\n**Canaux** - Restez en contact avec votre équipe via des messages 1:1 et de groupe.\n**[Playbooks](/playbooks)** - Créez et configurez des processus reproductibles pour obtenir des résultats spécifiques et prévisibles.\n\n[Voir la documentation et les guides]({{.HelpLink}})"
   },
   {
     "id": "api.config.update_config.translations.app_error",

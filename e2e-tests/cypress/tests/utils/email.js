@@ -34,7 +34,7 @@ export function getJoinEmailTemplate(sender, userEmail, team, isGuest = false) {
         `<join-link-check> Join now ( ${baseUrl}/signup_user_complete/?d=${encodeURIComponent(JSON.stringify({display_name: team.display_name.replace(' ', '+'), email: userEmail, name: team.name}))}&t=<actual-token> )`,
         '',
         'What is Mattermost?',
-        'Mattermost is a flexible, open source messaging platform that enables secure team collaboration.',
+        'Mattermost is a flexible, open core messaging platform that enables secure team collaboration.',
         'Learn more ( mattermost.com )',
         '',
         `© 2015 - ${new Date().getFullYear()} Mattermost, Inc. 2100 Geng Road, Suite 210, Palo Alto, CA, 94303`,

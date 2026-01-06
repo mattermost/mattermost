@@ -355,7 +355,7 @@ const baseManifestJSON = `{
   "orientation": "any",
   "display": "standalone",
   "start_url": ".",
-  "description": "Mattermost is an open source, self-hosted Slack-alternative",
+  "description": "Mattermost is an open core, self-hosted Slack-alternative",
   "background_color": "#ffffff"
 }
 `
@@ -423,7 +423,7 @@ const subpathManifestJSON = `{
   "orientation": "any",
   "display": "standalone",
   "start_url": ".",
-  "description": "Mattermost is an open source, self-hosted Slack-alternative",
+  "description": "Mattermost is an open core, self-hosted Slack-alternative",
   "background_color": "#ffffff"
 }
 `
@@ -491,7 +491,7 @@ const newSubpathManifestJSON = `{
   "orientation": "any",
   "display": "standalone",
   "start_url": ".",
-  "description": "Mattermost is an open source, self-hosted Slack-alternative",
+  "description": "Mattermost is an open core, self-hosted Slack-alternative",
   "background_color": "#ffffff"
 }
 `
