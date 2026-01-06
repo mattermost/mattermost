@@ -335,6 +335,18 @@ type Dialog struct {
 	SourceURL        string          `json:"source_url,omitempty"`
 }
 
+// DialogDateTimeConfig groups all date/datetime specific configuration
+type DialogDateTimeConfig struct {
+	// TimeInterval: Minutes between time options in dropdown (default: 60)
+	TimeInterval int `json:"time_interval,omitempty"`
+	// IsRange: Enable date/datetime range selection (start and end)
+	IsRange bool `json:"is_range,omitempty"`
+	// AllowSingleDayRange: Allow start and end to be the same day in range mode
+	AllowSingleDayRange bool `json:"allow_single_day_range,omitempty"`
+	// RangeLayout: Layout for range fields - "horizontal" (side-by-side) or "vertical" (stacked)
+	RangeLayout string `json:"range_layout,omitempty"`
+}
+
 type DialogElement struct {
 	DisplayName   string               `json:"display_name"`
 	Name          string               `json:"name"`
@@ -348,10 +360,14 @@ type DialogElement struct {
 	MaxLength     int                  `json:"max_length"`
 	DataSource    string               `json:"data_source"`
 	DataSourceURL string               `json:"data_source_url,omitempty"`
-	Options       []*PostActionOptions `json:"options"`
-	MultiSelect   bool                 `json:"multiselect"`
-	Refresh       bool                 `json:"refresh,omitempty"`
-	// Date/datetime field specific properties
+	Options    []*PostActionOptions `json:"options"`
+	MultiSelect bool                 `json:"multiselect"`
+	Refresh    bool                 `json:"refresh,omitempty"`
+
+	// Date/datetime field configuration (advanced features)
+	DateTimeConfig *DialogDateTimeConfig `json:"datetime_config,omitempty"`
+
+	// Simple date/datetime configuration (fallback when datetime_config not provided)
 	MinDate      string `json:"min_date,omitempty"`
 	MaxDate      string `json:"max_date,omitempty"`
 	TimeInterval int    `json:"time_interval,omitempty"`

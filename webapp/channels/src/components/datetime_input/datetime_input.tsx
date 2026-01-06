@@ -4,7 +4,7 @@
 import {DateTime} from 'luxon';
 import type {Moment} from 'moment-timezone';
 import moment from 'moment-timezone';
-import React, {useEffect, useState, useCallback, useRef} from 'react';
+import React, {useEffect, useState, useCallback, useRef, useMemo} from 'react';
 import type {DayModifiers, DayPickerProps} from 'react-day-picker';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -52,13 +52,18 @@ export const getTimeInIntervals = (startTime: Moment, interval = CUSTOM_STATUS_T
 };
 
 type Props = {
-    time: Moment;
-    handleChange: (date: Moment) => void;
+    time: Moment | null;
+    handleChange: (date: Moment | null) => void;
     timezone?: string;
     setIsInteracting?: (interacting: boolean) => void;
     relativeDate?: boolean;
     timePickerInterval?: number;
     allowPastDates?: boolean;
+    rangeMode?: boolean;
+    rangeValue?: {from?: Moment | null; to?: Moment | null};
+    isStartField?: boolean;
+    onRangeChange?: (start: Date, end: Date | null) => void;
+    allowSingleDayRange?: boolean;
 }
 
 const DateTimeInputContainer: React.FC<Props> = ({
@@ -69,7 +74,14 @@ const DateTimeInputContainer: React.FC<Props> = ({
     relativeDate,
     timePickerInterval,
     allowPastDates = false,
+    rangeMode = false,
+    rangeValue,
+    isStartField = false,
+    onRangeChange,
+    allowSingleDayRange = false,
 }: Props) => {
+    const currentTime = getCurrentMomentForTimezone(timezone);
+    const displayTime = time; // No automatic default - field stays null until user selects
     const locale = useSelector(getCurrentLocale);
     const [timeOptions, setTimeOptions] = useState<Date[]>([]);
     const [isPopperOpen, setIsPopperOpen] = useState(false);
@@ -119,38 +131,128 @@ const DateTimeInputContainer: React.FC<Props> = ({
     }, [handleKeyDown]);
 
     const setTimeAndOptions = () => {
-        const currentTime = getCurrentMomentForTimezone(timezone);
-        let startTime = moment(time).startOf('day');
+        if (!displayTime) {
+            return;
+        }
+
+        let startTime = moment(displayTime).startOf('day');
 
         // For form fields (allowPastDates=true), always start from beginning of day
         // For scheduling (allowPastDates=false), restrict to current time if today
-        if (!allowPastDates && currentTime.isSame(time, 'date')) {
+        if (!allowPastDates && currentTime.isSame(displayTime, 'date')) {
             startTime = getRoundedTime(currentTime, timePickerInterval);
         }
 
         setTimeOptions(getTimeInIntervals(startTime, timePickerInterval));
     };
 
-    useEffect(setTimeAndOptions, [time]);
+    useEffect(setTimeAndOptions, [displayTime, timePickerInterval, allowPastDates, timezone]);
 
     const handleDayChange = (day: Date, modifiers: DayModifiers) => {
+        // Use existing time if available, otherwise use next available time from now
+        let effectiveTime = displayTime;
+        if (!effectiveTime) {
+            const now = getCurrentMomentForTimezone(timezone);
+            effectiveTime = getRoundedTime(now, timePickerInterval || 60);
+        }
+
         if (modifiers.today) {
             const baseTime = getCurrentMomentForTimezone(timezone);
-            if (!allowPastDates && isBeforeTime(baseTime, time)) {
-                baseTime.hour(time.hours());
-                baseTime.minute(time.minutes());
+            if (!allowPastDates && isBeforeTime(baseTime, effectiveTime)) {
+                baseTime.hour(effectiveTime.hours());
+                baseTime.minute(effectiveTime.minutes());
             }
             const roundedTime = getRoundedTime(baseTime, timePickerInterval);
             handleChange(roundedTime);
         } else {
-            day.setHours(time.hour(), time.minute());
+            day.setHours(effectiveTime.hour(), effectiveTime.minute());
             const dayWithTimezone = timezone ? moment(day).tz(timezone, true) : moment(day);
             handleChange(dayWithTimezone);
         }
         handlePopperOpenState(false);
     };
 
-    const currentTime = getCurrentMomentForTimezone(timezone).toDate();
+    // Handle range selection
+    const handleRangeSelect = useCallback((range: any) => {
+        if (!range || !range.from) {
+            return;
+        }
+
+        const existingFrom = rangeValue?.from?.toDate();
+        const existingTo = rangeValue?.to?.toDate();
+
+        // Only use handleRangeSelect when we DON'T have a complete range
+        if (existingFrom && existingTo) {
+            return;
+        }
+
+        // Validate range.to based on allowSingleDayRange
+        let validTo = range.to;
+        if (range.to && !allowSingleDayRange) {
+            // Check if from and to are the same day
+            const fromYear = range.from.getFullYear();
+            const fromMonth = range.from.getMonth();
+            const fromDay = range.from.getDate();
+
+            const toYear = range.to.getFullYear();
+            const toMonth = range.to.getMonth();
+            const toDay = range.to.getDate();
+
+            if (fromYear === toYear && fromMonth === toMonth && fromDay === toDay) {
+                validTo = null;
+            }
+        }
+
+        if (onRangeChange) {
+            onRangeChange(range.from, validTo || null);
+        }
+
+        if (validTo) {
+            handlePopperOpenState(false);
+        }
+    }, [onRangeChange, handlePopperOpenState, rangeValue, allowSingleDayRange]);
+
+    // Handle individual day clicks in range mode (for resetting range)
+    const handleRangeDayClick = useCallback((day: Date) => {
+        if (!onRangeChange) {
+            return;
+        }
+
+        const existingFrom = rangeValue?.from?.toDate();
+        const existingTo = rangeValue?.to?.toDate();
+
+        // If we have a complete range, clicking any day resets to that day as new start
+        if (existingFrom && existingTo) {
+            onRangeChange(day, null);
+        }
+    }, [rangeValue, onRangeChange]);
+
+    // Compute disabled days for range mode
+    const disabledDays = useMemo(() => {
+        const disabled = [];
+
+        if (rangeMode && !isStartField && rangeValue?.from) {
+            // End field: disable dates before start
+            const startDate = rangeValue.from.toDate();
+            const startYear = startDate.getFullYear();
+            const startMonth = startDate.getMonth();
+            const startDay = startDate.getDate();
+            const startOfDay = new Date(startYear, startMonth, startDay);
+
+            if (allowSingleDayRange) {
+                disabled.push({before: startOfDay});
+            } else {
+                const dayAfterStart = new Date(startYear, startMonth, startDay + 1);
+                disabled.push({before: dayAfterStart});
+            }
+        }
+
+        if (!allowPastDates) {
+            disabled.push({before: currentTime.toDate()});
+        }
+
+        return disabled.length > 0 ? disabled : undefined;
+    }, [rangeMode, isStartField, rangeValue, allowPastDates, currentTime, allowSingleDayRange]);
 
     const formatDate = (date: Moment): string => {
         return relativeDate ? relativeFormatDate(date, formatMessage) : DateTime.fromJSDate(date.toDate()).toLocaleString();
@@ -164,15 +266,36 @@ const DateTimeInputContainer: React.FC<Props> = ({
         <i className='icon-clock-outline'/>
     );
 
-    const datePickerProps: DayPickerProps = {
+    // Helper to convert moment to Date for react-day-picker
+    const momentToLocalDate = (m: Moment | null | undefined): Date | undefined => {
+        if (!m) {
+            return undefined;
+        }
+        const year = m.year();
+        const month = m.month();
+        const date = m.date();
+        return new Date(year, month, date);
+    };
+
+    const datePickerProps: DayPickerProps = rangeMode ? {
+        initialFocus: isPopperOpen,
+        mode: 'range',
+        selected: rangeValue ? {
+            from: momentToLocalDate(rangeValue.from),
+            to: momentToLocalDate(rangeValue.to),
+        } : undefined,
+        defaultMonth: momentToLocalDate(displayTime) || new Date(),
+        onSelect: handleRangeSelect,
+        onDayClick: handleRangeDayClick,
+        disabled: disabledDays,
+        showOutsideDays: true,
+    } : {
         initialFocus: isPopperOpen,
         mode: 'single',
-        selected: time.toDate(),
-        defaultMonth: time.toDate(),
+        selected: momentToLocalDate(displayTime),
+        defaultMonth: momentToLocalDate(displayTime) || new Date(),
         onDayClick: handleDayChange,
-        disabled: allowPastDates ? undefined : [{
-            before: currentTime,
-        }],
+        disabled: disabledDays,
         showOutsideDays: true,
     };
 
@@ -189,9 +312,14 @@ const DateTimeInputContainer: React.FC<Props> = ({
                         defaultMessage: 'Date',
                     })}
                     icon={calendarIcon}
-                    value={formatDate(time)}
+                    value={displayTime ? formatDate(displayTime) : ''}
                 >
-                    <></>
+                    <span className='date-time-input__placeholder'>
+                        {formatMessage({
+                            id: 'datetime.select_date',
+                            defaultMessage: 'Select date',
+                        })}
+                    </span>
                 </DatePicker>
             </div>
             <div
@@ -215,11 +343,15 @@ const DateTimeInputContainer: React.FC<Props> = ({
                                 })}</span>
                                 <span className='date-time-input__icon'>{clockIcon}</span>
                                 <span className='date-time-input__value'>
-                                    <Timestamp
-                                        useRelative={false}
-                                        useDate={false}
-                                        value={time.toString()}
-                                    />
+                                    {displayTime ? (
+                                        <Timestamp
+                                            useRelative={false}
+                                            useDate={false}
+                                            value={displayTime.toString()}
+                                        />
+                                    ) : (
+                                        <span>{'--:--'}</span>
+                                    )}
                                 </span>
                             </>
                         ),

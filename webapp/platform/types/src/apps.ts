@@ -437,6 +437,14 @@ function isAppSelectOption(v: unknown): v is AppSelectOption {
 
 export type AppFieldType = string;
 
+// DateTime field configuration (basic features)
+export type DateTimeConfig = {
+    time_interval?: number;          // Minutes between time options (default: 60)
+    is_range?: boolean;              // Enable date/datetime range selection
+    allow_single_day_range?: boolean; // Allow start and end to be the same day
+    range_layout?: 'horizontal' | 'vertical'; // Layout for range fields
+};
+
 // This should go in mattermost-redux
 export type AppField = {
 
@@ -468,7 +476,10 @@ export type AppField = {
     min_length?: number;
     max_length?: number;
 
-    // Date props
+    // Date/datetime configuration (advanced features)
+    datetime_config?: DateTimeConfig;
+
+    // Simple date/datetime configuration (fallback when datetime_config not provided)
     min_date?: string;
     max_date?: string;
     time_interval?: number;

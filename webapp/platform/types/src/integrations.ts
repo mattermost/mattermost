@@ -194,6 +194,16 @@ export type DialogElement = {
         value: any;
     }>;
     refresh?: boolean;
+
+    // Date/datetime configuration (advanced features)
+    datetime_config?: {
+        time_interval?: number;
+        is_range?: boolean;
+        allow_single_day_range?: boolean;
+        range_layout?: 'horizontal' | 'vertical';
+    };
+
+    // Simple date/datetime configuration (fallback when datetime_config not provided)
     min_date?: string;
     max_date?: string;
     time_interval?: number;
