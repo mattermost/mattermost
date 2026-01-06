@@ -11,6 +11,36 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestUpdateScheduledPost(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown()
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
+	t.Run("should not allow updating a scheduled post not belonging to the user", func(t *testing.T) {
+		scheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "this is a scheduled post",
+			},
+			ScheduledAt: model.GetMillis() + 100000,
+		}
+		createdScheduledPost, _, err := th.Client.CreateScheduledPost(context.Background(), scheduledPost)
+		require.NoError(t, err)
+		require.NotNil(t, createdScheduledPost)
+
+		createdScheduledPost.ScheduledAt = model.GetMillis() + 9999999
+		createdScheduledPost.Message = "Updated Message!!!"
+
+		_, resp, err := th.Client2.UpdateScheduledPost(context.Background(), createdScheduledPost)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+}
+
 func TestCreateScheduledPost(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

@@ -567,54 +567,6 @@ func TestUpdateScheduledPost(t *testing.T) {
 		require.Equal(t, "Updated Message!!!", updatedScheduledPost.Message)
 	})
 
-	t.Run("should ot be allowed to updated a scheduled post not belonging to the user", func(t *testing.T) {
-		// first we'll create a scheduled post
-		userId := model.NewId()
-
-		channel, err := th.GetSqlStore().Channel().Save(th.Context, &model.Channel{
-			Name:        model.NewId(),
-			DisplayName: "Channel",
-			Type:        model.ChannelTypeOpen,
-		}, 1000)
-		require.NoError(t, err)
-
-		_, err = th.GetSqlStore().Channel().SaveMember(th.Context, &model.ChannelMember{
-			ChannelId:   channel.Id,
-			UserId:      userId,
-			NotifyProps: model.GetDefaultChannelNotifyProps(),
-			SchemeGuest: false,
-			SchemeUser:  true,
-		})
-		require.NoError(t, err)
-
-		defer func() {
-			_ = th.GetSqlStore().Channel().Delete(channel.Id, model.GetMillis())
-			_ = th.GetSqlStore().Channel().RemoveMember(th.Context, channel.Id, userId)
-		}()
-
-		scheduledPost := &model.ScheduledPost{
-			Draft: model.Draft{
-				CreateAt:  model.GetMillis(),
-				UserId:    userId,
-				ChannelId: channel.Id,
-				Message:   "this is a scheduled post",
-			},
-			ScheduledAt: model.GetMillis() + 100000, // 100 seconds in the future
-		}
-		createdScheduledPost, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost, user1ConnID)
-		require.Nil(t, appErr)
-		require.NotNil(t, createdScheduledPost)
-
-		// now we'll try updating it
-		newScheduledAtTime := model.GetMillis() + 9999999
-		createdScheduledPost.ScheduledAt = newScheduledAtTime
-		createdScheduledPost.Message = "Updated Message!!!"
-		updatedScheduledPost, appErr := th.App.UpdateScheduledPost(th.Context, th.BasicUser2.Id, createdScheduledPost, user1ConnID)
-		require.NotNil(t, appErr)
-		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
-		require.Nil(t, updatedScheduledPost)
-	})
-
 	t.Run("should only allow updating limited fields", func(t *testing.T) {
 		// first we'll create a scheduled post
 		userId := model.NewId()
