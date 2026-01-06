@@ -47,7 +47,12 @@ const ChannelHeaderTitle = ({
     let archivedIcon;
     if (channelIsArchived) {
         const ArchiveIcon = getArchiveIconComponent(channel.type);
-        archivedIcon = <ArchiveIcon data-testid='channel-header-archive-icon'/>;
+        archivedIcon = (
+            <ArchiveIcon
+                className='icon icon__archive channel-header-archived-icon svg-text-color'
+                data-testid='channel-header-archive-icon'
+            />
+        );
     }
 
     let sharedIcon;
