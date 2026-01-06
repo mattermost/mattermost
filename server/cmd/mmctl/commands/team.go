@@ -274,10 +274,7 @@ func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return errors.New("Unable to find team '" + oldTeamName + "', to see the all teams try 'team list' command")
 	}
 
-	newName, err := cmd.Flags().GetString("name")
-	if err != nil {
-		return err
-	}
+	newName, _ := cmd.Flags().GetString("name")
 	newDisplayName, err := cmd.Flags().GetString("display-name")
 	if err != nil {
 		return err
@@ -289,6 +286,10 @@ func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 	// Only update fields that were provided
 	if newName != "" {
+		_, _, err = c.GetTeamByName(context.TODO(), newName, "")
+		if err == nil {
+			return errors.New("Cannot rename team '" + oldTeamName + "' to '" + newName + "', team with the name '" + newName + "' already exists")
+		}
 		team.Name = newName
 	}
 	if newDisplayName != "" {

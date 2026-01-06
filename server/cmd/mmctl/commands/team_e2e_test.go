@@ -35,35 +35,53 @@ func (s *MmctlE2ETestSuite) TestRenameTeamCmdF() {
 	s.RunForSystemAdminAndLocal("Renaming an existing team", func(c client.Client) {
 		printer.Clean()
 
+		teamName := "teamname" + model.NewRandomString(10)
+		teamDisplayname := "Mock Display Name"
 		cmd := &cobra.Command{}
-		args := []string{s.th.BasicTeam.Name}
-		cmd.Flags().String("name", "newName", "Team Name")
+		cmd.Flags().String("name", teamName, "")
+		cmd.Flags().String("display-name", teamDisplayname, "")
+		err := createTeamCmdF(s.th.LocalClient, cmd, []string{})
+		s.Require().Nil(err)
+		printer.Clean()
 
-		err := renameTeamCmdF(c, cmd, args)
+		cmd = &cobra.Command{}
+		args := []string{teamName}
+		cmd.Flags().String("name", "newName", "Team Name")
+		cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
+
+		err = renameTeamCmdF(c, cmd, args)
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
-		s.Equal("'"+s.th.BasicTeam.Name+"' team renamed", printer.GetLines()[0])
+		s.Equal("'"+teamName+"' team renamed", printer.GetLines()[0])
 		s.Len(printer.GetErrorLines(), 0)
 
-		team, appErr := s.th.App.GetTeam(s.th.BasicTeam.Id)
+		_, appErr := s.th.App.GetTeamByName("newName")
 		s.Require().Nil(appErr)
-		s.Equal("newName", team.Name)
 	})
 
 	s.RunForSystemAdminAndLocal("Changing display name of an existing team", func(c client.Client) {
 		printer.Clean()
 
+		teamName := "teamname" + model.NewRandomString(10)
+		teamDisplayname := "Mock Display Name"
 		cmd := &cobra.Command{}
-		args := []string{s.th.BasicTeam.Name}
+		cmd.Flags().String("name", teamName, "")
+		cmd.Flags().String("display-name", teamDisplayname, "")
+		err := createTeamCmdF(s.th.LocalClient, cmd, []string{})
+		s.Require().Nil(err)
+		printer.Clean()
+
+		cmd = &cobra.Command{}
+		args := []string{teamName}
 		cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
 
-		err := renameTeamCmdF(c, cmd, args)
+		err = renameTeamCmdF(c, cmd, args)
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
-		s.Equal("'"+s.th.BasicTeam.Name+"' team renamed", printer.GetLines()[0])
+		s.Equal("'"+teamName+"' team renamed", printer.GetLines()[0])
 		s.Len(printer.GetErrorLines(), 0)
 
-		team, appErr := s.th.App.GetTeam(s.th.BasicTeam.Id)
+		team, appErr := s.th.App.GetTeamByName(teamName)
 		s.Require().Nil(appErr)
 		s.Equal("newDisplayName", team.DisplayName)
 	})
@@ -71,14 +89,23 @@ func (s *MmctlE2ETestSuite) TestRenameTeamCmdF() {
 	s.Run("Permission error renaming an existing team", func() {
 		printer.Clean()
 
+		teamName := "teamname" + model.NewRandomString(10)
+		teamDisplayname := "Mock Display Name"
 		cmd := &cobra.Command{}
-		args := []string{s.th.BasicTeam.Name}
+		cmd.Flags().String("name", teamName, "")
+		cmd.Flags().String("display-name", teamDisplayname, "")
+		err := createTeamCmdF(s.th.LocalClient, cmd, []string{})
+		s.Require().Nil(err)
+		printer.Clean()
+
+		cmd = &cobra.Command{}
+		args := []string{teamName}
 		cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
 
-		err := renameTeamCmdF(s.th.Client, cmd, args)
+		err = renameTeamCmdF(s.th.Client, cmd, args)
 		s.Require().Error(err)
 		s.Len(printer.GetLines(), 0)
-		s.ErrorContains(err, "Cannot rename team '"+s.th.BasicTeam.Name+"', error : You do not have the appropriate permissions.")
+		s.ErrorContains(err, "Cannot rename team '"+teamName+"', error : You do not have the appropriate permissions.")
 	})
 }
 

@@ -263,6 +263,32 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	oldTeam, err := c.App.GetTeam(c.Params.TeamId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.AddEventPriorState(oldTeam)
+
+	if team.Name != "" && team.Name != oldTeam.Name {
+		renamedTeam, appErr := c.App.RenameTeam(oldTeam, team.Name, team.DisplayName)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+
+		auditRec.Success()
+		auditRec.AddEventResultState(renamedTeam)
+		auditRec.AddEventObjectType("team")
+
+		c.App.SanitizeTeam(*c.AppContext.Session(), renamedTeam)
+		if err := json.NewEncoder(w).Encode(renamedTeam); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
+		return
+	}
+
 	updatedTeam, err := c.App.UpdateTeam(&team)
 	if err != nil {
 		c.Err = err
