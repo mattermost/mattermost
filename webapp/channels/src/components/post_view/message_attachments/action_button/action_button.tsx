@@ -60,7 +60,10 @@ const ActionButton = ({
     const name = action.name || action.id || '';
 
     return (
-        <WithTooltip title={action.tooltip}>
+        <WithTooltip
+            title={action.tooltip}
+            disabled={!action.tooltip}
+        >
             <ActionBtn
                 data-action-id={action.id}
                 data-action-cookie={action.cookie}
