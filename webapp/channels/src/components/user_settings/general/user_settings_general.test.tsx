@@ -878,4 +878,50 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         expect(screen.getByRole('textbox', {name: regularAttribute.name})).toBeInTheDocument();
         expect(screen.queryByText('This field can only be changed by an administrator.')).not.toBeInTheDocument();
     });
+
+    test('should not show custom attribute input field when field is protected', async () => {
+        const protectedAttribute: UserPropertyField = {
+            ...customProfileAttribute,
+            attrs: {
+                ...customProfileAttribute.attrs,
+                protected: true,
+            },
+        };
+
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [protectedAttribute],
+            user: {...user},
+            activeSection: 'customAttribute_field1',
+        };
+
+        renderWithContext(<UserSettingsGeneral {...props}/>);
+        expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
+        expect(screen.queryByRole('textbox', {name: protectedAttribute.name})).not.toBeInTheDocument();
+        expect(await screen.findByText('This field is managed by a plugin and cannot be edited.')).toBeInTheDocument();
+    });
+
+    test('should show custom attribute input field when field is not protected', async () => {
+        const normalAttribute: UserPropertyField = {
+            ...customProfileAttribute,
+            attrs: {
+                ...customProfileAttribute.attrs,
+                protected: false,
+            },
+        };
+
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [normalAttribute],
+            user: {...user},
+            activeSection: 'customAttribute_field1',
+        };
+
+        renderWithContext(<UserSettingsGeneral {...props}/>);
+        expect(await screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
+        expect(screen.getByRole('textbox', {name: normalAttribute.name})).toBeInTheDocument();
+        expect(screen.queryByText('This field is managed by a plugin and cannot be edited.')).not.toBeInTheDocument();
+    });
 });

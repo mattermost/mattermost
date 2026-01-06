@@ -368,7 +368,7 @@ const EditCell = (props: EditCellProps) => {
                 type='text'
                 aria-label={props.label}
                 data-testid={props.testid}
-                disabled={props.disabled ?? props.deleted}
+                disabled={props.disabled || props.deleted}
                 $deleted={props.deleted}
                 $strong={props.strong}
                 maxLength={props.maxLength}
