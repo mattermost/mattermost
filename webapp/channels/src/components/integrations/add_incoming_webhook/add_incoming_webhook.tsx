@@ -45,6 +45,11 @@ type Props = {
     */
     enablePostIconOverride: boolean;
 
+    /**
+    * Whether the user can bypass the channel lock requirement.
+    */
+    canBypassChannelLock?: boolean;
+
     actions: {
 
         /**
@@ -58,6 +63,7 @@ const AddIncomingWebhook = ({
     team,
     enablePostUsernameOverride,
     enablePostIconOverride,
+    canBypassChannelLock,
     actions,
 }: Props) => {
     const [serverError, setServerError] = useState('');
@@ -83,6 +89,7 @@ const AddIncomingWebhook = ({
             loading={messages.loading}
             enablePostUsernameOverride={enablePostUsernameOverride}
             enablePostIconOverride={enablePostIconOverride}
+            canBypassChannelLock={canBypassChannelLock}
             action={addIncomingHook}
             serverError={serverError}
         />

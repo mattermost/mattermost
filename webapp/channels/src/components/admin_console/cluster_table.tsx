@@ -202,7 +202,7 @@ export default class ClusterTable extends PureComponent<Props> {
                             <th>
                                 <FormattedMessage
                                     id='admin.cluster.status_table.config_hash'
-                                    defaultMessage='Config File MD5'
+                                    defaultMessage='Config File Hash'
                                 />
                             </th>
                             <th>

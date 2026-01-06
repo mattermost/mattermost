@@ -893,7 +893,7 @@
 
         &.post--comment {
             .post__body {
-                padding: 0 0 0 7px;
+                padding-bottom: 0; // default is 0.2em, defined in _components/_post.scss
                 margin-top: 5px;
             }
         }
@@ -1597,7 +1597,7 @@
     .app__body {
         &.announcement-bar--fixed {
             .modal {
-                padding-top: variables.$announcement-bar-height;
+                padding-top: calc(var(--announcement-bar-count, 1) * #{variables.$announcement-bar-height});
             }
         }
 

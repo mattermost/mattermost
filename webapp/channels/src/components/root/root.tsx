@@ -2,19 +2,15 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import deepEqual from 'fast-deep-equal';
 import React, {lazy} from 'react';
 import {Route, Switch, Redirect} from 'react-router-dom';
 import type {RouteComponentProps} from 'react-router-dom';
 
-import {ServiceEnvironment} from '@mattermost/types/config';
-
 import {setSystemEmojis} from 'mattermost-redux/actions/emojis';
 import {setUrl} from 'mattermost-redux/actions/general';
 import {Client4} from 'mattermost-redux/client';
-import {Preferences} from 'mattermost-redux/constants';
 
-import {measurePageLoadTelemetry, temporarilySetPageLoadContext, trackEvent} from 'actions/telemetry_actions.jsx';
+import {temporarilySetPageLoadContext} from 'actions/telemetry_actions.jsx';
 import BrowserStore from 'stores/browser_store';
 
 import {makeAsyncComponent, makeAsyncPluggableComponent} from 'components/async_load';
@@ -27,18 +23,19 @@ import LoggedInRoute from 'components/logged_in_route';
 import {LAUNCHING_WORKSPACE_FULLSCREEN_Z_INDEX} from 'components/preparing_workspace/launching_workspace';
 import {Animations} from 'components/preparing_workspace/steps';
 import Readout from 'components/readout/readout';
+import {WithUserTheme} from 'components/theme_provider';
 
 import webSocketClient from 'client/web_websocket_client';
 import {initializePlugins} from 'plugins';
 import 'utils/a11y_controller_instance';
+import {expirationScheduler} from 'utils/burn_on_read_expiration_scheduler';
 import {PageLoadContext, SCHEDULED_POST_URL_SUFFIX} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {EmojiIndicesByAlias} from 'utils/emoji';
 import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
-import {rudderAnalytics, RudderTelemetryHandler} from 'utils/rudder';
 import {getSiteURL} from 'utils/url';
 import {isAndroidWeb, isChromebook, isDesktopApp, isIosWeb} from 'utils/user_agent';
-import {applyTheme, isTextDroppableEvent} from 'utils/utils';
+import {isTextDroppableEvent} from 'utils/utils';
 
 import LuxonController from './luxon_controller';
 import PerformanceReporterController from './performance_reporter_controller';
@@ -69,7 +66,6 @@ const CreateTeam = makeAsyncComponent('CreateTeam', lazy(() => import('component
 const Mfa = makeAsyncComponent('Mfa', lazy(() => import('components/mfa/mfa_controller')));
 const PreparingWorkspace = makeAsyncComponent('PreparingWorkspace', lazy(() => import('components/preparing_workspace')));
 const LaunchingWorkspace = makeAsyncComponent('LaunchingWorkspace', lazy(() => import('components/preparing_workspace/launching_workspace')));
-const CompassThemeProvider = makeAsyncComponent('CompassThemeProvider', lazy(() => import('components/compass_theme_provider/compass_theme_provider')));
 const TeamController = makeAsyncComponent('TeamController', lazy(() => import('components/team_controller')));
 const AnnouncementBarController = makeAsyncComponent('AnnouncementBarController', lazy(() => import('components/announcement_bar')));
 const SystemNotice = makeAsyncComponent('SystemNotice', lazy(() => import('components/system_notice')));
@@ -79,10 +75,9 @@ const SidebarRight = makeAsyncComponent('SidebarRight', lazy(() => import('compo
 const ModalController = makeAsyncComponent('ModalController', lazy(() => import('components/modal_controller')));
 const AppBar = makeAsyncComponent('AppBar', lazy(() => import('components/app_bar/app_bar')));
 const ComponentLibrary = makeAsyncComponent('ComponentLibrary', lazy(() => import('components/component_library')));
+const PopoutController = makeAsyncComponent('PopoutController', lazy(() => import('components/popout_controller')));
 
 const Pluggable = makeAsyncPluggableComponent();
-
-const noop = () => {};
 
 export type Props = PropsFromRedux & RouteComponentProps
 
@@ -108,73 +103,6 @@ export default class Root extends React.PureComponent<Props, State> {
         };
     }
 
-    setRudderConfig = () => {
-        const telemetryId = this.props.telemetryId;
-
-        const rudderUrl = 'https://pdat.matterlytics.com';
-        let rudderKey = '';
-        switch (this.props.serviceEnvironment) {
-        case ServiceEnvironment.PRODUCTION:
-            rudderKey = '1aoejPqhgONMI720CsBSRWzzRQ9';
-            break;
-        case ServiceEnvironment.TEST:
-            rudderKey = '1aoeoCDeh7OCHcbW2kseWlwUFyq';
-            break;
-        case ServiceEnvironment.DEV:
-            break;
-        }
-
-        if (rudderKey !== '' && this.props.telemetryEnabled) {
-            const rudderCfg: {setCookieDomain?: string} = {};
-            if (this.props.siteURL !== '') {
-                try {
-                    rudderCfg.setCookieDomain = new URL(this.props.siteURL || '').hostname;
-                } catch (_) {
-                    // eslint-disable-next-line no-console
-                    console.error('Failed to set cookie domain for RudderStack');
-                }
-            }
-
-            rudderAnalytics.load(rudderKey, rudderUrl || '', rudderCfg);
-
-            rudderAnalytics.identify(telemetryId, {}, {
-                context: {
-                    ip: '0.0.0.0',
-                },
-                page: {
-                    path: '',
-                    referrer: '',
-                    search: '',
-                    title: '',
-                    url: '',
-                },
-                anonymousId: '00000000000000000000000000',
-            });
-
-            rudderAnalytics.page('ApplicationLoaded', {
-                path: '',
-                referrer: '',
-                search: ('' as any),
-                title: '',
-                url: '',
-            } as any,
-            {
-                context: {
-                    ip: '0.0.0.0',
-                },
-                anonymousId: '00000000000000000000000000',
-            });
-
-            const utmParams = this.captureUTMParams();
-            rudderAnalytics.ready(() => {
-                Client4.setTelemetryHandler(new RudderTelemetryHandler());
-                if (utmParams) {
-                    trackEvent('utm_params', 'utm_params', utmParams);
-                }
-            });
-        }
-    };
-
     onConfigLoaded = () => {
         Promise.all([
             this.props.actions.initializeProducts(),
@@ -186,8 +114,6 @@ export default class Root extends React.PureComponent<Props, State> {
         this.props.actions.migrateRecentEmojis();
         this.props.actions.loadRecentlyUsedCustomEmojis();
         this.showLandingPageIfNecessary();
-
-        this.applyTheme();
     };
 
     private showLandingPageIfNecessary = () => {
@@ -251,21 +177,7 @@ export default class Root extends React.PureComponent<Props, State> {
         BrowserStore.setLandingPageSeen(true);
     };
 
-    applyTheme() {
-        // don't apply theme when in system console; system console hardcoded to THEMES.denim
-        // AdminConsole will apply denim on mount re-apply user theme on unmount
-        if (this.props.location.pathname.startsWith('/admin_console')) {
-            return;
-        }
-
-        applyTheme(this.props.theme);
-    }
-
     componentDidUpdate(prevProps: Props, prevState: State) {
-        if (!deepEqual(prevProps.theme, this.props.theme)) {
-            this.applyTheme();
-        }
-
         if (this.props.location.pathname === '/') {
             if (this.props.noAccounts) {
                 prevProps.history.push('/signup_user_complete');
@@ -280,10 +192,6 @@ export default class Root extends React.PureComponent<Props, State> {
             this.props.rhsIsExpanded !== prevProps.rhsIsExpanded
         ) {
             this.setRootMeta();
-        }
-
-        if (!prevProps.isConfigLoaded && this.props.isConfigLoaded) {
-            this.setRudderConfig();
         }
 
         if (prevState.shouldMountAppRoutes === false && this.state.shouldMountAppRoutes === true) {
@@ -355,7 +263,8 @@ export default class Root extends React.PureComponent<Props, State> {
 
         this.initiateMeRequests();
 
-        measurePageLoadTelemetry();
+        // Initialize burn-on-read expiration scheduler
+        expirationScheduler.initialize(this.props.dispatch);
 
         // Force logout of all tabs if one tab is logged out
         window.addEventListener('storage', this.handleLogoutLoginSignal);
@@ -367,6 +276,9 @@ export default class Root extends React.PureComponent<Props, State> {
     }
 
     componentWillUnmount() {
+        // Cleanup burn-on-read expiration scheduler
+        expirationScheduler.cleanup();
+
         window.removeEventListener('storage', this.handleLogoutLoginSignal);
         document.removeEventListener('drop', this.handleDropEvent);
         document.removeEventListener('dragover', this.handleDragOverEvent);
@@ -454,7 +366,6 @@ export default class Root extends React.PureComponent<Props, State> {
                     >
                         <Switch>
                             <LoggedInRoute
-                                theme={Preferences.THEMES.denim}
                                 path={'/admin_console'}
                                 component={AdminConsole}
                             />
@@ -489,16 +400,20 @@ export default class Root extends React.PureComponent<Props, State> {
                         from={'/_redirect/pl/:postid'}
                         to={`/${this.props.permalinkRedirectTeamName}/pl/:postid`}
                     />
-                    <CompassThemeProvider theme={this.props.theme}>
+                    <Route
+                        path={'/_popout'}
+                        component={PopoutController}
+                    />
+                    <WithUserTheme>
                         {(this.props.showLaunchingWorkspace && !this.props.location.pathname.includes('/preparing-workspace') &&
                             <LaunchingWorkspace
                                 fullscreen={true}
                                 zIndex={LAUNCHING_WORKSPACE_FULLSCREEN_Z_INDEX}
                                 show={true}
-                                onPageView={noop}
                                 transitionDirection={Animations.Reasons.EnterFromBefore}
                             />
                         )}
+
                         <WindowSizeObserver/>
                         <ModalController/>
                         <AnnouncementBarController/>
@@ -568,7 +483,6 @@ export default class Root extends React.PureComponent<Props, State> {
                                     />
                                 ))}
                                 <LoggedInRoute
-                                    theme={this.props.theme}
                                     path={`/:team(${TEAM_NAME_PATH_PATTERN})`}
                                     component={TeamController}
                                 />
@@ -579,7 +493,7 @@ export default class Root extends React.PureComponent<Props, State> {
                         <Pluggable pluggableName='Global'/>
                         <AppBar/>
                         <Readout/>
-                    </CompassThemeProvider>
+                    </WithUserTheme>
                 </Switch>
             </RootProvider>
         );

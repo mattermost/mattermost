@@ -1580,14 +1580,6 @@
     "translation": "vaša licenca ne podpira skupin ldap"
   },
   {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Poskušali ste uporabiti poskusno funkcijo ClientSideCertEnable brez veljavne licence podjetja"
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Poskušali ste se prijaviti z eksperimentalno funkcijo ClientSideCert, ne da bi zagotovili veljaven certifikat"
-  },
-  {
     "id": "api.user.login.blank_pwd.app_error",
     "translation": "Polje za vnos gesla ne sme biti prazno"
   },
@@ -2918,10 +2910,6 @@
     "translation": "invalid_request: Slab grant_type"
   },
   {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Manjkajoči client_secret"
-  },
-  {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
     "translation": "invalid_request: Slab client_id"
   },
@@ -3473,10 +3461,6 @@
   {
     "id": "api.context.404.app_error",
     "translation": "Strani ni mogoče najti."
-  },
-  {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Nov format konfiguracije klienta še ni podprt. Nastavi format=old v poizvedbi."
   },
   {
     "id": "api.command_shrug.name",

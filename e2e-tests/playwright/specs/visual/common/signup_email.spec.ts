@@ -8,7 +8,7 @@ import {test} from '@mattermost/playwright-lib';
  */
 test(
     'signup page visual check',
-    {tag: ['@visual', '@signup_email_page']},
+    {tag: ['@visual', '@signup_email_page', '@snapshots']},
     async ({pw, page, browserName, viewport}, testInfo) => {
         // # Set up the page not to redirect to the landing page
         await pw.hasSeenLandingPage();
@@ -29,7 +29,7 @@ test(
 
         // # Get license information to determine snapshot suffix
         const license = await adminClient.getClientLicenseOld();
-        const editionSuffix = license.IsLicensed === 'true' ? '' : 'free edition';
+        const editionSuffix = license.IsLicensed === 'true' ? '' : 'team edition';
         const testArgs = {page, browserName, viewport};
 
         // * Verify visual appearance of signup page

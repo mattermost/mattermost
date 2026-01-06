@@ -39,8 +39,10 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	systemStore.On("GetByName", "SystemConsoleRolesCreationMigrationComplete").Return(&model.System{Name: "SystemConsoleRolesCreationMigrationComplete", Value: "true"}, nil)
 	systemStore.On("GetByName", "PlaybookRolesCreationMigrationComplete").Return(&model.System{Name: "PlaybookRolesCreationMigrationComplete", Value: "true"}, nil)
 	systemStore.On("GetByName", "PostPriorityConfigDefaultTrueMigrationComplete").Return(&model.System{Name: "PostPriorityConfigDefaultTrueMigrationComplete", Value: "true"}, nil)
+	systemStore.On("GetByName", "content_flagging_setup_done").Return(&model.System{Name: "content_flagging_setup_done", Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyEmojiPermissionsSplit).Return(&model.System{Name: model.MigrationKeyEmojiPermissionsSplit, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyWebhookPermissionsSplit).Return(&model.System{Name: model.MigrationKeyWebhookPermissionsSplit, Value: "true"}, nil)
+	systemStore.On("GetByName", model.MigrationKeyIntegrationsOwnPermissions).Return(&model.System{Name: model.MigrationKeyIntegrationsOwnPermissions, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyListJoinPublicPrivateTeams).Return(&model.System{Name: model.MigrationKeyListJoinPublicPrivateTeams, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyRemovePermanentDeleteUser).Return(&model.System{Name: model.MigrationKeyRemovePermanentDeleteUser, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyAddBotPermissions).Return(&model.System{Name: model.MigrationKeyAddBotPermissions, Value: "true"}, nil)
@@ -91,6 +93,11 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 
 	systemStore.On("InsertIfExists", mock.AnythingOfType("*model.System")).Return(&model.System{}, nil).Once()
 	systemStore.On("Save", mock.AnythingOfType("*model.System")).Return(nil)
+	systemStore.On("SaveOrUpdate", mock.AnythingOfType("*model.System")).Return(nil)
+
+	diagnosticID := model.NewId()
+	systemStore.On("Get").Return(model.StringMap{model.SystemServerId: diagnosticID}, nil)
+	systemStore.On("GetByNameWithContext", mock.Anything, model.SystemServerId).Return(&model.System{Name: model.SystemServerId, Value: diagnosticID}, nil)
 
 	userStore := mocks.UserStore{}
 	userStore.On("Count", mock.AnythingOfType("model.UserCountOptions")).Return(int64(1), nil)
@@ -124,6 +131,12 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	propertyGroupStore := mocks.PropertyGroupStore{}
 	propertyFieldStore := mocks.PropertyFieldStore{}
 	propertyValueStore := mocks.PropertyValueStore{}
+
+	propertyGroupStore.On("Register", model.ContentFlaggingGroupName).Return(&model.PropertyGroup{ID: model.NewId(), Name: model.ContentFlaggingGroupName}, nil)
+
+	propertyFieldStore.On("SearchPropertyFields", mock.Anything).Return([]*model.PropertyField{}, nil)
+	propertyFieldStore.On("CreatePropertyField", mock.Anything).Return(&model.PropertyField{}, nil)
+	propertyFieldStore.On("Create", mock.AnythingOfType("*model.PropertyField")).Return(&model.PropertyField{}, nil)
 
 	mockStore.On("System").Return(&systemStore)
 	mockStore.On("User").Return(&userStore)

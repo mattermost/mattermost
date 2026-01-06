@@ -50,6 +50,7 @@ export const SearchUserSuggestion = React.forwardRef<HTMLLIElement, SuggestionPr
                 size='sm'
                 username={username}
                 url={Utils.imageURLForUser(item.id, item.last_picture_update)}
+                alt=''
             />
             <div className='suggestion-list__ellipsis'>
                 <span className='suggestion-list__main'>

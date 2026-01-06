@@ -14,7 +14,7 @@ const config = {
         '/node_modules/',
         'mattermost-redux/src/selectors/create_selector',
     ],
-    coverageReporters: ['lcov', 'text-summary'],
+    coverageReporters: ['json', 'lcov', 'text-summary'],
     fakeTimers: {
         doNotFake: ['performance'],
     },
@@ -37,7 +37,7 @@ const config = {
         ['jest-junit', {outputDirectory: 'build', outputName: 'test-results.xml'}],
     ],
     transformIgnorePatterns: [
-        'node_modules/(?!react-native|react-router|pdfjs-dist|p-queue|p-timeout|@mattermost/compass-components|@mattermost/compass-icons|cidr-regex|ip-regex|serialize-error)',
+        'node_modules/(?!react-native|react-router|pdfjs-dist|p-queue|p-timeout|@mattermost/compass-icons|cidr-regex|ip-regex|serialize-error)',
     ],
     transform: {
         '^.+\\.(js|jsx|ts|tsx|mjs)$': 'babel-jest',

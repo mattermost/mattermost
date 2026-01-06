@@ -3,13 +3,12 @@
 
 import {screen, fireEvent} from '@testing-library/react';
 import React from 'react';
-import {act} from 'react-dom/test-utils';
 
 import type {UserPropertyField, UserPropertyFieldGroupID, UserPropertyFieldType} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {act, renderWithContext} from 'tests/react_testing_utils';
 
 import CustomProfileAttributes from './custom_profile_attributes';
 

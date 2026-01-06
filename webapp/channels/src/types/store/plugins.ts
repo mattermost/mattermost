@@ -66,6 +66,7 @@ export type PluginsState = {
         Global: GlobalComponent[];
         ChannelToast: ChannelToastComponent[];
         SidebarChannelLinkLabel: SidebarChannelLinkLabelComponent[];
+        SidebarBrowseOrAddChannelMenu: SidebarBrowseOrAddChannelMenuAction[];
         FilesWillUploadHook: FilesWillUploadHook[];
         DesktopNotificationHooks: DesktopNotificationHook[];
         MessageWillFormat: MessageWillFormatHook[];
@@ -242,7 +243,7 @@ export type ProductComponent = PluginComponent & {
     /**
      * A string or React element to display in the product switcher
      */
-    switcherText: React.ReactNode | React.ElementType;
+    switcherText: React.ReactNode;
 
     /**
      * The route to be displayed at starting from the siteURL
@@ -397,6 +398,12 @@ export type SidebarChannelLinkLabelComponent = PluginComponent & {
     component: React.ComponentType<BasePluggableProps & {
         channel: Channel;
     }>;
+};
+
+export type SidebarBrowseOrAddChannelMenuAction = PluginComponent & {
+    text: PluggableText;
+    action: (teamId: string) => void;
+    icon: React.ReactNode;
 };
 
 export type PostMessageAttachmentComponent = PluginComponent & {

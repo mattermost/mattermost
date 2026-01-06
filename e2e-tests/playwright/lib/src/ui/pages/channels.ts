@@ -4,8 +4,7 @@
 import {expect, Page} from '@playwright/test';
 import {waitUntil} from 'async-wait-until';
 
-import {ChannelsPost, components} from '@/ui/components';
-import SettingsModal from '@/ui/components/channels/settings/settings_modal';
+import {ChannelsPost, ChannelSettingsModal, SettingsModal, components, InvitePeopleModal} from '@/ui/components';
 import {duration} from '@/util';
 export default class ChannelsPage {
     readonly channels = 'Channels';
@@ -16,24 +15,30 @@ export default class ChannelsPage {
     readonly userAccountMenuButton;
     readonly searchBox;
     readonly centerView;
-    readonly scheduledDraftModal;
     readonly sidebarLeft;
     readonly sidebarRight;
     readonly appBar;
     readonly userProfilePopover;
     readonly messagePriority;
 
-    readonly findChannelsModal;
+    readonly channelSettingsModal;
     readonly deletePostModal;
-    readonly settingsModal;
+    readonly findChannelsModal;
+    public invitePeopleModal: InvitePeopleModal | undefined;
     readonly profileModal;
+    readonly settingsModal;
+    readonly teamSettingsModal;
+    readonly scheduledDraftModal;
+    readonly scheduleMessageModal;
+
     readonly postContainer;
     readonly postDotMenu;
     readonly postReminderMenu;
     readonly userAccountMenu;
+    readonly teamMenu;
+
     readonly emojiGifPickerPopup;
     readonly scheduleMessageMenu;
-    readonly scheduleMessageModal;
 
     constructor(page: Page) {
         this.page = page;
@@ -49,16 +54,19 @@ export default class ChannelsPage {
         this.userAccountMenuButton = page.getByRole('button', {name: "User's account menu"});
 
         // Modals
-        this.findChannelsModal = new components.FindChannelsModal(page.getByRole('dialog', {name: 'Find Channels'}));
+        this.channelSettingsModal = new ChannelSettingsModal(page.getByRole('dialog', {name: 'Channel Settings'}));
         this.deletePostModal = new components.DeletePostModal(page.locator('#deletePostModal'));
-        this.settingsModal = new components.SettingsModal(page.getByRole('dialog', {name: 'Settings'}));
+        this.findChannelsModal = new components.FindChannelsModal(page.getByRole('dialog', {name: 'Find Channels'}));
         this.profileModal = new components.ProfileModal(page.getByRole('dialog', {name: 'Profile'}));
+        this.settingsModal = new components.SettingsModal(page.getByRole('dialog', {name: 'Settings'}));
+        this.teamSettingsModal = new components.TeamSettingsModal(page.getByRole('dialog', {name: 'Team Settings'}));
 
         // Menus
         this.postDotMenu = new components.PostDotMenu(page.getByRole('menu', {name: 'Post extra options'}));
         this.postReminderMenu = new components.PostReminderMenu(page.getByRole('menu', {name: 'Set a reminder for:'}));
         this.userAccountMenu = new components.UserAccountMenu(page.locator('#userAccountMenu'));
         this.scheduleMessageMenu = new components.ScheduleMessageMenu(page.locator('#dropdown_send_post_options'));
+        this.teamMenu = new components.TeamMenu(page.locator('#sidebarTeamMenu'));
 
         // Popovers
         this.emojiGifPickerPopup = new components.EmojiGifPicker(page.locator('#emojiGifPicker'));
@@ -80,6 +88,13 @@ export default class ChannelsPage {
 
     async getLastPost() {
         return this.centerView.getLastPost();
+    }
+
+    async getInvitePeopleModal(teamDisplayName: string) {
+        this.invitePeopleModal = new components.InvitePeopleModal(
+            this.page.getByRole('dialog', {name: `Invite people to ${teamDisplayName}`}),
+        );
+        return this.invitePeopleModal;
     }
 
     async goto(teamName = '', channelName = '') {
@@ -129,11 +144,17 @@ export default class ChannelsPage {
         return {rootPost, sidebarRight, lastPost};
     }
 
-    async openChannelSettings(): Promise<SettingsModal> {
+    async openChannelSettings(): Promise<ChannelSettingsModal> {
         await this.centerView.header.openChannelMenu();
         await this.page.locator('#channelSettings[role="menuitem"]').click();
-        await this.settingsModal.toBeVisible();
+        await this.channelSettingsModal.toBeVisible();
 
+        return this.channelSettingsModal;
+    }
+
+    async openSettings(): Promise<SettingsModal> {
+        await this.globalHeader.openSettings();
+        await this.settingsModal.toBeVisible();
         return this.settingsModal;
     }
 

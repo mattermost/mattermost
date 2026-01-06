@@ -127,7 +127,6 @@ func TestCORSRequestHandling(t *testing.T) {
 				*cfg.ServiceSettings.CorsExposedHeaders = testcase.CorsExposedHeaders
 				*cfg.ServiceSettings.CorsAllowCredentials = testcase.CorsAllowCredentials
 			})
-			defer th.TearDown()
 			licenseStore := mocks.LicenseStore{}
 			licenseStore.On("Get", "").Return(&model.LicenseRecord{}, nil)
 			th.App.Srv().Store().(*mocks.Store).On("License").Return(&licenseStore)

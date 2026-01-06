@@ -4,8 +4,6 @@
 import React from 'react';
 import styled from 'styled-components';
 
-import StatusIcon from '@mattermost/compass-components/components/status-icon'; // eslint-disable-line no-restricted-imports
-
 const Animation = styled.div`
     position: absolute;
     z-index: 30;
@@ -31,6 +29,23 @@ const Animation = styled.div`
         margin-right: auto;
         left: 0;
         right: 0;
+    }
+
+    .icon-check-circle {
+        width: 16px;
+        height: 16px;
+        color: var(--online-indicator);
+
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        ::before {
+            font-size: 18px;
+            letter-spacing: 18px;
+            margin: 0;
+        }
     }
 
     .x1 {
@@ -64,34 +79,34 @@ const Animation = styled.div`
         }
     }
     @keyframes moveUp {
-        0% { 
+        0% {
             top: 0;
         }
-        100% { 
+        100% {
             top: -50px;
         }
     }
 
     @keyframes opacity {
-        0% { 
+        0% {
             opacity:0;
         }
-        50% { 
+        50% {
             opacity: 1;
         }
-        100% { 
+        100% {
             opacity: 0;
         }
     }
 
     @keyframes scale {
-        0% { 
+        0% {
             transform: scale(0);
         }
-        50% { 
+        50% {
             transform: scale(2);
         }
-        100% { 
+        100% {
             transform: scale(4);
         }
     }
@@ -101,22 +116,10 @@ const Animation = styled.div`
 export const CompletedAnimation = (props: {completed: boolean}) => {
     return (
         <Animation className={props.completed ? 'completed' : ''}>
-            <StatusIcon
-                status={'online'}
-                className={'x1'}
-            />
-            <StatusIcon
-                status={'online'}
-                className={'x2'}
-            />
-            <StatusIcon
-                status={'online'}
-                className={'x3'}
-            />
-            <StatusIcon
-                status={'online'}
-                className={'x4'}
-            />
+            <i className='icon-check-circle x1'/>
+            <i className='icon-check-circle x2'/>
+            <i className='icon-check-circle x3'/>
+            <i className='icon-check-circle x4'/>
         </Animation>
     );
 };

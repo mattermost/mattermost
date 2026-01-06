@@ -776,7 +776,7 @@ func isValidGuestRoles(data UserImportData) bool {
 				gtc++
 			}
 
-			if team.Channels == nil {
+			if team.Channels == nil || len(*team.Channels) == 0 {
 				continue
 			}
 			for _, channel := range *team.Channels {

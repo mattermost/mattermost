@@ -16,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/channels/web"
 )
 
@@ -49,6 +50,10 @@ func (api *API) InitPost() {
 	api.BaseRoutes.PostForUser.Handle("/ack", api.APISessionRequired(unacknowledgePost)).Methods(http.MethodDelete)
 
 	api.BaseRoutes.Post.Handle("/move", api.APISessionRequired(moveThread)).Methods(http.MethodPost)
+
+	api.BaseRoutes.Posts.Handle("/rewrite", api.APISessionRequired(rewriteMessage)).Methods(http.MethodPost)
+	api.BaseRoutes.Post.Handle("/reveal", api.APISessionRequired(revealPost)).Methods(http.MethodGet)
+	api.BaseRoutes.Post.Handle("/burn", api.APISessionRequired(burnPost)).Methods(http.MethodDelete)
 }
 
 func createPostChecks(where string, c *Context, post *model.Post) {
@@ -124,6 +129,27 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 
 	// Note that rp has already had PreparePostForClient called on it by App.CreatePost
+	// For burn-on-read posts, the author should see the revealed content in the API response
+	// to avoid relying on websocket events which may fail due to connection issues
+	if rp.Type == model.PostTypeBurnOnRead && rp.UserId == c.AppContext.Session().UserId {
+		// Force read from master DB to avoid replication delay issues in DB cluster environments.
+		// Without this, the replica might not have the post yet, causing "not found" errors.
+		masterCtx := sqlstore.RequestContextWithMaster(c.AppContext)
+		revealedPost, appErr := c.App.GetSinglePost(masterCtx, rp.Id, false)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+		// GetSinglePost calls RevealBurnOnReadPostsForUser which reveals the post for the author,
+		// then PreparePostForClient adds metadata (reactions, files, embeds).
+		rp = c.App.PreparePostForClient(masterCtx, revealedPost, &model.PreparePostForClientOpts{
+			IsNewPost: true,
+		})
+
+		// Send pending post ID back to client so it can update it in Redux store
+		rp.PendingPostId = post.PendingPostId
+	}
+
 	if err := rp.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -160,7 +186,7 @@ func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	rp = model.AddPostActionCookies(rp, c.App.PostActionCookieSecret())
-	rp = c.App.PreparePostForClientWithEmbedsAndImages(c.AppContext, rp, true, false, true)
+	rp = c.App.PreparePostForClientWithEmbedsAndImages(c.AppContext, rp, &model.PreparePostForClientOpts{IsNewPost: true, IncludePriority: true})
 	rp, err := c.App.SanitizePostMetadataForUser(c.AppContext, rp, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
@@ -199,10 +225,10 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	skipFetchThreads := r.URL.Query().Get("skipFetchThreads") == "true"
-	collapsedThreads := r.URL.Query().Get("collapsedThreads") == "true"
-	collapsedThreadsExtended := r.URL.Query().Get("collapsedThreadsExtended") == "true"
-	includeDeleted := r.URL.Query().Get("include_deleted") == "true"
+	skipFetchThreads, _ := strconv.ParseBool(r.URL.Query().Get("skipFetchThreads"))
+	collapsedThreads, _ := strconv.ParseBool(r.URL.Query().Get("collapsedThreads"))
+	collapsedThreadsExtended, _ := strconv.ParseBool(r.URL.Query().Get("collapsedThreadsExtended"))
+	includeDeleted, _ := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
 	channelId := c.Params.ChannelId
 	page := c.Params.Page
 	perPage := c.Params.PerPage
@@ -222,23 +248,11 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !*c.App.Config().TeamSettings.ExperimentalViewArchivedChannels {
-		channel, appErr := c.App.GetChannel(c.AppContext, channelId)
-		if appErr != nil {
-			c.Err = appErr
-			return
-		}
-		if channel.DeleteAt != 0 {
-			c.Err = model.NewAppError("Api4.getPostsForChannel", "api.user.view_archived_channels.get_posts_for_channel.app_error", nil, "", http.StatusForbidden)
-			return
-		}
-	}
-
 	var list *model.PostList
 	etag := ""
 
 	if since > 0 {
-		list, err = c.App.GetPostsSince(model.GetPostsSinceOptions{ChannelId: channelId, Time: since, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId})
+		list, err = c.App.GetPostsSince(c.AppContext, model.GetPostsSinceOptions{ChannelId: channelId, Time: since, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId})
 	} else if afterPost != "" {
 		etag = c.App.GetPostsEtag(channelId, collapsedThreads)
 
@@ -246,7 +260,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		list, err = c.App.GetPostsAfterPost(model.GetPostsOptions{ChannelId: channelId, PostId: afterPost, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, UserId: c.AppContext.Session().UserId, IncludeDeleted: includeDeleted})
+		list, err = c.App.GetPostsAfterPost(c.AppContext, model.GetPostsOptions{ChannelId: channelId, PostId: afterPost, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, UserId: c.AppContext.Session().UserId, IncludeDeleted: includeDeleted})
 	} else if beforePost != "" {
 		etag = c.App.GetPostsEtag(channelId, collapsedThreads)
 
@@ -254,7 +268,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		list, err = c.App.GetPostsBeforePost(model.GetPostsOptions{ChannelId: channelId, PostId: beforePost, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId, IncludeDeleted: includeDeleted})
+		list, err = c.App.GetPostsBeforePost(c.AppContext, model.GetPostsOptions{ChannelId: channelId, PostId: beforePost, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId, IncludeDeleted: includeDeleted})
 	} else {
 		etag = c.App.GetPostsEtag(channelId, collapsedThreads)
 
@@ -262,7 +276,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		list, err = c.App.GetPostsPage(model.GetPostsOptions{ChannelId: channelId, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId, IncludeDeleted: includeDeleted})
+		list, err = c.App.GetPostsPage(c.AppContext, model.GetPostsOptions{ChannelId: channelId, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId, IncludeDeleted: includeDeleted})
 	}
 
 	if err != nil {
@@ -274,8 +288,12 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Header().Set(model.HeaderEtagServer, etag)
 	}
 
-	c.App.AddCursorIdsForPostList(list, afterPost, beforePost, since, page, perPage, collapsedThreads)
 	clientPostList := c.App.PreparePostListForClient(c.AppContext, list)
+
+	// Calculate NextPostId and PrevPostId AFTER filtering (including BoR filtering)
+	// to ensure they only reference posts that are actually in the response
+	c.App.AddCursorIdsForPostList(clientPostList, afterPost, beforePost, since, page, perPage, collapsedThreads)
+
 	clientPostList, err = c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
@@ -333,17 +351,19 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 			return
 		}
 
-		postList, err = c.App.GetPostsPage(model.GetPostsOptions{ChannelId: channelId, Page: app.PageDefault, PerPage: c.Params.LimitBefore, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId})
+		postList, err = c.App.GetPostsPage(c.AppContext, model.GetPostsOptions{ChannelId: channelId, Page: app.PageDefault, PerPage: c.Params.LimitBefore, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId})
 		if err != nil {
 			c.Err = err
 			return
 		}
 	}
 
-	postList.NextPostId = c.App.GetNextPostIdFromPostList(postList, collapsedThreads)
-	postList.PrevPostId = c.App.GetPrevPostIdFromPostList(postList, collapsedThreads)
-
 	clientPostList := c.App.PreparePostListForClient(c.AppContext, postList)
+
+	// Calculate NextPostId and PrevPostId AFTER filtering (including BoR filtering)
+	// to ensure they only reference posts that are actually in the response
+	clientPostList.NextPostId = c.App.GetNextPostIdFromPostList(clientPostList, collapsedThreads)
+	clientPostList.PrevPostId = c.App.GetPrevPostIdFromPostList(clientPostList, collapsedThreads)
 	clientPostList, err = c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
@@ -376,11 +396,11 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 	var err *model.AppError
 
 	if channelId != "" {
-		posts, err = c.App.GetFlaggedPostsForChannel(c.Params.UserId, channelId, c.Params.Page, c.Params.PerPage)
+		posts, err = c.App.GetFlaggedPostsForChannel(c.AppContext, c.Params.UserId, channelId, c.Params.Page, c.Params.PerPage)
 	} else if teamId != "" {
-		posts, err = c.App.GetFlaggedPostsForTeam(c.Params.UserId, teamId, c.Params.Page, c.Params.PerPage)
+		posts, err = c.App.GetFlaggedPostsForTeam(c.AppContext, c.Params.UserId, teamId, c.Params.Page, c.Params.PerPage)
 	} else {
-		posts, err = c.App.GetFlaggedPosts(c.Params.UserId, c.Params.Page, c.Params.PerPage)
+		posts, err = c.App.GetFlaggedPosts(c.AppContext, c.Params.UserId, c.Params.Page, c.Params.PerPage)
 	}
 	if err != nil {
 		c.Err = err
@@ -466,7 +486,7 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	post = c.App.PreparePostForClientWithEmbedsAndImages(c.AppContext, post, false, false, true)
+	post = c.App.PreparePostForClientWithEmbedsAndImages(c.AppContext, post, &model.PreparePostForClientOpts{IncludePriority: true})
 	post, err = c.App.SanitizePostMetadataForUser(c.AppContext, post, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
@@ -530,7 +550,7 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		post = c.App.PreparePostForClient(c.AppContext, post, false, false, true)
+		post = c.App.PreparePostForClient(c.AppContext, post, &model.PreparePostForClientOpts{IncludePriority: true})
 		post.StripActionIntegrations()
 		posts = append(posts, post)
 	}
@@ -717,7 +737,7 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		FromCreateAt:             fromCreateAt,
 		FromUpdateAt:             fromUpdateAt,
 	}
-	list, err := c.App.GetPostThread(c.Params.PostId, opts, c.AppContext.Session().UserId)
+	list, err := c.App.GetPostThread(c.AppContext, c.Params.PostId, opts, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -1392,4 +1412,145 @@ func hasPermittedWranglerRole(c *Context, user *model.User, channelMember *model
 	}
 
 	return false
+}
+
+// rewriteMessage handles AI-powered message rewriting requests
+func rewriteMessage(c *Context, w http.ResponseWriter, r *http.Request) {
+	// Parse request
+	var req model.RewriteRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		c.SetInvalidParamWithErr("request_body", err)
+		return
+	}
+
+	if !model.IsValidId(req.AgentID) {
+		c.SetInvalidParam("agent_id")
+		return
+	}
+
+	// Call app layer to handle business logic
+	response, appErr := c.App.RewriteMessage(
+		c.AppContext,
+		req.AgentID,
+		req.Message,
+		req.Action,
+		req.CustomPrompt,
+	)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	// Return response
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(*response); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func revealPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePostId()
+	if c.Err != nil {
+		return
+	}
+
+	connectionID := r.Header.Get(model.ConnectionId)
+
+	if !c.App.Config().FeatureFlags.BurnOnRead {
+		c.Err = model.NewAppError("revealPost", "api.post.reveal_post.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	userId := c.AppContext.Session().UserId
+	postId := c.Params.PostId
+
+	auditRec := c.MakeAuditRecord(model.AuditEventRevealPost, model.AuditStatusFail)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+	model.AddEventParameterToAuditRec(auditRec, "post_id", postId)
+	model.AddEventParameterToAuditRec(auditRec, "user_id", userId)
+
+	post, err := c.App.GetPostIfAuthorized(c.AppContext, postId, c.AppContext.Session(), false)
+	if err != nil {
+		c.Err = err
+		if err.Id == "app.post.cloud.get.app_error" {
+			w.Header().Set(model.HeaderFirstInaccessiblePostTime, "1")
+		}
+		return
+	}
+
+	_, err = c.App.GetChannelMember(c.AppContext, post.ChannelId, userId)
+	if err != nil {
+		if err.Id == "app.channel.get_member.missing.app_error" {
+			c.Err = model.NewAppError("revealPost", "api.post.reveal_post.user_not_in_channel.app_error", nil, fmt.Sprintf("postId=%s", c.Params.PostId), http.StatusForbidden)
+		} else {
+			c.Err = err
+		}
+		return
+	}
+
+	if post.UserId == userId {
+		c.Err = model.NewAppError("revealPost", "api.post.reveal_post.cannot_reveal_own_post.app_error", nil, fmt.Sprintf("postId=%s", c.Params.PostId), http.StatusBadRequest)
+		return
+	}
+
+	// should reveal the post
+	// if it's already revealed, it should be a no-op if the post is not expired yet
+	// if it's expired, it should return an error
+	revealedPost, err := c.App.RevealPost(c.AppContext, post, userId, connectionID)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+	auditRec.AddEventResultState(revealedPost)
+
+	if jsErr := revealedPost.EncodeJSON(w); jsErr != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(jsErr))
+	}
+}
+
+func burnPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePostId()
+	if c.Err != nil {
+		return
+	}
+
+	connectionID := r.Header.Get(model.ConnectionId)
+
+	userId := c.AppContext.Session().UserId
+	postId := c.Params.PostId
+
+	auditRec := c.MakeAuditRecord(model.AuditEventBurnPost, model.AuditStatusFail)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+	model.AddEventParameterToAuditRec(auditRec, "post_id", postId)
+	model.AddEventParameterToAuditRec(auditRec, "user_id", userId)
+
+	post, err := c.App.GetPostIfAuthorized(c.AppContext, postId, c.AppContext.Session(), false)
+	if err != nil {
+		c.Err = err
+		if err.Id == "app.post.cloud.get.app_error" {
+			w.Header().Set(model.HeaderFirstInaccessiblePostTime, "1")
+		}
+		return
+	}
+
+	_, err = c.App.GetChannelMember(c.AppContext, post.ChannelId, userId)
+	if err != nil {
+		if err.Id == "app.channel.get_member.missing.app_error" {
+			c.Err = model.NewAppError("burnPost", "api.post.burn_post.user_not_in_channel.app_error", nil, fmt.Sprintf("postId=%s", c.Params.PostId), http.StatusForbidden)
+		} else {
+			c.Err = err
+		}
+		return
+	}
+
+	err = c.App.BurnPost(c.AppContext, post, userId, connectionID)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
 }

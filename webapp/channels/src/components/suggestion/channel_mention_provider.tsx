@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {defineMessage} from 'react-intl';
+import {defineMessage, useIntl} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 
@@ -11,6 +11,8 @@ import type {ActionResult} from 'mattermost-redux/types/actions.js';
 import {sortChannelsByTypeAndDisplayName} from 'mattermost-redux/utils/channel_utils';
 
 import store from 'stores/redux_store';
+
+import usePrefixedIds from 'components/common/hooks/usePrefixedIds';
 
 import {Constants} from 'utils/constants';
 
@@ -22,21 +24,58 @@ import type {SuggestionProps} from './suggestion';
 export const MIN_CHANNEL_LINK_LENGTH = 2;
 
 export const ChannelMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Channel>>((props, ref) => {
-    const {item: channel} = props;
+    const {formatMessage} = useIntl();
+
+    const {id, item: channel} = props;
+    const channelName = channel.display_name;
     const channelIsArchived = channel && channel.delete_at && channel.delete_at !== 0;
 
-    const channelName = channel.display_name;
+    const ids = usePrefixedIds(id, {
+        channelType: null,
+        name: null,
+    });
+
     let channelIcon;
     if (channelIsArchived) {
         channelIcon = (
-            <span className='suggestion-list__icon suggestion-list__icon--large'>
-                <i className='icon icon-archive-outline'/>
+            <span
+                id={ids.channelType}
+                className='suggestion-list__icon suggestion-list__icon--large'
+                aria-label={formatMessage({
+                    id: 'suggestion.archived_channel',
+                    defaultMessage: 'Archived channel',
+                })}
+            >
+                <i
+                    className='icon icon-archive-outline'
+                    role='presentation'
+                />
             </span>
         );
     } else {
+        let iconClass;
+        let iconLabel;
+        if (channel?.type === Constants.OPEN_CHANNEL) {
+            iconClass = 'icon-globe';
+            iconLabel = formatMessage({
+                id: 'suggestion.public_channel',
+                defaultMessage: 'Public channel',
+            });
+        } else {
+            iconClass = 'icon-lock-outline';
+            iconLabel = formatMessage({
+                id: 'suggestion.private_channel',
+                defaultMessage: 'Private channel',
+            });
+        }
+
         channelIcon = (
-            <span className='suggestion-list__icon suggestion-list__icon--large'>
-                <i className={`icon icon--no-spacing icon-${channel?.type === Constants.OPEN_CHANNEL ? 'globe' : 'lock-outline'}`}/>
+            <span
+                id={ids.channelType}
+                className='suggestion-list__icon suggestion-list__icon--large'
+                aria-label={iconLabel}
+            >
+                <i className={`icon icon--no-spacing ${iconClass}`}/>
             </span>
         );
     }
@@ -47,10 +86,15 @@ export const ChannelMentionSuggestion = React.forwardRef<HTMLLIElement, Suggesti
         <SuggestionContainer
             ref={ref}
             {...props}
+            aria-labelledby={ids.name}
+            aria-describedby={ids.channelType}
         >
             {channelIcon}
             <div className='suggestion-list__ellipsis'>
-                <span className='suggestion-list__main'>
+                <span
+                    id={ids.name}
+                    className='suggestion-list__main'
+                >
                     {channelName}
                 </span>
                 {description}

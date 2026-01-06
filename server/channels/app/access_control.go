@@ -5,6 +5,7 @@ package app
 
 import (
 	"net/http"
+	"slices"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -159,16 +160,31 @@ func (a *App) AssignAccessControlPolicyToChannels(rctx request.CTX, parentID str
 			return nil, model.NewAppError("AssignAccessControlPolicyToChannels", "app.pap.assign_access_control_policy_to_channels.app_error", nil, "Channel is shared", http.StatusBadRequest)
 		}
 
-		newPolicy, appErr := policy.Inherit(channel.Id, model.AccessControlPolicyTypeChannel)
+		child, err := acs.GetPolicy(rctx, channel.Id)
+		if err != nil && err.StatusCode != http.StatusNotFound {
+			return nil, model.NewAppError("AssignAccessControlPolicyToChannels", "app.pap.assign_access_control_policy_to_channels.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+		if child == nil {
+			child = &model.AccessControlPolicy{
+				ID:       channel.Id,
+				Type:     model.AccessControlPolicyTypeChannel,
+				Active:   policy.Active,
+				CreateAt: model.GetMillis(),
+				Props:    map[string]any{},
+			}
+		}
+		child.Version = model.AccessControlPolicyVersionV0_2
+
+		appErr := child.Inherit(policy)
 		if appErr != nil {
 			return nil, appErr
 		}
 
-		newPolicy, appErr = acs.SavePolicy(rctx, newPolicy)
+		child, appErr = acs.SavePolicy(rctx, child)
 		if appErr != nil {
 			return nil, appErr
 		}
-		policies = append(policies, newPolicy)
+		policies = append(policies, child)
 	}
 
 	return policies, nil
@@ -200,9 +216,24 @@ func (a *App) UnassignPoliciesFromChannels(rctx request.CTX, policyID string, ch
 			continue
 		}
 
-		appErr := acs.DeletePolicy(rctx, channelID)
+		child, appErr := acs.GetPolicy(rctx, channelID)
 		if appErr != nil {
-			return appErr
+			return model.NewAppError("UnassignPoliciesFromChannels", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+		}
+
+		child.Imports = slices.DeleteFunc(child.Imports, func(importID string) bool {
+			return importID == policyID
+		})
+		if len(child.Imports) == 0 && len(child.Rules) == 0 {
+			// If the policy has no imports and no rules, we can delete it
+			if err := acs.DeletePolicy(rctx, child.ID); err != nil {
+				return model.NewAppError("UnassignPoliciesFromChannels", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+			continue
+		}
+		_, appErr = acs.SavePolicy(rctx, child)
+		if appErr != nil {
+			return model.NewAppError("UnassignPoliciesFromChannels", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 		}
 	}
 
@@ -280,6 +311,19 @@ func (a *App) UpdateAccessControlPolicyActive(rctx request.CTX, policyID string,
 	return nil
 }
 
+func (a *App) UpdateAccessControlPoliciesActive(rctx request.CTX, updates []model.AccessControlPolicyActiveUpdate) ([]*model.AccessControlPolicy, *model.AppError) {
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return nil, model.NewAppError("ExpressionToVisualAST", "app.pap.update_access_control_policies_active.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
+	}
+
+	policies, err := a.Srv().Store().AccessControlPolicy().SetActiveStatusMultiple(rctx, updates)
+	if err != nil {
+		return nil, model.NewAppError("UpdateAccessControlPoliciesActive", "app.pap.update_access_control_policies_active.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return policies, nil
+}
+
 func (a *App) ExpressionToVisualAST(rctx request.CTX, expression string) (*model.VisualExpression, *model.AppError) {
 	acs := a.Srv().ch.AccessControl
 	if acs == nil {
@@ -292,4 +336,182 @@ func (a *App) ExpressionToVisualAST(rctx request.CTX, expression string) (*model
 	}
 
 	return visualAST, nil
+}
+
+// ValidateChannelAccessControlPermission validates if a user has permission to manage access control for a specific channel
+func (a *App) ValidateChannelAccessControlPermission(rctx request.CTX, userID, channelID string) *model.AppError {
+	// Verify the channel exists
+	channel, appErr := a.GetChannel(rctx, channelID)
+	if appErr != nil {
+		return appErr
+	}
+
+	// Check if user has channel admin permission for the specific channel
+	if !a.HasPermissionToChannel(rctx, userID, channelID, model.PermissionManageChannelAccessRules) {
+		return model.NewAppError("ValidateChannelAccessControlPermission", "app.pap.access_control.insufficient_channel_permissions", nil, "user_id="+userID+" channel_id="+channelID, http.StatusForbidden)
+	}
+
+	// Verify the channel is a private channel
+	if channel.Type != model.ChannelTypePrivate {
+		return model.NewAppError("ValidateChannelAccessControlPermission", "app.pap.access_control.channel_not_private", nil, "channel_id="+channelID, http.StatusBadRequest)
+	}
+
+	if channel.IsGroupConstrained() {
+		return model.NewAppError("ValidateChannelAccessControlPermission", "app.pap.access_control.channel_group_constrained", nil, "channel_id="+channelID, http.StatusBadRequest)
+	}
+
+	if channel.IsShared() {
+		return model.NewAppError("ValidateChannelAccessControlPermission", "app.pap.access_control.channel_shared", nil, "channel_id="+channelID, http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+// ValidateAccessControlPolicyPermission validates if a user has permission to manage a specific existing access control policy
+func (a *App) ValidateAccessControlPolicyPermission(rctx request.CTX, userID, policyID string) *model.AppError {
+	return a.ValidateAccessControlPolicyPermissionWithOptions(rctx, userID, policyID, ValidateAccessControlPolicyPermissionOptions{})
+}
+
+type ValidateAccessControlPolicyPermissionOptions struct {
+	isReadOnly bool
+	channelID  string
+}
+
+func (a *App) ValidateAccessControlPolicyPermissionWithOptions(rctx request.CTX, userID, policyID string, opts ValidateAccessControlPolicyPermissionOptions) *model.AppError {
+	// System admins can manage any policy
+	if a.HasPermissionTo(userID, model.PermissionManageSystem) {
+		return nil
+	}
+
+	// Get the policy to determine its type
+	policy, appErr := a.GetAccessControlPolicy(rctx, policyID)
+	if appErr != nil {
+		return appErr
+	}
+
+	// For read-only operations, allow access to system policies if they're applied to the specific channel
+	if opts.isReadOnly && policy.Type != model.AccessControlPolicyTypeChannel && opts.channelID != "" {
+		// Check if user has access to the channel
+		if !a.HasPermissionToChannel(rctx, userID, opts.channelID, model.PermissionReadChannel) {
+			return model.NewAppError("ValidateAccessControlPolicyPermissionWithOptions", "app.pap.access_control.insufficient_permissions", nil, "user_id="+userID+" channel_id="+opts.channelID, http.StatusForbidden)
+		}
+
+		// Check if this system policy is applied to the specific channel
+		if a.isSystemPolicyAppliedToChannel(rctx, policyID, opts.channelID) {
+			return nil // Allow read-only access
+		}
+		return model.NewAppError("ValidateAccessControlPolicyPermissionWithOptions", "app.pap.access_control.insufficient_permissions", nil, "user_id="+userID+" policy_type="+policy.Type+" channel_id="+opts.channelID, http.StatusForbidden)
+	}
+
+	// Non-system admins can only manage channel-type policies (for non-read-only operations)
+	if policy.Type != model.AccessControlPolicyTypeChannel {
+		return model.NewAppError("ValidateAccessControlPolicyPermissionWithOptions", "app.pap.access_control.insufficient_permissions", nil, "user_id="+userID+" policy_type="+policy.Type, http.StatusForbidden)
+	}
+
+	// For channel-type policies, validate channel-specific permission (policy ID equals channel ID)
+	return a.ValidateChannelAccessControlPermission(rctx, userID, policyID)
+}
+
+// ValidateAccessControlPolicyPermissionWithMode validates access control policy permissions with read-only mode option
+func (a *App) ValidateAccessControlPolicyPermissionWithMode(rctx request.CTX, userID, policyID string, isReadOnly bool) *model.AppError {
+	return a.ValidateAccessControlPolicyPermissionWithOptions(rctx, userID, policyID, ValidateAccessControlPolicyPermissionOptions{
+		isReadOnly: isReadOnly,
+	})
+}
+
+// ValidateAccessControlPolicyPermissionWithChannelContext validates access control policy permissions with channel context
+func (a *App) ValidateAccessControlPolicyPermissionWithChannelContext(rctx request.CTX, userID, policyID string, isReadOnly bool, channelID string) *model.AppError {
+	return a.ValidateAccessControlPolicyPermissionWithOptions(rctx, userID, policyID, ValidateAccessControlPolicyPermissionOptions{
+		isReadOnly: isReadOnly,
+		channelID:  channelID,
+	})
+}
+
+// isSystemPolicyAppliedToChannel checks if a system policy is applied to a specific channel
+func (a *App) isSystemPolicyAppliedToChannel(rctx request.CTX, policyID, channelID string) bool {
+	// Get the channel's policy (channel ID = policy ID for channel policies)
+	channelPolicy, err := a.GetAccessControlPolicy(rctx, channelID)
+	if err != nil {
+		return false // Channel doesn't have a policy
+	}
+
+	// Check if the channel policy imports this system policy
+	if channelPolicy.Imports != nil {
+		return slices.Contains(channelPolicy.Imports, policyID)
+	}
+
+	return false
+}
+
+// ValidateChannelAccessControlPolicyCreation validates if a user can create a channel-specific access control policy
+func (a *App) ValidateChannelAccessControlPolicyCreation(rctx request.CTX, userID string, policy *model.AccessControlPolicy) *model.AppError {
+	// System admins can create any type of policy
+	if a.HasPermissionTo(userID, model.PermissionManageSystem) {
+		return nil
+	}
+
+	// Non-system admins can only create channel-type policies
+	if policy.Type != model.AccessControlPolicyTypeChannel {
+		return model.NewAppError("ValidateChannelAccessControlPolicyCreation", "app.access_control.insufficient_permissions", nil, "user_id="+userID+" policy_type="+policy.Type, http.StatusForbidden)
+	}
+
+	// For channel-type policies, validate channel-specific permission (policy ID equals channel ID)
+	return a.ValidateChannelAccessControlPermission(rctx, userID, policy.ID)
+}
+
+// TestExpressionWithChannelContext tests expressions for channel admins with attribute validation
+// Channel admins can only see users that match expressions they themselves would match
+func (a *App) TestExpressionWithChannelContext(rctx request.CTX, expression string, opts model.SubjectSearchOptions) ([]*model.User, int64, *model.AppError) {
+	// Get the current user (channel admin)
+	session := rctx.Session()
+	if session == nil {
+		return nil, 0, model.NewAppError("TestExpressionWithChannelContext", "api.context.session_expired.app_error", nil, "", http.StatusUnauthorized)
+	}
+
+	currentUserID := session.UserId
+
+	// SECURITY: First check if the channel admin themselves matches this expression
+	// If they don't match, they shouldn't be able to see users who do
+	adminMatches, appErr := a.ValidateExpressionAgainstRequester(rctx, expression, currentUserID)
+	if appErr != nil {
+		return nil, 0, appErr
+	}
+
+	if !adminMatches {
+		// Channel admin doesn't match the expression, so return empty results
+		return []*model.User{}, 0, nil
+	}
+
+	// If the channel admin matches the expression, run it against all users
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return nil, 0, model.NewAppError("TestExpressionWithChannelContext", "app.pap.check_expression.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
+	}
+
+	return a.TestExpression(rctx, expression, opts)
+}
+
+// ValidateExpressionAgainstRequester validates an expression directly against a specific user
+func (a *App) ValidateExpressionAgainstRequester(rctx request.CTX, expression string, requesterID string) (bool, *model.AppError) {
+	// Self-exclusion validation should work with any attribute
+	// Channel admins should be able to validate any expression they're testing
+
+	// Use access control service to evaluate expression
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return false, model.NewAppError("ValidateExpressionAgainstRequester", "app.pap.check_expression.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
+	}
+
+	// Search only for the specific requester user ID
+	users, _, appErr := acs.QueryUsersForExpression(rctx, expression, model.SubjectSearchOptions{
+		SubjectID: requesterID, // Only check this specific user
+		Limit:     1,           // Maximum 1 result expected
+	})
+	if appErr != nil {
+		return false, appErr
+	}
+	if len(users) == 1 && users[0].Id == requesterID {
+		return true, nil
+	}
+	return false, nil
 }

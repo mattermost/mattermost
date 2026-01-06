@@ -14,8 +14,8 @@ test('MM-T5521-1 Should be able to search users with their first names', async (
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Create 2 users
-    const user1 = await adminClient.createUser(pw.random.user(), '', '');
-    const user2 = await adminClient.createUser(pw.random.user(), '', '');
+    const user1 = await adminClient.createUser(await pw.random.user(), '', '');
+    const user2 = await adminClient.createUser(await pw.random.user(), '', '');
 
     // # Visit system console
     await systemConsolePage.goto();
@@ -46,8 +46,8 @@ test('MM-T5521-2 Should be able to search users with their last names', async ({
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Create 2 users
-    const user1 = await adminClient.createUser(pw.random.user(), '', '');
-    const user2 = await adminClient.createUser(pw.random.user(), '', '');
+    const user1 = await adminClient.createUser(await pw.random.user(), '', '');
+    const user2 = await adminClient.createUser(await pw.random.user(), '', '');
 
     // # Visit system console
     await systemConsolePage.goto();
@@ -78,8 +78,8 @@ test('MM-T5521-3 Should be able to search users with their emails', async ({pw})
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Create 2 users
-    const user1 = await adminClient.createUser(pw.random.user(), '', '');
-    const user2 = await adminClient.createUser(pw.random.user(), '', '');
+    const user1 = await adminClient.createUser(await pw.random.user(), '', '');
+    const user2 = await adminClient.createUser(await pw.random.user(), '', '');
 
     // # Visit system console
     await systemConsolePage.goto();
@@ -110,8 +110,8 @@ test('MM-T5521-4 Should be able to search users with their usernames', async ({p
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Create 2 users
-    const user1 = await adminClient.createUser(pw.random.user(), '', '');
-    const user2 = await adminClient.createUser(pw.random.user(), '', '');
+    const user1 = await adminClient.createUser(await pw.random.user(), '', '');
+    const user2 = await adminClient.createUser(await pw.random.user(), '', '');
 
     // # Visit system console
     await systemConsolePage.goto();
@@ -142,8 +142,8 @@ test('MM-T5521-5 Should be able to search users with their nick names', async ({
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Create 2 users
-    const user1 = await adminClient.createUser(pw.random.user(), '', '');
-    const user2 = await adminClient.createUser(pw.random.user(), '', '');
+    const user1 = await adminClient.createUser(await pw.random.user(), '', '');
+    const user2 = await adminClient.createUser(await pw.random.user(), '', '');
 
     // # Visit system console
     await systemConsolePage.goto();

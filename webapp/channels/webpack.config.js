@@ -107,7 +107,9 @@ var config = {
                 test: /\.(png|eot|tiff|svg|woff2|woff|ttf|gif|mp3|jpg)$/,
                 type: 'asset/resource',
                 use: [
-                    {
+
+                    // Skip image optimizations during development to speed up build time
+                    !DEV && {
                         loader: 'image-webpack-loader',
                         options: {},
                     },
@@ -304,7 +306,7 @@ var config = {
 };
 
 function generateCSP() {
-    let csp = 'script-src \'self\' cdn.rudderlabs.com/ js.stripe.com/v3';
+    let csp = 'script-src \'self\' js.stripe.com/v3';
 
     if (DEV) {
         // Development source maps require eval

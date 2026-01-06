@@ -30,7 +30,7 @@ const SharedUserIndicator = (props: Props) => {
         <i
             data-testid='SharedUserIcon'
             className={classNames('icon icon-circle-multiple-outline', props.className)}
-            aria-label={props.ariaLabel || intl.formatMessage({id: 'shared_user_indicator.aria_label', defaultMessage: 'shared user indicator'})}
+            aria-label={props.ariaLabel || intl.formatMessage({id: 'shared_user_indicator.aria_label', defaultMessage: 'shared user'})}
             role={props?.role}
         />
     );

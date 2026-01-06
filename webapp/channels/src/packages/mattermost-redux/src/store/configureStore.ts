@@ -8,8 +8,9 @@ import {
 } from 'redux';
 import type {
     Reducer,
-    Store} from 'redux';
-import thunk from 'redux-thunk';
+    Store,
+} from 'redux';
+import {withExtraArgument as thunkWithExtraArgument} from 'redux-thunk';
 
 import type {GlobalState} from '@mattermost/types/store';
 
@@ -27,7 +28,6 @@ import serviceReducers from '../reducers';
  */
 export default function configureStore<S extends GlobalState>({
     appReducers,
-    getAppReducers,
     preloadedState,
 }: {
     appReducers: Record<string, Reducer>;
@@ -51,7 +51,7 @@ export default function configureStore<S extends GlobalState>({
         // @hmhealey I've added this extra argument to Thunks to store information related to the store that can't be
         // part of Redux state itself. At the moment, this is so that I can attach let DataLoaders dispatch actions.
         // If you want to make use of this, talk to me first since I want to know more.
-        thunk.withExtraArgument({loaders: {}}),
+        thunkWithExtraArgument({loaders: {}}),
     );
 
     const enhancers = composeEnhancers(middleware);
@@ -67,18 +67,6 @@ export default function configureStore<S extends GlobalState>({
     reducerRegistry.setChangeListener((reducers: Record<string, Reducer>) => {
         store.replaceReducer(createReducer(reducers, serviceReducers, appReducers));
     });
-
-    if (module.hot) {
-        // Enable Webpack hot module replacement for reducers
-        module.hot.accept(() => {
-            const registryReducers = reducerRegistry.getReducers();
-            const nextServiceReducers = require('../reducers').default; // eslint-disable-line global-require
-            const nextAppReducers = getAppReducers();
-
-            // Ensure registryReducers comes first so that stored service/app reducers are replaced by the new ones
-            store.replaceReducer(createReducer(registryReducers, nextServiceReducers, nextAppReducers));
-        });
-    }
 
     return store;
 }

@@ -8,6 +8,7 @@ import {
     screen,
     fireEvent,
     act,
+    userEvent,
 } from 'tests/react_testing_utils';
 
 import NewSearch from './new_search';
@@ -20,58 +21,69 @@ jest.mock('react-redux', () => ({
 }));
 
 describe('components/new_search/NewSearch', () => {
-    test('should open the search box on click search', () => {
+    test('should open the search box on click search', async () => {
         renderWithContext(<NewSearch/>);
         expect(screen.queryByText('Messages')).not.toBeInTheDocument();
-        screen.getByText('Search').click();
+
+        await userEvent.click(screen.getByText('Search'));
+
         expect(screen.getByText('Messages')).toBeInTheDocument();
     });
 
-    test('should open the search box when pressing any key differnt than tab', () => {
+    test('should open the search box when pressing any key differnt than tab', async () => {
         renderWithContext(<NewSearch/>);
         expect(screen.queryByText('Messages')).not.toBeInTheDocument();
-        fireEvent.keyDown(screen.getByText('Search'), {key: 'Tab', code: 'Tab', keyCode: 9, charCode: 9});
+
+        act(() => {
+            screen.getByText('Search').focus();
+        });
+
         expect(screen.queryByText('Messages')).not.toBeInTheDocument();
-        fireEvent.keyDown(screen.getByText('Search'), {key: 'a', code: 'KeyA', keyCode: 65, charCode: 65});
+
+        await userEvent.type(screen.getByText('Search'), 'a');
+
         expect(screen.getByText('Messages')).toBeInTheDocument();
     });
 
-    test('should close the search box on click outside the searchbox', () => {
+    test('should close the search box on click outside the searchbox', async () => {
         renderWithContext(<div><NewSearch/>{'Outside'}</div>);
+
         expect(screen.queryByText('Messages')).not.toBeInTheDocument();
-        act(() => {
-            screen.getByText('Search').click();
-        });
+
+        await userEvent.click(screen.getByText('Search'));
+
         expect(screen.getByText('Messages')).toBeInTheDocument();
-        act(() => {
-            screen.getByText('Outside').click();
-        });
+
+        await userEvent.click(screen.getByText('Outside'));
+
         expect(screen.queryByText('Messages')).not.toBeInTheDocument();
     });
 
-    test('should close the search box on Esc key is pressed', () => {
+    test('should close the search box on Esc key is pressed', async () => {
         renderWithContext(<NewSearch/>);
+
         expect(screen.queryByText('Messages')).not.toBeInTheDocument();
-        act(() => {
-            screen.getByText('Search').click();
-        });
+
+        await userEvent.click(screen.getByText('Search'));
+
         expect(screen.getByText('Messages')).toBeInTheDocument();
-        act(() => {
-            fireEvent.keyDown(screen.getByPlaceholderText('Search messages'), {key: 'Escape', code: 'Escape', keyCode: 27, charCode: 27});
-        });
+
+        await userEvent.type(screen.getByPlaceholderText('Search messages'), '{escape}');
+
         expect(screen.queryByText('Messages')).not.toBeInTheDocument();
     });
 
-    test('should close on search after calling dispatch', () => {
+    test('should close on search after calling dispatch', async () => {
         renderWithContext(<NewSearch/>);
+
         expect(screen.queryByText('Messages')).not.toBeInTheDocument();
-        act(() => {
-            screen.getByText('Search').click();
-        });
+
+        await userEvent.click(screen.getByText('Search'));
+
         expect(screen.getByText('Messages')).toBeInTheDocument();
-        act(() => {
-            fireEvent.keyDown(screen.getByPlaceholderText('Search messages'), {key: 'Enter', code: 'Enter', keyCode: 13, charCode: 13});
-        });
+
+        await userEvent.type(screen.getByPlaceholderText('Search messages'), '{enter}');
+
         expect(screen.queryByText('Messages')).not.toBeInTheDocument();
         expect(mockDispatch).toHaveBeenCalledWith({searchType: 'messages', type: 'UPDATE_RHS_SEARCH_TYPE'});
         expect(mockDispatch).toHaveBeenCalledWith({terms: '', type: 'UPDATE_RHS_SEARCH_TERMS'});
@@ -79,12 +91,16 @@ describe('components/new_search/NewSearch', () => {
         expect(mockDispatch).toHaveBeenCalledTimes(4);
     });
 
-    test('should open the search ctrl+shift+f is press on web app', () => {
+    test('should open the search ctrl+shift+f is press on web app', async () => {
         renderWithContext(<div><NewSearch/>{'Outside'}</div>);
+
         expect(screen.queryByText('Messages')).not.toBeInTheDocument();
-        act(() => {
-            fireEvent.keyDown(screen.getByText('Outside'), {key: 'f', code: 'KeyF', keyCode: 70, charCode: 70, ctrlKey: true, shiftKey: true});
-        });
+
+        await act(() => fireEvent.keyDown(
+            screen.getByText('Outside'),
+            {key: 'f', code: 'KeyF', keyCode: 70, charCode: 70, ctrlKey: true, shiftKey: true},
+        ));
+
         expect(screen.getByText('Messages')).toBeInTheDocument();
     });
 });

@@ -924,10 +924,6 @@
     "translation": "npi"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Nuevo formato para la configuración del cliente no es compatible todavía. Por favor utiliza format=old en la cadena de consulta."
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "Lo sentimos, pero no pudimos encontrar la página."
   },
@@ -1190,10 +1186,6 @@
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
     "translation": "invalid_request: Mal client_id."
-  },
-  {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Falta client_secret."
   },
   {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
@@ -2078,14 +2070,6 @@
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "El inicio de sesión con un Bot está prohibido."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Se ha intentado ingresar usando la característica experimental \"ClientSideCert\" sin proveer de un certificado válido."
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Se ha intentado utilizar la característica experimental \"ClientSideCert\" sin una licencia empresarial válida."
   },
   {
     "id": "api.user.login.inactive.app_error",
@@ -8144,14 +8128,6 @@
     "translation": "No se pudo obtener todos los roles."
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "No se pueden recuperar los usuarios de un canal archivado"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "No se pueden recuperar los mensajes de un canal archivado"
-  },
-  {
     "id": "api.templates.invite_body.title.reminder",
     "translation": "Recordatorio"
   },
@@ -8958,5 +8934,53 @@
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
     "translation": "No se pudo anular la invitación de remoto al canal"
+  },
+  {
+    "id": "api.access_control_policy.get_channels.limit.app_error",
+    "translation": "El obtener el límite de canales no es válido"
+  },
+  {
+    "id": "api.channel.add_user.to.channel.rejected",
+    "translation": "El usuario no tiene los atributos requeridos para unirse al canal."
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subject",
+    "translation": "CAmbios a los filtros IP de tu Workspace"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.title",
+    "translation": "Cambios de filtrado IP para tu workspace"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.contact_support",
+    "translation": "Contacta a soporte"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.log_in_to_customer_portal",
+    "translation": "Inicia sesión en el portal de cliente para restablecer el filtrado de IP"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.send_an_email_to",
+    "translation": "Envía un email a {{ .InitiatingUserEmail }}"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.title",
+    "translation": "¿Tienes problemas accediendo a tu workspace?"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_contact_sales",
+    "translation": "Contacta a ventas"
+  },
+  {
+    "id": "api.user.get_profile_image_path.app_error",
+    "translation": "Error al revisar is un usuarrio tiene una imagen de perfil personalizada."
+  },
+  {
+    "id": "api.user.get_users.validation.app_error",
+    "translation": "Error al obtener roles durante la validación."
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens.error",
+    "translation": "No fue posible onbtener tokes por tipo cuando se invalidaban los tokens de recuperación de contraseña"
   }
 ]

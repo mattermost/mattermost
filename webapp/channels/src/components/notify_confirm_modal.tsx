@@ -35,7 +35,7 @@ export default class NotifyConfirmModal extends React.PureComponent<Props> {
                         values={{
                             totalMembers: memberNotifyCount,
                             timezones: channelTimezoneCount,
-                            b: (chunks: string) => <b>{chunks}</b>,
+                            b: (chunks) => <b>{chunks}</b>,
                         }}
                     />
                 );
@@ -46,7 +46,7 @@ export default class NotifyConfirmModal extends React.PureComponent<Props> {
                         {...message}
                         values={{
                             totalMembers: memberNotifyCount,
-                            b: (chunks: string) => <b>{chunks}</b>,
+                            b: (chunks) => <b>{chunks}</b>,
                         }}
                     />
                 );
@@ -69,7 +69,7 @@ export default class NotifyConfirmModal extends React.PureComponent<Props> {
                                 mention: mentions[0],
                                 totalMembers: memberNotifyCount,
                                 timezones: channelTimezoneCount,
-                                b: (chunks: string) => <b>{chunks}</b>,
+                                b: (chunks) => <b>{chunks}</b>,
                             }}
                         />
                     );
@@ -81,7 +81,7 @@ export default class NotifyConfirmModal extends React.PureComponent<Props> {
                             values={{
                                 mention: mentions[0],
                                 totalMembers: memberNotifyCount,
-                                b: (chunks: string) => <b>{chunks}</b>,
+                                b: (chunks) => <b>{chunks}</b>,
                             }}
                         />
                     );
@@ -96,7 +96,7 @@ export default class NotifyConfirmModal extends React.PureComponent<Props> {
                             finalMention: mentions[mentions.length - 1],
                             totalMembers: memberNotifyCount,
                             timezones: channelTimezoneCount,
-                            b: (chunks: string) => <b>{chunks}</b>,
+                            b: (chunks) => <b>{chunks}</b>,
                         }}
                     />
                 );
@@ -109,7 +109,7 @@ export default class NotifyConfirmModal extends React.PureComponent<Props> {
                             mentions: mentions.slice(0, -1).join(', '),
                             finalMention: mentions[mentions.length - 1],
                             totalMembers: memberNotifyCount,
-                            b: (chunks: string) => <b>{chunks}</b>,
+                            b: (chunks) => <b>{chunks}</b>,
                         }}
                     />
                 );

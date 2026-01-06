@@ -5,6 +5,7 @@ package model
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -35,6 +36,23 @@ func TestPropertyField_PreSave(t *testing.T) {
 		pf := &PropertyField{}
 		pf.PreSave()
 		assert.Equal(t, pf.CreateAt, pf.UpdateAt)
+	})
+
+	t.Run("sets DeleteAt to 0 for new fields", func(t *testing.T) {
+		pf := &PropertyField{DeleteAt: 12345}
+		pf.PreSave()
+		assert.Zero(t, pf.DeleteAt)
+	})
+
+	t.Run("always sets DeleteAt to 0", func(t *testing.T) {
+		existingCreateAt := int64(12345)
+		existingDeleteAt := int64(67890)
+		pf := &PropertyField{
+			CreateAt: existingCreateAt,
+			DeleteAt: existingDeleteAt,
+		}
+		pf.PreSave()
+		assert.Zero(t, pf.DeleteAt)
 	})
 }
 
@@ -122,6 +140,88 @@ func TestPropertyField_IsValid(t *testing.T) {
 		}
 		require.Error(t, pf.IsValid())
 	})
+
+	t.Run("Name exceeds maximum length", func(t *testing.T) {
+		longName := strings.Repeat("a", PropertyFieldNameMaxRunes+1)
+		pf := &PropertyField{
+			ID:       NewId(),
+			GroupID:  NewId(),
+			Name:     longName,
+			Type:     PropertyFieldTypeText,
+			CreateAt: GetMillis(),
+			UpdateAt: GetMillis(),
+		}
+		require.Error(t, pf.IsValid())
+	})
+
+	t.Run("TargetType exceeds maximum length", func(t *testing.T) {
+		longTargetType := strings.Repeat("a", PropertyFieldTargetTypeMaxRunes+1)
+		pf := &PropertyField{
+			ID:         NewId(),
+			GroupID:    NewId(),
+			Name:       "test field",
+			Type:       PropertyFieldTypeText,
+			TargetType: longTargetType,
+			CreateAt:   GetMillis(),
+			UpdateAt:   GetMillis(),
+		}
+		require.Error(t, pf.IsValid())
+	})
+
+	t.Run("TargetID exceeds maximum length", func(t *testing.T) {
+		longTargetID := strings.Repeat("a", PropertyFieldTargetIDMaxRunes+1)
+		pf := &PropertyField{
+			ID:       NewId(),
+			GroupID:  NewId(),
+			Name:     "test field",
+			Type:     PropertyFieldTypeText,
+			TargetID: longTargetID,
+			CreateAt: GetMillis(),
+			UpdateAt: GetMillis(),
+		}
+		require.Error(t, pf.IsValid())
+	})
+
+	t.Run("Name at maximum length is valid", func(t *testing.T) {
+		maxLengthName := strings.Repeat("a", PropertyFieldNameMaxRunes)
+		pf := &PropertyField{
+			ID:       NewId(),
+			GroupID:  NewId(),
+			Name:     maxLengthName,
+			Type:     PropertyFieldTypeText,
+			CreateAt: GetMillis(),
+			UpdateAt: GetMillis(),
+		}
+		require.NoError(t, pf.IsValid())
+	})
+
+	t.Run("TargetType at maximum length is valid", func(t *testing.T) {
+		maxLengthTargetType := strings.Repeat("a", PropertyFieldTargetTypeMaxRunes)
+		pf := &PropertyField{
+			ID:         NewId(),
+			GroupID:    NewId(),
+			Name:       "test field",
+			Type:       PropertyFieldTypeText,
+			TargetType: maxLengthTargetType,
+			CreateAt:   GetMillis(),
+			UpdateAt:   GetMillis(),
+		}
+		require.NoError(t, pf.IsValid())
+	})
+
+	t.Run("TargetID at maximum length is valid", func(t *testing.T) {
+		maxLengthTargetID := strings.Repeat("a", PropertyFieldTargetIDMaxRunes)
+		pf := &PropertyField{
+			ID:       NewId(),
+			GroupID:  NewId(),
+			Name:     "test field",
+			Type:     PropertyFieldTypeText,
+			TargetID: maxLengthTargetID,
+			CreateAt: GetMillis(),
+			UpdateAt: GetMillis(),
+		}
+		require.NoError(t, pf.IsValid())
+	})
 }
 
 func TestPropertyFieldPatch_IsValid(t *testing.T) {
@@ -154,6 +254,54 @@ func TestPropertyFieldPatch_IsValid(t *testing.T) {
 		patch := &PropertyFieldPatch{
 			Name: nil,
 			Type: nil,
+		}
+		require.NoError(t, patch.IsValid())
+	})
+
+	t.Run("Name exceeds maximum length", func(t *testing.T) {
+		longName := strings.Repeat("a", PropertyFieldNameMaxRunes+1)
+		patch := &PropertyFieldPatch{
+			Name: &longName,
+		}
+		require.Error(t, patch.IsValid())
+	})
+
+	t.Run("TargetType exceeds maximum length", func(t *testing.T) {
+		longTargetType := strings.Repeat("a", PropertyFieldTargetTypeMaxRunes+1)
+		patch := &PropertyFieldPatch{
+			TargetType: &longTargetType,
+		}
+		require.Error(t, patch.IsValid())
+	})
+
+	t.Run("TargetID exceeds maximum length", func(t *testing.T) {
+		longTargetID := strings.Repeat("a", PropertyFieldTargetIDMaxRunes+1)
+		patch := &PropertyFieldPatch{
+			TargetID: &longTargetID,
+		}
+		require.Error(t, patch.IsValid())
+	})
+
+	t.Run("Name at maximum length is valid", func(t *testing.T) {
+		maxLengthName := strings.Repeat("a", PropertyFieldNameMaxRunes)
+		patch := &PropertyFieldPatch{
+			Name: &maxLengthName,
+		}
+		require.NoError(t, patch.IsValid())
+	})
+
+	t.Run("TargetType at maximum length is valid", func(t *testing.T) {
+		maxLengthTargetType := strings.Repeat("a", PropertyFieldTargetTypeMaxRunes)
+		patch := &PropertyFieldPatch{
+			TargetType: &maxLengthTargetType,
+		}
+		require.NoError(t, patch.IsValid())
+	})
+
+	t.Run("TargetID at maximum length is valid", func(t *testing.T) {
+		maxLengthTargetID := strings.Repeat("a", PropertyFieldTargetIDMaxRunes)
+		patch := &PropertyFieldPatch{
+			TargetID: &maxLengthTargetID,
 		}
 		require.NoError(t, patch.IsValid())
 	})

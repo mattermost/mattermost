@@ -264,7 +264,7 @@ describe('components/ProfilePopover', () => {
     (Client4.getCallsChannelState as jest.Mock).mockImplementation(async () => ({enabled: true}));
 
     test('should correctly handle remote users based on connection status', async () => {
-        // Test 1: Verify shared user indicator is shown for any remote user
+        // Test 1: Verify shared user is shown for any remote user
         {
             const [props, initialState] = getBasePropsAndState();
             initialState.entities!.users!.profiles!.user1!.remote_id = 'fakeuser';
@@ -274,7 +274,7 @@ describe('components/ProfilePopover', () => {
             };
 
             const {unmount} = renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
-            expect(await screen.findByLabelText('shared user indicator')).toBeInTheDocument();
+            expect(await screen.findByLabelText('shared user')).toBeInTheDocument();
             unmount();
         }
 
@@ -611,11 +611,11 @@ describe('components/ProfilePopover', () => {
         };
 
         renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
-        await act(async () => {
-            expect(await screen.findByText('Private')).toBeInTheDocument();
-            expect(await screen.findByText('CO')).toBeInTheDocument();
-            expect(await screen.findByText('Seargent York')).toBeInTheDocument();
-        });
+
+        expect(await screen.findByText('Private')).toBeInTheDocument();
+        expect(await screen.findByText('CO')).toBeInTheDocument();
+        expect(await screen.findByText('Seargent York')).toBeInTheDocument();
+
         expect(screen.queryByText('Rank')).toBeInTheDocument();
         expect(screen.queryByText('Base')).not.toBeInTheDocument();
     });
@@ -648,10 +648,9 @@ describe('components/ProfilePopover', () => {
         };
 
         renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
-        await act(async () => {
-            expect(await screen.findByText('Engineering')).toBeInTheDocument();
-            expect(screen.queryByText('opt1')).not.toBeInTheDocument();
-        });
+
+        expect(await screen.findByText('Engineering')).toBeInTheDocument();
+        expect(screen.queryByText('opt1')).not.toBeInTheDocument();
     });
 
     test('should display multiselect attribute values correctly', async () => {
@@ -682,10 +681,9 @@ describe('components/ProfilePopover', () => {
         };
 
         renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
-        await act(async () => {
-            expect(await screen.findByText(/JavaScript/)).toBeInTheDocument();
-            expect(await screen.findByText(/Python/)).toBeInTheDocument();
-        });
+
+        expect(await screen.findByText(/JavaScript/)).toBeInTheDocument();
+        expect(await screen.findByText(/Python/)).toBeInTheDocument();
     });
 
     test('should not display attributes if user attributes is null', async () => {
@@ -757,9 +755,8 @@ describe('components/ProfilePopover', () => {
         };
 
         renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
-        await act(async () => {
-            expect(await screen.findByText('Private')).toBeInTheDocument();
-            expect(await screen.findByText('Seargent York')).toBeInTheDocument();
-        });
+
+        expect(await screen.findByText('Private')).toBeInTheDocument();
+        expect(await screen.findByText('Seargent York')).toBeInTheDocument();
     });
 });

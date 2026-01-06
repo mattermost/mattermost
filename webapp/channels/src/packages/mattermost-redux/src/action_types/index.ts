@@ -4,12 +4,14 @@
 import type {AnyAction} from 'redux';
 
 import AdminTypes from './admin';
+import AgentTypes from './agents';
 import AppsTypes from './apps';
 import BotTypes from './bots';
 import ChannelBookmarkTypes from './channel_bookmarks';
 import ChannelCategoryTypes from './channel_categories';
 import ChannelTypes from './channels';
 import CloudTypes from './cloud';
+import ContentFlaggingTypes from './content_flagging';
 import DraftTypes from './drafts';
 import EmojiTypes from './emojis';
 import ErrorTypes from './errors';
@@ -63,6 +65,8 @@ export {
     ChannelBookmarkTypes,
     ScheduledPostTypes,
     SharedChannelTypes,
+    ContentFlaggingTypes,
+    AgentTypes,
 };
 
 /**

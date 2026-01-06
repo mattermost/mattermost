@@ -11,7 +11,7 @@ type Props = {
     /**
      * URL to return to
      */
-    url: string;
+    url?: string;
 
     className?: string;
 
@@ -21,7 +21,7 @@ type Props = {
     onClick?: React.EventHandler<React.MouseEvent>;
 }
 
-const BackButton = ({url, className, onClick}: Props): JSX.Element => {
+const BackButton = ({url = '/', className, onClick}: Props): JSX.Element => {
     const {formatMessage} = useIntl();
 
     return (
@@ -43,9 +43,6 @@ const BackButton = ({url, className, onClick}: Props): JSX.Element => {
             </Link>
         </div>
     );
-};
-BackButton.defaultProps = {
-    url: '/',
 };
 
 export default BackButton;

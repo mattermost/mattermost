@@ -8,7 +8,7 @@ import {Link} from 'react-router-dom';
 
 import type {Channel} from '@mattermost/types/channels';
 
-import {mark, trackEvent} from 'actions/telemetry_actions';
+import {mark} from 'actions/telemetry_actions';
 
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
@@ -151,10 +151,6 @@ export class SidebarChannelLink extends React.PureComponent<Props, State> {
         if (this.props.rhsOpen && this.props.rhsState === RHSStates.EDIT_HISTORY) {
             this.props.actions.closeRightHandSide();
         }
-
-        setTimeout(() => {
-            trackEvent('ui', 'ui_channel_selected_v2');
-        }, 0);
     };
 
     handleSelectChannel = (event: React.MouseEvent<HTMLAnchorElement>): void => {

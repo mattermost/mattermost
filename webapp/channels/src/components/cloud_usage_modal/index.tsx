@@ -2,16 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {useSelector} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 import type {Limits} from '@mattermost/types/cloud';
 
-import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
-
 import useGetLimits from 'components/common/hooks/useGetLimits';
 import useGetUsage from 'components/common/hooks/useGetUsage';
-import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 
 import type {Message} from 'utils/i18n';
 
@@ -33,17 +29,13 @@ export interface Props {
     backdrop?: boolean;
     backdropClassName?: string;
     className?: string;
-
-    // e.g. in contexts where the CompassThemeProvider isn't already applied, like the system console
-    needsTheme?: boolean;
 }
 
 export default function CloudUsageModal(props: Props) {
     const [limits] = useGetLimits();
     const usage = useGetUsage();
-    const theme = useSelector(getTheme);
 
-    const modal = (
+    return (
         <GenericModal
             handleCancel={props.onClose}
             compassDesign={true}
@@ -67,15 +59,5 @@ export default function CloudUsageModal(props: Props) {
                 />
             </>
         </GenericModal>
-    );
-
-    if (!props.needsTheme) {
-        return modal;
-    }
-
-    return (
-        <CompassThemeProvider theme={theme}>
-            {modal}
-        </CompassThemeProvider>
     );
 }

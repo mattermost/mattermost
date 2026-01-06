@@ -1,0 +1,54 @@
+  /api/v4/agents:
+    get:
+      tags:
+        - agents
+      summary: Get available agents
+      description: >
+        Retrieve all available agents from the plugin's bridge API.
+        If a user ID is provided, only agents accessible to that user are returned.
+
+        ##### Permissions
+
+        Must be authenticated.
+
+        __Minimum server version__: 11.2
+      operationId: GetAgents
+      responses:
+        "200":
+          description: Agents retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentsResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /api/v4/llmservices:
+    get:
+      tags:
+        - agents
+      summary: Get available LLM services
+      description: >
+        Retrieve all available LLM services from the plugin's bridge API.
+        If a user ID is provided, only services accessible to that user
+        (via their permitted bots) are returned.
+
+        ##### Permissions
+
+        Must be authenticated.
+
+        __Minimum server version__: 11.2
+      operationId: GetLLMServices
+      responses:
+        "200":
+          description: LLM services retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServicesResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+

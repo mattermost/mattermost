@@ -31,9 +31,9 @@ func (a *App) GetBookmark(bookmarkId string, includeDeleted bool) (*model.Channe
 	return bookmark, nil
 }
 
-func (a *App) CreateChannelBookmark(c request.CTX, newBookmark *model.ChannelBookmark, connectionId string) (*model.ChannelBookmarkWithFileInfo, *model.AppError) {
-	newBookmark.OwnerId = c.Session().UserId //ensure that the bookmark is being created by the user who owns the session
-	newBookmark.Id = ""                      // ensure that creating a new bookmark generates a new ID
+func (a *App) CreateChannelBookmark(rctx request.CTX, newBookmark *model.ChannelBookmark, connectionId string) (*model.ChannelBookmarkWithFileInfo, *model.AppError) {
+	newBookmark.OwnerId = rctx.Session().UserId //ensure that the bookmark is being created by the user who owns the session
+	newBookmark.Id = ""                         // ensure that creating a new bookmark generates a new ID
 	bookmark, err := a.Srv().Store().ChannelBookmark().Save(newBookmark, true)
 	if err != nil {
 		return nil, model.NewAppError("CreateChannelBookmark", "app.channel.bookmark.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -49,9 +49,9 @@ func (a *App) CreateChannelBookmark(c request.CTX, newBookmark *model.ChannelBoo
 	return bookmark, nil
 }
 
-func (a *App) UpdateChannelBookmark(c request.CTX, updateBookmark *model.ChannelBookmarkWithFileInfo, connectionId string) (*model.UpdateChannelBookmarkResponse, *model.AppError) {
+func (a *App) UpdateChannelBookmark(rctx request.CTX, updateBookmark *model.ChannelBookmarkWithFileInfo, connectionId string) (*model.UpdateChannelBookmarkResponse, *model.AppError) {
 	response := &model.UpdateChannelBookmarkResponse{}
-	if updateBookmark.OwnerId == c.Session().UserId {
+	if updateBookmark.OwnerId == rctx.Session().UserId {
 		isAnotherFile := updateBookmark.FileInfo != nil && updateBookmark.FileId != "" && updateBookmark.FileId != updateBookmark.FileInfo.Id
 
 		if isAnotherFile {
@@ -84,7 +84,7 @@ func (a *App) UpdateChannelBookmark(c request.CTX, updateBookmark *model.Channel
 			return nil, model.NewAppError("UpdateChannelBookmark", "app.channel.bookmark.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
-		newBookmark := updateBookmark.SetOriginal(c.Session().UserId)
+		newBookmark := updateBookmark.SetOriginal(rctx.Session().UserId)
 		bookmark, err := a.Srv().Store().ChannelBookmark().Save(newBookmark, false)
 		if err != nil {
 			return nil, model.NewAppError("UpdateChannelBookmark", "app.channel.bookmark.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)

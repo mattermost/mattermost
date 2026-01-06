@@ -6,8 +6,17 @@ package model
 import (
 	"encoding/json"
 	"net/http"
+	"unicode/utf8"
 
 	"github.com/pkg/errors"
+)
+
+const (
+	PropertyValueTargetIDMaxRunes   = 255
+	PropertyValueTargetTypeMaxRunes = 255
+
+	PropertyValueTargetTypePost = "post"
+	PropertyValueTargetTypeUser = "user"
 )
 
 type PropertyValue struct {
@@ -44,6 +53,14 @@ func (pv *PropertyValue) IsValid() error {
 
 	if pv.TargetType == "" {
 		return NewAppError("PropertyValue.IsValid", "model.property_value.is_valid.app_error", map[string]any{"FieldName": "target_type", "Reason": "value cannot be empty"}, "id="+pv.ID, http.StatusBadRequest)
+	}
+
+	if utf8.RuneCountInString(pv.TargetType) > PropertyValueTargetTypeMaxRunes {
+		return NewAppError("PropertyValue.IsValid", "model.property_value.is_valid.app_error", map[string]any{"FieldName": "target_type", "Reason": "value exceeds maximum length"}, "id="+pv.ID, http.StatusBadRequest)
+	}
+
+	if utf8.RuneCountInString(pv.TargetID) > PropertyValueTargetIDMaxRunes {
+		return NewAppError("PropertyValue.IsValid", "model.property_value.is_valid.app_error", map[string]any{"FieldName": "target_id", "Reason": "value exceeds maximum length"}, "id="+pv.ID, http.StatusBadRequest)
 	}
 
 	if !IsValidId(pv.GroupID) {
@@ -92,9 +109,11 @@ func (p PropertyValueSearchCursor) IsValid() error {
 type PropertyValueSearchOpts struct {
 	GroupID        string
 	TargetType     string
-	TargetID       string
+	TargetIDs      []string
 	FieldID        string
+	SinceUpdateAt  int64 // UpdateAt after which to send the items
 	IncludeDeleted bool
 	Cursor         PropertyValueSearchCursor
 	PerPage        int
+	Value          json.RawMessage
 }

@@ -16,7 +16,7 @@ const minimalLimits = {
 
 describe('limits reducer', () => {
     test('returns empty limits by default', () => {
-        expect(limits(undefined, {type: undefined})).toEqual({
+        expect(limits(undefined, {type: 'testinit'})).toEqual({
             limits: {},
             limitsLoaded: false,
         });
@@ -26,7 +26,7 @@ describe('limits reducer', () => {
         const unchangedLimits = limits(
             minimalLimits,
             {
-                type: undefined,
+                type: 'testinit',
             },
         );
         expect(unchangedLimits).toEqual(minimalLimits);

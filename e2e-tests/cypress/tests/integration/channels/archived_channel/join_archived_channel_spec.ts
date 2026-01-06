@@ -18,12 +18,6 @@ describe('Archived channels', () => {
     let testUser;
 
     before(() => {
-        cy.apiUpdateConfig({
-            TeamSettings: {
-                ExperimentalViewArchivedChannels: true,
-            },
-        });
-
         cy.apiInitSetup().then(({team, user}) => {
             testTeam = team;
             testUser = user;

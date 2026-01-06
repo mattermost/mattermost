@@ -11,7 +11,6 @@ import type {Post} from '@mattermost/types/posts';
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import type {OpenedFromType} from 'components/plugin_marketplace/marketplace_modal';
 import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
@@ -130,15 +129,16 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
     };
 
     handleOpenMarketplace = (): void => {
-        const openedFrom: OpenedFromType = 'actions_menu';
-        const openMarketplaceData = {
-            modalId: ModalIdentifiers.PLUGIN_MARKETPLACE,
-            dialogType: MarketplaceModal,
-            dialogProps: {openedFrom},
-        };
-        this.props.actions.openModal(openMarketplaceData);
-
         this.closeDropdown();
+
+        // Wait for the menu to close to avoid clashing between the menu's focus trap and the modal's
+        requestAnimationFrame(() => {
+            const openMarketplaceData = {
+                modalId: ModalIdentifiers.PLUGIN_MARKETPLACE,
+                dialogType: MarketplaceModal,
+            };
+            this.props.actions.openModal(openMarketplaceData);
+        });
     };
 
     onClickAppBinding = async (binding: AppBinding) => {

@@ -5,7 +5,7 @@ import truncate from 'lodash/truncate';
 import React from 'react';
 import type {KeyboardEvent, MouseEvent, CSSProperties} from 'react';
 
-import type {PostAction, PostActionOption} from '@mattermost/types/integration_actions';
+import type {PostActionOption} from '@mattermost/types/integration_actions';
 import type {
     MessageAttachment as MessageAttachmentType,
 } from '@mattermost/types/message_attachments';
@@ -13,8 +13,6 @@ import type {PostImage} from '@mattermost/types/posts';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {secureGetFromRecord} from 'mattermost-redux/utils/post_utils';
-
-import {trackEvent} from 'actions/telemetry_actions';
 
 import ExternalImage from 'components/external_image';
 import ExternalLink from 'components/external_link';
@@ -144,7 +142,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
 
         const content = [] as JSX.Element[];
 
-        actions.forEach((action: PostAction) => {
+        actions.forEach((action) => {
             if (!action.id || !action.name) {
                 return;
             }
@@ -191,11 +189,6 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
         const actionExecutingMessage = this.getActionOption(actionOptions, 'ActionExecutingMessage');
         if (actionExecutingMessage) {
             this.setState({actionExecuting: true, actionExecutingMessage: actionExecutingMessage.value});
-        }
-
-        const trackOption = this.getActionOption(actionOptions, 'TrackEventId');
-        if (trackOption) {
-            trackEvent('admin', 'click_warn_metric_bot_id', {metric: trackOption.value});
         }
 
         const actionId = e.currentTarget.getAttribute('data-action-id') || '';

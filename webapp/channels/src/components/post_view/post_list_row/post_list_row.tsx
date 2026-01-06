@@ -5,7 +5,6 @@ import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {CloudUsage, Limits} from '@mattermost/types/cloud';
 import type {Post} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -51,10 +50,6 @@ export type PostListRowProps = {
      */
     loadingNewerPosts: boolean;
     loadingOlderPosts: boolean;
-
-    usage: CloudUsage;
-    limits: Limits;
-    limitsLoaded: boolean;
     exceededLimitChannelId?: string;
     firstInaccessiblePostTime?: number;
     channelId: string;
@@ -125,10 +120,7 @@ export default class PostListRow extends React.PureComponent<PostListRowProps> {
 
         if (this.props.exceededLimitChannelId) {
             return (
-                <CenterMessageLock
-                    channelId={this.props.exceededLimitChannelId}
-                    firstInaccessiblePostTime={this.props.firstInaccessiblePostTime}
-                />
+                <CenterMessageLock/>
             );
         }
 
@@ -185,6 +177,11 @@ export default class PostListRow extends React.PureComponent<PostListRowProps> {
                     {...postProps}
                 />
             );
+        }
+
+        // Don't render if post has been deleted/removed
+        if (!this.props.post) {
+            return null;
         }
 
         return (

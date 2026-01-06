@@ -6,8 +6,6 @@ import {useIntl} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import LeaveChannelModal from 'components/leave_channel_modal';
 import SidebarChannelLink from 'components/sidebar/sidebar_channel/sidebar_channel_link';
 
@@ -31,13 +29,11 @@ const SidebarBaseChannel = ({
 
     const handleLeavePublicChannel = useCallback((callback: () => void) => {
         actions.leaveChannel(channel.id);
-        trackEvent('ui', 'ui_public_channel_x_button_clicked');
         callback();
     }, [channel.id, actions.leaveChannel]);
 
     const handleLeavePrivateChannel = useCallback((callback: () => void) => {
         actions.openModal({modalId: ModalIdentifiers.LEAVE_PRIVATE_CHANNEL_MODAL, dialogType: LeaveChannelModal, dialogProps: {channel}});
-        trackEvent('ui', 'ui_private_channel_x_button_clicked');
         callback();
     }, [channel, actions.openModal]);
 

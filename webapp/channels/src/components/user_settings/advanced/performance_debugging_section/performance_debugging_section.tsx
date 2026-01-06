@@ -69,9 +69,6 @@ const PerformanceDebuggingSectionCollapsed = React.forwardRef<SettingItemMinComp
     if (props.disableClientPlugins) {
         settingsEnabled += 1;
     }
-    if (props.disableTelemetry) {
-        settingsEnabled += 1;
-    }
     if (props.disableTypingMessages) {
         settingsEnabled += 1;
     }
@@ -112,7 +109,6 @@ const PerformanceDebuggingSectionCollapsed = React.forwardRef<SettingItemMinComp
 
 function PerformanceDebuggingSectionExpanded(props: Props) {
     const [disableClientPlugins, setDisableClientPlugins] = useState(props.disableClientPlugins);
-    const [disableTelemetry, setDisableTelemetry] = useState(props.disableTelemetry);
     const [disableTypingMessages, setDisableTypingMessages] = useState(props.disableTypingMessages);
 
     const handleSubmit = useCallback(() => {
@@ -128,14 +124,6 @@ function PerformanceDebuggingSectionExpanded(props: Props) {
                 category: Preferences.CATEGORY_PERFORMANCE_DEBUGGING,
                 name: Preferences.NAME_DISABLE_CLIENT_PLUGINS,
                 value: disableClientPlugins.toString(),
-            });
-        }
-        if (disableTelemetry !== props.disableTelemetry) {
-            preferences.push({
-                user_id: props.userId,
-                category: Preferences.CATEGORY_PERFORMANCE_DEBUGGING,
-                name: Preferences.NAME_DISABLE_TELEMETRY,
-                value: disableTelemetry.toString(),
             });
         }
         if (disableTypingMessages !== props.disableTypingMessages) {
@@ -157,7 +145,6 @@ function PerformanceDebuggingSectionExpanded(props: Props) {
         props.onUpdateSection,
         props.savePreferences,
         disableClientPlugins,
-        disableTelemetry,
         disableTypingMessages,
     ]);
 
@@ -183,21 +170,6 @@ function PerformanceDebuggingSectionExpanded(props: Props) {
                             <FormattedMessage
                                 id='user.settings.advance.performance.disableClientPlugins'
                                 defaultMessage='Disable Client-side Plugins'
-                            />
-                        </label>
-                    </div>
-                    <div className='checkbox'>
-                        <label>
-                            <input
-                                type='checkbox'
-                                checked={disableTelemetry}
-                                onChange={(e) => {
-                                    setDisableTelemetry(e.target.checked);
-                                }}
-                            />
-                            <FormattedMessage
-                                id='user.settings.advance.performance.disableTelemetry'
-                                defaultMessage='Disable telemetry events sent from the client'
                             />
                         </label>
                     </div>

@@ -1,1 +1,74 @@
-[]
+[
+  {
+    "id": "April",
+    "translation": "ابريل"
+  },
+  {
+    "id": "August",
+    "translation": "أغسطس"
+  },
+  {
+    "id": "December",
+    "translation": "ديسمبر"
+  },
+  {
+    "id": "February",
+    "translation": "فبراير"
+  },
+  {
+    "id": "January",
+    "translation": "يناير"
+  },
+  {
+    "id": "July",
+    "translation": "يوليو"
+  },
+  {
+    "id": "June",
+    "translation": "يونيو"
+  },
+  {
+    "id": "March",
+    "translation": "مارس"
+  },
+  {
+    "id": "May",
+    "translation": "مايو"
+  },
+  {
+    "id": "November",
+    "translation": "نوفمبر"
+  },
+  {
+    "id": "October",
+    "translation": "أكتوبر"
+  },
+  {
+    "id": "September",
+    "translation": "سبتمبر"
+  },
+  {
+    "id": "api.access_control_policy.get_channels.limit.app_error",
+    "translation": "حد الحصول على القنوات غير صالح."
+  },
+  {
+    "id": "api.access_control_policy.get_fields.limit.app_error",
+    "translation": "حد الحصول على الحقول غير صالح."
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "لا يمكنك إزالة إقرار في قناة مؤرشفة."
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "لا يمكنك حذف إقرار بعد مرور 5 دقائق."
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "لا يمكنك حفظ إقرار في قناة مؤرشفة."
+  },
+  {
+    "id": "api.admin.add_certificate.app_error",
+    "translation": "فشل في إضافة الشهادة."
+  }
+]

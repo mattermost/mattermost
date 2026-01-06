@@ -2135,10 +2135,6 @@
     "translation": "Απέτυχε η συγχώνευση της ρύθμισης που έχει δοθεί."
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Η νέα μορφή για τη διαμόρφωση του πελάτη δεν υποστηρίζεται ακόμη. Προσδιορίστε format=old στη συμβολοσειρά ερωτήματος."
-  },
-  {
     "id": "api.command_share.unshare_channel.help",
     "translation": "Καταργεί την κοινή χρήση του τρέχοντος καναλιού"
   },
@@ -2355,10 +2351,6 @@
   {
     "id": "api.error_set_first_admin_visit_marketplace_status",
     "translation": "Σφάλμα κατά την προσπάθεια αποθήκευσης της κατάστασης της πρώτης επίσκεψης του διαχειριστή στο marketplace."
-  },
-  {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Λείπει το client_secret."
   },
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",

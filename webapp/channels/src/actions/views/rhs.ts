@@ -18,13 +18,11 @@ import {
     searchFilesWithParams,
 } from 'mattermost-redux/actions/search';
 import {getCurrentChannelId, getCurrentChannelNameForSearchShortcut, getChannel as getChannelSelector} from 'mattermost-redux/selectors/entities/channels';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getLatestInteractablePostId, getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {
     getSearchType,
     getSearchTerms,
@@ -211,8 +209,6 @@ function updateSearchResultsType(searchType: string) {
 export function performSearch(terms: string, teamId: string, isMentionSearch?: boolean): ThunkActionFunc<unknown> {
     return (dispatch, getState) => {
         let searchTerms = terms;
-        const config = getConfig(getState());
-        const viewArchivedChannels = config.ExperimentalViewArchivedChannels === 'true';
         const extensionsFilters = getFilesSearchExtFilter(getState());
 
         const extensions = extensionsFilters?.map((ext) => `ext:${ext}`).join(' ');
@@ -234,8 +230,8 @@ export function performSearch(terms: string, teamId: string, isMentionSearch?: b
         // timezone offset in seconds
         const userCurrentTimezone = getCurrentTimezone(getState());
         const timezoneOffset = ((userCurrentTimezone && (userCurrentTimezone.length > 0)) ? getUtcOffsetForTimeZone(userCurrentTimezone) : getBrowserUtcOffset()) * 60;
-        const messagesPromise = dispatch(searchPostsWithParams(teamId, {terms: searchTerms, is_or_search: Boolean(isMentionSearch), include_deleted_channels: viewArchivedChannels, time_zone_offset: timezoneOffset, page: 0, per_page: 20}));
-        const filesPromise = dispatch(searchFilesWithParams(teamId, {terms: termsWithExtensionsFilters, is_or_search: Boolean(isMentionSearch), include_deleted_channels: viewArchivedChannels, time_zone_offset: timezoneOffset, page: 0, per_page: 20}));
+        const messagesPromise = dispatch(searchPostsWithParams(teamId, {terms: searchTerms, is_or_search: Boolean(isMentionSearch), include_deleted_channels: true, time_zone_offset: timezoneOffset, page: 0, per_page: 20}));
+        const filesPromise = dispatch(searchFilesWithParams(teamId, {terms: termsWithExtensionsFilters, is_or_search: Boolean(isMentionSearch), include_deleted_channels: true, time_zone_offset: timezoneOffset, page: 0, per_page: 20}));
         return Promise.all([filesPromise, messagesPromise]);
     };
 }
@@ -468,8 +464,6 @@ export function showMentions(): ActionFunc<boolean> {
         });
 
         const terms = termKeys.map(({key}) => key).join(' ').trim() + ' ';
-
-        trackEvent('api', 'api_posts_search_mention');
 
         dispatch(performSearch(terms, '', true));
         dispatch(batchActions([

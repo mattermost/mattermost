@@ -31,6 +31,10 @@ type SubjectSearchOptions struct {
 	// ExcludeChannelMembers is used to exclude members from the search results
 	// specifically used when syncing channel members
 	ExcludeChannelMembers string `json:"exclude_members"`
+	// SubjectID is used to filter search results to a specific user ID
+	// This is particularly useful for validation queries where we only need to check
+	// if a specific user matches an expression, rather than fetching all matching users
+	SubjectID string `json:"subject_id"`
 }
 
 type SubjectCursor struct {
@@ -67,4 +71,5 @@ type QueryExpressionParams struct {
 	Term       string `json:"term"`
 	Limit      int    `json:"limit"`
 	After      string `json:"after"`
+	ChannelId  string `json:"channelId,omitempty"`
 }

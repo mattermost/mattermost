@@ -27,6 +27,7 @@ import (
 
 const (
 	MaxGroupChannelsForProfiles = 50
+	ContentReviewerSearchLimit  = 50
 )
 
 var (
@@ -89,6 +90,14 @@ func getUsersColumns() []string {
 	}
 }
 
+func getBotInfoColumns() []string {
+	return []string{
+		"b.UserId IS NOT NULL AS IsBot",
+		"COALESCE(b.Description, '') AS BotDescription",
+		"COALESCE(b.LastIconUpdate, 0) AS BotLastIconUpdate",
+	}
+}
+
 func newSqlUserStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.UserStore {
 	us := &SqlUserStore{
 		SqlStore: sqlStore,
@@ -99,11 +108,7 @@ func newSqlUserStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) s
 		// Together with getUsersColumns, the order specified here must match
 		// with [SqlUserStore.Get] and [SqlUserStore.GetAllProfilesInChannel].
 		Select(getUsersColumns()...).
-		Columns(
-			"b.UserId IS NOT NULL AS IsBot",
-			"COALESCE(b.Description, '') AS BotDescription",
-			"COALESCE(b.LastIconUpdate, 0) AS BotLastIconUpdate",
-		).
+		Columns(getBotInfoColumns()...).
 		From("Users").
 		LeftJoin("Bots b ON ( b.UserId = Users.Id )")
 
@@ -206,6 +211,34 @@ func (us SqlUserStore) DeactivateGuests() ([]string, error) {
 	return userIds, nil
 }
 
+func (us SqlUserStore) DeactivateMagicLinkGuests() ([]string, error) {
+	curTime := model.GetMillis()
+	updateQuery := us.getQueryBuilder().Update("Users").
+		Set("UpdateAt", curTime).
+		Set("DeleteAt", curTime).
+		Set("Roles", "system_user").
+		Where(sq.Eq{"DeleteAt": 0}).
+		Where(sq.Eq{"AuthService": model.UserAuthServiceMagicLink})
+
+	_, err := us.GetMaster().ExecBuilder(updateQuery)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to update Users with auth_service=magic_link")
+	}
+
+	selectQuery := us.getQueryBuilder().
+		Select("Id").
+		From("Users").
+		Where(sq.Eq{"DeleteAt": curTime})
+
+	userIds := []string{}
+	err = us.GetMaster().SelectBuilder(&userIds, selectQuery)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to find Users")
+	}
+
+	return userIds, nil
+}
+
 func (us SqlUserStore) Update(rctx request.CTX, user *model.User, trustedUpdateData bool) (*model.UserUpdate, error) {
 	user.PreUpdate()
 
@@ -244,18 +277,29 @@ func (us SqlUserStore) Update(rctx request.CTX, user *model.User, trustedUpdateD
 	if !trustedUpdateData {
 		user.Roles = oldUser.Roles
 		user.DeleteAt = oldUser.DeleteAt
-	}
 
-	if user.IsOAuthUser() {
-		if !trustedUpdateData {
+		if user.IsOAuthUser() {
 			user.Email = oldUser.Email
 		}
-	} else if user.IsLDAPUser() && !trustedUpdateData {
-		if user.Username != oldUser.Username || user.Email != oldUser.Email {
-			return nil, store.NewErrInvalidInput("User", "id", user.Id)
+
+		if user.IsLDAPUser() {
+			if user.Username != oldUser.Username {
+				return nil, store.NewErrInvalidInput("User", "id", user.Id)
+			}
+			if user.Email != oldUser.Email {
+				return nil, store.NewErrInvalidInput("User", "email", user.Id)
+			}
 		}
-	} else if user.Email != oldUser.Email {
-		user.EmailVerified = false
+
+		if user.Email != oldUser.Email {
+			user.EmailVerified = false
+		}
+	}
+
+	// In the past, changing the email of a SSO user would mark the email as unverified.
+	// This is a lazy migration to fix broken records.
+	if user.IsSSOUser() {
+		user.EmailVerified = true
 	}
 
 	if user.Username != oldUser.Username {
@@ -499,10 +543,10 @@ func (us SqlUserStore) GetMfaUsedTimestamps(userId string) ([]int, error) {
 }
 
 // GetMany returns a list of users for the provided list of ids
-func (us SqlUserStore) GetMany(ctx context.Context, ids []string) ([]*model.User, error) {
+func (us SqlUserStore) GetMany(rctx request.CTX, ids []string) ([]*model.User, error) {
 	query := us.usersQuery.Where(sq.Eq{"Id": ids})
 	users := []*model.User{}
-	if err := us.SqlStore.DBXFromContext(ctx).SelectBuilderCtx(ctx, &users, query); err != nil {
+	if err := us.SqlStore.DBXFromContext(rctx.Context()).SelectBuilderCtx(rctx.Context(), &users, query); err != nil {
 		return nil, errors.Wrap(err, "users_get_many_select")
 	}
 
@@ -1102,7 +1146,7 @@ func (us SqlUserStore) GetNewUsersForTeam(teamId string, offset, limit int, view
 	return users, nil
 }
 
-func (us SqlUserStore) GetProfileByIds(ctx context.Context, userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) ([]*model.User, error) {
+func (us SqlUserStore) GetProfileByIds(rctx request.CTX, userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) ([]*model.User, error) {
 	if options == nil {
 		options = &store.UserGetByIdsOpts{}
 	}
@@ -1127,7 +1171,7 @@ func (us SqlUserStore) GetProfileByIds(ctx context.Context, userIds []string, op
 		return nil, errors.Wrap(err, "get_profile_by_ids_tosql")
 	}
 
-	if err := us.SqlStore.DBXFromContext(ctx).Select(&users, queryString, args...); err != nil {
+	if err := us.SqlStore.DBXFromContext(rctx.Context()).Select(&users, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Users")
 	}
 
@@ -1471,7 +1515,7 @@ func (us SqlUserStore) AnalyticsActiveCount(timePeriod int64, options model.User
 	return v, nil
 }
 
-func (us SqlUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int64, error) {
+func (us SqlUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int32, error) {
 	query := us.getQueryBuilder().Select("COUNT(*)").From("Status AS s").Where("LastActivityAt > ? AND LastActivityAt <= ?", startTime, endTime)
 
 	if !options.IncludeBotAccounts {
@@ -1499,7 +1543,7 @@ func (us SqlUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime in
 		return 0, errors.Wrap(err, "Failed to build query.")
 	}
 
-	var v int64
+	var v int32
 	err = us.GetReplica().Get(&v, queryStr, args...)
 	if err != nil {
 		return 0, errors.Wrap(err, "Unable to get the active users during the requested period.")
@@ -1558,6 +1602,47 @@ func (us SqlUserStore) Search(rctx request.CTX, teamId string, term string, opti
 		query = query.Join("TeamMembers tm ON ( tm.UserId = Users.Id AND tm.DeleteAt = 0 AND tm.TeamId = ? )", teamId)
 	}
 	return us.performSearch(query, term, options)
+}
+
+func (us SqlUserStore) SearchCommonContentFlaggingReviewers(term string) ([]*model.User, error) {
+	query := us.getQueryBuilder().
+		Select(getUsersColumns()...).
+		Columns(getBotInfoColumns()...).
+		From("ContentFlaggingCommonReviewers").
+		LeftJoin("Users ON Users.Id = ContentFlaggingCommonReviewers.UserId").
+		LeftJoin("Bots b ON (b.UserId = Users.Id)").
+		OrderBy("Users.Username ASC").
+		Limit(ContentReviewerSearchLimit)
+
+	searchOptions := &model.UserSearchOptions{
+		AllowEmails:    false,
+		AllowFullNames: true,
+		AllowInactive:  false,
+		Limit:          50,
+	}
+
+	return us.performSearch(query, term, searchOptions)
+}
+
+func (us SqlUserStore) SearchTeamContentFlaggingReviewers(teamId, term string) ([]*model.User, error) {
+	query := us.getQueryBuilder().
+		Select(getUsersColumns()...).
+		Columns(getBotInfoColumns()...).
+		From("ContentFlaggingTeamReviewers").
+		LeftJoin("Users ON Users.Id = ContentFlaggingTeamReviewers.UserId").
+		LeftJoin("Bots b ON (b.UserId = Users.Id)").
+		Where("ContentFlaggingTeamReviewers.TeamId = ?", teamId).
+		OrderBy("Users.Username ASC").
+		Limit(ContentReviewerSearchLimit)
+
+	searchOptions := &model.UserSearchOptions{
+		AllowEmails:    false,
+		AllowFullNames: true,
+		AllowInactive:  false,
+		Limit:          50,
+	}
+
+	return us.performSearch(query, term, searchOptions)
 }
 
 func (us SqlUserStore) SearchWithoutTeam(term string, options *model.UserSearchOptions) ([]*model.User, error) {

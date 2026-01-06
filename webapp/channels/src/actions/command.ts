@@ -37,7 +37,6 @@ import {localizeMessage, getUserIdFromChannelName} from 'utils/utils';
 import type {ActionFuncAsync} from 'types/store';
 
 import {doAppSubmit, openAppsModal, postEphemeralCallResponseForCommandArgs} from './apps';
-import {trackEvent} from './telemetry_actions';
 
 export type ExecuteCommandReturnType = {
     frontendHandled?: boolean;
@@ -58,18 +57,6 @@ export function executeCommand(message: string, args: CommandArgs): ActionFuncAs
         }
         const cmd = msg.substring(0, cmdLength).toLowerCase();
         msg = cmd + ' ' + msg.substring(cmdLength, msg.length).trim();
-
-        // Add track event for certain slash commands
-        const commandsWithTelemetry = [
-            {command: '/help', telemetry: 'slash-command-help'},
-            {command: '/marketplace', telemetry: 'slash-command-marketplace'},
-        ];
-        for (const command of commandsWithTelemetry) {
-            if (msg.startsWith(command.command)) {
-                trackEvent('slash-commands', command.telemetry);
-                break;
-            }
-        }
 
         switch (cmd) {
         case '/search':
@@ -139,7 +126,7 @@ export function executeCommand(message: string, args: CommandArgs): ActionFuncAs
                 return {error: {message: localizeMessage({id: 'marketplace_command.disabled', defaultMessage: 'The marketplace is disabled. Please contact your System Administrator for details.'})}};
             }
 
-            dispatch(openModal({modalId: ModalIdentifiers.PLUGIN_MARKETPLACE, dialogType: MarketplaceModal, dialogProps: {openedFrom: 'command'}}));
+            dispatch(openModal({modalId: ModalIdentifiers.PLUGIN_MARKETPLACE, dialogType: MarketplaceModal}));
             return {data: {frontendHandled: true}};
         case '/collapse':
         case '/expand':

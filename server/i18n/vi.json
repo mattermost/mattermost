@@ -77,7 +77,7 @@
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
-    "translation": "Bạn không thể đăng nội dung trong kênh đã lưu trữ."
+    "translation": "Bạn không lưu nội dung trong kênh đã lưu trữ."
   },
   {
     "id": "web.error.unsupported_browser.download_the_app",
@@ -173,7 +173,7 @@
   },
   {
     "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
-    "translation": "Bạn không thể đổi tên kênh tin nhắn trực tiếp"
+    "translation": "Bạn không thể đổi tên kênh tin nhắn trực tiếp."
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
@@ -319,7 +319,7 @@
   },
   {
     "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
-    "translation": "Bạn không thể đổi tên kênh tin nhắn nhóm"
+    "translation": "Bạn không thể đổi tên kênh tin nhắn nhóm."
   },
   {
     "id": "app.import.validate_direct_post_import_data.create_at_zero.error",
@@ -431,7 +431,7 @@
   },
   {
     "id": "api.admin.upload_brand_image.array.app_error",
-    "translation": "Dữ liệu trong trường 'image' bị trống"
+    "translation": "Mảng dữ liệu rỗng đằng sau 'hình ảnh' trong yêu cầu"
   },
   {
     "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
@@ -1605,7 +1605,7 @@
   },
   {
     "id": "api.channel.remove.default.app_error",
-    "translation": "Không thể xóa người dùng khỏi kênh mặc định {{.Channel}}"
+    "translation": "Không thể xóa người dùng khỏi kênh mặc định {{.Channel}}."
   },
   {
     "id": "api.post.do_action.action_id.app_error",
@@ -1861,7 +1861,7 @@
   },
   {
     "id": "api.channel.remove_user_from_channel.app_error",
-    "translation": "Không thể gỡ người dùng từ kiểu kênh này"
+    "translation": "Không thể xóa người dùng từ kiểu kênh này"
   },
   {
     "id": "api.command_away.name",
@@ -2715,7 +2715,7 @@
   },
   {
     "id": "api.channel.patch_channel_moderations.license.error",
-    "translation": "Giấy phép của bạn không hỗ trợ Lưu giữ dữ liệu."
+    "translation": "Giấy phép của bạn không hỗ trợ tính năng kiểm duyệt nội dung"
   },
   {
     "id": "api.team.import_team.array.app_error",
@@ -3122,10 +3122,6 @@
     "translation": "Không thể sao chép hình ảnh biểu tượng cảm xúc tùy chỉnh"
   },
   {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "không hợp lệ: thiếu client_secret"
-  },
-  {
     "id": "model.config.is_valid.image_proxy_type.app_error",
     "translation": "Loại hình ảnh proxy không hợp lệ. Phải là 'local' hoặc 'atmos / camo'."
   },
@@ -3226,10 +3222,6 @@
     "translation": "Phần mềm tra cứu tổng hợp thất bại do việc tạo mục lục không thành công"
   },
   {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Đã cố đăng nhập bằng tính năng thử nghiệm ClientSideCert mà không cung cấp chứng chỉ hợp lệ"
-  },
-  {
     "id": "model.utils.decode_json.app_error",
     "translation": "không thể giải mã"
   },
@@ -3307,7 +3299,7 @@
   },
   {
     "id": "api.channel.update_channel.tried.app_error",
-    "translation": "Cố gắng thực hiện một cập nhật không hợp lệ của kênh mặc định {{.Channel}}"
+    "translation": "Cố gắng thực hiện một cập nhật không hợp lệ của kênh mặc định {{.Channel}}."
   },
   {
     "id": "api.command_channel_header.channel.app_error",
@@ -3559,7 +3551,7 @@
   },
   {
     "id": "api.channel.update_channel.deleted.app_error",
-    "translation": "Kênh này đã bị đóng hoặc xoá bỏ"
+    "translation": "Kênh này đã bị đóng hoặc xoá bỏ."
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
@@ -3567,7 +3559,7 @@
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
-    "translation": "Yêu cầu sử dụng dịch vụ createDirectChannel API cho tạo quá trình kênh giao tiếp trực tiếp"
+    "translation": "Cần sử dụng dịch vụ createDirectChannel API để tạo kênh nhắn tin trực tiếp."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
@@ -4130,10 +4122,6 @@
     "translation": "Máy chủ bận, các dịch vụ không quan trọng tạm thời không khả dụng"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Định dạng mới cho cấu hình máy khách chưa được hỗ trợ. Vui lòng xác định format=old trong chuỗi truy vấn."
-  },
-  {
     "id": "model.outgoing_hook.is_valid.token.app_error",
     "translation": "Token không hợp lệ."
   },
@@ -4521,7 +4509,7 @@
   },
   {
     "id": "api.admin.upload_brand_image.parse.app_error",
-    "translation": "Không thể phân tích form với định dạng multipart"
+    "translation": "Không thể xử lý nội dung gửi lên"
   },
   {
     "id": "web.error.unsupported_browser.install_guide.windows",
@@ -4569,7 +4557,7 @@
   },
   {
     "id": "api.channel.get_channel_moderations.license.error",
-    "translation": "Giấy phép của bạn không hỗ trợ Lưu giữ dữ liệu."
+    "translation": "Giấy phép của bạn không hỗ trợ tính năng kiểm định nội dụng"
   },
   {
     "id": "model.outgoing_hook.is_valid.team_id.app_error",
@@ -4695,7 +4683,7 @@
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
-    "translation": "Chứng chỉ văn bản không hợp lệ"
+    "translation": "Chứng chỉ không hợp lệ."
   },
   {
     "id": "api.post.send_notifications_and_forget.push_general_message",
@@ -4954,10 +4942,6 @@
     "translation": "Tìm kiếm Elaticsearch không được kích hoạt trên máy chủ này"
   },
   {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Cố gắng sử dụng tính năng thử nghiệm ClientSideCertEnable mà không có giấy phép doanh nghiệp hợp lệ"
-  },
-  {
     "id": "api.command_leave.fail.app_error",
     "translation": "Đã xảy ra lỗi khi rời khỏi kênh."
   },
@@ -5039,7 +5023,7 @@
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
-    "translation": "Bạn không có đủ thẩm quyền truy cập"
+    "translation": "Bạn không có đủ thẩm quyền cho hành động này"
   },
   {
     "id": "app.save_config.app_error",
@@ -5147,7 +5131,7 @@
   },
   {
     "id": "api.channel.create_channel.max_channel_limit.app_error",
-    "translation": "Không thể tạo nhiều hơn {{.MaxChannelsPerTeam}} kênh cho nhóm hiện tại"
+    "translation": "Không thể tạo nhiều hơn {{.MaxChannelsPerTeam}} kênh cho nhóm hiện tại."
   },
   {
     "id": "mfa.generate_qr_code.create_code.app_error",
@@ -8186,10 +8170,6 @@
     "translation": "Ảnh hồ sơ phải được đặt thông qua nhà cung cấp thông tin đăng nhập của người dùng."
   },
   {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Không thể truy xuất bài đăng cho kênh đã lưu trữ"
-  },
-  {
     "id": "app.acknowledgement.delete.app_error",
     "translation": "Không thể xóa xác nhận."
   },
@@ -8212,10 +8192,6 @@
   {
     "id": "api.user.create_user.bad_token_email_data.app_error",
     "translation": "Địa chỉ email trong mã thông báo không khớp với địa chỉ trong dữ liệu người dùng."
-  },
-  {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Không thể truy xuất người dùng cho kênh đã lưu trữ"
   },
   {
     "id": "api.user.delete_user.not_enabled.app_error",
@@ -9028,5 +9004,13 @@
   {
     "id": "api.channel.add_user.to.channel.rejected",
     "translation": "Người dùng không có các thuộc tính cần thiết để tham gia kênh."
+  },
+  {
+    "id": "api.channel.create_group.remote_restricted.app_error",
+    "translation": "Không thể tạo một kênh nhắn tin theo nhóm cho người dùng từ xa"
+  },
+  {
+    "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
+    "translation": "ID của kênh này không trùng với ID của kênh có bài viết được gắn cờ."
   }
 ]

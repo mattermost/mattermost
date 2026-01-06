@@ -29,11 +29,11 @@ type PluginAPI struct {
 	manifest *model.Manifest
 }
 
-func NewPluginAPI(a *App, c request.CTX, manifest *model.Manifest) *PluginAPI {
+func NewPluginAPI(a *App, rctx request.CTX, manifest *model.Manifest) *PluginAPI {
 	return &PluginAPI{
 		id:       manifest.Id,
 		manifest: manifest,
-		ctx:      c,
+		ctx:      rctx,
 		app:      a,
 		logger:   a.Log().Sugar(mlog.String("plugin_id", manifest.Id)),
 	}
@@ -120,7 +120,7 @@ func (api *PluginAPI) GetPluginConfig() map[string]any {
 }
 
 func (api *PluginAPI) SavePluginConfig(pluginConfig map[string]any) *model.AppError {
-	cfg := api.app.GetSanitizedConfig()
+	cfg := api.app.Config().Clone()
 	cfg.PluginSettings.Plugins[api.manifest.Id] = pluginConfig
 	_, _, err := api.app.SaveConfig(cfg, true)
 	return err
@@ -153,11 +153,11 @@ func (api *PluginAPI) GetSystemInstallDate() (int64, *model.AppError) {
 }
 
 func (api *PluginAPI) GetDiagnosticId() string {
-	return api.app.TelemetryId()
+	return api.app.ServerId()
 }
 
 func (api *PluginAPI) GetTelemetryId() string {
-	return api.app.TelemetryId()
+	return api.app.ServerId()
 }
 
 func (api *PluginAPI) CreateTeam(team *model.Team) (*model.Team, *model.AppError) {
@@ -270,7 +270,7 @@ func (api *PluginAPI) GetUsers(options *model.UserGetOptions) ([]*model.User, *m
 }
 
 func (api *PluginAPI) GetUsersByIds(usersID []string) ([]*model.User, *model.AppError) {
-	return api.app.GetUsers(usersID)
+	return api.app.GetUsers(api.ctx, usersID)
 }
 
 func (api *PluginAPI) GetUser(userID string) (*model.User, *model.AppError) {
@@ -810,7 +810,7 @@ func (api *PluginAPI) DeletePost(postID string) *model.AppError {
 }
 
 func (api *PluginAPI) GetPostThread(postID string) (*model.PostList, *model.AppError) {
-	list, appErr := api.app.GetPostThread(postID, model.GetPostsOptions{}, "")
+	list, appErr := api.app.GetPostThread(api.ctx, postID, model.GetPostsOptions{}, "")
 	if list != nil {
 		list = list.ForPlugin()
 	}
@@ -826,7 +826,7 @@ func (api *PluginAPI) GetPost(postID string) (*model.Post, *model.AppError) {
 }
 
 func (api *PluginAPI) GetPostsSince(channelID string, time int64) (*model.PostList, *model.AppError) {
-	list, appErr := api.app.GetPostsSince(model.GetPostsSinceOptions{ChannelId: channelID, Time: time})
+	list, appErr := api.app.GetPostsSince(api.ctx, model.GetPostsSinceOptions{ChannelId: channelID, Time: time})
 	if list != nil {
 		list = list.ForPlugin()
 	}
@@ -834,7 +834,7 @@ func (api *PluginAPI) GetPostsSince(channelID string, time int64) (*model.PostLi
 }
 
 func (api *PluginAPI) GetPostsAfter(channelID, postID string, page, perPage int) (*model.PostList, *model.AppError) {
-	list, appErr := api.app.GetPostsAfterPost(model.GetPostsOptions{ChannelId: channelID, PostId: postID, Page: page, PerPage: perPage})
+	list, appErr := api.app.GetPostsAfterPost(api.ctx, model.GetPostsOptions{ChannelId: channelID, PostId: postID, Page: page, PerPage: perPage})
 	if list != nil {
 		list = list.ForPlugin()
 	}
@@ -842,7 +842,7 @@ func (api *PluginAPI) GetPostsAfter(channelID, postID string, page, perPage int)
 }
 
 func (api *PluginAPI) GetPostsBefore(channelID, postID string, page, perPage int) (*model.PostList, *model.AppError) {
-	list, appErr := api.app.GetPostsBeforePost(model.GetPostsOptions{ChannelId: channelID, PostId: postID, Page: page, PerPage: perPage})
+	list, appErr := api.app.GetPostsBeforePost(api.ctx, model.GetPostsOptions{ChannelId: channelID, PostId: postID, Page: page, PerPage: perPage})
 	if list != nil {
 		list = list.ForPlugin()
 	}
@@ -850,7 +850,7 @@ func (api *PluginAPI) GetPostsBefore(channelID, postID string, page, perPage int
 }
 
 func (api *PluginAPI) GetPostsForChannel(channelID string, page, perPage int) (*model.PostList, *model.AppError) {
-	list, appErr := api.app.GetPostsPage(model.GetPostsOptions{ChannelId: channelID, Page: page, PerPage: perPage})
+	list, appErr := api.app.GetPostsPage(api.ctx, model.GetPostsOptions{ChannelId: channelID, Page: page, PerPage: perPage})
 	if list != nil {
 		list = list.ForPlugin()
 	}
@@ -1202,9 +1202,33 @@ func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
 			Body:       io.NopCloser(bytes.NewBufferString(message)),
 		}
 	}
-	responseTransfer := &PluginResponseWriter{}
-	api.app.ServeInterPluginRequest(responseTransfer, request, api.id, destinationPluginId)
-	return responseTransfer.GenerateResponse()
+
+	// Create pipe for streaming response
+	pr, pw := io.Pipe()
+	responseTransfer := NewPluginResponseWriter(pw)
+
+	// Serve the request in a goroutine, streaming the response through the pipe
+	go func() {
+		defer func() {
+			// Ensure pipe is closed when request completes
+			var closeErr error
+			if err := recover(); err != nil {
+				closeErr = responseTransfer.CloseWithError(fmt.Errorf("panic in plugin request: %v", err))
+			} else {
+				closeErr = responseTransfer.Close()
+			}
+
+			if closeErr != nil {
+				api.logger.Errorw("Failed to close plugin response pipe", "error", closeErr)
+			}
+		}()
+		api.app.ServeInterPluginRequest(responseTransfer, request, api.id, destinationPluginId)
+	}()
+
+	// Wait for headers to be ready before returning response
+	<-responseTransfer.ResponseReady
+
+	return responseTransfer.GenerateResponse(pr)
 }
 
 func (api *PluginAPI) CreateCommand(cmd *model.Command) (*model.Command, error) {
@@ -1503,6 +1527,10 @@ func (api *PluginAPI) DeleteGroupConstrainedMemberships() *model.AppError {
 }
 
 func (api *PluginAPI) CreatePropertyField(field *model.PropertyField) (*model.PropertyField, error) {
+	if field == nil {
+		return nil, fmt.Errorf("invalid input: property field parameter is required")
+	}
+
 	return api.app.PropertyService().CreatePropertyField(field)
 }
 
@@ -1522,8 +1550,22 @@ func (api *PluginAPI) DeletePropertyField(groupID, fieldID string) error {
 	return api.app.PropertyService().DeletePropertyField(groupID, fieldID)
 }
 
-func (api *PluginAPI) SearchPropertyFields(groupID, targetID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
-	return api.app.PropertyService().SearchPropertyFields(groupID, targetID, opts)
+func (api *PluginAPI) SearchPropertyFields(groupID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
+	return api.app.PropertyService().SearchPropertyFields(groupID, opts)
+}
+
+func (api *PluginAPI) CountPropertyFields(groupID string, includeDeleted bool) (int64, error) {
+	if includeDeleted {
+		return api.app.PropertyService().CountAllPropertyFieldsForGroup(groupID)
+	}
+	return api.app.PropertyService().CountActivePropertyFieldsForGroup(groupID)
+}
+
+func (api *PluginAPI) CountPropertyFieldsForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error) {
+	if includeDeleted {
+		return api.app.PropertyService().CountAllPropertyFieldsForTarget(groupID, targetType, targetID)
+	}
+	return api.app.PropertyService().CountActivePropertyFieldsForTarget(groupID, targetType, targetID)
 }
 
 func (api *PluginAPI) CreatePropertyValue(value *model.PropertyValue) (*model.PropertyValue, error) {
@@ -1550,8 +1592,8 @@ func (api *PluginAPI) DeletePropertyValue(groupID, valueID string) error {
 	return api.app.PropertyService().DeletePropertyValue(groupID, valueID)
 }
 
-func (api *PluginAPI) SearchPropertyValues(groupID, targetID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
-	return api.app.PropertyService().SearchPropertyValues(groupID, targetID, opts)
+func (api *PluginAPI) SearchPropertyValues(groupID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
+	return api.app.PropertyService().SearchPropertyValues(groupID, opts)
 }
 
 func (api *PluginAPI) RegisterPropertyGroup(name string) (*model.PropertyGroup, error) {

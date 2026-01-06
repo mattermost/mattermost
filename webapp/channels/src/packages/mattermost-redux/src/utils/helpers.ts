@@ -3,6 +3,8 @@
 
 import shallowEqual from 'shallow-equals';
 
+import type {FieldValueType} from '@mattermost/types/properties';
+
 import {createSelectorCreator, defaultMemoize} from 'mattermost-redux/selectors/create_selector';
 
 // eslint-disable-next-line @typescript-eslint/ban-types
@@ -108,4 +110,9 @@ export function isEmail(email: string): boolean {
     // - followed by at least one character that is not a space, comma, or @ symbol
     // this prevents <Outlook Style> outlook.style@domain.com addresses and multiple comma-separated addresses from being accepted
     return (/^[^ ,@]+@[^ ,@]+$/).test(email);
+}
+
+// maps Custom Profile Attribute value types to appropriate HTML schemes (only different for phone -> tel)
+export function getInputTypeFromValueType(valueType?: FieldValueType): string {
+    return valueType === 'phone' ? 'tel' : String(valueType);
 }

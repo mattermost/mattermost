@@ -17,15 +17,17 @@ export type CustomizeHeaderType = (props: HeaderProps) => void;
 
 export type HFRouteProps = {
     path: string;
-    component: React.ComponentType<{onCustomizeHeader?: CustomizeHeaderType}>;
+    component: React.ComponentType;
 };
 
-export const HFRoute = ({path, component: Component}: HFRouteProps) => {
+export const HFRoute = ({path, component}: HFRouteProps) => {
     const [headerProps, setHeaderProps] = useState<HeaderProps>({});
 
     const customizeHeader: CustomizeHeaderType = useCallback((props) => {
         setHeaderProps(props);
     }, []);
+
+    const Component = component as React.ComponentType<{onCustomizeHeader?: CustomizeHeaderType}>;
 
     return (
         <Route

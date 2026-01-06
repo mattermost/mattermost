@@ -61,7 +61,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 		err := configGetCmdF(s.client, &cobra.Command{}, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(*(printer.GetLines()[0].(*int)), 20)
+		s.Require().Equal(*(printer.GetLines()[0].(*int)), 50)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 

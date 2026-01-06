@@ -2,10 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState, useCallback} from 'react';
-import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import {GenericModal} from '@mattermost/components';
 import type {AccessControlTestResult} from '@mattermost/types/access_control';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -23,6 +23,7 @@ const USERS_PER_PAGE = 10;
 
 type Props = {
     onExited: () => void;
+    isStacked?: boolean;
     actions: {
         searchUsers: (term: string, after: string, limit: number) => ActionFuncAsync<AccessControlTestResult>;
         openModal?: <P>(modalData: ModalData<P>) => void;
@@ -31,9 +32,10 @@ type Props = {
 
 function TestResultsModal({
     onExited,
+    isStacked = false,
     actions,
 }: Props): JSX.Element {
-    const dispatch = useDispatch<any>();
+    const dispatch = useDispatch();
     const [term, setTerm] = useState<string>('');
     const [users, setUsers] = useState<UserProfile[]>([]);
     const [total, setTotal] = useState<number>(0);
@@ -80,40 +82,36 @@ function TestResultsModal({
         fetchUsers(term, cursorForNextPage);
     };
 
+    const modalTitle = (
+        <FormattedMessage
+            id='admin.access_control.testResults'
+            defaultMessage='Access Rule Test Results'
+        />
+    );
+
     return (
-        <Modal
-            dialogClassName='a11y__modal more-modal'
+        <GenericModal
+            className='TestResultsModal a11y__modal'
+            id='testResultsModal'
             show={true}
             onHide={onExited}
-            role='none'
-            aria-labelledby='testResultsModalLabel'
-            id='testResultsModal'
+            onExited={onExited}
+            modalHeaderText={modalTitle}
+            showCloseButton={true}
+            bodyPadding={true}
+            compassDesign={true}
+            ariaLabel='Access Rule Test Results'
+            isStacked={isStacked}
         >
-            <Modal.Header
-                closeButton={true}
-                style={{display: 'flex', alignItems: 'center'}}
-            >
-                <Modal.Title
-                    componentClass='h1'
-                    id='testResultsModalLabel'
-                >
-                    <FormattedMessage
-                        id='admin.access_control.testResults'
-                        defaultMessage='Access Rule Test Results'
-                    />
-                </Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
-                <SearchableUserList
-                    users={users}
-                    usersPerPage={USERS_PER_PAGE}
-                    total={total}
-                    nextPage={handleNextPage}
-                    search={handleSearch}
-                    actionUserProps={{}}
-                />
-            </Modal.Body>
-        </Modal>
+            <SearchableUserList
+                users={users}
+                usersPerPage={USERS_PER_PAGE}
+                total={total}
+                nextPage={handleNextPage}
+                search={handleSearch}
+                actionUserProps={{}}
+            />
+        </GenericModal>
     );
 }
 

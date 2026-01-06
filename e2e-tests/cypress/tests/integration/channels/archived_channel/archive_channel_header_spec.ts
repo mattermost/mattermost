@@ -29,12 +29,6 @@ describe('Archive channel header spec', () => {
         cy.uiSave();
         cy.uiSaveButton().should('be.visible');
 
-        cy.apiUpdateConfig({
-            TeamSettings: {
-                ExperimentalViewArchivedChannels: true,
-            },
-        });
-
         // # Login as test user and visit create channel
         cy.apiInitSetup({loginAfter: true}).then(({channelUrl}) => {
             cy.visit(channelUrl);

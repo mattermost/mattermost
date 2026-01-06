@@ -44,6 +44,36 @@ func (_m *PropertyValueStore) Create(value *model.PropertyValue) (*model.Propert
 	return r0, r1
 }
 
+// CreateMany provides a mock function with given fields: values
+func (_m *PropertyValueStore) CreateMany(values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	ret := _m.Called(values)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateMany")
+	}
+
+	var r0 []*model.PropertyValue
+	var r1 error
+	if rf, ok := ret.Get(0).(func([]*model.PropertyValue) ([]*model.PropertyValue, error)); ok {
+		return rf(values)
+	}
+	if rf, ok := ret.Get(0).(func([]*model.PropertyValue) []*model.PropertyValue); ok {
+		r0 = rf(values)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PropertyValue)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func([]*model.PropertyValue) error); ok {
+		r1 = rf(values)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Delete provides a mock function with given fields: groupID, id
 func (_m *PropertyValueStore) Delete(groupID string, id string) error {
 	ret := _m.Called(groupID, id)
