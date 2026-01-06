@@ -2155,6 +2155,22 @@ func (mr *MockClientMockRecorder) RestoreTeam(arg0, arg1 interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RestoreTeam", reflect.TypeOf((*MockClient)(nil).RestoreTeam), arg0, arg1)
 }
 
+// RevealPost mocks base method.
+func (m *MockClient) RevealPost(arg0 context.Context, arg1 string) (*model.Post, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RevealPost", arg0, arg1)
+	ret0, _ := ret[0].(*model.Post)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// RevealPost indicates an expected call of RevealPost.
+func (mr *MockClientMockRecorder) RevealPost(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevealPost", reflect.TypeOf((*MockClient)(nil).RevealPost), arg0, arg1)
+}
+
 // RevokeUserAccessToken mocks base method.
 func (m *MockClient) RevokeUserAccessToken(arg0 context.Context, arg1 string) (*model.Response, error) {
 	m.ctrl.T.Helper()

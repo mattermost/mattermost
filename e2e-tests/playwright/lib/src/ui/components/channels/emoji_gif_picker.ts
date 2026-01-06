@@ -22,6 +22,14 @@ export default class EmojiGifPicker {
         await expect(this.container).toBeVisible();
     }
 
+    async notToBeVisible() {
+        await expect(this.container).not.toBeVisible();
+    }
+
+    async clickEmoji(emojiName: string) {
+        await this.container.getByRole('button', {name: `${emojiName} emoji`}).click();
+    }
+
     async openGifTab() {
         await expect(this.gifTab).toBeVisible();
 
