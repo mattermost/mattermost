@@ -44,6 +44,7 @@ export function scheduledPostFromPost(post: Post, schedulingInfo: SchedulingInfo
         props: post.props,
         metadata: post.metadata,
         priority: post.metadata.priority,
+        type: post.type,
     };
 }
 
@@ -55,7 +56,7 @@ export function scheduledPostToPost(scheduledPost: ScheduledPost): Post {
         original_id: '',
         pending_post_id: '',
         reply_count: 0,
-        type: '',
+        type: scheduledPost.type || '',
         id: scheduledPost.id,
         create_at: scheduledPost.create_at,
         update_at: scheduledPost.update_at,

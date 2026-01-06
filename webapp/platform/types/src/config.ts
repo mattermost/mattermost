@@ -24,6 +24,7 @@ export type ClientConfig = {
     BuildHash: string;
     BuildHashEnterprise: string;
     BuildNumber: string;
+    IsFipsEnabled: string;
     CollapsedThreads: CollapsedThreads;
     CustomBrandText: string;
     CustomDescriptionText: string;
@@ -230,7 +231,8 @@ export type ClientConfig = {
 
     // Burn on Read Settings
     EnableBurnOnRead: string;
-    BurnOnReadDurationMinutes: string;
+    BurnOnReadDurationSeconds: string;
+    BurnOnReadMaximumTimeToLiveSeconds: string;
 
     // Access Control Settings
     EnableAttributeBasedAccessControl: string;

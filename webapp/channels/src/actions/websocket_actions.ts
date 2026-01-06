@@ -115,6 +115,8 @@ import {getNewestThreadInTeam, getThread, getThreads} from 'mattermost-redux/sel
 import {getCurrentUser, getCurrentUserId, getUser, getIsManualStatusForUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
+import {handlePostExpired} from 'actions/burn_on_read_deletion';
+import {handleBurnOnReadPostRevealed, handleBurnOnReadAllRevealed} from 'actions/burn_on_read_websocket';
 import {loadChannelsForCurrentUser} from 'actions/channel_actions';
 import {
     getTeamsUsage,
@@ -391,6 +393,18 @@ export function handleEvent(msg: WebSocketMessage) {
 
     case WebSocketEvents.PostUnread:
         handlePostUnreadEvent(msg);
+        break;
+
+    case WebSocketEvents.BurnOnReadPostRevealed:
+        dispatch(handleBurnOnReadPostRevealed(msg.data));
+        break;
+
+    case WebSocketEvents.BurnOnReadPostBurned:
+        dispatch(handlePostExpired(msg.data.post_id));
+        break;
+
+    case WebSocketEvents.BurnOnReadPostAllRevealed:
+        dispatch(handleBurnOnReadAllRevealed(msg.data));
         break;
 
     case WebSocketEvents.LeaveTeam:

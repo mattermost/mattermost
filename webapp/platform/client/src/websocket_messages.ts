@@ -85,6 +85,20 @@ export type PostUnread = BaseWebSocketMessage<WebSocketEvents.PostUnread, {
     post_id: string;
 }>;
 
+export type BurnOnReadPostRevealed = BaseWebSocketMessage<WebSocketEvents.BurnOnReadPostRevealed, {
+    post?: string | Post;
+    recipients?: string[];
+}>;
+
+export type BurnOnReadPostBurned = BaseWebSocketMessage<WebSocketEvents.BurnOnReadPostBurned, {
+    post_id: string;
+}>;
+
+export type BurnOnReadPostAllRevealed = BaseWebSocketMessage<WebSocketEvents.BurnOnReadPostAllRevealed, {
+    post_id: string;
+    sender_expire_at: number;
+}>;
+
 export type EphemeralPost = BaseWebSocketMessage<WebSocketEvents.EphemeralMessage, {
     post: JsonEncodedValue<Post>;
 }>;

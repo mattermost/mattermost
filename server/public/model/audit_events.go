@@ -253,6 +253,8 @@ const (
 	AuditEventSaveIsPinnedPost   = "saveIsPinnedPost"   // pin or unpin post
 	AuditEventSearchPosts        = "searchPosts"        // search for posts
 	AuditEventUpdatePost         = "updatePost"         // update post content
+	AuditEventRevealPost         = "revealPost"         // reveal a post that was hidden due to burn on read
+	AuditEventBurnPost           = "burnPost"           // burn a post that was hidden due to burn on read
 )
 
 // Preferences

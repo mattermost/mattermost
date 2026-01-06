@@ -416,22 +416,24 @@ type ServiceSettings struct {
 	EnableAPIUserDeletion                             *bool
 	EnableAPIPostDeletion                             *bool
 	EnableDesktopLandingPage                          *bool
-	ExperimentalEnableHardenedMode                    *bool   `access:"experimental_features"`
-	ExperimentalStrictCSRFEnforcement                 *bool   `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	EnableEmailInvitations                            *bool   `access:"authentication_signup"`
-	DisableBotsWhenOwnerIsDeactivated                 *bool   `access:"integrations_bot_accounts"`
-	EnableBotAccountCreation                          *bool   `access:"integrations_bot_accounts"`
-	EnableSVGs                                        *bool   `access:"site_posts"`
-	EnableLatex                                       *bool   `access:"site_posts"`
-	EnableInlineLatex                                 *bool   `access:"site_posts"`
-	PostPriority                                      *bool   `access:"site_posts"`
-	AllowPersistentNotifications                      *bool   `access:"site_posts"`
-	AllowPersistentNotificationsForGuests             *bool   `access:"site_posts"`
-	PersistentNotificationIntervalMinutes             *int    `access:"site_posts"`
-	PersistentNotificationMaxCount                    *int    `access:"site_posts"`
-	PersistentNotificationMaxRecipients               *int    `access:"site_posts"`
-	EnableBurnOnRead                                  *bool   `access:"site_posts"`
-	BurnOnReadDurationMinutes                         *string `access:"site_posts"`
+	ExperimentalEnableHardenedMode                    *bool `access:"experimental_features"`
+	ExperimentalStrictCSRFEnforcement                 *bool `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	EnableEmailInvitations                            *bool `access:"authentication_signup"`
+	DisableBotsWhenOwnerIsDeactivated                 *bool `access:"integrations_bot_accounts"`
+	EnableBotAccountCreation                          *bool `access:"integrations_bot_accounts"`
+	EnableSVGs                                        *bool `access:"site_posts"`
+	EnableLatex                                       *bool `access:"site_posts"`
+	EnableInlineLatex                                 *bool `access:"site_posts"`
+	PostPriority                                      *bool `access:"site_posts"`
+	AllowPersistentNotifications                      *bool `access:"site_posts"`
+	AllowPersistentNotificationsForGuests             *bool `access:"site_posts"`
+	PersistentNotificationIntervalMinutes             *int  `access:"site_posts"`
+	PersistentNotificationMaxCount                    *int  `access:"site_posts"`
+	PersistentNotificationMaxRecipients               *int  `access:"site_posts"`
+	EnableBurnOnRead                                  *bool `access:"site_posts"`
+	BurnOnReadDurationSeconds                         *int  `access:"site_posts"`
+	BurnOnReadMaximumTimeToLiveSeconds                *int  `access:"site_posts"`
+	BurnOnReadSchedulerFrequencySeconds               *int  `access:"site_posts,cloud_restrictable"`
 	EnableAPIChannelDeletion                          *bool
 	EnableLocalMode                                   *bool   `access:"cloud_restrictable"`
 	LocalModeSocketLocation                           *string `access:"cloud_restrictable"` // telemetry: none
@@ -978,11 +980,19 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.EnableBurnOnRead == nil {
-		s.EnableBurnOnRead = NewPointer(false)
+		s.EnableBurnOnRead = NewPointer(true)
 	}
 
-	if s.BurnOnReadDurationMinutes == nil {
-		s.BurnOnReadDurationMinutes = NewPointer("10")
+	if s.BurnOnReadDurationSeconds == nil {
+		s.BurnOnReadDurationSeconds = NewPointer(600) // 10 minutes in seconds
+	}
+
+	if s.BurnOnReadMaximumTimeToLiveSeconds == nil {
+		s.BurnOnReadMaximumTimeToLiveSeconds = NewPointer(604800) // 7 days in seconds
+	}
+
+	if s.BurnOnReadSchedulerFrequencySeconds == nil {
+		s.BurnOnReadSchedulerFrequencySeconds = NewPointer(600) // 10 minutes in seconds
 	}
 
 	if s.MaximumPayloadSizeBytes == nil {
@@ -3773,6 +3783,16 @@ func (s *GuestAccountsSettings) SetDefaults() {
 	}
 }
 
+func (s *GuestAccountsSettings) IsValid() *AppError {
+	if s.EnableGuestMagicLink != nil && *s.EnableGuestMagicLink {
+		if s.EnforceMultifactorAuthentication != nil && *s.EnforceMultifactorAuthentication {
+			return NewAppError("GuestAccountsSettings.IsValid", "model.config.is_valid.guest_accounts.cannot_enforce_multifactor_authentication_when_guest_magic_link_is_enabled.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	return nil
+}
+
 type ImageProxySettings struct {
 	Enable                  *bool   `access:"environment_image_proxy"`
 	ImageProxyType          *string `access:"environment_image_proxy"`
@@ -4242,6 +4262,10 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if appErr := o.ContentFlaggingSettings.IsValid(); appErr != nil {
+		return appErr
+	}
+
+	if appErr := o.GuestAccountsSettings.IsValid(); appErr != nil {
 		return appErr
 	}
 
