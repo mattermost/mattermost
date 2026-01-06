@@ -166,7 +166,7 @@ describe('Verify Accessibility Support in different input fields', () => {
         });
     });
 
-    it.only('MM-T1458 Verify Accessibility Support in Main Post Input', () => {
+    it('MM-T1458 Verify Accessibility Support in Main Post Input', () => {
         cy.get('#advancedTextEditorCell').within(() => {
             // * Verify Accessibility Support in Main Post input
             cy.uiGetPostTextBox().should('have.attr', 'placeholder', `Write to ${testChannel.display_name}`).and('have.attr', 'role', 'textbox').clear().focus().type('test');

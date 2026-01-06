@@ -1766,6 +1766,10 @@
     "translation": "Content flagging feature is disabled."
   },
   {
+    "id": "api.content_flagging.error.invalid_post_type",
+    "translation": "Flagging a post of type '{{.PostType}}' is not allowed."
+  },
+  {
     "id": "api.content_flagging.error.license",
     "translation": "Your license does not support content flagging."
   },
@@ -3704,7 +3708,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
+    "translation": "© 2015 - {{ .CurrentYear }} Mattermost, Inc. 2100 Geng Road, Suite 210, Palo Alto, CA, 94303"
   },
   {
     "id": "api.templates.email_info1",
