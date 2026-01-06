@@ -15,7 +15,6 @@ import * as TIMEOUTS from '../../../../fixtures/timeouts';
 describe('Archived channels', () => {
     let testChannel;
     let testPrivateChannel;
-    let testTeam;
 
     before(() => {
         cy.apiRequireLicense();
@@ -24,7 +23,6 @@ describe('Archived channels', () => {
             channelPrefix: {name: '000-archive', displayName: '000 Archive Test'},
         }).then(({channel, team}) => {
             testChannel = channel;
-            testTeam = team;
 
             // # Archive the public channel
             cy.apiDeleteChannel(testChannel.id);
