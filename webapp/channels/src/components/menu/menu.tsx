@@ -193,7 +193,7 @@ export function Menu(props: Props) {
     }
 
     function handleMenuButtonKeyDown(event: KeyboardEvent) {
-        if (isKeyPressed(event, Constants.KeyCodes.ENTER) || isKeyPressed(event, Constants.KeyCodes.SPACE)) {
+        if (event.key === 'Enter' || event.key === ' ') {
             // Prevent the event from bubbling up to a parent's keydown handler so that it can trigger a click event
             event.stopPropagation();
         }
