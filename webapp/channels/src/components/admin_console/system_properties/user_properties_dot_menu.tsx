@@ -118,6 +118,8 @@ const DotMenu = ({
     const {promptDelete} = useUserPropertyFieldDelete();
     const {promptEditLdapLink, promptEditSamlLink} = useAttributeLinkModal(field, updateField);
 
+    const isProtected = Boolean(field.attrs?.protected);
+
     const handleDuplicate = () => {
         const name = formatMessage({
             id: 'admin.system_properties.user_properties.dotmenu.duplicate.name_copy',
@@ -188,7 +190,7 @@ const DotMenu = ({
                     </>
                 ),
                 dataTestId: `${menuId}-${field.id}`,
-                disabled: field.delete_at !== 0,
+                disabled: field.delete_at !== 0 || isProtected,
             }}
             menu={{
                 id: `${menuId}-menu`,

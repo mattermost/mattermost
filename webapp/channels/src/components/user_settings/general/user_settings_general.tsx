@@ -1424,7 +1424,10 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             return <></>;
         }
 
-        const attributeSections = this.props.customProfileAttributeFields.map((attribute) => {
+        const attributeSections = this.props.customProfileAttributeFields.filter((attribute) => {
+            // Hide source_only fields from user profiles
+            return attribute.attrs?.access_mode !== 'source_only';
+        }).map((attribute) => {
             const sectionName = 'customAttribute_' + attribute.id;
             const active = this.props.activeSection === sectionName;
             let max = null;
@@ -1490,8 +1493,13 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     return undefined;
                 };
 
-                if ((this.props.user.auth_service === Constants.LDAP_SERVICE && attribute.attrs?.ldap) ||
-                    (this.props.user.auth_service === Constants.SAML_SERVICE && attribute.attrs?.saml)) {
+                const isProtected = Boolean(attribute.attrs?.protected);
+                const isSynced = (this.props.user.auth_service === Constants.LDAP_SERVICE && attribute.attrs?.ldap) ||
+                    (this.props.user.auth_service === Constants.SAML_SERVICE && attribute.attrs?.saml);
+                const isAdminManaged = attribute.attrs?.managed === 'admin';
+                const isReadOnly = isSynced || isProtected || isAdminManaged;
+
+                if (isSynced) {
                     extraInfo = (
                         <span>
                             <FormattedMessage
@@ -1500,7 +1508,16 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                             />
                         </span>
                     );
-                } else if (attribute.attrs?.managed === 'admin') {
+                } else if (isProtected) {
+                    extraInfo = (
+                        <span>
+                            <FormattedMessage
+                                id='user.settings.general.field_managed_by_plugin'
+                                defaultMessage='This field is managed by a plugin and cannot be edited.'
+                            />
+                        </span>
+                    );
+                } else if (isAdminManaged) {
                     extraInfo = (
                         <span>
                             <FormattedMessage
@@ -1509,67 +1526,72 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                             />
                         </span>
                     );
-                } else {
-                    let attributeLabel: JSX.Element | string = (
-                        attribute.name
-                    );
-                    if (this.props.isMobileView) {
-                        attributeLabel = '';
-                    }
+                }
 
-                    if (attribute.type === 'select' || attribute.type === 'multiselect') {
-                        const attribOptions: PropertyFieldOption[] = attribute.attrs!.options as PropertyFieldOption[];
-                        const opts = attribOptions.map((o) => {
-                            return {label: o.name, value: o.id} as SelectOption;
-                        });
-                        inputs.push(
-                            <ReactSelect
-                                isMulti={attribute.type === 'multiselect' ? true : undefined}
-                                key={sectionName}
-                                id={'customProfileAttribute_' + attribute.id}
-                                inputId={'customProfileAttribute_' + attribute.id + '_input'}
-                                className='react-select inlineSelect'
-                                classNamePrefix='react-select'
-                                options={opts}
-                                isClearable={true}
-                                isSearchable={false}
-                                isDisabled={false}
-                                placeholder={formatMessage({
-                                    id: 'user.settings.general.select',
-                                    defaultMessage: 'Select',
-                                })}
-                                components={{IndicatorSeparator: null}}
-                                styles={selectStyles}
-                                value={getDisplayValue(this.state.customAttributeValues[attribute.id]) as SelectOption}
-                                onChange={(v, a) => this.updateSelectAttribute(v, a, attribute.id)}
-                            />,
-                        );
-                    } else {
-                        const inputType = attribute.type as string;
-                        inputs.push(
-                            <div
-                                key={sectionName}
-                                className='form-group'
-                            >
-                                <label className='col-sm-5 control-label'>{attributeLabel}</label>
-                                <div className='col-sm-7'>
-                                    <Input
-                                        id={sectionName}
-                                        name={sectionName}
-                                        autoFocus={true}
-                                        type={inputType}
-                                        onChange={this.updateAttribute}
-                                        value={getDisplayValue(this.state.customAttributeValues[attribute.id]) as string}
-                                        maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
-                                        autoCapitalize='off'
-                                        onFocus={Utils.moveCursorToEnd}
-                                        aria-label={attribute.name}
-                                        validate={validate}
-                                    />
-                                </div>
-                            </div>,
-                        );
-                    }
+                let attributeLabel: JSX.Element | string = (
+                    attribute.name
+                );
+                if (this.props.isMobileView) {
+                    attributeLabel = '';
+                }
+
+                if (attribute.type === 'select' || attribute.type === 'multiselect') {
+                    const attribOptions: PropertyFieldOption[] = attribute.attrs!.options as PropertyFieldOption[];
+                    const opts = attribOptions.map((o) => {
+                        return {label: o.name, value: o.id} as SelectOption;
+                    });
+                    inputs.push(
+                        <ReactSelect
+                            isMulti={attribute.type === 'multiselect' ? true : undefined}
+                            key={sectionName}
+                            id={'customProfileAttribute_' + attribute.id}
+                            inputId={'customProfileAttribute_' + attribute.id + '_input'}
+                            className='react-select inlineSelect'
+                            classNamePrefix='react-select'
+                            options={opts}
+                            isClearable={!isReadOnly}
+                            isSearchable={false}
+                            isDisabled={isReadOnly}
+                            placeholder={formatMessage({
+                                id: 'user.settings.general.select',
+                                defaultMessage: 'Select',
+                            })}
+                            components={{IndicatorSeparator: null}}
+                            styles={selectStyles}
+                            value={getDisplayValue(this.state.customAttributeValues[attribute.id]) as SelectOption}
+                            onChange={(v, a) => this.updateSelectAttribute(v, a, attribute.id)}
+                        />,
+                    );
+                } else {
+                    const inputType = attribute.type as string;
+                    inputs.push(
+                        <div
+                            key={sectionName}
+                            className='form-group'
+                        >
+                            <label className='col-sm-5 control-label'>{attributeLabel}</label>
+                            <div className='col-sm-7'>
+                                <Input
+                                    id={sectionName}
+                                    name={sectionName}
+                                    autoFocus={!isReadOnly}
+                                    type={inputType}
+                                    onChange={this.updateAttribute}
+                                    value={getDisplayValue(this.state.customAttributeValues[attribute.id]) as string}
+                                    maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
+                                    autoCapitalize='off'
+                                    onFocus={Utils.moveCursorToEnd}
+                                    aria-label={attribute.name}
+                                    validate={validate}
+                                    disabled={isReadOnly}
+                                />
+                            </div>
+                        </div>,
+                    );
+                }
+
+                // Only enable submit and show default extra info if field is editable
+                if (!isReadOnly) {
                     extraInfo = (
                         <span>
                             <FormattedMessage
@@ -1578,7 +1600,6 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                             />
                         </span>
                     );
-
                     submit = this.submitAttribute.bind(this, [attribute.id]);
                 }
 

@@ -11,7 +11,7 @@ import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 import ReactSelect from 'react-select';
 
-import {SyncIcon} from '@mattermost/compass-icons/components';
+import {SyncIcon, LockOutlineIcon} from '@mattermost/compass-icons/components';
 import type {ServerError} from '@mattermost/types/errors';
 import type {UserPropertyField} from '@mattermost/types/properties';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
@@ -342,20 +342,32 @@ export class SystemUserDetail extends PureComponent<Props, State> {
     renderCpaField = (field: UserPropertyField) => {
         const value = this.state.customProfileAttributeValues[field.id] || '';
         const isSynced = Boolean(field.attrs?.ldap || field.attrs?.saml);
-        const isDisabled = this.state.isSaving || this.state.isLoading || isSynced;
+        const isProtected = Boolean(field.attrs?.protected);
+        const isLockedFromEditing = isSynced || isProtected;
+        const isDisabled = this.state.isSaving || this.state.isLoading || isLockedFromEditing;
 
-        // Render sync indicator if field is synced
-        const syncIndicator = isSynced ? (
+        // Render indicator if field is synced or protected
+        const syncIndicator = isLockedFromEditing ? (
             <div className='user-property-field-values__sync-indicator'>
-                <SyncIcon size={18}/>
+                {isSynced ? <SyncIcon size={18}/> : <LockOutlineIcon size={18}/>}
                 <span>
-                    <FormattedMessage
-                        id='admin.userManagement.userDetail.syncedWith'
-                        defaultMessage='Synced with: {source}'
-                        values={{
-                            source: field.attrs?.ldap ? this.props.intl.formatMessage({id: 'admin.userManagement.userDetail.ldap', defaultMessage: 'AD/LDAP: {propertyName}'}, {propertyName: field.attrs.ldap}) : this.props.intl.formatMessage({id: 'admin.userManagement.userDetail.saml', defaultMessage: 'SAML: {propertyName}'}, {propertyName: field.attrs?.saml}),
-                        }}
-                    />
+                    {isSynced ? (
+                        <FormattedMessage
+                            id='admin.userManagement.userDetail.syncedWith'
+                            defaultMessage='Synced with: {source}'
+                            values={{
+                                source: field.attrs?.ldap ? this.props.intl.formatMessage({id: 'admin.userManagement.userDetail.ldap', defaultMessage: 'AD/LDAP: {propertyName}'}, {propertyName: field.attrs.ldap}) : this.props.intl.formatMessage({id: 'admin.userManagement.userDetail.saml', defaultMessage: 'SAML: {propertyName}'}, {propertyName: field.attrs?.saml}),
+                            }}
+                        />
+                    ) : (
+                        <FormattedMessage
+                            id='admin.userManagement.userDetail.managedByPlugin'
+                            defaultMessage='Managed by plugin: {pluginId}'
+                            values={{
+                                pluginId: field.attrs?.source_plugin_id || this.props.intl.formatMessage({id: 'admin.userManagement.userDetail.unknownPlugin', defaultMessage: 'unknown'}),
+                            }}
+                        />
+                    )}
                 </span>
             </div>
         ) : null;
@@ -444,6 +456,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
     renderTwoColumnLayout = () => {
         const sortedCpaFields = [...this.props.customProfileAttributeFields].
+            filter((field) => field.attrs?.access_mode !== 'source_only').
             sort((a, b) => (a.attrs?.sort_order || 0) - (b.attrs?.sort_order || 0));
 
         const fields: Array<React.ReactNode | null> = [];

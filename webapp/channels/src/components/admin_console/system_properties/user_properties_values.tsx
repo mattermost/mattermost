@@ -9,7 +9,7 @@ import {components} from 'react-select';
 import type {CreatableProps} from 'react-select/creatable';
 import CreatableSelect from 'react-select/creatable';
 
-import {SyncIcon} from '@mattermost/compass-icons/components';
+import {SyncIcon, LockOutlineIcon} from '@mattermost/compass-icons/components';
 import {supportsOptions, type PropertyFieldOption, type UserPropertyField} from '@mattermost/types/properties';
 
 import Constants from 'utils/constants';
@@ -142,6 +142,22 @@ const UserPropertyValues = ({
         );
     }
 
+    if (field.attrs?.protected) {
+        const sourcePluginId = field.attrs?.source_plugin_id as string | undefined;
+        return (
+            <>
+                <span className='user-property-field-values'>
+                    <LockOutlineIcon size={18}/>
+                    <FormattedMessage
+                        id='admin.system_properties.user_properties.table.values.managed_by_plugin'
+                        defaultMessage='Managed by plugin: {pluginId}'
+                        values={{pluginId: sourcePluginId || 'unknown'}}
+                    />
+                </span>
+            </>
+        );
+    }
+
     if (!supportsOptions(field)) {
         return (
             <span className='user-property-field-values'>
@@ -149,6 +165,9 @@ const UserPropertyValues = ({
             </span>
         );
     }
+
+    const isProtected = Boolean(field.attrs?.protected);
+    const isDisabled = field.delete_at !== 0 || isProtected;
 
     return (
         <>
@@ -158,7 +177,7 @@ const UserPropertyValues = ({
                 isClearable={true}
                 isMulti={true}
                 menuIsOpen={false}
-                isDisabled={field.delete_at !== 0}
+                isDisabled={isDisabled}
                 onChange={(newValues) => {
                     setFieldOptions(newValues.map(({id, value}) => ({id, name: value})));
                 }}

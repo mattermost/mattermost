@@ -146,39 +146,53 @@ const CustomProfileAttributes: React.FC<Props> = (props: Props): JSX.Element | n
                 }
             >
                 <div className={'custom-section-body'}>
-                    {attributes.map((attr) => (
-                        <TextSetting
-                            key={attr.id}
-                            id={`custom_profile_attribute-${attr.name}`}
-                            label={attr.name}
-                            value={attr.attrs?.[attributeKey] as string || ''}
-                            onChange={(id, newValue) => {
-                                setAttributes((prevAttrs) => prevAttrs.map((a) => {
-                                    if (a.id === attr.id) {
-                                        return {
-                                            ...a,
-                                            attrs: {
-                                                ...a.attrs,
-                                                [attributeKey]: newValue,
-                                            },
-                                        };
-                                    }
-                                    return a;
-                                }));
-                                props.setSaveNeeded();
-                            }}
-                            setByEnv={false}
-                            disabled={props.isDisabled}
-                            placeholder={{id: 'admin.customProfileAttr.placeholder', defaultMessage: 'E.g.: "fieldName"'}}
-                            helpText={
-                                <AttributeHelpText
-                                    attributeKey={attributeKey}
-                                    attributeName={attr.name}
-                                    attributeType={attr.type}
-                                />
-                            }
-                        />
-                    ))}
+                    {attributes.map((attr) => {
+                        const isProtected = Boolean(attr.attrs?.protected);
+                        const sourcePluginId = attr.attrs?.source_plugin_id as string | undefined;
+                        return (
+                            <TextSetting
+                                key={attr.id}
+                                id={`custom_profile_attribute-${attr.name}`}
+                                label={attr.name}
+                                value={attr.attrs?.[attributeKey] as string || ''}
+                                onChange={(id, newValue) => {
+                                    setAttributes((prevAttrs) => prevAttrs.map((a) => {
+                                        if (a.id === attr.id) {
+                                            return {
+                                                ...a,
+                                                attrs: {
+                                                    ...a.attrs,
+                                                    [attributeKey]: newValue,
+                                                },
+                                            };
+                                        }
+                                        return a;
+                                    }));
+                                    props.setSaveNeeded();
+                                }}
+                                setByEnv={false}
+                                disabled={props.isDisabled || isProtected}
+                                placeholder={{id: 'admin.customProfileAttr.placeholder', defaultMessage: 'E.g.: "fieldName"'}}
+                                helpText={
+                                    isProtected ? (
+                                        <FormattedMessage
+                                            id='admin.customProfileAttributes.managedByPlugin'
+                                            defaultMessage='This field is managed by the {pluginId} plugin and cannot be edited.'
+                                            values={{
+                                                pluginId: sourcePluginId || 'unknown',
+                                            }}
+                                        />
+                                    ) : (
+                                        <AttributeHelpText
+                                            attributeKey={attributeKey}
+                                            attributeName={attr.name}
+                                            attributeType={attr.type}
+                                        />
+                                    )
+                                }
+                            />
+                        );
+                    })}
                 </div>
             </SettingsGroup>
         </div>
