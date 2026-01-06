@@ -20,7 +20,7 @@ Examples
 
 ::
 
-    team rename old-team --display-name 'New Display Name'
+    team rename old-team --name mynewteam --display-name 'New Display Name'
 
 Options
 ~~~~~~~
@@ -29,6 +29,7 @@ Options
 
       --display-name string   Team Display Name
   -h, --help                  help for rename
+      --name string           Team Name
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
