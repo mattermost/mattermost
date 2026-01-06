@@ -1509,7 +1509,7 @@ func (a *App) FilterFilesByChannelPermissions(rctx request.CTX, fileList *model.
 	if len(channels) > 0 {
 		channelIDs := slices.Collect(maps.Keys(channels))
 		channelList, err := a.GetChannels(rctx, channelIDs)
-		if err != nil {
+		if err != nil && err.StatusCode != http.StatusNotFound {
 			return err
 		}
 		for _, channel := range channelList {
