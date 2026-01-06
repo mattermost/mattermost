@@ -4154,7 +4154,6 @@
   "login_mfa.token": "多因子驗證 Token",
   "manage_channel_groups_modal.search_placeholder": "搜尋群組",
   "manage_team_groups_modal.search_placeholder": "搜尋群組",
-  "mark_all_threads_as_read_modal.cancel": "取消",
   "mark_all_threads_as_read_modal.confirm": "全部標為已讀",
   "mark_all_threads_as_read_modal.description": "將清除您所有討論串的未讀狀態與提及標章。您確定？",
   "mark_all_threads_as_read_modal.title": "將所有討論串標為已讀？",

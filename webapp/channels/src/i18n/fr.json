@@ -3639,7 +3639,6 @@
   "login_mfa.token": "Jeton d'authentification multi-facteurs (MFA)",
   "manage_channel_groups_modal.search_placeholder": "Rechercher des groupes",
   "manage_team_groups_modal.search_placeholder": "Rechercher des groupes",
-  "mark_all_threads_as_read_modal.cancel": "Annuler",
   "mark_all_threads_as_read_modal.confirm": "Tout marquer comme lu",
   "mark_all_threads_as_read_modal.description": "Cela effacera l’état non lu et les badges de notification de mention sur toutes vos discussions. Êtes-vous sûr de vous ?",
   "mark_all_threads_as_read_modal.title": "Marquer tous les fils de discussion comme lus ?",
