@@ -5918,6 +5918,9 @@ This product contains 'h2non/go-is-svg' by Tom.
 
 Check if a given buffer is a valid SVG image in Go (golang)
 
+* HOMEPAGE:
+  * https://github.com/h2non/go-is-svg
+
 * LICENSE: MIT License
 
 The MIT License
