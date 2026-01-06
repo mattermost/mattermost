@@ -29,14 +29,23 @@
 }
 
 .FeatureDiscovery_title {
-    padding-bottom: 24px;
-    font-family: Metropolis, sans-serif;
-    font-size: 24px;
-    line-height: 32px;
+    padding-bottom: 16px;
+    font-family: Metropolis, sans-serif !important;
+    font-size: 20px;
+    line-height: 28px;
 }
 
 .FeatureDiscovery_copy {
     padding-bottom: 24px;
     font-size: 14px;
     line-height: 20px;
+}
+
+.purchase-card {
+    display: flex;
+    gap: 8px;
+
+    .btn {
+        margin-left: 0;
+    }
 }

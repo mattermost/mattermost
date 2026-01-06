@@ -5,4 +5,7 @@ import keyMirror from 'mattermost-redux/utils/key_mirror';
 
 export default keyMirror({
     RECEIVED_CONTENT_FLAGGING_CONFIG: null,
+    RECEIVED_POST_CONTENT_FLAGGING_FIELDS: null,
+    RECEIVED_POST_CONTENT_FLAGGING_VALUES: null,
+    CONTENT_FLAGGING_REPORT_VALUE_UPDATED: null,
 });

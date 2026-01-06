@@ -172,6 +172,18 @@ func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(pos
 		}
 		profileMap := channelProfileMap[channel.Id]
 
+		// Ensure the sender is always in the profile map: for example, system admins can post
+		// without being a member.
+		if _, ok := profileMap[post.UserId]; !ok {
+			var sender *model.User
+			sender, err = a.Srv().Store().User().Get(context.Background(), post.UserId)
+			if err != nil {
+				return errors.Wrapf(err, "failed to get profile for sender user %s for post %s", post.UserId, post.Id)
+			}
+
+			profileMap[post.UserId] = sender
+		}
+
 		mentions := &MentionResults{}
 		// In DMs, only the "other" user can be mentioned
 		if channel.Type == model.ChannelTypeDirect {
@@ -228,15 +240,12 @@ func (a *App) persistentNotificationsAuxiliaryData(channelsMap map[string]*model
 		}
 
 		channelKeywords[c.Id] = make(MentionKeywords, len(profileMap))
-		validProfileMap := make(map[string]*model.User, len(profileMap))
 		for userID, user := range profileMap {
-			if user.IsBot {
-				continue
+			if !user.IsBot {
+				channelKeywords[c.Id].AddUserKeyword(userID, "@"+user.Username)
 			}
-			validProfileMap[userID] = user
-			channelKeywords[c.Id].AddUserKeyword(userID, "@"+user.Username)
 		}
-		channelProfileMap[c.Id] = validProfileMap
+		channelProfileMap[c.Id] = profileMap
 	}
 	return channelGroupMap, channelProfileMap, channelKeywords, channelNotifyProps, nil
 }
@@ -338,7 +347,7 @@ func (a *App) sendPersistentNotifications(post *model.Post, channel *model.Chann
 	}
 
 	if len(desktopUsers) != 0 {
-		post = a.PreparePostForClient(request.EmptyContext(a.Log()), post, false, false, true)
+		post = a.PreparePostForClient(request.EmptyContext(a.Log()), post, &model.PreparePostForClientOpts{IncludePriority: true})
 		postJSON, jsonErr := post.ToJSON()
 		if jsonErr != nil {
 			return errors.Wrapf(jsonErr, "failed to encode post to JSON")

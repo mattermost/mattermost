@@ -8,7 +8,7 @@ import type {Subscription} from '@mattermost/types/cloud';
 import type {GlobalState} from '@mattermost/types/store';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {Constants} from 'utils/constants';
 import {FileSizes} from 'utils/file_utils';
 
@@ -110,7 +110,7 @@ describe('CloudUsageModal', () => {
         screen.getByText(props.description as string);
     });
 
-    test('renders primary modal action', () => {
+    test('renders primary modal action', async () => {
         const state = setupState(true);
 
         props.primaryAction = {
@@ -125,11 +125,11 @@ describe('CloudUsageModal', () => {
             state,
         );
         expect(props.primaryAction.onClick).not.toHaveBeenCalled();
-        screen.getByText(props.primaryAction.message as string).click();
+        await userEvent.click(screen.getByText(props.primaryAction.message as string));
         expect(props.primaryAction.onClick).toHaveBeenCalled();
     });
 
-    test('renders secondary modal action', () => {
+    test('renders secondary modal action', async () => {
         const state = setupState(true);
 
         props.secondaryAction = {
@@ -143,7 +143,7 @@ describe('CloudUsageModal', () => {
             state,
         );
         expect(props.onClose).not.toHaveBeenCalled();
-        screen.getByText(props.secondaryAction.message as string).click();
+        await userEvent.click(screen.getByText(props.secondaryAction.message as string));
         expect(props.onClose).toHaveBeenCalled();
     });
 

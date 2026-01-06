@@ -170,7 +170,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
                         id='admin.license.trial-request.embargoed'
                         defaultMessage='We were unable to process the request due to limitations for embargoed countries. <link>Learn more in our documentation</link>, or reach out to legal@mattermost.com for questions around export limitations.'
                         values={{
-                            link: (text: string) => (
+                            link: (text) => (
                                 <ExternalLink
                                     location='trial_banner'
                                     href={LicenseLinks.EMBARGOED_COUNTRIES}

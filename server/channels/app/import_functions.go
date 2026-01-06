@@ -5,7 +5,6 @@ package app
 
 import (
 	"bytes"
-	"context"
 	"crypto/sha256"
 	"errors"
 	"fmt"
@@ -140,7 +139,7 @@ func (a *App) importRole(rctx request.CTX, data *imports.RoleImportData, dryRun 
 
 	rctx.Logger().Info("Importing role", fields...)
 
-	role, err := a.GetRoleByName(context.Background(), *data.Name)
+	role, err := a.GetRoleByName(rctx, *data.Name)
 	if err != nil {
 		role = new(model.Role)
 	}

@@ -15,6 +15,7 @@ import AnnouncementBar from './default_announcement_bar';
 import NotificationPermissionBar from './notification_permission_bar';
 import OverageUsersBanner from './overage_users_banner';
 import PaymentAnnouncementBar from './payment_announcement_bar';
+import PostHistoryLimitBanner from './post_history_limit_banner';
 import AutoStartTrialModal from './show_start_trial_modal/show_start_trial_modal';
 import ShowThreeDaysLeftTrialModal from './show_tree_days_left_trial_modal/show_three_days_left_trial_modal';
 import TextDismissableBar from './text_dismissable_bar';
@@ -118,6 +119,7 @@ class AnnouncementBarController extends React.PureComponent<Props> {
                 {notifyAdminDowngradeDelinquencyBar}
                 {toYearlyNudgeBannerDismissable}
                 {this.props.license?.Cloud !== 'true' && <OverageUsersBanner/>}
+                <PostHistoryLimitBanner/>
                 {autoStartTrialModal}
                 <ShowThreeDaysLeftTrialModal/>
                 <VersionBar/>

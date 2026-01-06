@@ -183,7 +183,7 @@ type State = {
     showSpinner: boolean;
     resendStatus?: string;
     pictureError?: string | null;
-    serverError?: string | {server_error_id: string; message: string};
+    serverError?: string;
     emailError?: string;
     customAttributeValues: Record<string, string | string[]>;
 }

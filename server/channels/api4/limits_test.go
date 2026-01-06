@@ -16,8 +16,7 @@ func TestGetServerLimits(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	t.Run("admin users can get full server limits", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		// Set up unlicensed server
 		th.App.Srv().SetLicense(nil)
@@ -29,15 +28,14 @@ func TestGetServerLimits(t *testing.T) {
 
 		// Should have full access to all limits data
 		require.Greater(t, serverLimits.ActiveUserCount, int64(0))
-		require.Equal(t, int64(2500), serverLimits.MaxUsersLimit)
-		require.Equal(t, int64(5000), serverLimits.MaxUsersHardLimit)
+		require.Equal(t, int64(200), serverLimits.MaxUsersLimit)
+		require.Equal(t, int64(250), serverLimits.MaxUsersHardLimit)
 		require.Equal(t, int64(0), serverLimits.PostHistoryLimit)
 		require.Equal(t, int64(0), serverLimits.LastAccessiblePostTime)
 	})
 
 	t.Run("non-admin users get limited data with licensed server", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		// Set up licensed server with user limits
 		userLimit := 100
@@ -67,8 +65,7 @@ func TestGetServerLimits(t *testing.T) {
 	})
 
 	t.Run("admin users get full limts", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		// Set up licensed server with post history limits
 		userLimit := 100
@@ -98,8 +95,7 @@ func TestGetServerLimits(t *testing.T) {
 	})
 
 	t.Run("non-admin users get post history limits when configured", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		// Set up licensed server with post history limits
 		userLimit := 100
@@ -130,8 +126,7 @@ func TestGetServerLimits(t *testing.T) {
 	})
 
 	t.Run("zero post history limit shows no limits", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		// Set up licensed server with zero post history limit
 		userLimit := 100
@@ -159,8 +154,7 @@ func TestGetServerLimits(t *testing.T) {
 	})
 
 	t.Run("license with nil Limits shows no post history limits", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		// Set up licensed server with nil Limits
 		userLimit := 100

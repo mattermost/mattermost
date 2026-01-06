@@ -3,11 +3,11 @@
 
 import {shallow} from 'enzyme';
 import React from 'react';
-import {act} from 'react-dom/test-utils';
 
 import type {ChannelWithTeamData} from '@mattermost/types/channels';
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
+import {act} from 'tests/react_testing_utils';
 
 import PolicyDetails from './policy_details';
 
@@ -34,6 +34,7 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
     const mockOnRemoveCallback = jest.fn();
     const mockOnUndoRemoveCallback = jest.fn();
     const mockOnAddCallback = jest.fn();
+    const mockOnPoliciesActiveStatusChange = jest.fn();
     const mockFetchPolicy = jest.fn();
     const mockSetNavigationBlocked = jest.fn();
     const mockAssignChannelsToAccessControlPolicy = jest.fn();
@@ -41,7 +42,7 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
     const mockGetAccessControlExpressionAutocomplete = jest.fn();
     const mockGetAccessControlFields = jest.fn();
     const mockCreateJob = jest.fn();
-    const mockUpdateAccessControlPolicyActive = jest.fn();
+    const mockUpdateAccessControlPoliciesActive = jest.fn();
     const mockGetVisualAST = jest.fn();
     const defaultProps = {
         policyId: 'policy1',
@@ -60,7 +61,9 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         onRemoveCallback: mockOnRemoveCallback,
         onUndoRemoveCallback: mockOnUndoRemoveCallback,
         onAddCallback: mockOnAddCallback,
+        onPolicyActiveStatusChange: mockOnPoliciesActiveStatusChange,
         channelsToRemove: {},
+        policyActiveStatusChanges: [],
         channelsToAdd: {},
         autocompleteResult: {entities: {}},
         actions: {
@@ -77,8 +80,8 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
             getAccessControlExpressionAutocomplete: mockGetAccessControlExpressionAutocomplete,
             getAccessControlFields: mockGetAccessControlFields,
             createJob: mockCreateJob,
-            updateAccessControlPolicyActive: mockUpdateAccessControlPolicyActive,
             getVisualAST: mockGetVisualAST,
+            updateAccessControlPoliciesActive: mockUpdateAccessControlPoliciesActive,
         },
     };
 
@@ -93,7 +96,9 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
             deleteChannelPolicy: jest.fn(),
             getChannelMembers: jest.fn(),
             createJob: jest.fn(),
-            updateAccessControlPolicyActive: jest.fn(),
+            createAccessControlSyncJob: jest.fn(),
+            validateExpressionAgainstRequester: jest.fn(),
+            updateAccessControlPoliciesActive: mockUpdateAccessControlPoliciesActive,
         });
 
         mockCreatePolicy.mockReset();
@@ -105,6 +110,7 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         mockOnRemoveCallback.mockReset();
         mockOnUndoRemoveCallback.mockReset();
         mockOnAddCallback.mockReset();
+        mockOnPoliciesActiveStatusChange.mockReset();
         mockFetchPolicy.mockReset();
         mockSetNavigationBlocked.mockReset();
         mockAssignChannelsToAccessControlPolicy.mockReset();
@@ -112,7 +118,7 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         mockGetAccessControlExpressionAutocomplete.mockReset();
         mockGetAccessControlFields.mockReset();
         mockCreateJob.mockReset();
-        mockUpdateAccessControlPolicyActive.mockReset();
+        mockUpdateAccessControlPoliciesActive.mockReset();
         mockGetVisualAST.mockReset();
     });
 

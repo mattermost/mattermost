@@ -12,7 +12,6 @@ import {getFirstAdminSetupComplete} from 'mattermost-redux/actions/general';
 import {getProfiles} from 'mattermost-redux/actions/users';
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {shouldShowTermsOfService, getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
@@ -52,7 +51,6 @@ function mapStateToProps(state: GlobalState) {
     const isConfigLoaded = config && !isEmpty(config);
 
     return {
-        theme: getTheme(state),
         isConfigLoaded,
         telemetryEnabled: config.DiagnosticsEnabled === 'true',
         noAccounts: config.NoAccounts === 'true',
@@ -90,6 +88,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             handleLoginLogoutSignal,
             redirectToOnboardingOrDefaultTeam,
         }, dispatch),
+        dispatch,
     };
 }
 

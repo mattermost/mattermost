@@ -64,7 +64,7 @@ func (a *App) PreparePostListForClient(rctx request.CTX, originalList *model.Pos
 	}
 
 	for id, originalPost := range originalList.Posts {
-		post := a.PreparePostForClientWithEmbedsAndImages(rctx, originalPost, false, false, false)
+		post := a.PreparePostForClientWithEmbedsAndImages(rctx, originalPost, &model.PreparePostForClientOpts{})
 
 		list.Posts[id] = post
 	}
@@ -112,7 +112,7 @@ func (a *App) OverrideIconURLIfEmoji(rctx request.CTX, post *model.Post) {
 	}
 }
 
-func (a *App) PreparePostForClient(rctx request.CTX, originalPost *model.Post, isNewPost, isEditPost, includePriority bool) *model.Post {
+func (a *App) PreparePostForClient(rctx request.CTX, originalPost *model.Post, opts *model.PreparePostForClientOpts) *model.Post {
 	post := originalPost.Clone()
 
 	// Proxy image links before constructing metadata so that requests go through the proxy
@@ -123,7 +123,7 @@ func (a *App) PreparePostForClient(rctx request.CTX, originalPost *model.Post, i
 		post.Metadata = &model.PostMetadata{}
 	}
 
-	if post.DeleteAt > 0 {
+	if post.DeleteAt > 0 && !opts.RetainContent {
 		// For deleted posts we don't fill out metadata nor do we return the post content
 		post.Message = ""
 		post.Metadata = &model.PostMetadata{}
@@ -139,13 +139,21 @@ func (a *App) PreparePostForClient(rctx request.CTX, originalPost *model.Post, i
 	}
 
 	// Files
-	if fileInfos, _, err := a.getFileMetadataForPost(rctx, post, isNewPost || isEditPost); err != nil {
-		rctx.Logger().Warn("Failed to get files for a post", mlog.String("post_id", post.Id), mlog.Err(err))
-	} else {
-		post.Metadata.Files = fileInfos
+	a.preparePostFilesForClient(rctx, post, opts)
+
+	if post.Type == model.PostTypeBurnOnRead {
+		// if metadata expire is not set, it means the post is not revealed yet
+		// so we need to reset the metadata. Or, if the user is the author, we don't reset the metadata.
+		if post.Metadata.ExpireAt == 0 && post.UserId != rctx.Session().UserId {
+			if scheduledPost, ok := rctx.Context().Value(model.PostContextKeyIsScheduledPost).(bool); ok && scheduledPost {
+				// if the post is a scheduled post, we don't reset the metadata
+			} else {
+				post.Metadata = &model.PostMetadata{}
+			}
+		}
 	}
 
-	if includePriority && a.IsPostPriorityEnabled() && post.RootId == "" {
+	if opts.IncludePriority && a.IsPostPriorityEnabled() && post.RootId == "" {
 		// Post's Priority if any
 		if priority, err := a.GetPriorityForPost(post.Id); err != nil {
 			rctx.Logger().Warn("Failed to get post priority for a post", mlog.String("post_id", post.Id), mlog.Err(err))
@@ -164,9 +172,20 @@ func (a *App) PreparePostForClient(rctx request.CTX, originalPost *model.Post, i
 	return post
 }
 
-func (a *App) PreparePostForClientWithEmbedsAndImages(rctx request.CTX, originalPost *model.Post, isNewPost, isEditPost, includePriority bool) *model.Post {
-	post := a.PreparePostForClient(rctx, originalPost, isNewPost, isEditPost, includePriority)
-	post = a.getEmbedsAndImages(rctx, post, isNewPost)
+func (a *App) preparePostFilesForClient(rctx request.CTX, post *model.Post, opts *model.PreparePostForClientOpts) *model.Post {
+	if fileInfos, _, err := a.getFileMetadataForPost(rctx, post, opts.IsNewPost || opts.IsEditPost, opts.IncludeDeleted); err != nil {
+		rctx.Logger().Warn("Failed to get files for a post", mlog.String("post_id", post.Id), mlog.Err(err))
+	} else {
+		post.Metadata.Files = fileInfos
+	}
+
+	return post
+}
+
+func (a *App) PreparePostForClientWithEmbedsAndImages(rctx request.CTX, originalPost *model.Post, opts *model.PreparePostForClientOpts) *model.Post {
+	post := a.PreparePostForClient(rctx, originalPost, opts)
+	post = a.getEmbedsAndImages(rctx, post, opts.IsNewPost)
+	post = a.preparePostFilesForClient(rctx, post, opts)
 	return post
 }
 
@@ -274,12 +293,12 @@ func (a *App) SanitizePostListMetadataForUser(rctx request.CTX, postList *model.
 	return clonedPostList, nil
 }
 
-func (a *App) getFileMetadataForPost(rctx request.CTX, post *model.Post, fromMaster bool) ([]*model.FileInfo, int64, *model.AppError) {
+func (a *App) getFileMetadataForPost(rctx request.CTX, post *model.Post, fromMaster, includeDeleted bool) ([]*model.FileInfo, int64, *model.AppError) {
 	if len(post.FileIds) == 0 {
 		return nil, 0, nil
 	}
 
-	return a.GetFileInfosForPost(rctx, post.Id, fromMaster, false)
+	return a.GetFileInfosForPost(rctx, post.Id, fromMaster, includeDeleted)
 }
 
 func (a *App) getEmojisAndReactionsForPost(rctx request.CTX, post *model.Post) ([]*model.Emoji, []*model.Reaction, *model.AppError) {
@@ -679,6 +698,10 @@ func (a *App) getLinkMetadataForPermalink(rctx request.CTX, requestURL string) (
 		return nil, appErr
 	}
 
+	if referencedPost.Type == model.PostTypeBurnOnRead {
+		return nil, model.NewAppError("getLinkMetadataForPermalink", "api.post.get_link_metadata_for_permalink.burn_on_read.app_error", nil, "", http.StatusForbidden)
+	}
+
 	referencedChannel, appErr := a.GetChannel(rctx, referencedPost.ChannelId)
 	if appErr != nil {
 		return nil, appErr
@@ -701,7 +724,7 @@ func (a *App) getLinkMetadataForPermalink(rctx request.CTX, requestURL string) (
 		permalink = &model.Permalink{PreviewPost: model.NewPreviewPost(referencedPost, referencedTeam, referencedChannel)}
 	} else {
 		// referencedPost does not contain a permalink: we get its metadata
-		referencedPostWithMetadata := a.PreparePostForClientWithEmbedsAndImages(rctx, referencedPost, false, false, false)
+		referencedPostWithMetadata := a.PreparePostForClientWithEmbedsAndImages(rctx, referencedPost, &model.PreparePostForClientOpts{})
 		permalink = &model.Permalink{PreviewPost: model.NewPreviewPost(referencedPostWithMetadata, referencedTeam, referencedChannel)}
 	}
 

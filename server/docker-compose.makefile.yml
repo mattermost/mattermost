@@ -4,6 +4,8 @@ services:
     container_name: mattermost-postgres
     ports:
       - "5432:5432"
+    volumes:
+     - "postgres-14-data:/var/lib/postgresql/data"
     extends:
         file: build/docker-compose.common.yml
         service: postgres
@@ -113,3 +115,6 @@ networks:
       config:
         - subnet: 192.168.254.0/24
           ip_range: 192.168.254.0/24
+
+volumes:
+  postgres-14-data:

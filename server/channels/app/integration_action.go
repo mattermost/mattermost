@@ -491,7 +491,11 @@ func (a *App) OpenInteractiveDialog(rctx request.CTX, request model.OpenDialogRe
 func (a *App) SubmitInteractiveDialog(rctx request.CTX, request model.SubmitDialogRequest) (*model.SubmitDialogResponse, *model.AppError) {
 	url := request.URL
 	request.URL = ""
-	request.Type = "dialog_submission"
+
+	// Preserve Type field for field refresh functionality, otherwise default to dialog_submission
+	if request.Type != "refresh" {
+		request.Type = "dialog_submission"
+	}
 
 	b, err := json.Marshal(request)
 	if err != nil {
@@ -530,6 +534,15 @@ func (a *App) SubmitInteractiveDialog(rctx request.CTX, request model.SubmitDial
 	err = json.Unmarshal(body, &response)
 	if err != nil {
 		return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.decode_json_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Validate the response
+	if err := response.IsValid(); err != nil {
+		if strings.Contains(err.Error(), "invalid form") {
+			rctx.Logger().Info("Interactive dialog is invalid", mlog.Err(err))
+		} else {
+			return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.invalid_response", nil, err.Error(), http.StatusBadRequest)
+		}
 	}
 
 	return &response, nil

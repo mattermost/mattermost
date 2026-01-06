@@ -37,6 +37,7 @@ function mapStateToProps(state: GlobalState) {
         submitLabel: data.dialog.submit_label,
         notifyOnCancel: data.dialog.notify_on_cancel,
         state: data.dialog.state,
+        sourceUrl: data.dialog.source_url,
         emojiMap,
         isAppsFormEnabled,
         hasUrl: Boolean(data.url),

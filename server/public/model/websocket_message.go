@@ -98,6 +98,10 @@ const (
 	WebsocketEventCPAFieldUpdated                     WebsocketEventType = "custom_profile_attributes_field_updated"
 	WebsocketEventCPAFieldDeleted                     WebsocketEventType = "custom_profile_attributes_field_deleted"
 	WebsocketEventCPAValuesUpdated                    WebsocketEventType = "custom_profile_attributes_values_updated"
+	WebsocketContentFlaggingReportValueUpdated        WebsocketEventType = "content_flagging_report_value_updated"
+	WebsocketEventPostRevealed                        WebsocketEventType = "post_revealed"
+	WebsocketEventPostBurned                          WebsocketEventType = "post_burned"
+	WebsocketEventBurnOnReadAllRevealed               WebsocketEventType = "burn_on_read_all_revealed"
 
 	WebSocketMsgTypeResponse = "response"
 	WebSocketMsgTypeEvent    = "event"
@@ -217,6 +221,7 @@ type WebSocketEvent struct {
 	broadcast       *WebsocketBroadcast
 	sequence        int64
 	precomputedJSON *precomputedWebSocketEventJSON
+	rejected        bool
 }
 
 // PrecomputeJSON precomputes and stores the serialized JSON for all fields other than Sequence.
@@ -448,4 +453,12 @@ func (m *WebSocketResponse) ToJSON() ([]byte, error) {
 func WebSocketResponseFromJSON(data io.Reader) (*WebSocketResponse, error) {
 	var o *WebSocketResponse
 	return o, json.NewDecoder(data).Decode(&o)
+}
+
+func (ev *WebSocketEvent) Reject() {
+	ev.rejected = true
+}
+
+func (ev *WebSocketEvent) IsRejected() bool {
+	return ev.rejected
 }

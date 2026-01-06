@@ -11,7 +11,7 @@ on:
 
 jobs:
   generate-test-variables:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       BRANCH: "${{ steps.generate.outputs.BRANCH }}"
       BUILD_ID: "${{ steps.generate.outputs.BUILD_ID }}"

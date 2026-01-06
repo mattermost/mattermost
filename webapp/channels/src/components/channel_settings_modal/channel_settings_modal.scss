@@ -2,6 +2,8 @@
 // See LICENSE.txt for license information.
 
 .ChannelSettingsModal {
+    width: 920px !important;
+
     &__infoTabTitle {
         margin-bottom: 4px;
         color: var(--center-channel-color);
@@ -42,7 +44,7 @@
     &__bodyWrapper {
         display: flex;
         width: 100%;
-        max-width: 1024px;
+        max-width: 920px;
         flex-direction: column;
         gap: 24px;
     }
@@ -60,6 +62,7 @@
             overflow: visible !important; // This is necessary to override the overflow hidden from the modal for emoji list
             flex: 1;
             flex-direction: column;
+            padding: 0 32px;
 
             .AdvancedTextbox {
                 position: relative;
@@ -199,6 +202,15 @@
         .modal-content,
         .GenericModal__wrapper {
             max-height: 85vh !important;
+        }
+    }
+
+    // SaveChangesPanel styling for wider modal
+    .SaveChangesPanel {
+        width: calc(70%);
+
+        @media screen and (max-width: 768px) {
+            width: calc(75%);
         }
     }
 }

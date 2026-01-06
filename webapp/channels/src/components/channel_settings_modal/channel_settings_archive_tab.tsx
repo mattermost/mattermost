@@ -75,7 +75,7 @@ function ChannelSettingsArchiveTab({
                                     defaultMessage='Are you sure you wish to archive the <strong>{display_name}</strong> channel?'
                                     values={{
                                         display_name: channel.display_name,
-                                        strong: (chunks: string) => <strong>{chunks}</strong>,
+                                        strong: (chunks) => <strong>{chunks}</strong>,
                                     }}
                                 />
                             </p>

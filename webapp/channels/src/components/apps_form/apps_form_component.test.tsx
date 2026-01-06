@@ -75,7 +75,7 @@ describe('AppsFormComponent', () => {
         jest.clearAllMocks();
     });
 
-    test('should render form with title, header, and fields', () => {
+    test('should render form with title, header, fields and initial values', () => {
         renderWithContext(
             <AppsForm
                 {...baseProps}
@@ -85,20 +85,10 @@ describe('AppsFormComponent', () => {
         // Verify key form elements are rendered
         expect(screen.getByText('Title')).toBeInTheDocument();
         expect(screen.getByText('Header')).toBeInTheDocument();
-        expect(screen.getByDisplayValue('initial text')).toBeInTheDocument();
-        expect(screen.getByText('Label1')).toBeInTheDocument();
         expect(screen.getByRole('button', {name: /submit/i})).toBeInTheDocument();
         expect(screen.getByRole('button', {name: /cancel/i})).toBeInTheDocument();
-    });
 
-    test('should set initial form values', () => {
-        renderWithContext(
-            <AppsForm
-                {...baseProps}
-            />,
-        );
-
-        // Verify form renders with initial values visible
+        // Verify form renders with initial values
         expect(screen.getByDisplayValue('initial text')).toBeInTheDocument();
         expect(screen.getByText('Label1')).toBeInTheDocument();
     });
@@ -192,7 +182,7 @@ describe('AppsFormComponent', () => {
             const fields = [selectField];
             const props = {
                 ...baseProps,
-                context: {},
+                appsContext: {},
                 form: {
                     fields,
                 },
@@ -205,7 +195,7 @@ describe('AppsFormComponent', () => {
         });
     });
 
-    describe('Form Validation', () => {
+    describe('Server-side Validation', () => {
         test('should display field errors from server response', async () => {
             const submitMock = jest.fn().mockResolvedValue({
                 error: {
@@ -378,110 +368,6 @@ describe('AppsFormComponent', () => {
             // Verify form renders with proper error handling
             expect(screen.getByRole('button', {name: /submit/i})).toBeInTheDocument();
             expect(props.actions.performLookupCall).toBe(mockLookup);
-        });
-    });
-
-    describe('Refresh on Select', () => {
-        test('should trigger refresh when field has refresh enabled', async () => {
-            const mockRefresh = jest.fn().mockResolvedValue({
-                data: {
-                    type: 'form',
-                    form: {
-                        title: 'Updated Form',
-                        fields: [],
-                    },
-                },
-            });
-
-            const props = {
-                ...baseProps,
-                actions: {
-                    ...baseProps.actions,
-                    refreshOnSelect: mockRefresh,
-                },
-                form: {
-                    ...baseProps.form,
-                    fields: [
-                        {
-                            name: 'trigger_field',
-                            type: 'static_select',
-                            refresh: true,
-                        },
-                    ],
-                },
-            };
-
-            renderWithContext(<AppsForm {...props}/>);
-
-            // Verify refresh functionality is configured
-            expect(mockRefresh).toBeDefined();
-        });
-
-        test('should handle refresh errors', async () => {
-            const mockRefresh = jest.fn().mockResolvedValue({
-                error: {
-                    text: 'Refresh failed',
-                    data: {
-                        errors: {
-                            trigger_field: 'Field error',
-                        },
-                    },
-                },
-            });
-
-            const props = {
-                ...baseProps,
-                actions: {
-                    ...baseProps.actions,
-                    refreshOnSelect: mockRefresh,
-                },
-                form: {
-                    ...baseProps.form,
-                    fields: [
-                        {
-                            name: 'trigger_field',
-                            type: 'static_select',
-                            refresh: true,
-                        },
-                    ],
-                },
-            };
-
-            renderWithContext(<AppsForm {...props}/>);
-
-            // Verify error handling is configured
-            expect(mockRefresh).toBeDefined();
-        });
-
-        test('should handle unexpected refresh response types', async () => {
-            const mockRefresh = jest.fn().mockResolvedValue({
-                data: {
-                    type: 'ok', // Unexpected type for refresh
-                },
-            });
-
-            const props = {
-                ...baseProps,
-                actions: {
-                    ...baseProps.actions,
-                    refreshOnSelect: mockRefresh,
-                },
-                form: {
-                    ...baseProps.form,
-                    fields: [
-                        {
-                            name: 'trigger_field',
-                            type: 'static_select',
-                            refresh: true,
-                        },
-                    ],
-                },
-            };
-
-            renderWithContext(<AppsForm {...props}/>);
-
-            // Verify unexpected response handling is configured
-            expect(mockRefresh).toBeDefined();
         });
     });
 
@@ -683,23 +569,6 @@ describe('AppsFormComponent', () => {
             });
         });
 
-        test('should handle submit_on_cancel form option', () => {
-            const formWithSubmitOnCancel = {
-                ...baseProps.form,
-                submit_on_cancel: true,
-            };
-
-            const props = {
-                ...baseProps,
-                form: formWithSubmitOnCancel,
-            };
-
-            renderWithContext(<AppsForm {...props}/>);
-
-            // Verify form renders with submit_on_cancel option
-            expect(screen.getByRole('button', {name: /cancel/i})).toBeInTheDocument();
-        });
-
         test('should handle missing field during onChange', () => {
             renderWithContext(<AppsForm {...baseProps}/>);
 
@@ -821,7 +690,7 @@ describe('AppsFormComponent', () => {
         });
     });
 
-    describe('Field Error Handling and Display', () => {
+    describe('Error Display and Formatting', () => {
         test('should display field errors with markdown formatting', async () => {
             const submitMock = jest.fn().mockResolvedValue({
                 error: {
@@ -1050,35 +919,6 @@ describe('AppsFormComponent', () => {
         });
     });
 
-    describe('Lookup Functionality', () => {
-        test('should handle lookup call with performLookup method', async () => {
-            const mockPerformLookup = jest.fn().mockResolvedValue({
-                data: {
-                    type: 'ok',
-                    data: {
-                        items: [
-                            {label: 'Result 1', value: 'r1'},
-                            {label: 'Result 2', value: 'r2'},
-                        ],
-                    },
-                },
-            });
-
-            const props = {
-                ...baseProps,
-                actions: {
-                    ...baseProps.actions,
-                    performLookupCall: mockPerformLookup,
-                },
-            };
-
-            renderWithContext(<AppsForm {...props}/>);
-
-            // Form should render with lookup capability available
-            expect(screen.getByRole('button', {name: /submit/i})).toBeInTheDocument();
-        });
-    });
-
     describe('Refresh on Select Functionality', () => {
         test('should handle refresh on select success', async () => {
             const mockRefreshOnSelect = jest.fn().mockResolvedValue({
@@ -1277,7 +1117,7 @@ describe('AppsFormComponent', () => {
     });
 
     describe('onHide and Modal Behavior', () => {
-        test('should call onHide prop when onHide is triggered', () => {
+        test('should call onHide prop when onHide is triggered', async () => {
             const mockOnHide = jest.fn();
 
             const props = {
@@ -1288,7 +1128,7 @@ describe('AppsFormComponent', () => {
             renderWithContext(<AppsForm {...props}/>);
 
             const cancelButton = screen.getByRole('button', {name: /cancel/i});
-            userEvent.click(cancelButton);
+            await userEvent.click(cancelButton);
 
             expect(mockOnHide).toHaveBeenCalled();
         });
@@ -1305,8 +1145,8 @@ describe('AppsFormComponent', () => {
             }).not.toThrow();
 
             const cancelButton = screen.getByRole('button', {name: /cancel/i});
-            expect(() => {
-                userEvent.click(cancelButton);
+            expect(async () => {
+                await userEvent.click(cancelButton);
             }).not.toThrow();
         });
 
@@ -1328,8 +1168,8 @@ describe('AppsFormComponent', () => {
             expect(cancelButton).toBeInTheDocument();
 
             // Clicking cancel should handle submit_on_cancel logic
-            expect(() => {
-                userEvent.click(cancelButton);
+            expect(async () => {
+                await userEvent.click(cancelButton);
             }).not.toThrow();
         });
     });
@@ -1477,6 +1317,357 @@ describe('AppsFormComponent', () => {
             expect(screen.getByRole('button', {name: /custom action/i})).toBeInTheDocument();
             expect(screen.getByRole('button', {name: /another action/i})).toBeInTheDocument();
             expect(screen.queryByRole('button', {name: /should not show/i})).not.toBeInTheDocument();
+        });
+    });
+
+    describe('Field Configuration Validation', () => {
+        it('should validate required fields', () => {
+            const formWithRequiredField = {
+                ...baseProps.form,
+                fields: [
+                    {
+                        name: 'required_text',
+                        type: 'text',
+                        is_required: true,
+                        label: 'Required Field',
+                    },
+                ],
+            };
+
+            const props = {
+                ...baseProps,
+                form: formWithRequiredField,
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            // Field validation happens during initialization but doesn't block rendering
+            expect(screen.getByText(/Required Field/)).toBeInTheDocument();
+        });
+
+        it('should validate datetime fields with time constraints', () => {
+            const formWithDateTimeField = {
+                ...baseProps.form,
+                fields: [
+                    {
+                        name: 'meeting_time',
+                        type: 'datetime',
+                        is_required: true,
+                        label: 'Meeting Time',
+                        time_interval: 30,
+                        min_date: 'today',
+                        max_date: '+30d',
+                    },
+                ],
+            };
+
+            const props = {
+                ...baseProps,
+                form: formWithDateTimeField,
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            // DateTime field should render with validation applied
+            expect(screen.getByText('Meeting Time')).toBeInTheDocument();
+        });
+
+        it('should handle invalid field configurations gracefully', () => {
+            const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+            const formWithInvalidField = {
+                ...baseProps.form,
+                fields: [
+                    {
+                        name: 'invalid_field',
+                        type: 'datetime',
+                        time_interval: -1, // Invalid interval
+                        min_date: 'invalid-date', // Invalid date format
+                        label: 'Invalid Field',
+                    },
+                ],
+            };
+
+            const props = {
+                ...baseProps,
+                form: formWithInvalidField,
+            };
+
+            // Should not throw error, validation is non-blocking
+            expect(() => renderWithContext(<AppsForm {...props}/>)).not.toThrow();
+            expect(screen.getByText('Invalid Field')).toBeInTheDocument();
+            consoleSpy.mockRestore();
+        });
+
+        it('should initialize required datetime fields with default values', () => {
+            const formWithRequiredDateTime = {
+                ...baseProps.form,
+                fields: [
+                    {
+                        name: 'required_datetime',
+                        type: 'datetime',
+                        is_required: true,
+                        label: 'Required DateTime',
+                        default_time: '09:00',
+                    },
+                ],
+            };
+
+            const props = {
+                ...baseProps,
+                form: formWithRequiredDateTime,
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            // Required datetime field should be present and initialized
+            expect(screen.getByText('Required DateTime')).toBeInTheDocument();
+        });
+    });
+
+    describe('DateTime Field Validation - time_interval', () => {
+        it('should accept valid time_interval divisors of 1440', () => {
+            const validIntervals = [1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 24, 30, 40, 60, 72, 90, 120, 180, 240, 360, 480, 720, 1440];
+
+            validIntervals.forEach((interval) => {
+                const formWithValidInterval = {
+                    ...baseProps.form,
+                    fields: [
+                        {
+                            name: 'valid_datetime',
+                            type: 'datetime',
+                            time_interval: interval,
+                            label: `DateTime with ${interval}min interval`,
+                        },
+                    ],
+                };
+
+                const props = {
+                    ...baseProps,
+                    form: formWithValidInterval,
+                };
+
+                // Should not throw error for valid divisors
+                expect(() => renderWithContext(<AppsForm {...props}/>)).not.toThrow();
+            });
+        });
+
+        it('should log warnings for invalid time_interval non-divisors of 1440', () => {
+            const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+            const invalidIntervals = [7, 11, 13, 17, 23, 25, 33, 37, 50, 55, 70, 100, 300, 500, 729, 1000];
+
+            invalidIntervals.forEach((interval) => {
+                const formWithInvalidInterval = {
+                    ...baseProps.form,
+                    fields: [
+                        {
+                            name: 'invalid_datetime',
+                            type: 'datetime',
+                            time_interval: interval,
+                            label: `DateTime with ${interval}min interval`,
+                        },
+                    ],
+                };
+
+                const props = {
+                    ...baseProps,
+                    form: formWithInvalidInterval,
+                };
+
+                renderWithContext(<AppsForm {...props}/>);
+
+                // Should log warning for invalid divisors
+                expect(consoleSpy).toHaveBeenCalledWith(
+                    'AppForm field validation errors:',
+                    expect.arrayContaining([
+                        expect.stringContaining(`time_interval must be a divisor of 1440 (24 hours * 60 minutes) to create valid time intervals, got ${interval}`),
+                    ]),
+                );
+
+                consoleSpy.mockClear();
+            });
+
+            consoleSpy.mockRestore();
+        });
+
+        it('should log warnings for time_interval out of valid range', () => {
+            const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+            const outOfRangeIntervals = [0, -5, 1441, 2000];
+
+            outOfRangeIntervals.forEach((interval) => {
+                const formWithOutOfRangeInterval = {
+                    ...baseProps.form,
+                    fields: [
+                        {
+                            name: 'out_of_range_datetime',
+                            type: 'datetime',
+                            time_interval: interval,
+                            label: `DateTime with ${interval}min interval`,
+                        },
+                    ],
+                };
+
+                const props = {
+                    ...baseProps,
+                    form: formWithOutOfRangeInterval,
+                };
+
+                renderWithContext(<AppsForm {...props}/>);
+
+                // Should log warning for out of range values
+                expect(consoleSpy).toHaveBeenCalledWith(
+                    'AppForm field validation errors:',
+                    expect.arrayContaining([
+                        expect.stringContaining('time_interval must be a positive number between 1 and 1440 minutes'),
+                    ]),
+                );
+
+                consoleSpy.mockClear();
+            });
+
+            consoleSpy.mockRestore();
+        });
+
+        it('should log warnings for non-numeric time_interval values', () => {
+            const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+            const nonNumericIntervals = ['30', null, undefined, true, {}, []];
+
+            nonNumericIntervals.forEach((interval) => {
+                const formWithNonNumericInterval = {
+                    ...baseProps.form,
+                    fields: [
+                        {
+                            name: 'non_numeric_datetime',
+                            type: 'datetime',
+                            time_interval: interval as any,
+                            label: `DateTime with ${interval} interval`,
+                        },
+                    ],
+                };
+
+                const props = {
+                    ...baseProps,
+                    form: formWithNonNumericInterval,
+                };
+
+                renderWithContext(<AppsForm {...props}/>);
+
+                // Should log warning for non-numeric values (unless undefined)
+                if (interval !== undefined) {
+                    expect(consoleSpy).toHaveBeenCalledWith(
+                        'AppForm field validation errors:',
+                        expect.arrayContaining([
+                            expect.stringContaining('time_interval must be a positive number between 1 and 1440 minutes'),
+                        ]),
+                    );
+                }
+
+                consoleSpy.mockClear();
+            });
+
+            consoleSpy.mockRestore();
+        });
+
+        it('should not validate time_interval for non-datetime field types', () => {
+            const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+            const formWithNonDateTimeField = {
+                ...baseProps.form,
+                fields: [
+                    {
+                        name: 'text_with_interval',
+                        type: 'text',
+                        time_interval: 729, // Invalid but should be ignored for text fields
+                        label: 'Text Field',
+                    },
+                    {
+                        name: 'date_with_interval',
+                        type: 'date',
+                        time_interval: 729, // Invalid but should be ignored for date fields
+                        label: 'Date Field',
+                    },
+                ],
+            };
+
+            const props = {
+                ...baseProps,
+                form: formWithNonDateTimeField,
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            // Should not log warnings for non-datetime fields
+            expect(consoleSpy).not.toHaveBeenCalled();
+
+            consoleSpy.mockRestore();
+        });
+
+        it('should validate min_date and max_date formats for date and datetime fields', () => {
+            const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+            const formWithInvalidDates = {
+                ...baseProps.form,
+                fields: [
+                    {
+                        name: 'invalid_dates',
+                        type: 'datetime',
+                        min_date: 'invalid-date-format',
+                        max_date: '2025/01/01', // Wrong format
+                        label: 'DateTime with Invalid Dates',
+                    },
+                ],
+            };
+
+            const props = {
+                ...baseProps,
+                form: formWithInvalidDates,
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            // Should log warnings for invalid date formats
+            expect(consoleSpy).toHaveBeenCalledWith(
+                'AppForm field validation errors:',
+                expect.arrayContaining([
+                    expect.stringContaining('min_date "invalid-date-format" is not a valid date format'),
+                    expect.stringContaining('max_date "2025/01/01" is not a valid date format'),
+                ]),
+            );
+
+            consoleSpy.mockRestore();
+        });
+
+        it('should validate date range when min_date is after max_date', () => {
+            const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+            const formWithInvalidDateRange = {
+                ...baseProps.form,
+                fields: [
+                    {
+                        name: 'invalid_range',
+                        type: 'date',
+                        min_date: '2025-12-31',
+                        max_date: '2025-01-01', // Before min_date
+                        label: 'Date with Invalid Range',
+                    },
+                ],
+            };
+
+            const props = {
+                ...baseProps,
+                form: formWithInvalidDateRange,
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            // Should log warning for invalid date range
+            expect(consoleSpy).toHaveBeenCalledWith(
+                'AppForm field validation errors:',
+                expect.arrayContaining([
+                    expect.stringContaining('min_date cannot be after max_date'),
+                ]),
+            );
+
+            consoleSpy.mockRestore();
         });
     });
 });

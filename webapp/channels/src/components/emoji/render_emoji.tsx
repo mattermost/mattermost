@@ -11,6 +11,8 @@ import {getEmojiMap} from 'selectors/emojis';
 
 import type {GlobalState} from 'types/store';
 
+const emptyEmojiStyle = {};
+
 interface ComponentProps {
     emojiName: string;
     size?: number;
@@ -18,7 +20,12 @@ interface ComponentProps {
     onClick?: (event: MouseEvent<HTMLSpanElement> | KeyboardEvent<HTMLSpanElement>) => void;
 }
 
-const RenderEmoji = ({emojiName, emojiStyle, size, onClick}: ComponentProps) => {
+const RenderEmoji = ({
+    emojiName = '',
+    emojiStyle = emptyEmojiStyle,
+    size = 16,
+    onClick,
+}: ComponentProps) => {
     const emojiMap = useSelector((state: GlobalState) => getEmojiMap(state));
 
     if (!emojiName) {
@@ -51,12 +58,6 @@ const RenderEmoji = ({emojiName, emojiStyle, size, onClick}: ComponentProps) => 
             }}
         />
     );
-};
-
-RenderEmoji.defaultProps = {
-    emoji: '',
-    emojiStyle: {},
-    size: 16,
 };
 
 export default React.memo(RenderEmoji);

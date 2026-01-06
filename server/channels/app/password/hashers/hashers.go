@@ -135,17 +135,17 @@ func GetHasherFromPHCString(phcString string) (PasswordHasher, phcparser.PHC, er
 
 // Hash hashes the provided password with the latest hashing method.
 func Hash(password string) (string, error) {
-	return latestHasher.Hash(password)
+	return getLatestHasher().Hash(password)
 }
 
 // CompareHashAndPassword compares the parsed [phcparser.PHC] and the provided
 // password using the latest hashing method.
 func CompareHashAndPassword(phc phcparser.PHC, password string) error {
-	return latestHasher.CompareHashAndPassword(phc, password)
+	return getLatestHasher().CompareHashAndPassword(phc, password)
 }
 
 // IsLatestHasher verifies that the provided hasher is the latest one. This
 // function is useful for identifying stored hashes that require a migration.
 func IsLatestHasher(hasher PasswordHasher) bool {
-	return latestHasher == hasher
+	return getLatestHasher() == hasher
 }

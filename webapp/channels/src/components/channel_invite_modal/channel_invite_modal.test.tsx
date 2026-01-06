@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, screen} from '@testing-library/react';
+import {fireEvent, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
-import {act} from 'react-dom/test-utils';
 
 import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
@@ -18,7 +17,7 @@ import ChannelInviteModal from 'components/channel_invite_modal/channel_invite_m
 import type {Value} from 'components/multiselect/multiselect';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
-import {renderWithContext} from 'tests/react_testing_utils';
+import {act, renderWithContext} from 'tests/react_testing_utils';
 
 type UserProfileValue = Value & UserProfile;
 
@@ -291,41 +290,33 @@ describe('components/channel_invite_modal', () => {
             membersInTeam: {'user-1': {user_id: 'user-1', team_id: channel.team_id, roles: '', delete_at: 0, scheme_admin: false, scheme_guest: false, scheme_user: true, mention_count: 0, mention_count_root: 0, msg_count: 0, msg_count_root: 0} as TeamMembership},
         };
 
-        await act(async () => {
-            const {getByText} = renderWithContext(
-                <ChannelInviteModal
-                    {...props}
-                />,
-            );
+        const {getByText} = renderWithContext(
+            <ChannelInviteModal
+                {...props}
+            />,
+        );
 
-            // First, we need to simulate selecting a user
-            const input = screen.getByRole('combobox', {name: /search for people/i});
+        // First, we need to simulate selecting a user
+        const input = screen.getByRole('combobox', {name: /search for people/i});
 
-            // Type the search term
-            await userEvent.type(input, 'user-1');
+        // Type the search term
+        await userEvent.type(input, 'user-1');
 
-            // Wait for the promise to resolve
-            await act(async () => {
-                // Wait for the dropdown option to appear
-                const option = await screen.findByText('user-1');
+        // Wait for the dropdown option to appear
+        const option = await screen.findByText('user-1', {selector: '.more-modal__name > span'});
 
-                // Click the option
-                userEvent.click(option);
+        // Click the option
+        await userEvent.click(option);
 
-                // Confirm that the user is now displayed in the selected users
-                expect(screen.getByText('user-1')).toBeInTheDocument();
+        // Confirm that the user is now displayed in the selected users
+        expect(screen.getByText('user-1')).toBeInTheDocument();
 
-                // Find and click the save button
-                const saveButton = getByText('Add');
-                fireEvent.click(saveButton);
-            });
+        // Find and click the save button
+        const saveButton = getByText('Add');
+        await userEvent.click(saveButton);
 
-            // Wait for the promise to resolve
-            await act(async () => {
-                await new Promise((resolve) => setTimeout(resolve, 0));
-            });
-
-            // Check that addUsersToChannel was called
+        // Check that addUsersToChannel was called
+        await waitFor(() => {
             expect(addUsersToChannelMock).toHaveBeenCalled();
         });
     });
@@ -347,41 +338,33 @@ describe('components/channel_invite_modal', () => {
             membersInTeam: {'user-1': {user_id: 'user-1', team_id: channel.team_id, roles: '', delete_at: 0, scheme_admin: false, scheme_guest: false, scheme_user: true, mention_count: 0, mention_count_root: 0, msg_count: 0, msg_count_root: 0} as TeamMembership},
         };
 
-        await act(async () => {
-            const {getByText} = renderWithContext(
-                <ChannelInviteModal
-                    {...props}
-                />,
-            );
+        const {getByText} = renderWithContext(
+            <ChannelInviteModal
+                {...props}
+            />,
+        );
 
-            // First, we need to simulate selecting a user
-            const input = screen.getByRole('combobox', {name: /search for people/i});
+        // First, we need to simulate selecting a user
+        const input = screen.getByRole('combobox', {name: /search for people/i});
 
-            // Type the search term
-            await userEvent.type(input, 'user-1');
+        // Type the search term
+        await userEvent.type(input, 'user-1');
 
-            // Wait for the promise to resolve
-            await act(async () => {
-                // Wait for the dropdown option to appear
-                const option = await screen.findByText('user-1');
+        // Wait for the dropdown option to appear
+        const option = await screen.findByText('user-1', {selector: '.more-modal__name > span'});
 
-                // Click the option
-                userEvent.click(option);
+        // Click the option
+        await userEvent.click(option);
 
-                // Confirm that the user is now displayed in the selected users
-                expect(screen.getByText('user-1')).toBeInTheDocument();
+        // Confirm that the user is now displayed in the selected users
+        expect(screen.getByText('user-1')).toBeInTheDocument();
 
-                // Find and click the save button
-                const saveButton = getByText('Add');
-                fireEvent.click(saveButton);
-            });
+        // Find and click the save button
+        const saveButton = getByText('Add');
+        await userEvent.click(saveButton);
 
-            // Wait for the promise to resolve
-            await act(async () => {
-                await new Promise((resolve) => setTimeout(resolve, 0));
-            });
-
-            // Check that addUsersToChannel was called
+        // Check that addUsersToChannel was called
+        await waitFor(() => {
             expect(addUsersToChannelMock).toHaveBeenCalled();
         });
     });
@@ -399,33 +382,29 @@ describe('components/channel_invite_modal', () => {
 
         };
 
-        await act(async () => {
-            const {getByText} = renderWithContext(
-                <ChannelInviteModal
-                    {...props}
-                />,
-            );
+        const {getByText} = renderWithContext(
+            <ChannelInviteModal
+                {...props}
+            />,
+        );
 
-            // First, we need to simulate selecting a user
-            const input = screen.getByRole('combobox', {name: /search for people/i});
+        // First, we need to simulate selecting a user
+        const input = screen.getByRole('combobox', {name: /search for people/i});
 
-            await userEvent.type(input, 'user-1');
+        await userEvent.type(input, 'user-1');
 
-            await act(async () => {
-                const option = await screen.findByText('user-1');
+        const option = await screen.findByText('user-1', {selector: '.more-modal__name > span'});
 
-                userEvent.click(option);
+        await userEvent.click(option);
 
-                expect(screen.getByText('user-1')).toBeInTheDocument();
+        expect(screen.getByText('user-1')).toBeInTheDocument();
 
-                const saveButton = getByText('Add');
-                fireEvent.click(saveButton);
-            });
+        const saveButton = getByText('Add');
+        await userEvent.click(saveButton);
 
-            // Check that onAddCallback was called and addUsersToChannel was not
-            expect(onAddCallback).toHaveBeenCalled();
-            expect(props.actions.addUsersToChannel).not.toHaveBeenCalled();
-        });
+        // Check that onAddCallback was called and addUsersToChannel was not
+        expect(onAddCallback).toHaveBeenCalled();
+        expect(props.actions.addUsersToChannel).not.toHaveBeenCalled();
     });
 
     test('should trim the search term', async () => {
@@ -441,25 +420,22 @@ describe('components/channel_invite_modal', () => {
             },
         };
 
-        await act(async () => {
-            renderWithContext(
-                <ChannelInviteModal
-                    {...props}
-                />,
-            );
+        renderWithContext(
+            <ChannelInviteModal
+                {...props}
+            />,
+        );
 
-            // Find the search input
-            const input = screen.getByRole('combobox', {name: /search for people/i});
+        // Find the search input
+        const input = screen.getByRole('combobox', {name: /search for people/i});
 
-            // Directly trigger the change event with a value that has spaces
+        // Directly trigger the change event with a value that has spaces
+        act(() => {
             fireEvent.change(input, {target: {value: ' something '}});
+        });
 
-            // Wait for the search timeout plus some extra time
-            await act(async () => {
-                await new Promise((resolve) => setTimeout(resolve, 200));
-            });
-
-            // Verify the search was called with the trimmed term
+        // Verify the search was called with the trimmed term
+        await waitFor(() => {
             expect(searchProfilesMock).toHaveBeenCalledWith(
                 expect.stringContaining('something'),
                 expect.any(Object),

@@ -16,7 +16,6 @@ import type {LinkInfo} from './file_preview_modal/types';
 type Props = {
     fileInfo: FileInfo;
     fileUrl: string;
-    className: string;
     getContent?: (code: string) => void;
 };
 
@@ -35,74 +34,54 @@ const CodePreview = ({
         highlighted: '',
     });
 
-    const [status, setStatus] = useState<'success' | 'loading' | 'fail'>('success');
-    const [prevFileUrl, setPrevFileUrl] = useState<string | undefined>();
+    const [status, setStatus] = useState<'success' | 'loading' | 'fail'>('loading');
 
     useEffect(() => {
-        if (fileUrl !== prevFileUrl) {
-            const usedLanguage = SyntaxHighlighting.getLanguageFromFileExtension(fileInfo.extension);
+        const usedLanguage = SyntaxHighlighting.getLanguageFromFileExtension(fileInfo.extension);
 
-            if (!usedLanguage || fileInfo.size > Constants.CODE_PREVIEW_MAX_FILE_SIZE) {
-                setCodeInfo((prevCodeInfo) => {
-                    return {...prevCodeInfo, code: '', lang: ''};
-                });
-
-                setStatus('fail');
-            } else {
-                setCodeInfo((prevCodeInfo) => {
-                    return {...prevCodeInfo, code: '', lang: usedLanguage};
-                });
-
-                setStatus('loading');
-            }
-
-            setPrevFileUrl(fileUrl);
-        }
-    }, [fileInfo.extension, fileInfo.size, fileUrl, prevFileUrl]);
-
-    const shouldNotGetCode = !codeInfo.lang || fileInfo.size > Constants.CODE_PREVIEW_MAX_FILE_SIZE;
-
-    useEffect(() => {
-        const handleReceivedCode = async (data: string | Node) => {
-            let code = data as string;
-            const Data = data as Node;
-
-            if (Data.nodeName === '#document') {
-                code = new XMLSerializer().serializeToString(Data);
-            }
-
-            getContent?.(code);
-
-            setCodeInfo({
-                ...codeInfo,
-                code,
-                highlighted: await SyntaxHighlighting.highlight(codeInfo.lang, code),
-            });
-
-            setStatus('success');
-        };
-
-        const handleReceivedError = () => {
+        if (!usedLanguage || fileInfo.size > Constants.CODE_PREVIEW_MAX_FILE_SIZE) {
+            setCodeInfo({code: '', lang: '', highlighted: ''});
             setStatus('fail');
-        };
-
-        const getCode = async () => {
-            if (shouldNotGetCode) {
-                return;
-            }
-            try {
-                const data = await fetch(fileUrl);
-                const text = await data.text();
-                handleReceivedCode(text);
-            } catch (e) {
-                handleReceivedError();
-            }
-        };
-
-        if (fileUrl !== prevFileUrl) {
-            getCode();
+            return;
         }
-    }, [codeInfo, fileUrl, prevFileUrl, getContent, shouldNotGetCode]);
+
+        setCodeInfo({code: '', lang: usedLanguage, highlighted: ''});
+        setStatus('loading');
+
+        const fetchCode = async () => {
+            try {
+                const response = await fetch(fileUrl);
+                let code = await response.text();
+
+                if (response.headers.get('content-type')?.includes('xml')) {
+                    try {
+                        const parser = new DOMParser();
+                        const xmlDoc = parser.parseFromString(code, 'text/xml');
+                        if (xmlDoc.nodeName === '#document') {
+                            code = new XMLSerializer().serializeToString(xmlDoc);
+                        }
+                    } catch {
+                        // If XML parsing fails, use the text as-is
+                    }
+                }
+
+                getContent?.(code);
+
+                const highlighted = await SyntaxHighlighting.highlight(usedLanguage, code);
+
+                setCodeInfo({
+                    code,
+                    lang: usedLanguage,
+                    highlighted,
+                });
+                setStatus('success');
+            } catch (e) {
+                setStatus('fail');
+            }
+        };
+
+        fetchCode();
+    }, [fileUrl, fileInfo.extension, fileInfo.size, getContent]);
 
     if (status === 'loading') {
         return (

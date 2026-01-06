@@ -1182,10 +1182,6 @@
     "translation": "invalid_request：错误的 client_id。"
   },
   {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request：缺少 client_secret。"
-  },
-  {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
     "translation": "invalid_request：错误的 grant_type。"
   },
@@ -5487,7 +5483,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 10+"
+    "translation": "Windows 11 及以上"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -5499,15 +5495,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "版本 128+"
+    "translation": "版本 140 及以上"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "版本 138+"
+    "translation": "版本 140 及以上"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "版本 138+"
+    "translation": "版本 140 及以上"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -10710,10 +10706,6 @@
     "translation": "您的许可证不支持内容标记功能。"
   },
   {
-    "id": "api.not_implemented",
-    "translation": "此功能尚未实现。"
-  },
-  {
     "id": "app.access_control.insufficient_permissions",
     "translation": "您没有权限管理此访问控制策略。"
   },
@@ -10772,5 +10764,905 @@
   {
     "id": "model.config.is_valid.experimental_view_archived_channels.app_error",
     "translation": "不再支持隐藏已归档的频道。请将这些频道设为私有并移除成员。"
+  },
+  {
+    "id": "api.user.check_user_password.invalid_hash.app_error",
+    "translation": "哈希密码的格式无效，无法解析。"
+  },
+  {
+    "id": "app.user.check_user_password.failed_migration",
+    "translation": "未能将用户的密码迁移到最新的哈希方法。"
+  },
+  {
+    "id": "app.user.check_user_password.failed_update",
+    "translation": "未能更新用户密码。"
+  },
+  {
+    "id": "app.job.get_existing_jobs.error",
+    "translation": "无法获取现有的作业。"
+  },
+  {
+    "id": "app.submit_interactive_dialog.invalid_response",
+    "translation": "收到来自交互式对话提交的无效响应。"
+  },
+  {
+    "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
+    "translation": "频道 ID 与被标记消息的频道 ID 不匹配。"
+  },
+  {
+    "id": "api.channel.patch_channel_moderations_for_channel.restricted_permission.app_error",
+    "translation": "无法添加被团队或系统权限方案限制的权限。"
+  },
+  {
+    "id": "api.channel.patch_update_channel.restricted_dm.app_error",
+    "translation": "无法更新受限的私信频道。"
+  },
+  {
+    "id": "api.command.execute_command.restricted_dm.error",
+    "translation": "无法在受限的私信中发送消息。"
+  },
+  {
+    "id": "api.content_flagging.error.comment_required",
+    "translation": "请添加评论，说明您标记此消息的原因。"
+  },
+  {
+    "id": "api.content_flagging.error.comment_too_long",
+    "translation": "消息标记原因不能超过 {{.MaxLength}} 个字符。"
+  },
+  {
+    "id": "api.content_flagging.error.not_available_on_team",
+    "translation": "此团队未启用内容标记功能。"
+  },
+  {
+    "id": "api.content_flagging.error.post_not_in_progress",
+    "translation": "被标记的消息必须处于待处理或已分配状态，才能进行保留或删除。"
+  },
+  {
+    "id": "api.content_flagging.error.reason_invalid",
+    "translation": "为消息标记指定的原因未知。"
+  },
+  {
+    "id": "api.content_flagging.error.reason_required",
+    "translation": "请选择标记此消息的原因。"
+  },
+  {
+    "id": "api.content_flagging.error.user_not_reviewer",
+    "translation": "该用户不是内容审核员。"
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
+    "translation": "无法将草稿保存到受限的私信频道。"
+  },
+  {
+    "id": "api.encoding_error",
+    "translation": "为 API 响应编码 JSON 时遇到错误。"
+  },
+  {
+    "id": "api.file.upload_file.get_channel.app_error",
+    "translation": "无法上传文件到受限的私信中。"
+  },
+  {
+    "id": "api.file.upload_file.restricted_dm.error",
+    "translation": "无法上传文件到受限的私信中。"
+  },
+  {
+    "id": "api.post.create_post.can_not_post_in_restricted_dm.error",
+    "translation": "无法向受限的私信频道发送消息。"
+  },
+  {
+    "id": "api.post.delete_post.can_not_delete_from_restricted_dm.error",
+    "translation": "无法在受限的私信频道中删除消息。"
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "无法在受限的私信频道中更新消息。"
+  },
+  {
+    "id": "api.post.update_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "无法在受限的私信频道中更新消息。"
+  },
+  {
+    "id": "api.reaction.delete.restricted_dm.error",
+    "translation": "无法在受限的私信中添加表情。"
+  },
+  {
+    "id": "api.reaction.save.restricted_dm.error",
+    "translation": "无法在受限的私信中添加表情。"
+  },
+  {
+    "id": "api.team.get_team.flagged_post_mismatch.app_error",
+    "translation": "团队 ID 与被标记消息的团队 ID 不匹配。"
+  },
+  {
+    "id": "api.user.delete_channel.not_enabled.for_admin.app_error",
+    "translation": "永久频道删除功能未启用。必须将 ServiceSettings.EnableAPIChannelDeletion 设置为 true 才能使用此命令。详情请参阅：https://mattermost.com/pl/environment-configuration-settings"
+  },
+  {
+    "id": "api.user.delete_team.not_enabled.for_admin.app_error",
+    "translation": "永久团队删除功能未启用。必须将 ServiceSettings.EnableAPITeamDeletion 设置为 true 才能使用此命令。详情请参阅：https://mattermost.com/pl/environment-configuration-settings"
+  },
+  {
+    "id": "api.user.delete_user.not_enabled.for_admin.app_error",
+    "translation": "永久用户删除功能未启用。必须将 ServiceSettings.EnableAPIUserDeletion 设置为 true 才能使用此命令。详情请参阅：https://mattermost.com/pl/environment-configuration-settings"
+  },
+  {
+    "id": "app.agents.get_agents.app_error",
+    "translation": "获取代理失败。"
+  },
+  {
+    "id": "app.agents.get_agents.bridge_call_failed",
+    "translation": "桥接调用失败。"
+  },
+  {
+    "id": "app.agents.get_services.app_error",
+    "translation": "获取 LLM 服务失败。"
+  },
+  {
+    "id": "app.agents.get_services.bridge_call_failed",
+    "translation": "桥接调用失败。"
+  },
+  {
+    "id": "app.channel.get_common_teams.app_error",
+    "translation": "获取频道的常用团队时出错。"
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.no_reviewer_field.app_error",
+    "translation": "未找到审核员 ID 属性字段。"
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.update_status_property_value.app_error",
+    "translation": "设置审核员时更新状态属性值失败。"
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.upsert_property_value.app_error",
+    "translation": "设置被标记消息的审核员失败。"
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.in_progress",
+    "translation": "无法标记此消息，因为它已被标记。"
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.removed",
+    "translation": "无法标记此消息，该消息已在先前的标记请求中被移除。"
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.retained",
+    "translation": "无法标记此消息，该消息已在先前的标记请求中被保留。"
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.unknown",
+    "translation": "无法标记此消息，因为其状态未知。"
+  },
+  {
+    "id": "app.content_flagging.create_property_values.app_error",
+    "translation": "无法为被标记消息保存属性值。"
+  },
+  {
+    "id": "app.content_flagging.flag_post.marshal_comment.app_error",
+    "translation": "序列化标记者评论失败。"
+  },
+  {
+    "id": "app.content_flagging.flag_post.marshal_reason.app_error",
+    "translation": "序列化标记者原因失败。"
+  },
+  {
+    "id": "app.content_flagging.flag_post_confirmation.message",
+    "translation": "@{{.username}} 的消息已被标记为审核。内容审核员审核完成后，您将收到通知。 "
+  },
+  {
+    "id": "app.content_flagging.get_group.error",
+    "translation": "获取内容标记机器人失败。"
+  },
+  {
+    "id": "app.content_flagging.get_reviewer_settings.app_error",
+    "translation": "从数据库获取内容审核员设置失败。"
+  },
+  {
+    "id": "app.content_flagging.get_status_property.app_error",
+    "translation": "获取状态属性字段失败。"
+  },
+  {
+    "id": "app.content_flagging.get_thread_replies.app_error",
+    "translation": "获取被标记消息的回复线程失败。"
+  },
+  {
+    "id": "app.content_flagging.get_users_in_team.app_error",
+    "translation": "在团队中搜索审核员失败。"
+  },
+  {
+    "id": "app.content_flagging.keep_flag_post.marshal_comment.app_error",
+    "translation": "序列化审核员评论失败。"
+  },
+  {
+    "id": "app.content_flagging.keep_post.status_update.app_error",
+    "translation": "恢复被标记消息时更新消息状态失败。 "
+  },
+  {
+    "id": "app.content_flagging.keep_post.undelete.app_error",
+    "translation": "尝试恢复被标记消息及相关数据时，更新数据库中的消息失败。"
+  },
+  {
+    "id": "app.content_flagging.marshal_property_values.app_error",
+    "translation": "序列化内容标记属性值以在 WebSocket 事件中发送失败。"
+  },
+  {
+    "id": "app.content_flagging.missing_flagged_post_id_field.app_error",
+    "translation": "未找到被标记消息 ID 属性字段。"
+  },
+  {
+    "id": "app.content_flagging.missing_manage_by_field.app_error",
+    "translation": "未找到管理人属性字段。"
+  },
+  {
+    "id": "app.content_flagging.missing_reporting_user_id_field.app_error",
+    "translation": "未找到举报用户字段。"
+  },
+  {
+    "id": "app.content_flagging.missing_reporting_user_id_property_value.app_error",
+    "translation": "未找到举报用户字段的值。"
+  },
+  {
+    "id": "app.content_flagging.missing_status_field.app_error",
+    "translation": "未找到状态属性字段。"
+  },
+  {
+    "id": "app.content_flagging.no_status_property.app_error",
+    "translation": "无法获取被标记消息，因为该消息未被标记。"
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.app_error",
+    "translation": "永久删除被标记消息时，使用已清理消息覆盖原消息失败。"
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.marshal_comment.app_error",
+    "translation": "序列化审核员评论失败"
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.update_property_value.app_error",
+    "translation": "永久删除被标记消息时，更新被标记消息状态失败。"
+  },
+  {
+    "id": "app.content_flagging.save_reviewer_settings.app_error",
+    "translation": "将内容审核员设置保存到数据库失败。"
+  },
+  {
+    "id": "app.content_flagging.search_common_reviewers.app_error",
+    "translation": "在常用审核员中搜索该词条失败。"
+  },
+  {
+    "id": "app.content_flagging.search_property_fields.app_error",
+    "translation": "搜索内容标记属性字段失败。"
+  },
+  {
+    "id": "app.content_flagging.search_property_values.app_error",
+    "translation": "从数据库获取消息的内容标记属性值失败。"
+  },
+  {
+    "id": "app.content_flagging.search_reviewer_posts.app_error",
+    "translation": "搜索被标记消息的审核员消息失败。"
+  },
+  {
+    "id": "app.content_flagging.search_status_property.app_error",
+    "translation": "搜索被标记消息的属性值失败。"
+  },
+  {
+    "id": "app.content_flagging.search_sysadmin_reviewers.app_error",
+    "translation": "在系统管理员审核员中搜索该词条失败。"
+  },
+  {
+    "id": "app.content_flagging.search_team_admin_reviewers.app_error",
+    "translation": "在团队管理员审核员中搜索该词条失败。"
+  },
+  {
+    "id": "app.content_flagging.search_team_reviewers.app_error",
+    "translation": "在团队审核员中搜索该词条失败。"
+  },
+  {
+    "id": "app.content_flagging.set_thread_replies_properties.app_error",
+    "translation": "为被标记消息设置回复线程的属性值失败。"
+  },
+  {
+    "id": "app.post_priority.delete_for_post.app_error",
+    "translation": "从数据库中永久删除消息优先级数据失败。"
+  },
+  {
+    "id": "app.save_scheduled_post.restricted_dm.error",
+    "translation": "无法在受限的私信中安排消息发送。"
+  },
+  {
+    "id": "app.system.content_review_bot.bot_displayname",
+    "translation": "内容审核"
+  },
+  {
+    "id": "app.upload.create.cannot_upload_to_restricted_dm.error",
+    "translation": "无法上传文件到受限的私信。"
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.libretranslate.url.app_error",
+    "translation": "LibreTranslate 的 URL 必须为有效的 URL，并且以 http:// 或 https:// 开头。"
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.provider.app_error",
+    "translation": "无效的自动翻译服务提供商，不能为空。"
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.provider.unsupported.app_error",
+    "translation": "不支持的自动翻译服务提供商。"
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.fetch.app_error",
+    "translation": "自动翻译设置的获取超时无效。必须为正数。"
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.new_post.app_error",
+    "translation": "自动翻译设置的新消息超时无效。必须为正数。"
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
+    "translation": "自动翻译设置的通知超时无效。必须为正数。"
+  },
+  {
+    "id": "api.command.move_command.creator_no_permission.app_error",
+    "translation": "没有移动命令的权限"
+  },
+  {
+    "id": "api.file.get_file.invalid_flagged_post.app_error",
+    "translation": "指定的标记消息ID不匹配。"
+  },
+  {
+    "id": "api.file.get_file_info.app_error",
+    "translation": "获取文件信息失败。"
+  },
+  {
+    "id": "api.oauth.allow_oauth.pkce_required_public.app_error",
+    "translation": "公共OAuth客户端在使用授权码流程时，必须使用PKCE（代码交换证明密钥）。"
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.disabled.app_error",
+    "translation": "OAuth服务提供商已禁用。"
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.invalid_url.app_error",
+    "translation": "授权服务器元数据的URL配置无效。"
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.site_url_required.app_error",
+    "translation": "必须配置站点URL才能提供授权服务器元数据。"
+  },
+  {
+    "id": "api.oauth.get_access_token.resource_mismatch.app_error",
+    "translation": "授权请求与令牌请求之间的资源参数不匹配。"
+  },
+  {
+    "id": "api.oauth.regenerate_secret.public_client.app_error",
+    "translation": "invalid_request：无法为公共OAuth客户端重新生成密钥。"
+  },
+  {
+    "id": "api.post.burn_post.user_not_in_channel.app_error",
+    "translation": "您没有权烧毁此消息。您必须是频道成员。"
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.app_error",
+    "translation": "创建阅后即焚消息时发生错误。"
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.config.app_error",
+    "translation": "阅后即焚消息未启用。请启用功能开关和服务设置。"
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.license.app_error",
+    "translation": "阅后即焚消息需要企业高级版许可。"
+  },
+  {
+    "id": "api.post.fill_in_post_props.invalid_ai_generated_user.app_error",
+    "translation": "AI生成的用户必须是消息创建者或机器人。"
+  },
+  {
+    "id": "api.post.get_link_metadata_for_permalink.burn_on_read.app_error",
+    "translation": "无法获取阅后即焚消息永久链接的元数据。"
+  },
+  {
+    "id": "api.post.get_posts_for_reporting.channel_not_found",
+    "translation": "未找到频道"
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_burn_on_read_post.error",
+    "translation": "阅后即焚消息无法更新。"
+  },
+  {
+    "id": "api.post.reveal_post.cannot_reveal_own_post.app_error",
+    "translation": "您不能揭示自己的阅后即焚消息。"
+  },
+  {
+    "id": "api.post.reveal_post.disabled.app_error",
+    "translation": "阅后即焚功能未启用或需要企业高级版许可。"
+  },
+  {
+    "id": "api.post.reveal_post.user_not_in_channel.app_error",
+    "translation": "您没有权限揭示此消息。您必须是频道成员。"
+  },
+  {
+    "id": "api.post.update_post.burn_on_read.app_error",
+    "translation": "阅后即焚消息无法被编辑。"
+  },
+  {
+    "id": "api.reaction.save.burn_on_read.app_error",
+    "translation": "您不能对阅后即焚消息做出反应。"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.guest_magic_link_disabled.error",
+    "translation": "访客一键登录未启用"
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.footer.info",
+    "translation": "您收到此邮件是因为有人为 Mattermost 请求了登录链接。如果不是您本人操作，可以放心忽略此邮件。"
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.footer.title",
+    "translation": "不是您请求的邮件？"
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.subtitle",
+    "translation": "点击下方按钮登录您的账户。请勿与他人分享此链接。"
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.title",
+    "translation": "登录 Mattermost"
+  },
+  {
+    "id": "api.templates.guest_magic_link_subject",
+    "translation": "登录到 {{ .SiteName }}"
+  },
+  {
+    "id": "api.user.guest_magic_link.expired_token.app_error",
+    "translation": "此邀请链接已过期。"
+  },
+  {
+    "id": "api.user.guest_magic_link.invalid_token.app_error",
+    "translation": "邀请链接无效。"
+  },
+  {
+    "id": "api.user.guest_magic_link.invalid_token_type.app_error",
+    "translation": "邀请链接类型无效。"
+  },
+  {
+    "id": "api.user.guest_magic_link.missing_token.app_error",
+    "translation": "缺少邀请令牌。"
+  },
+  {
+    "id": "api.user.guest_magic_link.username_generation_failed.app_error",
+    "translation": "无法生成唯一的用户名。请联系您的系统管理员。"
+  },
+  {
+    "id": "api.user.login.guest_magic_link.disabled.error",
+    "translation": "魔法链接登录已禁用。"
+  },
+  {
+    "id": "api.user.login_by_intune.account_locked.app_error",
+    "translation": "您的账户已被停用。请联系您的系统管理员。"
+  },
+  {
+    "id": "api.user.login_by_intune.bot_login_forbidden.app_error",
+    "translation": "机器人账户无法使用微软身份验证登录。"
+  },
+  {
+    "id": "api.user.login_by_intune.not_available.app_error",
+    "translation": "微软 Intune 身份验证不可用。"
+  },
+  {
+    "id": "api.user.login_by_intune.not_configured.app_error",
+    "translation": "微软 Intune 身份验证未配置。"
+  },
+  {
+    "id": "api.user.oauth_to_email.magic_link.app_error",
+    "translation": "魔法链接是此账户唯一可用的登录方式。"
+  },
+  {
+    "id": "api.user.promote_guest_to_user.magic_link_enabled.app_error",
+    "translation": "无法将访客转换为普通用户，因为该访客使用魔法链接身份验证。"
+  },
+  {
+    "id": "api.user.send_password_reset.guest_magic_link.app_error",
+    "translation": "无法为访客魔法链接账户重置密码。"
+  },
+  {
+    "id": "api.user.update_password.magic_link.app_error",
+    "translation": "无法为魔法链接账户更新密码。"
+  },
+  {
+    "id": "app.burn_post.not_burn_on_read.app_error",
+    "translation": "此消息不是阅后即焚消息，无法被销毁。"
+  },
+  {
+    "id": "app.burn_post.not_revealed.app_error",
+    "translation": "此阅后即焚消息尚未被揭示，必须先揭示后才能销毁。"
+  },
+  {
+    "id": "app.burn_post.read_receipt.get.error",
+    "translation": "获取已读回执时发生错误。"
+  },
+  {
+    "id": "app.burn_post.read_receipt.update.error",
+    "translation": "更新已读回执时发生错误。"
+  },
+  {
+    "id": "app.custom_profile_attributes.patch_field.app_error",
+    "translation": "无法修改自定义资料属性字段"
+  },
+  {
+    "id": "app.pap.update_access_control_policies_active.app_error",
+    "translation": "无法更新访问控制策略的激活状态。"
+  },
+  {
+    "id": "app.post.get_post.app_error",
+    "translation": "检索阅后即焚消息内容时发生错误。"
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.app_error",
+    "translation": "无法获取报告的消息。"
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.invalid_input_error",
+    "translation": "无法获取报告的消息。输入无效。"
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.license_error",
+    "translation": "您的许可证不支持消息报告功能。"
+  },
+  {
+    "id": "app.post.rewrite.agent_call_failed",
+    "translation": "调用 AI 代理失败。"
+  },
+  {
+    "id": "app.post.rewrite.empty_response",
+    "translation": "AI 返回空响应。"
+  },
+  {
+    "id": "app.post.rewrite.invalid_action",
+    "translation": "无效的重写操作。"
+  },
+  {
+    "id": "app.post.rewrite.parse_response_failed",
+    "translation": "解析 AI 的重写响应失败。"
+  },
+  {
+    "id": "app.reveal_post.cannot_reveal_own_post.app_error",
+    "translation": "您不能揭示自己的阅后即焚消息。"
+  },
+  {
+    "id": "app.reveal_post.missing_expire_at.app_error",
+    "translation": "阅后即焚消息缺少必需的过期时间。"
+  },
+  {
+    "id": "app.reveal_post.not_burn_on_read.app_error",
+    "translation": "此消息不是阅后即焚消息，无法被揭示。"
+  },
+  {
+    "id": "app.reveal_post.post_expired.app_error",
+    "translation": "此阅后即焚消息已过期，无法再被揭示。"
+  },
+  {
+    "id": "app.reveal_post.read_receipt.get.error",
+    "translation": "检索已读回执时发生错误。"
+  },
+  {
+    "id": "app.reveal_post.read_receipt.get_unread_count.error",
+    "translation": "无法获得已读回执的未读数。"
+  },
+  {
+    "id": "app.reveal_post.read_receipt.save.error",
+    "translation": "保存已读回执时发生错误。"
+  },
+  {
+    "id": "app.reveal_post.read_receipt_expired.error",
+    "translation": "您对该阅后即焚消息的访问已过期。"
+  },
+  {
+    "id": "ent.intune.login.account_not_found.app_error",
+    "translation": "您的账户尚未完全设置。请先通过网页或桌面端登录 Mattermost。"
+  },
+  {
+    "id": "ent.intune.login.extract_auth_data.app_error",
+    "translation": "身份验证失败。请重试或联系您的系统管理员。"
+  },
+  {
+    "id": "ent.intune.login.not_configured.app_error",
+    "translation": "微软 Intune 身份验证未配置。"
+  },
+  {
+    "id": "ent.intune.validate_token.invalid_tenant_id.app_error",
+    "translation": "身份验证失败。配置无效。"
+  },
+  {
+    "id": "ent.intune.validate_token.invalid_token.app_error",
+    "translation": "身份验证失败。请重试。"
+  },
+  {
+    "id": "ent.intune.validate_token.jwks_init.app_error",
+    "translation": "身份验证服务初始化失败。请联系您的系统管理员。"
+  },
+  {
+    "id": "ent.intune.validate_token.missing_claims.app_error",
+    "translation": "身份验证失败。缺少必要的用户信息。"
+  },
+  {
+    "id": "ent.intune.validate_token.token_expired.app_error",
+    "translation": "身份验证会话已过期。请重新登录。"
+  },
+  {
+    "id": "ent.push_proxy.delete.app_error",
+    "translation": "删除推送代理身份验证令牌失败。"
+  },
+  {
+    "id": "ent.push_proxy.generate.bad_status.app_error",
+    "translation": "从推送代理服务器获取身份验证令牌失败。"
+  },
+  {
+    "id": "ent.push_proxy.generate.create_request.app_error",
+    "translation": "为推送代理身份验证创建HTTP请求失败。"
+  },
+  {
+    "id": "ent.push_proxy.generate.empty_token.app_error",
+    "translation": "推送代理返回的身份验证令牌为空。"
+  },
+  {
+    "id": "ent.push_proxy.generate.encrypt.app_error",
+    "translation": "为推送代理身份验证加密负载失败。"
+  },
+  {
+    "id": "ent.push_proxy.generate.http_request.app_error",
+    "translation": "向推送代理发送HTTP请求失败。"
+  },
+  {
+    "id": "ent.push_proxy.generate.marshal.app_error",
+    "translation": "为推送代理身份验证编组负载失败。"
+  },
+  {
+    "id": "ent.push_proxy.generate.marshal_request.app_error",
+    "translation": "为推送代理身份验证编组请求体失败。"
+  },
+  {
+    "id": "ent.push_proxy.generate.no_key.app_error",
+    "translation": "没有可用的推送代理身份验证加密密钥。"
+  },
+  {
+    "id": "ent.push_proxy.generate.parse_response.app_error",
+    "translation": "解析推送代理身份验证端点的响应失败。"
+  },
+  {
+    "id": "ent.push_proxy.generate.save_system.app_error",
+    "translation": "保存身份验证令牌失败。"
+  },
+  {
+    "id": "ent.push_proxy.worker.interface_nil.app_error",
+    "translation": "推送代理接口为 nil。"
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge.app_error",
+    "translation": "使用 PKCE 时必须提供 code challenge。"
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge.format.app_error",
+    "translation": "code challenge 必须进行 base64url 编码（允许字符 A-Z、a-z、0-9、-、_）。"
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge.length.app_error",
+    "translation": "code challenge 长度必须在 43 到 128 个字符之间。"
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge_method.app_error",
+    "translation": "使用 PKCE 时必须指定 code challenge 方法。"
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge_method.unsupported.app_error",
+    "translation": "仅支持 'S256' code challenge 方法。"
+  },
+  {
+    "id": "model.authorize.is_valid.resource.has_fragment.app_error",
+    "translation": "资源参数不能包含片段组件。"
+  },
+  {
+    "id": "model.authorize.is_valid.resource.invalid_uri.app_error",
+    "translation": "资源参数必须是有效的 URI。"
+  },
+  {
+    "id": "model.authorize.is_valid.resource.length.app_error",
+    "translation": "资源参数不能超过 512 个字符。"
+  },
+  {
+    "id": "model.authorize.is_valid.resource.not_absolute.app_error",
+    "translation": "资源参数必须是绝对 URI。"
+  },
+  {
+    "id": "model.authorize.validate_pkce.not_used_in_auth.app_error",
+    "translation": "已提供 PKCE code verifier，但授权时未使用 PKCE。"
+  },
+  {
+    "id": "model.authorize.validate_pkce.public_client_required.app_error",
+    "translation": "公共客户端必须使用 PKCE（代码交换证明密钥）。"
+  },
+  {
+    "id": "model.authorize.validate_pkce.verification_failed.app_error",
+    "translation": "PKCE code verifier 与 code challenge 不匹配。"
+  },
+  {
+    "id": "model.authorize.validate_pkce.verifier_required.app_error",
+    "translation": "使用 PKCE 时，必须提供 code verifier。"
+  },
+  {
+    "id": "model.config.is_valid.intune_auth_service.app_error",
+    "translation": "启用 Intune 时，必须启用 Intune MAM 身份验证服务。"
+  },
+  {
+    "id": "model.config.is_valid.intune_auth_service_invalid.app_error",
+    "translation": "Intune MAM 身份验证服务必须是 'office365' 或 'saml'。"
+  },
+  {
+    "id": "model.config.is_valid.intune_client_id.app_error",
+    "translation": "启用 Intune 时必须填写 Intune MAM 客户端ID。"
+  },
+  {
+    "id": "model.config.is_valid.intune_client_id_format.app_error",
+    "translation": "Intune MAM 客户端ID必须为有效 UUID。"
+  },
+  {
+    "id": "model.config.is_valid.intune_requires_office365.app_error",
+    "translation": "当身份验证服务设置为 'office365' 时，Intune MAM 需要启用 OpenID Connect（Office 365）。"
+  },
+  {
+    "id": "model.config.is_valid.intune_requires_saml.app_error",
+    "translation": "当身份验证服务设置为 'saml' 时，Intune MAM 需要启用 SAML。"
+  },
+  {
+    "id": "model.config.is_valid.intune_tenant_id.app_error",
+    "translation": "启用 Intune 时必须填写 Intune MAM 租户ID。"
+  },
+  {
+    "id": "model.config.is_valid.intune_tenant_id_format.app_error",
+    "translation": "Intune MAM 租户ID必须为有效 UUID。"
+  },
+  {
+    "id": "model.dcr.is_valid.client_name.app_error",
+    "translation": "客户端名称最长为 64 个字符。"
+  },
+  {
+    "id": "model.dcr.is_valid.client_uri_format.app_error",
+    "translation": "无效的客户端 URI 格式。"
+  },
+  {
+    "id": "model.dcr.is_valid.client_uri_length.app_error",
+    "translation": "客户端 URI 必须少于 256 个字符。"
+  },
+  {
+    "id": "model.dcr.is_valid.redirect_uri_format.app_error",
+    "translation": "无效的重定向 URI 格式。"
+  },
+  {
+    "id": "model.dcr.is_valid.redirect_uris.app_error",
+    "translation": "至少需要一个重定向 URI。"
+  },
+  {
+    "id": "model.dcr.is_valid.unsupported_auth_method.app_error",
+    "translation": "不支持的 token_endpoint_auth_method。"
+  },
+  {
+    "id": "model.oauth.validate_grant.credentials.app_error",
+    "translation": "无效的客户端凭据。"
+  },
+  {
+    "id": "model.oauth.validate_grant.pkce_required.app_error",
+    "translation": "公共客户端必须使用 PKCE（代码交换证明密钥）。"
+  },
+  {
+    "id": "model.oauth.validate_grant.public_client_refresh_token.app_error",
+    "translation": "公共客户端不能使用刷新令牌授权类型。"
+  },
+  {
+    "id": "model.oauth.validate_grant.public_client_secret.app_error",
+    "translation": "公共客户端不得提供客户端密钥。"
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_base64",
+    "translation": "无效的游标格式：无法解码 base64。"
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_exclude_system_posts",
+    "translation": "无效的游标格式：exclude_system_posts 必须为布尔值。"
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_format",
+    "translation": "无效的游标格式：应为 8 个部分。"
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_include_deleted",
+    "translation": "无效的游标格式：include_deleted 必须为布尔值。"
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_timestamp",
+    "translation": "无效的游标格式：timestamp 必须为整数。"
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_version",
+    "translation": "无效的游标格式：version 必须为整数。"
+  },
+  {
+    "id": "model.post.decode_cursor.unsupported_version",
+    "translation": "不支持的游标版本。"
+  },
+  {
+    "id": "model.post.query_params.invalid_channel_id",
+    "translation": "无效的频道ID。"
+  },
+  {
+    "id": "model.post.query_params.invalid_cursor_id",
+    "translation": "无效的游标ID。"
+  },
+  {
+    "id": "model.post.query_params.invalid_sort_direction",
+    "translation": "无效的排序方向。"
+  },
+  {
+    "id": "model.post.query_params.invalid_time_field",
+    "translation": "无效的时间字段。"
+  },
+  {
+    "id": "store.sql_autotranslation.channel_not_found",
+    "translation": "未找到频道。"
+  },
+  {
+    "id": "store.sql_autotranslation.get.app_error",
+    "translation": "无法获取翻译。"
+  },
+  {
+    "id": "store.sql_autotranslation.get_active_languages.app_error",
+    "translation": "无法获取可用语言。"
+  },
+  {
+    "id": "store.sql_autotranslation.get_channel_enabled.app_error",
+    "translation": "无法获取频道自动翻译启用状态。"
+  },
+  {
+    "id": "store.sql_autotranslation.get_user_enabled.app_error",
+    "translation": "无法获取用户自动翻译启用状态。"
+  },
+  {
+    "id": "store.sql_autotranslation.get_user_language.app_error",
+    "translation": "无法获取用户语言。"
+  },
+  {
+    "id": "store.sql_autotranslation.is_channel_enabled.app_error",
+    "translation": "无法获取频道自动翻译启用状态。"
+  },
+  {
+    "id": "store.sql_autotranslation.member_not_found",
+    "translation": "未找到成员。"
+  },
+  {
+    "id": "store.sql_autotranslation.meta_json.app_error",
+    "translation": "解析翻译元数据 JSON 失败。"
+  },
+  {
+    "id": "store.sql_autotranslation.query_build_error",
+    "translation": "构建查询失败。"
+  },
+  {
+    "id": "store.sql_autotranslation.save.app_error",
+    "translation": "无法保存翻译内容。"
+  },
+  {
+    "id": "store.sql_autotranslation.save.invalid_translation",
+    "translation": "翻译校验失败。翻译对象无效。"
+  },
+  {
+    "id": "store.sql_autotranslation.save.meta_json.app_error",
+    "translation": "序列化翻译元数据至 JSON 失败。"
+  },
+  {
+    "id": "store.sql_autotranslation.set_channel_enabled.app_error",
+    "translation": "无法设置频道自动翻译启用状态。"
+  },
+  {
+    "id": "store.sql_autotranslation.set_user_enabled.app_error",
+    "translation": "无法设置用户自动翻译启用状态。"
   }
 ]

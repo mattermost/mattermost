@@ -21,7 +21,7 @@ const JobCancelButton = (props: Props): JSX.Element|null => {
     const intl = useIntl();
     let cancelButton = null;
 
-    const handleClick = useCallback((e) => {
+    const handleClick = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
         onClick(job.id);
     }, [onClick, job.id]);

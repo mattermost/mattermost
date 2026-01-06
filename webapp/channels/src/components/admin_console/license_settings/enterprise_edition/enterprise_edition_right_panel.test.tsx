@@ -134,7 +134,7 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
 
         // Check for the Contact sales button
         const contactSalesBtn = wrapper.find('button.btn-primary');
-        expect(contactSalesBtn.text()).toEqual('Contact sales');
+        expect(contactSalesBtn.text()).toEqual('Questions? Contact sales');
     });
 
     test('should render for Trial license', () => {

@@ -15,7 +15,10 @@
     "check": "npm run lint && npm run prettier && npm run tsc && npm run lint:test-docs",
     "test": "npm run build && cross-env PW_SNAPSHOT_ENABLE=true playwright test",
     "test:ci": "npm run build && cross-env PW_SNAPSHOT_ENABLE=true playwright test --grep-invert @visual --project=chrome",
-    "test:update-snapshots": "npm run build && cross-env PW_SNAPSHOT_ENABLE=true playwright test specs/visual --grep @visual --update-snapshots",
+    "test:a11y-update-snapshots": "npm run build && cross-env PW_SNAPSHOT_ENABLE=true playwright test specs/accessibility --project=chrome --grep @snapshots --update-snapshots --update-source-method=overwrite",
+    "test:visual": "npm run build && cross-env PW_SNAPSHOT_ENABLE=true playwright test --grep @visual",
+    "test:visual-update-snapshots": "npm run build && cross-env PW_SNAPSHOT_ENABLE=true playwright test specs/visual --grep @visual --update-snapshots",
+    "test:update-snapshots": "npm run build && cross-env PW_SNAPSHOT_ENABLE=true playwright test --project=chrome --grep @snapshots --update-snapshots --update-source-method=overwrite",
     "test:slomo": "npm run build && cross-env PW_SNAPSHOT_ENABLE=true PW_SLOWMO=1000 playwright test",
     "percy:docker": "npm run build && cross-env PW_PERCY_ENABLE=true PERCY_BROWSER_EXECUTABLE='/ms-playwright/chromium-1169/chrome-linux/chrome' percy exec -- playwright test specs/visual --grep @visual --project=chrome --project=ipad",
     "codegen": "npm run build && cross-env playwright codegen $PW_BASE_URL",
@@ -26,22 +29,22 @@
   "dependencies": {
     "@mattermost/client": "file:../../webapp/platform/client",
     "@mattermost/playwright-lib": "*",
-    "@mattermost/types": "file:../../webapp/platform/types",
-    "@playwright/test": "1.55.0",
-    "cross-env": "10.0.0",
-    "dayjs": "1.11.13",
-    "luxon": "3.7.1",
-    "zod": "4.1.3"
+    "@mattermost/types": "file:../../webapp/platform/types"
   },
   "devDependencies": {
-    "@types/luxon": "3.6.2",
-    "@typescript-eslint/eslint-plugin": "8.41.0",
-    "eslint": "9.34.0",
+    "@playwright/test": "1.56.0",
+    "@types/luxon": "3.7.1",
+    "@typescript-eslint/eslint-plugin": "8.46.1",
+    "cross-env": "10.1.0",
+    "dayjs": "1.11.18",
+    "eslint": "9.37.0",
     "eslint-import-resolver-typescript": "4.4.4",
     "eslint-plugin-header": "3.1.1",
     "eslint-plugin-import": "2.32.0",
     "glob": "11.0.3",
+    "luxon": "3.7.2",
     "prettier": "3.6.2",
-    "typescript": "5.9.2"
+    "typescript": "5.9.3",
+    "zod": "4.1.12"
   }
 }

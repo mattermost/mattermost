@@ -347,6 +347,7 @@ type ServiceSettings struct {
 	MaximumLoginAttempts                *int     `access:"authentication_password,write_restrictable,cloud_restrictable"`
 	GoroutineHealthThreshold            *int     `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	EnableOAuthServiceProvider          *bool    `access:"integrations_integration_management"`
+	EnableDynamicClientRegistration     *bool    `access:"integrations_integration_management"`
 	EnableIncomingWebhooks              *bool    `access:"integrations_integration_management"`
 	EnableOutgoingWebhooks              *bool    `access:"integrations_integration_management"`
 	EnableOutgoingOAuthConnections      *bool    `access:"integrations_integration_management"`
@@ -416,7 +417,7 @@ type ServiceSettings struct {
 	EnableAPIPostDeletion                             *bool
 	EnableDesktopLandingPage                          *bool
 	ExperimentalEnableHardenedMode                    *bool `access:"experimental_features"`
-	StrictCSRFEnforcement                             *bool `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	ExperimentalStrictCSRFEnforcement                 *bool `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	EnableEmailInvitations                            *bool `access:"authentication_signup"`
 	DisableBotsWhenOwnerIsDeactivated                 *bool `access:"integrations_bot_accounts"`
 	EnableBotAccountCreation                          *bool `access:"integrations_bot_accounts"`
@@ -429,10 +430,15 @@ type ServiceSettings struct {
 	PersistentNotificationIntervalMinutes             *int  `access:"site_posts"`
 	PersistentNotificationMaxCount                    *int  `access:"site_posts"`
 	PersistentNotificationMaxRecipients               *int  `access:"site_posts"`
+	EnableBurnOnRead                                  *bool `access:"site_posts"`
+	BurnOnReadDurationSeconds                         *int  `access:"site_posts"`
+	BurnOnReadMaximumTimeToLiveSeconds                *int  `access:"site_posts"`
+	BurnOnReadSchedulerFrequencySeconds               *int  `access:"site_posts,cloud_restrictable"`
 	EnableAPIChannelDeletion                          *bool
 	EnableLocalMode                                   *bool   `access:"cloud_restrictable"`
 	LocalModeSocketLocation                           *string `access:"cloud_restrictable"` // telemetry: none
 	EnableAWSMetering                                 *bool   // telemetry: none
+	AWSMeteringTimeoutSeconds                         *int    `access:"write_restrictable,cloud_restrictable"`         // telemetry: none
 	SplitKey                                          *string `access:"experimental_feature_flags,write_restrictable"` // telemetry: none
 	FeatureFlagSyncIntervalSeconds                    *int    `access:"experimental_feature_flags,write_restrictable"` // telemetry: none
 	DebugSplit                                        *bool   `access:"experimental_feature_flags,write_restrictable"` // telemetry: none
@@ -545,6 +551,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableOAuthServiceProvider == nil {
 		s.EnableOAuthServiceProvider = NewPointer(true)
+	}
+
+	if s.EnableDynamicClientRegistration == nil {
+		s.EnableDynamicClientRegistration = NewPointer(false)
 	}
 
 	if s.EnableIncomingWebhooks == nil {
@@ -849,8 +859,8 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.ExperimentalEnableHardenedMode = NewPointer(false)
 	}
 
-	if s.StrictCSRFEnforcement == nil {
-		s.StrictCSRFEnforcement = NewPointer(true)
+	if s.ExperimentalStrictCSRFEnforcement == nil {
+		s.ExperimentalStrictCSRFEnforcement = NewPointer(false)
 	}
 
 	if s.DisableBotsWhenOwnerIsDeactivated == nil {
@@ -895,6 +905,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableAWSMetering == nil {
 		s.EnableAWSMetering = NewPointer(false)
+	}
+
+	if s.AWSMeteringTimeoutSeconds == nil {
+		s.AWSMeteringTimeoutSeconds = NewPointer(30)
 	}
 
 	if s.SplitKey == nil {
@@ -963,6 +977,22 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.RefreshPostStatsRunTime == nil {
 		s.RefreshPostStatsRunTime = NewPointer("00:00")
+	}
+
+	if s.EnableBurnOnRead == nil {
+		s.EnableBurnOnRead = NewPointer(true)
+	}
+
+	if s.BurnOnReadDurationSeconds == nil {
+		s.BurnOnReadDurationSeconds = NewPointer(600) // 10 minutes in seconds
+	}
+
+	if s.BurnOnReadMaximumTimeToLiveSeconds == nil {
+		s.BurnOnReadMaximumTimeToLiveSeconds = NewPointer(604800) // 7 days in seconds
+	}
+
+	if s.BurnOnReadSchedulerFrequencySeconds == nil {
+		s.BurnOnReadSchedulerFrequencySeconds = NewPointer(600) // 10 minutes in seconds
 	}
 
 	if s.MaximumPayloadSizeBytes == nil {
@@ -1353,6 +1383,69 @@ func (s *Office365Settings) SSOSettings() *SSOSettings {
 	return &ssoSettings
 }
 
+type IntuneSettings struct {
+	Enable      *bool   `access:"mobile_intune"`
+	TenantId    *string `access:"mobile_intune"` // telemetry: none
+	ClientId    *string `access:"mobile_intune"` // telemetry: none
+	AuthService *string `access:"mobile_intune"` // "office365" or "saml"
+}
+
+func (s *IntuneSettings) SetDefaults() {
+	if s.Enable == nil {
+		s.Enable = NewPointer(false)
+	}
+
+	if s.TenantId == nil {
+		s.TenantId = NewPointer("")
+	}
+
+	if s.ClientId == nil {
+		s.ClientId = NewPointer("")
+	}
+
+	// AuthService has no default - must be explicitly set
+	if s.AuthService == nil {
+		s.AuthService = NewPointer("")
+	}
+}
+
+func (s *IntuneSettings) IsValid() *AppError {
+	if s.Enable == nil || !*s.Enable {
+		return nil // Disabled, no validation needed
+	}
+
+	// Must have TenantId
+	if s.TenantId == nil || *s.TenantId == "" {
+		return NewAppError("Config.IsValid", "model.config.is_valid.intune_tenant_id.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// Validate TenantId format (UUID)
+	uuidRegex := regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
+	if !uuidRegex.MatchString(*s.TenantId) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.intune_tenant_id_format.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// Must have ClientId
+	if s.ClientId == nil || *s.ClientId == "" {
+		return NewAppError("Config.IsValid", "model.config.is_valid.intune_client_id.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// Validate ClientId format (UUID)
+	if !uuidRegex.MatchString(*s.ClientId) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.intune_client_id_format.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// Must have valid AuthService
+	if s.AuthService == nil || *s.AuthService == "" {
+		return NewAppError("Config.IsValid", "model.config.is_valid.intune_auth_service.app_error", nil, "AuthService is required", http.StatusBadRequest)
+	}
+	if *s.AuthService != UserAuthServiceSaml && *s.AuthService != ServiceOffice365 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.intune_auth_service_invalid.app_error", nil, "AuthService must be 'office365' or 'saml'", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
 type ReplicaLagSettings struct {
 	DataSource       *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
 	QueryAbsoluteLag *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
@@ -1474,7 +1567,7 @@ func (s *LogSettings) isValid() *AppError {
 		return NewAppError("LogSettings.isValid", "model.config.is_valid.log.advanced_logging.json", map[string]any{"Error": err}, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	err = cfg.IsValid()
+	err = cfg.IsValid(mlog.MlvlAll)
 	if err != nil {
 		return NewAppError("LogSettings.isValid", "model.config.is_valid.log.advanced_logging.parse", map[string]any{"Error": err}, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -1590,7 +1683,7 @@ func (s *ExperimentalAuditSettings) isValid() *AppError {
 		return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.log.advanced_logging.json", map[string]any{"Error": err}, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	err = cfg.IsValid()
+	err = cfg.IsValid(mlog.MLvlAuditAll)
 	if err != nil {
 		return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.log.advanced_logging.parse", map[string]any{"Error": err}, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -2690,6 +2783,88 @@ func (s *LocalizationSettings) SetDefaults() {
 	}
 }
 
+type AutoTranslationSettings struct {
+	Enable         *bool                           `access:"site_localization,cloud_restrictable"`
+	Provider       *string                         `access:"site_localization,cloud_restrictable"`
+	TimeoutsMs     *AutoTranslationTimeoutsInMs    `access:"site_localization,cloud_restrictable"`
+	LibreTranslate *LibreTranslateProviderSettings `access:"site_localization,cloud_restrictable"`
+	// TODO: Enable Agents provider in future release
+	// Agents         *AgentsProviderSettings         `access:"site_localization,cloud_restrictable"`
+}
+
+type AutoTranslationTimeoutsInMs struct {
+	NewPost      *int `access:"site_localization,cloud_restrictable"`
+	Fetch        *int `access:"site_localization,cloud_restrictable"`
+	Notification *int `access:"site_localization,cloud_restrictable"`
+}
+
+type LibreTranslateProviderSettings struct {
+	URL    *string `access:"site_localization,cloud_restrictable"`
+	APIKey *string `access:"site_localization,cloud_restrictable"`
+}
+
+// TODO: Enable Agents provider in future release
+// type AgentsProviderSettings struct {
+// 	BotUserId *string `access:"site_localization,cloud_restrictable"`
+// }
+
+func (s *AutoTranslationSettings) SetDefaults() {
+	if s.Enable == nil {
+		s.Enable = NewPointer(false)
+	}
+
+	if s.Provider == nil {
+		s.Provider = NewPointer("")
+	}
+
+	if s.TimeoutsMs == nil {
+		s.TimeoutsMs = &AutoTranslationTimeoutsInMs{}
+	}
+	s.TimeoutsMs.SetDefaults()
+
+	if s.LibreTranslate == nil {
+		s.LibreTranslate = &LibreTranslateProviderSettings{}
+	}
+	s.LibreTranslate.SetDefaults()
+
+	// TODO: Enable Agents provider in future release
+	// if s.Agents == nil {
+	// 	s.Agents = &AgentsProviderSettings{}
+	// }
+	// s.Agents.SetDefaults()
+}
+
+func (s *AutoTranslationTimeoutsInMs) SetDefaults() {
+	if s.NewPost == nil {
+		s.NewPost = NewPointer(800)
+	}
+
+	if s.Fetch == nil {
+		s.Fetch = NewPointer(2000)
+	}
+
+	if s.Notification == nil {
+		s.Notification = NewPointer(300)
+	}
+}
+
+func (s *LibreTranslateProviderSettings) SetDefaults() {
+	if s.URL == nil {
+		s.URL = NewPointer("")
+	}
+
+	if s.APIKey == nil {
+		s.APIKey = NewPointer("")
+	}
+}
+
+// TODO: Enable Agents provider in future release
+// func (s *AgentsProviderSettings) SetDefaults() {
+// 	if s.BotUserId == nil {
+// 		s.BotUserId = NewPointer("")
+// 	}
+// }
+
 type SamlSettings struct {
 	// Basic
 	Enable                        *bool `access:"authentication_saml"`
@@ -2888,6 +3063,7 @@ type NativeAppSettings struct {
 	MobileJailbreakProtection     *bool    `access:"site_customization,write_restrictable"`
 	MobileEnableSecureFilePreview *bool    `access:"site_customization,write_restrictable"`
 	MobileAllowPdfLinkNavigation  *bool    `access:"site_customization,write_restrictable"`
+	EnableIntuneMAM               *bool    `access:"site_customization,write_restrictable"` // telemetry: none
 }
 
 func (s *NativeAppSettings) SetDefaults() {
@@ -2929,6 +3105,10 @@ func (s *NativeAppSettings) SetDefaults() {
 
 	if s.MobileAllowPdfLinkNavigation == nil {
 		s.MobileAllowPdfLinkNavigation = NewPointer(false)
+	}
+
+	if s.EnableIntuneMAM == nil {
+		s.EnableIntuneMAM = NewPointer(false)
 	}
 }
 
@@ -3339,7 +3519,7 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 // Sanitize cleans up the plugin settings by removing any sensitive information.
 // It does so by checking if the setting is marked as secret in the plugin manifest.
 // If it is, the setting is replaced with a fake value.
-// If a plugin is no longer installed, all settings of it's are sanitized.
+// If a plugin is no longer installed, no stored settings for that plugin are returned.
 // If the list of manifests in nil, i.e. plugins are disabled, all settings are sanitized.
 func (s *PluginSettings) Sanitize(pluginManifests []*Manifest) {
 	manifestMap := make(map[string]*Manifest, len(pluginManifests))
@@ -3355,6 +3535,10 @@ func (s *PluginSettings) Sanitize(pluginManifests []*Manifest) {
 			if manifest == nil {
 				// Don't return plugin settings for plugins that are not installed
 				delete(s.Plugins, id)
+				break
+			}
+			if manifest.SettingsSchema == nil {
+				// If the plugin doesn't define any settings, none of them can be secrets.
 				break
 			}
 
@@ -3570,6 +3754,7 @@ type GuestAccountsSettings struct {
 	AllowEmailAccounts               *bool   `access:"authentication_guest_access"`
 	EnforceMultifactorAuthentication *bool   `access:"authentication_guest_access"`
 	RestrictCreationToDomains        *string `access:"authentication_guest_access"`
+	EnableGuestMagicLink             *bool   `access:"authentication_guest_access"`
 }
 
 func (s *GuestAccountsSettings) SetDefaults() {
@@ -3592,6 +3777,20 @@ func (s *GuestAccountsSettings) SetDefaults() {
 	if s.RestrictCreationToDomains == nil {
 		s.RestrictCreationToDomains = NewPointer("")
 	}
+
+	if s.EnableGuestMagicLink == nil {
+		s.EnableGuestMagicLink = NewPointer(false)
+	}
+}
+
+func (s *GuestAccountsSettings) IsValid() *AppError {
+	if s.EnableGuestMagicLink != nil && *s.EnableGuestMagicLink {
+		if s.EnforceMultifactorAuthentication != nil && *s.EnforceMultifactorAuthentication {
+			return NewAppError("GuestAccountsSettings.IsValid", "model.config.is_valid.guest_accounts.cannot_enforce_multifactor_authentication_when_guest_magic_link_is_enabled.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	return nil
 }
 
 type ImageProxySettings struct {
@@ -3622,7 +3821,7 @@ func (s *ImageProxySettings) SetDefaults() {
 // ImportSettings defines configuration settings for file imports.
 type ImportSettings struct {
 	// The directory where to store the imported files.
-	Directory *string
+	Directory *string `access:"cloud_restrictable"`
 	// The number of days to retain the imported files before deleting them.
 	RetentionDays *int
 }
@@ -3653,7 +3852,7 @@ func (s *ImportSettings) SetDefaults() {
 // ExportSettings defines configuration settings for file exports.
 type ExportSettings struct {
 	// The directory where to store the exported files.
-	Directory *string // telemetry: none
+	Directory *string `access:"cloud_restrictable"` // telemetry: none
 	// The number of days to retain the exported files before deleting them.
 	RetentionDays *int
 }
@@ -3682,8 +3881,8 @@ func (s *ExportSettings) SetDefaults() {
 }
 
 type AccessControlSettings struct {
-	EnableAttributeBasedAccessControl *bool `access:"write_restrictable"`
-	EnableChannelScopeAccessControl   *bool `access:"write_restrictable"`
+	EnableAttributeBasedAccessControl *bool
+	EnableChannelScopeAccessControl   *bool
 	EnableUserManagedAttributes       *bool `access:"write_restrictable"`
 }
 
@@ -3693,7 +3892,7 @@ func (s *AccessControlSettings) SetDefaults() {
 	}
 
 	if s.EnableChannelScopeAccessControl == nil {
-		s.EnableChannelScopeAccessControl = NewPointer(false)
+		s.EnableChannelScopeAccessControl = NewPointer(true)
 	}
 
 	if s.EnableUserManagedAttributes == nil {
@@ -3772,6 +3971,7 @@ type Config struct {
 	LocalizationSettings        LocalizationSettings
 	SamlSettings                SamlSettings
 	NativeAppSettings           NativeAppSettings
+	IntuneSettings              IntuneSettings
 	CacheSettings               CacheSettings
 	ClusterSettings             ClusterSettings
 	MetricsSettings             MetricsSettings
@@ -3793,6 +3993,7 @@ type Config struct {
 	ConnectedWorkspacesSettings ConnectedWorkspacesSettings
 	AccessControlSettings       AccessControlSettings
 	ContentFlaggingSettings     ContentFlaggingSettings
+	AutoTranslationSettings     AutoTranslationSettings
 }
 
 func (o *Config) Auditable() map[string]any {
@@ -3888,8 +4089,10 @@ func (o *Config) SetDefaults() {
 	o.AnalyticsSettings.SetDefaults()
 	o.ComplianceSettings.SetDefaults()
 	o.LocalizationSettings.SetDefaults()
+	o.AutoTranslationSettings.SetDefaults()
 	o.ElasticsearchSettings.SetDefaults()
 	o.NativeAppSettings.SetDefaults()
+	o.IntuneSettings.SetDefaults()
 	o.DataRetentionSettings.SetDefaults()
 	o.RateLimitSettings.SetDefaults()
 	o.LogSettings.SetDefaults()
@@ -3961,6 +4164,27 @@ func (o *Config) IsValid() *AppError {
 		return appErr
 	}
 
+	// Validate IntuneSettings
+	if appErr := o.IntuneSettings.IsValid(); appErr != nil {
+		return appErr
+	}
+
+	// Cross-reference validation: IntuneSettings requires either Office365 or SAML to be enabled
+	if o.IntuneSettings.Enable != nil && *o.IntuneSettings.Enable {
+		if o.IntuneSettings.AuthService != nil && *o.IntuneSettings.AuthService != "" {
+			switch *o.IntuneSettings.AuthService {
+			case ServiceOffice365:
+				if o.Office365Settings.Enable == nil || !*o.Office365Settings.Enable {
+					return NewAppError("Config.IsValid", "model.config.is_valid.intune_requires_office365.app_error", nil, "", http.StatusBadRequest)
+				}
+			case UserAuthServiceSaml:
+				if o.SamlSettings.Enable == nil || !*o.SamlSettings.Enable {
+					return NewAppError("Config.IsValid", "model.config.is_valid.intune_requires_saml.app_error", nil, "", http.StatusBadRequest)
+				}
+			}
+		}
+	}
+
 	if *o.PasswordSettings.MinimumLength < PasswordMinimumLength || *o.PasswordSettings.MinimumLength > PasswordMaximumLength {
 		return NewAppError("Config.IsValid", "model.config.is_valid.password_length.app_error", map[string]any{"MinLength": PasswordMinimumLength, "MaxLength": PasswordMaximumLength}, "", http.StatusBadRequest)
 	}
@@ -3990,6 +4214,10 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if appErr := o.LocalizationSettings.isValid(); appErr != nil {
+		return appErr
+	}
+
+	if appErr := o.AutoTranslationSettings.isValid(); appErr != nil {
 		return appErr
 	}
 
@@ -4034,6 +4262,10 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if appErr := o.ContentFlaggingSettings.IsValid(); appErr != nil {
+		return appErr
+	}
+
+	if appErr := o.GuestAccountsSettings.IsValid(); appErr != nil {
 		return appErr
 	}
 
@@ -4578,6 +4810,45 @@ func (s *DataRetentionSettings) isValid() *AppError {
 
 	if _, err := time.Parse("15:04", *s.DeletionJobStartTime); err != nil {
 		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.deletion_job_start_time.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	return nil
+}
+
+func (s *AutoTranslationSettings) isValid() *AppError {
+	if s.Enable == nil || !*s.Enable {
+		return nil
+	}
+
+	if *s.Provider == "" {
+		return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.provider.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	switch *s.Provider {
+	case "libretranslate":
+		if s.LibreTranslate == nil || s.LibreTranslate.URL == nil || *s.LibreTranslate.URL == "" || !IsValidHTTPURL(*s.LibreTranslate.URL) {
+			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.libretranslate.url.app_error", nil, "", http.StatusBadRequest)
+		}
+	// TODO: Enable Agents provider in future release
+	// case "agents":
+	// 	if s.Agents == nil || s.Agents.BotUserId == nil || *s.Agents.BotUserId == "" {
+	// 		return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.agents.bot_user_id.app_error", nil, "", http.StatusBadRequest)
+	// 	}
+	default:
+		return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.provider.unsupported.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// Validate timeouts if set
+	if s.TimeoutsMs != nil {
+		if s.TimeoutsMs.NewPost != nil && *s.TimeoutsMs.NewPost <= 0 {
+			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.new_post.app_error", nil, "", http.StatusBadRequest)
+		}
+		if s.TimeoutsMs.Fetch != nil && *s.TimeoutsMs.Fetch <= 0 {
+			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.fetch.app_error", nil, "", http.StatusBadRequest)
+		}
+		if s.TimeoutsMs.Notification != nil && *s.TimeoutsMs.Notification <= 0 {
+			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.notification.app_error", nil, "", http.StatusBadRequest)
+		}
 	}
 
 	return nil

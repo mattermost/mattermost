@@ -169,9 +169,9 @@ func (a *App) TriggerWebhook(rctx request.CTX, payload *model.OutgoingWebhookPay
 
 				text := ""
 				if webhookResp.Text != nil {
-					text = a.ProcessSlackText(*webhookResp.Text)
+					text = a.ProcessSlackText(rctx, *webhookResp.Text)
 				}
-				webhookResp.Attachments = a.ProcessSlackAttachments(webhookResp.Attachments)
+				webhookResp.Attachments = a.ProcessSlackAttachments(rctx, webhookResp.Attachments)
 				// attachments is in here for slack compatibility
 				if len(webhookResp.Attachments) > 0 {
 					webhookResp.Props[model.PostPropsAttachments] = webhookResp.Attachments
@@ -772,8 +772,8 @@ func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.
 
 	req.Props[model.PostPropsWebhookDisplayName] = hook.DisplayName
 
-	text = a.ProcessSlackText(text)
-	req.Attachments = a.ProcessSlackAttachments(req.Attachments)
+	text = a.ProcessSlackText(rctx, text)
+	req.Attachments = a.ProcessSlackAttachments(rctx, req.Attachments)
 	// attachments is in here for slack compatibility
 	if len(req.Attachments) > 0 {
 		req.Props[model.PostPropsAttachments] = req.Attachments

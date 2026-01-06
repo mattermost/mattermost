@@ -75,10 +75,10 @@ describe('SystemProperties', () => {
 
             expect(screen.getByRole('heading', {name: 'Configure user attributes'})).toBeInTheDocument();
 
-            expect(screen.queryByDisplayValue('test attribute 0')).toBeInTheDocument();
-            expect(screen.queryByDisplayValue('test attribute 1')).toBeInTheDocument();
-            expect(screen.queryByDisplayValue('test attribute 2')).toBeInTheDocument();
-            expect(screen.queryByDisplayValue('test attribute 3')).toBeInTheDocument();
+            expect(await screen.findByDisplayValue('test attribute 0')).toBeInTheDocument();
+            expect(await screen.findByDisplayValue('test attribute 1')).toBeInTheDocument();
+            expect(await screen.findByDisplayValue('test attribute 2')).toBeInTheDocument();
+            expect(await screen.findByDisplayValue('test attribute 3')).toBeInTheDocument();
         });
     });
 });

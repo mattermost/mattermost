@@ -171,7 +171,7 @@ describe('Collapsed Reply Threads', () => {
             // * Thumbs-up reaction displays as reaction on post
             cy.get(`#${postId}_message`).within(() => {
                 cy.findByLabelText('reactions').should('be.visible');
-                cy.findByLabelText('remove reaction +1').should('be.visible');
+                cy.findByRole('button', {name: /reacted with :\+1:/i}).should('be.visible');
             });
 
             // * Reacting to a root post should not create a thread (thread footer should not exist)

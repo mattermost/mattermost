@@ -17,7 +17,7 @@ import ExternalLink from 'components/external_link';
 import Tag from 'components/widgets/tag/tag';
 import WithTooltip from 'components/with_tooltip';
 
-import {FileTypes, LicenseSkus} from 'utils/constants';
+import {FileTypes, LicenseLinks, LicenseSkus} from 'utils/constants';
 import {calculateOverageUserActivated} from 'utils/overage_team';
 import {getSkuDisplayName} from 'utils/subscription';
 import {getRemainingDaysFromFutureTimestamp, toTitleCase} from 'utils/utils';
@@ -101,33 +101,27 @@ const EnterpriseEditionLeftPanel = ({
                 className='EnterpriseEditionLeftPanel'
                 data-testid='EnterpriseEditionLeftPanel'
             >
-                <div className='EnterpriseEditionLeftPanel__Grid'>
+                <div className='EnterpriseEditionLeftPanel__Header'>
                     <div>
-                        <div className='pre-title'>
-                            <FormattedMessage
-                                id='admin.license.enterpriseEdition'
-                                defaultMessage='Enterprise Edition'
-                            />
-                        </div>
-                        <div className='title'>
+                        <div className='EnterpriseEditionLeftPanel__Title'>
                             {`Mattermost ${getSkuDisplayName(unsanitizedLicense.SkuShortName, unsanitizedLicense.IsGovSku === 'true')}`}
                         </div>
                     </div>
                     {viewPlansButton}
                 </div>
-                <div className='subtitle'>
+                <div className='EnterpriseEditionLeftPanel__Subtitle'>
                     <FormattedMessage
                         id='admin.license.entryEdition.subtitle'
-                        defaultMessage='Entry offers Enterprise Advanced capabilities with {limitsLink} designed to support evaluation.'
+                        defaultMessage='Entry offers Enterprise Advanced capabilities {limitsLink} designed to support evaluation.'
                         values={{
                             limitsLink: (
                                 <ExternalLink
-                                    href='https://mattermost.com/pl/mattermost-entry-limits'
+                                    href={LicenseLinks.ENTRY_LIMITS_INFO}
                                     location='enterprise_edition_left_panel_entry'
                                 >
                                     <FormattedMessage
                                         id='admin.license.entryEdition.limits'
-                                        defaultMessage='limits'
+                                        defaultMessage='with limits'
                                     />
                                 </ExternalLink>
                             ),
@@ -191,15 +185,9 @@ const EnterpriseEditionLeftPanel = ({
             className='EnterpriseEditionLeftPanel'
             data-testid='EnterpriseEditionLeftPanel'
         >
-            <div className='EnterpriseEditionLeftPanel__Grid'>
+            <div className='EnterpriseEditionLeftPanel__Header'>
                 <div>
-                    <div className='pre-title'>
-                        <FormattedMessage
-                            id='admin.license.enterpriseEdition'
-                            defaultMessage='Enterprise Edition'
-                        />
-                    </div>
-                    <div className='title'>
+                    <div className='EnterpriseEditionLeftPanel__Title'>
                         {`Mattermost ${skuName}`}
                         {isTrialLicense && (
                             <Tag
@@ -216,16 +204,9 @@ const EnterpriseEditionLeftPanel = ({
                 </div>
                 {viewPlansButton}
             </div>
-            <div className='subtitle'>
-                <FormattedMessage
-                    id='admin.license.enterpriseEdition.subtitle'
-                    defaultMessage='This is an Enterprise Edition for the Mattermost {skuName} plan'
-                    values={{skuName}}
-                />
-            </div>
             <div className='licenseInformation'>
-                <div className='license-details-top'>
-                    <span className='title'>{'License details'}</span>
+                <div className='licenseInformation__Header'>
+                    <span className='licenseInformation__Title'>{'License details'}</span>
                     <button
                         className='btn btn-primary btn-sm add-seats-button '
                         onClick={openContactSales}

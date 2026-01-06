@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import deepEqual from 'fast-deep-equal';
 import React, {lazy} from 'react';
 import {Route, Switch, Redirect} from 'react-router-dom';
 import type {RouteComponentProps} from 'react-router-dom';
@@ -24,17 +23,19 @@ import LoggedInRoute from 'components/logged_in_route';
 import {LAUNCHING_WORKSPACE_FULLSCREEN_Z_INDEX} from 'components/preparing_workspace/launching_workspace';
 import {Animations} from 'components/preparing_workspace/steps';
 import Readout from 'components/readout/readout';
+import {WithUserTheme} from 'components/theme_provider';
 
 import webSocketClient from 'client/web_websocket_client';
 import {initializePlugins} from 'plugins';
 import 'utils/a11y_controller_instance';
+import {expirationScheduler} from 'utils/burn_on_read_expiration_scheduler';
 import {PageLoadContext, SCHEDULED_POST_URL_SUFFIX} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {EmojiIndicesByAlias} from 'utils/emoji';
 import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
 import {getSiteURL} from 'utils/url';
 import {isAndroidWeb, isChromebook, isDesktopApp, isIosWeb} from 'utils/user_agent';
-import {applyTheme, isTextDroppableEvent} from 'utils/utils';
+import {isTextDroppableEvent} from 'utils/utils';
 
 import LuxonController from './luxon_controller';
 import PerformanceReporterController from './performance_reporter_controller';
@@ -74,6 +75,7 @@ const SidebarRight = makeAsyncComponent('SidebarRight', lazy(() => import('compo
 const ModalController = makeAsyncComponent('ModalController', lazy(() => import('components/modal_controller')));
 const AppBar = makeAsyncComponent('AppBar', lazy(() => import('components/app_bar/app_bar')));
 const ComponentLibrary = makeAsyncComponent('ComponentLibrary', lazy(() => import('components/component_library')));
+const PopoutController = makeAsyncComponent('PopoutController', lazy(() => import('components/popout_controller')));
 
 const Pluggable = makeAsyncPluggableComponent();
 
@@ -112,8 +114,6 @@ export default class Root extends React.PureComponent<Props, State> {
         this.props.actions.migrateRecentEmojis();
         this.props.actions.loadRecentlyUsedCustomEmojis();
         this.showLandingPageIfNecessary();
-
-        this.applyTheme();
     };
 
     private showLandingPageIfNecessary = () => {
@@ -177,21 +177,7 @@ export default class Root extends React.PureComponent<Props, State> {
         BrowserStore.setLandingPageSeen(true);
     };
 
-    applyTheme() {
-        // don't apply theme when in system console; system console hardcoded to THEMES.denim
-        // AdminConsole will apply denim on mount re-apply user theme on unmount
-        if (this.props.location.pathname.startsWith('/admin_console')) {
-            return;
-        }
-
-        applyTheme(this.props.theme);
-    }
-
     componentDidUpdate(prevProps: Props, prevState: State) {
-        if (!deepEqual(prevProps.theme, this.props.theme)) {
-            this.applyTheme();
-        }
-
         if (this.props.location.pathname === '/') {
             if (this.props.noAccounts) {
                 prevProps.history.push('/signup_user_complete');
@@ -277,6 +263,9 @@ export default class Root extends React.PureComponent<Props, State> {
 
         this.initiateMeRequests();
 
+        // Initialize burn-on-read expiration scheduler
+        expirationScheduler.initialize(this.props.dispatch);
+
         // Force logout of all tabs if one tab is logged out
         window.addEventListener('storage', this.handleLogoutLoginSignal);
 
@@ -287,6 +276,9 @@ export default class Root extends React.PureComponent<Props, State> {
     }
 
     componentWillUnmount() {
+        // Cleanup burn-on-read expiration scheduler
+        expirationScheduler.cleanup();
+
         window.removeEventListener('storage', this.handleLogoutLoginSignal);
         document.removeEventListener('drop', this.handleDropEvent);
         document.removeEventListener('dragover', this.handleDragOverEvent);
@@ -408,7 +400,11 @@ export default class Root extends React.PureComponent<Props, State> {
                         from={'/_redirect/pl/:postid'}
                         to={`/${this.props.permalinkRedirectTeamName}/pl/:postid`}
                     />
-                    <>
+                    <Route
+                        path={'/_popout'}
+                        component={PopoutController}
+                    />
+                    <WithUserTheme>
                         {(this.props.showLaunchingWorkspace && !this.props.location.pathname.includes('/preparing-workspace') &&
                             <LaunchingWorkspace
                                 fullscreen={true}
@@ -497,7 +493,7 @@ export default class Root extends React.PureComponent<Props, State> {
                         <Pluggable pluggableName='Global'/>
                         <AppBar/>
                         <Readout/>
-                    </>
+                    </WithUserTheme>
                 </Switch>
             </RootProvider>
         );

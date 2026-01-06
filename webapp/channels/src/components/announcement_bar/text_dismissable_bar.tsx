@@ -5,7 +5,7 @@ import React, {useCallback, useEffect, useState} from 'react';
 
 import Markdown from 'components/markdown';
 
-import AnnouncementBar from './default_announcement_bar';
+import AnnouncementBar from './default_announcement_bar/index';
 
 const localStoragePrefix = '__announcement__';
 

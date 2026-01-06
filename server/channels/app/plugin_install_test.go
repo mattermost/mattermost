@@ -71,7 +71,6 @@ func TestInstallPluginLocally(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("invalid tar", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		actualManifest, appErr := th.App.ch.installPluginLocally(&nilReadSeeker{}, installPluginLocallyOnlyIfNew)
 		require.NotNil(t, appErr)
@@ -81,7 +80,6 @@ func TestInstallPluginLocally(t *testing.T) {
 
 	t.Run("missing manifest", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		reader := makeInMemoryGzipTarFile(t, []testFile{
 			{"test", "test file"},
@@ -116,7 +114,6 @@ func TestInstallPluginLocally(t *testing.T) {
 
 	t.Run("invalid plugin id", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		actualManifest, appErr := installPlugin(t, th, "invalid#plugin#id", "version", installPluginLocallyOnlyIfNew)
 		require.NotNil(t, appErr)
@@ -157,7 +154,7 @@ func TestInstallPluginLocally(t *testing.T) {
 
 	t.Run("no plugins already installed", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
+
 		cleanExistingBundles(t, th)
 
 		manifest, appErr := installPlugin(t, th, "valid", "0.0.1", installPluginLocallyOnlyIfNew)
@@ -169,7 +166,7 @@ func TestInstallPluginLocally(t *testing.T) {
 
 	t.Run("different plugin already installed", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
+
 		cleanExistingBundles(t, th)
 
 		otherManifest, appErr := installPlugin(t, th, "other", "0.0.1", installPluginLocallyOnlyIfNew)
@@ -186,7 +183,7 @@ func TestInstallPluginLocally(t *testing.T) {
 	t.Run("same plugin already installed", func(t *testing.T) {
 		t.Run("install only if new", func(t *testing.T) {
 			th := Setup(t)
-			defer th.TearDown()
+
 			cleanExistingBundles(t, th)
 
 			existingManifest, appErr := installPlugin(t, th, "valid", "0.0.1", installPluginLocallyOnlyIfNew)
@@ -203,7 +200,7 @@ func TestInstallPluginLocally(t *testing.T) {
 
 		t.Run("install if upgrade, but older", func(t *testing.T) {
 			th := Setup(t)
-			defer th.TearDown()
+
 			cleanExistingBundles(t, th)
 
 			existingManifest, appErr := installPlugin(t, th, "valid", "0.0.2", installPluginLocallyOnlyIfNewOrUpgrade)
@@ -219,7 +216,7 @@ func TestInstallPluginLocally(t *testing.T) {
 
 		t.Run("install if upgrade, but same version", func(t *testing.T) {
 			th := Setup(t)
-			defer th.TearDown()
+
 			cleanExistingBundles(t, th)
 
 			existingManifest, appErr := installPlugin(t, th, "valid", "0.0.2", installPluginLocallyOnlyIfNewOrUpgrade)
@@ -235,7 +232,7 @@ func TestInstallPluginLocally(t *testing.T) {
 
 		t.Run("install if upgrade, newer version", func(t *testing.T) {
 			th := Setup(t)
-			defer th.TearDown()
+
 			cleanExistingBundles(t, th)
 
 			existingManifest, appErr := installPlugin(t, th, "valid", "0.0.2", installPluginLocallyOnlyIfNewOrUpgrade)
@@ -251,7 +248,7 @@ func TestInstallPluginLocally(t *testing.T) {
 
 		t.Run("install always, old version", func(t *testing.T) {
 			th := Setup(t)
-			defer th.TearDown()
+
 			cleanExistingBundles(t, th)
 
 			existingManifest, appErr := installPlugin(t, th, "valid", "0.0.2", installPluginLocallyAlways)
@@ -270,7 +267,6 @@ func TestInstallPluginLocally(t *testing.T) {
 func TestInstallPluginAlreadyActive(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	path, _ := fileutils.FindDir("tests")
 	reader, err := os.Open(filepath.Join(path, "testplugin.tar.gz"))

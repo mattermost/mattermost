@@ -25,8 +25,12 @@ func TestResolveConfigFilePath(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("should return the default config file location if nothing else is set", func(t *testing.T) {
-		tmp, _ := os.MkdirTemp("", "mmctl-")
-		defer os.RemoveAll(tmp)
+		tmp, err := os.MkdirTemp("", "mmctl-")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			err = os.RemoveAll(tmp)
+			require.NoError(t, err)
+		})
 		testUser.HomeDir = tmp
 		SetUser(testUser)
 
@@ -39,14 +43,18 @@ func TestResolveConfigFilePath(t *testing.T) {
 	})
 
 	t.Run("should return config file location from xdg environment variable", func(t *testing.T) {
-		tmp, _ := os.MkdirTemp("", "mmctl-")
-		defer os.RemoveAll(tmp)
+		tmp, err := os.MkdirTemp("", "mmctl-")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			err = os.RemoveAll(tmp)
+			require.NoError(t, err)
+		})
 		testUser.HomeDir = tmp
 		SetUser(testUser)
 
 		expected := filepath.Join(testUser.HomeDir, ".config", configParent, configFileName)
 
-		_ = os.Setenv("XDG_CONFIG_HOME", filepath.Join(testUser.HomeDir, ".config"))
+		t.Setenv("XDG_CONFIG_HOME", filepath.Join(testUser.HomeDir, ".config"))
 		viper.Set("config", filepath.Join(xdgConfigHomeVar, configParent, configFileName))
 
 		p := resolveConfigFilePath()
@@ -54,16 +62,19 @@ func TestResolveConfigFilePath(t *testing.T) {
 	})
 
 	t.Run("should return the user-defined config file path if one is set", func(t *testing.T) {
-		tmp, _ := os.MkdirTemp("", "mmctl-")
-		defer os.RemoveAll(tmp)
+		tmp, err := os.MkdirTemp("", "mmctl-")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			err = os.RemoveAll(tmp)
+			require.NoError(t, err)
+		})
 
-		testUser.HomeDir = "path/should/be/ignored"
+		testUser.HomeDir = tmp + "/path/should/be/ignored"
 		SetUser(testUser)
 
 		expected := filepath.Join(tmp, configFileName)
 
-		err := os.Setenv("XDG_CONFIG_HOME", "path/should/be/ignored")
-		require.NoError(t, err)
+		t.Setenv("XDG_CONFIG_HOME", "path/should/be/ignored")
 		viper.Set("config", expected)
 
 		p := resolveConfigFilePath()
@@ -71,16 +82,19 @@ func TestResolveConfigFilePath(t *testing.T) {
 	})
 
 	t.Run("should resolve config file path if $HOME variable is used", func(t *testing.T) {
-		tmp, _ := os.MkdirTemp("", "mmctl-")
-		defer os.RemoveAll(tmp)
+		tmp, err := os.MkdirTemp("", "mmctl-")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			err = os.RemoveAll(tmp)
+			require.NoError(t, err)
+		})
 
-		testUser.HomeDir = "path/should/be/ignored"
+		testUser.HomeDir = tmp + "/path/should/be/ignored"
 		SetUser(testUser)
 
 		expected := filepath.Join(testUser.HomeDir, "/.config/mmctl/config")
 
-		err := os.Setenv("XDG_CONFIG_HOME", "path/should/be/ignored")
-		require.NoError(t, err)
+		t.Setenv("XDG_CONFIG_HOME", "path/should/be/ignored")
 		viper.Set("config", "$HOME/.config/mmctl/config")
 
 		p := resolveConfigFilePath()
@@ -88,17 +102,20 @@ func TestResolveConfigFilePath(t *testing.T) {
 	})
 
 	t.Run("should create the user-defined config file path if one is set", func(t *testing.T) {
-		tmp, _ := os.MkdirTemp("", "mmctl-")
-		defer os.RemoveAll(tmp)
+		tmp, err := os.MkdirTemp("", "mmctl-")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			err = os.RemoveAll(tmp)
+			require.NoError(t, err)
+		})
 
-		testUser.HomeDir = "path/should/be/ignored"
+		testUser.HomeDir = tmp + "path/should/be/ignored"
 		SetUser(testUser)
 		extraDir := "extra"
 
 		expected := filepath.Join(tmp, extraDir, "config.json")
 
-		err := os.Setenv("XDG_CONFIG_HOME", "path/should/be/ignored")
-		require.NoError(t, err)
+		t.Setenv("XDG_CONFIG_HOME", "path/should/be/ignored")
 		viper.Set("config", expected)
 
 		err = SaveCredentials(Credentials{})
@@ -111,14 +128,16 @@ func TestResolveConfigFilePath(t *testing.T) {
 	})
 
 	t.Run("should return error if the config flag is set to a directory", func(t *testing.T) {
-		tmp, _ := os.MkdirTemp("", "mmctl-")
-		defer os.RemoveAll(tmp)
-
-		testUser.HomeDir = "path/should/be/ignored"
+		tmp, err := os.MkdirTemp("", "mmctl-")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			err = os.RemoveAll(tmp)
+			require.NoError(t, err)
+		})
+		testUser.HomeDir = tmp + "path/should/be/ignored"
 		SetUser(testUser)
 
-		err := os.Setenv("XDG_CONFIG_HOME", "path/should/be/ignored")
-		require.NoError(t, err)
+		t.Setenv("XDG_CONFIG_HOME", "path/should/be/ignored")
 		viper.Set("config", tmp)
 
 		err = SaveCredentials(Credentials{})

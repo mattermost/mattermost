@@ -219,6 +219,7 @@ const initialComponents: PluginsState['components'] = {
     ChannelToast: [],
     Global: [],
     SidebarChannelLinkLabel: [],
+    SidebarBrowseOrAddChannelMenu: [],
     MessageWillBePosted: [],
     MessageWillBeUpdated: [],
     SlashCommandWillBePosted: [],

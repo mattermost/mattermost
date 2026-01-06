@@ -20,7 +20,7 @@ import (
 )
 
 func (s *MmctlE2ETestSuite) TestImportUploadCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 	importName := "import_test.zip"
 	importFilePath := filepath.Join(server.GetPackagePath(), "tests", importName)
 	info, err := os.Stat(importFilePath)
@@ -92,7 +92,7 @@ func (s *MmctlE2ETestSuite) TestImportUploadCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestImportProcessCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 	importName := "import_test.zip"
 	importFilePath := filepath.Join(server.GetPackagePath(), "tests", "import_test.zip")
 
@@ -131,7 +131,7 @@ func (s *MmctlE2ETestSuite) TestImportProcessCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestImportListAvailableCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 	importName := "import_test.zip"
 	importFilePath := filepath.Join(server.GetPackagePath(), "tests", importName)
 
@@ -182,7 +182,7 @@ func (s *MmctlE2ETestSuite) TestImportListAvailableCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestImportListIncompleteCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.RunForAllClients("no incomplete import uploads", func(c client.Client) {
 		printer.Clean()
@@ -251,7 +251,7 @@ func (s *MmctlE2ETestSuite) TestImportListIncompleteCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestImportJobShowCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	job, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
 		Type: model.JobTypeImportProcess,
@@ -297,7 +297,7 @@ func (s *MmctlE2ETestSuite) TestImportJobShowCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestImportJobListCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.Run("no permissions", func() {
 		printer.Clean()
@@ -370,7 +370,7 @@ func (s *MmctlE2ETestSuite) TestImportJobListCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestImportValidateCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	importName := "import_test.zip"
 	importFilePath := filepath.Join(server.GetPackagePath(), "tests", importName)
@@ -434,7 +434,7 @@ func (s *MmctlE2ETestSuite) TestImportValidateCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestImportDeleteCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 	s.Run("no permissions", func() {
 		printer.Clean()
 

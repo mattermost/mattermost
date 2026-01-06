@@ -19,11 +19,7 @@ const mattermostUserGuideLink = 'https://docs.mattermost.com/guides/use-mattermo
 const trainingResourcesLink = 'https://academy.mattermost.com/';
 const askTheCommunityUrl = 'https://mattermost.com/pl/default-ask-mattermost-community/';
 
-type Props = WrappedComponentProps & PropsFromRedux & {
-    location: {
-        pathname: string;
-    };
-}
+type Props = WrappedComponentProps & PropsFromRedux;
 
 type State = {
     buttonActive: boolean;
@@ -143,7 +139,7 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
                     openLeft={false}
                     openUp={false}
                     id='AddChannelDropdown'
-                    ariaLabel={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.dropdownAriaLabel', defaultMessage: 'Add Channel Dropdown'})}
+                    ariaLabel={intl.formatMessage({id: 'channel_header.userHelpGuide', defaultMessage: 'Help'})}
                 >
                     {this.renderDropdownItems()}
                 </Menu>

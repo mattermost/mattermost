@@ -4,7 +4,10 @@
 package api4
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -18,6 +21,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/app/email"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
@@ -63,9 +67,11 @@ func (api *API) InitUser() {
 	api.BaseRoutes.User.Handle("/mfa/generate", api.APISessionRequiredMfa(generateMfaSecret)).Methods(http.MethodPost)
 
 	api.BaseRoutes.Users.Handle("/login", api.APIHandler(login)).Methods(http.MethodPost)
+	api.BaseRoutes.Users.Handle("/login/sso/code-exchange", api.APIHandler(loginSSOCodeExchange)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/login/desktop_token", api.RateLimitedHandler(api.APIHandler(loginWithDesktopToken), model.RateLimitSettings{PerSec: model.NewPointer(2), MaxBurst: model.NewPointer(1)})).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/login/switch", api.APIHandler(switchAccountType)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/login/cws", api.APIHandlerTrustRequester(loginCWS)).Methods(http.MethodPost)
+	api.BaseRoutes.Users.Handle("/login/type", api.APIHandler(getLoginType)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/logout", api.APIHandler(logout)).Methods(http.MethodPost)
 
 	api.BaseRoutes.UserByUsername.Handle("", api.APISessionRequired(getUserByUsername)).Methods(http.MethodGet)
@@ -110,6 +116,102 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/trigger-notify-admin-posts", api.APISessionRequired(handleTriggerNotifyAdminPosts)).Methods(http.MethodPost)
 }
 
+// loginSSOCodeExchange exchanges a short-lived login_code for session tokens (mobile SAML code exchange)
+func loginSSOCodeExchange(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.Config().FeatureFlags.MobileSSOCodeExchange {
+		c.Err = model.NewAppError("loginSSOCodeExchange", "api.oauth.get_access_token.bad_request.app_error", nil, "feature disabled", http.StatusBadRequest)
+		return
+	}
+	props := model.MapFromJSON(r.Body)
+	loginCode := props["login_code"]
+	codeVerifier := props["code_verifier"]
+	state := props["state"]
+
+	if loginCode == "" || codeVerifier == "" || state == "" {
+		c.SetInvalidParam("login_code | code_verifier | state")
+		return
+	}
+
+	// Consume one-time code atomically
+	token, appErr := c.App.ConsumeTokenOnce(model.TokenTypeSSOCodeExchange, loginCode)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	// Check token expiration as fallback to cleanup process
+	if token.IsExpired() {
+		c.Err = model.NewAppError("loginSSOCodeExchange", "api.oauth.get_access_token.bad_request.app_error", nil, "token expired", http.StatusBadRequest)
+		return
+	}
+
+	// Parse extra JSON
+	extra := model.MapFromJSON(strings.NewReader(token.Extra))
+	userID := extra["user_id"]
+	codeChallenge := extra["code_challenge"]
+	method := strings.ToUpper(extra["code_challenge_method"])
+	expectedState := extra["state"]
+
+	if userID == "" || codeChallenge == "" || expectedState == "" {
+		c.Err = model.NewAppError("loginSSOCodeExchange", "api.oauth.get_access_token.bad_request.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if state != expectedState {
+		c.Err = model.NewAppError("loginSSOCodeExchange", "api.oauth.get_access_token.bad_request.app_error", nil, "state mismatch", http.StatusBadRequest)
+		return
+	}
+
+	// Verify SAML challenge
+	var computed string
+	switch strings.ToUpper(method) {
+	case "S256":
+		sum := sha256.Sum256([]byte(codeVerifier))
+		computed = base64.RawURLEncoding.EncodeToString(sum[:])
+	case "":
+		computed = codeVerifier
+	case "PLAIN":
+		// Explicitly reject plain method for security
+		c.Err = model.NewAppError("loginSSOCodeExchange", "api.oauth.get_access_token.bad_request.app_error", nil, "plain SAML challenge method not supported",
+			http.StatusBadRequest)
+		return
+	default:
+		// Reject unknown methods
+		c.Err = model.NewAppError("loginSSOCodeExchange", "api.oauth.get_access_token.bad_request.app_error", nil, "unsupported SAML challenge method", http.StatusBadRequest)
+		return
+	}
+
+	if computed != codeChallenge {
+		c.Err = model.NewAppError("loginSSOCodeExchange", "api.oauth.get_access_token.bad_request.app_error", nil, "SAML challenge mismatch", http.StatusBadRequest)
+		return
+	}
+
+	// Create session for this user
+	user, err := c.App.GetUser(userID)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	isMobile := utils.IsMobileRequest(r)
+	session, err2 := c.App.DoLogin(c.AppContext, w, r, user, "", isMobile, false, true)
+	if err2 != nil {
+		c.Err = err2
+		return
+	}
+	c.AppContext = c.AppContext.WithSession(session)
+	c.App.AttachSessionCookies(c.AppContext, w, r)
+
+	// Respond with tokens for mobile client to set
+	resp := map[string]string{
+		"token": session.Token,
+		"csrf":  session.GetCSRF(),
+	}
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	var user model.User
 	if jsonErr := json.NewDecoder(r.Body).Decode(&user); jsonErr != nil {
@@ -141,7 +243,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		auditRec.AddMeta("token_type", token.Type)
 
-		if token.Type == app.TokenTypeGuestInvitation {
+		if token.Type == model.TokenTypeGuestInvitation {
 			if c.App.Channels().License() == nil {
 				c.Err = model.NewAppError("CreateUserWithToken", "api.user.create_user.guest_accounts.license.app_error", nil, "", http.StatusBadRequest)
 				return
@@ -969,7 +1071,7 @@ func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	options.ViewRestrictions = restrictions
 
-	users, appErr := c.App.GetUsersByIds(userIDs, options)
+	users, appErr := c.App.GetUsersByIds(c.AppContext, userIDs, options)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -1435,7 +1537,13 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		if *c.App.Config().ServiceSettings.EnableAPIUserDeletion {
 			err = c.App.PermanentDeleteUser(c.AppContext, user)
 		} else {
-			err = model.NewAppError("deleteUser", "api.user.delete_user.not_enabled.app_error", nil, "userId="+c.Params.UserId, http.StatusUnauthorized)
+			loggedUser, usrErr := c.App.GetUser(c.AppContext.Session().UserId)
+			if usrErr == nil && loggedUser != nil && loggedUser.IsSystemAdmin() {
+				// More verbose error message for system admins
+				err = model.NewAppError("deleteUser", "api.user.delete_user.not_enabled.for_admin.app_error", nil, "userId="+c.Params.UserId, http.StatusUnauthorized)
+			} else {
+				err = model.NewAppError("deleteUser", "api.user.delete_user.not_enabled.app_error", nil, "userId="+c.Params.UserId, http.StatusUnauthorized)
+			}
 		}
 	} else {
 		_, err = c.App.UpdateActive(c.AppContext, user, false)
@@ -1902,21 +2010,49 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	mfaToken := props["token"]
 	deviceId := props["device_id"]
 	ldapOnly := props["ldap_only"] == "true"
+	magicLinkToken := props["magic_link_token"]
 
 	auditRec := c.MakeAuditRecord(model.AuditEventLogin, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterToAuditRec(auditRec, "login_id", loginId)
 	model.AddEventParameterToAuditRec(auditRec, "device_id", deviceId)
 
-	c.LogAuditWithUserId(id, "attempt - login_id="+loginId)
+	var user *model.User
+	var err *model.AppError
 
-	user, err := c.App.AuthenticateUserForLogin(c.AppContext, id, loginId, password, mfaToken, "", ldapOnly)
-	if err != nil {
-		c.LogAuditWithUserId(id, "failure - login_id="+loginId)
-		c.Err = err
-		return
+	if magicLinkToken != "" {
+		auditRec.AddMeta("login_method", "guest_magic_link")
+		c.LogAudit("attempt - guest_magic_link")
+
+		if !*c.App.Config().GuestAccountsSettings.EnableGuestMagicLink {
+			c.Err = model.NewAppError("login", "api.user.login.guest_magic_link.disabled.error", nil, "", http.StatusUnauthorized)
+			return
+		}
+
+		user, err = c.App.AuthenticateUserForGuestMagicLink(c.AppContext, magicLinkToken)
+		if err != nil {
+			c.LogAudit("failure - guest_magic_link")
+			c.Err = err
+			return
+		}
+	} else {
+		model.AddEventParameterToAuditRec(auditRec, "login_id", loginId)
+		c.LogAuditWithUserId(id, "attempt - login_id="+loginId)
+
+		user, err = c.App.AuthenticateUserForLogin(c.AppContext, id, loginId, password, mfaToken, "", ldapOnly)
+		if err != nil {
+			c.LogAuditWithUserId(id, "failure - login_id="+loginId)
+			c.Err = err
+			return
+		}
 	}
 	auditRec.AddEventResultState(user)
+
+	if user.IsMagicLinkEnabled() {
+		if !*c.App.Config().GuestAccountsSettings.EnableGuestMagicLink {
+			c.Err = model.NewAppError("login", "api.user.login.guest_magic_link.disabled.error", nil, "", http.StatusUnauthorized)
+			return
+		}
+	}
 
 	if user.IsGuest() {
 		if c.App.Channels().License() == nil {
@@ -2079,6 +2215,114 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, redirectURL, http.StatusFound)
+}
+
+func getLoginType(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJSON(r.Body)
+	id := props["id"]
+	loginId := props["login_id"]
+	deviceId := props["device_id"]
+
+	// For the time being, we only support getting the login type when
+	// guest magic link is enabled. We can consider adding support for other
+	// login methods in the future, and this check may be removed.
+	if !*c.App.Config().GuestAccountsSettings.EnableGuestMagicLink ||
+		!*c.App.Config().GuestAccountsSettings.Enable ||
+		!*c.App.Channels().License().Features.GuestAccounts {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	if loginId == "" {
+		c.SetInvalidParam("login_id")
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventLogin, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "login_id", loginId)
+	model.AddEventParameterToAuditRec(auditRec, "device_id", deviceId)
+
+	c.LogAuditWithUserId(id, "attempt - login_id="+loginId)
+
+	user, err := c.App.GetUserForLogin(c.AppContext, id, loginId)
+	if err != nil {
+		c.Logger.Debug("Could not get user for login", mlog.Err(err))
+		if err := json.NewEncoder(w).Encode(model.LoginTypeResponse{
+			AuthService: "",
+		}); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
+		return
+	}
+
+	if user.DeleteAt > 0 {
+		if err := json.NewEncoder(w).Encode(model.LoginTypeResponse{
+			AuthService:   "",
+			IsDeactivated: true,
+		}); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
+		return
+	}
+
+	c.LogAuditWithUserId(user.Id, "found user for login_id="+loginId)
+	auditRec.AddEventResultState(user)
+
+	auditRec.Success()
+
+	canSendMagicLinkEmail := func(user *model.User) bool {
+		if !user.IsGuest() {
+			return false
+		}
+
+		if !user.IsMagicLinkEnabled() {
+			return false
+		}
+
+		if c.App.Channels().License() == nil {
+			return false
+		}
+
+		if !*c.App.Channels().License().Features.GuestAccounts {
+			return false
+		}
+
+		if !*c.App.Config().GuestAccountsSettings.EnableGuestMagicLink {
+			return false
+		}
+
+		return true
+	}
+
+	if canSendMagicLinkEmail(user) {
+		eErr := c.App.Srv().EmailService.SendMagicLinkEmailSelfService(user.Email, c.App.GetSiteURL())
+		if eErr != nil {
+			switch {
+			case errors.Is(eErr, email.NoRateLimiterError):
+				c.Err = model.NewAppError("getLoginType", "app.email.no_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s", user.Id), http.StatusInternalServerError)
+			case errors.Is(eErr, email.SetupRateLimiterError):
+				c.Err = model.NewAppError("getLoginType", "app.email.setup_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s, error=%v", user.Id, eErr), http.StatusInternalServerError)
+			default:
+				c.Err = model.NewAppError("getLoginType", "app.email.rate_limit_exceeded.app_error", nil, fmt.Sprintf("user_id=%s, error=%v", user.Id, eErr), http.StatusRequestEntityTooLarge)
+			}
+			return
+		}
+		c.Logger.Debug("Guest magic link email sent successfully", mlog.String("user_id", user.Id))
+
+		if jErr := json.NewEncoder(w).Encode(model.LoginTypeResponse{
+			AuthService: model.UserAuthServiceMagicLink,
+		}); jErr != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(model.LoginTypeResponse{
+		AuthService: "",
+	}); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func logout(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2872,6 +3116,11 @@ func promoteGuestToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if user.IsMagicLinkEnabled() {
+		c.Err = model.NewAppError("Api4.promoteGuestToUser", "api.user.promote_guest_to_user.magic_link_enabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
 	if err := c.App.PromoteGuestToUser(c.AppContext, user, c.AppContext.Session().UserId); err != nil {
 		c.Err = err
 		return
@@ -3000,6 +3249,7 @@ func verifyUserEmailWithoutToken(c *Context, w http.ResponseWriter, r *http.Requ
 	auditRec.Success()
 	c.LogAudit("user verified")
 
+	c.App.SanitizeProfile(user, true)
 	if err := json.NewEncoder(w).Encode(user); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -3296,7 +3546,7 @@ func getThreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	thread, err := c.App.GetThreadForUser(threadMembership, extended)
+	thread, err := c.App.GetThreadForUser(c.AppContext, threadMembership, extended)
 	if err != nil {
 		c.Err = err
 		return
@@ -3373,7 +3623,7 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	options.Unread, _ = strconv.ParseBool(unreadStr)
 	options.Extended, _ = strconv.ParseBool(extendedStr)
 
-	threads, err := c.App.GetThreadsForUser(c.Params.UserId, c.Params.TeamId, options)
+	threads, err := c.App.GetThreadsForUser(c.AppContext, c.Params.UserId, c.Params.TeamId, options)
 	if err != nil {
 		c.Err = err
 		return

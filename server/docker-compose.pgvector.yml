@@ -1,0 +1,8 @@
+# Override file to use pgvector/pgvector image instead of standard postgres
+# This file is used when MM_USE_PGVECTOR=true is set
+services:
+  postgres:
+    # Override the postgres image to use pgvector
+    image: "pgvector/pgvector:pg13"
+    # All other settings are inherited from the base service
+

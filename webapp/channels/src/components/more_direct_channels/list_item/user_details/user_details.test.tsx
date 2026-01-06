@@ -6,7 +6,7 @@ import React from 'react';
 
 import type {UserProfile} from '@mattermost/types/users';
 
-import {renderWithContext, screen, waitFor, act} from 'tests/react_testing_utils';
+import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
 
 import UserDetails from './user_details';
 
@@ -139,13 +139,10 @@ describe('components/more_direct_channels/list_item/user_details/UserDetails', (
         const icon = screen.getByTestId('SharedUserIcon');
         expect(icon).toBeInTheDocument();
 
-        await act(async () => {
-            userEvent.hover(icon);
-            jest.advanceTimersByTime(1000);
+        await userEvent.hover(icon, {advanceTimers: jest.advanceTimersByTime});
 
-            await waitFor(() => {
-                expect(screen.getByText('From: Remote Organization')).toBeInTheDocument();
-            });
+        await waitFor(() => {
+            expect(screen.getByText('From: Remote Organization')).toBeInTheDocument();
         });
     });
 
@@ -168,13 +165,10 @@ describe('components/more_direct_channels/list_item/user_details/UserDetails', (
         const icon = screen.getByTestId('SharedUserIcon');
         expect(icon).toBeInTheDocument();
 
-        await act(async () => {
-            userEvent.hover(icon);
-            jest.advanceTimersByTime(1000);
+        await userEvent.hover(icon, {advanceTimers: jest.advanceTimersByTime});
 
-            await waitFor(() => {
-                expect(screen.getByText('From trusted organizations')).toBeInTheDocument();
-            });
+        await waitFor(() => {
+            expect(screen.getByText('From trusted organizations')).toBeInTheDocument();
         });
     });
 

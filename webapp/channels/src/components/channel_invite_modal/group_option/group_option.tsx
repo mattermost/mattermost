@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -41,9 +41,9 @@ const GroupOption = (props: Props) => {
         addUserProfile,
     } = props;
 
-    const getProfilesByIdsAndUsernames = makeGetProfilesByIdsAndUsernames();
+    const getProfilesByIdsAndUsernames = useMemo(makeGetProfilesByIdsAndUsernames, []);
 
-    const profiles = useSelector((state: GlobalState) => getProfilesByIdsAndUsernames(state, {allUserIds: group.member_ids || [], allUsernames: []}) as UserProfileValue[]);
+    const profiles = useSelector((state: GlobalState) => getProfilesByIdsAndUsernames(state, {allUserIds: group.member_ids}) as UserProfileValue[]);
     const overflowNames = useSelector((state: GlobalState) => {
         if (group?.member_ids) {
             return group?.member_ids.map((userId) => displayNameGetter(state, true)(getUser(state, userId))).join(', ');

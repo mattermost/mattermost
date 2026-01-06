@@ -363,9 +363,10 @@ func init() {
 
 	ListUsersCmd.Flags().Int("page", 0, "Page number to fetch for the list of users")
 	ListUsersCmd.Flags().Int("per-page", DefaultPageSize, "Number of users to be fetched")
-	ListUsersCmd.Flags().Bool("all", false, "Fetch all users. --page flag will be ignore if provided")
+	ListUsersCmd.Flags().Bool("all", false, "Fetch all users. --page flag will be ignored if provided")
 	ListUsersCmd.Flags().String("team", "", "If supplied, only users belonging to this team will be listed")
-	ListUsersCmd.Flags().Bool("inactive", false, "If supplied, only users which are inactive will be fetch")
+	ListUsersCmd.Flags().Bool("inactive", false, "If supplied, only users which are inactive will be fetched")
+	ListUsersCmd.Flags().String("role", "", "If supplied, only users with the given role will be fetched")
 
 	UserConvertCmd.Flags().Bool("bot", false, "If supplied, convert users to bots")
 	UserConvertCmd.Flags().Bool("user", false, "If supplied, convert a bot to a user")
@@ -790,6 +791,7 @@ func ResetListUsersCmd(t *testing.T) *cobra.Command {
 	require.NoError(t, ListUsersCmd.Flags().Set("per-page", "200"))
 	require.NoError(t, ListUsersCmd.Flags().Set("all", "false"))
 	require.NoError(t, ListUsersCmd.Flags().Set("team", ""))
+	require.NoError(t, ListUsersCmd.Flags().Set("role", ""))
 	require.NoError(t, ListUsersCmd.Flags().Set("inactive", "false"))
 
 	return ListUsersCmd
@@ -818,6 +820,11 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 		return err
 	}
 
+	roleName, err := command.Flags().GetString("role")
+	if err != nil {
+		return err
+	}
+
 	if showAll {
 		page = 0
 	}
@@ -838,8 +845,12 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 	if team != nil {
 		params.Add("in_team", team.Id)
 	}
+	if roleName != "" {
+		params.Add("role", roleName)
+	}
 
 	tpl := `{{.Id}}: {{.Username}} ({{.Email}})`
+
 	for {
 		users, _, err := c.GetUsersWithCustomQueryParameters(context.TODO(), page, perPage, params.Encode(), "")
 		if err != nil {
@@ -898,18 +909,20 @@ func userConvertCmdF(c client.Client, cmd *cobra.Command, userArgs []string) err
 func convertUserToBot(c client.Client, _ *cobra.Command, userArgs []string) error {
 	users, err := getUsersFromArgs(c, userArgs)
 	if err != nil {
-		printer.PrintError(err.Error())
+		return err
 	}
+
+	var multiErr *multierror.Error
 	for _, user := range users {
 		bot, _, err := c.ConvertUserToBot(context.TODO(), user.Id)
 		if err != nil {
-			printer.PrintError(err.Error())
+			multiErr = multierror.Append(multiErr, err)
 			continue
 		}
 
 		printer.PrintT("{{.Username}} converted to bot.", bot)
 	}
-	return nil
+	return multiErr.ErrorOrNil()
 }
 
 func convertBotToUser(c client.Client, cmd *cobra.Command, userArgs []string) error {

@@ -3,8 +3,9 @@
 
 /* eslint-disable max-lines */
 
-import type {AccessControlPolicy, CELExpressionError, AccessControlTestResult, AccessControlPoliciesResult, AccessControlPolicyChannelsResult, AccessControlVisualAST, AccessControlAttributes} from '@mattermost/types/access_control';
+import type {AccessControlPolicy, CELExpressionError, AccessControlTestResult, AccessControlPoliciesResult, AccessControlPolicyChannelsResult, AccessControlVisualAST, AccessControlAttributes, AccessControlPolicyActiveUpdate} from '@mattermost/types/access_control';
 import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery} from '@mattermost/types/admin';
+import type {Agent} from '@mattermost/types/agents';
 import type {AppBinding, AppCallRequest, AppCallResponse} from '@mattermost/types/apps';
 import type {Audit} from '@mattermost/types/audits';
 import type {UserAutocomplete, AutocompleteSuggestion} from '@mattermost/types/autocomplete';
@@ -53,7 +54,7 @@ import type {
     AllowedIPRanges,
     AllowedIPRange,
     FetchIPResponse,
-    LdapSettings,
+    LdapSettings, ContentFlaggingSettings,
 } from '@mattermost/types/config';
 import type {ContentFlaggingConfig} from '@mattermost/types/content_flagging';
 import type {
@@ -96,7 +97,7 @@ import type {
     OutgoingWebhook,
     SubmitDialogResponse,
 } from '@mattermost/types/integrations';
-import type {Job, JobTypeBase} from '@mattermost/types/jobs';
+import type {Job, JobType, JobTypeBase} from '@mattermost/types/jobs';
 import type {ServerLimits} from '@mattermost/types/limits';
 import type {
     MarketplaceApp,
@@ -112,7 +113,12 @@ import type {
 import type {Post, PostList, PostSearchResults, PostsUsageResponse, TeamsUsageResponse, PaginatedPostList, FilesUsageResponse, PostAcknowledgement, PostAnalytics, PostInfo} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {ProductNotices} from '@mattermost/types/product_notices';
-import type {UserPropertyField, UserPropertyFieldPatch} from '@mattermost/types/properties';
+import type {
+    NameMappedPropertyFields,
+    UserPropertyField,
+    UserPropertyFieldPatch,
+    PropertyValue,
+} from '@mattermost/types/properties';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {RemoteCluster, RemoteClusterAcceptInvite, RemoteClusterPatch, RemoteClusterWithPassword} from '@mattermost/types/remote_clusters';
 import type {UserReport, UserReportFilter, UserReportOptions} from '@mattermost/types/reports';
@@ -448,6 +454,14 @@ export default class Client4 {
 
     getPluginsRoute() {
         return `${this.getBaseRoute()}/plugins`;
+    }
+
+    getAgentsRoute() {
+        return `${this.getBaseRoute()}/agents`;
+    }
+
+    getLLMServicesRoute() {
+        return `${this.getBaseRoute()}/llmservices`;
     }
 
     getPluginRoute(pluginId: string) {
@@ -824,6 +838,28 @@ export default class Client4 {
         );
     };
 
+    loginWithMagicLink = (token: string) => {
+        const body = {
+            token,
+        };
+
+        return this.doFetch<UserProfile>(
+            `${this.getUsersRoute()}/login/one_time_link`,
+            {method: 'post', body: JSON.stringify(body)},
+        );
+    };
+
+    getUserLoginType = (loginId: string) => {
+        const body = {
+            login_id: loginId,
+        };
+
+        return this.doFetch<{auth_service: 'magic_link' | ''; is_deactivated: boolean }>(
+            `${this.getUsersRoute()}/login/type`,
+            {method: 'post', body: JSON.stringify(body)},
+        );
+    };
+
     logout = async () => {
         const {response} = await this.doFetchWithResponse(
             `${this.getUsersRoute()}/logout`,
@@ -1166,10 +1202,25 @@ export default class Client4 {
         );
     };
 
-    authorizeOAuthApp = (responseType: string, clientId: string, redirectUri: string, state: string, scope: string) => {
+    authorizeOAuthApp = (responseType: string, clientId: string, redirectUri: string, state: string, scope: string, resource?: string, codeChallenge?: string, codeChallengeMethod?: string) => {
+        const body: any = {client_id: clientId, response_type: responseType, redirect_uri: redirectUri, state, scope};
+
+        // Include resource parameter if provided
+        if (resource) {
+            body.resource = resource;
+        }
+
+        // Include PKCE parameters if provided
+        if (codeChallenge) {
+            body.code_challenge = codeChallenge;
+        }
+        if (codeChallengeMethod) {
+            body.code_challenge_method = codeChallengeMethod;
+        }
+
         return this.doFetch<void>(
             `${this.url}/oauth/authorize`,
-            {method: 'post', body: JSON.stringify({client_id: clientId, response_type: responseType, redirect_uri: redirectUri, state, scope})},
+            {method: 'post', body: JSON.stringify(body)},
         );
     };
 
@@ -1316,9 +1367,19 @@ export default class Client4 {
         );
     }
 
-    getTeam = (teamId: string) => {
+    getTeam = (teamId: string, asContentReviewer = false, flaggedPostId?: string) => {
+        const queryParamsArgs: Record<string, any> = {};
+        if (asContentReviewer) {
+            queryParamsArgs.as_content_reviewer = true;
+        }
+
+        if (flaggedPostId) {
+            queryParamsArgs.flagged_post_id = flaggedPostId;
+        }
+
+        const queryParams = buildQueryString(queryParamsArgs);
         return this.doFetch<Team>(
-            this.getTeamRoute(teamId),
+            `${this.getTeamRoute(teamId)}${queryParams}`,
             {method: 'get'},
         );
     };
@@ -1515,9 +1576,13 @@ export default class Client4 {
         );
     };
 
-    sendEmailGuestInvitesToChannelsGracefully = async (teamId: string, channelIds: string[], emails: string[], message: string) => {
+    sendEmailGuestInvitesToChannelsGracefully = async (teamId: string, channelIds: string[], emails: string[], message: string, guestMagicLink = false) => {
+        const queryParams = new URLSearchParams({graceful: 'true'});
+        if (guestMagicLink) {
+            queryParams.append('guest_magic_link', 'true');
+        }
         return this.doFetch<TeamInviteWithError[]>(
-            `${this.getTeamRoute(teamId)}/invite-guests/email?graceful=true`,
+            `${this.getTeamRoute(teamId)}/invite-guests/email?${queryParams.toString()}`,
             {method: 'post', body: JSON.stringify({emails, channels: channelIds, message})},
         );
     };
@@ -1701,9 +1766,19 @@ export default class Client4 {
         );
     };
 
-    getChannel = (channelId: string) => {
+    getChannel = (channelId: string, asContentReviewer = false, flaggedPostId?: string) => {
+        const queryParamsArgs: Record<string, any> = {};
+        if (asContentReviewer) {
+            queryParamsArgs.as_content_reviewer = true;
+        }
+
+        if (flaggedPostId) {
+            queryParamsArgs.flagged_post_id = flaggedPostId;
+        }
+
+        const queryParams = buildQueryString(queryParamsArgs);
         return this.doFetch<ServerChannel>(
-            `${this.getChannelRoute(channelId)}`,
+            `${this.getChannelRoute(channelId)}${queryParams}`,
             {method: 'get'},
         );
     };
@@ -1897,13 +1972,6 @@ export default class Client4 {
     searchChannels = (teamId: string, term: string) => {
         return this.doFetch<Channel[]>(
             `${this.getTeamRoute(teamId)}/channels/search`,
-            {method: 'post', body: JSON.stringify({term})},
-        );
-    };
-
-    searchArchivedChannels = (teamId: string, term: string) => {
-        return this.doFetch<Channel[]>(
-            `${this.getTeamRoute(teamId)}/channels/search_archived`,
             {method: 'post', body: JSON.stringify({term})},
         );
     };
@@ -2174,6 +2242,13 @@ export default class Client4 {
         );
     };
 
+    updateUserCustomProfileAttributesValues = (userID: string, attributeValues: Record<string, string | string[]>) => {
+        return this.doFetch<Record<string, string | string[]>>(
+            `${this.getUserRoute(userID)}/custom_profile_attributes`,
+            {method: 'PATCH', body: JSON.stringify(attributeValues)},
+        );
+    };
+
     getUserCustomProfileAttributesValues = async (userID: string) => {
         const data = await this.doFetch<Record<string, string>>(
             `${this.getUserRoute(userID)}/custom_profile_attributes`,
@@ -2213,9 +2288,9 @@ export default class Client4 {
         );
     };
 
-    getPost = (postId: string) => {
+    getPost = (postId: string, includeDeleted?: boolean, retainContent?: boolean) => {
         return this.doFetch<Post>(
-            `${this.getPostRoute(postId)}`,
+            `${this.getPostRoute(postId)}${buildQueryString({include_deleted: includeDeleted, retain_content: retainContent})}`,
             {method: 'get'},
         );
     };
@@ -2230,6 +2305,20 @@ export default class Client4 {
     deletePost = (postId: string) => {
         return this.doFetch<StatusOK>(
             `${this.getPostRoute(postId)}`,
+            {method: 'delete'},
+        );
+    };
+
+    revealBurnOnReadPost = (postId: string) => {
+        return this.doFetch<Post>(
+            `${this.getPostRoute(postId)}/reveal`,
+            {method: 'get'},
+        );
+    };
+
+    burnPostNow = (postId: string) => {
+        return this.doFetch(
+            `${this.getPostRoute(postId)}/burn`,
             {method: 'delete'},
         );
     };
@@ -3193,7 +3282,7 @@ export default class Client4 {
         );
     };
 
-    createJob = (job: JobTypeBase) => {
+    createJob = (job: JobTypeBase & { data?: any }) => {
         return this.doFetch<Job>(
             `${this.getJobsRoute()}`,
             {method: 'post', body: JSON.stringify(job)},
@@ -3255,6 +3344,14 @@ export default class Client4 {
         return this.doFetch<StatusOK>(
             `${this.getBaseRoute()}/config/reload`,
             {method: 'post'},
+        );
+    };
+
+    // Agent Routes
+    getAgents = () => {
+        return this.doFetch<Agent[]>(
+            `${this.getAgentsRoute()}`,
+            {method: 'get'},
         );
     };
 
@@ -4279,6 +4376,13 @@ export default class Client4 {
         );
     };
 
+    getAIRewrittenMessage = (agentId: string, message: string, action?: string, customPrompt?: string) => {
+        return this.doFetch<{rewritten_text: string; changes_made: string[]}>(
+            `${this.getPostsRoute()}/rewrite`,
+            {method: 'post', body: JSON.stringify({agent_id: agentId, message, action, custom_prompt: customPrompt})},
+        ).then((response) => response.rewritten_text);
+    };
+
     // Client Helpers
 
     protected doFetch = async <ClientDataResponse>(url: string, options: Options): Promise<ClientDataResponse> => {
@@ -4544,6 +4648,14 @@ export default class Client4 {
         );
     };
 
+    createAccessControlSyncJob = (jobData: {[key: string]: string}) => {
+        const job = {
+            type: 'access_control_sync' as JobType,
+            data: jobData,
+        };
+        return this.createJob(job);
+    };
+
     getAccessControlFields = (after: string, limit: number, channelId?: string) => {
         const params = new URLSearchParams({after, limit: limit.toString()});
         if (channelId) {
@@ -4594,10 +4706,29 @@ export default class Client4 {
         );
     };
 
+    validateExpressionAgainstRequester = (expression: string, channelId?: string) => {
+        const requestBody: {expression: string; channelId?: string} = {expression};
+        if (channelId !== undefined) {
+            requestBody.channelId = channelId;
+        }
+
+        return this.doFetch<{requester_matches: boolean}>(
+            `${this.getBaseRoute()}/access_control_policies/cel/validate_requester`,
+            {method: 'post', body: JSON.stringify(requestBody)},
+        );
+    };
+
     getChannelAccessControlAttributes = (channelId: string) => {
         return this.doFetch<AccessControlAttributes>(
             `${this.getChannelRoute(channelId)}/access_control/attributes`,
             {method: 'get'},
+        );
+    };
+
+    updateAccessControlPoliciesActive = (states: AccessControlPolicyActiveUpdate[]) => {
+        return this.doFetch<AccessControlPolicy[]>(
+            `${this.getBaseRoute()}/access_control_policies/activate`,
+            {method: 'put', body: JSON.stringify({entries: states})},
         );
     };
 
@@ -4608,9 +4739,88 @@ export default class Client4 {
         );
     };
 
-    getContentFlaggingConfig = () => {
+    getContentFlaggingConfig = (teamId?: string) => {
         return this.doFetch<ContentFlaggingConfig>(
-            `${this.getContentFlaggingRoute()}/flag/config`,
+            `${this.getContentFlaggingRoute()}/flag/config${buildQueryString({team_id: teamId})}`,
+            {method: 'get'},
+        );
+    };
+
+    flagPost = (postId: string, reason: string, comment?: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getContentFlaggingRoute()}/post/${postId}/flag`,
+            {
+                method: 'post',
+                body: JSON.stringify({reason, comment: JSON.stringify(comment)}),
+            },
+        );
+    };
+
+    removeFlaggedPost = (postId: string, comment?: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getContentFlaggingRoute()}/post/${postId}/remove`,
+            {
+                method: 'put',
+                body: JSON.stringify({comment: JSON.stringify(comment)}),
+            },
+        );
+    };
+
+    keepFlaggedPost = (postId: string, comment?: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getContentFlaggingRoute()}/post/${postId}/keep`,
+            {
+                method: 'put',
+                body: JSON.stringify({comment: JSON.stringify(comment)}),
+            },
+        );
+    };
+
+    getPostContentFlaggingFields = () => {
+        return this.doFetch<NameMappedPropertyFields>(
+            `${this.getContentFlaggingRoute()}/fields`,
+            {method: 'get'},
+        );
+    };
+
+    getPostContentFlaggingValues = (postId: string) => {
+        return this.doFetch<Array<PropertyValue<unknown>>>(
+            `${this.getContentFlaggingRoute()}/post/${postId}/field_values`,
+            {method: 'get'},
+        );
+    };
+
+    getFlaggedPost = (postId: string) => {
+        return this.doFetch<Post>(
+            `${this.getContentFlaggingRoute()}/post/${postId}`,
+            {method: 'get'},
+        );
+    };
+
+    searchContentFlaggingReviewers = (term: string, teamId: string) => {
+        return this.doFetch<UserProfile[]>(
+            `${this.getContentFlaggingRoute()}/team/${teamId}/reviewers/search${buildQueryString({term})}`,
+            {method: 'get'},
+        );
+    };
+
+    setContentFlaggingReviewer = (postId: string, reviewerId: string) => {
+        return this.doFetch(
+            `${this.getContentFlaggingRoute()}/post/${postId}/assign/${reviewerId}`,
+            {method: 'post'},
+        );
+    };
+
+    saveContentFlaggingConfig = (config: ContentFlaggingSettings) => {
+        return this.doFetch(
+            `${this.getContentFlaggingRoute()}/config`,
+            {method: 'put', body: JSON.stringify(config)},
+        );
+    };
+
+    getAdminContentFlaggingConfig = () => {
+        return this.doFetch<ContentFlaggingSettings>(
+            `${this.getContentFlaggingRoute()}/config`,
             {method: 'get'},
         );
     };

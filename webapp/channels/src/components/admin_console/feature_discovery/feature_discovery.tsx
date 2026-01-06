@@ -14,6 +14,7 @@ import AlertBanner from 'components/alert_banner';
 import ExternalLink from 'components/external_link';
 import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
+import SkuTag from 'components/widgets/tag/sku_tag';
 
 import type {LicenseSkus} from 'utils/constants';
 import {AboutLinks, LicenseLinks} from 'utils/constants';
@@ -42,12 +43,14 @@ type Props = {
         getCloudSubscription: () => void;
         openModal: <P>(modalData: ModalData<P>) => void;
     };
+    isEnterpriseReady: boolean;
     isCloud: boolean;
     isCloudTrial: boolean;
     hadPrevCloudTrial: boolean;
     isSubscriptionLoaded: boolean;
     isPaidSubscription: boolean;
     customer?: CloudCustomer;
+    showSkuTag?: boolean;
 }
 
 type State = {
@@ -202,6 +205,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
             isCloud,
             isCloudTrial,
             isSubscriptionLoaded,
+            showSkuTag,
         } = this.props;
 
         // on first load the license information is available and we can know if it is cloud license, but the subscription is not loaded yet
@@ -267,12 +271,20 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
             );
         }
 
+        // Show "Contact Sales" when trial is over or in Team Edition where no trial is available
+        const showPostTrialCta = this.props.prevTrialLicense?.IsLicensed === 'true' || this.props.isEnterpriseReady === false;
+
         return (
             <div
                 className='FeatureDiscovery'
                 data-testid='featureDiscovery'
             >
                 <div className='FeatureDiscovery_copyWrapper'>
+                    {showSkuTag &&
+                    <SkuTag
+                        sku={this.props.minimumSKURequiredForFeature}
+                        className='FeatureDiscovery_tag'
+                    />}
                     <div
                         className='FeatureDiscovery_title'
                         data-testid='featureDiscovery_title'
@@ -286,7 +298,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
                             {...copy}
                         />
                     </div>
-                    {this.props.prevTrialLicense?.IsLicensed === 'true' ? this.renderPostTrialCta() : this.renderStartTrial(learnMoreURL, gettingTrialError)}
+                    {showPostTrialCta ? this.renderPostTrialCta() : this.renderStartTrial(learnMoreURL, gettingTrialError)}
                 </div>
                 <div className='FeatureDiscovery_imageWrapper'>
                     {featureDiscoveryImage}

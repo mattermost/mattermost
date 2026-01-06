@@ -121,5 +121,29 @@
                 fill: inherit;
             }
         }
+
+        .about-modal__version-info {
+            display: flex;
+            width: 100%;
+            padding: 0 6px;
+            border: none;
+            border-radius: 4px;
+            margin-left: -6px;
+            text-align: left;
+            
+            > span.about-modal__version-info-copy-button {
+                display: none;
+                margin-top: 6px;
+                margin-left: auto;
+            }
+
+            &:hover {
+                background: rgba(var(--button-bg-rgb), 0.08);
+
+                > span.about-modal__version-info-copy-button {
+                    display: block;
+                }
+            }
+        }
     }
 }

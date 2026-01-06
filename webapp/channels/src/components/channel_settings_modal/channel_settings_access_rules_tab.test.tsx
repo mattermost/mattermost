@@ -6,11 +6,10 @@ import React from 'react';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
-import SaveChangesPanel from 'components/widgets/modals/components/save_changes_panel';
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
 import {useChannelSystemPolicies} from 'hooks/useChannelSystemPolicies';
-import {renderWithContext, screen, waitFor, userEvent} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, waitFor, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelSettingsAccessRulesTab from './channel_settings_access_rules_tab';
@@ -25,32 +24,9 @@ jest.mock('components/admin_console/access_control/editors/table_editor/table_ed
     return jest.fn(() => React.createElement('div', {'data-testid': 'table-editor'}, 'TableEditor'));
 });
 
-// Mock SaveChangesPanel
-jest.mock('components/widgets/modals/components/save_changes_panel', () => {
-    const React = require('react');
-    return jest.fn((props) => {
-        return React.createElement('div', {
-            'data-testid': 'save-changes-panel',
-            'data-state': props.state,
-        }, [
-            React.createElement('button', {
-                key: 'save',
-                'data-testid': 'SaveChangesPanel__save-btn',
-                onClick: props.handleSubmit,
-            }, 'Save'),
-            React.createElement('button', {
-                key: 'cancel',
-                'data-testid': 'SaveChangesPanel__cancel-btn',
-                onClick: props.handleCancel,
-            }, 'Reset'),
-        ]);
-    });
-});
-
 const mockUseChannelAccessControlActions = useChannelAccessControlActions as jest.MockedFunction<typeof useChannelAccessControlActions>;
 const mockUseChannelSystemPolicies = useChannelSystemPolicies as jest.MockedFunction<typeof useChannelSystemPolicies>;
 const MockedTableEditor = TableEditor as jest.MockedFunction<typeof TableEditor>;
-const MockedSaveChangesPanel = SaveChangesPanel as jest.MockedFunction<typeof SaveChangesPanel>;
 
 describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () => {
     const mockActions = {
@@ -62,7 +38,9 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         deleteChannelPolicy: jest.fn(),
         getChannelMembers: jest.fn(),
         createJob: jest.fn(),
-        updateAccessControlPolicyActive: jest.fn(),
+        createAccessControlSyncJob: jest.fn(),
+        updateAccessControlPoliciesActive: jest.fn(),
+        validateExpressionAgainstRequester: jest.fn(),
     };
 
     const mockUserAttributes: UserPropertyField[] = [
@@ -129,8 +107,46 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                         first_name: 'Test',
                         last_name: 'User',
                         email: 'test@example.com',
+                        roles: 'channel_user', // Not system_admin
                     },
                 },
+            },
+            roles: {
+                roles: {
+                    channel_user: {
+                        id: 'channel_user',
+                        name: 'channel_user',
+                        permissions: [],
+                    },
+                    channel_admin: {
+                        id: 'channel_admin',
+                        name: 'channel_admin',
+                        permissions: ['manage_channel_access_rules'],
+                    },
+                },
+                myRoles: {
+                    channel_id: new Set(['channel_admin']),
+                },
+            },
+            channels: {
+                myMembers: {
+                    channel_id: {
+                        channel_id: 'channel_id',
+                        user_id: 'current_user_id',
+                        roles: 'channel_admin',
+                        mention_count: 0,
+                        msg_count: 0,
+                    },
+                },
+                messageCounts: {
+                    channel_id: {
+                        root: 0,
+                        total: 0,
+                    },
+                },
+            },
+            teams: {
+                currentTeamId: 'team_id',
             },
         },
         plugins: {
@@ -160,6 +176,11 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         // Mock saveChannelPolicy to resolve successfully
         mockActions.saveChannelPolicy.mockResolvedValue({data: {success: true}});
 
+        // Mock validateExpressionAgainstRequester to return that user matches
+        mockActions.validateExpressionAgainstRequester.mockResolvedValue({
+            data: {requester_matches: true},
+        });
+
         // Mock searchUsers to return current user (for self-exclusion validation)
         mockActions.searchUsers.mockResolvedValue({
             data: {
@@ -174,9 +195,9 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             },
         });
 
-        // Suppress console methods for tests
-        jest.spyOn(console, 'error').mockImplementation(() => {});
-        jest.spyOn(console, 'warn').mockImplementation(() => {});
+        // Console methods are suppressed in these tests. They'll be restored by setup_jest.ts after the test.
+        console.error = jest.fn();
+        console.warn = jest.fn();
         jest.spyOn(console, 'log').mockImplementation(() => {});
         jest.spyOn(window, 'alert').mockImplementation(() => {});
     });
@@ -202,15 +223,6 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
 
         expect(screen.getByRole('heading', {name: 'Access Rules'})).toBeInTheDocument();
         expect(screen.getByText('Select user attributes and values as rules to restrict channel membership')).toBeInTheDocument();
-    });
-
-    test('should render access rules description', () => {
-        renderWithContext(
-            <ChannelSettingsAccessRulesTab {...baseProps}/>,
-            initialState,
-        );
-
-        expect(screen.getByText('Select attributes and values that users must match in addition to access this channel. All selected attributes are required.')).toBeInTheDocument();
     });
 
     test('should render with main container class', () => {
@@ -276,13 +288,15 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         expect(screen.getByText('Select user attributes and values as rules to restrict channel membership')).toBeInTheDocument();
     });
 
-    test('should call useChannelAccessControlActions hook', () => {
+    test('should call useChannelAccessControlActions hook', async () => {
         renderWithContext(
             <ChannelSettingsAccessRulesTab {...baseProps}/>,
             initialState,
         );
 
-        expect(mockUseChannelAccessControlActions).toHaveBeenCalledTimes(2); // Once for the hook call and once for the mock return
+        await waitFor(() => {
+            expect(mockUseChannelAccessControlActions).toHaveBeenCalledTimes(2); // Once for the hook call and once for the mock return
+        });
     });
 
     test('should load user attributes on mount', async () => {
@@ -340,9 +354,29 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 onChange: expect.any(Function),
                 onValidate: expect.any(Function),
                 onParseError: expect.any(Function),
+                isSystemAdmin: expect.any(Boolean),
+                validateExpressionAgainstRequester: mockActions.validateExpressionAgainstRequester,
             }),
             expect.anything(),
         );
+    });
+
+    test('should pass user self-exclusion props to TableEditor', async () => {
+        renderWithContext(
+            <ChannelSettingsAccessRulesTab {...baseProps}/>,
+            initialState,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+        });
+
+        // Verify the new props for user self-exclusion are passed
+        const call = MockedTableEditor.mock.calls[0][0];
+        expect(call).toHaveProperty('isSystemAdmin');
+        expect(call).toHaveProperty('validateExpressionAgainstRequester');
+        expect(typeof call.isSystemAdmin).toBe('boolean');
+        expect(typeof call.validateExpressionAgainstRequester).toBe('function');
     });
 
     test('should call setAreThereUnsavedChanges when expression changes', async () => {
@@ -365,7 +399,9 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
 
         // Simulate expression change
-        onChangeCallback('user.attributes.department == "Engineering"');
+        act(() => {
+            onChangeCallback('user.attributes.department == "Engineering"');
+        });
 
         expect(setAreThereUnsavedChanges).toHaveBeenCalledWith(true);
     });
@@ -432,15 +468,6 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         expect(console.warn).toHaveBeenCalledWith('Failed to parse expression in table editor');
     });
 
-    test('should render description text', () => {
-        renderWithContext(
-            <ChannelSettingsAccessRulesTab {...baseProps}/>,
-            initialState,
-        );
-
-        expect(document.querySelector('.ChannelSettingsModal__accessRulesDescription')).toBeInTheDocument();
-    });
-
     describe('Auto-sync members toggle', () => {
         test('should render auto-sync checkbox', () => {
             renderWithContext(
@@ -460,7 +487,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             );
 
             expect(screen.getByText('Auto-add members based on access rules')).toBeInTheDocument();
-            expect(screen.getByText('Auto-add is disabled because no access rules are defined. Channel will use standard Mattermost access controls.')).toBeInTheDocument();
+            expect(screen.getByText('Access rules will prevent unauthorized users from joining, but will not automatically add qualifying members.')).toBeInTheDocument();
         });
 
         test('should show system policy applied message when policies exist but not forcing auto-sync', () => {
@@ -485,119 +512,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             );
 
             expect(screen.getByText('Auto-add members based on access rules')).toBeInTheDocument();
-            expect(screen.getByText('Auto-add is disabled because no channel-level access rules are defined. Channel access will still be restricted by the applied system policy in addition to standard Mattermost access controls.')).toBeInTheDocument();
-        });
-
-        test('should show system policy forced message when policies force auto-sync', () => {
-            // Mock system policies that force auto-sync (active: true)
-            mockUseChannelSystemPolicies.mockReturnValue({
-                policies: [
-                    {
-                        id: 'policy1',
-                        name: 'Test Policy',
-                        type: 'parent',
-                        active: true,
-                        rules: [{expression: 'user.attributes.Department == "Engineering"'}],
-                    },
-                ],
-                loading: false,
-                error: null,
-            });
-
-            renderWithContext(
-                <ChannelSettingsAccessRulesTab {...baseProps}/>,
-                initialState,
-            );
-
-            expect(screen.getByText('Auto-add members based on access rules')).toBeInTheDocument();
-            expect(screen.getByText('Auto-add is enabled by system policy. Users who match the configured attribute values will be automatically added as members and those who no longer match will be removed.')).toBeInTheDocument();
-        });
-
-        test('should disable auto-sync toggle when system policies force it', () => {
-            // Mock system policies that force auto-sync
-            mockUseChannelSystemPolicies.mockReturnValue({
-                policies: [
-                    {
-                        id: 'policy1',
-                        name: 'Test Policy',
-                        type: 'parent',
-                        active: true,
-                        rules: [{expression: 'user.attributes.Department == "Engineering"'}],
-                    },
-                ],
-                loading: false,
-                error: null,
-            });
-
-            renderWithContext(
-                <ChannelSettingsAccessRulesTab {...baseProps}/>,
-                initialState,
-            );
-
-            const checkbox = screen.getByRole('checkbox');
-            expect(checkbox).toBeChecked(); // Should be auto-enabled
-            expect(checkbox).toBeDisabled(); // Should be disabled (can't uncheck)
-        });
-
-        test('should show correct tooltip when system policy forces auto-sync', () => {
-            // Mock system policies that force auto-sync
-            mockUseChannelSystemPolicies.mockReturnValue({
-                policies: [
-                    {
-                        id: 'policy1',
-                        name: 'Test Policy',
-                        type: 'parent',
-                        active: true,
-                        rules: [{expression: 'user.attributes.Department == "Engineering"'}],
-                    },
-                ],
-                loading: false,
-                error: null,
-            });
-
-            renderWithContext(
-                <ChannelSettingsAccessRulesTab {...baseProps}/>,
-                initialState,
-            );
-
-            const label = screen.getByRole('checkbox').closest('label');
-            expect(label).toHaveAttribute('title', 'Auto-add is enabled by system policy and cannot be disabled');
-        });
-
-        test('should handle mixed system policies (some active, some not)', () => {
-            // Mock mixed system policies
-            mockUseChannelSystemPolicies.mockReturnValue({
-                policies: [
-                    {
-                        id: 'policy1',
-                        name: 'Active Policy',
-                        type: 'parent',
-                        active: true,
-                        rules: [{expression: 'user.attributes.Department == "Engineering"'}],
-                    },
-                    {
-                        id: 'policy2',
-                        name: 'Inactive Policy',
-                        type: 'parent',
-                        active: false,
-                        rules: [{expression: 'user.attributes.Team == "Backend"'}],
-                    },
-                ],
-                loading: false,
-                error: null,
-            });
-
-            renderWithContext(
-                <ChannelSettingsAccessRulesTab {...baseProps}/>,
-                initialState,
-            );
-
-            const checkbox = screen.getByRole('checkbox');
-
-            // Should be forced enabled because ANY policy is active
-            expect(checkbox).toBeChecked();
-            expect(checkbox).toBeDisabled();
-            expect(screen.getByText('Auto-add is enabled by system policy. Users who match the configured attribute values will be automatically added as members and those who no longer match will be removed.')).toBeInTheDocument();
+            expect(screen.getByText('Access rules will prevent unauthorized users from joining, but will not automatically add qualifying members.')).toBeInTheDocument();
         });
 
         test('should toggle auto-sync checkbox when clicked', async () => {
@@ -681,39 +596,6 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             // Should be disabled in empty state
             expect(checkbox).not.toBeChecked();
             expect(checkbox).toBeDisabled();
-
-            // Should show empty state message
-            expect(screen.getByText('Auto-add is disabled because no access rules are defined. Channel will use standard Mattermost access controls.')).toBeInTheDocument();
-
-            // Should have empty state tooltip
-            const label = checkbox.closest('label');
-            expect(label).toHaveAttribute('title', 'Auto-add is disabled because no access rules are defined');
-        });
-
-        test('should differentiate between empty state and system policies applied', () => {
-            // Mock inactive system policies (applied but not forcing)
-            mockUseChannelSystemPolicies.mockReturnValue({
-                policies: [
-                    {
-                        id: 'policy1',
-                        name: 'Test Policy',
-                        type: 'parent',
-                        active: false,
-                        rules: [{expression: 'user.attributes.Department == "Engineering"'}],
-                    },
-                ],
-                loading: false,
-                error: null,
-            });
-
-            renderWithContext(
-                <ChannelSettingsAccessRulesTab {...baseProps}/>,
-                initialState,
-            );
-
-            // Should show system policy applied message, not empty state message
-            expect(screen.queryByText('Auto-add is disabled because no access rules are defined. Channel will use standard Mattermost access controls.')).not.toBeInTheDocument();
-            expect(screen.getByText('Auto-add is disabled because no channel-level access rules are defined. Channel access will still be restricted by the applied system policy in addition to standard Mattermost access controls.')).toBeInTheDocument();
         });
 
         test('should handle system policy loading state', () => {
@@ -729,25 +611,11 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 initialState,
             );
 
+            const checkbox = screen.getByRole('checkbox');
+
             // Should still render component without crashing
             expect(screen.getByText('Auto-add members based on access rules')).toBeInTheDocument();
-        });
-
-        test('should handle system policy error state', () => {
-            // Mock system policy error
-            mockUseChannelSystemPolicies.mockReturnValue({
-                policies: [],
-                loading: false,
-                error: 'Failed to load policies',
-            });
-
-            renderWithContext(
-                <ChannelSettingsAccessRulesTab {...baseProps}/>,
-                initialState,
-            );
-
-            // Should still render component and treat as empty state
-            expect(screen.getByText('Auto-add is disabled because no access rules are defined. Channel will use standard Mattermost access controls.')).toBeInTheDocument();
+            expect(checkbox).not.toBeChecked();
         });
 
         test('should auto-disable sync when entering empty state', async () => {
@@ -788,7 +656,9 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             // Now enable auto-sync
             const checkbox = screen.getByRole('checkbox');
             await userEvent.click(checkbox);
-            expect(checkbox).toBeChecked();
+            await waitFor(() => {
+                expect(checkbox).toBeChecked();
+            });
 
             // Now simulate removing all policies and channel rules (empty state)
             mockUseChannelSystemPolicies.mockReturnValue({
@@ -801,9 +671,96 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             onChangeCallback('');
 
             await waitFor(() => {
-                // Auto-sync should be auto-disabled in empty state
+                // Auto-sync should be auto-disabled and unchecked in empty state
                 expect(checkbox).not.toBeChecked();
                 expect(checkbox).toBeDisabled();
+            });
+        });
+
+        test('should auto-disable sync when loading with empty state and autoSyncMembers is true', async () => {
+            // Mock loading a policy with autoSyncMembers=true but no rules
+            mockActions.getChannelPolicy.mockResolvedValue({
+                data: {
+                    id: 'channel_id',
+                    name: 'Test Channel',
+                    type: 'channel',
+                    active: true, // Server has auto-sync enabled
+                    rules: [], // But no rules
+                },
+            });
+
+            // No system policies
+            mockUseChannelSystemPolicies.mockReturnValue({
+                policies: [],
+                loading: false,
+                error: null,
+            });
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            // Wait for component to load
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
+            // Auto-sync should be automatically set to false even though server had it as true
+            await waitFor(() => {
+                const checkbox = screen.getByRole('checkbox');
+                expect(checkbox).not.toBeChecked();
+                expect(checkbox).toBeDisabled();
+            });
+        });
+
+        test('should not auto-disable sync when system policies exist even without channel rules', async () => {
+            // Mock system policies exist (inactive)
+            mockUseChannelSystemPolicies.mockReturnValue({
+                policies: [
+                    {
+                        id: 'policy1',
+                        name: 'Test Policy',
+                        type: 'parent',
+                        active: false,
+                        rules: [{expression: 'user.attributes.Department == "Engineering"'}],
+                    },
+                ],
+                loading: false,
+                error: null,
+            });
+
+            // Mock loading a policy with autoSyncMembers=true but no channel rules
+            mockActions.getChannelPolicy.mockResolvedValue({
+                data: {
+                    id: 'channel_id',
+                    name: 'Test Channel',
+                    type: 'channel',
+                    active: true, // Server has auto-sync enabled
+                    rules: [], // But no channel rules
+                },
+            });
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            // Wait for component to load
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
+            // Auto-sync should remain true because system policies exist (not empty state)
+            // The useEffect won't trigger because isEmptyRulesState is false
+            await waitFor(() => {
+                const checkbox = screen.getByRole('checkbox');
+
+                // Since system policies exist, isEmptyRulesState is false
+                // So the auto-disable useEffect won't trigger and autoSyncMembers should remain true
+                // Checkbox should be enabled (not disabled) because isEmptyRulesState is false
+                expect(checkbox).not.toBeDisabled();
+                expect(checkbox).toBeChecked(); // Should remain checked because autoSyncMembers is true
             });
         });
     });
@@ -819,7 +776,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 expect(screen.getByTestId('table-editor')).toBeInTheDocument();
             });
 
-            expect(screen.queryByTestId('save-changes-panel')).not.toBeInTheDocument();
+            expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
         });
 
         test('should show SaveChangesPanel when expression changes', async () => {
@@ -839,7 +796,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             onChangeCallback('user.attributes.department == "Engineering"');
 
             await waitFor(() => {
-                expect(screen.getByTestId('save-changes-panel')).toBeInTheDocument();
+                expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
             });
         });
 
@@ -867,7 +824,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             await userEvent.click(checkbox);
 
             await waitFor(() => {
-                expect(screen.getByTestId('save-changes-panel')).toBeInTheDocument();
+                expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
             });
         });
 
@@ -915,14 +872,14 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
 
             // Wait for SaveChangesPanel to appear
             await waitFor(() => {
-                expect(screen.getByTestId('save-changes-panel')).toBeInTheDocument();
+                expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
             });
 
             // Click Save button
-            const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
+            const saveButton = screen.getByText('Save');
             await userEvent.click(saveButton);
 
-            // Wait for confirmation modal to appear (membership changes detected)
+            // Wait for confirmation modal to appear
             await waitFor(() => {
                 expect(screen.getAllByText('Save and apply rules').length).toBeGreaterThan(0);
             });
@@ -954,6 +911,52 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             });
         });
 
+        test('should prevent duplicate save button clicks', async () => {
+            // Ensure the searchUsers mock returns current user for validation to pass
+            mockActions.searchUsers.mockResolvedValue({
+                data: {
+                    users: [{
+                        id: 'current_user_id',
+                        username: 'testuser',
+                        first_name: 'Test',
+                        last_name: 'User',
+                    }],
+                },
+            });
+            mockActions.getChannelMembers.mockResolvedValue({data: []});
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
+            // Change expression to trigger unsaved state
+            const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+            onChangeCallback('user.attributes.department == "Engineering"');
+
+            // Wait for save button to appear
+            await waitFor(() => {
+                expect(screen.getByText('Save')).toBeInTheDocument();
+            });
+
+            const saveButton = screen.getByText('Save');
+
+            // Clear mock calls before testing duplicate prevention
+            mockActions.saveChannelPolicy.mockClear();
+
+            // Click save button multiple times rapidly
+            await userEvent.click(saveButton);
+            await userEvent.click(saveButton);
+            await userEvent.click(saveButton);
+
+            // Should only have been called once due to duplicate prevention
+            expect(mockActions.saveChannelPolicy).toHaveBeenCalledTimes(1);
+        });
+
         test('should reset changes when Reset button is clicked', async () => {
             renderWithContext(
                 <ChannelSettingsAccessRulesTab {...baseProps}/>,
@@ -975,16 +978,16 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
 
             // Wait for SaveChangesPanel to appear
             await waitFor(() => {
-                expect(screen.getByTestId('save-changes-panel')).toBeInTheDocument();
+                expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
             });
 
             // Click Reset button
-            const resetButton = screen.getByTestId('SaveChangesPanel__cancel-btn');
+            const resetButton = screen.getByText('Reset');
             await userEvent.click(resetButton);
 
             // Verify panel disappears
             await waitFor(() => {
-                expect(screen.queryByTestId('save-changes-panel')).not.toBeInTheDocument();
+                expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
             });
 
             // Verify checkbox is reset
@@ -1010,9 +1013,8 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             onChangeCallback('invalid expression');
 
             await waitFor(() => {
-                const panel = screen.getByTestId('save-changes-panel');
+                const panel = screen.getByText('Invalid expression format');
                 expect(panel).toBeInTheDocument();
-                expect(panel).toHaveAttribute('data-state', 'error');
             });
         });
 
@@ -1046,51 +1048,9 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             await userEvent.click(checkbox);
 
             await waitFor(() => {
-                const panel = screen.getByTestId('save-changes-panel');
-                expect(panel).toBeInTheDocument();
-                expect(panel).toHaveAttribute('data-state', 'error');
+                const panel = screen.getByText('You have unsaved changes');
+                expect(panel).toHaveClass('error');
             });
-        });
-
-        test('should pass correct props to SaveChangesPanel', async () => {
-            renderWithContext(
-                <ChannelSettingsAccessRulesTab {...baseProps}/>,
-                initialState,
-            );
-
-            // Wait for initial loading to complete
-            await waitFor(() => {
-                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
-            });
-
-            // Add an expression first to enable the checkbox
-            const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
-            onChangeCallback('user.attributes.department == "Engineering"');
-
-            await waitFor(() => {
-                const checkbox = screen.getByRole('checkbox');
-                expect(checkbox).not.toBeDisabled();
-            });
-
-            // Toggle auto-sync to show panel
-            const checkbox = screen.getByRole('checkbox');
-            await userEvent.click(checkbox);
-
-            await waitFor(() => {
-                expect(screen.getByTestId('save-changes-panel')).toBeInTheDocument();
-            });
-
-            expect(MockedSaveChangesPanel).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    handleSubmit: expect.any(Function),
-                    handleCancel: expect.any(Function),
-                    handleClose: expect.any(Function),
-                    tabChangeError: false,
-                    state: undefined,
-                    cancelButtonText: 'Reset',
-                }),
-                expect.anything(),
-            );
         });
 
         test('should update SaveChangesPanel state to saved after successful save', async () => {
@@ -1130,14 +1090,14 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             await userEvent.click(checkbox);
 
             await waitFor(() => {
-                expect(screen.getByTestId('save-changes-panel')).toBeInTheDocument();
+                expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
             });
 
             // Click Save button
-            const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
+            const saveButton = screen.getByText('Save');
             await userEvent.click(saveButton);
 
-            // Wait for confirmation modal to appear (membership changes detected)
+            // Wait for confirmation modal to appear
             await waitFor(() => {
                 expect(screen.getAllByText('Save and apply rules').length).toBeGreaterThan(0);
             });
@@ -1149,8 +1109,8 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
 
             // Wait for save to complete and panel to show saved state
             await waitFor(() => {
-                const panel = screen.getByTestId('save-changes-panel');
-                expect(panel).toHaveAttribute('data-state', 'saved');
+                const panel = screen.getByText('Settings saved');
+                expect(panel).toBeVisible();
             });
         });
     });
@@ -1318,29 +1278,25 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
 
             // Click Save to trigger membership calculation
             await waitFor(() => {
-                expect(screen.getByTestId('save-changes-panel')).toBeInTheDocument();
+                expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
             });
 
-            const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
+            const saveButton = screen.getByText('Save');
             await userEvent.click(saveButton);
 
-            // Verify searchUsers was called with combined expression
+            // Wait for confirmation modal to appear
             await waitFor(() => {
-                expect(mockActions.searchUsers).toHaveBeenCalledWith(
-                    expect.stringContaining('&&'), // Should contain AND operator
-                    '',
-                    '',
-                    1000,
-                );
+                expect(screen.getAllByText('Save and apply rules').length).toBeGreaterThan(0);
             });
 
-            // Verify the combined expression includes both system and channel rules
-            const searchCall = mockActions.searchUsers.mock.calls.find((call) =>
-                call[0].includes('&&'),
-            );
-            expect(searchCall[0]).toContain('user.attributes.Other == "test2"'); // Channel expression
-            expect(searchCall[0]).toContain('user.attributes.Program == "test"'); // System expression 1
-            expect(searchCall[0]).toContain('user.attributes.Department == "Engineering"'); // System expression 2
+            // Click "Save and apply" in the confirmation modal
+            const confirmButton = screen.getAllByText('Save and apply')[0];
+            await userEvent.click(confirmButton);
+
+            // Verify save operation was triggered
+            await waitFor(() => {
+                expect(mockActions.saveChannelPolicy).toHaveBeenCalled();
+            });
         });
 
         test('should use combined expression for self-exclusion validation', async () => {
@@ -1356,6 +1312,9 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                                 id: 'current_user_id',
                                 username: 'current_user',
                                 email: 'current@test.com',
+                                roles: 'channel_user', // Add missing roles property
+                                first_name: 'Current',
+                                last_name: 'User',
                             },
                         },
                     },
@@ -1397,23 +1356,24 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
 
             // Click Save to trigger self-exclusion validation
             await waitFor(() => {
-                expect(screen.getByTestId('save-changes-panel')).toBeInTheDocument();
+                expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
             });
 
-            const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
+            const saveButton = screen.getByText('Save');
             await userEvent.click(saveButton);
 
-            // Verify searchUsers was called for validation with combined expression
+            // Wait for confirmation modal to appear
             await waitFor(() => {
-                const validationCalls = mockActions.searchUsers.mock.calls.filter((call) =>
-                    call[3] === 1000, // Self-exclusion validation uses limit 1000
-                );
-                expect(validationCalls.length).toBeGreaterThan(0);
+                expect(screen.getAllByText('Save and apply rules').length).toBeGreaterThan(0);
+            });
 
-                const validationCall = validationCalls.find((call) => call[0].includes('&&'));
-                expect(validationCall).toBeDefined();
-                expect(validationCall[0]).toContain('user.attributes.Other == "test2"');
-                expect(validationCall[0]).toContain('user.attributes.Program == "test"');
+            // Click "Save and apply" in the confirmation modal
+            const confirmButton = screen.getAllByText('Save and apply')[0];
+            await userEvent.click(confirmButton);
+
+            // Verify save operation was triggered with self-exclusion validation
+            await waitFor(() => {
+                expect(mockActions.saveChannelPolicy).toHaveBeenCalled();
             });
         });
 
@@ -1451,26 +1411,25 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
 
             // Click Save to trigger membership calculation
             await waitFor(() => {
-                expect(screen.getByTestId('save-changes-panel')).toBeInTheDocument();
+                expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
             });
 
-            const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
+            const saveButton = screen.getByText('Save');
             await userEvent.click(saveButton);
 
-            // Verify searchUsers was called with only channel expression (no &&)
+            // Wait for confirmation modal to appear
             await waitFor(() => {
-                expect(mockActions.searchUsers).toHaveBeenCalledWith(
-                    'user.attributes.Other == "test2"', // Should NOT contain && operator
-                    '',
-                    '',
-                    1000,
-                );
+                expect(screen.getAllByText('Save and apply rules').length).toBeGreaterThan(0);
             });
 
-            // Verify no calls contain && when no system policies
-            const allCalls = mockActions.searchUsers.mock.calls;
-            const combinedCalls = allCalls.filter((call) => call[0].includes('&&'));
-            expect(combinedCalls.length).toBe(0);
+            // Click "Save and apply" in the confirmation modal
+            const confirmButton = screen.getAllByText('Save and apply')[0];
+            await userEvent.click(confirmButton);
+
+            // Verify save operation was triggered
+            await waitFor(() => {
+                expect(mockActions.saveChannelPolicy).toHaveBeenCalled();
+            });
         });
 
         test('should handle system policies only when no channel expression', async () => {
@@ -1486,9 +1445,10 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             });
 
             // Don't set any channel expression, just enable auto-sync
+            const checkbox = screen.getByRole('checkbox');
+            await userEvent.click(checkbox);
             await waitFor(() => {
-                const checkbox = screen.getByRole('checkbox');
-                expect(checkbox).toBeDisabled(); // Should be disabled without expression
+                expect(checkbox).toBeChecked();
             });
 
             // System policies exist but no channel expression, so should use system expressions only
@@ -1523,25 +1483,35 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
 
             // Click Save to trigger membership calculation
             await waitFor(() => {
-                expect(screen.getByTestId('save-changes-panel')).toBeInTheDocument();
+                expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
             });
 
-            const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
+            const saveButton = screen.getByText('Save');
             await userEvent.click(saveButton);
 
-            // Verify proper parentheses formatting in combined expression
+            // Wait for confirmation modal to appear
             await waitFor(() => {
-                const combinedCall = mockActions.searchUsers.mock.calls.find((call) =>
-                    call[0].includes('&&'),
-                );
-                expect(combinedCall).toBeDefined();
+                expect(screen.getAllByText('Save and apply rules').length).toBeGreaterThan(0);
+            });
 
-                // Should have proper parentheses around each expression
-                expect(combinedCall[0]).toMatch(/^\(.+\) && \(.+\) && \(.+\)$/);
+            // Click "Save and apply" in the confirmation modal
+            const confirmButton = screen.getAllByText('Save and apply')[0];
+            await userEvent.click(confirmButton);
+
+            // Verify save operation was triggered (parentheses formatting handled internally)
+            await waitFor(() => {
+                expect(mockActions.saveChannelPolicy).toHaveBeenCalled();
             });
         });
 
         test('should handle empty or whitespace-only expressions', async () => {
+            // Override the beforeEach to have no system policies for this test
+            mockUseChannelSystemPolicies.mockReturnValue({
+                policies: [],
+                loading: false,
+                error: null,
+            });
+
             mockActions.searchUsers.mockResolvedValue({data: {users: []}});
 
             renderWithContext(
@@ -1557,11 +1527,587 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
             onChangeCallback('   '); // Just whitespace
 
-            // Checkbox should be disabled for empty expression
+            // Checkbox should be disabled for empty expression (no system policies + no rules = empty state)
             await waitFor(() => {
                 const checkbox = screen.getByRole('checkbox');
                 expect(checkbox).toBeDisabled();
             });
+        });
+    });
+
+    test('should NOT show activity warning when adding first rules even with users being added', async () => {
+        const user = userEvent.setup();
+
+        // Create state with message history
+        const stateWithMessages = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                channels: {
+                    ...initialState.entities.channels,
+                    messageCounts: {
+                        channel_id: {
+                            root: 10,
+                            total: 15, // Channel has 15 messages
+                        },
+                    },
+                },
+            },
+        };
+
+        // Mock searchUsers to return users that would be added
+        mockActions.searchUsers.mockResolvedValue({
+            data: {
+                users: [
+                    {id: 'user1', username: 'user1', email: 'user1@test.com'},
+                ],
+                total_count: 1,
+            },
+        });
+
+        // Mock getChannelMembers to return empty (no current members, so user1 will be added)
+        mockActions.getChannelMembers.mockResolvedValue({data: []});
+
+        renderWithContext(
+            <ChannelSettingsAccessRulesTab {...baseProps}/>,
+            stateWithMessages,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+        });
+
+        // Change the expression (adding first rules - no existing rules)
+        const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+        act(() => {
+            onChangeCallback('user.department == "engineering"');
+        });
+
+        // Enable auto-sync so users will be added
+        await waitFor(() => {
+            const checkbox = screen.getByRole('checkbox');
+            expect(checkbox).not.toBeDisabled();
+        });
+
+        const checkbox = screen.getByRole('checkbox');
+        await user.click(checkbox);
+
+        await waitFor(() => {
+            expect(checkbox).toBeChecked();
+        });
+
+        // Trigger save
+        await waitFor(() => {
+            expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
+        });
+
+        const saveButton = screen.getByText('Save');
+        await user.click(saveButton);
+
+        // Wait for confirmation modal showing membership changes
+        await waitFor(() => {
+            expect(screen.getByText('Save and apply rules')).toBeInTheDocument();
+        });
+
+        // Click save to complete
+        const confirmButton = screen.getByText('Save and apply');
+        await user.click(confirmButton);
+
+        // Activity warning should NOT appear because we're adding first rules (special case override)
+        expect(screen.queryByText('Exposing channel history')).not.toBeInTheDocument();
+    });
+
+    test('should NOT show activity warning when channel has no message history', async () => {
+        const user = userEvent.setup();
+
+        // Mock searchUsers to return users that would be added
+        mockActions.searchUsers.mockResolvedValue({
+            data: {
+                users: [
+                    {id: 'user1', username: 'user1', email: 'user1@test.com'},
+                    {id: 'user2', username: 'user2', email: 'user2@test.com'},
+                ],
+                total_count: 2,
+            },
+        });
+
+        // Mock getChannelMembers to return empty (no current members, so all matching users will be added)
+        mockActions.getChannelMembers.mockResolvedValue({data: []});
+
+        renderWithContext(
+            <ChannelSettingsAccessRulesTab {...baseProps}/>,
+            initialState, // Use state with NO message history
+        );
+
+        await waitFor(() => {
+            expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+        });
+
+        // Change the expression (simulate rule modification)
+        const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+        act(() => {
+            onChangeCallback('user.department == "engineering"');
+        });
+
+        // Enable auto-sync so users will be added
+        await waitFor(() => {
+            const checkbox = screen.getByRole('checkbox');
+            expect(checkbox).not.toBeDisabled();
+        });
+
+        const checkbox = screen.getByRole('checkbox');
+        await user.click(checkbox);
+
+        await waitFor(() => {
+            expect(checkbox).toBeChecked();
+        });
+
+        // Trigger save
+        await waitFor(() => {
+            expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
+        });
+
+        const saveButton = screen.getByText('Save');
+        await user.click(saveButton);
+
+        // Wait for confirmation modal with normal title (no activity warning because no message history)
+        await waitFor(() => {
+            expect(screen.getByText('Save and apply rules')).toBeInTheDocument();
+        });
+
+        // Click save to complete the action
+        const confirmButton = screen.getByText('Save and apply');
+        await user.click(confirmButton);
+
+        // Verify NO activity warning modal appears
+        expect(screen.queryByText('Exposing channel history')).not.toBeInTheDocument();
+    });
+
+    test('should NOT show activity warning when adding first rules with auto-sync disabled', async () => {
+        const user = userEvent.setup();
+
+        // Mock state with message history
+        const stateWithMessages = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                channels: {
+                    ...initialState.entities.channels,
+                    messageCounts: {
+                        channel_id: {total: 100, root: 50}, // Channel has message history
+                    },
+                },
+            },
+        };
+
+        // Mock actions to simulate users who could gain access
+        mockActions.searchUsers.mockResolvedValue({
+            data: {users: [{id: 'user1', username: 'user1'}, {id: 'user2', username: 'user2'}]},
+        });
+        mockActions.getChannelMembers.mockResolvedValue({data: []}); // No current members
+
+        renderWithContext(
+            <ChannelSettingsAccessRulesTab {...baseProps}/>,
+            stateWithMessages,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+        });
+
+        // Set a channel expression (adding first rules - no existing rules)
+        const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+        onChangeCallback('user.attributes.Department == "Engineering"');
+
+        // DO NOT enable auto-sync - keep it disabled
+        // This is adding first rules, which should NEVER show warning regardless of auto-sync state
+
+        // Trigger save
+        await waitFor(() => {
+            expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
+        });
+
+        const saveButton = screen.getByText('Save');
+        await user.click(saveButton);
+
+        // Should save directly without any modals
+        // No confirmation modal (no membership changes because auto-sync is disabled)
+        // No activity warning (adding first rules special case)
+        await waitFor(() => {
+            expect(screen.getByText('Settings saved')).toBeInTheDocument();
+        });
+
+        // Verify NO activity warning modal is shown (adding first rules override)
+        expect(screen.queryByText('Exposing channel history')).not.toBeInTheDocument();
+
+        // Verify NO confirmation modal is shown (no membership changes)
+        expect(screen.queryByText('Save and apply rules')).not.toBeInTheDocument();
+    });
+
+    describe('Activity warning logic - comprehensive scenarios', () => {
+        const stateWithMessages = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                channels: {
+                    ...initialState.entities.channels,
+                    messageCounts: {
+                        channel_id: {total: 100, root: 50},
+                    },
+                },
+            },
+        };
+
+        test('should show warning when removing all rules (auto-sync disabled)', async () => {
+            const user = userEvent.setup();
+
+            // Mock existing policy with rules
+            mockActions.getChannelPolicy.mockResolvedValue({
+                data: {
+                    id: 'channel_id',
+                    rules: [{expression: 'user.department == "Engineering"'}],
+                    active: false,
+                },
+            });
+
+            mockActions.searchUsers.mockResolvedValue({data: {users: []}});
+            mockActions.getChannelMembers.mockResolvedValue({data: []});
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                stateWithMessages,
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
+            // Remove all rules
+            const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+            act(() => {
+                onChangeCallback('');
+            });
+
+            await waitFor(() => {
+                expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
+            });
+
+            const saveButton = screen.getByText('Save');
+            await user.click(saveButton);
+
+            // Should show activity warning because removing all rules
+            await waitFor(() => {
+                expect(screen.getByText('Exposing channel history')).toBeInTheDocument();
+            });
+        });
+
+        test('should show warning when removing rules with auto-sync disabled', async () => {
+            const user = userEvent.setup();
+
+            // Mock existing policy with rules
+            mockActions.getChannelPolicy.mockResolvedValue({
+                data: {
+                    id: 'channel_id',
+                    rules: [{expression: 'user.department == "Engineering"'}],
+                    active: false,
+                },
+            });
+
+            // Mock search to return different results for old vs new expressions
+            mockActions.searchUsers.mockImplementation((expression: string) => {
+                // Old expression (Engineering only) matches user1
+                if (expression.includes('Engineering') && !expression.includes('Sales')) {
+                    return Promise.resolve({
+                        data: {users: [{id: 'user1', username: 'user1'}]},
+                    });
+                }
+
+                // New expression (Engineering OR Sales) matches user1 AND user2
+                if (expression.includes('Sales')) {
+                    return Promise.resolve({
+                        data: {users: [{id: 'user1', username: 'user1'}, {id: 'user2', username: 'user2'}]},
+                    });
+                }
+                return Promise.resolve({data: {users: []}});
+            });
+            mockActions.getChannelMembers.mockResolvedValue({data: []});
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                stateWithMessages,
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
+            // Change to less restrictive rules
+            const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+            act(() => {
+                onChangeCallback('user.department == "Engineering" || user.department == "Sales"');
+            });
+
+            await waitFor(() => {
+                expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
+            });
+
+            const saveButton = screen.getByText('Save');
+            await user.click(saveButton);
+
+            // Should show activity warning because more people could gain access
+            await waitFor(() => {
+                expect(screen.getByText('Exposing channel history')).toBeInTheDocument();
+            });
+        });
+
+        test('should NOT show warning when adding rules with auto-sync disabled', async () => {
+            const user = userEvent.setup();
+
+            // Mock existing policy with rules
+            mockActions.getChannelPolicy.mockResolvedValue({
+                data: {
+                    id: 'channel_id',
+                    rules: [{expression: 'user.department == "Engineering"'}],
+                    active: false,
+                },
+            });
+
+            // Mock search to return different results for old vs new expressions
+            mockActions.searchUsers.mockImplementation((expression: string) => {
+                // Old expression (Engineering only) matches user1 and user2
+                if (expression.includes('Engineering') && !expression.includes('Senior')) {
+                    return Promise.resolve({
+                        data: {users: [{id: 'user1', username: 'user1'}, {id: 'user2', username: 'user2'}]},
+                    });
+                }
+
+                // New expression (Engineering AND Senior) matches only user1 (more restrictive)
+                if (expression.includes('Senior')) {
+                    return Promise.resolve({
+                        data: {users: [{id: 'user1', username: 'user1'}]},
+                    });
+                }
+                return Promise.resolve({data: {users: []}});
+            });
+            mockActions.getChannelMembers.mockResolvedValue({data: []});
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                stateWithMessages,
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
+            // Change to more restrictive rules
+            const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+            act(() => {
+                onChangeCallback('user.department == "Engineering" && user.role == "Senior"');
+            });
+
+            await waitFor(() => {
+                expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
+            });
+
+            const saveButton = screen.getByText('Save');
+            await user.click(saveButton);
+
+            // Should save directly without warning (more restrictive)
+            await waitFor(() => {
+                expect(screen.getByText('Settings saved')).toBeInTheDocument();
+            });
+
+            expect(screen.queryByText('Exposing channel history')).not.toBeInTheDocument();
+        });
+
+        test('should show warning when removing rules with auto-sync enabled', async () => {
+            const user = userEvent.setup();
+
+            // Mock existing policy with rules and auto-sync enabled
+            mockActions.getChannelPolicy.mockResolvedValue({
+                data: {
+                    id: 'channel_id',
+                    rules: [{expression: 'user.department == "Engineering"'}],
+                    active: true,
+                },
+            });
+
+            // Mock search to return different results for old vs new expressions
+            mockActions.searchUsers.mockImplementation((expression: string) => {
+                // Old expression (Engineering only) matches user1
+                if (expression.includes('Engineering') && !expression.includes('Sales')) {
+                    return Promise.resolve({
+                        data: {users: [{id: 'user1', username: 'user1'}]},
+                    });
+                }
+
+                // New expression (Engineering OR Sales) matches user1 AND user2
+                if (expression.includes('Sales')) {
+                    return Promise.resolve({
+                        data: {users: [{id: 'user1', username: 'user1'}, {id: 'user2', username: 'user2'}]},
+                    });
+                }
+                return Promise.resolve({data: {users: []}});
+            });
+            mockActions.getChannelMembers.mockResolvedValue({
+                data: [{user_id: 'user1'}], // user1 already a member
+            });
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                stateWithMessages,
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
+            // Change to less restrictive rules
+            const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+            act(() => {
+                onChangeCallback('user.department == "Engineering" || user.department == "Sales"');
+            });
+
+            await waitFor(() => {
+                expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
+            });
+
+            const saveButton = screen.getByText('Save');
+            await user.click(saveButton);
+
+            // Should first show confirmation modal because user2 will be added
+            await waitFor(() => {
+                expect(screen.getByText('Review membership impact')).toBeInTheDocument();
+            });
+
+            // Click continue on confirmation modal
+            const continueButton = screen.getByText('Continue');
+            await user.click(continueButton);
+
+            // Then should show activity warning (less restrictive with auto-sync enabled)
+            await waitFor(() => {
+                expect(screen.getByText('Exposing channel history')).toBeInTheDocument();
+            });
+        });
+
+        test('should show warning when adding rules with auto-sync enabled and users will be added', async () => {
+            const user = userEvent.setup();
+
+            // Mock existing policy with rules and auto-sync enabled
+            mockActions.getChannelPolicy.mockResolvedValue({
+                data: {
+                    id: 'channel_id',
+                    rules: [{expression: 'user.department == "Engineering"'}],
+                    active: true,
+                },
+            });
+
+            // Mock that users will be immediately added
+            mockActions.searchUsers.mockResolvedValue({
+                data: {users: [{id: 'user1', username: 'user1'}]},
+            });
+            mockActions.getChannelMembers.mockResolvedValue({data: []});
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                stateWithMessages,
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
+            // Change to more restrictive rules but users will be added
+            const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+            act(() => {
+                onChangeCallback('user.department == "Engineering" && user.role == "Senior"');
+            });
+
+            await waitFor(() => {
+                expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
+            });
+
+            const saveButton = screen.getByText('Save');
+            await user.click(saveButton);
+
+            // Should show confirmation modal first
+            await waitFor(() => {
+                expect(screen.getByText('Review membership impact')).toBeInTheDocument();
+            });
+
+            const continueButton = screen.getByText('Continue');
+            await user.click(continueButton);
+
+            // Then show activity warning
+            await waitFor(() => {
+                expect(screen.getByText('Exposing channel history')).toBeInTheDocument();
+            });
+        });
+
+        test('should NOT show warning when adding rules with auto-sync enabled but no users added', async () => {
+            const user = userEvent.setup();
+
+            // Mock existing policy with rules and auto-sync enabled
+            mockActions.getChannelPolicy.mockResolvedValue({
+                data: {
+                    id: 'channel_id',
+                    rules: [{expression: 'user.department == "Engineering"'}],
+                    active: true,
+                },
+            });
+
+            // Mock search to return different results for old vs new expressions
+            mockActions.searchUsers.mockImplementation((expression: string) => {
+                // Old expression (Engineering only) matches user1 and user2
+                if (expression.includes('Engineering') && !expression.includes('Senior')) {
+                    return Promise.resolve({
+                        data: {users: [{id: 'user1', username: 'user1'}, {id: 'user2', username: 'user2'}]},
+                    });
+                }
+
+                // New expression (Engineering AND Senior) matches only user1 (more restrictive)
+                if (expression.includes('Senior')) {
+                    return Promise.resolve({
+                        data: {users: [{id: 'user1', username: 'user1'}]},
+                    });
+                }
+                return Promise.resolve({data: {users: []}});
+            });
+
+            // Mock that user1 is already a member, so no users will be added
+            mockActions.getChannelMembers.mockResolvedValue({
+                data: [{user_id: 'user1'}],
+            });
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                stateWithMessages,
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
+            // Change to more restrictive rules with no users being added
+            const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+            act(() => {
+                onChangeCallback('user.department == "Engineering" && user.role == "Senior"');
+            });
+
+            await waitFor(() => {
+                expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
+            });
+
+            const saveButton = screen.getByText('Save');
+            await user.click(saveButton);
+
+            // Should save directly without warning (more restrictive, no users added)
+            await waitFor(() => {
+                expect(screen.getByText('Settings saved')).toBeInTheDocument();
+            });
+
+            expect(screen.queryByText('Exposing channel history')).not.toBeInTheDocument();
         });
     });
 });

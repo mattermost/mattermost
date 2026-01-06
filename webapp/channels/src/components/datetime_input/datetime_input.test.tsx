@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, act} from '@testing-library/react';
 import moment from 'moment-timezone';
 import React from 'react';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import * as timezoneUtils from 'utils/timezone';
 
-import DateTimeInput, {getTimeInIntervals} from './datetime_input';
+import DateTimeInput, {getTimeInIntervals, getRoundedTime} from './datetime_input';
 
 // Mock timezone utilities
 jest.mock('utils/timezone', () => ({
@@ -21,14 +20,14 @@ const mockIsBeforeTime = timezoneUtils.isBeforeTime as jest.MockedFunction<typeo
 
 describe('components/datetime_input/DateTimeInput', () => {
     const baseProps = {
-        time: moment('2025-06-08T12:09:00.000Z'),
+        time: moment('2025-06-08T12:09:00Z'),
         handleChange: jest.fn(),
         timezone: 'UTC',
     };
 
     beforeEach(() => {
         jest.clearAllMocks();
-        mockGetCurrentMomentForTimezone.mockReturnValue(moment('2025-06-08T10:00:00.000Z'));
+        mockGetCurrentMomentForTimezone.mockReturnValue(moment('2025-06-08T10:00:00Z'));
         mockIsBeforeTime.mockReturnValue(false);
     });
 
@@ -74,9 +73,7 @@ describe('components/datetime_input/DateTimeInput', () => {
 
             const dateButton = screen.getByText('Date').closest('.date-time-input');
 
-            await act(async () => {
-                fireEvent.click(dateButton!);
-            });
+            await userEvent.click(dateButton!);
 
             expect(mockSetIsInteracting).toHaveBeenCalledWith(true);
         });
@@ -92,9 +89,7 @@ describe('components/datetime_input/DateTimeInput', () => {
 
             const timeButton = screen.getByLabelText('Time');
 
-            await act(async () => {
-                await userEvent.click(timeButton);
-            });
+            await userEvent.click(timeButton);
 
             expect(mockSetIsInteracting).toHaveBeenCalledWith(true);
         });
@@ -111,14 +106,10 @@ describe('components/datetime_input/DateTimeInput', () => {
             // Open date picker first
             const dateButton = screen.getByText('Date').closest('.date-time-input');
 
-            await act(async () => {
-                fireEvent.click(dateButton!);
-            });
+            await userEvent.click(dateButton!);
 
             // Press escape key
-            await act(async () => {
-                fireEvent.keyDown(document, {key: 'Escape', code: 'Escape'});
-            });
+            await userEvent.keyboard('{escape}');
 
             expect(mockSetIsInteracting).toHaveBeenCalledWith(false);
         });
@@ -126,44 +117,36 @@ describe('components/datetime_input/DateTimeInput', () => {
 
     describe('date selection', () => {
         test('should handle day selection for today with time adjustment', async () => {
-            mockGetCurrentMomentForTimezone.mockReturnValue(moment('2025-06-08T08:00:00.000Z'));
+            mockGetCurrentMomentForTimezone.mockReturnValue(moment('2025-06-08T08:00:00Z'));
             mockIsBeforeTime.mockReturnValue(true);
 
             renderWithContext(<DateTimeInput {...baseProps}/>);
 
             const dateButton = screen.getByText('Date').closest('.date-time-input');
 
-            await act(async () => {
-                fireEvent.click(dateButton!);
-            });
+            await userEvent.click(dateButton!);
 
             // Simulate clicking on today's date
             const todayButton = screen.getByText('8'); // June 8th
 
-            await act(async () => {
-                fireEvent.click(todayButton);
-            });
+            await userEvent.click(todayButton);
 
             expect(baseProps.handleChange).toHaveBeenCalled();
         });
 
         test('should handle day selection for future date', async () => {
-            mockGetCurrentMomentForTimezone.mockReturnValue(moment('2025-06-08T08:00:00.000Z'));
+            mockGetCurrentMomentForTimezone.mockReturnValue(moment('2025-06-08T08:00:00Z'));
 
             renderWithContext(<DateTimeInput {...baseProps}/>);
 
             const dateButton = screen.getByText('Date').closest('.date-time-input');
 
-            await act(async () => {
-                fireEvent.click(dateButton!);
-            });
+            await userEvent.click(dateButton!);
 
             // Simulate clicking on a future date
             const futureButton = screen.getByText('15'); // June 15th
 
-            await act(async () => {
-                fireEvent.click(futureButton);
-            });
+            await userEvent.click(futureButton);
 
             expect(baseProps.handleChange).toHaveBeenCalled();
         });
@@ -205,6 +188,40 @@ describe('components/datetime_input/DateTimeInput', () => {
 
             // Component should render without errors with relative formatting
             expect(screen.getByText('Date')).toBeInTheDocument();
+        });
+
+        test('should allow past dates and all times when allowPastDates is true', () => {
+            // Test the core time generation logic directly
+            const selectedDate = moment('2025-06-08T15:00:00Z'); // 3 PM
+
+            // When allowPastDates=true, time intervals should start from beginning of day
+            const timeOptions = getTimeInIntervals(selectedDate.clone().startOf('day'), 30);
+
+            // Should include times from start of day (midnight)
+            const firstTime = moment(timeOptions[0]);
+            expect(firstTime.hours()).toBe(0); // Should start at midnight
+            expect(firstTime.minutes()).toBe(0);
+
+            // Should include the full day's worth of options
+            expect(timeOptions.length).toBe(48); // 24 hours * 2 (30-min intervals)
+        });
+
+        test('should restrict past dates and times when allowPastDates is false (default)', () => {
+            // Test the core time generation logic for restricted past times
+            const currentTime = moment('2025-06-08T15:30:00Z'); // 3:30 PM
+            const roundedTime = getRoundedTime(currentTime, 30); // Should round to 3:30 PM
+
+            // When allowPastDates=false and selecting today, time options should start from current time
+            const timeOptions = getTimeInIntervals(roundedTime, 30);
+
+            // Should NOT include times before current time (no midnight options)
+            const firstTime = moment(timeOptions[0]);
+            expect(firstTime.hours()).toBeGreaterThanOrEqual(15); // Should start at/after 3 PM
+            expect(firstTime.minutes()).toBeGreaterThanOrEqual(30); // Should be 3:30 or later
+
+            // Should have fewer options (only from 3:30 PM to end of day)
+            expect(timeOptions.length).toBeLessThan(48); // Less than full day
+            expect(timeOptions.length).toBeGreaterThan(0); // But should have some options
         });
     });
 });

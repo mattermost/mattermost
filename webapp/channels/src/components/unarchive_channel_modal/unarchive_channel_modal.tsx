@@ -73,7 +73,7 @@ export default class UnarchiveChannelModal extends React.PureComponent<Props, St
                             defaultMessage={'Are you sure you wish to unarchive the <b>{display_name}</b> channel?'}
                             values={{
                                 display_name: this.props.channel.display_name,
-                                b: (chunks: string) => <b>{chunks}</b>,
+                                b: (chunks) => <b>{chunks}</b>,
                             }}
                         />
                     </div>

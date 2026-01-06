@@ -7,9 +7,11 @@ import {useDispatch, useSelector} from 'react-redux';
 import ReactSelect, {type StylesConfig} from 'react-select';
 
 import {GenericModal} from '@mattermost/components';
+import type {ServerError} from '@mattermost/types/errors';
 import type {PostPreviewMetadata} from '@mattermost/types/posts';
 
 import {getContentFlaggingConfig} from 'mattermost-redux/actions/content_flagging';
+import {Client4} from 'mattermost-redux/client';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {contentFlaggingConfig} from 'mattermost-redux/selectors/entities/content_flagging';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
@@ -47,6 +49,8 @@ export default function FlagPostModal({postId, onExited}: Props) {
     const [reason, setReason] = React.useState<string>('');
     const [commentError, setCommentError] = React.useState<string>('');
     const [reasonError, setReasonError] = React.useState<string>('');
+    const [requestError, setRequestError] = React.useState<string>('');
+    const [submitting, setSubmitting] = React.useState<boolean>(false);
     const [showCommentPreview, setShowCommentPreview] = React.useState<boolean>(false);
 
     const label = formatMessage({id: 'flag_message_modal.heading', defaultMessage: 'Flag message'});
@@ -67,7 +71,7 @@ export default function FlagPostModal({postId, onExited}: Props) {
             return [];
         }
 
-        return contentFlaggingSettings.reasons.map((reason) => ({
+        return contentFlaggingSettings.reasons.map((reason: string) => ({
             value: reason,
             label: reason,
         }));
@@ -138,16 +142,24 @@ export default function FlagPostModal({postId, onExited}: Props) {
         return hasError;
     }, [comment, contentFlaggingSettings?.reporter_comment_required, formatMessage, reason]);
 
-    const handleConfirm = useCallback(() => {
+    const handleConfirm = useCallback(async () => {
         const hasError = validateForm();
         if (hasError) {
             return;
         }
 
-        // TODO: Implement the flagging action here in a follow up PR
-
-        onExited();
-    }, [validateForm, onExited]);
+        try {
+            setSubmitting(true);
+            await Client4.flagPost(post.id, reason, comment);
+            onExited();
+        } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error(error);
+            setRequestError((error as ServerError).message);
+        } finally {
+            setSubmitting(false);
+        }
+    }, [validateForm, post.id, reason, comment, onExited]);
 
     return (
         <GenericModal
@@ -163,6 +175,7 @@ export default function FlagPostModal({postId, onExited}: Props) {
             confirmButtonText={submitButtonText}
             onExited={onExited}
             autoCloseOnConfirmButton={false}
+            isConfirmDisabled={submitting}
         >
             <div className='FlagPostModal FlagPostModal__body'>
                 <div className='FlagPostModal__section FlagPostModal__post_preview'>
@@ -233,6 +246,12 @@ export default function FlagPostModal({postId, onExited}: Props) {
                         maxLength={1000}
                     />
                 </div>
+                {requestError &&
+                    <div className='FlagPostModal__request-error'>
+                        <i className='icon icon-alert-outline'/>
+                        <span>{requestError}</span>
+                    </div>
+                }
             </div>
         </GenericModal>
     );

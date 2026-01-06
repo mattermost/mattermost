@@ -7,6 +7,9 @@ import {zeroStateLimitedViews} from '../reducers/entities/posts';
 
 const state: GlobalState = {
     entities: {
+        agents: {
+            agents: [],
+        },
         general: {
             config: {},
             license: {},
@@ -67,6 +70,7 @@ const state: GlobalState = {
             channelMemberCountsByGroup: {},
             messageCounts: {},
             channelsMemberCount: {},
+            restrictedDMs: {},
         },
         channelBookmarks: {
             byChannelId: {},

@@ -401,11 +401,11 @@
   },
   {
     "id": "api.command_channel_header.hint",
-    "translation": "[metin]"
+    "translation": "[yazı]"
   },
   {
     "id": "api.command_channel_header.message.app_error",
-    "translation": "/header komutunun yanında metin de yazılmalıdır."
+    "translation": "/header komutunun yanında yazı da yazılmalıdır."
   },
   {
     "id": "api.command_channel_header.name",
@@ -433,7 +433,7 @@
   },
   {
     "id": "api.command_channel_purpose.hint",
-    "translation": "[metin]"
+    "translation": "[yazı]"
   },
   {
     "id": "api.command_channel_purpose.message.app_error",
@@ -469,7 +469,7 @@
   },
   {
     "id": "api.command_channel_rename.hint",
-    "translation": "[metin]"
+    "translation": "[yazı]"
   },
   {
     "id": "api.command_channel_rename.message.app_error",
@@ -497,11 +497,11 @@
   },
   {
     "id": "api.command_code.desc",
-    "translation": "Metni kod bloğu olarak görüntüler"
+    "translation": "Yazıyı kod bloğu olarak görüntüler"
   },
   {
     "id": "api.command_code.hint",
-    "translation": "[metin]"
+    "translation": "[yazı]"
   },
   {
     "id": "api.command_code.message.app_error",
@@ -525,7 +525,7 @@
   },
   {
     "id": "api.command_dnd.desc",
-    "translation": "Rahatsız etmeyin kipini açarak masaüstü ve mobil uygulamalarda anında bildirimleri kapatır."
+    "translation": "Rahatsız etmeyin kipini açmak bilgisayar ve mobil uygulamalarda anında bildirimleri kapatır."
   },
   {
     "id": "api.command_dnd.name",
@@ -533,7 +533,7 @@
   },
   {
     "id": "api.command_dnd.success",
-    "translation": "Rahatsız etmeyin kipi açık. Rahatsız etmeyin kipini kapatana kadar masaüstü ya da mobil uygulamadan anında bildirimleri almayacaksınız."
+    "translation": "Rahatsız etmeyin kipi açık. Rahatsız etmeyin kipini kapatana kadar bilgisayar ya da mobil uygulamasında anında bildirimleri almayacaksınız."
   },
   {
     "id": "api.command_echo.delay.app_error",
@@ -541,7 +541,7 @@
   },
   {
     "id": "api.command_echo.desc",
-    "translation": "Hesabınızdaki metni echo ile yansıtır"
+    "translation": "Hesabınızdaki yazıyı echo ile yansıtır"
   },
   {
     "id": "api.command_echo.high_volume.app_error",
@@ -771,7 +771,7 @@
   },
   {
     "id": "api.command_mute.desc",
-    "translation": "Geçerli kanal ya da belirtilen [kanal] için masaüstü, e-posta ve anlık bildirimlerini kapatır."
+    "translation": "Geçerli kanal ya da belirtilen [kanal] için bilgisayar, e-posta ve anlık bildirimlerini kapatır."
   },
   {
     "id": "api.command_mute.error",
@@ -871,11 +871,11 @@
   },
   {
     "id": "api.command_search.desc",
-    "translation": "İletilerde bir metni arar"
+    "translation": "İletilerde bir yazıyı arar"
   },
   {
     "id": "api.command_search.hint",
-    "translation": "[metin]"
+    "translation": "[yazı]"
   },
   {
     "id": "api.command_search.name",
@@ -963,7 +963,7 @@
   },
   {
     "id": "api.create_terms_of_service.empty_text.app_error",
-    "translation": "Lütfen özel hizmet koşulları metnini yazın."
+    "translation": "Lütfen özel hizmet koşulları içeriğini yazın."
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
@@ -1166,7 +1166,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "Sıraya sokulamadı."
+    "translation": "Sıraya alınamadı."
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -1183,10 +1183,6 @@
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
     "translation": "İstek geçersiz: client_id değeri hatalı."
-  },
-  {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "İstek geçersiz: İstemci parolası eksik."
   },
   {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
@@ -1322,15 +1318,15 @@
   },
   {
     "id": "api.post.disabled_all",
-    "translation": "Kanalda {{.Users}} taneden fazla kullanıcı bulunduğundan @all seçeneği kapatıldı."
+    "translation": "{{.Users}} üzerinde kullanıcısı bulunan kanallar için @all bildirim seçeneği kapatıldı. Ayrıntılı bilgi almak için sistem yöneticiniz ile görüşün."
   },
   {
     "id": "api.post.disabled_channel",
-    "translation": "Kanalda {{.Users}} taneden fazla kullanıcı bulunduğundan @channel seçeneği kapatıldı."
+    "translation": "{{.Users}} üzerinde kullanıcısı bulunan kanallarda @channel bildirim seçeneği kapatıldı. Ayrıntılı bilgi almak için sistem yöneticiniz ile görüşün."
   },
   {
     "id": "api.post.disabled_here",
-    "translation": "Kanalda {{.Users}} taneden fazla kullanıcı bulunduğundan @here seçeneği kapatıldı."
+    "translation": "{{.Users}} üzerinde kullanıcısı bulunan kanallarda @here bildirim seçeneği kapatıldı. Ayrıntılı bilgi almak için sistem yöneticiniz ile görüşün."
   },
   {
     "id": "api.post.do_action.action_id.app_error",
@@ -2072,7 +2068,7 @@
   },
   {
     "id": "api.user.login.inactive.app_error",
-    "translation": "Hesabınız kullanımdan kaldırılmış olduğundan oturum açılamadı. Lütfen bir yönetici ile görüşün."
+    "translation": "Hesabınız etkisizleştirilmiş olduğundan oturum açılamadı. Lütfen bir yönetici ile görüşün."
   },
   {
     "id": "api.user.login.not_verified.app_error",
@@ -2328,7 +2324,7 @@
   },
   {
     "id": "app.export.export_write_line.json_marshall.error",
-    "translation": "JSON verileri dışa aktarılmak üzere sıralanırken bir sorun çıktı."
+    "translation": "JSON verileri dışa aktarılmak üzere sıraya alınırken bir sorun çıktı."
   },
   {
     "id": "app.import.attachment.bad_file.error",
@@ -2580,7 +2576,7 @@
   },
   {
     "id": "app.import.validate_post_import_data.message_length.error",
-    "translation": "İleti metni özelliği izin verilen uzunluğu aşıyor."
+    "translation": "İleti yazısı özelliği izin verilen uzunluğu aşıyor."
   },
   {
     "id": "app.import.validate_post_import_data.message_missing.error",
@@ -2724,7 +2720,7 @@
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_notify_props_desktop.error",
-    "translation": "Kullanıcının kanal üyeliğinde masaüstü bildirim özellikleri değeri geçersiz."
+    "translation": "Kullanıcının kanal üyeliğinde bilgisayar bildirimi özellikleri değeri geçersiz."
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mark_unread.error",
@@ -2776,11 +2772,11 @@
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_desktop_invalid.error",
-    "translation": "Kullanıcının masaüstü bildirim özellikleri değeri geçersiz."
+    "translation": "Kullanıcının bilgisayar bildirimi özellikleri değeri geçersiz."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_desktop_sound_invalid.error",
-    "translation": "Kullanıcının masaüstü sesi bildirim özelliği değeri geçersiz."
+    "translation": "Kullanıcının bilgisayar sesi bildirim özelliği değeri geçersiz."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_email_invalid.error",
@@ -2980,7 +2976,7 @@
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
-    "translation": "Geçerli lisansta uyumluluk özelliği bulunmuyor. Lütfen Enterprise tarifesi lisansına geçmesi için sistem yöneticiniz ile görüşün."
+    "translation": "Geçerli lisansta uyumluluk özelliği bulunmuyor. Lütfen Enterprise lisansı tarifesine geçmesi için sistem yöneticiniz ile görüşün."
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -3096,7 +3092,7 @@
   },
   {
     "id": "ent.ldap.do_login.licence_disable.app_error",
-    "translation": "Geçerli lisansta AD/LDAP özelliği bulunmuyor. Lütfen Enterprise tarifesi lisansına geçmesi için sistem yöneticiniz ile görüşün."
+    "translation": "Geçerli lisansta AD/LDAP özelliği bulunmuyor. Lütfen Enterprise lisansı tarifesine geçmesi için sistem yöneticiniz ile görüşün."
   },
   {
     "id": "ent.ldap.do_login.matched_to_many_users.app_error",
@@ -3268,7 +3264,7 @@
   },
   {
     "id": "mfa.generate_qr_code.create_code.app_error",
-    "translation": "QR kodu üretilirken sorun çıktı."
+    "translation": "Kare kod oluşturulurken sorun çıktı."
   },
   {
     "id": "mfa.mfa_disabled.app_error",
@@ -3548,7 +3544,7 @@
   },
   {
     "id": "model.config.is_valid.allow_cookies_for_subdomains.app_error",
-    "translation": "Alt etki alanlarında çerezlere izin verilmesi için site adresinin ayarlanmış olması gereklidir."
+    "translation": "Alt etki alanlarında tanımlama bilgilerine izin verilmesi için site adresi ayarlanmış olmalıdır."
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
@@ -3564,7 +3560,7 @@
   },
   {
     "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
-    "translation": "Veri saklama görevinin başlangıç zamanı SS:DD biçiminde 24 saat düzeninde olmalıdır."
+    "translation": "Verileri tutma görevinin başlangıç zamanı SS:DD biçiminde 24 saat düzeninde olmalıdır."
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
@@ -3780,7 +3776,7 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "Kimlik hizmeti sağlayıcı adresi boş bir dizge olamaz."
+    "translation": "Kimlik hizmeti sağlayıcı yayınlayan adresi boş bir dizge olamaz."
   },
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
@@ -3820,7 +3816,7 @@
   },
   {
     "id": "model.config.is_valid.sql_driver.app_error",
-    "translation": "Sürücü adı SQL ayarı geçersiz. 'mysql' ya da 'postgres' olmalıdır."
+    "translation": "Sürücü adı SQL ayarı geçersiz. 'postgres' olmalıdır."
   },
   {
     "id": "model.config.is_valid.sql_idle.app_error",
@@ -4520,7 +4516,7 @@
   },
   {
     "id": "web.incoming_webhook.text.app_error",
-    "translation": "Herhangi bir metin belirtilmemiş."
+    "translation": "Herhangi bir yazı belirtilmemiş."
   },
   {
     "id": "web.incoming_webhook.user.app_error",
@@ -4636,7 +4632,7 @@
   },
   {
     "id": "app.plugin.marshal.app_error",
-    "translation": "Mağaza uygulama ekleri sıralanamadı."
+    "translation": "Mağaza uygulama ekleri sıraya alınamadı."
   },
   {
     "id": "app.plugin.modify_saml.app_error",
@@ -4644,7 +4640,7 @@
   },
   {
     "id": "app.plugin.restart.app_error",
-    "translation": "Uygulama eki yükseltme işlemi sırasında yeniden başlatılamadı."
+    "translation": "Üst tarifeye geçilirken uygulama eki yeniden başlatılamadı."
   },
   {
     "id": "app.plugin.signature_decode.app_error",
@@ -4688,23 +4684,23 @@
   },
   {
     "id": "app.user_terms_of_service.delete.app_error",
-    "translation": "Hizmet koşulları metni silinemedi."
+    "translation": "Hizmet koşulları içeriği silinemedi."
   },
   {
     "id": "app.user_terms_of_service.get_by_user.app_error",
-    "translation": "Hizmet koşulları metni alınamadı."
+    "translation": "Hizmet koşulları içeriği alınamadı."
   },
   {
     "id": "app.user_terms_of_service.get_by_user.no_rows.app_error",
-    "translation": "Herhangi bir hizmet koşulları metni bulunamadı."
+    "translation": "Herhangi bir hizmet koşulları içeriği bulunamadı."
   },
   {
     "id": "app.user_terms_of_service.save.app_error",
-    "translation": "Hizmet koşulları metni kaydedilemedi."
+    "translation": "Hizmet koşulları içeriği kaydedilemedi."
   },
   {
     "id": "ent.cluster.json_encode.error",
-    "translation": "JSON isteği sıralanırken sorun çıktı"
+    "translation": "JSON isteği sıraya alınırken sorun çıktı"
   },
   {
     "id": "ent.cluster.timeout.error",
@@ -4808,7 +4804,7 @@
   },
   {
     "id": "model.user.is_valid.auth_data_type.app_error",
-    "translation": "Geçersiz. Kullanıcı adı, kimlik doğrulama verileri kimlik doğrulama türü ile birlikte ayarlanmalıdır."
+    "translation": "Kullanıcı geçersiz. Kimlik doğrulama verileri yalnızca, kullanıcı kimliğini doğrulamak için e-posta/parola yerine bir dış kimlik doğrulama hizmeti kullanıyorsa ayarlanmalıdır."
   },
   {
     "id": "model.user.is_valid.create_at.app_error",
@@ -4868,7 +4864,7 @@
   },
   {
     "id": "api.bot.teams_channels.add_message_mobile",
-    "translation": "Lütfen beni etkileşimde bulunmamı istediğiniz takım ve kanallara ekleyin. Bu işlemi tarayıcı ya da Mattermost masaüstü uygulaması üzerinden yapabilirsiniz."
+    "translation": "Lütfen beni etkileşimde bulunmamı istediğiniz takım ve kanallara ekleyin. Bu işlemi tarayıcı ya da Mattermost bilgisayar uygulaması üzerinden yapabilirsiniz."
   },
   {
     "id": "api.channel.channel_member_counts_by_group.license.error",
@@ -5064,7 +5060,7 @@
   },
   {
     "id": "app.terms_of_service.get.no_rows.app_error",
-    "translation": "Herhangi bir hizmet koşulları metni bulunamadı."
+    "translation": "Herhangi bir hizmet koşulları içeriği bulunamadı."
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
@@ -5172,7 +5168,7 @@
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
-    "translation": "Sertifika metni geçersiz."
+    "translation": "Sertifika yazısı geçersiz."
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
@@ -5512,15 +5508,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Sürüm 134+"
+    "translation": "Sürüm 140+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Sürüm 134+"
+    "translation": "Sürüm 140+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Sürüm 128+"
+    "translation": "Sürüm 140+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -5532,7 +5528,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 10+"
+    "translation": "Windows 11+"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
@@ -5624,7 +5620,7 @@
   },
   {
     "id": "api.license.request-trial.bad-request.terms-not-accepted",
-    "translation": "Lisans isteğinde bulunmak için Mattermost yazılım değerlendirme sözleşmesi ve kişisel verilerin gizliliği ilkesi metinlerini kabul etmelisiniz."
+    "translation": "Lisans isteğinde bulunmak için Mattermost yazılım değerlendirme sözleşmesi ve kişisel verilerin gizliliği ilkesi içeriklerini kabul etmelisiniz."
   },
   {
     "id": "app.channel.create_initial_sidebar_categories.internal_error",
@@ -6872,7 +6868,7 @@
   },
   {
     "id": "app.user.analytics_get_inactive_users_count.app_error",
-    "translation": "Etkin olmayan kullanıcılar sayılamadı."
+    "translation": "Etkisizleştirilmiş kullanıcılar sayılamadı."
   },
   {
     "id": "app.user.analytics_daily_active_users.app_error",
@@ -7192,7 +7188,7 @@
   },
   {
     "id": "app.export.marshal.app_error",
-    "translation": "Yanıt iletilemedi."
+    "translation": "Yanıt sıraya alınamadı."
   },
   {
     "id": "app.export.export_attachment.zip_create_header.error",
@@ -7264,7 +7260,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_title",
-    "translation": "Masaüstü ve mobil uygulamaları indirin"
+    "translation": "Bilgisayar ve mobil uygulamalarını indirin"
   },
   {
     "id": "api.templates.welcome_body.app_download_button",
@@ -7384,7 +7380,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.mm_apps",
-    "translation": "mobil ve masaüstü uygulamaları"
+    "translation": "mobil ve bilgisayar uygulamaları"
   },
   {
     "id": "api.templates.cloud_welcome_email.invite_sub_info",
@@ -7856,11 +7852,11 @@
   },
   {
     "id": "api.command_channel_purpose.update_channel.max_length",
-    "translation": "Yazılan metin karakter sayısı sınırını aşıyor. Kanal amacı en fazla {{.MaxLength}} karakter uzunluğunda olabilir."
+    "translation": "Yazılmış yazı karakter sayısı sınırını aşıyor. Kanal amacı en fazla {{.MaxLength}} karakter uzunluğunda olabilir."
   },
   {
     "id": "api.command_channel_header.update_channel.max_length",
-    "translation": "Yazılan metin karakter sayısı sınırını aşıyor. Kanal başlığı en fazla {{.MaxLength}} karakter uzunluğunda olabilir."
+    "translation": "Yazılmış yazı karakter sayısı sınırını aşıyor. Kanal başlığı en fazla {{.MaxLength}} karakter uzunluğunda olabilir."
   },
   {
     "id": "app.notification.footer.title",
@@ -7987,7 +7983,7 @@
   },
   {
     "id": "ent.data_retention.run_failed.error",
-    "translation": "Veri saklama görevi yürütülemedi."
+    "translation": "Verileri tutma görevi yürütülemedi."
   },
   {
     "id": "api.templates.license_up_for_renewal_title",
@@ -8047,11 +8043,11 @@
   },
   {
     "id": "app.post.marshal.app_error",
-    "translation": "İleti sıraya sokulamadı."
+    "translation": "İleti sıraya alınamadı."
   },
   {
     "id": "api.unmarshal_error",
-    "translation": "Sıra dağıtılamadı."
+    "translation": "Sıradan çıkarılamadı."
   },
   {
     "id": "app.notification.body.thread_gm.subTitle",
@@ -8127,7 +8123,7 @@
   },
   {
     "id": "api.custom_status.set_custom_statuses.update.app_error",
-    "translation": "Özel durum güncellenemedi. Lütfen bir görsel ifade ve/veya özel durum metni ekleyin."
+    "translation": "Özel durum güncellenemedi. Lütfen bir görsel ifade ve/veya özel durum yazısı ekleyin."
   },
   {
     "id": "api.templates.invite_body.title.reminder",
@@ -8375,11 +8371,11 @@
   },
   {
     "id": "app.cloud.upgrade_plan_bot_message_single",
-    "translation": "{{.WorkspaceName}} çalışma alanının {{.UsersNum}} üyesi şurası için çalışma alanının güncellenmesini istedi: "
+    "translation": "{{.WorkspaceName}} çalışma alanının {{.UsersNum}} üyesi şu çalışma alanının üst tarifeye geçirilmesini istedi: "
   },
   {
     "id": "app.cloud.upgrade_plan_bot_message",
-    "translation": "{{.WorkspaceName}} çalışma alanının {{.UsersNum}} üyesi şurası için çalışma alanının güncellenmesini istedi: "
+    "translation": "{{.WorkspaceName}} çalışma alanının {{.UsersNum}} üyesi şu çalışma alanının üst tarifeye geçirilmesini istedi: "
   },
   {
     "id": "app.cloud.trial_plan_bot_message_single",
@@ -9127,7 +9123,7 @@
   },
   {
     "id": "api.getUsersForReporting.invalid_active_filter",
-    "translation": "Hem etkin hem de etkin olmayan kullanıcılar gizlenemez."
+    "translation": "Hem etkin hem de etkisizleştirilmiş kullanıcılar gizlenemez."
   },
   {
     "id": "api.user.create_user.user_limits.exceeded",
@@ -9479,7 +9475,7 @@
   },
   {
     "id": "app.user.update_active.user_limit.exceeded",
-    "translation": "Kullanıcı etkinleştirilemedi. Sunucu güvenli kullanıcı sayısı sınırını aşıyor. Yöneticiniz ile görüşün: ERROR_SAFETY_LIMITS_EXCEEDED."
+    "translation": "Kullanıcı etkinleştirilemedi. Sunucu güvenli kullanıcı sayısı sınırını aşıyor. ERROR_SAFETY_LIMITS_EXCEEDED."
   },
   {
     "id": "model.channel_bookmark.is_valid.link_file.app_error",
@@ -9671,7 +9667,7 @@
   },
   {
     "id": "app.user.update.lastAdmin.app_error",
-    "translation": "Son sistem yöneticisinin yetkileri alınamaz."
+    "translation": "Son sistem yöneticisinin rolü düşürülemez."
   },
   {
     "id": "plugin_reattach_request.is_valid.manifest.app_error",
@@ -10213,11 +10209,11 @@
   },
   {
     "id": "model.channel.is_valid.banner_info.text.empty.app_error",
-    "translation": "Kanal duyurusu açıldığında kanal duyurusu bilgi metni boş olamaz"
+    "translation": "Kanal duyurusu açıldığında kanal duyurusu bilgi yazısı boş olamaz"
   },
   {
     "id": "model.channel.is_valid.banner_info.text.invalid_length.app_error",
-    "translation": "Kanal duyurusu bilgi metni çok uzun. En fazla {{.maxLength}} karakter uzunluğunda olabilir."
+    "translation": "Kanal duyurusu bilgi yazısı çok uzun. En fazla {{.maxLength}} karakter uzunluğunda olabilir."
   },
   {
     "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
@@ -10406,5 +10402,713 @@
   {
     "id": "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error",
     "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} değeri IndexPrefix {{.IndexPrefix}} değerinin bir ön eki olmalıdır."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_age_invalid",
+    "translation": "Denetim günlükleri için En fazla dosya yaşı değeri eksi olamaz."
+  },
+  {
+    "id": "api.access_control_policy.get_channels.limit.app_error",
+    "translation": "Kanal alma sınırı geçersiz."
+  },
+  {
+    "id": "api.access_control_policy.get_fields.limit.app_error",
+    "translation": "Alan alma sınırı geçersiz."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.rejected",
+    "translation": "Kullanıcının kanala katılmak için gerekli öznitelikleri yok."
+  },
+  {
+    "id": "api.channel.update_channel.not_allowed.app_error",
+    "translation": "İlke ile dayatılan kanallar güncellenemez."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.unset_user_scheme.app_error",
+    "translation": "Kanal üyesi güncellemesi geçersiz: Bir kanal üyesinin her zaman bir kullanıcı şeması vardır."
+  },
+  {
+    "id": "api.command_share.service_inactive",
+    "translation": "Paylaşılan kanallar hizmeti açık ancak etkin değil."
+  },
+  {
+    "id": "api.content_flagging.error.disabled",
+    "translation": "İçerik işaretleme özelliği kapalı."
+  },
+  {
+    "id": "api.content_flagging.error.license",
+    "translation": "Lisansınızda içerik işaretleme özelliği yok."
+  },
+  {
+    "id": "api.ldap.invalid_test_type.app_error",
+    "translation": "Sınama türü geçersiz: {{.TestType}}"
+  },
+  {
+    "id": "api.remote_cluster.import_not_allowed.app_error",
+    "translation": "Uzak kümeden içe aktarıma izin verilmiyor"
+  },
+  {
+    "id": "api.team.invite_guests.policy_enforced_channel.app_error",
+    "translation": "Kullanıcı özniteliklerine dayalı erişim kısıtlamaları bulunduğundan konuk kullanıcıları bu kanala davet edemezsiniz."
+  },
+  {
+    "id": "api.team.update_team_member_roles.unset_user_scheme.app_error",
+    "translation": "Takım üyesi güncellemesi geçersiz: Bir takım üyesinin her zaman bir kullanıcı şeması vardır."
+  },
+  {
+    "id": "api.upload.invalid_type_for_shared_channel.app_error",
+    "translation": "Dosya yüklenemedi. Yükleme kanalı uzak taraf ile paylaşılmıyor."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_hook_error.app_error",
+    "translation": "OnSamlLogin kancasında bir sorun çıktı. Lütfen sistem yöneticiniz ile görüşün."
+  },
+  {
+    "id": "api.user.check_user_password.invalid_hash.app_error",
+    "translation": "Karma parola, biçimi geçersiz olduğundan ayrıştırılamadı."
+  },
+  {
+    "id": "api.user.create_user.license_user_limits.exceeded",
+    "translation": "Kullanıcı oluşturulamadı. Sunucuda lisanslı en fazla kullanıcı sayısı aşıldı. Yöneticiniz ile görüşün: ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
+  },
+  {
+    "id": "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error",
+    "translation": "Erişim denetimi hizmeti kullanılamıyor. ABAC etkin kanal için kullanıcılar süzülemedi."
+  },
+  {
+    "id": "app.access_control.insufficient_permissions",
+    "translation": "Bu erişim denetimi ilkesini yönetme izniniz yok."
+  },
+  {
+    "id": "app.acknowledgement.batch_save.app_error",
+    "translation": "Onay nesneleri grubu kaydedilemedi"
+  },
+  {
+    "id": "app.acknowledgement.delete.missing_post.app_error",
+    "translation": "Eksik iletinin onayı silinemedi"
+  },
+  {
+    "id": "app.acknowledgement.save.missing_post.app_error",
+    "translation": "Eksik iletinin onayı kaydedilemedi"
+  },
+  {
+    "id": "app.channel.get.app_error",
+    "translation": "Kanal alınamadı."
+  },
+  {
+    "id": "app.cloud.preview_modal_bucket_url_not_configured",
+    "translation": "Klasör ön izleme adresi yapılandırılmamış"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_fetch_error",
+    "translation": "Ön izleme açılan penceresi verileri alınamadı"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_parse_error",
+    "translation": "Ön izleme penceresi verileri ayrıştırılamadı"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
+    "translation": "Yönetici tarafından yönetilen bir özel profil özniteliği alanının değeri güncellenemedi"
+  },
+  {
+    "id": "app.group.create_syncable_memberships.error",
+    "translation": "Grup eşitlenebilir üyelikleri oluşturulamadı."
+  },
+  {
+    "id": "app.group.delete_invalid_syncable_memberships.error",
+    "translation": "Geçersiz grup eşitlenebilir üyelikleri silinemedi."
+  },
+  {
+    "id": "app.group.user_not_found",
+    "translation": "Grup güncellenirken sorun çıktı. \"{{.Username}}\" adlı bir kullanıcı bulunamadı."
+  },
+  {
+    "id": "app.import.validate_attachment_import_data.invalid_path.error",
+    "translation": "Ek dosya içe aktarma verileri doğrulanamadı. Yol geçersiz: \"{{.Path}}\""
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.attachment.error",
+    "translation": "Doğrudan ileti ek dosya verileri doğrulanamadı."
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.thread_follower.error",
+    "translation": "Doğrudan ileti konusu izleme verileri doğrulanamadı."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.invalid_image_path.error",
+    "translation": "Duygu ifadesi içe aktarma alanındaki yol geçersiz: \"{{.Path}}\""
+  },
+  {
+    "id": "app.import.validate_post_import_data.attachment.error",
+    "translation": "İleti ek dosyası verileri doğrulanamadı."
+  },
+  {
+    "id": "app.import.validate_post_import_data.thread_follower.error",
+    "translation": "İleti konusu izleme verileri doğrulanamadı."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.attachment.error",
+    "translation": "Yanıt ek dosyası verileri doğrulanamadı."
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.empty.error",
+    "translation": "İçe aktarılan izleme verileri boş."
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.user_missing.error",
+    "translation": "Zorunlu izleme özelliği eksik: user."
+  },
+  {
+    "id": "app.import.validate_user_import_data.invalid_image_path.error",
+    "translation": "Kullanıcı profili görseli yolu geçersiz: \"{{.Path}}\""
+  },
+  {
+    "id": "app.lookup_interactive_dialog.decode_json_error",
+    "translation": "Etkileşimli pencere aramasından gelen JSON yanıtının kodu çözülürken bir sorun çıktı."
+  },
+  {
+    "id": "app.lookup_interactive_dialog.json_error",
+    "translation": "Etkileşimli pencere aramasından gelen JSON yanıtı işlenirken bir sorun çıktı."
+  },
+  {
+    "id": "app.lookup_interactive_dialog.read_body_error",
+    "translation": "Etkileşimli pencere aramasındaki yanıt içeriği okunurken bir sorun çıktı."
+  },
+  {
+    "id": "app.pap.access_control.channel_group_constrained",
+    "translation": "Kanalda grup kısıtlaması olduğundan erişim denetim ilkeleri uygulanamaz."
+  },
+  {
+    "id": "app.pap.access_control.channel_not_private",
+    "translation": "Erişim denetimi ilkeleri yalnızca özel kanallara uygulanabilir."
+  },
+  {
+    "id": "app.pap.access_control.channel_shared",
+    "translation": "Paylaşılan kanallara erişim denetim ilkesi uygulanamaz."
+  },
+  {
+    "id": "app.pap.access_control.insufficient_channel_permissions",
+    "translation": "Bu kanalın erişim denetimini yönetme izniniz yok."
+  },
+  {
+    "id": "app.pap.access_control.insufficient_permissions",
+    "translation": "Bu erişim denetimi ilkesini yönetme izniniz yok."
+  },
+  {
+    "id": "app.pap.assign_access_control_policy_to_channels.app_error",
+    "translation": "Kanallara erişim denetimi ilkesi atanamadı."
+  },
+  {
+    "id": "app.pap.check_expression.app_error",
+    "translation": "İfade denetlenemedi."
+  },
+  {
+    "id": "app.pap.create_access_control_policy.app_error",
+    "translation": "Erişim denetimi ilkesi oluşturulamadı."
+  },
+  {
+    "id": "app.pap.delete_access_control_policy.app_error",
+    "translation": "Erişim denetimi ilkesi silinemedi."
+  },
+  {
+    "id": "app.pap.delete_policy.app_error",
+    "translation": "Erişim denetimi ilkesi silinemedi."
+  },
+  {
+    "id": "app.pap.expression_to_visual_ast.app_error",
+    "translation": "İfadeden görsel AST oluşturulamadı."
+  },
+  {
+    "id": "app.pap.get_access_control_auto_complete.app_error",
+    "translation": "Erişim denetimi otomatik olarak tamamlanamadı."
+  },
+  {
+    "id": "app.pap.get_all_access_control_policies.app_error",
+    "translation": "Erişim denetimi ilkeleri alınamadı."
+  },
+  {
+    "id": "app.pap.get_channel_access_control_attributes.app_error",
+    "translation": "Kanalın öznitelikleri alınamadı."
+  },
+  {
+    "id": "app.pap.get_channel_members_to_remove.app_error",
+    "translation": "Kanal üyelerinin kaldırılması sağlanamadı."
+  },
+  {
+    "id": "app.pap.get_policy.app_error",
+    "translation": "Erişim denetimi ilkesi alınamadı."
+  },
+  {
+    "id": "app.pap.get_policy_attributes.app_error",
+    "translation": "İlkenin öznitelikleri alınamadı."
+  },
+  {
+    "id": "app.pap.init.app_error",
+    "translation": "Erişim denetimi hizmeti hazırlanamadı."
+  },
+  {
+    "id": "app.pap.is_ready.app_error",
+    "translation": "Erişim denetimi hizmeti hazır değil."
+  },
+  {
+    "id": "app.pap.missing_attribute.app_error",
+    "translation": "İfadede bir öznitelik eksik."
+  },
+  {
+    "id": "app.pap.normalize_policy.app_error",
+    "translation": "İlke ifadesi normalleştirilemedi."
+  },
+  {
+    "id": "app.pap.query_expression.app_error",
+    "translation": "İfade için sorgulama yapılamadı."
+  },
+  {
+    "id": "app.pap.save_policy.app_error",
+    "translation": "Erişim denetimi ilkesi kaydetilemedi."
+  },
+  {
+    "id": "app.pap.search_access_control_policies.app_error",
+    "translation": "Erişim denetimi ilkeleri aranamadı."
+  },
+  {
+    "id": "app.pap.unassign_access_control_policy_from_channels.app_error",
+    "translation": "Kanallardan erişim denetimi ilkesi ataması kaldırılamadı."
+  },
+  {
+    "id": "app.pap.update_access_control_policy_active.app_error",
+    "translation": "Erişim denetimi ilkesinin etkin durumu değiştirilemedi."
+  },
+  {
+    "id": "app.pdp.access_evaluation.app_error",
+    "translation": "Erişim denetimi ilkesi değerlendirilemedi."
+  },
+  {
+    "id": "app.user.check_user_password.failed_migration",
+    "translation": "Kullanıcının parolası en yeni karma yöntemine geçirilemedi."
+  },
+  {
+    "id": "app.user.check_user_password.failed_update",
+    "translation": "Kullanıcının parolası güncellenemedi."
+  },
+  {
+    "id": "app.user.update_active.license_user_limit.exceeded",
+    "translation": "Kullanıcı etkinleştirilemedi. Sunucuda olabilecek en fazla lisanslı kullanıcı sayısı aşıldı. ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
+  },
+  {
+    "id": "ent.access_control.job_data_conversion.app_error",
+    "translation": "Önceki görevden veriler ayıklanamadı."
+  },
+  {
+    "id": "ent.access_control.sync_job.app_error",
+    "translation": "Erişim denetimi eşitleme görevi çalıştırılamadı."
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.bulk_processor_create_failed",
+    "translation": "Elasticsearch toplu işlemi oluşturulamadı"
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.sync_bulk_processor_create_failed",
+    "translation": "Elasticsearch toplu eşitleme işlemi oluşturulamadı"
+  },
+  {
+    "id": "ent.ldap.connection.test_failed",
+    "translation": "LDAP bağlantı sınaması başarısız oldu. Sunucu: {{.Server}}:{{.Port}}, Bağlantı güvenliği: {{.ConnectionType}}, Birincil anahtar dosyası adı: {{.PrivateKeyFilename}}, Herkese açık sertifika dosyası adı: {{.PublicCertFilename}}, Bing kullanıcı adı: {{.BindUsername}}. Hata: {{.Error}}"
+  },
+  {
+    "id": "model.access_policy.inherit.already_imported.app_error",
+    "translation": "Üst öge zaten içe aktarılmış."
+  },
+  {
+    "id": "model.access_policy.inherit.version.app_error",
+    "translation": "Erişim denetimi ilkesi devralınamadı."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.channel_id.app_error",
+    "translation": "Kanal kimliği geçersiz."
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.invalid.app_error",
+    "translation": "Kanal bildirimi rengi geçerli bir onaltılık renk değeri olmalıdır (#FF0000 veya #F00 gibi)"
+  },
+  {
+    "id": "model.config.is_valid.client_side_cert_enable.app_error",
+    "translation": "Sertifika temelli kimlik doğrulaması kaldırıldı. İlerlemek için lütfen ClientSideCertEnable özelliğini kapalı bırakın."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.common_reviewers_not_set.app_error",
+    "translation": "\"Tüm takımlar için aynı değerlendiriciler\" seçeneği açıldığında, ortak değerlendiriciler veya ek değerlendiriciler ayarlanmalıdır."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.reasons_not_set.app_error",
+    "translation": "İşaretleme nedenleri boş olamaz."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.team_reviewers_not_set.app_error",
+    "translation": "Bir takım için \"Açık\" olarak ayarlanırken takım değerlendiricileri veya ek değerlendiriciler ayarlanmalıdır."
+  },
+  {
+    "id": "model.config.is_valid.directory_whitespace.app_error",
+    "translation": "{{.Setting}} için başta veya sonda boşluk algılandı. \"{{.Value}}\" bulundu."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid",
+    "translation": "Denetim günlüğü yapılandırmasında en fazla dosya yedeği sayısı negatif olmamalıdır."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_queue_size_invalid",
+    "translation": "Denetim günlüğü yapılandırmasında en fazla dosya kuyruğu sayısı sıfırdan büyük olmalıdır."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_size_invalid",
+    "translation": "Denetim günlüğü yapılandırmasında en büyük dosya boyutu sıfırdan büyük olmalıdır."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_empty",
+    "translation": "Denetim dosyası günlüğü etkinleştirildiğinde, bir dosya adı belirtilmelidir."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_is_directory",
+    "translation": "Dosya adı bir klasör olmamalıdır."
+  },
+  {
+    "id": "model.config.is_valid.experimental_view_archived_channels.app_error",
+    "translation": "Arşivlenmiş kanalların gizlenmesi artık desteklenmiyor. Bunun yerine bu kanalları özel yapın ve üyelerini kaldırın."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.invalid_event",
+    "translation": "Belirtilen işaretleme olayı geçersiz."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.invalid_target",
+    "translation": "Belirtilen işaretleme olayı hedefi geçersiz."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled",
+    "translation": "Değerlendiriciler için yeni işaretlenmiş iletilerin bildirimleri kapatılamaz."
+  },
+  {
+    "id": "app.job.get_existing_jobs.error",
+    "translation": "Var olan görevler alınamadı."
+  },
+  {
+    "id": "app.submit_interactive_dialog.invalid_response",
+    "translation": "Etkileşimli pencere gönderiminde geçersiz bir yanıtla karşılaşıldı."
+  },
+  {
+    "id": "api.channel.patch_update_channel.restricted_dm.app_error",
+    "translation": "Kısıtlanmış bir doğrudan ileti kanalı güncellenemez."
+  },
+  {
+    "id": "api.command.execute_command.restricted_dm.error",
+    "translation": "Kısıtlanmış bir doğrudan iletiye gönderim yapılamaz"
+  },
+  {
+    "id": "api.content_flagging.error.comment_required",
+    "translation": "Lütfen bu iletiyi neden işaretlediğinizi açıklayın."
+  },
+  {
+    "id": "api.content_flagging.error.comment_too_long",
+    "translation": "İletiyi işaretleme nedeni {{.MaxLength}} karakterden uzun olamaz."
+  },
+  {
+    "id": "api.content_flagging.error.not_available_on_team",
+    "translation": "Bu takımda içerik işaretleme özelliği açılmamış."
+  },
+  {
+    "id": "api.content_flagging.error.post_not_in_progress",
+    "translation": "İşaretlenmiş iletinin tutulması ya da silinmesi için beklemede veya atanmış olması gerekir."
+  },
+  {
+    "id": "api.content_flagging.error.reason_invalid",
+    "translation": "İleti işaretlemesi için bilinmeyen bir neden belirtilmiş."
+  },
+  {
+    "id": "api.content_flagging.error.reason_required",
+    "translation": "Lütfen bu iletinin işaretlenme nedenini seçin."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
+    "translation": "Kısıtlanmış doğrudan ileti kanalına taslak kaydedilemez"
+  },
+  {
+    "id": "api.file.upload_file.get_channel.app_error",
+    "translation": "Kısıtlanmış doğrudan iletiye dosya yüklenemez"
+  },
+  {
+    "id": "api.file.upload_file.restricted_dm.error",
+    "translation": "Kısıtlanmış doğrudan iletiye dosya yüklenemez"
+  },
+  {
+    "id": "api.post.create_post.can_not_post_in_restricted_dm.error",
+    "translation": "Kısıtlanmış doğrudan ileti kanalına gönderim yapılamaz."
+  },
+  {
+    "id": "api.post.delete_post.can_not_delete_from_restricted_dm.error",
+    "translation": "Kısıtlanmış bir doğrudan ileti kanalındaki bir ileti silinemez."
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "Kısıtlanmış doğrudan ileti kanalındaki ileti güncellenemez."
+  },
+  {
+    "id": "api.post.update_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "Kısıtlanmış doğrudan ileti kanalındaki ileti güncellenemez."
+  },
+  {
+    "id": "api.reaction.delete.restricted_dm.error",
+    "translation": "Kısıtlanmış doğrudan iletiye tepki verilemez"
+  },
+  {
+    "id": "api.reaction.save.restricted_dm.error",
+    "translation": "Kısıtlanmış doğrudan iletiye tepki verilemez"
+  },
+  {
+    "id": "app.channel.get_common_teams.app_error",
+    "translation": "Kanalın ortak takımları alınırken sorun çıktı"
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.in_progress",
+    "translation": "Bu ileti zaten işaretlenmiş olduğundan işaretlenemez."
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.removed",
+    "translation": "Bu ileti önceki bir işaretleme isteğinde silindiği için işaretlenemez."
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.retained",
+    "translation": "Bu ileti önceki bir işaretleme isteğinde tutulduğu için işaretlenemez."
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.unknown",
+    "translation": "Bu iletinin durumu bilinmediğinden işaretlenemez."
+  },
+  {
+    "id": "app.content_flagging.create_property_values.app_error",
+    "translation": "İşaretlenmiş iletinin özellik değerleri kaydedilemiyor."
+  },
+  {
+    "id": "app.content_flagging.flag_post.marshal_comment.app_error",
+    "translation": "Kullanıcı yorumunun işaretlenmesi sıraya alınamadı"
+  },
+  {
+    "id": "app.content_flagging.flag_post.marshal_reason.app_error",
+    "translation": "Kullanıcının işaretleme nedeni sıraya alınamadı"
+  },
+  {
+    "id": "app.content_flagging.flag_post_confirmation.message",
+    "translation": "{{.username}} iletisi incelenmek üzere işaretlenmiş. Bir içerik değerlendirici tarafından değerlendirildiğinde size bildirilecek. "
+  },
+  {
+    "id": "app.content_flagging.get_group.error",
+    "translation": "İçerik işaretleme botu alınamadı."
+  },
+  {
+    "id": "app.content_flagging.get_status_property.app_error",
+    "translation": "Durum özellik alanı alınamadı."
+  },
+  {
+    "id": "app.content_flagging.get_users_in_team.app_error",
+    "translation": "Takımın değerlendiricileri aranamadı."
+  },
+  {
+    "id": "app.content_flagging.keep_flag_post.marshal_comment.app_error",
+    "translation": "Değerlendiricinin yorumu sıraya alınamadı"
+  },
+  {
+    "id": "app.content_flagging.marshal_property_values.app_error",
+    "translation": "WebSocket olayında gönderilecek içerik işaretleme özelliği değerleri sıraya alınamadı."
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.marshal_comment.app_error",
+    "translation": "Değerlendiricinin yorumu sıraya alınamadı"
+  },
+  {
+    "id": "app.content_flagging.keep_post.status_update.app_error",
+    "translation": "İşaretlenmiş ileti geri alınırken işaretlenmiş ileti durumu güncellenemedi "
+  },
+  {
+    "id": "app.content_flagging.keep_post.undelete.app_error",
+    "translation": "İşaretlenmiş ileti ve ilişkili verileri silinmekten geri alınırken veri tabanındaki ileti güncellenemedi."
+  },
+  {
+    "id": "app.content_flagging.no_status_property.app_error",
+    "translation": "İleti işaretlenmediği için işaretlenmiş ileti alınamadı."
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.app_error",
+    "translation": "İşaretlenmiş ileti kalıcı olarak silinirken temizlenen iletinin üzerine yazılamadı."
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.update_property_value.app_error",
+    "translation": "İşaretlenmiş ileti kalıcı olarak silinirken işaretlenmiş ileti durumu güncellenemedi."
+  },
+  {
+    "id": "app.content_flagging.search_property_fields.app_error",
+    "translation": "İçerik işaretleme özellik alanlarında arama yapılamadı."
+  },
+  {
+    "id": "app.content_flagging.search_property_values.app_error",
+    "translation": "İletinin içerik işaretleme özelliği değerleri veri tabanından alınamadı."
+  },
+  {
+    "id": "app.content_flagging.search_status_property.app_error",
+    "translation": "İşaretlenmiş iletinin özellik değerlerinde arama yapılamadı."
+  },
+  {
+    "id": "app.post_priority.delete_for_post.app_error",
+    "translation": "İletinin veri tabanındaki ileti önceliği verileri kalıcı olarak silinemedi."
+  },
+  {
+    "id": "app.save_scheduled_post.restricted_dm.error",
+    "translation": "Kısıtlanmış bir doğrudan iletide ileti zamanlanamaz"
+  },
+  {
+    "id": "app.system.content_review_bot.bot_displayname",
+    "translation": "İçerik değerlendirme"
+  },
+  {
+    "id": "app.upload.create.cannot_upload_to_restricted_dm.error",
+    "translation": "Kısıtlanmış bir doğrudan iletiye dosya yüklenemez."
+  },
+  {
+    "id": "api.encoding_error",
+    "translation": "API yanıtının JSON kodlamasında bir sorunla karşılaşıldı"
+  },
+  {
+    "id": "app.content_flagging.get_reviewer_settings.app_error",
+    "translation": "İçerik değerlendirici ayarları veri tabanından alınamadı"
+  },
+  {
+    "id": "app.content_flagging.save_reviewer_settings.app_error",
+    "translation": "İçerik değerlendirici ayarları veri tabanına kaydedilemedi."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.libretranslate.url.app_error",
+    "translation": "LibreTranslate adresi geçerli bir adres olmalı ve http:// ya da https:// ile başlamalıdır."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.provider.app_error",
+    "translation": "Otomatik çeviri hizmeti sağlayıcı geçersiz. Boş olmamalı."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.provider.unsupported.app_error",
+    "translation": "Otomatik çeviri hizmeti sağlayıcı desteklenmiyor."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.fetch.app_error",
+    "translation": "Otomatik çeviri ayarları için alma zaman aşımı değeri geçersiz. Pozitif bir sayı olmalıdır."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.new_post.app_error",
+    "translation": "Otomatik çeviri ayarları için yeni gönderi zaman aşımı değeri geçersiz. Pozitif bir sayı olmalıdır."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
+    "translation": "Otomatik çeviri ayarları için bildirim zaman aşımı değeri geçersiz. Pozitif bir sayı olmalıdır."
+  },
+  {
+    "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
+    "translation": "Kanal kimliği, işaretlenmiş iletinin kanal kimliğiyle eşleşmiyor."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations_for_channel.restricted_permission.app_error",
+    "translation": "Takım veya sistem izin şeması tarafından kısıtlanmış bir izin eklenemez."
+  },
+  {
+    "id": "api.content_flagging.error.user_not_reviewer",
+    "translation": "Kullanıcı bir içerik değerlendirici değil."
+  },
+  {
+    "id": "api.team.get_team.flagged_post_mismatch.app_error",
+    "translation": "Takım kimliği, işaretlenmiş iletinin takım kimliği ile eşleşmiyor."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.no_reviewer_field.app_error",
+    "translation": "İçerik değerlendirici kimliği özelliği alanı bulunamadı."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.update_status_property_value.app_error",
+    "translation": "İçerik değerlendirici ayarlandığında Durum özelliğinin değeri güncellenemedi."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.upsert_property_value.app_error",
+    "translation": "İşaretlenmiş iletinin içerik değerlendiricisi ayarlanamadı."
+  },
+  {
+    "id": "app.content_flagging.missing_flagged_post_id_field.app_error",
+    "translation": "İşaretlenmiş ileti kimliği özelliği alanı bulunamadı."
+  },
+  {
+    "id": "app.content_flagging.missing_reporting_user_id_field.app_error",
+    "translation": "Şikayet edilen kullanıcı alanı bulunamadı."
+  },
+  {
+    "id": "app.content_flagging.missing_reporting_user_id_property_value.app_error",
+    "translation": "Şikayet edilen kullanıcı alanının değeri bulunamadı."
+  },
+  {
+    "id": "app.content_flagging.search_common_reviewers.app_error",
+    "translation": "İfade genel içerik değerlendiricilerinde aranamadı."
+  },
+  {
+    "id": "app.content_flagging.search_reviewer_posts.app_error",
+    "translation": "İşlaretlenmiş iletinin içerik değerlendiricisi iletileri aranamadı."
+  },
+  {
+    "id": "app.content_flagging.search_sysadmin_reviewers.app_error",
+    "translation": "Arama ifadesi sistem yöneticisi içerik değerlendiricileri içinde aranamadı."
+  },
+  {
+    "id": "app.content_flagging.search_team_admin_reviewers.app_error",
+    "translation": "Arama ifadesi takım yöneticisi içerik değerlendirilerinde aranamadı."
+  },
+  {
+    "id": "app.content_flagging.search_team_reviewers.app_error",
+    "translation": "Arama ifadesi takım içerik denetleyicilerinde aranamadı."
+  },
+  {
+    "id": "api.user.delete_channel.not_enabled.for_admin.app_error",
+    "translation": "Kalıcı kanal silme özelliği açılmamış. Bu komutu kullanabilmek için ServiceSettings.EnableAPIChannelDeletion seçeneği true olarak ayarlanmalıdır. Ayrıntılı bilgi almak için https://mattermost.com/pl/environment-configuration-settings adresine bakın."
+  },
+  {
+    "id": "api.user.delete_team.not_enabled.for_admin.app_error",
+    "translation": "Kalıcı takım silme özelliği açılmamış. Bu komutu kullanabilmek için ServiceSettings.EnableAPITeamDeletion seçeneği true olarak ayarlanmalıdır. Ayrıntılı bilgi almak için https://mattermost.com/pl/environment-configuration-settings adresine bakın."
+  },
+  {
+    "id": "api.user.delete_user.not_enabled.for_admin.app_error",
+    "translation": "Kalıcı kullanıcı silme özelliği açılmamış. Bu komutu kullanabilmek için ServiceSettings.EnableAPIUserDeletion seçeneği true olarak ayarlanmalıdır. Ayrıntılı bilgi almak için https://mattermost.com/pl/environment-configuration-settings adresine bakın."
+  },
+  {
+    "id": "app.agents.get_agents.app_error",
+    "translation": "Aracılar alınamadı."
+  },
+  {
+    "id": "app.agents.get_agents.bridge_call_failed",
+    "translation": "Köprü çağrısı yapılamadı."
+  },
+  {
+    "id": "app.agents.get_services.app_error",
+    "translation": "LLM hizmetleri alınamadı."
+  },
+  {
+    "id": "app.agents.get_services.bridge_call_failed",
+    "translation": "Köprü çağrısı yapılamadı."
+  },
+  {
+    "id": "app.content_flagging.get_thread_replies.app_error",
+    "translation": "İşaretlenmiş iletinin konu yanıtları alınamadı."
+  },
+  {
+    "id": "app.content_flagging.missing_manage_by_field.app_error",
+    "translation": "Yöneten özelliği alanı bulunamadı."
+  },
+  {
+    "id": "app.content_flagging.missing_status_field.app_error",
+    "translation": "Durum özellik alanı bulunamadı."
+  },
+  {
+    "id": "app.content_flagging.set_thread_replies_properties.app_error",
+    "translation": "İşaretlenmiş ileti için konu yanıtlarında özellik değerleri ayarlanamadı."
   }
 ]

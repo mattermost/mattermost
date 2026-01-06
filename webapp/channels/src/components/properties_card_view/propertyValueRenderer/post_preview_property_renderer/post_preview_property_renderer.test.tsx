@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {act, waitFor} from '@testing-library/react';
 import React from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -8,19 +9,26 @@ import type {Post} from '@mattermost/types/posts';
 import type {PropertyValue} from '@mattermost/types/properties';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
+import type {DeepPartial} from '@mattermost/types/utilities';
+
+import {Client4} from 'mattermost-redux/client';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
+import type {GlobalState} from 'types/store';
+
 import PostPreviewPropertyRenderer from './post_preview_property_renderer';
 
-jest.mock('components/common/hooks/usePost');
 jest.mock('components/common/hooks/useChannel');
 jest.mock('components/common/hooks/use_team');
+jest.mock('components/common/hooks/usePost');
+jest.mock('mattermost-redux/client');
 
-const mockUsePost = require('components/common/hooks/usePost').usePost as jest.MockedFunction<any>;
 const mockUseChannel = require('components/common/hooks/useChannel').useChannel as jest.MockedFunction<any>;
 const mockUseTeam = require('components/common/hooks/use_team').useTeam as jest.MockedFunction<any>;
+const mockedUsePost = require('components/common/hooks/usePost').usePost as jest.MockedFunction<any>;
+const mockedClient4 = jest.mocked(Client4);
 
 describe('PostPreviewPropertyRenderer', () => {
     const mockUser: UserProfile = {
@@ -59,20 +67,19 @@ describe('PostPreviewPropertyRenderer', () => {
         value: {
             value: 'post-id-123',
         } as PropertyValue<string>,
+        metadata: {
+            fetchDeletedPost: true,
+            getPost: (postId: string) => Client4.getFlaggedPost(postId),
+        },
     };
 
-    const baseState = {
+    const baseState: DeepPartial<GlobalState> = {
         entities: {
             users: {
                 profiles: {
                     [mockUser.id]: mockUser,
                 },
                 currentUserId: mockUser.id,
-            },
-            posts: {
-                posts: {
-                    [mockPost.id]: mockPost,
-                },
             },
             channels: {
                 channels: {
@@ -90,15 +97,16 @@ describe('PostPreviewPropertyRenderer', () => {
             preferences: {
                 myPreferences: {},
             },
+            posts: {posts: {}},
         },
     };
 
     beforeEach(() => {
-        jest.clearAllMocks();
+        mockedUsePost.mockReturnValue(null);
+        mockedClient4.getFlaggedPost.mockResolvedValue(mockPost);
     });
 
-    it('should render PostMessagePreview when all data is available', () => {
-        mockUsePost.mockReturnValue(mockPost);
+    it('should render PostMessagePreview when all data is available', async () => {
         mockUseChannel.mockReturnValue(mockChannel);
         mockUseTeam.mockReturnValue(mockTeam);
 
@@ -107,26 +115,29 @@ describe('PostPreviewPropertyRenderer', () => {
             baseState,
         );
 
-        expect(getByTestId('post-preview-property')).toBeVisible();
+        await waitFor(() => {
+            expect(getByTestId('post-preview-property')).toBeVisible();
+        });
+
         expect(getByText('Test post message')).toBeVisible();
         expect(getByText('Originally posted in ~Test Channel')).toBeVisible();
     });
 
-    it('should return null when post is not found', () => {
-        mockUsePost.mockReturnValue(null);
+    it('should return null when post is not found', async () => {
         mockUseChannel.mockReturnValue(mockChannel);
         mockUseTeam.mockReturnValue(mockTeam);
+        mockedClient4.getFlaggedPost.mockRejectedValue({message: 'Post not found'});
 
         const {container} = renderWithContext(
             <PostPreviewPropertyRenderer {...defaultProps}/>,
             baseState,
         );
+        await act(async () => {});
 
         expect(container.firstChild).toBeNull();
     });
 
-    it('should return null when channel is not found', () => {
-        mockUsePost.mockReturnValue(mockPost);
+    it('should return null when channel is not found', async () => {
         mockUseChannel.mockReturnValue(null);
         mockUseTeam.mockReturnValue(mockTeam);
 
@@ -135,11 +146,11 @@ describe('PostPreviewPropertyRenderer', () => {
             baseState,
         );
 
+        await act(async () => {});
         expect(container.firstChild).toBeNull();
     });
 
-    it('should return null when team is not found', () => {
-        mockUsePost.mockReturnValue(mockPost);
+    it('should return null when team is not found', async () => {
         mockUseChannel.mockReturnValue(mockChannel);
         mockUseTeam.mockReturnValue(null);
 
@@ -148,16 +159,16 @@ describe('PostPreviewPropertyRenderer', () => {
             baseState,
         );
 
+        await act(async () => {});
         expect(container.firstChild).toBeNull();
     });
 
-    it('should handle private channel', () => {
+    it('should handle private channel', async () => {
         const privateChannel = {
             ...mockChannel,
             type: 'P' as const,
         };
 
-        mockUsePost.mockReturnValue(mockPost);
         mockUseChannel.mockReturnValue(privateChannel);
         mockUseTeam.mockReturnValue(mockTeam);
 
@@ -166,12 +177,13 @@ describe('PostPreviewPropertyRenderer', () => {
             baseState,
         );
 
+        await act(async () => {});
         expect(getByTestId('post-preview-property')).toBeVisible();
         expect(getByText('Test post message')).toBeVisible();
         expect(getByText('Originally posted in ~Test Channel')).toBeVisible();
     });
 
-    it('should handle missing display names gracefully', () => {
+    it('should handle missing display names gracefully', async () => {
         const channelWithoutDisplayName = {
             ...mockChannel,
             display_name: '',
@@ -182,7 +194,6 @@ describe('PostPreviewPropertyRenderer', () => {
             name: '',
         };
 
-        mockUsePost.mockReturnValue(mockPost);
         mockUseChannel.mockReturnValue(channelWithoutDisplayName);
         mockUseTeam.mockReturnValue(teamWithoutName);
 
@@ -191,12 +202,13 @@ describe('PostPreviewPropertyRenderer', () => {
             baseState,
         );
 
+        await act(async () => {});
         expect(getByTestId('post-preview-property')).toBeVisible();
         expect(getByText('Test post message')).toBeVisible();
         expect(getByText('Originally posted in ~')).toBeVisible();
     });
 
-    it('should handle post with file attachments', () => {
+    it('should handle post with file attachments', async () => {
         const postWithAttachments = {
             ...mockPost,
             message: 'Post with file attachment',
@@ -212,63 +224,31 @@ describe('PostPreviewPropertyRenderer', () => {
                     },
                     {
                         id: 'file-id-2',
-                        name: 'image.jpg',
-                        extension: 'jpg',
+                        name: 'file.txt',
+                        extension: 'txt',
                         size: 512000,
-                        mime_type: 'image/jpeg',
+                        mime_type: 'text/plain;charset=UTF-8',
                     },
                 ],
             },
-        };
+        } as Post;
 
-        const stateWithFiles = {
-            ...baseState,
-            entities: {
-                ...baseState.entities,
-                posts: {
-                    posts: {
-                        [postWithAttachments.id]: postWithAttachments,
-                    },
-                },
-                files: {
-                    fileIdsByPostId: {
-                        [postWithAttachments.id]: ['file-id-1', 'file-id-2'],
-                    },
-                    files: {
-                        'file-id-1': {
-                            id: 'file-id-1',
-                            name: 'document.pdf',
-                            extension: 'pdf',
-                            size: 1024000,
-                            mime_type: 'application/pdf',
-                        },
-                        'file-id-2': {
-                            id: 'file-id-2',
-                            name: 'image.jpg',
-                            extension: 'jpg',
-                            size: 512000,
-                            mime_type: 'image/jpeg',
-                        },
-                    },
-                },
-            },
-        };
-
-        mockUsePost.mockReturnValue(postWithAttachments);
+        mockedClient4.getFlaggedPost.mockResolvedValue(postWithAttachments);
         mockUseChannel.mockReturnValue(mockChannel);
         mockUseTeam.mockReturnValue(mockTeam);
 
         const {getByTestId, getByText} = renderWithContext(
             <PostPreviewPropertyRenderer {...defaultProps}/>,
-            stateWithFiles,
+            baseState,
         );
 
+        await act(async () => {});
         expect(getByTestId('post-preview-property')).toBeVisible();
         expect(getByText('Post with file attachment')).toBeVisible();
         expect(getByText('Originally posted in ~Test Channel')).toBeVisible();
 
         // Assert that file attachments are visible
         expect(getByText('document.pdf')).toBeVisible();
-        expect(getByText('image.jpg')).toBeVisible();
+        expect(getByText('file.txt')).toBeVisible();
     });
 });

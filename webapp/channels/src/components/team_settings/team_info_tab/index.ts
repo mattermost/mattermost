@@ -21,6 +21,7 @@ export type OwnProps = {
     hasChangeTabError: boolean;
     setHasChanges: (hasChanges: boolean) => void;
     setHasChangeTabError: (hasChangesError: boolean) => void;
+    setJustSaved: (justSaved: boolean) => void;
     closeModal: () => void;
     collapseModal: () => void;
 };

@@ -3,8 +3,6 @@
 
 import React from 'react';
 
-import type {Channel} from '@mattermost/types/channels';
-
 import Permissions from 'mattermost-redux/constants/permissions';
 
 import {removeDraft, updateDraft} from 'actions/views/drafts';
@@ -13,7 +11,7 @@ import type {FileUpload} from 'components/file_upload/file_upload';
 import type Textbox from 'components/textbox/textbox';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import {renderWithContext, userEvent, screen, act} from 'tests/react_testing_utils';
+import {renderWithContext, userEvent, screen} from 'tests/react_testing_utils';
 import Constants, {Locations, StoragePrefixes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -26,6 +24,22 @@ jest.mock('actions/views/drafts', () => ({
     ...jest.requireActual('actions/views/drafts'),
     updateDraft: jest.fn((...args) => ({type: 'MOCK_UPDATE_DRAFT', args})),
     removeDraft: jest.fn((...args) => ({type: 'MOCK_REMOVE_DRAFT', args})),
+}));
+
+jest.mock('utils/exec_commands.ts', () => ({
+    focusAndInsertText: (element: HTMLElement, text: string) => {
+        element.focus();
+
+        if ('value' in element && 'selectionStart' in element) {
+            const textbox = element as HTMLTextAreaElement;
+            const textBefore = textbox.value.substring(0, textbox.selectionStart);
+            const textAfter = textbox.value.substring(textbox.selectionEnd);
+            textbox.value = textBefore + text + textAfter;
+
+            textbox.selectionStart = textBefore.length + text.length;
+            textbox.selectionEnd = textbox.selectionStart;
+        }
+    },
 }));
 
 const mockedRemoveDraft = jest.mocked(removeDraft);
@@ -128,7 +142,6 @@ const baseProps = {
     message: '',
     showEmojiPicker: false,
     uploadsProgressPercent: {},
-    currentChannel: initialState.entities.channels.channels.current_channel_id as Channel,
     channelId,
     rootId: '',
     errorClass: null,
@@ -179,7 +192,6 @@ const baseProps = {
     loadPrevMessage: jest.fn(),
     loadNextMessage: jest.fn(),
     replyToLastPost: jest.fn(),
-    caretPosition: 0,
 };
 
 describe('components/avanced_text_editor/advanced_text_editor', () => {
@@ -201,9 +213,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             );
             const textbox = screen.getByTestId('post_textbox');
 
-            await act(async () => {
-                userEvent.type(textbox, 'something{esc}');
-            });
+            await userEvent.type(textbox, 'something{escape}');
 
             expect(textbox).not.toHaveFocus();
             expect(mockedUpdateDraft).not.toHaveBeenCalled();
@@ -230,15 +240,15 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 }),
             );
             const textbox = screen.getByTestId('edit_textbox');
-            await act(async () => {
-                userEvent.type(textbox, 'something{esc}');
-            });
+            await userEvent.type(textbox, 'something{escape}', {advanceTimers: jest.advanceTimersByTime});
             expect(textbox).not.toHaveFocus();
 
             // save is called with a short delayed after pressing escape key
             jest.advanceTimersByTime(Constants.SAVE_DRAFT_TIMEOUT + 50);
             expect(mockedRemoveDraft).toHaveBeenCalled();
             expect(mockedUpdateDraft).not.toHaveBeenCalled();
+
+            jest.useRealTimers();
         });
     });
 
@@ -267,14 +277,13 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
         expect(screen.getByPlaceholderText('Write to Test Channel')).toHaveValue('original draft');
 
-        await act(async () => {
-            rerender(
-                <AdvancedTextEditor
-                    {...baseProps}
-                    channelId={otherChannelId}
-                />,
-            );
-        });
+        rerender(
+            <AdvancedTextEditor
+                {...baseProps}
+                channelId={otherChannelId}
+            />,
+        );
+
         expect(screen.getByPlaceholderText('Write to Other Channel')).toHaveValue('a different draft');
     });
 
@@ -286,20 +295,16 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             initialState,
         );
 
-        await act(async () => {
-            userEvent.type(screen.getByPlaceholderText('Write to Test Channel'), 'some text');
-        });
+        await userEvent.type(screen.getByPlaceholderText('Write to Test Channel'), 'some text');
 
         expect(mockedUpdateDraft).not.toHaveBeenCalled();
 
-        await act(async () => {
-            rerender(
-                <AdvancedTextEditor
-                    {...baseProps}
-                    channelId={otherChannelId}
-                />,
-            );
-        });
+        rerender(
+            <AdvancedTextEditor
+                {...baseProps}
+                channelId={otherChannelId}
+            />,
+        );
 
         expect(mockedUpdateDraft).toHaveBeenCalled();
         expect(mockedUpdateDraft.mock.calls[0][1]).toMatchObject({
@@ -328,14 +333,12 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
         expect(mockedUpdateDraft).not.toHaveBeenCalled();
 
-        await act(async () => {
-            rerender(
-                <AdvancedTextEditor
-                    {...baseProps}
-                    channelId={otherChannelId}
-                />,
-            );
-        });
+        rerender(
+            <AdvancedTextEditor
+                {...baseProps}
+                channelId={otherChannelId}
+            />,
+        );
 
         expect(mockedUpdateDraft).not.toHaveBeenCalled();
     });
@@ -358,20 +361,16 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             }),
         );
 
-        await act(async () => {
-            userEvent.type(screen.getByPlaceholderText('Write to Test Channel'), ' plus some new text');
-        });
+        await userEvent.type(screen.getByPlaceholderText('Write to Test Channel'), ' plus some new text');
 
         expect(mockedUpdateDraft).not.toHaveBeenCalled();
 
-        await act(async () => {
-            rerender(
-                <AdvancedTextEditor
-                    {...baseProps}
-                    channelId={otherChannelId}
-                />,
-            );
-        });
+        rerender(
+            <AdvancedTextEditor
+                {...baseProps}
+                channelId={otherChannelId}
+            />,
+        );
 
         expect(mockedUpdateDraft).toHaveBeenCalled();
         expect(mockedUpdateDraft.mock.calls[0][1]).toMatchObject({
@@ -398,21 +397,17 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             }),
         );
 
-        await act(async () => {
-            userEvent.clear(screen.getByPlaceholderText('Write to Test Channel'));
-        });
+        await userEvent.clear(screen.getByPlaceholderText('Write to Test Channel'));
 
         expect(mockedRemoveDraft).not.toHaveBeenCalled();
         expect(mockedUpdateDraft).not.toHaveBeenCalled();
 
-        await act(async () => {
-            rerender(
-                <AdvancedTextEditor
-                    {...baseProps}
-                    channelId={otherChannelId}
-                />,
-            );
-        });
+        rerender(
+            <AdvancedTextEditor
+                {...baseProps}
+                channelId={otherChannelId}
+            />,
+        );
 
         expect(mockedRemoveDraft).toHaveBeenCalled();
         expect(mockedUpdateDraft).not.toHaveBeenCalled();
@@ -429,14 +424,12 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         expect(mockedRemoveDraft).not.toHaveBeenCalled();
         expect(mockedUpdateDraft).not.toHaveBeenCalled();
 
-        await act(async () => {
-            rerender(
-                <AdvancedTextEditor
-                    {...baseProps}
-                    channelId={otherChannelId}
-                />,
-            );
-        });
+        rerender(
+            <AdvancedTextEditor
+                {...baseProps}
+                channelId={otherChannelId}
+            />,
+        );
 
         expect(mockedRemoveDraft).not.toHaveBeenCalled();
         expect(mockedUpdateDraft).not.toHaveBeenCalled();
@@ -499,5 +492,126 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         props.isThreadView = true;
         rerender(<AdvancedTextEditor {...props}/>);
         expect(container.querySelector('#editPostFileDropOverlay')).toBeVisible();
+    });
+
+    describe('emoji picker', () => {
+        const testState = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    config: {
+                        EnableEmojiPicker: 'true',
+                    },
+                },
+            },
+        });
+
+        it('should add emojis to the end of the text', async () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                testState,
+            );
+
+            const textbox = screen.getByPlaceholderText('Write to Test Channel') as HTMLTextAreaElement;
+
+            expect(textbox).toHaveValue('');
+
+            // Open the emoji picker and select an emoji
+            await userEvent.click(screen.getByRole('button', {name: 'select an emoji'}));
+            await userEvent.click(screen.getByRole('button', {name: 'blush emoji'}));
+
+            expect(textbox).toHaveFocus();
+            expect(textbox).toHaveValue(':blush: ');
+            expect(textbox.selectionStart).toEqual(8);
+            expect(textbox.selectionEnd).toEqual(8);
+
+            // Do it again
+            await userEvent.click(screen.getByRole('button', {name: 'select an emoji'}));
+            await userEvent.click(screen.getByRole('button', {name: 'relaxed emoji'}));
+
+            expect(textbox).toHaveFocus();
+            expect(textbox).toHaveValue(':blush: :relaxed: ');
+            expect(textbox.selectionStart).toEqual(18);
+            expect(textbox.selectionEnd).toEqual(18);
+        });
+
+        it('should add a space after the existing text if needed', async () => {
+            renderWithContext(
+                <AdvancedTextEditor {...baseProps}/>,
+                testState,
+            );
+
+            const textbox = screen.getByPlaceholderText('Write to Test Channel') as HTMLTextAreaElement;
+
+            await userEvent.type(textbox, 'This is some text');
+
+            expect(textbox).toHaveValue('This is some text');
+
+            // Open the emoji picker and select an emoji
+            await userEvent.click(screen.getByRole('button', {name: 'select an emoji'}));
+            await userEvent.click(screen.getByRole('button', {name: 'blush emoji'}));
+
+            expect(textbox).toHaveFocus();
+            expect(textbox).toHaveValue('This is some text :blush: ');
+            expect(textbox.selectionStart).toEqual(26);
+            expect(textbox.selectionEnd).toEqual(26);
+        });
+
+        it('should be able to add an emoji in the middle of the text', async () => {
+            renderWithContext(
+                <AdvancedTextEditor {...baseProps}/>,
+                testState,
+            );
+
+            const textbox = screen.getByPlaceholderText('Write to Test Channel') as HTMLTextAreaElement;
+
+            await userEvent.type(textbox, 'aaabbb');
+            expect(textbox).toHaveValue('aaabbb');
+
+            // Move into the middle of the text
+            await userEvent.keyboard('{ArrowLeft}{ArrowLeft}{ArrowLeft}');
+
+            expect(textbox).toHaveValue('aaabbb');
+
+            // Open the emoji picker and select an emoji
+            await userEvent.click(screen.getByRole('button', {name: 'select an emoji'}));
+            await userEvent.click(screen.getByRole('button', {name: 'blush emoji'}));
+
+            expect(textbox).toHaveFocus();
+            expect(textbox).toHaveValue('aaa :blush: bbb');
+
+            // The caret should now be after the emoji
+            expect(textbox.selectionStart).toEqual(12);
+            expect(textbox.selectionEnd).toEqual(textbox.selectionEnd);
+        });
+
+        it('should be able to add an emoji in the middle of the text without adding an extra space', async () => {
+            renderWithContext(
+                <AdvancedTextEditor {...baseProps}/>,
+                testState,
+            );
+
+            const textbox = screen.getByPlaceholderText('Write to Test Channel') as HTMLTextAreaElement;
+
+            await userEvent.type(textbox, 'aaabbb');
+            expect(textbox).toHaveValue('aaabbb');
+
+            // Move into the middle of the text
+            await userEvent.keyboard('{ArrowLeft}{ArrowLeft}{ArrowLeft} ');
+
+            expect(textbox).toHaveValue('aaa bbb');
+
+            // Open the emoji picker and select an emoji
+            await userEvent.click(screen.getByRole('button', {name: 'select an emoji'}));
+            await userEvent.click(screen.getByRole('button', {name: 'blush emoji'}));
+
+            expect(textbox).toHaveFocus();
+            expect(textbox).toHaveValue('aaa :blush: bbb');
+
+            // The caret should now be after the emoji
+            expect(textbox.selectionStart).toEqual(12);
+            expect(textbox.selectionEnd).toEqual(textbox.selectionEnd);
+        });
     });
 });

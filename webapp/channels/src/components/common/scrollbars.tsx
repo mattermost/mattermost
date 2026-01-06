@@ -11,7 +11,7 @@ import './scrollbars.scss';
 export type ScrollbarsProps = {
     children: React.ReactNode;
     color?: string;
-    onScroll?: (e: React.UIEvent) => void;
+    onScroll?: (e: Event) => void;
 };
 
 const Scrollbars = React.forwardRef<HTMLElement, ScrollbarsProps>(({
@@ -22,7 +22,7 @@ const Scrollbars = React.forwardRef<HTMLElement, ScrollbarsProps>(({
     const removeListener = useRef<() => void>();
 
     // We can't pass scroll handlers directly to SimpleBar, so we have to attach it to the DOM element directly
-    const setScrollRef = useCallback((el) => {
+    const setScrollRef = useCallback((el: HTMLDivElement) => {
         removeListener.current?.();
         removeListener.current = undefined;
 

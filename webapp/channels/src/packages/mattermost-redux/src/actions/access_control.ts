@@ -3,7 +3,7 @@
 
 import {batchActions} from 'redux-batched-actions';
 
-import type {AccessControlPoliciesResult, AccessControlPolicy, AccessControlTestResult} from '@mattermost/types/access_control';
+import type {AccessControlPoliciesResult, AccessControlPolicy, AccessControlPolicyActiveUpdate, AccessControlTestResult} from '@mattermost/types/access_control';
 import type {ChannelSearchOpts, ChannelsWithTotalCount} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 
@@ -157,5 +157,38 @@ export function getVisualAST(expression: string, channelId?: string) {
     return bindClientFunc({
         clientFunc: Client4.expressionToVisualFormat,
         params: [expression, channelId],
+    });
+}
+
+export function validateExpressionAgainstRequester(expression: string, channelId?: string): ActionFuncAsync<{requester_matches: boolean}> {
+    return async (dispatch, getState) => {
+        let data;
+        try {
+            data = await Client4.validateExpressionAgainstRequester(expression, channelId);
+        } catch (error) {
+            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
+            return {error};
+        }
+        return {data};
+    };
+}
+
+export function createAccessControlSyncJob(jobData: {policy_id: string}): ActionFuncAsync<any> {
+    return async (dispatch, getState) => {
+        let data;
+        try {
+            data = await Client4.createAccessControlSyncJob(jobData);
+        } catch (error) {
+            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
+            return {error};
+        }
+        return {data};
+    };
+}
+
+export function updateAccessControlPoliciesActive(states: AccessControlPolicyActiveUpdate[]) {
+    return bindClientFunc({
+        clientFunc: Client4.updateAccessControlPoliciesActive,
+        params: [states],
     });
 }
