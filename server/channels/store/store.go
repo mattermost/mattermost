@@ -98,6 +98,8 @@ type Store interface {
 	AutoTranslation() AutoTranslationStore
 	GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error)
 	ContentFlagging() ContentFlaggingStore
+	ReadReceipt() ReadReceiptStore
+	TemporaryPost() TemporaryPostStore
 }
 
 type RetentionPolicyStore interface {
@@ -617,7 +619,9 @@ type SystemStore interface {
 	SaveOrUpdate(system *model.System) error
 	Update(system *model.System) error
 	Get() (model.StringMap, error)
+	GetWithContext(rctx request.CTX) (model.StringMap, error)
 	GetByName(name string) (*model.System, error)
+	GetByNameWithContext(rctx request.CTX, name string) (*model.System, error)
 	PermanentDeleteByName(name string) (*model.System, error)
 	InsertIfExists(system *model.System) (*model.System, error)
 }
@@ -1178,6 +1182,26 @@ type ContentFlaggingStore interface {
 	SaveReviewerSettings(reviewerSettings model.ReviewerIDsSettings) error
 	GetReviewerSettings() (*model.ReviewerIDsSettings, error)
 	ClearCaches()
+}
+
+type ReadReceiptStore interface {
+	InvalidateReadReceiptForPostsCache(postID string)
+	Save(rctx request.CTX, receipt *model.ReadReceipt) (*model.ReadReceipt, error)
+	Update(rctx request.CTX, receipt *model.ReadReceipt) (*model.ReadReceipt, error)
+	Delete(rctx request.CTX, postID, userID string) error
+	DeleteByPost(rctx request.CTX, postID string) error
+	Get(rctx request.CTX, postID, userID string) (*model.ReadReceipt, error)
+	GetByPost(rctx request.CTX, postID string) ([]*model.ReadReceipt, error)
+	GetReadCountForPost(rctx request.CTX, postID string) (int64, error)
+	GetUnreadCountForPost(rctx request.CTX, post *model.Post) (int64, error)
+}
+
+type TemporaryPostStore interface {
+	InvalidateTemporaryPost(id string)
+	Save(rctx request.CTX, post *model.TemporaryPost) (*model.TemporaryPost, error)
+	Get(rctx request.CTX, id string) (*model.TemporaryPost, error)
+	Delete(rctx request.CTX, id string) error
+	GetExpiredPosts(rctx request.CTX) ([]string, error)
 }
 
 // ChannelSearchOpts contains options for searching channels.

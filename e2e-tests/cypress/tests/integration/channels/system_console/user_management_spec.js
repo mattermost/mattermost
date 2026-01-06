@@ -195,7 +195,7 @@ describe('User Management', () => {
 
             // # Set new password.
             cy.get('input[type=password]').type('new' + testUser.password);
-            cy.get('button[type=submit]').should('contain', 'Reset').click().wait(TIMEOUTS.HALF_SEC);
+            cy.get('button.btn-primary.confirm').should('contain', 'Reset').click().wait(TIMEOUTS.HALF_SEC);
 
             // * Verify Update email option is visible.
             cy.get('#systemUsersTable-cell-0_actionsColumn').click().wait(TIMEOUTS.HALF_SEC);
@@ -262,22 +262,22 @@ describe('User Management', () => {
         cy.findByText('Update email').click().wait(TIMEOUTS.HALF_SEC);
 
         // # Verify the modal opened.
-        cy.findByTestId('resetEmailModal').should('exist');
+        cy.get('#resetEmailModal').should('exist');
 
         // # Type the new e-mail address.
         if (newEmail.length > 0) {
             cy.get('input[type=email]').eq(0).clear().type(newEmail);
         }
 
-        // # Click the "Reset" button.
-        cy.findByTestId('resetEmailButton').click();
+        // # Click the "Update" button.
+        cy.get('button.btn-primary.confirm').click();
 
         // * Check for the error messages, if any.
         if (errorMsg.length > 0) {
-            cy.get('form.form-horizontal').find('.has-error p.error').should('be.visible').and('contain', errorMsg);
+            cy.get('.Input___error').should('be.visible').and('contain', errorMsg);
 
             // # Close the modal.
-            cy.findByLabelText('Close').click();
+            cy.get('button.close').click();
         }
     }
 
