@@ -1,23 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ReactWrapper} from 'enzyme';
 import {shallow} from 'enzyme';
 import React from 'react';
-import {BrowserRouter} from 'react-router-dom';
 
 import type {ClientConfig} from '@mattermost/types/config';
 
 import {RequestStatus} from 'mattermost-redux/constants';
 
-import SaveButton from 'components/save_button';
-import Signup from 'components/signup/signup';
-import CheckInput from 'components/widgets/inputs/check';
-import Input from 'components/widgets/inputs/input/input';
-import PasswordInput from 'components/widgets/inputs/password_input/password_input';
+import {redirectUserToDefaultTeam} from 'actions/global_actions';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import {act, renderWithContext, screen, waitFor, userEvent} from 'tests/react_testing_utils';
+import Signup from 'components/signup/signup';
+
+import {renderWithContext, screen, waitFor, userEvent} from 'tests/react_testing_utils';
 import {WindowSizes} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -56,6 +51,11 @@ jest.mock('mattermost-redux/selectors/entities/users', () => ({
     getCurrentUserId: () => mockCurrentUserId,
 }));
 
+jest.mock('actions/global_actions', () => ({
+    ...jest.requireActual('actions/global_actions'),
+    redirectUserToDefaultTeam: jest.fn(),
+}));
+
 jest.mock('actions/team_actions', () => ({
     ...jest.requireActual('actions/team_actions') as typeof import('actions/team_actions'),
     addUserToTeamFromInvite: jest.fn().mockResolvedValue({data: {}}),
@@ -73,17 +73,6 @@ jest.mock('actions/views/login', () => ({
 }));
 
 jest.mock('actions/storage');
-
-const actImmediate = (wrapper: ReactWrapper) =>
-    act(
-        () =>
-            new Promise<void>((resolve) => {
-                setImmediate(() => {
-                    wrapper.update();
-                    resolve();
-                });
-            }),
-    );
 
 describe('components/signup/Signup', () => {
     beforeEach(() => {
@@ -202,34 +191,27 @@ describe('components/signup/Signup', () => {
             mockResolvedValueOnce({data: {id: 'userId', password: 'password', email: 'jdoe@mm.com}'}}). // createUser
             mockResolvedValueOnce({error: {server_error_id: 'api.user.login.not_verified.app_error'}}); // loginById
 
-        const wrapper = mountWithIntl(
-            <BrowserRouter>
-                <Signup/>
-            </BrowserRouter>,
+        renderWithContext(
+            <Signup/>,
         );
 
-        const emailInput = wrapper.find(Input).first().find('input').first();
-        emailInput.simulate('change', {target: {value: 'jdoe@mm.com'}});
+        const emailInput = screen.getByLabelText('Email address');
+        const usernameInput = screen.getByLabelText('Choose a Username');
+        const passwordInput = screen.getByLabelText('Choose a Password');
+        const termsCheckbox = screen.getByRole('checkbox', {name: /terms and privacy policy checkbox/i});
+        const submitButton = screen.getByRole('button', {name: 'Create account'});
 
-        const nameInput = wrapper.find('#input_name').first();
-        nameInput.simulate('change', {target: {value: 'jdoe'}});
+        await userEvent.type(emailInput, 'jdoe@mm.com');
+        await userEvent.type(usernameInput, 'jdoe');
+        await userEvent.type(passwordInput, 'password');
+        await userEvent.click(termsCheckbox);
 
-        const passwordInput = wrapper.find(PasswordInput).first().find('input').first();
-        passwordInput.simulate('change', {target: {value: 'password'}});
+        expect(submitButton).not.toBeDisabled();
+        await userEvent.click(submitButton);
 
-        const termsCheckbox = wrapper.find(CheckInput).first().find('input').first();
-        termsCheckbox.simulate('change');
-
-        const saveButton = wrapper.find(SaveButton).first();
-        expect(saveButton.props().disabled).toEqual(false);
-
-        saveButton.find('button').first().simulate('click');
-
-        await actImmediate(wrapper);
-
-        expect(wrapper.find(Input).first().props().disabled).toEqual(true);
-        expect(wrapper.find('#input_name').first().props().disabled).toEqual(true);
-        expect(wrapper.find(PasswordInput).first().props().disabled).toEqual(true);
+        expect(emailInput).toBeDisabled();
+        expect(usernameInput).toBeDisabled();
+        expect(passwordInput).toBeDisabled();
 
         expect(mockHistoryPush).toHaveBeenCalledWith('/should_verify_email?email=jdoe%40mm.com&teamname=teamName');
     });
@@ -240,34 +222,29 @@ describe('components/signup/Signup', () => {
             mockResolvedValueOnce({data: {id: 'userId', password: 'password', email: 'jdoe@mm.com}'}}). // createUser
             mockResolvedValueOnce({}); // loginById
 
-        const wrapper = mountWithIntl(
-            <BrowserRouter>
-                <Signup/>
-            </BrowserRouter>,
+        renderWithContext(
+            <Signup/>,
         );
 
-        const emailInput = wrapper.find(Input).first().find('input').first();
-        emailInput.simulate('change', {target: {value: 'jdoe@mm.com'}});
+        const emailInput = screen.getByLabelText('Email address');
+        const usernameInput = screen.getByLabelText('Choose a Username');
+        const passwordInput = screen.getByLabelText('Choose a Password');
+        const termsCheckbox = screen.getByRole('checkbox', {name: /terms and privacy policy checkbox/i});
+        const submitButton = screen.getByRole('button', {name: 'Create account'});
 
-        const nameInput = wrapper.find('#input_name').first();
-        nameInput.simulate('change', {target: {value: 'jdoe'}});
+        await userEvent.type(emailInput, 'jdoe@mm.com');
+        await userEvent.type(usernameInput, 'jdoe');
+        await userEvent.type(passwordInput, 'password');
+        await userEvent.click(termsCheckbox);
 
-        const passwordInput = wrapper.find(PasswordInput).first().find('input').first();
-        passwordInput.simulate('change', {target: {value: 'password'}});
+        expect(submitButton).not.toBeDisabled();
+        await userEvent.click(submitButton);
 
-        const termsCheckbox = wrapper.find(CheckInput).first().find('input').first();
-        termsCheckbox.simulate('change');
+        expect(emailInput).toBeDisabled();
+        expect(usernameInput).toBeDisabled();
+        expect(passwordInput).toBeDisabled();
 
-        const saveButton = wrapper.find(SaveButton).first();
-        expect(saveButton.props().disabled).toEqual(false);
-
-        saveButton.find('button').first().simulate('click');
-
-        await actImmediate(wrapper);
-
-        expect(wrapper.find(Input).first().props().disabled).toEqual(true);
-        expect(wrapper.find('#input_name').first().props().disabled).toEqual(true);
-        expect(wrapper.find(PasswordInput).first().props().disabled).toEqual(true);
+        expect(redirectUserToDefaultTeam).toHaveBeenCalled();
     });
 
     it('should focus email input when email validation fails', async () => {
