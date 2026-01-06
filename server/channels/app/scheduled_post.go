@@ -79,7 +79,7 @@ func (a *App) UpdateScheduledPost(rctx request.CTX, userId string, scheduledPost
 	}
 
 	if existingScheduledPost == nil {
-		return nil, model.NewAppError("app.UpdateScheduledPost", "app.update_scheduled_post.existing_scheduled_post.not_exist", map[string]any{"user_id": userId, "scheduled_post_id": scheduledPost.Id}, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("app.UpdateScheduledPost", "app.update_scheduled_post.existing_scheduled_post.not_exist", map[string]any{"user_id": userId, "scheduled_post_id": scheduledPost.Id}, "", http.StatusNotFound)
 	}
 
 	// This step is not required for update but is useful as we want to return the
