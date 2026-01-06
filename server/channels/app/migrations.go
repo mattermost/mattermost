@@ -28,18 +28,19 @@ const (
 	remainingSchemaMigrationsKey                   = "RemainingSchemaMigrations"
 	postPriorityConfigDefaultTrueMigrationKey      = "PostPriorityConfigDefaultTrueMigrationComplete"
 	contentFlaggingSetupDoneKey                    = "content_flagging_setup_done"
-	contentFlaggingMigrationVersion                = "v4"
+	contentFlaggingMigrationVersion                = "v5"
 
-	contentFlaggingPropertyNameFlaggedPostId    = "flagged_post_id"
-	contentFlaggingPropertyNameStatus           = "status"
-	contentFlaggingPropertyNameReportingUserID  = "reporting_user_id"
-	contentFlaggingPropertyNameReportingReason  = "reporting_reason"
-	contentFlaggingPropertyNameReportingComment = "reporting_comment"
-	contentFlaggingPropertyNameReportingTime    = "reporting_time"
-	contentFlaggingPropertyNameReviewerUserID   = "reviewer_user_id"
-	contentFlaggingPropertyNameActorUserID      = "actor_user_id"
-	contentFlaggingPropertyNameActorComment     = "actor_comment"
-	contentFlaggingPropertyNameActionTime       = "action_time"
+	contentFlaggingPropertyNameFlaggedPostId       = "flagged_post_id"
+	ContentFlaggingPropertyNameStatus              = "status"
+	contentFlaggingPropertyNameReportingUserID     = "reporting_user_id"
+	contentFlaggingPropertyNameReportingReason     = "reporting_reason"
+	contentFlaggingPropertyNameReportingComment    = "reporting_comment"
+	contentFlaggingPropertyNameReportingTime       = "reporting_time"
+	contentFlaggingPropertyNameReviewerUserID      = "reviewer_user_id"
+	contentFlaggingPropertyNameActorUserID         = "actor_user_id"
+	contentFlaggingPropertyNameActorComment        = "actor_comment"
+	contentFlaggingPropertyNameActionTime          = "action_time"
+	contentFlaggingPropertyManageByContentFlagging = "content_flagging_managed"
 
 	contentFlaggingPropertySubTypeTimestamp = "timestamp"
 )
@@ -602,7 +603,7 @@ func (s *Server) doPostPriorityConfigDefaultTrueMigration() error {
 func (s *Server) doSetupContentFlaggingProperties() error {
 	// This migration is designed in a way to allow adding more properties in the future.
 	// When a new property needs to be added, add it to the expectedPropertiesMap map and
-	// update the contentFlaggingMigrationVersion to a new value..
+	// update the contentFlaggingMigrationVersion to a new value.
 
 	// If the migration is already marked as completed, don't do it again.
 	var nfErr *store.ErrNotFound
@@ -639,9 +640,9 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 			Name:    contentFlaggingPropertyNameFlaggedPostId,
 			Type:    model.PropertyFieldTypeText,
 		},
-		contentFlaggingPropertyNameStatus: {
+		ContentFlaggingPropertyNameStatus: {
 			GroupID: group.ID,
-			Name:    contentFlaggingPropertyNameStatus,
+			Name:    ContentFlaggingPropertyNameStatus,
 			Type:    model.PropertyFieldTypeSelect,
 			Attrs: map[string]any{
 				"options": []map[string]string{
@@ -694,6 +695,11 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 			Name:    contentFlaggingPropertyNameActionTime,
 			Type:    model.PropertyFieldTypeText,
 			Attrs:   map[string]any{"subType": contentFlaggingPropertySubTypeTimestamp},
+		},
+		contentFlaggingPropertyManageByContentFlagging: {
+			GroupID: group.ID,
+			Name:    contentFlaggingPropertyManageByContentFlagging,
+			Type:    model.PropertyFieldTypeText,
 		},
 	}
 

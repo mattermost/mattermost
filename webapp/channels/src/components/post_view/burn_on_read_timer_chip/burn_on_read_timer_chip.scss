@@ -1,0 +1,85 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.BurnOnReadTimerChip {
+    display: inline-flex;
+    height: 16px;
+    align-items: center;
+    padding: 0px 4px;
+    border: none;
+    border-radius: 4px;
+    margin-left: 8px;
+    background: var(--error-text-12, rgba(210, 75, 78, 0.12));
+    color: var(--error-text, #d24b4e);
+    cursor: pointer;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 12px;
+    transition: all 0.2s ease;
+
+    &:hover {
+        opacity: 0.9;
+    }
+
+    &:focus {
+        outline: none;
+    }
+
+    &__icon {
+        display: flex;
+        align-items: center;
+        color: inherit;
+    }
+
+    &__time {
+        min-width: 32px;
+        font-variant-numeric: tabular-nums;
+        text-align: center;
+    }
+
+    &--warning {
+        animation: pulse 1s ease-in-out infinite;
+        background: var(--dnd-indicator, #d24b4e);
+        color: #ffffff;
+    }
+
+    &--expired {
+        animation: fadeOut 2s ease-out forwards;
+    }
+
+    &__tooltip {
+        text-align: center;
+    }
+
+    &__tooltip-primary {
+        color: rgba(255, 255, 255, 1);
+    }
+
+    &__tooltip-secondary {
+        margin-top: 4px;
+        color: rgba(255, 255, 255, 0.7);
+    }
+}
+
+@keyframes pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.85;
+    }
+}
+
+@keyframes fadeOut {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    100% {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+}

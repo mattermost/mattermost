@@ -152,6 +152,7 @@ func (s *SqlPostStore) SaveMultiple(rctx request.CTX, posts []*model.Post) ([]*m
 	maxDateNewRootPosts := make(map[string]int64)
 	rootIds := make(map[string]int)
 	maxDateRootIds := make(map[string]int64)
+	burnOnReadPosts := make(map[string]*model.TemporaryPost)
 	for idx, post := range posts {
 		if post.Id != "" && !post.IsRemote() {
 			return nil, idx, store.NewErrInvalidInput("Post", "id", post.Id)
@@ -163,6 +164,29 @@ func (s *SqlPostStore) SaveMultiple(rctx request.CTX, posts []*model.Post) ([]*m
 			return nil, idx, err
 		}
 		post.ValidateProps(rctx.Logger())
+
+		if post.Type == model.PostTypeBurnOnRead {
+			expireAt := post.GetProp(model.PostPropsExpireAt)
+			if expireAt == "" {
+				return nil, idx, errors.New("expire_at is required for burn on read posts")
+			}
+
+			if post.RootId != "" {
+				return nil, idx, errors.New("burn on read posts cannot have a root_id")
+			}
+
+			expireAtInt, ok := expireAt.(int64)
+			if !ok {
+				return nil, idx, fmt.Errorf("expire_at is not a valid int64: %s", expireAt)
+			}
+
+			burnOnReadPost, _, err := model.CreateTemporaryPost(post, expireAtInt)
+			if err != nil {
+				return nil, idx, errors.Wrap(err, "failed to create burn on read post")
+			}
+			burnOnReadPosts[post.Id] = burnOnReadPost
+			continue
+		}
 
 		if currentChannelCount, ok := channelNewPosts[post.ChannelId]; !ok {
 			if post.IsJoinLeaveMessage() {
@@ -239,6 +263,19 @@ func (s *SqlPostStore) SaveMultiple(rctx request.CTX, posts []*model.Post) ([]*m
 
 	if err = s.savePostsPersistentNotifications(transaction, posts); err != nil {
 		return nil, -1, errors.Wrap(err, "failed to save posts persistent notifications")
+	}
+
+	for _, post := range burnOnReadPosts {
+		tmpStore := s.SqlStore.TemporaryPost()
+		tps, ok := tmpStore.(*SqlTemporaryPostStore)
+		if !ok {
+			return nil, -1, errors.New("temporary post store is not a SqlTemporaryPostStore")
+		}
+
+		_, err = tps.saveT(transaction, post)
+		if err != nil {
+			return nil, -1, errors.Wrap(err, "failed to save burn on read post")
+		}
 	}
 
 	if err = transaction.Commit(); err != nil {
@@ -866,6 +903,10 @@ func (s *SqlPostStore) Get(rctx request.CTX, id string, opts model.GetPostsOptio
 		}
 
 		for _, p := range posts {
+			if p.Type == model.PostTypeBurnOnRead {
+				pl.BurnOnReadPosts[p.Id] = p
+			}
+
 			if p.Id == id {
 				// Based on the conditions above such as sq.Or{ sq.Eq{"p.Id": rootId}, sq.Eq{"p.RootId": rootId}, }
 				// posts may contain the "id" post which has already been fetched and added in the "pl"
@@ -1016,6 +1057,14 @@ func (s *SqlPostStore) permanentDelete(postIds []string) (err error) {
 		return err
 	}
 
+	if err = s.permanentDeleteTemporaryPosts(transaction, postIds); err != nil {
+		return err
+	}
+
+	if err = s.permanentDeleteReadReceipts(transaction, postIds); err != nil {
+		return err
+	}
+
 	query := s.getQueryBuilder().
 		Delete("Posts").
 		Where(
@@ -1069,6 +1118,14 @@ func (s *SqlPostStore) permanentDeleteAllCommentByUser(userId string) (err error
 
 	// Delete all the reactions on the comments
 	if err = s.permanentDeleteReactions(transaction, postIds); err != nil {
+		return err
+	}
+
+	if err = s.permanentDeleteTemporaryPosts(transaction, postIds); err != nil {
+		return err
+	}
+
+	if err = s.permanentDeleteReadReceipts(transaction, postIds); err != nil {
 		return err
 	}
 
@@ -1152,6 +1209,14 @@ func (s *SqlPostStore) PermanentDeleteByChannel(rctx request.CTX, channelId stri
 			return err
 		}
 		time.Sleep(10 * time.Millisecond)
+
+		if err = s.permanentDeleteTemporaryPosts(transaction, ids); err != nil {
+			return err
+		}
+
+		if err = s.permanentDeleteReadReceipts(transaction, ids); err != nil {
+			return err
+		}
 
 		query := s.getQueryBuilder().
 			Delete("Posts").
@@ -1501,6 +1566,108 @@ func (s *SqlPostStore) GetPostsBefore(rctx request.CTX, options model.GetPostsOp
 
 func (s *SqlPostStore) GetPostsAfter(rctx request.CTX, options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	return s.getPostsAround(rctx, false, options, sanitizeOptions)
+}
+
+func (s *SqlPostStore) GetPostsForReporting(rctx request.CTX, queryParams model.ReportPostQueryParams) (*model.ReportPostListResponse, error) {
+	// Validate required parameters
+	if queryParams.ChannelId == "" {
+		return nil, store.NewErrInvalidInput("Post", "ChannelId", "")
+	}
+
+	// Convert model field names to SQL column names
+	timeField := "CreateAt"
+	if queryParams.TimeField == model.ReportingTimeFieldUpdateAt {
+		timeField = "UpdateAt"
+	}
+
+	sortDirection := "ASC"
+	if queryParams.SortDirection == model.ReportingSortDirectionDesc {
+		sortDirection = "DESC"
+	}
+
+	// Build base query - request one extra to determine if there are more pages
+	query := s.getQueryBuilder().
+		Select(postSliceColumns()...).
+		From("Posts").
+		Where(sq.Eq{"ChannelId": queryParams.ChannelId}).
+		OrderBy(fmt.Sprintf("%s %s", timeField, sortDirection), fmt.Sprintf("Id %s", sortDirection)).
+		Limit(uint64(queryParams.PerPage + 1))
+
+	// Apply cursor pagination: continue from where the last query left off using time + ID
+	// Use row value comparison for efficient pagination: (timeField, Id) > (cursor_time, cursor_id)
+	if sortDirection == "ASC" {
+		query = query.Where(
+			fmt.Sprintf("(%s, Id) > (?, ?)", timeField),
+			queryParams.CursorTime,
+			queryParams.CursorId,
+		)
+	} else {
+		query = query.Where(
+			fmt.Sprintf("(%s, Id) < (?, ?)", timeField),
+			queryParams.CursorTime,
+			queryParams.CursorId,
+		)
+	}
+
+	// Add delete filter
+	if !queryParams.IncludeDeleted {
+		query = query.Where(sq.Eq{"DeleteAt": 0})
+	}
+
+	// Exclude all system posts
+	// System posts are any posts with Type starting with "system_"
+	if queryParams.ExcludeSystemPosts {
+		query = query.Where(sq.NotLike{"Type": model.PostSystemMessagePrefix + "%"})
+	}
+
+	// Execute query on replica
+	posts := []*model.Post{}
+	if err := s.GetReplica().SelectBuilder(&posts, query); err != nil {
+		return nil, errors.Wrap(err, "failed to get posts for reporting")
+	}
+
+	// Determine if there are more pages and calculate next cursor
+	// We request perPage+1 to detect if more results exist:
+	// - If we get exactly perPage posts: no more results, nextCursor = nil
+	// - If we get perPage+1 posts: more results exist, create cursor from last returned post
+	var nextCursor *model.ReportPostOptionsCursor
+	if len(posts) == queryParams.PerPage+1 {
+		// More results available beyond this page
+		// The cursor should point to the last post we're returning (posts[perPage-1]),
+		// so the next request continues from there
+		// Example: perPage=5, fetched 6 posts (indices 0-5)
+		//   - Return posts[0:5] to client
+		//   - Cursor points to posts[4] (last returned post)
+		//   - posts[5] is discarded (only used to detect "has more")
+		lastPostReturned := posts[queryParams.PerPage-1]
+		var nextCursorTime int64
+		if queryParams.TimeField == model.ReportingTimeFieldUpdateAt {
+			nextCursorTime = lastPostReturned.UpdateAt
+		} else {
+			nextCursorTime = lastPostReturned.CreateAt
+		}
+
+		// Encode cursor with all query-affecting parameters
+		nextCursor = &model.ReportPostOptionsCursor{
+			Cursor: model.EncodeReportPostCursor(
+				queryParams.ChannelId,
+				queryParams.TimeField,
+				queryParams.IncludeDeleted,
+				queryParams.ExcludeSystemPosts,
+				queryParams.SortDirection,
+				nextCursorTime,
+				lastPostReturned.Id,
+			),
+		}
+		// Trim to the requested page size
+		posts = posts[:queryParams.PerPage]
+	}
+
+	// Return posts as ordered array (already sorted by the query)
+	return &model.ReportPostListResponse{
+		Posts:      posts,
+		NextCursor: nextCursor,
+	}, nil
 }
 
 func (s *SqlPostStore) GetPostsByThread(threadId string, since int64) ([]*model.Post, error) {
@@ -2157,6 +2324,10 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		// Don't return the error to the caller as it is of no use to the user. Instead return an empty set of search results.
 	} else {
 		for _, p := range posts {
+			// exclude burn on read posts from search results
+			if p.Type == model.PostTypeBurnOnRead {
+				continue
+			}
 			if searchType == "Hashtags" {
 				exactMatch := false
 				for tag := range strings.SplitSeq(p.Hashtags, " ") {
@@ -2898,6 +3069,30 @@ func (s *SqlPostStore) permanentDeleteReactions(transaction *sqlxTxWrapper, post
 	return nil
 }
 
+func (s *SqlPostStore) permanentDeleteReadReceipts(transaction *sqlxTxWrapper, postIds []string) error {
+	query := s.getQueryBuilder().
+		Delete("ReadReceipts").
+		Where(
+			sq.Eq{"PostId": postIds},
+		)
+	if _, err := transaction.ExecBuilder(query); err != nil {
+		return errors.Wrap(err, "failed to delete ReadReceipts")
+	}
+	return nil
+}
+
+func (s *SqlPostStore) permanentDeleteTemporaryPosts(transaction *sqlxTxWrapper, postIds []string) error {
+	query := s.getQueryBuilder().
+		Delete("TemporaryPosts").
+		Where(
+			sq.Eq{"PostId": postIds},
+		)
+	if _, err := transaction.ExecBuilder(query); err != nil {
+		return errors.Wrap(err, "failed to delete Threads")
+	}
+	return nil
+}
+
 // deleteThread marks a thread as deleted at the given time.
 func (s *SqlPostStore) deleteThread(transaction *sqlxTxWrapper, postId string, deleteAtTime int64) error {
 	queryString, args, err := s.getQueryBuilder().
@@ -3287,4 +3482,136 @@ func (s *SqlPostStore) RefreshPostStats() error {
 	}
 
 	return nil
+}
+
+// RestoreContentFlaggedPost restores a flagged post along with all its replies and associated files.
+// When restoring replies, it does not restore posts that were intentionally deleted by a user, and
+// it only restores posts deleted by the specified deletedBy user ID, which in case of Content Flagging is
+// the Content Reviewer bot.
+func (s *SqlPostStore) RestoreContentFlaggedPost(flaggedPost *model.Post, statusFieldId, contentFlaggingManagedFieldId string) error {
+	tx, err := s.GetMaster().Beginx()
+	if err != nil {
+		return errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(tx, &err)
+
+	baseSubQuery := s.getSubQueryBuilder().
+		Select("p.Id as PostId").
+		From("Posts as p").
+		InnerJoin("PropertyValues as pv_managed ON pv_managed.TargetId = p.Id AND pv_managed.FieldId = ? AND pv_managed.DeleteAt = 0 AND pv_managed.Value = 'true'", contentFlaggingManagedFieldId).
+		LeftJoin("PropertyValues as pv_status ON pv_status.TargetId = p.Id AND pv_status.FieldId = ? AND pv_status.DeleteAt = 0", statusFieldId)
+
+	err = s.restoreContentFlaggedRootPost(tx, baseSubQuery, flaggedPost.Id, contentFlaggingManagedFieldId)
+	if err != nil {
+		return err
+	}
+
+	if flaggedPost.RootId == "" {
+		err = s.restoreContentFlaggedPostReplies(tx, baseSubQuery, flaggedPost.Id, contentFlaggingManagedFieldId)
+		if err != nil {
+			return err
+		}
+	} else {
+		err = s.updateThreadsFromPosts(tx, []*model.Post{flaggedPost})
+		if err != nil {
+			return errors.Wrapf(err, "SqlPostStore.RestoreContentFlaggedPost: failed to update thread for flaggedPost %s", flaggedPost.Id)
+		}
+	}
+
+	err = s.removeContentFlaggingManagedPropertyValues(tx, baseSubQuery, flaggedPost.Id, contentFlaggingManagedFieldId)
+	if err != nil {
+		return err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return errors.Wrap(err, "commit_transaction")
+	}
+
+	return nil
+}
+
+func (s *SqlPostStore) restoreContentFlaggedRootPost(tx *sqlxTxWrapper, baseSubQuery sq.SelectBuilder, postId, contentFlaggingManagedFieldId string) error {
+	postIdSubQuery := baseSubQuery.
+		Where(sq.Eq{"p.Id": postId}).
+		Where(sq.Or{
+			sq.Eq{"pv_status.value": fmt.Sprintf("\"%s\"", model.ContentFlaggingStatusPending)},
+			sq.Eq{"pv_status.value": fmt.Sprintf("\"%s\"", model.ContentFlaggingStatusAssigned)},
+		})
+
+	// Restoring the post
+	queryBuilder := s.getQueryBuilder().
+		Update("Posts").
+		Set("DeleteAt", 0).
+		Where(sq.Expr("Id IN (?)", postIdSubQuery.Where(sq.NotEq{"p.DeleteAt": 0})))
+
+	if _, err := tx.ExecBuilder(queryBuilder); err != nil {
+		return errors.Wrapf(err, "SqlPostStore.RestoreContentFlaggedPost: failed to restore post %s", postId)
+	}
+
+	return s.restoreFilesForSubQuery(tx, postIdSubQuery)
+}
+
+func (s *SqlPostStore) restoreContentFlaggedPostReplies(tx *sqlxTxWrapper, baseSubQuery sq.SelectBuilder, rootPostId, contentFlaggingManagedFieldId string) error {
+	postIdSubQuery := baseSubQuery.
+		Where(sq.Eq{"p.RootId": rootPostId}).
+		Where(sq.NotEq{"p.DeleteAt": 0}).
+		Where(sq.Or{
+			sq.Expr("pv_status.id IS NULL"),
+			sq.Eq{"pv_status.value": fmt.Sprintf("\"%s\"", model.ContentFlaggingStatusRetained)},
+		})
+
+	queryBuilder := s.getQueryBuilder().
+		Update("Posts").
+		Set("DeleteAt", 0).
+		Where(sq.Expr("Id IN (?)", postIdSubQuery))
+
+	result, err := tx.ExecBuilder(queryBuilder)
+	if err != nil {
+		return errors.Wrapf(err, "SqlPostStore.RestoreContentFlaggedPost: failed to restore flaggedPost replies %s", rootPostId)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return errors.Wrapf(err, "SqlPostStore.RestoreContentFlaggedPost: failed to get rows affected for restored flaggedPost replies %s", rootPostId)
+	}
+
+	if rowsAffected > 0 {
+		if err := s.restoreFilesForSubQuery(tx, postIdSubQuery); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *SqlPostStore) removeContentFlaggingManagedPropertyValues(tx *sqlxTxWrapper, baseSubQuery sq.SelectBuilder, rootId, contentFlaggingManagedFieldId string) error {
+	postIdSubQuery := baseSubQuery.
+		Where(sq.Or{
+			sq.Eq{"p.Id": rootId},
+			sq.Eq{"p.RootId": rootId},
+		}).
+		Where(sq.Or{
+			sq.Eq{"p.Id": rootId},
+			sq.Expr("pv_status.value IS NULL"),
+		}).
+		Where(sq.Eq{"p.DeleteAt": 0})
+
+	queryBuilder := s.getQueryBuilder().
+		Update("PropertyValues").
+		Set("DeleteAt", model.GetMillis()).
+		Where(sq.Eq{"FieldId": contentFlaggingManagedFieldId}).
+		Where(sq.Expr("TargetId IN (?)", postIdSubQuery))
+
+	_, err := tx.ExecBuilder(queryBuilder)
+	return err
+}
+
+func (s *SqlPostStore) restoreFilesForSubQuery(tx *sqlxTxWrapper, postIdSubQuery sq.SelectBuilder) error {
+	queryBuilder := s.getQueryBuilder().
+		Update("FileInfo").
+		Set("DeleteAt", 0).
+		Where(sq.Expr("FileInfo.PostId IN (?)", postIdSubQuery))
+
+	_, err := tx.ExecBuilder(queryBuilder)
+	return err
 }

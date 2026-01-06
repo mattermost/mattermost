@@ -23,7 +23,6 @@ import (
 
 func TestGetConfig(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 
 	_, resp, err := client.GetConfig(context.Background())
@@ -71,7 +70,6 @@ func TestGetConfig(t *testing.T) {
 
 func TestGetConfigWithAccessTag(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	// set some values so that we know they're not blank
 	mockVaryByHeader := model.NewId()
@@ -85,8 +83,8 @@ func TestGetConfigWithAccessTag(t *testing.T) {
 	require.NoError(t, err)
 
 	// add read sysconsole environment config
-	th.AddPermissionToRole(model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
-	defer th.RemovePermissionFromRole(model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
+	defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
 
 	cfg, _, err := th.Client.GetConfig(context.Background())
 	require.NoError(t, err)
@@ -106,7 +104,6 @@ func TestGetConfigWithAccessTag(t *testing.T) {
 
 func TestGetConfigAnyFlagsAccess(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	_, _, err := th.Client.Login(context.Background(), th.BasicUser.Username, th.BasicUser.Password)
 	require.NoError(t, err)
@@ -117,8 +114,8 @@ func TestGetConfigAnyFlagsAccess(t *testing.T) {
 	})
 
 	// add read sysconsole environment config
-	th.AddPermissionToRole(model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
-	defer th.RemovePermissionFromRole(model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
+	defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
 
 	cfg, _, err := th.Client.GetConfig(context.Background())
 	require.NoError(t, err)
@@ -130,7 +127,6 @@ func TestGetConfigAnyFlagsAccess(t *testing.T) {
 
 func TestReloadConfig(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 
 	t.Run("as system user", func(t *testing.T) {
@@ -155,7 +151,6 @@ func TestReloadConfig(t *testing.T) {
 
 func TestUpdateConfig(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 
 	cfg, _, err := th.SystemAdminClient.GetConfig(context.Background())
@@ -337,7 +332,6 @@ func TestUpdateConfig(t *testing.T) {
 
 func TestGetConfigWithoutManageSystemPermission(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 	_, _, err := th.Client.Login(context.Background(), th.BasicUser.Username, th.BasicUser.Password)
 	require.NoError(t, err)
 
@@ -348,7 +342,7 @@ func TestGetConfigWithoutManageSystemPermission(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 
 		// add any sysconsole read permission
-		th.AddPermissionToRole(model.SysconsoleReadPermissions[0].Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.SysconsoleReadPermissions[0].Id, model.SystemUserRoleId)
 		_, _, err = th.Client.GetConfig(context.Background())
 		// should be readable now
 		require.NoError(t, err)
@@ -357,13 +351,12 @@ func TestGetConfigWithoutManageSystemPermission(t *testing.T) {
 
 func TestUpdateConfigWithoutManageSystemPermission(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 	_, _, err := th.Client.Login(context.Background(), th.BasicUser.Username, th.BasicUser.Password)
 	require.NoError(t, err)
 
 	// add read sysconsole integrations config
-	th.AddPermissionToRole(model.PermissionSysconsoleReadIntegrationsIntegrationManagement.Id, model.SystemUserRoleId)
-	defer th.RemovePermissionFromRole(model.PermissionSysconsoleReadIntegrationsIntegrationManagement.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionSysconsoleReadIntegrationsIntegrationManagement.Id, model.SystemUserRoleId)
+	defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleReadIntegrationsIntegrationManagement.Id, model.SystemUserRoleId)
 
 	t.Run("sysconsole read permission does not provides config write access", func(t *testing.T) {
 		// should be readable because has a sysconsole read permission
@@ -383,8 +376,8 @@ func TestUpdateConfigWithoutManageSystemPermission(t *testing.T) {
 		originalValue := *cfg.ServiceSettings.AllowCorsFrom
 
 		// add the wrong write permission
-		th.AddPermissionToRole(model.PermissionSysconsoleWriteAboutEditionAndLicense.Id, model.SystemUserRoleId)
-		defer th.RemovePermissionFromRole(model.PermissionSysconsoleWriteAboutEditionAndLicense.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteAboutEditionAndLicense.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteAboutEditionAndLicense.Id, model.SystemUserRoleId)
 
 		// try update a config value allowed by sysconsole WRITE integrations
 		mockVal := model.NewId()
@@ -403,10 +396,10 @@ func TestUpdateConfigWithoutManageSystemPermission(t *testing.T) {
 		cfg, _, err := th.SystemAdminClient.GetConfig(context.Background())
 		require.NoError(t, err)
 
-		th.AddPermissionToRole(model.PermissionSysconsoleWriteIntegrationsCors.Id, model.SystemUserRoleId)
-		defer th.RemovePermissionFromRole(model.PermissionSysconsoleWriteIntegrationsCors.Id, model.SystemUserRoleId)
-		th.AddPermissionToRole(model.PermissionSysconsoleReadIntegrationsCors.Id, model.SystemUserRoleId)
-		defer th.RemovePermissionFromRole(model.PermissionSysconsoleReadIntegrationsCors.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteIntegrationsCors.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteIntegrationsCors.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionSysconsoleReadIntegrationsCors.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleReadIntegrationsCors.Id, model.SystemUserRoleId)
 
 		// try update a config value allowed by sysconsole WRITE integrations
 		mockVal := model.NewId()
@@ -423,7 +416,6 @@ func TestUpdateConfigWithoutManageSystemPermission(t *testing.T) {
 
 func TestUpdateConfigMessageExportSpecialHandling(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	messageExportEnabled := *th.App.Config().MessageExportSettings.EnableExport
 	messageExportTimestamp := *th.App.Config().MessageExportSettings.ExportFromTimestamp
@@ -491,7 +483,6 @@ func TestUpdateConfigMessageExportSpecialHandling(t *testing.T) {
 
 func TestUpdateConfigRestrictSystemAdmin(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
 	t.Run("Restrict flag should be honored for sysadmin", func(t *testing.T) {
@@ -542,7 +533,6 @@ func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
 
 	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
 	th := SetupWithServerOptions(t, options)
-	defer th.TearDown()
 
 	cfg, _, err := th.SystemAdminClient.GetConfig(context.Background())
 	require.NoError(t, err)
@@ -578,7 +568,6 @@ func TestGetEnvironmentConfig(t *testing.T) {
 	defer os.Unsetenv("MM_SERVICESETTINGS_ENABLECUSTOMEMOJI")
 
 	th := Setup(t)
-	defer th.TearDown()
 
 	t.Run("as system admin", func(t *testing.T) {
 		SystemAdminClient := th.SystemAdminClient
@@ -612,7 +601,7 @@ func TestGetEnvironmentConfig(t *testing.T) {
 
 	t.Run("as team admin", func(t *testing.T) {
 		TeamAdminClient := th.CreateClient()
-		th.LoginTeamAdminWithClient(TeamAdminClient)
+		th.LoginTeamAdminWithClient(t, TeamAdminClient)
 
 		envConfig, _, err := TeamAdminClient.GetEnvironmentConfig(context.Background())
 		require.NoError(t, err)
@@ -638,7 +627,6 @@ func TestGetEnvironmentConfig(t *testing.T) {
 
 func TestGetClientConfig(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	testKey := "supersecretkey"
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.GoogleDeveloperKey = testKey })
@@ -700,7 +688,6 @@ func TestGetClientConfig(t *testing.T) {
 
 func TestPatchConfig(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	// Ensure ConsoleLevel is set to DEBUG
 	config := model.Config{LogSettings: model.LogSettings{
@@ -902,8 +889,7 @@ func TestPatchConfig(t *testing.T) {
 }
 
 func TestMigrateConfig(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("LocalClient", func(t *testing.T) {
 		cfg := &model.Config{}

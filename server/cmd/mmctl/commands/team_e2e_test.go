@@ -18,7 +18,7 @@ import (
 )
 
 func (s *MmctlE2ETestSuite) TestRenameTeamCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.RunForAllClients("Error renaming team which does not exist", func(c client.Client) {
 		printer.Clean()
@@ -60,7 +60,7 @@ func (s *MmctlE2ETestSuite) TestRenameTeamCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestDeleteTeamsCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.RunForAllClients("Error deleting team which does not exist", func(c client.Client) {
 		printer.Clean()
@@ -125,6 +125,51 @@ func (s *MmctlE2ETestSuite) TestDeleteTeamsCmdF() {
 		config, _, _ = c.GetConfig(context.TODO())
 		config.ServiceSettings.EnableAPITeamDeletion = &enableConfig
 		_, _, _ = c.UpdateConfig(context.TODO(), config)
+
+		_, err = s.th.App.GetTeam(teamName)
+		s.Require().NotNil(err)
+	})
+
+	s.Run("Delete team with disabled config as local client", func() {
+		printer.Clean()
+
+		teamName := "teamname" + model.NewRandomString(10)
+		teamDisplayname := "Mock Display Name"
+		cmd := &cobra.Command{}
+		cmd.Flags().String("name", teamName, "")
+		cmd.Flags().String("display-name", teamDisplayname, "")
+		err := createTeamCmdF(s.th.LocalClient, cmd, []string{})
+		s.Require().Nil(err)
+
+		cmd = &cobra.Command{}
+		args := []string{teamName}
+		cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
+		cmd.Flags().Bool("confirm", true, "")
+
+		c := s.th.LocalClient
+
+		enableConfig := false
+		config, _, _ := c.GetConfig(context.TODO())
+		holdConfig := config.ServiceSettings.EnableAPITeamDeletion
+		// Set EnableAPITeamDeletion
+		config.ServiceSettings.EnableAPITeamDeletion = &enableConfig
+		_, _, _ = c.UpdateConfig(context.TODO(), config)
+
+		// Deletion should succeed for local client now
+		err = deleteTeamsCmdF(c, cmd, args)
+		s.Require().Nil(err)
+		team := printer.GetLines()[0].(*model.Team)
+		s.Equal(teamName, team.Name)
+		s.Len(printer.GetErrorLines(), 0)
+
+		// Reset config
+		config, _, _ = c.GetConfig(context.TODO())
+		config.ServiceSettings.EnableAPITeamDeletion = holdConfig
+		_, _, _ = c.UpdateConfig(context.TODO(), config)
+
+		// expect team is deleted
+		_, err = s.th.App.GetTeam(teamName)
+		s.Require().NotNil(err)
 	})
 
 	s.Run("Permission denied error for system admin when deleting a valid team", func() {
@@ -140,7 +185,7 @@ func (s *MmctlE2ETestSuite) TestDeleteTeamsCmdF() {
 		s.Require().Error(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
-		s.Equal("Unable to delete team '"+s.th.BasicTeam.Name+"' error: Permanent team deletion feature is not enabled. Please contact your System Administrator.", printer.GetErrorLines()[0])
+		s.Equal("Unable to delete team '"+s.th.BasicTeam.Name+"' error: Permanent team deletion feature is not enabled. ServiceSettings.EnableAPITeamDeletion must be set to true to use this command. See https://mattermost.com/pl/environment-configuration-settings for more information.", printer.GetErrorLines()[0])
 
 		// verify team still exists
 		team, _ := s.th.App.GetTeam(s.th.BasicTeam.Id)
@@ -157,7 +202,7 @@ func (s *MmctlE2ETestSuite) TestDeleteTeamsCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestModifyTeamsCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.RunForSystemAdminAndLocal("system & local accounts can set a team to private", func(c client.Client) {
 		printer.Clean()
@@ -199,7 +244,7 @@ func (s *MmctlE2ETestSuite) TestModifyTeamsCmdF() {
 		teamID := s.th.BasicTeam.Id
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("private", true, "")
-		s.th.LoginBasic2()
+		s.th.LoginBasic2(s.T())
 		err := modifyTeamsCmdF(s.th.Client, cmd, []string{teamID})
 
 		expectedError := fmt.Sprintf("Unable to modify team '%s' error: You do not have the appropriate permissions.", s.th.BasicTeam.Name)
@@ -215,7 +260,7 @@ func (s *MmctlE2ETestSuite) TestModifyTeamsCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestTeamCreateCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.RunForAllClients("Should not create a team w/o name", func(c client.Client) {
 		printer.Clean()
@@ -323,7 +368,7 @@ func (s *MmctlE2ETestSuite) TestTeamCreateCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestSearchTeamCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.RunForSystemAdminAndLocal("Search for existing team", func(c client.Client) {
 		printer.Clean()
@@ -358,7 +403,7 @@ func (s *MmctlE2ETestSuite) TestSearchTeamCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestArchiveTeamsCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	cmd := &cobra.Command{}
 	cmd.Flags().Bool("confirm", true, "Confirm you really want to archive the team and a DB backup has been performed.")
@@ -407,7 +452,7 @@ func (s *MmctlE2ETestSuite) TestArchiveTeamsCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestListTeamsCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 	mockTeamName := "mockteam" + model.NewId()
 	mockTeamDisplayname := "mockteam_display"
 	_, err := s.th.App.CreateTeam(s.th.Context, &model.Team{Name: mockTeamName, DisplayName: mockTeamDisplayname, Type: model.TeamOpen, DeleteAt: 1})
@@ -436,12 +481,12 @@ func (s *MmctlE2ETestSuite) TestListTeamsCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestRestoreTeamsCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.RunForAllClients("Restore team", func(c client.Client) {
 		printer.Clean()
 
-		team := s.th.CreateTeam()
+		team := s.th.CreateTeam(s.T())
 		appErr := s.th.App.SoftDeleteTeam(team.Id)
 		s.Require().Nil(appErr)
 
@@ -469,7 +514,7 @@ func (s *MmctlE2ETestSuite) TestRestoreTeamsCmd() {
 	s.Run("Restore team without permissions", func() {
 		printer.Clean()
 
-		team := s.th.CreateTeamWithClient(s.th.SystemAdminClient)
+		team := s.th.CreateTeamWithClient(s.T(), s.th.SystemAdminClient)
 		appErr := s.th.App.SoftDeleteTeam(team.Id)
 		s.Require().Nil(appErr)
 

@@ -1161,3 +1161,175 @@
           $ref: "#/components/responses/NotFound"
         "501":
           $ref: "#/components/responses/NotImplemented"
+
+  "/api/v4/posts/{post_id}/reveal":
+    get:
+      tags:
+        - posts
+      summary: Reveal a burn-on-read post
+      description: >
+        Reveal a burn-on-read post. This endpoint allows a user to reveal a post
+        that was created with burn-on-read functionality. Once revealed, the post
+        content becomes visible to the user. If the post is already revealed and
+        not expired, this is a no-op. If the post has expired, an error will be returned.
+
+        ##### Permissions
+
+        Must have `read_channel` permission for the channel the post is in.<br/>
+        Must be a member of the channel the post is in.<br/>
+        Cannot reveal your own post.
+
+        ##### Feature Flag
+
+        Requires `BurnOnRead` feature flag and Enterprise Advanced license.
+
+        __Minimum server version__: 11.2
+      operationId: RevealPost
+      parameters:
+        - name: post_id
+          in: path
+          description: The identifier of the post to reveal
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Post revealed successfully
+          headers:
+            Has-Inaccessible-Posts:
+              schema:
+                type: boolean
+              description: This header is included with the value "true" if the post is past the cloud's plan limit.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Post"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+
+  "/api/v4/posts/{post_id}/burn":
+    delete:
+      tags:
+        - posts
+      summary: Burn a burn-on-read post
+      description: >
+        Burn a burn-on-read post. This endpoint allows a user to burn a post that
+        was created with burn-on-read functionality. If the user is the author of
+        the post, the post will be permanently deleted. If the user is not the author,
+        the post will be expired for that user by updating their read receipt expiration
+        time. If the user has not revealed the post yet, an error will be returned.
+        If the post is already expired for the user, this is a no-op.
+
+        ##### Permissions
+
+        Must have `read_channel` permission for the channel the post is in.<br/>
+        Must be a member of the channel the post is in.
+
+        ##### Feature Flag
+
+        Requires `BurnOnRead` feature flag and Enterprise Advanced license.
+
+        __Minimum server version__: 11.2
+      operationId: BurnPost
+      parameters:
+        - name: post_id
+          in: path
+          description: The identifier of the post to burn
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Post burned successfully
+          headers:
+            Has-Inaccessible-Posts:
+              schema:
+                type: boolean
+              description: This header is included with the value "true" if the post is past the cloud's plan limit.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+
+  "/api/v4/posts/rewrite":
+    post:
+      tags:
+        - posts
+      summary: Rewrite a message using AI
+      description: >
+        Rewrite a message using AI based on the specified action. The message will be
+        processed by an AI agent and returned in a rewritten form.
+
+        ##### Permissions
+
+        Must be authenticated.
+
+        __Minimum server version__: 11.2
+      operationId: RewriteMessage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - agent_id
+                - message
+                - action
+              properties:
+                agent_id:
+                  type: string
+                  description: The ID of the AI agent to use for rewriting
+                message:
+                  type: string
+                  description: The message text to rewrite
+                action:
+                  type: string
+                  description: The rewrite action to perform
+                  enum:
+                    - custom
+                    - shorten
+                    - elaborate
+                    - improve_writing
+                    - fix_spelling
+                    - simplify
+                    - summarize
+                custom_prompt:
+                  type: string
+                  description: Custom prompt for rewriting. Required when action is "custom", optional otherwise.
+        description: Rewrite request object
+        required: true
+      responses:
+        "200":
+          description: Message rewritten successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rewritten_text:
+                    type: string
+                    description: The rewritten message text
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"

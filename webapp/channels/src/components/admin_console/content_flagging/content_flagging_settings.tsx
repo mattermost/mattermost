@@ -128,16 +128,19 @@ export default function ContentFlaggingSettings() {
                         id='ReviewerSettings'
                         onChange={handleSettingsChange}
                         value={contentFlaggingSettings!.ReviewerSettings}
+                        disabled={!contentFlaggingSettings.EnableContentFlagging}
                     />
                     <ContentFlaggingNotificationSettingsSection
                         id='NotificationSettings'
                         onChange={handleSettingsChange}
                         value={contentFlaggingSettings!.NotificationSettings}
+                        disabled={!contentFlaggingSettings.EnableContentFlagging}
                     />
                     <ContentFlaggingAdditionalSettingsSection
                         id='AdditionalSettings'
                         onChange={handleSettingsChange}
                         value={contentFlaggingSettings!.AdditionalSettings}
+                        disabled={!contentFlaggingSettings.EnableContentFlagging}
                     />
                 </div>
             </div>

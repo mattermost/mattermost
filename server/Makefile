@@ -152,29 +152,29 @@ TEMPLATES_DIR=templates
 
 # Plugins Packages
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
-PLUGIN_PACKAGES += mattermost-plugin-calls-v1.10.0
+PLUGIN_PACKAGES += mattermost-plugin-calls-v1.11.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.5.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.11.0
-PLUGIN_PACKAGES += mattermost-plugin-jira-v4.4.0
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.5.0
-PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
-PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.10.0
-PLUGIN_PACKAGES += mattermost-plugin-agents-v1.4.0
-PLUGIN_PACKAGES += mattermost-plugin-boards-v9.1.7
+PLUGIN_PACKAGES += mattermost-plugin-jira-v4.5.0
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.6.1
+PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.4.0
+PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.11.0
+PLUGIN_PACKAGES += mattermost-plugin-agents-v1.7.2
+PLUGIN_PACKAGES += mattermost-plugin-boards-v9.2.1
 PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
-PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.3.4
+PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.5.0
 PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.3.0
 PLUGIN_PACKAGES += mattermost-plugin-metrics-v0.7.0
-PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.2.1
+PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.3.0
 
 # Overwrite the definition of PLUGIN_PACKAGES with the list of FIPS-ready plugins
 # Note that the '+' in the file name is encoded as %2B for the URL we use to
 # download the package from to work. This will no longer be needed when we unify
 # the way we pre-package FIPS and non-FIPS plugins.
 ifeq ($(FIPS_ENABLED),true)
-	PLUGIN_PACKAGES  = mattermost-plugin-playbooks-v2.5.0%2Bc140653-fips
-	PLUGIN_PACKAGES += mattermost-plugin-agents-v1.4.0%2B2f27b68-fips
-	PLUGIN_PACKAGES += mattermost-plugin-boards-v9.1.7%2Ba980cd2-fips
+	PLUGIN_PACKAGES  = mattermost-plugin-playbooks-v2.6.1%2B0e01d28-fips
+	PLUGIN_PACKAGES += mattermost-plugin-agents-v1.7.2%2B866e2dd-fips
+	PLUGIN_PACKAGES += mattermost-plugin-boards-v9.2.1%2Bdf49b26-fips
 endif
 
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
@@ -322,20 +322,11 @@ golang-versions: ## Install Golang versions used for compatibility testing (e.g.
 	export GO_COMPATIBILITY_TEST_VERSIONS="${GO_COMPATIBILITY_TEST_VERSIONS}"
 
 golangci-lint: ## Run golangci-lint on codebase
-	$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.5.0
+	$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.6.0
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	$(GOBIN)/golangci-lint run ./... ./public/... $(BUILD_ENTERPRISE_DIR)/...
 else
 	$(GOBIN)/golangci-lint run ./... ./public/...
-endif
-
-modernize: ## Run modernize linter on codebase
-## https://pkg.go.dev/golang.org/x/tools/gopls/internal/analysis/modernize is not support in golangci-lint.
-## We need to invoke it directly.
-ifeq ($(BUILD_ENTERPRISE_READY),true)
-	go run golang.org/x/tools/gopls/internal/analysis/modernize/cmd/modernize@v0.19.1 -test ./... ./public/... $(BUILD_ENTERPRISE_DIR)/...
-else
-	go run golang.org/x/tools/gopls/internal/analysis/modernize/cmd/modernize@v0.19.1 -test ./... ./public/...
 endif
 
 i18n-extract: ## Extract strings for translation from the source code
@@ -431,7 +422,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 endif
 endif
 
-check-style: plugin-checker vet modernize golangci-lint ## Runs style/lint checks
+check-style: plugin-checker vet golangci-lint ## Runs style/lint checks
 
 gotestsum:
 	$(GO) install gotest.tools/gotestsum@v1.11.0
@@ -461,9 +452,9 @@ test-server-race: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-server-race: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-server-race: test-server-pre
 ifeq ($(IS_CI),true)
-	GOMAXPROCS=4 $(GOBIN)/gotestsum --rerun-fails=3 --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- -race $(GOFLAGS) -timeout=2h
+	GOMAXPROCS=4 $(GOBIN)/gotestsum --rerun-fails=3 --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- -race $(GOFLAGS) -timeout=3h
 else
-	$(GOBIN)/gotestsum --rerun-fails=3 --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- -race $(GOFLAGS) -timeout=2h
+	$(GOBIN)/gotestsum --rerun-fails=3 --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- -race $(GOFLAGS) -timeout=3h
 endif
 ifneq ($(IS_CI),true)
   ifneq ($(MM_NO_DOCKER),true)

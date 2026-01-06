@@ -253,12 +253,7 @@ func (srv *JobServer) RequestCancellation(rctx request.CTX, jobId string) *model
 	}
 	if newJob != nil {
 		if srv.metrics != nil {
-			job, err := srv.GetJob(rctx, jobId)
-			if err != nil {
-				return model.NewAppError("RequestCancellation", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-			}
-
-			srv.metrics.DecrementJobActive(job.Type)
+			srv.metrics.DecrementJobActive(newJob.Type)
 		}
 
 		return nil

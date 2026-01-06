@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/marketplace/ doesn't show web marketplace banner in FeatureFlags.StreamlinedMarketplace for Cloud 1`] = `
 <Modal

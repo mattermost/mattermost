@@ -3,8 +3,9 @@
 
 /* eslint-disable max-lines */
 
-import type {AccessControlPolicy, CELExpressionError, AccessControlTestResult, AccessControlPoliciesResult, AccessControlPolicyChannelsResult, AccessControlVisualAST, AccessControlAttributes} from '@mattermost/types/access_control';
+import type {AccessControlPolicy, CELExpressionError, AccessControlTestResult, AccessControlPoliciesResult, AccessControlPolicyChannelsResult, AccessControlVisualAST, AccessControlAttributes, AccessControlPolicyActiveUpdate} from '@mattermost/types/access_control';
 import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery} from '@mattermost/types/admin';
+import type {Agent} from '@mattermost/types/agents';
 import type {AppBinding, AppCallRequest, AppCallResponse} from '@mattermost/types/apps';
 import type {Audit} from '@mattermost/types/audits';
 import type {UserAutocomplete, AutocompleteSuggestion} from '@mattermost/types/autocomplete';
@@ -455,6 +456,14 @@ export default class Client4 {
         return `${this.getBaseRoute()}/plugins`;
     }
 
+    getAgentsRoute() {
+        return `${this.getBaseRoute()}/agents`;
+    }
+
+    getLLMServicesRoute() {
+        return `${this.getBaseRoute()}/llmservices`;
+    }
+
     getPluginRoute(pluginId: string) {
         return `${this.getPluginsRoute()}/${pluginId}`;
     }
@@ -829,6 +838,28 @@ export default class Client4 {
         );
     };
 
+    loginWithMagicLink = (token: string) => {
+        const body = {
+            token,
+        };
+
+        return this.doFetch<UserProfile>(
+            `${this.getUsersRoute()}/login/one_time_link`,
+            {method: 'post', body: JSON.stringify(body)},
+        );
+    };
+
+    getUserLoginType = (loginId: string) => {
+        const body = {
+            login_id: loginId,
+        };
+
+        return this.doFetch<{auth_service: 'magic_link' | ''; is_deactivated: boolean }>(
+            `${this.getUsersRoute()}/login/type`,
+            {method: 'post', body: JSON.stringify(body)},
+        );
+    };
+
     logout = async () => {
         const {response} = await this.doFetchWithResponse(
             `${this.getUsersRoute()}/logout`,
@@ -1171,10 +1202,25 @@ export default class Client4 {
         );
     };
 
-    authorizeOAuthApp = (responseType: string, clientId: string, redirectUri: string, state: string, scope: string) => {
+    authorizeOAuthApp = (responseType: string, clientId: string, redirectUri: string, state: string, scope: string, resource?: string, codeChallenge?: string, codeChallengeMethod?: string) => {
+        const body: any = {client_id: clientId, response_type: responseType, redirect_uri: redirectUri, state, scope};
+
+        // Include resource parameter if provided
+        if (resource) {
+            body.resource = resource;
+        }
+
+        // Include PKCE parameters if provided
+        if (codeChallenge) {
+            body.code_challenge = codeChallenge;
+        }
+        if (codeChallengeMethod) {
+            body.code_challenge_method = codeChallengeMethod;
+        }
+
         return this.doFetch<void>(
             `${this.url}/oauth/authorize`,
-            {method: 'post', body: JSON.stringify({client_id: clientId, response_type: responseType, redirect_uri: redirectUri, state, scope})},
+            {method: 'post', body: JSON.stringify(body)},
         );
     };
 
@@ -1530,9 +1576,13 @@ export default class Client4 {
         );
     };
 
-    sendEmailGuestInvitesToChannelsGracefully = async (teamId: string, channelIds: string[], emails: string[], message: string) => {
+    sendEmailGuestInvitesToChannelsGracefully = async (teamId: string, channelIds: string[], emails: string[], message: string, guestMagicLink = false) => {
+        const queryParams = new URLSearchParams({graceful: 'true'});
+        if (guestMagicLink) {
+            queryParams.append('guest_magic_link', 'true');
+        }
         return this.doFetch<TeamInviteWithError[]>(
-            `${this.getTeamRoute(teamId)}/invite-guests/email?graceful=true`,
+            `${this.getTeamRoute(teamId)}/invite-guests/email?${queryParams.toString()}`,
             {method: 'post', body: JSON.stringify({emails, channels: channelIds, message})},
         );
     };
@@ -2255,6 +2305,20 @@ export default class Client4 {
     deletePost = (postId: string) => {
         return this.doFetch<StatusOK>(
             `${this.getPostRoute(postId)}`,
+            {method: 'delete'},
+        );
+    };
+
+    revealBurnOnReadPost = (postId: string) => {
+        return this.doFetch<Post>(
+            `${this.getPostRoute(postId)}/reveal`,
+            {method: 'get'},
+        );
+    };
+
+    burnPostNow = (postId: string) => {
+        return this.doFetch(
+            `${this.getPostRoute(postId)}/burn`,
             {method: 'delete'},
         );
     };
@@ -3283,6 +3347,14 @@ export default class Client4 {
         );
     };
 
+    // Agent Routes
+    getAgents = () => {
+        return this.doFetch<Agent[]>(
+            `${this.getAgentsRoute()}`,
+            {method: 'get'},
+        );
+    };
+
     getEnvironmentConfig = () => {
         return this.doFetch<EnvironmentConfig>(
             `${this.getBaseRoute()}/config/environment`,
@@ -4304,6 +4376,13 @@ export default class Client4 {
         );
     };
 
+    getAIRewrittenMessage = (agentId: string, message: string, action?: string, customPrompt?: string) => {
+        return this.doFetch<{rewritten_text: string; changes_made: string[]}>(
+            `${this.getPostsRoute()}/rewrite`,
+            {method: 'post', body: JSON.stringify({agent_id: agentId, message, action, custom_prompt: customPrompt})},
+        ).then((response) => response.rewritten_text);
+    };
+
     // Client Helpers
 
     protected doFetch = async <ClientDataResponse>(url: string, options: Options): Promise<ClientDataResponse> => {
@@ -4643,6 +4722,13 @@ export default class Client4 {
         return this.doFetch<AccessControlAttributes>(
             `${this.getChannelRoute(channelId)}/access_control/attributes`,
             {method: 'get'},
+        );
+    };
+
+    updateAccessControlPoliciesActive = (states: AccessControlPolicyActiveUpdate[]) => {
+        return this.doFetch<AccessControlPolicy[]>(
+            `${this.getBaseRoute()}/access_control_policies/activate`,
+            {method: 'put', body: JSON.stringify({entries: states})},
         );
     };
 

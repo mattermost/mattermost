@@ -18,7 +18,7 @@ import (
 )
 
 // setupDataBulkClient creates a test data bulk client with common setup
-func setupDataBulkClient(t *testing.T, flushBytes int, flushInterval time.Duration) (*DataBulkClient, *api4.TestHelper) {
+func setupDataBulkClient(t *testing.T, flushBytes int, flushInterval time.Duration) *DataBulkClient {
 	th := api4.SetupEnterprise(t)
 
 	client := createTestClient(t, th.Context, th.App.Config(), th.App.FileBackend())
@@ -33,7 +33,7 @@ func setupDataBulkClient(t *testing.T, flushBytes int, flushInterval time.Durati
 		th.Server.Platform().Log())
 	require.NoError(t, err)
 
-	return bulkClient, th
+	return bulkClient
 }
 
 func flushAndGetStats(t *testing.T, b *DataBulkClient) esutil.BulkIndexerStats {
@@ -56,8 +56,7 @@ func flushAndGetStats(t *testing.T, b *DataBulkClient) esutil.BulkIndexerStats {
 
 func TestDataIndexOp(t *testing.T) {
 	t.Run("single index operation", func(t *testing.T) {
-		bulkClient, th := setupDataBulkClient(t, 1024*1024, 0) // 1MB flush threshold
-		defer th.TearDown()
+		bulkClient := setupDataBulkClient(t, 1024*1024, 0) // 1MB flush threshold
 		t.Cleanup(func() {
 			err := bulkClient.Stop()
 			require.NoError(t, err)
@@ -82,8 +81,7 @@ func TestDataIndexOp(t *testing.T) {
 	})
 
 	t.Run("multiple index operations", func(t *testing.T) {
-		bulkClient, th := setupDataBulkClient(t, 1024*1024, 0) // 1MB flush threshold
-		defer th.TearDown()
+		bulkClient := setupDataBulkClient(t, 1024*1024, 0) // 1MB flush threshold
 		t.Cleanup(func() {
 			err := bulkClient.Stop()
 			require.NoError(t, err)
@@ -108,8 +106,7 @@ func TestDataIndexOp(t *testing.T) {
 	})
 
 	t.Run("index operation with json.RawMessage", func(t *testing.T) {
-		bulkClient, th := setupDataBulkClient(t, 1024*1024, 0) // 1MB flush threshold
-		defer th.TearDown()
+		bulkClient := setupDataBulkClient(t, 1024*1024, 0) // 1MB flush threshold
 		t.Cleanup(func() {
 			err := bulkClient.Stop()
 			require.NoError(t, err)
@@ -134,8 +131,7 @@ func TestDataIndexOp(t *testing.T) {
 	})
 
 	t.Run("index operation with byte slice", func(t *testing.T) {
-		bulkClient, th := setupDataBulkClient(t, 1024*1024, 0) // 1MB flush threshold
-		defer th.TearDown()
+		bulkClient := setupDataBulkClient(t, 1024*1024, 0) // 1MB flush threshold
 		t.Cleanup(func() {
 			err := bulkClient.Stop()
 			require.NoError(t, err)
@@ -162,8 +158,7 @@ func TestDataIndexOp(t *testing.T) {
 
 func TestDataDeleteOp(t *testing.T) {
 	t.Run("single delete operation", func(t *testing.T) {
-		bulkClient, th := setupDataBulkClient(t, 1024*1024, 0) // 1MB flush threshold
-		defer th.TearDown()
+		bulkClient := setupDataBulkClient(t, 1024*1024, 0) // 1MB flush threshold
 		t.Cleanup(func() {
 			err := bulkClient.Stop()
 			require.NoError(t, err)
@@ -197,8 +192,7 @@ func TestDataDeleteOp(t *testing.T) {
 	})
 
 	t.Run("multiple delete operations", func(t *testing.T) {
-		bulkClient, th := setupDataBulkClient(t, 1024*1024, 0) // 1MB flush threshold
-		defer th.TearDown()
+		bulkClient := setupDataBulkClient(t, 1024*1024, 0) // 1MB flush threshold
 		t.Cleanup(func() {
 			err := bulkClient.Stop()
 			require.NoError(t, err)
@@ -240,8 +234,7 @@ func TestDataDeleteOp(t *testing.T) {
 
 func TestDataFlush(t *testing.T) {
 	t.Run("flush with pending operations", func(t *testing.T) {
-		bulkClient, th := setupDataBulkClient(t, 1024*1024, 0) // 1MB flush threshold
-		defer th.TearDown()
+		bulkClient := setupDataBulkClient(t, 1024*1024, 0) // 1MB flush threshold
 		t.Cleanup(func() {
 			err := bulkClient.Stop()
 			require.NoError(t, err)
@@ -260,8 +253,7 @@ func TestDataFlush(t *testing.T) {
 	})
 
 	t.Run("flush with no pending operations", func(t *testing.T) {
-		bulkClient, th := setupDataBulkClient(t, 1024*1024, 0) // 1MB flush threshold
-		defer th.TearDown()
+		bulkClient := setupDataBulkClient(t, 1024*1024, 0) // 1MB flush threshold
 		t.Cleanup(func() {
 			err := bulkClient.Stop()
 			require.NoError(t, err)
@@ -274,8 +266,7 @@ func TestDataFlush(t *testing.T) {
 
 func TestDataStop(t *testing.T) {
 	t.Run("stop with pending operations", func(t *testing.T) {
-		bulkClient, th := setupDataBulkClient(t, 1024*1024, 0) // 1MB flush threshold
-		defer th.TearDown()
+		bulkClient := setupDataBulkClient(t, 1024*1024, 0) // 1MB flush threshold
 
 		post := createTestPost(t, "test message")
 
@@ -290,16 +281,14 @@ func TestDataStop(t *testing.T) {
 	})
 
 	t.Run("stop with no pending operations", func(t *testing.T) {
-		bulkClient, th := setupDataBulkClient(t, 1024*1024, 0) // 1MB flush threshold
-		defer th.TearDown()
+		bulkClient := setupDataBulkClient(t, 1024*1024, 0) // 1MB flush threshold
 
 		err := bulkClient.Stop()
 		require.NoError(t, err)
 	})
 
 	t.Run("stop with periodic flusher", func(t *testing.T) {
-		bulkClient, th := setupDataBulkClient(t, 1024*1024, 100*time.Millisecond)
-		defer th.TearDown()
+		bulkClient := setupDataBulkClient(t, 1024*1024, 100*time.Millisecond)
 
 		post := createTestPost(t, "test message")
 
@@ -317,7 +306,6 @@ func TestDataStop(t *testing.T) {
 
 func TestDataNewDataBulkClient(t *testing.T) {
 	th := api4.SetupEnterprise(t)
-	defer th.TearDown()
 
 	client := createTestClient(t, th.Context, th.App.Config(), th.App.FileBackend())
 

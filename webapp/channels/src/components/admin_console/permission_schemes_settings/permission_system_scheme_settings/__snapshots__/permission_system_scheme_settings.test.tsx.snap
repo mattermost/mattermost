@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/admin_console/permission_schemes_settings/permission_system_scheme_settings/permission_system_scheme_settings should match snapshot on roles with permissions 1`] = `<LoadingScreen />`;
 

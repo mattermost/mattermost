@@ -44,10 +44,12 @@ import DeletePostConfirmationDialog from './channels/delete_post_confirmation_di
 import RestorePostConfirmationDialog from './channels/restore_post_confirmation_dialog';
 import SystemConsoleFeatureDiscovery from './system_console/sections/system_users/feature_discovery';
 import SystemConsoleMobileSecurity from './system_console/sections/system_users/mobile_security';
+import SystemConsoleNotifications from './system_console/sections/site_configuration/notifications';
 import ScheduledPost from './channels/scheduled_post';
 import SendMessageNowModal from './channels/send_message_now_modal';
 import DeleteScheduledPostModal from './channels/delete_scheduled_post_modal';
 import DraftPost from './channels/draft_post';
+import FlagPostConfirmationDialog from './channels/flag_post_confirmation_dialog';
 
 const components = {
     GlobalHeader,
@@ -63,6 +65,7 @@ const components = {
     ChannelSettingsModal,
     DraftPost,
     FindChannelsModal,
+    FlagPostConfirmationDialog,
     DeletePostModal,
     DeleteScheduledPostModal,
     InvitePeopleModal,
@@ -89,6 +92,7 @@ const components = {
     SystemUsersColumnToggleMenu,
     SystemConsoleFeatureDiscovery,
     SystemConsoleMobileSecurity,
+    SystemConsoleNotifications,
     MessagePriority,
     UserProfilePopover,
     UserAccountMenu,
@@ -114,6 +118,7 @@ export {
     ChannelSettingsModal,
     DraftPost,
     FindChannelsModal,
+    FlagPostConfirmationDialog,
     DeletePostModal,
     DeleteScheduledPostModal,
     InvitePeopleModal,
@@ -140,6 +145,7 @@ export {
     SystemUsersColumnToggleMenu,
     SystemConsoleFeatureDiscovery,
     SystemConsoleMobileSecurity,
+    SystemConsoleNotifications,
     MessagePriority,
     UserProfilePopover,
     UserAccountMenu,

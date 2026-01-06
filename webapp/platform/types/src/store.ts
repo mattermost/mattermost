@@ -45,6 +45,15 @@ export type GlobalState = {
         channelBookmarks: ChannelBookmarksState;
         posts: PostsState;
         threads: ThreadsState;
+        agents: {
+            agents: Array<{
+                id: string;
+                displayName: string;
+                username: string;
+                service_id: string;
+                service_type: string;
+            }>;
+        };
         bots: {
             accounts: Record<string, Bot>;
         };

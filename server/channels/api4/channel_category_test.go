@@ -19,8 +19,7 @@ import (
 
 func TestCreateCategoryForTeamForUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("should silently prevent the user from creating a category with an invalid channel ID", func(t *testing.T) {
 		user, client := setupUserForSubtest(t, th)
@@ -124,7 +123,7 @@ func TestCreateCategoryForTeamForUser(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		th.LinkUserToTeam(user, team)
+		th.LinkUserToTeam(t, user, team)
 
 		// Create a client and log in
 		client := th.CreateClient()
@@ -209,8 +208,7 @@ func TestCreateCategoryForTeamForUser(t *testing.T) {
 
 func TestUpdateCategoryForTeamForUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("should update the channel order of the Channels category", func(t *testing.T) {
 		user, client := setupUserForSubtest(t, th)
@@ -512,7 +510,7 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		th.LinkUserToTeam(user, team)
+		th.LinkUserToTeam(t, user, team)
 
 		// Create a client and log in
 		client := th.CreateClient()
@@ -549,8 +547,7 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 
 func TestUpdateCategoriesForTeamForUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("should silently prevent the user from adding an invalid channel ID", func(t *testing.T) {
 		user, client := setupUserForSubtest(t, th)
@@ -662,7 +659,7 @@ func TestUpdateCategoriesForTeamForUser(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		th.LinkUserToTeam(user, team)
+		th.LinkUserToTeam(t, user, team)
 
 		// Create a client and log in
 		client := th.CreateClient()
@@ -701,8 +698,7 @@ func TestUpdateCategoriesForTeamForUser(t *testing.T) {
 
 func TestGetCategoriesForTeamForUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("should return categories when user has permission", func(t *testing.T) {
 		// Get categories for the basic user
@@ -782,8 +778,7 @@ func TestGetCategoriesForTeamForUser(t *testing.T) {
 
 func TestGetCategoryOrderForTeamForUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("should return category order when user has permission", func(t *testing.T) {
 		// Get categories first to ensure order exists
@@ -856,7 +851,7 @@ func TestGetCategoryOrderForTeamForUser(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		th.LinkUserToTeam(user, team)
+		th.LinkUserToTeam(t, user, team)
 
 		// Create a client and log in
 		client := th.CreateClient()
@@ -880,8 +875,7 @@ func TestGetCategoryOrderForTeamForUser(t *testing.T) {
 
 func TestUpdateCategoryOrderForTeamForUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("should update order", func(t *testing.T) {
 		user, client := setupUserForSubtest(t, th)
@@ -1014,7 +1008,7 @@ func TestUpdateCategoryOrderForTeamForUser(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		th.LinkUserToTeam(user, team)
+		th.LinkUserToTeam(t, user, team)
 
 		// Create a client and log in
 		client := th.CreateClient()
@@ -1039,8 +1033,7 @@ func TestUpdateCategoryOrderForTeamForUser(t *testing.T) {
 
 func TestGetCategoryForTeamForUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("should return category when user has permission", func(t *testing.T) {
 		user, client := setupUserForSubtest(t, th)
@@ -1153,7 +1146,7 @@ func TestGetCategoryForTeamForUser(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		th.LinkUserToTeam(user, team)
+		th.LinkUserToTeam(t, user, team)
 
 		// Create a client and log in
 		client := th.CreateClient()
@@ -1181,8 +1174,7 @@ func TestGetCategoryForTeamForUser(t *testing.T) {
 
 func TestValidateSidebarCategory(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	// Create a test context with logger once for all subtests
 	c := &Context{
@@ -1304,8 +1296,7 @@ func TestValidateSidebarCategory(t *testing.T) {
 
 func TestValidateSidebarCategoryChannels(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	// Create a test context with logger once for all subtests
 	c := &Context{
@@ -1390,8 +1381,7 @@ func TestValidateSidebarCategoryChannels(t *testing.T) {
 
 func TestDeleteCategoryForTeamForUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	t.Run("should move channels to default categories when custom category is deleted", func(t *testing.T) {
 		user, client := setupUserForSubtest(t, th)
 
@@ -1577,7 +1567,7 @@ func TestDeleteCategoryForTeamForUser(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		th.LinkUserToTeam(user, team)
+		th.LinkUserToTeam(t, user, team)
 
 		// Create a client and log in
 		client := th.CreateClient()
@@ -1616,10 +1606,10 @@ func setupUserForSubtest(t *testing.T, th *TestHelper) (*model.User, *model.Clie
 	})
 	require.Nil(t, appErr)
 
-	th.LinkUserToTeam(user, th.BasicTeam)
-	th.AddUserToChannel(user, th.BasicChannel)
-	th.AddUserToChannel(user, th.BasicChannel2)
-	th.AddUserToChannel(user, th.BasicPrivateChannel)
+	th.LinkUserToTeam(t, user, th.BasicTeam)
+	th.AddUserToChannel(t, user, th.BasicChannel)
+	th.AddUserToChannel(t, user, th.BasicChannel2)
+	th.AddUserToChannel(t, user, th.BasicPrivateChannel)
 
 	client := th.CreateClient()
 	user, _, err := client.Login(context.Background(), user.Email, password)

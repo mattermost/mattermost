@@ -430,6 +430,19 @@ type LookupDialogResponse struct {
 	Items []DialogSelectOption `json:"items"`
 }
 
+// signForGenerateTriggerId wraps the signing operation with panic recovery
+// to handle invalid signers that may cause panics in the crypto package
+func signForGenerateTriggerId(s crypto.Signer, digest []byte, opts crypto.SignerOpts) (signature []byte, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			signature = nil
+			err = fmt.Errorf("invalid signing key: %v", r)
+		}
+	}()
+
+	return s.Sign(rand.Reader, digest, opts)
+}
+
 func GenerateTriggerId(userId string, s crypto.Signer) (string, string, *AppError) {
 	clientTriggerId := NewId()
 	triggerData := strings.Join([]string{clientTriggerId, userId, strconv.FormatInt(GetMillis(), 10)}, ":") + ":"
@@ -437,7 +450,7 @@ func GenerateTriggerId(userId string, s crypto.Signer) (string, string, *AppErro
 	h := crypto.SHA256
 	sum := h.New()
 	sum.Write([]byte(triggerData))
-	signature, err := s.Sign(rand.Reader, sum.Sum(nil), h)
+	signature, err := signForGenerateTriggerId(s, sum.Sum(nil), h)
 	if err != nil {
 		return "", "", NewAppError("GenerateTriggerId", "interactive_message.generate_trigger_id.signing_failed", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
