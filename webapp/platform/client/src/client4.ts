@@ -12,6 +12,7 @@ import type {UserAutocomplete, AutocompleteSuggestion} from '@mattermost/types/a
 import type {Bot, BotPatch} from '@mattermost/types/bots';
 import type {ChannelBookmark, ChannelBookmarkCreate, ChannelBookmarkPatch} from '@mattermost/types/channel_bookmarks';
 import type {ChannelCategory, OrderedChannelCategories} from '@mattermost/types/channel_categories';
+import type {GetRelatedChannelsResponse} from '@mattermost/types/channel_relationships';
 import type {
     Channel,
     ChannelMemberCountsByGroup,
@@ -334,6 +335,10 @@ export default class Client4 {
     }
     getChannelBookmarkRoute(channelId: string, bookmarkId: string) {
         return `${this.getChannelRoute(channelId)}/bookmarks/${bookmarkId}`;
+    }
+
+    getChannelRelationshipsRoute(channelId: string) {
+        return `${this.getChannelRoute(channelId)}/relationships`;
     }
 
     getChannelCategoriesRoute(userId: string, teamId: string) {
@@ -2046,6 +2051,15 @@ export default class Client4 {
         return this.doFetch<ChannelBookmark[]>(
             `${this.getChannelBookmarksRoute(channelId)}/${channelBookmarkId}/sort_order`,
             {method: 'post', body: JSON.stringify(newOrder), headers: {'Connection-Id': connectionId}},
+        );
+    };
+
+    // Channel Relationship Routes
+
+    getChannelRelationships = (channelId: string) => {
+        return this.doFetch<GetRelatedChannelsResponse>(
+            `${this.getChannelRelationshipsRoute(channelId)}`,
+            {method: 'get'},
         );
     };
 

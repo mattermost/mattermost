@@ -89,6 +89,7 @@ type Store interface {
 	PostPersistentNotification() PostPersistentNotificationStore
 	DesktopTokens() DesktopTokensStore
 	ChannelBookmark() ChannelBookmarkStore
+	ChannelRelationship() ChannelRelationshipStore
 	ScheduledPost() ScheduledPostStore
 	PropertyGroup() PropertyGroupStore
 	PropertyField() PropertyFieldStore
@@ -1096,6 +1097,15 @@ type ChannelBookmarkStore interface {
 	UpdateSortOrder(bookmarkID, channelID string, newIndex int64) ([]*model.ChannelBookmarkWithFileInfo, error)
 	Delete(bookmarkID string, deleteFile bool) error
 	GetBookmarksForChannelSince(channelID string, since int64) ([]*model.ChannelBookmarkWithFileInfo, error)
+}
+
+type ChannelRelationshipStore interface {
+	Save(relationship *model.ChannelRelationship) (*model.ChannelRelationship, error)
+	Delete(id string) error
+	GetBySourceChannel(channelId string) ([]*model.ChannelRelationship, error)
+	GetByTargetChannel(channelId string) ([]*model.ChannelRelationship, error)
+	GetRelatedChannels(channelId string) ([]*model.ChannelRelationship, error)
+	DeleteBySourceAndType(channelId string, relType model.ChannelRelationType) error
 }
 
 type ScheduledPostStore interface {

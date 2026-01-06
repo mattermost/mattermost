@@ -9,6 +9,7 @@ import AppsTypes from './apps';
 import BotTypes from './bots';
 import ChannelBookmarkTypes from './channel_bookmarks';
 import ChannelCategoryTypes from './channel_categories';
+import ChannelRelationshipTypes from './channel_relationships';
 import ChannelTypes from './channels';
 import CloudTypes from './cloud';
 import ContentFlaggingTypes from './content_flagging';
@@ -56,6 +57,7 @@ export {
     BotTypes,
     PluginTypes,
     ChannelCategoryTypes,
+    ChannelRelationshipTypes,
     CloudTypes,
     AppsTypes,
     ThreadTypes,

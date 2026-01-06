@@ -6,6 +6,7 @@ import type {AppsState} from './apps';
 import type {Bot} from './bots';
 import type {ChannelBookmarksState} from './channel_bookmarks';
 import type {ChannelCategoriesState} from './channel_categories';
+import type {ChannelRelationshipsState} from './channel_relationships';
 import type {ChannelsState} from './channels';
 import type {CloudState, CloudUsage} from './cloud';
 import type {ContentFlaggingState} from './content_flagging';
@@ -43,6 +44,7 @@ export type GlobalState = {
         teams: TeamsState;
         channels: ChannelsState;
         channelBookmarks: ChannelBookmarksState;
+        channelRelationships: ChannelRelationshipsState;
         posts: PostsState;
         threads: ThreadsState;
         agents: {
