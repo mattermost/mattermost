@@ -23,6 +23,7 @@ import {loadProfilesForSidebar} from 'actions/user_actions';
 import {selectLhsItem} from 'actions/views/lhs';
 import {suppressRHS, unsuppressRHS} from 'actions/views/rhs';
 import {setSelectedThreadId} from 'actions/views/threads';
+import {getRhsState} from 'selectors/rhs';
 import {getSelectedThreadIdInCurrentTeam} from 'selectors/views/threads';
 import {useGlobalState} from 'stores/hooks';
 import LocalStorageStore from 'stores/local_storage_store';
@@ -31,7 +32,7 @@ import LoadingScreen from 'components/loading_screen';
 import NoResultsIndicator from 'components/no_results_indicator';
 import ChatIllustration from 'components/svg_images_components/chat_illustration';
 
-import {PreviousViewedTypes} from 'utils/constants';
+import {PreviousViewedTypes, RHSStates} from 'utils/constants';
 import {Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
 
 import type {GlobalState} from 'types/store/index';
@@ -60,9 +61,18 @@ const GlobalThreads = () => {
     const threadIds = useSelector((state: GlobalState) => getThreadOrderInCurrentTeam(state), shallowEqual);
     const unreadThreadIds = useSelector((state: GlobalState) => getUnreadThreadOrderInCurrentTeam(state), shallowEqual);
     const numUnread = counts?.total_unread_threads || 0;
+    const rhsState = useSelector(getRhsState);
 
     useEffect(() => {
-        dispatch(suppressRHS);
+        // If RHS is not any one of the below then suppress it when navigating to global threads
+        if (!(
+            rhsState === RHSStates.MENTION ||
+            rhsState === RHSStates.SEARCH ||
+            rhsState === RHSStates.FLAG)
+        ) {
+            dispatch(suppressRHS);
+        }
+
         dispatch(selectLhsItem(LhsItemType.Page, LhsPage.Threads));
         dispatch(clearLastUnreadChannel);
         loadProfilesForSidebar();

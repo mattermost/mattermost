@@ -7,6 +7,7 @@ import {useParams} from 'react-router-dom';
 
 import {fetchChannelsAndMembers, selectChannel} from 'mattermost-redux/actions/channels';
 import {getPostThread} from 'mattermost-redux/actions/posts';
+import {fetchTeamScheduledPosts} from 'mattermost-redux/actions/scheduled_posts';
 import {extractUserIdsAndMentionsFromPosts} from 'mattermost-redux/actions/status_profile_polling';
 import {selectTeam} from 'mattermost-redux/actions/teams';
 import {getThread} from 'mattermost-redux/actions/threads';
@@ -53,6 +54,7 @@ export default function ThreadPopout() {
     useEffect(() => {
         if (teamId) {
             dispatch(fetchChannelsAndMembers(teamId));
+            dispatch(fetchTeamScheduledPosts(teamId, true));
             dispatch(selectTeam(teamId));
         }
     }, [dispatch, teamId]);
