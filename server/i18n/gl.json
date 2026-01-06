@@ -72,10 +72,6 @@
     "translation": "invalid_request: «grant_type» incorrecto."
   },
   {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Falta o «client_secret»."
-  },
-  {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
     "translation": "invalid_request: «client_id» incorrecto."
   },

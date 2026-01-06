@@ -9,6 +9,7 @@ import {Link} from 'react-router-dom';
 
 import {AccountMultipleOutlineIcon, ChartBarIcon, CogOutlineIcon, CreditCardOutlineIcon, FlaskOutlineIcon, FormatListBulletedIcon, InformationOutlineIcon, PowerPlugOutlineIcon, ServerVariantIcon, ShieldOutlineIcon, SitemapIcon, TableLargeIcon} from '@mattermost/compass-icons/components';
 
+import {Posts} from 'mattermost-redux/constants';
 import {RESOURCE_KEYS} from 'mattermost-redux/constants/permissions_sysconsole';
 
 import {
@@ -55,9 +56,9 @@ import BillingSubscriptions, {searchableStrings as billingSubscriptionSearchable
 import CompanyInfo, {searchableStrings as billingCompanyInfoSearchableStrings} from './billing/company_info';
 import CompanyInfoEdit from './billing/company_info_edit';
 import BrandImageSetting from './brand_image_setting/brand_image_setting';
-import BurnOnReadUserGroupSelector from './burn_on_read_user_group_selector';
 import ClientSideUserIdsSetting from './client_side_userids_setting';
 import ClusterSettings, {searchableStrings as clusterSearchableStrings} from './cluster_settings';
+import CustomEnableDisableGuestAccountsMagicLinkSetting, {searchableStrings as magicLinkSearchableStrings} from './custom_enable_disable_guest_accounts_magic_link_setting';
 import CustomEnableDisableGuestAccountsSetting from './custom_enable_disable_guest_accounts_setting';
 import CustomTermsOfServiceSettings from './custom_terms_of_service_settings';
 import {messages as customTermsOfServiceMessages, searchableStrings as customTermsOfServiceSearchableStrings} from './custom_terms_of_service_settings/custom_terms_of_service_settings';
@@ -86,6 +87,7 @@ import {
 import AttributeBasedAccessControlFeatureDiscovery from './feature_discovery/features/attribute_based_access_control';
 import AutoTranslationFeatureDiscovery from './feature_discovery/features/auto_translation';
 import BurnOnReadSVG from './feature_discovery/features/images/burn_on_read_svg';
+import IntuneMAMSvg from './feature_discovery/features/images/intune_mam_svg';
 import UserAttributesFeatureDiscovery from './feature_discovery/features/user_attributes';
 import FeatureFlags, {messages as featureFlagsMessages} from './feature_flags';
 import GroupDetails from './group_settings/group_details';
@@ -669,7 +671,6 @@ const AdminDefinition: AdminDefinitionType = {
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                 schema: {
                     id: 'AttributeBasedAccessControl',
-                    isBeta: true,
                     name: defineMessage({id: 'admin.accesscontrol.title', defaultMessage: 'Attribute-Based Access'}),
                     sections: [
                         {
@@ -2133,51 +2134,139 @@ const AdminDefinition: AdminDefinitionType = {
                 schema: {
                     id: 'MobileSecuritySettings',
                     name: defineMessage({id: 'admin.mobileSecurity.title', defaultMessage: 'Mobile Security'}),
-                    settings: [
+                    sections: [
                         {
-                            type: 'bool',
-                            key: 'NativeAppSettings.MobileEnableBiometrics',
-                            label: defineMessage({id: 'admin.mobileSecurity.biometricsTitle', defaultMessage: 'Enable Biometric Authentication:'}),
-                            help_text: defineMessage({id: 'admin.mobileSecurity.biometricsDescription', defaultMessage: 'Enforces biometric authentication (with PIN/passcode fallback) before accessing the app. Users will be prompted based on session activity and server switching rules.'}),
+                            key: 'MobileSecuritySettings.General',
+                            title: 'General Mobile Security',
+                            description: defineMessage({id: 'admin.mobileSecurity.sections.general.description', defaultMessage: 'Configure device security features for the mobile app.'}),
+                            settings: [
+                                {
+                                    type: 'bool',
+                                    key: 'NativeAppSettings.MobileEnableBiometrics',
+                                    label: defineMessage({id: 'admin.mobileSecurity.biometricsTitle', defaultMessage: 'Enable Biometric Authentication:'}),
+                                    help_text: defineMessage({id: 'admin.mobileSecurity.biometricsDescription', defaultMessage: 'Enforces biometric authentication (with PIN/passcode fallback) before accessing the app. Users will be prompted based on session activity and server switching rules.'}),
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'NativeAppSettings.MobilePreventScreenCapture',
+                                    label: defineMessage({id: 'admin.mobileSecurity.screenCaptureTitle', defaultMessage: 'Prevent Screen Capture:'}),
+                                    help_text: defineMessage({id: 'admin.mobileSecurity.screenCaptureDescription', defaultMessage: 'Blocks screenshots and screen recordings when using the mobile app. Screenshots will appear blank, and screen recordings will blur (iOS) or show a black screen (Android). Also applies when switching apps.'}),
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'NativeAppSettings.MobileJailbreakProtection',
+                                    label: defineMessage({id: 'admin.mobileSecurity.jailbreakTitle', defaultMessage: 'Enable Jailbreak/Root Protection:'}),
+                                    help_text: defineMessage({id: 'admin.mobileSecurity.jailbreakDescription', defaultMessage: 'Prevents access to the app on devices detected as jailbroken or rooted. If a device fails the security check, users will be denied access or prompted to switch to a compliant server.'}),
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'NativeAppSettings.MobileEnableSecureFilePreview',
+                                    label: defineMessage({id: 'admin.mobileSecurity.secureFilePreviewTitle', defaultMessage: 'Enable Secure File Preview Mode:'}),
+                                    help_text: defineMessage({id: 'admin.mobileSecurity.secureFilePreviewDescription', defaultMessage: "Prevents file downloads, previews, and sharing for most file types, even if {mobileAllowDownloads} is enabled. Allows in-app previews for PDFs, videos, and images only. Files are stored temporarily in the app's cache and cannot be exported or shared."}),
+                                    help_text_values: {
+                                        mobileAllowDownloads: (
+                                            <a href='../site_config/file_sharing_downloads'>
+                                                <b>
+                                                    <FormattedMessage
+                                                        id='admin.mobileSecurity.mobileAllowDownloads'
+                                                        defaultMessage='Site Configuration > File Sharing and Downloads > Allow File Downloads on Mobile'
+                                                    />
+                                                </b>
+                                            </a>
+                                        ),
+                                    },
+                                    isHidden: it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'NativeAppSettings.MobileAllowPdfLinkNavigation',
+                                    label: defineMessage({id: 'admin.mobileSecurity.allowPdfLinkNavigationTitle', defaultMessage: 'Allow Link Navigation in Secure PDFs:'}),
+                                    help_text: defineMessage({id: 'admin.mobileSecurity.allowPdfLinkNavigationDescription', defaultMessage: 'Enables tapping links inside PDFs when Secure File Preview Mode is active. Links will open in the device browser or supported app. Has no effect when Secure File Preview Mode is disabled.'}),
+                                    isDisabled: it.stateIsFalse('NativeAppSettings.MobileEnableSecureFilePreview'),
+                                    isHidden: it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                                },
+                            ],
                         },
                         {
-                            type: 'bool',
-                            key: 'NativeAppSettings.MobilePreventScreenCapture',
-                            label: defineMessage({id: 'admin.mobileSecurity.screenCaptureTitle', defaultMessage: 'Prevent Screen Capture:'}),
-                            help_text: defineMessage({id: 'admin.mobileSecurity.screenCaptureDescription', defaultMessage: 'Blocks screenshots and screen recordings when using the mobile app. Screenshots will appear blank, and screen recordings will blur (iOS) or show a black screen (Android). Also applies when switching apps.'}),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'NativeAppSettings.MobileJailbreakProtection',
-                            label: defineMessage({id: 'admin.mobileSecurity.jailbreakTitle', defaultMessage: 'Enable Jailbreak/Root Protection:'}),
-                            help_text: defineMessage({id: 'admin.mobileSecurity.jailbreakDescription', defaultMessage: 'Prevents access to the app on devices detected as jailbroken or rooted. If a device fails the security check, users will be denied access or prompted to switch to a compliant server.'}),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'NativeAppSettings.MobileEnableSecureFilePreview',
-                            label: defineMessage({id: 'admin.mobileSecurity.secureFilePreviewTitle', defaultMessage: 'Enable Secure File Preview Mode:'}),
-                            help_text: defineMessage({id: 'admin.mobileSecurity.secureFilePreviewDescription', defaultMessage: 'Prevents file downloads, previews, and sharing for most file types, even if {mobileAllowDownloads} is enabled. Allows in-app previews for PDFs, videos, and images only. Files are stored temporarily in the app’s cache and cannot be exported or shared.'}),
-                            help_text_values: {
-                                mobileAllowDownloads: (
-                                    <a href='../site_config/file_sharing_downloads'>
-                                        <b>
-                                            <FormattedMessage
-                                                id='admin.mobileSecurity.mobileAllowDownloads'
-                                                defaultMessage='Site Configuration > File Sharing and Downloads > Allow File Downloads on Mobile'
-                                            />
-                                        </b>
-                                    </a>
-                                ),
+                            key: 'MobileSecuritySettings.Intune',
+                            title: 'Microsoft Intune',
+                            description: defineMessage({id: 'admin.mobileSecurity.sections.intune.description', defaultMessage: 'Configure Microsoft Intune Mobile Application Management (MAM) for App Protection Policies.'}),
+                            license_sku: LicenseSkus.EnterpriseAdvanced,
+                            component: LicensedSectionContainer,
+                            componentProps: {
+                                requiredSku: LicenseSkus.EnterpriseAdvanced,
+                                featureDiscoveryConfig: {
+                                    featureName: 'intune_mam',
+                                    title: defineMessage({id: 'admin.intune_feature_discovery.title', defaultMessage: 'Protect mobile data with Microsoft Intune App Protection Policies (MAM) and Entra ID authentication'}),
+                                    description: defineMessage({id: 'admin.intune_feature_discovery.description', defaultMessage: 'With Mattermost Enterprise Advanced, you can enable Microsoft Intune Mobile Application Management (MAM) to enforce App Protection Policies (APP) on Mattermost Mobile. Users sign in with Microsoft Entra ID (Azure AD), and Intune MAM applies data protection, selective wipe, and compliance policies on supported iOS devices.'}),
+                                    learnMoreURL: 'https://docs.mattermost.com/deployment/intune-mam.html',
+                                    svgImage: IntuneMAMSvg,
+                                },
                             },
-                            isHidden: it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'NativeAppSettings.MobileAllowPdfLinkNavigation',
-                            label: defineMessage({id: 'admin.mobileSecurity.allowPdfLinkNavigationTitle', defaultMessage: 'Allow Link Navigation in Secure PDFs:'}),
-                            help_text: defineMessage({id: 'admin.mobileSecurity.allowPdfLinkNavigationDescription', defaultMessage: 'Enables tapping links inside PDFs when Secure File Preview Mode is active. Links will open in the device browser or supported app. Has no effect when Secure File Preview Mode is disabled.'}),
-                            isDisabled: it.stateIsFalse('NativeAppSettings.MobileEnableSecureFilePreview'),
-                            isHidden: it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                            settings: [
+                                {
+                                    type: 'bool',
+                                    key: 'IntuneSettings.Enable',
+                                    label: defineMessage({id: 'admin.intune.enableTitle', defaultMessage: 'Enable Microsoft Intune MAM:'}),
+                                    help_text: defineMessage({id: 'admin.intune.enableDescription', defaultMessage: 'When enabled, Mattermost Mobile uses Microsoft Entra ID (Azure AD) for app authentication and policy enforcement. Users authenticate using MSAL tokens, and Intune MAM policies (App Protection Policies) are applied to protect corporate data.'}),
+                                },
+                                {
+                                    type: 'dropdown',
+                                    key: 'IntuneSettings.AuthService',
+                                    label: defineMessage({id: 'admin.intune.authServiceTitle', defaultMessage: 'Auth Provider:'}),
+                                    help_text: defineMessage({id: 'admin.intune.authServiceDescription', defaultMessage: 'Select how users authenticate into Mattermost.\n* **OpenID Connect** – Use when users sign in to Mattermost via Microsoft 365 / Entra ID using OIDC.\n* **SAML 2.0** – Use when users authenticate via a SAML provider that ultimately maps to Microsoft Entra ID.\nChoose the option that matches how your organization already authenticates users into Mattermost on other clients.'}),
+                                    help_text_markdown: true,
+                                    options: [
+                                        {
+                                            value: '',
+                                            display_name: defineMessage({id: 'admin.intune.authServicePlaceholder', defaultMessage: 'Select an auth provider'}),
+                                        },
+                                        {
+                                            value: 'office365',
+                                            display_name: defineMessage({id: 'admin.intune.authServiceOffice365', defaultMessage: 'OpenID Connect (Office 365)'}),
+                                            isHidden: it.configIsFalse('Office365Settings', 'Enable'),
+                                        },
+                                        {
+                                            value: 'saml',
+                                            display_name: defineMessage({id: 'admin.intune.authServiceSaml', defaultMessage: 'SAML 2.0'}),
+                                            isHidden: it.configIsFalse('SamlSettings', 'Enable'),
+                                        },
+                                    ],
+                                    isDisabled: it.stateIsFalse('IntuneSettings.Enable'),
+                                },
+                                {
+                                    type: 'text',
+                                    key: 'IntuneSettings.TenantId',
+                                    label: defineMessage({id: 'admin.intune.tenantIdTitle', defaultMessage: 'Tenant ID:'}),
+                                    help_text: defineMessage({id: 'admin.intune.tenantIdDescription', defaultMessage: 'The Microsoft Entra ID (Azure AD) Tenant ID (also called the Directory ID).\nThis is the globally unique identifier that represents your organization in Microsoft Entra ID.\nMattermost uses this ID to validate tokens issued for Intune MAM.'}),
+                                    placeholder: defineMessage({id: 'admin.intune.tenantIdPlaceholder', defaultMessage: 'E.g.: "12345678-1234-1234-1234-123456789012"'}),
+                                    isDisabled: it.stateIsFalse('IntuneSettings.Enable'),
+                                    default: (value, config, state) => {
+                                        if (state['IntuneSettings.Enable'] && !state['IntuneSettings.TenantId']) {
+                                            if (state['IntuneSettings.AuthService'] === 'office365' && config.Office365Settings?.DirectoryId) {
+                                                return config.Office365Settings?.DirectoryId;
+                                            }
+                                        }
+                                        return '';
+                                    },
+                                },
+                                {
+                                    type: 'text',
+                                    key: 'IntuneSettings.ClientId',
+                                    label: defineMessage({id: 'admin.intune.clientIdTitle', defaultMessage: 'Application (Client) ID:'}),
+                                    help_text: defineMessage({id: 'admin.intune.clientIdDescription', defaultMessage: 'The Application (Client) ID of your Intune MAM–enabled app registration in Microsoft Entra ID.\nThis is the client identifier that the Mattermost Mobile app uses to request MSAL tokens for Intune MAM enrollment and policy evaluation.'}),
+                                    placeholder: defineMessage({id: 'admin.intune.clientIdPlaceholder', defaultMessage: 'E.g.: "87654321-4321-4321-4321-210987654321"'}),
+                                    isDisabled: it.stateIsFalse('IntuneSettings.Enable'),
+                                    default: (value, config, state) => {
+                                        if (state['IntuneSettings.Enable'] && !state['IntuneSettings.TenantId']) {
+                                            if (state['IntuneSettings.AuthService'] === 'office365' && config.Office365Settings?.Id) {
+                                                return config.Office365Settings?.Id;
+                                            }
+                                        }
+                                        return '';
+                                    },
+                                },
+                            ],
                         },
                     ],
                 },
@@ -3159,99 +3248,88 @@ const AdminDefinition: AdminDefinitionType = {
                                 },
                                 {
                                     type: 'dropdown',
-                                    key: 'ServiceSettings.BurnOnReadDurationMinutes',
+                                    key: 'ServiceSettings.BurnOnReadDurationSeconds',
                                     label: defineMessage({id: 'admin.posts.burnOnRead.duration.title', defaultMessage: 'Burn-on-Read Duration'}),
                                     help_text: defineMessage({id: 'admin.posts.burnOnRead.duration.desc', defaultMessage: 'Sets the countdown duration for Burn-on-Read messages once they are revealed. After a recipient clicks to reveal a BoR message, the message will delete itself for that user after the specified duration. This setting applies to all Burn-on-Read messages.'}),
                                     help_text_markdown: false,
                                     options: [
                                         {
-                                            value: '1',
+                                            value: String(Posts.BURN_ON_READ.DURATION_1_MINUTE),
                                             display_name: defineMessage({id: 'admin.posts.burnOnRead.duration.1min', defaultMessage: '1 minute'}),
                                         },
                                         {
-                                            value: '5',
+                                            value: String(Posts.BURN_ON_READ.DURATION_5_MINUTES),
                                             display_name: defineMessage({id: 'admin.posts.burnOnRead.duration.5min', defaultMessage: '5 minutes'}),
                                         },
                                         {
-                                            value: '10',
+                                            value: String(Posts.BURN_ON_READ.DURATION_10_MINUTES),
                                             display_name: defineMessage({id: 'admin.posts.burnOnRead.duration.10min', defaultMessage: '10 minutes'}),
                                         },
                                         {
-                                            value: '30',
+                                            value: String(Posts.BURN_ON_READ.DURATION_30_MINUTES),
                                             display_name: defineMessage({id: 'admin.posts.burnOnRead.duration.30min', defaultMessage: '30 minutes'}),
                                         },
                                         {
-                                            value: '60',
+                                            value: String(Posts.BURN_ON_READ.DURATION_1_HOUR),
                                             display_name: defineMessage({id: 'admin.posts.burnOnRead.duration.1hour', defaultMessage: '1 hour'}),
                                         },
                                         {
-                                            value: '480',
+                                            value: String(Posts.BURN_ON_READ.DURATION_8_HOURS),
                                             display_name: defineMessage({id: 'admin.posts.burnOnRead.duration.8hours', defaultMessage: '8 hours'}),
                                         },
                                     ],
-                                    onConfigLoad: (value: any) => value ?? '10',
+                                    onConfigLoad: (value: number | string | undefined) => String(value ?? Posts.BURN_ON_READ.DURATION_DEFAULT),
+                                    onConfigSave: (value: string | undefined) => (value ? parseInt(value, 10) : Posts.BURN_ON_READ.DURATION_DEFAULT),
                                     isDisabled: it.any(
                                         it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
                                         it.stateIsFalse('ServiceSettings.EnableBurnOnRead'),
                                     ),
                                 },
                                 {
-                                    type: 'radio',
-                                    key: 'ServiceSettings.BurnOnReadAllowedUsers',
-                                    label: defineMessage({id: 'admin.posts.burnOnRead.allowedUsers.title', defaultMessage: 'Users Allowed to Send Burn-on-Read Messages'}),
+                                    type: 'dropdown',
+                                    key: 'ServiceSettings.BurnOnReadMaximumTimeToLiveSeconds',
+                                    label: defineMessage({id: 'admin.posts.burnOnRead.maximumTTL.title', defaultMessage: 'Maximum time to live for burn-on-read messages'}),
+                                    help_text: defineMessage({id: 'admin.posts.burnOnRead.maximumTTL.desc', defaultMessage: 'Sets the maximum duration that Burn-on-Read messages will be allowed to exist for after they are sent. The message will be deleted after the specified time after it is sent, even if it is not read by all recipients by then.'}),
+                                    help_text_markdown: false,
                                     options: [
                                         {
-                                            value: 'all',
-                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.allowedUsers.all', defaultMessage: 'Allow for all users'}),
+                                            value: String(Posts.BURN_ON_READ.MAX_TTL_2_MINUTES),
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.maximumTTL.2minutes', defaultMessage: '2 minutes'}),
                                         },
                                         {
-                                            value: 'allow_selected',
-                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.allowedUsers.allowSelected', defaultMessage: 'Allow selected users'}),
+                                            value: String(Posts.BURN_ON_READ.MAX_TTL_5_MINUTES),
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.maximumTTL.5minutes', defaultMessage: '5 minutes'}),
                                         },
                                         {
-                                            value: 'block_selected',
-                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.allowedUsers.blockSelected', defaultMessage: 'Block selected users'}),
+                                            value: String(Posts.BURN_ON_READ.MAX_TTL_1_DAY),
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.maximumTTL.1day', defaultMessage: '1 day'}),
+                                        },
+                                        {
+                                            value: String(Posts.BURN_ON_READ.MAX_TTL_3_DAYS),
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.maximumTTL.3days', defaultMessage: '3 days'}),
+                                        },
+                                        {
+                                            value: String(Posts.BURN_ON_READ.MAX_TTL_7_DAYS),
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.maximumTTL.7days', defaultMessage: '7 days'}),
+                                        },
+                                        {
+                                            value: String(Posts.BURN_ON_READ.MAX_TTL_14_DAYS),
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.maximumTTL.14days', defaultMessage: '14 days'}),
+                                        },
+                                        {
+                                            value: String(Posts.BURN_ON_READ.MAX_TTL_30_DAYS),
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.maximumTTL.30days', defaultMessage: '30 days'}),
                                         },
                                     ],
-                                    onConfigLoad: (value: any) => value ?? 'all',
+                                    onConfigLoad: (value: number | string | undefined) => String(value ?? Posts.BURN_ON_READ.MAX_TTL_DEFAULT),
+                                    onConfigSave: (value: string | undefined) => (value ? parseInt(value, 10) : Posts.BURN_ON_READ.MAX_TTL_DEFAULT),
                                     isDisabled: it.any(
                                         it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
                                         it.stateIsFalse('ServiceSettings.EnableBurnOnRead'),
                                     ),
-                                },
-                                {
-                                    type: 'custom',
-                                    key: 'ServiceSettings.BurnOnReadAllowedUsersList',
-                                    label: defineMessage({id: 'admin.posts.burnOnRead.usersList.title', defaultMessage: 'Selected users and groups'}),
-                                    help_text: defineMessage({id: 'admin.posts.burnOnRead.usersList.desc', defaultMessage: 'Choose users or groups that will be allowed or blocked from sending burn-on-read messages, depending on your selection above.'}),
-                                    component: BurnOnReadUserGroupSelector,
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                                        it.stateIsFalse('ServiceSettings.EnableBurnOnRead'),
-                                    ),
-                                    isHidden: it.any(
-                                        it.stateEqualsOrDefault('ServiceSettings.BurnOnReadAllowedUsers', 'all', 'all'),
-                                        it.stateIsFalse('ServiceSettings.EnableBurnOnRead'),
-                                    ),
-                                    validate: (value) => {
-                                        const isEmpty = !value ||
-                                            (typeof value === 'string' && value.trim() === '') ||
-                                            (Array.isArray(value) && value.length === 0);
-
-                                        if (isEmpty) {
-                                            return new ValidationResult(
-                                                false,
-                                                defineMessage({
-                                                    id: 'admin.posts.burnOnRead.usersList.required',
-                                                    defaultMessage: 'At least one user or group must be selected.',
-                                                }),
-                                            );
-                                        }
-
-                                        return new ValidationResult(true, '');
-                                    },
                                 },
                             ],
+                            isHidden: it.configIsFalse('FeatureFlags', 'BurnOnRead'),
                         },
                         {
                             key: 'PostSettings.Previews',
@@ -5044,6 +5122,7 @@ const AdminDefinition: AdminDefinitionType = {
             guest_access: {
                 url: 'authentication/guest_access',
                 title: defineMessage({id: 'admin.sidebar.guest_access', defaultMessage: 'Guest Access'}),
+                searchableStrings: magicLinkSearchableStrings,
                 isHidden: it.any(
                     it.not(it.licensedForFeature('GuestAccounts')),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.GUEST_ACCESS)),
@@ -5116,6 +5195,12 @@ const AdminDefinition: AdminDefinitionType = {
                                 it.configIsFalse('ServiceSettings', 'EnableMultifactorAuthentication'),
                                 it.configIsFalse('ServiceSettings', 'EnforceMultifactorAuthentication'),
                             ),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.GUEST_ACCESS)),
+                        },
+                        {
+                            type: 'custom',
+                            component: CustomEnableDisableGuestAccountsMagicLinkSetting,
+                            key: 'GuestAccountsSettings.EnableGuestMagicLink',
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.GUEST_ACCESS)),
                         },
                     ],
@@ -5281,6 +5366,18 @@ const AdminDefinition: AdminDefinitionType = {
                             },
                             help_text_markdown: false,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.INTEGRATION_MANAGEMENT)),
+                            isHidden: it.licensedForFeature('Cloud'),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'ServiceSettings.EnableDynamicClientRegistration',
+                            label: defineMessage({id: 'admin.oauth.dcrTitle', defaultMessage: 'Enable OAuth 2.0 Dynamic Client Registration: '}),
+                            help_text: defineMessage({id: 'admin.oauth.dcrDescription', defaultMessage: 'When true, external applications can dynamically register as OAuth 2.0 clients with Mattermost. Only enable this if you need third-party applications to register OAuth clients programmatically.'}),
+                            help_text_markdown: false,
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.INTEGRATION_MANAGEMENT)),
+                                it.stateIsFalse('ServiceSettings.EnableOAuthServiceProvider'),
+                            ),
                             isHidden: it.licensedForFeature('Cloud'),
                         },
                         {
@@ -5702,7 +5799,8 @@ const AdminDefinition: AdminDefinitionType = {
                 ),
                 schema: {
                     id: 'ExperimentalAuditSettings',
-                    name: 'Audit logging (Beta)',
+                    isBeta: true,
+                    name: defineMessage({id: 'admin.auditlogging.title', defaultMessage: 'Audit Logging'}),
                     settings: [
                         {
                             type: 'banner',
