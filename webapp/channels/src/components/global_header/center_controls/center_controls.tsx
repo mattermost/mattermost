@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import styled from 'styled-components';
 
 import type {ProductIdentifier} from '@mattermost/types/products';
 
@@ -12,18 +11,7 @@ import {isChannels} from 'utils/products';
 import GlobalSearchNav from './global_search_nav/global_search_nav';
 import UserGuideDropdown from './user_guide_dropdown';
 
-const CenterControlsContainer = styled.div`
-    display: flex;
-    align-items: center;
-    height: 40px;
-    justify-content: center;
-    flex-grow: 1;
-    flex-basis: 40%;
-
-    > * + * {
-        margin-left: 8px;
-    }
-`;
+import './center_control.scss';
 
 export type Props = {
     productId?: ProductIdentifier;
@@ -31,7 +19,7 @@ export type Props = {
 
 const CenterControls = ({productId = null}: Props): JSX.Element => {
     return (
-        <CenterControlsContainer>
+        <div className='globalHeader-centerControls'>
             {isChannels(productId) ? (
                 <>
                     <GlobalSearchNav/>
@@ -44,7 +32,7 @@ const CenterControls = ({productId = null}: Props): JSX.Element => {
                     pluggableId={productId}
                 />
             )}
-        </CenterControlsContainer>
+        </div>
     );
 };
 

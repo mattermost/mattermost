@@ -8,7 +8,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {closeRightHandSide, showMentions} from 'actions/views/rhs';
 import {getRhsState} from 'selectors/rhs';
 
-import IconButton from 'components/global_header/header_icon_button';
+import HeaderIconButton from 'components/global_header/header_icon_button';
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import WithTooltip from 'components/with_tooltip';
 
@@ -46,7 +46,7 @@ const AtMentionsButton = (): JSX.Element => {
                 </>
             }
         >
-            <IconButton
+            <HeaderIconButton
                 icon={'at'}
                 toggled={rhsState === RHSStates.MENTION}
                 onClick={mentionButtonClick}

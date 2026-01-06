@@ -43,7 +43,7 @@
             }
         }
 
-        &.HeaderIconButton--active, &:active {
+        &.HeaderIconButton--active, &:active, &[aria-expanded="true"][aria-haspopup="true"] {
             --bg-opacity: 0.16;
             --text-opacity: 1;
         }

@@ -75,7 +75,7 @@ describe('Onboarding', () => {
         cy.findByText('Done').should('be.visible').click();
 
         // # Go to system console and invalidate the last two email invites
-        cy.uiOpenProductMenu('System Console');
+        cy.uiOpenSwitchProductMenu('System Console');
         cy.findByText('Signup').scrollIntoView().should('be.visible').click();
         cy.get('#InvalidateEmailInvitesButton').should('be.visible').within(() => {
             cy.findByText('Invalidate pending email invites').should('be.visible').click();

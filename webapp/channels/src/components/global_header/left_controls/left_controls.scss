@@ -1,0 +1,162 @@
+$menuWidth: 240px;
+
+.globalHeader-leftControls {
+    display: flex;
+    height: 40px;
+    flex-basis: 30%;
+    flex-shrink: 0;
+    align-items: center;
+    margin-left: 8px; // This is to align with the team sidebar icons
+    gap: 12px;
+
+    &-historyButtons {
+        display: flex;
+        align-items: center;
+        gap: 1px;
+    }
+
+    &-productBranding {
+        &-freeEdition {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            &-logo {
+                path {
+                    fill: rgba(var(--sidebar-text-rgb), 0.75);
+                }
+            }
+
+            &-badge {
+                display: flex;
+                align-self: center;
+                padding: 2px 6px;
+                border-radius: var(--radius-s);
+                background: rgba(var(--sidebar-text-rgb), 0.08);
+                color: rgba(var(--sidebar-text-rgb), 0.75);
+                font-family: "Open Sans", sans-serif;
+                font-size: 10px;
+                font-weight: 600;
+                letter-spacing: 0.025em;
+                line-height: 16px;
+            }
+        }
+
+        &-licensedEdition {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+
+            &-heading {
+                font-family: "Metropolis";
+                font-size: 16px;
+                font-weight: bold;
+            }
+        }
+    }
+}
+
+@mixin wrapLongTextForMenuItem() {
+    > div.label-elements {
+        flex: 1 1 0;
+        white-space: normal;
+    }
+}
+
+.globalHeader-leftControls-productSwitcherMenu {
+    &-channelsMenuItem,
+    &-productMenuItem {
+        .leading-element {
+            svg {
+                fill: var(--button-bg);
+            }
+        }
+
+        .label-elements {
+            > span {
+                font-weight: 600;
+            }
+        }
+
+        .trailing-elements {
+            svg {
+                fill: var(--button-bg);
+            }
+        }
+    }
+
+    &-trialMenuItem[role="menuitem"] {
+        @include wrapLongTextForMenuItem();
+
+        .leading-element {
+            svg {
+                fill: var(--button-bg);
+            }
+        }
+    }
+
+    &-editionMenuItem[role="menuitem"] {
+        @include wrapLongTextForMenuItem();
+
+        > div.label-elements {
+            > span.badgeLabel {
+                padding: 2px 6px;
+                border-radius: var(--radius-s);
+                background: rgba(var(--center-channel-color-rgb), 0.08);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
+                font-family: "Open Sans", sans-serif;
+                font-size: 10px;
+                font-weight: 600;
+                letter-spacing: 0.025em;
+                line-height: 16px;
+            }
+        }
+    }
+}
+
+// We placed the footer outside of the menu styling because the menu classname passes to the <ol> element of the menu
+// and the footer is sibling and not a child of the <ol> menu element.
+
+.globalHeader-leftControls-productSwitcherMenu-cloudLimitsFooter {
+    display: flex;
+    width: $menuWidth;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 16px 20px;
+    background-color: rgba(var(--mention-highlight-bg-rgb), 0.16);
+    color: var(--center-channel-color);
+
+    &.usageAboveDangerThreshold {
+        background-color: rgba(var(--error-text-color-rgb), 0.16);
+    }
+
+    > .footerTitle {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        font-size: 14px;
+        font-weight: 600;
+        gap: 4px;
+        line-height: 20px;
+    }
+
+    > .footerDescription {
+        margin-top: 4px;
+        margin-bottom: 12px;
+        font-size: 12px;
+        line-height: 16px;
+    }
+
+    > .footerUsage {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 18px;
+
+        > .footerUsageLabel {
+            font-size: 11px;
+            font-weight: 600;
+            line-height: 16px;
+        }
+    }
+}

@@ -8,25 +8,19 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
   onToggle={[Function]}
 >
   <WithTooltip
-    title={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Help"
-        id="channel_header.userHelpGuide"
-      />
-    }
+    title="Help"
   >
     <HeaderIconButton
-      active={false}
-      aria-controls="AddChannelDropdown"
+      aria-controls="userHelpGuide"
       aria-expanded={false}
+      aria-haspopup={true}
       aria-label="Help"
       icon="help-circle-outline"
-      onClick={[Function]}
     />
   </WithTooltip>
   <Menu
-    ariaLabel="Add Channel Dropdown"
-    id="AddChannelDropdown"
+    ariaLabel="Help menu"
+    id="userHelpGuide"
     openLeft={false}
     openUp={false}
   >
@@ -79,25 +73,19 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
   onToggle={[Function]}
 >
   <WithTooltip
-    title={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Help"
-        id="channel_header.userHelpGuide"
-      />
-    }
+    title="Help"
   >
     <HeaderIconButton
-      active={false}
-      aria-controls="AddChannelDropdown"
+      aria-controls="userHelpGuide"
       aria-expanded={false}
+      aria-haspopup={true}
       aria-label="Help"
       icon="help-circle-outline"
-      onClick={[Function]}
     />
   </WithTooltip>
   <Menu
-    ariaLabel="Add Channel Dropdown"
-    id="AddChannelDropdown"
+    ariaLabel="Help menu"
+    id="userHelpGuide"
     openLeft={false}
     openUp={false}
   >
@@ -143,25 +131,19 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
   onToggle={[Function]}
 >
   <WithTooltip
-    title={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Help"
-        id="channel_header.userHelpGuide"
-      />
-    }
+    title="Help"
   >
     <HeaderIconButton
-      active={false}
-      aria-controls="AddChannelDropdown"
+      aria-controls="userHelpGuide"
       aria-expanded={false}
+      aria-haspopup={true}
       aria-label="Help"
       icon="help-circle-outline"
-      onClick={[Function]}
     />
   </WithTooltip>
   <Menu
-    ariaLabel="Add Channel Dropdown"
-    id="AddChannelDropdown"
+    ariaLabel="Help menu"
+    id="userHelpGuide"
     openLeft={false}
     openUp={false}
   >

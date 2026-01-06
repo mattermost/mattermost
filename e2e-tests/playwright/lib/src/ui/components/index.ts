@@ -29,6 +29,7 @@ import ScheduleMessageModal from './channels/schedule_message_modal';
 import ScheduledPostIndicator from './channels/scheduled_post_indicator';
 import ScheduledDraftModal from './channels/scheduled_draft_modal';
 import UserAccountMenu from './user_account_menu';
+import SwitchProductMenu from './channels/switch_product_menu';
 import TeamMenu from './channels/team_menu';
 import TeamSettingsModal from './channels/team_settings/team_settings_modal';
 import ProfileModal from './channels/profile_modal';
@@ -98,6 +99,7 @@ const components = {
     UserAccountMenu,
     TeamMenu,
     TeamSettingsModal,
+    SwitchProductMenu,
     DeletePostConfirmationDialog,
     RestorePostConfirmationDialog,
     ProfileModal,
@@ -151,6 +153,7 @@ export {
     UserAccountMenu,
     TeamMenu,
     TeamSettingsModal,
+    SwitchProductMenu,
     DeletePostConfirmationDialog,
     RestorePostConfirmationDialog,
     ProfileModal,

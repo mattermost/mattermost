@@ -2,30 +2,27 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import styled from 'styled-components';
+
+import type {ProductIdentifier} from '@mattermost/types/products';
 
 import {isDesktopApp} from 'utils/user_agent';
 
 import HistoryButtons from './history_buttons';
-import ProductMenu from './product_menu';
+import ProductBranding from './product_branding';
+import ProductSwitcherMenu from './switch_product_menu';
 
-const LeftControlsContainer = styled.div`
-    display: flex;
-    align-items: center;
-    height: 40px;
-    flex-shrink: 0;
-    flex-basis: 30%;
+import './left_controls.scss';
 
-    > * + * {
-        margin-left: 12px;
-    }
-`;
+type Props = {
+    productId: ProductIdentifier;
+}
 
-const LeftControls = (): JSX.Element => (
-    <LeftControlsContainer>
-        <ProductMenu/>
+const LeftControls = (props: Props): JSX.Element => (
+    <div className='globalHeader-leftControls'>
+        <ProductSwitcherMenu productId={props.productId}/>
+        <ProductBranding/>
         {isDesktopApp() && <HistoryButtons/>}
-    </LeftControlsContainer>
+    </div>
 );
 
 export default LeftControls;

@@ -622,7 +622,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                             priority="important"
                             size="xs"
                           >
-                            <Memo(Tag)
+                            <Tag
                               data-testid="post-priority-label"
                               icon="alert-circle-outline"
                               size="xs"
@@ -665,7 +665,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                                   </TagText>
                                 </div>
                               </TagWrapper>
-                            </Memo(Tag)>
+                            </Tag>
                           </PriorityLabel>
                         </div>
                       </Memo(PriorityLabels)>

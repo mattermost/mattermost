@@ -304,7 +304,7 @@ describe('Self hosted Purchase', () => {
 
         // * Check that creating groups, a professional feature, is now available for use.
         cy.visit('/');
-        cy.uiGetProductMenuButton().click();
+        cy.uiGetSwitchProductMenuButton().click();
         cy.contains('User Groups').click();
         cy.contains('Create Group').should('be.enabled');
     });

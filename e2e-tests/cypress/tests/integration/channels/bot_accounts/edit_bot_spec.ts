@@ -71,7 +71,7 @@ describe('Edit bot', () => {
 
     function createBot(userName, teamName) {
         // # Go to bot integrations page
-        cy.uiOpenProductMenu('Integrations');
+        cy.uiOpenSwitchProductMenu('Integrations');
         cy.get('a.integration-option[href$="/bots"]').click();
         cy.get('#addBotAccount').click();
 
