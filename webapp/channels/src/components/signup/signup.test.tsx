@@ -273,8 +273,8 @@ describe('components/signup/Signup', () => {
     it('should focus email input when email validation fails', async () => {
         renderWithContext(<Signup/>, mockState);
 
-        const emailInput = screen.getByTestId('signup-body-card-form-email-input');
-        const submitButton = screen.getByText('Create account');
+        const emailInput = screen.getByLabelText('Email address');
+        const submitButton = screen.getByRole('button', {name: 'Create account'});
 
         // Submit with invalid email
         fireEvent.change(emailInput, {target: {value: 'invalid-email'}});
@@ -288,9 +288,9 @@ describe('components/signup/Signup', () => {
     it('should focus password input when password validation fails', async () => {
         renderWithContext(<Signup/>, mockState);
 
-        const emailInput = screen.getByTestId('signup-body-card-form-email-input');
-        const usernameInput = screen.getByTestId('signup-body-card-form-name-input');
-        const passwordInput = screen.getByTestId('signup-body-card-form-password-input');
+        const emailInput = screen.getByLabelText('Email address');
+        const usernameInput = screen.getByLabelText('Choose a Username');
+        const passwordInput = screen.getByLabelText('Choose a Password');
         const termsCheckbox = screen.getByRole('checkbox', {name: /terms and privacy policy checkbox/i});
         const submitButton = screen.getByText('Create account');
 
@@ -317,9 +317,9 @@ describe('components/signup/Signup', () => {
 
         renderWithContext(<Signup/>, mockState);
 
-        const emailInput = screen.getByTestId('signup-body-card-form-email-input');
-        const usernameInput = screen.getByTestId('signup-body-card-form-name-input');
-        const passwordInput = screen.getByTestId('signup-body-card-form-password-input');
+        const emailInput = screen.getByLabelText('Email address');
+        const usernameInput = screen.getByLabelText('Choose a Username');
+        const passwordInput = screen.getByLabelText('Choose a Password');
         const termsCheckbox = screen.getByRole('checkbox', {name: /terms and privacy policy checkbox/i});
         const submitButton = screen.getByText('Create account');
 
@@ -391,9 +391,9 @@ describe('components/signup/Signup', () => {
     it('should require terms acceptance before enabling submit button', async () => {
         renderWithContext(<Signup/>, mockState);
 
-        const emailInput = screen.getByTestId('signup-body-card-form-email-input');
-        const usernameInput = screen.getByTestId('signup-body-card-form-name-input');
-        const passwordInput = screen.getByTestId('signup-body-card-form-password-input');
+        const emailInput = screen.getByLabelText('Email address');
+        const usernameInput = screen.getByLabelText('Choose a Username');
+        const passwordInput = screen.getByLabelText('Choose a Password');
         const termsCheckbox = screen.getByRole('checkbox', {name: /terms and privacy policy checkbox/i});
 
         // Fill in all fields but don't check terms

@@ -703,7 +703,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                             {enableSignUpWithEmail && (
                                 <form className='signup-body-card-form'>
                                     <Input
-                                        data-testid='signup-body-card-form-email-input'
                                         ref={emailInput}
                                         name='email'
                                         className='signup-body-card-form-email-input'
@@ -720,7 +719,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                         customMessage={emailCustomLabelForInput}
                                     />
                                     <Input
-                                        data-testid='signup-body-card-form-name-input'
                                         ref={nameInput}
                                         name='name'
                                         className='signup-body-card-form-name-input'
@@ -742,7 +740,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                         }
                                     />
                                     <PasswordInput
-                                        data-testid='signup-body-card-form-password-input'
                                         ref={passwordInput}
                                         className='signup-body-card-form-password-input'
                                         value={password}
