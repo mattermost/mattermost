@@ -192,13 +192,6 @@ export function Menu(props: Props) {
         }
     }
 
-    function handleMenuButtonKeyDown(event: KeyboardEvent) {
-        if (event.key === 'Enter' || event.key === ' ') {
-            // Prevent the event from bubbling up to a parent's keydown handler so that it can trigger a click event
-            event.stopPropagation();
-        }
-    }
-
     // We construct the menu button so we can set onClick correctly here to support both web and mobile view
     function renderMenuButton() {
         const MenuButtonComponent = props.menuButton?.as ?? 'button';
@@ -215,7 +208,6 @@ export function Menu(props: Props) {
                 aria-describedby={props.menuButton?.['aria-describedby']}
                 className={props.menuButton?.class ?? ''}
                 onClick={handleMenuButtonClick}
-                onKeyDown={handleMenuButtonKeyDown}
             >
                 {props.menuButton.children}
             </MenuButtonComponent>
