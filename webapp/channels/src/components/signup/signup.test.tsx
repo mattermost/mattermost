@@ -4,7 +4,6 @@
 import type {ReactWrapper} from 'enzyme';
 import {shallow} from 'enzyme';
 import React from 'react';
-import {IntlProvider} from 'react-intl';
 import {BrowserRouter} from 'react-router-dom';
 
 import type {ClientConfig} from '@mattermost/types/config';
@@ -29,12 +28,6 @@ const mockHistoryPush = jest.fn();
 let mockLicense = {IsLicensed: 'true', Cloud: 'false'};
 let mockConfig: Partial<ClientConfig>;
 let mockDispatch = jest.fn();
-
-const intlProviderProps = {
-    defaultLocale: 'en',
-    locale: 'en',
-    messages: {},
-};
 
 jest.mock('react-redux', () => ({
     ...jest.requireActual('react-redux') as typeof import('react-redux'),
@@ -210,11 +203,9 @@ describe('components/signup/Signup', () => {
             mockResolvedValueOnce({error: {server_error_id: 'api.user.login.not_verified.app_error'}}); // loginById
 
         const wrapper = mountWithIntl(
-            <IntlProvider {...intlProviderProps}>
-                <BrowserRouter>
-                    <Signup/>
-                </BrowserRouter>
-            </IntlProvider>,
+            <BrowserRouter>
+                <Signup/>
+            </BrowserRouter>,
         );
 
         const emailInput = wrapper.find(Input).first().find('input').first();
@@ -250,11 +241,9 @@ describe('components/signup/Signup', () => {
             mockResolvedValueOnce({}); // loginById
 
         const wrapper = mountWithIntl(
-            <IntlProvider {...intlProviderProps}>
-                <BrowserRouter>
-                    <Signup/>
-                </BrowserRouter>
-            </IntlProvider>,
+            <BrowserRouter>
+                <Signup/>
+            </BrowserRouter>,
         );
 
         const emailInput = wrapper.find(Input).first().find('input').first();
@@ -346,36 +335,27 @@ describe('components/signup/Signup', () => {
         });
     });
 
-    // These tests were "zombie tests" on master - they appeared to pass but their assertions
-    // never executed due to improper async handling (setTimeout without await/done callbacks).
-    // Fixed to properly test the team invite flow when a user is already logged in.
     it('should add user to team and redirect when team invite valid and logged in', async () => {
         mockLocation.search = '?id=ppni7a9t87fn3j4d56rwocdctc';
         mockCurrentUserId = 'user1'; // Simulate logged-in user
 
-        // Mock dispatch to return team data when addUserToTeamFromInvite is called
         mockDispatch = jest.fn().
             mockResolvedValueOnce({}). // removeGlobalItem in useEffect
             mockResolvedValueOnce({data: {name: 'teamName'}}); // addUserToTeamFromInvite
 
-        const wrapper = mountWithIntl(
-            <IntlProvider {...intlProviderProps}>
-                <BrowserRouter>
-                    <Signup/>
-                </BrowserRouter>
-            </IntlProvider>,
+        renderWithContext(
+            <Signup/>,
         );
 
-        await actImmediate(wrapper);
-
-        expect(mockHistoryPush).toHaveBeenCalledWith('/teamName/channels/town-square');
+        await waitFor(() => {
+            expect(mockHistoryPush).toHaveBeenCalledWith('/teamName/channels/town-square');
+        });
     });
 
     it('should handle failure adding user to team when team invite and logged in', async () => {
         mockLocation.search = '?id=ppni7a9t87fn3j4d56rwocdctc';
         mockCurrentUserId = 'user1'; // Simulate logged-in user
 
-        // Mock dispatch to return error when addUserToTeamFromInvite is called
         mockDispatch = jest.fn().
             mockResolvedValueOnce({}). // removeGlobalItem in useEffect
             mockResolvedValueOnce({
