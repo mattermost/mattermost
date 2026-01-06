@@ -242,6 +242,21 @@ func deleteScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "scheduledPostId", scheduledPostId)
 
 	userId := c.AppContext.Session().UserId
+
+	existingScheduledPost, err := c.App.Srv().Store().ScheduledPost().Get(scheduledPostId)
+	if err != nil {
+		c.Err = model.NewAppError("deleteScheduledPost", "app.delete_scheduled_post.get_scheduled_post.error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+	if existingScheduledPost == nil {
+		c.Err = model.NewAppError("deleteScheduledPost", "app.delete_scheduled_post.existing_scheduled_post.not_exist", nil, "", http.StatusNotFound)
+		return
+	}
+	if existingScheduledPost.UserId != userId {
+		c.Err = model.NewAppError("deleteScheduledPost", "app.delete_scheduled_post.delete_permission.error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	connectionID := r.Header.Get(model.ConnectionId)
 	deletedScheduledPost, appErr := c.App.DeleteScheduledPost(c.AppContext, userId, scheduledPostId, connectionID)
 	if appErr != nil {

@@ -105,10 +105,6 @@ func (a *App) DeleteScheduledPost(rctx request.CTX, userId, scheduledPostId, con
 		return nil, model.NewAppError("app.DeleteScheduledPost", "app.delete_scheduled_post.existing_scheduled_post.not_exist", map[string]any{"user_id": userId, "scheduled_post_id": scheduledPostId}, "", http.StatusNotFound)
 	}
 
-	if scheduledPost.UserId != userId {
-		return nil, model.NewAppError("app.DeleteScheduledPost", "app.delete_scheduled_post.delete_permission.error", map[string]any{"user_id": userId, "scheduled_post_id": scheduledPostId}, "", http.StatusForbidden)
-	}
-
 	if err := a.Srv().Store().ScheduledPost().PermanentlyDeleteScheduledPosts([]string{scheduledPostId}); err != nil {
 		return nil, model.NewAppError("app.DeleteScheduledPost", "app.delete_scheduled_post.delete_error", map[string]any{"user_id": userId, "scheduled_post_id": scheduledPostId}, "", http.StatusInternalServerError).Wrap(err)
 	}
