@@ -74,6 +74,13 @@ func createSchedulePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "scheduledPost", &scheduledPost)
 
+	if len(scheduledPost.FileIds) > 0 {
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), scheduledPost.ChannelId, model.PermissionUploadFile) {
+			c.SetPermissionError(model.PermissionUploadFile)
+			return
+		}
+	}
+
 	scheduledPostChecks("Api4.createSchedulePost", c, &scheduledPost)
 	if c.Err != nil {
 		return
@@ -169,12 +176,38 @@ func updateScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "scheduledPost", &scheduledPost)
 
+	userId := c.AppContext.Session().UserId
+	existingScheduledPost, err := c.App.Srv().Store().ScheduledPost().Get(scheduledPost.Id)
+	if err != nil {
+		c.Err = model.NewAppError("updateScheduledPost", "app.update_scheduled_post.get_scheduled_post.error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+	if existingScheduledPost == nil {
+		c.Err = model.NewAppError("updateScheduledPost", "app.update_scheduled_post.existing_scheduled_post.not_exist", nil, "", http.StatusNotFound)
+		return
+	}
+	if existingScheduledPost.UserId != userId {
+		c.Err = model.NewAppError("updateScheduledPost", "app.update_scheduled_post.update_permission.error", nil, "", http.StatusForbidden)
+		return
+	}
+
+	if len(scheduledPost.FileIds) > 0 {
+		originalPost, err := existingScheduledPost.ToPost()
+		if err != nil {
+			c.Err = model.NewAppError("updateScheduledPost", "app.update_scheduled_post.convert_to_post.error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return
+		}
+		checkUploadFilePermissionForNewFiles(c, scheduledPost.FileIds, originalPost)
+		if c.Err != nil {
+			return
+		}
+	}
+
 	scheduledPostChecks("Api4.updateScheduledPost", c, &scheduledPost)
 	if c.Err != nil {
 		return
 	}
 
-	userId := c.AppContext.Session().UserId
 	updatedScheduledPost, appErr := c.App.UpdateScheduledPost(c.AppContext, userId, &scheduledPost, connectionID)
 	if appErr != nil {
 		c.Err = appErr
@@ -209,6 +242,21 @@ func deleteScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "scheduledPostId", scheduledPostId)
 
 	userId := c.AppContext.Session().UserId
+
+	existingScheduledPost, err := c.App.Srv().Store().ScheduledPost().Get(scheduledPostId)
+	if err != nil {
+		c.Err = model.NewAppError("deleteScheduledPost", "app.delete_scheduled_post.get_scheduled_post.error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+	if existingScheduledPost == nil {
+		c.Err = model.NewAppError("deleteScheduledPost", "app.delete_scheduled_post.existing_scheduled_post.not_exist", nil, "", http.StatusNotFound)
+		return
+	}
+	if existingScheduledPost.UserId != userId {
+		c.Err = model.NewAppError("deleteScheduledPost", "app.delete_scheduled_post.delete_permission.error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	connectionID := r.Header.Get(model.ConnectionId)
 	deletedScheduledPost, appErr := c.App.DeleteScheduledPost(c.AppContext, userId, scheduledPostId, connectionID)
 	if appErr != nil {
