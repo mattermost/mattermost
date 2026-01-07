@@ -139,5 +139,64 @@ describe('integration utils', () => {
             expect(dateError?.id).toBe('interactive_dialog.error.required');
             expect(datetimeError?.id).toBe('interactive_dialog.error.required');
         });
+
+        it('should return error for required range with no value', () => {
+            const rangeElement = TestHelper.getDialogElementMock({
+                type: 'datetime',
+                optional: false,
+                datetime_config: {is_range: true},
+            });
+
+            const error = checkDialogElementForError(rangeElement, null);
+            expect(error?.id).toBe('interactive_dialog.error.required');
+        });
+
+        it('should return error for required range with only start date', () => {
+            const rangeElement = TestHelper.getDialogElementMock({
+                type: 'datetime',
+                optional: false,
+                datetime_config: {is_range: true},
+            });
+
+            const error = checkDialogElementForError(rangeElement, ['2025-01-15T09:00:00Z']);
+            expect(error?.id).toBe('interactive_dialog.error.range_incomplete');
+            expect(error?.defaultMessage).toBe('Both start and end dates are required.');
+        });
+
+        it('should return error for required range with empty array', () => {
+            const rangeElement = TestHelper.getDialogElementMock({
+                type: 'datetime',
+                optional: false,
+                datetime_config: {is_range: true},
+            });
+
+            const error = checkDialogElementForError(rangeElement, []);
+            expect(error?.id).toBe('interactive_dialog.error.required');
+        });
+
+        it('should return null for required range with both dates', () => {
+            const rangeElement = TestHelper.getDialogElementMock({
+                type: 'datetime',
+                optional: false,
+                datetime_config: {is_range: true},
+            });
+
+            const error = checkDialogElementForError(rangeElement, [
+                '2025-01-15T09:00:00Z',
+                '2025-01-16T17:00:00Z',
+            ]);
+            expect(error).toBeNull();
+        });
+
+        it('should return null for optional range with only start date', () => {
+            const rangeElement = TestHelper.getDialogElementMock({
+                type: 'datetime',
+                optional: true,
+                datetime_config: {is_range: true},
+            });
+
+            const error = checkDialogElementForError(rangeElement, ['2025-01-15T09:00:00Z']);
+            expect(error).toBeNull();
+        });
     });
 });

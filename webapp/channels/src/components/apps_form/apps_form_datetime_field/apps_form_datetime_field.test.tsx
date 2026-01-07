@@ -204,4 +204,174 @@ describe('AppsFormDateTimeField', () => {
             expect(screen.getByTestId('datetime-input')).toBeInTheDocument();
         });
     });
+
+    describe('datetime range selection', () => {
+        it('should render range fields when is_range is true', () => {
+            const rangeField: AppField = {
+                name: 'test_range',
+                type: 'datetime',
+                label: 'Test Range',
+                is_required: false,
+                datetime_config: {
+                    is_range: true,
+                    time_interval: 30,
+                },
+            };
+
+            renderComponent({field: rangeField, value: null});
+
+            // Should render both start and end labels
+            expect(screen.getByText('Start Date & Time')).toBeInTheDocument();
+            expect(screen.getByText('End Date & Time')).toBeInTheDocument();
+        });
+
+        it('should handle range values as array', () => {
+            const rangeField: AppField = {
+                name: 'test_range',
+                type: 'datetime',
+                label: 'Test Range',
+                is_required: false,
+                datetime_config: {
+                    is_range: true,
+                },
+            };
+
+            const rangeValue = ['2025-01-15T09:00:00Z', '2025-01-16T17:00:00Z'];
+            renderComponent({field: rangeField, value: rangeValue});
+
+            // Component should render with range values
+            expect(screen.getByText('Start Date & Time')).toBeInTheDocument();
+            expect(screen.getByText('End Date & Time')).toBeInTheDocument();
+        });
+
+        it('should render horizontal layout by default', () => {
+            const rangeField: AppField = {
+                name: 'test_range',
+                type: 'datetime',
+                label: 'Test Range',
+                is_required: false,
+                datetime_config: {
+                    is_range: true,
+                    range_layout: 'horizontal',
+                },
+            };
+
+            const {container} = renderComponent({field: rangeField, value: null});
+
+            // Check for horizontal flex layout
+            const rangeContainer = container.querySelector('div[style*="display: flex"]');
+            expect(rangeContainer).toBeInTheDocument();
+        });
+
+        it('should render vertical layout when specified', () => {
+            const rangeField: AppField = {
+                name: 'test_range',
+                type: 'datetime',
+                label: 'Test Range',
+                is_required: false,
+                datetime_config: {
+                    is_range: true,
+                    range_layout: 'vertical',
+                },
+            };
+
+            const {container} = renderComponent({field: rangeField, value: null});
+
+            // Check for vertical flex layout
+            const rangeContainer = container.querySelector('div[style*="flex-direction: column"]');
+            expect(rangeContainer).toBeInTheDocument();
+        });
+
+        it('should use time_interval from datetime_config', () => {
+            const rangeField: AppField = {
+                name: 'test_range',
+                type: 'datetime',
+                label: 'Test Range',
+                is_required: false,
+                datetime_config: {
+                    is_range: true,
+                    time_interval: 15,
+                },
+            };
+
+            renderComponent({field: rangeField, value: null});
+
+            // Component should render without errors with custom interval
+            expect(screen.getByText('Start Date & Time')).toBeInTheDocument();
+        });
+
+        it('should fall back to top-level time_interval', () => {
+            const rangeField: AppField = {
+                name: 'test_range',
+                type: 'datetime',
+                label: 'Test Range',
+                is_required: false,
+                time_interval: 30,
+                datetime_config: {
+                    is_range: true,
+                },
+            };
+
+            renderComponent({field: rangeField, value: null});
+
+            // Should use fallback time_interval
+            expect(screen.getByText('Start Date & Time')).toBeInTheDocument();
+        });
+
+        it('should handle empty initial state for ranges', () => {
+            const rangeField: AppField = {
+                name: 'test_range',
+                type: 'datetime',
+                label: 'Test Range',
+                is_required: false,
+                datetime_config: {
+                    is_range: true,
+                },
+            };
+
+            renderComponent({field: rangeField, value: null});
+
+            // Both fields should render
+            expect(screen.getByText('Start Date & Time')).toBeInTheDocument();
+            expect(screen.getByText('End Date & Time')).toBeInTheDocument();
+        });
+
+        it('should handle partial range (start only)', () => {
+            const rangeField: AppField = {
+                name: 'test_range',
+                type: 'datetime',
+                label: 'Test Range',
+                is_required: false,
+                datetime_config: {
+                    is_range: true,
+                },
+            };
+
+            const partialRange = ['2025-01-15T09:00:00Z'];
+            renderComponent({field: rangeField, value: partialRange});
+
+            // Should render without errors
+            expect(screen.getByText('Start Date & Time')).toBeInTheDocument();
+            expect(screen.getByText('End Date & Time')).toBeInTheDocument();
+        });
+
+        it('should extract config from datetime_config first', () => {
+            const rangeField: AppField = {
+                name: 'test_range',
+                type: 'datetime',
+                label: 'Test Range',
+                is_required: false,
+                time_interval: 60, // Top-level fallback
+                datetime_config: {
+                    is_range: true,
+                    time_interval: 15, // Should take precedence
+                },
+            };
+
+            renderComponent({field: rangeField, value: null});
+
+            // Should use datetime_config.time_interval (15), not top-level (60)
+            expect(screen.getByText('Start Date & Time')).toBeInTheDocument();
+        });
+    });
 });
