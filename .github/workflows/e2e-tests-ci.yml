@@ -1,49 +1,87 @@
 ---
-name: E2E Smoketests
+name: E2E Tests (PR)
 on:
-  # For PRs, this workflow gets triggered from the Argo Events platform.
+  # This workflow runs E2E tests for Pull Requests only.
+  # Triggered from Argo Events platform when Enterprise CI/docker-image succeeds.
   # Check the following repo for details: https://github.com/mattermost/delivery-platform
+  #
+  # Argo Events Trigger:
+  #   - Triggered by: Enterprise CI/docker-image status check (success)
+  #   - Payload: { ref: "<branch>", inputs: { commit_sha: "<sha>" } }
+  #
   workflow_dispatch:
     inputs:
       commit_sha:
+        description: "Commit SHA to test"
         type: string
         required: true
 
 jobs:
-  generate-test-variables:
+  # ══════════════════════════════════════════════════════════════════════════════
+  # RESOLVE PR NUMBER FROM COMMIT SHA (required for PR-only workflow)
+  # ══════════════════════════════════════════════════════════════════════════════
+  resolve-pr:
     runs-on: ubuntu-24.04
     outputs:
-      BRANCH: "${{ steps.generate.outputs.BRANCH }}"
-      BUILD_ID: "${{ steps.generate.outputs.BUILD_ID }}"
-      SERVER_IMAGE: "${{ steps.generate.outputs.SERVER_IMAGE }}"
+      PR_NUMBER: "${{ steps.resolve.outputs.PR_NUMBER }}"
     steps:
-      - name: ci/smoke/generate-test-variables
-        id: generate
+      - name: ci/resolve-pr-number
+        id: resolve
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMMIT_SHA: ${{ inputs.commit_sha }}
         run: |
-          ### Populate support variables
-          COMMIT_SHA=${{ inputs.commit_sha }}
-          SERVER_IMAGE_TAG="${COMMIT_SHA::7}"
+          # Fetch PR number from commit SHA using GitHub API
+          PR_NUMBER=$(gh api "repos/${{ github.repository }}/commits/${COMMIT_SHA}/pulls" \
+            --jq '.[0].number // empty' 2>/dev/null || echo "")
 
-          # BUILD_ID format: $pipelineID-$imageTag-$testType-$serverType-$serverEdition
-          # Reference on BUILD_ID parsing: https://github.com/saturninoabril/automation-dashboard/blob/175891781bf1072c162c58c6ec0abfc5bcb3520e/lib/common_utils.ts#L3-L23
-          BUILD_ID="${{ github.run_id }}_${{ github.run_attempt }}-${SERVER_IMAGE_TAG}-smoketest-onprem-ent"
-          echo "BRANCH=server-smoketest-${COMMIT_SHA::7}" >> $GITHUB_OUTPUT
-          echo "BUILD_ID=${BUILD_ID}" >> $GITHUB_OUTPUT
-          echo "SERVER_IMAGE=mattermostdevelopment/mattermost-enterprise-edition:${SERVER_IMAGE_TAG}" >> $GITHUB_OUTPUT
-  e2e-smoketest:
-    needs:
-      - generate-test-variables
-    uses: ./.github/workflows/e2e-tests-ci-template.yml
+          if [ -n "$PR_NUMBER" ]; then
+            echo "Found PR #${PR_NUMBER} for commit ${COMMIT_SHA}"
+            echo "PR_NUMBER=${PR_NUMBER}" >> $GITHUB_OUTPUT
+          else
+            echo "::error::No PR found for commit ${COMMIT_SHA}. This workflow is for PRs only."
+            exit 1
+          fi
+
+  # ══════════════════════════════════════════════════════════════════════════════
+  # CYPRESS E2E TESTS (smoke → full)
+  # ══════════════════════════════════════════════════════════════════════════════
+  e2e-cypress:
+    needs: resolve-pr
+    uses: ./.github/workflows/e2e-tests-cypress.yml
     with:
       commit_sha: "${{ inputs.commit_sha }}"
-      status_check_context: "E2E Tests/smoketests"
-      TEST: cypress
-      REPORT_TYPE: none
-      SERVER: onprem
-      BRANCH: "${{ needs.generate-test-variables.outputs.BRANCH }}"
-      BUILD_ID: "${{ needs.generate-test-variables.outputs.BUILD_ID }}"
-      SERVER_IMAGE: "${{ needs.generate-test-variables.outputs.SERVER_IMAGE }}"
+      workers_number: "20"
+      server: "onprem"
+      enable_reporting: true
+      report_type: "PR"
     secrets:
       MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
       AUTOMATION_DASHBOARD_URL: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_URL }}"
       AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_TOKEN }}"
+      PUSH_NOTIFICATION_SERVER: "${{ secrets.MM_E2E_PUSH_NOTIFICATION_SERVER }}"
+      REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
+      REPORT_TM4J_API_KEY: "${{ secrets.MM_E2E_REPORT_TM4J_API_KEY }}"
+      REPORT_TM4J_TEST_CYCLE_LINK_PREFIX: "${{ secrets.MM_E2E_REPORT_TM4J_TEST_CYCLE_LINK_PREFIX }}"
+      CWS_URL: "${{ secrets.MM_E2E_CWS_URL }}"
+      CWS_EXTRA_HTTP_HEADERS: "${{ secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS }}"
+
+  # ══════════════════════════════════════════════════════════════════════════════
+  # PLAYWRIGHT E2E TESTS (smoke → full)
+  # ══════════════════════════════════════════════════════════════════════════════
+  e2e-playwright:
+    needs: resolve-pr
+    uses: ./.github/workflows/e2e-tests-playwright.yml
+    with:
+      commit_sha: "${{ inputs.commit_sha }}"
+      server: "onprem"
+      enable_reporting: true
+      report_type: "PR"
+      pr_number: "${{ needs.resolve-pr.outputs.PR_NUMBER }}"
+    secrets:
+      MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
+      AUTOMATION_DASHBOARD_URL: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_URL }}"
+      AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_TOKEN }}"
+      AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+      AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+      REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"

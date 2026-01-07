@@ -75,51 +75,55 @@ test('MM-T5435_1 Global Drafts link in sidebar should be hidden when another use
     await channelsPage.sidebarLeft.draftsNotVisible();
 });
 
-test('MM-T5435_2 Global Drafts link in sidebar should be hidden when user deletes root post ', async ({pw}) => {
-    const {user} = await pw.initSetup();
+test(
+    'MM-T5435_2 Global Drafts link in sidebar should be hidden when user deletes root post ',
+    {tag: '@smoke'},
+    async ({pw}) => {
+        const {user} = await pw.initSetup();
 
-    // # Log in as user in new browser context
-    const {channelsPage} = await pw.testBrowser.login(user);
+        // # Log in as user in new browser context
+        const {channelsPage} = await pw.testBrowser.login(user);
 
-    // # Visit default channel page
-    await channelsPage.goto();
-    await channelsPage.toBeVisible();
+        // # Visit default channel page
+        await channelsPage.goto();
+        await channelsPage.toBeVisible();
 
-    // # Post a message in the channel
-    await channelsPage.postMessage('Message which will be deleted');
+        // # Post a message in the channel
+        await channelsPage.postMessage('Message which will be deleted');
 
-    // # Start a thread by clicking on reply menuitem from post options menu
-    const post = await channelsPage.getLastPost();
-    await post.hover();
-    await post.postMenu.toBeVisible();
-    await post.postMenu.reply();
+        // # Start a thread by clicking on reply menuitem from post options menu
+        const post = await channelsPage.getLastPost();
+        await post.hover();
+        await post.postMenu.toBeVisible();
+        await post.postMenu.reply();
 
-    const sidebarRight = channelsPage.sidebarRight;
-    await sidebarRight.toBeVisible();
+        const sidebarRight = channelsPage.sidebarRight;
+        await sidebarRight.toBeVisible();
 
-    // # Post a message in the thread
-    await sidebarRight.postMessage('Replying to a thread');
+        // # Post a message in the thread
+        await sidebarRight.postMessage('Replying to a thread');
 
-    // # Write a message in the reply thread but don't send it
-    await sidebarRight.postCreate.writeMessage('I should be in drafts');
+        // # Write a message in the reply thread but don't send it
+        await sidebarRight.postCreate.writeMessage('I should be in drafts');
 
-    // # Close the RHS for draft to be saved
-    await sidebarRight.close();
+        // # Close the RHS for draft to be saved
+        await sidebarRight.close();
 
-    // * Verify drafts link in channel sidebar is visible
-    await channelsPage.sidebarLeft.draftsVisible();
+        // * Verify drafts link in channel sidebar is visible
+        await channelsPage.sidebarLeft.draftsVisible();
 
-    // # Click on the dot menu of the post and select delete
-    await post.hover();
-    await post.postMenu.toBeVisible();
-    await post.postMenu.openDotMenu();
-    await channelsPage.postDotMenu.toBeVisible();
-    await channelsPage.postDotMenu.deleteMenuItem.click();
+        // # Click on the dot menu of the post and select delete
+        await post.hover();
+        await post.postMenu.toBeVisible();
+        await post.postMenu.openDotMenu();
+        await channelsPage.postDotMenu.toBeVisible();
+        await channelsPage.postDotMenu.deleteMenuItem.click();
 
-    // # Confirm the delete from the modal
-    await channelsPage.deletePostModal.toBeVisible();
-    await channelsPage.deletePostModal.confirm();
+        // # Confirm the delete from the modal
+        await channelsPage.deletePostModal.toBeVisible();
+        await channelsPage.deletePostModal.confirm();
 
-    // * Verify drafts link in channel sidebar is visible
-    await channelsPage.sidebarLeft.draftsNotVisible();
-});
+        // * Verify drafts link in channel sidebar is visible
+        await channelsPage.sidebarLeft.draftsNotVisible();
+    },
+);

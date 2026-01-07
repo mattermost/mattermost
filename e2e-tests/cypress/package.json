@@ -101,6 +101,7 @@
     "start:webhook": "node webhook_serve.js",
     "pretest": "npm run clean",
     "test": "cross-env TZ=Etc/UTC cypress run",
+    "test:smoke": "node run_tests.js --stage='@prod' --group='@smoke'",
     "test:ci": "node run_tests.js",
     "uniq-meta": "grep -r \"^// $META:\" cypress | grep -ow '@\\w*' | sort | uniq",
     "check": "eslint .",
