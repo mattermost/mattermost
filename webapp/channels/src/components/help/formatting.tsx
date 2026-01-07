@@ -495,7 +495,7 @@ const HelpFormatting = (): JSX.Element => {
                     <p>
                         <FormattedMessage
                             id='help.formatting.headings.description'
-                            defaultMessage={"Make a heading by typing <code>#</code> and a space before your title. For smaller headings, use multiple <code>#</code>. Alternatively, you can underline the text using <code>===</code> or <code>---</code> to create headings."}
+                            defaultMessage={'Make a heading by typing <code>#</code> and a space before your title. For smaller headings, use multiple <code>#</code>. Alternatively, you can underline the text using <code>===</code> or <code>---</code> to create headings.'}
                         />
                     </p>
                     <p>{'This text'}</p>
