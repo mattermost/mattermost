@@ -75,6 +75,23 @@ export async function popoutRhsPlugin(
     return listeners;
 }
 
+export async function popoutHelp(
+    intl: IntlShape,
+    page?: string,
+) {
+    const path = page ? `/_popout/help/${page}` : '/_popout/help';
+    return popout(
+        path,
+        {
+            isRHS: true,
+            titleTemplate: intl.formatMessage({
+                id: 'help_popout.title',
+                defaultMessage: 'Help - {serverName}',
+            }),
+        },
+    );
+}
+
 /**
  * Below this is generic popout code
  * You likely do not need to add anything below this.

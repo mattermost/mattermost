@@ -3,7 +3,8 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router-dom';
+
+import {isPopoutWindow} from 'utils/popouts/popout_windows';
 
 export type HelpPage = 'messaging' | 'sending' | 'mentioning' | 'formatting' | 'attaching' | 'commands';
 
@@ -12,6 +13,8 @@ interface Props {
 }
 
 const HelpLinks = ({excludePage}: Props): JSX.Element => {
+    const basePath = isPopoutWindow() ? '/_popout/help' : '/help';
+
     return (
         <div className='Help__learn-more'>
             <h2>
@@ -23,62 +26,62 @@ const HelpLinks = ({excludePage}: Props): JSX.Element => {
             <ul>
                 {excludePage !== 'messaging' && (
                     <li>
-                        <Link to='/help'>
+                        <a href={basePath}>
                             <FormattedMessage
                                 id='help.link.messaging'
                                 defaultMessage='Messaging Basics'
                             />
-                        </Link>
+                        </a>
                     </li>
                 )}
                 {excludePage !== 'sending' && (
                     <li>
-                        <Link to='/help/sending'>
+                        <a href={`${basePath}/sending`}>
                             <FormattedMessage
                                 id='help.link.sending'
                                 defaultMessage='Sending Messages'
                             />
-                        </Link>
+                        </a>
                     </li>
                 )}
                 {excludePage !== 'mentioning' && (
                     <li>
-                        <Link to='/help/mentioning'>
+                        <a href={`${basePath}/mentioning`}>
                             <FormattedMessage
                                 id='help.link.mentioning'
                                 defaultMessage='Mentioning Teammates'
                             />
-                        </Link>
+                        </a>
                     </li>
                 )}
                 {excludePage !== 'formatting' && (
                     <li>
-                        <Link to='/help/formatting'>
+                        <a href={`${basePath}/formatting`}>
                             <FormattedMessage
                                 id='help.link.formatting'
                                 defaultMessage='Formatting Messages Using Markdown'
                             />
-                        </Link>
+                        </a>
                     </li>
                 )}
                 {excludePage !== 'attaching' && (
                     <li>
-                        <Link to='/help/attaching'>
+                        <a href={`${basePath}/attaching`}>
                             <FormattedMessage
                                 id='help.link.attaching'
                                 defaultMessage='Attaching Files'
                             />
-                        </Link>
+                        </a>
                     </li>
                 )}
                 {excludePage !== 'commands' && (
                     <li>
-                        <Link to='/help/commands'>
+                        <a href={`${basePath}/commands`}>
                             <FormattedMessage
                                 id='help.link.commands'
                                 defaultMessage='Executing Commands'
                             />
-                        </Link>
+                        </a>
                     </li>
                 )}
             </ul>

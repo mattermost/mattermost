@@ -2,7 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React, {memo, useCallback, useEffect, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
+
+import {popoutHelp, canPopout} from 'utils/popouts/popout_windows';
 
 import './help_button.scss';
 
@@ -13,6 +15,8 @@ type Props = {
 const HIDE_DELAY_MS = 150;
 
 const HelpButton = ({visible}: Props): JSX.Element | null => {
+    const intl = useIntl();
+
     // Debounce visibility to allow click to register before hiding
     const [isVisible, setIsVisible] = useState(visible);
 
@@ -31,9 +35,12 @@ const HelpButton = ({visible}: Props): JSX.Element | null => {
     }, [visible]);
 
     const handleClick = useCallback(() => {
-        // Open help page in a new tab/window
-        window.open('/help', '_blank', 'noopener,noreferrer');
-    }, []);
+        if (canPopout()) {
+            popoutHelp(intl);
+        } else {
+            window.open('/help', '_blank', 'noopener,noreferrer');
+        }
+    }, [intl]);
 
     if (!isVisible) {
         return null;
