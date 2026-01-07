@@ -4,7 +4,7 @@
 .Help {
     max-width: 800px;
     min-height: 100vh;
-    padding: 40px 24px;
+    padding: 40px;
     margin: 0 auto;
     background-color: var(--center-channel-bg, #fff);
     color: var(--center-channel-color, #3d3c40);
@@ -34,7 +34,7 @@
     }
 
     &__section {
-        margin-bottom: 32px;
+        margin-bottom: 24px;
 
         &:last-of-type {
             margin-bottom: 40px;
