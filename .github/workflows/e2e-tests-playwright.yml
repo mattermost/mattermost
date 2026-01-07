@@ -163,7 +163,7 @@ jobs:
       MM_LICENSE: "${{ secrets.MM_LICENSE }}"
       ENABLED_DOCKER_SERVICES: "${{ inputs.enabled_docker_services }}"
       TEST: playwright
-      TEST_FILTER: "@smoke"
+      TEST_FILTER: "--grep @smoke"
       MM_ENV: "${{ inputs.mm_env }}"
       BRANCH: "${{ needs.generate-build-variables.outputs.branch }}"
       BUILD_ID: "${{ needs.generate-build-variables.outputs.build_id_smoke }}"
@@ -497,7 +497,7 @@ jobs:
 
   update-full-success-status:
     runs-on: ubuntu-24.04
-    if: success()
+    if: needs.full-report.result == 'success'
     needs:
       - full-report
     steps:
@@ -514,7 +514,7 @@ jobs:
 
   update-full-failure-status:
     runs-on: ubuntu-24.04
-    if: failure()
+    if: needs.full-report.result == 'failure'
     needs:
       - full-report
     steps:

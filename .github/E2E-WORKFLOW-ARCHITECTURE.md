@@ -93,8 +93,8 @@ Each framework (Cypress/Playwright) follows the same pattern:
 │                            ▼                                     │
 │  ┌────────────────────────────────────────────────────────────┐  │
 │  │  smoke-test                                                │  │
-│  │  • Cypress:    TEST_FILTER: @smoke                         │  │
-│  │  • Playwright: TEST_FILTER: @smoke                         │  │
+│  │  • Cypress:    TEST_FILTER: --stage=@prod --group=@smoke   │  │
+│  │  • Playwright: TEST_FILTER: --grep @smoke                  │  │
 │  │  • Fail fast if any smoke test fails                       │  │
 │  └─────────────────────────┬──────────────────────────────────┘  │
 │                            │                                     │
@@ -182,8 +182,8 @@ Each workflow phase creates its own GitHub commit status check:
 
 | Framework | Smoke Tests | Full Tests |
 |-----------|-------------|------------|
-| **Cypress** | `@smoke` | `--stage='@prod' --exclude-group='@smoke'` |
-| **Playwright** | `@smoke` | `--grep-invert "@smoke\|@visual"` |
+| **Cypress** | `--stage=@prod --group=@smoke` | `--stage='@prod' --exclude-group='@smoke'` |
+| **Playwright** | `--grep @smoke` | `--grep-invert "@smoke\|@visual"` |
 
 ## Tagging Tests
 
@@ -222,10 +222,12 @@ test('critical login flow', {tag: ['@smoke', '@login']}, async ({pw}) => {
 
 ## Failure Behavior
 
-1. **Smoke test fails**: Full tests are skipped, commit status shows failure
-2. **Full test fails**: Commit status shows failure with details
-3. **Both pass**: Commit status shows success
+1. **Smoke test fails**: Full tests are skipped, only smoke commit status shows failure (no full test status created)
+2. **Full test fails**: Full commit status shows failure with details
+3. **Both pass**: Both smoke and full commit statuses show success
 4. **No PR found**: Workflow fails immediately with error message
+
+**Note**: Full test status updates use explicit job result checks (`needs.full-report.result == 'success'` / `'failure'`) rather than global `success()` / `failure()` functions. This ensures full test status is only updated when full tests actually run, not when smoke tests fail upstream.
 
 ## Manual Trigger
 

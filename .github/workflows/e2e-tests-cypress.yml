@@ -120,6 +120,8 @@ jobs:
       build_id_full: "${{ steps.generate.outputs.build_id_full }}"
       server_image: "${{ steps.generate.outputs.server_image }}"
       workers: "${{ steps.generate.outputs.workers }}"
+      test_filter_smoke: "${{ steps.generate.outputs.test_filter_smoke }}"
+      test_filter_full: "${{ steps.generate.outputs.test_filter_full }}"
     steps:
       - name: ci/generate-build-variables
         id: generate
@@ -141,6 +143,10 @@ jobs:
           # Generate workers array
           [ "$WORKERS" -gt "0" ] # Assert workers is valid
           echo "workers=$(jq --slurp --compact-output '[range('"$WORKERS"')] | map(tostring)' /dev/null)" >> $GITHUB_OUTPUT
+
+          # Generate test filters
+          echo "test_filter_smoke=--stage=@prod --group=@smoke" >> $GITHUB_OUTPUT
+          echo "test_filter_full=--stage='@prod' --exclude-group='@smoke'" >> $GITHUB_OUTPUT
 
   # ════════════════════════════════════════════════════════════════════════════
   # SMOKE TESTS
@@ -176,7 +182,7 @@ jobs:
           BRANCH: "${{ needs.generate-build-variables.outputs.branch }}"
           BUILD_ID: "${{ needs.generate-build-variables.outputs.build_id_smoke }}"
           TEST: cypress
-          TEST_FILTER: "@smoke"
+          TEST_FILTER: "${{ needs.generate-build-variables.outputs.test_filter_smoke }}"
         run: |
           set -e -o pipefail
           make generate-test-cycle | tee generate-test-cycle.out
@@ -204,11 +210,11 @@ jobs:
       MM_LICENSE: "${{ secrets.MM_LICENSE }}"
       ENABLED_DOCKER_SERVICES: "${{ inputs.enabled_docker_services }}"
       TEST: cypress
-      TEST_FILTER: "@smoke"
+      TEST_FILTER: "${{ needs.generate-build-variables.outputs.test_filter_smoke }}"
       MM_ENV: "${{ inputs.mm_env }}"
       BRANCH: "${{ needs.generate-build-variables.outputs.branch }}"
       BUILD_ID: "${{ needs.generate-build-variables.outputs.build_id_smoke }}"
-      CI_BASE_URL: "ubuntu-24.04-smoke"
+      CI_BASE_URL: "smoke-test-server"
       CYPRESS_pushNotificationServer: "${{ secrets.PUSH_NOTIFICATION_SERVER }}"
       CWS_URL: "${{ secrets.CWS_URL }}"
       CWS_EXTRA_HTTP_HEADERS: "${{ secrets.CWS_EXTRA_HTTP_HEADERS }}"
@@ -371,7 +377,7 @@ jobs:
           BRANCH: "${{ needs.generate-build-variables.outputs.branch }}"
           BUILD_ID: "${{ needs.generate-build-variables.outputs.build_id_full }}"
           TEST: cypress
-          TEST_FILTER: "--stage='@prod' --exclude-group='@smoke'"
+          TEST_FILTER: "${{ needs.generate-build-variables.outputs.test_filter_full }}"
         run: |
           set -e -o pipefail
           make generate-test-cycle | tee generate-test-cycle.out
@@ -407,7 +413,7 @@ jobs:
       MM_LICENSE: "${{ secrets.MM_LICENSE }}"
       ENABLED_DOCKER_SERVICES: "${{ inputs.enabled_docker_services }}"
       TEST: cypress
-      TEST_FILTER: "--stage='@prod' --exclude-group='@smoke'"
+      TEST_FILTER: "${{ needs.generate-build-variables.outputs.test_filter_full }}"
       MM_ENV: "${{ inputs.mm_env }}"
       BRANCH: "${{ needs.generate-build-variables.outputs.branch }}"
       BUILD_ID: "${{ needs.generate-build-variables.outputs.build_id_full }}"
@@ -518,7 +524,7 @@ jobs:
 
   update-full-success-status:
     runs-on: ubuntu-24.04
-    if: success()
+    if: needs.full-report.result == 'success'
     needs:
       - full-report
       - generate-full-test-cycle
@@ -536,7 +542,7 @@ jobs:
 
   update-full-failure-status:
     runs-on: ubuntu-24.04
-    if: failure()
+    if: needs.full-report.result == 'failure'
     needs:
       - full-report
       - generate-full-test-cycle
