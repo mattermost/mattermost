@@ -709,20 +709,20 @@ function PostComponent(props: Props) {
                         </span>
                         }
                         {props.channelIsArchived &&
-                        <span className='search-channel__archived'>
-                            <WithTooltip
-                                id='channelArchivedTooltip'
-                                title={formatMessage({
-                                    id: 'search_item.channelArchived',
-                                    defaultMessage: 'Archived',
-                                })}
-                            >
+                        <WithTooltip
+                            id='channelArchivedTooltip'
+                            title={formatMessage({
+                                id: 'search_item.channelArchived',
+                                defaultMessage: 'Archived',
+                            })}
+                        >
+                            <span className='search-channel__archived'>
                                 {(() => {
                                     const ArchiveIcon = getArchiveIconComponent(props.channelType);
                                     return <ArchiveIcon className='icon icon__archive channel-header-archived-icon svg-text-color'/>;
                                 })()}
-                            </WithTooltip>
-                        </span>
+                            </span>
+                        </WithTooltip>
                         }
                         {(Boolean(isSearchResultItem) || props.isFlaggedPosts) && Boolean(props.teamDisplayName) &&
                         <span className='search-team__name'>

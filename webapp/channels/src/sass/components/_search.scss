@@ -305,7 +305,14 @@
         .search-channel__archived {
             flex-shrink: 0;
             float: right;
-            opacity: 0.5;
+            opacity: 0.64;
+            margin-left: 3px;
+
+            .channel-header-archived-icon {
+                position: relative;
+                top: 3px;
+                margin: 0;
+            }
         }
 
         .search-team__name {
