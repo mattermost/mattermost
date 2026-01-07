@@ -17,6 +17,8 @@ import PluginLinkTooltip from 'components/plugin_link_tooltip';
 import PostEmoji from 'components/post_emoji';
 import PostEditedIndicator from 'components/post_view/post_edited_indicator';
 
+import {Constants} from 'utils/constants';
+
 export type Options = Partial<{
     postId: string;
     editedAt: number;
@@ -38,8 +40,6 @@ export type Options = Partial<{
     atPlanMentions: boolean;
     channelId: string;
     channelIsShared: boolean;
-    inlineEntities: boolean;
-    inlineEntityTypes?: string[];
     onInlineEntityClick?: (type: string, value: string) => void;
 
     /**
@@ -112,6 +112,76 @@ export default function messageHtmlToComponent(html: string, options: Options = 
         },
     ];
 
+    processingInstructions.push({
+        replaceChildren: false,
+        shouldProcessNode: (node: any) => {
+            if (node.type !== 'tag' || node.name !== 'a' || !node.attribs.href) {
+                return false;
+            }
+            const url = node.attribs.href;
+            return url.includes('view=citation');
+        },
+        processNode: (node: any, _children: any, index?: number) => {
+            const url = node.attribs.href;
+            let type = '';
+            let value = '';
+            let teamName = '';
+            let channelName = '';
+
+            // Extract info from URL
+            // Matches:
+            // POST: .../pl/<id>
+            // CHANNEL: .../<team>/channels/<channel>
+            // TEAM: .../<team>
+
+            const postMatch = (/\/([a-z0-9\-_]+)\/pl\/([a-z0-9]+)/).exec(url);
+            if (postMatch) {
+                type = Constants.InlineEntityTypes.POST;
+                teamName = postMatch[1];
+                value = postMatch[2]; // postId
+            } else {
+                const channelMatch = (/\/([a-z0-9\-_]+)\/channels\/([a-z0-9\-__][a-z0-9\-__.]+)/).exec(url);
+                if (channelMatch) {
+                    type = Constants.InlineEntityTypes.CHANNEL;
+                    teamName = channelMatch[1];
+                    channelName = channelMatch[2];
+                } else {
+                    // Fallback for team link if it matches the pattern but isn't a channel/post
+                    // This might be tricky if the URL structure varies, but assuming standard format:
+                    const teamMatch = (/\/([a-z0-9\-_]+)$/).exec(url.split('?')[0]); // strip query params for matching
+                    if (teamMatch) {
+                        type = Constants.InlineEntityTypes.TEAM;
+                        teamName = teamMatch[1];
+                        value = teamMatch[1]; // teamName as value
+                    }
+                }
+            }
+
+            if (!type) {
+                // Fallback to standard link rendering if parsing fails
+                return (
+                    <a
+                        href={url}
+                        {...convertPropsToReactStandard(node.attribs)}
+                    >
+                        {_children}
+                    </a>
+                );
+            }
+
+            return (
+                <InlineEntityLink
+                    key={`inline-entity-${index}`}
+                    type={type}
+                    value={value}
+                    teamName={teamName}
+                    channelName={channelName}
+                    onClick={options.onInlineEntityClick}
+                />
+            );
+        },
+    });
+
     if (options.hasPluginTooltips) {
         processingInstructions.push({
             replaceChildren: false,
@@ -123,21 +193,6 @@ export default function messageHtmlToComponent(html: string, options: Options = 
                     </PluginLinkTooltip>
                 );
             },
-        });
-    }
-
-    if (options.inlineEntities) {
-        processingInstructions.push({
-            replaceChildren: false,
-            shouldProcessNode: (node: any) => node.attribs && node.attribs['data-inline-entity-type'],
-            processNode: (node: any, _children: any, index?: number) => (
-                <InlineEntityLink
-                    key={`inline-entity-${index}`}
-                    type={node.attribs['data-inline-entity-type']}
-                    value={node.attribs['data-inline-entity-value']}
-                    onClick={options.onInlineEntityClick}
-                />
-            ),
         });
     }
 

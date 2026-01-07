@@ -6,11 +6,13 @@ import type {MouseEvent} from 'react';
 
 import {LinkVariantIcon} from '@mattermost/compass-icons/components';
 
+import {getChannelByNameAndTeamName} from 'mattermost-redux/actions/channels';
 import {selectTeam} from 'mattermost-redux/actions/teams';
-import {getTeam} from 'mattermost-redux/selectors/entities/teams';
+import {getTeam, getTeamByName} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {loadIfNecessaryAndSwitchToChannelById} from 'actions/views/channel';
+import {loadIfNecessaryAndSwitchToChannelById, switchToChannel} from 'actions/views/channel';
+import {switchTeam} from 'actions/team_actions';
 import store from 'stores/redux_store';
 
 import {focusPost} from 'components/permalink_view/actions';
@@ -22,10 +24,12 @@ import {Constants} from 'utils/constants';
 type Props = {
     type: string;
     value: string;
+    teamName?: string;
+    channelName?: string;
     onClick?: (type: string, value: string) => void;
 };
 
-export default function InlineEntityLink({type, value, onClick}: Props) {
+export default function InlineEntityLink({type, value, teamName, channelName, onClick}: Props) {
     const handleClick = (e: MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
@@ -45,14 +49,35 @@ export default function InlineEntityLink({type, value, onClick}: Props) {
             store.dispatch(focusPost(value, returnTo, currentUserId, {skipRedirectReplyPermalink: true}));
             break;
         }
-        case Constants.InlineEntityTypes.CHANNEL:
-            store.dispatch(loadIfNecessaryAndSwitchToChannelById(value));
+        case Constants.InlineEntityTypes.CHANNEL: {
+            // If we have a value (ID), use it directly
+            if (value) {
+                store.dispatch(loadIfNecessaryAndSwitchToChannelById(value));
+            } else if (teamName && channelName) {
+                // If we don't have an ID but have names (from parsed URL), look it up
+                // We need to fetch the channel by name first
+                store.dispatch(getChannelByNameAndTeamName(teamName, channelName)).then(({data: channel}) => {
+                    if (channel) {
+                        store.dispatch(switchToChannel(channel));
+                    }
+                });
+            }
             break;
+        }
         case Constants.InlineEntityTypes.TEAM: {
-            const team = getTeam(state, value);
-            if (team) {
-                store.dispatch(selectTeam(value));
-                getHistory().push(`/${team.name}`);
+            if (value) {
+                const team = getTeam(state, value) || getTeamByName(state, value);
+                if (team) {
+                    store.dispatch(selectTeam(team.id));
+                    store.dispatch(switchTeam(`/${team.name}`));
+                } else if (teamName) {
+                    // Try to find by teamName if value lookup failed or wasn't an ID
+                    const teamByName = getTeamByName(state, teamName);
+                    if (teamByName) {
+                        store.dispatch(selectTeam(teamByName.id));
+                        store.dispatch(switchTeam(`/${teamByName.name}`));
+                    }
+                }
             }
             break;
         }

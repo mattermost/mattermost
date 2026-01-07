@@ -217,18 +217,6 @@ export interface TextFormattingOptionsBase {
     atPlanMentions: boolean;
 
     /**
-     * Whether or not to render inline entity tokens like "[POST:abc123]" into placeholders that can be safely converted to components.
-     *
-     * Defaults to `false`.
-     */
-    inlineEntities: boolean;
-
-    /**
-     * Restricts which inline entity types are allowed (e.g. ['POST', 'CHANNEL', 'TEAM']). If omitted, defaults apply.
-     */
-    inlineEntityTypes?: string[];
-
-    /**
      * If true, the renderer will assume links are not safe.
      *
      * Defaults to `false`.
@@ -262,7 +250,6 @@ const DEFAULT_OPTIONS: TextFormattingOptions = {
     atMentions: false,
     atSumOfMembersMentions: false,
     atPlanMentions: false,
-    inlineEntities: false,
     minimumHashtagLength: 3,
     proxyImages: false,
     editedAt: 0,
@@ -419,10 +406,6 @@ export function doFormatText(text: string, options: TextFormattingOptions, emoji
             output = highlightSearchTerms(output, tokens, options.searchPatterns);
         }
 
-        if (options.inlineEntities) {
-            output = autolinkInlineEntities(output, tokens, options.inlineEntityTypes);
-        }
-
         if (!('mentionHighlight' in options) || options.mentionHighlight) {
             output = highlightCurrentMentions(output, tokens, options.mentionKeys);
         }
@@ -529,37 +512,6 @@ export function autoPlanMentions(text: string, tokens: Tokens): string {
     );
 
     return output;
-}
-
-const INLINE_ENTITY_REGEX = /\[(POST|CHANNEL|TEAM):([^\]]+)\]/gi;
-
-export function autolinkInlineEntities(text: string, tokens: Tokens, allowed?: string[]): string {
-    const allowedSet = new Set((allowed || [
-        Constants.InlineEntityTypes.POST,
-        Constants.InlineEntityTypes.CHANNEL,
-        Constants.InlineEntityTypes.TEAM,
-    ]).map((t) => t.toUpperCase()));
-
-    function replaceInlineEntityWithToken(fullMatch: string, rawType: string, rawValue: string) {
-        const type = rawType.toUpperCase();
-        if (!allowedSet.has(type)) {
-            return fullMatch;
-        }
-
-        const index = tokens.size;
-        const alias = `$MM_INLINEENTITY${index}$`;
-        const safeType = escapeHtml(type);
-        const safeValue = escapeHtml(rawValue);
-
-        tokens.set(alias, {
-            value: `<span data-inline-entity-type="${safeType}" data-inline-entity-value="${safeValue}"></span>`,
-            originalText: fullMatch,
-        });
-
-        return alias;
-    }
-
-    return text.replace(INLINE_ENTITY_REGEX, replaceInlineEntityWithToken);
 }
 
 export function autolinkAtMentions(text: string, tokens: Tokens): string {
