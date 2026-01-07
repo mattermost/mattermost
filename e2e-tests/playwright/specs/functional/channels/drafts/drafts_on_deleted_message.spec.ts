@@ -75,6 +75,9 @@ test('MM-T5435_1 Global Drafts link in sidebar should be hidden when another use
     await channelsPage.sidebarLeft.draftsNotVisible();
 });
 
+/**
+ * @objective Verify that Global Drafts link is hidden from sidebar when user deletes the root post of a thread containing a draft
+ */
 test(
     'MM-T5435_2 Global Drafts link in sidebar should be hidden when user deletes root post ',
     {tag: '@smoke'},

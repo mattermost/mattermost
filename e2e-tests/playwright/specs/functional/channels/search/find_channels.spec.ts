@@ -3,6 +3,9 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
+/**
+ * @objective Verify that Find channel search limits results to 50 when there are more channels matching the search query
+ */
 test(
     'MM-T5424 Find channel search returns only 50 results when there are more than 50 channels with similar names',
     {tag: '@smoke'},
@@ -42,9 +45,10 @@ test(
 
         const limitCount = 50;
 
-        // # Only 50 results for similar name should be displayed.
+        // * Verify only 50 results for similar name are displayed
         await expect(channelsPage.findChannelsModal.searchList).toHaveCount(limitCount);
 
+        // * Verify the first 50 channels are visible in the search results
         for (let i = 0; i < limitCount; i++) {
             let suffix = i.toString();
             if (i < 10) {
