@@ -171,7 +171,7 @@ const HelpFormatting = (): JSX.Element => {
                                     <code>{'package main'}</code><br/>
                                     <code>{'import "fmt"'}</code><br/>
                                     <code>{'func main() {'}</code><br/>
-                                    <code>{'    fmt.Println("Hello, 世界")'}</code><br/>
+                                    <code>{'\u00A0\u00A0\u00A0\u00A0fmt.Println("Hello, 世界")'}</code><br/>
                                     <code>{'}'}</code><br/>
                                     <code>{'```'}</code>
                                 </td>
@@ -595,7 +595,7 @@ const HelpFormatting = (): JSX.Element => {
                                 <td>
                                     <code>{'* list item one'}</code><br/>
                                     <code>{'* list item two'}</code><br/>
-                                    <code>{'  * item two sub-point'}</code>
+                                    <code>{'\u00A0\u00A0* item two sub-point'}</code>
                                 </td>
                                 <td>
                                     <ul>
