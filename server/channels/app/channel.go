@@ -3725,8 +3725,26 @@ func (a *App) getDirectChannel(c request.CTX, userID, otherUserID string) (*mode
 	return a.Srv().getDirectChannel(c, userID, otherUserID)
 }
 
-func (a *App) GetGroupMessageMembersCommonTeams(c request.CTX, channelID string) ([]*model.Team, *model.AppError) {
-	channel, appErr := a.GetChannel(c, channelID)
+// GetGroupMessageMembersCommonTeamsAsUser is a variant of GetGroupMessageMembersCommonTeams
+// that returns results relative to the requesting user from the session in the request context.
+func (a *App) GetGroupMessageMembersCommonTeamsAsUser(rctx request.CTX, channelID string) ([]*model.Team, *model.AppError) {
+	return a.getGroupMessageMembersCommonTeams(rctx, rctx.Session().UserId, channelID)
+}
+
+// GetGroupMessageMembersCommonTeams returns the set of teams in common for the members of the given GM channel.
+//
+// Prefer GetGroupMessageMembersCommonTeamsAsUser unless the request context is independent of any given user.
+func (a *App) GetGroupMessageMembersCommonTeams(rctx request.CTX, channelID string) ([]*model.Team, *model.AppError) {
+	return a.getGroupMessageMembersCommonTeams(rctx, "", channelID)
+}
+
+// getGroupMessageMembersCommonTeams returns the set of teams common to the members of the given GM channel.
+//
+// If a requesting user id is specified, but the user isn't an active member of the channel, we return an empty
+// set of channels. We don't just exclude all inactive users to offer more flexibility to the remaining users
+// on where to create the replacement channel.
+func (a *App) getGroupMessageMembersCommonTeams(rctx request.CTX, requestingUserID, channelID string) ([]*model.Team, *model.AppError) {
+	channel, appErr := a.GetChannel(rctx, channelID)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -3742,10 +3760,20 @@ func (a *App) GetGroupMessageMembersCommonTeams(c request.CTX, channelID string)
 		Inactive:    false,
 		Active:      true,
 	})
+	if appErr != nil {
+		return nil, appErr
+	}
 
 	userIDs := make([]string, len(users))
 	for i := 0; i < len(users); i++ {
 		userIDs[i] = users[i].Id
+	}
+
+	// If a requesting user is specified, but we don't find them above as an active member
+	// of the channel, just short-circuit and return an empty set. We don't return an error
+	// as this is a valid result for some callers.
+	if requestingUserID != "" && !slices.Contains(userIDs, requestingUserID) {
+		return nil, nil
 	}
 
 	commonTeamIDs, err := a.Srv().Store().Team().GetCommonTeamIDsForMultipleUsers(userIDs)
