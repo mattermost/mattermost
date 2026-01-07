@@ -60,7 +60,7 @@ const HelpAttaching = (): JSX.Element => {
                     <p>
                         <FormattedMessage
                             id='help.attaching.icon.description'
-                            defaultMessage='Alternatively, upload files by selecting the <b>Attachment</b> icon inside the message input box. In the system file viewer, navigate to the desired files, then select <b>Open</b> to upload them to the message input box. Optionally type a message, then press ENTER to post the message.'
+                            defaultMessage='Alternatively, upload files by selecting the <b>Attachment</b> icon inside the message input box. In the system file viewer, navigate to the desired files, then select <b>Open</b> to upload them to the message input box. Optionally type a message, then press <b>ENTER</b> to post the message.'
                             values={{
                                 b: (chunks: React.ReactNode) => <b>{chunks}</b>,
                             }}

@@ -4,15 +4,15 @@
 .HelpButton {
     display: flex;
     justify-content: flex-end;
-    padding-right: 4px;
+    height: 20px;
 
     &__link {
-        padding: 2px 4px;
+        padding: 0;
         border: none;
         background: none;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         cursor: pointer;
-        font-size: 11px;
+        font-size: 12px;
         text-decoration: none;
 
         &:hover {

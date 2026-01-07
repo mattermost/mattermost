@@ -51,13 +51,13 @@ const HelpSending = (): JSX.Element => {
                     <p>
                         <FormattedMessage
                             id='help.sending.types.replies.description'
-                            defaultMessage='Select the Reply icon next to any message to open the right-hand sidebar to respond to a thread.'
+                            defaultMessage='Select the <b>Reply icon</b> next to any message to open the right-hand sidebar to respond to a thread.'
                         />
                     </p>
                     <p>
                         <FormattedMessage
                             id='help.sending.types.replies.description2'
-                            defaultMessage='When composing a reply, select the Expand Sidebar/Collapse Sidebar icon in the top right corner of the right-hand sidebar to make conversations easier to read.'
+                            defaultMessage='When composing a reply, select the <b>Expand Sidebar/Collapse Sidebar icon</b> in the top right corner of the right-hand sidebar to make conversations easier to read.'
                         />
                     </p>
                 </section>
@@ -72,7 +72,7 @@ const HelpSending = (): JSX.Element => {
                     <p>
                         <FormattedMessage
                             id='help.sending.post.description'
-                            defaultMessage='Write a message by typing into the text input box, then press ENTER to send it. Use SHIFT+ENTER to create a new line without sending a message. To send messages by pressing CTRL+ENTER, go to <b>Settings > Advanced > Send Messages on CTRL/CMD+ENTER</b>.'
+                            defaultMessage='Write a message by typing into the text input box, then press <b>ENTER</b> to send it. Use <b>SHIFT+ENTER</b> to create a new line without sending a message. To send messages by pressing <b>CTRL+ENTER</b>, go to <b>Settings > Advanced > Send Messages on CTRL/CMD+ENTER</b>.'
                             values={{
                                 b: (chunks: React.ReactNode) => <b>{chunks}</b>,
                             }}
@@ -90,7 +90,7 @@ const HelpSending = (): JSX.Element => {
                     <p>
                         <FormattedMessage
                             id='help.sending.edit.description'
-                            defaultMessage={"Edit a message by selecting the More Actions [...] icon next to any message text that you've composed, then select Edit. After making modifications to the message text, press <b>ENTER</b> to save the modifications. Message edits don't trigger new @mention notifications, desktop notifications, or notification sounds."}
+                            defaultMessage={"Edit a message by selecting the <b>More Actions [...]</b> icon next to any message text that you've composed, then select <b>Edit</b>. After making modifications to the message text, press <b>ENTER</b> to save the modifications. Message edits don't trigger new @mention notifications, desktop notifications, or notification sounds."}
                             values={{
                                 b: (chunks: React.ReactNode) => <b>{chunks}</b>,
                             }}
@@ -108,7 +108,7 @@ const HelpSending = (): JSX.Element => {
                     <p>
                         <FormattedMessage
                             id='help.sending.delete.description'
-                            defaultMessage={"Delete a message by selecting the More Actions [...] icon next to any message text that you've composed, then select Delete. System and Team Admins can delete any message on their system or team."}
+                            defaultMessage={"Delete a message by selecting the <b>More Actions [...] icon</b> next to any message text that you've composed, then select <b>Delete</b>. System and Team Admins can delete any message on their system or team."}
                         />
                     </p>
                 </section>
@@ -123,7 +123,7 @@ const HelpSending = (): JSX.Element => {
                     <p>
                         <FormattedMessage
                             id='help.sending.link.description'
-                            defaultMessage='Get a permanent link to a message by selecting the More Actions [...] icon next to any message, then select Copy Link. Users must be a member of the channel to view the message link.'
+                            defaultMessage='Get a permanent link to a message by selecting the <b>More Actions [...]</b> icon next to any message, then select <b>Copy Link</b>. Users must be a member of the channel to view the message link.'
                         />
                     </p>
                 </section>
