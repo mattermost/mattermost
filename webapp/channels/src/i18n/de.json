@@ -4940,7 +4940,7 @@
   "manage_channel_groups_modal.search_placeholder": "Gruppen suchen",
   "manage_team_groups_modal.search_placeholder": "Gruppen suchen",
   "mark_all_threads_as_read_modal.confirm": "Alles als gelesen markieren",
-  "mark_all_threads_as_read_modal.description": "Dadurch wird der Status \"ungelesen\" gelöscht und die Zähler für alle deine Unterhaltungen werden entfernt. Bist du sicher?",
+  "mark_all_threads_as_read_modal.description": "Alle deine Unterhaltungen werden als gelesen markiert und die Markierungen für ungelesen und erwähnt gelöscht. Willst du weiter machen?",
   "mark_all_threads_as_read_modal.title": "Alle deine Unterhaltungen als gelesen markieren?",
   "mark_as_read_confirm_modal.body": "Bist du sicher, dass du die Kanäle von {numChannels} als gelesen markieren willst?",
   "mark_as_read_confirm_modal.confirm": "Als gelesen markieren",
