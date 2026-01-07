@@ -56,10 +56,10 @@ func TestCWSLogin(t *testing.T) {
 
 func TestGetUserForLogin(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	t.Run("Should get user with username when sign in with username is enabled", func(t *testing.T) {
-		th.UpdateConfig(t, func(config *model.Config) {
+		th.UpdateConfig(func(config *model.Config) {
 			config.EmailSettings.EnableSignInWithUsername = model.NewPointer(true)
 		})
 
@@ -70,7 +70,7 @@ func TestGetUserForLogin(t *testing.T) {
 	})
 
 	t.Run("Should not get user with username when sign in with username is disabled", func(t *testing.T) {
-		th.UpdateConfig(t, func(config *model.Config) {
+		th.UpdateConfig(func(config *model.Config) {
 			config.EmailSettings.EnableSignInWithUsername = model.NewPointer(false)
 		})
 
@@ -81,7 +81,7 @@ func TestGetUserForLogin(t *testing.T) {
 	})
 
 	t.Run("Should get user with email when sign in with email is enabled", func(t *testing.T) {
-		th.UpdateConfig(t, func(config *model.Config) {
+		th.UpdateConfig(func(config *model.Config) {
 			config.EmailSettings.EnableSignInWithEmail = model.NewPointer(true)
 		})
 
@@ -92,7 +92,7 @@ func TestGetUserForLogin(t *testing.T) {
 	})
 
 	t.Run("Should not user with email when sign in with email is disabled", func(t *testing.T) {
-		th.UpdateConfig(t, func(config *model.Config) {
+		th.UpdateConfig(func(config *model.Config) {
 			config.EmailSettings.EnableSignInWithEmail = model.NewPointer(false)
 		})
 
@@ -103,7 +103,7 @@ func TestGetUserForLogin(t *testing.T) {
 	})
 
 	t.Run("Should get user with user ID when sign in with email is enabled", func(t *testing.T) {
-		th.UpdateConfig(t, func(config *model.Config) {
+		th.UpdateConfig(func(config *model.Config) {
 			config.EmailSettings.EnableSignInWithEmail = model.NewPointer(true)
 			config.EmailSettings.EnableSignInWithUsername = model.NewPointer(false)
 		})
@@ -115,7 +115,7 @@ func TestGetUserForLogin(t *testing.T) {
 	})
 
 	t.Run("Should get user with user ID when sign in with username is enabled", func(t *testing.T) {
-		th.UpdateConfig(t, func(config *model.Config) {
+		th.UpdateConfig(func(config *model.Config) {
 			config.EmailSettings.EnableSignInWithEmail = model.NewPointer(false)
 			config.EmailSettings.EnableSignInWithUsername = model.NewPointer(true)
 		})
@@ -127,7 +127,7 @@ func TestGetUserForLogin(t *testing.T) {
 	})
 
 	t.Run("Should not get user with user ID when both sign in with email and username are disabled", func(t *testing.T) {
-		th.UpdateConfig(t, func(config *model.Config) {
+		th.UpdateConfig(func(config *model.Config) {
 			config.EmailSettings.EnableSignInWithEmail = model.NewPointer(false)
 			config.EmailSettings.EnableSignInWithUsername = model.NewPointer(false)
 		})
