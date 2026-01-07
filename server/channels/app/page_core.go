@@ -491,6 +491,7 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, page *Page, titl
 // DeletePage deletes a page. If wikiId is provided, it will be included in the broadcast event.
 // Accepts a type-safe *Page that has already been validated.
 // Uses atomic store operation to delete content, comments, and page post in a single transaction.
+// Before deletion, reparents any child pages to the deleted page's parent to avoid orphans.
 func (a *App) DeletePage(rctx request.CTX, page *Page, wikiId string) *model.AppError {
 	start := time.Now()
 	defer func() {
@@ -501,6 +502,12 @@ func (a *App) DeletePage(rctx request.CTX, page *Page, wikiId string) *model.App
 
 	pageID := page.Id()
 	session := rctx.Session()
+
+	// Reparent any children to the deleted page's parent (or make them root pages)
+	// This prevents orphaned pages when a parent is deleted
+	if err := a.Srv().Store().Page().ReparentChildren(pageID, page.PageParentId()); err != nil {
+		return model.NewAppError("DeletePage", "app.page.delete.reparent_error.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
 
 	// Atomic deletion of content, comments, and page post in a single transaction
 	if err := a.Srv().Store().Page().DeletePage(pageID, session.UserId); err != nil {

@@ -81,24 +81,6 @@ func (_m *PageStore) DeletePage(pageID string, deleteByID string) error {
 	return r0
 }
 
-// RestorePage provides a mock function with given fields: pageID
-func (_m *PageStore) RestorePage(pageID string) error {
-	ret := _m.Called(pageID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for RestorePage")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(pageID)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // DeletePageContent provides a mock function with given fields: pageID
 func (_m *PageStore) DeletePageContent(pageID string) error {
 	ret := _m.Called(pageID)
@@ -453,6 +435,42 @@ func (_m *PageStore) PermanentDeletePageContent(pageID string) error {
 
 	if len(ret) == 0 {
 		panic("no return value specified for PermanentDeletePageContent")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(pageID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ReparentChildren provides a mock function with given fields: pageID, newParentID
+func (_m *PageStore) ReparentChildren(pageID string, newParentID string) error {
+	ret := _m.Called(pageID, newParentID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ReparentChildren")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(pageID, newParentID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// RestorePage provides a mock function with given fields: pageID
+func (_m *PageStore) RestorePage(pageID string) error {
+	ret := _m.Called(pageID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RestorePage")
 	}
 
 	var r0 error

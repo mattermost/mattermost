@@ -87,6 +87,7 @@ const (
 	WebsocketEventPageDraftUpdated                    WebsocketEventType = "page_draft_updated"
 	WebsocketEventPageDraftDeleted                    WebsocketEventType = "page_draft_deleted"
 	WebsocketEventPageEditorStopped                   WebsocketEventType = "page_editor_stopped"
+	WebsocketEventPageCommentCreated                  WebsocketEventType = "page_comment_created"
 	WebsocketEventPageCommentResolved                 WebsocketEventType = "page_comment_resolved"
 	WebsocketEventPageCommentUnresolved               WebsocketEventType = "page_comment_unresolved"
 	WebsocketEventPageCommentDeleted                  WebsocketEventType = "page_comment_deleted"

@@ -70,13 +70,9 @@ func updatePageParent(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		parentWikiId, wikiErr := c.App.GetWikiIdForPage(c.AppContext, req.NewParentId)
-		if wikiErr != nil {
-			c.Err = wikiErr
-			return
-		}
-
-		if parentWikiId != c.Params.WikiId {
+		// Extract wiki ID from the already-fetched parent page's Props
+		parentWikiId, ok := parentPage.Props()[model.PagePropsWikiID].(string)
+		if !ok || parentWikiId != c.Params.WikiId {
 			c.Err = model.NewAppError("updatePageParent", "api.wiki.update_page_parent.parent_different_wiki", nil, "", http.StatusBadRequest)
 			return
 		}
@@ -144,7 +140,10 @@ func movePageToWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.CheckPagePermission(page, app.PageOperationEdit) {
+	// Moving a page to a different wiki requires delete permission on the source
+	// (you're removing it from this wiki) and create permission on the target
+	// (you're adding it to that wiki). This aligns with Confluence's permission model.
+	if !c.CheckPagePermission(page, app.PageOperationDelete) {
 		return
 	}
 

@@ -42,13 +42,19 @@ func savePageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, _, ok := c.GetWikiForModify("savePageDraft"); !ok {
+	_, channel, ok := c.GetWikiForModify("savePageDraft")
+	if !ok {
 		return
 	}
 
-	// Check page edit permission if this is a draft for an existing page
+	// Check page permission based on whether this is a draft for an existing page or new page
 	if existingPage, err := c.App.GetPage(c.AppContext, c.Params.PageId); err == nil {
 		if !c.CheckPagePermission(existingPage, app.PageOperationEdit) {
+			return
+		}
+	} else {
+		// New page draft - require create permission
+		if !c.CheckChannelPagePermission(channel, app.PageOperationCreate) {
 			return
 		}
 	}
@@ -169,7 +175,13 @@ func createPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, _, ok := c.GetWikiForModify("createPageDraft"); !ok {
+	_, channel, ok := c.GetWikiForModify("createPageDraft")
+	if !ok {
+		return
+	}
+
+	// Check that user has permission to create pages in this channel
+	if !c.CheckChannelPagePermission(channel, app.PageOperationCreate) {
 		return
 	}
 
@@ -181,6 +193,37 @@ func createPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		c.SetInvalidParamWithErr("request", err)
 		return
+	}
+
+	// Validate parent page if provided
+	if req.PageParentId != "" {
+		if !model.IsValidId(req.PageParentId) {
+			c.SetInvalidParam("page_parent_id")
+			return
+		}
+
+		// First try to find as a published page
+		parentPage, parentErr := c.App.GetPage(c.AppContext, req.PageParentId)
+		if parentErr != nil {
+			// Parent is not a published page - check if it's a draft
+			// This allows creating child drafts under draft parents (not yet published)
+			parentDraftExists, _, draftErr := c.App.Srv().Store().Draft().PageDraftExists(req.PageParentId, c.AppContext.Session().UserId)
+			if draftErr != nil || !parentDraftExists {
+				c.Err = model.NewAppError("createPageDraft", "api.draft.create.invalid_parent.app_error",
+					nil, "parent page or draft not found", http.StatusBadRequest).Wrap(parentErr)
+				return
+			}
+			// Parent exists as a draft for this user - no wiki validation needed since
+			// drafts are wiki-scoped and we'll save the child with the same wiki ID
+		} else {
+			// Verify parent page belongs to the same wiki
+			parentWikiId, _ := parentPage.Props()[model.PagePropsWikiID].(string)
+			if parentWikiId != c.Params.WikiId {
+				c.Err = model.NewAppError("createPageDraft", "api.draft.create.parent_different_wiki.app_error",
+					nil, "parent page belongs to a different wiki", http.StatusBadRequest)
+				return
+			}
+		}
 	}
 
 	// Generate server-side page ID

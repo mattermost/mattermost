@@ -14,6 +14,36 @@ type DraftStore struct {
 	mock.Mock
 }
 
+// BatchUpdateDraftParentId provides a mock function with given fields: userId, wikiId, oldParentId, newParentId
+func (_m *DraftStore) BatchUpdateDraftParentId(userId string, wikiId string, oldParentId string, newParentId string) ([]*model.Draft, error) {
+	ret := _m.Called(userId, wikiId, oldParentId, newParentId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for BatchUpdateDraftParentId")
+	}
+
+	var r0 []*model.Draft
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, string, string) ([]*model.Draft, error)); ok {
+		return rf(userId, wikiId, oldParentId, newParentId)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, string, string) []*model.Draft); ok {
+		r0 = rf(userId, wikiId, oldParentId, newParentId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Draft)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, string, string) error); ok {
+		r1 = rf(userId, wikiId, oldParentId, newParentId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // CreateDraftForExistingPage provides a mock function with given fields: pageId, userId, wikiId, content, title, baseUpdateAt
 func (_m *DraftStore) CreateDraftForExistingPage(pageId string, userId string, wikiId string, content string, title string, baseUpdateAt int64) (*model.PageContent, error) {
 	ret := _m.Called(pageId, userId, wikiId, content, title, baseUpdateAt)

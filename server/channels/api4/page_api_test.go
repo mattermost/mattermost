@@ -286,6 +286,85 @@ func TestDeletePage(t *testing.T) {
 	})
 }
 
+func TestRestorePage(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionDeletePage.Id, model.ChannelUserRoleId)
+
+	th.Context.Session().UserId = th.BasicUser.Id
+
+	wiki := &model.Wiki{
+		ChannelId: th.BasicChannel.Id,
+		Title:     "Test Wiki",
+	}
+	wiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	t.Run("restore deleted page successfully", func(t *testing.T) {
+		page, _, err := th.Client.CreatePage(context.Background(), wiki.Id, "", "Page to Restore")
+		require.NoError(t, err)
+
+		// Delete the page
+		_, err = th.Client.DeletePage(context.Background(), wiki.Id, page.Id)
+		require.NoError(t, err)
+
+		// Verify page is deleted
+		_, resp, err := th.Client.GetPage(context.Background(), wiki.Id, page.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+
+		// Restore the page
+		resp, err = th.Client.RestorePage(context.Background(), wiki.Id, page.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		// Verify page is restored
+		restoredPage, resp, err := th.Client.GetPage(context.Background(), wiki.Id, page.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, page.Id, restoredPage.Id)
+	})
+
+	t.Run("fail without delete permission", func(t *testing.T) {
+		page, _, err := th.Client.CreatePage(context.Background(), wiki.Id, "", "Test Page")
+		require.NoError(t, err)
+
+		// Delete the page
+		_, err = th.Client.DeletePage(context.Background(), wiki.Id, page.Id)
+		require.NoError(t, err)
+
+		// Remove delete permission
+		th.RemovePermissionFromRole(t, model.PermissionDeletePage.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionDeleteOwnPage.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionDeletePage.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionDeleteOwnPage.Id, model.ChannelUserRoleId)
+
+		// Try to restore without permission
+		resp, err := th.Client.RestorePage(context.Background(), wiki.Id, page.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("fail for non-existent page", func(t *testing.T) {
+		resp, err := th.Client.RestorePage(context.Background(), wiki.Id, model.NewId())
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("fail for non-deleted page", func(t *testing.T) {
+		page, _, err := th.Client.CreatePage(context.Background(), wiki.Id, "", "Active Page")
+		require.NoError(t, err)
+
+		// Try to restore an active page
+		resp, err := th.Client.RestorePage(context.Background(), wiki.Id, page.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+}
+
 func TestGetWikiPage(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

@@ -77,11 +77,17 @@ func createPageComment(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, _, ok := c.GetWikiForRead(); !ok {
+	_, channel, ok := c.GetWikiForRead()
+	if !ok {
 		return
 	}
 
 	if !c.CheckPagePermission(page, app.PageOperationRead) {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionCreatePost) {
+		c.SetPermissionError(model.PermissionCreatePost)
 		return
 	}
 
@@ -132,7 +138,8 @@ func createPageCommentReply(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if _, _, ok := c.GetWikiForRead(); !ok {
+	_, channel, ok := c.GetWikiForRead()
+	if !ok {
 		return
 	}
 
@@ -142,6 +149,11 @@ func createPageCommentReply(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	if !c.CheckPagePermission(page, app.PageOperationRead) {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionCreatePost) {
+		c.SetPermissionError(model.PermissionCreatePost)
 		return
 	}
 
@@ -252,7 +264,7 @@ func resolvePageComment(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resolvedComment, resolveErr := c.App.ResolvePageComment(c.AppContext, commentId, c.AppContext.Session().UserId)
+	resolvedComment, resolveErr := c.App.ResolvePageComment(c.AppContext, comment, c.AppContext.Session().UserId)
 	if resolveErr != nil {
 		c.Err = resolveErr
 		return
@@ -294,7 +306,7 @@ func unresolvePageComment(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	unresolvedComment, unresolveErr := c.App.UnresolvePageComment(c.AppContext, commentId)
+	unresolvedComment, unresolveErr := c.App.UnresolvePageComment(c.AppContext, comment)
 	if unresolveErr != nil {
 		c.Err = unresolveErr
 		return

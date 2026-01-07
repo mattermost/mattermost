@@ -152,3 +152,99 @@ test('callout appears in slash command menu with description', {tag: '@pages'}, 
     // * Verify callout item is in the menu
     await expect(slashMenu).toContainText('Callout');
 });
+
+/**
+ * @objective Verify formatting bar appears when selecting text inside callout
+ */
+test('shows formatting bar when selecting text inside callout', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {page, editor} = await setupWikiPageInEditMode(
+        pw,
+        sharedPagesSetup,
+        'Callout Format Wiki',
+        'Callout Formatting Test',
+    );
+
+    // # Insert callout via slash command
+    const callout = await insertBlockViaSlashCommand(page, editor, 'Callout', '.callout');
+
+    // # Type some text inside the callout
+    await typeInsideBlock(page, callout, 'Select this text');
+
+    // # Select all text inside the callout using keyboard
+    await page.keyboard.press('Home');
+    for (let i = 0; i < 16; i++) {
+        await page.keyboard.press('Shift+ArrowRight');
+    }
+
+    // * Verify formatting bar appears
+    const formattingBar = page.locator('.formatting-bar-bubble');
+    await expect(formattingBar).toBeVisible({timeout: 5000});
+});
+
+/**
+ * @objective Verify callout can be deleted by pressing Backspace at the start
+ */
+test(
+    'deletes callout when pressing Backspace at start of empty callout',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {page, editor} = await setupWikiPageInEditMode(
+            pw,
+            sharedPagesSetup,
+            'Callout Delete Wiki',
+            'Callout Delete Test',
+        );
+
+        // # Insert callout via slash command
+        const callout = await insertBlockViaSlashCommand(page, editor, 'Callout', '.callout');
+
+        // * Verify callout exists
+        await expect(callout).toBeVisible();
+
+        // # Click inside the callout to position cursor
+        await callout.click();
+        await page.waitForTimeout(100);
+
+        // # Press Backspace to delete the empty callout
+        await page.keyboard.press('Backspace');
+
+        // * Verify callout is removed
+        await expect(editor.locator('.callout')).toHaveCount(0);
+    },
+);
+
+/**
+ * @objective Verify callout with content can be removed while preserving content
+ */
+test(
+    'removes callout wrapper when pressing Backspace at start with content',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {page, editor} = await setupWikiPageInEditMode(
+            pw,
+            sharedPagesSetup,
+            'Callout Unwrap Wiki',
+            'Callout Unwrap Test',
+        );
+
+        // # Insert callout via slash command
+        const callout = await insertBlockViaSlashCommand(page, editor, 'Callout', '.callout');
+
+        // # Type content inside callout
+        await typeInsideBlock(page, callout, 'Content to preserve');
+
+        // # Click inside the callout and move cursor to the very beginning
+        await callout.click();
+        await page.waitForTimeout(100);
+        await page.keyboard.press('Home');
+
+        // # Press Backspace to unwrap/lift the content out of callout
+        await page.keyboard.press('Backspace');
+
+        // * Verify callout wrapper is removed
+        await expect(editor.locator('.callout')).toHaveCount(0);
+
+        // * Verify content is preserved in the editor
+        await expect(editor).toContainText('Content to preserve');
+    },
+);

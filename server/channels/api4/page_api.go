@@ -48,11 +48,6 @@ func getWikiPage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pagePost, ok := c.ValidatePageBelongsToWiki()
-	if !ok {
-		return
-	}
-
 	wiki, _, ok := c.GetWikiForRead()
 	if !ok {
 		return
@@ -63,14 +58,18 @@ func getWikiPage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.CheckPagePermission(pagePost, app.PageOperationRead) {
-		return
-	}
-
-	// GetPageWithContent loads page content from PageContent table and checks permissions
+	// GetPageWithContent loads page content and metadata in one call
+	// and performs permission check internally
 	page, appErr := c.App.GetPageWithContent(c.AppContext, c.Params.PageId)
 	if appErr != nil {
 		c.Err = appErr
+		return
+	}
+
+	// Validate page belongs to the wiki in URL (using already-fetched page)
+	pageWikiId, wikiIdOk := page.Props[model.PagePropsWikiID].(string)
+	if !wikiIdOk || pageWikiId != c.Params.WikiId {
+		c.Err = model.NewAppError("getWikiPage", "api.wiki.page_wiki_mismatch", nil, "", http.StatusBadRequest)
 		return
 	}
 
@@ -97,6 +96,60 @@ func deletePage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if appErr := c.App.DeleteWikiPage(c.AppContext, page, c.Params.WikiId); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.Success()
+	c.LogAudit("page_id=" + c.Params.PageId + " wiki_id=" + c.Params.WikiId + " wiki_title=" + wiki.Title)
+
+	ReturnStatusOK(w)
+}
+
+func restorePage(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireWikiId()
+	c.RequirePageId()
+	if c.Err != nil {
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("restorePage", model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("wiki_id", c.Params.WikiId)
+	auditRec.AddMeta("page_id", c.Params.PageId)
+
+	// Get the deleted page (must use GetPageWithDeleted since normal GetPage excludes deleted)
+	page, appErr := c.App.GetPageWithDeleted(c.AppContext, c.Params.PageId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	// Validate page belongs to this wiki
+	pageWikiId, ok := page.Props()[model.PagePropsWikiID].(string)
+	if !ok || pageWikiId != c.Params.WikiId {
+		c.Err = model.NewAppError("restorePage", "api.wiki.page_wiki_mismatch", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	// Get wiki and check modify permission
+	wiki, _, ok := c.GetWikiForModify("restorePage")
+	if !ok {
+		return
+	}
+
+	// Validate page's channel matches wiki's channel
+	if page.ChannelId() != wiki.ChannelId {
+		c.Err = model.NewAppError("restorePage", "api.wiki.page_channel_mismatch", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	// Check delete permission (restore requires same permission as delete)
+	if !c.CheckPagePermission(page, app.PageOperationDelete) {
+		return
+	}
+
+	if appErr := c.App.RestorePage(c.AppContext, page); appErr != nil {
 		c.Err = appErr
 		return
 	}

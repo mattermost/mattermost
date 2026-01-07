@@ -57,10 +57,17 @@ func (a *App) createThreadEntryForPageComment(rctx request.CTX, post *model.Post
 
 // GetPageComments retrieves all comments (including inline comments) for a page
 func (a *App) GetPageComments(rctx request.CTX, pageID string) ([]*model.Post, *model.AppError) {
-	if _, err := a.GetPage(rctx, pageID); err != nil {
+	page, err := a.GetPage(rctx, pageID)
+	if err != nil {
 		return nil, model.NewAppError("GetPageComments",
 			"app.page.get_comments.page_not_found.app_error",
 			nil, "", http.StatusNotFound).Wrap(err)
+	}
+
+	// Verify user has permission to read the page before returning comments
+	session := rctx.Session()
+	if !a.HasPermissionToChannel(rctx, session.UserId, page.ChannelId(), model.PermissionReadPage) {
+		return nil, model.NewAppError("GetPageComments", "api.context.permissions.app_error", nil, "", http.StatusForbidden)
 	}
 
 	postList, appErr := a.Srv().Store().Page().GetCommentsForPage(pageID, false)
@@ -136,6 +143,8 @@ func (a *App) CreatePageComment(rctx request.CTX, pageID, message string, inline
 	if createErr != nil {
 		return nil, createErr
 	}
+
+	a.SendCommentCreatedEvent(rctx, createdComment, page.Post(), channel)
 
 	rctx.Logger().Debug("Page comment created",
 		mlog.String("comment_id", createdComment.Id),
@@ -219,6 +228,8 @@ func (a *App) CreatePageCommentReply(rctx request.CTX, pageID, parentCommentID, 
 		return nil, createErr
 	}
 
+	a.SendCommentCreatedEvent(rctx, createdReply, page.Post(), channel)
+
 	rctx.Logger().Debug("Page comment reply created",
 		mlog.String("reply_id", createdReply.Id),
 		mlog.String("page_id", pageID),
@@ -281,15 +292,15 @@ func (a *App) CanResolvePageComment(rctx request.CTX, session *model.Session, co
 		return true
 	}
 
-	return a.SessionHasPermissionToChannel(rctx, *session, page.ChannelId, model.PermissionCreatePost)
-}
-
-func (a *App) ResolvePageComment(rctx request.CTX, commentId string, userId string) (*model.Post, *model.AppError) {
-	comment, err := a.GetSinglePost(rctx, commentId, false)
-	if err != nil {
-		return nil, err
+	member, memberErr := a.GetChannelMember(rctx, page.ChannelId, session.UserId)
+	if memberErr != nil {
+		return false
 	}
 
+	return member.SchemeAdmin
+}
+
+func (a *App) ResolvePageComment(rctx request.CTX, comment *model.Post, userId string) (*model.Post, *model.AppError) {
 	props := comment.GetProps()
 	if resolved, ok := props[model.PagePropsCommentResolved].(bool); ok && resolved {
 		return comment, nil
@@ -325,12 +336,7 @@ func (a *App) ResolvePageComment(rctx request.CTX, commentId string, userId stri
 	return updatedComment, nil
 }
 
-func (a *App) UnresolvePageComment(rctx request.CTX, commentId string) (*model.Post, *model.AppError) {
-	comment, err := a.GetSinglePost(rctx, commentId, false)
-	if err != nil {
-		return nil, err
-	}
-
+func (a *App) UnresolvePageComment(rctx request.CTX, comment *model.Post) (*model.Post, *model.AppError) {
 	props := comment.GetProps()
 	newProps := make(model.StringInterface)
 	maps.Copy(newProps, props)
@@ -360,6 +366,26 @@ func (a *App) UnresolvePageComment(rctx request.CTX, commentId string) (*model.P
 	}
 
 	return updatedComment, nil
+}
+
+func (a *App) SendCommentCreatedEvent(rctx request.CTX, comment *model.Post, page *model.Post, channel *model.Channel) {
+	message := model.NewWebSocketEvent(
+		model.WebsocketEventPageCommentCreated,
+		channel.TeamId,
+		comment.ChannelId,
+		"",
+		nil,
+		"",
+	)
+	message.Add("comment_id", comment.Id)
+	message.Add("page_id", page.Id)
+	commentJSON, _ := comment.ToJSON()
+	message.Add("comment", commentJSON)
+	message.SetBroadcast(&model.WebsocketBroadcast{
+		ChannelId:           comment.ChannelId,
+		ReliableClusterSend: true,
+	})
+	a.Publish(message)
 }
 
 func (a *App) SendCommentResolvedEvent(rctx request.CTX, comment *model.Post, page *model.Post, channel *model.Channel) {

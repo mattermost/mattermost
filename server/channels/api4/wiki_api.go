@@ -24,6 +24,7 @@ func (api *API) InitWiki() {
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}", api.APISessionRequired(getWikiPage)).Methods(http.MethodGet)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}", api.APISessionRequired(updatePage)).Methods(http.MethodPut)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}", api.APISessionRequired(deletePage)).Methods(http.MethodDelete)
+	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/restore", api.APISessionRequired(restorePage)).Methods(http.MethodPost)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/active_editors", api.APISessionRequired(getPageActiveEditors)).Methods(http.MethodGet)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/version_history", api.APISessionRequired(getPageVersionHistory)).Methods(http.MethodGet)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/breadcrumb", api.APISessionRequired(getPageBreadcrumb)).Methods(http.MethodGet)
@@ -72,6 +73,13 @@ func createWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !c.CheckWikiModifyPermission(channel) {
+		return
+	}
+
+	// Wiki creation also requires CreatePage permission since it creates a default draft page
+	// that will need to be published. Without this check, users could create wikis but be
+	// unable to publish the default page if manage_pages moderation is disabled.
+	if !c.CheckChannelPagePermission(channel, app.PageOperationCreate) {
 		return
 	}
 

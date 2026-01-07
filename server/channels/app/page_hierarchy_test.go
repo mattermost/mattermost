@@ -15,6 +15,8 @@ func TestBuildBreadcrumbPath(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	th.SetupPagePermissions()
 
+	sessionCtx := th.CreateSessionContext()
+
 	wiki := &model.Wiki{
 		ChannelId: th.BasicChannel.Id,
 		Title:     "Test Wiki",
@@ -36,7 +38,7 @@ func TestBuildBreadcrumbPath(t *testing.T) {
 	require.Nil(t, appErr)
 
 	t.Run("build breadcrumb for deeply nested page", func(t *testing.T) {
-		breadcrumb, appErr := th.App.BuildBreadcrumbPath(th.Context, child, wiki, channel)
+		breadcrumb, appErr := th.App.BuildBreadcrumbPath(sessionCtx, child, wiki, channel)
 		require.Nil(t, appErr)
 		require.NotNil(t, breadcrumb)
 		require.NotNil(t, breadcrumb.Items)
@@ -46,7 +48,7 @@ func TestBuildBreadcrumbPath(t *testing.T) {
 	})
 
 	t.Run("build breadcrumb for root page", func(t *testing.T) {
-		breadcrumb, appErr := th.App.BuildBreadcrumbPath(th.Context, grandparent, wiki, channel)
+		breadcrumb, appErr := th.App.BuildBreadcrumbPath(sessionCtx, grandparent, wiki, channel)
 		require.Nil(t, appErr)
 		require.NotNil(t, breadcrumb)
 		require.NotNil(t, breadcrumb.Items)

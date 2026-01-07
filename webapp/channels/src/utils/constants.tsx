@@ -751,6 +751,7 @@ export const SocketEvents = {
     PAGE_DRAFT_UPDATED: 'page_draft_updated',
     PAGE_DRAFT_DELETED: 'page_draft_deleted',
     PAGE_EDITOR_STOPPED: 'page_editor_stopped',
+    PAGE_COMMENT_CREATED: 'page_comment_created',
     PAGE_COMMENT_RESOLVED: 'page_comment_resolved',
     PAGE_COMMENT_UNRESOLVED: 'page_comment_unresolved',
     PAGE_COMMENT_DELETED: 'page_comment_deleted',

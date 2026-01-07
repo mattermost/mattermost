@@ -62,6 +62,53 @@ func TestCreateWiki(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
+
+	t.Run("fail without create page permission", func(t *testing.T) {
+		// Create a new channel for this test
+		channel := th.CreatePublicChannel(t)
+
+		// Add BasicUser2 to the channel as a regular member (not admin)
+		th.AddUserToChannel(t, th.BasicUser2, channel)
+
+		// Remove CreatePage permission from channel user role
+		th.RemovePermissionFromRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
+
+		// Login as BasicUser2 (who is a regular member, not channel admin)
+		client2 := th.CreateClient()
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		require.NoError(t, lErr)
+
+		wiki := &model.Wiki{
+			ChannelId: channel.Id,
+			Title:     "Wiki Without CreatePage Permission",
+		}
+
+		// BasicUser2 should fail because they don't have CreatePage permission
+		_, resp, err := client2.CreateWiki(context.Background(), wiki)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("succeed with both manage channel and create page permissions", func(t *testing.T) {
+		// Create a new channel for this test
+		channel := th.CreatePublicChannel(t)
+
+		// Ensure both permissions are present (they should be by default, but be explicit)
+		th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
+
+		wiki := &model.Wiki{
+			ChannelId: channel.Id,
+			Title:     "Wiki With Both Permissions",
+		}
+
+		createdWiki, resp, err := th.Client.CreateWiki(context.Background(), wiki)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotEmpty(t, createdWiki.Id)
+		require.Equal(t, wiki.Title, createdWiki.Title)
+	})
 }
 
 func TestGetWiki(t *testing.T) {
@@ -1600,11 +1647,13 @@ func TestMovePageToWiki(t *testing.T) {
 	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
 	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
 	th.AddPermissionToRole(t, model.PermissionEditPage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionDeleteOwnPage.Id, model.ChannelUserRoleId)
 	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
 	th.AddPermissionToRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
 	th.AddPermissionToRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
 	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
 	th.AddPermissionToRole(t, model.PermissionEditPage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionDeleteOwnPage.Id, model.ChannelUserRoleId)
 	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
 	th.Context.Session().UserId = th.BasicUser.Id
 
@@ -1680,7 +1729,7 @@ func TestMovePageToWiki(t *testing.T) {
 		require.Equal(t, createdTargetWiki.Id, child2WikiId)
 	})
 
-	t.Run("fail when user lacks edit permission on source wiki", func(t *testing.T) {
+	t.Run("fail when user lacks delete permission on source wiki", func(t *testing.T) {
 		privateChannel := th.CreatePrivateChannel(t)
 		_, err := th.App.AddUserToChannel(th.Context, th.BasicUser, privateChannel, false)
 		require.Nil(t, err)
@@ -1701,6 +1750,40 @@ func TestMovePageToWiki(t *testing.T) {
 		require.Nil(t, appErr)
 
 		page, appErr := th.App.CreateWikiPage(th.Context, createdSourceWiki.Id, "", "Private Page", "", th.BasicUser.Id, "", "")
+		require.Nil(t, appErr)
+
+		client2 := th.CreateClient()
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		require.NoError(t, lErr)
+
+		resp, moveErr := client2.MovePageToWiki(context.Background(), createdSourceWiki.Id, page.Id, createdTargetWiki.Id)
+		require.Error(t, moveErr)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("fail when user cannot delete another user's page", func(t *testing.T) {
+		privateChannel := th.CreatePrivateChannel(t)
+		_, err := th.App.AddUserToChannel(th.Context, th.BasicUser, privateChannel, false)
+		require.Nil(t, err)
+		_, err = th.App.AddUserToChannel(th.Context, th.BasicUser2, privateChannel, false)
+		require.Nil(t, err)
+
+		th.Context.Session().UserId = th.BasicUser.Id
+		sourceWiki := &model.Wiki{
+			ChannelId: privateChannel.Id,
+			Title:     "Source Wiki Delete Test",
+		}
+		createdSourceWiki, appErr := th.App.CreateWiki(th.Context, sourceWiki, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		targetWiki := &model.Wiki{
+			ChannelId: privateChannel.Id,
+			Title:     "Target Wiki Delete Test",
+		}
+		createdTargetWiki, appErr := th.App.CreateWiki(th.Context, targetWiki, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		page, appErr := th.App.CreateWikiPage(th.Context, createdSourceWiki.Id, "", "Page Owned By User1", "", th.BasicUser.Id, "", "")
 		require.Nil(t, appErr)
 
 		client2 := th.CreateClient()

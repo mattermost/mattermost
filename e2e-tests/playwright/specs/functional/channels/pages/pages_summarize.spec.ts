@@ -14,6 +14,7 @@ import {
     createPostsForSummarization,
     verifyPageInHierarchy,
     switchToWikiTab,
+    isAIPluginRunning,
     EDITOR_LOAD_WAIT,
     ELEMENT_TIMEOUT,
     HIERARCHY_TIMEOUT,
@@ -253,13 +254,16 @@ test(
     'hides summarize to page option when AI plugin is not available',
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
-        // Skip if AI is configured - we can't test graceful degradation when AI is enabled
-        if (!shouldSkipAITests()) {
-            test.skip(true, 'AI plugin is configured - cannot test graceful degradation');
+        const {team, user, adminClient} = sharedPagesSetup;
+
+        // Check if AI plugin is actually running on the server (not just test config)
+        const aiRunning = await isAIPluginRunning(adminClient);
+
+        // Skip if AI is actually running on server - we can't test graceful degradation when AI is enabled
+        if (aiRunning || !shouldSkipAITests()) {
+            test.skip(true, 'AI plugin is running on server - cannot test graceful degradation');
             return;
         }
-
-        const {team, user, adminClient} = sharedPagesSetup;
 
         const channel = await createTestChannel(adminClient, team.id, `No AI Test ${await pw.random.id()}`);
         const {page, channelsPage} = await pw.testBrowser.login(user);

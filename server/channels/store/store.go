@@ -1072,6 +1072,7 @@ type DraftStore interface {
 	PermanentDeleteByUser(userId string) error
 	UpdatePropsOnly(userId, wikiId, draftId string, props map[string]any, expectedUpdateAt int64) error
 	UpdateDraftParent(userId, wikiId, draftId, newParentId string) error
+	BatchUpdateDraftParentId(userId, wikiId, oldParentId, newParentId string) ([]*model.Draft, error)
 
 	// Page draft content methods (PageContents table with status='draft')
 	// With unified page ID model, drafts are stored in PageContents table
@@ -1286,6 +1287,11 @@ type PageStore interface {
 	// Uses optimistic locking: only updates if UpdateAt matches expectedUpdateAt.
 	// Returns ErrNotFound if no rows affected (page not found or concurrent modification).
 	ChangePageParent(postID string, newParentID string, expectedUpdateAt int64) error
+
+	// ReparentChildren updates all direct children of a page to a new parent.
+	// Used when deleting a page to avoid orphaning its children.
+	// If newParentID is empty, children become root pages.
+	ReparentChildren(pageID string, newParentID string) error
 
 	// UpdatePageWithContent updates a page's title and/or content and creates edit history
 	UpdatePageWithContent(rctx request.CTX, pageID, title, content, searchText string) (*model.Post, error)

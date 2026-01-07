@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"maps"
 	"net/http"
 	"strings"
 
@@ -840,45 +839,29 @@ func (a *App) rollbackPageUpdate(rctx request.CTX, pageId string, originalConten
 }
 
 func (a *App) updateChildDraftParentReferences(rctx request.CTX, userId, wikiId, oldPageId, newPageId string) *model.AppError {
-	drafts, err := a.GetPageDraftsForWiki(rctx, userId, wikiId)
+	// Use batch update to update all matching drafts in a single query
+	updatedDrafts, err := a.Srv().Store().Draft().BatchUpdateDraftParentId(userId, wikiId, oldPageId, newPageId)
 	if err != nil {
-		return err
+		rctx.Logger().Warn("Failed to batch update child draft parent IDs",
+			mlog.String("old_parent_id", oldPageId),
+			mlog.String("new_parent_id", newPageId),
+			mlog.Err(err))
+		return model.NewAppError("updateChildDraftParentReferences", "app.draft.batch_update_parent.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	for _, childDraft := range drafts {
-		pageId := childDraft.PageId
-
-		parentIdProp, hasParent := childDraft.Props[model.DraftPropsPageParentID]
-		if !hasParent {
-			continue
+	// Broadcast WebSocket events for each updated draft
+	for _, draft := range updatedDrafts {
+		// Create minimal PageDraft for broadcasting (only metadata changed, not content)
+		pageDraft := &model.PageDraft{
+			UserId:    draft.UserId,
+			WikiId:    draft.WikiId,
+			ChannelId: draft.ChannelId,
+			PageId:    draft.RootId,
+			Props:     draft.GetProps(),
+			CreateAt:  draft.CreateAt,
+			UpdateAt:  draft.UpdateAt,
 		}
-
-		parentId, ok := parentIdProp.(string)
-		if !ok {
-			continue
-		}
-
-		if parentId != oldPageId {
-			continue
-		}
-
-		updatedProps := maps.Clone(childDraft.Props)
-		updatedProps[model.DraftPropsPageParentID] = newPageId
-
-		updateErr := a.Srv().Store().Draft().UpdatePropsOnly(userId, wikiId, pageId, updatedProps, childDraft.UpdateAt)
-		if updateErr != nil {
-			rctx.Logger().Warn("Failed to update child draft parent ID",
-				mlog.String("page_id", childDraft.PageId),
-				mlog.String("old_parent_id", oldPageId),
-				mlog.String("new_parent_id", newPageId),
-				mlog.Err(updateErr))
-			continue
-		}
-
-		childDraft.Props = updatedProps
-		childDraft.UpdateAt = model.GetMillis()
-
-		a.BroadcastPageDraftUpdated(childDraft.ChannelId, childDraft)
+		a.BroadcastPageDraftUpdated(draft.WikiId, pageDraft)
 	}
 
 	return nil

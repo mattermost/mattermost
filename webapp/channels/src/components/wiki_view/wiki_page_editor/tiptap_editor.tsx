@@ -65,7 +65,6 @@ import {uploadMediaForEditor, validateMediaFile, isVideoFile} from './file_uploa
 import FormattingBarBubble from './formatting_bar_bubble';
 import InlineCommentExtension from './inline_comment_extension';
 import InlineCommentToolbar from './inline_comment_toolbar';
-import LinkBubbleMenu from './link_bubble_menu';
 import {createMMentionSuggestion} from './mention_mm_bridge';
 import MentionNodeView from './mention_node_view';
 import {SlashCommandExtension} from './slash_command_extension';
@@ -287,13 +286,26 @@ const TipTapEditor = ({
     const team = useSelector((state: GlobalState) => (teamId ? getTeam(state, teamId) : undefined));
 
     // Refs to hold current values for event handlers (avoids stale closures)
-    // Consolidated ref updates in a single effect
+    // These refs allow callbacks inside extensions to access current values without
+    // being dependencies of the extensions useMemo, preventing unnecessary recreation.
     const channelsRef = useRef(allChannels);
     const teamRef = useRef(team);
+    const pagesRef = useRef(pages);
+    const wikiIdRef = useRef(wikiId);
+    const currentTeamRef = useRef(currentTeam);
+    const channelIdRef = useRef(channelId);
+    const autocompleteGroupsRef = useRef(autocompleteGroups);
+
+    // Consolidated ref updates in a single effect
     useEffect(() => {
         channelsRef.current = allChannels;
         teamRef.current = team;
-    }, [allChannels, team]);
+        pagesRef.current = pages;
+        wikiIdRef.current = wikiId;
+        currentTeamRef.current = currentTeam;
+        channelIdRef.current = channelId;
+        autocompleteGroupsRef.current = autocompleteGroups;
+    }, [allChannels, team, pages, wikiId, currentTeam, channelId, autocompleteGroups]);
 
     const handleMediaUpload = useCallback(async (
         currentEditor: Editor,
@@ -419,7 +431,10 @@ const TipTapEditor = ({
                 addKeyboardShortcuts() {
                     return {
                         'Mod-l': () => {
-                            if (!pages) {
+                            // Use refs to get current values - avoids stale closures
+                            // and removes these from useMemo dependencies
+                            const currentPages = pagesRef.current;
+                            if (!currentPages) {
                                 return false;
                             }
                             const {from, to} = this.editor.state.selection;
@@ -428,14 +443,14 @@ const TipTapEditor = ({
                                 modalId: ModalIdentifiers.PAGE_LINK,
                                 dialogType: PageLinkModal,
                                 dialogProps: {
-                                    pages,
-                                    wikiId: wikiId || '',
+                                    pages: currentPages,
+                                    wikiId: wikiIdRef.current || '',
                                     onSelect: (pageId: string, pageTitle: string, pageWikiId: string, linkText: string) => {
                                         const currentEditor = editorRef.current;
                                         if (!currentEditor) {
                                             return;
                                         }
-                                        const url = getWikiUrl(currentTeam?.name || 'team', channelId || '', pageWikiId, pageId);
+                                        const url = getWikiUrl(currentTeamRef.current?.name || 'team', channelIdRef.current || '', pageWikiId, pageId);
                                         const {from: selFrom, to: selTo} = currentEditor.state.selection;
                                         currentEditor.
                                             chain().
@@ -457,6 +472,40 @@ const TipTapEditor = ({
                                 },
                             }));
                             return true;
+                        },
+
+                        // Exit link mark when pressing space at the end of a link
+                        // This prevents the link from extending to include subsequent text
+                        Space: () => {
+                            const {selection} = this.editor.state;
+                            const {$from} = selection;
+
+                            // Only handle if cursor is at a single point (no selection)
+                            if (!selection.empty) {
+                                return false;
+                            }
+
+                            // Check if we're currently inside a link using isActive (same as bubble menu)
+                            if (!this.editor.isActive('link')) {
+                                return false;
+                            }
+
+                            // Check if there's still link text after the cursor
+                            const nodeAfter = $from.nodeAfter;
+                            const hasLinkAfter = nodeAfter?.marks.some((m: {type: {name: string}}) => m.type.name === 'link');
+
+                            // If there's no more link text after cursor, we're at the end of the link
+                            if (!hasLinkAfter) {
+                                // Remove stored link mark so space won't inherit it, then let default handle space
+                                this.editor.view.dispatch(
+                                    this.editor.view.state.tr.removeStoredMark(this.editor.schema.marks.link),
+                                );
+
+                                // Return false to let the default Space handler insert the space
+                                return false;
+                            }
+
+                            return false;
                         },
                     };
                 },
@@ -508,21 +557,23 @@ const TipTapEditor = ({
         if (editable) {
             exts.push(SlashCommandExtension.configure({
                 onOpenLinkModal: () => {
-                    if (!pages) {
+                    // Use refs to get current values - avoids stale closures
+                    const currentPages = pagesRef.current;
+                    if (!currentPages) {
                         return;
                     }
                     dispatch(openModal({
                         modalId: ModalIdentifiers.PAGE_LINK,
                         dialogType: PageLinkModal,
                         dialogProps: {
-                            pages,
-                            wikiId: wikiId || '',
+                            pages: currentPages,
+                            wikiId: wikiIdRef.current || '',
                             onSelect: (pageId: string, pageTitle: string, pageWikiId: string, linkText: string) => {
                                 const currentEditor = editorRef.current;
                                 if (!currentEditor) {
                                     return;
                                 }
-                                const url = getWikiUrl(currentTeam?.name || 'team', channelId || '', pageWikiId, pageId);
+                                const url = getWikiUrl(currentTeamRef.current?.name || 'team', channelIdRef.current || '', pageWikiId, pageId);
                                 const {from: selFrom, to: selTo} = currentEditor.state.selection;
                                 currentEditor.
                                     chain().
@@ -545,16 +596,17 @@ const TipTapEditor = ({
                     }));
                 },
                 onOpenImageModal: () => {
-                    if (!channelId || !uploadsEnabled) {
+                    const currentChannelId = channelIdRef.current;
+                    if (!currentChannelId || !uploadsEnabled) {
                         dispatch(openModal({
                             modalId: ModalIdentifiers.PAGE_IMAGE_URL,
                             dialogType: TextInputModal,
                             dialogProps: {
-                                title: 'Insert Image',
-                                placeholder: 'https://example.com/image.png',
-                                helpText: 'Enter the URL of the image to insert (must be https://)',
-                                confirmButtonText: 'Insert',
-                                cancelButtonText: 'Cancel',
+                                title: intl.formatMessage({id: 'wiki_editor.image_modal.title', defaultMessage: 'Insert Image'}),
+                                placeholder: intl.formatMessage({id: 'wiki_editor.image_modal.placeholder', defaultMessage: 'https://example.com/image.png'}),
+                                helpText: intl.formatMessage({id: 'wiki_editor.image_modal.help_text', defaultMessage: 'Enter the URL of the image to insert (must be https://)'}),
+                                confirmButtonText: intl.formatMessage({id: 'wiki_editor.image_modal.confirm', defaultMessage: 'Insert'}),
+                                cancelButtonText: intl.formatMessage({id: 'wiki_editor.image_modal.cancel', defaultMessage: 'Cancel'}),
                                 maxLength: 2048,
                                 onConfirm: (url: string) => {
                                     const currentEditor = editorRef.current;
@@ -664,12 +716,18 @@ const TipTapEditor = ({
         if (currentUserId && teamId) {
             // User mentions (@username)
             // Uses AtMention component via NodeView to honor teammate name display preference
+            // Note: channelId and autocompleteGroups are passed via refs' current values
+            // but since mention suggestions are fetched on-demand via autocomplete callbacks,
+            // this doesn't cause stale closure issues - the callbacks use the latest values.
+            const mentionChannelId = channelIdRef.current || '';
+            const mentionAutocompleteGroups = autocompleteGroupsRef.current;
+
             exts.push(
                 Mention.extend({
                     addOptions() {
                         return {
                             ...(this as any).parent?.(),
-                            channelId: channelId || '',
+                            channelId: mentionChannelId,
                         };
                     },
                     addNodeView() {
@@ -693,11 +751,11 @@ const TipTapEditor = ({
                     },
                     suggestion: createMMentionSuggestion({
                         currentUserId,
-                        channelId: channelId || '',
+                        channelId: mentionChannelId,
                         teamId,
                         autocompleteUsersInChannel: handleAutocompleteUsers,
                         searchAssociatedGroupsForReference: handleSearchGroups,
-                        autocompleteGroups,
+                        autocompleteGroups: mentionAutocompleteGroups,
                         useChannelMentions: true,
                     }) as any,
                 }) as any,
@@ -733,7 +791,7 @@ const TipTapEditor = ({
                         ];
                     },
                     renderHTML({node, HTMLAttributes}: {node: any; HTMLAttributes: Record<string, any>}) {
-                        const channelId = node.attrs['data-channel-id'];
+                        const nodeChannelId = node.attrs['data-channel-id'];
                         const channelName = node.attrs.label || node.attrs.id;
 
                         // Render as a clickable span with cursor pointer
@@ -744,7 +802,7 @@ const TipTapEditor = ({
                                 this.options.HTMLAttributes,
                                 HTMLAttributes,
                                 {
-                                    'data-channel-id': channelId,
+                                    'data-channel-id': nodeChannelId,
                                     style: 'cursor: pointer; text-decoration: underline;',
                                 },
                             ),
@@ -756,7 +814,7 @@ const TipTapEditor = ({
                         class: 'channel-mention',
                     },
                     suggestion: createChannelMentionSuggestion({
-                        channelId: channelId || '',
+                        channelId: mentionChannelId,
                         teamId,
                         autocompleteChannels: handleAutocompleteChannels,
                         delayChannelAutocomplete: false,
@@ -767,26 +825,18 @@ const TipTapEditor = ({
 
         return exts;
     }, [
-
-        // NOTE: inlineComments is NOT in dependencies - we update them via useEffect below
-        // This prevents extensions from recreating on every inline comment change
         placeholder,
         onCreateInlineComment,
         onCommentClick,
         editable,
         uploadsEnabled,
-        channelId,
         handleMediaUpload,
         currentUserId,
         teamId,
-        autocompleteGroups,
         handleAutocompleteUsers,
         handleSearchGroups,
         handleAutocompleteChannels,
         openEmojiPicker,
-        pages,
-        wikiId,
-        currentTeam,
         dispatch,
     ]);
 
@@ -947,30 +997,40 @@ const TipTapEditor = ({
                 }
             }
 
-            // 2. Handle wiki page link clicks
-            const wikiPageLink = target.closest('a.wiki-page-link');
-            if (wikiPageLink) {
-                const href = wikiPageLink.getAttribute('href');
-                if (href) {
-                    const currentOrigin = window.location.origin;
-                    const currentBasename = window.basename || '';
-                    const isInternalLink = href.startsWith('/') ||
-                        href.startsWith(currentOrigin) ||
-                        href.startsWith(currentBasename);
-
-                    if (isInternalLink) {
+            // 2. Handle link clicks (both wiki-page-links and regular links)
+            const linkElement = target.closest('a');
+            if (linkElement) {
+                if (editable) {
+                    // In edit mode, link clicks are handled by mousedown handler above
+                    // Just prevent navigation here
+                    const href = linkElement.getAttribute('href');
+                    if (href) {
                         event.preventDefault();
-                        event.stopPropagation();
-                        const history = getHistory();
-                        let relativePath = href;
-                        if (href.startsWith(currentOrigin)) {
-                            relativePath = href.substring(currentOrigin.length);
+                    }
+                } else {
+                    // In view mode, navigate to the linked page
+                    const href = linkElement.getAttribute('href');
+                    if (href) {
+                        const currentOrigin = window.location.origin;
+                        const currentBasename = window.basename || '';
+                        const isInternalLink = href.startsWith('/') ||
+                            href.startsWith(currentOrigin) ||
+                            href.startsWith(currentBasename);
+
+                        if (isInternalLink) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            const history = getHistory();
+                            let relativePath = href;
+                            if (href.startsWith(currentOrigin)) {
+                                relativePath = href.substring(currentOrigin.length);
+                            }
+                            if (currentBasename && relativePath.startsWith(currentBasename)) {
+                                relativePath = relativePath.substring(currentBasename.length);
+                            }
+                            history.push(relativePath);
+                            return;
                         }
-                        if (currentBasename && relativePath.startsWith(currentBasename)) {
-                            relativePath = relativePath.substring(currentBasename.length);
-                        }
-                        history.push(relativePath);
-                        return;
                     }
                 }
             }
@@ -1022,9 +1082,42 @@ const TipTapEditor = ({
         };
 
         const editorElement = editor.view.dom;
+
+        // Use mousedown in capture phase for link clicks in edit mode
+        // This runs BEFORE ProseMirror processes the click, allowing us to
+        // set the cursor inside the link so BubbleMenu's shouldShow sees
+        // the correct position.
+        const handleLinkMouseDown = (event: MouseEvent) => {
+            if (!editable) {
+                return; // Only handle in edit mode
+            }
+
+            const target = event.target as HTMLElement;
+            const linkElement = target.closest('a');
+            if (!linkElement) {
+                return;
+            }
+
+            // Prevent browser navigation
+            event.preventDefault();
+
+            // Get the position INSIDE the link (not at boundary)
+            const pos = editor.view.posAtDOM(linkElement, 0);
+            const insidePos = pos + 1;
+
+            // Set the selection BEFORE ProseMirror processes the click
+            editor.chain().
+                focus().
+                setTextSelection(insidePos).
+                run();
+        };
+
+        // Add mousedown handler in capture phase (runs before bubble phase)
+        editorElement.addEventListener('mousedown', handleLinkMouseDown, true);
         editorElement.addEventListener('click', handleEditorClick);
 
         return () => {
+            editorElement.removeEventListener('mousedown', handleLinkMouseDown, true);
             editorElement.removeEventListener('click', handleEditorClick);
         };
     }, [editor, editable, dispatch, pageId]);
@@ -1081,11 +1174,11 @@ const TipTapEditor = ({
             modalId: ModalIdentifiers.PAGE_IMAGE_URL,
             dialogType: TextInputModal,
             dialogProps: {
-                title: 'Insert Image',
-                placeholder: 'https://example.com/image.png',
-                helpText: 'Enter the URL of the image to insert (must be https://)',
-                confirmButtonText: 'Insert',
-                cancelButtonText: 'Cancel',
+                title: intl.formatMessage({id: 'wiki_editor.image_modal.title', defaultMessage: 'Insert Image'}),
+                placeholder: intl.formatMessage({id: 'wiki_editor.image_modal.placeholder', defaultMessage: 'https://example.com/image.png'}),
+                helpText: intl.formatMessage({id: 'wiki_editor.image_modal.help_text', defaultMessage: 'Enter the URL of the image to insert (must be https://)'}),
+                confirmButtonText: intl.formatMessage({id: 'wiki_editor.image_modal.confirm', defaultMessage: 'Insert'}),
+                cancelButtonText: intl.formatMessage({id: 'wiki_editor.image_modal.cancel', defaultMessage: 'Cancel'}),
                 maxLength: 2048,
                 onConfirm: (url: string) => {
                     const validatedUrl = validateImageUrl(url);
@@ -1096,7 +1189,7 @@ const TipTapEditor = ({
                 onCancel: () => {},
             },
         }));
-    }, [dispatch]);
+    }, [dispatch, intl]);
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
         // Intercept Ctrl+L (or Cmd+L on Mac) to prevent global handler
@@ -1201,10 +1294,6 @@ const TipTapEditor = ({
                             onAddMedia={addMedia}
                             onAddComment={commentHandler}
                             onAIRewrite={aiRewriteHandler}
-                        />
-                        <LinkBubbleMenu
-                            editor={editor}
-                            onEditLink={setLink}
                         />
                         {emojiPicker}
                     </>

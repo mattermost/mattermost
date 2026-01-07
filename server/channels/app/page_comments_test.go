@@ -62,17 +62,11 @@ func TestResolvePageComment(t *testing.T) {
 	require.Nil(t, appErr)
 
 	t.Run("resolve comment successfully", func(t *testing.T) {
-		resolvedComment, appErr := th.App.ResolvePageComment(th.Context, comment.Id, th.BasicUser.Id)
+		resolvedComment, appErr := th.App.ResolvePageComment(th.Context, comment, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		require.NotNil(t, resolvedComment)
 		require.Equal(t, th.BasicUser.Id, resolvedComment.GetProp("resolved_by"))
 		require.NotNil(t, resolvedComment.GetProp("resolved_at"))
-	})
-
-	t.Run("fail for non-existent comment", func(t *testing.T) {
-		resolvedComment, appErr := th.App.ResolvePageComment(th.Context, model.NewId(), th.BasicUser.Id)
-		require.NotNil(t, appErr)
-		require.Nil(t, resolvedComment)
 	})
 }
 
@@ -90,21 +84,15 @@ func TestUnresolvePageComment(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// First resolve it
-	_, appErr = th.App.ResolvePageComment(th.Context, comment.Id, th.BasicUser.Id)
+	_, appErr = th.App.ResolvePageComment(th.Context, comment, th.BasicUser.Id)
 	require.Nil(t, appErr)
 
 	t.Run("unresolve comment successfully", func(t *testing.T) {
-		unresolvedComment, appErr := th.App.UnresolvePageComment(th.Context, comment.Id)
+		unresolvedComment, appErr := th.App.UnresolvePageComment(th.Context, comment)
 		require.Nil(t, appErr)
 		require.NotNil(t, unresolvedComment)
 		require.Nil(t, unresolvedComment.GetProp("resolved_by"))
 		require.Nil(t, unresolvedComment.GetProp("resolved_at"))
-	})
-
-	t.Run("fail for non-existent comment", func(t *testing.T) {
-		unresolvedComment, appErr := th.App.UnresolvePageComment(th.Context, model.NewId())
-		require.NotNil(t, appErr)
-		require.Nil(t, unresolvedComment)
 	})
 }
 
@@ -113,28 +101,67 @@ func TestCanResolvePageComment(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	th.SetupPagePermissions()
 
-	rctx := th.CreateSessionContext()
-
+	// Create page owned by BasicUser
 	page, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "", "")
 	require.Nil(t, appErr)
 
-	comment, appErr := th.App.CreatePageComment(rctx, page.Id, "Test comment", nil)
+	// Create comment by BasicUser2 so we can test different scenarios
+	rctxUser2 := th.CreateSessionContextForUser(th.BasicUser2)
+	comment, appErr := th.App.CreatePageComment(rctxUser2, page.Id, "Test comment", nil)
 	require.Nil(t, appErr)
+	require.Equal(t, th.BasicUser2.Id, comment.UserId)
 
 	t.Run("comment author can resolve", func(t *testing.T) {
 		session := &model.Session{
-			UserId: th.BasicUser.Id,
+			UserId: th.BasicUser2.Id,
 		}
 		canResolve := th.App.CanResolvePageComment(th.Context, session, comment, page.Id)
-		require.True(t, canResolve)
+		require.True(t, canResolve, "comment author should be able to resolve their own comment")
 	})
 
 	t.Run("page author can resolve", func(t *testing.T) {
 		session := &model.Session{
-			UserId: page.UserId,
+			UserId: th.BasicUser.Id,
 		}
 		canResolve := th.App.CanResolvePageComment(th.Context, session, comment, page.Id)
-		require.True(t, canResolve)
+		require.True(t, canResolve, "page author should be able to resolve comments on their page")
+	})
+
+	t.Run("channel admin can resolve", func(t *testing.T) {
+		// Create a new user and make them channel admin
+		adminUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, adminUser, th.BasicTeam)
+		th.AddUserToChannel(t, adminUser, th.BasicChannel)
+		_, appErr := th.App.UpdateChannelMemberSchemeRoles(th.Context, th.BasicChannel.Id, adminUser.Id, false, true, true)
+		require.Nil(t, appErr)
+
+		session := &model.Session{
+			UserId: adminUser.Id,
+		}
+		canResolve := th.App.CanResolvePageComment(th.Context, session, comment, page.Id)
+		require.True(t, canResolve, "channel admin should be able to resolve any comment")
+	})
+
+	t.Run("regular user cannot resolve others comment", func(t *testing.T) {
+		// Create a new regular user (not comment author, not page author, not admin)
+		regularUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, regularUser, th.BasicTeam)
+		th.AddUserToChannel(t, regularUser, th.BasicChannel)
+
+		session := &model.Session{
+			UserId: regularUser.Id,
+		}
+		canResolve := th.App.CanResolvePageComment(th.Context, session, comment, page.Id)
+		require.False(t, canResolve, "regular user should NOT be able to resolve others' comments")
+	})
+
+	t.Run("user not in channel cannot resolve", func(t *testing.T) {
+		outsideUser := th.CreateUser(t)
+		session := &model.Session{
+			UserId: outsideUser.Id,
+		}
+		canResolve := th.App.CanResolvePageComment(th.Context, session, comment, page.Id)
+		require.False(t, canResolve, "user not in channel should NOT be able to resolve comments")
 	})
 }
 

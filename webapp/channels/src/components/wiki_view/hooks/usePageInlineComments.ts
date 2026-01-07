@@ -115,26 +115,27 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
             return undefined;
         }
 
-        const handleNewPost = (msg: WebSocketMessage) => {
-            // Only handle POSTED events
-            if (msg.event !== SocketEvents.POSTED) {
+        const handleNewComment = (msg: WebSocketMessage) => {
+            if (msg.event !== SocketEvents.PAGE_COMMENT_CREATED) {
                 return;
             }
 
-            const post = JSON.parse(msg.data.post);
+            if (msg.data.page_id !== pageId) {
+                return;
+            }
 
-            // Check if it's an inline comment for this page
-            // Only add if not resolved (Confluence behavior: no highlight for resolved comments)
-            if (pageInlineCommentHasAnchor(post) && post.props?.page_id === pageId && !post.props?.comment_resolved) {
-                // Add to inline comments list to show the new highlight
+            const post = JSON.parse(msg.data.comment);
+
+            // Only add if it's an inline comment and not resolved (Confluence behavior: no highlight for resolved comments)
+            if (pageInlineCommentHasAnchor(post) && !post.props?.comment_resolved) {
                 setInlineComments((prev) => [...prev, post]);
             }
         };
 
-        WebSocketClient.addMessageListener(handleNewPost);
+        WebSocketClient.addMessageListener(handleNewComment);
 
         return () => {
-            WebSocketClient.removeMessageListener(handleNewPost);
+            WebSocketClient.removeMessageListener(handleNewComment);
         };
     }, [pageId]);
 

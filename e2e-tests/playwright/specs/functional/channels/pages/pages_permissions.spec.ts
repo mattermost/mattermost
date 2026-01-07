@@ -18,6 +18,9 @@ import {
     buildWikiPageUrl,
     waitForPageViewerLoad,
     getEditorAndWait,
+    verifyCommentMarkerVisible,
+    clickCommentMarkerAndOpenRHS,
+    openCommentDotMenu,
     AUTOSAVE_WAIT,
     ELEMENT_TIMEOUT,
 } from './test_helpers';
@@ -341,3 +344,117 @@ test('restricts page actions based on channel permissions', {tag: '@pages'}, asy
         },
     });
 });
+
+/**
+ * @objective Verify that only comment author, page author, or channel admin can resolve comments
+ *
+ * @precondition
+ * User A (admin) creates a page with an inline comment
+ * User B is a regular channel member (not comment/page author or admin)
+ */
+test(
+    'prevents non-author channel member from resolving another user comment',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user: userA, adminClient} = sharedPagesSetup;
+        const channel = await createTestChannel(
+            adminClient,
+            team.id,
+            `Comment Resolve Channel ${await pw.random.id()}`,
+        );
+
+        // # Add userA to the channel
+        await adminClient.addToChannel(userA.id, channel.id);
+
+        // # Create userB (regular channel member, not admin)
+        const userBData = await createRandomUser('userB');
+        const userB = await adminClient.createUser(userBData, '', '');
+        userB.password = userBData.password;
+        await adminClient.addToTeam(team.id, userB.id);
+        await adminClient.addToChannel(userB.id, channel.id);
+
+        // # UserA logs in and creates wiki, page with inline comment
+        const {page: pageA, channelsPage: channelsPageA} = await pw.testBrowser.login(userA);
+        await channelsPageA.goto(team.name, channel.name);
+        await channelsPageA.toBeVisible();
+
+        // # Create wiki and page
+        const wikiName = `Resolve Permission Wiki ${await pw.random.id()}`;
+        await createWikiThroughUI(pageA, wikiName);
+        await createPageThroughUI(pageA, 'Resolve Test Page', 'This text will have a comment from userA');
+
+        // # Add inline comment using the view mode selection toolbar (more reliable)
+        // Select text and add comment in view mode
+        const editor = pageA.locator('.ProseMirror').first();
+        const paragraph = editor.locator('p').first();
+        await paragraph.click({clickCount: 3});
+        await pageA.waitForTimeout(500);
+
+        // Click the add comment button that appears in view mode toolbar
+        const addCommentButton = pageA.locator('[data-testid="inline-comment-add-button"]');
+        await expect(addCommentButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await addCommentButton.click();
+
+        // Fill the comment modal
+        const commentModal = pageA.getByRole('dialog', {name: 'Add Comment'});
+        await expect(commentModal).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        const textarea = commentModal.locator('textarea, [contenteditable="true"]').first();
+        await textarea.fill('Comment by userA that userB should not resolve');
+        const submitButton = commentModal.getByRole('button', {name: 'Comment'});
+        await submitButton.click();
+
+        // * Verify comment marker is visible
+        await verifyCommentMarkerVisible(pageA);
+
+        // # UserB logs in and navigates to the same channel
+        const {page: pageB, channelsPage: channelsPageB} = await pw.testBrowser.login(userB);
+        await channelsPageB.goto(team.name, channel.name);
+        await channelsPageB.toBeVisible();
+
+        // # Open the wiki and navigate to the page
+        const wikiTab = pageB.locator('[role="tab"]').filter({hasText: wikiName});
+        await expect(wikiTab).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await wikiTab.click();
+
+        // # Wait for the page to load
+        await pageB.waitForLoadState('networkidle');
+        const pageNode = pageB.locator('[data-testid="page-tree-node"]').filter({hasText: 'Resolve Test Page'});
+        await pageNode.click();
+
+        // * Verify the comment marker is visible for userB
+        const commentMarker = await verifyCommentMarkerVisible(pageB);
+
+        // # Click marker to open RHS
+        const rhs = await clickCommentMarkerAndOpenRHS(pageB, commentMarker);
+
+        // # Open the comment dot menu
+        await openCommentDotMenu(pageB, rhs);
+
+        // * The resolve option is visible in the UI (frontend doesn't restrict visibility)
+        // but clicking it should fail because the backend enforces permissions
+        const resolveMenuItem = pageB
+            .locator('[id*="resolve_comment"], [id*="unresolve_comment"], [data-testid*="resolve_comment"]')
+            .or(pageB.getByRole('menuitem', {name: /Resolve|Unresolve/i}))
+            .first();
+
+        // # Click the resolve button (should fail for userB)
+        await resolveMenuItem.click();
+
+        // Wait for API call to complete
+        await pageB.waitForTimeout(1000);
+
+        // * Verify the comment is still NOT resolved (backend rejected the request)
+        // The comment highlight should still be active (not resolved)
+        const commentHighlight = pageB.locator('.comment-anchor-active').first();
+        await expect(commentHighlight).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+        // * Alternatively verify by checking if the menu item still says "Resolve" (not "Unresolve")
+        // Re-open menu to check state
+        await openCommentDotMenu(pageB, rhs);
+        const stillResolveMenuItem = pageB.locator('[id^="resolve_comment_"]').first();
+        await expect(stillResolveMenuItem).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+        // # Cleanup
+        await pageB.close();
+    },
+);

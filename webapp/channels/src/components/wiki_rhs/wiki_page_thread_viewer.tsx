@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState, useCallback} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import type {WebSocketMessage} from '@mattermost/client';
@@ -24,7 +24,7 @@ import Reply from 'components/threading/virtualized_thread_viewer/reply/index';
 
 import WebSocketClient from 'client/web_websocket_client';
 import {SocketEvents} from 'utils/constants';
-import {isPageComment, pageInlineCommentHasAnchor} from 'utils/page_utils';
+import {pageInlineCommentHasAnchor} from 'utils/page_utils';
 
 import type {FakePost} from 'types/store/rhs';
 
@@ -57,6 +57,7 @@ export type Props = {
 
 const WikiPageThreadViewer = (props: Props) => {
     const dispatch = useDispatch();
+    const intl = useIntl();
     const [isLoading, setIsLoading] = useState(false);
     const [pageComments, setPageComments] = useState<Post[]>([]);
     const [resolutionFilter, setResolutionFilter] = useState<'all' | 'open' | 'resolved'>('all');
@@ -141,23 +142,23 @@ const WikiPageThreadViewer = (props: Props) => {
         fetchData();
     }, [props.rootPostId, props.focusedInlineCommentId, props.wikiId, dispatch]);
 
-    // Listen for WebSocket events for new comments
+    // Consolidated WebSocket listener for page comment events
     useEffect(() => {
-        if (!props.rootPostId || !props.wikiId || props.focusedInlineCommentId) {
+        if (!props.rootPostId || !props.wikiId) {
             return undefined;
         }
 
-        const handleNewPost = (msg: WebSocketMessage) => {
-            // Only handle POSTED events
-            if (msg.event !== SocketEvents.POSTED) {
-                return;
-            }
+        const handlePageCommentEvents = (msg: WebSocketMessage) => {
+            // Handle new page comments (only in list mode)
+            if (msg.event === SocketEvents.PAGE_COMMENT_CREATED && !props.focusedInlineCommentId) {
+                const pageId = msg.data.page_id;
 
-            const post = JSON.parse(msg.data.post);
+                if (pageId !== props.rootPostId) {
+                    return;
+                }
 
-            // Check if it's a page comment for this page
-            if (isPageComment(post) && post.props?.page_id === props.rootPostId) {
-                // Update Redux store with the new post
+                const post = JSON.parse(msg.data.comment);
+
                 dispatch(receivedPosts({
                     posts: {[post.id]: post},
                     order: [post.id],
@@ -166,67 +167,48 @@ const WikiPageThreadViewer = (props: Props) => {
                     first_inaccessible_post_time: 0,
                 }));
 
-                // Add to page comments list
                 setPageComments((prev) => [...prev, post]);
+                return;
+            }
+
+            // Handle comment resolution changes
+            if (msg.event === SocketEvents.PAGE_COMMENT_RESOLVED || msg.event === SocketEvents.PAGE_COMMENT_UNRESOLVED) {
+                const commentId = msg.data.comment_id;
+                const pageId = msg.data.page_id;
+
+                if (pageId !== props.rootPostId) {
+                    return;
+                }
+
+                setPageComments((prev) => {
+                    return prev.map((comment) => {
+                        if (comment.id === commentId) {
+                            const updatedProps = {...comment.props};
+                            if (msg.event === SocketEvents.PAGE_COMMENT_RESOLVED) {
+                                updatedProps.comment_resolved = true;
+                                updatedProps.resolved_at = msg.data.resolved_at;
+                                updatedProps.resolved_by = msg.data.resolved_by;
+                                updatedProps.resolution_reason = 'manual';
+                            } else {
+                                delete updatedProps.comment_resolved;
+                                delete updatedProps.resolved_at;
+                                delete updatedProps.resolved_by;
+                                delete updatedProps.resolution_reason;
+                            }
+                            return {...comment, props: updatedProps};
+                        }
+                        return comment;
+                    });
+                });
             }
         };
 
-        WebSocketClient.addMessageListener(handleNewPost);
+        WebSocketClient.addMessageListener(handlePageCommentEvents);
 
         return () => {
-            WebSocketClient.removeMessageListener(handleNewPost);
+            WebSocketClient.removeMessageListener(handlePageCommentEvents);
         };
     }, [props.rootPostId, props.wikiId, props.focusedInlineCommentId, dispatch]);
-
-    // Listen for WebSocket events for comment resolution changes
-    useEffect(() => {
-        if (!props.rootPostId || !props.wikiId) {
-            return undefined;
-        }
-
-        const handleResolutionUpdate = (msg: WebSocketMessage) => {
-            // Handle both resolved and unresolved events
-            if (msg.event !== SocketEvents.PAGE_COMMENT_RESOLVED && msg.event !== SocketEvents.PAGE_COMMENT_UNRESOLVED) {
-                return;
-            }
-
-            const commentId = msg.data.comment_id;
-            const pageId = msg.data.page_id;
-
-            // Only update if it's for the current page
-            if (pageId !== props.rootPostId) {
-                return;
-            }
-
-            // Update the comment in the local state
-            setPageComments((prev) => {
-                return prev.map((comment) => {
-                    if (comment.id === commentId) {
-                        const updatedProps = {...comment.props};
-                        if (msg.event === SocketEvents.PAGE_COMMENT_RESOLVED) {
-                            updatedProps.comment_resolved = true;
-                            updatedProps.resolved_at = msg.data.resolved_at;
-                            updatedProps.resolved_by = msg.data.resolved_by;
-                            updatedProps.resolution_reason = 'manual';
-                        } else {
-                            delete updatedProps.comment_resolved;
-                            delete updatedProps.resolved_at;
-                            delete updatedProps.resolved_by;
-                            delete updatedProps.resolution_reason;
-                        }
-                        return {...comment, props: updatedProps};
-                    }
-                    return comment;
-                });
-            });
-        };
-
-        WebSocketClient.addMessageListener(handleResolutionUpdate);
-
-        return () => {
-            WebSocketClient.removeMessageListener(handleResolutionUpdate);
-        };
-    }, [props.rootPostId, props.wikiId]);
 
     useEffect(() => {
         if (props.isCollapsedThreadsEnabled && props.userThread) {
@@ -315,7 +297,20 @@ const WikiPageThreadViewer = (props: Props) => {
                         data-testid='wiki-page-thread-viewer-empty'
                     >
                         <i className='icon-comment-outline'/>
-                        <p>{resolutionFilter === 'all' ? 'No comment threads on this page yet' : `No ${resolutionFilter} comments`}</p>
+                        <p>
+                            {resolutionFilter === 'all' ? (
+                                <FormattedMessage
+                                    id='wiki_thread_viewer.empty.no_threads'
+                                    defaultMessage='No comment threads on this page yet'
+                                />
+                            ) : (
+                                <FormattedMessage
+                                    id='wiki_thread_viewer.empty.no_comments'
+                                    defaultMessage='No {filter} comments'
+                                    values={{filter: resolutionFilter}}
+                                />
+                            )}
+                        </p>
                     </div>
                 ) : (
                     <div className='WikiPageThreadViewer__thread-list'>
@@ -337,11 +332,14 @@ const WikiPageThreadViewer = (props: Props) => {
                                     </div>
                                     <div className='WikiPageThreadViewer__thread-item-content'>
                                         <div className='WikiPageThreadViewer__thread-item-text'>
-                                            {truncatedText || 'Comment thread'}
+                                            {truncatedText || intl.formatMessage({id: 'wiki_thread_viewer.comment_thread', defaultMessage: 'Comment thread'})}
                                             {resolved && (
                                                 <span className='WikiPageThreadViewer__resolved-badge'>
                                                     <i className='icon-check-circle'/>
-                                                    {'Resolved'}
+                                                    <FormattedMessage
+                                                        id='wiki_thread_viewer.resolved_badge'
+                                                        defaultMessage='Resolved'
+                                                    />
                                                 </span>
                                             )}
                                         </div>

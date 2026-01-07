@@ -233,8 +233,14 @@ test('handles ~channel mentions in editor', {tag: '@pages'}, async ({pw, sharedP
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    // # Create another channel to mention
-    const mentionedChannel = await createTestChannel(adminClient, team.id, `mentioned-channel-${await pw.random.id()}`);
+    // # Create another channel to mention (user must be a member for it to appear in autocomplete)
+    const mentionedChannel = await createTestChannel(
+        adminClient,
+        team.id,
+        `mentioned-channel-${await pw.random.id()}`,
+        'O',
+        [user.id],
+    );
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -1450,30 +1456,42 @@ test(
         });
         expect(boldButtonActive).toBe(true);
 
-        // # Test italic formatting as well
-        await page.keyboard.press('End');
-        await page.keyboard.press('Enter');
+        // # Test italic formatting - clear editor and start fresh
+        await page.keyboard.press('Escape');
+        await page.waitForTimeout(SHORT_WAIT);
+
+        // # Select all and delete to start fresh
+        await pressModifierKey(page, 'a');
+        await page.keyboard.press('Backspace');
+        await page.waitForTimeout(SHORT_WAIT);
+
+        // # Type only italic text
         await pressModifierKey(page, 'i'); // Toggle italic on
-        await page.keyboard.type('italic text');
+        await page.keyboard.type('italic only text');
         await pressModifierKey(page, 'i'); // Toggle italic off
         await page.waitForTimeout(SHORT_WAIT);
 
         // # Select the italic text
         await page.keyboard.press('Home');
-        for (let i = 0; i < 11; i++) {
+        for (let i = 0; i < 16; i++) {
+            // "italic only text" = 16 chars
             await page.keyboard.press('Shift+ArrowRight');
         }
         await page.waitForTimeout(SHORT_WAIT);
 
+        // # Wait for fresh formatting bubble to appear for new selection
+        const italicFormattingBubble = page.locator('.formatting-bar-bubble').first();
+        await italicFormattingBubble.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
+
         // * Verify italic button IS active when selection is on italic text
-        const italicButton = formattingBubble.locator('button[title*="Italic"]').first();
+        const italicButton = italicFormattingBubble.locator('button[title*="Italic"]').first();
         const italicButtonActive = await italicButton.evaluate((el) => {
             return el.classList.contains('is-active');
         });
         expect(italicButtonActive).toBe(true);
 
-        // * Verify bold button is NOT active in italic text (unless bold+italic was applied)
-        const boldButtonInItalic = formattingBubble.locator('button[title*="Bold"]').first();
+        // * Verify bold button is NOT active in italic-only text
+        const boldButtonInItalic = italicFormattingBubble.locator('button[title*="Bold"]').first();
         const boldNotActiveInItalic = await boldButtonInItalic.evaluate((el) => {
             return !el.classList.contains('is-active');
         });

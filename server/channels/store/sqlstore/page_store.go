@@ -549,6 +549,32 @@ func (s *SqlPageStore) ChangePageParent(postID string, newParentID string, expec
 	return s.checkRowsAffected(result, "Post", postID)
 }
 
+// ReparentChildren updates all direct children of a page to a new parent.
+// Used when deleting a page to avoid orphaning its children.
+// If newParentID is empty, children become root pages.
+func (s *SqlPageStore) ReparentChildren(pageID string, newParentID string) error {
+	if pageID == "" {
+		return store.NewErrInvalidInput("Post", "pageID", pageID)
+	}
+
+	updateQuery := s.getQueryBuilder().
+		Update("Posts").
+		Set("PageParentId", newParentID).
+		Set("UpdateAt", model.GetMillis()).
+		Where(sq.And{
+			sq.Eq{"PageParentId": pageID},
+			sq.Eq{"DeleteAt": 0},
+			sq.Eq{"Type": model.PostTypePage},
+		})
+
+	_, err := s.GetMaster().ExecBuilder(updateQuery)
+	if err != nil {
+		return errors.Wrapf(err, "failed to reparent children for page_id=%s", pageID)
+	}
+
+	return nil
+}
+
 func (s *SqlPageStore) UpdatePageWithContent(rctx request.CTX, pageID, title, content, searchText string) (post *model.Post, err error) {
 	if pageID == "" {
 		return nil, store.NewErrInvalidInput("Post", "pageID", pageID)

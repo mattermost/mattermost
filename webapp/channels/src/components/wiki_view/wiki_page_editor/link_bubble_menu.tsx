@@ -8,6 +8,7 @@ import {useIntl} from 'react-intl';
 
 import WithTooltip from 'components/with_tooltip';
 
+import {getHistory} from 'utils/browser_history';
 import {isUrlSafe} from 'utils/url';
 
 import './link_bubble_menu.scss';
@@ -38,7 +39,29 @@ const LinkBubbleMenu = ({editor, onEditLink}: Props) => {
             return;
         }
         const href = editor.getAttributes('link').href;
-        if (href && isUrlSafe(href)) {
+        if (!href || !isUrlSafe(href)) {
+            return;
+        }
+
+        // Check if this is an internal link (relative URL or same origin)
+        const currentOrigin = window.location.origin;
+        const currentBasename = window.basename || '';
+        const isInternalLink = href.startsWith('/') ||
+            href.startsWith(currentOrigin) ||
+            (currentBasename && href.startsWith(currentBasename));
+
+        if (isInternalLink) {
+            // Navigate within the app using history
+            let relativePath = href;
+            if (href.startsWith(currentOrigin)) {
+                relativePath = href.substring(currentOrigin.length);
+            }
+            if (currentBasename && relativePath.startsWith(currentBasename)) {
+                relativePath = relativePath.substring(currentBasename.length);
+            }
+            getHistory().push(relativePath);
+        } else {
+            // External link - open in new tab
             window.open(href, '_blank', 'noopener,noreferrer');
         }
     }, [editor]);

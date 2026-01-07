@@ -47,6 +47,16 @@ func (a *App) GetPageChildren(rctx request.CTX, postID string, options model.Get
 
 // GetPageAncestors fetches all ancestors of a page up to the root
 func (a *App) GetPageAncestors(rctx request.CTX, postID string) (*model.PostList, *model.AppError) {
+	// First fetch the page to get the channel ID for permission check
+	page, appErr := a.GetSinglePost(rctx, postID, false)
+	if appErr != nil {
+		return nil, model.NewAppError("GetPageAncestors", "app.post.get_page_ancestors.page.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
+	}
+
+	if !a.HasPermissionToChannel(rctx, rctx.Session().UserId, page.ChannelId, model.PermissionReadChannel) {
+		return nil, model.NewAppError("GetPageAncestors", "api.post.get_page_ancestors.permissions.app_error", nil, "", http.StatusForbidden)
+	}
+
 	postList, err := a.Srv().Store().Page().GetPageAncestors(postID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -210,10 +220,8 @@ func (a *App) ChangePageParent(rctx request.CTX, postID string, newParentID stri
 			}
 		}
 
-		parentDepth, depthErr := a.calculatePageDepth(rctx, newParentID)
-		if depthErr != nil {
-			return depthErr
-		}
+		// Calculate depth from already-fetched ancestors to avoid redundant DB query
+		parentDepth := len(ancestors.Posts)
 		newPageDepth := parentDepth + 1
 		if newPageDepth > model.PostPageMaxDepth {
 			return model.NewAppError("ChangePageParent", "app.page.change_parent.max_depth_exceeded.app_error",
@@ -247,6 +255,8 @@ func (a *App) ChangePageParent(rctx request.CTX, postID string, newParentID stri
 
 // calculatePageDepth calculates the depth of a page in the hierarchy
 // Returns the depth (0 for root pages) and any error encountered
+// Note: This is an internal function that bypasses permission checks.
+// Callers must ensure the user has appropriate permissions before calling.
 func (a *App) calculatePageDepth(rctx request.CTX, pageID string) (int, *model.AppError) {
 	page, err := a.GetSinglePost(rctx, pageID, false)
 	if err != nil {
@@ -257,9 +267,12 @@ func (a *App) calculatePageDepth(rctx request.CTX, pageID string) (int, *model.A
 		return 0, nil
 	}
 
-	ancestors, ancestorErr := a.GetPageAncestors(rctx, pageID)
-	if ancestorErr != nil {
-		return 0, ancestorErr
+	// Call store directly to avoid permission check in GetPageAncestors.
+	// This is safe because callers (CreatePage, ChangePageParent) have already
+	// verified the user has permission to access the channel.
+	ancestors, storeErr := a.Srv().Store().Page().GetPageAncestors(pageID)
+	if storeErr != nil {
+		return 0, model.NewAppError("calculatePageDepth", "app.page.calculate_depth.ancestors.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
 	}
 
 	depth := len(ancestors.Posts)

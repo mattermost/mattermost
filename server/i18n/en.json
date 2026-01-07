@@ -1978,6 +1978,14 @@
     "translation": "Failed to update the custom status. Please add either emoji or custom text status or both."
   },
   {
+    "id": "api.draft.create.invalid_parent.app_error",
+    "translation": "Invalid parent page specified for draft."
+  },
+  {
+    "id": "api.draft.create.parent_different_wiki.app_error",
+    "translation": "Parent page belongs to a different wiki."
+  },
+  {
     "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
     "translation": "Can not save draft to deleted channel"
   },
@@ -2833,6 +2841,10 @@
       "one": "{{.Count}} image sent: {{.Filenames}}",
       "other": "{{.Count}} images sent: {{.Filenames}}"
     }
+  },
+  {
+    "id": "api.post.get_page_ancestors.permissions.app_error",
+    "translation": "You do not have permission to view page ancestors."
   },
   {
     "id": "api.post.get_page_children.permissions.app_error",
@@ -5807,6 +5819,10 @@
     "translation": "Cannot find a user for this token"
   },
   {
+    "id": "app.draft.batch_update_parent.app_error",
+    "translation": "Unable to update draft parent references."
+  },
+  {
     "id": "app.draft.delete.app_error",
     "translation": "Unable to delete the Draft."
   },
@@ -7051,6 +7067,10 @@
     "translation": "We encountered an error updating the app."
   },
   {
+    "id": "app.page.calculate_depth.ancestors.app_error",
+    "translation": "Failed to fetch ancestors for depth calculation."
+  },
+  {
     "id": "app.page.calculate_depth.not_found",
     "translation": "Page not found for depth calculation."
   },
@@ -7145,6 +7165,10 @@
   {
     "id": "app.page.create_comment_reply.reply_to_reply_not_allowed.app_error",
     "translation": "Cannot reply to a comment reply."
+  },
+  {
+    "id": "app.page.delete.reparent_error.app_error",
+    "translation": "Unable to reparent child pages during deletion."
   },
   {
     "id": "app.page.delete.store_error.app_error",
@@ -7705,6 +7729,10 @@
   {
     "id": "app.post.get_page_ancestors.not_found",
     "translation": "Page not found for ancestors."
+  },
+  {
+    "id": "app.post.get_page_ancestors.page.app_error",
+    "translation": "Unable to get page for ancestors."
   },
   {
     "id": "app.post.get_page_children.app_error",

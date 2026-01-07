@@ -302,7 +302,7 @@ func TestDeletePage(t *testing.T) {
 		require.Nil(t, page)
 	})
 
-	t.Run("deleting parent page orphans children", func(t *testing.T) {
+	t.Run("deleting root page reparents children to become root pages", func(t *testing.T) {
 		parent, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Parent Page", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
@@ -322,18 +322,18 @@ func TestDeletePage(t *testing.T) {
 
 		child1After, err := th.App.GetSinglePost(th.Context, child1.Id, false)
 		require.Nil(t, err)
-		require.Equal(t, parent.Id, child1After.PageParentId, "Child1 should still reference deleted parent (orphaned)")
+		require.Empty(t, child1After.PageParentId, "Child1 should become root page after parent deletion")
 
 		child2After, err := th.App.GetSinglePost(th.Context, child2.Id, false)
 		require.Nil(t, err)
-		require.Equal(t, parent.Id, child2After.PageParentId, "Child2 should still reference deleted parent (orphaned)")
+		require.Empty(t, child2After.PageParentId, "Child2 should become root page after parent deletion")
 
 		grandchildAfter, err := th.App.GetSinglePost(th.Context, grandchild.Id, false)
 		require.Nil(t, err)
 		require.Equal(t, child1.Id, grandchildAfter.PageParentId, "Grandchild should still reference child1 (unaffected)")
 	})
 
-	t.Run("deleting middle page in hierarchy orphans only direct children", func(t *testing.T) {
+	t.Run("deleting middle page reparents direct children to grandparent", func(t *testing.T) {
 		root, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Root", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
@@ -354,10 +354,10 @@ func TestDeletePage(t *testing.T) {
 
 		leafAfter, err := th.App.GetSinglePost(th.Context, leaf.Id, false)
 		require.Nil(t, err)
-		require.Equal(t, middle.Id, leafAfter.PageParentId, "Leaf should reference deleted middle page (orphaned)")
+		require.Equal(t, root.Id, leafAfter.PageParentId, "Leaf should be reparented to root (grandparent)")
 	})
 
-	t.Run("GetPageChildren excludes deleted parent's children with soft delete", func(t *testing.T) {
+	t.Run("GetPageChildren fails for deleted parent", func(t *testing.T) {
 		parent, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Parent to Delete", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
@@ -374,7 +374,7 @@ func TestDeletePage(t *testing.T) {
 
 		childAfter, err := th.App.GetSinglePost(th.Context, child.Id, false)
 		require.Nil(t, err)
-		require.Equal(t, parent.Id, childAfter.PageParentId, "Child still has reference to deleted parent")
+		require.Empty(t, childAfter.PageParentId, "Child should be reparented to root after parent deletion")
 	})
 }
 

@@ -513,6 +513,61 @@ func (s *SqlDraftStore) UpdatePropsOnly(userId, wikiId, draftId string, props ma
 	return nil
 }
 
+// BatchUpdateDraftParentId updates all drafts in a wiki that have the specified old parent ID.
+// Returns the list of updated drafts for WebSocket broadcasting.
+// Uses a single UPDATE query with RETURNING for efficiency.
+func (s *SqlDraftStore) BatchUpdateDraftParentId(userId, wikiId, oldParentId, newParentId string) ([]*model.Draft, error) {
+	newUpdateAt := model.GetMillis()
+
+	// Use PostgreSQL JSONB operators to find drafts with matching parent_id and update in a single query
+	// Props->>'page_parent_id' extracts the value as text for comparison
+	// jsonb_set updates the value at the specified path
+	rows, err := s.GetMaster().Query(`
+		UPDATE Drafts
+		SET Props = jsonb_set(Props, '{page_parent_id}', to_jsonb($1::text)),
+		    UpdateAt = $2
+		WHERE UserId = $3
+		  AND WikiId = $4
+		  AND Props->>'page_parent_id' = $5
+		  AND DeleteAt = 0
+		RETURNING CreateAt, UpdateAt, DeleteAt, Message, RootId, ChannelId, WikiId, UserId, FileIds, Props, Priority, Type`,
+		newParentId, newUpdateAt, userId, wikiId, oldParentId)
+
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to batch update draft parent IDs for userId=%s, wikiId=%s", userId, wikiId)
+	}
+	defer rows.Close()
+
+	var updatedDrafts []*model.Draft
+	for rows.Next() {
+		var draft model.Draft
+		err = rows.Scan(
+			&draft.CreateAt,
+			&draft.UpdateAt,
+			&draft.DeleteAt,
+			&draft.Message,
+			&draft.RootId,
+			&draft.ChannelId,
+			&draft.WikiId,
+			&draft.UserId,
+			&draft.FileIds,
+			&draft.Props,
+			&draft.Priority,
+			&draft.Type,
+		)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to scan updated draft row")
+		}
+		updatedDrafts = append(updatedDrafts, &draft)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, errors.Wrap(err, "error iterating updated draft rows")
+	}
+
+	return updatedDrafts, nil
+}
+
 // UpdateDraftParent atomically updates only the page_parent_id prop in the Drafts table.
 // This is used for move operations and does not touch the PageContents table (content/title).
 // It uses a read-modify-write pattern to merge the new parent_id into existing props.
@@ -912,7 +967,11 @@ func (s *SqlDraftStore) GetPageDraftsForUser(userId, wikiId string) ([]*model.Pa
 		return nil, errors.Wrap(err, "page_drafts_get_for_user_tosql")
 	}
 
-	rows, err := s.GetReplica().Query(queryString, args...)
+	// Use GetMaster() for read-after-write consistency in HA mode.
+	// This method is commonly called after draft operations (create, update, move)
+	// to refresh the draft list for WebSocket broadcast. Replica lag would return
+	// stale data that overwrites client state with incorrect draft titles/props.
+	rows, err := s.GetMaster().Query(queryString, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get page drafts for userId=%s, wikiId=%s", userId, wikiId)
 	}

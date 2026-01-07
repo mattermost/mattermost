@@ -7757,6 +7757,16 @@ func (c *Client4) DeletePage(ctx context.Context, wikiId, pageId string) (*Respo
 	return BuildResponse(r), nil
 }
 
+// RestorePage restores a soft-deleted page.
+func (c *Client4) RestorePage(ctx context.Context, wikiId, pageId string) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, c.wikiPageRoute(wikiId, pageId)+"/restore", "")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 // UpdatePage updates a page's title and/or content.
 func (c *Client4) UpdatePage(ctx context.Context, wikiId, pageId, title, content, searchText string) (*Post, *Response, error) {
 	payload := map[string]string{

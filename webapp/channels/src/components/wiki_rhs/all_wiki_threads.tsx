@@ -101,25 +101,23 @@ const AllWikiThreads = ({wikiId, onThreadClick}: Props) => {
 
     // Listen for WebSocket events for new comments
     useEffect(() => {
-        const handleNewPost = (msg: WebSocketMessage) => {
-            // Only handle POSTED events
-            if (msg.event !== SocketEvents.POSTED) {
+        const handleNewComment = (msg: WebSocketMessage) => {
+            if (msg.event !== SocketEvents.PAGE_COMMENT_CREATED) {
                 return;
             }
 
-            const post = JSON.parse(msg.data.post);
+            const post = JSON.parse(msg.data.comment);
 
-            // Check if it's an inline comment
+            // Check if it's an inline comment for a page in this wiki
             if (pageInlineCommentHasAnchor(post) && post.props?.page_id) {
-                // Refetch all threads to include the new comment
                 fetchAllThreads();
             }
         };
 
-        WebSocketClient.addMessageListener(handleNewPost);
+        WebSocketClient.addMessageListener(handleNewComment);
 
         return () => {
-            WebSocketClient.removeMessageListener(handleNewPost);
+            WebSocketClient.removeMessageListener(handleNewComment);
         };
     }, [fetchAllThreads]);
 

@@ -2883,6 +2883,59 @@ export async function verifyFormattingButtonExists(formattingBar: Locator, iconC
 }
 
 /**
+ * Waits for the link bubble menu to appear
+ * @param page - Playwright page object
+ * @param timeout - Optional timeout in milliseconds (default: 5000)
+ * @returns The link bubble menu locator
+ */
+export async function waitForLinkBubbleMenu(page: Page, timeout: number = ELEMENT_TIMEOUT): Promise<Locator> {
+    const bubbleMenu = page.locator('[data-testid="link-bubble-menu"]');
+    await bubbleMenu.waitFor({state: 'visible', timeout});
+    return bubbleMenu;
+}
+
+/**
+ * Positions cursor inside a link in the editor using keyboard navigation.
+ * This works by selecting the link text and then collapsing the selection.
+ * @param page - Playwright page object
+ * @param editor - The editor locator
+ */
+export async function positionCursorInLink(page: Page, editor: Locator): Promise<void> {
+    // Click directly on the link element to position cursor inside it
+    // This triggers the mousedown handler which properly positions the cursor
+    const linkElement = editor.locator('a').first();
+    await linkElement.click();
+    await page.waitForTimeout(SHORT_WAIT);
+}
+
+/**
+ * Creates a link from the currently selected text in the editor
+ * @param page - Playwright page object
+ * @param targetPageName - Name of the page to link to
+ */
+export async function createLinkFromSelection(page: Page, targetPageName: string): Promise<void> {
+    // Open link modal with Ctrl+L
+    await pressModifierKey(page, 'l');
+
+    const linkModal = page.locator('[data-testid="page-link-modal"]').first();
+    await expect(linkModal).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // Search for target page
+    const searchInput = linkModal.locator('input[id="page-search-input"]');
+    await searchInput.fill(targetPageName);
+
+    // Select the target page
+    await linkModal.locator(`text="${targetPageName}"`).first().click();
+
+    // Click Insert Link button
+    await linkModal.locator('button:has-text("Insert Link")').click();
+
+    // Wait for modal to close
+    await expect(linkModal).not.toBeVisible();
+    await page.waitForTimeout(SHORT_WAIT);
+}
+
+/**
  * Common setup: creates page, navigates to it, clicks edit
  * @param page - Playwright page object
  * @param pageTitle - Title of the page to create
@@ -3060,6 +3113,30 @@ export async function checkAIPluginAvailability(page: Page): Promise<boolean> {
     const isVisible = await aiButton.isVisible().catch(() => false);
     await page.keyboard.press('Backspace');
     return isVisible;
+}
+
+/**
+ * Checks if the AI plugin (mattermost-ai) is actually running on the server.
+ * This checks the actual server state, not just the test configuration.
+ * @param adminClient - Admin client to check plugin statuses
+ * @returns True if AI plugin is installed and running on the server
+ */
+export async function isAIPluginRunning(adminClient: Client4): Promise<boolean> {
+    try {
+        const statuses = await adminClient.getPluginStatuses();
+        const aiPluginStatus = statuses.find(
+            (s: {plugin_id: string; state: number}) => s.plugin_id === 'mattermost-ai',
+        );
+
+        if (!aiPluginStatus) {
+            return false;
+        }
+
+        // Plugin state 2 = Running (from server/public/model/plugin_status.go)
+        return aiPluginStatus.state === 2;
+    } catch {
+        return false;
+    }
 }
 
 /**
