@@ -1262,9 +1262,11 @@ func (a *App) sendUpdatedUserEvent(user *model.User) {
 	// First, creating a base copy to avoid race conditions
 	// from setting the binaryParamKey in userstore.Update.
 	user = user.DeepCopy()
-	// declare admin and unsanitized copy of user
+	// Create copies for different sanitization levels:
+	// - adminCopyOfUser: moderately sanitized for admins
+	// - sourceUserCopyOfUser: minimally sanitized (keeps NotifyProps) for event creator
 	adminCopyOfUser := user.DeepCopy()
-	unsanitizedCopyOfUser := user.DeepCopy()
+	sourceUserCopyOfUser := user.DeepCopy()
 
 	a.SanitizeProfile(adminCopyOfUser, true)
 	adminMessage := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", "", omitUsers, "")
@@ -1278,9 +1280,9 @@ func (a *App) sendUpdatedUserEvent(user *model.User) {
 	message.GetBroadcast().ContainsSanitizedData = true
 	a.Publish(message)
 
-	// send unsanitized user to event creator
-	sourceUserMessage := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", unsanitizedCopyOfUser.Id, nil, "")
-	sourceUserMessage.Add("user", unsanitizedCopyOfUser)
+	sourceUserCopyOfUser.Sanitize(nil)
+	sourceUserMessage := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", sourceUserCopyOfUser.Id, nil, "")
+	sourceUserMessage.Add("user", sourceUserCopyOfUser)
 	a.Publish(sourceUserMessage)
 }
 
