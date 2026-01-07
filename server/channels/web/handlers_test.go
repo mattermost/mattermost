@@ -1204,7 +1204,6 @@ func TestHandlerMfaAndTermsOfServiceMatrix(t *testing.T) {
 		// Ensure user hasn't accepted ToS
 		err := th.App.Srv().Store().UserTermsOfService().Delete(session.UserId, tos.Id)
 		_ = err // It's okay if it doesn't exist
-		delete(session.Props, model.SessionPropTermsOfServiceId)
 
 		handler := Handler{
 			Srv:                web.srv,
@@ -1233,7 +1232,6 @@ func TestHandlerMfaAndTermsOfServiceMatrix(t *testing.T) {
 		// Ensure user hasn't accepted ToS (so both MFA and ToS are missing)
 		err := th.App.Srv().Store().UserTermsOfService().Delete(session.UserId, tos.Id)
 		_ = err // It's okay if it doesn't exist
-		delete(session.Props, model.SessionPropTermsOfServiceId)
 
 		handler := Handler{
 			Srv:                web.srv,
@@ -1266,7 +1264,6 @@ func TestHandlerMfaAndTermsOfServiceMatrix(t *testing.T) {
 		// User accepts ToS but still needs MFA
 		err := th.App.SaveUserTermsOfService(session.UserId, tos.Id, true)
 		require.Nil(t, err)
-		session.AddProp(model.SessionPropTermsOfServiceId, tos.Id)
 
 		handler := Handler{
 			Srv:                web.srv,

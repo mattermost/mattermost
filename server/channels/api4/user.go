@@ -3061,16 +3061,6 @@ func saveUserTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// Update session cache when user accepts ToS
-	if accepted {
-		c.AppContext.Session().AddProp(model.SessionPropTermsOfServiceId, termsOfServiceId)
-	} else {
-		// Remove from session cache when user rejects ToS
-		if c.AppContext.Session().Props != nil {
-			delete(c.AppContext.Session().Props, model.SessionPropTermsOfServiceId)
-		}
-	}
-
 	auditRec.Success()
 	c.LogAudit("TermsOfServiceId=" + termsOfServiceId + ", accepted=" + strconv.FormatBool(accepted))
 

@@ -180,14 +180,7 @@ func (c *Context) TermsOfServiceRequired(r *http.Request) *model.AppError {
 		return model.NewAppError("TermsOfServiceRequired", "api.context.terms_of_service_required.app_error", nil, "", http.StatusForbidden)
 	}
 
-	// Check session cache for user's ToS acceptance
-	if acceptedToSId, exists := session.Props[model.SessionPropTermsOfServiceId]; exists {
-		if acceptedToSId == latestToS.Id {
-			return nil // User already accepted latest ToS
-		}
-	}
-
-	// Cache miss - check database for user's ToS acceptance
+	// Check database for user's ToS acceptance (cached at the store layer)
 	userToS, appErr := c.App.GetUserTermsOfService(session.UserId)
 	if appErr != nil {
 		if appErr.StatusCode == http.StatusNotFound {
@@ -202,9 +195,6 @@ func (c *Context) TermsOfServiceRequired(r *http.Request) *model.AppError {
 	if userToS.TermsOfServiceId != latestToS.Id {
 		return model.NewAppError("TermsOfServiceRequired", "api.context.terms_of_service_required.app_error", nil, "", http.StatusForbidden)
 	}
-
-	// Cache the acceptance in session for future requests
-	session.AddProp(model.SessionPropTermsOfServiceId, userToS.TermsOfServiceId)
 
 	return nil
 }
