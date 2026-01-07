@@ -55,6 +55,7 @@ jobs:
       server: "onprem"
       enable_reporting: true
       report_type: "PR"
+      pr_number: "${{ needs.resolve-pr.outputs.PR_NUMBER }}"
     secrets:
       MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
       AUTOMATION_DASHBOARD_URL: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_URL }}"

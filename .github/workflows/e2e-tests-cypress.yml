@@ -27,6 +27,9 @@ on:
       report_type:
         type: string
         required: false
+      pr_number:
+        type: string
+        required: false
     secrets:
       MM_LICENSE:
         required: false
@@ -115,9 +118,9 @@ jobs:
     needs:
       - update-initial-status
     outputs:
-      branch: "${{ steps.generate.outputs.branch }}"
-      build_id_smoke: "${{ steps.generate.outputs.build_id_smoke }}"
-      build_id_full: "${{ steps.generate.outputs.build_id_full }}"
+      branch_smoke: "${{ steps.generate.outputs.branch_smoke }}"
+      branch_full: "${{ steps.generate.outputs.branch_full }}"
+      build_id: "${{ steps.generate.outputs.build_id }}"
       server_image: "${{ steps.generate.outputs.server_image }}"
       workers: "${{ steps.generate.outputs.workers }}"
       test_filter_smoke: "${{ steps.generate.outputs.test_filter_smoke }}"
@@ -129,13 +132,19 @@ jobs:
           COMMIT_SHA="${{ inputs.commit_sha }}"
           SERVER_IMAGE_TAG="${COMMIT_SHA::7}"
           WORKERS="${{ inputs.workers_number }}"
+          PR_NUMBER="${{ inputs.pr_number }}"
 
-          # Generate branch name
-          echo "branch=cypress-e2e-${SERVER_IMAGE_TAG}" >> $GITHUB_OUTPUT
+          # Generate branch names for smoke and full tests
+          if [ -n "$PR_NUMBER" ]; then
+            echo "branch_smoke=server-pr-${PR_NUMBER}-smoke" >> $GITHUB_OUTPUT
+            echo "branch_full=server-pr-${PR_NUMBER}-full" >> $GITHUB_OUTPUT
+          else
+            echo "branch_smoke=server-commit-${SERVER_IMAGE_TAG}-smoke" >> $GITHUB_OUTPUT
+            echo "branch_full=server-commit-${SERVER_IMAGE_TAG}-full" >> $GITHUB_OUTPUT
+          fi
 
-          # Generate build IDs for smoke and full tests
-          echo "build_id_smoke=${{ github.run_id }}_${{ github.run_attempt }}-${SERVER_IMAGE_TAG}-smoke-onprem-ent-cypress" >> $GITHUB_OUTPUT
-          echo "build_id_full=${{ github.run_id }}_${{ github.run_attempt }}-${SERVER_IMAGE_TAG}-full-onprem-ent-cypress" >> $GITHUB_OUTPUT
+          # Generate build ID (same for smoke and full)
+          echo "build_id=${{ github.run_id }}_${{ github.run_attempt }}-${SERVER_IMAGE_TAG}-pr-onprem-ent" >> $GITHUB_OUTPUT
 
           # Generate server image from commit SHA
           echo "server_image=mattermostdevelopment/mattermost-enterprise-edition:${SERVER_IMAGE_TAG}" >> $GITHUB_OUTPUT
@@ -146,7 +155,12 @@ jobs:
 
           # Generate test filters
           echo "test_filter_smoke=--stage=@prod --group=@smoke" >> $GITHUB_OUTPUT
-          echo "test_filter_full=--stage='@prod' --exclude-group='@smoke'" >> $GITHUB_OUTPUT
+
+          TEST_FILTER_FULL='--stage="@prod"'
+          TEST_FILTER_FULL+=' --excludeGroup="@smoke,@te_only,@cloud_only,@high_availability"'
+          TEST_FILTER_FULL+=' --sortFirst="@compliance_export,@elasticsearch,@ldap_group,@ldap"'
+          TEST_FILTER_FULL+=' --sortLast="@saml,@keycloak,@plugin,@plugins_uninstall,@mfa,@license_removal"'
+          echo "test_filter_full=${TEST_FILTER_FULL}" >> $GITHUB_OUTPUT
 
   # ════════════════════════════════════════════════════════════════════════════
   # SMOKE TESTS
@@ -179,8 +193,8 @@ jobs:
         env:
           AUTOMATION_DASHBOARD_URL: "${{ secrets.AUTOMATION_DASHBOARD_URL }}"
           AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.AUTOMATION_DASHBOARD_TOKEN }}"
-          BRANCH: "${{ needs.generate-build-variables.outputs.branch }}"
-          BUILD_ID: "${{ needs.generate-build-variables.outputs.build_id_smoke }}"
+          BRANCH: "${{ needs.generate-build-variables.outputs.branch_smoke }}"
+          BUILD_ID: "${{ needs.generate-build-variables.outputs.build_id }}"
           TEST: cypress
           TEST_FILTER: "${{ needs.generate-build-variables.outputs.test_filter_smoke }}"
         run: |
@@ -212,8 +226,8 @@ jobs:
       TEST: cypress
       TEST_FILTER: "${{ needs.generate-build-variables.outputs.test_filter_smoke }}"
       MM_ENV: "${{ inputs.mm_env }}"
-      BRANCH: "${{ needs.generate-build-variables.outputs.branch }}"
-      BUILD_ID: "${{ needs.generate-build-variables.outputs.build_id_smoke }}"
+      BRANCH: "${{ needs.generate-build-variables.outputs.branch_smoke }}"
+      BUILD_ID: "${{ needs.generate-build-variables.outputs.build_id }}"
       CI_BASE_URL: "smoke-test-server"
       CYPRESS_pushNotificationServer: "${{ secrets.PUSH_NOTIFICATION_SERVER }}"
       CWS_URL: "${{ secrets.CWS_URL }}"
@@ -374,8 +388,8 @@ jobs:
         env:
           AUTOMATION_DASHBOARD_URL: "${{ secrets.AUTOMATION_DASHBOARD_URL }}"
           AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.AUTOMATION_DASHBOARD_TOKEN }}"
-          BRANCH: "${{ needs.generate-build-variables.outputs.branch }}"
-          BUILD_ID: "${{ needs.generate-build-variables.outputs.build_id_full }}"
+          BRANCH: "${{ needs.generate-build-variables.outputs.branch_full }}"
+          BUILD_ID: "${{ needs.generate-build-variables.outputs.build_id }}"
           TEST: cypress
           TEST_FILTER: "${{ needs.generate-build-variables.outputs.test_filter_full }}"
         run: |
@@ -415,8 +429,8 @@ jobs:
       TEST: cypress
       TEST_FILTER: "${{ needs.generate-build-variables.outputs.test_filter_full }}"
       MM_ENV: "${{ inputs.mm_env }}"
-      BRANCH: "${{ needs.generate-build-variables.outputs.branch }}"
-      BUILD_ID: "${{ needs.generate-build-variables.outputs.build_id_full }}"
+      BRANCH: "${{ needs.generate-build-variables.outputs.branch_full }}"
+      BUILD_ID: "${{ needs.generate-build-variables.outputs.build_id }}"
       CI_BASE_URL: "ubuntu-24.04-${{ matrix.worker_index }}"
       CYPRESS_pushNotificationServer: "${{ secrets.PUSH_NOTIFICATION_SERVER }}"
       CWS_URL: "${{ secrets.CWS_URL }}"
@@ -497,8 +511,8 @@ jobs:
           SERVER_IMAGE: "${{ needs.generate-build-variables.outputs.server_image }}"
           AUTOMATION_DASHBOARD_URL: "${{ secrets.AUTOMATION_DASHBOARD_URL }}"
           WEBHOOK_URL: "${{ secrets.REPORT_WEBHOOK_URL }}"
-          BRANCH: "${{ needs.generate-build-variables.outputs.branch }}"
-          BUILD_ID: "${{ needs.generate-build-variables.outputs.build_id_full }}"
+          BRANCH: "${{ needs.generate-build-variables.outputs.branch_full }}"
+          BUILD_ID: "${{ needs.generate-build-variables.outputs.build_id }}"
           MM_ENV: "${{ inputs.mm_env }}"
           TM4J_API_KEY: "${{ secrets.REPORT_TM4J_API_KEY }}"
           TEST_CYCLE_LINK_PREFIX: "${{ secrets.REPORT_TM4J_TEST_CYCLE_LINK_PREFIX }}"

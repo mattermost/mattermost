@@ -182,8 +182,21 @@ Each workflow phase creates its own GitHub commit status check:
 
 | Framework | Smoke Tests | Full Tests |
 |-----------|-------------|------------|
-| **Cypress** | `--stage=@prod --group=@smoke` | `--stage='@prod' --exclude-group='@smoke'` |
+| **Cypress** | `--stage=@prod --group=@smoke` | See below |
 | **Playwright** | `--grep @smoke` | `--grep-invert "@smoke\|@visual"` |
+
+### Cypress Full Test Filter
+
+```
+--stage="@prod"
+--excludeGroup="@smoke,@te_only,@cloud_only,@high_availability"
+--sortFirst="@compliance_export,@elasticsearch,@ldap_group,@ldap"
+--sortLast="@saml,@keycloak,@plugin,@plugins_uninstall,@mfa,@license_removal"
+```
+
+- **excludeGroup**: Skips smoke tests (already run), TE-only, cloud-only, and HA tests
+- **sortFirst**: Runs long-running test groups early for better parallelization
+- **sortLast**: Runs tests that may affect system state at the end
 
 ## Tagging Tests
 
