@@ -1634,7 +1634,7 @@ func (s SqlTeamStore) UpdateMembersRole(teamID string, adminIDs []string) ([]*mo
 				},
 			},
 		).
-		Suffix("RETURNING TeamId, UserId, Roles, DeleteAt, SchemeUser, SchemeAdmin, SchemeGuest, CreateAt")
+		Suffix("RETURNING " + strings.Join(teamMemberSliceColumns(), ", "))
 
 	var updatedMembers []*model.TeamMember
 	if err := s.GetMaster().SelectBuilder(&updatedMembers, query); err != nil {
