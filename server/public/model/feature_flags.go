@@ -125,7 +125,7 @@ func (f *FeatureFlags) SetDefaults() {
 	// FEATURE_FLAG_REMOVAL: AutoTranslation - Remove this default when MVP is to be released
 	f.AutoTranslation = false
 
-	f.BurnOnRead = false
+	f.BurnOnRead = true
 
 	// FEATURE_FLAG_REMOVAL: EnableAIPluginBridge - Remove this default when MVP is to be released
 	f.EnableAIPluginBridge = false
