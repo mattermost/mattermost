@@ -3185,13 +3185,13 @@ func TestFillInPostProps(t *testing.T) {
 
 	t.Run("should not populate channel mentions for channels in teams where the user is not a member", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic(t)
+		th := Setup(t).InitBasic()
 
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
 
-		team2 := th.CreateTeam(t)
-		th.LinkUserToTeam(t, user2, team2)
+		team2 := th.CreateTeam()
+		th.LinkUserToTeam(user2, team2)
 
 		// Create a channel in team2 which user1 is not a member of
 		channel2, err := th.App.CreateChannel(th.Context, &model.Channel{
@@ -3203,7 +3203,7 @@ func TestFillInPostProps(t *testing.T) {
 		}, false)
 		require.Nil(t, err)
 
-		dmChannelBetweenUser1AndUser2 := th.CreateDmChannel(t, user2)
+		dmChannelBetweenUser1AndUser2 := th.CreateDmChannel(user2)
 
 		post, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
@@ -3221,14 +3221,14 @@ func TestFillInPostProps(t *testing.T) {
 
 	t.Run("should populate channel mentions for channels in teams where the user is a member", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic(t)
+		th := Setup(t).InitBasic()
 
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
 
-		channel := th.CreateChannel(t, th.BasicTeam)
+		channel := th.CreateChannel(th.Context, th.BasicTeam)
 
-		dmChannel := th.CreateDmChannel(t, user2)
+		dmChannel := th.CreateDmChannel(user2)
 
 		post, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
