@@ -29,6 +29,8 @@ describe('components/ProfilePopoverCustomAttributes', () => {
         create_at: 0,
         update_at: 0,
         delete_at: 0,
+        created_by: '',
+        updated_by: '',
         attrs: {
             value_type: '' as UserPropertyValueType,
             visibility: 'when_set',
@@ -44,6 +46,8 @@ describe('components/ProfilePopoverCustomAttributes', () => {
         create_at: 0,
         update_at: 0,
         delete_at: 0,
+        created_by: '',
+        updated_by: '',
         attrs: {
             value_type: 'phone' as UserPropertyValueType,
             visibility: 'when_set',
@@ -59,6 +63,8 @@ describe('components/ProfilePopoverCustomAttributes', () => {
         create_at: 0,
         update_at: 0,
         delete_at: 0,
+        created_by: '',
+        updated_by: '',
         attrs: {
             value_type: 'url' as UserPropertyValueType,
             visibility: 'when_set',
@@ -74,6 +80,8 @@ describe('components/ProfilePopoverCustomAttributes', () => {
         create_at: 0,
         update_at: 0,
         delete_at: 0,
+        created_by: '',
+        updated_by: '',
         attrs: {
             options: [
                 {id: 'option1', name: 'Option 1', color: '#FF0000'},

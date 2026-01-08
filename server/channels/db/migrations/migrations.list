@@ -293,3 +293,5 @@ channels/db/migrations/postgres/000147_create_autotranslation_tables.down.sql
 channels/db/migrations/postgres/000147_create_autotranslation_tables.up.sql
 channels/db/migrations/postgres/000148_add_burn_on_read_messages.down.sql
 channels/db/migrations/postgres/000148_add_burn_on_read_messages.up.sql
+channels/db/migrations/postgres/000149_add_user_tracking_to_properties.down.sql
+channels/db/migrations/postgres/000149_add_user_tracking_to_properties.up.sql

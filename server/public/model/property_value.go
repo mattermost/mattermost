@@ -29,6 +29,8 @@ type PropertyValue struct {
 	CreateAt   int64           `json:"create_at"`
 	UpdateAt   int64           `json:"update_at"`
 	DeleteAt   int64           `json:"delete_at"`
+	CreatedBy  string          `json:"created_by"`
+	UpdatedBy  string          `json:"updated_by"`
 }
 
 func (pv *PropertyValue) PreSave() {

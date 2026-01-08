@@ -23,7 +23,7 @@ func newPropertyFieldStore(sqlStore *SqlStore) store.PropertyFieldStore {
 	s := SqlPropertyFieldStore{SqlStore: sqlStore}
 
 	s.tableSelectQuery = s.getQueryBuilder().
-		Select("ID", "GroupID", "Name", "Type", "Attrs", "TargetID", "TargetType", "CreateAt", "UpdateAt", "DeleteAt").
+		Select("ID", "GroupID", "Name", "Type", "Attrs", "TargetID", "TargetType", "CreateAt", "UpdateAt", "DeleteAt", "CreatedBy", "UpdatedBy").
 		From("PropertyFields")
 
 	return &s
@@ -42,8 +42,8 @@ func (s *SqlPropertyFieldStore) Create(field *model.PropertyField) (*model.Prope
 
 	builder := s.getQueryBuilder().
 		Insert("PropertyFields").
-		Columns("ID", "GroupID", "Name", "Type", "Attrs", "TargetID", "TargetType", "CreateAt", "UpdateAt", "DeleteAt").
-		Values(field.ID, field.GroupID, field.Name, field.Type, field.Attrs, field.TargetID, field.TargetType, field.CreateAt, field.UpdateAt, field.DeleteAt)
+		Columns("ID", "GroupID", "Name", "Type", "Attrs", "TargetID", "TargetType", "CreateAt", "UpdateAt", "DeleteAt", "CreatedBy", "UpdatedBy").
+		Values(field.ID, field.GroupID, field.Name, field.Type, field.Attrs, field.TargetID, field.TargetType, field.CreateAt, field.UpdateAt, field.DeleteAt, field.CreatedBy, field.UpdatedBy)
 
 	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
 		return nil, errors.Wrap(err, "property_field_create_insert")
@@ -207,6 +207,7 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 	targetIDCase := sq.Case("id")
 	targetTypeCase := sq.Case("id")
 	deleteAtCase := sq.Case("id")
+	updatedByCase := sq.Case("id")
 	ids := make([]string, len(fields))
 
 	for i, field := range fields {
@@ -224,6 +225,7 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 			targetIDCase = targetIDCase.When(whenID, sq.Expr("?::text", field.TargetID))
 			targetTypeCase = targetTypeCase.When(whenID, sq.Expr("?::text", field.TargetType))
 			deleteAtCase = deleteAtCase.When(whenID, sq.Expr("?::bigint", field.DeleteAt))
+			updatedByCase = updatedByCase.When(whenID, sq.Expr("?::text", field.UpdatedBy))
 		} else {
 			nameCase = nameCase.When(whenID, sq.Expr("?", field.Name))
 			typeCase = typeCase.When(whenID, sq.Expr("?", field.Type))
@@ -231,6 +233,7 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 			targetIDCase = targetIDCase.When(whenID, sq.Expr("?", field.TargetID))
 			targetTypeCase = targetTypeCase.When(whenID, sq.Expr("?", field.TargetType))
 			deleteAtCase = deleteAtCase.When(whenID, sq.Expr("?", field.DeleteAt))
+			updatedByCase = updatedByCase.When(whenID, sq.Expr("?", field.UpdatedBy))
 		}
 	}
 
@@ -243,6 +246,7 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 		Set("TargetType", targetTypeCase).
 		Set("UpdateAt", updateTime).
 		Set("DeleteAt", deleteAtCase).
+		Set("UpdatedBy", updatedByCase).
 		Where(sq.Eq{"id": ids})
 
 	if groupID != "" {

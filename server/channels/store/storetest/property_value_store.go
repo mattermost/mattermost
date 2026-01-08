@@ -52,12 +52,16 @@ func testCreatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 		require.ErrorContains(t, err, "model.property_value.is_valid.app_error")
 	})
 
+	creatorUserID := model.NewId()
+
 	newValue := &model.PropertyValue{
 		TargetID:   model.NewId(),
 		TargetType: "test_type",
 		GroupID:    model.NewId(),
 		FieldID:    model.NewId(),
 		Value:      json.RawMessage(`"test value"`),
+		CreatedBy:  creatorUserID,
+		UpdatedBy:  creatorUserID,
 	}
 
 	t.Run("should be able to create a property value", func(t *testing.T) {
@@ -67,6 +71,8 @@ func testCreatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NotZero(t, value.CreateAt)
 		require.NotZero(t, value.UpdateAt)
 		require.Zero(t, value.DeleteAt)
+		require.Equal(t, creatorUserID, value.CreatedBy)
+		require.Equal(t, creatorUserID, value.UpdatedBy)
 	})
 
 	t.Run("should enforce the value's uniqueness", func(t *testing.T) {
@@ -74,6 +80,20 @@ func testCreatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 		value, err := ss.PropertyValue().Create(newValue)
 		require.Error(t, err)
 		require.Zero(t, value)
+	})
+
+	t.Run("should allow empty CreatedBy and UpdatedBy", func(t *testing.T) {
+		valueWithoutTracking := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    model.NewId(),
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`"value without tracking"`),
+		}
+		value, err := ss.PropertyValue().Create(valueWithoutTracking)
+		require.NoError(t, err)
+		require.Empty(t, value.CreatedBy)
+		require.Empty(t, value.UpdatedBy)
 	})
 }
 
@@ -686,6 +706,89 @@ func testUpdatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, originalValue2, string(updated2.Value))
 	})
+
+	t.Run("should update UpdatedBy but not CreatedBy on update", func(t *testing.T) {
+		creatorUserID := model.NewId()
+		updaterUserID := model.NewId()
+
+		value := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    model.NewId(),
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`"original value"`),
+			CreatedBy:  creatorUserID,
+			UpdatedBy:  creatorUserID,
+		}
+
+		_, err := ss.PropertyValue().Create(value)
+		require.NoError(t, err)
+
+		// Update the value with a different user
+		value.Value = json.RawMessage(`"updated value"`)
+		value.UpdatedBy = updaterUserID
+
+		_, err = ss.PropertyValue().Update("", []*model.PropertyValue{value})
+		require.NoError(t, err)
+
+		// Verify CreatedBy stays the same but UpdatedBy changes
+		fetched, err := ss.PropertyValue().Get("", value.ID)
+		require.NoError(t, err)
+		require.Equal(t, creatorUserID, fetched.CreatedBy, "CreatedBy should not change on update")
+		require.Equal(t, updaterUserID, fetched.UpdatedBy, "UpdatedBy should change on update")
+		require.Equal(t, `"updated value"`, string(fetched.Value))
+	})
+
+	t.Run("should handle bulk updates with different UpdatedBy values", func(t *testing.T) {
+		creatorUserID := model.NewId()
+		user1 := model.NewId()
+		user2 := model.NewId()
+		groupID := model.NewId()
+
+		value1 := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    groupID,
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`"value 1"`),
+			CreatedBy:  creatorUserID,
+			UpdatedBy:  creatorUserID,
+		}
+		value2 := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    groupID,
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`"value 2"`),
+			CreatedBy:  creatorUserID,
+			UpdatedBy:  creatorUserID,
+		}
+
+		_, err := ss.PropertyValue().Create(value1)
+		require.NoError(t, err)
+		_, err = ss.PropertyValue().Create(value2)
+		require.NoError(t, err)
+
+		// Update with different users
+		value1.Value = json.RawMessage(`"value 1 updated"`)
+		value1.UpdatedBy = user1
+		value2.Value = json.RawMessage(`"value 2 updated"`)
+		value2.UpdatedBy = user2
+
+		_, err = ss.PropertyValue().Update("", []*model.PropertyValue{value1, value2})
+		require.NoError(t, err)
+
+		// Verify both values have correct UpdatedBy
+		fetched1, err := ss.PropertyValue().Get("", value1.ID)
+		require.NoError(t, err)
+		require.Equal(t, user1, fetched1.UpdatedBy)
+		require.Equal(t, creatorUserID, fetched1.CreatedBy)
+
+		fetched2, err := ss.PropertyValue().Get("", value2.ID)
+		require.NoError(t, err)
+		require.Equal(t, user2, fetched2.UpdatedBy)
+		require.Equal(t, creatorUserID, fetched2.CreatedBy)
+	})
 }
 
 func testUpsertPropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
@@ -848,6 +951,99 @@ func testUpsertPropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 		})
 		require.NoError(t, err)
 		require.Empty(t, results)
+	})
+
+	t.Run("should track UpdatedBy in Upsert operations", func(t *testing.T) {
+		creatorUserID := model.NewId()
+		updaterUserID := model.NewId()
+		groupID := model.NewId()
+		targetID := model.NewId()
+		fieldID := model.NewId()
+
+		// First upsert (insert)
+		value1 := &model.PropertyValue{
+			TargetID:   targetID,
+			TargetType: "test_type",
+			GroupID:    groupID,
+			FieldID:    fieldID,
+			Value:      json.RawMessage(`"initial value"`),
+			CreatedBy:  creatorUserID,
+			UpdatedBy:  creatorUserID,
+		}
+
+		upserted1, err := ss.PropertyValue().Upsert([]*model.PropertyValue{value1})
+		require.NoError(t, err)
+		require.Len(t, upserted1, 1)
+		require.Equal(t, creatorUserID, upserted1[0].CreatedBy)
+		require.Equal(t, creatorUserID, upserted1[0].UpdatedBy)
+
+		// Second upsert (update) - same target, group, and field
+		value2 := &model.PropertyValue{
+			TargetID:   targetID,
+			TargetType: "test_type",
+			GroupID:    groupID,
+			FieldID:    fieldID,
+			Value:      json.RawMessage(`"updated via upsert"`),
+			UpdatedBy:  updaterUserID,
+		}
+
+		upserted2, err := ss.PropertyValue().Upsert([]*model.PropertyValue{value2})
+		require.NoError(t, err)
+		require.Len(t, upserted2, 1)
+
+		// Verify UpdatedBy changed but CreatedBy remained
+		fetched, err := ss.PropertyValue().Get("", upserted2[0].ID)
+		require.NoError(t, err)
+		require.Equal(t, creatorUserID, fetched.CreatedBy, "CreatedBy should remain from initial insert")
+		require.Equal(t, updaterUserID, fetched.UpdatedBy, "UpdatedBy should change on upsert")
+		require.Equal(t, `"updated via upsert"`, string(fetched.Value))
+	})
+
+	t.Run("should not allow to change created by in upsert operations", func(t *testing.T) {
+		creatorUserID := model.NewId()
+		differentUserID := model.NewId()
+		updaterUserID := model.NewId()
+		groupID := model.NewId()
+		targetID := model.NewId()
+		fieldID := model.NewId()
+
+		// First upsert (insert) with original creator
+		value1 := &model.PropertyValue{
+			TargetID:   targetID,
+			TargetType: "test_type",
+			GroupID:    groupID,
+			FieldID:    fieldID,
+			Value:      json.RawMessage(`"initial value"`),
+			CreatedBy:  creatorUserID,
+			UpdatedBy:  creatorUserID,
+		}
+
+		upserted1, err := ss.PropertyValue().Upsert([]*model.PropertyValue{value1})
+		require.NoError(t, err)
+		require.Len(t, upserted1, 1)
+		require.Equal(t, creatorUserID, upserted1[0].CreatedBy)
+
+		// Second upsert (update) - try to change CreatedBy (should be ignored)
+		value2 := &model.PropertyValue{
+			TargetID:   targetID,
+			TargetType: "test_type",
+			GroupID:    groupID,
+			FieldID:    fieldID,
+			Value:      json.RawMessage(`"updated via upsert"`),
+			CreatedBy:  differentUserID, // Attempting to change CreatedBy
+			UpdatedBy:  updaterUserID,
+		}
+
+		upserted2, err := ss.PropertyValue().Upsert([]*model.PropertyValue{value2})
+		require.NoError(t, err)
+		require.Len(t, upserted2, 1)
+
+		// Verify CreatedBy was NOT changed, even though we tried to change it
+		fetched, err := ss.PropertyValue().Get("", upserted2[0].ID)
+		require.NoError(t, err)
+		require.Equal(t, creatorUserID, fetched.CreatedBy, "CreatedBy should remain unchanged even when attempting to modify it via upsert")
+		require.Equal(t, updaterUserID, fetched.UpdatedBy, "UpdatedBy should change on upsert")
+		require.Equal(t, `"updated via upsert"`, string(fetched.Value))
 	})
 }
 

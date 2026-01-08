@@ -430,6 +430,12 @@ components:
         delete_at:
           type: integer
           format: int64
+        created_by:
+          type: string
+          description: User ID of the user who created this property field
+        updated_by:
+          type: string
+          description: User ID of the user who last updated this property field
     PropertyFieldPatch:
       type: object
       properties:
@@ -463,6 +469,12 @@ components:
         delete_at:
           type: integer
           format: int64
+        created_by:
+          type: string
+          description: User ID of the user who created this property value
+        updated_by:
+          type: string
+          description: User ID of the user who last updated this property value
     FileInfoList:
       type: object
       properties:

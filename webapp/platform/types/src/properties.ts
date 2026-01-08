@@ -24,6 +24,8 @@ export type PropertyField = {
     create_at: number;
     update_at: number;
     delete_at: number;
+    created_by: string;
+    updated_by: string;
 };
 
 export type NameMappedPropertyFields = {[key: PropertyField['name']]: PropertyField};
@@ -38,6 +40,8 @@ export type PropertyValue<T> = {
     create_at: number;
     update_at: number;
     delete_at: number;
+    created_by: string;
+    updated_by: string;
 }
 
 export type UserPropertyFieldType = 'text' | 'select' | 'multiselect';
