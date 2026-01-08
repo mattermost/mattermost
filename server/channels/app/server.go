@@ -43,6 +43,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/cleanup_desktop_tokens"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/delete_dms_preferences_migration"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/delete_empty_drafts_migration"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/delete_expired_posts"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/delete_orphan_drafts_migration"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/expirynotify"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_delete"
@@ -117,7 +118,7 @@ type Server struct {
 
 	timezones *timezones.Timezones
 
-	htmlTemplateWatcher     *templates.Container
+	htmlTemplates           *templates.Container
 	seenPendingPostIdsCache cache.Cache
 	openGraphDataCache      cache.Cache
 	clusterLeaderListenerId string
@@ -328,16 +329,11 @@ func NewServer(options ...Option) (*Server, error) {
 	if !ok {
 		return nil, errors.New("Failed find server templates in \"templates\" directory")
 	}
-	htmlTemplateWatcher, errorsChan, err2 := templates.NewWithWatcher(templatesDir)
+	htmlTemplates, err2 := templates.New(templatesDir)
 	if err2 != nil {
 		return nil, errors.Wrap(err2, "cannot initialize server templates")
 	}
-	s.Go(func() {
-		for err2 := range errorsChan {
-			mlog.Warn("Server templates error", mlog.Err(err2))
-		}
-	})
-	s.htmlTemplateWatcher = htmlTemplateWatcher
+	s.htmlTemplates = htmlTemplates
 
 	s.telemetryService, err = telemetry.New(New(ServerConnector(s.Channels())), s.Store(), s.Log())
 	if err != nil {
@@ -439,6 +435,12 @@ func NewServer(options ...Option) (*Server, error) {
 			if appErr := appInstance.DeactivateGuests(c); appErr != nil {
 				mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
 			}
+		} else if *oldCfg.GuestAccountsSettings.EnableGuestMagicLink && !*newCfg.GuestAccountsSettings.EnableGuestMagicLink {
+			// Only run this if guest magic link accounts are still enabled
+			c := request.EmptyContext(s.Log())
+			if appErr := appInstance.DeactivateMagicLinkGuests(c); appErr != nil {
+				mlog.Error("Unable to deactivate guest magic link accounts", mlog.Err(appErr))
+			}
 		}
 	})
 
@@ -448,6 +450,14 @@ func NewServer(options ...Option) (*Server, error) {
 		c := request.EmptyContext(s.Log())
 		if appErr := appInstance.DeactivateGuests(c); appErr != nil {
 			mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
+		}
+	} else if !*s.platform.Config().GuestAccountsSettings.EnableGuestMagicLink {
+		// Disable guest magic link accounts on first run if guest magic link accounts are disabled
+		// and only if guest accounts are still enabled
+		appInstance := New(ServerConnector(s.Channels()))
+		c := request.EmptyContext(s.Log())
+		if appErr := appInstance.DeactivateMagicLinkGuests(c); appErr != nil {
+			mlog.Error("Unable to deactivate guest magic link accounts", mlog.Err(appErr))
 		}
 	}
 
@@ -653,7 +663,6 @@ func (s *Server) Shutdown() {
 	// Push notification hub needs to be shutdown after HTTP server
 	// to prevent stray requests from generating a push notification after it's shut down.
 	s.StopPushNotificationsHubWorkers()
-	s.htmlTemplateWatcher.Close()
 
 	s.platform.StopSearchEngine()
 
@@ -1186,7 +1195,10 @@ func runReportToAWSMeterJob(s *Server) {
 }
 
 func doReportUsageToAWSMeteringService(s *Server) {
-	awsMeter := awsmeter.New(s.Store(), s.platform.Config())
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*s.platform.Config().ServiceSettings.AWSMeteringTimeoutSeconds)*time.Second)
+	defer cancel()
+
+	awsMeter := awsmeter.New(ctx, s.Store(), s.platform.Config())
 	if awsMeter == nil {
 		mlog.Error("Cannot obtain instance of AWS Metering Service.")
 		return
@@ -1194,7 +1206,8 @@ func doReportUsageToAWSMeteringService(s *Server) {
 
 	dimensions := []string{model.AwsMeteringDimensionUsageHrs}
 	reports := awsMeter.GetUserCategoryUsage(dimensions, time.Now().UTC(), time.Now().Add(-model.AwsMeteringReportInterval*time.Hour).UTC())
-	if err := awsMeter.ReportUserCategoryUsage(reports); err != nil {
+
+	if err := awsMeter.ReportUserCategoryUsage(ctx, reports); err != nil {
 		mlog.Error("Failed to report usage to AWS Metering Service", mlog.Err(err))
 	}
 }
@@ -1611,15 +1624,36 @@ func (s *Server) initJobs() {
 		delete_dms_preferences_migration.MakeWorker(s.Jobs, s.Store(), New(ServerConnector(s.Channels()))),
 		nil)
 
+	s.Jobs.RegisterJobType(
+		model.JobTypeDeleteExpiredPosts,
+		delete_expired_posts.MakeWorker(s.Jobs, s.Store(), New(ServerConnector(s.Channels()))),
+		delete_expired_posts.MakeScheduler(s.Jobs),
+	)
+
 	s.platform.Jobs = s.Jobs
 }
 
+// ServerId returns the unique identifier for an installation of Mattermost servers.
+//
+// It is also known as the "telemetry id" or the "diagnostic id". Once generated
+// on first start, the value is persisted to the database and should remain static
+// for the lifetime of the installation.
+//
+// Only one server in a cluster will succeed in writing to the database on first
+// start, after which the other servers will converge on the same value.
 func (s *Server) ServerId() string {
-	props, err := s.Store().System().Get()
+	if s.telemetryService != nil && s.telemetryService.ServerID != "" {
+		return s.telemetryService.ServerID
+	}
+
+	prop, err := s.Store().System().GetByNameWithContext(
+		store.RequestContextWithMaster(request.EmptyContext(s.Log())),
+		model.SystemServerId,
+	)
 	if err != nil {
 		return ""
 	}
-	return props[model.SystemServerId]
+	return prop.Value
 }
 
 func (s *Server) HTTPService() httpservice.HTTPService {
@@ -1739,7 +1773,10 @@ func runDNDStatusExpireJob(a *App) {
 		withMut(&a.ch.dndTaskMut, func() {
 			a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, model.DNDExpiryInterval)
 		})
+	} else {
+		mlog.Debug("Skipping unset DND status job startup since this is not the leader node")
 	}
+
 	a.ch.srv.AddClusterLeaderChangedListener(func() {
 		mlog.Info("Cluster leader changed. Determining if unset DNS status task should be running", mlog.Bool("isLeader", a.IsLeader()))
 		if a.IsLeader() {
@@ -1747,6 +1784,7 @@ func runDNDStatusExpireJob(a *App) {
 				a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, model.DNDExpiryInterval)
 			})
 		} else {
+			mlog.Debug("This is no longer leader node. Cancelling the unset DND status task", mlog.Bool("isLeader", a.IsLeader()))
 			cancelTask(&a.ch.dndTaskMut, &a.ch.dndTask)
 		}
 	})
@@ -1759,7 +1797,10 @@ func runPostReminderJob(a *App) {
 			fn := func() { a.CheckPostReminders(rctx) }
 			a.ch.postReminderTask = model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", fn, 5*time.Minute)
 		})
+	} else {
+		mlog.Debug("Skipping post reminder job startup since this is not the leader node")
 	}
+
 	a.ch.srv.AddClusterLeaderChangedListener(func() {
 		mlog.Info("Cluster leader changed. Determining if post reminder task should be running", mlog.Bool("isLeader", a.IsLeader()))
 		if a.IsLeader() {
@@ -1769,6 +1810,7 @@ func runPostReminderJob(a *App) {
 				a.ch.postReminderTask = model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", fn, 5*time.Minute)
 			})
 		} else {
+			mlog.Debug("This is no longer leader node. Cancelling the post reminder task", mlog.Bool("isLeader", a.IsLeader()))
 			cancelTask(&a.ch.postReminderMut, &a.ch.postReminderTask)
 		}
 	})
@@ -1777,6 +1819,8 @@ func runPostReminderJob(a *App) {
 func runScheduledPostJob(a *App) {
 	if a.IsLeader() {
 		doRunScheduledPostJob(a)
+	} else {
+		mlog.Debug("Skipping scheduled posts job startup since this is not the leader node")
 	}
 
 	a.ch.srv.AddClusterLeaderChangedListener(func() {
@@ -1784,7 +1828,7 @@ func runScheduledPostJob(a *App) {
 		if a.IsLeader() {
 			doRunScheduledPostJob(a)
 		} else {
-			mlog.Info("This is no longer leader node. Cancelling the scheduled post task", mlog.Bool("isLeader", a.IsLeader()))
+			mlog.Debug("This is no longer leader node. Cancelling the scheduled post task", mlog.Bool("isLeader", a.IsLeader()))
 			cancelTask(&a.ch.scheduledPostMut, &a.ch.scheduledPostTask)
 		}
 	})

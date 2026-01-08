@@ -872,6 +872,17 @@ func (c *Client4) LoginWithDesktopToken(ctx context.Context, token, deviceId str
 	return DecodeJSONFromResponse[*User](r)
 }
 
+func (c *Client4) LoginType(ctx context.Context, loginId string) (*LoginTypeResponse, *Response, error) {
+	m := make(map[string]string)
+	m["login_id"] = loginId
+	r, err := c.DoAPIPostJSON(ctx, "/users/login/type", m)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*LoginTypeResponse](r)
+}
+
 // Logout terminates the current user's session.
 func (c *Client4) Logout(ctx context.Context) (*Response, error) {
 	r, err := c.DoAPIPost(ctx, "/users/logout", "")
@@ -1960,7 +1971,7 @@ func (c *Client4) GetTeam(ctx context.Context, teamId, etag string) (*Team, *Res
 // GetTeamAsContentReviewer returns a team based on the provided team id string, fetching it as a Content Reviewer for a flagged post.
 func (c *Client4) GetTeamAsContentReviewer(ctx context.Context, teamId, etag, flaggedPostId string) (*Team, *Response, error) {
 	values := url.Values{}
-	values.Set("as_content_reviewer", c.boolString(true))
+	values.Set(AsContentReviewerParam, c.boolString(true))
 	values.Set("flagged_post_id", flaggedPostId)
 
 	route := c.teamRoute(teamId) + "?" + values.Encode()
@@ -2644,7 +2655,7 @@ func (c *Client4) GetChannel(ctx context.Context, channelId, etag string) (*Chan
 // GetChannelAsContentReviewer returns a channel based on the provided channel id string, fetching it as a Content Reviewer for a flagged post.
 func (c *Client4) GetChannelAsContentReviewer(ctx context.Context, channelId, etag, flaggedPostId string) (*Channel, *Response, error) {
 	values := url.Values{}
-	values.Set("as_content_reviewer", c.boolString(true))
+	values.Set(AsContentReviewerParam, c.boolString(true))
 	values.Set("flagged_post_id", flaggedPostId)
 
 	route := c.channelRoute(channelId) + "?" + values.Encode()
@@ -2873,6 +2884,16 @@ func (c *Client4) MoveChannel(ctx context.Context, channelId, teamId string, for
 	}
 	defer closeBody(r)
 	return DecodeJSONFromResponse[*Channel](r)
+}
+
+// GetDirectOrGroupMessageMembersCommonTeams returns the set of teams in common for members of a DM/GM channel.
+func (c *Client4) GetDirectOrGroupMessageMembersCommonTeams(ctx context.Context, channelId string) ([]*Team, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.channelRoute(channelId)+"/common_teams", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*Team](r)
 }
 
 // GetChannelByName returns a channel based on the provided channel name and team id strings.
@@ -3510,6 +3531,23 @@ func (c *Client4) DeleteScheduledPost(ctx context.Context, scheduledPostId strin
 	return DecodeJSONFromResponse[*ScheduledPost](r)
 }
 
+func (c *Client4) GetPostsForReporting(ctx context.Context, options ReportPostOptions, cursor ReportPostOptionsCursor) (*ReportPostListResponse, *Response, error) {
+	request := struct {
+		ReportPostOptions
+		ReportPostOptionsCursor
+	}{
+		ReportPostOptions:       options,
+		ReportPostOptionsCursor: cursor,
+	}
+
+	r, err := c.DoAPIPostJSON(ctx, c.reportsRoute()+"/posts", request)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*ReportPostListResponse](r)
+}
+
 func (c *Client4) FlagPostForContentReview(ctx context.Context, postId string, flagRequest *FlagContentRequest) (*Response, error) {
 	r, err := c.DoAPIPostJSON(ctx, fmt.Sprintf("%s/post/%s/flag", c.contentFlaggingRoute(), postId), flagRequest)
 	if err != nil {
@@ -3776,6 +3814,19 @@ func (c *Client4) UploadFileAsRequestBody(ctx context.Context, data []byte, chan
 // GetFile gets the bytes for a file by id.
 func (c *Client4) GetFile(ctx context.Context, fileId string) ([]byte, *Response, error) {
 	r, err := c.DoAPIGet(ctx, c.fileRoute(fileId), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return ReadBytesFromResponse(r)
+}
+
+func (c *Client4) GetFileAsContentReviewer(ctx context.Context, fileId, flaggedPostId string) ([]byte, *Response, error) {
+	values := url.Values{}
+	values.Set(AsContentReviewerParam, c.boolString(true))
+	values.Set("flagged_post_id", flaggedPostId)
+
+	r, err := c.DoAPIGet(ctx, c.fileRoute(fileId)+"?"+values.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7726,4 +7777,40 @@ func (c *Client4) SearchChannelsForAccessControlPolicy(ctx context.Context, poli
 	}
 	defer closeBody(r)
 	return DecodeJSONFromResponse[*ChannelsWithCount](r)
+}
+
+func (c *Client4) SetAccessControlPolicyActive(ctx context.Context, update AccessControlPolicyActiveUpdateRequest) ([]*AccessControlPolicy, *Response, error) {
+	r, err := c.DoAPIPutJSON(ctx, c.accessControlPoliciesRoute()+"/activate", update)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var policies []*AccessControlPolicy
+	if err := json.NewDecoder(r.Body).Decode(&policies); err != nil {
+		return nil, nil, NewAppError("SetAccessControlPolicyActive", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return policies, BuildResponse(r), nil
+}
+
+func (c *Client4) RevealPost(ctx context.Context, postID string) (*Post, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.postRoute(postID)+"/reveal", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	return DecodeJSONFromResponse[*Post](r)
+}
+
+// BurnPost burns a burn-on-read post. If the user is the author, the post will be permanently deleted.
+// If the user is not the author, the post will be expired for that user by updating their read receipt expiration time.
+func (c *Client4) BurnPost(ctx context.Context, postID string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.postRoute(postID)+"/burn")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
 }

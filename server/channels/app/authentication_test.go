@@ -469,7 +469,7 @@ func TestCheckUserPassword(t *testing.T) {
 	})
 
 	t.Run("successful migration from PBKDF2 with old parameter to new parameter", func(t *testing.T) {
-		// Create a PBKDF2 hasher with work factor = 10000 instead of the default 60000
+		// Create a PBKDF2 hasher with work factor = 10000 instead of the default
 		oldParamPBKDF2, err := hashers.NewPBKDF2(10000, 32)
 		require.NoError(t, err)
 
@@ -488,8 +488,8 @@ func TestCheckUserPassword(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotEqual(t, pwdBcrypt, updatedUser.Password)
 		require.Contains(t, updatedUser.Password, "$pbkdf2")
-		// The new user hash contains the new parameter
-		require.Contains(t, updatedUser.Password, "w=60000")
+		// The new user hash should NOT contain the old parameter
+		require.NotContains(t, updatedUser.Password, "w=10000")
 
 		// Re-check with updated password
 		appErr = th.App.checkUserPassword(user, pwd, false)
