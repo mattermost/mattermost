@@ -1,7 +1,7 @@
 .license-diff-view {
     max-height: 400px;
-    overflow-y: auto;
     margin: 16px 0;
+    overflow-y: auto;
 
     .diff-table {
         width: 100%;
@@ -10,8 +10,8 @@
 
         td {
             padding: 8px 12px;
-            text-align: left;
             border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+            text-align: left;
         }
 
         .diff-row {
