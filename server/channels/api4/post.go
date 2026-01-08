@@ -68,6 +68,13 @@ func createPostChecks(where string, c *Context, post *model.Post) {
 		return
 	}
 
+	if len(post.FileIds) > 0 {
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionUploadFile) {
+			c.SetPermissionError(model.PermissionUploadFile)
+			return
+		}
+	}
+
 	postHardenedModeCheckWithContext(where, c, post.GetProps())
 	if c.Err != nil {
 		return
@@ -145,6 +152,9 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		rp = c.App.PreparePostForClient(masterCtx, revealedPost, &model.PreparePostForClientOpts{
 			IsNewPost: true,
 		})
+
+		// Send pending post ID back to client so it can update it in Redux store
+		rp.PendingPostId = post.PendingPostId
 	}
 
 	if err := rp.EncodeJSON(w); err != nil {
@@ -920,6 +930,12 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		post.FileIds = originalPost.FileIds
 	}
 
+	// Check upload_file permission only if update is adding NEW files (not just keeping existing ones)
+	checkUploadFilePermissionForNewFiles(c, post.FileIds, originalPost)
+	if c.Err != nil {
+		return
+	}
+
 	if c.AppContext.Session().UserId != originalPost.UserId {
 		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditOthersPosts) {
 			c.SetPermissionError(model.PermissionEditOthersPosts)
@@ -975,6 +991,19 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	postPatchChecks(c, auditRec, post.Message)
 	if c.Err != nil {
 		return
+	}
+
+	originalPost, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
+	if err != nil {
+		c.SetPermissionError(model.PermissionEditPost)
+		return
+	}
+
+	if post.FileIds != nil {
+		checkUploadFilePermissionForNewFiles(c, *post.FileIds, originalPost)
+		if c.Err != nil {
+			return
+		}
 	}
 
 	patchedPost, err := c.App.PatchPost(c.AppContext, c.Params.PostId, c.App.PostPatchWithProxyRemovedFromImageURLs(&post), nil)
