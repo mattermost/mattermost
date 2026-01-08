@@ -9,6 +9,7 @@ import type {UsersState} from '@mattermost/types/users';
 import Permissions from 'mattermost-redux/constants/permissions';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {WindowSizes} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -82,8 +83,8 @@ describe('components/new_channel_modal', () => {
                 },
             },
             views: {
-                addChannelCtaDropdown: {
-                    isOpen: false,
+                browser: {
+                    windowSize: WindowSizes.DESKTOP_VIEW,
                 },
             },
         } as unknown as GlobalState;
@@ -120,7 +121,7 @@ describe('components/new_channel_modal', () => {
         const wrapper = mountWithIntl(
             <AddChannelsCtaButton/>,
         );
-        expect(wrapper.find('.AddChannelsCtaDropdown').exists()).toBeTruthy();
+        expect(wrapper.find('#addChannelsCta').prop('aria-haspopup')).toBeTruthy();
     });
 
     test('should return nothing when user does not have permissions', () => {
@@ -145,7 +146,7 @@ describe('components/new_channel_modal', () => {
         const wrapper = mountWithIntl(
             <AddChannelsCtaButton/>,
         );
-        const button = wrapper.find('.AddChannelsCtaDropdown button');
+        const button = wrapper.find('#addChannelsCta');
         expect(mockDispatch).not.toHaveBeenCalled();
         button.simulate('click');
         expect(mockDispatch).toHaveBeenCalled();
@@ -195,6 +196,6 @@ describe('components/new_channel_modal', () => {
             <AddChannelsCtaButton/>,
         );
 
-        expect(wrapper.find('.AddChannelsCtaDropdown').exists()).toBeTruthy();
+        expect(wrapper.find('#addChannelsCta').prop('aria-haspopup')).toBeTruthy();
     });
 });
