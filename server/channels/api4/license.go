@@ -53,6 +53,41 @@ func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// parseLicenseFileFromRequest extracts license bytes from a multipart form request.
+// Returns the license bytes, the filename, and any error that occurred.
+func parseLicenseFileFromRequest(c *Context, r *http.Request) ([]byte, string, *model.AppError) {
+	err := r.ParseMultipartForm(*c.App.Config().FileSettings.MaxFileSize)
+	if err != nil {
+		return nil, "", model.NewAppError("parseLicenseFileFromRequest", "api.license.parse_license.parse_form.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	m := r.MultipartForm
+
+	fileArray, ok := m.File["license"]
+	if !ok {
+		return nil, "", model.NewAppError("parseLicenseFileFromRequest", "api.license.add_license.no_file.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(fileArray) <= 0 {
+		return nil, "", model.NewAppError("parseLicenseFileFromRequest", "api.license.add_license.array.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	fileData := fileArray[0]
+
+	file, err := fileData.Open()
+	if err != nil {
+		return nil, "", model.NewAppError("parseLicenseFileFromRequest", "api.license.add_license.open.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+	defer file.Close()
+
+	buf := bytes.NewBuffer(nil)
+	if _, err := io.Copy(buf, file); err != nil {
+		return nil, "", model.NewAppError("parseLicenseFileFromRequest", "api.license.add_license.copy.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return buf.Bytes(), fileData.Filename, nil
+}
+
 func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord(model.AuditEventAddLicense, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
@@ -63,42 +98,13 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := r.ParseMultipartForm(*c.App.Config().FileSettings.MaxFileSize)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	licenseBytes, filename, appErr := parseLicenseFileFromRequest(c, r)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
+	model.AddEventParameterToAuditRec(auditRec, "filename", filename)
 
-	m := r.MultipartForm
-
-	fileArray, ok := m.File["license"]
-	if !ok {
-		c.Err = model.NewAppError("addLicense", "api.license.add_license.no_file.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	if len(fileArray) <= 0 {
-		c.Err = model.NewAppError("addLicense", "api.license.add_license.array.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	fileData := fileArray[0]
-	model.AddEventParameterToAuditRec(auditRec, "filename", fileData.Filename)
-
-	file, err := fileData.Open()
-	if err != nil {
-		c.Err = model.NewAppError("addLicense", "api.license.add_license.open.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		return
-	}
-	defer file.Close()
-
-	buf := bytes.NewBuffer(nil)
-	if _, err := io.Copy(buf, file); err != nil {
-		c.Err = model.NewAppError("addLicense", "api.license.add_license.copy.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
-	}
-
-	licenseBytes := buf.Bytes()
 	license, appErr := utils.LicenseValidator.LicenseFromBytes(licenseBytes)
 	if appErr != nil {
 		c.Err = appErr
@@ -161,41 +167,12 @@ func previewLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := r.ParseMultipartForm(*c.App.Config().FileSettings.MaxFileSize)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	licenseBytes, _, appErr := parseLicenseFileFromRequest(c, r)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	m := r.MultipartForm
-
-	fileArray, ok := m.File["license"]
-	if !ok {
-		c.Err = model.NewAppError("previewLicense", "api.license.add_license.no_file.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	if len(fileArray) <= 0 {
-		c.Err = model.NewAppError("previewLicense", "api.license.add_license.array.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	fileData := fileArray[0]
-
-	file, err := fileData.Open()
-	if err != nil {
-		c.Err = model.NewAppError("previewLicense", "api.license.add_license.open.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		return
-	}
-	defer file.Close()
-
-	buf := bytes.NewBuffer(nil)
-	if _, err := io.Copy(buf, file); err != nil {
-		c.Err = model.NewAppError("previewLicense", "api.license.add_license.copy.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
-	}
-
-	licenseBytes := buf.Bytes()
 	license, appErr := utils.LicenseValidator.LicenseFromBytes(licenseBytes)
 	if appErr != nil {
 		c.Err = appErr

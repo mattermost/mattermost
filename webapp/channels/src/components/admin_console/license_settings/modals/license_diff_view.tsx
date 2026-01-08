@@ -6,6 +6,7 @@ import {FormattedDate, FormattedMessage} from 'react-intl';
 
 import type {ClientLicense, License} from '@mattermost/types/config';
 
+import {LicenseSkus} from 'utils/constants';
 import {getMonthLong} from 'utils/i18n';
 
 import './license_diff_view.scss';
@@ -60,7 +61,7 @@ const formatDate = (timestamp: number | string, locale: string) => {
 
 const LicenseDiffView = ({currentLicense, newLicense, locale}: Props) => {
     const hasCurrentLicense = currentLicense && Object.keys(currentLicense).length > 0 && currentLicense.IsLicensed === 'true';
-    const isEntryLicense = hasCurrentLicense && currentLicense.SkuShortName?.toLowerCase() === 'entry';
+    const isEntryLicense = hasCurrentLicense && currentLicense.SkuShortName?.toLowerCase() === LicenseSkus.Entry;
 
     // If current license is "entry", show only new license info (no comparison)
     if (isEntryLicense || !hasCurrentLicense) {
