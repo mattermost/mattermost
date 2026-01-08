@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {DateTime} from 'luxon';
 import type {Moment} from 'moment-timezone';
 import moment from 'moment-timezone';
 import React, {useEffect, useState, useCallback, useRef} from 'react';
@@ -10,12 +9,14 @@ import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {getCurrentLocale} from 'selectors/i18n';
+import {isUseMilitaryTime} from 'selectors/preferences';
 
 import DatePicker from 'components/date_picker';
 import * as Menu from 'components/menu';
 import Timestamp from 'components/timestamp';
 
 import Constants from 'utils/constants';
+import {formatDateForDisplay} from 'utils/date_utils';
 import {relativeFormatDate} from 'utils/datetime';
 import {isKeyPressed} from 'utils/keyboard';
 import {getCurrentMomentForTimezone, isBeforeTime} from 'utils/timezone';
@@ -71,6 +72,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
     allowPastDates = false,
 }: Props) => {
     const locale = useSelector(getCurrentLocale);
+    const isMilitaryTime = useSelector(isUseMilitaryTime);
     const [timeOptions, setTimeOptions] = useState<Date[]>([]);
     const [isPopperOpen, setIsPopperOpen] = useState(false);
     const [isTimeMenuOpen, setIsTimeMenuOpen] = useState(false);
@@ -153,7 +155,12 @@ const DateTimeInputContainer: React.FC<Props> = ({
     const currentTime = getCurrentMomentForTimezone(timezone).toDate();
 
     const formatDate = (date: Moment): string => {
-        return relativeDate ? relativeFormatDate(date, formatMessage) : DateTime.fromJSDate(date.toDate()).toLocaleString();
+        if (relativeDate) {
+            return relativeFormatDate(date, formatMessage);
+        }
+
+        // Use centralized date formatting utility
+        return formatDateForDisplay(date.toDate(), locale);
     };
 
     const calendarIcon = (
@@ -218,6 +225,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
                                     <Timestamp
                                         useRelative={false}
                                         useDate={false}
+                                        useTime={isMilitaryTime ? {hour: 'numeric', minute: '2-digit', hourCycle: 'h23'} : {hour: 'numeric', minute: '2-digit', hour12: true}}
                                         value={time.toString()}
                                     />
                                 </span>
@@ -242,6 +250,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
                                     <Timestamp
                                         useRelative={false}
                                         useDate={false}
+                                        useTime={isMilitaryTime ? {hour: 'numeric', minute: '2-digit', hourCycle: 'h23'} : {hour: 'numeric', minute: '2-digit', hour12: true}}
                                         value={option}
                                     />
                                 </span>
