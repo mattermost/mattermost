@@ -10,7 +10,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -111,21 +110,15 @@ func setupTestHelper(s store.Store, tb testing.TB) *TestHelper {
 
 	templatesDir, ok := templates.GetTemplateDirectory()
 	require.True(tb, ok)
-	htmlTemplateWatcher, errorsChan, err := templates.NewWithWatcher(templatesDir)
+	htmlTemplates, err := templates.New(templatesDir)
 	require.NoError(tb, err)
-
-	go func() {
-		for err2 := range errorsChan {
-			mlog.Error("Server templates error", mlog.Err(err2))
-		}
-	}()
 
 	service := &Service{
 		store:              s,
 		userService:        us,
 		license:            licenseFn,
 		config:             configStore.Get,
-		templatesContainer: htmlTemplateWatcher,
+		templatesContainer: htmlTemplates,
 	}
 
 	err = service.setUpRateLimiters()

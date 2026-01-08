@@ -17,6 +17,7 @@ import {
     NotificationPermissionNeverGranted,
     getNotificationPermission,
 } from 'utils/notifications';
+import * as UserAgent from 'utils/user_agent';
 
 export default function NotificationPermissionBar() {
     const isLoggedIn = Boolean(useSelector(getCurrentUserId));
@@ -34,7 +35,8 @@ export default function NotificationPermissionBar() {
     }
 
     // When browser does not support notification API, we show the notification bar to update browser
-    if (!isNotificationAPISupported()) {
+    // Don't show for MS 365 mobile apps (Teams, Outlook) as they intentionally don't support notifications
+    if (!isNotificationAPISupported() && !UserAgent.isM365Mobile()) {
         return <NotificationPermissionUnsupportedBar/>;
     }
 

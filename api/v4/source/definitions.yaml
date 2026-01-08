@@ -2375,6 +2375,18 @@ components:
         private_key_file:
           description: Status is good when `true`
           type: boolean
+    IntuneLoginRequest:
+      type: object
+      description: Request body for Microsoft Intune MAM authentication using Azure AD/Entra ID access token
+      required:
+        - access_token
+      properties:
+        access_token:
+          type: string
+          description: Microsoft Entra ID access token obtained via MSAL (Microsoft Authentication Library). This token must be scoped to the Intune MAM app registration and will be validated against the configured tenant.
+        device_id:
+          type: string
+          description: Optional mobile device identifier used for push notifications. If provided, the device will be registered for receiving push notifications.
     Compliance:
       type: object
       properties:
@@ -3692,7 +3704,7 @@ components:
           type: array
           description: list of users participating in this thread. only includes IDs unless 'extended' was set to 'true'
           items:
-            $ref: "#/components/schemas/Post"
+            $ref: "#/components/schemas/User"
         post:
           $ref: "#/components/schemas/Post"
     RelationalIntegrityCheckData:
