@@ -427,6 +427,7 @@ jobs:
           SERVER_IMAGE: "${{ inputs.SERVER_IMAGE }}"
           AUTOMATION_DASHBOARD_URL: "${{ secrets.AUTOMATION_DASHBOARD_URL }}"
           WEBHOOK_URL: "${{ secrets.REPORT_WEBHOOK_URL }}"
+          PR_NUMBER: "${{ inputs.PR_NUMBER }}"
           BRANCH: "${{ inputs.BRANCH }}"
           BUILD_ID: "${{ inputs.BUILD_ID }}"
           MM_ENV: "${{ inputs.MM_ENV }}"

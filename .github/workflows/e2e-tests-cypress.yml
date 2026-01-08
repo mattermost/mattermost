@@ -135,6 +135,7 @@ jobs:
           PR_NUMBER="${{ inputs.pr_number }}"
 
           # Generate branch names for smoke and full tests
+          # Must match regex '^(server-)?pr-[0-9]+(-smoke|-full)?$' for TYPE=PR reporting
           if [ -n "$PR_NUMBER" ]; then
             echo "branch_smoke=server-pr-${PR_NUMBER}-smoke" >> $GITHUB_OUTPUT
             echo "branch_full=server-pr-${PR_NUMBER}-full" >> $GITHUB_OUTPUT
@@ -222,7 +223,7 @@ jobs:
       SERVER: "${{ inputs.server }}"
       SERVER_IMAGE: "${{ needs.generate-build-variables.outputs.server_image }}"
       MM_LICENSE: "${{ secrets.MM_LICENSE }}"
-      ENABLED_DOCKER_SERVICES: "${{ inputs.enabled_docker_services }}"
+      ENABLED_DOCKER_SERVICES: "postgres inbucket"
       TEST: cypress
       TEST_FILTER: "${{ needs.generate-build-variables.outputs.test_filter_smoke }}"
       MM_ENV: "${{ inputs.mm_env }}"
@@ -425,7 +426,7 @@ jobs:
       SERVER: "${{ inputs.server }}"
       SERVER_IMAGE: "${{ needs.generate-build-variables.outputs.server_image }}"
       MM_LICENSE: "${{ secrets.MM_LICENSE }}"
-      ENABLED_DOCKER_SERVICES: "${{ inputs.enabled_docker_services }}"
+      ENABLED_DOCKER_SERVICES: "postgres inbucket minio openldap elasticsearch keycloak"
       TEST: cypress
       TEST_FILTER: "${{ needs.generate-build-variables.outputs.test_filter_full }}"
       MM_ENV: "${{ inputs.mm_env }}"
@@ -514,8 +515,8 @@ jobs:
           BRANCH: "${{ needs.generate-build-variables.outputs.branch_full }}"
           BUILD_ID: "${{ needs.generate-build-variables.outputs.build_id }}"
           MM_ENV: "${{ inputs.mm_env }}"
-          TM4J_API_KEY: "${{ secrets.REPORT_TM4J_API_KEY }}"
-          TEST_CYCLE_LINK_PREFIX: "${{ secrets.REPORT_TM4J_TEST_CYCLE_LINK_PREFIX }}"
+          PR_NUMBER: "${{ inputs.pr_number }}"
+          TM4J_ENABLE: "false"
         run: make report
       - name: ci/calculate-results
         id: calculate-results
