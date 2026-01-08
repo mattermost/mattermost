@@ -438,8 +438,14 @@ export function convertElement(element: DialogElement, options: ConversionOption
         }
     }
 
-    // Add date/datetime specific properties (new features that should pass through)
+    // Add date/datetime specific properties
     if (element.type === DialogElementTypes.DATE || element.type === DialogElementTypes.DATETIME) {
+        // Use datetime_config if provided
+        if (element.datetime_config) {
+            appField.datetime_config = element.datetime_config;
+        }
+
+        // Simple fallback fields (used when datetime_config is not provided)
         if (element.min_date !== undefined) {
             appField.min_date = String(element.min_date);
         }
