@@ -14,7 +14,7 @@ import (
 )
 
 func (s *MmctlE2ETestSuite) TestConfigResetCmdE2E() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.RunForSystemAdminAndLocal("System admin and local reset", func(c client.Client) {
 		printer.Clean()
@@ -43,7 +43,7 @@ func (s *MmctlE2ETestSuite) TestConfigResetCmdE2E() {
 }
 
 func (s *MmctlE2ETestSuite) TestConfigPatchCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	tmpFile, err := os.CreateTemp(os.TempDir(), "config_*.json")
 	s.Require().Nil(err)
@@ -89,7 +89,7 @@ func (s *MmctlE2ETestSuite) TestConfigPatchCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestConfigGetCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	var driver string
 	if d := s.th.App.Config().SqlSettings.DriverName; d != nil {
@@ -129,7 +129,7 @@ func (s *MmctlE2ETestSuite) TestConfigGetCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestConfigSetCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.RunForSystemAdminAndLocal("Set config value for a given key", func(c client.Client) {
 		printer.Clean()
@@ -163,10 +163,38 @@ func (s *MmctlE2ETestSuite) TestConfigSetCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
+
+	s.Run("ImportSettings.Directory cannot be set via API but can via local mode", func() {
+		printer.Clean()
+		originalDir := *s.th.App.Config().ImportSettings.Directory
+
+		args := []string{"ImportSettings.Directory", "./api-blocked-import"}
+		err := configSetCmdF(s.th.SystemAdminClient, &cobra.Command{}, args)
+		s.Require().NotNil(err)
+		s.Require().Contains(err.Error(), "not allowed due to security reasons")
+		s.Require().Len(printer.GetLines(), 0)
+
+		// Verify value didn't change
+		s.Require().Equal(originalDir, *s.th.App.Config().ImportSettings.Directory)
+
+		printer.Clean()
+		args = []string{"ImportSettings.Directory", "./local-allowed-import"}
+		err = configSetCmdF(s.th.LocalClient, &cobra.Command{}, args)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		config, ok := printer.GetLines()[0].(*model.Config)
+		s.Require().True(ok)
+		s.Require().Equal("./local-allowed-import", *config.ImportSettings.Directory)
+
+		// Reset to original
+		s.th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ImportSettings.Directory = &originalDir
+		})
+	})
 }
 
 func (s *MmctlE2ETestSuite) TestConfigEditCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.RunForSystemAdminAndLocal("Edit a key in config", func(c client.Client) {
 		printer.Clean()
@@ -212,7 +240,7 @@ rm $1'old'`
 }
 
 func (s *MmctlE2ETestSuite) TestConfigShowCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.RunForSystemAdminAndLocal("Show server configs", func(c client.Client) {
 		printer.Clean()
@@ -235,7 +263,7 @@ func (s *MmctlE2ETestSuite) TestConfigShowCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestConfigReloadCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.RunForSystemAdminAndLocal("Reload server config", func(c client.Client) {
 		printer.Clean()
@@ -258,7 +286,7 @@ func (s *MmctlE2ETestSuite) TestConfigReloadCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestConfigExportCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.RunForSystemAdminAndLocal("Get config normally", func(c client.Client) {
 		printer.Clean()
@@ -348,7 +376,7 @@ func (s *MmctlE2ETestSuite) TestConfigExportCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestConfigMigrateCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.Run("Should fail without the --local flag", func() {
 		printer.Clean()

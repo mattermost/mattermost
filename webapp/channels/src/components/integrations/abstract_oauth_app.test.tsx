@@ -67,7 +67,7 @@ describe('components/integrations/AbstractOAuthApp', () => {
             return jest.fn();
         }});
 
-        expect(action).not.toBeCalled();
+        expect(action).not.toHaveBeenCalled();
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -82,7 +82,7 @@ describe('components/integrations/AbstractOAuthApp', () => {
             return jest.fn();
         }});
 
-        expect(action).toBeCalled();
+        expect(action).toHaveBeenCalled();
     });
 
     test('should have correct state when updateName is called', () => {

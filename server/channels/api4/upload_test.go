@@ -22,8 +22,7 @@ import (
 
 func TestCreateUpload(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	us := &model.UploadSession{
 		ChannelId: th.BasicChannel.Id,
@@ -152,8 +151,7 @@ func TestCreateUpload(t *testing.T) {
 
 func TestGetUpload(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	us := &model.UploadSession{
 		Id:        model.NewId(),
@@ -197,8 +195,7 @@ func TestGetUpload(t *testing.T) {
 
 func TestGetUploadsForUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("no permissions", func(t *testing.T) {
 		uss, _, err := th.Client.GetUploadsForUser(context.Background(), th.BasicUser2.Id)
@@ -245,8 +242,7 @@ func TestGetUploadsForUser(t *testing.T) {
 
 func TestUploadData(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	if *th.App.Config().FileSettings.DriverName == "" {
 		t.Skip("skipping because no file driver is enabled")
 	}
@@ -371,8 +367,7 @@ func TestUploadData(t *testing.T) {
 
 func TestUploadDataMultipart(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	if *th.App.Config().FileSettings.DriverName == "" {
 		t.Skip("skipping because no file driver is enabled")
 	}

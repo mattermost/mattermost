@@ -1185,10 +1185,6 @@
     "translation": "ongeldige aanvraag: Foutief client_id."
   },
   {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "ongeldige aanvraag (invalid_request): Ontbrekend client_secret."
-  },
-  {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
     "translation": "ongeldige aanvraag: Foutief grant_type."
   },
@@ -11098,5 +11094,605 @@
   {
     "id": "app.content_flagging.set_thread_replies_properties.app_error",
     "translation": "Het is niet gelukt om eigenschappen in te stellen op antwoorden op het draadje voor het gemarkeerde bericht."
+  },
+  {
+    "id": "api.user.delete_channel.not_enabled.for_admin.app_error",
+    "translation": "Permanente kanaalverwijdering is niet ingeschakeld. ServiceSettings.EnableAPIChannelDeletion moet op true staan om dit commando te kunnen gebruiken. Zie https://mattermost.com/pl/environment-configuration-settings voor meer informatie"
+  },
+  {
+    "id": "api.user.delete_team.not_enabled.for_admin.app_error",
+    "translation": "De permanente teamverwijderingsfunctie is niet ingeschakeld. ServiceSettings.EnableAPITeamDeletion moet op true staan om deze opdracht te kunnen gebruiken. Zie https://mattermost.com/pl/environment-configuration-settings voor meer informatie."
+  },
+  {
+    "id": "api.user.delete_user.not_enabled.for_admin.app_error",
+    "translation": "De permanente gebruikersverwijderingsfunctie is niet ingeschakeld. ServiceSettings.EnableAPIUserDeletion moet worden ingesteld op true om deze opdracht te gebruiken. Zie https://mattermost.com/pl/environment-configuration-settings voor meer informatie."
+  },
+  {
+    "id": "app.agents.get_agents.app_error",
+    "translation": "Fout bij het ophalen van de agenten."
+  },
+  {
+    "id": "app.agents.get_agents.bridge_call_failed",
+    "translation": "Bridge call mislukt."
+  },
+  {
+    "id": "app.agents.get_services.app_error",
+    "translation": "Fout bij het ophalen van de LLM-diensten."
+  },
+  {
+    "id": "app.agents.get_services.bridge_call_failed",
+    "translation": "Bridge call mislukt."
+  },
+  {
+    "id": "api.command.move_command.creator_no_permission.app_error",
+    "translation": "Geen rechten om commando te verplaatsen"
+  },
+  {
+    "id": "api.oauth.allow_oauth.pkce_required_public.app_error",
+    "translation": "PKCE (Proof Key for Code Exchange) is nodig voor publieke OAuth clients die gebruik maken van authorisatie code flow."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.disabled.app_error",
+    "translation": "OAuth serviceprovider is uitgeschakeld."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.invalid_url.app_error",
+    "translation": "Ongeldige URL-configuratie voor metagegevens van autorisatieserver."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.site_url_required.app_error",
+    "translation": "De URL van de site moet worden geconfigureerd om metagegevens van de autorisatieserver op te geven."
+  },
+  {
+    "id": "api.oauth.get_access_token.resource_mismatch.app_error",
+    "translation": "De resource parameter komt niet overeen tussen autorisatie- en tokenverzoeken."
+  },
+  {
+    "id": "api.oauth.regenerate_secret.public_client.app_error",
+    "translation": "invalid_request: Kan geheim niet regenereren voor openbare OAuth-clients."
+  },
+  {
+    "id": "api.post.fill_in_post_props.invalid_ai_generated_user.app_error",
+    "translation": "De AI-gegenereerde gebruiker moet de maker van het bericht of een bot zijn."
+  },
+  {
+    "id": "app.custom_profile_attributes.patch_field.app_error",
+    "translation": "Kan aangepast Custom Profile Attribute niet patchen"
+  },
+  {
+    "id": "app.post.rewrite.agent_call_failed",
+    "translation": "Fout bij het aanspreken van AI-agent."
+  },
+  {
+    "id": "app.post.rewrite.empty_response",
+    "translation": "Leeg antwoord van AI."
+  },
+  {
+    "id": "app.post.rewrite.invalid_action",
+    "translation": "Ongeldige herschrijfactie."
+  },
+  {
+    "id": "app.post.rewrite.parse_response_failed",
+    "translation": "Fout bij het parsen van het herschrijfantwoord van AI."
+  },
+  {
+    "id": "ent.push_proxy.delete.app_error",
+    "translation": "Fout bij het verwijderen van push proxy auth token."
+  },
+  {
+    "id": "ent.push_proxy.generate.bad_status.app_error",
+    "translation": "Fout bij het ophalen van auth token van de push proxy server."
+  },
+  {
+    "id": "ent.push_proxy.generate.create_request.app_error",
+    "translation": "Aanmaken HTTP-verzoek voor push proxy auth is mislukt."
+  },
+  {
+    "id": "ent.push_proxy.generate.empty_token.app_error",
+    "translation": "Push proxy retourneerde leeg auth token."
+  },
+  {
+    "id": "ent.push_proxy.generate.encrypt.app_error",
+    "translation": "Fout bij het versleutelen van de payload voor push proxy auth."
+  },
+  {
+    "id": "ent.push_proxy.generate.http_request.app_error",
+    "translation": "HTTP-verzoek verzenden naar push-proxy is mislukt."
+  },
+  {
+    "id": "ent.push_proxy.generate.marshal.app_error",
+    "translation": "Fout bij verwerken payload voor push proxy auth."
+  },
+  {
+    "id": "ent.push_proxy.generate.marshal_request.app_error",
+    "translation": "Fout bij het verwerken van request body voor push proxy auth."
+  },
+  {
+    "id": "ent.push_proxy.generate.no_key.app_error",
+    "translation": "Geen coderingssleutel beschikbaar voor push proxy auth."
+  },
+  {
+    "id": "ent.push_proxy.generate.parse_response.app_error",
+    "translation": "Fout bij het verwerken van het antwoord van het push proxy auth endpoint."
+  },
+  {
+    "id": "ent.push_proxy.generate.save_system.app_error",
+    "translation": "Fout bij het opslaan van het auth token."
+  },
+  {
+    "id": "ent.push_proxy.worker.interface_nil.app_error",
+    "translation": "Push proxy interface is leeg."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge.app_error",
+    "translation": "Code challenge is vereist bij gebruik van PKCE."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge.format.app_error",
+    "translation": "De code-uitdaging moet base64url-gecodeerd zijn (met de tekens A-Z, a-z, 0-9, -, _)."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge.length.app_error",
+    "translation": "Code challenge moet tussen 43 en 128 tekens lang zijn."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge_method.app_error",
+    "translation": "Code challenge methode is vereist bij het gebruik van PKCE."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge_method.unsupported.app_error",
+    "translation": "Alleen de 'S256' code-challenge methode wordt ondersteund."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.has_fragment.app_error",
+    "translation": "Resource parameter kan geen fragmentcomponent bevatten."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.invalid_uri.app_error",
+    "translation": "De resource parameter moet een geldige URI zijn."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.length.app_error",
+    "translation": "De resource parameter kan niet langer zijn dan 512 tekens."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.not_absolute.app_error",
+    "translation": "De resource parameter moet een absolute URI zijn."
+  },
+  {
+    "id": "model.authorize.validate_pkce.not_used_in_auth.app_error",
+    "translation": "PKCE code verifier verstrekt, maar PKCE is niet gebruikt tijdens autorisatie."
+  },
+  {
+    "id": "model.authorize.validate_pkce.public_client_required.app_error",
+    "translation": "PKCE (Proof Key for Code Exchange) is vereist voor publieke clients."
+  },
+  {
+    "id": "model.authorize.validate_pkce.verification_failed.app_error",
+    "translation": "PKCE codeverificateur komt niet overeen met de code-challenge."
+  },
+  {
+    "id": "model.authorize.validate_pkce.verifier_required.app_error",
+    "translation": "PKCE code verifier is vereist wanneer PKCE wordt gebruikt."
+  },
+  {
+    "id": "model.dcr.is_valid.client_name.app_error",
+    "translation": "De naam van de client mag niet langer zijn dan 64 tekens."
+  },
+  {
+    "id": "model.dcr.is_valid.client_uri_format.app_error",
+    "translation": "Ongeldig client URI formaat."
+  },
+  {
+    "id": "model.dcr.is_valid.client_uri_length.app_error",
+    "translation": "De URI van de client moet uit minder dan 256 tekens bestaan."
+  },
+  {
+    "id": "model.dcr.is_valid.redirect_uri_format.app_error",
+    "translation": "Ongeldige redirect URI-indeling."
+  },
+  {
+    "id": "model.dcr.is_valid.redirect_uris.app_error",
+    "translation": "Ten minste één redirect URI is vereist."
+  },
+  {
+    "id": "model.dcr.is_valid.unsupported_auth_method.app_error",
+    "translation": "Niet ondersteunde token_endpoint_auth_methode meegegeven."
+  },
+  {
+    "id": "model.oauth.validate_grant.credentials.app_error",
+    "translation": "Ongeldige client credentials."
+  },
+  {
+    "id": "model.oauth.validate_grant.pkce_required.app_error",
+    "translation": "PKCE (Proof Key for Code Exchange) is vereist voor publieke clients."
+  },
+  {
+    "id": "model.oauth.validate_grant.public_client_refresh_token.app_error",
+    "translation": "Publieke clients kunnen geen refresh token grant type gebruiken."
+  },
+  {
+    "id": "model.oauth.validate_grant.public_client_secret.app_error",
+    "translation": "Publieke cliënten mogen geen cliëntgeheim opgeven."
+  },
+  {
+    "id": "api.file.get_file.invalid_flagged_post.app_error",
+    "translation": "Foutief gemarkeerd post-ID opgegeven."
+  },
+  {
+    "id": "api.file.get_file_info.app_error",
+    "translation": "Fout bij het ophalen van de bestandsinfo."
+  },
+  {
+    "id": "api.post.get_posts_for_reporting.channel_not_found",
+    "translation": "Kanaal niet gevonden"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.guest_magic_link_disabled.error",
+    "translation": "Magische link voor gasten is niet ingeschakeld"
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.footer.info",
+    "translation": "Deze e-mail is naar je gestuurd omdat iemand een login link voor Mattermost heeft aangevraagd. Als je hier niet om gevraagd hebt, kun je deze e-mail gerust negeren."
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.footer.title",
+    "translation": "Heb je deze e-mail niet aangevraagd?"
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.subtitle",
+    "translation": "Klik op de knop hieronder om je aan te melden bij je account. Vergeet niet om deze link met niemand anders te delen."
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.title",
+    "translation": "Aanmelden bij Mattermost"
+  },
+  {
+    "id": "api.templates.guest_magic_link_subject",
+    "translation": "Aanmelden bij {{ .SiteName }}"
+  },
+  {
+    "id": "api.user.guest_magic_link.expired_token.app_error",
+    "translation": "Deze uitnodigingslink is verlopen."
+  },
+  {
+    "id": "api.user.guest_magic_link.invalid_token.app_error",
+    "translation": "Ongeldige uitnodigingslink."
+  },
+  {
+    "id": "api.user.guest_magic_link.invalid_token_type.app_error",
+    "translation": "Ongeldig uitnodigingslink type ."
+  },
+  {
+    "id": "api.user.guest_magic_link.missing_token.app_error",
+    "translation": "Ontbrekend uitnodigingstoken."
+  },
+  {
+    "id": "api.user.guest_magic_link.username_generation_failed.app_error",
+    "translation": "Kon geen unieke gebruikersnaam genereren. Neem contact op met je systeembeheerder."
+  },
+  {
+    "id": "api.user.login.guest_magic_link.disabled.error",
+    "translation": "Inloggen met magische link is uitgeschakeld."
+  },
+  {
+    "id": "api.user.promote_guest_to_user.magic_link_enabled.app_error",
+    "translation": "Kan gast niet omzetten naar gewone gebruiker omdat de gast authenticatie via magische link gebruikt."
+  },
+  {
+    "id": "api.user.send_password_reset.guest_magic_link.app_error",
+    "translation": "Kan wachtwoord voor gastaccounts met magische link niet opnieuw instellen."
+  },
+  {
+    "id": "app.pap.update_access_control_policies_active.app_error",
+    "translation": "Kan actieve status van toegangscontrolebeleid niet bijwerken."
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.app_error",
+    "translation": "Kan geen berichten ophalen voor rapportage."
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.invalid_input_error",
+    "translation": "Kan geen berichten ophalen voor rapportage. Ongeldige invoer."
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.license_error",
+    "translation": "Je licentie ondersteunt het rapporteren over berichten niet."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_base64",
+    "translation": "Ongeldig cursorformaat: kan base64 niet decoderen."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_exclude_system_posts",
+    "translation": "Ongeldig cursorformaat: exclude_system_posts moet een boolean zijn."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_format",
+    "translation": "Ongeldig cursorformaat: verwacht 8 delen."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_include_deleted",
+    "translation": "Ongeldig cursorformaat: include_deleted moet een boolean zijn."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_timestamp",
+    "translation": "Ongeldig cursorformaat: tijdstempel moet een geheel getal zijn."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_version",
+    "translation": "Ongeldig cursorformaat: versie moet een geheel getal zijn."
+  },
+  {
+    "id": "model.post.decode_cursor.unsupported_version",
+    "translation": "Niet-ondersteunde cursorversie."
+  },
+  {
+    "id": "model.post.query_params.invalid_channel_id",
+    "translation": "Ongeldige kanaal id."
+  },
+  {
+    "id": "model.post.query_params.invalid_cursor_id",
+    "translation": "Ongeldige cursor-id."
+  },
+  {
+    "id": "model.post.query_params.invalid_sort_direction",
+    "translation": "Ongeldige sorteerrichting."
+  },
+  {
+    "id": "model.post.query_params.invalid_time_field",
+    "translation": "Ongeldig tijdveld."
+  },
+  {
+    "id": "store.sql_autotranslation.channel_not_found",
+    "translation": "Kanaal niet gevonden."
+  },
+  {
+    "id": "store.sql_autotranslation.get.app_error",
+    "translation": "Kan geen vertaling ophalen."
+  },
+  {
+    "id": "store.sql_autotranslation.get_active_languages.app_error",
+    "translation": "Kan de actieve talen niet ophalen."
+  },
+  {
+    "id": "store.sql_autotranslation.get_channel_enabled.app_error",
+    "translation": "Kan automatische vertalingsstatus van het kanaal niet ophalen."
+  },
+  {
+    "id": "store.sql_autotranslation.get_user_enabled.app_error",
+    "translation": "Kan automatische vertalingsstatus voor de gebruiker niet ophalen."
+  },
+  {
+    "id": "store.sql_autotranslation.get_user_language.app_error",
+    "translation": "Kan de taal van de gebruiker niet ophalen."
+  },
+  {
+    "id": "store.sql_autotranslation.is_channel_enabled.app_error",
+    "translation": "Kan automatische vertalingsstatus van het kanaal niet ophalen."
+  },
+  {
+    "id": "store.sql_autotranslation.member_not_found",
+    "translation": "Lid niet gevonden."
+  },
+  {
+    "id": "store.sql_autotranslation.meta_json.app_error",
+    "translation": "Fout bij het verwerken van de JSON vertaalmetagegevens."
+  },
+  {
+    "id": "store.sql_autotranslation.query_build_error",
+    "translation": "Fout bij het maken van de query."
+  },
+  {
+    "id": "store.sql_autotranslation.save.app_error",
+    "translation": "Fout bij het bewaren van de vertaling."
+  },
+  {
+    "id": "store.sql_autotranslation.save.invalid_translation",
+    "translation": "Vertaalvalidatie mislukt. Het vertaalobject is ongeldig."
+  },
+  {
+    "id": "store.sql_autotranslation.save.meta_json.app_error",
+    "translation": "Het serialiseren van vertaalmetagegevens naar JSON is mislukt."
+  },
+  {
+    "id": "store.sql_autotranslation.set_channel_enabled.app_error",
+    "translation": "Kan automatische vertaling van het kanaal niet inschakelen."
+  },
+  {
+    "id": "store.sql_autotranslation.set_user_enabled.app_error",
+    "translation": "Kan automatische vertaling voor de gebruiker niet instellen."
+  },
+  {
+    "id": "api.post.burn_post.user_not_in_channel.app_error",
+    "translation": "Je hebt geen toestemming om dit bericht te verbranden. Je moet lid zijn van het kanaal."
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.app_error",
+    "translation": "Er is een fout opgetreden tijdens het maken van een burn-on-read bericht."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.config.app_error",
+    "translation": "Verbranden bij gelezen berichten is niet ingeschakeld. Schakel de feature flag en service-instelling in."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.license.app_error",
+    "translation": "Voor burn-on-read berichten is een Enterprise Advanced licentie nodig."
+  },
+  {
+    "id": "api.post.get_link_metadata_for_permalink.burn_on_read.app_error",
+    "translation": "Kan linkmetadata voor burn-on-read postpermalink niet ophalen."
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_burn_on_read_post.error",
+    "translation": "Burn-on-read berichten kunnen niet worden bijgewerkt."
+  },
+  {
+    "id": "api.post.reveal_post.cannot_reveal_own_post.app_error",
+    "translation": "Je kunt je eigen burn-on-read bericht niet onthullen."
+  },
+  {
+    "id": "api.post.reveal_post.disabled.app_error",
+    "translation": "De burn-on-read functie is niet ingeschakeld of vereist een Enterprise Advanced licentie."
+  },
+  {
+    "id": "api.post.reveal_post.user_not_in_channel.app_error",
+    "translation": "Je hebt geen toestemming om dit bericht te onthullen. Je moet lid zijn van het kanaal."
+  },
+  {
+    "id": "api.post.update_post.burn_on_read.app_error",
+    "translation": "Burn on read berichten kunnen niet worden bewerkt."
+  },
+  {
+    "id": "api.reaction.save.burn_on_read.app_error",
+    "translation": "Je kunt niet reageren op een burn-on-read bericht."
+  },
+  {
+    "id": "api.user.login_by_intune.account_locked.app_error",
+    "translation": "Je account is gedeactiveerd. Neem contact op met je systeembeheerder."
+  },
+  {
+    "id": "api.user.login_by_intune.bot_login_forbidden.app_error",
+    "translation": "Bot-accounts kunnen zich niet aanmelden met Microsoft-verificatie."
+  },
+  {
+    "id": "api.user.login_by_intune.not_available.app_error",
+    "translation": "Microsoft Intune-verificatie is niet beschikbaar."
+  },
+  {
+    "id": "api.user.login_by_intune.not_configured.app_error",
+    "translation": "Microsoft Intune-verificatie is niet geconfigureerd."
+  },
+  {
+    "id": "api.user.oauth_to_email.magic_link.app_error",
+    "translation": "Magische Link is de enige beschikbare aanmeldingsmethode voor dit account."
+  },
+  {
+    "id": "api.user.update_password.magic_link.app_error",
+    "translation": "Kan wachtwoord voor Magic Link-accounts niet bijwerken."
+  },
+  {
+    "id": "app.burn_post.not_burn_on_read.app_error",
+    "translation": "Deze post is geen burn-on-read post en kan niet worden vernietigd."
+  },
+  {
+    "id": "app.burn_post.not_revealed.app_error",
+    "translation": "Dit burn-on-read bericht is nog niet onthuld. Je moet het onthullen voordat je het verbrandt."
+  },
+  {
+    "id": "app.burn_post.read_receipt.get.error",
+    "translation": "Er is een fout opgetreden bij het ophalen van de leesbevestiging."
+  },
+  {
+    "id": "app.burn_post.read_receipt.update.error",
+    "translation": "Er is een fout opgetreden tijdens het bijwerken van de leesbevestiging."
+  },
+  {
+    "id": "app.post.get_post.app_error",
+    "translation": "Er is een fout opgetreden tijdens het ophalen van de burn-on-read berichtinhoud."
+  },
+  {
+    "id": "app.reveal_post.cannot_reveal_own_post.app_error",
+    "translation": "Je kunt je eigen burn-on-read bericht niet onthullen."
+  },
+  {
+    "id": "app.reveal_post.missing_expire_at.app_error",
+    "translation": "De burn-on-read post mist de vereiste verlooptijd."
+  },
+  {
+    "id": "app.reveal_post.not_burn_on_read.app_error",
+    "translation": "Deze post is geen burn-on-read post en kan niet worden onthuld."
+  },
+  {
+    "id": "app.reveal_post.post_expired.app_error",
+    "translation": "Deze burn-on-read post is verlopen en kan niet langer worden getoond."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.get.error",
+    "translation": "Er is een fout opgetreden bij het ophalen van de leesbevestiging."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.get_unread_count.error",
+    "translation": "Fout bij het ophalen van het aantal ongelezen bij de leesbevestiging."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.save.error",
+    "translation": "Er is een fout opgetreden bij het opslaan van de leesbevestiging."
+  },
+  {
+    "id": "app.reveal_post.read_receipt_expired.error",
+    "translation": "Je toegang tot deze burn-on-read post is verlopen."
+  },
+  {
+    "id": "ent.intune.login.account_not_found.app_error",
+    "translation": "Je account is nog niet volledig ingesteld. Meld je eerst aan bij Mattermost via het web of de desktop app."
+  },
+  {
+    "id": "ent.intune.login.extract_auth_data.app_error",
+    "translation": "Authenticatie mislukt. Probeer het opnieuw of neem contact op met je systeembeheerder."
+  },
+  {
+    "id": "ent.intune.login.not_configured.app_error",
+    "translation": "Microsoft Intune-verificatie is niet geconfigureerd."
+  },
+  {
+    "id": "ent.intune.validate_token.invalid_tenant_id.app_error",
+    "translation": "Authenticatie mislukt. Ongeldige configuratie."
+  },
+  {
+    "id": "ent.intune.validate_token.invalid_token.app_error",
+    "translation": "Authenticatie mislukt. Probeer het opnieuw."
+  },
+  {
+    "id": "ent.intune.validate_token.jwks_init.app_error",
+    "translation": "De initialisatie van de authenticatiedienst is mislukt. Neem contact op met je systeembeheerder."
+  },
+  {
+    "id": "ent.intune.validate_token.missing_claims.app_error",
+    "translation": "Authenticatie mislukt. Vereiste gebruikersinformatie ontbreekt."
+  },
+  {
+    "id": "ent.intune.validate_token.token_expired.app_error",
+    "translation": "Authenticatiesessie is verlopen. Probeer opnieuw in te loggen."
+  },
+  {
+    "id": "model.config.is_valid.intune_auth_service.app_error",
+    "translation": "Intune MAM Auth Service is vereist als Intune is ingeschakeld."
+  },
+  {
+    "id": "model.config.is_valid.intune_auth_service_invalid.app_error",
+    "translation": "Intune MAM Auth Service moet 'office365' of 'saml' zijn."
+  },
+  {
+    "id": "model.config.is_valid.intune_client_id.app_error",
+    "translation": "Intune MAM Client ID is vereist wanneer Intune is ingeschakeld."
+  },
+  {
+    "id": "model.config.is_valid.intune_client_id_format.app_error",
+    "translation": "Intune MAM Client ID moet een geldige UUID zijn."
+  },
+  {
+    "id": "model.config.is_valid.intune_requires_office365.app_error",
+    "translation": "Intune MAM vereist dat OpenId Connect (Office 365) is ingeschakeld wanneer Auth Service is ingesteld op 'office365'."
+  },
+  {
+    "id": "model.config.is_valid.intune_requires_saml.app_error",
+    "translation": "Intune MAM vereist dat SAML is ingeschakeld als Auth Service is ingesteld op 'saml'."
+  },
+  {
+    "id": "model.config.is_valid.intune_tenant_id.app_error",
+    "translation": "Intune MAM Tenant ID is vereist wanneer Intune is ingeschakeld."
+  },
+  {
+    "id": "model.config.is_valid.intune_tenant_id_format.app_error",
+    "translation": "Intune MAM Tenant ID moet een geldige UUID zijn."
+  },
+  {
+    "id": "api.content_flagging.error.invalid_post_type",
+    "translation": "Het markeren van een bericht van het type '{{.PostType}}' is niet toegestaan."
+  },
+  {
+    "id": "model.config.is_valid.guest_accounts.cannot_enforce_multifactor_authentication_when_guest_magic_link_is_enabled.app_error",
+    "translation": "Je kunt multifactorauthenticatie niet afdwingen voor gastaccounts als magische linkauthenticatie is ingeschakeld."
   }
 ]

@@ -494,6 +494,14 @@ func (a *App) rawSendToPushProxy(msg *model.PushNotification) (model.PushRespons
 		return nil, err
 	}
 
+	// Add auth token and server ID headers if available
+	if a.Srv().PushProxy != nil {
+		if authToken := a.Srv().PushProxy.GetAuthToken(); authToken != "" {
+			request.Header.Set("X-Mattermost-Auth", authToken)
+			request.Header.Set("X-Mattermost-ServerID", a.ServerId())
+		}
+	}
+
 	resp, err := a.Srv().pushNotificationClient.Do(request)
 	if err != nil {
 		return nil, err
@@ -563,6 +571,14 @@ func (a *App) SendAckToPushProxy(rctx request.CTX, ack *model.PushNotificationAc
 		return fmt.Errorf("failed to create request: %w", err)
 	}
 
+	// Add auth token and server ID headers if available
+	if a.Srv().PushProxy != nil {
+		if authToken := a.Srv().PushProxy.GetAuthToken(); authToken != "" {
+			request.Header.Set("X-Mattermost-Auth", authToken)
+			request.Header.Set("X-Mattermost-ServerID", a.ServerId())
+		}
+	}
+
 	resp, err := a.Srv().pushNotificationClient.Do(request)
 	if err != nil {
 		return fmt.Errorf("failed to send: %w", err)
@@ -588,6 +604,19 @@ func (a *App) getMobileAppSessions(userID string) ([]*model.Session, *model.AppE
 }
 
 func (a *App) ShouldSendPushNotification(rctx request.CTX, user *model.User, channelNotifyProps model.StringMap, wasMentioned bool, status *model.Status, post *model.Post, isGM bool) bool {
+	if user.IsBot {
+		a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypePush, model.NotificationReasonRecipientIsBot, model.NotificationNoPlatform)
+		rctx.Logger().LogM(mlog.MlvlNotificationDebug, "Notification not sent - recipient is bot",
+			mlog.String("type", model.NotificationTypePush),
+			mlog.String("post_id", post.Id),
+			mlog.String("status", model.NotificationStatusNotSent),
+			mlog.String("reason", model.NotificationReasonRecipientIsBot),
+			mlog.String("sender_id", post.UserId),
+			mlog.String("receiver_id", user.Id),
+		)
+		return false
+	}
+
 	if prop := post.GetProp(model.PostPropsForceNotification); prop != nil && prop != "" {
 		return true
 	}

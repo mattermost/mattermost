@@ -105,7 +105,7 @@ describe('components/post_view/MessageAttachment', () => {
         } as React.MouseEvent, []);
 
         expect(doPostActionWithCookie).toHaveBeenCalledTimes(1);
-        expect(doPostActionWithCookie).toBeCalledWith(props.postId, 'attr_some_value', 'attr_some_value');
+        expect(doPostActionWithCookie).toHaveBeenCalledWith(props.postId, 'attr_some_value', 'attr_some_value');
     });
 
     test('should call openModal when showModal is called', () => {

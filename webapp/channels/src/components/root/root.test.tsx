@@ -5,14 +5,11 @@ import React from 'react';
 import type {RouteComponentProps} from 'react-router-dom';
 import {bindActionCreators} from 'redux';
 
-import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
-
 import * as GlobalActions from 'actions/global_actions';
 
 import testConfigureStore from 'packages/mattermost-redux/test/test_store';
-import {act, renderWithContext, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, waitFor} from 'tests/react_testing_utils';
 import {StoragePrefixes} from 'utils/constants';
-import * as Utils from 'utils/utils';
 
 import {handleLoginLogoutSignal, redirectToOnboardingOrDefaultTeam} from './actions';
 import type {Props} from './root';
@@ -45,7 +42,6 @@ describe('components/Root', () => {
     const store = testConfigureStore();
 
     const baseProps: Props = {
-        theme: {sidebarBg: 'color'} as Theme,
         isConfigLoaded: true,
         telemetryEnabled: true,
         noAccounts: false,
@@ -83,6 +79,7 @@ describe('components/Root', () => {
                 redirectToOnboardingOrDefaultTeam,
             }, store.dispatch),
         },
+        dispatch: store.dispatch,
         permalinkRedirectTeamName: 'myTeam',
         ...{
             location: {
@@ -231,7 +228,7 @@ describe('components/Root', () => {
         window.dispatchEvent(new Event('focus'));
 
         await waitFor(() => {
-            expect(window.location.reload).toBeCalledTimes(1);
+            expect(window.location.reload).toHaveBeenCalledTimes(1);
         });
     });
 
@@ -285,52 +282,6 @@ describe('components/Root', () => {
             await waitFor(() => {
                 expect(props.history.push).not.toHaveBeenCalled();
             });
-        });
-    });
-
-    describe('applyTheme', () => {
-        test('should apply theme initially and on change', async () => {
-            const props = {
-                ...baseProps,
-            };
-
-            const {rerender} = renderWithContext(<Root {...props}/>);
-
-            await waitFor(() => {
-                expect(Utils.applyTheme).toHaveBeenCalledWith(props.theme);
-            });
-
-            const props2 = {
-                ...props,
-                theme: {sidebarBg: 'color2'} as Theme,
-            };
-
-            rerender(<Root {...props2}/>);
-
-            expect(Utils.applyTheme).toHaveBeenCalledWith(props2.theme);
-        });
-
-        test('should not apply theme in system console', async () => {
-            const props = {
-                ...baseProps,
-                ...{
-                    location: {
-                        pathname: '/admin_console',
-                    },
-                } as RouteComponentProps,
-            };
-
-            const {rerender} = renderWithContext(<Root {...props}/>);
-
-            const props2 = {
-                ...props,
-                theme: {sidebarBg: 'color2'} as Theme,
-            };
-
-            rerender(<Root {...props2}/>);
-
-            await act(() => {});
-            expect(Utils.applyTheme).not.toHaveBeenCalled();
         });
     });
 });

@@ -160,6 +160,36 @@ func (_m *AccessControlPolicyStore) SetActiveStatus(rctx request.CTX, id string,
 	return r0, r1
 }
 
+// SetActiveStatusMultiple provides a mock function with given fields: rctx, list
+func (_m *AccessControlPolicyStore) SetActiveStatusMultiple(rctx request.CTX, list []model.AccessControlPolicyActiveUpdate) ([]*model.AccessControlPolicy, error) {
+	ret := _m.Called(rctx, list)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetActiveStatusMultiple")
+	}
+
+	var r0 []*model.AccessControlPolicy
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, []model.AccessControlPolicyActiveUpdate) ([]*model.AccessControlPolicy, error)); ok {
+		return rf(rctx, list)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, []model.AccessControlPolicyActiveUpdate) []*model.AccessControlPolicy); ok {
+		r0 = rf(rctx, list)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.AccessControlPolicy)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, []model.AccessControlPolicyActiveUpdate) error); ok {
+		r1 = rf(rctx, list)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // NewAccessControlPolicyStore creates a new instance of AccessControlPolicyStore. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewAccessControlPolicyStore(t interface {
