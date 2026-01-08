@@ -75,19 +75,17 @@ export async function popoutRhsPlugin(
     return listeners;
 }
 
-export async function popoutHelp(
-    intl: IntlShape,
-    page?: string,
-) {
-    const path = page ? `/_popout/help/${page}` : '/_popout/help';
+export async function popoutHelp() {
     return popout(
-        path,
+        '/_popout/help',
         {
+
+            // Not really RHS, but this gives a desirable window size.
             isRHS: true,
-            titleTemplate: intl.formatMessage({
-                id: 'help_popout.title',
-                defaultMessage: 'Help - {serverName}',
-            }),
+
+            // Note: titleTemplate is intentionally omitted so that the desktop
+            // app uses document.title, allowing dynamic title updates as the
+            // user navigates between help pages.
         },
     );
 }

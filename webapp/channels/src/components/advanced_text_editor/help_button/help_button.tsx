@@ -36,7 +36,7 @@ const HelpButton = ({visible}: Props): JSX.Element | null => {
 
     const handleClick = useCallback(() => {
         if (canPopout()) {
-            popoutHelp(intl);
+            popoutHelp();
         } else {
             window.open('/help', '_blank', 'noopener,noreferrer');
         }

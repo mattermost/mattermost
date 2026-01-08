@@ -2,14 +2,19 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 
 import LeonardRileyAvatar from './avatar.svg';
 import HelpLinks from './help_links';
+import useHelpPageTitle from './use_help_page_title';
 
 import './help.scss';
 
+const title = defineMessage({id: 'help.mentioning.title', defaultMessage: 'Mentioning Teammates'});
+
 const HelpMentioning = (): JSX.Element => {
+    useHelpPageTitle(title);
+
     return (
         <div className='Help'>
             <div className='Help__header'>

@@ -2,13 +2,18 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 
 import HelpLinks from './help_links';
+import useHelpPageTitle from './use_help_page_title';
 
 import './help.scss';
 
+const title = defineMessage({id: 'help.attaching.title', defaultMessage: 'Attaching Files'});
+
 const HelpAttaching = (): JSX.Element => {
+    useHelpPageTitle(title);
+
     return (
         <div className='Help'>
             <div className='Help__header'>

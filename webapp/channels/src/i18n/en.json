@@ -4635,6 +4635,7 @@
   "help.commands.custom.title": "Custom Commands",
   "help.commands.intro": "You can execute commands, called slash commands, by typing into the text input box to perform operations in Mattermost. To run a slash command, type / followed by a command and some arguments to perform actions.",
   "help.commands.title": "Executing Commands",
+  "help.document_title": "Help - {pageTitle} - {siteName}",
   "help.formatting.blockquotes.description": "Create block quotes using >.",
   "help.formatting.blockquotes.example_label": "Example:",
   "help.formatting.blockquotes.title": "Blockquotes",
