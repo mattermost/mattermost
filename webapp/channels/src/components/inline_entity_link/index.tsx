@@ -11,8 +11,8 @@ import {selectTeam} from 'mattermost-redux/actions/teams';
 import {getTeam, getTeamByName} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {loadIfNecessaryAndSwitchToChannelById, switchToChannel} from 'actions/views/channel';
 import {switchTeam} from 'actions/team_actions';
+import {loadIfNecessaryAndSwitchToChannelById, switchToChannel} from 'actions/views/channel';
 import store from 'stores/redux_store';
 
 import {focusPost} from 'components/permalink_view/actions';
