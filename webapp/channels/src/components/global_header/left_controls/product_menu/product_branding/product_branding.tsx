@@ -5,6 +5,7 @@ import React from 'react';
 import styled from 'styled-components';
 
 import glyphMap, {ProductChannelsIcon} from '@mattermost/compass-icons/components';
+import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 
 import {useCurrentProduct} from 'utils/products';
 
@@ -27,11 +28,24 @@ const ProductBrandingHeading = styled.span`
 const ProductBranding = (): JSX.Element => {
     const currentProduct = useCurrentProduct();
 
-    const Icon = currentProduct?.switcherIcon ? glyphMap[currentProduct.switcherIcon] : ProductChannelsIcon;
+    // Handle both string icon names and React elements
+    const renderIcon = () => {
+        if (!currentProduct?.switcherIcon) {
+            return <ProductChannelsIcon size={24}/>;
+        }
+
+        if (typeof currentProduct.switcherIcon === 'string') {
+            const Icon = glyphMap[currentProduct.switcherIcon as IconGlyphTypes];
+            return <Icon size={24}/>;
+        }
+
+        // React element - render directly
+        return <>{currentProduct.switcherIcon}</>;
+    };
 
     return (
         <ProductBrandingContainer tabIndex={-1}>
-            <Icon size={24}/>
+            {renderIcon()}
             <h1 className='sr-only'>
                 {currentProduct ? currentProduct.switcherText : 'Channels'}
             </h1>

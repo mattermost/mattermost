@@ -27,6 +27,7 @@ Options
 
 ::
 
+  -b, --burn-on-read      Message will be deleted after a certain time after being read
   -h, --help              help for create
   -m, --message string    Message for the post
   -r, --reply-to string   Post id to reply to

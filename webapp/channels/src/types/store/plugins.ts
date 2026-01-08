@@ -236,9 +236,12 @@ export type ProductSubComponentNames = 'mainComponent' | 'publicComponent' | 'he
 export type ProductComponent = PluginComponent & {
 
     /**
-     * A compass-icon glyph to display as the icon in the product switcher
+     * A compass-icon glyph name or React element to display as the icon in the product switcher.
+     * Accepts either:
+     * - IconGlyphTypes: A string name from the Compass Icons library (e.g., 'product-channels')
+     * - React.ReactNode: A custom React element to render as the icon
      */
-    switcherIcon: IconGlyphTypes;
+    switcherIcon: IconGlyphTypes | React.ReactNode;
 
     /**
      * A string or React element to display in the product switcher

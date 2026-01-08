@@ -1162,7 +1162,7 @@ export default class PluginRegistry {
         dispatchPluginComponentWithData('Product', {
             id,
             pluginId: this.id,
-            switcherIcon,
+            switcherIcon: resolveReactElement(switcherIcon),
             switcherText: resolveReactElement(switcherText),
             baseURL: '/' + standardizeRoute(baseURL),
             switcherLinkURL: '/' + standardizeRoute(switcherLinkURL),
