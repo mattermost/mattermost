@@ -8901,7 +8901,7 @@
   },
   {
     "id": "app.post.move_thread.from_another_channel",
-    "translation": "Гэтая гілка была перанесена з іншага канала"
+    "translation": "Гэтая гілка была перамешчана з іншага канала"
   },
   {
     "id": "app.post.move_thread_command.channel.multiple_messages",
@@ -8917,7 +8917,7 @@
   },
   {
     "id": "app.post.move_thread_command.direct_or_group.one_message",
-    "translation": "Паведамленне было перанесена ў асабістае/групавое паведамленне\n"
+    "translation": "Паведамленне было перамешчана ў Асабістае/Групавое паведамленне\n"
   },
   {
     "id": "app.post.move_thread_command.error",
