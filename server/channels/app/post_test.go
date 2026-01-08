@@ -3182,6 +3182,68 @@ func TestFillInPostProps(t *testing.T) {
 		assert.Nil(t, post1.GetProp(model.PostPropsAIGeneratedByUserID))
 		assert.Nil(t, post1.GetProp(model.PostPropsAIGeneratedByUsername))
 	})
+
+	t.Run("should not populate channel mentions for channels in teams where the user is not a member", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic()
+
+		user1 := th.BasicUser
+		user2 := th.BasicUser2
+
+		team2 := th.CreateTeam()
+		th.LinkUserToTeam(user2, team2)
+
+		// Create a channel in team2 which user1 is not a member of
+		channel2, err := th.App.CreateChannel(th.Context, &model.Channel{
+			DisplayName: "Channel in Team 2",
+			Name:        "channel-in-team-2",
+			Type:        model.ChannelTypeOpen,
+			TeamId:      team2.Id,
+			CreatorId:   user2.Id,
+		}, false)
+		require.Nil(t, err)
+
+		dmChannelBetweenUser1AndUser2 := th.CreateDmChannel(user2)
+
+		post, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    user1.Id,
+			ChannelId: dmChannelBetweenUser1AndUser2.Id,
+			Message:   "Testing out i should not be able to mention channel2 from team2? ~" + channel2.Name,
+		}, dmChannelBetweenUser1AndUser2, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, err)
+
+		err = th.App.FillInPostProps(th.Context, post, dmChannelBetweenUser1AndUser2)
+		require.Nil(t, err)
+
+		mentions := post.GetProp(model.PostPropsChannelMentions)
+		require.Nil(t, mentions)
+	})
+
+	t.Run("should populate channel mentions for channels in teams where the user is a member", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic()
+
+		user1 := th.BasicUser
+		user2 := th.BasicUser2
+
+		channel := th.CreateChannel(th.Context, th.BasicTeam)
+
+		dmChannel := th.CreateDmChannel(user2)
+
+		post, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    user1.Id,
+			ChannelId: dmChannel.Id,
+			Message:   "Check out ~" + channel.Name,
+		}, dmChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, err)
+
+		mentions := post.GetProp(model.PostPropsChannelMentions)
+		require.NotNil(t, mentions)
+
+		mentionsMap, ok := mentions.(map[string]any)
+		require.True(t, ok)
+		require.Contains(t, mentionsMap, channel.Name)
+	})
 }
 
 func TestThreadMembership(t *testing.T) {
