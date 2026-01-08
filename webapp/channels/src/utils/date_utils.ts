@@ -79,7 +79,7 @@ export function momentToString(momentValue: Moment | null, isDateTime: boolean):
     }
 
     if (isDateTime) {
-        return momentValue.utc().format(MOMENT_DATETIME_FORMAT);
+        return momentValue.clone().utc().format(MOMENT_DATETIME_FORMAT);
     }
 
     // Store date only: "2025-01-14"
