@@ -49,66 +49,6 @@
             text-align: center;
         }
 
-        .file-upload {
-            width: 90%;
-            padding: 12px;
-            border: 1px solid rgba(63, 67, 80, 0.32);
-            border-radius: 4px;
-            margin-top: 15px;
-
-            &__titleSection {
-                color: rgba(63, 67, 80, 0.75);
-                font-size: 12px;
-                font-weight: bold;
-                line-height: 16px;
-            }
-
-            &__inputSection {
-                display: flex;
-                justify-content: space-between;
-                margin-top: 10px;
-
-                .file-name-section {
-                    display: flex;
-
-                    svg {
-                        margin-right: 5px;
-                    }
-
-                    .file-size {
-                        margin-left: 20px;
-                    }
-                }
-
-                .file__upload {
-                    position: relative;
-                    display: flex;
-                    align-self: flex-end;
-                    margin-left: auto;
-
-                    a {
-                        color: #1c58d9;
-                        font-weight: 600;
-                    }
-
-                    input {
-                        position: absolute;
-                        z-index: 5;
-                        top: 0;
-                        left: 0;
-                        width: 100%;
-                        height: 100%;
-                        padding-left: 100%;
-                        cursor: pointer;
-
-                        &[disabled] {
-                            cursor: not-allowed;
-                        }
-                    }
-                }
-            }
-        }
-
         .serverError {
             display: flex;
             width: 90%;
@@ -143,6 +83,24 @@
             font-size: 16px;
             font-weight: 600;
             line-height: 18px;
+        }
+
+        &.preview-footer {
+            flex-direction: row;
+            gap: 12px;
+
+            button {
+                margin-top: 0 !important;
+            }
+
+            .btn-tertiary {
+                background-color: transparent;
+                color: var(--button-bg);
+
+                &:hover {
+                    background-color: rgba(var(--button-bg-rgb), 0.08);
+                }
+            }
         }
     }
 

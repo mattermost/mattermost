@@ -18,6 +18,7 @@ import Tag from 'components/widgets/tag/tag';
 import WithTooltip from 'components/with_tooltip';
 
 import {FileTypes, LicenseLinks, LicenseSkus} from 'utils/constants';
+import {getMonthLong} from 'utils/i18n';
 import {calculateOverageUserActivated} from 'utils/overage_team';
 import {getSkuDisplayName} from 'utils/subscription';
 import {getRemainingDaysFromFutureTimestamp, toTitleCase} from 'utils/utils';
@@ -59,7 +60,7 @@ const EnterpriseEditionLeftPanel = ({
     statsActiveUsers,
     isLicenseSetByEnvVar,
 }: EnterpriseEditionProps) => {
-    const {formatMessage} = useIntl();
+    const {formatMessage, locale} = useIntl();
     const [unsanitizedLicense, setUnsanitizedLicense] = useState(license);
     const {openPricingModal, isAirGapped} = useOpenPricingModal();
     const [openContactSales] = useOpenSalesLink();
@@ -231,6 +232,7 @@ const EnterpriseEditionLeftPanel = ({
                         expirationDays,
                         isLicenseSetByEnvVar,
                         enableMattermostEntry,
+                        locale,
                     )
                 }
             </div>
@@ -330,6 +332,7 @@ const renderLicenseContent = (
     expirationDays: number,
     isLicenseSetByEnvVar: boolean,
     enableMattermostEntry: string | undefined,
+    locale: string,
 ) => {
     // Note: DO NOT LOCALISE THESE STRINGS. Legally we can not since the license is in English.
 
@@ -337,12 +340,31 @@ const renderLicenseContent = (
 
     const users = <FormattedNumber value={parseInt(license.Users, 10)}/>;
     const activeUsers = <FormattedNumber value={statsActiveUsers}/>;
-    const startsAt = <FormattedDate value={new Date(parseInt(license.StartsAt, 10))}/>;
-    const expiresAt = <FormattedDate value={new Date(parseInt(license.ExpiresAt, 10))}/>;
+    const startsAt = (
+        <FormattedDate
+            value={new Date(parseInt(license.StartsAt, 10))}
+            day='2-digit'
+            month={getMonthLong(locale)}
+            year='numeric'
+        />
+    );
+    const expiresAt = (
+        <FormattedDate
+            value={new Date(parseInt(license.ExpiresAt, 10))}
+            day='2-digit'
+            month={getMonthLong(locale)}
+            year='numeric'
+        />
+    );
 
     const issued = (
         <>
-            <FormattedDate value={new Date(parseInt(license.IssuedAt, 10))}/>
+            <FormattedDate
+                value={new Date(parseInt(license.IssuedAt, 10))}
+                day='2-digit'
+                month={getMonthLong(locale)}
+                year='numeric'
+            />
             {' '}
             <FormattedTime value={new Date(parseInt(license.IssuedAt, 10))}/>
         </>

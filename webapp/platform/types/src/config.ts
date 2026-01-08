@@ -248,7 +248,7 @@ export type License = {
     customer: LicenseCustomer;
     features: LicenseFeatures;
     sku_name: string;
-    short_sku_name: string;
+    sku_short_name: string;
 };
 
 export type LicenseCustomer = {

@@ -24,6 +24,7 @@ func (api *API) InitLicense() {
 	api.BaseRoutes.APIRoot.Handle("/license", api.APISessionRequired(removeLicense)).Methods(http.MethodDelete)
 	api.BaseRoutes.APIRoot.Handle("/license/client", api.APIHandler(getClientLicense)).Methods(http.MethodGet)
 	api.BaseRoutes.APIRoot.Handle("/license/load_metric", api.APISessionRequired(getLicenseLoadMetric)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/license/preview", api.APISessionRequired(previewLicense, handlerParamFileAPI)).Methods(http.MethodPost)
 }
 
 func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -149,6 +150,59 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	c.LogAudit("success")
 
+	if err := json.NewEncoder(w).Encode(license); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func previewLicense(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionManageLicenseInformation) {
+		c.SetPermissionError(model.PermissionManageLicenseInformation)
+		return
+	}
+
+	err := r.ParseMultipartForm(*c.App.Config().FileSettings.MaxFileSize)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	m := r.MultipartForm
+
+	fileArray, ok := m.File["license"]
+	if !ok {
+		c.Err = model.NewAppError("previewLicense", "api.license.add_license.no_file.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if len(fileArray) <= 0 {
+		c.Err = model.NewAppError("previewLicense", "api.license.add_license.array.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	fileData := fileArray[0]
+
+	file, err := fileData.Open()
+	if err != nil {
+		c.Err = model.NewAppError("previewLicense", "api.license.add_license.open.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	}
+	defer file.Close()
+
+	buf := bytes.NewBuffer(nil)
+	if _, err := io.Copy(buf, file); err != nil {
+		c.Err = model.NewAppError("previewLicense", "api.license.add_license.copy.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	licenseBytes := buf.Bytes()
+	license, appErr := utils.LicenseValidator.LicenseFromBytes(licenseBytes)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	// Return the parsed license without saving it
 	if err := json.NewEncoder(w).Encode(license); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}

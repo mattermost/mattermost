@@ -1,0 +1,52 @@
+.license-diff-view {
+    max-height: 400px;
+    overflow-y: auto;
+    margin: 16px 0;
+
+    .diff-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+
+        td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        }
+
+        .diff-row {
+            &.changed {
+                .diff-current {
+                    color: rgba(var(--center-channel-color-rgb), 0.56);
+                }
+
+                .diff-new {
+                    font-weight: 600;
+                }
+            }
+
+            .diff-label {
+                color: rgba(var(--center-channel-color-rgb), 0.72);
+            }
+
+            .diff-current,
+            .diff-new {
+                color: var(--center-channel-color);
+            }
+        }
+
+        // Info-only table (for entry license - no comparison)
+        &.info-only {
+            .info-row {
+                .info-label {
+                    color: rgba(var(--center-channel-color-rgb), 0.72);
+                }
+
+                .info-value {
+                    color: var(--center-channel-color);
+                    font-weight: 500;
+                }
+            }
+        }
+    }
+}
