@@ -10,6 +10,14 @@ import {renderWithContext, screen} from 'tests/react_testing_utils';
 import LicenseDiffView from './license_diff_view';
 
 describe('components/admin_console/license_settings/modals/license_diff_view', () => {
+    const initialState = {
+        entities: {
+            users: {
+                currentUserId: '',
+            },
+        },
+    };
+
     const baseCurrentLicense: ClientLicense = {
         IsLicensed: 'true',
         SkuName: 'Professional',
@@ -48,6 +56,7 @@ describe('components/admin_console/license_settings/modals/license_diff_view', (
                 newLicense={baseNewLicense}
                 locale={locale}
             />,
+            initialState,
         );
 
         // Should show labels
@@ -84,6 +93,7 @@ describe('components/admin_console/license_settings/modals/license_diff_view', (
                 newLicense={baseNewLicense}
                 locale={locale}
             />,
+            initialState,
         );
 
         // Should have info-only table class
@@ -110,6 +120,7 @@ describe('components/admin_console/license_settings/modals/license_diff_view', (
                 newLicense={baseNewLicense}
                 locale={locale}
             />,
+            initialState,
         );
 
         // Should have info-only table class
@@ -124,6 +135,7 @@ describe('components/admin_console/license_settings/modals/license_diff_view', (
                 newLicense={baseNewLicense}
                 locale={locale}
             />,
+            initialState,
         );
 
         // Find rows with 'changed' class (values that differ)
@@ -152,6 +164,7 @@ describe('components/admin_console/license_settings/modals/license_diff_view', (
                 newLicense={sameLicense}
                 locale={locale}
             />,
+            initialState,
         );
 
         // Find the Plan row (SKU) - should not be changed
@@ -174,6 +187,7 @@ describe('components/admin_console/license_settings/modals/license_diff_view', (
                 newLicense={licenseWithMissingData}
                 locale={locale}
             />,
+            initialState,
         );
 
         // Should show '-' for missing customer name and company
