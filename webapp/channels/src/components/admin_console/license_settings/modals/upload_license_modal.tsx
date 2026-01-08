@@ -72,13 +72,13 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
 
             const {data, error} = await dispatch(previewLicense(fileObj));
 
-            if (error) {
-                setServerError(error.message);
+            if (error || !data) {
+                setServerError(error?.message ?? 'Failed to preview license');
                 setIsLoading(false);
                 return;
             }
 
-            setPreviewedLicense(data as License);
+            setPreviewedLicense(data);
             setIsLoading(false);
             setStep('preview');
         };
