@@ -310,21 +310,13 @@ export default class AtMentionProvider extends Provider {
 
         // Get agents - these are already User objects from the backend
         // Only show agents if bridge is enabled (indicated by presence of agents data)
-        const agents: CreatedProfile[] = [];
+        let agents: CreatedProfile[] = [];
         if (this.data && this.data.agents && Array.isArray(this.data.agents) && this.data.agents.length > 0) {
             const agentUsers = this.data.agents as UserProfileWithLastViewAt[];
-            agentUsers.forEach((user: UserProfileWithLastViewAt) => {
-                // Filter agents by username or first_name matching the search term
-                const searchTerm = this.latestPrefix.toLowerCase();
-                const matchesUsername = user.username.toLowerCase().includes(searchTerm);
-                const matchesFirstName = user.first_name?.toLowerCase().includes(searchTerm);
-
-                if (matchesUsername || matchesFirstName) {
-                    const agentProfile = this.createFromProfile(user);
-                    agents.push(agentProfile);
-                }
-            });
-            agents.sort(orderUsers);
+            agents = agentUsers.
+                filter((user: UserProfileWithLastViewAt) => this.filterProfile(user)).
+                map((user: UserProfileWithLastViewAt) => this.createFromProfile(user)).
+                sort(orderUsers);
         }
 
         // handle groups
