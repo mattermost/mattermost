@@ -44,16 +44,16 @@ jobs:
           load: true
           push: false
           pull: false
-          tags: mattermostdevelopment/mattermost-build-server:test
+          tags: mattermost/mattermost-build-server:test
 
       - name: buildenv/test
         run: |
-          docker run --rm mattermostdevelopment/mattermost-build-server:test /bin/sh -c "go version && node --version"
+          docker run --rm mattermost/mattermost-build-server:test /bin/sh -c "go version && node --version"
 
       - name: buildenv/calculate-golang-version
         id: go
         run: |
-          GO_VERSION=$(docker run --rm mattermostdevelopment/mattermost-build-server:test go version | awk '{print $3}' | sed 's/go//')
+          GO_VERSION=$(docker run --rm mattermost/mattermost-build-server:test go version | awk '{print $3}' | sed 's/go//')
           echo "GO_VERSION=${GO_VERSION}" >> "${GITHUB_OUTPUT}"
 
       - name: buildenv/push
@@ -65,7 +65,7 @@ jobs:
           load: false
           push: true
           pull: true
-          tags: mattermostdevelopment/mattermost-build-server:${{ steps.go.outputs.GO_VERSION }}
+          tags: mattermost/mattermost-build-server:${{ steps.go.outputs.GO_VERSION }}
 
   build-image-fips:
     runs-on: ubuntu-22.04
@@ -90,16 +90,16 @@ jobs:
           load: true
           push: false
           pull: false
-          tags: mattermostdevelopment/mattermost-build-server-fips:test
+          tags: mattermost/mattermost-build-server-fips:test
 
       - name: buildenv/test
         run: |
-          docker run --rm --entrypoint bash mattermostdevelopment/mattermost-build-server-fips:test -c "go version && node --version"
+          docker run --rm --entrypoint bash mattermost/mattermost-build-server-fips:test -c "go version && node --version"
 
       - name: buildenv/calculate-golang-version
         id: go
         run: |
-          GO_VERSION=$(docker run --rm --entrypoint bash mattermostdevelopment/mattermost-build-server-fips:test -c "go version" | awk '{print $3}' | sed 's/go//')
+          GO_VERSION=$(docker run --rm --entrypoint bash mattermost/mattermost-build-server-fips:test -c "go version" | awk '{print $3}' | sed 's/go//')
           echo "GO_VERSION=${GO_VERSION}" >> "${GITHUB_OUTPUT}"
 
       - name: buildenv/push
@@ -111,4 +111,4 @@ jobs:
           load: false
           push: true
           pull: true
-          tags: mattermostdevelopment/mattermost-build-server-fips:${{ steps.go.outputs.GO_VERSION }}
+          tags: mattermost/mattermost-build-server-fips:${{ steps.go.outputs.GO_VERSION }}

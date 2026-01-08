@@ -56,7 +56,7 @@ jobs:
         id: build
         run: |
           if [[ ${{ inputs.fips-enabled }} == 'true' ]]; then
-            echo "BUILD_IMAGE=mattermost/mattermost-build-server-fips:${{ inputs.go-version }}" >> "${GITHUB_OUTPUT}"
+            echo "BUILD_IMAGE=mattermostdevelopment/mattermost-build-server-fips:${{ inputs.go-version }}" >> "${GITHUB_OUTPUT}"
             echo "LOG_ARTIFACT_NAME=${{ inputs.logsartifact }}-fips" >> "${GITHUB_OUTPUT}"
           else
             echo "BUILD_IMAGE=mattermostdevelopment/mattermost-build-server:${{ inputs.go-version }}" >> "${GITHUB_OUTPUT}"
