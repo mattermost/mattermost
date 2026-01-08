@@ -22,23 +22,25 @@ type DiffRowProps = {
     currentValue: React.ReactNode;
     newValue: React.ReactNode;
     changed: boolean;
+    className?: string;
 };
 
 type InfoRowProps = {
     label: React.ReactNode;
     value: React.ReactNode;
+    className?: string;
 };
 
-const DiffRow = ({label, currentValue, newValue, changed}: DiffRowProps) => (
-    <tr className={changed ? 'diff-row changed' : 'diff-row'}>
+const DiffRow = ({label, currentValue, newValue, changed, className}: DiffRowProps) => (
+    <tr className={`${changed ? 'diff-row changed' : 'diff-row'}${className ? ` ${className}` : ''}`}>
         <td className='diff-label'>{label}</td>
         <td className='diff-current'>{currentValue}</td>
         <td className='diff-new'>{newValue}</td>
     </tr>
 );
 
-const InfoRow = ({label, value}: InfoRowProps) => (
-    <tr className='info-row'>
+const InfoRow = ({label, value, className}: InfoRowProps) => (
+    <tr className={className ? `info-row ${className}` : 'info-row'}>
         <td className='info-label'>{label}</td>
         <td className='info-value'>{value}</td>
     </tr>
@@ -77,6 +79,7 @@ const LicenseDiffView = ({currentLicense, newLicense, locale}: Props) => {
                                 />
                             }
                             value={newLicense.sku_name || '-'}
+                            className='info-row-plan'
                         />
                         <InfoRow
                             label={
@@ -139,6 +142,23 @@ const LicenseDiffView = ({currentLicense, newLicense, locale}: Props) => {
     return (
         <div className='license-diff-view'>
             <table className='diff-table'>
+                <thead>
+                    <tr>
+                        <th> </th>
+                        <th>
+                            <FormattedMessage
+                                id='admin.license.diff.currentLicense'
+                                defaultMessage='Current License'
+                            />
+                        </th>
+                        <th>
+                            <FormattedMessage
+                                id='admin.license.diff.newLicense'
+                                defaultMessage='New License'
+                            />
+                        </th>
+                    </tr>
+                </thead>
                 <tbody>
                     <DiffRow
                         label={
@@ -150,6 +170,7 @@ const LicenseDiffView = ({currentLicense, newLicense, locale}: Props) => {
                         currentValue={currentLicense.SkuName || '-'}
                         newValue={newLicense.sku_name || '-'}
                         changed={isChanged(currentLicense.SkuShortName, newLicense.sku_short_name)}
+                        className='diff-row-plan'
                     />
                     <DiffRow
                         label={

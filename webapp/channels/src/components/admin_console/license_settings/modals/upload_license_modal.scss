@@ -2,6 +2,8 @@
     .modal-header {
         border-bottom: none !important;
         background: none !important;
+        padding-bottom: 0;
+        min-height: 48px;
 
         button.close {
             span {
@@ -12,7 +14,7 @@
 
     .modal-body {
         padding-top: 0 !important;
-        padding-bottom: 24px !important;
+        padding-bottom: 40px !important;
     }
 
     .content-body {
@@ -31,7 +33,7 @@
         }
 
         .title {
-            margin: 10px 0;
+            margin: 0 010px 0;
             color: #3f4350;
             font-family: Metropolis;
             font-size: 22px;
@@ -40,6 +42,7 @@
         }
 
         .subtitle {
+            margin-bottom: 16px;
             width: 90%;
             color: #3f4350;
             font-size: 14px;
@@ -87,19 +90,9 @@
 
         &.preview-footer {
             flex-direction: row;
-            gap: 12px;
 
             button {
                 margin-top: 0 !important;
-            }
-
-            .btn-tertiary {
-                background-color: transparent;
-                color: var(--button-bg);
-
-                &:hover {
-                    background-color: rgba(var(--button-bg-rgb), 0.08);
-                }
             }
         }
     }

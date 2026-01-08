@@ -1,37 +1,41 @@
 .license-diff-view {
-    max-height: 400px;
     margin: 16px 0;
-    overflow-y: auto;
+    width: 100%;
+    border: var(--border-default);
+    border-radius: 4px;
+    overflow: hidden;
 
     .diff-table {
         width: 100%;
         border-collapse: collapse;
         font-size: 14px;
 
-        td {
+        th, td {
             padding: 8px 12px;
-            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+            border-bottom: var(--border-light);
             text-align: left;
         }
 
+        th {
+            border-bottom: var(--border-default);
+            background-color: rgba(var(--center-channel-color-rgb), 0.04);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
         .diff-row {
-            &.changed {
-                .diff-current {
-                    color: rgba(var(--center-channel-color-rgb), 0.56);
-                }
-
-                .diff-new {
-                    font-weight: 600;
-                }
-            }
-
-            .diff-label {
+            .diff-label,
+            .diff-current {
                 color: rgba(var(--center-channel-color-rgb), 0.72);
             }
 
-            .diff-current,
-            .diff-new {
-                color: var(--center-channel-color);
+            &-plan {
+                .diff-current,
+                .diff-new {
+                    font-weight: 600;
+                }
             }
         }
 
@@ -45,6 +49,12 @@
                 .info-value {
                     color: var(--center-channel-color);
                     font-weight: 500;
+                }
+
+                &-plan {
+                    .info-value {
+                        font-weight: 600;
+                    }
                 }
             }
         }

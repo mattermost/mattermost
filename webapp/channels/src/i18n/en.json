@@ -1622,6 +1622,8 @@
   "admin.license.diff.company": "Company",
   "admin.license.diff.expiresAt": "Expiration Date",
   "admin.license.diff.name": "Name",
+  "admin.license.diff.newLicense": "New License",
+  "admin.license.diff.previousLicense": "Current License",
   "admin.license.diff.sku": "Plan",
   "admin.license.diff.startsAt": "Start Date",
   "admin.license.diff.users": "Users",
