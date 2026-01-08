@@ -58,6 +58,8 @@ describe('Authentication', () => {
 
         cy.get('#input_name').clear().type(`Test${getRandomId()}`);
 
+        cy.get('#signup-body-card-form-check-terms-and-privacy').check();
+
         cy.findByText('Create Account').click();
 
         // * Make sure account was not created successfully
