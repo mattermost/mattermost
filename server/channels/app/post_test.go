@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"sync"
 	"testing"
@@ -24,6 +25,13 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/imageproxy"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/mocks"
 )
+
+func enableBoRFeature(th *TestHelper) {
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.EnableBurnOnRead = model.NewPointer(true)
+	})
+}
 
 func makePendingPostId(user *model.User) string {
 	return fmt.Sprintf("%s:%s", user.Id, strconv.FormatInt(model.GetMillis(), 10))
@@ -300,15 +308,18 @@ func TestAttachFilesToPost(t *testing.T) {
 		post := th.BasicPost
 		post.FileIds = []string{info1.Id, info2.Id}
 
-		appErr := th.App.attachFilesToPost(th.Context, post)
+		attachedFiles, appErr := th.App.attachFilesToPost(th.Context, post, post.FileIds)
 		assert.Nil(t, appErr)
+		assert.Len(t, attachedFiles, 2)
+		assert.Contains(t, attachedFiles, info1.Id)
+		assert.Contains(t, attachedFiles, info2.Id)
 
 		infos, _, appErr := th.App.GetFileInfosForPost(th.Context, post.Id, false, false)
 		assert.Nil(t, appErr)
 		assert.Len(t, infos, 2)
 	})
 
-	t.Run("should update File.PostIds after failing to add files", func(t *testing.T) {
+	t.Run("should return only successfully attached files after failing to add files", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		info1, err := th.App.Srv().Store().FileInfo().Save(th.Context,
@@ -329,8 +340,10 @@ func TestAttachFilesToPost(t *testing.T) {
 		post := th.BasicPost
 		post.FileIds = []string{info1.Id, info2.Id}
 
-		appErr := th.App.attachFilesToPost(th.Context, post)
+		attachedFiles, appErr := th.App.attachFilesToPost(th.Context, post, post.FileIds)
 		assert.Nil(t, appErr)
+		assert.Len(t, attachedFiles, 1)
+		assert.Contains(t, attachedFiles, info2.Id)
 
 		infos, _, appErr := th.App.GetFileInfosForPost(th.Context, post.Id, false, false)
 		assert.Nil(t, appErr)
@@ -1312,6 +1325,27 @@ func TestCreatePost(t *testing.T) {
 		createdPost, err := th.App.CreatePost(th.Context, postToCreate, th.BasicChannel, model.CreatePostFlags{ForceNotification: true})
 		require.Nil(t, err)
 		require.NotEmpty(t, createdPost.GetProp(model.PostPropsForceNotification))
+	})
+
+	t.Run("Should remove post file IDs for burn on read posts", func(t *testing.T) {
+		os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
+		t.Cleanup(func() {
+			os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
+		})
+		th := Setup(t).InitBasic(t)
+		enableBoRFeature(th)
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "hello world",
+			Type:      model.PostTypeBurnOnRead,
+			FileIds:   []string{model.NewId()},
+		}
+
+		createdPost, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+		require.Empty(t, createdPost.FileIds)
 	})
 }
 
@@ -4216,6 +4250,11 @@ func TestValidateMoveOrCopy(t *testing.T) {
 }
 
 func TestPermanentDeletePost(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
+	t.Cleanup(func() {
+		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
+	})
+
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -4303,6 +4342,71 @@ func TestPermanentDeletePost(t *testing.T) {
 		infos, err = th.App.Srv().Store().FileInfo().GetForPost(post.Id, true, true, false)
 		require.NoError(t, err)
 		assert.Len(t, infos, 0)
+	})
+
+	t.Run("should permanently delete a burn-on-read post and its file attachments", func(t *testing.T) {
+		// Enable feature with license
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.EnableBurnOnRead = model.NewPointer(true)
+		})
+
+		// Create a burn-on-read post with a file attachment
+		teamID := th.BasicTeam.Id
+		channelID := th.BasicChannel.Id
+		userID := th.BasicUser.Id
+		filename := "burn_on_read_file"
+		data := []byte("burn on read file content")
+
+		info1, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data, true)
+		require.Nil(t, err)
+
+		post := &model.Post{
+			Message:       "burn on read message with file",
+			ChannelId:     channelID,
+			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+			UserId:        userID,
+			CreateAt:      0,
+			FileIds:       []string{info1.Id},
+			Type:          model.PostTypeBurnOnRead,
+		}
+		post.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(model.DefaultExpirySeconds*1000))
+
+		post, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+		require.Equal(t, model.PostTypeBurnOnRead, post.Type)
+
+		// Verify that the post has empty message and file IDs (stored in TemporaryPosts)
+		assert.Empty(t, post.Message)
+		assert.Empty(t, post.FileIds)
+
+		// Verify that TemporaryPost exists with original content
+		tmpPost, tmpErr := th.App.Srv().Store().TemporaryPost().Get(th.Context, post.Id)
+		require.NoError(t, tmpErr)
+		require.NotNil(t, tmpPost)
+		assert.Equal(t, "burn on read message with file", tmpPost.Message)
+		assert.Equal(t, model.StringArray{info1.Id}, tmpPost.FileIDs)
+
+		// Verify file info exists before deletion
+		_, err = th.App.GetFileInfo(th.Context, info1.Id)
+		require.Nil(t, err)
+
+		// Permanently delete the post
+		appErr = th.App.PermanentDeletePost(th.Context, post.Id, userID)
+		require.Nil(t, appErr)
+
+		// Check that the post can no longer be reached
+		_, err = th.App.GetSinglePost(th.Context, post.Id, true)
+		assert.NotNil(t, err)
+
+		// Check that the file also deleted
+		_, err = th.App.GetFileInfo(th.Context, info1.Id)
+		assert.NotNil(t, err)
+
+		// Verify TemporaryPost is also deleted
+		_, tmpErr = th.App.Srv().Store().TemporaryPost().Get(th.Context, post.Id)
+		assert.Error(t, tmpErr)
+		assert.True(t, store.IsErrNotFound(tmpErr))
 	})
 }
 
@@ -4432,5 +4536,665 @@ func TestPopulateEditHistoryFileMetadata(t *testing.T) {
 		require.Len(t, post2.Metadata.Files, 1)
 		require.Equal(t, fileInfo2.Id, post2.Metadata.Files[0].Id)
 		require.Greater(t, post2.Metadata.Files[0].DeleteAt, int64(0))
+	})
+}
+
+func TestFilterPostsByChannelPermissions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.GuestAccountsSettings.Enable = true
+	})
+
+	guestUser := th.CreateGuest(t)
+	_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, guestUser.Id, "")
+	require.Nil(t, appErr)
+
+	privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+
+	_, appErr = th.App.AddUserToChannel(th.Context, guestUser, privateChannel, false)
+	require.Nil(t, appErr)
+	_, appErr = th.App.AddUserToChannel(th.Context, guestUser, th.BasicChannel, false)
+	require.Nil(t, appErr)
+
+	post1 := th.CreatePost(t, th.BasicChannel)
+	post2 := th.CreatePost(t, privateChannel)
+	post3 := th.CreatePost(t, th.BasicChannel)
+
+	t.Run("should filter posts when user has read_channel_content permission", func(t *testing.T) {
+		postList := model.NewPostList()
+		postList.Posts[post1.Id] = post1
+		postList.Posts[post2.Id] = post2
+		postList.Posts[post3.Id] = post3
+		postList.Order = []string{post1.Id, post2.Id, post3.Id}
+
+		appErr := th.App.FilterPostsByChannelPermissions(th.Context, postList, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.Len(t, postList.Posts, 3)
+		require.Len(t, postList.Order, 3)
+	})
+
+	t.Run("should filter posts when guest has read_channel_content permission", func(t *testing.T) {
+		postList := model.NewPostList()
+		postList.Posts[post1.Id] = post1
+		postList.Posts[post2.Id] = post2
+		postList.Posts[post3.Id] = post3
+		postList.Order = []string{post1.Id, post2.Id, post3.Id}
+
+		appErr := th.App.FilterPostsByChannelPermissions(th.Context, postList, guestUser.Id)
+		require.Nil(t, appErr)
+		require.Len(t, postList.Posts, 3)
+		require.Len(t, postList.Order, 3)
+	})
+
+	t.Run("should filter posts when guest does not have read_channel_content permission", func(t *testing.T) {
+		channelGuestRole, appErr := th.App.GetRoleByName(th.Context, model.ChannelGuestRoleId)
+		require.Nil(t, appErr)
+
+		originalPermissions := make([]string, len(channelGuestRole.Permissions))
+		copy(originalPermissions, channelGuestRole.Permissions)
+
+		newPermissions := []string{}
+		for _, perm := range channelGuestRole.Permissions {
+			if perm != model.PermissionReadChannelContent.Id && perm != model.PermissionReadChannel.Id {
+				newPermissions = append(newPermissions, perm)
+			}
+		}
+
+		_, appErr = th.App.PatchRole(channelGuestRole, &model.RolePatch{
+			Permissions: &newPermissions,
+		})
+		require.Nil(t, appErr)
+
+		defer func() {
+			_, err := th.App.PatchRole(channelGuestRole, &model.RolePatch{
+				Permissions: &originalPermissions,
+			})
+			require.Nil(t, err)
+		}()
+
+		postList := model.NewPostList()
+		postList.Posts[post1.Id] = post1
+		postList.Posts[post2.Id] = post2
+		postList.Posts[post3.Id] = post3
+		postList.Order = []string{post1.Id, post2.Id, post3.Id}
+
+		appErr = th.App.FilterPostsByChannelPermissions(th.Context, postList, guestUser.Id)
+		require.Nil(t, appErr)
+		require.Len(t, postList.Posts, 0)
+		require.Len(t, postList.Order, 0)
+	})
+
+	t.Run("should handle empty post list", func(t *testing.T) {
+		postList := model.NewPostList()
+		appErr := th.App.FilterPostsByChannelPermissions(th.Context, postList, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.Len(t, postList.Posts, 0)
+		require.Len(t, postList.Order, 0)
+	})
+
+	t.Run("should handle nil post list", func(t *testing.T) {
+		appErr := th.App.FilterPostsByChannelPermissions(th.Context, nil, th.BasicUser.Id)
+		require.Nil(t, appErr)
+	})
+
+	t.Run("should handle posts with empty channel IDs", func(t *testing.T) {
+		postList := model.NewPostList()
+		postWithoutChannel := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: "",
+			Message:   "test",
+		}
+		postList.Posts[postWithoutChannel.Id] = postWithoutChannel
+		postList.Order = []string{postWithoutChannel.Id}
+
+		appErr := th.App.FilterPostsByChannelPermissions(th.Context, postList, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.Len(t, postList.Posts, 0)
+		require.Len(t, postList.Order, 0)
+	})
+
+	t.Run("should handle posts from non-existent channels", func(t *testing.T) {
+		postList := model.NewPostList()
+		postWithInvalidChannel := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: model.NewId(),
+			Message:   "test",
+		}
+		postList.Posts[postWithInvalidChannel.Id] = postWithInvalidChannel
+		postList.Order = []string{postWithInvalidChannel.Id}
+
+		appErr := th.App.FilterPostsByChannelPermissions(th.Context, postList, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.Len(t, postList.Posts, 0)
+		require.Len(t, postList.Order, 0)
+	})
+}
+
+func TestRevealPost(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
+	t.Cleanup(func() {
+		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
+	})
+
+	th := Setup(t).InitBasic(t)
+
+	// Helper to create a burn-on-read post
+	createBurnOnReadPost := func() *model.Post {
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "burn on read message",
+			Type:      model.PostTypeBurnOnRead,
+		}
+		post.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(model.DefaultExpirySeconds*1000))
+
+		createdPost, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+		require.NotNil(t, createdPost)
+		return createdPost
+	}
+
+	// Helper to create a regular post
+	createRegularPost := func() *model.Post {
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "regular message",
+		}
+		createdPost, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+		require.NotNil(t, createdPost)
+		return createdPost
+	}
+
+	// Create a second user for testing
+	user2 := th.CreateUser(t)
+	th.LinkUserToTeam(t, user2, th.BasicTeam)
+	th.AddUserToChannel(t, user2, th.BasicChannel)
+
+	t.Run("post type non burn on read", func(t *testing.T) {
+		regularPost := createRegularPost()
+
+		revealedPost, appErr := th.App.RevealPost(th.Context, regularPost, user2.Id, "")
+		require.NotNil(t, appErr)
+		require.Nil(t, revealedPost)
+		require.Equal(t, "app.reveal_post.not_burn_on_read.app_error", appErr.Id)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("post doesn't have required prop", func(t *testing.T) {
+		enableBoRFeature(th)
+
+		// Create a burn-on-read post without expire_at prop
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "burn on read message",
+			Type:      model.PostTypeBurnOnRead,
+		}
+
+		// First save the post normally (which will add expire_at automatically)
+		createdPost, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		// Now manually remove the expire_at prop to test missing prop scenario
+		createdPost.SetProps(make(model.StringInterface))
+
+		revealedPost, appErr := th.App.RevealPost(th.Context, createdPost, user2.Id, "")
+		require.NotNil(t, appErr)
+		require.Nil(t, revealedPost)
+		require.Equal(t, "app.reveal_post.missing_expire_at.app_error", appErr.Id)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("post with invalid expire_at prop type", func(t *testing.T) {
+		enableBoRFeature(th)
+
+		post := createBurnOnReadPost()
+
+		// Manually set invalid expire_at type
+		post.SetProps(make(model.StringInterface))
+		post.AddProp(model.PostPropsExpireAt, "invalid_string")
+
+		revealedPost, appErr := th.App.RevealPost(th.Context, post, user2.Id, "")
+		require.NotNil(t, appErr)
+		require.Nil(t, revealedPost)
+		require.Equal(t, "app.reveal_post.missing_expire_at.app_error", appErr.Id)
+	})
+
+	t.Run("post with zero expire_at", func(t *testing.T) {
+		enableBoRFeature(th)
+
+		post := createBurnOnReadPost()
+
+		// Manually set zero expire_at
+		post.SetProps(make(model.StringInterface))
+		post.AddProp(model.PostPropsExpireAt, float64(0))
+
+		revealedPost, appErr := th.App.RevealPost(th.Context, post, user2.Id, "")
+		require.NotNil(t, appErr)
+		require.Nil(t, revealedPost)
+		require.Equal(t, "app.reveal_post.missing_expire_at.app_error", appErr.Id)
+	})
+
+	t.Run("read receipt does not exist", func(t *testing.T) {
+		enableBoRFeature(th)
+
+		post := createBurnOnReadPost()
+
+		revealedPost, appErr := th.App.RevealPost(th.Context, post, user2.Id, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, revealedPost)
+		require.Equal(t, "burn on read message", revealedPost.Message)
+		require.NotNil(t, revealedPost.Metadata)
+		require.NotZero(t, revealedPost.Metadata.ExpireAt)
+
+		// Verify read receipt was created
+		receipt, err := th.App.Srv().Store().ReadReceipt().Get(th.Context, post.Id, user2.Id)
+		require.NoError(t, err)
+		require.NotNil(t, receipt)
+		require.Equal(t, post.Id, receipt.PostID)
+		require.Equal(t, user2.Id, receipt.UserID)
+		require.Equal(t, revealedPost.Metadata.ExpireAt, receipt.ExpireAt)
+	})
+
+	t.Run("read receipt exists and not expired", func(t *testing.T) {
+		enableBoRFeature(th)
+
+		post := createBurnOnReadPost()
+
+		// First reveal to create receipt
+		revealedPost1, appErr := th.App.RevealPost(th.Context, post, user2.Id, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, revealedPost1)
+		require.NotZero(t, revealedPost1.Metadata.ExpireAt)
+
+		// Reveal again - should succeed and return the same post
+		revealedPost2, appErr := th.App.RevealPost(th.Context, post, user2.Id, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, revealedPost2)
+		require.Equal(t, "burn on read message", revealedPost2.Message)
+		require.NotNil(t, revealedPost2.Metadata)
+		require.Equal(t, revealedPost1.Metadata.ExpireAt, revealedPost2.Metadata.ExpireAt)
+	})
+
+	t.Run("read receipt exists but expired", func(t *testing.T) {
+		enableBoRFeature(th)
+
+		post := createBurnOnReadPost()
+
+		// Create an expired read receipt
+		expiredReceipt := &model.ReadReceipt{
+			UserID:   user2.Id,
+			PostID:   post.Id,
+			ExpireAt: model.GetMillis() - 1000, // Expired 1 second ago
+		}
+		_, err := th.App.Srv().Store().ReadReceipt().Save(th.Context, expiredReceipt)
+		require.NoError(t, err)
+
+		revealedPost, appErr := th.App.RevealPost(th.Context, post, user2.Id, "")
+		require.NotNil(t, appErr)
+		require.Nil(t, revealedPost)
+		require.Equal(t, "app.reveal_post.read_receipt_expired.error", appErr.Id)
+		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+	})
+
+	t.Run("post expired", func(t *testing.T) {
+		post := createBurnOnReadPost()
+
+		// Manually set expired expire_at
+		post.SetProps(make(model.StringInterface))
+		post.AddProp(model.PostPropsExpireAt, model.GetMillis()-1000)
+
+		revealedPost, appErr := th.App.RevealPost(th.Context, post, user2.Id, "")
+		require.NotNil(t, appErr)
+		require.Nil(t, revealedPost)
+		require.Equal(t, "app.reveal_post.post_expired.app_error", appErr.Id)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("revealed post preserves existing metadata", func(t *testing.T) {
+		enableBoRFeature(th)
+
+		fileBytes := []byte("test")
+		fileInfo, err := th.App.UploadFile(th.Context, fileBytes, th.BasicChannel.Id, "file.txt")
+		require.Nil(t, err)
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "burn on read message",
+			Type:      model.PostTypeBurnOnRead,
+			FileIds:   model.StringArray{fileInfo.Id},
+		}
+		post.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(model.DefaultExpirySeconds*1000))
+
+		createdPost, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+		require.NotNil(t, createdPost)
+
+		revealedPost, appErr := th.App.RevealPost(th.Context, createdPost, user2.Id, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, revealedPost)
+		require.NotNil(t, revealedPost.Metadata)
+		require.NotZero(t, revealedPost.Metadata.ExpireAt)
+		require.Len(t, revealedPost.Metadata.Files, 1)
+	})
+}
+
+func TestBurnPost(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
+	t.Cleanup(func() {
+		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
+	})
+
+	th := Setup(t).InitBasic(t)
+
+	// feature flag, configuration and license is not checked for this feature
+	// so we set these to enable the feature to create a burn on read post
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.EnableBurnOnRead = model.NewPointer(true)
+	})
+
+	th.AddUserToChannel(t, th.BasicUser, th.BasicChannel)  // author of the post
+	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel) // recipient of the post
+
+	// Helper to create a burn-on-read post
+	createBurnOnReadPost := func() *model.Post {
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "burn on read message",
+			Type:      model.PostTypeBurnOnRead,
+		}
+		post.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(model.DefaultExpirySeconds*1000))
+
+		createdPost, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+		require.NotNil(t, createdPost)
+		return createdPost
+	}
+
+	// Helper to create a regular post
+	createRegularPost := func() *model.Post {
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "regular message",
+		}
+		createdPost, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+		require.NotNil(t, createdPost)
+		return createdPost
+	}
+
+	t.Run("burn on read post", func(t *testing.T) {
+		post := createBurnOnReadPost()
+
+		appErr := th.App.BurnPost(th.Context, post, th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		// Verify post is deleted
+		post, err := th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, false)
+		require.Error(t, err)
+		require.Nil(t, post)
+		require.True(t, store.IsErrNotFound(err))
+	})
+
+	t.Run("regular post", func(t *testing.T) {
+		post := createRegularPost()
+
+		appErr := th.App.BurnPost(th.Context, post, th.BasicUser.Id, "")
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.burn_post.not_burn_on_read.app_error", appErr.Id)
+	})
+
+	t.Run("read receipt does not exist", func(t *testing.T) {
+		post := createBurnOnReadPost()
+
+		appErr := th.App.BurnPost(th.Context, post, th.BasicUser2.Id, "")
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.burn_post.not_revealed.app_error", appErr.Id)
+	})
+
+	t.Run("read receipt exists but expired", func(t *testing.T) {
+		post := createBurnOnReadPost()
+
+		// Create an expired read receipt
+		expiredTime := model.GetMillis() - 1000 // Expired 1 second ago
+		expiredReceipt := &model.ReadReceipt{
+			UserID:   th.BasicUser2.Id,
+			PostID:   post.Id,
+			ExpireAt: expiredTime,
+		}
+		_, err := th.App.Srv().Store().ReadReceipt().Save(th.Context, expiredReceipt)
+		require.NoError(t, err)
+
+		appErr := th.App.BurnPost(th.Context, post, th.BasicUser2.Id, "")
+		require.Nil(t, appErr) // this is a no-op
+
+		// Verify receipt ExpireAt is unchanged (no-op)
+		receipt, err := th.App.Srv().Store().ReadReceipt().Get(th.Context, post.Id, th.BasicUser2.Id)
+		require.NoError(t, err)
+		require.Equal(t, expiredTime, receipt.ExpireAt)
+	})
+
+	t.Run("read receipt exists and not expired", func(t *testing.T) {
+		post := createBurnOnReadPost()
+
+		// Create a read receipt that is not expired
+		notExpiredReceipt := &model.ReadReceipt{
+			UserID:   th.BasicUser2.Id,
+			PostID:   post.Id,
+			ExpireAt: model.GetMillis() + 10000, // Not expired 10 seconds from now
+		}
+		_, err := th.App.Srv().Store().ReadReceipt().Save(th.Context, notExpiredReceipt)
+		require.NoError(t, err)
+
+		appErr := th.App.BurnPost(th.Context, post, th.BasicUser2.Id, "")
+		require.Nil(t, appErr)
+
+		// Verify receipt ExpireAt is updated to current time
+		receipt, err := th.App.Srv().Store().ReadReceipt().Get(th.Context, post.Id, th.BasicUser2.Id)
+		require.NoError(t, err)
+		require.LessOrEqual(t, receipt.ExpireAt, model.GetMillis())
+	})
+}
+
+func TestGetFlaggedPostsWithExpiredBurnOnRead(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
+	t.Cleanup(func() {
+		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
+	})
+
+	th := Setup(t).InitBasic(t)
+
+	// Create a second user for testing
+	user2 := th.CreateUser(t)
+	th.LinkUserToTeam(t, user2, th.BasicTeam)
+	th.AddUserToChannel(t, user2, th.BasicChannel)
+
+	t.Run("expired burn-on-read post should not be returned in flagged posts", func(t *testing.T) {
+		enableBoRFeature(th)
+
+		// Create a burn-on-read post
+		borPost := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "burn on read message",
+			Type:      model.PostTypeBurnOnRead,
+		}
+		borPost.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(10*1000)) // 10 seconds
+
+		createdPost, appErr := th.App.CreatePost(th.Context, borPost, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+		require.NotNil(t, createdPost)
+
+		// User2 reveals the post
+		revealedPost, appErr := th.App.RevealPost(th.Context, createdPost, user2.Id, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, revealedPost)
+
+		// User2 saves/flags the post
+		preference := model.Preference{
+			UserId:   user2.Id,
+			Category: model.PreferenceCategoryFlaggedPost,
+			Name:     createdPost.Id,
+			Value:    "true",
+		}
+		err := th.App.Srv().Store().Preference().Save(model.Preferences{preference})
+		require.NoError(t, err)
+
+		// Verify post appears in flagged posts before expiration
+		flaggedPosts, appErr := th.App.GetFlaggedPosts(th.Context, user2.Id, 0, 10)
+		require.Nil(t, appErr)
+		require.NotNil(t, flaggedPosts)
+		require.Contains(t, flaggedPosts.Order, createdPost.Id)
+		require.NotNil(t, flaggedPosts.Posts[createdPost.Id])
+
+		// Simulate expiration by updating the receipt's ExpireAt to the past
+		receipt, err := th.App.Srv().Store().ReadReceipt().Get(th.Context, createdPost.Id, user2.Id)
+		require.NoError(t, err)
+		require.NotNil(t, receipt)
+
+		receipt.ExpireAt = model.GetMillis() - 1000 // 1 second in the past
+		_, err = th.App.Srv().Store().ReadReceipt().Update(th.Context, receipt)
+		require.NoError(t, err)
+
+		// Get flagged posts again - expired post should be filtered out
+		flaggedPosts, appErr = th.App.GetFlaggedPosts(th.Context, user2.Id, 0, 10)
+		require.Nil(t, appErr)
+		require.NotNil(t, flaggedPosts)
+		require.NotContains(t, flaggedPosts.Order, createdPost.Id, "Expired burn-on-read post should not be in flagged posts")
+		require.Nil(t, flaggedPosts.Posts[createdPost.Id], "Expired burn-on-read post should not be in posts map")
+	})
+
+	t.Run("expired burn-on-read post should not be returned in flagged posts for team", func(t *testing.T) {
+		enableBoRFeature(th)
+
+		// Create a burn-on-read post
+		borPost := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "burn on read team message",
+			Type:      model.PostTypeBurnOnRead,
+		}
+		borPost.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(10*1000))
+
+		createdPost, appErr := th.App.CreatePost(th.Context, borPost, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		// User2 reveals and flags the post
+		revealedPost, appErr := th.App.RevealPost(th.Context, createdPost, user2.Id, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, revealedPost)
+
+		preference := model.Preference{
+			UserId:   user2.Id,
+			Category: model.PreferenceCategoryFlaggedPost,
+			Name:     createdPost.Id,
+			Value:    "true",
+		}
+		err := th.App.Srv().Store().Preference().Save(model.Preferences{preference})
+		require.NoError(t, err)
+
+		// Expire the receipt
+		receipt, err := th.App.Srv().Store().ReadReceipt().Get(th.Context, createdPost.Id, user2.Id)
+		require.NoError(t, err)
+		receipt.ExpireAt = model.GetMillis() - 1000
+		_, err = th.App.Srv().Store().ReadReceipt().Update(th.Context, receipt)
+		require.NoError(t, err)
+
+		// Get flagged posts for team
+		flaggedPosts, appErr := th.App.GetFlaggedPostsForTeam(th.Context, user2.Id, th.BasicTeam.Id, 0, 10)
+		require.Nil(t, appErr)
+		require.NotContains(t, flaggedPosts.Order, createdPost.Id)
+	})
+
+	t.Run("expired burn-on-read post should not be returned in flagged posts for channel", func(t *testing.T) {
+		enableBoRFeature(th)
+
+		// Create a burn-on-read post
+		borPost := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "burn on read channel message",
+			Type:      model.PostTypeBurnOnRead,
+		}
+		borPost.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(10*1000))
+
+		createdPost, appErr := th.App.CreatePost(th.Context, borPost, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		// User2 reveals and flags the post
+		revealedPost, appErr := th.App.RevealPost(th.Context, createdPost, user2.Id, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, revealedPost)
+
+		preference := model.Preference{
+			UserId:   user2.Id,
+			Category: model.PreferenceCategoryFlaggedPost,
+			Name:     createdPost.Id,
+			Value:    "true",
+		}
+		err := th.App.Srv().Store().Preference().Save(model.Preferences{preference})
+		require.NoError(t, err)
+
+		// Expire the receipt
+		receipt, err := th.App.Srv().Store().ReadReceipt().Get(th.Context, createdPost.Id, user2.Id)
+		require.NoError(t, err)
+		receipt.ExpireAt = model.GetMillis() - 1000
+		_, err = th.App.Srv().Store().ReadReceipt().Update(th.Context, receipt)
+		require.NoError(t, err)
+
+		// Get flagged posts for channel
+		flaggedPosts, appErr := th.App.GetFlaggedPostsForChannel(th.Context, user2.Id, th.BasicChannel.Id, 0, 10)
+		require.Nil(t, appErr)
+		require.NotContains(t, flaggedPosts.Order, createdPost.Id)
+	})
+
+	t.Run("non-expired burn-on-read post should appear in flagged posts", func(t *testing.T) {
+		enableBoRFeature(th)
+
+		// Create a burn-on-read post with long expiration
+		borPost := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "burn on read message still valid",
+			Type:      model.PostTypeBurnOnRead,
+		}
+		borPost.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(3600*1000)) // 1 hour
+
+		createdPost, appErr := th.App.CreatePost(th.Context, borPost, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		// User2 reveals and flags the post
+		revealedPost, appErr := th.App.RevealPost(th.Context, createdPost, user2.Id, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, revealedPost)
+
+		preference := model.Preference{
+			UserId:   user2.Id,
+			Category: model.PreferenceCategoryFlaggedPost,
+			Name:     createdPost.Id,
+			Value:    "true",
+		}
+		err := th.App.Srv().Store().Preference().Save(model.Preferences{preference})
+		require.NoError(t, err)
+
+		// Get flagged posts - post should be present
+		flaggedPosts, appErr := th.App.GetFlaggedPosts(th.Context, user2.Id, 0, 10)
+		require.Nil(t, appErr)
+		require.Contains(t, flaggedPosts.Order, createdPost.Id, "Non-expired burn-on-read post should be in flagged posts")
+		require.NotNil(t, flaggedPosts.Posts[createdPost.Id])
+
+		// Verify metadata is populated correctly
+		post := flaggedPosts.Posts[createdPost.Id]
+		require.NotNil(t, post.Metadata)
+		require.NotZero(t, post.Metadata.ExpireAt)
+		require.Greater(t, post.Metadata.ExpireAt, model.GetMillis())
 	})
 }

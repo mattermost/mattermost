@@ -126,7 +126,8 @@
                 display: flex;
                 box-sizing: border-box;
                 flex: 1;
-                padding: 14px 32px;
+                margin: 0 32px;
+                padding: 14px 16px;
                 border: 1px solid rgba(var(--dnd-indicator-rgb), 0.16);
                 margin-bottom: 24px;
                 background: rgba(var(--dnd-indicator-rgb), 0.08);
