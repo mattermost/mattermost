@@ -62,10 +62,6 @@ type AutoTranslationInterface interface {
 	// Returns the language code or error if feature is unavailable.
 	GetUserLanguage(userID, channelID string) (string, *model.AppError)
 
-	// DetectRemote detects the language of the provided content using the remote provider.
-	// Returns error if the feature is unavailable.
-	DetectRemote(ctx context.Context, text string) (string, *float64, *model.AppError)
-
 	// Close cleans up resources used by the auto-translation implementation.
 	// This includes removing the config listener and shutting down the provider if present.
 	Close() error

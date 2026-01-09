@@ -127,6 +127,24 @@ func (_m *AutoTranslationInterface) IsChannelEnabled(channelID string) (bool, *m
 	return r0, r1
 }
 
+// IsFeatureAvailable provides a mock function with no fields
+func (_m *AutoTranslationInterface) IsFeatureAvailable() bool {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsFeatureAvailable")
+	}
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func() bool); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // IsUserEnabled provides a mock function with given fields: channelID, userID
 func (_m *AutoTranslationInterface) IsUserEnabled(channelID string, userID string) (bool, *model.AppError) {
 	ret := _m.Called(channelID, userID)
