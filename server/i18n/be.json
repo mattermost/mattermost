@@ -309,7 +309,7 @@
   },
   {
     "id": "api.admin.add_certificate.parseform.app_error",
-    "translation": "Памылка разбору шматфарматнага запыту"
+    "translation": "Памылка парсінгу multiform-запыту"
   },
   {
     "id": "api.admin.add_certificate.open.app_error",
@@ -317,7 +317,7 @@
   },
   {
     "id": "api.admin.file_read_error",
-    "translation": "Памылка чытання файла часопісу."
+    "translation": "Памылка чытання лог-файла."
   },
   {
     "id": "api.admin.ldap.not_available.app_error",
@@ -617,11 +617,11 @@
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
-    "translation": "Несапраўдны тып зместу."
+    "translation": "Няправільны тып кантэнта."
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
-    "translation": "Адсутнічае тып зместу."
+    "translation": "Адсутнічае тып кантэнта."
   },
   {
     "id": "model.incoming_hook.display_name.app_error",
@@ -7681,7 +7681,7 @@
   },
   {
     "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
-    "translation": "Памылка пры разборы інфармацыі метаданых, атрыманай ад пастаўшчыка ідэнтыфікацыйных даных, для сертыфіката."
+    "translation": "Памылка пры парсінгу інфармацыі метаданых, атрыманай ад пастаўшчыка ідэнтыфікацыйных даных, для сертыфіката."
   },
   {
     "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
@@ -7693,7 +7693,7 @@
   },
   {
     "id": "api.admin.get_brand_image.storage.app_error",
-    "translation": "Захоўванне выяў не наладжана."
+    "translation": "Сховішча выяў не наладжана."
   },
   {
     "id": "api.admin.delete_brand_image.storage.not_found",
@@ -7701,7 +7701,7 @@
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
-    "translation": "У запыце няма файла з назвай 'certificate'."
+    "translation": "У запыце адсутнічае файл у полі 'certificate'."
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
@@ -10313,7 +10313,7 @@
   },
   {
     "id": "api.admin.add_certificate.multiple_files.app_error",
-    "translation": "Занадта шмат файлаў у раздзеле 'сертыфікат' у запыце."
+    "translation": "Занадта шмат файлаў для 'certificate' у запыце."
   },
   {
     "id": "api.admin.remove_certificate.app_error",
@@ -10377,11 +10377,11 @@
   },
   {
     "id": "api.access_control_policy.get_channels.limit.app_error",
-    "translation": "Ліміт атрымання каналаў несапраўдны."
+    "translation": "Ліміт на колькасць атрыманых каналаў няправільны."
   },
   {
     "id": "api.access_control_policy.get_fields.limit.app_error",
-    "translation": "Ліміт атрымання палёў несапраўдны."
+    "translation": "Ліміт на колькасць атрыманых палёў няправільны."
   },
   {
     "id": "api.channel.add_user.to.channel.rejected",
@@ -11666,5 +11666,21 @@
   {
     "id": "app.content_flagging.search_property_values.app_error",
     "translation": "Не атрымалася атрымаць значэнні ўласцівасцей flagowania treści posta з базы дадзеных."
+  },
+  {
+    "id": "app.scheduled_post.failed_messages",
+    "translation": {
+      "few": "Не ўдалося адправіць {{.Count}} запланаваных допіса.",
+      "many": "Не ўдалося адправіць {{.Count}} запланаваных допісаў.",
+      "one": "Не ўдалося адправіць {{.Count}} запланаваны допіс."
+    }
+  },
+  {
+    "id": "app.scheduled_post.failed_message_detail",
+    "translation": {
+      "few": "- {{.Count}} ў канале {{.ChannelName}}. Прычына: {{.ErrorReason}}",
+      "many": "- {{.Count}} у канале {{.ChannelName}}. Прычына: {{.ErrorReason}}",
+      "one": "- {{.Count}} у канале {{.ChannelName}}. Прычына: {{.ErrorReason}}"
+    }
   }
 ]
