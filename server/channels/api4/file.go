@@ -84,7 +84,10 @@ func runFileWillBeDownloadedHook(app *app.App, pluginContext *plugin.Context, fi
 	select {
 	case <-done:
 		// Hook completed normally
-		rejectionReasonString := rejectionReason.Load().(string)
+		rejectionReasonString := ""
+		if loaded := rejectionReason.Load(); loaded != nil {
+			rejectionReasonString = loaded.(string)
+		}
 		if rejectionReasonString != "" {
 			// Send websocket event to notify user of rejection
 			sendFileDownloadRejectedEvent(app, fileInfo, userID, rejectionReasonString, downloadType)
