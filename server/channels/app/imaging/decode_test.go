@@ -115,6 +115,22 @@ func TestDecoderDecode(t *testing.T) {
 	})
 }
 
+func TestPSDNotSupported(t *testing.T) {
+	// MM-67077: PSD preview support removed due to memory management vulnerabilities
+	// in the oov/psd package. PSD files can still be uploaded as attachments,
+	// but the image decoder will not generate previews/thumbnails for them.
+	d, err := NewDecoder(DecoderOptions{})
+	require.NotNil(t, d)
+	require.NoError(t, err)
+
+	// PSD file header magic bytes: "8BPS" followed by version (0x0001 for PSD)
+	psdHeader := []byte("8BPS\x00\x01")
+	_, _, err = d.Decode(bytes.NewReader(psdHeader))
+
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "unknown format")
+}
+
 func TestDecoderDecodeMemBounded(t *testing.T) {
 	t.Run("concurrency bounded", func(t *testing.T) {
 		d, err := NewDecoder(DecoderOptions{
