@@ -1,14 +1,22 @@
-# E2E Test Workflow Architecture
+# E2E Test Workflow For PR
 
-This document describes the architecture of the E2E test workflows for Mattermost.
+This document describes the E2E test workflow for Pull Requests in Mattermost.
 
 ## Overview
 
-The E2E test system uses a **smoke-then-full** pattern where smoke tests run first as a gate. If smoke tests fail, full tests are skipped to save CI resources and provide fast feedback.
+This is an **automated workflow** that runs smoke-then-full E2E tests automatically for every PR commit. Smoke tests run first as a gate—if they fail, full tests are skipped to save CI resources and provide fast feedback.
 
 Both Cypress and Playwright test suites run **in parallel** with independent status checks.
 
 **Note**: This workflow is designed for **Pull Requests only**. It will fail if the commit SHA is not associated with an open PR.
+
+### On-Demand Testing
+
+For on-demand E2E testing, the existing triggers still work:
+- **Comment triggers**: `/e2e-test`, `/e2e-test fips`, or with `MM_ENV` parameters
+- **Label trigger**: `E2E/Run`
+
+These manual triggers are separate from this automated workflow and can be used for custom test configurations or re-runs.
 
 ## Workflow Files
 
@@ -48,10 +56,11 @@ Both Cypress and Playwright test suites run **in parallel** with independent sta
 │                                 │   │                                 │
 │  Inputs:                        │   │  Inputs:                        │
 │  • commit_sha                   │   │  • commit_sha                   │
-│  • workers_number: "20"         │   │  • pr_number (required for full)│
+│  • workers_number: "20"         │   │  • workers_number: "1" (default)│
 │  • server: "onprem"             │   │  • server: "onprem"             │
 │  • enable_reporting: true       │   │  • enable_reporting: true       │
 │  • report_type: "PR"            │   │  • report_type: "PR"            │
+│  • pr_number                    │   │  • pr_number (required for full)│
 └─────────────────────────────────┘   └─────────────────────────────────┘
 ```
 
@@ -198,22 +207,15 @@ Each workflow phase creates its own GitHub commit status check:
 - **sortFirst**: Runs long-running test groups early for better parallelization
 - **sortLast**: Runs tests that may affect system state at the end
 
-## Tagging Tests
+## Tagging Smoke Tests
 
 ### Cypress
 
 Add `@smoke` to the Group comment at the top of spec files:
 
 ```javascript
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 // Stage: @prod
 // Group: @channels @messaging @smoke
-
-describe('Critical messaging flow', () => {
-    // ...
-});
 ```
 
 ### Playwright
@@ -232,6 +234,17 @@ test('critical login flow', {tag: ['@smoke', '@login']}, async ({pw}) => {
 |-----------|---------------|--------------|
 | **Cypress** | 1 | 20 |
 | **Playwright** | 1 | 1 (uses internal parallelism via `PW_WORKERS`) |
+
+## Docker Services
+
+Different test phases enable different Docker services based on test requirements:
+
+| Test Phase | Docker Services |
+|------------|-----------------|
+| Smoke Tests | `postgres inbucket` |
+| Full Tests | `postgres inbucket minio openldap elasticsearch keycloak` |
+
+Full tests enable additional services to support tests requiring LDAP, Elasticsearch, S3-compatible storage (Minio), and SAML/OAuth (Keycloak).
 
 ## Failure Behavior
 
@@ -256,21 +269,6 @@ gh workflow run e2e-tests-ci.yml -f commit_sha=<PR_COMMIT_SHA>
 ## Automated Trigger (Argo Events)
 
 The workflow is automatically triggered by Argo Events when the `Enterprise CI/docker-image` status check succeeds on a commit.
-
-### Trigger Configuration
-
-```yaml
-# Argo Events Sensor listens for:
-filters:
-  - body.context: "Enterprise CI/docker-image"
-  - body.state: "success"
-  - body.repository.full_name: "mattermost/mattermost"
-
-# Payload sent to workflow_dispatch:
-payload:
-  ref: body.branches.0.name    # Fallback: master (for fork PRs)
-  inputs.commit_sha: body.sha  # Commit SHA from status event
-```
 
 ### Fork PR Handling
 
@@ -308,14 +306,15 @@ Playwright test results are uploaded to S3:
 
 | Test Phase | S3 Path |
 |------------|---------|
-| Smoke | `server-pr-{PR_NUMBER}/e2e-reports/playwright-smoke/{RUN_ID}/` |
+| Smoke (with PR) | `server-pr-{PR_NUMBER}/e2e-reports/playwright-smoke/{RUN_ID}/` |
+| Smoke (no PR) | `server-commit-{SHA7}/e2e-reports/playwright-smoke/{RUN_ID}/` |
 | Full | `server-pr-{PR_NUMBER}/e2e-reports/playwright-full/{RUN_ID}/` |
 
-Reports are publicly accessible at:
-`https://mattermost-cypress-report.s3.amazonaws.com/{S3_PATH}/results/reporter/index.html`
+**Note**: Full tests require a PR number, so there's no commit-based fallback for full test reports.
 
 ## Related Files
 
 - `e2e-tests/cypress/` - Cypress test suite
 - `e2e-tests/playwright/` - Playwright test suite
 - `e2e-tests/.ci/` - CI configuration and environment files
+- `e2e-tests/Makefile` - Main Makefile with targets for running tests, generating cycles, and reporting
