@@ -120,6 +120,21 @@ const DateTimeInputContainer: React.FC<Props> = ({
         };
     }, [handleKeyDown]);
 
+    // Auto-round time if it's not already on an interval boundary
+    // This ensures consistent behavior across all callers (DND, Custom Status, Post Reminder, etc.)
+    // Uses default 30-minute interval if not specified
+    useEffect(() => {
+        if (time) {
+            const interval = timePickerInterval || CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES;
+            const rounded = getRoundedTime(time, interval);
+
+            // Only update if the time actually needs rounding
+            if (!rounded.isSame(time, 'minute')) {
+                handleChange(rounded);
+            }
+        }
+    }, [time, timePickerInterval, handleChange]);
+
     const setTimeAndOptions = () => {
         const currentTime = getCurrentMomentForTimezone(timezone);
         let startTime = moment(time).startOf('day');

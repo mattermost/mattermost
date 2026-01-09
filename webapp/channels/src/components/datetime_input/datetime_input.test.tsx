@@ -272,4 +272,58 @@ describe('components/datetime_input/DateTimeInput', () => {
             expect(props.time).toBeDefined();
         });
     });
+
+    describe('auto-rounding behavior', () => {
+        it('should auto-round time to interval boundary on mount', () => {
+            const handleChange = jest.fn();
+            const unroundedTime = moment('2025-06-08T14:17:00Z'); // 14:17 - not on 30-min boundary
+
+            renderWithContext(
+                <DateTimeInput
+                    time={unroundedTime}
+                    handleChange={handleChange}
+                    timePickerInterval={30}
+                />,
+            );
+
+            // Should auto-round 14:17 to 14:30 and call handleChange
+            expect(handleChange).toHaveBeenCalledTimes(1);
+            const roundedTime = handleChange.mock.calls[0][0];
+            expect(roundedTime.minute()).toBe(30);
+        });
+
+        it('should not call handleChange if time is already rounded', () => {
+            const handleChange = jest.fn();
+            const roundedTime = moment('2025-06-08T14:30:00Z'); // Already on 30-min boundary
+
+            renderWithContext(
+                <DateTimeInput
+                    time={roundedTime}
+                    handleChange={handleChange}
+                    timePickerInterval={30}
+                />,
+            );
+
+            // Should not call handleChange since time is already rounded
+            expect(handleChange).not.toHaveBeenCalled();
+        });
+
+        it('should use 30-minute default interval when prop not provided', () => {
+            const handleChange = jest.fn();
+            const unroundedTime = moment('2025-06-08T14:17:00Z');
+
+            renderWithContext(
+                <DateTimeInput
+                    time={unroundedTime}
+                    handleChange={handleChange}
+                    // No timePickerInterval prop - should use 30-min default
+                />,
+            );
+
+            // Should round using default 30-min interval
+            expect(handleChange).toHaveBeenCalledTimes(1);
+            const roundedTime = handleChange.mock.calls[0][0];
+            expect(roundedTime.minute()).toBe(30); // 14:17 -> 14:30
+        });
+    });
 });
