@@ -24,12 +24,16 @@
     "codegen": "npm run build && cross-env playwright codegen $PW_BASE_URL",
     "playwright-ui": "npm run build && cross-env playwright test --ui",
     "show-report": "npm run build && npx playwright show-report results/reporter",
-    "clean": "rm -rf dist node_modules package-lock.json *.tsbuildinfo logs results storage_state test-results && npm run clean --workspaces"
+    "clean": "rm -rf dist node_modules package-lock.json *.tsbuildinfo logs results storage_state test-results && npm run clean --workspaces",
+    "zephyr:create": "npx ts-node zephyr-helpers/create-test-cases.ts",
+    "zephyr:sync": "npx ts-node zephyr-helpers/sync-e2e-to-zephyr.ts",
+    "zephyr:update": "npx ts-node zephyr-helpers/update-zephyr-automation.ts"
   },
   "dependencies": {
     "@mattermost/client": "file:../../webapp/platform/client",
     "@mattermost/playwright-lib": "*",
-    "@mattermost/types": "file:../../webapp/platform/types"
+    "@mattermost/types": "file:../../webapp/platform/types",
+    "dotenv": "^17.2.3"
   },
   "devDependencies": {
     "@playwright/test": "1.56.0",
@@ -44,6 +48,7 @@
     "glob": "11.0.3",
     "luxon": "3.7.2",
     "prettier": "3.6.2",
+    "ts-node": "^10.9.2",
     "typescript": "5.9.3",
     "zod": "4.1.12"
   }

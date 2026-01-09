@@ -11,6 +11,9 @@ test/specs/**/*-window.png
 test/specs/accessibility/**/*-snapshots
 test/.eslintcache
 
+# Ignore all .md files under specs/
+specs/**/*.md
+
 # build
 dist
 *.tsbuildinfo
