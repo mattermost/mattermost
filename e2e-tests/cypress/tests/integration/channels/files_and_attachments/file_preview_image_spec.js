@@ -92,17 +92,9 @@ describe('Upload Files - Image', () => {
         testImage(properties);
     });
 
-    it('MM-T2264_6 - PSD', () => {
-        const properties = {
-            filePath: 'mm_file_testing/Images/PSD.psd',
-            fileName: 'PSD.psd',
-            originalWidth: 400,
-            originalHeight: 479,
-            mimeType: 'application/psd',
-        };
-
-        testImage(properties);
-    });
+    // MM-T2264_6 - PSD test removed (MM-67077)
+    // PSD preview support was removed due to memory vulnerability in oov/psd package
+    // PSD files are now treated as generic file attachments
 
     it('MM-T2264_7 - WEBP', () => {
         const properties = {
