@@ -11,6 +11,11 @@ export default class SystemConsolePage {
     readonly sidebar;
     readonly navbar;
 
+    // Site Configuration
+
+    // System Console > Notifications
+    readonly notifications;
+
     /**
      * System Console -> User Management -> Users
      */
@@ -33,6 +38,12 @@ export default class SystemConsolePage {
 
     constructor(page: Page) {
         this.page = page;
+
+        // Site Configuration
+        // System Console > Notifications
+        this.notifications = new components.SystemConsoleNotifications(
+            page.getByTestId('sysconsole_section_notifications'),
+        );
 
         // Areas of the page
         this.navbar = new components.SystemConsoleNavbar(page.locator('.backstage-navbar'));
@@ -84,5 +95,9 @@ export default class SystemConsolePage {
 
     async clickResetButton() {
         await this.saveChangesModal.container.locator('button.btn-primary:has-text("Reset")').click();
+    }
+
+    async clickUpdateEmailButton() {
+        await this.saveChangesModal.container.locator('button.btn-primary:has-text("Update")').click();
     }
 }

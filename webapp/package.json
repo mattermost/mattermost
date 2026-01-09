@@ -2,8 +2,8 @@
   "name": "@mattermost/webapp",
   "private": true,
   "engines": {
-    "node": ">=24.11.0",
-    "npm": "^11.0.0"
+    "node": "^20 || ^22 || ^24",
+    "npm": "^10 || ^11"
   },
   "scripts": {
     "postinstall": "patch-package && npm run build --workspace=platform/types --workspace=platform/client --workspace=platform/components",

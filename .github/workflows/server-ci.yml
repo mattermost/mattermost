@@ -40,7 +40,7 @@ jobs:
     name: Check mocks
     needs: go
     runs-on: ubuntu-22.04
-    container: mattermostdevelopment/mattermost-build-server:${{ needs.go.outputs.version }}
+    container: mattermost/mattermost-build-server:${{ needs.go.outputs.version }}
     defaults:
       run:
         working-directory: server
@@ -57,7 +57,7 @@ jobs:
     name: Check go mod tidy
     needs: go
     runs-on: ubuntu-22.04
-    container: mattermostdevelopment/mattermost-build-server:${{ needs.go.outputs.version }}
+    container: mattermost/mattermost-build-server:${{ needs.go.outputs.version }}
     defaults:
       run:
         working-directory: server
@@ -74,7 +74,7 @@ jobs:
     name: check-style
     needs: go
     runs-on: ubuntu-22.04
-    container: mattermostdevelopment/mattermost-build-server:${{ needs.go.outputs.version }}
+    container: mattermost/mattermost-build-server:${{ needs.go.outputs.version }}
     defaults:
       run:
         working-directory: server
@@ -91,7 +91,7 @@ jobs:
     name: Check serialization methods for hot structs
     needs: go
     runs-on: ubuntu-22.04
-    container: mattermostdevelopment/mattermost-build-server:${{ needs.go.outputs.version }}
+    container: mattermost/mattermost-build-server:${{ needs.go.outputs.version }}
     defaults:
       run:
         working-directory: server
@@ -108,7 +108,7 @@ jobs:
     name: Vet API
     needs: go
     runs-on: ubuntu-22.04
-    container: mattermostdevelopment/mattermost-build-server:${{ needs.go.outputs.version }}
+    container: mattermost/mattermost-build-server:${{ needs.go.outputs.version }}
     defaults:
       run:
         working-directory: server
@@ -123,7 +123,7 @@ jobs:
     name: Check migration files
     needs: go
     runs-on: ubuntu-22.04
-    container: mattermostdevelopment/mattermost-build-server:${{ needs.go.outputs.version }}
+    container: mattermost/mattermost-build-server:${{ needs.go.outputs.version }}
     defaults:
       run:
         working-directory: server
@@ -138,7 +138,7 @@ jobs:
     name: Generate email templates
     needs: go
     runs-on: ubuntu-22.04
-    container: mattermostdevelopment/mattermost-build-server:${{ needs.go.outputs.version }}
+    container: mattermost/mattermost-build-server:${{ needs.go.outputs.version }}
     defaults:
       run:
         working-directory: server
@@ -155,7 +155,7 @@ jobs:
     name: Check store layers
     needs: go
     runs-on: ubuntu-22.04
-    container: mattermostdevelopment/mattermost-build-server:${{ needs.go.outputs.version }}
+    container: mattermost/mattermost-build-server:${{ needs.go.outputs.version }}
     defaults:
       run:
         working-directory: server
@@ -172,7 +172,7 @@ jobs:
     name: Check mmctl docs
     needs: go
     runs-on: ubuntu-22.04
-    container: mattermostdevelopment/mattermost-build-server:${{ needs.go.outputs.version }}
+    container: mattermost/mattermost-build-server:${{ needs.go.outputs.version }}
     defaults:
       run:
         working-directory: server
@@ -271,7 +271,7 @@ jobs:
     name: Build mattermost server app
     needs: go
     runs-on: ubuntu-22.04
-    container: mattermostdevelopment/mattermost-build-server:${{ needs.go.outputs.version }}
+    container: mattermost/mattermost-build-server:${{ needs.go.outputs.version }}
     defaults:
       run:
         working-directory: server
