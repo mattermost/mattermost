@@ -152,19 +152,19 @@ TEMPLATES_DIR=templates
 
 # Plugins Packages
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
-PLUGIN_PACKAGES += mattermost-plugin-calls-v1.10.0
+PLUGIN_PACKAGES += mattermost-plugin-calls-v1.11.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.10.0
-PLUGIN_PACKAGES += mattermost-plugin-jira-v4.3.0
+PLUGIN_PACKAGES += mattermost-plugin-jira-v4.5.0
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.4.2
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
-PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.8.0
+PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.11.0
 PLUGIN_PACKAGES += mattermost-plugin-agents-v1.3.1
 PLUGIN_PACKAGES += mattermost-plugin-boards-v9.2.2
 PLUGIN_PACKAGES += mattermost-plugin-msteams-v2.2.2
 PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.3.4
-PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.2.0
+PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.3.0
 PLUGIN_PACKAGES += mattermost-plugin-metrics-v0.7.0
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.2.1
 

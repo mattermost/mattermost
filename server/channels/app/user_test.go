@@ -9,6 +9,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -2482,5 +2483,86 @@ func TestRemoteUserDirectChannelCreation(t *testing.T) {
 		assert.NotNil(t, channel)
 		assert.Nil(t, appErr)
 		assert.Equal(t, model.ChannelTypeDirect, channel.Type)
+	})
+}
+
+func TestConsumeTokenOnce(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("successfully consume valid token", func(t *testing.T) {
+		token := model.NewToken(model.TokenTypeOAuth, "extra-data")
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		consumedToken, appErr := th.App.ConsumeTokenOnce(model.TokenTypeOAuth, token.Token)
+		require.Nil(t, appErr)
+		require.NotNil(t, consumedToken)
+		assert.Equal(t, token.Token, consumedToken.Token)
+		assert.Equal(t, model.TokenTypeOAuth, consumedToken.Type)
+		assert.Equal(t, "extra-data", consumedToken.Extra)
+
+		_, err := th.App.Srv().Store().Token().GetByToken(token.Token)
+		require.Error(t, err)
+	})
+
+	t.Run("token not found returns 404", func(t *testing.T) {
+		nonExistentToken := model.NewRandomString(model.TokenSize)
+
+		consumedToken, appErr := th.App.ConsumeTokenOnce(model.TokenTypeOAuth, nonExistentToken)
+		require.NotNil(t, appErr)
+		require.Nil(t, consumedToken)
+		assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
+		assert.Equal(t, "ConsumeTokenOnce", appErr.Where)
+	})
+
+	t.Run("wrong token type returns not found", func(t *testing.T) {
+		token := model.NewToken(model.TokenTypeOAuth, "extra-data")
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+		defer func() {
+			_ = th.App.Srv().Store().Token().Delete(token.Token)
+		}()
+
+		consumedToken, appErr := th.App.ConsumeTokenOnce(model.TokenTypeSaml, token.Token)
+		require.NotNil(t, appErr)
+		require.Nil(t, consumedToken)
+		assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
+
+		_, err := th.App.Srv().Store().Token().GetByToken(token.Token)
+		require.NoError(t, err)
+	})
+
+	t.Run("token can only be consumed once", func(t *testing.T) {
+		token := model.NewToken(model.TokenTypeSSOCodeExchange, "extra-data")
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		consumedToken1, appErr := th.App.ConsumeTokenOnce(model.TokenTypeSSOCodeExchange, token.Token)
+		require.Nil(t, appErr)
+		require.NotNil(t, consumedToken1)
+
+		consumedToken2, appErr := th.App.ConsumeTokenOnce(model.TokenTypeSSOCodeExchange, token.Token)
+		require.NotNil(t, appErr)
+		require.Nil(t, consumedToken2)
+		assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
+	})
+
+	t.Run("empty token string returns not found", func(t *testing.T) {
+		consumedToken, appErr := th.App.ConsumeTokenOnce(model.TokenTypeOAuth, "")
+		require.NotNil(t, appErr)
+		require.Nil(t, consumedToken)
+		assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
+	})
+
+	t.Run("empty token type returns not found", func(t *testing.T) {
+		token := model.NewToken(model.TokenTypeOAuth, "extra-data")
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+		defer func() {
+			_ = th.App.Srv().Store().Token().Delete(token.Token)
+		}()
+
+		consumedToken, appErr := th.App.ConsumeTokenOnce("", token.Token)
+		require.NotNil(t, appErr)
+		require.Nil(t, consumedToken)
+		assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
 	})
 }

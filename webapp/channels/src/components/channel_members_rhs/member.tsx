@@ -38,10 +38,10 @@ const Member = ({channel, member, index, totalUsers, editing, actions}: Props) =
 
     // Fetch remote info when component mounts for remote users
     useEffect(() => {
-        if (member.user.remote_id && !member.remoteDisplayName) {
+        if (member.user.remote_id) {
             actions.fetchRemoteClusterInfo(member.user.remote_id);
         }
-    }, [member.user.remote_id, member.remoteDisplayName, actions.fetchRemoteClusterInfo]);
+    }, [member.user.remote_id]);
 
     const userProfileSrc = Client4.getProfilePictureUrl(member.user.id, member.user.last_picture_update);
 

@@ -1076,40 +1076,79 @@ func TestCleanUp(t *testing.T) {
 	require.NotNil(t, ds)
 	defer ds.Close()
 
-	dbs, ok := ds.backingStore.(*DatabaseStore)
-	require.True(t, ok, "should be a DatabaseStore instance")
+	t.Run("should keep last 5 configurations regardless", func(t *testing.T) {
+		dbs, ok := ds.backingStore.(*DatabaseStore)
+		require.True(t, ok, "should be a DatabaseStore instance")
 
-	b, err := marshalConfig(ds.config)
-	require.NoError(t, err)
+		b, err := marshalConfig(ds.config)
+		require.NoError(t, err)
 
-	ds.config.JobSettings.CleanupConfigThresholdDays = model.NewPointer(30) // we set 30 days as threshold
+		ds.config.JobSettings.CleanupConfigThresholdDays = model.NewPointer(30) // we set 30 days as threshold
 
-	now := time.Now()
-	for i := range 5 {
-		// 20 days, we expect to remove at least 3 configuration values from the store
-		// first 2 (0 and 1) will be within a month constraint, others will be older than
-		// a month hence we expect 3 configurations to be removed from the database.
-		m := -1 * i * 24 * 20
+		var initialCount int
+		row := dbs.db.QueryRow("SELECT COUNT(*) FROM Configurations")
+		err = row.Scan(&initialCount)
+		require.NoError(t, err)
+		require.Less(t, initialCount, 5, "should have less than 5 configurations before test")
+
+		now := time.Now()
+		for i := range 10 {
+			// we are simulating that each config was created 40 days apart
+			// so all but last 5 should be deleted
+			m := -1 * i * 24 * 40
+			params := map[string]any{
+				"id":        model.NewId(),
+				"value":     string(b),
+				"create_at": model.GetMillisForTime(now.Add(time.Duration(m) * time.Hour)),
+			}
+
+			_, err = dbs.db.NamedExec("INSERT INTO Configurations (Id, Value, CreateAt) VALUES (:id, :value, :create_at)", params)
+			require.NoError(t, err)
+		}
+		var beforeCleanup int
+		row = dbs.db.QueryRow("SELECT COUNT(*) FROM Configurations")
+		err = row.Scan(&beforeCleanup)
+		require.NoError(t, err)
+		require.Equal(t, 10+initialCount, beforeCleanup, "should have more than 10 configurations before cleanup")
+
+		err = ds.CleanUp()
+		require.NoError(t, err)
+
+		var count int
+		row = dbs.db.QueryRow("SELECT COUNT(*) FROM Configurations")
+		err = row.Scan(&count)
+		require.NoError(t, err)
+		require.Equal(t, 5, count, "should have only 5 configurations left")
+	})
+
+	t.Run("should keep the active configuration regardless", func(t *testing.T) {
+		b, err := marshalConfig(ds.config)
+		require.NoError(t, err)
+
+		dbs, ok := ds.backingStore.(*DatabaseStore)
+		require.True(t, ok, "should be a DatabaseStore instance")
+
+		// remove all other configurations
+		_, err = dbs.db.Exec("DELETE FROM Configurations")
+		require.NoError(t, err)
+
 		params := map[string]any{
-			"id":        model.NewId(),
-			"value":     string(b),
-			"create_at": model.GetMillisForTime(now.Add(time.Duration(m) * time.Hour)),
+			"id":    model.NewId(),
+			"value": string(b),
+			// we set the create_at to 100 days ago so it wouldn't be deleted if it is active
+			"create_at": model.GetMillisForTime(time.Now().Add(time.Duration(-1*100*24) * time.Hour)),
 		}
 
 		_, err = dbs.db.NamedExec("INSERT INTO Configurations (Id, Value, CreateAt) VALUES (:id, :value, :create_at)", params)
 		require.NoError(t, err)
-	}
-	var initialCount int
-	row := dbs.db.QueryRow("SELECT COUNT(*) FROM Configurations")
-	err = row.Scan(&initialCount)
-	require.NoError(t, err)
 
-	err = ds.CleanUp()
-	require.NoError(t, err)
+		err = ds.CleanUp()
+		require.NoError(t, err)
 
-	var count int
-	row = dbs.db.QueryRow("SELECT COUNT(*) FROM Configurations")
-	err = row.Scan(&count)
-	require.NoError(t, err)
-	require.True(t, count+3 == initialCount)
+		var count int
+		row := dbs.db.QueryRow("SELECT COUNT(*) FROM Configurations")
+		err = row.Scan(&count)
+		require.NoError(t, err)
+		require.Equal(t, 1, count, "should have only 1 configuration left")
+	})
 }
