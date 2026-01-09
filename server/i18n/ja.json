@@ -10798,6 +10798,10 @@
     "translation": "コンテントフラグ機能はこのチームで有効化されていません。"
   },
   {
+    "id": "api.content_flagging.error.not_available_on_team_test",
+    "translation": "コンテントフラグ機能はこのチームで有効化されていません。"
+  },
+  {
     "id": "api.content_flagging.error.post_not_in_progress",
     "translation": "フラグの立てられた投稿を保持または削除するには、保留またはアサイン状態でなくてはなりません。"
   },

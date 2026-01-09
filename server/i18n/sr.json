@@ -24,6 +24,10 @@
     "translation": "Greška pri uvozu objave. Korisnik sa korisničkim imenom „{{.Username}}“ nije pronađen."
   },
   {
+    "id": "app.import.import_post.user_not_found_test.error",
+    "translation": "Greška pri uvozu objave. Korisnik sa korisničkim imenom „{{.Username}}“ nije pronađen."
+  },
+  {
     "id": "app.import.import_post.save_preferences.error",
     "translation": "Грешка при увозу објаве. Нисам успео да сачувам поставке."
   },
@@ -1121,6 +1125,14 @@
   },
   {
     "id": "app.scheduled_post.failed_message_detail",
+    "translation": {
+      "few": "- {{.Count}} u kanalu {{.ChannelName}}. Razlozi: {{.ErrorReason}}",
+      "one": "- {{.Count}} u kanalu {{.ChannelName}}. Razlog: {{.ErrorReason}}",
+      "other": "- {{.Count}} u kanalu {{.ChannelName}}. Razlozi: {{.ErrorReason}}"
+    }
+  },
+  {
+    "id": "app.scheduled_post.failed_message_detail_test",
     "translation": {
       "few": "- {{.Count}} u kanalu {{.ChannelName}}. Razlozi: {{.ErrorReason}}",
       "one": "- {{.Count}} u kanalu {{.ChannelName}}. Razlog: {{.ErrorReason}}",
