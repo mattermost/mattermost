@@ -4601,7 +4601,6 @@
   "guest_magic_link.success.description": "Check your email for a magic link to log in without a password.",
   "guest_magic_link.success.expiry": "The link expires in five minutes.",
   "guest_magic_link.success.title": "Magic link sent to your email",
-  "help_popout.title": "Help - {serverName}",
   "help.attaching.download.description": "Download an attached file by selecting the Download icon next to the file thumbnail, or by opening the file previewer and selecting <b>Download</b>.",
   "help.attaching.download.title": "Download Files",
   "help.attaching.drag.description": "Upload a file, or a selection of files, by dragging the files from your computer into the right-hand sidebar or center pane. Dragging and dropping attaches the files to the message input box, then you can optionally type a message and press ENTER to post the message.",
