@@ -1,20 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
-import {Provider} from 'react-redux';
-
-import {GenericModal} from '@mattermost/components';
 
 import ThreeDaysLeftTrialModal from 'components/three_days_left_trial_modal/three_days_left_trial_modal';
 
 import TestHelper from 'packages/mattermost-redux/test/test_helper';
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import mockStore from 'tests/test_store';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 describe('components/three_days_left_trial_modal/three_days_left_trial_modal', () => {
-    // required state to mount using the provider
     const user = TestHelper.fakeUserWithId();
 
     const profiles = {
@@ -73,70 +67,90 @@ describe('components/three_days_left_trial_modal/three_days_left_trial_modal', (
         },
     };
 
-    const props = {
+    const defaultProps = {
         onExited: jest.fn(),
         limitsOverpassed: false,
     };
 
-    const store = mockStore(state);
-
-    test('should match snapshot', () => {
-        const wrapper = shallow(
-            <Provider store={store}>
-                <ThreeDaysLeftTrialModal {...props}/>
-            </Provider>,
-        );
-        expect(wrapper.debug()).toMatchSnapshot();
+    beforeEach(() => {
+        jest.clearAllMocks();
     });
 
-    test('should match snapshot when limits are overpassed and show the limits panel', () => {
-        const wrapper = shallow(
-            <Provider store={store}>
-                <ThreeDaysLeftTrialModal
-                    {...props}
-                    limitsOverpassed={true}
-                />
-            </Provider>,
-        );
-        expect(wrapper.debug()).toMatchSnapshot();
-    });
-
-    test('should show the three days left modal with the three cards', () => {
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <ThreeDaysLeftTrialModal {...props}/>
-            </Provider>,
+    test('should render the modal with header, subtitle, feature cards, and view plans button', () => {
+        renderWithContext(
+            <ThreeDaysLeftTrialModal {...defaultProps}/>,
+            state,
         );
 
-        expect(wrapper.find('ThreeDaysLeftTrialModal ThreeDaysLeftTrialCard')).toHaveLength(3);
+        // Header and subtitle
+        expect(screen.getByText('Your trial ends soon')).toBeInTheDocument();
+        expect(screen.getByText('There is still time to explore what our paid plans can help you accomplish.')).toBeInTheDocument();
+
+        // Three feature cards
+        expect(screen.getByText('Single Sign on (with OpenID, SAML, Google, 0365)')).toBeInTheDocument();
+        expect(screen.getByText('Synchronize your Active Directory/LDAP groups')).toBeInTheDocument();
+        expect(screen.getByText('Provide controlled access to the System Console')).toBeInTheDocument();
+
+        // View plans button
+        expect(screen.getByRole('button', {name: 'View plan options'})).toBeInTheDocument();
     });
 
-    test('should show the workspace limits panel when limits are overpassed', () => {
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <ThreeDaysLeftTrialModal
-                    {...props}
-                    limitsOverpassed={true}
-                />
-            </Provider>,
+    test('should show limits overpassed content when limitsOverpassed is true', () => {
+        renderWithContext(
+            <ThreeDaysLeftTrialModal
+                {...defaultProps}
+                limitsOverpassed={true}
+            />,
+            state,
         );
-        expect(wrapper.find('ThreeDaysLeftTrialModal WorkspaceLimitsPanel')).toHaveLength(1);
+
+        // Different header and subtitle
+        expect(screen.getByText('Upgrade before the trial ends')).toBeInTheDocument();
+        expect(screen.getByText('There are 3 days left on your trial. Upgrade to our Professional or Enterprise plan to avoid exceeding your data limits on the Free plan.')).toBeInTheDocument();
+
+        // Shows limits panel instead of feature cards
+        expect(screen.getByText('Limits')).toBeInTheDocument();
+        expect(screen.queryByText('Single Sign on (with OpenID, SAML, Google, 0365)')).not.toBeInTheDocument();
     });
 
-    test('should call on exited', () => {
+    test('should call onExited when modal is closed', async () => {
         const mockOnExited = jest.fn();
 
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <ThreeDaysLeftTrialModal
-                    {...props}
-                    onExited={mockOnExited}
-                />
-            </Provider>,
+        renderWithContext(
+            <ThreeDaysLeftTrialModal
+                {...defaultProps}
+                onExited={mockOnExited}
+            />,
+            state,
         );
 
-        wrapper.find(GenericModal).props().onExited?.();
+        const closeButton = screen.getByLabelText('Close');
+        await userEvent.click(closeButton);
 
-        expect(mockOnExited).toHaveBeenCalled();
+        await waitFor(() => {
+            expect(mockOnExited).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    test('should not render when modal is not open', () => {
+        const closedState = {
+            ...state,
+            views: {
+                modals: {
+                    modalState: {
+                        three_days_left_trial_modal: {
+                            open: false,
+                        },
+                    },
+                },
+            },
+        };
+
+        renderWithContext(
+            <ThreeDaysLeftTrialModal {...defaultProps}/>,
+            closedState,
+        );
+
+        expect(screen.queryByText('Your trial ends soon')).not.toBeInTheDocument();
     });
 });
