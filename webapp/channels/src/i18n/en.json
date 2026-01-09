@@ -1811,7 +1811,7 @@
   "admin.mobileSecurity.secureFilePreviewDescription": "Prevents file downloads, previews, and sharing for most file types, even if {mobileAllowDownloads} is enabled. Allows in-app previews for PDFs, videos, and images only. Files are stored temporarily in the app's cache and cannot be exported or shared.",
   "admin.mobileSecurity.secureFilePreviewTitle": "Enable Secure File Preview Mode:",
   "admin.mobileSecurity.title": "Mobile Security",
-  "admin.nav.administratorsGuide": "Administrator Guide",
+  "admin.nav.administratorsGuide": "Administrator's Guide",
   "admin.nav.commercialSupport": "Commercial Support",
   "admin.nav.menuAriaLabel": "Admin Console Menu",
   "admin.nav.switch": "Team Selection",
