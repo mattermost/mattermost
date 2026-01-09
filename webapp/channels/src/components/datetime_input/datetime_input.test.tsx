@@ -316,6 +316,7 @@ describe('components/datetime_input/DateTimeInput', () => {
                 <DateTimeInput
                     time={unroundedTime}
                     handleChange={handleChange}
+
                     // No timePickerInterval prop - should use 30-min default
                 />,
             );
