@@ -1,9 +1,9 @@
 .UploadLicenseModal {
     .modal-header {
+        min-height: 48px;
+        padding-bottom: 0;
         border-bottom: none !important;
         background: none !important;
-        padding-bottom: 0;
-        min-height: 48px;
 
         button.close {
             span {
@@ -42,8 +42,8 @@
         }
 
         .subtitle {
-            margin-bottom: 16px;
             width: 90%;
+            margin-bottom: 16px;
             color: #3f4350;
             font-size: 14px;
             font-style: normal;

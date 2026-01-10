@@ -1,9 +1,9 @@
 .license-diff-view {
-    margin: 16px 0;
+    overflow: hidden;
     width: 100%;
     border: var(--border-default);
     border-radius: 4px;
-    overflow: hidden;
+    margin: 16px 0;
 
     .diff-table {
         width: 100%;
