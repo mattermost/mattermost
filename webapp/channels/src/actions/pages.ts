@@ -64,24 +64,44 @@ export const GET_PAGES_REQUEST = WikiTypes.GET_PAGES_REQUEST;
 export const GET_PAGES_SUCCESS = WikiTypes.GET_PAGES_SUCCESS;
 export const GET_PAGES_FAILURE = WikiTypes.GET_PAGES_FAILURE;
 
-// Fetch all pages for a wiki
+// Fetch all pages for a wiki (with automatic pagination)
 export function fetchPages(wikiId: string): ActionFuncAsync<Post[]> {
     return async (dispatch, getState) => {
         dispatch({type: GET_PAGES_REQUEST, data: {wikiId}});
 
         try {
-            const pages = await Client4.getPages(wikiId, 0, PageConstants.PAGE_FETCH_LIMIT);
+            // Fetch all pages by paginating until we get fewer results than the limit
+            const allPages: Post[] = [];
+            let offset = 0;
+            const limit = PageConstants.PAGE_FETCH_LIMIT;
+            let hasMore = true;
+
+            while (hasMore) {
+                // eslint-disable-next-line no-await-in-loop
+                const batch = await Client4.getPages(wikiId, offset, limit);
+
+                if (batch && batch.length > 0) {
+                    allPages.push(...batch);
+                }
+
+                // If we got fewer pages than the limit, we've reached the end
+                if (!batch || batch.length < limit) {
+                    hasMore = false;
+                } else {
+                    offset += limit;
+                }
+            }
 
             dispatch({
                 type: GET_PAGES_SUCCESS,
-                data: {wikiId, pages},
+                data: {wikiId, pages: allPages},
             });
 
-            if (pages && pages.length > 0) {
+            if (allPages.length > 0) {
                 const state = getState();
                 const existingPosts = state.entities.posts.posts;
 
-                const postsToDispatch = pages.reduce((acc: Record<string, Post>, page: Post) => {
+                const postsToDispatch = allPages.reduce((acc: Record<string, Post>, page: Post) => {
                     const existingPost = existingPosts[page.id];
 
                     // If page already exists in Redux with content, preserve the content
@@ -106,7 +126,7 @@ export function fetchPages(wikiId: string): ActionFuncAsync<Post[]> {
                 });
             }
 
-            return {data: pages};
+            return {data: allPages};
         } catch (error) {
             handleApiError(error, dispatch, getState);
             dispatch({type: GET_PAGES_FAILURE, data: {wikiId, error}});

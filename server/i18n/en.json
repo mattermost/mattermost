@@ -2843,10 +2843,6 @@
     }
   },
   {
-    "id": "api.post.get_page_ancestors.permissions.app_error",
-    "translation": "You do not have permission to view page ancestors."
-  },
-  {
     "id": "api.post.get_page_children.permissions.app_error",
     "translation": "You do not have permission to view page children."
   },
@@ -5903,6 +5899,10 @@
     "translation": "Wiki not found for page draft move."
   },
   {
+    "id": "app.draft.page_draft_exists.app_error",
+    "translation": "Failed to check if page draft exists."
+  },
+  {
     "id": "app.draft.publish.delete_draft_failed.app_error",
     "translation": "Failed to delete draft after publishing."
   },
@@ -6215,6 +6215,10 @@
     "translation": "Error reading import emoji image file. Emoji with name: \"{{.EmojiName}}\""
   },
   {
+    "id": "app.import.find_page.error",
+    "translation": "Error finding page by import source ID."
+  },
+  {
     "id": "app.import.generate_password.app_error",
     "translation": "Error generating password."
   },
@@ -6295,8 +6299,20 @@
     "translation": "Import data line has type \"emoji\" but the emoji object is null."
   },
   {
+    "id": "app.import.import_line.null_page.error",
+    "translation": "Import data line has type \"page\" but the page object is null."
+  },
+  {
+    "id": "app.import.import_line.null_page_comment.error",
+    "translation": "Import data line has type \"page_comment\" but the page_comment object is null."
+  },
+  {
     "id": "app.import.import_line.null_post.error",
     "translation": "Import data line has type \"post\" but the post object is null."
+  },
+  {
+    "id": "app.import.import_line.null_resolve_wiki_placeholders.error",
+    "translation": "Import data line has type \"resolve_wiki_placeholders\" but the resolve_wiki_placeholders object is null."
   },
   {
     "id": "app.import.import_line.null_role.error",
@@ -6315,8 +6331,56 @@
     "translation": "Import data line has type \"user\" but the user object is null."
   },
   {
+    "id": "app.import.import_line.null_wiki.error",
+    "translation": "Import data line has type \"wiki\" but the wiki object is null."
+  },
+  {
     "id": "app.import.import_line.unknown_line_type.error",
     "translation": "Import data line has unknown type \"{{.Type}}\"."
+  },
+  {
+    "id": "app.import.import_page.channel_not_found.error",
+    "translation": "Error importing page. Channel with name \"{{.ChannelName}}\" could not be found."
+  },
+  {
+    "id": "app.import.import_page.lookup_error",
+    "translation": "Error importing page. Failed to lookup existing page by import source ID."
+  },
+  {
+    "id": "app.import.import_page.nested_comment_failed.error",
+    "translation": "Error importing page. Failed to import nested comment for page \"{{.PageId}}\", comment source ID \"{{.CommentSourceId}}\"."
+  },
+  {
+    "id": "app.import.import_page.parent_lookup_error",
+    "translation": "Error importing page. Failed to lookup parent page by import source ID."
+  },
+  {
+    "id": "app.import.import_page.team_not_found.error",
+    "translation": "Error importing page. Team with name \"{{.TeamName}}\" could not be found."
+  },
+  {
+    "id": "app.import.import_page.user_not_found.error",
+    "translation": "Error importing page. User with username \"{{.Username}}\" could not be found."
+  },
+  {
+    "id": "app.import.import_page.wiki_not_found.error",
+    "translation": "Error importing page. Wiki for channel \"{{.ChannelName}}\" could not be found."
+  },
+  {
+    "id": "app.import.import_page_comment.lookup_error",
+    "translation": "Error importing page comment. Failed to lookup existing comment by import source ID."
+  },
+  {
+    "id": "app.import.import_page_comment.page_not_found.error",
+    "translation": "Error importing page comment. Page with import source ID \"{{.PageImportSourceId}}\" could not be found."
+  },
+  {
+    "id": "app.import.import_page_comment.parent_lookup_error",
+    "translation": "Error importing page comment. Failed to lookup parent comment by import source ID."
+  },
+  {
+    "id": "app.import.import_page_comment.user_not_found.error",
+    "translation": "Error importing page comment. User with username \"{{.Username}}\" could not be found."
   },
   {
     "id": "app.import.import_post.channel_not_found.error",
@@ -6371,6 +6435,14 @@
     "translation": "Unable to save the team theme preferences"
   },
   {
+    "id": "app.import.import_wiki.channel_not_found.error",
+    "translation": "Error importing wiki. Channel with name \"{{.ChannelName}}\" could not be found."
+  },
+  {
+    "id": "app.import.import_wiki.team_not_found.error",
+    "translation": "Error importing wiki. Team with name \"{{.TeamName}}\" could not be found."
+  },
+  {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
     "translation": "Unable to read the version of the data import file."
   },
@@ -6381,6 +6453,66 @@
   {
     "id": "app.import.profile_image.read_data.app_error",
     "translation": "Failed to read profile image data."
+  },
+  {
+    "id": "app.import.resolve_page_id_placeholders.channel_not_found.error",
+    "translation": "Error resolving page ID placeholders. Channel not found."
+  },
+  {
+    "id": "app.import.resolve_page_id_placeholders.no_wiki.error",
+    "translation": "Error resolving page ID placeholders. No wiki found in channel."
+  },
+  {
+    "id": "app.import.resolve_page_id_placeholders.team_not_found.error",
+    "translation": "Error resolving page ID placeholders. Team not found."
+  },
+  {
+    "id": "app.import.resolve_page_placeholders.channel_not_found.error",
+    "translation": "Error resolving page title placeholders. Channel not found."
+  },
+  {
+    "id": "app.import.resolve_page_placeholders.get_pages.error",
+    "translation": "Error resolving page title placeholders. Failed to get pages for channel \"{{.ChannelId}}\"."
+  },
+  {
+    "id": "app.import.resolve_page_placeholders.get_wikis.error",
+    "translation": "Error resolving page title placeholders. Failed to get wikis for channel."
+  },
+  {
+    "id": "app.import.resolve_page_placeholders.no_wiki.error",
+    "translation": "Error resolving page title placeholders. No wiki found in channel."
+  },
+  {
+    "id": "app.import.resolve_page_placeholders.team_not_found.error",
+    "translation": "Error resolving page title placeholders. Team not found."
+  },
+  {
+    "id": "app.import.resolve_placeholders.deserialize_content.error",
+    "translation": "Error resolving placeholders. Failed to deserialize page content."
+  },
+  {
+    "id": "app.import.resolve_placeholders.get_content.error",
+    "translation": "Error resolving placeholders. Failed to get page content."
+  },
+  {
+    "id": "app.import.resolve_placeholders.serialize_content.error",
+    "translation": "Error resolving placeholders. Failed to serialize page content."
+  },
+  {
+    "id": "app.import.resolve_placeholders.update_content.error",
+    "translation": "Error resolving placeholders. Failed to update page content."
+  },
+  {
+    "id": "app.import.resolve_wiki_placeholders.channel_not_found.error",
+    "translation": "Error resolving wiki placeholders. Channel with name \"{{.ChannelName}}\" could not be found."
+  },
+  {
+    "id": "app.import.resolve_wiki_placeholders.team_not_found.error",
+    "translation": "Error resolving wiki placeholders. Team with name \"{{.TeamName}}\" could not be found."
+  },
+  {
+    "id": "app.import.update_post_props.app_error",
+    "translation": "Error updating post properties during import for post \"{{.PostId}}\"."
   },
   {
     "id": "app.import.validate_attachment_import_data.invalid_path.error",
@@ -6511,6 +6643,62 @@
     "translation": "Import emoji name field missing or blank."
   },
   {
+    "id": "app.import.validate_import_source_id.empty.error",
+    "translation": "Error validating import data. Props.{{.Field}} cannot be empty."
+  },
+  {
+    "id": "app.import.validate_import_source_id.missing.error",
+    "translation": "Error validating import data. Props.{{.Field}} is required for idempotency."
+  },
+  {
+    "id": "app.import.validate_import_source_id.not_string.error",
+    "translation": "Error validating import data. Props.{{.Field}} must be a string."
+  },
+  {
+    "id": "app.import.validate_page_comment_import_data.content_missing.error",
+    "translation": "Error validating page comment import data. Comment content is required."
+  },
+  {
+    "id": "app.import.validate_page_comment_import_data.null_data.error",
+    "translation": "Error validating page comment import data. Data is null."
+  },
+  {
+    "id": "app.import.validate_page_comment_import_data.page_id_missing.error",
+    "translation": "Error validating page comment import data. Page import source ID is required."
+  },
+  {
+    "id": "app.import.validate_page_comment_import_data.user_missing.error",
+    "translation": "Error validating page comment import data. User name is required."
+  },
+  {
+    "id": "app.import.validate_page_import_data.attachment.error",
+    "translation": "Error validating page import data. Invalid attachment data."
+  },
+  {
+    "id": "app.import.validate_page_import_data.channel_missing.error",
+    "translation": "Error validating page import data. Channel name is required."
+  },
+  {
+    "id": "app.import.validate_page_import_data.content_missing.error",
+    "translation": "Error validating page import data. Page content is required."
+  },
+  {
+    "id": "app.import.validate_page_import_data.null_data.error",
+    "translation": "Error validating page import data. Data is null."
+  },
+  {
+    "id": "app.import.validate_page_import_data.team_missing.error",
+    "translation": "Error validating page import data. Team name is required."
+  },
+  {
+    "id": "app.import.validate_page_import_data.title_missing.error",
+    "translation": "Error validating page import data. Page title is required."
+  },
+  {
+    "id": "app.import.validate_page_import_data.user_missing.error",
+    "translation": "Error validating page import data. User name is required."
+  },
+  {
     "id": "app.import.validate_post_import_data.attachment.error",
     "translation": "Failed to validate post attachment data."
   },
@@ -6597,6 +6785,18 @@
   {
     "id": "app.import.validate_reply_import_data.user_missing.error",
     "translation": "Missing required Reply property: User."
+  },
+  {
+    "id": "app.import.validate_resolve_wiki_placeholders.channel_missing.error",
+    "translation": "Error validating resolve_wiki_placeholders data. Channel name is required."
+  },
+  {
+    "id": "app.import.validate_resolve_wiki_placeholders.null_data.error",
+    "translation": "Error validating resolve_wiki_placeholders data. Data is null."
+  },
+  {
+    "id": "app.import.validate_resolve_wiki_placeholders.team_missing.error",
+    "translation": "Error validating resolve_wiki_placeholders data. Team name is required."
   },
   {
     "id": "app.import.validate_role_import_data.description_invalid.error",
@@ -6829,6 +7029,18 @@
   {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
     "translation": "Team name missing from User's Team Membership."
+  },
+  {
+    "id": "app.import.validate_wiki_import_data.channel_missing.error",
+    "translation": "Error validating wiki import data. Channel name is required."
+  },
+  {
+    "id": "app.import.validate_wiki_import_data.null_data.error",
+    "translation": "Error validating wiki import data. Data is null."
+  },
+  {
+    "id": "app.import.validate_wiki_import_data.team_missing.error",
+    "translation": "Error validating wiki import data. Team name is required."
   },
   {
     "id": "app.insert_error",
@@ -7729,10 +7941,6 @@
   {
     "id": "app.post.get_page_ancestors.not_found",
     "translation": "Page not found for ancestors."
-  },
-  {
-    "id": "app.post.get_page_ancestors.page.app_error",
-    "translation": "Unable to get page for ancestors."
   },
   {
     "id": "app.post.get_page_children.app_error",

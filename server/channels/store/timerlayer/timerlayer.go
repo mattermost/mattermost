@@ -7406,6 +7406,38 @@ func (s *TimerLayerPostStore) GetPostReminders(now int64) ([]*model.PostReminder
 	return result, err
 }
 
+func (s *TimerLayerPostStore) GetPostRepliesByTypeAndProps(rootId string, postType string, propKey string, propValue string) ([]*model.Post, error) {
+	start := time.Now()
+
+	result, err := s.PostStore.GetPostRepliesByTypeAndProps(rootId, postType, propKey, propValue)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPostRepliesByTypeAndProps", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPostStore) GetPageCommentsByPageIdPropAndImportSourceId(pageId string, importSourceId string) ([]*model.Post, error) {
+	start := time.Now()
+
+	result, err := s.PostStore.GetPageCommentsByPageIdPropAndImportSourceId(pageId, importSourceId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPageCommentsByPageIdPropAndImportSourceId", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPostStore) GetPosts(rctx request.CTX, options model.GetPostsOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	start := time.Now()
 
@@ -7498,6 +7530,38 @@ func (s *TimerLayerPostStore) GetPostsByThread(threadID string, since int64) ([]
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPostsByThread", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPostStore) GetPostsByTypeAndProps(channelId string, postType string, propKey string, propValue string) ([]*model.Post, error) {
+	start := time.Now()
+
+	result, err := s.PostStore.GetPostsByTypeAndProps(channelId, postType, propKey, propValue)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPostsByTypeAndProps", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPostStore) GetPostsByTypeAndPropsGlobal(postType string, propKey string, propValue string) ([]*model.Post, error) {
+	start := time.Now()
+
+	result, err := s.PostStore.GetPostsByTypeAndPropsGlobal(postType, propKey, propValue)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPostsByTypeAndPropsGlobal", success, elapsed)
 	}
 	return result, err
 }

@@ -48,11 +48,20 @@ func newSqlPageStore(sqlStore *SqlStore) store.PageStore {
 }
 
 func (s *SqlPageStore) CreatePage(rctx request.CTX, post *model.Post, content, searchText string) (*model.Post, error) {
+	rctx.Logger().Info("DEBUG SqlPageStore.CreatePage ENTRY",
+		mlog.String("post_id", post.Id),
+		mlog.String("title", post.GetProp("title").(string)),
+		mlog.String("channel_id", post.ChannelId),
+	)
 	if post.Type != model.PostTypePage {
 		return nil, store.NewErrInvalidInput("Post", "Type", post.Type)
 	}
 
 	post.PreSave()
+	rctx.Logger().Info("DEBUG SqlPageStore.CreatePage after PreSave",
+		mlog.String("post_id", post.Id),
+		mlog.Int("create_at", int(post.CreateAt)),
+	)
 	if err := post.IsValid(0); err != nil {
 		return nil, err
 	}

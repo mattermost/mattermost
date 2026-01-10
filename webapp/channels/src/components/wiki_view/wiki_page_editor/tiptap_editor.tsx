@@ -3,6 +3,7 @@
 
 import {Extension, mergeAttributes} from '@tiptap/core';
 import Heading from '@tiptap/extension-heading';
+import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 import {Mention} from '@tiptap/extension-mention';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -169,10 +170,91 @@ type Props = {
     onDeletedAnchorIdsProcessed?: () => void;
 };
 
+/**
+ * Sanitizes TipTap content to prevent crashes in prosemirror.
+ * Fixes malformed content by:
+ * - Removing invalid text nodes (text nodes without a "text" property)
+ * - Ensuring each table row has valid cells with colspan/rowspan >= 1
+ * - Removing empty rows (rows with no cells)
+ * - Removing empty tables (tables with no valid rows)
+ * - Adding default content to empty cells
+ */
+const sanitizeContent = (node: any): any => {
+    if (!node || typeof node !== 'object') {
+        return node;
+    }
+
+    // Fix invalid text nodes: text nodes MUST have a "text" property
+    // This can happen from malformed Confluence imports
+    if (node.type === 'text' && typeof node.text !== 'string') {
+        // Return null to filter out this invalid node
+        return null;
+    }
+
+    // Recursively process children first
+    if (Array.isArray(node.content)) {
+        node.content = node.content.map(sanitizeContent).filter(Boolean);
+    }
+
+    // Sanitize table nodes
+    if (node.type === 'table' && Array.isArray(node.content)) {
+        // Process each row
+        node.content = node.content.map((row: any) => {
+            if (row?.type === 'tableRow' && Array.isArray(row.content)) {
+                row.content = row.content.map((cell: any) => {
+                    if (cell?.type === 'tableCell' || cell?.type === 'tableHeader') {
+                        // Initialize attrs if missing
+                        if (!cell.attrs) {
+                            cell.attrs = {};
+                        }
+
+                        // Ensure colspan and rowspan are valid (>= 1, capped at 100)
+                        const MAX_SPAN = 100;
+                        if (typeof cell.attrs.colspan !== 'number' || cell.attrs.colspan < 1) {
+                            cell.attrs.colspan = 1;
+                        } else if (cell.attrs.colspan > MAX_SPAN) {
+                            cell.attrs.colspan = MAX_SPAN;
+                        }
+                        if (typeof cell.attrs.rowspan !== 'number' || cell.attrs.rowspan < 1) {
+                            cell.attrs.rowspan = 1;
+                        } else if (cell.attrs.rowspan > MAX_SPAN) {
+                            cell.attrs.rowspan = MAX_SPAN;
+                        }
+
+                        // Ensure cell has content array
+                        if (!Array.isArray(cell.content) || cell.content.length === 0) {
+                            cell.content = [{type: 'paragraph', content: []}];
+                        }
+                    }
+                    return cell;
+                }).filter((cell: any) => cell?.type === 'tableCell' || cell?.type === 'tableHeader');
+
+                // Remove rows with no valid cells
+                if (row.content.length === 0) {
+                    return null;
+                }
+            }
+            return row;
+        }).filter(Boolean);
+
+        // Remove tables with no valid rows
+        if (node.content.length === 0) {
+            return {type: 'paragraph', content: []};
+        }
+    }
+
+    return node;
+};
+
 const getInitialContent = (content: string | Record<string, any>) => {
-    // If already an object, return it
+    // If already an object, deep clone and sanitize to avoid mutating the original
     if (typeof content === 'object' && content !== null) {
-        return content;
+        try {
+            const cloned = JSON.parse(JSON.stringify(content));
+            return sanitizeContent(cloned);
+        } catch {
+            return {type: 'doc', content: []};
+        }
     }
 
     // Otherwise parse string
@@ -181,7 +263,8 @@ const getInitialContent = (content: string | Record<string, any>) => {
     }
 
     try {
-        return JSON.parse(content);
+        const parsed = JSON.parse(content);
+        return sanitizeContent(parsed);
     } catch (e) {
         return {
             type: 'doc',
@@ -521,6 +604,14 @@ const TipTapEditor = ({
             }),
             HeadingIdPlugin,
             ImageResize.configure({
+                HTMLAttributes: {
+                    class: 'wiki-image',
+                },
+            }),
+
+            // Standard Image extension for content compatibility with imports
+            // ImageResize only handles 'imageResize' nodes, but imported content uses 'image'
+            Image.configure({
                 HTMLAttributes: {
                     class: 'wiki-image',
                 },
@@ -883,7 +974,14 @@ const TipTapEditor = ({
 
         // Always update content - let TipTap handle if it's the same
         const contentToSet = getInitialContent(content);
-        editor.commands.setContent(contentToSet);
+        try {
+            editor.commands.setContent(contentToSet);
+        } catch (e) {
+            // Fallback for severely malformed content (e.g., corrupted tables)
+            // eslint-disable-next-line no-console
+            console.error('TipTap: Failed to set content, using empty document:', e);
+            editor.commands.setContent({type: 'doc', content: []});
+        }
     }, [content, editor]);
 
     useEffect(() => {

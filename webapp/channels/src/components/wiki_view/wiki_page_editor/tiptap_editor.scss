@@ -11,6 +11,10 @@
     border-radius: 4px;
     background: var(--center-channel-bg);
 
+    // Define the CSS variable used by ProseMirror tables for cells without explicit column widths.
+    // Without this, the variable defaults to 0, causing table columns to collapse.
+    --default-cell-min-width: 100px;
+
     // Position the RewriteMenu's trigger button near the formatting toolbar
     // The button is visually hidden but needed for menu positioning
     #rewrite-button {

@@ -346,3 +346,50 @@ func TestGetPageDraftsForWiki(t *testing.T) {
 		require.Equal(t, "app.draft.get_wiki_drafts.deleted_channel.app_error", appErr.Id)
 	})
 }
+
+func TestCheckPageDraftExists(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.SetupPagePermissions()
+
+	wiki := &model.Wiki{
+		ChannelId: th.BasicChannel.Id,
+		Title:     "Test Wiki",
+	}
+	createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+	require.Nil(t, err)
+
+	t.Run("returns true for existing draft", func(t *testing.T) {
+		pageId := model.NewId()
+		validContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Draft content"}]}]}`
+		draft, appErr := th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, createdWiki.Id, pageId, validContent, "Test Draft", 0, nil)
+		require.Nil(t, appErr)
+		require.NotNil(t, draft)
+
+		exists, updateAt, appErr := th.App.CheckPageDraftExists(pageId, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.True(t, exists)
+		require.Greater(t, updateAt, int64(0))
+	})
+
+	t.Run("returns false for non-existent draft", func(t *testing.T) {
+		nonExistentPageId := model.NewId()
+		exists, updateAt, appErr := th.App.CheckPageDraftExists(nonExistentPageId, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.False(t, exists)
+		require.Equal(t, int64(0), updateAt)
+	})
+
+	t.Run("returns false for different user", func(t *testing.T) {
+		pageId := model.NewId()
+		validContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Draft content"}]}]}`
+		draft, appErr := th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, createdWiki.Id, pageId, validContent, "Test Draft", 0, nil)
+		require.Nil(t, appErr)
+		require.NotNil(t, draft)
+
+		otherUser := th.CreateUser(t)
+		exists, _, appErr := th.App.CheckPageDraftExists(pageId, otherUser.Id)
+		require.Nil(t, appErr)
+		require.False(t, exists)
+	})
+}

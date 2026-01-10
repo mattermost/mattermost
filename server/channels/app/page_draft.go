@@ -838,6 +838,16 @@ func (a *App) rollbackPageUpdate(rctx request.CTX, pageId string, originalConten
 	return nil
 }
 
+// CheckPageDraftExists checks if a page draft exists for the given pageId and userId.
+// Returns (exists, updateAt, error).
+func (a *App) CheckPageDraftExists(pageId, userId string) (bool, int64, *model.AppError) {
+	exists, updateAt, err := a.Srv().Store().Draft().PageDraftExists(pageId, userId)
+	if err != nil {
+		return false, 0, model.NewAppError("CheckPageDraftExists", "app.draft.page_draft_exists.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return exists, updateAt, nil
+}
+
 func (a *App) updateChildDraftParentReferences(rctx request.CTX, userId, wikiId, oldPageId, newPageId string) *model.AppError {
 	// Use batch update to update all matching drafts in a single query
 	updatedDrafts, err := a.Srv().Store().Draft().BatchUpdateDraftParentId(userId, wikiId, oldPageId, newPageId)

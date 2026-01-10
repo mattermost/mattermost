@@ -3732,3 +3732,105 @@ func (s *SqlPostStore) restoreFilesForSubQuery(tx *sqlxTxWrapper, postIdSubQuery
 	_, err := tx.ExecBuilder(queryBuilder)
 	return err
 }
+
+// GetPostsByTypeAndProps finds posts in a channel by type and a specific prop value.
+// Used for import idempotency to find pages by import_source_id.
+func (s *SqlPostStore) GetPostsByTypeAndProps(channelId, postType, propKey, propValue string) ([]*model.Post, error) {
+	query := s.getQueryBuilder().
+		Select("*").
+		From("Posts").
+		Where(sq.Eq{"ChannelId": channelId}).
+		Where(sq.Eq{"Type": postType}).
+		Where(sq.Eq{"DeleteAt": 0}).
+		Where(sq.Expr("Props->>? = ?", propKey, propValue))
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "GetPostsByTypeAndProps_tosql")
+	}
+
+	posts := []*model.Post{}
+	err = s.GetReplica().Select(&posts, sql, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to find Posts by type and props in channel=%s", channelId)
+	}
+
+	return posts, nil
+}
+
+// GetPostsByTypeAndPropsGlobal finds posts across all channels by type and a specific prop value.
+// Used for import idempotency to find pages by import_source_id when channel is unknown.
+func (s *SqlPostStore) GetPostsByTypeAndPropsGlobal(postType, propKey, propValue string) ([]*model.Post, error) {
+	const importLookupLimit = 100 // Sufficient for idempotency - imports should have unique source IDs
+
+	query := s.getQueryBuilder().
+		Select("*").
+		From("Posts").
+		Where(sq.Eq{"Type": postType}).
+		Where(sq.Eq{"DeleteAt": 0}).
+		Where(sq.Expr("Props->>? = ?", propKey, propValue)).
+		Limit(importLookupLimit)
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "GetPostsByTypeAndPropsGlobal_tosql")
+	}
+
+	posts := []*model.Post{}
+	err = s.GetReplica().Select(&posts, sql, args...)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to find Posts by type and props globally")
+	}
+
+	return posts, nil
+}
+
+// GetPostRepliesByTypeAndProps finds replies to a post by type and a specific prop value.
+// Used for import idempotency to find comments by import_source_id.
+func (s *SqlPostStore) GetPostRepliesByTypeAndProps(rootId, postType, propKey, propValue string) ([]*model.Post, error) {
+	query := s.getQueryBuilder().
+		Select("*").
+		From("Posts").
+		Where(sq.Eq{"RootId": rootId}).
+		Where(sq.Eq{"Type": postType}).
+		Where(sq.Eq{"DeleteAt": 0}).
+		Where(sq.Expr("Props->>? = ?", propKey, propValue))
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "GetPostRepliesByTypeAndProps_tosql")
+	}
+
+	posts := []*model.Post{}
+	err = s.GetReplica().Select(&posts, sql, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to find Post replies by type and props for rootId=%s", rootId)
+	}
+
+	return posts, nil
+}
+
+// GetPageCommentsByPageIdPropAndImportSourceId finds page comments by page_id prop and import_source_id.
+// This is used to find inline comments during import, which store page_id in props instead of RootId.
+func (s *SqlPostStore) GetPageCommentsByPageIdPropAndImportSourceId(pageId, importSourceId string) ([]*model.Post, error) {
+	query := s.getQueryBuilder().
+		Select("*").
+		From("Posts").
+		Where(sq.Eq{"Type": model.PostTypePageComment}).
+		Where(sq.Eq{"DeleteAt": 0}).
+		Where(sq.Expr("Props->>'page_id' = ?", pageId)).
+		Where(sq.Expr("Props->>'import_source_id' = ?", importSourceId))
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "GetPageCommentsByPageIdPropAndImportSourceId_tosql")
+	}
+
+	posts := []*model.Post{}
+	err = s.GetReplica().Select(&posts, sql, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to find page comments by page_id prop for pageId=%s", pageId)
+	}
+
+	return posts, nil
+}

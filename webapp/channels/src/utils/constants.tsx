@@ -67,7 +67,7 @@ export const PageDisplayTypes = {
 };
 
 export const PageConstants = {
-    PAGE_FETCH_LIMIT: 100,
+    PAGE_FETCH_LIMIT: 200,
     INLINE_COMMENT_CONTEXT_LENGTH: 50,
 };
 

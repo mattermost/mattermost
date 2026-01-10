@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import unescape from 'lodash/unescape';
 import type {AnyAction} from 'redux';
 
 import type {Post} from '@mattermost/types/posts';
@@ -26,7 +27,7 @@ export function isPagePost(post: Post | null | undefined): boolean {
 }
 
 export function isPageInlineComment(post: Post | null | undefined): boolean {
-    return post?.type === PostTypes.PAGE_COMMENT && post?.props?.comment_type === 'inline';
+    return isPageComment(post) && post?.props?.comment_type === 'inline';
 }
 
 export function pageInlineCommentHasAnchor(post: Post | null | undefined): boolean {
@@ -44,7 +45,8 @@ export function getPageInlineAnchorText(post: Post | null | undefined): string |
     if (!isPageInlineComment(post) || !post?.props?.[PagePropsKeys.INLINE_ANCHOR]) {
         return null;
     }
-    return (post.props[PagePropsKeys.INLINE_ANCHOR] as {text: string}).text || null;
+    const text = (post.props[PagePropsKeys.INLINE_ANCHOR] as {text: string}).text || null;
+    return text ? unescape(text) : null;
 }
 
 export function getPageInlineAnchorId(post: Post | null | undefined): string | null {
@@ -73,18 +75,18 @@ export function getPublishedPageIdFromDraft(draft: PostDraft | Post | null | und
     return draft.props?.[PagePropsKeys.PAGE_ID] as string | undefined;
 }
 
+const MAX_PREVIEW_LENGTH = 200;
+
+function truncateText(text: string, maxLength: number): string {
+    if (text.length <= maxLength) {
+        return text;
+    }
+    return text.substring(0, maxLength) + '...';
+}
+
 /**
  * Gets the display message for a page post.
  * Returns formatted markdown with title and content preview.
- *
- * Content sources (in order of preference):
- * 1. props.search_text - plaintext from search results
- * 2. extractContent - function to extract from post.message (e.g., TipTap JSON)
- * 3. Empty - just returns title
- *
- * @param post - The page post
- * @param extractContent - Optional function to extract plaintext from post.message
- * @returns Formatted markdown string for display, or null if not a page post
  */
 export function getPageDisplayMessage(
     post: Post | null | undefined,
@@ -97,22 +99,17 @@ export function getPageDisplayMessage(
     const title = getPageTitle(post, 'Untitled Page');
     const searchText = post.props?.search_text as string;
 
-    // Priority 1: search_text from Props (used in search results)
     if (searchText) {
-        const preview = searchText.length > 200 ? searchText.substring(0, 200) + '...' : searchText;
-        return `**${title}**\n\n${preview}`;
+        return `**${title}**\n\n${truncateText(searchText, MAX_PREVIEW_LENGTH)}`;
     }
 
-    // Priority 2: Extract from post.message (e.g., TipTap JSON)
     if (post.message && extractContent) {
         const plaintext = extractContent(post.message);
         if (plaintext) {
-            const preview = plaintext.length > 200 ? plaintext.substring(0, 200) + '...' : plaintext;
-            return `**${title}**\n\n${preview}`;
+            return `**${title}**\n\n${truncateText(plaintext, MAX_PREVIEW_LENGTH)}`;
         }
     }
 
-    // Fallback: just title
     return `**${title}**`;
 }
 

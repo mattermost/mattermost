@@ -47,16 +47,6 @@ func (a *App) GetPageChildren(rctx request.CTX, postID string, options model.Get
 
 // GetPageAncestors fetches all ancestors of a page up to the root
 func (a *App) GetPageAncestors(rctx request.CTX, postID string) (*model.PostList, *model.AppError) {
-	// First fetch the page to get the channel ID for permission check
-	page, appErr := a.GetSinglePost(rctx, postID, false)
-	if appErr != nil {
-		return nil, model.NewAppError("GetPageAncestors", "app.post.get_page_ancestors.page.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
-	}
-
-	if !a.HasPermissionToChannel(rctx, rctx.Session().UserId, page.ChannelId, model.PermissionReadChannel) {
-		return nil, model.NewAppError("GetPageAncestors", "api.post.get_page_ancestors.permissions.app_error", nil, "", http.StatusForbidden)
-	}
-
 	postList, err := a.Srv().Store().Page().GetPageAncestors(postID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -107,10 +97,6 @@ func (a *App) GetChannelPages(rctx request.CTX, channelID string) (*model.PostLi
 			a.Metrics().ObserveWikiHierarchyLoad(time.Since(start).Seconds())
 		}
 	}()
-
-	if !a.HasPermissionToChannel(rctx, rctx.Session().UserId, channelID, model.PermissionReadChannel) {
-		return nil, model.MakePermissionError(rctx.Session(), []*model.Permission{model.PermissionReadChannel})
-	}
 
 	postList, err := a.Srv().Store().Page().GetChannelPages(channelID)
 	if err != nil {

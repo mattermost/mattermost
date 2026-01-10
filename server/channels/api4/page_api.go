@@ -268,6 +268,8 @@ func getChannelPages(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	includeContent := r.URL.Query().Get("include_content") == "true"
+
 	channel, err := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
 	if err != nil {
 		c.Err = err
@@ -296,6 +298,13 @@ func getChannelPages(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.Err = err
 		return
+	}
+
+	if includeContent {
+		if contentErr := c.App.LoadPageContentForPostList(c.AppContext, postList); contentErr != nil {
+			c.Err = contentErr
+			return
+		}
 	}
 
 	clientPostList := c.App.PreparePostListForClient(c.AppContext, postList)

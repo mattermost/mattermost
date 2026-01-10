@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import unescape from 'lodash/unescape';
 import React, {useEffect, useState, useCallback, useRef, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
@@ -168,7 +169,7 @@ const AllWikiThreads = ({wikiId, onThreadClick}: Props) => {
                     <div className='WikiRHS__page-threads-list'>
                         {pageThread.threads.map((thread) => {
                             const anchor = thread.props?.inline_anchor as {text?: string} | undefined;
-                            const anchorText = anchor?.text || '';
+                            const anchorText = anchor?.text ? unescape(anchor.text) : '';
                             const truncatedText = anchorText.length > 60 ? `${anchorText.substring(0, 60)}...` : anchorText;
 
                             return (

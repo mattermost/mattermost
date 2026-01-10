@@ -173,6 +173,7 @@
     "jest-watch-typeahead": "3.0.1",
     "nock": "13.2.8",
     "node-fetch": "2.7.0",
+    "pg": "8.16.3",
     "prettier": "2.3.2",
     "react-router-enzyme-context": "1.2.0",
     "redux-mock-store": "1.5.4",

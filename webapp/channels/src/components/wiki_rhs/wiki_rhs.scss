@@ -251,7 +251,8 @@
     }
 
     &__comments-content,
-    &__all-threads-content {
+    &__all-threads-content,
+    &__thread-content {
         display: flex;
         overflow: hidden;
         min-height: 0;

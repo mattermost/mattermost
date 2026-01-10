@@ -207,7 +207,7 @@ func createPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		if parentErr != nil {
 			// Parent is not a published page - check if it's a draft
 			// This allows creating child drafts under draft parents (not yet published)
-			parentDraftExists, _, draftErr := c.App.Srv().Store().Draft().PageDraftExists(req.PageParentId, c.AppContext.Session().UserId)
+			parentDraftExists, _, draftErr := c.App.CheckPageDraftExists(req.PageParentId, c.AppContext.Session().UserId)
 			if draftErr != nil || !parentDraftExists {
 				c.Err = model.NewAppError("createPageDraft", "api.draft.create.invalid_parent.app_error",
 					nil, "parent page or draft not found", http.StatusBadRequest).Wrap(parentErr)

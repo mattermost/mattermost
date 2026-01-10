@@ -1034,7 +1034,7 @@ func (s *SqlDraftStore) GetActiveEditorsForPage(pageId string, minUpdateAt int64
 		return nil, errors.Wrap(err, "page_draft_get_active_editors_tosql")
 	}
 
-	rows, err := s.GetReplica().Query(queryString, args...)
+	rows, err := s.GetMaster().Query(queryString, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get active editors for pageId=%s", pageId)
 	}

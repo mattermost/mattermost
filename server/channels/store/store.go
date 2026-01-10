@@ -427,6 +427,12 @@ type PostStore interface {
 	// RefreshPostStats refreshes the various materialized views for admin console post stats.
 	RefreshPostStats() error
 	RestoreContentFlaggedPost(post *model.Post, statusFieldId, contentFlaggingManagedFieldId string) error
+
+	// Import idempotency methods
+	GetPostsByTypeAndProps(channelId, postType, propKey, propValue string) ([]*model.Post, error)
+	GetPostsByTypeAndPropsGlobal(postType, propKey, propValue string) ([]*model.Post, error)
+	GetPostRepliesByTypeAndProps(rootId, postType, propKey, propValue string) ([]*model.Post, error)
+	GetPageCommentsByPageIdPropAndImportSourceId(pageId, importSourceId string) ([]*model.Post, error)
 }
 
 type UserStore interface {

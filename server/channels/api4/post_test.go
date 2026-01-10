@@ -5640,11 +5640,14 @@ func TestGetChannelPagesPermissions(t *testing.T) {
 		}, privateChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 
-		th.Context.Session().UserId = th.BasicUser2.Id
-		postList, appErr := th.App.GetChannelPages(th.Context, privateChannel.Id)
-		require.NotNil(t, appErr)
-		require.Nil(t, postList)
-		require.Equal(t, "api.context.permissions.app_error", appErr.Id)
+		// Use HTTP client (BasicUser2 is not a member of the private channel)
+		client2 := th.CreateClient()
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		require.NoError(t, lErr)
+
+		_, resp, err := client2.GetChannelPages(context.Background(), privateChannel.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 	})
 }
 

@@ -326,7 +326,7 @@ func (a *App) DeleteWikiPage(rctx request.CTX, page *Page, wikiId string) *model
 // If pageID is empty, a new ID will be generated.
 func (a *App) CreateWikiPage(rctx request.CTX, wikiId, parentId, title, content, userId, searchText, pageID string) (*model.Post, *model.AppError) {
 	isChild := parentId != ""
-	rctx.Logger().Debug("Creating wiki page",
+	rctx.Logger().Info("DEBUG CreateWikiPage ENTRY",
 		mlog.String("wiki_id", wikiId),
 		mlog.String("parent_id", parentId),
 		mlog.String("title", title),
@@ -361,6 +361,9 @@ func (a *App) CreateWikiPage(rctx request.CTX, wikiId, parentId, title, content,
 		}
 		return nil, linkErr
 	}
+
+	// Add wiki_id to the in-memory post so subsequent updates don't lose it
+	createdPage.AddProp(model.PagePropsWikiID, wikiId)
 
 	rctx.Logger().Info("Wiki page created and linked successfully",
 		mlog.String("page_id", createdPage.Id),

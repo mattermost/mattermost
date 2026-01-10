@@ -7715,7 +7715,18 @@ func (c *Client4) GetPages(ctx context.Context, wikiId string, page, perPage int
 
 // GetChannelPages gets all pages for a channel.
 func (c *Client4) GetChannelPages(ctx context.Context, channelId string) (*PostList, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.channelRoute(channelId)+"/pages", "")
+	return c.GetChannelPagesWithContent(ctx, channelId, false)
+}
+
+// GetChannelPagesWithContent gets all pages for a channel, optionally including full page content.
+// When includeContent is true, each page's Message field will contain the full page content JSON.
+// This is more efficient than calling GetPage for each page individually.
+func (c *Client4) GetChannelPagesWithContent(ctx context.Context, channelId string, includeContent bool) (*PostList, *Response, error) {
+	route := c.channelRoute(channelId) + "/pages"
+	if includeContent {
+		route += "?include_content=true"
+	}
+	r, err := c.DoAPIGet(ctx, route, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}

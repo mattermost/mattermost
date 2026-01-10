@@ -126,6 +126,8 @@ const (
 	DraftPropsPageParentID   = "page_parent_id"
 
 	PageCommentTypeInline        = "inline"
+	PostPropsImportSourceId      = "import_source_id"
+	PostPropsImportFileMappings  = "import_file_mappings"
 	PostPropsExpireAt            = "expire_at"
 	PostPropsReadDurationSeconds = "read_duration"
 

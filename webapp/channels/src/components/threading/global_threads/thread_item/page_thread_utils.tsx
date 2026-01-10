@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import unescape from 'lodash/unescape';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -41,7 +42,7 @@ export function renderPageCommentPreview(
     currentRelativeTeamUrl?: string,
 ): JSX.Element {
     const inlineAnchor = post.props?.inline_anchor as {text?: string; anchor_id?: string} | undefined;
-    const anchorText = inlineAnchor?.text || null;
+    const anchorText = inlineAnchor?.text ? unescape(inlineAnchor.text) : null;
     const anchorId = inlineAnchor?.anchor_id || null;
     const wikiId = post.props?.wiki_id as string | undefined;
 
