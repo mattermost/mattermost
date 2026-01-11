@@ -103,7 +103,7 @@ func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 	reaction := &model.Reaction{
 		UserId:    c.Params.UserId,
 		PostId:    c.Params.PostId,
-		EmojiName: c.Params.EmojiName,
+		EmojiName: emojiName,
 	}
 
 	err := c.App.DeleteReactionForPost(c.AppContext, reaction)
