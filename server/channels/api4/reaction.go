@@ -6,6 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -24,6 +25,8 @@ func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParamWithErr("reaction", jsonErr)
 		return
 	}
+
+	reaction.EmojiName = strings.ToLower(reaction.EmojiName)
 
 	if !model.IsValidId(reaction.UserId) || !model.IsValidId(reaction.PostId) || reaction.EmojiName == "" || len(reaction.EmojiName) > model.EmojiNameMaxLength {
 		c.Err = model.NewAppError("saveReaction", "api.reaction.save_reaction.invalid.app_error", nil, "", http.StatusBadRequest)
@@ -84,6 +87,8 @@ func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
+
+	emojiName := strings.ToLower(c.Params.EmojiName)
 
 	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionRemoveReaction) {
 		c.SetPermissionError(model.PermissionRemoveReaction)
