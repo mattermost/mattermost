@@ -6,14 +6,21 @@ import {AdminConfig} from '@mattermost/types/config';
 import {test, expect} from '@mattermost/playwright-lib';
 
 test('should install and enable demo plugin from URL', async ({pw}) => {
-    const {adminClient} = await pw.initSetup();
+    // Create and navigate to channels page
+    const {adminClient, user} = await pw.initSetup();
+    const {channelsPage} = await pw.testBrowser.login(user);
+
+    await channelsPage.goto();
+    await channelsPage.toBeVisible();
 
     // Enable public links before installing plugin
-    await adminClient.updateConfig(
-        pw.mergeWithOnPremServerConfig({
-            FileSettings: {EnablePublicLink: true},
-        } as Partial<AdminConfig>),
-    );
+    await adminClient.patchConfig({
+        FileSettings: {EnablePublicLink: true},
+        ServiceSettings: {
+            EnableOnboardingFlow: false,
+            EnableTutorial: false,
+        },
+    });
 
     // Install and enable
     await pw.installAndEnablePlugin(
@@ -23,11 +30,25 @@ test('should install and enable demo plugin from URL', async ({pw}) => {
     );
 
     // Verify it's active (API validation, no UI)
-    const isActive = await pw.verifyPluginActive(adminClient, 'com.mattermost.demo-plugin');
-    expect(isActive).toBe(true);
+    await expect
+        .poll(async () => {
+            return await pw.isPluginActive(adminClient, 'com.mattermost.demo-plugin');
+        })
+        .toBe(true);
 
     // Optional: Get plugin details
     const plugins = await adminClient.getPlugins();
     const demoPlugin = plugins.active.find((p) => p.id === 'com.mattermost.demo-plugin');
     expect(demoPlugin).toBeDefined();
+
+    // Dismiss overlay again if it reappeared after plugin activation
+    await channelsPage.page.keyboard.press('Escape');
+    await channelsPage.page.waitForTimeout(500);
+
+    // UI Validation: Execute slash command and verify response
+    await channelsPage.postMessage('/demo_plugin true');
+
+    const post = await channelsPage.getLastPost();
+    await post.toBeVisible();
+    await post.toContainText('enabled');
 });
