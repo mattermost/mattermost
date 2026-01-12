@@ -16,7 +16,7 @@ import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/tea
 import {getUser} from 'mattermost-redux/selectors/entities/users';
 
 import {toggleEmbedVisibility} from 'actions/post_actions';
-import {isEmbedVisible} from 'selectors/posts';
+import {canViewPermalinkPreview, isEmbedVisible} from 'selectors/posts';
 
 import {Preferences} from 'utils/constants';
 
@@ -40,7 +40,12 @@ function makeMapStateToProps() {
         let user = null;
         let embedVisible = false;
         let channelDisplayName = ownProps.metadata.channel_display_name;
-        const previewPost = ownProps.metadata.post || getPost(state, ownProps.metadata.post_id);
+
+        const canView = canViewPermalinkPreview(state, ownProps.metadata.channel_id, ownProps.metadata.channel_type);
+        let previewPost;
+        if (canView) {
+            previewPost = ownProps.metadata.post || getPost(state, ownProps.metadata.post_id);
+        }
 
         if (previewPost && previewPost.user_id) {
             user = getUser(state, previewPost.user_id);

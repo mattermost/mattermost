@@ -364,18 +364,45 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
     case ChannelTypes.LEAVE_CHANNEL: {
         const channelId = action.data.id;
 
-        let postDeleted = false;
+        let postModified = false;
 
         // Remove any posts from the channel left by the user
+        // and remove permalink embeds referencing that channel
         const nextState = {...state};
         for (const post of Object.values(state)) {
             if (post.channel_id === channelId) {
                 Reflect.deleteProperty(nextState, post.id);
-                postDeleted = true;
+                postModified = true;
+                continue;
+            }
+
+            // Remove permalink embeds referencing the left channel (matches server behavior)
+            if (post.metadata?.embeds?.length) {
+                const newEmbeds: PostEmbed[] = [];
+                let embedRemoved = false;
+
+                for (const embed of post.metadata.embeds) {
+                    if (embed.type === 'permalink' && embed.data && (embed.data as PostPreviewMetadata).channel_id === channelId) {
+                        embedRemoved = true;
+                    } else {
+                        newEmbeds.push(embed);
+                    }
+                }
+
+                if (embedRemoved) {
+                    nextState[post.id] = {
+                        ...nextState[post.id],
+                        metadata: {
+                            ...nextState[post.id].metadata,
+                            embeds: newEmbeds,
+                        },
+                    };
+                    postModified = true;
+                }
             }
         }
 
-        if (!postDeleted) {
+        if (!postModified) {
             // Nothing changed
             return state;
         }

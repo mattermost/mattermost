@@ -1,16 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Channel} from '@mattermost/types/channels';
+import type {Channel, ChannelType} from '@mattermost/types/channels';
 import type {ClientConfig} from '@mattermost/types/config';
 import type {Post} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {General} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {getChannel, getMyChannelMember} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {moveThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getTeamMember} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getCurrentUserRoles} from 'mattermost-redux/selectors/entities/users';
 
 import {arePreviewsCollapsed} from 'selectors/preferences';
@@ -53,6 +56,37 @@ export function isEmbedVisible(state: GlobalState, postId: string) {
     const previewCollapsed = arePreviewsCollapsed(state);
 
     return getGlobalItem(state, StoragePrefixes.EMBED_VISIBLE + currentUserId + '_' + postId, !previewCollapsed);
+}
+
+// Check if the current user can view a permalink preview for a channel.
+// Mirrors server-side logic in SanitizePostMetadataForUser which calls HasPermissionToReadChannel.
+export function canViewPermalinkPreview(state: GlobalState, channelId: string, channelType: ChannelType): boolean {
+    const currentUserId = getCurrentUserId(state);
+
+    // Channel members can always view
+    const myChannelMember = getMyChannelMember(state, channelId);
+    if (myChannelMember) {
+        return true;
+    }
+
+    if (channelType === General.OPEN_CHANNEL) {
+        const config = getConfig(state);
+        const complianceEnabled = config.EnableCompliance === 'true';
+
+        // For public channels, team members can view only if compliance is not enabled
+        if (!complianceEnabled) {
+            const channel = getChannel(state, channelId);
+            if (channel && channel.delete_at === 0) {
+                const teamMember = getTeamMember(state, channel.team_id, currentUserId);
+                if (teamMember) {
+                    return true;
+                }
+            }
+        }
+    }
+
+    // Private/DM/GM channels require direct channel membership
+    return false;
 }
 
 export function isInlineImageVisible(state: GlobalState, postId: string, imageKey: string) {

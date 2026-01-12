@@ -532,6 +532,113 @@ describe('posts', () => {
                 post3: {id: 'post3', channel_id: 'channel2'},
             });
         });
+
+        it('MM-67130 should remove permalink embed referencing the left channel', () => {
+            const state = deepFreeze({
+                post1: {
+                    id: 'post1',
+                    channel_id: 'channel2',
+                    metadata: {
+                        embeds: [{
+                            type: 'permalink',
+                            data: {
+                                post_id: 'linked_post',
+                                channel_id: 'channel1',
+                                post: {id: 'linked_post', message: 'secret message'},
+                            },
+                        }],
+                    },
+                },
+                post2: {id: 'post2', channel_id: 'channel2'},
+            });
+
+            const nextState = reducers.handlePosts(state, {
+                type: ChannelTypes.LEAVE_CHANNEL,
+                data: {
+                    id: 'channel1',
+                    viewArchivedChannels: false,
+                },
+            });
+
+            expect(nextState).not.toBe(state);
+            expect(nextState.post2).toBe(state.post2);
+            expect(nextState.post1.metadata.embeds).toHaveLength(0);
+        });
+
+        it('MM-67130 should not modify posts with embeds referencing other channels', () => {
+            const state = deepFreeze({
+                post1: {
+                    id: 'post1',
+                    channel_id: 'channel2',
+                    metadata: {
+                        embeds: [{
+                            type: 'permalink',
+                            data: {
+                                post_id: 'linked_post',
+                                channel_id: 'channel3',
+                                post: {id: 'linked_post', message: 'other message'},
+                            },
+                        }],
+                    },
+                },
+            });
+
+            const nextState = reducers.handlePosts(state, {
+                type: ChannelTypes.LEAVE_CHANNEL,
+                data: {
+                    id: 'channel1',
+                    viewArchivedChannels: false,
+                },
+            });
+
+            expect(nextState).toBe(state);
+        });
+
+        it('MM-67130 should handle posts with multiple embeds, only removing affected permalinks', () => {
+            const state = deepFreeze({
+                post1: {
+                    id: 'post1',
+                    channel_id: 'channel2',
+                    metadata: {
+                        embeds: [
+                            {
+                                type: 'opengraph',
+                                url: 'https://example.com',
+                            },
+                            {
+                                type: 'permalink',
+                                data: {
+                                    post_id: 'linked_post1',
+                                    channel_id: 'channel1',
+                                    post: {id: 'linked_post1', message: 'secret'},
+                                },
+                            },
+                            {
+                                type: 'permalink',
+                                data: {
+                                    post_id: 'linked_post2',
+                                    channel_id: 'channel3',
+                                    post: {id: 'linked_post2', message: 'keep this'},
+                                },
+                            },
+                        ],
+                    },
+                },
+            });
+
+            const nextState = reducers.handlePosts(state, {
+                type: ChannelTypes.LEAVE_CHANNEL,
+                data: {
+                    id: 'channel1',
+                    viewArchivedChannels: false,
+                },
+            });
+
+            expect(nextState).not.toBe(state);
+            expect(nextState.post1.metadata.embeds).toHaveLength(2);
+            expect(nextState.post1.metadata.embeds[0]).toBe(state.post1.metadata.embeds[0]); // opengraph preserved
+            expect(nextState.post1.metadata.embeds[1]).toBe(state.post1.metadata.embeds[2]); // channel3 permalink preserved
+        });
     });
 
     describe(`follow a post/thread (${ThreadTypes.FOLLOW_CHANGED_THREAD})`, () => {
