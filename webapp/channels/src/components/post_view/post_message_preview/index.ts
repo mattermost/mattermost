@@ -40,7 +40,6 @@ function makeMapStateToProps() {
         let user = null;
         let embedVisible = false;
         let channelDisplayName = ownProps.metadata.channel_display_name;
-
         const previewPost = ownProps.metadata.post || getPost(state, ownProps.metadata.post_id);
 
         if (previewPost && previewPost.user_id) {
