@@ -3205,7 +3205,6 @@
   "sidebar.unreads": "Mai multe necitite",
   "sidebar_left.add_channel_dropdown.browseChannels": "Căutați canale",
   "sidebar_left.add_channel_dropdown.createNewChannel": "Creați un canal nou",
-  "sidebar_left.add_channel_dropdown.dropdownAriaLabel": "Adăugați dropdown pentru canal",
   "sidebar_left.channel_filter.filterByUnread": "Filtrați după necitit",
   "sidebar_left.channel_filter.showAllChannels": "Afișați toate canalele",
   "sidebar_left.channel_navigator.channelSwitcherLabel": "Comutarea Canalelor",
