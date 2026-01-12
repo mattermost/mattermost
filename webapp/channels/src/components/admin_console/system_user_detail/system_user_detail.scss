@@ -1,5 +1,26 @@
 .SystemUserDetail {
     .AdminUserCard__body {
+        .two-column-layout {
+            .field-row {
+                display: flex;
+                margin-bottom: 16px;
+                gap: 20px;
+
+                .field-column {
+                    min-width: 0; // Allow content to shrink
+                    flex: 1;
+
+                    &.left {
+                        padding-right: 10px;
+                    }
+
+                    &.right {
+                        padding-left: 10px;
+                    }
+                }
+            }
+        }
+
         label {
             display: block;
             font-weight: unset;
@@ -16,10 +37,40 @@
                 vertical-align: middle;
             }
 
-            input {
+            input, select {
                 display: inline-block;
+                width: 100%;
                 max-width: 320px;
             }
+
+            select[multiple] {
+                min-height: 80px;
+            }
+        }
+
+        .cpa-field {
+            position: relative;
+        }
+
+        .user-property-field-values__sync-indicator {
+            display: flex;
+            align-items: center;
+            margin-top: 4px;
+            color: rgba(var(--center-channel-color-rgb), 0.7);
+            font-size: 11px;
+            
+            svg {
+                width: 14px;
+                height: 14px;
+                margin-right: 6px;
+                fill: rgba(var(--center-channel-color-rgb), 0.5);
+            }
+        }
+
+        .auth-data-field {
+            padding-top: 20px;
+            border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.1);
+            margin-top: 20px;
         }
 
         svg {
@@ -42,6 +93,26 @@
         .manageUserSettingsBtn {
             margin-left: auto;
             cursor: pointer;
+        }
+    }
+
+    // Mobile responsiveness for two-column layout
+    @media (max-width: 768px) {
+        .AdminUserCard__body {
+            .two-column-layout {
+                .field-row {
+                    flex-direction: column;
+                    gap: 0;
+
+                    .field-column {
+                        padding: 0;
+
+                        &.right {
+                            margin-top: 16px;
+                        }
+                    }
+                }
+            }
         }
     }
 }

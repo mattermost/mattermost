@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {AdminConfig} from '@mattermost/types/config';
+
 import * as TIMEOUTS from '../fixtures/timeouts';
 import {ChainableT} from '../types';
 import {stubClipboard} from '../utils';

@@ -13,8 +13,6 @@ import (
 
 func TestProcessMessageAttachments(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
 
 	post := &model.Post{
 		Message: "This is the message",

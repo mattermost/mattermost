@@ -23,7 +23,7 @@ export type Props<T extends Value> = {
         isSelected: boolean,
         add: (value: T) => void,
         select: (value: T) => void
-    ) => void;
+    ) => React.ReactNode;
     query?: string;
     selectedItemRef?: React.RefObject<HTMLDivElement>;
     options: T[];
@@ -191,7 +191,7 @@ export default class MultiSelectList<T extends Value> extends React.PureComponen
                                 defaultMessage='No results found matching <b>{searchQuery}</b>'
                                 values={{
                                     searchQuery: this.props.query,
-                                    b: (value: string) => <b>{value}</b>,
+                                    b: (value) => <b>{value}</b>,
                                 }}
                             />
                         </p>

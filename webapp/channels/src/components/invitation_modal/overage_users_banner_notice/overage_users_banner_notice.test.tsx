@@ -8,8 +8,6 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {General} from 'mattermost-redux/constants';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import {
     fireEvent,
     renderWithContext,
@@ -30,13 +28,6 @@ jest.mock('react-redux', () => ({
 
 jest.mock('mattermost-redux/actions/preferences', () => ({
     savePreferences: jest.fn(),
-}));
-
-jest.mock('actions/telemetry_actions', () => ({
-    trackEvent: jest.fn(),
-
-    // Disable any additional query parameteres from being added in the event of a link-out
-    isTelemetryEnabled: jest.fn().mockReturnValue(false),
 }));
 
 const seatsPurchased = 40;
@@ -233,11 +224,6 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             LicenseLinks.CONTACT_SALES +
                 '?utm_source=mattermost&utm_medium=in-product&utm_content=overage_users_banner&uid=current_user&sid=&edition=team&server_version=',
         );
-        expect(trackEvent).toBeCalledTimes(2);
-        expect(trackEvent).toBeCalledWith('insights', 'click_true_up_error', {
-            cta: 'Contact Sales',
-            banner: 'invite modal',
-        });
     });
 
     it('should render the banner because we are over 5% and we have preferences from one old banner', () => {
@@ -286,8 +272,8 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
 
         fireEvent.click(screen.getByRole('button'));
 
-        expect(savePreferences).toBeCalledTimes(1);
-        expect(savePreferences).toBeCalledWith(store.entities.users.profiles.current_user.id, [{
+        expect(savePreferences).toHaveBeenCalledTimes(1);
+        expect(savePreferences).toHaveBeenCalledWith(store.entities.users.profiles.current_user.id, [{
             category: Preferences.OVERAGE_USERS_BANNER,
             name: `error_overage_seats_${licenseId.substring(0, 8)}`,
             user_id: store.entities.users.profiles.current_user.id,
@@ -339,11 +325,6 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             LicenseLinks.CONTACT_SALES +
                 '?utm_source=mattermost&utm_medium=in-product&utm_content=overage_users_banner&uid=current_user&sid=&edition=team&server_version=',
         );
-        expect(trackEvent).toBeCalledTimes(2);
-        expect(trackEvent).toBeCalledWith('insights', 'click_true_up_error', {
-            cta: 'Contact Sales',
-            banner: 'invite modal',
-        });
     });
 
     it('should render the banner because we are over 10%, and we have preference only for the warning state', () => {
@@ -421,8 +402,8 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
 
         fireEvent.click(screen.getByRole('button'));
 
-        expect(savePreferences).toBeCalledTimes(1);
-        expect(savePreferences).toBeCalledWith(store.entities.users.profiles.current_user.id, [{
+        expect(savePreferences).toHaveBeenCalledTimes(1);
+        expect(savePreferences).toHaveBeenCalledWith(store.entities.users.profiles.current_user.id, [{
             category: Preferences.OVERAGE_USERS_BANNER,
             name: `error_overage_seats_${licenseId.substring(0, 8)}`,
             user_id: store.entities.users.profiles.current_user.id,

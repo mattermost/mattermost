@@ -471,5 +471,133 @@
       "one": "[{{.SiteName}}] Nytt varsel for {{.Month}} {{.Day}}, {{.Year}}",
       "other": "[{{.SiteName}}] Nye varsler for {{.Month}} {{.Day}}, {{.Year}}"
     }
+  },
+  {
+    "id": "api.admin.test_email.missing_server",
+    "translation": "SMTP-server er påkrevd"
+  },
+  {
+    "id": "api.admin.test_email.subject",
+    "translation": "Mattermost - Testing av e-postinnstillinger"
+  },
+  {
+    "id": "api.channel.channel_member_counts_by_group.license.error",
+    "translation": "Lisensen din støtter ikke grupper"
+  },
+  {
+    "id": "api.post.get_message_for_notification.files_sent",
+    "translation": {
+      "one": "{{.Count}} fil sendt: {{.Filenames}}",
+      "other": "{{.Count}} filer sendt: {{.Filenames}}"
+    }
+  },
+  {
+    "id": "api.post.get_message_for_notification.images_sent",
+    "translation": {
+      "one": "{{.Count}} bilde sendt: {{.Filenames}}",
+      "other": "{{.Count}} bilder sendt: {{.Filenames}}"
+    }
+  },
+  {
+    "id": "app.scheduled_post.failed_message_detail",
+    "translation": {
+      "one": "- {{.Count}} i kanal {{.ChannelName}}. Årsak: {{.ErrorReason}}",
+      "other": "- {{.Count}} i kanaler {{.ChannelName}}. Årsak: {{.ErrorReason}}"
+    }
+  },
+  {
+    "id": "app.scheduled_post.failed_messages",
+    "translation": {
+      "one": "Kunne ikke sende {{.Count}} planlagt innlegg.",
+      "other": "Kunne ikke sende {{.Count}} planlagte innlegg."
+    }
+  },
+  {
+    "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
+    "translation": "Kunne ikke hente metadata fra URL-adressen til Identity Provider."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "Feil ved ugyldiggjøring av cache"
+  },
+  {
+    "id": "api.channel.patch_update_channel.restricted_dm.app_error",
+    "translation": "Kan ikke oppdatere en begrenset direktemeldingskanal."
+  },
+  {
+    "id": "api.channel.post_channel_privacy_message.error",
+    "translation": "Kunne ikke legge ut melding om personvernoppdatering for kanalen."
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
+    "translation": "Kunne ikke legge ut melding om oppdatering av visningsnavn"
+  },
+  {
+    "id": "api.admin.test_email.body",
+    "translation": "Det ser ut til at Mattermost e-posten din er riktig konfigurert!"
+  },
+  {
+    "id": "api.admin.test_email.reenter_password",
+    "translation": "SMTP-serveren, porten eller brukernavnet er endret. Skriv inn SMTP-passordet på nytt for å teste forbindelsen."
+  },
+  {
+    "id": "api.admin.upload_brand_image.storage.app_error",
+    "translation": "Kan ikke laste opp bilde. Bildelagring er ikke konfigurert."
+  },
+  {
+    "id": "api.admin.upload_brand_image.too_large.app_error",
+    "translation": "Kan ikke laste opp filen. Filen er for stor."
+  },
+  {
+    "id": "api.bot.create_disabled",
+    "translation": "Oppretting av boter er deaktivert."
+  },
+  {
+    "id": "api.bot.teams_channels.add_message_mobile",
+    "translation": "Legg meg til i teamene og kanalene du vil at jeg skal samhandle i. Bruk nettleseren eller Mattermost Desktop-appen for å gjøre dette."
+  },
+  {
+    "id": "api.command.invite_people.sent",
+    "translation": "E-postinvitasjon(er) sendt"
+  },
+  {
+    "id": "api.command.team_mismatch.app_error",
+    "translation": "Kan ikke oppdatere kommandoer på tvers av team."
+  },
+  {
+    "id": "api.command_channel_header.message.app_error",
+    "translation": "Teksten må oppgis med kommandoen /header."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.app_error",
+    "translation": "Feil ved oppdatering av kanalens overskrift."
+  },
+  {
+    "id": "api.user.login.invalid_credentials_sso",
+    "translation": "Skriv inn en gyldig e-postadresse eller brukernavn og/eller passord, eller logg inn med en annen metode."
+  },
+  {
+    "id": "api.user.login.invalid_credentials_username",
+    "translation": "Skriv inn et gyldig brukernavn og/eller passord."
+  },
+  {
+    "id": "api.user.login.not_verified.app_error",
+    "translation": "Innlogging mislyktes da e-postadressen ikke har blitt bekreftet."
+  },
+  {
+    "id": "api.user.login.remote_users.login.error",
+    "translation": "Innlogging mislyktes fordi eksterne brukere ikke har tillatelse til å logge inn."
+  },
+  {
+    "id": "api.user.login.use_auth_service.app_error",
+    "translation": "Vennligst logg inn med {{.AuthService}}."
+  },
+  {
+    "id": "api.user.login_by_cws.invalid_token.app_error",
+    "translation": "CWS-tokenet er ikke gyldig"
+  },
+  {
+    "id": "api.user.login_by_oauth.not_available.app_error",
+    "translation": "{{.Service}} SSO via OAuth 2.0 er ikke tilgjengelig på denne serveren."
   }
 ]

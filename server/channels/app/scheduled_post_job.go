@@ -4,12 +4,11 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strings"
 	"time"
-
-	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
@@ -191,11 +190,10 @@ func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 		return scheduledPost, err
 	}
 
-	createPostFlags := model.CreatePostFlags{
+	_, appErr = a.CreatePost(rctx.WithContext(context.WithValue(rctx.Context(), model.PostContextKeyIsScheduledPost, true)), post, channel, model.CreatePostFlags{
 		TriggerWebhooks: true,
 		SetOnline:       false,
-	}
-	_, appErr = a.CreatePost(rctx, post, channel, createPostFlags)
+	})
 	if appErr != nil {
 		rctx.Logger().Error(
 			"App.processScheduledPostBatch: failed to post scheduled post",
@@ -241,6 +239,17 @@ func (a *App) canPostScheduledPost(rctx request.CTX, scheduledPost *model.Schedu
 	if channel.DeleteAt != 0 {
 		rctx.Logger().Debug("canPostScheduledPost channel for scheduled post is archived", mlog.String("scheduled_post_id", scheduledPost.Id), mlog.String("channel_id", channel.Id), mlog.String("error_code", model.ScheduledPostErrorCodeChannelArchived))
 		return model.ScheduledPostErrorCodeChannelArchived, nil
+	}
+
+	restrictDM, err := a.CheckIfChannelIsRestrictedDM(rctx, channel)
+	if err != nil {
+		rctx.Logger().Debug("canPostScheduledPost unknown error fetching teams for restricted DM", mlog.String("scheduled_post_id", scheduledPost.Id), mlog.String("channel_id", channel.Id), mlog.String("error_code", model.ScheduledPostErrorUnknownError))
+		return model.ScheduledPostErrorUnknownError, err
+	}
+
+	if restrictDM {
+		rctx.Logger().Debug("canPostScheduledPost channel for scheduled post is restricted DM", mlog.String("scheduled_post_id", scheduledPost.Id), mlog.String("channel_id", channel.Id), mlog.String("error_code", model.ScheduledPostErrorCodeRestrictedDM))
+		return model.ScheduledPostErrorCodeRestrictedDM, err
 	}
 
 	if scheduledPost.RootId != "" {
@@ -321,12 +330,6 @@ func (a *App) handleSuccessfulScheduledPosts(rctx request.CTX, successfulSchedul
 			)
 			return errors.Wrap(err, "App.handleSuccessfulScheduledPosts: failed to delete successfully posted scheduled posts")
 		}
-
-		a.Srv().telemetryService.SendTelemetryForFeature(
-			telemetry.TrackScheduledPosts,
-			"scheduled_posts_success",
-			map[string]any{"count": len(successfulScheduledPostIDs)},
-		)
 	}
 
 	return nil
@@ -348,11 +351,6 @@ func (a *App) handleFailedScheduledPosts(rctx request.CTX, failedScheduledPosts 
 	}
 
 	if len(failedScheduledPosts) > 0 {
-		a.Srv().telemetryService.SendTelemetryForFeature(
-			telemetry.TrackScheduledPosts,
-			"scheduled_posts_failed",
-			map[string]any{"count": len(failedScheduledPosts)},
-		)
 		a.notifyUserAboutFailedScheduledMessages(rctx, failedScheduledPosts)
 	}
 }

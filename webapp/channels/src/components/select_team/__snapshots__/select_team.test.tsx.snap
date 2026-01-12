@@ -1,11 +1,9 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/select_team/SelectTeam should match snapshot 1`] = `
 <div>
   <Connect(Component) />
-  <BackButton
-    url="/"
-  />
+  <BackButton />
   <div
     className="col-sm-12"
   >
@@ -115,7 +113,6 @@ exports[`components/select_team/SelectTeam should match snapshot 1`] = `
           <Link
             className="signup-team-login"
             id="createNewTeamLink"
-            onClick={[Function]}
             to="/create_team"
           >
             <MemoizedFormattedMessage
@@ -137,7 +134,6 @@ exports[`components/select_team/SelectTeam should match snapshot 1`] = `
         >
           <Link
             className="signup-team-login"
-            onClick={[Function]}
             to="/admin_console"
           >
             <MemoizedFormattedMessage
@@ -155,9 +151,7 @@ exports[`components/select_team/SelectTeam should match snapshot 1`] = `
 exports[`components/select_team/SelectTeam should match snapshot, on create team restricted 1`] = `
 <div>
   <Connect(Component) />
-  <BackButton
-    url="/"
-  />
+  <BackButton />
   <div
     className="col-sm-12"
   >
@@ -261,7 +255,6 @@ exports[`components/select_team/SelectTeam should match snapshot, on create team
         >
           <Link
             className="signup-team-login"
-            onClick={[Function]}
             to="/admin_console"
           >
             <MemoizedFormattedMessage
@@ -281,7 +274,6 @@ exports[`components/select_team/SelectTeam should match snapshot, on error 1`] =
   <Connect(Component) />
   <BackButton
     onClick={[Function]}
-    url="/"
   />
   <div
     className="col-sm-12"
@@ -328,7 +320,6 @@ exports[`components/select_team/SelectTeam should match snapshot, on error 1`] =
           <Link
             className="signup-team-login"
             id="createNewTeamLink"
-            onClick={[Function]}
             to="/create_team"
           >
             <MemoizedFormattedMessage
@@ -350,7 +341,6 @@ exports[`components/select_team/SelectTeam should match snapshot, on error 1`] =
         >
           <Link
             className="signup-team-login"
-            onClick={[Function]}
             to="/admin_console"
           >
             <MemoizedFormattedMessage
@@ -368,9 +358,7 @@ exports[`components/select_team/SelectTeam should match snapshot, on error 1`] =
 exports[`components/select_team/SelectTeam should match snapshot, on loading 1`] = `
 <div>
   <Connect(Component) />
-  <BackButton
-    url="/"
-  />
+  <BackButton />
   <div
     className="col-sm-12"
   >
@@ -404,7 +392,6 @@ exports[`components/select_team/SelectTeam should match snapshot, on loading 1`]
           <Link
             className="signup-team-login"
             id="createNewTeamLink"
-            onClick={[Function]}
             to="/create_team"
           >
             <MemoizedFormattedMessage
@@ -426,7 +413,6 @@ exports[`components/select_team/SelectTeam should match snapshot, on loading 1`]
         >
           <Link
             className="signup-team-login"
-            onClick={[Function]}
             to="/admin_console"
           >
             <MemoizedFormattedMessage
@@ -444,9 +430,7 @@ exports[`components/select_team/SelectTeam should match snapshot, on loading 1`]
 exports[`components/select_team/SelectTeam should match snapshot, on no joinable team and is not system admin nor can create team 1`] = `
 <div>
   <Connect(Component) />
-  <BackButton
-    url="/"
-  />
+  <BackButton />
   <div
     className="col-sm-12"
   >
@@ -555,7 +539,6 @@ exports[`components/select_team/SelectTeam should match snapshot, on no joinable
           <Link
             className="signup-team-login"
             id="createNewTeamLink"
-            onClick={[Function]}
             to="/create_team"
           >
             <MemoizedFormattedMessage
@@ -577,7 +560,6 @@ exports[`components/select_team/SelectTeam should match snapshot, on no joinable
         >
           <Link
             className="signup-team-login"
-            onClick={[Function]}
             to="/admin_console"
           >
             <MemoizedFormattedMessage
@@ -595,9 +577,7 @@ exports[`components/select_team/SelectTeam should match snapshot, on no joinable
 exports[`components/select_team/SelectTeam should match snapshot, on no joinable team and user is guest 1`] = `
 <div>
   <Connect(Component) />
-  <BackButton
-    url="/"
-  />
+  <BackButton />
   <div
     className="col-sm-12"
   >
@@ -646,7 +626,6 @@ exports[`components/select_team/SelectTeam should match snapshot, on no joinable
           <Link
             className="signup-team-login"
             id="createNewTeamLink"
-            onClick={[Function]}
             to="/create_team"
           >
             <MemoizedFormattedMessage
@@ -668,7 +647,6 @@ exports[`components/select_team/SelectTeam should match snapshot, on no joinable
         >
           <Link
             className="signup-team-login"
-            onClick={[Function]}
             to="/admin_console"
           >
             <MemoizedFormattedMessage
@@ -686,9 +664,7 @@ exports[`components/select_team/SelectTeam should match snapshot, on no joinable
 exports[`components/select_team/SelectTeam should match snapshot, on no joinable team but can create team 1`] = `
 <div>
   <Connect(Component) />
-  <BackButton
-    url="/"
-  />
+  <BackButton />
   <div
     className="col-sm-12"
   >
@@ -776,7 +752,6 @@ exports[`components/select_team/SelectTeam should match snapshot, on no joinable
           <Link
             className="signup-team-login"
             id="createNewTeamLink"
-            onClick={[Function]}
             to="/create_team"
           >
             <MemoizedFormattedMessage
@@ -798,7 +773,6 @@ exports[`components/select_team/SelectTeam should match snapshot, on no joinable
         >
           <Link
             className="signup-team-login"
-            onClick={[Function]}
             to="/admin_console"
           >
             <MemoizedFormattedMessage

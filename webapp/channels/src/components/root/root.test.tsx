@@ -5,41 +5,15 @@ import React from 'react';
 import type {RouteComponentProps} from 'react-router-dom';
 import {bindActionCreators} from 'redux';
 
-import {ServiceEnvironment} from '@mattermost/types/config';
-
-import {Client4} from 'mattermost-redux/client';
-import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
-
 import * as GlobalActions from 'actions/global_actions';
 
 import testConfigureStore from 'packages/mattermost-redux/test/test_store';
 import {renderWithContext, waitFor} from 'tests/react_testing_utils';
 import {StoragePrefixes} from 'utils/constants';
-import * as Utils from 'utils/utils';
 
 import {handleLoginLogoutSignal, redirectToOnboardingOrDefaultTeam} from './actions';
 import type {Props} from './root';
 import Root, {doesRouteBelongToTeamControllerRoutes} from './root';
-
-jest.mock('utils/rudder', () => ({
-    rudderAnalytics: {
-        identify: jest.fn(),
-        load: jest.fn(),
-        page: jest.fn(),
-        ready: jest.fn((callback) => callback()), // Default behavior: calls the callback
-        track: jest.fn(),
-    },
-    RudderTelemetryHandler: jest.fn(),
-}));
-
-jest.mock('rudder-sdk-js', () => {
-    return {
-        identify: jest.fn(),
-        load: jest.fn(),
-        page: jest.fn(),
-        ready: jest.fn((callback) => callback()),
-    };
-});
 
 jest.mock('actions/telemetry_actions');
 
@@ -68,7 +42,6 @@ describe('components/Root', () => {
     const store = testConfigureStore();
 
     const baseProps: Props = {
-        theme: {sidebarBg: 'color'} as Theme,
         isConfigLoaded: true,
         telemetryEnabled: true,
         noAccounts: false,
@@ -106,6 +79,7 @@ describe('components/Root', () => {
                 redirectToOnboardingOrDefaultTeam,
             }, store.dispatch),
         },
+        dispatch: store.dispatch,
         permalinkRedirectTeamName: 'myTeam',
         ...{
             location: {
@@ -216,7 +190,7 @@ describe('components/Root', () => {
         });
     });
 
-    test('should call history on props change', () => {
+    test('should call history on props change', async () => {
         const props = {
             ...baseProps,
             noAccounts: false,
@@ -236,10 +210,12 @@ describe('components/Root', () => {
 
         rerender(<Root {...props2}/>);
 
-        expect(props.history.push).toHaveBeenLastCalledWith('/signup_user_complete');
+        await waitFor(() => {
+            expect(props.history.push).toHaveBeenLastCalledWith('/signup_user_complete');
+        });
     });
 
-    test('should reload on focus after getting signal login event from another tab', () => {
+    test('should reload on focus after getting signal login event from another tab', async () => {
         renderWithContext(<Root {...baseProps}/>);
 
         const loginSignal = new StorageEvent('storage', {
@@ -251,67 +227,9 @@ describe('components/Root', () => {
         window.dispatchEvent(loginSignal);
         window.dispatchEvent(new Event('focus'));
 
-        expect(window.location.reload).toBeCalledTimes(1);
-    });
-
-    test('should not set a TelemetryHandler when onConfigLoaded is called if Rudder is not configured', async () => {
-        const props = {
-            ...baseProps,
-            serviceEnvironment: ServiceEnvironment.DEV,
-            actions: {
-                ...baseProps.actions,
-                loadConfigAndMe: jest.fn().mockImplementation(() => {
-                    return Promise.resolve({
-                        isLoaded: true,
-                        isMeRequested: true,
-                    });
-                }),
-            },
-        };
-
-        renderWithContext(<Root {...props}/>);
-
-        // Wait for the component to load config and call onConfigLoaded
         await waitFor(() => {
-            expect(props.actions.loadConfigAndMe).toHaveBeenCalledTimes(1);
+            expect(window.location.reload).toHaveBeenCalledTimes(1);
         });
-
-        Client4.trackEvent('category', 'event');
-
-        expect(Client4.telemetryHandler).not.toBeDefined();
-    });
-
-    test('should set a TelemetryHandler when onConfigLoaded is called if Rudder is configured', async () => {
-        const props = {
-            ...baseProps,
-            isConfigLoaded: false,
-            serviceEnvironment: ServiceEnvironment.TEST,
-            actions: {
-                ...baseProps.actions,
-                loadConfigAndMe: jest.fn().mockImplementation(() => {
-                    return Promise.resolve({
-                        isLoaded: true,
-                        isMeRequested: true,
-                    });
-                }),
-            },
-        };
-
-        const {rerender} = renderWithContext(<Root {...props}/>);
-
-        // Wait for the component to load config and call onConfigLoaded
-        await waitFor(() => {
-            expect(props.actions.loadConfigAndMe).toHaveBeenCalledTimes(1);
-        });
-
-        const props2 = {
-            ...props,
-            isConfigLoaded: true,
-        };
-
-        rerender(<Root {...props2}/>);
-
-        expect(Client4.telemetryHandler).toBeDefined();
     });
 
     describe('showLandingPageIfNecessary', () => {
@@ -364,51 +282,6 @@ describe('components/Root', () => {
             await waitFor(() => {
                 expect(props.history.push).not.toHaveBeenCalled();
             });
-        });
-    });
-
-    describe('applyTheme', () => {
-        test('should apply theme initially and on change', async () => {
-            const props = {
-                ...baseProps,
-            };
-
-            const {rerender} = renderWithContext(<Root {...props}/>);
-
-            await waitFor(() => {
-                expect(Utils.applyTheme).toHaveBeenCalledWith(props.theme);
-            });
-
-            const props2 = {
-                ...props,
-                theme: {sidebarBg: 'color2'} as Theme,
-            };
-
-            rerender(<Root {...props2}/>);
-
-            expect(Utils.applyTheme).toHaveBeenCalledWith(props2.theme);
-        });
-
-        test('should not apply theme in system console', async () => {
-            const props = {
-                ...baseProps,
-                ...{
-                    location: {
-                        pathname: '/admin_console',
-                    },
-                } as RouteComponentProps,
-            };
-
-            const {rerender} = renderWithContext(<Root {...props}/>);
-
-            const props2 = {
-                ...props,
-                theme: {sidebarBg: 'color2'} as Theme,
-            };
-
-            rerender(<Root {...props2}/>);
-
-            expect(Utils.applyTheme).not.toHaveBeenCalled();
         });
     });
 });

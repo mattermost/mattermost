@@ -5,8 +5,6 @@ import React from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import IconButton from 'components/global_header/header_icon_button';
 import KeyboardShortcutsModal from 'components/keyboard_shortcuts/keyboard_shortcuts_modal/keyboard_shortcuts_modal';
 import Menu from 'components/widgets/menu/menu';
@@ -21,11 +19,7 @@ const mattermostUserGuideLink = 'https://docs.mattermost.com/guides/use-mattermo
 const trainingResourcesLink = 'https://academy.mattermost.com/';
 const askTheCommunityUrl = 'https://mattermost.com/pl/default-ask-mattermost-community/';
 
-type Props = WrappedComponentProps & PropsFromRedux & {
-    location: {
-        pathname: string;
-    };
-}
+type Props = WrappedComponentProps & PropsFromRedux;
 
 type State = {
     buttonActive: boolean;
@@ -51,10 +45,6 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
         this.setState({
             buttonActive: menuActive,
         });
-    };
-
-    askTheCommunityClick = () => {
-        trackEvent('ui', 'help_ask_the_community');
     };
 
     renderDropdownItems = (): React.ReactNode => {
@@ -97,7 +87,6 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
                         iconClassName='icon-help'
                         url={askTheCommunityUrl}
                         text={intl.formatMessage({id: 'userGuideHelp.askTheCommunity', defaultMessage: 'Ask the community'})}
-                        onClick={this.askTheCommunityClick}
                     />
                 )}
                 {this.props.reportAProblemLink && (
@@ -150,7 +139,7 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
                     openLeft={false}
                     openUp={false}
                     id='AddChannelDropdown'
-                    ariaLabel={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.dropdownAriaLabel', defaultMessage: 'Add Channel Dropdown'})}
+                    ariaLabel={intl.formatMessage({id: 'channel_header.userHelpGuide', defaultMessage: 'Help'})}
                 >
                     {this.renderDropdownItems()}
                 </Menu>

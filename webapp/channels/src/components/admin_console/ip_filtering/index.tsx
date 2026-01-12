@@ -256,7 +256,7 @@ const IPFiltering = () => {
                     id={'admin.ip_filtering.no_filters_added'}
                     defaultMessage={'Are you sure you want to apply these IP filter changes? There are currently no filters added, so <strong>all IP addresses will have access to the workspace.</strong>'}
                     values={{
-                        strong: (content: string) => <strong>{content}</strong>,
+                        strong: (content) => <strong>{content}</strong>,
                     }}
                 />
             );
@@ -269,7 +269,7 @@ const IPFiltering = () => {
                     id={'admin.ip_filtering.turn_off_ip_filtering'}
                     defaultMessage={'Are you sure you want to turn off IP Filtering? <strong>All IP addresses will have access to the workspace.</strong>'}
                     values={{
-                        strong: (content: string) => <strong>{content}</strong>,
+                        strong: (content) => <strong>{content}</strong>,
                     }}
                 />
             );
@@ -282,7 +282,7 @@ const IPFiltering = () => {
                     id={'admin.ip_filtering.apply_ip_filter_changes_are_you_sure'}
                     defaultMessage={'Are you sure you want to apply these IP Filter changes? <strong>Users with IP addresses outside of the IP ranges provided will no longer have access to the workspace.</strong>'}
                     values={{
-                        strong: (content: string) => <strong>{content}</strong>,
+                        strong: (content) => <strong>{content}</strong>,
                     }}
                 />
             );

@@ -4,7 +4,6 @@
 import classNames from 'classnames';
 import isEqual from 'lodash/isEqual';
 import React from 'react';
-import Scrollbars from 'react-custom-scrollbars';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
@@ -14,6 +13,7 @@ import AdminSidebarCategory from 'components/admin_console/admin_sidebar/admin_s
 import AdminSidebarSection from 'components/admin_console/admin_sidebar/admin_sidebar_section';
 import AdminSidebarHeader from 'components/admin_console/admin_sidebar_header';
 import SearchKeywordMarking from 'components/admin_console/search_keyword_marking';
+import Scrollbars from 'components/common/scrollbars';
 import QuickInput from 'components/quick_input';
 import SearchIcon from 'components/widgets/icons/search_icon';
 
@@ -34,27 +34,6 @@ type State = {
     sections: string[] | null;
     filter: string;
 }
-
-const renderScrollView = (props: Props) => (
-    <div
-        {...props}
-        className='scrollbar--view'
-    />
-);
-
-const renderScrollThumbHorizontal = (props: Props) => (
-    <div
-        {...props}
-        className='scrollbar--horizontal'
-    />
-);
-
-const renderScrollThumbVertical = (props: Props) => (
-    <div
-        {...props}
-        className='scrollbar--vertical'
-    />
-);
 
 class AdminSidebar extends React.PureComponent<Props, State> {
     searchRef: React.RefObject<HTMLInputElement>;
@@ -308,14 +287,7 @@ class AdminSidebar extends React.PureComponent<Props, State> {
                         onClear={this.handleClearFilter}
                     />
                 </div>
-                <Scrollbars
-                    autoHide={true}
-                    autoHideTimeout={500}
-                    autoHideDuration={500}
-                    renderThumbHorizontal={renderScrollThumbHorizontal}
-                    renderThumbVertical={renderScrollThumbVertical}
-                    renderView={renderScrollView}
-                >
+                <Scrollbars>
                     <div className='nav-pills__container'>
                         <SearchKeywordMarking keyword={this.state.filter}>
                             <ul className={classNames('nav nav-pills nav-stacked', {'task-list-shown': showTaskList})}>

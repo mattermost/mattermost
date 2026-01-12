@@ -188,6 +188,13 @@ func (b *S3FileBackend) s3New(isCloud bool) (*s3.Client, error) {
 		s3Clnt.TraceOn(&s3Trace{})
 	}
 
+	if tr, ok := opts.Transport.(*http.Transport); ok {
+		if tr.TLSClientConfig == nil {
+			tr.TLSClientConfig = &tls.Config{}
+		}
+		tr.TLSClientConfig.MinVersion = tls.VersionTLS12
+	}
+
 	return s3Clnt, nil
 }
 
@@ -595,26 +602,6 @@ func (b *S3FileBackend) RemoveFile(path string) error {
 	return nil
 }
 
-func getPathsFromObjectInfos(in <-chan s3.ObjectInfo) <-chan s3.ObjectInfo {
-	out := make(chan s3.ObjectInfo, 1)
-
-	go func() {
-		defer close(out)
-
-		for {
-			info, done := <-in
-
-			if !done {
-				break
-			}
-
-			out <- info
-		}
-	}()
-
-	return out
-}
-
 func (b *S3FileBackend) listDirectory(path string, recursion bool) ([]string, error) {
 	path, err := b.prefixedPath(path)
 	if err != nil {
@@ -675,14 +662,19 @@ func (b *S3FileBackend) RemoveDirectory(path string) error {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
-	list := b.client.ListObjects(ctx, b.bucket, opts)
 
-	ctx2, cancel2 := context.WithTimeout(context.Background(), b.timeout)
-	defer cancel2()
-	objectsCh := b.client.RemoveObjects(ctx2, b.bucket, getPathsFromObjectInfos(list), s3.RemoveObjectsOptions{})
-	for err := range objectsCh {
-		if err.Err != nil {
-			return errors.Wrapf(err.Err, "unable to remove the directory %s", path)
+	// List all objects in the directory
+	for object := range b.client.ListObjects(ctx, b.bucket, opts) {
+		if object.Err != nil {
+			return errors.Wrapf(object.Err, "unable to list the directory %s", path)
+		}
+
+		// Remove each object individually to avoid MD5 usage
+		ctx2, cancel2 := context.WithTimeout(context.Background(), b.timeout)
+		defer cancel2()
+		err := b.client.RemoveObject(ctx2, b.bucket, object.Key, s3.RemoveObjectOptions{})
+		if err != nil {
+			return errors.Wrapf(err, "unable to remove object %s from directory %s", object.Key, path)
 		}
 	}
 
@@ -836,7 +828,7 @@ func (b *S3FileBackend) prefixedPath(s string) (string, error) {
 			// and therefore the signature sent from the bifrost client
 			// will contain the encoded path, whereas the original path is sent
 			// un-encoded.
-			// More info at: https://github.com/aws/aws-sdk-go/blob/a57c4d92784a43b716645a57b6fa5fb94fb6e419/aws/signer/v4/v4.go#L8
+			// More info at: https://github.com/aws/aws-sdk-go-v2/blob/1e4148ac334a4ea7abe31bd984a31dc761bb289d/aws/signer/v4/v4.go#L20
 			s = s3utils.EncodePath(s)
 		}
 	}

@@ -1,17 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 import type {ComponentProps} from 'react';
+
+import {render, screen} from 'tests/react_testing_utils';
 
 import Header from './header';
 
 describe('components/widgets/header', () => {
     const levels: Array<ComponentProps<typeof Header>['level']> = [1, 2, 3, 4, 5, 6];
 
-    test('should match basic snapshot', () => {
-        const wrapper = shallow(
+    test('should render with heading, subtitle, and right addon', () => {
+        const {container} = render(
             <Header
                 level={1}
                 heading={'Title'}
@@ -21,13 +22,17 @@ describe('components/widgets/header', () => {
                 )}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+
+        expect(screen.getByRole('heading', {level: 1, name: 'Title'})).toBeInTheDocument();
+        expect(screen.getByText('Subheading')).toBeInTheDocument();
+        expect(screen.getByText('addons')).toBeInTheDocument();
+        expect(container.querySelector('.Header')).toBeInTheDocument();
     });
 
     test.each(levels)(
         'should render heading level %p',
         (level) => {
-            const wrapper = shallow(
+            render(
                 <Header
                     level={level}
                     heading={'Title'}
@@ -35,30 +40,36 @@ describe('components/widgets/header', () => {
             );
 
             if (level === 0) {
-                expect(wrapper.find(`h${level}`).exists()).toBe(false);
-                expect(wrapper.find('div.left').containsMatchingElement(<>{'Title'}</>)).toBe(true);
+                expect(screen.queryByRole('heading')).not.toBeInTheDocument();
+                expect(screen.getByText('Title')).toBeInTheDocument();
             } else {
-                expect(wrapper.find(`h${level}`).text()).toBe('Title');
+                expect(screen.getByRole('heading', {level, name: 'Title'})).toBeInTheDocument();
             }
         },
     );
 
     test('should support subheadings', () => {
-        const wrapper = shallow(
+        render(
             <Header
                 heading={<h2 className='custom-heading'>{'Test title'}</h2>}
                 subtitle='Subheading'
             />,
         );
-        expect(wrapper.find('div.left').containsMatchingElement(<p>{'Subheading'}</p>)).toBe(true);
+
+        expect(screen.getByText('Test title')).toBeInTheDocument();
+        expect(screen.getByText('Subheading')).toBeInTheDocument();
+        expect(screen.getByText('Subheading').tagName).toBe('P');
     });
 
     test('should support custom heading', () => {
-        const wrapper = shallow(
+        const {container} = render(
             <Header
                 heading={<h2 className='custom-heading'>{'Test title'}</h2>}
             />,
         );
-        expect(wrapper.find('h2.custom-heading').text()).toBe('Test title');
+
+        const customHeading = container.querySelector('h2.custom-heading');
+        expect(customHeading).toBeInTheDocument();
+        expect(customHeading).toHaveTextContent('Test title');
     });
 });

@@ -1,0 +1,49 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.PropertyCardView {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+
+    .PropertyCardView_title {
+        color: var(--center-channel-color, #3F4350);
+        font-size: 25px;
+        font-weight: 600;
+    }
+
+    .PropertyCardView_fields {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+
+        > .row {
+            display: flex;
+            min-height: 32px;
+            flex-direction: row;
+            align-items: start;
+            margin: 0;
+            gap: 16px;
+
+            &::before {
+                content: none;
+            }
+
+            > .field {
+                display: flex;
+                min-width: 110px;
+                max-width: 110px;
+                align-items: center;
+                color: var(--center-channel-color, #3F4350);
+                font-size: 12px;
+                font-weight: 600;
+            }
+
+            > .value {
+                display: flex;
+                min-height: 32px;
+                align-items: center;
+            }
+        }
+    }
+}

@@ -16,7 +16,8 @@ const schedFreq = 30 * time.Minute
 
 func MakeScheduler(jobServer *jobs.JobServer, license *model.License) *jobs.PeriodicScheduler {
 	isEnabled := func(cfg *model.Config) bool {
-		enabled := license != nil && *license.Features.Cloud
+		// Enable for any license with post history limits (i.e. Entry SKU)
+		enabled := license != nil && license.Limits != nil && license.Limits.PostHistory > 0
 		mlog.Debug("Scheduler: isEnabled: "+strconv.FormatBool(enabled), mlog.String("scheduler", model.JobTypeLastAccessiblePost))
 		return enabled
 	}

@@ -54,6 +54,7 @@ export interface Props {
         loadMyChannelMemberAndRole: (channelId: string) => void;
         setEditChannelMembers: (active: boolean) => void;
         searchProfilesAndChannelMembers: (term: string, options: any) => Promise<{data: UserProfile[]}>;
+        fetchRemoteClusterInfo: (remoteId: string, forceRefresh?: boolean) => void;
     };
 }
 
@@ -312,6 +313,7 @@ export default function ChannelMembersRHS({
                         editing={editing}
                         channel={channel}
                         openDirectMessage={openDirectMessage}
+                        fetchRemoteClusterInfo={actions.fetchRemoteClusterInfo}
                         loadMore={loadMore}
                         hasNextPage={channelMembers.length < membersCount}
                         isNextPageLoading={isNextPageLoading}

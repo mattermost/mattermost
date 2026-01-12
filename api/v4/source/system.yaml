@@ -54,12 +54,30 @@
 
         ##### Permissions
 
-        None.
+        None. Authentication is not required for this endpoint.
+
+        ##### Response Details
+
+        The response varies based on query parameters and authentication:
+
+        - **Basic response** (no parameters): Returns basic server information including
+          `status`, mobile app versions, and active search backend.
+
+        - **Enhanced response** (`get_server_status=true`): Additionally returns
+          `database_status` and `filestore_status` to verify backend connectivity.
+          Authentication is not required.
+
+        - **Admin response** (`get_server_status=true` with `manage_system` permission):
+          Additionally returns `root_status` indicating whether the server is running as root.
+          Requires authentication with `manage_system` permission.
       operationId: GetPing
       parameters:
         - name: get_server_status
           in: query
-          description: Check the status of the database and file storage as well
+          description: >
+            Check the status of the database and file storage as well.
+            When true, adds `database_status` and `filestore_status` to the response.
+            If authenticated with `manage_system` permission, also adds `root_status`.
           required: false
           schema:
             type: boolean

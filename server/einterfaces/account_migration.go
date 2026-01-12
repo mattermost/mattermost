@@ -9,6 +9,6 @@ import (
 )
 
 type AccountMigrationInterface interface {
-	MigrateToLdap(c request.CTX, fromAuthService string, foreignUserFieldNameToMatch string, force bool, dryRun bool) *model.AppError
-	MigrateToSaml(c request.CTX, fromAuthService string, usersMap map[string]string, auto bool, dryRun bool) *model.AppError
+	MigrateToLdap(rctx request.CTX, fromAuthService string, foreignUserFieldNameToMatch string, force bool, dryRun bool) *model.AppError
+	MigrateToSaml(rctx request.CTX, fromAuthService string, usersMap map[string]string, auto bool, dryRun bool) *model.AppError
 }

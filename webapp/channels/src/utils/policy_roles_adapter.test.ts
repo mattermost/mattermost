@@ -83,7 +83,7 @@ describe('PolicyRolesAdapter', () => {
             policies.enableTeamCreation = 'sometimesmaybe';
             expect(() => {
                 rolesFromMapping(policies, roles);
-            }).toThrowError(/not present in mapping/i);
+            }).toThrow(/not present in mapping/i);
         });
 
         // // That way you can pass in the whole state if you want.
@@ -91,7 +91,7 @@ describe('PolicyRolesAdapter', () => {
             policies.blah = 'all';
             expect(() => {
                 rolesFromMapping(policies, roles);
-            }).not.toThrowError();
+            }).not.toThrow();
         });
 
         test('mock data setup', () => {

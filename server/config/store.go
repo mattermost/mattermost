@@ -406,7 +406,7 @@ func (s *Store) CleanUp() error {
 	case *DatabaseStore:
 		dur := time.Duration(*s.config.JobSettings.CleanupConfigThresholdDays) * time.Hour * 24
 		expiry := model.GetMillisForTime(time.Now().Add(-dur))
-		return bs.cleanUp(int(expiry))
+		return bs.cleanUp(expiry)
 	default:
 		return nil
 	}

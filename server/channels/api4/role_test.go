@@ -19,7 +19,6 @@ import (
 func TestGetAllRoles(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	roles, err := th.App.Srv().Store().Role().GetAll()
 	require.NoError(t, err)
@@ -42,7 +41,6 @@ func TestGetAllRoles(t *testing.T) {
 func TestGetRole(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	role := &model.Role{
 		Name:          model.NewId(),
@@ -85,7 +83,6 @@ func TestGetRole(t *testing.T) {
 func TestGetRoleByName(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	role := &model.Role{
 		Name:          model.NewId(),
@@ -128,7 +125,6 @@ func TestGetRoleByName(t *testing.T) {
 func TestGetRolesByNames(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	role1 := &model.Role{
 		Name:          model.NewId(),
@@ -221,7 +217,6 @@ func TestGetRolesByNames(t *testing.T) {
 func TestPatchRole(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	role := &model.Role{
 		Name:          model.NewId(),

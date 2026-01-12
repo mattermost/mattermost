@@ -61,7 +61,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 10+"
+    "translation": "Windows 11+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -73,15 +73,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 128+"
+    "translation": "Version 140+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 138+"
+    "translation": "Version 140+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 138+"
+    "translation": "Version 140+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -4384,14 +4384,6 @@
     "translation": "Gäståtkomst har inaktiverats"
   },
   {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Försök att använda experimentfunktionen ClientSideCertEnable utan en giltig enterpriselicens."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Försökte logga in med den experimentella funktionaliteten ClientSideCert med ett ogiltigt certifikat."
-  },
-  {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "Bot-inloggning är inte tillåten."
   },
@@ -5180,10 +5172,6 @@
     "translation": "invalid_request: Felaktig grant_type."
   },
   {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Saknar client_secret."
-  },
-  {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
     "translation": "invalid_request: Felaktigt client_id."
   },
@@ -5789,10 +5777,6 @@
   {
     "id": "api.config.get_config.restricted_merge.app_error",
     "translation": "Misslyckades att sammanfoga givna konfigurationer."
-  },
-  {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Ny format för klient konfigurationen stöds ännu inte. Var vänlig och specificera format=old i sök-strängen."
   },
   {
     "id": "api.command_shrug.name",
@@ -10730,5 +10714,545 @@
   {
     "id": "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled",
     "translation": "Meddelanden om nya flaggade inlägg kan inte inaktiveras för granskare."
+  },
+  {
+    "id": "app.access_control.insufficient_permissions",
+    "translation": "Du har inte behörighet att hantera denna åtkomstkontrollpolicy."
+  },
+  {
+    "id": "app.pap.access_control.channel_group_constrained",
+    "translation": "Kanalen är grupp-begränsad och kan inte omfattas av policy för åtkomstkontroll."
+  },
+  {
+    "id": "app.pap.access_control.channel_not_private",
+    "translation": "Policyer för åtkomstkontroll kan endast tillämpas på privata kanaler."
+  },
+  {
+    "id": "app.pap.access_control.channel_shared",
+    "translation": "Delade kanaler kan inte omfattas av en policy för åtkomstkontroll."
+  },
+  {
+    "id": "app.pap.access_control.insufficient_channel_permissions",
+    "translation": "Du har inte behörighet att hantera åtkomstkontroll för denna kanal."
+  },
+  {
+    "id": "app.pap.access_control.insufficient_permissions",
+    "translation": "Du har inte behörighet att hantera denna åtkomstkontrollpolicy."
+  },
+  {
+    "id": "model.access_policy.inherit.already_imported.app_error",
+    "translation": "Föräldern är redan importerad."
+  },
+  {
+    "id": "model.config.is_valid.experimental_view_archived_channels.app_error",
+    "translation": "Att dölja arkiverade kanaler stöds inte längre. Gör dessa kanaler privata och ta bort medlemmar istället."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
+    "translation": "Det går inte att uppdatera värdet i ett administratörshanterat attributfält för anpassad profil"
+  },
+  {
+    "id": "app.lookup_interactive_dialog.decode_json_error",
+    "translation": "Ett fel uppstod vid avkodning av JSON-svar från en interaktiv dialog."
+  },
+  {
+    "id": "app.lookup_interactive_dialog.json_error",
+    "translation": "Ett fel uppstod vid bearbetning av JSON-svar från en interaktiv dialog."
+  },
+  {
+    "id": "app.lookup_interactive_dialog.read_body_error",
+    "translation": "Ett fel uppstod vid inläsning av svarsdelen från en interaktiv dialog."
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.bulk_processor_create_failed",
+    "translation": "Misslyckades att skapa en Elasticsearch bulk-processor"
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.sync_bulk_processor_create_failed",
+    "translation": "Misslyckades att skapa en Elasticsearch synk bulk-processor"
+  },
+  {
+    "id": "model.config.is_valid.client_side_cert_enable.app_error",
+    "translation": "Certifikat-baserad autentisering har tagits bort. Inaktivera ClientSideCertEnable för att fortsätta."
+  },
+  {
+    "id": "api.channel.patch_update_channel.restricted_dm.app_error",
+    "translation": "Det går inte att uppdatera en begränsad kanal för direktmeddelanden."
+  },
+  {
+    "id": "api.command.execute_command.restricted_dm.error",
+    "translation": "Det går inte att posta i en begränsad direkmeddelandekanal"
+  },
+  {
+    "id": "api.content_flagging.error.comment_required",
+    "translation": "Lägg till en kommentar som förklarar varför du flaggar det här meddelandet."
+  },
+  {
+    "id": "api.content_flagging.error.comment_too_long",
+    "translation": "Meddelande om anledning till flaggning får inte vara längre än {{.MaxLength}} tecken."
+  },
+  {
+    "id": "api.content_flagging.error.not_available_on_team",
+    "translation": "Funktionen för flaggning av innehåll är inte aktiverad i det här teamet."
+  },
+  {
+    "id": "api.content_flagging.error.post_not_in_progress",
+    "translation": "Det flaggade inlägget måste ha status som väntande eller tilldelat för att behållas eller tas bort."
+  },
+  {
+    "id": "api.content_flagging.error.reason_invalid",
+    "translation": "Okänd orsak angiven för flaggning av meddelande."
+  },
+  {
+    "id": "api.content_flagging.error.reason_required",
+    "translation": "Välj en anledning till att flagga detta meddelande."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
+    "translation": "Det går inte att spara utkast i en begränsad kanal för direktmeddelanden"
+  },
+  {
+    "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
+    "translation": "Kanal-ID matchar inte kanal-ID för det flaggade inlägget."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations_for_channel.restricted_permission.app_error",
+    "translation": "Det går inte att lägga till en behörighet som är begränsad av teamets eller systemets behörighetsschema."
+  },
+  {
+    "id": "api.content_flagging.error.user_not_reviewer",
+    "translation": "Användaren är inte en innehållsgranskare."
+  },
+  {
+    "id": "api.encoding_error",
+    "translation": "Ett fel uppstod vid kodning av JSON för API-svaret"
+  },
+  {
+    "id": "api.file.upload_file.get_channel.app_error",
+    "translation": "Kan inte ladda upp fil till begränsad DM"
+  },
+  {
+    "id": "api.file.upload_file.restricted_dm.error",
+    "translation": "Kan inte ladda upp fil till begränsad DM"
+  },
+  {
+    "id": "api.post.create_post.can_not_post_in_restricted_dm.error",
+    "translation": "Det går inte att posta till en begränsad kanal för direktmeddelanden."
+  },
+  {
+    "id": "api.post.delete_post.can_not_delete_from_restricted_dm.error",
+    "translation": "Det går inte att radera ett inlägg i en begränsad kanal för direktmeddelanden."
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "Det går inte att uppdatera inlägg i en begränsad kanal för direktmeddelanden."
+  },
+  {
+    "id": "api.post.update_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "Det går inte att uppdatera inlägg i en begränsad kanal för direktmeddelanden."
+  },
+  {
+    "id": "api.reaction.delete.restricted_dm.error",
+    "translation": "Kan inte reagera i begränsad DM"
+  },
+  {
+    "id": "api.reaction.save.restricted_dm.error",
+    "translation": "Kan inte reagera i begränsad DM"
+  },
+  {
+    "id": "api.team.get_team.flagged_post_mismatch.app_error",
+    "translation": "Team-ID stämmer inte överens med det flaggade inläggets team-ID."
+  },
+  {
+    "id": "api.user.check_user_password.invalid_hash.app_error",
+    "translation": "Formatet på det hashade lösenordet är ogiltigt och kunde inte tolkas."
+  },
+  {
+    "id": "app.channel.get_common_teams.app_error",
+    "translation": "Fel på \"get common teams for channel\""
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.no_reviewer_field.app_error",
+    "translation": "Inget egenskapsfält för Reviewer ID hittades."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.update_status_property_value.app_error",
+    "translation": "Misslyckades med att uppdatera Status-egenskapens värde vid inställning av granskare."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.upsert_property_value.app_error",
+    "translation": "Misslyckades med att sätta flaggad postgranskare."
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.in_progress",
+    "translation": "Det går inte att flagga detta inlägg eftersom det redan är flaggat."
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.removed",
+    "translation": "Det går inte att flagga det här inlägget, det togs bort i en tidigare flaggningsbegäran."
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.retained",
+    "translation": "Det går inte att flagga det här inlägget eftersom det behölls i en tidigare flaggningsbegäran."
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.unknown",
+    "translation": "Det går inte att flagga det här inlägget eftersom det har okänd status."
+  },
+  {
+    "id": "app.content_flagging.create_property_values.app_error",
+    "translation": "Det går inte att spara egenskapsvärden för det flaggade inlägget."
+  },
+  {
+    "id": "app.content_flagging.flag_post.marshal_comment.app_error",
+    "translation": "Misslyckades med att samla in flaggning av användarens kommentar"
+  },
+  {
+    "id": "app.content_flagging.flag_post.marshal_reason.app_error",
+    "translation": "Misslyckades med att samla in den flaggande användarens anledning"
+  },
+  {
+    "id": "app.content_flagging.flag_post_confirmation.message",
+    "translation": "Meddelandet från @{{.username}} har flaggats för granskning. Du kommer att få ett meddelande när det har granskats av en innehållsgranskare. "
+  },
+  {
+    "id": "app.content_flagging.get_group.error",
+    "translation": "Misslyckades med att hämta bot för innehållsflaggning."
+  },
+  {
+    "id": "app.content_flagging.get_reviewer_settings.app_error",
+    "translation": "Misslyckades med att hämta inställningar för innehållsgranskare från databasen"
+  },
+  {
+    "id": "app.content_flagging.get_status_property.app_error",
+    "translation": "Misslyckades med att hämta egenskapsfältet Status."
+  },
+  {
+    "id": "app.content_flagging.get_users_in_team.app_error",
+    "translation": "Misslyckades med att söka granskare i teamet."
+  },
+  {
+    "id": "app.content_flagging.keep_flag_post.marshal_comment.app_error",
+    "translation": "Misslyckades med att samla in kommentaren från granskaren"
+  },
+  {
+    "id": "app.content_flagging.keep_post.status_update.app_error",
+    "translation": "Misslyckades med att uppdatera status för flaggat inlägg när flaggat inlägg återställdes "
+  },
+  {
+    "id": "app.content_flagging.keep_post.undelete.app_error",
+    "translation": "Misslyckades med att uppdatera inlägget i databasen när flaggning och tillhörande data skulle tas bort."
+  },
+  {
+    "id": "app.content_flagging.marshal_property_values.app_error",
+    "translation": "Misslyckades med att samla in värden för Content Flagging-egenskaper för att skicka i WebSocket-händelsen."
+  },
+  {
+    "id": "app.content_flagging.missing_flagged_post_id_field.app_error",
+    "translation": "Det går inte att hitta egenskapsfältet Flagged Post ID."
+  },
+  {
+    "id": "app.content_flagging.missing_reporting_user_id_field.app_error",
+    "translation": "Det går inte att hitta användarfältet för rapportering."
+  },
+  {
+    "id": "app.content_flagging.missing_reporting_user_id_property_value.app_error",
+    "translation": "Det går inte att hitta ett värde i användarfältet på rapporteringen."
+  },
+  {
+    "id": "app.content_flagging.no_status_property.app_error",
+    "translation": "Det går inte att hämta flaggade inlägg eftersom inlägget inte är flaggat."
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.app_error",
+    "translation": "Misslyckades med att skriva över inlägg med rensat inlägg när flaggat inlägg raderades permanent."
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.marshal_comment.app_error",
+    "translation": "Misslyckades med att samla in kommentaren från granskaren"
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.update_property_value.app_error",
+    "translation": "Misslyckades med att uppdatera statusen för flaggade inlägg när flaggade inlägg raderades permanent."
+  },
+  {
+    "id": "app.content_flagging.save_reviewer_settings.app_error",
+    "translation": "Misslyckades med att spara inställningar för innehållsgranskare i databasen."
+  },
+  {
+    "id": "app.content_flagging.search_common_reviewers.app_error",
+    "translation": "Det gick inte att söka efter termen i Common Reviewers."
+  },
+  {
+    "id": "app.content_flagging.search_property_fields.app_error",
+    "translation": "Misslyckades med att söka i egenskapsfält för innehållsflaggning."
+  },
+  {
+    "id": "app.content_flagging.search_property_values.app_error",
+    "translation": "Misslyckades med att hämta inläggets värden från egenskapsfält content flagging från databasen."
+  },
+  {
+    "id": "app.content_flagging.search_reviewer_posts.app_error",
+    "translation": "Misslyckades med att söka efter det flaggade inlägget bland granskarna."
+  },
+  {
+    "id": "app.content_flagging.search_status_property.app_error",
+    "translation": "Misslyckades med att söka Property Values för det flaggade inlägget."
+  },
+  {
+    "id": "app.content_flagging.search_sysadmin_reviewers.app_error",
+    "translation": "Misslyckades med att söka efter sökordet i System Admin Reviewers."
+  },
+  {
+    "id": "app.content_flagging.search_team_admin_reviewers.app_error",
+    "translation": "Misslyckades med att söka efter sökordet i Team Admin Reviewers."
+  },
+  {
+    "id": "app.content_flagging.search_team_reviewers.app_error",
+    "translation": "Misslyckades med att söka efter sökordet i Team Reviewers."
+  },
+  {
+    "id": "app.job.get_existing_jobs.error",
+    "translation": "Kan inte hämta befintliga jobb."
+  },
+  {
+    "id": "app.post_priority.delete_for_post.app_error",
+    "translation": "Misslyckades med att permanent radera prioritetsdata från databasen för inlägget."
+  },
+  {
+    "id": "app.save_scheduled_post.restricted_dm.error",
+    "translation": "Det går inte att schemalägga inlägg i en begränsad DM"
+  },
+  {
+    "id": "app.submit_interactive_dialog.invalid_response",
+    "translation": "Fick ett ogiltigt svar från den interaktiva dialogrutan."
+  },
+  {
+    "id": "app.system.content_review_bot.bot_displayname",
+    "translation": "Granskning av innehåll"
+  },
+  {
+    "id": "app.upload.create.cannot_upload_to_restricted_dm.error",
+    "translation": "Det går inte att ladda upp fil till ett begränsat direktmeddelande."
+  },
+  {
+    "id": "app.user.check_user_password.failed_migration",
+    "translation": "Misslyckades med att migrera användarens lösenord till den senaste hashmetoden."
+  },
+  {
+    "id": "app.user.check_user_password.failed_update",
+    "translation": "Misslyckades med att uppdatera användarens lösenord."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.libretranslate.url.app_error",
+    "translation": "LibreTranslate URL måste vara en giltig URL och börja med http:// eller https://."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.provider.app_error",
+    "translation": "Ogiltig leverantör av autotranslation, får inte vara tom."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.provider.unsupported.app_error",
+    "translation": "Leverantören av autotranslation stöds inte."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.fetch.app_error",
+    "translation": "Tidsgränsen för hämtning av autotranslation är ogiltig. Måste vara ett positivt tal."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.new_post.app_error",
+    "translation": "Tidsgränsen för hämtning av autotranslation av nytt inlägg är ogiltig. Måste vara ett positivt tal."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
+    "translation": "Tidsgränsen för avisering av autotranslation är ogiltig. Måste vara ett positivt tal."
+  },
+  {
+    "id": "model.oauth.validate_grant.credentials.app_error",
+    "translation": "Ogiltiga klient-uppgifter."
+  },
+  {
+    "id": "api.post.get_posts_for_reporting.channel_not_found",
+    "translation": "Kanal hittades inte"
+  },
+  {
+    "id": "api.user.guest_magic_link.invalid_token.app_error",
+    "translation": "Ogiltig inbjudningslänk."
+  },
+  {
+    "id": "model.post.query_params.invalid_channel_id",
+    "translation": "Ogiltigt kanal-ID."
+  },
+  {
+    "id": "model.post.query_params.invalid_time_field",
+    "translation": "Ogiltigt tidsfält."
+  },
+  {
+    "id": "store.sql_autotranslation.channel_not_found",
+    "translation": "Kanal hittades inte."
+  },
+  {
+    "id": "store.sql_autotranslation.member_not_found",
+    "translation": "Medlem hittades inte."
+  },
+  {
+    "id": "app.post.rewrite.empty_response",
+    "translation": "Tomt svar från AI."
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.footer.title",
+    "translation": "Begärde du inte det här e-mailet?"
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.title",
+    "translation": "Logga in till Mattermost"
+  },
+  {
+    "id": "store.sql_autotranslation.get.app_error",
+    "translation": "Kunde inte hämta översättning."
+  },
+  {
+    "id": "store.sql_autotranslation.save.app_error",
+    "translation": "Kunde inte spara översättningen."
+  },
+  {
+    "id": "app.agents.get_services.app_error",
+    "translation": "Misslyckades med hämtningen av LLM-tjänster."
+  },
+  {
+    "id": "api.file.get_file_info.app_error",
+    "translation": "Hämtningen av fil-infon misslyckades."
+  },
+  {
+    "id": "api.user.guest_magic_link.expired_token.app_error",
+    "translation": "Den här inbjudningslänken har slutat gälla."
+  },
+  {
+    "id": "app.agents.get_agents.bridge_call_failed",
+    "translation": "Samtalsbryggningen misslyckades."
+  },
+  {
+    "id": "app.agents.get_services.bridge_call_failed",
+    "translation": "Samtalsbryggningen misslyckades."
+  },
+  {
+    "id": "app.post.rewrite.invalid_action",
+    "translation": "Ogiltig omskrivningsåtgärd."
+  },
+  {
+    "id": "model.dcr.is_valid.unsupported_auth_method.app_error",
+    "translation": "Ej stödd token_endpoint_auth_method tillhandahölls."
+  },
+  {
+    "id": "api.user.guest_magic_link.missing_token.app_error",
+    "translation": "Inbjudningstoken saknas."
+  },
+  {
+    "id": "model.post.decode_cursor.unsupported_version",
+    "translation": "Pekar-version stöds inte."
+  },
+  {
+    "id": "store.sql_autotranslation.get_active_languages.app_error",
+    "translation": "Kunde inte hämta aktiva språk."
+  },
+  {
+    "id": "store.sql_autotranslation.get_user_language.app_error",
+    "translation": "Kunde inte hämta användarens språk."
+  },
+  {
+    "id": "app.agents.get_agents.app_error",
+    "translation": "Hämtningen av agenterna misslyckades."
+  },
+  {
+    "id": "ent.push_proxy.generate.save_system.app_error",
+    "translation": "Sparningen av auth-token misslyckades."
+  },
+  {
+    "id": "api.command.move_command.creator_no_permission.app_error",
+    "translation": "Ingen behörighet att flytta kommandot"
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.disabled.app_error",
+    "translation": "Tjänstleverantör för OAuth är avstängd."
+  },
+  {
+    "id": "api.user.guest_magic_link.invalid_token_type.app_error",
+    "translation": "Ogiltig länk-typ för inbjudningen."
+  },
+  {
+    "id": "app.post.rewrite.agent_call_failed",
+    "translation": "Misslyckat anrop till AI-agenten."
+  },
+  {
+    "id": "model.dcr.is_valid.client_uri_format.app_error",
+    "translation": "Ogiltigt URI-format för klienten."
+  },
+  {
+    "id": "model.dcr.is_valid.redirect_uri_format.app_error",
+    "translation": "Ogiltigt URI-format för omdirigeringen."
+  },
+  {
+    "id": "model.post.query_params.invalid_cursor_id",
+    "translation": "Ogiltigt cursor-id."
+  },
+  {
+    "id": "store.sql_autotranslation.query_build_error",
+    "translation": "Misslyckades att skapa frågan."
+  },
+  {
+    "id": "model.post.query_params.invalid_sort_direction",
+    "translation": "Ogiltig sorteringsriktning."
+  },
+  {
+    "id": "ent.intune.validate_token.invalid_tenant_id.app_error",
+    "translation": "Autentiseringen misslyckades. Ogiltig konfiguration."
+  },
+  {
+    "id": "ent.intune.validate_token.invalid_token.app_error",
+    "translation": "Autentiseringen misslyckades. Vänligen prova igen."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.length.app_error",
+    "translation": "Resursparametern kan inte överskrida 512 tecken."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.guest_magic_link_disabled.error",
+    "translation": "Gästens magiska länk är inte aktiverad"
+  },
+  {
+    "id": "api.templates.guest_magic_link_subject",
+    "translation": "Logga in till {{ .SiteName }}"
+  },
+  {
+    "id": "api.user.login.guest_magic_link.disabled.error",
+    "translation": "Inloggning med magisk länk är avstängd."
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.app_error",
+    "translation": "Kunde inte ta emot inlägg för rapportering."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_format",
+    "translation": "Ogiltigt pekar-format: 8 delar förväntades."
+  },
+  {
+    "id": "store.sql_autotranslation.meta_json.app_error",
+    "translation": "Misslyckades att tolka översättningens JSON-metadata."
+  },
+  {
+    "id": "api.user.login_by_intune.not_available.app_error",
+    "translation": "Microsoft Intune-autentiseringen är inte tillgänglig."
+  },
+  {
+    "id": "api.user.login_by_intune.not_configured.app_error",
+    "translation": "Microsoft Intune-autentiseringen är inte konfigurerad."
+  },
+  {
+    "id": "ent.intune.login.not_configured.app_error",
+    "translation": "Microsoft Intune-autentiseringen är inte konfigurerad."
+  },
+  {
+    "id": "api.post.update_post.burn_on_read.app_error",
+    "translation": "Inlägg som bränns vid läsning kan inte redigeras."
   }
 ]

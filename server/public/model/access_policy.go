@@ -43,6 +43,7 @@ type AccessControlPolicySearch struct {
 	Term            string                    `json:"term"`
 	Type            string                    `json:"type"`
 	ParentID        string                    `json:"parent_id"`
+	IDs             []string                  `json:"ids"`
 	Cursor          AccessControlPolicyCursor `json:"cursor"`
 	Limit           int                       `json:"limit"`
 	IncludeChildren bool                      `json:"include_children"`
@@ -87,6 +88,30 @@ type CELExpressionError struct {
 
 type AccessControlQueryResult struct {
 	MatchedSubjectIDs []string `json:"matched_subject_ids"`
+}
+
+// AccessControlPolicyActiveUpdate represents a single policy's active status update.
+type AccessControlPolicyActiveUpdate struct {
+	ID     string `json:"id"`
+	Active bool   `json:"active"`
+}
+
+// AccessControlPolicyActiveUpdateRequest is used in the API to update active status for multiple policies.
+type AccessControlPolicyActiveUpdateRequest struct {
+	Entries []AccessControlPolicyActiveUpdate `json:"entries"`
+}
+
+func (r *AccessControlPolicyActiveUpdateRequest) Auditable() map[string]any {
+	entries := make([]map[string]any, 0, len(r.Entries))
+	for _, entry := range r.Entries {
+		entries = append(entries, map[string]any{
+			"id":     entry.ID,
+			"active": entry.Active,
+		})
+	}
+	return map[string]any{
+		"entries": entries,
+	}
 }
 
 func (p *AccessControlPolicy) IsValid() *AppError {

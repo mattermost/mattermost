@@ -2,13 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {Client4} from '@mattermost/client';
-import {UserProfile} from '@mattermost/types/users';
 import {PluginManifest} from '@mattermost/types/plugins';
 import {PreferenceType} from '@mattermost/types/preferences';
+import {UserProfile} from '@mattermost/types/users';
 
-import {defaultTeam} from './util';
 import {createRandomTeam, getAdminClient, getDefaultAdminUser, makeClient} from './server';
 import {testConfig} from './test_config';
+import {defaultTeam} from './util';
 
 export async function baseGlobalSetup() {
     let adminClient: Client4;
@@ -45,7 +45,7 @@ async function sysadminSetup(client: Client4, user: UserProfile | null) {
     const myTeams = await client.getMyTeams();
     const myDefaultTeam = myTeams && myTeams.length > 0 && myTeams.find((team) => team.name === defaultTeam.name);
     if (!myDefaultTeam) {
-        await client.createTeam(createRandomTeam(defaultTeam.name, defaultTeam.displayName, 'O', false));
+        await client.createTeam(await createRandomTeam(defaultTeam.name, defaultTeam.displayName, 'O', false));
     } else if (myDefaultTeam && testConfig.resetBeforeTest) {
         await Promise.all(
             myTeams.filter((team) => team.name !== defaultTeam.name).map((team) => client.deleteTeam(team.id)),

@@ -126,6 +126,12 @@ func (s *SqlAttributesStore) SearchUsers(rctx request.CTX, opts model.SubjectSea
 		query = query.Where(sq.Expr(fmt.Sprintf("NOT EXISTS (SELECT 1 FROM ChannelMembers WHERE ChannelMembers.UserId = Users.Id AND ChannelMembers.ChannelId = $%d)", argCount), opts.ExcludeChannelMembers))
 	}
 
+	if opts.SubjectID != "" {
+		argCount++
+		query = query.Where(sq.Expr(fmt.Sprintf("Users.Id = $%d", argCount), opts.SubjectID))
+		count = count.Where(sq.Expr(fmt.Sprintf("Users.Id = $%d", argCount), opts.SubjectID))
+	}
+
 	if opts.Cursor.TargetID != "" {
 		argCount++
 		query = query.Where(sq.Expr(fmt.Sprintf("TargetID > $%d", argCount), opts.Cursor.TargetID))

@@ -94,14 +94,14 @@ describe('components/post_view/post_list', () => {
 
         wrapper.find(VirtPostList).prop('actions').loadOlderPosts();
         expect(wrapper.state('loadingOlderPosts')).toEqual(true);
-        expect(actionsProp.loadPosts).toHaveBeenCalledWith({channelId: baseProps.channelId, postId: postIds[postIds.length - 1], type: PostRequestTypes.BEFORE_ID});
-        await wrapper.instance().callLoadPosts('undefined', 'undefined', undefined);
+        expect(actionsProp.loadPosts).toHaveBeenCalledWith({channelId: baseProps.channelId, postId: postIds[postIds.length - 1], type: PostRequestTypes.BEFORE_ID, perPage: 30});
+        await wrapper.instance().callLoadPosts('undefined', 'undefined', undefined, 30);
         expect(wrapper.state('loadingOlderPosts')).toBe(false);
 
         wrapper.find(VirtPostList).prop('actions').loadNewerPosts();
         expect(wrapper.state('loadingNewerPosts')).toEqual(true);
-        expect(actionsProp.loadPosts).toHaveBeenCalledWith({channelId: baseProps.channelId, postId: postIds[0], type: PostRequestTypes.AFTER_ID});
-        await wrapper.instance().callLoadPosts('undefined', 'undefined', undefined);
+        expect(actionsProp.loadPosts).toHaveBeenCalledWith({channelId: baseProps.channelId, postId: postIds[0], type: PostRequestTypes.AFTER_ID, perPage: 30});
+        await wrapper.instance().callLoadPosts('undefined', 'undefined', undefined, 30);
         expect(wrapper.state('loadingNewerPosts')).toBe(false);
     });
 
@@ -192,7 +192,7 @@ describe('components/post_view/post_list', () => {
             const wrapper = shallow(<PostList {...{...baseProps, isFirstLoad: false, postListIds: postIds}}/>);
             wrapper.setProps({atOldestPost: false});
             wrapper.find(VirtPostList).prop('actions').canLoadMorePosts(undefined);
-            expect(actionsProp.loadPosts).toHaveBeenCalledWith({channelId: baseProps.channelId, postId: postIds[postIds.length - 1], type: PostRequestTypes.BEFORE_ID});
+            expect(actionsProp.loadPosts).toHaveBeenCalledWith({channelId: baseProps.channelId, postId: postIds[postIds.length - 1], type: PostRequestTypes.BEFORE_ID, perPage: 200});
         });
 
         test('Should call getPostsAfter if all older posts are loaded and not newerPosts', async () => {
@@ -200,14 +200,14 @@ describe('components/post_view/post_list', () => {
             const wrapper = shallow(<PostList {...{...baseProps, isFirstLoad: false, postListIds: postIds}}/>);
             wrapper.setProps({atOldestPost: true});
             wrapper.find(VirtPostList).prop('actions').canLoadMorePosts(undefined);
-            expect(actionsProp.loadPosts).toHaveBeenCalledWith({channelId: baseProps.channelId, postId: postIds[0], type: PostRequestTypes.AFTER_ID});
+            expect(actionsProp.loadPosts).toHaveBeenCalledWith({channelId: baseProps.channelId, postId: postIds[0], type: PostRequestTypes.AFTER_ID, perPage: 30});
         });
 
         test('Should call getPostsAfter canLoadMorePosts is requested with AFTER_ID', async () => {
             const postIds = createFakePosIds(2);
             const wrapper = shallow(<PostList {...{...baseProps, isFirstLoad: false, postListIds: postIds}}/>);
             wrapper.find(VirtPostList).prop('actions').canLoadMorePosts(PostRequestTypes.AFTER_ID);
-            expect(actionsProp.loadPosts).toHaveBeenCalledWith({channelId: baseProps.channelId, postId: postIds[0], type: PostRequestTypes.AFTER_ID});
+            expect(actionsProp.loadPosts).toHaveBeenCalledWith({channelId: baseProps.channelId, postId: postIds[0], type: PostRequestTypes.AFTER_ID, perPage: 30});
         });
     });
 
@@ -231,7 +231,7 @@ describe('components/post_view/post_list', () => {
             wrapper.find(VirtPostList).prop('actions').loadOlderPosts();
             expect(wrapper.state('loadingOlderPosts')).toEqual(true);
             expect(loadPosts).toHaveBeenCalledTimes(1);
-            expect(loadPosts).toHaveBeenCalledWith({channelId: baseProps.channelId, postId: postIds[postIds.length - 1], type: PostRequestTypes.BEFORE_ID});
+            expect(loadPosts).toHaveBeenCalledWith({channelId: baseProps.channelId, postId: postIds[postIds.length - 1], type: PostRequestTypes.BEFORE_ID, perPage: 30});
             await loadPosts();
             expect(wrapper.state('loadingOlderPosts')).toBe(false);
             expect(loadPosts).toHaveBeenCalledTimes(3);
@@ -258,6 +258,116 @@ describe('components/post_view/post_list', () => {
 
             await actionsProp.loadPostsAround();
             expect(actionsProp.markChannelAsRead).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('Differentiated page sizes', () => {
+        test('Should use 30 posts for user scroll (getPostsBefore)', async () => {
+            const postIds = createFakePosIds(2);
+            const loadPosts = jest.fn().mockImplementation(() => Promise.resolve({moreToLoad: true}));
+            const props = {
+                ...baseProps,
+                postListIds: postIds,
+                actions: {
+                    ...actionsProp,
+                    loadPosts,
+                },
+            };
+
+            const wrapper = shallow(
+                <PostList {...props}/>,
+            );
+
+            // Trigger user scroll up
+            wrapper.find(VirtPostList).prop('actions').loadOlderPosts();
+
+            expect(loadPosts).toHaveBeenCalledWith({
+                channelId: baseProps.channelId,
+                postId: postIds[postIds.length - 1],
+                type: PostRequestTypes.BEFORE_ID,
+                perPage: 30,
+            });
+        });
+
+        test('Should use 200 posts for auto-loading (getPostsBeforeAutoLoad)', async () => {
+            const postIds = createFakePosIds(2);
+            const loadPosts = jest.fn().mockImplementation(() => Promise.resolve({moreToLoad: true}));
+            const props = {
+                ...baseProps,
+                postListIds: postIds,
+                atOldestPost: false,
+                actions: {
+                    ...actionsProp,
+                    loadPosts,
+                },
+            };
+
+            const wrapper = shallow(
+                <PostList {...props}/>,
+            );
+
+            // Trigger auto-loading via canLoadMorePosts
+            await wrapper.find(VirtPostList).prop('actions').canLoadMorePosts(PostRequestTypes.BEFORE_ID);
+
+            expect(loadPosts).toHaveBeenCalledWith({
+                channelId: baseProps.channelId,
+                postId: postIds[postIds.length - 1],
+                type: PostRequestTypes.BEFORE_ID,
+                perPage: 200, // AUTO_LOAD_POSTS_PER_PAGE
+            });
+        });
+
+        test('Should use 30 posts for user scroll down (getPostsAfter)', async () => {
+            const postIds = createFakePosIds(2);
+            const loadPosts = jest.fn().mockImplementation(() => Promise.resolve({moreToLoad: true}));
+            const props = {
+                ...baseProps,
+                postListIds: postIds,
+                actions: {
+                    ...actionsProp,
+                    loadPosts,
+                },
+            };
+
+            const wrapper = shallow(
+                <PostList {...props}/>,
+            );
+
+            // Trigger user scroll down
+            wrapper.find(VirtPostList).prop('actions').loadNewerPosts();
+
+            expect(loadPosts).toHaveBeenCalledWith({
+                channelId: baseProps.channelId,
+                postId: postIds[0],
+                type: PostRequestTypes.AFTER_ID,
+                perPage: 30, // USER_SCROLL_POSTS_PER_PAGE
+            });
+        });
+
+        test('Should use 200 posts when canLoadMorePosts is triggered with BEFORE_ID', async () => {
+            const postIds = createFakePosIds(2);
+            const loadPosts = jest.fn().mockImplementation(() => Promise.resolve({moreToLoad: true}));
+            const props = {
+                ...baseProps,
+                postListIds: postIds,
+                atOldestPost: false,
+                actions: {
+                    ...actionsProp,
+                    loadPosts,
+                },
+            };
+
+            const wrapper = shallow(
+                <PostList {...props}/>,
+            );
+
+            // Trigger auto-loading via canLoadMorePosts
+            wrapper.find(VirtPostList).prop('actions').canLoadMorePosts(PostRequestTypes.BEFORE_ID);
+
+            // Should use auto-load page size (200 posts)
+            expect(loadPosts).toHaveBeenCalledWith(expect.objectContaining({
+                perPage: 200,
+            }));
         });
     });
 });

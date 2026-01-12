@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/access_control';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import type {GlobalState} from 'types/store';
@@ -31,8 +32,10 @@ export function isDevModeEnabled(state: GlobalState) {
     return EnableDeveloper;
 }
 
-// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this function when feature is GA
-export function isChannelAdminManageABACRulesEnabled(state: GlobalState): boolean {
-    const config = getConfig(state);
-    return config?.FeatureFlagChannelAdminManageABACRules === 'true';
+export function isChannelAccessControlEnabled(state: GlobalState): boolean {
+    const accessControlSettings = getAccessControlSettings(state);
+
+    // Channel-level access control requires both main ABAC and channel scope
+    return accessControlSettings.EnableAttributeBasedAccessControl &&
+           accessControlSettings.EnableChannelScopeAccessControl;
 }

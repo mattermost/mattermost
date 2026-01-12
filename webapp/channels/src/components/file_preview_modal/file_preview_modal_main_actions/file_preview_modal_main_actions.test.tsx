@@ -6,7 +6,7 @@ import type {ComponentProps} from 'react';
 
 import * as fileActions from 'mattermost-redux/actions/files';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 import * as Utils from 'utils/utils';
 
@@ -81,7 +81,7 @@ describe('components/file_preview_modal/file_preview_modal_main_actions/FilePrev
         expect(screen.getByLabelText('Copy code')).toBeInTheDocument();
     });
 
-    test('should call public link callback', () => {
+    test('should call public link callback', async () => {
         const spy = jest.spyOn(Utils, 'copyToClipboard');
         const props = {
             ...defaultProps,
@@ -93,7 +93,7 @@ describe('components/file_preview_modal/file_preview_modal_main_actions/FilePrev
 
         expect(spy).toHaveBeenCalledTimes(0);
 
-        screen.getByLabelText('Get a public link').click();
+        await userEvent.click(screen.getByLabelText('Get a public link'));
 
         expect(spy).toHaveBeenCalledTimes(1);
     });
@@ -128,7 +128,7 @@ describe('components/file_preview_modal/file_preview_modal_main_actions/FilePrev
             <FilePreviewModalMainActions {...props}/>,
         );
         expect(spy).toHaveBeenCalledTimes(0);
-        screen.getByLabelText('Copy code').click();
+        await userEvent.click(screen.getByLabelText('Copy code'));
         expect(spy).toHaveBeenCalledTimes(1);
     });
 });

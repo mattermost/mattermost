@@ -24,9 +24,12 @@ const (
 	LicenseShortSkuProfessional       = "professional"
 	LicenseShortSkuEnterprise         = "enterprise"
 	LicenseShortSkuEnterpriseAdvanced = "advanced"
+	LicenseShortSkuMattermostEntry    = "entry"
 
-	ProfessionalTier       = 10
-	EnterpriseTier         = 20
+	ProfessionalTier = 10
+	EnterpriseTier   = 20
+
+	EntryTier              = 30
 	EnterpriseAdvancedTier = 30
 )
 
@@ -34,6 +37,7 @@ var LicenseToLicenseTier = map[string]int{
 	LicenseShortSkuProfessional:       ProfessionalTier,
 	LicenseShortSkuEnterprise:         EnterpriseTier,
 	LicenseShortSkuEnterpriseAdvanced: EnterpriseAdvancedTier,
+	LicenseShortSkuMattermostEntry:    EntryTier,
 }
 
 const (
@@ -56,6 +60,15 @@ type LicenseRecord struct {
 	Bytes    string `json:"-"`
 }
 
+type LicenseLimits struct {
+	PostHistory         int64 `json:"post_history"`
+	BoardCards          int64 `json:"board_cards"`
+	PlaybookRuns        int64 `json:"playbook_runs"`
+	CallDurationSeconds int64 `json:"call_duration"`
+	AgentsPrompts       int64 `json:"agents_prompts"`
+	PushNotifications   int64 `json:"push_notifications"`
+}
+
 type License struct {
 	Id                  string    `json:"id"`
 	IssuedAt            int64     `json:"issued_at"`
@@ -71,8 +84,13 @@ type License struct {
 	// ExtraUsers provides a grace mechanism that allows a configurable number of users
 	// beyond the base license limit before restricting user creation. When nil, defaults to 0.
 	// For example: 100 licensed users + 5 ExtraUsers = 105 total allowed users.
-	ExtraUsers *int    `json:"extra_users"`
-	SignupJWT  *string `json:"signup_jwt"`
+	ExtraUsers *int           `json:"extra_users"`
+	SignupJWT  *string        `json:"signup_jwt"`
+	Limits     *LicenseLimits `json:"limits"`
+}
+
+func (l *License) IsMattermostEntry() bool {
+	return l != nil && l.SkuShortName == LicenseShortSkuMattermostEntry
 }
 
 type Customer struct {

@@ -14,8 +14,6 @@ import type {PreferenceType} from '@mattermost/types/preferences';
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 import {localizeMessage} from 'mattermost-redux/utils/i18n_utils';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
@@ -132,12 +130,6 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
     handleCollapse = () => {
         const {category} = this.props;
 
-        if (category.collapsed) {
-            trackEvent('ui', 'ui_sidebar_expand_category');
-        } else {
-            trackEvent('ui', 'ui_sidebar_collapse_category');
-        }
-
         this.props.actions.setCategoryCollapsed(category.id, !category.collapsed);
     };
 
@@ -151,7 +143,6 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
         event.preventDefault();
 
         this.props.handleOpenMoreDirectChannelsModal(event.nativeEvent);
-        trackEvent('ui', 'ui_sidebar_create_direct_message');
     };
 
     isDropDisabled = () => {
@@ -324,7 +315,6 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                         inviteMembersButton = (
                             <InviteMembersButton
                                 className='followingSibling'
-                                isAdmin={this.props.isAdmin}
                             />
                         );
                     }

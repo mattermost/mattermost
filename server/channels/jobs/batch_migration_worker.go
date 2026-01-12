@@ -52,7 +52,7 @@ func MakeBatchMigrationWorker(
 	return worker
 }
 
-func (worker *BatchMigrationWorker) doBatch(rctx *request.Context, job *model.Job) bool {
+func (worker *BatchMigrationWorker) doBatch(rctx request.CTX, job *model.Job) bool {
 	// Ensure the cluster remains in sync, otherwise we restart the job to
 	// ensure a complete migration. Technically, the cluster could go out of
 	// sync briefly within a batch, but we accept that risk.

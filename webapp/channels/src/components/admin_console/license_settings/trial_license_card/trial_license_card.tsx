@@ -33,7 +33,7 @@ const TrialLicenseCard: React.FC<Props> = ({license}: Props) => {
                     id='admin.license.trialLicenseCard.expiringToday'
                     defaultMessage='Your free trial expires <b>Today at {time}</b>. Contact sales to purchase a license and continue using advanced features after the trial ends.'
                     values={{
-                        b: (chunks: string) => <b>{chunks}</b>,
+                        b: (chunks) => <b>{chunks}</b>,
                         time: moment(endDate).endOf('day').format('h:mm a ') + moment().tz(getBrowserTimezone()).format('z'),
                     }}
                 />
@@ -45,7 +45,7 @@ const TrialLicenseCard: React.FC<Props> = ({license}: Props) => {
                 id='admin.license.trialLicenseCard.expiringAfterFewDays'
                 defaultMessage='Your free trial will expire in <b>{daysCount} {daysCount, plural, one {day} other {days}}</b>. Contact sales to purchase a license and continue using advanced features.'
                 values={{
-                    b: (chunks: string) => <b>{chunks}</b>,
+                    b: (chunks) => <b>{chunks}</b>,
                     daysCount: daysToEndLicense,
                 }}
             />

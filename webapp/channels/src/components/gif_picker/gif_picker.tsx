@@ -5,8 +5,8 @@ import type {IGif} from '@giphy/js-types';
 import type {SyntheticEvent} from 'react';
 import React, {useCallback, useMemo} from 'react';
 
-import GifPickerItems from './components/gif_picker_items';
-import GifPickerSearch from './components/gif_picker_search';
+import GifPickerItems from './gif_picker_items';
+import GifPickerSearch from './gif_picker_search';
 
 const GIF_DEFAULT_WIDTH = 350;
 const GIF_MARGIN_ENDS = 12;

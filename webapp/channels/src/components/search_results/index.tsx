@@ -30,24 +30,14 @@ function makeMapStateToProps() {
     let results: Post[];
     let fileResults: FileSearchResultItem[];
     let files: FileSearchResultItem[] = [];
-    let posts: Post[];
     const addDateSeparatorsForSearchResults = makeAddDateSeparatorsForSearchResults();
 
     return function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         const newResults = getSearchResults(state);
 
-        // Cache posts and channels
+        // Cache results
         if (newResults && newResults !== results) {
             results = newResults;
-
-            posts = [];
-            results.forEach((post) => {
-                if (!post) {
-                    return;
-                }
-
-                posts.push(post);
-            });
 
             if (ownProps.isPinnedPosts) {
                 results = results.sort((postA: Post | FileSearchResultItem, postB: Post | FileSearchResultItem) => postB.create_at - postA.create_at);
