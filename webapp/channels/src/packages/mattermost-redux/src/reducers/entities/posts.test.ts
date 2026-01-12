@@ -6,6 +6,7 @@ import type {Post, PostOrderBlock} from '@mattermost/types/posts';
 import {
     ChannelTypes,
     PostTypes,
+    TeamTypes,
     ThreadTypes,
     CloudTypes,
     LimitsTypes,
@@ -638,6 +639,156 @@ describe('posts', () => {
             expect(nextState.post1.metadata.embeds).toHaveLength(2);
             expect(nextState.post1.metadata.embeds[0]).toBe(state.post1.metadata.embeds[0]); // opengraph preserved
             expect(nextState.post1.metadata.embeds[1]).toBe(state.post1.metadata.embeds[2]); // channel3 permalink preserved
+        });
+    });
+
+    describe(`leaving a team (${TeamTypes.LEAVE_TEAM})`, () => {
+        it('MM-67130 should remove posts from channels in the left team', () => {
+            // Team A: channel_teamA (user stays here)
+            // Team B: channel_teamB (user leaves this team)
+            const state = deepFreeze({
+                post1: {id: 'post1', channel_id: 'channel_teamA'},
+                post2: {id: 'post2', channel_id: 'channel_teamB'},
+                post3: {id: 'post3', channel_id: 'channel_teamB'},
+            });
+
+            const nextState = reducers.handlePosts(state, {
+                type: TeamTypes.LEAVE_TEAM,
+                data: {
+                    id: 'teamB',
+                    channelIds: ['channel_teamB'],
+                },
+            });
+
+            expect(nextState).not.toBe(state);
+            expect(nextState.post1).toBe(state.post1);
+            expect(nextState.post2).toBeUndefined();
+            expect(nextState.post3).toBeUndefined();
+        });
+
+        it('MM-67130 should remove permalink embeds referencing channels in the left team', () => {
+            // Scenario: User is on Team A and Team B
+            // - Post in Team A's channel has a permalink to a post in Team B's channel
+            // - When user leaves Team B, the permalink embed should be removed
+            const state = deepFreeze({
+                post_in_teamA: {
+                    id: 'post_in_teamA',
+                    channel_id: 'channel_teamA',
+                    metadata: {
+                        embeds: [{
+                            type: 'permalink',
+                            data: {
+                                post_id: 'secret_post',
+                                channel_id: 'channel_teamB',
+                                post: {id: 'secret_post', message: 'secret message from Team B'},
+                            },
+                        }],
+                    },
+                },
+                other_post: {id: 'other_post', channel_id: 'channel_teamA'},
+            });
+
+            const nextState = reducers.handlePosts(state, {
+                type: TeamTypes.LEAVE_TEAM,
+                data: {
+                    id: 'teamB',
+                    channelIds: ['channel_teamB'],
+                },
+            });
+
+            expect(nextState).not.toBe(state);
+            expect(nextState.other_post).toBe(state.other_post);
+            expect(nextState.post_in_teamA.metadata.embeds).toHaveLength(0);
+        });
+
+        it('MM-67130 should handle leaving team with multiple channels', () => {
+            // Team B has multiple channels, all should be cleaned up
+            const state = deepFreeze({
+                post_in_teamA: {
+                    id: 'post_in_teamA',
+                    channel_id: 'channel_teamA',
+                    metadata: {
+                        embeds: [
+                            {
+                                type: 'permalink',
+                                data: {
+                                    post_id: 'post1',
+                                    channel_id: 'channel_teamB_1',
+                                    post: {id: 'post1', message: 'secret 1'},
+                                },
+                            },
+                            {
+                                type: 'permalink',
+                                data: {
+                                    post_id: 'post2',
+                                    channel_id: 'channel_teamB_2',
+                                    post: {id: 'post2', message: 'secret 2'},
+                                },
+                            },
+                            {
+                                type: 'permalink',
+                                data: {
+                                    post_id: 'post3',
+                                    channel_id: 'channel_teamA',
+                                    post: {id: 'post3', message: 'keep this'},
+                                },
+                            },
+                        ],
+                    },
+                },
+                post_teamB_1: {id: 'post_teamB_1', channel_id: 'channel_teamB_1'},
+                post_teamB_2: {id: 'post_teamB_2', channel_id: 'channel_teamB_2'},
+            });
+
+            const nextState = reducers.handlePosts(state, {
+                type: TeamTypes.LEAVE_TEAM,
+                data: {
+                    id: 'teamB',
+                    channelIds: ['channel_teamB_1', 'channel_teamB_2'],
+                },
+            });
+
+            expect(nextState).not.toBe(state);
+
+            // Posts from Team B channels should be removed
+            expect(nextState.post_teamB_1).toBeUndefined();
+            expect(nextState.post_teamB_2).toBeUndefined();
+
+            // Only the permalink to Team A's channel should remain
+            expect(nextState.post_in_teamA.metadata.embeds).toHaveLength(1);
+            expect(nextState.post_in_teamA.metadata.embeds[0].data.channel_id).toBe('channel_teamA');
+        });
+
+        it('MM-67130 should handle LEAVE_TEAM with no channelIds (no-op)', () => {
+            const state = deepFreeze({
+                post1: {id: 'post1', channel_id: 'channel1'},
+            });
+
+            // channelIds not provided (e.g., from other dispatch sites)
+            const nextState = reducers.handlePosts(state, {
+                type: TeamTypes.LEAVE_TEAM,
+                data: {
+                    id: 'teamB',
+                },
+            });
+
+            expect(nextState).toBe(state);
+        });
+
+        it('MM-67130 should handle LEAVE_TEAM with empty channelIds array', () => {
+            const state = deepFreeze({
+                post1: {id: 'post1', channel_id: 'channel1'},
+            });
+
+            const nextState = reducers.handlePosts(state, {
+                type: TeamTypes.LEAVE_TEAM,
+                data: {
+                    id: 'teamB',
+                    channelIds: [],
+                },
+            });
+
+            expect(nextState).toBe(state);
         });
     });
 
