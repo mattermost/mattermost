@@ -116,9 +116,7 @@ func TestDecoderDecode(t *testing.T) {
 }
 
 func TestPSDNotSupported(t *testing.T) {
-	// MM-67077: PSD preview support removed due to memory management vulnerabilities
-	// in the oov/psd package. PSD files can still be uploaded as attachments,
-	// but the image decoder will not generate previews/thumbnails for them.
+	// MM-67077: PSD preview support was removed due to memory vulnerability in oov/psd package
 	d, err := NewDecoder(DecoderOptions{})
 	require.NotNil(t, d)
 	require.NoError(t, err)

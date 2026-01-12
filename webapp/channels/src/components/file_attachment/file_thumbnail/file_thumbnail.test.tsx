@@ -107,7 +107,6 @@ describe('FileThumbnail', () => {
     });
 
     test('should render an icon for a PSD (MM-67077)', () => {
-        // PSD preview support was removed due to memory vulnerability
         const props = {
             ...baseProps,
             fileInfo: {
