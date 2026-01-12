@@ -47,7 +47,9 @@ export default class SignupPage {
         this.passwordError = page.locator('text=Must be 5-72 characters long.');
 
         const termsAndPrivacyBlock = page.locator('.check-input');
-        this.termsAndPrivacyCheckBox = termsAndPrivacyBlock.getByRole('checkbox', {name: 'Terms and privacy policy checkbox'});
+        this.termsAndPrivacyCheckBox = termsAndPrivacyBlock.getByRole('checkbox', {
+            name: 'Terms and privacy policy checkbox',
+        });
         this.termsAndPrivacyAcceptableUsePolicyLink = termsAndPrivacyBlock.locator('text=Acceptable Use Policy');
         this.termsAndPrivacyPrivacyPolicyLink = termsAndPrivacyBlock.locator('text=Privacy Policy');
 
