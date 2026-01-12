@@ -65,41 +65,71 @@ const HelpCommands = (): JSX.Element => {
                         />
                     </p>
                     <div className='Help__commands-example'>
-                        <div className='Help__commands-header'>{'COMMANDS'}</div>
+                        <div className='Help__commands-header'>
+                            <FormattedMessage
+                                id='help.commands.example.header'
+                                defaultMessage='COMMANDS'
+                            />
+                        </div>
                         <div className='Help__commands-list'>
                             <div className='Help__command-item'>
                                 <span className='Help__command-icon'>{'/'}</span>
                                 <div className='Help__command-details'>
                                     <span className='Help__command-name'>{'away'}</span>
-                                    <span className='Help__command-desc'>{'Set your status away'}</span>
+                                    <span className='Help__command-desc'>
+                                        <FormattedMessage
+                                            id='help.commands.example.away'
+                                            defaultMessage='Set your status away'
+                                        />
+                                    </span>
                                 </div>
                             </div>
                             <div className='Help__command-item'>
                                 <span className='Help__command-icon'>{'/'}</span>
                                 <div className='Help__command-details'>
                                     <span className='Help__command-name'>{'code'}</span>
-                                    <span className='Help__command-desc'>{'Display text as a code block'}</span>
+                                    <span className='Help__command-desc'>
+                                        <FormattedMessage
+                                            id='help.commands.example.code'
+                                            defaultMessage='Display text as a code block'
+                                        />
+                                    </span>
                                 </div>
                             </div>
                             <div className='Help__command-item'>
                                 <span className='Help__command-icon'>{'/'}</span>
                                 <div className='Help__command-details'>
                                     <span className='Help__command-name'>{'collapse'}</span>
-                                    <span className='Help__command-desc'>{'Turn on auto-collapsing of image previews'}</span>
+                                    <span className='Help__command-desc'>
+                                        <FormattedMessage
+                                            id='help.commands.example.collapse'
+                                            defaultMessage='Turn on auto-collapsing of image previews'
+                                        />
+                                    </span>
                                 </div>
                             </div>
                             <div className='Help__command-item'>
                                 <span className='Help__command-icon'>{'/'}</span>
                                 <div className='Help__command-details'>
                                     <span className='Help__command-name'>{'dnd'}</span>
-                                    <span className='Help__command-desc'>{'Do not disturb disables desktop and mobile notifications'}</span>
+                                    <span className='Help__command-desc'>
+                                        <FormattedMessage
+                                            id='help.commands.example.dnd'
+                                            defaultMessage='Do not disturb disables desktop and mobile notifications'
+                                        />
+                                    </span>
                                 </div>
                             </div>
                             <div className='Help__command-item'>
                                 <span className='Help__command-icon'>{'/'}</span>
                                 <div className='Help__command-details'>
                                     <span className='Help__command-name'>{"echo 'message'"}</span>
-                                    <span className='Help__command-desc'>{'Echo back text from your account'}</span>
+                                    <span className='Help__command-desc'>
+                                        <FormattedMessage
+                                            id='help.commands.example.echo'
+                                            defaultMessage='Echo back text from your account'
+                                        />
+                                    </span>
                                 </div>
                             </div>
                             <div className='Help__command-item'>

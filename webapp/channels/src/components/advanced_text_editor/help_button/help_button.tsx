@@ -52,7 +52,7 @@ const HelpButton = ({visible}: Props): JSX.Element | null => {
                 type='button'
                 className='HelpButton__link'
                 onClick={handleClick}
-                aria-label='Messaging help'
+                aria-label={intl.formatMessage({id: 'advanced_text_editor.help_link.aria', defaultMessage: 'Messaging help'})}
             >
                 <FormattedMessage
                     id='advanced_text_editor.help_link'

@@ -503,7 +503,12 @@ const HelpFormatting = (): JSX.Element => {
                             defaultMessage={'Make a heading by typing <code>#</code> and a space before your title. For smaller headings, use multiple <code>#</code>. Alternatively, you can underline the text using <code>===</code> or <code>---</code> to create headings.'}
                         />
                     </p>
-                    <p>{'This text'}</p>
+                    <p>
+                        <FormattedMessage
+                            id='help.formatting.headings.this_text'
+                            defaultMessage='This text'
+                        />
+                    </p>
                     <table className='Help__table'>
                         <thead>
                             <tr>
@@ -675,7 +680,12 @@ const HelpFormatting = (): JSX.Element => {
                             defaultMessage={'Create a table by placing a dashed line under the header row and separating the columns with a pipe <code>|</code>. (The columns don\'t need to line up exactly for it to work). Choose how to align table columns by including colons <code>:</code> within the header row.'}
                         />
                     </p>
-                    <p>{'This text:'}</p>
+                    <p>
+                        <FormattedMessage
+                            id='help.formatting.tables.this_text'
+                            defaultMessage='This text:'
+                        />
+                    </p>
                     <div className='Help__code-block'>
                         <code>
                             {'| Left-Aligned  | Center Aligned  | Right Aligned |'}<br/>
@@ -685,7 +695,12 @@ const HelpFormatting = (): JSX.Element => {
                             {'| Left column 3 | centered        |    $1 |'}
                         </code>
                     </div>
-                    <p>{'Renders as:'}</p>
+                    <p>
+                        <FormattedMessage
+                            id='help.formatting.tables.renders_as'
+                            defaultMessage='Renders as:'
+                        />
+                    </p>
                     <table className='Help__table Help__table--example'>
                         <thead>
                             <tr>
