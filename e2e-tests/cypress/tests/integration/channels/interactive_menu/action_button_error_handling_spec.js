@@ -96,7 +96,7 @@ describe('Interactive Menu - Action Button Error Handling', () => {
         cy.findByText('Button with Tooltip').should('be.visible');
 
         // # Hover over the action button
-        cy.findByText('Button with Tooltip').should('be.visible').trigger('mouseover');
+        cy.findByText('Button with Tooltip').should('be.visible').trigger('mouseenter', {force: true});
 
         // * Verify that tooltip is displayed with correct text using WithTooltip component
         cy.get('.tooltipContainer').should('be.visible').and('contain.text', 'This is a helpful tooltip');
