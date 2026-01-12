@@ -151,7 +151,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               data-testid="signup-body-card-form-password-input"
               disabled={false}
               error=""
-              info="Must be 5-72 characters long."
+              info="Your password must be 5-72 characters long."
               inputSize="large"
               onChange={[Function]}
               value=""
@@ -317,7 +317,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               data-testid="signup-body-card-form-password-input"
               disabled={false}
               error=""
-              info="Must be 5-72 characters long."
+              info="Your password must be 5-72 characters long."
               inputSize="large"
               onChange={[Function]}
               value=""
