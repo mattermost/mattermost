@@ -46,7 +46,6 @@ import {getChannelByName} from 'mattermost-redux/utils/channel_utils';
 import EventEmitter from 'mattermost-redux/utils/event_emitter';
 
 import {openDirectChannelToUserId} from 'actions/channel_actions';
-import {loadCustomStatusEmojisForPostList} from 'actions/emoji_actions';
 import {closeRightHandSide} from 'actions/views/rhs';
 import {markThreadAsRead} from 'actions/views/threads';
 import {getLastViewedChannelName} from 'selectors/local_storage';
@@ -271,7 +270,6 @@ export function loadUnreads(channelId: string, prefetch = false): ActionFuncAsyn
                 atOldestmessage: false,
             };
         }
-        dispatch(loadCustomStatusEmojisForPostList(data!.posts));
 
         const actions = [];
         actions.push({
@@ -405,7 +403,6 @@ export function loadPosts({
             };
         }
 
-        dispatch(loadCustomStatusEmojisForPostList(data!.posts));
         actions.push({
             type: ActionTypes.INCREASE_POST_VISIBILITY,
             data: channelId,

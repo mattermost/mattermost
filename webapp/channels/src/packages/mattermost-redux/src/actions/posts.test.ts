@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import fs from 'fs';
-
 import nock from 'nock';
 
 import type {Post, PostList} from '@mattermost/types/posts';
@@ -10,7 +8,6 @@ import type {GlobalState} from '@mattermost/types/store';
 
 import {PostTypes, UserTypes} from 'mattermost-redux/action_types';
 import {getChannelStats} from 'mattermost-redux/actions/channels';
-import {createCustomEmoji} from 'mattermost-redux/actions/emojis';
 import * as Actions from 'mattermost-redux/actions/posts';
 import {loadMe} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
@@ -1301,41 +1298,6 @@ describe('Actions.Posts', () => {
         const reactions = state.entities.posts.reactions[post1.id];
         expect(reactions).toBeTruthy();
         expect(!reactions[TestHelper.basicUser!.id + '-' + emojiName]).toBeTruthy();
-    });
-
-    it('getCustomEmojiForReaction', async () => {
-        const testImageData = fs.createReadStream('src/packages/mattermost-redux/test/assets/images/test.png');
-        const {dispatch, getState} = store;
-
-        nock(Client4.getBaseRoute()).
-            post('/emoji').
-            reply(201, {id: TestHelper.generateId(), create_at: 1507918415696, update_at: 1507918415696, delete_at: 0, creator_id: TestHelper.basicUser!.id, name: TestHelper.generateId()});
-
-        const {data: created} = await dispatch(createCustomEmoji(
-            {
-                name: TestHelper.generateId(),
-                creator_id: TestHelper.basicUser!.id,
-            },
-            testImageData,
-        ));
-
-        nock(Client4.getEmojisRoute()).
-            get(`/name/${created.name}`).
-            reply(200, created);
-
-        const missingEmojiName = ':notrealemoji:';
-
-        nock(Client4.getEmojisRoute()).
-            get(`/name/${missingEmojiName}`).
-            reply(404, {message: 'Not found', status_code: 404});
-
-        await dispatch(Actions.getCustomEmojiForReaction(missingEmojiName));
-
-        const state = getState();
-        const emojis = state.entities.emojis.customEmoji;
-        expect(emojis).toBeTruthy();
-        expect(emojis[created.id]).toBeTruthy();
-        expect(state.entities.emojis.nonExistentEmoji.has(missingEmojiName)).toBeTruthy();
     });
 
     it('doPostAction', async () => {

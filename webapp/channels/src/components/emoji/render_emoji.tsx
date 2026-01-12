@@ -3,13 +3,10 @@
 
 import React from 'react';
 import type {MouseEvent, KeyboardEvent} from 'react';
-import {useSelector} from 'react-redux';
 
 import {getEmojiImageUrl} from 'mattermost-redux/utils/emoji_utils';
 
-import {getEmojiMap} from 'selectors/emojis';
-
-import type {GlobalState} from 'types/store';
+import {useEmoji} from 'components/common/hooks/useEmoji';
 
 const emptyEmojiStyle = {};
 
@@ -26,17 +23,12 @@ const RenderEmoji = ({
     size = 16,
     onClick,
 }: ComponentProps) => {
-    const emojiMap = useSelector((state: GlobalState) => getEmojiMap(state));
-
-    if (!emojiName) {
+    const emoji = useEmoji(emojiName);
+    if (!emoji) {
         return null;
     }
 
-    const emojiFromMap = emojiMap.get(emojiName);
-    if (!emojiFromMap) {
-        return null;
-    }
-    const emojiImageUrl = getEmojiImageUrl(emojiFromMap);
+    const emojiImageUrl = getEmojiImageUrl(emoji);
 
     return (
         <span

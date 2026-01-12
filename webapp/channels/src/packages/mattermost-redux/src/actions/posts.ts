@@ -15,7 +15,6 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {PostTypes, ChannelTypes, FileTypes, IntegrationTypes} from 'mattermost-redux/action_types';
 import {selectChannel} from 'mattermost-redux/actions/channels';
-import {systemEmojis, getCustomEmojiByName} from 'mattermost-redux/actions/emojis';
 import {getGroupsByNames} from 'mattermost-redux/actions/groups';
 import {bindClientFunc, forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {
@@ -29,7 +28,6 @@ import {Client4, DEFAULT_LIMIT_AFTER, DEFAULT_LIMIT_BEFORE} from 'mattermost-red
 import {General, Preferences, Posts} from 'mattermost-redux/constants';
 import {getCurrentChannelId, getMyChannelMember as getMyChannelMemberSelector} from 'mattermost-redux/selectors/entities/channels';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
-import {getCustomEmojisByName as selectCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
 import {getAllGroupsByName} from 'mattermost-redux/selectors/entities/groups';
 import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
 import {getUnreadScrollPositionPreference, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
@@ -552,27 +550,6 @@ export function removeReaction(postId: string, emojiName: string): ActionFuncAsy
         });
 
         return {data: {removedReaction: true}};
-    };
-}
-
-export function getCustomEmojiForReaction(name: string): ActionFuncAsync {
-    return async (dispatch, getState) => {
-        const nonExistentEmoji = getState().entities.emojis.nonExistentEmoji;
-        const customEmojisByName = selectCustomEmojisByName(getState());
-
-        if (systemEmojis.has(name)) {
-            return {data: true};
-        }
-
-        if (nonExistentEmoji.has(name)) {
-            return {data: true};
-        }
-
-        if (customEmojisByName.has(name)) {
-            return {data: true};
-        }
-
-        return dispatch(getCustomEmojiByName(name));
     };
 }
 

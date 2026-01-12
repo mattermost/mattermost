@@ -6,17 +6,13 @@ import {useDispatch, useSelector} from 'react-redux';
 import {useParams} from 'react-router-dom';
 
 import {fetchChannelsAndMembers, selectChannel} from 'mattermost-redux/actions/channels';
-import {getPostThread} from 'mattermost-redux/actions/posts';
 import {fetchTeamScheduledPosts} from 'mattermost-redux/actions/scheduled_posts';
-import {extractUserIdsAndMentionsFromPosts} from 'mattermost-redux/actions/status_profile_polling';
 import {selectTeam} from 'mattermost-redux/actions/teams';
 import {getThread} from 'mattermost-redux/actions/threads';
-import {getProfilesByIds} from 'mattermost-redux/actions/users';
 import {getTeamByName} from 'mattermost-redux/selectors/entities/teams';
 import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {loadStatusesByIds} from 'actions/status_actions';
 import {markThreadAsRead} from 'actions/views/threads';
 
 import {usePost} from 'components/common/hooks/usePost';
@@ -61,24 +57,6 @@ export default function ThreadPopout() {
     useEffect(() => {
         if (teamId) {
             dispatch(getThread(currentUserId, teamId, postId));
-
-            // Since the statuses are fetched properly and timely by the thread viewer, manually fetch them here
-            async function fetchPostThread() {
-                const {data: posts} = await dispatch(getPostThread(postId, true));
-                if (posts) {
-                    const {data: result} = await dispatch(extractUserIdsAndMentionsFromPosts(Array.from(Object.values(posts.posts))));
-                    if (result) {
-                        if (result.userIdsForProfilePoll.length > 0) {
-                            await dispatch(getProfilesByIds(result.userIdsForProfilePoll));
-                        }
-                        if (result.userIdsForStatusPoll.length > 0) {
-                            await dispatch(loadStatusesByIds(result.userIdsForStatusPoll));
-                        }
-                    }
-                }
-            }
-
-            fetchPostThread();
         }
     }, [postId, dispatch, currentUserId, teamId]);
 
