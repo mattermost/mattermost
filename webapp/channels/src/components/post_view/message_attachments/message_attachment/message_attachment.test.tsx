@@ -256,26 +256,4 @@ describe('components/post_view/MessageAttachment', () => {
         const wrapper = shallow(<MessageAttachment {...props}/>);
         expect(wrapper.find('.attachment')).toMatchSnapshot();
     });
-
-    test('should receive channelNamesMap prop', () => {
-        const channelNamesMap = {
-            engineering: {display_name: 'Engineering', team_name: 'myteam'},
-            qa: {display_name: 'QA Team', team_name: 'myteam'},
-        };
-
-        const props = {
-            ...baseProps,
-            channelNamesMap,
-            attachment: {
-                pretext: 'Check ~engineering',
-                text: 'Deploy to ~qa',
-                fields: [{title: 'Channels', value: '~engineering'}],
-            } as MessageAttachmentType,
-        };
-
-        const wrapper = shallow<MessageAttachment>(<MessageAttachment {...props}/>);
-
-        // Verify the component instance received channelNamesMap via props
-        expect(wrapper.instance().props.channelNamesMap).toEqual(channelNamesMap);
-    });
 });

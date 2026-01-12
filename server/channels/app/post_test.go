@@ -3178,6 +3178,8 @@ func TestFillInPostProps(t *testing.T) {
 
 		dmChannelBetweenUser1AndUser2 := th.CreateDmChannel(t, user2)
 
+		th.Context.Session().UserId = user1.Id
+
 		post, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: dmChannelBetweenUser1AndUser2.Id,
@@ -3202,6 +3204,8 @@ func TestFillInPostProps(t *testing.T) {
 		channel := th.CreateChannel(t, th.BasicTeam)
 
 		dmChannel := th.CreateDmChannel(t, user2)
+
+		th.Context.Session().UserId = user1.Id
 
 		post, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
