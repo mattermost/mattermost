@@ -504,7 +504,8 @@ func TestUpdateTeam(t *testing.T) {
 }
 
 func TestUpdateTeamInviteUserPermission(t *testing.T) {
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
 
 	// Create a team with AllowOpenInvite=false
 	team := &model.Team{
@@ -517,11 +518,11 @@ func TestUpdateTeamInviteUserPermission(t *testing.T) {
 	team, _, err := th.Client.CreateTeam(context.Background(), team)
 	require.NoError(t, err)
 
-	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
-	defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer th.RestoreDefaultRolePermissions(defaultRolePermissions)
 
 	t.Run("user with InviteUser permission can change AllowOpenInvite", func(t *testing.T) {
-		th.AddPermissionToRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
+		th.AddPermissionToRole(model.PermissionInviteUser.Id, model.TeamUserRoleId)
 
 		team.AllowOpenInvite = true
 		var updatedTeam *model.Team
@@ -538,8 +539,8 @@ func TestUpdateTeamInviteUserPermission(t *testing.T) {
 
 	t.Run("user without InviteUser permission cannot change AllowOpenInvite", func(t *testing.T) {
 		// Remove InviteUser permission from team user and admin roles
-		th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
-		th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+		th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamUserRoleId)
+		th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamAdminRoleId)
 
 		// Attempt to change AllowOpenInvite to true
 		team.AllowOpenInvite = true
@@ -557,8 +558,8 @@ func TestUpdateTeamInviteUserPermission(t *testing.T) {
 
 	t.Run("user without InviteUser permission cannot change AllowedDomains", func(t *testing.T) {
 		// Remove InviteUser permission from team user and admin roles
-		th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
-		th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+		th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamUserRoleId)
+		th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamAdminRoleId)
 
 		// Attempt to change AllowedDomains
 		team.AllowedDomains = "example.com"
@@ -576,8 +577,8 @@ func TestUpdateTeamInviteUserPermission(t *testing.T) {
 
 	t.Run("user without InviteUser permission can change other fields", func(t *testing.T) {
 		// Remove InviteUser permission
-		th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
-		th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+		th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamUserRoleId)
+		th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamAdminRoleId)
 
 		// Refetch the team to get clean state
 		team, _, err = th.SystemAdminClient.GetTeam(context.Background(), team.Id, "")
@@ -595,8 +596,8 @@ func TestUpdateTeamInviteUserPermission(t *testing.T) {
 
 	t.Run("system admin can change AllowOpenInvite regardless of permissions", func(t *testing.T) {
 		// Remove InviteUser permission for regular roles
-		th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
-		th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+		th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamUserRoleId)
+		th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamAdminRoleId)
 
 		// Refetch the team
 		team, _, err = th.SystemAdminClient.GetTeam(context.Background(), team.Id, "")
