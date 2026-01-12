@@ -3,18 +3,23 @@
 
 /* eslint-disable no-console */
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import {fileURLToPath} from 'url';
 
-const async = require('async');
-const {S3} = require('@aws-sdk/client-s3');
-const {Upload} = require('@aws-sdk/lib-storage');
-const mime = require('mime-types');
-const readdir = require('recursive-readdir');
+import {asyncify, eachOfLimit} from 'async';
+import {S3} from '@aws-sdk/client-s3';
+import {Upload} from '@aws-sdk/lib-storage';
+import mime from 'mime-types';
+import readdir from 'recursive-readdir';
+import dotenv from 'dotenv';
 
-const {MOCHAWESOME_REPORT_DIR} = require('./constants');
+import {MOCHAWESOME_REPORT_DIR} from './constants.js';
 
-require('dotenv').config();
+dotenv.config({quiet: true});
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const {
     AWS_S3_BUCKET,
@@ -36,7 +41,7 @@ function getFiles(dirPath) {
     return fs.existsSync(dirPath) ? readdir(dirPath) : [];
 }
 
-async function saveArtifacts() {
+export async function saveArtifacts() {
     if (!AWS_S3_BUCKET || !AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY) {
         console.log('No AWS credentials found. Test artifacts not uploaded to S3.');
 
@@ -48,10 +53,10 @@ async function saveArtifacts() {
     const filesToUpload = await getFiles(uploadPath);
 
     return new Promise((resolve, reject) => {
-        async.eachOfLimit(
+        eachOfLimit(
             filesToUpload,
             10,
-            async.asyncify(async (file) => {
+            asyncify(async (file) => {
                 const Key = file.replace(uploadPath, s3Folder);
                 const contentType = mime.lookup(file);
                 const charset = mime.charset(contentType);
@@ -84,5 +89,3 @@ async function saveArtifacts() {
         );
     });
 }
-
-module.exports = {saveArtifacts};

@@ -87,7 +87,7 @@ export function stubClipboard() {
             };
         }
 
-        cy.stub(win.navigator.clipboard, 'writeText', (link) => {
+        cy.stub(win.navigator.clipboard, 'writeText').callsFake((link) => {
             clipboard.wasCalled = true;
             clipboard.contents = link;
             return Promise.resolve(true);

@@ -24,19 +24,20 @@
  *      - will run all the specs available from the Automation dashboard
  */
 
-const chalk = require('chalk');
-const cypress = require('cypress');
+import chalk from 'chalk';
+import cypress from 'cypress';
+import dotenv from 'dotenv';
 
-const {
+import {
     getSpecToTest,
     recordSpecResult,
     updateCycle,
     uploadScreenshot,
-} = require('./utils/dashboard');
-const {writeJsonToFile} = require('./utils/report');
-const {MOCHAWESOME_REPORT_DIR, RESULTS_DIR} = require('./utils/constants');
+} from './utils/dashboard.js';
+import {writeJsonToFile} from './utils/report.js';
+import {MOCHAWESOME_REPORT_DIR, RESULTS_DIR} from './utils/constants.js';
 
-require('dotenv').config();
+dotenv.config({quiet: true});
 
 const {
     BRANCH,

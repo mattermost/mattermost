@@ -5,10 +5,10 @@
 
 // See reference: https://support.smartbear.com/tm4j-cloud/api-docs/
 
-const axios = require('axios');
-const chalk = require('chalk');
+import axios from 'axios';
+import chalk from 'chalk';
 
-const {getAllTests} = require('./report');
+import {getAllTests} from './report.js';
 
 const status = {
     passed: 'Pass',
@@ -83,7 +83,7 @@ function saveToEndpoint(url, data) {
     });
 }
 
-async function createTestCycle(startDate, endDate) {
+export async function createTestCycle(startDate, endDate) {
     const {
         BRANCH,
         BUILD_ID,
@@ -106,7 +106,7 @@ async function createTestCycle(startDate, endDate) {
     return response.data;
 }
 
-async function createTestExecutions(report, testCycle) {
+export async function createTestExecutions(report, testCycle) {
     const {
         BROWSER,
         JIRA_PROJECT_KEY,
@@ -156,7 +156,7 @@ async function createTestExecutions(report, testCycle) {
     console.log('Successfully saved test cases into the Test Management System');
 }
 
-const saveTestCases = async (allReport) => {
+export const saveTestCases = async (allReport) => {
     const {start, end} = allReport.stats;
 
     const testCycle = await createTestCycle(start, end);
@@ -193,9 +193,3 @@ async function saveTestExecution(testExecution, index) {
         }
     });
 }
-
-module.exports = {
-    createTestCycle,
-    saveTestCases,
-    createTestExecutions,
-};
