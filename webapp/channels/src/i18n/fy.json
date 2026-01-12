@@ -3853,7 +3853,6 @@
   "sidebar.unreads": "Mear net-lêzen berjochten",
   "sidebar_left.add_channel_dropdown.browseChannels": "Kanalen doorbladeren",
   "sidebar_left.add_channel_dropdown.createNewChannel": "Maak een nieuw kanaal",
-  "sidebar_left.add_channel_dropdown.dropdownAriaLabel": "Voeg Kanaal toe Dropdown",
   "sidebar_left.channel_filter.filterByUnread": "Filteren op ongelezen",
   "sidebar_left.channel_filter.showAllChannels": "Toon alle kanalen",
   "sidebar_left.channel_navigator.channelSwitcherLabel": "Kanalen zoeken",
