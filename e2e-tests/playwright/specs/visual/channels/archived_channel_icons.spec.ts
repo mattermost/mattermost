@@ -136,7 +136,6 @@ test(
         // # Archive the channel
         await adminClient.deleteChannel(privateChannel.id);
 
-
         const {page, channelsPage} = await pw.testBrowser.login(adminUser);
 
         // # Visit the archived channel directly
