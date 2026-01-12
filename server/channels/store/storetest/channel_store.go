@@ -6421,22 +6421,21 @@ func testAutocomplete(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 		})
 	}
 
-	// MM-67049: Verify that includeDeleted=true does not return channels from teams
-	// the user has been removed from. This is a security fix - the includeDeleted
-	// parameter should only affect channel deletion status, not team membership.
-	t.Run("MM-67049: includeDeleted does not bypass team membership check", func(t *testing.T) {
-		// Sanity check: o5 is in leftTeamID and has DisplayName "ChannelA3" which matches "ChannelA"
-		require.Equal(t, leftTeamID, o5.TeamId, "test setup: o5 should be in leftTeamID")
-		require.Contains(t, o5.DisplayName, "ChannelA", "test setup: o5 should match search term 'ChannelA'")
+	// MM-67049: Verify that users removed from a team cannot see channels from that
+	// team, regardless of includeDeleted. The includeDeleted parameter should only
+	// affect channel deletion status, not team membership.
+	t.Run("MM-67049: removed team member cannot see channels regardless of includeDeleted", func(t *testing.T) {
+		// Sanity check: o5 is in leftTeamID and matches search term
+		require.Equal(t, leftTeamID, o5.TeamId)
+		require.Contains(t, o5.DisplayName, "ChannelA")
 
-		// m1.UserId was removed from leftTeamID (tm5.DeleteAt was set)
-		// With includeDeleted=true, verify o5 is NOT returned
-		channels, err2 := ss.Channel().Autocomplete(rctx, m1.UserId, "ChannelA", true, false)
-		require.NoError(t, err2)
-
-		for _, ch := range channels {
-			require.NotEqual(t, o5.Id, ch.Id,
-				"channel from left team (o5) should not be returned even with includeDeleted=true")
+		// m1.UserId was removed from leftTeamID (tm5.DeleteAt was set above in the test setup)
+		for _, includeDeleted := range []bool{false, true} {
+			channels, err2 := ss.Channel().Autocomplete(rctx, m1.UserId, "ChannelA", includeDeleted, false)
+			require.NoError(t, err2)
+			for _, ch := range channels {
+				require.NotEqual(t, o5.Id, ch.Id, "includeDeleted=%v: channel from left team should not be returned", includeDeleted)
+			}
 		}
 	})
 
