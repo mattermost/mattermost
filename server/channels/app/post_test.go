@@ -649,6 +649,9 @@ func TestPostChannelMentions(t *testing.T) {
 	channel := th.BasicChannel
 	user := th.BasicUser
 
+	// Create context with session for the user to properly test sanitization
+	ctx := th.Context.WithSession(&model.Session{UserId: user.Id})
+
 	channelToMention, err := th.App.CreateChannel(th.Context, &model.Channel{
 		DisplayName: "Mention Test",
 		Name:        "mention-test",
@@ -683,7 +686,7 @@ func TestPostChannelMentions(t *testing.T) {
 		CreateAt:      0,
 	}
 
-	post, err = th.App.CreatePostAsUser(th.Context, post, "", true)
+	post, err = th.App.CreatePostAsUser(ctx, post, "", true)
 	require.Nil(t, err)
 	assert.Equal(t, map[string]any{
 		"mention-test": map[string]any{
@@ -693,7 +696,7 @@ func TestPostChannelMentions(t *testing.T) {
 	}, post.GetProp(model.PostPropsChannelMentions))
 
 	post.Message = fmt.Sprintf("goodbye, ~%v!", channelToMention2.Name)
-	result, err := th.App.UpdatePost(th.Context, post, nil)
+	result, err := th.App.UpdatePost(ctx, post, nil)
 	require.Nil(t, err)
 	assert.Equal(t, map[string]any{
 		"mention-test2": map[string]any{
@@ -703,7 +706,7 @@ func TestPostChannelMentions(t *testing.T) {
 	}, result.GetProp(model.PostPropsChannelMentions))
 
 	result.Message = "no more mentions!"
-	result, err = th.App.UpdatePost(th.Context, result, nil)
+	result, err = th.App.UpdatePost(ctx, result, nil)
 	require.Nil(t, err)
 	assert.Nil(t, result.GetProp(model.PostPropsChannelMentions))
 }
@@ -5073,6 +5076,9 @@ func TestPostChannelMentionsWithPrivateChannels(t *testing.T) {
 	channel := th.BasicChannel
 	user := th.BasicUser
 
+	// Create context with session for the user to properly test sanitization
+	ctx := th.Context.WithSession(&model.Session{UserId: user.Id})
+
 	// Create a private channel where user IS a member
 	privateChannelMember, err := th.App.CreateChannel(th.Context, &model.Channel{
 		DisplayName: "Private Member",
@@ -5109,7 +5115,7 @@ func TestPostChannelMentionsWithPrivateChannels(t *testing.T) {
 		CreateAt:      0,
 	}
 
-	post, err = th.App.CreatePostAsUser(th.Context, post, "", true)
+	post, err = th.App.CreatePostAsUser(ctx, post, "", true)
 	require.Nil(t, err)
 
 	mentions := post.GetProp(model.PostPropsChannelMentions)

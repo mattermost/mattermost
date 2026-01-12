@@ -723,7 +723,10 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 	}
 	usePostedAckHook(message, post.UserId, channel.Type, usersToAck)
 
-	appErr := a.publishWebsocketEventForPost(rctx, post, message)
+	// Clone the post before publishing to WebSocket to avoid modifying the original post
+	// publishWebsocketEventForPost modifies the post in-place to set up broadcast hooks
+	postForBroadcast := post.Clone()
+	appErr := a.publishWebsocketEventForPost(rctx, postForBroadcast, message)
 	if appErr != nil {
 		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonFetchError, model.NotificationNoPlatform)
 		rctx.Logger().LogM(mlog.MlvlNotificationError, "Couldn't send websocket notification for permalink post",

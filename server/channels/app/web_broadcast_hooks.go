@@ -20,6 +20,7 @@ const (
 	broadcastAddFollowers       = "add_followers"
 	broadcastPostedAck          = "posted_ack"
 	broadcastPermalink          = "permalink"
+	broadcastChannelMentions    = "channel_mentions"
 	broadcastBurnOnRead         = "burn_on_read"
 	broadcastBurnOnReadReaction = "burn_on_read_reaction"
 )
@@ -30,6 +31,7 @@ func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
 		broadcastAddFollowers:       &addFollowersBroadcastHook{},
 		broadcastPostedAck:          &postedAckBroadcastHook{},
 		broadcastPermalink:          &permalinkBroadcastHook{},
+		broadcastChannelMentions:    &channelMentionsBroadcastHook{},
 		broadcastBurnOnRead:         &burnOnReadBroadcastHook{},
 		broadcastBurnOnReadReaction: &burnOnReadReactionBroadcastHook{},
 	}
@@ -177,6 +179,85 @@ func (h *permalinkBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 		return errors.Wrap(err, "Invalid post_json value passed to permalinkBroadcastHook")
 	}
 	msg.Add("post", postJSON)
+
+	return nil
+}
+
+func useChannelMentionsHook(message *model.WebSocketEvent, channelMentions map[string]any) {
+	message.GetBroadcast().AddHook(broadcastChannelMentions, map[string]any{
+		"channel_mentions": channelMentions,
+	})
+}
+
+type channelMentionsBroadcastHook struct{}
+
+// Process filters channel mentions from the post based on the recipient's permissions.
+// This hook works with the current post in the message (which may have been modified by other hooks)
+// and filters channel mentions so that only channels the recipient can read are included.
+func (h *channelMentionsBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
+	channelMentions, err := getTypedArg[map[string]any](args, "channel_mentions")
+	if err != nil {
+		return errors.Wrap(err, "Invalid channel_mentions value passed to channelMentionsBroadcastHook")
+	}
+
+	// If no channel mentions, nothing to filter
+	if len(channelMentions) == 0 {
+		return nil
+	}
+
+	// Get the current post from the message (might have been modified by other hooks like permalink)
+	currentPostJSON, ok := msg.Get("post").(string)
+	if !ok {
+		return errors.New("No post found in message for channelMentionsBroadcastHook")
+	}
+
+	var post model.Post
+	err = json.Unmarshal([]byte(currentPostJSON), &post)
+	if err != nil {
+		return errors.Wrap(err, "Invalid post value in message for channelMentionsBroadcastHook")
+	}
+
+	// Filter channel mentions based on recipient's permissions
+	rctx := request.EmptyContext(webConn.Platform.Log())
+	filteredMentions := make(map[string]any)
+
+	for channelName, channelInfo := range channelMentions {
+		// Extract channel ID from the channel info map
+		channelInfoMap, ok := channelInfo.(map[string]any)
+		if !ok {
+			continue
+		}
+
+		channelID, ok := channelInfoMap["id"].(string)
+		if !ok || channelID == "" {
+			continue
+		}
+
+		// Check if the recipient has permission to read this channel
+		channel, appErr := webConn.Platform.Store.Channel().Get(channelID, true)
+		if appErr != nil {
+			// If we can't get the channel, don't include the mention
+			continue
+		}
+
+		if webConn.Suite.HasPermissionToReadChannel(rctx, webConn.UserId, channel) {
+			filteredMentions[channelName] = channelInfo
+		}
+	}
+
+	// Update the post with filtered channel mentions
+	if len(filteredMentions) > 0 {
+		post.AddProp(model.PostPropsChannelMentions, filteredMentions)
+	} else {
+		post.DelProp(model.PostPropsChannelMentions)
+	}
+
+	updatedPostJSON, err := post.ToJSON()
+	if err != nil {
+		return errors.Wrap(err, "Failed to marshal post in channelMentionsBroadcastHook")
+	}
+
+	msg.Add("post", updatedPostJSON)
 
 	return nil
 }

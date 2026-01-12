@@ -437,8 +437,10 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		a.SendEphemeralPost(rctx, post.UserId, ephemeralPost)
 	}
 
-	// Sanitize for the post creator (use post.UserId instead of session UserId for test compatibility)
-	rpost, err = a.SanitizePostMetadataForUser(rctx, rpost, rpost.UserId)
+	// Sanitize post metadata (both embeds and channel mentions) for the HTTP response
+	// This prevents information disclosure about channels/teams the creator doesn't have access to
+	// WebSocket recipients get additional per-recipient filtering via broadcast hook
+	rpost, err = a.SanitizePostMetadataForUser(rctx, rpost, rctx.Session().UserId)
 	if err != nil {
 		return nil, err
 	}
@@ -892,13 +894,19 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", rpost.ChannelId, "", nil, "")
 
-	appErr = a.publishWebsocketEventForPost(rctx, rpost, message)
+	// Clone the post before publishing to WebSocket to avoid modifying the post that will be returned
+	// publishWebsocketEventForPost modifies the post in-place to set up broadcast hooks
+	postForBroadcast := rpost.Clone()
+	appErr = a.publishWebsocketEventForPost(rctx, postForBroadcast, message)
 	if appErr != nil {
 		return nil, appErr
 	}
 
 	a.invalidateCacheForChannelPosts(rpost.ChannelId)
 
+	// Sanitize post metadata (both embeds and channel mentions) for the HTTP response
+	// This prevents information disclosure about channels/teams the updater doesn't have access to
+	// WebSocket recipients get additional per-recipient filtering via broadcast hook
 	userID := rctx.Session().UserId
 	sanitizedPost, appErr := a.SanitizePostMetadataForUser(rctx, rpost, userID)
 	if appErr != nil {
@@ -937,6 +945,11 @@ func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, m
 	message.Add("post", postJSON)
 
 	appErr := a.setupBroadcastHookForPermalink(rctx, post, message, postJSON)
+	if appErr != nil {
+		return appErr
+	}
+
+	appErr = a.setupBroadcastHookForChannelMentions(rctx, post, message, postJSON)
 	if appErr != nil {
 		return appErr
 	}
@@ -1041,6 +1054,38 @@ func (a *App) setupBroadcastHookForPermalink(rctx request.CTX, post *model.Post,
 	}
 
 	usePermalinkHook(message, post.UserId, permalinkPreviewedChannel, postJSON)
+	return nil
+}
+
+func (a *App) setupBroadcastHookForChannelMentions(rctx request.CTX, post *model.Post, message *model.WebSocketEvent, postJSON string) *model.AppError {
+	// Get channel mentions from post props
+	channelMentionsProp := post.GetProp(model.PostPropsChannelMentions)
+	if channelMentionsProp == nil {
+		return nil
+	}
+
+	channelMentions, ok := channelMentionsProp.(map[string]any)
+	if !ok || len(channelMentions) == 0 {
+		return nil
+	}
+
+	// To remain secure by default, we wipe out the channel mentions unconditionally
+	post.DelProp(model.PostPropsChannelMentions)
+	postWithoutChannelMentionsJSON, err := post.ToJSON()
+	if err != nil {
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonMarshalError, model.NotificationNoPlatform)
+		a.Log().LogM(mlog.MlvlNotificationError, "Error in marshalling post to JSON",
+			mlog.String("type", model.NotificationTypeWebsocket),
+			mlog.String("post_id", post.Id),
+			mlog.String("status", model.NotificationStatusError),
+			mlog.String("reason", model.NotificationReasonMarshalError),
+		)
+		return model.NewAppError("setupBroadcastHookForChannelMentions", "app.post.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	message.Add("post", postWithoutChannelMentionsJSON)
+
+	// Register the hook to filter channel mentions per-recipient based on their permissions
+	useChannelMentionsHook(message, channelMentions)
 	return nil
 }
 
