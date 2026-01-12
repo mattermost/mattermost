@@ -6431,8 +6431,8 @@ func testAutocomplete(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 
 		// m1.UserId was removed from leftTeamID (tm5.DeleteAt was set)
 		// With includeDeleted=true, verify o5 is NOT returned
-		channels, err := ss.Channel().Autocomplete(rctx, m1.UserId, "ChannelA", true, false)
-		require.NoError(t, err)
+		channels, err2 := ss.Channel().Autocomplete(rctx, m1.UserId, "ChannelA", true, false)
+		require.NoError(t, err2)
 
 		for _, ch := range channels {
 			require.NotEqual(t, o5.Id, ch.Id,
