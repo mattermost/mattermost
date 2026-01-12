@@ -7929,6 +7929,10 @@
     "translation": "update error"
   },
   {
+    "id": "app.update_scheduled_post.convert_to_post.error",
+    "translation": "Unable to convert scheduled post to post format."
+  },
+  {
     "id": "app.update_scheduled_post.existing_scheduled_post.not_exist",
     "translation": "Scheduled post does not exist."
   },
