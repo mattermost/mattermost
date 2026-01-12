@@ -10882,7 +10882,7 @@
   },
   {
     "id": "app.content_flagging.keep_post.undelete.app_error",
-    "translation": "Failed to update post in database when attempting to undelete the flagged post."
+    "translation": "Failed to update post in database when attempting to undelete the flagged post and associated data."
   },
   {
     "id": "app.content_flagging.marshal_property_values.app_error",
@@ -11063,5 +11063,621 @@
   {
     "id": "model.config.is_valid.experimental_view_archived_channels.app_error",
     "translation": "Hiding archived channels is no longer supported. Make these channels private and remove members instead."
+  },
+  {
+    "id": "api.command.move_command.creator_no_permission.app_error",
+    "translation": "No permission to move command"
+  },
+  {
+    "id": "api.content_flagging.error.invalid_post_type",
+    "translation": "Flagging a post of type '{{.PostType}}' is not allowed."
+  },
+  {
+    "id": "api.file.get_file.invalid_flagged_post.app_error",
+    "translation": "Mismatched flagged post ID specified."
+  },
+  {
+    "id": "api.file.get_file_info.app_error",
+    "translation": "Failed to get file info."
+  },
+  {
+    "id": "api.oauth.allow_oauth.pkce_required_public.app_error",
+    "translation": "PKCE (Proof Key for Code Exchange) is required for public OAuth clients using authorisation code flow."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.disabled.app_error",
+    "translation": "OAuth service provider is disabled."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.invalid_url.app_error",
+    "translation": "Invalid URL configuration for authorisation server metadata."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.site_url_required.app_error",
+    "translation": "Site URL must be configured to provide authorisation server metadata."
+  },
+  {
+    "id": "api.oauth.get_access_token.resource_mismatch.app_error",
+    "translation": "Resource parameter mismatch between authorisation and token requests."
+  },
+  {
+    "id": "api.oauth.regenerate_secret.public_client.app_error",
+    "translation": "invalid_request: Cannot regenerate secret for public OAuth clients."
+  },
+  {
+    "id": "api.post.burn_post.user_not_in_channel.app_error",
+    "translation": "You do not have permission to burn this post. You must be a member of the channel."
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.app_error",
+    "translation": "An error occurred while creating a burn-on-read post."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.config.app_error",
+    "translation": "Burn-on-read posts are not enabled. Please enable the feature flag and service setting."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.license.app_error",
+    "translation": "Burn-on-read posts require an Enterprise Advanced licence."
+  },
+  {
+    "id": "api.post.fill_in_post_props.invalid_ai_generated_user.app_error",
+    "translation": "The AI-generated user must be either the post creator or a bot."
+  },
+  {
+    "id": "api.post.get_link_metadata_for_permalink.burn_on_read.app_error",
+    "translation": "Cannot retrieve link metadata for burn-on-read post permalink."
+  },
+  {
+    "id": "api.post.get_posts_for_reporting.channel_not_found",
+    "translation": "Channel not found"
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_burn_on_read_post.error",
+    "translation": "Burn-on-read posts cannot be updated."
+  },
+  {
+    "id": "api.post.reveal_post.cannot_reveal_own_post.app_error",
+    "translation": "You cannot reveal your own burn-on-read post."
+  },
+  {
+    "id": "api.post.reveal_post.disabled.app_error",
+    "translation": "Burn-on-read feature is not enabled or requires an Enterprise Advanced licence."
+  },
+  {
+    "id": "api.post.reveal_post.user_not_in_channel.app_error",
+    "translation": "You do not have permission to reveal this post. You must be a member of the channel."
+  },
+  {
+    "id": "api.post.update_post.burn_on_read.app_error",
+    "translation": "Burn-on-read posts cannot be edited."
+  },
+  {
+    "id": "api.reaction.save.burn_on_read.app_error",
+    "translation": "You cannot react to a burn-on-read post."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.guest_magic_link_disabled.error",
+    "translation": "Guest magic link is not enabled"
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.footer.info",
+    "translation": "This email was sent to you because someone requested a login link for Mattermost. If you did not request this, you can safely ignore this email."
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.footer.title",
+    "translation": "Didn't request this email?"
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.subtitle",
+    "translation": "Click the button below to sign in to your account. Don't share this link with anyone else."
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.title",
+    "translation": "Sign in to Mattermost"
+  },
+  {
+    "id": "api.templates.guest_magic_link_subject",
+    "translation": "Sign in to {{ .SiteName }}"
+  },
+  {
+    "id": "api.user.delete_channel.not_enabled.for_admin.app_error",
+    "translation": "Permanent channel deletion feature is not enabled. ServiceSettings.EnableAPIChannelDeletion must be set to true to use this command. See https://mattermost.com/pl/environment-configuration-settings for more information"
+  },
+  {
+    "id": "api.user.delete_team.not_enabled.for_admin.app_error",
+    "translation": "Permanent team deletion feature is not enabled. ServiceSettings.EnableAPITeamDeletion must be set to true to use this command. See https://mattermost.com/pl/environment-configuration-settings for more information."
+  },
+  {
+    "id": "api.user.delete_user.not_enabled.for_admin.app_error",
+    "translation": "Permanent user deletion feature is not enabled. ServiceSettings.EnableAPIUserDeletion must be set to true to use this command. See https://mattermost.com/pl/environment-configuration-settings for more information."
+  },
+  {
+    "id": "api.user.guest_magic_link.expired_token.app_error",
+    "translation": "This invitation link has expired."
+  },
+  {
+    "id": "api.user.guest_magic_link.invalid_token.app_error",
+    "translation": "Invalid invitation link."
+  },
+  {
+    "id": "api.user.guest_magic_link.invalid_token_type.app_error",
+    "translation": "Invalid invitation link type."
+  },
+  {
+    "id": "api.user.guest_magic_link.missing_token.app_error",
+    "translation": "Missing invitation token."
+  },
+  {
+    "id": "api.user.guest_magic_link.username_generation_failed.app_error",
+    "translation": "Could not generate a unique username. Please contact your system administrator."
+  },
+  {
+    "id": "api.user.login.guest_magic_link.disabled.error",
+    "translation": "Login with magic link is disabled."
+  },
+  {
+    "id": "api.user.login_by_intune.account_locked.app_error",
+    "translation": "Your account has been deactivated. Please contact your system administrator."
+  },
+  {
+    "id": "api.user.login_by_intune.bot_login_forbidden.app_error",
+    "translation": "Bot accounts cannot sign in using Microsoft authentication."
+  },
+  {
+    "id": "api.user.login_by_intune.not_available.app_error",
+    "translation": "Microsoft Intune authentication is not available."
+  },
+  {
+    "id": "api.user.login_by_intune.not_configured.app_error",
+    "translation": "Microsoft Intune authentication is not configured."
+  },
+  {
+    "id": "api.user.oauth_to_email.magic_link.app_error",
+    "translation": "Magic Link is the only sign-in method available for this account."
+  },
+  {
+    "id": "api.user.promote_guest_to_user.magic_link_enabled.app_error",
+    "translation": "Unable to convert the guest to regular user because the guest uses magic link authentication."
+  },
+  {
+    "id": "api.user.send_password_reset.guest_magic_link.app_error",
+    "translation": "Unable to reset password for guest magic link accounts."
+  },
+  {
+    "id": "api.user.update_password.magic_link.app_error",
+    "translation": "Cannot update password for Magic Link accounts."
+  },
+  {
+    "id": "app.agents.get_agents.app_error",
+    "translation": "Failed to get agents."
+  },
+  {
+    "id": "app.agents.get_agents.bridge_call_failed",
+    "translation": "Bridge call failed."
+  },
+  {
+    "id": "app.agents.get_services.app_error",
+    "translation": "Failed to get LLM services."
+  },
+  {
+    "id": "app.agents.get_services.bridge_call_failed",
+    "translation": "Bridge call failed."
+  },
+  {
+    "id": "app.burn_post.not_burn_on_read.app_error",
+    "translation": "This post is not a burn-on-read post and cannot be burnt."
+  },
+  {
+    "id": "app.burn_post.not_revealed.app_error",
+    "translation": "This burn-on-read post has not been revealed yet. You must reveal it before burning."
+  },
+  {
+    "id": "app.burn_post.read_receipt.get.error",
+    "translation": "An error occurred while retrieving the read receipt."
+  },
+  {
+    "id": "app.burn_post.read_receipt.update.error",
+    "translation": "An error occurred while updating the read receipt."
+  },
+  {
+    "id": "app.content_flagging.get_thread_replies.app_error",
+    "translation": "Failed to fetch thread replies for the flagged post."
+  },
+  {
+    "id": "app.content_flagging.missing_manage_by_field.app_error",
+    "translation": "Failed to find Manage By property field."
+  },
+  {
+    "id": "app.content_flagging.missing_status_field.app_error",
+    "translation": "Failed to find Status property field."
+  },
+  {
+    "id": "app.content_flagging.set_thread_replies_properties.app_error",
+    "translation": "Failed to set property values on thread replies for the flagged post."
+  },
+  {
+    "id": "app.custom_profile_attributes.patch_field.app_error",
+    "translation": "Unable to patch Custom Profile Attribute field"
+  },
+  {
+    "id": "app.pap.update_access_control_policies_active.app_error",
+    "translation": "Could not update active status of access control policies."
+  },
+  {
+    "id": "app.post.get_post.app_error",
+    "translation": "An error occurred while retrieving the burn-on-read post content."
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.app_error",
+    "translation": "Unable to retrieve posts for reporting."
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.invalid_input_error",
+    "translation": "Unable to retrieve posts for reporting. Invalid input."
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.license_error",
+    "translation": "Your licence does not support reporting on posts."
+  },
+  {
+    "id": "app.post.rewrite.agent_call_failed",
+    "translation": "Failed to call AI agent."
+  },
+  {
+    "id": "app.post.rewrite.empty_response",
+    "translation": "Empty response from AI."
+  },
+  {
+    "id": "app.post.rewrite.invalid_action",
+    "translation": "Invalid rewrite action."
+  },
+  {
+    "id": "app.post.rewrite.parse_response_failed",
+    "translation": "Failed to parse rewrite response from AI."
+  },
+  {
+    "id": "app.reveal_post.cannot_reveal_own_post.app_error",
+    "translation": "You cannot reveal your own burn-on-read post."
+  },
+  {
+    "id": "app.reveal_post.missing_expire_at.app_error",
+    "translation": "The burn-on-read post is missing the required expiration time."
+  },
+  {
+    "id": "app.reveal_post.not_burn_on_read.app_error",
+    "translation": "This post is not a burn-on-read post and cannot be revealed."
+  },
+  {
+    "id": "app.reveal_post.post_expired.app_error",
+    "translation": "This burn-on-read post has expired and can no longer be revealed."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.get.error",
+    "translation": "An error occurred while retrieving the read receipt."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.get_unread_count.error",
+    "translation": "Unable to get the unread count for the read receipt."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.save.error",
+    "translation": "An error occurred while saving the read receipt."
+  },
+  {
+    "id": "app.reveal_post.read_receipt_expired.error",
+    "translation": "Your access to this burn-on-read post has expired."
+  },
+  {
+    "id": "ent.intune.login.account_not_found.app_error",
+    "translation": "Your account isn't fully set up yet. Please sign in to Mattermost via the web or desktop app first."
+  },
+  {
+    "id": "ent.intune.login.extract_auth_data.app_error",
+    "translation": "Authentication failed. Please try again or contact your system administrator."
+  },
+  {
+    "id": "ent.intune.login.not_configured.app_error",
+    "translation": "Microsoft Intune authentication is not configured."
+  },
+  {
+    "id": "ent.intune.validate_token.invalid_tenant_id.app_error",
+    "translation": "Authentication failed. Invalid configuration."
+  },
+  {
+    "id": "ent.intune.validate_token.invalid_token.app_error",
+    "translation": "Authentication failed. Please try again."
+  },
+  {
+    "id": "ent.intune.validate_token.jwks_init.app_error",
+    "translation": "Authentication service initialisation failed. Please contact your system administrator."
+  },
+  {
+    "id": "ent.intune.validate_token.missing_claims.app_error",
+    "translation": "Authentication failed. Required user information is missing."
+  },
+  {
+    "id": "ent.intune.validate_token.token_expired.app_error",
+    "translation": "Authentication session has expired. Please try signing in again."
+  },
+  {
+    "id": "ent.push_proxy.delete.app_error",
+    "translation": "Failed to delete push proxy auth token."
+  },
+  {
+    "id": "ent.push_proxy.generate.bad_status.app_error",
+    "translation": "Failed to get auth token from push proxy server."
+  },
+  {
+    "id": "ent.push_proxy.generate.create_request.app_error",
+    "translation": "Failed to create HTTP request for push proxy auth."
+  },
+  {
+    "id": "ent.push_proxy.generate.empty_token.app_error",
+    "translation": "Push proxy returned empty auth token."
+  },
+  {
+    "id": "ent.push_proxy.generate.encrypt.app_error",
+    "translation": "Failed to encrypt payload for push proxy auth."
+  },
+  {
+    "id": "ent.push_proxy.generate.http_request.app_error",
+    "translation": "Failed to send HTTP request to push proxy."
+  },
+  {
+    "id": "ent.push_proxy.generate.marshal.app_error",
+    "translation": "Failed to marshal payload for push proxy auth."
+  },
+  {
+    "id": "ent.push_proxy.generate.marshal_request.app_error",
+    "translation": "Failed to marshal request body for push proxy auth."
+  },
+  {
+    "id": "ent.push_proxy.generate.no_key.app_error",
+    "translation": "No encryption key available for push proxy auth."
+  },
+  {
+    "id": "ent.push_proxy.generate.parse_response.app_error",
+    "translation": "Failed to parse response from push proxy auth endpoint."
+  },
+  {
+    "id": "ent.push_proxy.generate.save_system.app_error",
+    "translation": "Failed to save auth token."
+  },
+  {
+    "id": "ent.push_proxy.worker.interface_nil.app_error",
+    "translation": "Push proxy interface is nil."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge.app_error",
+    "translation": "Code challenge is required when using PKCE."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge.format.app_error",
+    "translation": "Code challenge must be base64url-encoded (using characters A-Z, a-z, 0-9, -, _)."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge.length.app_error",
+    "translation": "Code challenge must be between 43 and 128 characters long."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge_method.app_error",
+    "translation": "Code challenge method is required when using PKCE."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge_method.unsupported.app_error",
+    "translation": "Only 'S256' code challenge method is supported."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.has_fragment.app_error",
+    "translation": "Resource parameter cannot contain a fragment component."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.invalid_uri.app_error",
+    "translation": "Resource parameter must be a valid URI."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.length.app_error",
+    "translation": "Resource parameter cannot exceed 512 characters."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.not_absolute.app_error",
+    "translation": "Resource parameter must be an absolute URI."
+  },
+  {
+    "id": "model.authorize.validate_pkce.not_used_in_auth.app_error",
+    "translation": "PKCE code verifier provided but PKCE was not used during authorisation."
+  },
+  {
+    "id": "model.authorize.validate_pkce.public_client_required.app_error",
+    "translation": "PKCE (Proof Key for Code Exchange) is required for public clients."
+  },
+  {
+    "id": "model.authorize.validate_pkce.verification_failed.app_error",
+    "translation": "PKCE code verifier does not match the code challenge."
+  },
+  {
+    "id": "model.authorize.validate_pkce.verifier_required.app_error",
+    "translation": "PKCE code verifier is required when PKCE is used."
+  },
+  {
+    "id": "model.config.is_valid.guest_accounts.cannot_enforce_multifactor_authentication_when_guest_magic_link_is_enabled.app_error",
+    "translation": "You cannot enforce multifactor authentication for guest accounts when magic link authentication is enabled."
+  },
+  {
+    "id": "model.config.is_valid.intune_auth_service.app_error",
+    "translation": "Intune MAM Auth Service is required when Intune is enabled."
+  },
+  {
+    "id": "model.config.is_valid.intune_auth_service_invalid.app_error",
+    "translation": "Intune MAM Auth Service must be either 'office365' or 'saml'."
+  },
+  {
+    "id": "model.config.is_valid.intune_client_id.app_error",
+    "translation": "Intune MAM Client ID is required when Intune is enabled."
+  },
+  {
+    "id": "model.config.is_valid.intune_client_id_format.app_error",
+    "translation": "Intune MAM Client ID must be a valid UUID."
+  },
+  {
+    "id": "model.config.is_valid.intune_requires_office365.app_error",
+    "translation": "Intune MAM requires OpenID Connect (Office 365) to be enabled when Auth Service is set to 'office365'."
+  },
+  {
+    "id": "model.config.is_valid.intune_requires_saml.app_error",
+    "translation": "Intune MAM requires SAML to be enabled when Auth Service is set to 'saml'."
+  },
+  {
+    "id": "model.config.is_valid.intune_tenant_id.app_error",
+    "translation": "Intune MAM Tenant ID is required when Intune is enabled."
+  },
+  {
+    "id": "model.config.is_valid.intune_tenant_id_format.app_error",
+    "translation": "Intune MAM Tenant ID must be a valid UUID."
+  },
+  {
+    "id": "model.dcr.is_valid.client_name.app_error",
+    "translation": "Client name must be 64 characters or less."
+  },
+  {
+    "id": "model.dcr.is_valid.client_uri_format.app_error",
+    "translation": "Invalid client URI format."
+  },
+  {
+    "id": "model.dcr.is_valid.client_uri_length.app_error",
+    "translation": "Client URI must be less than 256 characters."
+  },
+  {
+    "id": "model.dcr.is_valid.redirect_uri_format.app_error",
+    "translation": "Invalid redirect URI format."
+  },
+  {
+    "id": "model.dcr.is_valid.redirect_uris.app_error",
+    "translation": "At least one redirect URI is required."
+  },
+  {
+    "id": "model.dcr.is_valid.unsupported_auth_method.app_error",
+    "translation": "Unsupported token_endpoint_auth_method supplied."
+  },
+  {
+    "id": "model.oauth.validate_grant.credentials.app_error",
+    "translation": "Invalid client credentials."
+  },
+  {
+    "id": "model.oauth.validate_grant.pkce_required.app_error",
+    "translation": "PKCE (Proof Key for Code Exchange) is required for public clients."
+  },
+  {
+    "id": "model.oauth.validate_grant.public_client_refresh_token.app_error",
+    "translation": "Public clients cannot use refresh token grant type."
+  },
+  {
+    "id": "model.oauth.validate_grant.public_client_secret.app_error",
+    "translation": "Public clients must not provide a client secret."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_base64",
+    "translation": "Invalid cursor format: unable to decode base64."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_exclude_system_posts",
+    "translation": "Invalid cursor format: exclude_system_posts must be a boolean."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_format",
+    "translation": "Invalid cursor format: expected 8 parts."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_include_deleted",
+    "translation": "Invalid cursor format: include_deleted must be a boolean."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_timestamp",
+    "translation": "Invalid cursor format: timestamp must be an integer."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_version",
+    "translation": "Invalid cursor format: version must be an integer."
+  },
+  {
+    "id": "model.post.decode_cursor.unsupported_version",
+    "translation": "Unsupported cursor version."
+  },
+  {
+    "id": "model.post.query_params.invalid_channel_id",
+    "translation": "Invalid channel ID."
+  },
+  {
+    "id": "model.post.query_params.invalid_cursor_id",
+    "translation": "Invalid cursor ID."
+  },
+  {
+    "id": "model.post.query_params.invalid_sort_direction",
+    "translation": "Invalid sort direction."
+  },
+  {
+    "id": "model.post.query_params.invalid_time_field",
+    "translation": "Invalid time field."
+  },
+  {
+    "id": "store.sql_autotranslation.channel_not_found",
+    "translation": "Channel not found."
+  },
+  {
+    "id": "store.sql_autotranslation.get.app_error",
+    "translation": "Unable to get translation."
+  },
+  {
+    "id": "store.sql_autotranslation.get_active_languages.app_error",
+    "translation": "Unable to get active languages."
+  },
+  {
+    "id": "store.sql_autotranslation.get_channel_enabled.app_error",
+    "translation": "Unable to get channel autotranslation enabled status."
+  },
+  {
+    "id": "store.sql_autotranslation.get_user_enabled.app_error",
+    "translation": "Unable to get user autotranslation enabled status."
+  },
+  {
+    "id": "store.sql_autotranslation.get_user_language.app_error",
+    "translation": "Unable to get user language."
+  },
+  {
+    "id": "store.sql_autotranslation.is_channel_enabled.app_error",
+    "translation": "Unable to get channel autotranslation enabled status."
+  },
+  {
+    "id": "store.sql_autotranslation.member_not_found",
+    "translation": "Member not found."
+  },
+  {
+    "id": "store.sql_autotranslation.meta_json.app_error",
+    "translation": "Failed to parse translation metadata JSON."
+  },
+  {
+    "id": "store.sql_autotranslation.query_build_error",
+    "translation": "Failed to build query."
+  },
+  {
+    "id": "store.sql_autotranslation.save.app_error",
+    "translation": "Unable to save translation."
+  },
+  {
+    "id": "store.sql_autotranslation.save.invalid_translation",
+    "translation": "Translation validation failed. The translation object is invalid."
+  },
+  {
+    "id": "store.sql_autotranslation.save.meta_json.app_error",
+    "translation": "Failed to serialise translation metadata to JSON."
+  },
+  {
+    "id": "store.sql_autotranslation.set_channel_enabled.app_error",
+    "translation": "Unable to set channel autotranslation enabled status."
+  },
+  {
+    "id": "store.sql_autotranslation.set_user_enabled.app_error",
+    "translation": "Unable to set user autotranslation enabled status."
   }
 ]

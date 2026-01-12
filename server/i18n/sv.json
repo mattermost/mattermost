@@ -11202,5 +11202,57 @@
   {
     "id": "model.post.query_params.invalid_sort_direction",
     "translation": "Ogiltig sorteringsriktning."
+  },
+  {
+    "id": "ent.intune.validate_token.invalid_tenant_id.app_error",
+    "translation": "Autentiseringen misslyckades. Ogiltig konfiguration."
+  },
+  {
+    "id": "ent.intune.validate_token.invalid_token.app_error",
+    "translation": "Autentiseringen misslyckades. Vänligen prova igen."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.length.app_error",
+    "translation": "Resursparametern kan inte överskrida 512 tecken."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.guest_magic_link_disabled.error",
+    "translation": "Gästens magiska länk är inte aktiverad"
+  },
+  {
+    "id": "api.templates.guest_magic_link_subject",
+    "translation": "Logga in till {{ .SiteName }}"
+  },
+  {
+    "id": "api.user.login.guest_magic_link.disabled.error",
+    "translation": "Inloggning med magisk länk är avstängd."
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.app_error",
+    "translation": "Kunde inte ta emot inlägg för rapportering."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_format",
+    "translation": "Ogiltigt pekar-format: 8 delar förväntades."
+  },
+  {
+    "id": "store.sql_autotranslation.meta_json.app_error",
+    "translation": "Misslyckades att tolka översättningens JSON-metadata."
+  },
+  {
+    "id": "api.user.login_by_intune.not_available.app_error",
+    "translation": "Microsoft Intune-autentiseringen är inte tillgänglig."
+  },
+  {
+    "id": "api.user.login_by_intune.not_configured.app_error",
+    "translation": "Microsoft Intune-autentiseringen är inte konfigurerad."
+  },
+  {
+    "id": "ent.intune.login.not_configured.app_error",
+    "translation": "Microsoft Intune-autentiseringen är inte konfigurerad."
+  },
+  {
+    "id": "api.post.update_post.burn_on_read.app_error",
+    "translation": "Inlägg som bränns vid läsning kan inte redigeras."
   }
 ]

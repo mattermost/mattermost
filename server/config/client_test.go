@@ -419,7 +419,7 @@ func TestGetClientConfig(t *testing.T) {
 			"",
 			nil,
 			map[string]string{
-				"EnableBurnOnRead":          "false",
+				"EnableBurnOnRead":          "true",
 				"BurnOnReadDurationSeconds": "600", // 10 minutes in seconds
 			},
 		},
