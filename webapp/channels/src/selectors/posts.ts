@@ -58,37 +58,6 @@ export function isEmbedVisible(state: GlobalState, postId: string) {
     return getGlobalItem(state, StoragePrefixes.EMBED_VISIBLE + currentUserId + '_' + postId, !previewCollapsed);
 }
 
-// Check if the current user can view a permalink preview for a channel.
-// Mirrors server-side logic in SanitizePostMetadataForUser which calls HasPermissionToReadChannel.
-export function canViewPermalinkPreview(state: GlobalState, channelId: string, channelType: ChannelType): boolean {
-    const currentUserId = getCurrentUserId(state);
-
-    // Channel members can always view
-    const myChannelMember = getMyChannelMember(state, channelId);
-    if (myChannelMember) {
-        return true;
-    }
-
-    if (channelType === General.OPEN_CHANNEL) {
-        const config = getConfig(state);
-        const complianceEnabled = config.EnableCompliance === 'true';
-
-        // For public channels, team members can view only if compliance is not enabled
-        if (!complianceEnabled) {
-            const channel = getChannel(state, channelId);
-            if (channel && channel.delete_at === 0) {
-                const teamMember = getTeamMember(state, channel.team_id, currentUserId);
-                if (teamMember) {
-                    return true;
-                }
-            }
-        }
-    }
-
-    // Private/DM/GM channels require direct channel membership
-    return false;
-}
-
 export function isInlineImageVisible(state: GlobalState, postId: string, imageKey: string) {
     const currentUserId = getCurrentUserId(state);
     const imageCollapsed = arePreviewsCollapsed(state);
