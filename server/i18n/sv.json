@@ -11258,5 +11258,9 @@
   {
     "id": "api.content_flagging.error.invalid_post_type",
     "translation": "Att flagga ett inlägg av typen '{{.PostType}}' tillåts inte."
+  },
+  {
+    "id": "ent.push_proxy.worker.interface_nil.app_error",
+    "translation": "Push-proxy-gränssnittet är nil."
   }
 ]
