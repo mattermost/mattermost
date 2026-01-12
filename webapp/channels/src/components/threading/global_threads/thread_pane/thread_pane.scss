@@ -13,6 +13,7 @@
         justify-content: space-between;
         padding: 12px 16px;
         border-bottom: var(--border-default);
+        gap: 4px;
         grid-area: header;
 
         --button-separator-height: 24px;
@@ -56,12 +57,11 @@
             }
         }
 
-        .MenuWrapper {
-            margin-left: 4px;
-
-            .dropdown-menu {
-                min-width: 250px;
-            }
+        // Remove the focus-visible case when MM-62778 is completed
+        .btn:focus-visible,
+        .btn[aria-expanded="true"] {
+            border-radius: 4px;
+            box-shadow: 0 0 1px 3px rgba(var(--link-color-rgb), 0.5), 0 0 0 1px var(--link-color);
         }
 
         .PopoutButton {
