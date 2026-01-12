@@ -3583,7 +3583,6 @@
   "sidebar.unreads": "خوانده نشده های بیشتر",
   "sidebar_left.add_channel_dropdown.browseChannels": "کانال ها را مرور کنید",
   "sidebar_left.add_channel_dropdown.createNewChannel": "ایجاد کانال جدید",
-  "sidebar_left.add_channel_dropdown.dropdownAriaLabel": "افزودن کشویی کانال",
   "sidebar_left.channel_filter.filterByUnread": "فیلتر بر اساس خوانده نشده",
   "sidebar_left.channel_filter.filterUnreadAria": "صافی خوانده‌نشده‌ها",
   "sidebar_left.channel_filter.showAllChannels": "نمایش همه کانال ها",

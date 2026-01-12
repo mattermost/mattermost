@@ -4045,7 +4045,6 @@
   "sidebar.unreads": "Thêm mục chưa đọc",
   "sidebar_left.add_channel_dropdown.browseChannels": "Duyệt qua kênh",
   "sidebar_left.add_channel_dropdown.createNewChannel": "Tạo kênh mới",
-  "sidebar_left.add_channel_dropdown.dropdownAriaLabel": "Thêm kênh thả xuống",
   "sidebar_left.channel_filter.filterByUnread": "Lọc theo thư chưa đọc",
   "sidebar_left.channel_filter.filterUnreadAria": "Lọc theo chưa đọc",
   "sidebar_left.channel_filter.showAllChannels": "Hiển thị tất cả các kênh",
