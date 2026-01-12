@@ -3716,7 +3716,7 @@ components:
           type: array
           description: list of users participating in this thread. only includes IDs unless 'extended' was set to 'true'
           items:
-            $ref: "#/components/schemas/Post"
+            $ref: "#/components/schemas/User"
         post:
           $ref: "#/components/schemas/Post"
     RelationalIntegrityCheckData:
