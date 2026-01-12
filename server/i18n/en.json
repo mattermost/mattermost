@@ -1766,6 +1766,10 @@
     "translation": "Content flagging feature is disabled."
   },
   {
+    "id": "api.content_flagging.error.invalid_post_type",
+    "translation": "Flagging a post of type '{{.PostType}}' is not allowed."
+  },
+  {
     "id": "api.content_flagging.error.license",
     "translation": "Your license does not support content flagging."
   },
@@ -3704,7 +3708,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
+    "translation": "© 2015 - {{ .CurrentYear }} Mattermost, Inc. 2100 Geng Road, Suite 210, Palo Alto, CA, 94303"
   },
   {
     "id": "api.templates.email_info1",
@@ -4499,6 +4503,10 @@
     "translation": "Update password failed because context user_id did not match provided user's id."
   },
   {
+    "id": "api.user.oauth_to_email.magic_link.app_error",
+    "translation": "Magic Link is the only sign-in method available for this account."
+  },
+  {
     "id": "api.user.oauth_to_email.not_available.app_error",
     "translation": "Authentication Transfer not configured or available on this server."
   },
@@ -4613,6 +4621,10 @@
   {
     "id": "api.user.update_password.incorrect.app_error",
     "translation": "The \"Current Password\" you entered is incorrect. Please check that Caps Lock is off and try again."
+  },
+  {
+    "id": "api.user.update_password.magic_link.app_error",
+    "translation": "Cannot update password for Magic Link accounts."
   },
   {
     "id": "api.user.update_password.menu",
@@ -7917,6 +7929,10 @@
     "translation": "update error"
   },
   {
+    "id": "app.update_scheduled_post.convert_to_post.error",
+    "translation": "Unable to convert scheduled post to post format."
+  },
+  {
     "id": "app.update_scheduled_post.existing_scheduled_post.not_exist",
     "translation": "Scheduled post does not exist."
   },
@@ -9939,6 +9955,10 @@
   {
     "id": "model.config.is_valid.group_unread_channels.app_error",
     "translation": "Invalid group unread channels for service settings. Must be 'disabled', 'default_on', or 'default_off'."
+  },
+  {
+    "id": "model.config.is_valid.guest_accounts.cannot_enforce_multifactor_authentication_when_guest_magic_link_is_enabled.app_error",
+    "translation": "You cannot enforce multifactor authentication for guest accounts when magic link authentication is enabled."
   },
   {
     "id": "model.config.is_valid.image_decoder_concurrency.app_error",

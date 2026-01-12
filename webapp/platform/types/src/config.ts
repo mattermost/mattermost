@@ -24,6 +24,7 @@ export type ClientConfig = {
     BuildHash: string;
     BuildHashEnterprise: string;
     BuildNumber: string;
+    IsFipsEnabled: string;
     CollapsedThreads: CollapsedThreads;
     CustomBrandText: string;
     CustomDescriptionText: string;
@@ -330,6 +331,7 @@ export type ServiceSettings = {
     GoroutineHealthThreshold: number;
     GoogleDeveloperKey: string;
     EnableOAuthServiceProvider: boolean;
+    EnableDynamicClientRegistration: boolean;
     EnableIncomingWebhooks: boolean;
     EnableOutgoingWebhooks: boolean;
     EnableOutgoingOAuthConnections: boolean;
@@ -417,6 +419,10 @@ export type ServiceSettings = {
     PersistentNotificationIntervalMinutes: number;
     PersistentNotificationMaxCount: number;
     PersistentNotificationMaxRecipients: number;
+    EnableBurnOnRead: boolean;
+    BurnOnReadDurationSeconds: number;
+    BurnOnReadMaximumTimeToLiveSeconds: number;
+    BurnOnReadSchedulerFrequencySeconds: number;
     UniqueEmojiReactionLimitPerPost: number;
     RefreshPostStatsRunTime: string;
     MaximumPayloadSizeBytes: number;
@@ -753,7 +759,7 @@ export type AutoTranslationSettings = {
         URL: string;
         APIKey: string;
     };
-    TimeoutMs: {
+    TimeoutsMs: {
         NewPost: number;
         Fetch: number;
         Notification: number;
@@ -842,6 +848,7 @@ export type MetricsSettings = {
 };
 
 export type ExperimentalSettings = {
+    ClientSideCertEnable: boolean;
     LinkMetadataTimeoutMilliseconds: number;
     RestrictSystemAdmin: boolean;
     EnableSharedChannels: boolean;

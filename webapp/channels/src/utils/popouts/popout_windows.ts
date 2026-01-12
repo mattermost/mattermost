@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {IntlShape} from 'react-intl';
-
 import type {PopoutViewProps} from '@mattermost/desktop-api';
 
 import {Client4} from 'mattermost-redux/client';
@@ -16,9 +14,14 @@ import {
     onMessageFromParent as onMessageFromParentBrowser,
 } from './use_browser_popout';
 
+const pluginPopoutListeners: Map<string, (teamName: string, channelName: string, listeners: Partial<PopoutListeners>) => void> = new Map();
+export function registerRHSPluginPopoutListener(pluginId: string, onPopoutOpened: (teamName: string, channelName: string, listeners: Partial<PopoutListeners>) => void) {
+    pluginPopoutListeners.set(pluginId, onPopoutOpened);
+}
+
 export const FOCUS_REPLY_POST = 'focus-reply-post';
 export async function popoutThread(
-    intl: IntlShape,
+    titleTemplate: string,
     threadId: string,
     teamName: string,
     onFocusPost: (postId: string, returnTo: string) => void,
@@ -27,10 +30,7 @@ export async function popoutThread(
         `/_popout/thread/${teamName}/${threadId}`,
         {
             isRHS: true,
-            titleTemplate: intl.formatMessage({
-                id: 'thread_popout.title',
-                defaultMessage: 'Thread - {channelName} - {teamName}',
-            }),
+            titleTemplate,
         },
     );
 
@@ -47,12 +47,31 @@ export async function popoutThread(
     return popoutListeners;
 }
 
+export async function popoutRhsPlugin(
+    titleTemplate: string,
+    pluginId: string,
+    teamName: string,
+    channelName: string,
+) {
+    const listeners = await popout(
+        `/_popout/rhs/${teamName}/${channelName}/plugin/${pluginId}`,
+        {
+            isRHS: true,
+            titleTemplate,
+        },
+    );
+
+    pluginPopoutListeners.get(pluginId)?.(teamName, channelName, listeners);
+
+    return listeners;
+}
+
 /**
  * Below this is generic popout code
  * You likely do not need to add anything below this.
  */
 
-type PopoutListeners = {
+export type PopoutListeners = {
     sendToPopout: (channel: string, ...args: unknown[]) => void;
     onMessageFromPopout: (listener: (channel: string, ...args: unknown[]) => void) => void;
     onClosePopout: (listener: () => void) => void;
