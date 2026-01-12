@@ -11261,6 +11261,6 @@
   },
   {
     "id": "ent.push_proxy.worker.interface_nil.app_error",
-    "translation": "Push-proxy-gränssnittet är nil."
+    "translation": "Push-proxy-gränssnittet är tomt."
   }
 ]
