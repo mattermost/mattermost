@@ -160,7 +160,7 @@ PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.6.1
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.11.0
 PLUGIN_PACKAGES += mattermost-plugin-agents-v1.7.2
-PLUGIN_PACKAGES += mattermost-plugin-boards-v9.2.1
+PLUGIN_PACKAGES += mattermost-plugin-boards-v9.2.2
 PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.5.0
 PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.3.0
@@ -789,7 +789,18 @@ endif
 
 vet: ## Run mattermost go vet specific checks
 	$(GO) install github.com/mattermost/mattermost-govet/v2@7d8db289e508999dfcac47b97c9490a0fec12d66
-	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -structuredLogging -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -requestCtxNaming -license -inconsistentReceiverName.ignore=session_serial_gen.go,team_member_serial_gen.go,user_serial_gen.go,utils_serial_gen.go ./...
+	$(GO) vet -vettool=$(GOBIN)/mattermost-govet \
+		-structuredLogging \
+		-inconsistentReceiverName \
+		-emptyStrCmp \
+		-tFatal \
+		-configtelemetry \
+		-errorAssertions \
+		-requestCtxNaming \
+		-license \
+		-inconsistentReceiverName.ignore=session_serial_gen.go,team_member_serial_gen.go,user_serial_gen.go,utils_serial_gen.go \
+		-noSelectStar \
+		./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
   ifneq ($(MM_NO_ENTERPRISE_LINT),true)
 	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -structuredLogging -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -requestCtxNaming -enterpriseLicense $(BUILD_ENTERPRISE_DIR)/...
