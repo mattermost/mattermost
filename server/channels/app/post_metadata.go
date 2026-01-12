@@ -259,26 +259,11 @@ func (a *App) sanitizePostMetadataForUserAndChannel(rctx request.CTX, post *mode
 	return post
 }
 
+// SanitizePostMetadataForUser sanitizes both permalink embeds and channel mentions based on the viewer's permissions.
+// This prevents information disclosure about channels/teams the viewer doesn't have access to.
 func (a *App) SanitizePostMetadataForUser(rctx request.CTX, post *model.Post, userID string) (*model.Post, *model.AppError) {
-	return a.sanitizePostMetadataForUser(rctx, post, userID, false)
-}
-
-func (a *App) SanitizePostMetadataForUserOnRetrieval(rctx request.CTX, post *model.Post, userID string) (*model.Post, *model.AppError) {
-	return a.sanitizePostMetadataForUser(rctx, post, userID, true)
-}
-
-func (a *App) sanitizePostMetadataForUser(rctx request.CTX, post *model.Post, userID string, includeChannelMentions bool) (*model.Post, *model.AppError) {
-	// Early return optimization: Skip posts with no metadata to sanitize
-	// This avoids unnecessary function calls and map lookups for 80-90% of posts
-	hasEmbeds := post.Metadata != nil && len(post.Metadata.Embeds) > 0
-	hasChannelMentions := includeChannelMentions && post.GetProp(model.PostPropsChannelMentions) != nil
-
-	if !hasEmbeds && !hasChannelMentions {
-		return post, nil
-	}
-
 	// Sanitize permalink embeds based on permissions (only if present)
-	if hasEmbeds {
+	if post.Metadata != nil && len(post.Metadata.Embeds) > 0 {
 		previewPost := post.GetPreviewPost()
 		if previewPost != nil {
 			previewedChannel, err := a.GetChannel(rctx, previewPost.Post.ChannelId)
@@ -292,10 +277,9 @@ func (a *App) sanitizePostMetadataForUser(rctx request.CTX, post *model.Post, us
 		}
 	}
 
-	// Sanitize channel mentions based on permissions (only if present and requested)
-	if hasChannelMentions {
-		post = a.sanitizeChannelMentionsForUser(rctx, post, userID)
-	}
+	// Sanitize channel mentions based on permissions
+	// sanitizeChannelMentionsForUser returns immediately if no channel mentions exist
+	post = a.sanitizeChannelMentionsForUser(rctx, post, userID)
 
 	return post, nil
 }
@@ -364,8 +348,7 @@ func (a *App) sanitizeChannelMentionsForUser(rctx request.CTX, post *model.Post,
 func (a *App) SanitizePostListMetadataForUser(rctx request.CTX, postList *model.PostList, userID string) (*model.PostList, *model.AppError) {
 	clonedPostList := postList.Clone()
 	for postID, post := range clonedPostList.Posts {
-		// Use SanitizePostMetadataForUserOnRetrieval for post retrieval to include channel mention filtering
-		sanitizedPost, err := a.SanitizePostMetadataForUserOnRetrieval(rctx, post, userID)
+		sanitizedPost, err := a.SanitizePostMetadataForUser(rctx, post, userID)
 		if err != nil {
 			return nil, err
 		}

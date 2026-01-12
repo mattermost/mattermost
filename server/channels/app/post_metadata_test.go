@@ -3334,8 +3334,7 @@ func TestSanitizeChannelMentionsForUser(t *testing.T) {
 			},
 		})
 
-		// Use retrieval sanitization which includes channel mention filtering
-		result, err := th.App.SanitizePostMetadataForUserOnRetrieval(th.Context, post, th.BasicUser.Id)
+		result, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
 		require.Nil(t, err)
 		require.NotNil(t, result)
 		// Should remove the mention since user can't access the team
@@ -3355,8 +3354,7 @@ func TestSanitizeChannelMentionsForUser(t *testing.T) {
 			},
 		})
 
-		// Use retrieval sanitization which includes channel mention filtering
-		result, err := th.App.SanitizePostMetadataForUserOnRetrieval(th.Context, post, th.BasicUser.Id)
+		result, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
 		require.Nil(t, err)
 		require.NotNil(t, result)
 
@@ -3381,8 +3379,7 @@ func TestSanitizeChannelMentionsForUser(t *testing.T) {
 			},
 		})
 
-		// Use retrieval sanitization which includes channel mention filtering/updating
-		result, err := th.App.SanitizePostMetadataForUserOnRetrieval(th.Context, post, th.BasicUser.Id)
+		result, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
 		require.Nil(t, err)
 		require.NotNil(t, result)
 

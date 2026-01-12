@@ -18,7 +18,7 @@ import PostMessagePreview from 'components/post_view/post_message_preview';
 import YoutubeVideo from 'components/youtube_video';
 
 import webSocketClient from 'client/web_websocket_client';
-import {isChannelNamesMap, type TextFormattingOptions} from 'utils/text_formatting';
+import type {TextFormattingOptions} from 'utils/text_formatting';
 
 import type {PostWillRenderEmbedComponent} from 'types/store/plugins';
 
@@ -87,14 +87,12 @@ export default class PostBodyAdditionalContent extends React.PureComponent<Props
 
         case 'message_attachment': {
             const attachments = isMessageAttachmentArray(this.props.post.props?.attachments) ? this.props.post.props?.attachments : [];
-            const channelNamesMap = isChannelNamesMap(this.props.post?.props?.channel_mentions) ? this.props.post?.props?.channel_mentions : undefined;
 
             return (
                 <MessageAttachmentList
                     attachments={attachments}
                     postId={this.props.post.id}
                     options={this.props.options}
-                    channelNamesMap={channelNamesMap}
                     imagesMetadata={this.props.post.metadata.images}
                 />
             );
