@@ -1,19 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Channel, ChannelType} from '@mattermost/types/channels';
+import type {Channel} from '@mattermost/types/channels';
 import type {ClientConfig} from '@mattermost/types/config';
 import type {Post} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {General} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {getChannel, getMyChannelMember} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {moveThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getTeamMember} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getCurrentUserRoles} from 'mattermost-redux/selectors/entities/users';
 
 import {arePreviewsCollapsed} from 'selectors/preferences';
