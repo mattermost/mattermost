@@ -12,11 +12,11 @@ import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {getFilter, getPlugin} from 'selectors/views/marketplace';
 
-import {intlShim} from 'components/suggestion/command_provider/app_command_parser/app_command_parser_dependencies';
 import type {DoAppCallResult} from 'components/suggestion/command_provider/app_command_parser/app_command_parser_dependencies';
 
 import {createCallContext, createCallRequest} from 'utils/apps';
 import {ActionTypes} from 'utils/constants';
+import {getIntl} from 'utils/i18n';
 
 import type {ActionFuncAsync, ThunkActionFunc} from 'types/store';
 
@@ -125,6 +125,7 @@ export function installPlugin(id: string): ThunkActionFunc<void> {
 // On success, it also requests the current state of the apps to reflect the newly installed app.
 export function installApp(id: string): ThunkActionFunc<Promise<boolean>> {
     return async (dispatch, getState) => {
+        const intl = getIntl();
         dispatch({
             type: ActionTypes.INSTALLING_MARKETPLACE_ITEM,
             id,
@@ -155,7 +156,7 @@ export function installApp(id: string): ThunkActionFunc<Promise<boolean>> {
 
         const creq = createCallRequest(call, context, expand, values);
 
-        const res = await dispatch(doAppSubmit(creq, intlShim)) as DoAppCallResult;
+        const res = await dispatch(doAppSubmit(creq, intl)) as DoAppCallResult;
 
         if (res.error) {
             const errorResponse = res.error;
