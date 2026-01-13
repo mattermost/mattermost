@@ -4086,7 +4086,6 @@
   "sidebar.unreads": "Daugiau neskaitytų",
   "sidebar_left.add_channel_dropdown.browseChannels": "Naršyti kanalus",
   "sidebar_left.add_channel_dropdown.createNewChannel": "Sukurti naują kanalą",
-  "sidebar_left.add_channel_dropdown.dropdownAriaLabel": "Pridėti kanalo išskleidžiamąjį meniu",
   "sidebar_left.channel_filter.filterByUnread": "Filtruoti pagal neskaitytus",
   "sidebar_left.channel_filter.filterUnreadAria": "neskaitytų filtrų",
   "sidebar_left.channel_filter.showAllChannels": "Rodyti visus kanalus",
