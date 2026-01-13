@@ -2,19 +2,19 @@
 // See LICENSE.txt for license information.
 
 import {expect} from '@playwright/test';
-import {PreferenceType} from '@mattermost/types/preferences';
+import {TeamType} from '@mattermost/types/teams';
 
 import {makeClient} from './client';
 import {getOnPremServerConfig} from './default_config';
-import {createRandomTeam} from './team';
-import {createRandomUser} from './user';
+import {createNewTeam} from './team';
+import {createNewUserProfile} from './user';
 
 import {getFileFromCommonAsset} from '@/file';
 import {testConfig} from '@/test_config';
 
 export async function initSetup({
-    userPrefix = 'user',
-    teamPrefix = {name: 'team', displayName: 'Team'},
+    userOptions = {prefix: 'user', disableTutorial: true, disableOnboarding: true},
+    teamsOptions = {name: 'team', displayName: 'Team', type: 'O' as TeamType, unique: true},
     withDefaultProfileImage = true,
 } = {}) {
     try {
@@ -33,12 +33,10 @@ export async function initSetup({
         const adminConfig = await adminClient.updateConfig(getOnPremServerConfig() as any);
 
         // Create new team
-        const team = await adminClient.createTeam(await createRandomTeam(teamPrefix.name, teamPrefix.displayName));
+        const team = await createNewTeam(adminClient, teamsOptions);
 
         // Create new user and add to newly created team
-        const randomUser = await createRandomUser(userPrefix);
-        const user = await adminClient.createUser(randomUser, '', '');
-        user.password = randomUser.password;
+        const user = await createNewUserProfile(adminClient, userOptions);
         await adminClient.addToTeam(team.id, user.id);
 
         // Log in new user via API
@@ -48,13 +46,6 @@ export async function initSetup({
             const file = getFileFromCommonAsset('mattermost-icon_128x128.png');
             await userClient.uploadProfileImage(user.id, file);
         }
-
-        // Update user preference
-        const preferences: PreferenceType[] = [
-            {user_id: user.id, category: 'tutorial_step', name: user.id, value: '999'},
-            {user_id: user.id, category: 'crt_thread_pane_step', name: user.id, value: '999'},
-        ];
-        await userClient.savePreferences(user.id, preferences);
 
         return {
             adminClient,
