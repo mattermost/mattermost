@@ -1,1 +1,1 @@
-ALTER TABLE PropertyFields ADD COLUMN IF NOT EXISTS ObjectType varchar(255);
+ALTER TABLE PropertyFields ADD COLUMN IF NOT EXISTS ObjectType varchar(255) NOT NULL DEFAULT '';
