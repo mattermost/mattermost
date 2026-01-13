@@ -8,7 +8,6 @@ import FilePreviewModal from 'components/file_preview_modal/file_preview_modal';
 
 import Constants from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
-import * as Utils from 'utils/utils';
 import {generateId} from 'utils/utils';
 
 describe('components/FilePreviewModal', () => {
