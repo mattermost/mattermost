@@ -5673,7 +5673,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
+    "translation": "© 2015 - {{ .CurrentYear }} Mattermost, Inc. 2100 Geng Road, Suite 210, Palo Alto, CA, 94303"
   },
   {
     "id": "api.templates.email_footer",
@@ -6185,15 +6185,15 @@
   },
   {
     "id": "api.job.unable_to_download_job.incorrect_job_type",
-    "translation": "Тып задачы, якую вы спрабуеце спампаваць, у дадзены момант не падтрымліваецца."
+    "translation": "Тып задачы, якую вы спрабуеце спампаваць, у дадзены момант не падтрымліваецца"
   },
   {
     "id": "api.job.unable_to_download_job",
-    "translation": "Немагчыма спампаваць гэту задачу."
+    "translation": "Немагчыма спампаваць гэту задачу"
   },
   {
     "id": "api.job.unable_to_create_job.incorrect_job_type",
-    "translation": "Тып задачы, якую вы спрабуеце стварыць, несапраўдны."
+    "translation": "Тып задачы, якую вы спрабуеце стварыць, няправільны"
   },
   {
     "id": "api.job.retrieve.nopermissions",
@@ -6201,11 +6201,11 @@
   },
   {
     "id": "api.invalid_redirect_url",
-    "translation": "Пададзены несапраўдны URL пераадрасацыі."
+    "translation": "Пададзены несапраўдны URL пераадрасацыі"
   },
   {
     "id": "api.invalid_custom_url_scheme",
-    "translation": "Пададзена несапраўдная карыстальніцкая схема URL."
+    "translation": "Пададзена несапраўдная карыстальніцкая схема URL"
   },
   {
     "id": "app.channel.remove_all_deactivated_members.app_error",
@@ -9497,7 +9497,7 @@
   },
   {
     "id": "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error",
-    "translation": "Аўтадапаўненне каналаў не можа быць уключана, бо схема індэкса каналаў састарэла. Рэкамендуецца перагенерыць індэкс каналаў. Глядзіце часопіс зменаў Mattermost для атрымання дадатковай інфармацыі."
+    "translation": "Аўтадапаўненне каналаў не можа быць уключана, бо схема індэкса каналаў састарэла. Рэкамендуецца перагенерыць індэкс каналаў. Глядзіце часопіс зменаў Mattermost для атрымання дадатковай інфармацыі"
   },
   {
     "id": "ent.elasticsearch.purge_index.delete_failed",
@@ -9541,11 +9541,11 @@
   },
   {
     "id": "api.channel.create_channel.missing_display_name.error",
-    "translation": "Адсутнічае display_name у целе запыту."
+    "translation": "Адсутнічае display_name у целе запыту"
   },
   {
     "id": "api.channel.create_channel.missing_team_id.error",
-    "translation": "Адсутнічае team_id у целе запыту."
+    "translation": "Адсутнічае team_id у целе запыту"
   },
   {
     "id": "api.user.auth_switch.not_available.email_signup_disabled.app_error",
@@ -9609,11 +9609,11 @@
   },
   {
     "id": "api.job.status.invalid",
-    "translation": "Няправільны ўсталяваны статус."
+    "translation": "Ўсталяваны няверны статус"
   },
   {
     "id": "api.job.unable_to_manage_job.incorrect_job_type",
-    "translation": "Вы не маеце дазволу кіраваць гэтым тыпам задання."
+    "translation": "Вы не маеце дазволу кіраваць гэтым тыпам задання"
   },
   {
     "id": "app.job.update_status.app_error",
@@ -9637,7 +9637,7 @@
   },
   {
     "id": "api.get_site_url_error",
-    "translation": "Не атрымалася атрымаць URL сайта інстанса."
+    "translation": "Не атрымалася атрымаць URL сайта інстанса"
   },
   {
     "id": "api.remote_cluster.accept_invitation_error",
@@ -9789,7 +9789,7 @@
   },
   {
     "id": "api.license.add_license.copy.app_error",
-    "translation": "Не атрымалася скапіяваць змест файла ліцэнзіі ў буфер."
+    "translation": "Не атрымалася скапіяваць змест файла ліцэнзіі ў буфер"
   },
   {
     "id": "api.remote_cluster.create_invite_error",
@@ -11686,5 +11686,9 @@
       "many": "- {{.Count}} у канале {{.ChannelName}}. Прычына: {{.ErrorReason}}",
       "one": "- {{.Count}} у канале {{.ChannelName}}. Прычына: {{.ErrorReason}}"
     }
+  },
+  {
+    "id": "app.update_scheduled_post.convert_to_post.error",
+    "translation": "Немагчыма пераўтварыць запланаваны допіс у фармат допісу."
   }
 ]
