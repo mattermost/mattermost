@@ -340,9 +340,22 @@ func (ds *DatabaseStore) Close() error {
 	return ds.db.Close()
 }
 
-// removes configurations from database if they are older than threshold.
-func (ds *DatabaseStore) cleanUp(thresholdCreatAt int) error {
-	if _, err := ds.db.NamedExec("DELETE FROM Configurations Where CreateAt < :timestamp", map[string]any{"timestamp": thresholdCreatAt}); err != nil {
+// removes configurations from database if they are older than threshold,
+// keeping the active configuration and the last 5 most recent ones.
+func (ds *DatabaseStore) cleanUp(thresholdCreateAt int64) error {
+	query := `
+		DELETE FROM Configurations
+		WHERE CreateAt < :timestamp
+			AND (Active IS NULL OR Active = false)
+			AND ID NOT IN (
+				SELECT ID
+				FROM Configurations
+				ORDER BY CreateAt DESC
+				LIMIT 5
+			)
+	`
+
+	if _, err := ds.db.NamedExec(query, map[string]any{"timestamp": thresholdCreateAt}); err != nil {
 		return errors.Wrap(err, "unable to clean Configurations table")
 	}
 
