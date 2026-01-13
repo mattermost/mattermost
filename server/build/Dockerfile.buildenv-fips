@@ -8,7 +8,11 @@ FROM cgr.dev/mattermost.com/go-msft-fips:${GO_VERSION}-dev
 ARG GO_VERSION
 ARG NODE_VERSION
 
-RUN apk add curl ca-certificates mailcap unrtf wv poppler-utils tzdata gpg xmlsec
+RUN apk add curl ca-certificates mailcap unrtf wv poppler-utils tzdata gpg xmlsec \
+    # coreutils: provides GNU ls (nvm uses 'ls -q' which BusyBox doesn't support)
+    coreutils \
+    # libstdc++: required for Node.js unofficial musl builds used by nvm on Alpine
+    libstdc++
 
 # Download and install node via nvm
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
