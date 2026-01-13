@@ -371,7 +371,7 @@ func (a *App) CreateWebhookPost(rctx request.CTX, userID string, channel *model.
 	}
 
 	for _, split := range splits {
-		if _, err = a.CreatePost(rctx, split, channel, model.CreatePostFlags{}); err != nil {
+		if _, _, err := a.CreatePost(rctx, split, channel, model.CreatePostFlags{}); err != nil {
 			return nil, model.NewAppError("CreateWebhookPost", "api.post.create_webhook_post.creating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}

@@ -454,11 +454,11 @@ func listChannelBookmarksForChannel(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
+	auditRec := c.MakeAuditRecord(model.AuditEventListChannelBookmarksForChannel, model.AuditStatusSuccess)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
 	if !isMember {
-		auditRec := c.MakeAuditRecord(model.AuditEventViewedChannelBookmarksWithoutMembership, model.AuditStatusSuccess)
-		defer c.LogAuditRec(auditRec)
-		auditRec.AddMeta("reason", "list_channel_bookmarks_for_channel")
-		auditRec.AddMeta("channel_id", c.Params.ChannelId)
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 	}
 
 	if err := json.NewEncoder(w).Encode(bookmarks); err != nil {

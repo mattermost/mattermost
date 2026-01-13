@@ -749,11 +749,12 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 				c.Logger.Warn("Error while writing response", mlog.Err(err2))
 			}
 
+			auditRec := c.MakeAuditRecord(model.AuditEventNotificationAck, model.AuditStatusSuccess)
+			defer c.LogAuditRec(auditRec)
+			model.AddEventParameterToAuditRec(auditRec, "post_id", ack.PostId)
+
 			if !isMember {
-				auditRec := c.MakeAuditRecord(model.AuditEventViewedPostWithoutMembership, model.AuditStatusSuccess)
-				defer c.LogAuditRec(auditRec)
-				auditRec.AddMeta("reason", "push_notification_ack")
-				auditRec.AddMeta("post_id", ack.PostId)
+				model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 			}
 		}
 

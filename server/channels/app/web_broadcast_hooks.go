@@ -179,12 +179,14 @@ func (h *permalinkBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 	}
 	msg.Add("post", postJSON)
 
+	auditRec := webConn.Suite.MakeAuditRecord(rctx, model.AuditEventWebsocketPost, model.AuditStatusSuccess)
+	defer webConn.Suite.LogAuditRec(rctx, auditRec, nil)
+	model.AddEventParameterToAuditRec(auditRec, "channel_id", previewChannel.Id)
+	model.AddEventParameterToAuditRec(auditRec, "user_id", webConn.UserId)
+	model.AddEventParameterToAuditRec(auditRec, "source", "permalinkBroadcastHook")
+
 	if !isMember {
-		auditRec := webConn.Suite.MakeAuditRecord(rctx, model.AuditEventViewedPostWithoutMembership, model.AuditStatusSuccess)
-		defer webConn.Suite.LogAuditRec(rctx, auditRec, nil)
-		auditRec.AddMeta("reason", "websocket_permalink_preview")
-		auditRec.AddMeta("post_id", previewChannel.Id)
-		auditRec.AddMeta("user_id", webConn.UserId)
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 	}
 
 	return nil

@@ -1045,7 +1045,7 @@ func TestSessionHasPermissionToReadPost(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	// Create a post in a public channel, ensure basic user can read it.
-	post, err := th.App.CreatePost(th.Context, &model.Post{
+	post, _, err := th.App.CreatePost(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		Message:   "hello world",
@@ -1087,7 +1087,7 @@ func TestSessionHasPermissionToReadPost(t *testing.T) {
 
 	t.Run("non-member cannot read post in private channel", func(t *testing.T) {
 		privateChan := th.CreatePrivateChannel(t, th.BasicTeam)
-		privatePost, err := th.App.CreatePost(th.Context, &model.Post{
+		privatePost, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: privateChan.Id,
 			Message:   "private message",
@@ -1104,7 +1104,7 @@ func TestSessionHasPermissionToReadPost(t *testing.T) {
 
 	t.Run("admin can read post even if not a channel member", func(t *testing.T) {
 		privateChan := th.CreatePrivateChannel(t, th.BasicTeam)
-		privatePost, err := th.App.CreatePost(th.Context, &model.Post{
+		privatePost, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: privateChan.Id,
 			Message:   "private admin",

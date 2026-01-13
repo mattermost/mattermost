@@ -3551,11 +3551,12 @@ func getThreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 
+	auditRec := c.MakeAuditRecord(model.AuditEventGetThreadForUser, model.AuditStatusSuccess)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "thread_id", c.Params.ThreadId)
+
 	if !isMember {
-		auditRec := c.MakeAuditRecord(model.AuditEventViewedPostWithoutMembership, model.AuditStatusSuccess)
-		defer c.LogAuditRec(auditRec)
-		auditRec.AddMeta("reason", "get_thread_for_user")
-		auditRec.AddMeta("post_id", c.Params.ThreadId)
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 	}
 }
 

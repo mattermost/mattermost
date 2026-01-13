@@ -69,7 +69,7 @@ func createPostChecks(where string, c *Context, post *model.Post) {
 	}
 
 	if len(post.FileIds) > 0 {
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionUploadFile) {
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionUploadFile); !ok {
 			c.SetPermissionError(model.PermissionUploadFile)
 			return
 		}
@@ -117,7 +117,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	rp, err := c.App.CreatePostAsUser(c.AppContext, c.App.PostWithProxyRemovedFromImageURLs(&post), c.AppContext.Session().Id, setOnlineBool)
+	rp, isMemberForPreviews, err := c.App.CreatePostAsUser(c.AppContext, c.App.PostWithProxyRemovedFromImageURLs(&post), c.AppContext.Session().Id, setOnlineBool)
 	if err != nil {
 		c.Err = err
 		return
@@ -125,6 +125,14 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	auditRec.AddEventResultState(rp)
 	auditRec.AddEventObjectType("post")
+
+	if !isMemberForPreviews {
+		previewPost := rp.GetPreviewPost()
+		if previewPost != nil {
+			model.AddEventParameterToAuditRec(auditRec, "preview_post_id", previewPost.Post.Id)
+		}
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
+	}
 
 	if setOnlineBool {
 		c.App.SetStatusOnline(c.AppContext.Session().UserId, false)
@@ -189,12 +197,13 @@ func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rp := c.App.SendEphemeralPost(c.AppContext, ephRequest.UserID, c.App.PostWithProxyRemovedFromImageURLs(ephRequest.Post))
+	// We prepare again the post here, so we can ignore the isMemberForPreviews return value from SendEphemeralPost
+	rp, _ := c.App.SendEphemeralPost(c.AppContext, ephRequest.UserID, c.App.PostWithProxyRemovedFromImageURLs(ephRequest.Post))
 
 	w.WriteHeader(http.StatusCreated)
 	rp = model.AddPostActionCookies(rp, c.App.PostActionCookieSecret())
 	rp = c.App.PreparePostForClientWithEmbedsAndImages(c.AppContext, rp, &model.PreparePostForClientOpts{IsNewPost: true, IncludePriority: true})
-	rp, err := c.App.SanitizePostMetadataForUser(c.AppContext, rp, c.AppContext.Session().UserId)
+	rp, isMemberForPreviews, err := c.App.SanitizePostMetadataForUser(c.AppContext, rp, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -202,6 +211,19 @@ func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := rp.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventCreateEphemeralPost, model.AuditStatusSuccess)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "post_id", rp.Id)
+
+	if !isMemberForPreviews {
+		previewPost := rp.GetPreviewPost()
+		if previewPost != nil {
+			model.AddEventParameterToAuditRec(auditRec, "preview_post_id", previewPost.Post.Id)
+		}
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
+	}
+	auditRec.Success()
 }
 
 func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -302,7 +324,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	// to ensure they only reference posts that are actually in the response
 	c.App.AddCursorIdsForPostList(clientPostList, afterPost, beforePost, since, page, perPage, collapsedThreads)
 
-	clientPostList, err = c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
+	clientPostList, isMemberForAllPreviews, err := c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -312,11 +334,14 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 
-	if !isMember {
-		auditRec := c.MakeAuditRecord(model.AuditEventViewedPostWithoutMembership, model.AuditStatusSuccess)
-		defer c.LogAuditRec(auditRec)
-		auditRec.AddMeta("reason", "get_channel_posts")
-		auditRec.AddMeta("channel_id", channelId)
+	auditRec := c.MakeAuditRecord(model.AuditEventGetPostsForChannel, model.AuditStatusSuccess)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "channel_id", channelId)
+	if !isMember || !isMemberForAllPreviews {
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
+		if !isMemberForAllPreviews {
+			model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access_on_previews", true)
+		}
 	}
 }
 
@@ -380,7 +405,7 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 	// to ensure they only reference posts that are actually in the response
 	clientPostList.NextPostId = c.App.GetNextPostIdFromPostList(clientPostList, collapsedThreads)
 	clientPostList.PrevPostId = c.App.GetPrevPostIdFromPostList(clientPostList, collapsedThreads)
-	clientPostList, err = c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
+	clientPostList, isMemberForAllPreviews, err := c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -393,11 +418,15 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 
-	if !isMember {
-		auditRec := c.MakeAuditRecord(model.AuditEventViewedPostWithoutMembership, model.AuditStatusSuccess)
-		defer c.LogAuditRec(auditRec)
-		auditRec.AddMeta("reason", "get_channel_posts")
-		auditRec.AddMeta("channel_id", channelId)
+	auditRec := c.MakeAuditRecord(model.AuditEventGetPostsForChannelAroundLastUnread, model.AuditStatusSuccess)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "channel_id", channelId)
+
+	if !isMember || !isMemberForAllPreviews {
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
+		if !isMemberForAllPreviews {
+			model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access_on_previews", true)
+		}
 	}
 }
 
@@ -478,17 +507,21 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	pl.SortByCreateAt()
 	clientPostList := c.App.PreparePostListForClient(c.AppContext, pl)
-	clientPostList, err = c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
+	clientPostList, isMemberForAllPreviews, err := c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if !isMemberForAllPosts {
-		auditRec := c.MakeAuditRecord(model.AuditEventViewedPostWithoutMembership, model.AuditStatusSuccess)
-		defer c.LogAuditRec(auditRec)
-		auditRec.AddMeta("reason", "get_flagged_posts")
-		auditRec.AddMeta("channel_id", channelId)
+	auditRec := c.MakeAuditRecord(model.AuditEventGetFlaggedPosts, model.AuditStatusSuccess)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "channel_id", channelId)
+
+	if !isMemberForAllPosts || !isMemberForAllPreviews {
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
+		if !isMemberForAllPreviews {
+			model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access_on_previews", true)
+		}
 	}
 
 	if err := clientPostList.EncodeJSON(w); err != nil {
@@ -522,7 +555,7 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	post = c.App.PreparePostForClientWithEmbedsAndImages(c.AppContext, post, &model.PreparePostForClientOpts{IncludePriority: true})
-	post, err = c.App.SanitizePostMetadataForUser(c.AppContext, post, c.AppContext.Session().UserId)
+	post, previewIsMember, err := c.App.SanitizePostMetadataForUser(c.AppContext, post, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -537,11 +570,18 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 
-	if !isMember {
-		auditRec := c.MakeAuditRecord(model.AuditEventViewedPostWithoutMembership, model.AuditStatusSuccess)
-		defer c.LogAuditRec(auditRec)
-		auditRec.AddMeta("reason", "get_post")
-		auditRec.AddMeta("post_id", c.Params.PostId)
+	auditRec := c.MakeAuditRecord(model.AuditEventGetPost, model.AuditStatusSuccess)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "post_id", c.Params.PostId)
+
+	if !isMember || !previewIsMember {
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
+		if !previewIsMember {
+			previewPost := post.GetPreviewPost()
+			if previewPost != nil {
+				model.AddEventParameterToAuditRec(auditRec, "preview_post_id", previewPost.Post.Id)
+			}
+		}
 	}
 }
 
@@ -607,11 +647,12 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 
+	auditRec := c.MakeAuditRecord(model.AuditEventGetPostsByIds, model.AuditStatusSuccess)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "post_ids", postIDs)
+
 	if !isMemberForAllPosts {
-		auditRec := c.MakeAuditRecord(model.AuditEventViewedPostWithoutMembership, model.AuditStatusSuccess)
-		defer c.LogAuditRec(auditRec)
-		auditRec.AddMeta("reason", "get_posts_by_ids")
-		auditRec.AddMeta("post_ids", postIDs)
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 	}
 }
 
@@ -644,11 +685,12 @@ func getEditHistoryForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord(model.AuditEventGetEditHistoryForPost, model.AuditStatusSuccess)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "post_id", c.Params.PostId)
+
 	if !isMember {
-		auditRec := c.MakeAuditRecord(model.AuditEventViewedPostWithoutMembership, model.AuditStatusSuccess)
-		defer c.LogAuditRec(auditRec)
-		auditRec.AddMeta("reason", "get_edit_history_for_post")
-		auditRec.AddMeta("post_id", c.Params.PostId)
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 	}
 
 	if err := json.NewEncoder(w).Encode(postsList); err != nil {
@@ -832,7 +874,7 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	clientPostList := c.App.PreparePostListForClient(c.AppContext, list)
-	clientPostList, err = c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
+	clientPostList, isMemberForAllPreviews, err := c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -844,11 +886,15 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 
-	if !isMember {
-		auditRec := c.MakeAuditRecord(model.AuditEventViewedPostWithoutMembership, model.AuditStatusSuccess)
-		defer c.LogAuditRec(auditRec)
-		auditRec.AddMeta("reason", "get_post_thread")
-		auditRec.AddMeta("post_id", c.Params.PostId)
+	auditRec := c.MakeAuditRecord(model.AuditEventGetPostThread, model.AuditStatusSuccess)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "post_id", c.Params.PostId)
+
+	if !isMember || !isMemberForAllPreviews {
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
+		if !isMemberForAllPreviews {
+			model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access_on_previews", true)
+		}
 	}
 }
 
@@ -914,7 +960,7 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request, teamId stri
 
 	startTime := time.Now()
 
-	results, err := c.App.SearchPostsForUser(c.AppContext, terms, c.AppContext.Session().UserId, teamId, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
+	results, allPostHaveMembership, err := c.App.SearchPostsForUser(c.AppContext, terms, c.AppContext.Session().UserId, teamId, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
 
 	elapsedTime := float64(time.Since(startTime)) / float64(time.Second)
 	metrics := c.App.Metrics()
@@ -929,10 +975,17 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request, teamId stri
 	}
 
 	clientPostList := c.App.PreparePostListForClient(c.AppContext, results.PostList)
-	clientPostList, err = c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
+	clientPostList, isMemberForAllPreviews, err := c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
+	}
+
+	if !allPostHaveMembership || !isMemberForAllPreviews {
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
+		if !isMemberForAllPreviews {
+			model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access_on_previews", true)
+		}
 	}
 
 	results = model.MakePostSearchResults(clientPostList, results.Matches)
@@ -1014,14 +1067,20 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rpost, err := c.App.UpdatePost(c.AppContext, c.App.PostWithProxyRemovedFromImageURLs(&post), &model.UpdatePostOptions{SafeUpdate: false})
+	rpost, isMemberForPreviews, err := c.App.UpdatePost(c.AppContext, c.App.PostWithProxyRemovedFromImageURLs(&post), &model.UpdatePostOptions{SafeUpdate: false})
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if !isMember {
+	if !isMember || !isMemberForPreviews {
 		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
+		if !isMemberForPreviews {
+			previewPost := rpost.GetPreviewPost()
+			if previewPost != nil {
+				model.AddEventParameterToAuditRec(auditRec, "preview_post_id", previewPost.Post.Id)
+			}
+		}
 	}
 
 	auditRec.Success()
@@ -1074,13 +1133,13 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	patchedPost, err := c.App.PatchPost(c.AppContext, c.Params.PostId, c.App.PostPatchWithProxyRemovedFromImageURLs(&post), nil)
+	patchedPost, isMemberForPReviews, err := c.App.PatchPost(c.AppContext, c.Params.PostId, c.App.PostPatchWithProxyRemovedFromImageURLs(&post), nil)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if !isMember {
+	if !isMember || !isMemberForPReviews {
 		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 	}
 
@@ -1210,18 +1269,25 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 		return
 	}
 
-	if !isMember {
-		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
-	}
-
 	patch := &model.PostPatch{}
 	patch.IsPinned = model.NewPointer(isPinned)
 
-	patchedPost, err := c.App.PatchPost(c.AppContext, c.Params.PostId, patch, nil)
+	patchedPost, isMemberForPreviews, err := c.App.PatchPost(c.AppContext, c.Params.PostId, patch, nil)
 	if err != nil {
 		c.Err = err
 		return
 	}
+
+	if !isMember || !isMemberForPreviews {
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
+		if !isMemberForPreviews {
+			previewPost := patchedPost.GetPreviewPost()
+			if previewPost != nil {
+				model.AddEventParameterToAuditRec(auditRec, "preview_post_id", previewPost.Post.Id)
+			}
+		}
+	}
+
 	auditRec.AddEventResultState(patchedPost)
 
 	auditRec.Success()
@@ -1426,11 +1492,12 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord(model.AuditEventGetFileInfosForPost, model.AuditStatusSuccess)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "post_id", c.Params.PostId)
+
 	if !isMember {
-		auditRec := c.MakeAuditRecord(model.AuditEventViewedFileInfoWithoutMembership, model.AuditStatusSuccess)
-		defer c.LogAuditRec(auditRec)
-		auditRec.AddMeta("reason", "get_file_infos_for_post")
-		auditRec.AddMeta("post_id", c.Params.PostId)
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 	}
 
 	w.Header().Set("Cache-Control", "max-age=2592000, private")
@@ -1577,14 +1644,20 @@ func restorePostVersion(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedPost, appErr := c.App.RestorePostVersion(c.AppContext, c.AppContext.Session().UserId, c.Params.PostId, restoreVersionId)
+	updatedPost, isMemberForPreview, appErr := c.App.RestorePostVersion(c.AppContext, c.AppContext.Session().UserId, c.Params.PostId, restoreVersionId)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
-	if !isMember {
+	if !isMember || !isMemberForPreview {
 		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
+		if !isMemberForPreview {
+			previewPost := updatedPost.GetPreviewPost()
+			if previewPost != nil {
+				model.AddEventParameterToAuditRec(auditRec, "preview_post_id", previewPost.Post.Id)
+			}
+		}
 	}
 
 	auditRec.Success()

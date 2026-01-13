@@ -341,7 +341,7 @@ func getFlaggedPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	post = c.App.PreparePostForClientWithEmbedsAndImages(c.AppContext, post, &model.PreparePostForClientOpts{IncludePriority: true, RetainContent: true, IncludeDeleted: true})
-	post, err := c.App.SanitizePostMetadataForUser(c.AppContext, post, c.AppContext.Session().UserId)
+	post, isMemberForPreviews, err := c.App.SanitizePostMetadataForUser(c.AppContext, post, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -350,6 +350,14 @@ func getFlaggedPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := post.EncodeJSON(w); err != nil {
 		c.Err = model.NewAppError("getFlaggedPost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
+	}
+
+	if !isMemberForPreviews {
+		previewPost := post.GetPreviewPost()
+		if previewPost != nil {
+			model.AddEventParameterToAuditRec(auditRec, "preview_post_id", previewPost.Post.Id)
+		}
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 	}
 
 	auditRec.Success()

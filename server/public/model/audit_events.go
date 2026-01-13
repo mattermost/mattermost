@@ -44,6 +44,7 @@ const (
 	AuditEventDeleteChannelBookmark          = "deleteChannelBookmark"          // delete bookmark
 	AuditEventUpdateChannelBookmark          = "updateChannelBookmark"          // update bookmark
 	AuditEventUpdateChannelBookmarkSortOrder = "updateChannelBookmarkSortOrder" // update display order of bookmarks
+	AuditEventListChannelBookmarksForChannel = "listChannelBookmarksForChannel" // list bookmarks for channel
 )
 
 // Channel Categories
@@ -63,6 +64,7 @@ const (
 	AuditEventCreateDirectChannel            = "createDirectChannel"            // create direct message channel between two users
 	AuditEventCreateGroupChannel             = "createGroupChannel"             // create group message channel with multiple users
 	AuditEventDeleteChannel                  = "deleteChannel"                  // delete channel
+	AuditEventGetPinnedPosts                 = "getPinnedPosts"                 // get pinned posts
 	AuditEventLocalAddChannelMember          = "localAddChannelMember"          // add channel member locally
 	AuditEventLocalCreateChannel             = "localCreateChannel"             // create channel locally
 	AuditEventLocalDeleteChannel             = "localDeleteChannel"             // delete channel locally
@@ -151,15 +153,16 @@ const (
 
 // Files
 const (
-	AuditEventGetFile                                 = "getFile"                                 // get or download file
-	AuditEventGetFileLink                             = "getFileLink"                             // generate link for file sharing
-	AuditEventUploadFileMultipart                     = "uploadFileMultipart"                     // upload file using multipart form data
-	AuditEventUploadFileMultipartLegacy               = "uploadFileMultipartLegacy"               // upload file using legacy multipart method
-	AuditEventUploadFileSimple                        = "uploadFileSimple"                        // upload file using simple direct upload method
-	AuditEventViewedFilePreviewWithoutMembership      = "viewedFilePreviewWithoutMembership"      // view file preview without membership
-	AuditEventViewedFileInfoWithoutMembership         = "viewedFileInfoWithoutMembership"         // view file info without membership
-	AuditEventViewedThumbnailWithoutMembership        = "viewedThumbnailWithoutMembership"        // view thumbnail without membership
-	AuditEventViewedChannelBookmarksWithoutMembership = "viewedChannelBookmarksWithoutMembership" // view channel bookmarks without membership
+	AuditEventGetFile                   = "getFile"                   // get or download file
+	AuditEventGetFileLink               = "getFileLink"               // generate link for file sharing
+	AuditEventUploadFileMultipart       = "uploadFileMultipart"       // upload file using multipart form data
+	AuditEventUploadFileMultipartLegacy = "uploadFileMultipartLegacy" // upload file using legacy multipart method
+	AuditEventUploadFileSimple          = "uploadFileSimple"          // upload file using simple direct upload method
+	AuditEventGetFileThumbnail          = "getFileThumbnail"          // get file thumbnail
+	AuditEventGetFileInfosForPost       = "getFileInfosForPost"       // get file infos for post
+	AuditEventGetFileInfo               = "getFileInfo"               // get file info
+	AuditEventGetFilePreview            = "getFilePreview"            // get file preview
+	AuditEventSearchFiles               = "searchFiles"               // search for files
 )
 
 // Groups
@@ -248,10 +251,20 @@ const (
 
 // Posts
 const (
+	AuditEventCreateEphemeralPost                = "createEphemeralPost"                // create ephemeral post
 	AuditEventCreatePost                         = "createPost"                         // create post
 	AuditEventDeletePost                         = "deletePost"                         // delete post
+	AuditEventGetEditHistoryForPost              = "getEditHistoryForPost"              // get edit history for post
+	AuditEventGetFlaggedPosts                    = "getFlaggedPosts"                    // get flagged posts
+	AuditEventGetPostsForChannel                 = "getPostsForChannel"                 // get posts for channel
+	AuditEventGetPostsForChannelAroundLastUnread = "getPostsForChannelAroundLastUnread" // get posts for channel around last unread
+	AuditEventGetPost                            = "getPost"                            // get post
+	AuditEventGetPostThread                      = "getPostThread"                      // get post thread
+	AuditEventGetPostsByIds                      = "getPostsByIds"                      // get posts by ids
+	AuditEventGetThreadForUser                   = "getThreadForUser"                   // get thread for user
 	AuditEventLocalDeletePost                    = "localDeletePost"                    // delete post locally
 	AuditEventMoveThread                         = "moveThread"                         // move thread and replies to different channel
+	AuditEventNotificationAck                    = "notificationAck"                    // notification ack
 	AuditEventPatchPost                          = "patchPost"                          // update post meta properties
 	AuditEventRestorePostVersion                 = "restorePostVersion"                 // restore post to previous version
 	AuditEventSaveIsPinnedPost                   = "saveIsPinnedPost"                   // pin or unpin post
@@ -259,8 +272,7 @@ const (
 	AuditEventUpdatePost                         = "updatePost"                         // update post content
 	AuditEventRevealPost                         = "revealPost"                         // reveal a post that was hidden due to burn on read
 	AuditEventBurnPost                           = "burnPost"                           // burn a post that was hidden due to burn on read
-	AuditEventViewedPostWithoutMembership        = "viewedPostWithoutMembership"        // view post without membership
-	AuditEventViewedPinnedPostsWithoutMembership = "viewedPinnedPostsWithoutMembership" // view pinned posts without membership
+	AuditEventWebsocketPost                      = "websocketPost"                      // post received via websocket
 )
 
 // Preferences

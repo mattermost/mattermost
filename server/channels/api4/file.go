@@ -645,11 +645,11 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	web.WriteFileResponse(info.Name, ThumbnailImageType, 0, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, forceDownload, w, r)
 
+	auditRec := c.MakeAuditRecord(model.AuditEventGetFileThumbnail, model.AuditStatusSuccess)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "file_id", c.Params.FileId)
 	if !isMember {
-		auditRec := c.MakeAuditRecord(model.AuditEventViewedThumbnailWithoutMembership, model.AuditStatusSuccess)
-		defer c.LogAuditRec(auditRec)
-		auditRec.AddMeta("reason", "get_file_thumbnail")
-		auditRec.AddMeta("file_id", c.Params.FileId)
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 	}
 }
 
@@ -756,11 +756,11 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	web.WriteFileResponse(info.Name, PreviewImageType, 0, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, forceDownload, w, r)
 
+	auditRec := c.MakeAuditRecord(model.AuditEventGetFilePreview, model.AuditStatusSuccess)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "file_id", c.Params.FileId)
 	if !isMember {
-		auditRec := c.MakeAuditRecord(model.AuditEventViewedFilePreviewWithoutMembership, model.AuditStatusSuccess)
-		defer c.LogAuditRec(auditRec)
-		auditRec.AddMeta("reason", "get_file_preview")
-		auditRec.AddMeta("file_id", c.Params.FileId)
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 	}
 }
 
@@ -798,11 +798,12 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 
+	auditRec := c.MakeAuditRecord(model.AuditEventGetFileInfo, model.AuditStatusSuccess)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "file_id", c.Params.FileId)
+
 	if !isMember {
-		auditRec := c.MakeAuditRecord(model.AuditEventViewedFileInfoWithoutMembership, model.AuditStatusSuccess)
-		defer c.LogAuditRec(auditRec)
-		auditRec.AddMeta("reason", "get_file_info")
-		auditRec.AddMeta("file_id", c.Params.FileId)
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 	}
 }
 
@@ -908,7 +909,7 @@ func searchFiles(c *Context, w http.ResponseWriter, r *http.Request, teamID stri
 
 	startTime := time.Now()
 
-	results, err := c.App.SearchFilesInTeamForUser(c.AppContext, terms, c.AppContext.Session().UserId, teamID, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
+	results, allFilesHaveMembership, err := c.App.SearchFilesInTeamForUser(c.AppContext, terms, c.AppContext.Session().UserId, teamID, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
 
 	elapsedTime := float64(time.Since(startTime)) / float64(time.Second)
 	metrics := c.App.Metrics()
@@ -926,6 +927,16 @@ func searchFiles(c *Context, w http.ResponseWriter, r *http.Request, teamID stri
 	if err := json.NewEncoder(w).Encode(results); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventSearchFiles, model.AuditStatusSuccess)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "search_params", params)
+
+	if !allFilesHaveMembership {
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
+	}
+
+	auditRec.Success()
 }
 
 func setInaccessibleFileHeader(w http.ResponseWriter, appErr *model.AppError) {

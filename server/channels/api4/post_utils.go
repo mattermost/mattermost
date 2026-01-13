@@ -63,7 +63,7 @@ func checkUploadFilePermissionForNewFiles(c *Context, newFileIds []string, origi
 	}
 
 	if hasNewFiles {
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionUploadFile) {
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionUploadFile); !ok {
 			c.SetPermissionError(model.PermissionUploadFile)
 			return
 		}
