@@ -2957,19 +2957,25 @@ func testPostCountsByDay(t *testing.T, rctx request.CTX, ss store.Store) {
 	c1, nErr := ss.Channel().Save(rctx, c1, -1)
 	require.NoError(t, nErr)
 
+	// Use noon UTC to avoid timezone edge cases when running late in the day
+	yesterday := utils.Yesterday()
+	yesterdayNoon := time.Date(yesterday.Year(), yesterday.Month(), yesterday.Day(), 12, 0, 0, 0, time.UTC)
+	yesterdayNoonMillis := utils.MillisFromTime(yesterdayNoon)
+	threeDaysAgoNoonMillis := utils.MillisFromTime(yesterdayNoon.AddDate(0, 0, -2))
+
 	o1 := &model.Post{}
 	o1.ChannelId = c1.Id
 	o1.UserId = model.NewId()
-	o1.CreateAt = utils.MillisFromTime(utils.Yesterday())
+	o1.CreateAt = yesterdayNoonMillis
 	o1.Message = NewTestID()
 	o1.Hashtags = "hashtag"
-	o1, nErr = ss.Post().Save(rctx, o1)
+	_, nErr = ss.Post().Save(rctx, o1)
 	require.NoError(t, nErr)
 
 	o1a := &model.Post{}
 	o1a.ChannelId = c1.Id
 	o1a.UserId = model.NewId()
-	o1a.CreateAt = o1.CreateAt
+	o1a.CreateAt = yesterdayNoonMillis
 	o1a.Message = NewTestID()
 	o1a.FileIds = []string{"fileId1"}
 	_, nErr = ss.Post().Save(rctx, o1a)
@@ -2978,7 +2984,7 @@ func testPostCountsByDay(t *testing.T, rctx request.CTX, ss store.Store) {
 	o2 := &model.Post{}
 	o2.ChannelId = c1.Id
 	o2.UserId = model.NewId()
-	o2.CreateAt = o1.CreateAt - (1000 * 60 * 60 * 24 * 2)
+	o2.CreateAt = threeDaysAgoNoonMillis
 	o2.Message = NewTestID()
 	o2.Filenames = []string{"filename1"}
 	o2, nErr = ss.Post().Save(rctx, o2)
@@ -2987,7 +2993,7 @@ func testPostCountsByDay(t *testing.T, rctx request.CTX, ss store.Store) {
 	o2a := &model.Post{}
 	o2a.ChannelId = c1.Id
 	o2a.UserId = o2.UserId
-	o2a.CreateAt = o1.CreateAt - (1000 * 60 * 60 * 24 * 2)
+	o2a.CreateAt = threeDaysAgoNoonMillis
 	o2a.Message = NewTestID()
 	o2a.Hashtags = "hashtag"
 	o2a.FileIds = []string{"fileId2"}
@@ -3007,7 +3013,7 @@ func testPostCountsByDay(t *testing.T, rctx request.CTX, ss store.Store) {
 	b1.Message = "bot message one"
 	b1.ChannelId = c1.Id
 	b1.UserId = bot1.UserId
-	b1.CreateAt = utils.MillisFromTime(utils.Yesterday())
+	b1.CreateAt = yesterdayNoonMillis
 	_, nErr = ss.Post().Save(rctx, b1)
 	require.NoError(t, nErr)
 
@@ -3015,7 +3021,7 @@ func testPostCountsByDay(t *testing.T, rctx request.CTX, ss store.Store) {
 	b1a.Message = "bot message two"
 	b1a.ChannelId = c1.Id
 	b1a.UserId = bot1.UserId
-	b1a.CreateAt = utils.MillisFromTime(utils.Yesterday()) - (1000 * 60 * 60 * 24 * 2)
+	b1a.CreateAt = threeDaysAgoNoonMillis
 	_, nErr = ss.Post().Save(rctx, b1a)
 	require.NoError(t, nErr)
 
@@ -3027,37 +3033,45 @@ func testPostCountsByDay(t *testing.T, rctx request.CTX, ss store.Store) {
 	// yesterday - 2 non-bot user posts, 1 bot user post
 	// 3 days ago - 2 non-bot user posts, 1 bot user post
 
+	// Use the same UTC dates for assertions as we used for post creation
+	yesterdayDateStr := yesterdayNoon.Format("2006-01-02")
+	threeDaysAgoDateStr := yesterdayNoon.AddDate(0, 0, -2).Format("2006-01-02")
+
 	// last 31 days, all users (including bots)
 	postCountsOptions := &model.AnalyticsPostCountsOptions{TeamId: t1.Id, BotsOnly: false, YesterdayOnly: false}
 	r1, err := ss.Post().AnalyticsPostCountsByDay(postCountsOptions)
 	require.NoError(t, err)
+	require.Len(t, r1, 2)
 	assert.Equal(t, float64(3), r1[0].Value)
 	assert.Equal(t, float64(3), r1[1].Value)
-	assert.Equal(t, utils.Yesterday().Format("2006-01-02"), r1[0].Name)
-	assert.Equal(t, utils.Yesterday().Add(-48*time.Hour).Format("2006-01-02"), r1[1].Name)
+	assert.Equal(t, yesterdayDateStr, r1[0].Name)
+	assert.Equal(t, threeDaysAgoDateStr, r1[1].Name)
 
 	// last 31 days, bots only
 	postCountsOptions = &model.AnalyticsPostCountsOptions{TeamId: t1.Id, BotsOnly: true, YesterdayOnly: false}
 	r1, err = ss.Post().AnalyticsPostCountsByDay(postCountsOptions)
 	require.NoError(t, err)
+	require.Len(t, r1, 2)
 	assert.Equal(t, float64(1), r1[0].Value)
 	assert.Equal(t, float64(1), r1[1].Value)
-	assert.Equal(t, utils.Yesterday().Format("2006-01-02"), r1[0].Name)
-	assert.Equal(t, utils.Yesterday().Add(-48*time.Hour).Format("2006-01-02"), r1[1].Name)
+	assert.Equal(t, yesterdayDateStr, r1[0].Name)
+	assert.Equal(t, threeDaysAgoDateStr, r1[1].Name)
 
 	// yesterday only, all users (including bots)
 	postCountsOptions = &model.AnalyticsPostCountsOptions{TeamId: t1.Id, BotsOnly: false, YesterdayOnly: true}
 	r1, err = ss.Post().AnalyticsPostCountsByDay(postCountsOptions)
 	require.NoError(t, err)
+	require.Len(t, r1, 1)
 	assert.Equal(t, float64(3), r1[0].Value)
-	assert.Equal(t, utils.Yesterday().Format("2006-01-02"), r1[0].Name)
+	assert.Equal(t, yesterdayDateStr, r1[0].Name)
 
 	// yesterday only, bots only
 	postCountsOptions = &model.AnalyticsPostCountsOptions{TeamId: t1.Id, BotsOnly: true, YesterdayOnly: true}
 	r1, err = ss.Post().AnalyticsPostCountsByDay(postCountsOptions)
 	require.NoError(t, err)
+	require.Len(t, r1, 1)
 	assert.Equal(t, float64(1), r1[0].Value)
-	assert.Equal(t, utils.Yesterday().Format("2006-01-02"), r1[0].Name)
+	assert.Equal(t, yesterdayDateStr, r1[0].Name)
 }
 
 func testPostCounts(t *testing.T, rctx request.CTX, ss store.Store) {
