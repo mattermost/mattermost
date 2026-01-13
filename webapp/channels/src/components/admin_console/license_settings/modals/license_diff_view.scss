@@ -1,0 +1,62 @@
+.license-diff-view {
+    overflow: hidden;
+    width: 100%;
+    border: var(--border-default);
+    border-radius: 4px;
+    margin: 16px 0;
+
+    .diff-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+
+        th, td {
+            padding: 8px 12px;
+            border-bottom: var(--border-light);
+            text-align: left;
+        }
+
+        th {
+            border-bottom: var(--border-default);
+            background-color: rgba(var(--center-channel-color-rgb), 0.04);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .diff-row {
+            .diff-label,
+            .diff-current {
+                color: rgba(var(--center-channel-color-rgb), 0.72);
+            }
+
+            &-plan {
+                .diff-current,
+                .diff-new {
+                    font-weight: 600;
+                }
+            }
+        }
+
+        // Info-only table (for entry license - no comparison)
+        &.info-only {
+            .info-row {
+                .info-label {
+                    color: rgba(var(--center-channel-color-rgb), 0.72);
+                }
+
+                .info-value {
+                    color: var(--center-channel-color);
+                    font-weight: 500;
+                }
+
+                &-plan {
+                    .info-value {
+                        font-weight: 600;
+                    }
+                }
+            }
+        }
+    }
+}

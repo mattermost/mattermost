@@ -592,6 +592,87 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+  /api/v4/license/preview:
+    post:
+      tags:
+        - system
+      summary: Preview license file
+      description: |
+        Validate and parse a license file without saving it. This allows administrators
+        to preview the license details before applying it.
+
+        __Minimum server version__: 10.6
+
+        ##### Permissions
+        Must have `manage_system` permission.
+      operationId: PreviewLicenseFile
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                license:
+                  description: The license to be previewed
+                  type: string
+                  format: binary
+              required:
+                - license
+      responses:
+        "200":
+          description: License preview successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: The unique identifier of the license
+                  issued_at:
+                    type: integer
+                    format: int64
+                    description: The timestamp when the license was issued
+                  starts_at:
+                    type: integer
+                    format: int64
+                    description: The timestamp when the license becomes active
+                  expires_at:
+                    type: integer
+                    format: int64
+                    description: The timestamp when the license expires
+                  sku_name:
+                    type: string
+                    description: The display name of the license SKU (e.g., "Enterprise", "Professional")
+                  sku_short_name:
+                    type: string
+                    description: The short name of the license SKU (e.g., "enterprise", "professional")
+                  is_trial:
+                    type: boolean
+                    description: Whether this is a trial license
+                  customer:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                      email:
+                        type: string
+                      company:
+                        type: string
+                  features:
+                    type: object
+                    properties:
+                      users:
+                        type: integer
+                        description: The number of users allowed by the license
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
   /api/v4/license/client:
     get:
       tags:
