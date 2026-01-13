@@ -295,4 +295,24 @@ describe('components/FilePreviewModal', () => {
 
         expect(wrapper).toMatchSnapshot();
     });
+
+    test('should be marked as loaded immediately to avoid infinite loading of external images', () => {
+
+        const externalImageUrl = 'http://localhost:8065/api/v4/image?url=https%3A%2F%2Fexample.com%2Fimage.jpg';
+        
+        const fileInfos = [{
+            has_preview_image: false,
+            link: externalImageUrl,
+            extension: '',
+            name: 'External Image',
+        }];
+
+        const props = {...baseProps, fileInfos};
+        const wrapper = shallow<FilePreviewModal>(<FilePreviewModal {...props}/>);
+
+        wrapper.instance().loadImage(0);
+
+        expect(wrapper.state('loaded')[0]).toBe(true);
+    });
+
 });
