@@ -66,6 +66,7 @@ import {
     receivedNewPost,
     receivedPost,
 } from 'mattermost-redux/actions/posts';
+import {getRecap} from 'mattermost-redux/actions/recaps';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import {fetchTeamScheduledPosts} from 'mattermost-redux/actions/scheduled_posts';
 import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/actions/status_profile_polling';
@@ -671,6 +672,9 @@ export function handleEvent(msg: WebSocketMessage) {
         break;
     case WebSocketEvents.ContentFlaggingReportValueUpdated:
         dispatch(handleContentFlaggingReportValueChanged(msg));
+        break;
+    case WebSocketEvents.RecapUpdated:
+        dispatch(handleRecapUpdated(msg));
         break;
     default:
     }
@@ -1987,5 +1991,14 @@ export function handleContentFlaggingReportValueChanged(msg: WebSocketMessages.C
     return {
         type: ContentFlaggingTypes.CONTENT_FLAGGING_REPORT_VALUE_UPDATED,
         data: msg.data,
+    };
+}
+
+export function handleRecapUpdated(msg: WebSocketMessages.RecapUpdated): ThunkActionFunc<void> {
+    const recapId = msg.data.recap_id;
+
+    return async (doDispatch) => {
+        // Fetch the updated recap and dispatch to Redux
+        doDispatch(getRecap(recapId));
     };
 }

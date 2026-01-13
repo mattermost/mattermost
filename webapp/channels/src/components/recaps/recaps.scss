@@ -1,0 +1,536 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.recaps-container {
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    background-color: var(--center-channel-bg);
+
+    .recaps-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        background-color: var(--center-channel-bg);
+
+        .recaps-header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .recaps-title-container {
+            display: flex;
+            align-items: center;
+            padding: 4px;
+            gap: 8px;
+
+            .icon {
+                font-size: 16px;
+            }
+
+            .recaps-title {
+                margin: 0;
+                color: var(--center-channel-color);
+                font-family: 'Metropolis', sans-serif;
+                font-size: 16px;
+                font-weight: 600;
+                line-height: 24px;
+            }
+        }
+
+        .recaps-tabs {
+            display: flex;
+            align-items: center;
+            gap: 0;
+
+            .recaps-tab {
+                padding: 22px 6px;
+                border: none;
+                border-bottom: 2px solid transparent;
+                background: none;
+                color: rgba(var(--center-channel-color-rgb), 0.64);
+                cursor: pointer;
+                font-size: 12px;
+                font-weight: 600;
+                line-height: 12px;
+                transition: all 0.2s;
+
+                &:hover {
+                    color: var(--center-channel-color);
+                }
+
+                &.active {
+                    border-bottom-color: var(--button-bg);
+                    color: var(--button-bg);
+                }
+            }
+        }
+
+        .recap-add-button {
+            display: flex;
+            align-items: center;
+            padding: 8px 16px;
+            border: none;
+            border-radius: var(--radius-s);
+            font-size: 12px;
+            font-weight: 600;
+            gap: 6px;
+            line-height: 16px;
+
+            .icon {
+                font-size: 12px;
+            }
+
+            &:hover {
+                background-color: rgba(var(--button-bg-rgb), 0.12);
+            }
+        }
+    }
+
+    .recaps-content {
+        flex: 1;
+        padding: 24px;
+        background-color: rgba(var(--center-channel-color-rgb), 0.04);
+        overflow-y: auto;
+    }
+
+    // Recaps List Styles
+    .recaps-list {
+        display: flex;
+        max-width: 966px;
+        flex-direction: column;
+        margin: 0 auto;
+        gap: 12px;
+    }
+
+    .recap-item {
+        overflow: hidden;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        border-radius: var(--radius-s);
+        background-color: var(--center-channel-bg);
+        transition: all 0.2s;
+
+        &.expanded {
+            .recap-item-header {
+                border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+            }
+        }
+
+        &.recap-item-failed {
+
+            .recap-item-header {
+                cursor: default;
+
+                &:hover {
+                    background-color: transparent;
+                }
+            }
+        }
+
+        .recap-item-header {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 24px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+
+            &:hover {
+                background-color: rgba(var(--center-channel-color-rgb), 0.04);
+            }
+
+            .recap-item-title-section {
+                min-width: 0;
+                flex: 1;
+
+                .recap-item-title {
+                    margin: 0 0 8px;
+                    color: var(--center-channel-color);
+                    font-family: 'Metropolis', sans-serif;
+                    font-size: 22px;
+                    font-weight: 600;
+                    line-height: 28px;
+                }
+
+                .recap-item-metadata {
+                    display: flex;
+                    align-items: center;
+                    color: rgba(var(--center-channel-color-rgb), 0.64);
+                    font-size: 12px;
+                    font-weight: 600;
+                    gap: 4px;
+                    line-height: 16px;
+
+                    .metadata-separator {
+                        margin: 0 4px;
+                    }
+
+                    .copilot-icon {
+                        width: 12px;
+                        height: 12px;
+                        margin: 0 4px;
+                    }
+
+                    .error-text {
+                        color: var(--error-text);
+                    }
+                }
+            }
+
+            .recap-item-actions {
+                display: flex;
+                align-items: center;
+                margin-left: 16px;
+                gap: 8px;
+
+                .recap-action-button {
+                    display: flex;
+                    align-items: center;
+                    padding: 8px 12px;
+                    border: none;
+                    border-radius: var(--radius-s);
+                    background-color: transparent;
+                    color: var(--button-bg);
+                    cursor: pointer;
+                    font-size: 12px;
+                    font-weight: 600;
+                    gap: 4px;
+
+                    &:hover {
+                        background-color: rgba(var(--button-bg-rgb), 0.08);
+                    }
+
+                    .icon {
+                        font-size: 12px;
+                    }
+                }
+
+                .recap-icon-button {
+                    padding: 6px;
+                    border: none;
+                    border-radius: var(--radius-s);
+                    background: none;
+                    cursor: pointer;
+
+                    .icon {
+                        color: rgba(var(--center-channel-color-rgb), 0.56);
+                        font-size: 16px;
+                    }
+
+                    &:hover {
+                        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                    }
+
+                    &:disabled {
+                        cursor: not-allowed;
+                        opacity: 0.5;
+                    }
+
+                    // Trash icon should be red
+                    &.recap-delete-button {
+                        color: var(--dnd-indicator);
+                    }
+                }
+            }
+        }
+
+        .recap-item-content {
+            padding: 24px;
+
+            .recap-channels-list {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+        }
+    }
+
+    .recap-all-caught-up {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px;
+        margin-top: 12px;
+        color: var(--center-channel-color);
+        font-family: 'Metropolis', sans-serif;
+        font-size: 20px;
+        font-weight: 600;
+        gap: 12px;
+        line-height: 28px;
+
+        .icon {
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+            font-size: 24px;
+        }
+    }
+
+    .recaps-empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 80px 24px;
+        text-align: center;
+
+        .empty-state-icon {
+            margin-bottom: 12px;
+
+            .icon {
+                color: rgba(var(--center-channel-color-rgb), 0.64);
+                font-size: 48px;
+            }
+        }
+
+        .empty-state-title {
+            margin: 0 0 8px;
+            color: var(--center-channel-color);
+            font-family: 'Metropolis', sans-serif;
+            font-size: 20px;
+            font-weight: 600;
+            line-height: 28px;
+        }
+
+        .empty-state-description {
+            margin: 0;
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            font-size: 14px;
+            line-height: 20px;
+        }
+    }
+
+
+    // Recap Channel Card Styles
+    .recap-channel-card {
+        padding: 16px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        border-radius: var(--radius-s);
+        background-color: var(--center-channel-bg);
+
+        .recap-channel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+
+            .recap-channel-name-tag {
+                padding: 2px 6px;
+                border: none;
+                border-radius: var(--radius-s);
+                background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                color: var(--center-channel-color);
+                cursor: pointer;
+                font-size: 12px;
+                font-weight: 600;
+                line-height: 16px;
+                transition: background-color 0.2s, color 0.2s;
+
+                &:hover:not(:disabled) {
+                    background-color: rgba(var(--center-channel-color-rgb), 0.16);
+                    color: var(--button-bg);
+                }
+
+                &:disabled {
+                    cursor: not-allowed;
+                    opacity: 0.5;
+                }
+            }
+
+            .recap-channel-header-actions {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+
+                .recap-channel-collapse-button {
+                    padding: 6px;
+                    border: none;
+                    border-radius: var(--radius-s);
+                    background: none;
+                    cursor: pointer;
+
+                    .icon {
+                        color: rgba(var(--center-channel-color-rgb), 0.56);
+                        font-size: 16px;
+                    }
+
+                    &:hover {
+                        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                    }
+                }
+
+                .recap-icon-button {
+                    padding: 6px;
+                    border: none;
+                    border-radius: var(--radius-s);
+                    background: none;
+                    cursor: pointer;
+
+                    .icon {
+                        color: rgba(var(--center-channel-color-rgb), 0.56);
+                        font-size: 16px;
+                    }
+
+                    &:hover {
+                        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                    }
+                }
+            }
+        }
+
+        .recap-channel-content {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+
+            .recap-section {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+
+                .recap-section-title {
+                    margin: 0;
+                    color: var(--center-channel-color);
+                    font-size: 14px;
+                    font-weight: 600;
+                    line-height: 20px;
+                }
+
+                .recap-list {
+                    display: flex;
+                    flex-direction: column;
+                    padding-left: 0;
+                    margin: 0;
+                    gap: 4px;
+                    list-style: none;
+
+                    .recap-list-item {
+                        position: relative;
+                        display: flex;
+                        align-items: flex-start;
+                        padding-left: 21px;
+                        gap: 8px;
+
+                        &::before {
+                            position: absolute;
+                            left: 0;
+                            color: var(--center-channel-color);
+                            content: '•';
+                        }
+
+                        .recap-item-text {
+                            flex: 1;
+                            color: var(--center-channel-color);
+                            font-size: 14px;
+                            line-height: 20px;
+
+                            // Style @mentions
+                            .mention {
+                                color: var(--button-bg);
+                                font-weight: 600;
+                            }
+                        }
+
+                        .recap-item-badge {
+                            flex-shrink: 0;
+                            padding: 0 4px;
+                            border-radius: var(--radius-s);
+                            margin-top: 2px;
+                            background-color: rgba(var(--button-bg-rgb), 0.08);
+                            color: var(--button-bg);
+                            font-size: 10px;
+                            font-weight: 600;
+                            letter-spacing: 0.1px;
+                            line-height: 16px;
+
+                            &.recap-item-badge-link {
+                                cursor: pointer;
+                                text-decoration: none;
+                                transition: all 0.2s;
+
+                                &:hover {
+                                    background-color: rgba(var(--button-bg-rgb), 0.16);
+                                    transform: translateY(-1px);
+                                }
+
+                                &:active {
+                                    transform: translateY(0);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Recap Processing Styles
+    .recap-processing {
+        overflow: hidden;
+        padding: 24px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        border-radius: var(--radius-s);
+        background-color: var(--center-channel-bg);
+        transition: all 0.2s;
+
+        .recap-processing-header {
+            margin-bottom: 24px;
+
+            .recap-processing-title {
+                margin: 0 0 8px;
+                color: var(--center-channel-color);
+                font-family: 'Metropolis', sans-serif;
+                font-size: 22px;
+                font-weight: 600;
+                line-height: 28px;
+            }
+
+            .recap-processing-subtitle {
+                color: rgba(var(--center-channel-color-rgb), 0.64);
+                font-size: 12px;
+                font-weight: 600;
+                line-height: 16px;
+            }
+        }
+
+        .recap-processing-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 0;
+
+            .recap-processing-spinner {
+                margin-bottom: 16px;
+
+                .spinner-large {
+                    width: 48px;
+                    height: 48px;
+                    border: 4px solid rgba(var(--center-channel-color-rgb), 0.12);
+                    border-radius: var(--radius-full);
+                    border-top-color: var(--button-bg);
+                    animation: spin 1s linear infinite;
+                }
+            }
+
+            .recap-processing-message {
+                margin: 0;
+                color: rgba(var(--center-channel-color-rgb), 0.64);
+                font-size: 14px;
+                line-height: 20px;
+            }
+        }
+    }
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+

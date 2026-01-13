@@ -97,6 +97,7 @@ const (
 	WebsocketEventCPAFieldDeleted                     WebsocketEventType = "custom_profile_attributes_field_deleted"
 	WebsocketEventCPAValuesUpdated                    WebsocketEventType = "custom_profile_attributes_values_updated"
 	WebsocketContentFlaggingReportValueUpdated        WebsocketEventType = "content_flagging_report_value_updated"
+	WebsocketEventRecapUpdated                        WebsocketEventType = "recap_updated"
 	WebsocketEventPostRevealed                        WebsocketEventType = "post_revealed"
 	WebsocketEventPostBurned                          WebsocketEventType = "post_burned"
 	WebsocketEventBurnOnReadAllRevealed               WebsocketEventType = "burn_on_read_all_revealed"

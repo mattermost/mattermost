@@ -414,6 +414,12 @@ export type ContentFlaggingReportValueUpdated =
         target_id: string;
     }>;
 
+// Recap messages
+
+export type RecapUpdated = BaseWebSocketMessage<WebSocketEvents.RecapUpdated, {
+    recap_id: string;
+}>;
+
 // Plugin and integration messages
 
 export type Plugin = BaseWebSocketMessage<WebSocketEvents.PluginEnabled | WebSocketEvents.PluginDisabled, {

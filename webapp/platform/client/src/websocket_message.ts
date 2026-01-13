@@ -89,6 +89,8 @@ export type WebSocketMessage = (
 
     Messages.ContentFlaggingReportValueUpdated |
 
+    Messages.RecapUpdated |
+
     Messages.Plugin |
     Messages.PluginStatusesChanged |
     Messages.OpenDialog |

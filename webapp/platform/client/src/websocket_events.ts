@@ -89,4 +89,5 @@ export const enum WebSocketEvents {
     CPAFieldDeleted = 'custom_profile_attributes_field_deleted',
     CPAValuesUpdated = 'custom_profile_attributes_values_updated',
     ContentFlaggingReportValueUpdated = 'content_flagging_report_value_updated',
+    RecapUpdated = 'recap_updated',
 }
