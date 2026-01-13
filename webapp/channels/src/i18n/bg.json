@@ -4028,7 +4028,6 @@
   "sidebar.unreads": "Още непрочетени",
   "sidebar_left.add_channel_dropdown.browseChannels": "Преглеждайте канали",
   "sidebar_left.add_channel_dropdown.createNewChannel": "Създайте нов канал",
-  "sidebar_left.add_channel_dropdown.dropdownAriaLabel": "Добавяне на падащо меню на канала",
   "sidebar_left.channel_filter.filterByUnread": "Филтриране по непрочетени",
   "sidebar_left.channel_filter.showAllChannels": "Показване на всички канали",
   "sidebar_left.channel_navigator.channelSwitcherLabel": "Превключвател на канали",
