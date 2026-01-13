@@ -57,12 +57,18 @@ const HelpSending = (): JSX.Element => {
                         <FormattedMessage
                             id='help.sending.types.replies.description'
                             defaultMessage='Select the <b>Reply icon</b> next to any message to open the right-hand sidebar to respond to a thread.'
+                            values={{
+                                b: (chunks: React.ReactNode) => <b>{chunks}</b>,
+                            }}
                         />
                     </p>
                     <p>
                         <FormattedMessage
                             id='help.sending.types.replies.description2'
                             defaultMessage='When composing a reply, select the <b>Expand Sidebar/Collapse Sidebar icon</b> in the top right corner of the right-hand sidebar to make conversations easier to read.'
+                            values={{
+                                b: (chunks: React.ReactNode) => <b>{chunks}</b>,
+                            }}
                         />
                     </p>
                 </section>
@@ -114,6 +120,9 @@ const HelpSending = (): JSX.Element => {
                         <FormattedMessage
                             id='help.sending.delete.description'
                             defaultMessage={"Delete a message by selecting the <b>More Actions [...] icon</b> next to any message text that you've composed, then select <b>Delete</b>. System and Team Admins can delete any message on their system or team."}
+                            values={{
+                                b: (chunks: React.ReactNode) => <b>{chunks}</b>,
+                            }}
                         />
                     </p>
                 </section>
@@ -129,6 +138,9 @@ const HelpSending = (): JSX.Element => {
                         <FormattedMessage
                             id='help.sending.link.description'
                             defaultMessage='Get a permanent link to a message by selecting the <b>More Actions [...]</b> icon next to any message, then select <b>Copy Link</b>. Users must be a member of the channel to view the message link.'
+                            values={{
+                                b: (chunks: React.ReactNode) => <b>{chunks}</b>,
+                            }}
                         />
                     </p>
                 </section>

@@ -51,12 +51,18 @@ const HelpMentioning = (): JSX.Element => {
                         <FormattedMessage
                             id='help.mentioning.username.description'
                             defaultMessage='You can mention a teammate by using the <code>@</code> symbol plus their username to send them a mention notification.'
+                            values={{
+                                code: (chunks: React.ReactNode) => <code>{chunks}</code>,
+                            }}
                         />
                     </p>
                     <p>
                         <FormattedMessage
                             id='help.mentioning.username.description2'
                             defaultMessage='Type <code>@</code> to bring up a list of team members who can be mentioned. To filter the list, type the first few letters of any username, first name, last name, or nickname. The Up and Down arrow keys can then be used to scroll through entries in the list, and pressing ENTER will select which user to mention. Once selected, the username will automatically replace the full name or nickname. The following example sends a special mention notification to alice that alerts her of the channel and message where she has been mentioned. If alice is away from Mattermost and has email notifications turned on, then she will receive an email alert of her mention along with the message text.'
+                            values={{
+                                code: (chunks: React.ReactNode) => <code>{chunks}</code>,
+                            }}
                         />
                     </p>
                     <div className='Help__example-box'>
@@ -126,6 +132,7 @@ const HelpMentioning = (): JSX.Element => {
                             defaultMessage='In addition to being notified by <code>@username</code> and <code>@channel</code>, you can customize words that trigger mention notifications in <b>Settings > Notifications > Keywords that trigger mentions</b>. By default, you will receive mention notifications on your first name, and you can add more words by typing them into the input box separated by commas. This is useful if you want to be notified of all posts on certain topics, for example, "interviewing" or "marketing".'
                             values={{
                                 b: (chunks: React.ReactNode) => <b>{chunks}</b>,
+                                code: (chunks: React.ReactNode) => <code>{chunks}</code>,
                             }}
                         />
                     </p>
@@ -142,6 +149,9 @@ const HelpMentioning = (): JSX.Element => {
                         <FormattedMessage
                             id='help.mentioning.recent.description'
                             defaultMessage='Click <code>@</code> icon in right side of the top bar next to your profile picture to view your most recent @mentions and words that trigger mentions.'
+                            values={{
+                                code: (chunks: React.ReactNode) => <code>{chunks}</code>,
+                            }}
                         />
                     </p>
                 </section>

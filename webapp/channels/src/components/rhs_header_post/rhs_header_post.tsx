@@ -11,6 +11,7 @@ import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import PopoutButton from 'components/popout_button';
+import {getThreadPopoutTitle} from 'components/thread_popout/thread_popout';
 import FollowButton from 'components/threading/common/follow_button';
 import WithTooltip from 'components/with_tooltip';
 
@@ -78,13 +79,18 @@ class RhsHeaderPost extends React.PureComponent<Props> {
     };
 
     popout = async () => {
-        const {currentTeam, intl, rootPostId, focusPost, currentUserId} = this.props;
+        const {currentTeam, intl, rootPostId, focusPost, currentUserId, channel} = this.props;
         if (!currentTeam) {
             return;
         }
-        await popoutThread(intl, rootPostId, currentTeam.name, (postId, returnTo) => {
-            focusPost(postId, returnTo, currentUserId, {skipRedirectReplyPermalink: true});
-        });
+        await popoutThread(
+            intl.formatMessage(getThreadPopoutTitle(channel)),
+            rootPostId,
+            currentTeam.name,
+            (postId, returnTo) => {
+                focusPost(postId, returnTo, currentUserId, {skipRedirectReplyPermalink: true});
+            },
+        );
     };
 
     render() {

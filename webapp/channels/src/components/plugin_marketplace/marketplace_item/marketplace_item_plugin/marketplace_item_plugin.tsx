@@ -121,7 +121,7 @@ export const UpdateConfirmationModal = ({show, name, version, installedVersion, 
         <p key='intro'>
             <FormattedMessage
                 id='marketplace_modal.list.update_confirmation.message.intro'
-                defaultMessage={`Are you sure you want to update the ${name} plugin to ${version}?`}
+                defaultMessage={'Are you sure you want to update the {name} plugin to {version}?'}
                 values={{name, version}}
             />
         </p>
@@ -151,7 +151,7 @@ export const UpdateConfirmationModal = ({show, name, version, installedVersion, 
             <p key='current'>
                 <FormattedMessage
                     id='marketplace_modal.list.update_confirmation.message.current'
-                    defaultMessage={`You currently have ${installedVersion} installed.`}
+                    defaultMessage={'You currently have {installedVersion} installed.'}
                     values={{installedVersion}}
                 />
             </p>,

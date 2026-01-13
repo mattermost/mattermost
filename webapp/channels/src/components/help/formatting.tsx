@@ -39,6 +39,9 @@ const HelpFormatting = (): JSX.Element => {
                         <FormattedMessage
                             id='help.formatting.style.description'
                             defaultMessage='You can use either <code>_</code> or <code>*</code> around a word to make it italic. Use two to make a word bold.'
+                            values={{
+                                code: (chunks: React.ReactNode) => <code>{chunks}</code>,
+                            }}
                         />
                     </p>
                     <table className='Help__table'>
@@ -90,6 +93,9 @@ const HelpFormatting = (): JSX.Element => {
                         <FormattedMessage
                             id='help.formatting.code_block.description'
                             defaultMessage='Create a code block by indenting each line by four spaces, or by placing <code>```</code> on the line above and below your code.'
+                            values={{
+                                code: (chunks: React.ReactNode) => <code>{chunks}</code>,
+                            }}
                         />
                     </p>
                     <p>
@@ -143,6 +149,7 @@ const HelpFormatting = (): JSX.Element => {
                             defaultMessage='To add syntax highlighting, type the language to be highlighted after the <code>```</code> at the beginning of the code block. Mattermost also offers four different code themes (GitHub, Solarized Dark, Solarized Light, Monokai) that can be changed in <b>Settings > Display > Theme > Custom Theme > Center Channel Styles > Code Theme</b>.'
                             values={{
                                 b: (chunks: React.ReactNode) => <b>{chunks}</b>,
+                                code: (chunks: React.ReactNode) => <code>{chunks}</code>,
                             }}
                         />
                     </p>
@@ -296,6 +303,7 @@ const HelpFormatting = (): JSX.Element => {
                             id='help.formatting.images.description'
                             defaultMessage='Create in-line images using an <code>!</code> followed by the alt text in square brackets and the link in normal brackets. See the <link>product documentation</link> for details on working with in-line images.'
                             values={{
+                                code: (chunks: React.ReactNode) => <code>{chunks}</code>,
                                 link: (chunks: React.ReactNode) => (
                                     <ExternalLink
                                         href='https://docs.mattermost.com/end-user-guide/collaborate/format-messages.html'
@@ -357,6 +365,7 @@ const HelpFormatting = (): JSX.Element => {
                             id='help.formatting.emojis.description'
                             defaultMessage={"Open the emoji autocomplete by typing <code>:</code>. A full list of emojis can be found online. It is also possible to create your own <link>Custom Emoji</link> if the emoji you want to use doesn't exist."}
                             values={{
+                                code: (chunks: React.ReactNode) => <code>{chunks}</code>,
                                 link: (chunks: React.ReactNode) => (
                                     <ExternalLink
                                         href='https://docs.mattermost.com/end-user-guide/collaborate/react-with-emojis-gifs.html#upload-custom-emojis'
@@ -411,6 +420,9 @@ const HelpFormatting = (): JSX.Element => {
                         <FormattedMessage
                             id='help.formatting.lines.description'
                             defaultMessage='Create a line by using three <code>*</code>, <code>_</code>, or <code>-</code>.'
+                            values={{
+                                code: (chunks: React.ReactNode) => <code>{chunks}</code>,
+                            }}
                         />
                     </p>
                     <p>
@@ -456,6 +468,9 @@ const HelpFormatting = (): JSX.Element => {
                         <FormattedMessage
                             id='help.formatting.blockquotes.description'
                             defaultMessage='Create block quotes using <code>></code>.'
+                            values={{
+                                code: (chunks: React.ReactNode) => <code>{chunks}</code>,
+                            }}
                         />
                     </p>
                     <p>
@@ -501,6 +516,9 @@ const HelpFormatting = (): JSX.Element => {
                         <FormattedMessage
                             id='help.formatting.headings.description'
                             defaultMessage={'Make a heading by typing <code>#</code> and a space before your title. For smaller headings, use multiple <code>#</code>. Alternatively, you can underline the text using <code>===</code> or <code>---</code> to create headings.'}
+                            values={{
+                                code: (chunks: React.ReactNode) => <code>{chunks}</code>,
+                            }}
                         />
                     </p>
                     <p>
@@ -563,6 +581,9 @@ const HelpFormatting = (): JSX.Element => {
                         <FormattedMessage
                             id='help.formatting.lists.description'
                             defaultMessage='Create a list by using <code>*</code> or <code>-</code> as bullets. Indent a bullet point by adding two spaces in front of it.'
+                            values={{
+                                code: (chunks: React.ReactNode) => <code>{chunks}</code>,
+                            }}
                         />
                     </p>
                     <p>
@@ -678,6 +699,9 @@ const HelpFormatting = (): JSX.Element => {
                         <FormattedMessage
                             id='help.formatting.tables.description'
                             defaultMessage={'Create a table by placing a dashed line under the header row and separating the columns with a pipe <code>|</code>. (The columns don\'t need to line up exactly for it to work). Choose how to align table columns by including colons <code>:</code> within the header row.'}
+                            values={{
+                                code: (chunks: React.ReactNode) => <code>{chunks}</code>,
+                            }}
                         />
                     </p>
                     <p>

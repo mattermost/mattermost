@@ -32,6 +32,9 @@ const HelpCommands = (): JSX.Element => {
                     <FormattedMessage
                         id='help.commands.intro'
                         defaultMessage='You can execute commands, called slash commands, by typing into the text input box to perform operations in Mattermost. To run a slash command, type <code>/</code> followed by a command and some arguments to perform actions.'
+                        values={{
+                            code: (chunks: React.ReactNode) => <code>{chunks}</code>,
+                        }}
                     />
                 </p>
 
@@ -62,6 +65,9 @@ const HelpCommands = (): JSX.Element => {
                         <FormattedMessage
                             id='help.commands.builtin.howto'
                             defaultMessage='Begin by typing <code>/</code>. A list of slash command options displays above the text input box. The autocomplete suggestions provide you with a format example in black text and a short description of the slash command in grey text.'
+                            values={{
+                                code: (chunks: React.ReactNode) => <code>{chunks}</code>,
+                            }}
                         />
                     </p>
                     <div className='Help__commands-example'>
