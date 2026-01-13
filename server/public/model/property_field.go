@@ -24,6 +24,7 @@ const (
 	PropertyFieldNameMaxRunes       = 255
 	PropertyFieldTargetIDMaxRunes   = 255
 	PropertyFieldTargetTypeMaxRunes = 255
+	PropertyFieldObjectTypeMaxRunes = 255
 )
 
 type PropertyField struct {
@@ -34,6 +35,7 @@ type PropertyField struct {
 	Attrs      StringInterface   `json:"attrs"`
 	TargetID   string            `json:"target_id"`
 	TargetType string            `json:"target_type"`
+	ObjectType string            `json:"object_type"`
 	CreateAt   int64             `json:"create_at"`
 	UpdateAt   int64             `json:"update_at"`
 	DeleteAt   int64             `json:"delete_at"`
@@ -50,6 +52,7 @@ func (pf *PropertyField) Auditable() map[string]any {
 		"attrs":       pf.Attrs,
 		"target_id":   pf.TargetID,
 		"target_type": pf.TargetType,
+		"object_type": pf.ObjectType,
 		"create_at":   pf.CreateAt,
 		"update_at":   pf.UpdateAt,
 		"delete_at":   pf.DeleteAt,
@@ -93,6 +96,10 @@ func (pf *PropertyField) IsValid() error {
 
 	if utf8.RuneCountInString(pf.TargetID) > PropertyFieldTargetIDMaxRunes {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "target_id", "Reason": "value exceeds maximum length"}, "id="+pf.ID, http.StatusBadRequest)
+	}
+
+	if utf8.RuneCountInString(pf.ObjectType) > PropertyFieldObjectTypeMaxRunes {
+		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "object_type", "Reason": "value exceeds maximum length"}, "id="+pf.ID, http.StatusBadRequest)
 	}
 
 	if pf.Type != PropertyFieldTypeText &&
@@ -211,6 +218,7 @@ func (p PropertyFieldSearchCursor) IsValid() error {
 
 type PropertyFieldSearchOpts struct {
 	GroupID        string
+	ObjectType     string
 	TargetType     string
 	TargetIDs      []string
 	SinceUpdateAt  int64 // UpdatedAt after which to send the items

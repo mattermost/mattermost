@@ -91,6 +91,45 @@ func testCreatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.Empty(t, field.CreatedBy)
 		require.Empty(t, field.UpdatedBy)
 	})
+
+	t.Run("should be able to create a property field with ObjectType", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    model.NewId(),
+			Name:       "Field with ObjectType",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: "create_test_type",
+			TargetID:   model.NewId(),
+			TargetType: "channel",
+		}
+		created, err := ss.PropertyField().Create(field)
+		require.NoError(t, err)
+		require.NotZero(t, created.ID)
+		require.Equal(t, "create_test_type", created.ObjectType)
+
+		// Verify it can be retrieved with ObjectType intact
+		retrieved, err := ss.PropertyField().Get("", created.ID)
+		require.NoError(t, err)
+		require.Equal(t, "create_test_type", retrieved.ObjectType)
+	})
+
+	t.Run("should be able to create a property field without ObjectType for backwards compatibility", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    model.NewId(),
+			Name:       "Field without ObjectType",
+			Type:       model.PropertyFieldTypeText,
+			TargetID:   model.NewId(),
+			TargetType: "channel",
+		}
+		created, err := ss.PropertyField().Create(field)
+		require.NoError(t, err)
+		require.NotZero(t, created.ID)
+		require.Empty(t, created.ObjectType)
+
+		// Verify it can be retrieved
+		retrieved, err := ss.PropertyField().Get("", created.ID)
+		require.NoError(t, err)
+		require.Empty(t, retrieved.ObjectType)
+	})
 }
 
 func testGetPropertyField(t *testing.T, _ request.CTX, ss store.Store) {
@@ -869,6 +908,7 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 		Type:       model.PropertyFieldTypeText,
 		TargetID:   targetID,
 		TargetType: "test_type",
+		ObjectType: "post",
 	}
 
 	field2 := &model.PropertyField{
@@ -877,6 +917,7 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 		Type:       model.PropertyFieldTypeSelect,
 		TargetID:   targetID,
 		TargetType: "other_type",
+		ObjectType: "user",
 	}
 
 	field3 := &model.PropertyField{
@@ -884,6 +925,7 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 		Name:       "Field 3",
 		Type:       model.PropertyFieldTypeText,
 		TargetType: "test_type",
+		ObjectType: "post",
 	}
 
 	targetID2 := model.NewId()
@@ -1031,6 +1073,49 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 				PerPage:        10,
 			},
 			expectedIDs: []string{field4.ID},
+		},
+		{
+			name: "filter by ObjectType post",
+			opts: model.PropertyFieldSearchOpts{
+				ObjectType: "post",
+				PerPage:    10,
+			},
+			expectedIDs: []string{field1.ID, field3.ID},
+		},
+		{
+			name: "filter by ObjectType user",
+			opts: model.PropertyFieldSearchOpts{
+				ObjectType: "user",
+				PerPage:    10,
+			},
+			expectedIDs: []string{field2.ID},
+		},
+		{
+			name: "filter by ObjectType with group filter",
+			opts: model.PropertyFieldSearchOpts{
+				GroupID:    groupID,
+				ObjectType: "post",
+				PerPage:    10,
+			},
+			expectedIDs: []string{field1.ID},
+		},
+		{
+			name: "filter by ObjectType with target_type filter",
+			opts: model.PropertyFieldSearchOpts{
+				ObjectType: "post",
+				TargetType: "test_type",
+				PerPage:    10,
+			},
+			expectedIDs: []string{field1.ID, field3.ID},
+		},
+		{
+			name: "filter by ObjectType with target_ids filter",
+			opts: model.PropertyFieldSearchOpts{
+				ObjectType: "post",
+				TargetIDs:  []string{targetID},
+				PerPage:    10,
+			},
+			expectedIDs: []string{field1.ID},
 		},
 	}
 
