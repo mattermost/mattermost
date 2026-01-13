@@ -85,7 +85,7 @@ test.beforeEach(async ({pw}) => {
     await pw.skipIfNoLicense();
 
     // Initialize with admin client
-    ({team, user, adminClient, userClient} = await pw.initSetup({userPrefix: 'cpa-test-'}));
+    ({team, user, adminClient, userClient} = await pw.initSetup({userOptions: {prefix: 'cpa-test-'}}));
     const channel = pw.random.channel({
         teamId: team.id,
         name: `test-channel`,
@@ -94,7 +94,7 @@ test.beforeEach(async ({pw}) => {
     testChannel = await adminClient.createChannel(channel);
 
     // Create another user to test profile popover
-    otherUser = await pw.createNewUserProfile(adminClient, 'cpa-other-');
+    otherUser = await pw.createNewUserProfile(adminClient, {prefix: 'cpa-other-'});
     await adminClient.addToTeam(team.id, otherUser.id);
     await adminClient.addToChannel(otherUser.id, testChannel.id);
 

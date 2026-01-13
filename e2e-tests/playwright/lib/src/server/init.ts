@@ -12,11 +12,17 @@ import {createNewUserProfile} from './user';
 import {getFileFromCommonAsset} from '@/file';
 import {testConfig} from '@/test_config';
 
+type InitSetupOptions = {
+    userOptions?: Partial<Parameters<typeof createNewUserProfile>[1]>;
+    teamsOptions?: Partial<Parameters<typeof createNewTeam>[1]>;
+    withDefaultProfileImage?: boolean;
+};
+
 export async function initSetup({
     userOptions = {prefix: 'user', disableTutorial: true, disableOnboarding: true},
     teamsOptions = {name: 'team', displayName: 'Team', type: 'O' as TeamType, unique: true},
     withDefaultProfileImage = true,
-} = {}) {
+}: Partial<InitSetupOptions> = {}) {
     try {
         // Login the admin user via API
         const {adminClient, adminUser} = await getAdminClient();
