@@ -50,7 +50,7 @@ describe('Verify Accessibility Support in Popovers', () => {
                 {ariaLabel: 'People & Body', header: 'People & Body'},
                 {ariaLabel: 'Animals & Nature', header: 'Animals & Nature'},
                 {ariaLabel: 'Food & Drink', header: 'Food & Drink'},
-                {ariaLabel: 'Travel Places', header: 'Travel Places'},
+                {ariaLabel: 'Travel & Places', header: 'Travel & Places'},
                 {ariaLabel: 'Activities', header: 'Activities'},
                 {ariaLabel: 'Objects', header: 'Objects'},
                 {ariaLabel: 'Symbols', header: 'Symbols'},

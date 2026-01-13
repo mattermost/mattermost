@@ -39,10 +39,10 @@ const AccessProblem = ({
                 height={190}
             />
             <div className='AccessProblem__title'>
-                {formatMessage({id: 'login.contact_admin.title'})}
+                {formatMessage({id: 'login.contact_admin.title', defaultMessage: 'Contact your workspace admin'})}
             </div>
             <div className='AccessProblem__description'>
-                {formatMessage({id: 'login.contact_admin.detail'})}
+                {formatMessage({id: 'login.contact_admin.detail', defaultMessage: "To access your team's workspace, contact your workspace admin. If you've been invited already, check your email inbox for a Mattermost workspace invite."})}
             </div>
         </div>
     );
