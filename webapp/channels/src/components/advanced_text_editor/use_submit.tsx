@@ -231,7 +231,7 @@ const useSubmit = (
             return;
         }
 
-        if (!rootId && !schedulingInfo) {
+        if (!rootId && !schedulingInfo && !isInEditMode) {
             dispatch(scrollPostListToBottom());
         }
 

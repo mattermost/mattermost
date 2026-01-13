@@ -124,7 +124,7 @@ export default class InstalledIncomingWebhooks extends React.PureComponent<Props
                 header={
                     <FormattedMessage
                         id='installed_incoming_webhooks.header'
-                        defaultMessage='Installed Incoming Webhooks'
+                        defaultMessage='Incoming Webhooks'
                     />
                 }
                 addText={
@@ -144,7 +144,11 @@ export default class InstalledIncomingWebhooks extends React.PureComponent<Props
                 emptyTextSearch={
                     <FormattedMessage
                         id='installed_incoming_webhooks.emptySearch'
-                        defaultMessage='No incoming webhooks match {searchTerm}'
+                        // eslint-disable-next-line formatjs/enforce-placeholders -- searchTerm provided by BackstageList
+                        defaultMessage='No incoming webhooks match <strong>{searchTerm}</strong>'
+                        values={{
+                            strong: (chunks) => <strong>{chunks}</strong>,
+                        }}
                     />
                 }
                 helpText={

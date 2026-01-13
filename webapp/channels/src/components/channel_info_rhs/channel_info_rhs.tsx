@@ -13,6 +13,7 @@ import {Permissions} from 'mattermost-redux/constants';
 
 import ChannelInviteModal from 'components/channel_invite_modal';
 import ChannelNotificationsModal from 'components/channel_notifications_modal';
+import Scrollbars from 'components/common/scrollbars';
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import EditChannelPurposeModal from 'components/edit_channel_purpose_modal';
 import MoreDirectChannels from 'components/more_direct_channels';
@@ -200,7 +201,10 @@ const ChannelInfoRhs = ({
                 isMobile={isMobile}
                 onClose={actions.closeRightHandSide}
             />
-            <Container>
+            <Scrollbars
+                color='--center-channel-color-rgb'
+            >
+                <Container>
                 {isArchived && (
                     <ArchivedNoticeContainer className='sectionNoticeContainer warning'>
                         <ArchivedNotice className='sectionNoticeContent'>
@@ -237,39 +241,40 @@ const ChannelInfoRhs = ({
                     </ArchivedNoticeContainer>
                 )}
                 <TopButtons
-                    channelType={channel.type}
-                    channelURL={channelURL}
-                    isFavorite={isFavorite}
-                    isMuted={isMuted}
-                    isInvitingPeople={isInvitingPeople}
-                    isArchived={isArchived}
+                        channelType={channel.type}
+                        channelURL={channelURL}
+                        isFavorite={isFavorite}
+                        isMuted={isMuted}
+                        isInvitingPeople={isInvitingPeople}
+                        isArchived={isArchived}
                     canAddPeople={!isArchived && canManageMembers}
-                    actions={{toggleFavorite, toggleMute, addPeople}}
-                />
-                <AboutArea
-                    channel={channel}
-                    dmUser={dmUser}
-                    gmUsers={gmUsers}
-                    canEditChannelProperties={canEditChannelProperties}
-                    actions={{
-                        editChannelName,
+                        actions={{toggleFavorite, toggleMute, addPeople}}
+                    />
+                    <AboutArea
+                        channel={channel}
+                        dmUser={dmUser}
+                        gmUsers={gmUsers}
+                        canEditChannelProperties={canEditChannelProperties}
+                        actions={{
+                            editChannelName,
                         editChannelHeader,
-                        editChannelPurpose,
-                    }}
-                />
-                <Divider/>
-                <Menu
-                    channel={channel}
-                    channelStats={channelStats}
-                    isArchived={isArchived}
-                    actions={{
-                        openNotificationSettings,
-                        showChannelFiles: actions.showChannelFiles,
-                        showPinnedPosts: actions.showPinnedPosts,
-                        showChannelMembers: actions.showChannelMembers,
-                        getChannelStats: actions.getChannelStats,
-                    }}
-                />
+                            editChannelPurpose,
+                        }}
+                    />
+                    <Divider/>
+                    <Menu
+                        channel={channel}
+                        channelStats={channelStats}
+                        isArchived={isArchived}
+                        actions={{
+                            openNotificationSettings,
+                            showChannelFiles: actions.showChannelFiles,
+                            showPinnedPosts: actions.showPinnedPosts,
+                            showChannelMembers: actions.showChannelMembers,
+                            getChannelStats: actions.getChannelStats,
+                        }}
+                    />
+            </Scrollbars>
             </Container>
         </div>
     );

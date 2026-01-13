@@ -173,7 +173,7 @@ const SearchableSyncJobChannelList = (props: Props) => {
             <FormattedMessage
                 id='more_channels.noMore'
                 tagName='strong'
-                defaultMessage='No results for {text}'
+                defaultMessage='No results for "{text}"'
                 values={{text: channelSearchValue}}
             />
         );
@@ -254,7 +254,7 @@ const SearchableSyncJobChannelList = (props: Props) => {
                 clearable={true}
                 onClear={handleClear}
                 value={channelSearchValue}
-                aria-label={props.intl.formatMessage({id: 'filtered_channels_list.search', defaultMessage: 'Search Channels'})}
+                aria-label={props.intl.formatMessage({id: 'filtered_channels_list.search', defaultMessage: 'Search channels'})}
             />
         </div>
     );
@@ -306,7 +306,7 @@ const messages = defineMessages({
     },
     noMore: {
         id: 'more_channels.noMore',
-        defaultMessage: 'No results for {text}',
+        defaultMessage: 'No results for "{text}"',
     },
 });
 
