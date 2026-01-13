@@ -85,4 +85,12 @@ export default class ChannelsPost {
     async toContainText(text: string) {
         await expect(this.container).toContainText(text);
     }
+
+    /**
+     * `toNotContainText` verifies if the post does not contain the specified text.
+     * @param text Text to be verified not in the post
+     */
+    async toNotContainText(text: string) {
+        await expect(this.container).not.toContainText(text);
+    }
 }
