@@ -191,7 +191,7 @@ const getNotificationTitle = (channel: Pick<Channel, 'type' | 'display_name'>, m
     }
 
     if (isCrtReply) {
-        title = getIntl().formatMessage({id: 'notification.crt', defaultMessage: 'Reply in {title}'}, {title});
+        title = Utils.localizeMessage({id: 'notification.crt', defaultMessage: 'Reply in {title}'}, {title});
     }
 
     return title;
