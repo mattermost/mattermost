@@ -794,14 +794,31 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 	if !updatePostOptions.SafeUpdate {
 		newPost.IsPinned = receivedUpdatedPost.IsPinned
 		newPost.HasReactions = receivedUpdatedPost.HasReactions
-		newPost.SetProps(receivedUpdatedPost.GetProps())
+
+		incomingProps := receivedUpdatedPost.GetProps()
+		if incomingProps == nil {
+			newPost.SetProps(oldPost.GetProps())
+		} else {
+			merged := make(model.StringInterface)
+			if old := oldPost.GetProps(); old != nil {
+				for k, v := range old {
+					merged[k] = v
+				}
+			}
+			for k, v := range incomingProps {
+				merged[k] = v
+			}
+			newPost.SetProps(merged)
+		}
 
 		var fileIds []string
-		fileIds, appErr = a.processPostFileChanges(rctx, receivedUpdatedPost, oldPost, updatePostOptions)
-		if appErr != nil {
-			return nil, appErr
+		if receivedUpdatedPost.FileIds != nil || len(oldPost.FileIds) > 0 {
+			fileIds, appErr = a.processPostFileChanges(rctx, receivedUpdatedPost, oldPost, updatePostOptions)
+			if appErr != nil {
+				return nil, appErr
+			}
+			newPost.FileIds = fileIds
 		}
-		newPost.FileIds = fileIds
 	}
 
 	// Avoid deep-equal checks if EditAt was already modified through message change
