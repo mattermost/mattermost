@@ -99,7 +99,6 @@
     "@deanwhillier/jest-matchmedia-mock": "1.2.0",
     "@mattermost/calls-common": "0.27.0",
     "@mattermost/eslint-plugin": "*",
-    "@mattermost/mmjstool": "github:mattermost/mattermost-utilities#7b63833d208d482ba4a1c12230bb3e68dd9c5e5e",
     "@stylistic/stylelint-plugin": "3.1.2",
     "@testing-library/dom": "10.4.1",
     "@testing-library/jest-dom": "6.8.0",
@@ -188,10 +187,8 @@
     "test-ci": "cross-env TZ=Etc/UTC LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 jest --ci --maxWorkers=100% --forceExit --detectOpenHandles --logHeapUsage --coverage",
     "clean": "rm -rf dist node_modules .eslintcache .stylelintcache tsconfig.tsbuildinfo",
     "stats": "cross-env NODE_ENV=production webpack --profile --json > webpack_stats.json",
-    "mmjstool": "mmjstool",
-    "i18n-extract": "npm run mmjstool -- i18n extract-webapp --webapp-dir ./src",
-    "i18n-clean-empty": "npm run mmjstool -- i18n clean-empty --webapp-dir ./src",
-    "i18n-check-empty-src": "npm run mmjstool -- i18n check-empty-src --webapp-dir ./src",
+    "i18n-extract": "formatjs extract 'src/**/*.{js,jsx,ts,tsx}' --additional-function-names localizeMessage --ignore 'src/**/*.d.ts' --ignore 'src/**/*.test.{js,jsx,ts,tsx}' --out-file src/i18n/en.json --format scripts/formatter.js --id-interpolation-pattern '[sha512:contenthash:base64:6]' --preserve-whitespace",
+    "i18n-extract:check": "npm run i18n-extract -- --throws --out-file .i18n-check.tmp.json && diff src/i18n/en.json .i18n-check.tmp.json && rm -f .i18n-check.tmp.json || (rm -f .i18n-check.tmp.json && echo '\nen.json is out of sync with code. \nTo update: npm run i18n-extract' && exit 1)",
     "check-types": "tsc -b",
     "make-emojis": "node --experimental-json-modules build/emoji/make_emojis.mjs"
   }

@@ -148,14 +148,14 @@ exports[`components/PushSettings should match snapshot, licensed 1`] = `
       <AdminTextSetting
         helpText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Maximum total number of users in a channel before users typing messages, @all, @here, and @channel no longer send notifications because of performance."
+            defaultMessage="The maximum number of users that can be mentioned using @here, @all, or @channel. Above this limit, mentions and typing indicators are disabled, and users will see a system message if they try to use them."
             id="admin.team.maxNotificationsPerChannelDescription"
           />
         }
         id="maxNotificationsPerChannel"
         label={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Max Notifications Per Channel:"
+            defaultMessage="Large Channel Notification Threshold:"
             id="admin.team.maxNotificationsPerChannelTitle"
           />
         }
@@ -279,14 +279,14 @@ exports[`components/PushSettings should match snapshot, unlicensed 1`] = `
       <AdminTextSetting
         helpText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Maximum total number of users in a channel before users typing messages, @all, @here, and @channel no longer send notifications because of performance."
+            defaultMessage="The maximum number of users that can be mentioned using @here, @all, or @channel. Above this limit, mentions and typing indicators are disabled, and users will see a system message if they try to use them."
             id="admin.team.maxNotificationsPerChannelDescription"
           />
         }
         id="maxNotificationsPerChannel"
         label={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Max Notifications Per Channel:"
+            defaultMessage="Large Channel Notification Threshold:"
             id="admin.team.maxNotificationsPerChannelTitle"
           />
         }

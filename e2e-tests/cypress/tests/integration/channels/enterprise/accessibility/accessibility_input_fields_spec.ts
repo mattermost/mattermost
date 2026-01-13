@@ -49,7 +49,7 @@ describe('Verify Accessibility Support in different input fields', () => {
 
         // * Verify Accessibility Support in Add or Invite People input field
         cy.get('.users-emails-input__control').should('be.visible').within(() => {
-            cy.get('input').should('have.attr', 'aria-label', 'Add or Invite People').and('have.attr', 'aria-autocomplete', 'list');
+            cy.get('input').should('have.attr', 'aria-label', 'Invite People').and('have.attr', 'aria-autocomplete', 'list');
             cy.get('.users-emails-input__placeholder').should('have.text', 'Enter a name or email address');
         });
 
@@ -58,7 +58,7 @@ describe('Verify Accessibility Support in different input fields', () => {
 
         // * Verify Accessibility Support in Invite People input field
         cy.get('.users-emails-input__control').should('be.visible').within(() => {
-            cy.get('input').should('have.attr', 'aria-label', 'Add or Invite People').and('have.attr', 'aria-autocomplete', 'list');
+            cy.get('input').should('have.attr', 'aria-label', 'Invite People').and('have.attr', 'aria-autocomplete', 'list');
             cy.get('.users-emails-input__placeholder').should('have.text', 'Enter a name or email address');
         });
 
