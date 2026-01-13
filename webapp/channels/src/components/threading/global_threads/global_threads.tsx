@@ -28,7 +28,7 @@ import {getSelectedThreadIdInCurrentTeam} from 'selectors/views/threads';
 import {useGlobalState} from 'stores/hooks';
 import LocalStorageStore from 'stores/local_storage_store';
 
-import ChatIllustration from 'components/common/svg_images_components/chat_illustration';
+import ChatIllustration from 'components/common/svg_images_components/chat_illustration_svg';
 import LoadingScreen from 'components/loading_screen';
 import NoResultsIndicator from 'components/no_results_indicator';
 
