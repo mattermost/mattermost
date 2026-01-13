@@ -11,6 +11,10 @@
         height: 100%;
         margin-top: 0;
         padding-bottom: 24px;
+
+        .modal-content {
+            flex: 1 1 auto;
+        }
     }
 
     &__location--bottom {
