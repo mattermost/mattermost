@@ -692,6 +692,10 @@
     "translation": "Cannot post in a restricted DM"
   },
   {
+    "id": "api.command.execute_command.site_url_required.app_error",
+    "translation": "SiteURL must be configured to use slash commands"
+  },
+  {
     "id": "api.command.execute_command.start.app_error",
     "translation": "No command trigger found."
   },

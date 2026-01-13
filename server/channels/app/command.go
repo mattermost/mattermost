@@ -491,11 +491,17 @@ func (a *App) tryExecuteCustomCommand(rctx request.CTX, args *model.CommandArgs,
 	channelMentionMap := a.MentionsToPublicChannels(rctx, message, team.Id)
 	maps.Copy(p, channelMentionMap.ToURLValues())
 
+	// Use configured SiteURL for response_url to prevent SSRF via Host header spoofing (MM-67142)
+	siteURL := *a.Config().ServiceSettings.SiteURL
+	if siteURL == "" {
+		return cmd, nil, model.NewAppError("tryExecuteCustomCommand", "api.command.execute_command.site_url_required.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	hook, appErr := a.CreateCommandWebhook(cmd.Id, args)
 	if appErr != nil {
 		return cmd, nil, model.NewAppError("command", "api.command.execute_command.failed.app_error", map[string]any{"Trigger": trigger}, "", http.StatusInternalServerError).Wrap(appErr)
 	}
-	p.Set("response_url", args.SiteURL+"/hooks/commands/"+hook.Id)
+	p.Set("response_url", siteURL+"/hooks/commands/"+hook.Id)
 
 	return a.DoCommandRequest(rctx, cmd, p)
 }
