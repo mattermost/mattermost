@@ -6626,8 +6626,8 @@
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
-      "few": "",
-      "many": "",
+      "few": "[{{.SiteName}}] Новыя апавяшчэнне за {{.Day}} {{.Month}}, {{.Year}}",
+      "many": "[{{.SiteName}}] Новыя апавяшчэнне за {{.Day}} {{.Month}}, {{.Year}}",
       "one": "[{{.SiteName}}] Новае апавяшчэнне за {{.Day}} {{.Month}}, {{.Year}}"
     }
   },
@@ -6649,7 +6649,11 @@
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} ужо знаходзіцца ў канале."
+    "translation": {
+      "few": "{{.User}} ужо знаходзяцца ў канале.",
+      "many": "{{.User}} ужо знаходзяцца ў канале.",
+      "one": "{{.User}} ужо знаходзіцца ў канале."
+    }
   },
   {
     "id": "api.command_invite.success",
@@ -6710,8 +6714,8 @@
   {
     "id": "api.command_groupmsg.invalid_user.app_error",
     "translation": {
-      "few": "",
-      "many": "",
+      "few": "Не ўдалося знайсці карыстальнікаў",
+      "many": "Не ўдалося знайсці карыстальнікаў",
       "one": "Не ўдалося знайсці карыстальніка: {{.Users}}"
     }
   },
@@ -9493,7 +9497,7 @@
   },
   {
     "id": "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error",
-    "translation": "Аўтадапаўненне каналаў не можа быць уключана, бо схема індэкса каналаў састарэла. Рэкамендуецца перагенераваць індэкс каналаў. Глядзіце часопіс зменаў Mattermost для атрымання дадатковай інфармацыі."
+    "translation": "Аўтадапаўненне каналаў не можа быць уключана, бо схема індэкса каналаў састарэла. Рэкамендуецца перагенерыць індэкс каналаў. Глядзіце часопіс зменаў Mattermost для атрымання дадатковай інфармацыі."
   },
   {
     "id": "ent.elasticsearch.purge_index.delete_failed",
