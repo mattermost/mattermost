@@ -3123,7 +3123,7 @@ func (a *App) RewriteMessage(
 	return &response, nil
 }
 
-// buildThreadContextForRewrite builds context from root post + last 5 posts in the thread
+// buildThreadContextForRewrite builds context from root post + last 10 posts in the thread
 func (a *App) buildThreadContextForRewrite(rctx request.CTX, rootID string) (string, *model.AppError) {
 	const maxContextPosts = 10
 
@@ -3177,15 +3177,42 @@ func (a *App) buildThreadContextForRewrite(rctx request.CTX, rootID string) (str
 	}
 	contextReplies = replies[startIdx:]
 
+	// Get user profiles for all posts in context
+	userIDs := []string{rootPost.UserId}
+	for _, reply := range contextReplies {
+		userIDs = append(userIDs, reply.UserId)
+	}
+	slices.Sort(userIDs)
+	userIDs = slices.Compact(userIDs)
+
+	users, appErr := a.GetUsersByIds(rctx, userIDs, &store.UserGetByIdsOpts{})
+	if appErr != nil {
+		return "", appErr
+	}
+
+	userMap := make(map[string]string, len(users))
+	for _, user := range users {
+		userMap[user.Id] = user.Username
+	}
+
 	// Build context string
 	var contextBuilder strings.Builder
 	contextBuilder.WriteString("Thread context:\n")
-	contextBuilder.WriteString(fmt.Sprintf("Root post: %s\n", rootPost.Message))
+
+	rootUsername := userMap[rootPost.UserId]
+	if rootUsername == "" {
+		rootUsername = "Unknown"
+	}
+	contextBuilder.WriteString(fmt.Sprintf("Root post (%s): %s\n", rootUsername, rootPost.Message))
 
 	if len(contextReplies) > 0 {
 		contextBuilder.WriteString("\nRecent replies:\n")
 		for _, reply := range contextReplies {
-			contextBuilder.WriteString(fmt.Sprintf("- %s\n", reply.Message))
+			username := userMap[reply.UserId]
+			if username == "" {
+				username = "Unknown"
+			}
+			contextBuilder.WriteString(fmt.Sprintf("- %s: %s\n", username, reply.Message))
 		}
 	}
 
