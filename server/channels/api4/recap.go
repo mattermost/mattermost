@@ -28,6 +28,19 @@ func requireRecapsEnabled(c *Context) {
 	}
 }
 
+// addRecapChannelIDsToAuditRec extracts channel IDs from a recap and adds them to the audit record.
+// This logs which channels' content was accessed through the recap operation.
+func addRecapChannelIDsToAuditRec(auditRec *model.AuditRecord, recap *model.Recap) {
+	if len(recap.Channels) == 0 {
+		return
+	}
+	channelIDs := make([]string, 0, len(recap.Channels))
+	for _, channel := range recap.Channels {
+		channelIDs = append(channelIDs, channel.ChannelId)
+	}
+	model.AddEventParameterToAuditRec(auditRec, "channel_ids", channelIDs)
+}
+
 func createRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 	requireRecapsEnabled(c)
 	if c.Err != nil {
@@ -57,6 +70,7 @@ func createRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord(model.AuditEventCreateRecap, model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+	auditRec.AddEventObjectType("recap")
 	model.AddEventParameterToAuditRec(auditRec, "channel_ids", req.ChannelIds)
 	model.AddEventParameterToAuditRec(auditRec, "title", req.Title)
 	model.AddEventParameterToAuditRec(auditRec, "agent_id", req.AgentID)
@@ -69,7 +83,6 @@ func createRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	auditRec.AddEventResultState(recap)
-	auditRec.AddEventObjectType("recap")
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(recap); err != nil {
@@ -90,6 +103,7 @@ func getRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord(model.AuditEventGetRecap, model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+	auditRec.AddEventObjectType("recap")
 	model.AddEventParameterToAuditRec(auditRec, "recap_id", c.Params.RecapId)
 
 	recap, err := c.App.GetRecap(c.AppContext, c.Params.RecapId)
@@ -104,17 +118,10 @@ func getRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Log channel IDs accessed through viewing this recap summary
-	channelIDs := make([]string, 0, len(recap.Channels))
-	for _, channel := range recap.Channels {
-		channelIDs = append(channelIDs, channel.ChannelId)
-	}
-	if len(channelIDs) > 0 {
-		model.AddEventParameterToAuditRec(auditRec, "channel_ids", channelIDs)
-	}
+	addRecapChannelIDsToAuditRec(auditRec, recap)
 
 	auditRec.Success()
 	auditRec.AddEventResultState(recap)
-	auditRec.AddEventObjectType("recap")
 
 	if err := json.NewEncoder(w).Encode(recap); err != nil {
 		c.Logger.Warn("Error encoding response", mlog.Err(err))
@@ -161,6 +168,7 @@ func markRecapAsRead(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord(model.AuditEventMarkRecapAsRead, model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+	auditRec.AddEventObjectType("recap")
 	model.AddEventParameterToAuditRec(auditRec, "recap_id", c.Params.RecapId)
 
 	// Check permissions
@@ -176,7 +184,6 @@ func markRecapAsRead(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.AddEventPriorState(recap)
-	auditRec.AddEventObjectType("recap")
 
 	updatedRecap, err := c.App.MarkRecapAsRead(c.AppContext, recap)
 	if err != nil {
@@ -205,6 +212,7 @@ func regenerateRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord(model.AuditEventRegenerateRecap, model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+	auditRec.AddEventObjectType("recap")
 	model.AddEventParameterToAuditRec(auditRec, "recap_id", c.Params.RecapId)
 
 	// Check permissions
@@ -220,16 +228,9 @@ func regenerateRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Log channel IDs that will be re-summarized
-	channelIDs := make([]string, 0, len(recap.Channels))
-	for _, channel := range recap.Channels {
-		channelIDs = append(channelIDs, channel.ChannelId)
-	}
-	if len(channelIDs) > 0 {
-		model.AddEventParameterToAuditRec(auditRec, "channel_ids", channelIDs)
-	}
+	addRecapChannelIDsToAuditRec(auditRec, recap)
 
 	auditRec.AddEventPriorState(recap)
-	auditRec.AddEventObjectType("recap")
 
 	updatedRecap, err := c.App.RegenerateRecap(c.AppContext, c.AppContext.Session().UserId, recap)
 	if err != nil {
@@ -258,6 +259,7 @@ func deleteRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord(model.AuditEventDeleteRecap, model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+	auditRec.AddEventObjectType("recap")
 	model.AddEventParameterToAuditRec(auditRec, "recap_id", c.Params.RecapId)
 
 	// Check permissions
@@ -273,7 +275,6 @@ func deleteRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.AddEventPriorState(recap)
-	auditRec.AddEventObjectType("recap")
 
 	if err := c.App.DeleteRecap(c.AppContext, c.Params.RecapId); err != nil {
 		c.Err = err
