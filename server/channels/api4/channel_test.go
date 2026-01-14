@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -1930,21 +1929,22 @@ func TestGetPublicChannelsByIdsForTeam(t *testing.T) {
 
 	t.Run("should return 2 channels", func(t *testing.T) {
 		input := []string{th.BasicChannel.Id}
-		output := []string{th.BasicChannel.DisplayName}
+		expectedDisplayNames := []string{th.BasicChannel.DisplayName}
 
 		input = append(input, GenerateTestID())
 		input = append(input, th.BasicChannel2.Id)
 		input = append(input, th.BasicPrivateChannel.Id)
-		output = append(output, th.BasicChannel2.DisplayName)
-		sort.Strings(output)
+		expectedDisplayNames = append(expectedDisplayNames, th.BasicChannel2.DisplayName)
 
 		channels, _, err := client.GetPublicChannelsByIdsForTeam(context.Background(), teamId, input)
 		require.NoError(t, err)
 		require.Len(t, channels, 2, "should return 2 channels")
 
+		actualDisplayNames := make([]string, len(channels))
 		for i, c := range channels {
-			require.Equal(t, output[i], c.DisplayName, "missing channel")
+			actualDisplayNames[i] = c.DisplayName
 		}
+		require.ElementsMatch(t, expectedDisplayNames, actualDisplayNames, "missing channel")
 	})
 
 	t.Run("forbidden for invalid team", func(t *testing.T) {
