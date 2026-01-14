@@ -64,6 +64,23 @@
             position: relative;
         }
 
+        .cpa-section-divider {
+            display: flex;
+            align-items: center;
+            padding-top: 16px;
+            border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+            margin-top: 8px;
+            margin-bottom: 8px;
+
+            .cpa-section-header {
+                color: rgba(var(--center-channel-color-rgb), 0.72);
+                font-size: 12px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+        }
+
         .user-property-field-values__sync-indicator {
             display: flex;
             align-items: center;

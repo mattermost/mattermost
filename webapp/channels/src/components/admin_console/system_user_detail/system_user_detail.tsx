@@ -784,40 +784,63 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             );
         }
 
-        // Add CPA fields
+        // Pad standard fields for even number
+        if (fields.length % 2) {
+            fields.push(null);
+        }
+
+        // Add CPA fields separately
+        const cpaFields: Array<React.ReactNode | null> = [];
         const sortedCpaFields = [...this.props.customProfileAttributeFields].
             sort((a, b) => (a.attrs?.sort_order || 0) - (b.attrs?.sort_order || 0));
 
         const cpaErrors = this.state.customProfileAttributeErrors;
         for (const field of sortedCpaFields) {
-            fields.push(this.renderCpaField(field, cpaErrors[field.id]));
+            cpaFields.push(this.renderCpaField(field, cpaErrors[field.id]));
         }
 
-        // Pad for even number
-        if (fields.length % 2) {
-            fields.push(null);
+        // Pad CPA fields for even number
+        if (cpaFields.length % 2) {
+            cpaFields.push(null);
         }
+
+        const renderFieldRows = (fieldList: Array<React.ReactNode | null>, keyPrefix: string) => {
+            return fieldList.map((field, index) => {
+                if (index % 2 === 0) { // Start of new row
+                    return (
+                        <div
+                            key={`${keyPrefix}-row-${Math.trunc(index / 2)}`}
+                            className='field-row'
+                        >
+                            <div className='field-column left'>
+                                {field}
+                            </div>
+                            <div className='field-column right'>
+                                {fieldList[index + 1]}
+                            </div>
+                        </div>
+                    );
+                }
+                return null; // Skip odd indices
+            }).filter(Boolean);
+        };
 
         return (
             <div className='two-column-layout'>
-                {fields.map((field, index) => {
-                    if (index % 2 === 0) { // Start of new row
-                        return (
-                            <div
-                                key={`field-row-${Math.trunc(index / 2)}`}
-                                className='field-row'
-                            >
-                                <div className='field-column left'>
-                                    {field}
-                                </div>
-                                <div className='field-column right'>
-                                    {fields[index + 1]}
-                                </div>
-                            </div>
-                        );
-                    }
-                    return null; // Skip odd indices
-                }).filter(Boolean)}
+                {renderFieldRows(fields, 'standard-field')}
+                {cpaFields.length > 0 && (
+                    <>
+                        <div className='cpa-section-divider'>
+                            <span className='cpa-section-header'>
+                                <FormattedMessage
+                                    id='admin.userManagement.userDetail.customProfileAttributes'
+                                    defaultMessage='Custom Profile Attributes'
+                                />
+                            </span>
+                        </div>
+                        {renderFieldRows(cpaFields, 'cpa-field')}
+                    </>
+                )}
             </div>
         );
     };

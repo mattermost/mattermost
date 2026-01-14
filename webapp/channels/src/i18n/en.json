@@ -3279,6 +3279,7 @@
   "admin.userManagement.userDetail.authData.input": "Enter auth data",
   "admin.userManagement.userDetail.authenticationMethod": "Authentication Method",
   "admin.userManagement.userDetail.cpaField": "{fieldName}",
+  "admin.userManagement.userDetail.customProfileAttributes": "Custom Profile Attributes",
   "admin.userManagement.userDetail.email": "Email",
   "admin.userManagement.userDetail.ldap": "AD/LDAP: {propertyName}",
   "admin.userManagement.userDetail.magicLink": "Magic Link",
