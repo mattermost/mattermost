@@ -20,18 +20,16 @@ describe('components/post_view/FailedPostOptions', () => {
     test('should match default component state', () => {
         renderWithContext(<FailedPostOptions {...baseProps}/>);
 
-        const retryLink = screen.getByText('Retry');
-        const cancelLink = screen.getByText('Cancel');
+        const retryButton = screen.getByRole('button', {name: 'Retry'});
+        const deleteButton = screen.getByRole('button', {name: 'Delete'});
 
-        expect(retryLink).toBeInTheDocument();
-        expect(retryLink).toHaveClass('post-retry');
-        expect(retryLink).toHaveAttribute('href', '#');
+        expect(retryButton).toBeInTheDocument();
+        expect(retryButton).toHaveClass('pending-post-actions__button', 'pending-post-actions__button--retry', 'post-retry');
 
-        expect(cancelLink).toBeInTheDocument();
-        expect(cancelLink).toHaveClass('post-cancel');
-        expect(cancelLink).toHaveAttribute('href', '#');
+        expect(deleteButton).toBeInTheDocument();
+        expect(deleteButton).toHaveClass('pending-post-actions__button', 'pending-post-actions__button--delete', 'post-delete');
 
-        expect(screen.getAllByRole('link')).toHaveLength(2);
+        expect(screen.getAllByRole('button')).toHaveLength(2);
     });
 
     test('should create post on retry', async () => {
@@ -45,13 +43,13 @@ describe('components/post_view/FailedPostOptions', () => {
 
         renderWithContext(<FailedPostOptions {...props}/>);
 
-        const retryLink = screen.getByText('Retry');
+        const retryButton = screen.getByRole('button', {name: 'Retry'});
 
-        await userEvent.click(retryLink);
+        await userEvent.click(retryButton);
 
         expect(props.actions.createPost.mock.calls.length).toBe(1);
 
-        await userEvent.click(retryLink);
+        await userEvent.click(retryButton);
 
         expect(props.actions.createPost.mock.calls.length).toBe(2);
     });
@@ -67,9 +65,9 @@ describe('components/post_view/FailedPostOptions', () => {
 
         renderWithContext(<FailedPostOptions {...props}/>);
 
-        const cancelLink = screen.getByText('Cancel');
+        const deleteButton = screen.getByRole('button', {name: 'Delete'});
 
-        await userEvent.click(cancelLink);
+        await userEvent.click(deleteButton);
 
         expect(props.actions.removePost.mock.calls.length).toBe(1);
     });

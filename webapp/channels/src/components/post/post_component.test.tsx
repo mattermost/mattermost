@@ -556,6 +556,48 @@ describe('PostComponent', () => {
         });
     });
 
+
+    describe('post status indicators', () => {
+        test('greys out post while pending', () => {
+            const pendingPost = TestHelper.getPostMock({
+                id: 'pending-post',
+                pending_post_id: 'pending-post',
+                failed: false,
+            });
+            const props = {
+                ...baseProps,
+                post: pendingPost,
+            };
+            const {container} = renderWithContext(<PostComponent {...props}/>);
+
+            const postElement = container.querySelector('.post');
+            expect(postElement).not.toBeNull();
+            expect(postElement).toHaveClass('post--pending');
+        });
+
+        test('shows failure indicator when post failed to send', () => {
+            const failedPost = TestHelper.getPostMock({
+                id: 'failed-post',
+                pending_post_id: 'failed-post',
+                failed: true,
+            });
+            const props = {
+                ...baseProps,
+                post: failedPost,
+            };
+            const {container} = renderWithContext(<PostComponent {...props}/>);
+
+            const postElement = container.querySelector('.post');
+            expect(postElement).not.toBeNull();
+            expect(postElement).not.toHaveClass('post--pending');
+            expect(postElement).toHaveClass('post--failed');
+            expect(screen.getByText('Message failed')).toBeInTheDocument();
+            expect(screen.getByText('Retry')).toBeInTheDocument();
+            expect(screen.getByText('Delete')).toBeInTheDocument();
+            expect(screen.queryByText('Cancel')).not.toBeInTheDocument();
+        });
+    });
+
     describe('AI-generated indicator', () => {
         const aiGeneratedPost = TestHelper.getPostMock({
             channel_id: channel.id,

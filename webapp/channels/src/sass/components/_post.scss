@@ -439,12 +439,12 @@
 
 .post-body__info {
     display: flex;
-    color:  rgba(var(--center-channel-color-rgb), 0.75);
+    color: rgba(var(--center-channel-color-rgb), 0.75);
     font-size: 12px;
     gap: 4px;
     margin-block-start: 4px;
 
-    &__icon{
+    &__icon {
         color: rgba(var(--center-channel-color-rgb), 0.64);
         padding-block-start: 1px;
     }
@@ -457,7 +457,7 @@
     color: rgba(var(--center-channel-color-rgb), 0.75);
     font-family: "Open Sans", sans-serif;
     font-size: 12px;
-    gap: 8px;
+    gap: 6px;
 
     > button {
         @include mixins.button-small;
@@ -599,6 +599,165 @@
         }
     }
 
+    .post__status {
+        display: inline-flex;
+        align-items: center;
+        margin-left: 4px;
+        gap: 2px;
+        font-size: 12px;
+        white-space: nowrap;
+
+        &:first-child {
+            margin-left: 0;
+        }
+
+        &--failed {
+            color: var(--error-text);
+        }
+
+        &--pending {
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+        }
+
+        &--body {
+            flex-shrink: 0;
+            align-self: flex-start;
+            justify-content: flex-end;
+            margin-left: 0;
+        }
+
+        .post__status-icon {
+            display: inline-flex;
+            margin-right: 0;
+
+            svg {
+                width: 14px;
+                height: 14px;
+            }
+        }
+
+        .post__status-icon--failed {
+            svg {
+                fill: var(--error-text);
+            }
+        }
+
+        .post__status-icon--pending {
+            color: rgba(var(--center-channel-color-rgb), 0.4);
+        }
+    }
+
+    .post__header-actions {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .post__header-actions .pending-post-actions--header {
+        display: inline-flex;
+        margin-left: auto;
+        gap: 6px;
+    }
+
+    .post__header-actions .pending-post-actions__buttons {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .post__header-actions .pending-post-actions__button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4px 10px;
+        border: 0;
+        border-radius: 4px;
+        background: transparent;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .post__header-actions .pending-post-actions__button--delete {
+        background-color: rgba(var(--error-text-color-rgb), 0.12);
+        color: var(--error-text);
+    }
+
+    .post__header-actions .pending-post-actions__button--delete:hover {
+        background-color: rgba(var(--error-text-color-rgb), 0.2);
+    }
+
+    .post__header-actions .pending-post-actions__button--retry {
+        background-color: rgba(var(--button-bg-rgb), 0.12);
+        color: var(--button-bg);
+    }
+
+    .post__header-actions .pending-post-actions__button--retry:hover {
+        background-color: rgba(var(--button-bg-rgb), 0.2);
+    }
+
+    .post__message-top {
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: flex-start;
+        gap: 6px;
+    }
+
+    .post__message-top-content {
+        display: flex;
+        min-width: 0;
+        flex: 1 1 auto;
+        align-items: flex-start;
+        gap: 6px;
+    }
+
+    .post__message-top-text {
+        display: flex;
+        flex: 1 1 auto;
+        align-items: center;
+    }
+
+    .post__message-top-content .post__status--body {
+        align-self: flex-start;
+        margin-left: auto;
+        white-space: nowrap;
+    }
+
+    .post__message-top:has(>.pending-post-actions--inline) {
+        align-items: center;
+    }
+
+    .post__message-top-content:has(+ .pending-post-actions--inline) {
+        align-items: center;
+
+        .post__status--body {
+            align-self: center;
+        }
+    }
+
+    .post__message-top > .pending-post-actions--inline {
+        align-self: center;
+    }
+
+    &:has(.post__status--pending) {
+        .post__message-top-text {
+            opacity: 0.56;
+        }
+    }
+
+    .post__body-main {
+        position: relative;
+    }
+
+    &.post--failed {
+        background-color: #fbf1f1;
+
+        &:hover,
+        &.post--hovered,
+        &.a11y--active {
+            background-color: #fbf1f1 !important;
+        }
+    }
+
     .browser--ie & {
         .post__header {
             .col__reply {
@@ -687,6 +846,7 @@
 
     &.post--thread {
         &.same--user {
+
             .post__header,
             .post-preview__header {
                 margin-bottom: 0;
@@ -1224,7 +1384,7 @@
             flex: 0 auto;
             margin-right: 8px;
             font-weight: 600;
-            gap: 8px;
+            gap: 6px;
             text-overflow: ellipsis;
 
             &.permalink--username {
@@ -1236,7 +1396,8 @@
 
                 text-align: left;
                 text-overflow: ellipsis;
-                -moz-user-select: all; /* Firefox all */
+                -moz-user-select: all;
+                /* Firefox all */
                 vertical-align: top;
                 white-space: nowrap;
             }
@@ -1425,28 +1586,77 @@
             }
         }
 
-        ul + p,
-        ol + p {
-            margin-top: 0.6em;
-        }
-
         p + ul,
         p + ol {
             margin-top: 0.6em;
         }
 
-        .pending-post-actions {
-            position: absolute;
-            z-index: 100;
-            top: 0;
-            right: 0;
-            padding: 5px 7px;
-            background: functions.alpha-color(variables.$black, 0.7);
-            color: variables.$white;
-            font-size: 0.9em;
 
-            a {
-                color: variables.$white;
+        .pending-post-actions {
+            display: inline-flex;
+            flex-shrink: 0;
+            align-items: center;
+            font-size: 12px;
+            gap: 4px;
+            white-space: nowrap;
+
+            &--header {
+                justify-content: flex-end;
+                margin-left: auto;
+                gap: 6px;
+            }
+
+            &--inline {
+                margin-left: 8px;
+            }
+
+            &__status {
+                display: inline-flex;
+                align-items: center;
+                font-size: 12px;
+                gap: 4px;
+            }
+
+            &__buttons {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+            }
+
+            &__button {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 4px 10px;
+                border: 0;
+                border-radius: 4px;
+                background: transparent;
+                cursor: pointer;
+                font-size: 12px;
+                font-weight: 600;
+
+                &:focus-visible {
+                    outline: 2px solid currentColor;
+                    outline-offset: 2px;
+                }
+
+                &--retry {
+                    background-color: rgba(var(--button-bg-rgb), 0.12);
+                    color: var(--button-bg);
+
+                    &:hover {
+                        background-color: rgba(var(--button-bg-rgb), 0.2);
+                    }
+                }
+
+                &--delete {
+                    background-color: rgba(var(--error-text-color-rgb), 0.12);
+                    color: var(--error-text);
+
+                    &:hover {
+                        background-color: rgba(var(--error-text-color-rgb), 0.2);
+                    }
+                }
             }
         }
     }
@@ -1472,9 +1682,12 @@
         color: rgba(var(--center-channel-color-rgb), 0.65);
         font-size: 13px;
         text-overflow: ellipsis;
-        -webkit-user-select: none; /* Chrome all / Safari all */
-        -moz-user-select: none; /* Firefox all */
-        -ms-user-select: none; /* IE 10+ */
+        -webkit-user-select: none;
+        /* Chrome all / Safari all */
+        -moz-user-select: none;
+        /* Firefox all */
+        -ms-user-select: none;
+        /* IE 10+ */
         user-select: none;
         white-space: nowrap;
 
@@ -1597,6 +1810,7 @@
             color: rgba(var(--center-channel-color-rgb), 0.75);
         }
     }
+
     // styles for image container of large images.
     .image-loaded-container {
         position: relative;

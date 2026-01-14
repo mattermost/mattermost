@@ -14,7 +14,8 @@ import type {UserProfile} from '@mattermost/types/users';
 import {Posts} from 'mattermost-redux/constants/index';
 import {
     isMeMessage as checkIsMeMessage,
-    isPostPendingOrFailed} from 'mattermost-redux/utils/post_utils';
+    isPostPendingOrFailed,
+} from 'mattermost-redux/utils/post_utils';
 
 import BurnOnReadConfirmationModal from 'components/burn_on_read_confirmation_modal';
 import AutoHeightSwitcher, {AutoHeightSlots} from 'components/common/auto_height_switcher';
@@ -38,7 +39,9 @@ import PostTime from 'components/post_view/post_time';
 import ReactionList from 'components/post_view/reaction_list';
 import ThreadFooter from 'components/threading/channel_threads/thread_footer';
 import type {Props as TimestampProps} from 'components/timestamp/timestamp';
+import AlertIcon from 'components/widgets/icons/alert_icon';
 import ArchiveIcon from 'components/widgets/icons/archive_icon';
+import ClockSendIcon from 'components/widgets/icons/clock_send_icon';
 import InfoSmallIcon from 'components/widgets/icons/info_small_icon';
 import WithTooltip from 'components/with_tooltip';
 
@@ -141,6 +144,7 @@ function PostComponent(props: Props) {
     const isRHS = props.location === Locations.RHS_ROOT || props.location === Locations.RHS_COMMENT || props.location === Locations.SEARCH;
     const postRef = useRef<HTMLDivElement>(null);
     const postHeaderRef = useRef<HTMLDivElement>(null);
+    const pendingIndicatorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const teamId = props.team?.id ?? props.currentTeam?.id ?? '';
 
     const [hover, setHover] = useState(false);
@@ -150,11 +154,37 @@ function PostComponent(props: Props) {
     const [fadeOutHighlight, setFadeOutHighlight] = useState(false);
     const [alt, setAlt] = useState(false);
     const [hasReceivedA11yFocus, setHasReceivedA11yFocus] = useState(false);
+    const [showPendingIndicator, setShowPendingIndicator] = useState(false);
     const [burnOnReadRevealing, setBurnOnReadRevealing] = useState(false);
     const [burnOnReadRevealError, setBurnOnReadRevealError] = useState<string | null>(null);
 
     const isSystemMessage = PostUtils.isSystemMessage(post);
     const fromAutoResponder = PostUtils.fromAutoResponder(post);
+
+    const isFailed = Boolean(post.failed);
+    const isPending = !isFailed && post.id === post.pending_post_id;
+
+    useEffect(() => {
+        if (pendingIndicatorTimeoutRef.current) {
+            clearTimeout(pendingIndicatorTimeoutRef.current);
+            pendingIndicatorTimeoutRef.current = null;
+        }
+
+        setShowPendingIndicator(false);
+
+        if (isPending) {
+            pendingIndicatorTimeoutRef.current = setTimeout(() => {
+                setShowPendingIndicator(true);
+            }, 3000);
+        }
+
+        return () => {
+            if (pendingIndicatorTimeoutRef.current) {
+                clearTimeout(pendingIndicatorTimeoutRef.current);
+                pendingIndicatorTimeoutRef.current = null;
+            }
+        };
+    }, [isPending, post.id]);
 
     useEffect(() => {
         if (shouldHighlight) {
@@ -178,7 +208,8 @@ function PostComponent(props: Props) {
             setHasReceivedA11yFocus(true);
 
             document.dispatchEvent(new CustomEvent<A11yFocusEventDetail>(
-                A11yCustomEventTypes.FOCUS, {
+                A11yCustomEventTypes.FOCUS,
+                {
                     detail: {
                         target: postRef.current,
                         keyboardOnly: true,
@@ -313,6 +344,8 @@ function PostComponent(props: Props) {
             'post--hovered': hovered,
             'same--user': props.isConsecutivePost && (!props.compactDisplay || props.location === Locations.RHS_COMMENT),
             'cursor--pointer': alt && !props.channelIsArchived,
+            'post--pending': isPending,
+            'post--failed': isFailed,
             'post--hide-controls': post.failed || post.state === Posts.POST_DELETED,
             'post--comment same--root': fromAutoResponder,
             'post--pinned-or-flagged': (post.is_pinned || props.isFlagged) && props.location === Locations.CENTER,
@@ -488,6 +521,77 @@ function PostComponent(props: Props) {
     }, [handleBurnOnReadClick]);
 
     const postClass = classNames('post__body', {'post--edited': PostUtils.isEdited(post), 'search-item-snippet': isSearchResultItem});
+    const postBodyMainClass = classNames('post__body-main');
+
+    const renderPendingStatus = useCallback((extraClass?: string) => (
+        <span className={classNames('post__status', 'post__status--pending', extraClass)}>
+            <FormattedMessage
+                id='post.status.sending'
+                defaultMessage='Sending'
+            />
+            <ClockSendIcon className='post__status-icon post__status-icon--pending'/>
+        </span>
+    ), []);
+
+    const renderFailedStatus = useCallback((extraClass: string) => (
+        <span className={classNames('post__status', 'post__status--failed', extraClass)}>
+            <AlertIcon className='post__status-icon post__status-icon--failed'/>
+            <FormattedMessage
+                id='post.status.failed'
+                defaultMessage='Message failed'
+            />
+        </span>
+    ), []);
+
+    const {
+        headerStatus,
+        headerActions,
+        messageStatus,
+        messageActions,
+    } = useMemo(() => {
+        if (isFailed) {
+            return {
+                headerStatus: props.isConsecutivePost ? null : renderFailedStatus('post__status--message'),
+                headerActions: props.isConsecutivePost ? null : (
+                    <FailedPostOptions
+                        post={post}
+                        className='pending-post-actions--header'
+                    />
+                ),
+                messageStatus: props.isConsecutivePost ? renderFailedStatus('post__status--body') : null,
+                messageActions: props.isConsecutivePost ? (
+                    <FailedPostOptions
+                        post={post}
+                        className='pending-post-actions--inline'
+                    />
+                ) : null,
+            };
+        }
+
+        if (showPendingIndicator && isPending) {
+            return {
+                headerStatus: props.isConsecutivePost ? null : renderPendingStatus(),
+                headerActions: null,
+                messageStatus: null,
+                messageActions: props.isConsecutivePost ? renderPendingStatus('post__status--body') : null,
+            };
+        }
+
+        return {
+            headerStatus: null,
+            headerActions: null,
+            messageStatus: null,
+            messageActions: null,
+        };
+    }, [
+        isFailed,
+        props.isConsecutivePost,
+        renderFailedStatus,
+        renderPendingStatus,
+        post,
+        showPendingIndicator,
+        isPending,
+    ]);
 
     let comment;
     if (props.isFirstReply && post.type !== Constants.PostTypes.EPHEMERAL) {
@@ -515,6 +619,7 @@ function PostComponent(props: Props) {
     let profilePic;
     const hideProfilePicture = hasSameRoot(props) && (!post.root_id && !props.hasReplies) && !PostUtils.isFromBot(post);
     const hideProfileCase = !(props.location === Locations.RHS_COMMENT && props.compactDisplay && props.isConsecutivePost);
+    const shouldShowPostTime = !isFailed && !isPending && (((!hideProfilePicture && props.location === Locations.CENTER) || hover || props.location !== Locations.CENTER));
     if (!hideProfilePicture && hideProfileCase) {
         profilePic = (
             <PostProfilePicture
@@ -605,7 +710,6 @@ function PostComponent(props: Props) {
         case 'SEARCH':
             idPrefix = 'searchResult';
             break;
-
         default:
             idPrefix = 'post';
         }
@@ -747,8 +851,9 @@ function PostComponent(props: Props) {
                                 {...props}
                                 isSystemMessage={isSystemMessage}
                             />
-                            <div className='badges-wrapper col d-flex align-items-center'>
-                                {((!hideProfilePicture && props.location === Locations.CENTER) || hover || props.location !== Locations.CENTER) &&
+                            <div className='badges-wrapper col d-flex align-items-center flex-wrap post__header-actions'>
+                                {headerStatus}
+                                {shouldShowPostTime &&
                                     <PostTime
                                         isPermalink={!(Posts.POST_DELETED === post.state || isPostPendingOrFailed(post))}
                                         teamName={props.team?.name}
@@ -793,6 +898,7 @@ function PostComponent(props: Props) {
                                     </WithTooltip>
                                 }
                                 {visibleMessage}
+                                {headerActions}
                             </div>
                             {!props.isPostBeingEdited &&
                             <PostOptions
@@ -812,33 +918,42 @@ function PostComponent(props: Props) {
                             className={postClass}
                             id={isRHS ? undefined : `${post.id}_message`}
                         >
-                            {post.failed && <FailedPostOptions post={post}/>}
-                            <AutoHeightSwitcher
-                                showSlot={slotBasedOnEditOrMessageView}
-                                shouldScrollIntoView={props.isPostBeingEdited}
-                                slot1={message}
-                                slot2={<EditPost/>}
-                                onTransitionEnd={() => document.dispatchEvent(new Event(AppEvents.FOCUS_EDIT_TEXTBOX))}
-                            />
-                            {
-                                showFileAttachments &&
-                                <FileAttachmentListContainer
-                                    post={post}
-                                    compactDisplay={props.compactDisplay}
-                                    handleFileDropdownOpened={handleFileDropdownOpened}
-                                />
-                            }
-                            <div className='post__body-reactions-acks'>
-                                {props.isPostAcknowledgementsEnabled && post.metadata?.priority?.requested_ack && (
-                                    <PostAcknowledgements
-                                        authorId={post.user_id}
-                                        isDeleted={post.state === Posts.POST_DELETED}
-                                        postId={post.id}
+                            <div className={postBodyMainClass}>
+                                <div className='post__message-top'>
+                                    <div className='post__message-top-content'>
+                                        <div className='post__message-top-text'>
+                                            <AutoHeightSwitcher
+                                                showSlot={slotBasedOnEditOrMessageView}
+                                                shouldScrollIntoView={props.isPostBeingEdited}
+                                                slot1={message}
+                                                slot2={<EditPost/>}
+                                                onTransitionEnd={() => document.dispatchEvent(new Event(AppEvents.FOCUS_EDIT_TEXTBOX))}
+                                            />
+                                        </div>
+                                        {messageStatus}
+                                    </div>
+                                    {messageActions}
+                                </div>
+                                {
+                                    showFileAttachments &&
+                                    <FileAttachmentListContainer
+                                        post={post}
+                                        compactDisplay={props.compactDisplay}
+                                        handleFileDropdownOpened={handleFileDropdownOpened}
                                     />
-                                )}
-                                {showReactions && <ReactionList post={post}/>}
+                                }
+                                <div className='post__body-reactions-acks'>
+                                    {props.isPostAcknowledgementsEnabled && post.metadata?.priority?.requested_ack && (
+                                        <PostAcknowledgements
+                                            authorId={post.user_id}
+                                            isDeleted={post.state === Posts.POST_DELETED}
+                                            postId={post.id}
+                                        />
+                                    )}
+                                    {showReactions && <ReactionList post={post}/>}
+                                </div>
+                                {threadFooter}
                             </div>
-                            {threadFooter}
                         </div>
                     </div>
                 </div>

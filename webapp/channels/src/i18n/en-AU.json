@@ -5270,6 +5270,7 @@
   "payment_form.country": "Country/Region",
   "payment_form.zipcode": "Post Code",
   "pending_post_actions.cancel": "Cancel",
+  "pending_post_actions.delete": "Delete",
   "pending_post_actions.retry": "Retry",
   "permalink.error.access": "Permalink belongs to a deleted message or to a channel to which you do not have access.",
   "permalink.error.title": "Message Not Found",
@@ -5369,6 +5370,7 @@
   "post_info.menuAriaLabel": "Post extra options",
   "post_info.message.show_less": "Show less",
   "post_info.message.show_more": "Show more",
+  "post.status.sending": "Sending",
   "post_info.message.visible": "(Only visible to you)",
   "post_info.message.visible.compact": " (Only visible to you)",
   "post_info.move_thread": "Move Thread",
@@ -6750,3 +6752,4 @@
   "youtube_video.play_button.aria_label": "Play video",
   "youtube_video.thumbnail.alt_text": "Thumbnail for {videoTitle} on YouTube"
 }
+  "post.status.failed": "Message failed",

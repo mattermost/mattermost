@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {memo, useCallback} from 'react';
-import type {MouseEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {FileInfo} from '@mattermost/types/files';
@@ -12,6 +12,7 @@ import type {ExtendedPost} from 'mattermost-redux/actions/posts';
 
 type Props = {
     post: Post;
+    className?: string;
     actions: {
         createPost: (post: Post, files: FileInfo[]) => void;
         removePost: (post: ExtendedPost) => void;
@@ -20,46 +21,44 @@ type Props = {
 
 const FailedPostOptions = ({
     post,
+    className,
     actions,
 }: Props) => {
-    const retryPost = useCallback((e: MouseEvent): void => {
-        e.preventDefault();
-
+    const retryPost = useCallback((): void => {
         const postDetails = {...post};
         Reflect.deleteProperty(postDetails, 'id');
         actions.createPost(postDetails, []);
     }, [actions, post]);
 
-    const cancelPost = useCallback((e: MouseEvent): void => {
-        e.preventDefault();
-
+    const deletePost = useCallback((): void => {
         actions.removePost(post);
     }, [actions, post]);
 
     return (
-        <span className='pending-post-actions'>
-            <a
-                className='post-retry'
-                href='#'
-                onClick={retryPost}
-            >
-                <FormattedMessage
-                    id='pending_post_actions.retry'
-                    defaultMessage='Retry'
-                />
-            </a>
-            {' - '}
-            <a
-                className='post-cancel'
-                href='#'
-                onClick={cancelPost}
-            >
-                <FormattedMessage
-                    id='pending_post_actions.cancel'
-                    defaultMessage='Cancel'
-                />
-            </a>
-        </span>
+        <div className={classNames('pending-post-actions', className)}>
+            <div className='pending-post-actions__buttons'>
+                <button
+                    type='button'
+                    className='pending-post-actions__button pending-post-actions__button--delete post-delete'
+                    onClick={deletePost}
+                >
+                    <FormattedMessage
+                        id='pending_post_actions.delete'
+                        defaultMessage='Delete'
+                    />
+                </button>
+                <button
+                    type='button'
+                    className='pending-post-actions__button pending-post-actions__button--retry post-retry'
+                    onClick={retryPost}
+                >
+                    <FormattedMessage
+                        id='pending_post_actions.retry'
+                        defaultMessage='Retry'
+                    />
+                </button>
+            </div>
+        </div>
     );
 };
 
