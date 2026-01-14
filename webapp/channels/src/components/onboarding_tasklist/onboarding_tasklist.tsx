@@ -298,7 +298,7 @@ const OnBoardingTaskList = (): JSX.Element | null => {
                             >
                                 <FormattedMessage
                                     id='onboardingTask.checklist.dismiss_link'
-                                    defaultMessage="No thanks, I'll figure it out myself"
+                                    defaultMessage='No thanks, I’ll figure it out myself'
                                 />
                             </span>
                         </>

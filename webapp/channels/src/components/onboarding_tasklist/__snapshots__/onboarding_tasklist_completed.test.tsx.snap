@@ -57,7 +57,7 @@ exports[`components/onboarding_tasklist/onboarding_tasklist_completed.tsx should
       >
         <span>
           <MemoizedFormattedMessage
-            defaultMessage="Now that you’re all set up, <link>download our apps.</link>!"
+            defaultMessage="Now that you’re all set up, <link>download our apps.</link>"
             id="onboardingTask.checklist.downloads"
             values={
               Object {
@@ -72,7 +72,7 @@ exports[`components/onboarding_tasklist/onboarding_tasklist_completed.tsx should
       >
         <span>
           <MemoizedFormattedMessage
-            defaultMessage="By clicking “Start trial”, I agree to the <linkEvaluation>Mattermost Software and Services License Agreement</linkEvaluation>, <linkPrivacy>privacy policy</linkPrivacy> and receiving product emails."
+            defaultMessage="By clicking “Start trial”, I agree to the <linkEvaluation>Mattermost Software Evaluation Agreement</linkEvaluation>, <linkPrivacy>privacy policy</linkPrivacy> and receiving product emails."
             id="onboardingTask.checklist.disclaimer"
             values={
               Object {
