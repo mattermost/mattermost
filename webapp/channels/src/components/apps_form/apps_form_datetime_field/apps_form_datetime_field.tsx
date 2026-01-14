@@ -160,7 +160,10 @@ const AppsFormDateTimeField: React.FC<Props> = ({
         const defaultTime = getRoundedTime(currentTime, timePickerInterval || 60);
 
         // Always keep the existing start date
-        const existingStart = Array.isArray(momentValue) && momentValue[0] ? momentValue[0] : (timezone ? moment.tz(timezone) : moment());
+        let existingStart = Array.isArray(momentValue) && momentValue[0] ? momentValue[0] : null;
+        if (!existingStart) {
+            existingStart = timezone ? moment.tz(timezone) : moment();
+        }
         const rangeDates = [momentToString(existingStart, true)];
 
         // Use the selected end date
