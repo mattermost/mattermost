@@ -117,7 +117,7 @@ const AccessTab = ({closeModal, collapseModal, hasChangeTabError, hasChanges, se
                                     className='fa fa-angle-left'
                                     aria-label={formatMessage({
                                         id: 'generic_icons.collapse',
-                                        defaultMessage: 'Collapes Icon',
+                                        defaultMessage: 'Collapse Icon',
                                     })}
                                     onClick={collapseModalHandler}
                                 />
@@ -131,7 +131,7 @@ const AccessTab = ({closeModal, collapseModal, hasChangeTabError, hasChanges, se
                         aria-labelledby='accessButton'
                         role='tabpanel'
                     >
-                        {team.group_constrained ? undefined : (
+                        {!team.group_constrained && (
                             <AllowedDomainsSelect
                                 allowedDomains={allowedDomains}
                                 setAllowedDomains={setAllowedDomains}
@@ -146,10 +146,10 @@ const AccessTab = ({closeModal, collapseModal, hasChangeTabError, hasChanges, se
                             setAllowOpenInvite={updateOpenInvite}
                         />
                         <div className='divider-light'/>
-                        {team.group_constrained ? undefined : (
+                        {!team.group_constrained && (
                             <InviteSectionInput regenerateTeamInviteId={actions.regenerateTeamInviteId}/>
                         )}
-                        {hasChanges ? (
+                        {hasChanges && (
                             <SaveChangesPanel
                                 handleCancel={handleCancel}
                                 handleSubmit={handleSaveChanges}
@@ -157,7 +157,7 @@ const AccessTab = ({closeModal, collapseModal, hasChangeTabError, hasChanges, se
                                 tabChangeError={hasChangeTabError}
                                 state={saveChangesPanelState}
                             />
-                        ) : undefined}
+                        )}
                     </div>
                 </>
             }

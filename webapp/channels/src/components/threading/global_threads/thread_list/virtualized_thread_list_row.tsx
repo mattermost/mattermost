@@ -5,7 +5,7 @@ import React, {memo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {areEqual} from 'react-window';
 
-import SearchHintSVG from 'components/common/svg_images_components/search_hint_svg';
+import {SearchSVG} from 'components/common/svg_images_components/search_svg';
 import LoadingScreen from 'components/loading_screen';
 import NoResultsIndicator from 'components/no_results_indicator';
 import {NoResultsLayout} from 'components/no_results_indicator/types';
@@ -41,7 +41,7 @@ function Row({index, style, data}: Props) {
         return (
             <NoResultsIndicator
                 style={{...style, padding: '16px 16px 16px 24px', background: 'rgba(var(--center-channel-color-rgb), 0.04)'}}
-                iconGraphic={<SearchHintSVG/>}
+                iconGraphic={<SearchSVG className='no-results__icon'/>}
                 title={
                     <FormattedMessage
                         id='globalThreads.searchGuidance.title'
@@ -56,7 +56,7 @@ function Row({index, style, data}: Props) {
                             searchShortcut: (
                                 <SearchShortcut
                                     className='thread-no-results-subtitle-shortcut'
-                                    variant={ShortcutKeyVariant.TutorialTip}
+                                    variant={ShortcutKeyVariant.Contrast}
                                 />
                             ),
                         }}

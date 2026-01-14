@@ -15,7 +15,7 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
         "listen": [Function],
         "location": Object {
           "hash": "",
-          "pathname": "undefinedundefined",
+          "pathname": "/",
           "search": "",
           "state": undefined,
         },

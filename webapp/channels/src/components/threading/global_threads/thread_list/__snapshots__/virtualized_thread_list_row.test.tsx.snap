@@ -21,7 +21,11 @@ exports[`components/threading/global_threads/thread_list/virtualized_thread_list
 
 exports[`components/threading/global_threads/thread_list/virtualized_thread_list_row should support item search guidance  1`] = `
 <NoResultsIndicator
-  iconGraphic={<SearchHintSVG />}
+  iconGraphic={
+    <SearchSVG
+      className="no-results__icon"
+    />
+  }
   layout={1}
   style={
     Object {
@@ -37,7 +41,7 @@ exports[`components/threading/global_threads/thread_list/virtualized_thread_list
         Object {
           "searchShortcut": <SearchShortcut
             className="thread-no-results-subtitle-shortcut"
-            variant="tutorialTip"
+            variant="contrast"
           />,
         }
       }

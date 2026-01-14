@@ -125,17 +125,11 @@ describe('page_anchor utilities', () => {
             mockElement.classList.add = jest.fn();
             mockElement.classList.remove = jest.fn();
 
-            Object.defineProperty(window, 'location', {
-                writable: true,
-                value: {hash: ''},
-            });
+            (window as any).location = {hash: ''};
         });
 
         afterEach(() => {
-            Object.defineProperty(window, 'location', {
-                writable: true,
-                value: originalLocation,
-            });
+            (window as any).location = originalLocation;
         });
 
         it('should return false if no hash in URL', () => {

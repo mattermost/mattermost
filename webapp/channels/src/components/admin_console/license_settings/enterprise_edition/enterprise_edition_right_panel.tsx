@@ -8,7 +8,7 @@ import type {ClientLicense} from '@mattermost/types/config';
 
 import ContactUsButton from 'components/announcement_bar/contact_sales/contact_us';
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
-import SetupSystemSvg from 'components/common/svg_images_components/setup_system';
+import SetupSystemSvg from 'components/common/svg_images_components/setup_system_svg';
 import ExternalLink from 'components/external_link';
 
 import {LicenseSkus, LicenseLinks} from 'utils/constants';

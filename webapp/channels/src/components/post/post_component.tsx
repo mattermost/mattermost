@@ -39,12 +39,12 @@ import PostTime from 'components/post_view/post_time';
 import ReactionList from 'components/post_view/reaction_list';
 import ThreadFooter from 'components/threading/channel_threads/thread_footer';
 import type {Props as TimestampProps} from 'components/timestamp/timestamp';
-import ArchiveIcon from 'components/widgets/icons/archive_icon';
 import InfoSmallIcon from 'components/widgets/icons/info_small_icon';
 import WithTooltip from 'components/with_tooltip';
 
 import {createBurnOnReadDeleteModalHandlers} from 'hooks/useBurnOnReadDeleteModal';
 import {getHistory} from 'utils/browser_history';
+import {getArchiveIconComponent} from 'utils/channel_utils';
 import Constants, {A11yCustomEventTypes, AppEvents, Locations, PostTypes, ModalIdentifiers} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
@@ -743,13 +743,20 @@ function PostComponent(props: Props) {
                         </span>
                         }
                         {props.channelIsArchived &&
-                        <span className='search-channel__archived'>
-                            <ArchiveIcon className='icon icon__archive channel-header-archived-icon svg-text-color'/>
-                            <FormattedMessage
-                                id='search_item.channelArchived'
-                                defaultMessage='Archived'
-                            />
-                        </span>
+                        <WithTooltip
+                            id='channelArchivedTooltip'
+                            title={formatMessage({
+                                id: 'search_item.channelArchived',
+                                defaultMessage: 'Archived',
+                            })}
+                        >
+                            <span className='search-channel__archived'>
+                                {(() => {
+                                    const ArchiveIcon = getArchiveIconComponent(props.channelType);
+                                    return <ArchiveIcon className='icon icon__archive channel-header-archived-icon svg-text-color'/>;
+                                })()}
+                            </span>
+                        </WithTooltip>
                         }
                         {(Boolean(isSearchResultItem) || props.isFlaggedPosts) && Boolean(props.teamDisplayName) &&
                         <span className='search-team__name'>

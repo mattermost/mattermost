@@ -15,7 +15,7 @@ exports[`components/integrations/AddOutgoingOAuthConnection should match snapsho
         "listen": [Function],
         "location": Object {
           "hash": "",
-          "pathname": "undefinedundefined",
+          "pathname": "/",
           "search": "",
           "state": undefined,
         },

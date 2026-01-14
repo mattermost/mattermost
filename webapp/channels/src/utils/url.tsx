@@ -161,7 +161,7 @@ export function validateChannelUrl(url: string, intl?: IntlShape): Array<React.R
             errors.push(formattedError(
                 defineMessage({
                     id: 'change_url.longer',
-                    defaultMessage: 'URLs must have at least 2 characters.',
+                    defaultMessage: 'URLs must have at least 1 character.',
                 }),
                 intl,
             ));
