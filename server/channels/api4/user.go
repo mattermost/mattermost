@@ -117,11 +117,22 @@ func (api *API) InitUser() {
 }
 
 // loginSSOCodeExchange exchanges a short-lived login_code for session tokens (mobile SAML code exchange)
+// DEPRECATED: This endpoint is deprecated and disabled by default. Mobile clients should use
+// the legacy SSO callback flow with srv parameter verification instead.
 func loginSSOCodeExchange(c *Context, w http.ResponseWriter, r *http.Request) {
+	// Add deprecation headers for clients that may be monitoring
+	w.Header().Set("Deprecation", "true")
+	w.Header().Set("Sunset", "2026-06-01")
+
 	if !c.App.Config().FeatureFlags.MobileSSOCodeExchange {
-		c.Err = model.NewAppError("loginSSOCodeExchange", "api.oauth.get_access_token.bad_request.app_error", nil, "feature disabled", http.StatusBadRequest)
+		c.Logger.Warn("Deprecated endpoint called: /login/sso/code-exchange is disabled. Mobile clients should use legacy SSO flow.")
+		c.Err = model.NewAppError("loginSSOCodeExchange", "api.user.login_sso_code_exchange.deprecated.app_error", nil, "This endpoint is deprecated and disabled. Use legacy SSO callback flow.", http.StatusGone)
 		return
 	}
+
+	// Log deprecation warning even when enabled
+	c.Logger.Warn("Deprecated endpoint called: /login/sso/code-exchange will be removed in a future release")
+
 	props := model.MapFromJSON(r.Body)
 	loginCode := props["login_code"]
 	codeVerifier := props["code_verifier"]

@@ -4167,6 +4167,10 @@
     "translation": "Missing access token."
   },
   {
+    "id": "api.user.login_sso_code_exchange.deprecated.app_error",
+    "translation": "This endpoint is deprecated and disabled. Please update your mobile app."
+  },
+  {
     "id": "api.user.authorize_oauth_user.response.app_error",
     "translation": "Received invalid response from OAuth service provider."
   },
