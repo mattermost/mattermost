@@ -2133,6 +2133,9 @@ func loginWithDesktopToken(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.App.AttachSessionCookies(c.AppContext, w, r)
 
+	c.LogAuditWithUserId(user.Id, "success")
+	c.LogAuditRec(c.MakeAuditRecord(model.AuditEventLoginWithDesktopToken, model.AuditStatusSuccess))
+
 	if err := json.NewEncoder(w).Encode(user); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
