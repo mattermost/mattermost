@@ -127,15 +127,27 @@ func makeSimpleConsoleTarget(level string, outputJSON bool, color bool) (mlog.Ta
 }
 
 func makeSimpleFileTarget(filename string, level string, json bool) (mlog.TargetCfg, error) {
-	// Preserve existing simple-target behavior but route through the unified helper.
-	// Defaults here match the prior "simple" target intent: 100MB, no age/backups limit.
+	// Keep the previous defaults for the “simple” file target
 	const (
 		maxSizeMB  = 100
 		maxAgeDays = 0
 		maxBackups = 0
 	)
 	compress := LogCompress
-	return makeFileTarget(filename, level, json, maxSizeMB, maxAgeDays, maxBackups, compress)
+
+	// Build base target via the unified helper
+	cfg, err := makeFileTarget(filename, level, json, maxSizeMB, maxAgeDays, maxBackups, compress)
+	if err != nil {
+		return mlog.TargetCfg{}, err
+	}
+
+	// Apply the same level parsing used by console
+	levels, err := stdLevels(level)
+	if err == nil && len(levels) > 0 {
+		cfg.Levels = levels
+	}
+
+	return cfg, nil
 }
 
 func stdLevels(level string) ([]mlog.Level, error) {
