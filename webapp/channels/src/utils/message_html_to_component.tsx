@@ -17,8 +17,6 @@ import PluginLinkTooltip from 'components/plugin_link_tooltip';
 import PostEmoji from 'components/post_emoji';
 import PostEditedIndicator from 'components/post_view/post_edited_indicator';
 
-import {Constants} from 'utils/constants';
-
 export type Options = Partial<{
     postId: string;
     editedAt: number;
@@ -40,7 +38,6 @@ export type Options = Partial<{
     atPlanMentions: boolean;
     channelId: string;
     channelIsShared: boolean;
-    onInlineEntityClick?: (type: string, value: string) => void;
 
     /**
      * Whether or not the AtMention component should attempt to fetch at-mentioned users if none can be found for
@@ -119,64 +116,21 @@ export default function messageHtmlToComponent(html: string, options: Options = 
                 return false;
             }
             const url = node.attribs.href;
-            return url.includes('view=citation');
+
+            try {
+                // Use dummy base for relative URLs
+                const urlObj = new URL(url, 'http://mattermost.com');
+                return urlObj.searchParams.get('view') === 'citation';
+            } catch (e) {
+                return false;
+            }
         },
-        processNode: (node: any, _children: any, index?: number) => {
-            const url = node.attribs.href;
-            let type = '';
-            let value = '';
-            let teamName = '';
-            let channelName = '';
-
-            // Extract info from URL
-            // Matches:
-            // POST: .../pl/<id>
-            // CHANNEL: .../<team>/channels/<channel>
-            // TEAM: .../<team>
-
-            const postMatch = (/\/([a-z0-9\-_]+)\/pl\/([a-z0-9]+)/).exec(url);
-            if (postMatch) {
-                type = Constants.InlineEntityTypes.POST;
-                teamName = postMatch[1];
-                value = postMatch[2]; // postId
-            } else {
-                const channelMatch = (/\/([a-z0-9\-_]+)\/channels\/([a-z0-9\-__][a-z0-9\-__.]+)/).exec(url);
-                if (channelMatch) {
-                    type = Constants.InlineEntityTypes.CHANNEL;
-                    teamName = channelMatch[1];
-                    channelName = channelMatch[2];
-                } else {
-                    // Fallback for team link if it matches the pattern but isn't a channel/post
-                    // This might be tricky if the URL structure varies, but assuming standard format:
-                    const teamMatch = (/\/([a-z0-9\-_]+)$/).exec(url.split('?')[0]); // strip query params for matching
-                    if (teamMatch) {
-                        type = Constants.InlineEntityTypes.TEAM;
-                        teamName = teamMatch[1];
-                        value = teamMatch[1]; // teamName as value
-                    }
-                }
-            }
-
-            if (!type) {
-                // Fallback to standard link rendering if parsing fails
-                return (
-                    <a
-                        href={url}
-                        {...convertPropsToReactStandard(node.attribs)}
-                    >
-                        {_children}
-                    </a>
-                );
-            }
-
+        processNode: (node: any, children: any, index?: number) => {
             return (
                 <InlineEntityLink
                     key={`inline-entity-${index}`}
-                    type={type}
-                    value={value}
-                    teamName={teamName}
-                    channelName={channelName}
-                    onClick={options.onInlineEntityClick}
+                    url={node.attribs.href}
+                    text={children}
                 />
             );
         },

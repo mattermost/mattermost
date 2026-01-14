@@ -204,11 +204,7 @@ export default class PostList extends React.PureComponent<Props, State> {
     }
 
     componentDidUpdate(prevProps: Props) {
-        if (this.props.channelId !== prevProps.channelId) {
-            this.postsOnLoad(this.props.channelId);
-        }
-
-        if (this.props.focusedPostId !== prevProps.focusedPostId) {
+        if (this.props.channelId !== prevProps.channelId || this.props.focusedPostId !== prevProps.focusedPostId) {
             this.postsOnLoad(this.props.channelId);
         }
 

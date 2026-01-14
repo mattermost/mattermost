@@ -242,6 +242,10 @@ export default class PostList extends React.PureComponent<Props, State> {
                 const postJustLoaded = (prevProps.postListIds || []).indexOf(this.props.focusedPostId) === -1;
 
                 if (focusedPostChanged || postJustLoaded) {
+                    // Scroll to the focused post if it has changed or just been loaded.
+                    // This is necessary for inline permalink navigation where the channel remains the same
+                    // but the focused post changes, as DynamicVirtualizedList doesn't automatically handle
+                    // scrolling on prop updates after the initial mount.
                     this.listRef.current?.scrollToItem(index, 'center');
                 }
             }

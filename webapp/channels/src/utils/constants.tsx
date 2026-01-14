@@ -2081,11 +2081,6 @@ export const Constants = {
     MENTION_RECENT_CHANNELS: 'mention.recent.channels',
     MENTION_GROUPS: 'search.group',
     STATUS_INTERVAL: 60000,
-    InlineEntityTypes: {
-        POST: 'POST',
-        CHANNEL: 'CHANNEL',
-        TEAM: 'TEAM',
-    },
     AUTOCOMPLETE_TIMEOUT: 100,
     AUTOCOMPLETE_SPLIT_CHARACTERS: ['.', '-', '_'],
     ANIMATION_TIMEOUT: 1000,
