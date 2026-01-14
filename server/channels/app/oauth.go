@@ -753,14 +753,13 @@ func (a *App) LoginByOAuth(rctx request.CTX, service string, userData io.Reader,
 			map[string]any{"Service": service}, "", http.StatusBadRequest)
 	}
 
-	settings, err := provider.GetSSOSettings(c, a.Config(), service)
+	settings, err := provider.GetSSOSettings(rctx, a.Config(), service)
 	if err != nil {
 		return nil, model.NewAppError("LoginByOAuth", "api.user.oauth.get_settings.app_error",
 			map[string]any{"Service": service}, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	c.Logger().Error("<><> LoginByOAuth calling provider.GetUserFromJSON 1")
-	authUser, err := provider.GetUserFromJSON(c, bytes.NewReader(buf.Bytes()), tokenUser, settings)
+	authUser, err := provider.GetUserFromJSON(rctx, bytes.NewReader(buf.Bytes()), tokenUser, settings)
 	if err != nil {
 		return nil, model.NewAppError("LoginByOAuth", "api.user.login_by_oauth.parse.app_error",
 			map[string]any{"Service": service}, "", http.StatusBadRequest).Wrap(err)
@@ -771,11 +770,10 @@ func (a *App) LoginByOAuth(rctx request.CTX, service string, userData io.Reader,
 			map[string]any{"Service": service}, "", http.StatusBadRequest)
 	}
 
-	user, err := a.GetUserByAuth(model.NewPointer(*authUser.AuthData), service)
-	if err != nil {
-		if err.Id == MissingAuthAccountError {
-			// NOTE: merge conflict, needs teamID
-			user, err = a.CreateOAuthUser(rctx, service, bytes.NewReader(buf.Bytes()), inviteToken, inviteId, tokenUser)
+	user, appErr := a.GetUserByAuth(model.NewPointer(*authUser.AuthData), service)
+	if appErr != nil {
+		if appErr.Id == MissingAuthAccountError {
+			user, appErr = a.CreateOAuthUser(rctx, service, bytes.NewReader(buf.Bytes()), inviteToken, inviteId, tokenUser)
 		} else {
 			return nil, appErr
 		}
@@ -787,16 +785,12 @@ func (a *App) LoginByOAuth(rctx request.CTX, service string, userData io.Reader,
 			return nil, model.NewAppError("loginByOAuth", "api.user.login_by_oauth.bot_login_forbidden.app_error", nil, "", http.StatusForbidden)
 		}
 
-		if err = a.UpdateOAuthUserAttrs(rctx, bytes.NewReader(buf.Bytes()), user, provider, service, tokenUser); err != nil {
-			return nil, err
+		if appErr = a.UpdateOAuthUserAttrs(rctx, bytes.NewReader(buf.Bytes()), user, provider, service, tokenUser); appErr != nil {
+			return nil, appErr
 		}
 
-		// NOTE: merge conflict, both needed? which one?
-		if err = a.AddUserToTeamByInviteIfNeeded(rctx, user, inviteToken, inviteId); err != nil {
-			rctx.Logger().Warn("Failed to add user to team", mlog.Err(err))
-		}
-		if teamID != "" {
-			appErr = a.AddUserToTeamByTeamId(c, teamID, user)
+		if appErr = a.AddUserToTeamByInviteIfNeeded(rctx, user, inviteToken, inviteId); appErr != nil {
+			rctx.Logger().Warn("Failed to add user to team", mlog.Err(appErr))
 		}
 	}
 
@@ -873,14 +867,13 @@ func (a *App) CompleteSwitchWithOAuth(rctx request.CTX, service string, userData
 		return nil, model.NewAppError("CompleteSwitchWithOAuth", "api.user.complete_switch_with_oauth.blank_email.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	settings, err := provider.GetSSOSettings(c, a.Config(), service)
+	settings, err := provider.GetSSOSettings(rctx, a.Config(), service)
 	if err != nil {
 		return nil, model.NewAppError("CompleteSwitchWithOAuth", "api.user.oauth.get_settings.app_error",
 			map[string]any{"Service": service}, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	c.Logger().Error("<><> CompleteSwitchWithOAuth calling provider.GetUserFromJSON 2")
-	ssoUser, err1 := provider.GetUserFromJSON(c, userData, tokenUser, settings)
+	ssoUser, err1 := provider.GetUserFromJSON(rctx, userData, tokenUser, settings)
 	if err1 != nil {
 		return nil, model.NewAppError("CompleteSwitchWithOAuth", "api.user.complete_switch_with_oauth.parse.app_error",
 			map[string]any{"Service": service}, "", http.StatusBadRequest).Wrap(err1)
