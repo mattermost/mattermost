@@ -1078,7 +1078,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     updatedUser = userResult.data;
                 } else if (userResult.error) {
                     // Check if error is related to password verification
-                    if (this.isEditingOwnEmail() && (userResult.error.status_code === 400)) {
+                    if (this.isEditingOwnEmail() && userResult.error.status_code === 401) {
                         this.setState({
                             confirmPasswordError: this.props.intl.formatMessage({
                                 id: 'admin.userDetail.saveChangesModal.incorrectPassword',
