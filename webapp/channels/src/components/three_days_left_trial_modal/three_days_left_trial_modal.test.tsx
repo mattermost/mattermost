@@ -87,7 +87,7 @@ describe('components/three_days_left_trial_modal/three_days_left_trial_modal', (
         expect(screen.getByText('There is still time to explore what our paid plans can help you accomplish.')).toBeInTheDocument();
 
         // Three feature cards
-        expect(screen.getByText('Single Sign on (with OpenID, SAML, Google, 0365)')).toBeInTheDocument();
+        expect(screen.getByText('Use SSO (with OpenID, SAML, Google, O365)')).toBeInTheDocument();
         expect(screen.getByText('Synchronize your Active Directory/LDAP groups')).toBeInTheDocument();
         expect(screen.getByText('Provide controlled access to the System Console')).toBeInTheDocument();
 
@@ -110,7 +110,7 @@ describe('components/three_days_left_trial_modal/three_days_left_trial_modal', (
 
         // Shows limits panel instead of feature cards
         expect(screen.getByText('Limits')).toBeInTheDocument();
-        expect(screen.queryByText('Single Sign on (with OpenID, SAML, Google, 0365)')).not.toBeInTheDocument();
+        expect(screen.queryByText('Use SSO (with OpenID, SAML, Google, O365)')).not.toBeInTheDocument();
     });
 
     test('should call onExited when modal is closed', async () => {
