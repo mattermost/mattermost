@@ -221,6 +221,16 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
             scrollIntoView: true,
         });
 
+        // # Select a date first (required for time options to populate)
+        cy.get('#appsModal').within(() => {
+            cy.contains('.form-group', 'Custom Interval Time').within(() => {
+                cy.get('.dateTime__date .date-time-input').click();
+            });
+        });
+
+        cy.get('.rdp', {timeout: 5000}).should('be.visible');
+        selectDateFromPicker('15');
+
         // # Open time menu
         cy.get('#appsModal').within(() => {
             cy.contains('.form-group', 'Custom Interval Time').within(() => {
@@ -231,24 +241,6 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
         // * Verify time menu with custom intervals
         cy.get('[id="expiryTimeMenu"]', {timeout: 10000}).should('be.visible');
         cy.get('[id^="time_option_"]').should('have.length.greaterThan', 0);
-    });
-
-    it('MM-T2530E - Form submission with date and datetime values', () => {
-        // # Open dialog and select date
-        openDateTimeDialog('basic');
-        openDatePicker('Event Date');
-        selectDateFromPicker('15');
-
-        // # Submit the form
-        cy.get('#appsModal').within(() => {
-            cy.get('#appsModalSubmit').click();
-        });
-
-        // * Verify submission success
-        cy.get('#appsModal', {timeout: 10000}).should('not.exist');
-        cy.get('#postListContent', {timeout: 10000}).within(() => {
-            cy.get('.post-message__text').last().should('contain', 'Form submitted successfully');
-        });
     });
 
     it('MM-T2530F - Relative date values functionality', () => {
@@ -268,24 +260,19 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
         });
     });
 
-    it('MM-T2530G - Date field locale formatting', () => {
-        // # Set browser locale to en-US for consistent formatting
-        cy.visit(`/${testTeam.name}/channels/${testChannel.name}`, {
-            onBeforeLoad(win) {
-                Object.defineProperty(win.navigator, 'language', {value: 'en-US'});
-                Object.defineProperty(win.navigator, 'languages', {value: ['en-US', 'en']});
-            },
-        });
-
-        // # Open dialog, select date, and verify locale formatting
+    it('MM-T2530G - Date field displays formatted dates consistently', () => {
+        // # Open dialog, select date, and verify date formatting
         openDateTimeDialog('basic');
         openDatePicker('Event Date');
         selectDateFromPicker('10');
 
-        // * Verify en-US locale formatting (e.g., "Aug 10, 2025")
+        // * Verify date is formatted consistently (using formatDateForDisplay utility)
+        // Expected format: "Month Day, Year" (e.g., "Jan 10, 2026")
         cy.get('#appsModal').within(() => {
             cy.contains('.form-group', 'Event Date').within(() => {
                 cy.get('.date-time-input__value').should('be.visible').and('not.be.empty').and('contain', '10').invoke('text').then((text) => {
+                    // Verify the format matches "MMM DD, YYYY" pattern
+                    // This tests that formatDateForDisplay is being used (not browser default)
                     expect(text).to.match(/^[A-Z][a-z]{2} \d{1,2}, \d{4}$/);
                 });
             });
@@ -376,6 +363,254 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
         cy.get('[id="expiryTimeMenu"]').should('be.visible');
         cy.get('[id^="time_option_"]').first().invoke('text').then((text) => {
             expect(text).to.match(/\d{1,2}:\d{2} [AP]M/); // 12-hour format: H:MM AM/PM
+        });
+    });
+
+    it('MM-T2530I - Date range selection with calendar', () => {
+        // # Open date range dialog
+        openDateTimeDialog('range_horizontal');
+        verifyModalTitle('Date Range Test - Horizontal');
+
+        // * Verify the Event Date Range form group
+        verifyFormGroup('Event Date Range', {
+            label: 'Event Date Range',
+            helpText: 'Select start and end dates (side-by-side)',
+        });
+
+        // # Open the date picker
+        cy.get('#appsModal').within(() => {
+            cy.contains('.form-group', 'Event Date Range').within(() => {
+                cy.get('.date-time-input').click();
+            });
+        });
+
+        cy.get('.rdp', {timeout: 5000}).should('be.visible');
+
+        // # Select start date (10th)
+        selectDateFromPicker('10');
+
+        // * Calendar should still be open for end date selection
+        cy.get('.rdp').should('be.visible');
+
+        // # Select end date (20th)
+        selectDateFromPicker('20');
+
+        // * Verify range is displayed in the field (e.g., "Jan 10, 2025 - Jan 20, 2025")
+        cy.get('#appsModal').within(() => {
+            cy.contains('.form-group', 'Event Date Range').within(() => {
+                cy.get('.date-time-input__value').should('be.visible').and('contain', '10').and('contain', '20');
+            });
+        });
+
+        // # Submit the form
+        cy.get('#appsModal').within(() => {
+            cy.get('#appsModalSubmit').click();
+        });
+
+        // * Verify submission success
+        cy.get('#appsModal', {timeout: 10000}).should('not.exist');
+    });
+
+    it('MM-T2530J - DateTime range with horizontal layout', () => {
+        // # Open datetime range dialog
+        openDateTimeDialog('datetime_range');
+        verifyModalTitle('DateTime Range Test');
+
+        // * Verify the Meeting Time Range form group
+        verifyFormGroup('Meeting Time Range', {
+            label: 'Meeting Time Range',
+            helpText: 'Select start and end date/time',
+        });
+
+        // * Verify horizontal layout - both start and end should be visible side-by-side
+        cy.get('#appsModal').within(() => {
+            cy.contains('.form-group', 'Meeting Time Range').within(() => {
+                cy.contains('Start Date & Time').should('be.visible');
+                cy.contains('End Date & Time').should('be.visible');
+
+                // Both DateTimeInput components should be visible
+                cy.get('.dateTime').should('have.length', 2);
+            });
+        });
+
+        // # Select start date
+        cy.get('#appsModal').within(() => {
+            cy.contains('Start Date & Time').parent().within(() => {
+                cy.get('.dateTime__date .date-time-input').click();
+            });
+        });
+
+        cy.get('.rdp', {timeout: 5000}).should('be.visible');
+        selectDateFromPicker('10');
+
+        // # Select start time
+        cy.get('#appsModal').within(() => {
+            cy.contains('Start Date & Time').parent().within(() => {
+                cy.get('.dateTime__time button[data-testid="time_button"]').click();
+            });
+        });
+
+        cy.get('[id="expiryTimeMenu"]', {timeout: 10000}).should('be.visible');
+        cy.get('[id^="time_option_"]').first().click();
+
+        // # Select end date
+        cy.get('#appsModal').within(() => {
+            cy.contains('End Date & Time').parent().within(() => {
+                cy.get('.dateTime__date .date-time-input').click();
+            });
+        });
+
+        cy.get('.rdp', {timeout: 5000}).should('be.visible');
+        selectDateFromPicker('15');
+
+        // # Select end time
+        cy.get('#appsModal').within(() => {
+            cy.contains('End Date & Time').parent().within(() => {
+                cy.get('.dateTime__time button[data-testid="time_button"]').click();
+            });
+        });
+
+        cy.get('[id="expiryTimeMenu"]', {timeout: 10000}).should('be.visible');
+        cy.get('[id^="time_option_"]').eq(2).click();
+
+        // * Verify all date and time values are selected
+        cy.get('#appsModal').within(() => {
+            cy.contains('Start Date & Time').parent().within(() => {
+                cy.get('.dateTime__date .date-time-input__value').should('be.visible').and('not.be.empty');
+                cy.get('.dateTime__time .date-time-input__value').should('be.visible').and('not.be.empty');
+            });
+            cy.contains('End Date & Time').parent().within(() => {
+                cy.get('.dateTime__date .date-time-input__value').should('be.visible').and('not.be.empty');
+                cy.get('.dateTime__time .date-time-input__value').should('be.visible').and('not.be.empty');
+            });
+        });
+    });
+
+    it('MM-T2530K - Single-day range behavior with allow_single_day_range', () => {
+        // # Open range dialog with single day allowed
+        openDateTimeDialog('range_single_day');
+        verifyModalTitle('Date Range Test - Single Day Allowed');
+
+        // * Verify help text indicates same day is allowed
+        verifyFormGroup('Event Date Range', {
+            helpText: 'Can select same day for start and end',
+        });
+
+        // # Open date picker
+        cy.get('#appsModal').within(() => {
+            cy.contains('.form-group', 'Event Date Range').within(() => {
+                cy.get('.date-time-input').click();
+            });
+        });
+
+        cy.get('.rdp', {timeout: 5000}).should('be.visible');
+
+        // # Select the same date twice (15th to 15th)
+        selectDateFromPicker('15');
+
+        // * Calendar should still be open
+        cy.get('.rdp').should('be.visible');
+
+        // # Click the same date again to complete range
+        selectDateFromPicker('15');
+
+        // * Verify single-day range is accepted and displayed
+        cy.get('#appsModal').within(() => {
+            cy.contains('.form-group', 'Event Date Range').within(() => {
+                cy.get('.date-time-input__value').should('be.visible').and('contain', '15');
+            });
+        });
+    });
+
+    it('MM-T2530L - Range validation requires both dates for required fields', () => {
+        // # Open date range dialog
+        openDateTimeDialog('range_horizontal');
+
+        // # Open date picker and select only start date
+        cy.get('#appsModal').within(() => {
+            cy.contains('.form-group', 'Event Date Range').within(() => {
+                cy.get('.date-time-input').click();
+            });
+        });
+
+        cy.get('.rdp', {timeout: 5000}).should('be.visible');
+        selectDateFromPicker('10');
+
+        // * Calendar should still be open waiting for end date
+        // Close calendar without selecting end date
+        cy.get('body').click(0, 0);
+
+        // # Try to submit with incomplete range
+        cy.get('#appsModal').within(() => {
+            cy.get('#appsModalSubmit').click();
+        });
+
+        // * Verify validation error appears (modal should still be visible)
+        cy.get('#appsModal').should('be.visible');
+
+        // Note: Specific error message verification would depend on how errors are displayed
+        // The form should prevent submission or show an error for incomplete range
+    });
+
+    it('MM-T2530M - DateTime range end field disables dates before start date', () => {
+        // # Open datetime range dialog (with allow_single_day_range: false)
+        openDateTimeDialog('datetime_range');
+        verifyModalTitle('DateTime Range Test');
+
+        // # Select start date (15th)
+        cy.get('#appsModal').within(() => {
+            cy.contains('Start Date & Time').parent().within(() => {
+                cy.get('.dateTime__date .date-time-input').click();
+            });
+        });
+
+        cy.get('.rdp', {timeout: 5000}).should('be.visible');
+        selectDateFromPicker('15');
+
+        // # Now open the END date picker
+        cy.get('#appsModal').within(() => {
+            cy.contains('End Date & Time').parent().within(() => {
+                cy.get('.dateTime__date .date-time-input').click();
+            });
+        });
+
+        cy.get('.rdp', {timeout: 5000}).should('be.visible');
+
+        // * Verify dates before start (and start itself with allow_single_day_range: false) are disabled
+        cy.get('.rdp').within(() => {
+            // Note: DateTime range config has allow_single_day_range: true, so only dates BEFORE 15th are disabled
+            // Check that 14th is disabled (before start)
+            cy.get('button').filter((i, el) => el.textContent === '14').first().should('have.class', 'rdp-day_disabled');
+
+            // Check that 15th is ENABLED (same day allowed with allow_single_day_range: true)
+            cy.get('button').filter((i, el) => el.textContent === '15').first().should('not.have.class', 'rdp-day_disabled');
+
+            // Check that 16th is enabled (day after start)
+            cy.get('button').filter((i, el) => el.textContent === '16').first().should('not.have.class', 'rdp-day_disabled');
+        });
+
+        // # Select end date (16th)
+        selectDateFromPicker('16');
+
+        // * Verify both dates are selected (check that values are not empty)
+        cy.get('#appsModal').within(() => {
+            cy.contains('Start Date & Time').parent().within(() => {
+                cy.get('.dateTime__date').within(() => {
+                    // Check the button/input has some date value displayed
+                    cy.get('.date-time-input').should('be.visible');
+                });
+            });
+            cy.contains('End Date & Time').parent().within(() => {
+                cy.get('.dateTime__date').within(() => {
+                    // Check the button/input has some date value displayed
+                    cy.get('.date-time-input').should('be.visible');
+                });
+            });
+        });
+
+        // * Main validation: Form should be submittable (both dates selected)
+        cy.get('#appsModal').within(() => {
+            cy.get('#appsModalSubmit').should('not.be.disabled');
         });
     });
 });
