@@ -13,7 +13,6 @@ import {isUseMilitaryTime} from 'selectors/preferences';
 
 import DatePicker from 'components/date_picker';
 import * as Menu from 'components/menu';
-import Timestamp from 'components/timestamp';
 
 import Constants from 'utils/constants';
 import {formatDateForDisplay} from 'utils/date_utils';
@@ -62,8 +61,8 @@ export const parseTimeString = (input: string): {hours: number; minutes: number}
     const trimmed = input.trim().toLowerCase();
 
     // Check for AM/PM
-    const hasAM = /am?$/.test(trimmed);
-    const hasPM = /pm?$/.test(trimmed);
+    const hasAM = (/am?$/).test(trimmed);
+    const hasPM = (/pm?$/).test(trimmed);
     const is12Hour = hasAM || hasPM;
 
     // Remove AM/PM and extra spaces
@@ -100,11 +99,9 @@ export const parseTimeString = (input: string): {hours: number; minutes: number}
                 hours += 12; // 1 PM = 13:00, but 12 PM stays 12
             }
         }
-    } else {
+    } else if (hours < 0 || hours > 23) {
         // 24-hour format validation
-        if (hours < 0 || hours > 23) {
-            return null;
-        }
+        return null;
     }
 
     return {hours, minutes};
@@ -338,8 +335,6 @@ const DateTimeInputContainer: React.FC<Props> = ({
             effectiveTime = allowManualTimeEntry ?
                 nowInTimezone :
                 getRoundedTime(nowInTimezone, timePickerInterval || 60);
-
-            console.log('handleDayChange - no existing time, using current time in', timezone, ':', effectiveTime.format(), 'manual entry:', allowManualTimeEntry);
         }
 
         if (modifiers.today) {
@@ -350,27 +345,24 @@ const DateTimeInputContainer: React.FC<Props> = ({
             }
             const roundedTime = getRoundedTime(baseTime, timePickerInterval);
             handleChange(roundedTime);
-        } else {
-            // Create moment in the target timezone with the selected calendar date
-            if (timezone) {
-                // Use moment.tz array syntax to create moment directly in timezone
-                // This is the same pattern used by manual entry (which works correctly)
-                const dayMoment = moment(day);
-                const targetDate = moment.tz([
-                    dayMoment.year(),
-                    dayMoment.month(),
-                    dayMoment.date(),
-                    effectiveTime.hour(),
-                    effectiveTime.minute(),
-                    0,
-                    0,
-                ], timezone);
+        } else if (timezone) {
+            // Use moment.tz array syntax to create moment directly in timezone
+            // This is the same pattern used by manual entry (which works correctly)
+            const dayMoment = moment(day);
+            const targetDate = moment.tz([
+                dayMoment.year(),
+                dayMoment.month(),
+                dayMoment.date(),
+                effectiveTime.hour(),
+                effectiveTime.minute(),
+                0,
+                0,
+            ], timezone);
 
-                handleChange(targetDate);
-            } else {
-                day.setHours(effectiveTime.hour(), effectiveTime.minute());
-                handleChange(moment(day));
-            }
+            handleChange(targetDate);
+        } else {
+            day.setHours(effectiveTime.hour(), effectiveTime.minute());
+            handleChange(moment(day));
         }
         handlePopperOpenState(false);
     };

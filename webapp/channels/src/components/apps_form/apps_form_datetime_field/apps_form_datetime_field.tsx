@@ -55,7 +55,7 @@ const AppsFormDateTimeField: React.FC<Props> = ({
     const timezone = locationTimezone || userTimezone;
 
     // Show timezone indicator when location_timezone is set
-    const showTimezoneIndicator = !!locationTimezone;
+    const showTimezoneIndicator = Boolean(locationTimezone);
 
     const momentValue = useMemo(() => {
         if (value) {
@@ -95,7 +95,7 @@ const AppsFormDateTimeField: React.FC<Props> = ({
         <div className='apps-form-datetime-input'>
             {showTimezoneIndicator && (
                 <div style={{fontSize: '11px', color: '#888', marginBottom: '8px', fontStyle: 'italic'}}>
-                    🌍 Times in {getTimezoneAbbreviation(timezone)}
+                    {'🌍 Times in ' + getTimezoneAbbreviation(timezone)}
                 </div>
             )}
             <DateTimeInput
