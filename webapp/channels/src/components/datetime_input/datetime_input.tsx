@@ -294,8 +294,9 @@ const DateTimeInputContainer: React.FC<Props> = ({
     // Auto-round time if it's not already on an interval boundary
     // This ensures consistent behavior across all callers (DND, Custom Status, Post Reminder, etc.)
     // Uses default 30-minute interval if not specified
+    // Skip for manual entry fields (user types exact minutes)
     useEffect(() => {
-        if (time) {
+        if (time && !allowManualTimeEntry) {
             const interval = timePickerInterval || CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES;
             const rounded = getRoundedTime(time, interval);
 
@@ -304,19 +305,19 @@ const DateTimeInputContainer: React.FC<Props> = ({
                 handleChange(rounded);
             }
         }
-    }, [time, timePickerInterval, handleChange]);
+    }, [time, timePickerInterval, handleChange, allowManualTimeEntry]);
 
     const setTimeAndOptions = () => {
-        if (!displayTime) {
-            return; // Skip time generation if no date selected
-        }
+        // Use displayTime if available, otherwise use currentTime for generating dropdown
+        // This ensures dropdown always has options even for optional fields with null time
+        const timeForOptions = displayTime || currentTime;
 
         // Use clone() to preserve timezone information
-        let startTime = displayTime.clone().startOf('day');
+        let startTime = timeForOptions.clone().startOf('day');
 
         // For form fields (allowPastDates=true), always start from beginning of day
         // For scheduling (allowPastDates=false), restrict to current time if today
-        if (!allowPastDates && currentTime.isSame(displayTime, 'date')) {
+        if (!allowPastDates && currentTime.isSame(timeForOptions, 'date')) {
             startTime = getRoundedTime(currentTime, timePickerInterval);
         }
 
