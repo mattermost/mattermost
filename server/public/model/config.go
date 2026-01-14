@@ -2806,15 +2806,9 @@ type AutoTranslationTimeoutsInMs struct {
 }
 
 // LibreTranslateProviderSettings configures the LibreTranslate translation provider.
-// Rate limiting settings based on benchmark findings for a single LibreTranslate instance
-// running on g4dn.xlarge GPU hardware:
-// - MaxConcurrency: 12 concurrent requests safely supported
-// - MaxRPS: 14 requests per second safely supported
 type LibreTranslateProviderSettings struct {
-	URL            *string `access:"site_localization,cloud_restrictable"` // LibreTranslate server URL
-	APIKey         *string `access:"site_localization,cloud_restrictable"` // Optional API key for authenticated requests
-	MaxConcurrency *int    `access:"site_localization,cloud_restrictable"` // Max concurrent HTTP requests, default: 12
-	MaxRPS         *int    `access:"site_localization,cloud_restrictable"` // Max requests per second, default: 14
+	URL    *string `access:"site_localization,cloud_restrictable"` // LibreTranslate server URL
+	APIKey *string `access:"site_localization,cloud_restrictable"` // Optional API key for authenticated requests
 }
 
 type AgentsProviderSettings struct {
@@ -2875,14 +2869,6 @@ func (s *LibreTranslateProviderSettings) SetDefaults() {
 
 	if s.APIKey == nil {
 		s.APIKey = NewPointer("")
-	}
-
-	if s.MaxConcurrency == nil {
-		s.MaxConcurrency = NewPointer(12)
-	}
-
-	if s.MaxRPS == nil {
-		s.MaxRPS = NewPointer(14)
 	}
 }
 
