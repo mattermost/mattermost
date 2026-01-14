@@ -170,9 +170,10 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		return nil, false, err
 	}
 	if foundPost != nil {
-		isMemberForPreviews := true
+		isMemberForPreviews = true
 		if previewPost := foundPost.GetPreviewPost(); previewPost != nil {
-			member, err := a.GetChannelMember(rctx, previewPost.Post.ChannelId, rctx.Session().UserId)
+			var member *model.ChannelMember
+			member, err = a.GetChannelMember(rctx, previewPost.Post.ChannelId, rctx.Session().UserId)
 			if err != nil || member == nil {
 				isMemberForPreviews = false
 			}

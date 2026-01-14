@@ -269,6 +269,8 @@ func (a *App) SanitizePostMetadataForUser(rctx request.CTX, post *model.Post, us
 		hasPermission, isMember = a.HasPermissionToReadChannel(rctx, userID, previewedChannel)
 		if !hasPermission {
 			removePermalinkMetadataFromPost(post)
+			// Since we remove the permalink metadata, we return true
+			isMember = true
 		}
 	}
 
