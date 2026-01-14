@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {DateTime} from 'luxon';
 import type {Moment} from 'moment-timezone';
 import moment from 'moment-timezone';
 import React, {useEffect, useState, useCallback, useRef} from 'react';
@@ -17,6 +16,7 @@ import * as Menu from 'components/menu';
 import Timestamp from 'components/timestamp';
 
 import Constants from 'utils/constants';
+import {formatDateForDisplay} from 'utils/date_utils';
 import {relativeFormatDate} from 'utils/datetime';
 import {isKeyPressed} from 'utils/keyboard';
 import {getCurrentMomentForTimezone, isBeforeTime} from 'utils/timezone';
@@ -291,6 +291,21 @@ const DateTimeInputContainer: React.FC<Props> = ({
         };
     }, [handleKeyDown]);
 
+    // Auto-round time if it's not already on an interval boundary
+    // This ensures consistent behavior across all callers (DND, Custom Status, Post Reminder, etc.)
+    // Uses default 30-minute interval if not specified
+    useEffect(() => {
+        if (time) {
+            const interval = timePickerInterval || CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES;
+            const rounded = getRoundedTime(time, interval);
+
+            // Only update if the time actually needs rounding
+            if (!rounded.isSame(time, 'minute')) {
+                handleChange(rounded);
+            }
+        }
+    }, [time, timePickerInterval, handleChange]);
+
     const setTimeAndOptions = () => {
         if (!displayTime) {
             return; // Skip time generation if no date selected
@@ -360,7 +375,12 @@ const DateTimeInputContainer: React.FC<Props> = ({
     };
 
     const formatDate = (date: Moment): string => {
-        return relativeDate ? relativeFormatDate(date, formatMessage) : DateTime.fromJSDate(date.toDate()).toLocaleString();
+        if (relativeDate) {
+            return relativeFormatDate(date, formatMessage);
+        }
+
+        // Use centralized date formatting utility
+        return formatDateForDisplay(date.toDate(), locale);
     };
 
     const calendarIcon = (

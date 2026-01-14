@@ -274,6 +274,8 @@ func TestCreatePost(t *testing.T) {
 	})
 
 	t.Run("not logged in", func(t *testing.T) {
+		defer th.LoginBasic(t)
+
 		resp, err := client.Logout(context.Background())
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
