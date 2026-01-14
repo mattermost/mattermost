@@ -827,7 +827,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             defaultDisplay: 'true',
             title: defineMessage({
                 id: 'user.settings.display.availabilityStatusOnPostsTitle',
-                defaultMessage: 'Show user availability on posts',
+                defaultMessage: 'Show online availability on profile images',
             }),
             firstOption: {
                 value: 'true',
@@ -1129,7 +1129,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 },
                 description: defineMessage({
                     id: 'user.settings.display.oneClickReactionsOnPostsDescription',
-                    defaultMessage: 'When enabled, you can react in one-click with recently used reactions when hovering over a message.',
+                    defaultMessage: 'When enabled, you can react quickly with recently used reactions when hovering over a message.',
                 }),
             });
         }

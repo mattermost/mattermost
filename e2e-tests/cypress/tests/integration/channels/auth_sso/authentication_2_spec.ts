@@ -61,14 +61,14 @@ describe('Authentication', () => {
 
         cy.get('#input_password-input').clear().type('less');
 
-        cy.findByText('Create Account').click();
+        cy.findByText('Create account').click();
 
         // * Assert the error is what is expected;
         cy.findByText('Your password must be 7-72 characters long.').should('be.visible');
 
         cy.get('#input_password-input').clear().type('greaterthan7');
 
-        cy.findByText('Create Account').click();
+        cy.findByText('Create account').click();
 
         // * Assert that we are not shown an MFA screen and instead a Teams You Can join page
         cy.findByText('Teams you can join:', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible');
@@ -114,7 +114,7 @@ describe('Authentication', () => {
 
         ['NOLOWERCASE123!', 'noupppercase123!', 'NoNumber!', 'NoSymbol123'].forEach((option) => {
             cy.get('#input_password-input').clear().type(option);
-            cy.findByText('Create Account').click();
+            cy.findByText('Create account').click();
 
             // * Assert the error is what is expected;
             cy.findByText('Your password must be 5-72 characters long and include both lowercase and uppercase letters, numbers, and special characters.').should('be.visible');

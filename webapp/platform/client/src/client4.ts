@@ -120,6 +120,7 @@ import type {
     PropertyValue,
 } from '@mattermost/types/properties';
 import type {Reaction} from '@mattermost/types/reactions';
+import type {Recap, CreateRecapRequest} from '@mattermost/types/recaps';
 import type {RemoteCluster, RemoteClusterAcceptInvite, RemoteClusterPatch, RemoteClusterWithPassword} from '@mattermost/types/remote_clusters';
 import type {UserReport, UserReportFilter, UserReportOptions} from '@mattermost/types/reports';
 import type {Role} from '@mattermost/types/roles';
@@ -451,6 +452,10 @@ export default class Client4 {
 
     getJobsRoute() {
         return `${this.getBaseRoute()}/jobs`;
+    }
+
+    getRecapsRoute() {
+        return `${this.getBaseRoute()}/recaps`;
     }
 
     getPluginsRoute() {
@@ -3301,6 +3306,49 @@ export default class Client4 {
         return this.doFetch<StatusOK>(
             `${this.getJobsRoute()}/${id}/cancel`,
             {method: 'post'},
+        );
+    };
+
+    // Recaps Routes
+    createRecap = (request: CreateRecapRequest) => {
+        return this.doFetch<Recap>(
+            `${this.getRecapsRoute()}`,
+            {method: 'post', body: JSON.stringify(request)},
+        );
+    };
+
+    getRecaps = (page = 0, perPage = PER_PAGE_DEFAULT) => {
+        return this.doFetch<Recap[]>(
+            `${this.getRecapsRoute()}${buildQueryString({page, per_page: perPage})}`,
+            {method: 'get'},
+        );
+    };
+
+    getRecap = (recapId: string) => {
+        return this.doFetch<Recap>(
+            `${this.getRecapsRoute()}/${recapId}`,
+            {method: 'get'},
+        );
+    };
+
+    markRecapAsRead = (recapId: string) => {
+        return this.doFetch<Recap>(
+            `${this.getRecapsRoute()}/${recapId}/read`,
+            {method: 'post'},
+        );
+    };
+
+    regenerateRecap = (recapId: string) => {
+        return this.doFetch<Recap>(
+            `${this.getRecapsRoute()}/${recapId}/regenerate`,
+            {method: 'post'},
+        );
+    };
+
+    deleteRecap = (recapId: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getRecapsRoute()}/${recapId}`,
+            {method: 'delete'},
         );
     };
 

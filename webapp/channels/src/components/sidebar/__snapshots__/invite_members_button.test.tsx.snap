@@ -53,7 +53,7 @@ exports[`components/sidebar/invite_members_button should match snapshot 1`] = `
             onClick={[Function]}
           >
             <div
-              aria-label="Invite Members"
+              aria-label="Invite Users"
               className="SidebarChannelNavigator__inviteMembersLhsButton"
             >
               <i
