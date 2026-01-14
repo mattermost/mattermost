@@ -439,8 +439,8 @@ export type AppFieldType = string;
 
 // DateTime field configuration
 export type DateTimeConfig = {
-    time_interval?: number;          // Minutes between time options (default: 60)
-    location_timezone?: string;      // IANA timezone for display (e.g., "America/Denver", "Asia/Tokyo")
+    time_interval?: number; // Minutes between time options (default: 60)
+    location_timezone?: string; // IANA timezone for display (e.g., "America/Denver", "Asia/Tokyo")
     allow_manual_time_entry?: boolean; // Allow text entry for time
 };
 
