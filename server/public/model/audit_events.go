@@ -257,6 +257,16 @@ const (
 	AuditEventBurnPost           = "burnPost"           // burn a post that was hidden due to burn on read
 )
 
+// Recaps
+const (
+	AuditEventCreateRecap     = "createRecap"     // create recap summarizing channel content
+	AuditEventGetRecap        = "getRecap"        // view a single recap
+	AuditEventGetRecaps       = "getRecaps"       // list user's recaps
+	AuditEventMarkRecapAsRead = "markRecapAsRead" // mark recap as read
+	AuditEventRegenerateRecap = "regenerateRecap" // regenerate recap with updated channel content
+	AuditEventDeleteRecap     = "deleteRecap"     // delete recap
+)
+
 // Preferences
 const (
 	AuditEventDeletePreferences = "deletePreferences" // delete user preferences
