@@ -358,9 +358,9 @@ type DialogElement struct {
 	MaxLength     int                  `json:"max_length"`
 	DataSource    string               `json:"data_source"`
 	DataSourceURL string               `json:"data_source_url,omitempty"`
-	Options    []*PostActionOptions `json:"options"`
-	MultiSelect bool                 `json:"multiselect"`
-	Refresh    bool                 `json:"refresh,omitempty"`
+	Options       []*PostActionOptions `json:"options"`
+	MultiSelect   bool                 `json:"multiselect"`
+	Refresh       bool                 `json:"refresh,omitempty"`
 
 	// Date/datetime field configuration
 	DateTimeConfig *DialogDateTimeConfig `json:"datetime_config,omitempty"`
