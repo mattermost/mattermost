@@ -225,7 +225,10 @@ func (s *SqlPageStore) SoftDeletePagePost(pageID, deleteByID string) error {
 		return errors.Wrap(execErr, "failed to delete Post")
 	}
 
-	rowsAffected, _ := result.RowsAffected()
+	rowsAffected, rowsErr := result.RowsAffected()
+	if rowsErr != nil {
+		return errors.Wrap(rowsErr, "failed to get rows affected")
+	}
 	if rowsAffected == 0 {
 		return store.NewErrNotFound("Post", pageID)
 	}
@@ -281,7 +284,10 @@ func (s *SqlPageStore) DeletePage(pageID string, deleteByID string) error {
 			return errors.Wrap(err, "failed to delete Post")
 		}
 
-		rowsAffected, _ := result.RowsAffected()
+		rowsAffected, err := result.RowsAffected()
+		if err != nil {
+			return errors.Wrap(err, "failed to get rows affected")
+		}
 		if rowsAffected == 0 {
 			return store.NewErrNotFound("Post", pageID)
 		}
@@ -322,7 +328,10 @@ func (s *SqlPageStore) RestorePage(pageID string) error {
 			return errors.Wrap(err, "failed to restore Post")
 		}
 
-		rowsAffected, _ := result.RowsAffected()
+		rowsAffected, rowsErr := result.RowsAffected()
+		if rowsErr != nil {
+			return errors.Wrap(rowsErr, "failed to get rows affected")
+		}
 		if rowsAffected == 0 {
 			return store.NewErrNotFound("Post", pageID)
 		}
@@ -416,7 +425,10 @@ func (s *SqlPageStore) Update(rctx request.CTX, page *model.Post) (*model.Post, 
 			return errors.Wrap(execErr, "failed to update page")
 		}
 
-		rowsAffected, _ := result.RowsAffected()
+		rowsAffected, rowsErr := result.RowsAffected()
+		if rowsErr != nil {
+			return errors.Wrap(rowsErr, "failed to get rows affected")
+		}
 		if rowsAffected == 0 {
 			return store.NewErrNotFound("Post", page.Id)
 		}
@@ -453,7 +465,7 @@ func (s *SqlPageStore) Update(rctx request.CTX, page *model.Post) (*model.Post, 
 
 		// Fetch updated post
 		selectUpdatedQuery := s.getQueryBuilder().
-			Select("p.*").
+			Select(postSliceColumnsWithName("p")...).
 			From("Posts p").
 			Where(sq.Eq{"p.Id": page.Id})
 
@@ -478,7 +490,7 @@ func (s *SqlPageStore) Update(rctx request.CTX, page *model.Post) (*model.Post, 
 
 func (s *SqlPageStore) GetPageChildren(postID string, options model.GetPostsOptions) (*model.PostList, error) {
 	query := s.getQueryBuilder().
-		Select("p.*").
+		Select(postSliceColumnsWithName("p")...).
 		From("Posts p").
 		Where(sq.Eq{
 			"p.PageParentId": postID,
@@ -519,7 +531,7 @@ func (s *SqlPageStore) GetPageAncestors(postID string) (*model.PostList, error) 
 
 func (s *SqlPageStore) GetChannelPages(channelID string) (*model.PostList, error) {
 	query := s.getQueryBuilder().
-		Select("p.*").
+		Select(postSliceColumnsWithName("p")...).
 		From("Posts p").
 		Where(sq.Eq{
 			"p.ChannelId": channelID,

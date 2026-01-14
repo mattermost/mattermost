@@ -5,19 +5,17 @@ import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {
-    BookmarkOutlineIcon,
-    ClockOutlineIcon,
-    ContentCopyIcon,
-    FilePdfOutlineIcon,
-    FolderMoveOutlineIcon,
-    FormatListBulletedIcon,
-    LinkVariantIcon,
-    OpenInNewIcon,
-    PencilOutlineIcon,
-    PlusIcon,
-    TrashCanOutlineIcon,
-} from '@mattermost/compass-icons/components';
+import BookmarkOutlineIcon from '@mattermost/compass-icons/components/bookmark-outline';
+import ClockOutlineIcon from '@mattermost/compass-icons/components/clock-outline';
+import ContentCopyIcon from '@mattermost/compass-icons/components/content-copy';
+import FilePdfOutlineIcon from '@mattermost/compass-icons/components/file-pdf-outline';
+import FolderMoveOutlineIcon from '@mattermost/compass-icons/components/folder-move-outline';
+import FormatListBulletedIcon from '@mattermost/compass-icons/components/format-list-bulleted';
+import LinkVariantIcon from '@mattermost/compass-icons/components/link-variant';
+import OpenInNewIcon from '@mattermost/compass-icons/components/open-in-new';
+import PencilOutlineIcon from '@mattermost/compass-icons/components/pencil-outline';
+import PlusIcon from '@mattermost/compass-icons/components/plus';
+import TrashCanOutlineIcon from '@mattermost/compass-icons/components/trash-can-outline';
 
 import {togglePageOutline} from 'actions/views/pages_hierarchy';
 

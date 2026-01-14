@@ -6355,6 +6355,10 @@
     "translation": "Error importing page. Failed to lookup parent page by import source ID."
   },
   {
+    "id": "app.import.import_page.parent_wrong_channel.app_error",
+    "translation": "Parent page is in a different channel."
+  },
+  {
     "id": "app.import.import_page.team_not_found.error",
     "translation": "Error importing page. Team with name \"{{.TeamName}}\" could not be found."
   },
@@ -7919,6 +7923,26 @@
     "translation": "An error occurred getting the team."
   },
   {
+    "id": "app.post.extract_image.agent_call_failed",
+    "translation": "Failed to call AI agent for image analysis."
+  },
+  {
+    "id": "app.post.extract_image.empty_response",
+    "translation": "Empty response from AI image analysis."
+  },
+  {
+    "id": "app.post.extract_image.file_not_found",
+    "translation": "Image file not found."
+  },
+  {
+    "id": "app.post.extract_image.invalid_action",
+    "translation": "Invalid image extraction action."
+  },
+  {
+    "id": "app.post.extract_image.not_image",
+    "translation": "File is not an image."
+  },
+  {
     "id": "app.post.get.app_error",
     "translation": "Unable to get the post."
   },
@@ -8077,10 +8101,6 @@
   {
     "id": "app.post.rewrite.invalid_action",
     "translation": "Invalid rewrite action."
-  },
-  {
-    "id": "app.post.rewrite.parse_response_failed",
-    "translation": "Failed to parse rewrite response from AI."
   },
   {
     "id": "app.post.save.app_error",

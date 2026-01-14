@@ -6,6 +6,7 @@ import {useEffect, useLayoutEffect, useState, useCallback, useRef} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
 
 import {getChannel, getChannelMember, selectChannel} from 'mattermost-redux/actions/channels';
@@ -128,23 +129,40 @@ export function useWikiPageData(
             let loadedChannel = channel;
 
             try {
-                if (!channel) {
-                    const channelResult = await dispatch(getChannel(channelId));
-                    if (channelResult.data) {
-                        loadedChannel = channelResult.data;
-                    }
+                // Parallelize independent fetches for better performance
+                const fetchPromises: Array<Promise<unknown>> = [];
+                const needsChannel = !channel;
+                const needsMember = !member;
+
+                if (needsChannel) {
+                    fetchPromises.push(dispatch(getChannel(channelId)));
+                }
+                if (needsMember) {
+                    fetchPromises.push(dispatch(getChannelMember(channelId, currentUserId)));
                 }
 
-                if (!member) {
-                    const result = await dispatch(getChannelMember(channelId, currentUserId));
+                if (fetchPromises.length > 0) {
+                    const results = await Promise.all(fetchPromises);
 
-                    // Check for permission error (non-member trying to access channel)
-                    if (result.error) {
-                        const defaultChannel = 'town-square';
-                        const teamName = currentTeamRef.current?.name || '';
-                        setLoading(false);
-                        historyRef.current.replace(`/error?type=channel_not_found&returnTo=/${teamName}/channels/${defaultChannel}`);
-                        return;
+                    // Process results in order
+                    let resultIndex = 0;
+                    if (needsChannel) {
+                        const channelResult = results[resultIndex++] as {data?: Channel};
+                        if (channelResult.data) {
+                            loadedChannel = channelResult.data;
+                        }
+                    }
+                    if (needsMember) {
+                        const memberResult = results[resultIndex] as {error?: {status_code: number}};
+
+                        // Check for permission error (non-member trying to access channel)
+                        if (memberResult.error) {
+                            const defaultChannel = 'town-square';
+                            const teamName = currentTeamRef.current?.name || '';
+                            setLoading(false);
+                            historyRef.current.replace(`/error?type=channel_not_found&returnTo=/${teamName}/channels/${defaultChannel}`);
+                            return;
+                        }
                     }
                 }
 

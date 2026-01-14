@@ -25,7 +25,7 @@ import {getPageTitle} from 'utils/post_utils';
 import type {PostDraft} from 'types/store/draft';
 
 import type {DraftPage} from '../utils/tree_builder';
-import {convertDraftToPagePost, getDescendantIds} from '../utils/tree_builder';
+import {convertDraftToPagePost} from '../utils/tree_builder';
 
 type UsePageMenuHandlersProps = {
     wikiId: string;
@@ -53,19 +53,75 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         return [...pagesWithoutDrafts, ...draftPosts];
     }, [pages, drafts]);
 
-    // Refs to track latest values and avoid callback recreation on every page/draft change
-    const allPagesRef = useRef(allPages);
-    const pagesRef = useRef(pages);
-    const draftsRef = useRef(drafts);
-    useEffect(() => {
-        allPagesRef.current = allPages;
+    // Build index records for O(1) lookups instead of O(n) .find() calls
+    const pageMap = useMemo(() => {
+        const map: Record<string, Post | DraftPage> = {};
+        allPages.forEach((p) => {
+            map[p.id] = p;
+        });
+        return map;
     }, [allPages]);
-    useEffect(() => {
-        pagesRef.current = pages;
+
+    const pagesMap = useMemo(() => {
+        const map: Record<string, Post> = {};
+        pages.forEach((p) => {
+            map[p.id] = p;
+        });
+        return map;
     }, [pages]);
-    useEffect(() => {
-        draftsRef.current = drafts;
+
+    const draftsMap = useMemo(() => {
+        const map: Record<string, PostDraft> = {};
+        drafts.forEach((d) => {
+            map[d.rootId] = d;
+        });
+        return map;
     }, [drafts]);
+
+    // Build parent→children index for efficient getDescendantIds (O(d) instead of O(n) per call)
+    const childrenByParent = useMemo(() => {
+        const map: Record<string, Array<Post | DraftPage>> = {};
+        allPages.forEach((page) => {
+            const parentId = page.page_parent_id || '__root__';
+            if (!map[parentId]) {
+                map[parentId] = [];
+            }
+            map[parentId].push(page);
+        });
+        return map;
+    }, [allPages]);
+
+    // Optimized getDescendantIds using childrenByParent index
+    const getDescendantIdsOptimized = useCallback((pageId: string): string[] => {
+        const result: string[] = [];
+        const traverse = (parentId: string) => {
+            const children = childrenByParent[parentId] || [];
+            children.forEach((child) => {
+                result.push(child.id);
+                traverse(child.id);
+            });
+        };
+        traverse(pageId);
+        return result;
+    }, [childrenByParent]);
+
+    // Refs to track latest values and avoid callback recreation on every page/draft change
+    const pageMapRef = useRef(pageMap);
+    const pagesMapRef = useRef(pagesMap);
+    const draftsMapRef = useRef(draftsMap);
+    const getDescendantIdsRef = useRef(getDescendantIdsOptimized);
+    useEffect(() => {
+        pageMapRef.current = pageMap;
+    }, [pageMap]);
+    useEffect(() => {
+        pagesMapRef.current = pagesMap;
+    }, [pagesMap]);
+    useEffect(() => {
+        draftsMapRef.current = draftsMap;
+    }, [draftsMap]);
+    useEffect(() => {
+        getDescendantIdsRef.current = getDescendantIdsOptimized;
+    }, [getDescendantIdsOptimized]);
 
     const [createPageParent, setCreatePageParent] = useState<{id: string; title: string} | null>(null);
     const [pageToMove, setPageToMove] = useState<{pageId: string; pageTitle: string; hasChildren: boolean} | null>(null);
@@ -122,7 +178,7 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         if (creatingPage) {
             return;
         }
-        const parentPage = allPagesRef.current.find((p) => p.id === pageId);
+        const parentPage = pageMapRef.current[pageId];
         const parentTitle = getPageTitle(parentPage);
 
         setCreatePageParent({
@@ -177,7 +233,7 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         if (renamingPage) {
             return;
         }
-        const page = allPagesRef.current.find((p) => p.id === pageId);
+        const page = pageMapRef.current[pageId];
         if (!page || !wikiId) {
             return;
         }
@@ -202,36 +258,36 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
                 onConfirm: async (newTitle: string) => {
                     setRenamingPage(true);
                     try {
-                        const isDraft = page.type === PageDisplayTypes.PAGE_DRAFT;
+                        // Check if there's a draft for this page (regardless of page.type)
+                        // This handles the case where user is editing an existing page - the hierarchy
+                        // shows the published page, but we need to update the draft
+                        const draft = draftsMapRef.current[pageId];
+                        const isDraft = page.type === PageDisplayTypes.PAGE_DRAFT || Boolean(draft);
 
-                        if (isDraft) {
-                            const draft = draftsRef.current.find((d) => d.rootId === pageId);
+                        if (isDraft && draft) {
+                            onCancelAutosave?.();
 
-                            if (draft) {
-                                onCancelAutosave?.();
+                            const {page_parent_id: pageParentId, has_published_version: hasPublishedVersion, ...otherProps} = draft.props || {};
+                            const propsToPreserve = {
+                                ...(pageParentId !== undefined && {page_parent_id: pageParentId}),
+                                ...(hasPublishedVersion !== undefined && {has_published_version: hasPublishedVersion}),
+                                ...otherProps,
+                            };
 
-                                const {page_parent_id: pageParentId, has_published_version: hasPublishedVersion, ...otherProps} = draft.props || {};
-                                const propsToPreserve = {
-                                    ...(pageParentId !== undefined && {page_parent_id: pageParentId}),
-                                    ...(hasPublishedVersion !== undefined && {has_published_version: hasPublishedVersion}),
-                                    ...otherProps,
-                                };
+                            const contentToSave = draft.message || '';
 
-                                const contentToSave = draft.message || '';
+                            const result = await dispatch(savePageDraft(
+                                channelId,
+                                wikiId,
+                                pageId,
+                                contentToSave,
+                                newTitle,
+                                draft.updateAt,
+                                propsToPreserve,
+                            )) as ActionResult<boolean>;
 
-                                const result = await dispatch(savePageDraft(
-                                    channelId,
-                                    wikiId,
-                                    pageId,
-                                    contentToSave,
-                                    newTitle,
-                                    draft.updateAt,
-                                    propsToPreserve,
-                                )) as ActionResult<boolean>;
-
-                                if (result.error) {
-                                    throw result.error;
-                                }
+                            if (result.error) {
+                                throw result.error;
                             }
                         } else {
                             const result = await dispatch(updatePage(pageId, newTitle, wikiId)) as ActionResult<Post>;
@@ -252,7 +308,7 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
     }, [wikiId, renamingPage, dispatch, formatMessage, channelId, onCancelAutosave]);
 
     const handleDuplicate = useCallback(async (pageId: string) => {
-        const page = allPagesRef.current.find((p) => p.id === pageId);
+        const page = pageMapRef.current[pageId];
         if (!page) {
             return;
         }
@@ -260,7 +316,8 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         try {
             await dispatch(duplicatePage(pageId, wikiId));
         } catch (error) {
-            // Error handled
+            // eslint-disable-next-line no-console
+            console.error('Failed to duplicate page:', error);
         }
     }, [wikiId, dispatch]);
 
@@ -275,17 +332,19 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
             }
             return [];
         } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error('Failed to fetch pages for wiki:', error);
             return [];
         }
     }, [channelId, dispatch]);
 
     const handleMove = useCallback(async (pageId: string) => {
-        const page = allPagesRef.current.find((p) => p.id === pageId);
+        const page = pageMapRef.current[pageId];
         if (!page) {
             return;
         }
         const pageTitle = getPageTitle(page);
-        const childCount = getDescendantIds(allPagesRef.current, pageId).length;
+        const childCount = getDescendantIdsRef.current(pageId).length;
         const hasChildren = childCount > 0;
 
         try {
@@ -320,7 +379,8 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
                 },
             }));
         } catch (error) {
-            // Error handled
+            // eslint-disable-next-line no-console
+            console.error('Failed to open move page modal:', error);
         }
     }, [channelId, dispatch, wikiId, fetchPagesForWiki]);
 
@@ -328,12 +388,12 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         if (deletingPageId) {
             return;
         }
-        const page = allPagesRef.current.find((p) => p.id === pageId);
+        const page = pageMapRef.current[pageId];
         if (!page) {
             return;
         }
         const isDraft = page.type === PageDisplayTypes.PAGE_DRAFT;
-        const childCount = isDraft ? 0 : getDescendantIds(allPagesRef.current, pageId).length;
+        const childCount = isDraft ? 0 : getDescendantIdsRef.current(pageId).length;
         const pageTitle = getPageTitle(page);
 
         // Store page info for deletion tracking
@@ -357,7 +417,7 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
                             onPageSelect?.('');
                         } else {
                             if (deleteChildren) {
-                                const descendantIds = getDescendantIds(allPagesRef.current, page.id);
+                                const descendantIds = getDescendantIdsRef.current(page.id);
                                 for (const descendantId of descendantIds.reverse()) {
                                     // eslint-disable-next-line no-await-in-loop
                                     const result = await dispatch(deletePage(descendantId, wikiId)) as ActionResult<boolean>;
@@ -383,7 +443,7 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
     }, [deletingPageId, dispatch, wikiId, onPageSelect]);
 
     const handleBookmarkInChannel = useCallback((pageId: string) => {
-        const page = allPagesRef.current.find((p) => p.id === pageId);
+        const page = pageMapRef.current[pageId];
         if (!page) {
             return;
         }
@@ -395,7 +455,7 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
             const actualPageId = page.props?.page_id as string | undefined;
             if (actualPageId) {
                 // Find the actual published page
-                const actualPage = pagesRef.current.find((p) => p.id === actualPageId);
+                const actualPage = pagesMapRef.current[actualPageId];
                 if (actualPage) {
                     const pageTitle = getPageTitle(actualPage);
                     setPageToBookmark({pageId: actualPageId, pageTitle});

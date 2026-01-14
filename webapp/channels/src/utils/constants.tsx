@@ -85,6 +85,11 @@ export const PagePropsKeys = {
     PAGE_PARENT_ID: 'page_parent_id',
     ORIGINAL_PAGE_UPDATE_AT: 'original_page_update_at',
     ORIGINAL_PAGE_EDIT_AT: 'original_page_edit_at',
+
+    // Translation metadata
+    TRANSLATED_FROM: 'translated_from', // Source page ID for translated pages
+    TRANSLATION_LANGUAGE: 'translation_language', // BCP-47 language code
+    TRANSLATIONS: 'translations', // Array of {page_id, language_code} on source pages
 } as const;
 
 export const Preferences = {

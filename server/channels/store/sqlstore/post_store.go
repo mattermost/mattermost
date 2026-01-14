@@ -1507,7 +1507,7 @@ func (s *SqlPostStore) GetPostsSince(rctx request.CTX, options model.GetPostsSin
 	       LIMIT 1000)
 	(SELECT ` + postColumnsCte + replyCountQuery2 + ` FROM cte)
 	UNION
-	(SELECT *` + postColumnsP1 + replyCountQuery1 + ` FROM Posts p1 WHERE id in (SELECT rootid FROM cte) AND (p1.Type IS NULL OR p1.Type NOT IN ('page')))
+	(SELECT ` + postColumnsP1 + replyCountQuery1 + ` FROM Posts p1 WHERE id in (SELECT rootid FROM cte) AND (p1.Type IS NULL OR p1.Type NOT IN ('page')))
 	ORDER BY CreateAt ` + order
 
 	params = []any{options.Time, options.ChannelId}
@@ -3595,7 +3595,7 @@ func (s *SqlPostStore) restoreFilesForSubQuery(tx *sqlxTxWrapper, postIdSubQuery
 // Used for import idempotency to find pages by import_source_id.
 func (s *SqlPostStore) GetPostsByTypeAndProps(channelId, postType, propKey, propValue string) ([]*model.Post, error) {
 	query := s.getQueryBuilder().
-		Select("*").
+		Select(postSliceColumns()...).
 		From("Posts").
 		Where(sq.Eq{"ChannelId": channelId}).
 		Where(sq.Eq{"Type": postType}).
@@ -3622,7 +3622,7 @@ func (s *SqlPostStore) GetPostsByTypeAndPropsGlobal(postType, propKey, propValue
 	const importLookupLimit = 100 // Sufficient for idempotency - imports should have unique source IDs
 
 	query := s.getQueryBuilder().
-		Select("*").
+		Select(postSliceColumns()...).
 		From("Posts").
 		Where(sq.Eq{"Type": postType}).
 		Where(sq.Eq{"DeleteAt": 0}).
@@ -3647,7 +3647,7 @@ func (s *SqlPostStore) GetPostsByTypeAndPropsGlobal(postType, propKey, propValue
 // Used for import idempotency to find comments by import_source_id.
 func (s *SqlPostStore) GetPostRepliesByTypeAndProps(rootId, postType, propKey, propValue string) ([]*model.Post, error) {
 	query := s.getQueryBuilder().
-		Select("*").
+		Select(postSliceColumns()...).
 		From("Posts").
 		Where(sq.Eq{"RootId": rootId}).
 		Where(sq.Eq{"Type": postType}).
@@ -3672,7 +3672,7 @@ func (s *SqlPostStore) GetPostRepliesByTypeAndProps(rootId, postType, propKey, p
 // This is used to find inline comments during import, which store page_id in props instead of RootId.
 func (s *SqlPostStore) GetPageCommentsByPageIdPropAndImportSourceId(pageId, importSourceId string) ([]*model.Post, error) {
 	query := s.getQueryBuilder().
-		Select("*").
+		Select(postSliceColumns()...).
 		From("Posts").
 		Where(sq.Eq{"Type": model.PostTypePageComment}).
 		Where(sq.Eq{"DeleteAt": 0}).

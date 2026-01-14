@@ -1,0 +1,35 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.image-extraction-dialog {
+    .modal-body {
+        padding: 24px;
+    }
+}
+
+.image-extraction-dialog-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    text-align: center;
+}
+
+.image-extraction-dialog-spinner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--button-bg);
+}
+
+.image-extraction-dialog-description {
+    margin: 0;
+    color: var(--center-channel-color);
+    font-size: 14px;
+}
+
+.image-extraction-dialog-progress {
+    margin: 0;
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+    font-size: 12px;
+}

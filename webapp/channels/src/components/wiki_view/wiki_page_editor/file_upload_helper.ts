@@ -12,6 +12,15 @@ import type {UploadFile} from 'actions/file_actions';
 import Constants from 'utils/constants';
 import {generateId} from 'utils/utils';
 
+// Blocked file extensions for security - executable or potentially dangerous file types
+const BLOCKED_EXTENSIONS = [
+    '.exe', '.dll', '.bat', '.cmd', '.msi', '.com', '.scr', '.pif', // Windows executables
+    '.vbs', '.vbe', '.js', '.jse', '.wsf', '.wsh', '.ps1', '.hta', '.cpl', // Windows scripts
+    '.jar', // Java
+    '.app', '.dmg', '.pkg', // macOS
+    '.deb', '.rpm', '.bin', '.elf', '.sh', // Linux
+];
+
 export type FileUploadResult = {
     fileInfo: FileInfo;
     clientId: string;
@@ -48,6 +57,83 @@ export function isVideoFile(file: File): boolean {
 }
 
 /**
+ * Get file extension from filename (including the dot)
+ */
+function getFileExtension(filename: string): string {
+    const lastDot = filename.lastIndexOf('.');
+    if (lastDot === -1) {
+        return '';
+    }
+    return filename.substring(lastDot).toLowerCase();
+}
+
+/**
+ * Check if a file type is blocked (executable or dangerous)
+ */
+export function isBlockedFileType(file: File): boolean {
+    const ext = getFileExtension(file.name);
+    return BLOCKED_EXTENSIONS.includes(ext);
+}
+
+/**
+ * Validate any file for upload
+ * Checks file size and blocks dangerous executables
+ * Unlike validateMediaFile, this allows all file types except blocked ones
+ */
+export function validateFile(
+    file: File,
+    maxFileSize: number,
+    intl: IntlShape,
+): FileValidationResult {
+    // Check for empty or whitespace-only filenames
+    if (!file.name || file.name.trim() === '') {
+        return {
+            valid: false,
+            error: intl.formatMessage({
+                id: 'file_upload.emptyFilename',
+                defaultMessage: 'File name cannot be empty',
+            }),
+        };
+    }
+
+    // Check for zero-byte files
+    if (file.size === 0) {
+        return {
+            valid: false,
+            error: intl.formatMessage({
+                id: 'file_upload.zeroBytesFile',
+                defaultMessage: 'You are uploading an empty file: {filename}',
+            }, {filename: file.name}),
+        };
+    }
+
+    // Check file size
+    if (file.size > maxFileSize) {
+        const maxSizeMB = maxFileSize / 1048576;
+        return {
+            valid: false,
+            error: intl.formatMessage({
+                id: 'file_upload.fileAbove',
+                defaultMessage: 'File above {max}MB could not be uploaded: {filename}',
+            }, {max: maxSizeMB, filename: file.name}),
+        };
+    }
+
+    // Check for blocked file types (executables)
+    if (isBlockedFileType(file)) {
+        return {
+            valid: false,
+            error: intl.formatMessage({
+                id: 'file_upload.blocked_type',
+                defaultMessage: 'Executable files cannot be uploaded: {filename}',
+            }, {filename: file.name}),
+        };
+    }
+
+    return {valid: true};
+}
+
+/**
  * Validate file for upload (adapted from FileUpload component)
  * Checks file size and type for images and videos
  */
@@ -56,6 +142,17 @@ export function validateMediaFile(
     maxFileSize: number,
     intl: IntlShape,
 ): FileValidationResult {
+    // Check for empty or whitespace-only filenames
+    if (!file.name || file.name.trim() === '') {
+        return {
+            valid: false,
+            error: intl.formatMessage({
+                id: 'file_upload.emptyFilename',
+                defaultMessage: 'File name cannot be empty',
+            }),
+        };
+    }
+
     // Check for zero-byte files
     if (file.size === 0) {
         return {

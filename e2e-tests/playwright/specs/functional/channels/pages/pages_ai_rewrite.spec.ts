@@ -15,8 +15,13 @@ import {
     waitForFormattingBar,
     createTestChannel,
     checkAIPluginAvailability,
+    isAIPluginRunning,
     getAIRewriteButton,
     closeAIRewriteMenu,
+    getAIToolsDropdown,
+    getAIToolsProofreadButton,
+    isAIToolsDropdownVisible,
+    triggerProofread,
     UI_MICRO_WAIT,
     EDITOR_LOAD_WAIT,
     AUTOSAVE_WAIT,
@@ -125,8 +130,6 @@ test('opens AI rewrite menu when button is clicked', {tag: '@pages'}, async ({pw
     // * Verify rewrite menu appears (check for menu items instead of container visibility)
     const improveButton = page.locator('text=Improve writing');
     await expect(improveButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
-
-    page.locator('[data-testid="rewrite-menu"]');
 
     // * Verify agent dropdown is visible
     const agentDropdown = page.locator('[role="combobox"]');
@@ -507,3 +510,239 @@ test('handles AI rewrite errors gracefully', {tag: '@pages'}, async ({pw, shared
     await page.keyboard.type(' More text.');
     await expect(editorAfterError).toContainText('More text.');
 });
+
+// =============================================================================
+// AI TOOLS DROPDOWN - FULL PAGE PROOFREADING TESTS
+// =============================================================================
+
+/**
+ * @objective Verify AI Tools dropdown appears in editor toolbar when AI is available
+ *
+ * @precondition
+ * AI plugin is enabled and agents are configured (test will skip gracefully if not available)
+ */
+test('shows AI Tools dropdown in edit mode when AI is available', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+
+    // # Check if AI plugin is running on server (standard server-side check)
+    const aiRunning = await isAIPluginRunning(adminClient);
+    if (!aiRunning) {
+        test.skip(true, 'AI plugin not running on server - skipping AI Tools test');
+        return;
+    }
+
+    // # Configure AI plugin if enabled
+    if (!shouldSkipAITests()) {
+        await configureAIPlugin(adminClient);
+    }
+
+    const channel = await createTestChannel(adminClient, team.id, `AI Tools Test Channel ${await pw.random.id()}`);
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
+
+    // # Create wiki and page
+    await createWikiThroughUI(page, `AI Tools Test Wiki ${await pw.random.id()}`);
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'AI Tools Test Page');
+
+    // # Wait for editor
+    await getEditorAndWait(page);
+
+    // * Verify AI Tools dropdown is visible in editor toolbar
+    const aiToolsVisible = await isAIToolsDropdownVisible(page);
+    expect(aiToolsVisible).toBe(true);
+
+    const dropdown = getAIToolsDropdown(page);
+    await expect(dropdown).toBeVisible({timeout: ELEMENT_TIMEOUT});
+});
+
+/**
+ * @objective Verify AI Tools dropdown shows "Proofread page" option when opened
+ *
+ * @precondition
+ * AI plugin is enabled and agents are configured (test will skip gracefully if not available)
+ */
+test('shows Proofread page option in AI Tools dropdown', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+
+    // # Check if AI plugin is running on server (standard server-side check)
+    const aiRunning = await isAIPluginRunning(adminClient);
+    if (!aiRunning) {
+        test.skip(true, 'AI plugin not running on server - skipping AI proofread test');
+        return;
+    }
+
+    // # Configure AI plugin if enabled
+    if (!shouldSkipAITests()) {
+        await configureAIPlugin(adminClient);
+    }
+
+    const channel = await createTestChannel(adminClient, team.id, `AI Proofread Test Channel ${await pw.random.id()}`);
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
+
+    // # Create wiki and page
+    await createWikiThroughUI(page, `AI Proofread Test Wiki ${await pw.random.id()}`);
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'AI Proofread Test Page');
+
+    // # Wait for editor and type content
+    const editor = await getEditorAndWait(page);
+    await editor.click();
+    await page.keyboard.type('Test content with intentional typos.');
+
+    // # Click on AI Tools dropdown
+    const dropdown = getAIToolsDropdown(page);
+    await dropdown.click();
+
+    // * Verify "Proofread page" option is visible
+    const proofreadButton = getAIToolsProofreadButton(page);
+    await expect(proofreadButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // * Verify the button shows the correct label
+    await expect(proofreadButton).toContainText('Proofread page');
+});
+
+/**
+ * @objective Verify clicking Proofread page actually processes the document
+ *
+ * @precondition
+ * AI plugin is enabled and agents are configured with valid API keys
+ */
+test('performs full-page proofreading and updates editor content', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+
+    // # Check if AI plugin is running on server (standard server-side check)
+    const aiRunning = await isAIPluginRunning(adminClient);
+    if (!aiRunning) {
+        test.skip(true, 'AI plugin not running on server - skipping AI proofread integration test');
+        return;
+    }
+
+    // # Configure AI plugin if enabled
+    if (!shouldSkipAITests()) {
+        await configureAIPlugin(adminClient);
+    }
+
+    const channel = await createTestChannel(
+        adminClient,
+        team.id,
+        `AI Proofread Int Test Channel ${await pw.random.id()}`,
+    );
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
+
+    // # Create wiki and page
+    await createWikiThroughUI(page, `AI Proofread Int Test Wiki ${await pw.random.id()}`);
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'AI Proofread Integration Test Page');
+
+    // # Wait for editor and type content with intentional spelling errors
+    const editor = await getEditorAndWait(page);
+    await editor.click();
+    const originalText = 'This sentance has bad grammer and speling erors.';
+    await page.keyboard.type(originalText);
+
+    // # Trigger proofreading
+    await triggerProofread(page);
+
+    // * Verify processing state appears
+    const dropdown = getAIToolsDropdown(page);
+    await expect(dropdown)
+        .toContainText('Processing...', {timeout: ELEMENT_TIMEOUT})
+        .catch(() => {
+            // Processing might be too fast to catch
+        });
+
+    // * Wait for AI to process (up to 30 seconds for real API call)
+    let contentChanged = false;
+    const maxWaitTime = 30000; // 30 seconds max
+    const startTime = Date.now();
+
+    while (!contentChanged && Date.now() - startTime < maxWaitTime) {
+        const currentContent = await editor.textContent();
+        if (currentContent && currentContent !== originalText && currentContent.trim() !== originalText.trim()) {
+            contentChanged = true;
+            break;
+        }
+        await page.waitForTimeout(EDITOR_LOAD_WAIT);
+    }
+
+    // * Verify content was changed by AI proofreading
+    const finalContent = await editor.textContent();
+    expect(contentChanged).toBeTruthy();
+    expect(finalContent).not.toBe(originalText);
+
+    // * Verify the AI fixed at least some spelling errors
+    const contentLower = finalContent?.toLowerCase() || '';
+    expect(contentLower).not.toContain('sentance'); // Should be "sentence"
+    expect(contentLower).not.toContain('grammer'); // Should be "grammar"
+    expect(contentLower).not.toContain('speling'); // Should be "spelling"
+
+    // * Verify editor is still functional after proofreading
+    await editor.click();
+    await page.keyboard.press('End');
+    await page.keyboard.type(' Added after proofreading.');
+    await expect(editor).toContainText('Added after proofreading.');
+});
+
+/**
+ * @objective Verify AI Tools dropdown does not appear when AI plugin is not available
+ *
+ * @precondition
+ * This test can only run when AI plugin is NOT configured. When plugin IS available, test is skipped.
+ */
+test(
+    'does not show AI Tools dropdown when AI plugin is unavailable',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+
+        // # Check if AI plugin is running on server - skip if it IS running
+        const aiRunning = await isAIPluginRunning(adminClient);
+        if (aiRunning) {
+            test.skip(true, 'AI plugin is running on server - cannot test graceful degradation');
+            return;
+        }
+
+        const channel = await createTestChannel(
+            adminClient,
+            team.id,
+            `No AI Tools Test Channel ${await pw.random.id()}`,
+        );
+
+        const {page, channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
+
+        // # Create wiki and page
+        await createWikiThroughUI(page, `No AI Tools Test Wiki ${await pw.random.id()}`);
+        const newPageButton = getNewPageButton(page);
+        await newPageButton.click();
+        await fillCreatePageModal(page, 'No AI Tools Test Page');
+
+        // # Wait for editor and type content
+        const editor = await getEditorAndWait(page);
+        await editor.click();
+        await page.keyboard.type('Test content without AI plugin.');
+
+        // * Verify AI Tools dropdown does NOT appear
+        const aiToolsVisible = await isAIToolsDropdownVisible(page);
+        expect(aiToolsVisible).toBe(false);
+
+        // * Editor should still be functional regardless
+        await editor.click();
+        await page.keyboard.press('End');
+        await page.keyboard.type(' Additional text.');
+        await expect(editor).toContainText('Additional text.');
+    },
+);

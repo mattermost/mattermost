@@ -6,20 +6,20 @@ import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {defineMessage, FormattedMessage, useIntl} from 'react-intl';
 
-import {
-    AiSummarizeIcon,
-    CreationOutlineIcon,
-    TextShortIcon,
-    TextLongIcon,
-    AutoFixIcon,
-    SpellcheckIcon,
-} from '@mattermost/compass-icons/components';
+import AiSummarizeIcon from '@mattermost/compass-icons/components/ai-summarize';
+import AutoFixIcon from '@mattermost/compass-icons/components/auto-fix';
+import CreationOutlineIcon from '@mattermost/compass-icons/components/creation-outline';
+import SpellcheckIcon from '@mattermost/compass-icons/components/spellcheck';
+import TextLongIcon from '@mattermost/compass-icons/components/text-long';
+import TextShortIcon from '@mattermost/compass-icons/components/text-short';
 import type {Agent} from '@mattermost/types/agents';
 
 import AgentDropdown from 'components/common/agents/agent_dropdown';
 import * as Menu from 'components/menu';
 import Input from 'components/widgets/inputs/input/input';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
+import {LanguagePickerSubmenu} from 'components/wiki_view/wiki_page_editor/ai';
+import type {Language} from 'components/wiki_view/wiki_page_editor/ai';
 
 import {IconContainer} from './formatting_bar/formatting_icon';
 import {RewriteAction} from './rewrite_action';
@@ -83,6 +83,7 @@ export interface RewriteMenuProps {
     onUndoMessage: () => void;
     onRegenerateMessage: () => void;
     customPromptRef: React.RefObject<HTMLInputElement>;
+    onTranslate?: (language: Language) => void;
 }
 
 export default function RewriteMenu({
@@ -103,6 +104,7 @@ export default function RewriteMenu({
     onUndoMessage,
     onRegenerateMessage,
     customPromptRef,
+    onTranslate,
 }: RewriteMenuProps) {
     const {formatMessage} = useIntl();
 
@@ -261,6 +263,15 @@ export default function RewriteMenu({
                         onClick={onMenuAction(item.action)}
                     />
                 ))}
+                {showMenuItem && onTranslate && (
+                    <>
+                        <Menu.Separator/>
+                        <LanguagePickerSubmenu
+                            onSelectLanguage={onTranslate}
+                            disabled={isProcessing}
+                        />
+                    </>
+                )}
             </Menu.Container>
         </div>
     );

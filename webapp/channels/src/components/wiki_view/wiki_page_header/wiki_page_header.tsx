@@ -14,6 +14,8 @@ import BookmarkChannelSelect from 'components/bookmark_channel_select';
 
 import type {GlobalState} from 'types/store';
 
+import TranslationIndicator from './translation_indicator';
+
 import PageActionsMenu from '../../pages_hierarchy_panel/page_actions_menu';
 import PageBreadcrumb from '../page_breadcrumb';
 
@@ -36,6 +38,7 @@ type Props = {
     onMove?: () => void;
     onDelete?: () => void;
     onVersionHistory?: () => void;
+    onNavigateToPage?: (pageId: string) => void;
     pageLink?: string;
     canEdit?: boolean;
 };
@@ -59,6 +62,7 @@ const WikiPageHeader = ({
     onMove,
     onDelete,
     onVersionHistory,
+    onNavigateToPage,
     pageLink,
     canEdit = true,
 }: Props) => {
@@ -112,6 +116,12 @@ const WikiPageHeader = ({
                     className='PagePane__controls'
                     data-testid='wiki-page-controls'
                 >
+                    {!isDraft && pageId && (
+                        <TranslationIndicator
+                            pageId={pageId}
+                            onNavigateToPage={onNavigateToPage}
+                        />
+                    )}
                     {showUnpublishedIndicator && (
                         <span
                             className='PagePane__unpublished-indicator'

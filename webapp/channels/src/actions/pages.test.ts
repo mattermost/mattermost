@@ -7,6 +7,7 @@ import {Client4} from 'mattermost-redux/client';
 import * as Actions from 'actions/pages';
 
 import mockStore from 'tests/test_store';
+import {PagePropsKeys} from 'utils/constants';
 
 jest.mock('mattermost-redux/client');
 
@@ -119,6 +120,211 @@ describe('actions/pages - Page Status', () => {
                 expect(actions[0].type).toBe('RECEIVED_POST');
                 expect(actions[0].data.props.page_status).toBe(status);
             }
+        });
+    });
+});
+
+describe('actions/pages - Translation Metadata', () => {
+    let testStore: ReturnType<typeof mockStore>;
+
+    beforeEach(() => {
+        testStore = mockStore({
+            entities: {
+                posts: {
+                    posts: {},
+                },
+                users: {
+                    currentUserId: 'test_user_id',
+                },
+            },
+        });
+        jest.clearAllMocks();
+    });
+
+    describe('setPageTranslationMetadata', () => {
+        test('should set translation metadata on a page', async () => {
+            const pageId = 'translated_page_id';
+            const sourcePageId = 'source_page_id';
+            const languageCode = 'es';
+            const mockPage = {
+                id: pageId,
+                type: 'page',
+                props: {title: 'Test Page'},
+            };
+            const mockUpdatedPage = {
+                ...mockPage,
+                props: {
+                    ...mockPage.props,
+                    [PagePropsKeys.TRANSLATED_FROM]: sourcePageId,
+                    [PagePropsKeys.TRANSLATION_LANGUAGE]: languageCode,
+                },
+            };
+
+            testStore.getState().entities.posts.posts = {[pageId]: mockPage as any};
+            (Client4.patchPost as jest.Mock).mockResolvedValue(mockUpdatedPage);
+
+            await testStore.dispatch(Actions.setPageTranslationMetadata(pageId, sourcePageId, languageCode));
+
+            expect(Client4.patchPost).toHaveBeenCalledWith({
+                id: pageId,
+                props: {
+                    title: 'Test Page',
+                    [PagePropsKeys.TRANSLATED_FROM]: sourcePageId,
+                    [PagePropsKeys.TRANSLATION_LANGUAGE]: languageCode,
+                },
+            });
+
+            const actions = testStore.getActions();
+            expect(actions).toHaveLength(1);
+            expect(actions[0].type).toBe('RECEIVED_POST');
+            expect(actions[0].data).toEqual(mockUpdatedPage);
+        });
+
+        test('should handle error when setting translation metadata fails', async () => {
+            const pageId = 'translated_page_id';
+            const sourcePageId = 'source_page_id';
+            const languageCode = 'es';
+            const error = new Error('Failed to set metadata');
+
+            testStore.getState().entities.posts.posts = {};
+            (Client4.patchPost as jest.Mock).mockRejectedValue(error);
+
+            const result = await testStore.dispatch(Actions.setPageTranslationMetadata(pageId, sourcePageId, languageCode));
+
+            expect(result.error).toBeTruthy();
+        });
+    });
+
+    describe('addPageTranslationReference', () => {
+        test('should add translation reference to source page', async () => {
+            const sourcePageId = 'source_page_id';
+            const translatedPageId = 'translated_page_id';
+            const languageCode = 'es';
+            const mockSourcePage = {
+                id: sourcePageId,
+                type: 'page',
+                props: {title: 'Source Page'},
+            };
+            const expectedTranslations = [{page_id: translatedPageId, language_code: languageCode}];
+            const mockUpdatedPage = {
+                ...mockSourcePage,
+                props: {
+                    ...mockSourcePage.props,
+                    [PagePropsKeys.TRANSLATIONS]: expectedTranslations,
+                },
+            };
+
+            testStore.getState().entities.posts.posts = {[sourcePageId]: mockSourcePage as any};
+            (Client4.patchPost as jest.Mock).mockResolvedValue(mockUpdatedPage);
+
+            await testStore.dispatch(Actions.addPageTranslationReference(sourcePageId, translatedPageId, languageCode));
+
+            expect(Client4.patchPost).toHaveBeenCalledWith({
+                id: sourcePageId,
+                props: {
+                    title: 'Source Page',
+                    [PagePropsKeys.TRANSLATIONS]: expectedTranslations,
+                },
+            });
+
+            const actions = testStore.getActions();
+            expect(actions).toHaveLength(1);
+            expect(actions[0].type).toBe('RECEIVED_POST');
+        });
+
+        test('should append to existing translations array', async () => {
+            const sourcePageId = 'source_page_id';
+            const translatedPageId = 'translated_page_id';
+            const languageCode = 'fr';
+            const existingTranslations = [{page_id: 'existing_page', language_code: 'es'}];
+            const mockSourcePage = {
+                id: sourcePageId,
+                type: 'page',
+                props: {
+                    title: 'Source Page',
+                    [PagePropsKeys.TRANSLATIONS]: existingTranslations,
+                },
+            };
+            const expectedTranslations = [
+                ...existingTranslations,
+                {page_id: translatedPageId, language_code: languageCode},
+            ];
+            const mockUpdatedPage = {
+                ...mockSourcePage,
+                props: {
+                    ...mockSourcePage.props,
+                    [PagePropsKeys.TRANSLATIONS]: expectedTranslations,
+                },
+            };
+
+            testStore.getState().entities.posts.posts = {[sourcePageId]: mockSourcePage as any};
+            (Client4.patchPost as jest.Mock).mockResolvedValue(mockUpdatedPage);
+
+            await testStore.dispatch(Actions.addPageTranslationReference(sourcePageId, translatedPageId, languageCode));
+
+            expect(Client4.patchPost).toHaveBeenCalledWith({
+                id: sourcePageId,
+                props: {
+                    title: 'Source Page',
+                    [PagePropsKeys.TRANSLATIONS]: expectedTranslations,
+                },
+            });
+        });
+
+        test('should replace existing translation for same language', async () => {
+            const sourcePageId = 'source_page_id';
+            const translatedPageId = 'new_translated_page_id';
+            const languageCode = 'es';
+            const existingTranslations = [
+                {page_id: 'old_spanish_page', language_code: 'es'},
+                {page_id: 'french_page', language_code: 'fr'},
+            ];
+            const mockSourcePage = {
+                id: sourcePageId,
+                type: 'page',
+                props: {
+                    title: 'Source Page',
+                    [PagePropsKeys.TRANSLATIONS]: existingTranslations,
+                },
+            };
+            const expectedTranslations = [
+                {page_id: 'french_page', language_code: 'fr'},
+                {page_id: translatedPageId, language_code: languageCode},
+            ];
+            const mockUpdatedPage = {
+                ...mockSourcePage,
+                props: {
+                    ...mockSourcePage.props,
+                    [PagePropsKeys.TRANSLATIONS]: expectedTranslations,
+                },
+            };
+
+            testStore.getState().entities.posts.posts = {[sourcePageId]: mockSourcePage as any};
+            (Client4.patchPost as jest.Mock).mockResolvedValue(mockUpdatedPage);
+
+            await testStore.dispatch(Actions.addPageTranslationReference(sourcePageId, translatedPageId, languageCode));
+
+            expect(Client4.patchPost).toHaveBeenCalledWith({
+                id: sourcePageId,
+                props: {
+                    title: 'Source Page',
+                    [PagePropsKeys.TRANSLATIONS]: expectedTranslations,
+                },
+            });
+        });
+
+        test('should handle error when adding translation reference fails', async () => {
+            const sourcePageId = 'source_page_id';
+            const translatedPageId = 'translated_page_id';
+            const languageCode = 'es';
+            const error = new Error('Failed to add reference');
+
+            testStore.getState().entities.posts.posts = {};
+            (Client4.patchPost as jest.Mock).mockRejectedValue(error);
+
+            const result = await testStore.dispatch(Actions.addPageTranslationReference(sourcePageId, translatedPageId, languageCode));
+
+            expect(result.error).toBeTruthy();
         });
     });
 });

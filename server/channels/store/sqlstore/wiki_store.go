@@ -381,7 +381,7 @@ func (s *SqlWikiStore) SavePropertyValueT(transaction *sqlxTxWrapper, pv *model.
 // GetAbandonedPages retrieves empty pages older than cutoff (for cleanup)
 func (s *SqlWikiStore) GetAbandonedPages(cutoffTime int64) ([]*model.Post, error) {
 	query := s.getQueryBuilder().
-		Select("p.*").
+		Select(postSliceColumnsWithName("p")...).
 		From("Posts p").
 		Where(sq.And{
 			sq.Eq{"p.Type": model.PostTypePage},

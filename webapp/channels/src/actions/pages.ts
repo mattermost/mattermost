@@ -1030,3 +1030,95 @@ export function cleanupPublishedDraftTimestamps(): ActionFuncAsync {
         return {data: true};
     };
 }
+
+export interface TranslationReference {
+    page_id: string;
+    language_code: string;
+}
+
+/**
+ * Set translation metadata on a translated page.
+ * Links the translated page back to its source.
+ */
+export function setPageTranslationMetadata(
+    pageId: string,
+    sourcePageId: string,
+    languageCode: string,
+): ActionFuncAsync<Post> {
+    return async (dispatch, getState) => {
+        try {
+            const state = getState();
+            const page = state.entities.posts.posts[pageId];
+            const props = page?.props || {};
+
+            const data = await Client4.patchPost({
+                id: pageId,
+                props: {
+                    ...props,
+                    [PagePropsKeys.TRANSLATED_FROM]: sourcePageId,
+                    [PagePropsKeys.TRANSLATION_LANGUAGE]: languageCode,
+                },
+            });
+
+            dispatch({
+                type: PostActionTypes.RECEIVED_POST,
+                data,
+            });
+
+            return {data};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
+/**
+ * Add a translation reference to a source page's translations array.
+ * Called when a new translation is created to link the source to its translation.
+ */
+export function addPageTranslationReference(
+    sourcePageId: string,
+    translatedPageId: string,
+    languageCode: string,
+): ActionFuncAsync<Post> {
+    return async (dispatch, getState) => {
+        try {
+            const state = getState();
+            const sourcePage = state.entities.posts.posts[sourcePageId];
+            const existingProps = sourcePage?.props || {};
+            const existingTranslations = (existingProps[PagePropsKeys.TRANSLATIONS] || []) as TranslationReference[];
+
+            const newTranslationRef: TranslationReference = {
+                page_id: translatedPageId,
+                language_code: languageCode,
+            };
+
+            // Replace any existing translation for the same language
+            const updatedTranslations = [
+                ...existingTranslations.filter((t) => t.language_code !== languageCode),
+                newTranslationRef,
+            ];
+
+            const data = await Client4.patchPost({
+                id: sourcePageId,
+                props: {
+                    ...existingProps,
+                    [PagePropsKeys.TRANSLATIONS]: updatedTranslations,
+                },
+            });
+
+            dispatch({
+                type: PostActionTypes.RECEIVED_POST,
+                data,
+            });
+
+            return {data};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}

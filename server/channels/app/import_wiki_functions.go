@@ -5,7 +5,9 @@ package app
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strings"
 
@@ -102,8 +104,8 @@ func (a *App) importWiki(rctx request.CTX, data *imports.WikiImportData, dryRun 
 
 	// Create new wiki with import_source_id
 	title := channel.DisplayName + " Wiki"
-	if data.Title != nil && *data.Title != "" {
-		title = *data.Title
+	if data.Title != nil && strings.TrimSpace(*data.Title) != "" {
+		title = strings.TrimSpace(*data.Title)
 	}
 
 	description := ""
@@ -246,6 +248,10 @@ func (a *App) importPage(rctx request.CTX, data *imports.PageImportData, dryRun 
 			return model.NewAppError("importPage", "app.import.import_page.parent_lookup_error", nil, "", http.StatusInternalServerError).Wrap(perr)
 		}
 		if parentPage != nil {
+			if parentPage.ChannelId != channel.Id {
+				return model.NewAppError("importPage", "app.import.import_page.parent_wrong_channel.app_error",
+					nil, "parent page is in different channel", http.StatusBadRequest)
+			}
 			parentId = parentPage.Id
 		} else {
 			// Parent not found yet - store for deferred hierarchy repair
@@ -450,7 +456,24 @@ func (a *App) importPageComment(rctx request.CTX, data *imports.PageCommentImpor
 		return createErr
 	}
 
-	return a.updatePostPropsFromImport(rctx, comment, data.Props)
+	// Update props first
+	if propsErr := a.updatePostPropsFromImport(rctx, comment, data.Props); propsErr != nil {
+		return propsErr
+	}
+
+	// If the comment was resolved in the source system, resolve it here too
+	if data.IsResolved != nil && *data.IsResolved {
+		_, resolveErr := a.ResolvePageComment(rctx, comment, user.Id)
+		if resolveErr != nil {
+			rctx.Logger().Warn("Failed to resolve imported comment",
+				mlog.String("comment_id", comment.Id),
+				mlog.Err(resolveErr),
+			)
+			// Don't fail the import, just log the warning
+		}
+	}
+
+	return nil
 }
 
 // getImportSourceId extracts the import_source_id from Props map
@@ -459,13 +482,16 @@ func getImportSourceId(props *model.StringInterface) string {
 		return ""
 	}
 	if id, ok := (*props)[model.PostPropsImportSourceId].(string); ok {
-		return id
+		return strings.TrimSpace(id)
 	}
 	return ""
 }
 
 // getPageByImportSourceId finds a page by its import_source_id in Props within a channel
 func (a *App) getPageByImportSourceId(rctx request.CTX, channelId, importSourceId string) (*model.Post, error) {
+	if !model.IsValidId(channelId) {
+		return nil, errors.New("invalid channel ID")
+	}
 	posts, err := a.Srv().Store().Post().GetPostsByTypeAndProps(channelId, model.PostTypePage, model.PostPropsImportSourceId, importSourceId)
 	if err != nil {
 		return nil, err
@@ -807,19 +833,33 @@ func (a *App) ResolvePageTitlePlaceholders(rctx request.CTX, channelId string) *
 		mlog.Int("page_count", len(titleToPageID)),
 	)
 
-	// Get page content for all pages and find those with CONF_PAGE_TITLE placeholders
+	// Batch fetch all page contents to avoid N+1 queries
+	pageIDs := make([]string, len(pages))
+	for i, page := range pages {
+		pageIDs[i] = page.Id
+	}
+	pageContents, batchErr := a.Srv().Store().Page().GetManyPageContents(pageIDs)
+	if batchErr != nil {
+		rctx.Logger().Warn("Failed to batch fetch page contents for placeholder resolution",
+			mlog.String("channel_id", channelId),
+			mlog.Err(batchErr),
+		)
+		return nil
+	}
+
+	// Build pageId -> pageContent map
+	contentMap := make(map[string]*model.PageContent, len(pageContents))
+	for _, pc := range pageContents {
+		if pc != nil {
+			contentMap[pc.PageId] = pc
+		}
+	}
+
+	// Process each page using the pre-fetched content
 	totalResolved := 0
 	for _, page := range pages {
-		pageContent, getErr := a.Srv().Store().Page().GetPageContent(page.Id)
-		if getErr != nil {
-			rctx.Logger().Warn("Failed to get page content for placeholder resolution",
-				mlog.String("page_id", page.Id),
-				mlog.Err(getErr),
-			)
-			continue
-		}
-
-		if pageContent == nil || len(pageContent.Content.Content) == 0 {
+		pageContent, ok := contentMap[page.Id]
+		if !ok || pageContent == nil || len(pageContent.Content.Content) == 0 {
 			continue
 		}
 
@@ -863,7 +903,8 @@ func (a *App) ResolvePageTitlePlaceholders(rctx request.CTX, channelId string) *
 
 			// Replace placeholder with full wiki page URL
 			// Format: /{teamName}/wiki/{channelId}/{wikiId}/{pageId}
-			pageURL := "/" + team.Name + "/wiki/" + channelId + "/" + wikiId + "/" + pageID
+			// Use url.PathEscape for team name to handle special characters
+			pageURL := "/" + url.PathEscape(team.Name) + "/wiki/" + channelId + "/" + wikiId + "/" + pageID
 			resolvedContentStr = strings.Replace(resolvedContentStr, placeholder, pageURL, 1)
 			replacementsCount++
 
@@ -963,10 +1004,32 @@ func (a *App) ResolvePageIDPlaceholders(rctx request.CTX, channelId string) *mod
 		mlog.Int("mapping_count", len(sourceIDToPageID)),
 	)
 
+	// Batch fetch all page contents to avoid N+1 queries
+	pageIDs := make([]string, len(pages))
+	for i, page := range pages {
+		pageIDs[i] = page.Id
+	}
+	pageContents, batchErr := a.Srv().Store().Page().GetManyPageContents(pageIDs)
+	if batchErr != nil {
+		rctx.Logger().Warn("Failed to batch fetch page contents for CONF_PAGE_ID resolution",
+			mlog.String("channel_id", channelId),
+			mlog.Err(batchErr),
+		)
+		return nil
+	}
+
+	// Build pageId -> pageContent map
+	contentMap := make(map[string]*model.PageContent, len(pageContents))
+	for _, pc := range pageContents {
+		if pc != nil {
+			contentMap[pc.PageId] = pc
+		}
+	}
+
 	totalResolved := 0
 	for _, page := range pages {
-		pageContent, getErr := a.Srv().Store().Page().GetPageContent(page.Id)
-		if getErr != nil || pageContent == nil || len(pageContent.Content.Content) == 0 {
+		pageContent, ok := contentMap[page.Id]
+		if !ok || pageContent == nil || len(pageContent.Content.Content) == 0 {
 			continue
 		}
 
@@ -999,7 +1062,8 @@ func (a *App) ResolvePageIDPlaceholders(rctx request.CTX, channelId string) *mod
 			}
 
 			// Generate proper wiki URL: /{teamName}/wiki/{channelId}/{wikiId}/{pageId}
-			pageURL := "/" + team.Name + "/wiki/" + channelId + "/" + wikiId + "/" + pageID
+			// Use url.PathEscape for team name to handle special characters
+			pageURL := "/" + url.PathEscape(team.Name) + "/wiki/" + channelId + "/" + wikiId + "/" + pageID
 			resolvedContentStr = strings.Replace(resolvedContentStr, placeholder, pageURL, 1)
 			replacementsCount++
 
@@ -1069,10 +1133,32 @@ func (a *App) CleanupUnresolvedPlaceholders(rctx request.CTX, channelId string) 
 		return nil
 	}
 
+	// Batch fetch all page contents to avoid N+1 queries
+	pageIDs := make([]string, len(pages))
+	for i, page := range pages {
+		pageIDs[i] = page.Id
+	}
+	pageContents, batchErr := a.Srv().Store().Page().GetManyPageContents(pageIDs)
+	if batchErr != nil {
+		rctx.Logger().Warn("Failed to batch fetch page contents for placeholder cleanup",
+			mlog.String("channel_id", channelId),
+			mlog.Err(batchErr),
+		)
+		return nil
+	}
+
+	// Build pageId -> pageContent map
+	contentMap := make(map[string]*model.PageContent, len(pageContents))
+	for _, pc := range pageContents {
+		if pc != nil {
+			contentMap[pc.PageId] = pc
+		}
+	}
+
 	totalCleaned := 0
 	for _, page := range pages {
-		pageContent, getErr := a.Srv().Store().Page().GetPageContent(page.Id)
-		if getErr != nil || pageContent == nil || len(pageContent.Content.Content) == 0 {
+		pageContent, ok := contentMap[page.Id]
+		if !ok || pageContent == nil || len(pageContent.Content.Content) == 0 {
 			continue
 		}
 

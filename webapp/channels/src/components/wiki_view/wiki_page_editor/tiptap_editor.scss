@@ -311,6 +311,17 @@
             }
         }
 
+        // Hide file attachment delete button in view mode
+        &.ProseMirror[contenteditable="false"] {
+            .wiki-file-attachment__delete {
+                display: none !important;
+            }
+
+            .wiki-file-attachment-wrapper--selected .wiki-file-attachment {
+                outline: none;
+            }
+        }
+
         // Video styling
         video,
         video.wiki-video {

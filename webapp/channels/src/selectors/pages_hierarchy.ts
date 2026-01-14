@@ -16,7 +16,7 @@ export {buildTree, getAncestorIds, isDescendant, convertDraftToPagePost} from 'c
 
 // Get expanded nodes for a wiki
 export function getExpandedNodes(state: GlobalState, wikiId: string): {[pageId: string]: boolean} {
-    return state.views.pagesHierarchy.expandedNodes[wikiId] || {};
+    return state.views.pagesHierarchy?.expandedNodes?.[wikiId] || {};
 }
 
 // Check if a specific node is expanded
@@ -27,12 +27,12 @@ export function isNodeExpanded(state: GlobalState, wikiId: string, nodeId: strin
 
 // Get panel collapsed state
 export function getIsPanesPanelCollapsed(state: GlobalState): boolean {
-    return state.views.pagesHierarchy.isPanelCollapsed;
+    return state.views.pagesHierarchy?.isPanelCollapsed ?? false;
 }
 
 // Get last viewed page for a wiki
 export function getLastViewedPage(state: GlobalState, wikiId: string): string | null {
-    return state.views.pagesHierarchy.lastViewedPage[wikiId] || null;
+    return state.views.pagesHierarchy?.lastViewedPage?.[wikiId] || null;
 }
 
 /**

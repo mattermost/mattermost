@@ -55,6 +55,9 @@ type PageCommentImportData struct {
 	Content  *string `json:"content"`             // TipTap JSON content (required)
 	CreateAt *int64  `json:"create_at,omitempty"` // Creation timestamp
 
+	// Status
+	IsResolved *bool `json:"is_resolved,omitempty"` // True if comment was resolved
+
 	// Threading - use import_source_id for parent lookup
 	ParentCommentImportSourceId *string `json:"parent_comment_import_source_id,omitempty"` // Parent comment's import_source_id
 

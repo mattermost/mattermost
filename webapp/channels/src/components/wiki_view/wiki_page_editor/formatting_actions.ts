@@ -257,11 +257,11 @@ export const FORMATTING_ACTIONS: FormattingAction[] = [
     },
     {
         id: 'image',
-        title: 'Image or Video',
-        description: 'Add an image or video file',
+        title: 'Image, video, or file',
+        description: 'Add an image, video, or file attachment',
         icon: 'icon-image-outline',
         command: () => {}, // Handled by modal
-        aliases: ['picture', 'photo', 'img', 'video', 'media', 'mp4', 'mov'],
+        aliases: ['picture', 'photo', 'img', 'video', 'media', 'mp4', 'mov', 'file', 'attachment', 'attach', 'upload', 'pdf', 'document'],
         category: 'media',
         requiresModal: true,
         modalType: 'image',

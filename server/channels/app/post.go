@@ -285,6 +285,7 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		}
 	}
 
+	// ParseHashtags errors are non-critical - hashtag parsing failures don't prevent post creation
 	post.Hashtags, _ = model.ParseHashtags(post.Message)
 
 	if err = a.FillInPostProps(rctx, post, channel); err != nil {
@@ -3195,7 +3196,12 @@ func (a *App) RewriteMessage(
 
 	var response model.RewriteResponse
 	if err := json.Unmarshal([]byte(completion), &response); err != nil {
-		return nil, model.NewAppError("RewriteMessage", "app.post.rewrite.parse_response_failed", nil, "", 500).Wrap(err)
+		// JSON parsing failed - use raw response as rewritten text (graceful fallback)
+		rctx.Logger().Warn("AI response was not valid JSON, using raw response as text",
+			mlog.String("agent_id", agentID),
+			mlog.Err(err),
+		)
+		response.RewrittenText = strings.TrimSpace(completion)
 	}
 
 	if response.RewrittenText == "" {
@@ -3236,6 +3242,127 @@ func getRewritePromptForAction(action model.RewriteAction, message string, custo
 		return fmt.Sprintf(`Summarize this, using Markdown if necessary: %s`, message)
 	}
 
+	return ""
+}
+
+// ExtractImageText extracts text from an image using AI vision capabilities
+func (a *App) ExtractImageText(
+	rctx request.CTX,
+	agentID string,
+	fileID string,
+	action model.ImageExtractionAction,
+) (*model.ImageExtractionResponse, *model.AppError) {
+	// Verify the file exists and get its info
+	fileInfo, err := a.GetFileInfo(rctx, fileID)
+	if err != nil {
+		return nil, model.NewAppError("ExtractImageText", "app.post.extract_image.file_not_found", nil, err.Error(), http.StatusNotFound)
+	}
+
+	// Verify it's an image file
+	if !strings.HasPrefix(fileInfo.MimeType, "image/") {
+		return nil, model.NewAppError("ExtractImageText", "app.post.extract_image.not_image", nil, fmt.Sprintf("file type: %s", fileInfo.MimeType), http.StatusBadRequest)
+	}
+
+	// Get agent and service details for logging
+	var serviceType string
+	var serviceName string
+
+	agents, agentsErr := a.GetAgents(rctx, rctx.Session().UserId)
+	if agentsErr == nil {
+		for _, agent := range agents {
+			if agent.ID == agentID {
+				serviceType = agent.ServiceType
+				break
+			}
+		}
+	}
+
+	// Get service details
+	services, servicesErr := a.GetLLMServices(rctx, rctx.Session().UserId)
+	if servicesErr == nil {
+		for _, service := range services {
+			if service.Type == serviceType {
+				serviceName = service.Name
+				break
+			}
+		}
+	}
+
+	rctx.Logger().Info("AI Image Extraction request received",
+		mlog.String("agent_id", agentID),
+		mlog.String("file_id", fileID),
+		mlog.String("service_type", serviceType),
+		mlog.String("service_name", serviceName),
+		mlog.String("action", string(action)),
+		mlog.String("mime_type", fileInfo.MimeType),
+	)
+
+	// Get the appropriate prompt for the action
+	userPrompt := getImageExtractionPromptForAction(action)
+	if userPrompt == "" {
+		return nil, model.NewAppError("ExtractImageText", "app.post.extract_image.invalid_action", nil, fmt.Sprintf("invalid action: %s", action), http.StatusBadRequest)
+	}
+
+	// Prepare completion request with file ID for vision
+	client := a.getBridgeClient(rctx.Session().UserId)
+	completionRequest := agentclient.CompletionRequest{
+		Posts: []agentclient.Post{
+			{Role: "system", Message: model.ImageExtractionSystemPrompt},
+			{Role: "user", Message: userPrompt, FileIDs: []string{fileID}},
+		},
+	}
+
+	rctx.Logger().Info("Calling AI agent for image extraction",
+		mlog.String("agent_id", agentID),
+		mlog.String("file_id", fileID),
+		mlog.String("service_type", serviceType),
+		mlog.Int("system_prompt_length", len(model.ImageExtractionSystemPrompt)),
+		mlog.Int("user_prompt_length", len(userPrompt)),
+	)
+
+	completion, completionErr := client.AgentCompletion(agentID, completionRequest)
+	if completionErr != nil {
+		rctx.Logger().Error("AI agent image extraction call failed",
+			mlog.String("agent_id", agentID),
+			mlog.String("file_id", fileID),
+			mlog.String("service_type", serviceType),
+			mlog.Err(completionErr),
+		)
+		return nil, model.NewAppError("ExtractImageText", "app.post.extract_image.agent_call_failed", nil, completionErr.Error(), http.StatusInternalServerError)
+	}
+
+	rctx.Logger().Info("AI agent image extraction succeeded",
+		mlog.String("agent_id", agentID),
+		mlog.String("file_id", fileID),
+		mlog.Int("response_length", len(completion)),
+	)
+
+	var response model.ImageExtractionResponse
+	if err := json.Unmarshal([]byte(completion), &response); err != nil {
+		// JSON parsing failed - use raw response as extracted text (graceful fallback)
+		rctx.Logger().Warn("AI response was not valid JSON, using raw response as text",
+			mlog.String("agent_id", agentID),
+			mlog.String("file_id", fileID),
+			mlog.Err(err),
+		)
+		response.ExtractedText = strings.TrimSpace(completion)
+	}
+
+	if response.ExtractedText == "" {
+		return nil, model.NewAppError("ExtractImageText", "app.post.extract_image.empty_response", nil, "", http.StatusInternalServerError)
+	}
+
+	return &response, nil
+}
+
+// getImageExtractionPromptForAction returns the appropriate user prompt for the given image extraction action
+func getImageExtractionPromptForAction(action model.ImageExtractionAction) string {
+	switch action {
+	case model.ImageExtractionExtractHandwriting:
+		return model.ImageExtractionHandwritingPrompt
+	case model.ImageExtractionDescribeImage:
+		return model.ImageExtractionDescribePrompt
+	}
 	return ""
 }
 

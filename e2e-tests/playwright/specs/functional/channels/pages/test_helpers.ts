@@ -3116,6 +3116,47 @@ export async function checkAIPluginAvailability(page: Page): Promise<boolean> {
 }
 
 /**
+ * Gets the AI Tools dropdown button locator in the editor toolbar
+ * @param page - Playwright page object
+ * @returns The AI Tools dropdown button locator
+ */
+export function getAIToolsDropdown(page: Page): Locator {
+    return page.locator('[data-testid="tiptap-ai-toolbar"] #ai-tools-dropdown-button');
+}
+
+/**
+ * Gets the "Proofread page" button from the AI Tools dropdown menu
+ * @param page - Playwright page object
+ * @returns The proofread page button locator
+ */
+export function getAIToolsProofreadButton(page: Page): Locator {
+    return page.locator('[data-testid="ai-proofread-page"]');
+}
+
+/**
+ * Opens the AI Tools dropdown and clicks the proofread button
+ * @param page - Playwright page object
+ */
+export async function triggerProofread(page: Page): Promise<void> {
+    const dropdown = getAIToolsDropdown(page);
+    await dropdown.click();
+    await page.waitForTimeout(SHORT_WAIT);
+    const proofreadButton = getAIToolsProofreadButton(page);
+    await proofreadButton.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+    await proofreadButton.click();
+}
+
+/**
+ * Checks if the AI Tools dropdown is visible in the editor toolbar
+ * @param page - Playwright page object
+ * @returns True if AI Tools dropdown is visible
+ */
+export async function isAIToolsDropdownVisible(page: Page): Promise<boolean> {
+    const toolbar = page.locator('[data-testid="tiptap-ai-toolbar"]');
+    return toolbar.isVisible().catch(() => false);
+}
+
+/**
  * Checks if the AI plugin (mattermost-ai) is actually running on the server.
  * This checks the actual server state, not just the test configuration.
  * @param adminClient - Admin client to check plugin statuses

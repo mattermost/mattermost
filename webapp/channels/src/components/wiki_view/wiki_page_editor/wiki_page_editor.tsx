@@ -20,7 +20,9 @@ import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
+import {AIToolsDropdown} from './ai';
 import TipTapEditor from './tiptap_editor';
+import type {AIToolsHandlers} from './tiptap_editor';
 
 import {usePageInlineComments} from '../hooks/usePageInlineComments';
 import PageStatusSelector from '../page_status_selector';
@@ -37,10 +39,12 @@ type Props = {
     teamId?: string;
     pageId?: string;
     wikiId?: string;
+    pageParentId?: string | null;
     showAuthor?: boolean;
     isExistingPage?: boolean;
     draftStatus?: string;
     onDraftStatusChange?: (status: string) => void;
+    onTranslatedPageCreated?: (pageId: string) => void;
 };
 
 const WikiPageEditor = ({
@@ -54,14 +58,17 @@ const WikiPageEditor = ({
     teamId,
     pageId,
     wikiId,
+    pageParentId,
     showAuthor = false,
     isExistingPage = false,
     draftStatus,
     onDraftStatusChange,
+    onTranslatedPageCreated,
 }: Props) => {
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
     const [localTitle, setLocalTitle] = useState(title);
+    const [aiToolsHandlers, setAIToolsHandlers] = useState<AIToolsHandlers | null>(null);
 
     const pages = useSelector((state: GlobalState) => getChannelPages(state, channelId || ''));
 
@@ -109,6 +116,10 @@ const WikiPageEditor = ({
         setLocalTitle(newTitle);
         onTitleChange(newTitle);
     }, [onTitleChange]);
+
+    const handleAIToolsReady = useCallback((handlers: AIToolsHandlers | null) => {
+        setAIToolsHandlers(handlers);
+    }, []);
 
     return (
         <div
@@ -187,6 +198,13 @@ const WikiPageEditor = ({
                             onDraftStatusChange={onDraftStatusChange}
                         />
                     </div>
+                    {aiToolsHandlers && (
+                        <AIToolsDropdown
+                            onProofread={aiToolsHandlers.proofread}
+                            onTranslatePage={aiToolsHandlers.openTranslateModal}
+                            isProcessing={aiToolsHandlers.isProcessing}
+                        />
+                    )}
                 </div>
             </div>
             <div className='draft-content'>
@@ -199,13 +217,18 @@ const WikiPageEditor = ({
                     channelId={channelId}
                     teamId={teamId}
                     pageId={pageId}
+                    pageTitle={title}
+                    pageParentId={pageParentId}
                     wikiId={wikiId}
                     pages={pages}
+                    isExistingPage={isExistingPage}
                     inlineComments={inlineComments}
                     onCommentClick={handleCommentClick}
                     onCreateInlineComment={isExistingPage ? handleCreateInlineComment : undefined}
                     deletedAnchorIds={deletedAnchorIds}
                     onDeletedAnchorIdsProcessed={clearDeletedAnchorIds}
+                    onAIToolsReady={handleAIToolsReady}
+                    onTranslatedPageCreated={onTranslatedPageCreated}
                 />
             </div>
             {showCommentModal && commentAnchor && (

@@ -15,6 +15,8 @@ import {RewriteAction} from 'components/advanced_text_editor/rewrite_action';
 import RewriteMenu from 'components/advanced_text_editor/rewrite_menu';
 import {openMenu} from 'components/menu';
 
+import type {Language} from './ai/language_picker';
+
 const usePageRewrite = (
     editor: Editor | null,
     setServerError: React.Dispatch<React.SetStateAction<(ServerError & {
@@ -162,6 +164,11 @@ const usePageRewrite = (
         return () => handleRewrite(action);
     }, [handleRewrite]);
 
+    const handleTranslate = useCallback((language: Language) => {
+        const translationPrompt = `Translate the following text to ${language.name}. Preserve all formatting, maintain the same tone and style, and ensure the translation is natural and accurate.`;
+        handleRewrite(RewriteAction.CUSTOM, translationPrompt);
+    }, [handleRewrite]);
+
     // Load agents on mount
     useEffect(() => {
         dispatch(getAgentsAction());
@@ -220,6 +227,7 @@ const usePageRewrite = (
                 onUndoMessage={undoMessage}
                 onRegenerateMessage={regenerateMessage}
                 customPromptRef={customPromptRef}
+                onTranslate={handleTranslate}
             />
         ), [
             isProcessing,
@@ -235,6 +243,7 @@ const usePageRewrite = (
             cancelProcessing,
             undoMessage,
             regenerateMessage,
+            handleTranslate,
         ]),
         isProcessing,
         openRewriteMenu,

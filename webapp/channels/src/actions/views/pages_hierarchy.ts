@@ -7,68 +7,44 @@ import {ActionTypes} from 'utils/constants';
 import {extractHeadingsFromContent} from 'utils/page_outline';
 import type {Heading} from 'utils/page_outline';
 
-import type {ActionFunc, ActionFuncAsync, GlobalState} from 'types/store';
+import type {ActionFuncAsync, GlobalState} from 'types/store';
 
-export function toggleNodeExpanded(wikiId: string, nodeId: string): ActionFunc {
-    return (dispatch) => {
-        dispatch({
-            type: ActionTypes.TOGGLE_PAGE_NODE_EXPANDED,
-            data: {wikiId, nodeId},
-        });
-
-        return {data: true};
+export function toggleNodeExpanded(wikiId: string, nodeId: string) {
+    return {
+        type: ActionTypes.TOGGLE_PAGE_NODE_EXPANDED,
+        data: {wikiId, nodeId},
     };
 }
 
-export function expandAncestors(wikiId: string, ancestorIds: string[]): ActionFunc {
-    return (dispatch) => {
-        dispatch({
-            type: ActionTypes.EXPAND_PAGE_ANCESTORS,
-            data: {wikiId, ancestorIds},
-        });
-
-        return {data: true};
+export function expandAncestors(wikiId: string, ancestorIds: string[]) {
+    return {
+        type: ActionTypes.EXPAND_PAGE_ANCESTORS,
+        data: {wikiId, ancestorIds},
     };
 }
 
-export function togglePagesPanel(): ActionFunc {
-    return (dispatch) => {
-        dispatch({
-            type: ActionTypes.TOGGLE_PAGES_PANEL,
-        });
-
-        return {data: true};
+export function togglePagesPanel() {
+    return {
+        type: ActionTypes.TOGGLE_PAGES_PANEL,
     };
 }
 
-export function openPagesPanel(): ActionFunc {
-    return (dispatch) => {
-        dispatch({
-            type: ActionTypes.OPEN_PAGES_PANEL,
-        });
-
-        return {data: true};
+export function openPagesPanel() {
+    return {
+        type: ActionTypes.OPEN_PAGES_PANEL,
     };
 }
 
-export function closePagesPanel(): ActionFunc {
-    return (dispatch) => {
-        dispatch({
-            type: ActionTypes.CLOSE_PAGES_PANEL,
-        });
-
-        return {data: true};
+export function closePagesPanel() {
+    return {
+        type: ActionTypes.CLOSE_PAGES_PANEL,
     };
 }
 
-export function setOutlineExpanded(pageId: string, expanded: boolean, headings?: Heading[]): ActionFunc {
-    return (dispatch) => {
-        dispatch({
-            type: ActionTypes.SET_PAGE_OUTLINE_EXPANDED,
-            data: {pageId, expanded, headings},
-        });
-
-        return {data: true};
+export function setOutlineExpanded(pageId: string, expanded: boolean, headings?: Heading[]) {
+    return {
+        type: ActionTypes.SET_PAGE_OUTLINE_EXPANDED,
+        data: {pageId, expanded, headings},
     };
 }
 
@@ -109,24 +85,16 @@ export function togglePageOutline(pageId: string, pageContent?: string, wikiId?:
     };
 }
 
-export function clearOutlineCache(pageId: string): ActionFunc {
-    return (dispatch) => {
-        dispatch({
-            type: ActionTypes.CLEAR_PAGE_OUTLINE_CACHE,
-            data: {pageId},
-        });
-
-        return {data: true};
+export function clearOutlineCache(pageId: string) {
+    return {
+        type: ActionTypes.CLEAR_PAGE_OUTLINE_CACHE,
+        data: {pageId},
     };
 }
 
-export function setLastViewedPage(wikiId: string, pageId: string): ActionFunc {
-    return (dispatch) => {
-        dispatch({
-            type: ActionTypes.SET_LAST_VIEWED_PAGE,
-            data: {wikiId, pageId},
-        });
-
-        return {data: true};
+export function setLastViewedPage(wikiId: string, pageId: string) {
+    return {
+        type: ActionTypes.SET_LAST_VIEWED_PAGE,
+        data: {wikiId, pageId},
     };
 }

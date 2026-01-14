@@ -25,6 +25,7 @@ import type {Emoji} from '@mattermost/types/emojis';
 import type {ServerError} from '@mattermost/types/errors';
 import type {Post} from '@mattermost/types/posts';
 
+import {getAgents} from 'mattermost-redux/selectors/entities/agents';
 import {getAllChannels} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getAssociatedGroupsForReference} from 'mattermost-redux/selectors/entities/groups';
@@ -37,6 +38,7 @@ import {searchAssociatedGroupsForReference} from 'actions/views/group';
 import {openModal} from 'actions/views/modals';
 
 import useGetAgentsBridgeEnabled from 'components/common/hooks/useGetAgentsBridgeEnabled';
+import useVisionCapability from 'components/common/hooks/useVisionCapability';
 import useEmojiPicker from 'components/emoji_picker/use_emoji_picker';
 import FilePreviewModal from 'components/file_preview_modal';
 import PageLinkModal from 'components/page_link_modal';
@@ -58,11 +60,22 @@ declare global {
     }
 }
 
+import {
+    usePageProofread,
+    usePageTranslate,
+    TranslatePageModal,
+    ImageAIBubble,
+    ImageExtractionDialog,
+    ImageExtractionCompleteDialog,
+    useImageAI,
+} from './ai';
+import type {ImageAIAction} from './ai';
 import Callout from './callout_extension';
 import {createChannelMentionSuggestion} from './channel_mention_mm_bridge';
 import CommentAnchor from './comment_anchor_mark';
 import CommentHighlightPlugin, {COMMENT_HIGHLIGHT_PLUGIN_KEY} from './comment_highlight_plugin';
-import {uploadMediaForEditor, validateMediaFile, isVideoFile} from './file_upload_helper';
+import FileAttachment from './file_attachment_extension';
+import {uploadMediaForEditor, validateFile, isVideoFile, isMediaFile} from './file_upload_helper';
 import FormattingBarBubble from './formatting_bar_bubble';
 import InlineCommentExtension from './inline_comment_extension';
 import InlineCommentToolbar from './inline_comment_toolbar';
@@ -75,13 +88,12 @@ import Video from './video_extension';
 import './tiptap_editor.scss';
 import 'components/advanced_text_editor/use_rewrite.scss';
 
-// Custom heading extension that stores ID as an attribute
+// Custom heading extension that stores ID as an attribute and renders it
 const HeadingWithId = Heading.extend({
     addAttributes() {
         return {
             level: {
                 default: 1,
-                rendered: false,
             },
             id: {
                 default: null,
@@ -94,6 +106,13 @@ const HeadingWithId = Heading.extend({
                 },
             },
         };
+    },
+    renderHTML({node, HTMLAttributes}: {node: {attrs: {level?: number; id?: string}}; HTMLAttributes: Record<string, unknown>}) {
+        const level = (node.attrs.level || 1) as 1 | 2 | 3 | 4 | 5 | 6;
+        const hasLevel = this.options.levels.includes(level);
+        const tag = `h${hasLevel ? level : this.options.levels[0]}` as keyof HTMLElementTagNameMap;
+
+        return [tag, mergeAttributes(this.options.HTMLAttributes, HTMLAttributes), 0];
     },
 });
 
@@ -146,6 +165,13 @@ export type InlineAnchorData = {
     text: string;
 };
 
+// AI tools handlers exposed to parent components
+export type AIToolsHandlers = {
+    proofread: () => void;
+    openTranslateModal: () => void;
+    isProcessing: boolean;
+};
+
 type Props = {
     content: string | Record<string, any>; // Accept both string (legacy) and object
     contentKey?: string; // Cheap version key for content (e.g., page.message) to detect content changes
@@ -156,8 +182,11 @@ type Props = {
     channelId?: string;
     teamId?: string;
     pageId?: string;
+    pageTitle?: string;
+    pageParentId?: string | null;
     wikiId?: string;
     pages?: Post[];
+    isExistingPage?: boolean;
     onCreateInlineComment?: (anchor: InlineAnchorData) => void;
     inlineComments?: Array<{
         id: string;
@@ -168,6 +197,8 @@ type Props = {
     onCommentClick?: (commentId: string) => void;
     deletedAnchorIds?: string[];
     onDeletedAnchorIdsProcessed?: () => void;
+    onTranslatedPageCreated?: (pageId: string) => void;
+    onAIToolsReady?: (handlers: AIToolsHandlers | null) => void;
 };
 
 /**
@@ -328,13 +359,18 @@ const TipTapEditor = ({
     teamId,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     pageId,
+    pageTitle = '',
+    pageParentId = null,
     wikiId,
     pages = [],
+    isExistingPage = false,
     onCreateInlineComment,
     inlineComments = [],
     onCommentClick,
     deletedAnchorIds = [],
     onDeletedAnchorIdsProcessed,
+    onTranslatedPageCreated,
+    onAIToolsReady,
 }: Props) => {
     const dispatch = useDispatch();
     const intl = useIntl();
@@ -390,12 +426,12 @@ const TipTapEditor = ({
         autocompleteGroupsRef.current = autocompleteGroups;
     }, [allChannels, team, pages, wikiId, currentTeam, channelId, autocompleteGroups]);
 
-    const handleMediaUpload = useCallback(async (
+    const handleFileUpload = useCallback(async (
         currentEditor: Editor,
         file: File,
         position?: number,
     ) => {
-        const validation = validateMediaFile(file, maxFileSize, intl);
+        const validation = validateFile(file, maxFileSize, intl);
         if (!validation.valid) {
             return;
         }
@@ -405,12 +441,12 @@ const TipTapEditor = ({
                 file,
                 channelId: channelId || '',
                 onSuccess: (result) => {
-                    const mediaUrl = `/api/v4/files/${result.fileInfo.id}`;
+                    const fileUrl = `/api/v4/files/${result.fileInfo.id}`;
 
                     if (isVideoFile(file)) {
                         // Insert video node
                         const videoAttrs = {
-                            src: mediaUrl,
+                            src: fileUrl,
                             title: file.name,
                         };
 
@@ -422,10 +458,10 @@ const TipTapEditor = ({
                                 attrs: videoAttrs,
                             }).focus().run();
                         }
-                    } else {
+                    } else if (isMediaFile(file)) {
                         // Insert image node
                         const imageAttrs = {
-                            src: mediaUrl,
+                            src: fileUrl,
                             alt: file.name,
                             title: file.name,
                         };
@@ -438,13 +474,31 @@ const TipTapEditor = ({
                                 attrs: imageAttrs,
                             }).focus().run();
                         }
+                    } else {
+                        // Insert file attachment node for non-media files
+                        const fileAttrs = {
+                            fileId: result.fileInfo.id,
+                            fileName: result.fileInfo.name,
+                            fileSize: result.fileInfo.size,
+                            mimeType: result.fileInfo.mime_type,
+                            src: fileUrl,
+                        };
+
+                        if (position === undefined) {
+                            currentEditor.commands.insertFileAttachment(fileAttrs);
+                        } else {
+                            currentEditor.chain().insertContentAt(position, {
+                                type: 'fileAttachment',
+                                attrs: fileAttrs,
+                            }).focus().run();
+                        }
                     }
                 },
             }, dispatch);
         } catch {
             // Primary error handling is in uploadMediaForEditor
         }
-    }, [maxFileSize, intl, channelId]);
+    }, [maxFileSize, intl, channelId, dispatch]);
 
     // Memoize autocomplete handlers to prevent extensions from recreating on every Redux update
     const handleAutocompleteUsers = useCallback((prefix: string) => {
@@ -621,6 +675,11 @@ const TipTapEditor = ({
                     class: 'wiki-video',
                 },
             }),
+            FileAttachment.configure({
+                HTMLAttributes: {
+                    class: 'wiki-file-attachment',
+                },
+            }),
             InlineCommentExtension.configure({
                 comments: [], // Start with empty array, update via useEffect below
                 onAddComment: onCreateInlineComment,
@@ -714,14 +773,14 @@ const TipTapEditor = ({
 
                     const input = document.createElement('input');
                     input.type = 'file';
-                    input.accept = 'image/png,image/jpeg,image/gif,image/webp,image/svg+xml,video/mp4,video/webm,video/quicktime';
+                    input.accept = '*/*';
                     input.multiple = false;
 
                     input.onchange = async (e) => {
                         const file = (e.target as HTMLInputElement).files?.[0];
                         const currentEditor = editorRef.current;
                         if (file && currentEditor) {
-                            await handleMediaUpload(currentEditor, file);
+                            await handleFileUpload(currentEditor, file);
                         }
                     };
 
@@ -731,37 +790,39 @@ const TipTapEditor = ({
             }));
         }
 
-        // Add custom media paste handler for images and videos
+        // Add custom file paste/drop handler for all file types
         if (editable && uploadsEnabled && channelId) {
             exts.push(
                 Extension.create({
-                    name: 'mediaPasteHandler',
+                    name: 'filePasteHandler',
 
                     addProseMirrorPlugins() {
                         const editor = this.editor;
 
                         return [
                             new Plugin({
-                                key: new PluginKey('mediaPasteHandler'),
+                                key: new PluginKey('filePasteHandler'),
                                 props: {
                                     handleDOMEvents: {
                                         paste(view, event) {
                                             const items = Array.from(event.clipboardData?.items || []);
-                                            const mediaItems = items.filter((item) =>
-                                                item.type.startsWith('image/') || item.type.startsWith('video/'),
+
+                                            // Filter to file items, excluding text/uri-list to prevent auto-downloading URLs
+                                            const fileItems = items.filter((item) =>
+                                                item.kind === 'file' && item.type !== 'text/uri-list',
                                             );
 
-                                            if (mediaItems.length === 0) {
+                                            if (fileItems.length === 0) {
                                                 return false;
                                             }
 
                                             event.preventDefault();
                                             event.stopPropagation();
 
-                                            mediaItems.forEach((item) => {
+                                            fileItems.forEach((item) => {
                                                 const file = item.getAsFile();
                                                 if (file) {
-                                                    handleMediaUpload(editor, file);
+                                                    handleFileUpload(editor, file);
                                                 }
                                             });
 
@@ -769,11 +830,8 @@ const TipTapEditor = ({
                                         },
                                         drop(view, event) {
                                             const files = Array.from(event.dataTransfer?.files || []);
-                                            const mediaFiles = files.filter((file) =>
-                                                file.type.startsWith('image/') || file.type.startsWith('video/'),
-                                            );
 
-                                            if (mediaFiles.length === 0) {
+                                            if (files.length === 0) {
                                                 return false;
                                             }
 
@@ -785,8 +843,8 @@ const TipTapEditor = ({
                                                 top: event.clientY,
                                             });
 
-                                            mediaFiles.forEach((file) => {
-                                                handleMediaUpload(
+                                            files.forEach((file) => {
+                                                handleFileUpload(
                                                     editor,
                                                     file,
                                                     pos?.pos,
@@ -921,7 +979,7 @@ const TipTapEditor = ({
         onCommentClick,
         editable,
         uploadsEnabled,
-        handleMediaUpload,
+        handleFileUpload,
         currentUserId,
         teamId,
         handleAutocompleteUsers,
@@ -950,6 +1008,61 @@ const TipTapEditor = ({
     // AI rewrite functionality
     const isAIAvailable = useGetAgentsBridgeEnabled();
     const {additionalControl: rewriteControl, openRewriteMenu} = usePageRewrite(editor, setServerError);
+
+    // Full-page proofreading functionality
+    const {isProcessing: isProofreading, proofread} = usePageProofread(editor, setServerError);
+
+    // Full-page translation functionality
+    const {
+        isTranslating,
+        showModal: showTranslateModal,
+        openModal: openTranslateModal,
+        closeModal: closeTranslateModal,
+        translatePage,
+    } = usePageTranslate(editor, pageTitle, wikiId || '', pageParentId, pageId, onTranslatedPageCreated, setServerError);
+
+    // Image AI functionality
+    const isVisionEnabled = useVisionCapability();
+    const agents = useSelector(getAgents);
+    const selectedImageAIAgentId = useMemo(() => {
+        if (agents && agents.length > 0) {
+            return agents[0].id;
+        }
+        return null;
+    }, [agents]);
+    const {
+        showExtractionDialog,
+        showCompletionDialog,
+        actionType: imageActionType,
+        progress: imageProgress,
+        createdPageTitle: imageCreatedPageTitle,
+        handleImageAIAction,
+        cancelExtraction,
+        goToCreatedPage: goToImageCreatedPage,
+        stayOnCurrentPage: stayOnCurrentPageAfterImage,
+    } = useImageAI(wikiId || '', pageId, pageTitle, selectedImageAIAgentId, isExistingPage, onTranslatedPageCreated, setServerError);
+
+    // Handler for image AI actions from the bubble menu
+    const onImageAIAction = useCallback((action: ImageAIAction, imageElement: HTMLImageElement) => {
+        handleImageAIAction(action, imageElement);
+    }, [handleImageAIAction]);
+
+    // Expose AI tools handlers to parent component
+    useEffect(() => {
+        if (!onAIToolsReady) {
+            return;
+        }
+
+        if (isAIAvailable && editable && editor) {
+            onAIToolsReady({
+                proofread,
+                openTranslateModal,
+                isProcessing: isProofreading || isTranslating,
+            });
+        } else {
+            onAIToolsReady(null);
+        }
+    }, [onAIToolsReady, isAIAvailable, editable, editor, proofread, openTranslateModal, isProofreading, isTranslating]);
 
     useEffect(() => {
         editorRef.current = editor;
@@ -1042,13 +1155,16 @@ const TipTapEditor = ({
             return;
         }
 
+        // Convert to Set for O(1) lookups instead of O(n) .includes() in nested loops
+        const deletedAnchorSet = new Set(deletedAnchorIds);
+
         const {tr} = editor.state;
         let hasChanges = false;
 
         editor.state.doc.descendants((node, pos) => {
             if (node.isText && node.marks.length > 0) {
                 node.marks.forEach((mark) => {
-                    if (mark.type.name === 'commentAnchor' && deletedAnchorIds.includes(mark.attrs.anchorId)) {
+                    if (mark.type.name === 'commentAnchor' && deletedAnchorSet.has(mark.attrs.anchorId)) {
                         tr.removeMark(pos, pos + node.nodeSize, mark.type);
                         hasChanges = true;
                     }
@@ -1109,6 +1225,18 @@ const TipTapEditor = ({
                     // In view mode, navigate to the linked page
                     const href = linkElement.getAttribute('href');
                     if (href) {
+                        // Handle anchor links (e.g., #heading-id) - scroll to the element
+                        if (href.startsWith('#')) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            const targetId = href.substring(1);
+                            const targetElement = document.getElementById(targetId);
+                            if (targetElement) {
+                                targetElement.scrollIntoView({behavior: 'smooth', block: 'start'});
+                            }
+                            return;
+                        }
+
                         const currentOrigin = window.location.origin;
                         const currentBasename = window.basename || '';
                         const isInternalLink = href.startsWith('/') ||
@@ -1322,13 +1450,13 @@ const TipTapEditor = ({
         // Create hidden file input (reusing MM pattern)
         const input = document.createElement('input');
         input.type = 'file';
-        input.accept = 'image/png,image/jpeg,image/gif,image/webp,image/svg+xml,video/mp4,video/webm,video/quicktime';
+        input.accept = '*/*';
         input.multiple = false;
 
         input.onchange = async (e) => {
             const file = (e.target as HTMLInputElement).files?.[0];
             if (file && editor) {
-                await handleMediaUpload(editor, file);
+                await handleFileUpload(editor, file);
             }
         };
 
@@ -1405,6 +1533,39 @@ const TipTapEditor = ({
                 />
             )}
             {editor && isAIAvailable && rewriteControl}
+            {isAIAvailable && (
+                <TranslatePageModal
+                    show={showTranslateModal}
+                    pageTitle={pageTitle}
+                    onClose={closeTranslateModal}
+                    onTranslate={translatePage}
+                    isTranslating={isTranslating}
+                />
+            )}
+            {editor && editable && isAIAvailable && (
+                <ImageAIBubble
+                    editor={editor}
+                    onImageAIAction={onImageAIAction}
+                    visionEnabled={isVisionEnabled}
+                />
+            )}
+            {isAIAvailable && imageActionType && (
+                <>
+                    <ImageExtractionDialog
+                        show={showExtractionDialog}
+                        actionType={imageActionType}
+                        onCancel={cancelExtraction}
+                        progress={imageProgress}
+                    />
+                    <ImageExtractionCompleteDialog
+                        show={showCompletionDialog}
+                        actionType={imageActionType}
+                        pageTitle={imageCreatedPageTitle}
+                        onGoToDraft={goToImageCreatedPage}
+                        onStayHere={stayOnCurrentPageAfterImage}
+                    />
+                </>
+            )}
         </div>
     );
 };
@@ -1420,6 +1581,8 @@ const arePropsEqual = (prevProps: Props, nextProps: Props) => {
         prevProps.channelId !== nextProps.channelId ||
         prevProps.teamId !== nextProps.teamId ||
         prevProps.pageId !== nextProps.pageId ||
+        prevProps.pageTitle !== nextProps.pageTitle ||
+        prevProps.pageParentId !== nextProps.pageParentId ||
         prevProps.wikiId !== nextProps.wikiId
     ) {
         return false;
@@ -1433,6 +1596,9 @@ const arePropsEqual = (prevProps: Props, nextProps: Props) => {
         return false;
     }
     if (prevProps.onCreateInlineComment !== nextProps.onCreateInlineComment) {
+        return false;
+    }
+    if (prevProps.onTranslatedPageCreated !== nextProps.onTranslatedPageCreated) {
         return false;
     }
 

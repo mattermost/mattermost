@@ -417,6 +417,16 @@ const WikiView = () => {
         }
     }, [headerProps?.pageId, handleVersionHistory]);
 
+    // Handler for when a translated page is created - navigate to the new page
+    const handleTranslatedPageCreated = React.useCallback((newPageId: string) => {
+        if (!wikiId || !channelId) {
+            return;
+        }
+        const teamName = getTeamNameFromPath(location.pathname);
+        const url = getWikiUrl(teamName, channelId, wikiId, newPageId, false);
+        history.push(url);
+    }, [wikiId, channelId, location.pathname, history]);
+
     // Memoized editor props to avoid inline IIFE recreation on every render
     const editorProps = React.useMemo(() => {
         if (!draftId || !currentDraft || currentDraft.rootId !== draftId) {
@@ -439,11 +449,13 @@ const WikiView = () => {
             teamId,
             pageId: isExistingPage ? publishedPageId : draftId,
             wikiId,
+            pageParentId: currentDraft.props?.page_parent_id as string | undefined,
             showAuthor: true,
             isExistingPage,
             draftStatus: currentDraft.props?.page_status as string | undefined,
+            onTranslatedPageCreated: handleTranslatedPageCreated,
         };
-    }, [draftId, currentDraft, publishedPageForDraft, currentUserId, actualChannelId, teamId, wikiId]);
+    }, [draftId, currentDraft, publishedPageForDraft, currentUserId, actualChannelId, teamId, wikiId, handleTranslatedPageCreated]);
 
     // DISABLED: Auto-updating RHS when navigating causes 60+ second render blocks
     // The RHS ThreadViewer mounting blocks PageViewer from rendering
@@ -510,6 +522,7 @@ const WikiView = () => {
                                 onMove={handleMove}
                                 onDelete={handleHeaderDelete}
                                 onVersionHistory={handleHeaderVersionHistory}
+                                onNavigateToPage={handlePageSelect}
                                 canEdit={canEdit}
                             />
                         )}

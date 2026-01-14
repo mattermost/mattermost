@@ -848,11 +848,11 @@ func ValidateWikiImportData(data *WikiImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_wiki_import_data.null_data.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.Team == nil || *data.Team == "" {
+	if data.Team == nil || strings.TrimSpace(*data.Team) == "" {
 		return model.NewAppError("BulkImport", "app.import.validate_wiki_import_data.team_missing.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.Channel == nil || *data.Channel == "" {
+	if data.Channel == nil || strings.TrimSpace(*data.Channel) == "" {
 		return model.NewAppError("BulkImport", "app.import.validate_wiki_import_data.channel_missing.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -870,23 +870,23 @@ func ValidatePageImportData(data *PageImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_page_import_data.null_data.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.Team == nil || *data.Team == "" {
+	if data.Team == nil || strings.TrimSpace(*data.Team) == "" {
 		return model.NewAppError("BulkImport", "app.import.validate_page_import_data.team_missing.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.Channel == nil || *data.Channel == "" {
+	if data.Channel == nil || strings.TrimSpace(*data.Channel) == "" {
 		return model.NewAppError("BulkImport", "app.import.validate_page_import_data.channel_missing.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.User == nil || *data.User == "" {
+	if data.User == nil || strings.TrimSpace(*data.User) == "" {
 		return model.NewAppError("BulkImport", "app.import.validate_page_import_data.user_missing.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.Title == nil || *data.Title == "" {
+	if data.Title == nil || strings.TrimSpace(*data.Title) == "" {
 		return model.NewAppError("BulkImport", "app.import.validate_page_import_data.title_missing.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.Content == nil || *data.Content == "" {
+	if data.Content == nil || strings.TrimSpace(*data.Content) == "" {
 		return model.NewAppError("BulkImport", "app.import.validate_page_import_data.content_missing.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -909,10 +909,10 @@ func ValidatePageImportData(data *PageImportData) *model.AppError {
 		for i := range *data.Comments {
 			// Skip PageImportSourceId validation for nested comments - it will be set by parent
 			comment := (*data.Comments)[i]
-			if comment.User == nil || *comment.User == "" {
+			if comment.User == nil || strings.TrimSpace(*comment.User) == "" {
 				return model.NewAppError("BulkImport", "app.import.validate_page_comment_import_data.user_missing.error", nil, "", http.StatusBadRequest)
 			}
-			if comment.Content == nil || *comment.Content == "" {
+			if comment.Content == nil || strings.TrimSpace(*comment.Content) == "" {
 				return model.NewAppError("BulkImport", "app.import.validate_page_comment_import_data.content_missing.error", nil, "", http.StatusBadRequest)
 			}
 		}
@@ -927,15 +927,15 @@ func ValidatePageCommentImportData(data *PageCommentImportData) *model.AppError 
 		return model.NewAppError("BulkImport", "app.import.validate_page_comment_import_data.null_data.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.PageImportSourceId == nil || *data.PageImportSourceId == "" {
+	if data.PageImportSourceId == nil || strings.TrimSpace(*data.PageImportSourceId) == "" {
 		return model.NewAppError("BulkImport", "app.import.validate_page_comment_import_data.page_id_missing.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.User == nil || *data.User == "" {
+	if data.User == nil || strings.TrimSpace(*data.User) == "" {
 		return model.NewAppError("BulkImport", "app.import.validate_page_comment_import_data.user_missing.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.Content == nil || *data.Content == "" {
+	if data.Content == nil || strings.TrimSpace(*data.Content) == "" {
 		return model.NewAppError("BulkImport", "app.import.validate_page_comment_import_data.content_missing.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -967,7 +967,7 @@ func validateImportSourceId(props *model.StringInterface) *model.AppError {
 			map[string]any{"Field": model.PostPropsImportSourceId}, "", http.StatusBadRequest)
 	}
 
-	if strValue == "" {
+	if strings.TrimSpace(strValue) == "" {
 		return model.NewAppError("BulkImport", "app.import.validate_import_source_id.empty.error",
 			map[string]any{"Field": model.PostPropsImportSourceId}, "", http.StatusBadRequest)
 	}
@@ -981,11 +981,11 @@ func ValidateResolveWikiPlaceholdersImportData(data *ResolveWikiPlaceholdersImpo
 		return model.NewAppError("BulkImport", "app.import.validate_resolve_wiki_placeholders.null_data.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.Team == nil || *data.Team == "" {
+	if data.Team == nil || strings.TrimSpace(*data.Team) == "" {
 		return model.NewAppError("BulkImport", "app.import.validate_resolve_wiki_placeholders.team_missing.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.Channel == nil || *data.Channel == "" {
+	if data.Channel == nil || strings.TrimSpace(*data.Channel) == "" {
 		return model.NewAppError("BulkImport", "app.import.validate_resolve_wiki_placeholders.channel_missing.error", nil, "", http.StatusBadRequest)
 	}
 

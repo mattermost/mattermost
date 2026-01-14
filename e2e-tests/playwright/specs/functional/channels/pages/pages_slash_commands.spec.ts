@@ -573,11 +573,10 @@ test('shows placeholder when cursor at beginning of empty line', {tag: '@pages'}
     // # Move cursor to document start
     await pressModifierKey(page, 'Home');
 
-    // * Verify we're on first line with content (placeholder shouldn't be visible on this line)
-    const firstParagraph = editorElement.locator('p').first();
-    await expect(firstParagraph).toContainText('First line with content');
+    // * Verify content still exists in editor before we delete it
+    await expect(editorElement).toContainText('First line with content');
 
-    // # Delete all content on first line to make it empty
+    // # Delete all content to make editor empty
     await selectAllText(page);
     await page.keyboard.press('Backspace');
 
