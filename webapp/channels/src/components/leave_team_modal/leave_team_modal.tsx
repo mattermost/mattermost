@@ -83,7 +83,7 @@ export default class LeaveTeamModal extends React.PureComponent<Props, State> {
                 modalMessage = (
                     <FormattedMessage
                         id='leave_team_modal_guest.description'
-                        defaultMessage='<strong>You will be removed from {num_of_public_channels} public {num_of_public_channels,plural,one {channel} other {channels}} and {num_of_private_channels} private {num_of_private_channels,plural,one {channel} other {channels}} on this team.</strong> You won&apos;t be able to rejoin it without an invitation from another team member. Are you sure?'
+                        defaultMessage="<strong>You will be removed from {num_of_public_channels} public {num_of_public_channels,plural,one {channel} other {channels}} and {num_of_private_channels} private {num_of_private_channels,plural,one {channel} other {channels}} on this team.</strong> You won't be able to rejoin it without an invitation from another team member. Are you sure?"
                         values={{
                             num_of_public_channels: numOfPublicChannels,
                             num_of_private_channels: numOfPrivateChannels,
@@ -95,7 +95,7 @@ export default class LeaveTeamModal extends React.PureComponent<Props, State> {
                 modalMessage = (
                     <FormattedMessage
                         id='leave_team_modal_guest_only_private.description'
-                        defaultMessage='<strong>You will be removed from {num_of_private_channels} private {num_of_private_channels,plural,one {channel} other {channels}} on this team.</strong> You won&apos;t be able to rejoin it without an invitation from another team member. Are you sure?'
+                        defaultMessage="<strong>You will be removed from {num_of_private_channels} private {num_of_private_channels,plural,one {channel} other {channels}} on this team.</strong> You won't be able to rejoin it without an invitation from another team member. Are you sure?"
                         values={{
                             num_of_private_channels: numOfPrivateChannels,
                             strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
@@ -106,7 +106,7 @@ export default class LeaveTeamModal extends React.PureComponent<Props, State> {
                 modalMessage = (
                     <FormattedMessage
                         id='leave_team_modal_guest_only_public.description'
-                        defaultMessage='<strong>You will be removed from {num_of_public_channels} public {num_of_public_channels,plural,one {channel} other {channels}} on this team.</strong> You won&apos;t be able to rejoin it without an invitation from another team member. Are you sure?'
+                        defaultMessage="<strong>You will be removed from {num_of_public_channels} public {num_of_public_channels,plural,one {channel} other {channels}} on this team.</strong> You won't be able to rejoin it without an invitation from another team member. Are you sure?"
                         values={{
                             num_of_public_channels: numOfPublicChannels,
                             strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
@@ -118,7 +118,7 @@ export default class LeaveTeamModal extends React.PureComponent<Props, State> {
             modalMessage = (
                 <FormattedMessage
                     id='leave_team_modal.description'
-                    defaultMessage='<strong>You will be removed from {num_of_public_channels} public {num_of_public_channels,plural,one {channel} other {channels}} and {num_of_private_channels} private {num_of_private_channels,plural,one {channel} other {channels}} on this team.</strong> If the team is private you won&apos;t be able to rejoin it without an invitation from another team member. Are you sure?'
+                    defaultMessage="<strong>You will be removed from {num_of_public_channels} public {num_of_public_channels,plural,one {channel} other {channels}} and {num_of_private_channels} private {num_of_private_channels,plural,one {channel} other {channels}} on this team.</strong> If the team is private you won't be able to rejoin it without an invitation from another team member. Are you sure?"
                     values={{
                         num_of_public_channels: numOfPublicChannels,
                         num_of_private_channels: numOfPrivateChannels,
@@ -130,7 +130,7 @@ export default class LeaveTeamModal extends React.PureComponent<Props, State> {
             modalMessage = (
                 <FormattedMessage
                     id='leave_team_modal_private.description'
-                    defaultMessage='<strong>You will be removed from {num_of_private_channels} private {num_of_private_channels,plural,one {channel} other {channels}} on this team.</strong> If the team is private you won&apos;t be able to rejoin it without an invitation from another team member. Are you sure?'
+                    defaultMessage="<strong>You will be removed from {num_of_private_channels} private {num_of_private_channels,plural,one {channel} other {channels}} on this team.</strong> If the team is private you won't be able to rejoin it without an invitation from another team member. Are you sure?"
                     values={{
                         num_of_private_channels: numOfPrivateChannels,
                         strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,

@@ -71,8 +71,8 @@ describe('Onboarding', () => {
         cy.get('#input_name').should('be.visible').type(username);
         cy.get('#input_password-input').should('be.visible').type(password);
 
-        // # Attempt to create an account by clicking on the 'Create Account' button
-        cy.findByText('Create Account').click();
+        // # Attempt to create an account by clicking on the 'Create account' button
+        cy.findByText('Create account').click();
 
         cy.wait(TIMEOUTS.HALF_SEC);
 
