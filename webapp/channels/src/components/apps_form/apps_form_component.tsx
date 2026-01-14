@@ -220,7 +220,6 @@ const initFormValues = (form: AppForm, timezone?: string): AppFormValues => {
                         currentTime.clone().add(timePickerInterval - minutesMod, 'minutes').seconds(0).milliseconds(0);
                     defaultValue = momentToString(defaultMoment, true);
                 }
-                // For ranges, leave null - they must be explicitly selected
             }
 
             values[field.name] = field.value || defaultValue;

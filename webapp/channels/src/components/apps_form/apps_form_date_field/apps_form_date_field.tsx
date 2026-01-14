@@ -27,7 +27,6 @@ const AppsFormDateField: React.FC<Props> = ({
     // Extract datetime config with fallback to top-level fields
     const config = field.datetime_config || {};
     const isRange = config.is_range ?? false;
-    const allowSingleDayRange = config.allow_single_day_range ?? false;
 
     const dateValue = useMemo(() => {
         if (isRange && Array.isArray(value)) {
