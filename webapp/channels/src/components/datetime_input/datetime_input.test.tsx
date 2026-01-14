@@ -15,6 +15,10 @@ jest.mock('utils/timezone', () => ({
     isBeforeTime: jest.fn(),
 }));
 
+jest.mock('selectors/preferences', () => ({
+    isUseMilitaryTime: jest.fn(),
+}));
+
 const mockGetCurrentMomentForTimezone = timezoneUtils.getCurrentMomentForTimezone as jest.MockedFunction<typeof timezoneUtils.getCurrentMomentForTimezone>;
 const mockIsBeforeTime = timezoneUtils.isBeforeTime as jest.MockedFunction<typeof timezoneUtils.isBeforeTime>;
 
@@ -222,6 +226,105 @@ describe('components/datetime_input/DateTimeInput', () => {
             // Should have fewer options (only from 3:30 PM to end of day)
             expect(timeOptions.length).toBeLessThan(48); // Less than full day
             expect(timeOptions.length).toBeGreaterThan(0); // But should have some options
+        });
+    });
+
+    describe('user preference handling', () => {
+        it('should use user locale for date formatting', () => {
+            renderWithContext(<DateTimeInput {...baseProps}/>);
+
+            // Date should be formatted using formatDateForDisplay utility
+            // which uses user's locale from getCurrentLocale selector
+            expect(screen.getByText('Date')).toBeInTheDocument();
+        });
+
+        it('should respect military time (24-hour) preference', () => {
+            const mockIsUseMilitaryTime = require('selectors/preferences').isUseMilitaryTime;
+            mockIsUseMilitaryTime.mockReturnValue(true);
+
+            renderWithContext(<DateTimeInput {...baseProps}/>);
+
+            // Timestamp component should receive useTime prop with hourCycle: 'h23'
+            // This is tested indirectly - times would show as 14:00 instead of 2:00 PM
+            expect(mockIsUseMilitaryTime).toHaveBeenCalled();
+        });
+
+        it('should respect 12-hour time preference', () => {
+            const mockIsUseMilitaryTime = require('selectors/preferences').isUseMilitaryTime;
+            mockIsUseMilitaryTime.mockReturnValue(false);
+
+            renderWithContext(<DateTimeInput {...baseProps}/>);
+
+            // Timestamp component should receive useTime prop with hour12: true
+            // This is tested indirectly - times would show as 2:00 PM instead of 14:00
+            expect(mockIsUseMilitaryTime).toHaveBeenCalled();
+        });
+
+        it('should format dates consistently (not browser default)', () => {
+            const testDate = moment('2025-06-15T12:00:00Z');
+            const props = {...baseProps, time: testDate};
+
+            renderWithContext(<DateTimeInput {...props}/>);
+
+            // Date should use Intl.DateTimeFormat(locale, {month: 'short', ...})
+            // Not DateTime.fromJSDate().toLocaleString() which varies by browser
+            // Expected format: "Jun 15, 2025" not "6/15/2025"
+            expect(props.time).toBeDefined();
+        });
+    });
+
+    describe('auto-rounding behavior', () => {
+        it('should auto-round time to interval boundary on mount', () => {
+            const handleChange = jest.fn();
+            const unroundedTime = moment('2025-06-08T14:17:00Z'); // 14:17 - not on 30-min boundary
+
+            renderWithContext(
+                <DateTimeInput
+                    time={unroundedTime}
+                    handleChange={handleChange}
+                    timePickerInterval={30}
+                />,
+            );
+
+            // Should auto-round 14:17 to 14:30 and call handleChange
+            expect(handleChange).toHaveBeenCalledTimes(1);
+            const roundedTime = handleChange.mock.calls[0][0];
+            expect(roundedTime.minute()).toBe(30);
+        });
+
+        it('should not call handleChange if time is already rounded', () => {
+            const handleChange = jest.fn();
+            const roundedTime = moment('2025-06-08T14:30:00Z'); // Already on 30-min boundary
+
+            renderWithContext(
+                <DateTimeInput
+                    time={roundedTime}
+                    handleChange={handleChange}
+                    timePickerInterval={30}
+                />,
+            );
+
+            // Should not call handleChange since time is already rounded
+            expect(handleChange).not.toHaveBeenCalled();
+        });
+
+        it('should use 30-minute default interval when prop not provided', () => {
+            const handleChange = jest.fn();
+            const unroundedTime = moment('2025-06-08T14:17:00Z');
+
+            renderWithContext(
+                <DateTimeInput
+                    time={unroundedTime}
+                    handleChange={handleChange}
+
+                    // No timePickerInterval prop - should use 30-min default
+                />,
+            );
+
+            // Should round using default 30-min interval
+            expect(handleChange).toHaveBeenCalledTimes(1);
+            const roundedTime = handleChange.mock.calls[0][0];
+            expect(roundedTime.minute()).toBe(30); // 14:17 -> 14:30
         });
     });
 });

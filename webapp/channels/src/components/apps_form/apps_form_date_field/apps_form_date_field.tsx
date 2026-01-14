@@ -8,7 +8,7 @@ import type {AppField} from '@mattermost/types/apps';
 
 import DatePicker from 'components/date_picker/date_picker';
 
-import {stringToDate, dateToString, resolveRelativeDate} from 'utils/date_utils';
+import {stringToDate, dateToString, resolveRelativeDate, formatDateForDisplay} from 'utils/date_utils';
 
 type Props = {
     field: AppField;
@@ -45,16 +45,12 @@ const AppsFormDateField: React.FC<Props> = ({
             if (dateValue.length === 0) {
                 return '';
             }
+            var startDate = formatDateForDisplay(dateValue[0], intl.locale);
             try {
-                const formatter = new Intl.DateTimeFormat(intl.locale, {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                });
                 if (dateValue.length === 1) {
-                    return formatter.format(dateValue[0]);
+                    return startDate;
                 }
-                return `${formatter.format(dateValue[0])} - ${formatter.format(dateValue[1])}`;
+                return `${startDate} - ${formatDateForDisplay(dateValue[1], intl.locale)}`;
             } catch {
                 return '';
             }
@@ -62,11 +58,7 @@ const AppsFormDateField: React.FC<Props> = ({
 
         if (dateValue instanceof Date) {
             try {
-                return new Intl.DateTimeFormat(intl.locale, {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                }).format(dateValue);
+                return formatDateForDisplay(dateValue, intl.locale);
             } catch {
                 return '';
             }

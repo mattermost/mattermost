@@ -3970,7 +3970,6 @@
   "sidebar.unreads": "Más sin leer",
   "sidebar_left.add_channel_dropdown.browseChannels": "Ver Canales",
   "sidebar_left.add_channel_dropdown.createNewChannel": "Crear Nuevo Canal",
-  "sidebar_left.add_channel_dropdown.dropdownAriaLabel": "Agregar Canal Menú Desplegable",
   "sidebar_left.channel_filter.filterByUnread": "Filtrar por no leídos",
   "sidebar_left.channel_filter.showAllChannels": "Mostrar todos los canales",
   "sidebar_left.channel_navigator.channelSwitcherLabel": "Selector de Canales",
