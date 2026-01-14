@@ -56,6 +56,7 @@ import {
     receivedNewPost,
     receivedPost,
 } from 'mattermost-redux/actions/posts';
+import {getRecap} from 'mattermost-redux/actions/recaps';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import {fetchTeamScheduledPosts} from 'mattermost-redux/actions/scheduled_posts';
 import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/actions/status_profile_polling';
@@ -670,6 +671,9 @@ export function handleEvent(msg) {
         break;
     case SocketEvents.CONTENT_FLAGGING_REPORT_VALUE_CHANGED:
         dispatch(handleContentFlaggingReportValueChanged(msg));
+        break;
+    case SocketEvents.RECAP_UPDATED:
+        dispatch(handleRecapUpdated(msg));
         break;
     case SocketEvents.FILE_DOWNLOAD_REJECTED:
         dispatch(handleFileDownloadRejected(msg));
@@ -2012,6 +2016,15 @@ export function handleContentFlaggingReportValueChanged(msg) {
     return {
         type: ContentFlaggingTypes.CONTENT_FLAGGING_REPORT_VALUE_UPDATED,
         data: msg.data,
+    };
+}
+
+export function handleRecapUpdated(msg) {
+    const recapId = msg.data.recap_id;
+
+    return async (doDispatch) => {
+        // Fetch the updated recap and dispatch to Redux
+        doDispatch(getRecap(recapId));
     };
 }
 

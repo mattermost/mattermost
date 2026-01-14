@@ -19,7 +19,7 @@ import Carousel from 'components/common/carousel/carousel';
 import useOpenInvitePeopleModal from 'components/common/hooks/useOpenInvitePeopleModal';
 import GuestAccessSvg from 'components/common/svg_images_components/guest_access_svg';
 import MonitorImacLikeSVG from 'components/common/svg_images_components/monitor_imaclike_svg';
-import PersonWithChecklistSvg from 'components/common/svg_images_components/person_with_checklist';
+import PersonWithChecklistSvg from 'components/common/svg_images_components/person_with_checklist_svg';
 import SuccessSvg from 'components/common/svg_images_components/success_svg';
 
 import {ConsolePages, DocLinks, ModalIdentifiers} from 'utils/constants';
