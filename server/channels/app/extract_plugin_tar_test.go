@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 	"testing"
 
@@ -29,9 +28,7 @@ func assertDirectoryContents(t *testing.T, dir string, expectedFiles []string) {
 	})
 	require.NoError(t, err)
 
-	sort.Strings(files)
-	sort.Strings(expectedFiles)
-	assert.Equal(t, expectedFiles, files)
+	assert.ElementsMatch(t, expectedFiles, files)
 }
 
 func TestExtractTarGz(t *testing.T) {

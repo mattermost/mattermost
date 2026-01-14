@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import deepEqual from 'fast-deep-equal';
 import React, {lazy} from 'react';
 import {Route, Switch, Redirect} from 'react-router-dom';
 import type {RouteComponentProps} from 'react-router-dom';
@@ -24,6 +23,7 @@ import LoggedInRoute from 'components/logged_in_route';
 import {LAUNCHING_WORKSPACE_FULLSCREEN_Z_INDEX} from 'components/preparing_workspace/launching_workspace';
 import {Animations} from 'components/preparing_workspace/steps';
 import Readout from 'components/readout/readout';
+import {WithUserTheme} from 'components/theme_provider';
 
 import webSocketClient from 'client/web_websocket_client';
 import {initializePlugins} from 'plugins';
@@ -35,7 +35,7 @@ import {EmojiIndicesByAlias} from 'utils/emoji';
 import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
 import {getSiteURL} from 'utils/url';
 import {isAndroidWeb, isChromebook, isDesktopApp, isIosWeb} from 'utils/user_agent';
-import {applyTheme, isTextDroppableEvent} from 'utils/utils';
+import {isTextDroppableEvent} from 'utils/utils';
 
 import LuxonController from './luxon_controller';
 import PerformanceReporterController from './performance_reporter_controller';
@@ -114,8 +114,6 @@ export default class Root extends React.PureComponent<Props, State> {
         this.props.actions.migrateRecentEmojis();
         this.props.actions.loadRecentlyUsedCustomEmojis();
         this.showLandingPageIfNecessary();
-
-        this.applyTheme();
     };
 
     private showLandingPageIfNecessary = () => {
@@ -179,21 +177,7 @@ export default class Root extends React.PureComponent<Props, State> {
         BrowserStore.setLandingPageSeen(true);
     };
 
-    applyTheme() {
-        // don't apply theme when in system console; system console hardcoded to THEMES.denim
-        // AdminConsole will apply denim on mount re-apply user theme on unmount
-        if (this.props.location.pathname.startsWith('/admin_console')) {
-            return;
-        }
-
-        applyTheme(this.props.theme);
-    }
-
     componentDidUpdate(prevProps: Props, prevState: State) {
-        if (!deepEqual(prevProps.theme, this.props.theme)) {
-            this.applyTheme();
-        }
-
         if (this.props.location.pathname === '/') {
             if (this.props.noAccounts) {
                 prevProps.history.push('/signup_user_complete');
@@ -420,7 +404,7 @@ export default class Root extends React.PureComponent<Props, State> {
                         path={'/_popout'}
                         component={PopoutController}
                     />
-                    <>
+                    <WithUserTheme>
                         {(this.props.showLaunchingWorkspace && !this.props.location.pathname.includes('/preparing-workspace') &&
                             <LaunchingWorkspace
                                 fullscreen={true}
@@ -509,7 +493,7 @@ export default class Root extends React.PureComponent<Props, State> {
                         <Pluggable pluggableName='Global'/>
                         <AppBar/>
                         <Readout/>
-                    </>
+                    </WithUserTheme>
                 </Switch>
             </RootProvider>
         );
@@ -519,7 +503,7 @@ export default class Root extends React.PureComponent<Props, State> {
 export function doesRouteBelongToTeamControllerRoutes(pathname: RouteComponentProps['location']['pathname']): boolean {
     // Note: we have specifically added admin_console to the negative lookahead as admin_console can have integrations as subpaths (admin_console/integrations/bot_accounts)
     // and we don't want to treat those as team controller routes.
-    const TEAM_CONTROLLER_PATH_PATTERN = new RegExp(`^/(?!admin_console)([a-z0-9\\-_]+)/(channels|messages|threads|drafts|integrations|emoji|${SCHEDULED_POST_URL_SUFFIX})(/.*)?$`);
+    const TEAM_CONTROLLER_PATH_PATTERN = new RegExp(`^/(?!admin_console)([a-z0-9\\-_]+)/(channels|messages|threads|recaps|drafts|integrations|emoji|${SCHEDULED_POST_URL_SUFFIX})(/.*)?$`);
 
     return TEAM_CONTROLLER_PATH_PATTERN.test(pathname);
 }
