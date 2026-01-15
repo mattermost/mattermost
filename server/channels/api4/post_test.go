@@ -273,18 +273,6 @@ func TestCreatePost(t *testing.T) {
 		require.Equal(t, http.StatusBadRequest, r.StatusCode)
 	})
 
-	t.Run("not logged in", func(t *testing.T) {
-		resp, err := client.Logout(context.Background())
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-
-		post := basicPost()
-		rpost, resp, err := client.CreatePost(context.Background(), post)
-		require.Error(t, err)
-		CheckUnauthorizedStatus(t, resp)
-		assert.Nil(t, rpost)
-	})
-
 	t.Run("should prevent creating post with files when user lacks upload_file permission in target channel", func(t *testing.T) {
 		fileResp, resp, err := client.UploadFile(context.Background(), []byte("test file data"), th.BasicChannel.Id, "test-file.txt")
 		require.NoError(t, err)
@@ -350,6 +338,17 @@ func TestCreatePost(t *testing.T) {
 		createdPost, appErr := th.App.GetSinglePost(th.Context, respPost.Id, false)
 		require.Nil(t, appErr)
 		require.Zero(t, *createdPost.RemoteId)
+	})
+	t.Run("not logged in", func(t *testing.T) {
+		resp, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		post := basicPost()
+		rpost, resp, err := client.CreatePost(context.Background(), post)
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+		assert.Nil(t, rpost)
 	})
 }
 

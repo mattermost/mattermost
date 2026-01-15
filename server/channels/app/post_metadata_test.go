@@ -3030,7 +3030,7 @@ func TestSanitizePostMetadataForUser(t *testing.T) {
 		require.True(t, isMemberForPreviews)
 	})
 
-	t.Run("should remove embeds for archived channels if the config does not allow it", func(t *testing.T) {
+	t.Run("should not remove embeds for archived channels", func(t *testing.T) {
 		publicChannel, err := th.App.CreateChannel(th.Context, &model.Channel{
 			Name:      model.NewId(),
 			Type:      model.ChannelTypeOpen,
@@ -3079,7 +3079,7 @@ func TestSanitizePostMetadataForUser(t *testing.T) {
 
 		require.Equal(t, 2, len(sanitizedPost.Metadata.Embeds))
 		require.Equal(t, model.PostEmbedPermalink, sanitizedPost.Metadata.Embeds[0].Type)
-		require.True(t, isMemberForPreviews)
+		require.False(t, isMemberForPreviews)
 	})
 }
 
