@@ -518,6 +518,48 @@
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /api/v4/wikis/{wiki_id}/pages/{page_id}/restore:
+    post:
+      tags:
+        - wikis
+      summary: Restore deleted page
+      description: |
+        Restores a previously deleted page in a wiki.
+
+        __Minimum server version__: TBD
+
+        ##### Permissions
+        Must have `delete_post` permission in the wiki's channel (restore requires same permission as delete).
+      operationId: RestorePage
+      parameters:
+        - name: wiki_id
+          in: path
+          description: Wiki GUID
+          required: true
+          schema:
+            type: string
+        - name: page_id
+          in: path
+          description: Page (Post) GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Page restoration successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   /api/v4/wikis/{wiki_id}/move:
     post:
       tags:

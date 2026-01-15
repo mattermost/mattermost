@@ -275,10 +275,10 @@ func (s *MmctlUnitTestSuite) TestWikiVerifyCmdF() {
 			Type:         model.PostTypePage,
 			ChannelId:    wikiChannelID,
 			PageParentId: "",
-			FileIds:      []string{"file-1", "file-2"}, // 2 attachments
 		}
 		page1.AddProp("title", "Page 1")
 		page1.AddProp("import_source_id", "conf-1")
+		page1.AddProp("import_file_mappings", map[string]any{"file-1": "mapped-1", "file-2": "mapped-2"}) // 2 attachments
 
 		// Page with 1 attachment
 		page2 := &model.Post{
@@ -286,10 +286,10 @@ func (s *MmctlUnitTestSuite) TestWikiVerifyCmdF() {
 			Type:         model.PostTypePage,
 			ChannelId:    wikiChannelID,
 			PageParentId: wikiPageID1,
-			FileIds:      []string{"file-3"}, // 1 attachment
 		}
 		page2.AddProp("title", "Page 2")
 		page2.AddProp("import_source_id", "conf-2")
+		page2.AddProp("import_file_mappings", map[string]any{"file-3": "mapped-3"}) // 1 attachment
 
 		postList := &model.PostList{
 			Posts: map[string]*model.Post{
@@ -341,10 +341,10 @@ func (s *MmctlUnitTestSuite) TestWikiVerifyCmdF() {
 			Type:         model.PostTypePage,
 			ChannelId:    wikiChannelID,
 			PageParentId: "",
-			FileIds:      []string{"file-1"}, // Only 1 attachment
 		}
 		page1.AddProp("title", "Page 1")
 		page1.AddProp("import_source_id", "conf-1")
+		page1.AddProp("import_file_mappings", map[string]any{"file-1": "mapped-1"}) // Only 1 attachment
 
 		postList := &model.PostList{
 			Posts: map[string]*model.Post{
