@@ -439,8 +439,8 @@ export type AppFieldType = string;
 
 // DateTime field configuration (basic features)
 export type DateTimeConfig = {
-    time_interval?: number;          // Minutes between time options (default: 60)
-    is_range?: boolean;              // Enable date/datetime range selection
+    time_interval?: number; // Minutes between time options (default: 60)
+    is_range?: boolean; // Enable date/datetime range selection
     allow_single_day_range?: boolean; // Allow start and end to be the same day
     range_layout?: 'horizontal' | 'vertical'; // Layout for range fields
 };
