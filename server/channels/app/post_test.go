@@ -4,6 +4,7 @@
 package app
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -4407,6 +4408,56 @@ func TestPermanentDeletePost(t *testing.T) {
 		_, tmpErr = th.App.Srv().Store().TemporaryPost().Get(th.Context, post.Id)
 		assert.Error(t, tmpErr)
 		assert.True(t, store.IsErrNotFound(tmpErr))
+	})
+
+	t.Run("should send unrevealed post in websocket broadcast", func(t *testing.T) {
+		// Enable feature with license
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.EnableBurnOnRead = model.NewPointer(true)
+		})
+
+		// Create a burn-on-read post
+		//teamID := th.BasicTeam.Id
+		channelID := th.BasicChannel.Id
+		userID := th.BasicUser.Id
+
+		wsMessages, closeWS := connectFakeWebSocket(t, th, userID, "", []model.WebsocketEventType{model.WebsocketEventPostDeleted})
+		defer closeWS()
+
+		post := &model.Post{
+			Message:       "burn on read message with file",
+			ChannelId:     channelID,
+			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+			UserId:        userID,
+			CreateAt:      0,
+			Type:          model.PostTypeBurnOnRead,
+		}
+		post.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(model.DefaultExpirySeconds*1000))
+
+		post, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+		require.Equal(t, model.PostTypeBurnOnRead, post.Type)
+
+		appErr = th.App.PermanentDeletePost(th.Context, post.Id, userID)
+		require.Nil(t, appErr)
+
+		var received *model.WebSocketEvent
+		select {
+		case received = <-wsMessages:
+			// the post sent in websocket payload shouldn't contain message or file IDs
+			data := received.GetData()
+			postJSON, ok := data["post"].(string)
+			require.True(t, ok)
+			var receivedPost model.Post
+			err := json.Unmarshal([]byte(postJSON), &receivedPost)
+			require.NoError(t, err)
+			require.Equal(t, post.Id, receivedPost.Id)
+			require.Equal(t, "", receivedPost.Message)
+			require.Equal(t, 0, len(receivedPost.FileIds))
+		case <-time.After(2 * time.Second):
+			require.Fail(t, "Did not receive websocket message in time")
+		}
 	})
 }
 
