@@ -231,8 +231,8 @@ input::-webkit-file-upload-button {
     gap: 4px;
 
     .date-time-input__label {
-        font-size: 12px;
         color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 12px;
         font-weight: 600;
     }
 
@@ -240,13 +240,13 @@ input::-webkit-file-upload-button {
         padding: 8px 12px;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
         border-radius: 4px;
-        font-size: 14px;
         background: var(--center-channel-bg);
+        font-size: 14px;
         color: var(--center-channel-color);
 
         &:focus {
-            outline: none;
             border-color: var(--button-bg);
+            outline: none;
             box-shadow: 0 0 0 2px rgba(var(--button-bg-rgb), 0.12);
         }
 
