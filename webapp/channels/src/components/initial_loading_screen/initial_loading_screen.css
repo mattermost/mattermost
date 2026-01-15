@@ -68,9 +68,9 @@ body {
 .LoadingAnimation {
     --fade-duration: 150ms;
     --colour: #1E325C;
-    --animation-initial-delay: 750ms;
-    --animation-start-duration: 750ms;
-    --animation-end-duration: 600ms;
+    --animation-initial-delay: 50ms;
+    --animation-start-duration: 400ms;
+    --animation-end-duration: 500ms;
     --animation-spinner-speed: 500ms;
     --animation-spinner-mask-stroke-length: 169.6;
     --ease-in-cubic: cubic-bezier(0.32, 0, 0.67, 0);
