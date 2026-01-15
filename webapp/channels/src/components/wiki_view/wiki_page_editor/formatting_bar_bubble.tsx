@@ -487,7 +487,7 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddMedia, onA
                                 });
                             }}
                             className='formatting-btn'
-                            aria-label={formatMessage({id: 'formatting_bar.add_comment', defaultMessage: 'Add comment'})}
+                            aria-label={formatMessage({id: 'formatting_bar.add_comment', defaultMessage: 'Add Comment'})}
                             title={formatMessage({id: 'formatting_bar.add_comment', defaultMessage: 'Add Comment'})}
                             data-testid='inline-comment-submit'
                         >

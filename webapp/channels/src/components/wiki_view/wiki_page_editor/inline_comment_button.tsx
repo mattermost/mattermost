@@ -32,7 +32,7 @@ const InlineCommentButton = ({editor, onCreateComment}: Props) => {
         });
     };
 
-    const addCommentLabel = formatMessage({id: 'inline_comment.add_comment', defaultMessage: 'Add comment'});
+    const addCommentLabel = formatMessage({id: 'inline_comment.add_comment', defaultMessage: 'Add a comment'});
 
     return (
         <BubbleMenu
