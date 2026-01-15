@@ -241,13 +241,13 @@ input::-webkit-file-upload-button {
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
         border-radius: 4px;
         background: var(--center-channel-bg);
-        font-size: 14px;
         color: var(--center-channel-color);
+        font-size: 14px;
 
         &:focus {
             border-color: var(--button-bg);
-            outline: none;
             box-shadow: 0 0 0 2px rgba(var(--button-bg-rgb), 0.12);
+            outline: none;
         }
 
         &.error {
