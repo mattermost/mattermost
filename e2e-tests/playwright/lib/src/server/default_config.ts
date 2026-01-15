@@ -839,11 +839,6 @@ const defaultServerConfig: AdminConfig = {
             URL: '',
             APIKey: '',
         },
-        TimeoutsMs: {
-            Short: 1200,
-            Medium: 2500,
-            Long: 6000,
-            Notification: 300,
-        },
+        TimeoutMs: 5000,
     },
 };
