@@ -18,6 +18,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 )
 
 func TestCreateCommand(t *testing.T) {
@@ -1924,6 +1925,10 @@ func TestExecuteCommandResponseURLUsesSiteURL(t *testing.T) {
 	// Verify response_url starts with the configured SiteURL, not the Host header
 	require.True(t, strings.HasPrefix(receivedResponseURL, expectedSiteURL),
 		"response_url should start with configured SiteURL %q, but got %q", expectedSiteURL, receivedResponseURL)
+
+	// Verify warning is logged when Host header differs from SiteURL
+	require.NoError(t, th.TestLogger.Flush())
+	testlib.AssertLog(t, th.LogBuffer, mlog.LvlWarn.Name, "Request hostname differs from configured SiteURL. The configured SiteURL will be used for the slash command response URL.")
 }
 
 func TestExecuteCustomCommandRequiresSiteURL(t *testing.T) {
@@ -1972,6 +1977,7 @@ func TestExecuteCustomCommandRequiresSiteURL(t *testing.T) {
 	_, resp, err := client.ExecuteCommand(context.Background(), channel.Id, "/customcmd")
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
+	CheckErrorID(t, err, "api.command.execute_command.site_url_required.app_error")
 
 	// Built-in commands should still work without SiteURL
 	_, _, err = client.ExecuteCommand(context.Background(), channel.Id, "/echo test")

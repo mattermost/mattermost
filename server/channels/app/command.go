@@ -496,6 +496,12 @@ func (a *App) tryExecuteCustomCommand(rctx request.CTX, args *model.CommandArgs,
 	if siteURL == "" {
 		return cmd, nil, model.NewAppError("tryExecuteCustomCommand", "api.command.execute_command.site_url_required.app_error", nil, "", http.StatusBadRequest)
 	}
+	if siteURL != args.SiteURL {
+		rctx.Logger().Warn(i18n.T("api.command.execute_command.provided_site_url_different.app_error"),
+			mlog.String("request_host", args.SiteURL),
+			mlog.String("configured_site_url", siteURL),
+			mlog.String("command", trigger))
+	}
 
 	hook, appErr := a.CreateCommandWebhook(cmd.Id, args)
 	if appErr != nil {
