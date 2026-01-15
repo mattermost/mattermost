@@ -5,7 +5,7 @@
 
 import classNames from 'classnames';
 import React, {PureComponent} from 'react';
-import type {ChangeEvent, MouseEvent} from 'react';
+import type {ChangeEvent, KeyboardEvent, MouseEvent} from 'react';
 import type {IntlShape, WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
@@ -853,6 +853,13 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         });
     };
 
+    handleConfirmPasswordKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === 'Enter' && this.state.confirmPassword) {
+            event.preventDefault();
+            this.handleConfirmSave();
+        }
+    };
+
     renderConfirmModal = () => {
         const fields: Array<React.ReactNode | null> = [];
         const isEditingOwnEmail = this.isEditingOwnEmail();
@@ -954,6 +961,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                 })}
                                 value={this.state.confirmPassword}
                                 onChange={this.handleConfirmPasswordChange}
+                                onKeyDown={this.handleConfirmPasswordKeyDown}
                                 placeholder={this.props.intl.formatMessage({
                                     id: 'admin.userDetail.saveChangesModal.passwordPlaceholder',
                                     defaultMessage: 'Enter your password',
