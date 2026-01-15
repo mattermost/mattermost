@@ -4701,6 +4701,8 @@
   "image_ai.button_aria_label": "Image AI tools",
   "image_ai.button_label": "AI",
   "image_ai.describe_image": "Describe image",
+  "image_ai.error.action_failed": "Image AI action failed",
+  "image_ai.error.invalid_response": "Invalid response from image extraction API",
   "image_ai.error.no_agent": "No AI agent available. Please configure an AI agent to use this feature.",
   "image_ai.error.not_mattermost_file": "This image cannot be analyzed. Only images uploaded to Mattermost can be processed by AI.",
   "image_ai.extract_handwriting": "Extract handwriting",

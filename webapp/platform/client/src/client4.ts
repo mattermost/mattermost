@@ -4694,9 +4694,9 @@ export default class Client4 {
         });
     };
 
-    extractImageText = (agentId: string, fileId: string, action: 'extract_handwriting' | 'describe_image') => {
+    extractImageText = (wikiId: string, agentId: string, fileId: string, action: 'extract_handwriting' | 'describe_image') => {
         return this.doFetch<{extracted_text: string}>(
-            `${this.getPostsRoute()}/extract-image`,
+            `${this.getWikiPagesRoute(wikiId)}/extract-image`,
             {method: 'post', body: JSON.stringify({agent_id: agentId, file_id: fileId, action})},
         ).then((response) => {
             if (!response || typeof response.extracted_text === 'undefined') {

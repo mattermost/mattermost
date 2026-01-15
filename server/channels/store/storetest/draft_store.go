@@ -28,6 +28,15 @@ func TestDraftStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) 
 	t.Run("DeleteOrphanDraftsByCreateAtAndUserId", func(t *testing.T) { testDeleteOrphanDraftsByCreateAtAndUserID(t, rctx, ss) })
 	t.Run("PermanentDeleteByUser", func(t *testing.T) { testPermanentDeleteDraftsByUser(t, rctx, ss) })
 	t.Run("UpdatePropsOnly", func(t *testing.T) { testUpdatePropsOnly(t, rctx, ss) })
+
+	// Page draft tests
+	t.Run("BatchUpdateDraftParentId", func(t *testing.T) { testBatchUpdateDraftParentId(t, rctx, ss) })
+	t.Run("UpdateDraftParent", func(t *testing.T) { testUpdateDraftParent(t, rctx, ss) })
+	t.Run("GetPageDraft", func(t *testing.T) { testGetPageDraft(t, rctx, ss) })
+	t.Run("GetPageDraftsForUser", func(t *testing.T) { testGetPageDraftsForUser(t, rctx, ss) })
+	t.Run("UpsertPageDraftContent", func(t *testing.T) { testUpsertPageDraftContent(t, rctx, ss) })
+	t.Run("DeletePageDraft", func(t *testing.T) { testDeletePageDraft(t, rctx, ss) })
+	t.Run("PageDraftExists", func(t *testing.T) { testPageDraftExists(t, rctx, ss) })
 }
 
 func testSaveDraft(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -1344,5 +1353,260 @@ func testUpdatePropsOnly(t *testing.T, rctx request.CTX, ss store.Store) {
 		err := ss.Draft().UpdatePropsOnly(nonExistentUserId, nonExistentWikiId, nonExistentDraftId, props, model.GetMillis())
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "draft was modified by another process or does not exist")
+	})
+}
+
+func testBatchUpdateDraftParentId(t *testing.T, rctx request.CTX, ss store.Store) {
+	userId := model.NewId()
+	wikiId := model.NewId()
+	oldParentId := model.NewId()
+	newParentId := model.NewId()
+
+	t.Run("updates drafts with matching parent id", func(t *testing.T) {
+		// Create drafts with the old parent ID in Props
+		// For page drafts, ChannelId is set to WikiId
+		draft1 := &model.Draft{
+			UserId:    userId,
+			ChannelId: wikiId, // page drafts use wikiId as channelId
+			WikiId:    wikiId,
+			RootId:    model.NewId(),
+			Message:   "draft 1",
+			CreateAt:  model.GetMillis(),
+		}
+		draft1.SetProps(map[string]any{
+			model.DraftPropsPageParentID: oldParentId,
+		})
+
+		draft2 := &model.Draft{
+			UserId:    userId,
+			ChannelId: wikiId,
+			WikiId:    wikiId,
+			RootId:    model.NewId(),
+			Message:   "draft 2",
+			CreateAt:  model.GetMillis(),
+		}
+		draft2.SetProps(map[string]any{
+			model.DraftPropsPageParentID: oldParentId,
+		})
+
+		// Draft with different parent - should not be updated
+		draft3 := &model.Draft{
+			UserId:    userId,
+			ChannelId: wikiId,
+			WikiId:    wikiId,
+			RootId:    model.NewId(),
+			Message:   "draft 3",
+			CreateAt:  model.GetMillis(),
+		}
+		draft3.SetProps(map[string]any{
+			model.DraftPropsPageParentID: model.NewId(), // different parent
+		})
+
+		_, err := ss.Draft().UpsertPageDraft(draft1)
+		require.NoError(t, err)
+		_, err = ss.Draft().UpsertPageDraft(draft2)
+		require.NoError(t, err)
+		_, err = ss.Draft().UpsertPageDraft(draft3)
+		require.NoError(t, err)
+
+		// Batch update
+		updatedDrafts, err := ss.Draft().BatchUpdateDraftParentId(userId, wikiId, oldParentId, newParentId)
+		require.NoError(t, err)
+		assert.Len(t, updatedDrafts, 2)
+
+		// Verify the updated drafts have the new parent ID
+		for _, d := range updatedDrafts {
+			props := d.GetProps()
+			assert.Equal(t, newParentId, props[model.DraftPropsPageParentID])
+		}
+
+		// Verify draft3 was not updated (Get uses channelId which equals wikiId for page drafts)
+		draft3Retrieved, err := ss.Draft().Get(userId, wikiId, draft3.RootId, false)
+		require.NoError(t, err)
+		props3 := draft3Retrieved.GetProps()
+		assert.NotEqual(t, newParentId, props3[model.DraftPropsPageParentID])
+	})
+
+	t.Run("returns empty slice when no matching drafts", func(t *testing.T) {
+		nonExistentParentId := model.NewId()
+		updatedDrafts, err := ss.Draft().BatchUpdateDraftParentId(userId, wikiId, nonExistentParentId, newParentId)
+		require.NoError(t, err)
+		assert.Len(t, updatedDrafts, 0)
+	})
+}
+
+func testUpdateDraftParent(t *testing.T, rctx request.CTX, ss store.Store) {
+	userId := model.NewId()
+	wikiId := model.NewId()
+	draftId := model.NewId()
+	oldParentId := model.NewId()
+	newParentId := model.NewId()
+
+	t.Run("updates single draft parent id", func(t *testing.T) {
+		// For page drafts, ChannelId is set to WikiId
+		draft := &model.Draft{
+			UserId:    userId,
+			ChannelId: wikiId, // page drafts use wikiId as channelId
+			WikiId:    wikiId,
+			RootId:    draftId,
+			Message:   "test draft",
+			CreateAt:  model.GetMillis(),
+		}
+		draft.SetProps(map[string]any{
+			model.DraftPropsPageParentID: oldParentId,
+		})
+
+		_, err := ss.Draft().UpsertPageDraft(draft)
+		require.NoError(t, err)
+
+		err = ss.Draft().UpdateDraftParent(userId, wikiId, draftId, newParentId)
+		require.NoError(t, err)
+
+		// Verify the update (wikiId == channelId for page drafts)
+		retrieved, err := ss.Draft().Get(userId, wikiId, draftId, false)
+		require.NoError(t, err)
+		props := retrieved.GetProps()
+		assert.Equal(t, newParentId, props[model.DraftPropsPageParentID])
+	})
+
+	t.Run("fails when draft does not exist", func(t *testing.T) {
+		err := ss.Draft().UpdateDraftParent(model.NewId(), model.NewId(), model.NewId(), newParentId)
+		require.Error(t, err)
+	})
+}
+
+func testGetPageDraft(t *testing.T, rctx request.CTX, ss store.Store) {
+	userId := model.NewId()
+	wikiId := model.NewId()
+	pageId := model.NewId()
+
+	t.Run("gets existing page draft", func(t *testing.T) {
+		content := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Test content"}]}]}`
+		title := "Test Page"
+
+		_, err := ss.Draft().UpsertPageDraftContent(pageId, userId, wikiId, content, title, 0)
+		require.NoError(t, err)
+
+		retrieved, err := ss.Draft().GetPageDraft(pageId, userId)
+		require.NoError(t, err)
+		assert.Equal(t, pageId, retrieved.PageId)
+		assert.Equal(t, userId, retrieved.UserId)
+		assert.Equal(t, title, retrieved.Title)
+	})
+
+	t.Run("returns error for non-existent draft", func(t *testing.T) {
+		_, err := ss.Draft().GetPageDraft(model.NewId(), model.NewId())
+		require.Error(t, err)
+	})
+}
+
+func testGetPageDraftsForUser(t *testing.T, rctx request.CTX, ss store.Store) {
+	userId := model.NewId()
+	wikiId := model.NewId()
+
+	t.Run("gets all drafts for user in wiki", func(t *testing.T) {
+		// Create multiple drafts
+		content := `{"type":"doc","content":[]}`
+		for i := 0; i < 3; i++ {
+			pageId := model.NewId()
+			_, err := ss.Draft().UpsertPageDraftContent(pageId, userId, wikiId, content, "Page "+string(rune('A'+i)), 0)
+			require.NoError(t, err)
+			time.Sleep(10 * time.Millisecond) // ensure different UpdateAt
+		}
+
+		drafts, err := ss.Draft().GetPageDraftsForUser(userId, wikiId)
+		require.NoError(t, err)
+		assert.GreaterOrEqual(t, len(drafts), 3)
+	})
+
+	t.Run("returns empty slice for user with no drafts", func(t *testing.T) {
+		drafts, err := ss.Draft().GetPageDraftsForUser(model.NewId(), model.NewId())
+		require.NoError(t, err)
+		assert.Len(t, drafts, 0)
+	})
+}
+
+func testUpsertPageDraftContent(t *testing.T, rctx request.CTX, ss store.Store) {
+	userId := model.NewId()
+	wikiId := model.NewId()
+	pageId := model.NewId()
+
+	t.Run("creates new page draft", func(t *testing.T) {
+		content := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"New draft"}]}]}`
+		title := "New Draft"
+
+		created, err := ss.Draft().UpsertPageDraftContent(pageId, userId, wikiId, content, title, 0)
+		require.NoError(t, err)
+		assert.Equal(t, pageId, created.PageId)
+		assert.Equal(t, userId, created.UserId)
+		assert.Equal(t, title, created.Title)
+	})
+
+	t.Run("updates existing page draft", func(t *testing.T) {
+		existingPageId := model.NewId()
+		content1 := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Version 1"}]}]}`
+		title1 := "Version 1"
+
+		created, err := ss.Draft().UpsertPageDraftContent(existingPageId, userId, wikiId, content1, title1, 0)
+		require.NoError(t, err)
+
+		// Wait to ensure different timestamp
+		time.Sleep(10 * time.Millisecond)
+
+		content2 := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Version 2"}]}]}`
+		title2 := "Version 2"
+
+		updated, err := ss.Draft().UpsertPageDraftContent(existingPageId, userId, wikiId, content2, title2, created.UpdateAt)
+		require.NoError(t, err)
+		assert.Equal(t, title2, updated.Title)
+		assert.Greater(t, updated.UpdateAt, created.UpdateAt)
+	})
+}
+
+func testDeletePageDraft(t *testing.T, rctx request.CTX, ss store.Store) {
+	userId := model.NewId()
+	wikiId := model.NewId()
+	pageId := model.NewId()
+
+	t.Run("deletes existing page draft", func(t *testing.T) {
+		content := `{"type":"doc","content":[]}`
+		_, err := ss.Draft().UpsertPageDraftContent(pageId, userId, wikiId, content, "To Delete", 0)
+		require.NoError(t, err)
+
+		err = ss.Draft().DeletePageDraft(pageId, userId)
+		require.NoError(t, err)
+
+		// Verify it's deleted
+		_, err = ss.Draft().GetPageDraft(pageId, userId)
+		require.Error(t, err)
+	})
+
+	t.Run("returns error when draft does not exist", func(t *testing.T) {
+		err := ss.Draft().DeletePageDraft(model.NewId(), model.NewId())
+		require.Error(t, err)
+	})
+}
+
+func testPageDraftExists(t *testing.T, rctx request.CTX, ss store.Store) {
+	userId := model.NewId()
+	wikiId := model.NewId()
+	pageId := model.NewId()
+
+	t.Run("returns true for existing draft", func(t *testing.T) {
+		content := `{"type":"doc","content":[]}`
+		created, err := ss.Draft().UpsertPageDraftContent(pageId, userId, wikiId, content, "Exists", 0)
+		require.NoError(t, err)
+
+		exists, updateAt, err := ss.Draft().PageDraftExists(pageId, userId)
+		require.NoError(t, err)
+		assert.True(t, exists)
+		assert.Equal(t, created.UpdateAt, updateAt)
+	})
+
+	t.Run("returns false for non-existent draft", func(t *testing.T) {
+		exists, updateAt, err := ss.Draft().PageDraftExists(model.NewId(), model.NewId())
+		require.NoError(t, err)
+		assert.False(t, exists)
+		assert.Equal(t, int64(0), updateAt)
 	})
 }

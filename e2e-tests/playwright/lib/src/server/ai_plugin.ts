@@ -313,7 +313,7 @@ export async function configureAIPlugin(adminClient: Client4): Promise<void> {
                             {
                                 apiKey: testConfig.aiPluginApiKey,
                                 apiURL: '',
-                                defaultModel: 'gpt-4',
+                                defaultModel: 'gpt-4o',
                                 id: '618606d0-65e0-4855-af4f-55e2dff5c99c',
                                 name: 'OpenAI Service',
                                 orgId: '',

@@ -52,7 +52,6 @@ func (api *API) InitPost() {
 	api.BaseRoutes.Post.Handle("/move", api.APISessionRequired(moveThread)).Methods(http.MethodPost)
 
 	api.BaseRoutes.Posts.Handle("/rewrite", api.APISessionRequired(rewriteMessage)).Methods(http.MethodPost)
-	api.BaseRoutes.Posts.Handle("/extract-image", api.APISessionRequired(extractImageText)).Methods(http.MethodPost)
 
 	api.BaseRoutes.Post.Handle("/reveal", api.APISessionRequired(revealPost)).Methods(http.MethodGet)
 	api.BaseRoutes.Post.Handle("/burn", api.APISessionRequired(burnPost)).Methods(http.MethodDelete)
@@ -1573,49 +1572,6 @@ func rewriteMessage(c *Context, w http.ResponseWriter, r *http.Request) {
 		req.Message,
 		req.Action,
 		req.CustomPrompt,
-	)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	// Return response
-	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(*response); err != nil {
-		c.Logger.Warn("Error while writing response", mlog.Err(err))
-	}
-}
-
-// extractImageText handles AI-powered image text extraction using vision capabilities
-func extractImageText(c *Context, w http.ResponseWriter, r *http.Request) {
-	// Parse request
-	var req model.ImageExtractionRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		c.SetInvalidParamWithErr("request_body", err)
-		return
-	}
-
-	if !model.IsValidId(req.AgentID) {
-		c.SetInvalidParam("agent_id")
-		return
-	}
-
-	if !model.IsValidId(req.FileID) {
-		c.SetInvalidParam("file_id")
-		return
-	}
-
-	if req.Action != model.ImageExtractionExtractHandwriting && req.Action != model.ImageExtractionDescribeImage {
-		c.SetInvalidParam("action")
-		return
-	}
-
-	// Call app layer to handle business logic
-	response, appErr := c.App.ExtractImageText(
-		c.AppContext,
-		req.AgentID,
-		req.FileID,
-		req.Action,
 	)
 	if appErr != nil {
 		c.Err = appErr

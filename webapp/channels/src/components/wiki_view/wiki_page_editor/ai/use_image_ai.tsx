@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useCallback, useState} from 'react';
+import {useCallback, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
@@ -62,6 +62,34 @@ function extractFileIdFromSrc(src: string): string | null {
 }
 
 /**
+ * Parses extracted content as TipTap JSON or falls back to plain text paragraph.
+ * The AI returns TipTap JSON format with proper nodes (headings, task lists, etc.)
+ */
+function parseExtractedContent(extractedContent: string): unknown[] {
+    try {
+        const parsed = JSON.parse(extractedContent);
+        if (parsed && parsed.type === 'doc' && Array.isArray(parsed.content)) {
+            return parsed.content;
+        }
+    } catch {
+        // Not valid JSON, fall back to plain text
+    }
+
+    // Fallback: wrap plain text in a paragraph
+    return [
+        {
+            type: 'paragraph',
+            content: [
+                {
+                    type: 'text',
+                    text: extractedContent,
+                },
+            ],
+        },
+    ];
+}
+
+/**
  * Hook for handling image AI actions (extract handwriting, describe image).
  *
  * Uses the mattermost-plugin-ai bridge to send images for vision analysis.
@@ -99,8 +127,8 @@ const useImageAI = (
     const [createdPageId, setCreatedPageId] = useState<string | null>(null);
     const [createdPageTitle, setCreatedPageTitle] = useState('');
 
-    // Cancellation state
-    const [isCancelled, setIsCancelled] = useState(false);
+    // Cancellation ref (useRef to avoid stale closure in async functions)
+    const isCancelledRef = useRef(false);
 
     /**
      * Creates a TipTap document with the extracted/described content and embedded image.
@@ -118,6 +146,9 @@ const useImageAI = (
         const originalImageAlt = formatMessage({id: 'image_ai.original_image_alt', defaultMessage: 'Original image'});
         const originalImageTitle = formatMessage({id: 'image_ai.original_image_title', defaultMessage: 'Original image from source page'});
 
+        // Parse extracted content as TipTap JSON or fall back to plain text
+        const extractedNodes = parseExtractedContent(extractedContent);
+
         const doc = {
             type: 'doc',
             content: [
@@ -134,16 +165,8 @@ const useImageAI = (
                     ],
                 },
 
-                // Extracted/described content
-                {
-                    type: 'paragraph',
-                    content: [
-                        {
-                            type: 'text',
-                            text: extractedContent,
-                        },
-                    ],
-                },
+                // Extracted/described content (TipTap nodes from AI or fallback paragraph)
+                ...extractedNodes,
 
                 // Divider
                 {
@@ -185,7 +208,7 @@ const useImageAI = (
         action: ImageAIAction,
     ): Promise<string> => {
         if (!agentId) {
-            throw new Error('No AI agent available');
+            throw new Error(formatMessage({id: 'image_ai.error.no_agent', defaultMessage: 'No AI agent available. Please configure an AI agent to use this feature.'}));
         }
 
         setProgress(action === 'extract_handwriting' ?
@@ -193,9 +216,9 @@ const useImageAI = (
             formatMessage({id: 'image_ai.progress.analyzing_image', defaultMessage: 'Analyzing image...'}),
         );
 
-        const extractedText = await Client4.extractImageText(agentId, fileId, action);
+        const extractedText = await Client4.extractImageText(wikiId, agentId, fileId, action);
         return extractedText;
-    }, [agentId, formatMessage]);
+    }, [wikiId, agentId, formatMessage]);
 
     /**
      * Main handler for image AI actions.
@@ -241,7 +264,7 @@ const useImageAI = (
             return;
         }
 
-        setIsCancelled(false);
+        isCancelledRef.current = false;
         setActionType(action);
         setIsProcessing(true);
         setShowExtractionDialog(true);
@@ -253,7 +276,7 @@ const useImageAI = (
             const content = await extractImageText(fileId, action);
 
             // Check if cancelled during processing
-            if (isCancelled) {
+            if (isCancelledRef.current) {
                 return;
             }
 
@@ -288,7 +311,7 @@ const useImageAI = (
             const draftId = createResult.data as string;
 
             // Check if cancelled
-            if (isCancelled) {
+            if (isCancelledRef.current) {
                 return;
             }
 
@@ -324,7 +347,7 @@ const useImageAI = (
             setShowCompletionDialog(true);
         } catch (err) {
             const serverError: ServerError = {
-                message: err instanceof Error ? err.message : 'Image AI action failed',
+                message: err instanceof Error ? err.message : formatMessage({id: 'image_ai.error.action_failed', defaultMessage: 'Image AI action failed'}),
                 server_error_id: 'image_ai_error',
                 status_code: 500,
             };
@@ -341,7 +364,6 @@ const useImageAI = (
         agentId,
         isExistingPage,
         isProcessing,
-        isCancelled,
         dispatch,
         createPageContent,
         extractImageText,
@@ -353,7 +375,7 @@ const useImageAI = (
      * Cancels the current extraction operation.
      */
     const cancelExtraction = useCallback(() => {
-        setIsCancelled(true);
+        isCancelledRef.current = true;
         setShowExtractionDialog(false);
         setIsProcessing(false);
         setProgress('');

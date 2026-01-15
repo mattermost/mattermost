@@ -318,3 +318,57 @@ func getChannelPages(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
+
+func extractPageImageText(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireWikiId()
+	if c.Err != nil {
+		return
+	}
+
+	wiki, _, ok := c.GetWikiForRead()
+	if !ok {
+		return
+	}
+
+	if wiki.DeleteAt != 0 {
+		c.Err = model.NewAppError("extractPageImageText", "api.wiki.extract_image.wiki_deleted.app_error", nil, "", http.StatusNotFound)
+		return
+	}
+
+	var req app.PageImageExtractionRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		c.SetInvalidParamWithErr("request_body", err)
+		return
+	}
+
+	if !model.IsValidId(req.AgentID) {
+		c.SetInvalidParam("agent_id")
+		return
+	}
+
+	if !model.IsValidId(req.FileID) {
+		c.SetInvalidParam("file_id")
+		return
+	}
+
+	if req.Action != app.PageImageExtractionExtractHandwriting && req.Action != app.PageImageExtractionDescribeImage {
+		c.SetInvalidParam("action")
+		return
+	}
+
+	response, appErr := c.App.ExtractPageImageText(
+		c.AppContext,
+		req.AgentID,
+		req.FileID,
+		req.Action,
+	)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(*response); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}

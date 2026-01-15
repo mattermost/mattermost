@@ -260,6 +260,7 @@ describe('useImageAI', () => {
             });
 
             expect(mockExtractImageText).toHaveBeenCalledWith(
+                defaultProps.wikiId,
                 defaultProps.agentId,
                 'testfile123',
                 'extract_handwriting',

@@ -520,15 +520,16 @@ func (s *SqlDraftStore) BatchUpdateDraftParentId(userId, wikiId, oldParentId, ne
 	newUpdateAt := model.GetMillis()
 
 	// Use PostgreSQL JSONB operators to find drafts with matching parent_id and update in a single query
-	// Props->>'page_parent_id' extracts the value as text for comparison
+	// Drafts.Props is VARCHAR (not JSONB), so cast to jsonb for JSON operations, then back to text
+	// Props::jsonb->>'page_parent_id' extracts the value as text for comparison
 	// jsonb_set updates the value at the specified path
 	rows, err := s.GetMaster().Query(`
 		UPDATE Drafts
-		SET Props = jsonb_set(Props, '{page_parent_id}', to_jsonb($1::text)),
+		SET Props = jsonb_set(Props::jsonb, '{page_parent_id}', to_jsonb($1::text))::text,
 		    UpdateAt = $2
 		WHERE UserId = $3
 		  AND WikiId = $4
-		  AND Props->>'page_parent_id' = $5
+		  AND Props::jsonb->>'page_parent_id' = $5
 		  AND DeleteAt = 0
 		RETURNING CreateAt, UpdateAt, DeleteAt, Message, RootId, ChannelId, WikiId, UserId, FileIds, Props, Priority, Type`,
 		newParentId, newUpdateAt, userId, wikiId, oldParentId)

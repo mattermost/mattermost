@@ -4871,6 +4871,10 @@
     "translation": "Cannot create wiki in archived channel."
   },
   {
+    "id": "api.wiki.extract_image.wiki_deleted.app_error",
+    "translation": "Wiki has been deleted."
+  },
+  {
     "id": "api.wiki.get_page.wiki_deleted.app_error",
     "translation": "Wiki has been deleted."
   },
@@ -7427,6 +7431,26 @@
     "translation": "Target wiki not found for duplication."
   },
   {
+    "id": "app.page.extract_image.agent_call_failed",
+    "translation": "Failed to extract text from image using AI agent."
+  },
+  {
+    "id": "app.page.extract_image.empty_response",
+    "translation": "AI agent returned an empty response for image text extraction."
+  },
+  {
+    "id": "app.page.extract_image.file_not_found",
+    "translation": "File not found."
+  },
+  {
+    "id": "app.page.extract_image.invalid_action",
+    "translation": "Invalid action for image text extraction."
+  },
+  {
+    "id": "app.page.extract_image.not_image",
+    "translation": "File is not an image."
+  },
+  {
     "id": "app.page.get.content.app_error",
     "translation": "Unable to get page content."
   },
@@ -7937,26 +7961,6 @@
   {
     "id": "app.post.delete_post.get_team.app_error",
     "translation": "An error occurred getting the team."
-  },
-  {
-    "id": "app.post.extract_image.agent_call_failed",
-    "translation": "Failed to call AI agent for image analysis."
-  },
-  {
-    "id": "app.post.extract_image.empty_response",
-    "translation": "Empty response from AI image analysis."
-  },
-  {
-    "id": "app.post.extract_image.file_not_found",
-    "translation": "Image file not found."
-  },
-  {
-    "id": "app.post.extract_image.invalid_action",
-    "translation": "Invalid image extraction action."
-  },
-  {
-    "id": "app.post.extract_image.not_image",
-    "translation": "File is not an image."
   },
   {
     "id": "app.post.get.app_error",

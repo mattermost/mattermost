@@ -1258,48 +1258,6 @@ const RewriteSystemPrompt = `You are a JSON API that rewrites text. Your respons
 Return this exact format: {"rewritten_text":"content"}.
 Do not use markdown, code blocks, or any formatting. Start with { and end with }.`
 
-// ImageExtractionAction defines the type of image analysis to perform
-type ImageExtractionAction string
-
-const (
-	ImageExtractionExtractHandwriting ImageExtractionAction = "extract_handwriting"
-	ImageExtractionDescribeImage      ImageExtractionAction = "describe_image"
-)
-
-// ImageExtractionRequest represents a request to extract text or describe an image using AI vision
-type ImageExtractionRequest struct {
-	AgentID string                `json:"agent_id"`
-	FileID  string                `json:"file_id"`
-	Action  ImageExtractionAction `json:"action"`
-}
-
-// ImageExtractionResponse represents the response from image extraction
-type ImageExtractionResponse struct {
-	ExtractedText string `json:"extracted_text"`
-}
-
-// ImageExtractionSystemPrompt is the system prompt for image extraction
-const ImageExtractionSystemPrompt = `You are an AI assistant that analyzes images. Your response must be valid JSON only.
-Return this exact format: {"extracted_text":"content"}.
-Do not use markdown, code blocks, or any formatting. Start with { and end with }.`
-
-// ImageExtractionHandwritingPrompt is the user prompt for extracting handwritten text
-const ImageExtractionHandwritingPrompt = `Analyze the attached image and extract any handwritten or printed text you can see.
-Preserve the structure and formatting of the original content as much as possible.
-Include all readable text, notes, diagram labels, and annotations.
-If there are bullet points, numbered lists, or hierarchical content, maintain that structure.
-If there are tables, preserve the table structure using markdown table format with | separators and header dividers.
-Return the extracted text in a clear, readable format.`
-
-// ImageExtractionDescribePrompt is the user prompt for describing an image
-const ImageExtractionDescribePrompt = `Analyze the attached image and provide a detailed description of its contents.
-Include:
-- Main subjects or objects in the image
-- Any text, labels, or annotations visible
-- The overall context or purpose of the image
-- Notable details or features
-Provide a comprehensive description that would allow someone to understand the image without seeing it.`
-
 // ReportPostOptionsCursor contains cursor information for pagination.
 // The cursor is an opaque base64-encoded string that encodes all pagination state.
 // Clients should treat this as an opaque token and pass it back unchanged.

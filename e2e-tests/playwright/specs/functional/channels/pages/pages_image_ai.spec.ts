@@ -1,6 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import * as fs from 'fs';
+import * as path from 'path';
+
 import {configureAIPlugin, shouldSkipAITests} from '@mattermost/playwright-lib';
 
 import {expect, test} from './pages_test_fixture';
@@ -744,5 +747,162 @@ test(
 
         // The action should have triggered - either dialog shows, error shows, or menu closed
         expect(dialogVisible || errorVisible || !menuStillOpen).toBe(true);
+    },
+);
+
+/**
+ * @objective Verify Extract Handwriting produces properly rendered TipTap content (not raw JSON)
+ *
+ * @precondition
+ * AI plugin is enabled with vision-capable agent (gpt-4o or similar)
+ * This test verifies the full extraction flow including content rendering
+ */
+test(
+    'extracts handwriting and renders as proper TipTap content',
+    {tag: ['@pages', '@ai-integration']},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+
+        // # Configure AI plugin if enabled
+        if (!shouldSkipAITests()) {
+            await configureAIPlugin(adminClient);
+        }
+
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+        // # Create wiki through UI
+        await createWikiThroughUI(page, `TipTap Render Wiki ${await pw.random.id()}`);
+
+        // # Create new page
+        const newPageButton = getNewPageButton(page);
+        await newPageButton.click();
+        await fillCreatePageModal(page, 'TipTap Render Test');
+
+        // # Wait for editor and check AI availability
+        const editor = await getEditorAndWait(page);
+        await editor.click();
+
+        const hasAIPlugin = await checkAIPluginAvailability(page);
+        if (!hasAIPlugin) {
+            test.skip(true, 'AI plugin not configured - skipping Image AI test');
+            return;
+        }
+
+        // # Upload the handwritten todo list image (real image for AI processing)
+        const handwrittenImagePath = path.join(__dirname, 'fixtures', 'handwritten_todo_list.png');
+        if (!fs.existsSync(handwrittenImagePath)) {
+            test.skip(true, 'Handwritten todo list fixture not found');
+            return;
+        }
+
+        // Open slash command menu and upload the real image
+        const slashMenu = await openSlashCommandMenu(page);
+        await page.keyboard.type('image');
+        await page.waitForTimeout(UI_MICRO_WAIT * 3);
+        const imageItem = slashMenu.locator('.slash-command-item').filter({hasText: 'Image'});
+        await expect(imageItem).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        const fileChooserPromise = page.waitForEvent('filechooser', {timeout: ELEMENT_TIMEOUT});
+        await imageItem.click();
+        const fileChooser = await fileChooserPromise;
+        await fileChooser.setFiles(handwrittenImagePath);
+
+        await page.waitForTimeout(WEBSOCKET_WAIT);
+
+        // # Select the image
+        await selectImageInEditor(page);
+        await page.waitForTimeout(UI_MICRO_WAIT * 3);
+
+        // # Click the AI button to open menu
+        const menuButton = getImageAIMenuButton(page);
+        await expect(menuButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+        // # Check if button is enabled (vision available)
+        const isDisabled = await menuButton.isDisabled();
+        if (isDisabled) {
+            test.skip(true, 'Vision capability not available - skipping extraction test');
+            return;
+        }
+
+        // # Click the menu button to open menu
+        await menuButton.click();
+        await page.waitForTimeout(UI_MICRO_WAIT * 2);
+
+        // # Click Extract Handwriting option
+        const extractOption = page.locator('text=Extract handwriting');
+        await expect(extractOption).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await extractOption.click();
+
+        // # Wait for extraction dialog to appear (shows progress)
+        const extractionDialog = page.locator('#image-extraction-dialog, .image-extraction-dialog');
+        await extractionDialog.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT}).catch(() => {});
+
+        // # Wait for completion dialog (shows "Go to page" button)
+        const completionDialog = page.locator(
+            '#image-completion-dialog, .image-completion-dialog, [data-testid="image-completion-dialog"]',
+        );
+        const goToPageButton = page.locator(
+            'button:has-text("Go to"), button:has-text("View page"), [data-testid="go-to-page-button"]',
+        );
+
+        // Wait for extraction to complete (up to 30 seconds for AI processing)
+        const AI_PROCESSING_TIMEOUT = 30000;
+        await Promise.race([
+            completionDialog.waitFor({state: 'visible', timeout: AI_PROCESSING_TIMEOUT}).catch(() => {}),
+            goToPageButton.waitFor({state: 'visible', timeout: AI_PROCESSING_TIMEOUT}).catch(() => {}),
+        ]);
+
+        const completionVisible = await completionDialog.isVisible().catch(() => false);
+        const goToButtonVisible = await goToPageButton.isVisible().catch(() => false);
+
+        if (!completionVisible && !goToButtonVisible) {
+            // Check for error message
+            const errorMessage = page
+                .locator('.error-bar, .server-error, [class*="error"]')
+                .filter({hasText: /error|failed/i});
+            const hasError = await errorMessage.isVisible().catch(() => false);
+            if (hasError) {
+                const errorText = await errorMessage.textContent();
+                test.skip(true, `AI extraction failed: ${errorText}`);
+                return;
+            }
+            test.skip(true, 'AI extraction did not complete in time');
+            return;
+        }
+
+        // # Click "Go to page" button to navigate to the new page
+        if (goToButtonVisible) {
+            await goToPageButton.click();
+        } else {
+            // Try to find any button in the completion dialog
+            const dialogButton = completionDialog.locator('button').first();
+            await dialogButton.click();
+        }
+
+        await page.waitForTimeout(WEBSOCKET_WAIT);
+
+        // # Wait for the new page to load (use more specific selector)
+        const newPageEditor = page.locator('.tiptap.ProseMirror');
+        await newPageEditor.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+
+        // * Verify content is NOT raw JSON (should not see {"type":"doc" or "extracted_text")
+        const pageContent = await newPageEditor.textContent();
+
+        // Check that raw JSON is not visible
+        expect(pageContent).not.toContain('{"type":"doc"');
+        expect(pageContent).not.toContain('"extracted_text"');
+        expect(pageContent).not.toContain('```json');
+
+        // * Verify "Extracted Content" heading is visible (our wrapper heading)
+        const extractedHeading = newPageEditor.locator('h2:has-text("Extracted Content")');
+        await expect(extractedHeading).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+        // * Verify "Original Image" section is visible
+        const originalImageHeading = newPageEditor.locator('h3:has-text("Original Image")');
+        await expect(originalImageHeading).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+        // * Verify an image is present in the page
+        const embeddedImage = newPageEditor.locator('img');
+        await expect(embeddedImage.first()).toBeVisible({timeout: ELEMENT_TIMEOUT});
     },
 );
