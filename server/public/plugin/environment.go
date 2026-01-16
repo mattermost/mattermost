@@ -374,7 +374,8 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 	}
 
 	if pluginInfo.Manifest.HasServer() {
-		err = env.startPluginServer(pluginInfo, WithExecutableFromManifest(pluginInfo))
+		// Use WithCommandFromManifest which handles both Go (netrpc) and Python (gRPC) plugins
+		err = env.startPluginServer(pluginInfo, WithCommandFromManifest(pluginInfo))
 		if err != nil {
 			return nil, false, err
 		}
