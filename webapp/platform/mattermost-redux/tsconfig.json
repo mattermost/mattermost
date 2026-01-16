@@ -29,5 +29,9 @@
     ],
     "exclude": [
         "../../**/*.test.*"
+    ],
+    "references": [
+        {"path": "../types"},
+        {"path": "../client"}
     ]
 }

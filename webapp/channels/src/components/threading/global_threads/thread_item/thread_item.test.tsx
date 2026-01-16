@@ -74,12 +74,6 @@ jest.mock('./attachments', () => {
     };
 });
 
-jest.mock('components/tours/crt_tour/crt_list_tutorial_tip', () => {
-    return function MockCRTListTutorialTip() {
-        return <div className='tutorial-tip'>{'tutorial'}</div>;
-    };
-});
-
 jest.mock('../thread_menu', () => {
     return function MockThreadMenu({children}: {children: React.ReactNode}) {
         return <div className='thread-menu'>{children}</div>;

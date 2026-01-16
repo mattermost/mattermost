@@ -105,7 +105,7 @@ describe('Limits', () => {
         const state = setupState(defaultOptions);
 
         renderWithContext(<Limits/>, state);
-        screen.getByText('Message History');
+        screen.getByText('Message history');
         screen.getByText(/of 10K/);
     });
 
@@ -113,7 +113,7 @@ describe('Limits', () => {
         const state = setupState(defaultOptions);
 
         renderWithContext(<Limits/>, state);
-        screen.getByText('File Storage');
+        screen.getByText('File storage');
         screen.getByText(/of 1GB/);
     });
 

@@ -5,7 +5,9 @@ package api4
 
 import (
 	"context"
+	"io"
 	"net/http"
+	"os"
 	"testing"
 	"time"
 
@@ -13,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
 )
 
 func TestCreateOAuthApp(t *testing.T) {
@@ -809,4 +812,82 @@ func TestRegisterOAuthClient_PublicClient_Success(t *testing.T) {
 	assert.Equal(t, *request.ClientName, *response.ClientName)
 	assert.Equal(t, *request.ClientURI, *response.ClientURI)
 	assert.Equal(t, "user", response.Scope)
+}
+
+func TestRegisterOAuthClientAudit(t *testing.T) {
+	logFile, err := os.CreateTemp("", "dcr_audit.log")
+	require.NoError(t, err)
+	defer os.Remove(logFile.Name())
+
+	os.Setenv("MM_EXPERIMENTALAUDITSETTINGS_FILEENABLED", "true")
+	os.Setenv("MM_EXPERIMENTALAUDITSETTINGS_FILENAME", logFile.Name())
+	defer os.Unsetenv("MM_EXPERIMENTALAUDITSETTINGS_FILEENABLED")
+	defer os.Unsetenv("MM_EXPERIMENTALAUDITSETTINGS_FILENAME")
+
+	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
+	th := SetupWithServerOptions(t, options)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
+		cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(true)
+	})
+
+	t.Run("Successful DCR registration is audited", func(t *testing.T) {
+		clientName := "Test Audit Client"
+		request := &model.ClientRegistrationRequest{
+			RedirectURIs: []string{"https://example.com/callback"},
+			ClientName:   model.NewPointer(clientName),
+		}
+
+		response, resp, err := th.Client.RegisterOAuthClient(context.Background(), request)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, response)
+
+		// Flush audit logs
+		err = th.Server.Audit.Flush()
+		require.NoError(t, err)
+		require.NoError(t, logFile.Sync())
+
+		// Read and verify audit log
+		data, err := io.ReadAll(logFile)
+		require.NoError(t, err)
+		require.NotEmpty(t, data)
+
+		auditLog := string(data)
+		assert.Contains(t, auditLog, "registerOAuthClient")
+		assert.Contains(t, auditLog, clientName)
+		assert.Contains(t, auditLog, response.ClientID)
+		assert.Contains(t, auditLog, "success")
+	})
+
+	t.Run("Failed DCR registration is audited", func(t *testing.T) {
+		// Truncate log file for this test
+		require.NoError(t, logFile.Truncate(0))
+		_, err := logFile.Seek(0, 0)
+		require.NoError(t, err)
+
+		// Invalid request (missing redirect URIs)
+		request := &model.ClientRegistrationRequest{
+			ClientName: model.NewPointer("Invalid Client"),
+		}
+
+		_, resp, err := th.Client.RegisterOAuthClient(context.Background(), request)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		// Flush audit logs
+		err = th.Server.Audit.Flush()
+		require.NoError(t, err)
+		require.NoError(t, logFile.Sync())
+
+		// Read and verify audit log
+		data, err := io.ReadAll(logFile)
+		require.NoError(t, err)
+		require.NotEmpty(t, data)
+
+		auditLog := string(data)
+		assert.Contains(t, auditLog, "registerOAuthClient")
+		assert.Contains(t, auditLog, "fail")
+	})
 }

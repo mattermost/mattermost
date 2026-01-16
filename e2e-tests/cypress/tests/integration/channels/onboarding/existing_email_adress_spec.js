@@ -32,7 +32,7 @@ function signupWithEmail(name, pw) {
     cy.get('#input_password-input').type(pw);
 
     // # Click on Create Account button
-    cy.findByText('Create Account').click();
+    cy.findByText('Create account').click();
 }
 
 describe('Cloud Onboarding', () => {
