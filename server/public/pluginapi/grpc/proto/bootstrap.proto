@@ -1,0 +1,13 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+syntax = "proto3";
+
+package mattermost.pluginapi.v1;
+
+// NOTE: This is a bootstrap file for validating protoc + Go generation.
+// It will be expanded/updated by later Phase 1 plans.
+option go_package = "github.com/mattermost/mattermost/server/public/pluginapi/grpc/generated/go/pluginapiv1";
+
+// Empty is a placeholder message used for methods with no request/response data.
+message Empty {}
