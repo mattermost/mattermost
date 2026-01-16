@@ -17,8 +17,8 @@ None
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Protocol Foundation** - gRPC setup and protobuf definitions for core types ✓ (2026-01-16)
-- [ ] **Phase 2: API Protobuf Definitions** - Define all 100+ Plugin API methods in protobuf
-- [ ] **Phase 3: Hook Protobuf Definitions** - Define all plugin hooks in protobuf
+- [x] **Phase 2: API Protobuf Definitions** - Define all 100+ Plugin API methods in protobuf ✓ (2026-01-16)
+- [x] **Phase 3: Hook Protobuf Definitions** - Define all plugin hooks in protobuf ✓ (2026-01-16)
 - [ ] **Phase 4: Go gRPC Server** - Implement gRPC server wrapping existing Plugin API
 - [ ] **Phase 5: Python Supervisor** - Go-side process management for Python plugins
 - [ ] **Phase 6: Python SDK Core** - Basic Python SDK with gRPC client and typed API
@@ -48,11 +48,11 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 02-01: User and Team API methods
-- [ ] 02-02: Channel and Post API methods
-- [ ] 02-03: KV Store and Configuration API methods
-- [ ] 02-04: File and Bot API methods
-- [ ] 02-05: Remaining API methods (OAuth, Preferences, etc.)
+- [x] 02-01: User and Team API methods ✓
+- [x] 02-02: Channel and Post API methods ✓
+- [x] 02-03: KV Store and Configuration API methods ✓
+- [x] 02-04: File and Bot API methods ✓
+- [x] 02-05: Remaining API methods (OAuth, Preferences, etc.) ✓
 
 ### Phase 3: Hook Protobuf Definitions
 **Goal**: Complete protobuf definitions for all plugin hooks
@@ -61,10 +61,10 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 03-01: Lifecycle hooks (OnActivate, OnDeactivate, etc.)
-- [ ] 03-02: Message hooks (MessagePosted, MessageUpdated, etc.)
-- [ ] 03-03: User and Channel hooks
-- [ ] 03-04: Command and Webhook hooks
+- [x] 03-01: Lifecycle hooks (OnActivate, OnDeactivate, etc.) ✓
+- [x] 03-02: Message hooks (MessagePosted, MessageUpdated, etc.) ✓
+- [x] 03-03: User and Channel hooks ✓
+- [x] 03-04: Command and Webhook hooks ✓
 
 ### Phase 4: Go gRPC Server
 **Goal**: Implement Go gRPC server that wraps the existing Plugin API, callable by Python plugins
@@ -158,8 +158,8 @@ Note: Phase 5, 6, and 9 can partially overlap (all depend on Phase 4).
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Protocol Foundation | 3/3 | Complete | 2026-01-16 |
-| 2. API Protobuf Definitions | 0/5 | Not started | - |
-| 3. Hook Protobuf Definitions | 0/4 | Not started | - |
+| 2. API Protobuf Definitions | 5/5 | Complete | 2026-01-16 |
+| 3. Hook Protobuf Definitions | 4/4 | Complete | 2026-01-16 |
 | 4. Go gRPC Server | 0/4 | Not started | - |
 | 5. Python Supervisor | 0/3 | Not started | - |
 | 6. Python SDK Core | 0/4 | Not started | - |
