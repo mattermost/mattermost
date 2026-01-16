@@ -66,7 +66,7 @@ function ChannelSettingsArchiveTab({
                             <p>
                                 <FormattedMessage
                                     id='deleteChannelModal.canViewArchivedChannelsWarning'
-                                    defaultMessage="Archiving a channel removes it from the user interface, but doesn't permanently delete the channel. New messages can't be posted to archived channels."
+                                    defaultMessage='This will archive the channel from the team. Channel contents will still be accessible by channel members.'
                                 />
                             </p>
                             <p>

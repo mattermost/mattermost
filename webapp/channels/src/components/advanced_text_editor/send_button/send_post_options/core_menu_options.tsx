@@ -70,7 +70,7 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
         const teammateTimeDisplay = (
             <FormattedMessage
                 id='create_post_button.option.schedule_message.options.teammate_user_hour'
-                defaultMessage="{time} {user}'s time"
+                defaultMessage='{time} {user}’s time'
                 values={{
                     user: (
                         <span className='userDisplayName'>
