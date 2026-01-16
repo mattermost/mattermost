@@ -98,6 +98,9 @@ type Store interface {
 	AutoTranslation() AutoTranslationStore
 	GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error)
 	ContentFlagging() ContentFlaggingStore
+	Recap() RecapStore
+	ReadReceipt() ReadReceiptStore
+	TemporaryPost() TemporaryPostStore
 }
 
 type RetentionPolicyStore interface {
@@ -617,7 +620,9 @@ type SystemStore interface {
 	SaveOrUpdate(system *model.System) error
 	Update(system *model.System) error
 	Get() (model.StringMap, error)
+	GetWithContext(rctx request.CTX) (model.StringMap, error)
 	GetByName(name string) (*model.System, error)
+	GetByNameWithContext(rctx request.CTX, name string) (*model.System, error)
 	PermanentDeleteByName(name string) (*model.System, error)
 	InsertIfExists(system *model.System) (*model.System, error)
 }
@@ -1180,6 +1185,26 @@ type ContentFlaggingStore interface {
 	ClearCaches()
 }
 
+type ReadReceiptStore interface {
+	InvalidateReadReceiptForPostsCache(postID string)
+	Save(rctx request.CTX, receipt *model.ReadReceipt) (*model.ReadReceipt, error)
+	Update(rctx request.CTX, receipt *model.ReadReceipt) (*model.ReadReceipt, error)
+	Delete(rctx request.CTX, postID, userID string) error
+	DeleteByPost(rctx request.CTX, postID string) error
+	Get(rctx request.CTX, postID, userID string) (*model.ReadReceipt, error)
+	GetByPost(rctx request.CTX, postID string) ([]*model.ReadReceipt, error)
+	GetReadCountForPost(rctx request.CTX, postID string) (int64, error)
+	GetUnreadCountForPost(rctx request.CTX, post *model.Post) (int64, error)
+}
+
+type TemporaryPostStore interface {
+	InvalidateTemporaryPost(id string)
+	Save(rctx request.CTX, post *model.TemporaryPost) (*model.TemporaryPost, error)
+	Get(rctx request.CTX, id string) (*model.TemporaryPost, error)
+	Delete(rctx request.CTX, id string) error
+	GetExpiredPosts(rctx request.CTX) ([]string, error)
+}
+
 // ChannelSearchOpts contains options for searching channels.
 //
 // NotAssociatedToGroup will exclude channels that have associated, active GroupChannels records.
@@ -1266,4 +1291,17 @@ type ThreadMembershipImportData struct {
 	LastViewed int64
 	// UnreadMentions is the number of unread mentions to set the UnreadMentions field to.
 	UnreadMentions int64
+}
+
+type RecapStore interface {
+	SaveRecap(recap *model.Recap) (*model.Recap, error)
+	UpdateRecap(recap *model.Recap) (*model.Recap, error)
+	GetRecap(id string) (*model.Recap, error)
+	GetRecapsForUser(userId string, page, perPage int) ([]*model.Recap, error)
+	UpdateRecapStatus(id, status string) error
+	MarkRecapAsRead(id string) error
+	DeleteRecap(id string) error
+	DeleteRecapChannels(recapId string) error
+	SaveRecapChannel(recapChannel *model.RecapChannel) error
+	GetRecapChannelsByRecapId(recapId string) ([]*model.RecapChannel, error)
 }

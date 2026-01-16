@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+/* eslint-disable formatjs/enforce-placeholders -- Admin wizard uses help_text_values for placeholders, which ESLint cannot statically analyze */
+
 import React from 'react';
 import {FormattedMessage, defineMessage} from 'react-intl';
 

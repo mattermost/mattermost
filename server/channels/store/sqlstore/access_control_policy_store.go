@@ -19,6 +19,7 @@ import (
 )
 
 const MaxPerPage = 1000
+const DefaultPerPage = 10
 
 // Usually rules are how we define the policy, hence the versioning. For v0.1, we also
 // have the imports field which is used to link with the parent policy.
@@ -561,7 +562,7 @@ func (s *SqlAccessControlPolicyStore) GetAll(_ request.CTX, opts model.GetAccess
 
 	limit := uint64(opts.Limit)
 	if limit < 1 {
-		limit = 1
+		limit = DefaultPerPage
 	} else if limit > MaxPerPage {
 		limit = MaxPerPage
 	}
@@ -598,9 +599,9 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 	var query sq.SelectBuilder
 	if opts.IncludeChildren && opts.ParentID == "" {
 		columns := accessControlPolicySliceColumns("p")
-		childIDs := `COALESCE((SELECT JSON_AGG(c.ID) 
+		childIDs := `COALESCE((SELECT JSON_AGG(c.ID)
      FROM AccessControlPolicies c
-	 WHERE c.Type != 'parent' 
+	 WHERE c.Type != 'parent'
      AND c.Data->'imports' @> JSONB_BUILD_ARRAY(p.ID)), '[]'::json) AS ChildIDs`
 		columns = append(columns, childIDs)
 		query = s.getQueryBuilder().Select(columns...).From("AccessControlPolicies p")
@@ -647,7 +648,7 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 
 	limit := uint64(opts.Limit)
 	if limit < 1 {
-		limit = 1
+		limit = DefaultPerPage
 	} else if limit > MaxPerPage {
 		limit = MaxPerPage
 	}
