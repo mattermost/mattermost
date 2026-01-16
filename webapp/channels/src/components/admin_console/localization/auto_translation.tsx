@@ -108,10 +108,6 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
         return values;
     }, []);
 
-    const providerHelpTextValues = useMemo(() => ({
-        strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
-    }), []);
-
     const showAgentsError = autoTranslationSettings.Provider === 'agents' && !isAgentsBridgeEnabled;
 
     const providerDescription = useMemo(() => (
@@ -127,9 +123,11 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
         <FormattedMessage
             id='admin.site.localization.autoTranslationProviderDescription'
             defaultMessage='<strong>NOTE:</strong> If using external translation services (e.g., cloud-based LLMs), message data may be processed outside your environment.'
-            values={providerHelpTextValues}
+            values={{
+                strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
+            }}
         />
-    ), [providerHelpTextValues]);
+    ), []);
 
     const on = (
         <FormattedMessage

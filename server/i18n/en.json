@@ -1766,6 +1766,10 @@
     "translation": "Content flagging feature is disabled."
   },
   {
+    "id": "api.content_flagging.error.invalid_post_type",
+    "translation": "Flagging a post of type '{{.PostType}}' is not allowed."
+  },
+  {
     "id": "api.content_flagging.error.license",
     "translation": "Your license does not support content flagging."
   },
@@ -3015,6 +3019,14 @@
     "translation": "You cannot save reaction for the other user."
   },
   {
+    "id": "api.recap.disabled.app_error",
+    "translation": "This feature is not enabled."
+  },
+  {
+    "id": "api.recap.permission_denied",
+    "translation": "You do not have permission to access this recap."
+  },
+  {
     "id": "api.remote_cluster.accept_invitation_error",
     "translation": "Could not accept the remote cluster invitation"
   },
@@ -3704,7 +3716,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
+    "translation": "© 2015 - {{ .CurrentYear }} Mattermost, Inc. 2100 Geng Road, Suite 210, Palo Alto, CA, 94303"
   },
   {
     "id": "api.templates.email_info1",
@@ -4845,6 +4857,14 @@
   {
     "id": "app.agents.get_services.bridge_call_failed",
     "translation": "Bridge call failed."
+  },
+  {
+    "id": "app.ai.summarize.agent_call_failed",
+    "translation": "AI agent call failed."
+  },
+  {
+    "id": "app.ai.summarize.parse_failed",
+    "translation": "Failed to parse AI summarization response."
   },
   {
     "id": "app.analytics.getanalytics.internal_error",
@@ -7363,6 +7383,58 @@
     "translation": "Reaction limit has been reached for this post."
   },
   {
+    "id": "app.recap.delete.app_error",
+    "translation": "Failed to delete recap."
+  },
+  {
+    "id": "app.recap.delete_channels.app_error",
+    "translation": "Failed to delete recap channels."
+  },
+  {
+    "id": "app.recap.get.app_error",
+    "translation": "Failed to get recap."
+  },
+  {
+    "id": "app.recap.get_channel.app_error",
+    "translation": "Failed to get channel."
+  },
+  {
+    "id": "app.recap.get_channels.app_error",
+    "translation": "Failed to get recap channels."
+  },
+  {
+    "id": "app.recap.get_last_viewed.app_error",
+    "translation": "Failed to get last viewed timestamp."
+  },
+  {
+    "id": "app.recap.get_team.app_error",
+    "translation": "Failed to get team."
+  },
+  {
+    "id": "app.recap.list.app_error",
+    "translation": "Failed to get recaps."
+  },
+  {
+    "id": "app.recap.mark_read.app_error",
+    "translation": "Failed to mark recap as read."
+  },
+  {
+    "id": "app.recap.permission_denied",
+    "translation": "No permission for recap."
+  },
+  {
+    "id": "app.recap.save.app_error",
+    "translation": "Failed to save recap."
+  },
+  {
+    "id": "app.recap.save_channel.app_error",
+    "translation": "Failed to save recap channel."
+  },
+  {
+    "id": "app.recap.update.app_error",
+    "translation": "Failed to update recap."
+  },
+  {
     "id": "app.recover.delete.app_error",
     "translation": "Unable to delete token."
   },
@@ -7923,6 +7995,10 @@
   {
     "id": "app.update_error",
     "translation": "update error"
+  },
+  {
+    "id": "app.update_scheduled_post.convert_to_post.error",
+    "translation": "Unable to convert scheduled post to post format."
   },
   {
     "id": "app.update_scheduled_post.existing_scheduled_post.not_exist",
@@ -10037,6 +10113,10 @@
     "translation": "Invalid group unread channels for service settings. Must be 'disabled', 'default_on', or 'default_off'."
   },
   {
+    "id": "model.config.is_valid.guest_accounts.cannot_enforce_multifactor_authentication_when_guest_magic_link_is_enabled.app_error",
+    "translation": "You cannot enforce multifactor authentication for guest accounts when magic link authentication is enabled."
+  },
+  {
     "id": "model.config.is_valid.image_decoder_concurrency.app_error",
     "translation": "Invalid decoder concurrency {{.Value}}. Should be a positive number or -1."
   },
@@ -11706,11 +11786,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 140+"
+    "translation": "Version 142+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 140+"
+    "translation": "Version 142+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
