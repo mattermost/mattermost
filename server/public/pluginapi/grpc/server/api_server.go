@@ -12,9 +12,29 @@
 // Architecture:
 //   - APIServer wraps a plugin.API implementation
 //   - Each RPC method delegates to the corresponding plugin.API method
-//   - Errors are converted from *model.AppError to gRPC status codes
+//   - Errors are converted from *model.AppError to gRPC status codes using
+//     the helpers in errors.go (AppErrorToStatus, ErrorToStatus)
 //   - No network listeners are created here; listener lifecycle belongs to
 //     Phase 5 supervisor integration
+//
+// Extending this server (for subsequent plans):
+//
+// To implement a new RPC method, add a method to APIServer that matches the
+// signature from the generated PluginAPIServer interface. For example:
+//
+//	func (s *APIServer) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.GetUserResponse, error) {
+//	    user, appErr := s.impl.GetUser(req.GetUserId())
+//	    if appErr != nil {
+//	        return nil, AppErrorToStatus(appErr)
+//	    }
+//	    return &pb.GetUserResponse{User: convertUser(user)}, nil
+//	}
+//
+// Key patterns:
+//   - Use s.impl to access the underlying plugin.API
+//   - Convert *model.AppError to gRPC errors using AppErrorToStatus()
+//   - Model conversion (e.g., *model.User -> *pb.User) will be added in
+//     separate converter packages as the implementation grows
 package server
 
 import (
