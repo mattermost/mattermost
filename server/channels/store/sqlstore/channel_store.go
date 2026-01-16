@@ -3586,7 +3586,7 @@ func (s SqlChannelStore) searchGroupChannelsQuery(userId, term string) sq.Select
 		Join("Users u on u.Id = cm.UserId").
 		Where(sq.Eq{
 			"c.Type": model.ChannelTypeGroup,
-			"u.id":   userId,
+			"u.Id":   userId,
 		}).
 		GroupBy("c.Id")
 
