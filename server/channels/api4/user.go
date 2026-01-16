@@ -2110,6 +2110,11 @@ func loginWithDesktopToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	token := props["token"]
 	deviceId := props["device_id"]
 
+	auditRec := c.MakeAuditRecord(model.AuditEventLoginWithDesktopToken, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("login_method", "desktop_token")
+	model.AddEventParameterToAuditRec(auditRec, "device_id", deviceId)
+
 	user, err := c.App.ValidateDesktopToken(token, time.Now().Add(-model.DesktopTokenTTL).Unix())
 	if err != nil {
 		c.Err = err
@@ -2133,8 +2138,8 @@ func loginWithDesktopToken(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.App.AttachSessionCookies(c.AppContext, w, r)
 
+	auditRec.Success()
 	c.LogAuditWithUserId(user.Id, "success")
-	c.LogAuditRec(c.MakeAuditRecord(model.AuditEventLoginWithDesktopToken, model.AuditStatusSuccess))
 
 	if err := json.NewEncoder(w).Encode(user); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
