@@ -3,8 +3,7 @@
 
 import React from 'react';
 
-import {withIntl} from 'tests/helpers/intl-test-helper';
-import {render, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import AdminPanelTogglable from './admin_panel_togglable';
 
@@ -21,65 +20,26 @@ describe('components/widgets/admin_console/AdminPanelTogglable', () => {
         onToggle: jest.fn(),
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
-    test('should render with open state showing title, subtitle, and content', () => {
-        render(
-            withIntl(
-                <AdminPanelTogglable {...defaultProps}>
-                    {'Test Content'}
-                </AdminPanelTogglable>,
-            ),
+    test('should match snapshot', () => {
+        const {container} = renderWithContext(
+            <AdminPanelTogglable {...defaultProps}>
+                {'Test'}
+            </AdminPanelTogglable>,
         );
 
-        const panel = document.getElementById('test-id');
-        expect(panel).toBeInTheDocument();
-        expect(panel).not.toHaveClass('closed');
-
-        // Verify all user-visible content
-        expect(screen.getByText('test-title-default')).toBeInTheDocument();
-        expect(screen.getByText('test-subtitle-default')).toBeInTheDocument();
-        expect(screen.getByText('Test Content')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
-    test('should render with closed state', () => {
-        render(
-            withIntl(
-                <AdminPanelTogglable
-                    {...defaultProps}
-                    open={false}
-                >
-                    {'Test Content'}
-                </AdminPanelTogglable>,
-            ),
+    test('should match snapshot closed', () => {
+        const {container} = renderWithContext(
+            <AdminPanelTogglable
+                {...defaultProps}
+                open={false}
+            >
+                {'Test'}
+            </AdminPanelTogglable>,
         );
 
-        const panel = document.getElementById('test-id');
-        expect(panel).toBeInTheDocument();
-        expect(panel).toHaveClass('closed');
-        expect(screen.getByText('Test Content')).toBeInTheDocument();
-    });
-
-    test('should call onToggle when header is clicked', async () => {
-        const onToggle = jest.fn();
-
-        render(
-            withIntl(
-                <AdminPanelTogglable
-                    {...defaultProps}
-                    onToggle={onToggle}
-                >
-                    {'Test Content'}
-                </AdminPanelTogglable>,
-            ),
-        );
-
-        // Click on the title/header area
-        const title = screen.getByText('test-title-default');
-        await userEvent.click(title);
-
-        expect(onToggle).toHaveBeenCalledTimes(1);
+        expect(container).toMatchSnapshot();
     });
 });

@@ -1,0 +1,11 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`components/widgets/links/UpgradeLink should match the snapshot on show 1`] = `
+<div>
+  <button
+    class="upgradeLink"
+  >
+    Upgrade now
+  </button>
+</div>
+`;
