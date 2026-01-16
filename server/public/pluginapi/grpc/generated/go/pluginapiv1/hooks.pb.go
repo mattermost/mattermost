@@ -27,7 +27,7 @@ var File_hooks_proto protoreflect.FileDescriptor
 
 const file_hooks_proto_rawDesc = "" +
 	"\n" +
-	"\vhooks.proto\x12\x17mattermost.pluginapi.v1\x1a\x15hooks_lifecycle.proto2\xcf\b\n" +
+	"\vhooks.proto\x12\x17mattermost.pluginapi.v1\x1a\x15hooks_lifecycle.proto\x1a\x13hooks_message.proto2\xc6\x15\n" +
 	"\vPluginHooks\x12h\n" +
 	"\vImplemented\x12+.mattermost.pluginapi.v1.ImplementedRequest\x1a,.mattermost.pluginapi.v1.ImplementedResponse\x12e\n" +
 	"\n" +
@@ -38,27 +38,63 @@ const file_hooks_proto_rawDesc = "" +
 	"\x14OnSendDailyTelemetry\x124.mattermost.pluginapi.v1.OnSendDailyTelemetryRequest\x1a5.mattermost.pluginapi.v1.OnSendDailyTelemetryResponse\x12w\n" +
 	"\x10RunDataRetention\x120.mattermost.pluginapi.v1.RunDataRetentionRequest\x1a1.mattermost.pluginapi.v1.RunDataRetentionResponse\x12\x83\x01\n" +
 	"\x14OnCloudLimitsUpdated\x124.mattermost.pluginapi.v1.OnCloudLimitsUpdatedRequest\x1a5.mattermost.pluginapi.v1.OnCloudLimitsUpdatedResponse\x12\x8f\x01\n" +
-	"\x18ConfigurationWillBeSaved\x128.mattermost.pluginapi.v1.ConfigurationWillBeSavedRequest\x1a9.mattermost.pluginapi.v1.ConfigurationWillBeSavedResponseBXZVgithub.com/mattermost/mattermost/server/public/pluginapi/grpc/generated/go/pluginapiv1b\x06proto3"
+	"\x18ConfigurationWillBeSaved\x128.mattermost.pluginapi.v1.ConfigurationWillBeSavedRequest\x1a9.mattermost.pluginapi.v1.ConfigurationWillBeSavedResponse\x12\x80\x01\n" +
+	"\x13MessageWillBePosted\x123.mattermost.pluginapi.v1.MessageWillBePostedRequest\x1a4.mattermost.pluginapi.v1.MessageWillBePostedResponse\x12\x83\x01\n" +
+	"\x14MessageWillBeUpdated\x124.mattermost.pluginapi.v1.MessageWillBeUpdatedRequest\x1a5.mattermost.pluginapi.v1.MessageWillBeUpdatedResponse\x12\x83\x01\n" +
+	"\x14MessageHasBeenPosted\x124.mattermost.pluginapi.v1.MessageHasBeenPostedRequest\x1a5.mattermost.pluginapi.v1.MessageHasBeenPostedResponse\x12\x86\x01\n" +
+	"\x15MessageHasBeenUpdated\x125.mattermost.pluginapi.v1.MessageHasBeenUpdatedRequest\x1a6.mattermost.pluginapi.v1.MessageHasBeenUpdatedResponse\x12\x89\x01\n" +
+	"\x16MessagesWillBeConsumed\x126.mattermost.pluginapi.v1.MessagesWillBeConsumedRequest\x1a7.mattermost.pluginapi.v1.MessagesWillBeConsumedResponse\x12\x86\x01\n" +
+	"\x15MessageHasBeenDeleted\x125.mattermost.pluginapi.v1.MessageHasBeenDeletedRequest\x1a6.mattermost.pluginapi.v1.MessageHasBeenDeletedResponse\x12}\n" +
+	"\x12FileWillBeUploaded\x122.mattermost.pluginapi.v1.FileWillBeUploadedRequest\x1a3.mattermost.pluginapi.v1.FileWillBeUploadedResponse\x12\x83\x01\n" +
+	"\x14ReactionHasBeenAdded\x124.mattermost.pluginapi.v1.ReactionHasBeenAddedRequest\x1a5.mattermost.pluginapi.v1.ReactionHasBeenAddedResponse\x12\x89\x01\n" +
+	"\x16ReactionHasBeenRemoved\x126.mattermost.pluginapi.v1.ReactionHasBeenRemovedRequest\x1a7.mattermost.pluginapi.v1.ReactionHasBeenRemovedResponse\x12\x8f\x01\n" +
+	"\x18NotificationWillBePushed\x128.mattermost.pluginapi.v1.NotificationWillBePushedRequest\x1a9.mattermost.pluginapi.v1.NotificationWillBePushedResponse\x12\x98\x01\n" +
+	"\x1bEmailNotificationWillBeSent\x12;.mattermost.pluginapi.v1.EmailNotificationWillBeSentRequest\x1a<.mattermost.pluginapi.v1.EmailNotificationWillBeSentResponse\x12\x89\x01\n" +
+	"\x16PreferencesHaveChanged\x126.mattermost.pluginapi.v1.PreferencesHaveChangedRequest\x1a7.mattermost.pluginapi.v1.PreferencesHaveChangedResponseBXZVgithub.com/mattermost/mattermost/server/public/pluginapi/grpc/generated/go/pluginapiv1b\x06proto3"
 
 var file_hooks_proto_goTypes = []any{
-	(*ImplementedRequest)(nil),               // 0: mattermost.pluginapi.v1.ImplementedRequest
-	(*OnActivateRequest)(nil),                // 1: mattermost.pluginapi.v1.OnActivateRequest
-	(*OnDeactivateRequest)(nil),              // 2: mattermost.pluginapi.v1.OnDeactivateRequest
-	(*OnConfigurationChangeRequest)(nil),     // 3: mattermost.pluginapi.v1.OnConfigurationChangeRequest
-	(*OnInstallRequest)(nil),                 // 4: mattermost.pluginapi.v1.OnInstallRequest
-	(*OnSendDailyTelemetryRequest)(nil),      // 5: mattermost.pluginapi.v1.OnSendDailyTelemetryRequest
-	(*RunDataRetentionRequest)(nil),          // 6: mattermost.pluginapi.v1.RunDataRetentionRequest
-	(*OnCloudLimitsUpdatedRequest)(nil),      // 7: mattermost.pluginapi.v1.OnCloudLimitsUpdatedRequest
-	(*ConfigurationWillBeSavedRequest)(nil),  // 8: mattermost.pluginapi.v1.ConfigurationWillBeSavedRequest
-	(*ImplementedResponse)(nil),              // 9: mattermost.pluginapi.v1.ImplementedResponse
-	(*OnActivateResponse)(nil),               // 10: mattermost.pluginapi.v1.OnActivateResponse
-	(*OnDeactivateResponse)(nil),             // 11: mattermost.pluginapi.v1.OnDeactivateResponse
-	(*OnConfigurationChangeResponse)(nil),    // 12: mattermost.pluginapi.v1.OnConfigurationChangeResponse
-	(*OnInstallResponse)(nil),                // 13: mattermost.pluginapi.v1.OnInstallResponse
-	(*OnSendDailyTelemetryResponse)(nil),     // 14: mattermost.pluginapi.v1.OnSendDailyTelemetryResponse
-	(*RunDataRetentionResponse)(nil),         // 15: mattermost.pluginapi.v1.RunDataRetentionResponse
-	(*OnCloudLimitsUpdatedResponse)(nil),     // 16: mattermost.pluginapi.v1.OnCloudLimitsUpdatedResponse
-	(*ConfigurationWillBeSavedResponse)(nil), // 17: mattermost.pluginapi.v1.ConfigurationWillBeSavedResponse
+	(*ImplementedRequest)(nil),                  // 0: mattermost.pluginapi.v1.ImplementedRequest
+	(*OnActivateRequest)(nil),                   // 1: mattermost.pluginapi.v1.OnActivateRequest
+	(*OnDeactivateRequest)(nil),                 // 2: mattermost.pluginapi.v1.OnDeactivateRequest
+	(*OnConfigurationChangeRequest)(nil),        // 3: mattermost.pluginapi.v1.OnConfigurationChangeRequest
+	(*OnInstallRequest)(nil),                    // 4: mattermost.pluginapi.v1.OnInstallRequest
+	(*OnSendDailyTelemetryRequest)(nil),         // 5: mattermost.pluginapi.v1.OnSendDailyTelemetryRequest
+	(*RunDataRetentionRequest)(nil),             // 6: mattermost.pluginapi.v1.RunDataRetentionRequest
+	(*OnCloudLimitsUpdatedRequest)(nil),         // 7: mattermost.pluginapi.v1.OnCloudLimitsUpdatedRequest
+	(*ConfigurationWillBeSavedRequest)(nil),     // 8: mattermost.pluginapi.v1.ConfigurationWillBeSavedRequest
+	(*MessageWillBePostedRequest)(nil),          // 9: mattermost.pluginapi.v1.MessageWillBePostedRequest
+	(*MessageWillBeUpdatedRequest)(nil),         // 10: mattermost.pluginapi.v1.MessageWillBeUpdatedRequest
+	(*MessageHasBeenPostedRequest)(nil),         // 11: mattermost.pluginapi.v1.MessageHasBeenPostedRequest
+	(*MessageHasBeenUpdatedRequest)(nil),        // 12: mattermost.pluginapi.v1.MessageHasBeenUpdatedRequest
+	(*MessagesWillBeConsumedRequest)(nil),       // 13: mattermost.pluginapi.v1.MessagesWillBeConsumedRequest
+	(*MessageHasBeenDeletedRequest)(nil),        // 14: mattermost.pluginapi.v1.MessageHasBeenDeletedRequest
+	(*FileWillBeUploadedRequest)(nil),           // 15: mattermost.pluginapi.v1.FileWillBeUploadedRequest
+	(*ReactionHasBeenAddedRequest)(nil),         // 16: mattermost.pluginapi.v1.ReactionHasBeenAddedRequest
+	(*ReactionHasBeenRemovedRequest)(nil),       // 17: mattermost.pluginapi.v1.ReactionHasBeenRemovedRequest
+	(*NotificationWillBePushedRequest)(nil),     // 18: mattermost.pluginapi.v1.NotificationWillBePushedRequest
+	(*EmailNotificationWillBeSentRequest)(nil),  // 19: mattermost.pluginapi.v1.EmailNotificationWillBeSentRequest
+	(*PreferencesHaveChangedRequest)(nil),       // 20: mattermost.pluginapi.v1.PreferencesHaveChangedRequest
+	(*ImplementedResponse)(nil),                 // 21: mattermost.pluginapi.v1.ImplementedResponse
+	(*OnActivateResponse)(nil),                  // 22: mattermost.pluginapi.v1.OnActivateResponse
+	(*OnDeactivateResponse)(nil),                // 23: mattermost.pluginapi.v1.OnDeactivateResponse
+	(*OnConfigurationChangeResponse)(nil),       // 24: mattermost.pluginapi.v1.OnConfigurationChangeResponse
+	(*OnInstallResponse)(nil),                   // 25: mattermost.pluginapi.v1.OnInstallResponse
+	(*OnSendDailyTelemetryResponse)(nil),        // 26: mattermost.pluginapi.v1.OnSendDailyTelemetryResponse
+	(*RunDataRetentionResponse)(nil),            // 27: mattermost.pluginapi.v1.RunDataRetentionResponse
+	(*OnCloudLimitsUpdatedResponse)(nil),        // 28: mattermost.pluginapi.v1.OnCloudLimitsUpdatedResponse
+	(*ConfigurationWillBeSavedResponse)(nil),    // 29: mattermost.pluginapi.v1.ConfigurationWillBeSavedResponse
+	(*MessageWillBePostedResponse)(nil),         // 30: mattermost.pluginapi.v1.MessageWillBePostedResponse
+	(*MessageWillBeUpdatedResponse)(nil),        // 31: mattermost.pluginapi.v1.MessageWillBeUpdatedResponse
+	(*MessageHasBeenPostedResponse)(nil),        // 32: mattermost.pluginapi.v1.MessageHasBeenPostedResponse
+	(*MessageHasBeenUpdatedResponse)(nil),       // 33: mattermost.pluginapi.v1.MessageHasBeenUpdatedResponse
+	(*MessagesWillBeConsumedResponse)(nil),      // 34: mattermost.pluginapi.v1.MessagesWillBeConsumedResponse
+	(*MessageHasBeenDeletedResponse)(nil),       // 35: mattermost.pluginapi.v1.MessageHasBeenDeletedResponse
+	(*FileWillBeUploadedResponse)(nil),          // 36: mattermost.pluginapi.v1.FileWillBeUploadedResponse
+	(*ReactionHasBeenAddedResponse)(nil),        // 37: mattermost.pluginapi.v1.ReactionHasBeenAddedResponse
+	(*ReactionHasBeenRemovedResponse)(nil),      // 38: mattermost.pluginapi.v1.ReactionHasBeenRemovedResponse
+	(*NotificationWillBePushedResponse)(nil),    // 39: mattermost.pluginapi.v1.NotificationWillBePushedResponse
+	(*EmailNotificationWillBeSentResponse)(nil), // 40: mattermost.pluginapi.v1.EmailNotificationWillBeSentResponse
+	(*PreferencesHaveChangedResponse)(nil),      // 41: mattermost.pluginapi.v1.PreferencesHaveChangedResponse
 }
 var file_hooks_proto_depIdxs = []int32{
 	0,  // 0: mattermost.pluginapi.v1.PluginHooks.Implemented:input_type -> mattermost.pluginapi.v1.ImplementedRequest
@@ -70,17 +106,41 @@ var file_hooks_proto_depIdxs = []int32{
 	6,  // 6: mattermost.pluginapi.v1.PluginHooks.RunDataRetention:input_type -> mattermost.pluginapi.v1.RunDataRetentionRequest
 	7,  // 7: mattermost.pluginapi.v1.PluginHooks.OnCloudLimitsUpdated:input_type -> mattermost.pluginapi.v1.OnCloudLimitsUpdatedRequest
 	8,  // 8: mattermost.pluginapi.v1.PluginHooks.ConfigurationWillBeSaved:input_type -> mattermost.pluginapi.v1.ConfigurationWillBeSavedRequest
-	9,  // 9: mattermost.pluginapi.v1.PluginHooks.Implemented:output_type -> mattermost.pluginapi.v1.ImplementedResponse
-	10, // 10: mattermost.pluginapi.v1.PluginHooks.OnActivate:output_type -> mattermost.pluginapi.v1.OnActivateResponse
-	11, // 11: mattermost.pluginapi.v1.PluginHooks.OnDeactivate:output_type -> mattermost.pluginapi.v1.OnDeactivateResponse
-	12, // 12: mattermost.pluginapi.v1.PluginHooks.OnConfigurationChange:output_type -> mattermost.pluginapi.v1.OnConfigurationChangeResponse
-	13, // 13: mattermost.pluginapi.v1.PluginHooks.OnInstall:output_type -> mattermost.pluginapi.v1.OnInstallResponse
-	14, // 14: mattermost.pluginapi.v1.PluginHooks.OnSendDailyTelemetry:output_type -> mattermost.pluginapi.v1.OnSendDailyTelemetryResponse
-	15, // 15: mattermost.pluginapi.v1.PluginHooks.RunDataRetention:output_type -> mattermost.pluginapi.v1.RunDataRetentionResponse
-	16, // 16: mattermost.pluginapi.v1.PluginHooks.OnCloudLimitsUpdated:output_type -> mattermost.pluginapi.v1.OnCloudLimitsUpdatedResponse
-	17, // 17: mattermost.pluginapi.v1.PluginHooks.ConfigurationWillBeSaved:output_type -> mattermost.pluginapi.v1.ConfigurationWillBeSavedResponse
-	9,  // [9:18] is the sub-list for method output_type
-	0,  // [0:9] is the sub-list for method input_type
+	9,  // 9: mattermost.pluginapi.v1.PluginHooks.MessageWillBePosted:input_type -> mattermost.pluginapi.v1.MessageWillBePostedRequest
+	10, // 10: mattermost.pluginapi.v1.PluginHooks.MessageWillBeUpdated:input_type -> mattermost.pluginapi.v1.MessageWillBeUpdatedRequest
+	11, // 11: mattermost.pluginapi.v1.PluginHooks.MessageHasBeenPosted:input_type -> mattermost.pluginapi.v1.MessageHasBeenPostedRequest
+	12, // 12: mattermost.pluginapi.v1.PluginHooks.MessageHasBeenUpdated:input_type -> mattermost.pluginapi.v1.MessageHasBeenUpdatedRequest
+	13, // 13: mattermost.pluginapi.v1.PluginHooks.MessagesWillBeConsumed:input_type -> mattermost.pluginapi.v1.MessagesWillBeConsumedRequest
+	14, // 14: mattermost.pluginapi.v1.PluginHooks.MessageHasBeenDeleted:input_type -> mattermost.pluginapi.v1.MessageHasBeenDeletedRequest
+	15, // 15: mattermost.pluginapi.v1.PluginHooks.FileWillBeUploaded:input_type -> mattermost.pluginapi.v1.FileWillBeUploadedRequest
+	16, // 16: mattermost.pluginapi.v1.PluginHooks.ReactionHasBeenAdded:input_type -> mattermost.pluginapi.v1.ReactionHasBeenAddedRequest
+	17, // 17: mattermost.pluginapi.v1.PluginHooks.ReactionHasBeenRemoved:input_type -> mattermost.pluginapi.v1.ReactionHasBeenRemovedRequest
+	18, // 18: mattermost.pluginapi.v1.PluginHooks.NotificationWillBePushed:input_type -> mattermost.pluginapi.v1.NotificationWillBePushedRequest
+	19, // 19: mattermost.pluginapi.v1.PluginHooks.EmailNotificationWillBeSent:input_type -> mattermost.pluginapi.v1.EmailNotificationWillBeSentRequest
+	20, // 20: mattermost.pluginapi.v1.PluginHooks.PreferencesHaveChanged:input_type -> mattermost.pluginapi.v1.PreferencesHaveChangedRequest
+	21, // 21: mattermost.pluginapi.v1.PluginHooks.Implemented:output_type -> mattermost.pluginapi.v1.ImplementedResponse
+	22, // 22: mattermost.pluginapi.v1.PluginHooks.OnActivate:output_type -> mattermost.pluginapi.v1.OnActivateResponse
+	23, // 23: mattermost.pluginapi.v1.PluginHooks.OnDeactivate:output_type -> mattermost.pluginapi.v1.OnDeactivateResponse
+	24, // 24: mattermost.pluginapi.v1.PluginHooks.OnConfigurationChange:output_type -> mattermost.pluginapi.v1.OnConfigurationChangeResponse
+	25, // 25: mattermost.pluginapi.v1.PluginHooks.OnInstall:output_type -> mattermost.pluginapi.v1.OnInstallResponse
+	26, // 26: mattermost.pluginapi.v1.PluginHooks.OnSendDailyTelemetry:output_type -> mattermost.pluginapi.v1.OnSendDailyTelemetryResponse
+	27, // 27: mattermost.pluginapi.v1.PluginHooks.RunDataRetention:output_type -> mattermost.pluginapi.v1.RunDataRetentionResponse
+	28, // 28: mattermost.pluginapi.v1.PluginHooks.OnCloudLimitsUpdated:output_type -> mattermost.pluginapi.v1.OnCloudLimitsUpdatedResponse
+	29, // 29: mattermost.pluginapi.v1.PluginHooks.ConfigurationWillBeSaved:output_type -> mattermost.pluginapi.v1.ConfigurationWillBeSavedResponse
+	30, // 30: mattermost.pluginapi.v1.PluginHooks.MessageWillBePosted:output_type -> mattermost.pluginapi.v1.MessageWillBePostedResponse
+	31, // 31: mattermost.pluginapi.v1.PluginHooks.MessageWillBeUpdated:output_type -> mattermost.pluginapi.v1.MessageWillBeUpdatedResponse
+	32, // 32: mattermost.pluginapi.v1.PluginHooks.MessageHasBeenPosted:output_type -> mattermost.pluginapi.v1.MessageHasBeenPostedResponse
+	33, // 33: mattermost.pluginapi.v1.PluginHooks.MessageHasBeenUpdated:output_type -> mattermost.pluginapi.v1.MessageHasBeenUpdatedResponse
+	34, // 34: mattermost.pluginapi.v1.PluginHooks.MessagesWillBeConsumed:output_type -> mattermost.pluginapi.v1.MessagesWillBeConsumedResponse
+	35, // 35: mattermost.pluginapi.v1.PluginHooks.MessageHasBeenDeleted:output_type -> mattermost.pluginapi.v1.MessageHasBeenDeletedResponse
+	36, // 36: mattermost.pluginapi.v1.PluginHooks.FileWillBeUploaded:output_type -> mattermost.pluginapi.v1.FileWillBeUploadedResponse
+	37, // 37: mattermost.pluginapi.v1.PluginHooks.ReactionHasBeenAdded:output_type -> mattermost.pluginapi.v1.ReactionHasBeenAddedResponse
+	38, // 38: mattermost.pluginapi.v1.PluginHooks.ReactionHasBeenRemoved:output_type -> mattermost.pluginapi.v1.ReactionHasBeenRemovedResponse
+	39, // 39: mattermost.pluginapi.v1.PluginHooks.NotificationWillBePushed:output_type -> mattermost.pluginapi.v1.NotificationWillBePushedResponse
+	40, // 40: mattermost.pluginapi.v1.PluginHooks.EmailNotificationWillBeSent:output_type -> mattermost.pluginapi.v1.EmailNotificationWillBeSentResponse
+	41, // 41: mattermost.pluginapi.v1.PluginHooks.PreferencesHaveChanged:output_type -> mattermost.pluginapi.v1.PreferencesHaveChangedResponse
+	21, // [21:42] is the sub-list for method output_type
+	0,  // [0:21] is the sub-list for method input_type
 	0,  // [0:0] is the sub-list for extension type_name
 	0,  // [0:0] is the sub-list for extension extendee
 	0,  // [0:0] is the sub-list for field type_name
@@ -92,6 +152,7 @@ func file_hooks_proto_init() {
 		return
 	}
 	file_hooks_lifecycle_proto_init()
+	file_hooks_message_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

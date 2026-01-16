@@ -11,6 +11,7 @@ import "common.proto";
 import "hooks_common.proto";
 import "post.proto";
 import "file.proto";
+import "api_remaining.proto";
 
 // ==============================================================================
 // MESSAGE HOOK MESSAGES
@@ -39,85 +40,8 @@ import "file.proto";
 // -----------------------------------------------------------------------------
 // Model Types
 // -----------------------------------------------------------------------------
-
-// PushNotification represents a push notification to be sent to a mobile device.
-// Maps to model.PushNotification in Go (server/public/model/push_notification.go).
-message PushNotification {
-  // Acknowledgement ID for tracking delivery
-  string ack_id = 1;
-
-  // Platform identifier (e.g., "apple", "android", "apple_rn", "android_rn")
-  string platform = 2;
-
-  // Server identifier
-  string server_id = 3;
-
-  // Device identifier for targeting
-  string device_id = 4;
-
-  // Post ID that triggered this notification
-  string post_id = 5;
-
-  // Category for interactive actions (e.g., "CAN_REPLY")
-  string category = 6;
-
-  // Sound to play (empty for default, "none" for silent)
-  string sound = 7;
-
-  // Notification message content
-  string message = 8;
-
-  // Badge count to display on app icon
-  int32 badge = 9;
-
-  // Content available flag for background updates
-  int32 content_available = 10;
-
-  // Team ID where the notification originated
-  string team_id = 11;
-
-  // Channel ID where the notification originated
-  string channel_id = 12;
-
-  // Root post ID for threaded replies
-  string root_id = 13;
-
-  // Channel display name
-  string channel_name = 14;
-
-  // Notification type (e.g., "message", "clear", "update_badge", "session", "test")
-  string type = 15;
-
-  // Sub-type for additional context (e.g., "calls" for Calls plugin)
-  string sub_type = 16;
-
-  // Sender user ID
-  string sender_id = 17;
-
-  // Sender display name
-  string sender_name = 18;
-
-  // Override username for webhooks
-  string override_username = 19;
-
-  // Override icon URL for webhooks
-  string override_icon_url = 20;
-
-  // Flag indicating notification is from a webhook
-  string from_webhook = 21;
-
-  // Protocol version (e.g., "v2")
-  string version = 22;
-
-  // Whether collapsed reply threads (CRT) is enabled
-  bool is_crt_enabled = 23;
-
-  // Whether this is an ID-only notification (content fetched by client)
-  bool is_id_loaded = 24;
-
-  // Notification signature for verification
-  string signature = 25;
-}
+// Note: PushNotification and Preference are defined in api_remaining.proto
+// and imported above. This file only defines types specific to message hooks.
 
 // EmailNotificationJson wraps a serialized model.EmailNotification as JSON bytes.
 // EmailNotification is a complex type with embedded struct; we use JSON blob
@@ -156,21 +80,6 @@ message EmailNotificationContent {
   string footer_text = 8;
 }
 
-// Preference represents a user preference setting.
-// Maps to model.Preference in Go (server/public/model/preference.go).
-message Preference {
-  // The user ID this preference belongs to
-  string user_id = 1;
-
-  // The category of the preference (e.g., "display_settings", "notifications")
-  string category = 2;
-
-  // The name/key of the preference within the category
-  string name = 3;
-
-  // The value of the preference
-  string value = 4;
-}
 
 // -----------------------------------------------------------------------------
 // MessageWillBePosted Hook

@@ -22,15 +22,27 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	PluginHooks_Implemented_FullMethodName              = "/mattermost.pluginapi.v1.PluginHooks/Implemented"
-	PluginHooks_OnActivate_FullMethodName               = "/mattermost.pluginapi.v1.PluginHooks/OnActivate"
-	PluginHooks_OnDeactivate_FullMethodName             = "/mattermost.pluginapi.v1.PluginHooks/OnDeactivate"
-	PluginHooks_OnConfigurationChange_FullMethodName    = "/mattermost.pluginapi.v1.PluginHooks/OnConfigurationChange"
-	PluginHooks_OnInstall_FullMethodName                = "/mattermost.pluginapi.v1.PluginHooks/OnInstall"
-	PluginHooks_OnSendDailyTelemetry_FullMethodName     = "/mattermost.pluginapi.v1.PluginHooks/OnSendDailyTelemetry"
-	PluginHooks_RunDataRetention_FullMethodName         = "/mattermost.pluginapi.v1.PluginHooks/RunDataRetention"
-	PluginHooks_OnCloudLimitsUpdated_FullMethodName     = "/mattermost.pluginapi.v1.PluginHooks/OnCloudLimitsUpdated"
-	PluginHooks_ConfigurationWillBeSaved_FullMethodName = "/mattermost.pluginapi.v1.PluginHooks/ConfigurationWillBeSaved"
+	PluginHooks_Implemented_FullMethodName                 = "/mattermost.pluginapi.v1.PluginHooks/Implemented"
+	PluginHooks_OnActivate_FullMethodName                  = "/mattermost.pluginapi.v1.PluginHooks/OnActivate"
+	PluginHooks_OnDeactivate_FullMethodName                = "/mattermost.pluginapi.v1.PluginHooks/OnDeactivate"
+	PluginHooks_OnConfigurationChange_FullMethodName       = "/mattermost.pluginapi.v1.PluginHooks/OnConfigurationChange"
+	PluginHooks_OnInstall_FullMethodName                   = "/mattermost.pluginapi.v1.PluginHooks/OnInstall"
+	PluginHooks_OnSendDailyTelemetry_FullMethodName        = "/mattermost.pluginapi.v1.PluginHooks/OnSendDailyTelemetry"
+	PluginHooks_RunDataRetention_FullMethodName            = "/mattermost.pluginapi.v1.PluginHooks/RunDataRetention"
+	PluginHooks_OnCloudLimitsUpdated_FullMethodName        = "/mattermost.pluginapi.v1.PluginHooks/OnCloudLimitsUpdated"
+	PluginHooks_ConfigurationWillBeSaved_FullMethodName    = "/mattermost.pluginapi.v1.PluginHooks/ConfigurationWillBeSaved"
+	PluginHooks_MessageWillBePosted_FullMethodName         = "/mattermost.pluginapi.v1.PluginHooks/MessageWillBePosted"
+	PluginHooks_MessageWillBeUpdated_FullMethodName        = "/mattermost.pluginapi.v1.PluginHooks/MessageWillBeUpdated"
+	PluginHooks_MessageHasBeenPosted_FullMethodName        = "/mattermost.pluginapi.v1.PluginHooks/MessageHasBeenPosted"
+	PluginHooks_MessageHasBeenUpdated_FullMethodName       = "/mattermost.pluginapi.v1.PluginHooks/MessageHasBeenUpdated"
+	PluginHooks_MessagesWillBeConsumed_FullMethodName      = "/mattermost.pluginapi.v1.PluginHooks/MessagesWillBeConsumed"
+	PluginHooks_MessageHasBeenDeleted_FullMethodName       = "/mattermost.pluginapi.v1.PluginHooks/MessageHasBeenDeleted"
+	PluginHooks_FileWillBeUploaded_FullMethodName          = "/mattermost.pluginapi.v1.PluginHooks/FileWillBeUploaded"
+	PluginHooks_ReactionHasBeenAdded_FullMethodName        = "/mattermost.pluginapi.v1.PluginHooks/ReactionHasBeenAdded"
+	PluginHooks_ReactionHasBeenRemoved_FullMethodName      = "/mattermost.pluginapi.v1.PluginHooks/ReactionHasBeenRemoved"
+	PluginHooks_NotificationWillBePushed_FullMethodName    = "/mattermost.pluginapi.v1.PluginHooks/NotificationWillBePushed"
+	PluginHooks_EmailNotificationWillBeSent_FullMethodName = "/mattermost.pluginapi.v1.PluginHooks/EmailNotificationWillBeSent"
+	PluginHooks_PreferencesHaveChanged_FullMethodName      = "/mattermost.pluginapi.v1.PluginHooks/PreferencesHaveChanged"
 )
 
 // PluginHooksClient is the client API for PluginHooks service.
@@ -92,6 +104,104 @@ type PluginHooksClient interface {
 	//
 	// Go signature: ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, error)
 	ConfigurationWillBeSaved(ctx context.Context, in *ConfigurationWillBeSavedRequest, opts ...grpc.CallOption) (*ConfigurationWillBeSavedResponse, error)
+	// MessageWillBePosted is invoked when a message is posted before it is committed
+	// to the database. Use this to modify or reject posts before they are saved.
+	//
+	// Return values:
+	// - To allow unchanged: return nil post and empty string
+	// - To modify: return modified post and empty string
+	// - To reject: return nil post and rejection reason string
+	// - To dismiss silently: return nil post and "plugin.message_will_be_posted.dismiss_post"
+	//
+	// Go signature: MessageWillBePosted(c *Context, post *model.Post) (*model.Post, string)
+	MessageWillBePosted(ctx context.Context, in *MessageWillBePostedRequest, opts ...grpc.CallOption) (*MessageWillBePostedResponse, error)
+	// MessageWillBeUpdated is invoked when a message is updated before it is committed
+	// to the database. Use this to modify or reject post updates.
+	//
+	// Return values:
+	// - To allow unchanged: return nil post and empty string
+	// - To modify: return modified post and empty string
+	// - To reject: return nil post and rejection reason (post stays unchanged)
+	//
+	// Go signature: MessageWillBeUpdated(c *Context, newPost, oldPost *model.Post) (*model.Post, string)
+	MessageWillBeUpdated(ctx context.Context, in *MessageWillBeUpdatedRequest, opts ...grpc.CallOption) (*MessageWillBeUpdatedResponse, error)
+	// MessageHasBeenPosted is invoked after the message has been committed to the database.
+	// This is a notification hook - you cannot modify or reject the post.
+	// Use MessageWillBePosted if you need to modify or reject.
+	//
+	// Go signature: MessageHasBeenPosted(c *Context, post *model.Post)
+	MessageHasBeenPosted(ctx context.Context, in *MessageHasBeenPostedRequest, opts ...grpc.CallOption) (*MessageHasBeenPostedResponse, error)
+	// MessageHasBeenUpdated is invoked after a message update has been committed to the database.
+	// This is a notification hook - you cannot modify or reject the update.
+	// Use MessageWillBeUpdated if you need to modify or reject.
+	//
+	// Go signature: MessageHasBeenUpdated(c *Context, newPost, oldPost *model.Post)
+	MessageHasBeenUpdated(ctx context.Context, in *MessageHasBeenUpdatedRequest, opts ...grpc.CallOption) (*MessageHasBeenUpdatedResponse, error)
+	// MessagesWillBeConsumed is invoked when messages are requested by a client
+	// before they are returned. Use this to filter or modify posts before delivery.
+	//
+	// Note: This hook has no Context parameter and no error return.
+	//
+	// Go signature: MessagesWillBeConsumed(posts []*model.Post) []*model.Post
+	MessagesWillBeConsumed(ctx context.Context, in *MessagesWillBeConsumedRequest, opts ...grpc.CallOption) (*MessagesWillBeConsumedResponse, error)
+	// MessageHasBeenDeleted is invoked after a message has been deleted from the database.
+	// This is a notification hook - you cannot undo the deletion.
+	//
+	// Go signature: MessageHasBeenDeleted(c *Context, post *model.Post)
+	MessageHasBeenDeleted(ctx context.Context, in *MessageHasBeenDeletedRequest, opts ...grpc.CallOption) (*MessageHasBeenDeletedResponse, error)
+	// FileWillBeUploaded is invoked when a file is uploaded before it is committed
+	// to storage. Use this to modify or reject file uploads.
+	//
+	// Note: Phase 8 will add streaming support. Currently uses bytes for file content.
+	//
+	// Return values:
+	// - To allow unchanged: return nil FileInfo, empty bytes, empty string
+	// - To modify: return modified FileInfo and/or content, empty string
+	// - To reject: return nil FileInfo, empty bytes, and rejection reason
+	//
+	// Go signature: FileWillBeUploaded(c *Context, info *model.FileInfo, file io.Reader, output io.Writer) (*model.FileInfo, string)
+	FileWillBeUploaded(ctx context.Context, in *FileWillBeUploadedRequest, opts ...grpc.CallOption) (*FileWillBeUploadedResponse, error)
+	// ReactionHasBeenAdded is invoked after a reaction has been committed to the database.
+	// This is a notification hook.
+	//
+	// Go signature: ReactionHasBeenAdded(c *Context, reaction *model.Reaction)
+	ReactionHasBeenAdded(ctx context.Context, in *ReactionHasBeenAddedRequest, opts ...grpc.CallOption) (*ReactionHasBeenAddedResponse, error)
+	// ReactionHasBeenRemoved is invoked after a reaction has been removed from the database.
+	// This is a notification hook.
+	//
+	// Go signature: ReactionHasBeenRemoved(c *Context, reaction *model.Reaction)
+	ReactionHasBeenRemoved(ctx context.Context, in *ReactionHasBeenRemovedRequest, opts ...grpc.CallOption) (*ReactionHasBeenRemovedResponse, error)
+	// NotificationWillBePushed is invoked before a push notification is sent to
+	// the push notification server. Use this to modify or reject push notifications.
+	//
+	// Note: This hook has no Context parameter.
+	//
+	// Return values:
+	// - To allow unchanged: return nil notification and empty string
+	// - To modify: return modified notification and empty string
+	// - To reject: return nil notification and rejection reason
+	//
+	// Go signature: NotificationWillBePushed(pushNotification *model.PushNotification, userID string) (*model.PushNotification, string)
+	NotificationWillBePushed(ctx context.Context, in *NotificationWillBePushedRequest, opts ...grpc.CallOption) (*NotificationWillBePushedResponse, error)
+	// EmailNotificationWillBeSent is invoked before an email notification is sent.
+	// Use this to customize email content or reject the notification.
+	//
+	// Note: Core identifiers (PostId, ChannelId, etc.) are immutable.
+	// Only content fields (subject, title, message, etc.) can be modified.
+	// Note: This hook has no Context parameter.
+	//
+	// Return values:
+	// - To allow unchanged: return nil content and empty string
+	// - To modify: return modified EmailNotificationContent and empty string
+	// - To reject: return nil content and rejection reason
+	//
+	// Go signature: EmailNotificationWillBeSent(emailNotification *model.EmailNotification) (*model.EmailNotificationContent, string)
+	EmailNotificationWillBeSent(ctx context.Context, in *EmailNotificationWillBeSentRequest, opts ...grpc.CallOption) (*EmailNotificationWillBeSentResponse, error)
+	// PreferencesHaveChanged is invoked after one or more of a user's preferences
+	// have changed. This is a notification hook.
+	//
+	// Go signature: PreferencesHaveChanged(c *Context, preferences []model.Preference)
+	PreferencesHaveChanged(ctx context.Context, in *PreferencesHaveChangedRequest, opts ...grpc.CallOption) (*PreferencesHaveChangedResponse, error)
 }
 
 type pluginHooksClient struct {
@@ -192,6 +302,126 @@ func (c *pluginHooksClient) ConfigurationWillBeSaved(ctx context.Context, in *Co
 	return out, nil
 }
 
+func (c *pluginHooksClient) MessageWillBePosted(ctx context.Context, in *MessageWillBePostedRequest, opts ...grpc.CallOption) (*MessageWillBePostedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(MessageWillBePostedResponse)
+	err := c.cc.Invoke(ctx, PluginHooks_MessageWillBePosted_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pluginHooksClient) MessageWillBeUpdated(ctx context.Context, in *MessageWillBeUpdatedRequest, opts ...grpc.CallOption) (*MessageWillBeUpdatedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(MessageWillBeUpdatedResponse)
+	err := c.cc.Invoke(ctx, PluginHooks_MessageWillBeUpdated_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pluginHooksClient) MessageHasBeenPosted(ctx context.Context, in *MessageHasBeenPostedRequest, opts ...grpc.CallOption) (*MessageHasBeenPostedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(MessageHasBeenPostedResponse)
+	err := c.cc.Invoke(ctx, PluginHooks_MessageHasBeenPosted_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pluginHooksClient) MessageHasBeenUpdated(ctx context.Context, in *MessageHasBeenUpdatedRequest, opts ...grpc.CallOption) (*MessageHasBeenUpdatedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(MessageHasBeenUpdatedResponse)
+	err := c.cc.Invoke(ctx, PluginHooks_MessageHasBeenUpdated_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pluginHooksClient) MessagesWillBeConsumed(ctx context.Context, in *MessagesWillBeConsumedRequest, opts ...grpc.CallOption) (*MessagesWillBeConsumedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(MessagesWillBeConsumedResponse)
+	err := c.cc.Invoke(ctx, PluginHooks_MessagesWillBeConsumed_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pluginHooksClient) MessageHasBeenDeleted(ctx context.Context, in *MessageHasBeenDeletedRequest, opts ...grpc.CallOption) (*MessageHasBeenDeletedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(MessageHasBeenDeletedResponse)
+	err := c.cc.Invoke(ctx, PluginHooks_MessageHasBeenDeleted_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pluginHooksClient) FileWillBeUploaded(ctx context.Context, in *FileWillBeUploadedRequest, opts ...grpc.CallOption) (*FileWillBeUploadedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FileWillBeUploadedResponse)
+	err := c.cc.Invoke(ctx, PluginHooks_FileWillBeUploaded_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pluginHooksClient) ReactionHasBeenAdded(ctx context.Context, in *ReactionHasBeenAddedRequest, opts ...grpc.CallOption) (*ReactionHasBeenAddedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ReactionHasBeenAddedResponse)
+	err := c.cc.Invoke(ctx, PluginHooks_ReactionHasBeenAdded_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pluginHooksClient) ReactionHasBeenRemoved(ctx context.Context, in *ReactionHasBeenRemovedRequest, opts ...grpc.CallOption) (*ReactionHasBeenRemovedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ReactionHasBeenRemovedResponse)
+	err := c.cc.Invoke(ctx, PluginHooks_ReactionHasBeenRemoved_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pluginHooksClient) NotificationWillBePushed(ctx context.Context, in *NotificationWillBePushedRequest, opts ...grpc.CallOption) (*NotificationWillBePushedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(NotificationWillBePushedResponse)
+	err := c.cc.Invoke(ctx, PluginHooks_NotificationWillBePushed_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pluginHooksClient) EmailNotificationWillBeSent(ctx context.Context, in *EmailNotificationWillBeSentRequest, opts ...grpc.CallOption) (*EmailNotificationWillBeSentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(EmailNotificationWillBeSentResponse)
+	err := c.cc.Invoke(ctx, PluginHooks_EmailNotificationWillBeSent_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pluginHooksClient) PreferencesHaveChanged(ctx context.Context, in *PreferencesHaveChangedRequest, opts ...grpc.CallOption) (*PreferencesHaveChangedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PreferencesHaveChangedResponse)
+	err := c.cc.Invoke(ctx, PluginHooks_PreferencesHaveChanged_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PluginHooksServer is the server API for PluginHooks service.
 // All implementations must embed UnimplementedPluginHooksServer
 // for forward compatibility.
@@ -251,6 +481,104 @@ type PluginHooksServer interface {
 	//
 	// Go signature: ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, error)
 	ConfigurationWillBeSaved(context.Context, *ConfigurationWillBeSavedRequest) (*ConfigurationWillBeSavedResponse, error)
+	// MessageWillBePosted is invoked when a message is posted before it is committed
+	// to the database. Use this to modify or reject posts before they are saved.
+	//
+	// Return values:
+	// - To allow unchanged: return nil post and empty string
+	// - To modify: return modified post and empty string
+	// - To reject: return nil post and rejection reason string
+	// - To dismiss silently: return nil post and "plugin.message_will_be_posted.dismiss_post"
+	//
+	// Go signature: MessageWillBePosted(c *Context, post *model.Post) (*model.Post, string)
+	MessageWillBePosted(context.Context, *MessageWillBePostedRequest) (*MessageWillBePostedResponse, error)
+	// MessageWillBeUpdated is invoked when a message is updated before it is committed
+	// to the database. Use this to modify or reject post updates.
+	//
+	// Return values:
+	// - To allow unchanged: return nil post and empty string
+	// - To modify: return modified post and empty string
+	// - To reject: return nil post and rejection reason (post stays unchanged)
+	//
+	// Go signature: MessageWillBeUpdated(c *Context, newPost, oldPost *model.Post) (*model.Post, string)
+	MessageWillBeUpdated(context.Context, *MessageWillBeUpdatedRequest) (*MessageWillBeUpdatedResponse, error)
+	// MessageHasBeenPosted is invoked after the message has been committed to the database.
+	// This is a notification hook - you cannot modify or reject the post.
+	// Use MessageWillBePosted if you need to modify or reject.
+	//
+	// Go signature: MessageHasBeenPosted(c *Context, post *model.Post)
+	MessageHasBeenPosted(context.Context, *MessageHasBeenPostedRequest) (*MessageHasBeenPostedResponse, error)
+	// MessageHasBeenUpdated is invoked after a message update has been committed to the database.
+	// This is a notification hook - you cannot modify or reject the update.
+	// Use MessageWillBeUpdated if you need to modify or reject.
+	//
+	// Go signature: MessageHasBeenUpdated(c *Context, newPost, oldPost *model.Post)
+	MessageHasBeenUpdated(context.Context, *MessageHasBeenUpdatedRequest) (*MessageHasBeenUpdatedResponse, error)
+	// MessagesWillBeConsumed is invoked when messages are requested by a client
+	// before they are returned. Use this to filter or modify posts before delivery.
+	//
+	// Note: This hook has no Context parameter and no error return.
+	//
+	// Go signature: MessagesWillBeConsumed(posts []*model.Post) []*model.Post
+	MessagesWillBeConsumed(context.Context, *MessagesWillBeConsumedRequest) (*MessagesWillBeConsumedResponse, error)
+	// MessageHasBeenDeleted is invoked after a message has been deleted from the database.
+	// This is a notification hook - you cannot undo the deletion.
+	//
+	// Go signature: MessageHasBeenDeleted(c *Context, post *model.Post)
+	MessageHasBeenDeleted(context.Context, *MessageHasBeenDeletedRequest) (*MessageHasBeenDeletedResponse, error)
+	// FileWillBeUploaded is invoked when a file is uploaded before it is committed
+	// to storage. Use this to modify or reject file uploads.
+	//
+	// Note: Phase 8 will add streaming support. Currently uses bytes for file content.
+	//
+	// Return values:
+	// - To allow unchanged: return nil FileInfo, empty bytes, empty string
+	// - To modify: return modified FileInfo and/or content, empty string
+	// - To reject: return nil FileInfo, empty bytes, and rejection reason
+	//
+	// Go signature: FileWillBeUploaded(c *Context, info *model.FileInfo, file io.Reader, output io.Writer) (*model.FileInfo, string)
+	FileWillBeUploaded(context.Context, *FileWillBeUploadedRequest) (*FileWillBeUploadedResponse, error)
+	// ReactionHasBeenAdded is invoked after a reaction has been committed to the database.
+	// This is a notification hook.
+	//
+	// Go signature: ReactionHasBeenAdded(c *Context, reaction *model.Reaction)
+	ReactionHasBeenAdded(context.Context, *ReactionHasBeenAddedRequest) (*ReactionHasBeenAddedResponse, error)
+	// ReactionHasBeenRemoved is invoked after a reaction has been removed from the database.
+	// This is a notification hook.
+	//
+	// Go signature: ReactionHasBeenRemoved(c *Context, reaction *model.Reaction)
+	ReactionHasBeenRemoved(context.Context, *ReactionHasBeenRemovedRequest) (*ReactionHasBeenRemovedResponse, error)
+	// NotificationWillBePushed is invoked before a push notification is sent to
+	// the push notification server. Use this to modify or reject push notifications.
+	//
+	// Note: This hook has no Context parameter.
+	//
+	// Return values:
+	// - To allow unchanged: return nil notification and empty string
+	// - To modify: return modified notification and empty string
+	// - To reject: return nil notification and rejection reason
+	//
+	// Go signature: NotificationWillBePushed(pushNotification *model.PushNotification, userID string) (*model.PushNotification, string)
+	NotificationWillBePushed(context.Context, *NotificationWillBePushedRequest) (*NotificationWillBePushedResponse, error)
+	// EmailNotificationWillBeSent is invoked before an email notification is sent.
+	// Use this to customize email content or reject the notification.
+	//
+	// Note: Core identifiers (PostId, ChannelId, etc.) are immutable.
+	// Only content fields (subject, title, message, etc.) can be modified.
+	// Note: This hook has no Context parameter.
+	//
+	// Return values:
+	// - To allow unchanged: return nil content and empty string
+	// - To modify: return modified EmailNotificationContent and empty string
+	// - To reject: return nil content and rejection reason
+	//
+	// Go signature: EmailNotificationWillBeSent(emailNotification *model.EmailNotification) (*model.EmailNotificationContent, string)
+	EmailNotificationWillBeSent(context.Context, *EmailNotificationWillBeSentRequest) (*EmailNotificationWillBeSentResponse, error)
+	// PreferencesHaveChanged is invoked after one or more of a user's preferences
+	// have changed. This is a notification hook.
+	//
+	// Go signature: PreferencesHaveChanged(c *Context, preferences []model.Preference)
+	PreferencesHaveChanged(context.Context, *PreferencesHaveChangedRequest) (*PreferencesHaveChangedResponse, error)
 	mustEmbedUnimplementedPluginHooksServer()
 }
 
@@ -287,6 +615,42 @@ func (UnimplementedPluginHooksServer) OnCloudLimitsUpdated(context.Context, *OnC
 }
 func (UnimplementedPluginHooksServer) ConfigurationWillBeSaved(context.Context, *ConfigurationWillBeSavedRequest) (*ConfigurationWillBeSavedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ConfigurationWillBeSaved not implemented")
+}
+func (UnimplementedPluginHooksServer) MessageWillBePosted(context.Context, *MessageWillBePostedRequest) (*MessageWillBePostedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MessageWillBePosted not implemented")
+}
+func (UnimplementedPluginHooksServer) MessageWillBeUpdated(context.Context, *MessageWillBeUpdatedRequest) (*MessageWillBeUpdatedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MessageWillBeUpdated not implemented")
+}
+func (UnimplementedPluginHooksServer) MessageHasBeenPosted(context.Context, *MessageHasBeenPostedRequest) (*MessageHasBeenPostedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MessageHasBeenPosted not implemented")
+}
+func (UnimplementedPluginHooksServer) MessageHasBeenUpdated(context.Context, *MessageHasBeenUpdatedRequest) (*MessageHasBeenUpdatedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MessageHasBeenUpdated not implemented")
+}
+func (UnimplementedPluginHooksServer) MessagesWillBeConsumed(context.Context, *MessagesWillBeConsumedRequest) (*MessagesWillBeConsumedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MessagesWillBeConsumed not implemented")
+}
+func (UnimplementedPluginHooksServer) MessageHasBeenDeleted(context.Context, *MessageHasBeenDeletedRequest) (*MessageHasBeenDeletedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MessageHasBeenDeleted not implemented")
+}
+func (UnimplementedPluginHooksServer) FileWillBeUploaded(context.Context, *FileWillBeUploadedRequest) (*FileWillBeUploadedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FileWillBeUploaded not implemented")
+}
+func (UnimplementedPluginHooksServer) ReactionHasBeenAdded(context.Context, *ReactionHasBeenAddedRequest) (*ReactionHasBeenAddedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReactionHasBeenAdded not implemented")
+}
+func (UnimplementedPluginHooksServer) ReactionHasBeenRemoved(context.Context, *ReactionHasBeenRemovedRequest) (*ReactionHasBeenRemovedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReactionHasBeenRemoved not implemented")
+}
+func (UnimplementedPluginHooksServer) NotificationWillBePushed(context.Context, *NotificationWillBePushedRequest) (*NotificationWillBePushedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method NotificationWillBePushed not implemented")
+}
+func (UnimplementedPluginHooksServer) EmailNotificationWillBeSent(context.Context, *EmailNotificationWillBeSentRequest) (*EmailNotificationWillBeSentResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EmailNotificationWillBeSent not implemented")
+}
+func (UnimplementedPluginHooksServer) PreferencesHaveChanged(context.Context, *PreferencesHaveChangedRequest) (*PreferencesHaveChangedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PreferencesHaveChanged not implemented")
 }
 func (UnimplementedPluginHooksServer) mustEmbedUnimplementedPluginHooksServer() {}
 func (UnimplementedPluginHooksServer) testEmbeddedByValue()                     {}
@@ -471,6 +835,222 @@ func _PluginHooks_ConfigurationWillBeSaved_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PluginHooks_MessageWillBePosted_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MessageWillBePostedRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PluginHooksServer).MessageWillBePosted(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PluginHooks_MessageWillBePosted_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PluginHooksServer).MessageWillBePosted(ctx, req.(*MessageWillBePostedRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PluginHooks_MessageWillBeUpdated_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MessageWillBeUpdatedRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PluginHooksServer).MessageWillBeUpdated(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PluginHooks_MessageWillBeUpdated_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PluginHooksServer).MessageWillBeUpdated(ctx, req.(*MessageWillBeUpdatedRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PluginHooks_MessageHasBeenPosted_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MessageHasBeenPostedRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PluginHooksServer).MessageHasBeenPosted(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PluginHooks_MessageHasBeenPosted_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PluginHooksServer).MessageHasBeenPosted(ctx, req.(*MessageHasBeenPostedRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PluginHooks_MessageHasBeenUpdated_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MessageHasBeenUpdatedRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PluginHooksServer).MessageHasBeenUpdated(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PluginHooks_MessageHasBeenUpdated_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PluginHooksServer).MessageHasBeenUpdated(ctx, req.(*MessageHasBeenUpdatedRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PluginHooks_MessagesWillBeConsumed_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MessagesWillBeConsumedRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PluginHooksServer).MessagesWillBeConsumed(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PluginHooks_MessagesWillBeConsumed_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PluginHooksServer).MessagesWillBeConsumed(ctx, req.(*MessagesWillBeConsumedRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PluginHooks_MessageHasBeenDeleted_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MessageHasBeenDeletedRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PluginHooksServer).MessageHasBeenDeleted(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PluginHooks_MessageHasBeenDeleted_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PluginHooksServer).MessageHasBeenDeleted(ctx, req.(*MessageHasBeenDeletedRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PluginHooks_FileWillBeUploaded_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FileWillBeUploadedRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PluginHooksServer).FileWillBeUploaded(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PluginHooks_FileWillBeUploaded_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PluginHooksServer).FileWillBeUploaded(ctx, req.(*FileWillBeUploadedRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PluginHooks_ReactionHasBeenAdded_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReactionHasBeenAddedRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PluginHooksServer).ReactionHasBeenAdded(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PluginHooks_ReactionHasBeenAdded_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PluginHooksServer).ReactionHasBeenAdded(ctx, req.(*ReactionHasBeenAddedRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PluginHooks_ReactionHasBeenRemoved_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReactionHasBeenRemovedRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PluginHooksServer).ReactionHasBeenRemoved(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PluginHooks_ReactionHasBeenRemoved_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PluginHooksServer).ReactionHasBeenRemoved(ctx, req.(*ReactionHasBeenRemovedRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PluginHooks_NotificationWillBePushed_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(NotificationWillBePushedRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PluginHooksServer).NotificationWillBePushed(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PluginHooks_NotificationWillBePushed_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PluginHooksServer).NotificationWillBePushed(ctx, req.(*NotificationWillBePushedRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PluginHooks_EmailNotificationWillBeSent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EmailNotificationWillBeSentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PluginHooksServer).EmailNotificationWillBeSent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PluginHooks_EmailNotificationWillBeSent_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PluginHooksServer).EmailNotificationWillBeSent(ctx, req.(*EmailNotificationWillBeSentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PluginHooks_PreferencesHaveChanged_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PreferencesHaveChangedRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PluginHooksServer).PreferencesHaveChanged(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PluginHooks_PreferencesHaveChanged_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PluginHooksServer).PreferencesHaveChanged(ctx, req.(*PreferencesHaveChangedRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PluginHooks_ServiceDesc is the grpc.ServiceDesc for PluginHooks service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -513,6 +1093,54 @@ var PluginHooks_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ConfigurationWillBeSaved",
 			Handler:    _PluginHooks_ConfigurationWillBeSaved_Handler,
+		},
+		{
+			MethodName: "MessageWillBePosted",
+			Handler:    _PluginHooks_MessageWillBePosted_Handler,
+		},
+		{
+			MethodName: "MessageWillBeUpdated",
+			Handler:    _PluginHooks_MessageWillBeUpdated_Handler,
+		},
+		{
+			MethodName: "MessageHasBeenPosted",
+			Handler:    _PluginHooks_MessageHasBeenPosted_Handler,
+		},
+		{
+			MethodName: "MessageHasBeenUpdated",
+			Handler:    _PluginHooks_MessageHasBeenUpdated_Handler,
+		},
+		{
+			MethodName: "MessagesWillBeConsumed",
+			Handler:    _PluginHooks_MessagesWillBeConsumed_Handler,
+		},
+		{
+			MethodName: "MessageHasBeenDeleted",
+			Handler:    _PluginHooks_MessageHasBeenDeleted_Handler,
+		},
+		{
+			MethodName: "FileWillBeUploaded",
+			Handler:    _PluginHooks_FileWillBeUploaded_Handler,
+		},
+		{
+			MethodName: "ReactionHasBeenAdded",
+			Handler:    _PluginHooks_ReactionHasBeenAdded_Handler,
+		},
+		{
+			MethodName: "ReactionHasBeenRemoved",
+			Handler:    _PluginHooks_ReactionHasBeenRemoved_Handler,
+		},
+		{
+			MethodName: "NotificationWillBePushed",
+			Handler:    _PluginHooks_NotificationWillBePushed_Handler,
+		},
+		{
+			MethodName: "EmailNotificationWillBeSent",
+			Handler:    _PluginHooks_EmailNotificationWillBeSent_Handler,
+		},
+		{
+			MethodName: "PreferencesHaveChanged",
+			Handler:    _PluginHooks_PreferencesHaveChanged_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
