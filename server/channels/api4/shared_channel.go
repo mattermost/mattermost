@@ -235,6 +235,7 @@ func uninviteRemoteClusterToChannel(c *Context, w http.ResponseWriter, r *http.R
 
 	// if the channel is not shared with the remote, we return early
 	if !hasRemote {
+		auditRec.Success()
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
