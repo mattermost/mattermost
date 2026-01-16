@@ -1,0 +1,48 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+syntax = "proto3";
+
+package mattermost.pluginapi.v1;
+
+option go_package = "github.com/mattermost/mattermost/server/public/pluginapi/grpc/generated/go/pluginapiv1";
+
+// ==============================================================================
+// HOOK COMMON TYPES
+// ==============================================================================
+//
+// This file defines shared types used across all plugin hook RPCs.
+// These types are used to pass context and metadata from the server to
+// plugins when invoking hooks.
+//
+// ==============================================================================
+
+// PluginContext passes through metadata about the request or hook event.
+// Maps to plugin.Context in Go (server/public/plugin/context.go).
+//
+// This context is passed to hooks that require request-level information,
+// such as session details, request tracing, and client metadata.
+//
+// Note: This is distinct from RequestContext (used in API calls) because
+// hooks receive server-initiated context rather than plugin-initiated context.
+message PluginContext {
+  // The session ID of the user making the request, if applicable.
+  // Empty for system-initiated hooks not tied to a user session.
+  string session_id = 1;
+
+  // A unique identifier for this request, used for tracing and logging.
+  // Correlates log entries across the server and plugin boundary.
+  string request_id = 2;
+
+  // The IP address of the client making the request.
+  // May be empty for server-initiated hooks.
+  string ip_address = 3;
+
+  // The Accept-Language header from the client request.
+  // Used for localization. May be empty.
+  string accept_language = 4;
+
+  // The User-Agent header from the client request.
+  // Identifies the client software. May be empty.
+  string user_agent = 5;
+}
