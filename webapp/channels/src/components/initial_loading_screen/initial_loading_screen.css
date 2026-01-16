@@ -13,7 +13,7 @@ body {
     --gradient-center-color: #FFF;
     --gradient-edge-color: rgba(255, 255, 255, 0);
     position: absolute;
-    z-index: 100;
+    z-index: 1000;
     top: 0px;
     bottom: 0px;
     display: flex;
