@@ -116,6 +116,12 @@ describe('components/dot_menu/DotMenu on mobile view', () => {
             isMilitaryTime: false,
             canMove: true,
             isChannelAutotranslated: false,
+            canReply: true,
+            canForward: true,
+            canFollowThread: true,
+            canPin: true,
+            canCopyText: true,
+            canCopyLink: true,
             isBurnOnReadPost: false,
             isUnrevealedBurnOnReadPost: false,
         };

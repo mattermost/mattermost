@@ -3,6 +3,8 @@
 
 import {createIntl} from 'react-intl';
 
+import type {Post} from '@mattermost/types/posts';
+
 import {Preferences} from 'mattermost-redux/constants';
 
 import enMessages from 'i18n/en.json';
@@ -1513,5 +1515,26 @@ describe('makeGetUniqueEmojiNameReactionsForPost', () => {
         const getUniqueEmojiNameReactionsForPost = PostUtils.makeGetUniqueEmojiNameReactionsForPost();
 
         expect(getUniqueEmojiNameReactionsForPost(baseState, 'post_id_1')).toEqual(['smile', 'cry']);
+    });
+});
+
+describe('shouldShowActionsMenu', () => {
+    const baseState = {
+        entities: {
+            general: {
+                config: {
+                    PluginsEnabled: 'true',
+                },
+            },
+        },
+    } as unknown as GlobalState;
+
+    test('should return false for burn-on-read posts', () => {
+        const borPost = TestHelper.getPostMock({
+            id: 'post_id_1',
+            type: Constants.PostTypes.BURN_ON_READ as Post['type'],
+        });
+
+        expect(PostUtils.shouldShowActionsMenu(baseState, borPost)).toBe(false);
     });
 });

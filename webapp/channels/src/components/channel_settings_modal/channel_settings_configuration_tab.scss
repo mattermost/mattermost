@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-@import "utils/_animations";
+@use "utils/animations";
 
 .ChannelSettingsModal__configurationTab {
     display: flex;
@@ -32,7 +32,7 @@
     }
 
     .channel_banner_section_body {
-        @include fade-in;
+        @include animations.fade-in;
 
         display: flex;
         width: 100%;

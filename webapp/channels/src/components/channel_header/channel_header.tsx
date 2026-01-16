@@ -222,7 +222,7 @@ class ChannelHeader extends React.PureComponent<Props> {
                         <span className='last-active__text'>
                             <FormattedMessage
                                 id='channel_header.lastActive'
-                                defaultMessage='Active {timestamp}'
+                                defaultMessage='Last online {timestamp}'
                                 values={{
                                     timestamp: (
                                         <Timestamp

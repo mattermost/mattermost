@@ -53,6 +53,7 @@ import {
     resetReloadPostsInChannel,
     resetReloadPostsInTranslatedChannels,
 } from 'mattermost-redux/actions/posts';
+import {getRecap} from 'mattermost-redux/actions/recaps';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import {fetchTeamScheduledPosts} from 'mattermost-redux/actions/scheduled_posts';
 import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/actions/status_profile_polling';
@@ -669,6 +670,9 @@ export function handleEvent(msg) {
         break;
     case SocketEvents.POST_TRANSLATION_UPDATED:
         dispatch(handlePostTranslationUpdated(msg));
+        break;
+    case SocketEvents.RECAP_UPDATED:
+        dispatch(handleRecapUpdated(msg));
         break;
     default:
     }
@@ -2043,5 +2047,14 @@ export function handlePostTranslationUpdated(msg) {
     return {
         type: PostTypes.POST_TRANSLATION_UPDATED,
         data: msg.data,
+    };
+}
+
+export function handleRecapUpdated(msg) {
+    const recapId = msg.data.recap_id;
+
+    return async (doDispatch) => {
+        // Fetch the updated recap and dispatch to Redux
+        doDispatch(getRecap(recapId));
     };
 }

@@ -69,8 +69,10 @@ export function checkDialogElementForError(elem: DialogElement, value: any): Dia
         if (value && value.length < elem.min_length) {
             return defineMessage({
                 id: 'interactive_dialog.error.too_short',
+
+                // minLength provided by InteractiveDialog
+                // eslint-disable-next-line formatjs/enforce-placeholders
                 defaultMessage: 'Minimum input length is {minLength}.',
-                values: {minLength: elem.min_length},
             });
         }
 

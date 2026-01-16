@@ -65,7 +65,7 @@ export const UsersWillBeRemovedError = ({users, total, scope, scopeId}: UsersWil
     let error = (
         <FormattedMessage
             id='admin.team_channel_settings.users_will_be_removed'
-            defaultMessage='{amount, number} {amount, plural, one {User} other {Users}} will be removed from this team. They are not in groups linked to this team.'
+            defaultMessage='{amount, number} {amount, plural, one {user} other {users}} will be removed from this team. They are not in groups linked to this team.'
             values={{amount: total}}
         />
     );

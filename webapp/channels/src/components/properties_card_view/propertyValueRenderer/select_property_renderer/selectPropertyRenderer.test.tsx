@@ -39,8 +39,10 @@ describe('SelectPropertyRenderer', () => {
         const element = screen.getByTestId('select-property');
         expect(element).toBeInTheDocument();
         expect(element).toHaveTextContent('option1');
+
+        // Component applies inline styles via style prop
         expect(element).toHaveStyle({
-            backgroundColor: 'rgba(var(--button-bg-rgb), 0.08)',
+            backgroundColor: 'var(--sidebar-text-active-border)',
             color: '#FFF',
         });
     });

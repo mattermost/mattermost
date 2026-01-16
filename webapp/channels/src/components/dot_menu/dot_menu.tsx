@@ -85,6 +85,12 @@ type Props = {
     timezone?: string;
     isMilitaryTime: boolean;
     canMove: boolean;
+    canReply: boolean;
+    canForward: boolean;
+    canFollowThread: boolean;
+    canPin: boolean;
+    canCopyText: boolean;
+    canCopyLink: boolean;
     canFlagContent?: boolean;
 
     actions: {
@@ -171,7 +177,6 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         location: Locations.CENTER,
     };
     private editDisableAction: DelayedAction;
-    private canPostBeForwarded: boolean;
 
     constructor(props: Props) {
         super(props);
@@ -182,8 +187,6 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             canEdit: props.canEdit && !props.isReadOnly,
             canDelete: props.canDelete && !props.isReadOnly,
         };
-
-        this.canPostBeForwarded = false;
     }
 
     static getDerivedStateFromProps(props: Props) {
@@ -328,7 +331,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
     };
 
     handleForwardMenuItemActivated = (): void => {
-        if (!this.canPostBeForwarded) {
+        if (!this.props.canForward) {
             // adding this early return since only hiding the Item from the menu is not enough,
             // since a user can always use the Shortcuts to activate the function as well
             return;
@@ -388,38 +391,50 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
 
         switch (true) {
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.R):
-            forceCloseMenu();
-            this.handleCommentClick(event);
+            if (this.props.canReply) {
+                forceCloseMenu();
+                this.handleCommentClick(event);
+            }
             break;
 
             // edit post
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.E):
-            forceCloseMenu();
-            this.handleEditMenuItemActivated();
+            if (this.state.canEdit) {
+                forceCloseMenu();
+                this.handleEditMenuItemActivated();
+            }
             break;
 
             // follow thread
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.F) && !isShiftKeyPressed:
-            forceCloseMenu();
-            this.handleSetThreadFollow();
+            if (this.props.canFollowThread) {
+                forceCloseMenu();
+                this.handleSetThreadFollow();
+            }
             break;
 
             // forward post
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.F) && isShiftKeyPressed:
-            forceCloseMenu();
-            this.handleForwardMenuItemActivated();
+            if (this.props.canForward) {
+                forceCloseMenu();
+                this.handleForwardMenuItemActivated();
+            }
             break;
 
             // copy link
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.K):
-            forceCloseMenu();
-            this.copyLink();
+            if (this.props.canCopyLink) {
+                forceCloseMenu();
+                this.copyLink();
+            }
             break;
 
             // copy text
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.C):
-            forceCloseMenu();
-            this.copyText();
+            if (this.props.canCopyText) {
+                forceCloseMenu();
+                this.copyText();
+            }
             break;
 
             // delete post
@@ -430,14 +445,18 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
 
         // move thread
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.W):
-            forceCloseMenu();
-            this.handleMoveThreadMenuItemActivated(event);
+            if (this.props.canMove) {
+                forceCloseMenu();
+                this.handleMoveThreadMenuItemActivated(event);
+            }
             break;
 
             // pin / unpin
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.P):
-            forceCloseMenu();
-            this.handlePinMenuItemActivated();
+            if (this.props.canPin && !this.props.isReadOnly) {
+                forceCloseMenu();
+                this.handlePinMenuItemActivated();
+            }
             break;
 
             // save / unsave
@@ -485,8 +504,6 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
 
         const translation = PostUtils.getPostTranslation(this.props.post, this.props.intl.locale);
         const showTranslation = this.props.isChannelAutotranslated && translation?.state === 'ready' && this.props.post.type === '';
-
-        this.canPostBeForwarded = !(isSystemMessage || isBurnOnReadPost);
 
         const forwardPostItemText = (
             <span className={'dot-menu__item-new-badge'}>
@@ -538,26 +555,26 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         const saveFlag = (
             <FormattedMessage
                 id='rhs_root.mobile.flag'
-                defaultMessage='Save'
+                defaultMessage='Save Message'
             />
         );
 
         const pinPost = (
             <FormattedMessage
                 id='post_info.pin'
-                defaultMessage='Pin'
+                defaultMessage='Pin to Channel'
             />
         );
 
         const unPinPost = (
             <FormattedMessage
                 id='post_info.unpin'
-                defaultMessage='Unpin'
+                defaultMessage='Unpin from Channel'
             />
         );
 
         const showReply = !isSystemMessage && !isBurnOnReadPost && this.props.location === Locations.CENTER;
-        const showForward = this.canPostBeForwarded;
+        const showForward = this.props.canForward;
         const showReactions = Boolean(isMobile && !isSystemMessage && !this.props.isReadOnly && this.props.enableEmojiPicker);
         const showFollowPost = Boolean(
             !isSystemMessage &&

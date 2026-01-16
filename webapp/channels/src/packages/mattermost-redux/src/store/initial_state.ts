@@ -104,6 +104,10 @@ const state: GlobalState = {
             counts: {},
             countsIncludingDirect: {},
         },
+        recaps: {
+            byId: {},
+            allIds: [],
+        },
         preferences: {
             myPreferences: {},
             userPreferences: {},

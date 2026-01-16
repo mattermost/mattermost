@@ -980,7 +980,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.EnableBurnOnRead == nil {
-		s.EnableBurnOnRead = NewPointer(false)
+		s.EnableBurnOnRead = NewPointer(true)
 	}
 
 	if s.BurnOnReadDurationSeconds == nil {
@@ -3796,6 +3796,16 @@ func (s *GuestAccountsSettings) SetDefaults() {
 	}
 }
 
+func (s *GuestAccountsSettings) IsValid() *AppError {
+	if s.EnableGuestMagicLink != nil && *s.EnableGuestMagicLink {
+		if s.EnforceMultifactorAuthentication != nil && *s.EnforceMultifactorAuthentication {
+			return NewAppError("GuestAccountsSettings.IsValid", "model.config.is_valid.guest_accounts.cannot_enforce_multifactor_authentication_when_guest_magic_link_is_enabled.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	return nil
+}
+
 type ImageProxySettings struct {
 	Enable                  *bool   `access:"environment_image_proxy"`
 	ImageProxyType          *string `access:"environment_image_proxy"`
@@ -4265,6 +4275,10 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if appErr := o.ContentFlaggingSettings.IsValid(); appErr != nil {
+		return appErr
+	}
+
+	if appErr := o.GuestAccountsSettings.IsValid(); appErr != nil {
 		return appErr
 	}
 
