@@ -5,40 +5,34 @@ import React from 'react';
 
 import * as ChannelSelectors from 'mattermost-redux/selectors/entities/channels';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import NotifyCounts from './';
 
 describe('components/notify_counts', () => {
     const getUnreadStatusInCurrentTeam = jest.spyOn(ChannelSelectors, 'getUnreadStatusInCurrentTeam');
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should show unread mention count', () => {
         getUnreadStatusInCurrentTeam.mockReturnValue(22);
 
-        renderWithContext(<NotifyCounts/>);
+        const {container} = renderWithContext(<NotifyCounts/>);
 
-        // Verify the unread count is visible to users
-        expect(screen.getByText('22')).toBeInTheDocument();
+        expect(container.querySelector('.badge-notify')?.textContent).toBe('22');
     });
 
-    test('should show unread messages indicator', () => {
+    test('should show unread messages', () => {
         getUnreadStatusInCurrentTeam.mockReturnValue(true);
 
-        renderWithContext(<NotifyCounts/>);
+        const {container} = renderWithContext(<NotifyCounts/>);
 
-        // Verify the unread indicator is visible to users
-        expect(screen.getByText('•')).toBeInTheDocument();
+        expect(container.querySelector('.badge-notify')?.textContent).toBe('•');
     });
 
-    test('should not show unread indicator when no unreads', () => {
+    test('should show not show unread indicator', () => {
         getUnreadStatusInCurrentTeam.mockReturnValue(false);
 
         const {container} = renderWithContext(<NotifyCounts/>);
 
-        expect(container).toBeEmptyDOMElement();
+        expect(container.querySelector('.badge-notify')).toBeNull();
     });
 });

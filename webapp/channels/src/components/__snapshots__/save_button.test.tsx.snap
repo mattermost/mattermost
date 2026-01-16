@@ -1,0 +1,94 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`components/SaveButton should match snapshot, extraClasses 1`] = `
+<div>
+  <button
+    class="btn btn-primary  some-class"
+    data-testid="saveSetting"
+    id="saveSetting"
+    type="submit"
+  >
+    <span>
+      Save
+    </span>
+  </button>
+</div>
+`;
+
+exports[`components/SaveButton should match snapshot, on defaultMessage 1`] = `
+<div>
+  <button
+    class="btn btn-primary "
+    data-testid="saveSetting"
+    id="saveSetting"
+    type="submit"
+  >
+    <span>
+      Save
+    </span>
+  </button>
+</div>
+`;
+
+exports[`components/SaveButton should match snapshot, on defaultMessage 2`] = `
+<div>
+  <button
+    class="btn btn-primary "
+    data-testid="saveSetting"
+    id="saveSetting"
+    type="submit"
+  >
+    <span>
+      Go
+    </span>
+  </button>
+</div>
+`;
+
+exports[`components/SaveButton should match snapshot, on savingMessage 1`] = `
+<div>
+  <button
+    class="btn btn-primary "
+    data-testid="saveSetting"
+    disabled=""
+    id="saveSetting"
+    type="submit"
+  >
+    <span
+      class="LoadingSpinner with-text"
+      data-testid="loadingSpinner"
+      id="loadingSpinner"
+    >
+      <span
+        class="fa fa-spinner fa-fw fa-pulse spinner"
+        title="Loading Icon"
+      />
+      Saving
+    </span>
+  </button>
+</div>
+`;
+
+exports[`components/SaveButton should match snapshot, on savingMessage 2`] = `
+<div>
+  <button
+    class="btn btn-primary "
+    data-testid="saveSetting"
+    disabled=""
+    id="saveSetting"
+    type="submit"
+  >
+    <span
+      class="LoadingSpinner with-text"
+      data-testid="loadingSpinner"
+      id="loadingSpinner"
+    >
+      <span
+        class="fa fa-spinner fa-fw fa-pulse spinner"
+        title="Loading Icon"
+      />
+      Saving Config...
+    </span>
+  </button>
+</div>
+`;

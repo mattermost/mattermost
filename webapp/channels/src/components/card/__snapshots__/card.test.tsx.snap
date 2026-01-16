@@ -1,0 +1,116 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`components/card/card should match snapshot 1`] = `
+<div>
+  <div
+    class="Card"
+  >
+    <div
+      class="Card__header"
+    >
+      Header Test
+    </div>
+    <div
+      class="Card__body expanding"
+    >
+      Body Test
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/card/card should match snapshot when expanded 1`] = `
+<div>
+  <div
+    class="Card expanded"
+  >
+    <div
+      class="Card__header expanded"
+    >
+      Header Test
+      <hr
+        class="Card__hr"
+      />
+    </div>
+    <div
+      class="Card__body expanded expanding"
+      style="height: 0px;"
+    >
+      Body Test
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/card/card should match snapshot when using header content and a button 1`] = `
+<div>
+  <div
+    class="Card console expanded"
+  >
+    <div
+      class="Card__header expanded"
+    >
+      <div>
+        <div
+          class="text-top"
+        >
+          Custom retention policies
+        </div>
+        <div
+          class="text-bottom"
+        >
+          Customize how long specific teams and channels will keep messages.
+        </div>
+      </div>
+      <button
+        class="btn btn-primary"
+      >
+        Add policy
+      </button>
+      <hr
+        class="Card__hr"
+      />
+    </div>
+    <div
+      class="Card__body expanded expanding"
+      style="height: 0px;"
+    >
+      Body Test
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/card/card should match snapshot when using header content and no button 1`] = `
+<div>
+  <div
+    class="Card console expanded"
+  >
+    <div
+      class="Card__header expanded"
+    >
+      <div>
+        <div
+          class="text-top"
+        >
+          Custom retention policies
+        </div>
+        <div
+          class="text-bottom"
+        >
+          Customize how long specific teams and channels will keep messages.
+        </div>
+      </div>
+      <hr
+        class="Card__hr"
+      />
+    </div>
+    <div
+      class="Card__body expanded expanding"
+      style="height: 0px;"
+    >
+      Body Test
+    </div>
+  </div>
+</div>
+`;

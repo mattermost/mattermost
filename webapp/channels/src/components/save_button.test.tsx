@@ -5,65 +5,48 @@ import React from 'react';
 
 import SaveButton from 'components/save_button';
 
-import {withIntl} from 'tests/helpers/intl-test-helper';
-import {render, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 describe('components/SaveButton', () => {
     const baseProps = {
         saving: false,
     };
 
-    test('should render with default message', () => {
-        render(withIntl(<SaveButton {...baseProps}/>));
+    test('should match snapshot, on defaultMessage', () => {
+        const {rerender, container} = renderWithContext(<SaveButton {...baseProps}/>);
 
-        const button = screen.getByRole('button');
-        expect(button).toBeInTheDocument();
-        expect(button).toHaveTextContent('Save');
-        expect(button).not.toBeDisabled();
-    });
+        expect(container).toMatchSnapshot();
+        expect(screen.getByRole('button')).not.toBeDisabled();
 
-    test('should render with custom defaultMessage', () => {
-        render(withIntl(
+        rerender(
             <SaveButton
                 {...baseProps}
                 defaultMessage='Go'
             />,
-        ));
-
-        const button = screen.getByRole('button');
-        expect(button).toHaveTextContent('Go');
-        expect(button).not.toBeDisabled();
+        );
+        expect(container).toMatchSnapshot();
     });
 
-    test('should render with saving state', () => {
+    test('should match snapshot, on savingMessage', () => {
         const props = {...baseProps, saving: true, disabled: true};
-        render(withIntl(<SaveButton {...props}/>));
+        const {rerender, container} = renderWithContext(<SaveButton {...props}/>);
 
-        const button = screen.getByRole('button');
-        expect(button).toBeInTheDocument();
-        expect(button).toBeDisabled();
-        expect(button).toHaveTextContent('Saving');
-    });
+        expect(container).toMatchSnapshot();
+        expect(screen.getByRole('button')).toBeDisabled();
 
-    test('should render with custom savingMessage', () => {
-        const props = {...baseProps, saving: true, disabled: true};
-        render(withIntl(
+        rerender(
             <SaveButton
                 {...props}
                 savingMessage='Saving Config...'
             />,
-        ));
-
-        const button = screen.getByRole('button');
-        expect(button).toBeDisabled();
-        expect(button).toHaveTextContent('Saving Config...');
+        );
+        expect(container).toMatchSnapshot();
     });
 
-    test('should apply extraClasses', () => {
+    test('should match snapshot, extraClasses', () => {
         const props = {...baseProps, extraClasses: 'some-class'};
-        render(withIntl(<SaveButton {...props}/>));
+        const {container} = renderWithContext(<SaveButton {...props}/>);
 
-        const button = screen.getByRole('button');
-        expect(button).toHaveClass('some-class');
+        expect(container).toMatchSnapshot();
     });
 });

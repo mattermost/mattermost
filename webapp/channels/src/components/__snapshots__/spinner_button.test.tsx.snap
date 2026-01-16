@@ -1,0 +1,40 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`components/SpinnerButton should match snapshot with children 1`] = `
+<div>
+  <button>
+    <span
+      id="child1"
+    />
+    <span
+      id="child2"
+    />
+  </button>
+</div>
+`;
+
+exports[`components/SpinnerButton should match snapshot with required props 1`] = `
+<div>
+  <button />
+</div>
+`;
+
+exports[`components/SpinnerButton should match snapshot with spinning 1`] = `
+<div>
+  <button
+    disabled=""
+  >
+    <span
+      class="LoadingSpinner with-text"
+      data-testid="loadingSpinner"
+      id="loadingSpinner"
+    >
+      <span
+        class="fa fa-spinner fa-fw fa-pulse spinner"
+        title="Loading Icon"
+      />
+      Test
+    </span>
+  </button>
+</div>
+`;
