@@ -9,6 +9,7 @@ option go_package = "github.com/mattermost/mattermost/server/public/pluginapi/gr
 
 import "hooks_lifecycle.proto";
 import "hooks_message.proto";
+import "hooks_user_channel.proto";
 
 // ==============================================================================
 // PLUGIN HOOKS SERVICE
@@ -35,7 +36,7 @@ import "hooks_message.proto";
 // This file imports and exposes RPCs for different hook categories:
 // - hooks_lifecycle.proto: Lifecycle and system hooks (this plan: 03-01)
 // - hooks_message.proto: Message hooks (planned: 03-02)
-// - hooks_user.proto: User and channel hooks (planned: 03-03)
+// - hooks_user_channel.proto: User and channel hooks (03-03)
 // - hooks_command.proto: Command and webhook hooks (planned: 03-04)
 //
 // ==============================================================================
@@ -225,4 +226,73 @@ service PluginHooks {
   //
   // Go signature: PreferencesHaveChanged(c *Context, preferences []model.Preference)
   rpc PreferencesHaveChanged(PreferencesHaveChangedRequest) returns (PreferencesHaveChangedResponse);
+
+  // ===========================================================================
+  // USER HOOKS
+  // ===========================================================================
+
+  // UserHasBeenCreated is invoked after a user was created.
+  // This is a notification hook - you cannot modify or reject the creation.
+  //
+  // Go signature: UserHasBeenCreated(c *Context, user *model.User)
+  rpc UserHasBeenCreated(UserHasBeenCreatedRequest) returns (UserHasBeenCreatedResponse);
+
+  // UserWillLogIn is invoked before the login of the user is returned.
+  // Return a non-empty string to reject the login.
+  // If you don't need to reject the login event, see UserHasLoggedIn.
+  //
+  // Go signature: UserWillLogIn(c *Context, user *model.User) string
+  rpc UserWillLogIn(UserWillLogInRequest) returns (UserWillLogInResponse);
+
+  // UserHasLoggedIn is invoked after a user has logged in.
+  // This is a notification hook - you cannot modify or reject the login.
+  //
+  // Go signature: UserHasLoggedIn(c *Context, user *model.User)
+  rpc UserHasLoggedIn(UserHasLoggedInRequest) returns (UserHasLoggedInResponse);
+
+  // UserHasBeenDeactivated is invoked when a user is deactivated.
+  // This is a notification hook.
+  //
+  // Go signature: UserHasBeenDeactivated(c *Context, user *model.User)
+  rpc UserHasBeenDeactivated(UserHasBeenDeactivatedRequest) returns (UserHasBeenDeactivatedResponse);
+
+  // OnSAMLLogin is invoked after a successful SAML login.
+  // Return an error to reject the login.
+  //
+  // Go signature: OnSAMLLogin(c *Context, user *model.User, assertion *saml2.AssertionInfo) error
+  rpc OnSAMLLogin(OnSAMLLoginRequest) returns (OnSAMLLoginResponse);
+
+  // ===========================================================================
+  // CHANNEL AND TEAM HOOKS
+  // ===========================================================================
+
+  // ChannelHasBeenCreated is invoked after a channel has been created.
+  // This is a notification hook - you cannot modify or reject the creation.
+  //
+  // Go signature: ChannelHasBeenCreated(c *Context, channel *model.Channel)
+  rpc ChannelHasBeenCreated(ChannelHasBeenCreatedRequest) returns (ChannelHasBeenCreatedResponse);
+
+  // UserHasJoinedChannel is invoked after a user has joined a channel.
+  // This is a notification hook. The actor is optional (nil if self-join).
+  //
+  // Go signature: UserHasJoinedChannel(c *Context, channelMember *model.ChannelMember, actor *model.User)
+  rpc UserHasJoinedChannel(UserHasJoinedChannelRequest) returns (UserHasJoinedChannelResponse);
+
+  // UserHasLeftChannel is invoked after a user has left a channel.
+  // This is a notification hook. The actor is optional (nil if self-removal).
+  //
+  // Go signature: UserHasLeftChannel(c *Context, channelMember *model.ChannelMember, actor *model.User)
+  rpc UserHasLeftChannel(UserHasLeftChannelRequest) returns (UserHasLeftChannelResponse);
+
+  // UserHasJoinedTeam is invoked after a user has joined a team.
+  // This is a notification hook. The actor is optional (nil if self-join).
+  //
+  // Go signature: UserHasJoinedTeam(c *Context, teamMember *model.TeamMember, actor *model.User)
+  rpc UserHasJoinedTeam(UserHasJoinedTeamRequest) returns (UserHasJoinedTeamResponse);
+
+  // UserHasLeftTeam is invoked after a user has left a team.
+  // This is a notification hook. The actor is optional (nil if self-removal).
+  //
+  // Go signature: UserHasLeftTeam(c *Context, teamMember *model.TeamMember, actor *model.User)
+  rpc UserHasLeftTeam(UserHasLeftTeamRequest) returns (UserHasLeftTeamResponse);
 }
