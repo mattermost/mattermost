@@ -76,7 +76,9 @@ describe('components/Menu', () => {
         );
 
         const menu = screen.getByRole('menu');
-        expect(menu).toHaveStyle({maxHeight: '200px', backgroundColor: 'red'});
+
+        expect(menu.style.maxHeight).toBe('200px');
+        expect(menu.style.backgroundColor).toBe('red');
     });
 
     test('should apply custom className to menu list', () => {
