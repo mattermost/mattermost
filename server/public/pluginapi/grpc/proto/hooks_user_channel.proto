@@ -1,0 +1,284 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+syntax = "proto3";
+
+package mattermost.pluginapi.v1;
+
+option go_package = "github.com/mattermost/mattermost/server/public/pluginapi/grpc/generated/go/pluginapiv1";
+
+import "common.proto";
+import "hooks_common.proto";
+import "user.proto";
+import "channel.proto";
+import "team.proto";
+import "api_channel_post.proto";
+
+// ==============================================================================
+// USER AND CHANNEL HOOK MESSAGES
+// ==============================================================================
+//
+// This file defines request/response messages for user and channel lifecycle hooks.
+// These hooks are invoked by the server during user authentication events,
+// user deactivation, and channel/team membership changes.
+//
+// Covered hooks (from server/public/plugin/hooks.go):
+// - UserHasBeenCreated(c *Context, user *model.User)
+// - UserWillLogIn(c *Context, user *model.User) string
+// - UserHasLoggedIn(c *Context, user *model.User)
+// - UserHasBeenDeactivated(c *Context, user *model.User)
+// - OnSAMLLogin(c *Context, user *model.User, assertion *saml2.AssertionInfo) error
+// - ChannelHasBeenCreated(c *Context, channel *model.Channel)
+// - UserHasJoinedChannel(c *Context, channelMember *model.ChannelMember, actor *model.User)
+// - UserHasLeftChannel(c *Context, channelMember *model.ChannelMember, actor *model.User)
+// - UserHasJoinedTeam(c *Context, teamMember *model.TeamMember, actor *model.User)
+// - UserHasLeftTeam(c *Context, teamMember *model.TeamMember, actor *model.User)
+//
+// ==============================================================================
+
+// -----------------------------------------------------------------------------
+// Model Types
+// -----------------------------------------------------------------------------
+
+// SamlAssertionInfoJson wraps SAML assertion data as a JSON blob.
+// The saml2.AssertionInfo type is from an external library (github.com/russellhaering/gosaml2)
+// and contains complex nested structures. Using a JSON blob avoids creating a
+// proto dependency on this external library and provides flexibility for
+// changes in the SAML library without breaking the proto contract.
+//
+// The Go server serializes saml2.AssertionInfo via json.Marshal before sending,
+// and the Python plugin can deserialize as needed.
+message SamlAssertionInfoJson {
+  // JSON-encoded saml2.AssertionInfo
+  bytes assertion_json = 1;
+}
+
+// -----------------------------------------------------------------------------
+// UserHasBeenCreated Hook
+// Signature: UserHasBeenCreated(c *Context, user *model.User)
+// Invoked after a user was created. This is a notification hook.
+// -----------------------------------------------------------------------------
+
+message UserHasBeenCreatedRequest {
+  RequestContext context = 1;
+
+  // Plugin context with session/request metadata
+  PluginContext plugin_context = 2;
+
+  // The newly created user
+  User user = 3;
+}
+
+message UserHasBeenCreatedResponse {
+  // No error field because the Go signature has no return value.
+  // Hook failures are logged but do not affect server operation.
+}
+
+// -----------------------------------------------------------------------------
+// UserWillLogIn Hook
+// Signature: UserWillLogIn(c *Context, user *model.User) string
+// Invoked before the login. Return non-empty string to reject the login.
+// -----------------------------------------------------------------------------
+
+message UserWillLogInRequest {
+  RequestContext context = 1;
+
+  // Plugin context with session/request metadata
+  PluginContext plugin_context = 2;
+
+  // The user attempting to log in
+  User user = 3;
+}
+
+message UserWillLogInResponse {
+  // Non-empty rejection reason rejects the login.
+  // Empty string allows the login to proceed.
+  string rejection_reason = 1;
+}
+
+// -----------------------------------------------------------------------------
+// UserHasLoggedIn Hook
+// Signature: UserHasLoggedIn(c *Context, user *model.User)
+// Invoked after a user has logged in. This is a notification hook.
+// -----------------------------------------------------------------------------
+
+message UserHasLoggedInRequest {
+  RequestContext context = 1;
+
+  // Plugin context with session/request metadata
+  PluginContext plugin_context = 2;
+
+  // The user who logged in
+  User user = 3;
+}
+
+message UserHasLoggedInResponse {
+  // No error field because the Go signature has no return value.
+  // Hook failures are logged but do not affect server operation.
+}
+
+// -----------------------------------------------------------------------------
+// UserHasBeenDeactivated Hook
+// Signature: UserHasBeenDeactivated(c *Context, user *model.User)
+// Invoked when a user is deactivated. This is a notification hook.
+// -----------------------------------------------------------------------------
+
+message UserHasBeenDeactivatedRequest {
+  RequestContext context = 1;
+
+  // Plugin context with session/request metadata
+  PluginContext plugin_context = 2;
+
+  // The user who was deactivated
+  User user = 3;
+}
+
+message UserHasBeenDeactivatedResponse {
+  // No error field because the Go signature has no return value.
+  // Hook failures are logged but do not affect server operation.
+}
+
+// -----------------------------------------------------------------------------
+// OnSAMLLogin Hook
+// Signature: OnSAMLLogin(c *Context, user *model.User, assertion *saml2.AssertionInfo) error
+// Invoked after a successful SAML login. Can return an error to reject.
+// -----------------------------------------------------------------------------
+
+message OnSAMLLoginRequest {
+  RequestContext context = 1;
+
+  // Plugin context with session/request metadata
+  PluginContext plugin_context = 2;
+
+  // The user who logged in via SAML
+  User user = 3;
+
+  // The SAML assertion info as JSON (see SamlAssertionInfoJson for rationale)
+  SamlAssertionInfoJson assertion = 4;
+}
+
+message OnSAMLLoginResponse {
+  // Error returned by the plugin (null on success)
+  AppError error = 1;
+}
+
+// -----------------------------------------------------------------------------
+// ChannelHasBeenCreated Hook
+// Signature: ChannelHasBeenCreated(c *Context, channel *model.Channel)
+// Invoked after a channel has been created. This is a notification hook.
+// -----------------------------------------------------------------------------
+
+message ChannelHasBeenCreatedRequest {
+  RequestContext context = 1;
+
+  // Plugin context with session/request metadata
+  PluginContext plugin_context = 2;
+
+  // The newly created channel
+  Channel channel = 3;
+}
+
+message ChannelHasBeenCreatedResponse {
+  // No error field because the Go signature has no return value.
+  // Hook failures are logged but do not affect server operation.
+}
+
+// -----------------------------------------------------------------------------
+// UserHasJoinedChannel Hook
+// Signature: UserHasJoinedChannel(c *Context, channelMember *model.ChannelMember, actor *model.User)
+// Invoked after a user has joined a channel. This is a notification hook.
+// The actor is optional (nil if the user joined themselves).
+// -----------------------------------------------------------------------------
+
+message UserHasJoinedChannelRequest {
+  RequestContext context = 1;
+
+  // Plugin context with session/request metadata
+  PluginContext plugin_context = 2;
+
+  // The channel membership that was created
+  ChannelMember channel_member = 3;
+
+  // The user who added the member (optional, nil if self-join)
+  optional User actor = 4;
+}
+
+message UserHasJoinedChannelResponse {
+  // No error field because the Go signature has no return value.
+  // Hook failures are logged but do not affect server operation.
+}
+
+// -----------------------------------------------------------------------------
+// UserHasLeftChannel Hook
+// Signature: UserHasLeftChannel(c *Context, channelMember *model.ChannelMember, actor *model.User)
+// Invoked after a user has left a channel. This is a notification hook.
+// The actor is optional (nil if the user removed themselves).
+// -----------------------------------------------------------------------------
+
+message UserHasLeftChannelRequest {
+  RequestContext context = 1;
+
+  // Plugin context with session/request metadata
+  PluginContext plugin_context = 2;
+
+  // The channel membership that was removed
+  ChannelMember channel_member = 3;
+
+  // The user who removed the member (optional, nil if self-removal)
+  optional User actor = 4;
+}
+
+message UserHasLeftChannelResponse {
+  // No error field because the Go signature has no return value.
+  // Hook failures are logged but do not affect server operation.
+}
+
+// -----------------------------------------------------------------------------
+// UserHasJoinedTeam Hook
+// Signature: UserHasJoinedTeam(c *Context, teamMember *model.TeamMember, actor *model.User)
+// Invoked after a user has joined a team. This is a notification hook.
+// The actor is optional (nil if the user joined themselves).
+// -----------------------------------------------------------------------------
+
+message UserHasJoinedTeamRequest {
+  RequestContext context = 1;
+
+  // Plugin context with session/request metadata
+  PluginContext plugin_context = 2;
+
+  // The team membership that was created
+  TeamMember team_member = 3;
+
+  // The user who added the member (optional, nil if self-join)
+  optional User actor = 4;
+}
+
+message UserHasJoinedTeamResponse {
+  // No error field because the Go signature has no return value.
+  // Hook failures are logged but do not affect server operation.
+}
+
+// -----------------------------------------------------------------------------
+// UserHasLeftTeam Hook
+// Signature: UserHasLeftTeam(c *Context, teamMember *model.TeamMember, actor *model.User)
+// Invoked after a user has left a team. This is a notification hook.
+// The actor is optional (nil if the user removed themselves).
+// -----------------------------------------------------------------------------
+
+message UserHasLeftTeamRequest {
+  RequestContext context = 1;
+
+  // Plugin context with session/request metadata
+  PluginContext plugin_context = 2;
+
+  // The team membership that was removed
+  TeamMember team_member = 3;
+
+  // The user who removed the member (optional, nil if self-removal)
+  optional User actor = 4;
+}
+
+message UserHasLeftTeamResponse {
+  // No error field because the Go signature has no return value.
+  // Hook failures are logged but do not affect server operation.
+}
