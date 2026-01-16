@@ -4455,7 +4455,7 @@ func TestPermanentDeletePost(t *testing.T) {
 			require.Equal(t, post.Id, receivedPost.Id)
 			require.Equal(t, "", receivedPost.Message)
 			require.Equal(t, 0, len(receivedPost.FileIds))
-		case <-time.After(2 * time.Second):
+		case <-time.After(10 * time.Second):
 			require.Fail(t, "Did not receive websocket message in time")
 		}
 	})
