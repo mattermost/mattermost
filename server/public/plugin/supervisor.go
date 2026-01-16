@@ -122,6 +122,20 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver AppDriver, 
 		Logger:          hclogAdaptedLogger,
 		StartTimeout:    time.Second * 3,
 	}
+
+	// Check if this is a Python plugin and configure accordingly
+	isPython := isPythonPlugin(pluginInfo.Manifest)
+	if isPython {
+		// Python plugins use gRPC protocol instead of net/rpc
+		// go-plugin defaults to net/rpc only when AllowedProtocols is nil,
+		// so we must explicitly allow gRPC for Python plugins
+		clientConfig.AllowedProtocols = []plugin.Protocol{plugin.ProtocolGRPC}
+
+		// Increase start timeout for Python plugins to account for interpreter
+		// startup time and module imports
+		clientConfig.StartTimeout = time.Second * 10
+	}
+
 	for _, opt := range opts {
 		err := opt(&sup, clientConfig)
 		if err != nil {
@@ -134,6 +148,16 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver AppDriver, 
 	rpcClient, err := sup.client.Client()
 	if err != nil {
 		return nil, err
+	}
+
+	// For Python plugins in Phase 5, we skip hook dispensing.
+	// Hook dispatch will be implemented in Phase 7 (Python Hook System).
+	// This allows us to test process supervision + health checking independently.
+	if isPython {
+		// Leave sup.hooks as nil - no hooks available yet for Python plugins.
+		// The Environment will handle activation/deactivation without calling OnActivate/OnDeactivate.
+		wrappedLogger.Info("Python plugin started (hooks not yet available - Phase 5 supervision only)")
+		return &sup, nil
 	}
 
 	raw, err := rpcClient.Dispense("hooks")
