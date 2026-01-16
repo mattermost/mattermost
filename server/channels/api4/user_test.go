@@ -375,7 +375,11 @@ func TestUserLoginAudit(t *testing.T) {
 	require.NotEmpty(t, data)
 
 	// ensure we are auditing the user_id and session_id
-	require.Contains(t, string(data), fmt.Sprintf("\"event_name\":\"login\",\"status\":\"success\",\"actor\":{\"user_id\":\"%s\",\"session_id\":\"%s\"", user.Id, sess[0].Id))
+	entry := FindAuditEntry(string(data), "login", user.Id)
+	require.NotNil(t, entry, "should find a login audit entry for user %s", user.Id)
+	assert.Equal(t, "success", entry.Status)
+	assert.Equal(t, user.Id, entry.UserID)
+	assert.Equal(t, sess[0].Id, entry.SessionID)
 }
 
 func TestLogoutAuditAuthStatus(t *testing.T) {

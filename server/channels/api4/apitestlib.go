@@ -1404,7 +1404,7 @@ type AuditEntry struct {
 // FindAuditEntry searches audit log data for an entry matching the given event name
 // and optionally a user ID. Returns the first matching entry or nil if not found.
 func FindAuditEntry(data string, eventName string, userID string) *AuditEntry {
-	for _, line := range strings.Split(data, "\n") {
+	for line := range strings.SplitSeq(data, "\n") {
 		if line == "" {
 			continue
 		}
