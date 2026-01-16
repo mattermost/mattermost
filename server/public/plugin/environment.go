@@ -295,6 +295,15 @@ func (env *Environment) startPluginServer(pluginInfo *model.BundleInfo, opts ...
 	// and in case there is an error, the defer clause will set the proper state anyways.
 	env.setPluginState(pluginInfo.Manifest.Id, model.PluginStateRunning)
 
+	// For Python plugins in Phase 5, hooks are nil (hook dispatch lands in Phase 7).
+	// We still set the supervisor so health checks work, but skip OnActivate.
+	if sup.Hooks() == nil {
+		env.logger.Info("Python plugin activated without hooks (Phase 5 supervision mode)",
+			mlog.String("plugin_id", pluginInfo.Manifest.Id))
+		env.setPluginSupervisor(pluginInfo.Manifest.Id, sup)
+		return nil
+	}
+
 	if err := sup.Hooks().OnActivate(); err != nil {
 		sup.Shutdown()
 		return err
@@ -462,8 +471,11 @@ func (env *Environment) Deactivate(id string) bool {
 
 	rp := p.(registeredPlugin)
 	if rp.supervisor != nil {
-		if err := rp.supervisor.Hooks().OnDeactivate(); err != nil {
-			env.logger.Error("Plugin OnDeactivate() error", mlog.String("plugin_id", rp.BundleInfo.Manifest.Id), mlog.Err(err))
+		// Guard against nil hooks (Python plugins in Phase 5 don't have hooks yet)
+		if rp.supervisor.Hooks() != nil {
+			if err := rp.supervisor.Hooks().OnDeactivate(); err != nil {
+				env.logger.Error("Plugin OnDeactivate() error", mlog.String("plugin_id", rp.BundleInfo.Manifest.Id), mlog.Err(err))
+			}
 		}
 		rp.supervisor.Shutdown()
 	}
@@ -495,8 +507,11 @@ func (env *Environment) Shutdown() {
 		done := make(chan bool)
 		go func() {
 			defer close(done)
-			if err := rp.supervisor.Hooks().OnDeactivate(); err != nil {
-				env.logger.Error("Plugin OnDeactivate() error", mlog.String("plugin_id", rp.BundleInfo.Manifest.Id), mlog.Err(err))
+			// Guard against nil hooks (Python plugins in Phase 5 don't have hooks yet)
+			if rp.supervisor.Hooks() != nil {
+				if err := rp.supervisor.Hooks().OnDeactivate(); err != nil {
+					env.logger.Error("Plugin OnDeactivate() error", mlog.String("plugin_id", rp.BundleInfo.Manifest.Id), mlog.Err(err))
+				}
 			}
 		}()
 
