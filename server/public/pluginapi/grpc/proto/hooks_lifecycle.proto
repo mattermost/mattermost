@@ -1,0 +1,259 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+syntax = "proto3";
+
+package mattermost.pluginapi.v1;
+
+option go_package = "github.com/mattermost/mattermost/server/public/pluginapi/grpc/generated/go/pluginapiv1";
+
+import "google/protobuf/wrappers.proto";
+import "common.proto";
+import "hooks_common.proto";
+
+// ==============================================================================
+// LIFECYCLE AND SYSTEM HOOK MESSAGES
+// ==============================================================================
+//
+// This file defines request/response messages for lifecycle and system hooks.
+// These hooks are invoked by the server during plugin lifecycle events and
+// system-level operations.
+//
+// Covered hooks (from server/public/plugin/hooks.go):
+// - Implemented() ([]string, error)
+// - OnActivate() error
+// - OnDeactivate() error
+// - OnConfigurationChange() error
+// - OnInstall(c *Context, event model.OnInstallEvent) error
+// - OnSendDailyTelemetry()
+// - RunDataRetention(nowTime, batchSize int64) (int64, error)
+// - OnCloudLimitsUpdated(limits *model.ProductLimits)
+// - ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, error)
+//
+// ==============================================================================
+
+// -----------------------------------------------------------------------------
+// OnInstallEvent - Model type for OnInstall hook
+// Maps to model.OnInstallEvent in Go (server/public/model/plugin_on_install_event.go)
+// -----------------------------------------------------------------------------
+
+// OnInstallEvent is sent to the plugin when it gets installed.
+message OnInstallEvent {
+  // The user who installed the plugin
+  string user_id = 1;
+}
+
+// -----------------------------------------------------------------------------
+// ProductLimits - Model types for OnCloudLimitsUpdated hook
+// Maps to model.ProductLimits in Go (server/public/model/cloud.go)
+// Uses protobuf wrappers for nullable integers to distinguish "not set" from 0.
+// -----------------------------------------------------------------------------
+
+// FilesLimits contains limits related to file storage.
+message FilesLimits {
+  // Total storage limit in bytes. Null means unlimited.
+  google.protobuf.Int64Value total_storage = 1;
+}
+
+// MessagesLimits contains limits related to message history.
+message MessagesLimits {
+  // Number of days of message history to retain. Null means unlimited.
+  google.protobuf.Int32Value history = 1;
+}
+
+// TeamsLimits contains limits related to teams.
+message TeamsLimits {
+  // Maximum number of active teams. Null means unlimited.
+  google.protobuf.Int32Value active = 1;
+}
+
+// ProductLimits represents cloud product tier limits.
+// Maps to model.ProductLimits in Go.
+message ProductLimits {
+  // File storage limits (may be null if no limits apply)
+  FilesLimits files = 1;
+
+  // Message history limits (may be null if no limits apply)
+  MessagesLimits messages = 2;
+
+  // Team limits (may be null if no limits apply)
+  TeamsLimits teams = 3;
+}
+
+// -----------------------------------------------------------------------------
+// ConfigJson - Wrapper for model.Config (massive struct, uses JSON blob)
+// model.Config is too large and volatile to define as a protobuf message.
+// We use a JSON blob approach to avoid maintaining a 5k+ line proto schema.
+// -----------------------------------------------------------------------------
+
+// ConfigJson wraps a serialized model.Config as JSON bytes.
+// The Go server serializes model.Config via json.Marshal before sending,
+// and deserializes via json.Unmarshal when receiving.
+message ConfigJson {
+  // JSON-encoded model.Config
+  bytes config_json = 1;
+}
+
+// -----------------------------------------------------------------------------
+// Implemented Hook
+// Signature: Implemented() ([]string, error)
+// Returns the list of hooks implemented by the plugin.
+// -----------------------------------------------------------------------------
+
+message ImplementedRequest {
+  RequestContext context = 1;
+}
+
+message ImplementedResponse {
+  AppError error = 1;
+
+  // List of hook names implemented by the plugin
+  // Examples: "OnActivate", "MessageWillBePosted", "ServeHTTP"
+  repeated string hooks = 2;
+}
+
+// -----------------------------------------------------------------------------
+// OnActivate Hook
+// Signature: OnActivate() error
+// Invoked when the plugin is activated.
+// -----------------------------------------------------------------------------
+
+message OnActivateRequest {
+  RequestContext context = 1;
+}
+
+message OnActivateResponse {
+  AppError error = 1;
+}
+
+// -----------------------------------------------------------------------------
+// OnDeactivate Hook
+// Signature: OnDeactivate() error
+// Invoked when the plugin is deactivated.
+// -----------------------------------------------------------------------------
+
+message OnDeactivateRequest {
+  RequestContext context = 1;
+}
+
+message OnDeactivateResponse {
+  AppError error = 1;
+}
+
+// -----------------------------------------------------------------------------
+// OnConfigurationChange Hook
+// Signature: OnConfigurationChange() error
+// Invoked when configuration changes may have been made.
+// -----------------------------------------------------------------------------
+
+message OnConfigurationChangeRequest {
+  RequestContext context = 1;
+}
+
+message OnConfigurationChangeResponse {
+  AppError error = 1;
+}
+
+// -----------------------------------------------------------------------------
+// OnInstall Hook
+// Signature: OnInstall(c *Context, event model.OnInstallEvent) error
+// Invoked after the installation of a plugin as part of onboarding.
+// -----------------------------------------------------------------------------
+
+message OnInstallRequest {
+  RequestContext context = 1;
+
+  // Plugin context with session/request metadata
+  PluginContext plugin_context = 2;
+
+  // The install event containing the user who installed the plugin
+  OnInstallEvent event = 3;
+}
+
+message OnInstallResponse {
+  AppError error = 1;
+}
+
+// -----------------------------------------------------------------------------
+// OnSendDailyTelemetry Hook
+// Signature: OnSendDailyTelemetry()
+// Invoked when the server sends daily telemetry data.
+// Note: This hook has no parameters and returns nothing.
+// -----------------------------------------------------------------------------
+
+message OnSendDailyTelemetryRequest {
+  RequestContext context = 1;
+}
+
+message OnSendDailyTelemetryResponse {
+  // No error field because the Go signature has no return value.
+  // Hook failures are logged but do not affect server operation.
+}
+
+// -----------------------------------------------------------------------------
+// RunDataRetention Hook
+// Signature: RunDataRetention(nowTime, batchSize int64) (int64, error)
+// Invoked during a DataRetentionJob to allow plugins to clean up old data.
+// -----------------------------------------------------------------------------
+
+message RunDataRetentionRequest {
+  RequestContext context = 1;
+
+  // The current time as Unix timestamp in milliseconds.
+  // Plugins should delete data older than their retention policy relative to this time.
+  int64 now_time = 2;
+
+  // The maximum number of items to process in this batch.
+  // Plugins should respect this limit to avoid long-running operations.
+  int64 batch_size = 3;
+}
+
+message RunDataRetentionResponse {
+  AppError error = 1;
+
+  // The number of items deleted in this batch.
+  // Used for reporting and determining if another batch is needed.
+  int64 deleted_count = 2;
+}
+
+// -----------------------------------------------------------------------------
+// OnCloudLimitsUpdated Hook
+// Signature: OnCloudLimitsUpdated(limits *model.ProductLimits)
+// Invoked when cloud product limits change (e.g., plan tier changes).
+// Note: This hook returns nothing.
+// -----------------------------------------------------------------------------
+
+message OnCloudLimitsUpdatedRequest {
+  RequestContext context = 1;
+
+  // The updated product limits. May be null if limits are removed.
+  ProductLimits limits = 2;
+}
+
+message OnCloudLimitsUpdatedResponse {
+  // No error field because the Go signature has no return value.
+  // Hook failures are logged but do not affect server operation.
+}
+
+// -----------------------------------------------------------------------------
+// ConfigurationWillBeSaved Hook
+// Signature: ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, error)
+// Invoked before saving the configuration to the backing store.
+// Allows plugins to reject or modify configuration changes.
+// -----------------------------------------------------------------------------
+
+message ConfigurationWillBeSavedRequest {
+  RequestContext context = 1;
+
+  // The new configuration about to be saved, as JSON bytes.
+  ConfigJson new_config = 2;
+}
+
+message ConfigurationWillBeSavedResponse {
+  AppError error = 1;
+
+  // The modified configuration to save instead, as JSON bytes.
+  // If null/empty and error is null, the original new_config is saved.
+  // If set, this configuration is saved instead of new_config.
+  ConfigJson modified_config = 2;
+}

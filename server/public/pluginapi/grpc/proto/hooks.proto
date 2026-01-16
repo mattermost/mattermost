@@ -1,0 +1,113 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+syntax = "proto3";
+
+package mattermost.pluginapi.v1;
+
+option go_package = "github.com/mattermost/mattermost/server/public/pluginapi/grpc/generated/go/pluginapiv1";
+
+import "hooks_lifecycle.proto";
+
+// ==============================================================================
+// PLUGIN HOOKS SERVICE
+// ==============================================================================
+//
+// This service defines the gRPC interface for invoking plugin hooks.
+// The Go server implements this service's client to call into Python plugins.
+// Python plugins implement this service's server to receive hook invocations.
+//
+// Direction: Server -> Plugin (server calls plugin hooks)
+//
+// ERROR HANDLING CONVENTION:
+// --------------------------
+// For hooks whose Go signature returns `error`:
+//   - Errors are encoded in the response message's `error` field (AppError)
+//   - gRPC status codes are reserved for transport-level failures only
+//
+// For hooks whose Go signature returns nothing (void):
+//   - Response message has no `error` field
+//   - Hook failures are logged server-side but do not propagate
+//
+// HOOK GROUPS:
+// ------------
+// This file imports and exposes RPCs for different hook categories:
+// - hooks_lifecycle.proto: Lifecycle and system hooks (this plan: 03-01)
+// - hooks_message.proto: Message hooks (planned: 03-02)
+// - hooks_user.proto: User and channel hooks (planned: 03-03)
+// - hooks_command.proto: Command and webhook hooks (planned: 03-04)
+//
+// ==============================================================================
+
+// PluginHooks is the gRPC service for invoking plugin hooks.
+// The server acts as the gRPC client, calling into the plugin process.
+// The plugin acts as the gRPC server, implementing the hook handlers.
+service PluginHooks {
+  // ===========================================================================
+  // LIFECYCLE HOOKS
+  // ===========================================================================
+
+  // Implemented returns the list of hooks that the plugin implements.
+  // Called during plugin startup to optimize hook dispatch.
+  // Plugins that don't implement this are assumed to implement all hooks.
+  //
+  // Go signature: Implemented() ([]string, error)
+  rpc Implemented(ImplementedRequest) returns (ImplementedResponse);
+
+  // OnActivate is invoked when the plugin is activated.
+  // If an error is returned, the plugin will be terminated.
+  // The plugin will not receive hooks until after OnActivate returns without error.
+  // OnConfigurationChange will be called once before OnActivate.
+  //
+  // Go signature: OnActivate() error
+  rpc OnActivate(OnActivateRequest) returns (OnActivateResponse);
+
+  // OnDeactivate is invoked when the plugin is deactivated.
+  // This is the plugin's last chance to use the API.
+  // The plugin will be terminated shortly after this invocation.
+  //
+  // Go signature: OnDeactivate() error
+  rpc OnDeactivate(OnDeactivateRequest) returns (OnDeactivateResponse);
+
+  // OnConfigurationChange is invoked when configuration changes may have been made.
+  // Any returned error is logged but does not stop the plugin.
+  // It is called once before OnActivate.
+  //
+  // Go signature: OnConfigurationChange() error
+  rpc OnConfigurationChange(OnConfigurationChangeRequest) returns (OnConfigurationChangeResponse);
+
+  // ===========================================================================
+  // SYSTEM HOOKS
+  // ===========================================================================
+
+  // OnInstall is invoked after the installation of a plugin as part of onboarding.
+  // It's called on every installation, not only once.
+  //
+  // Go signature: OnInstall(c *Context, event model.OnInstallEvent) error
+  rpc OnInstall(OnInstallRequest) returns (OnInstallResponse);
+
+  // OnSendDailyTelemetry is invoked when the server sends daily telemetry data.
+  // Plugins can use this to send their own telemetry metrics.
+  //
+  // Go signature: OnSendDailyTelemetry()
+  rpc OnSendDailyTelemetry(OnSendDailyTelemetryRequest) returns (OnSendDailyTelemetryResponse);
+
+  // RunDataRetention is invoked during a DataRetentionJob.
+  // Plugins should delete data older than their retention policy.
+  //
+  // Go signature: RunDataRetention(nowTime, batchSize int64) (int64, error)
+  rpc RunDataRetention(RunDataRetentionRequest) returns (RunDataRetentionResponse);
+
+  // OnCloudLimitsUpdated is invoked when cloud product limits change.
+  // For example, when plan tiers change affecting storage or message limits.
+  //
+  // Go signature: OnCloudLimitsUpdated(limits *model.ProductLimits)
+  rpc OnCloudLimitsUpdated(OnCloudLimitsUpdatedRequest) returns (OnCloudLimitsUpdatedResponse);
+
+  // ConfigurationWillBeSaved is invoked before saving configuration to the backing store.
+  // An error can be returned to reject the operation.
+  // Additionally, a new config object can be returned to be stored in place of the provided one.
+  //
+  // Go signature: ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, error)
+  rpc ConfigurationWillBeSaved(ConfigurationWillBeSavedRequest) returns (ConfigurationWillBeSavedResponse);
+}
