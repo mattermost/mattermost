@@ -215,6 +215,9 @@ func (a *App) ExecuteCommand(rctx request.CTX, args *model.CommandArgs) (*model.
 	if !strings.HasPrefix(trigger, "/") {
 		return nil, model.NewAppError("command", "api.command.execute_command.format.app_error", map[string]any{"Trigger": trigger}, "", http.StatusBadRequest)
 	}
+
+	rctx = rctx.WithLogFields(mlog.String("trigger", trigger))
+
 	trigger = strings.TrimPrefix(trigger, "/")
 
 	clientTriggerId, triggerId, appErr := model.GenerateTriggerId(args.UserId, a.AsymmetricSigningKey())
