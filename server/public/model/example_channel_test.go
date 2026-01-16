@@ -102,8 +102,7 @@ func ExampleClient4_GetChannel() {
 	client.SetToken(os.Getenv("MM_AUTHTOKEN"))
 
 	channelId := "channel_id"
-	etag := ""
-	channel, _, err := client.GetChannel(context.Background(), channelId, etag)
+	channel, _, err := client.GetChannel(context.Background(), channelId)
 	if err != nil {
 		log.Fatal(err)
 	}
