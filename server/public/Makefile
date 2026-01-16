@@ -1,3 +1,38 @@
+# Proto directories (relative to server/)
+PROTO_SRC_DIR := public/pluginapi/grpc/proto
+PROTO_OUT_DIR := public/pluginapi/grpc/generated/go
+
+# Pin protobuf tools to versions matching go.mod dependencies
+PROTOC_GEN_GO_VERSION := v1.36.6
+PROTOC_GEN_GO_GRPC_VERSION := v1.5.1
+
+.PHONY: proto-tools proto-gen test-public mocks-public
+
+## Installs protoc-gen-go and protoc-gen-go-grpc at pinned versions
+proto-tools:
+	@echo Installing protobuf code generation tools...
+	$(GO) install google.golang.org/protobuf/cmd/protoc-gen-go@$(PROTOC_GEN_GO_VERSION)
+	$(GO) install google.golang.org/grpc/cmd/protoc-gen-go-grpc@$(PROTOC_GEN_GO_GRPC_VERSION)
+
+## Generates Go code from .proto files
+proto-gen: proto-tools
+	@command -v protoc >/dev/null 2>&1 || { echo "ERROR: protoc is not installed. Please install Protocol Buffers compiler: https://grpc.io/docs/protoc-installation/"; exit 1; }
+	@echo Generating Go code from proto files...
+	@mkdir -p $(PROTO_OUT_DIR)/pluginapiv1
+	protoc \
+		--plugin=protoc-gen-go=$(GOBIN)/protoc-gen-go \
+		--plugin=protoc-gen-go-grpc=$(GOBIN)/protoc-gen-go-grpc \
+		--proto_path=$(PROTO_SRC_DIR) \
+		--go_out=$(PROTO_OUT_DIR) \
+		--go_opt=paths=source_relative \
+		--go_opt=Mbootstrap.proto=github.com/mattermost/mattermost/server/public/pluginapi/grpc/generated/go/pluginapiv1 \
+		--go-grpc_out=$(PROTO_OUT_DIR) \
+		--go-grpc_opt=paths=source_relative \
+		--go-grpc_opt=Mbootstrap.proto=github.com/mattermost/mattermost/server/public/pluginapi/grpc/generated/go/pluginapiv1 \
+		$(PROTO_SRC_DIR)/*.proto
+	@mv $(PROTO_OUT_DIR)/*.pb.go $(PROTO_OUT_DIR)/pluginapiv1/ 2>/dev/null || true
+	@echo Proto generation complete.
+
 test-public: gotestsum
 	$(GOBIN)/gotestsum ./public/... -- $(GOFLAGS)
 
