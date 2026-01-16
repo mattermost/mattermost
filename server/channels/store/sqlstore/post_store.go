@@ -1429,7 +1429,7 @@ func (s *SqlPostStore) GetPostsSince(rctx request.CTX, options model.GetPostsSin
 	if options.AutotranslationEnabled {
 		params = []any{options.Time, options.Time, options.Language, options.ChannelId}
 		withCTEQuery = `WITH cte AS (SELECT
-			Posts.*
+			` + postColumnsPosts + `
 		FROM Posts
 		LEFT JOIN Translations ON Translations.ObjectId = Posts.Id
 		WHERE
