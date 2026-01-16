@@ -117,6 +117,26 @@
                 border-radius: 4px;
                 background-color: rgba(var(--center-channel-color-rgb), 0.08);
             }
+
+            #sortMenuWrapper {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 4px 6px 4px 8px;
+                border: none;
+                margin-right: 10px;
+                background-color: unset;
+
+                &[aria-expanded='true'] {
+                    border-radius: 4px;
+                    background-color: rgba(var(--button-bg-rgb), 0.12);
+                }
+            }
+
+            #sortMenuWrapper:hover {
+                border-radius: 4px;
+                background-color: rgba(var(--center-channel-color-rgb), 0.08);
+            }
         }
     }
 
