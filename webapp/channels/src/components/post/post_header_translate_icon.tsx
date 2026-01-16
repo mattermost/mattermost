@@ -10,7 +10,6 @@ import type {PostTranslation, PostType} from '@mattermost/types/posts';
 
 import {openModal} from 'actions/views/modals';
 
-import ShowTranslationModal from 'components/show_translation_modal';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import WithTooltip from 'components/with_tooltip';
 
@@ -29,7 +28,10 @@ function PostHeaderTranslateIcon({
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
 
-    const handleTranslationClick = useCallback(() => {
+    const handleTranslationClick = useCallback(async () => {
+        // Use dynamic import to avoid circular dependency
+        // This breaks the cycle because the import only happens at runtime, not at module load time
+        const {default: ShowTranslationModal} = await import('components/show_translation_modal');
         dispatch(openModal({
             modalId: ModalIdentifiers.SHOW_TRANSLATION,
             dialogType: ShowTranslationModal,

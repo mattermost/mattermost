@@ -39,7 +39,6 @@ import ForwardPostModal from 'components/forward_post_modal';
 import * as Menu from 'components/menu';
 import MoveThreadModal from 'components/move_thread_modal';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
-import ShowTranslationModal from 'components/show_translation_modal';
 
 import {createBurnOnReadDeleteModalHandlers} from 'hooks/useBurnOnReadDeleteModal';
 import {Locations, ModalIdentifiers, Constants} from 'utils/constants';
@@ -459,7 +458,10 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         this.props.handleDropdownOpened?.(open);
     };
 
-    handleShowTranslation = () => {
+    handleShowTranslation = async () => {
+        // Use dynamic import to avoid circular dependency
+        // This breaks the cycle because the import only happens at runtime, not at module load time
+        const {default: ShowTranslationModal} = await import('components/show_translation_modal');
         this.props.actions.openModal({
             modalId: ModalIdentifiers.SHOW_TRANSLATION,
             dialogType: ShowTranslationModal,
