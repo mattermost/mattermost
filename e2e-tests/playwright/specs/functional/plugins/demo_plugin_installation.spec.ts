@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AdminConfig} from '@mattermost/types/config';
-
 import {test, expect} from '@mattermost/playwright-lib';
 
 test('should install and enable demo plugin from URL', async ({pw}) => {
