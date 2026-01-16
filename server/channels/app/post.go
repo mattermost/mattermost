@@ -15,6 +15,9 @@ import (
 	"sync"
 	"time"
 
+	"maps"
+	"slices"
+
 	agentclient "github.com/mattermost/mattermost-plugin-ai/public/bridgeclient"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
@@ -1148,7 +1151,7 @@ func (a *App) GetPostsPage(rctx request.CTX, options model.GetPostsOptions) (*mo
 	}
 
 	var appErr *model.AppError
-	postList, appErr = a.RevealBurnOnReadPostsForUser(rctx, postList, options.UserId)
+	postList, appErr = a.revealBurnOnReadPostsForUser(rctx, postList, options.UserId)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1176,7 +1179,7 @@ func (a *App) GetPosts(rctx request.CTX, channelID string, offset int, limit int
 	}
 
 	var appErr *model.AppError
-	postList, appErr = a.RevealBurnOnReadPostsForUser(rctx, postList, rctx.Session().UserId)
+	postList, appErr = a.revealBurnOnReadPostsForUser(rctx, postList, rctx.Session().UserId)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1205,7 +1208,7 @@ func (a *App) GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions
 	}
 
 	var appErr *model.AppError
-	postList, appErr = a.RevealBurnOnReadPostsForUser(rctx, postList, options.UserId)
+	postList, appErr = a.revealBurnOnReadPostsForUser(rctx, postList, options.UserId)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1227,20 +1230,9 @@ func (a *App) GetSinglePost(rctx request.CTX, postID string, includeDeleted bool
 		}
 	}
 
-	if post.Type == model.PostTypeBurnOnRead {
-		tmpPostList := model.NewPostList()
-		tmpPostList.AddPost(post)
-
-		postList, appErr := a.RevealBurnOnReadPostsForUser(rctx, tmpPostList, rctx.Session().UserId)
-		if appErr != nil {
-			return nil, appErr
-		}
-
-		var ok bool
-		post, ok = postList.Posts[post.Id]
-		if !ok {
-			return nil, model.NewAppError("GetSinglePost", "app.post.get.app_error", nil, "", http.StatusNotFound)
-		}
+	post, appErr := a.revealSingleBurnOnReadPost(rctx, post, rctx.Session().UserId)
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	firstInaccessiblePostTime, appErr := a.isInaccessiblePost(post)
@@ -1272,7 +1264,7 @@ func (a *App) GetPostThread(rctx request.CTX, postID string, opts model.GetPosts
 	}
 
 	var appErr *model.AppError
-	posts, appErr = a.RevealBurnOnReadPostsForUser(rctx, posts, userID)
+	posts, appErr = a.revealBurnOnReadPostsForUser(rctx, posts, userID)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1294,13 +1286,20 @@ func (a *App) GetPostThread(rctx request.CTX, postID string, opts model.GetPosts
 	return posts, nil
 }
 
-func (a *App) GetFlaggedPosts(userID string, offset int, limit int) (*model.PostList, *model.AppError) {
+func (a *App) GetFlaggedPosts(rctx request.CTX, userID string, offset int, limit int) (*model.PostList, *model.AppError) {
 	postList, err := a.Srv().Store().Post().GetFlaggedPosts(userID, offset, limit)
 	if err != nil {
 		return nil, model.NewAppError("GetFlaggedPosts", "app.post.get_flagged_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if appErr := a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
+	// Process burn-on-read posts for the requesting user
+	var appErr *model.AppError
+	postList, appErr = a.revealBurnOnReadPostsForUser(rctx, postList, userID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	if appErr = a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
 
@@ -1309,13 +1308,20 @@ func (a *App) GetFlaggedPosts(userID string, offset int, limit int) (*model.Post
 	return postList, nil
 }
 
-func (a *App) GetFlaggedPostsForTeam(userID, teamID string, offset int, limit int) (*model.PostList, *model.AppError) {
+func (a *App) GetFlaggedPostsForTeam(rctx request.CTX, userID, teamID string, offset int, limit int) (*model.PostList, *model.AppError) {
 	postList, err := a.Srv().Store().Post().GetFlaggedPostsForTeam(userID, teamID, offset, limit)
 	if err != nil {
 		return nil, model.NewAppError("GetFlaggedPostsForTeam", "app.post.get_flagged_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if appErr := a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
+	// Process burn-on-read posts for the requesting user
+	var appErr *model.AppError
+	postList, appErr = a.revealBurnOnReadPostsForUser(rctx, postList, userID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	if appErr = a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
 
@@ -1324,13 +1330,20 @@ func (a *App) GetFlaggedPostsForTeam(userID, teamID string, offset int, limit in
 	return postList, nil
 }
 
-func (a *App) GetFlaggedPostsForChannel(userID, channelID string, offset int, limit int) (*model.PostList, *model.AppError) {
+func (a *App) GetFlaggedPostsForChannel(rctx request.CTX, userID, channelID string, offset int, limit int) (*model.PostList, *model.AppError) {
 	postList, err := a.Srv().Store().Post().GetFlaggedPostsForChannel(userID, channelID, offset, limit)
 	if err != nil {
 		return nil, model.NewAppError("GetFlaggedPostsForChannel", "app.post.get_flagged_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if appErr := a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
+	// Process burn-on-read posts for the requesting user
+	var appErr *model.AppError
+	postList, appErr = a.revealBurnOnReadPostsForUser(rctx, postList, userID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	if appErr = a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
 
@@ -1355,7 +1368,7 @@ func (a *App) GetPermalinkPost(rctx request.CTX, postID string, userID string) (
 	}
 
 	var appErr *model.AppError
-	list, appErr = a.RevealBurnOnReadPostsForUser(rctx, list, userID)
+	list, appErr = a.revealBurnOnReadPostsForUser(rctx, list, userID)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1396,7 +1409,7 @@ func (a *App) GetPostsBeforePost(rctx request.CTX, options model.GetPostsOptions
 	}
 
 	var appErr *model.AppError
-	postList, appErr = a.RevealBurnOnReadPostsForUser(rctx, postList, options.UserId)
+	postList, appErr = a.revealBurnOnReadPostsForUser(rctx, postList, options.UserId)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1432,7 +1445,7 @@ func (a *App) GetPostsAfterPost(rctx request.CTX, options model.GetPostsOptions)
 	}
 
 	var appErr *model.AppError
-	postList, appErr = a.RevealBurnOnReadPostsForUser(rctx, postList, options.UserId)
+	postList, appErr = a.revealBurnOnReadPostsForUser(rctx, postList, options.UserId)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1476,7 +1489,7 @@ func (a *App) GetPostsAroundPost(rctx request.CTX, before bool, options model.Ge
 	}
 
 	var appErr *model.AppError
-	postList, appErr = a.RevealBurnOnReadPostsForUser(rctx, postList, options.UserId)
+	postList, appErr = a.revealBurnOnReadPostsForUser(rctx, postList, options.UserId)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1805,6 +1818,10 @@ func (a *App) searchPostsInTeam(teamID string, userID string, paramsList []*mode
 		return nil, appErr
 	}
 
+	if appErr := a.filterBurnOnReadPosts(posts); appErr != nil {
+		return nil, appErr
+	}
+
 	return posts, nil
 }
 
@@ -1969,7 +1986,69 @@ func (a *App) SearchPostsForUser(rctx request.CTX, terms string, userID string, 
 		return nil, appErr
 	}
 
+	if appErr := a.FilterPostsByChannelPermissions(rctx, postSearchResults.PostList, userID); appErr != nil {
+		return nil, appErr
+	}
+
+	if appErr := a.filterBurnOnReadPosts(postSearchResults.PostList); appErr != nil {
+		return nil, appErr
+	}
+
 	return postSearchResults, nil
+}
+
+func (a *App) FilterPostsByChannelPermissions(rctx request.CTX, postList *model.PostList, userID string) *model.AppError {
+	if postList == nil || postList.Posts == nil || len(postList.Posts) == 0 {
+		return nil
+	}
+
+	channels := make(map[string]*model.Channel)
+	for _, post := range postList.Posts {
+		if post.ChannelId != "" {
+			channels[post.ChannelId] = nil
+		}
+	}
+
+	if len(channels) > 0 {
+		channelIDs := slices.Collect(maps.Keys(channels))
+		channelList, err := a.GetChannels(rctx, channelIDs)
+		if err != nil && err.StatusCode != http.StatusNotFound {
+			return err
+		}
+		for _, channel := range channelList {
+			channels[channel.Id] = channel
+		}
+	}
+
+	channelReadPermission := make(map[string]bool)
+	filteredPosts := make(map[string]*model.Post)
+	filteredOrder := []string{}
+
+	for _, postID := range postList.Order {
+		post, ok := postList.Posts[postID]
+		if !ok {
+			continue
+		}
+
+		if _, ok := channelReadPermission[post.ChannelId]; !ok {
+			channel := channels[post.ChannelId]
+			allowed := false
+			if channel != nil {
+				allowed = a.HasPermissionToReadChannel(rctx, userID, channel)
+			}
+			channelReadPermission[post.ChannelId] = allowed
+		}
+
+		if channelReadPermission[post.ChannelId] {
+			filteredPosts[postID] = post
+			filteredOrder = append(filteredOrder, postID)
+		}
+	}
+
+	postList.Posts = filteredPosts
+	postList.Order = filteredOrder
+
+	return nil
 }
 
 func (a *App) GetFileInfosForPostWithMigration(rctx request.CTX, postID string, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
@@ -2917,6 +2996,17 @@ func (a *App) PermanentDeletePost(rctx request.CTX, postID, deleteByID string) *
 		return model.NewAppError("DeletePost", "app.post.get.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
+	// If the post is a burn-on-read post, we should get the original post contents
+	if post.Type == model.PostTypeBurnOnRead {
+		tmpPost, appErr := a.getBurnOnReadPost(rctx, post)
+		if appErr != nil {
+			rctx.Logger().Warn("Failed to get burn-on-read post", mlog.Err(appErr))
+		}
+		if tmpPost != nil {
+			post = tmpPost
+		}
+	}
+
 	if len(post.FileIds) > 0 {
 		appErr := a.PermanentDeleteFilesByPost(rctx, post.Id)
 		if appErr != nil {
@@ -3403,45 +3493,6 @@ func (a *App) getBurnOnReadPost(rctx request.CTX, post *model.Post) (*model.Post
 	clone.Message = tmpPost.Message
 	clone.FileIds = tmpPost.FileIDs
 	return clone, nil
-}
-
-// RevealBurnOnReadPostsForUser processes burn-on-read posts in a post list for a specific user,
-// revealing posts that the user has access to and handling expired receipts.
-func (a *App) RevealBurnOnReadPostsForUser(rctx request.CTX, postList *model.PostList, userID string) (*model.PostList, *model.AppError) {
-	for _, post := range postList.BurnOnReadPosts {
-		// If user is the author, reveal the post with recipients
-		if post.UserId == userID {
-			if err := a.revealPostForAuthor(rctx, postList, post); err != nil {
-				return nil, err
-			}
-			continue
-		}
-
-		// Get user's read receipt for this post
-		receipt, err := a.getUserReadReceipt(rctx, post.Id, userID)
-		if err != nil {
-			return nil, err
-		}
-
-		// If no receipt exists, show unrevealed message
-		if receipt == nil {
-			a.setUnrevealedPost(postList, post.Id)
-			continue
-		}
-
-		// If receipt expired, remove post from list
-		if a.isReceiptExpired(receipt) {
-			a.removePostFromList(postList, post.Id)
-			continue
-		}
-
-		// Reveal post with expiration metadata
-		if err := a.revealPostForUser(rctx, postList, post, receipt); err != nil {
-			return nil, err
-		}
-	}
-
-	return postList, nil
 }
 
 // revealPostForAuthor reveals a burn-on-read post for its author, including recipient list.

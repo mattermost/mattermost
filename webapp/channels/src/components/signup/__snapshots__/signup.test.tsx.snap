@@ -151,7 +151,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               data-testid="signup-body-card-form-password-input"
               disabled={false}
               error=""
-              info="Must be 5-72 characters long."
+              info="Your password must be 5-72 characters long."
               inputSize="large"
               onChange={[Function]}
               value=""
@@ -170,7 +170,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
                 Sign up at 
                 <ForwardRef
                   href="https://mattermost.com/security-updates/"
-                  key=".1"
+                  key="1/.1"
                   location="signup"
                 >
                   https://mattermost.com/security-updates/
@@ -317,7 +317,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               data-testid="signup-body-card-form-password-input"
               disabled={false}
               error=""
-              info="Must be 5-72 characters long."
+              info="Your password must be 5-72 characters long."
               inputSize="large"
               onChange={[Function]}
               value=""
@@ -336,7 +336,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
                 Sign up at 
                 <ForwardRef
                   href="https://mattermost.com/security-updates/"
-                  key=".1"
+                  key="1/.1"
                   location="signup"
                 >
                   https://mattermost.com/security-updates/

@@ -91,7 +91,7 @@ class ChannelNavigator extends React.PureComponent<Props> {
                 <button
                     className={'SidebarChannelNavigator_jumpToButton'}
                     onClick={this.openQuickSwitcher}
-                    aria-label={this.props.intl.formatMessage({id: 'sidebar_left.channel_navigator.channelSwitcherLabel', defaultMessage: 'Channel Switcher'})}
+                    aria-label={this.props.intl.formatMessage({id: 'sidebar_left.channel_navigator.channelSwitcherLabel', defaultMessage: 'Find Channels'})}
                     aria-haspopup='dialog'
                     data-testid='SidebarChannelNavigatorButton'
                     id='SidebarChannelNavigatorButton'

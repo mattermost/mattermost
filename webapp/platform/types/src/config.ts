@@ -331,6 +331,7 @@ export type ServiceSettings = {
     GoroutineHealthThreshold: number;
     GoogleDeveloperKey: string;
     EnableOAuthServiceProvider: boolean;
+    EnableDynamicClientRegistration: boolean;
     EnableIncomingWebhooks: boolean;
     EnableOutgoingWebhooks: boolean;
     EnableOutgoingOAuthConnections: boolean;
@@ -418,6 +419,10 @@ export type ServiceSettings = {
     PersistentNotificationIntervalMinutes: number;
     PersistentNotificationMaxCount: number;
     PersistentNotificationMaxRecipients: number;
+    EnableBurnOnRead: boolean;
+    BurnOnReadDurationSeconds: number;
+    BurnOnReadMaximumTimeToLiveSeconds: number;
+    BurnOnReadSchedulerFrequencySeconds: number;
     UniqueEmojiReactionLimitPerPost: number;
     RefreshPostStatsRunTime: string;
     MaximumPayloadSizeBytes: number;
@@ -848,6 +853,7 @@ export type MetricsSettings = {
 };
 
 export type ExperimentalSettings = {
+    ClientSideCertEnable: boolean;
     LinkMetadataTimeoutMilliseconds: number;
     RestrictSystemAdmin: boolean;
     EnableSharedChannels: boolean;
