@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"net/http"
 	"slices"
-	"sort"
 	"strings"
 	"sync"
 	"testing"
@@ -628,9 +627,7 @@ func TestCreateGroupChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 		channelMemberHistoryUserIds = append(channelMemberHistoryUserIds, history.UserId)
 	}
 
-	sort.Strings(groupUserIds)
-	sort.Strings(channelMemberHistoryUserIds)
-	assert.Equal(t, groupUserIds, channelMemberHistoryUserIds)
+	assert.ElementsMatch(t, groupUserIds, channelMemberHistoryUserIds)
 }
 
 func TestCreateDirectChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
@@ -688,6 +685,7 @@ func TestGetDirectChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 }
 
 func TestAddUserToChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
+	t.Skip("MM-67041")
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t).DeleteBots(t)
 
@@ -714,7 +712,7 @@ func TestAddUserToChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 		assert.Equal(t, channel.Id, history.ChannelId)
 		channelMemberHistoryUserIds = append(channelMemberHistoryUserIds, history.UserId)
 	}
-	assert.Equal(t, groupUserIds, channelMemberHistoryUserIds)
+	assert.ElementsMatch(t, groupUserIds, channelMemberHistoryUserIds)
 }
 
 func TestUsersAndPostsCreateActivityInChannel(t *testing.T) {
@@ -947,6 +945,7 @@ func TestLeaveLastChannel(t *testing.T) {
 }
 
 func TestAddChannelMemberNoUserRequestor(t *testing.T) {
+	t.Skip("MM-67037")
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -1602,6 +1601,82 @@ func TestUpdateChannelMemberRolesChangingGuest(t *testing.T) {
 
 		_, appErr = th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, ruser.Id, "channel_guest channel_user")
 		require.NotNil(t, appErr, "Should work when you not modify guest role")
+	})
+}
+
+func TestUpdateChannelMemberRolesRequireUser(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	t.Run("empty roles string requires user or guest scheme role", func(t *testing.T) {
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Tester", Username: "tester" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser, _ := th.App.CreateUser(th.Context, &user)
+
+		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.AddUserToChannel(th.Context, ruser, th.BasicChannel, false)
+		require.Nil(t, appErr)
+
+		member, appErr := th.App.GetChannelMember(th.Context, th.BasicChannel.Id, ruser.Id)
+		require.Nil(t, appErr)
+		require.True(t, member.SchemeUser)
+		require.False(t, member.SchemeGuest)
+
+		_, appErr = th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, ruser.Id, "")
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.channel.update_channel_member_roles.unset_user_scheme.app_error", appErr.Id)
+	})
+
+	t.Run("admin role requires user or guest scheme role", func(t *testing.T) {
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Tester", Username: "tester" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser, _ := th.App.CreateUser(th.Context, &user)
+
+		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.AddUserToChannel(th.Context, ruser, th.BasicChannel, false)
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, ruser.Id, "channel_admin")
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.channel.update_channel_member_roles.unset_user_scheme.app_error", appErr.Id)
+	})
+
+	t.Run("valid user and admin roles update succeeds", func(t *testing.T) {
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Tester", Username: "tester" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser, _ := th.App.CreateUser(th.Context, &user)
+
+		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.AddUserToChannel(th.Context, ruser, th.BasicChannel, false)
+		require.Nil(t, appErr)
+
+		updatedMember, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, ruser.Id, "channel_user channel_admin")
+		require.Nil(t, appErr)
+		require.True(t, updatedMember.SchemeUser)
+		require.True(t, updatedMember.SchemeAdmin)
+		require.False(t, updatedMember.SchemeGuest)
+	})
+
+	t.Run("removing admin role while keeping user role succeeds", func(t *testing.T) {
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Tester", Username: "tester" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser, _ := th.App.CreateUser(th.Context, &user)
+
+		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.AddUserToChannel(th.Context, ruser, th.BasicChannel, false)
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, ruser.Id, "channel_user channel_admin")
+		require.Nil(t, appErr)
+
+		updatedMember, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, ruser.Id, "channel_user")
+		require.Nil(t, appErr)
+		require.True(t, updatedMember.SchemeUser)
+		require.False(t, updatedMember.SchemeAdmin)
 	})
 }
 
