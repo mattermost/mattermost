@@ -7093,7 +7093,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
+    "translation": "© 2015 - {{ .CurrentYear }} Mattermost, Inc. 2100 Geng Road, Suite 210, Palo Alto, CA, 94303"
   },
   {
     "id": "api.templates.cloud_welcome_email.invite_info",
@@ -11114,5 +11114,581 @@
   {
     "id": "app.agents.get_services.bridge_call_failed",
     "translation": "Połączenie mostkowe nie powiodło się."
+  },
+  {
+    "id": "api.command.move_command.creator_no_permission.app_error",
+    "translation": "Brak pozwolenia na przeniesienie polecenia"
+  },
+  {
+    "id": "api.file.get_file.invalid_flagged_post.app_error",
+    "translation": "Podano nieprawidłowy identyfikator oflagowanego posta."
+  },
+  {
+    "id": "api.file.get_file_info.app_error",
+    "translation": "Nie udało się uzyskać informacji o pliku."
+  },
+  {
+    "id": "api.oauth.allow_oauth.pkce_required_public.app_error",
+    "translation": "PKCE (Proof Key for Code Exchange) jest wymagany dla publicznych klientów OAuth korzystających z przepływu kodu autoryzacji."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.disabled.app_error",
+    "translation": "Dostawca usługi OAuth jest wyłączony."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.invalid_url.app_error",
+    "translation": "Nieprawidłowa konfiguracja URL dla metadanych serwera autoryzacji."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.site_url_required.app_error",
+    "translation": "Adres URL witryny musi być skonfigurowany tak, aby zapewniał metadane serwera autoryzacji."
+  },
+  {
+    "id": "api.oauth.get_access_token.resource_mismatch.app_error",
+    "translation": "Niezgodność parametrów zasobów między żądaniami autoryzacji i tokenów."
+  },
+  {
+    "id": "api.oauth.regenerate_secret.public_client.app_error",
+    "translation": "invalid_request: Nie można zregenerować sekretu dla publicznych klientów OAuth."
+  },
+  {
+    "id": "api.post.fill_in_post_props.invalid_ai_generated_user.app_error",
+    "translation": "Użytkownik wygenerowany przez AI musi być twórcą postu lub botem."
+  },
+  {
+    "id": "api.post.get_posts_for_reporting.channel_not_found",
+    "translation": "Nie znaleziono kanału"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.guest_magic_link_disabled.error",
+    "translation": "Magiczny link gościa nie jest włączony"
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.footer.info",
+    "translation": "Ten e-mail został wysłany do Ciebie, ponieważ ktoś poprosił o link do logowania do Mattermost. Jeśli o to nie prosiłeś, możesz bezpiecznie zignorować tę wiadomość."
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.footer.title",
+    "translation": "Nie prosiłeś o tę wiadomość e-mail?"
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.subtitle",
+    "translation": "Kliknij poniższy przycisk, aby zalogować się na swoje konto. Pamiętaj, aby nie udostępniać tego linku nikomu innemu."
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.title",
+    "translation": "Zaloguj się do Mattermost"
+  },
+  {
+    "id": "api.templates.guest_magic_link_subject",
+    "translation": "Zaloguj się do {{ .SiteName }}"
+  },
+  {
+    "id": "api.user.guest_magic_link.expired_token.app_error",
+    "translation": "Link do zaproszenia wygasł."
+  },
+  {
+    "id": "api.user.guest_magic_link.invalid_token.app_error",
+    "translation": "Nieprawidłowy link zaproszenia."
+  },
+  {
+    "id": "api.user.guest_magic_link.invalid_token_type.app_error",
+    "translation": "Nieprawidłowy typ linku zaproszenia."
+  },
+  {
+    "id": "api.user.guest_magic_link.missing_token.app_error",
+    "translation": "Brakujący token zaproszenia."
+  },
+  {
+    "id": "api.user.guest_magic_link.username_generation_failed.app_error",
+    "translation": "Nie można wygenerować unikalnej nazwy użytkownika. Skontaktuj się z administratorem systemu."
+  },
+  {
+    "id": "api.user.login.guest_magic_link.disabled.error",
+    "translation": "Logowanie za pomocą magicznego linku jest wyłączone."
+  },
+  {
+    "id": "api.user.promote_guest_to_user.magic_link_enabled.app_error",
+    "translation": "Nie można przekonwertować gościa na zwykłego użytkownika, ponieważ gość używa uwierzytelniania magic link."
+  },
+  {
+    "id": "api.user.send_password_reset.guest_magic_link.app_error",
+    "translation": "Nie można zresetować hasła dla kont gości magic link."
+  },
+  {
+    "id": "app.custom_profile_attributes.patch_field.app_error",
+    "translation": "Nie można załatać pola Atrybut profilu niestandardowego"
+  },
+  {
+    "id": "app.pap.update_access_control_policies_active.app_error",
+    "translation": "Nie można zaktualizować aktywnego statusu polityk kontroli dostępu."
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.app_error",
+    "translation": "Nie można pobrać postów do raportowania."
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.invalid_input_error",
+    "translation": "Nie można pobrać postów do raportowania. Nieprawidłowe dane wejściowe."
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.license_error",
+    "translation": "Twoja licencja nie wspiera raportowania postów."
+  },
+  {
+    "id": "app.post.rewrite.agent_call_failed",
+    "translation": "Nie udało się nawiązać połączenia z agentem AI."
+  },
+  {
+    "id": "app.post.rewrite.empty_response",
+    "translation": "Pusta odpowiedź od AI."
+  },
+  {
+    "id": "app.post.rewrite.invalid_action",
+    "translation": "Nieprawidłowa akcja przepisania."
+  },
+  {
+    "id": "app.post.rewrite.parse_response_failed",
+    "translation": "Nie udało się przeanalizować odpowiedzi rewrite od AI."
+  },
+  {
+    "id": "ent.push_proxy.delete.app_error",
+    "translation": "Nie udało się usunąć tokenu autoryzacji push proxy."
+  },
+  {
+    "id": "ent.push_proxy.generate.bad_status.app_error",
+    "translation": "Nie udało się uzyskać tokenu autoryzacji z serwera proxy push."
+  },
+  {
+    "id": "ent.push_proxy.generate.create_request.app_error",
+    "translation": "Nie udało się utworzyć żądania HTTP dla uwierzytelniania push proxy."
+  },
+  {
+    "id": "ent.push_proxy.generate.empty_token.app_error",
+    "translation": "Serwer proxy push zwrócił pusty token uwierzytelniania."
+  },
+  {
+    "id": "ent.push_proxy.generate.encrypt.app_error",
+    "translation": "Nie udało się zaszyfrować ładunku dla uwierzytelniania push proxy."
+  },
+  {
+    "id": "ent.push_proxy.generate.http_request.app_error",
+    "translation": "Nie udało się wysłać żądania HTTP do serwera proxy push."
+  },
+  {
+    "id": "ent.push_proxy.generate.marshal.app_error",
+    "translation": "Nie udało się pobrać ładunku dla uwierzytelniania push proxy."
+  },
+  {
+    "id": "ent.push_proxy.generate.marshal_request.app_error",
+    "translation": "Nie udało się zebrać treści żądania dla uwierzytelniania push proxy."
+  },
+  {
+    "id": "ent.push_proxy.generate.no_key.app_error",
+    "translation": "Brak dostępnego klucza szyfrowania dla uwierzytelniania push proxy."
+  },
+  {
+    "id": "ent.push_proxy.generate.parse_response.app_error",
+    "translation": "Nie udało się przeanalizować odpowiedzi z punktu końcowego autoryzacji push proxy."
+  },
+  {
+    "id": "ent.push_proxy.generate.save_system.app_error",
+    "translation": "Nie udało się zapisać tokenu autoryzacji."
+  },
+  {
+    "id": "ent.push_proxy.worker.interface_nil.app_error",
+    "translation": "Interfejs proxy push jest zerowy."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge.app_error",
+    "translation": "Podczas korzystania z PKCE wymagane jest sprawdzenie kodu."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge.format.app_error",
+    "translation": "Kod wyzwania musi być zakodowany base64url (przy użyciu znaków A-Z, a-z, 0-9, -, _)."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge.length.app_error",
+    "translation": "Kod wyzwania musi mieć długość od 43 do 128 znaków."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge_method.app_error",
+    "translation": "Metoda kwestionowania kodu jest wymagana w przypadku korzystania z PKCE."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge_method.unsupported.app_error",
+    "translation": "Wsparciem objęta jest tylko metoda weryfikacji kodu \"S256\"."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.has_fragment.app_error",
+    "translation": "Parametr zasobu nie może zawierać składnika fragmentu."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.invalid_uri.app_error",
+    "translation": "Parametr zasobu musi być prawidłowym identyfikatorem URI."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.length.app_error",
+    "translation": "Parametr zasobu nie może przekraczać 512 znaków."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.not_absolute.app_error",
+    "translation": "Parametr zasobu musi być bezwzględnym identyfikatorem URI."
+  },
+  {
+    "id": "model.authorize.validate_pkce.not_used_in_auth.app_error",
+    "translation": "Podano weryfikator kodu PKCE, ale nie został on użyty podczas autoryzacji."
+  },
+  {
+    "id": "model.authorize.validate_pkce.public_client_required.app_error",
+    "translation": "PKCE (Proof Key for Code Exchange) jest wymagany dla klientów publicznych."
+  },
+  {
+    "id": "model.authorize.validate_pkce.verification_failed.app_error",
+    "translation": "Weryfikator kodu PKCE nie jest zgodny z wyzwaniem kodu."
+  },
+  {
+    "id": "model.authorize.validate_pkce.verifier_required.app_error",
+    "translation": "Weryfikator kodu PKCE jest wymagany w przypadku korzystania z PKCE."
+  },
+  {
+    "id": "model.dcr.is_valid.client_name.app_error",
+    "translation": "Nazwa klienta nie może zawierać więcej niż 64 znaki."
+  },
+  {
+    "id": "model.dcr.is_valid.client_uri_format.app_error",
+    "translation": "Nieprawidłowy format URI klienta."
+  },
+  {
+    "id": "model.dcr.is_valid.client_uri_length.app_error",
+    "translation": "Identyfikator URI klienta musi mieć mniej niż 256 znaków."
+  },
+  {
+    "id": "model.dcr.is_valid.redirect_uri_format.app_error",
+    "translation": "Nieprawidłowy format URI przekierowania."
+  },
+  {
+    "id": "model.dcr.is_valid.redirect_uris.app_error",
+    "translation": "Wymagany jest co najmniej jeden URI przekierowania."
+  },
+  {
+    "id": "model.dcr.is_valid.unsupported_auth_method.app_error",
+    "translation": "Podano nieobsługiwaną metodę token_endpoint_auth_method."
+  },
+  {
+    "id": "model.oauth.validate_grant.credentials.app_error",
+    "translation": "Nieprawidłowe dane uwierzytelniające klienta."
+  },
+  {
+    "id": "model.oauth.validate_grant.pkce_required.app_error",
+    "translation": "PKCE (Proof Key for Code Exchange) jest wymagany dla klientów publicznych."
+  },
+  {
+    "id": "model.oauth.validate_grant.public_client_refresh_token.app_error",
+    "translation": "Klienci publiczni nie mogą korzystać z tokenów odświeżania typu grant."
+  },
+  {
+    "id": "model.oauth.validate_grant.public_client_secret.app_error",
+    "translation": "Klienci publiczni nie mogą udostępniać tajemnicy klienta."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_base64",
+    "translation": "Nieprawidłowy format kursora: nie można zdekodować base64."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_exclude_system_posts",
+    "translation": "Nieprawidłowy format kursora: exclude_system_posts musi być wartością logiczną."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_format",
+    "translation": "Nieprawidłowy format kursora: oczekiwano 8 części."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_include_deleted",
+    "translation": "Nieprawidłowy format kursora: include_deleted musi być wartością logiczną."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_timestamp",
+    "translation": "Nieprawidłowy format kursora: znacznik czasu musi być liczbą całkowitą."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_version",
+    "translation": "Nieprawidłowy format kursora: Wersja musi być liczbą całkowitą."
+  },
+  {
+    "id": "model.post.decode_cursor.unsupported_version",
+    "translation": "Nieobsługiwana wersja kursora."
+  },
+  {
+    "id": "model.post.query_params.invalid_channel_id",
+    "translation": "Nieprawidłowy identyfikator kanału."
+  },
+  {
+    "id": "model.post.query_params.invalid_cursor_id",
+    "translation": "Nieprawidłowy identyfikator kursora."
+  },
+  {
+    "id": "model.post.query_params.invalid_sort_direction",
+    "translation": "Nieprawidłowy kierunek sortowania."
+  },
+  {
+    "id": "model.post.query_params.invalid_time_field",
+    "translation": "Nieprawidłowe pole czasu."
+  },
+  {
+    "id": "store.sql_autotranslation.channel_not_found",
+    "translation": "Kanał nie został znaleziony."
+  },
+  {
+    "id": "store.sql_autotranslation.get.app_error",
+    "translation": "Nie można uzyskać tłumaczenia."
+  },
+  {
+    "id": "store.sql_autotranslation.get_active_languages.app_error",
+    "translation": "Nie można uzyskać aktywnych języków."
+  },
+  {
+    "id": "store.sql_autotranslation.get_channel_enabled.app_error",
+    "translation": "Nie można uzyskać statusu włączenia autotranslacji Kanału."
+  },
+  {
+    "id": "store.sql_autotranslation.get_user_enabled.app_error",
+    "translation": "Nie można uzyskać statusu włączonej autotranslacji użytkownika."
+  },
+  {
+    "id": "store.sql_autotranslation.get_user_language.app_error",
+    "translation": "Nie można uzyskać języka użytkownika."
+  },
+  {
+    "id": "store.sql_autotranslation.is_channel_enabled.app_error",
+    "translation": "Nie można uzyskać statusu włączenia autotranslacji Kanału."
+  },
+  {
+    "id": "store.sql_autotranslation.member_not_found",
+    "translation": "Nie znaleziono członka."
+  },
+  {
+    "id": "store.sql_autotranslation.meta_json.app_error",
+    "translation": "Nie udało się przeanalizować metadanych tłumaczenia JSON."
+  },
+  {
+    "id": "store.sql_autotranslation.query_build_error",
+    "translation": "Nie udało się utworzyć zapytania."
+  },
+  {
+    "id": "store.sql_autotranslation.save.app_error",
+    "translation": "Nie można zapisać tłumaczenia."
+  },
+  {
+    "id": "store.sql_autotranslation.save.invalid_translation",
+    "translation": "Walidacja tłumaczenia nie powiodła się. Obiekt tłumaczenia jest nieprawidłowy."
+  },
+  {
+    "id": "store.sql_autotranslation.save.meta_json.app_error",
+    "translation": "Nie udało się serializować metadanych tłumaczenia do JSON."
+  },
+  {
+    "id": "store.sql_autotranslation.set_channel_enabled.app_error",
+    "translation": "Nie można ustawić statusu włączenia autotranslacji Kanału."
+  },
+  {
+    "id": "store.sql_autotranslation.set_user_enabled.app_error",
+    "translation": "Nie można ustawić statusu włączonej autotranslacji użytkownika."
+  },
+  {
+    "id": "api.post.burn_post.user_not_in_channel.app_error",
+    "translation": "Nie masz uprawnień do zniszczenia tego posta. Musisz być członkiem Kanału."
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.app_error",
+    "translation": "Wystąpił błąd podczas tworzenia postu burn-on-read."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.config.app_error",
+    "translation": "Funkcja niszczenia postów po przeczytaniu nie jest włączona. Włącz flagę funkcji i ustawienia usługi."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.license.app_error",
+    "translation": "Posty niszczone po przeczytaniu wymagają licencji Enterprise Advanced."
+  },
+  {
+    "id": "api.post.get_link_metadata_for_permalink.burn_on_read.app_error",
+    "translation": "Nie można pobrać odnośnika metadanych dla permalink zniszczonego posta."
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_burn_on_read_post.error",
+    "translation": "Posty do zniszczenia nie mogą być aktualizowane."
+  },
+  {
+    "id": "api.post.reveal_post.cannot_reveal_own_post.app_error",
+    "translation": "Nie możesz ujawnić własnego postu do zniszczenia."
+  },
+  {
+    "id": "api.post.reveal_post.disabled.app_error",
+    "translation": "Funkcja Burn-on-read nie jest włączona lub wymaga licencji Enterprise Advanced."
+  },
+  {
+    "id": "api.post.reveal_post.user_not_in_channel.app_error",
+    "translation": "Nie masz pozwolenia na ujawnienie tego postu. Musisz być członkiem Kanału."
+  },
+  {
+    "id": "api.post.update_post.burn_on_read.app_error",
+    "translation": "Posty do zniszczenia po odczytaniu nie mogą być edytowane."
+  },
+  {
+    "id": "api.reaction.save.burn_on_read.app_error",
+    "translation": "Nie możesz zareagować na post typu \"burn-on-read\"."
+  },
+  {
+    "id": "api.user.login_by_intune.account_locked.app_error",
+    "translation": "Twoje konto zostało dezaktywowane. Skontaktuj się z administratorem systemu."
+  },
+  {
+    "id": "api.user.login_by_intune.bot_login_forbidden.app_error",
+    "translation": "Konta botów nie mogą zalogować się przy użyciu uwierzytelniania Microsoft."
+  },
+  {
+    "id": "api.user.login_by_intune.not_available.app_error",
+    "translation": "Uwierzytelnianie Microsoft Intune nie jest dostępne."
+  },
+  {
+    "id": "api.user.login_by_intune.not_configured.app_error",
+    "translation": "Uwierzytelnianie Microsoft Intune nie jest skonfigurowane."
+  },
+  {
+    "id": "api.user.oauth_to_email.magic_link.app_error",
+    "translation": "Magic Link to jedyna metoda logowania dostępna dla tego konta."
+  },
+  {
+    "id": "api.user.update_password.magic_link.app_error",
+    "translation": "Nie można zaktualizować hasła dla kont Magic Link."
+  },
+  {
+    "id": "app.burn_post.not_burn_on_read.app_error",
+    "translation": "Ten wpis nie jest wpisem niszczonym po przeczytaniu i nie może zostać zniszczony."
+  },
+  {
+    "id": "app.burn_post.not_revealed.app_error",
+    "translation": "Ten post burn-on-read nie został jeszcze ujawniony. Musisz go ujawnić przed zniszczeniem."
+  },
+  {
+    "id": "app.burn_post.read_receipt.get.error",
+    "translation": "Wystąpił błąd podczas pobierania potwierdzenia odczytu."
+  },
+  {
+    "id": "app.burn_post.read_receipt.update.error",
+    "translation": "Wystąpił błąd podczas aktualizacji potwierdzenia odczytu."
+  },
+  {
+    "id": "app.post.get_post.app_error",
+    "translation": "Wystąpił błąd podczas pobierania treści postu do zniszczenia."
+  },
+  {
+    "id": "app.reveal_post.cannot_reveal_own_post.app_error",
+    "translation": "Nie możesz ujawnić własnego postu do zniszczenia."
+  },
+  {
+    "id": "app.reveal_post.missing_expire_at.app_error",
+    "translation": "W poście \"burn-on-read\" brakuje wymaganego czasu wygaśnięcia."
+  },
+  {
+    "id": "app.reveal_post.not_burn_on_read.app_error",
+    "translation": "Ten post nie jest postem typu burn-on-read i nie może zostać ujawniony."
+  },
+  {
+    "id": "app.reveal_post.post_expired.app_error",
+    "translation": "Ten post do zniszczenia wygasł i nie może być już wyświetlany."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.get.error",
+    "translation": "Wystąpił błąd podczas pobierania potwierdzenia odczytu."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.get_unread_count.error",
+    "translation": "Nie można uzyskać liczby nieprzeczytanych potwierdzeń odczytu."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.save.error",
+    "translation": "Wystąpił błąd podczas zapisywania potwierdzenia odczytu."
+  },
+  {
+    "id": "app.reveal_post.read_receipt_expired.error",
+    "translation": "Twój dostęp do tego posta wygasł."
+  },
+  {
+    "id": "ent.intune.login.account_not_found.app_error",
+    "translation": "Twoje konto nie jest jeszcze w pełni ustawione. Zaloguj się najpierw do Mattermost przez aplikację internetową lub komputerową."
+  },
+  {
+    "id": "ent.intune.login.extract_auth_data.app_error",
+    "translation": "Uwierzytelnianie nie powiodło się. Spróbuj ponownie lub skontaktuj się z administratorem systemu."
+  },
+  {
+    "id": "ent.intune.login.not_configured.app_error",
+    "translation": "Uwierzytelnianie Microsoft Intune nie jest skonfigurowane."
+  },
+  {
+    "id": "ent.intune.validate_token.invalid_tenant_id.app_error",
+    "translation": "Uwierzytelnianie nie powiodło się. Nieprawidłowa konfiguracja."
+  },
+  {
+    "id": "ent.intune.validate_token.invalid_token.app_error",
+    "translation": "Uwierzytelnianie nie powiodło się. Spróbuj ponownie."
+  },
+  {
+    "id": "ent.intune.validate_token.jwks_init.app_error",
+    "translation": "Inicjalizacja usługi uwierzytelniania nie powiodła się. Skontaktuj się z administratorem systemu."
+  },
+  {
+    "id": "ent.intune.validate_token.missing_claims.app_error",
+    "translation": "Uwierzytelnianie nie powiodło się. Brakuje wymaganych informacji o użytkowniku."
+  },
+  {
+    "id": "ent.intune.validate_token.token_expired.app_error",
+    "translation": "Sesja uwierzytelniania wygasła. Spróbuj zalogować się ponownie."
+  },
+  {
+    "id": "model.config.is_valid.intune_auth_service.app_error",
+    "translation": "Usługa uwierzytelniania Intune MAM jest wymagana, gdy usługa Intune jest włączona."
+  },
+  {
+    "id": "model.config.is_valid.intune_auth_service_invalid.app_error",
+    "translation": "Usługa uwierzytelniania Intune MAM musi mieć wartość \"office365\" lub \"saml\"."
+  },
+  {
+    "id": "model.config.is_valid.intune_client_id.app_error",
+    "translation": "Identyfikator klienta usługi Intune MAM jest wymagany, gdy usługa Intune jest włączona."
+  },
+  {
+    "id": "model.config.is_valid.intune_client_id_format.app_error",
+    "translation": "Identyfikator klienta usługi Intune MAM musi być prawidłowym identyfikatorem UUID."
+  },
+  {
+    "id": "model.config.is_valid.intune_requires_office365.app_error",
+    "translation": "Intune MAM wymaga, aby usługa OpenID Connect (Office 365) była włączona, gdy usługa uwierzytelniania jest ustawiona na \"office365\"."
+  },
+  {
+    "id": "model.config.is_valid.intune_requires_saml.app_error",
+    "translation": "Intune MAM wymaga włączenia SAML, gdy Auth Service jest ustawiony na \"saml\"."
+  },
+  {
+    "id": "model.config.is_valid.intune_tenant_id.app_error",
+    "translation": "Identyfikator dzierżawcy usługi Intune MAM jest wymagany, gdy usługa Intune jest włączona."
+  },
+  {
+    "id": "model.config.is_valid.intune_tenant_id_format.app_error",
+    "translation": "Identyfikator dzierżawcy usługi Intune MAM musi być prawidłowym identyfikatorem UUID."
+  },
+  {
+    "id": "api.content_flagging.error.invalid_post_type",
+    "translation": "Oznaczanie postów typu '{{.PostType}}' jest niedozwolone."
+  },
+  {
+    "id": "model.config.is_valid.guest_accounts.cannot_enforce_multifactor_authentication_when_guest_magic_link_is_enabled.app_error",
+    "translation": "Nie możesz wymusić uwierzytelniania wieloskładnikowego dla kont gości, gdy włączone jest uwierzytelnianie magic link."
+  },
+  {
+    "id": "app.update_scheduled_post.convert_to_post.error",
+    "translation": "Nie można przekonwertować zaplanowanego postu na format postu."
   }
 ]

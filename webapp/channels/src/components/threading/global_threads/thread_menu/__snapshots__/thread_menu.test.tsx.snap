@@ -14,6 +14,17 @@ exports[`components/threading/common/thread_menu should match snapshot 1`] = `
     openLeft={true}
   >
     <MenuItemAction
+      buttonClass="PopoutMenuItem"
+      icon={
+        <i
+          className="icon icon-dock-window"
+        />
+      }
+      onClick={[Function]}
+      show={true}
+      text="Open in new window"
+    />
+    <MenuItemAction
       extraText="You will be notified about replies"
       onClick={[Function]}
       show={true}
@@ -56,6 +67,17 @@ exports[`components/threading/common/thread_menu should match snapshot after ope
     ariaLabel="Actions"
     openLeft={true}
   >
+    <MenuItemAction
+      buttonClass="PopoutMenuItem"
+      icon={
+        <i
+          className="icon icon-dock-window"
+        />
+      }
+      onClick={[Function]}
+      show={true}
+      text="Open in new window"
+    />
     <MenuItemAction
       extraText="You will be notified about replies"
       onClick={[Function]}

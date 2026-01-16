@@ -51,6 +51,7 @@ import {
     receivedNewPost,
     receivedPost,
 } from 'mattermost-redux/actions/posts';
+import {getRecap} from 'mattermost-redux/actions/recaps';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import {fetchTeamScheduledPosts} from 'mattermost-redux/actions/scheduled_posts';
 import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/actions/status_profile_polling';
@@ -100,6 +101,8 @@ import {getNewestThreadInTeam, getThread, getThreads} from 'mattermost-redux/sel
 import {getCurrentUser, getCurrentUserId, getUser, getIsManualStatusForUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
+import {handlePostExpired} from 'actions/burn_on_read_deletion';
+import {handleBurnOnReadPostRevealed, handleBurnOnReadAllRevealed} from 'actions/burn_on_read_websocket';
 import {loadChannelsForCurrentUser} from 'actions/channel_actions';
 import {
     getTeamsUsage,
@@ -369,6 +372,18 @@ export function handleEvent(msg) {
 
     case SocketEvents.POST_UNREAD:
         handlePostUnreadEvent(msg);
+        break;
+
+    case SocketEvents.BURN_ON_READ_POST_REVEALED:
+        dispatch(handleBurnOnReadPostRevealed(msg.data));
+        break;
+
+    case SocketEvents.BURN_ON_READ_POST_BURNED:
+        dispatch(handlePostExpired(msg.data.post_id));
+        break;
+
+    case SocketEvents.BURN_ON_READ_ALL_REVEALED:
+        dispatch(handleBurnOnReadAllRevealed(msg.data));
         break;
 
     case SocketEvents.LEAVE_TEAM:
@@ -649,6 +664,9 @@ export function handleEvent(msg) {
         break;
     case SocketEvents.CONTENT_FLAGGING_REPORT_VALUE_CHANGED:
         dispatch(handleContentFlaggingReportValueChanged(msg));
+        break;
+    case SocketEvents.RECAP_UPDATED:
+        dispatch(handleRecapUpdated(msg));
         break;
     default:
     }
@@ -1985,5 +2003,14 @@ export function handleContentFlaggingReportValueChanged(msg) {
     return {
         type: ContentFlaggingTypes.CONTENT_FLAGGING_REPORT_VALUE_UPDATED,
         data: msg.data,
+    };
+}
+
+export function handleRecapUpdated(msg) {
+    const recapId = msg.data.recap_id;
+
+    return async (doDispatch) => {
+        // Fetch the updated recap and dispatch to Redux
+        doDispatch(getRecap(recapId));
     };
 }

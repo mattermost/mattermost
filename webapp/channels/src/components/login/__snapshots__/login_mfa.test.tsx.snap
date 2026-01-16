@@ -14,7 +14,7 @@ exports[`components/login/LoginMfa should match snapshot 1`] = `
         inputSize="large"
         name="token"
         onChange={[Function]}
-        placeholder="Enter MFA Token"
+        placeholder="MFA Token"
         type="text"
         value=""
       />

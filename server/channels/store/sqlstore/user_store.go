@@ -49,45 +49,58 @@ func (us *SqlUserStore) ClearCaches() {}
 
 func (us SqlUserStore) InvalidateProfileCacheForUser(userId string) {}
 
-// getUsersColumns exposes the set of columns that can be queried from the
-// Users table (and not the Bots table).
+// getUsersColumnsWithName returns the user columns prefixed with the given name,
+// with any extra columns appended.
 //
+// Note that the order of these columns must match the order in
+// [SqlUserStore.Get] and [SqlUserStore.GetAllProfilesInChannel].
+func getUsersColumnsWithName(name string, extraColumns ...string) []string {
+	columns := []string{
+		"Id",
+		"CreateAt",
+		"UpdateAt",
+		"DeleteAt",
+		"Username",
+		"Password",
+		"AuthData",
+		"AuthService",
+		"Email",
+		"EmailVerified",
+		"Nickname",
+		"FirstName",
+		"LastName",
+		"Position",
+		"Roles",
+		"AllowMarketing",
+		"Props",
+		"NotifyProps",
+		"LastPasswordUpdate",
+		"LastPictureUpdate",
+		"FailedAttempts",
+		"Locale",
+		"Timezone",
+		"MfaActive",
+		"MfaSecret",
+		"MfaUsedTimestamps",
+		"RemoteId",
+		"LastLogin",
+	}
+	columns = append(columns, extraColumns...)
+	result := make([]string, len(columns))
+	for i, col := range columns {
+		result[i] = name + "." + col
+	}
+	return result
+}
+
+// getUsersColumns returns the user columns for the Users table.
 // This is primarily useful for other stores who choose to directly query
 // and return [model.User] data.
 //
 // Note that the order of these columns must match the order in
 // [SqlUserStore.Get] and [SqlUserStore.GetAllProfilesInChannel].
 func getUsersColumns() []string {
-	return []string{
-		"Users.Id",
-		"Users.CreateAt",
-		"Users.UpdateAt",
-		"Users.DeleteAt",
-		"Users.Username",
-		"Users.Password",
-		"Users.AuthData",
-		"Users.AuthService",
-		"Users.Email",
-		"Users.EmailVerified",
-		"Users.Nickname",
-		"Users.FirstName",
-		"Users.LastName",
-		"Users.Position",
-		"Users.Roles",
-		"Users.AllowMarketing",
-		"Users.Props",
-		"Users.NotifyProps",
-		"Users.LastPasswordUpdate",
-		"Users.LastPictureUpdate",
-		"Users.FailedAttempts",
-		"Users.Locale",
-		"Users.Timezone",
-		"Users.MfaActive",
-		"Users.MfaSecret",
-		"Users.MfaUsedTimestamps",
-		"Users.RemoteId",
-		"Users.LastLogin",
-	}
+	return getUsersColumnsWithName("Users")
 }
 
 func getBotInfoColumns() []string {
@@ -2541,7 +2554,7 @@ func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.
 		}
 
 		parentQuery = us.getQueryBuilder().
-			Select("data.*").
+			Select(getUsersColumnsWithName("data", "LastStatusAt", "LastPostDate", "DaysActive", "TotalPosts")...).
 			FromSelect(query, "data").
 			OrderBy(filter.SortColumn+" "+reverseSortDirection, "Id")
 	}

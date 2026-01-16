@@ -44,6 +44,9 @@ func (w *Web) InitOAuth() {
 	w.MainRouter.Handle("/oauth/{service:[A-Za-z0-9]+}/mobile_login", w.APIHandler(mobileLoginWithOAuth)).Methods(http.MethodGet)
 	w.MainRouter.Handle("/oauth/{service:[A-Za-z0-9]+}/signup", w.APIHandler(signupWithOAuth)).Methods(http.MethodGet)
 
+	// Intune MAM authentication endpoint
+	w.MainRouter.Handle("/oauth/intune", w.APIHandler(loginByIntune)).Methods(http.MethodPost)
+
 	// Old endpoints for backwards compatibility, needed to not break SSO for any old setups
 	w.MainRouter.Handle("/api/v3/oauth/{service:[A-Za-z0-9]+}/complete", w.APIHandler(completeOAuth)).Methods(http.MethodGet)
 	w.MainRouter.Handle("/signup/{service:[A-Za-z0-9]+}/complete", w.APIHandler(completeOAuth)).Methods(http.MethodGet)
@@ -461,9 +464,11 @@ func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	redirectURL := r.URL.Query().Get("redirect_to")
 	desktopToken := r.URL.Query().Get("desktop_token")
 
-	if redirectURL != "" && !utils.IsValidWebAuthRedirectURL(c.App.Config(), redirectURL) {
-		c.Err = model.NewAppError("loginWithOAuth", "api.invalid_redirect_url", nil, "", http.StatusBadRequest)
-		return
+	if redirectURL != "" {
+		if err := utils.ValidateWebAuthRedirectUrl(c.App.Config(), redirectURL); err != nil {
+			c.Err = model.NewAppError("loginWithOAuth", "api.invalid_redirect_url", nil, err.Error(), http.StatusBadRequest)
+			return
+		}
 	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventLoginWithOAuth, model.AuditStatusFail)
@@ -623,5 +628,54 @@ func getAuthorizationServerMetadata(c *Context, w http.ResponseWriter, r *http.R
 
 	if err := json.NewEncoder(w).Encode(metadata); err != nil {
 		c.Logger.Warn("Error writing authorization server metadata response", mlog.Err(err))
+	}
+}
+
+// loginByIntune handles authentication using Microsoft Intune MAM with Entra ID tokens
+func loginByIntune(c *Context, w http.ResponseWriter, r *http.Request) {
+	var req model.IntuneLoginRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		c.SetInvalidParamWithErr("request_body", err)
+		return
+	}
+
+	if req.AccessToken == "" {
+		c.SetInvalidParam("access_token")
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("login_by_intune", model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	c.LogAudit("attempt")
+
+	// Authenticate user via Intune MAM
+	user, err := c.App.LoginByIntune(c.AppContext, req.AccessToken)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.AddMeta("obtained_user_id", user.Id)
+	c.LogAuditWithUserId(user.Id, "obtained user")
+
+	isMobile := req.DeviceId != ""
+	session, err := c.App.DoLogin(c.AppContext, w, r, user, req.DeviceId, isMobile, true, false)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	c.AppContext = c.AppContext.WithSession(session)
+
+	c.App.AttachSessionCookies(c.AppContext, w, r)
+
+	auditRec.Success()
+	c.LogAuditWithUserId(user.Id, "success")
+
+	user.Sanitize(map[string]bool{})
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		c.Logger.Warn("Failed to encode user response", mlog.Err(err))
 	}
 }

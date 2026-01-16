@@ -2,8 +2,10 @@
 // See LICENSE.txt for license information.
 
 import type {FileInfo} from '@mattermost/types/files';
-import type {PostPriority} from '@mattermost/types/posts';
+import type {PostPriority, PostType} from '@mattermost/types/posts';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
+
+import {PostTypes} from 'utils/constants';
 
 export type DraftInfo = {
     id: string;
@@ -23,14 +25,12 @@ export type PostDraft = {
     createAt: number;
     updateAt: number;
     show?: boolean;
+    type?: PostType;
     metadata?: {
         priority?: {
             priority: PostPriority|'';
             requested_ack?: boolean;
             persistent_notifications?: boolean;
-        };
-        burn_on_read?: {
-            enabled: boolean;
         };
         files?: FileInfo[];
     };
@@ -48,8 +48,8 @@ export function isPostDraftEmpty(draft: PostDraft): boolean {
         draft.metadata.priority.persistent_notifications
     );
 
-    // Check for burn-on-read metadata
-    const hasBurnOnRead = draft.metadata?.burn_on_read?.enabled;
+    // Check for burn-on-read
+    const hasBurnOnRead = draft.type === PostTypes.BURN_ON_READ;
 
     return !hasMessage && !hasAttachment && !hasUploadingFiles && !hasPriority && !hasBurnOnRead;
 }
@@ -62,6 +62,7 @@ export function scheduledPostToPostDraft(scheduledPost: ScheduledPost): PostDraf
         props: scheduledPost.props,
         channelId: scheduledPost.channel_id,
         rootId: scheduledPost.root_id,
+        type: scheduledPost.type,
         createAt: 0,
         updateAt: 0,
         metadata: {

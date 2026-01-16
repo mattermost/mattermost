@@ -46,7 +46,7 @@ const PermissionRow = ({
     if (permissionRolesStrings[id]) {
         description = (
             <FormattedMessage
-                id={permissionRolesStrings[id].description.id}
+                {...permissionRolesStrings[id].description}
                 values={additionalValues}
             />
         );

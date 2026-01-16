@@ -793,15 +793,24 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                             }
                             footer={
                                 <>
-                                    <button
-                                        className='btn btn-secondary'
-                                        onClick={this.toggleOpenModalResetPassword}
+                                    <WithTooltip
+                                        title={defineMessage({
+                                            id: 'admin.user_item.resetPassword.magicLink.tooltip',
+                                            defaultMessage: 'Cannot reset password for Magic Link accounts.',
+                                        })}
+                                        disabled={this.state.user?.auth_service !== Constants.MAGIC_LINK_SERVICE}
                                     >
-                                        <FormattedMessage
-                                            id='admin.user_item.resetPwd'
-                                            defaultMessage='Reset Password'
-                                        />
-                                    </button>
+                                        <button
+                                            className='btn btn-secondary'
+                                            onClick={this.toggleOpenModalResetPassword}
+                                            disabled={this.state.user?.auth_service === Constants.MAGIC_LINK_SERVICE}
+                                        >
+                                            <FormattedMessage
+                                                id='admin.user_item.resetPwd'
+                                                defaultMessage='Reset Password'
+                                            />
+                                        </button>
+                                    </WithTooltip>
                                     {this.state.user?.mfa_active && (
                                         <button
                                             className='btn btn-secondary'
@@ -859,7 +868,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                         <WithTooltip
                                             title={defineMessage({
                                                 id: 'generic.enterprise_feature',
-                                                defaultMessage: 'Enterprise feature',
+                                                defaultMessage: 'Enterprise Feature',
                                             })}
                                             hint={defineMessage({
                                                 id: 'admin.user_item.manageSettings.disabled_tooltip',
@@ -967,7 +976,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     message={
                         <div>
                             <FormattedMessage
-                                id='deactivate_member_modal.desc'
+                                id='deactivate_member_modal.desc_with_confirmation'
                                 defaultMessage='This action deactivates {username}. They will be logged out and not have access to any teams or channels on this system. Are you sure you want to deactivate {username}?'
                                 values={{
                                     username: this.state.user?.username ?? '',
@@ -1027,6 +1036,11 @@ export function getUserAuthenticationTextField(intl: IntlShape, mfaEnabled: Prop
             service = intl.formatMessage({
                 id: 'admin.oauth.office365',
                 defaultMessage: 'Entra ID',
+            });
+        } else if (user.auth_service === Constants.MAGIC_LINK_SERVICE) {
+            service = intl.formatMessage({
+                id: 'admin.userManagement.userDetail.magicLink',
+                defaultMessage: 'Magic Link',
             });
         } else {
             service = toTitleCase(user.auth_service);
