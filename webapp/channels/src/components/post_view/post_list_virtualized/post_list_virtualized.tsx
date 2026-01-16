@@ -707,7 +707,10 @@ export default class PostList extends React.PureComponent<Props, State> {
                             id='postListContent'
                             className='post-list__content'
                         >
-                            <LatestPostReader postIds={this.props.postListIds}/>
+                            <LatestPostReader
+                                postIds={this.props.postListIds}
+                                autotranslated={this.props.isChannelAutotranslated}
+                            />
                             <AutoSizer>
                                 {({height, width}) => (
                                     <>
