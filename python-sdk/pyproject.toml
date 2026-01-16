@@ -1,0 +1,75 @@
+# Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+# See LICENSE.txt for license information.
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mattermost-plugin-sdk"
+version = "0.1.0"
+description = "Python SDK for Mattermost Plugin API (gRPC-based)"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+authors = [
+    {name = "Mattermost", email = "dev@mattermost.com"}
+]
+requires-python = ">=3.9"
+keywords = ["mattermost", "plugin", "grpc", "sdk"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Communications :: Chat",
+    "Typing :: Typed",
+]
+dependencies = [
+    "grpcio>=1.60.0",
+    "protobuf>=4.25.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "grpcio-tools>=1.60.0",
+    "mypy-protobuf>=3.6.0",
+    "types-protobuf",
+    "mypy>=1.14.0",
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+]
+interceptors = [
+    "grpc-interceptor>=0.15.0",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/mattermost/mattermost"
+"Bug Tracker" = "https://github.com/mattermost/mattermost/issues"
+"Documentation" = "https://developers.mattermost.com"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+strict = true
+
+[[tool.mypy.overrides]]
+module = "mattermost_plugin.grpc.*"
+ignore_errors = true  # Generated code
+
+[[tool.mypy.overrides]]
+module = "grpc.*"
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
