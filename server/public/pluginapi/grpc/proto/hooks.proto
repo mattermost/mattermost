@@ -8,6 +8,7 @@ package mattermost.pluginapi.v1;
 option go_package = "github.com/mattermost/mattermost/server/public/pluginapi/grpc/generated/go/pluginapiv1";
 
 import "hooks_lifecycle.proto";
+import "hooks_message.proto";
 
 // ==============================================================================
 // PLUGIN HOOKS SERVICE
@@ -110,4 +111,118 @@ service PluginHooks {
   //
   // Go signature: ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, error)
   rpc ConfigurationWillBeSaved(ConfigurationWillBeSavedRequest) returns (ConfigurationWillBeSavedResponse);
+
+  // ===========================================================================
+  // MESSAGE HOOKS
+  // ===========================================================================
+
+  // MessageWillBePosted is invoked when a message is posted before it is committed
+  // to the database. Use this to modify or reject posts before they are saved.
+  //
+  // Return values:
+  // - To allow unchanged: return nil post and empty string
+  // - To modify: return modified post and empty string
+  // - To reject: return nil post and rejection reason string
+  // - To dismiss silently: return nil post and "plugin.message_will_be_posted.dismiss_post"
+  //
+  // Go signature: MessageWillBePosted(c *Context, post *model.Post) (*model.Post, string)
+  rpc MessageWillBePosted(MessageWillBePostedRequest) returns (MessageWillBePostedResponse);
+
+  // MessageWillBeUpdated is invoked when a message is updated before it is committed
+  // to the database. Use this to modify or reject post updates.
+  //
+  // Return values:
+  // - To allow unchanged: return nil post and empty string
+  // - To modify: return modified post and empty string
+  // - To reject: return nil post and rejection reason (post stays unchanged)
+  //
+  // Go signature: MessageWillBeUpdated(c *Context, newPost, oldPost *model.Post) (*model.Post, string)
+  rpc MessageWillBeUpdated(MessageWillBeUpdatedRequest) returns (MessageWillBeUpdatedResponse);
+
+  // MessageHasBeenPosted is invoked after the message has been committed to the database.
+  // This is a notification hook - you cannot modify or reject the post.
+  // Use MessageWillBePosted if you need to modify or reject.
+  //
+  // Go signature: MessageHasBeenPosted(c *Context, post *model.Post)
+  rpc MessageHasBeenPosted(MessageHasBeenPostedRequest) returns (MessageHasBeenPostedResponse);
+
+  // MessageHasBeenUpdated is invoked after a message update has been committed to the database.
+  // This is a notification hook - you cannot modify or reject the update.
+  // Use MessageWillBeUpdated if you need to modify or reject.
+  //
+  // Go signature: MessageHasBeenUpdated(c *Context, newPost, oldPost *model.Post)
+  rpc MessageHasBeenUpdated(MessageHasBeenUpdatedRequest) returns (MessageHasBeenUpdatedResponse);
+
+  // MessagesWillBeConsumed is invoked when messages are requested by a client
+  // before they are returned. Use this to filter or modify posts before delivery.
+  //
+  // Note: This hook has no Context parameter and no error return.
+  //
+  // Go signature: MessagesWillBeConsumed(posts []*model.Post) []*model.Post
+  rpc MessagesWillBeConsumed(MessagesWillBeConsumedRequest) returns (MessagesWillBeConsumedResponse);
+
+  // MessageHasBeenDeleted is invoked after a message has been deleted from the database.
+  // This is a notification hook - you cannot undo the deletion.
+  //
+  // Go signature: MessageHasBeenDeleted(c *Context, post *model.Post)
+  rpc MessageHasBeenDeleted(MessageHasBeenDeletedRequest) returns (MessageHasBeenDeletedResponse);
+
+  // FileWillBeUploaded is invoked when a file is uploaded before it is committed
+  // to storage. Use this to modify or reject file uploads.
+  //
+  // Note: Phase 8 will add streaming support. Currently uses bytes for file content.
+  //
+  // Return values:
+  // - To allow unchanged: return nil FileInfo, empty bytes, empty string
+  // - To modify: return modified FileInfo and/or content, empty string
+  // - To reject: return nil FileInfo, empty bytes, and rejection reason
+  //
+  // Go signature: FileWillBeUploaded(c *Context, info *model.FileInfo, file io.Reader, output io.Writer) (*model.FileInfo, string)
+  rpc FileWillBeUploaded(FileWillBeUploadedRequest) returns (FileWillBeUploadedResponse);
+
+  // ReactionHasBeenAdded is invoked after a reaction has been committed to the database.
+  // This is a notification hook.
+  //
+  // Go signature: ReactionHasBeenAdded(c *Context, reaction *model.Reaction)
+  rpc ReactionHasBeenAdded(ReactionHasBeenAddedRequest) returns (ReactionHasBeenAddedResponse);
+
+  // ReactionHasBeenRemoved is invoked after a reaction has been removed from the database.
+  // This is a notification hook.
+  //
+  // Go signature: ReactionHasBeenRemoved(c *Context, reaction *model.Reaction)
+  rpc ReactionHasBeenRemoved(ReactionHasBeenRemovedRequest) returns (ReactionHasBeenRemovedResponse);
+
+  // NotificationWillBePushed is invoked before a push notification is sent to
+  // the push notification server. Use this to modify or reject push notifications.
+  //
+  // Note: This hook has no Context parameter.
+  //
+  // Return values:
+  // - To allow unchanged: return nil notification and empty string
+  // - To modify: return modified notification and empty string
+  // - To reject: return nil notification and rejection reason
+  //
+  // Go signature: NotificationWillBePushed(pushNotification *model.PushNotification, userID string) (*model.PushNotification, string)
+  rpc NotificationWillBePushed(NotificationWillBePushedRequest) returns (NotificationWillBePushedResponse);
+
+  // EmailNotificationWillBeSent is invoked before an email notification is sent.
+  // Use this to customize email content or reject the notification.
+  //
+  // Note: Core identifiers (PostId, ChannelId, etc.) are immutable.
+  // Only content fields (subject, title, message, etc.) can be modified.
+  // Note: This hook has no Context parameter.
+  //
+  // Return values:
+  // - To allow unchanged: return nil content and empty string
+  // - To modify: return modified EmailNotificationContent and empty string
+  // - To reject: return nil content and rejection reason
+  //
+  // Go signature: EmailNotificationWillBeSent(emailNotification *model.EmailNotification) (*model.EmailNotificationContent, string)
+  rpc EmailNotificationWillBeSent(EmailNotificationWillBeSentRequest) returns (EmailNotificationWillBeSentResponse);
+
+  // PreferencesHaveChanged is invoked after one or more of a user's preferences
+  // have changed. This is a notification hook.
+  //
+  // Go signature: PreferencesHaveChanged(c *Context, preferences []model.Preference)
+  rpc PreferencesHaveChanged(PreferencesHaveChangedRequest) returns (PreferencesHaveChangedResponse);
 }
