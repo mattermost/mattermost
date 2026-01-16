@@ -26,7 +26,6 @@ type Props = {
     policyId?: string;
 
     onRemoveCallback: (user: Team) => void;
-    onAddCallback: (users: Team[]) => void;
     teamsToRemove: Record<string, Team>;
     teamsToAdd: Record<string, Team>;
 

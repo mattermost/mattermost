@@ -22,7 +22,6 @@ type Props = {
     onFiltersChange: (filters: LogFilter) => void;
     onSearchChange: (term: string) => void;
     search: string;
-    filters: LogFilter;
 };
 
 type State = {

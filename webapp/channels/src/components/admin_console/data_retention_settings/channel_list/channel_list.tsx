@@ -29,7 +29,6 @@ type Props = {
     policyId?: string;
 
     onRemoveCallback: (channel: ChannelWithTeamData) => void;
-    onAddCallback: (channels: ChannelWithTeamData[]) => void;
     channelsToRemove: Record<string, ChannelWithTeamData>;
     channelsToAdd: Record<string, ChannelWithTeamData>;
 
