@@ -9,9 +9,10 @@ import {GenericModal} from '@mattermost/components';
 
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 
-import PostMessageView from 'components/post_view/post_message_view';
+import Post from 'components/post';
 import Tag from 'components/widgets/tag/tag';
 
+import {Locations} from 'utils/constants';
 import {getPostTranslation} from 'utils/post_utils';
 
 import type {GlobalState} from 'types/store';
@@ -74,11 +75,10 @@ function ShowTranslationModal({postId, onExited, onHide}: Props) {
                         />
                     </div>
                     <div className='ShowTranslationModal__postContent'>
-                        <PostMessageView
+                        <Post
                             post={post}
-                            isRHS={false}
                             isChannelAutotranslated={false}
-                            userLanguage={intl.locale}
+                            location={Locations.MODAL}
                         />
                     </div>
                 </div>
@@ -99,11 +99,10 @@ function ShowTranslationModal({postId, onExited, onHide}: Props) {
                         />
                     </div>
                     <div className='ShowTranslationModal__postContent'>
-                        <PostMessageView
+                        <Post
                             post={post}
-                            isRHS={false}
                             isChannelAutotranslated={true}
-                            userLanguage={intl.locale}
+                            location={Locations.MODAL}
                         />
                     </div>
                 </div>

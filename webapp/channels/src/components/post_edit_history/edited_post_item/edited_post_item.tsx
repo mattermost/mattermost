@@ -227,6 +227,7 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, actions, i
                 className={'a11y__section post'}
                 id={'searchResult_' + post.id}
                 post={post}
+                autotranslated={isChannelAutotranslated}
             >
                 <div
                     className='edit-post-history__title__container'

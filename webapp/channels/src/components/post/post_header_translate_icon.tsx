@@ -6,7 +6,7 @@ import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {TranslateIcon} from '@mattermost/compass-icons/components';
-import type {PostTranslation} from '@mattermost/types/posts';
+import type {PostTranslation, PostType} from '@mattermost/types/posts';
 
 import {openModal} from 'actions/views/modals';
 
@@ -19,10 +19,12 @@ import {ModalIdentifiers} from 'utils/constants';
 type Props = {
     postId: string;
     translationState: PostTranslation['state'] | undefined;
+    postType: PostType;
 }
 function PostHeaderTranslateIcon({
     postId,
     translationState,
+    postType,
 }: Props) {
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
@@ -34,6 +36,10 @@ function PostHeaderTranslateIcon({
             dialogProps: {postId},
         }));
     }, [dispatch, postId]);
+
+    if (postType !== '') {
+        return null;
+    }
 
     if (translationState === 'ready') {
         return (
@@ -65,6 +71,24 @@ function PostHeaderTranslateIcon({
                     <LoadingSpinner text={formatMessage({id: 'post_info.translation_icon_processing', defaultMessage: 'Translating...'})}/>
                 </i>
             </div>
+        );
+    }
+
+    if (translationState === 'unavailable') {
+        return (
+            <WithTooltip
+                title={formatMessage({id: 'post_info.translation_icon_unavailable', defaultMessage: 'Translation unavailable'})}
+            >
+                <div className='post__translation-icon-unavailable'>
+                    <TranslateIcon
+                        size={12}
+                        aria-label={formatMessage({
+                            id: 'post_info.translation_icon_unavailable',
+                            defaultMessage: 'Translation unavailable',
+                        })}
+                    />
+                </div>
+            </WithTooltip>
         );
     }
 

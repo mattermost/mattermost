@@ -457,7 +457,7 @@ export function makeGetMentionsFromMessage(): (state: GlobalState, post: Post) =
     );
 }
 
-export function usePostAriaLabel(post: Post | undefined) {
+export function usePostAriaLabel(post: Post | undefined, autotranslated: boolean) {
     const intl = useIntl();
 
     const getDisplayName = useMemo(makeGetDisplayName, []);
@@ -487,17 +487,26 @@ export function usePostAriaLabel(post: Post | undefined) {
             emojiMap,
             mentions,
             teammateNameDisplaySetting,
+            autotranslated,
         );
     });
 }
 
-export function createAriaLabelForPost(post: Post, author: string, isFlagged: boolean, reactions: Record<string, Reaction> | undefined, intl: IntlShape, emojiMap: EmojiMap, mentions: Record<string, UserProfile>, teammateNameDisplaySetting: string): string {
+export function createAriaLabelForPost(post: Post, author: string, isFlagged: boolean, reactions: Record<string, Reaction> | undefined, intl: IntlShape, emojiMap: EmojiMap, mentions: Record<string, UserProfile>, teammateNameDisplaySetting: string, autotranslated: boolean): string {
     const {formatMessage, formatTime, formatDate} = intl;
 
-    let message = post.state === Posts.POST_DELETED ? formatMessage({
-        id: 'post_body.deleted',
-        defaultMessage: '(message deleted)',
-    }) : post.message || '';
+    const translation = getPostTranslation(post, intl.locale);
+    const isTranslated = autotranslated && translation?.state === 'ready';
+    let message = post.message;
+
+    if (post.state === Posts.POST_DELETED) {
+        message = formatMessage({
+            id: 'post_body.deleted',
+            defaultMessage: '(message deleted)',
+        });
+    } else if (isTranslated) {
+        message = getPostTranslatedMessage(message, translation);
+    }
     let match;
 
     // Match all the shorthand forms of emojis first
@@ -612,6 +621,25 @@ export function createAriaLabelForPost(post: Post, author: string, isFlagged: bo
         ariaLabel += formatMessage({
             id: 'post.ariaLabel.messageIsPinned',
             defaultMessage: ', message is pinned',
+        });
+    }
+
+    if (isTranslated) {
+        const originalLanguage = translation?.source_lang || 'unknown';
+        const originalLanguageName = originalLanguage === 'unknown' ? intl.formatMessage({
+            id: 'show_translation.unknown_language',
+            defaultMessage: 'Unknown',
+        }) : intl.formatDisplayName(originalLanguage, {type: 'language'});
+
+        const targetLanguageName = intl.formatDisplayName(intl.locale, {type: 'language'});
+
+        ariaLabel += formatMessage({
+            id: 'post.ariaLabel.translated',
+            defaultMessage: ', translated from {sourceLanguage} to {targetLanguage}',
+        },
+        {
+            sourceLanguage: originalLanguageName,
+            targetLanguage: targetLanguageName,
         });
     }
 

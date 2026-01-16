@@ -141,6 +141,7 @@ function PostComponent(props: Props) {
 
     const isSearchResultItem = (props.matches && props.matches.length > 0) || props.isMentionSearch || (props.term && props.term.length > 0);
     const isRHS = props.location === Locations.RHS_ROOT || props.location === Locations.RHS_COMMENT || props.location === Locations.SEARCH;
+    const isModal = props.location === Locations.MODAL;
     const postRef = useRef<HTMLDivElement>(null);
     const postHeaderRef = useRef<HTMLDivElement>(null);
     const teamId = props.team?.id ?? props.currentTeam?.id ?? '';
@@ -322,6 +323,7 @@ function PostComponent(props: Props) {
             'post--pinned-or-flagged': (post.is_pinned || props.isFlagged) && props.location === Locations.CENTER,
             'mention-comment': props.isCommentMention,
             'post--thread': isRHS,
+            'post--modal': isModal,
         });
     };
 
@@ -424,7 +426,9 @@ function PostComponent(props: Props) {
     }, [handleCommentClick, handleJumpClick, props.currentTeam?.id, teamId]);
 
     const translation = PostUtils.getPostTranslation(post, locale);
-    const isTranslating = translation?.state === 'processing';
+
+    // Only show translation for normal (no custom type) posts
+    const isTranslating = translation?.state === 'processing' && post.type === '';
 
     const handleRevealBurnOnRead = useCallback(async (postId: string) => {
         setBurnOnReadRevealing(true);
@@ -713,6 +717,7 @@ function PostComponent(props: Props) {
                 onClick={handlePostClick}
                 onMouseOver={handleMouseOver}
                 onMouseLeave={handleMouseLeave}
+                autotranslated={props.isChannelAutotranslated}
             >
                 {props.isChannelAutotranslated && isTranslating && (
                     <div className='post-message__shimmer'/>
@@ -779,12 +784,6 @@ function PostComponent(props: Props) {
                                         timestampProps={{...props.timestampProps, style: props.isConsecutivePost && !props.compactDisplay ? 'narrow' : undefined}}
                                     />
                                 }
-                                {!hideProfilePicture && props.isChannelAutotranslated && !isSystemMessage && (
-                                    <PostHeaderTranslateIcon
-                                        postId={post.id}
-                                        translationState={translation?.state}
-                                    />
-                                )}
                                 {priority}
                                 {burnOnReadBadge}
                                 {burnOnReadTimerChip}
@@ -794,6 +793,13 @@ function PostComponent(props: Props) {
                                         userId={post.props.ai_generated_by as string}
                                         username={post.props.ai_generated_by_username as string}
                                         postAuthorId={post.user_id}
+                                    />
+                                )}
+                                {!isModal && !hideProfilePicture && props.isChannelAutotranslated && !isSystemMessage && (
+                                    <PostHeaderTranslateIcon
+                                        postId={post.id}
+                                        translationState={translation?.state}
+                                        postType={post.type}
                                     />
                                 )}
                                 {Boolean(post.props && post.props.card) &&
@@ -821,7 +827,7 @@ function PostComponent(props: Props) {
                                 }
                                 {visibleMessage}
                             </div>
-                            {!props.isPostBeingEdited &&
+                            {!isModal && !props.isPostBeingEdited &&
                             <PostOptions
                                 {...props}
                                 teamId={teamId}

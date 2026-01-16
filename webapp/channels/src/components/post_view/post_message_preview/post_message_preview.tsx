@@ -180,6 +180,7 @@ const PostMessagePreview = (props: Props) => {
                             <PostHeaderTranslateIcon
                                 postId={previewPost.id}
                                 translationState={translation?.state}
+                                postType={previewPost.type}
                             />
                         )}
                     </div>

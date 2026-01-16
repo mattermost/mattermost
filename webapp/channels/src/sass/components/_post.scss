@@ -1034,6 +1034,18 @@
         }
     }
 
+    &.post--modal {
+        padding: 0;
+
+        .post__content {
+            padding: 0;
+        }
+
+        .post__img {
+            width: 42px;
+        }
+    }
+
     &.same--root {
         &.same--user {
             padding: 0 0.5em 0 1.5em;
@@ -1662,6 +1674,18 @@
         .LoadingSpinner.with-text .spinner {
             margin-right: 3px;
         }
+    }
+
+    .post__translation-icon-unavailable {
+        display: inline-flex;
+
+        width: 20px;
+        height: 20px;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        color: var(--dnd-indicator);
+        font-size: 12px;
     }
 
     .post_permalink_mobile_view {
@@ -2302,11 +2326,11 @@
 
 .post-message__shimmer {
     position: absolute;
+    z-index: 999;
     top: 0;
     right: 0;
     bottom: 0;
     left: 0;
-    z-index: 999;
     border-radius: 4px;
     animation: post-message-shimmer 3.5s linear infinite;
     background: linear-gradient(

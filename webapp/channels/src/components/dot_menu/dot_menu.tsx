@@ -482,7 +482,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         );
 
         const translation = PostUtils.getPostTranslation(this.props.post, this.props.intl.locale);
-        const showTranslation = this.props.isChannelAutotranslated && translation?.state === 'ready';
+        const showTranslation = this.props.isChannelAutotranslated && translation?.state === 'ready' && this.props.post.type === '';
 
         this.canPostBeForwarded = !(isSystemMessage || isBurnOnReadPost);
 

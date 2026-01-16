@@ -251,6 +251,7 @@ function ThreadItem({
                             <PostHeaderTranslateIcon
                                 postId={post.id}
                                 translationState={translation?.state}
+                                postType={post.type}
                             />
                         )}
                     </div>
