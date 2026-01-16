@@ -479,7 +479,7 @@ class GroupDetails extends React.PureComponent<Props, State> {
                     serverError = (
                         <FormattedMessage
                             id='admin.group_settings.group_detail.invalidOrReservedMentionNameError'
-                            defaultMessage='Only letters (a-z), numbers(0-9), periods, dashes and underscores are allowed.'
+                            defaultMessage='Only letters (a-z), numbers (0-9), periods, dashes and underscores are allowed.'
                         />
                     );
                 } else if (

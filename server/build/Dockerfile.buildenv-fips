@@ -1,4 +1,4 @@
-FROM cgr.dev/mattermost.com/go-msft-fips:1.24.6-dev@sha256:53d076b1cfa53f8189c4723d813d711d92107c2e8b140805c71e39f4a06dc9cc
+FROM cgr.dev/mattermost.com/go-msft-fips:1.24.11-dev@sha256:181a7db41bbff8cf0e522bd5f951a44f2a39a5f58ca930930dfbecdc6b690272
 ARG NODE_VERSION=20.11.1
 
 RUN apk add curl ca-certificates mailcap unrtf wv poppler-utils tzdata gpg xmlsec

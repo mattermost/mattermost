@@ -220,7 +220,7 @@ const ConfigurationAnnouncementBar = (props: Props) => {
                                 src={warningIcon}
                             />
                             <FormattedMessage
-                                id={AnnouncementBarMessages.LICENSE_PAST_GRACE}
+                                id='announcement_bar.error.past_grace'
                                 defaultMessage='{licenseSku} license is expired and some features may be disabled. Please contact your System Administrator for details.'
                                 values={{
                                     licenseSku: getSkuDisplayName(props.license.SkuShortName, props.license.IsGovSku === 'true'),
@@ -237,8 +237,8 @@ const ConfigurationAnnouncementBar = (props: Props) => {
             props.config?.EnablePreviewModeBanner === 'true'
     ) {
         const emailMessage = formatMessage({
-            id: AnnouncementBarMessages.PREVIEW_MODE,
-            defaultMessage: 'Preview Mode: Email notifications have not been configured',
+            id: 'announcement_bar.error.preview_mode',
+            defaultMessage: 'Preview Mode: Email notifications have not been configured.',
         });
 
         return (
