@@ -10,6 +10,7 @@ option go_package = "github.com/mattermost/mattermost/server/public/pluginapi/gr
 import "google/protobuf/struct.proto";
 import "common.proto";
 import "hooks_common.proto";
+import "api_remaining.proto";
 import "file.proto";
 import "post.proto";
 import "user.proto";
@@ -36,212 +37,15 @@ import "user.proto";
 // NOTE: ServeHTTP and ServeMetrics are deferred to Phase 8 (HTTP streaming).
 // These hooks require HTTP request/response streaming over gRPC.
 //
+// SHARED TYPES:
+// - CommandArgs, CommandResponse, PluginClusterEvent are imported from api_remaining.proto
+// - FileInfo, Post, User are imported from their respective proto files
+//
 // ==============================================================================
 
 // -----------------------------------------------------------------------------
-// Model Types
+// Model Types (types not already defined elsewhere)
 // -----------------------------------------------------------------------------
-
-// CommandArgs represents the arguments passed to a slash command execution.
-// Maps to model.CommandArgs in Go (server/public/model/command_args.go).
-//
-// Note: T, UserMentions, ChannelMentions are function/map types handled server-side
-// and not passed over the wire.
-message CommandArgs {
-  // The ID of the user who executed the command
-  string user_id = 1;
-
-  // The ID of the channel where the command was executed
-  string channel_id = 2;
-
-  // The ID of the team where the command was executed
-  string team_id = 3;
-
-  // The ID of the root post if executing in a thread
-  string root_id = 4;
-
-  // Deprecated parent_id field (kept for backwards compatibility)
-  string parent_id = 5;
-
-  // A unique ID that can be used by the command to open a dialog
-  string trigger_id = 6;
-
-  // The full command string as entered by the user
-  string command = 7;
-
-  // The site URL of the Mattermost server
-  string site_url = 8;
-}
-
-// CommandResponse represents the response from a slash command execution.
-// Maps to model.CommandResponse in Go (server/public/model/command_response.go).
-message CommandResponse {
-  // Response type: "in_channel" or "ephemeral"
-  string response_type = 1;
-
-  // The text message to display
-  string text = 2;
-
-  // Override username for the response
-  string username = 3;
-
-  // Override channel ID for the response
-  string channel_id = 4;
-
-  // Override icon URL for the response
-  string icon_url = 5;
-
-  // Post type (e.g., "custom_type" for interactive messages)
-  string type = 6;
-
-  // Additional post properties
-  google.protobuf.Struct props = 7;
-
-  // URL to redirect the user to
-  string goto_location = 8;
-
-  // Trigger ID for opening dialogs
-  string trigger_id = 9;
-
-  // Skip Slack-compatibility parsing of the text
-  bool skip_slack_parsing = 10;
-
-  // Slack-compatible attachments
-  repeated SlackAttachment attachments = 11;
-
-  // Additional responses to post (multi-response)
-  repeated CommandResponse extra_responses = 12;
-}
-
-// SlackAttachment represents a Slack-compatible message attachment.
-// Maps to model.SlackAttachment in Go (server/public/model/slack_attachment.go).
-message SlackAttachment {
-  // Unique identifier for the attachment
-  int64 id = 1;
-
-  // Plain-text summary of the attachment
-  string fallback = 2;
-
-  // Color of the attachment sidebar (hex code or "good", "warning", "danger")
-  string color = 3;
-
-  // Text that appears above the attachment block
-  string pretext = 4;
-
-  // Author name
-  string author_name = 5;
-
-  // Link for the author name
-  string author_link = 6;
-
-  // Icon URL for the author
-  string author_icon = 7;
-
-  // Title text
-  string title = 8;
-
-  // Link for the title
-  string title_link = 9;
-
-  // Main text of the attachment
-  string text = 10;
-
-  // Attachment fields
-  repeated SlackAttachmentField fields = 11;
-
-  // URL of an image to display
-  string image_url = 12;
-
-  // URL of a thumbnail image
-  string thumb_url = 13;
-
-  // Footer text
-  string footer = 14;
-
-  // Footer icon URL
-  string footer_icon = 15;
-
-  // Timestamp (can be int64 or string, use string for flexibility)
-  string timestamp = 16;
-
-  // Interactive message actions
-  repeated PostAction actions = 17;
-}
-
-// SlackAttachmentField represents a field within a Slack attachment.
-// Maps to model.SlackAttachmentField in Go.
-message SlackAttachmentField {
-  // Field title
-  string title = 1;
-
-  // Field value (string representation)
-  string value = 2;
-
-  // Whether to display the field as a short column
-  bool short = 3;
-}
-
-// PostAction represents an interactive message action button/menu.
-// Maps to model.PostAction in Go (server/public/model/integration_action.go).
-message PostAction {
-  // Unique action ID
-  string id = 1;
-
-  // Action type: "button" or "select"
-  string type = 2;
-
-  // Display name for the action
-  string name = 3;
-
-  // Whether the action is disabled
-  bool disabled = 4;
-
-  // Button style: "default", "primary", "success", "good", "warning", "danger"
-  string style = 5;
-
-  // Data-source for select menus: "users", "channels"
-  string data_source = 6;
-
-  // Options for select menus
-  repeated PostActionOption options = 7;
-
-  // Default option for select menus
-  string default_option = 8;
-
-  // Integration data (URL, context)
-  PostActionIntegration integration = 9;
-
-  // Cookie data for the action
-  string cookie = 10;
-}
-
-// PostActionOption represents an option in a select menu action.
-message PostActionOption {
-  // Display text
-  string text = 1;
-
-  // Value sent when selected
-  string value = 2;
-}
-
-// PostActionIntegration represents integration data for a post action.
-message PostActionIntegration {
-  // URL to call when action is triggered
-  string url = 1;
-
-  // Context data sent with the request
-  google.protobuf.Struct context = 2;
-}
-
-// PluginClusterEvent represents an intra-cluster plugin event.
-// Maps to model.PluginClusterEvent in Go (server/public/model/plugin_cluster_event.go).
-message PluginClusterEvent {
-  // Unique identifier for the event
-  string id = 1;
-
-  // Event payload data
-  bytes data = 2;
-}
 
 // WebSocketRequest represents a WebSocket message request from a client.
 // Maps to model.WebSocketRequest in Go (server/public/model/websocket_request.go).
@@ -358,6 +162,8 @@ message RemoteCluster {
 // ExecuteCommand Hook
 // Signature: ExecuteCommand(c *Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
 // Executes a registered slash command.
+//
+// Note: Uses CommandArgs and CommandResponse from api_remaining.proto
 // -----------------------------------------------------------------------------
 
 message ExecuteCommandRequest {
@@ -366,7 +172,7 @@ message ExecuteCommandRequest {
   // Plugin context with session/request metadata
   PluginContext plugin_context = 2;
 
-  // The command arguments
+  // The command arguments (from api_remaining.proto)
   CommandArgs args = 3;
 }
 
@@ -375,6 +181,7 @@ message ExecuteCommandResponse {
   AppError error = 1;
 
   // The command response (may be null if only error is returned)
+  // Note: Uses CommandResponse from api_remaining.proto
   CommandResponse response = 2;
 }
 
@@ -382,6 +189,8 @@ message ExecuteCommandResponse {
 // OnPluginClusterEvent Hook
 // Signature: OnPluginClusterEvent(c *Context, ev model.PluginClusterEvent)
 // Receives intra-cluster plugin events. This is a notification hook.
+//
+// Note: Uses PluginClusterEvent from api_remaining.proto
 // -----------------------------------------------------------------------------
 
 message OnPluginClusterEventRequest {
@@ -390,7 +199,7 @@ message OnPluginClusterEventRequest {
   // Plugin context with session/request metadata
   PluginContext plugin_context = 2;
 
-  // The cluster event
+  // The cluster event (from api_remaining.proto)
   PluginClusterEvent event = 3;
 }
 

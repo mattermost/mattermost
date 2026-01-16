@@ -27,7 +27,7 @@ var File_hooks_proto protoreflect.FileDescriptor
 
 const file_hooks_proto_rawDesc = "" +
 	"\n" +
-	"\vhooks.proto\x12\x17mattermost.pluginapi.v1\x1a\x15hooks_lifecycle.proto\x1a\x13hooks_message.proto\x1a\x18hooks_user_channel.proto2\xa1\x1f\n" +
+	"\vhooks.proto\x12\x17mattermost.pluginapi.v1\x1a\x15hooks_lifecycle.proto\x1a\x13hooks_message.proto\x1a\x18hooks_user_channel.proto\x1a\x13hooks_command.proto2\xbb*\n" +
 	"\vPluginHooks\x12h\n" +
 	"\vImplemented\x12+.mattermost.pluginapi.v1.ImplementedRequest\x1a,.mattermost.pluginapi.v1.ImplementedResponse\x12e\n" +
 	"\n" +
@@ -60,71 +60,101 @@ const file_hooks_proto_rawDesc = "" +
 	"\x14UserHasJoinedChannel\x124.mattermost.pluginapi.v1.UserHasJoinedChannelRequest\x1a5.mattermost.pluginapi.v1.UserHasJoinedChannelResponse\x12}\n" +
 	"\x12UserHasLeftChannel\x122.mattermost.pluginapi.v1.UserHasLeftChannelRequest\x1a3.mattermost.pluginapi.v1.UserHasLeftChannelResponse\x12z\n" +
 	"\x11UserHasJoinedTeam\x121.mattermost.pluginapi.v1.UserHasJoinedTeamRequest\x1a2.mattermost.pluginapi.v1.UserHasJoinedTeamResponse\x12t\n" +
-	"\x0fUserHasLeftTeam\x12/.mattermost.pluginapi.v1.UserHasLeftTeamRequest\x1a0.mattermost.pluginapi.v1.UserHasLeftTeamResponseBXZVgithub.com/mattermost/mattermost/server/public/pluginapi/grpc/generated/go/pluginapiv1b\x06proto3"
+	"\x0fUserHasLeftTeam\x12/.mattermost.pluginapi.v1.UserHasLeftTeamRequest\x1a0.mattermost.pluginapi.v1.UserHasLeftTeamResponse\x12q\n" +
+	"\x0eExecuteCommand\x12..mattermost.pluginapi.v1.ExecuteCommandRequest\x1a/.mattermost.pluginapi.v1.ExecuteCommandResponse\x12}\n" +
+	"\x12OnWebSocketConnect\x122.mattermost.pluginapi.v1.OnWebSocketConnectRequest\x1a3.mattermost.pluginapi.v1.OnWebSocketConnectResponse\x12\x86\x01\n" +
+	"\x15OnWebSocketDisconnect\x125.mattermost.pluginapi.v1.OnWebSocketDisconnectRequest\x1a6.mattermost.pluginapi.v1.OnWebSocketDisconnectResponse\x12\x9e\x01\n" +
+	"\x1dWebSocketMessageHasBeenPosted\x12=.mattermost.pluginapi.v1.WebSocketMessageHasBeenPostedRequest\x1a>.mattermost.pluginapi.v1.WebSocketMessageHasBeenPostedResponse\x12\x83\x01\n" +
+	"\x14OnPluginClusterEvent\x124.mattermost.pluginapi.v1.OnPluginClusterEventRequest\x1a5.mattermost.pluginapi.v1.OnPluginClusterEventResponse\x12\x8c\x01\n" +
+	"\x17OnSharedChannelsSyncMsg\x127.mattermost.pluginapi.v1.OnSharedChannelsSyncMsgRequest\x1a8.mattermost.pluginapi.v1.OnSharedChannelsSyncMsgResponse\x12\x83\x01\n" +
+	"\x14OnSharedChannelsPing\x124.mattermost.pluginapi.v1.OnSharedChannelsPingRequest\x1a5.mattermost.pluginapi.v1.OnSharedChannelsPingResponse\x12\xaa\x01\n" +
+	"!OnSharedChannelsAttachmentSyncMsg\x12A.mattermost.pluginapi.v1.OnSharedChannelsAttachmentSyncMsgRequest\x1aB.mattermost.pluginapi.v1.OnSharedChannelsAttachmentSyncMsgResponse\x12\xb0\x01\n" +
+	"#OnSharedChannelsProfileImageSyncMsg\x12C.mattermost.pluginapi.v1.OnSharedChannelsProfileImageSyncMsgRequest\x1aD.mattermost.pluginapi.v1.OnSharedChannelsProfileImageSyncMsgResponse\x12\x80\x01\n" +
+	"\x13GenerateSupportData\x123.mattermost.pluginapi.v1.GenerateSupportDataRequest\x1a4.mattermost.pluginapi.v1.GenerateSupportDataResponseBXZVgithub.com/mattermost/mattermost/server/public/pluginapi/grpc/generated/go/pluginapiv1b\x06proto3"
 
 var file_hooks_proto_goTypes = []any{
-	(*ImplementedRequest)(nil),                  // 0: mattermost.pluginapi.v1.ImplementedRequest
-	(*OnActivateRequest)(nil),                   // 1: mattermost.pluginapi.v1.OnActivateRequest
-	(*OnDeactivateRequest)(nil),                 // 2: mattermost.pluginapi.v1.OnDeactivateRequest
-	(*OnConfigurationChangeRequest)(nil),        // 3: mattermost.pluginapi.v1.OnConfigurationChangeRequest
-	(*OnInstallRequest)(nil),                    // 4: mattermost.pluginapi.v1.OnInstallRequest
-	(*OnSendDailyTelemetryRequest)(nil),         // 5: mattermost.pluginapi.v1.OnSendDailyTelemetryRequest
-	(*RunDataRetentionRequest)(nil),             // 6: mattermost.pluginapi.v1.RunDataRetentionRequest
-	(*OnCloudLimitsUpdatedRequest)(nil),         // 7: mattermost.pluginapi.v1.OnCloudLimitsUpdatedRequest
-	(*ConfigurationWillBeSavedRequest)(nil),     // 8: mattermost.pluginapi.v1.ConfigurationWillBeSavedRequest
-	(*MessageWillBePostedRequest)(nil),          // 9: mattermost.pluginapi.v1.MessageWillBePostedRequest
-	(*MessageWillBeUpdatedRequest)(nil),         // 10: mattermost.pluginapi.v1.MessageWillBeUpdatedRequest
-	(*MessageHasBeenPostedRequest)(nil),         // 11: mattermost.pluginapi.v1.MessageHasBeenPostedRequest
-	(*MessageHasBeenUpdatedRequest)(nil),        // 12: mattermost.pluginapi.v1.MessageHasBeenUpdatedRequest
-	(*MessagesWillBeConsumedRequest)(nil),       // 13: mattermost.pluginapi.v1.MessagesWillBeConsumedRequest
-	(*MessageHasBeenDeletedRequest)(nil),        // 14: mattermost.pluginapi.v1.MessageHasBeenDeletedRequest
-	(*FileWillBeUploadedRequest)(nil),           // 15: mattermost.pluginapi.v1.FileWillBeUploadedRequest
-	(*ReactionHasBeenAddedRequest)(nil),         // 16: mattermost.pluginapi.v1.ReactionHasBeenAddedRequest
-	(*ReactionHasBeenRemovedRequest)(nil),       // 17: mattermost.pluginapi.v1.ReactionHasBeenRemovedRequest
-	(*NotificationWillBePushedRequest)(nil),     // 18: mattermost.pluginapi.v1.NotificationWillBePushedRequest
-	(*EmailNotificationWillBeSentRequest)(nil),  // 19: mattermost.pluginapi.v1.EmailNotificationWillBeSentRequest
-	(*PreferencesHaveChangedRequest)(nil),       // 20: mattermost.pluginapi.v1.PreferencesHaveChangedRequest
-	(*UserHasBeenCreatedRequest)(nil),           // 21: mattermost.pluginapi.v1.UserHasBeenCreatedRequest
-	(*UserWillLogInRequest)(nil),                // 22: mattermost.pluginapi.v1.UserWillLogInRequest
-	(*UserHasLoggedInRequest)(nil),              // 23: mattermost.pluginapi.v1.UserHasLoggedInRequest
-	(*UserHasBeenDeactivatedRequest)(nil),       // 24: mattermost.pluginapi.v1.UserHasBeenDeactivatedRequest
-	(*OnSAMLLoginRequest)(nil),                  // 25: mattermost.pluginapi.v1.OnSAMLLoginRequest
-	(*ChannelHasBeenCreatedRequest)(nil),        // 26: mattermost.pluginapi.v1.ChannelHasBeenCreatedRequest
-	(*UserHasJoinedChannelRequest)(nil),         // 27: mattermost.pluginapi.v1.UserHasJoinedChannelRequest
-	(*UserHasLeftChannelRequest)(nil),           // 28: mattermost.pluginapi.v1.UserHasLeftChannelRequest
-	(*UserHasJoinedTeamRequest)(nil),            // 29: mattermost.pluginapi.v1.UserHasJoinedTeamRequest
-	(*UserHasLeftTeamRequest)(nil),              // 30: mattermost.pluginapi.v1.UserHasLeftTeamRequest
-	(*ImplementedResponse)(nil),                 // 31: mattermost.pluginapi.v1.ImplementedResponse
-	(*OnActivateResponse)(nil),                  // 32: mattermost.pluginapi.v1.OnActivateResponse
-	(*OnDeactivateResponse)(nil),                // 33: mattermost.pluginapi.v1.OnDeactivateResponse
-	(*OnConfigurationChangeResponse)(nil),       // 34: mattermost.pluginapi.v1.OnConfigurationChangeResponse
-	(*OnInstallResponse)(nil),                   // 35: mattermost.pluginapi.v1.OnInstallResponse
-	(*OnSendDailyTelemetryResponse)(nil),        // 36: mattermost.pluginapi.v1.OnSendDailyTelemetryResponse
-	(*RunDataRetentionResponse)(nil),            // 37: mattermost.pluginapi.v1.RunDataRetentionResponse
-	(*OnCloudLimitsUpdatedResponse)(nil),        // 38: mattermost.pluginapi.v1.OnCloudLimitsUpdatedResponse
-	(*ConfigurationWillBeSavedResponse)(nil),    // 39: mattermost.pluginapi.v1.ConfigurationWillBeSavedResponse
-	(*MessageWillBePostedResponse)(nil),         // 40: mattermost.pluginapi.v1.MessageWillBePostedResponse
-	(*MessageWillBeUpdatedResponse)(nil),        // 41: mattermost.pluginapi.v1.MessageWillBeUpdatedResponse
-	(*MessageHasBeenPostedResponse)(nil),        // 42: mattermost.pluginapi.v1.MessageHasBeenPostedResponse
-	(*MessageHasBeenUpdatedResponse)(nil),       // 43: mattermost.pluginapi.v1.MessageHasBeenUpdatedResponse
-	(*MessagesWillBeConsumedResponse)(nil),      // 44: mattermost.pluginapi.v1.MessagesWillBeConsumedResponse
-	(*MessageHasBeenDeletedResponse)(nil),       // 45: mattermost.pluginapi.v1.MessageHasBeenDeletedResponse
-	(*FileWillBeUploadedResponse)(nil),          // 46: mattermost.pluginapi.v1.FileWillBeUploadedResponse
-	(*ReactionHasBeenAddedResponse)(nil),        // 47: mattermost.pluginapi.v1.ReactionHasBeenAddedResponse
-	(*ReactionHasBeenRemovedResponse)(nil),      // 48: mattermost.pluginapi.v1.ReactionHasBeenRemovedResponse
-	(*NotificationWillBePushedResponse)(nil),    // 49: mattermost.pluginapi.v1.NotificationWillBePushedResponse
-	(*EmailNotificationWillBeSentResponse)(nil), // 50: mattermost.pluginapi.v1.EmailNotificationWillBeSentResponse
-	(*PreferencesHaveChangedResponse)(nil),      // 51: mattermost.pluginapi.v1.PreferencesHaveChangedResponse
-	(*UserHasBeenCreatedResponse)(nil),          // 52: mattermost.pluginapi.v1.UserHasBeenCreatedResponse
-	(*UserWillLogInResponse)(nil),               // 53: mattermost.pluginapi.v1.UserWillLogInResponse
-	(*UserHasLoggedInResponse)(nil),             // 54: mattermost.pluginapi.v1.UserHasLoggedInResponse
-	(*UserHasBeenDeactivatedResponse)(nil),      // 55: mattermost.pluginapi.v1.UserHasBeenDeactivatedResponse
-	(*OnSAMLLoginResponse)(nil),                 // 56: mattermost.pluginapi.v1.OnSAMLLoginResponse
-	(*ChannelHasBeenCreatedResponse)(nil),       // 57: mattermost.pluginapi.v1.ChannelHasBeenCreatedResponse
-	(*UserHasJoinedChannelResponse)(nil),        // 58: mattermost.pluginapi.v1.UserHasJoinedChannelResponse
-	(*UserHasLeftChannelResponse)(nil),          // 59: mattermost.pluginapi.v1.UserHasLeftChannelResponse
-	(*UserHasJoinedTeamResponse)(nil),           // 60: mattermost.pluginapi.v1.UserHasJoinedTeamResponse
-	(*UserHasLeftTeamResponse)(nil),             // 61: mattermost.pluginapi.v1.UserHasLeftTeamResponse
+	(*ImplementedRequest)(nil),                          // 0: mattermost.pluginapi.v1.ImplementedRequest
+	(*OnActivateRequest)(nil),                           // 1: mattermost.pluginapi.v1.OnActivateRequest
+	(*OnDeactivateRequest)(nil),                         // 2: mattermost.pluginapi.v1.OnDeactivateRequest
+	(*OnConfigurationChangeRequest)(nil),                // 3: mattermost.pluginapi.v1.OnConfigurationChangeRequest
+	(*OnInstallRequest)(nil),                            // 4: mattermost.pluginapi.v1.OnInstallRequest
+	(*OnSendDailyTelemetryRequest)(nil),                 // 5: mattermost.pluginapi.v1.OnSendDailyTelemetryRequest
+	(*RunDataRetentionRequest)(nil),                     // 6: mattermost.pluginapi.v1.RunDataRetentionRequest
+	(*OnCloudLimitsUpdatedRequest)(nil),                 // 7: mattermost.pluginapi.v1.OnCloudLimitsUpdatedRequest
+	(*ConfigurationWillBeSavedRequest)(nil),             // 8: mattermost.pluginapi.v1.ConfigurationWillBeSavedRequest
+	(*MessageWillBePostedRequest)(nil),                  // 9: mattermost.pluginapi.v1.MessageWillBePostedRequest
+	(*MessageWillBeUpdatedRequest)(nil),                 // 10: mattermost.pluginapi.v1.MessageWillBeUpdatedRequest
+	(*MessageHasBeenPostedRequest)(nil),                 // 11: mattermost.pluginapi.v1.MessageHasBeenPostedRequest
+	(*MessageHasBeenUpdatedRequest)(nil),                // 12: mattermost.pluginapi.v1.MessageHasBeenUpdatedRequest
+	(*MessagesWillBeConsumedRequest)(nil),               // 13: mattermost.pluginapi.v1.MessagesWillBeConsumedRequest
+	(*MessageHasBeenDeletedRequest)(nil),                // 14: mattermost.pluginapi.v1.MessageHasBeenDeletedRequest
+	(*FileWillBeUploadedRequest)(nil),                   // 15: mattermost.pluginapi.v1.FileWillBeUploadedRequest
+	(*ReactionHasBeenAddedRequest)(nil),                 // 16: mattermost.pluginapi.v1.ReactionHasBeenAddedRequest
+	(*ReactionHasBeenRemovedRequest)(nil),               // 17: mattermost.pluginapi.v1.ReactionHasBeenRemovedRequest
+	(*NotificationWillBePushedRequest)(nil),             // 18: mattermost.pluginapi.v1.NotificationWillBePushedRequest
+	(*EmailNotificationWillBeSentRequest)(nil),          // 19: mattermost.pluginapi.v1.EmailNotificationWillBeSentRequest
+	(*PreferencesHaveChangedRequest)(nil),               // 20: mattermost.pluginapi.v1.PreferencesHaveChangedRequest
+	(*UserHasBeenCreatedRequest)(nil),                   // 21: mattermost.pluginapi.v1.UserHasBeenCreatedRequest
+	(*UserWillLogInRequest)(nil),                        // 22: mattermost.pluginapi.v1.UserWillLogInRequest
+	(*UserHasLoggedInRequest)(nil),                      // 23: mattermost.pluginapi.v1.UserHasLoggedInRequest
+	(*UserHasBeenDeactivatedRequest)(nil),               // 24: mattermost.pluginapi.v1.UserHasBeenDeactivatedRequest
+	(*OnSAMLLoginRequest)(nil),                          // 25: mattermost.pluginapi.v1.OnSAMLLoginRequest
+	(*ChannelHasBeenCreatedRequest)(nil),                // 26: mattermost.pluginapi.v1.ChannelHasBeenCreatedRequest
+	(*UserHasJoinedChannelRequest)(nil),                 // 27: mattermost.pluginapi.v1.UserHasJoinedChannelRequest
+	(*UserHasLeftChannelRequest)(nil),                   // 28: mattermost.pluginapi.v1.UserHasLeftChannelRequest
+	(*UserHasJoinedTeamRequest)(nil),                    // 29: mattermost.pluginapi.v1.UserHasJoinedTeamRequest
+	(*UserHasLeftTeamRequest)(nil),                      // 30: mattermost.pluginapi.v1.UserHasLeftTeamRequest
+	(*ExecuteCommandRequest)(nil),                       // 31: mattermost.pluginapi.v1.ExecuteCommandRequest
+	(*OnWebSocketConnectRequest)(nil),                   // 32: mattermost.pluginapi.v1.OnWebSocketConnectRequest
+	(*OnWebSocketDisconnectRequest)(nil),                // 33: mattermost.pluginapi.v1.OnWebSocketDisconnectRequest
+	(*WebSocketMessageHasBeenPostedRequest)(nil),        // 34: mattermost.pluginapi.v1.WebSocketMessageHasBeenPostedRequest
+	(*OnPluginClusterEventRequest)(nil),                 // 35: mattermost.pluginapi.v1.OnPluginClusterEventRequest
+	(*OnSharedChannelsSyncMsgRequest)(nil),              // 36: mattermost.pluginapi.v1.OnSharedChannelsSyncMsgRequest
+	(*OnSharedChannelsPingRequest)(nil),                 // 37: mattermost.pluginapi.v1.OnSharedChannelsPingRequest
+	(*OnSharedChannelsAttachmentSyncMsgRequest)(nil),    // 38: mattermost.pluginapi.v1.OnSharedChannelsAttachmentSyncMsgRequest
+	(*OnSharedChannelsProfileImageSyncMsgRequest)(nil),  // 39: mattermost.pluginapi.v1.OnSharedChannelsProfileImageSyncMsgRequest
+	(*GenerateSupportDataRequest)(nil),                  // 40: mattermost.pluginapi.v1.GenerateSupportDataRequest
+	(*ImplementedResponse)(nil),                         // 41: mattermost.pluginapi.v1.ImplementedResponse
+	(*OnActivateResponse)(nil),                          // 42: mattermost.pluginapi.v1.OnActivateResponse
+	(*OnDeactivateResponse)(nil),                        // 43: mattermost.pluginapi.v1.OnDeactivateResponse
+	(*OnConfigurationChangeResponse)(nil),               // 44: mattermost.pluginapi.v1.OnConfigurationChangeResponse
+	(*OnInstallResponse)(nil),                           // 45: mattermost.pluginapi.v1.OnInstallResponse
+	(*OnSendDailyTelemetryResponse)(nil),                // 46: mattermost.pluginapi.v1.OnSendDailyTelemetryResponse
+	(*RunDataRetentionResponse)(nil),                    // 47: mattermost.pluginapi.v1.RunDataRetentionResponse
+	(*OnCloudLimitsUpdatedResponse)(nil),                // 48: mattermost.pluginapi.v1.OnCloudLimitsUpdatedResponse
+	(*ConfigurationWillBeSavedResponse)(nil),            // 49: mattermost.pluginapi.v1.ConfigurationWillBeSavedResponse
+	(*MessageWillBePostedResponse)(nil),                 // 50: mattermost.pluginapi.v1.MessageWillBePostedResponse
+	(*MessageWillBeUpdatedResponse)(nil),                // 51: mattermost.pluginapi.v1.MessageWillBeUpdatedResponse
+	(*MessageHasBeenPostedResponse)(nil),                // 52: mattermost.pluginapi.v1.MessageHasBeenPostedResponse
+	(*MessageHasBeenUpdatedResponse)(nil),               // 53: mattermost.pluginapi.v1.MessageHasBeenUpdatedResponse
+	(*MessagesWillBeConsumedResponse)(nil),              // 54: mattermost.pluginapi.v1.MessagesWillBeConsumedResponse
+	(*MessageHasBeenDeletedResponse)(nil),               // 55: mattermost.pluginapi.v1.MessageHasBeenDeletedResponse
+	(*FileWillBeUploadedResponse)(nil),                  // 56: mattermost.pluginapi.v1.FileWillBeUploadedResponse
+	(*ReactionHasBeenAddedResponse)(nil),                // 57: mattermost.pluginapi.v1.ReactionHasBeenAddedResponse
+	(*ReactionHasBeenRemovedResponse)(nil),              // 58: mattermost.pluginapi.v1.ReactionHasBeenRemovedResponse
+	(*NotificationWillBePushedResponse)(nil),            // 59: mattermost.pluginapi.v1.NotificationWillBePushedResponse
+	(*EmailNotificationWillBeSentResponse)(nil),         // 60: mattermost.pluginapi.v1.EmailNotificationWillBeSentResponse
+	(*PreferencesHaveChangedResponse)(nil),              // 61: mattermost.pluginapi.v1.PreferencesHaveChangedResponse
+	(*UserHasBeenCreatedResponse)(nil),                  // 62: mattermost.pluginapi.v1.UserHasBeenCreatedResponse
+	(*UserWillLogInResponse)(nil),                       // 63: mattermost.pluginapi.v1.UserWillLogInResponse
+	(*UserHasLoggedInResponse)(nil),                     // 64: mattermost.pluginapi.v1.UserHasLoggedInResponse
+	(*UserHasBeenDeactivatedResponse)(nil),              // 65: mattermost.pluginapi.v1.UserHasBeenDeactivatedResponse
+	(*OnSAMLLoginResponse)(nil),                         // 66: mattermost.pluginapi.v1.OnSAMLLoginResponse
+	(*ChannelHasBeenCreatedResponse)(nil),               // 67: mattermost.pluginapi.v1.ChannelHasBeenCreatedResponse
+	(*UserHasJoinedChannelResponse)(nil),                // 68: mattermost.pluginapi.v1.UserHasJoinedChannelResponse
+	(*UserHasLeftChannelResponse)(nil),                  // 69: mattermost.pluginapi.v1.UserHasLeftChannelResponse
+	(*UserHasJoinedTeamResponse)(nil),                   // 70: mattermost.pluginapi.v1.UserHasJoinedTeamResponse
+	(*UserHasLeftTeamResponse)(nil),                     // 71: mattermost.pluginapi.v1.UserHasLeftTeamResponse
+	(*ExecuteCommandResponse)(nil),                      // 72: mattermost.pluginapi.v1.ExecuteCommandResponse
+	(*OnWebSocketConnectResponse)(nil),                  // 73: mattermost.pluginapi.v1.OnWebSocketConnectResponse
+	(*OnWebSocketDisconnectResponse)(nil),               // 74: mattermost.pluginapi.v1.OnWebSocketDisconnectResponse
+	(*WebSocketMessageHasBeenPostedResponse)(nil),       // 75: mattermost.pluginapi.v1.WebSocketMessageHasBeenPostedResponse
+	(*OnPluginClusterEventResponse)(nil),                // 76: mattermost.pluginapi.v1.OnPluginClusterEventResponse
+	(*OnSharedChannelsSyncMsgResponse)(nil),             // 77: mattermost.pluginapi.v1.OnSharedChannelsSyncMsgResponse
+	(*OnSharedChannelsPingResponse)(nil),                // 78: mattermost.pluginapi.v1.OnSharedChannelsPingResponse
+	(*OnSharedChannelsAttachmentSyncMsgResponse)(nil),   // 79: mattermost.pluginapi.v1.OnSharedChannelsAttachmentSyncMsgResponse
+	(*OnSharedChannelsProfileImageSyncMsgResponse)(nil), // 80: mattermost.pluginapi.v1.OnSharedChannelsProfileImageSyncMsgResponse
+	(*GenerateSupportDataResponse)(nil),                 // 81: mattermost.pluginapi.v1.GenerateSupportDataResponse
 }
 var file_hooks_proto_depIdxs = []int32{
 	0,  // 0: mattermost.pluginapi.v1.PluginHooks.Implemented:input_type -> mattermost.pluginapi.v1.ImplementedRequest
@@ -158,39 +188,59 @@ var file_hooks_proto_depIdxs = []int32{
 	28, // 28: mattermost.pluginapi.v1.PluginHooks.UserHasLeftChannel:input_type -> mattermost.pluginapi.v1.UserHasLeftChannelRequest
 	29, // 29: mattermost.pluginapi.v1.PluginHooks.UserHasJoinedTeam:input_type -> mattermost.pluginapi.v1.UserHasJoinedTeamRequest
 	30, // 30: mattermost.pluginapi.v1.PluginHooks.UserHasLeftTeam:input_type -> mattermost.pluginapi.v1.UserHasLeftTeamRequest
-	31, // 31: mattermost.pluginapi.v1.PluginHooks.Implemented:output_type -> mattermost.pluginapi.v1.ImplementedResponse
-	32, // 32: mattermost.pluginapi.v1.PluginHooks.OnActivate:output_type -> mattermost.pluginapi.v1.OnActivateResponse
-	33, // 33: mattermost.pluginapi.v1.PluginHooks.OnDeactivate:output_type -> mattermost.pluginapi.v1.OnDeactivateResponse
-	34, // 34: mattermost.pluginapi.v1.PluginHooks.OnConfigurationChange:output_type -> mattermost.pluginapi.v1.OnConfigurationChangeResponse
-	35, // 35: mattermost.pluginapi.v1.PluginHooks.OnInstall:output_type -> mattermost.pluginapi.v1.OnInstallResponse
-	36, // 36: mattermost.pluginapi.v1.PluginHooks.OnSendDailyTelemetry:output_type -> mattermost.pluginapi.v1.OnSendDailyTelemetryResponse
-	37, // 37: mattermost.pluginapi.v1.PluginHooks.RunDataRetention:output_type -> mattermost.pluginapi.v1.RunDataRetentionResponse
-	38, // 38: mattermost.pluginapi.v1.PluginHooks.OnCloudLimitsUpdated:output_type -> mattermost.pluginapi.v1.OnCloudLimitsUpdatedResponse
-	39, // 39: mattermost.pluginapi.v1.PluginHooks.ConfigurationWillBeSaved:output_type -> mattermost.pluginapi.v1.ConfigurationWillBeSavedResponse
-	40, // 40: mattermost.pluginapi.v1.PluginHooks.MessageWillBePosted:output_type -> mattermost.pluginapi.v1.MessageWillBePostedResponse
-	41, // 41: mattermost.pluginapi.v1.PluginHooks.MessageWillBeUpdated:output_type -> mattermost.pluginapi.v1.MessageWillBeUpdatedResponse
-	42, // 42: mattermost.pluginapi.v1.PluginHooks.MessageHasBeenPosted:output_type -> mattermost.pluginapi.v1.MessageHasBeenPostedResponse
-	43, // 43: mattermost.pluginapi.v1.PluginHooks.MessageHasBeenUpdated:output_type -> mattermost.pluginapi.v1.MessageHasBeenUpdatedResponse
-	44, // 44: mattermost.pluginapi.v1.PluginHooks.MessagesWillBeConsumed:output_type -> mattermost.pluginapi.v1.MessagesWillBeConsumedResponse
-	45, // 45: mattermost.pluginapi.v1.PluginHooks.MessageHasBeenDeleted:output_type -> mattermost.pluginapi.v1.MessageHasBeenDeletedResponse
-	46, // 46: mattermost.pluginapi.v1.PluginHooks.FileWillBeUploaded:output_type -> mattermost.pluginapi.v1.FileWillBeUploadedResponse
-	47, // 47: mattermost.pluginapi.v1.PluginHooks.ReactionHasBeenAdded:output_type -> mattermost.pluginapi.v1.ReactionHasBeenAddedResponse
-	48, // 48: mattermost.pluginapi.v1.PluginHooks.ReactionHasBeenRemoved:output_type -> mattermost.pluginapi.v1.ReactionHasBeenRemovedResponse
-	49, // 49: mattermost.pluginapi.v1.PluginHooks.NotificationWillBePushed:output_type -> mattermost.pluginapi.v1.NotificationWillBePushedResponse
-	50, // 50: mattermost.pluginapi.v1.PluginHooks.EmailNotificationWillBeSent:output_type -> mattermost.pluginapi.v1.EmailNotificationWillBeSentResponse
-	51, // 51: mattermost.pluginapi.v1.PluginHooks.PreferencesHaveChanged:output_type -> mattermost.pluginapi.v1.PreferencesHaveChangedResponse
-	52, // 52: mattermost.pluginapi.v1.PluginHooks.UserHasBeenCreated:output_type -> mattermost.pluginapi.v1.UserHasBeenCreatedResponse
-	53, // 53: mattermost.pluginapi.v1.PluginHooks.UserWillLogIn:output_type -> mattermost.pluginapi.v1.UserWillLogInResponse
-	54, // 54: mattermost.pluginapi.v1.PluginHooks.UserHasLoggedIn:output_type -> mattermost.pluginapi.v1.UserHasLoggedInResponse
-	55, // 55: mattermost.pluginapi.v1.PluginHooks.UserHasBeenDeactivated:output_type -> mattermost.pluginapi.v1.UserHasBeenDeactivatedResponse
-	56, // 56: mattermost.pluginapi.v1.PluginHooks.OnSAMLLogin:output_type -> mattermost.pluginapi.v1.OnSAMLLoginResponse
-	57, // 57: mattermost.pluginapi.v1.PluginHooks.ChannelHasBeenCreated:output_type -> mattermost.pluginapi.v1.ChannelHasBeenCreatedResponse
-	58, // 58: mattermost.pluginapi.v1.PluginHooks.UserHasJoinedChannel:output_type -> mattermost.pluginapi.v1.UserHasJoinedChannelResponse
-	59, // 59: mattermost.pluginapi.v1.PluginHooks.UserHasLeftChannel:output_type -> mattermost.pluginapi.v1.UserHasLeftChannelResponse
-	60, // 60: mattermost.pluginapi.v1.PluginHooks.UserHasJoinedTeam:output_type -> mattermost.pluginapi.v1.UserHasJoinedTeamResponse
-	61, // 61: mattermost.pluginapi.v1.PluginHooks.UserHasLeftTeam:output_type -> mattermost.pluginapi.v1.UserHasLeftTeamResponse
-	31, // [31:62] is the sub-list for method output_type
-	0,  // [0:31] is the sub-list for method input_type
+	31, // 31: mattermost.pluginapi.v1.PluginHooks.ExecuteCommand:input_type -> mattermost.pluginapi.v1.ExecuteCommandRequest
+	32, // 32: mattermost.pluginapi.v1.PluginHooks.OnWebSocketConnect:input_type -> mattermost.pluginapi.v1.OnWebSocketConnectRequest
+	33, // 33: mattermost.pluginapi.v1.PluginHooks.OnWebSocketDisconnect:input_type -> mattermost.pluginapi.v1.OnWebSocketDisconnectRequest
+	34, // 34: mattermost.pluginapi.v1.PluginHooks.WebSocketMessageHasBeenPosted:input_type -> mattermost.pluginapi.v1.WebSocketMessageHasBeenPostedRequest
+	35, // 35: mattermost.pluginapi.v1.PluginHooks.OnPluginClusterEvent:input_type -> mattermost.pluginapi.v1.OnPluginClusterEventRequest
+	36, // 36: mattermost.pluginapi.v1.PluginHooks.OnSharedChannelsSyncMsg:input_type -> mattermost.pluginapi.v1.OnSharedChannelsSyncMsgRequest
+	37, // 37: mattermost.pluginapi.v1.PluginHooks.OnSharedChannelsPing:input_type -> mattermost.pluginapi.v1.OnSharedChannelsPingRequest
+	38, // 38: mattermost.pluginapi.v1.PluginHooks.OnSharedChannelsAttachmentSyncMsg:input_type -> mattermost.pluginapi.v1.OnSharedChannelsAttachmentSyncMsgRequest
+	39, // 39: mattermost.pluginapi.v1.PluginHooks.OnSharedChannelsProfileImageSyncMsg:input_type -> mattermost.pluginapi.v1.OnSharedChannelsProfileImageSyncMsgRequest
+	40, // 40: mattermost.pluginapi.v1.PluginHooks.GenerateSupportData:input_type -> mattermost.pluginapi.v1.GenerateSupportDataRequest
+	41, // 41: mattermost.pluginapi.v1.PluginHooks.Implemented:output_type -> mattermost.pluginapi.v1.ImplementedResponse
+	42, // 42: mattermost.pluginapi.v1.PluginHooks.OnActivate:output_type -> mattermost.pluginapi.v1.OnActivateResponse
+	43, // 43: mattermost.pluginapi.v1.PluginHooks.OnDeactivate:output_type -> mattermost.pluginapi.v1.OnDeactivateResponse
+	44, // 44: mattermost.pluginapi.v1.PluginHooks.OnConfigurationChange:output_type -> mattermost.pluginapi.v1.OnConfigurationChangeResponse
+	45, // 45: mattermost.pluginapi.v1.PluginHooks.OnInstall:output_type -> mattermost.pluginapi.v1.OnInstallResponse
+	46, // 46: mattermost.pluginapi.v1.PluginHooks.OnSendDailyTelemetry:output_type -> mattermost.pluginapi.v1.OnSendDailyTelemetryResponse
+	47, // 47: mattermost.pluginapi.v1.PluginHooks.RunDataRetention:output_type -> mattermost.pluginapi.v1.RunDataRetentionResponse
+	48, // 48: mattermost.pluginapi.v1.PluginHooks.OnCloudLimitsUpdated:output_type -> mattermost.pluginapi.v1.OnCloudLimitsUpdatedResponse
+	49, // 49: mattermost.pluginapi.v1.PluginHooks.ConfigurationWillBeSaved:output_type -> mattermost.pluginapi.v1.ConfigurationWillBeSavedResponse
+	50, // 50: mattermost.pluginapi.v1.PluginHooks.MessageWillBePosted:output_type -> mattermost.pluginapi.v1.MessageWillBePostedResponse
+	51, // 51: mattermost.pluginapi.v1.PluginHooks.MessageWillBeUpdated:output_type -> mattermost.pluginapi.v1.MessageWillBeUpdatedResponse
+	52, // 52: mattermost.pluginapi.v1.PluginHooks.MessageHasBeenPosted:output_type -> mattermost.pluginapi.v1.MessageHasBeenPostedResponse
+	53, // 53: mattermost.pluginapi.v1.PluginHooks.MessageHasBeenUpdated:output_type -> mattermost.pluginapi.v1.MessageHasBeenUpdatedResponse
+	54, // 54: mattermost.pluginapi.v1.PluginHooks.MessagesWillBeConsumed:output_type -> mattermost.pluginapi.v1.MessagesWillBeConsumedResponse
+	55, // 55: mattermost.pluginapi.v1.PluginHooks.MessageHasBeenDeleted:output_type -> mattermost.pluginapi.v1.MessageHasBeenDeletedResponse
+	56, // 56: mattermost.pluginapi.v1.PluginHooks.FileWillBeUploaded:output_type -> mattermost.pluginapi.v1.FileWillBeUploadedResponse
+	57, // 57: mattermost.pluginapi.v1.PluginHooks.ReactionHasBeenAdded:output_type -> mattermost.pluginapi.v1.ReactionHasBeenAddedResponse
+	58, // 58: mattermost.pluginapi.v1.PluginHooks.ReactionHasBeenRemoved:output_type -> mattermost.pluginapi.v1.ReactionHasBeenRemovedResponse
+	59, // 59: mattermost.pluginapi.v1.PluginHooks.NotificationWillBePushed:output_type -> mattermost.pluginapi.v1.NotificationWillBePushedResponse
+	60, // 60: mattermost.pluginapi.v1.PluginHooks.EmailNotificationWillBeSent:output_type -> mattermost.pluginapi.v1.EmailNotificationWillBeSentResponse
+	61, // 61: mattermost.pluginapi.v1.PluginHooks.PreferencesHaveChanged:output_type -> mattermost.pluginapi.v1.PreferencesHaveChangedResponse
+	62, // 62: mattermost.pluginapi.v1.PluginHooks.UserHasBeenCreated:output_type -> mattermost.pluginapi.v1.UserHasBeenCreatedResponse
+	63, // 63: mattermost.pluginapi.v1.PluginHooks.UserWillLogIn:output_type -> mattermost.pluginapi.v1.UserWillLogInResponse
+	64, // 64: mattermost.pluginapi.v1.PluginHooks.UserHasLoggedIn:output_type -> mattermost.pluginapi.v1.UserHasLoggedInResponse
+	65, // 65: mattermost.pluginapi.v1.PluginHooks.UserHasBeenDeactivated:output_type -> mattermost.pluginapi.v1.UserHasBeenDeactivatedResponse
+	66, // 66: mattermost.pluginapi.v1.PluginHooks.OnSAMLLogin:output_type -> mattermost.pluginapi.v1.OnSAMLLoginResponse
+	67, // 67: mattermost.pluginapi.v1.PluginHooks.ChannelHasBeenCreated:output_type -> mattermost.pluginapi.v1.ChannelHasBeenCreatedResponse
+	68, // 68: mattermost.pluginapi.v1.PluginHooks.UserHasJoinedChannel:output_type -> mattermost.pluginapi.v1.UserHasJoinedChannelResponse
+	69, // 69: mattermost.pluginapi.v1.PluginHooks.UserHasLeftChannel:output_type -> mattermost.pluginapi.v1.UserHasLeftChannelResponse
+	70, // 70: mattermost.pluginapi.v1.PluginHooks.UserHasJoinedTeam:output_type -> mattermost.pluginapi.v1.UserHasJoinedTeamResponse
+	71, // 71: mattermost.pluginapi.v1.PluginHooks.UserHasLeftTeam:output_type -> mattermost.pluginapi.v1.UserHasLeftTeamResponse
+	72, // 72: mattermost.pluginapi.v1.PluginHooks.ExecuteCommand:output_type -> mattermost.pluginapi.v1.ExecuteCommandResponse
+	73, // 73: mattermost.pluginapi.v1.PluginHooks.OnWebSocketConnect:output_type -> mattermost.pluginapi.v1.OnWebSocketConnectResponse
+	74, // 74: mattermost.pluginapi.v1.PluginHooks.OnWebSocketDisconnect:output_type -> mattermost.pluginapi.v1.OnWebSocketDisconnectResponse
+	75, // 75: mattermost.pluginapi.v1.PluginHooks.WebSocketMessageHasBeenPosted:output_type -> mattermost.pluginapi.v1.WebSocketMessageHasBeenPostedResponse
+	76, // 76: mattermost.pluginapi.v1.PluginHooks.OnPluginClusterEvent:output_type -> mattermost.pluginapi.v1.OnPluginClusterEventResponse
+	77, // 77: mattermost.pluginapi.v1.PluginHooks.OnSharedChannelsSyncMsg:output_type -> mattermost.pluginapi.v1.OnSharedChannelsSyncMsgResponse
+	78, // 78: mattermost.pluginapi.v1.PluginHooks.OnSharedChannelsPing:output_type -> mattermost.pluginapi.v1.OnSharedChannelsPingResponse
+	79, // 79: mattermost.pluginapi.v1.PluginHooks.OnSharedChannelsAttachmentSyncMsg:output_type -> mattermost.pluginapi.v1.OnSharedChannelsAttachmentSyncMsgResponse
+	80, // 80: mattermost.pluginapi.v1.PluginHooks.OnSharedChannelsProfileImageSyncMsg:output_type -> mattermost.pluginapi.v1.OnSharedChannelsProfileImageSyncMsgResponse
+	81, // 81: mattermost.pluginapi.v1.PluginHooks.GenerateSupportData:output_type -> mattermost.pluginapi.v1.GenerateSupportDataResponse
+	41, // [41:82] is the sub-list for method output_type
+	0,  // [0:41] is the sub-list for method input_type
 	0,  // [0:0] is the sub-list for extension type_name
 	0,  // [0:0] is the sub-list for extension extendee
 	0,  // [0:0] is the sub-list for field type_name
@@ -204,6 +254,7 @@ func file_hooks_proto_init() {
 	file_hooks_lifecycle_proto_init()
 	file_hooks_message_proto_init()
 	file_hooks_user_channel_proto_init()
+	file_hooks_command_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

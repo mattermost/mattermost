@@ -22,37 +22,47 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	PluginHooks_Implemented_FullMethodName                 = "/mattermost.pluginapi.v1.PluginHooks/Implemented"
-	PluginHooks_OnActivate_FullMethodName                  = "/mattermost.pluginapi.v1.PluginHooks/OnActivate"
-	PluginHooks_OnDeactivate_FullMethodName                = "/mattermost.pluginapi.v1.PluginHooks/OnDeactivate"
-	PluginHooks_OnConfigurationChange_FullMethodName       = "/mattermost.pluginapi.v1.PluginHooks/OnConfigurationChange"
-	PluginHooks_OnInstall_FullMethodName                   = "/mattermost.pluginapi.v1.PluginHooks/OnInstall"
-	PluginHooks_OnSendDailyTelemetry_FullMethodName        = "/mattermost.pluginapi.v1.PluginHooks/OnSendDailyTelemetry"
-	PluginHooks_RunDataRetention_FullMethodName            = "/mattermost.pluginapi.v1.PluginHooks/RunDataRetention"
-	PluginHooks_OnCloudLimitsUpdated_FullMethodName        = "/mattermost.pluginapi.v1.PluginHooks/OnCloudLimitsUpdated"
-	PluginHooks_ConfigurationWillBeSaved_FullMethodName    = "/mattermost.pluginapi.v1.PluginHooks/ConfigurationWillBeSaved"
-	PluginHooks_MessageWillBePosted_FullMethodName         = "/mattermost.pluginapi.v1.PluginHooks/MessageWillBePosted"
-	PluginHooks_MessageWillBeUpdated_FullMethodName        = "/mattermost.pluginapi.v1.PluginHooks/MessageWillBeUpdated"
-	PluginHooks_MessageHasBeenPosted_FullMethodName        = "/mattermost.pluginapi.v1.PluginHooks/MessageHasBeenPosted"
-	PluginHooks_MessageHasBeenUpdated_FullMethodName       = "/mattermost.pluginapi.v1.PluginHooks/MessageHasBeenUpdated"
-	PluginHooks_MessagesWillBeConsumed_FullMethodName      = "/mattermost.pluginapi.v1.PluginHooks/MessagesWillBeConsumed"
-	PluginHooks_MessageHasBeenDeleted_FullMethodName       = "/mattermost.pluginapi.v1.PluginHooks/MessageHasBeenDeleted"
-	PluginHooks_FileWillBeUploaded_FullMethodName          = "/mattermost.pluginapi.v1.PluginHooks/FileWillBeUploaded"
-	PluginHooks_ReactionHasBeenAdded_FullMethodName        = "/mattermost.pluginapi.v1.PluginHooks/ReactionHasBeenAdded"
-	PluginHooks_ReactionHasBeenRemoved_FullMethodName      = "/mattermost.pluginapi.v1.PluginHooks/ReactionHasBeenRemoved"
-	PluginHooks_NotificationWillBePushed_FullMethodName    = "/mattermost.pluginapi.v1.PluginHooks/NotificationWillBePushed"
-	PluginHooks_EmailNotificationWillBeSent_FullMethodName = "/mattermost.pluginapi.v1.PluginHooks/EmailNotificationWillBeSent"
-	PluginHooks_PreferencesHaveChanged_FullMethodName      = "/mattermost.pluginapi.v1.PluginHooks/PreferencesHaveChanged"
-	PluginHooks_UserHasBeenCreated_FullMethodName          = "/mattermost.pluginapi.v1.PluginHooks/UserHasBeenCreated"
-	PluginHooks_UserWillLogIn_FullMethodName               = "/mattermost.pluginapi.v1.PluginHooks/UserWillLogIn"
-	PluginHooks_UserHasLoggedIn_FullMethodName             = "/mattermost.pluginapi.v1.PluginHooks/UserHasLoggedIn"
-	PluginHooks_UserHasBeenDeactivated_FullMethodName      = "/mattermost.pluginapi.v1.PluginHooks/UserHasBeenDeactivated"
-	PluginHooks_OnSAMLLogin_FullMethodName                 = "/mattermost.pluginapi.v1.PluginHooks/OnSAMLLogin"
-	PluginHooks_ChannelHasBeenCreated_FullMethodName       = "/mattermost.pluginapi.v1.PluginHooks/ChannelHasBeenCreated"
-	PluginHooks_UserHasJoinedChannel_FullMethodName        = "/mattermost.pluginapi.v1.PluginHooks/UserHasJoinedChannel"
-	PluginHooks_UserHasLeftChannel_FullMethodName          = "/mattermost.pluginapi.v1.PluginHooks/UserHasLeftChannel"
-	PluginHooks_UserHasJoinedTeam_FullMethodName           = "/mattermost.pluginapi.v1.PluginHooks/UserHasJoinedTeam"
-	PluginHooks_UserHasLeftTeam_FullMethodName             = "/mattermost.pluginapi.v1.PluginHooks/UserHasLeftTeam"
+	PluginHooks_Implemented_FullMethodName                         = "/mattermost.pluginapi.v1.PluginHooks/Implemented"
+	PluginHooks_OnActivate_FullMethodName                          = "/mattermost.pluginapi.v1.PluginHooks/OnActivate"
+	PluginHooks_OnDeactivate_FullMethodName                        = "/mattermost.pluginapi.v1.PluginHooks/OnDeactivate"
+	PluginHooks_OnConfigurationChange_FullMethodName               = "/mattermost.pluginapi.v1.PluginHooks/OnConfigurationChange"
+	PluginHooks_OnInstall_FullMethodName                           = "/mattermost.pluginapi.v1.PluginHooks/OnInstall"
+	PluginHooks_OnSendDailyTelemetry_FullMethodName                = "/mattermost.pluginapi.v1.PluginHooks/OnSendDailyTelemetry"
+	PluginHooks_RunDataRetention_FullMethodName                    = "/mattermost.pluginapi.v1.PluginHooks/RunDataRetention"
+	PluginHooks_OnCloudLimitsUpdated_FullMethodName                = "/mattermost.pluginapi.v1.PluginHooks/OnCloudLimitsUpdated"
+	PluginHooks_ConfigurationWillBeSaved_FullMethodName            = "/mattermost.pluginapi.v1.PluginHooks/ConfigurationWillBeSaved"
+	PluginHooks_MessageWillBePosted_FullMethodName                 = "/mattermost.pluginapi.v1.PluginHooks/MessageWillBePosted"
+	PluginHooks_MessageWillBeUpdated_FullMethodName                = "/mattermost.pluginapi.v1.PluginHooks/MessageWillBeUpdated"
+	PluginHooks_MessageHasBeenPosted_FullMethodName                = "/mattermost.pluginapi.v1.PluginHooks/MessageHasBeenPosted"
+	PluginHooks_MessageHasBeenUpdated_FullMethodName               = "/mattermost.pluginapi.v1.PluginHooks/MessageHasBeenUpdated"
+	PluginHooks_MessagesWillBeConsumed_FullMethodName              = "/mattermost.pluginapi.v1.PluginHooks/MessagesWillBeConsumed"
+	PluginHooks_MessageHasBeenDeleted_FullMethodName               = "/mattermost.pluginapi.v1.PluginHooks/MessageHasBeenDeleted"
+	PluginHooks_FileWillBeUploaded_FullMethodName                  = "/mattermost.pluginapi.v1.PluginHooks/FileWillBeUploaded"
+	PluginHooks_ReactionHasBeenAdded_FullMethodName                = "/mattermost.pluginapi.v1.PluginHooks/ReactionHasBeenAdded"
+	PluginHooks_ReactionHasBeenRemoved_FullMethodName              = "/mattermost.pluginapi.v1.PluginHooks/ReactionHasBeenRemoved"
+	PluginHooks_NotificationWillBePushed_FullMethodName            = "/mattermost.pluginapi.v1.PluginHooks/NotificationWillBePushed"
+	PluginHooks_EmailNotificationWillBeSent_FullMethodName         = "/mattermost.pluginapi.v1.PluginHooks/EmailNotificationWillBeSent"
+	PluginHooks_PreferencesHaveChanged_FullMethodName              = "/mattermost.pluginapi.v1.PluginHooks/PreferencesHaveChanged"
+	PluginHooks_UserHasBeenCreated_FullMethodName                  = "/mattermost.pluginapi.v1.PluginHooks/UserHasBeenCreated"
+	PluginHooks_UserWillLogIn_FullMethodName                       = "/mattermost.pluginapi.v1.PluginHooks/UserWillLogIn"
+	PluginHooks_UserHasLoggedIn_FullMethodName                     = "/mattermost.pluginapi.v1.PluginHooks/UserHasLoggedIn"
+	PluginHooks_UserHasBeenDeactivated_FullMethodName              = "/mattermost.pluginapi.v1.PluginHooks/UserHasBeenDeactivated"
+	PluginHooks_OnSAMLLogin_FullMethodName                         = "/mattermost.pluginapi.v1.PluginHooks/OnSAMLLogin"
+	PluginHooks_ChannelHasBeenCreated_FullMethodName               = "/mattermost.pluginapi.v1.PluginHooks/ChannelHasBeenCreated"
+	PluginHooks_UserHasJoinedChannel_FullMethodName                = "/mattermost.pluginapi.v1.PluginHooks/UserHasJoinedChannel"
+	PluginHooks_UserHasLeftChannel_FullMethodName                  = "/mattermost.pluginapi.v1.PluginHooks/UserHasLeftChannel"
+	PluginHooks_UserHasJoinedTeam_FullMethodName                   = "/mattermost.pluginapi.v1.PluginHooks/UserHasJoinedTeam"
+	PluginHooks_UserHasLeftTeam_FullMethodName                     = "/mattermost.pluginapi.v1.PluginHooks/UserHasLeftTeam"
+	PluginHooks_ExecuteCommand_FullMethodName                      = "/mattermost.pluginapi.v1.PluginHooks/ExecuteCommand"
+	PluginHooks_OnWebSocketConnect_FullMethodName                  = "/mattermost.pluginapi.v1.PluginHooks/OnWebSocketConnect"
+	PluginHooks_OnWebSocketDisconnect_FullMethodName               = "/mattermost.pluginapi.v1.PluginHooks/OnWebSocketDisconnect"
+	PluginHooks_WebSocketMessageHasBeenPosted_FullMethodName       = "/mattermost.pluginapi.v1.PluginHooks/WebSocketMessageHasBeenPosted"
+	PluginHooks_OnPluginClusterEvent_FullMethodName                = "/mattermost.pluginapi.v1.PluginHooks/OnPluginClusterEvent"
+	PluginHooks_OnSharedChannelsSyncMsg_FullMethodName             = "/mattermost.pluginapi.v1.PluginHooks/OnSharedChannelsSyncMsg"
+	PluginHooks_OnSharedChannelsPing_FullMethodName                = "/mattermost.pluginapi.v1.PluginHooks/OnSharedChannelsPing"
+	PluginHooks_OnSharedChannelsAttachmentSyncMsg_FullMethodName   = "/mattermost.pluginapi.v1.PluginHooks/OnSharedChannelsAttachmentSyncMsg"
+	PluginHooks_OnSharedChannelsProfileImageSyncMsg_FullMethodName = "/mattermost.pluginapi.v1.PluginHooks/OnSharedChannelsProfileImageSyncMsg"
+	PluginHooks_GenerateSupportData_FullMethodName                 = "/mattermost.pluginapi.v1.PluginHooks/GenerateSupportData"
 )
 
 // PluginHooksClient is the client API for PluginHooks service.
@@ -263,6 +273,56 @@ type PluginHooksClient interface {
 	//
 	// Go signature: UserHasLeftTeam(c *Context, teamMember *model.TeamMember, actor *model.User)
 	UserHasLeftTeam(ctx context.Context, in *UserHasLeftTeamRequest, opts ...grpc.CallOption) (*UserHasLeftTeamResponse, error)
+	// ExecuteCommand executes a registered slash command.
+	//
+	// Go signature: ExecuteCommand(c *Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
+	ExecuteCommand(ctx context.Context, in *ExecuteCommandRequest, opts ...grpc.CallOption) (*ExecuteCommandResponse, error)
+	// OnWebSocketConnect is invoked when a new WebSocket connection is opened.
+	// This is a notification hook with no Context parameter.
+	//
+	// Go signature: OnWebSocketConnect(webConnID, userID string)
+	OnWebSocketConnect(ctx context.Context, in *OnWebSocketConnectRequest, opts ...grpc.CallOption) (*OnWebSocketConnectResponse, error)
+	// OnWebSocketDisconnect is invoked when a WebSocket connection is closed.
+	// This is a notification hook with no Context parameter.
+	//
+	// Go signature: OnWebSocketDisconnect(webConnID, userID string)
+	OnWebSocketDisconnect(ctx context.Context, in *OnWebSocketDisconnectRequest, opts ...grpc.CallOption) (*OnWebSocketDisconnectResponse, error)
+	// WebSocketMessageHasBeenPosted is invoked when a WebSocket message is received.
+	// This is a notification hook with no Context parameter.
+	//
+	// Go signature: WebSocketMessageHasBeenPosted(webConnID, userID string, req *model.WebSocketRequest)
+	WebSocketMessageHasBeenPosted(ctx context.Context, in *WebSocketMessageHasBeenPostedRequest, opts ...grpc.CallOption) (*WebSocketMessageHasBeenPostedResponse, error)
+	// OnPluginClusterEvent is invoked when an intra-cluster plugin event is received.
+	// Used for communication between plugin instances in a High-Availability cluster.
+	// This is a notification hook.
+	//
+	// Go signature: OnPluginClusterEvent(c *Context, ev model.PluginClusterEvent)
+	OnPluginClusterEvent(ctx context.Context, in *OnPluginClusterEventRequest, opts ...grpc.CallOption) (*OnPluginClusterEventResponse, error)
+	// OnSharedChannelsSyncMsg is invoked when a shared channels sync message is received.
+	// Plugins can use this to synchronize data with remote clusters.
+	//
+	// Go signature: OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error)
+	OnSharedChannelsSyncMsg(ctx context.Context, in *OnSharedChannelsSyncMsgRequest, opts ...grpc.CallOption) (*OnSharedChannelsSyncMsgResponse, error)
+	// OnSharedChannelsPing is invoked to check the health of the shared channels plugin.
+	// Return true if the plugin and upstream connections are healthy.
+	//
+	// Go signature: OnSharedChannelsPing(rc *model.RemoteCluster) bool
+	OnSharedChannelsPing(ctx context.Context, in *OnSharedChannelsPingRequest, opts ...grpc.CallOption) (*OnSharedChannelsPingResponse, error)
+	// OnSharedChannelsAttachmentSyncMsg is invoked when a file attachment sync message is received.
+	// Used to synchronize file attachments between shared channel participants.
+	//
+	// Go signature: OnSharedChannelsAttachmentSyncMsg(fi *model.FileInfo, post *model.Post, rc *model.RemoteCluster) error
+	OnSharedChannelsAttachmentSyncMsg(ctx context.Context, in *OnSharedChannelsAttachmentSyncMsgRequest, opts ...grpc.CallOption) (*OnSharedChannelsAttachmentSyncMsgResponse, error)
+	// OnSharedChannelsProfileImageSyncMsg is invoked when a profile image sync message is received.
+	// Used to synchronize user profile images between shared channel participants.
+	//
+	// Go signature: OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) error
+	OnSharedChannelsProfileImageSyncMsg(ctx context.Context, in *OnSharedChannelsProfileImageSyncMsgRequest, opts ...grpc.CallOption) (*OnSharedChannelsProfileImageSyncMsgResponse, error)
+	// GenerateSupportData is invoked when a Support Packet is generated.
+	// Plugins can include their own diagnostic data in the support packet.
+	//
+	// Go signature: GenerateSupportData(c *Context) ([]*model.FileData, error)
+	GenerateSupportData(ctx context.Context, in *GenerateSupportDataRequest, opts ...grpc.CallOption) (*GenerateSupportDataResponse, error)
 }
 
 type pluginHooksClient struct {
@@ -583,6 +643,106 @@ func (c *pluginHooksClient) UserHasLeftTeam(ctx context.Context, in *UserHasLeft
 	return out, nil
 }
 
+func (c *pluginHooksClient) ExecuteCommand(ctx context.Context, in *ExecuteCommandRequest, opts ...grpc.CallOption) (*ExecuteCommandResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ExecuteCommandResponse)
+	err := c.cc.Invoke(ctx, PluginHooks_ExecuteCommand_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pluginHooksClient) OnWebSocketConnect(ctx context.Context, in *OnWebSocketConnectRequest, opts ...grpc.CallOption) (*OnWebSocketConnectResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(OnWebSocketConnectResponse)
+	err := c.cc.Invoke(ctx, PluginHooks_OnWebSocketConnect_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pluginHooksClient) OnWebSocketDisconnect(ctx context.Context, in *OnWebSocketDisconnectRequest, opts ...grpc.CallOption) (*OnWebSocketDisconnectResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(OnWebSocketDisconnectResponse)
+	err := c.cc.Invoke(ctx, PluginHooks_OnWebSocketDisconnect_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pluginHooksClient) WebSocketMessageHasBeenPosted(ctx context.Context, in *WebSocketMessageHasBeenPostedRequest, opts ...grpc.CallOption) (*WebSocketMessageHasBeenPostedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(WebSocketMessageHasBeenPostedResponse)
+	err := c.cc.Invoke(ctx, PluginHooks_WebSocketMessageHasBeenPosted_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pluginHooksClient) OnPluginClusterEvent(ctx context.Context, in *OnPluginClusterEventRequest, opts ...grpc.CallOption) (*OnPluginClusterEventResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(OnPluginClusterEventResponse)
+	err := c.cc.Invoke(ctx, PluginHooks_OnPluginClusterEvent_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pluginHooksClient) OnSharedChannelsSyncMsg(ctx context.Context, in *OnSharedChannelsSyncMsgRequest, opts ...grpc.CallOption) (*OnSharedChannelsSyncMsgResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(OnSharedChannelsSyncMsgResponse)
+	err := c.cc.Invoke(ctx, PluginHooks_OnSharedChannelsSyncMsg_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pluginHooksClient) OnSharedChannelsPing(ctx context.Context, in *OnSharedChannelsPingRequest, opts ...grpc.CallOption) (*OnSharedChannelsPingResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(OnSharedChannelsPingResponse)
+	err := c.cc.Invoke(ctx, PluginHooks_OnSharedChannelsPing_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pluginHooksClient) OnSharedChannelsAttachmentSyncMsg(ctx context.Context, in *OnSharedChannelsAttachmentSyncMsgRequest, opts ...grpc.CallOption) (*OnSharedChannelsAttachmentSyncMsgResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(OnSharedChannelsAttachmentSyncMsgResponse)
+	err := c.cc.Invoke(ctx, PluginHooks_OnSharedChannelsAttachmentSyncMsg_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pluginHooksClient) OnSharedChannelsProfileImageSyncMsg(ctx context.Context, in *OnSharedChannelsProfileImageSyncMsgRequest, opts ...grpc.CallOption) (*OnSharedChannelsProfileImageSyncMsgResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(OnSharedChannelsProfileImageSyncMsgResponse)
+	err := c.cc.Invoke(ctx, PluginHooks_OnSharedChannelsProfileImageSyncMsg_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pluginHooksClient) GenerateSupportData(ctx context.Context, in *GenerateSupportDataRequest, opts ...grpc.CallOption) (*GenerateSupportDataResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GenerateSupportDataResponse)
+	err := c.cc.Invoke(ctx, PluginHooks_GenerateSupportData_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PluginHooksServer is the server API for PluginHooks service.
 // All implementations must embed UnimplementedPluginHooksServer
 // for forward compatibility.
@@ -791,6 +951,56 @@ type PluginHooksServer interface {
 	//
 	// Go signature: UserHasLeftTeam(c *Context, teamMember *model.TeamMember, actor *model.User)
 	UserHasLeftTeam(context.Context, *UserHasLeftTeamRequest) (*UserHasLeftTeamResponse, error)
+	// ExecuteCommand executes a registered slash command.
+	//
+	// Go signature: ExecuteCommand(c *Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
+	ExecuteCommand(context.Context, *ExecuteCommandRequest) (*ExecuteCommandResponse, error)
+	// OnWebSocketConnect is invoked when a new WebSocket connection is opened.
+	// This is a notification hook with no Context parameter.
+	//
+	// Go signature: OnWebSocketConnect(webConnID, userID string)
+	OnWebSocketConnect(context.Context, *OnWebSocketConnectRequest) (*OnWebSocketConnectResponse, error)
+	// OnWebSocketDisconnect is invoked when a WebSocket connection is closed.
+	// This is a notification hook with no Context parameter.
+	//
+	// Go signature: OnWebSocketDisconnect(webConnID, userID string)
+	OnWebSocketDisconnect(context.Context, *OnWebSocketDisconnectRequest) (*OnWebSocketDisconnectResponse, error)
+	// WebSocketMessageHasBeenPosted is invoked when a WebSocket message is received.
+	// This is a notification hook with no Context parameter.
+	//
+	// Go signature: WebSocketMessageHasBeenPosted(webConnID, userID string, req *model.WebSocketRequest)
+	WebSocketMessageHasBeenPosted(context.Context, *WebSocketMessageHasBeenPostedRequest) (*WebSocketMessageHasBeenPostedResponse, error)
+	// OnPluginClusterEvent is invoked when an intra-cluster plugin event is received.
+	// Used for communication between plugin instances in a High-Availability cluster.
+	// This is a notification hook.
+	//
+	// Go signature: OnPluginClusterEvent(c *Context, ev model.PluginClusterEvent)
+	OnPluginClusterEvent(context.Context, *OnPluginClusterEventRequest) (*OnPluginClusterEventResponse, error)
+	// OnSharedChannelsSyncMsg is invoked when a shared channels sync message is received.
+	// Plugins can use this to synchronize data with remote clusters.
+	//
+	// Go signature: OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error)
+	OnSharedChannelsSyncMsg(context.Context, *OnSharedChannelsSyncMsgRequest) (*OnSharedChannelsSyncMsgResponse, error)
+	// OnSharedChannelsPing is invoked to check the health of the shared channels plugin.
+	// Return true if the plugin and upstream connections are healthy.
+	//
+	// Go signature: OnSharedChannelsPing(rc *model.RemoteCluster) bool
+	OnSharedChannelsPing(context.Context, *OnSharedChannelsPingRequest) (*OnSharedChannelsPingResponse, error)
+	// OnSharedChannelsAttachmentSyncMsg is invoked when a file attachment sync message is received.
+	// Used to synchronize file attachments between shared channel participants.
+	//
+	// Go signature: OnSharedChannelsAttachmentSyncMsg(fi *model.FileInfo, post *model.Post, rc *model.RemoteCluster) error
+	OnSharedChannelsAttachmentSyncMsg(context.Context, *OnSharedChannelsAttachmentSyncMsgRequest) (*OnSharedChannelsAttachmentSyncMsgResponse, error)
+	// OnSharedChannelsProfileImageSyncMsg is invoked when a profile image sync message is received.
+	// Used to synchronize user profile images between shared channel participants.
+	//
+	// Go signature: OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) error
+	OnSharedChannelsProfileImageSyncMsg(context.Context, *OnSharedChannelsProfileImageSyncMsgRequest) (*OnSharedChannelsProfileImageSyncMsgResponse, error)
+	// GenerateSupportData is invoked when a Support Packet is generated.
+	// Plugins can include their own diagnostic data in the support packet.
+	//
+	// Go signature: GenerateSupportData(c *Context) ([]*model.FileData, error)
+	GenerateSupportData(context.Context, *GenerateSupportDataRequest) (*GenerateSupportDataResponse, error)
 	mustEmbedUnimplementedPluginHooksServer()
 }
 
@@ -893,6 +1103,36 @@ func (UnimplementedPluginHooksServer) UserHasJoinedTeam(context.Context, *UserHa
 }
 func (UnimplementedPluginHooksServer) UserHasLeftTeam(context.Context, *UserHasLeftTeamRequest) (*UserHasLeftTeamResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UserHasLeftTeam not implemented")
+}
+func (UnimplementedPluginHooksServer) ExecuteCommand(context.Context, *ExecuteCommandRequest) (*ExecuteCommandResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ExecuteCommand not implemented")
+}
+func (UnimplementedPluginHooksServer) OnWebSocketConnect(context.Context, *OnWebSocketConnectRequest) (*OnWebSocketConnectResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method OnWebSocketConnect not implemented")
+}
+func (UnimplementedPluginHooksServer) OnWebSocketDisconnect(context.Context, *OnWebSocketDisconnectRequest) (*OnWebSocketDisconnectResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method OnWebSocketDisconnect not implemented")
+}
+func (UnimplementedPluginHooksServer) WebSocketMessageHasBeenPosted(context.Context, *WebSocketMessageHasBeenPostedRequest) (*WebSocketMessageHasBeenPostedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method WebSocketMessageHasBeenPosted not implemented")
+}
+func (UnimplementedPluginHooksServer) OnPluginClusterEvent(context.Context, *OnPluginClusterEventRequest) (*OnPluginClusterEventResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method OnPluginClusterEvent not implemented")
+}
+func (UnimplementedPluginHooksServer) OnSharedChannelsSyncMsg(context.Context, *OnSharedChannelsSyncMsgRequest) (*OnSharedChannelsSyncMsgResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method OnSharedChannelsSyncMsg not implemented")
+}
+func (UnimplementedPluginHooksServer) OnSharedChannelsPing(context.Context, *OnSharedChannelsPingRequest) (*OnSharedChannelsPingResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method OnSharedChannelsPing not implemented")
+}
+func (UnimplementedPluginHooksServer) OnSharedChannelsAttachmentSyncMsg(context.Context, *OnSharedChannelsAttachmentSyncMsgRequest) (*OnSharedChannelsAttachmentSyncMsgResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method OnSharedChannelsAttachmentSyncMsg not implemented")
+}
+func (UnimplementedPluginHooksServer) OnSharedChannelsProfileImageSyncMsg(context.Context, *OnSharedChannelsProfileImageSyncMsgRequest) (*OnSharedChannelsProfileImageSyncMsgResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method OnSharedChannelsProfileImageSyncMsg not implemented")
+}
+func (UnimplementedPluginHooksServer) GenerateSupportData(context.Context, *GenerateSupportDataRequest) (*GenerateSupportDataResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GenerateSupportData not implemented")
 }
 func (UnimplementedPluginHooksServer) mustEmbedUnimplementedPluginHooksServer() {}
 func (UnimplementedPluginHooksServer) testEmbeddedByValue()                     {}
@@ -1473,6 +1713,186 @@ func _PluginHooks_UserHasLeftTeam_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PluginHooks_ExecuteCommand_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ExecuteCommandRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PluginHooksServer).ExecuteCommand(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PluginHooks_ExecuteCommand_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PluginHooksServer).ExecuteCommand(ctx, req.(*ExecuteCommandRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PluginHooks_OnWebSocketConnect_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OnWebSocketConnectRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PluginHooksServer).OnWebSocketConnect(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PluginHooks_OnWebSocketConnect_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PluginHooksServer).OnWebSocketConnect(ctx, req.(*OnWebSocketConnectRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PluginHooks_OnWebSocketDisconnect_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OnWebSocketDisconnectRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PluginHooksServer).OnWebSocketDisconnect(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PluginHooks_OnWebSocketDisconnect_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PluginHooksServer).OnWebSocketDisconnect(ctx, req.(*OnWebSocketDisconnectRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PluginHooks_WebSocketMessageHasBeenPosted_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WebSocketMessageHasBeenPostedRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PluginHooksServer).WebSocketMessageHasBeenPosted(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PluginHooks_WebSocketMessageHasBeenPosted_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PluginHooksServer).WebSocketMessageHasBeenPosted(ctx, req.(*WebSocketMessageHasBeenPostedRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PluginHooks_OnPluginClusterEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OnPluginClusterEventRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PluginHooksServer).OnPluginClusterEvent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PluginHooks_OnPluginClusterEvent_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PluginHooksServer).OnPluginClusterEvent(ctx, req.(*OnPluginClusterEventRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PluginHooks_OnSharedChannelsSyncMsg_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OnSharedChannelsSyncMsgRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PluginHooksServer).OnSharedChannelsSyncMsg(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PluginHooks_OnSharedChannelsSyncMsg_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PluginHooksServer).OnSharedChannelsSyncMsg(ctx, req.(*OnSharedChannelsSyncMsgRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PluginHooks_OnSharedChannelsPing_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OnSharedChannelsPingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PluginHooksServer).OnSharedChannelsPing(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PluginHooks_OnSharedChannelsPing_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PluginHooksServer).OnSharedChannelsPing(ctx, req.(*OnSharedChannelsPingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PluginHooks_OnSharedChannelsAttachmentSyncMsg_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OnSharedChannelsAttachmentSyncMsgRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PluginHooksServer).OnSharedChannelsAttachmentSyncMsg(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PluginHooks_OnSharedChannelsAttachmentSyncMsg_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PluginHooksServer).OnSharedChannelsAttachmentSyncMsg(ctx, req.(*OnSharedChannelsAttachmentSyncMsgRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PluginHooks_OnSharedChannelsProfileImageSyncMsg_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OnSharedChannelsProfileImageSyncMsgRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PluginHooksServer).OnSharedChannelsProfileImageSyncMsg(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PluginHooks_OnSharedChannelsProfileImageSyncMsg_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PluginHooksServer).OnSharedChannelsProfileImageSyncMsg(ctx, req.(*OnSharedChannelsProfileImageSyncMsgRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PluginHooks_GenerateSupportData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GenerateSupportDataRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PluginHooksServer).GenerateSupportData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PluginHooks_GenerateSupportData_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PluginHooksServer).GenerateSupportData(ctx, req.(*GenerateSupportDataRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PluginHooks_ServiceDesc is the grpc.ServiceDesc for PluginHooks service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1603,6 +2023,46 @@ var PluginHooks_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UserHasLeftTeam",
 			Handler:    _PluginHooks_UserHasLeftTeam_Handler,
+		},
+		{
+			MethodName: "ExecuteCommand",
+			Handler:    _PluginHooks_ExecuteCommand_Handler,
+		},
+		{
+			MethodName: "OnWebSocketConnect",
+			Handler:    _PluginHooks_OnWebSocketConnect_Handler,
+		},
+		{
+			MethodName: "OnWebSocketDisconnect",
+			Handler:    _PluginHooks_OnWebSocketDisconnect_Handler,
+		},
+		{
+			MethodName: "WebSocketMessageHasBeenPosted",
+			Handler:    _PluginHooks_WebSocketMessageHasBeenPosted_Handler,
+		},
+		{
+			MethodName: "OnPluginClusterEvent",
+			Handler:    _PluginHooks_OnPluginClusterEvent_Handler,
+		},
+		{
+			MethodName: "OnSharedChannelsSyncMsg",
+			Handler:    _PluginHooks_OnSharedChannelsSyncMsg_Handler,
+		},
+		{
+			MethodName: "OnSharedChannelsPing",
+			Handler:    _PluginHooks_OnSharedChannelsPing_Handler,
+		},
+		{
+			MethodName: "OnSharedChannelsAttachmentSyncMsg",
+			Handler:    _PluginHooks_OnSharedChannelsAttachmentSyncMsg_Handler,
+		},
+		{
+			MethodName: "OnSharedChannelsProfileImageSyncMsg",
+			Handler:    _PluginHooks_OnSharedChannelsProfileImageSyncMsg_Handler,
+		},
+		{
+			MethodName: "GenerateSupportData",
+			Handler:    _PluginHooks_GenerateSupportData_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
