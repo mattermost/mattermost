@@ -10,6 +10,7 @@ option go_package = "github.com/mattermost/mattermost/server/public/pluginapi/gr
 import "hooks_lifecycle.proto";
 import "hooks_message.proto";
 import "hooks_user_channel.proto";
+import "hooks_command.proto";
 
 // ==============================================================================
 // PLUGIN HOOKS SERVICE
@@ -37,7 +38,7 @@ import "hooks_user_channel.proto";
 // - hooks_lifecycle.proto: Lifecycle and system hooks (this plan: 03-01)
 // - hooks_message.proto: Message hooks (planned: 03-02)
 // - hooks_user_channel.proto: User and channel hooks (03-03)
-// - hooks_command.proto: Command and webhook hooks (planned: 03-04)
+// - hooks_command.proto: Command, WebSocket, cluster, shared channels hooks (03-04)
 //
 // ==============================================================================
 
@@ -295,4 +296,95 @@ service PluginHooks {
   //
   // Go signature: UserHasLeftTeam(c *Context, teamMember *model.TeamMember, actor *model.User)
   rpc UserHasLeftTeam(UserHasLeftTeamRequest) returns (UserHasLeftTeamResponse);
+
+  // ===========================================================================
+  // COMMAND HOOKS
+  // ===========================================================================
+
+  // ExecuteCommand executes a registered slash command.
+  //
+  // Go signature: ExecuteCommand(c *Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
+  rpc ExecuteCommand(ExecuteCommandRequest) returns (ExecuteCommandResponse);
+
+  // ===========================================================================
+  // WEBSOCKET HOOKS
+  // ===========================================================================
+
+  // OnWebSocketConnect is invoked when a new WebSocket connection is opened.
+  // This is a notification hook with no Context parameter.
+  //
+  // Go signature: OnWebSocketConnect(webConnID, userID string)
+  rpc OnWebSocketConnect(OnWebSocketConnectRequest) returns (OnWebSocketConnectResponse);
+
+  // OnWebSocketDisconnect is invoked when a WebSocket connection is closed.
+  // This is a notification hook with no Context parameter.
+  //
+  // Go signature: OnWebSocketDisconnect(webConnID, userID string)
+  rpc OnWebSocketDisconnect(OnWebSocketDisconnectRequest) returns (OnWebSocketDisconnectResponse);
+
+  // WebSocketMessageHasBeenPosted is invoked when a WebSocket message is received.
+  // This is a notification hook with no Context parameter.
+  //
+  // Go signature: WebSocketMessageHasBeenPosted(webConnID, userID string, req *model.WebSocketRequest)
+  rpc WebSocketMessageHasBeenPosted(WebSocketMessageHasBeenPostedRequest) returns (WebSocketMessageHasBeenPostedResponse);
+
+  // ===========================================================================
+  // CLUSTER HOOKS
+  // ===========================================================================
+
+  // OnPluginClusterEvent is invoked when an intra-cluster plugin event is received.
+  // Used for communication between plugin instances in a High-Availability cluster.
+  // This is a notification hook.
+  //
+  // Go signature: OnPluginClusterEvent(c *Context, ev model.PluginClusterEvent)
+  rpc OnPluginClusterEvent(OnPluginClusterEventRequest) returns (OnPluginClusterEventResponse);
+
+  // ===========================================================================
+  // SHARED CHANNELS HOOKS
+  // ===========================================================================
+
+  // OnSharedChannelsSyncMsg is invoked when a shared channels sync message is received.
+  // Plugins can use this to synchronize data with remote clusters.
+  //
+  // Go signature: OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error)
+  rpc OnSharedChannelsSyncMsg(OnSharedChannelsSyncMsgRequest) returns (OnSharedChannelsSyncMsgResponse);
+
+  // OnSharedChannelsPing is invoked to check the health of the shared channels plugin.
+  // Return true if the plugin and upstream connections are healthy.
+  //
+  // Go signature: OnSharedChannelsPing(rc *model.RemoteCluster) bool
+  rpc OnSharedChannelsPing(OnSharedChannelsPingRequest) returns (OnSharedChannelsPingResponse);
+
+  // OnSharedChannelsAttachmentSyncMsg is invoked when a file attachment sync message is received.
+  // Used to synchronize file attachments between shared channel participants.
+  //
+  // Go signature: OnSharedChannelsAttachmentSyncMsg(fi *model.FileInfo, post *model.Post, rc *model.RemoteCluster) error
+  rpc OnSharedChannelsAttachmentSyncMsg(OnSharedChannelsAttachmentSyncMsgRequest) returns (OnSharedChannelsAttachmentSyncMsgResponse);
+
+  // OnSharedChannelsProfileImageSyncMsg is invoked when a profile image sync message is received.
+  // Used to synchronize user profile images between shared channel participants.
+  //
+  // Go signature: OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) error
+  rpc OnSharedChannelsProfileImageSyncMsg(OnSharedChannelsProfileImageSyncMsgRequest) returns (OnSharedChannelsProfileImageSyncMsgResponse);
+
+  // ===========================================================================
+  // SUPPORT HOOKS
+  // ===========================================================================
+
+  // GenerateSupportData is invoked when a Support Packet is generated.
+  // Plugins can include their own diagnostic data in the support packet.
+  //
+  // Go signature: GenerateSupportData(c *Context) ([]*model.FileData, error)
+  rpc GenerateSupportData(GenerateSupportDataRequest) returns (GenerateSupportDataResponse);
+
+  // ===========================================================================
+  // DEFERRED HOOKS (Phase 8)
+  // ===========================================================================
+  //
+  // NOTE: ServeHTTP and ServeMetrics are deferred to Phase 8 (HTTP streaming).
+  // These hooks require HTTP request/response streaming over gRPC.
+  //
+  // Signatures:
+  // - ServeHTTP(c *Context, w http.ResponseWriter, r *http.Request)
+  // - ServeMetrics(c *Context, w http.ResponseWriter, r *http.Request)
 }
