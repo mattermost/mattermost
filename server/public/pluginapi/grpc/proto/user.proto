@@ -1,0 +1,117 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+syntax = "proto3";
+
+package mattermost.pluginapi.v1;
+
+option go_package = "github.com/mattermost/mattermost/server/public/pluginapi/grpc/generated/go/pluginapiv1";
+
+// User contains the details about a Mattermost user.
+// Maps to model.User in Go.
+message User {
+  // Unique identifier for the user (26-char ID)
+  string id = 1;
+
+  // Timestamp when the user was created (milliseconds since epoch)
+  int64 create_at = 2;
+
+  // Timestamp when the user was last updated (milliseconds since epoch)
+  int64 update_at = 3;
+
+  // Timestamp when the user was deleted (0 if not deleted, milliseconds since epoch)
+  int64 delete_at = 4;
+
+  // The user's username (unique, lowercase)
+  string username = 5;
+
+  // The user's password (only populated during create/update, never in responses)
+  string password = 6;
+
+  // External authentication data (e.g., LDAP DN, SAML NameID)
+  optional string auth_data = 7;
+
+  // The authentication service used (e.g., "email", "ldap", "saml", "gitlab")
+  string auth_service = 8;
+
+  // The user's email address
+  string email = 9;
+
+  // Whether the user's email has been verified
+  bool email_verified = 10;
+
+  // The user's nickname (display name alternative)
+  string nickname = 11;
+
+  // The user's first name
+  string first_name = 12;
+
+  // The user's last name
+  string last_name = 13;
+
+  // The user's job position
+  string position = 14;
+
+  // Space-separated list of role names assigned to the user
+  string roles = 15;
+
+  // Whether the user has opted in to marketing emails
+  bool allow_marketing = 16;
+
+  // User-specific properties (custom status, etc.)
+  // Maps to model.StringMap (map[string]string)
+  map<string, string> props = 17;
+
+  // Notification preferences
+  // Maps to model.StringMap (map[string]string)
+  map<string, string> notify_props = 18;
+
+  // Timestamp when the password was last updated (milliseconds since epoch)
+  int64 last_password_update = 19;
+
+  // Timestamp when the profile picture was last updated (milliseconds since epoch)
+  int64 last_picture_update = 20;
+
+  // Number of consecutive failed login attempts
+  int32 failed_attempts = 21;
+
+  // The user's locale preference (e.g., "en", "es")
+  string locale = 22;
+
+  // Timezone settings
+  // Maps to model.StringMap (map[string]string)
+  map<string, string> timezone = 23;
+
+  // Whether MFA (multi-factor authentication) is enabled
+  bool mfa_active = 24;
+
+  // MFA secret (only for internal use, never in API responses)
+  string mfa_secret = 25;
+
+  // Remote cluster ID if this user is from a shared channel
+  optional string remote_id = 26;
+
+  // Timestamp of last activity (milliseconds since epoch)
+  int64 last_activity_at = 27;
+
+  // Whether this is a bot account
+  bool is_bot = 28;
+
+  // Description for bot accounts
+  string bot_description = 29;
+
+  // Timestamp when the bot icon was last updated (milliseconds since epoch)
+  int64 bot_last_icon_update = 30;
+
+  // ID of the terms of service the user has accepted
+  string terms_of_service_id = 31;
+
+  // Timestamp when the user accepted the terms of service (milliseconds since epoch)
+  int64 terms_of_service_create_at = 32;
+
+  // Whether to skip sending the welcome email
+  bool disable_welcome_email = 33;
+
+  // Timestamp of last login (milliseconds since epoch)
+  int64 last_login = 34;
+}

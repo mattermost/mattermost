@@ -1,0 +1,125 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+syntax = "proto3";
+
+package mattermost.pluginapi.v1;
+
+option go_package = "github.com/mattermost/mattermost/server/public/pluginapi/grpc/generated/go/pluginapiv1";
+
+import "google/protobuf/struct.proto";
+
+// ChannelType represents the type of a channel.
+// Maps to model.ChannelType in Go.
+enum ChannelType {
+  // Unspecified channel type (should not be used)
+  CHANNEL_TYPE_UNSPECIFIED = 0;
+
+  // Open/public channel (anyone can join)
+  CHANNEL_TYPE_OPEN = 1;
+
+  // Private channel (invitation only)
+  CHANNEL_TYPE_PRIVATE = 2;
+
+  // Direct message between two users
+  CHANNEL_TYPE_DIRECT = 3;
+
+  // Group message between 3-8 users
+  CHANNEL_TYPE_GROUP = 4;
+}
+
+// ChannelBannerInfo contains information about a channel's banner.
+// Maps to model.ChannelBannerInfo in Go.
+message ChannelBannerInfo {
+  // Whether the banner is enabled
+  optional bool enabled = 1;
+
+  // The banner text content
+  optional string text = 2;
+
+  // The banner background color (hex format, e.g., "#FF0000")
+  optional string background_color = 3;
+}
+
+// Channel represents a Mattermost channel.
+// Maps to model.Channel in Go.
+message Channel {
+  // Unique identifier for the channel (26-char ID)
+  string id = 1;
+
+  // Timestamp when the channel was created (milliseconds since epoch)
+  int64 create_at = 2;
+
+  // Timestamp when the channel was last updated (milliseconds since epoch)
+  int64 update_at = 3;
+
+  // Timestamp when the channel was deleted (0 if not deleted, milliseconds since epoch)
+  int64 delete_at = 4;
+
+  // ID of the team this channel belongs to (empty for DMs/GMs)
+  string team_id = 5;
+
+  // The type of channel
+  ChannelType type = 6;
+
+  // The channel's display name
+  string display_name = 7;
+
+  // The channel's URL-friendly name (unique within team)
+  string name = 8;
+
+  // The channel header text (appears at top of channel)
+  string header = 9;
+
+  // The channel's purpose description
+  string purpose = 10;
+
+  // Timestamp of the last post in this channel (milliseconds since epoch)
+  int64 last_post_at = 11;
+
+  // Total number of messages in the channel
+  int64 total_msg_count = 12;
+
+  // Timestamp for extra data updates (milliseconds since epoch)
+  int64 extra_update_at = 13;
+
+  // ID of the user who created the channel
+  string creator_id = 14;
+
+  // ID of the permission scheme applied to this channel
+  optional string scheme_id = 15;
+
+  // Channel-specific properties (arbitrary JSON data)
+  // Maps to map[string]any in Go
+  google.protobuf.Struct props = 16;
+
+  // Whether the channel membership is constrained by group sync
+  optional bool group_constrained = 17;
+
+  // Whether auto-translation is enabled for this channel
+  bool auto_translation = 18;
+
+  // Whether this channel is shared with other servers
+  optional bool shared = 19;
+
+  // Total number of root messages (excluding replies)
+  int64 total_msg_count_root = 20;
+
+  // ID of the data retention policy applied to this channel
+  optional string policy_id = 21;
+
+  // Timestamp of the last root post (milliseconds since epoch)
+  int64 last_root_post_at = 22;
+
+  // Banner information for the channel
+  optional ChannelBannerInfo banner_info = 23;
+
+  // Whether a data retention policy is enforced on this channel
+  bool policy_enforced = 24;
+
+  // Whether the data retention policy is currently active
+  bool policy_is_active = 25;
+
+  // Default sidebar category name for this channel
+  string default_category_name = 26;
+}

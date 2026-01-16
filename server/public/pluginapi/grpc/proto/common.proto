@@ -1,0 +1,39 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+syntax = "proto3";
+
+package mattermost.pluginapi.v1;
+
+option go_package = "github.com/mattermost/mattermost/server/public/pluginapi/grpc/generated/go/pluginapiv1";
+
+// Empty is a placeholder message used for methods with no request/response data.
+message Empty {}
+
+// StringMap represents a map of string to string values.
+// Used for User.Props, User.NotifyProps, User.Timezone, etc.
+message StringMap {
+  map<string, string> values = 1;
+}
+
+// AppError represents an error returned by the Mattermost server.
+// Maps to model.AppError in Go.
+message AppError {
+  // A unique error identifier (e.g., "api.user.create.email_taken.app_error")
+  string id = 1;
+
+  // Human-readable error message (may be translated)
+  string message = 2;
+
+  // Internal error details for debugging
+  string detailed_error = 3;
+
+  // The request ID for tracing
+  string request_id = 4;
+
+  // HTTP status code
+  int32 status_code = 5;
+
+  // The function/method where the error originated
+  string where = 6;
+}

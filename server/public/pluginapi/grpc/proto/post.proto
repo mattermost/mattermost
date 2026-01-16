@@ -1,0 +1,185 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+syntax = "proto3";
+
+package mattermost.pluginapi.v1;
+
+option go_package = "github.com/mattermost/mattermost/server/public/pluginapi/grpc/generated/go/pluginapiv1";
+
+import "google/protobuf/struct.proto";
+import "user.proto";
+import "file.proto";
+
+// PostMetadata contains additional metadata about a post.
+// Maps to model.PostMetadata in Go.
+message PostMetadata {
+  // Embedded content (link previews, etc.)
+  repeated PostEmbed embeds = 1;
+
+  // Emoji reactions on this post
+  repeated Reaction reactions = 2;
+
+  // File attachments
+  repeated FileInfo files = 3;
+
+  // Images in the post (URLs to dimensions)
+  map<string, PostImage> images = 4;
+
+  // Post priority information
+  optional PostPriority priority = 5;
+
+  // Acknowledgements from users
+  repeated PostAcknowledgement acknowledgements = 6;
+}
+
+// PostEmbed represents embedded content in a post.
+message PostEmbed {
+  // The type of embed (e.g., "link", "opengraph", "image")
+  string type = 1;
+
+  // The URL being embedded
+  string url = 2;
+
+  // The embedded data (structure depends on type)
+  google.protobuf.Struct data = 3;
+}
+
+// PostImage represents image dimensions.
+message PostImage {
+  int32 width = 1;
+  int32 height = 2;
+  string format = 3;
+  int64 frame_count = 4;
+}
+
+// PostPriority represents priority settings for a post.
+message PostPriority {
+  // Priority level (e.g., "urgent")
+  optional string priority = 1;
+
+  // Whether acknowledgement was requested
+  optional bool requested_ack = 2;
+
+  // Whether persistent notifications are enabled
+  optional bool persistent_notifications = 3;
+}
+
+// PostAcknowledgement represents a user's acknowledgement of a post.
+message PostAcknowledgement {
+  string user_id = 1;
+  string post_id = 2;
+  int64 acknowledged_at = 3;
+}
+
+// Reaction represents a user's emoji reaction to a post.
+// Maps to model.Reaction in Go.
+message Reaction {
+  string user_id = 1;
+  string post_id = 2;
+  string emoji_name = 3;
+  int64 create_at = 4;
+  int64 update_at = 5;
+  int64 delete_at = 6;
+  optional string remote_id = 7;
+  optional string channel_id = 8;
+}
+
+// Post represents a message/post in Mattermost.
+// Maps to model.Post in Go.
+message Post {
+  // Unique identifier for the post (26-char ID)
+  string id = 1;
+
+  // Timestamp when the post was created (milliseconds since epoch)
+  int64 create_at = 2;
+
+  // Timestamp when the post was last updated (milliseconds since epoch)
+  int64 update_at = 3;
+
+  // Timestamp when the post was last edited (0 if never edited)
+  int64 edit_at = 4;
+
+  // Timestamp when the post was deleted (0 if not deleted)
+  int64 delete_at = 5;
+
+  // Whether the post is pinned to the channel
+  bool is_pinned = 6;
+
+  // ID of the user who created the post
+  string user_id = 7;
+
+  // ID of the channel this post belongs to
+  string channel_id = 8;
+
+  // ID of the root post if this is a reply (empty for root posts)
+  string root_id = 9;
+
+  // Original post ID (used for cross-posting)
+  string original_id = 10;
+
+  // The message content
+  string message = 11;
+
+  // Original message before server modifications (for edit boxes)
+  string message_source = 12;
+
+  // Post type (empty for normal posts, "system_*" for system messages)
+  string type = 13;
+
+  // Post-specific properties (attachments, webhook data, etc.)
+  // Maps to model.StringInterface (map[string]any) in Go
+  google.protobuf.Struct props = 14;
+
+  // Extracted hashtags from the message
+  string hashtags = 15;
+
+  // IDs of attached files
+  repeated string file_ids = 16;
+
+  // Client-generated ID for deduplication
+  string pending_post_id = 17;
+
+  // Whether this post has emoji reactions
+  bool has_reactions = 18;
+
+  // Remote cluster ID if this post is from a shared channel
+  optional string remote_id = 19;
+
+  // Number of replies (for root posts only)
+  int64 reply_count = 20;
+
+  // Timestamp of the last reply (for root posts only)
+  int64 last_reply_at = 21;
+
+  // Users who participated in the thread
+  repeated User participants = 22;
+
+  // Whether the current user is following this thread
+  optional bool is_following = 23;
+
+  // Additional metadata (embeds, reactions, files, etc.)
+  optional PostMetadata metadata = 24;
+}
+
+// PostList represents a list of posts with ordering information.
+// Maps to model.PostList in Go.
+message PostList {
+  // Ordered list of post IDs
+  repeated string order = 1;
+
+  // Map of post ID to Post
+  map<string, Post> posts = 2;
+
+  // The ID to use for fetching the next page
+  string next_post_id = 3;
+
+  // The ID to use for fetching the previous page
+  string prev_post_id = 4;
+
+  // Whether the first post in the list is at the channel's first unread
+  bool first_inaccessible_post_time = 5;
+
+  // Whether there are more posts to fetch
+  bool has_next = 6;
+}

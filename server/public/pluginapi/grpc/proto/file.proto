@@ -1,0 +1,86 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+syntax = "proto3";
+
+package mattermost.pluginapi.v1;
+
+option go_package = "github.com/mattermost/mattermost/server/public/pluginapi/grpc/generated/go/pluginapiv1";
+
+// FileInfo represents metadata about an uploaded file.
+// This is a standalone definition for use outside of Post context.
+// Maps to model.FileInfo in Go.
+//
+// Note: A FileInfo message is also defined in post.proto as part of PostMetadata.
+// This file provides the canonical standalone definition for file-related API methods.
+message FileInfo {
+  // Unique identifier for the file (26-char ID)
+  string id = 1;
+
+  // ID of the user who uploaded the file
+  string creator_id = 2;
+
+  // ID of the post this file is attached to (may be empty before attachment)
+  string post_id = 3;
+
+  // ID of the channel this file is in (denormalized from post)
+  string channel_id = 4;
+
+  // Timestamp when the file was created (milliseconds since epoch)
+  int64 create_at = 5;
+
+  // Timestamp when the file was last updated (milliseconds since epoch)
+  int64 update_at = 6;
+
+  // Timestamp when the file was deleted (0 if not deleted, milliseconds since epoch)
+  int64 delete_at = 7;
+
+  // Original filename as uploaded
+  string name = 8;
+
+  // File extension without the leading dot (e.g., "png", "pdf")
+  string extension = 9;
+
+  // File size in bytes
+  int64 size = 10;
+
+  // MIME type of the file (e.g., "image/png", "application/pdf")
+  string mime_type = 11;
+
+  // Image width in pixels (0 for non-image files)
+  int32 width = 12;
+
+  // Image height in pixels (0 for non-image files)
+  int32 height = 13;
+
+  // Whether a preview image was generated for this file
+  bool has_preview_image = 14;
+
+  // Mini preview data (small base64-encoded thumbnail for images)
+  optional bytes mini_preview = 15;
+
+  // Remote cluster ID if this file is from a shared channel
+  optional string remote_id = 16;
+
+  // Whether the file content has been archived and is no longer accessible
+  bool archived = 17;
+}
+
+// FileUploadResponse represents the response from a file upload.
+message FileUploadResponse {
+  // The uploaded file info
+  repeated FileInfo file_infos = 1;
+
+  // Client-provided IDs for tracking uploads
+  repeated string client_ids = 2;
+}
+
+// FileData represents the raw file content for upload.
+// Maps to model.FileData in Go.
+message FileData {
+  // The filename
+  string filename = 1;
+
+  // The raw file content
+  bytes data = 2;
+}

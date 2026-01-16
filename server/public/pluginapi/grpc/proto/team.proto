@@ -1,0 +1,131 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+syntax = "proto3";
+
+package mattermost.pluginapi.v1;
+
+option go_package = "github.com/mattermost/mattermost/server/public/pluginapi/grpc/generated/go/pluginapiv1";
+
+// TeamType represents the type of a team.
+enum TeamType {
+  // Unspecified team type (should not be used)
+  TEAM_TYPE_UNSPECIFIED = 0;
+
+  // Open team (anyone can join)
+  TEAM_TYPE_OPEN = 1;
+
+  // Invite-only team
+  TEAM_TYPE_INVITE = 2;
+}
+
+// Team represents a Mattermost team.
+// Maps to model.Team in Go.
+message Team {
+  // Unique identifier for the team (26-char ID)
+  string id = 1;
+
+  // Timestamp when the team was created (milliseconds since epoch)
+  int64 create_at = 2;
+
+  // Timestamp when the team was last updated (milliseconds since epoch)
+  int64 update_at = 3;
+
+  // Timestamp when the team was deleted (0 if not deleted, milliseconds since epoch)
+  int64 delete_at = 4;
+
+  // The team's display name
+  string display_name = 5;
+
+  // The team's URL-friendly name (unique)
+  string name = 6;
+
+  // Team description
+  string description = 7;
+
+  // Team contact email address
+  string email = 8;
+
+  // The type of team (open or invite)
+  TeamType type = 9;
+
+  // Company name associated with the team
+  string company_name = 10;
+
+  // Comma-separated list of allowed email domains for signup
+  string allowed_domains = 11;
+
+  // Unique invite ID for joining the team
+  string invite_id = 12;
+
+  // Whether the team allows open invites
+  bool allow_open_invite = 13;
+
+  // Timestamp when the team icon was last updated (milliseconds since epoch)
+  int64 last_team_icon_update = 14;
+
+  // ID of the permission scheme applied to this team
+  optional string scheme_id = 15;
+
+  // Whether membership is constrained by group sync
+  optional bool group_constrained = 16;
+
+  // ID of the data retention policy applied to this team
+  optional string policy_id = 17;
+
+  // Whether the team is archived due to cloud limits
+  bool cloud_limits_archived = 18;
+}
+
+// TeamMember represents a user's membership in a team.
+// Maps to model.TeamMember in Go.
+message TeamMember {
+  // The team ID
+  string team_id = 1;
+
+  // The user ID
+  string user_id = 2;
+
+  // Space-separated list of role names
+  string roles = 3;
+
+  // Timestamp when the member was deleted from the team
+  int64 delete_at = 4;
+
+  // Whether the user has scheme guest role
+  bool scheme_guest = 5;
+
+  // Whether the user has scheme user role
+  bool scheme_user = 6;
+
+  // Whether the user has scheme admin role
+  bool scheme_admin = 7;
+
+  // Timestamp when the member was added (milliseconds since epoch)
+  int64 create_at = 8;
+}
+
+// TeamUnread represents unread message counts for a team.
+// Maps to model.TeamUnread in Go.
+message TeamUnread {
+  // The team ID
+  string team_id = 1;
+
+  // Total unread message count
+  int64 msg_count = 2;
+
+  // Unread mention count
+  int64 mention_count = 3;
+
+  // Unread mention count in root posts only
+  int64 mention_count_root = 4;
+
+  // Total unread root message count
+  int64 msg_count_root = 5;
+
+  // Count of threads with urgent priority
+  int64 thread_count = 6;
+
+  // Count of threads with urgent mentions
+  int64 thread_mention_count = 7;
+}
