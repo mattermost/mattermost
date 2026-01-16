@@ -1165,8 +1165,6 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                             renderEmoticonsAsEmoji={this.props.renderEmoticonsAsEmoji}
                             user={this.props.user}
                             updateSection={this.updateSection}
-                            adminMode={this.props.adminMode}
-                            userPreferences={this.props.userPreferences}
                         />
                     )}
                 />
