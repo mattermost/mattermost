@@ -137,3 +137,10 @@ message AppError {
   // Uses google.protobuf.Struct for flexible map[string]any representation.
   google.protobuf.Struct params = 7;
 }
+
+// ViewUsersRestrictions restricts which users can be viewed.
+// Maps to model.ViewUsersRestrictions in Go.
+message ViewUsersRestrictions {
+  repeated string teams = 1;
+  repeated string channels = 2;
+}

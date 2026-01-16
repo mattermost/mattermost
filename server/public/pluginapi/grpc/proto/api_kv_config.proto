@@ -1,0 +1,349 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+syntax = "proto3";
+
+package mattermost.pluginapi.v1;
+
+option go_package = "github.com/mattermost/mattermost/server/public/pluginapi/grpc/generated/go/pluginapiv1";
+
+import "common.proto";
+import "google/protobuf/struct.proto";
+
+// ==============================================================================
+// KV STORE, CONFIGURATION, PLUGIN, AND LOGGING API REQUEST/RESPONSE MESSAGES
+// ==============================================================================
+//
+// This file contains request/response message definitions for:
+// - KeyValueStore methods (KVSet, KVGet, etc.)
+// - Configuration methods (GetConfig, SaveConfig, etc.)
+// - Plugin methods (GetPlugins, EnablePlugin, etc.)
+// - Logging methods (LogDebug, LogInfo, etc.)
+//
+// ==============================================================================
+
+// ===========================================================================
+// KV Store Methods
+// ===========================================================================
+
+message KVSetRequest {
+  string key = 1;
+  bytes value = 2;
+}
+
+message KVSetResponse {
+  AppError error = 1;
+}
+
+message KVCompareAndSetRequest {
+  string key = 1;
+  bytes old_value = 2;
+  bytes new_value = 3;
+}
+
+message KVCompareAndSetResponse {
+  AppError error = 1;
+  bool success = 2;
+}
+
+message KVCompareAndDeleteRequest {
+  string key = 1;
+  bytes old_value = 2;
+}
+
+message KVCompareAndDeleteResponse {
+  AppError error = 1;
+  bool success = 2;
+}
+
+message KVSetWithOptionsRequest {
+  string key = 1;
+  bytes value = 2;
+  PluginKVSetOptions options = 3;
+}
+
+message KVSetWithOptionsResponse {
+  AppError error = 1;
+  bool success = 2;
+}
+
+message KVSetWithExpiryRequest {
+  string key = 1;
+  bytes value = 2;
+  int64 expire_in_seconds = 3;
+}
+
+message KVSetWithExpiryResponse {
+  AppError error = 1;
+}
+
+message KVGetRequest {
+  string key = 1;
+}
+
+message KVGetResponse {
+  AppError error = 1;
+  bytes value = 2;
+}
+
+message KVDeleteRequest {
+  string key = 1;
+}
+
+message KVDeleteResponse {
+  AppError error = 1;
+}
+
+message KVDeleteAllRequest {
+  // Empty request - deletes all keys for the plugin
+}
+
+message KVDeleteAllResponse {
+  AppError error = 1;
+}
+
+message KVListRequest {
+  int32 page = 1;
+  int32 per_page = 2;
+}
+
+message KVListResponse {
+  AppError error = 1;
+  repeated string keys = 2;
+}
+
+message PublishWebSocketEventRequest {
+  string event = 1;
+  google.protobuf.Struct payload = 2;
+  WebsocketBroadcast broadcast = 3;
+}
+
+message PublishWebSocketEventResponse {
+  AppError error = 1;
+}
+
+// ===========================================================================
+// Configuration Methods
+// ===========================================================================
+
+message LoadPluginConfigurationRequest {
+  // Empty - configuration will be returned as JSON bytes
+}
+
+message LoadPluginConfigurationResponse {
+  AppError error = 1;
+  bytes config_json = 2;  // JSON-encoded configuration
+}
+
+message GetConfigRequest {
+  // Empty
+}
+
+message GetConfigResponse {
+  AppError error = 1;
+  bytes config_json = 2;  // JSON-encoded model.Config
+}
+
+message GetUnsanitizedConfigRequest {
+  // Empty
+}
+
+message GetUnsanitizedConfigResponse {
+  AppError error = 1;
+  bytes config_json = 2;  // JSON-encoded model.Config with secrets
+}
+
+message SaveConfigRequest {
+  bytes config_json = 1;  // JSON-encoded model.Config
+}
+
+message SaveConfigResponse {
+  AppError error = 1;
+}
+
+message GetPluginConfigRequest {
+  // Empty
+}
+
+message GetPluginConfigResponse {
+  AppError error = 1;
+  google.protobuf.Struct config = 2;  // Plugin-specific configuration
+}
+
+message SavePluginConfigRequest {
+  google.protobuf.Struct config = 1;  // Plugin-specific configuration
+}
+
+message SavePluginConfigResponse {
+  AppError error = 1;
+}
+
+// ===========================================================================
+// Plugin Methods
+// ===========================================================================
+
+message GetBundlePathRequest {
+  // Empty
+}
+
+message GetBundlePathResponse {
+  AppError error = 1;
+  string path = 2;
+}
+
+message GetPluginsRequest {
+  // Empty
+}
+
+message GetPluginsResponse {
+  AppError error = 1;
+  repeated Manifest manifests = 2;
+}
+
+message EnablePluginRequest {
+  string id = 1;
+}
+
+message EnablePluginResponse {
+  AppError error = 1;
+}
+
+message DisablePluginRequest {
+  string id = 1;
+}
+
+message DisablePluginResponse {
+  AppError error = 1;
+}
+
+message RemovePluginRequest {
+  string id = 1;
+}
+
+message RemovePluginResponse {
+  AppError error = 1;
+}
+
+message GetPluginStatusRequest {
+  string id = 1;
+}
+
+message GetPluginStatusResponse {
+  AppError error = 1;
+  PluginStatus status = 2;
+}
+
+message InstallPluginRequest {
+  bytes file_data = 1;
+  bool replace = 2;
+}
+
+message InstallPluginResponse {
+  AppError error = 1;
+  Manifest manifest = 2;
+}
+
+message GetPluginIDRequest {
+  // Empty
+}
+
+message GetPluginIDResponse {
+  AppError error = 1;
+  string plugin_id = 2;
+}
+
+// ===========================================================================
+// Logging Methods
+// ===========================================================================
+
+message LogDebugRequest {
+  string msg = 1;
+  repeated KeyValuePair key_value_pairs = 2;
+}
+
+message LogDebugResponse {
+  AppError error = 1;
+}
+
+message LogInfoRequest {
+  string msg = 1;
+  repeated KeyValuePair key_value_pairs = 2;
+}
+
+message LogInfoResponse {
+  AppError error = 1;
+}
+
+message LogErrorRequest {
+  string msg = 1;
+  repeated KeyValuePair key_value_pairs = 2;
+}
+
+message LogErrorResponse {
+  AppError error = 1;
+}
+
+message LogWarnRequest {
+  string msg = 1;
+  repeated KeyValuePair key_value_pairs = 2;
+}
+
+message LogWarnResponse {
+  AppError error = 1;
+}
+
+// ===========================================================================
+// Supporting Types
+// ===========================================================================
+
+// PluginKVSetOptions contains options for KVSetWithOptions.
+// Maps to model.PluginKVSetOptions in Go.
+message PluginKVSetOptions {
+  bool atomic = 1;
+  bytes old_value = 2;
+  int64 expire_in_seconds = 3;
+}
+
+// WebsocketBroadcast determines to which users to send a websocket event.
+// Maps to model.WebsocketBroadcast in Go.
+message WebsocketBroadcast {
+  repeated string omit_users = 1;
+  string user_id = 2;
+  string channel_id = 3;
+  string team_id = 4;
+  string connection_id = 5;
+  bool omit_connection_id = 6;
+  bool reliable_cluster_send = 7;
+  bool contention_free_broadcast = 8;
+}
+
+// Manifest represents a plugin manifest.
+// Maps to model.Manifest in Go (simplified).
+message Manifest {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string homepage_url = 4;
+  string support_url = 5;
+  string release_notes_url = 6;
+  string icon_path = 7;
+  string version = 8;
+  string min_server_version = 9;
+}
+
+// PluginStatus represents the status of a plugin.
+// Maps to model.PluginStatus in Go.
+message PluginStatus {
+  string plugin_id = 1;
+  string plugin_path = 2;
+  int32 state = 3;  // model.PluginStateNotRunning, Running, FailedToStart, etc.
+  string name = 4;
+  string description = 5;
+  string version = 6;
+}
+
+// KeyValuePair represents a key-value pair for logging.
+message KeyValuePair {
+  string key = 1;
+  google.protobuf.Value value = 2;
+}

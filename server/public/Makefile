@@ -32,6 +32,12 @@ proto-gen: proto-tools
 		--go_opt=Mpost.proto=$(PROTO_GO_PKG) \
 		--go_opt=Mteam.proto=$(PROTO_GO_PKG) \
 		--go_opt=Mfile.proto=$(PROTO_GO_PKG) \
+		--go_opt=Mapi.proto=$(PROTO_GO_PKG) \
+		--go_opt=Mapi_user_team.proto=$(PROTO_GO_PKG) \
+		--go_opt=Mapi_channel_post.proto=$(PROTO_GO_PKG) \
+		--go_opt=Mapi_kv_config.proto=$(PROTO_GO_PKG) \
+		--go_opt=Mapi_file_bot.proto=$(PROTO_GO_PKG) \
+		--go_opt=Mapi_remaining.proto=$(PROTO_GO_PKG) \
 		--go_opt=Mhooks_common.proto=$(PROTO_GO_PKG) \
 		--go_opt=Mhooks_lifecycle.proto=$(PROTO_GO_PKG) \
 		--go_opt=Mhooks.proto=$(PROTO_GO_PKG) \
@@ -43,6 +49,12 @@ proto-gen: proto-tools
 		--go-grpc_opt=Mpost.proto=$(PROTO_GO_PKG) \
 		--go-grpc_opt=Mteam.proto=$(PROTO_GO_PKG) \
 		--go-grpc_opt=Mfile.proto=$(PROTO_GO_PKG) \
+		--go-grpc_opt=Mapi.proto=$(PROTO_GO_PKG) \
+		--go-grpc_opt=Mapi_user_team.proto=$(PROTO_GO_PKG) \
+		--go-grpc_opt=Mapi_channel_post.proto=$(PROTO_GO_PKG) \
+		--go-grpc_opt=Mapi_kv_config.proto=$(PROTO_GO_PKG) \
+		--go-grpc_opt=Mapi_file_bot.proto=$(PROTO_GO_PKG) \
+		--go-grpc_opt=Mapi_remaining.proto=$(PROTO_GO_PKG) \
 		--go-grpc_opt=Mhooks_common.proto=$(PROTO_GO_PKG) \
 		--go-grpc_opt=Mhooks_lifecycle.proto=$(PROTO_GO_PKG) \
 		--go-grpc_opt=Mhooks.proto=$(PROTO_GO_PKG) \

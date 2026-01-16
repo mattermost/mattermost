@@ -1,0 +1,612 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+syntax = "proto3";
+
+package mattermost.pluginapi.v1;
+
+option go_package = "github.com/mattermost/mattermost/server/public/pluginapi/grpc/generated/go/pluginapiv1";
+
+import "common.proto";
+import "channel.proto";
+import "post.proto";
+
+// ==============================================================================
+// CHANNEL AND POST API REQUEST/RESPONSE MESSAGES
+// ==============================================================================
+//
+// This file contains request/response message definitions for all Channel, Post,
+// and Emoji related Plugin API methods.
+//
+// ==============================================================================
+
+// ===========================================================================
+// Channel Methods
+// ===========================================================================
+
+message CreateChannelRequest {
+  Channel channel = 1;
+}
+
+message CreateChannelResponse {
+  AppError error = 1;
+  Channel channel = 2;
+}
+
+message DeleteChannelRequest {
+  string channel_id = 1;
+}
+
+message DeleteChannelResponse {
+  AppError error = 1;
+}
+
+message GetPublicChannelsForTeamRequest {
+  string team_id = 1;
+  int32 page = 2;
+  int32 per_page = 3;
+}
+
+message GetPublicChannelsForTeamResponse {
+  AppError error = 1;
+  repeated Channel channels = 2;
+}
+
+message GetChannelRequest {
+  string channel_id = 1;
+}
+
+message GetChannelResponse {
+  AppError error = 1;
+  Channel channel = 2;
+}
+
+message GetChannelByNameRequest {
+  string team_id = 1;
+  string name = 2;
+  bool include_deleted = 3;
+}
+
+message GetChannelByNameResponse {
+  AppError error = 1;
+  Channel channel = 2;
+}
+
+message GetChannelByNameForTeamNameRequest {
+  string team_name = 1;
+  string channel_name = 2;
+  bool include_deleted = 3;
+}
+
+message GetChannelByNameForTeamNameResponse {
+  AppError error = 1;
+  Channel channel = 2;
+}
+
+message GetChannelsForTeamForUserRequest {
+  string team_id = 1;
+  string user_id = 2;
+  bool include_deleted = 3;
+}
+
+message GetChannelsForTeamForUserResponse {
+  AppError error = 1;
+  repeated Channel channels = 2;
+}
+
+message GetChannelStatsRequest {
+  string channel_id = 1;
+}
+
+message GetChannelStatsResponse {
+  AppError error = 1;
+  ChannelStats channel_stats = 2;
+}
+
+message GetDirectChannelRequest {
+  string user_id_1 = 1;
+  string user_id_2 = 2;
+}
+
+message GetDirectChannelResponse {
+  AppError error = 1;
+  Channel channel = 2;
+}
+
+message GetGroupChannelRequest {
+  repeated string user_ids = 1;
+}
+
+message GetGroupChannelResponse {
+  AppError error = 1;
+  Channel channel = 2;
+}
+
+message UpdateChannelRequest {
+  Channel channel = 1;
+}
+
+message UpdateChannelResponse {
+  AppError error = 1;
+  Channel channel = 2;
+}
+
+message SearchChannelsRequest {
+  string team_id = 1;
+  string term = 2;
+}
+
+message SearchChannelsResponse {
+  AppError error = 1;
+  repeated Channel channels = 2;
+}
+
+message AddChannelMemberRequest {
+  string channel_id = 1;
+  string user_id = 2;
+}
+
+message AddChannelMemberResponse {
+  AppError error = 1;
+  ChannelMember channel_member = 2;
+}
+
+message AddUserToChannelRequest {
+  string channel_id = 1;
+  string user_id = 2;
+  string as_user_id = 3;
+}
+
+message AddUserToChannelResponse {
+  AppError error = 1;
+  ChannelMember channel_member = 2;
+}
+
+message GetChannelMemberRequest {
+  string channel_id = 1;
+  string user_id = 2;
+}
+
+message GetChannelMemberResponse {
+  AppError error = 1;
+  ChannelMember channel_member = 2;
+}
+
+message GetChannelMembersRequest {
+  string channel_id = 1;
+  int32 page = 2;
+  int32 per_page = 3;
+}
+
+message GetChannelMembersResponse {
+  AppError error = 1;
+  repeated ChannelMember channel_members = 2;
+}
+
+message GetChannelMembersByIdsRequest {
+  string channel_id = 1;
+  repeated string user_ids = 2;
+}
+
+message GetChannelMembersByIdsResponse {
+  AppError error = 1;
+  repeated ChannelMember channel_members = 2;
+}
+
+message GetChannelMembersForUserRequest {
+  string team_id = 1;
+  string user_id = 2;
+  int32 page = 3;
+  int32 per_page = 4;
+}
+
+message GetChannelMembersForUserResponse {
+  AppError error = 1;
+  repeated ChannelMember channel_members = 2;
+}
+
+message UpdateChannelMemberRolesRequest {
+  string channel_id = 1;
+  string user_id = 2;
+  string new_roles = 3;
+}
+
+message UpdateChannelMemberRolesResponse {
+  AppError error = 1;
+  ChannelMember channel_member = 2;
+}
+
+message UpdateChannelMemberNotificationsRequest {
+  string channel_id = 1;
+  string user_id = 2;
+  map<string, string> notifications = 3;
+}
+
+message UpdateChannelMemberNotificationsResponse {
+  AppError error = 1;
+  ChannelMember channel_member = 2;
+}
+
+message PatchChannelMembersNotificationsRequest {
+  repeated ChannelMemberIdentifier members = 1;
+  map<string, string> notify_props = 2;
+}
+
+message PatchChannelMembersNotificationsResponse {
+  AppError error = 1;
+}
+
+message DeleteChannelMemberRequest {
+  string channel_id = 1;
+  string user_id = 2;
+}
+
+message DeleteChannelMemberResponse {
+  AppError error = 1;
+}
+
+// ===========================================================================
+// Channel Sidebar Methods
+// ===========================================================================
+
+message CreateChannelSidebarCategoryRequest {
+  string user_id = 1;
+  string team_id = 2;
+  SidebarCategoryWithChannels new_category = 3;
+}
+
+message CreateChannelSidebarCategoryResponse {
+  AppError error = 1;
+  SidebarCategoryWithChannels category = 2;
+}
+
+message GetChannelSidebarCategoriesRequest {
+  string user_id = 1;
+  string team_id = 2;
+}
+
+message GetChannelSidebarCategoriesResponse {
+  AppError error = 1;
+  OrderedSidebarCategories categories = 2;
+}
+
+message UpdateChannelSidebarCategoriesRequest {
+  string user_id = 1;
+  string team_id = 2;
+  repeated SidebarCategoryWithChannels categories = 3;
+}
+
+message UpdateChannelSidebarCategoriesResponse {
+  AppError error = 1;
+  repeated SidebarCategoryWithChannels categories = 2;
+}
+
+// ===========================================================================
+// Post Methods
+// ===========================================================================
+
+message CreatePostRequest {
+  Post post = 1;
+}
+
+message CreatePostResponse {
+  AppError error = 1;
+  Post post = 2;
+}
+
+message AddReactionRequest {
+  Reaction reaction = 1;
+}
+
+message AddReactionResponse {
+  AppError error = 1;
+  Reaction reaction = 2;
+}
+
+message RemoveReactionRequest {
+  Reaction reaction = 1;
+}
+
+message RemoveReactionResponse {
+  AppError error = 1;
+}
+
+message GetReactionsRequest {
+  string post_id = 1;
+}
+
+message GetReactionsResponse {
+  AppError error = 1;
+  repeated Reaction reactions = 2;
+}
+
+message SendEphemeralPostRequest {
+  string user_id = 1;
+  Post post = 2;
+}
+
+message SendEphemeralPostResponse {
+  AppError error = 1;
+  Post post = 2;
+}
+
+message UpdateEphemeralPostRequest {
+  string user_id = 1;
+  Post post = 2;
+}
+
+message UpdateEphemeralPostResponse {
+  AppError error = 1;
+  Post post = 2;
+}
+
+message DeleteEphemeralPostRequest {
+  string user_id = 1;
+  string post_id = 2;
+}
+
+message DeleteEphemeralPostResponse {
+  AppError error = 1;
+}
+
+message DeletePostRequest {
+  string post_id = 1;
+}
+
+message DeletePostResponse {
+  AppError error = 1;
+}
+
+message GetPostThreadRequest {
+  string post_id = 1;
+}
+
+message GetPostThreadResponse {
+  AppError error = 1;
+  PostList post_list = 2;
+}
+
+message GetPostRequest {
+  string post_id = 1;
+}
+
+message GetPostResponse {
+  AppError error = 1;
+  Post post = 2;
+}
+
+message GetPostsSinceRequest {
+  string channel_id = 1;
+  int64 time = 2;
+}
+
+message GetPostsSinceResponse {
+  AppError error = 1;
+  PostList post_list = 2;
+}
+
+message GetPostsAfterRequest {
+  string channel_id = 1;
+  string post_id = 2;
+  int32 page = 3;
+  int32 per_page = 4;
+}
+
+message GetPostsAfterResponse {
+  AppError error = 1;
+  PostList post_list = 2;
+}
+
+message GetPostsBeforeRequest {
+  string channel_id = 1;
+  string post_id = 2;
+  int32 page = 3;
+  int32 per_page = 4;
+}
+
+message GetPostsBeforeResponse {
+  AppError error = 1;
+  PostList post_list = 2;
+}
+
+message GetPostsForChannelRequest {
+  string channel_id = 1;
+  int32 page = 2;
+  int32 per_page = 3;
+}
+
+message GetPostsForChannelResponse {
+  AppError error = 1;
+  PostList post_list = 2;
+}
+
+message UpdatePostRequest {
+  Post post = 1;
+}
+
+message UpdatePostResponse {
+  AppError error = 1;
+  Post post = 2;
+}
+
+message SearchPostsInTeamRequest {
+  string team_id = 1;
+  repeated SearchParams params_list = 2;
+}
+
+message SearchPostsInTeamResponse {
+  AppError error = 1;
+  repeated Post posts = 2;
+}
+
+message SearchPostsInTeamForUserRequest {
+  string team_id = 1;
+  string user_id = 2;
+  SearchParameter search_params = 3;
+}
+
+message SearchPostsInTeamForUserResponse {
+  AppError error = 1;
+  PostSearchResults results = 2;
+}
+
+// ===========================================================================
+// Emoji Methods
+// ===========================================================================
+
+message GetEmojiListRequest {
+  string sort_by = 1;
+  int32 page = 2;
+  int32 per_page = 3;
+}
+
+message GetEmojiListResponse {
+  AppError error = 1;
+  repeated Emoji emojis = 2;
+}
+
+message GetEmojiByNameRequest {
+  string name = 1;
+}
+
+message GetEmojiByNameResponse {
+  AppError error = 1;
+  Emoji emoji = 2;
+}
+
+message GetEmojiRequest {
+  string emoji_id = 1;
+}
+
+message GetEmojiResponse {
+  AppError error = 1;
+  Emoji emoji = 2;
+}
+
+message GetEmojiImageRequest {
+  string emoji_id = 1;
+}
+
+message GetEmojiImageResponse {
+  AppError error = 1;
+  bytes image = 2;
+  string content_type = 3;
+}
+
+// ===========================================================================
+// Supporting Types
+// ===========================================================================
+
+// ChannelStats contains channel statistics.
+// Maps to model.ChannelStats in Go.
+message ChannelStats {
+  string channel_id = 1;
+  int64 member_count = 2;
+  int64 guest_count = 3;
+  int64 pinnedpost_count = 4;
+  int64 files_count = 5;
+}
+
+// ChannelMember represents a user's membership in a channel.
+// Maps to model.ChannelMember in Go.
+message ChannelMember {
+  string channel_id = 1;
+  string user_id = 2;
+  string roles = 3;
+  int64 last_viewed_at = 4;
+  int64 msg_count = 5;
+  int64 mention_count = 6;
+  int64 mention_count_root = 7;
+  int64 msg_count_root = 8;
+  map<string, string> notify_props = 9;
+  int64 last_update_at = 10;
+  bool scheme_guest = 11;
+  bool scheme_user = 12;
+  bool scheme_admin = 13;
+  int64 urgent_mention_count = 14;
+}
+
+// ChannelMemberIdentifier identifies a channel member.
+// Maps to model.ChannelMemberIdentifier in Go.
+message ChannelMemberIdentifier {
+  string channel_id = 1;
+  string user_id = 2;
+}
+
+// SidebarCategoryWithChannels is a sidebar category with its channels.
+// Maps to model.SidebarCategoryWithChannels in Go.
+message SidebarCategoryWithChannels {
+  string id = 1;
+  string user_id = 2;
+  string team_id = 3;
+  string display_name = 4;
+  string type = 5;  // "favorites", "channels", "direct_messages", "custom"
+  int32 sorting = 6;
+  bool muted = 7;
+  bool collapsed = 8;
+  repeated string channel_ids = 9;
+}
+
+// OrderedSidebarCategories contains sidebar categories in display order.
+// Maps to model.OrderedSidebarCategories in Go.
+message OrderedSidebarCategories {
+  repeated SidebarCategoryWithChannels categories = 1;
+  repeated string order = 2;
+}
+
+// Note: Reaction is defined in post.proto
+// Note: PostList is defined in post.proto
+
+// SearchParams contains search parameters.
+// Maps to model.SearchParams in Go.
+message SearchParams {
+  string terms = 1;
+  bool is_or_search = 2;
+  int64 time_zone_offset = 3;
+  int32 page = 4;
+  int32 per_page = 5;
+  bool include_deleted_channels = 6;
+  repeated string in_channels = 7;
+  repeated string excluded_channels = 8;
+  repeated string from_users = 9;
+  repeated string excluded_users = 10;
+  repeated string excluded_before_date = 11;
+  repeated string excluded_after_date = 12;
+  repeated string excluded_dates = 13;
+  repeated string extensions = 14;
+}
+
+// SearchParameter contains search parameters for user-facing search.
+// Maps to model.SearchParameter in Go.
+message SearchParameter {
+  string terms = 1;
+  bool is_or_search = 2;
+  int64 time_zone_offset = 3;
+  int32 page = 4;
+  int32 per_page = 5;
+  bool include_deleted_channels = 6;
+}
+
+// StringList is a wrapper for repeated strings (for use in maps).
+message StringList {
+  repeated string values = 1;
+}
+
+// PostSearchResults contains search results with matches.
+// Maps to model.PostSearchResults in Go.
+message PostSearchResults {
+  repeated string order = 1;
+  map<string, Post> posts = 2;
+  map<string, StringList> matches = 3;
+}
+
+// Emoji represents a custom emoji.
+// Maps to model.Emoji in Go.
+message Emoji {
+  string id = 1;
+  int64 create_at = 2;
+  int64 update_at = 3;
+  int64 delete_at = 4;
+  string creator_id = 5;
+  string name = 6;
+}

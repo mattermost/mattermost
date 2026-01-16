@@ -1,0 +1,685 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+syntax = "proto3";
+
+package mattermost.pluginapi.v1;
+
+option go_package = "github.com/mattermost/mattermost/server/public/pluginapi/grpc/generated/go/pluginapiv1";
+
+import "common.proto";
+import "user.proto";
+import "team.proto";
+
+// ==============================================================================
+// USER AND TEAM API REQUEST/RESPONSE MESSAGES
+// ==============================================================================
+//
+// This file contains request/response message definitions for all User and Team
+// related Plugin API methods. Messages follow the conventions defined in common.proto.
+//
+// Naming conventions:
+// - Requests: {MethodName}Request
+// - Responses: {MethodName}Response
+// - Response field 1 is always AppError error (null on success)
+// - Success payload fields start at field 2
+//
+// ==============================================================================
+
+// ===========================================================================
+// User Methods
+// ===========================================================================
+
+message CreateUserRequest {
+  User user = 1;
+}
+
+message CreateUserResponse {
+  AppError error = 1;
+  User user = 2;
+}
+
+message DeleteUserRequest {
+  string user_id = 1;
+}
+
+message DeleteUserResponse {
+  AppError error = 1;
+}
+
+message GetUsersRequest {
+  // Filters the users in the team
+  string in_team_id = 1;
+  // Filters the users not in the team
+  string not_in_team_id = 2;
+  // Filters the users in the channel
+  string in_channel_id = 3;
+  // Filters the users not in the channel
+  string not_in_channel_id = 4;
+  // Filters the users in the group
+  string in_group_id = 5;
+  // Filters the users not in the group
+  string not_in_group_id = 6;
+  // Filters the users group constrained
+  bool group_constrained = 7;
+  // Filters the users without a team
+  bool without_team = 8;
+  // Filters the inactive users
+  bool inactive = 9;
+  // Filters the active users
+  bool active = 10;
+  // Filters for the given role
+  string role = 11;
+  // Filters for users matching any of the given system wide roles
+  repeated string roles = 12;
+  // Filters for users matching any of the given channel roles
+  repeated string channel_roles = 13;
+  // Filters for users matching any of the given team roles
+  repeated string team_roles = 14;
+  // Sorting option
+  string sort = 15;
+  // Page
+  int32 page = 16;
+  // Page size
+  int32 per_page = 17;
+  // Filters the users that have been updated after the given time
+  int64 updated_after = 18;
+  // View restrictions
+  ViewUsersRestrictions view_restrictions = 19;
+}
+
+message GetUsersResponse {
+  AppError error = 1;
+  repeated User users = 2;
+}
+
+message GetUsersByIdsRequest {
+  repeated string user_ids = 1;
+}
+
+message GetUsersByIdsResponse {
+  AppError error = 1;
+  repeated User users = 2;
+}
+
+message GetUserRequest {
+  string user_id = 1;
+}
+
+message GetUserResponse {
+  AppError error = 1;
+  User user = 2;
+}
+
+message GetUserByEmailRequest {
+  string email = 1;
+}
+
+message GetUserByEmailResponse {
+  AppError error = 1;
+  User user = 2;
+}
+
+message GetUserByUsernameRequest {
+  string name = 1;
+}
+
+message GetUserByUsernameResponse {
+  AppError error = 1;
+  User user = 2;
+}
+
+message GetUsersByUsernamesRequest {
+  repeated string usernames = 1;
+}
+
+message GetUsersByUsernamesResponse {
+  AppError error = 1;
+  repeated User users = 2;
+}
+
+message GetUsersInTeamRequest {
+  string team_id = 1;
+  int32 page = 2;
+  int32 per_page = 3;
+}
+
+message GetUsersInTeamResponse {
+  AppError error = 1;
+  repeated User users = 2;
+}
+
+message UpdateUserRequest {
+  User user = 1;
+}
+
+message UpdateUserResponse {
+  AppError error = 1;
+  User user = 2;
+}
+
+message GetUserStatusRequest {
+  string user_id = 1;
+}
+
+message GetUserStatusResponse {
+  AppError error = 1;
+  Status status = 2;
+}
+
+message GetUserStatusesByIdsRequest {
+  repeated string user_ids = 1;
+}
+
+message GetUserStatusesByIdsResponse {
+  AppError error = 1;
+  repeated Status statuses = 2;
+}
+
+message UpdateUserStatusRequest {
+  string user_id = 1;
+  string status = 2;
+}
+
+message UpdateUserStatusResponse {
+  AppError error = 1;
+  Status status = 2;
+}
+
+message SetUserStatusTimedDNDRequest {
+  string user_id = 1;
+  int64 end_time = 2;
+}
+
+message SetUserStatusTimedDNDResponse {
+  AppError error = 1;
+  Status status = 2;
+}
+
+message UpdateUserActiveRequest {
+  string user_id = 1;
+  bool active = 2;
+}
+
+message UpdateUserActiveResponse {
+  AppError error = 1;
+}
+
+message UpdateUserCustomStatusRequest {
+  string user_id = 1;
+  CustomStatus custom_status = 2;
+}
+
+message UpdateUserCustomStatusResponse {
+  AppError error = 1;
+}
+
+message RemoveUserCustomStatusRequest {
+  string user_id = 1;
+}
+
+message RemoveUserCustomStatusResponse {
+  AppError error = 1;
+}
+
+message GetUsersInChannelRequest {
+  string channel_id = 1;
+  string sort_by = 2;
+  int32 page = 3;
+  int32 per_page = 4;
+}
+
+message GetUsersInChannelResponse {
+  AppError error = 1;
+  repeated User users = 2;
+}
+
+message GetLDAPUserAttributesRequest {
+  string user_id = 1;
+  repeated string attributes = 2;
+}
+
+message GetLDAPUserAttributesResponse {
+  AppError error = 1;
+  map<string, string> attributes = 2;
+}
+
+message SearchUsersRequest {
+  string term = 1;
+  string team_id = 2;
+  string not_in_team_id = 3;
+  string in_channel_id = 4;
+  string not_in_channel_id = 5;
+  string in_group_id = 6;
+  bool group_constrained = 7;
+  bool allow_inactive = 8;
+  bool without_team = 9;
+  int32 limit = 10;
+  string role = 11;
+  repeated string roles = 12;
+  repeated string channel_roles = 13;
+  repeated string team_roles = 14;
+  string not_in_group_id = 15;
+}
+
+message SearchUsersResponse {
+  AppError error = 1;
+  repeated User users = 2;
+}
+
+message GetProfileImageRequest {
+  string user_id = 1;
+}
+
+message GetProfileImageResponse {
+  AppError error = 1;
+  bytes image = 2;
+}
+
+message SetProfileImageRequest {
+  string user_id = 1;
+  bytes data = 2;
+}
+
+message SetProfileImageResponse {
+  AppError error = 1;
+}
+
+message HasPermissionToRequest {
+  string user_id = 1;
+  string permission_id = 2;
+}
+
+message HasPermissionToResponse {
+  AppError error = 1;
+  bool has_permission = 2;
+}
+
+message HasPermissionToTeamRequest {
+  string user_id = 1;
+  string team_id = 2;
+  string permission_id = 3;
+}
+
+message HasPermissionToTeamResponse {
+  AppError error = 1;
+  bool has_permission = 2;
+}
+
+message HasPermissionToChannelRequest {
+  string user_id = 1;
+  string channel_id = 2;
+  string permission_id = 3;
+}
+
+message HasPermissionToChannelResponse {
+  AppError error = 1;
+  bool has_permission = 2;
+}
+
+message PublishUserTypingRequest {
+  string user_id = 1;
+  string channel_id = 2;
+  string parent_id = 3;
+}
+
+message PublishUserTypingResponse {
+  AppError error = 1;
+}
+
+message UpdateUserAuthRequest {
+  string user_id = 1;
+  UserAuth user_auth = 2;
+}
+
+message UpdateUserAuthResponse {
+  AppError error = 1;
+  UserAuth user_auth = 2;
+}
+
+message UpdateUserRolesRequest {
+  string user_id = 1;
+  string new_roles = 2;
+}
+
+message UpdateUserRolesResponse {
+  AppError error = 1;
+  User user = 2;
+}
+
+// ===========================================================================
+// Session Methods
+// ===========================================================================
+
+message GetSessionRequest {
+  string session_id = 1;
+}
+
+message GetSessionResponse {
+  AppError error = 1;
+  Session session = 2;
+}
+
+message CreateSessionRequest {
+  Session session = 1;
+}
+
+message CreateSessionResponse {
+  AppError error = 1;
+  Session session = 2;
+}
+
+message ExtendSessionExpiryRequest {
+  string session_id = 1;
+  int64 new_expiry = 2;
+}
+
+message ExtendSessionExpiryResponse {
+  AppError error = 1;
+}
+
+message RevokeSessionRequest {
+  string session_id = 1;
+}
+
+message RevokeSessionResponse {
+  AppError error = 1;
+}
+
+message CreateUserAccessTokenRequest {
+  UserAccessToken token = 1;
+}
+
+message CreateUserAccessTokenResponse {
+  AppError error = 1;
+  UserAccessToken token = 2;
+}
+
+message RevokeUserAccessTokenRequest {
+  string token_id = 1;
+}
+
+message RevokeUserAccessTokenResponse {
+  AppError error = 1;
+}
+
+// ===========================================================================
+// Team Methods
+// ===========================================================================
+
+message CreateTeamRequest {
+  Team team = 1;
+}
+
+message CreateTeamResponse {
+  AppError error = 1;
+  Team team = 2;
+}
+
+message DeleteTeamRequest {
+  string team_id = 1;
+}
+
+message DeleteTeamResponse {
+  AppError error = 1;
+}
+
+message GetTeamsRequest {
+  // Empty request - returns all teams
+}
+
+message GetTeamsResponse {
+  AppError error = 1;
+  repeated Team teams = 2;
+}
+
+message GetTeamRequest {
+  string team_id = 1;
+}
+
+message GetTeamResponse {
+  AppError error = 1;
+  Team team = 2;
+}
+
+message GetTeamByNameRequest {
+  string name = 1;
+}
+
+message GetTeamByNameResponse {
+  AppError error = 1;
+  Team team = 2;
+}
+
+message GetTeamsUnreadForUserRequest {
+  string user_id = 1;
+}
+
+message GetTeamsUnreadForUserResponse {
+  AppError error = 1;
+  repeated TeamUnread team_unreads = 2;
+}
+
+message UpdateTeamRequest {
+  Team team = 1;
+}
+
+message UpdateTeamResponse {
+  AppError error = 1;
+  Team team = 2;
+}
+
+message SearchTeamsRequest {
+  string term = 1;
+}
+
+message SearchTeamsResponse {
+  AppError error = 1;
+  repeated Team teams = 2;
+}
+
+message GetTeamsForUserRequest {
+  string user_id = 1;
+}
+
+message GetTeamsForUserResponse {
+  AppError error = 1;
+  repeated Team teams = 2;
+}
+
+message CreateTeamMemberRequest {
+  string team_id = 1;
+  string user_id = 2;
+}
+
+message CreateTeamMemberResponse {
+  AppError error = 1;
+  TeamMember team_member = 2;
+}
+
+message CreateTeamMembersRequest {
+  string team_id = 1;
+  repeated string user_ids = 2;
+  string requestor_id = 3;
+}
+
+message CreateTeamMembersResponse {
+  AppError error = 1;
+  repeated TeamMember team_members = 2;
+}
+
+message CreateTeamMembersGracefullyRequest {
+  string team_id = 1;
+  repeated string user_ids = 2;
+  string requestor_id = 3;
+}
+
+message CreateTeamMembersGracefullyResponse {
+  AppError error = 1;
+  repeated TeamMemberWithError team_members = 2;
+}
+
+message DeleteTeamMemberRequest {
+  string team_id = 1;
+  string user_id = 2;
+  string requestor_id = 3;
+}
+
+message DeleteTeamMemberResponse {
+  AppError error = 1;
+}
+
+message GetTeamMembersRequest {
+  string team_id = 1;
+  int32 page = 2;
+  int32 per_page = 3;
+}
+
+message GetTeamMembersResponse {
+  AppError error = 1;
+  repeated TeamMember team_members = 2;
+}
+
+message GetTeamMemberRequest {
+  string team_id = 1;
+  string user_id = 2;
+}
+
+message GetTeamMemberResponse {
+  AppError error = 1;
+  TeamMember team_member = 2;
+}
+
+message GetTeamMembersForUserRequest {
+  string user_id = 1;
+  int32 page = 2;
+  int32 per_page = 3;
+}
+
+message GetTeamMembersForUserResponse {
+  AppError error = 1;
+  repeated TeamMember team_members = 2;
+}
+
+message UpdateTeamMemberRolesRequest {
+  string team_id = 1;
+  string user_id = 2;
+  string new_roles = 3;
+}
+
+message UpdateTeamMemberRolesResponse {
+  AppError error = 1;
+  TeamMember team_member = 2;
+}
+
+message GetTeamIconRequest {
+  string team_id = 1;
+}
+
+message GetTeamIconResponse {
+  AppError error = 1;
+  bytes icon = 2;
+}
+
+message SetTeamIconRequest {
+  string team_id = 1;
+  bytes data = 2;
+}
+
+message SetTeamIconResponse {
+  AppError error = 1;
+}
+
+message RemoveTeamIconRequest {
+  string team_id = 1;
+}
+
+message RemoveTeamIconResponse {
+  AppError error = 1;
+}
+
+message GetTeamStatsRequest {
+  string team_id = 1;
+}
+
+message GetTeamStatsResponse {
+  AppError error = 1;
+  TeamStats team_stats = 2;
+}
+
+// ===========================================================================
+// Supporting Types
+// ===========================================================================
+
+// Status represents a user's online/offline/away/dnd status.
+// Maps to model.Status in Go.
+message Status {
+  string user_id = 1;
+  string status = 2;
+  bool manual = 3;
+  int64 last_activity_at = 4;
+  // DNDEndTime is in seconds (not milliseconds like other timestamps)
+  int64 dnd_end_time = 5;
+}
+
+// CustomStatus represents a user's custom status with emoji and text.
+// Maps to model.CustomStatus in Go.
+message CustomStatus {
+  string emoji = 1;
+  string text = 2;
+  string duration = 3;
+  int64 expires_at = 4;  // Unix timestamp
+}
+
+// Note: ViewUsersRestrictions is defined in common.proto
+
+// UserAuth contains authentication data for a user.
+// Maps to model.UserAuth in Go.
+message UserAuth {
+  optional string auth_data = 1;
+  string auth_service = 2;
+}
+
+// Session represents a user session.
+// Maps to model.Session in Go.
+message Session {
+  string id = 1;
+  string token = 2;
+  int64 create_at = 3;
+  int64 expires_at = 4;
+  int64 last_activity_at = 5;
+  string user_id = 6;
+  string device_id = 7;
+  string roles = 8;
+  bool is_oauth = 9;
+  bool expired_notify = 10;
+  map<string, string> props = 11;
+  repeated TeamMember team_members = 12;
+  bool local = 13;
+}
+
+// UserAccessToken represents a user access token.
+// Maps to model.UserAccessToken in Go.
+message UserAccessToken {
+  string id = 1;
+  string token = 2;
+  string user_id = 3;
+  string description = 4;
+  bool is_active = 5;
+}
+
+// TeamMemberWithError wraps a team member with potential error.
+// Maps to model.TeamMemberWithError in Go.
+message TeamMemberWithError {
+  string user_id = 1;
+  TeamMember member = 2;
+  AppError error = 3;
+}
+
+// TeamStats contains team statistics.
+// Maps to model.TeamStats in Go.
+message TeamStats {
+  string team_id = 1;
+  int64 total_member_count = 2;
+  int64 active_member_count = 3;
+}

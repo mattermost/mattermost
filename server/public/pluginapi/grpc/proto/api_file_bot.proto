@@ -1,0 +1,266 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+syntax = "proto3";
+
+package mattermost.pluginapi.v1;
+
+option go_package = "github.com/mattermost/mattermost/server/public/pluginapi/grpc/generated/go/pluginapiv1";
+
+import "common.proto";
+import "file.proto";
+
+// ==============================================================================
+// FILE AND BOT API REQUEST/RESPONSE MESSAGES
+// ==============================================================================
+//
+// This file contains request/response message definitions for:
+// - File methods (GetFile, UploadFile, etc.)
+// - Upload methods (CreateUploadSession, UploadData, etc.)
+// - Bot methods (CreateBot, GetBot, etc.)
+//
+// ==============================================================================
+
+// ===========================================================================
+// File Methods
+// ===========================================================================
+
+message CopyFileInfosRequest {
+  string user_id = 1;
+  repeated string file_ids = 2;
+}
+
+message CopyFileInfosResponse {
+  AppError error = 1;
+  repeated string file_ids = 2;
+}
+
+message GetFileInfoRequest {
+  string file_id = 1;
+}
+
+message GetFileInfoResponse {
+  AppError error = 1;
+  FileInfo file_info = 2;
+}
+
+message SetFileSearchableContentRequest {
+  string file_id = 1;
+  string content = 2;
+}
+
+message SetFileSearchableContentResponse {
+  AppError error = 1;
+}
+
+message GetFileInfosRequest {
+  int32 page = 1;
+  int32 per_page = 2;
+  GetFileInfosOptions options = 3;
+}
+
+message GetFileInfosResponse {
+  AppError error = 1;
+  repeated FileInfo file_infos = 2;
+}
+
+message GetFileRequest {
+  string file_id = 1;
+}
+
+message GetFileResponse {
+  AppError error = 1;
+  bytes data = 2;
+}
+
+message GetFileLinkRequest {
+  string file_id = 1;
+}
+
+message GetFileLinkResponse {
+  AppError error = 1;
+  string link = 2;
+}
+
+message ReadFileRequest {
+  string path = 1;
+}
+
+message ReadFileResponse {
+  AppError error = 1;
+  bytes data = 2;
+}
+
+message UploadFileRequest {
+  bytes data = 1;
+  string channel_id = 2;
+  string filename = 3;
+}
+
+message UploadFileResponse {
+  AppError error = 1;
+  FileInfo file_info = 2;
+}
+
+// ===========================================================================
+// Upload Session Methods
+// ===========================================================================
+
+message CreateUploadSessionRequest {
+  UploadSession upload_session = 1;
+}
+
+message CreateUploadSessionResponse {
+  AppError error = 1;
+  UploadSession upload_session = 2;
+}
+
+message UploadDataRequest {
+  UploadSession upload_session = 1;
+  bytes data = 2;  // Note: For large files, streaming should be used
+}
+
+message UploadDataResponse {
+  AppError error = 1;
+  FileInfo file_info = 2;
+}
+
+message GetUploadSessionRequest {
+  string upload_id = 1;
+}
+
+message GetUploadSessionResponse {
+  AppError error = 1;
+  UploadSession upload_session = 2;
+}
+
+// ===========================================================================
+// Bot Methods
+// ===========================================================================
+
+message CreateBotRequest {
+  Bot bot = 1;
+}
+
+message CreateBotResponse {
+  AppError error = 1;
+  Bot bot = 2;
+}
+
+message PatchBotRequest {
+  string bot_user_id = 1;
+  BotPatch bot_patch = 2;
+}
+
+message PatchBotResponse {
+  AppError error = 1;
+  Bot bot = 2;
+}
+
+message GetBotRequest {
+  string bot_user_id = 1;
+  bool include_deleted = 2;
+}
+
+message GetBotResponse {
+  AppError error = 1;
+  Bot bot = 2;
+}
+
+message GetBotsRequest {
+  BotGetOptions options = 1;
+}
+
+message GetBotsResponse {
+  AppError error = 1;
+  repeated Bot bots = 2;
+}
+
+message UpdateBotActiveRequest {
+  string bot_user_id = 1;
+  bool active = 2;
+}
+
+message UpdateBotActiveResponse {
+  AppError error = 1;
+  Bot bot = 2;
+}
+
+message PermanentDeleteBotRequest {
+  string bot_user_id = 1;
+}
+
+message PermanentDeleteBotResponse {
+  AppError error = 1;
+}
+
+message EnsureBotUserRequest {
+  Bot bot = 1;
+}
+
+message EnsureBotUserResponse {
+  AppError error = 1;
+  string bot_user_id = 2;
+}
+
+// ===========================================================================
+// Supporting Types
+// ===========================================================================
+
+// GetFileInfosOptions contains options for GetFileInfos.
+// Maps to model.GetFileInfosOptions in Go.
+message GetFileInfosOptions {
+  string user_id = 1;
+  string channel_id = 2;
+  bool include_deleted = 3;
+  string sort_by = 4;
+  string sort_order = 5;
+}
+
+// UploadSession represents an upload session for resumable uploads.
+// Maps to model.UploadSession in Go.
+message UploadSession {
+  string id = 1;
+  string type = 2;  // "attachment" or "import"
+  int64 create_at = 3;
+  string user_id = 4;
+  string channel_id = 5;
+  string filename = 6;
+  string path = 7;
+  int64 file_size = 8;
+  int64 file_offset = 9;
+  string remote_id = 10;
+  string req_file_id = 11;
+}
+
+// Bot represents a bot account.
+// Maps to model.Bot in Go.
+message Bot {
+  string user_id = 1;
+  string username = 2;
+  string display_name = 3;
+  string description = 4;
+  string owner_id = 5;
+  int64 create_at = 6;
+  int64 update_at = 7;
+  int64 delete_at = 8;
+  int64 last_icon_update = 9;
+}
+
+// BotPatch contains fields to update a bot.
+// Maps to model.BotPatch in Go.
+message BotPatch {
+  optional string username = 1;
+  optional string display_name = 2;
+  optional string description = 3;
+}
+
+// BotGetOptions contains options for GetBots.
+// Maps to model.BotGetOptions in Go.
+message BotGetOptions {
+  string owner_id = 1;
+  bool include_deleted = 2;
+  bool only_orphaned = 3;
+  int32 page = 4;
+  int32 per_page = 5;
+}

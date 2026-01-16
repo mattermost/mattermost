@@ -1,0 +1,1247 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+syntax = "proto3";
+
+package mattermost.pluginapi.v1;
+
+option go_package = "github.com/mattermost/mattermost/server/public/pluginapi/grpc/generated/go/pluginapiv1";
+
+import "common.proto";
+import "user.proto";
+import "google/protobuf/struct.proto";
+
+// ==============================================================================
+// REMAINING API REQUEST/RESPONSE MESSAGES
+// ==============================================================================
+//
+// This file contains request/response message definitions for:
+// - Server methods (GetLicense, GetServerVersion, etc.)
+// - Command methods (RegisterCommand, ExecuteSlashCommand, etc.)
+// - Preference methods (GetPreferencesForUser, etc.)
+// - OAuth methods (CreateOAuthApp, etc.)
+// - Group methods (GetGroup, CreateGroup, etc.)
+// - SharedChannels methods
+// - PropertyField/Value/Group methods
+// - Audit methods
+// - Miscellaneous methods (PluginHTTP, SendMail, etc.)
+//
+// ==============================================================================
+
+// ===========================================================================
+// Server Methods
+// ===========================================================================
+
+message GetLicenseRequest {
+  // Empty
+}
+
+message GetLicenseResponse {
+  AppError error = 1;
+  bytes license_json = 2;  // JSON-encoded model.License
+}
+
+message IsEnterpriseReadyRequest {
+  // Empty
+}
+
+message IsEnterpriseReadyResponse {
+  AppError error = 1;
+  bool is_enterprise_ready = 2;
+}
+
+message GetServerVersionRequest {
+  // Empty
+}
+
+message GetServerVersionResponse {
+  AppError error = 1;
+  string version = 2;
+}
+
+message GetSystemInstallDateRequest {
+  // Empty
+}
+
+message GetSystemInstallDateResponse {
+  AppError error = 1;
+  int64 install_date = 2;
+}
+
+message GetDiagnosticIdRequest {
+  // Empty
+}
+
+message GetDiagnosticIdResponse {
+  AppError error = 1;
+  string diagnostic_id = 2;
+}
+
+message GetTelemetryIdRequest {
+  // Empty
+}
+
+message GetTelemetryIdResponse {
+  AppError error = 1;
+  string telemetry_id = 2;
+}
+
+// ===========================================================================
+// Command Methods
+// ===========================================================================
+
+message RegisterCommandRequest {
+  Command command = 1;
+}
+
+message RegisterCommandResponse {
+  AppError error = 1;
+}
+
+message UnregisterCommandRequest {
+  string team_id = 1;
+  string trigger = 2;
+}
+
+message UnregisterCommandResponse {
+  AppError error = 1;
+}
+
+message ExecuteSlashCommandRequest {
+  CommandArgs command_args = 1;
+}
+
+message ExecuteSlashCommandResponse {
+  AppError error = 1;
+  CommandResponse response = 2;
+}
+
+message CreateCommandRequest {
+  Command cmd = 1;
+}
+
+message CreateCommandResponse {
+  AppError error = 1;
+  Command command = 2;
+}
+
+message ListCommandsRequest {
+  string team_id = 1;
+}
+
+message ListCommandsResponse {
+  AppError error = 1;
+  repeated Command commands = 2;
+}
+
+message ListCustomCommandsRequest {
+  string team_id = 1;
+}
+
+message ListCustomCommandsResponse {
+  AppError error = 1;
+  repeated Command commands = 2;
+}
+
+message ListPluginCommandsRequest {
+  string team_id = 1;
+}
+
+message ListPluginCommandsResponse {
+  AppError error = 1;
+  repeated Command commands = 2;
+}
+
+message ListBuiltInCommandsRequest {
+  // Empty
+}
+
+message ListBuiltInCommandsResponse {
+  AppError error = 1;
+  repeated Command commands = 2;
+}
+
+message GetCommandRequest {
+  string command_id = 1;
+}
+
+message GetCommandResponse {
+  AppError error = 1;
+  Command command = 2;
+}
+
+message UpdateCommandRequest {
+  string command_id = 1;
+  Command updated_cmd = 2;
+}
+
+message UpdateCommandResponse {
+  AppError error = 1;
+  Command command = 2;
+}
+
+message DeleteCommandRequest {
+  string command_id = 1;
+}
+
+message DeleteCommandResponse {
+  AppError error = 1;
+}
+
+// ===========================================================================
+// Preference Methods
+// ===========================================================================
+
+message GetPreferenceForUserRequest {
+  string user_id = 1;
+  string category = 2;
+  string name = 3;
+}
+
+message GetPreferenceForUserResponse {
+  AppError error = 1;
+  Preference preference = 2;
+}
+
+message GetPreferencesForUserRequest {
+  string user_id = 1;
+}
+
+message GetPreferencesForUserResponse {
+  AppError error = 1;
+  repeated Preference preferences = 2;
+}
+
+message UpdatePreferencesForUserRequest {
+  string user_id = 1;
+  repeated Preference preferences = 2;
+}
+
+message UpdatePreferencesForUserResponse {
+  AppError error = 1;
+}
+
+message DeletePreferencesForUserRequest {
+  string user_id = 1;
+  repeated Preference preferences = 2;
+}
+
+message DeletePreferencesForUserResponse {
+  AppError error = 1;
+}
+
+// ===========================================================================
+// OAuth Methods
+// ===========================================================================
+
+message CreateOAuthAppRequest {
+  OAuthApp app = 1;
+}
+
+message CreateOAuthAppResponse {
+  AppError error = 1;
+  OAuthApp app = 2;
+}
+
+message GetOAuthAppRequest {
+  string app_id = 1;
+}
+
+message GetOAuthAppResponse {
+  AppError error = 1;
+  OAuthApp app = 2;
+}
+
+message UpdateOAuthAppRequest {
+  OAuthApp app = 1;
+}
+
+message UpdateOAuthAppResponse {
+  AppError error = 1;
+  OAuthApp app = 2;
+}
+
+message DeleteOAuthAppRequest {
+  string app_id = 1;
+}
+
+message DeleteOAuthAppResponse {
+  AppError error = 1;
+}
+
+// ===========================================================================
+// Group Methods
+// ===========================================================================
+
+message GetGroupRequest {
+  string group_id = 1;
+}
+
+message GetGroupResponse {
+  AppError error = 1;
+  Group group = 2;
+}
+
+message GetGroupByNameRequest {
+  string name = 1;
+}
+
+message GetGroupByNameResponse {
+  AppError error = 1;
+  Group group = 2;
+}
+
+message GetGroupMemberUsersRequest {
+  string group_id = 1;
+  int32 page = 2;
+  int32 per_page = 3;
+}
+
+message GetGroupMemberUsersResponse {
+  AppError error = 1;
+  repeated User users = 2;
+}
+
+message GetGroupsBySourceRequest {
+  string group_source = 1;  // "ldap", "custom"
+}
+
+message GetGroupsBySourceResponse {
+  AppError error = 1;
+  repeated Group groups = 2;
+}
+
+message GetGroupsForUserRequest {
+  string user_id = 1;
+}
+
+message GetGroupsForUserResponse {
+  AppError error = 1;
+  repeated Group groups = 2;
+}
+
+message UpsertGroupMemberRequest {
+  string group_id = 1;
+  string user_id = 2;
+}
+
+message UpsertGroupMemberResponse {
+  AppError error = 1;
+  GroupMember group_member = 2;
+}
+
+message UpsertGroupMembersRequest {
+  string group_id = 1;
+  repeated string user_ids = 2;
+}
+
+message UpsertGroupMembersResponse {
+  AppError error = 1;
+  repeated GroupMember group_members = 2;
+}
+
+message GetGroupByRemoteIDRequest {
+  string remote_id = 1;
+  string group_source = 2;
+}
+
+message GetGroupByRemoteIDResponse {
+  AppError error = 1;
+  Group group = 2;
+}
+
+message CreateGroupRequest {
+  Group group = 1;
+}
+
+message CreateGroupResponse {
+  AppError error = 1;
+  Group group = 2;
+}
+
+message UpdateGroupRequest {
+  Group group = 1;
+}
+
+message UpdateGroupResponse {
+  AppError error = 1;
+  Group group = 2;
+}
+
+message DeleteGroupRequest {
+  string group_id = 1;
+}
+
+message DeleteGroupResponse {
+  AppError error = 1;
+  Group group = 2;
+}
+
+message RestoreGroupRequest {
+  string group_id = 1;
+}
+
+message RestoreGroupResponse {
+  AppError error = 1;
+  Group group = 2;
+}
+
+message DeleteGroupMemberRequest {
+  string group_id = 1;
+  string user_id = 2;
+}
+
+message DeleteGroupMemberResponse {
+  AppError error = 1;
+  GroupMember group_member = 2;
+}
+
+message GetGroupSyncableRequest {
+  string group_id = 1;
+  string syncable_id = 2;
+  string syncable_type = 3;  // "team" or "channel"
+}
+
+message GetGroupSyncableResponse {
+  AppError error = 1;
+  GroupSyncable group_syncable = 2;
+}
+
+message GetGroupSyncablesRequest {
+  string group_id = 1;
+  string syncable_type = 2;
+}
+
+message GetGroupSyncablesResponse {
+  AppError error = 1;
+  repeated GroupSyncable group_syncables = 2;
+}
+
+message UpsertGroupSyncableRequest {
+  GroupSyncable group_syncable = 1;
+}
+
+message UpsertGroupSyncableResponse {
+  AppError error = 1;
+  GroupSyncable group_syncable = 2;
+}
+
+message UpdateGroupSyncableRequest {
+  GroupSyncable group_syncable = 1;
+}
+
+message UpdateGroupSyncableResponse {
+  AppError error = 1;
+  GroupSyncable group_syncable = 2;
+}
+
+message DeleteGroupSyncableRequest {
+  string group_id = 1;
+  string syncable_id = 2;
+  string syncable_type = 3;
+}
+
+message DeleteGroupSyncableResponse {
+  AppError error = 1;
+  GroupSyncable group_syncable = 2;
+}
+
+message GetGroupsRequest {
+  int32 page = 1;
+  int32 per_page = 2;
+  GroupSearchOpts opts = 3;
+  ViewUsersRestrictions view_restrictions = 4;
+}
+
+message GetGroupsResponse {
+  AppError error = 1;
+  repeated Group groups = 2;
+}
+
+message CreateDefaultSyncableMembershipsRequest {
+  CreateDefaultMembershipParams params = 1;
+}
+
+message CreateDefaultSyncableMembershipsResponse {
+  AppError error = 1;
+}
+
+message DeleteGroupConstrainedMembershipsRequest {
+  // Empty
+}
+
+message DeleteGroupConstrainedMembershipsResponse {
+  AppError error = 1;
+}
+
+// ===========================================================================
+// Shared Channels Methods
+// ===========================================================================
+
+message RegisterPluginForSharedChannelsRequest {
+  RegisterPluginOpts opts = 1;
+}
+
+message RegisterPluginForSharedChannelsResponse {
+  AppError error = 1;
+  string remote_id = 2;
+}
+
+message UnregisterPluginForSharedChannelsRequest {
+  string plugin_id = 1;
+}
+
+message UnregisterPluginForSharedChannelsResponse {
+  AppError error = 1;
+}
+
+message ShareChannelRequest {
+  SharedChannel shared_channel = 1;
+}
+
+message ShareChannelResponse {
+  AppError error = 1;
+  SharedChannel shared_channel = 2;
+}
+
+message UpdateSharedChannelRequest {
+  SharedChannel shared_channel = 1;
+}
+
+message UpdateSharedChannelResponse {
+  AppError error = 1;
+  SharedChannel shared_channel = 2;
+}
+
+message UnshareChannelRequest {
+  string channel_id = 1;
+}
+
+message UnshareChannelResponse {
+  AppError error = 1;
+  bool unshared = 2;
+}
+
+message UpdateSharedChannelCursorRequest {
+  string channel_id = 1;
+  string remote_id = 2;
+  GetPostsSinceForSyncCursor cursor = 3;
+}
+
+message UpdateSharedChannelCursorResponse {
+  AppError error = 1;
+}
+
+message SyncSharedChannelRequest {
+  string channel_id = 1;
+}
+
+message SyncSharedChannelResponse {
+  AppError error = 1;
+}
+
+message InviteRemoteToChannelRequest {
+  string channel_id = 1;
+  string remote_id = 2;
+  string user_id = 3;
+  bool share_if_not_shared = 4;
+}
+
+message InviteRemoteToChannelResponse {
+  AppError error = 1;
+}
+
+message UninviteRemoteFromChannelRequest {
+  string channel_id = 1;
+  string remote_id = 2;
+}
+
+message UninviteRemoteFromChannelResponse {
+  AppError error = 1;
+}
+
+// ===========================================================================
+// Property Field/Value/Group Methods
+// ===========================================================================
+
+message CreatePropertyFieldRequest {
+  PropertyField field = 1;
+}
+
+message CreatePropertyFieldResponse {
+  AppError error = 1;
+  PropertyField field = 2;
+}
+
+message GetPropertyFieldRequest {
+  string group_id = 1;
+  string field_id = 2;
+}
+
+message GetPropertyFieldResponse {
+  AppError error = 1;
+  PropertyField field = 2;
+}
+
+message GetPropertyFieldsRequest {
+  string group_id = 1;
+  repeated string ids = 2;
+}
+
+message GetPropertyFieldsResponse {
+  AppError error = 1;
+  repeated PropertyField fields = 2;
+}
+
+message UpdatePropertyFieldRequest {
+  string group_id = 1;
+  PropertyField field = 2;
+}
+
+message UpdatePropertyFieldResponse {
+  AppError error = 1;
+  PropertyField field = 2;
+}
+
+message DeletePropertyFieldRequest {
+  string group_id = 1;
+  string field_id = 2;
+}
+
+message DeletePropertyFieldResponse {
+  AppError error = 1;
+}
+
+message SearchPropertyFieldsRequest {
+  string group_id = 1;
+  PropertyFieldSearchOpts opts = 2;
+}
+
+message SearchPropertyFieldsResponse {
+  AppError error = 1;
+  repeated PropertyField fields = 2;
+}
+
+message CountPropertyFieldsRequest {
+  string group_id = 1;
+  bool include_deleted = 2;
+}
+
+message CountPropertyFieldsResponse {
+  AppError error = 1;
+  int64 count = 2;
+}
+
+message CountPropertyFieldsForTargetRequest {
+  string group_id = 1;
+  string target_type = 2;
+  string target_id = 3;
+  bool include_deleted = 4;
+}
+
+message CountPropertyFieldsForTargetResponse {
+  AppError error = 1;
+  int64 count = 2;
+}
+
+message CreatePropertyValueRequest {
+  PropertyValue value = 1;
+}
+
+message CreatePropertyValueResponse {
+  AppError error = 1;
+  PropertyValue value = 2;
+}
+
+message GetPropertyValueRequest {
+  string group_id = 1;
+  string value_id = 2;
+}
+
+message GetPropertyValueResponse {
+  AppError error = 1;
+  PropertyValue value = 2;
+}
+
+message GetPropertyValuesRequest {
+  string group_id = 1;
+  repeated string ids = 2;
+}
+
+message GetPropertyValuesResponse {
+  AppError error = 1;
+  repeated PropertyValue values = 2;
+}
+
+message UpdatePropertyValueRequest {
+  string group_id = 1;
+  PropertyValue value = 2;
+}
+
+message UpdatePropertyValueResponse {
+  AppError error = 1;
+  PropertyValue value = 2;
+}
+
+message UpsertPropertyValueRequest {
+  PropertyValue value = 1;
+}
+
+message UpsertPropertyValueResponse {
+  AppError error = 1;
+  PropertyValue value = 2;
+}
+
+message DeletePropertyValueRequest {
+  string group_id = 1;
+  string value_id = 2;
+}
+
+message DeletePropertyValueResponse {
+  AppError error = 1;
+}
+
+message SearchPropertyValuesRequest {
+  string group_id = 1;
+  PropertyValueSearchOpts opts = 2;
+}
+
+message SearchPropertyValuesResponse {
+  AppError error = 1;
+  repeated PropertyValue values = 2;
+}
+
+message RegisterPropertyGroupRequest {
+  string name = 1;
+}
+
+message RegisterPropertyGroupResponse {
+  AppError error = 1;
+  PropertyGroup group = 2;
+}
+
+message GetPropertyGroupRequest {
+  string name = 1;
+}
+
+message GetPropertyGroupResponse {
+  AppError error = 1;
+  PropertyGroup group = 2;
+}
+
+message GetPropertyFieldByNameRequest {
+  string group_id = 1;
+  string target_id = 2;
+  string name = 3;
+}
+
+message GetPropertyFieldByNameResponse {
+  AppError error = 1;
+  PropertyField field = 2;
+}
+
+message UpdatePropertyFieldsRequest {
+  string group_id = 1;
+  repeated PropertyField fields = 2;
+}
+
+message UpdatePropertyFieldsResponse {
+  AppError error = 1;
+  repeated PropertyField fields = 2;
+}
+
+message UpdatePropertyValuesRequest {
+  string group_id = 1;
+  repeated PropertyValue values = 2;
+}
+
+message UpdatePropertyValuesResponse {
+  AppError error = 1;
+  repeated PropertyValue values = 2;
+}
+
+message UpsertPropertyValuesRequest {
+  repeated PropertyValue values = 1;
+}
+
+message UpsertPropertyValuesResponse {
+  AppError error = 1;
+  repeated PropertyValue values = 2;
+}
+
+message DeletePropertyValuesForTargetRequest {
+  string group_id = 1;
+  string target_type = 2;
+  string target_id = 3;
+}
+
+message DeletePropertyValuesForTargetResponse {
+  AppError error = 1;
+}
+
+message DeletePropertyValuesForFieldRequest {
+  string group_id = 1;
+  string field_id = 2;
+}
+
+message DeletePropertyValuesForFieldResponse {
+  AppError error = 1;
+}
+
+// ===========================================================================
+// Audit Methods
+// ===========================================================================
+
+message LogAuditRecRequest {
+  AuditRecord record = 1;
+}
+
+message LogAuditRecResponse {
+  AppError error = 1;
+}
+
+message LogAuditRecWithLevelRequest {
+  AuditRecord record = 1;
+  string level = 2;  // "debug", "info", "warn", "error"
+}
+
+message LogAuditRecWithLevelResponse {
+  AppError error = 1;
+}
+
+// ===========================================================================
+// Miscellaneous Methods
+// ===========================================================================
+
+message PluginHTTPRequest {
+  string method = 1;
+  string url = 2;
+  map<string, string> headers = 3;
+  bytes body = 4;
+}
+
+message PluginHTTPResponse {
+  AppError error = 1;
+  int32 status_code = 2;
+  map<string, string> headers = 3;
+  bytes body = 4;
+}
+
+message GetCloudLimitsRequest {
+  // Empty
+}
+
+message GetCloudLimitsResponse {
+  AppError error = 1;
+  bytes limits_json = 2;  // JSON-encoded model.ProductLimits
+}
+
+message OpenInteractiveDialogRequest {
+  OpenDialogRequest dialog = 1;
+}
+
+message OpenInteractiveDialogResponse {
+  AppError error = 1;
+}
+
+message PublishPluginClusterEventRequest {
+  PluginClusterEvent event = 1;
+  PluginClusterEventSendOptions opts = 2;
+}
+
+message PublishPluginClusterEventResponse {
+  AppError error = 1;
+}
+
+message RegisterCollectionAndTopicRequest {
+  string collection_type = 1;
+  string topic_type = 2;
+}
+
+message RegisterCollectionAndTopicResponse {
+  AppError error = 1;
+}
+
+message RequestTrialLicenseRequest {
+  string requester_id = 1;
+  int32 users = 2;
+  bool terms_accepted = 3;
+  bool receive_emails_accepted = 4;
+}
+
+message RequestTrialLicenseResponse {
+  AppError error = 1;
+}
+
+message RolesGrantPermissionRequest {
+  repeated string role_names = 1;
+  string permission_id = 2;
+}
+
+message RolesGrantPermissionResponse {
+  AppError error = 1;
+  bool has_permission = 2;
+}
+
+message SendMailRequest {
+  string to = 1;
+  string subject = 2;
+  string html_body = 3;
+}
+
+message SendMailResponse {
+  AppError error = 1;
+}
+
+message SendPushNotificationRequest {
+  PushNotification notification = 1;
+  string user_id = 2;
+}
+
+message SendPushNotificationResponse {
+  AppError error = 1;
+}
+
+// ===========================================================================
+// Supporting Types
+// ===========================================================================
+
+// Command represents a slash command.
+// Maps to model.Command in Go.
+message Command {
+  string id = 1;
+  string token = 2;
+  int64 create_at = 3;
+  int64 update_at = 4;
+  int64 delete_at = 5;
+  string creator_id = 6;
+  string team_id = 7;
+  string trigger = 8;
+  string method = 9;
+  string username = 10;
+  string icon_url = 11;
+  bool auto_complete = 12;
+  string auto_complete_desc = 13;
+  string auto_complete_hint = 14;
+  string display_name = 15;
+  string description = 16;
+  string url = 17;
+  string plugin_id = 18;
+}
+
+// CommandArgs contains arguments for executing a slash command.
+// Maps to model.CommandArgs in Go.
+message CommandArgs {
+  string user_id = 1;
+  string channel_id = 2;
+  string team_id = 3;
+  string root_id = 4;
+  string parent_id = 5;
+  string trigger_id = 6;
+  string command = 7;
+  string site_url = 8;
+  string t = 9;
+  string user_mention = 10;
+  string channel_mention = 11;
+}
+
+// CommandResponse is the response from executing a slash command.
+// Maps to model.CommandResponse in Go.
+message CommandResponse {
+  string response_type = 1;
+  string text = 2;
+  string username = 3;
+  string channel_id = 4;
+  string icon_url = 5;
+  string type = 6;
+  google.protobuf.Struct props = 7;
+  string goto_location = 8;
+  string trigger_id = 9;
+  bool skip_slack_parsing = 10;
+  repeated CommandResponse attachments = 11;
+}
+
+// Preference represents a user preference.
+// Maps to model.Preference in Go.
+message Preference {
+  string user_id = 1;
+  string category = 2;
+  string name = 3;
+  string value = 4;
+}
+
+// OAuthApp represents an OAuth application.
+// Maps to model.OAuthApp in Go.
+message OAuthApp {
+  string id = 1;
+  string creator_id = 2;
+  int64 create_at = 3;
+  int64 update_at = 4;
+  string client_secret = 5;
+  string name = 6;
+  string description = 7;
+  string icon_url = 8;
+  string callback_urls = 9;
+  string homepage = 10;
+  bool is_trusted = 11;
+  string mattermostAppId = 12;
+}
+
+// Group represents a user group.
+// Maps to model.Group in Go.
+message Group {
+  string id = 1;
+  string name = 2;
+  string display_name = 3;
+  string description = 4;
+  string source = 5;
+  string remote_id = 6;
+  int64 create_at = 7;
+  int64 update_at = 8;
+  int64 delete_at = 9;
+  bool allow_reference = 10;
+}
+
+// GroupMember represents membership in a group.
+// Maps to model.GroupMember in Go.
+message GroupMember {
+  string group_id = 1;
+  string user_id = 2;
+  int64 create_at = 3;
+  int64 delete_at = 4;
+}
+
+// GroupSyncable represents a group's sync to a team or channel.
+// Maps to model.GroupSyncable in Go.
+message GroupSyncable {
+  string group_id = 1;
+  string syncable_id = 2;
+  string syncable_type = 3;  // "team" or "channel"
+  bool auto_add = 4;
+  bool scheme_admin = 5;
+  int64 create_at = 6;
+  int64 delete_at = 7;
+  int64 update_at = 8;
+}
+
+// GroupSearchOpts contains options for searching groups.
+// Maps to model.GroupSearchOpts in Go.
+message GroupSearchOpts {
+  string q = 1;
+  bool include_member_count = 2;
+  bool include_total_member_count = 3;
+  string filter_allow_reference = 4;
+  int32 page_opts_page = 5;
+  int32 page_opts_per_page = 6;
+  bool filter_archived = 7;
+  bool filter_parent_team_permitted = 8;
+  string source = 9;
+  bool filter_has_member = 10;
+  string since = 11;
+  bool include_channel_member_count = 12;
+  bool include_timezones = 13;
+}
+
+// Note: ViewUsersRestrictions is defined in common.proto
+
+// CreateDefaultMembershipParams contains parameters for creating default memberships.
+// Maps to model.CreateDefaultMembershipParams in Go.
+message CreateDefaultMembershipParams {
+  int64 since = 1;
+  bool scope_teams = 2;
+  bool scope_channels = 3;
+  bool re_add_removed_members = 4;
+}
+
+// RegisterPluginOpts contains options for registering a plugin for shared channels.
+// Maps to model.RegisterPluginOpts in Go.
+message RegisterPluginOpts {
+  string plugin_id = 1;
+  string display_name = 2;
+  string description = 3;
+}
+
+// SharedChannel represents a shared channel.
+// Maps to model.SharedChannel in Go.
+message SharedChannel {
+  string channel_id = 1;
+  string team_id = 2;
+  string home = 3;
+  bool read_only = 4;
+  string share_name = 5;
+  string share_display_name = 6;
+  string share_purpose = 7;
+  string share_header = 8;
+  string creator_id = 9;
+  int64 create_at = 10;
+  int64 update_at = 11;
+  string remote_id = 12;
+  string type = 13;
+}
+
+// GetPostsSinceForSyncCursor is a cursor for syncing posts.
+// Maps to model.GetPostsSinceForSyncCursor in Go.
+message GetPostsSinceForSyncCursor {
+  int64 last_post_update_at = 1;
+  string last_post_id = 2;
+}
+
+// PropertyField represents a property field.
+// Maps to model.PropertyField in Go.
+message PropertyField {
+  string id = 1;
+  string group_id = 2;
+  string name = 3;
+  string type = 4;
+  google.protobuf.Struct attrs = 5;
+  string target_id = 6;
+  string target_type = 7;
+  int64 create_at = 8;
+  int64 update_at = 9;
+  int64 delete_at = 10;
+}
+
+// PropertyFieldSearchOpts contains search options for property fields.
+// Maps to model.PropertyFieldSearchOpts in Go.
+message PropertyFieldSearchOpts {
+  int32 page = 1;
+  int32 per_page = 2;
+  bool include_deleted = 3;
+  string target_type = 4;
+  string target_id = 5;
+}
+
+// PropertyValue represents a property value.
+// Maps to model.PropertyValue in Go.
+message PropertyValue {
+  string id = 1;
+  string group_id = 2;
+  string field_id = 3;
+  string target_id = 4;
+  string target_type = 5;
+  google.protobuf.Value value = 6;
+  int64 create_at = 7;
+  int64 update_at = 8;
+  int64 delete_at = 9;
+}
+
+// PropertyValueSearchOpts contains search options for property values.
+// Maps to model.PropertyValueSearchOpts in Go.
+message PropertyValueSearchOpts {
+  int32 page = 1;
+  int32 per_page = 2;
+  bool include_deleted = 3;
+  string target_type = 4;
+  string target_id = 5;
+  string field_id = 6;
+}
+
+// PropertyGroup represents a property group.
+// Maps to model.PropertyGroup in Go.
+message PropertyGroup {
+  string id = 1;
+  string name = 2;
+}
+
+// AuditRecord represents an audit log record.
+// Maps to model.AuditRecord in Go.
+message AuditRecord {
+  string id = 1;
+  int64 create_at = 2;
+  string level = 3;
+  string api_path = 4;
+  string event = 5;
+  string status = 6;
+  string user_id = 7;
+  string session_id = 8;
+  string client = 9;
+  string ip_address = 10;
+  google.protobuf.Struct meta = 11;
+}
+
+// OpenDialogRequest represents a request to open an interactive dialog.
+// Maps to model.OpenDialogRequest in Go.
+message OpenDialogRequest {
+  string trigger_id = 1;
+  string url = 2;
+  Dialog dialog = 3;
+}
+
+// Dialog represents an interactive dialog.
+// Maps to model.Dialog in Go.
+message Dialog {
+  string callback_id = 1;
+  string title = 2;
+  string introduction_text = 3;
+  repeated DialogElement elements = 4;
+  string submit_label = 5;
+  bool notify_on_cancel = 6;
+  string state = 7;
+  string icon_url = 8;
+}
+
+// DialogElement represents an element in a dialog.
+// Maps to model.DialogElement in Go.
+message DialogElement {
+  string display_name = 1;
+  string name = 2;
+  string type = 3;
+  string subtype = 4;
+  string default = 5;
+  string placeholder = 6;
+  string help_text = 7;
+  bool optional = 8;
+  int32 min_length = 9;
+  int32 max_length = 10;
+  string data_source = 11;
+  repeated DialogElementOption options = 12;
+}
+
+// DialogElementOption represents an option in a dialog element.
+// Maps to model.DialogElementOption in Go.
+message DialogElementOption {
+  string text = 1;
+  string value = 2;
+}
+
+// PluginClusterEvent represents a plugin cluster event.
+// Maps to model.PluginClusterEvent in Go.
+message PluginClusterEvent {
+  string id = 1;
+  bytes data = 2;
+}
+
+// PluginClusterEventSendOptions contains options for sending cluster events.
+// Maps to model.PluginClusterEventSendOptions in Go.
+message PluginClusterEventSendOptions {
+  string send_type = 1;  // "reliable", "best_effort"
+  string target_id = 2;
+}
+
+// PushNotification represents a push notification.
+// Maps to model.PushNotification in Go.
+message PushNotification {
+  string ack_id = 1;
+  string platform = 2;
+  string server_id = 3;
+  string device_id = 4;
+  string post_id = 5;
+  string category = 6;
+  string sound = 7;
+  string message = 8;
+  string badge = 9;
+  string cont_ava = 10;
+  string team_id = 11;
+  string channel_id = 12;
+  string root_id = 13;
+  string sender_id = 14;
+  string sender_name = 15;
+  string override_username = 16;
+  string override_icon_url = 17;
+  string from_webhook = 18;
+  string version = 19;
+  bool is_crt = 20;
+  string channel_name = 21;
+  string type = 22;
+  string sub_type = 23;
+}

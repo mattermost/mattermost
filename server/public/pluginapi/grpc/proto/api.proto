@@ -1,0 +1,347 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+syntax = "proto3";
+
+package mattermost.pluginapi.v1;
+
+option go_package = "github.com/mattermost/mattermost/server/public/pluginapi/grpc/generated/go/pluginapiv1";
+
+import "api_user_team.proto";
+import "api_channel_post.proto";
+import "api_kv_config.proto";
+import "api_file_bot.proto";
+import "api_remaining.proto";
+
+// ==============================================================================
+// PLUGIN API SERVICE
+// ==============================================================================
+//
+// PluginAPI is the gRPC service that wraps the Mattermost Plugin API interface.
+// Each RPC corresponds to exactly one method in server/public/plugin/api.go.
+//
+// This service is mechanically complete - the apiverify tool ensures parity
+// between this service definition and the Go API interface.
+//
+// Error handling: All responses embed AppError as field 1. A nil/empty error
+// indicates success; a populated error indicates failure with full error details.
+//
+// ==============================================================================
+
+service PluginAPI {
+  // ===========================================================================
+  // User Methods (api_user_team.proto)
+  // ===========================================================================
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse);
+  rpc GetUsers(GetUsersRequest) returns (GetUsersResponse);
+  rpc GetUsersByIds(GetUsersByIdsRequest) returns (GetUsersByIdsResponse);
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  rpc GetUserByEmail(GetUserByEmailRequest) returns (GetUserByEmailResponse);
+  rpc GetUserByUsername(GetUserByUsernameRequest) returns (GetUserByUsernameResponse);
+  rpc GetUsersByUsernames(GetUsersByUsernamesRequest) returns (GetUsersByUsernamesResponse);
+  rpc GetUsersInTeam(GetUsersInTeamRequest) returns (GetUsersInTeamResponse);
+  rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse);
+  rpc GetUserStatus(GetUserStatusRequest) returns (GetUserStatusResponse);
+  rpc GetUserStatusesByIds(GetUserStatusesByIdsRequest) returns (GetUserStatusesByIdsResponse);
+  rpc UpdateUserStatus(UpdateUserStatusRequest) returns (UpdateUserStatusResponse);
+  rpc SetUserStatusTimedDND(SetUserStatusTimedDNDRequest) returns (SetUserStatusTimedDNDResponse);
+  rpc UpdateUserActive(UpdateUserActiveRequest) returns (UpdateUserActiveResponse);
+  rpc UpdateUserCustomStatus(UpdateUserCustomStatusRequest) returns (UpdateUserCustomStatusResponse);
+  rpc RemoveUserCustomStatus(RemoveUserCustomStatusRequest) returns (RemoveUserCustomStatusResponse);
+  rpc GetUsersInChannel(GetUsersInChannelRequest) returns (GetUsersInChannelResponse);
+  rpc GetLDAPUserAttributes(GetLDAPUserAttributesRequest) returns (GetLDAPUserAttributesResponse);
+  rpc SearchUsers(SearchUsersRequest) returns (SearchUsersResponse);
+  rpc GetProfileImage(GetProfileImageRequest) returns (GetProfileImageResponse);
+  rpc SetProfileImage(SetProfileImageRequest) returns (SetProfileImageResponse);
+  rpc HasPermissionTo(HasPermissionToRequest) returns (HasPermissionToResponse);
+  rpc HasPermissionToTeam(HasPermissionToTeamRequest) returns (HasPermissionToTeamResponse);
+  rpc HasPermissionToChannel(HasPermissionToChannelRequest) returns (HasPermissionToChannelResponse);
+  rpc PublishUserTyping(PublishUserTypingRequest) returns (PublishUserTypingResponse);
+  rpc UpdateUserAuth(UpdateUserAuthRequest) returns (UpdateUserAuthResponse);
+  rpc UpdateUserRoles(UpdateUserRolesRequest) returns (UpdateUserRolesResponse);
+  rpc GetSession(GetSessionRequest) returns (GetSessionResponse);
+  rpc CreateSession(CreateSessionRequest) returns (CreateSessionResponse);
+  rpc ExtendSessionExpiry(ExtendSessionExpiryRequest) returns (ExtendSessionExpiryResponse);
+  rpc RevokeSession(RevokeSessionRequest) returns (RevokeSessionResponse);
+  rpc CreateUserAccessToken(CreateUserAccessTokenRequest) returns (CreateUserAccessTokenResponse);
+  rpc RevokeUserAccessToken(RevokeUserAccessTokenRequest) returns (RevokeUserAccessTokenResponse);
+
+  // ===========================================================================
+  // Team Methods (api_user_team.proto)
+  // ===========================================================================
+  rpc CreateTeam(CreateTeamRequest) returns (CreateTeamResponse);
+  rpc DeleteTeam(DeleteTeamRequest) returns (DeleteTeamResponse);
+  rpc GetTeams(GetTeamsRequest) returns (GetTeamsResponse);
+  rpc GetTeam(GetTeamRequest) returns (GetTeamResponse);
+  rpc GetTeamByName(GetTeamByNameRequest) returns (GetTeamByNameResponse);
+  rpc GetTeamsUnreadForUser(GetTeamsUnreadForUserRequest) returns (GetTeamsUnreadForUserResponse);
+  rpc UpdateTeam(UpdateTeamRequest) returns (UpdateTeamResponse);
+  rpc SearchTeams(SearchTeamsRequest) returns (SearchTeamsResponse);
+  rpc GetTeamsForUser(GetTeamsForUserRequest) returns (GetTeamsForUserResponse);
+  rpc CreateTeamMember(CreateTeamMemberRequest) returns (CreateTeamMemberResponse);
+  rpc CreateTeamMembers(CreateTeamMembersRequest) returns (CreateTeamMembersResponse);
+  rpc CreateTeamMembersGracefully(CreateTeamMembersGracefullyRequest) returns (CreateTeamMembersGracefullyResponse);
+  rpc DeleteTeamMember(DeleteTeamMemberRequest) returns (DeleteTeamMemberResponse);
+  rpc GetTeamMembers(GetTeamMembersRequest) returns (GetTeamMembersResponse);
+  rpc GetTeamMember(GetTeamMemberRequest) returns (GetTeamMemberResponse);
+  rpc GetTeamMembersForUser(GetTeamMembersForUserRequest) returns (GetTeamMembersForUserResponse);
+  rpc UpdateTeamMemberRoles(UpdateTeamMemberRolesRequest) returns (UpdateTeamMemberRolesResponse);
+  rpc GetTeamIcon(GetTeamIconRequest) returns (GetTeamIconResponse);
+  rpc SetTeamIcon(SetTeamIconRequest) returns (SetTeamIconResponse);
+  rpc RemoveTeamIcon(RemoveTeamIconRequest) returns (RemoveTeamIconResponse);
+  rpc GetTeamStats(GetTeamStatsRequest) returns (GetTeamStatsResponse);
+
+  // ===========================================================================
+  // Channel Methods (api_channel_post.proto)
+  // ===========================================================================
+  rpc CreateChannel(CreateChannelRequest) returns (CreateChannelResponse);
+  rpc DeleteChannel(DeleteChannelRequest) returns (DeleteChannelResponse);
+  rpc GetPublicChannelsForTeam(GetPublicChannelsForTeamRequest) returns (GetPublicChannelsForTeamResponse);
+  rpc GetChannel(GetChannelRequest) returns (GetChannelResponse);
+  rpc GetChannelByName(GetChannelByNameRequest) returns (GetChannelByNameResponse);
+  rpc GetChannelByNameForTeamName(GetChannelByNameForTeamNameRequest) returns (GetChannelByNameForTeamNameResponse);
+  rpc GetChannelsForTeamForUser(GetChannelsForTeamForUserRequest) returns (GetChannelsForTeamForUserResponse);
+  rpc GetChannelStats(GetChannelStatsRequest) returns (GetChannelStatsResponse);
+  rpc GetDirectChannel(GetDirectChannelRequest) returns (GetDirectChannelResponse);
+  rpc GetGroupChannel(GetGroupChannelRequest) returns (GetGroupChannelResponse);
+  rpc UpdateChannel(UpdateChannelRequest) returns (UpdateChannelResponse);
+  rpc SearchChannels(SearchChannelsRequest) returns (SearchChannelsResponse);
+  rpc AddChannelMember(AddChannelMemberRequest) returns (AddChannelMemberResponse);
+  rpc AddUserToChannel(AddUserToChannelRequest) returns (AddUserToChannelResponse);
+  rpc GetChannelMember(GetChannelMemberRequest) returns (GetChannelMemberResponse);
+  rpc GetChannelMembers(GetChannelMembersRequest) returns (GetChannelMembersResponse);
+  rpc GetChannelMembersByIds(GetChannelMembersByIdsRequest) returns (GetChannelMembersByIdsResponse);
+  rpc GetChannelMembersForUser(GetChannelMembersForUserRequest) returns (GetChannelMembersForUserResponse);
+  rpc UpdateChannelMemberRoles(UpdateChannelMemberRolesRequest) returns (UpdateChannelMemberRolesResponse);
+  rpc UpdateChannelMemberNotifications(UpdateChannelMemberNotificationsRequest) returns (UpdateChannelMemberNotificationsResponse);
+  rpc PatchChannelMembersNotifications(PatchChannelMembersNotificationsRequest) returns (PatchChannelMembersNotificationsResponse);
+  rpc DeleteChannelMember(DeleteChannelMemberRequest) returns (DeleteChannelMemberResponse);
+  rpc CreateChannelSidebarCategory(CreateChannelSidebarCategoryRequest) returns (CreateChannelSidebarCategoryResponse);
+  rpc GetChannelSidebarCategories(GetChannelSidebarCategoriesRequest) returns (GetChannelSidebarCategoriesResponse);
+  rpc UpdateChannelSidebarCategories(UpdateChannelSidebarCategoriesRequest) returns (UpdateChannelSidebarCategoriesResponse);
+
+  // ===========================================================================
+  // Post Methods (api_channel_post.proto)
+  // ===========================================================================
+  rpc CreatePost(CreatePostRequest) returns (CreatePostResponse);
+  rpc AddReaction(AddReactionRequest) returns (AddReactionResponse);
+  rpc RemoveReaction(RemoveReactionRequest) returns (RemoveReactionResponse);
+  rpc GetReactions(GetReactionsRequest) returns (GetReactionsResponse);
+  rpc SendEphemeralPost(SendEphemeralPostRequest) returns (SendEphemeralPostResponse);
+  rpc UpdateEphemeralPost(UpdateEphemeralPostRequest) returns (UpdateEphemeralPostResponse);
+  rpc DeleteEphemeralPost(DeleteEphemeralPostRequest) returns (DeleteEphemeralPostResponse);
+  rpc DeletePost(DeletePostRequest) returns (DeletePostResponse);
+  rpc GetPostThread(GetPostThreadRequest) returns (GetPostThreadResponse);
+  rpc GetPost(GetPostRequest) returns (GetPostResponse);
+  rpc GetPostsSince(GetPostsSinceRequest) returns (GetPostsSinceResponse);
+  rpc GetPostsAfter(GetPostsAfterRequest) returns (GetPostsAfterResponse);
+  rpc GetPostsBefore(GetPostsBeforeRequest) returns (GetPostsBeforeResponse);
+  rpc GetPostsForChannel(GetPostsForChannelRequest) returns (GetPostsForChannelResponse);
+  rpc UpdatePost(UpdatePostRequest) returns (UpdatePostResponse);
+  rpc SearchPostsInTeam(SearchPostsInTeamRequest) returns (SearchPostsInTeamResponse);
+  rpc SearchPostsInTeamForUser(SearchPostsInTeamForUserRequest) returns (SearchPostsInTeamForUserResponse);
+
+  // ===========================================================================
+  // Emoji Methods (api_channel_post.proto)
+  // ===========================================================================
+  rpc GetEmojiList(GetEmojiListRequest) returns (GetEmojiListResponse);
+  rpc GetEmojiByName(GetEmojiByNameRequest) returns (GetEmojiByNameResponse);
+  rpc GetEmoji(GetEmojiRequest) returns (GetEmojiResponse);
+  rpc GetEmojiImage(GetEmojiImageRequest) returns (GetEmojiImageResponse);
+
+  // ===========================================================================
+  // KV Store Methods (api_kv_config.proto)
+  // ===========================================================================
+  rpc KVSet(KVSetRequest) returns (KVSetResponse);
+  rpc KVCompareAndSet(KVCompareAndSetRequest) returns (KVCompareAndSetResponse);
+  rpc KVCompareAndDelete(KVCompareAndDeleteRequest) returns (KVCompareAndDeleteResponse);
+  rpc KVSetWithOptions(KVSetWithOptionsRequest) returns (KVSetWithOptionsResponse);
+  rpc KVSetWithExpiry(KVSetWithExpiryRequest) returns (KVSetWithExpiryResponse);
+  rpc KVGet(KVGetRequest) returns (KVGetResponse);
+  rpc KVDelete(KVDeleteRequest) returns (KVDeleteResponse);
+  rpc KVDeleteAll(KVDeleteAllRequest) returns (KVDeleteAllResponse);
+  rpc KVList(KVListRequest) returns (KVListResponse);
+  rpc PublishWebSocketEvent(PublishWebSocketEventRequest) returns (PublishWebSocketEventResponse);
+
+  // ===========================================================================
+  // Configuration Methods (api_kv_config.proto)
+  // ===========================================================================
+  rpc LoadPluginConfiguration(LoadPluginConfigurationRequest) returns (LoadPluginConfigurationResponse);
+  rpc GetConfig(GetConfigRequest) returns (GetConfigResponse);
+  rpc GetUnsanitizedConfig(GetUnsanitizedConfigRequest) returns (GetUnsanitizedConfigResponse);
+  rpc SaveConfig(SaveConfigRequest) returns (SaveConfigResponse);
+  rpc GetPluginConfig(GetPluginConfigRequest) returns (GetPluginConfigResponse);
+  rpc SavePluginConfig(SavePluginConfigRequest) returns (SavePluginConfigResponse);
+
+  // ===========================================================================
+  // Plugin Methods (api_kv_config.proto)
+  // ===========================================================================
+  rpc GetBundlePath(GetBundlePathRequest) returns (GetBundlePathResponse);
+  rpc GetPlugins(GetPluginsRequest) returns (GetPluginsResponse);
+  rpc EnablePlugin(EnablePluginRequest) returns (EnablePluginResponse);
+  rpc DisablePlugin(DisablePluginRequest) returns (DisablePluginResponse);
+  rpc RemovePlugin(RemovePluginRequest) returns (RemovePluginResponse);
+  rpc GetPluginStatus(GetPluginStatusRequest) returns (GetPluginStatusResponse);
+  rpc InstallPlugin(InstallPluginRequest) returns (InstallPluginResponse);
+  rpc GetPluginID(GetPluginIDRequest) returns (GetPluginIDResponse);
+
+  // ===========================================================================
+  // Logging Methods (api_kv_config.proto)
+  // ===========================================================================
+  rpc LogDebug(LogDebugRequest) returns (LogDebugResponse);
+  rpc LogInfo(LogInfoRequest) returns (LogInfoResponse);
+  rpc LogError(LogErrorRequest) returns (LogErrorResponse);
+  rpc LogWarn(LogWarnRequest) returns (LogWarnResponse);
+
+  // ===========================================================================
+  // File Methods (api_file_bot.proto)
+  // ===========================================================================
+  rpc CopyFileInfos(CopyFileInfosRequest) returns (CopyFileInfosResponse);
+  rpc GetFileInfo(GetFileInfoRequest) returns (GetFileInfoResponse);
+  rpc SetFileSearchableContent(SetFileSearchableContentRequest) returns (SetFileSearchableContentResponse);
+  rpc GetFileInfos(GetFileInfosRequest) returns (GetFileInfosResponse);
+  rpc GetFile(GetFileRequest) returns (GetFileResponse);
+  rpc GetFileLink(GetFileLinkRequest) returns (GetFileLinkResponse);
+  rpc ReadFile(ReadFileRequest) returns (ReadFileResponse);
+  rpc UploadFile(UploadFileRequest) returns (UploadFileResponse);
+  rpc CreateUploadSession(CreateUploadSessionRequest) returns (CreateUploadSessionResponse);
+  rpc UploadData(UploadDataRequest) returns (UploadDataResponse);
+  rpc GetUploadSession(GetUploadSessionRequest) returns (GetUploadSessionResponse);
+
+  // ===========================================================================
+  // Bot Methods (api_file_bot.proto)
+  // ===========================================================================
+  rpc CreateBot(CreateBotRequest) returns (CreateBotResponse);
+  rpc PatchBot(PatchBotRequest) returns (PatchBotResponse);
+  rpc GetBot(GetBotRequest) returns (GetBotResponse);
+  rpc GetBots(GetBotsRequest) returns (GetBotsResponse);
+  rpc UpdateBotActive(UpdateBotActiveRequest) returns (UpdateBotActiveResponse);
+  rpc PermanentDeleteBot(PermanentDeleteBotRequest) returns (PermanentDeleteBotResponse);
+  rpc EnsureBotUser(EnsureBotUserRequest) returns (EnsureBotUserResponse);
+
+  // ===========================================================================
+  // Server Methods (api_remaining.proto)
+  // ===========================================================================
+  rpc GetLicense(GetLicenseRequest) returns (GetLicenseResponse);
+  rpc IsEnterpriseReady(IsEnterpriseReadyRequest) returns (IsEnterpriseReadyResponse);
+  rpc GetServerVersion(GetServerVersionRequest) returns (GetServerVersionResponse);
+  rpc GetSystemInstallDate(GetSystemInstallDateRequest) returns (GetSystemInstallDateResponse);
+  rpc GetDiagnosticId(GetDiagnosticIdRequest) returns (GetDiagnosticIdResponse);
+  rpc GetTelemetryId(GetTelemetryIdRequest) returns (GetTelemetryIdResponse);
+
+  // ===========================================================================
+  // Command Methods (api_remaining.proto)
+  // ===========================================================================
+  rpc RegisterCommand(RegisterCommandRequest) returns (RegisterCommandResponse);
+  rpc UnregisterCommand(UnregisterCommandRequest) returns (UnregisterCommandResponse);
+  rpc ExecuteSlashCommand(ExecuteSlashCommandRequest) returns (ExecuteSlashCommandResponse);
+  rpc CreateCommand(CreateCommandRequest) returns (CreateCommandResponse);
+  rpc ListCommands(ListCommandsRequest) returns (ListCommandsResponse);
+  rpc ListCustomCommands(ListCustomCommandsRequest) returns (ListCustomCommandsResponse);
+  rpc ListPluginCommands(ListPluginCommandsRequest) returns (ListPluginCommandsResponse);
+  rpc ListBuiltInCommands(ListBuiltInCommandsRequest) returns (ListBuiltInCommandsResponse);
+  rpc GetCommand(GetCommandRequest) returns (GetCommandResponse);
+  rpc UpdateCommand(UpdateCommandRequest) returns (UpdateCommandResponse);
+  rpc DeleteCommand(DeleteCommandRequest) returns (DeleteCommandResponse);
+
+  // ===========================================================================
+  // Preference Methods (api_remaining.proto)
+  // ===========================================================================
+  rpc GetPreferenceForUser(GetPreferenceForUserRequest) returns (GetPreferenceForUserResponse);
+  rpc GetPreferencesForUser(GetPreferencesForUserRequest) returns (GetPreferencesForUserResponse);
+  rpc UpdatePreferencesForUser(UpdatePreferencesForUserRequest) returns (UpdatePreferencesForUserResponse);
+  rpc DeletePreferencesForUser(DeletePreferencesForUserRequest) returns (DeletePreferencesForUserResponse);
+
+  // ===========================================================================
+  // OAuth Methods (api_remaining.proto)
+  // ===========================================================================
+  rpc CreateOAuthApp(CreateOAuthAppRequest) returns (CreateOAuthAppResponse);
+  rpc GetOAuthApp(GetOAuthAppRequest) returns (GetOAuthAppResponse);
+  rpc UpdateOAuthApp(UpdateOAuthAppRequest) returns (UpdateOAuthAppResponse);
+  rpc DeleteOAuthApp(DeleteOAuthAppRequest) returns (DeleteOAuthAppResponse);
+
+  // ===========================================================================
+  // Group Methods (api_remaining.proto)
+  // ===========================================================================
+  rpc GetGroup(GetGroupRequest) returns (GetGroupResponse);
+  rpc GetGroupByName(GetGroupByNameRequest) returns (GetGroupByNameResponse);
+  rpc GetGroupMemberUsers(GetGroupMemberUsersRequest) returns (GetGroupMemberUsersResponse);
+  rpc GetGroupsBySource(GetGroupsBySourceRequest) returns (GetGroupsBySourceResponse);
+  rpc GetGroupsForUser(GetGroupsForUserRequest) returns (GetGroupsForUserResponse);
+  rpc UpsertGroupMember(UpsertGroupMemberRequest) returns (UpsertGroupMemberResponse);
+  rpc UpsertGroupMembers(UpsertGroupMembersRequest) returns (UpsertGroupMembersResponse);
+  rpc GetGroupByRemoteID(GetGroupByRemoteIDRequest) returns (GetGroupByRemoteIDResponse);
+  rpc CreateGroup(CreateGroupRequest) returns (CreateGroupResponse);
+  rpc UpdateGroup(UpdateGroupRequest) returns (UpdateGroupResponse);
+  rpc DeleteGroup(DeleteGroupRequest) returns (DeleteGroupResponse);
+  rpc RestoreGroup(RestoreGroupRequest) returns (RestoreGroupResponse);
+  rpc DeleteGroupMember(DeleteGroupMemberRequest) returns (DeleteGroupMemberResponse);
+  rpc GetGroupSyncable(GetGroupSyncableRequest) returns (GetGroupSyncableResponse);
+  rpc GetGroupSyncables(GetGroupSyncablesRequest) returns (GetGroupSyncablesResponse);
+  rpc UpsertGroupSyncable(UpsertGroupSyncableRequest) returns (UpsertGroupSyncableResponse);
+  rpc UpdateGroupSyncable(UpdateGroupSyncableRequest) returns (UpdateGroupSyncableResponse);
+  rpc DeleteGroupSyncable(DeleteGroupSyncableRequest) returns (DeleteGroupSyncableResponse);
+  rpc GetGroups(GetGroupsRequest) returns (GetGroupsResponse);
+  rpc CreateDefaultSyncableMemberships(CreateDefaultSyncableMembershipsRequest) returns (CreateDefaultSyncableMembershipsResponse);
+  rpc DeleteGroupConstrainedMemberships(DeleteGroupConstrainedMembershipsRequest) returns (DeleteGroupConstrainedMembershipsResponse);
+
+  // ===========================================================================
+  // Shared Channels Methods (api_remaining.proto)
+  // ===========================================================================
+  rpc RegisterPluginForSharedChannels(RegisterPluginForSharedChannelsRequest) returns (RegisterPluginForSharedChannelsResponse);
+  rpc UnregisterPluginForSharedChannels(UnregisterPluginForSharedChannelsRequest) returns (UnregisterPluginForSharedChannelsResponse);
+  rpc ShareChannel(ShareChannelRequest) returns (ShareChannelResponse);
+  rpc UpdateSharedChannel(UpdateSharedChannelRequest) returns (UpdateSharedChannelResponse);
+  rpc UnshareChannel(UnshareChannelRequest) returns (UnshareChannelResponse);
+  rpc UpdateSharedChannelCursor(UpdateSharedChannelCursorRequest) returns (UpdateSharedChannelCursorResponse);
+  rpc SyncSharedChannel(SyncSharedChannelRequest) returns (SyncSharedChannelResponse);
+  rpc InviteRemoteToChannel(InviteRemoteToChannelRequest) returns (InviteRemoteToChannelResponse);
+  rpc UninviteRemoteFromChannel(UninviteRemoteFromChannelRequest) returns (UninviteRemoteFromChannelResponse);
+
+  // ===========================================================================
+  // Property Field/Value/Group Methods (api_remaining.proto)
+  // ===========================================================================
+  rpc CreatePropertyField(CreatePropertyFieldRequest) returns (CreatePropertyFieldResponse);
+  rpc GetPropertyField(GetPropertyFieldRequest) returns (GetPropertyFieldResponse);
+  rpc GetPropertyFields(GetPropertyFieldsRequest) returns (GetPropertyFieldsResponse);
+  rpc UpdatePropertyField(UpdatePropertyFieldRequest) returns (UpdatePropertyFieldResponse);
+  rpc DeletePropertyField(DeletePropertyFieldRequest) returns (DeletePropertyFieldResponse);
+  rpc SearchPropertyFields(SearchPropertyFieldsRequest) returns (SearchPropertyFieldsResponse);
+  rpc CountPropertyFields(CountPropertyFieldsRequest) returns (CountPropertyFieldsResponse);
+  rpc CountPropertyFieldsForTarget(CountPropertyFieldsForTargetRequest) returns (CountPropertyFieldsForTargetResponse);
+  rpc CreatePropertyValue(CreatePropertyValueRequest) returns (CreatePropertyValueResponse);
+  rpc GetPropertyValue(GetPropertyValueRequest) returns (GetPropertyValueResponse);
+  rpc GetPropertyValues(GetPropertyValuesRequest) returns (GetPropertyValuesResponse);
+  rpc UpdatePropertyValue(UpdatePropertyValueRequest) returns (UpdatePropertyValueResponse);
+  rpc UpsertPropertyValue(UpsertPropertyValueRequest) returns (UpsertPropertyValueResponse);
+  rpc DeletePropertyValue(DeletePropertyValueRequest) returns (DeletePropertyValueResponse);
+  rpc SearchPropertyValues(SearchPropertyValuesRequest) returns (SearchPropertyValuesResponse);
+  rpc RegisterPropertyGroup(RegisterPropertyGroupRequest) returns (RegisterPropertyGroupResponse);
+  rpc GetPropertyGroup(GetPropertyGroupRequest) returns (GetPropertyGroupResponse);
+  rpc GetPropertyFieldByName(GetPropertyFieldByNameRequest) returns (GetPropertyFieldByNameResponse);
+  rpc UpdatePropertyFields(UpdatePropertyFieldsRequest) returns (UpdatePropertyFieldsResponse);
+  rpc UpdatePropertyValues(UpdatePropertyValuesRequest) returns (UpdatePropertyValuesResponse);
+  rpc UpsertPropertyValues(UpsertPropertyValuesRequest) returns (UpsertPropertyValuesResponse);
+  rpc DeletePropertyValuesForTarget(DeletePropertyValuesForTargetRequest) returns (DeletePropertyValuesForTargetResponse);
+  rpc DeletePropertyValuesForField(DeletePropertyValuesForFieldRequest) returns (DeletePropertyValuesForFieldResponse);
+
+  // ===========================================================================
+  // Audit Methods (api_remaining.proto)
+  // ===========================================================================
+  rpc LogAuditRec(LogAuditRecRequest) returns (LogAuditRecResponse);
+  rpc LogAuditRecWithLevel(LogAuditRecWithLevelRequest) returns (LogAuditRecWithLevelResponse);
+
+  // ===========================================================================
+  // Miscellaneous Methods (api_remaining.proto)
+  // ===========================================================================
+  rpc PluginHTTP(PluginHTTPRequest) returns (PluginHTTPResponse);
+  rpc GetCloudLimits(GetCloudLimitsRequest) returns (GetCloudLimitsResponse);
+  rpc OpenInteractiveDialog(OpenInteractiveDialogRequest) returns (OpenInteractiveDialogResponse);
+  rpc PublishPluginClusterEvent(PublishPluginClusterEventRequest) returns (PublishPluginClusterEventResponse);
+  rpc RegisterCollectionAndTopic(RegisterCollectionAndTopicRequest) returns (RegisterCollectionAndTopicResponse);
+  rpc RequestTrialLicense(RequestTrialLicenseRequest) returns (RequestTrialLicenseResponse);
+  rpc RolesGrantPermission(RolesGrantPermissionRequest) returns (RolesGrantPermissionResponse);
+  rpc SendMail(SendMailRequest) returns (SendMailResponse);
+  rpc SendPushNotification(SendPushNotificationRequest) returns (SendPushNotificationResponse);
+}

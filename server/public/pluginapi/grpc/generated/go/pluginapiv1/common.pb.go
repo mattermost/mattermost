@@ -302,6 +302,60 @@ func (x *AppError) GetParams() *structpb.Struct {
 	return nil
 }
 
+// ViewUsersRestrictions restricts which users can be viewed.
+// Maps to model.ViewUsersRestrictions in Go.
+type ViewUsersRestrictions struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Teams         []string               `protobuf:"bytes,1,rep,name=teams,proto3" json:"teams,omitempty"`
+	Channels      []string               `protobuf:"bytes,2,rep,name=channels,proto3" json:"channels,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ViewUsersRestrictions) Reset() {
+	*x = ViewUsersRestrictions{}
+	mi := &file_common_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ViewUsersRestrictions) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ViewUsersRestrictions) ProtoMessage() {}
+
+func (x *ViewUsersRestrictions) ProtoReflect() protoreflect.Message {
+	mi := &file_common_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ViewUsersRestrictions.ProtoReflect.Descriptor instead.
+func (*ViewUsersRestrictions) Descriptor() ([]byte, []int) {
+	return file_common_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *ViewUsersRestrictions) GetTeams() []string {
+	if x != nil {
+		return x.Teams
+	}
+	return nil
+}
+
+func (x *ViewUsersRestrictions) GetChannels() []string {
+	if x != nil {
+		return x.Channels
+	}
+	return nil
+}
+
 var File_common_proto protoreflect.FileDescriptor
 
 const file_common_proto_rawDesc = "" +
@@ -329,7 +383,10 @@ const file_common_proto_rawDesc = "" +
 	"\vstatus_code\x18\x05 \x01(\x05R\n" +
 	"statusCode\x12\x14\n" +
 	"\x05where\x18\x06 \x01(\tR\x05where\x12/\n" +
-	"\x06params\x18\a \x01(\v2\x17.google.protobuf.StructR\x06paramsBXZVgithub.com/mattermost/mattermost/server/public/pluginapi/grpc/generated/go/pluginapiv1b\x06proto3"
+	"\x06params\x18\a \x01(\v2\x17.google.protobuf.StructR\x06params\"I\n" +
+	"\x15ViewUsersRestrictions\x12\x14\n" +
+	"\x05teams\x18\x01 \x03(\tR\x05teams\x12\x1a\n" +
+	"\bchannels\x18\x02 \x03(\tR\bchannelsBXZVgithub.com/mattermost/mattermost/server/public/pluginapi/grpc/generated/go/pluginapiv1b\x06proto3"
 
 var (
 	file_common_proto_rawDescOnce sync.Once
@@ -343,18 +400,19 @@ func file_common_proto_rawDescGZIP() []byte {
 	return file_common_proto_rawDescData
 }
 
-var file_common_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_common_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_common_proto_goTypes = []any{
-	(*Empty)(nil),           // 0: mattermost.pluginapi.v1.Empty
-	(*StringMap)(nil),       // 1: mattermost.pluginapi.v1.StringMap
-	(*RequestContext)(nil),  // 2: mattermost.pluginapi.v1.RequestContext
-	(*AppError)(nil),        // 3: mattermost.pluginapi.v1.AppError
-	nil,                     // 4: mattermost.pluginapi.v1.StringMap.ValuesEntry
-	(*structpb.Struct)(nil), // 5: google.protobuf.Struct
+	(*Empty)(nil),                 // 0: mattermost.pluginapi.v1.Empty
+	(*StringMap)(nil),             // 1: mattermost.pluginapi.v1.StringMap
+	(*RequestContext)(nil),        // 2: mattermost.pluginapi.v1.RequestContext
+	(*AppError)(nil),              // 3: mattermost.pluginapi.v1.AppError
+	(*ViewUsersRestrictions)(nil), // 4: mattermost.pluginapi.v1.ViewUsersRestrictions
+	nil,                           // 5: mattermost.pluginapi.v1.StringMap.ValuesEntry
+	(*structpb.Struct)(nil),       // 6: google.protobuf.Struct
 }
 var file_common_proto_depIdxs = []int32{
-	4, // 0: mattermost.pluginapi.v1.StringMap.values:type_name -> mattermost.pluginapi.v1.StringMap.ValuesEntry
-	5, // 1: mattermost.pluginapi.v1.AppError.params:type_name -> google.protobuf.Struct
+	5, // 0: mattermost.pluginapi.v1.StringMap.values:type_name -> mattermost.pluginapi.v1.StringMap.ValuesEntry
+	6, // 1: mattermost.pluginapi.v1.AppError.params:type_name -> google.protobuf.Struct
 	2, // [2:2] is the sub-list for method output_type
 	2, // [2:2] is the sub-list for method input_type
 	2, // [2:2] is the sub-list for extension type_name
@@ -373,7 +431,7 @@ func file_common_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_common_proto_rawDesc), len(file_common_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   5,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
