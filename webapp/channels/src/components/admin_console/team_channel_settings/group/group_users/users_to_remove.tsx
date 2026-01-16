@@ -345,7 +345,6 @@ export default class UsersToRemove extends React.PureComponent<Props, State> {
                     columns={columns}
                     rows={rows}
                     loading={this.state.loading}
-                    page={this.state.page}
                     nextPage={this.nextPage}
                     previousPage={this.previousPage}
                     startCount={startCount}

@@ -89,7 +89,6 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
     loading={true}
     nextPage={[Function]}
     onSearch={[Function]}
-    page={0}
     placeholderEmpty={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="No users found"
@@ -194,7 +193,6 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
     loading={true}
     nextPage={[Function]}
     onSearch={[Function]}
-    page={0}
     placeholderEmpty={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="No users found"
@@ -299,7 +297,6 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
     loading={true}
     nextPage={[Function]}
     onSearch={[Function]}
-    page={0}
     placeholderEmpty={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="No users found"
@@ -396,7 +393,6 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemove shou
     loading={true}
     nextPage={[Function]}
     onSearch={[Function]}
-    page={0}
     placeholderEmpty={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="No users found"
