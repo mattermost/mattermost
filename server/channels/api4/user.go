@@ -2332,6 +2332,21 @@ func logout(c *Context, w http.ResponseWriter, r *http.Request) {
 func Logout(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord(model.AuditEventLogout, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
+
+	// Determine detailed authentication status for audit record (MM-67140)
+	var authStatus string
+	if c.AppContext.Session().UserId != "" {
+		authStatus = "authenticated"
+	} else {
+		_, tokenLocation := app.ParseAuthTokenFromRequest(r)
+		if tokenLocation == app.TokenLocationNotFound {
+			authStatus = "no_token"
+		} else {
+			authStatus = "token_invalid"
+		}
+	}
+	model.AddEventParameterToAuditRec(auditRec, "auth_status", authStatus)
+
 	c.LogAudit("")
 
 	c.RemoveSessionCookie(w, r)

@@ -5,6 +5,7 @@ package api4
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -1388,4 +1389,64 @@ func (th *TestHelper) SetupScheme(tb testing.TB, scope string) *model.Scheme {
 
 func (th *TestHelper) Parallel(t *testing.T) {
 	mainHelper.Parallel(t)
+}
+
+// AuditEntry represents a parsed audit log entry for testing
+type AuditEntry struct {
+	EventName  string
+	Status     string
+	UserID     string
+	SessionID  string
+	Parameters map[string]any
+	Raw        map[string]any
+}
+
+// FindAuditEntry searches audit log data for an entry matching the given event name
+// and optionally a user ID. Returns the first matching entry or nil if not found.
+func FindAuditEntry(data string, eventName string, userID string) *AuditEntry {
+	for _, line := range strings.Split(data, "\n") {
+		if line == "" {
+			continue
+		}
+		var entry map[string]any
+		if err := json.Unmarshal([]byte(line), &entry); err != nil {
+			continue
+		}
+
+		if entry["event_name"] != eventName {
+			continue
+		}
+
+		auditEntry := &AuditEntry{
+			EventName: eventName,
+			Raw:       entry,
+		}
+
+		if status, ok := entry["status"].(string); ok {
+			auditEntry.Status = status
+		}
+
+		if actor, ok := entry["actor"].(map[string]any); ok {
+			if uid, ok := actor["user_id"].(string); ok {
+				auditEntry.UserID = uid
+			}
+			if sid, ok := actor["session_id"].(string); ok {
+				auditEntry.SessionID = sid
+			}
+		}
+
+		if event, ok := entry["event"].(map[string]any); ok {
+			if params, ok := event["parameters"].(map[string]any); ok {
+				auditEntry.Parameters = params
+			}
+		}
+
+		// If userID filter is specified, check it matches
+		if userID != "" && auditEntry.UserID != userID {
+			continue
+		}
+
+		return auditEntry
+	}
+	return nil
 }
