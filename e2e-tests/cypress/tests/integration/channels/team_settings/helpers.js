@@ -36,7 +36,7 @@ export const inviteUserByEmail = (email) => {
     // # Wait half a second to ensure that the modal has been fully loaded
     cy.wait(TIMEOUTS.HALF_SEC);
 
-    cy.findByRole('textbox', {name: 'Add or Invite People'}).
+    cy.findByRole('textbox', {name: 'Invite People'}).
         typeWithForce(email).
         wait(TIMEOUTS.HALF_SEC).
         typeWithForce('{enter}');
@@ -71,7 +71,7 @@ export const signupAndVerifyTutorial = (username, password, teamDisplayName) => 
     cy.get('#name', {timeout: TIMEOUTS.HALF_MIN}).should('be.visible').type(username);
     cy.get('#password').should('be.visible').type(password);
 
-    // # Attempt to create an account by clicking on the 'Create Account' button
+    // # Attempt to create an account by clicking on the 'Create account' button
     cy.get('#createAccountButton').click();
 
     // # Close the onboarding tutorial
