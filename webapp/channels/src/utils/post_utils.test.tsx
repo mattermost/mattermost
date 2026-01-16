@@ -890,7 +890,7 @@ describe('PostUtils.createAriaLabelForPost', () => {
         };
         const isFlagged = true;
 
-        const ariaLabel = PostUtils.createAriaLabelForPost(testPost, author, isFlagged, reactions, intl, emojiMap, users, teammateNameDisplaySetting);
+        const ariaLabel = PostUtils.createAriaLabelForPost(testPost, author, isFlagged, reactions, intl, emojiMap, users, teammateNameDisplaySetting, false);
         expect(ariaLabel.indexOf(author)).not.toBe(-1);
         expect(ariaLabel.indexOf(testPost.message)).not.toBe(-1);
         expect(ariaLabel.indexOf('3 attachments')).not.toBe(-1);
@@ -910,7 +910,7 @@ describe('PostUtils.createAriaLabelForPost', () => {
         const reactions = {};
         const isFlagged = true;
 
-        const ariaLabel = PostUtils.createAriaLabelForPost(testPost, author, isFlagged, reactions, intl, emojiMap, users, teammateNameDisplaySetting);
+        const ariaLabel = PostUtils.createAriaLabelForPost(testPost, author, isFlagged, reactions, intl, emojiMap, users, teammateNameDisplaySetting, false);
         expect(ariaLabel.indexOf('replied')).not.toBe(-1);
     });
 
@@ -925,7 +925,7 @@ describe('PostUtils.createAriaLabelForPost', () => {
         const reactions = {};
         const isFlagged = true;
 
-        const ariaLabel = PostUtils.createAriaLabelForPost(testPost, author, isFlagged, reactions, intl, emojiMap, users, teammateNameDisplaySetting);
+        const ariaLabel = PostUtils.createAriaLabelForPost(testPost, author, isFlagged, reactions, intl, emojiMap, users, teammateNameDisplaySetting, false);
         expect(ariaLabel.indexOf('smile emoji')).not.toBe(-1);
         expect(ariaLabel.indexOf('+1 emoji')).not.toBe(-1);
         expect(ariaLabel.indexOf('non-potable water emoji')).not.toBe(-1);
@@ -945,7 +945,7 @@ describe('PostUtils.createAriaLabelForPost', () => {
         const reactions = {};
         const isFlagged = true;
 
-        expect(() => PostUtils.createAriaLabelForPost(testPost, author, isFlagged, reactions, intl, emojiMap, users, teammateNameDisplaySetting)).not.toThrow();
+        expect(() => PostUtils.createAriaLabelForPost(testPost, author, isFlagged, reactions, intl, emojiMap, users, teammateNameDisplaySetting, false)).not.toThrow();
     });
 
     test('Should not mention reactions if passed an empty object', () => {
@@ -960,7 +960,7 @@ describe('PostUtils.createAriaLabelForPost', () => {
         const reactions = {};
         const isFlagged = true;
 
-        const ariaLabel = PostUtils.createAriaLabelForPost(testPost, author, isFlagged, reactions, intl, emojiMap, users, teammateNameDisplaySetting);
+        const ariaLabel = PostUtils.createAriaLabelForPost(testPost, author, isFlagged, reactions, intl, emojiMap, users, teammateNameDisplaySetting, false);
         expect(ariaLabel.indexOf('reaction')).toBe(-1);
     });
 
@@ -976,7 +976,7 @@ describe('PostUtils.createAriaLabelForPost', () => {
         const reactions = {};
         const isFlagged = true;
 
-        const ariaLabel = PostUtils.createAriaLabelForPost(testPost, author, isFlagged, reactions, intl, emojiMap, users, teammateNameDisplaySetting);
+        const ariaLabel = PostUtils.createAriaLabelForPost(testPost, author, isFlagged, reactions, intl, emojiMap, users, teammateNameDisplaySetting, false);
         expect(ariaLabel.indexOf('@benjamin.cooke')).not.toBe(-1);
     });
 
@@ -992,8 +992,86 @@ describe('PostUtils.createAriaLabelForPost', () => {
         const reactions = {};
         const isFlagged = true;
 
-        const ariaLabel = PostUtils.createAriaLabelForPost(testPost, author, isFlagged, reactions, intl, emojiMap, users, 'nickname_full_name');
+        const ariaLabel = PostUtils.createAriaLabelForPost(testPost, author, isFlagged, reactions, intl, emojiMap, users, 'nickname_full_name', false);
         expect(ariaLabel.indexOf('@sysadmin')).not.toBe(-1);
+    });
+
+    test('Should show translated message', () => {
+        const intl = createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'});
+
+        const testPost = TestHelper.getPostMock({
+            message: 'test_message in Spanish',
+            create_at: (new Date().getTime() / 1000) || 0,
+        });
+        testPost.metadata.translations = {
+            en: {
+                object: {
+                    message: 'test_message in English',
+                },
+                state: 'ready',
+                source_lang: 'es',
+            },
+        };
+        const author = 'test_author';
+        const reactions = {};
+        const isFlagged = true;
+
+        const ariaLabel = PostUtils.createAriaLabelForPost(testPost, author, isFlagged, reactions, intl, emojiMap, users, 'nickname_full_name', true);
+        expect(ariaLabel.indexOf('translated from Spanish to English')).not.toBe(-1);
+        expect(ariaLabel.indexOf('test_message in English')).not.toBe(-1);
+        expect(ariaLabel.indexOf('test_message in Spanish')).toBe(-1);
+    });
+
+    test('Should show original message if translation is not ready', () => {
+        const intl = createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'});
+
+        const testPost = TestHelper.getPostMock({
+            message: 'test_message in Spanish',
+            create_at: (new Date().getTime() / 1000) || 0,
+        });
+        testPost.metadata.translations = {
+            en: {
+                object: {
+                    message: 'test_message in English',
+                },
+                state: 'processing',
+                source_lang: 'es',
+            },
+        };
+        const author = 'test_author';
+        const reactions = {};
+        const isFlagged = true;
+
+        const ariaLabel = PostUtils.createAriaLabelForPost(testPost, author, isFlagged, reactions, intl, emojiMap, users, 'nickname_full_name', true);
+        expect(ariaLabel.indexOf('translated from')).toBe(-1);
+        expect(ariaLabel.indexOf('test_message in Spanish')).not.toBe(-1);
+        expect(ariaLabel.indexOf('test_message in English')).toBe(-1);
+    });
+
+    test('Should show original message if there is no translation for the current language', () => {
+        const intl = createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'});
+
+        const testPost = TestHelper.getPostMock({
+            message: 'test_message in Spanish',
+            create_at: (new Date().getTime() / 1000) || 0,
+        });
+        testPost.metadata.translations = {
+            de: {
+                object: {
+                    message: 'test_message in German',
+                },
+                state: 'unavailable',
+                source_lang: 'es',
+            },
+        };
+        const author = 'test_author';
+        const reactions = {};
+        const isFlagged = true;
+
+        const ariaLabel = PostUtils.createAriaLabelForPost(testPost, author, isFlagged, reactions, intl, emojiMap, users, 'nickname_full_name', true);
+        expect(ariaLabel.indexOf('translated from')).toBe(-1);
+        expect(ariaLabel.indexOf('test_message in Spanish')).not.toBe(-1);
+        expect(ariaLabel.indexOf('test_message in German')).toBe(-1);
     });
 });
 

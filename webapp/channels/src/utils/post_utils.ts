@@ -497,7 +497,7 @@ export function createAriaLabelForPost(post: Post, author: string, isFlagged: bo
 
     const translation = getPostTranslation(post, intl.locale);
     const isTranslated = autotranslated && translation?.state === 'ready';
-    let message = post.message;
+    let message = post.message || '';
 
     if (post.state === Posts.POST_DELETED) {
         message = formatMessage({
