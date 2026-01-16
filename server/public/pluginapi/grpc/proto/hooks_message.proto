@@ -1,0 +1,483 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+syntax = "proto3";
+
+package mattermost.pluginapi.v1;
+
+option go_package = "github.com/mattermost/mattermost/server/public/pluginapi/grpc/generated/go/pluginapiv1";
+
+import "common.proto";
+import "hooks_common.proto";
+import "post.proto";
+import "file.proto";
+
+// ==============================================================================
+// MESSAGE HOOK MESSAGES
+// ==============================================================================
+//
+// This file defines request/response messages for message-related hooks.
+// These hooks are invoked by the server during message lifecycle events including
+// posts, reactions, file uploads, and notifications.
+//
+// Covered hooks (from server/public/plugin/hooks.go):
+// - MessageWillBePosted(c *Context, post *model.Post) (*model.Post, string)
+// - MessageWillBeUpdated(c *Context, newPost, oldPost *model.Post) (*model.Post, string)
+// - MessageHasBeenPosted(c *Context, post *model.Post)
+// - MessageHasBeenUpdated(c *Context, newPost, oldPost *model.Post)
+// - MessagesWillBeConsumed(posts []*model.Post) []*model.Post
+// - MessageHasBeenDeleted(c *Context, post *model.Post)
+// - FileWillBeUploaded(c *Context, info *model.FileInfo, file io.Reader, output io.Writer) (*model.FileInfo, string)
+// - ReactionHasBeenAdded(c *Context, reaction *model.Reaction)
+// - ReactionHasBeenRemoved(c *Context, reaction *model.Reaction)
+// - NotificationWillBePushed(pushNotification *model.PushNotification, userID string) (*model.PushNotification, string)
+// - EmailNotificationWillBeSent(emailNotification *model.EmailNotification) (*model.EmailNotificationContent, string)
+// - PreferencesHaveChanged(c *Context, preferences []model.Preference)
+//
+// ==============================================================================
+
+// -----------------------------------------------------------------------------
+// Model Types
+// -----------------------------------------------------------------------------
+
+// PushNotification represents a push notification to be sent to a mobile device.
+// Maps to model.PushNotification in Go (server/public/model/push_notification.go).
+message PushNotification {
+  // Acknowledgement ID for tracking delivery
+  string ack_id = 1;
+
+  // Platform identifier (e.g., "apple", "android", "apple_rn", "android_rn")
+  string platform = 2;
+
+  // Server identifier
+  string server_id = 3;
+
+  // Device identifier for targeting
+  string device_id = 4;
+
+  // Post ID that triggered this notification
+  string post_id = 5;
+
+  // Category for interactive actions (e.g., "CAN_REPLY")
+  string category = 6;
+
+  // Sound to play (empty for default, "none" for silent)
+  string sound = 7;
+
+  // Notification message content
+  string message = 8;
+
+  // Badge count to display on app icon
+  int32 badge = 9;
+
+  // Content available flag for background updates
+  int32 content_available = 10;
+
+  // Team ID where the notification originated
+  string team_id = 11;
+
+  // Channel ID where the notification originated
+  string channel_id = 12;
+
+  // Root post ID for threaded replies
+  string root_id = 13;
+
+  // Channel display name
+  string channel_name = 14;
+
+  // Notification type (e.g., "message", "clear", "update_badge", "session", "test")
+  string type = 15;
+
+  // Sub-type for additional context (e.g., "calls" for Calls plugin)
+  string sub_type = 16;
+
+  // Sender user ID
+  string sender_id = 17;
+
+  // Sender display name
+  string sender_name = 18;
+
+  // Override username for webhooks
+  string override_username = 19;
+
+  // Override icon URL for webhooks
+  string override_icon_url = 20;
+
+  // Flag indicating notification is from a webhook
+  string from_webhook = 21;
+
+  // Protocol version (e.g., "v2")
+  string version = 22;
+
+  // Whether collapsed reply threads (CRT) is enabled
+  bool is_crt_enabled = 23;
+
+  // Whether this is an ID-only notification (content fetched by client)
+  bool is_id_loaded = 24;
+
+  // Notification signature for verification
+  string signature = 25;
+}
+
+// EmailNotificationJson wraps a serialized model.EmailNotification as JSON bytes.
+// EmailNotification is a complex type with embedded struct; we use JSON blob
+// approach to avoid maintaining duplicate proto schema.
+message EmailNotificationJson {
+  // JSON-encoded model.EmailNotification
+  bytes notification_json = 1;
+}
+
+// EmailNotificationContent contains the customizable content of an email notification.
+// Maps to model.EmailNotificationContent in Go (server/public/model/email_notification.go).
+// This is the return type for EmailNotificationWillBeSent hook.
+message EmailNotificationContent {
+  // Email subject line
+  string subject = 1;
+
+  // Main title in the email body
+  string title = 2;
+
+  // Subtitle below the main title
+  string sub_title = 3;
+
+  // HTML-formatted message content
+  string message_html = 4;
+
+  // Plain text message content (for email clients that don't render HTML)
+  string message_text = 5;
+
+  // Text for the call-to-action button
+  string button_text = 6;
+
+  // URL for the call-to-action button
+  string button_url = 7;
+
+  // Footer text at the bottom of the email
+  string footer_text = 8;
+}
+
+// Preference represents a user preference setting.
+// Maps to model.Preference in Go (server/public/model/preference.go).
+message Preference {
+  // The user ID this preference belongs to
+  string user_id = 1;
+
+  // The category of the preference (e.g., "display_settings", "notifications")
+  string category = 2;
+
+  // The name/key of the preference within the category
+  string name = 3;
+
+  // The value of the preference
+  string value = 4;
+}
+
+// -----------------------------------------------------------------------------
+// MessageWillBePosted Hook
+// Signature: MessageWillBePosted(c *Context, post *model.Post) (*model.Post, string)
+// Invoked when a message is posted before it is committed to the database.
+// Can modify/reject the post.
+// -----------------------------------------------------------------------------
+
+message MessageWillBePostedRequest {
+  RequestContext context = 1;
+
+  // Plugin context with session/request metadata
+  PluginContext plugin_context = 2;
+
+  // The post about to be created
+  Post post = 3;
+}
+
+message MessageWillBePostedResponse {
+  // Note: No error field - rejection is via rejection_reason string
+
+  // Modified post to use instead of the original (null to use original unchanged)
+  Post modified_post = 1;
+
+  // Non-empty string rejects the post with this message shown to user.
+  // Use "plugin.message_will_be_posted.dismiss_post" to silently dismiss.
+  string rejection_reason = 2;
+}
+
+// -----------------------------------------------------------------------------
+// MessageWillBeUpdated Hook
+// Signature: MessageWillBeUpdated(c *Context, newPost, oldPost *model.Post) (*model.Post, string)
+// Invoked when a message is updated before it is committed to the database.
+// Can modify/reject the update.
+// -----------------------------------------------------------------------------
+
+message MessageWillBeUpdatedRequest {
+  RequestContext context = 1;
+
+  // Plugin context with session/request metadata
+  PluginContext plugin_context = 2;
+
+  // The updated post content
+  Post new_post = 3;
+
+  // The original post before the update
+  Post old_post = 4;
+}
+
+message MessageWillBeUpdatedResponse {
+  // Note: No error field - rejection is via rejection_reason string
+
+  // Modified post to use instead (null to use new_post unchanged)
+  Post modified_post = 1;
+
+  // Non-empty string rejects the update with this message shown to user.
+  // The post will remain in its previous state.
+  string rejection_reason = 2;
+}
+
+// -----------------------------------------------------------------------------
+// MessageHasBeenPosted Hook
+// Signature: MessageHasBeenPosted(c *Context, post *model.Post)
+// Invoked after the message has been committed to the database.
+// Notification only - cannot modify or reject.
+// -----------------------------------------------------------------------------
+
+message MessageHasBeenPostedRequest {
+  RequestContext context = 1;
+
+  // Plugin context with session/request metadata
+  PluginContext plugin_context = 2;
+
+  // The post that was created
+  Post post = 3;
+}
+
+message MessageHasBeenPostedResponse {
+  // No error field because the Go signature has no return value.
+  // Hook failures are logged but do not affect server operation.
+}
+
+// -----------------------------------------------------------------------------
+// MessageHasBeenUpdated Hook
+// Signature: MessageHasBeenUpdated(c *Context, newPost, oldPost *model.Post)
+// Invoked after the message update has been committed to the database.
+// Notification only - cannot modify or reject.
+// -----------------------------------------------------------------------------
+
+message MessageHasBeenUpdatedRequest {
+  RequestContext context = 1;
+
+  // Plugin context with session/request metadata
+  PluginContext plugin_context = 2;
+
+  // The post after the update
+  Post new_post = 3;
+
+  // The post before the update
+  Post old_post = 4;
+}
+
+message MessageHasBeenUpdatedResponse {
+  // No error field because the Go signature has no return value.
+  // Hook failures are logged but do not affect server operation.
+}
+
+// -----------------------------------------------------------------------------
+// MessagesWillBeConsumed Hook
+// Signature: MessagesWillBeConsumed(posts []*model.Post) []*model.Post
+// Invoked when messages are requested by a client before they are returned.
+// Can filter or modify posts before delivery to clients.
+// Note: No Context parameter in Go signature.
+// -----------------------------------------------------------------------------
+
+message MessagesWillBeConsumedRequest {
+  RequestContext context = 1;
+
+  // Posts about to be sent to the client
+  repeated Post posts = 2;
+}
+
+message MessagesWillBeConsumedResponse {
+  // No error field because the Go signature has no error return value.
+
+  // Modified/filtered posts to return to the client.
+  // Can remove posts by omitting them, or modify post content.
+  repeated Post posts = 1;
+}
+
+// -----------------------------------------------------------------------------
+// MessageHasBeenDeleted Hook
+// Signature: MessageHasBeenDeleted(c *Context, post *model.Post)
+// Invoked after the message has been deleted from the database.
+// Notification only - cannot undo the deletion.
+// -----------------------------------------------------------------------------
+
+message MessageHasBeenDeletedRequest {
+  RequestContext context = 1;
+
+  // Plugin context with session/request metadata
+  PluginContext plugin_context = 2;
+
+  // The post that was deleted
+  Post post = 3;
+}
+
+message MessageHasBeenDeletedResponse {
+  // No error field because the Go signature has no return value.
+  // Hook failures are logged but do not affect server operation.
+}
+
+// -----------------------------------------------------------------------------
+// FileWillBeUploaded Hook
+// Signature: FileWillBeUploaded(c *Context, info *model.FileInfo, file io.Reader, output io.Writer) (*model.FileInfo, string)
+// Invoked when a file is uploaded before it is committed to storage.
+// Can modify/reject the upload.
+//
+// Note: In Phase 8 (streaming), this will be enhanced with proper streaming.
+// For now, we use bytes for file content.
+// -----------------------------------------------------------------------------
+
+message FileWillBeUploadedRequest {
+  RequestContext context = 1;
+
+  // Plugin context with session/request metadata
+  PluginContext plugin_context = 2;
+
+  // Metadata about the file being uploaded
+  FileInfo file_info = 3;
+
+  // The raw file content (Phase 8 will add streaming support)
+  bytes file_content = 4;
+}
+
+message FileWillBeUploadedResponse {
+  // Note: No error field - rejection is via rejection_reason string
+
+  // Modified file metadata (null to use original unchanged)
+  FileInfo modified_file_info = 1;
+
+  // Modified file content (empty to use original unchanged)
+  // Size will be automatically recalculated if content is modified.
+  bytes modified_content = 2;
+
+  // Non-empty string rejects the upload with this message shown to user.
+  string rejection_reason = 3;
+}
+
+// -----------------------------------------------------------------------------
+// ReactionHasBeenAdded Hook
+// Signature: ReactionHasBeenAdded(c *Context, reaction *model.Reaction)
+// Invoked after a reaction has been committed to the database.
+// Notification only.
+// -----------------------------------------------------------------------------
+
+message ReactionHasBeenAddedRequest {
+  RequestContext context = 1;
+
+  // Plugin context with session/request metadata
+  PluginContext plugin_context = 2;
+
+  // The reaction that was added (defined in post.proto)
+  Reaction reaction = 3;
+}
+
+message ReactionHasBeenAddedResponse {
+  // No error field because the Go signature has no return value.
+  // Hook failures are logged but do not affect server operation.
+}
+
+// -----------------------------------------------------------------------------
+// ReactionHasBeenRemoved Hook
+// Signature: ReactionHasBeenRemoved(c *Context, reaction *model.Reaction)
+// Invoked after a reaction has been removed from the database.
+// Notification only.
+// -----------------------------------------------------------------------------
+
+message ReactionHasBeenRemovedRequest {
+  RequestContext context = 1;
+
+  // Plugin context with session/request metadata
+  PluginContext plugin_context = 2;
+
+  // The reaction that was removed (defined in post.proto)
+  Reaction reaction = 3;
+}
+
+message ReactionHasBeenRemovedResponse {
+  // No error field because the Go signature has no return value.
+  // Hook failures are logged but do not affect server operation.
+}
+
+// -----------------------------------------------------------------------------
+// NotificationWillBePushed Hook
+// Signature: NotificationWillBePushed(pushNotification *model.PushNotification, userID string) (*model.PushNotification, string)
+// Invoked before a push notification is sent to the push notification server.
+// Can modify/reject the notification.
+// Note: No Context parameter in Go signature.
+// -----------------------------------------------------------------------------
+
+message NotificationWillBePushedRequest {
+  RequestContext context = 1;
+
+  // The push notification about to be sent
+  PushNotification push_notification = 2;
+
+  // The user ID of the notification recipient
+  string user_id = 3;
+}
+
+message NotificationWillBePushedResponse {
+  // Note: No error field - rejection is via rejection_reason string
+
+  // Modified notification to send instead (null to use original unchanged)
+  PushNotification modified_notification = 1;
+
+  // Non-empty string rejects the notification (it won't be sent)
+  string rejection_reason = 2;
+}
+
+// -----------------------------------------------------------------------------
+// EmailNotificationWillBeSent Hook
+// Signature: EmailNotificationWillBeSent(emailNotification *model.EmailNotification) (*model.EmailNotificationContent, string)
+// Invoked before an email notification is sent.
+// Can customize or reject the notification.
+// Note: No Context parameter in Go signature.
+// Note: EmailNotification input uses JSON blob (complex embedded struct).
+//       EmailNotificationContent return is typed (simple flat struct).
+// -----------------------------------------------------------------------------
+
+message EmailNotificationWillBeSentRequest {
+  RequestContext context = 1;
+
+  // The email notification as JSON bytes (model.EmailNotification is complex)
+  EmailNotificationJson email_notification = 2;
+}
+
+message EmailNotificationWillBeSentResponse {
+  // Note: No error field - rejection is via rejection_reason string
+
+  // Modified content to use instead (null to use original unchanged)
+  // Only content fields can be modified; core identifiers are immutable.
+  EmailNotificationContent modified_content = 1;
+
+  // Non-empty string rejects the email (it won't be sent)
+  string rejection_reason = 2;
+}
+
+// -----------------------------------------------------------------------------
+// PreferencesHaveChanged Hook
+// Signature: PreferencesHaveChanged(c *Context, preferences []model.Preference)
+// Invoked after one or more of a user's preferences have changed.
+// Notification only.
+// -----------------------------------------------------------------------------
+
+message PreferencesHaveChangedRequest {
+  RequestContext context = 1;
+
+  // Plugin context with session/request metadata
+  PluginContext plugin_context = 2;
+
+  // The preferences that were changed
+  repeated Preference preferences = 3;
+}
+
+message PreferencesHaveChangedResponse {
+  // No error field because the Go signature has no return value.
+  // Hook failures are logged but do not affect server operation.
+}
