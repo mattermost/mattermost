@@ -41,6 +41,7 @@ proto-gen: proto-tools
 		--go_opt=Mhooks_common.proto=$(PROTO_GO_PKG) \
 		--go_opt=Mhooks_lifecycle.proto=$(PROTO_GO_PKG) \
 		--go_opt=Mhooks_message.proto=$(PROTO_GO_PKG) \
+		--go_opt=Mhooks_user_channel.proto=$(PROTO_GO_PKG) \
 		--go_opt=Mhooks.proto=$(PROTO_GO_PKG) \
 		--go-grpc_out=$(PROTO_OUT_DIR) \
 		--go-grpc_opt=paths=source_relative \
@@ -59,6 +60,7 @@ proto-gen: proto-tools
 		--go-grpc_opt=Mhooks_common.proto=$(PROTO_GO_PKG) \
 		--go-grpc_opt=Mhooks_lifecycle.proto=$(PROTO_GO_PKG) \
 		--go-grpc_opt=Mhooks_message.proto=$(PROTO_GO_PKG) \
+		--go-grpc_opt=Mhooks_user_channel.proto=$(PROTO_GO_PKG) \
 		--go-grpc_opt=Mhooks.proto=$(PROTO_GO_PKG) \
 		$(PROTO_SRC_DIR)/*.proto
 	@mv $(PROTO_OUT_DIR)/*.pb.go $(PROTO_OUT_DIR)/pluginapiv1/ 2>/dev/null || true

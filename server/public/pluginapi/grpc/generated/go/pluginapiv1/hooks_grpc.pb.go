@@ -43,6 +43,16 @@ const (
 	PluginHooks_NotificationWillBePushed_FullMethodName    = "/mattermost.pluginapi.v1.PluginHooks/NotificationWillBePushed"
 	PluginHooks_EmailNotificationWillBeSent_FullMethodName = "/mattermost.pluginapi.v1.PluginHooks/EmailNotificationWillBeSent"
 	PluginHooks_PreferencesHaveChanged_FullMethodName      = "/mattermost.pluginapi.v1.PluginHooks/PreferencesHaveChanged"
+	PluginHooks_UserHasBeenCreated_FullMethodName          = "/mattermost.pluginapi.v1.PluginHooks/UserHasBeenCreated"
+	PluginHooks_UserWillLogIn_FullMethodName               = "/mattermost.pluginapi.v1.PluginHooks/UserWillLogIn"
+	PluginHooks_UserHasLoggedIn_FullMethodName             = "/mattermost.pluginapi.v1.PluginHooks/UserHasLoggedIn"
+	PluginHooks_UserHasBeenDeactivated_FullMethodName      = "/mattermost.pluginapi.v1.PluginHooks/UserHasBeenDeactivated"
+	PluginHooks_OnSAMLLogin_FullMethodName                 = "/mattermost.pluginapi.v1.PluginHooks/OnSAMLLogin"
+	PluginHooks_ChannelHasBeenCreated_FullMethodName       = "/mattermost.pluginapi.v1.PluginHooks/ChannelHasBeenCreated"
+	PluginHooks_UserHasJoinedChannel_FullMethodName        = "/mattermost.pluginapi.v1.PluginHooks/UserHasJoinedChannel"
+	PluginHooks_UserHasLeftChannel_FullMethodName          = "/mattermost.pluginapi.v1.PluginHooks/UserHasLeftChannel"
+	PluginHooks_UserHasJoinedTeam_FullMethodName           = "/mattermost.pluginapi.v1.PluginHooks/UserHasJoinedTeam"
+	PluginHooks_UserHasLeftTeam_FullMethodName             = "/mattermost.pluginapi.v1.PluginHooks/UserHasLeftTeam"
 )
 
 // PluginHooksClient is the client API for PluginHooks service.
@@ -202,6 +212,57 @@ type PluginHooksClient interface {
 	//
 	// Go signature: PreferencesHaveChanged(c *Context, preferences []model.Preference)
 	PreferencesHaveChanged(ctx context.Context, in *PreferencesHaveChangedRequest, opts ...grpc.CallOption) (*PreferencesHaveChangedResponse, error)
+	// UserHasBeenCreated is invoked after a user was created.
+	// This is a notification hook - you cannot modify or reject the creation.
+	//
+	// Go signature: UserHasBeenCreated(c *Context, user *model.User)
+	UserHasBeenCreated(ctx context.Context, in *UserHasBeenCreatedRequest, opts ...grpc.CallOption) (*UserHasBeenCreatedResponse, error)
+	// UserWillLogIn is invoked before the login of the user is returned.
+	// Return a non-empty string to reject the login.
+	// If you don't need to reject the login event, see UserHasLoggedIn.
+	//
+	// Go signature: UserWillLogIn(c *Context, user *model.User) string
+	UserWillLogIn(ctx context.Context, in *UserWillLogInRequest, opts ...grpc.CallOption) (*UserWillLogInResponse, error)
+	// UserHasLoggedIn is invoked after a user has logged in.
+	// This is a notification hook - you cannot modify or reject the login.
+	//
+	// Go signature: UserHasLoggedIn(c *Context, user *model.User)
+	UserHasLoggedIn(ctx context.Context, in *UserHasLoggedInRequest, opts ...grpc.CallOption) (*UserHasLoggedInResponse, error)
+	// UserHasBeenDeactivated is invoked when a user is deactivated.
+	// This is a notification hook.
+	//
+	// Go signature: UserHasBeenDeactivated(c *Context, user *model.User)
+	UserHasBeenDeactivated(ctx context.Context, in *UserHasBeenDeactivatedRequest, opts ...grpc.CallOption) (*UserHasBeenDeactivatedResponse, error)
+	// OnSAMLLogin is invoked after a successful SAML login.
+	// Return an error to reject the login.
+	//
+	// Go signature: OnSAMLLogin(c *Context, user *model.User, assertion *saml2.AssertionInfo) error
+	OnSAMLLogin(ctx context.Context, in *OnSAMLLoginRequest, opts ...grpc.CallOption) (*OnSAMLLoginResponse, error)
+	// ChannelHasBeenCreated is invoked after a channel has been created.
+	// This is a notification hook - you cannot modify or reject the creation.
+	//
+	// Go signature: ChannelHasBeenCreated(c *Context, channel *model.Channel)
+	ChannelHasBeenCreated(ctx context.Context, in *ChannelHasBeenCreatedRequest, opts ...grpc.CallOption) (*ChannelHasBeenCreatedResponse, error)
+	// UserHasJoinedChannel is invoked after a user has joined a channel.
+	// This is a notification hook. The actor is optional (nil if self-join).
+	//
+	// Go signature: UserHasJoinedChannel(c *Context, channelMember *model.ChannelMember, actor *model.User)
+	UserHasJoinedChannel(ctx context.Context, in *UserHasJoinedChannelRequest, opts ...grpc.CallOption) (*UserHasJoinedChannelResponse, error)
+	// UserHasLeftChannel is invoked after a user has left a channel.
+	// This is a notification hook. The actor is optional (nil if self-removal).
+	//
+	// Go signature: UserHasLeftChannel(c *Context, channelMember *model.ChannelMember, actor *model.User)
+	UserHasLeftChannel(ctx context.Context, in *UserHasLeftChannelRequest, opts ...grpc.CallOption) (*UserHasLeftChannelResponse, error)
+	// UserHasJoinedTeam is invoked after a user has joined a team.
+	// This is a notification hook. The actor is optional (nil if self-join).
+	//
+	// Go signature: UserHasJoinedTeam(c *Context, teamMember *model.TeamMember, actor *model.User)
+	UserHasJoinedTeam(ctx context.Context, in *UserHasJoinedTeamRequest, opts ...grpc.CallOption) (*UserHasJoinedTeamResponse, error)
+	// UserHasLeftTeam is invoked after a user has left a team.
+	// This is a notification hook. The actor is optional (nil if self-removal).
+	//
+	// Go signature: UserHasLeftTeam(c *Context, teamMember *model.TeamMember, actor *model.User)
+	UserHasLeftTeam(ctx context.Context, in *UserHasLeftTeamRequest, opts ...grpc.CallOption) (*UserHasLeftTeamResponse, error)
 }
 
 type pluginHooksClient struct {
@@ -422,6 +483,106 @@ func (c *pluginHooksClient) PreferencesHaveChanged(ctx context.Context, in *Pref
 	return out, nil
 }
 
+func (c *pluginHooksClient) UserHasBeenCreated(ctx context.Context, in *UserHasBeenCreatedRequest, opts ...grpc.CallOption) (*UserHasBeenCreatedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UserHasBeenCreatedResponse)
+	err := c.cc.Invoke(ctx, PluginHooks_UserHasBeenCreated_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pluginHooksClient) UserWillLogIn(ctx context.Context, in *UserWillLogInRequest, opts ...grpc.CallOption) (*UserWillLogInResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UserWillLogInResponse)
+	err := c.cc.Invoke(ctx, PluginHooks_UserWillLogIn_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pluginHooksClient) UserHasLoggedIn(ctx context.Context, in *UserHasLoggedInRequest, opts ...grpc.CallOption) (*UserHasLoggedInResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UserHasLoggedInResponse)
+	err := c.cc.Invoke(ctx, PluginHooks_UserHasLoggedIn_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pluginHooksClient) UserHasBeenDeactivated(ctx context.Context, in *UserHasBeenDeactivatedRequest, opts ...grpc.CallOption) (*UserHasBeenDeactivatedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UserHasBeenDeactivatedResponse)
+	err := c.cc.Invoke(ctx, PluginHooks_UserHasBeenDeactivated_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pluginHooksClient) OnSAMLLogin(ctx context.Context, in *OnSAMLLoginRequest, opts ...grpc.CallOption) (*OnSAMLLoginResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(OnSAMLLoginResponse)
+	err := c.cc.Invoke(ctx, PluginHooks_OnSAMLLogin_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pluginHooksClient) ChannelHasBeenCreated(ctx context.Context, in *ChannelHasBeenCreatedRequest, opts ...grpc.CallOption) (*ChannelHasBeenCreatedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ChannelHasBeenCreatedResponse)
+	err := c.cc.Invoke(ctx, PluginHooks_ChannelHasBeenCreated_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pluginHooksClient) UserHasJoinedChannel(ctx context.Context, in *UserHasJoinedChannelRequest, opts ...grpc.CallOption) (*UserHasJoinedChannelResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UserHasJoinedChannelResponse)
+	err := c.cc.Invoke(ctx, PluginHooks_UserHasJoinedChannel_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pluginHooksClient) UserHasLeftChannel(ctx context.Context, in *UserHasLeftChannelRequest, opts ...grpc.CallOption) (*UserHasLeftChannelResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UserHasLeftChannelResponse)
+	err := c.cc.Invoke(ctx, PluginHooks_UserHasLeftChannel_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pluginHooksClient) UserHasJoinedTeam(ctx context.Context, in *UserHasJoinedTeamRequest, opts ...grpc.CallOption) (*UserHasJoinedTeamResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UserHasJoinedTeamResponse)
+	err := c.cc.Invoke(ctx, PluginHooks_UserHasJoinedTeam_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pluginHooksClient) UserHasLeftTeam(ctx context.Context, in *UserHasLeftTeamRequest, opts ...grpc.CallOption) (*UserHasLeftTeamResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UserHasLeftTeamResponse)
+	err := c.cc.Invoke(ctx, PluginHooks_UserHasLeftTeam_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PluginHooksServer is the server API for PluginHooks service.
 // All implementations must embed UnimplementedPluginHooksServer
 // for forward compatibility.
@@ -579,6 +740,57 @@ type PluginHooksServer interface {
 	//
 	// Go signature: PreferencesHaveChanged(c *Context, preferences []model.Preference)
 	PreferencesHaveChanged(context.Context, *PreferencesHaveChangedRequest) (*PreferencesHaveChangedResponse, error)
+	// UserHasBeenCreated is invoked after a user was created.
+	// This is a notification hook - you cannot modify or reject the creation.
+	//
+	// Go signature: UserHasBeenCreated(c *Context, user *model.User)
+	UserHasBeenCreated(context.Context, *UserHasBeenCreatedRequest) (*UserHasBeenCreatedResponse, error)
+	// UserWillLogIn is invoked before the login of the user is returned.
+	// Return a non-empty string to reject the login.
+	// If you don't need to reject the login event, see UserHasLoggedIn.
+	//
+	// Go signature: UserWillLogIn(c *Context, user *model.User) string
+	UserWillLogIn(context.Context, *UserWillLogInRequest) (*UserWillLogInResponse, error)
+	// UserHasLoggedIn is invoked after a user has logged in.
+	// This is a notification hook - you cannot modify or reject the login.
+	//
+	// Go signature: UserHasLoggedIn(c *Context, user *model.User)
+	UserHasLoggedIn(context.Context, *UserHasLoggedInRequest) (*UserHasLoggedInResponse, error)
+	// UserHasBeenDeactivated is invoked when a user is deactivated.
+	// This is a notification hook.
+	//
+	// Go signature: UserHasBeenDeactivated(c *Context, user *model.User)
+	UserHasBeenDeactivated(context.Context, *UserHasBeenDeactivatedRequest) (*UserHasBeenDeactivatedResponse, error)
+	// OnSAMLLogin is invoked after a successful SAML login.
+	// Return an error to reject the login.
+	//
+	// Go signature: OnSAMLLogin(c *Context, user *model.User, assertion *saml2.AssertionInfo) error
+	OnSAMLLogin(context.Context, *OnSAMLLoginRequest) (*OnSAMLLoginResponse, error)
+	// ChannelHasBeenCreated is invoked after a channel has been created.
+	// This is a notification hook - you cannot modify or reject the creation.
+	//
+	// Go signature: ChannelHasBeenCreated(c *Context, channel *model.Channel)
+	ChannelHasBeenCreated(context.Context, *ChannelHasBeenCreatedRequest) (*ChannelHasBeenCreatedResponse, error)
+	// UserHasJoinedChannel is invoked after a user has joined a channel.
+	// This is a notification hook. The actor is optional (nil if self-join).
+	//
+	// Go signature: UserHasJoinedChannel(c *Context, channelMember *model.ChannelMember, actor *model.User)
+	UserHasJoinedChannel(context.Context, *UserHasJoinedChannelRequest) (*UserHasJoinedChannelResponse, error)
+	// UserHasLeftChannel is invoked after a user has left a channel.
+	// This is a notification hook. The actor is optional (nil if self-removal).
+	//
+	// Go signature: UserHasLeftChannel(c *Context, channelMember *model.ChannelMember, actor *model.User)
+	UserHasLeftChannel(context.Context, *UserHasLeftChannelRequest) (*UserHasLeftChannelResponse, error)
+	// UserHasJoinedTeam is invoked after a user has joined a team.
+	// This is a notification hook. The actor is optional (nil if self-join).
+	//
+	// Go signature: UserHasJoinedTeam(c *Context, teamMember *model.TeamMember, actor *model.User)
+	UserHasJoinedTeam(context.Context, *UserHasJoinedTeamRequest) (*UserHasJoinedTeamResponse, error)
+	// UserHasLeftTeam is invoked after a user has left a team.
+	// This is a notification hook. The actor is optional (nil if self-removal).
+	//
+	// Go signature: UserHasLeftTeam(c *Context, teamMember *model.TeamMember, actor *model.User)
+	UserHasLeftTeam(context.Context, *UserHasLeftTeamRequest) (*UserHasLeftTeamResponse, error)
 	mustEmbedUnimplementedPluginHooksServer()
 }
 
@@ -651,6 +863,36 @@ func (UnimplementedPluginHooksServer) EmailNotificationWillBeSent(context.Contex
 }
 func (UnimplementedPluginHooksServer) PreferencesHaveChanged(context.Context, *PreferencesHaveChangedRequest) (*PreferencesHaveChangedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PreferencesHaveChanged not implemented")
+}
+func (UnimplementedPluginHooksServer) UserHasBeenCreated(context.Context, *UserHasBeenCreatedRequest) (*UserHasBeenCreatedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UserHasBeenCreated not implemented")
+}
+func (UnimplementedPluginHooksServer) UserWillLogIn(context.Context, *UserWillLogInRequest) (*UserWillLogInResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UserWillLogIn not implemented")
+}
+func (UnimplementedPluginHooksServer) UserHasLoggedIn(context.Context, *UserHasLoggedInRequest) (*UserHasLoggedInResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UserHasLoggedIn not implemented")
+}
+func (UnimplementedPluginHooksServer) UserHasBeenDeactivated(context.Context, *UserHasBeenDeactivatedRequest) (*UserHasBeenDeactivatedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UserHasBeenDeactivated not implemented")
+}
+func (UnimplementedPluginHooksServer) OnSAMLLogin(context.Context, *OnSAMLLoginRequest) (*OnSAMLLoginResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method OnSAMLLogin not implemented")
+}
+func (UnimplementedPluginHooksServer) ChannelHasBeenCreated(context.Context, *ChannelHasBeenCreatedRequest) (*ChannelHasBeenCreatedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ChannelHasBeenCreated not implemented")
+}
+func (UnimplementedPluginHooksServer) UserHasJoinedChannel(context.Context, *UserHasJoinedChannelRequest) (*UserHasJoinedChannelResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UserHasJoinedChannel not implemented")
+}
+func (UnimplementedPluginHooksServer) UserHasLeftChannel(context.Context, *UserHasLeftChannelRequest) (*UserHasLeftChannelResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UserHasLeftChannel not implemented")
+}
+func (UnimplementedPluginHooksServer) UserHasJoinedTeam(context.Context, *UserHasJoinedTeamRequest) (*UserHasJoinedTeamResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UserHasJoinedTeam not implemented")
+}
+func (UnimplementedPluginHooksServer) UserHasLeftTeam(context.Context, *UserHasLeftTeamRequest) (*UserHasLeftTeamResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UserHasLeftTeam not implemented")
 }
 func (UnimplementedPluginHooksServer) mustEmbedUnimplementedPluginHooksServer() {}
 func (UnimplementedPluginHooksServer) testEmbeddedByValue()                     {}
@@ -1051,6 +1293,186 @@ func _PluginHooks_PreferencesHaveChanged_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PluginHooks_UserHasBeenCreated_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserHasBeenCreatedRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PluginHooksServer).UserHasBeenCreated(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PluginHooks_UserHasBeenCreated_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PluginHooksServer).UserHasBeenCreated(ctx, req.(*UserHasBeenCreatedRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PluginHooks_UserWillLogIn_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserWillLogInRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PluginHooksServer).UserWillLogIn(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PluginHooks_UserWillLogIn_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PluginHooksServer).UserWillLogIn(ctx, req.(*UserWillLogInRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PluginHooks_UserHasLoggedIn_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserHasLoggedInRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PluginHooksServer).UserHasLoggedIn(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PluginHooks_UserHasLoggedIn_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PluginHooksServer).UserHasLoggedIn(ctx, req.(*UserHasLoggedInRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PluginHooks_UserHasBeenDeactivated_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserHasBeenDeactivatedRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PluginHooksServer).UserHasBeenDeactivated(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PluginHooks_UserHasBeenDeactivated_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PluginHooksServer).UserHasBeenDeactivated(ctx, req.(*UserHasBeenDeactivatedRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PluginHooks_OnSAMLLogin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OnSAMLLoginRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PluginHooksServer).OnSAMLLogin(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PluginHooks_OnSAMLLogin_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PluginHooksServer).OnSAMLLogin(ctx, req.(*OnSAMLLoginRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PluginHooks_ChannelHasBeenCreated_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ChannelHasBeenCreatedRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PluginHooksServer).ChannelHasBeenCreated(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PluginHooks_ChannelHasBeenCreated_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PluginHooksServer).ChannelHasBeenCreated(ctx, req.(*ChannelHasBeenCreatedRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PluginHooks_UserHasJoinedChannel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserHasJoinedChannelRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PluginHooksServer).UserHasJoinedChannel(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PluginHooks_UserHasJoinedChannel_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PluginHooksServer).UserHasJoinedChannel(ctx, req.(*UserHasJoinedChannelRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PluginHooks_UserHasLeftChannel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserHasLeftChannelRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PluginHooksServer).UserHasLeftChannel(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PluginHooks_UserHasLeftChannel_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PluginHooksServer).UserHasLeftChannel(ctx, req.(*UserHasLeftChannelRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PluginHooks_UserHasJoinedTeam_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserHasJoinedTeamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PluginHooksServer).UserHasJoinedTeam(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PluginHooks_UserHasJoinedTeam_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PluginHooksServer).UserHasJoinedTeam(ctx, req.(*UserHasJoinedTeamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PluginHooks_UserHasLeftTeam_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserHasLeftTeamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PluginHooksServer).UserHasLeftTeam(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PluginHooks_UserHasLeftTeam_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PluginHooksServer).UserHasLeftTeam(ctx, req.(*UserHasLeftTeamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PluginHooks_ServiceDesc is the grpc.ServiceDesc for PluginHooks service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1141,6 +1563,46 @@ var PluginHooks_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "PreferencesHaveChanged",
 			Handler:    _PluginHooks_PreferencesHaveChanged_Handler,
+		},
+		{
+			MethodName: "UserHasBeenCreated",
+			Handler:    _PluginHooks_UserHasBeenCreated_Handler,
+		},
+		{
+			MethodName: "UserWillLogIn",
+			Handler:    _PluginHooks_UserWillLogIn_Handler,
+		},
+		{
+			MethodName: "UserHasLoggedIn",
+			Handler:    _PluginHooks_UserHasLoggedIn_Handler,
+		},
+		{
+			MethodName: "UserHasBeenDeactivated",
+			Handler:    _PluginHooks_UserHasBeenDeactivated_Handler,
+		},
+		{
+			MethodName: "OnSAMLLogin",
+			Handler:    _PluginHooks_OnSAMLLogin_Handler,
+		},
+		{
+			MethodName: "ChannelHasBeenCreated",
+			Handler:    _PluginHooks_ChannelHasBeenCreated_Handler,
+		},
+		{
+			MethodName: "UserHasJoinedChannel",
+			Handler:    _PluginHooks_UserHasJoinedChannel_Handler,
+		},
+		{
+			MethodName: "UserHasLeftChannel",
+			Handler:    _PluginHooks_UserHasLeftChannel_Handler,
+		},
+		{
+			MethodName: "UserHasJoinedTeam",
+			Handler:    _PluginHooks_UserHasJoinedTeam_Handler,
+		},
+		{
+			MethodName: "UserHasLeftTeam",
+			Handler:    _PluginHooks_UserHasLeftTeam_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

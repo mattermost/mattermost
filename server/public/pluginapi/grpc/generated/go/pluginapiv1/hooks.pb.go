@@ -27,7 +27,7 @@ var File_hooks_proto protoreflect.FileDescriptor
 
 const file_hooks_proto_rawDesc = "" +
 	"\n" +
-	"\vhooks.proto\x12\x17mattermost.pluginapi.v1\x1a\x15hooks_lifecycle.proto\x1a\x13hooks_message.proto2\xc6\x15\n" +
+	"\vhooks.proto\x12\x17mattermost.pluginapi.v1\x1a\x15hooks_lifecycle.proto\x1a\x13hooks_message.proto\x1a\x18hooks_user_channel.proto2\xa1\x1f\n" +
 	"\vPluginHooks\x12h\n" +
 	"\vImplemented\x12+.mattermost.pluginapi.v1.ImplementedRequest\x1a,.mattermost.pluginapi.v1.ImplementedResponse\x12e\n" +
 	"\n" +
@@ -50,7 +50,17 @@ const file_hooks_proto_rawDesc = "" +
 	"\x16ReactionHasBeenRemoved\x126.mattermost.pluginapi.v1.ReactionHasBeenRemovedRequest\x1a7.mattermost.pluginapi.v1.ReactionHasBeenRemovedResponse\x12\x8f\x01\n" +
 	"\x18NotificationWillBePushed\x128.mattermost.pluginapi.v1.NotificationWillBePushedRequest\x1a9.mattermost.pluginapi.v1.NotificationWillBePushedResponse\x12\x98\x01\n" +
 	"\x1bEmailNotificationWillBeSent\x12;.mattermost.pluginapi.v1.EmailNotificationWillBeSentRequest\x1a<.mattermost.pluginapi.v1.EmailNotificationWillBeSentResponse\x12\x89\x01\n" +
-	"\x16PreferencesHaveChanged\x126.mattermost.pluginapi.v1.PreferencesHaveChangedRequest\x1a7.mattermost.pluginapi.v1.PreferencesHaveChangedResponseBXZVgithub.com/mattermost/mattermost/server/public/pluginapi/grpc/generated/go/pluginapiv1b\x06proto3"
+	"\x16PreferencesHaveChanged\x126.mattermost.pluginapi.v1.PreferencesHaveChangedRequest\x1a7.mattermost.pluginapi.v1.PreferencesHaveChangedResponse\x12}\n" +
+	"\x12UserHasBeenCreated\x122.mattermost.pluginapi.v1.UserHasBeenCreatedRequest\x1a3.mattermost.pluginapi.v1.UserHasBeenCreatedResponse\x12n\n" +
+	"\rUserWillLogIn\x12-.mattermost.pluginapi.v1.UserWillLogInRequest\x1a..mattermost.pluginapi.v1.UserWillLogInResponse\x12t\n" +
+	"\x0fUserHasLoggedIn\x12/.mattermost.pluginapi.v1.UserHasLoggedInRequest\x1a0.mattermost.pluginapi.v1.UserHasLoggedInResponse\x12\x89\x01\n" +
+	"\x16UserHasBeenDeactivated\x126.mattermost.pluginapi.v1.UserHasBeenDeactivatedRequest\x1a7.mattermost.pluginapi.v1.UserHasBeenDeactivatedResponse\x12h\n" +
+	"\vOnSAMLLogin\x12+.mattermost.pluginapi.v1.OnSAMLLoginRequest\x1a,.mattermost.pluginapi.v1.OnSAMLLoginResponse\x12\x86\x01\n" +
+	"\x15ChannelHasBeenCreated\x125.mattermost.pluginapi.v1.ChannelHasBeenCreatedRequest\x1a6.mattermost.pluginapi.v1.ChannelHasBeenCreatedResponse\x12\x83\x01\n" +
+	"\x14UserHasJoinedChannel\x124.mattermost.pluginapi.v1.UserHasJoinedChannelRequest\x1a5.mattermost.pluginapi.v1.UserHasJoinedChannelResponse\x12}\n" +
+	"\x12UserHasLeftChannel\x122.mattermost.pluginapi.v1.UserHasLeftChannelRequest\x1a3.mattermost.pluginapi.v1.UserHasLeftChannelResponse\x12z\n" +
+	"\x11UserHasJoinedTeam\x121.mattermost.pluginapi.v1.UserHasJoinedTeamRequest\x1a2.mattermost.pluginapi.v1.UserHasJoinedTeamResponse\x12t\n" +
+	"\x0fUserHasLeftTeam\x12/.mattermost.pluginapi.v1.UserHasLeftTeamRequest\x1a0.mattermost.pluginapi.v1.UserHasLeftTeamResponseBXZVgithub.com/mattermost/mattermost/server/public/pluginapi/grpc/generated/go/pluginapiv1b\x06proto3"
 
 var file_hooks_proto_goTypes = []any{
 	(*ImplementedRequest)(nil),                  // 0: mattermost.pluginapi.v1.ImplementedRequest
@@ -74,27 +84,47 @@ var file_hooks_proto_goTypes = []any{
 	(*NotificationWillBePushedRequest)(nil),     // 18: mattermost.pluginapi.v1.NotificationWillBePushedRequest
 	(*EmailNotificationWillBeSentRequest)(nil),  // 19: mattermost.pluginapi.v1.EmailNotificationWillBeSentRequest
 	(*PreferencesHaveChangedRequest)(nil),       // 20: mattermost.pluginapi.v1.PreferencesHaveChangedRequest
-	(*ImplementedResponse)(nil),                 // 21: mattermost.pluginapi.v1.ImplementedResponse
-	(*OnActivateResponse)(nil),                  // 22: mattermost.pluginapi.v1.OnActivateResponse
-	(*OnDeactivateResponse)(nil),                // 23: mattermost.pluginapi.v1.OnDeactivateResponse
-	(*OnConfigurationChangeResponse)(nil),       // 24: mattermost.pluginapi.v1.OnConfigurationChangeResponse
-	(*OnInstallResponse)(nil),                   // 25: mattermost.pluginapi.v1.OnInstallResponse
-	(*OnSendDailyTelemetryResponse)(nil),        // 26: mattermost.pluginapi.v1.OnSendDailyTelemetryResponse
-	(*RunDataRetentionResponse)(nil),            // 27: mattermost.pluginapi.v1.RunDataRetentionResponse
-	(*OnCloudLimitsUpdatedResponse)(nil),        // 28: mattermost.pluginapi.v1.OnCloudLimitsUpdatedResponse
-	(*ConfigurationWillBeSavedResponse)(nil),    // 29: mattermost.pluginapi.v1.ConfigurationWillBeSavedResponse
-	(*MessageWillBePostedResponse)(nil),         // 30: mattermost.pluginapi.v1.MessageWillBePostedResponse
-	(*MessageWillBeUpdatedResponse)(nil),        // 31: mattermost.pluginapi.v1.MessageWillBeUpdatedResponse
-	(*MessageHasBeenPostedResponse)(nil),        // 32: mattermost.pluginapi.v1.MessageHasBeenPostedResponse
-	(*MessageHasBeenUpdatedResponse)(nil),       // 33: mattermost.pluginapi.v1.MessageHasBeenUpdatedResponse
-	(*MessagesWillBeConsumedResponse)(nil),      // 34: mattermost.pluginapi.v1.MessagesWillBeConsumedResponse
-	(*MessageHasBeenDeletedResponse)(nil),       // 35: mattermost.pluginapi.v1.MessageHasBeenDeletedResponse
-	(*FileWillBeUploadedResponse)(nil),          // 36: mattermost.pluginapi.v1.FileWillBeUploadedResponse
-	(*ReactionHasBeenAddedResponse)(nil),        // 37: mattermost.pluginapi.v1.ReactionHasBeenAddedResponse
-	(*ReactionHasBeenRemovedResponse)(nil),      // 38: mattermost.pluginapi.v1.ReactionHasBeenRemovedResponse
-	(*NotificationWillBePushedResponse)(nil),    // 39: mattermost.pluginapi.v1.NotificationWillBePushedResponse
-	(*EmailNotificationWillBeSentResponse)(nil), // 40: mattermost.pluginapi.v1.EmailNotificationWillBeSentResponse
-	(*PreferencesHaveChangedResponse)(nil),      // 41: mattermost.pluginapi.v1.PreferencesHaveChangedResponse
+	(*UserHasBeenCreatedRequest)(nil),           // 21: mattermost.pluginapi.v1.UserHasBeenCreatedRequest
+	(*UserWillLogInRequest)(nil),                // 22: mattermost.pluginapi.v1.UserWillLogInRequest
+	(*UserHasLoggedInRequest)(nil),              // 23: mattermost.pluginapi.v1.UserHasLoggedInRequest
+	(*UserHasBeenDeactivatedRequest)(nil),       // 24: mattermost.pluginapi.v1.UserHasBeenDeactivatedRequest
+	(*OnSAMLLoginRequest)(nil),                  // 25: mattermost.pluginapi.v1.OnSAMLLoginRequest
+	(*ChannelHasBeenCreatedRequest)(nil),        // 26: mattermost.pluginapi.v1.ChannelHasBeenCreatedRequest
+	(*UserHasJoinedChannelRequest)(nil),         // 27: mattermost.pluginapi.v1.UserHasJoinedChannelRequest
+	(*UserHasLeftChannelRequest)(nil),           // 28: mattermost.pluginapi.v1.UserHasLeftChannelRequest
+	(*UserHasJoinedTeamRequest)(nil),            // 29: mattermost.pluginapi.v1.UserHasJoinedTeamRequest
+	(*UserHasLeftTeamRequest)(nil),              // 30: mattermost.pluginapi.v1.UserHasLeftTeamRequest
+	(*ImplementedResponse)(nil),                 // 31: mattermost.pluginapi.v1.ImplementedResponse
+	(*OnActivateResponse)(nil),                  // 32: mattermost.pluginapi.v1.OnActivateResponse
+	(*OnDeactivateResponse)(nil),                // 33: mattermost.pluginapi.v1.OnDeactivateResponse
+	(*OnConfigurationChangeResponse)(nil),       // 34: mattermost.pluginapi.v1.OnConfigurationChangeResponse
+	(*OnInstallResponse)(nil),                   // 35: mattermost.pluginapi.v1.OnInstallResponse
+	(*OnSendDailyTelemetryResponse)(nil),        // 36: mattermost.pluginapi.v1.OnSendDailyTelemetryResponse
+	(*RunDataRetentionResponse)(nil),            // 37: mattermost.pluginapi.v1.RunDataRetentionResponse
+	(*OnCloudLimitsUpdatedResponse)(nil),        // 38: mattermost.pluginapi.v1.OnCloudLimitsUpdatedResponse
+	(*ConfigurationWillBeSavedResponse)(nil),    // 39: mattermost.pluginapi.v1.ConfigurationWillBeSavedResponse
+	(*MessageWillBePostedResponse)(nil),         // 40: mattermost.pluginapi.v1.MessageWillBePostedResponse
+	(*MessageWillBeUpdatedResponse)(nil),        // 41: mattermost.pluginapi.v1.MessageWillBeUpdatedResponse
+	(*MessageHasBeenPostedResponse)(nil),        // 42: mattermost.pluginapi.v1.MessageHasBeenPostedResponse
+	(*MessageHasBeenUpdatedResponse)(nil),       // 43: mattermost.pluginapi.v1.MessageHasBeenUpdatedResponse
+	(*MessagesWillBeConsumedResponse)(nil),      // 44: mattermost.pluginapi.v1.MessagesWillBeConsumedResponse
+	(*MessageHasBeenDeletedResponse)(nil),       // 45: mattermost.pluginapi.v1.MessageHasBeenDeletedResponse
+	(*FileWillBeUploadedResponse)(nil),          // 46: mattermost.pluginapi.v1.FileWillBeUploadedResponse
+	(*ReactionHasBeenAddedResponse)(nil),        // 47: mattermost.pluginapi.v1.ReactionHasBeenAddedResponse
+	(*ReactionHasBeenRemovedResponse)(nil),      // 48: mattermost.pluginapi.v1.ReactionHasBeenRemovedResponse
+	(*NotificationWillBePushedResponse)(nil),    // 49: mattermost.pluginapi.v1.NotificationWillBePushedResponse
+	(*EmailNotificationWillBeSentResponse)(nil), // 50: mattermost.pluginapi.v1.EmailNotificationWillBeSentResponse
+	(*PreferencesHaveChangedResponse)(nil),      // 51: mattermost.pluginapi.v1.PreferencesHaveChangedResponse
+	(*UserHasBeenCreatedResponse)(nil),          // 52: mattermost.pluginapi.v1.UserHasBeenCreatedResponse
+	(*UserWillLogInResponse)(nil),               // 53: mattermost.pluginapi.v1.UserWillLogInResponse
+	(*UserHasLoggedInResponse)(nil),             // 54: mattermost.pluginapi.v1.UserHasLoggedInResponse
+	(*UserHasBeenDeactivatedResponse)(nil),      // 55: mattermost.pluginapi.v1.UserHasBeenDeactivatedResponse
+	(*OnSAMLLoginResponse)(nil),                 // 56: mattermost.pluginapi.v1.OnSAMLLoginResponse
+	(*ChannelHasBeenCreatedResponse)(nil),       // 57: mattermost.pluginapi.v1.ChannelHasBeenCreatedResponse
+	(*UserHasJoinedChannelResponse)(nil),        // 58: mattermost.pluginapi.v1.UserHasJoinedChannelResponse
+	(*UserHasLeftChannelResponse)(nil),          // 59: mattermost.pluginapi.v1.UserHasLeftChannelResponse
+	(*UserHasJoinedTeamResponse)(nil),           // 60: mattermost.pluginapi.v1.UserHasJoinedTeamResponse
+	(*UserHasLeftTeamResponse)(nil),             // 61: mattermost.pluginapi.v1.UserHasLeftTeamResponse
 }
 var file_hooks_proto_depIdxs = []int32{
 	0,  // 0: mattermost.pluginapi.v1.PluginHooks.Implemented:input_type -> mattermost.pluginapi.v1.ImplementedRequest
@@ -118,29 +148,49 @@ var file_hooks_proto_depIdxs = []int32{
 	18, // 18: mattermost.pluginapi.v1.PluginHooks.NotificationWillBePushed:input_type -> mattermost.pluginapi.v1.NotificationWillBePushedRequest
 	19, // 19: mattermost.pluginapi.v1.PluginHooks.EmailNotificationWillBeSent:input_type -> mattermost.pluginapi.v1.EmailNotificationWillBeSentRequest
 	20, // 20: mattermost.pluginapi.v1.PluginHooks.PreferencesHaveChanged:input_type -> mattermost.pluginapi.v1.PreferencesHaveChangedRequest
-	21, // 21: mattermost.pluginapi.v1.PluginHooks.Implemented:output_type -> mattermost.pluginapi.v1.ImplementedResponse
-	22, // 22: mattermost.pluginapi.v1.PluginHooks.OnActivate:output_type -> mattermost.pluginapi.v1.OnActivateResponse
-	23, // 23: mattermost.pluginapi.v1.PluginHooks.OnDeactivate:output_type -> mattermost.pluginapi.v1.OnDeactivateResponse
-	24, // 24: mattermost.pluginapi.v1.PluginHooks.OnConfigurationChange:output_type -> mattermost.pluginapi.v1.OnConfigurationChangeResponse
-	25, // 25: mattermost.pluginapi.v1.PluginHooks.OnInstall:output_type -> mattermost.pluginapi.v1.OnInstallResponse
-	26, // 26: mattermost.pluginapi.v1.PluginHooks.OnSendDailyTelemetry:output_type -> mattermost.pluginapi.v1.OnSendDailyTelemetryResponse
-	27, // 27: mattermost.pluginapi.v1.PluginHooks.RunDataRetention:output_type -> mattermost.pluginapi.v1.RunDataRetentionResponse
-	28, // 28: mattermost.pluginapi.v1.PluginHooks.OnCloudLimitsUpdated:output_type -> mattermost.pluginapi.v1.OnCloudLimitsUpdatedResponse
-	29, // 29: mattermost.pluginapi.v1.PluginHooks.ConfigurationWillBeSaved:output_type -> mattermost.pluginapi.v1.ConfigurationWillBeSavedResponse
-	30, // 30: mattermost.pluginapi.v1.PluginHooks.MessageWillBePosted:output_type -> mattermost.pluginapi.v1.MessageWillBePostedResponse
-	31, // 31: mattermost.pluginapi.v1.PluginHooks.MessageWillBeUpdated:output_type -> mattermost.pluginapi.v1.MessageWillBeUpdatedResponse
-	32, // 32: mattermost.pluginapi.v1.PluginHooks.MessageHasBeenPosted:output_type -> mattermost.pluginapi.v1.MessageHasBeenPostedResponse
-	33, // 33: mattermost.pluginapi.v1.PluginHooks.MessageHasBeenUpdated:output_type -> mattermost.pluginapi.v1.MessageHasBeenUpdatedResponse
-	34, // 34: mattermost.pluginapi.v1.PluginHooks.MessagesWillBeConsumed:output_type -> mattermost.pluginapi.v1.MessagesWillBeConsumedResponse
-	35, // 35: mattermost.pluginapi.v1.PluginHooks.MessageHasBeenDeleted:output_type -> mattermost.pluginapi.v1.MessageHasBeenDeletedResponse
-	36, // 36: mattermost.pluginapi.v1.PluginHooks.FileWillBeUploaded:output_type -> mattermost.pluginapi.v1.FileWillBeUploadedResponse
-	37, // 37: mattermost.pluginapi.v1.PluginHooks.ReactionHasBeenAdded:output_type -> mattermost.pluginapi.v1.ReactionHasBeenAddedResponse
-	38, // 38: mattermost.pluginapi.v1.PluginHooks.ReactionHasBeenRemoved:output_type -> mattermost.pluginapi.v1.ReactionHasBeenRemovedResponse
-	39, // 39: mattermost.pluginapi.v1.PluginHooks.NotificationWillBePushed:output_type -> mattermost.pluginapi.v1.NotificationWillBePushedResponse
-	40, // 40: mattermost.pluginapi.v1.PluginHooks.EmailNotificationWillBeSent:output_type -> mattermost.pluginapi.v1.EmailNotificationWillBeSentResponse
-	41, // 41: mattermost.pluginapi.v1.PluginHooks.PreferencesHaveChanged:output_type -> mattermost.pluginapi.v1.PreferencesHaveChangedResponse
-	21, // [21:42] is the sub-list for method output_type
-	0,  // [0:21] is the sub-list for method input_type
+	21, // 21: mattermost.pluginapi.v1.PluginHooks.UserHasBeenCreated:input_type -> mattermost.pluginapi.v1.UserHasBeenCreatedRequest
+	22, // 22: mattermost.pluginapi.v1.PluginHooks.UserWillLogIn:input_type -> mattermost.pluginapi.v1.UserWillLogInRequest
+	23, // 23: mattermost.pluginapi.v1.PluginHooks.UserHasLoggedIn:input_type -> mattermost.pluginapi.v1.UserHasLoggedInRequest
+	24, // 24: mattermost.pluginapi.v1.PluginHooks.UserHasBeenDeactivated:input_type -> mattermost.pluginapi.v1.UserHasBeenDeactivatedRequest
+	25, // 25: mattermost.pluginapi.v1.PluginHooks.OnSAMLLogin:input_type -> mattermost.pluginapi.v1.OnSAMLLoginRequest
+	26, // 26: mattermost.pluginapi.v1.PluginHooks.ChannelHasBeenCreated:input_type -> mattermost.pluginapi.v1.ChannelHasBeenCreatedRequest
+	27, // 27: mattermost.pluginapi.v1.PluginHooks.UserHasJoinedChannel:input_type -> mattermost.pluginapi.v1.UserHasJoinedChannelRequest
+	28, // 28: mattermost.pluginapi.v1.PluginHooks.UserHasLeftChannel:input_type -> mattermost.pluginapi.v1.UserHasLeftChannelRequest
+	29, // 29: mattermost.pluginapi.v1.PluginHooks.UserHasJoinedTeam:input_type -> mattermost.pluginapi.v1.UserHasJoinedTeamRequest
+	30, // 30: mattermost.pluginapi.v1.PluginHooks.UserHasLeftTeam:input_type -> mattermost.pluginapi.v1.UserHasLeftTeamRequest
+	31, // 31: mattermost.pluginapi.v1.PluginHooks.Implemented:output_type -> mattermost.pluginapi.v1.ImplementedResponse
+	32, // 32: mattermost.pluginapi.v1.PluginHooks.OnActivate:output_type -> mattermost.pluginapi.v1.OnActivateResponse
+	33, // 33: mattermost.pluginapi.v1.PluginHooks.OnDeactivate:output_type -> mattermost.pluginapi.v1.OnDeactivateResponse
+	34, // 34: mattermost.pluginapi.v1.PluginHooks.OnConfigurationChange:output_type -> mattermost.pluginapi.v1.OnConfigurationChangeResponse
+	35, // 35: mattermost.pluginapi.v1.PluginHooks.OnInstall:output_type -> mattermost.pluginapi.v1.OnInstallResponse
+	36, // 36: mattermost.pluginapi.v1.PluginHooks.OnSendDailyTelemetry:output_type -> mattermost.pluginapi.v1.OnSendDailyTelemetryResponse
+	37, // 37: mattermost.pluginapi.v1.PluginHooks.RunDataRetention:output_type -> mattermost.pluginapi.v1.RunDataRetentionResponse
+	38, // 38: mattermost.pluginapi.v1.PluginHooks.OnCloudLimitsUpdated:output_type -> mattermost.pluginapi.v1.OnCloudLimitsUpdatedResponse
+	39, // 39: mattermost.pluginapi.v1.PluginHooks.ConfigurationWillBeSaved:output_type -> mattermost.pluginapi.v1.ConfigurationWillBeSavedResponse
+	40, // 40: mattermost.pluginapi.v1.PluginHooks.MessageWillBePosted:output_type -> mattermost.pluginapi.v1.MessageWillBePostedResponse
+	41, // 41: mattermost.pluginapi.v1.PluginHooks.MessageWillBeUpdated:output_type -> mattermost.pluginapi.v1.MessageWillBeUpdatedResponse
+	42, // 42: mattermost.pluginapi.v1.PluginHooks.MessageHasBeenPosted:output_type -> mattermost.pluginapi.v1.MessageHasBeenPostedResponse
+	43, // 43: mattermost.pluginapi.v1.PluginHooks.MessageHasBeenUpdated:output_type -> mattermost.pluginapi.v1.MessageHasBeenUpdatedResponse
+	44, // 44: mattermost.pluginapi.v1.PluginHooks.MessagesWillBeConsumed:output_type -> mattermost.pluginapi.v1.MessagesWillBeConsumedResponse
+	45, // 45: mattermost.pluginapi.v1.PluginHooks.MessageHasBeenDeleted:output_type -> mattermost.pluginapi.v1.MessageHasBeenDeletedResponse
+	46, // 46: mattermost.pluginapi.v1.PluginHooks.FileWillBeUploaded:output_type -> mattermost.pluginapi.v1.FileWillBeUploadedResponse
+	47, // 47: mattermost.pluginapi.v1.PluginHooks.ReactionHasBeenAdded:output_type -> mattermost.pluginapi.v1.ReactionHasBeenAddedResponse
+	48, // 48: mattermost.pluginapi.v1.PluginHooks.ReactionHasBeenRemoved:output_type -> mattermost.pluginapi.v1.ReactionHasBeenRemovedResponse
+	49, // 49: mattermost.pluginapi.v1.PluginHooks.NotificationWillBePushed:output_type -> mattermost.pluginapi.v1.NotificationWillBePushedResponse
+	50, // 50: mattermost.pluginapi.v1.PluginHooks.EmailNotificationWillBeSent:output_type -> mattermost.pluginapi.v1.EmailNotificationWillBeSentResponse
+	51, // 51: mattermost.pluginapi.v1.PluginHooks.PreferencesHaveChanged:output_type -> mattermost.pluginapi.v1.PreferencesHaveChangedResponse
+	52, // 52: mattermost.pluginapi.v1.PluginHooks.UserHasBeenCreated:output_type -> mattermost.pluginapi.v1.UserHasBeenCreatedResponse
+	53, // 53: mattermost.pluginapi.v1.PluginHooks.UserWillLogIn:output_type -> mattermost.pluginapi.v1.UserWillLogInResponse
+	54, // 54: mattermost.pluginapi.v1.PluginHooks.UserHasLoggedIn:output_type -> mattermost.pluginapi.v1.UserHasLoggedInResponse
+	55, // 55: mattermost.pluginapi.v1.PluginHooks.UserHasBeenDeactivated:output_type -> mattermost.pluginapi.v1.UserHasBeenDeactivatedResponse
+	56, // 56: mattermost.pluginapi.v1.PluginHooks.OnSAMLLogin:output_type -> mattermost.pluginapi.v1.OnSAMLLoginResponse
+	57, // 57: mattermost.pluginapi.v1.PluginHooks.ChannelHasBeenCreated:output_type -> mattermost.pluginapi.v1.ChannelHasBeenCreatedResponse
+	58, // 58: mattermost.pluginapi.v1.PluginHooks.UserHasJoinedChannel:output_type -> mattermost.pluginapi.v1.UserHasJoinedChannelResponse
+	59, // 59: mattermost.pluginapi.v1.PluginHooks.UserHasLeftChannel:output_type -> mattermost.pluginapi.v1.UserHasLeftChannelResponse
+	60, // 60: mattermost.pluginapi.v1.PluginHooks.UserHasJoinedTeam:output_type -> mattermost.pluginapi.v1.UserHasJoinedTeamResponse
+	61, // 61: mattermost.pluginapi.v1.PluginHooks.UserHasLeftTeam:output_type -> mattermost.pluginapi.v1.UserHasLeftTeamResponse
+	31, // [31:62] is the sub-list for method output_type
+	0,  // [0:31] is the sub-list for method input_type
 	0,  // [0:0] is the sub-list for extension type_name
 	0,  // [0:0] is the sub-list for extension extendee
 	0,  // [0:0] is the sub-list for field type_name
@@ -153,6 +203,7 @@ func file_hooks_proto_init() {
 	}
 	file_hooks_lifecycle_proto_init()
 	file_hooks_message_proto_init()
+	file_hooks_user_channel_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
