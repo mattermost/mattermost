@@ -337,7 +337,8 @@ function isSidebarOpen(state = false, action: MMAction) {
     case ActionTypes.RESTORE_RHS_PANEL:
         return true;
     case ActionTypes.OPEN_RHS_PANEL:
-        return true;
+        // Don't open sidebar if panel is being restored as minimized
+        return action.panel?.minimized ? state : true;
 
     case UserTypes.LOGOUT_SUCCESS:
         return false;
@@ -446,23 +447,36 @@ function openPanels(state: RhsPanelsState = defaultOpenPanelsState, action: MMAc
             ...state.panels,
             [panel.id]: panel,
         };
-        const newOrder = state.panelOrder.includes(panel.id)
-            ? state.panelOrder
-            : [...state.panelOrder, panel.id];
+        let newOrder = state.panelOrder;
+        if (!state.panelOrder.includes(panel.id)) {
+            newOrder = [...state.panelOrder, panel.id];
+        }
+
+        let newActivePanelId: string | null = panel.id;
+        if (panel.minimized) {
+            // Don't set active if panel is minimized (e.g., restoring from storage)
+            newActivePanelId = state.activePanelId;
+        }
+
         return {
             panels: newPanels,
-            activePanelId: panel.id,
+            activePanelId: newActivePanelId,
             panelOrder: newOrder,
         };
     }
 
     case ActionTypes.CLOSE_RHS_PANEL: {
         const panelId = action.panelId as string;
-        const {[panelId]: removed, ...remainingPanels} = state.panels;
+        const remainingPanels = Object.fromEntries(
+            Object.entries(state.panels).filter(([id]) => id !== panelId),
+        );
         const newOrder = state.panelOrder.filter((id) => id !== panelId);
-        const newActiveId = state.activePanelId === panelId
-            ? (newOrder.length > 0 ? newOrder[newOrder.length - 1] : null)
-            : state.activePanelId;
+
+        let newActiveId = state.activePanelId;
+        if (state.activePanelId === panelId) {
+            newActiveId = newOrder.length > 0 ? newOrder[newOrder.length - 1] : null;
+        }
+
         return {
             panels: remainingPanels,
             activePanelId: newActiveId,
@@ -534,6 +548,14 @@ function openPanels(state: RhsPanelsState = defaultOpenPanelsState, action: MMAc
                 ...state.panels,
                 [panelId]: {...panel, ...updates},
             },
+        };
+    }
+
+    case ActionTypes.REORDER_RHS_PANELS: {
+        const newOrder = action.panelOrder as string[];
+        return {
+            ...state,
+            panelOrder: newOrder,
         };
     }
 

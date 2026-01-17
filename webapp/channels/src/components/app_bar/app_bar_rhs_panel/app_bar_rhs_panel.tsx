@@ -26,6 +26,7 @@
 
 import classNames from 'classnames';
 import React, {useCallback} from 'react';
+import {useIntl} from 'react-intl';
 
 import {
     MessageTextOutlineIcon,
@@ -45,26 +46,15 @@ import WithTooltip from 'components/with_tooltip';
 
 import type {RhsPanelState} from 'types/store/rhs_panel';
 
+import ThreadPanelTooltip from './thread_panel_tooltip';
+
 type AppBarRhsPanelProps = {
-    /** The RHS panel state to render */
     panel: RhsPanelState;
-
-    /** Whether this panel is currently active (visible) */
     isActive: boolean;
-
-    /** Whether to show the close button (when Alt is held) */
     showCloseButton: boolean;
-
-    /** Callback when a minimized panel is clicked to restore it */
     onRestore: (panelId: string) => void;
-
-    /** Callback when an active panel is clicked to minimize it */
     onMinimize: (panelId: string) => void;
-
-    /** Callback when a non-active, non-minimized panel is clicked to activate it */
     onActivate: (panelId: string) => void;
-
-    /** Callback when the close button is clicked */
     onClose: (panelId: string) => void;
 }
 
@@ -107,6 +97,8 @@ const AppBarRhsPanel = ({
     onActivate,
     onClose,
 }: AppBarRhsPanelProps) => {
+    const {formatMessage} = useIntl();
+
     const handleClick = useCallback(() => {
         if (panel.minimized) {
             // Minimized panel - restore it
@@ -134,11 +126,43 @@ const AppBarRhsPanel = ({
 
     const buttonId = `app-bar-rhs-panel-${panel.id}`;
     const IconComponent = getPanelIconComponent(panel.type);
-    const ariaLabel = panel.minimized ? `${panel.title} (minimized)` : panel.title;
+
+    let ariaLabel = panel.title;
+    if (panel.minimized) {
+        ariaLabel = formatMessage({id: 'app_bar.rhs_panel.minimized', defaultMessage: '{title} (minimized)'}, {title: panel.title});
+    }
+    if (showCloseButton) {
+        ariaLabel = formatMessage({id: 'app_bar.rhs_panel.close', defaultMessage: 'Close {title}'}, {title: panel.title});
+    }
+
+    // Get tooltip content based on panel type
+    const getTooltipTitle = (): string | React.ReactNode => {
+        if (showCloseButton) {
+            return formatMessage(
+                {id: 'app_bar.rhs_panel.close', defaultMessage: 'Close {title}'},
+                {title: panel.title},
+            );
+        }
+
+        // Thread panels get a rich tooltip with author, avatars, reply count, and preview
+        if (panel.type === 'thread' && panel.selectedPostId) {
+            return <ThreadPanelTooltip postId={panel.selectedPostId}/>;
+        }
+
+        // Search panels show the search terms
+        if (panel.type === 'search' && panel.searchTerms) {
+            return formatMessage(
+                {id: 'app_bar.rhs_panel.search', defaultMessage: 'Search: {terms}'},
+                {terms: panel.searchTerms},
+            );
+        }
+
+        return panel.title;
+    };
 
     return (
         <WithTooltip
-            title={showCloseButton ? `Close ${panel.title}` : panel.title}
+            title={getTooltipTitle()}
             isVertical={false}
         >
             <div
@@ -151,7 +175,7 @@ const AppBarRhsPanel = ({
                 <span
                     role='button'
                     tabIndex={0}
-                    aria-label={showCloseButton ? `Close ${ariaLabel}` : ariaLabel}
+                    aria-label={ariaLabel}
                     onKeyDown={handleKeyDown}
                     className={classNames(
                         'app-bar__icon-inner',

@@ -9,7 +9,7 @@ import type {Post} from '@mattermost/types/posts';
 
 import {SearchTypes} from 'mattermost-redux/action_types';
 import {getChannel} from 'mattermost-redux/actions/channels';
-import {getPostsByIds, getPost as fetchPost} from 'mattermost-redux/actions/posts';
+import {getPostsByIds, getPost as fetchPost, getPostThread} from 'mattermost-redux/actions/posts';
 import {
     clearSearch,
     getFlaggedPosts,
@@ -31,6 +31,8 @@ import {
     getFilesSearchExtFilter,
     getPreviousRhsState,
     getSearchTeam,
+    getActivePanelId,
+    getOpenPanels,
 } from 'selectors/rhs';
 
 import {SidebarSize} from 'components/resizable_sidebar/constants';
@@ -38,12 +40,11 @@ import {SidebarSize} from 'components/resizable_sidebar/constants';
 import {ActionTypes, RHSStates, Constants} from 'utils/constants';
 import {Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
 import {getBrowserUtcOffset, getUtcOffsetForTimeZone} from 'utils/timezone';
+import {generateId} from 'utils/utils';
 
 import type {ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'types/store';
-import type {RhsState} from 'types/store/rhs';
+import type {RhsState, SearchType} from 'types/store/rhs';
 import type {RhsPanelState} from 'types/store/rhs_panel';
-
-import {generateId} from 'utils/utils';
 
 function selectPostWithPreviousState(post: Post, previousRhsState?: RhsState): ActionFunc<boolean> {
     return (dispatch, getState) => {
@@ -257,13 +258,12 @@ export function showSearchResults(isMentionSearch = false): ThunkActionFunc<unkn
         if (isMentionSearch) {
             dispatch(updateRhsState(RHSStates.MENTION));
             teamId = '';
-        } else {
-            dispatch(updateRhsState(RHSStates.SEARCH));
+            dispatch(updateSearchResultsTerms(searchTerms));
+            dispatch(updateSearchResultsType(searchType));
+            return dispatch(performSearch(searchTerms, teamId));
         }
-        dispatch(updateSearchResultsTerms(searchTerms));
-        dispatch(updateSearchResultsType(searchType));
 
-        return dispatch(performSearch(searchTerms, teamId));
+        return dispatch(openSearchPanel(searchTerms, searchType));
     };
 }
 
@@ -493,7 +493,22 @@ export function showChannelInfo(channelId: string) {
 }
 
 export function closeRightHandSide(): ActionFunc {
-    return (dispatch) => {
+    return (dispatch, getState) => {
+        const state = getState();
+        const activePanelId = getActivePanelId(state);
+        const openPanels = getOpenPanels(state);
+
+        // If the active panel is a search panel, close it (remove from AppBar)
+        if (activePanelId) {
+            const activePanel = openPanels[activePanelId];
+            if (activePanel?.type === 'search') {
+                dispatch({
+                    type: ActionTypes.CLOSE_RHS_PANEL,
+                    panelId: activePanelId,
+                });
+            }
+        }
+
         const actionsBatch: AnyAction[] = [
             {
                 type: ActionTypes.UPDATE_RHS_STATE,
@@ -637,6 +652,51 @@ export function openRHSSearch(): ActionFunc {
         dispatch(updateRhsState(RHSStates.SEARCH));
 
         return {data: true};
+    };
+}
+
+/**
+ * Opens a new search panel with the given search terms.
+ * Creates a dedicated panel for this search that can be minimized and restored.
+ *
+ * @param terms - Search terms to search for
+ * @param searchType - Type of search (messages, files, or empty for both)
+ * @returns Action that creates panel and performs search
+ */
+export function openSearchPanel(terms: string, searchType: SearchType = ''): ThunkActionFunc<unknown> {
+    return (dispatch, getState) => {
+        const state = getState();
+        const teamId = getCurrentTeamId(state);
+
+        // Generate a unique panel ID for this search
+        const panelId = generateId();
+
+        // Create a title from the search terms (truncate if too long)
+        const title = terms.length > 20 ? terms.substring(0, 20) + '...' : terms;
+
+        // Create the search panel
+        dispatch(openRhsPanel({
+            id: panelId,
+            type: 'search',
+            title,
+            searchTerms: terms,
+            searchTeam: teamId,
+            searchType,
+            searchResultsTerms: terms,
+            searchResultsType: searchType,
+            rhsState: RHSStates.SEARCH as RhsState,
+        }));
+
+        // Update legacy RHS state to show search results
+        dispatch(updateSearchTerms(terms));
+        dispatch(updateSearchTeam(teamId));
+        dispatch(updateSearchResultsTerms(terms));
+        dispatch(updateSearchType(searchType));
+        dispatch(updateSearchResultsType(searchType));
+        dispatch(updateRhsState(RHSStates.SEARCH));
+
+        // Perform the actual search
+        return dispatch(performSearch(terms, teamId));
     };
 }
 
@@ -806,12 +866,30 @@ export function restoreRhsPanel(panelId: string): ActionFunc {
         if (panel) {
             // Sync legacy RHS state with the panel's state
             if (panel.type === 'thread' && panel.selectedPostId) {
+                // Check if the post is in state, if not fetch the thread
+                const post = getPost(state, panel.selectedPostId);
+                if (!post) {
+                    // Fetch the thread - this will load the post and its replies
+                    dispatch(getPostThread(panel.selectedPostId));
+                }
+
                 dispatch({
                     type: ActionTypes.SELECT_POST,
                     postId: panel.selectedPostId,
                     channelId: panel.selectedChannelId,
                     timestamp: Date.now(),
                 });
+            } else if (panel.type === 'search') {
+                // Restore search panel state
+                dispatch(updateSearchTerms(panel.searchTerms));
+                dispatch(updateSearchTeam(panel.searchTeam));
+                dispatch(updateSearchResultsTerms(panel.searchResultsTerms || panel.searchTerms));
+                dispatch(updateSearchType(panel.searchType));
+                dispatch(updateSearchResultsType(panel.searchResultsType || panel.searchType));
+                dispatch(updateRhsState(RHSStates.SEARCH));
+
+                // Re-run the search to refresh results
+                dispatch(performSearch(panel.searchTerms, panel.searchTeam || ''));
             }
         }
 
@@ -840,12 +918,30 @@ export function setActivePanelId(panelId: string | null): ActionFunc {
             if (panel) {
                 // Sync legacy RHS state with the panel's state
                 if (panel.type === 'thread' && panel.selectedPostId) {
+                    // Check if the post is in state, if not fetch the thread
+                    const post = getPost(state, panel.selectedPostId);
+                    if (!post) {
+                        // Fetch the thread - this will load the post and its replies
+                        dispatch(getPostThread(panel.selectedPostId));
+                    }
+
                     dispatch({
                         type: ActionTypes.SELECT_POST,
                         postId: panel.selectedPostId,
                         channelId: panel.selectedChannelId,
                         timestamp: Date.now(),
                     });
+                } else if (panel.type === 'search') {
+                    // Restore search panel state
+                    dispatch(updateSearchTerms(panel.searchTerms));
+                    dispatch(updateSearchTeam(panel.searchTeam));
+                    dispatch(updateSearchResultsTerms(panel.searchResultsTerms || panel.searchTerms));
+                    dispatch(updateSearchType(panel.searchType));
+                    dispatch(updateSearchResultsType(panel.searchResultsType || panel.searchType));
+                    dispatch(updateRhsState(RHSStates.SEARCH));
+
+                    // Re-run the search to refresh results
+                    dispatch(performSearch(panel.searchTerms, panel.searchTeam || ''));
                 }
             }
         }
@@ -872,6 +968,23 @@ export function updatePanelState(panelId: string, updates: Partial<RhsPanelState
             type: ActionTypes.UPDATE_PANEL_STATE,
             panelId,
             updates,
+        });
+
+        return {data: true};
+    };
+}
+
+/**
+ * Reorders the RHS panels in the AppBar.
+ *
+ * @param panelOrder - New array of panel IDs in desired order
+ * @returns Action to reorder panels
+ */
+export function reorderRhsPanels(panelOrder: string[]): ActionFunc {
+    return (dispatch) => {
+        dispatch({
+            type: ActionTypes.REORDER_RHS_PANELS,
+            panelOrder,
         });
 
         return {data: true};

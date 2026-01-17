@@ -3,6 +3,8 @@
 
 import partition from 'lodash/partition';
 import React, {useState, useEffect, useRef, useCallback} from 'react';
+import {DragDropContext, Droppable, Draggable} from 'react-beautiful-dnd';
+import type {DropResult} from 'react-beautiful-dnd';
 import {useSelector, useDispatch} from 'react-redux';
 
 import type {GlobalState} from '@mattermost/types/store';
@@ -13,7 +15,7 @@ import {isMarketplaceEnabled} from 'mattermost-redux/selectors/entities/general'
 import {haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {restoreRhsPanel, setActivePanelId, minimizeRhsPanel, closeRhsPanel, openRhsPanel} from 'actions/views/rhs';
+import {restoreRhsPanel, setActivePanelId, minimizeRhsPanel, closeRhsPanel, openRhsPanel, reorderRhsPanels} from 'actions/views/rhs';
 import {getAppBarPluginComponents, getChannelHeaderPluginComponents, shouldShowAppBar} from 'selectors/plugins';
 import {getOpenPanels, getActivePanelId, getPanelOrder} from 'selectors/rhs';
 import LocalStorageStore from 'stores/local_storage_store';
@@ -167,6 +169,7 @@ export default function AppBar() {
                 setAltPressed(false);
             }
         };
+
         // Also reset when window loses focus (Alt might be released while tabbed away)
         const handleBlur = () => {
             setAltPressed(false);
@@ -183,6 +186,26 @@ export default function AppBar() {
         };
     }, []);
 
+    // Handle drag end for reordering RHS panels
+    const handleDragEnd = useCallback((result: DropResult) => {
+        if (!result.destination) {
+            return;
+        }
+
+        const sourceIndex = result.source.index;
+        const destIndex = result.destination.index;
+
+        if (sourceIndex === destIndex) {
+            return;
+        }
+
+        const newOrder = [...panelOrder];
+        const [removed] = newOrder.splice(sourceIndex, 1);
+        newOrder.splice(destIndex, 0, removed);
+
+        dispatch(reorderRhsPanels(newOrder));
+    }, [panelOrder, dispatch]);
+
     if (
         !enabled ||
         (currentProduct && !currentProduct.showAppBar)
@@ -196,32 +219,11 @@ export default function AppBar() {
         return coreProductsPluginIds.includes(pluginId);
     });
 
-    // Create RHS panel components
-    const rhsPanelComponents = panelOrder.map((panelId) => {
-        const panel = openPanels[panelId];
-        if (!panel) {
-            return null;
-        }
+    // Count RHS panels for divider logic
+    const rhsPanelCount = panelOrder.filter((id) => openPanels[id]).length;
 
-        return (
-            <AppBarRhsPanel
-                key={`rhs-panel-${panelId}`}
-                panel={panel}
-                isActive={activePanelId === panelId}
-                showCloseButton={altPressed}
-                onRestore={(id) => dispatch(restoreRhsPanel(id))}
-                onMinimize={(id) => dispatch(minimizeRhsPanel(id))}
-                onActivate={(id) => dispatch(setActivePanelId(id))}
-                onClose={(id) => dispatch(closeRhsPanel(id))}
-            />
-        );
-    }).filter(Boolean);
-
-    const items = [
-        ...coreProductComponents,
-        getDivider(coreProductComponents.length, (rhsPanelComponents.length + pluginComponents.length + channelHeaderComponents.length + appBarBindings.length)),
-        ...rhsPanelComponents,
-        getDivider(rhsPanelComponents.length, (pluginComponents.length + channelHeaderComponents.length + appBarBindings.length)),
+    // Create non-RHS panel items (core products, plugins, bindings)
+    const otherItems = [
         ...pluginComponents,
         ...channelHeaderComponents,
         ...appBarBindings,
@@ -253,12 +255,78 @@ export default function AppBar() {
             );
         }
         return x;
-    });
+    }).filter(Boolean);
+
+    // Create core product items
+    const coreProductItems = coreProductComponents.map((x) => {
+        if (isAppBarComponent(x)) {
+            const supportedProductIds = 'supportedProductIds' in x ? x.supportedProductIds : undefined;
+            if (!inScope(supportedProductIds ?? null, currentProductId, currentProduct?.pluginId)) {
+                return null;
+            }
+            return (
+                <AppBarPluginComponent
+                    key={x.id}
+                    component={x}
+                />
+            );
+        }
+        return x;
+    }).filter(Boolean);
 
     return (
         <div className={'app-bar'}>
             <div className={'app-bar__top'}>
-                {items}
+                {coreProductItems}
+                {getDivider(coreProductItems.length, rhsPanelCount + otherItems.length)}
+                {rhsPanelCount > 0 && (
+                    <DragDropContext onDragEnd={handleDragEnd}>
+                        <Droppable droppableId='rhs-panels'>
+                            {(provided) => (
+                                <div
+                                    ref={provided.innerRef}
+                                    {...provided.droppableProps}
+                                >
+                                    {panelOrder.map((panelId, index) => {
+                                        const panel = openPanels[panelId];
+                                        if (!panel) {
+                                            return null;
+                                        }
+
+                                        return (
+                                            <Draggable
+                                                key={panelId}
+                                                draggableId={panelId}
+                                                index={index}
+                                            >
+                                                {(dragProvided) => (
+                                                    <div
+                                                        ref={dragProvided.innerRef}
+                                                        {...dragProvided.draggableProps}
+                                                        {...dragProvided.dragHandleProps}
+                                                    >
+                                                        <AppBarRhsPanel
+                                                            panel={panel}
+                                                            isActive={activePanelId === panelId}
+                                                            showCloseButton={altPressed}
+                                                            onRestore={(id) => dispatch(restoreRhsPanel(id))}
+                                                            onMinimize={(id) => dispatch(minimizeRhsPanel(id))}
+                                                            onActivate={(id) => dispatch(setActivePanelId(id))}
+                                                            onClose={(id) => dispatch(closeRhsPanel(id))}
+                                                        />
+                                                    </div>
+                                                )}
+                                            </Draggable>
+                                        );
+                                    })}
+                                    {provided.placeholder}
+                                </div>
+                            )}
+                        </Droppable>
+                    </DragDropContext>
+                )}
+                {getDivider(rhsPanelCount, otherItems.length)}
+                {otherItems}
             </div>
             {canOpenMarketplace && (
                 <div className='app-bar__bottom'>

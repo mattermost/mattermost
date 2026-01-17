@@ -216,6 +216,7 @@ export const ActionTypes = keyMirror({
     RESTORE_RHS_PANEL: null,
     SET_ACTIVE_PANEL: null,
     UPDATE_PANEL_STATE: null,
+    REORDER_RHS_PANELS: null,
 
     UPDATE_MOBILE_VIEW: null,
 

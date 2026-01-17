@@ -19,7 +19,7 @@ import {localizeMessage} from 'utils/utils';
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 import type {RhsState, FakePost, SearchType} from 'types/store/rhs';
-import type {RhsPanelState, RhsPanelsState} from 'types/store/rhs_panel';
+import type {RhsPanelState} from 'types/store/rhs_panel';
 
 export function getSelectedPostId(state: GlobalState): Post['id'] {
     return state.views.rhs.selectedPostId;

@@ -29,6 +29,7 @@ export type RhsPanelType =
  * from different channels simultaneously.
  */
 export type RhsPanelState = {
+
     /** Unique panel identifier */
     id: string;
 
@@ -86,6 +87,7 @@ export type RhsPanelState = {
  * State for managing multiple RHS panels.
  */
 export type RhsPanelsState = {
+
     /** All open panels indexed by ID */
     panels: Record<string, RhsPanelState>;
 
