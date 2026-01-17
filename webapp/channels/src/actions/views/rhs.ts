@@ -41,6 +41,9 @@ import {getBrowserUtcOffset, getUtcOffsetForTimeZone} from 'utils/timezone';
 
 import type {ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'types/store';
 import type {RhsState} from 'types/store/rhs';
+import type {RhsPanelState} from 'types/store/rhs_panel';
+
+import {generateId} from 'utils/utils';
 
 function selectPostWithPreviousState(post: Post, previousRhsState?: RhsState): ActionFunc<boolean> {
     return (dispatch, getState) => {
@@ -534,15 +537,47 @@ export function toggleRhsExpanded() {
     };
 }
 
-export function selectPost(post: Post, previousRhsState?: RhsState) {
-    performance.mark(Mark.PostSelected);
+export function selectPost(post: Post, previousRhsState?: RhsState): ActionFunc {
+    return (dispatch, getState) => {
+        performance.mark(Mark.PostSelected);
+        const postId = post.root_id || post.id;
+        const timestamp = Date.now();
+        const state = getState();
 
-    return {
-        type: ActionTypes.SELECT_POST,
-        postId: post.root_id || post.id,
-        channelId: post.channel_id,
-        previousRhsState,
-        timestamp: Date.now(),
+        // Dispatch the existing SELECT_POST action for backwards compatibility
+        dispatch({
+            type: ActionTypes.SELECT_POST,
+            postId,
+            channelId: post.channel_id,
+            previousRhsState,
+            timestamp,
+        });
+
+        // Check if a panel for this thread already exists
+        const openPanels = state.views.rhs.openPanels.panels;
+        const existingPanel = Object.values(openPanels).find(
+            (panel) => panel.type === 'thread' && panel.selectedPostId === postId,
+        );
+
+        if (existingPanel) {
+            // Reuse existing panel - restore if minimized, or just activate
+            dispatch(restoreRhsPanel(existingPanel.id));
+        } else {
+            // Create new panel for this thread
+            const channel = getChannelSelector(state, post.channel_id);
+            const channelName = channel?.display_name || 'Thread';
+
+            dispatch(openRhsPanel({
+                type: 'thread',
+                selectedPostId: postId,
+                selectedPostFocussedAt: timestamp,
+                selectedChannelId: post.channel_id,
+                previousRhsStates: previousRhsState ? [previousRhsState] : [],
+                title: `Thread: ${channelName}`,
+            }));
+        }
+
+        return {data: true};
     };
 }
 
@@ -579,10 +614,8 @@ export const debouncedClearHighlightReply = debounce((dispatch) => {
 
 export function selectPostAndHighlight(post: Post): ActionFunc {
     return (dispatch) => {
-        dispatch(batchActions([
-            selectPost(post),
-            highlightReply(post),
-        ]));
+        dispatch(selectPost(post));
+        dispatch(highlightReply(post));
 
         debouncedClearHighlightReply(dispatch);
 
@@ -676,5 +709,171 @@ export function measureRhsOpened() {
         });
 
         performance.clearMarks(Mark.PostSelected);
+    };
+}
+
+// RHS Panel Management Actions
+
+/**
+ * Opens a new RHS panel or reuses an existing one.
+ * Creates a unique panel ID and initializes the panel state.
+ *
+ * @param panelState - Partial panel state to override defaults
+ * @returns Action to create and activate the panel
+ */
+export function openRhsPanel(panelState: Partial<RhsPanelState>): ActionFunc {
+    return (dispatch) => {
+        const panelId = panelState.id || generateId();
+        const panel: RhsPanelState = {
+            id: panelId,
+            type: panelState.type || 'thread',
+            selectedPostId: panelState.selectedPostId || '',
+            selectedPostFocussedAt: panelState.selectedPostFocussedAt || 0,
+            selectedPostCardId: panelState.selectedPostCardId || '',
+            selectedChannelId: panelState.selectedChannelId || '',
+            highlightedPostId: panelState.highlightedPostId || '',
+            previousRhsStates: panelState.previousRhsStates || [],
+            rhsState: panelState.rhsState ?? null,
+            searchTerms: panelState.searchTerms || '',
+            searchTeam: panelState.searchTeam ?? null,
+            searchType: panelState.searchType || '',
+            searchResultsTerms: panelState.searchResultsTerms || '',
+            searchResultsType: panelState.searchResultsType || '',
+            filesSearchExtFilter: panelState.filesSearchExtFilter || [],
+            pluggableId: panelState.pluggableId || '',
+            title: panelState.title || '',
+            minimized: panelState.minimized || false,
+            createdAt: panelState.createdAt || Date.now(),
+        };
+
+        dispatch({
+            type: ActionTypes.OPEN_RHS_PANEL,
+            panel,
+        });
+
+        return {data: true};
+    };
+}
+
+/**
+ * Closes and removes a panel entirely from the RHS.
+ *
+ * @param panelId - ID of the panel to close
+ * @returns Action to remove the panel
+ */
+export function closeRhsPanel(panelId: string): ActionFunc {
+    return (dispatch) => {
+        dispatch({
+            type: ActionTypes.CLOSE_RHS_PANEL,
+            panelId,
+        });
+
+        return {data: true};
+    };
+}
+
+/**
+ * Minimizes a panel (hides it but keeps it in the AppBar).
+ * If no panelId is provided, minimizes the currently active panel.
+ * Clears activePanelId if the minimized panel was active.
+ *
+ * @param panelId - Optional ID of panel to minimize. Defaults to active panel.
+ * @returns Action to minimize the panel
+ */
+export function minimizeRhsPanel(panelId?: string): ActionFunc {
+    return (dispatch) => {
+        dispatch({
+            type: ActionTypes.MINIMIZE_RHS_PANEL,
+            panelId,
+        });
+
+        return {data: true};
+    };
+}
+
+/**
+ * Restores a minimized panel to visible state.
+ * Sets the panel as the active panel and syncs legacy RHS state.
+ *
+ * @param panelId - ID of the panel to restore
+ * @returns Action to restore the panel
+ */
+export function restoreRhsPanel(panelId: string): ActionFunc {
+    return (dispatch, getState) => {
+        const state = getState();
+        const panel = state.views.rhs.openPanels.panels[panelId];
+
+        if (panel) {
+            // Sync legacy RHS state with the panel's state
+            if (panel.type === 'thread' && panel.selectedPostId) {
+                dispatch({
+                    type: ActionTypes.SELECT_POST,
+                    postId: panel.selectedPostId,
+                    channelId: panel.selectedChannelId,
+                    timestamp: Date.now(),
+                });
+            }
+        }
+
+        dispatch({
+            type: ActionTypes.RESTORE_RHS_PANEL,
+            panelId,
+        });
+
+        return {data: true};
+    };
+}
+
+/**
+ * Sets the active panel (switches which panel is visible in the RHS).
+ * Pass null to clear the active panel (show none).
+ *
+ * @param panelId - ID of panel to make active, or null to clear
+ * @returns Action to set the active panel
+ */
+export function setActivePanelId(panelId: string | null): ActionFunc {
+    return (dispatch, getState) => {
+        if (panelId) {
+            const state = getState();
+            const panel = state.views.rhs.openPanels.panels[panelId];
+
+            if (panel) {
+                // Sync legacy RHS state with the panel's state
+                if (panel.type === 'thread' && panel.selectedPostId) {
+                    dispatch({
+                        type: ActionTypes.SELECT_POST,
+                        postId: panel.selectedPostId,
+                        channelId: panel.selectedChannelId,
+                        timestamp: Date.now(),
+                    });
+                }
+            }
+        }
+
+        dispatch({
+            type: ActionTypes.SET_ACTIVE_PANEL,
+            panelId,
+        });
+
+        return {data: true};
+    };
+}
+
+/**
+ * Updates specific properties of a panel's state.
+ *
+ * @param panelId - ID of the panel to update
+ * @param updates - Partial panel state with properties to update
+ * @returns Action to update the panel state
+ */
+export function updatePanelState(panelId: string, updates: Partial<RhsPanelState>): ActionFunc {
+    return (dispatch) => {
+        dispatch({
+            type: ActionTypes.UPDATE_PANEL_STATE,
+            panelId,
+            updates,
+        });
+
+        return {data: true};
     };
 }

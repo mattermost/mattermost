@@ -19,6 +19,7 @@ import {localizeMessage} from 'utils/utils';
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 import type {RhsState, FakePost, SearchType} from 'types/store/rhs';
+import type {RhsPanelState, RhsPanelsState} from 'types/store/rhs_panel';
 
 export function getSelectedPostId(state: GlobalState): Post['id'] {
     return state.views.rhs.selectedPostId;
@@ -239,4 +240,69 @@ export function getIsRhsExpanded(state: GlobalState): boolean {
 
 export function getIsEditingMembers(state: GlobalState): boolean {
     return state.views.rhs.editChannelMembers === true;
+}
+
+// Open RHS Panels selectors
+
+/**
+ * Returns all open panels as a Record<string, RhsPanelState>.
+ */
+export function getOpenPanels(state: GlobalState): Record<string, RhsPanelState> {
+    return state.views.rhs.openPanels.panels;
+}
+
+/**
+ * Returns the currently active (visible) panel ID or null if no panel is active.
+ */
+export function getActivePanelId(state: GlobalState): string | null {
+    return state.views.rhs.openPanels.activePanelId;
+}
+
+/**
+ * Returns the currently active panel state or undefined if no panel is active.
+ * Memoized selector to avoid unnecessary recalculations.
+ */
+export const getActivePanel = createSelector(
+    'getActivePanel',
+    getOpenPanels,
+    getActivePanelId,
+    (panels, activePanelId): RhsPanelState | undefined => {
+        if (!activePanelId) {
+            return undefined;
+        }
+        return panels[activePanelId];
+    },
+);
+
+/**
+ * Returns a specific panel by its ID or undefined if not found.
+ */
+export function getPanelById(state: GlobalState, panelId: string): RhsPanelState | undefined {
+    return state.views.rhs.openPanels.panels[panelId];
+}
+
+/**
+ * Returns an array of minimized panels.
+ * Memoized selector to avoid unnecessary array allocations.
+ */
+export const getMinimizedPanels = createSelector(
+    'getMinimizedPanels',
+    getOpenPanels,
+    (panels): RhsPanelState[] => {
+        return Object.values(panels).filter((panel) => panel.minimized);
+    },
+);
+
+/**
+ * Returns the order of panel IDs for AppBar display.
+ */
+export function getPanelOrder(state: GlobalState): string[] {
+    return state.views.rhs.openPanels.panelOrder;
+}
+
+/**
+ * Returns the count of open panels.
+ */
+export function getOpenPanelCount(state: GlobalState): number {
+    return Object.keys(state.views.rhs.openPanels.panels).length;
 }

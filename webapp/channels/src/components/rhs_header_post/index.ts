@@ -21,8 +21,10 @@ import {
     closeRightHandSide,
     toggleRhsExpanded,
     goBack,
+    minimizeRhsPanel,
+    closeRhsPanel,
 } from 'actions/views/rhs';
-import {getIsRhsExpanded} from 'selectors/rhs';
+import {getIsRhsExpanded, getActivePanelId} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
 
 import {focusPost} from 'components/permalink_view/actions';
@@ -66,6 +68,7 @@ function makeMapStateToProps() {
             currentUserId,
             isCollapsedThreadsEnabled: collapsedThreads,
             isFollowingThread,
+            activePanelId: getActivePanelId(state),
         };
     };
 }
@@ -82,6 +85,8 @@ const actions = {
     setThreadFollow,
     goBack,
     focusPost,
+    minimizeRhsPanel,
+    closeRhsPanel,
 };
 
 export default connect(makeMapStateToProps, actions)(RhsHeaderPost);

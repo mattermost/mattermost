@@ -209,6 +209,14 @@ export const ActionTypes = keyMirror({
     SET_RHS_EXPANDED: null,
     TOGGLE_RHS_EXPANDED: null,
 
+    // RHS Panel actions
+    OPEN_RHS_PANEL: null,
+    CLOSE_RHS_PANEL: null,
+    MINIMIZE_RHS_PANEL: null,
+    RESTORE_RHS_PANEL: null,
+    SET_ACTIVE_PANEL: null,
+    UPDATE_PANEL_STATE: null,
+
     UPDATE_MOBILE_VIEW: null,
 
     SET_NAVIGATION_BLOCKED: null,
