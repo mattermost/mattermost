@@ -19,7 +19,7 @@ func (s *MmctlE2ETestSuite) TestAuthLoginWithTrailingSlashInInstanceURL() {
 		// cobra wont let us run a subcommand directly. When we try to `Execute`
 		// the subcommand, cobra executes the parent command.
 		// Instead of calling RootCmd, with its various subcommands and options,
-		// we duplicate part of the the LoginCmd here.
+		// we duplicate part of the LoginCmd here.
 		cmd := &cobra.Command{}
 		cmd.Flags().StringP("name", "n", "name", "Name for the credentials")
 		cmd.Flags().StringP("username", "u", s.th.BasicUser.Username, "Username for the credentials")
