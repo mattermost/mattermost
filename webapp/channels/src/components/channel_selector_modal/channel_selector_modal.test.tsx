@@ -143,6 +143,7 @@ describe('components/ChannelSelectorModal', () => {
 
         // Custom message is passed but MultiSelect won't show it because options exist
         // The important thing is that the component renders normally with channels
-        expect(multiSelect.prop('options').length).toBeGreaterThan(0);
+        const options = multiSelect.prop('options') as any[];
+        expect(options.length).toBeGreaterThan(0);
     });
 });
