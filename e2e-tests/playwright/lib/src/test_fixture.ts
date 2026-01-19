@@ -20,6 +20,7 @@ import {getBlobFromAsset, getFileFromAsset} from './file';
 import {testConfig} from './test_config';
 import {
     createNewUserProfile,
+    createNewTeam,
     createPageViaDraft,
     createRandomChannel,
     createRandomPost,
@@ -107,6 +108,7 @@ export class PlaywrightExtended {
 
     // ./server
     readonly createNewUserProfile;
+    readonly createNewTeam;
     readonly createPageViaDraft;
     readonly isOutsideRemoteUserHour;
     readonly makeClient;
@@ -176,6 +178,7 @@ export class PlaywrightExtended {
 
         // ./server
         this.createNewUserProfile = createNewUserProfile;
+        this.createNewTeam = createNewTeam;
         this.makeClient = makeClient;
         this.createPageViaDraft = createPageViaDraft;
 

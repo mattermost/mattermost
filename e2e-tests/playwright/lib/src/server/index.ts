@@ -8,5 +8,5 @@ export {getOnPremServerConfig, mergeWithOnPremServerConfig} from './default_conf
 export {initSetup, getAdminClient} from './init';
 export {createPageViaDraft} from './page';
 export {createRandomPost} from './post';
-export {createRandomTeam} from './team';
+export {createNewTeam, createRandomTeam} from './team';
 export {createNewUserProfile, createRandomUser, getDefaultAdminUser, isOutsideRemoteUserHour} from './user';
