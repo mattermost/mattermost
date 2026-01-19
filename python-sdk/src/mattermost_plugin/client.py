@@ -30,6 +30,14 @@ from mattermost_plugin._internal.mixins import (
     PostsMixin,
     FilesMixin,
     KVStoreMixin,
+    BotsMixin,
+    CommandsMixin,
+    ConfigMixin,
+    PreferencesMixin,
+    OAuthMixin,
+    GroupsMixin,
+    PropertiesMixin,
+    RemainingMixin,
 )
 from mattermost_plugin.exceptions import (
     PluginAPIError,
@@ -41,7 +49,22 @@ if TYPE_CHECKING:
     from mattermost_plugin.grpc import api_pb2_grpc
 
 
-class PluginAPIClient(UsersMixin, TeamsMixin, ChannelsMixin, PostsMixin, FilesMixin, KVStoreMixin):
+class PluginAPIClient(
+    UsersMixin,
+    TeamsMixin,
+    ChannelsMixin,
+    PostsMixin,
+    FilesMixin,
+    KVStoreMixin,
+    BotsMixin,
+    CommandsMixin,
+    ConfigMixin,
+    PreferencesMixin,
+    OAuthMixin,
+    GroupsMixin,
+    PropertiesMixin,
+    RemainingMixin,
+):
     """
     Synchronous client for the Mattermost Plugin API.
 

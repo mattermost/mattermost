@@ -33,6 +33,7 @@ if TYPE_CHECKING:
         file_pb2,
         api_file_bot_pb2,
         api_kv_config_pb2,
+        api_remaining_pb2,
     )
 
 
@@ -1442,4 +1443,1016 @@ class PluginKVSetOptions:
             atomic=self.atomic,
             old_value=self.old_value or b"",
             expire_in_seconds=self.expire_in_seconds,
+        )
+
+
+# =============================================================================
+# BOT TYPES
+# =============================================================================
+
+
+@dataclass(frozen=True)
+class Bot:
+    """
+    Represents a bot account.
+
+    Attributes:
+        user_id: The user ID of the bot.
+        username: Bot username.
+        display_name: Display name of the bot.
+        description: Description of the bot.
+        owner_id: ID of the user who owns the bot.
+        create_at: Timestamp when the bot was created.
+        update_at: Timestamp when the bot was last updated.
+        delete_at: Timestamp when the bot was deleted (0 if not deleted).
+        last_icon_update: Timestamp of the last icon update.
+    """
+
+    user_id: str = ""
+    username: str = ""
+    display_name: str = ""
+    description: str = ""
+    owner_id: str = ""
+    create_at: int = 0
+    update_at: int = 0
+    delete_at: int = 0
+    last_icon_update: int = 0
+
+    @classmethod
+    def from_proto(cls, proto: "api_file_bot_pb2.Bot") -> "Bot":
+        """Create a Bot from a protobuf message."""
+        return cls(
+            user_id=proto.user_id,
+            username=proto.username,
+            display_name=proto.display_name,
+            description=proto.description,
+            owner_id=proto.owner_id,
+            create_at=proto.create_at,
+            update_at=proto.update_at,
+            delete_at=proto.delete_at,
+            last_icon_update=proto.last_icon_update,
+        )
+
+    def to_proto(self) -> "api_file_bot_pb2.Bot":
+        """Convert to a protobuf message."""
+        from mattermost_plugin.grpc import api_file_bot_pb2
+
+        return api_file_bot_pb2.Bot(
+            user_id=self.user_id,
+            username=self.username,
+            display_name=self.display_name,
+            description=self.description,
+            owner_id=self.owner_id,
+            create_at=self.create_at,
+            update_at=self.update_at,
+            delete_at=self.delete_at,
+            last_icon_update=self.last_icon_update,
+        )
+
+
+@dataclass(frozen=True)
+class BotPatch:
+    """
+    Patch data for updating a bot.
+
+    Attributes:
+        username: New username (optional).
+        display_name: New display name (optional).
+        description: New description (optional).
+    """
+
+    username: Optional[str] = None
+    display_name: Optional[str] = None
+    description: Optional[str] = None
+
+    def to_proto(self) -> "api_file_bot_pb2.BotPatch":
+        """Convert to a protobuf message."""
+        from mattermost_plugin.grpc import api_file_bot_pb2
+
+        proto = api_file_bot_pb2.BotPatch()
+        if self.username is not None:
+            proto.username = self.username
+        if self.display_name is not None:
+            proto.display_name = self.display_name
+        if self.description is not None:
+            proto.description = self.description
+        return proto
+
+
+@dataclass(frozen=True)
+class BotGetOptions:
+    """
+    Options for getting bots.
+
+    Attributes:
+        owner_id: Filter to bots owned by this user.
+        include_deleted: Include deleted bots.
+        only_orphaned: Only include orphaned bots (owner deleted).
+        page: Page number (0-indexed).
+        per_page: Results per page.
+    """
+
+    owner_id: str = ""
+    include_deleted: bool = False
+    only_orphaned: bool = False
+    page: int = 0
+    per_page: int = 60
+
+    def to_proto(self) -> "api_file_bot_pb2.BotGetOptions":
+        """Convert to a protobuf message."""
+        from mattermost_plugin.grpc import api_file_bot_pb2
+
+        return api_file_bot_pb2.BotGetOptions(
+            owner_id=self.owner_id,
+            include_deleted=self.include_deleted,
+            only_orphaned=self.only_orphaned,
+            page=self.page,
+            per_page=self.per_page,
+        )
+
+
+# =============================================================================
+# COMMAND TYPES
+# =============================================================================
+
+
+@dataclass(frozen=True)
+class Command:
+    """
+    Represents a slash command.
+
+    Attributes:
+        id: Unique identifier for the command.
+        token: Command token.
+        create_at: Timestamp when the command was created.
+        update_at: Timestamp when the command was last updated.
+        delete_at: Timestamp when the command was deleted (0 if not deleted).
+        creator_id: ID of the user who created the command.
+        team_id: ID of the team this command belongs to.
+        trigger: The trigger word that invokes this command.
+        method: HTTP method ("P" for POST, "G" for GET).
+        username: Username override for posts from this command.
+        icon_url: Icon URL for posts from this command.
+        auto_complete: Whether the command appears in autocomplete.
+        auto_complete_desc: Description shown in autocomplete.
+        auto_complete_hint: Hint shown in autocomplete.
+        display_name: Display name for the command.
+        description: Description of the command.
+        url: URL to call when command is triggered.
+        plugin_id: ID of the plugin that registered this command.
+    """
+
+    id: str = ""
+    token: str = ""
+    create_at: int = 0
+    update_at: int = 0
+    delete_at: int = 0
+    creator_id: str = ""
+    team_id: str = ""
+    trigger: str = ""
+    method: str = "P"
+    username: str = ""
+    icon_url: str = ""
+    auto_complete: bool = False
+    auto_complete_desc: str = ""
+    auto_complete_hint: str = ""
+    display_name: str = ""
+    description: str = ""
+    url: str = ""
+    plugin_id: str = ""
+
+    @classmethod
+    def from_proto(cls, proto: "api_remaining_pb2.Command") -> "Command":
+        """Create a Command from a protobuf message."""
+        return cls(
+            id=proto.id,
+            token=proto.token,
+            create_at=proto.create_at,
+            update_at=proto.update_at,
+            delete_at=proto.delete_at,
+            creator_id=proto.creator_id,
+            team_id=proto.team_id,
+            trigger=proto.trigger,
+            method=proto.method,
+            username=proto.username,
+            icon_url=proto.icon_url,
+            auto_complete=proto.auto_complete,
+            auto_complete_desc=proto.auto_complete_desc,
+            auto_complete_hint=proto.auto_complete_hint,
+            display_name=proto.display_name,
+            description=proto.description,
+            url=proto.url,
+            plugin_id=proto.plugin_id,
+        )
+
+    def to_proto(self) -> "api_remaining_pb2.Command":
+        """Convert to a protobuf message."""
+        from mattermost_plugin.grpc import api_remaining_pb2
+
+        return api_remaining_pb2.Command(
+            id=self.id,
+            token=self.token,
+            create_at=self.create_at,
+            update_at=self.update_at,
+            delete_at=self.delete_at,
+            creator_id=self.creator_id,
+            team_id=self.team_id,
+            trigger=self.trigger,
+            method=self.method,
+            username=self.username,
+            icon_url=self.icon_url,
+            auto_complete=self.auto_complete,
+            auto_complete_desc=self.auto_complete_desc,
+            auto_complete_hint=self.auto_complete_hint,
+            display_name=self.display_name,
+            description=self.description,
+            url=self.url,
+            plugin_id=self.plugin_id,
+        )
+
+
+@dataclass(frozen=True)
+class CommandArgs:
+    """
+    Arguments for executing a slash command.
+
+    Attributes:
+        user_id: ID of the user executing the command.
+        channel_id: ID of the channel where command was executed.
+        team_id: ID of the team.
+        root_id: Root post ID for threaded replies.
+        parent_id: Parent post ID.
+        trigger_id: Trigger ID for interactive dialogs.
+        command: The full command string.
+        site_url: Base URL of the Mattermost site.
+    """
+
+    user_id: str = ""
+    channel_id: str = ""
+    team_id: str = ""
+    root_id: str = ""
+    parent_id: str = ""
+    trigger_id: str = ""
+    command: str = ""
+    site_url: str = ""
+
+    def to_proto(self) -> "api_remaining_pb2.CommandArgs":
+        """Convert to a protobuf message."""
+        from mattermost_plugin.grpc import api_remaining_pb2
+
+        return api_remaining_pb2.CommandArgs(
+            user_id=self.user_id,
+            channel_id=self.channel_id,
+            team_id=self.team_id,
+            root_id=self.root_id,
+            parent_id=self.parent_id,
+            trigger_id=self.trigger_id,
+            command=self.command,
+            site_url=self.site_url,
+        )
+
+
+@dataclass(frozen=True)
+class CommandResponse:
+    """
+    Response from executing a slash command.
+
+    Attributes:
+        response_type: "in_channel" or "ephemeral".
+        text: Response text.
+        username: Username override.
+        channel_id: Channel to post to.
+        icon_url: Icon URL override.
+        type: Response type.
+        props: Additional properties.
+        goto_location: URL to redirect to.
+        trigger_id: Trigger ID for follow-up actions.
+        skip_slack_parsing: Skip Slack-compatible parsing.
+    """
+
+    response_type: str = ""
+    text: str = ""
+    username: str = ""
+    channel_id: str = ""
+    icon_url: str = ""
+    type: str = ""
+    props: Dict[str, object] = field(default_factory=dict)
+    goto_location: str = ""
+    trigger_id: str = ""
+    skip_slack_parsing: bool = False
+
+    @classmethod
+    def from_proto(cls, proto: "api_remaining_pb2.CommandResponse") -> "CommandResponse":
+        """Create a CommandResponse from a protobuf message."""
+        from google.protobuf.json_format import MessageToDict
+
+        props = {}
+        if proto.HasField("props"):
+            props = MessageToDict(proto.props)
+
+        return cls(
+            response_type=proto.response_type,
+            text=proto.text,
+            username=proto.username,
+            channel_id=proto.channel_id,
+            icon_url=proto.icon_url,
+            type=proto.type,
+            props=props,
+            goto_location=proto.goto_location,
+            trigger_id=proto.trigger_id,
+            skip_slack_parsing=proto.skip_slack_parsing,
+        )
+
+
+# =============================================================================
+# PREFERENCE TYPES
+# =============================================================================
+
+
+@dataclass(frozen=True)
+class Preference:
+    """
+    Represents a user preference.
+
+    Attributes:
+        user_id: ID of the user.
+        category: Category of the preference.
+        name: Name of the preference within the category.
+        value: Value of the preference.
+    """
+
+    user_id: str = ""
+    category: str = ""
+    name: str = ""
+    value: str = ""
+
+    @classmethod
+    def from_proto(cls, proto: "api_remaining_pb2.Preference") -> "Preference":
+        """Create a Preference from a protobuf message."""
+        return cls(
+            user_id=proto.user_id,
+            category=proto.category,
+            name=proto.name,
+            value=proto.value,
+        )
+
+    def to_proto(self) -> "api_remaining_pb2.Preference":
+        """Convert to a protobuf message."""
+        from mattermost_plugin.grpc import api_remaining_pb2
+
+        return api_remaining_pb2.Preference(
+            user_id=self.user_id,
+            category=self.category,
+            name=self.name,
+            value=self.value,
+        )
+
+
+# =============================================================================
+# OAUTH TYPES
+# =============================================================================
+
+
+@dataclass(frozen=True)
+class OAuthApp:
+    """
+    Represents an OAuth application.
+
+    Attributes:
+        id: Unique identifier for the OAuth app.
+        creator_id: ID of the user who created the app.
+        create_at: Timestamp when the app was created.
+        update_at: Timestamp when the app was last updated.
+        client_secret: The client secret.
+        name: Name of the app.
+        description: Description of the app.
+        icon_url: URL of the app's icon.
+        callback_urls: Comma-separated list of callback URLs.
+        homepage: Homepage URL.
+        is_trusted: Whether the app is trusted.
+        mattermost_app_id: Associated Mattermost app ID.
+    """
+
+    id: str = ""
+    creator_id: str = ""
+    create_at: int = 0
+    update_at: int = 0
+    client_secret: str = ""
+    name: str = ""
+    description: str = ""
+    icon_url: str = ""
+    callback_urls: str = ""
+    homepage: str = ""
+    is_trusted: bool = False
+    mattermost_app_id: str = ""
+
+    @classmethod
+    def from_proto(cls, proto: "api_remaining_pb2.OAuthApp") -> "OAuthApp":
+        """Create an OAuthApp from a protobuf message."""
+        return cls(
+            id=proto.id,
+            creator_id=proto.creator_id,
+            create_at=proto.create_at,
+            update_at=proto.update_at,
+            client_secret=proto.client_secret,
+            name=proto.name,
+            description=proto.description,
+            icon_url=proto.icon_url,
+            callback_urls=proto.callback_urls,
+            homepage=proto.homepage,
+            is_trusted=proto.is_trusted,
+            mattermost_app_id=proto.mattermostAppId,
+        )
+
+    def to_proto(self) -> "api_remaining_pb2.OAuthApp":
+        """Convert to a protobuf message."""
+        from mattermost_plugin.grpc import api_remaining_pb2
+
+        return api_remaining_pb2.OAuthApp(
+            id=self.id,
+            creator_id=self.creator_id,
+            create_at=self.create_at,
+            update_at=self.update_at,
+            client_secret=self.client_secret,
+            name=self.name,
+            description=self.description,
+            icon_url=self.icon_url,
+            callback_urls=self.callback_urls,
+            homepage=self.homepage,
+            is_trusted=self.is_trusted,
+            mattermostAppId=self.mattermost_app_id,
+        )
+
+
+# =============================================================================
+# GROUP TYPES
+# =============================================================================
+
+
+@dataclass(frozen=True)
+class Group:
+    """
+    Represents a user group.
+
+    Attributes:
+        id: Unique identifier for the group.
+        name: Unique name of the group.
+        display_name: Display name of the group.
+        description: Description of the group.
+        source: Source of the group ("ldap", "custom").
+        remote_id: Remote ID (for LDAP groups).
+        create_at: Timestamp when the group was created.
+        update_at: Timestamp when the group was last updated.
+        delete_at: Timestamp when the group was deleted (0 if not deleted).
+        allow_reference: Whether the group can be @mentioned.
+    """
+
+    id: str = ""
+    name: str = ""
+    display_name: str = ""
+    description: str = ""
+    source: str = ""
+    remote_id: str = ""
+    create_at: int = 0
+    update_at: int = 0
+    delete_at: int = 0
+    allow_reference: bool = False
+
+    @classmethod
+    def from_proto(cls, proto: "api_remaining_pb2.Group") -> "Group":
+        """Create a Group from a protobuf message."""
+        return cls(
+            id=proto.id,
+            name=proto.name,
+            display_name=proto.display_name,
+            description=proto.description,
+            source=proto.source,
+            remote_id=proto.remote_id,
+            create_at=proto.create_at,
+            update_at=proto.update_at,
+            delete_at=proto.delete_at,
+            allow_reference=proto.allow_reference,
+        )
+
+    def to_proto(self) -> "api_remaining_pb2.Group":
+        """Convert to a protobuf message."""
+        from mattermost_plugin.grpc import api_remaining_pb2
+
+        return api_remaining_pb2.Group(
+            id=self.id,
+            name=self.name,
+            display_name=self.display_name,
+            description=self.description,
+            source=self.source,
+            remote_id=self.remote_id,
+            create_at=self.create_at,
+            update_at=self.update_at,
+            delete_at=self.delete_at,
+            allow_reference=self.allow_reference,
+        )
+
+
+@dataclass(frozen=True)
+class GroupMember:
+    """
+    Represents membership in a group.
+
+    Attributes:
+        group_id: ID of the group.
+        user_id: ID of the user.
+        create_at: Timestamp when the membership was created.
+        delete_at: Timestamp when the membership was deleted (0 if not deleted).
+    """
+
+    group_id: str = ""
+    user_id: str = ""
+    create_at: int = 0
+    delete_at: int = 0
+
+    @classmethod
+    def from_proto(cls, proto: "api_remaining_pb2.GroupMember") -> "GroupMember":
+        """Create a GroupMember from a protobuf message."""
+        return cls(
+            group_id=proto.group_id,
+            user_id=proto.user_id,
+            create_at=proto.create_at,
+            delete_at=proto.delete_at,
+        )
+
+
+@dataclass(frozen=True)
+class GroupSyncable:
+    """
+    Represents a group's sync to a team or channel.
+
+    Attributes:
+        group_id: ID of the group.
+        syncable_id: ID of the team or channel.
+        syncable_type: "team" or "channel".
+        auto_add: Whether to auto-add group members.
+        scheme_admin: Whether group members are scheme admins.
+        create_at: Timestamp when the syncable was created.
+        delete_at: Timestamp when the syncable was deleted (0 if not deleted).
+        update_at: Timestamp when the syncable was last updated.
+    """
+
+    group_id: str = ""
+    syncable_id: str = ""
+    syncable_type: str = ""
+    auto_add: bool = False
+    scheme_admin: bool = False
+    create_at: int = 0
+    delete_at: int = 0
+    update_at: int = 0
+
+    @classmethod
+    def from_proto(cls, proto: "api_remaining_pb2.GroupSyncable") -> "GroupSyncable":
+        """Create a GroupSyncable from a protobuf message."""
+        return cls(
+            group_id=proto.group_id,
+            syncable_id=proto.syncable_id,
+            syncable_type=proto.syncable_type,
+            auto_add=proto.auto_add,
+            scheme_admin=proto.scheme_admin,
+            create_at=proto.create_at,
+            delete_at=proto.delete_at,
+            update_at=proto.update_at,
+        )
+
+    def to_proto(self) -> "api_remaining_pb2.GroupSyncable":
+        """Convert to a protobuf message."""
+        from mattermost_plugin.grpc import api_remaining_pb2
+
+        return api_remaining_pb2.GroupSyncable(
+            group_id=self.group_id,
+            syncable_id=self.syncable_id,
+            syncable_type=self.syncable_type,
+            auto_add=self.auto_add,
+            scheme_admin=self.scheme_admin,
+            create_at=self.create_at,
+            delete_at=self.delete_at,
+            update_at=self.update_at,
+        )
+
+
+# =============================================================================
+# SHARED CHANNEL TYPES
+# =============================================================================
+
+
+@dataclass(frozen=True)
+class SharedChannel:
+    """
+    Represents a shared channel.
+
+    Attributes:
+        channel_id: ID of the channel.
+        team_id: ID of the team.
+        home: Whether this is the home instance.
+        read_only: Whether the channel is read-only.
+        share_name: Name for the share.
+        share_display_name: Display name for the share.
+        share_purpose: Purpose for the share.
+        share_header: Header for the share.
+        creator_id: ID of the user who shared the channel.
+        create_at: Timestamp when the channel was shared.
+        update_at: Timestamp when the share was last updated.
+        remote_id: Remote cluster ID.
+        type: Channel type.
+    """
+
+    channel_id: str = ""
+    team_id: str = ""
+    home: str = ""
+    read_only: bool = False
+    share_name: str = ""
+    share_display_name: str = ""
+    share_purpose: str = ""
+    share_header: str = ""
+    creator_id: str = ""
+    create_at: int = 0
+    update_at: int = 0
+    remote_id: str = ""
+    type: str = ""
+
+    @classmethod
+    def from_proto(cls, proto: "api_remaining_pb2.SharedChannel") -> "SharedChannel":
+        """Create a SharedChannel from a protobuf message."""
+        return cls(
+            channel_id=proto.channel_id,
+            team_id=proto.team_id,
+            home=proto.home,
+            read_only=proto.read_only,
+            share_name=proto.share_name,
+            share_display_name=proto.share_display_name,
+            share_purpose=proto.share_purpose,
+            share_header=proto.share_header,
+            creator_id=proto.creator_id,
+            create_at=proto.create_at,
+            update_at=proto.update_at,
+            remote_id=proto.remote_id,
+            type=proto.type,
+        )
+
+    def to_proto(self) -> "api_remaining_pb2.SharedChannel":
+        """Convert to a protobuf message."""
+        from mattermost_plugin.grpc import api_remaining_pb2
+
+        return api_remaining_pb2.SharedChannel(
+            channel_id=self.channel_id,
+            team_id=self.team_id,
+            home=self.home,
+            read_only=self.read_only,
+            share_name=self.share_name,
+            share_display_name=self.share_display_name,
+            share_purpose=self.share_purpose,
+            share_header=self.share_header,
+            creator_id=self.creator_id,
+            create_at=self.create_at,
+            update_at=self.update_at,
+            remote_id=self.remote_id,
+            type=self.type,
+        )
+
+
+# =============================================================================
+# EMOJI TYPES
+# =============================================================================
+
+
+@dataclass(frozen=True)
+class Emoji:
+    """
+    Represents a custom emoji.
+
+    Attributes:
+        id: Unique identifier for the emoji.
+        create_at: Timestamp when the emoji was created.
+        update_at: Timestamp when the emoji was last updated.
+        delete_at: Timestamp when the emoji was deleted (0 if not deleted).
+        creator_id: ID of the user who created the emoji.
+        name: Name of the emoji (without colons).
+    """
+
+    id: str = ""
+    create_at: int = 0
+    update_at: int = 0
+    delete_at: int = 0
+    creator_id: str = ""
+    name: str = ""
+
+    @classmethod
+    def from_proto(cls, proto: "api_channel_post_pb2.Emoji") -> "Emoji":
+        """Create an Emoji from a protobuf message."""
+        return cls(
+            id=proto.id,
+            create_at=proto.create_at,
+            update_at=proto.update_at,
+            delete_at=proto.delete_at,
+            creator_id=proto.creator_id,
+            name=proto.name,
+        )
+
+
+# =============================================================================
+# PLUGIN TYPES
+# =============================================================================
+
+
+@dataclass(frozen=True)
+class PluginInfo:
+    """
+    Represents plugin information.
+
+    Attributes:
+        manifest: Plugin manifest data.
+    """
+
+    manifest: Dict[str, object] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class PluginStatus:
+    """
+    Represents plugin status.
+
+    Attributes:
+        plugin_id: ID of the plugin.
+        plugin_path: Path to the plugin.
+        state: Plugin state.
+        name: Plugin name.
+        description: Plugin description.
+        version: Plugin version.
+    """
+
+    plugin_id: str = ""
+    plugin_path: str = ""
+    state: int = 0
+    name: str = ""
+    description: str = ""
+    version: str = ""
+
+
+# =============================================================================
+# DIALOG TYPES
+# =============================================================================
+
+
+@dataclass(frozen=True)
+class DialogElement:
+    """
+    Represents an element in an interactive dialog.
+
+    Attributes:
+        display_name: Display name of the element.
+        name: Internal name of the element.
+        type: Element type (e.g., "text", "select").
+        subtype: Subtype (e.g., "email", "number").
+        default: Default value.
+        placeholder: Placeholder text.
+        help_text: Help text shown below the element.
+        optional: Whether the element is optional.
+        min_length: Minimum text length.
+        max_length: Maximum text length.
+        data_source: Data source for select elements.
+        options: Options for select elements.
+    """
+
+    display_name: str = ""
+    name: str = ""
+    type: str = ""
+    subtype: str = ""
+    default: str = ""
+    placeholder: str = ""
+    help_text: str = ""
+    optional: bool = False
+    min_length: int = 0
+    max_length: int = 0
+    data_source: str = ""
+    options: List[Dict[str, str]] = field(default_factory=list)
+
+    def to_proto(self) -> "api_remaining_pb2.DialogElement":
+        """Convert to a protobuf message."""
+        from mattermost_plugin.grpc import api_remaining_pb2
+
+        proto_options = [
+            api_remaining_pb2.DialogElementOption(text=o.get("text", ""), value=o.get("value", ""))
+            for o in self.options
+        ]
+
+        return api_remaining_pb2.DialogElement(
+            display_name=self.display_name,
+            name=self.name,
+            type=self.type,
+            subtype=self.subtype,
+            default=self.default,
+            placeholder=self.placeholder,
+            help_text=self.help_text,
+            optional=self.optional,
+            min_length=self.min_length,
+            max_length=self.max_length,
+            data_source=self.data_source,
+            options=proto_options,
+        )
+
+
+@dataclass(frozen=True)
+class Dialog:
+    """
+    Represents an interactive dialog.
+
+    Attributes:
+        callback_id: Callback ID for identifying the dialog submission.
+        title: Title of the dialog.
+        introduction_text: Introduction text shown at the top.
+        elements: List of dialog elements.
+        submit_label: Label for the submit button.
+        notify_on_cancel: Whether to notify on cancel.
+        state: State to pass back on submission.
+        icon_url: URL of the dialog icon.
+    """
+
+    callback_id: str = ""
+    title: str = ""
+    introduction_text: str = ""
+    elements: List[DialogElement] = field(default_factory=list)
+    submit_label: str = ""
+    notify_on_cancel: bool = False
+    state: str = ""
+    icon_url: str = ""
+
+    def to_proto(self) -> "api_remaining_pb2.Dialog":
+        """Convert to a protobuf message."""
+        from mattermost_plugin.grpc import api_remaining_pb2
+
+        return api_remaining_pb2.Dialog(
+            callback_id=self.callback_id,
+            title=self.title,
+            introduction_text=self.introduction_text,
+            elements=[e.to_proto() for e in self.elements],
+            submit_label=self.submit_label,
+            notify_on_cancel=self.notify_on_cancel,
+            state=self.state,
+            icon_url=self.icon_url,
+        )
+
+
+@dataclass(frozen=True)
+class OpenDialogRequest:
+    """
+    Request to open an interactive dialog.
+
+    Attributes:
+        trigger_id: Trigger ID from the initiating action.
+        url: URL to submit the dialog to.
+        dialog: The dialog to open.
+    """
+
+    trigger_id: str = ""
+    url: str = ""
+    dialog: Optional[Dialog] = None
+
+    def to_proto(self) -> "api_remaining_pb2.OpenDialogRequest":
+        """Convert to a protobuf message."""
+        from mattermost_plugin.grpc import api_remaining_pb2
+
+        proto = api_remaining_pb2.OpenDialogRequest(
+            trigger_id=self.trigger_id,
+            url=self.url,
+        )
+        if self.dialog:
+            proto.dialog.CopyFrom(self.dialog.to_proto())
+        return proto
+
+
+# =============================================================================
+# AUDIT TYPES
+# =============================================================================
+
+
+@dataclass(frozen=True)
+class AuditRecord:
+    """
+    Represents an audit log record.
+
+    Attributes:
+        id: Unique identifier for the record.
+        create_at: Timestamp when the record was created.
+        level: Log level (e.g., "info", "error").
+        api_path: API path that was called.
+        event: Event name.
+        status: Status of the event.
+        user_id: ID of the user.
+        session_id: ID of the session.
+        client: Client information.
+        ip_address: IP address of the client.
+        meta: Additional metadata.
+    """
+
+    id: str = ""
+    create_at: int = 0
+    level: str = ""
+    api_path: str = ""
+    event: str = ""
+    status: str = ""
+    user_id: str = ""
+    session_id: str = ""
+    client: str = ""
+    ip_address: str = ""
+    meta: Dict[str, object] = field(default_factory=dict)
+
+    def to_proto(self) -> "api_remaining_pb2.AuditRecord":
+        """Convert to a protobuf message."""
+        from google.protobuf.json_format import ParseDict
+        from google.protobuf.struct_pb2 import Struct
+        from mattermost_plugin.grpc import api_remaining_pb2
+
+        proto = api_remaining_pb2.AuditRecord(
+            id=self.id,
+            create_at=self.create_at,
+            level=self.level,
+            api_path=self.api_path,
+            event=self.event,
+            status=self.status,
+            user_id=self.user_id,
+            session_id=self.session_id,
+            client=self.client,
+            ip_address=self.ip_address,
+        )
+
+        if self.meta:
+            meta_struct = Struct()
+            ParseDict(self.meta, meta_struct)
+            proto.meta.CopyFrom(meta_struct)
+
+        return proto
+
+
+# =============================================================================
+# PUSH NOTIFICATION TYPES
+# =============================================================================
+
+
+@dataclass(frozen=True)
+class PushNotification:
+    """
+    Represents a push notification.
+
+    Attributes:
+        ack_id: Acknowledgement ID.
+        platform: Platform (e.g., "ios", "android").
+        server_id: Server ID.
+        device_id: Device ID.
+        post_id: Post ID.
+        category: Notification category.
+        sound: Notification sound.
+        message: Notification message.
+        badge: Badge count.
+        team_id: Team ID.
+        channel_id: Channel ID.
+        root_id: Root post ID.
+        sender_id: Sender user ID.
+        sender_name: Sender name.
+        channel_name: Channel name.
+        type: Notification type.
+    """
+
+    ack_id: str = ""
+    platform: str = ""
+    server_id: str = ""
+    device_id: str = ""
+    post_id: str = ""
+    category: str = ""
+    sound: str = ""
+    message: str = ""
+    badge: str = ""
+    team_id: str = ""
+    channel_id: str = ""
+    root_id: str = ""
+    sender_id: str = ""
+    sender_name: str = ""
+    channel_name: str = ""
+    type: str = ""
+
+    def to_proto(self) -> "api_remaining_pb2.PushNotification":
+        """Convert to a protobuf message."""
+        from mattermost_plugin.grpc import api_remaining_pb2
+
+        return api_remaining_pb2.PushNotification(
+            ack_id=self.ack_id,
+            platform=self.platform,
+            server_id=self.server_id,
+            device_id=self.device_id,
+            post_id=self.post_id,
+            category=self.category,
+            sound=self.sound,
+            message=self.message,
+            badge=self.badge,
+            team_id=self.team_id,
+            channel_id=self.channel_id,
+            root_id=self.root_id,
+            sender_id=self.sender_id,
+            sender_name=self.sender_name,
+            channel_name=self.channel_name,
+            type=self.type,
         )
