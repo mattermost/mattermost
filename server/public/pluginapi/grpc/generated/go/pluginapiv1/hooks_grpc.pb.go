@@ -63,6 +63,7 @@ const (
 	PluginHooks_OnSharedChannelsAttachmentSyncMsg_FullMethodName   = "/mattermost.pluginapi.v1.PluginHooks/OnSharedChannelsAttachmentSyncMsg"
 	PluginHooks_OnSharedChannelsProfileImageSyncMsg_FullMethodName = "/mattermost.pluginapi.v1.PluginHooks/OnSharedChannelsProfileImageSyncMsg"
 	PluginHooks_GenerateSupportData_FullMethodName                 = "/mattermost.pluginapi.v1.PluginHooks/GenerateSupportData"
+	PluginHooks_ServeHTTP_FullMethodName                           = "/mattermost.pluginapi.v1.PluginHooks/ServeHTTP"
 )
 
 // PluginHooksClient is the client API for PluginHooks service.
@@ -323,6 +324,22 @@ type PluginHooksClient interface {
 	//
 	// Go signature: GenerateSupportData(c *Context) ([]*model.FileData, error)
 	GenerateSupportData(ctx context.Context, in *GenerateSupportDataRequest, opts ...grpc.CallOption) (*GenerateSupportDataResponse, error)
+	// ServeHTTP handles HTTP requests to /plugins/{plugin_id}.
+	// Uses bidirectional streaming for efficient large body transfer.
+	//
+	// Request flow (Go -> Python):
+	// - First message: init metadata (method, URL, headers) + optional first body chunk
+	// - Subsequent messages: body chunks until body_complete=true
+	//
+	// Response flow (Python -> Go):
+	// - First message: init metadata (status, headers) + optional first body chunk
+	// - Subsequent messages: body chunks until body_complete=true
+	//
+	// Cancellation: HTTP client disconnect propagates via gRPC context.
+	// Body chunks are 64KB by default (configurable).
+	//
+	// Go signature: ServeHTTP(c *Context, w http.ResponseWriter, r *http.Request)
+	ServeHTTP(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[ServeHTTPRequest, ServeHTTPResponse], error)
 }
 
 type pluginHooksClient struct {
@@ -743,6 +760,19 @@ func (c *pluginHooksClient) GenerateSupportData(ctx context.Context, in *Generat
 	return out, nil
 }
 
+func (c *pluginHooksClient) ServeHTTP(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[ServeHTTPRequest, ServeHTTPResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &PluginHooks_ServiceDesc.Streams[0], PluginHooks_ServeHTTP_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[ServeHTTPRequest, ServeHTTPResponse]{ClientStream: stream}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type PluginHooks_ServeHTTPClient = grpc.BidiStreamingClient[ServeHTTPRequest, ServeHTTPResponse]
+
 // PluginHooksServer is the server API for PluginHooks service.
 // All implementations must embed UnimplementedPluginHooksServer
 // for forward compatibility.
@@ -1001,6 +1031,22 @@ type PluginHooksServer interface {
 	//
 	// Go signature: GenerateSupportData(c *Context) ([]*model.FileData, error)
 	GenerateSupportData(context.Context, *GenerateSupportDataRequest) (*GenerateSupportDataResponse, error)
+	// ServeHTTP handles HTTP requests to /plugins/{plugin_id}.
+	// Uses bidirectional streaming for efficient large body transfer.
+	//
+	// Request flow (Go -> Python):
+	// - First message: init metadata (method, URL, headers) + optional first body chunk
+	// - Subsequent messages: body chunks until body_complete=true
+	//
+	// Response flow (Python -> Go):
+	// - First message: init metadata (status, headers) + optional first body chunk
+	// - Subsequent messages: body chunks until body_complete=true
+	//
+	// Cancellation: HTTP client disconnect propagates via gRPC context.
+	// Body chunks are 64KB by default (configurable).
+	//
+	// Go signature: ServeHTTP(c *Context, w http.ResponseWriter, r *http.Request)
+	ServeHTTP(grpc.BidiStreamingServer[ServeHTTPRequest, ServeHTTPResponse]) error
 	mustEmbedUnimplementedPluginHooksServer()
 }
 
@@ -1133,6 +1179,9 @@ func (UnimplementedPluginHooksServer) OnSharedChannelsProfileImageSyncMsg(contex
 }
 func (UnimplementedPluginHooksServer) GenerateSupportData(context.Context, *GenerateSupportDataRequest) (*GenerateSupportDataResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GenerateSupportData not implemented")
+}
+func (UnimplementedPluginHooksServer) ServeHTTP(grpc.BidiStreamingServer[ServeHTTPRequest, ServeHTTPResponse]) error {
+	return status.Errorf(codes.Unimplemented, "method ServeHTTP not implemented")
 }
 func (UnimplementedPluginHooksServer) mustEmbedUnimplementedPluginHooksServer() {}
 func (UnimplementedPluginHooksServer) testEmbeddedByValue()                     {}
@@ -1893,6 +1942,13 @@ func _PluginHooks_GenerateSupportData_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PluginHooks_ServeHTTP_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(PluginHooksServer).ServeHTTP(&grpc.GenericServerStream[ServeHTTPRequest, ServeHTTPResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type PluginHooks_ServeHTTPServer = grpc.BidiStreamingServer[ServeHTTPRequest, ServeHTTPResponse]
+
 // PluginHooks_ServiceDesc is the grpc.ServiceDesc for PluginHooks service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2065,6 +2121,13 @@ var PluginHooks_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _PluginHooks_GenerateSupportData_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "ServeHTTP",
+			Handler:       _PluginHooks_ServeHTTP_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
+		},
+	},
 	Metadata: "hooks.proto",
 }

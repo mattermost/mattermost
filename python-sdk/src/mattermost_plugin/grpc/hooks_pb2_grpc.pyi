@@ -10,6 +10,7 @@ from grpc import aio as _aio
 import abc as _abc_1
 import grpc as _grpc
 import hooks_command_pb2 as _hooks_command_pb2
+import hooks_http_pb2 as _hooks_http_pb2
 import hooks_lifecycle_pb2 as _hooks_lifecycle_pb2
 import hooks_message_pb2 as _hooks_message_pb2
 import hooks_user_channel_pb2 as _hooks_user_channel_pb2
@@ -401,6 +402,27 @@ class PluginHooksStub:
 
     Go signature: GenerateSupportData(c *Context) ([]*model.FileData, error)
     """
+    ServeHTTP: _grpc.StreamStreamMultiCallable[_hooks_http_pb2.ServeHTTPRequest, _hooks_http_pb2.ServeHTTPResponse]
+    """===========================================================================
+    HTTP STREAMING HOOKS (Phase 8)
+    ===========================================================================
+
+    ServeHTTP handles HTTP requests to /plugins/{plugin_id}.
+    Uses bidirectional streaming for efficient large body transfer.
+
+    Request flow (Go -> Python):
+    - First message: init metadata (method, URL, headers) + optional first body chunk
+    - Subsequent messages: body chunks until body_complete=true
+
+    Response flow (Python -> Go):
+    - First message: init metadata (status, headers) + optional first body chunk
+    - Subsequent messages: body chunks until body_complete=true
+
+    Cancellation: HTTP client disconnect propagates via gRPC context.
+    Body chunks are 64KB by default (configurable).
+
+    Go signature: ServeHTTP(c *Context, w http.ResponseWriter, r *http.Request)
+    """
 
 @_typing.type_check_only
 class PluginHooksAsyncStub(PluginHooksStub):
@@ -769,6 +791,27 @@ class PluginHooksAsyncStub(PluginHooksStub):
     Plugins can include their own diagnostic data in the support packet.
 
     Go signature: GenerateSupportData(c *Context) ([]*model.FileData, error)
+    """
+    ServeHTTP: _aio.StreamStreamMultiCallable[_hooks_http_pb2.ServeHTTPRequest, _hooks_http_pb2.ServeHTTPResponse]  # type: ignore[assignment]
+    """===========================================================================
+    HTTP STREAMING HOOKS (Phase 8)
+    ===========================================================================
+
+    ServeHTTP handles HTTP requests to /plugins/{plugin_id}.
+    Uses bidirectional streaming for efficient large body transfer.
+
+    Request flow (Go -> Python):
+    - First message: init metadata (method, URL, headers) + optional first body chunk
+    - Subsequent messages: body chunks until body_complete=true
+
+    Response flow (Python -> Go):
+    - First message: init metadata (status, headers) + optional first body chunk
+    - Subsequent messages: body chunks until body_complete=true
+
+    Cancellation: HTTP client disconnect propagates via gRPC context.
+    Body chunks are 64KB by default (configurable).
+
+    Go signature: ServeHTTP(c *Context, w http.ResponseWriter, r *http.Request)
     """
 
 class PluginHooksServicer(metaclass=_abc_1.ABCMeta):
@@ -1381,6 +1424,33 @@ class PluginHooksServicer(metaclass=_abc_1.ABCMeta):
         Plugins can include their own diagnostic data in the support packet.
 
         Go signature: GenerateSupportData(c *Context) ([]*model.FileData, error)
+        """
+
+    @_abc_1.abstractmethod
+    def ServeHTTP(
+        self,
+        request_iterator: _MaybeAsyncIterator[_hooks_http_pb2.ServeHTTPRequest],
+        context: _ServicerContext,
+    ) -> _typing.Union[_abc.Iterator[_hooks_http_pb2.ServeHTTPResponse], _abc.AsyncIterator[_hooks_http_pb2.ServeHTTPResponse]]:
+        """===========================================================================
+        HTTP STREAMING HOOKS (Phase 8)
+        ===========================================================================
+
+        ServeHTTP handles HTTP requests to /plugins/{plugin_id}.
+        Uses bidirectional streaming for efficient large body transfer.
+
+        Request flow (Go -> Python):
+        - First message: init metadata (method, URL, headers) + optional first body chunk
+        - Subsequent messages: body chunks until body_complete=true
+
+        Response flow (Python -> Go):
+        - First message: init metadata (status, headers) + optional first body chunk
+        - Subsequent messages: body chunks until body_complete=true
+
+        Cancellation: HTTP client disconnect propagates via gRPC context.
+        Body chunks are 64KB by default (configurable).
+
+        Go signature: ServeHTTP(c *Context, w http.ResponseWriter, r *http.Request)
         """
 
 def add_PluginHooksServicer_to_server(servicer: PluginHooksServicer, server: _typing.Union[_grpc.Server, _aio.Server]) -> None: ...

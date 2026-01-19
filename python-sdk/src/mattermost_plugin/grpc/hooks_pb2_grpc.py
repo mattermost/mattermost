@@ -4,6 +4,7 @@ import grpc
 import warnings
 
 from . import hooks_command_pb2 as hooks__command__pb2
+from . import hooks_http_pb2 as hooks__http__pb2
 from . import hooks_lifecycle_pb2 as hooks__lifecycle__pb2
 from . import hooks_message_pb2 as hooks__message__pb2
 from . import hooks_user_channel_pb2 as hooks__user__channel__pb2
@@ -277,6 +278,11 @@ class PluginHooksStub(object):
                 '/mattermost.pluginapi.v1.PluginHooks/GenerateSupportData',
                 request_serializer=hooks__command__pb2.GenerateSupportDataRequest.SerializeToString,
                 response_deserializer=hooks__command__pb2.GenerateSupportDataResponse.FromString,
+                _registered_method=True)
+        self.ServeHTTP = channel.stream_stream(
+                '/mattermost.pluginapi.v1.PluginHooks/ServeHTTP',
+                request_serializer=hooks__http__pb2.ServeHTTPRequest.SerializeToString,
+                response_deserializer=hooks__http__pb2.ServeHTTPResponse.FromString,
                 _registered_method=True)
 
 
@@ -810,6 +816,31 @@ class PluginHooksServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def ServeHTTP(self, request_iterator, context):
+        """===========================================================================
+        HTTP STREAMING HOOKS (Phase 8)
+        ===========================================================================
+
+        ServeHTTP handles HTTP requests to /plugins/{plugin_id}.
+        Uses bidirectional streaming for efficient large body transfer.
+
+        Request flow (Go -> Python):
+        - First message: init metadata (method, URL, headers) + optional first body chunk
+        - Subsequent messages: body chunks until body_complete=true
+
+        Response flow (Python -> Go):
+        - First message: init metadata (status, headers) + optional first body chunk
+        - Subsequent messages: body chunks until body_complete=true
+
+        Cancellation: HTTP client disconnect propagates via gRPC context.
+        Body chunks are 64KB by default (configurable).
+
+        Go signature: ServeHTTP(c *Context, w http.ResponseWriter, r *http.Request)
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_PluginHooksServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -1017,6 +1048,11 @@ def add_PluginHooksServicer_to_server(servicer, server):
                     servicer.GenerateSupportData,
                     request_deserializer=hooks__command__pb2.GenerateSupportDataRequest.FromString,
                     response_serializer=hooks__command__pb2.GenerateSupportDataResponse.SerializeToString,
+            ),
+            'ServeHTTP': grpc.stream_stream_rpc_method_handler(
+                    servicer.ServeHTTP,
+                    request_deserializer=hooks__http__pb2.ServeHTTPRequest.FromString,
+                    response_serializer=hooks__http__pb2.ServeHTTPResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -2162,6 +2198,33 @@ class PluginHooks(object):
             '/mattermost.pluginapi.v1.PluginHooks/GenerateSupportData',
             hooks__command__pb2.GenerateSupportDataRequest.SerializeToString,
             hooks__command__pb2.GenerateSupportDataResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ServeHTTP(request_iterator,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.stream_stream(
+            request_iterator,
+            target,
+            '/mattermost.pluginapi.v1.PluginHooks/ServeHTTP',
+            hooks__http__pb2.ServeHTTPRequest.SerializeToString,
+            hooks__http__pb2.ServeHTTPResponse.FromString,
             options,
             channel_credentials,
             insecure,

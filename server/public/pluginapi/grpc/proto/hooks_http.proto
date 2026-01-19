@@ -1,0 +1,142 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+syntax = "proto3";
+
+package mattermost.pluginapi.v1;
+
+option go_package = "github.com/mattermost/mattermost/server/public/pluginapi/grpc/generated/go/pluginapiv1";
+
+import "hooks_common.proto";
+
+// ==============================================================================
+// HTTP STREAMING HOOK MESSAGES
+// ==============================================================================
+//
+// This file defines request/response messages for HTTP streaming hooks:
+// - ServeHTTP: Handle HTTP requests to /plugins/{plugin_id}
+// - ServeMetrics: Handle metrics endpoint requests (future)
+//
+// STREAMING ARCHITECTURE:
+// -----------------------
+// ServeHTTP uses bidirectional streaming:
+// - Client (Go server) streams request body chunks to Python
+// - Server (Python plugin) streams response body chunks back to Go
+//
+// The first message in each direction contains metadata (headers, status code).
+// Subsequent messages contain body chunks. A flag indicates body completion.
+//
+// CHUNKING:
+// ---------
+// Request and response bodies are chunked at 64KB boundaries to avoid
+// buffering large payloads in memory. This matches gRPC best practices.
+//
+// CANCELLATION:
+// -------------
+// HTTP client disconnects are propagated via gRPC stream context.
+// The Python handler should check context.cancelled() during body iteration.
+//
+// ==============================================================================
+
+// Default chunk size for body streaming (64KB)
+// This constant is referenced by both Go and Python implementations.
+// Go: server/public/pluginapi/grpc/server/serve_http.go
+// Python: python-sdk/src/mattermost_plugin/servicers/hooks_servicer.py
+
+// -----------------------------------------------------------------------------
+// HTTP Header Message
+// Supports multi-value headers (e.g., Set-Cookie)
+// -----------------------------------------------------------------------------
+
+// HTTPHeader represents a single HTTP header with potentially multiple values.
+// HTTP allows multiple headers with the same key (e.g., Set-Cookie).
+message HTTPHeader {
+  string key = 1;
+  repeated string values = 2;
+}
+
+// -----------------------------------------------------------------------------
+// ServeHTTP Request Streaming Messages
+// Direction: Go server -> Python plugin
+// -----------------------------------------------------------------------------
+
+// ServeHTTPRequest is a streaming message sent from Go to Python.
+// The first message contains request metadata; subsequent messages contain body chunks.
+message ServeHTTPRequest {
+  // Request metadata (set only in first message of stream)
+  ServeHTTPRequestInit init = 1;
+
+  // Body chunk (may be empty in first message or if no body)
+  bytes body_chunk = 2;
+
+  // Indicates this is the last body chunk.
+  // If true, no more body chunks will follow.
+  // This may be set on the first message if the request has no body.
+  bool body_complete = 3;
+}
+
+// ServeHTTPRequestInit contains HTTP request metadata.
+// Sent as part of the first ServeHTTPRequest message.
+message ServeHTTPRequestInit {
+  // Plugin context for this request
+  PluginContext plugin_context = 1;
+
+  // HTTP method (GET, POST, PUT, DELETE, etc.)
+  string method = 2;
+
+  // Full URL as string (e.g., "http://localhost:8065/plugins/myid/api/v1/foo?bar=baz")
+  string url = 3;
+
+  // Protocol version (e.g., "HTTP/1.1", "HTTP/2.0")
+  string proto = 4;
+
+  // Major version number (e.g., 1 for HTTP/1.1)
+  int32 proto_major = 5;
+
+  // Minor version number (e.g., 1 for HTTP/1.1)
+  int32 proto_minor = 6;
+
+  // HTTP headers (supports multi-value headers)
+  repeated HTTPHeader headers = 7;
+
+  // Host header value (may differ from URL host for virtual hosting)
+  string host = 8;
+
+  // Remote address of the client (e.g., "192.168.1.1:12345")
+  string remote_addr = 9;
+
+  // The original request URI as received (includes query string)
+  string request_uri = 10;
+
+  // Content-Length if known, -1 if unknown/chunked
+  int64 content_length = 11;
+}
+
+// -----------------------------------------------------------------------------
+// ServeHTTP Response Streaming Messages
+// Direction: Python plugin -> Go server
+// -----------------------------------------------------------------------------
+
+// ServeHTTPResponse is a streaming message sent from Python to Go.
+// The first message contains response metadata; subsequent messages contain body chunks.
+message ServeHTTPResponse {
+  // Response metadata (set only in first message of stream)
+  ServeHTTPResponseInit init = 1;
+
+  // Body chunk (may be empty in first message or if no body)
+  bytes body_chunk = 2;
+
+  // Indicates this is the last body chunk.
+  // If true, no more body chunks will follow.
+  bool body_complete = 3;
+}
+
+// ServeHTTPResponseInit contains HTTP response metadata.
+// Sent as part of the first ServeHTTPResponse message.
+message ServeHTTPResponseInit {
+  // HTTP status code (e.g., 200, 404, 500)
+  int32 status_code = 1;
+
+  // HTTP response headers (supports multi-value headers)
+  repeated HTTPHeader headers = 2;
+}
