@@ -35,10 +35,7 @@ const HeadingNode: React.FC<HeadingNodeProps> = ({heading, pageId, currentPageId
         } else {
             // Use getWikiUrl for wiki pages, fallback to permalink format for non-wiki pages
             const url = wikiId && channelId ? getWikiUrl(teamName, channelId, wikiId, pageId) : `/${teamName}/pl/${pageId}`;
-            history.push(url);
-            setTimeout(() => {
-                scrollToHeading(heading.id);
-            }, 500);
+            history.push(`${url}#${heading.id}`);
         }
     }, [currentPageId, pageId, teamName, wikiId, channelId, heading.id, history]);
 
@@ -53,6 +50,7 @@ const HeadingNode: React.FC<HeadingNodeProps> = ({heading, pageId, currentPageId
                 }}
                 onClick={handleClick}
                 role='treeitem'
+                aria-selected={false}
                 aria-level={heading.level}
                 aria-label={formatMessage(
                     {id: 'heading_node.aria_label', defaultMessage: 'Heading level {level}: {text}'},

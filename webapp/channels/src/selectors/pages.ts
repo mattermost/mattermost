@@ -138,7 +138,7 @@ export const getChannelWikis = createSelector(
 
 // Get page status field definition
 export const getPageStatusField = (state: GlobalState) => {
-    return (state.entities.wikiPages as any)?.statusField;
+    return state.entities.wikiPages?.statusField ?? null;
 };
 
 // Get status for a specific page
@@ -147,7 +147,56 @@ export const getPageStatus = (state: GlobalState, postId: string): string => {
     return (page?.props?.[PagePropsKeys.PAGE_STATUS] as string) || 'In progress';
 };
 
-// Build breadcrumb path from Redux state (no API call needed)
+// Memoized selector for breadcrumb path from Redux state (no API call needed)
+export const makeBreadcrumbSelector = () => createSelector(
+    'buildBreadcrumbFromRedux',
+    (state: GlobalState, wikiId: string) => getWiki(state, wikiId),
+    (state: GlobalState, _wikiId: string, pageId: string) => getPage(state, pageId),
+    (state: GlobalState, _wikiId: string, pageId: string) => getPageAncestors(state, pageId),
+    (_state: GlobalState, wikiId: string) => wikiId,
+    (_state: GlobalState, _wikiId: string, _pageId: string, channelId: string) => channelId,
+    (_state: GlobalState, _wikiId: string, _pageId: string, _channelId: string, teamName: string) => teamName,
+    (wiki, page, ancestors, wikiId, channelId, teamName): BreadcrumbPath | null => {
+        if (!wiki || !page) {
+            return null;
+        }
+
+        const items: BreadcrumbPath['items'] = [];
+
+        // Add wiki as root
+        items.push({
+            id: wikiId,
+            title: wiki.title,
+            type: 'wiki',
+            path: getWikiUrl(teamName, channelId, wikiId),
+            channel_id: channelId,
+        });
+
+        // Add ancestor pages
+        for (const ancestor of ancestors) {
+            items.push({
+                id: ancestor.id,
+                title: getPageTitle(ancestor),
+                type: 'page',
+                path: getWikiUrl(teamName, channelId, wikiId, ancestor.id),
+                channel_id: channelId,
+            });
+        }
+
+        return {
+            items,
+            current_page: {
+                id: page.id,
+                title: getPageTitle(page),
+                type: 'page',
+                path: getWikiUrl(teamName, channelId, wikiId, page.id),
+                channel_id: channelId,
+            },
+        };
+    },
+);
+
+// Legacy function for backwards compatibility - prefer makeBreadcrumbSelector for memoization
 export const buildBreadcrumbFromRedux = (
     state: GlobalState,
     wikiId: string,
@@ -155,44 +204,6 @@ export const buildBreadcrumbFromRedux = (
     channelId: string,
     teamName: string,
 ): BreadcrumbPath | null => {
-    const wiki = getWiki(state, wikiId);
-    const page = getPage(state, pageId);
-
-    if (!wiki || !page) {
-        return null;
-    }
-
-    const ancestors = getPageAncestors(state, pageId);
-    const items: BreadcrumbPath['items'] = [];
-
-    // Add wiki as root
-    items.push({
-        id: wikiId,
-        title: wiki.title,
-        type: 'wiki',
-        path: getWikiUrl(teamName, channelId, wikiId),
-        channel_id: channelId,
-    });
-
-    // Add ancestor pages
-    for (const ancestor of ancestors) {
-        items.push({
-            id: ancestor.id,
-            title: getPageTitle(ancestor),
-            type: 'page',
-            path: getWikiUrl(teamName, channelId, wikiId, ancestor.id),
-            channel_id: channelId,
-        });
-    }
-
-    return {
-        items,
-        current_page: {
-            id: page.id,
-            title: getPageTitle(page),
-            type: 'page',
-            path: getWikiUrl(teamName, channelId, wikiId, page.id),
-            channel_id: channelId,
-        },
-    };
+    const selector = makeBreadcrumbSelector();
+    return selector(state, wikiId, pageId, channelId, teamName);
 };

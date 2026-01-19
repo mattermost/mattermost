@@ -1507,7 +1507,7 @@ func testGetPageDraftsForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("gets all drafts for user in wiki", func(t *testing.T) {
 		// Create multiple drafts
 		content := `{"type":"doc","content":[]}`
-		for i := 0; i < 3; i++ {
+		for i := range 3 {
 			pageId := model.NewId()
 			_, err := ss.Draft().UpsertPageDraftContent(pageId, userId, wikiId, content, "Page "+string(rune('A'+i)), 0)
 			require.NoError(t, err)

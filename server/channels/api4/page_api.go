@@ -283,12 +283,7 @@ func getChannelPages(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Guests cannot access pages in DM/Group channels
 	if channel.Type == model.ChannelTypeGroup || channel.Type == model.ChannelTypeDirect {
-		user, userErr := c.App.GetUser(c.AppContext.Session().UserId)
-		if userErr != nil {
-			c.Err = userErr
-			return
-		}
-		if user.IsGuest() {
+		if c.AppContext.Session().IsGuest() {
 			c.Err = model.NewAppError("getChannelPages", "api.page.permission.guest_cannot_access", nil, "", http.StatusForbidden)
 			return
 		}

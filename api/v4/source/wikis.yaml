@@ -321,6 +321,71 @@
         "403":
           $ref: "#/components/responses/Forbidden"
 
+  /api/v4/wikis/{wiki_id}/pages/extract-image:
+    post:
+      tags:
+        - wikis
+      summary: Extract text from page image
+      description: |
+        Extract text or description from an image using AI. Supports extracting
+        handwritten text or generating image descriptions.
+
+        __Minimum server version__: TBD
+
+        ##### Permissions
+        Must have `read_channel_content` permission in the wiki's channel.
+      operationId: ExtractPageImageText
+      parameters:
+        - name: wiki_id
+          in: path
+          description: Wiki GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - agent_id
+                - file_id
+                - action
+              properties:
+                agent_id:
+                  type: string
+                  description: The ID of the AI agent to use for extraction
+                file_id:
+                  type: string
+                  description: The ID of the file (image) to extract text from
+                action:
+                  type: string
+                  enum:
+                    - extract_handwriting
+                    - describe_image
+                  description: The extraction action to perform
+        description: Image extraction request
+        required: true
+      responses:
+        "200":
+          description: Text extraction successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  text:
+                    type: string
+                    description: The extracted text or image description
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   /api/v4/wikis/{wiki_id}/drafts/{draft_id}/publish:
     post:
       tags:

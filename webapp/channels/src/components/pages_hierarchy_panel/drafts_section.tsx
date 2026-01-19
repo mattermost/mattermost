@@ -37,13 +37,13 @@ const DraftsSection = ({drafts, currentDraftId, onDraftSelect}: Props) => {
         const days = Math.floor(diff / MS_PER_DAY);
 
         if (minutes < 1) {
-            return 'Just now';
+            return formatMessage({id: 'drafts_section.time.just_now', defaultMessage: 'Just now'});
         } else if (minutes < 60) {
-            return `${minutes}m ago`;
+            return formatMessage({id: 'drafts_section.time.minutes_ago', defaultMessage: '{minutes}m ago'}, {minutes});
         } else if (hours < 24) {
-            return `${hours}h ago`;
+            return formatMessage({id: 'drafts_section.time.hours_ago', defaultMessage: '{hours}h ago'}, {hours});
         }
-        return `${days}d ago`;
+        return formatMessage({id: 'drafts_section.time.days_ago', defaultMessage: '{days}d ago'}, {days});
     };
 
     return (
@@ -54,7 +54,7 @@ const DraftsSection = ({drafts, currentDraftId, onDraftSelect}: Props) => {
                 aria-expanded={!collapsed}
             >
                 <i className={`icon-chevron-${collapsed ? 'right' : 'down'}`}/>
-                <span className='DraftsSection__title'>{'Drafts'}</span>
+                <span className='DraftsSection__title'>{formatMessage({id: 'drafts_section.title', defaultMessage: 'Drafts'})}</span>
                 <span className='DraftsSection__count'>{drafts.length}</span>
             </button>
 
@@ -65,6 +65,14 @@ const DraftsSection = ({drafts, currentDraftId, onDraftSelect}: Props) => {
                             key={draft.id}
                             className={`DraftsSection__item ${draft.id === currentDraftId ? 'DraftsSection__item--selected' : ''}`}
                             onClick={() => onDraftSelect(draft.id)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    onDraftSelect(draft.id);
+                                }
+                            }}
+                            role='button'
+                            tabIndex={0}
                         >
                             <i className='icon-file-document-edit-outline'/>
                             <span className='DraftsSection__itemTitle'>

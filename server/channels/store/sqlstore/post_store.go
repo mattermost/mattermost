@@ -633,6 +633,7 @@ func (s *SqlPostStore) getFlaggedPosts(userId, channelId, teamId string, offset 
 					)
 					CHANNEL_FILTER
 					AND Posts.DeleteAt = 0
+					AND ` + regularPostsFilter + `
                 ) as A
             INNER JOIN Channels as B
                 ON B.Id = A.ChannelId
@@ -1022,8 +1023,9 @@ func (s *SqlPostStore) InvalidateLastPostTimeCache(channelId string) {
 //nolint:unparam
 func (s *SqlPostStore) GetEtag(channelId string, allowFromCache, collapsedThreads bool) string {
 	q := s.getQueryBuilder().Select("Id", "UpdateAt").From("Posts").Where(sq.Eq{"ChannelId": channelId}).OrderBy("UpdateAt DESC").Limit(1)
+	q = AddRegularPostsFilter(q, "Posts")
 	if collapsedThreads {
-		q.Where(sq.Eq{"RootId": ""})
+		q = q.Where(sq.Eq{"RootId": ""})
 	}
 	sql, args := q.MustSql()
 
@@ -1791,6 +1793,7 @@ func (s *SqlPostStore) getPostsAround(rctx request.CTX, before bool, options mod
 		OrderBy("p.ChannelId", "p.DeleteAt", "p.CreateAt "+sort).
 		Limit(uint64(options.PerPage)).
 		Offset(uint64(offset))
+	query = AddRegularPostsFilter(query, "p")
 
 	if err := s.GetReplica().SelectBuilder(&posts, query); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
@@ -1877,6 +1880,7 @@ func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before 
 		// See MM-23369.
 		OrderBy("Posts.ChannelId", "Posts.DeleteAt", "Posts.CreateAt "+sort).
 		Limit(1)
+	query = AddRegularPostsFilter(query, "Posts")
 
 	var postId string
 	if err := s.GetMaster().GetBuilder(&postId, query); err != nil {
@@ -1904,6 +1908,7 @@ func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64, collapsedT
 		// See MM-23369.
 		OrderBy("Posts.ChannelId", "Posts.DeleteAt", "Posts.CreateAt ASC").
 		Limit(1)
+	query = AddRegularPostsFilter(query, "Posts")
 
 	var post model.Post
 	if err := s.GetMaster().GetBuilder(&post, query); err != nil {
@@ -2634,7 +2639,7 @@ func (s *SqlPostStore) AnalyticsPostCount(options *model.PostCountOptions) (int6
 
 func (s *SqlPostStore) GetPostsCreatedAt(channelId string, time int64) ([]*model.Post, error) {
 	postColumns := strings.Join(postSliceColumns(), ", ")
-	query := "SELECT " + postColumns + " FROM Posts WHERE CreateAt = ? AND ChannelId = ?"
+	query := "SELECT " + postColumns + " FROM Posts WHERE CreateAt = ? AND ChannelId = ? AND " + regularPostsFilter
 
 	posts := []*model.Post{}
 	err := s.GetReplica().Select(&posts, query, time, channelId)

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {Link} from 'react-router-dom';
@@ -13,7 +13,7 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {fetchWiki, getPageBreadcrumb} from 'actions/pages';
 import {getPageDraftsForWiki} from 'selectors/page_drafts';
-import {arePagesLoaded, buildBreadcrumbFromRedux, getWiki} from 'selectors/pages';
+import {arePagesLoaded, makeBreadcrumbSelector, getWiki} from 'selectors/pages';
 
 import {getWikiUrl} from 'utils/url';
 
@@ -50,16 +50,16 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
 
     const teamName = currentTeam?.name || 'team';
 
+    // Create memoized selector instance for this component
+    const breadcrumbSelector = useMemo(() => makeBreadcrumbSelector(), []);
+
     // Build breadcrumb from Redux for published pages (when pages are loaded)
-    // Memoize by serializing to avoid infinite loops from new object references
-    const reduxBreadcrumbJson = useSelector((state: GlobalState) => {
+    const reduxBreadcrumb = useSelector((state: GlobalState) => {
         if (!isDraft && pageId && pagesLoaded) {
-            const breadcrumb = buildBreadcrumbFromRedux(state, wikiId, pageId, channelId, teamName);
-            return breadcrumb ? JSON.stringify(breadcrumb) : null;
+            return breadcrumbSelector(state, wikiId, pageId, channelId, teamName);
         }
         return null;
     });
-    const reduxBreadcrumb = reduxBreadcrumbJson ? JSON.parse(reduxBreadcrumbJson) as BreadcrumbPath : null;
 
     // Helper to fix breadcrumb item paths - use /wiki/ route not /channels/
     const fixBreadcrumbPath = (item: BreadcrumbPath['items'][0]): BreadcrumbPath['items'][0] => ({
@@ -229,7 +229,7 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                         },
                     });
                 }
-            } catch (err) {
+            } catch {
                 setError('Failed to load breadcrumb');
             } finally {
                 setIsLoading(false);
@@ -239,7 +239,7 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
         if (wikiId) {
             fetchBreadcrumb();
         }
-    }, [wikiId, pageId, channelId, isDraft, parentPageId, draftTitle, currentTeam?.name, currentPage?.update_at, currentPage?.page_parent_id, currentPage?.props?.page_parent_id, currentPage?.props?.wiki_id, pagesLoaded, dispatch, allDrafts, wiki, reduxBreadcrumbJson]);
+    }, [wikiId, pageId, channelId, isDraft, parentPageId, draftTitle, teamName, currentPage?.page_parent_id, pagesLoaded, dispatch, allDrafts, wiki, reduxBreadcrumb, untitledText, untitledPageText]);
 
     if (isLoading) {
         return (

@@ -53,9 +53,9 @@ export function convertDraftToPagePost(draft: PostDraft, untitledText: string = 
  * Build a tree structure from a flat list of pages
  * Pages are connected via page_parent_id field
  *
- * IMPORTANT: Pages array order is preserved! The input array should already be
- * in the correct order from Redux (server-defined order). This function only
- * organizes pages into a tree structure, it does NOT re-sort them.
+ * NOTE: Pages are sorted by creation time (oldest first) at each level of the tree.
+ * This ensures consistent ordering across navigation and updates.
+ * When timestamps are identical, page ID is used as a tiebreaker for deterministic ordering.
  */
 export function buildTree(pages: PageOrDraft[]): TreeNode[] {
     // Create lookup map and track original index for stable ordering
