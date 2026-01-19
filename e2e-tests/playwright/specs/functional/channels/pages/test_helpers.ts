@@ -3116,44 +3116,99 @@ export async function checkAIPluginAvailability(page: Page): Promise<boolean> {
 }
 
 /**
- * Gets the AI Tools dropdown button locator in the editor toolbar
+ * Gets the page actions menu button in the wiki header
  * @param page - Playwright page object
- * @returns The AI Tools dropdown button locator
+ * @returns The page actions menu button locator
  */
-export function getAIToolsDropdown(page: Page): Locator {
-    return page.locator('[data-testid="tiptap-ai-toolbar"] #ai-tools-dropdown-button');
+export function getPageActionsMenuButton(page: Page): Locator {
+    return page.locator('[data-testid="wiki-page-more-actions"]');
 }
 
 /**
- * Gets the "Proofread page" button from the AI Tools dropdown menu
+ * Gets the AI Tools submenu item in the page actions menu
+ * @param page - Playwright page object
+ * @returns The AI Tools submenu locator
+ */
+export function getAIToolsSubmenu(page: Page): Locator {
+    return page.locator('[data-testid="page-context-menu-ai-tools"]');
+}
+
+/**
+ * Gets the AI Tools dropdown button locator (now in page actions menu)
+ * @param page - Playwright page object
+ * @returns The page actions menu button (entry point for AI tools)
+ * @deprecated Use getPageActionsMenuButton and getAIToolsSubmenu instead
+ */
+export function getAIToolsDropdown(page: Page): Locator {
+    return getPageActionsMenuButton(page);
+}
+
+/**
+ * Gets the "Proofread page" button from the AI Tools submenu
  * @param page - Playwright page object
  * @returns The proofread page button locator
  */
 export function getAIToolsProofreadButton(page: Page): Locator {
-    return page.locator('[data-testid="ai-proofread-page"]');
+    return page.locator('[data-testid="page-context-menu-ai-proofread"]');
 }
 
 /**
- * Opens the AI Tools dropdown and clicks the proofread button
+ * Gets the "Translate page" button from the AI Tools submenu
+ * @param page - Playwright page object
+ * @returns The translate page button locator
+ */
+export function getAIToolsTranslateButton(page: Page): Locator {
+    return page.locator('[data-testid="page-context-menu-ai-translate"]');
+}
+
+/**
+ * Opens the page actions menu and navigates to the AI Tools submenu
+ * @param page - Playwright page object
+ */
+export async function openAIToolsMenu(page: Page): Promise<void> {
+    const menuButton = getPageActionsMenuButton(page);
+    await menuButton.click();
+    await page.waitForTimeout(SHORT_WAIT);
+    const aiSubmenu = getAIToolsSubmenu(page);
+    await aiSubmenu.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+    await aiSubmenu.hover();
+    await page.waitForTimeout(SHORT_WAIT);
+}
+
+/**
+ * Opens the AI Tools submenu and clicks the proofread button
  * @param page - Playwright page object
  */
 export async function triggerProofread(page: Page): Promise<void> {
-    const dropdown = getAIToolsDropdown(page);
-    await dropdown.click();
-    await page.waitForTimeout(SHORT_WAIT);
+    await openAIToolsMenu(page);
     const proofreadButton = getAIToolsProofreadButton(page);
     await proofreadButton.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
     await proofreadButton.click();
 }
 
 /**
- * Checks if the AI Tools dropdown is visible in the editor toolbar
+ * Checks if AI Tools are available in the page actions menu
+ * Opens the menu and checks for the AI submenu
  * @param page - Playwright page object
- * @returns True if AI Tools dropdown is visible
+ * @returns True if AI Tools submenu is visible
  */
 export async function isAIToolsDropdownVisible(page: Page): Promise<boolean> {
-    const toolbar = page.locator('[data-testid="tiptap-ai-toolbar"]');
-    return toolbar.isVisible().catch(() => false);
+    try {
+        const menuButton = getPageActionsMenuButton(page);
+        const isMenuButtonVisible = await menuButton.isVisible().catch(() => false);
+        if (!isMenuButtonVisible) {
+            return false;
+        }
+        await menuButton.click();
+        await page.waitForTimeout(SHORT_WAIT);
+        const aiSubmenu = getAIToolsSubmenu(page);
+        const isVisible = await aiSubmenu.isVisible().catch(() => false);
+        // Close the menu by pressing Escape
+        await page.keyboard.press('Escape');
+        return isVisible;
+    } catch {
+        return false;
+    }
 }
 
 /**

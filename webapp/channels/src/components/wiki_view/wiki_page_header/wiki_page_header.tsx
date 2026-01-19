@@ -41,6 +41,9 @@ type Props = {
     onNavigateToPage?: (pageId: string) => void;
     pageLink?: string;
     canEdit?: boolean;
+    onProofread?: () => void;
+    onTranslatePage?: () => void;
+    isAIProcessing?: boolean;
 };
 
 const WikiPageHeader = ({
@@ -65,6 +68,9 @@ const WikiPageHeader = ({
     onNavigateToPage,
     pageLink,
     canEdit = true,
+    onProofread,
+    onTranslatePage,
+    isAIProcessing,
 }: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
@@ -186,6 +192,9 @@ const WikiPageHeader = ({
                             canDuplicate={!isDraft || isExistingPage}
                             pageLink={pageLink}
                             buttonTestId='wiki-page-more-actions'
+                            onProofread={onProofread}
+                            onTranslatePage={onTranslatePage}
+                            isAIProcessing={isAIProcessing}
                         />
                     )}
                     {onToggleFullscreen && (

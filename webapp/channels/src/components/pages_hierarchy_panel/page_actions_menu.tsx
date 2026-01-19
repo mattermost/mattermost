@@ -6,11 +6,14 @@ import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import BookmarkOutlineIcon from '@mattermost/compass-icons/components/bookmark-outline';
+import CheckCircleOutlineIcon from '@mattermost/compass-icons/components/check-circle-outline';
 import ClockOutlineIcon from '@mattermost/compass-icons/components/clock-outline';
 import ContentCopyIcon from '@mattermost/compass-icons/components/content-copy';
+import CreationOutlineIcon from '@mattermost/compass-icons/components/creation-outline';
 import FilePdfOutlineIcon from '@mattermost/compass-icons/components/file-pdf-outline';
 import FolderMoveOutlineIcon from '@mattermost/compass-icons/components/folder-move-outline';
 import FormatListBulletedIcon from '@mattermost/compass-icons/components/format-list-bulleted';
+import GlobeIcon from '@mattermost/compass-icons/components/globe';
 import LinkVariantIcon from '@mattermost/compass-icons/components/link-variant';
 import OpenInNewIcon from '@mattermost/compass-icons/components/open-in-new';
 import PencilOutlineIcon from '@mattermost/compass-icons/components/pencil-outline';
@@ -42,6 +45,9 @@ type Props = {
     buttonClassName?: string;
     buttonLabel?: string;
     buttonTestId?: string;
+    onProofread?: () => void;
+    onTranslatePage?: () => void;
+    isAIProcessing?: boolean;
 };
 
 const PageActionsMenu = ({
@@ -60,6 +66,9 @@ const PageActionsMenu = ({
     buttonClassName = 'PagePane__icon-button btn btn-icon btn-sm',
     buttonLabel,
     buttonTestId = 'page-actions-menu-button',
+    onProofread,
+    onTranslatePage,
+    isAIProcessing = false,
 }: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
@@ -107,6 +116,11 @@ const PageActionsMenu = ({
     const deleteDraftLabel = formatMessage({id: 'page_actions_menu.delete_draft', defaultMessage: 'Delete draft'});
     const openInNewWindowLabel = formatMessage({id: 'page_actions_menu.open_in_new_window', defaultMessage: 'Open in new window'});
     const pageActionsAriaLabel = formatMessage({id: 'page_actions_menu.aria_label', defaultMessage: 'Page actions'});
+    const aiToolsLabel = formatMessage({id: 'page_actions_menu.ai_tools', defaultMessage: 'AI'});
+    const proofreadPageLabel = formatMessage({id: 'page_actions_menu.proofread_page', defaultMessage: 'Proofread page'});
+    const translatePageLabel = formatMessage({id: 'page_actions_menu.translate_page', defaultMessage: 'Translate page...'});
+
+    const hasAITools = Boolean(onProofread || onTranslatePage);
 
     return (
         <Menu.Container
@@ -187,6 +201,39 @@ const PageActionsMenu = ({
                 labels={<span>{exportToPdfLabel}</span>}
                 onClick={handleExportPDF}
             />
+            {hasAITools && (
+                <>
+                    <Menu.Separator/>
+                    <Menu.SubMenu
+                        id='page-menu-ai-tools'
+                        data-testid='page-context-menu-ai-tools'
+                        leadingElement={<CreationOutlineIcon size={18}/>}
+                        labels={<span>{aiToolsLabel}</span>}
+                        menuId='page-menu-ai-tools-submenu'
+                    >
+                        {onProofread && (
+                            <Menu.Item
+                                id='page-menu-ai-proofread'
+                                data-testid='page-context-menu-ai-proofread'
+                                leadingElement={<CheckCircleOutlineIcon size={18}/>}
+                                labels={<span>{proofreadPageLabel}</span>}
+                                onClick={onProofread}
+                                disabled={isAIProcessing}
+                            />
+                        )}
+                        {onTranslatePage && (
+                            <Menu.Item
+                                id='page-menu-ai-translate'
+                                data-testid='page-context-menu-ai-translate'
+                                leadingElement={<GlobeIcon size={18}/>}
+                                labels={<span>{translatePageLabel}</span>}
+                                onClick={onTranslatePage}
+                                disabled={isAIProcessing}
+                            />
+                        )}
+                    </Menu.SubMenu>
+                </>
+            )}
             <Menu.Separator/>
             {!isDraft && (
                 <Menu.Item

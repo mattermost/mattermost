@@ -37,6 +37,7 @@ import {handleAnchorHashNavigation} from './page_anchor';
 import PageViewer from './page_viewer';
 import {withWikiErrorBoundary} from './wiki_error_boundary';
 import WikiPageEditor from './wiki_page_editor';
+import type {AIToolsHandlers} from './wiki_page_editor/tiptap_editor';
 import WikiPageHeader from './wiki_page_header';
 
 import './wiki_view.scss';
@@ -59,6 +60,9 @@ const WikiView = () => {
 
     // Fullscreen state and handlers (extracted to hook)
     const {isFullscreen, toggleFullscreen} = useFullscreen();
+
+    // AI tools handlers from editor - lifted up to pass to header
+    const [aiToolsHandlers, setAIToolsHandlers] = React.useState<AIToolsHandlers | null>(null);
 
     // Cleanup stale published draft timestamps periodically
     usePublishedDraftCleanup();
@@ -524,6 +528,9 @@ const WikiView = () => {
                                 onVersionHistory={handleHeaderVersionHistory}
                                 onNavigateToPage={handlePageSelect}
                                 canEdit={canEdit}
+                                onProofread={aiToolsHandlers?.proofread}
+                                onTranslatePage={aiToolsHandlers?.openTranslateModal}
+                                isAIProcessing={aiToolsHandlers?.isProcessing}
                             />
                         )}
                         <div
@@ -541,6 +548,7 @@ const WikiView = () => {
                                     onTitleChange={handleTitleChange}
                                     onContentChange={handleContentChange}
                                     onDraftStatusChange={handleDraftStatusChange}
+                                    onAIToolsReady={setAIToolsHandlers}
                                 />
                             )}
                             {pageId && (currentPage || isLoading) && (

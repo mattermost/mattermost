@@ -15,7 +15,8 @@ import {
     createTestChannel,
     checkAIPluginAvailability,
     getAIRewriteButton,
-    getAIToolsDropdown,
+    openAIToolsMenu,
+    getAIToolsTranslateButton,
     ELEMENT_TIMEOUT,
 } from './test_helpers';
 
@@ -138,12 +139,12 @@ test('shows language submenu for translation', {tag: '@pages'}, async ({pw, shar
 });
 
 /**
- * @objective Verify AI Tools dropdown shows Translate page option
+ * @objective Verify AI Tools submenu shows Translate page option
  *
  * @precondition
  * AI plugin is enabled and agents are configured (test will skip gracefully if not available)
  */
-test('shows Translate page option in AI Tools dropdown', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+test('shows Translate page option in AI Tools submenu', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
 
     // # Configure AI plugin if enabled
@@ -179,12 +180,11 @@ test('shows Translate page option in AI Tools dropdown', {tag: '@pages'}, async 
     await editor.click();
     await page.keyboard.type('Page content that will be translated.');
 
-    // # Click AI Tools dropdown
-    const aiToolsDropdown = getAIToolsDropdown(page);
-    await aiToolsDropdown.click();
+    // # Open page actions menu and navigate to AI Tools submenu
+    await openAIToolsMenu(page);
 
     // * Verify Translate page option is visible
-    const translatePageOption = page.getByRole('menuitem', {name: /translate page/i});
+    const translatePageOption = getAIToolsTranslateButton(page);
     await expect(translatePageOption).toBeVisible({timeout: ELEMENT_TIMEOUT});
 });
 
@@ -194,7 +194,7 @@ test('shows Translate page option in AI Tools dropdown', {tag: '@pages'}, async 
  * @precondition
  * AI plugin is enabled and agents are configured (test will skip gracefully if not available)
  */
-test('opens Translate page modal from AI Tools dropdown', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+test('opens Translate page modal from AI Tools submenu', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
 
     // # Configure AI plugin if enabled
@@ -230,12 +230,11 @@ test('opens Translate page modal from AI Tools dropdown', {tag: '@pages'}, async
     await editor.click();
     await page.keyboard.type('Content for modal test.');
 
-    // # Click AI Tools dropdown
-    const aiToolsDropdown = getAIToolsDropdown(page);
-    await aiToolsDropdown.click();
+    // # Open page actions menu and navigate to AI Tools submenu
+    await openAIToolsMenu(page);
 
     // # Click Translate page option
-    const translatePageOption = page.getByRole('menuitem', {name: /translate page/i});
+    const translatePageOption = getAIToolsTranslateButton(page);
     await translatePageOption.click();
 
     // * Verify modal is visible
@@ -293,12 +292,11 @@ test('selects target language in Translate page modal', {tag: '@pages'}, async (
     await editor.click();
     await page.keyboard.type('Content for language selection test.');
 
-    // # Click AI Tools dropdown
-    const aiToolsDropdown = getAIToolsDropdown(page);
-    await aiToolsDropdown.click();
+    // # Open page actions menu and navigate to AI Tools submenu
+    await openAIToolsMenu(page);
 
     // # Click Translate page option
-    const translatePageOption = page.getByRole('menuitem', {name: /translate page/i});
+    const translatePageOption = getAIToolsTranslateButton(page);
     await translatePageOption.click();
 
     // # Wait for modal

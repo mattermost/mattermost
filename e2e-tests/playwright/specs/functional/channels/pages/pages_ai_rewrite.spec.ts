@@ -18,10 +18,11 @@ import {
     isAIPluginRunning,
     getAIRewriteButton,
     closeAIRewriteMenu,
-    getAIToolsDropdown,
+    getPageActionsMenuButton,
     getAIToolsProofreadButton,
     isAIToolsDropdownVisible,
     triggerProofread,
+    openAIToolsMenu,
     UI_MICRO_WAIT,
     EDITOR_LOAD_WAIT,
     AUTOSAVE_WAIT,
@@ -512,16 +513,16 @@ test('handles AI rewrite errors gracefully', {tag: '@pages'}, async ({pw, shared
 });
 
 // =============================================================================
-// AI TOOLS DROPDOWN - FULL PAGE PROOFREADING TESTS
+// AI TOOLS - FULL PAGE PROOFREADING TESTS (via Page Actions Menu)
 // =============================================================================
 
 /**
- * @objective Verify AI Tools dropdown appears in editor toolbar when AI is available
+ * @objective Verify AI Tools are available in page actions menu when AI is available
  *
  * @precondition
  * AI plugin is enabled and agents are configured (test will skip gracefully if not available)
  */
-test('shows AI Tools dropdown in edit mode when AI is available', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+test('shows AI Tools in page actions menu when AI is available', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
 
     // # Check if AI plugin is running on server (standard server-side check)
@@ -551,21 +552,22 @@ test('shows AI Tools dropdown in edit mode when AI is available', {tag: '@pages'
     // # Wait for editor
     await getEditorAndWait(page);
 
-    // * Verify AI Tools dropdown is visible in editor toolbar
+    // * Verify AI Tools are available in page actions menu
     const aiToolsVisible = await isAIToolsDropdownVisible(page);
     expect(aiToolsVisible).toBe(true);
 
-    const dropdown = getAIToolsDropdown(page);
-    await expect(dropdown).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    // * Verify page actions menu button is visible
+    const menuButton = getPageActionsMenuButton(page);
+    await expect(menuButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
 });
 
 /**
- * @objective Verify AI Tools dropdown shows "Proofread page" option when opened
+ * @objective Verify AI Tools submenu shows "Proofread page" option when opened
  *
  * @precondition
  * AI plugin is enabled and agents are configured (test will skip gracefully if not available)
  */
-test('shows Proofread page option in AI Tools dropdown', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+test('shows Proofread page option in AI Tools submenu', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
 
     // # Check if AI plugin is running on server (standard server-side check)
@@ -597,9 +599,8 @@ test('shows Proofread page option in AI Tools dropdown', {tag: '@pages'}, async 
     await editor.click();
     await page.keyboard.type('Test content with intentional typos.');
 
-    // # Click on AI Tools dropdown
-    const dropdown = getAIToolsDropdown(page);
-    await dropdown.click();
+    // # Open page actions menu and navigate to AI Tools submenu
+    await openAIToolsMenu(page);
 
     // * Verify "Proofread page" option is visible
     const proofreadButton = getAIToolsProofreadButton(page);
@@ -652,16 +653,11 @@ test('performs full-page proofreading and updates editor content', {tag: '@pages
     const originalText = 'This sentance has bad grammer and speling erors.';
     await page.keyboard.type(originalText);
 
-    // # Trigger proofreading
+    // # Trigger proofreading via page actions menu
     await triggerProofread(page);
 
-    // * Verify processing state appears
-    const dropdown = getAIToolsDropdown(page);
-    await expect(dropdown)
-        .toContainText('Processing...', {timeout: ELEMENT_TIMEOUT})
-        .catch(() => {
-            // Processing might be too fast to catch
-        });
+    // Note: Processing state is handled internally by the editor
+    // The menu closes after clicking proofread, so we wait for content to change
 
     // * Wait for AI to process (up to 30 seconds for real API call)
     let contentChanged = false;
@@ -696,13 +692,13 @@ test('performs full-page proofreading and updates editor content', {tag: '@pages
 });
 
 /**
- * @objective Verify AI Tools dropdown does not appear when AI plugin is not available
+ * @objective Verify AI Tools submenu does not appear in page actions menu when AI plugin is unavailable
  *
  * @precondition
  * This test can only run when AI plugin is NOT configured. When plugin IS available, test is skipped.
  */
 test(
-    'does not show AI Tools dropdown when AI plugin is unavailable',
+    'does not show AI Tools in page actions menu when AI plugin is unavailable',
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
         const {team, user, adminClient} = sharedPagesSetup;
@@ -735,7 +731,7 @@ test(
         await editor.click();
         await page.keyboard.type('Test content without AI plugin.');
 
-        // * Verify AI Tools dropdown does NOT appear
+        // * Verify AI Tools submenu does NOT appear in page actions menu
         const aiToolsVisible = await isAIToolsDropdownVisible(page);
         expect(aiToolsVisible).toBe(false);
 

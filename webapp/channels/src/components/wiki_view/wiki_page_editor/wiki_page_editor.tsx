@@ -20,7 +20,6 @@ import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
-import {AIToolsDropdown} from './ai';
 import TipTapEditor from './tiptap_editor';
 import type {AIToolsHandlers} from './tiptap_editor';
 
@@ -45,6 +44,7 @@ type Props = {
     draftStatus?: string;
     onDraftStatusChange?: (status: string) => void;
     onTranslatedPageCreated?: (pageId: string) => void;
+    onAIToolsReady?: (handlers: AIToolsHandlers | null) => void;
 };
 
 const WikiPageEditor = ({
@@ -64,11 +64,11 @@ const WikiPageEditor = ({
     draftStatus,
     onDraftStatusChange,
     onTranslatedPageCreated,
+    onAIToolsReady: onAIToolsReadyProp,
 }: Props) => {
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
     const [localTitle, setLocalTitle] = useState(title);
-    const [aiToolsHandlers, setAIToolsHandlers] = useState<AIToolsHandlers | null>(null);
 
     const pages = useSelector((state: GlobalState) => getChannelPages(state, channelId || ''));
 
@@ -118,8 +118,8 @@ const WikiPageEditor = ({
     }, [onTitleChange]);
 
     const handleAIToolsReady = useCallback((handlers: AIToolsHandlers | null) => {
-        setAIToolsHandlers(handlers);
-    }, []);
+        onAIToolsReadyProp?.(handlers);
+    }, [onAIToolsReadyProp]);
 
     return (
         <div
@@ -198,13 +198,6 @@ const WikiPageEditor = ({
                             onDraftStatusChange={onDraftStatusChange}
                         />
                     </div>
-                    {aiToolsHandlers && (
-                        <AIToolsDropdown
-                            onProofread={aiToolsHandlers.proofread}
-                            onTranslatePage={aiToolsHandlers.openTranslateModal}
-                            isProcessing={aiToolsHandlers.isProcessing}
-                        />
-                    )}
                 </div>
             </div>
             <div className='draft-content'>
