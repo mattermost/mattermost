@@ -421,6 +421,21 @@ function handlePostReceived(nextState: any, post: Post, nestedPermalinkLevel?: n
         post.is_following = currentState[post.id].is_following;
     }
 
+    // For BoR posts, preserve priority metadata from the existing/pending post if the incoming post
+    // doesn't have priority. This handles race conditions where the websocket event arrives before
+    // the priority is readable from the database (replication lag).
+    const existingPost = currentState[post.id] || (post.pending_post_id && currentState[post.pending_post_id]);
+    if (
+        post.type === PostTypeConstants.BURN_ON_READ &&
+        existingPost?.metadata?.priority &&
+        !post.metadata?.priority
+    ) {
+        if (!post.metadata) {
+            post.metadata = {} as typeof post.metadata;
+        }
+        post.metadata.priority = existingPost.metadata.priority;
+    }
+
     if (post.delete_at > 0) {
         // We've received a deleted post, so mark the post as deleted if we already have it
         if (currentState[post.id]) {

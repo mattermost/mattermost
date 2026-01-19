@@ -165,6 +165,76 @@ func TestPreparePostForClient(t *testing.T) {
 		assert.Equal(t, clientPost, post, "shouldn't have changed any metadata")
 	})
 
+	t.Run("priority preserved when not in database", func(t *testing.T) {
+		// Verifies priority is preserved when DB returns nil (replica lag scenario).
+		th := setup(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostPriority = true
+		})
+
+		// Post with priority but not in DB (simulates replica lag)
+		post := &model.Post{
+			Id:        model.NewId(),
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "test message with priority",
+			CreateAt:  model.GetMillis(),
+			Metadata: &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority:     model.NewPointer(model.PostPriorityUrgent),
+					RequestedAck: model.NewPointer(true),
+				},
+			},
+		}
+
+		clientPost := th.App.PreparePostForClient(th.Context, post, &model.PreparePostForClientOpts{
+			IncludePriority: true,
+		})
+
+		require.NotNil(t, clientPost.Metadata)
+		require.NotNil(t, clientPost.Metadata.Priority, "priority should be preserved")
+		assert.Equal(t, model.PostPriorityUrgent, *clientPost.Metadata.Priority.Priority)
+		assert.True(t, *clientPost.Metadata.Priority.RequestedAck)
+	})
+
+	t.Run("priority fetched from database when IncludePriority is true", func(t *testing.T) {
+		// Verifies priority is fetched from DB when it exists.
+		th := setup(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostPriority = true
+		})
+
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		post, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "test message with priority",
+			Metadata: &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority:     model.NewPointer(model.PostPriorityUrgent),
+					RequestedAck: model.NewPointer(true),
+				},
+			},
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, err)
+
+		// Clear metadata to simulate fresh fetch
+		postWithoutPriority := post.Clone()
+		postWithoutPriority.Metadata = &model.PostMetadata{}
+
+		clientPost := th.App.PreparePostForClient(th.Context, postWithoutPriority, &model.PreparePostForClientOpts{
+			IncludePriority: true,
+		})
+
+		require.NotNil(t, clientPost.Metadata)
+		require.NotNil(t, clientPost.Metadata.Priority, "priority should be fetched from DB")
+		assert.Equal(t, model.PostPriorityUrgent, *clientPost.Metadata.Priority.Priority)
+		assert.True(t, *clientPost.Metadata.Priority.RequestedAck)
+	})
+
 	t.Run("reactions", func(t *testing.T) {
 		th := setup(t)
 
