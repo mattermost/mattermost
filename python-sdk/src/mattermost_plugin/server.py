@@ -38,6 +38,8 @@ from grpc_health.v1 import health, health_pb2, health_pb2_grpc
 
 from mattermost_plugin.runtime_config import RuntimeConfig, load_runtime_config
 from mattermost_plugin._internal.hook_runner import DEFAULT_HOOK_TIMEOUT
+from mattermost_plugin.servicers.hooks_servicer import PluginHooksServicerImpl
+from mattermost_plugin.grpc import hooks_pb2_grpc
 
 if TYPE_CHECKING:
     from mattermost_plugin.plugin import Plugin
@@ -107,6 +109,7 @@ class PluginServer:
         self._port: Optional[int] = None
         self._shutdown_event: Optional[asyncio.Event] = None
         self._health_servicer: Optional[health.HealthServicer] = None
+        self._hooks_servicer: Optional[PluginHooksServicerImpl] = None
 
     @property
     def port(self) -> Optional[int]:
@@ -154,9 +157,15 @@ class PluginServer:
             health_pb2.HealthCheckResponse.SERVING,
         )
 
-        # TODO: Register hook servicer (Phase 07-02/07-03)
-        # This will be added when we implement the actual hook servicer.
-        # For now, the server just provides health checks.
+        # Register hook servicer
+        self._hooks_servicer = PluginHooksServicerImpl(
+            plugin=self.plugin,
+            timeout=DEFAULT_HOOK_TIMEOUT,
+        )
+        hooks_pb2_grpc.add_PluginHooksServicer_to_server(
+            self._hooks_servicer, self._server
+        )
+        logger.debug("Hook servicer registered")
 
         # Bind to ephemeral port on localhost
         self._port = self._server.add_insecure_port("127.0.0.1:0")
