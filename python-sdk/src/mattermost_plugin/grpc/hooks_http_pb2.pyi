@@ -167,6 +167,18 @@ class ServeHTTPResponse(_message.Message):
 
     ServeHTTPResponse is a streaming message sent from Python to Go.
     The first message contains response metadata; subsequent messages contain body chunks.
+
+    RESPONSE STREAMING INVARIANTS:
+    - Exactly one response-init must be sent (explicitly or implicitly on first body write)
+    - Status code defaults to 200 if not set before first body write
+    - Headers are only accepted before the first body write (locked after init)
+    - Flush may be sent any time after response-init; Go ignores if underlying writer doesn't support it
+    - body_complete=true signals end of response; no more messages should follow
+
+    MESSAGE ORDERING:
+    1. First message: init (status + headers) with optional body_chunk
+    2. Subsequent messages: body_chunk and/or flush
+    3. Final message: body_complete=true (may include final body_chunk)
     """
 
     DESCRIPTOR: _descriptor.Descriptor
@@ -174,15 +186,26 @@ class ServeHTTPResponse(_message.Message):
     INIT_FIELD_NUMBER: _builtins.int
     BODY_CHUNK_FIELD_NUMBER: _builtins.int
     BODY_COMPLETE_FIELD_NUMBER: _builtins.int
+    FLUSH_FIELD_NUMBER: _builtins.int
     body_chunk: _builtins.bytes
-    """Body chunk (may be empty in first message or if no body)"""
+    """Body chunk (may be empty in first message or if no body)
+    Recommended max chunk size: 64KB
+    """
     body_complete: _builtins.bool
     """Indicates this is the last body chunk.
     If true, no more body chunks will follow.
     """
+    flush: _builtins.bool
+    """Request an immediate flush of buffered response data to the client.
+    Best-effort: Go will call http.Flusher.Flush() if the underlying
+    ResponseWriter supports it; otherwise silently ignored.
+    This matches Go plugin RPC behavior (see plugin/http.go).
+    """
     @_builtins.property
     def init(self) -> Global___ServeHTTPResponseInit:
-        """Response metadata (set only in first message of stream)"""
+        """Response metadata (set only in first message of stream)
+        MUST be present in first message. Status code range must be 100-999.
+        """
 
     def __init__(
         self,
@@ -190,10 +213,11 @@ class ServeHTTPResponse(_message.Message):
         init: Global___ServeHTTPResponseInit | None = ...,
         body_chunk: _builtins.bytes = ...,
         body_complete: _builtins.bool = ...,
+        flush: _builtins.bool = ...,
     ) -> None: ...
     _HasFieldArgType: _TypeAlias = _typing.Literal["init", b"init"]  # noqa: Y015
     def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["body_chunk", b"body_chunk", "body_complete", b"body_complete", "init", b"init"]  # noqa: Y015
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["body_chunk", b"body_chunk", "body_complete", b"body_complete", "flush", b"flush", "init", b"init"]  # noqa: Y015
     def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
 
 Global___ServeHTTPResponse: _TypeAlias = ServeHTTPResponse  # noqa: Y015
@@ -202,6 +226,11 @@ Global___ServeHTTPResponse: _TypeAlias = ServeHTTPResponse  # noqa: Y015
 class ServeHTTPResponseInit(_message.Message):
     """ServeHTTPResponseInit contains HTTP response metadata.
     Sent as part of the first ServeHTTPResponse message.
+
+    VALIDATION:
+    - status_code must be in range 100-999 (per HTTP spec)
+    - Invalid status codes cause Go to return 500 and log an error
+    - status_code of 0 defaults to 200 OK
     """
 
     DESCRIPTOR: _descriptor.Descriptor
@@ -209,10 +238,15 @@ class ServeHTTPResponseInit(_message.Message):
     STATUS_CODE_FIELD_NUMBER: _builtins.int
     HEADERS_FIELD_NUMBER: _builtins.int
     status_code: _builtins.int
-    """HTTP status code (e.g., 200, 404, 500)"""
+    """HTTP status code (e.g., 200, 404, 500)
+    Must be in range 100-999. 0 defaults to 200.
+    Invalid values (< 100 or > 999) will be rejected with 500 error.
+    """
     @_builtins.property
     def headers(self) -> _containers.RepeatedCompositeFieldContainer[Global___HTTPHeader]:
-        """HTTP response headers (supports multi-value headers)"""
+        """HTTP response headers (supports multi-value headers)
+        Headers are immutable after init is sent.
+        """
 
     def __init__(
         self,

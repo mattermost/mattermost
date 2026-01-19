@@ -284,15 +284,34 @@ func (x *ServeHTTPRequestInit) GetContentLength() int64 {
 
 // ServeHTTPResponse is a streaming message sent from Python to Go.
 // The first message contains response metadata; subsequent messages contain body chunks.
+//
+// RESPONSE STREAMING INVARIANTS:
+// - Exactly one response-init must be sent (explicitly or implicitly on first body write)
+// - Status code defaults to 200 if not set before first body write
+// - Headers are only accepted before the first body write (locked after init)
+// - Flush may be sent any time after response-init; Go ignores if underlying writer doesn't support it
+// - body_complete=true signals end of response; no more messages should follow
+//
+// MESSAGE ORDERING:
+// 1. First message: init (status + headers) with optional body_chunk
+// 2. Subsequent messages: body_chunk and/or flush
+// 3. Final message: body_complete=true (may include final body_chunk)
 type ServeHTTPResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Response metadata (set only in first message of stream)
+	// MUST be present in first message. Status code range must be 100-999.
 	Init *ServeHTTPResponseInit `protobuf:"bytes,1,opt,name=init,proto3" json:"init,omitempty"`
 	// Body chunk (may be empty in first message or if no body)
+	// Recommended max chunk size: 64KB
 	BodyChunk []byte `protobuf:"bytes,2,opt,name=body_chunk,json=bodyChunk,proto3" json:"body_chunk,omitempty"`
 	// Indicates this is the last body chunk.
 	// If true, no more body chunks will follow.
-	BodyComplete  bool `protobuf:"varint,3,opt,name=body_complete,json=bodyComplete,proto3" json:"body_complete,omitempty"`
+	BodyComplete bool `protobuf:"varint,3,opt,name=body_complete,json=bodyComplete,proto3" json:"body_complete,omitempty"`
+	// Request an immediate flush of buffered response data to the client.
+	// Best-effort: Go will call http.Flusher.Flush() if the underlying
+	// ResponseWriter supports it; otherwise silently ignored.
+	// This matches Go plugin RPC behavior (see plugin/http.go).
+	Flush         bool `protobuf:"varint,4,opt,name=flush,proto3" json:"flush,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -348,13 +367,28 @@ func (x *ServeHTTPResponse) GetBodyComplete() bool {
 	return false
 }
 
+func (x *ServeHTTPResponse) GetFlush() bool {
+	if x != nil {
+		return x.Flush
+	}
+	return false
+}
+
 // ServeHTTPResponseInit contains HTTP response metadata.
 // Sent as part of the first ServeHTTPResponse message.
+//
+// VALIDATION:
+// - status_code must be in range 100-999 (per HTTP spec)
+// - Invalid status codes cause Go to return 500 and log an error
+// - status_code of 0 defaults to 200 OK
 type ServeHTTPResponseInit struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// HTTP status code (e.g., 200, 404, 500)
+	// Must be in range 100-999. 0 defaults to 200.
+	// Invalid values (< 100 or > 999) will be rejected with 500 error.
 	StatusCode int32 `protobuf:"varint,1,opt,name=status_code,json=statusCode,proto3" json:"status_code,omitempty"`
 	// HTTP response headers (supports multi-value headers)
+	// Headers are immutable after init is sent.
 	Headers       []*HTTPHeader `protobuf:"bytes,2,rep,name=headers,proto3" json:"headers,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -434,12 +468,13 @@ const file_hooks_http_proto_rawDesc = "" +
 	"\vrequest_uri\x18\n" +
 	" \x01(\tR\n" +
 	"requestUri\x12%\n" +
-	"\x0econtent_length\x18\v \x01(\x03R\rcontentLength\"\x9b\x01\n" +
+	"\x0econtent_length\x18\v \x01(\x03R\rcontentLength\"\xb1\x01\n" +
 	"\x11ServeHTTPResponse\x12B\n" +
 	"\x04init\x18\x01 \x01(\v2..mattermost.pluginapi.v1.ServeHTTPResponseInitR\x04init\x12\x1d\n" +
 	"\n" +
 	"body_chunk\x18\x02 \x01(\fR\tbodyChunk\x12#\n" +
-	"\rbody_complete\x18\x03 \x01(\bR\fbodyComplete\"w\n" +
+	"\rbody_complete\x18\x03 \x01(\bR\fbodyComplete\x12\x14\n" +
+	"\x05flush\x18\x04 \x01(\bR\x05flush\"w\n" +
 	"\x15ServeHTTPResponseInit\x12\x1f\n" +
 	"\vstatus_code\x18\x01 \x01(\x05R\n" +
 	"statusCode\x12=\n" +
