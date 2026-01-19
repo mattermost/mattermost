@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-13)
 
 **Core value:** Full API coverage: every API method and hook available to Go plugins must work identically from Python plugins.
-**Current focus:** Phase 9 — Manifest Extension
+**Current focus:** Phase 10 — Integration & Testing
 
 ## Current Position
 
-Phase: 8 of 10 (ServeHTTP Streaming) - COMPLETE
+Phase: 9 of 10 (Manifest Extension) - COMPLETE
 Plan: 2 of 2 complete in current phase
-Status: Phase 8 complete, Phase 9 ready
-Last activity: 2026-01-19 — Completed Phase 8 (ServeHTTP Streaming)
+Status: Phase 9 complete, Phase 10 ready
+Last activity: 2026-01-19 — Completed Phase 9 (Manifest Extension)
 
-Progress: ████████████████████ 83%
+Progress: ██████████████████████ 90%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 28 (3 in Phase 1, 5 in Phase 2, 4 in Phase 3, 4 in Phase 4, 3 in Phase 5, 4 in Phase 6, 3 in Phase 7, 2 in Phase 8)
+- Total plans completed: 30 (3 in Phase 1, 5 in Phase 2, 4 in Phase 3, 4 in Phase 4, 3 in Phase 5, 4 in Phase 6, 3 in Phase 7, 2 in Phase 8, 2 in Phase 9)
 - Average duration: ~12 min
-- Total execution time: ~6 hours
+- Total execution time: ~6.5 hours
 
 **By Phase:**
 
@@ -35,12 +35,13 @@ Progress: ████████████████████ 83%
 | 6. Python SDK Core | 4/4 | ~45 min | ~11 min |
 | 7. Python Hook System | 3/3 | ~45 min | ~15 min |
 | 8. ServeHTTP Streaming | 2/2 | ~30 min | ~15 min |
+| 9. Manifest Extension | 2/2 | ~16 min | ~8 min |
 
 *Note: Phase 2 plans 02-02 through 02-05 were effectively completed by 02-01 which implemented all message definitions.
 
 **Recent Trend:**
-- Last 5 plans: 07-02, 07-03, 08-01, 08-02
-- Trend: Consistent sequential execution (~15 min per plan)
+- Last 5 plans: 08-01, 08-02, 09-01, 09-02
+- Trend: Consistent sequential execution (~10 min per plan)
 
 ## Accumulated Context
 
@@ -77,6 +78,10 @@ Recent decisions affecting current work:
 | 08-01 | HTTPRequest/HTTPResponseWriter pattern | Matches Go http.Handler(w, r) semantics |
 | 08-02 | Flush support as gRPC message flag | Best-effort flush, no-op when unsupported |
 | 08-02 | Status code validation 100-999 | Invalid codes return 500, matches plugin/http.go |
+| 09-01 | Runtime field with empty default | Backward compatible - Go plugins don't need to specify |
+| 09-01 | ManifestPython as pointer | Allows nil check for non-Python plugins |
+| 09-02 | Server.Runtime over .py extension | Explicit declaration preferred, extension is fallback |
+| 09-02 | Removed props.runtime hack | No longer needed with proper manifest fields |
 
 ### Deferred Issues
 
@@ -94,10 +99,9 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-19
-Stopped at: Phase 8 complete
+Stopped at: Phase 9 complete
 Resume file: None
 
 ## Next Steps
 
-1. Phase 9: Manifest Extension - Extend plugin manifest for Python executables
-2. Phase 10: Integration & Testing - End-to-end testing, example plugin, documentation
+1. Phase 10: Integration & Testing - End-to-end testing, example plugin, documentation

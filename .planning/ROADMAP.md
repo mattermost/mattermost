@@ -24,7 +24,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 6: Python SDK Core** - Basic Python SDK with gRPC client and typed API ✓ (2026-01-19)
 - [x] **Phase 7: Python Hook System** - Hook implementation pattern (decorators/class methods) ✓ (2026-01-19)
 - [x] **Phase 8: ServeHTTP Streaming** - HTTP request/response streaming over gRPC ✓ (2026-01-19)
-- [ ] **Phase 9: Manifest Extension** - Extend plugin manifest for Python executables
+- [x] **Phase 9: Manifest Extension** - Extend plugin manifest for Python executables ✓ (2026-01-19)
 - [ ] **Phase 10: Integration & Testing** - End-to-end testing, example plugin, documentation
 
 ## Phase Details
@@ -133,8 +133,8 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 09-01: Manifest schema extension for Python plugins
-- [ ] 09-02: Manifest parsing and validation updates
+- [x] 09-01: Manifest schema extension for Python plugins ✓
+- [x] 09-02: Manifest parsing and validation updates ✓
 
 ### Phase 10: Integration & Testing
 **Goal**: End-to-end testing with example Python plugin, performance benchmarks, documentation
@@ -165,5 +165,5 @@ Note: Phase 5, 6, and 9 can partially overlap (all depend on Phase 4).
 | 6. Python SDK Core | 4/4 | Complete | 2026-01-19 |
 | 7. Python Hook System | 3/3 | Complete | 2026-01-19 |
 | 8. ServeHTTP Streaming | 2/2 | Complete | 2026-01-19 |
-| 9. Manifest Extension | 0/2 | Not started | - |
+| 9. Manifest Extension | 2/2 | Complete | 2026-01-19 |
 | 10. Integration & Testing | 0/3 | Not started | - |
