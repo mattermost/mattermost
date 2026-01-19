@@ -4783,7 +4783,7 @@
   "invitation_modal.members.search-and-add.placeholder-email-disabled": "Mitglieder hinzufügen",
   "invitation_modal.members.search_and_add.title": "Personen hinzufügen oder einladen",
   "invitation_modal.members.users_emails_input.no_user_found_matching": "Es wurde niemand gefunden, der **{text}** entspricht. Gib die E-Mail-Adresse ein, um ihn/sie einzuladen.",
-  "invitation_modal.members.users_emails_input.no_user_found_matching-email-disabled": "Es wurde kein mit **{text}** übereinstimmender gefunden",
+  "invitation_modal.members.users_emails_input.no_user_found_matching-email-disabled": "Kein Benutzer gefunden, der mit **{text}** übereinstimmt",
   "invitation_modal.members.users_emails_input.valid_email": "**{email}** als Teammitglied einladen",
   "invite.guests.added-to-channel": "Eine Einladungs-E-Mail wurde gesendet.",
   "invite.guests.already-all-channels-member": "Diese Person ist bereits Mitglied aller Kanäle.",
