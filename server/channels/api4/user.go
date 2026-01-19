@@ -116,22 +116,27 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/trigger-notify-admin-posts", api.APISessionRequired(handleTriggerNotifyAdminPosts)).Methods(http.MethodPost)
 }
 
-// loginSSOCodeExchange exchanges a short-lived login_code for session tokens (mobile SAML code exchange)
-// DEPRECATED: This endpoint is deprecated and disabled by default. Mobile clients should use
-// the legacy SSO callback flow with srv parameter verification instead.
+// loginSSOCodeExchange exchanges a short-lived login_code for session tokens.
+//
+// Deprecated: This endpoint is deprecated and will be removed in a future release.
+// Mobile clients should use the legacy SSO callback flow instead.
 func loginSSOCodeExchange(c *Context, w http.ResponseWriter, r *http.Request) {
-	// Add deprecation headers for clients that may be monitoring
+	// Set deprecation headers to inform clients
 	w.Header().Set("Deprecation", "true")
-	w.Header().Set("Sunset", "2026-06-01")
 
 	if !c.App.Config().FeatureFlags.MobileSSOCodeExchange {
-		c.Logger.Warn("Deprecated endpoint called: /login/sso/code-exchange is disabled. Mobile clients should use legacy SSO flow.")
-		c.Err = model.NewAppError("loginSSOCodeExchange", "api.user.login_sso_code_exchange.deprecated.app_error", nil, "This endpoint is deprecated and disabled. Use legacy SSO callback flow.", http.StatusGone)
+		c.Logger.Warn("Deprecated endpoint called",
+			mlog.String("endpoint", "/login/sso/code-exchange"),
+			mlog.String("status", "disabled"),
+		)
+		c.Err = model.NewAppError("loginSSOCodeExchange", "api.user.login_sso_code_exchange.deprecated.app_error", nil, "", http.StatusGone)
 		return
 	}
 
-	// Log deprecation warning even when enabled
-	c.Logger.Warn("Deprecated endpoint called: /login/sso/code-exchange will be removed in a future release")
+	c.Logger.Warn("Deprecated endpoint called",
+		mlog.String("endpoint", "/login/sso/code-exchange"),
+		mlog.String("status", "enabled but deprecated"),
+	)
 
 	props := model.MapFromJSON(r.Body)
 	loginCode := props["login_code"]
