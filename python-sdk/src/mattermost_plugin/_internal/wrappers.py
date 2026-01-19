@@ -23,7 +23,17 @@ from enum import Enum
 from typing import Dict, List, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from mattermost_plugin.grpc import user_pb2, team_pb2, channel_pb2, api_user_team_pb2, api_channel_post_pb2
+    from mattermost_plugin.grpc import (
+        user_pb2,
+        team_pb2,
+        channel_pb2,
+        api_user_team_pb2,
+        api_channel_post_pb2,
+        post_pb2,
+        file_pb2,
+        api_file_bot_pb2,
+        api_kv_config_pb2,
+    )
 
 
 # =============================================================================
@@ -1034,4 +1044,402 @@ class ViewUsersRestrictions:
         return user_pb2.ViewUsersRestrictions(
             teams=self.teams,
             channels=self.channels,
+        )
+
+
+# =============================================================================
+# POST TYPES
+# =============================================================================
+
+
+@dataclass(frozen=True)
+class Reaction:
+    """
+    Represents a user's emoji reaction to a post.
+
+    Attributes:
+        user_id: ID of the user who reacted.
+        post_id: ID of the post.
+        emoji_name: Name of the emoji (without colons).
+        create_at: Unix timestamp when reaction was created.
+        update_at: Unix timestamp when reaction was updated.
+        delete_at: Unix timestamp when reaction was deleted (0 if not deleted).
+        remote_id: Remote cluster ID if from shared channel.
+        channel_id: ID of the channel the post is in.
+    """
+
+    user_id: str
+    post_id: str
+    emoji_name: str
+    create_at: int = 0
+    update_at: int = 0
+    delete_at: int = 0
+    remote_id: Optional[str] = None
+    channel_id: Optional[str] = None
+
+    @classmethod
+    def from_proto(cls, proto: "post_pb2.Reaction") -> "Reaction":
+        """Create a Reaction from a protobuf message."""
+        return cls(
+            user_id=proto.user_id,
+            post_id=proto.post_id,
+            emoji_name=proto.emoji_name,
+            create_at=proto.create_at,
+            update_at=proto.update_at,
+            delete_at=proto.delete_at,
+            remote_id=proto.remote_id if proto.HasField("remote_id") else None,
+            channel_id=proto.channel_id if proto.HasField("channel_id") else None,
+        )
+
+    def to_proto(self) -> "post_pb2.Reaction":
+        """Convert to a protobuf message."""
+        from mattermost_plugin.grpc import post_pb2
+
+        proto = post_pb2.Reaction(
+            user_id=self.user_id,
+            post_id=self.post_id,
+            emoji_name=self.emoji_name,
+            create_at=self.create_at,
+            update_at=self.update_at,
+            delete_at=self.delete_at,
+        )
+        if self.remote_id is not None:
+            proto.remote_id = self.remote_id
+        if self.channel_id is not None:
+            proto.channel_id = self.channel_id
+        return proto
+
+
+@dataclass(frozen=True)
+class Post:
+    """
+    Represents a message/post in Mattermost.
+
+    Attributes:
+        id: Unique identifier for the post (26-char ID).
+        create_at: Timestamp when the post was created (milliseconds since epoch).
+        update_at: Timestamp when the post was last updated.
+        edit_at: Timestamp when the post was last edited (0 if never edited).
+        delete_at: Timestamp when the post was deleted (0 if not deleted).
+        is_pinned: Whether the post is pinned to the channel.
+        user_id: ID of the user who created the post.
+        channel_id: ID of the channel this post belongs to.
+        root_id: ID of the root post if this is a reply (empty for root posts).
+        original_id: Original post ID (used for cross-posting).
+        message: The message content.
+        message_source: Original message before server modifications.
+        type: Post type (empty for normal posts, "system_*" for system messages).
+        props: Post-specific properties.
+        hashtags: Extracted hashtags from the message.
+        file_ids: IDs of attached files.
+        pending_post_id: Client-generated ID for deduplication.
+        has_reactions: Whether this post has emoji reactions.
+        remote_id: Remote cluster ID if from shared channel.
+        reply_count: Number of replies (for root posts only).
+        last_reply_at: Timestamp of the last reply.
+        is_following: Whether the current user is following this thread.
+    """
+
+    id: str
+    channel_id: str
+    user_id: str = ""
+    message: str = ""
+    create_at: int = 0
+    update_at: int = 0
+    edit_at: int = 0
+    delete_at: int = 0
+    is_pinned: bool = False
+    root_id: str = ""
+    original_id: str = ""
+    message_source: str = ""
+    type: str = ""
+    props: Dict[str, object] = field(default_factory=dict)
+    hashtags: str = ""
+    file_ids: List[str] = field(default_factory=list)
+    pending_post_id: str = ""
+    has_reactions: bool = False
+    remote_id: Optional[str] = None
+    reply_count: int = 0
+    last_reply_at: int = 0
+    is_following: Optional[bool] = None
+
+    @classmethod
+    def from_proto(cls, proto: "post_pb2.Post") -> "Post":
+        """Create a Post from a protobuf message."""
+        from google.protobuf.json_format import MessageToDict
+
+        props = {}
+        if proto.HasField("props"):
+            props = MessageToDict(proto.props)
+
+        return cls(
+            id=proto.id,
+            channel_id=proto.channel_id,
+            user_id=proto.user_id,
+            message=proto.message,
+            create_at=proto.create_at,
+            update_at=proto.update_at,
+            edit_at=proto.edit_at,
+            delete_at=proto.delete_at,
+            is_pinned=proto.is_pinned,
+            root_id=proto.root_id,
+            original_id=proto.original_id,
+            message_source=proto.message_source,
+            type=proto.type,
+            props=props,
+            hashtags=proto.hashtags,
+            file_ids=list(proto.file_ids),
+            pending_post_id=proto.pending_post_id,
+            has_reactions=proto.has_reactions,
+            remote_id=proto.remote_id if proto.HasField("remote_id") else None,
+            reply_count=proto.reply_count,
+            last_reply_at=proto.last_reply_at,
+            is_following=proto.is_following if proto.HasField("is_following") else None,
+        )
+
+    def to_proto(self) -> "post_pb2.Post":
+        """Convert to a protobuf message."""
+        from google.protobuf.json_format import ParseDict
+        from google.protobuf.struct_pb2 import Struct
+
+        from mattermost_plugin.grpc import post_pb2
+
+        proto = post_pb2.Post(
+            id=self.id,
+            channel_id=self.channel_id,
+            user_id=self.user_id,
+            message=self.message,
+            create_at=self.create_at,
+            update_at=self.update_at,
+            edit_at=self.edit_at,
+            delete_at=self.delete_at,
+            is_pinned=self.is_pinned,
+            root_id=self.root_id,
+            original_id=self.original_id,
+            message_source=self.message_source,
+            type=self.type,
+            hashtags=self.hashtags,
+            pending_post_id=self.pending_post_id,
+            has_reactions=self.has_reactions,
+            reply_count=self.reply_count,
+            last_reply_at=self.last_reply_at,
+        )
+
+        # Set file_ids
+        proto.file_ids.extend(self.file_ids)
+
+        # Set optional fields
+        if self.remote_id is not None:
+            proto.remote_id = self.remote_id
+        if self.is_following is not None:
+            proto.is_following = self.is_following
+
+        # Set props
+        if self.props:
+            props_struct = Struct()
+            ParseDict(self.props, props_struct)
+            proto.props.CopyFrom(props_struct)
+
+        return proto
+
+
+@dataclass(frozen=True)
+class PostList:
+    """
+    Represents a list of posts with ordering information.
+
+    Attributes:
+        order: Ordered list of post IDs.
+        posts: Map of post ID to Post.
+        next_post_id: The ID to use for fetching the next page.
+        prev_post_id: The ID to use for fetching the previous page.
+        has_next: Whether there are more posts to fetch.
+    """
+
+    order: List[str] = field(default_factory=list)
+    posts: Dict[str, Post] = field(default_factory=dict)
+    next_post_id: str = ""
+    prev_post_id: str = ""
+    has_next: bool = False
+
+    @classmethod
+    def from_proto(cls, proto: "post_pb2.PostList") -> "PostList":
+        """Create a PostList from a protobuf message."""
+        posts = {post_id: Post.from_proto(post) for post_id, post in proto.posts.items()}
+        return cls(
+            order=list(proto.order),
+            posts=posts,
+            next_post_id=proto.next_post_id,
+            prev_post_id=proto.prev_post_id,
+            has_next=proto.has_next,
+        )
+
+
+# =============================================================================
+# FILE TYPES
+# =============================================================================
+
+
+@dataclass(frozen=True)
+class FileInfo:
+    """
+    Represents metadata about an uploaded file.
+
+    Attributes:
+        id: Unique identifier for the file (26-char ID).
+        creator_id: ID of the user who uploaded the file.
+        post_id: ID of the post this file is attached to.
+        channel_id: ID of the channel this file is in.
+        create_at: Timestamp when the file was created.
+        update_at: Timestamp when the file was last updated.
+        delete_at: Timestamp when the file was deleted (0 if not deleted).
+        name: Original filename as uploaded.
+        extension: File extension without the leading dot.
+        size: File size in bytes.
+        mime_type: MIME type of the file.
+        width: Image width in pixels (0 for non-image files).
+        height: Image height in pixels (0 for non-image files).
+        has_preview_image: Whether a preview image was generated.
+        mini_preview: Mini preview data (small thumbnail for images).
+        remote_id: Remote cluster ID if from shared channel.
+        archived: Whether the file content has been archived.
+    """
+
+    id: str
+    creator_id: str = ""
+    post_id: str = ""
+    channel_id: str = ""
+    create_at: int = 0
+    update_at: int = 0
+    delete_at: int = 0
+    name: str = ""
+    extension: str = ""
+    size: int = 0
+    mime_type: str = ""
+    width: int = 0
+    height: int = 0
+    has_preview_image: bool = False
+    mini_preview: Optional[bytes] = None
+    remote_id: Optional[str] = None
+    archived: bool = False
+
+    @classmethod
+    def from_proto(cls, proto: "file_pb2.FileInfo") -> "FileInfo":
+        """Create a FileInfo from a protobuf message."""
+        return cls(
+            id=proto.id,
+            creator_id=proto.creator_id,
+            post_id=proto.post_id,
+            channel_id=proto.channel_id,
+            create_at=proto.create_at,
+            update_at=proto.update_at,
+            delete_at=proto.delete_at,
+            name=proto.name,
+            extension=proto.extension,
+            size=proto.size,
+            mime_type=proto.mime_type,
+            width=proto.width,
+            height=proto.height,
+            has_preview_image=proto.has_preview_image,
+            mini_preview=proto.mini_preview if proto.HasField("mini_preview") else None,
+            remote_id=proto.remote_id if proto.HasField("remote_id") else None,
+            archived=proto.archived,
+        )
+
+
+@dataclass(frozen=True)
+class UploadSession:
+    """
+    Represents an upload session for resumable uploads.
+
+    Attributes:
+        id: Unique identifier for the upload session.
+        type: Upload type ("attachment" or "import").
+        create_at: Timestamp when the session was created.
+        user_id: ID of the user who created the session.
+        channel_id: ID of the channel (for attachment uploads).
+        filename: Name of the file being uploaded.
+        path: Server-side path where file will be stored.
+        file_size: Total size of the file being uploaded.
+        file_offset: Current offset (bytes already uploaded).
+        remote_id: Remote cluster ID.
+        req_file_id: Requested file ID (for deduplication).
+    """
+
+    id: str = ""
+    type: str = "attachment"
+    create_at: int = 0
+    user_id: str = ""
+    channel_id: str = ""
+    filename: str = ""
+    path: str = ""
+    file_size: int = 0
+    file_offset: int = 0
+    remote_id: str = ""
+    req_file_id: str = ""
+
+    @classmethod
+    def from_proto(cls, proto: "api_file_bot_pb2.UploadSession") -> "UploadSession":
+        """Create an UploadSession from a protobuf message."""
+        return cls(
+            id=proto.id,
+            type=proto.type,
+            create_at=proto.create_at,
+            user_id=proto.user_id,
+            channel_id=proto.channel_id,
+            filename=proto.filename,
+            path=proto.path,
+            file_size=proto.file_size,
+            file_offset=proto.file_offset,
+            remote_id=proto.remote_id,
+            req_file_id=proto.req_file_id,
+        )
+
+    def to_proto(self) -> "api_file_bot_pb2.UploadSession":
+        """Convert to a protobuf message."""
+        from mattermost_plugin.grpc import api_file_bot_pb2
+
+        return api_file_bot_pb2.UploadSession(
+            id=self.id,
+            type=self.type,
+            create_at=self.create_at,
+            user_id=self.user_id,
+            channel_id=self.channel_id,
+            filename=self.filename,
+            path=self.path,
+            file_size=self.file_size,
+            file_offset=self.file_offset,
+            remote_id=self.remote_id,
+            req_file_id=self.req_file_id,
+        )
+
+
+# =============================================================================
+# KV STORE TYPES
+# =============================================================================
+
+
+@dataclass(frozen=True)
+class PluginKVSetOptions:
+    """
+    Options for KVSetWithOptions.
+
+    Attributes:
+        atomic: Whether the operation should be atomic (compare-and-set).
+        old_value: The expected current value for atomic operations.
+        expire_in_seconds: Number of seconds until the key expires (0 = no expiry).
+    """
+
+    atomic: bool = False
+    old_value: Optional[bytes] = None
+    expire_in_seconds: int = 0
+
+    def to_proto(self) -> "api_kv_config_pb2.PluginKVSetOptions":
+        """Convert to a protobuf message."""
+        from mattermost_plugin.grpc import api_kv_config_pb2
+
+        return api_kv_config_pb2.PluginKVSetOptions(
+            atomic=self.atomic,
+            old_value=self.old_value or b"",
+            expire_in_seconds=self.expire_in_seconds,
         )
