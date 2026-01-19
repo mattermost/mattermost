@@ -602,6 +602,20 @@ function PolicyDetails({
                     groupID={''}
                     alreadySelected={Object.values(channelChanges.added).map((channel) => channel.id)}
                     excludeTypes={['O', 'D', 'G']}
+                    customNoOptionsMessage={(
+                        <div
+                            key='no-private-channels'
+                            className='no-channel-message'
+                            tabIndex={0}
+                        >
+                            <p className='primary-message'>
+                                <FormattedMessage
+                                    id='admin.access_control.policy.edit_policy.no_private_channels'
+                                    defaultMessage='There are no private channels available to add to this policy.'
+                                />
+                            </p>
+                        </div>
+                    )}
                 />
             )}
 

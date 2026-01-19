@@ -297,6 +297,7 @@
   "admin.access_control.policy.edit_policy.channel_selector.subtitle": "Add channels that this attribute-based access policy will apply to.",
   "admin.access_control.policy.edit_policy.channel_selector.title": "Assigned channels",
   "admin.access_control.policy.edit_policy.complex_expression_tooltip": "Complex expression detected. Simple expressions editor is not available at the moment.",
+  "admin.access_control.policy.edit_policy.no_private_channels": "There are no private channels available to add to this policy.",
   "admin.access_control.policy.edit_policy.delete_confirmation.confirm_button": "Delete Policy",
   "admin.access_control.policy.edit_policy.delete_confirmation.message": "Are you sure you want to delete this policy? This action cannot be undone.",
   "admin.access_control.policy.edit_policy.delete_confirmation.title": "Confirm Policy Deletion",
