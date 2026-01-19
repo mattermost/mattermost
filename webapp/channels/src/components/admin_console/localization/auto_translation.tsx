@@ -9,12 +9,12 @@ import type {AutoTranslationSettings} from '@mattermost/types/config';
 
 import MultiSelectSetting from 'components/admin_console/multiselect_settings';
 import Setting from 'components/admin_console/setting';
-import TextSetting from 'components/admin_console/text_setting';
 import {
     AdminSection,
     SectionContent,
     SectionHeader,
 } from 'components/admin_console/system_properties/controls';
+import TextSetting from 'components/admin_console/text_setting';
 import useGetAgentsBridgeEnabled from 'components/common/hooks/useGetAgentsBridgeEnabled';
 import Toggle from 'components/toggle';
 
@@ -74,6 +74,7 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
         const numValue = parseInt(value, 10);
         if (value === '' || isNaN(numValue) || numValue <= 0) {
             setTimeoutError('Timeout must be a positive number');
+
             // Propagate 0 so backend validation will reject the save
             handleChange(id, 0);
             return;
