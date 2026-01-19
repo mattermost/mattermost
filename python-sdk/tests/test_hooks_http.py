@@ -246,6 +246,96 @@ class TestHTTPResponseWriter:
         # Header should not be set
         assert "X-Late" not in w.headers
 
+    # ==========================================================================
+    # Flush Tests (Phase 8.2)
+    # ==========================================================================
+
+    def test_flush_method_exists(self):
+        """Test that flush method exists and is callable."""
+        w = HTTPResponseWriter()
+        # Should not raise
+        w.flush()
+
+    def test_flush_applies_to_last_write(self):
+        """Test that flush applies to the last pending write."""
+        w = HTTPResponseWriter()
+        w.write(b"chunk1")
+        w.write(b"chunk2")
+        w.flush()
+
+        pending = w.get_pending_writes()
+        assert len(pending) == 2
+        # First write should not have flush
+        assert pending[0][1] is False
+        # Second (last) write should have flush
+        assert pending[1][1] is True
+
+    def test_flush_applies_to_next_write_when_empty(self):
+        """Test that flush before any write applies to next write."""
+        w = HTTPResponseWriter()
+        w.flush()  # Flush before any write
+        w.write(b"chunk1")
+
+        pending = w.get_pending_writes()
+        assert len(pending) == 1
+        # The write should have flush=True since flush was called before
+        assert pending[0][1] is True
+
+    def test_multiple_writes_with_selective_flush(self):
+        """Test multiple writes with selective flushing."""
+        w = HTTPResponseWriter()
+        w.write(b"chunk1")
+        w.flush()
+        w.write(b"chunk2")
+        w.write(b"chunk3")
+        w.flush()
+
+        pending = w.get_pending_writes()
+        assert len(pending) == 3
+
+        # chunk1 should have flush (applied retroactively)
+        assert pending[0] == (b"chunk1", True)
+        # chunk2 should NOT have flush
+        assert pending[1] == (b"chunk2", False)
+        # chunk3 should have flush (applied retroactively)
+        assert pending[2] == (b"chunk3", True)
+
+    def test_get_pending_writes(self):
+        """Test get_pending_writes returns all writes with flush flags."""
+        w = HTTPResponseWriter()
+        w.write(b"a")
+        w.write(b"b")
+        w.write(b"c")
+
+        pending = w.get_pending_writes()
+        assert len(pending) == 3
+        assert pending[0] == (b"a", False)
+        assert pending[1] == (b"b", False)
+        assert pending[2] == (b"c", False)
+
+    def test_clear_pending_writes(self):
+        """Test clear_pending_writes clears the pending writes list."""
+        w = HTTPResponseWriter()
+        w.write(b"chunk")
+        assert len(w.get_pending_writes()) == 1
+
+        w.clear_pending_writes()
+        assert len(w.get_pending_writes()) == 0
+
+    def test_max_chunk_size_constant(self):
+        """Test that MAX_CHUNK_SIZE constant is defined."""
+        assert HTTPResponseWriter.MAX_CHUNK_SIZE == 64 * 1024
+
+    def test_get_body_still_works(self):
+        """Test that get_body still returns full body."""
+        w = HTTPResponseWriter()
+        w.write(b"hello ")
+        w.flush()
+        w.write(b"world")
+
+        # get_body should return full concatenated body
+        assert w.get_body() == b"hello world"
+
 
 # =============================================================================
 # Header Conversion Tests
@@ -589,3 +679,167 @@ class TestCancellation:
         # Should have no responses if cancelled early, or error response
         # The exact behavior depends on when cancellation is detected
         # For now, just verify no exception is raised
+
+
+# =============================================================================
+# Response Streaming Tests (Phase 8.2)
+# =============================================================================
+
+
+class TestResponseStreaming:
+    """Tests for response streaming with flush support."""
+
+    @pytest.fixture
+    def streaming_plugin(self):
+        """Create a plugin that writes multiple chunks with flush."""
+
+        class StreamingPlugin(Plugin):
+            @hook(HookName.ServeHTTP)
+            def serve_http(self, ctx, w, r):
+                w.set_header("Content-Type", "text/event-stream")
+                w.write(b"chunk1")
+                w.flush()
+                w.write(b"chunk2")
+                w.write(b"chunk3")
+                w.flush()
+
+        return StreamingPlugin()
+
+    @pytest.fixture
+    def empty_body_plugin(self):
+        """Create a plugin that writes no body."""
+
+        class EmptyBodyPlugin(Plugin):
+            @hook(HookName.ServeHTTP)
+            def serve_http(self, ctx, w, r):
+                w.set_header("Content-Type", "text/plain")
+                w.write_header(204)  # No Content
+
+        return EmptyBodyPlugin()
+
+    @pytest.mark.asyncio
+    async def test_streaming_response_chunks(self, streaming_plugin):
+        """Test that multiple write() calls result in multiple response messages."""
+        servicer = PluginHooksServicerImpl(streaming_plugin)
+
+        async def request_stream():
+            yield hooks_http_pb2.ServeHTTPRequest(
+                init=make_request_init(method="GET", url="/stream"),
+                body_complete=True,
+            )
+
+        context = MagicMock()
+        context.cancelled.return_value = False
+
+        responses = await collect_responses(servicer.ServeHTTP(request_stream(), context))
+
+        # Should have 3 response messages (one per write)
+        assert len(responses) == 3
+
+        # First message should have init + first chunk + flush
+        assert responses[0].init is not None
+        assert responses[0].init.status_code == 200
+        assert responses[0].body_chunk == b"chunk1"
+        assert responses[0].flush is True
+        assert responses[0].body_complete is False
+
+        # Second message should have chunk2 + no flush
+        assert responses[1].body_chunk == b"chunk2"
+        assert responses[1].flush is False
+        assert responses[1].body_complete is False
+
+        # Third message should have chunk3 + flush + complete
+        assert responses[2].body_chunk == b"chunk3"
+        assert responses[2].flush is True
+        assert responses[2].body_complete is True
+
+    @pytest.mark.asyncio
+    async def test_empty_body_response(self, empty_body_plugin):
+        """Test response with no body writes."""
+        servicer = PluginHooksServicerImpl(empty_body_plugin)
+
+        async def request_stream():
+            yield hooks_http_pb2.ServeHTTPRequest(
+                init=make_request_init(method="GET"),
+                body_complete=True,
+            )
+
+        context = MagicMock()
+        context.cancelled.return_value = False
+
+        responses = await collect_responses(servicer.ServeHTTP(request_stream(), context))
+
+        # Should have exactly 1 response with init only
+        assert len(responses) == 1
+        assert responses[0].init is not None
+        assert responses[0].init.status_code == 204
+        assert responses[0].body_chunk == b""
+        assert responses[0].body_complete is True
+
+    @pytest.mark.asyncio
+    async def test_response_headers_in_first_message(self):
+        """Test that headers are only in the first response message."""
+
+        class HeaderPlugin(Plugin):
+            @hook(HookName.ServeHTTP)
+            def serve_http(self, ctx, w, r):
+                w.set_header("Content-Type", "text/plain")
+                w.set_header("X-Custom", "value")
+                w.write(b"chunk1")
+                w.write(b"chunk2")
+
+        plugin = HeaderPlugin()
+        servicer = PluginHooksServicerImpl(plugin)
+
+        async def request_stream():
+            yield hooks_http_pb2.ServeHTTPRequest(
+                init=make_request_init(),
+                body_complete=True,
+            )
+
+        context = MagicMock()
+        context.cancelled.return_value = False
+
+        responses = await collect_responses(servicer.ServeHTTP(request_stream(), context))
+
+        # First message should have init with headers
+        assert responses[0].init is not None
+        header_keys = [h.key for h in responses[0].init.headers]
+        assert "Content-Type" in header_keys
+        assert "X-Custom" in header_keys
+
+        # Second message should NOT have init
+        if len(responses) > 1:
+            assert not responses[1].HasField("init") or responses[1].init is None or (
+                responses[1].init.status_code == 0 and len(responses[1].init.headers) == 0
+            )
+
+    @pytest.mark.asyncio
+    async def test_single_write_single_response(self):
+        """Test that a single write results in a single response."""
+
+        class SingleWritePlugin(Plugin):
+            @hook(HookName.ServeHTTP)
+            def serve_http(self, ctx, w, r):
+                w.set_header("Content-Type", "text/plain")
+                w.write(b"single response body")
+
+        plugin = SingleWritePlugin()
+        servicer = PluginHooksServicerImpl(plugin)
+
+        async def request_stream():
+            yield hooks_http_pb2.ServeHTTPRequest(
+                init=make_request_init(),
+                body_complete=True,
+            )
+
+        context = MagicMock()
+        context.cancelled.return_value = False
+
+        responses = await collect_responses(servicer.ServeHTTP(request_stream(), context))
+
+        # Should have exactly 1 response
+        assert len(responses) == 1
+        assert responses[0].init.status_code == 200
+        assert responses[0].body_chunk == b"single response body"
+        assert responses[0].body_complete is True
