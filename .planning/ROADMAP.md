@@ -19,11 +19,11 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Protocol Foundation** - gRPC setup and protobuf definitions for core types ✓ (2026-01-16)
 - [x] **Phase 2: API Protobuf Definitions** - Define all 100+ Plugin API methods in protobuf ✓ (2026-01-16)
 - [x] **Phase 3: Hook Protobuf Definitions** - Define all plugin hooks in protobuf ✓ (2026-01-16)
-- [ ] **Phase 4: Go gRPC Server** - Implement gRPC server wrapping existing Plugin API
-- [ ] **Phase 5: Python Supervisor** - Go-side process management for Python plugins
-- [ ] **Phase 6: Python SDK Core** - Basic Python SDK with gRPC client and typed API
-- [ ] **Phase 7: Python Hook System** - Hook implementation pattern (decorators/class methods)
-- [ ] **Phase 8: ServeHTTP Streaming** - HTTP request/response streaming over gRPC
+- [x] **Phase 4: Go gRPC Server** - Implement gRPC server wrapping existing Plugin API ✓ (2026-01-16)
+- [x] **Phase 5: Python Supervisor** - Go-side process management for Python plugins ✓ (2026-01-19)
+- [x] **Phase 6: Python SDK Core** - Basic Python SDK with gRPC client and typed API ✓ (2026-01-19)
+- [x] **Phase 7: Python Hook System** - Hook implementation pattern (decorators/class methods) ✓ (2026-01-19)
+- [x] **Phase 8: ServeHTTP Streaming** - HTTP request/response streaming over gRPC ✓ (2026-01-19)
 - [ ] **Phase 9: Manifest Extension** - Extend plugin manifest for Python executables
 - [ ] **Phase 10: Integration & Testing** - End-to-end testing, example plugin, documentation
 
@@ -73,10 +73,10 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 04-01: gRPC server scaffolding and plugin API wrapper
-- [ ] 04-02: Implement User/Team/Channel API handlers
-- [ ] 04-03: Implement Post/File/KV Store API handlers
-- [ ] 04-04: Implement remaining API handlers
+- [x] 04-01: gRPC server scaffolding and plugin API wrapper ✓
+- [x] 04-02: Implement User/Team/Channel API handlers ✓
+- [x] 04-03: Implement Post/File/KV Store API handlers ✓
+- [x] 04-04: Implement remaining API handlers ✓
 
 ### Phase 5: Python Supervisor
 **Goal**: Go-side supervisor that spawns Python plugin subprocesses and manages gRPC connections
@@ -86,9 +86,9 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 05-01: Python process spawning and lifecycle management
-- [ ] 05-02: gRPC connection establishment and handshake
-- [ ] 05-03: Health checking and restart logic
+- [x] 05-01: Python process spawning and lifecycle management ✓
+- [x] 05-02: gRPC connection establishment and handshake ✓
+- [x] 05-03: Health checking and restart logic ✓
 
 ### Phase 6: Python SDK Core
 **Goal**: Python package with typed gRPC client providing access to all Plugin API methods
@@ -98,10 +98,10 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 06-01: Python package structure and gRPC client setup
-- [ ] 06-02: Typed API client for User/Team/Channel methods
-- [ ] 06-03: Typed API client for Post/File/KV Store methods
-- [ ] 06-04: Typed API client for remaining methods
+- [x] 06-01: Python package structure and gRPC client setup ✓
+- [x] 06-02: Typed API client for User/Team/Channel methods ✓
+- [x] 06-03: Typed API client for Post/File/KV Store methods ✓
+- [x] 06-04: Typed API client for remaining methods ✓
 
 ### Phase 7: Python Hook System
 **Goal**: Pythonic pattern for plugins to implement hooks (decorators or class methods)
@@ -111,9 +111,9 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 07-01: Hook registration mechanism design
-- [ ] 07-02: Implement lifecycle and message hooks
-- [ ] 07-03: Implement remaining hooks
+- [x] 07-01: Hook registration mechanism design ✓
+- [x] 07-02: Implement lifecycle and message hooks ✓
+- [x] 07-03: Implement remaining hooks ✓
 
 ### Phase 8: ServeHTTP Streaming
 **Goal**: Support ServeHTTP hook with proper HTTP request/response streaming over gRPC
@@ -123,8 +123,8 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 08-01: HTTP request streaming from Go to Python
-- [ ] 08-02: HTTP response streaming from Python to Go
+- [x] 08-01: HTTP request streaming from Go to Python ✓
+- [x] 08-02: HTTP response streaming from Python to Go ✓
 
 ### Phase 9: Manifest Extension
 **Goal**: Extend plugin manifest format to support Python executables and entry points
@@ -160,10 +160,10 @@ Note: Phase 5, 6, and 9 can partially overlap (all depend on Phase 4).
 | 1. Protocol Foundation | 3/3 | Complete | 2026-01-16 |
 | 2. API Protobuf Definitions | 5/5 | Complete | 2026-01-16 |
 | 3. Hook Protobuf Definitions | 4/4 | Complete | 2026-01-16 |
-| 4. Go gRPC Server | 0/4 | Not started | - |
-| 5. Python Supervisor | 0/3 | Not started | - |
-| 6. Python SDK Core | 0/4 | Not started | - |
-| 7. Python Hook System | 0/3 | Not started | - |
-| 8. ServeHTTP Streaming | 0/2 | Not started | - |
+| 4. Go gRPC Server | 4/4 | Complete | 2026-01-16 |
+| 5. Python Supervisor | 3/3 | Complete | 2026-01-19 |
+| 6. Python SDK Core | 4/4 | Complete | 2026-01-19 |
+| 7. Python Hook System | 3/3 | Complete | 2026-01-19 |
+| 8. ServeHTTP Streaming | 2/2 | Complete | 2026-01-19 |
 | 9. Manifest Extension | 0/2 | Not started | - |
 | 10. Integration & Testing | 0/3 | Not started | - |
