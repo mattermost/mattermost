@@ -30,17 +30,18 @@ const ProductBranding = (): JSX.Element => {
 
     // Handle both string icon names and React elements
     const renderIcon = () => {
-        if (!currentProduct?.switcherIcon) {
+        const switcherIcon = currentProduct?.switcherIcon;
+        if (!switcherIcon) {
             return <ProductChannelsIcon size={24}/>;
         }
 
-        if (typeof currentProduct.switcherIcon === 'string') {
-            const Icon = glyphMap[currentProduct.switcherIcon as IconGlyphTypes];
-            return <Icon size={24}/>;
+        if (typeof switcherIcon === 'string') {
+            const Icon = glyphMap[switcherIcon as IconGlyphTypes];
+            return Icon ? <Icon size={24}/> : <>{switcherIcon}</>;
         }
 
         // React element - render directly
-        return <>{currentProduct.switcherIcon}</>;
+        return <>{switcherIcon}</>;
     };
 
     return (
