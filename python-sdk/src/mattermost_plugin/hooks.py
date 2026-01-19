@@ -128,8 +128,8 @@ class HookName(str, Enum):
     GenerateSupportData = "GenerateSupportData"
 
     # HTTP hooks (Phase 8 - streaming)
-    # ServeHTTP = "ServeHTTP"
-    # ServeMetrics = "ServeMetrics"
+    ServeHTTP = "ServeHTTP"
+    # ServeMetrics = "ServeMetrics"  # Deferred to 08-02
 
 
 # Set of all valid canonical hook names for validation

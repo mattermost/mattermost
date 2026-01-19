@@ -117,36 +117,36 @@ func (c *ServeHTTPCaller) sendRequest(stream pb.PluginHooks_ServeHTTPClient, plu
 		}
 
 		n, err := r.Body.Read(buf)
+		isEOF := err == io.EOF
 
 		if firstMessage {
 			// First message includes init
 			msg := &pb.ServeHTTPRequest{
-				Init: init,
+				Init:         init,
+				BodyComplete: isEOF,
 			}
 			if n > 0 {
 				msg.BodyChunk = buf[:n]
-			}
-			if err == io.EOF {
-				msg.BodyComplete = true
 			}
 			if sendErr := stream.Send(msg); sendErr != nil {
 				return sendErr
 			}
 			firstMessage = false
-		} else if n > 0 {
+		} else if n > 0 || isEOF {
 			// Subsequent messages are body chunks only
+			// Send final message even if n==0 to set body_complete flag
 			msg := &pb.ServeHTTPRequest{
-				BodyChunk: buf[:n],
+				BodyComplete: isEOF,
 			}
-			if err == io.EOF {
-				msg.BodyComplete = true
+			if n > 0 {
+				msg.BodyChunk = buf[:n]
 			}
 			if sendErr := stream.Send(msg); sendErr != nil {
 				return sendErr
 			}
 		}
 
-		if err == io.EOF {
+		if isEOF {
 			break
 		}
 		if err != nil {
