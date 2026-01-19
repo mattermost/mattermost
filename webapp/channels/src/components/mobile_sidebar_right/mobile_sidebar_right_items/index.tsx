@@ -6,19 +6,26 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
+import {Client4} from 'mattermost-redux/client';
+import {Preferences} from 'mattermost-redux/constants';
 import {getCloudSubscription as selectCloudSubscription, getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
 import {
     getConfig,
     getLicense,
 } from 'mattermost-redux/selectors/entities/general';
+import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {getReportAProblemLink} from 'mattermost-redux/selectors/entities/report_a_problem';
 import {
     getJoinableTeamIds,
     getCurrentTeam,
 } from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
+import {getCurrentUser, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
 
+import {openModal} from 'actions/views/modals';
 import {showMentions, showFlaggedPosts, closeRightHandSide, closeMenu as closeRhsMenu} from 'actions/views/rhs';
 import {getRhsState} from 'selectors/rhs';
+import {makeGetCustomStatus, isCustomStatusExpired, isCustomStatusEnabled} from 'selectors/views/custom_status';
 
 import {RHSStates, CloudProducts} from 'utils/constants';
 import {isCloudLicense} from 'utils/license_utils';
@@ -30,6 +37,8 @@ import MobileSidebarRightItems from './mobile_sidebar_right_items';
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);
     const currentTeam = getCurrentTeam(state);
+    const currentUser = getCurrentUser(state);
+    const userId = currentUser?.id;
 
     const appDownloadLink = config.AppDownloadLink;
     const siteName = config.SiteName;
@@ -49,6 +58,9 @@ function mapStateToProps(state: GlobalState) {
     const isStarterFree = isCloud && subscriptionProduct?.sku === CloudProducts.STARTER;
     const isFreeTrial = isCloud && subscription?.is_free_trial === 'true';
 
+    const getCustomStatus = makeGetCustomStatus();
+    const customStatus = getCustomStatus(state, userId);
+
     return {
         appDownloadLink,
         experimentalPrimaryTeam,
@@ -65,6 +77,16 @@ function mapStateToProps(state: GlobalState) {
         guestAccessEnabled: config.EnableGuestAccounts === 'true',
         isStarterFree,
         isFreeTrial,
+
+        // user account menu needs
+        userId,
+        profilePicture: Client4.getProfilePictureUrl(userId, currentUser?.last_picture_update),
+        autoResetPref: get(state, Preferences.CATEGORY_AUTO_RESET_MANUAL_STATUS, userId, ''),
+        status: getStatusForUserId(state, userId),
+        customStatus,
+        isCustomStatusExpired: isCustomStatusExpired(state, customStatus),
+        isCustomStatusEnabled: isCustomStatusEnabled(state),
+        timezone: getCurrentTimezone(state),
     };
 }
 
@@ -75,6 +97,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             showFlaggedPosts,
             closeRightHandSide,
             closeRhsMenu,
+            openModal,
         }, dispatch),
     };
 }

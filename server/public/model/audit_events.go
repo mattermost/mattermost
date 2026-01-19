@@ -410,6 +410,7 @@ const (
 	AuditEventLocalDeleteUser              = "localDeleteUser"              // delete user locally
 	AuditEventLocalPermanentDeleteAllUsers = "localPermanentDeleteAllUsers" // permanently delete all users locally
 	AuditEventLogin                        = "login"                        // user login to system
+	AuditEventLoginWithDesktopToken        = "loginWithDesktopToken"        // user login to system with desktop token
 	AuditEventLogout                       = "logout"                       // user logout from system
 	AuditEventMigrateAuthToLdap            = "migrateAuthToLdap"            // migrate user authentication method to LDAP
 	AuditEventMigrateAuthToSaml            = "migrateAuthToSaml"            // migrate user authentication method to SAML
