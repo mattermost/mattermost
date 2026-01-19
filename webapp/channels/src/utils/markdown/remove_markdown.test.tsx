@@ -266,6 +266,67 @@ describe('stripMarkdown', () => {
             inputText: '&amp;lt;',
             outputText: '&lt;',
         },
+        // Numeric entity decoding tests (decimal format &#DD;)
+        {
+            description: 'numeric entity: &#60; (less than)',
+            inputText: '1 &#60; 2',
+            outputText: '1 < 2',
+        },
+        {
+            description: 'numeric entity: &#62; (greater than)',
+            inputText: '2 &#62; 1',
+            outputText: '2 > 1',
+        },
+        {
+            description: 'numeric entity: &#33; (exclamation)',
+            inputText: 'Hello&#33;',
+            outputText: 'Hello!',
+        },
+        {
+            description: 'numeric entity: &#35; (hash)',
+            inputText: '&#35;channel',
+            outputText: '#channel',
+        },
+        {
+            description: 'numeric entity: &#40; and &#41; (parentheses)',
+            inputText: 'func&#40;arg&#41;',
+            outputText: 'func(arg)',
+        },
+        {
+            description: 'numeric entity: &#42; (asterisk)',
+            inputText: '&#42;bold&#42;',
+            outputText: '*bold*',
+        },
+        {
+            description: 'numeric entity: &#58; (colon)',
+            inputText: 'key&#58; value',
+            outputText: 'key: value',
+        },
+        {
+            description: 'numeric entity: &#91; and &#93; (brackets)',
+            inputText: '&#91;link&#93;',
+            outputText: '[link]',
+        },
+        {
+            description: 'numeric entity: &#124; (pipe)',
+            inputText: 'a &#124; b',
+            outputText: 'a | b',
+        },
+        {
+            description: 'numeric entity: &#126; (tilde)',
+            inputText: '&#126;channel',
+            outputText: '~channel',
+        },
+        {
+            description: 'numeric entity: mixed with markdown',
+            inputText: '**bold** and &#60;tag&#62;',
+            outputText: 'bold and <tag>',
+        },
+        {
+            description: 'numeric entity: multiple in sequence',
+            inputText: '&#33;&#35;&#40;&#41;&#42;',
+            outputText: '!#()*',
+        },
         {
             description: 'text: empty string',
             inputText: '',
