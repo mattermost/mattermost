@@ -902,3 +902,164 @@ func main() {
 		sup.Shutdown()
 	}
 }
+
+// TestPythonSupervisor_Restart tests the full crash and restart flow:
+// 1. Start a healthy fake Python plugin
+// 2. Verify health check succeeds
+// 3. Kill the plugin process to simulate a crash
+// 4. Verify health check fails after crash
+// 5. Call RestartPlugin and verify health check succeeds again
+func TestPythonSupervisor_Restart(t *testing.T) {
+	// Create temp directories
+	pluginDir, err := os.MkdirTemp("", "python-restart-test-plugins")
+	require.NoError(t, err)
+	defer os.RemoveAll(pluginDir)
+
+	webappDir, err := os.MkdirTemp("", "python-restart-test-webapp")
+	require.NoError(t, err)
+	defer os.RemoveAll(webappDir)
+
+	// Create plugin subdirectory
+	pluginPath := filepath.Join(pluginDir, "python-restart-test")
+	require.NoError(t, os.MkdirAll(pluginPath, 0755))
+
+	// Determine the venv path based on OS
+	var venvPythonPath string
+	if runtime.GOOS == "windows" {
+		venvPythonPath = filepath.Join(pluginPath, "venv", "Scripts", "python.exe")
+	} else {
+		venvPythonPath = filepath.Join(pluginPath, "venv", "bin", "python")
+	}
+
+	// Create venv directory structure
+	require.NoError(t, os.MkdirAll(filepath.Dir(venvPythonPath), 0755))
+
+	// Compile fake Python interpreter that serves gRPC health checks
+	utils.CompileGo(t, `
+package main
+
+import (
+	"fmt"
+	"net"
+	"os"
+	"os/signal"
+	"syscall"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/health"
+	"google.golang.org/grpc/health/grpc_health_v1"
+)
+
+func main() {
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "failed to listen: %v\n", err)
+		os.Exit(1)
+	}
+
+	grpcServer := grpc.NewServer()
+	healthServer := health.NewServer()
+	healthServer.SetServingStatus("plugin", grpc_health_v1.HealthCheckResponse_SERVING)
+	grpc_health_v1.RegisterHealthServer(grpcServer, healthServer)
+
+	go func() {
+		if err := grpcServer.Serve(listener); err != nil {
+			fmt.Fprintf(os.Stderr, "failed to serve: %v\n", err)
+		}
+	}()
+
+	addr := listener.Addr().String()
+	fmt.Printf("1|1|tcp|%s|grpc\n", addr)
+	os.Stdout.Sync()
+
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGTERM, syscall.SIGINT)
+	<-sigCh
+
+	grpcServer.GracefulStop()
+}
+`, venvPythonPath)
+
+	// Create dummy plugin.py
+	require.NoError(t, os.WriteFile(filepath.Join(pluginPath, "plugin.py"), []byte("# Fake\n"), 0644))
+
+	// Create plugin.json
+	manifest := &model.Manifest{
+		Id:      "python-restart-test",
+		Version: "1.0.0",
+		Server: &model.ManifestServer{
+			Executable: "plugin.py",
+		},
+	}
+	manifestJSON, err := json.Marshal(manifest)
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(filepath.Join(pluginPath, "plugin.json"), manifestJSON, 0644))
+
+	// Create Environment
+	logger := mlog.CreateConsoleTestLogger(t)
+	env, err := NewEnvironment(
+		func(m *model.Manifest) API { return nil },
+		nil,
+		pluginDir,
+		webappDir,
+		logger,
+		nil,
+	)
+	require.NoError(t, err)
+	defer env.Shutdown()
+
+	// Step 1: Activate the Python plugin
+	retManifest, activated, err := env.Activate("python-restart-test")
+	require.NoError(t, err)
+	assert.True(t, activated, "Plugin should be activated")
+	assert.NotNil(t, retManifest)
+	assert.True(t, env.IsActive("python-restart-test"))
+
+	// Step 2: Verify health check succeeds
+	err = env.PerformHealthCheck("python-restart-test")
+	require.NoError(t, err, "Initial health check should succeed")
+
+	// Step 3: Kill the plugin process to simulate a crash
+	// Access the registered plugin to get the supervisor and kill the underlying process
+	rp, ok := env.registeredPlugins.Load("python-restart-test")
+	require.True(t, ok, "Plugin should be registered")
+	registeredPlug := rp.(registeredPlugin)
+	require.NotNil(t, registeredPlug.supervisor, "Supervisor should exist")
+	require.NotNil(t, registeredPlug.supervisor.client, "Client should exist")
+
+	// Kill the plugin process
+	registeredPlug.supervisor.client.Kill()
+
+	// Step 4: Verify health check fails after crash
+	// Use a short polling loop instead of arbitrary sleep
+	healthCheckFailed := false
+	for i := 0; i < 10; i++ {
+		err = env.PerformHealthCheck("python-restart-test")
+		if err != nil {
+			healthCheckFailed = true
+			break
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+	require.True(t, healthCheckFailed, "Health check should fail after killing the process")
+
+	// Step 5: Call RestartPlugin and verify recovery
+	err = env.RestartPlugin("python-restart-test")
+	require.NoError(t, err, "RestartPlugin should succeed")
+
+	// Verify the plugin is active again
+	assert.True(t, env.IsActive("python-restart-test"), "Plugin should be active after restart")
+
+	// Verify health check succeeds after restart
+	// Use a short polling loop to allow for startup time
+	healthCheckSucceeded := false
+	for i := 0; i < 20; i++ {
+		err = env.PerformHealthCheck("python-restart-test")
+		if err == nil {
+			healthCheckSucceeded = true
+			break
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+	require.True(t, healthCheckSucceeded, "Health check should succeed after restart")
+}
