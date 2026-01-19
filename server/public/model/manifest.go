@@ -139,7 +139,7 @@ type PluginSettingsSchema struct {
 // file should be named plugin.json or plugin.yaml and placed in the top of your
 // plugin bundle.
 //
-// Example plugin.json:
+// Example plugin.json (Go plugin):
 //
 //	{
 //	  "id": "com.mycompany.myplugin",
@@ -174,6 +174,26 @@ type PluginSettingsSchema struct {
 //	  },
 //	  "props": {
 //	    "someKey": "someData"
+//	  }
+//	}
+//
+// Example plugin.json (Python plugin):
+//
+//	{
+//	  "id": "com.mycompany.mypythonplugin",
+//	  "name": "My Python Plugin",
+//	  "description": "This is my Python plugin",
+//	  "version": "0.1.0",
+//	  "min_server_version": "10.0.0",
+//	  "server": {
+//	    "executable": "server/plugin.py",
+//	    "runtime": "python",
+//	    "python_version": "3.11",
+//	    "python": {
+//	      "dependency_mode": "venv",
+//	      "venv_path": "server/venv",
+//	      "requirements_path": "server/requirements.txt"
+//	    }
 //	  }
 //	}
 type Manifest struct {
@@ -223,6 +243,21 @@ type Manifest struct {
 	Props map[string]any `json:"props,omitempty" yaml:"props,omitempty"`
 }
 
+// ManifestPython contains Python-specific configuration for Python plugins.
+type ManifestPython struct {
+	// DependencyMode specifies how Python dependencies are managed.
+	// Valid values: "system" (use system Python), "venv" (use bundled virtual environment),
+	// "bundled" (dependencies bundled directly in package).
+	DependencyMode string `json:"dependency_mode,omitempty" yaml:"dependency_mode,omitempty"`
+
+	// VenvPath is the relative path to the virtual environment directory (e.g. "server/venv").
+	// Only used when DependencyMode is "venv".
+	VenvPath string `json:"venv_path,omitempty" yaml:"venv_path,omitempty"`
+
+	// RequirementsPath is the relative path to the requirements.txt file (e.g. "server/requirements.txt").
+	RequirementsPath string `json:"requirements_path,omitempty" yaml:"requirements_path,omitempty"`
+}
+
 type ManifestServer struct {
 	// Executables are the paths to your executable binaries, specifying multiple entry
 	// points for different platforms when bundled together in a single plugin.
@@ -236,6 +271,16 @@ type ManifestServer struct {
 	// If your plugin is compiled for multiple platforms, consider bundling them together
 	// and using the Executables field instead.
 	Executable string `json:"executable" yaml:"executable"`
+
+	// Runtime specifies the plugin runtime. Valid values: "go" (default if empty), "python".
+	Runtime string `json:"runtime,omitempty" yaml:"runtime,omitempty"`
+
+	// PythonVersion specifies the minimum Python version required (e.g. "3.10", ">=3.11").
+	// Only applicable when Runtime is "python".
+	PythonVersion string `json:"python_version,omitempty" yaml:"python_version,omitempty"`
+
+	// Python contains Python-specific configuration. Only applicable when Runtime is "python".
+	Python *ManifestPython `json:"python,omitempty" yaml:"python,omitempty"`
 }
 
 type ManifestWebapp struct {
