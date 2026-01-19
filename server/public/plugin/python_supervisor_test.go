@@ -8,7 +8,9 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
+	"time"
 
 	plugin "github.com/hashicorp/go-plugin"
 	"github.com/stretchr/testify/assert"
@@ -626,4 +628,277 @@ func main() {
 
 	// Verify plugin is no longer active
 	assert.False(t, env.IsActive("python-test-plugin"))
+}
+
+// TestPythonSupervisor_HandshakeTimeout tests that the supervisor times out
+// when the fake Python interpreter never prints the handshake line.
+func TestPythonSupervisor_HandshakeTimeout(t *testing.T) {
+	// Create temp plugin directory
+	pluginDir, err := os.MkdirTemp("", "python-timeout-test")
+	require.NoError(t, err)
+	defer os.RemoveAll(pluginDir)
+
+	// Determine the venv path based on OS
+	var venvPythonPath string
+	if runtime.GOOS == "windows" {
+		venvPythonPath = filepath.Join(pluginDir, "venv", "Scripts", "python.exe")
+	} else {
+		venvPythonPath = filepath.Join(pluginDir, "venv", "bin", "python")
+	}
+
+	// Create venv directory structure
+	require.NoError(t, os.MkdirAll(filepath.Dir(venvPythonPath), 0755))
+
+	// Compile a fake "Python interpreter" that blocks forever without printing handshake.
+	// This simulates a startup hang (e.g., module import loop, deadlock, etc.)
+	utils.CompileGo(t, `
+package main
+
+import (
+	"os"
+	"os/signal"
+	"syscall"
+)
+
+func main() {
+	// Ignore argv[1] (the script path)
+	// Never print the handshake line - just block forever
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGTERM, syscall.SIGINT)
+	<-sigCh
+}
+`, venvPythonPath)
+
+	// Create a dummy plugin.py file
+	scriptPath := filepath.Join(pluginDir, "plugin.py")
+	require.NoError(t, os.WriteFile(scriptPath, []byte("# Fake Python plugin script\n"), 0644))
+
+	// Create plugin.json manifest
+	manifest := &model.Manifest{
+		Id:      "python-timeout-test",
+		Version: "1.0.0",
+		Server: &model.ManifestServer{
+			Executable: "plugin.py",
+		},
+	}
+	manifestJSON, err := json.Marshal(manifest)
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(filepath.Join(pluginDir, "plugin.json"), manifestJSON, 0644))
+
+	// Create bundle info
+	bundle := model.BundleInfoForPath(pluginDir)
+	require.NotNil(t, bundle.Manifest)
+
+	// Create logger
+	logger := mlog.CreateConsoleTestLogger(t)
+
+	// Record start time to verify timeout duration
+	startTime := time.Now()
+
+	// Attempt to create supervisor - should fail with timeout
+	sup, err := newSupervisor(bundle, nil, nil, logger, nil, WithCommandFromManifest(bundle))
+
+	// Verify we got an error
+	require.Error(t, err)
+
+	// Ensure the error mentions timeout or context deadline
+	errMsg := err.Error()
+	assert.True(t, strings.Contains(errMsg, "timeout") ||
+		strings.Contains(errMsg, "deadline") ||
+		strings.Contains(errMsg, "Unrecognized remote plugin message"),
+		"Expected timeout-related error, got: %s", errMsg)
+
+	// Verify it completed within a reasonable time (StartTimeout is 10s for Python plugins, add buffer)
+	elapsed := time.Since(startTime)
+	assert.Less(t, elapsed, 15*time.Second, "Should timeout within 15 seconds (StartTimeout + buffer)")
+
+	// Supervisor should be nil on error
+	if sup != nil {
+		sup.Shutdown()
+	}
+}
+
+// TestPythonSupervisor_InvalidHandshake tests that the supervisor fails
+// when the fake Python interpreter prints an invalid handshake (wrong protocol).
+func TestPythonSupervisor_InvalidHandshake(t *testing.T) {
+	// Create temp plugin directory
+	pluginDir, err := os.MkdirTemp("", "python-invalid-handshake-test")
+	require.NoError(t, err)
+	defer os.RemoveAll(pluginDir)
+
+	// Determine the venv path based on OS
+	var venvPythonPath string
+	if runtime.GOOS == "windows" {
+		venvPythonPath = filepath.Join(pluginDir, "venv", "Scripts", "python.exe")
+	} else {
+		venvPythonPath = filepath.Join(pluginDir, "venv", "bin", "python")
+	}
+
+	// Create venv directory structure
+	require.NoError(t, os.MkdirAll(filepath.Dir(venvPythonPath), 0755))
+
+	// Compile a fake "Python interpreter" that prints an invalid handshake.
+	// The supervisor expects grpc protocol but we print netrpc.
+	utils.CompileGo(t, `
+package main
+
+import (
+	"fmt"
+	"net"
+	"os"
+	"os/signal"
+	"syscall"
+)
+
+func main() {
+	// Start a listener to get a valid address
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "failed to listen: %v\n", err)
+		os.Exit(1)
+	}
+	defer listener.Close()
+
+	addr := listener.Addr().String()
+
+	// Print handshake with netrpc protocol (supervisor expects grpc for Python plugins)
+	// Format: CORE-PROTOCOL-VERSION | APP-PROTOCOL-VERSION | NETWORK-TYPE | NETWORK-ADDR | PROTOCOL
+	fmt.Printf("1|1|tcp|%s|netrpc\n", addr)
+	os.Stdout.Sync()
+
+	// Block until SIGTERM
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGTERM, syscall.SIGINT)
+	<-sigCh
+}
+`, venvPythonPath)
+
+	// Create a dummy plugin.py file
+	scriptPath := filepath.Join(pluginDir, "plugin.py")
+	require.NoError(t, os.WriteFile(scriptPath, []byte("# Fake Python plugin script\n"), 0644))
+
+	// Create plugin.json manifest
+	manifest := &model.Manifest{
+		Id:      "python-invalid-handshake-test",
+		Version: "1.0.0",
+		Server: &model.ManifestServer{
+			Executable: "plugin.py",
+		},
+	}
+	manifestJSON, err := json.Marshal(manifest)
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(filepath.Join(pluginDir, "plugin.json"), manifestJSON, 0644))
+
+	// Create bundle info
+	bundle := model.BundleInfoForPath(pluginDir)
+	require.NotNil(t, bundle.Manifest)
+
+	// Create logger
+	logger := mlog.CreateConsoleTestLogger(t)
+
+	// Attempt to create supervisor - should fail due to protocol mismatch
+	sup, err := newSupervisor(bundle, nil, nil, logger, nil, WithCommandFromManifest(bundle))
+
+	// Verify we got an error
+	require.Error(t, err)
+
+	// Error message should indicate protocol issues
+	errMsg := err.Error()
+	assert.True(t, strings.Contains(errMsg, "protocol") ||
+		strings.Contains(errMsg, "Incompatible") ||
+		strings.Contains(errMsg, "grpc") ||
+		strings.Contains(errMsg, "Unrecognized"),
+		"Expected protocol-related error, got: %s", errMsg)
+
+	// Supervisor should be nil on error
+	if sup != nil {
+		sup.Shutdown()
+	}
+}
+
+// TestPythonSupervisor_MalformedHandshake tests that the supervisor fails
+// when the fake Python interpreter prints a malformed handshake line.
+func TestPythonSupervisor_MalformedHandshake(t *testing.T) {
+	// Create temp plugin directory
+	pluginDir, err := os.MkdirTemp("", "python-malformed-handshake-test")
+	require.NoError(t, err)
+	defer os.RemoveAll(pluginDir)
+
+	// Determine the venv path based on OS
+	var venvPythonPath string
+	if runtime.GOOS == "windows" {
+		venvPythonPath = filepath.Join(pluginDir, "venv", "Scripts", "python.exe")
+	} else {
+		venvPythonPath = filepath.Join(pluginDir, "venv", "bin", "python")
+	}
+
+	// Create venv directory structure
+	require.NoError(t, os.MkdirAll(filepath.Dir(venvPythonPath), 0755))
+
+	// Compile a fake "Python interpreter" that prints a malformed handshake.
+	// The handshake should have 5 pipe-separated parts, we only print 2.
+	utils.CompileGo(t, `
+package main
+
+import (
+	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
+)
+
+func main() {
+	// Print a malformed handshake (only 2 parts instead of 5)
+	fmt.Printf("1|invalid\n")
+	os.Stdout.Sync()
+
+	// Block until SIGTERM
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGTERM, syscall.SIGINT)
+	<-sigCh
+}
+`, venvPythonPath)
+
+	// Create a dummy plugin.py file
+	scriptPath := filepath.Join(pluginDir, "plugin.py")
+	require.NoError(t, os.WriteFile(scriptPath, []byte("# Fake Python plugin script\n"), 0644))
+
+	// Create plugin.json manifest
+	manifest := &model.Manifest{
+		Id:      "python-malformed-handshake-test",
+		Version: "1.0.0",
+		Server: &model.ManifestServer{
+			Executable: "plugin.py",
+		},
+	}
+	manifestJSON, err := json.Marshal(manifest)
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(filepath.Join(pluginDir, "plugin.json"), manifestJSON, 0644))
+
+	// Create bundle info
+	bundle := model.BundleInfoForPath(pluginDir)
+	require.NotNil(t, bundle.Manifest)
+
+	// Create logger
+	logger := mlog.CreateConsoleTestLogger(t)
+
+	// Attempt to create supervisor - should fail due to malformed handshake
+	sup, err := newSupervisor(bundle, nil, nil, logger, nil, WithCommandFromManifest(bundle))
+
+	// Verify we got an error
+	require.Error(t, err)
+
+	// Error message should indicate parsing/format issues
+	errMsg := err.Error()
+	assert.True(t, strings.Contains(errMsg, "Unrecognized") ||
+		strings.Contains(errMsg, "parse") ||
+		strings.Contains(errMsg, "format") ||
+		strings.Contains(errMsg, "invalid") ||
+		strings.Contains(errMsg, "protocol"),
+		"Expected parsing-related error, got: %s", errMsg)
+
+	// Supervisor should be nil on error
+	if sup != nil {
+		sup.Shutdown()
+	}
 }
