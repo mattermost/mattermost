@@ -950,7 +950,7 @@ func TestSystemMessages_PageUpdated(t *testing.T) {
 
 	t.Run("tracks multiple updaters in consolidated notification", func(t *testing.T) {
 		th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
-		_, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, th.BasicUser2.Id, model.ChannelAdminRoleId)
+		_, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, th.BasicUser2.Id, model.ChannelUserRoleId+" "+model.ChannelAdminRoleId)
 		require.Nil(t, appErr)
 
 		session1, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id})
