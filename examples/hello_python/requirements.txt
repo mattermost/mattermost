@@ -1,0 +1,4 @@
+# Mattermost Plugin SDK for Python
+# In development, install with: pip install -e ../../python-sdk
+# In production, install with: pip install mattermost-plugin-sdk
+mattermost-plugin-sdk>=0.1.0
