@@ -31,7 +31,9 @@ classifiers = [
 ]
 dependencies = [
     "grpcio>=1.60.0",
+    "grpcio-health-checking>=1.60.0",
     "protobuf>=4.25.0",
+    "typing_extensions>=4.0.0;python_version<'3.10'",
 ]
 
 [project.optional-dependencies]

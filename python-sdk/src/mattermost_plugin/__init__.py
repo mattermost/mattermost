@@ -7,7 +7,28 @@ Mattermost Plugin SDK for Python.
 This SDK provides a Pythonic interface to the Mattermost Plugin API via gRPC.
 Python plugins can use this SDK to interact with the Mattermost server.
 
-Basic usage::
+Plugin development::
+
+    from mattermost_plugin import Plugin, hook, HookName
+
+    class MyPlugin(Plugin):
+        @hook(HookName.OnActivate)
+        def on_activate(self) -> None:
+            self.logger.info("Plugin activated!")
+            version = self.api.get_server_version()
+            self.logger.info(f"Server version: {version}")
+
+        @hook(HookName.MessageWillBePosted)
+        def filter_messages(self, context, post):
+            if "spam" in post.message.lower():
+                return None, "Spam detected"
+            return post, ""
+
+    if __name__ == "__main__":
+        from mattermost_plugin.server import run_plugin
+        run_plugin(MyPlugin)
+
+Basic API client usage::
 
     from mattermost_plugin import PluginAPIClient, PluginAPIError
 
@@ -39,10 +60,25 @@ from mattermost_plugin.exceptions import (
     UnavailableError,
     convert_grpc_error,
 )
+from mattermost_plugin.hooks import (
+    HookName,
+    hook,
+    HookRegistrationError,
+)
+from mattermost_plugin.plugin import Plugin
+from mattermost_plugin.runtime_config import RuntimeConfig, load_runtime_config
 
 __version__ = "0.1.0"
 
 __all__ = [
+    # Plugin development
+    "Plugin",
+    "hook",
+    "HookName",
+    "HookRegistrationError",
+    # Configuration
+    "RuntimeConfig",
+    "load_runtime_config",
     # Clients
     "PluginAPIClient",
     "AsyncPluginAPIClient",
