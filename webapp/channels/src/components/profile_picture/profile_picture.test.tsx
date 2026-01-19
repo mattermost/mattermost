@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
+import {render} from '@testing-library/react';
 import React from 'react';
 import type {ComponentProps} from 'react';
 
-import ProfilePicture from 'components/profile_picture';
+import ProfilePicture from './index';
 
 type Props = ComponentProps<typeof ProfilePicture>;
 
@@ -17,11 +17,11 @@ describe('components/ProfilePicture', () => {
 
     test('should match snapshot, no user specified, default props', () => {
         const props: Props = baseProps;
-        const wrapper = shallow(
+        const {container} = render(
             <ProfilePicture {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, profile and src, default props', () => {
@@ -31,11 +31,11 @@ describe('components/ProfilePicture', () => {
             userId: 'uid',
             src: 'http://example.com/emoji.png',
         };
-        const wrapper = shallow(
+        const {container} = render(
             <ProfilePicture {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, no user specified, overridden props', () => {
@@ -43,11 +43,11 @@ describe('components/ProfilePicture', () => {
             ...baseProps,
             size: 'xl',
         };
-        const wrapper = shallow(
+        const {container} = render(
             <ProfilePicture {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, user specified', () => {
@@ -55,11 +55,11 @@ describe('components/ProfilePicture', () => {
             ...baseProps,
             username: 'username',
         };
-        const wrapper = shallow(
+        const {container} = render(
             <ProfilePicture {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, user specified, overridden props', () => {
@@ -68,10 +68,10 @@ describe('components/ProfilePicture', () => {
             username: 'username',
             size: 'xs',
         };
-        const wrapper = shallow(
+        const {container} = render(
             <ProfilePicture {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

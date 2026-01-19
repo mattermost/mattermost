@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
+import {screen, fireEvent, waitFor} from '@testing-library/react';
 import React from 'react';
 
 import type {Group} from '@mattermost/types/groups';
 
+import {renderWithIntl} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ListModal, {DEFAULT_NUM_PER_PAGE} from './list_modal';
@@ -21,7 +22,7 @@ describe('components/ListModal', () => {
     const totalCount = mockItems.length + mockItemsPage2.length;
 
     const baseProps = {
-        loadItems: async (pageNumber: number, searchTerm: string) => {
+        loadItems: jest.fn(async (pageNumber: number, searchTerm: string) => {
             if (searchTerm === mockSearchTerm) {
                 return {items: mockItemsSearch, totalCount};
             }
@@ -29,12 +30,13 @@ describe('components/ListModal', () => {
                 return {items: mockItems, totalCount};
             }
             return {items: mockItemsPage2, totalCount};
-        },
+        }),
         renderRow: (item: Group) => {
             return (
                 <div
                     className='item'
                     key={item.id}
+                    data-testid={`item-${item.id}`}
                 >
                     {item.id}
                 </div>
@@ -47,74 +49,155 @@ describe('components/ListModal', () => {
         titleBarButtonTextOnClick: () => {},
     };
 
-    it('should match snapshot', () => {
-        const wrapper = shallow(
-            <ListModal {...baseProps}/>,
-        );
-        expect(wrapper).toMatchSnapshot();
-        setTimeout(() => {
-            expect(wrapper.state('items')).toEqual(mockItems);
-            expect(wrapper.state('totalCount')).toEqual(totalCount);
-            expect(wrapper.state('numPerPage')).toEqual(DEFAULT_NUM_PER_PAGE);
-        }, 0);
+    beforeEach(() => {
+        jest.clearAllMocks();
     });
 
-    it('should update numPerPage', () => {
-        const numPerPage = totalCount - 1;
-        const props = {...baseProps};
-        props.numPerPage = numPerPage;
-        const wrapper = shallow(
+    it('should match snapshot', async () => {
+        const {baseElement} = renderWithIntl(
+            <ListModal {...baseProps}/>,
+        );
+
+        // Wait for items to load
+        await waitFor(() => {
+            expect(screen.getByTestId('item-123')).toBeInTheDocument();
+        });
+
+        expect(baseElement).toMatchSnapshot();
+
+        // Verify items are rendered
+        expect(screen.getByTestId('item-123')).toBeInTheDocument();
+        expect(screen.getByTestId('item-234')).toBeInTheDocument();
+
+        // Verify pagination text
+        expect(screen.getByText(/1 - 2 of 3 total/)).toBeInTheDocument();
+    });
+
+    it('should update numPerPage', async () => {
+        const numPerPage = totalCount - 1; // numPerPage = 2
+        const props = {...baseProps, numPerPage};
+        renderWithIntl(
             <ListModal {...props}/>,
         );
-        setTimeout(() => {
-            expect(wrapper.state('numPerPage')).toEqual(numPerPage);
-        }, 0);
+
+        // Wait for items to load
+        await waitFor(() => {
+            expect(screen.getByTestId('item-123')).toBeInTheDocument();
+        });
+
+        // Verify numPerPage is applied by checking Next button appears
+        // With numPerPage=2 and 2 items loaded, items.length >= numPerPage is true
+        // so Next button should be visible (unlike default numPerPage=50 where it wouldn't)
+        expect(screen.getByRole('button', {name: 'Next'})).toBeInTheDocument();
     });
 
-    it('should match snapshot with title bar button', () => {
-        const props = {...baseProps};
-        props.titleBarButtonText = 'Add Foo';
-        props.titleBarButtonTextOnClick = () => { };
-        const wrapper = shallow(
-            <ListModal {...baseProps}/>,
+    it('should match snapshot with title bar button', async () => {
+        const props = {
+            ...baseProps,
+            titleBarButtonText: 'Add Foo',
+            titleBarButtonOnClick: jest.fn(),
+        };
+        const {baseElement} = renderWithIntl(
+            <ListModal {...props}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+
+        // Wait for items to load
+        await waitFor(() => {
+            expect(screen.getByTestId('item-123')).toBeInTheDocument();
+        });
+
+        expect(baseElement).toMatchSnapshot();
+
+        // Verify title bar button is present
+        expect(screen.getByRole('link', {name: 'Add Foo'})).toBeInTheDocument();
     });
 
-    test('should have called onHide when handleExit is called', () => {
+    test('should have called onHide when handleExit is called', async () => {
         const onHide = jest.fn();
         const props = {...baseProps, onHide};
-        const wrapper = shallow(
+        const {baseElement} = renderWithIntl(
             <ListModal {...props}/>,
         );
-        (wrapper.instance() as ListModal).handleExit();
-        expect(onHide).toHaveBeenCalledTimes(1);
+
+        // Wait for items to load
+        await waitFor(() => {
+            expect(screen.getByTestId('item-123')).toBeInTheDocument();
+        });
+
+        // Click the modal close button
+        const closeButton = baseElement.querySelector('.close') as HTMLElement;
+        fireEvent.click(closeButton);
+
+        // Wait for onHide to be called (called after exit animation)
+        await waitFor(() => {
+            expect(onHide).toHaveBeenCalledTimes(1);
+        });
     });
 
-    test('paging loads new items', () => {
-        const wrapper = shallow(
-            <ListModal {...baseProps}/>,
+    test('paging loads new items', async () => {
+        const props = {
+            ...baseProps,
+            numPerPage: 2, // Set to 2 so Next button appears when we have 2 items
+        };
+        renderWithIntl(
+            <ListModal {...props}/>,
         );
-        (wrapper.instance() as ListModal).onNext();
-        setTimeout(() => {
-            expect(wrapper.state('page')).toEqual(1);
-            expect(wrapper.state('items')).toEqual(mockItemsPage2);
-        }, 0);
-        (wrapper.instance() as ListModal).onPrev();
-        setTimeout(() => {
-            expect(wrapper.state('page')).toEqual(0);
-            expect(wrapper.state('items')).toEqual(mockItems);
-        }, 0);
+
+        // Wait for initial items to load
+        await waitFor(() => {
+            expect(screen.getByTestId('item-123')).toBeInTheDocument();
+        });
+
+        // Verify page 1 items
+        expect(screen.getByTestId('item-123')).toBeInTheDocument();
+        expect(screen.getByTestId('item-234')).toBeInTheDocument();
+
+        // Click Next
+        fireEvent.click(screen.getByRole('button', {name: 'Next'}));
+
+        // Wait for page 2 items
+        await waitFor(() => {
+            expect(screen.getByTestId('item-345')).toBeInTheDocument();
+        });
+
+        // Verify page 1 items are gone and page 2 items are present
+        expect(screen.queryByTestId('item-123')).not.toBeInTheDocument();
+        expect(screen.getByTestId('item-345')).toBeInTheDocument();
+
+        // Click Previous
+        fireEvent.click(screen.getByRole('button', {name: 'Previous'}));
+
+        // Wait for page 1 items again
+        await waitFor(() => {
+            expect(screen.getByTestId('item-123')).toBeInTheDocument();
+        });
+
+        // Verify we're back on page 1
+        expect(screen.getByTestId('item-123')).toBeInTheDocument();
+        expect(screen.getByTestId('item-234')).toBeInTheDocument();
     });
 
-    test('search input', () => {
-        const wrapper = shallow(
+    test('search input', async () => {
+        renderWithIntl(
             <ListModal {...baseProps}/>,
         );
-        (wrapper.instance() as ListModal).onSearchInput({target: {value: mockSearchTerm}} as React.ChangeEvent<HTMLInputElement>);
-        setTimeout(() => {
-            expect(wrapper.state('searchTerm')).toEqual(mockSearchTerm);
-            expect(wrapper.state('items')).toEqual(mockItemsSearch);
-        }, 0);
+
+        // Wait for initial items to load
+        await waitFor(() => {
+            expect(screen.getByTestId('item-123')).toBeInTheDocument();
+        });
+
+        // Type in search input
+        const searchInput = screen.getByPlaceholderText('search for name');
+        fireEvent.change(searchInput, {target: {value: mockSearchTerm}});
+
+        // Wait for filtered items
+        await waitFor(() => {
+            // mockItemsSearch contains items with 'ar3' in name: bar31 and bar3
+            expect(screen.getByTestId('item-123')).toBeInTheDocument(); // bar31 matches
+        });
+
+        // Verify item-234 (bar2) is not present since it doesn't match 'ar3'
+        expect(screen.queryByTestId('item-234')).not.toBeInTheDocument();
     });
 });

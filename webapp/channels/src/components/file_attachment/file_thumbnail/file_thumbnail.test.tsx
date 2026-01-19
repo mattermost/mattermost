@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
+import {render} from '@testing-library/react';
 import React from 'react';
 
 import FileThumbnail from './file_thumbnail';
@@ -29,11 +29,11 @@ describe('FileThumbnail', () => {
     };
 
     test('should render a small image', () => {
-        const wrapper = shallow(
+        const {container} = render(
             <FileThumbnail {...baseProps}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should render a normal-sized image', () => {
@@ -46,11 +46,11 @@ describe('FileThumbnail', () => {
             },
         };
 
-        const wrapper = shallow(
+        const {container} = render(
             <FileThumbnail {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should render an svg when svg previews are enabled', () => {
@@ -63,12 +63,12 @@ describe('FileThumbnail', () => {
             enableSVGs: true,
         };
 
-        const wrapper = shallow(
+        const {container} = render(
             <FileThumbnail {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('img').exists()).toBe(true);
+        expect(container).toMatchSnapshot();
+        expect(container.querySelector('img')).toBeInTheDocument();
     });
 
     test('should render an icon for an SVG when SVG previews are disabled', () => {
@@ -81,12 +81,12 @@ describe('FileThumbnail', () => {
             enableSVGs: false,
         };
 
-        const wrapper = shallow(
+        const {container} = render(
             <FileThumbnail {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('div.file-icon').exists()).toBe(true);
+        expect(container).toMatchSnapshot();
+        expect(container.querySelector('div.file-icon')).toBeInTheDocument();
     });
 
     test('should render an icon for a PDF', () => {
@@ -98,12 +98,12 @@ describe('FileThumbnail', () => {
             },
         };
 
-        const wrapper = shallow(
+        const {container} = render(
             <FileThumbnail {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('div.file-icon').exists()).toBe(true);
+        expect(container).toMatchSnapshot();
+        expect(container.querySelector('div.file-icon')).toBeInTheDocument();
     });
 
     test('should render an icon for a PSD (MM-67077)', () => {
@@ -115,11 +115,11 @@ describe('FileThumbnail', () => {
             },
         };
 
-        const wrapper = shallow(
+        const {container} = render(
             <FileThumbnail {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('div.file-icon').exists()).toBe(true);
+        expect(container).toMatchSnapshot();
+        expect(container.querySelector('div.file-icon')).toBeInTheDocument();
     });
 });

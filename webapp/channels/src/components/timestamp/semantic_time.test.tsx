@@ -1,44 +1,41 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount} from 'enzyme';
+import {render, screen} from '@testing-library/react';
 import React from 'react';
 
 import SemanticTime from './semantic_time';
 
 describe('components/timestamp/SemanticTime', () => {
     test('should render time semantically', () => {
-        const date = new Date('2020-06-05T10:20:30Z');
-        const wrapper = mount(
+        render(
             <SemanticTime
-                value={date}
+                value={new Date('2020-06-05T10:20:30Z')}
             />,
         );
-        expect(wrapper.find('time').prop('dateTime')).toBe('2020-06-05T10:20:30.000');
+        expect(screen.getByRole('time')).toHaveAttribute('datetime', '2020-06-05T10:20:30.000');
     });
 
     test('should support passthrough children', () => {
-        const date = new Date('2020-06-05T10:20:30Z');
-        const wrapper = mount(
+        render(
             <SemanticTime
-                value={date}
+                value={new Date('2020-06-05T10:20:30Z')}
             >
                 {'10:20'}
             </SemanticTime>,
         );
 
-        expect(wrapper.find('time').text()).toBe('10:20');
+        expect(screen.getByRole('time')).toHaveTextContent('10:20');
     });
 
     test('should support custom label', () => {
-        const date = new Date('2020-06-05T10:20:30Z');
-        const wrapper = mount(
+        const {container} = render(
             <SemanticTime
-                value={date}
+                value={new Date('2020-06-05T10:20:30Z')}
                 aria-label='A custom label'
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

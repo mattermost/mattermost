@@ -1,24 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
+import {render} from '@testing-library/react';
 import React from 'react';
 
-import TableChart from 'components/analytics/table_chart';
-import type {TableItem} from 'components/analytics/table_chart';
+import type {TableItem} from './table_chart';
+import TableChart from './table_chart';
 
 describe('components/analytics/table_chart.tsx', () => {
     test('should match snapshot, loaded without data', () => {
         const data: TableItem[] = [];
 
-        const wrapper = shallow(
+        const {container} = render(
             <TableChart
                 title='Test'
                 data={data}
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, loaded with data', () => {
@@ -27,13 +27,13 @@ describe('components/analytics/table_chart.tsx', () => {
             {name: 'test2', tip: 'test-tip2', value: <p>{'test-value2'}</p>},
         ];
 
-        const wrapper = shallow(
+        const {container} = render(
             <TableChart
                 title='Test'
                 data={data}
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

@@ -1,31 +1,32 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
+import {render, screen} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import {HintToast} from './hint_toast';
 
 describe('components/HintToast', () => {
     test('should match snapshot', () => {
-        const wrapper = shallow(
+        const {container} = render(
             <HintToast
                 onDismiss={jest.fn()}
             >{'A hint'}</HintToast>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
-    test('should fire onDismiss callback', () => {
+    test('should fire onDismiss callback', async () => {
         const dismissHandler = jest.fn();
-        const wrapper = shallow(
+        render(
             <HintToast
                 onDismiss={dismissHandler}
             >{'A hint'}</HintToast>,
         );
 
-        wrapper.find('.hint-toast__dismiss').simulate('click');
+        await userEvent.click(screen.getByTestId('dismissHintToast'));
 
         expect(dismissHandler).toHaveBeenCalled();
     });

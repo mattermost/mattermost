@@ -1,77 +1,87 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/error_page/ErrorTitle should match snapshot, channel_not_found type 1`] = `
-<MemoizedFormattedMessage
-  defaultMessage="Channel Not Found"
-  id="error.channel_not_found.title"
-/>
+<div>
+  <span>
+    Channel Not Found
+  </span>
+</div>
 `;
 
 exports[`components/error_page/ErrorTitle should match snapshot, local_storage type 1`] = `
-<MemoizedFormattedMessage
-  defaultMessage="Cannot Load Mattermost"
-  id="error.local_storage.title"
-/>
+<div>
+  <span>
+    Cannot Load Mattermost
+  </span>
+</div>
 `;
 
 exports[`components/error_page/ErrorTitle should match snapshot, no type but with title 1`] = `
-<Fragment>
+<div>
   error title
-</Fragment>
+</div>
 `;
 
 exports[`components/error_page/ErrorTitle should match snapshot, no type nor title 1`] = `
-<MemoizedFormattedMessage
-  defaultMessage="Error"
-  id="error.generic.title"
-/>
+<div>
+  <span>
+    Error
+  </span>
+</div>
 `;
 
 exports[`components/error_page/ErrorTitle should match snapshot, oauth_access_denied type 1`] = `
-<MemoizedFormattedMessage
-  defaultMessage="Authorization Error"
-  id="error.oauth_access_denied.title"
-/>
+<div>
+  <span>
+    Authorization Error
+  </span>
+</div>
 `;
 
 exports[`components/error_page/ErrorTitle should match snapshot, oauth_invalid_param type 1`] = `
-<MemoizedFormattedMessage
-  defaultMessage="OAuth Parameter Error"
-  id="error.oauth_invalid_param.title"
-/>
+<div>
+  <span>
+    OAuth Parameter Error
+  </span>
+</div>
 `;
 
 exports[`components/error_page/ErrorTitle should match snapshot, oauth_invalid_redirect_url type 1`] = `
-<MemoizedFormattedMessage
-  defaultMessage="OAuth Parameter Error"
-  id="error.oauth_invalid_param.title"
-/>
+<div>
+  <span>
+    OAuth Parameter Error
+  </span>
+</div>
 `;
 
 exports[`components/error_page/ErrorTitle should match snapshot, oauth_missing_code type 1`] = `
-<MemoizedFormattedMessage
-  defaultMessage="Mattermost Needs Your Help"
-  id="error.oauth_missing_code.title"
-/>
+<div>
+  <span>
+    Mattermost Needs Your Help
+  </span>
+</div>
 `;
 
 exports[`components/error_page/ErrorTitle should match snapshot, page_not_found type 1`] = `
-<MemoizedFormattedMessage
-  defaultMessage="Page Not Found"
-  id="error.not_found.title"
-/>
+<div>
+  <span>
+    Page Not Found
+  </span>
+</div>
 `;
 
 exports[`components/error_page/ErrorTitle should match snapshot, permalink_not_found type 1`] = `
-<MemoizedFormattedMessage
-  defaultMessage="Message Not Found"
-  id="permalink.error.title"
-/>
+<div>
+  <span>
+    Message Not Found
+  </span>
+</div>
 `;
 
 exports[`components/error_page/ErrorTitle should match snapshot, team_not_found type 1`] = `
-<MemoizedFormattedMessage
-  defaultMessage="Team Not Found"
-  id="error.team_not_found.title"
-/>
+<div>
+  <span>
+    Team Not Found
+  </span>
+</div>
 `;

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount} from 'enzyme';
+import {render} from '@testing-library/react';
 import React from 'react';
 import {IntlProvider} from 'react-intl';
 
@@ -15,8 +15,8 @@ describe('components/FormattedMarkdownMessage', () => {
             id: 'test.foo',
             defaultMessage: '**bold** *italic* [link](https://mattermost.com/) <br/> [link target blank](!https://mattermost.com/)',
         };
-        const wrapper = mount(wrapProvider(<FormattedMarkdownMessage {...props}/>));
-        expect(wrapper).toMatchSnapshot();
+        const {container} = render(wrapProvider(<FormattedMarkdownMessage {...props}/>));
+        expect(container).toMatchSnapshot();
     });
 
     test('should backup to default', () => {
@@ -24,8 +24,8 @@ describe('components/FormattedMarkdownMessage', () => {
             id: 'xxx',
             defaultMessage: 'testing default message',
         };
-        const wrapper = mount(wrapProvider(<FormattedMarkdownMessage {...props}/>));
-        expect(wrapper).toMatchSnapshot();
+        const {container} = render(wrapProvider(<FormattedMarkdownMessage {...props}/>));
+        expect(container).toMatchSnapshot();
     });
 
     test('should escape non-BR', () => {
@@ -37,8 +37,8 @@ describe('components/FormattedMarkdownMessage', () => {
                 script: (...content: string[]) => `<script>${content}</script>`,
             },
         };
-        const wrapper = mount(wrapProvider(<FormattedMarkdownMessage {...props}/>));
-        expect(wrapper).toMatchSnapshot();
+        const {container} = render(wrapProvider(<FormattedMarkdownMessage {...props}/>));
+        expect(container).toMatchSnapshot();
     });
 
     test('values should work', () => {
@@ -49,8 +49,8 @@ describe('components/FormattedMarkdownMessage', () => {
                 petName: 'sweetie',
             },
         };
-        const wrapper = mount(wrapProvider(<FormattedMarkdownMessage {...props}/>));
-        expect(wrapper).toMatchSnapshot();
+        const {container} = render(wrapProvider(<FormattedMarkdownMessage {...props}/>));
+        expect(container).toMatchSnapshot();
     });
 
     test('should allow to disable links', () => {
@@ -62,12 +62,12 @@ describe('components/FormattedMarkdownMessage', () => {
             },
             disableLinks: true,
         };
-        const wrapper = mount(wrapProvider(<FormattedMarkdownMessage {...props}/>));
-        expect(wrapper).toMatchSnapshot();
+        const {container} = render(wrapProvider(<FormattedMarkdownMessage {...props}/>));
+        expect(container).toMatchSnapshot();
     });
 });
 
-export function wrapProvider(el: JSX.Element) {
+function wrapProvider(el: JSX.Element) {
     const enTranslationData = {
         'test.foo': '**bold** *italic* [link](https://mattermost.com/) <br/> [link target blank](!https://mattermost.com/)',
         'test.bar': '<b>hello</b> <script>var malicious = true;</script> world!',
@@ -79,6 +79,6 @@ export function wrapProvider(el: JSX.Element) {
             messages={enTranslationData}
         >
             {el}
-        </IntlProvider>)
-    ;
+        </IntlProvider>
+    );
 }

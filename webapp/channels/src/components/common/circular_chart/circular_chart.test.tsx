@@ -1,12 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
+import {render, screen} from '@testing-library/react';
 import React from 'react';
 
-import CircularChart from 'components/common/circular_chart/circular_chart';
-
-// import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import CircularChart from './circular_chart';
 
 describe('/components/common/CircularChart', () => {
     const baseProps = {
@@ -17,33 +15,33 @@ describe('/components/common/CircularChart', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(
+        const {container} = render(
             <CircularChart
                 {...baseProps}
                 type={'success'}
             />);
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('test circularChart contains the text value as specified in the base props', () => {
-        const wrapper = shallow(
+        render(
             <CircularChart
                 {...baseProps}
                 type={'success'}
             />);
-        const circularChartText = wrapper.find('.percentageOrNumber').text();
+        const circularChartText = screen.getByText('75');
 
-        expect(parseInt(circularChartText, 10)).toBe(baseProps.value);
+        expect(circularChartText).toBeInTheDocument();
     });
 
     test('test circularChart contains the text value with the percentage symbol when isPercentage is set to true', () => {
-        const wrapper = shallow(
+        render(
             <CircularChart
                 {...{...baseProps, isPercentage: true}}
                 type={'success'}
             />);
-        const circularChartText = wrapper.find('.percentageOrNumber').text();
+        const circularChartText = screen.getByText('75 %');
 
-        expect(circularChartText).toBe(`${baseProps.value.toString()} %`);
+        expect(circularChartText).toBeInTheDocument();
     });
 });

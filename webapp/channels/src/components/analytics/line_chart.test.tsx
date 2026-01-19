@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
-import LineChart from 'components/analytics/line_chart';
+import {renderWithIntl} from 'tests/react_testing_utils';
+
+import LineChart from './line_chart';
 
 describe('components/analytics/line_chart.tsx', () => {
     test('should match snapshot, on loading', () => {
-        const wrapper = shallow(
+        const {container} = renderWithIntl(
             <LineChart
                 id='test'
                 title='Test'
@@ -17,7 +18,7 @@ describe('components/analytics/line_chart.tsx', () => {
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, loaded without data', () => {
@@ -26,7 +27,7 @@ describe('components/analytics/line_chart.tsx', () => {
             labels: [],
         };
 
-        const wrapper = shallow(
+        const {container} = renderWithIntl(
             <LineChart
                 id='test'
                 title='Test'
@@ -36,7 +37,7 @@ describe('components/analytics/line_chart.tsx', () => {
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, loaded with data', () => {
@@ -47,7 +48,7 @@ describe('components/analytics/line_chart.tsx', () => {
             labels: ['test1', 'test2', 'test3'],
         };
 
-        const wrapper = shallow(
+        const {container} = renderWithIntl(
             <LineChart
                 id='test'
                 title='Test'
@@ -57,6 +58,6 @@ describe('components/analytics/line_chart.tsx', () => {
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

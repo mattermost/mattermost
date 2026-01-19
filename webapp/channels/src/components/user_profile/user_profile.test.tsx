@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
+import {render} from '@testing-library/react';
 import React from 'react';
 
 import type {UserProfile as UserProfileType} from '@mattermost/types/users';
@@ -27,8 +27,8 @@ describe('components/UserProfile', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(<UserProfile {...baseProps}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = render(<UserProfile {...baseProps}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, with colorization', () => {
@@ -37,8 +37,8 @@ describe('components/UserProfile', () => {
             colorize: true,
         };
 
-        const wrapper = shallow(<UserProfile {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = render(<UserProfile {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, when user is shared', () => {
@@ -47,27 +47,27 @@ describe('components/UserProfile', () => {
             isShared: true,
         };
 
-        const wrapper = shallow(<UserProfile {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = render(<UserProfile {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, when popover is disabled', () => {
-        const wrapper = shallow(
+        const {container} = render(
             <UserProfile
                 {...baseProps}
                 disablePopover={true}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, when displayUsername is enabled', () => {
-        const wrapper = shallow(
+        const {container} = render(
             <UserProfile
                 {...baseProps}
                 displayUsername={true}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

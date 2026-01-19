@@ -1,25 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
+import {screen} from '@testing-library/react';
 import React from 'react';
 
-import StatisticCount from 'components/analytics/statistic_count';
+import {renderWithIntl} from 'tests/react_testing_utils';
+
+import StatisticCount from './statistic_count';
 
 describe('components/analytics/statistic_count.tsx', () => {
     test('should match snapshot, on loading', () => {
-        const wrapper = shallow(
+        const {container} = renderWithIntl(
             <StatisticCount
                 title='Test'
                 icon='test-icon'
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, loaded', () => {
-        const wrapper = shallow(
+        const {container} = renderWithIntl(
             <StatisticCount
                 title='Test'
                 icon='test-icon'
@@ -27,11 +29,11 @@ describe('components/analytics/statistic_count.tsx', () => {
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, loaded with zero value', () => {
-        const wrapper = shallow(
+        const {container} = renderWithIntl(
             <StatisticCount
                 title='Test Zero'
                 icon='test-icon'
@@ -39,12 +41,12 @@ describe('components/analytics/statistic_count.tsx', () => {
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should apply formatter function when provided', () => {
         const mockFormatter = (value: number) => `${value}%`;
-        const wrapper = shallow(
+        renderWithIntl(
             <StatisticCount
                 title='Test'
                 icon='test-icon'
@@ -54,6 +56,6 @@ describe('components/analytics/statistic_count.tsx', () => {
             />,
         );
 
-        expect(wrapper.find('[data-testid="test-stat"]').text()).toBe('42%');
+        expect(screen.getByTestId('test-stat')).toHaveTextContent('42%');
     });
 });

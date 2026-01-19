@@ -1,30 +1,33 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
+import {render, screen} from '@testing-library/react';
 import React from 'react';
 
 import LoadingImagePreview from 'components/loading_image_preview';
 
 describe('components/LoadingImagePreview', () => {
-    test('should match snapshot', () => {
-        const loading = 'Loading';
-        let progress = 50;
-
-        const wrapper = shallow(
+    test('should match snapshot with progress 50%', () => {
+        const {container} = render(
             <LoadingImagePreview
-                loading={loading}
-                progress={progress}
+                loading='Loading'
+                progress={50}
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('span').text()).toBe('Loading 50%');
+        expect(container).toMatchSnapshot();
+        expect(screen.getByText('Loading 50%')).toBeInTheDocument();
+    });
 
-        progress = 90;
-        wrapper.setProps({loading, progress});
+    test('should match snapshot with progress 90%', () => {
+        const {container} = render(
+            <LoadingImagePreview
+                loading='Loading'
+                progress={90}
+            />,
+        );
 
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('span').text()).toBe('Loading 90%');
+        expect(container).toMatchSnapshot();
+        expect(screen.getByText('Loading 90%')).toBeInTheDocument();
     });
 });

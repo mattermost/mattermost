@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
-import MessageSubmitError from 'components/message_submit_error';
+import {renderWithIntl, screen} from 'tests/react_testing_utils';
+
+import MessageSubmitError from './message_submit_error';
 
 describe('components/MessageSubmitError', () => {
     const baseProps = {
@@ -24,12 +25,13 @@ describe('components/MessageSubmitError', () => {
             submittedMessage,
         };
 
-        const wrapper = shallow(
+        renderWithIntl(
             <MessageSubmitError {...props}/>,
         );
 
-        expect(wrapper.find('[id="message_submit_error.invalidCommand"]').exists()).toBe(true);
-        expect(wrapper.text()).not.toEqual('No command found');
+        expect(screen.getByText(/Command with a trigger of/)).toBeInTheDocument();
+        expect(screen.getByText('Click here to send as a message.')).toBeInTheDocument();
+        expect(screen.queryByText('No command found')).not.toBeInTheDocument();
     });
 
     it('should not display the submit link if the error is not for an invalid slash command', () => {
@@ -45,11 +47,11 @@ describe('components/MessageSubmitError', () => {
             submittedMessage,
         };
 
-        const wrapper = shallow(
+        renderWithIntl(
             <MessageSubmitError {...props}/>,
         );
 
-        expect(wrapper.find('[id="message_submit_error.invalidCommand"]').exists()).toBe(false);
-        expect(wrapper.text()).toEqual('Some server error');
+        expect(screen.queryByText('Click here to send as a message.')).not.toBeInTheDocument();
+        expect(screen.getByText('Some server error')).toBeInTheDocument();
     });
 });

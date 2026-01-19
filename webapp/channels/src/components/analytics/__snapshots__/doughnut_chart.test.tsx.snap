@@ -1,101 +1,76 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/analytics/doughnut_chart.tsx should match snapshot, loaded with data 1`] = `
-<DoughnutChart
-  data={
-    Object {
-      "datasets": Array [
-        Object {
-          "data": Array [
-            1,
-            2,
-            3,
-          ],
-        },
-      ],
-    }
-  }
-  height={400}
-  title="Test"
-  width={600}
->
+<div>
   <div
-    className="col-sm-6"
+    class="col-sm-6"
   >
     <div
-      className="total-count"
+      class="total-count"
     >
       <div
-        className="title"
+        class="title"
       >
         Test
       </div>
       <div
-        className="content"
+        class="content"
       >
         <canvas
-          height={400}
-          width={600}
+          height="400"
+          width="600"
         />
       </div>
     </div>
   </div>
-</DoughnutChart>
+</div>
 `;
 
 exports[`components/analytics/doughnut_chart.tsx should match snapshot, loaded without data 1`] = `
-<DoughnutChart
-  height={400}
-  title="Test"
-  width={600}
->
+<div>
   <div
-    className="col-sm-6"
+    class="col-sm-6"
   >
     <div
-      className="total-count"
+      class="total-count"
     >
       <div
-        className="title"
+        class="title"
       >
         Test
       </div>
       <div
-        className="content"
+        class="content"
       >
-        <FormattedMessage
-          defaultMessage="Loading..."
-          id="analytics.chart.loading"
-        >
-          <span>
-            Loading...
-          </span>
-        </FormattedMessage>
+        <span>
+          Loading...
+        </span>
       </div>
     </div>
   </div>
-</DoughnutChart>
+</div>
 `;
 
 exports[`components/analytics/doughnut_chart.tsx should match snapshot, on loading 1`] = `
-<div
-  className="col-sm-6"
->
+<div>
   <div
-    className="total-count"
+    class="col-sm-6"
   >
     <div
-      className="title"
+      class="total-count"
     >
-      Test
-    </div>
-    <div
-      className="content"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Loading..."
-        id="analytics.chart.loading"
-      />
+      <div
+        class="title"
+      >
+        Test
+      </div>
+      <div
+        class="content"
+      >
+        <span>
+          Loading...
+        </span>
+      </div>
     </div>
   </div>
 </div>
