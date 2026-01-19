@@ -645,7 +645,7 @@ func TestGetContentReviewChannels(t *testing.T) {
 
 		require.Nil(t, appErr)
 
-		_, appErr = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, model.TeamAdminRoleId)
+		_, appErr = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, model.TeamUserRoleId+" "+model.TeamAdminRoleId)
 		require.Nil(t, appErr)
 
 		contentReviewBot, appErr := th.App.getContentReviewBot(th.Context)
@@ -844,7 +844,7 @@ func TestGetReviewersForTeam(t *testing.T) {
 		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, teamAdmin.Id, "")
 		require.Nil(t, appErr)
 
-		_, appErr = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, model.TeamAdminRoleId)
+		_, appErr = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, model.TeamUserRoleId+" "+model.TeamAdminRoleId)
 		require.Nil(t, appErr)
 
 		reviewers, appErr := th.App.getReviewersForTeam(th.BasicTeam.Id, true)
@@ -1424,7 +1424,7 @@ func TestSearchReviewers(t *testing.T) {
 		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, teamAdmin.Id, "")
 		require.Nil(t, appErr)
 
-		_, appErr = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, model.TeamAdminRoleId)
+		_, appErr = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, model.TeamUserRoleId+" "+model.TeamAdminRoleId)
 		require.Nil(t, appErr)
 
 		// Search for team admin
@@ -1461,7 +1461,7 @@ func TestSearchReviewers(t *testing.T) {
 		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, teamAdmin.Id, "")
 		require.Nil(t, appErr)
 
-		_, appErr = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, model.TeamAdminRoleId)
+		_, appErr = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, model.TeamUserRoleId+" "+model.TeamAdminRoleId)
 		require.Nil(t, appErr)
 
 		// Search with empty term should return all reviewers
