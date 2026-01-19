@@ -26,6 +26,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 8: ServeHTTP Streaming** - HTTP request/response streaming over gRPC ✓ (2026-01-19)
 - [x] **Phase 9: Manifest Extension** - Extend plugin manifest for Python executables ✓ (2026-01-19)
 - [x] **Phase 10: Integration & Testing** - End-to-end testing, example plugin, documentation ✓ (2026-01-19)
+- [ ] **Phase 11: Server Integration** - Wire Python plugins into main server plugin loading path
 
 ## Phase Details
 
@@ -147,10 +148,23 @@ Plans:
 - [x] 10-02: Integration test suite ✓
 - [x] 10-03: Performance benchmarks and documentation ✓
 
+### Phase 11: Server Integration
+**Goal**: Wire Python plugin support into main Mattermost server so plugins can be uploaded and run
+**Depends on**: Phase 10
+**Research**: Likely (plugin loading path, HTTP routing)
+**Research topics**: Plugin upload validation, hook dispatch from gRPC, HTTP routing to ServeHTTP
+**Plans**: TBD
+
+Plans:
+- [ ] 11-01: Wire Python hooks into supervisor (remove "Phase 5 supervision only" limitation)
+- [ ] 11-02: Add Python validation to plugin upload path
+- [ ] 11-03: HTTP routing for Python ServeHTTP hook
+- [ ] 11-04: End-to-end plugin upload and activation test
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11
 
 Note: Phase 2 and 3 can run in parallel (both depend only on Phase 1).
 Note: Phase 5, 6, and 9 can partially overlap (all depend on Phase 4).
@@ -167,3 +181,4 @@ Note: Phase 5, 6, and 9 can partially overlap (all depend on Phase 4).
 | 8. ServeHTTP Streaming | 2/2 | Complete | 2026-01-19 |
 | 9. Manifest Extension | 2/2 | Complete | 2026-01-19 |
 | 10. Integration & Testing | 3/3 | Complete | 2026-01-19 |
+| 11. Server Integration | 0/4 | Not started | - |
