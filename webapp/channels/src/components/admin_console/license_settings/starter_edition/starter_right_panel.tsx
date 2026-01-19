@@ -5,7 +5,7 @@ import React, {memo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import ContactUsButton from 'components/announcement_bar/contact_sales/contact_us';
-import SetupSystemSvg from 'components/common/svg_images_components/setup_system';
+import SetupSystemSvg from 'components/common/svg_images_components/setup_system_svg';
 
 const StarterRightPanel = () => {
     const intl = useIntl();

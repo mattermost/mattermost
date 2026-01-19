@@ -443,7 +443,7 @@ function RestrictedIndicatorForCreateTeam({isFreeTrial}: {isFreeTrial: boolean})
             })}
             messageAdminPostTrial={formatMessage({
                 id: 'navbar_dropdown.create.modal.messageAdminPostTrial',
-                defaultMessage: "Multiple teams allow for context-specific spaces that are more attuned to your and your teams' needs. Upgrade to the Professional plan to create unlimited teams.",
+                defaultMessage: 'Multiple teams allow for context-specific spaces that are more attuned to your and your teams’ needs. Upgrade to the Professional plan to create unlimited teams.',
             })}
             titleEndUser={formatMessage({
                 id: 'navbar_dropdown.create.modal.titleEndUser',
@@ -451,7 +451,7 @@ function RestrictedIndicatorForCreateTeam({isFreeTrial}: {isFreeTrial: boolean})
             })}
             messageEndUser={formatMessage({
                 id: 'navbar_dropdown.create.modal.messageEndUser',
-                defaultMessage: "Multiple teams allow for context-specific spaces that are more attuned to your teams' needs.",
+                defaultMessage: 'Multiple teams allow for context-specific spaces that are more attuned to your teams’ needs.',
             })}
         />
     );

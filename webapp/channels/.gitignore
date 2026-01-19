@@ -24,3 +24,6 @@ Session.vim
 *~
 .eslintcache
 .stylelintcache
+
+# i18n temporary check file
+.i18n-check.tmp.json
