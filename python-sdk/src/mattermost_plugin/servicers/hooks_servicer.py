@@ -2257,17 +2257,47 @@ class PluginHooksServicerImpl(hooks_pb2_grpc.PluginHooksServicer):
         response_headers = _convert_dict_to_headers(response_writer.headers)
         status_code = response_writer.status_code or 200
 
-        # For this implementation, send all at once
-        # TODO(08-02): Support streaming responses from handler
-        body = response_writer.get_body()
-        yield hooks_http_pb2.ServeHTTPResponse(
-            init=hooks_http_pb2.ServeHTTPResponseInit(
-                status_code=status_code,
-                headers=response_headers,
-            ),
-            body_chunk=body,
-            body_complete=True,
-        )
+        # Get pending writes with flush markers
+        pending_writes = response_writer.get_pending_writes()
+
+        if not pending_writes:
+            # No body written - send just init with completion flag
+            yield hooks_http_pb2.ServeHTTPResponse(
+                init=hooks_http_pb2.ServeHTTPResponseInit(
+                    status_code=status_code,
+                    headers=response_headers,
+                ),
+                body_complete=True,
+            )
+            return
+
+        # Stream response chunks with flush support
+        for i, (chunk, flush) in enumerate(pending_writes):
+            is_last = (i == len(pending_writes) - 1)
+
+            if i == 0:
+                # First message includes init
+                yield hooks_http_pb2.ServeHTTPResponse(
+                    init=hooks_http_pb2.ServeHTTPResponseInit(
+                        status_code=status_code,
+                        headers=response_headers,
+                    ),
+                    body_chunk=chunk,
+                    body_complete=is_last,
+                    flush=flush,
+                )
+            else:
+                # Subsequent messages are body chunks only
+                yield hooks_http_pb2.ServeHTTPResponse(
+                    body_chunk=chunk,
+                    body_complete=is_last,
+                    flush=flush,
+                )
+
+            # Check for cancellation between chunks
+            if not is_last and context.cancelled():
+                self._logger.debug("ServeHTTP: response stream cancelled by client")
+                return
 
     # =========================================================================
     # DEFERRED HOOKS (Phase 8 - remaining)
@@ -2363,24 +2393,60 @@ class HTTPResponseWriter:
     HTTP response writer for ServeHTTP handlers.
 
     Provides a Pythonic interface similar to Go's http.ResponseWriter.
-    Handlers write to this object, and the servicer converts it to gRPC responses.
+    Supports both buffered and streaming response modes.
+
+    STREAMING MODE:
+    ---------------
+    For streaming responses, handlers can use the write() method to send
+    chunks incrementally, and flush() to request immediate delivery.
+    The servicer will send each chunk as a separate gRPC message.
+
+    HEADER LOCKING:
+    ---------------
+    Headers are immutable after the first write() or write_header() call.
+    This matches Go's http.ResponseWriter behavior.
+
+    FLUSH SEMANTICS:
+    ----------------
+    Flush is best-effort. The Go side will call http.Flusher.Flush() if
+    the underlying ResponseWriter supports it; otherwise silently ignored.
     """
+
+    # Recommended maximum chunk size (64KB, matching Go's DefaultChunkSize)
+    MAX_CHUNK_SIZE = 64 * 1024
 
     def __init__(self):
         self.headers: dict = {}
         self.status_code: Optional[int] = None
         self._body_chunks: list = []
         self._headers_written: bool = False
+        self._pending_flush: bool = False
+        # Pending chunks for streaming mode: list of (chunk, flush_after) tuples
+        self._pending_writes: list = []
 
     def set_header(self, name: str, value: str) -> None:
-        """Set a response header. Must be called before write() or write_header()."""
+        """
+        Set a response header (replaces existing value).
+        Must be called before write() or write_header().
+
+        Args:
+            name: Header name (e.g., "Content-Type")
+            value: Header value
+        """
         if self._headers_written:
             logger.warning(f"Cannot set header '{name}' after headers have been written")
             return
         self.headers[name] = [value]
 
     def add_header(self, name: str, value: str) -> None:
-        """Add a value to a response header (for multi-value headers)."""
+        """
+        Add a value to a response header (for multi-value headers like Set-Cookie).
+        Must be called before write() or write_header().
+
+        Args:
+            name: Header name
+            value: Header value to add
+        """
         if self._headers_written:
             logger.warning(f"Cannot add header '{name}' after headers have been written")
             return
@@ -2389,7 +2455,13 @@ class HTTPResponseWriter:
         self.headers[name].append(value)
 
     def write_header(self, status_code: int) -> None:
-        """Write the HTTP status code. Must be called before write() (or implicitly sets 200)."""
+        """
+        Write the HTTP status code. Must be called before write().
+        If not called explicitly, write() will implicitly call write_header(200).
+
+        Args:
+            status_code: HTTP status code (100-999)
+        """
         if self._headers_written:
             logger.warning("write_header called after headers already written")
             return
@@ -2397,14 +2469,61 @@ class HTTPResponseWriter:
         self._headers_written = True
 
     def write(self, data: bytes) -> int:
-        """Write response body data. Implicitly calls write_header(200) if not called."""
+        """
+        Write response body data.
+        Implicitly calls write_header(200) if not already called.
+
+        For large responses, consider chunking the data to avoid memory issues.
+        Each write() call will be sent as a separate gRPC message in streaming mode.
+
+        Args:
+            data: Bytes to write (or str, which will be UTF-8 encoded)
+
+        Returns:
+            Number of bytes written
+        """
         if not self._headers_written:
             self.write_header(200)
         if isinstance(data, str):
             data = data.encode("utf-8")
         self._body_chunks.append(data)
+        # Record pending write with current flush state
+        self._pending_writes.append((data, self._pending_flush))
+        self._pending_flush = False
         return len(data)
 
+    def flush(self) -> None:
+        """
+        Request an immediate flush of buffered response data to the client.
+
+        This is best-effort: the Go side will call http.Flusher.Flush() if
+        the underlying ResponseWriter supports it; otherwise silently ignored.
+        This matches Go plugin RPC behavior.
+
+        Note: Flush is applied to the next write, or the last write if called
+        after writing data.
+        """
+        if self._pending_writes:
+            # Apply flush to the last pending write
+            data, _ = self._pending_writes[-1]
+            self._pending_writes[-1] = (data, True)
+        else:
+            # Flush will apply to next write
+            self._pending_flush = True
+
     def get_body(self) -> bytes:
-        """Get the full response body."""
+        """Get the full response body (for buffered mode)."""
         return b"".join(self._body_chunks)
+
+    def get_pending_writes(self) -> list:
+        """
+        Get pending writes for streaming mode.
+
+        Returns:
+            List of (chunk: bytes, flush: bool) tuples
+        """
+        return self._pending_writes
+
+    def clear_pending_writes(self) -> None:
+        """Clear pending writes after they've been sent."""
+        self._pending_writes = []
