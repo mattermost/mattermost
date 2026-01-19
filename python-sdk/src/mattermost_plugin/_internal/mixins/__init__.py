@@ -12,5 +12,15 @@ interface.
 from mattermost_plugin._internal.mixins.users import UsersMixin
 from mattermost_plugin._internal.mixins.teams import TeamsMixin
 from mattermost_plugin._internal.mixins.channels import ChannelsMixin
+from mattermost_plugin._internal.mixins.posts import PostsMixin
+from mattermost_plugin._internal.mixins.files import FilesMixin
+from mattermost_plugin._internal.mixins.kvstore import KVStoreMixin
 
-__all__ = ["UsersMixin", "TeamsMixin", "ChannelsMixin"]
+__all__ = [
+    "UsersMixin",
+    "TeamsMixin",
+    "ChannelsMixin",
+    "PostsMixin",
+    "FilesMixin",
+    "KVStoreMixin",
+]

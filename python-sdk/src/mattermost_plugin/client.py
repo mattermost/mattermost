@@ -23,7 +23,14 @@ from typing import Optional, Sequence, Tuple, Type, TYPE_CHECKING
 import grpc
 
 from mattermost_plugin._internal.channel import create_channel, get_default_target
-from mattermost_plugin._internal.mixins import UsersMixin, TeamsMixin, ChannelsMixin
+from mattermost_plugin._internal.mixins import (
+    UsersMixin,
+    TeamsMixin,
+    ChannelsMixin,
+    PostsMixin,
+    FilesMixin,
+    KVStoreMixin,
+)
 from mattermost_plugin.exceptions import (
     PluginAPIError,
     convert_grpc_error,
@@ -34,7 +41,7 @@ if TYPE_CHECKING:
     from mattermost_plugin.grpc import api_pb2_grpc
 
 
-class PluginAPIClient(UsersMixin, TeamsMixin, ChannelsMixin):
+class PluginAPIClient(UsersMixin, TeamsMixin, ChannelsMixin, PostsMixin, FilesMixin, KVStoreMixin):
     """
     Synchronous client for the Mattermost Plugin API.
 
