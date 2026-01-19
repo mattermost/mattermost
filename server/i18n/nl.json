@@ -7312,7 +7312,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second Floor, Palo Alto, CA, 94301"
+    "translation": "© 2015 - {{ .CurrentYear }} Mattermost, Inc. 2100 Geng Road, Suite 210, Palo Alto, CA, 94303"
   },
   {
     "id": "api.post.search_files.invalid_body.app_error",
@@ -11686,5 +11686,17 @@
   {
     "id": "model.config.is_valid.intune_tenant_id_format.app_error",
     "translation": "Intune MAM Tenant ID moet een geldige UUID zijn."
+  },
+  {
+    "id": "api.content_flagging.error.invalid_post_type",
+    "translation": "Het markeren van een bericht van het type '{{.PostType}}' is niet toegestaan."
+  },
+  {
+    "id": "model.config.is_valid.guest_accounts.cannot_enforce_multifactor_authentication_when_guest_magic_link_is_enabled.app_error",
+    "translation": "Je kunt multifactorauthenticatie niet afdwingen voor gastaccounts als magische linkauthenticatie is ingeschakeld."
+  },
+  {
+    "id": "app.update_scheduled_post.convert_to_post.error",
+    "translation": "Kan gepland bericht niet omzetten naar berichtformaat."
   }
 ]

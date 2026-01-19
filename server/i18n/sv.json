@@ -11250,5 +11250,17 @@
   {
     "id": "ent.intune.login.not_configured.app_error",
     "translation": "Microsoft Intune-autentiseringen är inte konfigurerad."
+  },
+  {
+    "id": "api.post.update_post.burn_on_read.app_error",
+    "translation": "Inlägg som bränns vid läsning kan inte redigeras."
+  },
+  {
+    "id": "api.content_flagging.error.invalid_post_type",
+    "translation": "Att flagga ett inlägg av typen '{{.PostType}}' tillåts inte."
+  },
+  {
+    "id": "ent.push_proxy.worker.interface_nil.app_error",
+    "translation": "Push-proxy-gränssnittet är tomt."
   }
 ]

@@ -11,7 +11,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
   >
     <AdminHeader>
       <MemoizedFormattedMessage
-        defaultMessage="Management"
+        defaultMessage="Plugin Management"
         id="admin.plugin.management.title"
       />
     </AdminHeader>
@@ -270,7 +270,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
   >
     <AdminHeader>
       <MemoizedFormattedMessage
-        defaultMessage="Management"
+        defaultMessage="Plugin Management"
         id="admin.plugin.management.title"
       />
     </AdminHeader>
@@ -529,7 +529,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Plugins
   >
     <AdminHeader>
       <MemoizedFormattedMessage
-        defaultMessage="Management"
+        defaultMessage="Plugin Management"
         id="admin.plugin.management.title"
       />
     </AdminHeader>
@@ -605,7 +605,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
   >
     <AdminHeader>
       <MemoizedFormattedMessage
-        defaultMessage="Management"
+        defaultMessage="Plugin Management"
         id="admin.plugin.management.title"
       />
     </AdminHeader>
@@ -864,7 +864,7 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
   >
     <AdminHeader>
       <MemoizedFormattedMessage
-        defaultMessage="Management"
+        defaultMessage="Plugin Management"
         id="admin.plugin.management.title"
       />
     </AdminHeader>
@@ -1125,7 +1125,7 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
   >
     <AdminHeader>
       <MemoizedFormattedMessage
-        defaultMessage="Management"
+        defaultMessage="Plugin Management"
         id="admin.plugin.management.title"
       />
     </AdminHeader>
@@ -1388,7 +1388,7 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
   >
     <AdminHeader>
       <MemoizedFormattedMessage
-        defaultMessage="Management"
+        defaultMessage="Plugin Management"
         id="admin.plugin.management.title"
       />
     </AdminHeader>
@@ -1647,7 +1647,7 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
   >
     <AdminHeader>
       <MemoizedFormattedMessage
-        defaultMessage="Management"
+        defaultMessage="Plugin Management"
         id="admin.plugin.management.title"
       />
     </AdminHeader>
@@ -1730,11 +1730,12 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
           <SettingSet
             helpText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="To enable plugins, set **Enable Plugins** to true. See <link>documentation</link> to learn more."
+                defaultMessage="To enable plugins, set <strong>Enable Plugins</strong> to true. See <link>documentation</link> to learn more."
                 id="admin.plugin.uploadAndPluginDisabledDesc"
                 values={
                   Object {
                     "link": [Function],
+                    "strong": [Function],
                   }
                 }
               />
@@ -1890,7 +1891,7 @@ exports[`components/PluginManagement should match snapshot, text entered into th
   >
     <AdminHeader>
       <MemoizedFormattedMessage
-        defaultMessage="Management"
+        defaultMessage="Plugin Management"
         id="admin.plugin.management.title"
       />
     </AdminHeader>
@@ -2149,7 +2150,7 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
   >
     <AdminHeader>
       <MemoizedFormattedMessage
-        defaultMessage="Management"
+        defaultMessage="Plugin Management"
         id="admin.plugin.management.title"
       />
     </AdminHeader>
@@ -2415,7 +2416,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
   >
     <AdminHeader>
       <MemoizedFormattedMessage
-        defaultMessage="Management"
+        defaultMessage="Plugin Management"
         id="admin.plugin.management.title"
       />
     </AdminHeader>
@@ -2737,7 +2738,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
   >
     <AdminHeader>
       <MemoizedFormattedMessage
-        defaultMessage="Management"
+        defaultMessage="Plugin Management"
         id="admin.plugin.management.title"
       />
     </AdminHeader>
@@ -3027,7 +3028,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
   >
     <AdminHeader>
       <MemoizedFormattedMessage
-        defaultMessage="Management"
+        defaultMessage="Plugin Management"
         id="admin.plugin.management.title"
       />
     </AdminHeader>
@@ -3317,7 +3318,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
   >
     <AdminHeader>
       <MemoizedFormattedMessage
-        defaultMessage="Management"
+        defaultMessage="Plugin Management"
         id="admin.plugin.management.title"
       />
     </AdminHeader>
@@ -3607,7 +3608,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
   >
     <AdminHeader>
       <MemoizedFormattedMessage
-        defaultMessage="Management"
+        defaultMessage="Plugin Management"
         id="admin.plugin.management.title"
       />
     </AdminHeader>
