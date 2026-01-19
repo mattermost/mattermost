@@ -53,30 +53,42 @@ func TestIsPythonPlugin(t *testing.T) {
 			expected: true,
 		},
 		{
-			name: "Python plugin with runtime prop",
+			name: "python runtime from manifest field",
 			manifest: &model.Manifest{
-				Id: "python-plugin-props",
+				Id: "python-runtime-manifest",
 				Server: &model.ManifestServer{
-					Executable: "main",
-				},
-				Props: map[string]any{
-					"runtime": "python",
+					Runtime:    "python",
+					Executable: "server/plugin", // No .py extension
 				},
 			},
 			expected: true,
 		},
 		{
-			name: "Plugin with non-python runtime prop",
+			name: "go runtime explicit",
 			manifest: &model.Manifest{
-				Id: "node-plugin",
+				Id: "go-runtime-explicit",
 				Server: &model.ManifestServer{
-					Executable: "main.js",
-				},
-				Props: map[string]any{
-					"runtime": "node",
+					Runtime:    "go",
+					Executable: "server/plugin",
 				},
 			},
 			expected: false,
+		},
+		{
+			name: "python with full config",
+			manifest: &model.Manifest{
+				Id: "python-full-config",
+				Server: &model.ManifestServer{
+					Runtime:       "python",
+					PythonVersion: "3.11",
+					Executable:    "server/main.py",
+					Python: &model.ManifestPython{
+						DependencyMode: "venv",
+						VenvPath:       "server/venv",
+					},
+				},
+			},
+			expected: true,
 		},
 		{
 			name: "Plugin with platform-specific executables (Python)",
