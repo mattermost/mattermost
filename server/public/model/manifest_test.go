@@ -773,6 +773,111 @@ func TestManifestGetExecutableForRuntime(t *testing.T) {
 	}
 }
 
+func TestManifestUnmarshalPython(t *testing.T) {
+	expected := Manifest{
+		Id:               "com.example.pythonplugin",
+		Name:             "Python Plugin",
+		Version:          "1.0.0",
+		MinServerVersion: "10.0.0",
+		Server: &ManifestServer{
+			Executable:    "server/plugin.py",
+			Runtime:       "python",
+			PythonVersion: "3.11",
+			Python: &ManifestPython{
+				DependencyMode:   "venv",
+				VenvPath:         "server/venv",
+				RequirementsPath: "server/requirements.txt",
+			},
+		},
+	}
+
+	t.Run("yaml python plugin", func(t *testing.T) {
+		var yamlResult Manifest
+		require.NoError(t, yaml.Unmarshal([]byte(`
+id: com.example.pythonplugin
+name: Python Plugin
+version: 1.0.0
+min_server_version: 10.0.0
+server:
+    executable: server/plugin.py
+    runtime: python
+    python_version: "3.11"
+    python:
+        dependency_mode: venv
+        venv_path: server/venv
+        requirements_path: server/requirements.txt
+`), &yamlResult))
+		assert.Equal(t, expected, yamlResult)
+	})
+
+	t.Run("json python plugin", func(t *testing.T) {
+		var jsonResult Manifest
+		require.NoError(t, json.Unmarshal([]byte(`{
+	"id": "com.example.pythonplugin",
+	"name": "Python Plugin",
+	"version": "1.0.0",
+	"min_server_version": "10.0.0",
+	"server": {
+		"executable": "server/plugin.py",
+		"runtime": "python",
+		"python_version": "3.11",
+		"python": {
+			"dependency_mode": "venv",
+			"venv_path": "server/venv",
+			"requirements_path": "server/requirements.txt"
+		}
+	}
+}`), &jsonResult))
+		assert.Equal(t, expected, jsonResult)
+	})
+
+	t.Run("backward compatibility - go plugin without runtime field", func(t *testing.T) {
+		// Existing Go plugins should continue to work without specifying runtime
+		var yamlResult Manifest
+		require.NoError(t, yaml.Unmarshal([]byte(`
+id: com.example.goplugin
+name: Go Plugin
+version: 1.0.0
+server:
+    executable: server/plugin
+`), &yamlResult))
+		assert.Equal(t, "com.example.goplugin", yamlResult.Id)
+		assert.Equal(t, "Go Plugin", yamlResult.Name)
+		assert.Equal(t, "server/plugin", yamlResult.Server.Executable)
+		assert.Equal(t, "", yamlResult.Server.Runtime) // Empty string for Go plugins
+		assert.Nil(t, yamlResult.Server.Python)
+
+		var jsonResult Manifest
+		require.NoError(t, json.Unmarshal([]byte(`{
+	"id": "com.example.goplugin",
+	"name": "Go Plugin",
+	"version": "1.0.0",
+	"server": {
+		"executable": "server/plugin"
+	}
+}`), &jsonResult))
+		assert.Equal(t, "com.example.goplugin", jsonResult.Id)
+		assert.Equal(t, "", jsonResult.Server.Runtime)
+		assert.Nil(t, jsonResult.Server.Python)
+	})
+
+	t.Run("python plugin with minimal config", func(t *testing.T) {
+		// Python plugin with just runtime set, no additional python config
+		var yamlResult Manifest
+		require.NoError(t, yaml.Unmarshal([]byte(`
+id: com.example.simplepython
+name: Simple Python Plugin
+version: 1.0.0
+server:
+    executable: server/plugin.py
+    runtime: python
+`), &yamlResult))
+		assert.Equal(t, "python", yamlResult.Server.Runtime)
+		assert.Equal(t, "", yamlResult.Server.PythonVersion)
+		assert.Nil(t, yamlResult.Server.Python)
+	})
+}
+
 func TestManifestHasServer(t *testing.T) {
 	testCases := []struct {
 		Description string
