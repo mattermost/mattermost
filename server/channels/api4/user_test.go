@@ -4625,10 +4625,29 @@ func TestSwitchAccount(t *testing.T) {
 			require.Error(t, err)
 			assert.Equal(t, "api.user.oauth_to_email.not_oauth_user.app_error", err.(*model.AppError).Id)
 			CheckBadRequestStatus(t, resp)
+		})
 
-			// Now set auth to GitLab for subsequent tests
-			_, appErr := th.App.Srv().Store().User().UpdateAuthData(th.BasicUser.Id, model.UserAuthServiceGitlab, &fakeAuthData, th.BasicUser.Email, true)
-			require.NoError(t, appErr)
+		t.Run("GitLab user can switch to email", func(t *testing.T) {
+			// Explicitly set user to GitLab auth
+			_, err = th.App.Srv().Store().User().UpdateAuthData(th.BasicUser.Id, model.UserAuthServiceGitlab, &fakeAuthData, th.BasicUser.Email, true)
+			require.NoError(t, err)
+
+			sr = &model.SwitchRequest{
+				CurrentService: model.UserAuthServiceGitlab,
+				NewService:     model.UserAuthServiceEmail,
+				Email:          th.BasicUser.Email,
+				NewPassword:    th.BasicUser.Password,
+			}
+
+			link, _, err = th.Client.SwitchAccountType(context.Background(), sr)
+			require.NoError(t, err)
+			require.Equal(t, "/login?extra=signin_change", link)
+
+			// Re-login after switch and reset to GitLab for subsequent tests
+			_, _, err = th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+			require.NoError(t, err)
+			_, err = th.App.Srv().Store().User().UpdateAuthData(th.BasicUser.Id, model.UserAuthServiceGitlab, &fakeAuthData, th.BasicUser.Email, true)
+			require.NoError(t, err)
 		})
 
 		t.Run("Switching from OAuth to email is disabled if EnableSignUpWithEmail is false", func(t *testing.T) {
@@ -4721,81 +4740,75 @@ func TestSwitchAccount(t *testing.T) {
 		})
 	})
 
-	sr = &model.SwitchRequest{
-		CurrentService: model.UserAuthServiceGitlab,
-		NewService:     model.UserAuthServiceEmail,
-		Email:          th.BasicUser.Email,
-		NewPassword:    th.BasicUser.Password,
-	}
+	t.Run("OAuth to OAuth switch is invalid", func(t *testing.T) {
+		sr = &model.SwitchRequest{
+			CurrentService: model.UserAuthServiceGitlab,
+			NewService:     model.ServiceGoogle,
+		}
 
-	link, _, err = th.Client.SwitchAccountType(context.Background(), sr)
-	require.NoError(t, err)
+		_, resp, err = th.Client.SwitchAccountType(context.Background(), sr)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 
-	require.Equal(t, "/login?extra=signin_change", link)
+	t.Run("Email to OAuth without email returns not found", func(t *testing.T) {
+		sr = &model.SwitchRequest{
+			CurrentService: model.UserAuthServiceEmail,
+			NewService:     model.UserAuthServiceGitlab,
+			Password:       th.BasicUser.Password,
+		}
 
-	_, err = th.Client.Logout(context.Background())
-	require.NoError(t, err)
-	_, _, err = th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
-	require.NoError(t, err)
-	_, err = th.Client.Logout(context.Background())
-	require.NoError(t, err)
+		_, resp, err = th.Client.SwitchAccountType(context.Background(), sr)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
 
-	sr = &model.SwitchRequest{
-		CurrentService: model.UserAuthServiceGitlab,
-		NewService:     model.ServiceGoogle,
-	}
+	t.Run("Email to OAuth without password returns unauthorized", func(t *testing.T) {
+		sr = &model.SwitchRequest{
+			CurrentService: model.UserAuthServiceEmail,
+			NewService:     model.UserAuthServiceGitlab,
+			Email:          th.BasicUser.Email,
+		}
 
-	_, resp, err = th.Client.SwitchAccountType(context.Background(), sr)
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
+		_, resp, err = th.Client.SwitchAccountType(context.Background(), sr)
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+	})
 
-	sr = &model.SwitchRequest{
-		CurrentService: model.UserAuthServiceEmail,
-		NewService:     model.UserAuthServiceGitlab,
-		Password:       th.BasicUser.Password,
-	}
+	t.Run("OAuth to Email without session returns unauthorized", func(t *testing.T) {
+		_, err = th.Client.Logout(context.Background())
+		require.NoError(t, err)
 
-	_, resp, err = th.Client.SwitchAccountType(context.Background(), sr)
-	require.Error(t, err)
-	CheckNotFoundStatus(t, resp)
+		sr = &model.SwitchRequest{
+			CurrentService: model.UserAuthServiceGitlab,
+			NewService:     model.UserAuthServiceEmail,
+			Email:          th.BasicUser.Email,
+			NewPassword:    th.BasicUser.Password,
+		}
 
-	sr = &model.SwitchRequest{
-		CurrentService: model.UserAuthServiceEmail,
-		NewService:     model.UserAuthServiceGitlab,
-		Email:          th.BasicUser.Email,
-	}
+		_, resp, err = th.Client.SwitchAccountType(context.Background(), sr)
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+	})
 
-	_, resp, err = th.Client.SwitchAccountType(context.Background(), sr)
-	require.Error(t, err)
-	CheckUnauthorizedStatus(t, resp)
+	t.Run("Email to SAML switch succeeds", func(t *testing.T) {
+		sr = &model.SwitchRequest{
+			CurrentService: model.UserAuthServiceEmail,
+			NewService:     model.UserAuthServiceSaml,
+			Email:          th.BasicUser.Email,
+			Password:       th.BasicUser.Password,
+		}
 
-	sr = &model.SwitchRequest{
-		CurrentService: model.UserAuthServiceGitlab,
-		NewService:     model.UserAuthServiceEmail,
-		Email:          th.BasicUser.Email,
-		NewPassword:    th.BasicUser.Password,
-	}
+		link, _, err = th.Client.SwitchAccountType(context.Background(), sr)
+		require.NoError(t, err)
 
-	_, resp, err = th.Client.SwitchAccountType(context.Background(), sr)
-	require.Error(t, err)
-	CheckUnauthorizedStatus(t, resp)
+		values, parseErr := url.ParseQuery(link)
+		require.NoError(t, parseErr)
 
-	sr = &model.SwitchRequest{
-		CurrentService: model.UserAuthServiceEmail,
-		NewService:     model.UserAuthServiceSaml,
-		Email:          th.BasicUser.Email,
-		Password:       th.BasicUser.Password,
-	}
-
-	link, _, err = th.Client.SwitchAccountType(context.Background(), sr)
-	require.NoError(t, err)
-
-	values, parseErr := url.ParseQuery(link)
-	require.NoError(t, parseErr)
-
-	appToken, tokenErr := th.App.Srv().Store().Token().GetByToken(values.Get("email_token"))
-	require.NoError(t, tokenErr)
-	require.Equal(t, th.BasicUser.Email, appToken.Extra)
+		appToken, tokenErr := th.App.Srv().Store().Token().GetByToken(values.Get("email_token"))
+		require.NoError(t, tokenErr)
+		require.Equal(t, th.BasicUser.Email, appToken.Extra)
+	})
 }
 
 func assertToken(t *testing.T, th *TestHelper, token *model.UserAccessToken, expectedUserId string) {
