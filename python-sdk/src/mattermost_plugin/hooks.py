@@ -29,6 +29,8 @@ Alternative usage with string names:
 
 from __future__ import annotations
 
+import asyncio
+import inspect
 from enum import Enum
 from functools import wraps
 from typing import (
@@ -240,14 +242,23 @@ def hook(
             )
 
         # Mark the function with hook metadata
-        @wraps(func)
-        def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
-            return func(*args, **kwargs)
+        # Preserve async nature of the function by using appropriate wrapper
+        if inspect.iscoroutinefunction(func):
+            @wraps(func)
+            async def async_wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
+                return await func(*args, **kwargs)
 
-        # Attach hook metadata
-        setattr(wrapper, HOOK_MARKER_ATTR, canonical_name)
+            # Attach hook metadata
+            setattr(async_wrapper, HOOK_MARKER_ATTR, canonical_name)
+            return async_wrapper  # type: ignore[return-value]
+        else:
+            @wraps(func)
+            def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
+                return func(*args, **kwargs)
 
-        return wrapper  # type: ignore[return-value]
+            # Attach hook metadata
+            setattr(wrapper, HOOK_MARKER_ATTR, canonical_name)
+            return wrapper  # type: ignore[return-value]
 
     # Handle both @hook and @hook() and @hook(HookName.X)
     if callable(name_or_func):
