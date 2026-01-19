@@ -42,6 +42,7 @@ from mattermost_plugin.grpc import hooks_lifecycle_pb2
 from mattermost_plugin.grpc import hooks_message_pb2
 from mattermost_plugin.grpc import hooks_user_channel_pb2
 from mattermost_plugin.grpc import hooks_command_pb2
+from mattermost_plugin.grpc import hooks_http_pb2
 from mattermost_plugin.grpc import common_pb2
 from mattermost_plugin.grpc import api_remaining_pb2
 from mattermost_plugin._internal.hook_runner import HookRunner, DEFAULT_HOOK_TIMEOUT
@@ -2095,15 +2096,315 @@ class PluginHooksServicerImpl(hooks_pb2_grpc.PluginHooksServicer):
         return hooks_user_channel_pb2.OnSAMLLoginResponse()
 
     # =========================================================================
-    # DEFERRED HOOKS (Phase 8 - Streaming)
+    # HTTP STREAMING HOOKS (Phase 8)
+    # =========================================================================
+
+    async def ServeHTTP(
+        self,
+        request_iterator,  # AsyncIterator[hooks_http_pb2.ServeHTTPRequest]
+        context: grpc.aio.ServicerContext,
+    ):
+        """
+        Handle ServeHTTP streaming hook.
+
+        This is a bidirectional streaming RPC:
+        - Go server streams HTTP request body chunks to Python
+        - Python plugin streams HTTP response body chunks back to Go
+
+        Request flow:
+        - First message contains ServeHTTPRequestInit with headers/metadata
+        - Subsequent messages contain body_chunk data
+        - body_complete=True signals end of request body
+
+        Response flow:
+        - First message contains ServeHTTPResponseInit with status/headers
+        - Subsequent messages contain body_chunk data
+        - body_complete=True signals end of response body
+
+        The handler receives an HTTPRequest-like object and must return
+        an HTTPResponse-like object or yield response chunks.
+
+        Args:
+            request_iterator: Async iterator of ServeHTTPRequest messages.
+            context: The gRPC servicer context.
+
+        Yields:
+            ServeHTTPResponse messages with init, body chunks, and completion flag.
+        """
+        hook_name = "ServeHTTP"
+
+        # Read the first message to get request metadata
+        try:
+            first_msg = await request_iterator.__anext__()
+        except StopAsyncIteration:
+            self._logger.error("ServeHTTP: empty request stream")
+            yield hooks_http_pb2.ServeHTTPResponse(
+                init=hooks_http_pb2.ServeHTTPResponseInit(
+                    status_code=500,
+                    headers=[hooks_http_pb2.HTTPHeader(key="Content-Type", values=["text/plain"])],
+                ),
+                body_chunk=b"Empty request stream",
+                body_complete=True,
+            )
+            return
+
+        # Extract request init (metadata)
+        init = first_msg.init
+        if init is None:
+            self._logger.error("ServeHTTP: first message missing init")
+            yield hooks_http_pb2.ServeHTTPResponse(
+                init=hooks_http_pb2.ServeHTTPResponseInit(
+                    status_code=500,
+                    headers=[hooks_http_pb2.HTTPHeader(key="Content-Type", values=["text/plain"])],
+                ),
+                body_chunk=b"First message missing init",
+                body_complete=True,
+            )
+            return
+
+        # Build an HTTP request wrapper for the handler
+        http_request = HTTPRequest(
+            method=init.method,
+            url=init.url,
+            proto=init.proto,
+            proto_major=init.proto_major,
+            proto_minor=init.proto_minor,
+            headers=_convert_headers_to_dict(init.headers),
+            host=init.host,
+            remote_addr=init.remote_addr,
+            request_uri=init.request_uri,
+            content_length=init.content_length,
+            plugin_context=init.plugin_context,
+        )
+
+        # Collect request body from stream
+        # For this initial implementation, we buffer the entire body
+        # TODO(08-02): Stream body chunks to handler for true streaming
+        body_chunks = []
+        if first_msg.body_chunk:
+            body_chunks.append(first_msg.body_chunk)
+
+        if not first_msg.body_complete:
+            async for msg in request_iterator:
+                if msg.body_chunk:
+                    body_chunks.append(msg.body_chunk)
+                if msg.body_complete:
+                    break
+                # Check for cancellation
+                if context.cancelled():
+                    self._logger.debug("ServeHTTP: request cancelled by client")
+                    return
+
+        http_request.body = b"".join(body_chunks)
+
+        # Check if handler is implemented
+        if not self.plugin.has_hook(hook_name):
+            # Hook not implemented - return 404 Not Found
+            yield hooks_http_pb2.ServeHTTPResponse(
+                init=hooks_http_pb2.ServeHTTPResponseInit(
+                    status_code=404,
+                    headers=[hooks_http_pb2.HTTPHeader(key="Content-Type", values=["text/plain"])],
+                ),
+                body_chunk=b"Not Found",
+                body_complete=True,
+            )
+            return
+
+        # Invoke handler
+        handler = self.plugin.get_hook_handler(hook_name)
+
+        # Create response writer
+        response_writer = HTTPResponseWriter()
+
+        try:
+            # Handler signature: (context, response_writer, request) -> None
+            # Similar to Go's http.Handler pattern
+            result, error = await self.runner.invoke(
+                handler,
+                init.plugin_context,
+                response_writer,
+                http_request,
+                hook_name=hook_name,
+                context=context,
+            )
+
+            if error is not None:
+                self._logger.error(f"ServeHTTP handler error: {error}")
+                yield hooks_http_pb2.ServeHTTPResponse(
+                    init=hooks_http_pb2.ServeHTTPResponseInit(
+                        status_code=500,
+                        headers=[hooks_http_pb2.HTTPHeader(key="Content-Type", values=["text/plain"])],
+                    ),
+                    body_chunk=f"Internal Server Error: {error}".encode("utf-8"),
+                    body_complete=True,
+                )
+                return
+
+        except Exception as e:
+            self._logger.exception(f"ServeHTTP exception: {e}")
+            yield hooks_http_pb2.ServeHTTPResponse(
+                init=hooks_http_pb2.ServeHTTPResponseInit(
+                    status_code=500,
+                    headers=[hooks_http_pb2.HTTPHeader(key="Content-Type", values=["text/plain"])],
+                ),
+                body_chunk=f"Internal Server Error".encode("utf-8"),
+                body_complete=True,
+            )
+            return
+
+        # Send response from response_writer
+        # First message: init with status and headers
+        response_headers = _convert_dict_to_headers(response_writer.headers)
+        status_code = response_writer.status_code or 200
+
+        # For this implementation, send all at once
+        # TODO(08-02): Support streaming responses from handler
+        body = response_writer.get_body()
+        yield hooks_http_pb2.ServeHTTPResponse(
+            init=hooks_http_pb2.ServeHTTPResponseInit(
+                status_code=status_code,
+                headers=response_headers,
+            ),
+            body_chunk=body,
+            body_complete=True,
+        )
+
+    # =========================================================================
+    # DEFERRED HOOKS (Phase 8 - remaining)
     # =========================================================================
     #
-    # The following hooks are deferred to Phase 8 because they require
-    # HTTP request/response streaming or large file handling:
+    # The following hooks are deferred to Phase 8-02 or later:
     #
-    # - ServeHTTP: HTTP request/response streaming over gRPC
-    # - ServeMetrics: HTTP request/response streaming over gRPC
+    # - ServeMetrics: HTTP request/response streaming over gRPC (same pattern as ServeHTTP)
     # - FileWillBeUploaded: Large file body streaming (may have size limits)
     #
-    # These are NOT included in Implemented() until Phase 8 adds support.
+    # These are NOT included in Implemented() until their respective phase adds support.
     # =========================================================================
+
+
+# =============================================================================
+# HTTP Request/Response Helper Classes
+# =============================================================================
+
+
+def _convert_headers_to_dict(headers: list) -> dict:
+    """Convert list of HTTPHeader protos to a dict of header name -> list of values."""
+    result = {}
+    for h in headers:
+        key = h.key
+        if key not in result:
+            result[key] = []
+        result[key].extend(h.values)
+    return result
+
+
+def _convert_dict_to_headers(headers: dict) -> list:
+    """Convert dict of headers to list of HTTPHeader protos."""
+    result = []
+    for key, values in headers.items():
+        if isinstance(values, str):
+            values = [values]
+        result.append(hooks_http_pb2.HTTPHeader(key=key, values=list(values)))
+    return result
+
+
+class HTTPRequest:
+    """
+    HTTP request wrapper for ServeHTTP handlers.
+
+    Provides a Pythonic interface to the streamed HTTP request data.
+    """
+
+    def __init__(
+        self,
+        method: str,
+        url: str,
+        proto: str,
+        proto_major: int,
+        proto_minor: int,
+        headers: dict,
+        host: str,
+        remote_addr: str,
+        request_uri: str,
+        content_length: int,
+        plugin_context=None,
+    ):
+        self.method = method
+        self.url = url
+        self.proto = proto
+        self.proto_major = proto_major
+        self.proto_minor = proto_minor
+        self.headers = headers
+        self.host = host
+        self.remote_addr = remote_addr
+        self.request_uri = request_uri
+        self.content_length = content_length
+        self.plugin_context = plugin_context
+        self.body: bytes = b""
+
+    def get_header(self, name: str, default: str = "") -> str:
+        """Get a header value by name (case-insensitive)."""
+        # HTTP headers are case-insensitive
+        for key, values in self.headers.items():
+            if key.lower() == name.lower():
+                return values[0] if values else default
+        return default
+
+    def get_all_headers(self, name: str) -> list:
+        """Get all values for a header (case-insensitive)."""
+        for key, values in self.headers.items():
+            if key.lower() == name.lower():
+                return list(values)
+        return []
+
+
+class HTTPResponseWriter:
+    """
+    HTTP response writer for ServeHTTP handlers.
+
+    Provides a Pythonic interface similar to Go's http.ResponseWriter.
+    Handlers write to this object, and the servicer converts it to gRPC responses.
+    """
+
+    def __init__(self):
+        self.headers: dict = {}
+        self.status_code: Optional[int] = None
+        self._body_chunks: list = []
+        self._headers_written: bool = False
+
+    def set_header(self, name: str, value: str) -> None:
+        """Set a response header. Must be called before write() or write_header()."""
+        if self._headers_written:
+            logger.warning(f"Cannot set header '{name}' after headers have been written")
+            return
+        self.headers[name] = [value]
+
+    def add_header(self, name: str, value: str) -> None:
+        """Add a value to a response header (for multi-value headers)."""
+        if self._headers_written:
+            logger.warning(f"Cannot add header '{name}' after headers have been written")
+            return
+        if name not in self.headers:
+            self.headers[name] = []
+        self.headers[name].append(value)
+
+    def write_header(self, status_code: int) -> None:
+        """Write the HTTP status code. Must be called before write() (or implicitly sets 200)."""
+        if self._headers_written:
+            logger.warning("write_header called after headers already written")
+            return
+        self.status_code = status_code
+        self._headers_written = True
+
+    def write(self, data: bytes) -> int:
+        """Write response body data. Implicitly calls write_header(200) if not called."""
+        if not self._headers_written:
+            self.write_header(200)
+        if isinstance(data, str):
+            data = data.encode("utf-8")
+        self._body_chunks.append(data)
+        return len(data)
+
+    def get_body(self) -> bytes:
+        """Get the full response body."""
+        return b"".join(self._body_chunks)
