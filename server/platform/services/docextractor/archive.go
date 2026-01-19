@@ -20,6 +20,19 @@ type archiveExtractor struct {
 	SubExtractor Extractor
 }
 
+// sevenZipMagicBytes is the file signature for 7zip archives.
+var sevenZipMagicBytes = []byte{0x37, 0x7a, 0xbc, 0xaf, 0x27, 0x1c}
+
+func is7zipFile(r io.ReadSeeker) bool {
+	header := make([]byte, len(sevenZipMagicBytes))
+	_, err := io.ReadFull(r, header)
+	_, _ = r.Seek(0, io.SeekStart) // Always reset reader position
+	if err != nil {
+		return false
+	}
+	return bytes.Equal(header, sevenZipMagicBytes)
+}
+
 func (ae *archiveExtractor) Name() string {
 	return "archiveExtractor"
 }
@@ -39,6 +52,11 @@ func getExtAlsoTarGz(name string) string {
 }
 
 func (ae *archiveExtractor) Extract(name string, r io.ReadSeeker) (string, error) {
+	// MM-65701: Skip 7zip files due to OOM vulnerability in bodgit/sevenzip library
+	if is7zipFile(r) {
+		return "", nil
+	}
+
 	ext := getExtAlsoTarGz(name)
 
 	// Create a temporary file, using `*` control the random component while preserving the extension.
