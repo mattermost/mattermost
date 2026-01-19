@@ -260,7 +260,7 @@ $(if mme2e_is_token_in_list "webhook-interactions" "$ENABLED_DOCKER_SERVICES"; t
     # shellcheck disable=SC2016
     echo '
   webhook-interactions:
-    image: mattermostdevelopment/mirrored-node:${NODE_VERSION_REQUIRED}
+    image: node:${NODE_VERSION_REQUIRED}
     command: sh -c "npm install --global --legacy-peer-deps && exec node webhook_serve.js"
     healthcheck:
       test: ["CMD", "curl", "-s", "-o/dev/null", "127.0.0.1:3000"]
@@ -275,11 +275,21 @@ $(if mme2e_is_token_in_list "webhook-interactions" "$ENABLED_DOCKER_SERVICES"; t
   fi)
 
 $(if mme2e_is_token_in_list "playwright" "$ENABLED_DOCKER_SERVICES"; then
+    # shellcheck disable=SC2016
     echo '
   playwright:
     image: mcr.microsoft.com/playwright:v1.57.0-noble
     entrypoint: ["/bin/bash", "-c"]
-    command: ["until [ -f /var/run/mm_terminate ]; do sleep 5; done"]
+    command:
+      - |
+        # Install Node.js based on .nvmrc
+        NODE_VERSION=$$(cat /mattermost/.nvmrc)
+        echo "Installing Node.js $${NODE_VERSION}..."
+        curl -fsSL https://deb.nodesource.com/setup_$${NODE_VERSION%%.*}.x | bash -
+        apt-get install -y nodejs
+        echo "Node.js version: $$(node --version)"
+        # Wait for termination signal
+        until [ -f /var/run/mm_terminate ]; do sleep 5; done
     env_file:
       - "./.env.playwright"
     environment:

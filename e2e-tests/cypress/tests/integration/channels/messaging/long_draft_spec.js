@@ -81,6 +81,13 @@ describe('Messaging', () => {
 });
 
 function writeLinesToPostTextBox(lines) {
+    let previousHeight;
+
+    // Get the initial previous height from the alias
+    cy.get('@previousHeight').then((height) => {
+        previousHeight = height;
+    });
+
     Cypress._.forEach(lines, (line, i) => {
         // # Add the text
         cy.uiGetPostTextBox().type(line, {delay: TIMEOUTS.ONE_HUNDRED_MILLIS}).wait(TIMEOUTS.HALF_SEC);
@@ -91,11 +98,14 @@ function writeLinesToPostTextBox(lines) {
 
             // * Verify new height
             cy.uiGetPostTextBox().invoke('height').then((height) => {
+                const currentHeight = parseInt(height, 10);
+
                 // * Verify previous height should be lower than the current height
-                cy.get('@previousHeight').should('be.lessThan', parseInt(height, 10));
+                expect(previousHeight).to.be.lessThan(currentHeight);
 
                 // # Store the current height as the previous height for the next loop
-                cy.wrap(parseInt(height, 10)).as('previousHeight');
+                previousHeight = currentHeight;
+                cy.wrap(currentHeight).as('previousHeight');
             });
         }
     });

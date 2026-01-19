@@ -19,6 +19,7 @@ import {
 import {getBlobFromAsset, getFileFromAsset} from './file';
 import {
     createNewUserProfile,
+    createNewTeam,
     createRandomChannel,
     createRandomPost,
     createRandomTeam,
@@ -102,6 +103,7 @@ export class PlaywrightExtended {
 
     // ./server
     readonly createNewUserProfile;
+    readonly createNewTeam;
     readonly isOutsideRemoteUserHour;
     readonly makeClient;
 
@@ -167,6 +169,7 @@ export class PlaywrightExtended {
 
         // ./server
         this.createNewUserProfile = createNewUserProfile;
+        this.createNewTeam = createNewTeam;
         this.makeClient = makeClient;
 
         // ./visual
