@@ -1,0 +1,16 @@
+{
+  "id": "com.mattermost.hello-python",
+  "name": "Hello Python",
+  "description": "Example Python plugin demonstrating the SDK",
+  "homepage_url": "https://github.com/mattermost/mattermost",
+  "support_url": "https://github.com/mattermost/mattermost/issues",
+  "version": "0.1.0",
+  "min_server_version": "10.0.0",
+  "server": {
+    "runtime": "python",
+    "python_version": ">=3.9",
+    "python": {
+      "entry_point": "plugin.py"
+    }
+  }
+}
