@@ -19,30 +19,22 @@ import (
 )
 
 // isPythonPlugin determines if a plugin manifest indicates a Python plugin.
-// Detection uses existing manifest fields without requiring schema changes:
-// 1. Server executable ends with .py
-// 2. Manifest props contains runtime="python" (transitional marker)
+// Detection uses:
+// 1. Server.Runtime field explicitly set to "python"
+// 2. Server executable ends with .py (fallback for backward compatibility)
 func isPythonPlugin(manifest *model.Manifest) bool {
-	if manifest == nil {
+	if manifest == nil || manifest.Server == nil {
 		return false
 	}
 
-	// Check executable extension
-	executable := manifest.GetExecutableForRuntime(runtime.GOOS, runtime.GOARCH)
-	if strings.HasSuffix(executable, ".py") {
+	// Check explicit runtime declaration
+	if manifest.Server.Runtime == "python" {
 		return true
 	}
 
-	// Check props for transitional runtime marker
-	if manifest.Props != nil {
-		if runtimeVal, ok := manifest.Props["runtime"]; ok {
-			if runtimeStr, ok := runtimeVal.(string); ok && runtimeStr == "python" {
-				return true
-			}
-		}
-	}
-
-	return false
+	// Fallback: check executable extension for backward compatibility
+	executable := manifest.GetExecutableForRuntime(runtime.GOOS, runtime.GOARCH)
+	return strings.HasSuffix(executable, ".py")
 }
 
 // findPythonInterpreter locates a Python interpreter for the given plugin directory.
