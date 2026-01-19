@@ -1518,6 +1518,7 @@ const TipTapEditor = ({
                             uploadsEnabled={uploadsEnabled && Boolean(channelId)}
                             onSetLink={setLink}
                             onAddMedia={addMedia}
+                            onAddEmoji={openEmojiPicker}
                             onAddComment={commentHandler}
                             onAIRewrite={aiRewriteHandler}
                         />

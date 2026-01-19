@@ -24,11 +24,12 @@ type Props = {
     uploadsEnabled: boolean;
     onSetLink: () => void;
     onAddMedia: () => void;
+    onAddEmoji?: () => void;
     onAddComment?: (selection: {text: string; from: number; to: number}) => void;
     onAIRewrite?: () => void;
 };
 
-const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddMedia, onAddComment, onAIRewrite}: Props) => {
+const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddMedia, onAddEmoji, onAddComment, onAIRewrite}: Props) => {
     const {formatMessage} = useIntl();
     const [mode, setMode] = useState<Mode>('format');
     const [dismissed, setDismissed] = useState(false);
@@ -225,6 +226,25 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddMedia, onA
                             type='button'
                             onMouseDown={handleMouseDown}
                             onClick={onAddMedia}
+                            className='formatting-btn'
+                            title={action.title}
+                        >
+                            <i className={`icon ${action.icon}`}/>
+                        </button>
+                    </WithTooltip>
+                );
+            }
+
+            if (action.modalType === 'emoji' && onAddEmoji) {
+                return (
+                    <WithTooltip
+                        key={action.id}
+                        title={action.title}
+                    >
+                        <button
+                            type='button'
+                            onMouseDown={handleMouseDown}
+                            onClick={onAddEmoji}
                             className='formatting-btn'
                             title={action.title}
                         >

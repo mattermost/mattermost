@@ -38,6 +38,7 @@ const InlineCommentContext = ({
 
         if (pageUrl) {
             e.preventDefault();
+            e.stopPropagation();
 
             // Extract the path and hash from pageUrl
             const url = new URL(pageUrl, window.location.origin);
