@@ -22,7 +22,6 @@ interface Props {
     rootId: Post['id'];
     noArgumentHandleSubmit: () => void;
     isInEditMode: boolean;
-    showHelpLink: boolean;
 }
 
 export default function Footer({
@@ -33,7 +32,6 @@ export default function Footer({
     rootId,
     noArgumentHandleSubmit,
     isInEditMode,
-    showHelpLink,
 }: Props) {
     return (
         <div
@@ -59,7 +57,7 @@ export default function Footer({
                     rootId={rootId}
                 />
             )}
-            <HelpButton visible={showHelpLink}/>
+            {!isInEditMode && <HelpButton/>}
         </div>
     );
 }

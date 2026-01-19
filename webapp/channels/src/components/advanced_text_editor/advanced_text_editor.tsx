@@ -872,7 +872,6 @@ const AdvancedTextEditor = ({
                 rootId={rootId}
                 noArgumentHandleSubmit={handleSubmitWrapper}
                 isInEditMode={isInEditMode}
-                showHelpLink={!isInEditMode && keepEditorInFocus}
             />
             {isInEditMode && (
                 <EditPostFooter

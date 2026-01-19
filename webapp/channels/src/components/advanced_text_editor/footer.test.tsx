@@ -16,43 +16,43 @@ describe('Footer Component', () => {
         rootId: '',
         noArgumentHandleSubmit: jest.fn(),
         isInEditMode: false,
-        showHelpLink: false,
     };
 
     describe('HelpButton visibility', () => {
-        it('should not render HelpButton when showHelpLink is false', () => {
+        it('should render HelpButton when not in edit mode', () => {
             renderWithContext(
                 <Footer
                     {...baseProps}
-                    showHelpLink={false}
-                />,
-            );
-
-            expect(screen.queryByText('Help')).not.toBeInTheDocument();
-        });
-
-        it('should render HelpButton when showHelpLink is true', () => {
-            renderWithContext(
-                <Footer
-                    {...baseProps}
-                    showHelpLink={true}
+                    isInEditMode={false}
                 />,
             );
 
             expect(screen.getByText('Help')).toBeInTheDocument();
         });
 
-        it('should render HelpButton as a button element', () => {
+        it('should not render HelpButton when in edit mode', () => {
             renderWithContext(
                 <Footer
                     {...baseProps}
-                    showHelpLink={true}
+                    isInEditMode={true}
+                />,
+            );
+
+            expect(screen.queryByText('Help')).not.toBeInTheDocument();
+        });
+
+        it('should render HelpButton as a button element with correct attributes', () => {
+            renderWithContext(
+                <Footer
+                    {...baseProps}
+                    isInEditMode={false}
                 />,
             );
 
             const helpButton = screen.getByText('Help');
             expect(helpButton.tagName).toBe('BUTTON');
             expect(helpButton).toHaveAttribute('type', 'button');
+            expect(helpButton).toHaveAttribute('aria-label', 'Messaging help');
         });
     });
 
