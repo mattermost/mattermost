@@ -404,11 +404,11 @@ describe('components/new_channel_modal', () => {
         // Submit
         await userEvent.click(createChannelButton);
 
-        // Wait for error message to appear
+        // Wait for async state updates
         await waitFor(() => {
-            expect(screen.getByText('Something went wrong. Please try again.')).toBeInTheDocument();
+            const serverError = screen.getByText('Something went wrong. Please try again.');
+            expect(serverError).toBeInTheDocument();
         });
-
         expect(createChannelButton).toBeDisabled();
     });
 

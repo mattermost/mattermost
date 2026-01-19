@@ -26,6 +26,7 @@ import PlaybookType from './playbooks';
 import PluginTypes from './plugins';
 import PostTypes from './posts';
 import PreferenceTypes from './preferences';
+import RecapTypes from './recaps';
 import RoleTypes from './roles';
 import SchemeTypes from './schemes';
 import ScheduledPostTypes from './scheudled_posts';
@@ -44,6 +45,7 @@ export {
     PostTypes,
     FileTypes,
     PreferenceTypes,
+    RecapTypes,
     IntegrationTypes,
     EmojiTypes,
     AdminTypes,
