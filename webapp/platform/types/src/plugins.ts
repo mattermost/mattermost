@@ -33,7 +33,14 @@ export type PluginManifestServer = {
         'darwin-amd64'?: string;
         'windows-amd64'?: string;
     };
-    executable: string;
+    executable?: string;
+    runtime?: 'go' | 'python';
+    python_version?: string;
+    python?: {
+        dependency_mode?: 'system' | 'venv' | 'bundled';
+        venv_path?: string;
+        requirements_path?: string;
+    };
 };
 
 export type PluginManifestWebapp = {
