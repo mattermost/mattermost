@@ -4389,7 +4389,7 @@
   "gif_picker.attribution.alt": "GIPHY 제공",
   "gif_picker.input.label": "GIF 검색",
   "gif_picker.input.placeholder": "GIPHY 검색",
-  "globalThreads.heading": "구독한 글타래들",
+  "globalThreads.heading": "구독한 글타래",
   "globalThreads.noThreads.subtitle": "언급되거나 참여한 모든 글타래는 여기에 지켜보는 중인 글타래와 함께 표시됩니다.",
   "globalThreads.noThreads.title": "아직 지켜보는 글타래가 없습니다",
   "globalThreads.searchGuidance.subtitle": "오래된 대화를 찾고 있다면 다음과 같이 검색해 보세요. {searchShortcut}",

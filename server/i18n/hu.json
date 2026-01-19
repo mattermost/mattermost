@@ -8420,7 +8420,7 @@
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
-    "translation": "Egy archivált csatornán nem lehet visszaigazolni."
+    "translation": "Az archivált csatornában nem lehet visszaigazolást menteni."
   },
   {
     "id": "api.admin.syncables_error",
