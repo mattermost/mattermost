@@ -155,10 +155,10 @@ class PluginHooksServicerImpl(hooks_pb2_grpc.PluginHooksServicer):
             return hooks_lifecycle_pb2.OnActivateResponse()
 
         handler = self.plugin.get_hook_handler(hook_name)
+        # Don't pass gRPC context - we encode errors in response.error field
         result, error = await self.runner.invoke(
             handler,
             hook_name=hook_name,
-            context=context,
         )
 
         if error is not None:
@@ -208,10 +208,10 @@ class PluginHooksServicerImpl(hooks_pb2_grpc.PluginHooksServicer):
             return hooks_lifecycle_pb2.OnDeactivateResponse()
 
         handler = self.plugin.get_hook_handler(hook_name)
+        # Don't pass gRPC context - we encode errors in response.error field
         result, error = await self.runner.invoke(
             handler,
             hook_name=hook_name,
-            context=context,
         )
 
         if error is not None:
@@ -249,10 +249,10 @@ class PluginHooksServicerImpl(hooks_pb2_grpc.PluginHooksServicer):
             return hooks_lifecycle_pb2.OnConfigurationChangeResponse()
 
         handler = self.plugin.get_hook_handler(hook_name)
+        # Don't pass gRPC context - we encode errors in response.error field
         result, error = await self.runner.invoke(
             handler,
             hook_name=hook_name,
-            context=context,
         )
 
         if error is not None:
