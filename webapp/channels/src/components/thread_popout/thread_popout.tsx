@@ -37,10 +37,12 @@ import type {GlobalState} from 'types/store';
 
 const THREAD_POPOUT_TITLE = defineMessage({
     id: 'thread_popout.title',
+    // eslint-disable-next-line formatjs/enforce-placeholders -- provided later
     defaultMessage: 'Thread - {channelName} - {teamName} - {serverName}',
 });
 const THREAD_POPOUT_TITLE_DM = defineMessage({
     id: 'thread_popout.title.dm',
+    // eslint-disable-next-line formatjs/enforce-placeholders -- provided later
     defaultMessage: 'Thread - {channelName} - {serverName}',
 });
 export function getThreadPopoutTitle(channel?: Channel) {

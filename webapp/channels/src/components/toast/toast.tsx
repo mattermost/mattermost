@@ -77,7 +77,7 @@ export default function Toast({
                         <div className='tooltip__shortcut--txt'>
                             <FormattedMessage
                                 id='general_button.esc'
-                                defaultMessage='esc'
+                                defaultMessage='Esc'
                             />
                         </div>
                     </>

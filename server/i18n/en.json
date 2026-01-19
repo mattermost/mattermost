@@ -3019,6 +3019,14 @@
     "translation": "You cannot save reaction for the other user."
   },
   {
+    "id": "api.recap.disabled.app_error",
+    "translation": "This feature is not enabled."
+  },
+  {
+    "id": "api.recap.permission_denied",
+    "translation": "You do not have permission to access this recap."
+  },
+  {
     "id": "api.remote_cluster.accept_invitation_error",
     "translation": "Could not accept the remote cluster invitation"
   },
@@ -4849,6 +4857,14 @@
   {
     "id": "app.agents.get_services.bridge_call_failed",
     "translation": "Bridge call failed."
+  },
+  {
+    "id": "app.ai.summarize.agent_call_failed",
+    "translation": "AI agent call failed."
+  },
+  {
+    "id": "app.ai.summarize.parse_failed",
+    "translation": "Failed to parse AI summarization response."
   },
   {
     "id": "app.analytics.getanalytics.internal_error",
@@ -7365,6 +7381,58 @@
   {
     "id": "app.reaction.save.save.too_many_reactions",
     "translation": "Reaction limit has been reached for this post."
+  },
+  {
+    "id": "app.recap.delete.app_error",
+    "translation": "Failed to delete recap."
+  },
+  {
+    "id": "app.recap.delete_channels.app_error",
+    "translation": "Failed to delete recap channels."
+  },
+  {
+    "id": "app.recap.get.app_error",
+    "translation": "Failed to get recap."
+  },
+  {
+    "id": "app.recap.get_channel.app_error",
+    "translation": "Failed to get channel."
+  },
+  {
+    "id": "app.recap.get_channels.app_error",
+    "translation": "Failed to get recap channels."
+  },
+  {
+    "id": "app.recap.get_last_viewed.app_error",
+    "translation": "Failed to get last viewed timestamp."
+  },
+  {
+    "id": "app.recap.get_team.app_error",
+    "translation": "Failed to get team."
+  },
+  {
+    "id": "app.recap.list.app_error",
+    "translation": "Failed to get recaps."
+  },
+  {
+    "id": "app.recap.mark_read.app_error",
+    "translation": "Failed to mark recap as read."
+  },
+  {
+    "id": "app.recap.permission_denied",
+    "translation": "No permission for recap."
+  },
+  {
+    "id": "app.recap.save.app_error",
+    "translation": "Failed to save recap."
+  },
+  {
+    "id": "app.recap.save_channel.app_error",
+    "translation": "Failed to save recap channel."
+  },
+  {
+    "id": "app.recap.update.app_error",
+    "translation": "Failed to update recap."
   },
   {
     "id": "app.recover.delete.app_error",
@@ -11582,11 +11650,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 140+"
+    "translation": "Version 142+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 140+"
+    "translation": "Version 142+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",

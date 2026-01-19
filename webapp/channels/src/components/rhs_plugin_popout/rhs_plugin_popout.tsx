@@ -16,6 +16,7 @@ import type {GlobalState} from 'types/store';
 
 export const RHS_PLUGIN_TITLE = defineMessage({
     id: 'rhs_plugin_popout.title',
+    // eslint-disable-next-line formatjs/enforce-placeholders -- provided later
     defaultMessage: '{pluginDisplayName} - {serverName}',
 });
 
