@@ -2910,6 +2910,40 @@ components:
             executable:
               type: string
               description: Path to the executable binary.
+            runtime:
+              type: string
+              description: |
+                The plugin runtime. Valid values: "go" (default), "python".
+                When set to "python", the server will use the Python supervisor to run the plugin.
+              enum:
+                - go
+                - python
+            python_version:
+              type: string
+              description: |
+                Minimum Python version required for Python plugins (e.g. "3.10", ">=3.11").
+                Only applicable when runtime is "python". Informational - used for validation and error messages.
+            python:
+              type: object
+              description: Python-specific configuration. Only applicable when runtime is "python".
+              properties:
+                dependency_mode:
+                  type: string
+                  description: |
+                    How Python dependencies are managed.
+                    - "system": Use system Python with no isolated dependencies
+                    - "venv": Use a virtual environment bundled with the plugin
+                    - "bundled": Dependencies are bundled directly in the plugin package
+                  enum:
+                    - system
+                    - venv
+                    - bundled
+                venv_path:
+                  type: string
+                  description: Relative path to the virtual environment directory (e.g. "server/venv"). Only used when dependency_mode is "venv".
+                requirements_path:
+                  type: string
+                  description: Relative path to the requirements.txt file (e.g. "server/requirements.txt").
         webapp:
           type: object
           properties:
