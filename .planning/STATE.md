@@ -2,26 +2,27 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-01-13)
+See: .planning/PROJECT.md (updated 2026-01-20)
 
 **Core value:** Full API coverage: every API method and hook available to Go plugins must work identically from Python plugins.
-**Current focus:** Phase 13 — Python Plugin Developer Experience
+**Current focus:** v1.0 COMPLETE — Planning next milestone
 
 ## Current Position
 
 Phase: 13 of 13 (Python Plugin Developer Experience) - COMPLETE
 Plan: 4 of 4 in current phase
-Status: MILESTONE COMPLETE
-Last activity: 2026-01-20 — Completed Phase 13 (Python Plugin Developer Experience)
+Status: v1.0 MILESTONE SHIPPED
+Last activity: 2026-01-20 — v1.0 milestone complete
 
 Progress: ██████████████████████████████ 100% (13/13 phases complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 36 (3 in Phase 1, 5 in Phase 2, 4 in Phase 3, 4 in Phase 4, 3 in Phase 5, 4 in Phase 6, 3 in Phase 7, 2 in Phase 8, 2 in Phase 9, 3 in Phase 10, 3 in Phase 11)
+- Total plans completed: 41 (across 13 phases)
 - Average duration: ~11 min
 - Total execution time: ~8 hours
+- Timeline: 5 days (2026-01-16 → 2026-01-20)
 
 **By Phase:**
 
@@ -55,54 +56,14 @@ Progress: ███████████████████████�
 
 ### Decisions
 
-Decisions are logged in PROJECT.md Key Decisions table.
-Recent decisions affecting current work:
-
-| Phase | Decision | Rationale |
-|-------|----------|-----------|
-| 02-01 | Complete message definitions in skeleton | Avoided placeholder churn; all 236 RPCs defined |
-| 02-01 | Per-group proto files | Maintainability: api_user_team, api_channel_post, api_kv_config, api_file_bot, api_remaining |
-| 02-01 | JSON blob for large types | Config, License, Manifest use bytes *_json to avoid proto churn |
-| 03-01 | PluginContext message | Shared context type for all hook invocations |
-| 03-02 | Reuse types from api_remaining.proto | Avoided duplicate definitions for PushNotification, Preference |
-| 03-04 | Reuse types from api_remaining.proto | Avoided duplicates for CommandArgs, CommandResponse, SlackAttachment |
-| 04-01 | Domain-split handler files | Maintainability: handlers_user.go, handlers_team.go, etc. |
-| 04-02 | Conversion helpers per domain | convert_team.go, convert_post.go, convert_file.go, etc. |
-| 04-04 | 70+ RPC handlers for remaining APIs | Full API parity achieved on Go server side |
-| 05-02 | Fake Python interpreter pattern | Go binaries simulating Python for hermetic tests |
-| 05-03 | Failure-mode tests (timeout, invalid handshake) | Resilient supervisor with proper error handling |
-| 06-02 | Domain-specific mixin classes | UsersMixin, TeamsMixin, ChannelsMixin for organization |
-| 06-03 | Frozen wrapper dataclasses | from_proto()/to_proto() for type conversion |
-| 06-04 | 8 new mixin modules for remaining APIs | BotsMixin, CommandsMixin, ConfigMixin, etc. |
-| 06-04 | 100% RPC coverage (236/236) | Full parity with Go Plugin API |
-| 07-01 | @hook decorator + HookName enum | Pythonic hook registration pattern |
-| 07-01 | Plugin base class with __init_subclass__ | Automatic hook discovery at class definition |
-| 07-01 | gRPC health service for go-plugin | Reports "plugin" service as SERVING |
-| 07-02 | Hook servicer with lifecycle/message hooks | OnActivate, MessageWillBePosted, etc. |
-| 07-02 | DISMISS_POST_ERROR constant | Matches Go constant for silent post dismissal |
-| 07-03 | 30+ remaining hooks implemented | Full hook parity excluding streaming hooks |
-| 07-03 | Streaming hooks deferred to Phase 8 | ServeHTTP, ServeMetrics, FileWillBeUploaded |
-| 08-01 | Bidirectional streaming for ServeHTTP | Request/response bodies chunked at 64KB |
-| 08-01 | HTTPRequest/HTTPResponseWriter pattern | Matches Go http.Handler(w, r) semantics |
-| 08-02 | Flush support as gRPC message flag | Best-effort flush, no-op when unsupported |
-| 08-02 | Status code validation 100-999 | Invalid codes return 500, matches plugin/http.go |
-| 09-01 | Runtime field with empty default | Backward compatible - Go plugins don't need to specify |
-| 09-01 | ManifestPython as pointer | Allows nil check for non-Python plugins |
-| 09-02 | Server.Runtime over .py extension | Explicit declaration preferred, extension is fallback |
-| 09-02 | Removed props.runtime hack | No longer needed with proper manifest fields |
-| 11-01 | hooksGRPCClient adapter pattern | Mirror hooksRPCClient but for gRPC; implements Hooks interface |
-| 11-01 | 64KB chunks for ServeHTTP | Consistent with Phase 8 streaming design |
-| 11-02 | Extract gRPC conn from GRPCClient.Conn | go-plugin exposes underlying connection |
-| 11-02 | Fake Python interpreters for tests | Go binaries implementing PluginHooks gRPC for hermetic tests |
+All decisions logged in PROJECT.md Key Decisions table.
 
 ### Deferred Issues
 
 | Issue | Phase | Notes |
 |-------|-------|-------|
 | Streaming for UploadData/InstallPlugin | 02-04 | Currently unary with bytes; should be client-streaming for large files |
-| HTTP body streaming | 02-05 | PluginHTTP uses unary bytes; Phase 8 will add streaming |
-| ServeHTTP/ServeMetrics | 03-04 | Deferred to Phase 8 (HTTP streaming) |
-| GetPluginID needs supervisor context | 04-04 | Returns Unimplemented; requires Phase 5 integration |
+| Performance parity with Go | — | Inherent Python overhead; documented, not a blocker |
 
 ### Blockers/Concerns
 
@@ -111,15 +72,13 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-20
-Stopped at: MILESTONE COMPLETE — All 13 phases finished
+Stopped at: v1.0 MILESTONE COMPLETE
 Resume file: None
 
 ## Roadmap Evolution
 
 - Phase 12 added: Python API Callback Server (2026-01-20)
   - Reason: During real-world testing, discovered Python plugins cannot call back to Go API
-  - Python → Go API calls fail with "Connection refused" because no gRPC server is running
-  - Existing APIServer implementation at `server/public/pluginapi/grpc/server/` can be reused
 
 - Phase 13 added: Python Plugin Developer Experience (2026-01-20)
   - Final phase before milestone completion
@@ -127,7 +86,7 @@ Resume file: None
 
 ## Next Steps
 
-**🎉 MILESTONE COMPLETE**
+**🎉 v1.0 MILESTONE SHIPPED**
 
 All 13 phases have been completed. The Python plugin system is fully implemented:
 - Full API parity (236 RPC methods)
@@ -135,4 +94,6 @@ All 13 phases have been completed. The Python plugin system is fully implemented
 - Complete developer documentation and tooling
 - Ready for production use
 
-Run `/gsd:complete-milestone` to archive this milestone.
+**Next milestone options:**
+- `/gsd:discuss-milestone` — Plan v1.1 or v2.0 features
+- `/gsd:new-milestone` — Create directly if scope is clear

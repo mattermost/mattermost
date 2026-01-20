@@ -8,13 +8,14 @@ Build a gRPC-based protocol layer enabling Python plugins to communicate with th
 
 None
 
-## Phases
+## Milestones
 
-**Phase Numbering:**
-- Integer phases (1, 2, 3): Planned milestone work
-- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
+- ✅ **[v1.0 Python Plugin Support](milestones/v1.0-ROADMAP.md)** — Phases 1-13 (shipped 2026-01-20)
 
-Decimal phases appear between their surrounding integers in numeric order.
+## Completed Milestones
+
+<details>
+<summary>✅ v1.0 Python Plugin Support (Phases 1-13) — SHIPPED 2026-01-20</summary>
 
 - [x] **Phase 1: Protocol Foundation** - gRPC setup and protobuf definitions for core types ✓ (2026-01-16)
 - [x] **Phase 2: API Protobuf Definitions** - Define all 100+ Plugin API methods in protobuf ✓ (2026-01-16)
@@ -30,203 +31,29 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 12: Python API Callback Server** - gRPC server for Python plugins to call back to Go API ✓ (2026-01-20)
 - [x] **Phase 13: Python Plugin Developer Experience** - Architecture docs, Makefile tooling, Claude.md guides ✓ (2026-01-20)
 
-## Phase Details
+**Key accomplishments:**
+- 236 RPC methods for Plugin API
+- 35+ hooks including ServeHTTP streaming
+- Python SDK with typed client and decorator-based hooks
+- Full server integration with hooksGRPCClient adapter
+- Comprehensive documentation and tooling
 
-### Phase 1: Protocol Foundation
-**Goal**: Establish gRPC infrastructure and define core protobuf types shared across all API methods and hooks
-**Depends on**: Nothing (first phase)
-**Research**: Likely (gRPC setup patterns, hashicorp/go-plugin integration)
-**Research topics**: gRPC with hashicorp/go-plugin, protobuf best practices for large APIs, shared type definitions
-**Plans**: TBD
-
-Plans:
-- [x] 01-01: gRPC dependency setup and build configuration ✓
-- [x] 01-02: Core protobuf types (User, Channel, Post, Team, etc.) ✓
-- [x] 01-03: Error handling and common patterns ✓
-
-### Phase 2: API Protobuf Definitions
-**Goal**: Complete protobuf definitions for all 100+ Plugin API methods
-**Depends on**: Phase 1
-**Research**: Unlikely (translating existing Go interfaces to protobuf)
-**Plans**: TBD
-
-Plans:
-- [x] 02-01: User and Team API methods ✓
-- [x] 02-02: Channel and Post API methods ✓
-- [x] 02-03: KV Store and Configuration API methods ✓
-- [x] 02-04: File and Bot API methods ✓
-- [x] 02-05: Remaining API methods (OAuth, Preferences, etc.) ✓
-
-### Phase 3: Hook Protobuf Definitions
-**Goal**: Complete protobuf definitions for all plugin hooks
-**Depends on**: Phase 1
-**Research**: Unlikely (translating existing Go hooks to protobuf)
-**Plans**: TBD
-
-Plans:
-- [x] 03-01: Lifecycle hooks (OnActivate, OnDeactivate, etc.) ✓
-- [x] 03-02: Message hooks (MessagePosted, MessageUpdated, etc.) ✓
-- [x] 03-03: User and Channel hooks ✓
-- [x] 03-04: Command and Webhook hooks ✓
-
-### Phase 4: Go gRPC Server
-**Goal**: Implement Go gRPC server that wraps the existing Plugin API, callable by Python plugins
-**Depends on**: Phase 2, Phase 3
-**Research**: Unlikely (standard gRPC server implementation)
-**Plans**: TBD
-
-Plans:
-- [x] 04-01: gRPC server scaffolding and plugin API wrapper ✓
-- [x] 04-02: Implement User/Team/Channel API handlers ✓
-- [x] 04-03: Implement Post/File/KV Store API handlers ✓
-- [x] 04-04: Implement remaining API handlers ✓
-
-### Phase 5: Python Supervisor
-**Goal**: Go-side supervisor that spawns Python plugin subprocesses and manages gRPC connections
-**Depends on**: Phase 4
-**Research**: Likely (process management patterns, gRPC client handshake)
-**Research topics**: Python subprocess management from Go, gRPC connection establishment, health checking
-**Plans**: TBD
-
-Plans:
-- [x] 05-01: Python process spawning and lifecycle management ✓
-- [x] 05-02: gRPC connection establishment and handshake ✓
-- [x] 05-03: Health checking and restart logic ✓
-
-### Phase 6: Python SDK Core
-**Goal**: Python package with typed gRPC client providing access to all Plugin API methods
-**Depends on**: Phase 4
-**Research**: Likely (grpcio patterns, Python typing best practices)
-**Research topics**: grpcio client patterns, Python type hints for generated code, package structure
-**Plans**: TBD
-
-Plans:
-- [x] 06-01: Python package structure and gRPC client setup ✓
-- [x] 06-02: Typed API client for User/Team/Channel methods ✓
-- [x] 06-03: Typed API client for Post/File/KV Store methods ✓
-- [x] 06-04: Typed API client for remaining methods ✓
-
-### Phase 7: Python Hook System
-**Goal**: Pythonic pattern for plugins to implement hooks (decorators or class methods)
-**Depends on**: Phase 6
-**Research**: Likely (Python decorator patterns for RPC callbacks)
-**Research topics**: Python decorator patterns, gRPC bidirectional streaming for callbacks, plugin class structure
-**Plans**: TBD
-
-Plans:
-- [x] 07-01: Hook registration mechanism design ✓
-- [x] 07-02: Implement lifecycle and message hooks ✓
-- [x] 07-03: Implement remaining hooks ✓
-
-### Phase 8: ServeHTTP Streaming
-**Goal**: Support ServeHTTP hook with proper HTTP request/response streaming over gRPC
-**Depends on**: Phase 7
-**Research**: Likely (gRPC streaming for HTTP proxy pattern)
-**Research topics**: gRPC streaming for HTTP bodies, request/response header handling, chunked transfer
-**Plans**: TBD
-
-Plans:
-- [x] 08-01: HTTP request streaming from Go to Python ✓
-- [x] 08-02: HTTP response streaming from Python to Go ✓
-
-### Phase 9: Manifest Extension
-**Goal**: Extend plugin manifest format to support Python executables and entry points
-**Depends on**: Phase 5
-**Research**: Unlikely (extending existing JSON/YAML manifest format)
-**Plans**: TBD
-
-Plans:
-- [x] 09-01: Manifest schema extension for Python plugins ✓
-- [x] 09-02: Manifest parsing and validation updates ✓
-
-### Phase 10: Integration & Testing
-**Goal**: End-to-end testing with example Python plugin, performance benchmarks, documentation
-**Depends on**: Phase 8, Phase 9
-**Research**: Unlikely (testing and documentation)
-**Plans**: TBD
-
-Plans:
-- [x] 10-01: Example Python plugin implementation ✓
-- [x] 10-02: Integration test suite ✓
-- [x] 10-03: Performance benchmarks and documentation ✓
-
-### Phase 11: Server Integration
-**Goal**: Wire Python plugin support into main Mattermost server so plugins can be uploaded and run
-**Depends on**: Phase 10
-**Research**: Likely (plugin loading path, HTTP routing)
-**Research topics**: Plugin upload validation, hook dispatch from gRPC, HTTP routing to ServeHTTP
-**Plans**: TBD
-
-Plans:
-- [x] 11-01: hooksGRPCClient adapter implementing Hooks interface ✓
-- [x] 11-02: Wire hooksGRPCClient into supervisor ✓
-- [x] 11-03: Integration tests and documentation ✓
-
-### Phase 12: Python API Callback Server
-**Goal**: Start a gRPC PluginAPI server on the Go side that Python plugins can call back to for API operations
-**Depends on**: Phase 11
-**Research**: Unlikely (existing APIServer implementation can be reused)
-**Plans**: 1
-
-Plans:
-- [x] 12-01: Start gRPC PluginAPI server and pass address to Python via env var ✓
-
-### Phase 13: Python Plugin Developer Experience
-**Goal**: Complete documentation, tooling, and developer guidance for Python plugin development
-**Depends on**: Phase 12
-**Research**: Unlikely (documentation and tooling)
-**Plans**: TBD
-
-Plans:
-- [x] 13-01: Architecture documentation for internal developers ✓
-- [x] 13-02: Server Makefile gRPC tooling ✓
-- [x] 13-03: Example plugin Makefile and packaging ✓
-- [x] 13-04: Claude.md files for agentic development ✓
-
-**Details:**
-This phase focuses on developer experience for both internal Mattermost engineers and external plugin developers:
-
-1. **Architecture Documentation** - Comprehensive document explaining:
-   - gRPC protocol layer and protobuf definitions
-   - Go-side infrastructure (supervisor, hook dispatch, API server)
-   - Python SDK structure and hook system
-   - Process lifecycle and connection management
-   - How plugins are loaded, activated, and managed
-
-2. **Server Makefile Tooling** - Add targets for:
-   - Protobuf/gRPC code generation
-   - Python SDK building and packaging
-
-3. **Example Plugin Tooling** - Makefile with targets for:
-   - Plugin packaging into tar.gz
-   - Development workflow (install, test)
-   - Future: Template for standalone starter repo
-
-4. **Claude.md Files** - Agentic AI guidance:
-   - Example plugin Claude.md for plugin developers
-   - Server-side Claude.md for Mattermost contributors
-   - Python SDK Claude.md for SDK maintainers
+</details>
 
 ## Progress
 
-**Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13
-
-Note: Phase 2 and 3 can run in parallel (both depend only on Phase 1).
-Note: Phase 5, 6, and 9 can partially overlap (all depend on Phase 4).
-
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 1. Protocol Foundation | 3/3 | Complete | 2026-01-16 |
-| 2. API Protobuf Definitions | 5/5 | Complete | 2026-01-16 |
-| 3. Hook Protobuf Definitions | 4/4 | Complete | 2026-01-16 |
-| 4. Go gRPC Server | 4/4 | Complete | 2026-01-16 |
-| 5. Python Supervisor | 3/3 | Complete | 2026-01-19 |
-| 6. Python SDK Core | 4/4 | Complete | 2026-01-19 |
-| 7. Python Hook System | 3/3 | Complete | 2026-01-19 |
-| 8. ServeHTTP Streaming | 2/2 | Complete | 2026-01-19 |
-| 9. Manifest Extension | 2/2 | Complete | 2026-01-19 |
-| 10. Integration & Testing | 3/3 | Complete | 2026-01-19 |
-| 11. Server Integration | 3/3 | Complete | 2026-01-19 |
-| 12. Python API Callback Server | 1/1 | Complete | 2026-01-20 |
-| 13. Python Plugin Developer Experience | 4/4 | Complete | 2026-01-20 |
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 1. Protocol Foundation | v1.0 | 3/3 | Complete | 2026-01-16 |
+| 2. API Protobuf Definitions | v1.0 | 5/5 | Complete | 2026-01-16 |
+| 3. Hook Protobuf Definitions | v1.0 | 4/4 | Complete | 2026-01-16 |
+| 4. Go gRPC Server | v1.0 | 4/4 | Complete | 2026-01-16 |
+| 5. Python Supervisor | v1.0 | 3/3 | Complete | 2026-01-19 |
+| 6. Python SDK Core | v1.0 | 4/4 | Complete | 2026-01-19 |
+| 7. Python Hook System | v1.0 | 3/3 | Complete | 2026-01-19 |
+| 8. ServeHTTP Streaming | v1.0 | 2/2 | Complete | 2026-01-19 |
+| 9. Manifest Extension | v1.0 | 2/2 | Complete | 2026-01-19 |
+| 10. Integration & Testing | v1.0 | 3/3 | Complete | 2026-01-19 |
+| 11. Server Integration | v1.0 | 3/3 | Complete | 2026-01-19 |
+| 12. Python API Callback Server | v1.0 | 1/1 | Complete | 2026-01-20 |
+| 13. Python Plugin Developer Experience | v1.0 | 4/4 | Complete | 2026-01-20 |

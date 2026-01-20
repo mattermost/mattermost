@@ -4,6 +4,8 @@
 
 An extension to Mattermost's plugin system enabling server-side plugins in languages beyond Go, starting with Python. Uses gRPC for language-agnostic communication while maintaining the subprocess-per-plugin model and seamless integration with the existing plugin infrastructure.
 
+**v1.0 shipped** with full Python plugin support — 236 API methods and 35+ hooks working identically to Go plugins.
+
 ## Core Value
 
 Full API coverage: every API method and hook available to Go plugins must work identically from Python plugins.
@@ -19,19 +21,20 @@ Full API coverage: every API method and hook available to Go plugins must work i
 - ✓ Subprocess-per-plugin process model — existing
 - ✓ Plugin manifest system for metadata and configuration — existing
 - ✓ Database Driver interface for direct DB access — existing
+- ✓ gRPC protocol layer for cross-language plugin communication — v1.0
+- ✓ Protocol buffer definitions for all Plugin API methods (236 RPCs) — v1.0
+- ✓ Protocol buffer definitions for all plugin hooks (35+ hooks) — v1.0
+- ✓ Python plugin supervisor (Go-side process management) — v1.0
+- ✓ Python plugin SDK with typed API client — v1.0
+- ✓ ServeHTTP streaming support over gRPC — v1.0
+- ✓ Manifest support for Python executables/entry points — v1.0
+- ✓ Python hook implementation pattern (decorators) — v1.0
+- ✓ Full parity: all Go plugin API methods callable from Python — v1.0
+- ✓ Full parity: all Go plugin hooks receivable in Python — v1.0
 
 ### Active
 
-- [ ] gRPC protocol layer for cross-language plugin communication
-- [ ] Protocol buffer definitions for all Plugin API methods
-- [ ] Protocol buffer definitions for all plugin hooks
-- [ ] Python plugin supervisor (Go-side process management)
-- [ ] Python plugin SDK with typed API client
-- [ ] ServeHTTP streaming support over gRPC
-- [ ] Manifest support for Python executables/entry points
-- [ ] Python hook implementation pattern (decorators or class methods)
-- [ ] Full parity: all Go plugin API methods callable from Python
-- [ ] Full parity: all Go plugin hooks receivable in Python
+None — v1.0 complete
 
 ### Out of Scope
 
@@ -40,43 +43,69 @@ Full API coverage: every API method and hook available to Go plugins must work i
 - Embedded Python interpreter — using subprocess model instead
 - Other languages in v1 — Python first, architecture enables future languages
 
-## Context
+## Current State
 
-**Current Plugin Architecture:**
-- Plugins are Go binaries using hashicorp/go-plugin library
-- Communication via net/rpc over stdio (Go-to-Go only)
-- Server spawns plugin subprocess, establishes RPC connection
-- Plugins implement `Hooks` interface, receive `API` for server calls
-- `supervisor.go` manages plugin lifecycle, `client_rpc.go` handles RPC marshalling
+**Version:** v1.0 Python Plugin Support (shipped 2026-01-20)
+
+**Tech Stack:**
+- Go gRPC server: ~70k LOC (proto definitions + handlers + converters)
+- Python SDK: ~31k LOC (typed client, hooks, wrappers)
+- Protocol: gRPC with Protocol Buffers v3
+- Integration: hashicorp/go-plugin with custom PluginHooks service
+
+**Architecture:**
+```
+Mattermost Server
+    └── Python Supervisor (Go)
+           ├── Spawns Python subprocess
+           ├── Establishes gRPC connection (go-plugin)
+           └── Starts PluginAPI callback server
+                   │
+                   ▼
+           Python Plugin (subprocess)
+               ├── PluginHooks gRPC server (receives hooks)
+               └── PluginAPI gRPC client (calls API)
+```
 
 **Key Files:**
-- `server/public/plugin/api.go` — 100+ API methods interface
-- `server/public/plugin/hooks.go` — Hook definitions (auto-generated)
-- `server/public/plugin/client_rpc.go` — RPC client/server implementations
-- `server/public/plugin/supervisor.go` — Plugin process management
+- `server/public/pluginapi/grpc/proto/*.proto` — Protocol definitions
+- `server/public/pluginapi/grpc/server/` — Go gRPC handlers
+- `server/public/plugin/python_supervisor.go` — Process management
+- `server/public/plugin/hooks_grpc_client.go` — Hook dispatch
+- `python-sdk/src/mattermost_plugin/` — Python SDK
 
-**Challenge:**
-net/rpc is Go-specific (gob encoding). gRPC with Protocol Buffers provides language-agnostic serialization and has excellent Python support via grpcio.
+## Context
 
-**Approach:**
-1. Define .proto files mirroring the Plugin API and Hooks interfaces
-2. Implement gRPC server in Go (server side) and Python client (plugin side)
-3. Create Python supervisor that spawns Python plugins, connects via gRPC
-4. Build Python SDK that feels native (type hints, Pythonic patterns)
+**What was built:**
+- Complete gRPC infrastructure enabling Python plugins
+- Python SDK with Pythonic patterns (decorators, type hints, dataclasses)
+- Bidirectional streaming for HTTP request/response handling
+- Full server integration with existing plugin infrastructure
+
+**Tested with:**
+- Example `hello_python` plugin demonstrating hooks and API calls
+- Integration tests for Python plugin lifecycle
+- Benchmark tests comparing Go RPC vs Python gRPC overhead
 
 ## Constraints
 
-- **Backward Compatibility**: Existing Go plugins must continue working unchanged. The gRPC layer is additive, not replacing net/rpc for Go plugins.
-- **Monolithic Server**: No separate containers or sidecar processes. Python plugins run as subprocesses managed by the main Mattermost server, just like Go plugins.
-- **Plugin Manifest**: Must extend existing manifest format to support Python while remaining valid for Go plugins.
+- **Backward Compatibility**: Existing Go plugins continue working unchanged. The gRPC layer is additive.
+- **Monolithic Server**: Python plugins run as subprocesses, just like Go plugins.
+- **Plugin Manifest**: Extended format remains valid for Go plugins.
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| gRPC over JSON-RPC | Strong typing via protobuf, excellent Python/Go support, streaming for ServeHTTP | — Pending |
-| Subprocess per plugin | Matches existing Go model, isolation, simpler than embedded interpreter | — Pending |
-| Python first | Most requested language, large ecosystem, good gRPC support | — Pending |
+| gRPC over JSON-RPC | Strong typing via protobuf, excellent Python/Go support, streaming for ServeHTTP | ✓ Good |
+| Subprocess per plugin | Matches existing Go model, isolation, simpler than embedded interpreter | ✓ Good |
+| Python first | Most requested language, large ecosystem, good gRPC support | ✓ Good |
+| Per-group proto files | Maintainability: api_user_team, api_channel_post, etc. | ✓ Good |
+| JSON blob for complex types | Config, License, Manifest use bytes to avoid proto churn | ✓ Good |
+| @hook decorator pattern | Pythonic registration, works with __init_subclass__ | ✓ Good |
+| 64KB chunks for HTTP streaming | Balances latency vs overhead | ✓ Good |
+| hooksGRPCClient adapter | Implements Hooks interface, mirrors hooksRPCClient pattern | ✓ Good |
+| Separate API callback server | Breaks import cycle, clean lifecycle management | ✓ Good |
 
 ---
-*Last updated: 2026-01-13 after initialization*
+*Last updated: 2026-01-20 after v1.0 milestone*
