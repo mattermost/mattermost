@@ -97,8 +97,9 @@ func sanitizePythonScriptPath(pluginDir, executable string) (string, error) {
 
 // buildPythonCommand creates an exec.Cmd for running a Python plugin.
 // It sets the working directory and configures a graceful shutdown delay.
-func buildPythonCommand(pythonPath, scriptPath, pluginDir string) *exec.Cmd {
-	cmd := exec.Command(pythonPath, scriptPath)
+// The executable parameter should be relative to pluginDir (e.g., "plugin.py").
+func buildPythonCommand(pythonPath, executable, pluginDir string) *exec.Cmd {
+	cmd := exec.Command(pythonPath, executable)
 	cmd.Dir = pluginDir
 	// Allow 5 seconds for graceful shutdown before SIGKILL on context cancellation
 	cmd.WaitDelay = 5 * time.Second
@@ -142,13 +143,14 @@ func configurePythonCommand(pluginInfo *model.BundleInfo, clientConfig *plugin.C
 		return err
 	}
 
-	// Verify the script file exists
+	// Verify the script file exists (using full path for the check)
 	if _, err := os.Stat(scriptPath); os.IsNotExist(err) {
 		return fmt.Errorf("Python plugin script not found: %s", scriptPath)
 	}
 
-	// Build the command
-	cmd := buildPythonCommand(pythonPath, scriptPath, pluginInfo.Path)
+	// Build the command - pass executable name (relative to pluginDir), not full scriptPath
+	// Since cmd.Dir is set to pluginDir, paths are resolved relative to it
+	cmd := buildPythonCommand(pythonPath, executable, pluginInfo.Path)
 	clientConfig.Cmd = cmd
 
 	// For Python plugins, we don't use SecureConfig because:
