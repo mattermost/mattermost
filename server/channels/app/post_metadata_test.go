@@ -3210,7 +3210,7 @@ func TestPreparePostForClient_BurnOnReadSenderExpireAt(t *testing.T) {
 	}
 	borPost.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(10*60*1000))
 
-	post, appErr := th.App.CreatePost(th.Context, borPost, th.BasicChannel, model.CreatePostFlags{})
+	post, _, appErr := th.App.CreatePost(th.Context, borPost, th.BasicChannel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
 
 	// Simulate recipient revealing the post
