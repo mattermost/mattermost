@@ -11,7 +11,7 @@ This example plugin demonstrates the core features of the Python Plugin SDK:
 - Using the API client and logger
 """
 
-from mattermost_plugin import Plugin, hook, HookName
+from mattermost_plugin import Plugin, hook, HookName, Command
 
 
 class HelloPythonPlugin(Plugin):
@@ -33,6 +33,21 @@ class HelloPythonPlugin(Plugin):
         or perform any setup tasks.
         """
         self.logger.info("Hello Python plugin activated!")
+
+        # Register the /hello slash command
+        try:
+            hello_cmd = Command(
+                trigger="hello",
+                auto_complete=True,
+                auto_complete_desc="Say hello from Python!",
+                auto_complete_hint="[world]",
+                display_name="Hello",
+                description="A friendly greeting from the Python plugin",
+            )
+            self.api.register_command(hello_cmd)
+            self.logger.info("Registered /hello command")
+        except Exception as e:
+            self.logger.error(f"Failed to register /hello command: {e}")
 
         # Example: Get server version using the API client
         try:
