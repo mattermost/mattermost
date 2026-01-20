@@ -46,6 +46,7 @@ from mattermost_plugin.grpc import hooks_http_pb2
 from mattermost_plugin.grpc import common_pb2
 from mattermost_plugin.grpc import api_remaining_pb2
 from mattermost_plugin._internal.hook_runner import HookRunner, DEFAULT_HOOK_TIMEOUT
+from mattermost_plugin._internal.wrappers import CommandResponse as CommandResponseWrapper
 
 if TYPE_CHECKING:
     from mattermost_plugin.plugin import Plugin
@@ -72,6 +73,73 @@ def _make_app_error(
         status_code=status_code,
         where=where,
     )
+
+
+def _to_command_response_proto(
+    result: object,
+    logger: logging.Logger,
+) -> Optional[api_remaining_pb2.CommandResponse]:
+    """
+    Convert a handler result to a CommandResponse protobuf.
+
+    Supports:
+    - dict with command response fields (response_type, text, etc.)
+    - CommandResponseWrapper (the SDK wrapper class)
+    - api_remaining_pb2.CommandResponse (protobuf, passed through)
+
+    Args:
+        result: The return value from the ExecuteCommand handler.
+        logger: Logger for warnings/errors.
+
+    Returns:
+        A CommandResponse protobuf, or None if conversion failed.
+    """
+    if result is None:
+        return None
+
+    # Handle dict responses (most common from plugin developers)
+    if isinstance(result, dict):
+        try:
+            return api_remaining_pb2.CommandResponse(
+                response_type=result.get("response_type", ""),
+                text=result.get("text", ""),
+                username=result.get("username", ""),
+                channel_id=result.get("channel_id", ""),
+                icon_url=result.get("icon_url", ""),
+                type=result.get("type", ""),
+                goto_location=result.get("goto_location", ""),
+                trigger_id=result.get("trigger_id", ""),
+                skip_slack_parsing=result.get("skip_slack_parsing", False),
+            )
+        except Exception as e:
+            logger.warning(f"Failed to convert dict to CommandResponse: {e}")
+            return None
+
+    # Handle SDK wrapper CommandResponse class
+    if isinstance(result, CommandResponseWrapper):
+        try:
+            return api_remaining_pb2.CommandResponse(
+                response_type=result.response_type,
+                text=result.text,
+                username=result.username,
+                channel_id=result.channel_id,
+                icon_url=result.icon_url,
+                type=result.type,
+                goto_location=result.goto_location,
+                trigger_id=result.trigger_id,
+                skip_slack_parsing=result.skip_slack_parsing,
+            )
+        except Exception as e:
+            logger.warning(f"Failed to convert CommandResponse wrapper: {e}")
+            return None
+
+    # Handle protobuf CommandResponse directly
+    if isinstance(result, api_remaining_pb2.CommandResponse):
+        return result
+
+    # Unknown type
+    logger.warning(f"ExecuteCommand returned unexpected type: {type(result)}")
+    return None
 
 
 class PluginHooksServicerImpl(hooks_pb2_grpc.PluginHooksServicer):
@@ -696,16 +764,13 @@ class PluginHooksServicerImpl(hooks_pb2_grpc.PluginHooksServicer):
                 ),
             )
 
-        # Handler should return a CommandResponse protobuf
-        if result is None:
-            return hooks_command_pb2.ExecuteCommandResponse()
-        elif hasattr(result, "response_type"):
-            # Looks like a CommandResponse
-            return hooks_command_pb2.ExecuteCommandResponse(response=result)
+        # Convert handler result to protobuf CommandResponse
+        # Supports: dict, CommandResponse wrapper, or protobuf directly
+        command_response = _to_command_response_proto(result, self._logger)
+        if command_response is not None:
+            return hooks_command_pb2.ExecuteCommandResponse(response=command_response)
         else:
-            self._logger.warning(
-                f"ExecuteCommand returned unexpected type: {type(result)}"
-            )
+            # result was None or conversion failed (warning already logged)
             return hooks_command_pb2.ExecuteCommandResponse()
 
     # =========================================================================

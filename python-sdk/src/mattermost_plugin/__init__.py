@@ -67,7 +67,7 @@ from mattermost_plugin.hooks import (
 )
 from mattermost_plugin.plugin import Plugin
 from mattermost_plugin.runtime_config import RuntimeConfig, load_runtime_config
-from mattermost_plugin._internal.wrappers import Command
+from mattermost_plugin._internal.wrappers import Command, CommandResponse
 
 __version__ = "0.1.0"
 
@@ -78,6 +78,7 @@ __all__ = [
     "HookName",
     "HookRegistrationError",
     "Command",
+    "CommandResponse",
     # Configuration
     "RuntimeConfig",
     "load_runtime_config",
