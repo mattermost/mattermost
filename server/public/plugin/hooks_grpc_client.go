@@ -30,6 +30,17 @@ const (
 	serveHTTPChunkSize = 64 * 1024
 )
 
+// init registers hook names that are not in client_rpc_generated.go
+// These hooks are handled specially (not auto-generated) but Python plugins
+// still need them in the hookNameToId map for the Implemented() mechanism.
+func init() {
+	hookNameToId["OnActivate"] = OnActivateID
+	hookNameToId["ServeHTTP"] = ServeHTTPID
+	hookNameToId["MessageWillBePosted"] = MessageWillBePostedID
+	hookNameToId["MessageWillBeUpdated"] = MessageWillBeUpdatedID
+	hookNameToId["ServeMetrics"] = ServeMetricsID
+}
+
 // hooksGRPCClient implements the Hooks interface by delegating to a gRPC PluginHooksClient.
 // This enables Python plugins to receive hook invocations through the same infrastructure
 // as Go plugins.
