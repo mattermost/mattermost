@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-13)
 
 **Core value:** Full API coverage: every API method and hook available to Go plugins must work identically from Python plugins.
-**Current focus:** Phase 11 — Server Integration
+**Current focus:** Phase 12 — Python API Callback Server
 
 ## Current Position
 
-Phase: 11 of 11 (Server Integration) - COMPLETE
-Plan: 3 of 3 complete in current phase
-Status: ALL PHASES COMPLETE - MILESTONE DONE
-Last activity: 2026-01-19 — Completed Phase 11 (Server Integration)
+Phase: 12 of 12 (Python API Callback Server) - IN PROGRESS
+Plan: 0 of 1 in current phase
+Status: Phase planned, ready for execution
+Last activity: 2026-01-20 — Created 12-01-PLAN.md (Python API Callback Server)
 
-Progress: ██████████████████████████████ 100%
+Progress: ██████████████████████████████ 92% (11/12 phases complete)
 
 ## Performance Metrics
 
@@ -111,12 +111,20 @@ Last session: 2026-01-19
 Stopped at: Completed Phase 11 (Server Integration) — All phases complete
 Resume file: None
 
+## Roadmap Evolution
+
+- Phase 12 added: Python API Callback Server (2026-01-20)
+  - Reason: During real-world testing, discovered Python plugins cannot call back to Go API
+  - Python → Go API calls fail with "Connection refused" because no gRPC server is running
+  - Existing APIServer implementation at `server/public/pluginapi/grpc/server/` can be reused
+
 ## Next Steps
 
-🎉 **MILESTONE COMPLETE**
+**Phase 12: Python API Callback Server**
 
-All 11 phases have been executed. Python plugin support is fully integrated with Mattermost:
+This phase will enable Python plugins to make API calls back to the Go server:
+1. Start gRPC PluginAPI server when Python plugin launches
+2. Pass server address to Python via `MATTERMOST_PLUGIN_API_TARGET` env var
+3. Test end-to-end with `/hello` command registration
 
-1. `/gsd:complete-milestone` — Archive completed milestone
-2. Real-world testing with actual Python plugins
-3. Consider future enhancements (streaming for large file uploads, etc.)
+Run `/gsd:plan-phase 12` to create detailed implementation plan.

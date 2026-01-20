@@ -27,6 +27,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 9: Manifest Extension** - Extend plugin manifest for Python executables ✓ (2026-01-19)
 - [x] **Phase 10: Integration & Testing** - End-to-end testing, example plugin, documentation ✓ (2026-01-19)
 - [x] **Phase 11: Server Integration** - Wire Python plugins into main server plugin loading path ✓ (2026-01-19)
+- [ ] **Phase 12: Python API Callback Server** - gRPC server for Python plugins to call back to Go API
 
 ## Phase Details
 
@@ -160,10 +161,19 @@ Plans:
 - [x] 11-02: Wire hooksGRPCClient into supervisor ✓
 - [x] 11-03: Integration tests and documentation ✓
 
+### Phase 12: Python API Callback Server
+**Goal**: Start a gRPC PluginAPI server on the Go side that Python plugins can call back to for API operations
+**Depends on**: Phase 11
+**Research**: Unlikely (existing APIServer implementation can be reused)
+**Plans**: 1
+
+Plans:
+- [ ] 12-01: Start gRPC PluginAPI server and pass address to Python via env var
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12
 
 Note: Phase 2 and 3 can run in parallel (both depend only on Phase 1).
 Note: Phase 5, 6, and 9 can partially overlap (all depend on Phase 4).
@@ -181,3 +191,4 @@ Note: Phase 5, 6, and 9 can partially overlap (all depend on Phase 4).
 | 9. Manifest Extension | 2/2 | Complete | 2026-01-19 |
 | 10. Integration & Testing | 3/3 | Complete | 2026-01-19 |
 | 11. Server Integration | 3/3 | Complete | 2026-01-19 |
+| 12. Python API Callback Server | 0/1 | In progress | - |
