@@ -238,17 +238,23 @@ class LangChainAgentPlugin(Plugin):
             self.logger.error(f"Anthropic API error: {e}")
             self._send_error_response(post.channel_id, f"Anthropic error: {e}")
 
-    def _send_response(self, channel_id: str, message: str) -> None:
-        """Send a response message to the channel."""
+    def _send_response(self, channel_id: str, message: str, root_id: str = "") -> None:
+        """Send a response message to the channel, optionally as a thread reply."""
         try:
-            response = Post(id="", channel_id=channel_id, message=message)
+            response = Post(
+                id="", channel_id=channel_id, message=message, root_id=root_id
+            )
             self.api.create_post(response)
         except Exception as e:
             self.logger.error(f"Failed to send response: {e}")
 
-    def _send_error_response(self, channel_id: str, error: str) -> None:
-        """Send an error message to the channel."""
-        self._send_response(channel_id, f"Sorry, I encountered an error: {error}")
+    def _send_error_response(
+        self, channel_id: str, error: str, root_id: str = ""
+    ) -> None:
+        """Send an error message to the channel, optionally as a thread reply."""
+        self._send_response(
+            channel_id, f"Sorry, I encountered an error: {error}", root_id
+        )
 
 
 # Entry point for running the plugin
