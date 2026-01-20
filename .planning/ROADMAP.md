@@ -28,6 +28,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 10: Integration & Testing** - End-to-end testing, example plugin, documentation ✓ (2026-01-19)
 - [x] **Phase 11: Server Integration** - Wire Python plugins into main server plugin loading path ✓ (2026-01-19)
 - [x] **Phase 12: Python API Callback Server** - gRPC server for Python plugins to call back to Go API ✓ (2026-01-20)
+- [x] **Phase 13: Python Plugin Developer Experience** - Architecture docs, Makefile tooling, Claude.md guides ✓ (2026-01-20)
 
 ## Phase Details
 
@@ -170,10 +171,46 @@ Plans:
 Plans:
 - [x] 12-01: Start gRPC PluginAPI server and pass address to Python via env var ✓
 
+### Phase 13: Python Plugin Developer Experience
+**Goal**: Complete documentation, tooling, and developer guidance for Python plugin development
+**Depends on**: Phase 12
+**Research**: Unlikely (documentation and tooling)
+**Plans**: TBD
+
+Plans:
+- [x] 13-01: Architecture documentation for internal developers ✓
+- [x] 13-02: Server Makefile gRPC tooling ✓
+- [x] 13-03: Example plugin Makefile and packaging ✓
+- [x] 13-04: Claude.md files for agentic development ✓
+
+**Details:**
+This phase focuses on developer experience for both internal Mattermost engineers and external plugin developers:
+
+1. **Architecture Documentation** - Comprehensive document explaining:
+   - gRPC protocol layer and protobuf definitions
+   - Go-side infrastructure (supervisor, hook dispatch, API server)
+   - Python SDK structure and hook system
+   - Process lifecycle and connection management
+   - How plugins are loaded, activated, and managed
+
+2. **Server Makefile Tooling** - Add targets for:
+   - Protobuf/gRPC code generation
+   - Python SDK building and packaging
+
+3. **Example Plugin Tooling** - Makefile with targets for:
+   - Plugin packaging into tar.gz
+   - Development workflow (install, test)
+   - Future: Template for standalone starter repo
+
+4. **Claude.md Files** - Agentic AI guidance:
+   - Example plugin Claude.md for plugin developers
+   - Server-side Claude.md for Mattermost contributors
+   - Python SDK Claude.md for SDK maintainers
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13
 
 Note: Phase 2 and 3 can run in parallel (both depend only on Phase 1).
 Note: Phase 5, 6, and 9 can partially overlap (all depend on Phase 4).
@@ -192,3 +229,4 @@ Note: Phase 5, 6, and 9 can partially overlap (all depend on Phase 4).
 | 10. Integration & Testing | 3/3 | Complete | 2026-01-19 |
 | 11. Server Integration | 3/3 | Complete | 2026-01-19 |
 | 12. Python API Callback Server | 1/1 | Complete | 2026-01-20 |
+| 13. Python Plugin Developer Experience | 4/4 | Complete | 2026-01-20 |
