@@ -16,6 +16,10 @@ from mattermost_plugin import Plugin, hook, HookName
 from mattermost_plugin._internal.wrappers import Bot, Post, ChannelType
 from mattermost_plugin.exceptions import NotFoundError
 
+from langchain_openai import ChatOpenAI
+from langchain_anthropic import ChatAnthropic
+from langchain_core.messages import HumanMessage, SystemMessage
+
 # Bot usernames (plugin-scoped)
 OPENAI_BOT_USERNAME = "langchain-openai-agent"
 ANTHROPIC_BOT_USERNAME = "langchain-anthropic-agent"
@@ -37,6 +41,8 @@ class LangChainAgentPlugin(Plugin):
         super().__init__()
         self.openai_bot_id: str | None = None
         self.anthropic_bot_id: str | None = None
+        self.openai_model: ChatOpenAI | None = None
+        self.anthropic_model: ChatAnthropic | None = None
 
     @hook(HookName.OnActivate)
     def on_activate(self) -> None:
@@ -77,6 +83,23 @@ class LangChainAgentPlugin(Plugin):
         except Exception as e:
             self.logger.error(f"Failed to create Anthropic bot: {e}")
             self.anthropic_bot_id = None
+
+        # Initialize LangChain models
+        try:
+            self.openai_model = ChatOpenAI(model="gpt-4o", temperature=0.7)
+            self.logger.info("OpenAI model initialized")
+        except Exception as e:
+            self.logger.warning(f"OpenAI model not available: {e}")
+            self.openai_model = None
+
+        try:
+            self.anthropic_model = ChatAnthropic(
+                model="claude-sonnet-4-5-20250929", temperature=0.7
+            )
+            self.logger.info("Anthropic model initialized")
+        except Exception as e:
+            self.logger.warning(f"Anthropic model not available: {e}")
+            self.anthropic_model = None
 
         self.logger.info("LangChain Agent plugin activated!")
 
@@ -120,7 +143,9 @@ class LangChainAgentPlugin(Plugin):
 
         # Only process DM channels
         if channel.type != ChannelType.DIRECT.value:
-            self.logger.debug(f"Ignoring non-DM message in channel type: {channel.type}")
+            self.logger.debug(
+                f"Ignoring non-DM message in channel type: {channel.type}"
+            )
             return
 
         # Check which bot is in this DM channel and route accordingly

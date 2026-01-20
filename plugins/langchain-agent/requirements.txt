@@ -3,7 +3,7 @@
 # Core dependencies (vendored from python-sdk)
 mattermost-plugin
 
-# LangChain dependencies will be added in Phase 15
-# - langchain
-# - langchain-openai
-# - langchain-anthropic
+# LangChain AI framework
+langchain>=0.2.0
+langchain-openai>=0.1.0
+langchain-anthropic>=0.1.0
