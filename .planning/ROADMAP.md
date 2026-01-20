@@ -118,4 +118,4 @@ Plans:
 | 15. LangChain Core | v1.1 | 1/1 | Complete | 2026-01-20 |
 | 16. Session Memory | v1.1 | 1/1 | Complete | 2026-01-20 |
 | 17. MCP Client | v1.1 | 1/1 | Complete | 2026-01-20 |
-| 18. Agentic Loop | v1.1 | 0/? | Not started | - |
+| 18. Agentic Loop | v1.1 | 0/1 | Planned | - |
