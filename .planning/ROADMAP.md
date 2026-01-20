@@ -67,13 +67,13 @@ Plans:
 
 #### Phase 16: Session Memory
 
-**Goal**: Per-DM conversation history and context management using KV store
+**Goal**: Multi-turn conversations via Mattermost threading as conversation history
 **Depends on**: Phase 15
-**Research**: Unlikely (KV store patterns established in SDK)
-**Plans**: TBD
+**Research**: None needed (using existing SDK APIs)
+**Plans**: 1 plan
 
 Plans:
-- [ ] 16-01: TBD (run /gsd:plan-phase 16 to break down)
+- [ ] 16-01: Threading and conversation history from threads
 
 #### Phase 17: MCP Client
 
