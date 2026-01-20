@@ -22,9 +22,8 @@ export type ContentFlaggingConfig = {
 export type ContentFlaggingState = {
     settings?: ContentFlaggingConfig;
     fields?: NameMappedPropertyFields;
-    postValues?: {
-        [key: Post['id']]: Array<PropertyValue<unknown>>;
-    };
+    postValues?: {[key: Post['id']]: Array<PropertyValue<unknown>>};
+    flaggedPosts?: {[key: Post['id']]: Post};
 };
 
 export enum ContentFlaggingStatus {

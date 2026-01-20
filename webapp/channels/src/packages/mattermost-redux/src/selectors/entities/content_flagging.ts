@@ -26,3 +26,7 @@ export const postContentFlaggingValues = (state: GlobalState, postId: string) =>
     const values = state.entities.contentFlagging.postValues || {};
     return values[postId];
 };
+
+export const getFlaggedPost = (state: GlobalState, flaggedPostId: string) => {
+    return state.entities.contentFlagging.flaggedPosts?.[flaggedPostId];
+};

@@ -19,7 +19,7 @@ import PropertyValueRenderer from './propertyValueRenderer/propertyValueRenderer
 import './properties_card_view.scss';
 
 export type PostPreviewFieldMetadata = {
-    getPost?: (postId: string) => Promise<Post>;
+    post?: Post;
     fetchDeletedPost?: boolean;
     getChannel?: (channelId: string) => Promise<Channel>;
     getTeam?: (teamId: string) => Promise<Team>;

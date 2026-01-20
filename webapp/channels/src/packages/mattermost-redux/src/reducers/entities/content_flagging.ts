@@ -72,8 +72,22 @@ function postValues(state: ContentFlaggingState['postValues'] = {}, action: MMRe
     }
 }
 
+function flaggedPosts(state: ContentFlaggingState['flaggedPosts'] = {}, action: MMReduxAction) {
+    switch (action.type) {
+    case ContentFlaggingTypes.RECEIVED_FLAGGED_POST: {
+        return {
+            ...state,
+            [action.data.id]: action.data,
+        };
+    }
+    default:
+        return state;
+    }
+}
+
 export default combineReducers({
     settings,
     fields,
     postValues,
+    flaggedPosts,
 });

@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {ContentFlaggingConfig} from '@mattermost/types/content_flagging';
+import type {Post} from '@mattermost/types/posts';
 import type {NameMappedPropertyFields, PropertyValue} from '@mattermost/types/properties';
 
 import {TeamTypes, ContentFlaggingTypes} from 'mattermost-redux/action_types';
@@ -90,6 +91,41 @@ export function loadPostContentFlaggingFields(): ActionFuncAsync<NameMappedPrope
         const loader = loaders.postContentFlaggingFieldsLoader;
         loader.queue([true]);
 
+        return {};
+    };
+}
+
+function getFlaggedPost(flaggedPostId: string): ActionFuncAsync<Post> {
+    return async (dispatch, getState) => {
+        let data;
+        try {
+            data = await Client4.getFlaggedPost(flaggedPostId);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch({
+            type: ContentFlaggingTypes.RECEIVED_FLAGGED_POST,
+            data,
+        });
+
+        return {data};
+    };
+}
+
+export function loadFlaggedPost(flaggedPostId: string): ActionFuncAsync<Post> {
+    return async (dispatch, getState, {loaders}: any) => {
+        if (!loaders.flaggedPostLoader) {
+            loaders.flaggedPostLoader = new DelayedDataLoader<Post['id']>({
+                fetchBatch: ([postId]) => dispatch(getFlaggedPost(postId)),
+                maxBatchSize: 1,
+                wait: 200,
+            });
+        }
+
+        loaders.flaggedPostLoader.queue([flaggedPostId]);
         return {};
     };
 }

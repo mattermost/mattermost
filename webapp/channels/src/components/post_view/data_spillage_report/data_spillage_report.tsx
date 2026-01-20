@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
 import {ContentFlaggingStatus} from '@mattermost/types/content_flagging';
@@ -15,6 +14,7 @@ import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
 
 import AtMention from 'components/at_mention';
 import {useContentFlaggingFields, usePostContentFlaggingValues} from 'components/common/hooks/useContentFlaggingFields';
+import {useGetFlaggedPost} from 'components/common/hooks/useGetFlaggedPost';
 import {useUser} from 'components/common/hooks/useUser';
 import DataSpillageAction from 'components/post_view/data_spillage_report/data_spillage_actions/data_spillage_actions';
 import type {PropertiesCardViewMetadata} from 'components/properties_card_view/properties_card_view';
@@ -59,15 +59,13 @@ type Props = {
 
 export function DataSpillageReport({post, isRHS}: Props) {
     const {formatMessage} = useIntl();
-    const loaded = useRef(false);
-    const dispatch = useDispatch();
 
     const reportedPostId = post.props.reported_post_id as string;
 
     const naturalPropertyFields = useContentFlaggingFields('fetch');
     const naturalPropertyValues = usePostContentFlaggingValues(reportedPostId);
 
-    const [reportedPost, setReportedPost] = useState<Post>();
+    const reportedPost = useGetFlaggedPost(reportedPostId);
     const [channel, setChannel] = useState<Channel | undefined>();
 
     useEffect(() => {
@@ -80,23 +78,6 @@ export function DataSpillageReport({post, isRHS}: Props) {
 
         fetchChannel();
     }, [reportedPost, reportedPostId]);
-
-    useEffect(() => {
-        const work = async () => {
-            if (!loaded.current && !reportedPost) {
-                // We need to obtain the post directly from action bypassing the selectors
-                // because the post might be soft-deleted and the post reducers do not store deleted posts
-                // in the store.
-                const post = await loadFlaggedPost(reportedPostId);
-                if (post) {
-                    setReportedPost(post);
-                    loaded.current = true;
-                }
-            }
-        };
-
-        work();
-    }, [dispatch, reportedPost, reportedPostId]);
 
     const propertyFields = useMemo((): NameMappedPropertyFields => {
         if (!naturalPropertyFields || !Object.keys(naturalPropertyFields).length) {
@@ -139,9 +120,9 @@ export function DataSpillageReport({post, isRHS}: Props) {
     const mode = isRHS ? 'full' : 'short';
 
     const metadata = useMemo<PropertiesCardViewMetadata>(() => {
-        const fieldMetadata = {
+        const fieldMetadata: PropertiesCardViewMetadata = {
             post_preview: {
-                getPost: loadFlaggedPost,
+                post: reportedPost,
                 fetchDeletedPost: true,
                 getChannel: getChannel(reportedPostId),
                 getTeam: getTeam(reportedPostId),
@@ -168,7 +149,7 @@ export function DataSpillageReport({post, isRHS}: Props) {
         }
 
         return fieldMetadata;
-    }, [channel, formatMessage, reportedPostId]);
+    }, [channel, formatMessage, reportedPost, reportedPostId]);
 
     const footer = useMemo(() => {
         if (isRHS) {
@@ -217,10 +198,6 @@ export function DataSpillageReport({post, isRHS}: Props) {
             />
         </div>
     );
-}
-
-async function loadFlaggedPost(flaggedPostId: string) {
-    return Client4.getFlaggedPost(flaggedPostId);
 }
 
 function getSearchContentReviewersFunction(teamId: string) {
