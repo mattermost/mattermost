@@ -180,51 +180,75 @@ class LangChainAgentPlugin(Plugin):
 
     def _handle_openai_message(self, post: Post) -> None:
         """
-        Handle a message directed to the OpenAI bot.
-
-        This is a placeholder that sends a simple acknowledgment.
-        Will be replaced with actual LangChain integration in Phase 15.
+        Handle a message directed to the OpenAI bot using LangChain.
 
         Args:
             post: The Post object containing the user's message.
         """
-        self.logger.info(f"OpenAI Agent received message: {post.message[:50]}...")
+        self.logger.info(f"OpenAI Agent processing message: {post.message[:50]}...")
 
-        # Create placeholder response
-        try:
-            response = Post(
-                id="",
-                channel_id=post.channel_id,
-                message=f"[OpenAI Agent] Received: {post.message[:50]}...",
+        if self.openai_model is None:
+            self._send_error_response(
+                post.channel_id, "OpenAI not configured. Check OPENAI_API_KEY."
             )
-            self.api.create_post(response)
-            self.logger.debug("OpenAI Agent sent placeholder response")
+            return
+
+        messages = [
+            SystemMessage(
+                content="You are a helpful AI assistant powered by OpenAI. Be concise and helpful."
+            ),
+            HumanMessage(content=post.message),
+        ]
+
+        try:
+            response = self.openai_model.invoke(messages)
+            self._send_response(post.channel_id, response.content)
+            self.logger.debug("OpenAI Agent sent response")
         except Exception as e:
-            self.logger.error(f"Failed to send OpenAI response: {e}")
+            self.logger.error(f"OpenAI API error: {e}")
+            self._send_error_response(post.channel_id, f"OpenAI error: {e}")
 
     def _handle_anthropic_message(self, post: Post) -> None:
         """
-        Handle a message directed to the Anthropic bot.
-
-        This is a placeholder that sends a simple acknowledgment.
-        Will be replaced with actual LangChain integration in Phase 15.
+        Handle a message directed to the Anthropic bot using LangChain.
 
         Args:
             post: The Post object containing the user's message.
         """
-        self.logger.info(f"Anthropic Agent received message: {post.message[:50]}...")
+        self.logger.info(f"Anthropic Agent processing message: {post.message[:50]}...")
 
-        # Create placeholder response
-        try:
-            response = Post(
-                id="",
-                channel_id=post.channel_id,
-                message=f"[Anthropic Agent] Received: {post.message[:50]}...",
+        if self.anthropic_model is None:
+            self._send_error_response(
+                post.channel_id, "Anthropic not configured. Check ANTHROPIC_API_KEY."
             )
-            self.api.create_post(response)
-            self.logger.debug("Anthropic Agent sent placeholder response")
+            return
+
+        messages = [
+            SystemMessage(
+                content="You are a helpful AI assistant powered by Anthropic Claude. Be concise and helpful."
+            ),
+            HumanMessage(content=post.message),
+        ]
+
+        try:
+            response = self.anthropic_model.invoke(messages)
+            self._send_response(post.channel_id, response.content)
+            self.logger.debug("Anthropic Agent sent response")
         except Exception as e:
-            self.logger.error(f"Failed to send Anthropic response: {e}")
+            self.logger.error(f"Anthropic API error: {e}")
+            self._send_error_response(post.channel_id, f"Anthropic error: {e}")
+
+    def _send_response(self, channel_id: str, message: str) -> None:
+        """Send a response message to the channel."""
+        try:
+            response = Post(id="", channel_id=channel_id, message=message)
+            self.api.create_post(response)
+        except Exception as e:
+            self.logger.error(f"Failed to send response: {e}")
+
+    def _send_error_response(self, channel_id: str, error: str) -> None:
+        """Send an error message to the channel."""
+        self._send_response(channel_id, f"Sorry, I encountered an error: {error}")
 
 
 # Entry point for running the plugin
