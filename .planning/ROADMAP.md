@@ -26,7 +26,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 8: ServeHTTP Streaming** - HTTP request/response streaming over gRPC ✓ (2026-01-19)
 - [x] **Phase 9: Manifest Extension** - Extend plugin manifest for Python executables ✓ (2026-01-19)
 - [x] **Phase 10: Integration & Testing** - End-to-end testing, example plugin, documentation ✓ (2026-01-19)
-- [ ] **Phase 11: Server Integration** - Wire Python plugins into main server plugin loading path
+- [x] **Phase 11: Server Integration** - Wire Python plugins into main server plugin loading path ✓ (2026-01-19)
 
 ## Phase Details
 
@@ -156,10 +156,9 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 11-01: Wire Python hooks into supervisor (remove "Phase 5 supervision only" limitation)
-- [ ] 11-02: Add Python validation to plugin upload path
-- [ ] 11-03: HTTP routing for Python ServeHTTP hook
-- [ ] 11-04: End-to-end plugin upload and activation test
+- [x] 11-01: hooksGRPCClient adapter implementing Hooks interface ✓
+- [x] 11-02: Wire hooksGRPCClient into supervisor ✓
+- [x] 11-03: Integration tests and documentation ✓
 
 ## Progress
 
@@ -181,4 +180,4 @@ Note: Phase 5, 6, and 9 can partially overlap (all depend on Phase 4).
 | 8. ServeHTTP Streaming | 2/2 | Complete | 2026-01-19 |
 | 9. Manifest Extension | 2/2 | Complete | 2026-01-19 |
 | 10. Integration & Testing | 3/3 | Complete | 2026-01-19 |
-| 11. Server Integration | 0/4 | Not started | - |
+| 11. Server Integration | 3/3 | Complete | 2026-01-19 |
