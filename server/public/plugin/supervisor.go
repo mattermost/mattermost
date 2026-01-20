@@ -150,13 +150,34 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver AppDriver, 
 		return nil, err
 	}
 
-	// For Python plugins in Phase 5, we skip hook dispensing.
-	// Hook dispatch will be implemented in Phase 7 (Python Hook System).
-	// This allows us to test process supervision + health checking independently.
+	// Python plugins use gRPC for hook communication.
 	if isPython {
-		// Leave sup.hooks as nil - no hooks available yet for Python plugins.
-		// The Environment will handle activation/deactivation without calling OnActivate/OnDeactivate.
-		wrappedLogger.Info("Python plugin started (hooks not yet available - Phase 5 supervision only)")
+		// Extract the gRPC connection from go-plugin's client.
+		grpcClient, ok := rpcClient.(*plugin.GRPCClient)
+		if !ok {
+			return nil, errors.New("expected gRPC client for Python plugin")
+		}
+		conn := grpcClient.Conn
+
+		hooksClient, err := newHooksGRPCClient(conn, wrappedLogger)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to create gRPC hooks client")
+		}
+
+		sup.hooks = &hooksTimerLayer{pluginInfo.Manifest.Id, hooksClient, metrics}
+
+		// Populate implemented array from gRPC client
+		impl, err := hooksClient.Implemented()
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to query implemented hooks")
+		}
+		for _, hookName := range impl {
+			if hookId, ok := hookNameToId[hookName]; ok {
+				sup.implemented[hookId] = true
+			}
+		}
+
+		wrappedLogger.Info("Python plugin started with gRPC hooks")
 		return &sup, nil
 	}
 
