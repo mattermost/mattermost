@@ -131,10 +131,11 @@ Create a fully self-contained bundle with all dependencies:
 ```bash
 cd examples/hello_python
 
-# Create and populate virtual environment
-python3 -m venv venv
+# Create virtual environment with --copies to include actual Python binaries
+# (symlinks won't work when extracted on a different machine)
+python3 -m venv --copies venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install mattermost-plugin-sdk  # Or: pip install -e ../../python-sdk
+pip install mattermost-plugin-sdk  # Or: pip install ../../python-sdk
 pip install grpcio protobuf
 deactivate
 
@@ -146,7 +147,10 @@ tar -czvf hello-python-0.1.0.tar.gz \
     venv/
 ```
 
-**Note:** The bundled venv is Python version-specific. If your server has a different Python version than your build machine, use Option 1 or build the venv on a machine with matching Python version.
+**Important notes:**
+- Use `--copies` when creating the venv to include actual Python binaries (not symlinks)
+- Do NOT use `-e` (editable install) for the SDK - it references local paths that won't exist on the server
+- The bundled venv is Python version-specific. If your server has a different Python version than your build machine, use Option 1 or build the venv on a machine with matching Python version
 
 ## Deployment
 
