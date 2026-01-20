@@ -226,7 +226,7 @@ func (s *MmctlE2ETestSuite) TestConfigSetCmd() {
 		printer.Clean()
 		originalJSON := s.th.App.Config().ExperimentalAuditSettings.AdvancedLoggingJSON
 
-		testJSON := `{"file":{"Type":"file","Format":"json","Levels":[{"ID":5,"Name":"debug"}],"Options":{"filename":"/etc/passwd"},"MaxQueueSize":1000}}`
+		testJSON := `{"file":{"Type":"file","Format":"json","Levels":[{"ID":100,"Name":"audit-api"}],"Options":{"filename":"/etc/passwd"},"MaxQueueSize":1000}}`
 		args := []string{"ExperimentalAuditSettings.AdvancedLoggingJSON", testJSON}
 		err := configSetCmdF(s.th.SystemAdminClient, &cobra.Command{}, args)
 		s.Require().NotNil(err)
@@ -237,7 +237,7 @@ func (s *MmctlE2ETestSuite) TestConfigSetCmd() {
 		s.Require().Equal(originalJSON, s.th.App.Config().ExperimentalAuditSettings.AdvancedLoggingJSON)
 
 		printer.Clean()
-		localJSON := `{"file":{"Type":"file","Format":"json","Levels":[{"ID":5,"Name":"debug"}],"Options":{"filename":"./test-audit.log"},"MaxQueueSize":1000}}`
+		localJSON := `{"file":{"Type":"file","Format":"json","Levels":[{"ID":100,"Name":"audit-api"}],"Options":{"filename":"./test-audit.log"},"MaxQueueSize":1000}}`
 		args = []string{"ExperimentalAuditSettings.AdvancedLoggingJSON", localJSON}
 		err = configSetCmdF(s.th.LocalClient, &cobra.Command{}, args)
 		s.Require().Nil(err)
