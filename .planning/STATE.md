@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-20)
 
 ## Current Position
 
-Phase: 16 of 18 (Session Memory)
+Phase: 17 of 18 (MCP Client)
 Plan: 1 of 1 complete
-Status: Phase 16 complete
-Last activity: 2026-01-20 — Completed 16-01-PLAN.md (Threading and Conversation History)
+Status: Phase 17 complete
+Last activity: 2026-01-20 — Completed 17-01-PLAN.md (MCP Client Integration)
 
-Progress: ██████░░░░ 60% (3/5 phases complete)
+Progress: ████████░░ 80% (4/5 phases complete)
 
 ## Performance Metrics
 
@@ -25,10 +25,11 @@ Progress: ██████░░░░ 60% (3/5 phases complete)
 - Timeline: 5 days (2026-01-16 → 2026-01-20)
 
 **v1.1 Velocity:**
-- Plans completed: 3
+- Plans completed: 4
 - Phase 14-01: 2 min
 - Phase 15-01: 2 min
 - Phase 16-01: 2 min
+- Phase 17-01: 2 min
 
 ## Accumulated Context
 
@@ -44,6 +45,9 @@ All decisions logged in PROJECT.md Key Decisions table.
 | Model init in on_activate with error handling | 15-01 | Graceful degradation when API keys missing |
 | Thread-based conversation history | 16-01 | Use get_post_thread to fetch context, map to HumanMessage/AIMessage |
 | root_id determination for threading | 16-01 | Use post.root_id if in thread, else post.id as new root |
+| Empty MCP config by default | 17-01 | Servers configured via plugin settings in future |
+| asyncio.run() for async handlers | 17-01 | Sync hooks call asyncio.run(async_method()) for MCP operations |
+| Graceful fallback without MCP | 17-01 | Falls back to basic model.invoke() when tools unavailable |
 
 ### Deferred Issues
 
@@ -58,8 +62,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-20 18:07 UTC
-Stopped at: Completed 16-01-PLAN.md
+Last session: 2026-01-20 18:44 UTC
+Stopped at: Completed 17-01-PLAN.md
 Resume file: None
 
 ## Roadmap Evolution
@@ -76,8 +80,8 @@ Resume file: None
 
 ## Next Steps
 
-**Phase 17: Multi-Provider** — Add support for multiple LLM providers
+**Phase 18: Agentic Loop** — Add custom loop logic and tool selection strategies
 
 Options:
-- `/gsd:plan-phase 17` — Create detailed execution plan
-- `/gsd:execute-phase 17` — Execute existing plan (if one exists)
+- `/gsd:plan-phase 18` — Create detailed execution plan
+- `/gsd:execute-phase 18` — Execute existing plan (if one exists)
