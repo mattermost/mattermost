@@ -28,7 +28,7 @@ type Client interface {
 	PatchChannel(ctx context.Context, channelID string, patch *model.ChannelPatch) (*model.Channel, *model.Response, error)
 	GetChannelByName(ctx context.Context, channelName, teamID string, etag string) (*model.Channel, *model.Response, error)
 	GetChannelByNameIncludeDeleted(ctx context.Context, channelName, teamID string, etag string) (*model.Channel, *model.Response, error)
-	GetChannel(ctx context.Context, channelID, etag string) (*model.Channel, *model.Response, error)
+	GetChannel(ctx context.Context, channelID string) (*model.Channel, *model.Response, error)
 	GetTeam(ctx context.Context, teamID, etag string) (*model.Team, *model.Response, error)
 	GetTeamByName(ctx context.Context, name, etag string) (*model.Team, *model.Response, error)
 	GetAllTeams(ctx context.Context, etag string, page int, perPage int) ([]*model.Team, *model.Response, error)
