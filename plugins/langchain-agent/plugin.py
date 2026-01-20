@@ -99,9 +99,12 @@ class LangChainAgentPlugin(Plugin):
 
         try:
             self.anthropic_model = ChatAnthropic(
-                model="claude-sonnet-4-5-20250929", temperature=0.7
+                model="claude-sonnet-4-5-20250929",
+                temperature=0.7,
+                max_tokens=5000,  # Increased to accommodate thinking + response
+                thinking={"type": "enabled", "budget_tokens": 2000},
             )
-            self.logger.info("Anthropic model initialized")
+            self.logger.info("Anthropic model initialized with extended thinking")
         except Exception as e:
             self.logger.warning(f"Anthropic model not available: {e}")
             self.anthropic_model = None
@@ -232,7 +235,7 @@ class LangChainAgentPlugin(Plugin):
                 post,
                 self.anthropic_model,
                 self.anthropic_bot_id,
-                "You are a helpful AI assistant powered by Anthropic Claude. Be concise and helpful.",
+                "You are a thoughtful AI assistant powered by Anthropic Claude. Think through complex problems carefully before responding. Be concise and helpful.",
             )
         )
 
