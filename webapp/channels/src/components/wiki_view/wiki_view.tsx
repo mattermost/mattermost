@@ -189,27 +189,44 @@ const WikiView = () => {
         }
     }, [pageId, draftId, wikiId, dispatch]);
 
-    // Notify server when user stops editing a published page draft
+    // Track current editing state in a ref so we can access it on unmount
+    // without triggering cleanup on every dependency change
+    const editorStoppedRef = React.useRef<{wikiId: string; pageId: string} | null>(null);
+
+    // Notify server when user stops editing a page (page change or unmount)
+    // This effect handles ONLY page navigation changes - not content updates
     React.useEffect(() => {
-        // Only track editing when editing a PUBLISHED page (not pure drafts)
-        // Pure drafts are single-user by definition - no active editors tracking needed
-        if (!isDraft || !wikiId || !draftId) {
-            return undefined;
-        }
+        // Compute inside effect to ensure all dependencies are captured
+        const publishedPageId = currentDraft?.props?.page_id || publishedPageForDraft?.id;
 
-        // Get the published page ID from the draft
-        const pageId = currentDraft?.props?.page_id || publishedPageForDraft?.id;
-        if (!pageId) {
-            return undefined;
-        }
+        // Determine current editing state
+        const currentEditingPage = (isDraft && wikiId && draftId && publishedPageId) ?
+            {wikiId, pageId: publishedPageId} :
+            null;
 
-        // Cleanup function: notify server when navigating away or unmounting
-        return () => {
-            Client4.notifyPageEditorStopped(wikiId, pageId).catch(() => {
+        // If the page being edited changed, notify about the OLD page
+        const previousPage = editorStoppedRef.current;
+        if (previousPage && (!currentEditingPage || previousPage.pageId !== currentEditingPage.pageId)) {
+            Client4.notifyPageEditorStopped(previousPage.wikiId, previousPage.pageId).catch(() => {
                 // Silently handle errors - this is best-effort notification
             });
-        };
+        }
+
+        // Update ref to track current editing state
+        editorStoppedRef.current = currentEditingPage;
     }, [isDraft, wikiId, draftId, currentDraft?.props?.page_id, publishedPageForDraft?.id]);
+
+    // Notify server on component unmount
+    React.useEffect(() => {
+        return () => {
+            if (editorStoppedRef.current) {
+                const {wikiId: wiki, pageId: page} = editorStoppedRef.current;
+                Client4.notifyPageEditorStopped(wiki, page).catch(() => {
+                    // Silently handle errors - this is best-effort notification
+                });
+            }
+        };
+    }, []);
 
     // Auto-select page when at wiki root (extracted to hook)
     useAutoPageSelection({
@@ -421,13 +438,13 @@ const WikiView = () => {
         }
     }, [headerProps?.pageId, handleVersionHistory]);
 
-    // Handler for when a translated page is created - navigate to the new page
+    // Handler for when a translated/proofread draft is created - navigate to the new draft
     const handleTranslatedPageCreated = React.useCallback((newPageId: string) => {
         if (!wikiId || !channelId) {
             return;
         }
         const teamName = getTeamNameFromPath(location.pathname);
-        const url = getWikiUrl(teamName, channelId, wikiId, newPageId, false);
+        const url = getWikiUrl(teamName, channelId, wikiId, newPageId, true);
         history.push(url);
     }, [wikiId, channelId, location.pathname, history]);
 

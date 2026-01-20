@@ -35,10 +35,12 @@ export const getActiveEditorsWithProfiles = createSelector(
     (state: GlobalState, pageId: string) => getActiveEditorsForPage(state, pageId),
     getUsers,
     (editors, users) => {
-        return editors.map((editor) => ({
-            ...editor,
-            user: users[editor.userId],
-        })).filter((editor) => editor.user);
+        return editors.
+            map((editor) => ({
+                ...editor,
+                user: users[editor.userId],
+            })).
+            filter((editor) => editor.user);
     },
 );
 

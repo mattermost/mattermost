@@ -414,6 +414,90 @@ test.skip('removes editor from indicator when user navigates away', {tag: '@page
 });
 
 /**
+ * @objective Verify active editors indicator persists while user continues editing
+ *
+ * This test catches regressions where the indicator briefly appears then disappears
+ * due to incorrect cleanup behavior (e.g., useEffect cleanup running on state changes
+ * instead of only on component unmount).
+ */
+test(
+    'active editors indicator persists while user continues editing',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`, 'O', [
+            user.id,
+        ]);
+
+        // # Create a second user
+        const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
+
+        // # User 1 logs in and creates a wiki with a page
+        const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user);
+
+        await channelsPage1.goto(team.name, channel.name);
+
+        const wiki = await createWikiThroughUI(page1, `Persistence Wiki ${await pw.random.id()}`);
+
+        const newPageButton = getNewPageButton(page1);
+        await newPageButton.click();
+        await fillCreatePageModal(page1, 'Persistence Test Page');
+
+        // # Wait for editor to appear
+        await getEditorAndWait(page1);
+        await typeInEditor(page1, 'Initial content');
+
+        // # Wait for draft to save
+        await page1.waitForTimeout(WEBSOCKET_WAIT);
+
+        // # Publish the page
+        await publishPage(page1);
+
+        // # Get page ID from URL
+        const pageUrl = page1.url();
+        const pageId = pageUrl.split('/').pop();
+
+        // # User 2 logs in and navigates directly to the wiki page
+        const {page: page2, channelsPage: channelsPage2} = await pw.testBrowser.login(user2);
+
+        await channelsPage2.goto(team.name, channel.name);
+        await channelsPage2.toBeVisible();
+        await page2.waitForLoadState('networkidle');
+
+        await navigateToPage(page2, pw.url, team.name, channel.id, wiki.id, pageId!);
+
+        // # Start editing the page
+        await enterEditMode(page2);
+
+        await getEditorAndWait(page2);
+        await typeInEditor(page2, ' User 2 editing');
+
+        // # Wait for draft to save
+        await page2.waitForTimeout(AUTOSAVE_WAIT);
+
+        // * User 1 should see active editors indicator showing User 2
+        const activeEditorsIndicator = await waitForActiveEditorsIndicator(page1, {expectedText: '1 person editing'});
+
+        // # KEY TEST: User 2 continues typing multiple times, triggering state updates and autosaves
+        // This catches the bug where useEffect cleanup runs on every dependency change
+        for (let i = 0; i < 5; i++) {
+            await typeInEditor(page2, ` more text ${i}`);
+            await page2.waitForTimeout(AUTOSAVE_WAIT);
+
+            // * CRITICAL: Indicator should STILL be visible after each autosave cycle
+            // With the bug, this would fail because cleanup incorrectly sends PAGE_EDITOR_STOPPED
+            await expect(activeEditorsIndicator).toBeVisible();
+            await expect(activeEditorsIndicator).toContainText('1 person editing');
+        }
+
+        // * Final verification: indicator is still visible after all editing cycles
+        await expect(activeEditorsIndicator).toBeVisible();
+
+        await page2.close();
+    },
+);
+
+/**
  * @objective Verify active editors are removed when navigating to a different page within the wiki
  */
 test('removes editor when navigating to different wiki page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {

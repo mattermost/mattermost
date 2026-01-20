@@ -915,3 +915,171 @@ test(
         });
     },
 );
+
+/**
+ * @objective Verify user sees all pages when opening wiki, not just pages received via WebSocket
+ *
+ * This test verifies the fix for a bug where users would only see pages that were
+ * published/updated while they were online (received via WebSocket), instead of
+ * all pages in the wiki.
+ *
+ * @precondition
+ * Pages/Wiki feature is enabled on the server
+ * Two users have access to the same channel
+ */
+test(
+    'shows all pages when opening wiki (not just WebSocket-received pages)',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user: user1, adminClient} = sharedPagesSetup;
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+        // # User 1 creates wiki and multiple pages
+        const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
+        await channelsPage1.goto(team.name, channel.name);
+        await channelsPage1.toBeVisible();
+
+        const wiki = await createWikiThroughUI(page1, `Multi-Page Wiki ${await pw.random.id()}`);
+        const page1Title = `Page One ${await pw.random.id()}`;
+        const page2Title = `Page Two ${await pw.random.id()}`;
+        const page3Title = `Page Three ${await pw.random.id()}`;
+
+        await createPageThroughUI(page1, page1Title, 'Content for page one');
+        await createPageThroughUI(page1, page2Title, 'Content for page two');
+        await createPageThroughUI(page1, page3Title, 'Content for page three');
+
+        // * Verify all pages are visible for user1
+        await verifyPageInHierarchy(page1, page1Title);
+        await verifyPageInHierarchy(page1, page2Title);
+        await verifyPageInHierarchy(page1, page3Title);
+
+        // # Create user2 and add to channel
+        const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
+
+        // # User 2 logs in and navigates to the wiki
+        // IMPORTANT: User 2 was NOT online when pages were created, so they didn't receive
+        // WebSocket events. They should still see ALL pages when opening the wiki.
+        const {page: user2Page} = await pw.testBrowser.login(user2);
+        const wikiUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id);
+        await user2Page.goto(wikiUrl);
+        await user2Page.waitForLoadState('networkidle');
+
+        // # Wait for hierarchy panel to load
+        const user2HierarchyPanel = getHierarchyPanel(user2Page);
+        await user2HierarchyPanel.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
+
+        // * Verify ALL pages are visible for user2 (not just pages from WebSocket)
+        await verifyPageInHierarchy(user2Page, page1Title, HIERARCHY_TIMEOUT);
+        await verifyPageInHierarchy(user2Page, page2Title, HIERARCHY_TIMEOUT);
+        await verifyPageInHierarchy(user2Page, page3Title, HIERARCHY_TIMEOUT);
+
+        // * Verify user2 can click and view any page
+        await clickPageInHierarchy(user2Page, page2Title);
+        await user2Page.waitForLoadState('networkidle');
+
+        const pageViewer = getPageViewerContent(user2Page);
+        await expect(pageViewer).toContainText('Content for page two');
+
+        await user2Page.close();
+    },
+);
+
+/**
+ * @objective Verify hierarchy changes (page moved to become child) sync between users in real-time
+ *
+ * This test verifies the fix for a bug where moving a page to be a child of another
+ * page would not update other users' hierarchy view in real-time.
+ *
+ * @precondition
+ * Pages/Wiki feature is enabled on the server
+ * Two users have access to the same channel
+ */
+test(
+    'updates hierarchy for other users when page is moved to become child of another page',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user: user1, adminClient} = sharedPagesSetup;
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+        // # User 1 creates wiki with parent and child pages (initially siblings)
+        const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
+        await channelsPage1.goto(team.name, channel.name);
+        await channelsPage1.toBeVisible();
+
+        const wiki = await createWikiThroughUI(page1, `Hierarchy Sync Wiki ${await pw.random.id()}`);
+        const parentTitle = `Parent Page ${await pw.random.id()}`;
+        const childTitle = `Future Child Page ${await pw.random.id()}`;
+
+        const parentPage = await createPageThroughUI(page1, parentTitle, 'Parent content');
+        const childPage = await createPageThroughUI(page1, childTitle, 'This will become a child');
+
+        // * Verify both pages are root-level siblings for user1
+        await verifyPageInHierarchy(page1, parentTitle);
+        await verifyPageInHierarchy(page1, childTitle);
+
+        // # Create user2 and add to channel
+        const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
+
+        // # User 2 logs in and navigates to the wiki
+        const {page: user2Page} = await pw.testBrowser.login(user2);
+        const wikiUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id);
+        await user2Page.goto(wikiUrl);
+        await user2Page.waitForLoadState('networkidle');
+
+        // # Wait for hierarchy panel to load
+        const user2HierarchyPanel = getHierarchyPanel(user2Page);
+        await user2HierarchyPanel.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
+
+        // * Verify both pages visible as siblings for user2 (both at root level, depth=0)
+        await verifyPageInHierarchy(user2Page, parentTitle);
+        await verifyPageInHierarchy(user2Page, childTitle);
+
+        // * Verify both pages are at root level (depth=0) - this is the flat tree structure
+        const parentNodeUser2 = user2Page.locator(`[data-testid="page-tree-node"][data-page-id="${parentPage.id}"]`);
+        const childNodeUser2Before = user2Page.locator(
+            `[data-testid="page-tree-node"][data-page-id="${childPage.id}"]`,
+        );
+        await expect(parentNodeUser2).toHaveAttribute('data-depth', '0');
+        await expect(childNodeUser2Before).toHaveAttribute('data-depth', '0');
+
+        // * Verify parent shows file icon (no children yet)
+        const iconButton = parentNodeUser2.locator('[data-testid="page-tree-node-expand-button"]');
+        const fileIcon = iconButton.locator('.icon-file-generic-outline');
+        await expect(fileIcon).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+        // # Setup WebSocket event logging for user2
+        await setupWebSocketEventLogging(user2Page);
+
+        // # User 1 moves the child page to be under the parent page via API
+        // This uses the dedicated /parent endpoint which broadcasts page_moved event
+        await adminClient.updatePageParent(wiki.id, childPage.id!, parentPage.id!);
+
+        // * Wait for WebSocket event to propagate to user2
+        await user2Page.waitForTimeout(WEBSOCKET_WAIT);
+
+        // # Debug: Print captured WebSocket events
+        await getWebSocketEvents(user2Page, 'Page Moved to Child');
+
+        // * Verify parent now shows chevron icon (has children)
+        const chevronIcon = iconButton.locator('.icon-chevron-right, .icon-chevron-down');
+        await expect(chevronIcon).toBeVisible({timeout: 10000});
+
+        // * Verify child is no longer visible at root level (it's now under collapsed parent)
+        // The flat tree only shows children when parent is expanded
+        const childAtRootLevel = user2Page.locator(
+            `[data-testid="page-tree-node"][data-page-id="${childPage.id}"][data-depth="0"]`,
+        );
+        await expect(childAtRootLevel).not.toBeVisible();
+
+        // # Expand parent node to verify child is nested underneath
+        await iconButton.click();
+        await user2Page.waitForTimeout(200); // Wait for expand animation
+
+        // * Verify child page is now visible with depth=1 (child of parent)
+        const childNodeUser2After = user2Page.locator(`[data-testid="page-tree-node"][data-page-id="${childPage.id}"]`);
+        await expect(childNodeUser2After).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await expect(childNodeUser2After).toHaveAttribute('data-depth', '1');
+
+        await user2Page.close();
+    },
+);

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useState, useCallback, useMemo, useRef, useEffect} from 'react';
+import {useState, useCallback, useMemo, useRef} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
@@ -106,22 +106,20 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
     }, [childrenByParent]);
 
     // Refs to track latest values and avoid callback recreation on every page/draft change
+    // IMPORTANT: Update refs synchronously during render (not in useEffect) to ensure
+    // callbacks always have access to the latest values. Using useEffect would cause
+    // race conditions where the callback sees stale data if executed before the effect runs.
     const pageMapRef = useRef(pageMap);
+    pageMapRef.current = pageMap;
+
     const pagesMapRef = useRef(pagesMap);
+    pagesMapRef.current = pagesMap;
+
     const draftsMapRef = useRef(draftsMap);
+    draftsMapRef.current = draftsMap;
+
     const getDescendantIdsRef = useRef(getDescendantIdsOptimized);
-    useEffect(() => {
-        pageMapRef.current = pageMap;
-    }, [pageMap]);
-    useEffect(() => {
-        pagesMapRef.current = pagesMap;
-    }, [pagesMap]);
-    useEffect(() => {
-        draftsMapRef.current = draftsMap;
-    }, [draftsMap]);
-    useEffect(() => {
-        getDescendantIdsRef.current = getDescendantIdsOptimized;
-    }, [getDescendantIdsOptimized]);
+    getDescendantIdsRef.current = getDescendantIdsOptimized;
 
     const [createPageParent, setCreatePageParent] = useState<{id: string; title: string} | null>(null);
     const [pageToMove, setPageToMove] = useState<{pageId: string; pageTitle: string; hasChildren: boolean} | null>(null);

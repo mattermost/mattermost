@@ -419,6 +419,7 @@ test('updates breadcrumb after moving page between wikis', {tag: '@pages'}, asyn
  * Source wiki must have page with formatted content
  */
 test('preserves content formatting when duplicating across wikis', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    test.slow();
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 

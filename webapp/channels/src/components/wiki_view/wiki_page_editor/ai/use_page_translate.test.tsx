@@ -6,6 +6,7 @@ import type {Editor} from '@tiptap/react';
 
 import {Client4} from 'mattermost-redux/client';
 
+import * as PageDraftActions from 'actions/page_drafts';
 import * as PageActions from 'actions/pages';
 
 import type {Language} from './language_picker';
@@ -28,12 +29,15 @@ jest.mock('mattermost-redux/actions/agents', () => ({
 
 jest.mock('mattermost-redux/client');
 jest.mock('actions/pages');
+jest.mock('actions/page_drafts');
+
+jest.mock('selectors/pages', () => ({
+    getWiki: jest.fn(() => ({id: 'wiki-123', channel_id: 'channel-123'})),
+}));
 
 const mockClient4 = Client4 as jest.Mocked<typeof Client4>;
 const mockCreatePage = PageActions.createPage as jest.MockedFunction<typeof PageActions.createPage>;
-const mockPublishPageDraft = PageActions.publishPageDraft as jest.MockedFunction<typeof PageActions.publishPageDraft>;
-const mockSetPageTranslationMetadata = PageActions.setPageTranslationMetadata as jest.MockedFunction<typeof PageActions.setPageTranslationMetadata>;
-const mockAddPageTranslationReference = PageActions.addPageTranslationReference as jest.MockedFunction<typeof PageActions.addPageTranslationReference>;
+const mockSavePageDraft = PageDraftActions.savePageDraft as jest.MockedFunction<typeof PageDraftActions.savePageDraft>;
 
 describe('usePageTranslate', () => {
     const mockEditor = {
@@ -52,7 +56,6 @@ describe('usePageTranslate', () => {
         editor: mockEditor,
         pageTitle: 'Test Page',
         wikiId: 'wiki-123',
-        pageParentId: null,
         pageId: 'page-123',
     };
 
@@ -66,9 +69,7 @@ describe('usePageTranslate', () => {
         jest.clearAllMocks();
         mockClient4.getAIRewrittenMessage = jest.fn().mockResolvedValue('Hola mundo');
         mockCreatePage.mockReturnValue(() => Promise.resolve({data: 'draft-123'}) as any);
-        mockPublishPageDraft.mockReturnValue(() => Promise.resolve({data: {id: 'new-page-123'}}) as any);
-        mockSetPageTranslationMetadata.mockReturnValue(() => Promise.resolve({data: {}}) as any);
-        mockAddPageTranslationReference.mockReturnValue(() => Promise.resolve({data: {}}) as any);
+        mockSavePageDraft.mockReturnValue(() => Promise.resolve({data: true}) as any);
     });
 
     describe('initial state', () => {
@@ -77,7 +78,6 @@ describe('usePageTranslate', () => {
                 defaultProps.editor,
                 defaultProps.pageTitle,
                 defaultProps.wikiId,
-                defaultProps.pageParentId,
                 defaultProps.pageId,
             ));
 
@@ -92,7 +92,6 @@ describe('usePageTranslate', () => {
                 defaultProps.editor,
                 defaultProps.pageTitle,
                 defaultProps.wikiId,
-                defaultProps.pageParentId,
                 defaultProps.pageId,
             ));
 
@@ -108,7 +107,6 @@ describe('usePageTranslate', () => {
                 defaultProps.editor,
                 defaultProps.pageTitle,
                 defaultProps.wikiId,
-                defaultProps.pageParentId,
                 defaultProps.pageId,
             ));
 
@@ -132,7 +130,6 @@ describe('usePageTranslate', () => {
                 null,
                 defaultProps.pageTitle,
                 defaultProps.wikiId,
-                defaultProps.pageParentId,
                 defaultProps.pageId,
             ));
 
@@ -148,7 +145,6 @@ describe('usePageTranslate', () => {
                 defaultProps.editor,
                 defaultProps.pageTitle,
                 '',
-                defaultProps.pageParentId,
                 defaultProps.pageId,
             ));
 
@@ -174,7 +170,6 @@ describe('usePageTranslate', () => {
                 defaultProps.editor,
                 defaultProps.pageTitle,
                 defaultProps.wikiId,
-                defaultProps.pageParentId,
                 defaultProps.pageId,
             ));
 
@@ -202,7 +197,6 @@ describe('usePageTranslate', () => {
                 defaultProps.editor,
                 defaultProps.pageTitle,
                 defaultProps.wikiId,
-                defaultProps.pageParentId,
                 defaultProps.pageId,
                 undefined,
                 mockSetServerError,
@@ -226,7 +220,6 @@ describe('usePageTranslate', () => {
                 defaultProps.editor,
                 defaultProps.pageTitle,
                 defaultProps.wikiId,
-                defaultProps.pageParentId,
                 defaultProps.pageId,
             ));
 
@@ -262,7 +255,6 @@ describe('usePageTranslate', () => {
                 emptyEditor,
                 defaultProps.pageTitle,
                 defaultProps.wikiId,
-                defaultProps.pageParentId,
                 defaultProps.pageId,
             ));
 
@@ -291,7 +283,6 @@ describe('usePageTranslate', () => {
                 whitespaceEditor,
                 defaultProps.pageTitle,
                 defaultProps.wikiId,
-                defaultProps.pageParentId,
                 defaultProps.pageId,
             ));
 

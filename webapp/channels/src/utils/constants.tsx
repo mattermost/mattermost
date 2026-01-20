@@ -750,6 +750,7 @@ export const SocketEvents = {
     PAGE_DELETED: 'page_deleted',
     PAGE_TITLE_UPDATED: 'page_title_updated',
     PAGE_MOVED: 'page_moved',
+    WIKI_CREATED: 'wiki_created',
     WIKI_UPDATED: 'wiki_updated',
     PAGE_DRAFT_CREATED: 'page_draft_created',
     PAGE_DRAFT_UPDATED: 'page_draft_updated',

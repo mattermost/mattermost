@@ -6,7 +6,7 @@ import {NodeSelection} from '@tiptap/pm/state';
 import type {Editor} from '@tiptap/react';
 import {BubbleMenu} from '@tiptap/react/menus';
 import classNames from 'classnames';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useRef} from 'react';
 import {useIntl} from 'react-intl';
 
 import ChevronDownIcon from '@mattermost/compass-icons/components/chevron-down';
@@ -39,61 +39,100 @@ type Props = {
 const ImageAIBubble = ({editor, onImageAIAction, visionEnabled = false}: Props) => {
     const {formatMessage} = useIntl();
 
+    // Store the image element when menu item is clicked, before the delayed onClick fires
+    // This is necessary because Menu.Item delays onClick until after menu close animation,
+    // by which time the editor selection may have changed and getSelectedImageElement would return null
+    const capturedImageRef = useRef<HTMLImageElement | null>(null);
+
     const shouldShow = useCallback(({state}: {editor: Editor; view: unknown; state: unknown; oldState: unknown; from: number; to: number}) => {
+        // Guard: editor must be fully mounted before accessing view methods
+        if (!editor || editor.isDestroyed) {
+            return false;
+        }
+
         const {selection} = state as EditorState;
 
         // Only show for NodeSelection (images are selected as nodes, not text)
         if (!(selection instanceof NodeSelection)) {
+            capturedImageRef.current = null;
             return false;
         }
 
         // Check if the selected node is an image
         const {node} = selection;
         if (!node || (node.type.name !== 'image' && node.type.name !== 'imageResize')) {
+            capturedImageRef.current = null;
             return false;
         }
 
+        // Capture the image element now while it's selected
+        // This is needed because Menu.Item delays onClick until after menu close animation,
+        // by which time the selection may have changed
+        try {
+            if (editor?.view) {
+                const pos = (selection as NodeSelection).from;
+                const domNode = editor.view.nodeDOM(pos);
+
+                if (domNode instanceof HTMLImageElement) {
+                    capturedImageRef.current = domNode;
+                } else if (domNode instanceof HTMLElement) {
+                    const img = domNode.querySelector('img');
+                    capturedImageRef.current = img;
+                }
+            }
+        } catch {
+            // View may not be fully mounted yet
+        }
+
         return true;
-    }, []);
+    }, [editor]);
 
     const getSelectedImageElement = useCallback((): HTMLImageElement | null => {
-        if (!editor) {
+        if (!editor || editor.isDestroyed || !editor.view) {
             return null;
         }
 
-        const {selection} = editor.state;
-        if (!(selection instanceof NodeSelection)) {
-            return null;
-        }
-
-        // Get the DOM node for the selected image
-        const pos = selection.from;
-        const domNode = editor.view.nodeDOM(pos);
-
-        if (domNode instanceof HTMLImageElement) {
-            return domNode;
-        }
-
-        // For wrapped images (ImageResize), find the img element inside
-        if (domNode instanceof HTMLElement) {
-            const img = domNode.querySelector('img');
-            if (img) {
-                return img;
+        try {
+            const {selection} = editor.state;
+            if (!(selection instanceof NodeSelection)) {
+                return null;
             }
+
+            // Get the DOM node for the selected image
+            const pos = selection.from;
+            const domNode = editor.view.nodeDOM(pos);
+
+            if (domNode instanceof HTMLImageElement) {
+                return domNode;
+            }
+
+            // For wrapped images (ImageResize), find the img element inside
+            if (domNode instanceof HTMLElement) {
+                const img = domNode.querySelector('img');
+                if (img) {
+                    return img;
+                }
+            }
+        } catch {
+            // View may not be fully mounted yet
         }
 
         return null;
     }, [editor]);
 
     const handleExtractHandwriting = useCallback(() => {
-        const imageElement = getSelectedImageElement();
+        // Use the captured image element from when the bubble menu was shown
+        // This is necessary because this callback fires AFTER the menu close animation,
+        // by which time the editor selection may have changed
+        const imageElement = capturedImageRef.current || getSelectedImageElement();
         if (imageElement && onImageAIAction) {
             onImageAIAction('extract_handwriting', imageElement);
         }
     }, [getSelectedImageElement, onImageAIAction]);
 
     const handleDescribeImage = useCallback(() => {
-        const imageElement = getSelectedImageElement();
+        // Use the captured image element from when the bubble menu was shown
+        const imageElement = capturedImageRef.current || getSelectedImageElement();
         if (imageElement && onImageAIAction) {
             onImageAIAction('describe_image', imageElement);
         }

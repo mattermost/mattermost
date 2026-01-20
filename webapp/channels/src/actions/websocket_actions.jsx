@@ -672,7 +672,7 @@ export function handleEvent(msg) {
         }
         break;
     case SocketEvents.PAGE_EDITOR_STOPPED:
-        // Handle active editors notification when user stops editing (navigates away)
+        // Handle active editors notification when user stops editing
         if (msg.data.page_id && msg.data.user_id) {
             dispatch(handleActiveEditorStopped(msg.data.page_id, msg.data.user_id));
         }
@@ -688,6 +688,9 @@ export function handleEvent(msg) {
         break;
     case SocketEvents.PAGE_MOVED:
         handlePageMovedEvent(msg);
+        break;
+    case SocketEvents.WIKI_CREATED:
+        handleWikiCreatedEvent(msg);
         break;
     case SocketEvents.WIKI_UPDATED:
         handleWikiUpdatedEvent(msg);
@@ -1095,6 +1098,25 @@ export async function handlePageMovedEvent(msg) {
     }
 
     dispatch(batchActions(actions));
+}
+
+export function handleWikiCreatedEvent(msg) {
+    const wiki = {
+        id: msg.data.wiki_id,
+        channel_id: msg.data.channel_id,
+        title: msg.data.title,
+        description: msg.data.description,
+        props: {},
+        create_at: msg.data.create_at,
+        update_at: msg.data.update_at,
+        delete_at: 0,
+        sort_order: msg.data.sort_order,
+    };
+
+    dispatch({
+        type: WikiTypes.RECEIVED_WIKI,
+        data: wiki,
+    });
 }
 
 export function handleWikiUpdatedEvent(msg) {

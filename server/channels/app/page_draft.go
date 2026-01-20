@@ -662,6 +662,24 @@ func (a *App) BroadcastPageMoved(pageId, oldParentId, newParentId, wikiId, chann
 	a.Publish(message)
 }
 
+// BroadcastWikiCreated broadcasts new wiki creation to all clients with access to the channel
+func (a *App) BroadcastWikiCreated(wiki *model.Wiki) {
+	message := model.NewWebSocketEvent(model.WebsocketEventWikiCreated, "", wiki.ChannelId, "", nil, "")
+	message.Add("wiki_id", wiki.Id)
+	message.Add("channel_id", wiki.ChannelId)
+	message.Add("title", wiki.Title)
+	message.Add("description", wiki.Description)
+	message.Add("create_at", wiki.CreateAt)
+	message.Add("update_at", wiki.UpdateAt)
+	message.Add("sort_order", wiki.SortOrder)
+	message.SetBroadcast(&model.WebsocketBroadcast{
+		ChannelId:           wiki.ChannelId,
+		ReliableClusterSend: true,
+	})
+
+	a.Publish(message)
+}
+
 // BroadcastWikiUpdated broadcasts wiki metadata changes to all clients with access to the channel
 func (a *App) BroadcastWikiUpdated(wiki *model.Wiki) {
 	message := model.NewWebSocketEvent(model.WebsocketEventWikiUpdated, "", wiki.ChannelId, "", nil, "")

@@ -8,13 +8,47 @@ import * as ProofreadAction from './proofread_action';
 import usePageProofread from './use_page_proofread';
 
 // Mock dependencies
+const mockDispatch = jest.fn((action: unknown): unknown => {
+    if (typeof action === 'function') {
+        return (action as (dispatch: typeof mockDispatch) => unknown)(mockDispatch);
+    }
+    return action;
+});
+
 jest.mock('react-redux', () => ({
-    useDispatch: () => jest.fn((action) => action),
+    useDispatch: () => mockDispatch,
     useSelector: jest.fn(() => [{id: 'agent-1', name: 'Test Agent'}]),
+}));
+
+jest.mock('react-intl', () => ({
+    useIntl: () => ({
+        formatMessage: ({defaultMessage}: {defaultMessage: string}, values?: Record<string, string>) => {
+            if (values?.title) {
+                return defaultMessage.replace('{title}', values.title);
+            }
+            return defaultMessage;
+        },
+    }),
 }));
 
 jest.mock('mattermost-redux/actions/agents', () => ({
     getAgents: jest.fn(() => ({type: 'GET_AGENTS'})),
+}));
+
+jest.mock('actions/pages', () => ({
+    createPage: jest.fn(() => () =>
+        Promise.resolve({data: 'draft-123'}),
+    ),
+}));
+
+jest.mock('actions/page_drafts', () => ({
+    savePageDraft: jest.fn(() => () =>
+        Promise.resolve({data: true}),
+    ),
+}));
+
+jest.mock('selectors/pages', () => ({
+    getWiki: jest.fn(() => ({id: 'wiki-123', channel_id: 'channel-123'})),
 }));
 
 jest.mock('./proofread_action');
@@ -31,6 +65,15 @@ describe('usePageProofread', () => {
                 content: [{type: 'text', text: 'Hello world'}],
             },
         ],
+    };
+
+    const defaultProps = {
+        editor: null as Editor | null,
+        pageTitle: 'Test Page',
+        wikiId: 'wiki-123',
+        pageId: 'page-123',
+        onPageCreated: jest.fn(),
+        setServerError: jest.fn(),
     };
 
     const createMockEditor = (doc = mockDoc) => ({
@@ -71,18 +114,28 @@ describe('usePageProofread', () => {
     describe('initial state', () => {
         test('should return initial state', () => {
             const mockEditor = createMockEditor();
-            const {result} = renderHook(() => usePageProofread(mockEditor));
+            const {result} = renderHook(() => usePageProofread(
+                mockEditor,
+                defaultProps.pageTitle,
+                defaultProps.wikiId,
+                defaultProps.pageId,
+                defaultProps.onPageCreated,
+            ));
 
             expect(result.current.isProcessing).toBe(false);
             expect(result.current.progress).toBeNull();
             expect(result.current.error).toBeNull();
-            expect(result.current.canUndo).toBe(false);
         });
     });
 
     describe('proofread', () => {
         test('should not proofread when editor is null', async () => {
-            const {result} = renderHook(() => usePageProofread(null));
+            const {result} = renderHook(() => usePageProofread(
+                null,
+                defaultProps.pageTitle,
+                defaultProps.wikiId,
+                defaultProps.pageId,
+            ));
 
             await act(async () => {
                 await result.current.proofread();
@@ -100,7 +153,12 @@ describe('usePageProofread', () => {
             });
 
             const mockEditor = createMockEditor({type: 'doc' as const, content: []});
-            const {result} = renderHook(() => usePageProofread(mockEditor));
+            const {result} = renderHook(() => usePageProofread(
+                mockEditor,
+                defaultProps.pageTitle,
+                defaultProps.wikiId,
+                defaultProps.pageId,
+            ));
 
             await act(async () => {
                 await result.current.proofread();
@@ -129,7 +187,12 @@ describe('usePageProofread', () => {
                 };
             });
 
-            const {result} = renderHook(() => usePageProofread(mockEditor));
+            const {result} = renderHook(() => usePageProofread(
+                mockEditor,
+                defaultProps.pageTitle,
+                defaultProps.wikiId,
+                defaultProps.pageId,
+            ));
 
             // Start proofread (don't await)
             act(() => {
@@ -148,8 +211,9 @@ describe('usePageProofread', () => {
             expect(result.current.isProcessing).toBe(false);
         });
 
-        test('should apply corrected document on success', async () => {
+        test('should create draft page on success', async () => {
             const mockEditor = createMockEditor();
+            const mockOnPageCreated = jest.fn();
             const correctedDoc = {
                 type: 'doc' as const,
                 content: [{type: 'paragraph', content: [{type: 'text', text: 'Corrected!'}]}],
@@ -164,14 +228,20 @@ describe('usePageProofread', () => {
                 warnings: [],
             });
 
-            const {result} = renderHook(() => usePageProofread(mockEditor));
+            const {result} = renderHook(() => usePageProofread(
+                mockEditor,
+                defaultProps.pageTitle,
+                defaultProps.wikiId,
+                defaultProps.pageId,
+                mockOnPageCreated,
+            ));
 
             await act(async () => {
                 await result.current.proofread();
             });
 
-            expect(mockEditor.commands.setContent).toHaveBeenCalledWith(correctedDoc);
-            expect(result.current.canUndo).toBe(true);
+            // Should have called onPageCreated with draft ID (not published page ID)
+            expect(mockOnPageCreated).toHaveBeenCalledWith('draft-123');
         });
 
         test('should handle proofreading errors', async () => {
@@ -187,7 +257,14 @@ describe('usePageProofread', () => {
                 warnings: [],
             });
 
-            const {result} = renderHook(() => usePageProofread(mockEditor, mockSetServerError));
+            const {result} = renderHook(() => usePageProofread(
+                mockEditor,
+                defaultProps.pageTitle,
+                defaultProps.wikiId,
+                defaultProps.pageId,
+                undefined,
+                mockSetServerError,
+            ));
 
             await act(async () => {
                 await result.current.proofread();
@@ -196,18 +273,14 @@ describe('usePageProofread', () => {
             expect(result.current.error).not.toBeNull();
             expect(result.current.error?.message).toContain('API error');
             expect(mockSetServerError).toHaveBeenCalled();
-            expect(result.current.canUndo).toBe(false);
         });
 
         test('should track progress', async () => {
             const mockEditor = createMockEditor();
-            const progressUpdates: any[] = [];
 
             mockProofreadDocumentImmutable.mockImplementation(async (doc, agentId, onProgress) => {
                 onProgress?.({current: 0, total: 2, status: 'processing'});
-                progressUpdates.push({...result.current.progress});
                 onProgress?.({current: 1, total: 2, status: 'processing'});
-                progressUpdates.push({...result.current.progress});
                 return {
                     success: true,
                     doc: mockDoc,
@@ -218,7 +291,12 @@ describe('usePageProofread', () => {
                 };
             });
 
-            const {result} = renderHook(() => usePageProofread(mockEditor));
+            const {result} = renderHook(() => usePageProofread(
+                mockEditor,
+                defaultProps.pageTitle,
+                defaultProps.wikiId,
+                defaultProps.pageId,
+            ));
 
             await act(async () => {
                 await result.current.proofread();
@@ -233,7 +311,14 @@ describe('usePageProofread', () => {
 
             mockProofreadDocumentImmutable.mockRejectedValue(new Error('Network error'));
 
-            const {result} = renderHook(() => usePageProofread(mockEditor, mockSetServerError));
+            const {result} = renderHook(() => usePageProofread(
+                mockEditor,
+                defaultProps.pageTitle,
+                defaultProps.wikiId,
+                defaultProps.pageId,
+                undefined,
+                mockSetServerError,
+            ));
 
             await act(async () => {
                 await result.current.proofread();
@@ -242,72 +327,6 @@ describe('usePageProofread', () => {
             expect(result.current.error?.message).toBe('Network error');
             expect(mockSetServerError).toHaveBeenCalled();
             expect(result.current.isProcessing).toBe(false);
-        });
-    });
-
-    describe('undo', () => {
-        test('should restore original document', async () => {
-            const mockEditor = createMockEditor();
-            const originalDoc = mockDoc;
-            const correctedDoc = {
-                type: 'doc' as const,
-                content: [{type: 'paragraph', content: [{type: 'text', text: 'Corrected!'}]}],
-            };
-
-            mockProofreadDocumentImmutable.mockResolvedValue({
-                success: true,
-                doc: correctedDoc,
-                totalChunks: 1,
-                chunksProcessed: 1,
-                errors: [],
-                warnings: [],
-            });
-
-            const {result} = renderHook(() => usePageProofread(mockEditor));
-
-            // First, proofread
-            await act(async () => {
-                await result.current.proofread();
-            });
-
-            expect(result.current.canUndo).toBe(true);
-
-            // Then undo
-            act(() => {
-                result.current.undo();
-            });
-
-            expect(mockEditor.commands.setContent).toHaveBeenLastCalledWith(originalDoc);
-            expect(result.current.canUndo).toBe(false);
-        });
-
-        test('should not undo when canUndo is false', () => {
-            const mockEditor = createMockEditor();
-            const {result} = renderHook(() => usePageProofread(mockEditor));
-
-            act(() => {
-                result.current.undo();
-            });
-
-            // setContent should not be called
-            expect(mockEditor.commands.setContent).not.toHaveBeenCalled();
-        });
-
-        test('should not undo when editor is null', async () => {
-            const mockEditor = createMockEditor();
-            const {result} = renderHook(
-                ({editor}) => usePageProofread(editor),
-                {initialProps: {editor: mockEditor}},
-            );
-
-            // Proofread first
-            await act(async () => {
-                await result.current.proofread();
-            });
-
-            // Can't test with null editor after proofread in same hook instance
-            // This tests the guard clause
-            expect(result.current.canUndo).toBe(true);
         });
     });
 
@@ -332,7 +351,12 @@ describe('usePageProofread', () => {
                 };
             });
 
-            const {result} = renderHook(() => usePageProofread(mockEditor));
+            const {result} = renderHook(() => usePageProofread(
+                mockEditor,
+                defaultProps.pageTitle,
+                defaultProps.wikiId,
+                defaultProps.pageId,
+            ));
 
             // Start first proofread
             act(() => {

@@ -6,6 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -364,6 +365,79 @@ func extractPageImageText(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(*response); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+// summarizeThreadToPage handles POST /api/v4/wiki/{wiki_id}/pages/summarize-thread
+func summarizeThreadToPage(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel) {
+		c.SetPermissionError(model.PermissionReadChannel)
+		return
+	}
+
+	wiki, _, ok := c.GetWikiForRead()
+	if !ok {
+		return
+	}
+
+	if wiki.DeleteAt != 0 {
+		c.Err = model.NewAppError("summarizeThreadToPage", "api.wiki.summarize_thread.wiki_deleted.app_error", nil, "", http.StatusNotFound)
+		return
+	}
+
+	var req app.SummarizeThreadToPageRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		c.SetInvalidParamWithErr("request_body", err)
+		return
+	}
+
+	if !model.IsValidId(req.AgentID) {
+		c.SetInvalidParam("agent_id")
+		return
+	}
+
+	if !model.IsValidId(req.ThreadID) {
+		c.SetInvalidParam("thread_id")
+		return
+	}
+
+	if strings.TrimSpace(req.Title) == "" {
+		c.SetInvalidParam("title")
+		return
+	}
+
+	// Verify the thread exists and user can access it
+	rootPost, appErr := c.App.GetSinglePost(c.AppContext, req.ThreadID, false)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	// Check user has read access to the channel containing the thread
+	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), rootPost.ChannelId, model.PermissionReadChannel) {
+		c.SetPermissionError(model.PermissionReadChannel)
+		return
+	}
+
+	draftPageID, appErr := c.App.SummarizeThreadToPage(
+		c.AppContext,
+		req.AgentID,
+		req.ThreadID,
+		wiki.Id,
+		req.Title,
+	)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	response := app.SummarizeThreadToPageResponse{
+		PageID: draftPageID,
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	if err := json.NewEncoder(w).Encode(response); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

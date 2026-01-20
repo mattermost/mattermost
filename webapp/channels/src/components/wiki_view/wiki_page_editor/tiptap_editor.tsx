@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {Extension, mergeAttributes} from '@tiptap/core';
+import Color from '@tiptap/extension-color';
 import Heading from '@tiptap/extension-heading';
 import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
@@ -13,6 +14,7 @@ import {TableHeader} from '@tiptap/extension-table-header';
 import {TableRow} from '@tiptap/extension-table-row';
 import TaskItem from '@tiptap/extension-task-item';
 import TaskList from '@tiptap/extension-task-list';
+import {TextStyle} from '@tiptap/extension-text-style';
 import {Plugin, PluginKey} from '@tiptap/pm/state';
 import {useEditor, EditorContent, ReactNodeViewRenderer, type Editor} from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -360,6 +362,7 @@ const TipTapEditor = ({
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     pageId,
     pageTitle = '',
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     pageParentId = null,
     wikiId,
     pages = [],
@@ -560,6 +563,8 @@ const TipTapEditor = ({
                 heading: false,
                 link: false,
             }),
+            TextStyle,
+            Color,
             Placeholder.configure({
                 placeholder,
             }),
@@ -1010,7 +1015,7 @@ const TipTapEditor = ({
     const {additionalControl: rewriteControl, openRewriteMenu} = usePageRewrite(editor, setServerError);
 
     // Full-page proofreading functionality
-    const {isProcessing: isProofreading, proofread} = usePageProofread(editor, setServerError);
+    const {isProcessing: isProofreading, proofread} = usePageProofread(editor, pageTitle, wikiId || '', pageId, onTranslatedPageCreated, setServerError);
 
     // Full-page translation functionality
     const {
@@ -1019,7 +1024,7 @@ const TipTapEditor = ({
         openModal: openTranslateModal,
         closeModal: closeTranslateModal,
         translatePage,
-    } = usePageTranslate(editor, pageTitle, wikiId || '', pageParentId, pageId, onTranslatedPageCreated, setServerError);
+    } = usePageTranslate(editor, pageTitle, wikiId || '', pageId, onTranslatedPageCreated, setServerError);
 
     // Image AI functionality
     const isVisionEnabled = useVisionCapability();

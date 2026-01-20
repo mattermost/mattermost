@@ -32,6 +32,7 @@ type Wiki struct {
 	CreateAt    int64           `json:"create_at"`
 	UpdateAt    int64           `json:"update_at"`
 	DeleteAt    int64           `json:"delete_at"`
+	SortOrder   int64           `json:"sort_order"`
 }
 
 func (w *Wiki) PreSave() {
@@ -46,6 +47,10 @@ func (w *Wiki) PreSave() {
 		w.CreateAt = GetMillis()
 	}
 	w.UpdateAt = w.CreateAt
+
+	if w.SortOrder == 0 {
+		w.SortOrder = w.CreateAt
+	}
 }
 
 func (w *Wiki) PreUpdate() {
@@ -65,6 +70,7 @@ func (w *Wiki) Auditable() map[string]any {
 		"create_at":   w.CreateAt,
 		"update_at":   w.UpdateAt,
 		"delete_at":   w.DeleteAt,
+		"sort_order":  w.SortOrder,
 	}
 }
 

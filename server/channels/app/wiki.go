@@ -40,6 +40,9 @@ func (a *App) CreateWiki(rctx request.CTX, wiki *model.Wiki, userId string) (*mo
 	// Invalidate cache so other nodes see the new wiki
 	a.invalidateCacheForChannelPosts(wiki.ChannelId)
 
+	// Broadcast wiki creation to all clients in the channel
+	a.BroadcastWikiCreated(savedWiki)
+
 	a.sendWikiAddedNotification(rctx, savedWiki, channel, userId)
 
 	return savedWiki, nil

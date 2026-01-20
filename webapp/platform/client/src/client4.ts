@@ -2240,6 +2240,7 @@ export default class Client4 {
         );
     };
 
+
     duplicatePage = (sourceWikiId: string, pageId: string, targetWikiId: string, customTitle?: string) => {
         const body: {target_wiki_id: string; title?: string} = {target_wiki_id: targetWikiId};
         if (customTitle) {
@@ -4703,6 +4704,18 @@ export default class Client4 {
                 throw new Error('Invalid response from image extraction API: missing extracted_text field');
             }
             return response.extracted_text;
+        });
+    };
+
+    summarizeThreadToPage = (wikiId: string, agentId: string, threadId: string, title: string) => {
+        return this.doFetch<{page_id: string}>(
+            `${this.getWikiPagesRoute(wikiId)}/summarize-thread`,
+            {method: 'post', body: JSON.stringify({agent_id: agentId, thread_id: threadId, title})},
+        ).then((response) => {
+            if (!response || typeof response.page_id === 'undefined') {
+                throw new Error('Invalid response from summarize thread API: missing page_id field');
+            }
+            return response.page_id;
         });
     };
 

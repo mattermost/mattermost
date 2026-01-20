@@ -93,6 +93,7 @@ const (
 	WebsocketEventPageCommentDeleted                  WebsocketEventType = "page_comment_deleted"
 	WebsocketEventPageTitleUpdated                    WebsocketEventType = "page_title_updated"
 	WebsocketEventPageMoved                           WebsocketEventType = "page_moved"
+	WebsocketEventWikiCreated                         WebsocketEventType = "wiki_created"
 	WebsocketEventWikiUpdated                         WebsocketEventType = "wiki_updated"
 	WebsocketEventAcknowledgementAdded                WebsocketEventType = "post_acknowledgement_added"
 	WebsocketEventAcknowledgementRemoved              WebsocketEventType = "post_acknowledgement_removed"

@@ -7,9 +7,10 @@ import {useDispatch} from 'react-redux';
 
 import type {ServerError} from '@mattermost/types/errors';
 
+import {savePageDraft as savePageDraftAction} from 'mattermost-redux/actions/wikis';
 import {Client4} from 'mattermost-redux/client';
 
-import {createPage as createPageAction, publishPageDraft} from 'actions/pages';
+import {createPage as createPageAction} from 'actions/pages';
 
 import type {ImageAIAction} from './image_ai_bubble';
 
@@ -320,26 +321,22 @@ const useImageAI = (
 
             setProgress(formatMessage({id: 'image_ai.progress.saving_content', defaultMessage: 'Saving content...'}));
 
-            // Publish the draft with the AI-generated content
-            const publishResult = await dispatch(publishPageDraft(
+            // Save the draft content WITHOUT publishing - user can review and publish manually
+            const saveResult = await dispatch(savePageDraftAction(
                 wikiId,
                 draftId,
-                parentPageId || '', // Use same parent as create (empty string if no parent)
-                newPageTitle,
-                undefined, // searchText will be extracted automatically
                 pageContent,
-                undefined, // pageStatus
-                false, // force
+                newPageTitle,
+                undefined, // lastUpdateAt
+                {page_parent_id: parentPageId || ''}, // additionalProps
             ));
 
-            if ('error' in publishResult && publishResult.error) {
-                throw publishResult.error;
+            if ('error' in saveResult && saveResult.error) {
+                throw saveResult.error;
             }
 
-            const newPage = publishResult.data;
-
-            // Store created page info
-            setCreatedPageId(newPage?.id || draftId);
+            // Store created draft info
+            setCreatedPageId(draftId);
             setCreatedPageTitle(newPageTitle);
 
             // Show completion dialog

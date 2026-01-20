@@ -25,6 +25,7 @@ describe('wikis reducer', () => {
         create_at: 1234567890,
         update_at: 1234567890,
         delete_at: 0,
+        sort_order: 0,
     };
 
     describe('RECEIVED_WIKI', () => {

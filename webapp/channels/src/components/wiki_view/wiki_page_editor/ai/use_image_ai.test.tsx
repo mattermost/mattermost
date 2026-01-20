@@ -3,6 +3,7 @@
 
 import {renderHook, act} from '@testing-library/react';
 
+import {savePageDraft} from 'mattermost-redux/actions/wikis';
 import {Client4} from 'mattermost-redux/client';
 
 import * as PageActions from 'actions/pages';
@@ -35,8 +36,12 @@ jest.mock('mattermost-redux/client', () => ({
     },
 }));
 
+jest.mock('mattermost-redux/actions/wikis', () => ({
+    savePageDraft: jest.fn(),
+}));
+
 const mockCreatePage = PageActions.createPage as jest.MockedFunction<typeof PageActions.createPage>;
-const mockPublishPageDraft = PageActions.publishPageDraft as jest.MockedFunction<typeof PageActions.publishPageDraft>;
+const mockSavePageDraft = savePageDraft as jest.MockedFunction<typeof savePageDraft>;
 const mockExtractImageText = Client4.extractImageText as jest.MockedFunction<typeof Client4.extractImageText>;
 
 describe('useImageAI', () => {
@@ -56,7 +61,7 @@ describe('useImageAI', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockCreatePage.mockReturnValue(() => Promise.resolve({data: 'draft-123'}) as any);
-        mockPublishPageDraft.mockReturnValue(() => Promise.resolve({data: {id: 'published-page-123'}}) as any);
+        mockSavePageDraft.mockReturnValue(() => Promise.resolve({data: {}}) as any);
         mockExtractImageText.mockResolvedValue('Extracted text from image');
     });
 
@@ -285,7 +290,7 @@ describe('useImageAI', () => {
             expect(result.current.showExtractionDialog).toBe(false);
             expect(result.current.showCompletionDialog).toBe(true);
             expect(result.current.isProcessing).toBe(false);
-            expect(result.current.createdPageId).toBe('published-page-123');
+            expect(result.current.createdPageId).toBe('draft-123');
             expect(result.current.createdPageTitle).toContain('Handwriting');
         });
 
@@ -429,13 +434,13 @@ describe('useImageAI', () => {
                 await result.current.handleImageAIAction('extract_handwriting', mockImage);
             });
 
-            expect(result.current.createdPageId).toBe('published-page-123');
+            expect(result.current.createdPageId).toBe('draft-123');
 
             act(() => {
                 result.current.goToCreatedPage();
             });
 
-            expect(mockOnPageCreated).toHaveBeenCalledWith('published-page-123');
+            expect(mockOnPageCreated).toHaveBeenCalledWith('draft-123');
             expect(result.current.showCompletionDialog).toBe(false);
             expect(result.current.createdPageId).toBeNull();
         });

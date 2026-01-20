@@ -25,7 +25,7 @@ func newSqlWikiStore(sqlStore *SqlStore) store.WikiStore {
 	s := &SqlWikiStore{SqlStore: sqlStore}
 
 	s.tableSelectQuery = s.getQueryBuilder().
-		Select("Id", "ChannelId", "Title", "Description", "Icon", "Props", "CreateAt", "UpdateAt", "DeleteAt").
+		Select("Id", "ChannelId", "Title", "Description", "Icon", "Props", "CreateAt", "UpdateAt", "DeleteAt", "SortOrder").
 		From("Wikis")
 
 	return s
@@ -87,8 +87,8 @@ func (s *SqlWikiStore) Save(wiki *model.Wiki) (*model.Wiki, error) {
 
 	builder := s.getQueryBuilder().
 		Insert("Wikis").
-		Columns("Id", "ChannelId", "Title", "Description", "Icon", "Props", "CreateAt", "UpdateAt", "DeleteAt").
-		Values(wiki.Id, wiki.ChannelId, wiki.Title, wiki.Description, wiki.Icon, propsJSON, wiki.CreateAt, wiki.UpdateAt, wiki.DeleteAt)
+		Columns("Id", "ChannelId", "Title", "Description", "Icon", "Props", "CreateAt", "UpdateAt", "DeleteAt", "SortOrder").
+		Values(wiki.Id, wiki.ChannelId, wiki.Title, wiki.Description, wiki.Icon, propsJSON, wiki.CreateAt, wiki.UpdateAt, wiki.DeleteAt, wiki.SortOrder)
 
 	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
 		return nil, errors.Wrap(err, "unable_to_save_wiki")
@@ -167,7 +167,7 @@ func (s *SqlWikiStore) GetForChannel(channelId string, includeDeleted bool) ([]*
 		builder = builder.Where(sq.Eq{"DeleteAt": 0})
 	}
 
-	builder = builder.OrderBy("CreateAt DESC")
+	builder = builder.OrderBy("SortOrder ASC", "CreateAt DESC")
 
 	wikis := []*model.Wiki{}
 	if err := s.GetReplica().SelectBuilder(&wikis, builder); err != nil {
@@ -324,8 +324,8 @@ func (s *SqlWikiStore) SaveWikiT(transaction *sqlxTxWrapper, wiki *model.Wiki) (
 
 	builder := s.getQueryBuilder().
 		Insert("Wikis").
-		Columns("Id", "ChannelId", "Title", "Description", "Icon", "Props", "CreateAt", "UpdateAt", "DeleteAt").
-		Values(wiki.Id, wiki.ChannelId, wiki.Title, wiki.Description, wiki.Icon, propsJSON, wiki.CreateAt, wiki.UpdateAt, wiki.DeleteAt)
+		Columns("Id", "ChannelId", "Title", "Description", "Icon", "Props", "CreateAt", "UpdateAt", "DeleteAt", "SortOrder").
+		Values(wiki.Id, wiki.ChannelId, wiki.Title, wiki.Description, wiki.Icon, propsJSON, wiki.CreateAt, wiki.UpdateAt, wiki.DeleteAt, wiki.SortOrder)
 
 	if _, err := transaction.ExecBuilder(builder); err != nil {
 		return nil, errors.Wrap(err, "unable_to_save_wiki")

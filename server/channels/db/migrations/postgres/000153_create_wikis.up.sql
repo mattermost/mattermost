@@ -7,7 +7,8 @@ CREATE TABLE IF NOT EXISTS Wikis (
     Props JSONB DEFAULT '{}',
     CreateAt BIGINT NOT NULL,
     UpdateAt BIGINT NOT NULL,
-    DeleteAt BIGINT NOT NULL DEFAULT 0
+    DeleteAt BIGINT NOT NULL DEFAULT 0,
+    SortOrder BIGINT NOT NULL DEFAULT 0
 );
 
 CREATE INDEX idx_wikis_channel_id ON Wikis(ChannelId);

@@ -13,6 +13,7 @@ export type Wiki = {
     create_at: number;
     update_at: number;
     delete_at: number;
+    sort_order: number;
 };
 
 export type WikiCreate = {

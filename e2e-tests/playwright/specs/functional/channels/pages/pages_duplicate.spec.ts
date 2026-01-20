@@ -9,11 +9,14 @@ import {
     createTestChannel,
     ensurePanelOpen,
     getPageViewerContent,
+    getHierarchyPanel,
     waitForPageInHierarchy,
     waitForDuplicatedPageInHierarchy,
     duplicatePageThroughUI,
+    openMovePageModal,
     EDITOR_LOAD_WAIT,
     AUTOSAVE_WAIT,
+    ELEMENT_TIMEOUT,
 } from './test_helpers';
 
 /**
@@ -162,4 +165,75 @@ test('duplicates root page at root level', {tag: '@pages'}, async ({pw, sharedPa
     // * Verify content is copied
     const pageContent = getPageViewerContent(page);
     await expect(pageContent).toContainText('First root content');
+});
+
+/**
+ * @objective Verify duplicated page can be moved to a new parent
+ * Regression test: Move modal was not showing for duplicated pages
+ */
+test('moves duplicated page to new parent', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+
+    await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
+
+    // # Create wiki and two pages through UI
+    await createWikiThroughUI(page, `Move Duplicate Wiki ${await pw.random.id()}`);
+    const page1 = await createPageThroughUI(page, 'Page 1', 'Page 1 content');
+    const page2 = await createPageThroughUI(page, 'Page 2', 'Page 2 content');
+
+    // # Wait for pages to be fully committed to database
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
+
+    // # Ensure panel is open
+    await ensurePanelOpen(page);
+
+    // # Duplicate Page 1
+    await duplicatePageThroughUI(page, page1.id);
+
+    // * Verify duplicated page appears in hierarchy
+    const duplicateNode = await waitForDuplicatedPageInHierarchy(page, 'Copy of Page 1');
+    await expect(duplicateNode).toBeVisible();
+
+    // # Open move modal for the duplicated page
+    const moveModal = await openMovePageModal(page, 'Copy of Page 1');
+
+    // * Verify move modal is visible
+    await expect(moveModal).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // # Select Page 2 as new parent
+    const page2Option = moveModal.locator(`[data-page-id="${page2.id}"]`).first();
+    await page2Option.click();
+
+    const confirmButton = moveModal.getByRole('button', {name: 'Move'});
+    await expect(confirmButton).toBeEnabled();
+    await confirmButton.click();
+
+    // Wait for modal to close
+    await expect(moveModal).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await page.waitForLoadState('networkidle');
+
+    // * Verify duplicated page now appears under Page 2 in hierarchy
+    const hierarchyPanel = getHierarchyPanel(page);
+    const page2Node = hierarchyPanel.locator('[data-page-id="' + page2.id + '"]').first();
+    await expect(page2Node).toBeVisible();
+
+    // Expand Page 2 to reveal children
+    const expandButton = page2Node.locator('[data-testid="page-tree-node-expand-button"]').first();
+    await expect(expandButton).toBeVisible();
+    const chevronRight = page2Node.locator('.icon-chevron-right').first();
+    if ((await chevronRight.count()) > 0) {
+        await expandButton.click();
+    }
+
+    // * Verify "Copy of Page 1" is now a child of Page 2
+    const movedDuplicateNode = hierarchyPanel
+        .locator('[data-testid="page-tree-node"]')
+        .filter({hasText: 'Copy of Page 1'})
+        .first();
+    await expect(movedDuplicateNode).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await expect(movedDuplicateNode).toHaveAttribute('data-depth', '1', {timeout: ELEMENT_TIMEOUT});
 });

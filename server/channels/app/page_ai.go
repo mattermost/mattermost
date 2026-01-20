@@ -67,7 +67,8 @@ CRITICAL: bold, italic, strike, code are MARKS on text nodes, NOT node types.
 WRONG: {"type":"bold","content":[...]}
 RIGHT: {"type":"text","marks":[{"type":"bold"}],"text":"bold text"}
 
-DO NOT USE: textStyle, textColor, highlight, underline, subscript, superscript
+OPTIONAL (for emphasis): textStyle with color attr: {"type":"text","marks":[{"type":"textStyle","attrs":{"color":"#ff0000"}}],"text":"red text"}
+DO NOT USE: highlight, underline, subscript, superscript
 
 EXAMPLE - Paragraph with bold word:
 {"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"This is "},{"type":"text","marks":[{"type":"bold"}],"text":"important"},{"type":"text","text":" text."}]}]}
@@ -316,6 +317,17 @@ var invalidMarkNodeTypes = map[string]bool{
 	"code":   true,
 }
 
+// supportedMarks are the only mark types supported by our TipTap schema
+// Any other marks (highlight, etc.) will be stripped
+var supportedMarks = map[string]bool{
+	"bold":      true,
+	"italic":    true,
+	"strike":    true,
+	"code":      true,
+	"link":      true,
+	"textStyle": true, // Used by TipTap Color extension for text colors
+}
+
 // sanitizeTipTapDoc fixes common AI mistakes in TipTap JSON output
 // It converts invalid node types (bold, italic, strike, code) into proper marks on text nodes
 func sanitizeTipTapDoc(docJSON string) (string, error) {
@@ -357,6 +369,10 @@ func sanitizeNode(node map[string]any) {
 			converted := convertMarkNodeToTextWithMark(childMap, nodeType)
 			newContent = append(newContent, converted...)
 		} else {
+			// Strip unsupported marks from text nodes
+			if nodeType == "text" {
+				stripUnsupportedMarks(childMap)
+			}
 			// Recursively sanitize children
 			sanitizeNode(childMap)
 			newContent = append(newContent, childMap)
@@ -364,6 +380,40 @@ func sanitizeNode(node map[string]any) {
 	}
 
 	node["content"] = newContent
+}
+
+// stripUnsupportedMarks removes marks that aren't in our TipTap schema
+// Also converts textColor marks to textStyle (TipTap's expected format)
+func stripUnsupportedMarks(textNode map[string]any) {
+	marks, hasMarks := textNode["marks"].([]any)
+	if !hasMarks || len(marks) == 0 {
+		return
+	}
+
+	var filteredMarks []any
+	for _, mark := range marks {
+		markMap, ok := mark.(map[string]any)
+		if !ok {
+			continue
+		}
+		markType, _ := markMap["type"].(string)
+
+		// Convert textColor to textStyle (TipTap's Color extension uses textStyle)
+		if markType == "textColor" {
+			markMap["type"] = "textStyle"
+			markType = "textStyle"
+		}
+
+		if supportedMarks[markType] {
+			filteredMarks = append(filteredMarks, mark)
+		}
+	}
+
+	if len(filteredMarks) == 0 {
+		delete(textNode, "marks")
+	} else {
+		textNode["marks"] = filteredMarks
+	}
 }
 
 // convertMarkNodeToTextWithMark converts an invalid mark node (like {"type":"bold","content":[...]})
@@ -423,4 +473,219 @@ func convertMarkNodeToTextWithMark(node map[string]any, markType string) []any {
 	}
 
 	return result
+}
+
+// SummarizeThreadToPageRequest represents a request to summarize a thread into a wiki page
+type SummarizeThreadToPageRequest struct {
+	AgentID  string `json:"agent_id"`
+	ThreadID string `json:"thread_id"`
+	Title    string `json:"title"`
+}
+
+// SummarizeThreadToPageResponse represents the response from thread summarization
+type SummarizeThreadToPageResponse struct {
+	PageID string `json:"page_id"`
+}
+
+// threadSummarizationSystemPrompt requests TipTap JSON format for wiki pages
+const threadSummarizationSystemPrompt = `You summarize conversations and return TipTap/ProseMirror document JSON for wiki pages.
+
+OUTPUT FORMAT - Return ONLY this exact JSON structure:
+{"type":"doc","content":[...array of nodes...]}
+
+ALLOWED NODE TYPES (use ONLY these):
+- doc: root document node
+- paragraph: {"type":"paragraph","content":[...text nodes...]}
+- heading: {"type":"heading","attrs":{"level":1},"content":[...text nodes...]} (level 1-3)
+- text: {"type":"text","text":"content"} or with marks: {"type":"text","marks":[{"type":"bold"}],"text":"content"}
+- bulletList: {"type":"bulletList","content":[...listItem nodes...]}
+- orderedList: {"type":"orderedList","content":[...listItem nodes...]}
+- listItem: {"type":"listItem","content":[{"type":"paragraph","content":[...]}]}
+- taskList: {"type":"taskList","content":[...taskItem nodes...]}
+- taskItem: {"type":"taskItem","attrs":{"checked":false},"content":[{"type":"paragraph","content":[...]}]}
+- horizontalRule: {"type":"horizontalRule"}
+- blockquote: {"type":"blockquote","content":[...paragraph nodes...]}
+- codeBlock: {"type":"codeBlock","content":[{"type":"text","text":"code"}]}
+
+MARKS (formatting applied to text nodes via "marks" array, NOT as node types):
+- bold: {"type":"text","marks":[{"type":"bold"}],"text":"bold text"}
+- italic: {"type":"text","marks":[{"type":"italic"}],"text":"italic text"}
+- strike: {"type":"text","marks":[{"type":"strike"}],"text":"strikethrough"}
+- code: {"type":"text","marks":[{"type":"code"}],"text":"inline code"}
+
+CRITICAL RULES:
+1. Response MUST start with {"type":"doc"
+2. Response MUST end with }
+3. NO markdown, NO code blocks, NO backticks, NO explanations
+4. ONLY output the JSON object
+5. Create a well-structured summary with headings, bullet points, and action items where appropriate`
+
+// threadSummarizationUserPrompt is the template for summarizing a thread
+const threadSummarizationUserPrompt = `Summarize the following conversation into a well-structured wiki page.
+
+Create a comprehensive summary that includes:
+1. A brief overview paragraph
+2. Key discussion points as bullet points
+3. Decisions made (if any)
+4. Action items or next steps (as a task list if applicable)
+
+Conversation:
+%s
+
+Return ONLY the TipTap JSON document. No explanations or markdown.`
+
+// SummarizeThreadToPage summarizes a thread/conversation and creates a draft wiki page with the summary.
+// Returns the draft page ID for the user to review and publish.
+func (a *App) SummarizeThreadToPage(rctx request.CTX, agentID, threadID, wikiID, pageTitle string) (string, *model.AppError) {
+	userID := rctx.Session().UserId
+
+	// Check if AI plugin bridge is available
+	if !a.isAIPluginBridgeAvailable(rctx) {
+		return "", model.NewAppError("SummarizeThreadToPage", "app.page.summarize_thread.ai_not_available", nil, "AI plugin bridge is not available", http.StatusServiceUnavailable)
+	}
+
+	// Validate inputs
+	if agentID == "" {
+		return "", model.NewAppError("SummarizeThreadToPage", "app.page.summarize_thread.missing_agent", nil, "", http.StatusBadRequest)
+	}
+	if threadID == "" {
+		return "", model.NewAppError("SummarizeThreadToPage", "app.page.summarize_thread.missing_thread", nil, "", http.StatusBadRequest)
+	}
+	if wikiID == "" {
+		return "", model.NewAppError("SummarizeThreadToPage", "app.page.summarize_thread.missing_wiki", nil, "", http.StatusBadRequest)
+	}
+	pageTitle = strings.TrimSpace(pageTitle)
+	if pageTitle == "" {
+		return "", model.NewAppError("SummarizeThreadToPage", "app.page.summarize_thread.missing_title", nil, "", http.StatusBadRequest)
+	}
+
+	// Validate wiki exists
+	_, wikiErr := a.GetWiki(rctx, wikiID)
+	if wikiErr != nil {
+		return "", wikiErr
+	}
+
+	// Fetch the thread posts
+	opts := model.GetPostsOptions{
+		CollapsedThreads: false,
+	}
+	postList, threadErr := a.GetPostThread(rctx, threadID, opts, userID)
+	if threadErr != nil {
+		return "", model.NewAppError("SummarizeThreadToPage", "app.page.summarize_thread.fetch_thread_failed", nil, threadErr.Error(), http.StatusInternalServerError)
+	}
+
+	if postList == nil || len(postList.Order) == 0 {
+		return "", model.NewAppError("SummarizeThreadToPage", "app.page.summarize_thread.empty_thread", nil, "", http.StatusBadRequest)
+	}
+
+	// Build conversation text from posts
+	conversationText := a.buildConversationText(rctx, postList)
+
+	// Prepare user prompt with conversation
+	userPrompt := fmt.Sprintf(threadSummarizationUserPrompt, conversationText)
+
+	// Create bridge client and call AI
+	client := a.getBridgeClient(userID)
+	completionRequest := agentclient.CompletionRequest{
+		Posts: []agentclient.Post{
+			{Role: "system", Message: threadSummarizationSystemPrompt},
+			{Role: "user", Message: userPrompt},
+		},
+	}
+
+	rctx.Logger().Info("Calling AI agent for thread summarization",
+		mlog.String("agent_id", agentID),
+		mlog.String("thread_id", threadID),
+		mlog.String("wiki_id", wikiID),
+		mlog.Int("post_count", len(postList.Order)),
+	)
+
+	completion, completionErr := client.AgentCompletion(agentID, completionRequest)
+	if completionErr != nil {
+		rctx.Logger().Error("AI agent thread summarization call failed",
+			mlog.String("agent_id", agentID),
+			mlog.String("thread_id", threadID),
+			mlog.Err(completionErr),
+		)
+		return "", model.NewAppError("SummarizeThreadToPage", "app.page.summarize_thread.agent_call_failed", nil, completionErr.Error(), http.StatusInternalServerError)
+	}
+
+	rctx.Logger().Info("AI agent thread summarization succeeded",
+		mlog.String("agent_id", agentID),
+		mlog.String("thread_id", threadID),
+		mlog.Int("response_length", len(completion)),
+	)
+
+	// Clean up markdown code blocks (AI may wrap response in ```json...```)
+	cleanedCompletion := cleanMarkdownCodeBlocks(completion)
+	trimmed := strings.TrimSpace(cleanedCompletion)
+
+	// Validate that response is TipTap JSON
+	if !strings.HasPrefix(trimmed, `{"type":"doc"`) {
+		rctx.Logger().Warn("AI response was not TipTap format, wrapping in paragraph",
+			mlog.String("agent_id", agentID),
+			mlog.String("thread_id", threadID),
+			mlog.String("response_preview", trimmed[:min(100, len(trimmed))]),
+		)
+		// Wrap plain text in TipTap paragraph
+		trimmed = convertPlainTextToTipTapJSON(trimmed)
+	}
+
+	// Sanitize the TipTap document
+	sanitized, sanitizeErr := sanitizeTipTapDoc(trimmed)
+	if sanitizeErr != nil {
+		rctx.Logger().Warn("Failed to sanitize TipTap doc, using raw",
+			mlog.String("agent_id", agentID),
+			mlog.String("thread_id", threadID),
+			mlog.Err(sanitizeErr),
+		)
+		sanitized = trimmed
+	}
+
+	// Generate a new page ID for the draft
+	pageID := model.NewId()
+
+	// Create a draft page with the summarized content (user can review before publishing)
+	draft, draftErr := a.SavePageDraftWithMetadata(rctx, userID, wikiID, pageID, sanitized, pageTitle, 0, nil)
+	if draftErr != nil {
+		return "", model.NewAppError("SummarizeThreadToPage", "app.page.summarize_thread.create_draft_failed", nil, draftErr.Error(), http.StatusInternalServerError)
+	}
+
+	rctx.Logger().Info("Thread summarization draft created",
+		mlog.String("agent_id", agentID),
+		mlog.String("thread_id", threadID),
+		mlog.String("page_id", draft.PageId),
+		mlog.String("wiki_id", wikiID),
+	)
+
+	return draft.PageId, nil
+}
+
+// buildConversationText formats posts into a readable conversation string for AI summarization
+func (a *App) buildConversationText(rctx request.CTX, postList *model.PostList) string {
+	var sb strings.Builder
+
+	for _, postID := range postList.Order {
+		post := postList.Posts[postID]
+		if post == nil {
+			continue
+		}
+
+		// Skip system messages
+		if post.IsSystemMessage() {
+			continue
+		}
+
+		// Get username
+		username := post.UserId
+		user, err := a.GetUser(post.UserId)
+		if err == nil && user != nil {
+			username = user.Username
+		}
+
+		// Format: @username: message
+		sb.WriteString(fmt.Sprintf("@%s: %s\n", username, post.Message))
+	}
+
+	return sb.String()
 }

@@ -386,6 +386,67 @@
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /api/v4/wikis/{wiki_id}/pages/summarize-thread:
+    post:
+      tags:
+        - wikis
+      summary: Summarize thread to page
+      description: |
+        Summarize a message thread using AI and create a new page with the summary.
+
+        __Minimum server version__: TBD
+
+        ##### Permissions
+        Must have `read_channel_content` permission in the wiki's channel and `read_channel` permission in the thread's channel.
+      operationId: SummarizeThreadToPage
+      parameters:
+        - name: wiki_id
+          in: path
+          description: Wiki GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - agent_id
+                - thread_id
+                - title
+              properties:
+                agent_id:
+                  type: string
+                  description: The ID of the AI agent to use for summarization
+                thread_id:
+                  type: string
+                  description: The ID of the thread (root post) to summarize
+                title:
+                  type: string
+                  description: The title for the summary page
+        description: Summarization request
+        required: true
+      responses:
+        "201":
+          description: Page creation from thread summary successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  page_id:
+                    type: string
+                    description: The ID of the created page
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   /api/v4/wikis/{wiki_id}/drafts/{draft_id}/publish:
     post:
       tags:

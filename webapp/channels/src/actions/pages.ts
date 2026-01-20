@@ -660,6 +660,8 @@ function moveDraftInHierarchy(draftId: string, newParentId: string | null, wikiI
 }
 
 // Move a page in hierarchy (used for drag-and-drop)
+// Uses the dedicated /parent endpoint which broadcasts page_moved WebSocket event
+// to ensure all clients update their hierarchy view
 export function movePageInHierarchy(pageId: string, newParentId: string | null, wikiId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         if (pageId.startsWith('draft-')) {
@@ -689,16 +691,10 @@ export function movePageInHierarchy(pageId: string, newParentId: string | null, 
         });
 
         try {
-            const patchData = {
-                id: pageId,
-                page_parent_id: newParentId || '',
-            };
-            const data = await Client4.patchPost(patchData);
-
-            dispatch({
-                type: PostActionTypes.RECEIVED_POST,
-                data,
-            });
+            // Use the dedicated updatePageParent endpoint instead of patchPost.
+            // This endpoint broadcasts the page_moved WebSocket event, ensuring
+            // all connected clients update their hierarchy view.
+            await Client4.updatePageParent(wikiId, pageId, newParentId || '');
 
             const timestamp = Date.now();
             dispatch({
@@ -706,7 +702,7 @@ export function movePageInHierarchy(pageId: string, newParentId: string | null, 
                 data: {wikiId, timestamp},
             });
 
-            return {data};
+            return {data: optimisticPost};
         } catch (error) {
             dispatch({
                 type: PostActionTypes.RECEIVED_POST,

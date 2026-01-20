@@ -3,12 +3,19 @@
 
 import type {Editor} from '@tiptap/react';
 import {useCallback, useEffect, useRef, useState} from 'react';
+import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {ServerError} from '@mattermost/types/errors';
 
 import {getAgents as getAgentsAction} from 'mattermost-redux/actions/agents';
 import {getAgents} from 'mattermost-redux/selectors/entities/agents';
+
+import {savePageDraft} from 'actions/page_drafts';
+import {createPage as createPageAction} from 'actions/pages';
+import {getWiki} from 'selectors/pages';
+
+import type {GlobalState} from 'types/store';
 
 import type {ProofreadProgress, ProofreadResult} from './proofread_action';
 import {proofreadDocumentImmutable, previewProofread} from './proofread_action';
@@ -19,46 +26,47 @@ interface UsePageProofreadReturn {
     isProcessing: boolean;
     progress: ProofreadProgress | null;
     error: ServerError | null;
-    canUndo: boolean;
     proofread: () => Promise<void>;
-    undo: () => void;
 }
 
 /**
  * Hook for proofreading an entire TipTap page.
  *
- * Usage:
- * ```tsx
- * const {isProcessing, progress, error, canUndo, proofread, undo} = usePageProofread(editor);
- *
- * // Trigger proofreading
- * <button onClick={proofread} disabled={isProcessing}>Proofread</button>
- *
- * // Show progress
- * {isProcessing && <ProgressBar value={progress?.current} max={progress?.total} />}
- *
- * // Undo if needed
- * {canUndo && <button onClick={undo}>Undo</button>}
- * ```
+ * Creates a new draft page as a child of the current page with:
+ * - Proofread content (spelling and grammar corrected)
+ * - Title with "(Proofread)" indicator
  */
 const usePageProofread = (
     editor: Editor | null,
+    pageTitle: string,
+    wikiId: string,
+    pageId: string | undefined,
+    onPageCreated?: (pageId: string) => void,
     setServerError?: React.Dispatch<React.SetStateAction<(ServerError & {submittedMessage?: string}) | null>>,
 ): UsePageProofreadReturn => {
     const dispatch = useDispatch();
+    const {formatMessage} = useIntl();
     const agents = useSelector(getAgents);
+    const wiki = useSelector((state: GlobalState) => getWiki(state, wikiId));
 
     const [isProcessing, setIsProcessing] = useState(false);
     const [progress, setProgress] = useState<ProofreadProgress | null>(null);
     const [error, setError] = useState<ServerError | null>(null);
     const [selectedAgentId, setSelectedAgentId] = useState<string>('');
 
-    // Store original document for undo
-    const originalDocRef = useRef<TipTapDoc | null>(null);
-    const [canUndo, setCanUndo] = useState(false);
-
     // Ref to track current promise for cancellation
     const currentPromiseRef = useRef<Promise<ProofreadResult>>();
+
+    // Ref to track mounted state for cleanup
+    const isMountedRef = useRef(true);
+
+    // Cleanup on unmount
+    useEffect(() => {
+        isMountedRef.current = true;
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
 
     // Load agents on mount
     useEffect(() => {
@@ -77,7 +85,7 @@ const usePageProofread = (
     }, []);
 
     const proofread = useCallback(async () => {
-        if (!editor || isProcessing || !selectedAgentId) {
+        if (!editor || isProcessing || !selectedAgentId || !wikiId) {
             return;
         }
 
@@ -92,10 +100,8 @@ const usePageProofread = (
 
         setIsProcessing(true);
         setError(null);
+        setServerError?.(null);
         setProgress({current: 0, total: preview.textChunkCount, status: 'extracting'});
-
-        // Store original for undo
-        originalDocRef.current = currentDoc;
 
         const promise = proofreadDocumentImmutable(currentDoc, selectedAgentId, handleProgress);
         currentPromiseRef.current = promise;
@@ -103,28 +109,69 @@ const usePageProofread = (
         try {
             const result = await promise;
 
-            // Only apply if this is still the current operation
-            if (currentPromiseRef.current === promise) {
-                if (result.success) {
-                    // Apply the corrected document to the editor
-                    editor.commands.setContent(result.doc);
-                    setCanUndo(true);
-                } else {
-                    // Handle errors
-                    const errorMessage = result.errors.join('; ') || 'Proofreading failed';
-                    const serverError: ServerError = {
-                        message: errorMessage,
-                        server_error_id: 'proofread_error',
-                        status_code: 500,
-                    };
-                    setError(serverError);
-                    setServerError?.(serverError);
+            // Only continue if this is still the current operation and component is mounted
+            if (currentPromiseRef.current !== promise || !isMountedRef.current) {
+                return;
+            }
+
+            if (result.success) {
+                // Create new page title with proofread indicator
+                const newPageTitle = formatMessage(
+                    {id: 'ai_tools.proofread_title', defaultMessage: '{title} (Proofread)'},
+                    {title: pageTitle},
+                );
+
+                // Create a new draft page as a child of the current page
+                const createResult = await dispatch(createPageAction(wikiId, newPageTitle, pageId));
+
+                if ('error' in createResult && createResult.error) {
+                    throw createResult.error;
                 }
 
+                if (!isMountedRef.current) {
+                    return;
+                }
+
+                const draftId = createResult.data as string;
+
+                // Save proofread content to the draft (user can review before publishing)
+                const proofreadContent = JSON.stringify(result.doc);
+                const channelId = wiki?.channel_id || '';
+                const saveResult = await dispatch(savePageDraft(
+                    channelId,
+                    wikiId,
+                    draftId,
+                    proofreadContent,
+                    newPageTitle,
+                    0, // lastUpdateAt - 0 means new draft
+                    {page_parent_id: pageId || ''},
+                ));
+
+                if ('error' in saveResult && saveResult.error) {
+                    throw saveResult.error;
+                }
+
+                if (!isMountedRef.current) {
+                    return;
+                }
+
+                // Navigate to the draft for review before publishing
+                onPageCreated?.(draftId);
+
                 setProgress({current: result.totalChunks, total: result.totalChunks, status: 'complete'});
+            } else {
+                // Handle proofreading errors
+                const errorMessage = result.errors.join('; ') || 'Proofreading failed';
+                const serverError: ServerError = {
+                    message: errorMessage,
+                    server_error_id: 'proofread_error',
+                    status_code: 500,
+                };
+                setError(serverError);
+                setServerError?.(serverError);
             }
         } catch (err) {
-            if (currentPromiseRef.current === promise) {
+            if (isMountedRef.current) {
                 const serverError: ServerError = {
                     message: err instanceof Error ? err.message : 'Unknown error',
                     server_error_id: 'proofread_error',
@@ -135,51 +182,31 @@ const usePageProofread = (
                 setProgress(null);
             }
         } finally {
-            if (currentPromiseRef.current === promise) {
+            if (isMountedRef.current && currentPromiseRef.current === promise) {
                 setIsProcessing(false);
                 currentPromiseRef.current = undefined;
             }
         }
-    }, [editor, isProcessing, selectedAgentId, handleProgress, setServerError]);
-
-    const undo = useCallback(() => {
-        if (!editor || !originalDocRef.current || !canUndo) {
-            return;
-        }
-
-        editor.commands.setContent(originalDocRef.current);
-        originalDocRef.current = null;
-        setCanUndo(false);
-    }, [editor, canUndo]);
-
-    // Clear undo state when editor content changes (user made edits)
-    useEffect(() => {
-        if (!editor) {
-            return undefined;
-        }
-
-        const handleUpdate = () => {
-            // If user makes manual edits after proofreading, clear undo state
-            // This prevents undoing to a very old state
-            if (canUndo && !isProcessing) {
-                setCanUndo(false);
-                originalDocRef.current = null;
-            }
-        };
-
-        editor.on('update', handleUpdate);
-        return () => {
-            editor.off('update', handleUpdate);
-        };
-    }, [editor, canUndo, isProcessing]);
+    }, [
+        dispatch,
+        editor,
+        formatMessage,
+        handleProgress,
+        isProcessing,
+        onPageCreated,
+        pageId,
+        pageTitle,
+        selectedAgentId,
+        setServerError,
+        wiki,
+        wikiId,
+    ]);
 
     return {
         isProcessing,
         progress,
         error,
-        canUndo,
         proofread,
-        undo,
     };
 };
 

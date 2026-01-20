@@ -58,6 +58,9 @@ export default function wikisReducer(state = initialState, action: AnyAction): W
         const nextByChannel = {...state.byChannel};
         const nextById = {...state.byId};
 
+        // Group wikis by channel to properly update ordering
+        const wikisByChannel: Record<string, string[]> = {};
+
         wikis.forEach((wiki) => {
             const existingWiki = nextById[wiki.id];
 
@@ -67,14 +70,23 @@ export default function wikisReducer(state = initialState, action: AnyAction): W
                 nextByChannel[existingWiki.channel_id] = oldChannelWikis.filter((id) => id !== wiki.id);
             }
 
-            // Add wiki to new channel if not already there
-            const currentWikiIds = nextByChannel[wiki.channel_id] || [];
-            if (!currentWikiIds.includes(wiki.id)) {
-                nextByChannel[wiki.channel_id] = [...currentWikiIds, wiki.id];
+            // Track wikis by channel in received order
+            if (!wikisByChannel[wiki.channel_id]) {
+                wikisByChannel[wiki.channel_id] = [];
             }
+            wikisByChannel[wiki.channel_id].push(wiki.id);
 
             // Merge with existing wiki data to preserve fields not included in partial updates
             nextById[wiki.id] = existingWiki ? {...existingWiki, ...wiki} : wiki;
+        });
+
+        // Update byChannel with the new order for each channel that received wikis
+        Object.entries(wikisByChannel).forEach(([channelId, wikiIds]) => {
+            const existingIds = nextByChannel[channelId] || [];
+
+            // Keep existing wikis that weren't in this update, then add the updated ones in order
+            const otherIds = existingIds.filter((id) => !wikiIds.includes(id));
+            nextByChannel[channelId] = [...wikiIds, ...otherIds];
         });
 
         return {

@@ -4915,6 +4915,10 @@
     "translation": "You do not have permission to access this wiki."
   },
   {
+    "id": "api.wiki.summarize_thread.wiki_deleted.app_error",
+    "translation": "Cannot summarize thread: the wiki has been deleted."
+  },
+  {
     "id": "api.wiki.update_page_parent.parent_different_wiki",
     "translation": "Parent page is in a different wiki."
   },
@@ -7585,6 +7589,42 @@
   {
     "id": "app.page.set_status.app_error",
     "translation": "Unable to set page status."
+  },
+  {
+    "id": "app.page.summarize_thread.agent_call_failed",
+    "translation": "Failed to call AI agent for thread summarization."
+  },
+  {
+    "id": "app.page.summarize_thread.ai_not_available",
+    "translation": "AI summarization is not available."
+  },
+  {
+    "id": "app.page.summarize_thread.create_draft_failed",
+    "translation": "Failed to create page draft from thread summary."
+  },
+  {
+    "id": "app.page.summarize_thread.empty_thread",
+    "translation": "Thread has no messages to summarize."
+  },
+  {
+    "id": "app.page.summarize_thread.fetch_thread_failed",
+    "translation": "Failed to fetch thread for summarization."
+  },
+  {
+    "id": "app.page.summarize_thread.missing_agent",
+    "translation": "Agent ID is required for thread summarization."
+  },
+  {
+    "id": "app.page.summarize_thread.missing_thread",
+    "translation": "Thread ID is required for summarization."
+  },
+  {
+    "id": "app.page.summarize_thread.missing_title",
+    "translation": "Title is required for the summary page."
+  },
+  {
+    "id": "app.page.summarize_thread.missing_wiki",
+    "translation": "Wiki ID is required for summarization."
   },
   {
     "id": "app.page.update.conflict.app_error",

@@ -8,38 +8,24 @@ import {fetchPages} from './pages';
 
 /**
  * Load all wiki data (pages, drafts) for a given wiki.
- * Only fetches data if not already in cache (cache-first pattern).
  *
- * This action consolidates multiple data loading calls into a single coordinated action,
- * following the pattern of loadChannelsForCurrentUser in channel_actions.ts.
- *
- * Pattern match: webapp/channels/src/actions/channel_actions.ts:77-95 (loadChannelsForCurrentUser)
+ * Always fetches pages from the server to ensure we have the complete list.
+ * We cannot use a cache-first pattern because WebSocket events (page_published)
+ * can populate byWiki[wikiId] with partial data before the user opens the wiki,
+ * causing the cache check to incorrectly skip the full fetch.
  *
  * @param wikiId - The ID of the wiki to load
  * @returns ActionFuncAsync that resolves when loading is complete
  */
 export function fetchWikiBundle(wikiId: string): ActionFuncAsync {
-    return async (dispatch, getState) => {
-        const state = getState();
-
-        // Cache check for pages (undefined = not loaded, [] = loaded but empty)
-        const cachedPageIds = state.entities.wikiPages?.byWiki?.[wikiId];
-        const needsPages = cachedPageIds === undefined;
-
-        // Build list of actions to dispatch
-        const promises = [];
-
-        // Conditionally fetch pages if not cached
-        if (needsPages) {
-            promises.push(dispatch(fetchPages(wikiId)));
-        }
-
-        // Always fetch drafts - they're transient and stored in localStorage.
-        // The fetchPageDraftsForWiki action reads from localStorage and optionally
-        // fetches server drafts, so it's lightweight and always needed.
-        promises.push(dispatch(fetchPageDraftsForWiki(wikiId)));
-
-        await Promise.all(promises);
+    return async (dispatch) => {
+        // Always fetch pages to ensure we have the complete list.
+        // WebSocket events can create partial cache entries, so we can't
+        // rely on cache existence to determine if a full fetch was done.
+        await Promise.all([
+            dispatch(fetchPages(wikiId)),
+            dispatch(fetchPageDraftsForWiki(wikiId)),
+        ]);
 
         return {data: true};
     };

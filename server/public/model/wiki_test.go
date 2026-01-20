@@ -255,6 +255,7 @@ func TestWikiPreSave(t *testing.T) {
 	originalWiki.Id = wiki.Id
 	originalWiki.CreateAt = wiki.CreateAt
 	originalWiki.UpdateAt = wiki.UpdateAt
+	originalWiki.SortOrder = wiki.SortOrder
 	assert.Equal(t, originalWiki, wiki)
 }
 

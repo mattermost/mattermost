@@ -3,13 +3,17 @@
 
 import React, {useState, useCallback, useMemo, useEffect} from 'react';
 import {useIntl} from 'react-intl';
+import {useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 import type {Post} from '@mattermost/types/posts';
 import type {Wiki} from '@mattermost/types/wikis';
 
+import {closeModal} from 'actions/views/modals';
+
 import {getDescendantIds} from 'components/pages_hierarchy_panel/utils/tree_builder';
 
+import {ModalIdentifiers} from 'utils/constants';
 import {getPageTitle} from 'utils/post_utils';
 
 import './page_destination_modal.scss';
@@ -47,12 +51,14 @@ const PageDestinationModal = ({
     onCancel,
     confirmButtonTestId,
 }: Props) => {
+    const dispatch = useDispatch();
     const {formatMessage} = useIntl();
     const untitledText = formatMessage({id: 'wiki.untitled_page', defaultMessage: 'Untitled'});
     const [selectedWikiId, setSelectedWikiId] = useState(currentWikiId);
     const [parentPageId, setParentPageId] = useState<string | undefined>();
     const [searchQuery, setSearchQuery] = useState('');
     const [allPages, setAllPages] = useState<Post[]>([]);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Fetch pages when selected wiki changes
     useEffect(() => {
@@ -109,11 +115,23 @@ const PageDestinationModal = ({
         });
     }, [targetPages, searchQuery]);
 
-    const handleConfirm = useCallback(() => {
-        if (selectedWikiId) {
-            onConfirm(selectedWikiId, parentPageId);
+    const handleConfirm = useCallback(async () => {
+        if (!selectedWikiId) {
+            return;
         }
-    }, [selectedWikiId, parentPageId, onConfirm]);
+        setIsSubmitting(true);
+        try {
+            await onConfirm(selectedWikiId, parentPageId);
+            dispatch(closeModal(ModalIdentifiers.PAGE_MOVE));
+        } catch {
+            setIsSubmitting(false);
+        }
+    }, [selectedWikiId, parentPageId, onConfirm, dispatch]);
+
+    const handleCancel = useCallback(() => {
+        onCancel();
+        dispatch(closeModal(ModalIdentifiers.PAGE_MOVE));
+    }, [onCancel, dispatch]);
 
     return (
         <GenericModal
@@ -124,12 +142,12 @@ const PageDestinationModal = ({
             keyboardEscape={true}
             enforceFocus={false}
             handleConfirm={handleConfirm}
-            handleCancel={onCancel}
-            onExited={onCancel}
+            handleCancel={handleCancel}
+            onExited={handleCancel}
             confirmButtonText={confirmButtonText}
             cancelButtonText={formatMessage({id: 'page_destination_modal.cancel', defaultMessage: 'Cancel'})}
-            isConfirmDisabled={!selectedWikiId}
-            autoCloseOnConfirmButton={true}
+            isConfirmDisabled={!selectedWikiId || isSubmitting}
+            autoCloseOnConfirmButton={false}
             confirmButtonTestId={confirmButtonTestId}
         >
             <div className='PageDestinationModal__body'>
