@@ -9,6 +9,7 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 
+	ejobs "github.com/mattermost/mattermost/server/v8/einterfaces/jobs"
 	model "github.com/mattermost/mattermost/server/public/model"
 )
 
@@ -127,6 +128,24 @@ func (_m *AutoTranslationInterface) IsChannelEnabled(channelID string) (bool, *m
 	return r0, r1
 }
 
+// IsFeatureAvailable provides a mock function with no fields
+func (_m *AutoTranslationInterface) IsFeatureAvailable() bool {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsFeatureAvailable")
+	}
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func() bool); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // IsUserEnabled provides a mock function with given fields: channelID, userID
 func (_m *AutoTranslationInterface) IsUserEnabled(channelID string, userID string) (bool, *model.AppError) {
 	ret := _m.Called(channelID, userID)
@@ -191,6 +210,46 @@ func (_m *AutoTranslationInterface) SetUserEnabled(channelID string, userID stri
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// MakeScheduler provides a mock function with no fields
+func (_m *AutoTranslationInterface) MakeScheduler() ejobs.Scheduler {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for MakeScheduler")
+	}
+
+	var r0 ejobs.Scheduler
+	if rf, ok := ret.Get(0).(func() ejobs.Scheduler); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(ejobs.Scheduler)
+		}
+	}
+
+	return r0
+}
+
+// MakeWorker provides a mock function with no fields
+func (_m *AutoTranslationInterface) MakeWorker() model.Worker {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for MakeWorker")
+	}
+
+	var r0 model.Worker
+	if rf, ok := ret.Get(0).(func() model.Worker); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(model.Worker)
 		}
 	}
 
