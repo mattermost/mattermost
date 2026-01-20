@@ -65,15 +65,16 @@ Plans:
 Plans:
 - [x] 15-01: LangChain integration with real LLM responses
 
-#### Phase 16: Session Memory
+#### Phase 16: Session Memory ✓
 
 **Goal**: Multi-turn conversations via Mattermost threading as conversation history
 **Depends on**: Phase 15
 **Research**: None needed (using existing SDK APIs)
 **Plans**: 1 plan
+**Completed**: 2026-01-20
 
 Plans:
-- [ ] 16-01: Threading and conversation history from threads
+- [x] 16-01: Threading and conversation history from threads
 
 #### Phase 17: MCP Client
 
@@ -116,6 +117,6 @@ Plans:
 | 13. Python Plugin Developer Experience | v1.0 | 4/4 | Complete | 2026-01-20 |
 | 14. Bot Infrastructure | v1.1 | 1/1 | Complete | 2026-01-20 |
 | 15. LangChain Core | v1.1 | 1/1 | Complete | 2026-01-20 |
-| 16. Session Memory | v1.1 | 0/? | Not started | - |
+| 16. Session Memory | v1.1 | 1/1 | Complete | 2026-01-20 |
 | 17. MCP Client | v1.1 | 0/? | Not started | - |
 | 18. Agentic Loop | v1.1 | 0/? | Not started | - |
