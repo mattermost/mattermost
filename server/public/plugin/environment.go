@@ -60,6 +60,7 @@ type Environment struct {
 	prepackagedPlugins               []*PrepackagedPlugin
 	transitionallyPrepackagedPlugins []*PrepackagedPlugin
 	prepackagedPluginsLock           sync.RWMutex
+	apiServerRegistrar               APIServerRegistrar // For Python plugins to call back to Go API
 }
 
 func NewEnvironment(
@@ -78,6 +79,13 @@ func NewEnvironment(
 		pluginDir:       pluginDir,
 		webappPluginDir: webappPluginDir,
 	}, nil
+}
+
+// SetAPIServerRegistrar sets the function used to register the PluginAPI gRPC service
+// for Python plugins. This must be called before activating Python plugins.
+// The registrar breaks the import cycle between the plugin package and pluginapi/grpc/server.
+func (env *Environment) SetAPIServerRegistrar(registrar APIServerRegistrar) {
+	env.apiServerRegistrar = registrar
 }
 
 // Performs a full scan of the given path.
@@ -281,7 +289,8 @@ func checkMinServerVersion(pluginInfo *model.BundleInfo) error {
 }
 
 func (env *Environment) startPluginServer(pluginInfo *model.BundleInfo, opts ...func(*supervisor, *plugin.ClientConfig) error) error {
-	sup, err := newSupervisor(pluginInfo, env.newAPIImpl(pluginInfo.Manifest), env.dbDriver, env.logger, env.metrics, opts...)
+	apiImpl := env.newAPIImpl(pluginInfo.Manifest)
+	sup, err := newSupervisor(pluginInfo, apiImpl, env.dbDriver, env.logger, env.metrics, opts...)
 	if err != nil {
 		return errors.Wrapf(err, "unable to start plugin: %v", pluginInfo.Manifest.Id)
 	}
@@ -375,7 +384,14 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 
 	if pluginInfo.Manifest.HasServer() {
 		// Use WithCommandFromManifest which handles both Go (netrpc) and Python (gRPC) plugins
-		err = env.startPluginServer(pluginInfo, WithCommandFromManifest(pluginInfo))
+		// For Python plugins, this also starts the gRPC PluginAPI server and passes
+		// the address to the subprocess via MATTERMOST_PLUGIN_API_TARGET env var
+		apiImpl := env.newAPIImpl(pluginInfo.Manifest)
+
+		// Pass the API server registrar (set via SetAPIServerRegistrar) to enable
+		// Python plugins to call back to Go API. If not set, Python plugins won't
+		// have API callback capability (nil registrar is handled gracefully).
+		err = env.startPluginServer(pluginInfo, WithCommandFromManifest(pluginInfo, apiImpl, env.apiServerRegistrar))
 		if err != nil {
 			return nil, false, err
 		}

@@ -23,14 +23,15 @@ import (
 )
 
 type supervisor struct {
-	lock         sync.RWMutex
-	pluginID     string
-	appDriver    AppDriver
-	client       *plugin.Client
-	hooks        Hooks
-	implemented  [TotalHooksID]bool
-	hooksClient  *hooksRPCClient
-	isReattached bool
+	lock             sync.RWMutex
+	pluginID         string
+	appDriver        AppDriver
+	client           *plugin.Client
+	hooks            Hooks
+	implemented      [TotalHooksID]bool
+	hooksClient      *hooksRPCClient
+	isReattached     bool
+	apiServerCleanup func() // Cleanup function for Python plugin API server
 }
 
 type driverForPlugin struct {

@@ -315,7 +315,7 @@ func TestPythonCommandFromManifest(t *testing.T) {
 		clientConfig := &plugin.ClientConfig{}
 		sup := &supervisor{}
 
-		err = WithCommandFromManifest(bundleInfo)(sup, clientConfig)
+		err = WithCommandFromManifest(bundleInfo, nil, nil)(sup, clientConfig)
 		require.NoError(t, err)
 
 		// Verify command was configured
@@ -359,7 +359,7 @@ func TestPythonCommandFromManifest(t *testing.T) {
 		clientConfig := &plugin.ClientConfig{}
 		sup := &supervisor{}
 
-		err = WithCommandFromManifest(bundleInfo)(sup, clientConfig)
+		err = WithCommandFromManifest(bundleInfo, nil, nil)(sup, clientConfig)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "path traversal")
 	})
@@ -394,7 +394,7 @@ func TestPythonCommandFromManifest(t *testing.T) {
 		clientConfig := &plugin.ClientConfig{}
 		sup := &supervisor{}
 
-		err = WithCommandFromManifest(bundleInfo)(sup, clientConfig)
+		err = WithCommandFromManifest(bundleInfo, nil, nil)(sup, clientConfig)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "not found")
 	})

@@ -19,9 +19,11 @@ import (
 	"github.com/blang/semver/v4"
 	svg "github.com/h2non/go-is-svg"
 	"github.com/pkg/errors"
+	"google.golang.org/grpc"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
+	apiserver "github.com/mattermost/mattermost/server/public/pluginapi/grpc/server"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
@@ -216,6 +218,13 @@ func (ch *Channels) initPlugins(rctx request.CTX, pluginDir, webappPluginDir str
 		ch.srv.Log().Error("Failed to start up plugins", mlog.Err(err))
 		return
 	}
+
+	// Set the API server registrar for Python plugins to call back to Go API.
+	// This breaks the import cycle between plugin and pluginapi/grpc/server packages.
+	env.SetAPIServerRegistrar(func(grpcServer *grpc.Server, api plugin.API) {
+		apiserver.Register(grpcServer, api)
+	})
+
 	ch.pluginsLock.Lock()
 	ch.pluginsEnvironment = env
 	ch.pluginsLock.Unlock()

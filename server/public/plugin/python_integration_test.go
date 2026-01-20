@@ -215,7 +215,7 @@ func main() {
 	logger := mlog.CreateConsoleTestLogger(t)
 
 	// Create supervisor
-	sup, err := newSupervisor(bundle, nil, nil, logger, nil, WithCommandFromManifest(bundle))
+	sup, err := newSupervisor(bundle, nil, nil, logger, nil, WithCommandFromManifest(bundle, nil, nil))
 	require.NoError(t, err)
 	require.NotNil(t, sup)
 	defer sup.Shutdown()
@@ -529,7 +529,7 @@ func main() {
 	logger := mlog.CreateConsoleTestLogger(t)
 
 	// Create supervisor
-	sup, err := newSupervisor(bundle, nil, nil, logger, nil, WithCommandFromManifest(bundle))
+	sup, err := newSupervisor(bundle, nil, nil, logger, nil, WithCommandFromManifest(bundle, nil, nil))
 	require.NoError(t, err)
 	require.NotNil(t, sup)
 	defer sup.Shutdown()
@@ -1098,7 +1098,7 @@ func main() {
 	logger := mlog.CreateConsoleTestLogger(t)
 
 	// Create supervisor
-	sup, err := newSupervisor(bundle, nil, nil, logger, nil, WithCommandFromManifest(bundle))
+	sup, err := newSupervisor(bundle, nil, nil, logger, nil, WithCommandFromManifest(bundle, nil, nil))
 	require.NoError(t, err)
 	require.NotNil(t, sup)
 	defer sup.Shutdown()

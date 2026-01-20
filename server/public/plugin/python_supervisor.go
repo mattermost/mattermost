@@ -5,6 +5,7 @@ package plugin
 
 import (
 	"fmt"
+	"net"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -14,6 +15,7 @@ import (
 
 	plugin "github.com/hashicorp/go-plugin"
 	"github.com/pkg/errors"
+	"google.golang.org/grpc"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
@@ -116,12 +118,14 @@ func buildPythonCommand(pythonPath, executable, pluginDir string) *exec.Cmd {
 // For Python plugins:
 // - Uses venv-first interpreter discovery
 // - Sets SecureConfig to nil (interpreter checksum would be meaningless)
+// - Starts a gRPC PluginAPI server if apiImpl and registrar are provided
+// - Sets MATTERMOST_PLUGIN_API_TARGET env var with the server address
 // For Go plugins:
 // - Delegates to existing WithExecutableFromManifest behavior
-func WithCommandFromManifest(pluginInfo *model.BundleInfo) func(*supervisor, *plugin.ClientConfig) error {
+func WithCommandFromManifest(pluginInfo *model.BundleInfo, apiImpl API, registrar APIServerRegistrar) func(*supervisor, *plugin.ClientConfig) error {
 	return func(sup *supervisor, clientConfig *plugin.ClientConfig) error {
 		if isPythonPlugin(pluginInfo.Manifest) {
-			return configurePythonCommand(pluginInfo, clientConfig)
+			return configurePythonCommand(pluginInfo, clientConfig, sup, apiImpl, registrar)
 		}
 
 		// For Go plugins, use the existing implementation
@@ -129,8 +133,49 @@ func WithCommandFromManifest(pluginInfo *model.BundleInfo) func(*supervisor, *pl
 	}
 }
 
+// APIServerRegistrar is a function that registers the PluginAPI service with a gRPC server.
+// This abstraction is used to break the import cycle between plugin and pluginapi/grpc/server.
+type APIServerRegistrar func(grpcServer *grpc.Server, apiImpl API)
+
+// startAPIServer starts a gRPC server that serves the PluginAPI service.
+// It listens on a random available port and returns:
+// - The server address (e.g., "localhost:54321") for the Python subprocess
+// - A cleanup function to stop the server
+// - An error if the server could not be started
+func startAPIServer(apiImpl API, registrar APIServerRegistrar) (string, func(), error) {
+	// Listen on a random available port
+	listener, err := net.Listen("tcp", "localhost:0")
+	if err != nil {
+		return "", nil, errors.Wrap(err, "failed to create listener for PluginAPI server")
+	}
+
+	// Create a new gRPC server
+	grpcServer := grpc.NewServer()
+
+	// Register the PluginAPI service using the provided registrar
+	registrar(grpcServer, apiImpl)
+
+	// Start serving in a goroutine
+	go func() {
+		// Serve blocks until the server is stopped or an error occurs
+		_ = grpcServer.Serve(listener)
+	}()
+
+	// Extract the assigned address
+	addr := listener.Addr().String()
+
+	// Create cleanup function that stops the server gracefully
+	cleanup := func() {
+		grpcServer.GracefulStop()
+	}
+
+	return addr, cleanup, nil
+}
+
 // configurePythonCommand sets up the ClientConfig.Cmd for a Python plugin.
-func configurePythonCommand(pluginInfo *model.BundleInfo, clientConfig *plugin.ClientConfig) error {
+// If apiImpl and registrar are provided, it starts a gRPC PluginAPI server and passes the
+// address to the Python subprocess via the MATTERMOST_PLUGIN_API_TARGET env var.
+func configurePythonCommand(pluginInfo *model.BundleInfo, clientConfig *plugin.ClientConfig, sup *supervisor, apiImpl API, registrar APIServerRegistrar) error {
 	// Find Python interpreter (venv-first)
 	pythonPath, err := findPythonInterpreter(pluginInfo.Path)
 	if err != nil {
@@ -156,6 +201,23 @@ func configurePythonCommand(pluginInfo *model.BundleInfo, clientConfig *plugin.C
 	// Build the command - pass executable name (relative to pluginDir), not full scriptPath
 	// Since cmd.Dir is set to pluginDir, paths are resolved relative to it
 	cmd := buildPythonCommand(pythonPath, executable, pluginInfo.Path)
+
+	// Start API server if apiImpl and registrar are provided
+	// This must happen BEFORE the Python subprocess starts so the port is ready
+	if apiImpl != nil && registrar != nil {
+		addr, cleanup, err := startAPIServer(apiImpl, registrar)
+		if err != nil {
+			return errors.Wrap(err, "failed to start PluginAPI server for Python plugin")
+		}
+
+		// Store cleanup function in supervisor for later shutdown
+		sup.apiServerCleanup = cleanup
+
+		// Set environment variable for Python subprocess
+		// Preserve existing parent env vars and add the API target
+		cmd.Env = append(os.Environ(), "MATTERMOST_PLUGIN_API_TARGET="+addr)
+	}
+
 	clientConfig.Cmd = cmd
 
 	// For Python plugins, we don't use SecureConfig because:
