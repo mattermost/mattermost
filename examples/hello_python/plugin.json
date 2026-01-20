@@ -7,10 +7,8 @@
   "version": "0.1.0",
   "min_server_version": "10.0.0",
   "server": {
+    "executable": "plugin.py",
     "runtime": "python",
-    "python_version": ">=3.9",
-    "python": {
-      "entry_point": "plugin.py"
-    }
+    "python_version": ">=3.9"
   }
 }
