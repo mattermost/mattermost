@@ -34,19 +34,17 @@ The manifest declares this as a Python plugin:
 ```json
 {
   "server": {
+    "executable": "plugin.py",
     "runtime": "python",
-    "python_version": ">=3.9",
-    "python": {
-      "entry_point": "plugin.py"
-    }
+    "python_version": ">=3.9"
   }
 }
 ```
 
 Key fields:
+- `server.executable`: The Python entry point script
 - `server.runtime`: Set to `"python"` to indicate this is a Python plugin
 - `server.python_version`: Minimum Python version required
-- `server.python.entry_point`: The Python file containing the plugin class
 
 ### plugin.py
 
@@ -104,6 +102,111 @@ For production deployments, the SDK will be available via pip:
 ```bash
 pip install mattermost-plugin-sdk
 ```
+
+## Packaging
+
+Python plugins are distributed as `.tar.gz` bundles. There are two packaging approaches:
+
+### Option 1: System Python (smaller bundle, requires server-side setup)
+
+Create a minimal bundle that relies on system Python:
+
+```bash
+cd examples/hello_python
+tar -czvf hello-python-0.1.0.tar.gz \
+    plugin.json \
+    plugin.py \
+    requirements.txt
+```
+
+**Server requirement:** Install the SDK on the Mattermost server:
+```bash
+pip3 install mattermost-plugin-sdk
+```
+
+### Option 2: Bundled Virtual Environment (self-contained, larger bundle)
+
+Create a fully self-contained bundle with all dependencies:
+
+```bash
+cd examples/hello_python
+
+# Create and populate virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install mattermost-plugin-sdk  # Or: pip install -e ../../python-sdk
+pip install grpcio protobuf
+deactivate
+
+# Create the bundle
+tar -czvf hello-python-0.1.0.tar.gz \
+    plugin.json \
+    plugin.py \
+    requirements.txt \
+    venv/
+```
+
+**Note:** The bundled venv is Python version-specific. If your server has a different Python version than your build machine, use Option 1 or build the venv on a machine with matching Python version.
+
+## Deployment
+
+### Via System Console (UI)
+
+1. Log in as a System Admin
+2. Go to **System Console → Plugins → Plugin Management**
+3. Click **Upload Plugin**
+4. Select `hello-python-0.1.0.tar.gz`
+5. Click **Upload**
+6. Find "Hello Python" in the plugin list and click **Enable**
+
+### Via CLI (mmctl)
+
+```bash
+# Upload the plugin
+mmctl plugin add hello-python-0.1.0.tar.gz
+
+# Enable the plugin
+mmctl plugin enable com.mattermost.hello-python
+```
+
+### Via API
+
+```bash
+# Upload
+curl -X POST \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -F "plugin=@hello-python-0.1.0.tar.gz" \
+  https://your-mattermost/api/v4/plugins
+
+# Enable
+curl -X POST \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  https://your-mattermost/api/v4/plugins/com.mattermost.hello-python/enable
+```
+
+## Verifying Installation
+
+After enabling the plugin, check the Mattermost server logs for:
+
+```
+Python plugin started with gRPC hooks
+Hello Python plugin activated!
+Connected to Mattermost server version: X.X.X
+```
+
+Test the plugin:
+1. **Slash command:** Type `/hello` in any channel
+2. **Message filter:** Post a message containing "badword" (should be blocked)
+
+## Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| "Python interpreter not found" | Ensure `python3` is in PATH, or bundle a venv |
+| "Module mattermost_plugin not found" | Install SDK on server or bundle venv |
+| Plugin fails to start | Check server logs for gRPC handshake errors |
+| Hooks not being called | Verify plugin implements `Implemented()` correctly |
+| Bundled venv doesn't work | Python version mismatch; rebuild venv on server |
 
 ## Hooks Demonstrated
 
