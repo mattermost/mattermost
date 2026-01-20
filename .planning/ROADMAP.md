@@ -54,15 +54,16 @@ None
 Plans:
 - [x] 14-01: Bot Infrastructure (plugin structure, bot creation, DM routing)
 
-#### Phase 15: LangChain Core
+#### Phase 15: LangChain Core ✓
 
 **Goal**: Basic LangChain setup with OpenAI/Anthropic providers, simple chat responses
 **Depends on**: Phase 14
 **Research**: Complete (15-RESEARCH.md)
 **Plans**: 1 plan
+**Completed**: 2026-01-20
 
 Plans:
-- [ ] 15-01-PLAN.md — LangChain integration with real LLM responses
+- [x] 15-01: LangChain integration with real LLM responses
 
 #### Phase 16: Session Memory
 
@@ -114,7 +115,7 @@ Plans:
 | 12. Python API Callback Server | v1.0 | 1/1 | Complete | 2026-01-20 |
 | 13. Python Plugin Developer Experience | v1.0 | 4/4 | Complete | 2026-01-20 |
 | 14. Bot Infrastructure | v1.1 | 1/1 | Complete | 2026-01-20 |
-| 15. LangChain Core | v1.1 | 0/? | Not started | - |
+| 15. LangChain Core | v1.1 | 1/1 | Complete | 2026-01-20 |
 | 16. Session Memory | v1.1 | 0/? | Not started | - |
 | 17. MCP Client | v1.1 | 0/? | Not started | - |
 | 18. Agentic Loop | v1.1 | 0/? | Not started | - |
