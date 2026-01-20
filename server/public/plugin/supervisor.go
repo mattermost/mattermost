@@ -236,6 +236,12 @@ func (sup *supervisor) Shutdown() {
 			sup.appDriver.ShutdownConns(sup.pluginID)
 		}
 	}
+
+	// Clean up the Python plugin API server if it was started.
+	// This must happen AFTER the Python process terminates to allow graceful disconnect.
+	if sup.apiServerCleanup != nil {
+		sup.apiServerCleanup()
+	}
 }
 
 func (sup *supervisor) Hooks() Hooks {

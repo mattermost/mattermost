@@ -296,8 +296,7 @@ func TestPythonCommandFromManifest(t *testing.T) {
 		require.NoError(t, os.WriteFile(venvPythonPath, []byte("#!/usr/bin/env python"), 0755))
 
 		// Create plugin script
-		scriptPath := filepath.Join(dir, "plugin.py")
-		require.NoError(t, os.WriteFile(scriptPath, []byte("# Python plugin"), 0644))
+		require.NoError(t, os.WriteFile(filepath.Join(dir, "plugin.py"), []byte("# Python plugin"), 0644))
 
 		// Create manifest
 		manifest := &model.Manifest{
@@ -321,7 +320,8 @@ func TestPythonCommandFromManifest(t *testing.T) {
 		// Verify command was configured
 		require.NotNil(t, clientConfig.Cmd)
 		assert.Equal(t, venvPythonPath, clientConfig.Cmd.Path)
-		assert.Contains(t, clientConfig.Cmd.Args, scriptPath)
+		// Args contains the executable name (relative to cmd.Dir), not the full path
+		assert.Contains(t, clientConfig.Cmd.Args, "plugin.py")
 		assert.Equal(t, dir, clientConfig.Cmd.Dir)
 
 		// SecureConfig should be nil for Python plugins
@@ -522,7 +522,7 @@ func main() {
 
 	// Create supervisor using WithCommandFromManifest which will detect Python
 	// and use the fake interpreter
-	sup, err := newSupervisor(bundle, nil, nil, logger, nil, WithCommandFromManifest(bundle))
+	sup, err := newSupervisor(bundle, nil, nil, logger, nil, WithCommandFromManifest(bundle, nil, nil))
 	require.NoError(t, err)
 	require.NotNil(t, sup)
 	defer sup.Shutdown()
@@ -743,7 +743,7 @@ func main() {
 	startTime := time.Now()
 
 	// Attempt to create supervisor - should fail with timeout
-	sup, err := newSupervisor(bundle, nil, nil, logger, nil, WithCommandFromManifest(bundle))
+	sup, err := newSupervisor(bundle, nil, nil, logger, nil, WithCommandFromManifest(bundle, nil, nil))
 
 	// Verify we got an error
 	require.Error(t, err)
@@ -844,7 +844,7 @@ func main() {
 	logger := mlog.CreateConsoleTestLogger(t)
 
 	// Attempt to create supervisor - should fail due to protocol mismatch
-	sup, err := newSupervisor(bundle, nil, nil, logger, nil, WithCommandFromManifest(bundle))
+	sup, err := newSupervisor(bundle, nil, nil, logger, nil, WithCommandFromManifest(bundle, nil, nil))
 
 	// Verify we got an error
 	require.Error(t, err)
@@ -930,7 +930,7 @@ func main() {
 	logger := mlog.CreateConsoleTestLogger(t)
 
 	// Attempt to create supervisor - should fail due to malformed handshake
-	sup, err := newSupervisor(bundle, nil, nil, logger, nil, WithCommandFromManifest(bundle))
+	sup, err := newSupervisor(bundle, nil, nil, logger, nil, WithCommandFromManifest(bundle, nil, nil))
 
 	// Verify we got an error
 	require.Error(t, err)
@@ -1261,7 +1261,7 @@ func main() {
 	logger := mlog.CreateConsoleTestLogger(t)
 
 	// Create supervisor using WithCommandFromManifest which will detect Python
-	sup, err := newSupervisor(bundle, nil, nil, logger, nil, WithCommandFromManifest(bundle))
+	sup, err := newSupervisor(bundle, nil, nil, logger, nil, WithCommandFromManifest(bundle, nil, nil))
 	require.NoError(t, err)
 	require.NotNil(t, sup)
 	defer sup.Shutdown()
