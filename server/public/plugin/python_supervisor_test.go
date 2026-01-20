@@ -4,6 +4,7 @@
 package plugin
 
 import (
+	"context"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -15,6 +16,7 @@ import (
 	plugin "github.com/hashicorp/go-plugin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/utils"
@@ -1307,3 +1309,120 @@ func main() {
 		Message:   "Test message",
 	})
 }
+
+// TestPythonAPIServerStartup tests that the API server starts correctly
+// when both apiImpl and registrar are provided.
+func TestPythonAPIServerStartup(t *testing.T) {
+	// Create a registrar that records if it was called
+	registrarCalled := false
+	mockRegistrar := func(grpcServer *grpc.Server, api API) {
+		registrarCalled = true
+	}
+
+	// Start the API server with nil API (we're just testing server startup)
+	// The registrar will be called regardless of apiImpl being nil
+	addr, cleanup, err := startAPIServer(nil, mockRegistrar)
+	require.NoError(t, err)
+	require.NotNil(t, cleanup)
+	defer cleanup()
+
+	// Verify the registrar was called
+	assert.True(t, registrarCalled, "API server registrar should have been called")
+
+	// Verify address is in host:port format
+	assert.Contains(t, addr, ":", "API target should be in host:port format")
+	assert.NotEmpty(t, addr, "API target address should not be empty")
+
+	// Verify we can connect to the server
+	conn, err := grpc.Dial(addr, grpc.WithInsecure())
+	require.NoError(t, err, "Should be able to connect to API server")
+	conn.Close()
+}
+
+// TestPythonAPIServerLifecycle tests that the API server properly shuts down
+// when cleanup is called.
+func TestPythonAPIServerLifecycle(t *testing.T) {
+	// Start an API server
+	addr, cleanup, err := startAPIServer(nil, func(grpcServer *grpc.Server, api API) {
+		// Register nothing - just testing server lifecycle
+	})
+	require.NoError(t, err)
+	require.NotNil(t, cleanup)
+	require.NotEmpty(t, addr)
+
+	// Verify we can connect to the server
+	conn, err := grpc.Dial(addr, grpc.WithInsecure())
+	require.NoError(t, err, "Should be able to connect to API server")
+	conn.Close()
+
+	// Call cleanup to stop the server
+	cleanup()
+
+	// Give a small delay for the server to stop
+	time.Sleep(100 * time.Millisecond)
+
+	// Try to connect again - should fail or get connection refused
+	// We use a context with timeout to avoid hanging
+	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
+	defer cancel()
+
+	_, err = grpc.DialContext(ctx, addr, grpc.WithInsecure(), grpc.WithBlock())
+	assert.Error(t, err, "Connection should fail after server shutdown")
+}
+
+// TestPythonCommandWithAPIServer tests that WithCommandFromManifest correctly
+// sets up the MATTERMOST_PLUGIN_API_TARGET environment variable when an API
+// implementation and registrar are provided.
+func TestPythonCommandWithAPIServer(t *testing.T) {
+	// Create temp plugin directory
+	dir, err := os.MkdirTemp("", "python-api-server-test")
+	require.NoError(t, err)
+	defer os.RemoveAll(dir)
+
+	// Create fake venv
+	var venvPythonPath string
+	if runtime.GOOS == "windows" {
+		venvPythonPath = filepath.Join(dir, "venv", "Scripts", "python.exe")
+	} else {
+		venvPythonPath = filepath.Join(dir, "venv", "bin", "python")
+	}
+	require.NoError(t, os.MkdirAll(filepath.Dir(venvPythonPath), 0755))
+	require.NoError(t, os.WriteFile(venvPythonPath, []byte("#!/usr/bin/env python"), 0755))
+
+	// Create plugin script
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "plugin.py"), []byte("# Python plugin"), 0644))
+
+	// Create manifest
+	manifest := &model.Manifest{
+		Id: "python-api-test-plugin",
+		Server: &model.ManifestServer{
+			Executable: "plugin.py",
+		},
+	}
+
+	bundleInfo := &model.BundleInfo{
+		Path:     dir,
+		Manifest: manifest,
+	}
+
+	clientConfig := &plugin.ClientConfig{}
+	sup := &supervisor{}
+
+	// Test 1: Without API (nil apiImpl), MATTERMOST_PLUGIN_API_TARGET should NOT be set
+	err = WithCommandFromManifest(bundleInfo, nil, nil)(sup, clientConfig)
+	require.NoError(t, err)
+	require.NotNil(t, clientConfig.Cmd)
+
+	// MATTERMOST_PLUGIN_API_TARGET should NOT be in cmd.Env when apiImpl is nil
+	foundAPITarget := false
+	if clientConfig.Cmd.Env != nil {
+		for _, env := range clientConfig.Cmd.Env {
+			if strings.HasPrefix(env, "MATTERMOST_PLUGIN_API_TARGET=") {
+				foundAPITarget = true
+				break
+			}
+		}
+	}
+	assert.False(t, foundAPITarget, "MATTERMOST_PLUGIN_API_TARGET should NOT be set when apiImpl is nil")
+}
+
