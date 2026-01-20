@@ -1,8 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import React from 'react';
 import {defineMessage} from 'react-intl';
 
+import {CreationOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -306,6 +308,17 @@ export default class AtMentionProvider extends Provider {
         // Combine the local and remote members, sorting to mix the results together.
         const localAndRemoteMembers = localMembers.concat(remoteMembers).sort(orderUsers);
 
+        // Get agents - these are already User objects from the backend
+        // Only show agents if bridge is enabled (indicated by presence of agents data)
+        let agents: CreatedProfile[] = [];
+        if (this.data && this.data.agents && Array.isArray(this.data.agents) && this.data.agents.length > 0) {
+            const agentUsers = this.data.agents as UserProfileWithLastViewAt[];
+            agents = agentUsers.
+                filter((user: UserProfileWithLastViewAt) => this.filterProfile(user)).
+                map((user: UserProfileWithLastViewAt) => this.createFromProfile(user)).
+                sort(orderUsers);
+        }
+
         // handle groups
         const localGroups = this.localGroups();
 
@@ -344,6 +357,9 @@ export default class AtMentionProvider extends Provider {
 
         if (priorityProfiles.length > 0 || localAndRemoteMembers.length > 0) {
             items.push(membersGroup([...priorityProfiles, ...localAndRemoteMembers]));
+        }
+        if (agents.length > 0) {
+            items.push(agentsGroup(agents));
         }
         if (localAndRemoteGroups.length > 0) {
             items.push(groupsGroup(localAndRemoteGroups));
@@ -447,6 +463,17 @@ export function membersGroup(items: CreatedProfile[]) {
     return {
         key: 'members',
         label: defineMessage({id: 'suggestion.mention.members', defaultMessage: 'Channel Members'}),
+        items,
+        terms: items.map((profile) => '@' + profile.username),
+        component: AtMentionSuggestion,
+    };
+}
+
+export function agentsGroup(items: CreatedProfile[]) {
+    return {
+        key: 'agents',
+        label: defineMessage({id: 'suggestion.mention.agents', defaultMessage: 'Agents'}),
+        icon: <CreationOutlineIcon size={16}/>,
         items,
         terms: items.map((profile) => '@' + profile.username),
         component: AtMentionSuggestion,
