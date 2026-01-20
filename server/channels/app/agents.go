@@ -101,6 +101,35 @@ func (a *App) GetAgents(rctx request.CTX, userID string) ([]agentclient.BridgeAg
 	return agents, nil
 }
 
+// GetUsersForAgents retrieves the User objects for all available agents
+func (a *App) GetUsersForAgents(rctx request.CTX, userID string) ([]*model.User, *model.AppError) {
+	agents, appErr := a.GetAgents(rctx, userID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	if len(agents) == 0 {
+		return []*model.User{}, nil
+	}
+
+	users := make([]*model.User, 0, len(agents))
+	for _, agent := range agents {
+		// Agents have a username field that corresponds to the bot user's username
+		user, err := a.Srv().Store().User().GetByUsername(agent.Username)
+		if err != nil {
+			rctx.Logger().Warn("Failed to get user for agent",
+				mlog.Err(err),
+				mlog.String("agent_id", agent.ID),
+				mlog.String("username", agent.Username),
+			)
+			continue
+		}
+		users = append(users, user)
+	}
+
+	return users, nil
+}
+
 // GetLLMServices retrieves all available LLM services from the bridge API
 func (a *App) GetLLMServices(rctx request.CTX, userID string) ([]agentclient.BridgeServiceInfo, *model.AppError) {
 	// Check if the AI plugin is active and supports the bridge API (v1.5.0+)

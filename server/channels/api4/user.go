@@ -1324,6 +1324,12 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		autocomplete.Users = result
 	}
 
+	// Fetch agent users for autocomplete
+	agentUsers, appErr := c.App.GetUsersForAgents(c.AppContext, c.AppContext.Session().UserId)
+	if appErr == nil && agentUsers != nil {
+		autocomplete.Agents = agentUsers
+	}
+
 	if err := json.NewEncoder(w).Encode(autocomplete); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -2110,6 +2116,11 @@ func loginWithDesktopToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	token := props["token"]
 	deviceId := props["device_id"]
 
+	auditRec := c.MakeAuditRecord(model.AuditEventLoginWithDesktopToken, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("login_method", "desktop_token")
+	model.AddEventParameterToAuditRec(auditRec, "device_id", deviceId)
+
 	user, err := c.App.ValidateDesktopToken(token, time.Now().Add(-model.DesktopTokenTTL).Unix())
 	if err != nil {
 		c.Err = err
@@ -2132,6 +2143,9 @@ func loginWithDesktopToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.AppContext = c.AppContext.WithSession(session)
 
 	c.App.AttachSessionCookies(c.AppContext, w, r)
+
+	auditRec.Success()
+	c.LogAuditWithUserId(user.Id, "success")
 
 	if err := json.NewEncoder(w).Encode(user); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
