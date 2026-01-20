@@ -126,7 +126,7 @@ func (*groupmsgProvider) DoCommand(a *app.App, rctx request.CTX, args *model.Com
 		post.Message = parsedMessage
 		post.ChannelId = groupChannel.Id
 		post.UserId = args.UserId
-		if _, err := a.CreatePostMissingChannel(rctx, post, true, true); err != nil {
+		if _, _, err := a.CreatePostMissingChannel(rctx, post, true, true); err != nil {
 			return &model.CommandResponse{Text: args.T("api.command_groupmsg.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 		}
 	}
