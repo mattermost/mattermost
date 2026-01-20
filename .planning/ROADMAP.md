@@ -91,12 +91,11 @@ Plans:
 
 **Goal**: Tool calling orchestration, reasoning, multi-step execution with LangChain agents
 **Depends on**: Phase 17
-**Research**: Likely (LangChain agentic features - advanced patterns)
-**Research topics**: LangChain agents, tool calling, ReAct pattern, extended thinking
-**Plans**: TBD
+**Research**: Complete (18-RESEARCH.md)
+**Plans**: 1 plan
 
 Plans:
-- [ ] 18-01: TBD (run /gsd:plan-phase 18 to break down)
+- [ ] 18-01-PLAN.md — Middleware-based agent with extended thinking and error handling
 
 ## Progress
 
