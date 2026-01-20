@@ -13,6 +13,7 @@
   "about.database": "데이터베이스:",
   "about.date": "빌드 날짜:",
   "about.dbversion": "데이터베이스 스키마 버전:",
+  "about.desktopVersion": "데스크탑 버전",
   "about.enterpriseEditionLearn": "Learn more about Mattermost {planName} at ",
   "about.enterpriseEditionSst": "엔터프라이즈에 적합한 신뢰도 높은 메시징",
   "about.enterpriseEditionSt": "방화벽 안에서 이뤄지는 최신 커뮤니케이션.",
