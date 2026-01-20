@@ -405,8 +405,9 @@ func TestPythonCommandFromManifest(t *testing.T) {
 // The fake interpreter is a compiled Go binary that:
 // 1. Starts a gRPC server
 // 2. Registers gRPC health service with "plugin" status SERVING
-// 3. Prints the go-plugin handshake line to stdout
-// 4. Blocks until killed
+// 3. Registers PluginHooks service with basic Implemented() support
+// 4. Prints the go-plugin handshake line to stdout
+// 5. Blocks until killed
 func TestPythonSupervisor_HealthCheckSuccess(t *testing.T) {
 	// Create temp plugin directory
 	pluginDir, err := os.MkdirTemp("", "python-plugin-integration-test")
@@ -424,13 +425,14 @@ func TestPythonSupervisor_HealthCheckSuccess(t *testing.T) {
 	// Create venv directory structure
 	require.NoError(t, os.MkdirAll(filepath.Dir(venvPythonPath), 0755))
 
-	// Compile a fake "Python interpreter" that serves gRPC health checks.
+	// Compile a fake "Python interpreter" that serves gRPC health checks and PluginHooks.
 	// This binary ignores argv[1] (the script path) and just serves the
-	// go-plugin handshake + gRPC health service.
+	// go-plugin handshake + gRPC services.
 	utils.CompileGo(t, `
 package main
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"os"
@@ -440,7 +442,17 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
+
+	pb "github.com/mattermost/mattermost/server/public/pluginapi/grpc/generated/go/pluginapiv1"
 )
+
+type fakePluginHooks struct {
+	pb.UnimplementedPluginHooksServer
+}
+
+func (f *fakePluginHooks) Implemented(ctx context.Context, req *pb.ImplementedRequest) (*pb.ImplementedResponse, error) {
+	return &pb.ImplementedResponse{Hooks: []string{}}, nil
+}
 
 func main() {
 	// Ignore argv[1] (the script path) - we're pretending to be a Python interpreter
@@ -458,6 +470,9 @@ func main() {
 	healthServer := health.NewServer()
 	healthServer.SetServingStatus("plugin", grpc_health_v1.HealthCheckResponse_SERVING)
 	grpc_health_v1.RegisterHealthServer(grpcServer, healthServer)
+
+	// Register PluginHooks service (required by supervisor for Python plugins)
+	pb.RegisterPluginHooksServer(grpcServer, &fakePluginHooks{})
 
 	// Start serving in a goroutine
 	go func() {
@@ -512,8 +527,8 @@ func main() {
 	require.NotNil(t, sup)
 	defer sup.Shutdown()
 
-	// Verify hooks are nil (Python plugins in Phase 5 don't have hooks)
-	assert.Nil(t, sup.Hooks(), "Python plugin should have nil hooks in Phase 5")
+	// Verify hooks are wired (Python plugins now have hooks through gRPC)
+	require.NotNil(t, sup.Hooks(), "Python plugin should have hooks wired")
 
 	// Verify health check succeeds - this proves gRPC Ping is working
 	err = sup.PerformHealthCheck()
@@ -521,7 +536,7 @@ func main() {
 }
 
 // TestPythonPluginEnvironmentActivation tests that the Environment can
-// activate and deactivate a Python plugin without panicking on nil hooks.
+// activate and deactivate a Python plugin with hooks properly wired.
 func TestPythonPluginEnvironmentActivation(t *testing.T) {
 	// Create temp directories
 	pluginDir, err := os.MkdirTemp("", "python-env-test-plugins")
@@ -547,11 +562,12 @@ func TestPythonPluginEnvironmentActivation(t *testing.T) {
 	// Create venv directory structure
 	require.NoError(t, os.MkdirAll(filepath.Dir(venvPythonPath), 0755))
 
-	// Compile fake Python interpreter
+	// Compile fake Python interpreter with PluginHooks service
 	utils.CompileGo(t, `
 package main
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"os"
@@ -561,7 +577,25 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
+
+	pb "github.com/mattermost/mattermost/server/public/pluginapi/grpc/generated/go/pluginapiv1"
 )
+
+type fakePluginHooks struct {
+	pb.UnimplementedPluginHooksServer
+}
+
+func (f *fakePluginHooks) Implemented(ctx context.Context, req *pb.ImplementedRequest) (*pb.ImplementedResponse, error) {
+	return &pb.ImplementedResponse{Hooks: []string{"OnActivate", "OnDeactivate"}}, nil
+}
+
+func (f *fakePluginHooks) OnActivate(ctx context.Context, req *pb.OnActivateRequest) (*pb.OnActivateResponse, error) {
+	return &pb.OnActivateResponse{}, nil
+}
+
+func (f *fakePluginHooks) OnDeactivate(ctx context.Context, req *pb.OnDeactivateRequest) (*pb.OnDeactivateResponse, error) {
+	return &pb.OnDeactivateResponse{}, nil
+}
 
 func main() {
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
@@ -574,6 +608,7 @@ func main() {
 	healthServer := health.NewServer()
 	healthServer.SetServingStatus("plugin", grpc_health_v1.HealthCheckResponse_SERVING)
 	grpc_health_v1.RegisterHealthServer(grpcServer, healthServer)
+	pb.RegisterPluginHooksServer(grpcServer, &fakePluginHooks{})
 
 	go func() {
 		if err := grpcServer.Serve(listener); err != nil {
@@ -634,7 +669,7 @@ func main() {
 	err = env.PerformHealthCheck("python-test-plugin")
 	require.NoError(t, err, "Health check should succeed through Environment")
 
-	// Deactivate the plugin - this should not panic even with nil hooks
+	// Deactivate the plugin - hooks are now wired and OnDeactivate will be called
 	result := env.Deactivate("python-test-plugin")
 	assert.True(t, result, "Deactivate should return true")
 
@@ -946,11 +981,12 @@ func TestPythonSupervisor_Restart(t *testing.T) {
 	// Create venv directory structure
 	require.NoError(t, os.MkdirAll(filepath.Dir(venvPythonPath), 0755))
 
-	// Compile fake Python interpreter that serves gRPC health checks
+	// Compile fake Python interpreter that serves gRPC health checks and PluginHooks
 	utils.CompileGo(t, `
 package main
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"os"
@@ -960,7 +996,21 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
+
+	pb "github.com/mattermost/mattermost/server/public/pluginapi/grpc/generated/go/pluginapiv1"
 )
+
+type fakePluginHooks struct {
+	pb.UnimplementedPluginHooksServer
+}
+
+func (f *fakePluginHooks) Implemented(ctx context.Context, req *pb.ImplementedRequest) (*pb.ImplementedResponse, error) {
+	return &pb.ImplementedResponse{Hooks: []string{"OnActivate"}}, nil
+}
+
+func (f *fakePluginHooks) OnActivate(ctx context.Context, req *pb.OnActivateRequest) (*pb.OnActivateResponse, error) {
+	return &pb.OnActivateResponse{}, nil
+}
 
 func main() {
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
@@ -973,6 +1023,7 @@ func main() {
 	healthServer := health.NewServer()
 	healthServer.SetServingStatus("plugin", grpc_health_v1.HealthCheckResponse_SERVING)
 	grpc_health_v1.RegisterHealthServer(grpcServer, healthServer)
+	pb.RegisterPluginHooksServer(grpcServer, &fakePluginHooks{})
 
 	go func() {
 		if err := grpcServer.Serve(listener); err != nil {
@@ -1074,4 +1125,185 @@ func main() {
 		time.Sleep(100 * time.Millisecond)
 	}
 	require.True(t, healthCheckSucceeded, "Health check should succeed after restart")
+}
+
+// TestPythonPluginHookDispatch tests end-to-end hook dispatch for Python plugins.
+// It creates a fake Python interpreter that implements the PluginHooks gRPC service,
+// verifies the supervisor wires hooks correctly, and tests that hook invocations work.
+//
+// Note: OnActivate is a special hook that is NOT tracked in hookNameToId (it's excluded
+// from code generation), so we test with OnDeactivate and MessageHasBeenPosted which
+// ARE tracked via sup.Implements().
+func TestPythonPluginHookDispatch(t *testing.T) {
+	// Create temp plugin directory
+	pluginDir, err := os.MkdirTemp("", "python-hooks-test")
+	require.NoError(t, err)
+	defer os.RemoveAll(pluginDir)
+
+	// Determine the venv path based on OS
+	var venvPythonPath string
+	if runtime.GOOS == "windows" {
+		venvPythonPath = filepath.Join(pluginDir, "venv", "Scripts", "python.exe")
+	} else {
+		venvPythonPath = filepath.Join(pluginDir, "venv", "bin", "python")
+	}
+
+	// Create venv directory structure
+	require.NoError(t, os.MkdirAll(filepath.Dir(venvPythonPath), 0755))
+
+	// Compile a fake "Python interpreter" that serves:
+	// 1. gRPC health service (required by go-plugin)
+	// 2. PluginHooks service with Implemented, OnActivate, OnDeactivate, and MessageHasBeenPosted
+	utils.CompileGo(t, `
+package main
+
+import (
+	"context"
+	"fmt"
+	"net"
+	"os"
+	"os/signal"
+	"syscall"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/health"
+	"google.golang.org/grpc/health/grpc_health_v1"
+
+	pb "github.com/mattermost/mattermost/server/public/pluginapi/grpc/generated/go/pluginapiv1"
+)
+
+// fakePluginHooks implements the PluginHooksServer interface
+type fakePluginHooks struct {
+	pb.UnimplementedPluginHooksServer
+}
+
+func (f *fakePluginHooks) Implemented(ctx context.Context, req *pb.ImplementedRequest) (*pb.ImplementedResponse, error) {
+	// Report that we implement OnActivate, OnDeactivate, and MessageHasBeenPosted
+	// Note: OnActivate is not in hookNameToId (excluded from generation), but OnDeactivate is
+	return &pb.ImplementedResponse{
+		Hooks: []string{"OnActivate", "OnDeactivate", "MessageHasBeenPosted"},
+	}, nil
+}
+
+func (f *fakePluginHooks) OnActivate(ctx context.Context, req *pb.OnActivateRequest) (*pb.OnActivateResponse, error) {
+	return &pb.OnActivateResponse{}, nil
+}
+
+func (f *fakePluginHooks) OnDeactivate(ctx context.Context, req *pb.OnDeactivateRequest) (*pb.OnDeactivateResponse, error) {
+	return &pb.OnDeactivateResponse{}, nil
+}
+
+func (f *fakePluginHooks) MessageHasBeenPosted(ctx context.Context, req *pb.MessageHasBeenPostedRequest) (*pb.MessageHasBeenPostedResponse, error) {
+	return &pb.MessageHasBeenPostedResponse{}, nil
+}
+
+func main() {
+	// Start a gRPC server on a random port
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "failed to listen: %v\n", err)
+		os.Exit(1)
+	}
+
+	grpcServer := grpc.NewServer()
+
+	// Register gRPC health service (required by go-plugin)
+	healthServer := health.NewServer()
+	healthServer.SetServingStatus("plugin", grpc_health_v1.HealthCheckResponse_SERVING)
+	grpc_health_v1.RegisterHealthServer(grpcServer, healthServer)
+
+	// Register PluginHooks service
+	pluginHooks := &fakePluginHooks{}
+	pb.RegisterPluginHooksServer(grpcServer, pluginHooks)
+
+	// Start serving in a goroutine
+	go func() {
+		if err := grpcServer.Serve(listener); err != nil {
+			fmt.Fprintf(os.Stderr, "failed to serve: %v\n", err)
+		}
+	}()
+
+	// Print the go-plugin handshake line
+	addr := listener.Addr().String()
+	fmt.Printf("1|1|tcp|%s|grpc\n", addr)
+	os.Stdout.Sync()
+
+	// Block until SIGTERM or SIGINT
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGTERM, syscall.SIGINT)
+	<-sigCh
+
+	grpcServer.GracefulStop()
+}
+`, venvPythonPath)
+
+	// Create a dummy plugin.py file
+	scriptPath := filepath.Join(pluginDir, "plugin.py")
+	require.NoError(t, os.WriteFile(scriptPath, []byte("# Fake Python plugin script\n"), 0644))
+
+	// Create plugin.json manifest
+	manifest := &model.Manifest{
+		Id:      "python-hooks-test",
+		Version: "1.0.0",
+		Server: &model.ManifestServer{
+			Executable: "plugin.py",
+		},
+	}
+	manifestJSON, err := json.Marshal(manifest)
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(filepath.Join(pluginDir, "plugin.json"), manifestJSON, 0644))
+
+	// Create bundle info
+	bundle := model.BundleInfoForPath(pluginDir)
+	require.NotNil(t, bundle.Manifest)
+
+	// Create logger
+	logger := mlog.CreateConsoleTestLogger(t)
+
+	// Create supervisor using WithCommandFromManifest which will detect Python
+	sup, err := newSupervisor(bundle, nil, nil, logger, nil, WithCommandFromManifest(bundle))
+	require.NoError(t, err)
+	require.NotNil(t, sup)
+	defer sup.Shutdown()
+
+	// Verify hooks are NOT nil (Python plugins now have hooks wired)
+	require.NotNil(t, sup.Hooks(), "Python plugin should have hooks wired")
+
+	// Verify health check succeeds
+	err = sup.PerformHealthCheck()
+	require.NoError(t, err, "Health check should succeed")
+
+	// Verify Implemented() returns the hooks we registered
+	impl, implErr := sup.Hooks().Implemented()
+	require.NoError(t, implErr, "Implemented() should succeed")
+	assert.Contains(t, impl, "OnActivate", "Implemented should include OnActivate")
+	assert.Contains(t, impl, "OnDeactivate", "Implemented should include OnDeactivate")
+	assert.Contains(t, impl, "MessageHasBeenPosted", "Implemented should include MessageHasBeenPosted")
+
+	// Test 1: Verify Implements() returns true for OnDeactivate
+	// Note: OnActivate is excluded from hookNameToId, so we test OnDeactivate instead
+	assert.True(t, sup.Implements(OnDeactivateID), "sup.Implements(OnDeactivateID) should return true")
+
+	// Test 2: Verify Implements() returns true for MessageHasBeenPosted
+	assert.True(t, sup.Implements(MessageHasBeenPostedID), "sup.Implements(MessageHasBeenPostedID) should return true")
+
+	// Test 3: Verify Implements() returns false for ChannelHasBeenCreated (not in implemented list)
+	assert.False(t, sup.Implements(ChannelHasBeenCreatedID), "sup.Implements(ChannelHasBeenCreatedID) should return false")
+
+	// Test 4: Call OnActivate and verify it succeeds
+	err = sup.Hooks().OnActivate()
+	require.NoError(t, err, "OnActivate should succeed")
+
+	// Test 5: Call OnDeactivate and verify it succeeds
+	err = sup.Hooks().OnDeactivate()
+	require.NoError(t, err, "OnDeactivate should succeed")
+
+	// Test 6: Call MessageHasBeenPosted and verify it doesn't error
+	// (void hook, so we just verify no panic/error)
+	sup.Hooks().MessageHasBeenPosted(nil, &model.Post{
+		Id:        "test-post-id",
+		ChannelId: "test-channel-id",
+		UserId:    "test-user-id",
+		Message:   "Test message",
+	})
 }
