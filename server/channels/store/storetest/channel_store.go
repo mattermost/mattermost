@@ -6421,6 +6421,24 @@ func testAutocomplete(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 		})
 	}
 
+	// MM-67049: Verify that users removed from a team cannot see channels from that
+	// team, regardless of includeDeleted. The includeDeleted parameter should only
+	// affect channel deletion status, not team membership.
+	t.Run("MM-67049: removed team member cannot see channels regardless of includeDeleted", func(t *testing.T) {
+		// Sanity check: o5 is in leftTeamID and matches search term
+		require.Equal(t, leftTeamID, o5.TeamId)
+		require.Contains(t, o5.DisplayName, "ChannelA")
+
+		// m1.UserId was removed from leftTeamID (tm5.DeleteAt was set above in the test setup)
+		for _, includeDeleted := range []bool{false, true} {
+			channels, err2 := ss.Channel().Autocomplete(rctx, m1.UserId, "ChannelA", includeDeleted, false)
+			require.NoError(t, err2)
+			for _, ch := range channels {
+				require.NotEqual(t, o5.Id, ch.Id, "includeDeleted=%v: channel from left team should not be returned", includeDeleted)
+			}
+		}
+	})
+
 	t.Run("Limit", func(t *testing.T) {
 		for i := range model.ChannelSearchDefaultLimit + 10 {
 			_, err = ss.Channel().Save(rctx, &model.Channel{
