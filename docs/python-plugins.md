@@ -12,6 +12,8 @@ This guide covers developing Mattermost plugins using Python. Python plugins pro
 - [API Reference](#api-reference)
 - [ServeHTTP](#servehttp)
 - [Best Practices](#best-practices)
+- [Server Integration](#server-integration)
+- [Troubleshooting](#troubleshooting)
 
 ## Introduction
 
@@ -564,3 +566,159 @@ if __name__ == "__main__":
     from mattermost_plugin.server import run_plugin
     run_plugin(HelloPythonPlugin)
 ```
+
+## Server Integration
+
+Python plugins are fully integrated with the Mattermost server and operate identically to Go plugins from the server's perspective.
+
+### How It Works
+
+1. **Plugin Detection**: When a plugin is loaded, the server detects Python plugins by the `.py` extension in the executable path or the `runtime: python` field in the manifest.
+
+2. **gRPC Protocol**: Python plugins communicate with the server via gRPC (instead of net/rpc used by Go plugins). The server automatically selects the appropriate protocol based on plugin type.
+
+3. **Hook Dispatch**: All hooks (OnActivate, MessageHasBeenPosted, ServeHTTP, etc.) are dispatched to Python plugins through the same infrastructure as Go plugins. The server queries which hooks are implemented via the `Implemented()` gRPC call.
+
+4. **HTTP Routing**: HTTP requests to `/plugins/{plugin_id}/*` are routed to Python plugins via the ServeHTTP hook using bidirectional gRPC streaming for efficient request/response handling.
+
+### Parity with Go Plugins
+
+Python plugins have feature parity with Go plugins:
+
+| Feature | Go Plugins | Python Plugins |
+|---------|------------|----------------|
+| Lifecycle hooks | Yes | Yes |
+| Message hooks | Yes | Yes |
+| User/Channel/Team hooks | Yes | Yes |
+| Slash commands | Yes | Yes |
+| ServeHTTP | Yes | Yes (streaming) |
+| KV Store | Yes | Yes |
+| Plugin API | Yes | Yes |
+| Health checks | Yes | Yes |
+| Crash recovery | Yes | Yes |
+
+### Known Differences
+
+- **Startup Time**: Python plugins have a slightly longer startup time (~2-5 seconds) due to Python interpreter initialization and module imports.
+- **Memory Overhead**: Python plugins use more memory than equivalent Go plugins due to the Python runtime.
+- **ServeMetrics**: The ServeMetrics hook is not yet implemented for Python plugins.
+
+## Troubleshooting
+
+### Plugin Fails to Start
+
+**Symptoms**: Plugin activation fails, logs show "failed to start plugin"
+
+**Possible Causes**:
+
+1. **Python not found**: Ensure Python 3.9+ is installed and available in PATH
+   ```bash
+   python3 --version
+   ```
+
+2. **grpcio not installed**: The plugin SDK requires grpcio
+   ```bash
+   pip install grpcio grpcio-tools
+   ```
+
+3. **Virtual environment not found**: If using venv mode, ensure the virtual environment exists
+   ```bash
+   # Create virtual environment in plugin directory
+   python3 -m venv venv
+   source venv/bin/activate
+   pip install -r requirements.txt
+   ```
+
+4. **Script syntax error**: Check the plugin script for Python syntax errors
+   ```bash
+   python3 -m py_compile server/plugin.py
+   ```
+
+### Hooks Not Called
+
+**Symptoms**: Plugin activates but hooks are never invoked
+
+**Possible Causes**:
+
+1. **Implemented() not returning hooks**: Verify your plugin's `Implemented()` returns the correct hook names
+   ```python
+   # The SDK handles this automatically when using @hook decorator
+   @hook(HookName.MessageHasBeenPosted)
+   def on_message(self, context, post):
+       pass
+   ```
+
+2. **Hook method signature mismatch**: Ensure hook methods have the correct signature
+   ```python
+   # Correct: includes self parameter
+   def message_has_been_posted(self, context, post):
+       pass
+   ```
+
+3. **Exception in hook**: Check server logs for gRPC errors indicating hook failures
+
+### HTTP Requests Fail
+
+**Symptoms**: Requests to `/plugins/{plugin_id}/...` return 404 or 503
+
+**Possible Causes**:
+
+1. **ServeHTTP not implemented**: Ensure your plugin implements ServeHTTP
+   ```python
+   @hook(HookName.ServeHTTP)
+   def serve_http(self, context, request):
+       return {"status_code": 200, "body": "OK"}
+   ```
+
+2. **Plugin not active**: Verify the plugin is active in System Console > Plugins
+
+3. **Incorrect plugin ID**: Ensure the plugin ID in the URL matches your manifest's `id` field
+
+### API Calls Fail
+
+**Symptoms**: API calls from Python plugin return errors
+
+**Possible Causes**:
+
+1. **MATTERMOST_API_TARGET not set**: The environment variable should be set automatically by the supervisor. Check server logs for plugin startup messages.
+
+2. **Permission denied**: Ensure your plugin has the required permissions for the API call
+
+3. **Invalid parameters**: Check API method signatures and parameter types
+
+### Performance Issues
+
+**Symptoms**: Plugin operations are slow
+
+**Possible Solutions**:
+
+1. **Batch API calls**: Instead of multiple individual calls, use batch methods when available
+
+2. **Cache frequently used data**: Use the KV store for caching
+   ```python
+   # Cache user data
+   cached = self.api.kv_get("user_cache")
+   if not cached:
+       user = self.api.get_user(user_id)
+       self.api.kv_set("user_cache", user, expires_in=300)
+   ```
+
+3. **Use async operations**: For I/O-bound operations, use the async API client
+
+### Debugging Tips
+
+1. **Enable debug logging**: Set log level to debug in your plugin
+   ```python
+   self.logger.debug("Detailed debug information")
+   ```
+
+2. **Check server logs**: Plugin errors appear in Mattermost server logs
+   ```bash
+   tail -f /var/log/mattermost/mattermost.log | grep plugin
+   ```
+
+3. **Test locally**: Run your plugin script directly to check for Python errors
+   ```bash
+   python3 server/plugin.py
+   # Should print gRPC handshake line and wait for connections
+   ```
