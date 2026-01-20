@@ -300,8 +300,10 @@ class LangChainAgentPlugin(Plugin):
                 if tools:
                     # Create agent with tools
                     agent = create_react_agent(model, tools)
-                    # Invoke agent with messages
-                    response = await agent.ainvoke({"messages": messages})
+                    # Invoke agent with messages (recursion_limit prevents infinite loops)
+                    response = await agent.ainvoke(
+                        {"messages": messages}, config={"recursion_limit": 10}
+                    )
                     # Extract final response
                     last_message = response["messages"][-1]
                     self._send_response(post.channel_id, last_message.content, root_id)
