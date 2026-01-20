@@ -32,18 +32,23 @@ func (s LocalCacheReadReceiptStore) ClearCaches() {
 	if err := s.rootStore.readReceiptPostReadersCache.Purge(); err != nil {
 		s.rootStore.logger.Error("failed to purge read receipt post readers cache", mlog.Err(err))
 	}
+	if err := s.rootStore.readReceiptPostUnreadCountCache.Purge(); err != nil {
+		s.rootStore.logger.Error("failed to purge read receipt post unread count cache", mlog.Err(err))
+	}
 
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.readReceiptCache.Name())
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.readReceiptPostReadersCache.Name())
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.readReceiptPostUnreadCountCache.Name())
 	}
 }
 
 func (s LocalCacheReadReceiptStore) InvalidateReadReceiptForPostsCache(postID string) {
 	s.rootStore.doInvalidateCacheCluster(s.rootStore.readReceiptPostReadersCache, postID, nil)
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.readReceiptPostReadersCache, fmt.Sprintf("unread:%s", postID), nil)
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.readReceiptPostUnreadCountCache, postID, nil)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.readReceiptPostReadersCache.Name())
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.readReceiptPostUnreadCountCache.Name())
 	}
 	if externalCache, ok := s.rootStore.readReceiptCache.(cache.ExternalCache); ok {
 		// For redis, invalidate all keys with pattern "postID:*"
@@ -78,7 +83,7 @@ func (s LocalCacheReadReceiptStore) Save(rctx request.CTX, receipt *model.ReadRe
 	defer func() {
 		s.rootStore.doInvalidateCacheCluster(s.rootStore.readReceiptCache, fmt.Sprintf("%s:%s", receipt.PostID, receipt.UserID), nil)
 		s.rootStore.doInvalidateCacheCluster(s.rootStore.readReceiptPostReadersCache, receipt.PostID, nil)
-		s.rootStore.doInvalidateCacheCluster(s.rootStore.readReceiptPostReadersCache, fmt.Sprintf("unread:%s", receipt.PostID), nil)
+		s.rootStore.doInvalidateCacheCluster(s.rootStore.readReceiptPostUnreadCountCache, receipt.PostID, nil)
 	}()
 	return s.ReadReceiptStore.Save(rctx, receipt)
 }
@@ -167,10 +172,8 @@ func (s LocalCacheReadReceiptStore) GetByPost(rctx request.CTX, postID string) (
 }
 
 func (s LocalCacheReadReceiptStore) GetUnreadCountForPost(rctx request.CTX, post *model.Post) (int64, error) {
-	cacheKey := fmt.Sprintf("unread:%s", post.Id)
-
 	var count int64
-	if err := s.rootStore.doStandardReadCache(s.rootStore.readReceiptPostReadersCache, cacheKey, &count); err == nil {
+	if err := s.rootStore.doStandardReadCache(s.rootStore.readReceiptPostUnreadCountCache, post.Id, &count); err == nil {
 		return count, nil
 	}
 
@@ -179,7 +182,7 @@ func (s LocalCacheReadReceiptStore) GetUnreadCountForPost(rctx request.CTX, post
 		return count, err
 	}
 
-	s.rootStore.doStandardAddToCache(s.rootStore.readReceiptPostReadersCache, cacheKey, count)
+	s.rootStore.doStandardAddToCache(s.rootStore.readReceiptPostUnreadCountCache, post.Id, count)
 
 	return count, nil
 }
