@@ -99,7 +99,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
         ({team, adminUser, adminClient} = await pw.initSetup());
 
         // Create test user to edit
-        testUser = await pw.createNewUserProfile(adminClient, 'admin-edit-target-');
+        testUser = await pw.createNewUserProfile(adminClient, {prefix: 'admin-edit-target-'});
         await adminClient.addToTeam(team.id, testUser.id);
 
         // Set up custom user attribute fields

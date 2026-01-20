@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {ReactNode} from 'react';
 import {defineMessage, useIntl} from 'react-intl';
 
 import type {LimitSummary} from 'components/common/hooks/useGetHighestThresholdCloudLimit';
@@ -151,7 +150,7 @@ export default function useWords(highestLimit: LimitSummary | false, isAdminUser
                 id: 'workspace_limits.menu_limit.messages',
                 defaultMessage: 'Total messages',
             }),
-            description: intl.formatMessage<ReactNode>(
+            description: intl.formatMessage(
                 description,
                 values,
             ),
@@ -196,7 +195,7 @@ export default function useWords(highestLimit: LimitSummary | false, isAdminUser
                 id: 'workspace_limits.menu_limit.file_storage',
                 defaultMessage: 'File storage limit',
             }),
-            description: intl.formatMessage<ReactNode>(
+            description: intl.formatMessage(
                 description,
                 values,
             ),
