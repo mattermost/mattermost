@@ -67,12 +67,23 @@ func newHooksGRPCClient(conn grpc.ClientConnInterface, log *mlog.Logger) (*hooks
 		return nil, fmt.Errorf("failed to query implemented hooks: %w", err)
 	}
 
+	// DEBUG: Log the hooks returned by the plugin
+	log.Debug("Python plugin Implemented() returned hooks", mlog.Any("hooks", hooks))
+
 	// Populate the implemented array
 	for _, hookName := range hooks {
 		if hookID, ok := hookNameToId[hookName]; ok {
 			client.implemented[hookID] = true
+			log.Debug("Registered hook", mlog.String("name", hookName), mlog.Int("id", hookID))
+		} else {
+			log.Warn("Unknown hook name from Python plugin", mlog.String("name", hookName))
 		}
 	}
+
+	// DEBUG: Log OnActivate status
+	log.Debug("OnActivate implementation status",
+		mlog.Bool("implemented", client.implemented[OnActivateID]),
+		mlog.Int("OnActivateID", OnActivateID))
 
 	return client, nil
 }
@@ -100,10 +111,14 @@ func (h *hooksGRPCClient) Implemented() ([]string, error) {
 
 // OnActivate is invoked when the plugin is activated.
 func (h *hooksGRPCClient) OnActivate() error {
+	h.log.Debug("OnActivate called", mlog.Bool("implemented", h.implemented[OnActivateID]))
+
 	if !h.implemented[OnActivateID] {
+		h.log.Debug("OnActivate not implemented, skipping")
 		return nil
 	}
 
+	h.log.Debug("Calling gRPC OnActivate")
 	ctx, cancel := context.WithTimeout(context.Background(), defaultGRPCTimeout)
 	defer cancel()
 
@@ -114,9 +129,11 @@ func (h *hooksGRPCClient) OnActivate() error {
 	}
 
 	if resp.GetError() != nil {
+		h.log.Error("OnActivate returned error", mlog.String("error", resp.GetError().GetMessage()))
 		return appErrorFromProto(resp.GetError())
 	}
 
+	h.log.Debug("OnActivate completed successfully")
 	return nil
 }
 
