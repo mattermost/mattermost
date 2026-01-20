@@ -106,7 +106,36 @@ class LangChainAgentPlugin(Plugin):
             self.logger.warning(f"Anthropic model not available: {e}")
             self.anthropic_model = None
 
+        # Initialize MCP client with configured servers
+        mcp_config = self._get_mcp_server_config()
+        if mcp_config:
+            try:
+                self.mcp_client = MultiServerMCPClient(mcp_config)
+                self.logger.info(
+                    f"MCP client initialized with {len(mcp_config)} server(s)"
+                )
+            except Exception as e:
+                self.logger.warning(f"Failed to initialize MCP client: {e}")
+                self.mcp_client = None
+        else:
+            self.logger.info("No MCP servers configured, running without tools")
+            self.mcp_client = None
+
         self.logger.info("LangChain Agent plugin activated!")
+
+    def _get_mcp_server_config(self) -> dict:
+        """
+        Get MCP server configuration.
+
+        Returns dict of server configs. Each server needs:
+        - For STDIO: transport="stdio", command="...", args=[...]
+        - For HTTP: transport="http", url="..."
+
+        Returns empty dict if no servers configured.
+        """
+        # TODO: In future, read from plugin settings
+        # For now, return empty dict - no MCP servers configured by default
+        return {}
 
     @hook(HookName.OnDeactivate)
     def on_deactivate(self) -> None:
@@ -184,72 +213,28 @@ class LangChainAgentPlugin(Plugin):
         self.logger.debug("Neither bot is in this DM, ignoring")
 
     def _handle_openai_message(self, post: Post) -> None:
-        """
-        Handle a message directed to the OpenAI bot using LangChain.
-
-        Args:
-            post: The Post object containing the user's message.
-        """
+        """Handle a message directed to the OpenAI bot."""
         self.logger.info(f"OpenAI Agent processing message: {post.message[:50]}...")
-
-        # Determine root_id for threading
-        root_id = post.root_id if post.root_id else post.id
-
-        if self.openai_model is None:
-            self._send_error_response(
-                post.channel_id, "OpenAI not configured. Check OPENAI_API_KEY.", root_id
+        asyncio.run(
+            self._handle_message_async(
+                post,
+                self.openai_model,
+                self.openai_bot_id,
+                "You are a helpful AI assistant powered by OpenAI. Be concise and helpful.",
             )
-            return
-
-        # Build conversation history from thread
-        messages = self._build_conversation_history(
-            post,
-            self.openai_bot_id,
-            "You are a helpful AI assistant powered by OpenAI. Be concise and helpful.",
         )
-
-        try:
-            response = self.openai_model.invoke(messages)
-            self._send_response(post.channel_id, response.content, root_id)
-            self.logger.debug("OpenAI Agent sent response")
-        except Exception as e:
-            self.logger.error(f"OpenAI API error: {e}")
-            self._send_error_response(post.channel_id, f"OpenAI error: {e}", root_id)
 
     def _handle_anthropic_message(self, post: Post) -> None:
-        """
-        Handle a message directed to the Anthropic bot using LangChain.
-
-        Args:
-            post: The Post object containing the user's message.
-        """
+        """Handle a message directed to the Anthropic bot."""
         self.logger.info(f"Anthropic Agent processing message: {post.message[:50]}...")
-
-        # Determine root_id for threading
-        root_id = post.root_id if post.root_id else post.id
-
-        if self.anthropic_model is None:
-            self._send_error_response(
-                post.channel_id,
-                "Anthropic not configured. Check ANTHROPIC_API_KEY.",
-                root_id,
+        asyncio.run(
+            self._handle_message_async(
+                post,
+                self.anthropic_model,
+                self.anthropic_bot_id,
+                "You are a helpful AI assistant powered by Anthropic Claude. Be concise and helpful.",
             )
-            return
-
-        # Build conversation history from thread
-        messages = self._build_conversation_history(
-            post,
-            self.anthropic_bot_id,
-            "You are a helpful AI assistant powered by Anthropic Claude. Be concise and helpful.",
         )
-
-        try:
-            response = self.anthropic_model.invoke(messages)
-            self._send_response(post.channel_id, response.content, root_id)
-            self.logger.debug("Anthropic Agent sent response")
-        except Exception as e:
-            self.logger.error(f"Anthropic API error: {e}")
-            self._send_error_response(post.channel_id, f"Anthropic error: {e}", root_id)
 
     def _build_conversation_history(
         self, post: Post, bot_id: str | None, system_prompt: str
@@ -294,6 +279,45 @@ class LangChainAgentPlugin(Plugin):
             messages.append(HumanMessage(content=post.message))
 
         return messages
+
+    async def _handle_message_async(
+        self, post: Post, model, bot_id: str | None, system_prompt: str
+    ) -> None:
+        """Handle message with optional MCP tool support."""
+        root_id = post.root_id if post.root_id else post.id
+
+        if model is None:
+            self._send_error_response(post.channel_id, "Model not configured.", root_id)
+            return
+
+        # Build conversation history
+        messages = self._build_conversation_history(post, bot_id, system_prompt)
+
+        # If MCP client available, use agent with tools
+        if self.mcp_client is not None:
+            try:
+                tools = await self.mcp_client.get_tools()
+                if tools:
+                    # Create agent with tools
+                    agent = create_react_agent(model, tools)
+                    # Invoke agent with messages
+                    response = await agent.ainvoke({"messages": messages})
+                    # Extract final response
+                    last_message = response["messages"][-1]
+                    self._send_response(post.channel_id, last_message.content, root_id)
+                    return
+            except Exception as e:
+                self.logger.warning(
+                    f"MCP tools unavailable, falling back to basic chat: {e}"
+                )
+
+        # Fallback to basic model invocation (no tools)
+        try:
+            response = model.invoke(messages)
+            self._send_response(post.channel_id, response.content, root_id)
+        except Exception as e:
+            self.logger.error(f"Model API error: {e}")
+            self._send_error_response(post.channel_id, f"API error: {e}", root_id)
 
     def _send_response(self, channel_id: str, message: str, root_id: str = "") -> None:
         """Send a response message to the channel, optionally as a thread reply."""
