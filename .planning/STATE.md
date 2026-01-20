@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-01-20)
 ## Current Position
 
 Phase: 14 of 18 (Bot Infrastructure)
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-01-20 — Milestone v1.1 created
+Plan: 1 of 1 complete
+Status: Phase 14 complete
+Last activity: 2026-01-20 — Completed 14-01-PLAN.md (Bot Infrastructure)
 
-Progress: ░░░░░░░░░░ 0% (0/5 phases complete)
+Progress: ██░░░░░░░░ 20% (1/5 phases complete)
 
 ## Performance Metrics
 
@@ -24,11 +24,20 @@ Progress: ░░░░░░░░░░ 0% (0/5 phases complete)
 - Total execution time: ~8 hours
 - Timeline: 5 days (2026-01-16 → 2026-01-20)
 
+**v1.1 Velocity:**
+- Plans completed: 1
+- Phase 14-01: 2 min
+
 ## Accumulated Context
 
 ### Decisions
 
 All decisions logged in PROJECT.md Key Decisions table.
+
+| Decision | Phase | Rationale |
+|----------|-------|-----------|
+| Bot membership lookup for DM routing | 14-01 | More reliable than parsing channel name |
+| ensure_bot_user for bot creation | 14-01 | Idempotent - returns existing bot if present |
 
 ### Deferred Issues
 
@@ -43,8 +52,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-20
-Stopped at: Milestone v1.1 initialization
+Last session: 2026-01-20 16:31 UTC
+Stopped at: Completed 14-01-PLAN.md
 Resume file: None
 
 ## Roadmap Evolution
@@ -61,9 +70,8 @@ Resume file: None
 
 ## Next Steps
 
-**Phase 14: Bot Infrastructure** — Create two bots (OpenAI, Anthropic) on plugin activation, handle DM message routing
+**Phase 15: LangChain Integration** — Replace placeholder handlers with actual LangChain/LLM calls
 
 Options:
-- `/gsd:plan-phase 14` — Create detailed execution plan
-- `/gsd:discuss-phase 14` — Gather context first
-- `/gsd:research-phase 14` — Investigate unknowns (unlikely needed)
+- `/gsd:plan-phase 15` — Create detailed execution plan
+- `/gsd:execute-phase 15` — Execute existing plan (if one exists)
