@@ -25,9 +25,9 @@
         }
 
         &:focus-visible {
+            border-radius: 2px;
             outline: 2px solid var(--button-bg);
             outline-offset: 2px;
-            border-radius: 2px;
         }
     }
 }
