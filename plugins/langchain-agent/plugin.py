@@ -23,6 +23,12 @@ from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langgraph.prebuilt import create_react_agent
+from tenacity import (
+    retry,
+    stop_after_attempt,
+    wait_exponential,
+    retry_if_exception_type,
+)
 
 # Bot usernames (plugin-scoped)
 OPENAI_BOT_USERNAME = "langchain-openai-agent"
@@ -283,6 +289,29 @@ class LangChainAgentPlugin(Plugin):
 
         return messages
 
+    async def _invoke_agent_with_retry(self, agent, messages: list) -> dict:
+        """Invoke agent with retry logic for transient failures."""
+
+        @retry(
+            stop=stop_after_attempt(3),
+            wait=wait_exponential(multiplier=1, min=1, max=10),
+            retry=retry_if_exception_type((ConnectionError, TimeoutError)),
+            reraise=True,
+        )
+        async def _invoke():
+            return await agent.ainvoke(
+                {"messages": messages}, config={"recursion_limit": 10}
+            )
+
+        try:
+            return await _invoke()
+        except (ConnectionError, TimeoutError) as e:
+            # All retries exhausted - return error message
+            raise RuntimeError(f"Tool connection failed after retries: {e}")
+        except Exception:
+            # Non-retryable error - pass through
+            raise
+
     async def _handle_message_async(
         self, post: Post, model, bot_id: str | None, system_prompt: str
     ) -> None:
@@ -303,14 +332,20 @@ class LangChainAgentPlugin(Plugin):
                 if tools:
                     # Create agent with tools
                     agent = create_react_agent(model, tools)
-                    # Invoke agent with messages (recursion_limit prevents infinite loops)
-                    response = await agent.ainvoke(
-                        {"messages": messages}, config={"recursion_limit": 10}
-                    )
-                    # Extract final response
-                    last_message = response["messages"][-1]
-                    self._send_response(post.channel_id, last_message.content, root_id)
-                    return
+                    # Invoke agent with retry logic for transient failures
+                    try:
+                        response = await self._invoke_agent_with_retry(agent, messages)
+                        last_message = response["messages"][-1]
+                        self._send_response(
+                            post.channel_id, last_message.content, root_id
+                        )
+                        return
+                    except RuntimeError as e:
+                        self.logger.warning(f"Agent failed after retries: {e}")
+                        # Fall through to basic model (no tools)
+                    except Exception as e:
+                        self.logger.warning(f"Agent error, falling back: {e}")
+                        # Fall through to basic model (no tools)
             except Exception as e:
                 self.logger.warning(
                     f"MCP tools unavailable, falling back to basic chat: {e}"

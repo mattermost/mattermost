@@ -9,3 +9,6 @@ langchain-openai>=0.1.0
 langchain-anthropic>=0.1.0
 langchain-mcp-adapters>=0.2.0
 langgraph>=0.2.0
+
+# Retry logic for transient failures
+tenacity>=8.0.0
