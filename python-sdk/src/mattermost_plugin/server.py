@@ -271,16 +271,18 @@ async def serve_plugin(
     logger.info(f"Starting plugin: {config.plugin_id or plugin_class.__name__}")
     logger.debug(f"API target: {config.api_target}")
 
-    # Create API client (optional - may not be connected yet)
+    # Create and connect API client
     api_client: Optional["PluginAPIClient"] = None
     try:
         from mattermost_plugin.client import PluginAPIClient
 
         if config.api_target:
             api_client = PluginAPIClient(target=config.api_target)
-            # Note: We don't connect yet - hooks will connect when needed
+            # Connect the client before hooks are called
+            api_client.connect()
+            logger.info(f"API client connected to {config.api_target}")
     except Exception as e:
-        logger.warning(f"Could not create API client: {e}")
+        logger.warning(f"Could not create/connect API client: {e}")
 
     # Create plugin instance
     plugin_instance = plugin_class(
