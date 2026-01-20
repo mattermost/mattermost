@@ -825,7 +825,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 					a.sanitizeProfiles(userThread.Participants, false)
 					userThread.Post.SanitizeProps()
 
-					sanitizedPost, err := a.SanitizePostMetadataForUser(c, userThread.Post, uid)
+					sanitizedPost, isMemberForPreview, err := a.SanitizePostMetadataForUser(c, userThread.Post, uid)
 					if err != nil {
 						a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonParseError, model.NotificationNoPlatform)
 						a.NotificationsLog().Error("Failed to sanitize metadata",
@@ -848,6 +848,18 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 					message.Add("thread", string(payload))
 					message.Add("previous_unread_mentions", previousUnreadMentions)
 					message.Add("previous_unread_replies", previousUnreadReplies)
+
+					auditRec := a.MakeAuditRecord(c, "websocketPost", model.AuditStatusSuccess)
+					defer a.LogAuditRec(c, auditRec, nil)
+					model.AddEventParameterToAuditRec(auditRec, "post_id", userThread.Post.Id)
+					if !isMemberForPreview {
+						previewPost := userThread.Post.GetPreviewPost()
+						if previewPost != nil {
+							model.AddEventParameterToAuditRec(auditRec, "preview_post_id", previewPost.Post.Id)
+						}
+						model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
+					}
+					auditRec.Success()
 
 					a.Publish(message)
 				}
@@ -1008,7 +1020,7 @@ func (a *App) RemoveNotifications(c request.CTX, post *model.Post, channel *mode
 				a.sanitizeProfiles(userThread.Participants, false)
 				userThread.Post.SanitizeProps()
 
-				sanitizedPost, err1 := a.SanitizePostMetadataForUser(c, userThread.Post, userID)
+				sanitizedPost, isMemberForPreview, err1 := a.SanitizePostMetadataForUser(c, userThread.Post, userID)
 				if err1 != nil {
 					return err1
 				}
@@ -1018,6 +1030,18 @@ func (a *App) RemoveNotifications(c request.CTX, post *model.Post, channel *mode
 				if jsonErr != nil {
 					c.Logger().Warn("Failed to encode thread to JSON")
 				}
+
+				auditRec := a.MakeAuditRecord(c, "websocketPost", model.AuditStatusSuccess)
+				defer a.LogAuditRec(c, auditRec, nil)
+				model.AddEventParameterToAuditRec(auditRec, "post_id", userThread.Post.Id)
+				if !isMemberForPreview {
+					previewPost := userThread.Post.GetPreviewPost()
+					if previewPost != nil {
+						model.AddEventParameterToAuditRec(auditRec, "preview_post_id", previewPost.Post.Id)
+					}
+					model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
+				}
+				auditRec.Success()
 
 				message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, team.Id, "", userID, nil, "")
 				message.Add("thread", string(payload))
@@ -1451,7 +1475,7 @@ func getMentionsEnabledFields(post *model.Post) model.StringArray {
 
 // allowChannelMentions returns whether or not the channel mentions are allowed for the given post.
 func (a *App) allowChannelMentions(c request.CTX, post *model.Post, numProfiles int) bool {
-	if !a.HasPermissionToChannel(c, post.UserId, post.ChannelId, model.PermissionUseChannelMentions) {
+	if ok, _ := a.HasPermissionToChannel(c, post.UserId, post.ChannelId, model.PermissionUseChannelMentions); !ok {
 		return false
 	}
 
@@ -1472,7 +1496,7 @@ func (a *App) allowGroupMentions(c request.CTX, post *model.Post) bool {
 		return false
 	}
 
-	if !a.HasPermissionToChannel(c, post.UserId, post.ChannelId, model.PermissionUseGroupMentions) {
+	if ok, _ := a.HasPermissionToChannel(c, post.UserId, post.ChannelId, model.PermissionUseGroupMentions); !ok {
 		return false
 	}
 

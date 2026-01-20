@@ -164,7 +164,7 @@ func (a *App) upgradePlanAdminNotifyPost(c request.CTX, workspaceName string, us
 	props["trial"] = trial
 	post.SetProps(props)
 
-	_, appErr = a.CreatePost(c, post, channel, model.CreatePostFlags{SetOnline: true})
+	_, _, appErr = a.CreatePost(c, post, channel, model.CreatePostFlags{SetOnline: true})
 
 	if appErr != nil {
 		c.Logger().Warn("Error creating post", mlog.Err(appErr))

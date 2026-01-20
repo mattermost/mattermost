@@ -672,7 +672,7 @@ func (*LoadTestProvider) URLCommand(a *app.App, c request.CTX, args *model.Comma
 		post.ChannelId = args.ChannelId
 		post.UserId = args.UserId
 
-		if _, err := a.CreatePostMissingChannel(c, post, false, true); err != nil {
+		if _, _, err := a.CreatePostMissingChannel(c, post, false, true); err != nil {
 			return &model.CommandResponse{Text: "Unable to create post", ResponseType: model.CommandResponseTypeEphemeral}, err
 		}
 	}
@@ -721,7 +721,7 @@ func (*LoadTestProvider) JSONCommand(a *app.App, c request.CTX, args *model.Comm
 		post.Message = message
 	}
 
-	if _, err := a.CreatePostMissingChannel(c, &post, false, true); err != nil {
+	if _, _, err := a.CreatePostMissingChannel(c, &post, false, true); err != nil {
 		return &model.CommandResponse{Text: "Unable to create post", ResponseType: model.CommandResponseTypeEphemeral}, err
 	}
 

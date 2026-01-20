@@ -493,7 +493,7 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 
 		scs.transformMentionsOnReceive(rctx, post, targetChannel, rc, mentionTransforms)
 
-		rpost, appErr = scs.app.CreatePost(rctx, post, targetChannel, model.CreatePostFlags{TriggerWebhooks: true, SetOnline: true})
+		rpost, _, appErr = scs.app.CreatePost(rctx, post, targetChannel, model.CreatePostFlags{TriggerWebhooks: true, SetOnline: true})
 		if appErr == nil {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Created sync post",
 				mlog.String("post_id", post.Id),
@@ -527,7 +527,7 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 		}
 
 		// First update the basic post
-		rpost, appErr = scs.app.UpdatePost(rctx, post, nil)
+		rpost, _, appErr = scs.app.UpdatePost(rctx, post, nil)
 		if appErr != nil {
 			rerr := errors.New(appErr.Error())
 			return nil, rerr

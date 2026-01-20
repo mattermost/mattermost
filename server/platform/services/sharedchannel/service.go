@@ -54,7 +54,7 @@ type PlatformIface interface {
 }
 
 type AppIface interface {
-	SendEphemeralPost(c request.CTX, userId string, post *model.Post) *model.Post
+	SendEphemeralPost(c request.CTX, userId string, post *model.Post) (*model.Post, bool)
 	CreateChannelWithUser(c request.CTX, channel *model.Channel, userId string) (*model.Channel, *model.AppError)
 	GetOrCreateDirectChannel(c request.CTX, userId, otherUserId string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError)
 	CreateGroupChannel(c request.CTX, userIDs []string, creatorId string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError)
@@ -63,8 +63,8 @@ type AppIface interface {
 	AddUserToTeamByTeamId(c request.CTX, teamId string, user *model.User) *model.AppError
 	RemoveUserFromChannel(c request.CTX, userID string, removerUserId string, channel *model.Channel) *model.AppError
 	PermanentDeleteChannel(c request.CTX, channel *model.Channel) *model.AppError
-	CreatePost(c request.CTX, post *model.Post, channel *model.Channel, flags model.CreatePostFlags) (savedPost *model.Post, err *model.AppError)
-	UpdatePost(c request.CTX, post *model.Post, updatePostOptions *model.UpdatePostOptions) (*model.Post, *model.AppError)
+	CreatePost(c request.CTX, post *model.Post, channel *model.Channel, flags model.CreatePostFlags) (savedPost *model.Post, isMemberForPreviews bool, err *model.AppError)
+	UpdatePost(c request.CTX, post *model.Post, updatePostOptions *model.UpdatePostOptions) (*model.Post, bool, *model.AppError)
 	DeletePost(c request.CTX, postID, deleteByID string) (*model.Post, *model.AppError)
 	SaveReactionForPost(c request.CTX, reaction *model.Reaction) (*model.Reaction, *model.AppError)
 	DeleteReactionForPost(c request.CTX, reaction *model.Reaction) *model.AppError
@@ -315,7 +315,7 @@ func (scs *Service) postUnshareNotification(channelID string, creatorID string, 
 	}
 
 	logger := scs.server.Log()
-	_, appErr := scs.app.CreatePost(request.EmptyContext(logger), post, channel, model.CreatePostFlags{})
+	_, _, appErr := scs.app.CreatePost(request.EmptyContext(logger), post, channel, model.CreatePostFlags{})
 
 	if appErr != nil {
 		scs.server.Log().Log(
