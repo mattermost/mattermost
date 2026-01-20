@@ -58,12 +58,11 @@ Plans:
 
 **Goal**: Basic LangChain setup with OpenAI/Anthropic providers, simple chat responses
 **Depends on**: Phase 14
-**Research**: Likely (LangChain library integration - new to project)
-**Research topics**: LangChain Python SDK, multi-provider setup, message formatting
-**Plans**: TBD
+**Research**: Complete (15-RESEARCH.md)
+**Plans**: 1 plan
 
 Plans:
-- [ ] 15-01: TBD (run /gsd:plan-phase 15 to break down)
+- [ ] 15-01-PLAN.md — LangChain integration with real LLM responses
 
 #### Phase 16: Session Memory
 
