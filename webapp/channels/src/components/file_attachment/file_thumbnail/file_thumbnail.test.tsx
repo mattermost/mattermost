@@ -105,4 +105,21 @@ describe('FileThumbnail', () => {
         expect(wrapper).toMatchSnapshot();
         expect(wrapper.find('div.file-icon').exists()).toBe(true);
     });
+
+    test('should render an icon for a PSD (MM-67077)', () => {
+        const props = {
+            ...baseProps,
+            fileInfo: {
+                ...fileInfo,
+                extension: 'psd',
+            },
+        };
+
+        const wrapper = shallow(
+            <FileThumbnail {...props}/>,
+        );
+
+        expect(wrapper).toMatchSnapshot();
+        expect(wrapper.find('div.file-icon').exists()).toBe(true);
+    });
 });
