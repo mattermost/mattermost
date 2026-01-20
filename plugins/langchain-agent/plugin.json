@@ -1,0 +1,14 @@
+{
+  "id": "com.mattermost.langchain-agent",
+  "name": "LangChain Agent",
+  "description": "AI agent plugin demonstrating LangChain integration with OpenAI and Anthropic",
+  "homepage_url": "https://github.com/mattermost/mattermost",
+  "support_url": "https://github.com/mattermost/mattermost/issues",
+  "version": "0.1.0",
+  "min_server_version": "10.0.0",
+  "server": {
+    "executable": "plugin.py",
+    "runtime": "python",
+    "python_version": ">=3.9"
+  }
+}

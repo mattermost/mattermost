@@ -1,0 +1,9 @@
+# LangChain Agent Plugin Dependencies
+#
+# Core dependencies (vendored from python-sdk)
+mattermost-plugin
+
+# LangChain dependencies will be added in Phase 15
+# - langchain
+# - langchain-openai
+# - langchain-anthropic
