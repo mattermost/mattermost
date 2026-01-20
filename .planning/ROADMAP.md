@@ -11,6 +11,7 @@ None
 ## Milestones
 
 - ✅ **[v1.0 Python Plugin Support](milestones/v1.0-ROADMAP.md)** — Phases 1-13 (shipped 2026-01-20)
+- 🚧 **v1.1 LangChain Agent Demo** — Phases 14-18 (in progress)
 
 ## Completed Milestones
 
@@ -40,6 +41,63 @@ None
 
 </details>
 
+### 🚧 v1.1 LangChain Agent Demo (In Progress)
+
+**Milestone Goal:** Demonstrate Python ecosystem advantages by building an AI agent plugin with LangChain, showcasing capabilities to internal engineers
+
+#### Phase 14: Bot Infrastructure
+
+**Goal**: Create two bots (OpenAI, Anthropic) on plugin activation, handle DM message routing
+**Depends on**: v1.0 complete
+**Research**: Unlikely (internal patterns - using existing Python SDK bot APIs)
+**Plans**: TBD
+
+Plans:
+- [ ] 14-01: TBD (run /gsd:plan-phase 14 to break down)
+
+#### Phase 15: LangChain Core
+
+**Goal**: Basic LangChain setup with OpenAI/Anthropic providers, simple chat responses
+**Depends on**: Phase 14
+**Research**: Likely (LangChain library integration - new to project)
+**Research topics**: LangChain Python SDK, multi-provider setup, message formatting
+**Plans**: TBD
+
+Plans:
+- [ ] 15-01: TBD (run /gsd:plan-phase 15 to break down)
+
+#### Phase 16: Session Memory
+
+**Goal**: Per-DM conversation history and context management using KV store
+**Depends on**: Phase 15
+**Research**: Unlikely (KV store patterns established in SDK)
+**Plans**: TBD
+
+Plans:
+- [ ] 16-01: TBD (run /gsd:plan-phase 16 to break down)
+
+#### Phase 17: MCP Client
+
+**Goal**: Model Context Protocol integration for external tools (HTTP/SSE and STDIO servers)
+**Depends on**: Phase 16
+**Research**: Likely (MCP protocol integration - new external protocol)
+**Research topics**: MCP specification, HTTP/SSE transport, STDIO transport, tool schema
+**Plans**: TBD
+
+Plans:
+- [ ] 17-01: TBD (run /gsd:plan-phase 17 to break down)
+
+#### Phase 18: Agentic Loop
+
+**Goal**: Tool calling orchestration, reasoning, multi-step execution with LangChain agents
+**Depends on**: Phase 17
+**Research**: Likely (LangChain agentic features - advanced patterns)
+**Research topics**: LangChain agents, tool calling, ReAct pattern, extended thinking
+**Plans**: TBD
+
+Plans:
+- [ ] 18-01: TBD (run /gsd:plan-phase 18 to break down)
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -57,3 +115,8 @@ None
 | 11. Server Integration | v1.0 | 3/3 | Complete | 2026-01-19 |
 | 12. Python API Callback Server | v1.0 | 1/1 | Complete | 2026-01-20 |
 | 13. Python Plugin Developer Experience | v1.0 | 4/4 | Complete | 2026-01-20 |
+| 14. Bot Infrastructure | v1.1 | 0/? | Not started | - |
+| 15. LangChain Core | v1.1 | 0/? | Not started | - |
+| 16. Session Memory | v1.1 | 0/? | Not started | - |
+| 17. MCP Client | v1.1 | 0/? | Not started | - |
+| 18. Agentic Loop | v1.1 | 0/? | Not started | - |
