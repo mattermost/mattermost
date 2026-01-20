@@ -80,12 +80,11 @@ Plans:
 
 **Goal**: Model Context Protocol integration for external tools (HTTP/SSE and STDIO servers)
 **Depends on**: Phase 16
-**Research**: Likely (MCP protocol integration - new external protocol)
-**Research topics**: MCP specification, HTTP/SSE transport, STDIO transport, tool schema
-**Plans**: TBD
+**Research**: Complete (17-RESEARCH.md)
+**Plans**: 1 plan
 
 Plans:
-- [ ] 17-01: TBD (run /gsd:plan-phase 17 to break down)
+- [ ] 17-01: MCP client initialization and async agent handlers
 
 #### Phase 18: Agentic Loop
 
@@ -118,5 +117,5 @@ Plans:
 | 14. Bot Infrastructure | v1.1 | 1/1 | Complete | 2026-01-20 |
 | 15. LangChain Core | v1.1 | 1/1 | Complete | 2026-01-20 |
 | 16. Session Memory | v1.1 | 1/1 | Complete | 2026-01-20 |
-| 17. MCP Client | v1.1 | 0/? | Not started | - |
+| 17. MCP Client | v1.1 | 0/1 | Planned | - |
 | 18. Agentic Loop | v1.1 | 0/? | Not started | - |
