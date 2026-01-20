@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import {useIntl} from 'react-intl';
 
-import type {Channel} from '@mattermost/types/channels';
 import {ContentFlaggingStatus} from '@mattermost/types/content_flagging';
 import type {Post} from '@mattermost/types/posts';
 import type {NameMappedPropertyFields, PropertyValue} from '@mattermost/types/properties';
@@ -13,8 +12,8 @@ import {Client4} from 'mattermost-redux/client';
 import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
 
 import AtMention from 'components/at_mention';
+import {useGetContentFlaggingChannel, useGetFlaggedPost} from 'components/common/hooks/content_flagging';
 import {useContentFlaggingFields, usePostContentFlaggingValues} from 'components/common/hooks/useContentFlaggingFields';
-import {useGetFlaggedPost} from 'components/common/hooks/useGetFlaggedPost';
 import {useUser} from 'components/common/hooks/useUser';
 import DataSpillageAction from 'components/post_view/data_spillage_report/data_spillage_actions/data_spillage_actions';
 import type {PropertiesCardViewMetadata} from 'components/properties_card_view/properties_card_view';
@@ -66,18 +65,7 @@ export function DataSpillageReport({post, isRHS}: Props) {
     const naturalPropertyValues = usePostContentFlaggingValues(reportedPostId);
 
     const reportedPost = useGetFlaggedPost(reportedPostId);
-    const [channel, setChannel] = useState<Channel | undefined>();
-
-    useEffect(() => {
-        const fetchChannel = async () => {
-            if (reportedPost && reportedPost.channel_id) {
-                const fetchedChannel = await getChannel(reportedPostId)(reportedPost.channel_id);
-                setChannel(fetchedChannel);
-            }
-        };
-
-        fetchChannel();
-    }, [reportedPost, reportedPostId]);
+    const channel = useGetContentFlaggingChannel({flaggedPostId: reportedPostId, channelId: reportedPost?.channel_id});
 
     const propertyFields = useMemo((): NameMappedPropertyFields => {
         if (!naturalPropertyFields || !Object.keys(naturalPropertyFields).length) {
@@ -124,7 +112,7 @@ export function DataSpillageReport({post, isRHS}: Props) {
             post_preview: {
                 post: reportedPost,
                 fetchDeletedPost: true,
-                getChannel: getChannel(reportedPostId),
+                channel,
                 getTeam: getTeam(reportedPostId),
                 generateFileDownloadUrl: generateFileDownloadUrl(reportedPostId),
             },
@@ -135,7 +123,7 @@ export function DataSpillageReport({post, isRHS}: Props) {
                 getTeam: getTeam(reportedPostId),
             },
             channel: {
-                getChannel: getChannel(reportedPostId),
+                channel,
             },
         };
 
@@ -209,12 +197,6 @@ function getSearchContentReviewersFunction(teamId: string) {
 function saveReviewerSelection(flaggedPostId: string) {
     return (userId: string) => {
         return Client4.setContentFlaggingReviewer(flaggedPostId, userId);
-    };
-}
-
-function getChannel(flaggedPostId: string) {
-    return (channelId: string) => {
-        return Client4.getChannel(channelId, true, flaggedPostId);
     };
 }
 

@@ -21,7 +21,7 @@ import './properties_card_view.scss';
 export type PostPreviewFieldMetadata = {
     post?: Post;
     fetchDeletedPost?: boolean;
-    getChannel?: (channelId: string) => Promise<Channel>;
+    channel?: Channel;
     getTeam?: (teamId: string) => Promise<Team>;
     generateFileDownloadUrl?: (fileId: string) => string;
 };
@@ -36,7 +36,7 @@ export type TextFieldMetadata = {
 };
 
 export type ChannelFieldMetadata = {
-    getChannel?: (channelId: string) => Promise<Channel>;
+    channel?: Channel;
 };
 
 export type TeamFieldMetadata = {

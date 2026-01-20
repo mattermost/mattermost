@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Channel} from './channels';
 import type {Post} from './posts';
 import type {
     NameMappedPropertyFields,
@@ -24,6 +25,7 @@ export type ContentFlaggingState = {
     fields?: NameMappedPropertyFields;
     postValues?: {[key: Post['id']]: Array<PropertyValue<unknown>>};
     flaggedPosts?: {[key: Post['id']]: Post};
+    channels?: {[key: Channel['id']]: Channel};
 };
 
 export enum ContentFlaggingStatus {

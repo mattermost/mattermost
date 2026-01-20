@@ -3,6 +3,7 @@
 
 import type {GlobalState} from '@mattermost/types/store';
 
+import type {ContentFlaggingChannelRequestIdentifier} from 'mattermost-redux/actions/content_flagging';
 import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 
 export const contentFlaggingFeatureEnabled = (state: GlobalState): boolean => {
@@ -30,3 +31,18 @@ export const postContentFlaggingValues = (state: GlobalState, postId: string) =>
 export const getFlaggedPost = (state: GlobalState, flaggedPostId: string) => {
     return state.entities.contentFlagging.flaggedPosts?.[flaggedPostId];
 };
+
+export const getContentFlaggingChannel = (state: GlobalState, {channelId}: ContentFlaggingChannelRequestIdentifier) => {
+    // Return channel from the regular channel store if available, else get it from the content flagging store
+    if (!channelId) {
+        return undefined;
+    }
+
+    const channel = state.entities.channels.channels[channelId];
+    if (channel) {
+        return channel;
+    }
+
+    return state.entities.contentFlagging.channels?.[channelId];
+};
+

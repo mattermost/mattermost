@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Channel} from '@mattermost/types/channels';
 import type {ContentFlaggingConfig} from '@mattermost/types/content_flagging';
 import type {Post} from '@mattermost/types/posts';
 import type {NameMappedPropertyFields, PropertyValue} from '@mattermost/types/properties';
@@ -11,6 +12,15 @@ import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {Client4} from 'mattermost-redux/client';
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 import {DelayedDataLoader} from 'mattermost-redux/utils/data_loader';
+
+export type ContentFlaggingChannelRequestIdentifier = {
+    channelId?: string;
+    flaggedPostId?: string;
+}
+
+function contentFlaggingChannelIdentifierComparator(a: ContentFlaggingChannelRequestIdentifier, b: ContentFlaggingChannelRequestIdentifier) {
+    return a.channelId === b.channelId;
+}
 
 export function getTeamContentFlaggingStatus(teamId: string): ActionFuncAsync<{enabled: boolean}> {
     return async (dispatch, getState) => {
@@ -125,7 +135,54 @@ export function loadFlaggedPost(flaggedPostId: string): ActionFuncAsync<Post> {
             });
         }
 
-        loaders.flaggedPostLoader.queue([flaggedPostId]);
+        const loader = loaders.flaggedPostLoader as DelayedDataLoader<Post['id']>;
+        loader.queue([flaggedPostId]);
+        return {};
+    };
+}
+
+function getContentFlaggingChannel(channelId: string, flaggedPostId: string): ActionFuncAsync<Channel> {
+    return async (dispatch, getState) => {
+        let data;
+        try {
+            data = await Client4.getChannel(channelId, true, flaggedPostId);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch({
+            type: ContentFlaggingTypes.RECEIVED_CONTENT_FLAGGING_CHANNEL,
+            data,
+        });
+
+        return {data};
+    };
+}
+
+export function loadContentFlaggingChannel(identifier: ContentFlaggingChannelRequestIdentifier): ActionFuncAsync<Channel> {
+    return async (dispatch, getState, {loaders}: any) => {
+        if (!loaders.contentFlaggingChannelLoader) {
+            loaders.contentFlaggingChannelLoader =
+                new DelayedDataLoader<ContentFlaggingChannelRequestIdentifier>({
+                    fetchBatch: ([{flaggedPostId, channelId}]) => {
+                        if (channelId && flaggedPostId) {
+                            return dispatch(getContentFlaggingChannel(channelId, flaggedPostId));
+                        }
+
+                        return Promise.resolve(null);
+                    },
+                    maxBatchSize: 1,
+                    wait: 200,
+                    comparator: contentFlaggingChannelIdentifierComparator,
+                });
+        }
+
+        const loader =
+            loaders.contentFlaggingChannelLoader as DelayedDataLoader<ContentFlaggingChannelRequestIdentifier>;
+        loader.queue([identifier]);
+
         return {};
     };
 }

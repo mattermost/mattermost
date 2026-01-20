@@ -7,7 +7,6 @@ import {useIntl} from 'react-intl';
 import type {PostPreviewMetadata} from '@mattermost/types/posts';
 import type {PropertyValue} from '@mattermost/types/properties';
 
-import {usePropertyCardViewChannelLoader} from 'components/common/hooks/usePropertyCardViewChannelLoader';
 import {usePropertyCardViewTeamLoader} from 'components/common/hooks/usePropertyCardViewTeamLoader';
 import PostMessagePreview from 'components/post_view/post_message_preview';
 import type {PostPreviewFieldMetadata} from 'components/properties_card_view/properties_card_view';
@@ -21,7 +20,7 @@ type Props = {
 
 export default function PostPreviewPropertyRenderer({metadata}: Props) {
     const post = metadata?.post;
-    const channel = usePropertyCardViewChannelLoader(post?.channel_id, metadata?.getChannel);
+    const channel = metadata?.channel;
     const team = usePropertyCardViewTeamLoader(channel?.team_id, metadata?.getTeam);
 
     const {formatMessage} = useIntl();

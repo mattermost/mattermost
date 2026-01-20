@@ -85,9 +85,23 @@ function flaggedPosts(state: ContentFlaggingState['flaggedPosts'] = {}, action: 
     }
 }
 
+function channels(state: ContentFlaggingState['channels'] = {}, action: MMReduxAction) {
+    switch (action.type) {
+    case ContentFlaggingTypes.RECEIVED_CONTENT_FLAGGING_CHANNEL: {
+        return {
+            ...state,
+            [action.data.id]: action.data,
+        };
+    }
+    default:
+        return state;
+    }
+}
+
 export default combineReducers({
     settings,
     fields,
     postValues,
     flaggedPosts,
+    channels,
 });
