@@ -12,6 +12,8 @@ The plugin creates both bots on activation and routes DM messages
 to the appropriate handler based on which bot is in the conversation.
 """
 
+import asyncio
+
 from mattermost_plugin import Plugin, hook, HookName
 from mattermost_plugin._internal.wrappers import Bot, Post, ChannelType
 from mattermost_plugin.exceptions import NotFoundError
@@ -19,6 +21,8 @@ from mattermost_plugin.exceptions import NotFoundError
 from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
+from langchain_mcp_adapters.client import MultiServerMCPClient
+from langgraph.prebuilt import create_react_agent
 
 # Bot usernames (plugin-scoped)
 OPENAI_BOT_USERNAME = "langchain-openai-agent"
@@ -43,6 +47,7 @@ class LangChainAgentPlugin(Plugin):
         self.anthropic_bot_id: str | None = None
         self.openai_model: ChatOpenAI | None = None
         self.anthropic_model: ChatAnthropic | None = None
+        self.mcp_client: MultiServerMCPClient | None = None
 
     @hook(HookName.OnActivate)
     def on_activate(self) -> None:
