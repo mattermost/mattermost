@@ -7,7 +7,7 @@ PROTO_GO_PKG := github.com/mattermost/mattermost/server/public/pluginapi/grpc/ge
 PROTOC_GEN_GO_VERSION := v1.36.6
 PROTOC_GEN_GO_GRPC_VERSION := v1.5.1
 
-.PHONY: proto-tools proto-gen test-public mocks-public
+.PHONY: proto-tools proto-gen python-proto-gen proto-gen-all test-public mocks-public
 
 ## Installs protoc-gen-go and protoc-gen-go-grpc at pinned versions
 proto-tools:
@@ -69,6 +69,16 @@ proto-gen: proto-tools
 		$(PROTO_SRC_DIR)/*.proto
 	@mv $(PROTO_OUT_DIR)/*.pb.go $(PROTO_OUT_DIR)/pluginapiv1/ 2>/dev/null || true
 	@echo Proto generation complete.
+
+## Generates Python gRPC code from .proto files (requires Python 3.9+ and grpcio-tools)
+python-proto-gen:
+	@echo "Generating Python code from proto files..."
+	@cd ../python-sdk && python scripts/generate_protos.py
+	@echo "Python proto generation complete."
+
+## Generates both Go and Python code from .proto files
+proto-gen-all: proto-gen python-proto-gen
+	@echo "All proto generation complete (Go + Python)."
 
 test-public: gotestsum
 	$(GOBIN)/gotestsum ./public/... -- $(GOFLAGS)
