@@ -266,6 +266,7 @@ describe('stripMarkdown', () => {
             inputText: '&amp;lt;',
             outputText: '&lt;',
         },
+
         // Numeric entity decoding tests (decimal format &#DD;)
         {
             description: 'numeric entity: &#60; (less than)',
