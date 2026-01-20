@@ -18,7 +18,7 @@ from mattermost_plugin.exceptions import NotFoundError
 
 from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 
 # Bot usernames (plugin-scoped)
 OPENAI_BOT_USERNAME = "langchain-openai-agent"
@@ -237,6 +237,50 @@ class LangChainAgentPlugin(Plugin):
         except Exception as e:
             self.logger.error(f"Anthropic API error: {e}")
             self._send_error_response(post.channel_id, f"Anthropic error: {e}")
+
+    def _build_conversation_history(
+        self, post: Post, bot_id: str, system_prompt: str
+    ) -> list:
+        """
+        Build LangChain message history from Mattermost thread.
+
+        Args:
+            post: The current post being processed.
+            bot_id: The bot's user ID (to distinguish bot messages).
+            system_prompt: The system prompt to prepend.
+
+        Returns:
+            List of LangChain messages (SystemMessage, HumanMessage, AIMessage).
+        """
+        messages = [SystemMessage(content=system_prompt)]
+
+        # Determine if this is part of an existing thread
+        if post.root_id:
+            # Message is in existing thread - fetch full thread
+            try:
+                thread = self.api.get_post_thread(post.root_id)
+                # Sort posts by order (chronological)
+                for post_id in thread.order:
+                    thread_post = thread.posts.get(post_id)
+                    if thread_post is None:
+                        continue
+                    # Skip posts with empty messages
+                    if not thread_post.message:
+                        continue
+                    # Convert to appropriate LangChain message type
+                    if thread_post.user_id == bot_id:
+                        messages.append(AIMessage(content=thread_post.message))
+                    else:
+                        messages.append(HumanMessage(content=thread_post.message))
+            except Exception as e:
+                self.logger.warning(f"Failed to fetch thread history: {e}")
+                # Fall back to just the current message
+                messages.append(HumanMessage(content=post.message))
+        else:
+            # New conversation - just use current message
+            messages.append(HumanMessage(content=post.message))
+
+        return messages
 
     def _send_response(self, channel_id: str, message: str, root_id: str = "") -> None:
         """Send a response message to the channel, optionally as a thread reply."""
