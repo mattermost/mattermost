@@ -64,7 +64,12 @@ func findPythonInterpreter(pluginDir string) (string, error) {
 	// Check venv paths first
 	for _, path := range venvPaths {
 		if _, err := os.Stat(path); err == nil {
-			return path, nil
+			// Convert to absolute path for exec to find it
+			absPath, err := filepath.Abs(path)
+			if err != nil {
+				return path, nil // Fall back to relative if Abs fails
+			}
+			return absPath, nil
 		}
 	}
 
