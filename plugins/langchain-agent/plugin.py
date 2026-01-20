@@ -187,26 +187,29 @@ class LangChainAgentPlugin(Plugin):
         """
         self.logger.info(f"OpenAI Agent processing message: {post.message[:50]}...")
 
+        # Determine root_id for threading
+        root_id = post.root_id if post.root_id else post.id
+
         if self.openai_model is None:
             self._send_error_response(
-                post.channel_id, "OpenAI not configured. Check OPENAI_API_KEY."
+                post.channel_id, "OpenAI not configured. Check OPENAI_API_KEY.", root_id
             )
             return
 
-        messages = [
-            SystemMessage(
-                content="You are a helpful AI assistant powered by OpenAI. Be concise and helpful."
-            ),
-            HumanMessage(content=post.message),
-        ]
+        # Build conversation history from thread
+        messages = self._build_conversation_history(
+            post,
+            self.openai_bot_id,
+            "You are a helpful AI assistant powered by OpenAI. Be concise and helpful.",
+        )
 
         try:
             response = self.openai_model.invoke(messages)
-            self._send_response(post.channel_id, response.content)
+            self._send_response(post.channel_id, response.content, root_id)
             self.logger.debug("OpenAI Agent sent response")
         except Exception as e:
             self.logger.error(f"OpenAI API error: {e}")
-            self._send_error_response(post.channel_id, f"OpenAI error: {e}")
+            self._send_error_response(post.channel_id, f"OpenAI error: {e}", root_id)
 
     def _handle_anthropic_message(self, post: Post) -> None:
         """
@@ -217,29 +220,34 @@ class LangChainAgentPlugin(Plugin):
         """
         self.logger.info(f"Anthropic Agent processing message: {post.message[:50]}...")
 
+        # Determine root_id for threading
+        root_id = post.root_id if post.root_id else post.id
+
         if self.anthropic_model is None:
             self._send_error_response(
-                post.channel_id, "Anthropic not configured. Check ANTHROPIC_API_KEY."
+                post.channel_id,
+                "Anthropic not configured. Check ANTHROPIC_API_KEY.",
+                root_id,
             )
             return
 
-        messages = [
-            SystemMessage(
-                content="You are a helpful AI assistant powered by Anthropic Claude. Be concise and helpful."
-            ),
-            HumanMessage(content=post.message),
-        ]
+        # Build conversation history from thread
+        messages = self._build_conversation_history(
+            post,
+            self.anthropic_bot_id,
+            "You are a helpful AI assistant powered by Anthropic Claude. Be concise and helpful.",
+        )
 
         try:
             response = self.anthropic_model.invoke(messages)
-            self._send_response(post.channel_id, response.content)
+            self._send_response(post.channel_id, response.content, root_id)
             self.logger.debug("Anthropic Agent sent response")
         except Exception as e:
             self.logger.error(f"Anthropic API error: {e}")
-            self._send_error_response(post.channel_id, f"Anthropic error: {e}")
+            self._send_error_response(post.channel_id, f"Anthropic error: {e}", root_id)
 
     def _build_conversation_history(
-        self, post: Post, bot_id: str, system_prompt: str
+        self, post: Post, bot_id: str | None, system_prompt: str
     ) -> list:
         """
         Build LangChain message history from Mattermost thread.
