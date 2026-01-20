@@ -345,17 +345,15 @@ func (ss *SqlStore) DriverName() string {
 }
 
 // specialSearchChars have special meaning and can be treated as spaces
-func (ss *SqlStore) specialSearchChars() []string {
-	return []string{
-		"<",
-		">",
-		"+",
-		"-",
-		"(",
-		")",
-		"~",
-		":",
-	}
+var specialSearchChars = []string{
+	"<",
+	">",
+	"+",
+	"-",
+	"(",
+	")",
+	"~",
+	":",
 }
 
 // computeBinaryParam returns whether the data source uses binary_parameters

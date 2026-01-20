@@ -2080,7 +2080,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		}
 	}
 
-	for _, c := range s.specialSearchChars() {
+	for _, c := range specialSearchChars {
 		if !params.IsHashtag {
 			terms = strings.Replace(terms, c, " ", -1)
 		}
