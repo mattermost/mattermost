@@ -247,32 +247,30 @@ func removeEmbeddedPostsFromMetadata(post *model.Post) {
 	post.Metadata.Embeds = newEmbeds
 }
 
-func (a *App) sanitizePostMetadataForUserAndChannel(rctx request.CTX, post *model.Post, previewedPost *model.PreviewPost, previewedChannel *model.Channel, userID string) *model.Post {
-	if post.Metadata == nil || len(post.Metadata.Embeds) == 0 || previewedPost == nil {
-		return post
-	}
-
-	if previewedChannel != nil && !a.HasPermissionToReadChannel(rctx, userID, previewedChannel) {
-		removePermalinkMetadataFromPost(post)
-	}
-
-	return post
-}
-
 // SanitizePostMetadataForUser sanitizes both permalink embeds and channel mentions based on the viewer's permissions.
 // This prevents information disclosure about channels/teams the viewer doesn't have access to.
-func (a *App) SanitizePostMetadataForUser(rctx request.CTX, post *model.Post, userID string) (*model.Post, *model.AppError) {
+// Returns (sanitizedPost, isMemberForPreviews, error) where isMemberForPreviews indicates if the user
+// is a member of the channel containing the previewed post (used for audit logging).
+func (a *App) SanitizePostMetadataForUser(rctx request.CTX, post *model.Post, userID string) (*model.Post, bool, *model.AppError) {
+	isMemberForPreviews := true
+
 	// Sanitize permalink embeds based on permissions (only if present)
 	if post.Metadata != nil && len(post.Metadata.Embeds) > 0 {
 		previewPost := post.GetPreviewPost()
 		if previewPost != nil {
 			previewedChannel, err := a.GetChannel(rctx, previewPost.Post.ChannelId)
 			if err != nil {
-				return nil, err
+				return nil, false, err
 			}
 
-			if previewedChannel != nil && !a.HasPermissionToReadChannel(rctx, userID, previewedChannel) {
-				removePermalinkMetadataFromPost(post)
+			if previewedChannel != nil {
+				var hasPermission bool
+				hasPermission, isMemberForPreviews = a.HasPermissionToReadChannel(rctx, userID, previewedChannel)
+				if !hasPermission {
+					removePermalinkMetadataFromPost(post)
+					// Since we remove the permalink metadata, we return true for isMember
+					isMemberForPreviews = true
+				}
 			}
 		}
 	}
@@ -281,7 +279,7 @@ func (a *App) SanitizePostMetadataForUser(rctx request.CTX, post *model.Post, us
 	// sanitizeChannelMentionsForUser returns immediately if no channel mentions exist
 	post = a.sanitizeChannelMentionsForUser(rctx, post, userID)
 
-	return post, nil
+	return post, isMemberForPreviews, nil
 }
 
 // sanitizeChannelMentionsForUser filters channel mentions in post props based on the viewer's
@@ -323,7 +321,9 @@ func (a *App) sanitizeChannelMentionsForUser(rctx request.CTX, post *model.Post,
 		}
 
 		// Check if user has permission to read this channel
-		if a.HasPermissionToReadChannel(rctx, userID, channel) {
+		// HasPermissionToReadChannel returns (hasPermission, isMember)
+		hasPermission, _ := a.HasPermissionToReadChannel(rctx, userID, channel)
+		if hasPermission {
 			// User has permission - include in sanitized props with fresh display_name
 			// Reuse team_name from original props to avoid additional DB query
 			// (team renames are extremely rare and don't warrant the performance cost)
@@ -345,16 +345,18 @@ func (a *App) sanitizeChannelMentionsForUser(rctx request.CTX, post *model.Post,
 	return post
 }
 
-func (a *App) SanitizePostListMetadataForUser(rctx request.CTX, postList *model.PostList, userID string) (*model.PostList, *model.AppError) {
+func (a *App) SanitizePostListMetadataForUser(rctx request.CTX, postList *model.PostList, userID string) (*model.PostList, bool, *model.AppError) {
 	clonedPostList := postList.Clone()
+	allPreviewsHaveMembership := true
 	for postID, post := range clonedPostList.Posts {
-		sanitizedPost, err := a.SanitizePostMetadataForUser(rctx, post, userID)
+		sanitizedPost, isMember, err := a.SanitizePostMetadataForUser(rctx, post, userID)
 		if err != nil {
-			return nil, err
+			return nil, false, err
 		}
 		clonedPostList.Posts[postID] = sanitizedPost
+		allPreviewsHaveMembership = allPreviewsHaveMembership && isMember
 	}
-	return clonedPostList, nil
+	return clonedPostList, allPreviewsHaveMembership, nil
 }
 
 func (a *App) getFileMetadataForPost(rctx request.CTX, post *model.Post, fromMaster, includeDeleted bool) ([]*model.FileInfo, int64, *model.AppError) {
