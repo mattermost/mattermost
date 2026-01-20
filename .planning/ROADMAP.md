@@ -11,7 +11,7 @@ None
 ## Milestones
 
 - ✅ **[v1.0 Python Plugin Support](milestones/v1.0-ROADMAP.md)** — Phases 1-13 (shipped 2026-01-20)
-- 🚧 **v1.1 LangChain Agent Demo** — Phases 14-18 (in progress)
+- ✅ **v1.1 LangChain Agent Demo** — Phases 14-18 (shipped 2026-01-20)
 
 ## Completed Milestones
 
@@ -41,9 +41,10 @@ None
 
 </details>
 
-### 🚧 v1.1 LangChain Agent Demo (In Progress)
+### ✅ v1.1 LangChain Agent Demo (Complete)
 
 **Milestone Goal:** Demonstrate Python ecosystem advantages by building an AI agent plugin with LangChain, showcasing capabilities to internal engineers
+**Shipped:** 2026-01-20
 
 #### Phase 14: Bot Infrastructure ✓
 
@@ -87,15 +88,16 @@ Plans:
 Plans:
 - [x] 17-01: MCP client initialization and async agent handlers
 
-#### Phase 18: Agentic Loop
+#### Phase 18: Agentic Loop ✓
 
 **Goal**: Tool calling orchestration, reasoning, multi-step execution with LangChain agents
 **Depends on**: Phase 17
 **Research**: Complete (18-RESEARCH.md)
 **Plans**: 1 plan
+**Completed**: 2026-01-20
 
 Plans:
-- [ ] 18-01-PLAN.md — Middleware-based agent with extended thinking and error handling
+- [x] 18-01: Recursion limit, extended thinking, tenacity retry
 
 ## Progress
 
@@ -118,4 +120,4 @@ Plans:
 | 15. LangChain Core | v1.1 | 1/1 | Complete | 2026-01-20 |
 | 16. Session Memory | v1.1 | 1/1 | Complete | 2026-01-20 |
 | 17. MCP Client | v1.1 | 1/1 | Complete | 2026-01-20 |
-| 18. Agentic Loop | v1.1 | 0/1 | Planned | - |
+| 18. Agentic Loop | v1.1 | 1/1 | Complete | 2026-01-20 |

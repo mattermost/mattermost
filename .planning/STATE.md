@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-20)
 
 ## Current Position
 
-Phase: 17 of 18 (MCP Client)
+Phase: 18 of 18 (Agentic Loop)
 Plan: 1 of 1 complete
-Status: Phase 17 complete
-Last activity: 2026-01-20 — Completed 17-01-PLAN.md (MCP Client Integration)
+Status: Phase 18 complete, v1.1 milestone complete
+Last activity: 2026-01-20 — Completed 18-01-PLAN.md (Agentic Loop Enhancements)
 
-Progress: ████████░░ 80% (4/5 phases complete)
+Progress: ██████████ 100% (5/5 phases complete)
 
 ## Performance Metrics
 
@@ -25,11 +25,12 @@ Progress: ████████░░ 80% (4/5 phases complete)
 - Timeline: 5 days (2026-01-16 → 2026-01-20)
 
 **v1.1 Velocity:**
-- Plans completed: 4
+- Plans completed: 5
 - Phase 14-01: 2 min
 - Phase 15-01: 2 min
 - Phase 16-01: 2 min
 - Phase 17-01: 2 min
+- Phase 18-01: 2 min
 
 ## Accumulated Context
 
@@ -48,6 +49,9 @@ All decisions logged in PROJECT.md Key Decisions table.
 | Empty MCP config by default | 17-01 | Servers configured via plugin settings in future |
 | asyncio.run() for async handlers | 17-01 | Sync hooks call asyncio.run(async_method()) for MCP operations |
 | Graceful fallback without MCP | 17-01 | Falls back to basic model.invoke() when tools unavailable |
+| recursion_limit=10 via config dict | 18-01 | LangGraph standard; prevents infinite ReAct loops |
+| budget_tokens=2000 for extended thinking | 18-01 | Caps thinking tokens while allowing complex reasoning |
+| Tenacity retry for transient errors only | 18-01 | ConnectionError/TimeoutError benefit from retry; others fail fast |
 
 ### Deferred Issues
 
@@ -62,8 +66,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-20 18:44 UTC
-Stopped at: Completed 17-01-PLAN.md
+Last session: 2026-01-20 19:05 UTC
+Stopped at: Completed 18-01-PLAN.md
 Resume file: None
 
 ## Roadmap Evolution
@@ -78,10 +82,21 @@ Resume file: None
 - Milestone v1.1 created: LangChain Agent Demo, 5 phases (Phase 14-18) (2026-01-20)
   - Focus: Demonstrate Python ecosystem advantages with LangChain AI agent plugin
 
+- Milestone v1.1 completed: 2026-01-20
+  - All 5 phases complete (14-18)
+  - LangChain agent with dual bots, conversation history, MCP tools, and agentic loop
+
 ## Next Steps
 
-**Phase 18: Agentic Loop** — Add custom loop logic and tool selection strategies
+**v1.1 Milestone Complete**
+
+The LangChain Agent Demo is fully implemented with:
+- Dual AI bots (OpenAI + Anthropic)
+- LangChain integration with conversation history
+- MCP client for external tool access
+- Agentic loop with recursion limit, extended thinking, and retry logic
 
 Options:
-- `/gsd:plan-phase 18` — Create detailed execution plan
-- `/gsd:execute-phase 18` — Execute existing plan (if one exists)
+- Test the plugin end-to-end with a running Mattermost server
+- Create documentation for plugin users
+- Plan v1.2 milestone with additional features
