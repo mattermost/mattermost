@@ -56,11 +56,19 @@ const Recaps = () => {
     };
 
     const handleEditScheduledRecap = (id: string) => {
-        // TODO: Phase 5 will implement edit modal with pre-filled values
-        // For now, just open the create modal (edit functionality comes in Phase 5)
+        // Find the scheduled recap to edit
+        const scheduledRecapToEdit = scheduledRecaps.find((sr) => sr.id === id);
+
+        if (!scheduledRecapToEdit) {
+            return;
+        }
+
         dispatch(openModal({
             modalId: ModalIdentifiers.CREATE_RECAP_MODAL,
             dialogType: CreateRecapModal,
+            dialogProps: {
+                editScheduledRecap: scheduledRecapToEdit,
+            },
         }));
     };
 
