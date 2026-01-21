@@ -444,9 +444,6 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                         options={optionsToDisplay}
                         optionRenderer={this.props.optionRenderer}
                         ariaLabelRenderer={this.props.ariaLabelRenderer}
-                        page={this.state.page}
-                        perPage={this.props.perPage}
-                        onPageChange={this.props.handlePageChange}
                         onAdd={this.onAdd}
                         onSelect={this.onSelect}
                         loading={this.props.loading}
@@ -463,9 +460,6 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                     options={optionsToDisplay}
                     optionRenderer={this.props.optionRenderer}
                     ariaLabelRenderer={this.props.ariaLabelRenderer}
-                    page={this.state.page}
-                    perPage={this.props.perPage}
-                    onPageChange={this.props.handlePageChange}
                     onAdd={this.onAdd}
                     onSelect={this.onSelect}
                     loading={this.props.loading}
