@@ -12,7 +12,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **SCHED-01**: User can select specific days of week for scheduled recap (M/T/W/Th/F/Sa/Su)
 - [ ] **SCHED-02**: User can set time of day for scheduled recap delivery
 - [ ] **SCHED-03**: User can select time period to cover (previous day, last 3 days, last 7 days)
-- [ ] **SCHED-04**: Scheduled recaps run at the correct time in user's timezone
+- [x] **SCHED-04**: Scheduled recaps run at the correct time in user's timezone
 - [ ] **SCHED-05**: User can create immediate "run once" recap (preserves existing behavior)
 - [ ] **SCHED-06**: User can add custom instructions for the AI agent
 - [ ] **SCHED-07**: User can see when scheduled recap will next run
@@ -32,8 +32,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **INFRA-01**: Database schema stores scheduled recap configuration
 - [x] **INFRA-02**: Database schema stores schedule state (NextRunAt, LastRunAt, RunCount)
-- [ ] **INFRA-03**: Job server polls for and executes due scheduled recaps
-- [ ] **INFRA-04**: Job execution is cluster-aware (no duplicate runs)
+- [x] **INFRA-03**: Job server polls for and executes due scheduled recaps
+- [x] **INFRA-04**: Job execution is cluster-aware (no duplicate runs)
 - [x] **INFRA-05**: API endpoint to create scheduled recap
 - [x] **INFRA-06**: API endpoint to update scheduled recap
 - [x] **INFRA-07**: API endpoint to delete scheduled recap
@@ -105,9 +105,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INFRA-07 | Phase 2 | Complete |
 | INFRA-08 | Phase 2 | Complete |
 | INFRA-09 | Phase 2 | Complete |
-| INFRA-03 | Phase 3 | Pending |
-| INFRA-04 | Phase 3 | Pending |
-| SCHED-04 | Phase 3 | Pending |
+| INFRA-03 | Phase 3 | Complete |
+| INFRA-04 | Phase 3 | Complete |
+| SCHED-04 | Phase 3 | Complete |
 | TAB-01 | Phase 4 | Pending |
 | TAB-02 | Phase 4 | Pending |
 | TAB-03 | Phase 4 | Pending |
@@ -144,4 +144,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-01-21*
-*Last updated: 2026-01-21 (Phase 2 requirements complete)*
+*Last updated: 2026-01-21 (Phase 3 requirements complete)*

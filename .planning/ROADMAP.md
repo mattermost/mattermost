@@ -78,10 +78,10 @@ Plans:
 3. LastRunAt and RunCount update after each execution
 4. NextRunAt advances to the next scheduled occurrence after execution
 
-**Plans:** 2 plans
+**Plans:** 2 plans ✓
 Plans:
-- [ ] 03-01-PLAN.md — Job type constant, scheduler, and worker (ScheduledRecap job infrastructure)
-- [ ] 03-02-PLAN.md — Job registration and App method (CreateRecapFromSchedule, initJobs wiring)
+- [x] 03-01-PLAN.md — Job type constant, scheduler, and worker (ScheduledRecap job infrastructure)
+- [x] 03-02-PLAN.md — Job registration and App method (CreateRecapFromSchedule, initJobs wiring)
 
 ---
 
@@ -160,11 +160,11 @@ Plans:
 |-------|--------|--------------|-----------|
 | 1 - Database Foundation | ✓ Complete | 3 | 3 |
 | 2 - API Layer | ✓ Complete | 5 | 5 |
-| 3 - Scheduler Integration | Planned | 3 | 0 |
+| 3 - Scheduler Integration | ✓ Complete | 3 | 3 |
 | 4 - Scheduled Tab | Planned | 15 | 0 |
 | 5 - Enhanced Wizard | Pending | 13 | 0 |
-| **Total** | | **39** | **3** |
+| **Total** | | **39** | **11** |
 
 ---
 *Roadmap created: 2026-01-21*
-*Last updated: 2026-01-21 (Phase 4 planned)*
+*Last updated: 2026-01-21 (Phase 3 complete)*
