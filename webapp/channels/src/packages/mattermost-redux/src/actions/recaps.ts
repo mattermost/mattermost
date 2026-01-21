@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Recap, ScheduledRecap} from '@mattermost/types/recaps';
+import type {Recap, ScheduledRecap, ScheduledRecapInput} from '@mattermost/types/recaps';
 
 import {RecapTypes} from 'mattermost-redux/action_types';
 import {logError} from 'mattermost-redux/actions/errors';
@@ -161,5 +161,26 @@ export function deleteScheduledRecap(id: string): ActionFuncAsync {
         dispatch({type: RecapTypes.DELETE_SCHEDULED_RECAP_SUCCESS, data: {id}});
 
         return {data: true};
+    };
+}
+
+export function createScheduledRecap(input: ScheduledRecapInput): ActionFuncAsync<ScheduledRecap> {
+    return async (dispatch, getState) => {
+        dispatch({type: RecapTypes.CREATE_SCHEDULED_RECAP_REQUEST});
+
+        let data: ScheduledRecap;
+        try {
+            data = await Client4.createScheduledRecap(input);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch({type: RecapTypes.CREATE_SCHEDULED_RECAP_FAILURE, error});
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch({type: RecapTypes.RECEIVED_SCHEDULED_RECAP, data});
+        dispatch({type: RecapTypes.CREATE_SCHEDULED_RECAP_SUCCESS});
+
+        return {data};
     };
 }
