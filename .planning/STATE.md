@@ -9,9 +9,9 @@
 ## Current Position
 
 **Phase:** 5 of 5 - Enhanced Wizard
-**Plan:** 2 of 6 in current phase
+**Plan:** 4 of 6 in current phase
 **Status:** In progress
-**Last activity:** 2026-01-21 - Completed 05-02-PLAN.md
+**Last activity:** 2026-01-21 - Completed 05-04-PLAN.md
 
 **Progress:**
 ```
@@ -19,8 +19,8 @@ Phase 1: [██████████] 100% (2/2 plans) ✓
 Phase 2: [██████████] 100% (2/2 plans) ✓
 Phase 3: [██████████] 100% (2/2 plans) ✓
 Phase 4: [██████████] 100% (4/4 plans) ✓
-Phase 5: [███░░░░░░░] 33% (2/6 plans)
-Overall:  [███████░░░] ~74% (28/39 requirements)
+Phase 5: [██████░░░░] 67% (4/6 plans)
+Overall:  [████████░░] ~79% (31/39 requirements)
 ```
 
 ## Phase Overview
@@ -31,7 +31,7 @@ Overall:  [███████░░░] ~74% (28/39 requirements)
 | 2 | API Layer | 5 | ✓ Complete |
 | 3 | Scheduler Integration | 3 | ✓ Complete |
 | 4 | Scheduled Tab | 15 | ✓ Complete (awaiting verification) |
-| 5 | Enhanced Wizard | 13 | 🔄 In Progress (2/6 plans) |
+| 5 | Enhanced Wizard | 13 | 🔄 In Progress (4/6 plans) |
 
 ## Performance Metrics
 
@@ -78,6 +78,8 @@ Overall:  [███████░░░] ~74% (28/39 requirements)
 | Bitmask constants match server in DayOfWeekSelector | Sunday=1, Monday=2, etc. for direct API use | 05-02 |
 | Monday-first display order in day selector | More intuitive for work schedule UX | 05-02 |
 | XOR toggle for day selection | Clean bitmask state management | 05-02 |
+| Toggle placed at bottom of Step 1 with separator | Visual grouping for secondary options | 05-04 |
+| Toggle hidden in edit mode via isEditMode prop | Scheduled recaps cannot become run-once | 05-04 |
 
 ### TODOs
 
@@ -92,14 +94,14 @@ Overall:  [███████░░░] ~74% (28/39 requirements)
 ### Last Session
 
 **Date:** 2026-01-21
-**Completed:** 05-02-PLAN.md (DayOfWeekSelector component)
-**Stopped at:** Phase 5 plan 2 complete
+**Completed:** 05-04-PLAN.md (Run Once Toggle)
+**Stopped at:** Phase 5 plan 4 complete
 
 ### Resume Point
 
 **Command:** `/gsd-execute-phase 5`
-**Context:** Phase 5 in progress. Next: 05-03-PLAN.md (Step 3 - Schedule Configuration).
+**Context:** Phase 5 in progress. Next: 05-05-PLAN.md (Step 3 - Schedule Configuration).
 
 ---
 *State initialized: 2026-01-21*
-*Last updated: 2026-01-21 (Completed 05-02-PLAN.md)*
+*Last updated: 2026-01-21 (Completed 05-04-PLAN.md)*
