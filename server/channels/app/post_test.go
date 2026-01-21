@@ -4448,7 +4448,7 @@ func TestPermanentDeletePost(t *testing.T) {
 		}
 		post.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(model.DefaultExpirySeconds*1000))
 
-		post, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		post, _, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 		require.Equal(t, model.PostTypeBurnOnRead, post.Type)
 
