@@ -1,0 +1,148 @@
+# Roadmap: Scheduled AI Recaps
+
+**Created:** 2026-01-21
+**Phases:** 5
+**Depth:** Standard
+**Requirements:** 39 v1
+
+## Overview
+
+This roadmap delivers scheduled AI recaps through five phases: database foundation, API layer, scheduler integration, scheduled tab UI, and enhanced wizard. The build order prioritizes getting the schema right (Phase 1), enabling backend testing (Phase 2), automating execution (Phase 3), then building frontend progressively from read (Phase 4) to write (Phase 5).
+
+---
+
+## Phase 1: Database Foundation
+
+**Goal:** Establish the data model that correctly stores user schedule intent, execution state, and timezone information.
+
+**Dependencies:** None (foundation)
+
+**Requirements:**
+- **INFRA-01**: Database schema stores scheduled recap configuration
+- **INFRA-02**: Database schema stores schedule state (NextRunAt, LastRunAt, RunCount)
+- **INFRA-10**: NextRunAt is computed correctly with timezone/DST handling
+
+**Success Criteria:**
+1. Developer can create a scheduled recap record with day-of-week, time, timezone, and time period
+2. Developer can query for all scheduled recaps due before a given timestamp
+3. NextRunAt calculation handles DST transitions correctly (tested with March/November dates)
+4. Store layer has full test coverage for CRUD operations
+
+---
+
+## Phase 2: API Layer
+
+**Goal:** Expose scheduled recap operations via RESTful endpoints with proper authorization and validation.
+
+**Dependencies:** Phase 1 (Database Foundation)
+
+**Requirements:**
+- **INFRA-05**: API endpoint to create scheduled recap
+- **INFRA-06**: API endpoint to update scheduled recap
+- **INFRA-07**: API endpoint to delete scheduled recap
+- **INFRA-08**: API endpoint to pause/resume scheduled recap
+- **INFRA-09**: API endpoint to list scheduled recaps
+
+**Success Criteria:**
+1. Developer can create, read, update, delete scheduled recaps via API
+2. API returns 403 when user attempts to access another user's scheduled recaps
+3. API validates schedule inputs (valid days, valid time, valid timezone)
+4. Pause/resume endpoint toggles enabled state and recalculates NextRunAt on resume
+
+---
+
+## Phase 3: Scheduler Integration
+
+**Goal:** Scheduled recaps execute automatically at the correct time with cluster-safe coordination.
+
+**Dependencies:** Phase 2 (API Layer)
+
+**Requirements:**
+- **INFRA-03**: Job server polls for and executes due scheduled recaps
+- **INFRA-04**: Job execution is cluster-aware (no duplicate runs)
+- **SCHED-04**: Scheduled recaps run at the correct time in user's timezone
+
+**Success Criteria:**
+1. Scheduled recaps appear in user's recap list at the scheduled time (±2 minutes)
+2. Only one instance executes per scheduled recap in HA cluster deployment
+3. LastRunAt and RunCount update after each execution
+4. NextRunAt advances to the next scheduled occurrence after execution
+
+---
+
+## Phase 4: Frontend - Scheduled Tab
+
+**Goal:** Users can view and manage their scheduled recaps through a dedicated tab.
+
+**Dependencies:** Phase 2 (API Layer)
+
+**Requirements:**
+- **TAB-01**: "Scheduled" tab appears alongside "Unread" and "Read" tabs
+- **TAB-02**: Scheduled tab displays list of user's scheduled recaps
+- **TAB-03**: Each scheduled recap shows name, schedule, status, last run, run count
+- **TAB-04**: Each scheduled recap has edit action
+- **TAB-05**: Each scheduled recap has pause/resume toggle
+- **TAB-06**: Each scheduled recap has delete action
+- **TAB-07**: Edit action opens pre-filled wizard modal
+- **MGMT-01**: User can view list of scheduled recaps in "Scheduled" tab
+- **MGMT-02**: User can edit an existing scheduled recap
+- **MGMT-03**: User can delete a scheduled recap
+- **MGMT-04**: User can pause a scheduled recap
+- **MGMT-05**: User can resume a paused scheduled recap
+- **MGMT-06**: User can see status indicator (active/paused) for each scheduled recap
+- **MGMT-07**: User can see when scheduled recap last ran
+- **MGMT-08**: User can see total run count for scheduled recap
+
+**Success Criteria:**
+1. User sees "Scheduled" tab in recaps view with count badge showing number of active schedules
+2. User can pause a scheduled recap and see status change to "Paused"
+3. User can delete a scheduled recap and see it removed from the list
+4. User can click edit to open the wizard pre-filled with existing schedule configuration
+5. Scheduled recap list shows next run time, last run time, and total run count
+
+---
+
+## Phase 5: Frontend - Enhanced Wizard
+
+**Goal:** Users can create and edit scheduled recaps through a multi-step wizard with schedule configuration.
+
+**Dependencies:** Phase 4 (Scheduled Tab)
+
+**Requirements:**
+- **WIZD-01**: Step 1 shows recap name input and type selection
+- **WIZD-02**: Step 2 shows channel selector (for "selected channels" type)
+- **WIZD-03**: Step 2 shows unread channel list (for "all unreads" type)
+- **WIZD-04**: Step 3 shows schedule configuration (day, time, period)
+- **WIZD-05**: Step 3 shows "run once" checkbox option
+- **WIZD-06**: Step 3 shows custom instructions textarea
+- **WIZD-07**: Wizard submits and creates scheduled recap via API
+- **SCHED-01**: User can select specific days of week for scheduled recap (M/T/W/Th/F/Sa/Su)
+- **SCHED-02**: User can set time of day for scheduled recap delivery
+- **SCHED-03**: User can select time period to cover (previous day, last 3 days, last 7 days)
+- **SCHED-05**: User can create immediate "run once" recap (preserves existing behavior)
+- **SCHED-06**: User can add custom instructions for the AI agent
+- **SCHED-07**: User can see when scheduled recap will next run
+
+**Success Criteria:**
+1. User can complete wizard and see new scheduled recap appear in Scheduled tab
+2. User can check "run once" and recap executes immediately without creating a schedule
+3. User can select multiple days (e.g., Mon, Wed, Fri) and see next run calculated correctly
+4. User can enter custom instructions and see them saved with the scheduled recap
+5. Wizard displays next run preview before user confirms creation
+
+---
+
+## Progress
+
+| Phase | Status | Requirements | Completed |
+|-------|--------|--------------|-----------|
+| 1 - Database Foundation | Pending | 3 | 0 |
+| 2 - API Layer | Pending | 5 | 0 |
+| 3 - Scheduler Integration | Pending | 3 | 0 |
+| 4 - Scheduled Tab | Pending | 15 | 0 |
+| 5 - Enhanced Wizard | Pending | 13 | 0 |
+| **Total** | | **39** | **0** |
+
+---
+*Roadmap created: 2026-01-21*
+*Last updated: 2026-01-21*

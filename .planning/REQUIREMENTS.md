@@ -97,50 +97,50 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SCHED-01 | — | Pending |
-| SCHED-02 | — | Pending |
-| SCHED-03 | — | Pending |
-| SCHED-04 | — | Pending |
-| SCHED-05 | — | Pending |
-| SCHED-06 | — | Pending |
-| SCHED-07 | — | Pending |
-| MGMT-01 | — | Pending |
-| MGMT-02 | — | Pending |
-| MGMT-03 | — | Pending |
-| MGMT-04 | — | Pending |
-| MGMT-05 | — | Pending |
-| MGMT-06 | — | Pending |
-| MGMT-07 | — | Pending |
-| MGMT-08 | — | Pending |
-| INFRA-01 | — | Pending |
-| INFRA-02 | — | Pending |
-| INFRA-03 | — | Pending |
-| INFRA-04 | — | Pending |
-| INFRA-05 | — | Pending |
-| INFRA-06 | — | Pending |
-| INFRA-07 | — | Pending |
-| INFRA-08 | — | Pending |
-| INFRA-09 | — | Pending |
-| INFRA-10 | — | Pending |
-| WIZD-01 | — | Pending |
-| WIZD-02 | — | Pending |
-| WIZD-03 | — | Pending |
-| WIZD-04 | — | Pending |
-| WIZD-05 | — | Pending |
-| WIZD-06 | — | Pending |
-| WIZD-07 | — | Pending |
-| TAB-01 | — | Pending |
-| TAB-02 | — | Pending |
-| TAB-03 | — | Pending |
-| TAB-04 | — | Pending |
-| TAB-05 | — | Pending |
-| TAB-06 | — | Pending |
-| TAB-07 | — | Pending |
+| INFRA-01 | Phase 1 | Pending |
+| INFRA-02 | Phase 1 | Pending |
+| INFRA-10 | Phase 1 | Pending |
+| INFRA-05 | Phase 2 | Pending |
+| INFRA-06 | Phase 2 | Pending |
+| INFRA-07 | Phase 2 | Pending |
+| INFRA-08 | Phase 2 | Pending |
+| INFRA-09 | Phase 2 | Pending |
+| INFRA-03 | Phase 3 | Pending |
+| INFRA-04 | Phase 3 | Pending |
+| SCHED-04 | Phase 3 | Pending |
+| TAB-01 | Phase 4 | Pending |
+| TAB-02 | Phase 4 | Pending |
+| TAB-03 | Phase 4 | Pending |
+| TAB-04 | Phase 4 | Pending |
+| TAB-05 | Phase 4 | Pending |
+| TAB-06 | Phase 4 | Pending |
+| TAB-07 | Phase 4 | Pending |
+| MGMT-01 | Phase 4 | Pending |
+| MGMT-02 | Phase 4 | Pending |
+| MGMT-03 | Phase 4 | Pending |
+| MGMT-04 | Phase 4 | Pending |
+| MGMT-05 | Phase 4 | Pending |
+| MGMT-06 | Phase 4 | Pending |
+| MGMT-07 | Phase 4 | Pending |
+| MGMT-08 | Phase 4 | Pending |
+| WIZD-01 | Phase 5 | Pending |
+| WIZD-02 | Phase 5 | Pending |
+| WIZD-03 | Phase 5 | Pending |
+| WIZD-04 | Phase 5 | Pending |
+| WIZD-05 | Phase 5 | Pending |
+| WIZD-06 | Phase 5 | Pending |
+| WIZD-07 | Phase 5 | Pending |
+| SCHED-01 | Phase 5 | Pending |
+| SCHED-02 | Phase 5 | Pending |
+| SCHED-03 | Phase 5 | Pending |
+| SCHED-05 | Phase 5 | Pending |
+| SCHED-06 | Phase 5 | Pending |
+| SCHED-07 | Phase 5 | Pending |
 
 **Coverage:**
-- v1 requirements: 35 total
-- Mapped to phases: 0
-- Unmapped: 35 ⚠️
+- v1 requirements: 39 total
+- Mapped to phases: 39 ✓
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-01-21*
