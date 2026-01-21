@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Recap} from '@mattermost/types/recaps';
+import type {Recap, ScheduledRecap} from '@mattermost/types/recaps';
 
 import {RecapTypes} from 'mattermost-redux/action_types';
 import {logError} from 'mattermost-redux/actions/errors';
@@ -77,5 +77,89 @@ export function deleteRecap(recapId: string): ActionFuncAsync {
             });
             return {error};
         }
+    };
+}
+
+// Scheduled Recap Actions
+
+export function getScheduledRecaps(page = 0, perPage = 60): ActionFuncAsync<ScheduledRecap[]> {
+    return async (dispatch, getState) => {
+        dispatch({type: RecapTypes.GET_SCHEDULED_RECAPS_REQUEST});
+
+        let data: ScheduledRecap[];
+        try {
+            data = await Client4.getScheduledRecaps(page, perPage);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch({type: RecapTypes.GET_SCHEDULED_RECAPS_FAILURE, error});
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch({type: RecapTypes.RECEIVED_SCHEDULED_RECAPS, data});
+        dispatch({type: RecapTypes.GET_SCHEDULED_RECAPS_SUCCESS});
+
+        return {data};
+    };
+}
+
+export function pauseScheduledRecap(id: string): ActionFuncAsync<ScheduledRecap> {
+    return async (dispatch, getState) => {
+        dispatch({type: RecapTypes.PAUSE_SCHEDULED_RECAP_REQUEST});
+
+        let data: ScheduledRecap;
+        try {
+            data = await Client4.pauseScheduledRecap(id);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch({type: RecapTypes.PAUSE_SCHEDULED_RECAP_FAILURE, error});
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch({type: RecapTypes.RECEIVED_SCHEDULED_RECAP, data});
+        dispatch({type: RecapTypes.PAUSE_SCHEDULED_RECAP_SUCCESS});
+
+        return {data};
+    };
+}
+
+export function resumeScheduledRecap(id: string): ActionFuncAsync<ScheduledRecap> {
+    return async (dispatch, getState) => {
+        dispatch({type: RecapTypes.RESUME_SCHEDULED_RECAP_REQUEST});
+
+        let data: ScheduledRecap;
+        try {
+            data = await Client4.resumeScheduledRecap(id);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch({type: RecapTypes.RESUME_SCHEDULED_RECAP_FAILURE, error});
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch({type: RecapTypes.RECEIVED_SCHEDULED_RECAP, data});
+        dispatch({type: RecapTypes.RESUME_SCHEDULED_RECAP_SUCCESS});
+
+        return {data};
+    };
+}
+
+export function deleteScheduledRecap(id: string): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        dispatch({type: RecapTypes.DELETE_SCHEDULED_RECAP_REQUEST});
+
+        try {
+            await Client4.deleteScheduledRecap(id);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch({type: RecapTypes.DELETE_SCHEDULED_RECAP_FAILURE, error});
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch({type: RecapTypes.DELETE_SCHEDULED_RECAP_SUCCESS, data: {id}});
+
+        return {data: true};
     };
 }
