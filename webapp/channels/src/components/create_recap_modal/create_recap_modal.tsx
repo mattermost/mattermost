@@ -104,24 +104,33 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
     );
 
     const handleNext = useCallback(() => {
+        // Clear validation errors
+        setDaysError(false);
+        setTimeError(false);
+
         if (currentStep === 1) {
             if (recapType === 'all_unreads') {
-                // For all unreads, skip channel selector and go to summary
+                // For all unreads, set channels and go to step 3
+                // Run once: summary; Scheduled: schedule configuration
                 setSelectedChannelIds(unreadChannels.map((c: Channel) => c.id));
-                setCurrentStep(3); // Go to summary
+                setCurrentStep(3);
             } else {
                 // For selected channels, go to channel selector
                 setCurrentStep(2);
             }
         } else if (currentStep === 2) {
-            // From channel selector to summary
+            // From channel selector to step 3 (summary for run once, schedule for scheduled)
             setCurrentStep(3);
         }
     }, [currentStep, recapType, unreadChannels]);
 
     const handlePrevious = useCallback(() => {
+        // Clear validation errors
+        setDaysError(false);
+        setTimeError(false);
+
         if (currentStep === 3 && recapType === 'all_unreads') {
-            // From summary back to step 1 if all unreads
+            // From step 3 back to step 1 if all unreads (skipped channel selector)
             setCurrentStep(1);
         } else if (currentStep > 1) {
             setCurrentStep(currentStep - 1);
@@ -168,12 +177,26 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
     };
 
     const getTotalSteps = () => {
-        return recapType === 'all_unreads' ? 2 : 3;
+        if (runOnce) {
+            // Run once: same as current behavior
+            return recapType === 'all_unreads' ? 2 : 3;
+        }
+        // Scheduled: always 3 steps (config -> channels/confirmation -> schedule)
+        return 3;
     };
 
     const getActualStep = () => {
+        if (runOnce) {
+            // Run once uses existing step mapping
+            if (recapType === 'all_unreads') {
+                return currentStep === 1 ? 1 : 2;
+            }
+            return currentStep;
+        }
+        // Scheduled: always shows 3 steps
+        // For all_unreads, step 3 shows schedule (not channel selector)
         if (recapType === 'all_unreads') {
-            return currentStep === 1 ? 1 : 2;
+            return currentStep === 1 ? 1 : currentStep === 3 ? 2 : currentStep;
         }
         return currentStep;
     };
