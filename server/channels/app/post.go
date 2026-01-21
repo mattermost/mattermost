@@ -1103,6 +1103,11 @@ func (a *App) setupBroadcastHookForChannelMentions(rctx request.CTX, post *model
 	}
 	message.Add("post", postWithoutChannelMentionsJSON)
 
+	// Add channel mentions back to post object for HTTP response.
+	// These mentions have already been filtered in FillInPostProps to only include channels
+	// the post sender has permission to read.
+	post.AddProp(model.PostPropsChannelMentions, channelMentions)
+
 	// Register the hook to filter channel mentions per-recipient based on their permissions
 	useChannelMentionsHook(message, channelMentions)
 	return nil
