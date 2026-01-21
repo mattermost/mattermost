@@ -27,7 +27,6 @@ describe('components/admin_console/data_retention_settings/team_list', () => {
             <TeamList
                 searchTerm=''
                 onRemoveCallback={jest.fn()}
-                onAddCallback={jest.fn()}
                 teamsToRemove={{}}
                 teamsToAdd={{}}
                 teams={testTeams}
@@ -57,7 +56,6 @@ describe('components/admin_console/data_retention_settings/team_list', () => {
             <TeamList
                 searchTerm=''
                 onRemoveCallback={jest.fn()}
-                onAddCallback={jest.fn()}
                 teamsToRemove={{}}
                 teamsToAdd={{}}
                 teams={testTeams}

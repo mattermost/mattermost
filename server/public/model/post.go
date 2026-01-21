@@ -64,7 +64,7 @@ const (
 	PostFilenamesMaxRunes = 4000
 	PostHashtagsMaxRunes  = 1000
 	PostMessageMaxRunesV1 = 4000
-	PostMessageMaxBytesV2 = 65535                     // Maximum size of a TEXT column in MySQL
+	PostMessageMaxBytesV2 = 65535
 	PostMessageMaxRunesV2 = PostMessageMaxBytesV2 / 4 // Assume a worst-case representation
 
 	// Reporting API constants

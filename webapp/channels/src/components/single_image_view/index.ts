@@ -11,18 +11,15 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import {toggleEmbedVisibility} from 'actions/post_actions';
 import {openModal} from 'actions/views/modals';
-import {getIsRhsOpen} from 'selectors/rhs';
 
 import SingleImageView from 'components/single_image_view/single_image_view';
 
 import type {GlobalState} from 'types/store';
 
 function mapStateToProps(state: GlobalState) {
-    const isRhsOpen = getIsRhsOpen(state);
     const config = getConfig(state);
 
     return {
-        isRhsOpen,
         enablePublicLink: config.EnablePublicLink === 'true',
     };
 }

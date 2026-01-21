@@ -703,7 +703,7 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	c.AppContext.WithLogger(c.AppContext.Logger().With(
+	c.AppContext = c.AppContext.WithLogFields(
 		mlog.String("type", model.NotificationTypePush),
 		mlog.String("ack_id", ack.Id),
 		mlog.String("push_type", ack.NotificationType),
@@ -711,7 +711,7 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 		mlog.String("ack_type", ack.NotificationType),
 		mlog.String("device_type", ack.ClientPlatform),
 		mlog.Int("received_at", ack.ClientReceivedAt),
-	))
+	)
 	err := c.App.SendAckToPushProxy(c.AppContext, &ack)
 	if ack.IsIdLoaded {
 		if err != nil {

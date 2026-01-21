@@ -41,16 +41,9 @@ var searchPostStoreTests = []searchTest{
 		Tags: []string{EnginePostgres},
 	},
 	{
-		// Postgres supports search with and without quotes
 		Name: "Should be able to search for email addresses with or without quotes",
 		Fn:   testSearchEmailAddresses,
 		Tags: []string{EnginePostgres, EngineElasticSearch},
-	},
-	{
-		// MySql supports search with quotes only
-		Name: "Should be able to search for email addresses with quotes",
-		Fn:   testSearchEmailAddressesWithQuotes,
-		Tags: []string{EngineElasticSearch},
 	},
 	{
 		Name: "Should be able to search when markdown underscores are applied",
@@ -555,21 +548,6 @@ func testSearchEmailAddresses(t *testing.T, th *SearchTestHelper) {
 		require.Len(t, results.Posts, 1)
 		th.checkPostInSearchResults(t, p1.Id, results.Posts)
 	})
-}
-
-func testSearchEmailAddressesWithQuotes(t *testing.T, th *SearchTestHelper) {
-	p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "email test@test.com", "", model.PostTypeDefault, 0, false)
-	require.NoError(t, err)
-	_, err = th.createPost(th.User.Id, th.ChannelBasic.Id, "email test2@test.com", "", model.PostTypeDefault, 0, false)
-	require.NoError(t, err)
-	defer th.deleteUserPosts(th.User.Id)
-
-	params := &model.SearchParams{Terms: "\"test@test.com\""}
-	results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-	require.NoError(t, err)
-
-	require.Len(t, results.Posts, 1)
-	th.checkPostInSearchResults(t, p1.Id, results.Posts)
 }
 
 func testSearchMarkdownUnderscores(t *testing.T, th *SearchTestHelper) {
