@@ -461,5 +461,49 @@
             }
         }
     }
+
+    // Step Three Schedule Configuration Styles
+    .step-three {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+
+            .form-label {
+                margin-bottom: 8px;
+                color: var(--center-channel-color);
+                font-size: 14px;
+                font-weight: 600;
+            }
+
+            .form-error {
+                margin-top: 4px;
+                color: var(--error-text);
+                font-size: 12px;
+            }
+        }
+
+        .next-run-preview {
+            padding: 12px 16px;
+            border-radius: 4px;
+            margin-top: -8px;
+            background-color: rgba(var(--center-channel-color-rgb), 0.04);
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            font-size: 13px;
+        }
+
+        // Override Input widget styles for textarea
+        .Input_container {
+            .Input_fieldset {
+                textarea.Input {
+                    min-height: 80px;
+                    resize: vertical;
+                }
+            }
+        }
+    }
 }
 
