@@ -9,9 +9,9 @@
 ## Current Position
 
 **Phase:** 5 of 5 - Enhanced Wizard
-**Plan:** 4 of 6 in current phase
+**Plan:** 5 of 6 in current phase
 **Status:** In progress
-**Last activity:** 2026-01-21 - Completed 05-04-PLAN.md
+**Last activity:** 2026-01-21 - Completed 05-05-PLAN.md
 
 **Progress:**
 ```
@@ -19,8 +19,8 @@ Phase 1: [██████████] 100% (2/2 plans) ✓
 Phase 2: [██████████] 100% (2/2 plans) ✓
 Phase 3: [██████████] 100% (2/2 plans) ✓
 Phase 4: [██████████] 100% (4/4 plans) ✓
-Phase 5: [██████░░░░] 67% (4/6 plans)
-Overall:  [████████░░] ~79% (31/39 requirements)
+Phase 5: [████████░░] 83% (5/6 plans)
+Overall:  [█████████░] ~83% (33/39 requirements)
 ```
 
 ## Phase Overview
@@ -31,7 +31,7 @@ Overall:  [████████░░] ~79% (31/39 requirements)
 | 2 | API Layer | 5 | ✓ Complete |
 | 3 | Scheduler Integration | 3 | ✓ Complete |
 | 4 | Scheduled Tab | 15 | ✓ Complete (awaiting verification) |
-| 5 | Enhanced Wizard | 13 | 🔄 In Progress (4/6 plans) |
+| 5 | Enhanced Wizard | 13 | 🔄 In Progress (5/6 plans) |
 
 ## Performance Metrics
 
@@ -83,6 +83,9 @@ Overall:  [████████░░] ~79% (31/39 requirements)
 | 30-minute time intervals in ScheduleConfiguration | Matches existing DateTimeInput pattern in codebase | 05-03 |
 | Client-side next run calculation | Provides immediate feedback as user selects days/time | 05-03 |
 | Use getCurrentTimezone/getCurrentTimezoneLabel selectors | Existing selectors for user timezone display | 05-03 |
+| runOnce toggle controls wizard flow | true=immediate recap, false=scheduled recap | 05-05 |
+| Edit mode always shows schedule step | editScheduledRecap prop never allows run once | 05-05 |
+| Navigate to ?tab=scheduled after creating schedule | Consistent UX for scheduled recap creation | 05-05 |
 
 ### TODOs
 
@@ -97,14 +100,14 @@ Overall:  [████████░░] ~79% (31/39 requirements)
 ### Last Session
 
 **Date:** 2026-01-21
-**Completed:** 05-04-PLAN.md (Run Once Toggle)
-**Stopped at:** Phase 5 plan 4 complete
+**Completed:** 05-05-PLAN.md (Wizard Integration)
+**Stopped at:** Phase 5 plan 5 complete
 
 ### Resume Point
 
 **Command:** `/gsd-execute-phase 5`
-**Context:** Phase 5 in progress. Next: 05-05-PLAN.md (Step 3 - Schedule Configuration).
+**Context:** Phase 5 in progress. Next: 05-06-PLAN.md (Final wiring and testing).
 
 ---
 *State initialized: 2026-01-21*
-*Last updated: 2026-01-21 (Completed 05-04-PLAN.md)*
+*Last updated: 2026-01-21 (Completed 05-05-PLAN.md)*
