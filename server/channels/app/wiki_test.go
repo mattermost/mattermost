@@ -194,7 +194,7 @@ func TestCreatePage(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, createdWiki)
 
-		regularPost, postErr := th.App.CreatePost(th.Context, &model.Post{
+		regularPost, _, postErr := th.App.CreatePost(th.Context, &model.Post{
 			ChannelId: th.BasicChannel.Id,
 			UserId:    th.BasicUser.Id,
 			Message:   "Regular post",

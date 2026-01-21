@@ -12,7 +12,6 @@ import {Locations} from 'utils/constants';
 
 type Props = {
     a11yIndex: number;
-    currentUserId: string;
     isLastPost: boolean;
     onCardClick: (post: Post) => void;
     post: Post;

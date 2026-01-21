@@ -34,7 +34,7 @@ func TestGetPage(t *testing.T) {
 
 	t.Run("fail for non-page post", func(t *testing.T) {
 		// Create a regular post
-		regularPost, err := th.App.CreatePost(th.Context, &model.Post{
+		regularPost, _, err := th.App.CreatePost(th.Context, &model.Post{
 			ChannelId: th.BasicChannel.Id,
 			UserId:    th.BasicUser.Id,
 			Message:   "Regular message",

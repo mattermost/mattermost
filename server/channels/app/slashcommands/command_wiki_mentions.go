@@ -46,7 +46,7 @@ func (*WikiMentionsProvider) DoCommand(a *app.App, rctx request.CTX, args *model
 		}
 	}
 
-	if !a.HasPermissionToChannel(rctx, args.UserId, args.ChannelId, model.PermissionManageChannelRoles) {
+	if hasPermission, _ := a.HasPermissionToChannel(rctx, args.UserId, args.ChannelId, model.PermissionManageChannelRoles); !hasPermission {
 		return &model.CommandResponse{
 			Text:         "You don't have permission to modify wiki settings for this channel.",
 			ResponseType: model.CommandResponseTypeEphemeral,

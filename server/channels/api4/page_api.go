@@ -209,7 +209,7 @@ func createPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Additive permission check: Need BOTH page permission (content) AND wiki permission (container)
 
 	// Check page permission (content)
-	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionCreatePage) {
+	if hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionCreatePage); !hasPermission {
 		c.SetPermissionError(model.PermissionCreatePage)
 		return
 	}
@@ -295,7 +295,7 @@ func getChannelPages(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
+	if hasPermission, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel); !hasPermission {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
@@ -322,7 +322,7 @@ func getChannelPages(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	clientPostList := c.App.PreparePostListForClient(c.AppContext, postList)
-	clientPostList, err = c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
+	clientPostList, _, err = c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -389,7 +389,7 @@ func extractPageImageText(c *Context, w http.ResponseWriter, r *http.Request) {
 
 // summarizeThreadToPage handles POST /api/v4/wiki/{wiki_id}/pages/summarize-thread
 func summarizeThreadToPage(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel) {
+	if hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !hasPermission {
 		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
@@ -433,7 +433,7 @@ func summarizeThreadToPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check user has read access to the channel containing the thread
-	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), rootPost.ChannelId, model.PermissionReadChannel) {
+	if hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), rootPost.ChannelId, model.PermissionReadChannel); !hasPermission {
 		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}

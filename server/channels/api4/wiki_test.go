@@ -364,7 +364,7 @@ func TestGetPages(t *testing.T) {
 		Message:   "Page 1",
 		Type:      model.PostTypePage,
 	}
-	page1, appErr = th.App.CreatePost(th.Context, page1, th.BasicChannel, model.CreatePostFlags{})
+	page1, _, appErr = th.App.CreatePost(th.Context, page1, th.BasicChannel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
 
 	appErr = th.App.AddPageToWiki(th.Context, page1.Id, wiki.Id)
@@ -376,7 +376,7 @@ func TestGetPages(t *testing.T) {
 		Message:   "Page 2",
 		Type:      model.PostTypePage,
 	}
-	page2, appErr = th.App.CreatePost(th.Context, page2, th.BasicChannel, model.CreatePostFlags{})
+	page2, _, appErr = th.App.CreatePost(th.Context, page2, th.BasicChannel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
 
 	appErr = th.App.AddPageToWiki(th.Context, page2.Id, wiki.Id)
@@ -500,7 +500,7 @@ func TestCrossChannelAccess(t *testing.T) {
 			Message:   "Page in channel 1",
 			Type:      model.PostTypePage,
 		}
-		pageInChannel1, appErr = th.App.CreatePost(th.Context, pageInChannel1, channel1, model.CreatePostFlags{})
+		pageInChannel1, _, appErr = th.App.CreatePost(th.Context, pageInChannel1, channel1, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 
 		appErr = th.App.AddPageToWiki(th.Context, pageInChannel1.Id, wiki2.Id)
@@ -733,7 +733,7 @@ func TestWikiPermissions(t *testing.T) {
 			Message:   "Test Page",
 			Type:      model.PostTypePage,
 		}
-		page, appErr = th.App.CreatePost(th.Context, page, publicChannel, model.CreatePostFlags{})
+		page, _, appErr = th.App.CreatePost(th.Context, page, publicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 
 		appErr = th.App.AddPageToWiki(th.Context, page.Id, wiki.Id)
@@ -768,7 +768,7 @@ func TestWikiPermissions(t *testing.T) {
 			Message:   "Test Page Content",
 			Type:      model.PostTypePage,
 		}
-		page, appErr = th.App.CreatePost(th.Context, page, publicChannel, model.CreatePostFlags{})
+		page, _, appErr = th.App.CreatePost(th.Context, page, publicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 
 		appErr = th.App.AddPageToWiki(th.Context, page.Id, wiki.Id)
@@ -1278,7 +1278,7 @@ func TestPageCommentsE2E(t *testing.T) {
 	})
 
 	t.Run("inline comments appear in channel feed (GetPostsForChannel)", func(t *testing.T) {
-		regularPost, appErr := th.App.CreatePost(th.Context, &model.Post{
+		regularPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   "Regular channel post",
@@ -1322,7 +1322,7 @@ func TestPageCommentsE2E(t *testing.T) {
 	})
 
 	t.Run("pages do NOT appear in channel feed (consistent with Slack Canvas UX)", func(t *testing.T) {
-		regularPost, appErr := th.App.CreatePost(th.Context, &model.Post{
+		regularPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   "Regular channel post should appear",
@@ -1363,7 +1363,7 @@ func TestPageCommentsE2E(t *testing.T) {
 		_, appErr := th.App.CreatePageComment(th.Context, page.Id, "Unique search term: xyzabc123", inlineAnchor)
 		require.Nil(t, appErr)
 
-		regularPost, appErr := th.App.CreatePost(th.Context, &model.Post{
+		regularPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   "Regular post with unique term: qwerty456",
@@ -2518,7 +2518,7 @@ func TestUpdatePageParent(t *testing.T) {
 		page, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Test Page", "", th.BasicUser.Id, "", "")
 		require.Nil(t, appErr)
 
-		regularPost, postErr := th.App.CreatePost(th.Context, &model.Post{
+		regularPost, _, postErr := th.App.CreatePost(th.Context, &model.Post{
 			ChannelId: th.BasicChannel.Id,
 			UserId:    th.BasicUser.Id,
 			Message:   "Regular post",
@@ -2662,7 +2662,7 @@ func TestUpdatePageStatus(t *testing.T) {
 	})
 
 	t.Run("fail for non-page post", func(t *testing.T) {
-		regularPost, appErr := th.App.CreatePost(th.Context, &model.Post{
+		regularPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   "Regular post",
@@ -2729,7 +2729,7 @@ func TestGetPageStatus(t *testing.T) {
 	})
 
 	t.Run("fail for non-page post", func(t *testing.T) {
-		regularPost, appErr := th.App.CreatePost(th.Context, &model.Post{
+		regularPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   "Regular post",
@@ -2798,7 +2798,7 @@ func TestResolvePageComment(t *testing.T) {
 			},
 		},
 	}
-	comment, appErr = th.App.CreatePost(th.Context, comment, th.BasicChannel, model.CreatePostFlags{})
+	comment, _, appErr = th.App.CreatePost(th.Context, comment, th.BasicChannel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
 
 	t.Run("comment author can resolve their own comment", func(t *testing.T) {
@@ -2849,7 +2849,7 @@ func TestResolvePageComment(t *testing.T) {
 			},
 		}
 		th.Context.Session().UserId = th.BasicUser2.Id
-		comment2, appErr = th.App.CreatePost(th.Context, comment2, th.BasicChannel, model.CreatePostFlags{})
+		comment2, _, appErr = th.App.CreatePost(th.Context, comment2, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 
 		th.Context.Session().UserId = th.BasicUser.Id
@@ -2882,7 +2882,7 @@ func TestResolvePageComment(t *testing.T) {
 				model.PagePropsPageID: page.Id,
 			},
 		}
-		deletedComment, appErr = th.App.CreatePost(th.Context, deletedComment, th.BasicChannel, model.CreatePostFlags{})
+		deletedComment, _, appErr = th.App.CreatePost(th.Context, deletedComment, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 
 		_, appErr = th.App.DeletePost(th.Context, deletedComment.Id, th.BasicUser.Id)
@@ -2900,7 +2900,7 @@ func TestResolvePageComment(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			Message:   "Regular post",
 		}
-		regularPost, appErr = th.App.CreatePost(th.Context, regularPost, th.BasicChannel, model.CreatePostFlags{})
+		regularPost, _, appErr = th.App.CreatePost(th.Context, regularPost, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 
 		url := "/wikis/" + wiki.Id + "/pages/" + page.Id + "/comments/" + regularPost.Id + "/resolve"
@@ -2932,7 +2932,7 @@ func TestGetPageActiveEditors(t *testing.T) {
 			model.PagePropsWikiID: wiki.Id,
 		},
 	}
-	page, appErr = th.App.CreatePost(th.Context, page, th.BasicChannel, model.CreatePostFlags{})
+	page, _, appErr = th.App.CreatePost(th.Context, page, th.BasicChannel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
 
 	t.Run("get active editors successfully with no editors", func(t *testing.T) {
@@ -3017,7 +3017,7 @@ func TestGetPageActiveEditors(t *testing.T) {
 				model.PagePropsWikiID: privateWiki.Id,
 			},
 		}
-		privatePage, appErr = th.App.CreatePost(th.Context, privatePage, privateChannel, model.CreatePostFlags{})
+		privatePage, _, appErr = th.App.CreatePost(th.Context, privatePage, privateChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 
 		client2 := th.CreateClient()
@@ -3043,7 +3043,7 @@ func TestGetPageActiveEditors(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			Message:   "Regular post",
 		}
-		regularPost, appErr := th.App.CreatePost(th.Context, regularPost, th.BasicChannel, model.CreatePostFlags{})
+		regularPost, _, appErr := th.App.CreatePost(th.Context, regularPost, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 
 		url := "/wikis/" + wiki.Id + "/pages/" + regularPost.Id + "/active_editors"

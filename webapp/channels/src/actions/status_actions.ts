@@ -80,25 +80,6 @@ export function loadStatusesForProfilesList(users: UserProfile[] | null): Action
     };
 }
 
-export function loadStatusesForProfilesMap(users: Record<string, UserProfile> | UserProfile[] | null): ActionFunc {
-    return (dispatch) => {
-        if (users == null) {
-            return {data: false};
-        }
-
-        const statusesToLoad = [];
-        for (const userId in users) {
-            if (Object.hasOwn(users, userId)) {
-                statusesToLoad.push(userId);
-            }
-        }
-
-        dispatch(loadStatusesByIds(statusesToLoad));
-
-        return {data: true};
-    };
-}
-
 export function loadStatusesByIds(userIds: string[]): ActionFunc {
     return (dispatch, getState) => {
         const state = getState();

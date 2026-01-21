@@ -17,7 +17,7 @@ func (a *App) CreateBookmarkFromPage(rctx request.CTX, page *Page, channelId str
 	post := page.Post()
 
 	// Cross-channel permission check: user must have read access to page's channel
-	if !a.SessionHasPermissionToChannel(rctx, *rctx.Session(), page.ChannelId(), model.PermissionReadChannel) {
+	if hasPermission, _ := a.SessionHasPermissionToChannel(rctx, *rctx.Session(), page.ChannelId(), model.PermissionReadChannel); !hasPermission {
 		return nil, model.NewAppError("CreateBookmarkFromPage", "app.channel.bookmark.no_permission_to_page_channel.app_error", nil, "", http.StatusForbidden)
 	}
 

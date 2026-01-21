@@ -355,22 +355,18 @@ func (s *SqlDraftStore) GetMaxDraftSize() int {
 func (s *SqlDraftStore) determineMaxDraftSize() int {
 	var maxDraftSizeBytes int32
 
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		// The Draft.Message column in Postgres has historically been VARCHAR(4000), but
-		// may be manually enlarged to support longer drafts.
-		if err := s.GetReplica().Get(&maxDraftSizeBytes, `
-			SELECT
-				COALESCE(character_maximum_length, 0)
-			FROM
-				information_schema.columns
-			WHERE
-				table_name = 'drafts'
-			AND	column_name = 'message'
-		`); err != nil {
-			mlog.Warn("Unable to determine the maximum supported draft size", mlog.Err(err))
-		}
-	} else {
-		mlog.Warn("No implementation found to determine the maximum supported draft size")
+	// The Draft.Message column has historically been VARCHAR(4000), but
+	// may be manually enlarged to support longer drafts.
+	if err := s.GetReplica().Get(&maxDraftSizeBytes, `
+		SELECT
+			COALESCE(character_maximum_length, 0)
+		FROM
+			information_schema.columns
+		WHERE
+			table_name = 'drafts'
+		AND	column_name = 'message'
+	`); err != nil {
+		mlog.Warn("Unable to determine the maximum supported draft size", mlog.Err(err))
 	}
 
 	// Assume a worst-case representation of four bytes per rune.
@@ -414,31 +410,28 @@ func (s *SqlDraftStore) GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(cr
 }
 
 func (s *SqlDraftStore) DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, userId string) error {
-	var builder Builder
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		builder = s.getQueryBuilder().
-			Delete("Drafts d").
-			PrefixExpr(s.getQueryBuilder().Select().
-				Prefix("WITH dd AS (").
-				Columns("UserId", "ChannelId", "RootId").
-				From("Drafts").
-				Where(sq.Or{
-					sq.Gt{"CreateAt": createAt},
-					sq.And{
-						sq.Eq{"CreateAt": createAt},
-						sq.Gt{"UserId": userId},
-					},
-				}).
-				OrderBy("CreateAt", "UserId").
-				Limit(100).
-				Suffix(")"),
-			).
-			Using("dd").
-			Where("d.UserId = dd.UserId").
-			Where("d.ChannelId = dd.ChannelId").
-			Where("d.RootId = dd.RootId").
-			Where("d.Message = ''")
-	}
+	builder := s.getQueryBuilder().
+		Delete("Drafts d").
+		PrefixExpr(s.getQueryBuilder().Select().
+			Prefix("WITH dd AS (").
+			Columns("UserId", "ChannelId", "RootId").
+			From("Drafts").
+			Where(sq.Or{
+				sq.Gt{"CreateAt": createAt},
+				sq.And{
+					sq.Eq{"CreateAt": createAt},
+					sq.Gt{"UserId": userId},
+				},
+			}).
+			OrderBy("CreateAt", "UserId").
+			Limit(100).
+			Suffix(")"),
+		).
+		Using("dd").
+		Where("d.UserId = dd.UserId").
+		Where("d.ChannelId = dd.ChannelId").
+		Where("d.RootId = dd.RootId").
+		Where("d.Message = ''")
 
 	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
 		return errors.Wrapf(err, "failed to delete empty drafts")
@@ -448,31 +441,28 @@ func (s *SqlDraftStore) DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, use
 }
 
 func (s *SqlDraftStore) DeleteOrphanDraftsByCreateAtAndUserId(createAt int64, userId string) error {
-	var builder Builder
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		builder = s.getQueryBuilder().
-			Delete("Drafts d").
-			PrefixExpr(s.getQueryBuilder().Select().
-				Prefix("WITH dd AS (").
-				Columns("UserId", "ChannelId", "RootId").
-				From("Drafts").
-				Where(sq.Or{
-					sq.Gt{"CreateAt": createAt},
-					sq.And{
-						sq.Eq{"CreateAt": createAt},
-						sq.Gt{"UserId": userId},
-					},
-				}).
-				OrderBy("CreateAt", "UserId").
-				Limit(100).
-				Suffix(")"),
-			).
-			Using("dd").
-			Where("d.UserId = dd.UserId").
-			Where("d.ChannelId = dd.ChannelId").
-			Where("d.RootId = dd.RootId").
-			Suffix("AND d." + s.channelDraftsOnlyCondition() + " AND (d.RootId IN (SELECT Id FROM Posts WHERE DeleteAt <> 0) OR NOT EXISTS (SELECT 1 FROM Posts WHERE Posts.Id = d.RootId))")
-	}
+	builder := s.getQueryBuilder().
+		Delete("Drafts d").
+		PrefixExpr(s.getQueryBuilder().Select().
+			Prefix("WITH dd AS (").
+			Columns("UserId", "ChannelId", "RootId").
+			From("Drafts").
+			Where(sq.Or{
+				sq.Gt{"CreateAt": createAt},
+				sq.And{
+					sq.Eq{"CreateAt": createAt},
+					sq.Gt{"UserId": userId},
+				},
+			}).
+			OrderBy("CreateAt", "UserId").
+			Limit(100).
+			Suffix(")"),
+		).
+		Using("dd").
+		Where("d.UserId = dd.UserId").
+		Where("d.ChannelId = dd.ChannelId").
+		Where("d.RootId = dd.RootId").
+		Suffix("AND d." + s.channelDraftsOnlyCondition() + " AND (d.RootId IN (SELECT Id FROM Posts WHERE DeleteAt <> 0) OR NOT EXISTS (SELECT 1 FROM Posts WHERE Posts.Id = d.RootId))")
 
 	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
 		return errors.Wrapf(err, "failed to delete orphan drafts")

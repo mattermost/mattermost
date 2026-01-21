@@ -3,16 +3,16 @@
   "browser": {
     "./client/web_client.jsx": "./client/browser_web_client.jsx"
   },
-  "version": "11.3.0",
+  "version": "11.4.0",
   "private": true,
   "dependencies": {
     "@floating-ui/react": "0.26.6",
     "@giphy/js-fetch-api": "5.7.0",
     "@giphy/react-components": "10.1.0",
     "@guyplusplus/turndown-plugin-gfm": "1.0.7",
-    "@mattermost/client": "11.3.0",
+    "@mattermost/client": "11.4.0",
     "@mattermost/desktop-api": "6.0.0-1",
-    "@mattermost/types": "11.3.0",
+    "@mattermost/types": "11.4.0",
     "@mui/base": "5.0.0-alpha.127",
     "@mui/material": "5.11.16",
     "@mui/styled-engine-sc": "5.11.11",

@@ -66,7 +66,7 @@ func TestCreatePageWithContent(t *testing.T) {
 	})
 
 	t.Run("fails when parent is not a page", func(t *testing.T) {
-		regularPost, postErr := th.App.CreatePost(th.Context, &model.Post{
+		regularPost, _, postErr := th.App.CreatePost(th.Context, &model.Post{
 			ChannelId: th.BasicChannel.Id,
 			UserId:    th.BasicUser.Id,
 			Message:   "Regular post",
@@ -189,7 +189,7 @@ func TestGetPageWithContent(t *testing.T) {
 	})
 
 	t.Run("fails for regular post", func(t *testing.T) {
-		regularPost, postErr := th.App.CreatePost(th.Context, &model.Post{
+		regularPost, _, postErr := th.App.CreatePost(th.Context, &model.Post{
 			ChannelId: th.BasicChannel.Id,
 			UserId:    th.BasicUser.Id,
 			Message:   "Regular post",
@@ -712,7 +712,7 @@ func TestChangePageParent(t *testing.T) {
 		child, err := th.App.CreateWikiPage(th.Context, wiki.Id, "", "Child", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		regularPost, postErr := th.App.CreatePost(th.Context, &model.Post{
+		regularPost, _, postErr := th.App.CreatePost(th.Context, &model.Post{
 			ChannelId: th.BasicChannel.Id,
 			UserId:    th.BasicUser.Id,
 			Message:   "Regular post",
@@ -1236,7 +1236,7 @@ func TestCreatePageComment(t *testing.T) {
 	})
 
 	t.Run("fails when root post is not a page", func(t *testing.T) {
-		regularPost, err := th.App.CreatePost(th.Context, &model.Post{
+		regularPost, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   "Regular post",
@@ -1331,7 +1331,7 @@ func TestCreatePageCommentReply(t *testing.T) {
 	})
 
 	t.Run("fails when parent is not a page comment", func(t *testing.T) {
-		regularPost, err := th.App.CreatePost(th.Context, &model.Post{
+		regularPost, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   "Regular post",
@@ -1431,7 +1431,7 @@ func TestGetPageStatus(t *testing.T) {
 	})
 
 	t.Run("cannot get status for non-page post", func(t *testing.T) {
-		regularPost, err := th.App.CreatePost(th.Context, &model.Post{
+		regularPost, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   "Regular post",
@@ -1515,7 +1515,7 @@ func TestSetPageStatus(t *testing.T) {
 	})
 
 	t.Run("cannot set status for non-page post", func(t *testing.T) {
-		regularPost, err := th.App.CreatePost(th.Context, &model.Post{
+		regularPost, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   "Regular post",
@@ -1815,7 +1815,7 @@ func TestPageVersionHistory(t *testing.T) {
 		require.NotEmpty(t, historicalPostID)
 
 		// Restore to original version
-		restoredPost, restoreErr := th.App.RestorePostVersion(sessionCtx, th.BasicUser.Id, createdPage.Id, historicalPostID)
+		restoredPost, _, restoreErr := th.App.RestorePostVersion(sessionCtx, th.BasicUser.Id, createdPage.Id, historicalPostID)
 		require.Nil(t, restoreErr)
 		require.NotNil(t, restoredPost)
 

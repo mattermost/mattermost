@@ -369,7 +369,6 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
             >
                 <Row
                     a11yIndex={a11yIndex}
-                    currentUserId={this.props.currentUserId}
                     isRootPost={isRootPost}
                     isLastPost={isLastPost}
                     isDeletedPost={isDeletedPost}

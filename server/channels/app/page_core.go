@@ -203,7 +203,7 @@ func (a *App) GetPageWithContent(rctx request.CTX, pageID string) (*model.Post, 
 	post := page.Post()
 
 	session := rctx.Session()
-	if !a.HasPermissionToChannel(rctx, session.UserId, post.ChannelId, model.PermissionReadPage) {
+	if hasPermission, _ := a.HasPermissionToChannel(rctx, session.UserId, post.ChannelId, model.PermissionReadPage); !hasPermission {
 		return nil, model.NewAppError("GetPageWithContent", "api.context.permissions.app_error", nil, "", http.StatusForbidden)
 	}
 
@@ -696,7 +696,7 @@ func (a *App) RestorePageVersion(
 		}
 
 		var patchErr *model.AppError
-		updatedPost, patchErr = a.PatchPost(rctx, pageID, postPatch, patchPostOptions)
+		updatedPost, _, patchErr = a.PatchPost(rctx, pageID, postPatch, patchPostOptions)
 		if patchErr != nil {
 			return nil, model.NewAppError("RestorePageVersion",
 				"app.page.restore.update_fileids.app_error", nil, "",

@@ -832,12 +832,12 @@ func (c *Context) hasWikiModifyPermission(channel *model.Channel) bool {
 
 	switch channel.Type {
 	case model.ChannelTypeOpen:
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *session, channel.Id, model.PermissionManagePublicChannelProperties) {
+		if hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *session, channel.Id, model.PermissionManagePublicChannelProperties); !hasPermission {
 			c.SetPermissionError(model.PermissionManagePublicChannelProperties)
 			return false
 		}
 	case model.ChannelTypePrivate:
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *session, channel.Id, model.PermissionManagePrivateChannelProperties) {
+		if hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *session, channel.Id, model.PermissionManagePrivateChannelProperties); !hasPermission {
 			c.SetPermissionError(model.PermissionManagePrivateChannelProperties)
 			return false
 		}
@@ -880,7 +880,7 @@ func (c *Context) GetWikiForRead() (*model.Wiki, *model.Channel, bool) {
 		return nil, nil, false
 	}
 
-	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
+	if hasPermission, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel); !hasPermission {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return nil, nil, false
 	}
@@ -995,7 +995,7 @@ func (c *Context) hasPagePermission(channel *model.Channel, page *app.Page, oper
 			c.Err = model.NewAppError("hasPagePermission", "api.page.permission.invalid_operation", nil, "", http.StatusForbidden)
 			return false
 		}
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *session, channel.Id, permission) {
+		if hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *session, channel.Id, permission); !hasPermission {
 			c.SetPermissionError(permission)
 			return false
 		}
@@ -1025,7 +1025,7 @@ func (c *Context) hasPagePermission(channel *model.Channel, page *app.Page, oper
 		// Open/Private channels: delete others' pages requires PermissionDeletePage
 		if channel.Type == model.ChannelTypeOpen || channel.Type == model.ChannelTypePrivate {
 			if operation == app.PageOperationDelete && page.UserId() != session.UserId {
-				if !c.App.SessionHasPermissionToChannel(c.AppContext, *session, channel.Id, model.PermissionDeletePage) {
+				if hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *session, channel.Id, model.PermissionDeletePage); !hasPermission {
 					c.SetPermissionError(model.PermissionDeletePage)
 					return false
 				}

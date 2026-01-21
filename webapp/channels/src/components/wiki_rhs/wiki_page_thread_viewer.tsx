@@ -375,7 +375,6 @@ const WikiPageThreadViewer = (props: Props) => {
                         <Reply
                             key={postId}
                             id={postId}
-                            currentUserId={props.currentUserId}
                             a11yIndex={index}
                             isLastPost={index === props.postIds.length - 1}
                             onCardClick={() => {}}

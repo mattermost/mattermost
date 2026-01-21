@@ -66,7 +66,7 @@ func (a *App) GetPageComments(rctx request.CTX, pageID string) ([]*model.Post, *
 
 	// Verify user has permission to read the page before returning comments
 	session := rctx.Session()
-	if !a.HasPermissionToChannel(rctx, session.UserId, page.ChannelId(), model.PermissionReadPage) {
+	if hasPermission, _ := a.HasPermissionToChannel(rctx, session.UserId, page.ChannelId(), model.PermissionReadPage); !hasPermission {
 		return nil, model.NewAppError("GetPageComments", "api.context.permissions.app_error", nil, "", http.StatusForbidden)
 	}
 
@@ -139,7 +139,7 @@ func (a *App) CreatePageComment(rctx request.CTX, pageID, message string, inline
 		Props:     props,
 	}
 
-	createdComment, createErr := a.CreatePost(rctx, comment, channel, model.CreatePostFlags{})
+	createdComment, _, createErr := a.CreatePost(rctx, comment, channel, model.CreatePostFlags{})
 	if createErr != nil {
 		return nil, createErr
 	}
@@ -223,7 +223,7 @@ func (a *App) CreatePageCommentReply(rctx request.CTX, pageID, parentCommentID, 
 		Props:     replyProps,
 	}
 
-	createdReply, createErr := a.CreatePost(rctx, reply, channel, model.CreatePostFlags{})
+	createdReply, _, createErr := a.CreatePost(rctx, reply, channel, model.CreatePostFlags{})
 	if createErr != nil {
 		return nil, createErr
 	}
@@ -315,7 +315,7 @@ func (a *App) ResolvePageComment(rctx request.CTX, comment *model.Post, userId s
 	newProps["resolution_reason"] = "manual"
 	comment.SetProps(newProps)
 
-	updatedComment, updateErr := a.UpdatePost(rctx, comment, &model.UpdatePostOptions{})
+	updatedComment, _, updateErr := a.UpdatePost(rctx, comment, &model.UpdatePostOptions{})
 	if updateErr != nil {
 		return nil, updateErr
 	}
@@ -347,7 +347,7 @@ func (a *App) UnresolvePageComment(rctx request.CTX, comment *model.Post) (*mode
 	delete(newProps, "resolution_reason")
 	comment.SetProps(newProps)
 
-	updatedComment, updateErr := a.UpdatePost(rctx, comment, &model.UpdatePostOptions{})
+	updatedComment, _, updateErr := a.UpdatePost(rctx, comment, &model.UpdatePostOptions{})
 	if updateErr != nil {
 		return nil, updateErr
 	}

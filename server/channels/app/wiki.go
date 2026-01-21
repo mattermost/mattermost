@@ -664,7 +664,7 @@ func (a *App) sendWikiNotification(rctx request.CTX, params wikiNotificationPara
 		Props:     props,
 	}
 
-	if _, err := a.CreatePost(rctx, systemPost, params.channel, model.CreatePostFlags{}); err != nil {
+	if _, _, err := a.CreatePost(rctx, systemPost, params.channel, model.CreatePostFlags{}); err != nil {
 		rctx.Logger().Warn("Failed to create wiki notification",
 			mlog.String("post_type", params.postType),
 			mlog.String("wiki_id", params.wiki.Id),

@@ -310,7 +310,7 @@ func (a *App) sendPageMentionNotifications(rctx request.CTX, page *model.Post, c
 			TriggerWebhooks: false,
 			SetOnline:       true,
 		}
-		if _, createErr := a.CreatePost(rctx, channelPost, channel, flags); createErr != nil {
+		if _, _, createErr := a.CreatePost(rctx, channelPost, channel, flags); createErr != nil {
 			rctx.Logger().Warn("Failed to create page mention channel post",
 				mlog.String("page_id", page.Id),
 				mlog.String("mentioned_user_id", mentionedUserID),

@@ -75,7 +75,6 @@ const Preferences = {
     CATEGORY_REPORTING: 'reporting',
 
     HIDE_BATCH_EXPORT_CONFIRM_MODAL: 'hide_batch_export_confirm_modal',
-    HIDE_MYSQL_STATS_NOTIFICATION: 'hide_mysql_stats_notifcation',
 
     CATEGORY_OVERAGE_USERS_BANNER: 'overage_users_banner',
     CATEGORY_POST_HISTORY_LIMIT_BANNER: 'post_history_limit_banner',

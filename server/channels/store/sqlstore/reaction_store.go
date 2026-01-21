@@ -353,12 +353,7 @@ func (s *SqlReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDelet
 }
 
 func (s *SqlReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
-	var query string
-	if s.DriverName() == "postgres" {
-		query = fmt.Sprintf("DELETE FROM Reactions WHERE ctid IN (SELECT r.ctid FROM Reactions AS r INNER JOIN Posts AS p ON r.PostId = p.Id WHERE r.CreateAt < ? AND %s LIMIT ?)", reactionRegularPostsFilter)
-	} else {
-		query = fmt.Sprintf("DELETE r FROM Reactions AS r INNER JOIN Posts AS p ON r.PostId = p.Id WHERE r.CreateAt < ? AND %s LIMIT ?", reactionRegularPostsFilter)
-	}
+	query := fmt.Sprintf("DELETE FROM Reactions WHERE ctid IN (SELECT r.ctid FROM Reactions AS r INNER JOIN Posts AS p ON r.PostId = p.Id WHERE r.CreateAt < ? AND %s LIMIT ?)", reactionRegularPostsFilter)
 
 	sqlResult, err := s.GetMaster().Exec(query, endTime, limit)
 	if err != nil {

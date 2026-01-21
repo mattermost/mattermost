@@ -10,7 +10,7 @@ import (
 
 func userCreatePostPermissionCheckWithContext(c *Context, channelId string) {
 	hasPermission := false
-	if c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionCreatePost) {
+	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionCreatePost); ok {
 		hasPermission = true
 	} else if channel, err := c.App.GetChannel(c.AppContext, channelId); err == nil {
 		// Temporary permission check method until advanced permissions, please do not copy
@@ -63,7 +63,7 @@ func checkUploadFilePermissionForNewFiles(c *Context, newFileIds []string, origi
 	}
 
 	if hasNewFiles {
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionUploadFile) {
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionUploadFile); !ok {
 			c.SetPermissionError(model.PermissionUploadFile)
 			return
 		}

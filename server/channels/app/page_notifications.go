@@ -149,7 +149,7 @@ func (a *App) createNewPageUpdateNotification(rctx request.CTX, page *model.Post
 		},
 	}
 
-	if _, err := a.CreatePost(rctx, systemPost, channel, model.CreatePostFlags{}); err != nil {
+	if _, _, err := a.CreatePost(rctx, systemPost, channel, model.CreatePostFlags{}); err != nil {
 		rctx.Logger().Warn("Failed to create page update system message",
 			mlog.String("page_id", page.Id),
 			mlog.String("wiki_id", wiki.Id),
