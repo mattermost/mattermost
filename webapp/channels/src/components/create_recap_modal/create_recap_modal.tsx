@@ -211,6 +211,9 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
                     recapType={recapType}
                     setRecapType={setRecapType}
                     unreadChannels={unreadChannels}
+                    runOnce={runOnce}
+                    setRunOnce={setRunOnce}
+                    isEditMode={isEditMode}
                 />
             );
         case 2:
@@ -223,10 +226,28 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
                 />
             );
         case 3:
+            if (runOnce) {
+                // Run once: show summary
+                return (
+                    <ChannelSummary
+                        selectedChannelIds={selectedChannelIds}
+                        myChannels={myChannels}
+                    />
+                );
+            }
+            // Scheduled: show schedule configuration
             return (
-                <ChannelSummary
-                    selectedChannelIds={selectedChannelIds}
-                    myChannels={myChannels}
+                <ScheduleConfiguration
+                    daysOfWeek={daysOfWeek}
+                    setDaysOfWeek={setDaysOfWeek}
+                    timeOfDay={timeOfDay}
+                    setTimeOfDay={setTimeOfDay}
+                    timePeriod={timePeriod}
+                    setTimePeriod={setTimePeriod}
+                    customInstructions={customInstructions}
+                    setCustomInstructions={setCustomInstructions}
+                    daysError={daysError}
+                    timeError={timeError}
                 />
             );
         default:
