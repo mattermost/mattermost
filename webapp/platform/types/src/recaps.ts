@@ -39,3 +39,50 @@ export enum RecapStatus {
     FAILED = 'failed',
 }
 
+export type ScheduledRecap = {
+    id: string;
+    user_id: string;
+    title: string;
+
+    // Schedule configuration
+    days_of_week: number;      // Bitmask: Sun=1, Mon=2, Tue=4, Wed=8, Thu=16, Fri=32, Sat=64
+    time_of_day: string;       // HH:MM format
+    timezone: string;          // IANA timezone
+    time_period: string;       // "last_24h" | "last_week" | "since_last_read"
+
+    // Schedule state
+    next_run_at: number;       // UTC milliseconds
+    last_run_at: number;       // UTC milliseconds
+    run_count: number;
+
+    // Channel configuration
+    channel_mode: string;      // "specific" | "all_unreads"
+    channel_ids?: string[];    // Present when mode = "specific"
+
+    // AI configuration
+    custom_instructions?: string;
+    agent_id: string;
+
+    // Schedule type and state
+    is_recurring: boolean;
+    enabled: boolean;
+
+    // Timestamps
+    create_at: number;
+    update_at: number;
+    delete_at: number;
+};
+
+export type ScheduledRecapInput = {
+    title: string;
+    days_of_week: number;
+    time_of_day: string;
+    timezone: string;
+    time_period: string;
+    channel_mode: string;
+    channel_ids?: string[];
+    custom_instructions?: string;
+    agent_id: string;
+    is_recurring: boolean;
+};
+
