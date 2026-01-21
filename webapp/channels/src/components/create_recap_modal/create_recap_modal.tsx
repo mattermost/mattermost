@@ -245,7 +245,12 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
         } else if (currentStep === 2) {
             return selectedChannelIds.length > 0;
         } else if (currentStep === 3) {
-            return selectedChannelIds.length > 0 && selectedBotId.length > 0;
+            if (runOnce) {
+                // Run once summary step
+                return selectedChannelIds.length > 0 && selectedBotId.length > 0;
+            }
+            // Schedule configuration step
+            return daysOfWeek > 0 && timeOfDay.length > 0 && timePeriod.length > 0;
         }
         return false;
     };
@@ -329,7 +334,25 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
         }
     };
 
-    const confirmButtonText = currentStep === 3 ? formatMessage({id: 'recaps.modal.startRecap', defaultMessage: 'Start recap'}) : formatMessage({id: 'generic_modal.next', defaultMessage: 'Next'});
+    const getConfirmButtonText = () => {
+        const isFinalStep = currentStep === 3;
+
+        if (!isFinalStep) {
+            return formatMessage({id: 'generic_modal.next', defaultMessage: 'Next'});
+        }
+
+        if (runOnce) {
+            return formatMessage({id: 'recaps.modal.startRecap', defaultMessage: 'Start recap'});
+        }
+
+        if (isEditMode) {
+            return formatMessage({id: 'recaps.modal.saveChanges', defaultMessage: 'Save changes'});
+        }
+
+        return formatMessage({id: 'recaps.modal.createSchedule', defaultMessage: 'Create schedule'});
+    };
+
+    const confirmButtonText = getConfirmButtonText();
 
     const handleBotSelect = useCallback((botId: string) => {
         setSelectedBotId(botId);
@@ -341,7 +364,12 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
 
     const headerText = (
         <div className='create-recap-modal-header'>
-            <span>{formatMessage({id: 'recaps.modal.title', defaultMessage: 'Set up your recap'})}</span>
+            <span>
+                {isEditMode
+                    ? formatMessage({id: 'recaps.modal.titleEdit', defaultMessage: 'Edit your recap'})
+                    : formatMessage({id: 'recaps.modal.title', defaultMessage: 'Set up your recap'})
+                }
+            </span>
             <div className='create-recap-modal-header-actions'>
                 <AgentDropdown
                     showLabel={true}
