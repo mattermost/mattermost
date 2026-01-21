@@ -80,6 +80,9 @@ Overall:  [████████░░] ~79% (31/39 requirements)
 | XOR toggle for day selection | Clean bitmask state management | 05-02 |
 | Toggle placed at bottom of Step 1 with separator | Visual grouping for secondary options | 05-04 |
 | Toggle hidden in edit mode via isEditMode prop | Scheduled recaps cannot become run-once | 05-04 |
+| 30-minute time intervals in ScheduleConfiguration | Matches existing DateTimeInput pattern in codebase | 05-03 |
+| Client-side next run calculation | Provides immediate feedback as user selects days/time | 05-03 |
+| Use getCurrentTimezone/getCurrentTimezoneLabel selectors | Existing selectors for user timezone display | 05-03 |
 
 ### TODOs
 
