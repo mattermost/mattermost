@@ -1,6 +1,6 @@
 {
   "name": "@mattermost/playwright-lib",
-  "version": "11.3.0",
+  "version": "11.4.0",
   "description": "A comprehensive end-to-end testing library for Mattermost web, desktop and plugin applications using Playwright",
   "repository": {
     "type": "git",
@@ -45,10 +45,10 @@
     "@axe-core/playwright": "4.11.0",
     "@mattermost/client": "file:../../../webapp/platform/client",
     "@mattermost/types": "file:../../../webapp/platform/types",
-    "@percy/cli": "1.31.5",
+    "@percy/cli": "1.31.8",
     "@percy/playwright": "1.0.10",
     "async-wait-until": "2.0.31",
-    "axe-core": "4.11.0",
+    "axe-core": "4.11.1",
     "deepmerge": "4.3.1",
     "dotenv": "17.2.3",
     "mime-types": "3.0.2",
@@ -57,8 +57,8 @@
   "devDependencies": {
     "@rollup/plugin-typescript": "12.3.0",
     "@types/mime-types": "3.0.1",
-    "@types/node": "25.0.3",
-    "rollup": "4.53.5",
+    "@types/node": "25.0.9",
+    "rollup": "4.55.2",
     "rollup-plugin-copy": "3.5.0"
   },
   "peerDependencies": {
