@@ -244,6 +244,34 @@
                 }
             }
         }
+
+        // Run once toggle
+        .run-once-group {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+
+            .run-once-toggle {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+
+                .run-once-label {
+                    margin: 0;
+                    color: var(--center-channel-color);
+                    cursor: pointer;
+                    font-size: 14px;
+                    font-weight: 600;
+                }
+            }
+
+            .run-once-description {
+                margin-top: 4px;
+                margin-left: 52px; // Align with label (toggle width + gap)
+                color: rgba(var(--center-channel-color-rgb), 0.64);
+                font-size: 12px;
+            }
+        }
     }
 
     // Step Two Channel Selector Styles
