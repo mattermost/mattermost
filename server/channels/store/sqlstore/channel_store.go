@@ -3079,11 +3079,12 @@ func (s SqlChannelStore) Autocomplete(rctx request.CTX, userID, term string, inc
 		OrderBy("c.DisplayName").
 		Limit(model.ChannelSearchDefaultLimit)
 
+	// Always filter out soft-deleted team memberships - users removed from
+	// a team should not see channels from that team regardless of includeDeleted
+	query = query.Where(sq.Eq{"tm.DeleteAt": 0})
+
 	if !includeDeleted {
-		query = query.Where(sq.And{
-			sq.Eq{"c.DeleteAt": 0},
-			sq.Eq{"tm.DeleteAt": 0},
-		})
+		query = query.Where(sq.Eq{"c.DeleteAt": 0})
 	}
 
 	if isGuest {
