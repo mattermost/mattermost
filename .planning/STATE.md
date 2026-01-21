@@ -9,14 +9,14 @@
 ## Current Position
 
 **Phase:** 1 of 5 - Database Foundation
-**Plan:** 1 of 3 in current phase
+**Plan:** 2 of 3 in current phase
 **Status:** In progress
-**Last activity:** 2026-01-21 - Completed 01-01-PLAN.md
+**Last activity:** 2026-01-21 - Completed 01-02-PLAN.md
 
 **Progress:**
 ```
-Phase 1: [███░░░░░░░] 33% (1/3 plans)
-Overall:  [█░░░░░░░░░] ~10% (1/? plans)
+Phase 1: [██████░░░░] 67% (2/3 plans)
+Overall:  [██░░░░░░░░] ~20% (2/? plans)
 ```
 
 ## Phase Overview
@@ -31,9 +31,9 @@ Overall:  [█░░░░░░░░░] ~10% (1/? plans)
 
 ## Performance Metrics
 
-**Session:** 5 min (01-01)
-**Phase:** 5 min (1 plan complete)
-**Project:** 5 min
+**Session:** 5 min (01-02)
+**Phase:** 10 min (2 plans complete)
+**Project:** 10 min
 
 ## Accumulated Context
 
@@ -44,6 +44,9 @@ Overall:  [█░░░░░░░░░] ~10% (1/? plans)
 | IANA timezone strings over UTC offset | Go's time.LoadLocation handles DST automatically | 01-01 |
 | Bitmask for days of week | More efficient for DB queries than JSON array | 01-01 |
 | Go normalizes non-existent DST times to before-transition | Documented in tests, expected behavior | 01-01 |
+| Intermediate dbScheduledRecap struct for JSON unmarshal | ChannelIds stored as TEXT needs conversion | 01-02 |
+| GetDueBefore returns enabled, non-deleted only | Scheduler only needs actionable recaps | 01-02 |
+| MarkExecuted uses SQL expression for RunCount | Avoids race conditions on concurrent executions | 01-02 |
 
 ### TODOs
 
@@ -58,13 +61,13 @@ Overall:  [█░░░░░░░░░] ~10% (1/? plans)
 ### Last Session
 
 **Date:** 2026-01-21
-**Completed:** 01-01-PLAN.md (ScheduledRecap model + migration + tests)
-**Stopped at:** Ready for 01-02
+**Completed:** 01-02-PLAN.md (ScheduledRecapStore interface + SQL implementation + tests)
+**Stopped at:** Ready for 01-03
 
 ### Resume Point
 
-**Command:** `/gsd-execute-phase 01-02`
-**Context:** Ready for Plan 02 - Store layer implementation
+**Command:** `/gsd-execute-phase 01-03`
+**Context:** Ready for Plan 03 - Store mock regeneration (if needed)
 
 ---
 *State initialized: 2026-01-21*
