@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Recap} from '@mattermost/types/recaps';
+import type {Recap, ScheduledRecap} from '@mattermost/types/recaps';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {RecapTypes, UserTypes} from 'mattermost-redux/action_types';
@@ -9,11 +9,13 @@ import {RecapTypes, UserTypes} from 'mattermost-redux/action_types';
 export type RecapsState = {
     byId: Record<string, Recap>;
     allIds: string[];
+    scheduledRecaps: Record<string, ScheduledRecap>;
 };
 
 const initialState: RecapsState = {
     byId: {},
     allIds: [],
+    scheduledRecaps: {},
 };
 
 export default function recapsReducer(state = initialState, action: MMReduxAction): RecapsState {
@@ -56,6 +58,40 @@ export default function recapsReducer(state = initialState, action: MMReduxActio
         nextState.byId = newById;
         nextState.allIds = state.allIds.filter((id) => id !== recapId);
         return nextState;
+    }
+
+    // Scheduled Recap Actions
+    case RecapTypes.RECEIVED_SCHEDULED_RECAP: {
+        const recap = action.data as ScheduledRecap;
+        return {
+            ...state,
+            scheduledRecaps: {
+                ...state.scheduledRecaps,
+                [recap.id]: recap,
+            },
+        };
+    }
+
+    case RecapTypes.RECEIVED_SCHEDULED_RECAPS: {
+        const recaps = action.data as ScheduledRecap[];
+        const newScheduledRecaps = {...state.scheduledRecaps};
+        for (const recap of recaps) {
+            newScheduledRecaps[recap.id] = recap;
+        }
+        return {
+            ...state,
+            scheduledRecaps: newScheduledRecaps,
+        };
+    }
+
+    case RecapTypes.DELETE_SCHEDULED_RECAP_SUCCESS: {
+        const {id} = action.data as {id: string};
+        const newScheduledRecaps = {...state.scheduledRecaps};
+        delete newScheduledRecaps[id];
+        return {
+            ...state,
+            scheduledRecaps: newScheduledRecaps,
+        };
     }
 
     case UserTypes.LOGOUT_SUCCESS:
