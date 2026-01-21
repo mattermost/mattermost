@@ -247,10 +247,6 @@ func removeEmbeddedPostsFromMetadata(post *model.Post) {
 	post.Metadata.Embeds = newEmbeds
 }
 
-// SanitizePostMetadataForUser sanitizes both permalink embeds and channel mentions based on the viewer's permissions.
-// This prevents information disclosure about channels/teams the viewer doesn't have access to.
-// Returns (sanitizedPost, isMemberForPreviews, error) where isMemberForPreviews indicates if the user
-// is a member of the channel containing the previewed post (used for audit logging).
 func (a *App) SanitizePostMetadataForUser(rctx request.CTX, post *model.Post, userID string) (*model.Post, bool, *model.AppError) {
 	isMemberForPreviews := true
 

@@ -450,9 +450,6 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		a.SendEphemeralPost(rctx, post.UserId, ephemeralPost)
 	}
 
-	// Sanitize post metadata (both embeds and channel mentions) for the HTTP response
-	// This prevents information disclosure about channels/teams the creator doesn't have access to
-	// WebSocket recipients get additional per-recipient filtering via broadcast hook
 	rpost, isMemberForPreviews, err = a.SanitizePostMetadataForUser(rctx, rpost, rctx.Session().UserId)
 	if err != nil {
 		return nil, false, err
@@ -921,9 +918,6 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 
 	a.invalidateCacheForChannelPosts(rpost.ChannelId)
 
-	// Sanitize post metadata (both embeds and channel mentions) for the HTTP response
-	// This prevents information disclosure about channels/teams the updater doesn't have access to
-	// WebSocket recipients get additional per-recipient filtering via broadcast hook
 	userID := rctx.Session().UserId
 	sanitizedPost, isMemberForPreviews, appErr := a.SanitizePostMetadataForUser(rctx, rpost, userID)
 	if appErr != nil {
