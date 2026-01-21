@@ -99,6 +99,7 @@ type Store interface {
 	GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error)
 	ContentFlagging() ContentFlaggingStore
 	Recap() RecapStore
+	ScheduledRecap() ScheduledRecapStore
 	ReadReceipt() ReadReceiptStore
 	TemporaryPost() TemporaryPostStore
 }
@@ -1304,4 +1305,21 @@ type RecapStore interface {
 	DeleteRecapChannels(recapId string) error
 	SaveRecapChannel(recapChannel *model.RecapChannel) error
 	GetRecapChannelsByRecapId(recapId string) ([]*model.RecapChannel, error)
+}
+
+type ScheduledRecapStore interface {
+	// CRUD operations
+	Save(scheduledRecap *model.ScheduledRecap) (*model.ScheduledRecap, error)
+	Get(id string) (*model.ScheduledRecap, error)
+	Update(scheduledRecap *model.ScheduledRecap) (*model.ScheduledRecap, error)
+	Delete(id string) error // Soft delete (sets DeleteAt)
+
+	// Query operations
+	GetForUser(userId string, page, perPage int) ([]*model.ScheduledRecap, error)
+	GetDueBefore(timestamp int64, limit int) ([]*model.ScheduledRecap, error)
+
+	// State updates (efficient single-field updates)
+	UpdateNextRunAt(id string, nextRunAt int64) error
+	MarkExecuted(id string, lastRunAt int64, nextRunAt int64) error
+	SetEnabled(id string, enabled bool) error
 }
