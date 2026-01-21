@@ -77,9 +77,9 @@ func testAutoTranslationIsChannelEnabled(t *testing.T, rctx request.CTX, ss stor
 	})
 
 	t.Run("returns error for non-existent channel", func(t *testing.T) {
-		enabled, appErr := ss.AutoTranslation().IsChannelEnabled("nonexistent")
-		assert.NotNil(t, appErr)
-		assert.Equal(t, 404, appErr.StatusCode)
+		enabled, err := ss.AutoTranslation().IsChannelEnabled("nonexistent")
+		assert.Error(t, err)
+		assert.True(t, store.IsErrNotFound(err))
 		assert.False(t, enabled)
 	})
 }
@@ -146,9 +146,9 @@ func testAutoTranslationSetChannelEnabled(t *testing.T, rctx request.CTX, ss sto
 	})
 
 	t.Run("returns error for non-existent channel", func(t *testing.T) {
-		appErr := ss.AutoTranslation().SetChannelEnabled("nonexistent", true)
-		assert.NotNil(t, appErr)
-		assert.Equal(t, 404, appErr.StatusCode)
+		err := ss.AutoTranslation().SetChannelEnabled("nonexistent", true)
+		assert.Error(t, err)
+		assert.True(t, store.IsErrNotFound(err))
 	})
 }
 
@@ -304,9 +304,9 @@ func testAutoTranslationSetUserEnabled(t *testing.T, rctx request.CTX, ss store.
 	})
 
 	t.Run("returns error for non-existent user or channel", func(t *testing.T) {
-		appErr := ss.AutoTranslation().SetUserEnabled("nonexistent", channel.Id, true)
-		assert.NotNil(t, appErr)
-		assert.Equal(t, 404, appErr.StatusCode)
+		err := ss.AutoTranslation().SetUserEnabled("nonexistent", channel.Id, true)
+		assert.Error(t, err)
+		assert.True(t, store.IsErrNotFound(err))
 	})
 }
 
