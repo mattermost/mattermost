@@ -4,20 +4,20 @@
 
 **Core Value:** Users receive automated AI summaries of channel activity on their schedule
 
-**Current Focus:** Phase 2 - API Layer
+**Current Focus:** Phase 2 - API Layer (Complete)
 
 ## Current Position
 
 **Phase:** 2 of 5 - API Layer
-**Plan:** 1 of 2 in current phase
-**Status:** In progress
-**Last activity:** 2026-01-21 - Completed 02-01-PLAN.md
+**Plan:** 2 of 2 in current phase
+**Status:** Phase complete
+**Last activity:** 2026-01-21 - Completed 02-02-PLAN.md
 
 **Progress:**
 ```
 Phase 1: [██████████] 100% (2/2 plans) ✓
-Phase 2: [█████░░░░░] 50% (1/2 plans)
-Overall:  [███░░░░░░░] ~12% (4/39 requirements)
+Phase 2: [██████████] 100% (2/2 plans) ✓
+Overall:  [████░░░░░░] ~15% (5/39 requirements)
 ```
 
 ## Phase Overview
@@ -25,17 +25,17 @@ Overall:  [███░░░░░░░] ~12% (4/39 requirements)
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
 | 1 | Database Foundation | 3 | ✓ Complete |
-| 2 | API Layer | 5 | ⏳ Current |
+| 2 | API Layer | 5 | ✓ Complete |
 | 3 | Scheduler Integration | 3 | ⬜ Pending |
 | 4 | Scheduled Tab | 15 | ⬜ Pending |
 | 5 | Enhanced Wizard | 13 | ⬜ Pending |
 
 ## Performance Metrics
 
-**Session:** 17 min
+**Session:** 21 min
 **Phase 1:** 15 min (2 plans + verification)
-**Phase 2:** 2 min (1/2 plans complete)
-**Project:** 17 min
+**Phase 2:** 6 min (2 plans complete)
+**Project:** 21 min
 
 ## Accumulated Context
 
@@ -51,6 +51,9 @@ Overall:  [███░░░░░░░] ~12% (4/39 requirements)
 | MarkExecuted uses SQL expression for RunCount | Avoids race conditions on concurrent executions | 01-02 |
 | CreateScheduledRecap computes NextRunAt before save | Ensures schedule has valid future execution time | 02-01 |
 | ResumeScheduledRecap recomputes NextRunAt | Paused schedule may have stale NextRunAt | 02-01 |
+| Reuse requireRecapsEnabled from recap.go | Feature flag applies to scheduled recaps too | 02-02 |
+| Authorization via fetch-then-check pattern | Fetch record first, verify UserId matches session | 02-02 |
+| Update preserves immutable fields | CreateAt and UserId copied from existing record | 02-02 |
 
 ### TODOs
 
@@ -65,14 +68,14 @@ Overall:  [███░░░░░░░] ~12% (4/39 requirements)
 ### Last Session
 
 **Date:** 2026-01-21
-**Completed:** 02-01-PLAN.md (App layer CRUD methods)
-**Stopped at:** Ready for 02-02-PLAN.md
+**Completed:** 02-02-PLAN.md (API handlers for scheduled recaps)
+**Stopped at:** Phase 2 complete, ready for Phase 3
 
 ### Resume Point
 
-**Command:** `/gsd-execute-plan` or continue manually with 02-02-PLAN.md
-**Context:** App layer complete, ready for API endpoint implementation
+**Command:** `/gsd-execute-plan` or continue manually with 03-01-PLAN.md
+**Context:** API layer complete, ready for Scheduler Integration
 
 ---
 *State initialized: 2026-01-21*
-*Last updated: 2026-01-21 (02-01 complete)*
+*Last updated: 2026-01-21 (02-02 complete)*
