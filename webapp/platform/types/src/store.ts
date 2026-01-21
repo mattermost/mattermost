@@ -19,7 +19,7 @@ import type {JobsState} from './jobs';
 import type {LimitsState} from './limits';
 import type {PostsState} from './posts';
 import type {PreferenceType} from './preferences';
-import type {Recap} from './recaps';
+import type {Recap, ScheduledRecap} from './recaps';
 import type {
     AdminRequestsStatuses, ChannelsRequestsStatuses,
     FilesRequestsStatuses, GeneralRequestsStatuses,
@@ -49,6 +49,7 @@ export type GlobalState = {
         recaps: {
             byId: Record<string, Recap>;
             allIds: string[];
+            scheduledRecaps: Record<string, ScheduledRecap>;
         };
         agents: {
             agents: Array<{
