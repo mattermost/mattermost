@@ -1088,7 +1088,7 @@ func (a *App) setupBroadcastHookForChannelMentions(rctx request.CTX, post *model
 		return nil
 	}
 
-	// To remain secure by default, we wipe out the channel mentions unconditionally
+	// To remain secure by default, we wipe out the channel mentions
 	post.DelProp(model.PostPropsChannelMentions)
 	postWithoutChannelMentionsJSON, err := post.ToJSON()
 	if err != nil {

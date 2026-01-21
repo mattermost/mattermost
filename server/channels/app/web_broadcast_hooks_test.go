@@ -413,8 +413,8 @@ func TestChannelMentionsBroadcastHook(t *testing.T) {
 				{Type: model.PostEmbedPermalink, Data: model.NewPreviewPost(refPost, th.BasicTeam, th.BasicChannel)},
 			},
 		}
-		postWithMetadataJSON, err := postWithMetadata.ToJSON()
-		require.NoError(t, err)
+		postWithMetadataJSON, jsonErr := postWithMetadata.ToJSON()
+		require.NoError(t, jsonErr)
 
 		wsEventWithMeta := model.NewWebSocketEvent(model.WebsocketEventPosted, "", th.BasicPost.ChannelId, "", nil, "")
 		wsEventWithMeta.Add("post", postWithMetadataJSON)
