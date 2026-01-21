@@ -180,7 +180,13 @@ test(
         teamStatsHeading = systemConsolePage.page.getByText(`Team Statistics for ${team.display_name}`, {exact: true});
         await expect(teamStatsHeading).toBeVisible();
 
-        // Verify the user has no API access to the otherTeam.
-        await expect(systemManagerClient.getTeam(otherTeam.id)).rejects.toThrow();
-    },
-);
+    // Verify the user has no API access to the otherTeam.
+    let apiError: Error | null = null;
+    try {
+        await systemManagerClient.getTeam(otherTeam.id);
+    } catch (error) {
+        apiError = error as Error;
+    }
+    expect(apiError).not.toBeNull();
+    expect(apiError?.message).toContain('You do not have the appropriate permissions');
+});

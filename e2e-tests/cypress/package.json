@@ -69,7 +69,6 @@
     "mochawesome-merge": "4.4.1",
     "mochawesome-report-generator": "6.2.0",
     "moment-timezone": "0.6.0",
-    "mysql": "2.18.1",
     "path": "0.12.7",
     "pdf-parse": "1.1.1",
     "pg": "8.16.3",

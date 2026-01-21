@@ -16,13 +16,13 @@ import globalStore from 'stores/redux_store';
 import usePrefixedIds from 'components/common/hooks/usePrefixedIds';
 
 import {Constants} from 'utils/constants';
+import {getIntl} from 'utils/i18n';
 import * as UserAgent from 'utils/user_agent';
 
 import type {GlobalState} from 'types/store';
 
 import {AppCommandParser} from './app_command_parser/app_command_parser';
 import type {ExtendedAutocompleteSuggestion} from './app_command_parser/app_command_parser_dependencies';
-import {intlShim} from './app_command_parser/app_command_parser_dependencies';
 
 import Provider from '../provider';
 import type {ResultsCallback} from '../provider';
@@ -117,7 +117,7 @@ export default class CommandProvider extends Provider {
 
         this.store = globalStore;
         this.props = props;
-        this.appCommandParser = new AppCommandParser(this.store as any, intlShim, props.channelId, props.teamId, props.rootId);
+        this.appCommandParser = new AppCommandParser(this.store as any, getIntl(), props.channelId, props.teamId, props.rootId);
         this.triggerCharacter = '/';
     }
 
