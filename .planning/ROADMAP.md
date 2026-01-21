@@ -28,6 +28,11 @@ This roadmap delivers scheduled AI recaps through five phases: database foundati
 3. NextRunAt calculation handles DST transitions correctly (tested with March/November dates)
 4. Store layer has full test coverage for CRUD operations
 
+**Plans:** 2 plans
+Plans:
+- [ ] 01-01-PLAN.md — Model + migration (ScheduledRecap struct, NextRunAt computation, database table)
+- [ ] 01-02-PLAN.md — Store layer (ScheduledRecapStore interface, SQL implementation, tests)
+
 ---
 
 ## Phase 2: API Layer
@@ -136,7 +141,7 @@ This roadmap delivers scheduled AI recaps through five phases: database foundati
 
 | Phase | Status | Requirements | Completed |
 |-------|--------|--------------|-----------|
-| 1 - Database Foundation | Pending | 3 | 0 |
+| 1 - Database Foundation | Planning Complete | 3 | 0 |
 | 2 - API Layer | Pending | 5 | 0 |
 | 3 - Scheduler Integration | Pending | 3 | 0 |
 | 4 - Scheduled Tab | Pending | 15 | 0 |
