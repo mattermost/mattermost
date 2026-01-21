@@ -152,10 +152,10 @@ Plans:
 4. User can enter custom instructions and see them saved with the scheduled recap
 5. Wizard displays next run preview before user confirms creation
 
-**Plans:** 6 plans
+**Plans:** 6 plans (2/6 complete)
 Plans:
-- [ ] 05-01-PLAN.md — Redux actions for createScheduledRecap and updateScheduledRecap
-- [ ] 05-02-PLAN.md — DayOfWeekSelector component (bitmask day buttons)
+- [x] 05-01-PLAN.md — Redux actions for createScheduledRecap and updateScheduledRecap
+- [x] 05-02-PLAN.md — DayOfWeekSelector component (bitmask day buttons)
 - [ ] 05-03-PLAN.md — ScheduleConfiguration component (Step 3 with day/time/period/instructions)
 - [ ] 05-04-PLAN.md — Run once toggle on Step 1 (RecapConfiguration)
 - [ ] 05-05-PLAN.md — Modal integration (edit mode, schedule flow, submission)
@@ -171,9 +171,9 @@ Plans:
 | 2 - API Layer | ✓ Complete | 5 | 5 |
 | 3 - Scheduler Integration | ✓ Complete | 3 | 3 |
 | 4 - Scheduled Tab | ✓ Complete | 15 | 15 |
-| 5 - Enhanced Wizard | Pending | 13 | 0 |
+| 5 - Enhanced Wizard | 🔄 In Progress (2/6) | 13 | 0 |
 | **Total** | | **39** | **26** |
 
 ---
 *Roadmap created: 2026-01-21*
-*Last updated: 2026-01-21 (Phase 4 complete)*
+*Last updated: 2026-01-21 (Phase 5 plans 05-01, 05-02 complete)*

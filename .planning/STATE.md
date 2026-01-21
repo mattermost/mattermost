@@ -73,6 +73,8 @@ Overall:  [███████░░░] ~74% (28/39 requirements)
 | Run stats visible on hover | Reduces visual clutter while keeping info accessible | 04-03 |
 | Edit handler opens create modal | Pre-fill functionality deferred to Phase 5 | 04-04 |
 | Empty state with icon illustration | Simplified approach vs full illustration asset | 04-04 |
+| Follow existing action pattern for createScheduledRecap | Use same async thunk structure as pauseScheduledRecap | 05-01 |
+| Dispatch RECEIVED_SCHEDULED_RECAP on success | Leverages existing reducer for store updates | 05-01 |
 | Bitmask constants match server in DayOfWeekSelector | Sunday=1, Monday=2, etc. for direct API use | 05-02 |
 | Monday-first display order in day selector | More intuitive for work schedule UX | 05-02 |
 | XOR toggle for day selection | Clean bitmask state management | 05-02 |
