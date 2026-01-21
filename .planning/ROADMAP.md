@@ -115,6 +115,13 @@ Plans:
 4. User can click edit to open the wizard pre-filled with existing schedule configuration
 5. Scheduled recap list shows next run time, last run time, and total run count
 
+**Plans:** 4 plans
+Plans:
+- [ ] 04-01-PLAN.md — TypeScript types + Client4 API methods (ScheduledRecap type, 7 client methods)
+- [ ] 04-02-PLAN.md — Redux layer (action types, actions, reducer, selectors)
+- [ ] 04-03-PLAN.md — ScheduledRecapItem component (card UI with toggle, run stats, kebab menu)
+- [ ] 04-04-PLAN.md — Scheduled tab integration (tab UI, list, empty state)
+
 ---
 
 ## Phase 5: Frontend - Enhanced Wizard
@@ -154,10 +161,10 @@ Plans:
 | 1 - Database Foundation | ✓ Complete | 3 | 3 |
 | 2 - API Layer | ✓ Complete | 5 | 5 |
 | 3 - Scheduler Integration | Planned | 3 | 0 |
-| 4 - Scheduled Tab | Pending | 15 | 0 |
+| 4 - Scheduled Tab | Planned | 15 | 0 |
 | 5 - Enhanced Wizard | Pending | 13 | 0 |
 | **Total** | | **39** | **3** |
 
 ---
 *Roadmap created: 2026-01-21*
-*Last updated: 2026-01-21 (Phase 3 planned)*
+*Last updated: 2026-01-21 (Phase 4 planned)*
