@@ -523,6 +523,65 @@
             }
         }
     }
+
+    // Scheduled Recaps List Styles
+    .scheduled-recaps-list {
+        display: flex;
+        max-width: 966px;
+        flex-direction: column;
+        margin: 0 auto;
+        gap: 12px;
+    }
+
+    // Scheduled Recaps Empty State
+    .scheduled-recaps-empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        max-width: 400px;
+        padding: 80px 24px;
+        margin: 0 auto;
+        text-align: center;
+
+        .empty-state-illustration {
+            margin-bottom: 24px;
+
+            .illustration-icons {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 16px;
+
+                .icon {
+                    color: rgba(var(--center-channel-color-rgb), 0.48);
+                    font-size: 32px;
+                }
+            }
+        }
+
+        .empty-state-title {
+            margin: 0 0 8px;
+            color: var(--center-channel-color);
+            font-family: 'Metropolis', sans-serif;
+            font-size: 20px;
+            font-weight: 600;
+            line-height: 28px;
+        }
+
+        .empty-state-description {
+            margin: 0 0 24px;
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            font-size: 14px;
+            line-height: 20px;
+        }
+
+        .empty-state-cta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+    }
 }
 
 @keyframes spin {
