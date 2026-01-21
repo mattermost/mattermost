@@ -152,6 +152,15 @@ Plans:
 4. User can enter custom instructions and see them saved with the scheduled recap
 5. Wizard displays next run preview before user confirms creation
 
+**Plans:** 6 plans
+Plans:
+- [ ] 05-01-PLAN.md — Redux actions for createScheduledRecap and updateScheduledRecap
+- [ ] 05-02-PLAN.md — DayOfWeekSelector component (bitmask day buttons)
+- [ ] 05-03-PLAN.md — ScheduleConfiguration component (Step 3 with day/time/period/instructions)
+- [ ] 05-04-PLAN.md — Run once toggle on Step 1 (RecapConfiguration)
+- [ ] 05-05-PLAN.md — Modal integration (edit mode, schedule flow, submission)
+- [ ] 05-06-PLAN.md — Edit wiring (pass scheduled recap to modal from Scheduled tab)
+
 ---
 
 ## Progress
