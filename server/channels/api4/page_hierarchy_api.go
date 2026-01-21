@@ -72,7 +72,16 @@ func updatePageParent(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		// Extract wiki ID from the already-fetched parent page's Props
 		parentWikiId, ok := parentPage.Props()[model.PagePropsWikiID].(string)
-		if !ok || parentWikiId != c.Params.WikiId {
+		if !ok || parentWikiId == "" {
+			// Fallback: get wiki_id from PropertyValues (source of truth)
+			var wikiErr *model.AppError
+			parentWikiId, wikiErr = c.App.GetWikiIdForPage(c.AppContext, req.NewParentId)
+			if wikiErr != nil || parentWikiId == "" {
+				c.Err = model.NewAppError("updatePageParent", "api.wiki.page_wiki_not_set", nil, "", http.StatusBadRequest)
+				return
+			}
+		}
+		if parentWikiId != c.Params.WikiId {
 			c.Err = model.NewAppError("updatePageParent", "api.wiki.update_page_parent.parent_different_wiki", nil, "", http.StatusBadRequest)
 			return
 		}

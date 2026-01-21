@@ -915,9 +915,14 @@ func (c *Context) ValidatePageBelongsToWiki() (*app.Page, bool) {
 
 	pageWikiId, ok := page.Props()[model.PagePropsWikiID].(string)
 	if !ok || pageWikiId == "" {
-		c.Err = model.NewAppError("ValidatePageBelongsToWiki", "api.wiki.page_wiki_not_set",
-			nil, "", http.StatusBadRequest)
-		return nil, false
+		// Fallback: get wiki_id from PropertyValues (source of truth)
+		var wikiErr *model.AppError
+		pageWikiId, wikiErr = c.App.GetWikiIdForPage(c.AppContext, c.Params.PageId)
+		if wikiErr != nil || pageWikiId == "" {
+			c.Err = model.NewAppError("ValidatePageBelongsToWiki", "api.wiki.page_wiki_not_set",
+				nil, "", http.StatusBadRequest)
+			return nil, false
+		}
 	}
 
 	if pageWikiId != c.Params.WikiId {

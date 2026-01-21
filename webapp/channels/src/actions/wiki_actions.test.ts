@@ -44,7 +44,7 @@ describe('wiki_actions', () => {
             expect(mockFetchDrafts).toHaveBeenCalledWith('wiki1');
         });
 
-        it('should not fetch pages if cache is populated', async () => {
+        it('should always fetch pages even if cache is populated', async () => {
             const state = {
                 entities: {
                     wikiPages: {
@@ -68,11 +68,12 @@ describe('wiki_actions', () => {
 
             await testStore.dispatch(fetchWikiBundle('wiki1'));
 
-            expect(mockFetchPages).not.toHaveBeenCalled();
+            // Always fetch pages - WebSocket events can create partial cache entries
+            expect(mockFetchPages).toHaveBeenCalledWith('wiki1');
             expect(mockFetchDrafts).toHaveBeenCalledWith('wiki1');
         });
 
-        it('should handle empty wiki (cache with empty array)', async () => {
+        it('should always fetch pages even for empty wiki cache', async () => {
             const state = {
                 entities: {
                     wikiPages: {
@@ -93,7 +94,8 @@ describe('wiki_actions', () => {
 
             await testStore.dispatch(fetchWikiBundle('wiki1'));
 
-            expect(mockFetchPages).not.toHaveBeenCalled();
+            // Always fetch pages - cache might be from WebSocket partial update
+            expect(mockFetchPages).toHaveBeenCalledWith('wiki1');
             expect(mockFetchDrafts).toHaveBeenCalledWith('wiki1');
         });
 

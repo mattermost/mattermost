@@ -1055,7 +1055,7 @@ const TipTapEditor = ({
     // Expose AI tools handlers to parent component
     useEffect(() => {
         if (!onAIToolsReady) {
-            return;
+            return undefined;
         }
 
         if (isAIAvailable && editable && editor) {
@@ -1067,6 +1067,11 @@ const TipTapEditor = ({
         } else {
             onAIToolsReady(null);
         }
+
+        // Clear handlers when component unmounts (e.g., switching from EDIT to VIEW mode)
+        return () => {
+            onAIToolsReady(null);
+        };
     }, [onAIToolsReady, isAIAvailable, editable, editor, proofread, openTranslateModal, isProofreading, isTranslating]);
 
     useEffect(() => {

@@ -69,7 +69,16 @@ func getWikiPage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Validate page belongs to the wiki in URL (using already-fetched page)
 	pageWikiId, wikiIdOk := page.Props[model.PagePropsWikiID].(string)
-	if !wikiIdOk || pageWikiId != c.Params.WikiId {
+	if !wikiIdOk || pageWikiId == "" {
+		// Fallback: get wiki_id from PropertyValues (source of truth)
+		var wikiErr *model.AppError
+		pageWikiId, wikiErr = c.App.GetWikiIdForPage(c.AppContext, c.Params.PageId)
+		if wikiErr != nil || pageWikiId == "" {
+			c.Err = model.NewAppError("getWikiPage", "api.wiki.page_wiki_not_set", nil, "", http.StatusBadRequest)
+			return
+		}
+	}
+	if pageWikiId != c.Params.WikiId {
 		c.Err = model.NewAppError("getWikiPage", "api.wiki.page_wiki_mismatch", nil, "", http.StatusBadRequest)
 		return
 	}
@@ -128,7 +137,16 @@ func restorePage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Validate page belongs to this wiki
 	pageWikiId, ok := page.Props()[model.PagePropsWikiID].(string)
-	if !ok || pageWikiId != c.Params.WikiId {
+	if !ok || pageWikiId == "" {
+		// Fallback: get wiki_id from PropertyValues (source of truth)
+		var wikiErr *model.AppError
+		pageWikiId, wikiErr = c.App.GetWikiIdForPage(c.AppContext, c.Params.PageId)
+		if wikiErr != nil || pageWikiId == "" {
+			c.Err = model.NewAppError("restorePage", "api.wiki.page_wiki_not_set", nil, "", http.StatusBadRequest)
+			return
+		}
+	}
+	if pageWikiId != c.Params.WikiId {
 		c.Err = model.NewAppError("restorePage", "api.wiki.page_wiki_mismatch", nil, "", http.StatusBadRequest)
 		return
 	}
