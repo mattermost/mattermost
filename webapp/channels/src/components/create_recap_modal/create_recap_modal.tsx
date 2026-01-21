@@ -138,7 +138,8 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
     }, [currentStep, recapType]);
 
     const handleSubmit = useCallback(async () => {
-        if (selectedChannelIds.length === 0) {
+        // Validate channel selection for selected type
+        if (selectedChannelIds.length === 0 && recapType === 'selected') {
             setError(formatMessage({id: 'recaps.modal.error.noChannels', defaultMessage: 'Please select at least one channel.'}));
             return;
         }
@@ -152,18 +153,91 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
             return;
         }
 
+        // For scheduled recaps (not run once), validate schedule fields
+        if (!runOnce) {
+            if (daysOfWeek === 0) {
+                setDaysError(true);
+                setError(formatMessage({id: 'recaps.modal.error.noDays', defaultMessage: 'Please select at least one day.'}));
+                return;
+            }
+            if (!timeOfDay) {
+                setTimeError(true);
+                setError(formatMessage({id: 'recaps.modal.error.noTime', defaultMessage: 'Please select a time.'}));
+                return;
+            }
+        }
+
         setIsSubmitting(true);
         setError(null);
 
         try {
-            await dispatch(createRecap(recapName, selectedChannelIds, selectedBotId));
-            onExited();
-            history.push(`${url}/recaps`);
+            if (runOnce) {
+                // Run once: create immediate recap (existing behavior)
+                await dispatch(createRecap(recapName, selectedChannelIds, selectedBotId));
+                onExited();
+                history.push(`${url}/recaps`);
+            } else if (isEditMode && editScheduledRecap) {
+                // Edit mode: update existing scheduled recap
+                const input: ScheduledRecapInput = {
+                    title: recapName,
+                    days_of_week: daysOfWeek,
+                    time_of_day: timeOfDay,
+                    timezone: userTimezone || 'UTC',
+                    time_period: timePeriod,
+                    channel_mode: recapType === 'all_unreads' ? 'all_unreads' : 'specific',
+                    channel_ids: recapType === 'selected' ? selectedChannelIds : undefined,
+                    custom_instructions: customInstructions || undefined,
+                    agent_id: selectedBotId,
+                    is_recurring: true,
+                };
+                await dispatch(updateScheduledRecap(editScheduledRecap.id, input));
+                onExited();
+                history.push(`${url}/recaps?tab=scheduled`);
+            } else {
+                // Create new scheduled recap
+                const input: ScheduledRecapInput = {
+                    title: recapName,
+                    days_of_week: daysOfWeek,
+                    time_of_day: timeOfDay,
+                    timezone: userTimezone || 'UTC',
+                    time_period: timePeriod,
+                    channel_mode: recapType === 'all_unreads' ? 'all_unreads' : 'specific',
+                    channel_ids: recapType === 'selected' ? selectedChannelIds : undefined,
+                    custom_instructions: customInstructions || undefined,
+                    agent_id: selectedBotId,
+                    is_recurring: true,
+                };
+                await dispatch(createScheduledRecap(input));
+                onExited();
+                history.push(`${url}/recaps?tab=scheduled`);
+            }
         } catch (err) {
-            setError(formatMessage({id: 'recaps.modal.error.createFailed', defaultMessage: 'Failed to create recap. Please try again.'}));
+            const errorMsg = runOnce
+                ? formatMessage({id: 'recaps.modal.error.createFailed', defaultMessage: 'Failed to create recap. Please try again.'})
+                : formatMessage({id: 'recaps.modal.error.scheduleFailed', defaultMessage: 'Failed to save scheduled recap. Please try again.'});
+            setError(errorMsg);
             setIsSubmitting(false);
         }
-    }, [selectedChannelIds, currentUserId, selectedBotId, dispatch, onExited, history, url, formatMessage, recapName]);
+    }, [
+        selectedChannelIds,
+        currentUserId,
+        selectedBotId,
+        runOnce,
+        isEditMode,
+        editScheduledRecap,
+        daysOfWeek,
+        timeOfDay,
+        timePeriod,
+        customInstructions,
+        userTimezone,
+        recapName,
+        recapType,
+        dispatch,
+        onExited,
+        history,
+        url,
+        formatMessage,
+    ]);
 
     const canProceed = () => {
         if (currentStep === 1) {
