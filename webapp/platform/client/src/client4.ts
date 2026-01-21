@@ -3352,7 +3352,7 @@ export default class Client4 {
     createScheduledRecap = (input: ScheduledRecapInput) => {
         return this.doFetch<ScheduledRecap>(
             `${this.getScheduledRecapsRoute()}`,
-            {method: 'post', body: input},
+            {method: 'post', body: JSON.stringify(input)},
         );
     };
 
@@ -3373,7 +3373,7 @@ export default class Client4 {
     updateScheduledRecap = (id: string, input: ScheduledRecapInput) => {
         return this.doFetch<ScheduledRecap>(
             `${this.getScheduledRecapsRoute()}/${id}`,
-            {method: 'put', body: input},
+            {method: 'put', body: JSON.stringify(input)},
         );
     };
 
