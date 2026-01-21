@@ -9,14 +9,15 @@
 ## Current Position
 
 **Phase:** 2 of 5 - API Layer
-**Plan:** Not yet planned
-**Status:** Ready for planning
+**Plan:** 1 of 2 in current phase
+**Status:** In progress
+**Last activity:** 2026-01-21 - Completed 02-01-PLAN.md
 
 **Progress:**
 ```
 Phase 1: [██████████] 100% (2/2 plans) ✓
-Phase 2: [░░░░░░░░░░] 0% (0/? plans)
-Overall:  [██░░░░░░░░] ~8% (3/39 requirements)
+Phase 2: [█████░░░░░] 50% (1/2 plans)
+Overall:  [███░░░░░░░] ~12% (4/39 requirements)
 ```
 
 ## Phase Overview
@@ -31,9 +32,10 @@ Overall:  [██░░░░░░░░] ~8% (3/39 requirements)
 
 ## Performance Metrics
 
-**Session:** 15 min (Phase 1 execution)
+**Session:** 17 min
 **Phase 1:** 15 min (2 plans + verification)
-**Project:** 15 min
+**Phase 2:** 2 min (1/2 plans complete)
+**Project:** 17 min
 
 ## Accumulated Context
 
@@ -47,6 +49,8 @@ Overall:  [██░░░░░░░░] ~8% (3/39 requirements)
 | Intermediate dbScheduledRecap struct for JSON unmarshal | ChannelIds stored as TEXT needs conversion | 01-02 |
 | GetDueBefore returns enabled, non-deleted only | Scheduler only needs actionable recaps | 01-02 |
 | MarkExecuted uses SQL expression for RunCount | Avoids race conditions on concurrent executions | 01-02 |
+| CreateScheduledRecap computes NextRunAt before save | Ensures schedule has valid future execution time | 02-01 |
+| ResumeScheduledRecap recomputes NextRunAt | Paused schedule may have stale NextRunAt | 02-01 |
 
 ### TODOs
 
@@ -61,14 +65,14 @@ Overall:  [██░░░░░░░░] ~8% (3/39 requirements)
 ### Last Session
 
 **Date:** 2026-01-21
-**Completed:** Phase 1 - Database Foundation (2 plans + verification)
-**Stopped at:** Phase 1 complete, ready for Phase 2
+**Completed:** 02-01-PLAN.md (App layer CRUD methods)
+**Stopped at:** Ready for 02-02-PLAN.md
 
 ### Resume Point
 
-**Command:** `/gsd-plan-phase 2`
-**Context:** Ready to plan Phase 2 - API Layer
+**Command:** `/gsd-execute-plan` or continue manually with 02-02-PLAN.md
+**Context:** App layer complete, ready for API endpoint implementation
 
 ---
 *State initialized: 2026-01-21*
-*Last updated: 2026-01-21 (Phase 1 complete)*
+*Last updated: 2026-01-21 (02-01 complete)*
