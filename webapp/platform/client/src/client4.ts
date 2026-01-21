@@ -3348,6 +3348,56 @@ export default class Client4 {
         );
     };
 
+    // Scheduled Recaps Routes
+    createScheduledRecap = (input: ScheduledRecapInput) => {
+        return this.doFetch<ScheduledRecap>(
+            `${this.getScheduledRecapsRoute()}`,
+            {method: 'post', body: input},
+        );
+    };
+
+    getScheduledRecaps = (page = 0, perPage = PER_PAGE_DEFAULT) => {
+        return this.doFetch<ScheduledRecap[]>(
+            `${this.getScheduledRecapsRoute()}${buildQueryString({page, per_page: perPage})}`,
+            {method: 'get'},
+        );
+    };
+
+    getScheduledRecap = (id: string) => {
+        return this.doFetch<ScheduledRecap>(
+            `${this.getScheduledRecapsRoute()}/${id}`,
+            {method: 'get'},
+        );
+    };
+
+    updateScheduledRecap = (id: string, input: ScheduledRecapInput) => {
+        return this.doFetch<ScheduledRecap>(
+            `${this.getScheduledRecapsRoute()}/${id}`,
+            {method: 'put', body: input},
+        );
+    };
+
+    deleteScheduledRecap = (id: string) => {
+        return this.doFetch<void>(
+            `${this.getScheduledRecapsRoute()}/${id}`,
+            {method: 'delete'},
+        );
+    };
+
+    pauseScheduledRecap = (id: string) => {
+        return this.doFetch<ScheduledRecap>(
+            `${this.getScheduledRecapsRoute()}/${id}/pause`,
+            {method: 'post'},
+        );
+    };
+
+    resumeScheduledRecap = (id: string) => {
+        return this.doFetch<ScheduledRecap>(
+            `${this.getScheduledRecapsRoute()}/${id}/resume`,
+            {method: 'post'},
+        );
+    };
+
     // Admin Routes
 
     getLogs = (logFilter: LogFilterQuery) => {
