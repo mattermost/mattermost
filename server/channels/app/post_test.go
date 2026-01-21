@@ -5271,7 +5271,7 @@ func TestPostChannelMentionsWithPrivateChannels(t *testing.T) {
 		CreateAt:      0,
 	}
 
-	post, err = th.App.CreatePostAsUser(ctx, post, "", true)
+	post, _, err = th.App.CreatePostAsUser(ctx, post, "", true)
 	require.Nil(t, err)
 
 	mentions := post.GetProp(model.PostPropsChannelMentions)

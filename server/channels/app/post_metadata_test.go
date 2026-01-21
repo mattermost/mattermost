@@ -3195,7 +3195,7 @@ func TestSanitizeChannelMentionsForUser(t *testing.T) {
 			Message: "Regular post with no mentions",
 		}
 
-		result, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
+		result, _, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
 		require.Nil(t, err)
 		require.NotNil(t, result)
 		require.Nil(t, result.GetProp(model.PostPropsChannelMentions))
@@ -3230,7 +3230,7 @@ func TestSanitizeChannelMentionsForUser(t *testing.T) {
 			},
 		})
 
-		result, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
+		result, _, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
 		require.Nil(t, err)
 		require.NotNil(t, result)
 		// Should remove the mention since user can't access the team
@@ -3250,7 +3250,7 @@ func TestSanitizeChannelMentionsForUser(t *testing.T) {
 			},
 		})
 
-		result, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
+		result, _, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
 		require.Nil(t, err)
 		require.NotNil(t, result)
 
@@ -3275,7 +3275,7 @@ func TestSanitizeChannelMentionsForUser(t *testing.T) {
 			},
 		})
 
-		result, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
+		result, _, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
 		require.Nil(t, err)
 		require.NotNil(t, result)
 

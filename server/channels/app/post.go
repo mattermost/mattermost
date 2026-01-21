@@ -914,10 +914,7 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", rpost.ChannelId, "", nil, "")
 
-	// Clone the post before publishing to WebSocket to avoid modifying the post that will be returned
-	// publishWebsocketEventForPost modifies the post in-place to set up broadcast hooks
-	postForBroadcast := rpost.Clone()
-	appErr = a.publishWebsocketEventForPost(rctx, postForBroadcast, message)
+	appErr = a.publishWebsocketEventForPost(rctx, rpost, message)
 	if appErr != nil {
 		return nil, false, appErr
 	}
@@ -1075,7 +1072,7 @@ func (a *App) setupBroadcastHookForPermalink(rctx request.CTX, post *model.Post,
 		post.Metadata.Embeds = append(post.Metadata.Embeds, &model.PostEmbed{Type: model.PostEmbedPermalink, Data: permalinkPreviewedPost})
 	}
 
-	usePermalinkHook(message, post.UserId, permalinkPreviewedChannel, postJSON)
+	usePermalinkHook(message, permalinkPreviewedChannel, permalinkPreviewedPost, previewProp)
 	return nil
 }
 

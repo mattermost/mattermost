@@ -140,11 +140,11 @@ func (h *postedAckBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 	return nil
 }
 
-func usePermalinkHook(message *model.WebSocketEvent, authorID string, previewChannel *model.Channel, postJSON string) {
+func usePermalinkHook(message *model.WebSocketEvent, previewChannel *model.Channel, permalinkPreviewedPost *model.PreviewPost, previewProp string) {
 	message.GetBroadcast().AddHook(broadcastPermalink, map[string]any{
-		"author_id":       authorID,
-		"preview_channel": previewChannel,
-		"post_json":       postJSON,
+		"preview_channel":          previewChannel,
+		"permalink_previewed_post": permalinkPreviewedPost,
+		"preview_prop":             previewProp,
 	})
 }
 
@@ -158,8 +158,11 @@ func useBurnOnReadHook(message *model.WebSocketEvent, authorID string, revealedP
 
 type permalinkBroadcastHook struct{}
 
-// Process adds the post medata from usePermalinkHook to the websocket event
+// Process adds the post metadata from usePermalinkHook to the websocket event
 // if the user has access to the containing channel.
+// This hook reads from the current post in the message
+// (which may have been modified by other hooks)
+// and adds permalink metadata to it.
 func (h *permalinkBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
 	previewChannel, err := getTypedArg[*model.Channel](args, "preview_channel")
 	if err != nil {
@@ -174,12 +177,32 @@ func (h *permalinkBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 		return nil
 	}
 
-	// Else, we set the post with permalink preview.
-	postJSON, err := getTypedArg[string](args, "post_json")
+	// Get the current post from the message (may have been modified by other hooks)
+	post, err := getPostFromMessage(msg)
 	if err != nil {
-		return errors.Wrap(err, "Invalid post_json value passed to permalinkBroadcastHook")
+		return errors.Wrap(err, "permalinkBroadcastHook failed to get post from message")
 	}
-	msg.Add("post", postJSON)
+
+	// Add permalink metadata to the post
+	permalinkPreviewedPost, err := getTypedArg[*model.PreviewPost](args, "permalink_previewed_post")
+	if err != nil {
+		return errors.Wrap(err, "Invalid permalink_previewed_post value passed to permalinkBroadcastHook")
+	}
+
+	previewProp, err := getTypedArg[string](args, "preview_prop")
+	if err != nil {
+		return errors.Wrap(err, "Invalid preview_prop value passed to permalinkBroadcastHook")
+	}
+
+	post.AddProp(model.PostPropsPreviewedPost, previewProp)
+	post.Metadata.Embeds = append(post.Metadata.Embeds, &model.PostEmbed{Type: model.PostEmbedPermalink, Data: permalinkPreviewedPost})
+
+	// Marshal and write back
+	updatedPostJSON, err := post.ToJSON()
+	if err != nil {
+		return errors.Wrap(err, "Failed to marshal post in permalinkBroadcastHook")
+	}
+	msg.Add("post", updatedPostJSON)
 
 	auditRec := webConn.Suite.MakeAuditRecord(rctx, model.AuditEventWebsocketPost, model.AuditStatusSuccess)
 	defer webConn.Suite.LogAuditRec(rctx, auditRec, nil)
@@ -217,15 +240,9 @@ func (h *channelMentionsBroadcastHook) Process(msg *platform.HookedWebSocketEven
 	}
 
 	// Get the current post from the message (might have been modified by other hooks like permalink)
-	currentPostJSON, ok := msg.Get("post").(string)
-	if !ok {
-		return errors.New("No post found in message for channelMentionsBroadcastHook")
-	}
-
-	var post model.Post
-	err = json.Unmarshal([]byte(currentPostJSON), &post)
+	post, err := getPostFromMessage(msg)
 	if err != nil {
-		return errors.Wrap(err, "Invalid post value in message for channelMentionsBroadcastHook")
+		return errors.Wrap(err, "channelMentionsBroadcastHook failed to get post from message")
 	}
 
 	// Filter channel mentions based on recipient's permissions
@@ -251,7 +268,8 @@ func (h *channelMentionsBroadcastHook) Process(msg *platform.HookedWebSocketEven
 			continue
 		}
 
-		if webConn.Suite.HasPermissionToReadChannel(rctx, webConn.UserId, channel) {
+		hasPermission, _ := webConn.Suite.HasPermissionToReadChannel(rctx, webConn.UserId, channel)
+		if hasPermission {
 			filteredMentions[channelName] = channelInfo
 		}
 	}
@@ -366,6 +384,28 @@ func incrementWebsocketCounter(wc *platform.WebConn) {
 	}
 
 	wc.Platform.Metrics().IncrementNotificationCounter(model.NotificationTypeWebsocket, model.NotificationNoPlatform)
+}
+
+// getPostFromMessage extracts and unmarshals the current post from the WebSocket message.
+// This is used by hooks that need to read and modify the post in the message.
+func getPostFromMessage(msg *platform.HookedWebSocketEvent) (*model.Post, error) {
+	currentPostData := msg.Get("post")
+	if currentPostData == nil {
+		return nil, errors.New("No post found in message")
+	}
+
+	currentPostJSON, ok := currentPostData.(string)
+	if !ok {
+		return nil, errors.New("Invalid post type in message")
+	}
+
+	var post model.Post
+	err := json.Unmarshal([]byte(currentPostJSON), &post)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to unmarshal post")
+	}
+
+	return &post, nil
 }
 
 // getTypedArg returns a correctly typed hook argument with the given key, reinterpreting the type using JSON encoding
