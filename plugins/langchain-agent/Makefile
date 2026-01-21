@@ -34,13 +34,13 @@ install:
 ## Packages plugin into tar.gz for upload to Mattermost
 dist: clean
 	@echo "Packaging plugin as $(BUNDLE_NAME)..."
-	@mkdir -p dist/server
+	@mkdir -p dist
 	@cp plugin.json dist/
-	@cp plugin.py dist/server/
-	@cp requirements.txt dist/server/
+	@cp plugin.py dist/
+	@cp requirements.txt dist/
 	@# Include SDK as vendored dependency (optional - comment out if server has SDK installed)
 	@if [ -d "$(SDK_DIR)/src/mattermost_plugin" ]; then \
-		cp -r $(SDK_DIR)/src/mattermost_plugin dist/server/; \
+		cp -r $(SDK_DIR)/src/mattermost_plugin dist/; \
 	fi
 	@cd dist && tar -czf ../$(BUNDLE_NAME) .
 	@rm -rf dist
@@ -50,10 +50,10 @@ dist: clean
 ## Creates distribution without vendored SDK (server must have SDK installed)
 dist-minimal:
 	@echo "Packaging minimal plugin (no vendored SDK)..."
-	@mkdir -p dist/server
+	@mkdir -p dist
 	@cp plugin.json dist/
-	@cp plugin.py dist/server/
-	@cp requirements.txt dist/server/
+	@cp plugin.py dist/
+	@cp requirements.txt dist/
 	@cd dist && tar -czf ../$(BUNDLE_NAME) .
 	@rm -rf dist
 	@echo "Created $(BUNDLE_NAME) (minimal - requires SDK on server)"

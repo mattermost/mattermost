@@ -45,13 +45,19 @@ None — v1.0 complete
 
 ## Current State
 
-**Version:** v1.0 Python Plugin Support (shipped 2026-01-20)
+**Version:** v1.1 LangChain Agent Demo (shipped 2026-01-20)
+
+**Shipped Versions:**
+- v1.0: Python Plugin Support (2026-01-20) — 236 API methods, 35+ hooks, full parity with Go
+- v1.1: LangChain Agent Demo (2026-01-20) — Dual LLM bots, threading history, MCP client, agentic loops
 
 **Tech Stack:**
 - Go gRPC server: ~70k LOC (proto definitions + handlers + converters)
 - Python SDK: ~31k LOC (typed client, hooks, wrappers)
+- Python Agent Demo: ~200 LOC (LangChain agent with MCP integration)
 - Protocol: gRPC with Protocol Buffers v3
 - Integration: hashicorp/go-plugin with custom PluginHooks service
+- Ecosystem: LangChain 0.1+, Anthropic SDK, OpenAI SDK, MCP client library
 
 **Architecture:**
 ```
@@ -106,6 +112,11 @@ Mattermost Server
 | 64KB chunks for HTTP streaming | Balances latency vs overhead | ✓ Good |
 | hooksGRPCClient adapter | Implements Hooks interface, mirrors hooksRPCClient pattern | ✓ Good |
 | Separate API callback server | Breaks import cycle, clean lifecycle management | ✓ Good |
+| Bot membership lookup for DM routing | More reliable than parsing channel name | ✓ Good |
+| LangChain message types for prompts | Provider-agnostic SystemMessage/HumanMessage format | ✓ Good |
+| Thread-based conversation history | Use get_post_thread to fetch context, map to HumanMessage/AIMessage | ✓ Good |
+| Graceful fallback without MCP | Falls back to basic model.invoke() when tools unavailable | ✓ Good |
+| Tenacity retry for transient errors only | ConnectionError/TimeoutError benefit from retry; others fail fast | ✓ Good |
 
 ---
-*Last updated: 2026-01-20 after v1.0 milestone*
+*Last updated: 2026-01-20 after v1.1 milestone completion*

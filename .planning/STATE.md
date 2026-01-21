@@ -5,16 +5,15 @@
 See: .planning/PROJECT.md (updated 2026-01-20)
 
 **Core value:** Full API coverage: every API method and hook available to Go plugins must work identically from Python plugins.
-**Current focus:** v1.1 LangChain Agent Demo — Demonstrate Python ecosystem advantages
+**Current focus:** Ready for v1.2 planning — Additional language support and production hardening
 
 ## Current Position
 
-Phase: 18 of 18 (Agentic Loop)
-Plan: 1 of 1 complete
-Status: Phase 18 complete, v1.1 milestone complete
-Last activity: 2026-01-20 — Completed 18-01-PLAN.md (Agentic Loop Enhancements)
+Phase: 18 of 18 (milestone v1.1 complete)
+Status: Ready to plan v1.2
+Last activity: 2026-01-20 — v1.1 milestone complete, archived
 
-Progress: ██████████ 100% (5/5 phases complete)
+Progress: ██████████ 100% (v1.0 + v1.1 both shipped)
 
 ## Performance Metrics
 
@@ -88,15 +87,18 @@ Resume file: None
 
 ## Next Steps
 
-**v1.1 Milestone Complete**
+**v1.1 Milestone Shipped & Archived**
 
-The LangChain Agent Demo is fully implemented with:
-- Dual AI bots (OpenAI + Anthropic)
-- LangChain integration with conversation history
-- MCP client for external tool access
-- Agentic loop with recursion limit, extended thinking, and retry logic
+Completed:
+- ✅ v1.0: Full Python plugin support (236 API methods, 35+ hooks)
+- ✅ v1.1: LangChain agent demo (dual LLMs, threading history, MCP, agentic loops)
+- ✅ Milestones archived: `milestones/v1.0-ROADMAP.md`, `milestones/v1.1-ROADMAP.md`
+- ✅ Both versions tagged in git
 
-Options:
-- Test the plugin end-to-end with a running Mattermost server
-- Create documentation for plugin users
-- Plan v1.2 milestone with additional features
+Options for v1.2:
+- Production hardening (rate limiting, error recovery, monitoring)
+- Additional language support (Java, Node.js, Go improvement)
+- Performance optimization (gRPC streaming improvements, caching)
+- Extended plugin capabilities (database access, webhooks, marketplace)
+
+Start next milestone: `/gsd-new-milestone`
