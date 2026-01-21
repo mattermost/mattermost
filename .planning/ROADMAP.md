@@ -30,7 +30,7 @@ This roadmap delivers scheduled AI recaps through five phases: database foundati
 
 **Plans:** 2 plans
 Plans:
-- [ ] 01-01-PLAN.md — Model + migration (ScheduledRecap struct, NextRunAt computation, database table)
+- [x] 01-01-PLAN.md — Model + migration (ScheduledRecap struct, NextRunAt computation, database table)
 - [ ] 01-02-PLAN.md — Store layer (ScheduledRecapStore interface, SQL implementation, tests)
 
 ---
@@ -141,13 +141,13 @@ Plans:
 
 | Phase | Status | Requirements | Completed |
 |-------|--------|--------------|-----------|
-| 1 - Database Foundation | Planning Complete | 3 | 0 |
+| 1 - Database Foundation | In Progress (1/2 plans) | 3 | 1 |
 | 2 - API Layer | Pending | 5 | 0 |
 | 3 - Scheduler Integration | Pending | 3 | 0 |
 | 4 - Scheduled Tab | Pending | 15 | 0 |
 | 5 - Enhanced Wizard | Pending | 13 | 0 |
-| **Total** | | **39** | **0** |
+| **Total** | | **39** | **1** |
 
 ---
 *Roadmap created: 2026-01-21*
-*Last updated: 2026-01-21*
+*Last updated: 2026-01-21 (01-01 complete)*
