@@ -7,6 +7,7 @@ import type {
     NameMappedPropertyFields,
     PropertyValue,
 } from './properties';
+import type {Team} from './teams';
 
 export type ContentFlaggingEvent = 'flagged' | 'assigned' | 'removed' | 'dismissed';
 
@@ -26,6 +27,7 @@ export type ContentFlaggingState = {
     postValues?: {[key: Post['id']]: Array<PropertyValue<unknown>>};
     flaggedPosts?: {[key: Post['id']]: Post};
     channels?: {[key: Channel['id']]: Channel};
+    teams?: {[key: Team['id']]: Team};
 };
 
 export enum ContentFlaggingStatus {

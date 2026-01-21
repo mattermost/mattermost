@@ -3,7 +3,7 @@
 
 import type {GlobalState} from '@mattermost/types/store';
 
-import type {ContentFlaggingChannelRequestIdentifier} from 'mattermost-redux/actions/content_flagging';
+import type {ContentFlaggingChannelRequestIdentifier, ContentFlaggingTeamRequestIdentifier} from 'mattermost-redux/actions/content_flagging';
 import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 
 export const contentFlaggingFeatureEnabled = (state: GlobalState): boolean => {
@@ -46,3 +46,15 @@ export const getContentFlaggingChannel = (state: GlobalState, {channelId}: Conte
     return state.entities.contentFlagging.channels?.[channelId];
 };
 
+export const getContentFlaggingTeam = (state: GlobalState, {teamId}: ContentFlaggingTeamRequestIdentifier) => {
+    if (!teamId) {
+        return undefined;
+    }
+
+    const team = state.entities.teams.teams[teamId];
+    if (team) {
+        return team;
+    }
+
+    return state.entities.contentFlagging.teams?.[teamId];
+};

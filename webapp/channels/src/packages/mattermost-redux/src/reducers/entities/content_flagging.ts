@@ -98,10 +98,24 @@ function channels(state: ContentFlaggingState['channels'] = {}, action: MMReduxA
     }
 }
 
+function teams(state: ContentFlaggingState['teams'] = {}, action: MMReduxAction) {
+    switch (action.type) {
+    case ContentFlaggingTypes.RECEIVED_CONTENT_FLAGGING_TEAM: {
+        return {
+            ...state,
+            [action.data.id]: action.data,
+        };
+    }
+    default:
+        return state;
+    }
+}
+
 export default combineReducers({
     settings,
     fields,
     postValues,
     flaggedPosts,
     channels,
+    teams,
 });

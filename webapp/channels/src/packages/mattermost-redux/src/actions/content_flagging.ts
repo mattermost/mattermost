@@ -5,6 +5,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {ContentFlaggingConfig} from '@mattermost/types/content_flagging';
 import type {Post} from '@mattermost/types/posts';
 import type {NameMappedPropertyFields, PropertyValue} from '@mattermost/types/properties';
+import type {Team} from '@mattermost/types/teams';
 
 import {TeamTypes, ContentFlaggingTypes} from 'mattermost-redux/action_types';
 import {logError} from 'mattermost-redux/actions/errors';
@@ -18,8 +19,17 @@ export type ContentFlaggingChannelRequestIdentifier = {
     flaggedPostId?: string;
 }
 
-function contentFlaggingChannelIdentifierComparator(a: ContentFlaggingChannelRequestIdentifier, b: ContentFlaggingChannelRequestIdentifier) {
+export type ContentFlaggingTeamRequestIdentifier = {
+    teamId?: string;
+    flaggedPostId?: string;
+}
+
+function channelComparator(a: ContentFlaggingChannelRequestIdentifier, b: ContentFlaggingChannelRequestIdentifier) {
     return a.channelId === b.channelId;
+}
+
+function teamComparator(a: ContentFlaggingTeamRequestIdentifier, b: ContentFlaggingTeamRequestIdentifier) {
+    return a.teamId === b.teamId;
 }
 
 export function getTeamContentFlaggingStatus(teamId: string): ActionFuncAsync<{enabled: boolean}> {
@@ -175,12 +185,56 @@ export function loadContentFlaggingChannel(identifier: ContentFlaggingChannelReq
                     },
                     maxBatchSize: 1,
                     wait: 200,
-                    comparator: contentFlaggingChannelIdentifierComparator,
+                    comparator: channelComparator,
                 });
         }
 
-        const loader =
-            loaders.contentFlaggingChannelLoader as DelayedDataLoader<ContentFlaggingChannelRequestIdentifier>;
+        const loader = loaders.contentFlaggingChannelLoader as DelayedDataLoader<ContentFlaggingChannelRequestIdentifier>;
+        loader.queue([identifier]);
+
+        return {};
+    };
+}
+
+function getContentFlaggingTeam(teamId: string, flaggedPostId: string): ActionFuncAsync<Team> {
+    return async (dispatch, getState) => {
+        let data;
+        try {
+            data = await Client4.getTeam(teamId, true, flaggedPostId);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch({
+            type: ContentFlaggingTypes.RECEIVED_CONTENT_FLAGGING_TEAM,
+            data,
+        });
+
+        return {data};
+    };
+}
+
+export function loadContentFlaggingTeam(identifier: ContentFlaggingTeamRequestIdentifier): ActionFuncAsync<Team> {
+    return async (dispatch, getState, {loaders}: any) => {
+        if (!loaders.contentFlaggingTeamLoader) {
+            loaders.contentFlaggingTeamLoader =
+                new DelayedDataLoader<ContentFlaggingTeamRequestIdentifier>({
+                    fetchBatch: ([{flaggedPostId, teamId}]) => {
+                        if (teamId && flaggedPostId) {
+                            return dispatch(getContentFlaggingTeam(teamId, flaggedPostId));
+                        }
+
+                        return Promise.resolve(null);
+                    },
+                    maxBatchSize: 1,
+                    wait: 200,
+                    comparator: teamComparator,
+                });
+        }
+
+        const loader = loaders.contentFlaggingTeamLoader as DelayedDataLoader<ContentFlaggingTeamRequestIdentifier>;
         loader.queue([identifier]);
 
         return {};

@@ -3,13 +3,22 @@
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
+import type {Team} from '@mattermost/types/teams';
 
-import type {ContentFlaggingChannelRequestIdentifier} from 'mattermost-redux/actions/content_flagging';
+import type {
+    ContentFlaggingChannelRequestIdentifier,
+    ContentFlaggingTeamRequestIdentifier,
+} from 'mattermost-redux/actions/content_flagging';
 import {
+    loadContentFlaggingTeam,
     loadContentFlaggingChannel,
     loadFlaggedPost,
 } from 'mattermost-redux/actions/content_flagging';
-import {getContentFlaggingChannel, getFlaggedPost} from 'mattermost-redux/selectors/entities/content_flagging';
+import {
+    getContentFlaggingChannel,
+    getContentFlaggingTeam,
+    getFlaggedPost,
+} from 'mattermost-redux/selectors/entities/content_flagging';
 
 import {makeUseEntity} from 'components/common/hooks/useEntity';
 
@@ -23,4 +32,10 @@ export const useGetContentFlaggingChannel = makeUseEntity<Channel | undefined, C
     name: 'useGetContentFlaggingChannel',
     fetch: loadContentFlaggingChannel,
     selector: getContentFlaggingChannel,
+});
+
+export const useGetContentFlaggingTeam = makeUseEntity<Team | undefined, ContentFlaggingTeamRequestIdentifier>({
+    name: 'useGetContentFlaggingTeam',
+    fetch: loadContentFlaggingTeam,
+    selector: getContentFlaggingTeam,
 });

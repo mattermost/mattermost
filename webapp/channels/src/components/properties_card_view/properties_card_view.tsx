@@ -22,7 +22,7 @@ export type PostPreviewFieldMetadata = {
     post?: Post;
     fetchDeletedPost?: boolean;
     channel?: Channel;
-    getTeam?: (teamId: string) => Promise<Team>;
+    team?: Team;
     generateFileDownloadUrl?: (fileId: string) => string;
 };
 
@@ -40,7 +40,7 @@ export type ChannelFieldMetadata = {
 };
 
 export type TeamFieldMetadata = {
-    getTeam?: (teamId: string) => Promise<Team>;
+    team?: Team;
 };
 
 export type FieldMetadata = PostPreviewFieldMetadata | TextFieldMetadata | UserPropertyMetadata | ChannelFieldMetadata | TeamFieldMetadata;

@@ -12,7 +12,7 @@ import {Client4} from 'mattermost-redux/client';
 import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
 
 import AtMention from 'components/at_mention';
-import {useGetContentFlaggingChannel, useGetFlaggedPost} from 'components/common/hooks/content_flagging';
+import {useGetContentFlaggingChannel, useGetContentFlaggingTeam, useGetFlaggedPost} from 'components/common/hooks/content_flagging';
 import {useContentFlaggingFields, usePostContentFlaggingValues} from 'components/common/hooks/useContentFlaggingFields';
 import {useUser} from 'components/common/hooks/useUser';
 import DataSpillageAction from 'components/post_view/data_spillage_report/data_spillage_actions/data_spillage_actions';
@@ -66,6 +66,7 @@ export function DataSpillageReport({post, isRHS}: Props) {
 
     const reportedPost = useGetFlaggedPost(reportedPostId);
     const channel = useGetContentFlaggingChannel({flaggedPostId: reportedPostId, channelId: reportedPost?.channel_id});
+    const team = useGetContentFlaggingTeam({flaggedPostId: reportedPostId, teamId: channel?.team_id});
 
     const propertyFields = useMemo((): NameMappedPropertyFields => {
         if (!naturalPropertyFields || !Object.keys(naturalPropertyFields).length) {
@@ -113,14 +114,18 @@ export function DataSpillageReport({post, isRHS}: Props) {
                 post: reportedPost,
                 fetchDeletedPost: true,
                 channel,
-                getTeam: getTeam(reportedPostId),
-                generateFileDownloadUrl: generateFileDownloadUrl(reportedPostId),
+                team,
+                generateFileDownloadUrl:
+                    generateFileDownloadUrl(reportedPostId),
             },
             reporting_comment: {
-                placeholder: formatMessage({id: 'data_spillage_report_post.reporting_comment.placeholder', defaultMessage: 'No comment'}),
+                placeholder: formatMessage({
+                    id: 'data_spillage_report_post.reporting_comment.placeholder',
+                    defaultMessage: 'No comment',
+                }),
             },
             team: {
-                getTeam: getTeam(reportedPostId),
+                team,
             },
             channel: {
                 channel,
@@ -197,12 +202,6 @@ function getSearchContentReviewersFunction(teamId: string) {
 function saveReviewerSelection(flaggedPostId: string) {
     return (userId: string) => {
         return Client4.setContentFlaggingReviewer(flaggedPostId, userId);
-    };
-}
-
-function getTeam(flaggedPostId: string) {
-    return (teamId: string) => {
-        return Client4.getTeam(teamId, true, flaggedPostId);
     };
 }
 
