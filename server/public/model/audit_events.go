@@ -285,6 +285,17 @@ const (
 	AuditEventDeleteRecap     = "deleteRecap"     // delete recap
 )
 
+// Scheduled Recaps
+const (
+	AuditEventCreateScheduledRecap = "createScheduledRecap" // create scheduled recap configuration
+	AuditEventGetScheduledRecap    = "getScheduledRecap"    // view a single scheduled recap
+	AuditEventGetScheduledRecaps   = "getScheduledRecaps"   // list user's scheduled recaps
+	AuditEventUpdateScheduledRecap = "updateScheduledRecap" // update scheduled recap configuration
+	AuditEventDeleteScheduledRecap = "deleteScheduledRecap" // delete scheduled recap
+	AuditEventPauseScheduledRecap  = "pauseScheduledRecap"  // pause scheduled recap execution
+	AuditEventResumeScheduledRecap = "resumeScheduledRecap" // resume paused scheduled recap
+)
+
 // Preferences
 const (
 	AuditEventDeletePreferences = "deletePreferences" // delete user preferences
