@@ -1,0 +1,104 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.scheduled-recap-item {
+    padding: 16px 24px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+    border-radius: var(--radius-s);
+    background-color: var(--center-channel-bg);
+    transition: all 0.2s;
+
+    &:hover {
+        background-color: rgba(var(--center-channel-color-rgb), 0.04);
+    }
+
+    .scheduled-recap-item-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+    }
+
+    .scheduled-recap-item-main {
+        min-width: 0;
+        flex: 1;
+    }
+
+    .scheduled-recap-item-title {
+        margin: 0 0 4px;
+        color: var(--center-channel-color);
+        font-family: 'Metropolis', sans-serif;
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 24px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .scheduled-recap-item-subtitle {
+        display: flex;
+        align-items: center;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 12px;
+        gap: 6px;
+        line-height: 16px;
+
+        .metadata-separator {
+            color: rgba(var(--center-channel-color-rgb), 0.40);
+        }
+
+        .next-run {
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+        }
+    }
+
+    .scheduled-recap-item-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .scheduled-recap-run-stats {
+        display: flex;
+        align-items: center;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 11px;
+        gap: 6px;
+        opacity: 0;
+        transition: opacity 0.2s;
+
+        &.visible {
+            opacity: 1;
+        }
+
+        .metadata-separator {
+            color: rgba(var(--center-channel-color-rgb), 0.32);
+        }
+    }
+
+    .scheduled-recap-toggle {
+        .btn-toggle {
+            min-width: 72px;
+        }
+    }
+
+    .scheduled-recap-menu-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        padding: 0;
+        border: none;
+        border-radius: var(--radius-s);
+        background: none;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        cursor: pointer;
+
+        &:hover {
+            background-color: rgba(var(--center-channel-color-rgb), 0.08);
+            color: var(--center-channel-color);
+        }
+    }
+}
