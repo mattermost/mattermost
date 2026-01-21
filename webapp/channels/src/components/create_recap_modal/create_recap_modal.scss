@@ -385,5 +385,53 @@
             }
         }
     }
+
+    // Day of Week Selector Styles
+    .day-of-week-selector {
+        display: flex;
+        gap: 8px;
+
+        &.error {
+            .day-button:not(.selected) {
+                border-color: var(--error-text);
+            }
+        }
+
+        .day-button {
+            display: flex;
+            width: 40px;
+            height: 40px;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+            border-radius: 4px;
+            background-color: var(--center-channel-bg);
+            color: var(--center-channel-color);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.15s ease;
+
+            &:hover:not(.disabled) {
+                background-color: rgba(var(--center-channel-color-rgb), 0.04);
+                border-color: rgba(var(--center-channel-color-rgb), 0.32);
+            }
+
+            &.selected {
+                border-color: var(--button-bg);
+                background-color: var(--button-bg);
+                color: var(--button-color);
+
+                &:hover:not(.disabled) {
+                    background-color: var(--button-bg-hover, var(--button-bg));
+                }
+            }
+
+            &.disabled {
+                cursor: not-allowed;
+                opacity: 0.5;
+            }
+        }
+    }
 }
 
