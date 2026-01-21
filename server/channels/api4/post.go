@@ -268,13 +268,20 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			UserId:                   c.AppContext.Session().UserId,
 		}
 		if c.App.AutoTranslation() != nil && c.App.AutoTranslation().IsFeatureAvailable() {
-			options.AutotranslationEnabled = true
-			user, getUserErr := c.App.GetUser(c.AppContext.Session().UserId)
-			if getUserErr != nil {
-				c.Err = getUserErr
+			member, err := c.App.GetChannelMember(c.AppContext, channelId, c.AppContext.Session().UserId)
+			if err != nil {
+				c.Err = err
 				return
 			}
-			options.Language = user.Locale
+			if member.AutoTranslation {
+				options.AutotranslationEnabled = true
+				user, getUserErr := c.App.GetUser(c.AppContext.Session().UserId)
+				if getUserErr != nil {
+					c.Err = getUserErr
+					return
+				}
+				options.Language = user.Locale
+			}
 		}
 		list, err = c.App.GetPostsSince(c.AppContext, options)
 	} else if afterPost != "" {
