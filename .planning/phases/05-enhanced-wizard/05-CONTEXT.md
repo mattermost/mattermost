@@ -58,6 +58,23 @@ Users can create and edit scheduled recaps through a multi-step wizard with sche
 
 </specifics>
 
+<research_hints>
+## Research Hints
+
+**Priority investigation for researcher:**
+
+1. **Existing form components** — Find reusable inputs, dropdowns, toggles, time pickers in the codebase. Don't build custom when existing components exist.
+
+2. **Existing multi-step modal pattern** — The recap creation modal is already multi-step. Understand its structure, state management, and navigation patterns.
+
+3. **Channel selector component** — There must be an existing channel picker used elsewhere. Find it and understand its props/API.
+
+4. **Day-of-week selector patterns** — Check if there's an existing day picker or similar multi-select pill/checkbox pattern.
+
+5. **Timezone handling in frontend** — How does the codebase display times with timezones? What utilities exist?
+
+</research_hints>
+
 <deferred>
 ## Deferred Ideas
 
