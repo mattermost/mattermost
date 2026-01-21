@@ -184,3 +184,24 @@ export function createScheduledRecap(input: ScheduledRecapInput): ActionFuncAsyn
         return {data};
     };
 }
+
+export function updateScheduledRecap(id: string, input: ScheduledRecapInput): ActionFuncAsync<ScheduledRecap> {
+    return async (dispatch, getState) => {
+        dispatch({type: RecapTypes.UPDATE_SCHEDULED_RECAP_REQUEST});
+
+        let data: ScheduledRecap;
+        try {
+            data = await Client4.updateScheduledRecap(id, input);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch({type: RecapTypes.UPDATE_SCHEDULED_RECAP_FAILURE, error});
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch({type: RecapTypes.RECEIVED_SCHEDULED_RECAP, data});
+        dispatch({type: RecapTypes.UPDATE_SCHEDULED_RECAP_SUCCESS});
+
+        return {data};
+    };
+}
