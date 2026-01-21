@@ -54,6 +54,11 @@ Plans:
 3. API validates schedule inputs (valid days, valid time, valid timezone)
 4. Pause/resume endpoint toggles enabled state and recalculates NextRunAt on resume
 
+**Plans:** 2 plans
+Plans:
+- [ ] 02-01-PLAN.md — App layer methods (CRUD + pause/resume with NextRunAt computation)
+- [ ] 02-02-PLAN.md — API handlers and routes (7 endpoints with auth, audit logging)
+
 ---
 
 ## Phase 3: Scheduler Integration
@@ -142,7 +147,7 @@ Plans:
 | Phase | Status | Requirements | Completed |
 |-------|--------|--------------|-----------|
 | 1 - Database Foundation | ✓ Complete | 3 | 3 |
-| 2 - API Layer | Pending | 5 | 0 |
+| 2 - API Layer | Planned | 5 | 0 |
 | 3 - Scheduler Integration | Pending | 3 | 0 |
 | 4 - Scheduled Tab | Pending | 15 | 0 |
 | 5 - Enhanced Wizard | Pending | 13 | 0 |
@@ -150,4 +155,4 @@ Plans:
 
 ---
 *Roadmap created: 2026-01-21*
-*Last updated: 2026-01-21 (Phase 1 complete)*
+*Last updated: 2026-01-21 (Phase 2 planned)*
