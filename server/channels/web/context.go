@@ -779,6 +779,17 @@ func (c *Context) RequireRecapId() *Context {
 	return c
 }
 
+func (c *Context) RequireScheduledRecapId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.ScheduledRecapId) {
+		c.SetInvalidURLParam("scheduled_recap_id")
+	}
+	return c
+}
+
 func (c *Context) GetRemoteID(r *http.Request) string {
 	return r.Header.Get(model.HeaderRemoteclusterId)
 }
