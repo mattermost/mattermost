@@ -9,17 +9,17 @@
 ## Current Position
 
 **Phase:** 4 of 5 - Scheduled Tab
-**Plan:** 2 of 6 in current phase
+**Plan:** 3 of 6 in current phase
 **Status:** In progress
-**Last activity:** 2026-01-21 - Completed 04-02-PLAN.md
+**Last activity:** 2026-01-21 - Completed 04-03-PLAN.md
 
 **Progress:**
 ```
 Phase 1: [██████████] 100% (2/2 plans) ✓
 Phase 2: [██████████] 100% (2/2 plans) ✓
 Phase 3: [██████████] 100% (2/2 plans) ✓
-Phase 4: [███░░░░░░░] 33% (2/6 plans)
-Overall:  [███████░░░] ~40% (15/39 requirements)
+Phase 4: [█████░░░░░] 50% (3/6 plans)
+Overall:  [████████░░] ~45% (17/39 requirements)
 ```
 
 ## Phase Overview
@@ -29,7 +29,7 @@ Overall:  [███████░░░] ~40% (15/39 requirements)
 | 1 | Database Foundation | 3 | ✓ Complete |
 | 2 | API Layer | 5 | ✓ Complete |
 | 3 | Scheduler Integration | 3 | ✓ Complete |
-| 4 | Scheduled Tab | 15 | ▶ In progress (2/6 plans) |
+| 4 | Scheduled Tab | 15 | ▶ In progress (3/6 plans) |
 | 5 | Enhanced Wizard | 13 | ⬜ Pending |
 
 ## Performance Metrics
@@ -38,7 +38,7 @@ Overall:  [███████░░░] ~40% (15/39 requirements)
 **Phase 1:** 15 min (2 plans + verification)
 **Phase 2:** 6 min (2 plans complete)
 **Phase 3:** 5 min (2 plans complete)
-**Phase 4:** 6 min (2 plans complete)
+**Phase 4:** 9 min (3 plans complete)
 **Project:** 29 min
 
 ## Accumulated Context
@@ -67,6 +67,9 @@ Overall:  [███████░░░] ~40% (15/39 requirements)
 | ScheduledRecapInput omits computed fields | id, user_id, timestamps set server-side | 04-01 |
 | Follow existing recap Redux pattern | Consistency with codebase conventions | 04-02 |
 | Use Record<string, ScheduledRecap> for scheduledRecaps state | Simple lookup by ID, consistent with other entity patterns | 04-02 |
+| Bitmask day constants match Go model in useScheduleDisplay | Sunday=1, Monday=2, etc. for direct use of server values | 04-03 |
+| Smart day groupings in schedule display | "Every day", "Weekdays", "Weekends" for cleaner UI | 04-03 |
+| Run stats visible on hover | Reduces visual clutter while keeping info accessible | 04-03 |
 
 ### TODOs
 
@@ -81,14 +84,14 @@ Overall:  [███████░░░] ~40% (15/39 requirements)
 ### Last Session
 
 **Date:** 2026-01-21
-**Completed:** 04-02-PLAN.md (Redux store and actions)
-**Stopped at:** Plan 04-02 complete, ready for 04-03
+**Completed:** 04-03-PLAN.md (ScheduledRecapItem component)
+**Stopped at:** Plan 04-03 complete, ready for 04-04
 
 ### Resume Point
 
-**Command:** `/gsd-execute-phase 04-03`
-**Context:** Redux layer complete. Next: ScheduledRecapListItem component.
+**Command:** `/gsd-execute-phase 04-04`
+**Context:** ScheduledRecapItem component complete. Next: ScheduledTab container.
 
 ---
 *State initialized: 2026-01-21*
-*Last updated: 2026-01-21 (Completed 04-02-PLAN.md)*
+*Last updated: 2026-01-21 (Completed 04-03-PLAN.md)*
