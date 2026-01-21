@@ -19,14 +19,14 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Management
 
-- [ ] **MGMT-01**: User can view list of scheduled recaps in "Scheduled" tab
-- [ ] **MGMT-02**: User can edit an existing scheduled recap
-- [ ] **MGMT-03**: User can delete a scheduled recap
-- [ ] **MGMT-04**: User can pause a scheduled recap
-- [ ] **MGMT-05**: User can resume a paused scheduled recap
-- [ ] **MGMT-06**: User can see status indicator (active/paused) for each scheduled recap
-- [ ] **MGMT-07**: User can see when scheduled recap last ran
-- [ ] **MGMT-08**: User can see total run count for scheduled recap
+- [x] **MGMT-01**: User can view list of scheduled recaps in "Scheduled" tab
+- [x] **MGMT-02**: User can edit an existing scheduled recap
+- [x] **MGMT-03**: User can delete a scheduled recap
+- [x] **MGMT-04**: User can pause a scheduled recap
+- [x] **MGMT-05**: User can resume a paused scheduled recap
+- [x] **MGMT-06**: User can see status indicator (active/paused) for each scheduled recap
+- [x] **MGMT-07**: User can see when scheduled recap last ran
+- [x] **MGMT-08**: User can see total run count for scheduled recap
 
 ### Backend Infrastructure
 
@@ -53,13 +53,13 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Frontend - Scheduled Tab
 
-- [ ] **TAB-01**: "Scheduled" tab appears alongside "Unread" and "Read" tabs
-- [ ] **TAB-02**: Scheduled tab displays list of user's scheduled recaps
-- [ ] **TAB-03**: Each scheduled recap shows name, schedule, status, last run, run count
-- [ ] **TAB-04**: Each scheduled recap has edit action
-- [ ] **TAB-05**: Each scheduled recap has pause/resume toggle
-- [ ] **TAB-06**: Each scheduled recap has delete action
-- [ ] **TAB-07**: Edit action opens pre-filled wizard modal
+- [x] **TAB-01**: "Scheduled" tab appears alongside "Unread" and "Read" tabs
+- [x] **TAB-02**: Scheduled tab displays list of user's scheduled recaps
+- [x] **TAB-03**: Each scheduled recap shows name, schedule, status, last run, run count
+- [x] **TAB-04**: Each scheduled recap has edit action
+- [x] **TAB-05**: Each scheduled recap has pause/resume toggle
+- [x] **TAB-06**: Each scheduled recap has delete action
+- [x] **TAB-07**: Edit action opens pre-filled wizard modal
 
 ## v2 Requirements
 
@@ -108,21 +108,21 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INFRA-03 | Phase 3 | Complete |
 | INFRA-04 | Phase 3 | Complete |
 | SCHED-04 | Phase 3 | Complete |
-| TAB-01 | Phase 4 | Pending |
-| TAB-02 | Phase 4 | Pending |
-| TAB-03 | Phase 4 | Pending |
-| TAB-04 | Phase 4 | Pending |
-| TAB-05 | Phase 4 | Pending |
-| TAB-06 | Phase 4 | Pending |
-| TAB-07 | Phase 4 | Pending |
-| MGMT-01 | Phase 4 | Pending |
-| MGMT-02 | Phase 4 | Pending |
-| MGMT-03 | Phase 4 | Pending |
-| MGMT-04 | Phase 4 | Pending |
-| MGMT-05 | Phase 4 | Pending |
-| MGMT-06 | Phase 4 | Pending |
-| MGMT-07 | Phase 4 | Pending |
-| MGMT-08 | Phase 4 | Pending |
+| TAB-01 | Phase 4 | Complete |
+| TAB-02 | Phase 4 | Complete |
+| TAB-03 | Phase 4 | Complete |
+| TAB-04 | Phase 4 | Complete |
+| TAB-05 | Phase 4 | Complete |
+| TAB-06 | Phase 4 | Complete |
+| TAB-07 | Phase 4 | Complete |
+| MGMT-01 | Phase 4 | Complete |
+| MGMT-02 | Phase 4 | Complete |
+| MGMT-03 | Phase 4 | Complete |
+| MGMT-04 | Phase 4 | Complete |
+| MGMT-05 | Phase 4 | Complete |
+| MGMT-06 | Phase 4 | Complete |
+| MGMT-07 | Phase 4 | Complete |
+| MGMT-08 | Phase 4 | Complete |
 | WIZD-01 | Phase 5 | Pending |
 | WIZD-02 | Phase 5 | Pending |
 | WIZD-03 | Phase 5 | Pending |
@@ -144,4 +144,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-01-21*
-*Last updated: 2026-01-21 (Phase 3 requirements complete)*
+*Last updated: 2026-01-21 (Phase 4 requirements complete)*
