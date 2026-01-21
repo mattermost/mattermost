@@ -120,7 +120,7 @@ import type {
     PropertyValue,
 } from '@mattermost/types/properties';
 import type {Reaction} from '@mattermost/types/reactions';
-import type {Recap, CreateRecapRequest} from '@mattermost/types/recaps';
+import type {Recap, CreateRecapRequest, ScheduledRecap, ScheduledRecapInput} from '@mattermost/types/recaps';
 import type {RemoteCluster, RemoteClusterAcceptInvite, RemoteClusterPatch, RemoteClusterWithPassword} from '@mattermost/types/remote_clusters';
 import type {UserReport, UserReportFilter, UserReportOptions} from '@mattermost/types/reports';
 import type {Role} from '@mattermost/types/roles';
@@ -455,6 +455,10 @@ export default class Client4 {
 
     getRecapsRoute() {
         return `${this.getBaseRoute()}/recaps`;
+    }
+
+    getScheduledRecapsRoute() {
+        return `${this.getBaseRoute()}/scheduled_recaps`;
     }
 
     getPluginsRoute() {
