@@ -93,19 +93,15 @@ func (sr *ScheduledRecap) ComputeNextRunAt(fromTime time.Time) (int64, error) {
 		return 0, NewAppError("ScheduledRecap.ComputeNextRunAt", "model.scheduled_recap.compute_next_run.timezone.app_error", nil, "timezone="+sr.Timezone, http.StatusBadRequest)
 	}
 
-	// Parse time of day
-	parts := strings.Split(sr.TimeOfDay, ":")
-	if len(parts) != 2 {
+	// Validate time of day format using regex
+	if !timeOfDayRegex.MatchString(sr.TimeOfDay) {
 		return 0, NewAppError("ScheduledRecap.ComputeNextRunAt", "model.scheduled_recap.compute_next_run.time_format.app_error", nil, "time_of_day="+sr.TimeOfDay, http.StatusBadRequest)
 	}
-	hour, err := strconv.Atoi(parts[0])
-	if err != nil {
-		return 0, NewAppError("ScheduledRecap.ComputeNextRunAt", "model.scheduled_recap.compute_next_run.hour.app_error", nil, "time_of_day="+sr.TimeOfDay, http.StatusBadRequest)
-	}
-	minute, err := strconv.Atoi(parts[1])
-	if err != nil {
-		return 0, NewAppError("ScheduledRecap.ComputeNextRunAt", "model.scheduled_recap.compute_next_run.minute.app_error", nil, "time_of_day="+sr.TimeOfDay, http.StatusBadRequest)
-	}
+
+	// Parse time of day
+	parts := strings.Split(sr.TimeOfDay, ":")
+	hour, _ := strconv.Atoi(parts[0])
+	minute, _ := strconv.Atoi(parts[1])
 
 	// Validate days of week
 	if sr.DaysOfWeek < ScheduledRecapMinDaysOfWeek || sr.DaysOfWeek > ScheduledRecapMaxDaysOfWeek {
