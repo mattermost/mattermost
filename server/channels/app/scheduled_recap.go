@@ -5,6 +5,7 @@ package app
 
 import (
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -91,6 +92,66 @@ func (a *App) UpdateScheduledRecap(rctx request.CTX, recap *model.ScheduledRecap
 	}
 
 	return updatedRecap, nil
+}
+
+// CreateRecapFromSchedule creates a Recap from a ScheduledRecap configuration.
+// This is called by the scheduled recap worker when executing a scheduled recap.
+// NOTE: This method does NOT use CreateRecap because that method relies on
+// rctx.Session().UserId which is not available in a job worker context.
+func (a *App) CreateRecapFromSchedule(rctx request.CTX, sr *model.ScheduledRecap) (*model.Recap, *model.AppError) {
+	var channelIDs []string
+
+	if sr.ChannelMode == model.ChannelModeSpecific {
+		channelIDs = sr.ChannelIds
+	} else {
+		// all_unreads mode: get user's channels with unread messages
+		// For now, use the specified channel IDs as fallback
+		// TODO: Implement GetChannelsWithUnreadForUser when all_unreads mode is needed
+		channelIDs = sr.ChannelIds
+	}
+
+	if len(channelIDs) == 0 {
+		return nil, model.NewAppError("CreateRecapFromSchedule", "app.scheduled_recap.no_channels.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	timeNow := model.GetMillis()
+
+	// Create recap record directly (not using CreateRecap which requires session)
+	recap := &model.Recap{
+		Id:                model.NewId(),
+		UserId:            sr.UserId, // Use UserId from ScheduledRecap, not session
+		Title:             sr.Title,
+		CreateAt:          timeNow,
+		UpdateAt:          timeNow,
+		DeleteAt:          0,
+		ReadAt:            0,
+		TotalMessageCount: 0,
+		Status:            model.RecapStatusPending,
+		BotID:             sr.AgentId,
+	}
+
+	savedRecap, err := a.Srv().Store().Recap().SaveRecap(recap)
+	if err != nil {
+		return nil, model.NewAppError("CreateRecapFromSchedule", "app.scheduled_recap.save_recap.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Create recap job to trigger processing
+	jobData := map[string]string{
+		"recap_id":    savedRecap.Id,
+		"user_id":     sr.UserId,
+		"channel_ids": strings.Join(channelIDs, ","),
+		"agent_id":    sr.AgentId,
+	}
+
+	_, jobErr := a.CreateJob(rctx, &model.Job{
+		Type: model.JobTypeRecap,
+		Data: jobData,
+	})
+	if jobErr != nil {
+		return nil, jobErr
+	}
+
+	return savedRecap, nil
 }
 
 // DeleteScheduledRecap performs a soft delete of a scheduled recap.
