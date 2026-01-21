@@ -22,7 +22,6 @@ import Reply from './reply';
 
 type Props = {
     a11yIndex: number;
-    currentUserId: string;
     isRootPost: boolean;
     isDeletedPost: boolean;
     isLastPost: boolean;
@@ -37,7 +36,6 @@ type Props = {
 function noop() {}
 function ThreadViewerRow({
     a11yIndex,
-    currentUserId,
     isRootPost,
     isDeletedPost,
     isLastPost,
@@ -97,7 +95,6 @@ function ThreadViewerRow({
         return (
             <Reply
                 a11yIndex={a11yIndex}
-                currentUserId={currentUserId}
                 id={listId}
                 isLastPost={isLastPost}
                 onCardClick={onCardClick}

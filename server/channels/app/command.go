@@ -71,7 +71,12 @@ func (a *App) CreateCommandPost(rctx request.CTX, post *model.Post, teamID strin
 	}
 
 	if response.ResponseType == model.CommandResponseTypeInChannel {
-		return a.CreatePostMissingChannel(rctx, post, true, true)
+		// The post is only used for tests, so even if there are membership issues, we won't send the post to the client.
+		createdPost, _, appErr := a.CreatePostMissingChannel(rctx, post, true, true)
+		if appErr != nil {
+			return nil, appErr
+		}
+		return createdPost, nil
 	}
 
 	if (response.ResponseType == "" || response.ResponseType == model.CommandResponseTypeEphemeral) && (response.Text != "" || response.Attachments != nil) {

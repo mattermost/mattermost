@@ -2525,7 +2525,7 @@ func TestFilterConfig(t *testing.T) {
 		require.NoError(t, err)
 		require.Empty(t, m)
 
-		cfg.SqlSettings.DriverName = NewPointer("mysql")
+		cfg.SqlSettings.DriverName = NewPointer("postgresql")
 		m, err = FilterConfig(cfg, ConfigFilterOptions{
 			GetConfigOptions: GetConfigOptions{
 				RemoveDefaults: true,
@@ -2534,7 +2534,7 @@ func TestFilterConfig(t *testing.T) {
 		})
 		require.NoError(t, err)
 		require.NotEmpty(t, m)
-		require.Equal(t, "mysql", m["SqlSettings"].(map[string]any)["DriverName"])
+		require.Equal(t, "postgresql", m["SqlSettings"].(map[string]any)["DriverName"])
 	})
 
 	t.Run("should not clear non primitive types", func(t *testing.T) {
