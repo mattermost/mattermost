@@ -8,22 +8,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import LocalizedPlaceholderInput from 'components/localized_placeholder_input';
 
-type MFAControllerState = {
-    enforceMultifactorAuthentication: boolean;
-};
-
 type Props = {
-
-    /*
-     * Object containing enforceMultifactorAuthentication
-     */
-    state: MFAControllerState;
-
-    /*
-     * Function that updates parent component with state props
-     */
-    updateParent: (state: MFAControllerState) => void;
-
     currentUser: UserProfile;
     siteName?: string;
     enforceMultifactorAuthentication: boolean;
