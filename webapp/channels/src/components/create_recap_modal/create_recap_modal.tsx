@@ -9,11 +9,13 @@ import {useHistory, useRouteMatch} from 'react-router-dom';
 import {ChevronLeftIcon, ChevronRightIcon} from '@mattermost/compass-icons/components';
 import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
+import type {ScheduledRecap, ScheduledRecapInput} from '@mattermost/types/recaps';
 
 import {getAgents} from 'mattermost-redux/actions/agents';
-import {createRecap} from 'mattermost-redux/actions/recaps';
+import {createRecap, createScheduledRecap, updateScheduledRecap} from 'mattermost-redux/actions/recaps';
 import {getAgents as getAgentsSelector} from 'mattermost-redux/selectors/entities/agents';
 import {getMyChannels, getUnreadChannelIds} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {AgentDropdown} from 'components/common/agents';
@@ -22,16 +24,18 @@ import PaginationDots from 'components/common/pagination_dots';
 import ChannelSelector from './channel_selector';
 import ChannelSummary from './channel_summary';
 import RecapConfiguration from './recap_configuration';
+import ScheduleConfiguration from './schedule_configuration';
 
 import './create_recap_modal.scss';
 
 type Props = {
     onExited: () => void;
+    editScheduledRecap?: ScheduledRecap; // When present, modal is in edit mode
 };
 
 type RecapType = 'selected' | 'all_unreads';
 
-const CreateRecapModal = ({onExited}: Props) => {
+const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const history = useHistory();
@@ -50,6 +54,23 @@ const CreateRecapModal = ({onExited}: Props) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    // Schedule state
+    const [runOnce, setRunOnce] = useState(false);
+    const [daysOfWeek, setDaysOfWeek] = useState<number>(0);
+    const [timeOfDay, setTimeOfDay] = useState<string>('09:00');
+    const [timePeriod, setTimePeriod] = useState<string>('last_24h');
+    const [customInstructions, setCustomInstructions] = useState<string>('');
+
+    // Validation state
+    const [daysError, setDaysError] = useState(false);
+    const [timeError, setTimeError] = useState(false);
+
+    // Get user timezone
+    const userTimezone = useSelector(getCurrentTimezone);
+
+    // Edit mode detection
+    const isEditMode = Boolean(editScheduledRecap);
+
     // Fetch AI agents on mount
     useEffect(() => {
         dispatch(getAgents());
@@ -61,6 +82,21 @@ const CreateRecapModal = ({onExited}: Props) => {
             setSelectedBotId(agents[0].id);
         }
     }, [agents, selectedBotId]);
+
+    // Pre-fill form for edit mode
+    useEffect(() => {
+        if (editScheduledRecap) {
+            setRecapName(editScheduledRecap.title);
+            setRecapType(editScheduledRecap.channel_mode === 'all_unreads' ? 'all_unreads' : 'selected');
+            setSelectedChannelIds(editScheduledRecap.channel_ids || []);
+            setDaysOfWeek(editScheduledRecap.days_of_week);
+            setTimeOfDay(editScheduledRecap.time_of_day);
+            setTimePeriod(editScheduledRecap.time_period);
+            setCustomInstructions(editScheduledRecap.custom_instructions || '');
+            setSelectedBotId(editScheduledRecap.agent_id);
+            // Don't set runOnce in edit mode - it's always a scheduled recap
+        }
+    }, [editScheduledRecap]);
 
     // Get unread channels
     const unreadChannels = myChannels.filter((channel: Channel) =>
