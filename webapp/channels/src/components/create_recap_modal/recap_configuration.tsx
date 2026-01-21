@@ -7,6 +7,7 @@ import {useIntl, FormattedMessage} from 'react-intl';
 import {ProductChannelsIcon, LightningBoltOutlineIcon, CheckCircleIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 
+import Toggle from 'components/toggle';
 import WithTooltip from 'components/with_tooltip';
 
 const RECAP_NAME_MAX_LENGTH = 100;
@@ -17,9 +18,21 @@ type Props = {
     recapType: 'selected' | 'all_unreads' | null;
     setRecapType: (type: 'selected' | 'all_unreads') => void;
     unreadChannels: Channel[];
+    runOnce: boolean;
+    setRunOnce: (value: boolean) => void;
+    isEditMode?: boolean;
 };
 
-const RecapConfiguration = ({recapName, setRecapName, recapType, setRecapType, unreadChannels}: Props) => {
+const RecapConfiguration = ({
+    recapName,
+    setRecapName,
+    recapType,
+    setRecapType,
+    unreadChannels,
+    runOnce,
+    setRunOnce,
+    isEditMode,
+}: Props) => {
     const {formatMessage} = useIntl();
     const hasUnreadChannels = unreadChannels.length > 0;
 
@@ -122,6 +135,35 @@ const RecapConfiguration = ({recapName, setRecapName, recapType, setRecapType, u
                     )}
                 </div>
             </div>
+
+            {/* Run once toggle - hidden in edit mode */}
+            {!isEditMode && (
+                <div className='form-group run-once-group'>
+                    <div className='run-once-toggle'>
+                        <Toggle
+                            id='run-once-toggle'
+                            toggled={runOnce}
+                            onToggle={() => setRunOnce(!runOnce)}
+                            size='btn-sm'
+                        />
+                        <label
+                            htmlFor='run-once-toggle'
+                            className='run-once-label'
+                        >
+                            <FormattedMessage
+                                id='recaps.modal.runOnce'
+                                defaultMessage='Run once'
+                            />
+                        </label>
+                    </div>
+                    <div className='run-once-description'>
+                        <FormattedMessage
+                            id='recaps.modal.runOnceDescription'
+                            defaultMessage='Create an immediate recap without scheduling'
+                        />
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
