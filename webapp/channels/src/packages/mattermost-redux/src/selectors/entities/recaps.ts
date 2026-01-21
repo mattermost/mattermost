@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Recap} from '@mattermost/types/recaps';
+import type {Recap, ScheduledRecap} from '@mattermost/types/recaps';
 import {RecapStatus} from '@mattermost/types/recaps';
 import type {GlobalState} from '@mattermost/types/store';
 
@@ -64,4 +64,32 @@ export const getReadRecaps = createSelector(
         return recaps.filter((recap) => recap.read_at > 0).sort((a, b) => b.read_at - a.read_at);
     },
 );
+
+// Scheduled Recap Selectors
+
+export function getScheduledRecapsState(state: GlobalState): Record<string, ScheduledRecap> {
+    return state.entities.recaps.scheduledRecaps || {};
+}
+
+export const getAllScheduledRecaps = createSelector(
+    'getAllScheduledRecaps',
+    getScheduledRecapsState,
+    (scheduledRecaps) => Object.values(scheduledRecaps),
+);
+
+export const getActiveScheduledRecaps = createSelector(
+    'getActiveScheduledRecaps',
+    getAllScheduledRecaps,
+    (scheduledRecaps) => scheduledRecaps.filter((sr) => sr.enabled && sr.delete_at === 0),
+);
+
+export const getPausedScheduledRecaps = createSelector(
+    'getPausedScheduledRecaps',
+    getAllScheduledRecaps,
+    (scheduledRecaps) => scheduledRecaps.filter((sr) => !sr.enabled && sr.delete_at === 0),
+);
+
+export function getScheduledRecapById(state: GlobalState, id: string): ScheduledRecap | undefined {
+    return getScheduledRecapsState(state)[id];
+}
 
