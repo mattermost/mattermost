@@ -980,7 +980,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.EnableBurnOnRead == nil {
-		s.EnableBurnOnRead = NewPointer(false)
+		s.EnableBurnOnRead = NewPointer(true)
 	}
 
 	if s.BurnOnReadDurationSeconds == nil {
@@ -2806,15 +2806,9 @@ type AutoTranslationTimeoutsInMs struct {
 }
 
 // LibreTranslateProviderSettings configures the LibreTranslate translation provider.
-// Rate limiting settings based on benchmark findings for a single LibreTranslate instance
-// running on g4dn.xlarge GPU hardware:
-// - MaxConcurrency: 12 concurrent requests safely supported
-// - MaxRPS: 14 requests per second safely supported
 type LibreTranslateProviderSettings struct {
-	URL            *string `access:"site_localization,cloud_restrictable"` // LibreTranslate server URL
-	APIKey         *string `access:"site_localization,cloud_restrictable"` // Optional API key for authenticated requests
-	MaxConcurrency *int    `access:"site_localization,cloud_restrictable"` // Max concurrent HTTP requests, default: 12
-	MaxRPS         *int    `access:"site_localization,cloud_restrictable"` // Max requests per second, default: 14
+	URL    *string `access:"site_localization,cloud_restrictable"` // LibreTranslate server URL
+	APIKey *string `access:"site_localization,cloud_restrictable"` // Optional API key for authenticated requests
 }
 
 type AgentsProviderSettings struct {
@@ -2875,14 +2869,6 @@ func (s *LibreTranslateProviderSettings) SetDefaults() {
 
 	if s.APIKey == nil {
 		s.APIKey = NewPointer("")
-	}
-
-	if s.MaxConcurrency == nil {
-		s.MaxConcurrency = NewPointer(12)
-	}
-
-	if s.MaxRPS == nil {
-		s.MaxRPS = NewPointer(14)
 	}
 }
 
@@ -3810,6 +3796,16 @@ func (s *GuestAccountsSettings) SetDefaults() {
 	}
 }
 
+func (s *GuestAccountsSettings) IsValid() *AppError {
+	if s.EnableGuestMagicLink != nil && *s.EnableGuestMagicLink {
+		if s.EnforceMultifactorAuthentication != nil && *s.EnforceMultifactorAuthentication {
+			return NewAppError("GuestAccountsSettings.IsValid", "model.config.is_valid.guest_accounts.cannot_enforce_multifactor_authentication_when_guest_magic_link_is_enabled.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	return nil
+}
+
 type ImageProxySettings struct {
 	Enable                  *bool   `access:"environment_image_proxy"`
 	ImageProxyType          *string `access:"environment_image_proxy"`
@@ -4279,6 +4275,10 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if appErr := o.ContentFlaggingSettings.IsValid(); appErr != nil {
+		return appErr
+	}
+
+	if appErr := o.GuestAccountsSettings.IsValid(); appErr != nil {
 		return appErr
 	}
 
@@ -5076,49 +5076,39 @@ func (o *Config) Sanitize(pluginManifests []*Manifest, opts *SanitizeOptions) {
 	o.PluginSettings.Sanitize(pluginManifests)
 }
 
-// SanitizeDataSource redacts sensitive information (username and password) from a database
+// SanitizeDataSource redacts sensitive information (username and password) from a PostgreSQL
 // connection string while preserving other connection parameters.
 //
-// Parameters:
-//   - driverName: The database driver name (postgres or mysql)
-//   - dataSource: The database connection string to sanitize
+// Example:
 //
-// Returns:
-//   - The sanitized connection string with username/password replaced by SanitizedPassword
-//   - An error if the driverName is not supported or if parsing fails
-//
-// Examples:
-//   - PostgreSQL: "postgres://user:pass@host:5432/db" -> "postgres://****:****@host:5432/db"
-//   - MySQL: "user:pass@tcp(host:3306)/db" -> "****:****@tcp(host:3306)/db"
+//	"postgres://user:pass@host:5432/db" -> "postgres://****:****@host:5432/db"
 func SanitizeDataSource(driverName, dataSource string) (string, error) {
-	// Handle empty data source
 	if dataSource == "" {
 		return "", nil
 	}
 
-	switch driverName {
-	case DatabaseDriverPostgres:
-		u, err := url.Parse(dataSource)
-		if err != nil {
-			return "", err
-		}
-		u.User = url.UserPassword(SanitizedPassword, SanitizedPassword)
-
-		// Remove username and password from query string
-		params := u.Query()
-		params.Del("user")
-		params.Del("password")
-		u.RawQuery = params.Encode()
-
-		// Unescape the URL to make it human-readable
-		out, err := url.QueryUnescape(u.String())
-		if err != nil {
-			return "", err
-		}
-		return out, nil
-	default:
-		return "", errors.New("invalid drivername. Not postgres or mysql.")
+	if driverName != DatabaseDriverPostgres {
+		return "", errors.New("invalid drivername: only postgres is supported")
 	}
+
+	u, err := url.Parse(dataSource)
+	if err != nil {
+		return "", err
+	}
+	u.User = url.UserPassword(SanitizedPassword, SanitizedPassword)
+
+	// Remove username and password from query string
+	params := u.Query()
+	params.Del("user")
+	params.Del("password")
+	u.RawQuery = params.Encode()
+
+	// Unescape the URL to make it human-readable
+	out, err := url.QueryUnescape(u.String())
+	if err != nil {
+		return "", err
+	}
+	return out, nil
 }
 
 type FilterTag struct {

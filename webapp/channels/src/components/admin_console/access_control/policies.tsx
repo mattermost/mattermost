@@ -350,7 +350,6 @@ export default function PolicyList(props: Props): JSX.Element {
                 term={search}
                 placeholderEmpty={placeholderEmpty}
                 rowsContainerStyles={rowsContainerStyles}
-                page={page}
                 nextPage={nextPage}
                 previousPage={previousPage}
             />

@@ -74,8 +74,6 @@ describe('Selectors.Users', () => {
     const profilesNotInTeam: Record<Team['id'], Set<UserProfile['id']>> = {};
     profilesNotInTeam[team1.id] = new Set([user3.id, user4.id]);
 
-    const profilesWithoutTeam = new Set([user5.id, user6.id]);
-
     const profilesInChannel: Record<Channel['id'], Set<UserProfile['id']>> = {};
     profilesInChannel[channel1.id] = new Set([user1.id]);
     profilesInChannel[channel2.id] = new Set([user1.id, user2.id]);
@@ -136,7 +134,6 @@ describe('Selectors.Users', () => {
                 profiles,
                 profilesInTeam,
                 profilesNotInTeam,
-                profilesWithoutTeam,
                 profilesInChannel,
                 profilesNotInChannel,
                 profilesInGroup,
@@ -171,10 +168,6 @@ describe('Selectors.Users', () => {
 
     it('getUserIdsNotInTeams', () => {
         expect(Selectors.getUserIdsNotInTeams(testState)).toEqual(profilesNotInTeam);
-    });
-
-    it('getUserIdsWithoutTeam', () => {
-        expect(Selectors.getUserIdsWithoutTeam(testState)).toEqual(profilesWithoutTeam);
     });
 
     it('getUserSessions', () => {
@@ -417,16 +410,6 @@ describe('Selectors.Users', () => {
         expect(Selectors.getProfilesNotInCurrentTeam(testState)).toEqual(users);
     });
 
-    describe('getProfilesWithoutTeam', () => {
-        it('getProfilesWithoutTeam', () => {
-            const users = [user5, user6].sort(sortByUsername);
-            expect(Selectors.getProfilesWithoutTeam(testState, {} as any)).toEqual(users);
-        });
-        it('getProfilesWithoutTeam with filter', () => {
-            expect(Selectors.getProfilesWithoutTeam(testState, {role: 'system_admin'})).toEqual([user6]);
-        });
-    });
-
     it('getProfilesInGroup', () => {
         expect(Selectors.getProfilesInGroup(testState, group1.id)).toEqual([user1]);
         const users = [user2, user3].sort(sortByUsername);
@@ -516,16 +499,6 @@ describe('Selectors.Users', () => {
         expect(Selectors.searchProfilesNotInCurrentTeam(testState, user3.username, true)).toEqual([user3]);
     });
 
-    describe('searchProfilesWithoutTeam', () => {
-        it('searchProfilesWithoutTeam without filter', () => {
-            expect(Selectors.searchProfilesWithoutTeam(testState, user5.username, false, {})).toEqual([user5]);
-            expect(Selectors.searchProfilesWithoutTeam(testState, user5.username, true, {})).toEqual([user5]);
-        });
-        it('searchProfilesWithoutTeam with filter', () => {
-            expect(Selectors.searchProfilesWithoutTeam(testState, user6.username, false, {role: 'system_admin'})).toEqual([user6]);
-            expect(Selectors.searchProfilesWithoutTeam(testState, user5.username, false, {inactive: true})).toEqual([]);
-        });
-    });
     it('searchProfilesInGroup', () => {
         expect(Selectors.searchProfilesInGroup(testState, group1.id, user5.username)).toEqual([]);
         expect(Selectors.searchProfilesInGroup(testState, group1.id, user1.username)).toEqual([user1]);
