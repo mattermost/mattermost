@@ -30,8 +30,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Backend Infrastructure
 
-- [ ] **INFRA-01**: Database schema stores scheduled recap configuration
-- [ ] **INFRA-02**: Database schema stores schedule state (NextRunAt, LastRunAt, RunCount)
+- [x] **INFRA-01**: Database schema stores scheduled recap configuration
+- [x] **INFRA-02**: Database schema stores schedule state (NextRunAt, LastRunAt, RunCount)
 - [ ] **INFRA-03**: Job server polls for and executes due scheduled recaps
 - [ ] **INFRA-04**: Job execution is cluster-aware (no duplicate runs)
 - [ ] **INFRA-05**: API endpoint to create scheduled recap
@@ -39,7 +39,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **INFRA-07**: API endpoint to delete scheduled recap
 - [ ] **INFRA-08**: API endpoint to pause/resume scheduled recap
 - [ ] **INFRA-09**: API endpoint to list scheduled recaps
-- [ ] **INFRA-10**: NextRunAt is computed correctly with timezone/DST handling
+- [x] **INFRA-10**: NextRunAt is computed correctly with timezone/DST handling
 
 ### Frontend - Wizard
 
@@ -97,9 +97,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | Phase 1 | Pending |
-| INFRA-02 | Phase 1 | Pending |
-| INFRA-10 | Phase 1 | Pending |
+| INFRA-01 | Phase 1 | Complete |
+| INFRA-02 | Phase 1 | Complete |
+| INFRA-10 | Phase 1 | Complete |
 | INFRA-05 | Phase 2 | Pending |
 | INFRA-06 | Phase 2 | Pending |
 | INFRA-07 | Phase 2 | Pending |
@@ -144,4 +144,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-01-21*
-*Last updated: 2026-01-21 after initial definition*
+*Last updated: 2026-01-21 (Phase 1 requirements complete)*
