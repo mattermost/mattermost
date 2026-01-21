@@ -3684,7 +3684,7 @@
   "channel_header.autotranslation.disable_confirm.title": "Turn off auto-translation",
   "channel_header.autotranslation.enable": "Enable autotranslation",
   "channel_header.autotranslationMessage": "Auto-translated",
-  "channel_header.autotranslationMessage.tooltip.hint": "Message data is sent to an external service for translation",
+  "channel_header.autotranslationMessage.tooltip.hint": "This message is being automatically translated to your language",
   "channel_header.autotranslationMessage.tooltip.title": "Auto-translation is enabled",
   "channel_header.back": "Back to channel",
   "channel_header.channel_settings": "Channel Settings",

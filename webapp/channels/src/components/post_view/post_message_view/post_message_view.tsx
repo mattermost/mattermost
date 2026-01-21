@@ -155,7 +155,7 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
 
         // Use translation if channel is autotranslated and translation is available
         const translation = getPostTranslation(post, this.props.userLanguage);
-        if (this.props.isChannelAutotranslated && translation?.state === 'ready') {
+        if (this.props.isChannelAutotranslated && post.type === '' && translation?.state === 'ready') {
             message = getPostTranslatedMessage(message, translation);
         }
 

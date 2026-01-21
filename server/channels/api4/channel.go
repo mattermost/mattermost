@@ -364,6 +364,10 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
+		if patch.AutoTranslation != nil {
+			c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.auto_translation_not_allowed.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
 
 	default:
 		c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.forbidden.app_error", nil, "", http.StatusForbidden)

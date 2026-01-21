@@ -249,6 +249,11 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 
 			props["ContentFlaggingEnabled"] = strconv.FormatBool(c.FeatureFlags.ContentFlagging && *c.ContentFlaggingSettings.EnableContentFlagging)
 			props["EnableAutoTranslation"] = strconv.FormatBool(c.FeatureFlags.AutoTranslation && *c.AutoTranslationSettings.Enable)
+			if c.FeatureFlags.AutoTranslation {
+				props["AutoTranslationLanguages"] = strings.Join(*c.AutoTranslationSettings.TargetLanguages, ",")
+			} else {
+				props["AutoTranslationLanguages"] = ""
+			}
 		}
 	}
 

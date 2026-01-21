@@ -15,6 +15,7 @@ export type ClientConfig = {
     AppDownloadLink: string;
     AppsPluginEnabled: string;
     AsymmetricSigningPublicKey: string;
+    AutoTranslationLanguages: string;
     AvailableLocales: string;
     BannerColor: string;
     BannerText: string;
