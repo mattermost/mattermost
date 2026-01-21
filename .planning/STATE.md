@@ -4,14 +4,14 @@
 
 **Core Value:** Users receive automated AI summaries of channel activity on their schedule
 
-**Current Focus:** Phase 4 - Scheduled Tab (execution complete, awaiting verification)
+**Current Focus:** Phase 5 - Enhanced Wizard (in progress)
 
 ## Current Position
 
-**Phase:** 4 of 5 - Scheduled Tab
-**Plan:** 4 of 4 in current phase
-**Status:** Execution complete
-**Last activity:** 2026-01-21 - Completed 04-04-PLAN.md (human verified)
+**Phase:** 5 of 5 - Enhanced Wizard
+**Plan:** 2 of 6 in current phase
+**Status:** In progress
+**Last activity:** 2026-01-21 - Completed 05-02-PLAN.md
 
 **Progress:**
 ```
@@ -19,7 +19,8 @@ Phase 1: [██████████] 100% (2/2 plans) ✓
 Phase 2: [██████████] 100% (2/2 plans) ✓
 Phase 3: [██████████] 100% (2/2 plans) ✓
 Phase 4: [██████████] 100% (4/4 plans) ✓
-Overall:  [██████░░░░] ~69% (26/39 requirements)
+Phase 5: [███░░░░░░░] 33% (2/6 plans)
+Overall:  [███████░░░] ~74% (28/39 requirements)
 ```
 
 ## Phase Overview
@@ -30,7 +31,7 @@ Overall:  [██████░░░░] ~69% (26/39 requirements)
 | 2 | API Layer | 5 | ✓ Complete |
 | 3 | Scheduler Integration | 3 | ✓ Complete |
 | 4 | Scheduled Tab | 15 | ✓ Complete (awaiting verification) |
-| 5 | Enhanced Wizard | 13 | ⬜ Pending |
+| 5 | Enhanced Wizard | 13 | 🔄 In Progress (2/6 plans) |
 
 ## Performance Metrics
 
@@ -72,6 +73,9 @@ Overall:  [██████░░░░] ~69% (26/39 requirements)
 | Run stats visible on hover | Reduces visual clutter while keeping info accessible | 04-03 |
 | Edit handler opens create modal | Pre-fill functionality deferred to Phase 5 | 04-04 |
 | Empty state with icon illustration | Simplified approach vs full illustration asset | 04-04 |
+| Bitmask constants match server in DayOfWeekSelector | Sunday=1, Monday=2, etc. for direct API use | 05-02 |
+| Monday-first display order in day selector | More intuitive for work schedule UX | 05-02 |
+| XOR toggle for day selection | Clean bitmask state management | 05-02 |
 
 ### TODOs
 
@@ -86,14 +90,14 @@ Overall:  [██████░░░░] ~69% (26/39 requirements)
 ### Last Session
 
 **Date:** 2026-01-21
-**Completed:** 04-04-PLAN.md (Scheduled tab integration - human verified)
-**Stopped at:** Phase 4 execution complete, awaiting verification
+**Completed:** 05-02-PLAN.md (DayOfWeekSelector component)
+**Stopped at:** Phase 5 plan 2 complete
 
 ### Resume Point
 
 **Command:** `/gsd-execute-phase 5`
-**Context:** Phase 4 complete. Ready for Phase 5 (Enhanced Wizard).
+**Context:** Phase 5 in progress. Next: 05-03-PLAN.md (Step 3 - Schedule Configuration).
 
 ---
 *State initialized: 2026-01-21*
-*Last updated: 2026-01-21 (Completed 04-04-PLAN.md)*
+*Last updated: 2026-01-21 (Completed 05-02-PLAN.md)*
