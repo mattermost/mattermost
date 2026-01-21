@@ -9,8 +9,8 @@ import {Redirect} from 'react-router-dom';
 import {PlusIcon} from '@mattermost/compass-icons/components';
 
 import {getAgents} from 'mattermost-redux/actions/agents';
-import {getRecaps} from 'mattermost-redux/actions/recaps';
-import {getUnreadRecaps, getReadRecaps} from 'mattermost-redux/selectors/entities/recaps';
+import {getRecaps, getScheduledRecaps} from 'mattermost-redux/actions/recaps';
+import {getUnreadRecaps, getReadRecaps, getAllScheduledRecaps} from 'mattermost-redux/selectors/entities/recaps';
 
 import {openModal} from 'actions/views/modals';
 
@@ -21,21 +21,25 @@ import CreateRecapModal from 'components/create_recap_modal';
 import {ModalIdentifiers} from 'utils/constants';
 
 import RecapsList from './recaps_list';
+import ScheduledRecapsList from './scheduled_recaps_list';
 
 import './recaps.scss';
+import './scheduled_recap_item.scss';
 
 const Recaps = () => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
-    const [activeTab, setActiveTab] = useState<'unread' | 'read'>('unread');
+    const [activeTab, setActiveTab] = useState<'unread' | 'read' | 'scheduled'>('unread');
     const enableAIRecaps = useGetFeatureFlagValue('EnableAIRecaps');
     const agentsBridgeEnabled = useGetAgentsBridgeEnabled();
 
     const unreadRecaps = useSelector(getUnreadRecaps);
     const readRecaps = useSelector(getReadRecaps);
+    const scheduledRecaps = useSelector(getAllScheduledRecaps);
 
     useEffect(() => {
         dispatch(getRecaps(0, 60));
+        dispatch(getScheduledRecaps(0, 60));
         dispatch(getAgents());
     }, [dispatch]);
 
@@ -45,6 +49,15 @@ const Recaps = () => {
     }
 
     const handleAddRecap = () => {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.CREATE_RECAP_MODAL,
+            dialogType: CreateRecapModal,
+        }));
+    };
+
+    const handleEditScheduledRecap = (id: string) => {
+        // TODO: Phase 5 will implement edit modal with pre-filled values
+        // For now, just open the create modal (edit functionality comes in Phase 5)
         dispatch(openModal({
             modalId: ModalIdentifiers.CREATE_RECAP_MODAL,
             dialogType: CreateRecapModal,
@@ -76,6 +89,12 @@ const Recaps = () => {
                         >
                             {formatMessage({id: 'recaps.readTab', defaultMessage: 'Read'})}
                         </button>
+                        <button
+                            className={`recaps-tab ${activeTab === 'scheduled' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('scheduled')}
+                        >
+                            {formatMessage({id: 'recaps.scheduled.tab', defaultMessage: 'Scheduled'})}
+                        </button>
                     </div>
                 </div>
                 <button
@@ -90,11 +109,19 @@ const Recaps = () => {
             </div>
 
             <div className='recaps-content'>
-                <RecapsList recaps={displayedRecaps}/>
+                {activeTab === 'scheduled' ? (
+                    <ScheduledRecapsList
+                        scheduledRecaps={scheduledRecaps}
+                        onEdit={handleEditScheduledRecap}
+                        onCreateClick={handleAddRecap}
+                        createDisabled={agentsBridgeEnabled === false}
+                    />
+                ) : (
+                    <RecapsList recaps={displayedRecaps}/>
+                )}
             </div>
         </div>
     );
 };
 
 export default Recaps;
-
