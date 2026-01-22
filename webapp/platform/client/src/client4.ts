@@ -2240,7 +2240,6 @@ export default class Client4 {
         );
     };
 
-
     duplicatePage = (sourceWikiId: string, pageId: string, targetWikiId: string, customTitle?: string) => {
         const body: {target_wiki_id: string; title?: string} = {target_wiki_id: targetWikiId};
         if (customTitle) {
