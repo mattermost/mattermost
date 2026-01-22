@@ -466,7 +466,33 @@
     .step-three {
         display: flex;
         flex-direction: column;
-        gap: 16px; // Reduced gap between form groups for tighter layout
+        gap: 28px; // Gap between sections (matches Figma content gap)
+
+        // Schedule section groups related form elements
+        .schedule-section {
+            display: flex;
+            flex-direction: column;
+            gap: 4px; // Tight gap within sections
+
+            .section-title {
+                margin: 0 0 8px;
+                color: var(--center-channel-color);
+                font-family: 'Open Sans', sans-serif;
+                font-size: 14px;
+                font-weight: 600;
+                line-height: 20px;
+            }
+
+            .section-subtitle {
+                display: block;
+                margin-bottom: 8px;
+                color: var(--center-channel-color);
+                font-family: 'Open Sans', sans-serif;
+                font-size: 14px;
+                font-weight: 600;
+                line-height: 20px;
+            }
+        }
 
         .form-group {
             display: flex;
@@ -485,12 +511,21 @@
                 color: var(--error-text);
                 font-size: 12px;
             }
+
+            // Days group needs spacing below for the time selector
+            &.days-group {
+                margin-bottom: 16px;
+            }
         }
 
         // Time selection group with integrated next-run preview
         .time-selection-group {
+            // Container reserves space even when preview is hidden
+            .next-run-preview-container {
+                min-height: 24px; // Reserve space for preview (16px line + 8px margin)
+            }
+
             .next-run-preview {
-                min-height: 16px; // Reserve space for one line of helper text
                 margin-top: 8px; // Small gap below time selector, matching Figma helper text spacing
                 color: rgba(var(--center-channel-color-rgb), 0.64);
                 font-size: 12px;

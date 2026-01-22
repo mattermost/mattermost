@@ -315,6 +315,9 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
                 );
             }
             // Scheduled: show schedule configuration
+            // Get the selected agent's display name
+            const selectedAgent = agents.find((agent) => agent.id === selectedBotId);
+            const agentName = selectedAgent?.display_name || selectedAgent?.username || 'Copilot';
             return (
                 <ScheduleConfiguration
                     daysOfWeek={daysOfWeek}
@@ -327,6 +330,7 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
                     setCustomInstructions={setCustomInstructions}
                     daysError={daysError}
                     timeError={timeError}
+                    agentName={agentName}
                 />
             );
         default:

@@ -23,6 +23,7 @@ type Props = {
     setCustomInstructions: (instructions: string) => void;
     daysError?: boolean;
     timeError?: boolean;
+    agentName?: string;
 };
 
 // Generate time options in 30-minute intervals
@@ -51,6 +52,7 @@ const ScheduleConfiguration = ({
     setCustomInstructions,
     daysError,
     timeError,
+    agentName,
 }: Props) => {
     const {formatMessage, formatTime, formatDate} = useIntl();
     const userTimezone = useSelector(getCurrentTimezone);
@@ -157,78 +159,112 @@ const ScheduleConfiguration = ({
 
     return (
         <div className='step-three'>
-            {/* Days of week selection */}
-            <div className='form-group'>
-                <label className='form-label'>
+            {/* Section: When would you like your summary sent? */}
+            <div className='schedule-section'>
+                <h4 className='section-title'>
                     <FormattedMessage
-                        id='recaps.modal.selectDays'
-                        defaultMessage='Select days'
+                        id='recaps.modal.whenSummary'
+                        defaultMessage='When would you like your summary sent?'
                     />
-                </label>
-                <DayOfWeekSelector
-                    value={daysOfWeek}
-                    onChange={setDaysOfWeek}
-                    error={daysError}
-                />
-                {daysError && (
-                    <div className='form-error'>
-                        <FormattedMessage
-                            id='recaps.modal.selectDaysRequired'
-                            defaultMessage='Please select at least one day'
-                        />
-                    </div>
-                )}
-            </div>
+                </h4>
 
-            {/* Time of day selection with next run preview as helper text */}
-            <div className='form-group time-selection-group'>
-                <DropdownInput
-                    name='timeOfDay'
-                    legend={formatMessage({id: 'recaps.modal.selectTime', defaultMessage: 'Select time'})}
-                    value={timeOptions.find((o) => o.value === timeOfDay)}
-                    options={timeOptions}
-                    onChange={(val) => setTimeOfDay(val.value)}
-                    required={true}
-                    error={timeError ? formatMessage({id: 'recaps.modal.selectTimeRequired', defaultMessage: 'Please select a time'}) : undefined}
-                />
-                {/* Next run preview - always rendered with fixed height to prevent modal jumping */}
-                <div className={`next-run-preview${nextRunPreview ? '' : ' hidden'}`}>
-                    {nextRunPreview ? (
+                {/* Days of week selection */}
+                <div className='form-group days-group'>
+                    <label className='section-subtitle'>
                         <FormattedMessage
-                            id='recaps.modal.nextRunPreview'
-                            defaultMessage='Next recap: {preview}'
-                            values={{preview: nextRunPreview}}
+                            id='recaps.modal.whichDays'
+                            defaultMessage='On which days should your recap run?'
                         />
-                    ) : (
-                        '\u00A0'
+                    </label>
+                    <DayOfWeekSelector
+                        value={daysOfWeek}
+                        onChange={setDaysOfWeek}
+                        error={daysError}
+                    />
+                    {daysError && (
+                        <div className='form-error'>
+                            <FormattedMessage
+                                id='recaps.modal.selectDaysRequired'
+                                defaultMessage='Please select at least one day'
+                            />
+                        </div>
                     )}
+                </div>
+
+                {/* Time of day selection with next run preview as helper text */}
+                <div className='form-group time-selection-group'>
+                    <label className='section-subtitle'>
+                        <FormattedMessage
+                            id='recaps.modal.atWhatTime'
+                            defaultMessage='At what time?'
+                        />
+                    </label>
+                    <DropdownInput
+                        name='timeOfDay'
+                        legend={formatMessage({id: 'recaps.modal.selectTime', defaultMessage: 'Select time'})}
+                        value={timeOptions.find((o) => o.value === timeOfDay)}
+                        options={timeOptions}
+                        onChange={(val) => setTimeOfDay(val.value)}
+                        required={true}
+                        error={timeError ? formatMessage({id: 'recaps.modal.selectTimeRequired', defaultMessage: 'Please select a time'}) : undefined}
+                    />
+                    {/* Next run preview - always rendered with fixed height to prevent modal jumping */}
+                    <div className='next-run-preview-container'>
+                        <div className={`next-run-preview${nextRunPreview ? '' : ' hidden'}`}>
+                            {nextRunPreview ? (
+                                <FormattedMessage
+                                    id='recaps.modal.nextRunPreview'
+                                    defaultMessage='Next recap: {preview}'
+                                    values={{preview: nextRunPreview}}
+                                />
+                            ) : (
+                                '\u00A0'
+                            )}
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            {/* Time period selection */}
-            <div className='form-group'>
-                <DropdownInput
-                    name='timePeriod'
-                    legend={formatMessage({id: 'recaps.modal.timePeriod', defaultMessage: 'Time period to cover'})}
-                    value={timePeriodOptions.find((o) => o.value === timePeriod)}
-                    options={timePeriodOptions}
-                    onChange={(val) => setTimePeriod(val.value)}
-                    required={true}
-                />
+            {/* Section: Time period to cover */}
+            <div className='schedule-section'>
+                <div className='form-group'>
+                    <label className='section-subtitle'>
+                        <FormattedMessage
+                            id='recaps.modal.selectTimePeriod'
+                            defaultMessage='Select a time period for your recap to cover'
+                        />
+                    </label>
+                    <DropdownInput
+                        name='timePeriod'
+                        legend={formatMessage({id: 'recaps.modal.timePeriod', defaultMessage: 'Time period to cover'})}
+                        value={timePeriodOptions.find((o) => o.value === timePeriod)}
+                        options={timePeriodOptions}
+                        onChange={(val) => setTimePeriod(val.value)}
+                        required={true}
+                    />
+                </div>
             </div>
 
-            {/* Custom instructions */}
-            <div className='form-group'>
-                <Input
-                    type='textarea'
-                    name='customInstructions'
-                    label={formatMessage({id: 'recaps.modal.customInstructions', defaultMessage: 'Custom instructions (optional)'})}
-                    placeholder={formatMessage({id: 'recaps.modal.customInstructionsPlaceholder', defaultMessage: 'Add any specific instructions for the AI...'})}
-                    value={customInstructions}
-                    onChange={(e) => setCustomInstructions(e.target.value)}
-                    rows={3}
-                    limit={500}
-                />
+            {/* Section: Custom instructions */}
+            <div className='schedule-section'>
+                <div className='form-group'>
+                    <label className='section-subtitle'>
+                        <FormattedMessage
+                            id='recaps.modal.additionalInstructions'
+                            defaultMessage='Additional instructions for {agentName}'
+                            values={{agentName: agentName || 'Copilot'}}
+                        />
+                    </label>
+                    <Input
+                        type='textarea'
+                        name='customInstructions'
+                        placeholder={formatMessage({id: 'recaps.modal.customInstructionsPlaceholder', defaultMessage: 'Add any specific instructions for the AI...'})}
+                        value={customInstructions}
+                        onChange={(e) => setCustomInstructions(e.target.value)}
+                        rows={3}
+                        limit={500}
+                    />
+                </div>
             </div>
         </div>
     );
