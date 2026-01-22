@@ -236,6 +236,29 @@ func TestCreateTeamSanitization(t *testing.T) {
 	}, "system admin")
 }
 
+func TestCreateTeamInviteIdHiddenWithoutInvitePermission(t *testing.T) {
+	th := Setup(t)
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer th.RestoreDefaultRolePermissions(defaultRolePermissions)
+
+	// Remove PermissionInviteUser from the default team user role
+	th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamUserRoleId)
+
+	// Regular user creates a team - InviteId should be hidden
+	// since the team user role lacks invite permission
+	rteam, _, err := th.Client.CreateTeam(context.Background(), &model.Team{
+		DisplayName:    "Team Without Invite Permission",
+		Name:           GenerateTestTeamName(),
+		Email:          th.GenerateTestEmail(),
+		Type:           model.TeamOpen,
+		AllowedDomains: "simulator.amazonses.com,localhost",
+	})
+	require.NoError(t, err)
+	require.NotEmpty(t, rteam.Email, "should not have sanitized email")
+	require.Empty(t, rteam.InviteId, "should have hidden invite_id when user lacks invite permission")
+}
+
 func TestGetTeam(t *testing.T) {
 	mainHelper.Parallel(t)
 
