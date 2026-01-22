@@ -19,6 +19,7 @@ import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagVal
 import CreateRecapModal from 'components/create_recap_modal';
 
 import {ModalIdentifiers} from 'utils/constants';
+import {useQuery} from 'utils/http_utils';
 
 import RecapsList from './recaps_list';
 import ScheduledRecapsList from './scheduled_recaps_list';
@@ -26,16 +27,33 @@ import ScheduledRecapsList from './scheduled_recaps_list';
 import './recaps.scss';
 import './scheduled_recap_item.scss';
 
+type TabName = 'unread' | 'read' | 'scheduled';
+
+const isValidTab = (tab: string | null): tab is TabName => {
+    return tab === 'unread' || tab === 'read' || tab === 'scheduled';
+};
+
 const Recaps = () => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
-    const [activeTab, setActiveTab] = useState<'unread' | 'read' | 'scheduled'>('unread');
+    const query = useQuery();
+    const tabParam = query.get('tab');
+    const [activeTab, setActiveTab] = useState<TabName>(() => {
+        return isValidTab(tabParam) ? tabParam : 'unread';
+    });
     const enableAIRecaps = useGetFeatureFlagValue('EnableAIRecaps');
     const agentsBridgeEnabled = useGetAgentsBridgeEnabled();
 
     const unreadRecaps = useSelector(getUnreadRecaps);
     const readRecaps = useSelector(getReadRecaps);
     const scheduledRecaps = useSelector(getAllScheduledRecaps);
+
+    // Sync activeTab with URL query parameter changes
+    useEffect(() => {
+        if (isValidTab(tabParam) && tabParam !== activeTab) {
+            setActiveTab(tabParam);
+        }
+    }, [tabParam, activeTab]);
 
     useEffect(() => {
         dispatch(getRecaps(0, 60));
