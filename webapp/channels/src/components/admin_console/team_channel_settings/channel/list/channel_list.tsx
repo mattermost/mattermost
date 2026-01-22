@@ -400,7 +400,6 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
                     columns={columns}
                     rows={rows}
                     loading={this.state.loading}
-                    page={this.state.page}
                     nextPage={this.nextPage}
                     previousPage={this.previousPage}
                     startCount={startCount}

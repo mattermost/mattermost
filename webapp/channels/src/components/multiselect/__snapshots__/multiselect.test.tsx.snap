@@ -161,8 +161,7 @@ exports[`components/multiselect/multiselect MultiSelectList should match snapsho
           },
         ]
       }
-      page={0}
-      perPage={5}
+      perPage={50}
       query=""
     />
     <div
@@ -338,8 +337,7 @@ exports[`components/multiselect/multiselect should match snapshot 1`] = `
           },
         ]
       }
-      page={0}
-      perPage={5}
+      perPage={50}
       query=""
     />
     <div
@@ -505,8 +503,7 @@ exports[`components/multiselect/multiselect should match snapshot for page 2 1`]
           },
         ]
       }
-      page={1}
-      perPage={5}
+      perPage={50}
       query=""
     />
     <div
