@@ -33,7 +33,6 @@ type Props = {
     enableEmojiPicker?: boolean;
     isReadOnly?: boolean;
     channelIsArchived?: boolean;
-    channelIsShared?: boolean;
     handleCommentClick?: (e: React.MouseEvent) => void;
     handleJumpClick?: (e: React.MouseEvent) => void;
     handleDropdownOpened?: (e: boolean) => void;

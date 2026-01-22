@@ -5,21 +5,19 @@ import {defineMessage} from 'react-intl';
 
 import type {EmojiCategory} from '@mattermost/types/emojis';
 
-import * as Emoji from 'utils/emoji';
+import type {Categories} from '../types';
 
-import type {Category, Categories} from '../types';
+export const RECENT: EmojiCategory = 'recent' as const;
+export const SEARCH_RESULTS: EmojiCategory = 'searchResults' as const;
+export const SMILEY_EMOTION: EmojiCategory = 'smileys-emotion' as const;
+export const CUSTOM: EmojiCategory = 'custom' as const;
 
-export const RECENT = 'recent';
-export const SEARCH_RESULTS = 'searchResults';
-export const SMILEY_EMOTION = 'smileys-emotion';
-export const CUSTOM = 'custom';
-
-export const emojiCategories = {
+export const EMOJI_CATEGORIES: Categories = {
     recent: {
         name: 'recent',
         label: defineMessage({
             id: 'emoji_picker.recent',
-            defaultMessage: 'Recent',
+            defaultMessage: 'Recently Used',
         }),
         iconClassName: 'icon-clock-outline',
     },
@@ -111,19 +109,15 @@ export const emojiCategories = {
         }),
         iconClassName: 'icon-emoticon-custom-outline',
     },
-} satisfies Record<EmojiCategory, Category>;
+} as const;
 
-export const RECENT_EMOJI_CATEGORY: Pick<Categories, 'recent'> = {recent: emojiCategories.recent};
-export const SEARCH_EMOJI_CATEGORY: Pick<Categories, typeof SEARCH_RESULTS> = {searchResults: emojiCategories.searchResults};
+const {recent, searchResults, ...standardCategories} = EMOJI_CATEGORIES;
 
-export const CATEGORIES: Categories = Emoji.CategoryNames.
-    filter((category) => !(category === 'recent' || category === 'searchResults')).
-    reduce((previousCategory, currentCategory) => {
-        return {
-            ...previousCategory,
-            [currentCategory]: emojiCategories[currentCategory as EmojiCategory],
-        };
-    }, {} as Categories);
+export const RECENT_EMOJI_CATEGORY: Pick<Categories, typeof RECENT> = {recent};
+export const SEARCH_EMOJI_CATEGORY: Pick<Categories, typeof SEARCH_RESULTS> = {searchResults};
+
+// TODO CATEGORIES doesn't contain 'recent' or 'searchResults' as it's type claims
+export const CATEGORIES = standardCategories as Categories;
 
 export const EMOJI_PER_ROW = 9; // needs to match variable `$emoji-per-row` in _variables.scss
 export const ITEM_HEIGHT = 36; //as per .emoji-picker__item height in _emoticons.scss

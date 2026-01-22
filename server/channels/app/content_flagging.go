@@ -352,7 +352,7 @@ func (a *App) createContentReviewPost(rctx request.CTX, flaggedPostId, teamId, r
 			ChannelId: channel.Id,
 		}
 		post.AddProp(POST_PROP_KEY_FLAGGED_POST_ID, flaggedPostId)
-		createdPost, appErr := a.CreatePost(rctx, post, channel, model.CreatePostFlags{})
+		createdPost, _, appErr := a.CreatePost(rctx, post, channel, model.CreatePostFlags{})
 		if appErr != nil {
 			rctx.Logger().Error("Failed to create content review post in one of the channels", mlog.Err(appErr), mlog.String("channel_id", channel.Id), mlog.String("team_id", teamId))
 			continue // Don't stop processing other channels if one fails
@@ -1118,7 +1118,12 @@ func (a *App) postContentReviewBotMessage(rctx request.CTX, flaggedPost *model.P
 		ChannelId: dmChannel.Id,
 	}
 
-	return a.CreatePost(rctx, post, dmChannel, model.CreatePostFlags{})
+	// We can ignore the membership since the post itself is does not have a permalink
+	createdPost, _, appErr := a.CreatePost(rctx, post, dmChannel, model.CreatePostFlags{})
+	if appErr != nil {
+		return nil, appErr
+	}
+	return createdPost, nil
 }
 
 func (a *App) postMessageToReporter(rctx request.CTX, contentFlaggingGroupId string, flaggedPost *model.Post, messageTemplate string) (*model.Post, *model.AppError) {
@@ -1172,7 +1177,8 @@ func (a *App) postReviewerMessage(rctx request.CTX, message, contentFlaggingGrou
 			RootId:    postId,
 		}
 
-		createdPost, appErr := a.CreatePost(rctx, post, channel, model.CreatePostFlags{})
+		// We can ignore the membership since the post itself is does not have a permalink
+		createdPost, _, appErr := a.CreatePost(rctx, post, channel, model.CreatePostFlags{})
 		if appErr != nil {
 			rctx.Logger().Error("Failed to create assign reviewer post in one of the channels", mlog.Err(appErr), mlog.String("channel_id", channel.Id), mlog.String("post_id", postId))
 			continue
@@ -1250,7 +1256,7 @@ func (a *App) sendFlagPostNotification(rctx request.CTX, flaggedPost *model.Post
 		ChannelId: dmChannel.Id,
 	}
 
-	_, appErr = a.CreatePost(rctx, post, dmChannel, model.CreatePostFlags{})
+	_, _, appErr = a.CreatePost(rctx, post, dmChannel, model.CreatePostFlags{})
 	return appErr
 }
 

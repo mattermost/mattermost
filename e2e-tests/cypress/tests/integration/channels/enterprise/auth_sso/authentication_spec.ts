@@ -58,7 +58,7 @@ describe('Authentication', () => {
 
         cy.get('#input_name').clear().type(`Test${getRandomId()}`);
 
-        cy.findByText('Create Account').click();
+        cy.findByText('Create account').click();
 
         // * Make sure account was not created successfully
         cy.get('.AlertBanner__title').scrollIntoView().should('be.visible');
