@@ -78,7 +78,7 @@ type FeatureFlags struct {
 
 	// DEPRECATED: Mobile SSO SAML code-exchange flow - disabled by default
 	// This feature is deprecated and will be removed in a future release.
-	// Mobile clients should use the legacy SSO callback flow with srv parameter verification.
+	// Mobile clients should use the direct SSO callback flow with srv parameter verification.
 	MobileSSOCodeExchange bool
 
 	// FEATURE_FLAG_REMOVAL: AutoTranslation - Remove this when MVP is to be released
@@ -125,7 +125,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.InteractiveDialogAppsForm = true
 	f.EnableMattermostEntry = true
 
-	// DEPRECATED: Disabled by default - mobile clients use legacy flow with srv verification
+	// DEPRECATED: Disabled by default - mobile clients use direct SSO callback flow
 	f.MobileSSOCodeExchange = false
 
 	// FEATURE_FLAG_REMOVAL: AutoTranslation - Remove this default when MVP is to be released

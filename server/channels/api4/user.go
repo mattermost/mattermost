@@ -119,7 +119,7 @@ func (api *API) InitUser() {
 // loginSSOCodeExchange exchanges a short-lived login_code for session tokens.
 //
 // Deprecated: This endpoint is deprecated and will be removed in a future release.
-// Mobile clients should use the legacy SSO callback flow instead.
+// Mobile clients should use the direct SSO callback flow instead.
 func loginSSOCodeExchange(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Set deprecation headers to inform clients
 	w.Header().Set("Deprecation", "true")

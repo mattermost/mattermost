@@ -261,7 +261,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		redirectURL = utils.AppendQueryParamsToURL(redirectURL, map[string]string{
 			"login_code": code.Token,
-			"srv":        c.GetSiteURLHeader(), // Server URL for mobile client verification
+			"srv":        c.App.GetSiteURL(), // Server URL for mobile client verification
 		})
 		utils.RenderMobileAuthComplete(w, redirectURL)
 		return
@@ -286,7 +286,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			redirectURL = utils.AppendQueryParamsToURL(redirectURL, map[string]string{
 				model.SessionCookieToken: c.AppContext.Session().Token,
 				model.SessionCookieCsrf:  c.AppContext.Session().GetCSRF(),
-				"srv":                    c.GetSiteURLHeader(), // Server URL for mobile client verification
+				"srv":                    c.App.GetSiteURL(), // Server URL for mobile client verification (config-based, not request Host)
 			})
 			utils.RenderMobileAuthComplete(w, redirectURL)
 		} else {
