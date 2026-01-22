@@ -502,6 +502,12 @@
                     min-height: 80px;
                     resize: vertical;
                 }
+
+                // Remove duplicate border - the Input_fieldset provides the border,
+                // but GenericModal adds a border to all .form-control elements
+                .Input_wrapper textarea.form-control {
+                    border: none;
+                }
             }
         }
     }
