@@ -56,11 +56,11 @@ const ScheduleConfiguration = ({
     const userTimezone = useSelector(getCurrentTimezone);
     const timezoneLabel = useSelector(getCurrentTimezoneLabel);
 
-    // Time period options
+    // Time period options - must match server model constants
     const timePeriodOptions = useMemo(() => [
         {value: 'last_24h', label: formatMessage({id: 'recaps.timePeriod.last24h', defaultMessage: 'Previous day'})},
-        {value: 'last_3_days', label: formatMessage({id: 'recaps.timePeriod.last3days', defaultMessage: 'Last 3 days'})},
-        {value: 'last_7_days', label: formatMessage({id: 'recaps.timePeriod.last7days', defaultMessage: 'Last 7 days'})},
+        {value: 'last_week', label: formatMessage({id: 'recaps.timePeriod.lastWeek', defaultMessage: 'Last 7 days'})},
+        {value: 'since_last_read', label: formatMessage({id: 'recaps.timePeriod.sinceLastRead', defaultMessage: 'Since last read'})},
     ], [formatMessage]);
 
     // Time dropdown options with locale-aware labels
