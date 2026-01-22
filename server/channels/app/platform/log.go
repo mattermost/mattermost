@@ -205,11 +205,26 @@ func (ps *PlatformService) GetLogFile(_ request.CTX) (*model.FileData, error) {
 	}, nil
 }
 
-func (ps *PlatformService) GetAdvancedLogs(_ request.CTX) ([]*model.FileData, error) {
+// validateLogFilePath validates that a log file path is within the logging root directory.
+// This prevents arbitrary file read/write vulnerabilities in logging configuration.
+// The logging root is determined by MM_LOG_PATH environment variable or the configured log directory.
+// Currently used to validate paths when reading logs via GetAdvancedLogs.
+// In future versions, this will also be used to validate paths when saving logging config.
+func (ps *PlatformService) validateLogFilePath(filePath string) error {
+	// Get the logging root path (from env var or config)
+	loggingRoot := config.GetLogRootPath(*ps.Config().LogSettings.FileLocation)
+
+	return config.ValidateLogFilePath(filePath, loggingRoot)
+}
+
+func (ps *PlatformService) GetAdvancedLogs(rctx request.CTX) ([]*model.FileData, error) {
 	var (
 		rErr *multierror.Error
 		ret  []*model.FileData
 	)
+
+	rctx.Logger().Debug("Advanced logs access requested",
+		mlog.String("user_id", rctx.Session().UserId))
 
 	for name, loggingJSON := range map[string]json.RawMessage{
 		"LogSettings.AdvancedLoggingJSON":               ps.Config().LogSettings.AdvancedLoggingJSON,
@@ -237,6 +252,18 @@ func (ps *PlatformService) GetAdvancedLogs(_ request.CTX) ([]*model.FileData, er
 				rErr = multierror.Append(rErr, errors.Wrapf(err, "error decoding file target options in %s", name))
 				continue
 			}
+
+			// Validate the file path to prevent arbitrary file reads
+			if err := ps.validateLogFilePath(fileOption.Filename); err != nil {
+				rctx.Logger().Error("Blocked attempt to read log file outside allowed root",
+					mlog.String("path", fileOption.Filename),
+					mlog.String("config_section", name),
+					mlog.String("user_id", rctx.Session().UserId),
+					mlog.Err(err))
+				rErr = multierror.Append(rErr, errors.Wrapf(err, "log file path %s in %s is outside allowed logging directory", fileOption.Filename, name))
+				continue
+			}
+
 			data, err := os.ReadFile(fileOption.Filename)
 			if err != nil {
 				rErr = multierror.Append(rErr, errors.Wrapf(err, "failed to read advanced log file at path %s in %s", fileOption.Filename, name))
@@ -251,7 +278,7 @@ func (ps *PlatformService) GetAdvancedLogs(_ request.CTX) ([]*model.FileData, er
 		}
 	}
 
-	return ret, nil
+	return ret, rErr.ErrorOrNil()
 }
 
 func isLogFilteredByLevel(logFilter *model.LogFilter, entry *model.LogEntry) bool {
