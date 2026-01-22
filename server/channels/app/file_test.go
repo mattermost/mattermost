@@ -861,7 +861,7 @@ func TestFilterFilesByChannelPermissions(t *testing.T) {
 		fileList.Order = []string{fileInfo1.Id, fileInfo2.Id, fileInfo3.Id}
 
 		// BasicUser should have access to all files
-		appErr, _ := th.App.FilterFilesByChannelPermissions(th.Context, fileList, th.BasicUser.Id)
+		_, appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		require.Len(t, fileList.FileInfos, 3)
 		require.Len(t, fileList.Order, 3)
@@ -874,7 +874,7 @@ func TestFilterFilesByChannelPermissions(t *testing.T) {
 		fileList.FileInfos[fileInfo3.Id] = fileInfo3
 		fileList.Order = []string{fileInfo1.Id, fileInfo2.Id, fileInfo3.Id}
 
-		appErr, _ := th.App.FilterFilesByChannelPermissions(th.Context, fileList, guestUser.Id)
+		_, appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, guestUser.Id)
 		require.Nil(t, appErr)
 		require.Len(t, fileList.FileInfos, 3)
 		require.Len(t, fileList.Order, 3)
@@ -920,7 +920,7 @@ func TestFilterFilesByChannelPermissions(t *testing.T) {
 
 	t.Run("should handle empty file list", func(t *testing.T) {
 		fileList := model.NewFileInfoList()
-		appErr, _ := th.App.FilterFilesByChannelPermissions(th.Context, fileList, th.BasicUser.Id)
+		_, appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		require.Len(t, fileList.FileInfos, 0)
 		require.Len(t, fileList.Order, 0)
