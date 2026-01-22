@@ -74,7 +74,7 @@ export function getScheduledRecapsState(state: GlobalState): Record<string, Sche
 export const getAllScheduledRecaps = createSelector(
     'getAllScheduledRecaps',
     getScheduledRecapsState,
-    (scheduledRecaps) => Object.values(scheduledRecaps),
+    (scheduledRecaps) => Object.values(scheduledRecaps).sort((a, b) => b.create_at - a.create_at),
 );
 
 export const getActiveScheduledRecaps = createSelector(
