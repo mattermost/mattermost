@@ -159,15 +159,8 @@ const ScheduleConfiguration = ({
 
     return (
         <div className='step-three'>
-            {/* Section: When would you like your summary sent? */}
+            {/* Section: Schedule configuration */}
             <div className='schedule-section'>
-                <h4 className='section-title'>
-                    <FormattedMessage
-                        id='recaps.modal.whenSummary'
-                        defaultMessage='When would you like your summary sent?'
-                    />
-                </h4>
-
                 {/* Days of week selection */}
                 <div className='form-group days-group'>
                     <label className='section-subtitle'>

@@ -491,6 +491,12 @@
                 font-size: 14px;
                 font-weight: 600;
                 line-height: 20px;
+
+                // When DropdownInput immediately follows section-subtitle, reduce top margin
+                // to achieve 12px total spacing (8px subtitle margin-bottom + 4px = 12px)
+                + .DropdownInput {
+                    margin-top: 4px;
+                }
             }
         }
 
