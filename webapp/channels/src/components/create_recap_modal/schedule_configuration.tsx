@@ -5,7 +5,7 @@ import React, {useMemo} from 'react';
 import {useIntl, FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {getCurrentTimezone, getCurrentTimezoneLabel} from 'mattermost-redux/selectors/entities/timezone';
+import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
 import DropdownInput from 'components/dropdown_input';
 import Input from 'components/widgets/inputs/input/input';
@@ -54,7 +54,6 @@ const ScheduleConfiguration = ({
 }: Props) => {
     const {formatMessage, formatTime, formatDate} = useIntl();
     const userTimezone = useSelector(getCurrentTimezone);
-    const timezoneLabel = useSelector(getCurrentTimezoneLabel);
 
     // Time period options - must match server model constants
     const timePeriodOptions = useMemo(() => [
@@ -132,10 +131,21 @@ const ScheduleConfiguration = ({
                         );
                     }
 
-                    // Add timezone
-                    const tzAbbrev = timezoneLabel || userTimezone || '';
-                    if (tzAbbrev) {
-                        return `${dateStr} (${tzAbbrev})`;
+                    // Add timezone abbreviation (e.g., EST, PST, EDT)
+                    if (userTimezone) {
+                        try {
+                            // Get the short timezone abbreviation using Intl.DateTimeFormat
+                            const tzAbbrev = new Intl.DateTimeFormat('en-US', {
+                                timeZone: userTimezone,
+                                timeZoneName: 'short',
+                            }).formatToParts(checkDate).find((part) => part.type === 'timeZoneName')?.value || '';
+
+                            if (tzAbbrev) {
+                                return `${dateStr} (${tzAbbrev})`;
+                            }
+                        } catch {
+                            // Fall back to showing timezone identifier if Intl fails
+                        }
                     }
                     return dateStr;
                 }
@@ -143,7 +153,7 @@ const ScheduleConfiguration = ({
         }
 
         return null;
-    }, [daysOfWeek, timeOfDay, formatMessage, formatTime, formatDate, userTimezone, timezoneLabel]);
+    }, [daysOfWeek, timeOfDay, formatMessage, formatTime, formatDate, userTimezone]);
 
     return (
         <div className='step-three'>
