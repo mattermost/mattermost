@@ -22,9 +22,6 @@ jest.mock('react-router-dom', () => ({
     useHistory: () => ({
         push: jest.fn(),
     }),
-    useRouteMatch: () => ({
-        url: '/team/test',
-    }),
 }));
 
 describe('CreateRecapModal', () => {

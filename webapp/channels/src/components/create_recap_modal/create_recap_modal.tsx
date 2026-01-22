@@ -4,7 +4,7 @@
 import React, {useState, useCallback, useEffect} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
-import {useHistory, useRouteMatch} from 'react-router-dom';
+import {useHistory} from 'react-router-dom';
 
 import {ChevronLeftIcon, ChevronRightIcon} from '@mattermost/compass-icons/components';
 import {GenericModal} from '@mattermost/components';
@@ -15,6 +15,7 @@ import {getAgents} from 'mattermost-redux/actions/agents';
 import {createRecap, createScheduledRecap, updateScheduledRecap} from 'mattermost-redux/actions/recaps';
 import {getAgents as getAgentsSelector} from 'mattermost-redux/selectors/entities/agents';
 import {getMyChannels, getUnreadChannelIds} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
@@ -39,7 +40,7 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const history = useHistory();
-    const {url} = useRouteMatch();
+    const teamUrl = useSelector(getCurrentRelativeTeamUrl);
     const currentUserId = useSelector(getCurrentUserId);
     const myChannels = useSelector(getMyChannels);
     const unreadChannelIds = useSelector(getUnreadChannelIds);
@@ -175,7 +176,7 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
                 // Run once: create immediate recap (existing behavior)
                 await dispatch(createRecap(recapName, selectedChannelIds, selectedBotId));
                 onExited();
-                history.push(`${url}/recaps`);
+                history.push(`${teamUrl}/recaps`);
             } else if (isEditMode && editScheduledRecap) {
                 // Edit mode: update existing scheduled recap
                 const input: ScheduledRecapInput = {
@@ -192,7 +193,7 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
                 };
                 await dispatch(updateScheduledRecap(editScheduledRecap.id, input));
                 onExited();
-                history.push(`${url}/recaps?tab=scheduled`);
+                history.push(`${teamUrl}/recaps?tab=scheduled`);
             } else {
                 // Create new scheduled recap
                 const input: ScheduledRecapInput = {
@@ -209,7 +210,7 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
                 };
                 await dispatch(createScheduledRecap(input));
                 onExited();
-                history.push(`${url}/recaps?tab=scheduled`);
+                history.push(`${teamUrl}/recaps?tab=scheduled`);
             }
         } catch (err) {
             const errorMsg = runOnce
@@ -235,7 +236,7 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
         dispatch,
         onExited,
         history,
-        url,
+        teamUrl,
         formatMessage,
     ]);
 
