@@ -788,11 +788,11 @@ func (a *App) UploadFileX(rctx request.CTX, channelID, name string, input io.Rea
 		o(t)
 	}
 
-	rctx = rctx.WithLogger(rctx.Logger().With(
+	rctx = rctx.WithLogFields(
 		mlog.String("file_name", name),
 		mlog.String("channel_id", channelID),
 		mlog.String("user_id", t.UserId),
-	))
+	)
 
 	if *a.Config().FileSettings.DriverName == "" {
 		return nil, t.newAppError("api.file.upload_file.storage.app_error", http.StatusNotImplemented)
