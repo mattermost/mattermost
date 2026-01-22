@@ -33,10 +33,6 @@ type Props = WrappedComponentProps & {
     currentTeam?: Team;
     currentUserId: string;
     setRhsExpanded: (b: boolean) => void;
-    showMentions: () => void;
-    showSearchResults: () => void;
-    showFlaggedPosts: () => void;
-    showPinnedPosts: () => void;
     goBack: () => void;
     closeRightHandSide: (e?: React.MouseEvent) => void;
     toggleRhsExpanded: (e: React.MouseEvent) => void;
