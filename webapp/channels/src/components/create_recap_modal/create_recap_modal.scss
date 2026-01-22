@@ -487,12 +487,9 @@
         }
 
         .next-run-preview {
-            padding: 12px 16px;
-            border-radius: 4px;
-            margin-top: -8px;
-            background-color: rgba(var(--center-channel-color-rgb), 0.04);
-            color: rgba(var(--center-channel-color-rgb), 0.72);
-            font-size: 13px;
+            margin-top: 4px;
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+            font-size: 12px;
 
             // Use visibility to reserve space even when hidden, preventing modal height jumping
             &.hidden {
