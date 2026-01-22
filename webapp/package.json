@@ -60,6 +60,7 @@
     "webpack-dev-server": "5.2.2"
   },
   "overrides": {
+    "lodash": "4.17.23",
     "@deanwhillier/jest-matchmedia-mock": {
       "jest": "30.1.3"
     },
