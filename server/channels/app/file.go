@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"image"
 	"io"
+	"maps"
 	"math"
 	"net/http"
 	"net/url"
@@ -19,6 +20,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -1501,7 +1503,69 @@ func (a *App) SearchFilesInTeamForUser(c request.CTX, terms string, userId strin
 		}
 	}
 
-	return fileInfoSearchResults, a.filterInaccessibleFiles(fileInfoSearchResults, filterFileOptions{assumeSortedCreatedAt: true})
+	if appErr := a.filterInaccessibleFiles(fileInfoSearchResults, filterFileOptions{assumeSortedCreatedAt: true}); appErr != nil {
+		return nil, appErr
+	}
+
+	if appErr := a.FilterFilesByChannelPermissions(c, fileInfoSearchResults, userId); appErr != nil {
+		return nil, appErr
+	}
+
+	return fileInfoSearchResults, nil
+}
+
+func (a *App) FilterFilesByChannelPermissions(rctx request.CTX, fileList *model.FileInfoList, userID string) *model.AppError {
+	if fileList == nil || fileList.FileInfos == nil || len(fileList.FileInfos) == 0 {
+		return nil
+	}
+
+	channels := make(map[string]*model.Channel)
+	for _, fileInfo := range fileList.FileInfos {
+		if fileInfo.ChannelId != "" {
+			channels[fileInfo.ChannelId] = nil
+		}
+	}
+
+	if len(channels) > 0 {
+		channelIDs := slices.Collect(maps.Keys(channels))
+		channelList, err := a.GetChannels(rctx, channelIDs)
+		if err != nil && err.StatusCode != http.StatusNotFound {
+			return err
+		}
+		for _, channel := range channelList {
+			channels[channel.Id] = channel
+		}
+	}
+
+	channelReadPermission := make(map[string]bool)
+	filteredFiles := make(map[string]*model.FileInfo)
+	filteredOrder := []string{}
+
+	for _, fileID := range fileList.Order {
+		fileInfo, ok := fileList.FileInfos[fileID]
+		if !ok {
+			continue
+		}
+
+		if _, ok := channelReadPermission[fileInfo.ChannelId]; !ok {
+			channel := channels[fileInfo.ChannelId]
+			allowed := false
+			if channel != nil {
+				allowed = a.HasPermissionToReadChannel(rctx, userID, channel)
+			}
+			channelReadPermission[fileInfo.ChannelId] = allowed
+		}
+
+		if channelReadPermission[fileInfo.ChannelId] {
+			filteredFiles[fileID] = fileInfo
+			filteredOrder = append(filteredOrder, fileID)
+		}
+	}
+
+	fileList.FileInfos = filteredFiles
+	fileList.Order = filteredOrder
+
+	return nil
 }
 
 func (a *App) ExtractContentFromFileInfo(rctx request.CTX, fileInfo *model.FileInfo) error {
