@@ -54,11 +54,6 @@ describe('Signup Email page', () => {
     });
 
     it('should match elements, body', () => {
-        const {
-            PRIVACY_POLICY_LINK,
-            TERMS_OF_SERVICE_LINK,
-        } = FixedCloudConfig.SupportSettings;
-
         // * Check elements in the body
         cy.get('.signup-body').should('be.visible');
         cy.get('.header-logo-link').should('be.visible');
@@ -78,11 +73,15 @@ describe('Signup Email page', () => {
         cy.findByText('Your password must be 5-72 characters long.').should('be.visible');
 
         cy.get('#saveSetting').scrollIntoView().should('be.visible');
-        cy.get('#saveSetting').should('contain', 'Create Account');
+        cy.get('#saveSetting').should('contain', 'Create account');
 
-        cy.get('.signup-body-card-agreement').should('contain', `By proceeding to create your account and use ${config.TeamSettings.SiteName}, you agree to our Terms of Use and Privacy Policy. If you do not agree, you cannot use ${config.TeamSettings.SiteName}.`);
-        cy.get(`.signup-body-card-agreement > span > [href="${config.SupportSettings.TermsOfServiceLink || TERMS_OF_SERVICE_LINK}"]`).should('be.visible');
-        cy.get(`.signup-body-card-agreement > span > [href="${config.SupportSettings.PrivacyPolicyLink || PRIVACY_POLICY_LINK}"]`).should('be.visible');
+        // * Check newsletter subscription checkbox text and links
+        cy.findByText('I would like to receive Mattermost security updates via newsletter.').should('be.visible');
+        cy.findByText(/By subscribing, I consent to receive emails from Mattermost with product updates, promotions, and company news\./).should('be.visible');
+        cy.findByText(/I have read the/).parent().within(() => {
+            cy.findByRole('link', {name: 'Privacy Policy'}).should('be.visible').and('have.attr', 'href').and('include', 'mattermost.com/pl/privacy-policy/');
+            cy.findByRole('link', {name: 'unsubscribe'}).should('be.visible').and('have.attr', 'href').and('include', 'forms.mattermost.com/UnsubscribePage.html');
+        });
     });
 
     it('should match elements, footer', () => {
