@@ -51,38 +51,6 @@ func (_m *AutoTranslationStore) Get(objectID string, dstLang string) (*model.Tra
 	return r0, r1
 }
 
-// GetActiveDestinationLanguages provides a mock function with given fields: channelID, excludeUserID, filterUserIDs
-func (_m *AutoTranslationStore) GetActiveDestinationLanguages(channelID string, excludeUserID string, filterUserIDs []string) ([]string, *model.AppError) {
-	ret := _m.Called(channelID, excludeUserID, filterUserIDs)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetActiveDestinationLanguages")
-	}
-
-	var r0 []string
-	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, string, []string) ([]string, *model.AppError)); ok {
-		return rf(channelID, excludeUserID, filterUserIDs)
-	}
-	if rf, ok := ret.Get(0).(func(string, string, []string) []string); ok {
-		r0 = rf(channelID, excludeUserID, filterUserIDs)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]string)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string, string, []string) *model.AppError); ok {
-		r1 = rf(channelID, excludeUserID, filterUserIDs)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
-	}
-
-	return r0, r1
-}
-
 // GetAllByStatePage provides a mock function with given fields: state, offset, limit
 func (_m *AutoTranslationStore) GetAllByStatePage(state model.TranslationState, offset int, limit int) ([]*model.Translation, *model.AppError) {
 	ret := _m.Called(state, offset, limit)

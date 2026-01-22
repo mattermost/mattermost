@@ -1163,8 +1163,6 @@ type AutoTranslationStore interface {
 	IsUserEnabled(userID, channelID string) (bool, *model.AppError)
 	SetUserEnabled(userID, channelID string, enabled bool) *model.AppError
 	GetUserLanguage(userID, channelID string) (string, *model.AppError)
-	// GetActiveDestinationLanguages returns distinct locales of users who have auto-translation enabled.
-	GetActiveDestinationLanguages(channelID, excludeUserID string, filterUserIDs []string) ([]string, *model.AppError)
 	Get(objectID, dstLang string) (*model.Translation, *model.AppError)
 	GetBatch(objectIDs []string, dstLang string) (map[string]*model.Translation, *model.AppError)
 	GetAllForObject(objectID string) ([]*model.Translation, *model.AppError)

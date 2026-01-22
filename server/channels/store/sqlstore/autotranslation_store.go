@@ -174,39 +174,6 @@ func (s *SqlAutoTranslationStore) GetUserLanguage(userID, channelID string) (str
 	return locale, nil
 }
 
-func (s *SqlAutoTranslationStore) GetActiveDestinationLanguages(channelID, excludeUserID string, filterUserIDs []string) ([]string, *model.AppError) {
-	query := s.getQueryBuilder().
-		Select("DISTINCT u.Locale").
-		From("ChannelMembers cm").
-		Join("Channels c ON c.Id = cm.ChannelId").
-		Join("Users u ON u.Id = cm.UserId").
-		Where(sq.Eq{"cm.ChannelId": channelID}).
-		Where("c.AutoTranslation = true").
-		Where("cm.AutoTranslationEnabled = true")
-
-	// Filter to specific user IDs if provided (e.g., users with active WebSocket connections)
-	// When filterUserIDs is non-nil and non-empty, squirrel converts it to an IN clause
-	// Example: WHERE cm.userid IN ('id1', 'id2', 'id3')
-	if len(filterUserIDs) > 0 {
-		query = query.Where(sq.Eq{"cm.userid": filterUserIDs})
-	}
-
-	// Exclude specific user if provided (e.g., the message author)
-	// This works together with the filter above via SQL AND logic
-	// Example: WHERE cm.userid IN (...) AND cm.userid != 'excludedId'
-	if excludeUserID != "" {
-		query = query.Where(sq.NotEq{"cm.userid": excludeUserID})
-	}
-
-	var languages []string
-	if err := s.GetReplica().SelectBuilder(&languages, query); err != nil {
-		return nil, model.NewAppError("SqlAutoTranslationStore.GetActiveDestinationLanguages",
-			"store.sql_autotranslation.get_active_languages.app_error", nil, err.Error(), 500)
-	}
-
-	return languages, nil
-}
-
 func (s *SqlAutoTranslationStore) Get(objectID, dstLang string) (*model.Translation, *model.AppError) {
 	query := s.getQueryBuilder().
 		Select("ObjectType", "ObjectId", "DstLang", "ProviderId", "NormHash", "Text", "Confidence", "Meta", "State", "UpdateAt").
