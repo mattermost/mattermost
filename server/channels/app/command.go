@@ -220,6 +220,7 @@ func (a *App) ExecuteCommand(rctx request.CTX, args *model.CommandArgs) (*model.
 	if !strings.HasPrefix(trigger, "/") {
 		return nil, model.NewAppError("command", "api.command.execute_command.format.app_error", map[string]any{"Trigger": trigger}, "", http.StatusBadRequest)
 	}
+
 	trigger = strings.TrimPrefix(trigger, "/")
 
 	clientTriggerId, triggerId, appErr := model.GenerateTriggerId(args.UserId, a.AsymmetricSigningKey())
@@ -470,7 +471,7 @@ func (a *App) tryExecuteCustomCommand(rctx request.CTX, args *model.CommandArgs,
 		return nil, nil, nil
 	}
 
-	rctx.Logger().Debug("Executing command", mlog.String("command", trigger), mlog.String("user_id", args.UserId))
+	rctx = rctx.WithLogFields(mlog.String("command_id", cmd.Id))
 
 	p := url.Values{}
 	p.Set("token", cmd.Token)
