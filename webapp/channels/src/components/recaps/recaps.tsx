@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
-import {Redirect} from 'react-router-dom';
+import {Redirect, useHistory, useLocation} from 'react-router-dom';
 
 import {PlusIcon} from '@mattermost/compass-icons/components';
 
@@ -36,11 +36,30 @@ const isValidTab = (tab: string | null): tab is TabName => {
 const Recaps = () => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
+    const history = useHistory();
+    const location = useLocation();
     const query = useQuery();
     const tabParam = query.get('tab');
     const [activeTab, setActiveTab] = useState<TabName>(() => {
         return isValidTab(tabParam) ? tabParam : 'unread';
     });
+
+    // Handle tab change: update state and URL
+    const handleTabChange = useCallback((tab: TabName) => {
+        setActiveTab(tab);
+
+        // Update URL with the new tab parameter using replace to avoid polluting history
+        const newSearchParams = new URLSearchParams(location.search);
+        if (tab === 'unread') {
+            // Remove tab param for default tab to keep URL clean
+            newSearchParams.delete('tab');
+        } else {
+            newSearchParams.set('tab', tab);
+        }
+        const newSearch = newSearchParams.toString();
+        const newUrl = newSearch ? `${location.pathname}?${newSearch}` : location.pathname;
+        history.replace(newUrl);
+    }, [history, location.pathname, location.search]);
     const enableAIRecaps = useGetFeatureFlagValue('EnableAIRecaps');
     const agentsBridgeEnabled = useGetAgentsBridgeEnabled();
 
@@ -48,12 +67,11 @@ const Recaps = () => {
     const readRecaps = useSelector(getReadRecaps);
     const scheduledRecaps = useSelector(getAllScheduledRecaps);
 
-    // Sync activeTab with URL query parameter changes
+    // Sync activeTab with URL query parameter changes (e.g., when navigating via history.push)
     useEffect(() => {
-        if (isValidTab(tabParam) && tabParam !== activeTab) {
-            setActiveTab(tabParam);
-        }
-    }, [tabParam, activeTab]);
+        const urlTab = isValidTab(tabParam) ? tabParam : 'unread';
+        setActiveTab(urlTab);
+    }, [tabParam]);
 
     useEffect(() => {
         dispatch(getRecaps(0, 60));
@@ -105,19 +123,19 @@ const Recaps = () => {
                     <div className='recaps-tabs'>
                         <button
                             className={`recaps-tab ${activeTab === 'unread' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('unread')}
+                            onClick={() => handleTabChange('unread')}
                         >
                             {formatMessage({id: 'recaps.unreadTab', defaultMessage: 'Unread'})}
                         </button>
                         <button
                             className={`recaps-tab ${activeTab === 'read' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('read')}
+                            onClick={() => handleTabChange('read')}
                         >
                             {formatMessage({id: 'recaps.readTab', defaultMessage: 'Read'})}
                         </button>
                         <button
                             className={`recaps-tab ${activeTab === 'scheduled' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('scheduled')}
+                            onClick={() => handleTabChange('scheduled')}
                         >
                             {formatMessage({id: 'recaps.scheduled.tab', defaultMessage: 'Scheduled'})}
                         </button>
