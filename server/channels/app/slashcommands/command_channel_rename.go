@@ -49,14 +49,14 @@ func (*RenameProvider) DoCommand(a *app.App, rctx request.CTX, args *model.Comma
 
 	switch channel.Type {
 	case model.ChannelTypeOpen:
-		if !a.HasPermissionToChannel(rctx, args.UserId, args.ChannelId, model.PermissionManagePublicChannelProperties) {
+		if ok, _ := a.HasPermissionToChannel(rctx, args.UserId, args.ChannelId, model.PermissionManagePublicChannelProperties); !ok {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_channel_rename.permission.app_error"),
 				ResponseType: model.CommandResponseTypeEphemeral,
 			}
 		}
 	case model.ChannelTypePrivate:
-		if !a.HasPermissionToChannel(rctx, args.UserId, args.ChannelId, model.PermissionManagePrivateChannelProperties) {
+		if ok, _ := a.HasPermissionToChannel(rctx, args.UserId, args.ChannelId, model.PermissionManagePrivateChannelProperties); !ok {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_channel_rename.permission.app_error"),
 				ResponseType: model.CommandResponseTypeEphemeral,

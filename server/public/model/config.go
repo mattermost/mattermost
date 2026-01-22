@@ -5061,49 +5061,39 @@ func (o *Config) Sanitize(pluginManifests []*Manifest, opts *SanitizeOptions) {
 	o.PluginSettings.Sanitize(pluginManifests)
 }
 
-// SanitizeDataSource redacts sensitive information (username and password) from a database
+// SanitizeDataSource redacts sensitive information (username and password) from a PostgreSQL
 // connection string while preserving other connection parameters.
 //
-// Parameters:
-//   - driverName: The database driver name (postgres or mysql)
-//   - dataSource: The database connection string to sanitize
+// Example:
 //
-// Returns:
-//   - The sanitized connection string with username/password replaced by SanitizedPassword
-//   - An error if the driverName is not supported or if parsing fails
-//
-// Examples:
-//   - PostgreSQL: "postgres://user:pass@host:5432/db" -> "postgres://****:****@host:5432/db"
-//   - MySQL: "user:pass@tcp(host:3306)/db" -> "****:****@tcp(host:3306)/db"
+//	"postgres://user:pass@host:5432/db" -> "postgres://****:****@host:5432/db"
 func SanitizeDataSource(driverName, dataSource string) (string, error) {
-	// Handle empty data source
 	if dataSource == "" {
 		return "", nil
 	}
 
-	switch driverName {
-	case DatabaseDriverPostgres:
-		u, err := url.Parse(dataSource)
-		if err != nil {
-			return "", err
-		}
-		u.User = url.UserPassword(SanitizedPassword, SanitizedPassword)
-
-		// Remove username and password from query string
-		params := u.Query()
-		params.Del("user")
-		params.Del("password")
-		u.RawQuery = params.Encode()
-
-		// Unescape the URL to make it human-readable
-		out, err := url.QueryUnescape(u.String())
-		if err != nil {
-			return "", err
-		}
-		return out, nil
-	default:
-		return "", errors.New("invalid drivername. Not postgres or mysql.")
+	if driverName != DatabaseDriverPostgres {
+		return "", errors.New("invalid drivername: only postgres is supported")
 	}
+
+	u, err := url.Parse(dataSource)
+	if err != nil {
+		return "", err
+	}
+	u.User = url.UserPassword(SanitizedPassword, SanitizedPassword)
+
+	// Remove username and password from query string
+	params := u.Query()
+	params.Del("user")
+	params.Del("password")
+	u.RawQuery = params.Encode()
+
+	// Unescape the URL to make it human-readable
+	out, err := url.QueryUnescape(u.String())
+	if err != nil {
+		return "", err
+	}
+	return out, nil
 }
 
 type FilterTag struct {
