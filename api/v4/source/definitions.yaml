@@ -3715,7 +3715,7 @@ components:
           type: array
           description: list of users participating in this thread. only includes IDs unless 'extended' was set to 'true'
           items:
-            $ref: "#/components/schemas/Post"
+            $ref: "#/components/schemas/User"
         post:
           $ref: "#/components/schemas/Post"
     RelationalIntegrityCheckData:
@@ -4704,6 +4704,83 @@ components:
         active:
           type: boolean
           description: The active status of the policy.
+    Recap:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the recap
+        user_id:
+          type: string
+          description: ID of the user who created the recap
+        title:
+          type: string
+          description: AI-generated title for the recap (max 5 words)
+        create_at:
+          type: integer
+          format: int64
+          description: The time in milliseconds the recap was created
+        update_at:
+          type: integer
+          format: int64
+          description: The time in milliseconds the recap was last updated
+        delete_at:
+          type: integer
+          format: int64
+          description: The time in milliseconds the recap was deleted
+        read_at:
+          type: integer
+          format: int64
+          description: The time in milliseconds the recap was marked as read
+        total_message_count:
+          type: integer
+          description: Total number of messages summarized across all channels
+        status:
+          type: string
+          enum: [pending, processing, completed, failed]
+          description: Current status of the recap job
+        bot_id:
+          type: string
+          description: ID of the AI agent/bot used to generate this recap
+        channels:
+          type: array
+          items:
+            $ref: "#/components/schemas/RecapChannel"
+          description: List of channel summaries included in this recap
+    RecapChannel:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the recap channel
+        recap_id:
+          type: string
+          description: ID of the parent recap
+        channel_id:
+          type: string
+          description: ID of the channel that was summarized
+        channel_name:
+          type: string
+          description: Display name of the channel
+        highlights:
+          type: array
+          items:
+            type: string
+          description: Key discussion points and important information from the channel
+        action_items:
+          type: array
+          items:
+            type: string
+          description: Tasks, todos, and action items mentioned in the channel
+        source_post_ids:
+          type: array
+          items:
+            type: string
+          description: IDs of the posts used to generate this summary
+        create_at:
+          type: integer
+          format: int64
+          description: The time in milliseconds the recap channel was created
 externalDocs:
   description: Find out more about Mattermost
   url: 'https://about.mattermost.com'

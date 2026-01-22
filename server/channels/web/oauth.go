@@ -403,7 +403,8 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 			redirectURL = utils.AppendQueryParamsToURL(c.GetSiteURLHeader()+"/login/desktop", queryString)
 
 			auditRec.Success()
-			c.LogAudit("success")
+			auditRec.Actor.UserId = user.Id
+			c.LogAuditWithUserId(user.Id, "authenticated")
 
 			w.Header().Set("Content-Type", "text/html; charset=utf-8")
 			http.Redirect(w, r, redirectURL, http.StatusTemporaryRedirect)
@@ -464,9 +465,11 @@ func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	redirectURL := r.URL.Query().Get("redirect_to")
 	desktopToken := r.URL.Query().Get("desktop_token")
 
-	if redirectURL != "" && !utils.IsValidWebAuthRedirectURL(c.App.Config(), redirectURL) {
-		c.Err = model.NewAppError("loginWithOAuth", "api.invalid_redirect_url", nil, "", http.StatusBadRequest)
-		return
+	if redirectURL != "" {
+		if err := utils.ValidateWebAuthRedirectUrl(c.App.Config(), redirectURL); err != nil {
+			c.Err = model.NewAppError("loginWithOAuth", "api.invalid_redirect_url", nil, err.Error(), http.StatusBadRequest)
+			return
+		}
 	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventLoginWithOAuth, model.AuditStatusFail)

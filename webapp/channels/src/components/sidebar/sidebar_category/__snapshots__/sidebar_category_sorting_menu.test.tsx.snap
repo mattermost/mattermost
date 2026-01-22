@@ -14,7 +14,7 @@ exports[`components/sidebar/sidebar_category/sidebar_category_sorting_menu shoul
     }
     menuButton={
       Object {
-        "aria-label": "Category options",
+        "aria-label": "category_name category options",
         "children": <DotsVerticalIcon
           size={16}
         />,
@@ -25,7 +25,7 @@ exports[`components/sidebar/sidebar_category/sidebar_category_sorting_menu shoul
     menuButtonTooltip={
       Object {
         "class": "hidden-xs",
-        "text": "Category options",
+        "text": "category_name category options",
       }
     }
   >
@@ -74,7 +74,7 @@ exports[`components/sidebar/sidebar_category/sidebar_category_sorting_menu shoul
         id="sortByMostRecent-category_id"
         labels={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Recent Activity"
+            defaultMessage="Recent activity"
             id="sidebar.sortedByRecencyLabel"
           />
         }

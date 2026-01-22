@@ -237,6 +237,7 @@ export default class Bots extends React.PureComponent<Props, State> {
                 emptyTextSearch={
                     <FormattedMessage
                         id='bots.emptySearch'
+                        // eslint-disable-next-line formatjs/enforce-placeholders -- searchTerm provided by BackstageList
                         defaultMessage='No bot accounts match <b>{searchTerm}</b>'
                         values={{
                             b: (chunks) => <b>{chunks}</b>,

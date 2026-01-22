@@ -14,13 +14,7 @@ test('displays multiple mentions correctly in Recent Mentions panel', {tag: '@me
     const MENTION_COUNT = 20;
 
     // # Initialize the first user who will create the mentions
-    const {
-        team,
-        user: mentioningUser,
-        userClient,
-    } = await pw.initSetup({
-        userPrefix: 'mentioner',
-    });
+    const {team, user: mentioningUser, userClient} = await pw.initSetup({userOptions: {prefix: 'mentioner'}});
 
     // # Create a second user to be mentioned
     const {adminClient} = await pw.getAdminClient();

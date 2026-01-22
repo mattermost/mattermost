@@ -7175,7 +7175,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
+    "translation": "© 2015 - {{ .CurrentYear }} Mattermost, Inc. 2100 Geng Road, Suite 210, Palo Alto, CA, 94303"
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
@@ -11490,5 +11490,201 @@
   {
     "id": "store.sql_autotranslation.set_user_enabled.app_error",
     "translation": "Der Status \"Benutzerautoübersetzung aktiviert\" konnte nicht gesetzt werden."
+  },
+  {
+    "id": "api.post.burn_post.user_not_in_channel.app_error",
+    "translation": "Du hast nicht die Erlaubnis, diesen Beitrag als Löschen-nach-Lesen zu markieren. Du musst ein Mitglied des Kanals sein."
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.app_error",
+    "translation": "Beim Erstellen einer Löschen-nach-Lesen-Nachricht ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.config.app_error",
+    "translation": "Löschen-nach-Lesen Nachrichten, sind nicht aktiviert. Bitte aktiviere das Feature-Flag und die Service-Einstellung."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.license.app_error",
+    "translation": "Für Löschen-nach-Lesen-Beiträge ist eine Enterprise Advanced-Lizenz erforderlich."
+  },
+  {
+    "id": "api.post.get_link_metadata_for_permalink.burn_on_read.app_error",
+    "translation": "Link-Metadaten für Löschen-nach-Lesen-Permalink können nicht abgerufen werden."
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_burn_on_read_post.error",
+    "translation": "Löschen-nach-Lesen Nachrichten können nicht aktualisiert werden."
+  },
+  {
+    "id": "api.post.reveal_post.cannot_reveal_own_post.app_error",
+    "translation": "Du kannst deine eigene Löschen-nach-Lesen Nachricht nicht aufdecken."
+  },
+  {
+    "id": "api.post.reveal_post.disabled.app_error",
+    "translation": "Die Löschen-nach-Lesen-Funktion ist nicht aktiviert oder erfordert eine Enterprise Advanced-Lizenz."
+  },
+  {
+    "id": "api.post.reveal_post.user_not_in_channel.app_error",
+    "translation": "Du hast keine Erlaubnis, diesen Beitrag aufzudecken. Du musst ein Mitglied des Kanals sein."
+  },
+  {
+    "id": "api.post.update_post.burn_on_read.app_error",
+    "translation": "Löschen-nach-Lesen Nachrichten können nicht bearbeitet werden."
+  },
+  {
+    "id": "api.reaction.save.burn_on_read.app_error",
+    "translation": "Du kannst nicht auf eine Löschen-nach-Lesen-Nachricht reagieren."
+  },
+  {
+    "id": "api.user.login_by_intune.account_locked.app_error",
+    "translation": "Dein Konto wurde deaktiviert. Bitte wende dich an deinen Systemadministrator."
+  },
+  {
+    "id": "api.user.login_by_intune.bot_login_forbidden.app_error",
+    "translation": "Bot-Konten können sich nicht mit der Microsoft-Authentifizierung anmelden."
+  },
+  {
+    "id": "api.user.login_by_intune.not_available.app_error",
+    "translation": "Die Microsoft Intune-Authentifizierung ist nicht verfügbar."
+  },
+  {
+    "id": "api.user.login_by_intune.not_configured.app_error",
+    "translation": "Die Microsoft Intune-Authentifizierung ist nicht konfiguriert."
+  },
+  {
+    "id": "api.user.oauth_to_email.magic_link.app_error",
+    "translation": "Magic Link ist die einzige verfügbare Anmeldemethode für dieses Konto."
+  },
+  {
+    "id": "api.user.update_password.magic_link.app_error",
+    "translation": "Das Passwort für Magic Link-Konten kann nicht aktualisiert werden."
+  },
+  {
+    "id": "app.burn_post.not_burn_on_read.app_error",
+    "translation": "Diese Nachricht ist nicht als Lesen-nach-Löschen markiert und kann nicht entfernt werden."
+  },
+  {
+    "id": "app.burn_post.not_revealed.app_error",
+    "translation": "Diese Lesen-nach-Löschen Nachricht ist noch nicht aufgedeckt worden. Du musst sie vor dem Löschen aufdecken."
+  },
+  {
+    "id": "app.burn_post.read_receipt.get.error",
+    "translation": "Beim Abrufen des Lesebelegs ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "app.burn_post.read_receipt.update.error",
+    "translation": "Beim Aktualisieren des Lesebelegs ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "app.post.get_post.app_error",
+    "translation": "Beim Abrufen des Löschen-nach-Lesen Nachrichten-Inhalts ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "app.reveal_post.cannot_reveal_own_post.app_error",
+    "translation": "Du kannst deine eigene Löschen-nach-Lesen Nachricht nicht aufdecken."
+  },
+  {
+    "id": "app.reveal_post.missing_expire_at.app_error",
+    "translation": "Der Löschen-nach-Lesen Nachricht fehlt die erforderliche Verfallszeit."
+  },
+  {
+    "id": "app.reveal_post.not_burn_on_read.app_error",
+    "translation": "Diese Nachricht ist keine Löschen-nach-Lesen Nachricht und kann nicht aufgedeckt werden."
+  },
+  {
+    "id": "app.reveal_post.post_expired.app_error",
+    "translation": "Diese Löschen-nach-Lesen-Nachricht ist abgelaufen und kann nicht mehr angezeigt werden."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.get.error",
+    "translation": "Beim Abrufen des Lesebelegs ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.get_unread_count.error",
+    "translation": "Es ist nicht möglich, die Ungelesen-Anzahl des Lesen-Belegs zu ermitteln."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.save.error",
+    "translation": "Beim Speichern des Lesebelegs ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "app.reveal_post.read_receipt_expired.error",
+    "translation": "Dein Zugang zu dieser Löschen-nach-Lesen Nachricht ist abgelaufen."
+  },
+  {
+    "id": "ent.intune.login.account_not_found.app_error",
+    "translation": "Dein Konto ist noch nicht vollständig eingerichtet. Bitte melde dich zuerst über das Web oder die Desktop App bei Mattermost an."
+  },
+  {
+    "id": "ent.intune.login.extract_auth_data.app_error",
+    "translation": "Die Authentifizierung ist fehlgeschlagen. Bitte versuche es erneut oder wende dich an deinen Systemadministrator."
+  },
+  {
+    "id": "ent.intune.login.not_configured.app_error",
+    "translation": "Die Microsoft Intune-Authentifizierung ist nicht konfiguriert."
+  },
+  {
+    "id": "ent.intune.validate_token.invalid_tenant_id.app_error",
+    "translation": "Authentifizierung fehlgeschlagen. Ungültige Konfiguration."
+  },
+  {
+    "id": "ent.intune.validate_token.invalid_token.app_error",
+    "translation": "Authentifizierung fehlgeschlagen. Bitte versuche es erneut."
+  },
+  {
+    "id": "ent.intune.validate_token.jwks_init.app_error",
+    "translation": "Die Initialisierung des Authentifizierungsdienstes ist fehlgeschlagen. Bitte wende dich an deinen Systemadministrator."
+  },
+  {
+    "id": "ent.intune.validate_token.missing_claims.app_error",
+    "translation": "Authentifizierung fehlgeschlagen. Die erforderlichen Benutzerinformationen fehlen."
+  },
+  {
+    "id": "ent.intune.validate_token.token_expired.app_error",
+    "translation": "Die Authentifizierungssitzung ist abgelaufen. Bitte versuche, dich erneut anzumelden."
+  },
+  {
+    "id": "model.config.is_valid.intune_auth_service.app_error",
+    "translation": "Der Intune MAM Auth Service ist erforderlich, wenn Intune aktiviert ist."
+  },
+  {
+    "id": "model.config.is_valid.intune_auth_service_invalid.app_error",
+    "translation": "Der Intune MAM Auth Service muss entweder \"office365\" oder \"saml\" sein."
+  },
+  {
+    "id": "model.config.is_valid.intune_client_id.app_error",
+    "translation": "Die Intune MAM Client ID ist erforderlich, wenn Intune aktiviert ist."
+  },
+  {
+    "id": "model.config.is_valid.intune_client_id_format.app_error",
+    "translation": "Die Intune MAM Client ID muss eine gültige UUID sein."
+  },
+  {
+    "id": "model.config.is_valid.intune_requires_office365.app_error",
+    "translation": "Für Intune MAM muss OpenID Connect (Office 365) aktiviert sein, wenn der Auth Service auf \"office365\" eingestellt ist."
+  },
+  {
+    "id": "model.config.is_valid.intune_requires_saml.app_error",
+    "translation": "Für Intune MAM muss SAML aktiviert sein, wenn der Auth Service auf \"saml\" eingestellt ist."
+  },
+  {
+    "id": "model.config.is_valid.intune_tenant_id.app_error",
+    "translation": "Die Intune MAM Tenant ID ist erforderlich, wenn Intune aktiviert ist."
+  },
+  {
+    "id": "model.config.is_valid.intune_tenant_id_format.app_error",
+    "translation": "Die Intune MAM Tenant ID muss eine gültige UUID sein."
+  },
+  {
+    "id": "api.content_flagging.error.invalid_post_type",
+    "translation": "Das Markieren eines Beitrags des Typs '{{.PostType}}' ist nicht erlaubt."
+  },
+  {
+    "id": "model.config.is_valid.guest_accounts.cannot_enforce_multifactor_authentication_when_guest_magic_link_is_enabled.app_error",
+    "translation": "Du kannst keine Multifaktor-Authentifizierung für Gastkonten erzwingen, wenn die Authentifizierung über einen magischen Link aktiviert ist."
+  },
+  {
+    "id": "app.update_scheduled_post.convert_to_post.error",
+    "translation": "Geplante Nachricht kann nicht in das Nachrichtenformat konvertiert werden."
   }
 ]

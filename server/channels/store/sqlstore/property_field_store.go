@@ -23,7 +23,7 @@ func newPropertyFieldStore(sqlStore *SqlStore) store.PropertyFieldStore {
 	s := SqlPropertyFieldStore{SqlStore: sqlStore}
 
 	s.tableSelectQuery = s.getQueryBuilder().
-		Select("ID", "GroupID", "Name", "Type", "Attrs", "TargetID", "TargetType", "CreateAt", "UpdateAt", "DeleteAt", "CreatedBy", "UpdatedBy").
+		Select("ID", "GroupID", "Name", "Type", "Attrs", "TargetID", "TargetType", "ObjectType", "CreateAt", "UpdateAt", "DeleteAt", "CreatedBy", "UpdatedBy").
 		From("PropertyFields")
 
 	return &s
@@ -42,8 +42,8 @@ func (s *SqlPropertyFieldStore) Create(field *model.PropertyField) (*model.Prope
 
 	builder := s.getQueryBuilder().
 		Insert("PropertyFields").
-		Columns("ID", "GroupID", "Name", "Type", "Attrs", "TargetID", "TargetType", "CreateAt", "UpdateAt", "DeleteAt", "CreatedBy", "UpdatedBy").
-		Values(field.ID, field.GroupID, field.Name, field.Type, field.Attrs, field.TargetID, field.TargetType, field.CreateAt, field.UpdateAt, field.DeleteAt, field.CreatedBy, field.UpdatedBy)
+		Columns("ID", "GroupID", "Name", "Type", "Attrs", "TargetID", "TargetType", "ObjectType", "CreateAt", "UpdateAt", "DeleteAt", "CreatedBy", "UpdatedBy").
+		Values(field.ID, field.GroupID, field.Name, field.Type, field.Attrs, field.TargetID, field.TargetType, field.ObjectType, field.CreateAt, field.UpdateAt, field.DeleteAt, field.CreatedBy, field.UpdatedBy)
 
 	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
 		return nil, errors.Wrap(err, "property_field_create_insert")
@@ -168,6 +168,10 @@ func (s *SqlPropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSea
 		builder = builder.Where(sq.Eq{"GroupID": opts.GroupID})
 	}
 
+	if opts.ObjectType != "" {
+		builder = builder.Where(sq.Eq{"ObjectType": opts.ObjectType})
+	}
+
 	if opts.TargetType != "" {
 		builder = builder.Where(sq.Eq{"TargetType": opts.TargetType})
 	}
@@ -200,7 +204,6 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 	defer finalizeTransactionX(transaction, &err)
 
 	updateTime := model.GetMillis()
-	isPostgres := s.DriverName() == model.DatabaseDriverPostgres
 	nameCase := sq.Case("id")
 	typeCase := sq.Case("id")
 	attrsCase := sq.Case("id")
@@ -218,23 +221,13 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 
 		ids[i] = field.ID
 		whenID := sq.Expr("?", field.ID)
-		if isPostgres {
-			nameCase = nameCase.When(whenID, sq.Expr("?::text", field.Name))
-			typeCase = typeCase.When(whenID, sq.Expr("?::property_field_type", field.Type))
-			attrsCase = attrsCase.When(whenID, sq.Expr("?::jsonb", field.Attrs))
-			targetIDCase = targetIDCase.When(whenID, sq.Expr("?::text", field.TargetID))
-			targetTypeCase = targetTypeCase.When(whenID, sq.Expr("?::text", field.TargetType))
-			deleteAtCase = deleteAtCase.When(whenID, sq.Expr("?::bigint", field.DeleteAt))
-			updatedByCase = updatedByCase.When(whenID, sq.Expr("?::text", field.UpdatedBy))
-		} else {
-			nameCase = nameCase.When(whenID, sq.Expr("?", field.Name))
-			typeCase = typeCase.When(whenID, sq.Expr("?", field.Type))
-			attrsCase = attrsCase.When(whenID, sq.Expr("?", field.Attrs))
-			targetIDCase = targetIDCase.When(whenID, sq.Expr("?", field.TargetID))
-			targetTypeCase = targetTypeCase.When(whenID, sq.Expr("?", field.TargetType))
-			deleteAtCase = deleteAtCase.When(whenID, sq.Expr("?", field.DeleteAt))
-			updatedByCase = updatedByCase.When(whenID, sq.Expr("?", field.UpdatedBy))
-		}
+		nameCase = nameCase.When(whenID, sq.Expr("?::text", field.Name))
+		typeCase = typeCase.When(whenID, sq.Expr("?::property_field_type", field.Type))
+		attrsCase = attrsCase.When(whenID, sq.Expr("?::jsonb", field.Attrs))
+		targetIDCase = targetIDCase.When(whenID, sq.Expr("?::text", field.TargetID))
+		targetTypeCase = targetTypeCase.When(whenID, sq.Expr("?::text", field.TargetType))
+		deleteAtCase = deleteAtCase.When(whenID, sq.Expr("?::bigint", field.DeleteAt))
+		updatedByCase = updatedByCase.When(whenID, sq.Expr("?::text", field.UpdatedBy))
 	}
 
 	builder := s.getQueryBuilder().

@@ -222,6 +222,60 @@ func TestPropertyField_IsValid(t *testing.T) {
 		}
 		require.NoError(t, pf.IsValid())
 	})
+
+	t.Run("empty ObjectType is valid", func(t *testing.T) {
+		pf := &PropertyField{
+			ID:         NewId(),
+			GroupID:    NewId(),
+			Name:       "test field",
+			Type:       PropertyFieldTypeText,
+			ObjectType: "",
+			CreateAt:   GetMillis(),
+			UpdateAt:   GetMillis(),
+		}
+		require.NoError(t, pf.IsValid())
+	})
+
+	t.Run("ObjectType with value is valid", func(t *testing.T) {
+		pf := &PropertyField{
+			ID:         NewId(),
+			GroupID:    NewId(),
+			Name:       "test field",
+			Type:       PropertyFieldTypeText,
+			ObjectType: "post",
+			CreateAt:   GetMillis(),
+			UpdateAt:   GetMillis(),
+		}
+		require.NoError(t, pf.IsValid())
+	})
+
+	t.Run("ObjectType exceeds maximum length", func(t *testing.T) {
+		longObjectType := strings.Repeat("a", PropertyFieldObjectTypeMaxRunes+1)
+		pf := &PropertyField{
+			ID:         NewId(),
+			GroupID:    NewId(),
+			Name:       "test field",
+			Type:       PropertyFieldTypeText,
+			ObjectType: longObjectType,
+			CreateAt:   GetMillis(),
+			UpdateAt:   GetMillis(),
+		}
+		require.Error(t, pf.IsValid())
+	})
+
+	t.Run("ObjectType at maximum length is valid", func(t *testing.T) {
+		maxLengthObjectType := strings.Repeat("a", PropertyFieldObjectTypeMaxRunes)
+		pf := &PropertyField{
+			ID:         NewId(),
+			GroupID:    NewId(),
+			Name:       "test field",
+			Type:       PropertyFieldTypeText,
+			ObjectType: maxLengthObjectType,
+			CreateAt:   GetMillis(),
+			UpdateAt:   GetMillis(),
+		}
+		require.NoError(t, pf.IsValid())
+	})
 }
 
 func TestPropertyFieldPatch_IsValid(t *testing.T) {
