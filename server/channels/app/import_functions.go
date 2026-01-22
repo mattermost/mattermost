@@ -1117,8 +1117,7 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]import
 
 	for _, member := range append(newMembers, oldMembers...) {
 		if member.ExplicitRoles != rolesByTeamID[member.TeamId] {
-			// Bulk import uses internal function to support two-phase role updates.
-			if _, appErr = a.updateTeamMemberRolesInternal(rctx, member.TeamId, user.Id, rolesByTeamID[member.TeamId], true); appErr != nil {
+			if _, appErr = a.UpdateTeamMemberRoles(rctx, member.TeamId, user.Id, rolesByTeamID[member.TeamId]); appErr != nil {
 				return appErr
 			}
 		}
@@ -1310,8 +1309,7 @@ func (a *App) importUserChannels(rctx request.CTX, user *model.User, team *model
 
 	for _, member := range append(newMembers, oldMembers...) {
 		if member.ExplicitRoles != rolesByChannelId[member.ChannelId] {
-			// Bulk import uses internal function to support two-phase role updates.
-			if _, err = a.updateChannelMemberRolesInternal(rctx, member.ChannelId, user.Id, rolesByChannelId[member.ChannelId], true); err != nil {
+			if _, err = a.UpdateChannelMemberRoles(rctx, member.ChannelId, user.Id, rolesByChannelId[member.ChannelId]); err != nil {
 				return err
 			}
 		}

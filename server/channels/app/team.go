@@ -375,6 +375,7 @@ func (a *App) sendTeamEvent(team *model.Team, event model.WebsocketEventType) *m
 	return nil
 }
 
+// GetSchemeRolesForTeam Gets the scheme roles for a team, they may be empty, default or custom permissions based on the scheme.
 func (a *App) GetSchemeRolesForTeam(teamID string) (string, string, string, *model.AppError) {
 	team, err := a.GetTeam(teamID)
 	if err != nil {
@@ -392,23 +393,8 @@ func (a *App) GetSchemeRolesForTeam(teamID string) (string, string, string, *mod
 	return model.TeamGuestRoleId, model.TeamUserRoleId, model.TeamAdminRoleId, nil
 }
 
-// UpdateTeamMemberRoles updates the roles for a team member.
-// This is the public API used by REST endpoints and plugins.
-// It enforces strict validation requiring either SchemeUser or SchemeGuest to be true.
-func (a *App) UpdateTeamMemberRoles(rctx request.CTX, teamID string, userID string, newRoles string) (*model.TeamMember, *model.AppError) {
-	return a.updateTeamMemberRolesInternal(rctx, teamID, userID, newRoles, false)
-}
-
-// updateTeamMemberRolesInternal is the internal implementation of UpdateTeamMemberRoles.
-// The allowSchemeUserUnset parameter controls whether to enforce the requirement that members
-// must have either SchemeUser or SchemeGuest set to true.
-//
-// When allowSchemeUserUnset is false (default for API/plugin calls), the function enforces
-// that members must have a base scheme role. When true (bulk import only), this validation
-// is skipped to support the two-phase import pattern where explicit roles are set first,
-// then scheme roles are set via UpdateTeamMemberSchemeRoles immediately after.
-func (a *App) updateTeamMemberRolesInternal(rctx request.CTX, teamID string, userID string, newRoles string, allowSchemeUserUnset bool) (*model.TeamMember, *model.AppError) {
-	member, nErr := a.Srv().Store().Team().GetMember(rctx, teamID, userID)
+func (a *App) UpdateTeamMemberRoles(c request.CTX, teamID string, userID string, newRoles string) (*model.TeamMember, *model.AppError) {
+	member, nErr := a.Srv().Store().Team().GetMember(c, teamID, userID)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -469,16 +455,9 @@ func (a *App) updateTeamMemberRolesInternal(rctx request.CTX, teamID string, use
 		return nil, model.NewAppError("UpdateTeamMemberRoles", "api.channel.update_team_member_roles.changing_guest_role.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	// Validate that the member has a base scheme role (SchemeUser or SchemeGuest).
-	// This ensures members always have the minimum required permissions.
-	// Bulk import operations may skip this validation temporarily.
-	if !allowSchemeUserUnset && !member.SchemeGuest && !member.SchemeUser {
-		return nil, model.NewAppError("UpdateTeamMemberRoles", "api.team.update_team_member_roles.unset_user_scheme.app_error", nil, "", http.StatusBadRequest)
-	}
-
 	member.ExplicitRoles = strings.Join(newExplicitRoles, " ")
 
-	member, nErr = a.Srv().Store().Team().UpdateMember(rctx, member)
+	member, nErr = a.Srv().Store().Team().UpdateMember(c, member)
 	if nErr != nil {
 		var appErr *model.AppError
 		switch {

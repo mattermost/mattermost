@@ -2071,7 +2071,15 @@ func TestGetGroups(t *testing.T) {
 
 	t.Run("not associated to channel", func(t *testing.T) {
 		opts := baseOpts
+		resp, err := th.SystemAdminClient.UpdateChannelRoles(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
 		opts.NotAssociatedToChannel = th.BasicChannel.Id
+
+		resp, err = th.SystemAdminClient.UpdateChannelRoles(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, "channel_user channel_admin")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 
 		groups, resp, err := th.SystemAdminClient.GetGroups(context.Background(), opts)
 		require.NoError(t, err)
@@ -2081,7 +2089,15 @@ func TestGetGroups(t *testing.T) {
 
 	t.Run("not associated to team", func(t *testing.T) {
 		opts := baseOpts
+		resp, err := th.SystemAdminClient.UpdateTeamMemberRoles(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
 		opts.NotAssociatedToTeam = th.BasicTeam.Id
+
+		resp, err = th.SystemAdminClient.UpdateTeamMemberRoles(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, "team_user team_admin")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 
 		groups, resp, err := th.SystemAdminClient.GetGroups(context.Background(), opts)
 		require.NoError(t, err)
