@@ -319,32 +319,6 @@ export function getProfilesNotInTeam(teamId: string, groupConstrained: boolean, 
     };
 }
 
-export function getProfilesWithoutTeam(page: number, perPage: number = General.PROFILE_CHUNK_SIZE, options: any = {}): ActionFuncAsync<UserProfile[]> {
-    return async (dispatch, getState) => {
-        let profiles = null;
-        try {
-            profiles = await Client4.getProfilesWithoutTeam(page, perPage, options);
-        } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
-            return {error};
-        }
-
-        dispatch(batchActions([
-            {
-                type: UserTypes.RECEIVED_PROFILES_LIST_WITHOUT_TEAM,
-                data: profiles,
-            },
-            {
-                type: UserTypes.RECEIVED_PROFILES_LIST,
-                data: profiles,
-            },
-        ]));
-
-        return {data: profiles};
-    };
-}
-
 export enum ProfilesInChannelSortBy {
     None = '',
     Admin = 'admin',
