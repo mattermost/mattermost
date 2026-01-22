@@ -36,10 +36,7 @@ jest.mock('actions/global_actions', () => ({
 }));
 
 jest.mock('mattermost-redux/actions/general', () => ({
-    getFirstAdminSetupComplete: jest.fn(() => Promise.resolve({
-        type: 'FIRST_ADMIN_COMPLETE_SETUP_RECEIVED',
-        data: true,
-    })),
+    ...jest.requireActual('mattermost-redux/actions/general'),
     setUrl: () => {},
 }));
 
@@ -73,11 +70,8 @@ describe('components/Root', () => {
                     isMeRequested: false,
                 });
             }),
-            getFirstAdminSetupComplete: jest.fn(),
-            getProfiles: jest.fn(),
             loadRecentlyUsedCustomEmojis: jest.fn(),
             migrateRecentEmojis: jest.fn(),
-            registerCustomPostRenderer: jest.fn(),
             initializeProducts: jest.fn(),
             ...bindActionCreators({
                 handleLoginLogoutSignal,

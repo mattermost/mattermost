@@ -591,7 +591,7 @@ func (api *PluginAPI) SearchPostsInTeamForUser(teamID string, userID string, sea
 		includeDeletedChannels = *searchParams.IncludeDeletedChannels
 	}
 
-	results, appErr := api.app.SearchPostsForUser(api.ctx, terms, userID, teamID, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
+	results, _, appErr := api.app.SearchPostsForUser(api.ctx, terms, userID, teamID, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
 	if results != nil {
 		results = results.ForPlugin()
 	}
@@ -773,7 +773,7 @@ func (api *PluginAPI) DeleteGroupSyncable(groupID string, syncableID string, syn
 func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError) {
 	post.AddProp(model.PostPropsFromPlugin, "true")
 
-	post, appErr := api.app.CreatePostMissingChannel(api.ctx, post, true, true)
+	post, _, appErr := api.app.CreatePostMissingChannel(api.ctx, post, true, true)
 	if post != nil {
 		post = post.ForPlugin()
 	}
@@ -793,11 +793,13 @@ func (api *PluginAPI) GetReactions(postID string) ([]*model.Reaction, *model.App
 }
 
 func (api *PluginAPI) SendEphemeralPost(userID string, post *model.Post) *model.Post {
-	return api.app.SendEphemeralPost(api.ctx, userID, post).ForPlugin()
+	newPost, _ := api.app.SendEphemeralPost(api.ctx, userID, post)
+	return newPost.ForPlugin()
 }
 
 func (api *PluginAPI) UpdateEphemeralPost(userID string, post *model.Post) *model.Post {
-	return api.app.UpdateEphemeralPost(api.ctx, userID, post).ForPlugin()
+	newPost, _ := api.app.UpdateEphemeralPost(api.ctx, userID, post)
+	return newPost.ForPlugin()
 }
 
 func (api *PluginAPI) DeleteEphemeralPost(userID, postID string) {
@@ -858,7 +860,7 @@ func (api *PluginAPI) GetPostsForChannel(channelID string, page, perPage int) (*
 }
 
 func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
-	post, appErr := api.app.UpdatePost(api.ctx, post, &model.UpdatePostOptions{SafeUpdate: false})
+	post, _, appErr := api.app.UpdatePost(api.ctx, post, &model.UpdatePostOptions{SafeUpdate: false})
 	if post != nil {
 		post = post.ForPlugin()
 	}
@@ -1108,7 +1110,8 @@ func (api *PluginAPI) HasPermissionToTeam(userID, teamID string, permission *mod
 }
 
 func (api *PluginAPI) HasPermissionToChannel(userID, channelID string, permission *model.Permission) bool {
-	return api.app.HasPermissionToChannel(api.ctx, userID, channelID, permission)
+	ok, _ := api.app.HasPermissionToChannel(api.ctx, userID, channelID, permission)
+	return ok
 }
 
 func (api *PluginAPI) RolesGrantPermission(roleNames []string, permissionId string) bool {

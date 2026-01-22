@@ -29,9 +29,9 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const config = getConfig(state);
 
     return {
-        isRhsOpen,
         enablePublicLink: config.EnablePublicLink === 'true',
         isFileRejected: isFileRejected(state, ownProps.fileInfo.id),
+        isRhsOpen,
     };
 }
 
