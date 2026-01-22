@@ -5,6 +5,7 @@ import {Locator, expect} from '@playwright/test';
 
 import PostMenu from './post_menu';
 import ThreadFooter from './thread_footer';
+import BurnOnReadPost from './burn_on_read_post';
 
 export default class ChannelsPost {
     readonly container: Locator;
@@ -16,6 +17,7 @@ export default class ChannelsPost {
 
     readonly postMenu;
     readonly threadFooter;
+    readonly burnOnRead;
 
     constructor(container: Locator) {
         this.container = container;
@@ -28,6 +30,7 @@ export default class ChannelsPost {
 
         this.postMenu = new PostMenu(container.locator('.post-menu'));
         this.threadFooter = new ThreadFooter(container.locator('.ThreadFooter'));
+        this.burnOnRead = new BurnOnReadPost(container);
     }
 
     async toBeVisible() {

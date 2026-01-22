@@ -8,6 +8,7 @@ import {Locator, expect} from '@playwright/test';
 import {duration} from '@/util';
 import {assetPath} from '@/file';
 import {waitUntil} from '@/test_action';
+import BurnOnReadComposer from './burn_on_read_composer';
 
 export default class ChannelsPostCreate {
     readonly container: Locator;
@@ -20,6 +21,7 @@ export default class ChannelsPostCreate {
     readonly priorityButton;
     readonly suggestionList;
     readonly filePreview;
+    readonly burnOnReadComposer;
 
     constructor(container: Locator, isRHS = false) {
         this.container = container;
@@ -37,6 +39,7 @@ export default class ChannelsPostCreate {
         this.priorityButton = container.getByLabel('Message priority');
         this.suggestionList = container.getByRole('listbox', {name: 'Suggestions'});
         this.filePreview = container.locator('.file-preview__container');
+        this.burnOnReadComposer = new BurnOnReadComposer(container);
     }
 
     async toBeVisible() {
