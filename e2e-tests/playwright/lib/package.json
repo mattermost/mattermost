@@ -49,19 +49,22 @@
     "@percy/playwright": "1.0.10",
     "async-wait-until": "2.0.31",
     "axe-core": "4.11.1",
+    "chalk": "4.1.2",
     "deepmerge": "4.3.1",
     "dotenv": "17.2.3",
+    "luxon": "3.7.2",
     "mime-types": "3.0.2",
     "uuid": "13.0.0"
   },
   "devDependencies": {
     "@rollup/plugin-typescript": "12.3.0",
+    "@types/luxon": "3.7.1",
     "@types/mime-types": "3.0.1",
     "@types/node": "25.0.9",
     "rollup": "4.55.2",
     "rollup-plugin-copy": "3.5.0"
   },
   "peerDependencies": {
-    "@playwright/test": "1.57.0"
+    "@playwright/test": ">=1.55.0"
   }
 }
