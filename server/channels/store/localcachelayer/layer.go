@@ -142,9 +142,9 @@ type LocalCacheStore struct {
 	contentFlagging      LocalCacheContentFlaggingStore
 	contentFlaggingCache cache.Cache
 
-	readReceipt                    LocalCacheReadReceiptStore
-	readReceiptCache               cache.Cache
-	readReceiptPostReadersCache    cache.Cache
+	readReceipt                     LocalCacheReadReceiptStore
+	readReceiptCache                cache.Cache
+	readReceiptPostReadersCache     cache.Cache
 	readReceiptPostUnreadCountCache cache.Cache
 
 	temporaryPost      LocalCacheTemporaryPostStore
