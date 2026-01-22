@@ -126,7 +126,7 @@ func TestGetAdvancedLogs(t *testing.T) {
 		th.Service.UpdateConfig(func(c *model.Config) {
 			c.LogSettings.AdvancedLoggingJSON = logCfgData
 			c.LogSettings.FileLocation = &dir
-			// Audit logs are not testiable as they as part of the server, not the platform
+			// Audit logs are not testable as they are part of the server, not the platform
 		})
 
 		// Write some logs and ensure they're flushed
