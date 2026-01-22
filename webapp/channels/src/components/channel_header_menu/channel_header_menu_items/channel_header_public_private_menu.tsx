@@ -21,6 +21,8 @@ import MenuItemArchiveChannel from '../menu_items/archive_channel';
 import MenuItemChannelBookmarks from '../menu_items/channel_bookmarks_submenu';
 import MenuItemChannelSettings from '../menu_items/channel_settings_menu';
 import MenuItemCloseChannel from '../menu_items/close_channel';
+import CloseMessage from '../menu_items/close_message';
+import MenuItemConvertToPrivate from '../menu_items/convert_gm_to_private';
 import MenuItemGroupsMenuItems from '../menu_items/groups';
 import MenuItemLeaveChannel from '../menu_items/leave_channel';
 import MenuItemNotification from '../menu_items/notification';
@@ -49,10 +51,16 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isDefault, isMobile, i
     const isGroupConstrained = channel?.group_constrained === true;
     const isArchived = channel.delete_at !== 0;
     const isPrivate = channel?.type === Constants.PRIVATE_CHANNEL;
+    const isDirect = channel?.type === Constants.DM_CHANNEL;
+    const isGroup = channel?.type === Constants.GM_CHANNEL;
+
+    const isDMorGroupChannel = isDirect || isGroup;
 
     const channelMembersPermission = isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_MEMBERS : Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS;
     const channelDeletePermission = isPrivate ? Permissions.DELETE_PRIVATE_CHANNEL : Permissions.DELETE_PUBLIC_CHANNEL;
     const channelUnarchivePermission = Permissions.MANAGE_TEAM;
+
+    const showBookmarks = (!isDMorGroupChannel || !isGuest(user.roles)) && isChannelBookmarksEnabled;
 
     return (
         <>
@@ -67,21 +75,28 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isDefault, isMobile, i
             />
             {!isArchived && (
                 <>
-                    <MenuItemNotification
-                        user={user}
-                        channel={channel}
-                    />
+                    {!isDirect && (
+                        <MenuItemNotification
+                            user={user}
+                            channel={channel}
+                        />
+                    )}
                     <MenuItemChannelSettings
                         channel={channel}
                     />
-                    {isChannelBookmarksEnabled && (
+                    {isGroup && !isGroupConstrained && !isGuest(user.roles) && (
+                        <MenuItemConvertToPrivate
+                            channel={channel}
+                        />
+                    )}
+                    {showBookmarks && (
                         <MenuItemChannelBookmarks
                             channel={channel}
                         />
                     )}
                 </>
             )}
-            <Menu.Separator/>
+            {!isDirect && <Menu.Separator/>}
             {isMobile && (
                 <>
                     <MenuItemToggleFavoriteChannel
@@ -95,7 +110,7 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isDefault, isMobile, i
                 </>
             )}
 
-            {(isArchived || isDefault) && (
+            {!isDirect && (isArchived || isDefault) && (
                 <MenuItemOpenMembersRHS
                     id='channelMembers'
                     channel={channel}
@@ -108,7 +123,7 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isDefault, isMobile, i
                 />
             )}
 
-            {!isArchived && !isDefault && (
+            {!isDirect && !isArchived && !isDefault && (
                 <>
                     <ChannelPermissionGate
                         channelId={channel.id}
@@ -160,7 +175,7 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isDefault, isMobile, i
             {!isDefault && (
                 <Menu.Separator/>
             )}
-            {!isDefault && !isGuest(user.roles) && (
+            {!isDMorGroupChannel && !isDefault && !isGuest(user.roles) && (
                 <MenuItemLeaveChannel
                     id='channelLeaveChannel'
                     channel={channel}
@@ -171,7 +186,7 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isDefault, isMobile, i
                 <MenuItemCloseChannel/>
             )}
 
-            {!isArchived && !isDefault && (
+            {!isDMorGroupChannel && !isArchived && !isDefault && (
                 <ChannelPermissionGate
                     channelId={channel.id}
                     teamId={channel.team_id}
@@ -183,7 +198,7 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isDefault, isMobile, i
                 </ChannelPermissionGate>
             )}
 
-            {isArchived && !isDefault && (
+            {!isDMorGroupChannel && isArchived && !isDefault && (
                 <ChannelPermissionGate
                     channelId={channel.id}
                     teamId={channel.team_id}
@@ -193,6 +208,14 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isDefault, isMobile, i
                         channel={channel}
                     />
                 </ChannelPermissionGate>
+            )}
+            {isDMorGroupChannel && (
+                <>
+                    <CloseMessage
+                        currentUserID={user.id}
+                        channel={channel}
+                    />
+                </>
             )}
         </>
     );

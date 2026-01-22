@@ -28,8 +28,6 @@ import * as Menu from 'components/menu';
 
 import {Constants} from 'utils/constants';
 
-import ChannelDirectMenu from './channel_header_menu_items/channel_header_direct_menu';
-import ChannelGroupMenu from './channel_header_menu_items/channel_header_group_menu';
 import ChannelHeaderMobileMenu from './channel_header_menu_items/channel_header_mobile_menu';
 import ChannelPublicPrivateMenu from './channel_header_menu_items/channel_header_public_private_menu';
 
@@ -144,42 +142,18 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
                 horizontal: 'left',
             }}
         >
-            {isDirect && (
-                <ChannelDirectMenu
-                    channel={channel}
-                    user={user}
-                    isMuted={isMuted}
-                    pluginItems={pluginItems}
-                    isFavorite={isFavorite}
-                    isMobile={isMobile || false}
-                    isChannelBookmarksEnabled={isChannelBookmarksEnabled}
-                />
-            )}
-            {isGroup && (
-                <ChannelGroupMenu
-                    channel={channel}
-                    user={user}
-                    isMuted={isMuted}
-                    pluginItems={pluginItems}
-                    isFavorite={isFavorite}
-                    isMobile={isMobile || false}
-                    isChannelBookmarksEnabled={isChannelBookmarksEnabled}
-                />
-            )}
-            {(!isDirect && !isGroup) && (
-                <ChannelPublicPrivateMenu
-                    channel={channel}
-                    user={user}
-                    isMuted={isMuted}
-                    pluginItems={pluginItems}
-                    isFavorite={isFavorite}
-                    isMobile={isMobile || false}
-                    isDefault={isDefault}
-                    isReadonly={isReadonly}
-                    isLicensedForLDAPGroups={isLicensedForLDAPGroups}
-                    isChannelBookmarksEnabled={isChannelBookmarksEnabled}
-                />
-            )}
+            <ChannelPublicPrivateMenu
+                channel={channel}
+                user={user}
+                isMuted={isMuted}
+                pluginItems={pluginItems}
+                isFavorite={isFavorite}
+                isMobile={isMobile || false}
+                isDefault={isDefault}
+                isReadonly={isReadonly}
+                isLicensedForLDAPGroups={isLicensedForLDAPGroups}
+                isChannelBookmarksEnabled={isChannelBookmarksEnabled}
+            />
 
             <ChannelHeaderMobileMenu
                 isMobile={isMobile || false}
