@@ -183,16 +183,19 @@ const ScheduleConfiguration = ({
                 />
             </div>
 
-            {/* Next run preview */}
-            {nextRunPreview && (
-                <div className='next-run-preview'>
+            {/* Next run preview - always rendered to reserve space and prevent modal height jumping */}
+            <div className={`next-run-preview ${nextRunPreview ? '' : 'hidden'}`}>
+                {nextRunPreview ? (
                     <FormattedMessage
                         id='recaps.modal.nextRunPreview'
                         defaultMessage='Next recap: {preview}'
                         values={{preview: nextRunPreview}}
                     />
-                </div>
-            )}
+                ) : (
+                    // Non-breaking space to maintain element height when empty
+                    '\u00A0'
+                )}
+            </div>
 
             {/* Time period selection */}
             <div className='form-group'>

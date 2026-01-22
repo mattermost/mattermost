@@ -493,6 +493,11 @@
             background-color: rgba(var(--center-channel-color-rgb), 0.04);
             color: rgba(var(--center-channel-color-rgb), 0.72);
             font-size: 13px;
+
+            // Use visibility to reserve space even when hidden, preventing modal height jumping
+            &.hidden {
+                visibility: hidden;
+            }
         }
 
         // Override Input widget styles for textarea
