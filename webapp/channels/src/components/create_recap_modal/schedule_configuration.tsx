@@ -180,8 +180,8 @@ const ScheduleConfiguration = ({
                 )}
             </div>
 
-            {/* Time of day selection */}
-            <div className='form-group'>
+            {/* Time of day selection with next run preview as helper text */}
+            <div className='form-group time-selection-group'>
                 <DropdownInput
                     name='timeOfDay'
                     legend={formatMessage({id: 'recaps.modal.selectTime', defaultMessage: 'Select time'})}
@@ -191,20 +191,18 @@ const ScheduleConfiguration = ({
                     required={true}
                     error={timeError ? formatMessage({id: 'recaps.modal.selectTimeRequired', defaultMessage: 'Please select a time'}) : undefined}
                 />
-            </div>
-
-            {/* Next run preview - always rendered to reserve space and prevent modal height jumping */}
-            <div className={`next-run-preview ${nextRunPreview ? '' : 'hidden'}`}>
-                {nextRunPreview ? (
-                    <FormattedMessage
-                        id='recaps.modal.nextRunPreview'
-                        defaultMessage='Next recap: {preview}'
-                        values={{preview: nextRunPreview}}
-                    />
-                ) : (
-                    // Non-breaking space to maintain element height when empty
-                    '\u00A0'
-                )}
+                {/* Next run preview - always rendered with fixed height to prevent modal jumping */}
+                <div className={`next-run-preview${nextRunPreview ? '' : ' hidden'}`}>
+                    {nextRunPreview ? (
+                        <FormattedMessage
+                            id='recaps.modal.nextRunPreview'
+                            defaultMessage='Next recap: {preview}'
+                            values={{preview: nextRunPreview}}
+                        />
+                    ) : (
+                        '\u00A0'
+                    )}
+                </div>
             </div>
 
             {/* Time period selection */}

@@ -466,11 +466,12 @@
     .step-three {
         display: flex;
         flex-direction: column;
-        gap: 20px;
+        gap: 16px; // Reduced gap between form groups for tighter layout
 
         .form-group {
             display: flex;
             flex-direction: column;
+            margin-bottom: 0; // Override default form-group margin
 
             .form-label {
                 margin-bottom: 8px;
@@ -486,14 +487,19 @@
             }
         }
 
-        .next-run-preview {
-            margin-top: 4px;
-            color: rgba(var(--center-channel-color-rgb), 0.64);
-            font-size: 12px;
+        // Time selection group with integrated next-run preview
+        .time-selection-group {
+            .next-run-preview {
+                min-height: 16px; // Reserve space for one line of helper text
+                margin-top: 8px; // Small gap below time selector, matching Figma helper text spacing
+                color: rgba(var(--center-channel-color-rgb), 0.64);
+                font-size: 12px;
+                line-height: 16px;
 
-            // Use visibility to reserve space even when hidden, preventing modal height jumping
-            &.hidden {
-                visibility: hidden;
+                // Use visibility to reserve space even when hidden, preventing modal height jumping
+                &.hidden {
+                    visibility: hidden;
+                }
             }
         }
 
