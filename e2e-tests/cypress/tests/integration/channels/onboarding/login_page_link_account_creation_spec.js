@@ -71,7 +71,7 @@ describe('Onboarding', () => {
         cy.get('#input_email').should('be.focused').and('be.visible').type(email);
         cy.get('#input_name').should('be.visible').type(username);
         cy.get('#input_password-input').should('be.visible').type(password);
-        cy.findByText('Create Account').click();
+        cy.findByText('Create account').click();
 
         cy.findByText('You’re almost done!').should('be.visible');
 

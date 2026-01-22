@@ -23,6 +23,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
+type PostContextKey string
+
 const (
 	PostSystemMessagePrefix      = "system_"
 	PostTypeDefault              = ""
@@ -56,12 +58,13 @@ const (
 	PostTypeMe                   = "me"
 	PostCustomTypePrefix         = "custom_"
 	PostTypeReminder             = "reminder"
+	PostTypeBurnOnRead           = "burn_on_read"
 
 	PostFileidsMaxRunes   = 300
 	PostFilenamesMaxRunes = 4000
 	PostHashtagsMaxRunes  = 1000
 	PostMessageMaxRunesV1 = 4000
-	PostMessageMaxBytesV2 = 65535                     // Maximum size of a TEXT column in MySQL
+	PostMessageMaxBytesV2 = 65535
 	PostMessageMaxRunesV2 = PostMessageMaxBytesV2 / 4 // Assume a worst-case representation
 
 	// Reporting API constants
@@ -94,8 +97,15 @@ const (
 	PostPropsUnsafeLinks              = "unsafe_links"
 	PostPropsAIGeneratedByUserID      = "ai_generated_by"
 	PostPropsAIGeneratedByUsername    = "ai_generated_by_username"
+	PostPropsExpireAt                 = "expire_at"
+	PostPropsReadDurationSeconds      = "read_duration"
 
 	PostPriorityUrgent = "urgent"
+
+	DefaultExpirySeconds       = 60 * 60 * 24 * 7 // 7 days
+	DefaultReadDurationSeconds = 10 * 60          // 10 minutes
+
+	PostContextKeyIsScheduledPost PostContextKey = "isScheduledPost"
 )
 
 type Post struct {
@@ -512,7 +522,8 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		PostTypeReminder,
 		PostTypeMe,
 		PostTypeWrangler,
-		PostTypeGMConvertedToChannel:
+		PostTypeGMConvertedToChannel,
+		PostTypeBurnOnRead:
 	default:
 		if !strings.HasPrefix(o.Type, PostCustomTypePrefix) {
 			return NewAppError("Post.IsValid", "model.post.is_valid.type.app_error", nil, "id="+o.Type, http.StatusBadRequest)

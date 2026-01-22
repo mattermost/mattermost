@@ -138,7 +138,7 @@ export default class PostListRow extends React.PureComponent<PostListRowProps> {
                 >
                     <FormattedMessage
                         id='posts_view.loadMore'
-                        defaultMessage='Load More Messages'
+                        defaultMessage='Load more messages'
                     />
                 </button>
             );
@@ -177,6 +177,11 @@ export default class PostListRow extends React.PureComponent<PostListRowProps> {
                     {...postProps}
                 />
             );
+        }
+
+        // Don't render if post has been deleted/removed
+        if (!this.props.post) {
+            return null;
         }
 
         return (

@@ -87,6 +87,9 @@ func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
 		log.Fatal(err)
 	}
 
+	// Use a fast password hasher during tests to speed up user creation.
+	setupFastTestHasher()
+
 	if options != nil {
 		mainHelper.Options = *options
 
@@ -251,7 +254,6 @@ func (h *MainHelper) setupResources() {
 //
 // Re-generate the files with:
 // pg_dump -a -h localhost -U mmuser -d <> --no-comments --inserts -t roles -t systems
-// mysqldump -u root -p <> --no-create-info --extended-insert=FALSE Systems Roles
 // And keep only the permission related rows in the systems table output.
 func preloadMigrations(driverName string, sqlStore *sqlstore.SqlStore) {
 	var buf []byte

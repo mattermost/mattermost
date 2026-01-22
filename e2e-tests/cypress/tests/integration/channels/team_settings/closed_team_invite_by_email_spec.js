@@ -85,7 +85,7 @@ describe('Team Settings', () => {
             cy.get('.InviteAs').findByTestId('inviteMembersLink').click();
         }
 
-        cy.findByRole('combobox', {name: 'Add or Invite People'}).type(email, {force: true}).wait(TIMEOUTS.HALF_SEC).type('{enter}', {force: true});
+        cy.findByRole('combobox', {name: 'Invite People'}).type(email, {force: true}).wait(TIMEOUTS.HALF_SEC).type('{enter}', {force: true});
         cy.findByTestId('inviteButton').click();
 
         // # Wait for a while to ensure that email notification is sent and logout from sysadmin account
@@ -115,7 +115,7 @@ describe('Team Settings', () => {
         cy.get('#input_password-input').type(password);
 
         // # Attempt to create an account by clicking on the 'Create Account' button
-        cy.findByText('Create Account').click();
+        cy.findByText('Create account').click();
 
         // # Close the onboarding tutorial
         cy.uiCloseOnboardingTaskList();

@@ -28,9 +28,11 @@ const (
 type SuiteIFace interface {
 	GetSession(token string) (*model.Session, *model.AppError)
 	RolesGrantPermission(roleNames []string, permissionId string) bool
-	HasPermissionToReadChannel(rctx request.CTX, userID string, channel *model.Channel) bool
+	HasPermissionToReadChannel(rctx request.CTX, userID string, channel *model.Channel) (bool, bool)
 	UserCanSeeOtherUser(rctx request.CTX, userID string, otherUserId string) (bool, *model.AppError)
 	MFARequired(rctx request.CTX) *model.AppError
+	MakeAuditRecord(rctx request.CTX, event string, initialStatus string) *model.AuditRecord
+	LogAuditRec(rctx request.CTX, auditRec *model.AuditRecord, err error)
 }
 
 type webConnActivityMessage struct {
@@ -214,6 +216,14 @@ func (ps *PlatformService) InvalidateCacheForChannelMembersNotifyProps(channelID
 func (ps *PlatformService) InvalidateCacheForChannelPosts(channelID string) {
 	ps.Store.Channel().InvalidatePinnedPostCount(channelID)
 	ps.Store.Post().InvalidateLastPostTimeCache(channelID)
+}
+
+func (ps *PlatformService) InvalidateCacheForReadReceipts(postID string) {
+	ps.Store.ReadReceipt().InvalidateReadReceiptForPostsCache(postID)
+}
+
+func (ps *PlatformService) InvalidateCacheForTemporaryPost(id string) {
+	ps.Store.TemporaryPost().InvalidateTemporaryPost(id)
 }
 
 func (ps *PlatformService) InvalidateCacheForUser(userID string) {

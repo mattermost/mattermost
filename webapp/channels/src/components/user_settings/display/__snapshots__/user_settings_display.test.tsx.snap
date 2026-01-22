@@ -99,7 +99,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Show user availability on posts"
+            defaultMessage="Show online availability on profile images"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
         }
@@ -323,7 +323,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         }
         max={
           <Memo(Connect(RenderEmoticonsAsEmoji))
-            adminMode={false}
             renderEmoticonsAsEmoji=""
             updateSection={[Function]}
             user={
@@ -493,7 +492,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Show user availability on posts"
+            defaultMessage="Show online availability on profile images"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
         }
@@ -717,7 +716,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         }
         max={
           <Memo(Connect(RenderEmoticonsAsEmoji))
-            adminMode={false}
             renderEmoticonsAsEmoji=""
             updateSection={[Function]}
             user={
@@ -957,7 +955,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Show user availability on posts"
+            defaultMessage="Show online availability on profile images"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
         }
@@ -1111,7 +1109,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         }
         max={
           <Memo(Connect(RenderEmoticonsAsEmoji))
-            adminMode={false}
             renderEmoticonsAsEmoji=""
             updateSection={[Function]}
             user={
@@ -1281,7 +1278,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Show user availability on posts"
+            defaultMessage="Show online availability on profile images"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
         }
@@ -1505,7 +1502,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         }
         max={
           <Memo(Connect(RenderEmoticonsAsEmoji))
-            adminMode={false}
             renderEmoticonsAsEmoji=""
             updateSection={[Function]}
             user={
@@ -1675,7 +1671,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Show user availability on posts"
+            defaultMessage="Show online availability on profile images"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
         }
@@ -1829,7 +1825,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         }
         max={
           <Memo(Connect(RenderEmoticonsAsEmoji))
-            adminMode={false}
             renderEmoticonsAsEmoji=""
             updateSection={[Function]}
             user={
@@ -1999,7 +1994,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Show user availability on posts"
+            defaultMessage="Show online availability on profile images"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
         }
@@ -2135,7 +2130,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         }
         max={
           <Memo(Connect(RenderEmoticonsAsEmoji))
-            adminMode={false}
             renderEmoticonsAsEmoji=""
             updateSection={[Function]}
             user={
@@ -2305,7 +2299,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Show user availability on posts"
+            defaultMessage="Show online availability on profile images"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
         }
@@ -2529,7 +2523,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         }
         max={
           <Memo(Connect(RenderEmoticonsAsEmoji))
-            adminMode={false}
             renderEmoticonsAsEmoji=""
             updateSection={[Function]}
             user={
@@ -2699,7 +2692,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Show user availability on posts"
+            defaultMessage="Show online availability on profile images"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
         }
@@ -2941,7 +2934,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         }
         max={
           <Memo(Connect(RenderEmoticonsAsEmoji))
-            adminMode={false}
             renderEmoticonsAsEmoji=""
             updateSection={[Function]}
             user={
@@ -3111,7 +3103,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Show user availability on posts"
+            defaultMessage="Show online availability on profile images"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
         }
@@ -3265,7 +3257,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         }
         max={
           <Memo(Connect(RenderEmoticonsAsEmoji))
-            adminMode={false}
             renderEmoticonsAsEmoji=""
             updateSection={[Function]}
             user={
@@ -3435,7 +3426,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Show user availability on posts"
+            defaultMessage="Show online availability on profile images"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
         }
@@ -3589,7 +3580,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         }
         max={
           <Memo(Connect(RenderEmoticonsAsEmoji))
-            adminMode={false}
             renderEmoticonsAsEmoji=""
             updateSection={[Function]}
             user={
@@ -3759,7 +3749,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Show user availability on posts"
+            defaultMessage="Show online availability on profile images"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
         }
@@ -3913,7 +3903,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         }
         max={
           <Memo(Connect(RenderEmoticonsAsEmoji))
-            adminMode={false}
             renderEmoticonsAsEmoji=""
             updateSection={[Function]}
             user={
@@ -4095,7 +4084,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Show user availability on posts"
+            defaultMessage="Show online availability on profile images"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
         }
@@ -4249,7 +4238,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         }
         max={
           <Memo(Connect(RenderEmoticonsAsEmoji))
-            adminMode={false}
             renderEmoticonsAsEmoji=""
             updateSection={[Function]}
             user={
@@ -4419,7 +4407,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Show user availability on posts"
+            defaultMessage="Show online availability on profile images"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
         }
@@ -4573,7 +4561,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         }
         max={
           <Memo(Connect(RenderEmoticonsAsEmoji))
-            adminMode={false}
             renderEmoticonsAsEmoji=""
             updateSection={[Function]}
             user={
@@ -4743,7 +4730,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Show user availability on posts"
+            defaultMessage="Show online availability on profile images"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
         }
@@ -4873,7 +4860,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
         }
         max={
           <Memo(Connect(RenderEmoticonsAsEmoji))
-            adminMode={false}
             renderEmoticonsAsEmoji=""
             updateSection={[Function]}
             user={

@@ -318,10 +318,8 @@ describe('components/login/Login', () => {
 
         const button = screen.getByRole('link', {name: 'Gitlab Icon GitLab 2'});
 
-        expect(button.style).toMatchObject({
-            color: 'rgb(0, 255, 0)',
-            borderColor: '#00ff00',
-        });
+        expect(button.style.color).toBe('rgb(0, 255, 0)');
+        expect(button.style.borderColor).toBe('rgb(0, 255, 0)');
     });
 
     it('should focus username field when there is an error', async () => {
@@ -374,10 +372,8 @@ describe('components/login/Login', () => {
 
         const button = screen.getByRole('link', {name: 'OpenID Icon OpenID 2'});
 
-        expect(button.style).toMatchObject({
-            color: 'rgb(0, 255, 0)',
-            borderColor: '#00ff00',
-        });
+        expect(button.style.color).toBe('rgb(0, 255, 0)');
+        expect(button.style.borderColor).toBe('rgb(0, 255, 0)');
     });
 
     it('should redirect on login', async () => {
@@ -474,7 +470,7 @@ describe('components/login/Login', () => {
             // Mock the getUserLoginType to return 'magic_link'
             const mockGetUserLoginType = jest.fn().mockReturnValue(async () => ({
                 data: {
-                    auth_service: 'guest_magic_link',
+                    auth_service: Constants.MAGIC_LINK_SERVICE,
                     is_deactivated: false,
                 },
             }));

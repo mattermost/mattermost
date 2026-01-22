@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strings"
@@ -22,7 +23,7 @@ const (
 )
 
 func (a *App) ProcessScheduledPosts(rctx request.CTX) {
-	rctx = rctx.WithLogger(rctx.Logger().With(mlog.String("component", "scheduled_post_job")))
+	rctx = rctx.WithLogFields(mlog.String("component", "scheduled_post_job"))
 
 	if !*a.Config().ServiceSettings.ScheduledPosts {
 		return
@@ -189,11 +190,10 @@ func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 		return scheduledPost, err
 	}
 
-	createPostFlags := model.CreatePostFlags{
+	_, _, appErr = a.CreatePost(rctx.WithContext(context.WithValue(rctx.Context(), model.PostContextKeyIsScheduledPost, true)), post, channel, model.CreatePostFlags{
 		TriggerWebhooks: true,
 		SetOnline:       false,
-	}
-	_, appErr = a.CreatePost(rctx, post, channel, createPostFlags)
+	})
 	if appErr != nil {
 		rctx.Logger().Error(
 			"App.processScheduledPostBatch: failed to post scheduled post",
@@ -452,7 +452,7 @@ func (a *App) notifyUser(rctx request.CTX, userId string, userFailedMessages []*
 		UserId:    systemBot.UserId,
 	}
 
-	if _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+	if _, _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		rctx.Logger().Error("Failed to post notification about failed scheduled messages", mlog.Err(err))
 	}
 }

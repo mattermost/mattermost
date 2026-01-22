@@ -169,9 +169,14 @@ func flagPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "postId", postId)
 	model.AddEventParameterToAuditRec(auditRec, "userId", userId)
 
-	post, appErr := c.App.GetPostIfAuthorized(c.AppContext, postId, c.AppContext.Session(), false)
+	post, appErr, _ := c.App.GetPostIfAuthorized(c.AppContext, postId, c.AppContext.Session(), false)
 	if appErr != nil {
 		c.Err = appErr
+		return
+	}
+
+	checkPostTypeFlaggable(c, post)
+	if c.Err != nil {
 		return
 	}
 
@@ -336,7 +341,7 @@ func getFlaggedPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	post = c.App.PreparePostForClientWithEmbedsAndImages(c.AppContext, post, &model.PreparePostForClientOpts{IncludePriority: true, RetainContent: true, IncludeDeleted: true})
-	post, err := c.App.SanitizePostMetadataForUser(c.AppContext, post, c.AppContext.Session().UserId)
+	post, isMemberForPreviews, err := c.App.SanitizePostMetadataForUser(c.AppContext, post, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -345,6 +350,14 @@ func getFlaggedPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := post.EncodeJSON(w); err != nil {
 		c.Err = model.NewAppError("getFlaggedPost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
+	}
+
+	if !isMemberForPreviews {
+		previewPost := post.GetPreviewPost()
+		if previewPost != nil {
+			model.AddEventParameterToAuditRec(auditRec, "preview_post_id", previewPost.Post.Id)
+		}
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 	}
 
 	auditRec.Success()
@@ -597,4 +610,10 @@ func assignFlaggedPostReviewer(c *Context, w http.ResponseWriter, r *http.Reques
 
 	auditRec.Success()
 	writeOKResponse(w)
+}
+
+func checkPostTypeFlaggable(c *Context, post *model.Post) {
+	if post.Type == model.PostTypeBurnOnRead || strings.HasPrefix(post.Type, model.PostSystemMessagePrefix) {
+		c.Err = model.NewAppError("checkPostTypeFlaggable", "api.content_flagging.error.invalid_post_type", map[string]any{"PostType": post.Type}, "", http.StatusBadRequest)
+	}
 }

@@ -31,6 +31,7 @@ import Permissions from 'mattermost-redux/constants/permissions';
 
 import {closeModal} from 'actions/views/modals';
 
+import BurnOnReadConfirmationModal from 'components/burn_on_read_confirmation_modal';
 import DeletePostModal from 'components/delete_post_modal';
 import FlagPostModal from 'components/flag_message_modal/flag_post_modal';
 import ForwardPostModal from 'components/forward_post_modal';
@@ -38,6 +39,7 @@ import * as Menu from 'components/menu';
 import MoveThreadModal from 'components/move_thread_modal';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 
+import {createBurnOnReadDeleteModalHandlers} from 'hooks/useBurnOnReadDeleteModal';
 import {Locations, ModalIdentifiers, Constants} from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
 import * as Keyboard from 'utils/keyboard';
@@ -82,6 +84,12 @@ type Props = {
     timezone?: string;
     isMilitaryTime: boolean;
     canMove: boolean;
+    canReply: boolean;
+    canForward: boolean;
+    canFollowThread: boolean;
+    canPin: boolean;
+    canCopyText: boolean;
+    canCopyLink: boolean;
     canFlagContent?: boolean;
 
     actions: {
@@ -117,6 +125,11 @@ type Props = {
         openModal: <P>(modalData: ModalData<P>) => void;
 
         /**
+         * Function to close a modal
+         */
+        closeModal: (modalId: string) => void;
+
+        /**
          * Function to set the unread mark at given post
          */
         markPostAsUnread: (post: Post, location?: string) => void;
@@ -126,17 +139,27 @@ type Props = {
          */
         setThreadFollow: (userId: string, teamId: string, threadId: string, newState: boolean) => void;
 
+        /**
+         * Function to burn a BoR post now
+         */
+        burnPostNow?: (postId: string) => Promise<any>;
+
+        /**
+         * Function to save user preferences
+         */
+        savePreferences: (userId: string, preferences: Array<{category: string; user_id: string; name: string; value: string}>) => void;
+
     }; // TechDebt: Made non-mandatory while converting to typescript
 
     canEdit: boolean;
     canDelete: boolean;
     userId: string;
     threadId: UserThread['id'];
-    isCollapsedThreadsEnabled: boolean;
     isFollowingThread?: boolean;
     isMentionedInRootPost?: boolean;
     threadReplyCount?: number;
     isBurnOnReadPost: boolean;
+    isUnrevealedBurnOnReadPost: boolean;
 }
 
 type State = {
@@ -151,7 +174,6 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         location: Locations.CENTER,
     };
     private editDisableAction: DelayedAction;
-    private canPostBeForwarded: boolean;
 
     constructor(props: Props) {
         super(props);
@@ -162,8 +184,6 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             canEdit: props.canEdit && !props.isReadOnly,
             canDelete: props.canDelete && !props.isReadOnly,
         };
-
-        this.canPostBeForwarded = false;
     }
 
     static getDerivedStateFromProps(props: Props) {
@@ -171,6 +191,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             canEdit: props.canEdit && !props.isReadOnly,
             canDelete: props.canDelete && !props.isReadOnly,
         };
+
         return state;
     }
 
@@ -238,16 +259,42 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
     };
 
     handleDeleteMenuItemActivated = (): void => {
-        const deletePostModalData = {
-            modalId: ModalIdentifiers.DELETE_POST,
-            dialogType: DeletePostModal,
-            dialogProps: {
-                post: this.props.post,
-                isRHS: this.props.location === Locations.RHS_ROOT || this.props.location === Locations.RHS_COMMENT,
-            },
-        };
+        // For BoR posts, use BurnOnReadConfirmationModal instead of DeletePostModal
+        if (this.props.isBurnOnReadPost) {
+            const isSender = this.props.post.user_id === this.props.userId;
 
-        this.props.actions.openModal(deletePostModalData);
+            // Use shared helper to create modal handlers
+            const handlers = createBurnOnReadDeleteModalHandlers(
+                this.props.actions,
+                {
+                    postId: this.props.post.id,
+                    userId: this.props.userId,
+                    isSender,
+                },
+            );
+
+            const burnOnReadModalData = {
+                modalId: ModalIdentifiers.BURN_ON_READ_CONFIRMATION,
+                dialogType: BurnOnReadConfirmationModal,
+                dialogProps: {
+                    show: true,
+                    ...handlers,
+                },
+            };
+
+            this.props.actions.openModal(burnOnReadModalData);
+        } else {
+            const deletePostModalData = {
+                modalId: ModalIdentifiers.DELETE_POST,
+                dialogType: DeletePostModal,
+                dialogProps: {
+                    post: this.props.post,
+                    isRHS: this.props.location === Locations.RHS_ROOT || this.props.location === Locations.RHS_COMMENT,
+                },
+            };
+
+            this.props.actions.openModal(deletePostModalData);
+        }
     };
 
     handleFlagPostMenuItemClicked = () => {
@@ -281,7 +328,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
     };
 
     handleForwardMenuItemActivated = (): void => {
-        if (!this.canPostBeForwarded) {
+        if (!this.props.canForward) {
             // adding this early return since only hiding the Item from the menu is not enough,
             // since a user can always use the Shortcuts to activate the function as well
             return;
@@ -341,38 +388,50 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
 
         switch (true) {
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.R):
-            forceCloseMenu();
-            this.handleCommentClick(event);
+            if (this.props.canReply) {
+                forceCloseMenu();
+                this.handleCommentClick(event);
+            }
             break;
 
             // edit post
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.E):
-            forceCloseMenu();
-            this.handleEditMenuItemActivated();
+            if (this.state.canEdit) {
+                forceCloseMenu();
+                this.handleEditMenuItemActivated();
+            }
             break;
 
             // follow thread
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.F) && !isShiftKeyPressed:
-            forceCloseMenu();
-            this.handleSetThreadFollow();
+            if (this.props.canFollowThread) {
+                forceCloseMenu();
+                this.handleSetThreadFollow();
+            }
             break;
 
             // forward post
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.F) && isShiftKeyPressed:
-            forceCloseMenu();
-            this.handleForwardMenuItemActivated();
+            if (this.props.canForward) {
+                forceCloseMenu();
+                this.handleForwardMenuItemActivated();
+            }
             break;
 
             // copy link
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.K):
-            forceCloseMenu();
-            this.copyLink();
+            if (this.props.canCopyLink) {
+                forceCloseMenu();
+                this.copyLink();
+            }
             break;
 
             // copy text
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.C):
-            forceCloseMenu();
-            this.copyText();
+            if (this.props.canCopyText) {
+                forceCloseMenu();
+                this.copyText();
+            }
             break;
 
             // delete post
@@ -383,14 +442,18 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
 
         // move thread
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.W):
-            forceCloseMenu();
-            this.handleMoveThreadMenuItemActivated(event);
+            if (this.props.canMove) {
+                forceCloseMenu();
+                this.handleMoveThreadMenuItemActivated(event);
+            }
             break;
 
             // pin / unpin
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.P):
-            forceCloseMenu();
-            this.handlePinMenuItemActivated();
+            if (this.props.canPin && !this.props.isReadOnly) {
+                forceCloseMenu();
+                this.handlePinMenuItemActivated();
+            }
             break;
 
             // save / unsave
@@ -417,8 +480,18 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         const isMobile = this.props.isMobileView;
         const isSystemMessage = PostUtils.isSystemMessage(this.props.post);
         const isBurnOnReadPost = this.props.isBurnOnReadPost;
+        const isBurnOnReadPostSender = isBurnOnReadPost && this.props.post.user_id === this.props.userId;
 
-        this.canPostBeForwarded = !(isSystemMessage || isBurnOnReadPost);
+        // Determine if delete should show for BoR posts
+        const shouldShowDeleteForBoR = isBurnOnReadPost && (
+            isBurnOnReadPostSender || // Sender always sees delete
+            !this.props.isUnrevealedBurnOnReadPost // Receiver sees delete only if revealed (not concealed)
+        );
+
+        // Delete button should show if:
+        // 1. Non-BoR with delete permission, OR
+        // 2. BoR post meeting above criteria
+        const shouldShowDelete = (!isBurnOnReadPost && this.state.canDelete) || shouldShowDeleteForBoR;
 
         const forwardPostItemText = (
             <span className={'dot-menu__item-new-badge'}>
@@ -470,21 +543,21 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         const saveFlag = (
             <FormattedMessage
                 id='rhs_root.mobile.flag'
-                defaultMessage='Save'
+                defaultMessage='Save Message'
             />
         );
 
         const pinPost = (
             <FormattedMessage
                 id='post_info.pin'
-                defaultMessage='Pin'
+                defaultMessage='Pin to Channel'
             />
         );
 
         const unPinPost = (
             <FormattedMessage
                 id='post_info.unpin'
-                defaultMessage='Unpin'
+                defaultMessage='Unpin from Channel'
             />
         );
 
@@ -511,7 +584,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                     class: 'hidden-xs',
                 }}
             >
-                {!isSystemMessage && !isBurnOnReadPost && this.props.location === Locations.CENTER &&
+                {this.props.canReply &&
                     <Menu.Item
                         id={`reply_to_post_${this.props.post.id}`}
                         data-testid={`reply_to_post_${this.props.post.id}`}
@@ -526,7 +599,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         onClick={this.handleCommentClick}
                     />
                 }
-                {this.canPostBeForwarded &&
+                {this.props.canForward &&
                     <Menu.Item
                         id={`forward_post_${this.props.post.id}`}
                         data-testid={`forward_post_${this.props.post.id}`}
@@ -557,27 +630,21 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         />
                     </ChannelPermissionGate>
                 }
-                {Boolean(
-                    !isSystemMessage &&
-                        !isBurnOnReadPost &&
-                        this.props.isCollapsedThreadsEnabled &&
-                        (this.props.location === Locations.CENTER ||
-                            this.props.location === Locations.RHS_ROOT ||
-                            this.props.location === Locations.RHS_COMMENT)) &&
-                            <Menu.Item
-                                id={`follow_post_thread_${this.props.post.id}`}
-                                data-testid={`follow_post_thread_${this.props.post.id}`}
-                                trailingElements={<ShortcutKey shortcutKey='F'/>}
-                                labels={followPostLabel()}
-                                leadingElement={
-                                    isFollowingThread ? (
-                                        <MessageMinusOutlineIcon size={18}/>
-                                    ) : (
-                                        <MessageCheckOutlineIcon size={18}/>
-                                    )
-                                }
-                                onClick={this.handleSetThreadFollow}
-                            />
+                {this.props.canFollowThread &&
+                    <Menu.Item
+                        id={`follow_post_thread_${this.props.post.id}`}
+                        data-testid={`follow_post_thread_${this.props.post.id}`}
+                        trailingElements={<ShortcutKey shortcutKey='F'/>}
+                        labels={followPostLabel()}
+                        leadingElement={
+                            isFollowingThread ? (
+                                <MessageMinusOutlineIcon size={18}/>
+                            ) : (
+                                <MessageCheckOutlineIcon size={18}/>
+                            )
+                        }
+                        onClick={this.handleSetThreadFollow}
+                    />
                 }
                 {Boolean(!isSystemMessage && !this.props.channelIsArchived && this.props.location !== Locations.SEARCH) &&
                     <Menu.Item
@@ -602,7 +669,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         timezone={this.props.timezone}
                     />
                 }
-                {!isSystemMessage &&
+                {!isSystemMessage && !this.props.isUnrevealedBurnOnReadPost &&
                     <Menu.Item
                         id={`save_post_${this.props.post.id}`}
                         data-testid={`save_post_${this.props.post.id}`}
@@ -612,7 +679,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         onClick={this.handleFlagMenuItemActivated}
                     />
                 }
-                {Boolean(!isSystemMessage && !this.props.isReadOnly) &&
+                {this.props.canPin && !this.props.isReadOnly &&
                     <Menu.Item
                         id={`${this.props.post.is_pinned ? 'unpin' : 'pin'}_post_${this.props.post.id}`}
                         data-testid={`pin_post_${this.props.post.id}`}
@@ -635,8 +702,8 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         onClick={this.handleMoveThreadMenuItemActivated}
                     />
                 }
-                {!isSystemMessage && (this.state.canEdit || this.state.canDelete) && <Menu.Separator/>}
-                {!isSystemMessage && !isBurnOnReadPost &&
+                {!isSystemMessage && (this.state.canEdit || this.state.canDelete) && this.props.canCopyLink && <Menu.Separator/>}
+                {this.props.canCopyLink &&
                     <Menu.Item
                         id={`permalink_${this.props.post.id}`}
                         data-testid={`permalink_${this.props.post.id}`}
@@ -651,7 +718,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                     />
                 }
                 {!isSystemMessage && !isBurnOnReadPost && <Menu.Separator/>}
-                {this.state.canEdit && !isBurnOnReadPost &&
+                {this.state.canEdit &&
                     <Menu.Item
                         id={`edit_post_${this.props.post.id}`}
                         data-testid={`edit_post_${this.props.post.id}`}
@@ -665,7 +732,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         onClick={this.handleEditMenuItemActivated}
                     />
                 }
-                {!isSystemMessage && !isBurnOnReadPost &&
+                {this.props.canCopyText &&
                     <Menu.Item
                         id={`copy_${this.props.post.id}`}
                         data-testid={`copy_${this.props.post.id}`}
@@ -679,7 +746,8 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         onClick={this.copyText}
                     />
                 }
-                {this.state.canDelete &&
+                {shouldShowDelete && !isSystemMessage && <Menu.Separator/>}
+                {shouldShowDelete &&
                     <Menu.Item
                         id={`delete_post_${this.props.post.id}`}
                         data-testid={`delete_post_${this.props.post.id}`}
