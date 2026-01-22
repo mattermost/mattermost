@@ -165,6 +165,10 @@ func (os *OpensearchInterfaceImpl) Start() *model.AppError {
 		if slices.Contains(os.plugins, "analysis-smartcn") {
 			opts = append(opts, common.WithSmartCNAnalyzer())
 		}
+
+		if len(opts) == 0 {
+			os.Platform.Log().Warn("EnableCJKAnalyzers is set but no CJK analyzer plugins found installed. Please review opensearch settings.")
+		}
 	}
 
 	// Set up posts index template.

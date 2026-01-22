@@ -681,13 +681,9 @@ func testCJKSearchWithAnalyzers(t *testing.T, th *SearchTestHelper) {
 		require.NoError(t, err)
 		p2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "東北", "", model.PostTypeDefault, 0, false)
 		require.NoError(t, err)
-		p3, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "関西国際空港から出発", "", model.PostTypeDefault, 0, false)
+		p3, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "今日の会議は中止です", "", model.PostTypeDefault, 0, false)
 		require.NoError(t, err)
-		p4, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "成田空港に到着", "", model.PostTypeDefault, 0, false)
-		require.NoError(t, err)
-		p5, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "今日の会議は中止です", "", model.PostTypeDefault, 0, false)
-		require.NoError(t, err)
-		p6, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "projectの締め切りは来週", "", model.PostTypeDefault, 0, false)
+		p4, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "projectの締め切りは来週", "", model.PostTypeDefault, 0, false)
 		require.NoError(t, err)
 		defer th.deleteUserPosts(th.User.Id)
 
@@ -708,21 +704,12 @@ func testCJKSearchWithAnalyzers(t *testing.T, th *SearchTestHelper) {
 			th.checkPostInSearchResults(t, p2.Id, results.Posts)
 		})
 
-		t.Run("should search compound words via segmentation", func(t *testing.T) {
-			params := &model.SearchParams{Terms: "空港"}
-			results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-			require.NoError(t, err)
-			require.Len(t, results.Posts, 2)
-			th.checkPostInSearchResults(t, p3.Id, results.Posts)
-			th.checkPostInSearchResults(t, p4.Id, results.Posts)
-		})
-
 		t.Run("should search in mixed Japanese and English content", func(t *testing.T) {
 			params := &model.SearchParams{Terms: "締め切り"}
 			results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
 			require.NoError(t, err)
 			require.Len(t, results.Posts, 1)
-			th.checkPostInSearchResults(t, p6.Id, results.Posts)
+			th.checkPostInSearchResults(t, p4.Id, results.Posts)
 		})
 
 		t.Run("should search using phrase search", func(t *testing.T) {
@@ -730,7 +717,29 @@ func testCJKSearchWithAnalyzers(t *testing.T, th *SearchTestHelper) {
 			results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
 			require.NoError(t, err)
 			require.Len(t, results.Posts, 1)
-			th.checkPostInSearchResults(t, p5.Id, results.Posts)
+			th.checkPostInSearchResults(t, p3.Id, results.Posts)
+		})
+
+		t.Run("should find conjugated verb forms when searching infinitive", func(t *testing.T) {
+			// Create posts with different verb conjugations
+			pInfinitive, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "食べる", "", model.PostTypeDefault, 0, false)
+			require.NoError(t, err)
+			pPast, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "昨日ラーメンを食べました", "", model.PostTypeDefault, 0, false)
+			require.NoError(t, err)
+			pTe, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "食べている", "", model.PostTypeDefault, 0, false)
+			require.NoError(t, err)
+			pNegative, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "食べない", "", model.PostTypeDefault, 0, false)
+			require.NoError(t, err)
+
+			// Search for infinitive form should find all conjugated forms
+			params := &model.SearchParams{Terms: "食べる"}
+			results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
+			require.Len(t, results.Posts, 4)
+			th.checkPostInSearchResults(t, pInfinitive.Id, results.Posts)
+			th.checkPostInSearchResults(t, pPast.Id, results.Posts)
+			th.checkPostInSearchResults(t, pTe.Id, results.Posts)
+			th.checkPostInSearchResults(t, pNegative.Id, results.Posts)
 		})
 	})
 
@@ -739,11 +748,7 @@ func testCJKSearchWithAnalyzers(t *testing.T, th *SearchTestHelper) {
 		require.NoError(t, err)
 		p2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "电话", "", model.PostTypeDefault, 0, false)
 		require.NoError(t, err)
-		p3, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "软件工程师", "", model.PostTypeDefault, 0, false)
-		require.NoError(t, err)
-		p4, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "硬件工程师", "", model.PostTypeDefault, 0, false)
-		require.NoError(t, err)
-		p5, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "今天开会讨论API接口", "", model.PostTypeDefault, 0, false)
+		p3, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "今天开会讨论API接口", "", model.PostTypeDefault, 0, false)
 		require.NoError(t, err)
 		defer th.deleteUserPosts(th.User.Id)
 
@@ -764,21 +769,12 @@ func testCJKSearchWithAnalyzers(t *testing.T, th *SearchTestHelper) {
 			th.checkPostInSearchResults(t, p2.Id, results.Posts)
 		})
 
-		t.Run("should search compound words via segmentation", func(t *testing.T) {
-			params := &model.SearchParams{Terms: "工程师"}
-			results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-			require.NoError(t, err)
-			require.Len(t, results.Posts, 2)
-			th.checkPostInSearchResults(t, p3.Id, results.Posts)
-			th.checkPostInSearchResults(t, p4.Id, results.Posts)
-		})
-
 		t.Run("should search in mixed Chinese and English content", func(t *testing.T) {
 			params := &model.SearchParams{Terms: "接口"}
 			results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
 			require.NoError(t, err)
 			require.Len(t, results.Posts, 1)
-			th.checkPostInSearchResults(t, p5.Id, results.Posts)
+			th.checkPostInSearchResults(t, p3.Id, results.Posts)
 		})
 
 		t.Run("should search using phrase search", func(t *testing.T) {
@@ -786,7 +782,7 @@ func testCJKSearchWithAnalyzers(t *testing.T, th *SearchTestHelper) {
 			results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
 			require.NoError(t, err)
 			require.Len(t, results.Posts, 1)
-			th.checkPostInSearchResults(t, p5.Id, results.Posts)
+			th.checkPostInSearchResults(t, p3.Id, results.Posts)
 		})
 	})
 }

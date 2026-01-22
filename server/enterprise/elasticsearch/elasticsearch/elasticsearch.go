@@ -176,6 +176,10 @@ func (es *ElasticsearchInterfaceImpl) Start() *model.AppError {
 		if slices.Contains(es.plugins, "analysis-smartcn") {
 			opts = append(opts, common.WithSmartCNAnalyzer())
 		}
+
+		if len(opts) == 0 {
+			es.Platform.Log().Warn("EnableCJKAnalyzers is set but no CJK analyzer plugins found installed. Please review elasticsearch settings.")
+		}
 	}
 
 	// Set up posts index template.
