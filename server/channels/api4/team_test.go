@@ -239,11 +239,11 @@ func TestCreateTeamSanitization(t *testing.T) {
 func TestCreateTeamInviteIdHiddenWithoutInvitePermission(t *testing.T) {
 	th := Setup(t)
 
-	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
-	defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer th.RestoreDefaultRolePermissions(defaultRolePermissions)
 
 	// Remove PermissionInviteUser from the default team user role
-	th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
+	th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamUserRoleId)
 
 	// Regular user creates a team - InviteId should be hidden
 	// since the team user role lacks invite permission
