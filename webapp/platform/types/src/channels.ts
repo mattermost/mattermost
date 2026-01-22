@@ -137,7 +137,7 @@ export type ChannelMembership = {
     scheme_user: boolean;
     scheme_admin: boolean;
     post_root_id?: string;
-    autotranslation?: boolean;
+    autotranslation_enabled?: boolean;
 };
 
 export type ChannelUnread = {

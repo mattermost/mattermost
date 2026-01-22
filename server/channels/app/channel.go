@@ -1459,7 +1459,7 @@ func (a *App) UpdateChannelMemberAutotranslation(rctx request.CTX, channelID str
 		return nil, err
 	}
 
-	member.AutoTranslation = autotranslation
+	member.AutoTranslationEnabled = autotranslation
 	return a.updateChannelMember(rctx, member)
 }
 

@@ -66,27 +66,28 @@ type ChannelMember struct {
 	SchemeGuest        bool      `json:"scheme_guest"`
 	SchemeUser         bool      `json:"scheme_user"`
 	SchemeAdmin        bool      `json:"scheme_admin"`
-	ExplicitRoles      string    `json:"explicit_roles"`
-	AutoTranslation    bool      `json:"autotranslation"`
+	ExplicitRoles          string `json:"explicit_roles"`
+	AutoTranslationEnabled bool   `json:"autotranslation_enabled"`
 }
 
 func (o *ChannelMember) Auditable() map[string]any {
 	return map[string]any{
-		"channel_id":           o.ChannelId,
-		"user_id":              o.UserId,
-		"roles":                o.Roles,
-		"last_viewed_at":       o.LastViewedAt,
-		"msg_count":            o.MsgCount,
-		"mention_count":        o.MentionCount,
-		"mention_count_root":   o.MentionCountRoot,
-		"urgent_mention_count": o.UrgentMentionCount,
-		"msg_count_root":       o.MsgCountRoot,
-		"notify_props":         o.NotifyProps,
-		"last_update_at":       o.LastUpdateAt,
-		"scheme_guest":         o.SchemeGuest,
-		"scheme_user":          o.SchemeUser,
-		"scheme_admin":         o.SchemeAdmin,
-		"explicit_roles":       o.ExplicitRoles,
+		"channel_id":               o.ChannelId,
+		"user_id":                  o.UserId,
+		"roles":                    o.Roles,
+		"last_viewed_at":           o.LastViewedAt,
+		"msg_count":                o.MsgCount,
+		"mention_count":            o.MentionCount,
+		"mention_count_root":       o.MentionCountRoot,
+		"urgent_mention_count":     o.UrgentMentionCount,
+		"msg_count_root":           o.MsgCountRoot,
+		"notify_props":             o.NotifyProps,
+		"last_update_at":           o.LastUpdateAt,
+		"scheme_guest":             o.SchemeGuest,
+		"scheme_user":              o.SchemeUser,
+		"scheme_admin":             o.SchemeAdmin,
+		"explicit_roles":           o.ExplicitRoles,
+		"autotranslation_enabled":  o.AutoTranslationEnabled,
 	}
 }
 

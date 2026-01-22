@@ -107,7 +107,7 @@ func (s *SqlAutoTranslationStore) SetChannelEnabled(channelID string, enabled bo
 
 func (s *SqlAutoTranslationStore) IsUserEnabled(userID, channelID string) (bool, *model.AppError) {
 	query := s.getQueryBuilder().
-		Select("cm.AutoTranslation").
+		Select("cm.AutoTranslationEnabled").
 		From("ChannelMembers cm").
 		Join("Channels c ON cm.Channelid = c.id").
 		Where(sq.Eq{"cm.UserId": userID, "cm.ChannelId": channelID}).
@@ -128,7 +128,7 @@ func (s *SqlAutoTranslationStore) IsUserEnabled(userID, channelID string) (bool,
 func (s *SqlAutoTranslationStore) SetUserEnabled(userID, channelID string, enabled bool) *model.AppError {
 	query := s.getQueryBuilder().
 		Update("ChannelMembers").
-		Set("AutoTranslation", enabled).
+		Set("AutoTranslationEnabled", enabled).
 		Where(sq.Eq{"UserId": userID, "ChannelId": channelID})
 
 	result, err := s.GetMaster().ExecBuilder(query)
@@ -160,7 +160,7 @@ func (s *SqlAutoTranslationStore) GetUserLanguage(userID, channelID string) (str
 		Join("Channels c ON cm.ChannelId = c.Id").
 		Where(sq.Eq{"u.Id": userID, "c.Id": channelID}).
 		Where("c.AutoTranslation = true").
-		Where("cm.AutoTranslation = true")
+		Where("cm.AutoTranslationEnabled = true")
 
 	var locale string
 	if err := s.GetReplica().GetBuilder(&locale, query); err != nil {
@@ -182,7 +182,7 @@ func (s *SqlAutoTranslationStore) GetActiveDestinationLanguages(channelID, exclu
 		Join("Users u ON u.Id = cm.UserId").
 		Where(sq.Eq{"cm.ChannelId": channelID}).
 		Where("c.AutoTranslation = true").
-		Where("cm.AutoTranslation = true")
+		Where("cm.AutoTranslationEnabled = true")
 
 	// Filter to specific user IDs if provided (e.g., users with active WebSocket connections)
 	// When filterUserIDs is non-nil and non-empty, squirrel converts it to an IN clause

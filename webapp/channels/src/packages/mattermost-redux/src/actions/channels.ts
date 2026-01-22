@@ -267,7 +267,7 @@ export function setMyChannelAutotranslation(channelId: string, enabled: boolean)
     return async (dispatch, getState) => {
         const state = getState();
         const myChannelMember = getMyChannelMemberSelector(state, channelId);
-        const wasEnabled = myChannelMember?.autotranslation;
+        const wasEnabled = myChannelMember?.autotranslation_enabled;
 
         try {
             await Client4.setMyChannelAutotranslation(channelId, enabled);
@@ -281,7 +281,7 @@ export function setMyChannelAutotranslation(channelId: string, enabled: boolean)
             type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBER,
             data: {
                 ...myChannelMember,
-                autotranslation: enabled,
+                autotranslation_enabled: enabled,
             },
         });
 
