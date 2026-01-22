@@ -142,7 +142,7 @@ export function DataSpillageReport({post, isRHS}: Props) {
         }
 
         return fieldMetadata;
-    }, [channel, formatMessage, reportedPost, reportedPostId]);
+    }, [channel, formatMessage, reportedPost, reportedPostId, team]);
 
     const footer = useMemo(() => {
         if (isRHS) {

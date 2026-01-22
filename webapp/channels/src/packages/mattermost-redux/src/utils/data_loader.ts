@@ -12,7 +12,7 @@ abstract class DataLoader<Identifier, Result = unknown> {
     private readonly maxBatchSize: number;
     private readonly comparator?: Comparator;
 
-    protected readonly pendingIdentifiers: Set<Identifier> | Identifier[];
+    protected readonly pendingIdentifiers: Set<Identifier>;
 
     constructor(args: {
         fetchBatch: (identifiers: Identifier[]) => Result;
@@ -22,7 +22,7 @@ abstract class DataLoader<Identifier, Result = unknown> {
         this.fetchBatch = args.fetchBatch;
         this.maxBatchSize = args.maxBatchSize;
         this.comparator = args.comparator;
-        this.pendingIdentifiers = args.comparator ? [] : new Set<Identifier>();
+        this.pendingIdentifiers = new Set<Identifier>();
     }
 
     public queue(identifiersToLoad: Identifier[]): void {
@@ -31,16 +31,21 @@ abstract class DataLoader<Identifier, Result = unknown> {
                 continue;
             }
 
-            // Use an array if a custom comparator is provided, else use a Set to maintain unique elements.
-            // Using a Set when custom comparator is available provides no use.
+            // If a custom comparator is provided, manually check for duplicates
             if (this.comparator) {
-                const arr = this.pendingIdentifiers as Identifier[];
-                const exists = arr.some((existing) => this.comparator!(existing, identifier));
+                let exists = false;
+                for (const existing of this.pendingIdentifiers) {
+                    if (this.comparator(existing, identifier)) {
+                        exists = true;
+                        break;
+                    }
+                }
                 if (!exists) {
-                    arr.push(identifier);
+                    this.pendingIdentifiers.add(identifier);
                 }
             } else {
-                (this.pendingIdentifiers as Set<Identifier>).add(identifier);
+                // Without a comparator, Set automatically handles uniqueness
+                this.pendingIdentifiers.add(identifier);
             }
         }
     }
@@ -53,33 +58,15 @@ abstract class DataLoader<Identifier, Result = unknown> {
     protected prepareBatch(): {identifiers: Identifier[]; moreToLoad: boolean} {
         let nextBatch: Identifier[];
 
-        if (this.comparator) {
-            const arr = this.pendingIdentifiers as Identifier[];
-
-            // Since we can only fetch a defined number of identifiers at a time, we need to batch the requests
-            if (arr.length >= this.maxBatchSize) {
-                nextBatch = arr.splice(0, this.maxBatchSize);
-            } else {
-                nextBatch = arr.splice(0, arr.length);
-            }
-
-            return {
-                identifiers: nextBatch,
-                moreToLoad: arr.length > 0,
-            };
-        }
-
-        const set = this.pendingIdentifiers as Set<Identifier>;
-
         // Since we can only fetch a defined number of identifiers at a time, we need to batch the requests
-        if (set.size >= this.maxBatchSize) {
+        if (this.pendingIdentifiers.size >= this.maxBatchSize) {
             nextBatch = [];
 
             // We use temp buffer here to store up until max buffer size
             // and clear out processed identifiers
-            for (const identifier of set) {
+            for (const identifier of this.pendingIdentifiers) {
                 nextBatch.push(identifier);
-                set.delete(identifier);
+                this.pendingIdentifiers.delete(identifier);
 
                 if (nextBatch.length >= this.maxBatchSize) {
                     break;
@@ -87,13 +74,13 @@ abstract class DataLoader<Identifier, Result = unknown> {
             }
         } else {
             // If we have less than max buffer size, we can directly fetch the data
-            nextBatch = Array.from(set);
-            set.clear();
+            nextBatch = Array.from(this.pendingIdentifiers);
+            this.pendingIdentifiers.clear();
         }
 
         return {
             identifiers: nextBatch,
-            moreToLoad: set.size > 0,
+            moreToLoad: this.pendingIdentifiers.size > 0,
         };
     }
 
@@ -101,10 +88,7 @@ abstract class DataLoader<Identifier, Result = unknown> {
      * isBusy is a method for testing which returns true if the DataLoader is waiting to request or receive any data.
      */
     public isBusy(): boolean {
-        if (this.comparator) {
-            return (this.pendingIdentifiers as Identifier[]).length > 0;
-        }
-        return (this.pendingIdentifiers as Set<Identifier>).size > 0;
+        return this.pendingIdentifiers.size > 0;
     }
 }
 
