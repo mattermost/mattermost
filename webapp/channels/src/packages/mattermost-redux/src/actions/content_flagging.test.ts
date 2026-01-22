@@ -1,7 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {waitFor} from '@testing-library/react';
 import nock from 'nock';
+
+import type {GlobalState} from '@mattermost/types/store';
 
 import * as Actions from 'mattermost-redux/actions/content_flagging';
 import {Client4} from 'mattermost-redux/client';
@@ -60,16 +63,19 @@ describe('Actions.loadContentFlaggingTeam', () => {
 
         nock(Client4.getTeamsRoute()).
             get('/team_id').
-            query({include_total_member_count: true, flagged_post_id: 'post_id'}).
+            query({
+                flagged_post_id: 'post_id',
+                as_content_reviewer: true,
+            }).
             reply(200, mockTeam);
 
         await store.dispatch(Actions.loadContentFlaggingTeam({teamId: 'team_id', flaggedPostId: 'post_id'}));
 
-        // Wait for the data loader to process
-        await new Promise(resolve => setTimeout(resolve, 250));
-
-        const teams = store.getState().entities.teams.teams;
-        expect(teams.team_id).toEqual(mockTeam);
+        await waitFor(() => {
+            const state = store.getState() as GlobalState;
+            const teams = state.entities.contentFlagging.teams;
+            expect(teams?.team_id).toEqual(mockTeam);
+        });
     });
 
     it('should not make API call when teamId or flaggedPostId is missing', async () => {
@@ -77,7 +83,7 @@ describe('Actions.loadContentFlaggingTeam', () => {
         await store.dispatch(Actions.loadContentFlaggingTeam({flaggedPostId: 'post_id'}));
 
         // Wait for the data loader to process
-        await new Promise(resolve => setTimeout(resolve, 250));
+        await new Promise((resolve) => setTimeout(resolve, 250));
 
         // No API calls should have been made, so no new teams should be added
         const initialTeamCount = Object.keys(store.getState().entities.teams.teams).length;
@@ -105,16 +111,16 @@ describe('Actions.loadContentFlaggingChannel', () => {
 
         nock(Client4.getChannelsRoute()).
             get('/channel_id').
-            query({include_total_member_count: true, flagged_post_id: 'post_id'}).
+            query({flagged_post_id: 'post_id', as_content_reviewer: true}).
             reply(200, mockChannel);
 
         await store.dispatch(Actions.loadContentFlaggingChannel({channelId: 'channel_id', flaggedPostId: 'post_id'}));
 
-        // Wait for the data loader to process
-        await new Promise(resolve => setTimeout(resolve, 250));
-
-        const channels = store.getState().entities.channels.channels;
-        expect(channels.channel_id).toEqual(mockChannel);
+        await waitFor(() => {
+            const state = store.getState() as GlobalState;
+            const channels = state.entities.contentFlagging.channels;
+            expect(channels?.channel_id).toEqual(mockChannel);
+        });
     });
 
     it('should not make API call when channelId or flaggedPostId is missing', async () => {
@@ -122,7 +128,7 @@ describe('Actions.loadContentFlaggingChannel', () => {
         await store.dispatch(Actions.loadContentFlaggingChannel({flaggedPostId: 'post_id'}));
 
         // Wait for the data loader to process
-        await new Promise(resolve => setTimeout(resolve, 250));
+        await new Promise((resolve) => setTimeout(resolve, 250));
 
         // No API calls should have been made, so no new channels should be added
         const initialChannelCount = Object.keys(store.getState().entities.channels.channels).length;
@@ -154,10 +160,10 @@ describe('Actions.loadFlaggedPost', () => {
 
         await store.dispatch(Actions.loadFlaggedPost('post_id'));
 
-        // Wait for the data loader to process
-        await new Promise(resolve => setTimeout(resolve, 250));
-
-        const posts = store.getState().entities.posts.posts;
-        expect(posts.post_id).toEqual(mockPost);
+        await waitFor(() => {
+            const state = store.getState() as GlobalState;
+            const posts = state.entities.contentFlagging.flaggedPosts;
+            expect(posts?.post_id).toEqual(mockPost);
+        });
     });
 });
