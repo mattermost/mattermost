@@ -12,7 +12,7 @@ abstract class DataLoader<Identifier, Result = unknown> {
     private readonly maxBatchSize: number;
     private readonly comparator?: Comparator;
 
-    protected readonly pendingIdentifiers: Set<Identifier>;
+    protected readonly pendingIdentifiers = new Set<Identifier>();
 
     constructor(args: {
         fetchBatch: (identifiers: Identifier[]) => Result;
@@ -22,7 +22,6 @@ abstract class DataLoader<Identifier, Result = unknown> {
         this.fetchBatch = args.fetchBatch;
         this.maxBatchSize = args.maxBatchSize;
         this.comparator = args.comparator;
-        this.pendingIdentifiers = new Set<Identifier>();
     }
 
     public queue(identifiersToLoad: Identifier[]): void {
@@ -56,7 +55,7 @@ abstract class DataLoader<Identifier, Result = unknown> {
      * contains fewer than that, all of the identifiers are returned and pendingIdentifiers is cleared.
      */
     protected prepareBatch(): {identifiers: Identifier[]; moreToLoad: boolean} {
-        let nextBatch: Identifier[];
+        let nextBatch;
 
         // Since we can only fetch a defined number of identifiers at a time, we need to batch the requests
         if (this.pendingIdentifiers.size >= this.maxBatchSize) {
