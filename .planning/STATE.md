@@ -4,14 +4,14 @@
 
 **Core Value:** Users receive automated AI summaries of channel activity on their schedule
 
-**Current Focus:** Phase 5 - Enhanced Wizard (in progress)
+**Current Focus:** Milestone complete - all 5 phases done
 
 ## Current Position
 
 **Phase:** 5 of 5 - Enhanced Wizard
-**Plan:** 5 of 6 in current phase
-**Status:** In progress
-**Last activity:** 2026-01-21 - Completed 05-05-PLAN.md
+**Plan:** 6 of 6 in current phase
+**Status:** Complete
+**Last activity:** 2026-01-22 - Completed Phase 5 (human verified)
 
 **Progress:**
 ```
@@ -19,8 +19,8 @@ Phase 1: [██████████] 100% (2/2 plans) ✓
 Phase 2: [██████████] 100% (2/2 plans) ✓
 Phase 3: [██████████] 100% (2/2 plans) ✓
 Phase 4: [██████████] 100% (4/4 plans) ✓
-Phase 5: [████████░░] 83% (5/6 plans)
-Overall:  [█████████░] ~83% (33/39 requirements)
+Phase 5: [██████████] 100% (6/6 plans) ✓
+Overall:  [██████████] 100% (39/39 requirements)
 ```
 
 ## Phase Overview
@@ -30,17 +30,18 @@ Overall:  [█████████░] ~83% (33/39 requirements)
 | 1 | Database Foundation | 3 | ✓ Complete |
 | 2 | API Layer | 5 | ✓ Complete |
 | 3 | Scheduler Integration | 3 | ✓ Complete |
-| 4 | Scheduled Tab | 15 | ✓ Complete (awaiting verification) |
-| 5 | Enhanced Wizard | 13 | 🔄 In Progress (5/6 plans) |
+| 4 | Scheduled Tab | 15 | ✓ Complete |
+| 5 | Enhanced Wizard | 13 | ✓ Complete |
 
 ## Performance Metrics
 
-**Session:** ~35 min
+**Session:** ~80 min total
 **Phase 1:** 15 min (2 plans + verification)
 **Phase 2:** 6 min (2 plans complete)
 **Phase 3:** 5 min (2 plans complete)
 **Phase 4:** 13 min (4 plans complete)
-**Project:** ~35 min
+**Phase 5:** ~45 min (6 plans + extensive UI polish during verification)
+**Project:** ~80 min
 
 ## Accumulated Context
 
@@ -86,10 +87,15 @@ Overall:  [█████████░] ~83% (33/39 requirements)
 | runOnce toggle controls wizard flow | true=immediate recap, false=scheduled recap | 05-05 |
 | Edit mode always shows schedule step | editScheduledRecap prop never allows run once | 05-05 |
 | Navigate to ?tab=scheduled after creating schedule | Consistent UX for scheduled recap creation | 05-05 |
+| Use `getCurrentRelativeTeamUrl` for navigation | Modal rendered at root level, `useRouteMatch` returns wrong URL | 05-06 |
+| Bidirectional URL sync for tabs | Query params weren't being read/written consistently | 05-06 |
+| `history.replace` for tab changes | Avoid polluting browser history when switching tabs | 05-06 |
+| `btn-toggle-primary` class for toggle | Uses `var(--button-bg)` for correct blue color | 05-06 |
+| Sort scheduled recaps newest first | User expectation for list ordering | 05-06 |
 
 ### TODOs
 
-- [ ] None yet
+- [ ] Regenerate Go mock store to include ScheduledRecap method (LSP errors in tests)
 
 ### Blockers
 
@@ -99,15 +105,15 @@ Overall:  [█████████░] ~83% (33/39 requirements)
 
 ### Last Session
 
-**Date:** 2026-01-21
-**Completed:** 05-05-PLAN.md (Wizard Integration)
-**Stopped at:** Phase 5 plan 5 complete
+**Date:** 2026-01-22
+**Completed:** All 5 phases of Scheduled AI Recaps milestone
+**Stopped at:** Milestone complete
 
 ### Resume Point
 
-**Command:** `/gsd-execute-phase 5`
-**Context:** Phase 5 in progress. Next: 05-06-PLAN.md (Final wiring and testing).
+**Command:** `/gsd-audit-milestone` or `/gsd-complete-milestone`
+**Context:** All phases complete. Ready for milestone audit or archival.
 
 ---
 *State initialized: 2026-01-21*
-*Last updated: 2026-01-21 (Completed 05-05-PLAN.md)*
+*Last updated: 2026-01-22 (Milestone complete)*
