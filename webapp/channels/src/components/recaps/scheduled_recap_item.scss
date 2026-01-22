@@ -78,9 +78,8 @@
     }
 
     .scheduled-recap-toggle {
-        .btn-toggle {
-            min-width: 72px;
-        }
+        display: flex;
+        align-items: center;
     }
 
     .scheduled-recap-menu-button {

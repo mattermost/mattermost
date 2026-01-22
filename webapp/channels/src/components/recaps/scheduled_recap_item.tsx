@@ -108,8 +108,10 @@ const ScheduledRecapItem = ({scheduledRecap, onEdit}: Props) => {
                             onToggle={handleToggle}
                             disabled={isToggling}
                             size='btn-sm'
-                            onText={formatMessage({id: 'recaps.scheduled.active', defaultMessage: 'Active'})}
-                            offText={formatMessage({id: 'recaps.scheduled.paused', defaultMessage: 'Paused'})}
+                            ariaLabel={scheduledRecap.enabled
+                                ? formatMessage({id: 'recaps.scheduled.toggle.active', defaultMessage: 'Active - click to pause'})
+                                : formatMessage({id: 'recaps.scheduled.toggle.paused', defaultMessage: 'Paused - click to resume'})
+                            }
                         />
                     </div>
 
