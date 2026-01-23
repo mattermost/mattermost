@@ -57,10 +57,14 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
 
         mockedUseUser.mockReturnValue(flaggedPostAuthor);
         mockedUseChannel.mockReturnValue(flaggedPostChannel);
-        mockedUseContentFlaggingConfig.mockReturnValue(defaultContentFlaggingConfig);
+        mockedUseContentFlaggingConfig.mockReturnValue(
+            defaultContentFlaggingConfig,
+        );
 
         Client4.removeFlaggedPost = jest.fn().mockResolvedValue({});
         Client4.keepFlaggedPost = jest.fn().mockResolvedValue({});
+
+        console.error = jest.fn();
     });
 
     describe('remove action', () => {
@@ -75,8 +79,8 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
             );
 
             expect(screen.getByTestId('keep-remove-flagged-message-confirmation-modal')).toBeVisible();
-            expect(screen.getByText('Remove message from channel')).toBeVisible();
-            expect(screen.getByText('Remove message')).toBeVisible();
+            expect(screen.getByRole('heading', {name: 'Remove message from channel'})).toBeVisible();
+            expect(screen.getByRole('button', {name: 'Remove message'})).toBeVisible();
         });
 
         test('should show notification subtext when notify_reporter_on_removal is true', () => {
@@ -94,7 +98,9 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
                 />,
             );
 
-            expect(screen.getByText(/a notification will be sent to the reporter/)).toBeVisible();
+            const subtext = screen.getByTestId('keep-remove-flagged-message-subtext');
+            expect(subtext).toBeVisible();
+            expect(subtext).toHaveTextContent(/a notification will be sent to the reporter/);
         });
 
         test('should show no notification subtext when notify_reporter_on_removal is false', () => {
@@ -107,7 +113,9 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
                 />,
             );
 
-            expect(screen.getByText(/the message will be removed from the channel. This action cannot be reverted./)).toBeVisible();
+            const subtext = screen.getByTestId('keep-remove-flagged-message-subtext');
+            expect(subtext).toBeVisible();
+            expect(subtext).toHaveTextContent(/the message will be removed from the channel. This action cannot be reverted./);
         });
 
         test('should call Client4.removeFlaggedPost on confirm', async () => {
@@ -120,7 +128,7 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
                 />,
             );
 
-            const confirmButton = screen.getByText('Remove message');
+            const confirmButton = screen.getByRole('button', {name: 'Remove message'});
             await userEvent.click(confirmButton);
 
             await waitFor(() => {
@@ -142,7 +150,7 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
             );
 
             expect(screen.getByTestId('keep-remove-flagged-message-confirmation-modal')).toBeVisible();
-            expect(screen.getByText('Keep message')).toBeVisible();
+            expect(screen.getByRole('button', {name: 'Keep message'})).toBeVisible();
         });
 
         test('should show notification subtext when notify_reporter_on_dismissal is true', () => {
@@ -160,7 +168,9 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
                 />,
             );
 
-            expect(screen.getByText(/a notification will be sent to the reporter/)).toBeVisible();
+            const subtext = screen.getByTestId('keep-remove-flagged-message-subtext');
+            expect(subtext).toBeVisible();
+            expect(subtext).toHaveTextContent(/a notification will be sent to the reporter/);
         });
 
         test('should show no notification subtext when notify_reporter_on_dismissal is false', () => {
@@ -173,7 +183,9 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
                 />,
             );
 
-            expect(screen.getByText(/the message will be visible to all channel members./)).toBeVisible();
+            const subtext = screen.getByTestId('keep-remove-flagged-message-subtext');
+            expect(subtext).toBeVisible();
+            expect(subtext).toHaveTextContent(/the message will be visible to all channel members./);
         });
 
         test('should call Client4.keepFlaggedPost on confirm', async () => {
@@ -186,7 +198,7 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
                 />,
             );
 
-            const confirmButton = screen.getByText('Keep message');
+            const confirmButton = screen.getByRole('button', {name: 'Keep message'});
             await userEvent.click(confirmButton);
 
             await waitFor(() => {
@@ -207,7 +219,9 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
                 />,
             );
 
-            expect(screen.getByText('Comment (optional)')).toBeVisible();
+            const commentTitle = screen.getByTestId('keep-remove-flagged-message-comment-title');
+            expect(commentTitle).toBeVisible();
+            expect(commentTitle).toHaveTextContent('Comment (optional)');
         });
 
         test('should show required comment label when reviewer_comment_required is true', () => {
@@ -225,7 +239,9 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
                 />,
             );
 
-            expect(screen.getByText('Comment (required)')).toBeVisible();
+            const commentTitle = screen.getByTestId('keep-remove-flagged-message-comment-title');
+            expect(commentTitle).toBeVisible();
+            expect(commentTitle).toHaveTextContent('Comment (required)');
         });
 
         test('should show validation error when comment is required but empty on confirm', async () => {
@@ -243,7 +259,7 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
                 />,
             );
 
-            const confirmButton = screen.getByText('Remove message');
+            const confirmButton = screen.getByRole('button', {name: 'Remove message'});
             await userEvent.click(confirmButton);
 
             await waitFor(() => {
@@ -268,11 +284,15 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
                 />,
             );
 
-            const confirmButton = screen.getByText('Remove message');
+            const confirmButton = screen.getByRole('button', {name: 'Remove message'});
             await userEvent.click(confirmButton);
 
             await waitFor(() => {
-                expect(screen.getByText(errorMessage)).toBeVisible();
+                const errorElement = screen.getByTestId(
+                    'keep-remove-flagged-message-request-error',
+                );
+                expect(errorElement).toBeVisible();
+                expect(errorElement).toHaveTextContent(errorMessage);
             });
             expect(onExited).not.toHaveBeenCalled();
         });
