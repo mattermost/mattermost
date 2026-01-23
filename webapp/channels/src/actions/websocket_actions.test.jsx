@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import cloneDeep from 'lodash/cloneDeep';
+
 import {CloudTypes} from 'mattermost-redux/action_types';
 import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
 import {fetchAllMyTeamsChannels} from 'mattermost-redux/actions/channels';
@@ -703,8 +705,58 @@ describe('reconnect', () => {
     });
 
     test('should reload custom profile attribute fields on reconnect', () => {
+        const clonedMockState = cloneDeep(mockState);
+
+        mockState = mergeObjects(
+            mockState,
+            {
+                entities: {
+                    general: {
+                        license: {
+                            SkuShortName: 'enterprise',
+                        },
+                        config: {
+                            FeatureFlagCustomProfileAttributes: 'true',
+                        },
+                    },
+                },
+            },
+        );
+
         reconnect();
         expect(getCustomProfileAttributeFields).toHaveBeenCalled();
+
+        // Restore mock state
+        mockState = clonedMockState;
+    });
+
+    test.each([
+        {SkuShortName: 'starter', FeatureFlagCustomProfileAttributes: 'true'},
+        {SkuShortName: 'enterprise', FeatureFlagCustomProfileAttributes: 'false'},
+    ])("should not reload custom profile attribute fields on reconnect if feature isn't available", ({SkuShortName, FeatureFlagCustomProfileAttributes}) => {
+        const clonedMockState = cloneDeep(mockState);
+
+        mockState = mergeObjects(
+            mockState,
+            {
+                entities: {
+                    general: {
+                        license: {
+                            SkuShortName,
+                        },
+                        config: {
+                            FeatureFlagCustomProfileAttributes,
+                        },
+                    },
+                },
+            },
+        );
+
+        reconnect();
+        expect(getCustomProfileAttributeFields).not.toHaveBeenCalled();
+
+        // Restore mock state
+        mockState = clonedMockState;
     });
 });
 
