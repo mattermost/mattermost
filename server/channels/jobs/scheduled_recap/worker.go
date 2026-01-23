@@ -18,6 +18,8 @@ import (
 // This interface will be implemented by the App layer in 03-02.
 type AppIface interface {
 	CreateRecapFromSchedule(rctx request.CTX, scheduledRecap *model.ScheduledRecap) (*model.Recap, *model.AppError)
+	GetEffectiveLimits(userID string) (*model.EffectiveRecapLimits, *model.AppError)
+	GetUser(userID string) (*model.User, *model.AppError)
 }
 
 // MakeWorker creates a new worker for processing scheduled recap jobs.
@@ -44,6 +46,78 @@ func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, app AppIfa
 			logger.Info("Scheduled recap is disabled, skipping",
 				mlog.String("scheduled_recap_id", scheduledRecapID))
 			return nil
+		}
+
+		// ENF-03: Check daily limit before execution
+		limits, limitsErr := app.GetEffectiveLimits(sr.UserId)
+		if limitsErr != nil {
+			logger.Error("Failed to get effective limits", mlog.Err(limitsErr))
+			return fmt.Errorf("failed to get effective limits: %w", limitsErr)
+		}
+
+		if model.IsLimitEnabled(limits.MaxRecapsPerDay) {
+			// Get user's timezone for midnight calculation
+			user, userErr := app.GetUser(sr.UserId)
+			if userErr != nil {
+				logger.Error("Failed to get user for timezone", mlog.Err(userErr))
+				return fmt.Errorf("failed to get user: %w", userErr)
+			}
+
+			// Calculate start of today in user's timezone
+			loc := user.GetTimezoneLocation()
+			now := time.Now().In(loc)
+			dayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc)
+
+			// Count recaps created today
+			count, countErr := storeInstance.Recap().CountForUserSince(sr.UserId, dayStart.UnixMilli())
+			if countErr != nil {
+				logger.Error("Failed to count daily recaps", mlog.Err(countErr))
+				return fmt.Errorf("failed to count daily recaps: %w", countErr)
+			}
+
+			if count >= int64(limits.MaxRecapsPerDay) {
+				// Create skipped recap record (per CONTEXT.md: visible in unreads tab)
+				skippedRecap := &model.Recap{
+					Id:               model.NewId(),
+					UserId:           sr.UserId,
+					Title:            sr.Title,
+					Status:           model.RecapStatusSkipped,
+					SkipReason:       model.SkipReasonDailyLimit,
+					ScheduledRecapId: sr.Id,
+					CreateAt:         model.GetMillis(),
+					UpdateAt:         model.GetMillis(),
+				}
+
+				if _, saveErr := storeInstance.Recap().SaveRecap(skippedRecap); saveErr != nil {
+					logger.Error("Failed to save skipped recap", mlog.Err(saveErr))
+					// Continue anyway - don't fail the job entirely
+				}
+
+				logger.Info("Scheduled recap skipped due to daily limit",
+					mlog.String("scheduled_recap_id", scheduledRecapID),
+					mlog.String("user_id", sr.UserId),
+					mlog.Int("daily_count", int(count)),
+					mlog.Int("limit", limits.MaxRecapsPerDay))
+
+				// Update next run time so scheduler moves on
+				nextNow := time.Now()
+				nextRunAt, computeErr := sr.ComputeNextRunAt(nextNow)
+				if computeErr != nil {
+					logger.Error("Failed to compute next run time for skipped recap",
+						mlog.String("scheduled_recap_id", scheduledRecapID),
+						mlog.Err(computeErr))
+					_ = storeInstance.ScheduledRecap().SetEnabled(scheduledRecapID, false)
+					return nil
+				}
+				lastRunAt := model.GetMillis()
+				if markErr := storeInstance.ScheduledRecap().MarkExecuted(scheduledRecapID, lastRunAt, nextRunAt); markErr != nil {
+					logger.Error("Failed to mark skipped as executed",
+						mlog.String("scheduled_recap_id", scheduledRecapID),
+						mlog.Err(markErr))
+				}
+
+				return nil // Skip execution, not an error
+			}
 		}
 
 		// Create the actual recap
