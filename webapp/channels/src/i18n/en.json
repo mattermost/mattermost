@@ -5951,7 +5951,7 @@
   "signup_user_completed.validEmail": "Please enter a valid email address",
   "signup.ldap": "AD/LDAP Credentials",
   "signup.terms_and_privacy.checkmark.box": "Terms and privacy policy checkbox",
-  "signup.terms_and_privacy.checkmark.text": "I agree to the <termsOfUseLink>Acceptable Use Policy</termsOfUseLink> and the <privacyPolicyLink>Privacy Policy</privacyPolicyLink>",
+  "signup.terms_and_privacy.checkmark.text": "I agree to the <termsOfUseLink>Acceptable Use Policy</termsOfUseLink> and the <privacyPolicyLink>Privacy Policy</privacyPolicyLink>",
   "signup.title": "Create Account | {siteName}",
   "single_image_view.copied_link_tooltip": "Copied",
   "single_image_view.copy_link_tooltip": "Copy link",
