@@ -3635,6 +3635,26 @@ func (c *Client4) SearchContentFlaggingReviewers(ctx context.Context, teamID, te
 	return DecodeJSONFromResponse[[]*User](r)
 }
 
+func (c *Client4) RemoveFlaggedPost(ctx context.Context, postId string, actionRequest *FlagContentActionRequest) (*Response, error) {
+	r, err := c.DoAPIPutJSON(ctx, fmt.Sprintf("%s/post/%s/remove", c.contentFlaggingRoute(), postId), actionRequest)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) KeepFlaggedPost(ctx context.Context, postId string, actionRequest *FlagContentActionRequest) (*Response, error) {
+	r, err := c.DoAPIPutJSON(ctx, fmt.Sprintf("%s/post/%s/keep", c.contentFlaggingRoute(), postId), actionRequest)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 // SearchFiles returns any posts with matching terms string.
 func (c *Client4) SearchFiles(ctx context.Context, teamId string, terms string, isOrSearch bool) (*FileInfoList, *Response, error) {
 	params := SearchParameter{
