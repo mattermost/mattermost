@@ -28,9 +28,17 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imports"
 	_ "golang.org/x/image/webp" // image decoder
+	"golang.org/x/text/unicode/norm"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
+
+// normalizeFilename normalizes a filename to NFC (composed) form for consistent comparison.
+// This ensures consistent string comparison between filesystems that use
+// different Unicode normalization forms (macOS uses NFD, Linux/Windows use NFC).
+func normalizeFilename(name string) string {
+	return norm.NFC.String(name)
+}
 
 const (
 	SourceServer = "<server>"
@@ -264,10 +272,11 @@ func (v *Validator) Validate() error {
 			if zfile.FileInfo().IsDir() {
 				continue
 			}
-			if strings.HasPrefix(zfile.Name, "data/") {
-				v.attachments[zfile.Name] = zfile
+			normalizedName := normalizeFilename(zfile.Name)
+			if strings.HasPrefix(normalizedName, "data/") {
+				v.attachments[normalizedName] = zfile
 			}
-			v.allFileNames = append(v.allFileNames, zfile.Name)
+			v.allFileNames = append(v.allFileNames, normalizedName)
 		}
 	}
 
@@ -815,9 +824,9 @@ func (v *Validator) validatePost(info ImportFileInfo, line imports.LineImportDat
 				continue
 			}
 
-			attachmentPath := *attachment.Path
+			attachmentPath := normalizeFilename(*attachment.Path)
 			if _, ok := v.attachments[attachmentPath]; !ok {
-				attachmentPath = path.Join("data", *attachment.Path)
+				attachmentPath = normalizeFilename(path.Join("data", *attachment.Path))
 			}
 
 			if _, ok := v.attachments[attachmentPath]; !ok {
@@ -952,9 +961,9 @@ func (v *Validator) validateDirectPost(info ImportFileInfo, line imports.LineImp
 				continue
 			}
 
-			attachmentPath := *attachment.Path
+			attachmentPath := normalizeFilename(*attachment.Path)
 			if _, ok := v.attachments[attachmentPath]; !ok {
-				attachmentPath = path.Join("data", *attachment.Path)
+				attachmentPath = normalizeFilename(path.Join("data", *attachment.Path))
 			}
 
 			if _, ok := v.attachments[attachmentPath]; !ok {
@@ -1005,7 +1014,7 @@ func (v *Validator) validateEmoji(info ImportFileInfo, line imports.LineImportDa
 		}
 
 		if !v.ignoreAttachments && data.Image != nil {
-			attachmentPath := path.Join("data", *data.Image)
+			attachmentPath := normalizeFilename(path.Join("data", *data.Image))
 
 			zfile, ok := v.attachments[attachmentPath]
 			if !ok {
