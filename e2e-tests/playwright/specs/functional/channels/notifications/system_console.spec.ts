@@ -12,7 +12,7 @@ test('Push Notification Contents setting displays correctly and saves all option
     const {adminUser, adminClient} = await pw.initSetup();
 
     // # Update to default config
-    await adminClient.updateConfigX({
+    await adminClient.patchConfig({
         EmailSettings: {
             PushNotificationContents: 'full',
             FeedbackName: 'Mattermost Test Team',
