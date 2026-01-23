@@ -87,7 +87,7 @@ type Channels struct {
 
 	interruptQuitChan chan struct{}
 
-	scheduledPostMut sync.Mutex
+	scheduledPostMut  sync.Mutex
 	scheduledPostTask *model.ScheduledTask
 
 	emailLoginAttempts *utils.KeyedMutex
