@@ -27,6 +27,41 @@ func (a *App) CreateScheduledRecap(rctx request.CTX, recap *model.ScheduledRecap
 		return nil, err
 	}
 
+	// Limit enforcement: Check user's limits before allowing creation
+	limits, limitsErr := a.GetEffectiveLimits(recap.UserId)
+	if limitsErr != nil {
+		return nil, limitsErr
+	}
+
+	// ENF-01, ENF-08: Check max scheduled recaps limit
+	if model.IsLimitEnabled(limits.MaxScheduledRecaps) {
+		count, storeErr := a.Srv().Store().ScheduledRecap().CountForUser(recap.UserId)
+		if storeErr != nil {
+			return nil, model.NewAppError("CreateScheduledRecap",
+				"app.scheduled_recap.count_failed.app_error",
+				nil, "", http.StatusInternalServerError).Wrap(storeErr)
+		}
+		if count >= int64(limits.MaxScheduledRecaps) {
+			return nil, model.NewAppError("CreateScheduledRecap",
+				"app.scheduled_recap.max_scheduled_reached.app_error",
+				map[string]any{"Limit": limits.MaxScheduledRecaps},
+				"", http.StatusBadRequest)
+		}
+	}
+
+	// ENF-02: Check max channels per recap limit
+	if model.IsLimitEnabled(limits.MaxChannelsPerRecap) {
+		if len(recap.ChannelIds) > limits.MaxChannelsPerRecap {
+			return nil, model.NewAppError("CreateScheduledRecap",
+				"app.scheduled_recap.max_channels_exceeded.app_error",
+				map[string]any{
+					"Limit":     limits.MaxChannelsPerRecap,
+					"Requested": len(recap.ChannelIds),
+				},
+				"", http.StatusBadRequest)
+		}
+	}
+
 	// Compute NextRunAt before saving
 	nextRunAt, err := recap.ComputeNextRunAt(time.Now())
 	if err != nil {
