@@ -22,7 +22,6 @@ type Props = {
     onFiltersChange: (filters: LogFilter) => void;
     onSearchChange: (term: string) => void;
     search: string;
-    filters: LogFilter;
 };
 
 type State = {
@@ -366,7 +365,6 @@ export default class LogList extends React.PureComponent<Props, State> {
                     term={search}
                     placeholderEmpty={placeholderEmpty}
                     rowsContainerStyles={rowsContainerStyles}
-                    page={this.state.page}
                     nextPage={this.nextPage}
                     previousPage={this.previousPage}
                     filterProps={filterProps}

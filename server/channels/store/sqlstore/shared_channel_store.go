@@ -4,7 +4,6 @@
 package sqlstore
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"strings"
@@ -825,30 +824,25 @@ func (s SqlSharedChannelStore) GetUsersForSync(filter model.GetUsersForSyncFilte
 
 // UpdateUserLastSyncAt updates the LastSyncAt timestamp for the specified SharedChannelUser.
 func (s SqlSharedChannelStore) UpdateUserLastSyncAt(userID string, channelID string, remoteID string) error {
-	// fetching the user first creates a minor race condition. This is mitigated by ensuring that the
-	// LastUpdateAt is only ever increased. Doing it this way avoids the update with join that has differing
-	// syntax between MySQL and Postgres which Squirrel cannot handle.  It also allows us to return
-	// a proper error when trying to update for a non-existent user, which cannot be done by checking RowsAffected
-	// when doing updates; RowsAffected=0 when the LastUpdateAt doesn't change and is the same result if user doesn't
-	// exist.
-	user, err := s.stores.user.Get(context.Background(), userID)
-	if err != nil {
-		return err
-	}
-
-	updateAt := max(user.UpdateAt, user.LastPictureUpdate)
-
+	// Use UPDATE FROM with RETURNING to do this in a single query. The RETURNING clause lets us detect
+	// if the user doesn't exist (no rows returned).
 	query := s.getQueryBuilder().
 		Update("SharedChannelUsers AS scu").
-		Set("LastSyncAt", sq.Expr("GREATEST(scu.LastSyncAt, ?)", updateAt)).
+		Set("LastSyncAt", sq.Expr("GREATEST(scu.LastSyncAt, GREATEST(u.UpdateAt, u.LastPictureUpdate))")).
+		From("Users AS u").
+		Where("u.Id = scu.UserId").
 		Where(sq.Eq{
 			"scu.UserId":    userID,
 			"scu.ChannelId": channelID,
 			"scu.RemoteId":  remoteID,
-		})
+		}).
+		Suffix("RETURNING scu.UserId")
 
-	_, err = s.GetMaster().ExecBuilder(query)
-	if err != nil {
+	var returnedID string
+	if err := s.GetMaster().GetBuilder(&returnedID, query); err != nil {
+		if err == sql.ErrNoRows {
+			return store.NewErrNotFound("User", userID)
+		}
 		return fmt.Errorf("failed to update LastSyncAt for SharedChannelUser with userId=%s, channelId=%s, remoteId=%s: %w",
 			userID, channelID, remoteID, err)
 	}
