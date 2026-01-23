@@ -195,11 +195,11 @@ func (s *SqlAutoTranslationStore) GetActiveDestinationLanguages(channelID, exclu
 	return languages, nil
 }
 
-func (s *SqlAutoTranslationStore) Get(objectID, dstLang string) (*model.Translation, error) {
+func (s *SqlAutoTranslationStore) Get(objectType, objectID, dstLang string) (*model.Translation, error) {
 	query := s.getQueryBuilder().
 		Select("ObjectType", "ObjectId", "DstLang", "ProviderId", "NormHash", "Text", "Confidence", "Meta", "State", "UpdateAt").
 		From("Translations").
-		Where(sq.Eq{"ObjectId": objectID, "DstLang": dstLang})
+		Where(sq.Eq{"ObjectType": objectType, "ObjectId": objectID, "DstLang": dstLang})
 
 	var translation Translation
 	if err := s.GetReplica().GetBuilder(&translation, query); err != nil {
@@ -219,12 +219,6 @@ func (s *SqlAutoTranslationStore) Get(objectID, dstLang string) (*model.Translat
 		if s, ok := v.(string); ok {
 			translationTypeStr = s
 		}
-	}
-
-	// Default objectType to "post" if not set
-	objectType := translation.ObjectType
-	if objectType == "" {
-		objectType = model.TranslationObjectTypePost
 	}
 
 	result := &model.Translation{
@@ -247,7 +241,7 @@ func (s *SqlAutoTranslationStore) Get(objectID, dstLang string) (*model.Translat
 	return result, nil
 }
 
-func (s *SqlAutoTranslationStore) GetBatch(objectIDs []string, dstLang string) (map[string]*model.Translation, error) {
+func (s *SqlAutoTranslationStore) GetBatch(objectType string, objectIDs []string, dstLang string) (map[string]*model.Translation, error) {
 	if len(objectIDs) == 0 {
 		return make(map[string]*model.Translation), nil
 	}
@@ -255,7 +249,7 @@ func (s *SqlAutoTranslationStore) GetBatch(objectIDs []string, dstLang string) (
 	query := s.getQueryBuilder().
 		Select("ObjectType", "ObjectId", "DstLang", "ProviderId", "NormHash", "Text", "Confidence", "Meta", "State", "UpdateAt").
 		From("Translations").
-		Where(sq.Eq{"ObjectId": objectIDs, "DstLang": dstLang})
+		Where(sq.Eq{"ObjectType": objectType, "ObjectId": objectIDs, "DstLang": dstLang})
 
 	var translations []Translation
 	if err := s.GetReplica().SelectBuilder(&translations, query); err != nil {
@@ -276,12 +270,6 @@ func (s *SqlAutoTranslationStore) GetBatch(objectIDs []string, dstLang string) (
 			if s, ok := v.(string); ok {
 				translationTypeStr = s
 			}
-		}
-
-		// Default objectType to "post" if not set
-		objectType := t.ObjectType
-		if objectType == "" {
-			objectType = model.TranslationObjectTypePost
 		}
 
 		modelT := &model.Translation{
@@ -308,11 +296,11 @@ func (s *SqlAutoTranslationStore) GetBatch(objectIDs []string, dstLang string) (
 	return result, nil
 }
 
-func (s *SqlAutoTranslationStore) GetAllForObject(objectID string) ([]*model.Translation, error) {
+func (s *SqlAutoTranslationStore) GetAllForObject(objectType, objectID string) ([]*model.Translation, error) {
 	query := s.getQueryBuilder().
 		Select("ObjectType", "ObjectId", "DstLang", "ProviderId", "NormHash", "Text", "Confidence", "Meta", "State", "UpdateAt").
 		From("Translations").
-		Where(sq.Eq{"ObjectId": objectID})
+		Where(sq.Eq{"ObjectType": objectType, "ObjectId": objectID})
 
 	var translations []Translation
 	if err := s.GetReplica().SelectBuilder(&translations, query); err != nil {
@@ -333,12 +321,6 @@ func (s *SqlAutoTranslationStore) GetAllForObject(objectID string) ([]*model.Tra
 			if s, ok := v.(string); ok {
 				translationTypeStr = s
 			}
-		}
-
-		// Default objectType to "post" if not set
-		objectType := t.ObjectType
-		if objectType == "" {
-			objectType = model.TranslationObjectTypePost
 		}
 
 		modelT := &model.Translation{
@@ -378,9 +360,9 @@ func (s *SqlAutoTranslationStore) Save(translation *model.Translation) error {
 		text = string(translation.ObjectJSON)
 	}
 
-	var objectType *string
-	if translation.ObjectType != "" {
-		objectType = &translation.ObjectType
+	objectType := translation.ObjectType
+	if objectType == "" {
+		objectType = model.TranslationObjectTypePost
 	}
 
 	objectID := translation.ObjectID
@@ -412,9 +394,8 @@ func (s *SqlAutoTranslationStore) Save(translation *model.Translation) error {
 		Insert("Translations").
 		Columns("ObjectId", "DstLang", "ObjectType", "ProviderId", "NormHash", "Text", "Confidence", "Meta", "State", "UpdateAt").
 		Values(objectID, dstLang, objectType, providerID, translation.NormHash, text, confidence, metaBytes, string(translation.State), now).
-		Suffix(`ON CONFLICT (ObjectId, dstLang)
+		Suffix(`ON CONFLICT (ObjectId, ObjectType, dstLang)
 				DO UPDATE SET
-					ObjectType = EXCLUDED.ObjectType,
 					ProviderId = EXCLUDED.ProviderId,
 					NormHash = EXCLUDED.NormHash,
 					Text = EXCLUDED.Text,
