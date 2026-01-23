@@ -61,6 +61,8 @@ describe('Authentication', () => {
 
         cy.get('#input_name').clear().type(`test${getRandomId()}`);
 
+        cy.get('#signup-body-card-form-check-terms-and-privacy').check();
+
         cy.findByText('Create account').click();
 
         // * Make sure account was created successfully and we are at the select team page
@@ -113,6 +115,8 @@ describe('Authentication', () => {
 
         cy.get('#input_name').clear().type(`test${getRandomId()}`);
 
+        cy.get('#signup-body-card-form-check-terms-and-privacy').check();
+
         cy.findByText('Create account').click();
 
         // * Make sure account was not created successfully
@@ -145,6 +149,8 @@ describe('Authentication', () => {
             cy.get('#input_password-input').type('Test123456!');
 
             cy.get('#input_name').clear().type(username);
+
+            cy.get('#signup-body-card-form-check-terms-and-privacy').check();
 
             cy.findByText('Create account').click();
 
