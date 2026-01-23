@@ -7665,6 +7665,18 @@
     "translation": "Unknown Channel"
   },
   {
+    "id": "app.scheduled_recap.count_failed.app_error",
+    "translation": "Failed to check scheduled recap count."
+  },
+  {
+    "id": "app.scheduled_recap.max_channels_exceeded.app_error",
+    "translation": "Your organization's policy limits recaps to {{.Limit}} channels. You requested {{.Requested}} channels."
+  },
+  {
+    "id": "app.scheduled_recap.max_scheduled_reached.app_error",
+    "translation": "Your organization's policy limits you to {{.Limit}} scheduled recaps. Please delete an existing scheduled recap before creating a new one."
+  },
+  {
     "id": "app.scheme.delete.app_error",
     "translation": "Unable to delete this scheme."
   },
