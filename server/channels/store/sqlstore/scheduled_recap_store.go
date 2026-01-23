@@ -293,6 +293,23 @@ func (s *SqlScheduledRecapStore) MarkExecuted(id string, lastRunAt int64, nextRu
 	return nil
 }
 
+// CountForUser returns count of active (non-deleted, enabled) scheduled recaps for a user.
+func (s *SqlScheduledRecapStore) CountForUser(userId string) (int64, error) {
+	query := s.getQueryBuilder().
+		Select("COUNT(*)").
+		From("ScheduledRecaps").
+		Where(sq.Eq{"UserId": userId}).
+		Where(sq.Eq{"DeleteAt": 0}).
+		Where(sq.Eq{"Enabled": true})
+
+	var count int64
+	err := s.GetReplica().GetBuilder(&count, query)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to count scheduled recaps for user")
+	}
+	return count, nil
+}
+
 // SetEnabled updates only the Enabled field (and UpdateAt).
 func (s *SqlScheduledRecapStore) SetEnabled(id string, enabled bool) error {
 	updateAt := model.GetMillis()
