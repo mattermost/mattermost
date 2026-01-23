@@ -11,6 +11,7 @@ import (
 	"strings"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -83,22 +84,28 @@ type Channels struct {
 	postReminderMut  sync.Mutex
 	postReminderTask *model.ScheduledTask
 
-	interruptQuitChan     chan struct{}
-	scheduledPostMut      sync.Mutex
-	scheduledPostTask     *model.ScheduledTask
-	emailLoginAttemptsMut sync.Mutex
-	ldapLoginAttemptsMut  sync.Mutex
+	interruptQuitChan chan struct{}
+
+	scheduledPostMut sync.Mutex
+	scheduledPostTask *model.ScheduledTask
+
+	emailLoginAttempts *KeyedMutex
+	ldapLoginAttempts  *KeyedMutex
+	loginCleanupMut    sync.Mutex
+	loginCleanupTask   *model.ScheduledTask
 }
 
 func NewChannels(s *Server) (*Channels, error) {
 	ch := &Channels{
-		srv:               s,
-		imageProxy:        imageproxy.MakeImageProxy(s.platform, s.httpService, s.Log()),
-		uploadLockMap:     map[string]bool{},
-		filestore:         s.FileBackend(),
-		exportFilestore:   s.ExportFileBackend(),
-		cfgSvc:            s.Platform(),
-		interruptQuitChan: make(chan struct{}),
+		srv:                s,
+		imageProxy:         imageproxy.MakeImageProxy(s.platform, s.httpService, s.Log()),
+		uploadLockMap:      map[string]bool{},
+		filestore:          s.FileBackend(),
+		exportFilestore:    s.ExportFileBackend(),
+		cfgSvc:             s.Platform(),
+		interruptQuitChan:  make(chan struct{}),
+		emailLoginAttempts: NewKeyedMutex(15 * time.Minute),
+		ldapLoginAttempts:  NewKeyedMutex(15 * time.Minute),
 	}
 
 	// We are passing a partially filled Channels struct so that the enterprise
@@ -277,6 +284,13 @@ func (ch *Channels) Start() error {
 		return errors.Wrapf(err, "unable to ensure PostAction cookie secret")
 	}
 
+	withMut(&ch.loginCleanupMut, func() {
+		ch.loginCleanupTask = model.CreateRecurringTask("Login Attempts Lock Cleanup", func() {
+			ch.emailLoginAttempts.Cleanup()
+			ch.ldapLoginAttempts.Cleanup()
+		}, 15*time.Minute)
+	})
+
 	return nil
 }
 
@@ -288,6 +302,12 @@ func (ch *Channels) Stop() error {
 		ch.dndTask.Cancel()
 	}
 	ch.dndTaskMut.Unlock()
+
+	ch.loginCleanupMut.Lock()
+	if ch.loginCleanupTask != nil {
+		ch.loginCleanupTask.Cancel()
+	}
+	ch.loginCleanupMut.Unlock()
 
 	close(ch.interruptQuitChan)
 
