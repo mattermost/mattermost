@@ -38,7 +38,6 @@ import type {
     NotifyAdminRequest,
     Subscription,
     ValidBusinessEmail,
-    NewsletterRequestBody,
     Installation,
     PreviewModalContentData,
 } from '@mattermost/types/cloud';
@@ -4483,13 +4482,6 @@ export default class Client4 {
         }
         return this.doFetch<Product[]>(
             `${this.getCloudRoute()}/products${query}`, {method: 'get'},
-        );
-    };
-
-    subscribeToNewsletter = (newletterRequestBody: NewsletterRequestBody) => {
-        return this.doFetch<StatusOK>(
-            `${this.getHostedCustomerRoute()}/subscribe-newsletter`,
-            {method: 'post', body: JSON.stringify(newletterRequestBody)},
         );
     };
 
