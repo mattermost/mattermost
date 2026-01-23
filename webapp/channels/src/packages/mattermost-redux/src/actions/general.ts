@@ -111,11 +111,9 @@ export function checkCWSAvailability(): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const config = state.entities.general.config;
-        const license = state.entities.general.license;
         const isEnterpriseReady = config.BuildEnterpriseReady === 'true';
-        const isCloud = license?.Cloud === 'true';
 
-        if (!isEnterpriseReady || !isCloud) {
+        if (!isEnterpriseReady) {
             dispatch({type: GeneralTypes.CWS_AVAILABILITY_CHECK_SUCCESS, data: 'not_applicable'});
             return {data: 'not_applicable'};
         }
@@ -123,9 +121,10 @@ export function checkCWSAvailability(): ActionFuncAsync {
         dispatch({type: GeneralTypes.CWS_AVAILABILITY_CHECK_REQUEST});
 
         try {
-            await Client4.cwsAvailabilityCheck();
-            dispatch({type: GeneralTypes.CWS_AVAILABILITY_CHECK_SUCCESS, data: 'available'});
-            return {data: 'available'};
+            const response = await Client4.cwsAvailabilityCheck();
+            const status = response.status;
+            dispatch({type: GeneralTypes.CWS_AVAILABILITY_CHECK_SUCCESS, data: status});
+            return {data: status};
         } catch (error) {
             dispatch({type: GeneralTypes.CWS_AVAILABILITY_CHECK_FAILURE});
             return {data: 'unavailable'};

@@ -5,10 +5,12 @@ package api4
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
@@ -434,7 +436,7 @@ func TestGetCloudProducts(t *testing.T) {
 func TestCheckCWSConnection(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	t.Run("returns forbidden for non-cloud license", func(t *testing.T) {
+	t.Run("returns available when CWS is reachable", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
@@ -450,19 +452,23 @@ func TestCheckCWSConnection(t *testing.T) {
 		th.App.Srv().Cloud = &cloud
 
 		r, err := th.Client.DoAPIGet(context.Background(), "/cloud/check-cws-connection", "")
-		require.Error(t, err)
-		closeBody(r)
-		require.Equal(t, http.StatusForbidden, r.StatusCode)
+		require.NoError(t, err)
+		defer closeBody(r)
+		require.Equal(t, http.StatusOK, r.StatusCode)
+
+		var response map[string]string
+		require.NoError(t, json.NewDecoder(r.Body).Decode(&response))
+		assert.Equal(t, "available", response["status"])
 	})
 
-	t.Run("returns OK for cloud license", func(t *testing.T) {
+	t.Run("returns unavailable when CWS is not reachable", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
-		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+		th.App.Srv().SetLicense(model.NewTestLicense())
 
 		cloud := mocks.CloudInterface{}
-		cloud.Mock.On("CheckCWSConnection", mock.Anything).Return(nil)
+		cloud.Mock.On("CheckCWSConnection", mock.Anything).Return(errors.New("connection failed"))
 
 		cloudImpl := th.App.Srv().Cloud
 		defer func() {
@@ -472,7 +478,11 @@ func TestCheckCWSConnection(t *testing.T) {
 
 		r, err := th.Client.DoAPIGet(context.Background(), "/cloud/check-cws-connection", "")
 		require.NoError(t, err)
-		closeBody(r)
+		defer closeBody(r)
 		require.Equal(t, http.StatusOK, r.StatusCode)
+
+		var response map[string]string
+		require.NoError(t, json.NewDecoder(r.Body).Decode(&response))
+		assert.Equal(t, "unavailable", response["status"])
 	})
 }
