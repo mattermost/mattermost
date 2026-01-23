@@ -7798,7 +7798,7 @@ func (c *Client4) MovePageToWiki(ctx context.Context, sourceWikiId, pageId, targ
 	payload := map[string]string{
 		"target_wiki_id": targetWikiId,
 	}
-	r, err := c.DoAPIPutJSON(ctx, c.wikiPageRoute(sourceWikiId, pageId)+"/move", payload)
+	r, err := c.DoAPIPostJSON(ctx, c.wikiPageRoute(sourceWikiId, pageId)+"/move", payload)
 	if err != nil {
 		return BuildResponse(r), err
 	}

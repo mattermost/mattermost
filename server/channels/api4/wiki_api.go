@@ -29,7 +29,7 @@ func (api *API) InitWiki() {
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/version_history", api.APISessionRequired(getPageVersionHistory)).Methods(http.MethodGet)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/breadcrumb", api.APISessionRequired(getPageBreadcrumb)).Methods(http.MethodGet)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/parent", api.APISessionRequired(updatePageParent)).Methods(http.MethodPut)
-	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/move", api.APISessionRequired(movePageToWiki)).Methods(http.MethodPut)
+	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/move", api.APISessionRequired(movePageToWiki)).Methods(http.MethodPost)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/duplicate", api.APISessionRequired(duplicatePage)).Methods(http.MethodPost)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/comments", api.APISessionRequired(getPageComments)).Methods(http.MethodGet)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/comments", api.APISessionRequired(createPageComment)).Methods(http.MethodPost)
@@ -338,7 +338,7 @@ func getPageVersionHistory(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	versionHistory, appErr := c.App.GetPageVersionHistory(c.AppContext, c.Params.PageId)
+	versionHistory, appErr := c.App.GetPageVersionHistory(c.AppContext, c.Params.PageId, c.Params.Page*c.Params.PerPage, c.Params.PerPage)
 	if appErr != nil {
 		c.Err = appErr
 		return

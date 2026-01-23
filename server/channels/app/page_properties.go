@@ -36,9 +36,8 @@ func (a *App) GetPagePropertyFieldByName(fieldName string) (*model.PropertyField
 }
 
 // SetPageStatus sets the status property for a page.
-// Accepts a type-safe *Page that has already been validated.
-func (a *App) SetPageStatus(rctx request.CTX, page *Page, status string) *model.AppError {
-	pageId := page.Id()
+func (a *App) SetPageStatus(rctx request.CTX, page *model.Post, status string) *model.AppError {
+	pageId := page.Id
 
 	rctx.Logger().Debug("SetPageStatus called",
 		mlog.String("page_id", pageId),
@@ -93,9 +92,8 @@ func (a *App) SetPageStatus(rctx request.CTX, page *Page, status string) *model.
 }
 
 // GetPageStatus gets the status property for a page.
-// Accepts a type-safe *Page that has already been validated.
-func (a *App) GetPageStatus(rctx request.CTX, page *Page) (string, *model.AppError) {
-	pageId := page.Id()
+func (a *App) GetPageStatus(rctx request.CTX, page *model.Post) (string, *model.AppError) {
+	pageId := page.Id
 
 	rctx.Logger().Debug("GetPageStatus called", mlog.String("page_id", pageId))
 

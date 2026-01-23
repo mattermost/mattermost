@@ -22,7 +22,7 @@ func (a *App) GetPageChildren(rctx request.CTX, postID string, options model.Get
 	}
 
 	if hasPermission, _ := a.HasPermissionToChannel(rctx, rctx.Session().UserId, parentPost.ChannelId, model.PermissionReadChannel); !hasPermission {
-		return nil, model.NewAppError("GetPageChildren", "api.post.get_page_children.permissions.app_error", nil, "", http.StatusForbidden)
+		return nil, model.NewAppError("GetPageChildren", "app.post.get_page_children.permissions.app_error", nil, "", http.StatusForbidden)
 	}
 
 	postList, err := a.Srv().Store().Page().GetPageChildren(postID, options)
@@ -168,7 +168,7 @@ func (a *App) ChangePageParent(rctx request.CTX, postID string, newParentID stri
 	if err != nil {
 		return model.NewAppError("ChangePageParent", "app.page.change_parent.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
 	}
-	post := page.Post()
+	post := page
 
 	// Store old parent ID for websocket broadcast
 	oldParentID := post.PageParentId
@@ -191,7 +191,7 @@ func (a *App) ChangePageParent(rctx request.CTX, postID string, newParentID stri
 		if parentErr != nil {
 			return model.NewAppError("ChangePageParent", "app.page.change_parent.invalid_parent.app_error", nil, "", http.StatusBadRequest).Wrap(parentErr)
 		}
-		if parentPage.ChannelId() != post.ChannelId {
+		if parentPage.ChannelId != post.ChannelId {
 			return model.NewAppError("ChangePageParent", "app.page.change_parent.parent_different_channel.app_error", nil, "", http.StatusBadRequest)
 		}
 
@@ -212,6 +212,16 @@ func (a *App) ChangePageParent(rctx request.CTX, postID string, newParentID stri
 		if newPageDepth > model.PostPageMaxDepth {
 			return model.NewAppError("ChangePageParent", "app.page.change_parent.max_depth_exceeded.app_error",
 				map[string]any{"MaxDepth": model.PostPageMaxDepth}, "", http.StatusBadRequest)
+		}
+
+		// Validate that the entire subtree won't exceed max depth after the move
+		subtreeMaxDepth, subtreeErr := a.calculateSubtreeMaxDepth(rctx, postID)
+		if subtreeErr != nil {
+			return subtreeErr
+		}
+		if newPageDepth+subtreeMaxDepth > model.PostPageMaxDepth {
+			return model.NewAppError("ChangePageParent", "app.page.change_parent.subtree_max_depth_exceeded.app_error",
+				map[string]any{"MaxDepth": model.PostPageMaxDepth, "SubtreeDepth": subtreeMaxDepth, "NewDepth": newPageDepth}, "", http.StatusBadRequest)
 		}
 	}
 
@@ -263,6 +273,48 @@ func (a *App) calculatePageDepth(rctx request.CTX, pageID string) (int, *model.A
 
 	depth := len(ancestors.Posts)
 	return depth, nil
+}
+
+// calculateSubtreeMaxDepth calculates the maximum depth of descendants relative to the given page.
+// Returns 0 if the page has no children, 1 if only direct children, etc.
+func (a *App) calculateSubtreeMaxDepth(rctx request.CTX, pageID string) (int, *model.AppError) {
+	descendants, err := a.Srv().Store().Page().GetPageDescendants(pageID)
+	if err != nil {
+		return 0, model.NewAppError("calculateSubtreeMaxDepth", "app.page.calculate_subtree_depth.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if descendants == nil || len(descendants.Posts) == 0 {
+		return 0, nil
+	}
+
+	// Build parent map
+	parentMap := make(map[string]string)
+	for _, post := range descendants.Posts {
+		if post.PageParentId != "" {
+			parentMap[post.Id] = post.PageParentId
+		}
+	}
+
+	// Find max depth relative to pageID (the root of the subtree)
+	maxDepth := 0
+	for descendantID := range descendants.Posts {
+		depth := 0
+		currentID := descendantID
+		visited := make(map[string]bool)
+		for currentID != pageID && currentID != "" {
+			if visited[currentID] {
+				break
+			}
+			visited[currentID] = true
+			depth++
+			currentID = parentMap[currentID]
+		}
+		if depth > maxDepth {
+			maxDepth = depth
+		}
+	}
+
+	return maxDepth, nil
 }
 
 // BuildBreadcrumbPath builds the breadcrumb navigation path for a page.

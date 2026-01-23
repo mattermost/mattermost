@@ -51,6 +51,8 @@ func TestPageStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetCommentsForPage", func(t *testing.T) { testGetCommentsForPage(t, rctx, ss) })
 	t.Run("UpdatePageWithContent", func(t *testing.T) { testUpdatePageWithContent(t, rctx, ss) })
 	t.Run("ConcurrentOperations", func(t *testing.T) { testConcurrentOperations(t, rctx, ss) })
+	t.Run("DeletePage", func(t *testing.T) { testDeletePage(t, rctx, ss) })
+	t.Run("VersionHistoryPruning", func(t *testing.T) { testVersionHistoryPruning(t, rctx, ss, s) })
 
 	t.Cleanup(func() {
 		typesSQL := pagePostTypesSQL()
@@ -419,7 +421,7 @@ func testGetCommentsForPage(t *testing.T, rctx request.CTX, ss store.Store) {
 		inlineComment2, err = ss.Post().Save(rctx, inlineComment2)
 		require.NoError(t, err)
 
-		result, getErr := ss.Page().GetCommentsForPage(page.Id, false)
+		result, getErr := ss.Page().GetCommentsForPage(page.Id, false, 0, 200)
 		require.NoError(t, getErr)
 		require.NotNil(t, result)
 
@@ -473,7 +475,7 @@ func testGetCommentsForPage(t *testing.T, rctx request.CTX, ss store.Store) {
 		reply, err = ss.Post().Save(rctx, reply)
 		require.NoError(t, err)
 
-		result, getErr := ss.Page().GetCommentsForPage(page.Id, false)
+		result, getErr := ss.Page().GetCommentsForPage(page.Id, false, 0, 200)
 		require.NoError(t, getErr)
 		require.NotNil(t, result)
 
@@ -517,7 +519,7 @@ func testGetCommentsForPage(t *testing.T, rctx request.CTX, ss store.Store) {
 		err = ss.Post().Delete(rctx, inlineComment.Id, model.GetMillis(), userID)
 		require.NoError(t, err)
 
-		result, getErr := ss.Page().GetCommentsForPage(page.Id, false)
+		result, getErr := ss.Page().GetCommentsForPage(page.Id, false, 0, 200)
 		require.NoError(t, getErr)
 		require.NotNil(t, result)
 
@@ -557,7 +559,7 @@ func testGetCommentsForPage(t *testing.T, rctx request.CTX, ss store.Store) {
 		err = ss.Post().Delete(rctx, inlineComment.Id, model.GetMillis(), userID)
 		require.NoError(t, err)
 
-		result, getErr := ss.Page().GetCommentsForPage(page.Id, true)
+		result, getErr := ss.Page().GetCommentsForPage(page.Id, true, 0, 200)
 		require.NoError(t, getErr)
 		require.NotNil(t, result)
 
@@ -579,7 +581,7 @@ func testGetCommentsForPage(t *testing.T, rctx request.CTX, ss store.Store) {
 		page, err = ss.Post().Save(rctx, page)
 		require.NoError(t, err)
 
-		result, getErr := ss.Page().GetCommentsForPage(page.Id, false)
+		result, getErr := ss.Page().GetCommentsForPage(page.Id, false, 0, 200)
 		require.NoError(t, getErr)
 		require.NotNil(t, result)
 
@@ -588,7 +590,7 @@ func testGetCommentsForPage(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("returns error for invalid pageID", func(t *testing.T) {
-		result, getErr := ss.Page().GetCommentsForPage("", false)
+		result, getErr := ss.Page().GetCommentsForPage("", false, 0, 200)
 		require.Error(t, getErr)
 		require.Nil(t, result)
 
@@ -599,7 +601,7 @@ func testGetCommentsForPage(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("returns empty list for non-existent page", func(t *testing.T) {
 		nonExistentPageID := model.NewId()
 
-		result, getErr := ss.Page().GetCommentsForPage(nonExistentPageID, false)
+		result, getErr := ss.Page().GetCommentsForPage(nonExistentPageID, false, 0, 200)
 		require.NoError(t, getErr)
 		require.NotNil(t, result)
 
@@ -657,7 +659,7 @@ func testGetCommentsForPage(t *testing.T, rctx request.CTX, ss store.Store) {
 		comment2, err = ss.Post().Save(rctx, comment2)
 		require.NoError(t, err)
 
-		result, getErr := ss.Page().GetCommentsForPage(page.Id, false)
+		result, getErr := ss.Page().GetCommentsForPage(page.Id, false, 0, 200)
 		require.NoError(t, getErr)
 
 		require.Len(t, result.Order, 3)
@@ -1610,5 +1612,270 @@ func testConcurrentOperations(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		require.NotNil(t, finalPage)
 		require.Contains(t, finalPage.Props["title"], "Updated Title")
+	})
+}
+
+func testDeletePage(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamID := model.NewId()
+	channel, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      teamID,
+		DisplayName: "DeletePage Test Channel",
+		Name:        "channel" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	userID := model.NewId()
+	user2ID := model.NewId()
+	wikiID := model.NewId()
+
+	t.Run("deletes page drafts from Drafts table", func(t *testing.T) {
+		page, err := ss.Page().CreatePage(rctx, &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypePage,
+			Message:   "Page with drafts",
+			Props: model.StringInterface{
+				"title": "Page With Drafts",
+			},
+		}, `{"type":"doc","content":[]}`, "")
+		require.NoError(t, err)
+
+		draft1 := &model.Draft{
+			UserId:    userID,
+			ChannelId: wikiID,
+			RootId:    page.Id,
+			WikiId:    wikiID,
+			Message:   "",
+		}
+		_, err = ss.Draft().UpsertPageDraft(draft1)
+		require.NoError(t, err)
+
+		draft2 := &model.Draft{
+			UserId:    user2ID,
+			ChannelId: wikiID,
+			RootId:    page.Id,
+			WikiId:    wikiID,
+			Message:   "",
+		}
+		_, err = ss.Draft().UpsertPageDraft(draft2)
+		require.NoError(t, err)
+
+		getDraft1, err := ss.Draft().Get(userID, wikiID, page.Id, false)
+		require.NoError(t, err)
+		require.NotNil(t, getDraft1)
+
+		getDraft2, err := ss.Draft().Get(user2ID, wikiID, page.Id, false)
+		require.NoError(t, err)
+		require.NotNil(t, getDraft2)
+
+		err = ss.Page().DeletePage(page.Id, userID)
+		require.NoError(t, err)
+
+		_, err = ss.Draft().Get(userID, wikiID, page.Id, false)
+		require.Error(t, err)
+		var notFoundErr *store.ErrNotFound
+		assert.True(t, errors.As(err, &notFoundErr), "expected ErrNotFound after page deletion")
+
+		_, err = ss.Draft().Get(user2ID, wikiID, page.Id, false)
+		require.Error(t, err)
+		assert.True(t, errors.As(err, &notFoundErr), "expected ErrNotFound for second user's draft after page deletion")
+	})
+
+	t.Run("deletes page content drafts from PageContents table", func(t *testing.T) {
+		page, err := ss.Page().CreatePage(rctx, &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypePage,
+			Message:   "Page with content drafts",
+			Props: model.StringInterface{
+				"title": "Page With Content Drafts",
+			},
+		}, `{"type":"doc","content":[]}`, "")
+		require.NoError(t, err)
+
+		draftContent := &model.PageContent{
+			PageId:   page.Id,
+			UserId:   userID,
+			WikiId:   wikiID,
+			Title:    "Draft Title",
+			CreateAt: model.GetMillis(),
+			UpdateAt: model.GetMillis(),
+		}
+		err = draftContent.SetDocumentJSON(`{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Draft content"}]}]}`)
+		require.NoError(t, err)
+
+		_, err = ss.Draft().CreatePageDraft(draftContent)
+		require.NoError(t, err)
+
+		getDraft, err := ss.Draft().GetPageDraft(page.Id, userID)
+		require.NoError(t, err)
+		require.NotNil(t, getDraft)
+
+		err = ss.Page().DeletePage(page.Id, userID)
+		require.NoError(t, err)
+
+		_, err = ss.Draft().GetPageDraft(page.Id, userID)
+		require.Error(t, err)
+		var notFoundErr *store.ErrNotFound
+		assert.True(t, errors.As(err, &notFoundErr), "expected ErrNotFound for content draft after page deletion")
+	})
+
+	t.Run("does not affect drafts for other pages", func(t *testing.T) {
+		page1, err := ss.Page().CreatePage(rctx, &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypePage,
+			Message:   "Page 1",
+			Props: model.StringInterface{
+				"title": "Page 1",
+			},
+		}, `{"type":"doc","content":[]}`, "")
+		require.NoError(t, err)
+
+		page2, err := ss.Page().CreatePage(rctx, &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypePage,
+			Message:   "Page 2",
+			Props: model.StringInterface{
+				"title": "Page 2",
+			},
+		}, `{"type":"doc","content":[]}`, "")
+		require.NoError(t, err)
+
+		draft1 := &model.Draft{
+			UserId:    userID,
+			ChannelId: wikiID,
+			RootId:    page1.Id,
+			WikiId:    wikiID,
+			Message:   "",
+		}
+		_, err = ss.Draft().UpsertPageDraft(draft1)
+		require.NoError(t, err)
+
+		draft2 := &model.Draft{
+			UserId:    userID,
+			ChannelId: wikiID,
+			RootId:    page2.Id,
+			WikiId:    wikiID,
+			Message:   "",
+		}
+		_, err = ss.Draft().UpsertPageDraft(draft2)
+		require.NoError(t, err)
+
+		err = ss.Page().DeletePage(page1.Id, userID)
+		require.NoError(t, err)
+
+		_, err = ss.Draft().Get(userID, wikiID, page1.Id, false)
+		require.Error(t, err)
+
+		getDraft2, err := ss.Draft().Get(userID, wikiID, page2.Id, false)
+		require.NoError(t, err)
+		require.NotNil(t, getDraft2, "draft for page2 should still exist")
+	})
+}
+
+func testVersionHistoryPruning(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	teamID := model.NewId()
+	channel, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      teamID,
+		DisplayName: "Pruning Test Channel",
+		Name:        "channel" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	userID := model.NewId()
+
+	t.Run("prunes versions beyond PostEditHistoryLimit", func(t *testing.T) {
+		// Create a page with initial content
+		initialContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Initial"}]}]}`
+		page, createErr := ss.Page().CreatePage(rctx, &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypePage,
+			Props:     model.StringInterface{"title": "Pruning Test"},
+		}, initialContent, "Initial")
+		require.NoError(t, createErr)
+		require.NotNil(t, page)
+
+		// Make 14 edits (more than PostEditHistoryLimit of 10)
+		// Each edit should create a version history entry
+		for i := 1; i <= 14; i++ {
+			content := fmt.Sprintf(`{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Edit %d"}]}]}`, i)
+			searchText := fmt.Sprintf("Edit %d", i)
+			_, updateErr := ss.Page().UpdatePageWithContent(rctx, page.Id, fmt.Sprintf("Title %d", i), content, searchText)
+			require.NoError(t, updateErr, "Edit %d should succeed", i)
+		}
+
+		// Verify via store API: GetPageVersionHistory should return at most 10 versions
+		history, histErr := ss.Page().GetPageVersionHistory(page.Id, 0, 100)
+		require.NoError(t, histErr)
+		require.LessOrEqual(t, len(history), model.PostEditHistoryLimit,
+			"Version history should be pruned to at most %d entries, got %d",
+			model.PostEditHistoryLimit, len(history))
+
+		// Verify via direct DB query: Posts table should have at most 10 historical entries
+		var postsCount int
+		err := s.GetMaster().Get(&postsCount,
+			"SELECT COUNT(*) FROM Posts WHERE OriginalId = $1 AND DeleteAt > 0", page.Id)
+		require.NoError(t, err)
+		require.LessOrEqual(t, postsCount, model.PostEditHistoryLimit,
+			"Posts table should have at most %d historical entries, got %d",
+			model.PostEditHistoryLimit, postsCount)
+
+		// Verify via direct DB query: PageContents table should have at most 10 historical entries
+		var contentsCount int
+		err = s.GetMaster().Get(&contentsCount,
+			`SELECT COUNT(*) FROM PageContents WHERE PageId IN (
+				SELECT Id FROM Posts WHERE OriginalId = $1 AND DeleteAt > 0
+			)`, page.Id)
+		require.NoError(t, err)
+		require.LessOrEqual(t, contentsCount, model.PostEditHistoryLimit,
+			"PageContents table should have at most %d historical entries, got %d",
+			model.PostEditHistoryLimit, contentsCount)
+	})
+
+	t.Run("keeps most recent versions when pruning", func(t *testing.T) {
+		// Create a page with initial content
+		initialContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Start"}]}]}`
+		page, createErr := ss.Page().CreatePage(rctx, &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypePage,
+			Props:     model.StringInterface{"title": "Order Test"},
+		}, initialContent, "Start")
+		require.NoError(t, createErr)
+
+		// Make 12 edits
+		for i := 1; i <= 12; i++ {
+			content := fmt.Sprintf(`{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Version %d"}]}]}`, i)
+			_, updateErr := ss.Page().UpdatePageWithContent(rctx, page.Id, fmt.Sprintf("Title %d", i), content, fmt.Sprintf("Version %d", i))
+			require.NoError(t, updateErr)
+		}
+
+		// Get version history
+		history, histErr := ss.Page().GetPageVersionHistory(page.Id, 0, 100)
+		require.NoError(t, histErr)
+		require.NotEmpty(t, history)
+
+		// Verify the most recent versions are kept (ordered by EditAt DESC)
+		// The first entry should be the most recent historical version
+		for i := 0; i < len(history)-1; i++ {
+			require.GreaterOrEqual(t, history[i].EditAt, history[i+1].EditAt,
+				"History should be ordered by EditAt DESC")
+		}
+
+		// The oldest versions (edits 1, 2) should have been pruned
+		// Remaining should be edits 3-12 (or similar recent ones)
+		for _, entry := range history {
+			pageContent, contentErr := ss.Page().GetPageContentWithDeleted(entry.Id)
+			require.NoError(t, contentErr)
+			contentJSON, _ := pageContent.GetDocumentJSON()
+			// Should not contain "Version 1" or "Version 2" (oldest pruned)
+			require.NotContains(t, contentJSON, `"Version 1"`,
+				"Oldest version should have been pruned")
+		}
 	})
 }

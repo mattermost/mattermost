@@ -6,6 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -29,6 +30,12 @@ func getPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Explicit ownership validation (defense-in-depth)
+	if pageDraft.UserId != c.AppContext.Session().UserId {
+		c.SetPermissionError(model.PermissionEditPage)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(pageDraft); err != nil {
 		c.Logger.Warn("Error encoding page draft response", mlog.Err(err))
@@ -41,6 +48,11 @@ func savePageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
+
+	auditRec := c.MakeAuditRecord("savePageDraft", model.AuditStatusFail)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+	auditRec.AddMeta("wiki_id", c.Params.WikiId)
+	auditRec.AddMeta("page_id", c.Params.PageId)
 
 	_, channel, ok := c.GetWikiForModify("savePageDraft")
 	if !ok {
@@ -71,6 +83,8 @@ func savePageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	req.Title = strings.TrimSpace(req.Title)
+
 	c.Logger.Debug("Received page draft save request",
 		mlog.String("wiki_id", c.Params.WikiId),
 		mlog.String("page_id", c.Params.PageId),
@@ -85,6 +99,10 @@ func savePageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
+	auditRec.AddEventResultState(pageDraft)
+	auditRec.AddEventObjectType("page_draft")
+
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(pageDraft); err != nil {
 		c.Logger.Warn("Error encoding page draft response", mlog.Err(err))
@@ -98,6 +116,11 @@ func deletePageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("deletePageDraft", model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("wiki_id", c.Params.WikiId)
+	auditRec.AddMeta("page_id", c.Params.PageId)
+
 	c.Logger.Info("API: deletePageDraft called",
 		mlog.String("wiki_id", c.Params.WikiId),
 		mlog.String("page_id", c.Params.PageId),
@@ -107,10 +130,25 @@ func deletePageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Explicit ownership validation before delete
+	pageDraft, appErr := c.App.GetPageDraft(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId, c.Params.PageId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+	if pageDraft.UserId != c.AppContext.Session().UserId {
+		c.SetPermissionError(model.PermissionEditPage)
+		return
+	}
+
 	if appErr := c.App.DeletePageDraft(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId, c.Params.PageId); appErr != nil {
 		c.Err = appErr
 		return
 	}
+
+	auditRec.Success()
+	auditRec.AddEventPriorState(pageDraft)
+	auditRec.AddEventObjectType("page_draft")
 
 	ReturnStatusOK(w)
 }
@@ -122,7 +160,23 @@ func movePageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("movePageDraft", model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("wiki_id", c.Params.WikiId)
+	auditRec.AddMeta("page_id", c.Params.PageId)
+
 	if _, _, ok := c.GetWikiForModify("movePageDraft"); !ok {
+		return
+	}
+
+	// Explicit ownership validation before move
+	pageDraft, appErr := c.App.GetPageDraft(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId, c.Params.PageId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+	if pageDraft.UserId != c.AppContext.Session().UserId {
+		c.SetPermissionError(model.PermissionEditPage)
 		return
 	}
 
@@ -135,10 +189,22 @@ func movePageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Validate ParentId if provided
+	if req.ParentId != "" && !model.IsValidId(req.ParentId) {
+		c.SetInvalidParam("parent_id")
+		return
+	}
+
+	auditRec.AddMeta("new_parent_id", req.ParentId)
+
 	if appErr := c.App.MovePageDraft(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId, c.Params.PageId, req.ParentId); appErr != nil {
 		c.Err = appErr
 		return
 	}
+
+	auditRec.Success()
+	auditRec.AddEventPriorState(pageDraft)
+	auditRec.AddEventObjectType("page_draft")
 
 	ReturnStatusOK(w)
 }
@@ -153,7 +219,7 @@ func getPageDraftsForWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pageDrafts, appErr := c.App.GetPageDraftsForWiki(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId)
+	pageDrafts, appErr := c.App.GetPageDraftsForWiki(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId, c.Params.Page*c.Params.PerPage, c.Params.PerPage)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -175,6 +241,10 @@ func createPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("createPageDraft", model.AuditStatusFail)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+	auditRec.AddMeta("wiki_id", c.Params.WikiId)
+
 	_, channel, ok := c.GetWikiForModify("createPageDraft")
 	if !ok {
 		return
@@ -194,6 +264,8 @@ func createPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParamWithErr("request", err)
 		return
 	}
+
+	req.Title = strings.TrimSpace(req.Title)
 
 	// Validate parent page if provided
 	if req.PageParentId != "" {
@@ -217,13 +289,13 @@ func createPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 			// drafts are wiki-scoped and we'll save the child with the same wiki ID
 		} else {
 			// Verify parent page belongs to the same wiki
-			parentWikiId, _ := parentPage.Props()[model.PagePropsWikiID].(string)
+			parentWikiId, _ := parentPage.Props[model.PagePropsWikiID].(string)
 			if parentWikiId == "" {
 				// Fallback: get wiki_id from PropertyValues (source of truth)
 				var wikiErr *model.AppError
 				parentWikiId, wikiErr = c.App.GetWikiIdForPage(c.AppContext, req.PageParentId)
 				if wikiErr != nil || parentWikiId == "" {
-					c.Err = model.NewAppError("createPageDraft", "api.wiki.page_wiki_not_set", nil, "", http.StatusBadRequest)
+					c.Err = model.NewAppError("createPageDraft", "api.wiki.page_wiki_not_set.app_error", nil, "", http.StatusBadRequest)
 					return
 				}
 			}
@@ -257,6 +329,10 @@ func createPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
+	auditRec.AddEventResultState(pageDraft)
+	auditRec.AddEventObjectType("page_draft")
+
 	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(pageDraft); err != nil {
@@ -278,6 +354,17 @@ func publishPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	_, channel, ok := c.GetWikiForModify("publishPageDraft")
 	if !ok {
+		return
+	}
+
+	// Explicit ownership validation before publish
+	pageDraft, appErr := c.App.GetPageDraft(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId, c.Params.PageId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+	if pageDraft.UserId != c.AppContext.Session().UserId {
+		c.SetPermissionError(model.PermissionEditPage)
 		return
 	}
 

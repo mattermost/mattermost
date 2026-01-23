@@ -901,7 +901,7 @@ func (c *Context) GetWikiForRead() (*model.Wiki, *model.Channel, bool) {
 	return wiki, channel, true
 }
 
-func (c *Context) ValidatePageBelongsToWiki() (*app.Page, bool) {
+func (c *Context) ValidatePageBelongsToWiki() (*model.Post, bool) {
 	if c.Err != nil {
 		return nil, false
 	}
@@ -913,7 +913,7 @@ func (c *Context) ValidatePageBelongsToWiki() (*app.Page, bool) {
 		return nil, false
 	}
 
-	pageWikiId, ok := page.Props()[model.PagePropsWikiID].(string)
+	pageWikiId, ok := page.Props[model.PagePropsWikiID].(string)
 	if !ok || pageWikiId == "" {
 		// Fallback: get wiki_id from PropertyValues (source of truth)
 		var wikiErr *model.AppError
@@ -951,7 +951,7 @@ func (c *Context) GetRemoteID(r *http.Request) string {
 // 2. Checks wiki modify permission
 // 3. Checks page-level modify permission for the specified operation
 // 4. Validates page's channel matches wiki's channel
-func (c *Context) GetPageForModify(operation app.PageOperation, callerContext string) (*model.Wiki, *app.Page, bool) {
+func (c *Context) GetPageForModify(operation app.PageOperation, callerContext string) (*model.Wiki, *model.Post, bool) {
 	if c.Err != nil {
 		return nil, nil, false
 	}
@@ -974,7 +974,7 @@ func (c *Context) GetPageForModify(operation app.PageOperation, callerContext st
 	}
 
 	// Validate channel match
-	if page.ChannelId() != wiki.ChannelId {
+	if page.ChannelId != wiki.ChannelId {
 		c.Err = model.NewAppError(callerContext, "api.wiki.page_channel_mismatch", nil, "", http.StatusBadRequest)
 		return nil, nil, false
 	}
@@ -984,7 +984,7 @@ func (c *Context) GetPageForModify(operation app.PageOperation, callerContext st
 
 // hasPagePermission checks if the current user can perform an operation on a page.
 // Sets c.Err and returns false if permission denied.
-func (c *Context) hasPagePermission(channel *model.Channel, page *app.Page, operation app.PageOperation) bool {
+func (c *Context) hasPagePermission(channel *model.Channel, page *model.Post, operation app.PageOperation) bool {
 	session := c.AppContext.Session()
 
 	// Check base permission for the operation based on channel type
@@ -1024,7 +1024,7 @@ func (c *Context) hasPagePermission(channel *model.Channel, page *app.Page, oper
 	if page != nil {
 		// Open/Private channels: delete others' pages requires PermissionDeletePage
 		if channel.Type == model.ChannelTypeOpen || channel.Type == model.ChannelTypePrivate {
-			if operation == app.PageOperationDelete && page.UserId() != session.UserId {
+			if operation == app.PageOperationDelete && page.UserId != session.UserId {
 				if hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *session, channel.Id, model.PermissionDeletePage); !hasPermission {
 					c.SetPermissionError(model.PermissionDeletePage)
 					return false
@@ -1035,7 +1035,7 @@ func (c *Context) hasPagePermission(channel *model.Channel, page *app.Page, oper
 		// DM/Group channels: edit/delete others' pages requires SchemeAdmin
 		if channel.Type == model.ChannelTypeGroup || channel.Type == model.ChannelTypeDirect {
 			if operation == app.PageOperationEdit || operation == app.PageOperationDelete {
-				if page.UserId() != session.UserId {
+				if page.UserId != session.UserId {
 					member, memberErr := c.App.GetChannelMember(c.AppContext, channel.Id, session.UserId)
 					if memberErr != nil {
 						statusCode := http.StatusForbidden
@@ -1076,12 +1076,12 @@ func getPagePermission(operation app.PageOperation) *model.Permission {
 // CheckPagePermission checks if the current user can perform an operation on a page.
 // Use this when you have a page but are not going through wiki routes.
 // Sets c.Err and returns false if permission denied.
-func (c *Context) CheckPagePermission(page *app.Page, operation app.PageOperation) bool {
+func (c *Context) CheckPagePermission(page *model.Post, operation app.PageOperation) bool {
 	if c.Err != nil {
 		return false
 	}
 
-	channel, err := c.App.GetChannel(c.AppContext, page.ChannelId())
+	channel, err := c.App.GetChannel(c.AppContext, page.ChannelId)
 	if err != nil {
 		c.Err = err
 		return false

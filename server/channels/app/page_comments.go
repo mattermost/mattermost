@@ -55,26 +55,21 @@ func (a *App) createThreadEntryForPageComment(rctx request.CTX, post *model.Post
 	return nil
 }
 
-// GetPageComments retrieves all comments (including inline comments) for a page
-func (a *App) GetPageComments(rctx request.CTX, pageID string) ([]*model.Post, *model.AppError) {
-	page, err := a.GetPage(rctx, pageID)
-	if err != nil {
-		return nil, model.NewAppError("GetPageComments",
-			"app.page.get_comments.page_not_found.app_error",
-			nil, "", http.StatusNotFound).Wrap(err)
-	}
-
-	// Verify user has permission to read the page before returning comments
-	session := rctx.Session()
-	if hasPermission, _ := a.HasPermissionToChannel(rctx, session.UserId, page.ChannelId(), model.PermissionReadPage); !hasPermission {
-		return nil, model.NewAppError("GetPageComments", "api.context.permissions.app_error", nil, "", http.StatusForbidden)
-	}
-
-	postList, appErr := a.Srv().Store().Page().GetCommentsForPage(pageID, false)
+// GetPageComments retrieves comments (including inline comments) for a page with pagination.
+// Note: Permission checks are performed by the API layer before calling this method.
+func (a *App) GetPageComments(rctx request.CTX, pageID string, offset, limit int) ([]*model.Post, *model.AppError) {
+	postList, appErr := a.Srv().Store().Page().GetCommentsForPage(pageID, false, offset, limit)
 	if appErr != nil {
 		return nil, model.NewAppError("GetPageComments",
 			"app.page.get_comments.store_error.app_error",
 			nil, "", http.StatusInternalServerError).Wrap(appErr)
+	}
+
+	page, pageExists := postList.Posts[pageID]
+	if !pageExists || page.Type != model.PostTypePage {
+		return nil, model.NewAppError("GetPageComments",
+			"app.page.get_comments.page_not_found.app_error",
+			nil, "", http.StatusNotFound)
 	}
 
 	comments := make([]*model.Post, 0)
@@ -109,7 +104,7 @@ func (a *App) CreatePageComment(rctx request.CTX, pageID, message string, inline
 			nil, "", http.StatusNotFound).Wrap(err)
 	}
 
-	channel, chanErr := a.GetChannel(rctx, page.ChannelId())
+	channel, chanErr := a.GetChannel(rctx, page.ChannelId)
 	if chanErr != nil {
 		return nil, chanErr
 	}
@@ -131,7 +126,7 @@ func (a *App) CreatePageComment(rctx request.CTX, pageID, message string, inline
 	}
 
 	comment := &model.Post{
-		ChannelId: page.ChannelId(),
+		ChannelId: page.ChannelId,
 		UserId:    rctx.Session().UserId,
 		RootId:    rootID,
 		Message:   message,
@@ -144,7 +139,7 @@ func (a *App) CreatePageComment(rctx request.CTX, pageID, message string, inline
 		return nil, createErr
 	}
 
-	a.SendCommentCreatedEvent(rctx, createdComment, page.Post(), channel)
+	a.SendCommentCreatedEvent(rctx, createdComment, page, channel)
 
 	rctx.Logger().Debug("Page comment created",
 		mlog.String("comment_id", createdComment.Id),
@@ -194,7 +189,7 @@ func (a *App) CreatePageCommentReply(rctx request.CTX, pageID, parentCommentID, 
 			nil, "Can only reply to top-level comments", http.StatusBadRequest)
 	}
 
-	channel, chanErr := a.GetChannel(rctx, page.ChannelId())
+	channel, chanErr := a.GetChannel(rctx, page.ChannelId)
 	if chanErr != nil {
 		return nil, chanErr
 	}
@@ -215,7 +210,7 @@ func (a *App) CreatePageCommentReply(rctx request.CTX, pageID, parentCommentID, 
 	}
 
 	reply := &model.Post{
-		ChannelId: page.ChannelId(),
+		ChannelId: page.ChannelId,
 		UserId:    rctx.Session().UserId,
 		RootId:    rootID,
 		Message:   message,
@@ -228,7 +223,7 @@ func (a *App) CreatePageCommentReply(rctx request.CTX, pageID, parentCommentID, 
 		return nil, createErr
 	}
 
-	a.SendCommentCreatedEvent(rctx, createdReply, page.Post(), channel)
+	a.SendCommentCreatedEvent(rctx, createdReply, page, channel)
 
 	rctx.Logger().Debug("Page comment reply created",
 		mlog.String("reply_id", createdReply.Id),

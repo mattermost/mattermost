@@ -11,13 +11,12 @@ import (
 )
 
 // CreateBookmarkFromPage creates a channel bookmark that links to a page.
-// Accepts a type-safe *Page that has already been validated.
-func (a *App) CreateBookmarkFromPage(rctx request.CTX, page *Page, channelId string, displayName string, emoji string, connectionId string) (*model.ChannelBookmarkWithFileInfo, *model.AppError) {
-	pageId := page.Id()
-	post := page.Post()
+func (a *App) CreateBookmarkFromPage(rctx request.CTX, page *model.Post, channelId string, displayName string, emoji string, connectionId string) (*model.ChannelBookmarkWithFileInfo, *model.AppError) {
+	pageId := page.Id
+	post := page
 
 	// Cross-channel permission check: user must have read access to page's channel
-	if hasPermission, _ := a.SessionHasPermissionToChannel(rctx, *rctx.Session(), page.ChannelId(), model.PermissionReadChannel); !hasPermission {
+	if hasPermission, _ := a.SessionHasPermissionToChannel(rctx, *rctx.Session(), page.ChannelId, model.PermissionReadChannel); !hasPermission {
 		return nil, model.NewAppError("CreateBookmarkFromPage", "app.channel.bookmark.no_permission_to_page_channel.app_error", nil, "", http.StatusForbidden)
 	}
 
@@ -31,7 +30,7 @@ func (a *App) CreateBookmarkFromPage(rctx request.CTX, page *Page, channelId str
 	}
 
 	// Get team name from page's channel
-	pageChannel, channelErr := a.GetChannel(rctx, page.ChannelId())
+	pageChannel, channelErr := a.GetChannel(rctx, page.ChannelId)
 	if channelErr != nil {
 		return nil, channelErr
 	}
@@ -50,7 +49,7 @@ func (a *App) CreateBookmarkFromPage(rctx request.CTX, page *Page, channelId str
 	}
 
 	// Build internal page URL (relative path)
-	relativePath := model.BuildPageUrl(team.Name, page.ChannelId(), wikiId, pageId)
+	relativePath := model.BuildPageUrl(team.Name, page.ChannelId, wikiId, pageId)
 
 	// Convert to absolute URL using site URL
 	if a.Config().ServiceSettings.SiteURL == nil || *a.Config().ServiceSettings.SiteURL == "" {

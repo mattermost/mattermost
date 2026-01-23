@@ -38,7 +38,7 @@ func getPageComments(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	comments, appErr := c.App.GetPageComments(c.AppContext, c.Params.PageId)
+	comments, appErr := c.App.GetPageComments(c.AppContext, c.Params.PageId, c.Params.Page*c.Params.PerPage, c.Params.PerPage)
 	if appErr != nil {
 		c.Err = appErr
 		return

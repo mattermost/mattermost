@@ -1271,7 +1271,7 @@ func (a *App) GetPostThread(rctx request.CTX, postID string, opts model.GetPosts
 	}
 
 	// Load page content for any pages in the thread
-	if appErr := a.LoadPageContentForPostList(rctx, posts); appErr != nil {
+	if appErr := a.LoadPageContent(rctx, posts, PageContentLoadOptions{}); appErr != nil {
 		return nil, appErr
 	}
 
@@ -1986,7 +1986,7 @@ func (a *App) SearchPostsForUser(rctx request.CTX, terms string, userID string, 
 	}
 
 	// Enrich pages with search_text for display in search results
-	if appErr := a.EnrichPagesWithSearchText(rctx, postSearchResults.PostList); appErr != nil {
+	if appErr := a.LoadPageContent(rctx, postSearchResults.PostList, PageContentLoadOptions{SearchTextOnly: true}); appErr != nil {
 		rctx.Logger().Warn("Failed to enrich pages with search text", mlog.Err(appErr))
 		// Non-fatal - continue with results even if enrichment fails
 	}

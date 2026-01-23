@@ -1090,7 +1090,7 @@ type DraftStore interface {
 	UpsertPageDraftContent(pageId, userId, wikiId, content, title string, lastUpdateAt int64) (*model.PageContent, error)
 	GetPageDraft(pageId, userId string) (*model.PageContent, error)
 	DeletePageDraft(pageId, userId string) error
-	GetPageDraftsForUser(userId, wikiId string) ([]*model.PageContent, error)
+	GetPageDraftsForUser(userId, wikiId string, offset, limit int) ([]*model.PageContent, error)
 	GetActiveEditorsForPage(pageId string, minUpdateAt int64) ([]*model.PageContent, error)
 
 	// Publish operations (atomic state transition)
@@ -1254,6 +1254,10 @@ type WikiStore interface {
 	MovePageToWiki(pageId, targetWikiId string, parentPageId *string) error
 	MoveWikiToChannel(wikiId string, targetChannelId string, timestamp int64) (*model.Wiki, error)
 	SetWikiIdInPostProps(pageId, wikiId string) error
+	// ResolveNamesToIDs converts wiki names/IDs to wiki IDs.
+	// Supports both direct wiki IDs and case-insensitive name matching.
+	// Team scoping is applied when teamId is provided.
+	ResolveNamesToIDs(names []string, teamId string) ([]string, error)
 }
 
 // PageStore manages page hierarchy operations.
@@ -1307,11 +1311,11 @@ type PageStore interface {
 	// Returns ErrNotFound if page doesn't exist or was deleted
 	Update(rctx request.CTX, page *model.Post) (*model.Post, error)
 
-	// GetPageVersionHistory fetches the version history for a page (limited to PostEditHistoryLimit versions)
-	GetPageVersionHistory(pageID string) ([]*model.Post, error)
+	// GetPageVersionHistory fetches the version history for a page with pagination
+	GetPageVersionHistory(pageID string, offset, limit int) ([]*model.Post, error)
 
-	// GetCommentsForPage fetches all comments and replies for a page
-	GetCommentsForPage(pageID string, includeDeleted bool) (*model.PostList, error)
+	// GetCommentsForPage fetches comments and replies for a page with pagination
+	GetCommentsForPage(pageID string, includeDeleted bool, offset, limit int) (*model.PostList, error)
 
 	// PageContent operations (PageContents table)
 	// PageStore owns both Posts (Type='page') and PageContents tables for transactional atomicity

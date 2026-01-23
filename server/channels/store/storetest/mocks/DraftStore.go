@@ -409,9 +409,9 @@ func (_m *DraftStore) GetPageDraft(pageId string, userId string) (*model.PageCon
 	return r0, r1
 }
 
-// GetPageDraftsForUser provides a mock function with given fields: userId, wikiId
-func (_m *DraftStore) GetPageDraftsForUser(userId string, wikiId string) ([]*model.PageContent, error) {
-	ret := _m.Called(userId, wikiId)
+// GetPageDraftsForUser provides a mock function with given fields: userId, wikiId, offset, limit
+func (_m *DraftStore) GetPageDraftsForUser(userId string, wikiId string, offset int, limit int) ([]*model.PageContent, error) {
+	ret := _m.Called(userId, wikiId, offset, limit)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetPageDraftsForUser")
@@ -419,19 +419,19 @@ func (_m *DraftStore) GetPageDraftsForUser(userId string, wikiId string) ([]*mod
 
 	var r0 []*model.PageContent
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string) ([]*model.PageContent, error)); ok {
-		return rf(userId, wikiId)
+	if rf, ok := ret.Get(0).(func(string, string, int, int) ([]*model.PageContent, error)); ok {
+		return rf(userId, wikiId, offset, limit)
 	}
-	if rf, ok := ret.Get(0).(func(string, string) []*model.PageContent); ok {
-		r0 = rf(userId, wikiId)
+	if rf, ok := ret.Get(0).(func(string, string, int, int) []*model.PageContent); ok {
+		r0 = rf(userId, wikiId, offset, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.PageContent)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(userId, wikiId)
+	if rf, ok := ret.Get(1).(func(string, string, int, int) error); ok {
+		r1 = rf(userId, wikiId, offset, limit)
 	} else {
 		r1 = ret.Error(1)
 	}

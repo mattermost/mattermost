@@ -2641,7 +2641,15 @@
     "translation": "Outgoing webhooks have been disabled by the system admin."
   },
   {
+    "id": "api.page.create.title_too_long.app_error",
+    "translation": "Page title is too long. Maximum length is {{.MaxLength}} characters."
+  },
+  {
     "id": "api.page.permission.guest_cannot_access",
+    "translation": "Guests cannot access pages."
+  },
+  {
+    "id": "api.page.permission.guest_cannot_access.app_error",
     "translation": "Guests cannot access pages."
   },
   {
@@ -2659,18 +2667,6 @@
   {
     "id": "api.page.permission.no_channel_access",
     "translation": "You do not have access to this channel."
-  },
-  {
-    "id": "api.page.publish.circular_reference.app_error",
-    "translation": "Cannot publish page: circular reference detected."
-  },
-  {
-    "id": "api.page.publish.parent_different_channel.app_error",
-    "translation": "Cannot publish page: parent page is in a different channel."
-  },
-  {
-    "id": "api.page.publish.parent_not_found.app_error",
-    "translation": "Cannot publish page: parent page not found."
   },
   {
     "id": "api.payload.parse.error",
@@ -2841,10 +2837,6 @@
       "one": "{{.Count}} image sent: {{.Filenames}}",
       "other": "{{.Count}} images sent: {{.Filenames}}"
     }
-  },
-  {
-    "id": "api.post.get_page_children.permissions.app_error",
-    "translation": "You do not have permission to view page children."
   },
   {
     "id": "api.post.get_posts_for_reporting.channel_not_found",
@@ -4839,18 +4831,6 @@
     "translation": "Server is busy, non-critical services are temporarily unavailable."
   },
   {
-    "id": "api.wiki.add.already_attached",
-    "translation": "Page is already attached to this wiki."
-  },
-  {
-    "id": "api.wiki.add.channel_mismatch",
-    "translation": "Page channel does not match wiki channel."
-  },
-  {
-    "id": "api.wiki.add.not_a_page",
-    "translation": "Post is not a page."
-  },
-  {
     "id": "api.wiki.comment.deleted.app_error",
     "translation": "Cannot modify deleted comment."
   },
@@ -4891,6 +4871,10 @@
     "translation": "Page channel does not match wiki channel."
   },
   {
+    "id": "api.wiki.page_channel_mismatch.app_error",
+    "translation": "Page does not belong to this channel."
+  },
+  {
     "id": "api.wiki.page_not_found",
     "translation": "Page not found."
   },
@@ -4899,7 +4883,15 @@
     "translation": "Page does not belong to this wiki."
   },
   {
+    "id": "api.wiki.page_wiki_mismatch.app_error",
+    "translation": "Page does not belong to this wiki."
+  },
+  {
     "id": "api.wiki.page_wiki_not_set",
+    "translation": "Page wiki ID is not set."
+  },
+  {
+    "id": "api.wiki.page_wiki_not_set.app_error",
     "translation": "Page wiki ID is not set."
   },
   {
@@ -4919,15 +4911,15 @@
     "translation": "Cannot summarize thread: the wiki has been deleted."
   },
   {
-    "id": "api.wiki.update_page_parent.parent_different_wiki",
+    "id": "api.wiki.update_page_parent.parent_different_wiki.app_error",
     "translation": "Parent page is in a different wiki."
   },
   {
-    "id": "api.wiki.update_page_parent.parent_not_found",
+    "id": "api.wiki.update_page_parent.parent_not_found.app_error",
     "translation": "Parent page not found."
   },
   {
-    "id": "api.wiki.update_page_parent.parent_not_page",
+    "id": "api.wiki.update_page_parent.parent_not_page.app_error",
     "translation": "Parent is not a page."
   },
   {
@@ -7315,6 +7307,10 @@
     "translation": "Page not found for depth calculation."
   },
   {
+    "id": "app.page.calculate_subtree_depth.app_error",
+    "translation": "Failed to calculate subtree depth."
+  },
+  {
     "id": "app.page.change_parent.circular_reference.app_error",
     "translation": "Cannot change parent: would create circular reference."
   },
@@ -7333,6 +7329,10 @@
   {
     "id": "app.page.change_parent.parent_different_channel.app_error",
     "translation": "Parent page must be in the same channel."
+  },
+  {
+    "id": "app.page.change_parent.subtree_max_depth_exceeded.app_error",
+    "translation": "Moving this page would cause its subtree to exceed maximum hierarchy depth."
   },
   {
     "id": "app.page.change_parent.wiki_not_found.app_error",
@@ -7551,8 +7551,16 @@
     "translation": "Wiki and channel do not match."
   },
   {
-    "id": "app.page.parent_required.app_error",
-    "translation": "Parent page ID is required."
+    "id": "app.page.publish.circular_reference.app_error",
+    "translation": "Cannot publish page: circular reference detected."
+  },
+  {
+    "id": "app.page.publish.parent_different_channel.app_error",
+    "translation": "Cannot publish page: parent page is in a different channel."
+  },
+  {
+    "id": "app.page.publish.parent_not_found.app_error",
+    "translation": "Cannot publish page: parent page not found."
   },
   {
     "id": "app.page.restore.get_content.app_error",
@@ -8033,6 +8041,10 @@
   {
     "id": "app.post.get_page_children.parent.app_error",
     "translation": "Unable to get parent page."
+  },
+  {
+    "id": "app.post.get_page_children.permissions.app_error",
+    "translation": "You do not have permission to view page children."
   },
   {
     "id": "app.post.get_page_descendants.app_error",
@@ -9315,6 +9327,18 @@
   {
     "id": "app.webhooks.update_outgoing.app_error",
     "translation": "Unable to update the webhook."
+  },
+  {
+    "id": "app.wiki.add.already_attached",
+    "translation": "Page is already attached to this wiki."
+  },
+  {
+    "id": "app.wiki.add.channel_mismatch",
+    "translation": "Page channel does not match wiki channel."
+  },
+  {
+    "id": "app.wiki.add.not_a_page",
+    "translation": "Post is not a page."
   },
   {
     "id": "app.wiki.add_page.app_error",

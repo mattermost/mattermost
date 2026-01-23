@@ -356,6 +356,36 @@ func (_m *WikiStore) Update(wiki *model.Wiki) (*model.Wiki, error) {
 	return r0, r1
 }
 
+// ResolveNamesToIDs provides a mock function with given fields: names, teamId
+func (_m *WikiStore) ResolveNamesToIDs(names []string, teamId string) ([]string, error) {
+	ret := _m.Called(names, teamId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ResolveNamesToIDs")
+	}
+
+	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func([]string, string) ([]string, error)); ok {
+		return rf(names, teamId)
+	}
+	if rf, ok := ret.Get(0).(func([]string, string) []string); ok {
+		r0 = rf(names, teamId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func([]string, string) error); ok {
+		r1 = rf(names, teamId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // NewWikiStore creates a new instance of WikiStore. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewWikiStore(t interface {

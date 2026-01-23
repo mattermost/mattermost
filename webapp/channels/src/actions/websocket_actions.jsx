@@ -695,6 +695,12 @@ export function handleEvent(msg) {
     case SocketEvents.WIKI_UPDATED:
         handleWikiUpdatedEvent(msg);
         break;
+    case SocketEvents.WIKI_MOVED:
+        handleWikiMovedEvent(msg);
+        break;
+    case SocketEvents.WIKI_DELETED:
+        handleWikiDeletedEvent(msg);
+        break;
     case SocketEvents.SCHEDULED_POST_CREATED:
         dispatch(handleCreateScheduledPostEvent(msg));
         break;
@@ -1137,6 +1143,57 @@ export function handleWikiUpdatedEvent(msg) {
     dispatch({
         type: WikiTypes.RECEIVED_WIKI,
         data: wiki,
+    });
+}
+
+export function handleWikiMovedEvent(msg) {
+    if (!msg.data) {
+        return;
+    }
+
+    const wikiId = msg.data.wiki_id;
+    const action = msg.data.action;
+    const sourceChannelId = msg.data.source_channel_id;
+    const targetChannelId = msg.data.target_channel_id;
+
+    if (action === 'removed') {
+        // Wiki was removed from this channel - delete it from local state
+        dispatch({
+            type: WikiTypes.DELETED_WIKI,
+            data: {id: wikiId, channelId: sourceChannelId},
+        });
+    } else if (action === 'added') {
+        // Wiki was added to this channel - add it to local state
+        const wiki = {
+            id: wikiId,
+            channel_id: targetChannelId,
+            title: msg.data.title,
+            description: msg.data.description,
+            props: {},
+            create_at: msg.data.create_at,
+            update_at: msg.data.update_at,
+            delete_at: 0,
+            sort_order: msg.data.sort_order,
+        };
+
+        dispatch({
+            type: WikiTypes.RECEIVED_WIKI,
+            data: wiki,
+        });
+    }
+}
+
+export function handleWikiDeletedEvent(msg) {
+    if (!msg.data) {
+        return;
+    }
+
+    const wikiId = msg.data.wiki_id;
+    const channelId = msg.data.channel_id;
+
+    dispatch({
+        type: WikiTypes.DELETED_WIKI,
+        data: {id: wikiId, channelId},
     });
 }
 

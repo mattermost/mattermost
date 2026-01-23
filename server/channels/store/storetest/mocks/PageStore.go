@@ -129,9 +129,9 @@ func (_m *PageStore) GetChannelPages(channelID string) (*model.PostList, error) 
 	return r0, r1
 }
 
-// GetCommentsForPage provides a mock function with given fields: pageID, includeDeleted
-func (_m *PageStore) GetCommentsForPage(pageID string, includeDeleted bool) (*model.PostList, error) {
-	ret := _m.Called(pageID, includeDeleted)
+// GetCommentsForPage provides a mock function with given fields: pageID, includeDeleted, offset, limit
+func (_m *PageStore) GetCommentsForPage(pageID string, includeDeleted bool, offset int, limit int) (*model.PostList, error) {
+	ret := _m.Called(pageID, includeDeleted, offset, limit)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetCommentsForPage")
@@ -139,19 +139,19 @@ func (_m *PageStore) GetCommentsForPage(pageID string, includeDeleted bool) (*mo
 
 	var r0 *model.PostList
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, bool) (*model.PostList, error)); ok {
-		return rf(pageID, includeDeleted)
+	if rf, ok := ret.Get(0).(func(string, bool, int, int) (*model.PostList, error)); ok {
+		return rf(pageID, includeDeleted, offset, limit)
 	}
-	if rf, ok := ret.Get(0).(func(string, bool) *model.PostList); ok {
-		r0 = rf(pageID, includeDeleted)
+	if rf, ok := ret.Get(0).(func(string, bool, int, int) *model.PostList); ok {
+		r0 = rf(pageID, includeDeleted, offset, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.PostList)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
-		r1 = rf(pageID, includeDeleted)
+	if rf, ok := ret.Get(1).(func(string, bool, int, int) error); ok {
+		r1 = rf(pageID, includeDeleted, offset, limit)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -399,9 +399,9 @@ func (_m *PageStore) GetPageDescendants(postID string) (*model.PostList, error) 
 	return r0, r1
 }
 
-// GetPageVersionHistory provides a mock function with given fields: pageID
-func (_m *PageStore) GetPageVersionHistory(pageID string) ([]*model.Post, error) {
-	ret := _m.Called(pageID)
+// GetPageVersionHistory provides a mock function with given fields: pageID, offset, limit
+func (_m *PageStore) GetPageVersionHistory(pageID string, offset int, limit int) ([]*model.Post, error) {
+	ret := _m.Called(pageID, offset, limit)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetPageVersionHistory")
@@ -409,19 +409,19 @@ func (_m *PageStore) GetPageVersionHistory(pageID string) ([]*model.Post, error)
 
 	var r0 []*model.Post
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string) ([]*model.Post, error)); ok {
-		return rf(pageID)
+	if rf, ok := ret.Get(0).(func(string, int, int) ([]*model.Post, error)); ok {
+		return rf(pageID, offset, limit)
 	}
-	if rf, ok := ret.Get(0).(func(string) []*model.Post); ok {
-		r0 = rf(pageID)
+	if rf, ok := ret.Get(0).(func(string, int, int) []*model.Post); ok {
+		r0 = rf(pageID, offset, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Post)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(pageID)
+	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
+		r1 = rf(pageID, offset, limit)
 	} else {
 		r1 = ret.Error(1)
 	}

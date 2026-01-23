@@ -19,7 +19,7 @@ func getWikiPages(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wiki, _, ok := c.GetWikiForRead()
+	wiki, channel, ok := c.GetWikiForRead()
 	if !ok {
 		return
 	}
@@ -27,6 +27,14 @@ func getWikiPages(c *Context, w http.ResponseWriter, r *http.Request) {
 	if wiki.DeleteAt != 0 {
 		c.Err = model.NewAppError("getWikiPages", "api.wiki.get_pages.wiki_deleted.app_error", nil, "", http.StatusNotFound)
 		return
+	}
+
+	// Guests cannot access pages in DM/Group channels
+	if channel.Type == model.ChannelTypeGroup || channel.Type == model.ChannelTypeDirect {
+		if c.AppContext.Session().IsGuest() {
+			c.Err = model.NewAppError("getWikiPages", "api.page.permission.guest_cannot_access.app_error", nil, "", http.StatusForbidden)
+			return
+		}
 	}
 
 	pages, appErr := c.App.GetWikiPages(c.AppContext, c.Params.WikiId, c.Params.Page*c.Params.PerPage, c.Params.PerPage)
@@ -74,12 +82,12 @@ func getWikiPage(c *Context, w http.ResponseWriter, r *http.Request) {
 		var wikiErr *model.AppError
 		pageWikiId, wikiErr = c.App.GetWikiIdForPage(c.AppContext, c.Params.PageId)
 		if wikiErr != nil || pageWikiId == "" {
-			c.Err = model.NewAppError("getWikiPage", "api.wiki.page_wiki_not_set", nil, "", http.StatusBadRequest)
+			c.Err = model.NewAppError("getWikiPage", "api.wiki.page_wiki_not_set.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
 	}
 	if pageWikiId != c.Params.WikiId {
-		c.Err = model.NewAppError("getWikiPage", "api.wiki.page_wiki_mismatch", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("getWikiPage", "api.wiki.page_wiki_mismatch.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
@@ -136,18 +144,18 @@ func restorePage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate page belongs to this wiki
-	pageWikiId, ok := page.Props()[model.PagePropsWikiID].(string)
+	pageWikiId, ok := page.Props[model.PagePropsWikiID].(string)
 	if !ok || pageWikiId == "" {
 		// Fallback: get wiki_id from PropertyValues (source of truth)
 		var wikiErr *model.AppError
 		pageWikiId, wikiErr = c.App.GetWikiIdForPage(c.AppContext, c.Params.PageId)
 		if wikiErr != nil || pageWikiId == "" {
-			c.Err = model.NewAppError("restorePage", "api.wiki.page_wiki_not_set", nil, "", http.StatusBadRequest)
+			c.Err = model.NewAppError("restorePage", "api.wiki.page_wiki_not_set.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
 	}
 	if pageWikiId != c.Params.WikiId {
-		c.Err = model.NewAppError("restorePage", "api.wiki.page_wiki_mismatch", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("restorePage", "api.wiki.page_wiki_mismatch.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
@@ -158,8 +166,8 @@ func restorePage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate page's channel matches wiki's channel
-	if page.ChannelId() != wiki.ChannelId {
-		c.Err = model.NewAppError("restorePage", "api.wiki.page_channel_mismatch", nil, "", http.StatusBadRequest)
+	if page.ChannelId != wiki.ChannelId {
+		c.Err = model.NewAppError("restorePage", "api.wiki.page_channel_mismatch.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
@@ -193,6 +201,13 @@ func createPage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		c.SetInvalidParamWithErr("request", err)
+		return
+	}
+
+	req.Title = strings.TrimSpace(req.Title)
+	if len(req.Title) > model.MaxPageTitleLength {
+		c.Err = model.NewAppError("createPage", "api.page.create.title_too_long.app_error",
+			map[string]any{"MaxLength": model.MaxPageTitleLength}, "", http.StatusBadRequest)
 		return
 	}
 
@@ -251,6 +266,8 @@ func updatePage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	req.Title = strings.TrimSpace(req.Title)
+
 	auditRec := c.MakeAuditRecord("updatePage", model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	auditRec.AddMeta("wiki_id", c.Params.WikiId)
@@ -303,7 +320,7 @@ func getChannelPages(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Guests cannot access pages in DM/Group channels
 	if channel.Type == model.ChannelTypeGroup || channel.Type == model.ChannelTypeDirect {
 		if c.AppContext.Session().IsGuest() {
-			c.Err = model.NewAppError("getChannelPages", "api.page.permission.guest_cannot_access", nil, "", http.StatusForbidden)
+			c.Err = model.NewAppError("getChannelPages", "api.page.permission.guest_cannot_access.app_error", nil, "", http.StatusForbidden)
 			return
 		}
 	}
@@ -315,7 +332,7 @@ func getChannelPages(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if includeContent {
-		if contentErr := c.App.LoadPageContentForPostList(c.AppContext, postList); contentErr != nil {
+		if contentErr := c.App.LoadPageContent(c.AppContext, postList, app.PageContentLoadOptions{}); contentErr != nil {
 			c.Err = contentErr
 			return
 		}

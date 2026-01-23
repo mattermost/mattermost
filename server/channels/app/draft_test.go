@@ -691,7 +691,7 @@ func TestPageDraftWhenPageDeleted(t *testing.T) {
 
 	sessionCtx := th.CreateSessionContext()
 
-	t.Run("draft retained when page deleted by another user", func(t *testing.T) {
+	t.Run("draft deleted when page deleted", func(t *testing.T) {
 		// Create a page
 		page, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Page to Delete", "", user.Id, "", "")
 		require.Nil(t, appErr)
@@ -708,15 +708,13 @@ func TestPageDraftWhenPageDeleted(t *testing.T) {
 		require.NotNil(t, draftBefore)
 
 		// Delete the page
-		pageWrapper := NewPageFromValidatedPost(page)
-		err = th.App.DeletePage(sessionCtx, pageWrapper, "")
+		err = th.App.DeletePage(sessionCtx, page, "")
 		require.Nil(t, err)
 
-		// Draft should still be accessible (content is preserved)
-		draftAfter, getDraftErr := th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, pageId)
-		require.Nil(t, getDraftErr, "Draft content should be retained to prevent work loss")
-		draftAfterContent, _ := draftAfter.GetDocumentJSON()
-		require.JSONEq(t, content, draftAfterContent)
+		// Draft should be deleted along with the page
+		_, getDraftErr = th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, pageId)
+		require.NotNil(t, getDraftErr, "Draft should be deleted when page is deleted")
+		require.Equal(t, "app.draft.get_page_draft.not_found", getDraftErr.Id)
 	})
 
 	t.Run("draft for new page unaffected when different page deleted", func(t *testing.T) {
@@ -731,8 +729,7 @@ func TestPageDraftWhenPageDeleted(t *testing.T) {
 		require.Nil(t, err)
 
 		// Delete unrelated page
-		pageToDeleteWrapper := NewPageFromValidatedPost(pageToDelete)
-		err = th.App.DeletePage(sessionCtx, pageToDeleteWrapper, "")
+		err = th.App.DeletePage(sessionCtx, pageToDelete, "")
 		require.Nil(t, err)
 
 		// New draft should be unaffected
@@ -751,7 +748,7 @@ func TestPageDraftWhenPageDeleted(t *testing.T) {
 		require.Equal(t, title, publishedPage.Props["title"])
 	})
 
-	t.Run("multiple users can have drafts for the same page", func(t *testing.T) {
+	t.Run("all user drafts deleted when page deleted", func(t *testing.T) {
 		// Create a page
 		page, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Page with Multiple Drafts", "", user.Id, "", "")
 		require.Nil(t, appErr)
@@ -772,20 +769,17 @@ func TestPageDraftWhenPageDeleted(t *testing.T) {
 		require.Nil(t, err)
 
 		// Delete the page
-		pageWrapper := NewPageFromValidatedPost(page)
-		err = th.App.DeletePage(sessionCtx, pageWrapper, "")
+		err = th.App.DeletePage(sessionCtx, page, "")
 		require.Nil(t, err)
 
-		// Both drafts should be retained
-		draft1After, err := th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, pageId)
-		require.Nil(t, err, "User 1 draft should be retained")
-		draft1Content, _ := draft1After.GetDocumentJSON()
-		require.JSONEq(t, content1, draft1Content)
+		// Both drafts should be deleted along with the page
+		_, err = th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, pageId)
+		require.NotNil(t, err, "User 1 draft should be deleted")
+		require.Equal(t, "app.draft.get_page_draft.not_found", err.Id)
 
-		draft2After, err := th.App.GetPageDraft(th.Context, user2.Id, createdWiki.Id, pageId)
-		require.Nil(t, err, "User 2 draft should be retained")
-		draft2Content, _ := draft2After.GetDocumentJSON()
-		require.JSONEq(t, content2, draft2Content)
+		_, err = th.App.GetPageDraft(th.Context, user2.Id, createdWiki.Id, pageId)
+		require.NotNil(t, err, "User 2 draft should be deleted")
+		require.Equal(t, "app.draft.get_page_draft.not_found", err.Id)
 	})
 
 	t.Run("regular post drafts unaffected by page deletion", func(t *testing.T) {
@@ -803,8 +797,7 @@ func TestPageDraftWhenPageDeleted(t *testing.T) {
 		savedDraft, nErr := th.App.Srv().Store().Draft().Upsert(regularPostDraft)
 		require.NoError(t, nErr)
 
-		pageWrapper := NewPageFromValidatedPost(page)
-		err := th.App.DeletePage(sessionCtx, pageWrapper, "")
+		err := th.App.DeletePage(sessionCtx, page, "")
 		require.Nil(t, err)
 
 		retrievedDraft, getErr := th.App.Srv().Store().Draft().Get(user.Id, channel.Id, "", false)

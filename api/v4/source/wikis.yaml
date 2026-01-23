@@ -927,7 +927,7 @@
           $ref: "#/components/responses/NotFound"
 
   /api/v4/wikis/{wiki_id}/pages/{page_id}/move:
-    put:
+    post:
       tags:
         - wikis
       summary: Move page to another wiki

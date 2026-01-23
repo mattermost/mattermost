@@ -873,6 +873,42 @@ func TestPageDepthLimit(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, 2, depth, "Level 3 page should have depth 2")
 	})
+
+	t.Run("prevents moving subtree when combined depth would exceed max depth", func(t *testing.T) {
+		// Create a destination chain at depth 5 (root is depth 0)
+		destinationDepth := 5
+		var destinationID string
+		for i := range destinationDepth {
+			page, createErr := th.App.CreateWikiPage(th.Context, wiki.Id, destinationID, "Dest "+string(rune('0'+i)), "", th.BasicUser.Id, "", "")
+			require.Nil(t, createErr)
+			destinationID = page.Id
+		}
+
+		// Verify destination is at expected depth
+		destDepth, err := th.App.calculatePageDepth(th.Context, destinationID)
+		require.Nil(t, err)
+		require.Equal(t, destinationDepth-1, destDepth) // depth is 0-indexed, so depth 4 for 5th level
+
+		// Create a subtree with depth that would exceed max when moved
+		// Subtree root at depth 0, then children going down to make combined depth exceed PostPageMaxDepth
+		subtreeRoot, err := th.App.CreateWikiPage(th.Context, wiki.Id, "", "Subtree Root", "", th.BasicUser.Id, "", "")
+		require.Nil(t, err)
+
+		// Build subtree: need subtreeDepth such that destDepth + 1 + subtreeDepth > PostPageMaxDepth
+		// destDepth = 4, so we need subtreeDepth > PostPageMaxDepth - 5
+		subtreeDepth := model.PostPageMaxDepth - destinationDepth + 1 // This ensures we exceed the limit
+		var subtreeParentID = subtreeRoot.Id
+		for i := range subtreeDepth {
+			page, createErr := th.App.CreateWikiPage(th.Context, wiki.Id, subtreeParentID, "Sub "+string(rune('0'+i)), "", th.BasicUser.Id, "", "")
+			require.Nil(t, createErr)
+			subtreeParentID = page.Id
+		}
+
+		// Try to move subtree root under destination - should fail because combined depth exceeds max
+		err = th.App.ChangePageParent(sessionCtx, subtreeRoot.Id, destinationID)
+		require.NotNil(t, err, "Should not allow moving subtree when combined depth exceeds max")
+		require.Equal(t, "app.page.change_parent.subtree_max_depth_exceeded.app_error", err.Id)
+	})
 }
 
 func TestExtractMentionsFromTipTapContent(t *testing.T) {
@@ -1717,7 +1753,7 @@ func TestPageMentionSystemMessages(t *testing.T) {
 
 		var mentionMessage *model.Post
 		for _, post := range allPosts.Posts {
-			if post.Type == model.PostTypePageMention && post.GetProp("page_id") == page.Id() {
+			if post.Type == model.PostTypePageMention && post.GetProp("page_id") == page.Id {
 				mentionMessage = post
 				break
 			}

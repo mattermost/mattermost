@@ -109,6 +109,19 @@ func (opts *PublishPageDraftOptions) IsValid() *AppError {
 	return nil
 }
 
+// Auditable returns the auditable representation of the PageDraft.
+func (pd *PageDraft) Auditable() map[string]any {
+	return map[string]any{
+		"user_id":    pd.UserId,
+		"wiki_id":    pd.WikiId,
+		"channel_id": pd.ChannelId,
+		"page_id":    pd.PageId,
+		"title":      pd.Title,
+		"create_at":  pd.CreateAt,
+		"update_at":  pd.UpdateAt,
+	}
+}
+
 // IsValid validates the PageDraft composite struct.
 func (pd *PageDraft) IsValid() *AppError {
 	if !IsValidId(pd.UserId) {

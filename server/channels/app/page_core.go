@@ -67,7 +67,7 @@ func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, conte
 		if err != nil {
 			return nil, model.NewAppError("CreatePage", "app.page.create.invalid_parent.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
-		if parentPage.ChannelId() != channelID {
+		if parentPage.ChannelId != channelID {
 			return nil, model.NewAppError("CreatePage", "app.page.create.parent_different_channel.app_error", nil, "", http.StatusBadRequest)
 		}
 
@@ -135,11 +135,10 @@ func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, conte
 	return createdPage, nil
 }
 
-// GetPage fetches a page by ID and returns a type-safe *Page.
+// GetPage fetches a page by ID and returns the Post.
 // Returns error if not found or if the post is not a page type.
-// This is the primary entry point for fetching pages - validates type at construction.
 // Note: Uses master DB to avoid read-after-write issues with replica lag in cloud deployments.
-func (a *App) GetPage(rctx request.CTX, pageID string) (*Page, *model.AppError) {
+func (a *App) GetPage(rctx request.CTX, pageID string) (*model.Post, *model.AppError) {
 	post, err := a.Srv().Store().Post().GetSingle(RequestContextWithMaster(rctx), pageID, false)
 	if err != nil {
 		return nil, model.NewAppError("GetPage", "app.page.get.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
@@ -149,12 +148,12 @@ func (a *App) GetPage(rctx request.CTX, pageID string) (*Page, *model.AppError) 
 		return nil, model.NewAppError("GetPage", "app.page.get.not_a_page.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	return &Page{post: post}, nil
+	return post, nil
 }
 
 // GetPageWithDeleted fetches a page including soft-deleted pages.
 // Use for restore operations.
-func (a *App) GetPageWithDeleted(rctx request.CTX, pageID string) (*Page, *model.AppError) {
+func (a *App) GetPageWithDeleted(rctx request.CTX, pageID string) (*model.Post, *model.AppError) {
 	post, err := a.Srv().Store().Post().GetSingle(RequestContextWithMaster(rctx), pageID, true)
 	if err != nil {
 		return nil, model.NewAppError("GetPageWithDeleted", "app.page.get.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
@@ -164,26 +163,7 @@ func (a *App) GetPageWithDeleted(rctx request.CTX, pageID string) (*Page, *model
 		return nil, model.NewAppError("GetPageWithDeleted", "app.page.get.not_a_page.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	return &Page{post: post}, nil
-}
-
-// GetParentPage fetches and validates a parent page.
-// Returns (nil, nil) if parentID is empty (valid for root pages).
-// Returns error if parentID is non-empty but invalid.
-func (a *App) GetParentPage(rctx request.CTX, parentID string) (*Page, *model.AppError) {
-	if parentID == "" {
-		return nil, nil
-	}
-	return a.GetPage(rctx, parentID)
-}
-
-// GetParentPageRequired fetches a parent page, erroring if parentID is empty.
-// Use when a parent is required (e.g., creating a child page).
-func (a *App) GetParentPageRequired(rctx request.CTX, parentID string) (*Page, *model.AppError) {
-	if parentID == "" {
-		return nil, model.NewAppError("GetParentPageRequired", "app.page.parent_required.app_error", nil, "", http.StatusBadRequest)
-	}
-	return a.GetPage(rctx, parentID)
+	return post, nil
 }
 
 // GetPageWithContent fetches a page with permission check and loads content.
@@ -200,7 +180,7 @@ func (a *App) GetPageWithContent(rctx request.CTX, pageID string) (*model.Post, 
 	if err != nil {
 		return nil, err
 	}
-	post := page.Post()
+	post := page
 
 	session := rctx.Session()
 	if hasPermission, _ := a.HasPermissionToChannel(rctx, session.UserId, post.ChannelId, model.PermissionReadPage); !hasPermission {
@@ -230,29 +210,17 @@ func (a *App) GetPageWithContent(rctx request.CTX, pageID string) (*model.Post, 
 	return post, nil
 }
 
-// LoadPageContentForPostList loads page content from the pagecontent table for any pages in the PostList.
-// This populates the Message field with the full page content stored in the pagecontent table.
-func (a *App) LoadPageContentForPostList(rctx request.CTX, postList *model.PostList) *model.AppError {
-	return a.loadPageContentForPostList(rctx, postList, false, false)
+// PageContentLoadOptions configures how page content is loaded.
+type PageContentLoadOptions struct {
+	// IncludeDeleted loads content for soft-deleted pages (for version history)
+	IncludeDeleted bool
+	// SearchTextOnly loads only search_text into Props instead of full document JSON
+	SearchTextOnly bool
 }
 
-// LoadPageContentForPostListIncludingDeleted loads page content including historical (deleted) versions.
-// Use this for version history where posts have DeleteAt > 0.
-func (a *App) LoadPageContentForPostListIncludingDeleted(rctx request.CTX, postList *model.PostList) *model.AppError {
-	return a.loadPageContentForPostList(rctx, postList, true, false)
-}
-
-// EnrichPagesWithSearchText adds search_text to Props for pages in search results.
-// This is used for displaying page content in search results without modifying Post.Message.
-// Post.Message stays empty for pages; search_text in Props is used only for display.
-func (a *App) EnrichPagesWithSearchText(rctx request.CTX, postList *model.PostList) *model.AppError {
-	return a.loadPageContentForPostList(rctx, postList, false, true)
-}
-
-// loadPageContentForPostList loads page content with options:
-// - includeDeleted: include content for deleted pages (for version history)
-// - searchTextOnly: load only search_text into Props instead of full document JSON
-func (a *App) loadPageContentForPostList(rctx request.CTX, postList *model.PostList, includeDeleted, searchTextOnly bool) *model.AppError {
+// LoadPageContent loads page content from the PageContent table for pages in the PostList.
+// Use options to control loading behavior (deleted content, search text only).
+func (a *App) LoadPageContent(rctx request.CTX, postList *model.PostList, opts PageContentLoadOptions) *model.AppError {
 	if postList == nil || postList.Posts == nil {
 		return nil
 	}
@@ -271,13 +239,13 @@ func (a *App) loadPageContentForPostList(rctx request.CTX, postList *model.PostL
 	var pageContents []*model.PageContent
 	var contentErr error
 
-	if includeDeleted {
+	if opts.IncludeDeleted {
 		pageContents, contentErr = a.Srv().Store().Page().GetManyPageContentsWithDeleted(pageIDs)
 	} else {
 		pageContents, contentErr = a.Srv().Store().Page().GetManyPageContents(pageIDs)
 	}
 	if contentErr != nil {
-		return model.NewAppError("loadPageContentForPostList", "app.page.get.content.app_error", nil, "", http.StatusInternalServerError).Wrap(contentErr)
+		return model.NewAppError("LoadPageContent", "app.page.get.content.app_error", nil, "", http.StatusInternalServerError).Wrap(contentErr)
 	}
 
 	contentMap := make(map[string]*model.PageContent, len(pageContents))
@@ -292,13 +260,13 @@ func (a *App) loadPageContentForPostList(rctx request.CTX, postList *model.PostL
 
 		pageContent, found := contentMap[post.Id]
 		if !found {
-			if !searchTextOnly {
+			if !opts.SearchTextOnly {
 				post.Message = ""
 			}
 			continue
 		}
 
-		if searchTextOnly {
+		if opts.SearchTextOnly {
 			if pageContent.SearchText != "" {
 				if post.Props == nil {
 					post.Props = make(model.StringInterface)
@@ -308,7 +276,7 @@ func (a *App) loadPageContentForPostList(rctx request.CTX, postList *model.PostL
 		} else {
 			contentJSON, jsonErr := pageContent.GetDocumentJSON()
 			if jsonErr != nil {
-				return model.NewAppError("loadPageContentForPostList", "app.page.get.serialize_content.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+				return model.NewAppError("LoadPageContent", "app.page.get.serialize_content.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 			}
 			post.Message = contentJSON
 		}
@@ -346,9 +314,8 @@ func (a *App) loadPageContentForPost(rctx request.CTX, post *model.Post) *model.
 }
 
 // UpdatePage updates a page's title and/or content.
-// Accepts a type-safe *Page that has already been validated.
-func (a *App) UpdatePage(rctx request.CTX, page *Page, title, content, searchText string) (*model.Post, *model.AppError) {
-	pageID := page.Id()
+func (a *App) UpdatePage(rctx request.CTX, page *model.Post, title, content, searchText string) (*model.Post, *model.AppError) {
+	pageID := page.Id
 
 	if title != "" {
 		title = model.SanitizeUnicode(title)
@@ -378,14 +345,28 @@ func (a *App) UpdatePage(rctx request.CTX, page *Page, title, content, searchTex
 		return nil, enrichErr
 	}
 
-	if contentErr := a.loadPageContentForPost(rctx, updatedPost); contentErr != nil {
-		return nil, contentErr
+	if content != "" {
+		// Content was just written - normalize and use directly to avoid extra DB query
+		pageContent := &model.PageContent{}
+		if setErr := pageContent.SetDocumentJSON(content); setErr == nil {
+			if normalizedContent, jsonErr := pageContent.GetDocumentJSON(); jsonErr == nil {
+				updatedPost.Message = normalizedContent
+			}
+		}
+	} else {
+		// No content update - load existing content from DB
+		if contentErr := a.loadPageContentForPost(rctx, updatedPost); contentErr != nil {
+			return nil, contentErr
+		}
 	}
 
 	a.handlePageUpdateNotification(rctx, updatedPost, session.UserId)
 
 	// Invalidate cache so other nodes see the update
 	a.invalidateCacheForChannelPosts(updatedPost.ChannelId)
+
+	// Broadcast POST_EDITED event so clients update the page
+	a.sendPageEditedEvent(rctx, updatedPost)
 
 	// Broadcast title update if title was changed
 	if title != "" {
@@ -399,11 +380,10 @@ func (a *App) UpdatePage(rctx request.CTX, page *Page, title, content, searchTex
 }
 
 // UpdatePageWithOptimisticLocking updates a page with first-one-wins concurrency control.
-// Accepts a type-safe *Page that has already been validated.
 // baseEditAt is the EditAt timestamp the client last saw when they started editing
 // Returns 409 Conflict if the page content was modified by someone else
 // Returns 404 Not Found if the page was deleted
-func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, page *Page, title, content, searchText string, baseEditAt int64, force bool) (*model.Post, *model.AppError) {
+func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, page *model.Post, title, content, searchText string, baseEditAt int64, force bool) (*model.Post, *model.AppError) {
 	start := time.Now()
 	defer func() {
 		if a.Metrics() != nil {
@@ -411,7 +391,7 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, page *Page, titl
 		}
 	}()
 
-	pageID := page.Id()
+	pageID := page.Id
 
 	// Use master context to avoid reading stale data from replicas in HA mode
 	// This is critical for conflict detection - we need the latest EditAt value
@@ -476,9 +456,23 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, page *Page, titl
 		return nil, enrichErr
 	}
 
-	if contentErr := a.loadPageContentForPost(rctx, updatedPost); contentErr != nil {
-		return nil, contentErr
+	if content != "" {
+		// Content was just written - normalize and use directly to avoid extra DB query
+		pageContent := &model.PageContent{}
+		if setErr := pageContent.SetDocumentJSON(content); setErr == nil {
+			if normalizedContent, jsonErr := pageContent.GetDocumentJSON(); jsonErr == nil {
+				updatedPost.Message = normalizedContent
+			}
+		}
+	} else {
+		// No content update - load existing content from DB
+		if contentErr := a.loadPageContentForPost(rctx, updatedPost); contentErr != nil {
+			return nil, contentErr
+		}
 	}
+
+	// Broadcast POST_EDITED event so all clients update their page content
+	a.sendPageEditedEvent(rctx, updatedPost)
 
 	a.handlePageUpdateNotification(rctx, updatedPost, session.UserId)
 
@@ -489,10 +483,9 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, page *Page, titl
 }
 
 // DeletePage deletes a page. If wikiId is provided, it will be included in the broadcast event.
-// Accepts a type-safe *Page that has already been validated.
 // Uses atomic store operation to delete content, comments, and page post in a single transaction.
 // Before deletion, reparents any child pages to the deleted page's parent to avoid orphans.
-func (a *App) DeletePage(rctx request.CTX, page *Page, wikiId string) *model.AppError {
+func (a *App) DeletePage(rctx request.CTX, page *model.Post, wikiId string) *model.AppError {
 	start := time.Now()
 	defer func() {
 		if a.Metrics() != nil {
@@ -500,12 +493,12 @@ func (a *App) DeletePage(rctx request.CTX, page *Page, wikiId string) *model.App
 		}
 	}()
 
-	pageID := page.Id()
+	pageID := page.Id
 	session := rctx.Session()
 
 	// Reparent any children to the deleted page's parent (or make them root pages)
 	// This prevents orphaned pages when a parent is deleted
-	if err := a.Srv().Store().Page().ReparentChildren(pageID, page.PageParentId()); err != nil {
+	if err := a.Srv().Store().Page().ReparentChildren(pageID, page.PageParentId); err != nil {
 		return model.NewAppError("DeletePage", "app.page.delete.reparent_error.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -515,20 +508,19 @@ func (a *App) DeletePage(rctx request.CTX, page *Page, wikiId string) *model.App
 	}
 
 	// Invalidate cache so other nodes see the deletion
-	a.invalidateCacheForChannelPosts(page.ChannelId())
+	a.invalidateCacheForChannelPosts(page.ChannelId)
 
-	a.broadcastPageDeleted(pageID, wikiId, page.ChannelId(), rctx.Session().UserId)
+	a.broadcastPageDeleted(pageID, wikiId, page.ChannelId, rctx.Session().UserId)
 	return nil
 }
 
 // RestorePage restores a soft-deleted page.
-// Accepts a type-safe *Page that has already been validated.
 // Uses atomic store operation to restore content and page post in a single transaction.
-func (a *App) RestorePage(rctx request.CTX, page *Page) *model.AppError {
-	pageID := page.Id()
-	post := page.Post()
+func (a *App) RestorePage(rctx request.CTX, page *model.Post) *model.AppError {
+	pageID := page.Id
+	post := page
 
-	if page.DeleteAt() == 0 {
+	if page.DeleteAt == 0 {
 		return model.NewAppError("RestorePage",
 			"app.page.restore.not_deleted.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -562,9 +554,8 @@ func (a *App) RestorePage(rctx request.CTX, page *Page) *model.AppError {
 }
 
 // PermanentDeletePage permanently deletes a page and its content.
-// Accepts a type-safe *Page that has already been validated.
-func (a *App) PermanentDeletePage(rctx request.CTX, page *Page) *model.AppError {
-	pageID := page.Id()
+func (a *App) PermanentDeletePage(rctx request.CTX, page *model.Post) *model.AppError {
+	pageID := page.Id
 
 	session := rctx.Session()
 	if err := a.Srv().Store().Page().PermanentDeletePageContent(pageID); err != nil {
@@ -608,8 +599,8 @@ func (a *App) GetPageActiveEditors(rctx request.CTX, pageId string) (*PageActive
 	}, nil
 }
 
-func (a *App) GetPageVersionHistory(rctx request.CTX, pageId string) ([]*model.Post, *model.AppError) {
-	posts, err := a.Srv().Store().Page().GetPageVersionHistory(pageId)
+func (a *App) GetPageVersionHistory(rctx request.CTX, pageId string, offset, limit int) ([]*model.Post, *model.AppError) {
+	posts, err := a.Srv().Store().Page().GetPageVersionHistory(pageId, offset, limit)
 	if err != nil {
 		return nil, model.NewAppError("App.GetPageVersionHistory", "app.page.get_version_history.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -623,7 +614,7 @@ func (a *App) GetPageVersionHistory(rctx request.CTX, pageId string) ([]*model.P
 		postList.Order[i] = post.Id
 	}
 
-	if loadErr := a.LoadPageContentForPostListIncludingDeleted(rctx, postList); loadErr != nil {
+	if loadErr := a.LoadPageContent(rctx, postList, PageContentLoadOptions{IncludeDeleted: true}); loadErr != nil {
 		return nil, loadErr
 	}
 

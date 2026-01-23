@@ -949,7 +949,7 @@ func testCreateWikiWithDefaultPage(t *testing.T, rctx request.CTX, ss store.Stor
 		assert.Equal(t, wiki.Title, savedWiki.Title)
 		assert.Equal(t, wiki.Description, savedWiki.Description)
 
-		pageDrafts, err := ss.Draft().GetPageDraftsForUser(user.Id, savedWiki.Id)
+		pageDrafts, err := ss.Draft().GetPageDraftsForUser(user.Id, savedWiki.Id, 0, 200)
 		require.NoError(t, err)
 		require.Len(t, pageDrafts, 1)
 		assert.Equal(t, user.Id, pageDrafts[0].UserId)
@@ -1152,7 +1152,7 @@ func testDeleteAllPagesForWiki(t *testing.T, rctx request.CTX, ss store.Store) {
 		assert.NotNil(t, page2ContentWithDeleted)
 		assert.NotEqual(t, int64(0), page2ContentWithDeleted.DeleteAt)
 
-		pageDrafts, err := ss.Draft().GetPageDraftsForUser(user.Id, wiki.Id)
+		pageDrafts, err := ss.Draft().GetPageDraftsForUser(user.Id, wiki.Id, 0, 200)
 		require.NoError(t, err)
 		assert.Len(t, pageDrafts, 0)
 	})

@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
 import type {Post} from '@mattermost/types/posts';
@@ -288,7 +289,7 @@ export function fetchPage(pageId: string, wikiId: string): ActionFuncAsync<Page>
             return {error};
         }
 
-        const actions: any[] = [
+        const actions: AnyAction[] = [
             {
                 type: PostActionTypes.RECEIVED_POST,
                 data,
@@ -420,7 +421,7 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
         try {
             const data = await Client4.publishPageDraft(wikiId, draftId, pageParentId, title, finalSearchText, draftMessage, finalPageStatus, force, baseEditAt) as Page;
 
-            const actions: any[] = [
+            const actions: AnyAction[] = [
                 {type: WikiTypes.PUBLISH_DRAFT_SUCCESS, data: {draftId, pageId: data.id, optimisticId: isFirstTimeDraft ? undefined : pendingPageId}},
                 {type: PostActionTypes.RECEIVED_POST, data},
                 {type: WikiTypes.RECEIVED_PAGE_IN_WIKI, data: {page: data, wikiId, pendingPageId: isFirstTimeDraft ? undefined : pendingPageId}},
@@ -445,7 +446,7 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
             }
 
             // Cleanup: Delete user's old drafts for this page
-            const cleanupActions: any[] = [];
+            const cleanupActions: AnyAction[] = [];
             if (pageId && currentUserId) {
                 const draftKeys = getUserDraftKeysForPage(state, wikiId, pageId);
                 draftKeys.forEach((key: string) => {
@@ -726,6 +727,8 @@ export function movePageToWiki(pageId: string, sourceWikiId: string, targetWikiI
             return {error: new Error('Page not found')};
         }
 
+        const isCrossWikiMove = sourceWikiId !== targetWikiId;
+
         // Create optimistic update with new parent
         const optimisticPost: Post = {
             ...originalPost,
@@ -737,28 +740,59 @@ export function movePageToWiki(pageId: string, sourceWikiId: string, targetWikiI
             update_at: Date.now(),
         };
 
+        // Build optimistic actions
+        const optimisticActions: AnyAction[] = [
+            {
+                type: PostActionTypes.RECEIVED_POST,
+                data: optimisticPost,
+            },
+        ];
+
+        // For cross-wiki moves, update both source and target wiki page lists
+        if (isCrossWikiMove) {
+            optimisticActions.push(
+                {
+                    type: WikiTypes.REMOVED_PAGE_FROM_WIKI,
+                    data: {pageId, wikiId: sourceWikiId},
+                },
+                {
+                    type: WikiTypes.RECEIVED_PAGE_IN_WIKI,
+                    data: {page: optimisticPost, wikiId: targetWikiId},
+                },
+            );
+        }
+
         // Dispatch optimistic update immediately so UI reflects the change
-        dispatch({
-            type: PostActionTypes.RECEIVED_POST,
-            data: optimisticPost,
-        });
+        dispatch(batchActions(optimisticActions));
 
         try {
             await Client4.movePageToWiki(sourceWikiId, pageId, targetWikiId, parentPageId);
 
-            // Dispatch again after API success to ensure Redux stays updated
-            dispatch({
-                type: PostActionTypes.RECEIVED_POST,
-                data: optimisticPost,
-            });
-
             return {data: true};
         } catch (error) {
             // Revert optimistic update on error
-            dispatch({
-                type: PostActionTypes.RECEIVED_POST,
-                data: originalPost,
-            });
+            const revertActions: AnyAction[] = [
+                {
+                    type: PostActionTypes.RECEIVED_POST,
+                    data: originalPost,
+                },
+            ];
+
+            // Revert cross-wiki changes
+            if (isCrossWikiMove) {
+                revertActions.push(
+                    {
+                        type: WikiTypes.RECEIVED_PAGE_IN_WIKI,
+                        data: {page: originalPost, wikiId: sourceWikiId},
+                    },
+                    {
+                        type: WikiTypes.REMOVED_PAGE_FROM_WIKI,
+                        data: {pageId, wikiId: targetWikiId},
+                    },
+                );
+            }
+
+            dispatch(batchActions(revertActions));
 
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));

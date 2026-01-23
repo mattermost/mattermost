@@ -2131,6 +2131,25 @@ func (s *SqlPostStore) buildSearchPostFilterClause(teamID string, fromUsers []st
 	return builder.Where("UserId IN ("+subQuery+")", subQueryArgs...), nil
 }
 
+// searchTypeAliases maps user-friendly type names to internal post types.
+var searchTypeAliases = map[string]string{
+	"page":    model.PostTypePage,
+	"post":    model.PostTypeDefault,
+	"comment": model.PostTypePageComment,
+}
+
+// normalizeSearchTypes converts user-friendly type names to internal post types.
+// Unknown types are silently ignored.
+func normalizeSearchTypes(types []string) []string {
+	normalized := []string{}
+	for _, t := range types {
+		if internal, ok := searchTypeAliases[strings.ToLower(t)]; ok {
+			normalized = append(normalized, internal)
+		}
+	}
+	return normalized
+}
+
 func (s *SqlPostStore) Search(teamId string, userId string, params *model.SearchParams) (*model.PostList, error) {
 	return s.search(teamId, userId, params, true, true)
 }
@@ -2140,6 +2159,8 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	if params.Terms == "" && params.ExcludedTerms == "" &&
 		len(params.InChannels) == 0 && len(params.ExcludedChannels) == 0 &&
 		len(params.FromUsers) == 0 && len(params.ExcludedUsers) == 0 &&
+		len(params.PostTypes) == 0 && len(params.ExcludedPostTypes) == 0 &&
+		len(params.WikiNames) == 0 && len(params.ExcludedWikiNames) == 0 &&
 		params.OnDate == "" && params.AfterDate == "" && params.BeforeDate == "" {
 		return list, nil
 	}
@@ -2229,31 +2250,119 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 			textSearchCfg = "simple"
 		}
 
-		// Build search clause that searches both regular posts and pages
-		// For regular posts: search Message field
-		// For pages: search PageContents.SearchText field
-		regularPostsClause := fmt.Sprintf("(%s AND to_tsvector('%s', %s) @@ to_tsquery('%s', ?))", isNotPageTypeClause("q2"), textSearchCfg, searchType, textSearchCfg)
+		// Determine which content types to include based on type: modifier
+		normalizedTypes := normalizeSearchTypes(params.PostTypes)
+		normalizedExcludedTypes := normalizeSearchTypes(params.ExcludedPostTypes)
 
-		// UserId = '' means published content (drafts have non-empty UserId)
-		pageSearchSubquery := s.getSubQueryBuilder().
-			Select("PageId").
-			From("PageContents").
-			Where("UserId = ''").
-			Where("DeleteAt = 0").
-			Where(fmt.Sprintf("to_tsvector('%s', SearchText) @@ to_tsquery('%s', ?)", textSearchCfg, textSearchCfg), tsQueryClause)
+		includePosts := true
+		includePages := true
 
-		var pageSearchClause string
-		var pageSearchArgs []any
-		pageSearchClause, pageSearchArgs, err = pageSearchSubquery.ToSql()
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to build page search subquery")
+		// If specific types are requested, only include those
+		if len(normalizedTypes) > 0 {
+			includePosts = false
+			includePages = false
+			for _, t := range normalizedTypes {
+				if t == model.PostTypeDefault {
+					includePosts = true
+				}
+				if t == model.PostTypePage {
+					includePages = true
+				}
+			}
 		}
 
-		pagesClause := fmt.Sprintf("(%s AND q2.Id IN (%s))", isPageTypeClause("q2"), pageSearchClause)
+		// Handle exclusions
+		for _, t := range normalizedExcludedTypes {
+			if t == model.PostTypeDefault {
+				includePosts = false
+			}
+			if t == model.PostTypePage {
+				includePages = false
+			}
+		}
 
-		// Combine args: one for regular posts, then page search args
-		combinedArgs := append([]any{tsQueryClause}, pageSearchArgs...)
-		baseQuery = baseQuery.Where(fmt.Sprintf("(%s OR %s)", regularPostsClause, pagesClause), combinedArgs...)
+		// Resolve wiki names to IDs and apply wiki filter
+		var wikiIDs []string
+		var excludedWikiIDs []string
+		if len(params.WikiNames) > 0 {
+			wikiIDs, err = s.Wiki().ResolveNamesToIDs(params.WikiNames, teamId)
+			if err != nil {
+				return nil, errors.Wrap(err, "failed to resolve wiki names")
+			}
+			// If wiki filter is specified, implicitly filter to pages only
+			includePosts = false
+			includePages = true
+			// If no wiki IDs were resolved, return empty results
+			if len(wikiIDs) == 0 {
+				return list, nil
+			}
+		}
+		if len(params.ExcludedWikiNames) > 0 {
+			excludedWikiIDs, err = s.Wiki().ResolveNamesToIDs(params.ExcludedWikiNames, teamId)
+			if err != nil {
+				return nil, errors.Wrap(err, "failed to resolve excluded wiki names")
+			}
+		}
+
+		// Build search clause based on included types
+		var searchClauses []string
+		var combinedArgs []any
+
+		if includePosts {
+			// For regular posts: search Message field
+			regularPostsClause := fmt.Sprintf("(%s AND to_tsvector('%s', %s) @@ to_tsquery('%s', ?))", isNotPageTypeClause("q2"), textSearchCfg, searchType, textSearchCfg)
+			searchClauses = append(searchClauses, regularPostsClause)
+			combinedArgs = append(combinedArgs, tsQueryClause)
+		}
+
+		if includePages {
+			// UserId = '' means published content (drafts have non-empty UserId)
+			pageSearchSubquery := s.getSubQueryBuilder().
+				Select("PageId").
+				From("PageContents").
+				Where("UserId = ''").
+				Where("DeleteAt = 0").
+				Where(fmt.Sprintf("to_tsvector('%s', SearchText) @@ to_tsquery('%s', ?)", textSearchCfg, textSearchCfg), tsQueryClause)
+
+			var pageSearchClause string
+			var pageSearchArgs []any
+			pageSearchClause, pageSearchArgs, err = pageSearchSubquery.ToSql()
+			if err != nil {
+				return nil, errors.Wrap(err, "failed to build page search subquery")
+			}
+
+			// Build pages clause with optional wiki filter
+			var wikiFilterClauses []string
+			wikiFilterClauses = append(wikiFilterClauses, isPageTypeClause("q2"))
+			wikiFilterClauses = append(wikiFilterClauses, fmt.Sprintf("q2.Id IN (%s)", pageSearchClause))
+
+			// Apply wiki ID filter if specified
+			if len(wikiIDs) > 0 {
+				wikiFilterClauses = append(wikiFilterClauses, fmt.Sprintf("q2.Props->>'wiki_id' IN (%s)", sq.Placeholders(len(wikiIDs))))
+				for _, id := range wikiIDs {
+					pageSearchArgs = append(pageSearchArgs, id)
+				}
+			}
+
+			// Apply wiki exclusion filter if specified
+			if len(excludedWikiIDs) > 0 {
+				wikiFilterClauses = append(wikiFilterClauses, fmt.Sprintf("(q2.Props->>'wiki_id' IS NULL OR q2.Props->>'wiki_id' NOT IN (%s))", sq.Placeholders(len(excludedWikiIDs))))
+				for _, id := range excludedWikiIDs {
+					pageSearchArgs = append(pageSearchArgs, id)
+				}
+			}
+
+			pagesClause := fmt.Sprintf("(%s)", strings.Join(wikiFilterClauses, " AND "))
+			searchClauses = append(searchClauses, pagesClause)
+			combinedArgs = append(combinedArgs, pageSearchArgs...)
+		}
+
+		if len(searchClauses) > 0 {
+			baseQuery = baseQuery.Where(fmt.Sprintf("(%s)", strings.Join(searchClauses, " OR ")), combinedArgs...)
+		} else {
+			// No types included - return empty result
+			return list, nil
+		}
 	}
 
 	inQuery := s.getSubQueryBuilder().Select("Id").

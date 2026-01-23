@@ -21,7 +21,7 @@ func TestGetPageComments(t *testing.T) {
 	require.Nil(t, appErr)
 
 	t.Run("get comments for page with no comments", func(t *testing.T) {
-		comments, appErr := th.App.GetPageComments(rctx, page.Id)
+		comments, appErr := th.App.GetPageComments(rctx, page.Id, 0, 200)
 		require.Nil(t, appErr)
 		require.Empty(t, comments)
 	})
@@ -36,13 +36,13 @@ func TestGetPageComments(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, comment2)
 
-		comments, appErr := th.App.GetPageComments(rctx, page.Id)
+		comments, appErr := th.App.GetPageComments(rctx, page.Id, 0, 200)
 		require.Nil(t, appErr)
 		require.Len(t, comments, 2)
 	})
 
 	t.Run("fail for non-existent page", func(t *testing.T) {
-		comments, appErr := th.App.GetPageComments(rctx, model.NewId())
+		comments, appErr := th.App.GetPageComments(rctx, model.NewId(), 0, 200)
 		require.NotNil(t, appErr)
 		require.Nil(t, comments)
 	})

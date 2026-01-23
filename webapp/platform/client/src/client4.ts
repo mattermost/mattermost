@@ -2226,7 +2226,7 @@ export default class Client4 {
         }
         return this.doFetch<StatusOK>(
             `${this.getWikiPageRoute(sourceWikiId, pageId)}/move`,
-            {method: 'put', body: JSON.stringify(body)},
+            {method: 'post', body: JSON.stringify(body)},
         );
     };
 

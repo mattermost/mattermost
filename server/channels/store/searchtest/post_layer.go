@@ -303,6 +303,16 @@ var searchPostStoreTests = []searchTest{
 		Fn:   testSearchPagesWithChannelModifiers,
 		Tags: []string{EnginePostgres},
 	},
+	{
+		Name: "type: modifier filters by content type",
+		Fn:   testSearchTypeModifier,
+		Tags: []string{EnginePostgres},
+	},
+	{
+		Name: "wiki: modifier filters by wiki",
+		Fn:   testSearchWikiModifier,
+		Tags: []string{EnginePostgres},
+	},
 }
 
 func TestSearchPostStore(t *testing.T, s store.Store, testEngine *SearchTestEngine) {
@@ -2450,5 +2460,307 @@ func testSearchPagesWithChannelModifiers(t *testing.T, th *SearchTestHelper) {
 		th.checkPostInSearchResults(t, regularPost2.Id, results.Posts)
 		th.checkPostInSearchResults(t, wikiPage1.Id, results.Posts)
 		th.checkPostInSearchResults(t, wikiPage2.Id, results.Posts)
+	})
+}
+
+func testSearchTypeModifier(t *testing.T, th *SearchTestHelper) {
+	// Create a regular post
+	regularPost, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "TypeModifierTestContent regular post", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	defer th.deleteUserPosts(th.User.Id)
+
+	// Create a wiki page
+	wikiPage, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "", "", model.PostTypePage, 0, false)
+	require.NoError(t, err)
+
+	pageContent := &model.PageContent{
+		PageId: wikiPage.Id,
+		Content: model.TipTapDocument{
+			Type: "doc",
+			Content: []map[string]any{
+				{
+					"type": "paragraph",
+					"content": []map[string]any{
+						{
+							"type": "text",
+							"text": "TypeModifierTestContent wiki page",
+						},
+					},
+				},
+			},
+		},
+		CreateAt: model.GetMillis(),
+		UpdateAt: model.GetMillis(),
+	}
+	_, err = th.Store.Page().SavePageContent(pageContent)
+	require.NoError(t, err)
+
+	t.Run("type:page returns only pages", func(t *testing.T) {
+		params := &model.SearchParams{
+			Terms:     "TypeModifierTestContent",
+			PostTypes: []string{"page"},
+		}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, wikiPage.Id, results.Posts)
+	})
+
+	t.Run("type:post returns only regular posts", func(t *testing.T) {
+		params := &model.SearchParams{
+			Terms:     "TypeModifierTestContent",
+			PostTypes: []string{"post"},
+		}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, regularPost.Id, results.Posts)
+	})
+
+	t.Run("-type:page excludes pages", func(t *testing.T) {
+		params := &model.SearchParams{
+			Terms:             "TypeModifierTestContent",
+			ExcludedPostTypes: []string{"page"},
+		}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, regularPost.Id, results.Posts)
+	})
+
+	t.Run("-type:post excludes regular posts", func(t *testing.T) {
+		params := &model.SearchParams{
+			Terms:             "TypeModifierTestContent",
+			ExcludedPostTypes: []string{"post"},
+		}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, wikiPage.Id, results.Posts)
+	})
+
+	t.Run("type:page type:post returns both (OR logic)", func(t *testing.T) {
+		params := &model.SearchParams{
+			Terms:     "TypeModifierTestContent",
+			PostTypes: []string{"page", "post"},
+		}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 2)
+		th.checkPostInSearchResults(t, regularPost.Id, results.Posts)
+		th.checkPostInSearchResults(t, wikiPage.Id, results.Posts)
+	})
+
+	t.Run("unknown type is silently ignored", func(t *testing.T) {
+		params := &model.SearchParams{
+			Terms:     "TypeModifierTestContent",
+			PostTypes: []string{"unknown"},
+		}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		// Unknown type is silently ignored, returns all results (posts + pages)
+		require.Len(t, results.Posts, 2)
+		th.checkPostInSearchResults(t, regularPost.Id, results.Posts)
+		th.checkPostInSearchResults(t, wikiPage.Id, results.Posts)
+	})
+
+	t.Run("type modifier is case insensitive", func(t *testing.T) {
+		params := &model.SearchParams{
+			Terms:     "TypeModifierTestContent",
+			PostTypes: []string{"PAGE"},
+		}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, wikiPage.Id, results.Posts)
+	})
+
+	t.Run("type:page combined with in: modifier", func(t *testing.T) {
+		params := &model.SearchParams{
+			Terms:      "TypeModifierTestContent",
+			PostTypes:  []string{"page"},
+			InChannels: []string{th.ChannelBasic.Id},
+		}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, wikiPage.Id, results.Posts)
+	})
+}
+
+func testSearchWikiModifier(t *testing.T, th *SearchTestHelper) {
+	// Create two wikis
+	wiki1 := &model.Wiki{
+		ChannelId: th.ChannelBasic.Id,
+		Title:     "ProductDocs",
+	}
+	wiki1, err := th.Store.Wiki().Save(wiki1)
+	require.NoError(t, err)
+	defer func() {
+		_ = th.Store.Wiki().Delete(wiki1.Id, true)
+	}()
+
+	wiki2 := &model.Wiki{
+		ChannelId: th.ChannelBasic.Id,
+		Title:     "EngineeringNotes",
+	}
+	wiki2, err = th.Store.Wiki().Save(wiki2)
+	require.NoError(t, err)
+	defer func() {
+		_ = th.Store.Wiki().Delete(wiki2.Id, true)
+	}()
+
+	// Create a page in wiki1
+	page1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "", "", model.PostTypePage, 0, false)
+	require.NoError(t, err)
+	defer th.deleteUserPosts(th.User.Id)
+
+	// Set wiki_id in props
+	err = th.Store.Wiki().SetWikiIdInPostProps(page1.Id, wiki1.Id)
+	require.NoError(t, err)
+
+	pageContent1 := &model.PageContent{
+		PageId: page1.Id,
+		Content: model.TipTapDocument{
+			Type: "doc",
+			Content: []map[string]any{
+				{
+					"type": "paragraph",
+					"content": []map[string]any{
+						{
+							"type": "text",
+							"text": "WikiModifierTestContent in product docs",
+						},
+					},
+				},
+			},
+		},
+		CreateAt: model.GetMillis(),
+		UpdateAt: model.GetMillis(),
+	}
+	_, err = th.Store.Page().SavePageContent(pageContent1)
+	require.NoError(t, err)
+
+	// Create a page in wiki2
+	page2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "", "", model.PostTypePage, 0, false)
+	require.NoError(t, err)
+
+	// Set wiki_id in props
+	err = th.Store.Wiki().SetWikiIdInPostProps(page2.Id, wiki2.Id)
+	require.NoError(t, err)
+
+	pageContent2 := &model.PageContent{
+		PageId: page2.Id,
+		Content: model.TipTapDocument{
+			Type: "doc",
+			Content: []map[string]any{
+				{
+					"type": "paragraph",
+					"content": []map[string]any{
+						{
+							"type": "text",
+							"text": "WikiModifierTestContent in engineering notes",
+						},
+					},
+				},
+			},
+		},
+		CreateAt: model.GetMillis(),
+		UpdateAt: model.GetMillis(),
+	}
+	_, err = th.Store.Page().SavePageContent(pageContent2)
+	require.NoError(t, err)
+
+	t.Run("wiki: modifier filters by wiki name", func(t *testing.T) {
+		params := &model.SearchParams{
+			Terms:     "WikiModifierTestContent",
+			WikiNames: []string{"ProductDocs"},
+		}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, page1.Id, results.Posts)
+	})
+
+	t.Run("wiki: modifier filters by wiki ID", func(t *testing.T) {
+		params := &model.SearchParams{
+			Terms:     "WikiModifierTestContent",
+			WikiNames: []string{wiki2.Id},
+		}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, page2.Id, results.Posts)
+	})
+
+	t.Run("-wiki: modifier excludes wiki", func(t *testing.T) {
+		params := &model.SearchParams{
+			Terms:             "WikiModifierTestContent",
+			ExcludedWikiNames: []string{"ProductDocs"},
+		}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, page2.Id, results.Posts)
+	})
+
+	t.Run("wiki: modifier is case insensitive", func(t *testing.T) {
+		params := &model.SearchParams{
+			Terms:     "WikiModifierTestContent",
+			WikiNames: []string{"productdocs"},
+		}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, page1.Id, results.Posts)
+	})
+
+	t.Run("nonexistent wiki returns empty results", func(t *testing.T) {
+		params := &model.SearchParams{
+			Terms:     "WikiModifierTestContent",
+			WikiNames: []string{"NonexistentWiki"},
+		}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 0)
+	})
+
+	t.Run("wiki: modifier combined with type:page", func(t *testing.T) {
+		params := &model.SearchParams{
+			Terms:     "WikiModifierTestContent",
+			WikiNames: []string{"ProductDocs"},
+			PostTypes: []string{"page"},
+		}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, page1.Id, results.Posts)
+	})
+
+	t.Run("multiple wiki: returns pages from either (OR logic)", func(t *testing.T) {
+		params := &model.SearchParams{
+			Terms:     "WikiModifierTestContent",
+			WikiNames: []string{"ProductDocs", "EngineeringNotes"},
+		}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 2)
+		th.checkPostInSearchResults(t, page1.Id, results.Posts)
+		th.checkPostInSearchResults(t, page2.Id, results.Posts)
 	})
 }

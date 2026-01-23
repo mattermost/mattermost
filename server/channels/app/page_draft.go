@@ -303,11 +303,13 @@ func (a *App) MovePageDraft(rctx request.CTX, userId, wikiId, pageId, newParentI
 	return nil
 }
 
-// GetPageDraftsForWiki fetches all page drafts for a wiki from both tables
-func (a *App) GetPageDraftsForWiki(rctx request.CTX, userId, wikiId string) ([]*model.PageDraft, *model.AppError) {
+// GetPageDraftsForWiki fetches page drafts for a wiki from both tables with pagination
+func (a *App) GetPageDraftsForWiki(rctx request.CTX, userId, wikiId string, offset, limit int) ([]*model.PageDraft, *model.AppError) {
 	rctx.Logger().Debug("Getting page drafts for wiki",
 		mlog.String("user_id", userId),
-		mlog.String("wiki_id", wikiId))
+		mlog.String("wiki_id", wikiId),
+		mlog.Int("offset", offset),
+		mlog.Int("limit", limit))
 
 	wiki, wikiErr := a.GetWiki(rctx, wikiId)
 	if wikiErr != nil {
@@ -324,7 +326,7 @@ func (a *App) GetPageDraftsForWiki(rctx request.CTX, userId, wikiId string) ([]*
 	}
 
 	// Fetch content from PageContents table with status='draft'
-	contents, err := a.Srv().Store().Draft().GetPageDraftsForUser(userId, wikiId)
+	contents, err := a.Srv().Store().Draft().GetPageDraftsForUser(userId, wikiId, offset, limit)
 	if err != nil {
 		rctx.Logger().Error("Failed to get page draft contents for wiki",
 			mlog.String("user_id", userId),
@@ -413,11 +415,11 @@ func (a *App) validateParentPage(rctx request.CTX, parentId string, wiki *model.
 
 	parentPage, err := a.GetPage(rctx, parentId)
 	if err != nil {
-		return model.NewAppError("validateParentPage", "api.page.publish.parent_not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		return model.NewAppError("validateParentPage", "app.page.publish.parent_not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
 	}
 
-	if parentPage.ChannelId() != wiki.ChannelId {
-		return model.NewAppError("validateParentPage", "api.page.publish.parent_different_channel.app_error", nil, "", http.StatusBadRequest)
+	if parentPage.ChannelId != wiki.ChannelId {
+		return model.NewAppError("validateParentPage", "app.page.publish.parent_different_channel.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
@@ -470,7 +472,7 @@ func (a *App) validateCircularReference(rctx request.CTX, pageId, parentId strin
 	}
 
 	if _, exists := ancestors.Posts[pageId]; exists {
-		return model.NewAppError("validateCircularReference", "api.page.publish.circular_reference.app_error",
+		return model.NewAppError("validateCircularReference", "app.page.publish.circular_reference.app_error",
 			nil, "pageId="+pageId+", parentId="+parentId, http.StatusBadRequest)
 	}
 
@@ -498,9 +500,7 @@ func (a *App) applyDraftPageStatus(rctx request.CTX, page *model.Post, draft *mo
 		return nil
 	}
 
-	// Wrap the post in a Page - we know it's a page since we just created/updated it
-	pageWrapper := NewPageFromValidatedPost(page)
-	if err := a.SetPageStatus(rctx, pageWrapper, statusValue); err != nil {
+	if err := a.SetPageStatus(rctx, page, statusValue); err != nil {
 		rctx.Logger().Error("Failed to set page status from draft props",
 			mlog.String("page_id", page.Id),
 			mlog.String("status", statusValue),
@@ -532,7 +532,7 @@ func (a *App) updatePageFromDraft(rctx request.CTX, pageId, wikiId, parentId, ti
 		return nil, err
 	}
 
-	if parentId != page.PageParentId() {
+	if parentId != page.PageParentId {
 		if parentErr := a.ChangePageParent(rctx, pageId, parentId); parentErr != nil {
 			return nil, parentErr
 		}
@@ -696,6 +696,54 @@ func (a *App) BroadcastWikiUpdated(wiki *model.Wiki) {
 	a.Publish(message)
 }
 
+// BroadcastWikiMoved broadcasts wiki move events to both source and target channels.
+// Source channel users will see the wiki removed, target channel users will see it added.
+func (a *App) BroadcastWikiMoved(wiki *model.Wiki, sourceChannelId, targetChannelId string) {
+	// Broadcast to source channel - wiki is being removed
+	sourceMessage := model.NewWebSocketEvent(model.WebsocketEventWikiMoved, "", sourceChannelId, "", nil, "")
+	sourceMessage.Add("wiki_id", wiki.Id)
+	sourceMessage.Add("source_channel_id", sourceChannelId)
+	sourceMessage.Add("target_channel_id", targetChannelId)
+	sourceMessage.Add("title", wiki.Title)
+	sourceMessage.Add("action", "removed")
+	sourceMessage.SetBroadcast(&model.WebsocketBroadcast{
+		ChannelId:           sourceChannelId,
+		ReliableClusterSend: true,
+	})
+	a.Publish(sourceMessage)
+
+	// Broadcast to target channel - wiki is being added
+	targetMessage := model.NewWebSocketEvent(model.WebsocketEventWikiMoved, "", targetChannelId, "", nil, "")
+	targetMessage.Add("wiki_id", wiki.Id)
+	targetMessage.Add("source_channel_id", sourceChannelId)
+	targetMessage.Add("target_channel_id", targetChannelId)
+	targetMessage.Add("channel_id", targetChannelId)
+	targetMessage.Add("title", wiki.Title)
+	targetMessage.Add("description", wiki.Description)
+	targetMessage.Add("create_at", wiki.CreateAt)
+	targetMessage.Add("update_at", wiki.UpdateAt)
+	targetMessage.Add("sort_order", wiki.SortOrder)
+	targetMessage.Add("action", "added")
+	targetMessage.SetBroadcast(&model.WebsocketBroadcast{
+		ChannelId:           targetChannelId,
+		ReliableClusterSend: true,
+	})
+	a.Publish(targetMessage)
+}
+
+// BroadcastWikiDeleted broadcasts wiki deletion to all clients with access to the channel.
+func (a *App) BroadcastWikiDeleted(wiki *model.Wiki) {
+	message := model.NewWebSocketEvent(model.WebsocketEventWikiDeleted, "", wiki.ChannelId, "", nil, "")
+	message.Add("wiki_id", wiki.Id)
+	message.Add("channel_id", wiki.ChannelId)
+	message.Add("title", wiki.Title)
+	message.SetBroadcast(&model.WebsocketBroadcast{
+		ChannelId:           wiki.ChannelId,
+		ReliableClusterSend: true,
+	})
+	a.Publish(message)
+}
+
 // BroadcastPageDraftUpdated broadcasts a draft update to all clients with access to the channel.
 // This notifies other users of active editors and draft content changes.
 func (a *App) BroadcastPageDraftUpdated(channelId string, draft *model.PageDraft) {
@@ -768,7 +816,7 @@ func (a *App) PublishPageDraft(rctx request.CTX, userId string, opts model.Publi
 	var originalContent *model.PageContent
 	var originalParentId string
 	if !isNewPage {
-		originalParentId = existingPage.PageParentId()
+		originalParentId = existingPage.PageParentId
 		// Save original content from PageContents table
 		if content, contentErr := a.Srv().Store().Page().GetPageContent(opts.PageId); contentErr == nil {
 			originalContent = content

@@ -752,6 +752,8 @@ export const SocketEvents = {
     PAGE_MOVED: 'page_moved',
     WIKI_CREATED: 'wiki_created',
     WIKI_UPDATED: 'wiki_updated',
+    WIKI_MOVED: 'wiki_moved',
+    WIKI_DELETED: 'wiki_deleted',
     PAGE_DRAFT_CREATED: 'page_draft_created',
     PAGE_DRAFT_UPDATED: 'page_draft_updated',
     PAGE_DRAFT_DELETED: 'page_draft_deleted',

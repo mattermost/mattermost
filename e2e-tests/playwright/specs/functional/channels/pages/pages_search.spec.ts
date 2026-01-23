@@ -212,3 +212,175 @@ test('searches pages by content using global search', {tag: '@pages'}, async ({p
     await expect(pageContent).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await expect(pageContent).toContainText(uniqueContent);
 });
+
+/**
+ * @objective Verify type:page modifier filters search results to only show pages
+ */
+test('type:page modifier filters to pages only', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
+
+    // # Create wiki and page with unique content
+    await createWikiThroughUI(page, `TypeModifier Wiki ${await pw.random.id()}`);
+    const uniqueKeyword = `TypeFilterTest${await pw.random.id()}`;
+    await createPageThroughUI(page, `Page with ${uniqueKeyword}`, `Content ${uniqueKeyword}`);
+
+    // # Create a regular post with the same keyword
+    await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
+    await channelsPage.postMessage(`Regular post with ${uniqueKeyword}`);
+
+    // # Wait for indexing
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
+
+    // # Search with type:page modifier
+    await channelsPage.globalHeader.openSearch();
+    const {searchInput} = channelsPage.searchBox;
+    await searchInput.fill(`type:page ${uniqueKeyword}`);
+    await searchInput.press('Enter');
+
+    // * Verify search results appear
+    await channelsPage.sidebarRight.toBeVisible();
+
+    // * Verify only pages appear (should have Wiki Page indicator)
+    const searchResultContainer = page.locator('[data-testid="search-item-container"]').first();
+    await expect(searchResultContainer).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    const pageIndicator = searchResultContainer.locator('.search-item__page-indicator');
+    await expect(pageIndicator).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // * Verify the regular post is NOT in results (only one result which is a page)
+    const allResults = page.locator('[data-testid="search-item-container"]');
+    const count = await allResults.count();
+    expect(count).toBe(1);
+});
+
+/**
+ * @objective Verify -type:page modifier excludes pages from search results
+ */
+test('-type:page modifier excludes pages', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
+
+    // # Create wiki and page with unique content
+    await createWikiThroughUI(page, `ExcludeType Wiki ${await pw.random.id()}`);
+    const uniqueKeyword = `ExcludeTypeTest${await pw.random.id()}`;
+    await createPageThroughUI(page, `Page with ${uniqueKeyword}`, `Content ${uniqueKeyword}`);
+
+    // # Create a regular post with the same keyword
+    await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
+    await channelsPage.postMessage(`Regular post with ${uniqueKeyword}`);
+
+    // # Wait for indexing
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
+
+    // # Search with -type:page modifier (exclude pages)
+    await channelsPage.globalHeader.openSearch();
+    const {searchInput} = channelsPage.searchBox;
+    await searchInput.fill(`-type:page ${uniqueKeyword}`);
+    await searchInput.press('Enter');
+
+    // * Verify search results appear
+    await channelsPage.sidebarRight.toBeVisible();
+
+    // * Verify no Wiki Page indicator (regular post only)
+    const searchResultContainer = page.locator('[data-testid="search-item-container"]').first();
+    await expect(searchResultContainer).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    const pageIndicator = searchResultContainer.locator('.search-item__page-indicator');
+    await expect(pageIndicator).not.toBeVisible();
+
+    // * Verify result contains the regular post text
+    await expect(searchResultContainer).toContainText(`Regular post with ${uniqueKeyword}`);
+});
+
+/**
+ * @objective Verify wiki: modifier filters search results to a specific wiki
+ */
+test('wiki: modifier filters by wiki name', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
+
+    // # Create first wiki with a page
+    const wiki1Name = `ProductDocs${await pw.random.id()}`;
+    await createWikiThroughUI(page, wiki1Name);
+    const uniqueKeyword = `WikiFilterTest${await pw.random.id()}`;
+    await createPageThroughUI(page, `Page in ${wiki1Name}`, `Content ${uniqueKeyword} in product docs`);
+
+    // # Navigate back to channel and create second wiki with a page
+    await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
+    const wiki2Name = `EngineeringNotes${await pw.random.id()}`;
+    await createWikiThroughUI(page, wiki2Name);
+    await createPageThroughUI(page, `Page in ${wiki2Name}`, `Content ${uniqueKeyword} in engineering notes`);
+
+    // # Wait for indexing
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
+
+    // # Search with wiki: modifier for first wiki only
+    await channelsPage.globalHeader.openSearch();
+    const {searchInput} = channelsPage.searchBox;
+    await searchInput.fill(`wiki:${wiki1Name} ${uniqueKeyword}`);
+    await searchInput.press('Enter');
+
+    // * Verify search results appear
+    await channelsPage.sidebarRight.toBeVisible();
+
+    // * Verify only pages from wiki1 appear
+    const searchResultContainer = page.locator('[data-testid="search-item-container"]').first();
+    await expect(searchResultContainer).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await expect(searchResultContainer).toContainText(`Page in ${wiki1Name}`);
+
+    // * Verify only one result (page from wiki1 only)
+    const allResults = page.locator('[data-testid="search-item-container"]');
+    const count = await allResults.count();
+    expect(count).toBe(1);
+});
+
+/**
+ * @objective Verify combined type:page and wiki: modifiers work together
+ */
+test('combined type:page wiki: modifiers', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
+
+    // # Create wiki with a page
+    const wikiName = `CombinedWiki${await pw.random.id()}`;
+    await createWikiThroughUI(page, wikiName);
+    const uniqueKeyword = `CombinedTest${await pw.random.id()}`;
+    await createPageThroughUI(page, `Combined Test Page`, `Content ${uniqueKeyword}`);
+
+    // # Wait for indexing
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
+
+    // # Search with both type:page and wiki: modifiers
+    await channelsPage.globalHeader.openSearch();
+    const {searchInput} = channelsPage.searchBox;
+    await searchInput.fill(`type:page wiki:${wikiName} ${uniqueKeyword}`);
+    await searchInput.press('Enter');
+
+    // * Verify search results appear
+    await channelsPage.sidebarRight.toBeVisible();
+
+    // * Verify result is a page from the specified wiki
+    const searchResultContainer = page.locator('[data-testid="search-item-container"]').first();
+    await expect(searchResultContainer).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    const pageIndicator = searchResultContainer.locator('.search-item__page-indicator');
+    await expect(pageIndicator).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await expect(searchResultContainer).toContainText('Combined Test Page');
+});

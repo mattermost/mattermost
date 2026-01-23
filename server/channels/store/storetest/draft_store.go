@@ -1514,13 +1514,13 @@ func testGetPageDraftsForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 			time.Sleep(10 * time.Millisecond) // ensure different UpdateAt
 		}
 
-		drafts, err := ss.Draft().GetPageDraftsForUser(userId, wikiId)
+		drafts, err := ss.Draft().GetPageDraftsForUser(userId, wikiId, 0, 200)
 		require.NoError(t, err)
 		assert.GreaterOrEqual(t, len(drafts), 3)
 	})
 
 	t.Run("returns empty slice for user with no drafts", func(t *testing.T) {
-		drafts, err := ss.Draft().GetPageDraftsForUser(model.NewId(), model.NewId())
+		drafts, err := ss.Draft().GetPageDraftsForUser(model.NewId(), model.NewId(), 0, 200)
 		require.NoError(t, err)
 		assert.Len(t, drafts, 0)
 	})

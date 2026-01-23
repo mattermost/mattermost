@@ -213,6 +213,9 @@ test('inserts heading 1 when selected from slash command menu', {tag: '@pages'},
     // * Verify "Heading 1" placeholder text is inserted and selected
     await verifyEditorElement(editor, 'h1', 'Heading 1');
 
+    // # Wait for editor to be fully ready before typing
+    await page.waitForTimeout(UI_MICRO_WAIT * 2);
+
     // # Type to replace the selected placeholder text
     await page.keyboard.type('Test Heading');
 

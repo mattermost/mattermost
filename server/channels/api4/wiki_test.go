@@ -505,7 +505,7 @@ func TestCrossChannelAccess(t *testing.T) {
 
 		appErr = th.App.AddPageToWiki(th.Context, pageInChannel1.Id, wiki2.Id)
 		require.NotNil(t, appErr)
-		require.Equal(t, "api.wiki.add.channel_mismatch", appErr.Id)
+		require.Equal(t, "app.wiki.add.channel_mismatch", appErr.Id)
 	})
 }
 
@@ -1496,7 +1496,7 @@ func TestPageCommentsE2E(t *testing.T) {
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 
-		commentsForPage, appErr := th.App.Srv().Store().Page().GetCommentsForPage(testPage2.Id, false)
+		commentsForPage, appErr := th.App.Srv().Store().Page().GetCommentsForPage(testPage2.Id, false, 0, 100)
 		require.NoError(t, appErr)
 		require.NotNil(t, commentsForPage)
 

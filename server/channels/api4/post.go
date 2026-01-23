@@ -1056,8 +1056,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Pages use page-specific permissions; regular posts use generic edit permission
 	var isMember bool
 	if app.RequiresPageModifyPermission(originalPost) {
-		pageWrapper := app.NewPageFromValidatedPost(originalPost)
-		if !c.CheckPagePermission(pageWrapper, app.PageOperationEdit) {
+		if !c.CheckPagePermission(originalPost, app.PageOperationEdit) {
 			return
 		}
 		// For pages, we consider the user a member if they have permission
@@ -1202,8 +1201,7 @@ func postPatchChecks(c *Context, auditRec *model.AuditRecord, message *string) b
 	// Pages use page-specific permissions; regular posts use generic edit permission
 	var isMember bool
 	if app.RequiresPageModifyPermission(originalPost) {
-		pageWrapper := app.NewPageFromValidatedPost(originalPost)
-		if !c.CheckPagePermission(pageWrapper, app.PageOperationEdit) {
+		if !c.CheckPagePermission(originalPost, app.PageOperationEdit) {
 			return false
 		}
 		// For pages, we consider the user a member if they have permission
@@ -1686,8 +1684,7 @@ func restorePostVersion(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Pages use page-specific permissions; regular posts require ownership
 	if app.RequiresPageModifyPermission(toRestorePost) {
-		pageWrapper := app.NewPageFromValidatedPost(toRestorePost)
-		if !c.CheckPagePermission(pageWrapper, app.PageOperationEdit) {
+		if !c.CheckPagePermission(toRestorePost, app.PageOperationEdit) {
 			return
 		}
 	} else {

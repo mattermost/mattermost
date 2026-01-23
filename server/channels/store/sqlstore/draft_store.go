@@ -645,7 +645,7 @@ func (s *SqlDraftStore) PageDraftExists(pageId, userId string) (bool, int64, err
 	query := s.getQueryBuilder().
 		Select("UpdateAt").
 		From("PageContents").
-		Where(sq.Eq{"PageId": pageId, "UserId": userId})
+		Where(sq.Eq{"PageId": pageId, "UserId": userId, "DeleteAt": 0})
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -875,8 +875,9 @@ func (s *SqlDraftStore) GetPageDraft(pageId, userId string) (*model.PageContent,
 		).
 		From("PageContents").
 		Where(sq.Eq{
-			"PageId": pageId,
-			"UserId": userId,
+			"PageId":   pageId,
+			"UserId":   userId,
+			"DeleteAt": 0,
 		})
 
 	queryString, args, err := query.ToSql()
@@ -936,8 +937,8 @@ func (s *SqlDraftStore) DeletePageDraft(pageId, userId string) error {
 	return s.checkRowsAffected(result, "PageContent", pageId)
 }
 
-// GetPageDraftsForUser retrieves all drafts for a user in a wiki
-func (s *SqlDraftStore) GetPageDraftsForUser(userId, wikiId string) ([]*model.PageContent, error) {
+// GetPageDraftsForUser retrieves drafts for a user in a wiki with pagination
+func (s *SqlDraftStore) GetPageDraftsForUser(userId, wikiId string, offset, limit int) ([]*model.PageContent, error) {
 	// UserId != '' means it's a draft (status derived from UserId)
 	// We query by specific userId which is non-empty, so we're getting drafts
 	// Include EXISTS subquery to check if a published version exists for each draft
@@ -948,10 +949,16 @@ func (s *SqlDraftStore) GetPageDraftsForUser(userId, wikiId string) ([]*model.Pa
 		).
 		From("PageContents").
 		Where(sq.Eq{
-			"UserId": userId,
-			"WikiId": wikiId,
+			"UserId":   userId,
+			"WikiId":   wikiId,
+			"DeleteAt": 0,
 		}).
 		OrderBy("UpdateAt DESC")
+
+	// Apply pagination if limit > 0
+	if limit > 0 {
+		query = query.Offset(uint64(offset)).Limit(uint64(limit))
+	}
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -1018,6 +1025,7 @@ func (s *SqlDraftStore) GetActiveEditorsForPage(pageId string, minUpdateAt int64
 			sq.Eq{"PageId": pageId},
 			sq.NotEq{"UserId": ""},
 			sq.GtOrEq{"UpdateAt": minUpdateAt},
+			sq.Eq{"DeleteAt": 0},
 		})
 
 	queryString, args, err := query.ToSql()

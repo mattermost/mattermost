@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"database/sql"
 	"strconv"
+	"strings"
 
 	"github.com/lib/pq"
 	sq "github.com/mattermost/squirrel"
@@ -595,6 +596,37 @@ func (s *SqlWikiStore) MovePageToWiki(pageId, targetWikiId string, parentPageId 
 			return errors.Wrap(propsErr, "failed to update wiki_id in Post.Props for page subtree")
 		}
 
+		// Update wiki_id in Props for top-level comments (comments where RootId is a page in the subtree)
+		updateTopLevelCommentsQuery := s.getQueryBuilder().
+			Update("Posts").
+			Set("Props", sq.Expr("jsonb_set(COALESCE(Props, '{}'::jsonb), ?, ?::jsonb)", jsonKeyPath("wiki_id"), valueJSON)).
+			Set("UpdateAt", updateAt).
+			Where(sq.Eq{
+				"Type":     model.PostTypePageComment,
+				"RootId":   pageIDs,
+				"DeleteAt": 0,
+			})
+
+		if _, commentsErr := transaction.ExecBuilder(updateTopLevelCommentsQuery); commentsErr != nil {
+			return errors.Wrap(commentsErr, "failed to update wiki_id in Props for top-level comments")
+		}
+
+		// Update wiki_id in Props for inline comments (RootId is empty, page_id is in Props)
+		updateInlineCommentsQuery := s.getQueryBuilder().
+			Update("Posts").
+			Set("Props", sq.Expr("jsonb_set(COALESCE(Props, '{}'::jsonb), ?, ?::jsonb)", jsonKeyPath("wiki_id"), valueJSON)).
+			Set("UpdateAt", updateAt).
+			Where(sq.Eq{
+				"Type":     model.PostTypePageComment,
+				"RootId":   "",
+				"DeleteAt": 0,
+			}).
+			Where(sq.Expr("Props->>'page_id' = ANY(?)", pq.Array(pageIDs)))
+
+		if _, inlineErr := transaction.ExecBuilder(updateInlineCommentsQuery); inlineErr != nil {
+			return errors.Wrap(inlineErr, "failed to update wiki_id in Props for inline comments")
+		}
+
 		return nil
 	})
 }
@@ -721,7 +753,8 @@ func (s *SqlWikiStore) MoveWikiToChannel(wikiId string, targetChannelId string, 
 			"DeleteAt": 0,
 		})
 
-	if getErr := s.GetReplica().GetBuilder(&updatedWiki, getQuery); getErr != nil {
+	// Use GetMaster() to read the data we just wrote - replicas may have lag in HA setups
+	if getErr := s.GetMaster().GetBuilder(&updatedWiki, getQuery); getErr != nil {
 		if getErr == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Wiki", wikiId)
 		}
@@ -752,4 +785,64 @@ func (s *SqlWikiStore) SetWikiIdInPostProps(pageId, wikiId string) error {
 	}
 
 	return nil
+}
+
+// ResolveNamesToIDs converts wiki names/IDs to wiki IDs.
+// Supports both direct wiki IDs and case-insensitive name matching.
+// Team scoping is applied when teamId is provided.
+func (s *SqlWikiStore) ResolveNamesToIDs(names []string, teamId string) ([]string, error) {
+	if len(names) == 0 {
+		return []string{}, nil
+	}
+
+	// Separate potential IDs from names
+	var potentialIDs []string
+	var lowerNames []string
+	for _, name := range names {
+		if model.IsValidId(name) {
+			potentialIDs = append(potentialIDs, name)
+		}
+		lowerNames = append(lowerNames, strings.ToLower(name))
+	}
+
+	// Build query to resolve names to IDs
+	query := s.getQueryBuilder().
+		Select("DISTINCT w.Id").
+		From("Wikis w").
+		Join("Channels c ON w.ChannelId = c.Id").
+		Where(sq.Eq{"w.DeleteAt": 0})
+
+	// Match by ID or by title (case-insensitive)
+	var conditions []sq.Sqlizer
+	if len(potentialIDs) > 0 {
+		conditions = append(conditions, sq.Eq{"w.Id": potentialIDs})
+	}
+	if len(lowerNames) > 0 {
+		conditions = append(conditions, sq.Expr("LOWER(w.Title) IN ("+sq.Placeholders(len(lowerNames))+")", stringSliceToInterface(lowerNames)...))
+	}
+
+	if len(conditions) > 0 {
+		query = query.Where(sq.Or(conditions))
+	}
+
+	// Apply team filter if provided
+	if teamId != "" {
+		query = query.Where(sq.Eq{"c.TeamId": teamId})
+	}
+
+	var wikiIDs []string
+	if err := s.GetReplica().SelectBuilder(&wikiIDs, query); err != nil {
+		return nil, errors.Wrap(err, "failed to resolve wiki names to IDs")
+	}
+
+	return wikiIDs, nil
+}
+
+// stringSliceToInterface converts a string slice to an any slice for SQL placeholders.
+func stringSliceToInterface(s []string) []any {
+	result := make([]any, len(s))
+	for i, v := range s {
+		result[i] = v
+	}
+	return result
 }

@@ -8,6 +8,7 @@ import {
     createPageThroughUI,
     createChildPageThroughContextMenu,
     createTestChannel,
+    createTestUserInChannel,
     ensurePanelOpen,
     getNewPageButton,
     fillCreatePageModal,
@@ -883,3 +884,536 @@ test(
         // This verifies the websocket event handling fix is working correctly
     },
 );
+
+// =============================================================================
+// SINGLE USER SAME PAGE - DRAFT UPSERT TESTS
+// These tests verify the "one draft per page per user" constraint
+// =============================================================================
+
+/**
+ * @objective Verify that editing a draft multiple times updates the same draft (upsert, not insert)
+ *
+ * This test ensures the critical invariant: one draft per page per user
+ */
+test(
+    'updates existing draft instead of creating duplicate when editing multiple times',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+
+        const {page, channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
+
+        // # Create wiki through UI
+        const wiki = await createWikiThroughUI(page, `Upsert Test Wiki ${await pw.random.id()}`);
+
+        // # Create and publish a page first
+        await createPageThroughUI(page, 'Page To Edit Multiple Times', 'Original content');
+
+        // # First edit - create draft
+        await clickPageInHierarchy(page, 'Page To Edit Multiple Times');
+        await enterEditMode(page);
+        const editor = await getEditorAndWait(page);
+        await editor.click();
+        await clearEditorContent(page);
+        await typeInEditor(page, 'First edit content');
+        await page.waitForTimeout(AUTOSAVE_WAIT);
+
+        // # Navigate away
+        await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
+        await ensurePanelOpen(page);
+
+        // # Second edit - should update existing draft, not create new one
+        await clickPageInHierarchy(page, 'Page To Edit Multiple Times');
+        await enterEditMode(page);
+        const editor2 = await getEditorAndWait(page);
+        await editor2.click();
+        await clearEditorContent(page);
+        await typeInEditor(page, 'Second edit content');
+        await page.waitForTimeout(AUTOSAVE_WAIT);
+
+        // # Navigate away again
+        await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
+        await ensurePanelOpen(page);
+
+        // # Third edit - should still be the same draft
+        await clickPageInHierarchy(page, 'Page To Edit Multiple Times');
+        await enterEditMode(page);
+        const editor3 = await getEditorAndWait(page);
+        await editor3.click();
+        await clearEditorContent(page);
+        await typeInEditor(page, 'Third edit content');
+        await page.waitForTimeout(AUTOSAVE_WAIT);
+
+        // # Navigate to wiki view to check hierarchy
+        await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
+        await ensurePanelOpen(page);
+
+        // * Verify only ONE page node exists (published page with unpublished changes)
+        const hierarchyPanel = getHierarchyPanel(page);
+        const pageNodes = hierarchyPanel.locator('[data-testid="page-tree-node"]').filter({
+            hasText: 'Page To Edit Multiple Times',
+        });
+        const nodeCount = await pageNodes.count();
+        expect(nodeCount).toBe(1);
+
+        // * Verify no duplicate draft nodes
+        const draftNodes = hierarchyPanel.locator('[data-testid="page-tree-node"][data-is-draft="true"]').filter({
+            hasText: 'Page To Edit Multiple Times',
+        });
+        const draftCount = await draftNodes.count();
+        expect(draftCount).toBe(0); // For published pages with unpublished changes, no separate draft node
+
+        // # Click on the page and verify it shows "Unpublished changes"
+        await clickPageInHierarchy(page, 'Page To Edit Multiple Times');
+        const unpublishedIndicator = page.locator('[data-testid="wiki-page-unpublished-indicator"]');
+        await expect(unpublishedIndicator).toBeVisible();
+
+        // # Enter edit mode and verify content is from the LAST edit
+        await enterEditMode(page);
+        const finalEditor = await getEditorAndWait(page);
+        await expect(finalEditor).toContainText('Third edit content');
+        await expect(finalEditor).not.toContainText('First edit content');
+        await expect(finalEditor).not.toContainText('Second edit content');
+    },
+);
+
+/**
+ * @objective Verify that a never-published draft maintains single instance across multiple edits
+ */
+test(
+    'maintains single draft instance for never-published page across multiple edits',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+
+        const {page, channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
+
+        // # Create wiki through UI
+        const wiki = await createWikiThroughUI(page, `Never Published Draft Wiki ${await pw.random.id()}`);
+
+        // # Create a draft (never publish it)
+        const newPageButton = getNewPageButton(page);
+        await newPageButton.click();
+        await fillCreatePageModal(page, 'Never Published Draft');
+
+        // # First edit
+        await getEditorAndWait(page);
+        await typeInEditor(page, 'First version of draft');
+        await page.waitForTimeout(AUTOSAVE_WAIT);
+
+        // # Navigate away
+        await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
+        await ensurePanelOpen(page);
+
+        // # Click draft to edit again
+        const hierarchyPanel = getHierarchyPanel(page);
+        let draftNode = hierarchyPanel.locator('[data-testid="page-tree-node"][data-is-draft="true"]', {
+            hasText: 'Never Published Draft',
+        });
+        await draftNode.click();
+        await page.waitForLoadState('networkidle');
+
+        // # Second edit - modify content
+        await getEditorAndWait(page);
+        await clearEditorContent(page);
+        await typeInEditor(page, 'Second version of draft');
+        await page.waitForTimeout(AUTOSAVE_WAIT);
+
+        // # Navigate away
+        await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
+        await ensurePanelOpen(page);
+
+        // # Third edit
+        draftNode = hierarchyPanel.locator('[data-testid="page-tree-node"][data-is-draft="true"]', {
+            hasText: 'Never Published Draft',
+        });
+        await draftNode.click();
+        await page.waitForLoadState('networkidle');
+
+        await getEditorAndWait(page);
+        await clearEditorContent(page);
+        await typeInEditor(page, 'Third version of draft');
+        await page.waitForTimeout(AUTOSAVE_WAIT);
+
+        // # Navigate to wiki view to count drafts
+        await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
+        await ensurePanelOpen(page);
+
+        // * Verify exactly ONE draft node exists
+        const allDraftNodes = hierarchyPanel.locator('[data-testid="page-tree-node"][data-is-draft="true"]', {
+            hasText: 'Never Published Draft',
+        });
+        const draftCount = await allDraftNodes.count();
+        expect(draftCount).toBe(1);
+
+        // # Click the draft and verify it has the latest content
+        await allDraftNodes.first().click();
+        await page.waitForLoadState('networkidle');
+
+        const finalEditor = await getEditorAndWait(page);
+        await expect(finalEditor).toContainText('Third version of draft');
+    },
+);
+
+/**
+ * @objective Verify rapid consecutive saves don't create duplicate drafts (race condition test)
+ */
+test(
+    'handles rapid consecutive edits without creating duplicate drafts',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+
+        const {page, channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
+
+        // # Create wiki and published page
+        const wiki = await createWikiThroughUI(page, `Rapid Edit Wiki ${await pw.random.id()}`);
+        await createPageThroughUI(page, 'Rapid Edit Page', 'Original content');
+
+        // # Enter edit mode
+        await clickPageInHierarchy(page, 'Rapid Edit Page');
+        await enterEditMode(page);
+        const editor = await getEditorAndWait(page);
+
+        // # Perform rapid edits without waiting for auto-save between them
+        await editor.click();
+        await clearEditorContent(page);
+
+        // Rapid typing simulation - type quickly without waiting
+        await page.keyboard.type('Edit 1 ', {delay: 10});
+        await page.keyboard.type('Edit 2 ', {delay: 10});
+        await page.keyboard.type('Edit 3 ', {delay: 10});
+        await page.keyboard.type('Edit 4 ', {delay: 10});
+        await page.keyboard.type('Edit 5 Final', {delay: 10});
+
+        // # Now wait for auto-save to settle
+        await page.waitForTimeout(AUTOSAVE_WAIT * 2);
+
+        // # Navigate away and back
+        await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
+        await ensurePanelOpen(page);
+
+        // * Verify only ONE page entry exists
+        const hierarchyPanel = getHierarchyPanel(page);
+        const pageNodes = hierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: 'Rapid Edit Page'});
+        const nodeCount = await pageNodes.count();
+        expect(nodeCount).toBe(1);
+
+        // # Verify the page has the final content
+        await clickPageInHierarchy(page, 'Rapid Edit Page');
+        await enterEditMode(page);
+        const finalEditor = await getEditorAndWait(page);
+        await expect(finalEditor).toContainText('Edit 5 Final');
+    },
+);
+
+// =============================================================================
+// MULTI-TAB SAME USER TESTS
+// These tests verify behavior when the same user has multiple tabs open
+// =============================================================================
+
+/**
+ * @objective Verify that opening the same page in two tabs shows the same draft
+ */
+test(
+    'shows same draft content when same user opens page in two tabs',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+
+        // # Login in first tab
+        const {page: tab1, channelsPage: channelsPage1} = await pw.testBrowser.login(user);
+        await channelsPage1.goto(team.name, channel.name);
+        await channelsPage1.toBeVisible();
+
+        // # Create wiki and page in tab 1
+        const wiki = await createWikiThroughUI(tab1, `Multi Tab Wiki ${await pw.random.id()}`);
+        await createPageThroughUI(tab1, 'Multi Tab Page', 'Original published content');
+
+        // # Edit page in tab 1 to create draft
+        await clickPageInHierarchy(tab1, 'Multi Tab Page');
+        await enterEditMode(tab1);
+        const editor1 = await getEditorAndWait(tab1);
+        await editor1.click();
+        await clearEditorContent(tab1);
+        await typeInEditor(tab1, 'Draft content from Tab 1');
+        await tab1.waitForTimeout(AUTOSAVE_WAIT);
+
+        // # Open second tab with same user
+        const {page: tab2, channelsPage: channelsPage2} = await pw.testBrowser.login(user);
+        await channelsPage2.goto(team.name, channel.name);
+        await channelsPage2.toBeVisible();
+
+        // # Navigate to the same wiki in tab 2
+        await navigateToWikiView(tab2, pw.url, team.name, channel.id, wiki.id);
+        await ensurePanelOpen(tab2);
+
+        // # Click on the same page in tab 2
+        await clickPageInHierarchy(tab2, 'Multi Tab Page');
+        await tab2.waitForLoadState('networkidle');
+
+        // * Verify tab 2 shows "Unpublished changes" indicator (draft exists)
+        const unpublishedIndicator = tab2.locator('[data-testid="wiki-page-unpublished-indicator"]');
+        await expect(unpublishedIndicator).toBeVisible();
+
+        // # Enter edit mode in tab 2
+        await enterEditMode(tab2);
+        const editor2 = await getEditorAndWait(tab2);
+
+        // * Verify tab 2 shows the same draft content from tab 1
+        await expect(editor2).toContainText('Draft content from Tab 1');
+    },
+);
+
+/**
+ * @objective Verify that edits in one tab are reflected when refreshing another tab
+ */
+test('reflects draft changes across tabs after refresh', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+
+    // # Login and setup in first tab
+    const {page: tab1, channelsPage: channelsPage1} = await pw.testBrowser.login(user);
+    await channelsPage1.goto(team.name, channel.name);
+    await channelsPage1.toBeVisible();
+
+    const wiki = await createWikiThroughUI(tab1, `Cross Tab Wiki ${await pw.random.id()}`);
+    await createPageThroughUI(tab1, 'Cross Tab Page', 'Original content');
+
+    // # Open second tab and navigate to same page
+    const {page: tab2, channelsPage: channelsPage2} = await pw.testBrowser.login(user);
+    await channelsPage2.goto(team.name, channel.name);
+    await navigateToWikiView(tab2, pw.url, team.name, channel.id, wiki.id);
+    await ensurePanelOpen(tab2);
+    await clickPageInHierarchy(tab2, 'Cross Tab Page');
+
+    // # Edit in tab 1
+    await clickPageInHierarchy(tab1, 'Cross Tab Page');
+    await enterEditMode(tab1);
+    const editor1 = await getEditorAndWait(tab1);
+    await editor1.click();
+    await clearEditorContent(tab1);
+    await typeInEditor(tab1, 'Updated content from Tab 1');
+    await tab1.waitForTimeout(AUTOSAVE_WAIT);
+
+    // # Refresh tab 2
+    await tab2.reload();
+    await tab2.waitForLoadState('networkidle');
+
+    // * Verify tab 2 shows unpublished changes indicator after refresh
+    const unpublishedIndicator = tab2.locator('[data-testid="wiki-page-unpublished-indicator"]');
+    await expect(unpublishedIndicator).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // # Enter edit mode in tab 2
+    await enterEditMode(tab2);
+    const editor2 = await getEditorAndWait(tab2);
+
+    // * Verify tab 2 has the content from tab 1
+    await expect(editor2).toContainText('Updated content from Tab 1');
+});
+
+// =============================================================================
+// DRAFT PERSISTENCE ACROSS SESSIONS
+// =============================================================================
+
+/**
+ * @objective Verify draft persists after logout and login
+ */
+test('preserves draft after logout and login', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+
+    // # First session - create draft
+    const {page: session1, channelsPage: channelsPage1} = await pw.testBrowser.login(user);
+    await channelsPage1.goto(team.name, channel.name);
+    await channelsPage1.toBeVisible();
+
+    const wiki = await createWikiThroughUI(session1, `Session Persist Wiki ${await pw.random.id()}`);
+    await createPageThroughUI(session1, 'Session Test Page', 'Original published content');
+
+    // # Create draft
+    await clickPageInHierarchy(session1, 'Session Test Page');
+    await enterEditMode(session1);
+    const editor1 = await getEditorAndWait(session1);
+    await editor1.click();
+    await clearEditorContent(session1);
+    await typeInEditor(session1, 'Draft content before logout');
+    await session1.waitForTimeout(AUTOSAVE_WAIT);
+
+    // # Logout (close page context simulates session end)
+    await session1.context().close();
+
+    // # Second session - login again
+    const {page: session2, channelsPage: channelsPage2} = await pw.testBrowser.login(user);
+    await channelsPage2.goto(team.name, channel.name);
+    await channelsPage2.toBeVisible();
+
+    // # Navigate to the wiki
+    await navigateToWikiView(session2, pw.url, team.name, channel.id, wiki.id);
+    await ensurePanelOpen(session2);
+
+    // # Click on the page
+    await clickPageInHierarchy(session2, 'Session Test Page');
+    await session2.waitForLoadState('networkidle');
+
+    // * Verify "Unpublished changes" indicator shows (draft persisted)
+    const unpublishedIndicator = session2.locator('[data-testid="wiki-page-unpublished-indicator"]');
+    await expect(unpublishedIndicator).toBeVisible();
+
+    // # Enter edit mode
+    await enterEditMode(session2);
+    const editor2 = await getEditorAndWait(session2);
+
+    // * Verify draft content persisted across sessions
+    await expect(editor2).toContainText('Draft content before logout');
+});
+
+// =============================================================================
+// DRAFT STALENESS / CONFLICT SCENARIOS
+// =============================================================================
+
+/**
+ * @objective Verify user sees their draft even when another user has published changes
+ *
+ * With Option C (no explicit discard), user's draft persists regardless of other changes
+ */
+test(
+    'preserves user draft when another user publishes changes to the same page',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user: userA, adminClient} = sharedPagesSetup;
+        const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+
+        // # Create second user
+        const {user: userB} = await createTestUserInChannel(pw, adminClient, team, channel);
+
+        // # User A creates wiki and page
+        const {page: pageA, channelsPage: channelsPageA} = await pw.testBrowser.login(userA);
+        await channelsPageA.goto(team.name, channel.name);
+        await channelsPageA.toBeVisible();
+
+        const wiki = await createWikiThroughUI(pageA, `Conflict Wiki ${await pw.random.id()}`);
+        await createPageThroughUI(pageA, 'Conflict Test Page', 'Original content v1');
+
+        // # User A creates a draft
+        await clickPageInHierarchy(pageA, 'Conflict Test Page');
+        await enterEditMode(pageA);
+        const editorA = await getEditorAndWait(pageA);
+        await editorA.click();
+        await clearEditorContent(pageA);
+        await typeInEditor(pageA, 'User A draft content');
+        await pageA.waitForTimeout(AUTOSAVE_WAIT);
+
+        // # User A navigates away (draft saved)
+        await navigateToWikiView(pageA, pw.url, team.name, channel.id, wiki.id);
+
+        // # User B logs in and publishes a change
+        const {page: pageB, channelsPage: channelsPageB} = await pw.testBrowser.login(userB);
+        await channelsPageB.goto(team.name, channel.name);
+        await navigateToWikiView(pageB, pw.url, team.name, channel.id, wiki.id);
+        await ensurePanelOpen(pageB);
+
+        await clickPageInHierarchy(pageB, 'Conflict Test Page');
+        await enterEditMode(pageB);
+        const editorB = await getEditorAndWait(pageB);
+        await editorB.click();
+        await clearEditorContent(pageB);
+        await typeInEditor(pageB, 'User B published content v2');
+        await pageB.waitForTimeout(AUTOSAVE_WAIT);
+
+        // # User B publishes
+        const publishButton = pageB.locator('[data-testid="wiki-page-publish-button"]');
+        await publishButton.click();
+        await pageB.waitForLoadState('networkidle');
+
+        // # User A comes back
+        await ensurePanelOpen(pageA);
+        await clickPageInHierarchy(pageA, 'Conflict Test Page');
+        await pageA.waitForLoadState('networkidle');
+
+        // * User A should still see "Unpublished changes" indicator (their draft persists)
+        const unpublishedIndicator = pageA.locator('[data-testid="wiki-page-unpublished-indicator"]');
+        await expect(unpublishedIndicator).toBeVisible();
+
+        // # User A enters edit mode
+        await enterEditMode(pageA);
+        const editorAAfter = await getEditorAndWait(pageA);
+
+        // * User A's draft content should be preserved
+        await expect(editorAAfter).toContainText('User A draft content');
+    },
+);
+
+// =============================================================================
+// EDGE CASES
+// =============================================================================
+
+/**
+ * @objective Verify behavior when page is deleted while user has a draft
+ *
+ * This tests orphan draft cleanup - what happens to User A's draft if the page is deleted
+ */
+test('handles page deletion while user has unpublished draft', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user: userA, adminClient} = sharedPagesSetup;
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+
+    // # Create second user with permissions to delete
+    const {user: userB} = await createTestUserInChannel(pw, adminClient, team, channel);
+
+    // # User A creates wiki and page
+    const {page: pageA, channelsPage: channelsPageA} = await pw.testBrowser.login(userA);
+    await channelsPageA.goto(team.name, channel.name);
+    await channelsPageA.toBeVisible();
+
+    const wiki = await createWikiThroughUI(pageA, `Delete Test Wiki ${await pw.random.id()}`);
+    await createPageThroughUI(pageA, 'Page To Be Deleted', 'Original content');
+
+    // # User A creates a draft
+    await clickPageInHierarchy(pageA, 'Page To Be Deleted');
+    await enterEditMode(pageA);
+    const editorA = await getEditorAndWait(pageA);
+    await editorA.click();
+    await clearEditorContent(pageA);
+    await typeInEditor(pageA, 'User A draft that will be orphaned');
+    await pageA.waitForTimeout(AUTOSAVE_WAIT);
+
+    // # User A navigates away
+    await navigateToWikiView(pageA, pw.url, team.name, channel.id, wiki.id);
+
+    // # User B logs in and deletes the page
+    const {page: pageB, channelsPage: channelsPageB} = await pw.testBrowser.login(userB);
+    await channelsPageB.goto(team.name, channel.name);
+    await navigateToWikiView(pageB, pw.url, team.name, channel.id, wiki.id);
+    await ensurePanelOpen(pageB);
+
+    await deletePageThroughUI(pageB, 'Page To Be Deleted');
+    await pageB.waitForTimeout(WEBSOCKET_WAIT);
+
+    // # User A refreshes the page
+    await pageA.reload();
+    await pageA.waitForLoadState('networkidle');
+    await ensurePanelOpen(pageA);
+
+    // * Verify the deleted page is not in the hierarchy
+    const hierarchyPanel = getHierarchyPanel(pageA);
+    const deletedPageNode = hierarchyPanel.locator('[data-testid="page-tree-node"]', {
+        hasText: 'Page To Be Deleted',
+    });
+    await expect(deletedPageNode).not.toBeVisible();
+
+    // * Verify no orphan draft node exists either
+    const orphanDraftNode = hierarchyPanel.locator('[data-testid="page-tree-node"][data-is-draft="true"]', {
+        hasText: 'Page To Be Deleted',
+    });
+    await expect(orphanDraftNode).not.toBeVisible();
+});

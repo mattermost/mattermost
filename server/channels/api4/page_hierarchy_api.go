@@ -56,10 +56,10 @@ func updatePageParent(c *Context, w http.ResponseWriter, r *http.Request) {
 		parentPage, err := c.App.GetPage(c.AppContext, req.NewParentId)
 		if err != nil {
 			if err.Id == "app.page.get.not_a_page.app_error" {
-				c.Err = model.NewAppError("updatePageParent", "api.wiki.update_page_parent.parent_not_page", nil, "", http.StatusBadRequest)
+				c.Err = model.NewAppError("updatePageParent", "api.wiki.update_page_parent.parent_not_page.app_error", nil, "", http.StatusBadRequest)
 				return
 			}
-			c.Err = model.NewAppError("updatePageParent", "api.wiki.update_page_parent.parent_not_found", nil, "", http.StatusNotFound).Wrap(err)
+			c.Err = model.NewAppError("updatePageParent", "api.wiki.update_page_parent.parent_not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
 			return
 		}
 
@@ -71,18 +71,18 @@ func updatePageParent(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Extract wiki ID from the already-fetched parent page's Props
-		parentWikiId, ok := parentPage.Props()[model.PagePropsWikiID].(string)
+		parentWikiId, ok := parentPage.Props[model.PagePropsWikiID].(string)
 		if !ok || parentWikiId == "" {
 			// Fallback: get wiki_id from PropertyValues (source of truth)
 			var wikiErr *model.AppError
 			parentWikiId, wikiErr = c.App.GetWikiIdForPage(c.AppContext, req.NewParentId)
 			if wikiErr != nil || parentWikiId == "" {
-				c.Err = model.NewAppError("updatePageParent", "api.wiki.page_wiki_not_set", nil, "", http.StatusBadRequest)
+				c.Err = model.NewAppError("updatePageParent", "api.wiki.page_wiki_not_set.app_error", nil, "", http.StatusBadRequest)
 				return
 			}
 		}
 		if parentWikiId != c.Params.WikiId {
-			c.Err = model.NewAppError("updatePageParent", "api.wiki.update_page_parent.parent_different_wiki", nil, "", http.StatusBadRequest)
+			c.Err = model.NewAppError("updatePageParent", "api.wiki.update_page_parent.parent_different_wiki.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
 	}
@@ -230,7 +230,7 @@ func duplicatePage(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	c.Logger.Info("GetPage succeeded", mlog.String("page_id", page.Id()))
+	c.Logger.Info("GetPage succeeded", mlog.String("page_id", page.Id))
 
 	if !c.CheckPagePermission(page, app.PageOperationRead) {
 		return
@@ -302,7 +302,7 @@ func getPageBreadcrumb(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	breadcrumbPath, appErr := c.App.BuildBreadcrumbPath(c.AppContext, page.Post(), wiki, channel)
+	breadcrumbPath, appErr := c.App.BuildBreadcrumbPath(c.AppContext, page, wiki, channel)
 	if appErr != nil {
 		c.Err = appErr
 		return

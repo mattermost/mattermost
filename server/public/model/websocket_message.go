@@ -95,6 +95,8 @@ const (
 	WebsocketEventPageMoved                           WebsocketEventType = "page_moved"
 	WebsocketEventWikiCreated                         WebsocketEventType = "wiki_created"
 	WebsocketEventWikiUpdated                         WebsocketEventType = "wiki_updated"
+	WebsocketEventWikiMoved                           WebsocketEventType = "wiki_moved"
+	WebsocketEventWikiDeleted                         WebsocketEventType = "wiki_deleted"
 	WebsocketEventAcknowledgementAdded                WebsocketEventType = "post_acknowledgement_added"
 	WebsocketEventAcknowledgementRemoved              WebsocketEventType = "post_acknowledgement_removed"
 	WebsocketEventPersistentNotificationTriggered     WebsocketEventType = "persistent_notification_triggered"

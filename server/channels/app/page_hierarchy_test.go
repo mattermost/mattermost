@@ -81,3 +81,78 @@ func TestCalculateMaxDepthFromPostList(t *testing.T) {
 		require.GreaterOrEqual(t, maxDepth, 2)
 	})
 }
+
+func TestCalculatePageDepth(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.SetupPagePermissions()
+
+	rctx := th.CreateSessionContext()
+
+	// Create hierarchy: root -> child -> grandchild
+	root, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Root Depth", "", "", th.BasicUser.Id, "", "")
+	require.Nil(t, appErr)
+
+	child, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Child Depth", root.Id, "", th.BasicUser.Id, "", "")
+	require.Nil(t, appErr)
+
+	grandchild, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Grandchild Depth", child.Id, "", th.BasicUser.Id, "", "")
+	require.Nil(t, appErr)
+
+	t.Run("root page has depth 0", func(t *testing.T) {
+		depth, appErr := th.App.calculatePageDepth(rctx, root.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, 0, depth)
+	})
+
+	t.Run("child page has depth 1", func(t *testing.T) {
+		depth, appErr := th.App.calculatePageDepth(rctx, child.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, 1, depth)
+	})
+
+	t.Run("grandchild page has depth 2", func(t *testing.T) {
+		depth, appErr := th.App.calculatePageDepth(rctx, grandchild.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, 2, depth)
+	})
+}
+
+func TestCalculateSubtreeMaxDepth(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.SetupPagePermissions()
+
+	rctx := th.CreateSessionContext()
+
+	// Create hierarchy: root -> child -> grandchild
+	root, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Root Subtree", "", "", th.BasicUser.Id, "", "")
+	require.Nil(t, appErr)
+
+	child, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Child Subtree", root.Id, "", th.BasicUser.Id, "", "")
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.CreatePage(th.Context, th.BasicChannel.Id, "Grandchild Subtree", child.Id, "", th.BasicUser.Id, "", "")
+	require.Nil(t, appErr)
+
+	t.Run("root subtree has max depth 2", func(t *testing.T) {
+		depth, appErr := th.App.calculateSubtreeMaxDepth(rctx, root.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, 2, depth)
+	})
+
+	t.Run("child subtree has max depth 1", func(t *testing.T) {
+		depth, appErr := th.App.calculateSubtreeMaxDepth(rctx, child.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, 1, depth)
+	})
+
+	t.Run("leaf page has subtree depth 0", func(t *testing.T) {
+		leaf, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Leaf", "", "", th.BasicUser.Id, "", "")
+		require.Nil(t, appErr)
+
+		depth, appErr := th.App.calculateSubtreeMaxDepth(rctx, leaf.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, 0, depth)
+	})
+}
