@@ -19,7 +19,7 @@ jest.mock('actions/views/rhs', () => ({
 
 const mockedSelectPostFromRightHandSideSearch = require('actions/views/rhs').selectPostFromRightHandSideSearch as jest.MockedFunction<any>;
 
-    describe('DataSpillageFooter', () => {
+describe('DataSpillageFooter', () => {
     beforeEach(() => {
         jest.clearAllMocks();
     });
