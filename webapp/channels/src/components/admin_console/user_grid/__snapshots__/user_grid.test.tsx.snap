@@ -45,7 +45,6 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
   loading={false}
   nextPage={[Function]}
   onSearch={[Function]}
-  page={0}
   placeholderEmpty={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="No users found"
@@ -419,7 +418,6 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
   loading={false}
   nextPage={[Function]}
   onSearch={[Function]}
-  page={0}
   placeholderEmpty={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="No users found"
@@ -946,7 +944,6 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
   loading={false}
   nextPage={[Function]}
   onSearch={[Function]}
-  page={0}
   placeholderEmpty={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="No users found"

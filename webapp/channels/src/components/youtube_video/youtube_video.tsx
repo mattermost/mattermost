@@ -12,7 +12,6 @@ import ExternalLink from 'components/external_link';
 import {getVideoId, ytRegex, handleYoutubeTime} from 'utils/youtube';
 
 type Props = {
-    postId: string;
     link: string;
     show: boolean;
     metadata?: OpenGraphMetadata;
@@ -30,7 +29,6 @@ type YouTubeThumbnailProps = {
     videoTitle: string;
     onError: () => void;
     thumbnailUrl: string;
-    useMaxResThumbnail: boolean;
 };
 
 function YouTubeThumbnail({play, videoTitle, onError, thumbnailUrl}: YouTubeThumbnailProps) {
@@ -183,7 +181,6 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
                     videoTitle={videoTitle}
                     onError={this.handleImageError}
                     thumbnailUrl={thumbnailUrl}
-                    useMaxResThumbnail={this.state.useMaxResThumbnail}
                 />
             );
         }

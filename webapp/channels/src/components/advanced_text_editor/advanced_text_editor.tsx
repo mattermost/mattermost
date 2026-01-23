@@ -819,7 +819,6 @@ const AdvancedTextEditor = ({
                             useChannelMentions={useChannelMentions}
                             rootId={rootId}
                             onWidthChange={handleWidthChange}
-                            isInEditMode={isInEditMode}
                         />
                         {attachmentPreview}
                         {!isDisabled && (showFormattingBar || showPreview) && (

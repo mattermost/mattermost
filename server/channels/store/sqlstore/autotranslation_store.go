@@ -9,6 +9,7 @@ import (
 	"maps"
 
 	sq "github.com/mattermost/squirrel"
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -53,7 +54,7 @@ func newSqlAutoTranslationStore(sqlStore *SqlStore) store.AutoTranslationStore {
 // IsChannelEnabled checks if auto-translation is enabled for a channel
 // Uses the existing Channel cache instead of maintaining a separate cache
 // Thus this method is really for completeness; callers should use the Channel cache
-func (s *SqlAutoTranslationStore) IsChannelEnabled(channelID string) (bool, *model.AppError) {
+func (s *SqlAutoTranslationStore) IsChannelEnabled(channelID string) (bool, error) {
 	query := s.getQueryBuilder().
 		Select("AutoTranslation").
 		From("Channels").
@@ -61,24 +62,21 @@ func (s *SqlAutoTranslationStore) IsChannelEnabled(channelID string) (bool, *mod
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return false, model.NewAppError("SqlAutoTranslationStore.IsChannelEnabled",
-			"store.sql_autotranslation.query_build_error", nil, err.Error(), 500)
+		return false, errors.Wrap(err, "failed to build query for IsChannelEnabled")
 	}
 
 	var enabled bool
 	if err := s.GetReplica().Get(&enabled, queryString, args...); err != nil {
 		if err == sql.ErrNoRows {
-			return false, model.NewAppError("SqlAutoTranslationStore.IsChannelEnabled",
-				"store.sql_autotranslation.channel_not_found", nil, "channel_id="+channelID, 404)
+			return false, store.NewErrNotFound("Channel", channelID)
 		}
-		return false, model.NewAppError("SqlAutoTranslationStore.IsChannelEnabled",
-			"store.sql_autotranslation.get_channel_enabled.app_error", nil, err.Error(), 500)
+		return false, errors.Wrapf(err, "failed to get channel enabled status for channel_id=%s", channelID)
 	}
 
 	return enabled, nil
 }
 
-func (s *SqlAutoTranslationStore) SetChannelEnabled(channelID string, enabled bool) *model.AppError {
+func (s *SqlAutoTranslationStore) SetChannelEnabled(channelID string, enabled bool) error {
 	query := s.getQueryBuilder().
 		Update("Channels").
 		Set("AutoTranslation", enabled).
@@ -87,25 +85,22 @@ func (s *SqlAutoTranslationStore) SetChannelEnabled(channelID string, enabled bo
 
 	result, err := s.GetMaster().ExecBuilder(query)
 	if err != nil {
-		return model.NewAppError("SqlAutoTranslationStore.SetChannelEnabled",
-			"store.sql_autotranslation.set_channel_enabled.app_error", nil, err.Error(), 500)
+		return errors.Wrapf(err, "failed to set channel enabled for channel_id=%s", channelID)
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return model.NewAppError("SqlAutoTranslationStore.SetChannelEnabled",
-			"store.sql_autotranslation.set_channel_enabled.app_error", nil, err.Error(), 500)
+		return errors.Wrap(err, "failed to get rows affected for SetChannelEnabled")
 	}
 
 	if rowsAffected == 0 {
-		return model.NewAppError("SqlAutoTranslationStore.SetChannelEnabled",
-			"store.sql_autotranslation.channel_not_found", nil, "channel_id="+channelID, 404)
+		return store.NewErrNotFound("Channel", channelID)
 	}
 
 	return nil
 }
 
-func (s *SqlAutoTranslationStore) IsUserEnabled(userID, channelID string) (bool, *model.AppError) {
+func (s *SqlAutoTranslationStore) IsUserEnabled(userID, channelID string) (bool, error) {
 	query := s.getQueryBuilder().
 		Select("cm.AutoTranslation").
 		From("ChannelMembers cm").
@@ -118,14 +113,13 @@ func (s *SqlAutoTranslationStore) IsUserEnabled(userID, channelID string) (bool,
 		if err == sql.ErrNoRows {
 			return false, nil
 		}
-		return false, model.NewAppError("SqlAutoTranslationStore.IsUserEnabled",
-			"store.sql_autotranslation.get_user_enabled.app_error", nil, err.Error(), 500)
+		return false, errors.Wrapf(err, "failed to get user enabled status for user_id=%s, channel_id=%s", userID, channelID)
 	}
 
 	return enabled, nil
 }
 
-func (s *SqlAutoTranslationStore) SetUserEnabled(userID, channelID string, enabled bool) *model.AppError {
+func (s *SqlAutoTranslationStore) SetUserEnabled(userID, channelID string, enabled bool) error {
 	query := s.getQueryBuilder().
 		Update("ChannelMembers").
 		Set("AutoTranslation", enabled).
@@ -133,26 +127,22 @@ func (s *SqlAutoTranslationStore) SetUserEnabled(userID, channelID string, enabl
 
 	result, err := s.GetMaster().ExecBuilder(query)
 	if err != nil {
-		return model.NewAppError("SqlAutoTranslationStore.SetUserEnabled",
-			"store.sql_autotranslation.set_user_enabled.app_error", nil, err.Error(), 500)
+		return errors.Wrapf(err, "failed to set user enabled for user_id=%s, channel_id=%s", userID, channelID)
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return model.NewAppError("SqlAutoTranslationStore.SetUserEnabled",
-			"store.sql_autotranslation.set_user_enabled.app_error", nil, err.Error(), 500)
+		return errors.Wrap(err, "failed to get rows affected for SetUserEnabled")
 	}
 
 	if rowsAffected == 0 {
-		return model.NewAppError("SqlAutoTranslationStore.SetUserEnabled",
-			"store.sql_autotranslation.member_not_found", nil,
-			"user_id="+userID+", channel_id="+channelID, 404)
+		return store.NewErrNotFound("ChannelMember", userID+":"+channelID)
 	}
 
 	return nil
 }
 
-func (s *SqlAutoTranslationStore) GetUserLanguage(userID, channelID string) (string, *model.AppError) {
+func (s *SqlAutoTranslationStore) GetUserLanguage(userID, channelID string) (string, error) {
 	query := s.getQueryBuilder().
 		Select("u.Locale").
 		From("Users u").
@@ -167,14 +157,13 @@ func (s *SqlAutoTranslationStore) GetUserLanguage(userID, channelID string) (str
 		if err == sql.ErrNoRows {
 			return "", nil
 		}
-		return "", model.NewAppError("SqlAutoTranslationStore.GetUserLanguage",
-			"store.sql_autotranslation.get_user_language.app_error", nil, err.Error(), 500)
+		return "", errors.Wrapf(err, "failed to get user language for user_id=%s, channel_id=%s", userID, channelID)
 	}
 
 	return locale, nil
 }
 
-func (s *SqlAutoTranslationStore) GetActiveDestinationLanguages(channelID, excludeUserID string, filterUserIDs []string) ([]string, *model.AppError) {
+func (s *SqlAutoTranslationStore) GetActiveDestinationLanguages(channelID, excludeUserID string, filterUserIDs []string) ([]string, error) {
 	query := s.getQueryBuilder().
 		Select("DISTINCT u.Locale").
 		From("ChannelMembers cm").
@@ -200,14 +189,13 @@ func (s *SqlAutoTranslationStore) GetActiveDestinationLanguages(channelID, exclu
 
 	var languages []string
 	if err := s.GetReplica().SelectBuilder(&languages, query); err != nil {
-		return nil, model.NewAppError("SqlAutoTranslationStore.GetActiveDestinationLanguages",
-			"store.sql_autotranslation.get_active_languages.app_error", nil, err.Error(), 500)
+		return nil, errors.Wrapf(err, "failed to get active destination languages for channel_id=%s", channelID)
 	}
 
 	return languages, nil
 }
 
-func (s *SqlAutoTranslationStore) Get(objectID, dstLang string) (*model.Translation, *model.AppError) {
+func (s *SqlAutoTranslationStore) Get(objectID, dstLang string) (*model.Translation, error) {
 	query := s.getQueryBuilder().
 		Select("ObjectType", "ObjectId", "DstLang", "ProviderId", "NormHash", "Text", "Confidence", "Meta", "State", "UpdateAt").
 		From("Translations").
@@ -218,15 +206,13 @@ func (s *SqlAutoTranslationStore) Get(objectID, dstLang string) (*model.Translat
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
-		return nil, model.NewAppError("SqlAutoTranslationStore.Get",
-			"store.sql_autotranslation.get.app_error", nil, err.Error(), 500)
+		return nil, errors.Wrapf(err, "failed to get translation for object_id=%s, dst_lang=%s", objectID, dstLang)
 	}
 
 	meta, err := translation.Meta.ToMap()
 	var translationTypeStr string
 	if err != nil {
-		return nil, model.NewAppError("SqlAutoTranslationStore.Get",
-			"store.sql_autotranslation.meta_json.app_error", nil, err.Error(), 500)
+		return nil, errors.Wrapf(err, "failed to parse translation meta for object_id=%s", objectID)
 	}
 
 	if v, ok := meta["type"]; ok {
@@ -261,7 +247,7 @@ func (s *SqlAutoTranslationStore) Get(objectID, dstLang string) (*model.Translat
 	return result, nil
 }
 
-func (s *SqlAutoTranslationStore) GetBatch(objectIDs []string, dstLang string) (map[string]*model.Translation, *model.AppError) {
+func (s *SqlAutoTranslationStore) GetBatch(objectIDs []string, dstLang string) (map[string]*model.Translation, error) {
 	if len(objectIDs) == 0 {
 		return make(map[string]*model.Translation), nil
 	}
@@ -273,8 +259,7 @@ func (s *SqlAutoTranslationStore) GetBatch(objectIDs []string, dstLang string) (
 
 	var translations []Translation
 	if err := s.GetReplica().SelectBuilder(&translations, query); err != nil {
-		return nil, model.NewAppError("SqlAutoTranslationStore.GetBatch",
-			"store.sql_autotranslation.get_batch.app_error", nil, err.Error(), 500)
+		return nil, errors.Wrapf(err, "failed to get batch translations for dst_lang=%s", dstLang)
 	}
 
 	result := make(map[string]*model.Translation, len(translations))
@@ -323,7 +308,7 @@ func (s *SqlAutoTranslationStore) GetBatch(objectIDs []string, dstLang string) (
 	return result, nil
 }
 
-func (s *SqlAutoTranslationStore) GetAllForObject(objectID string) ([]*model.Translation, *model.AppError) {
+func (s *SqlAutoTranslationStore) GetAllForObject(objectID string) ([]*model.Translation, error) {
 	query := s.getQueryBuilder().
 		Select("ObjectType", "ObjectId", "DstLang", "ProviderId", "NormHash", "Text", "Confidence", "Meta", "State", "UpdateAt").
 		From("Translations").
@@ -331,8 +316,7 @@ func (s *SqlAutoTranslationStore) GetAllForObject(objectID string) ([]*model.Tra
 
 	var translations []Translation
 	if err := s.GetReplica().SelectBuilder(&translations, query); err != nil {
-		return nil, model.NewAppError("SqlAutoTranslationStore.GetAllForObject",
-			"store.sql_autotranslation.get_all_for_object.app_error", nil, err.Error(), 500)
+		return nil, errors.Wrapf(err, "failed to get all translations for object_id=%s", objectID)
 	}
 
 	result := make([]*model.Translation, 0, len(translations))
@@ -381,7 +365,7 @@ func (s *SqlAutoTranslationStore) GetAllForObject(objectID string) ([]*model.Tra
 	return result, nil
 }
 
-func (s *SqlAutoTranslationStore) Save(translation *model.Translation) *model.AppError {
+func (s *SqlAutoTranslationStore) Save(translation *model.Translation) error {
 	if err := translation.IsValid(); err != nil {
 		return err
 	}
@@ -412,8 +396,7 @@ func (s *SqlAutoTranslationStore) Save(translation *model.Translation) *model.Ap
 
 	metaBytes, err := json.Marshal(metaMap)
 	if err != nil {
-		return model.NewAppError("SqlAutoTranslationStore.Save",
-			"store.sql_autotranslation.save.meta_json.app_error", nil, err.Error(), 500)
+		return errors.Wrap(err, "failed to marshal translation meta")
 	}
 
 	// Apply binary flag if enabled (required for PostgreSQL JSONB with binary_parameters=yes)
@@ -443,14 +426,13 @@ func (s *SqlAutoTranslationStore) Save(translation *model.Translation) *model.Ap
 					   OR Translations.State != EXCLUDED.State`)
 
 	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
-		return model.NewAppError("SqlAutoTranslationStore.Save",
-			"store.sql_autotranslation.save.app_error", nil, err.Error(), 500)
+		return errors.Wrapf(err, "failed to save translation for object_id=%s, lang=%s", objectID, dstLang)
 	}
 
 	return nil
 }
 
-func (s *SqlAutoTranslationStore) GetAllByStatePage(state model.TranslationState, offset int, limit int) ([]*model.Translation, *model.AppError) {
+func (s *SqlAutoTranslationStore) GetAllByStatePage(state model.TranslationState, offset int, limit int) ([]*model.Translation, error) {
 	query := s.getQueryBuilder().
 		Select("ObjectType", "ObjectId", "DstLang", "ProviderId", "NormHash", "Text", "Confidence", "Meta", "State", "UpdateAt").
 		From("Translations").
@@ -461,8 +443,7 @@ func (s *SqlAutoTranslationStore) GetAllByStatePage(state model.TranslationState
 
 	var translations []Translation
 	if err := s.GetReplica().SelectBuilder(&translations, query); err != nil {
-		return nil, model.NewAppError("SqlAutoTranslationStore.GetAllByStatePage",
-			"store.sql_autotranslation.get_all_by_state_page.app_error", nil, err.Error(), 500)
+		return nil, errors.Wrapf(err, "failed to get translations by state=%s", state)
 	}
 
 	result := make([]*model.Translation, 0, len(translations))
@@ -511,7 +492,7 @@ func (s *SqlAutoTranslationStore) GetAllByStatePage(state model.TranslationState
 	return result, nil
 }
 
-func (s *SqlAutoTranslationStore) GetByStateOlderThan(state model.TranslationState, olderThanMillis int64, limit int) ([]*model.Translation, *model.AppError) {
+func (s *SqlAutoTranslationStore) GetByStateOlderThan(state model.TranslationState, olderThanMillis int64, limit int) ([]*model.Translation, error) {
 	query := s.getQueryBuilder().
 		Select("ObjectType", "ObjectId", "DstLang", "ProviderId", "NormHash", "Text", "Confidence", "Meta", "State", "UpdateAt").
 		From("Translations").
@@ -522,8 +503,7 @@ func (s *SqlAutoTranslationStore) GetByStateOlderThan(state model.TranslationSta
 
 	var translations []Translation
 	if err := s.GetReplica().SelectBuilder(&translations, query); err != nil {
-		return nil, model.NewAppError("SqlAutoTranslationStore.GetByStateOlderThan",
-			"store.sql_autotranslation.get_by_state_older_than.app_error", nil, err.Error(), 500)
+		return nil, errors.Wrapf(err, "failed to get translations by state=%s older than %d", state, olderThanMillis)
 	}
 
 	result := make([]*model.Translation, 0, len(translations))

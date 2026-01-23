@@ -35,6 +35,45 @@ func (_m *AutoTranslationInterface) Close() error {
 	return r0
 }
 
+// DetectRemote provides a mock function with given fields: ctx, text
+func (_m *AutoTranslationInterface) DetectRemote(ctx context.Context, text string) (string, *float64, *model.AppError) {
+	ret := _m.Called(ctx, text)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DetectRemote")
+	}
+
+	var r0 string
+	var r1 *float64
+	var r2 *model.AppError
+	if rf, ok := ret.Get(0).(func(context.Context, string) (string, *float64, *model.AppError)); ok {
+		return rf(ctx, text)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) string); ok {
+		r0 = rf(ctx, text)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) *float64); ok {
+		r1 = rf(ctx, text)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*float64)
+		}
+	}
+
+	if rf, ok := ret.Get(2).(func(context.Context, string) *model.AppError); ok {
+		r2 = rf(ctx, text)
+	} else {
+		if ret.Get(2) != nil {
+			r2 = ret.Get(2).(*model.AppError)
+		}
+	}
+
+	return r0, r1, r2
+}
+
 // GetBatch provides a mock function with given fields: objectIDs, dstLang
 func (_m *AutoTranslationInterface) GetBatch(objectIDs []string, dstLang string) (map[string]*model.Translation, *model.AppError) {
 	ret := _m.Called(objectIDs, dstLang)
@@ -125,6 +164,24 @@ func (_m *AutoTranslationInterface) IsChannelEnabled(channelID string) (bool, *m
 	}
 
 	return r0, r1
+}
+
+// IsFeatureAvailable provides a mock function with no fields
+func (_m *AutoTranslationInterface) IsFeatureAvailable() bool {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsFeatureAvailable")
+	}
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func() bool); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
 }
 
 // IsUserEnabled provides a mock function with given fields: channelID, userID
