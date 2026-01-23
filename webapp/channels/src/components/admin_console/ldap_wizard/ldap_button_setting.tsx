@@ -15,7 +15,6 @@ import {descriptorOrStringToString, renderLabel, renderSettingHelpText} from '..
 type Props = {
     setting: LDAPDefinitionSettingButton;
     saveNeeded: boolean;
-    onChange(id: string, value: any): void;
     disabled: boolean;
     ldapSettingsState: LdapSettings;
     onFilterTestResults?: (results: TestLdapFiltersResponse) => void;
