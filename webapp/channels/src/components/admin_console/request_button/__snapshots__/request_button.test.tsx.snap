@@ -1,517 +1,190 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/admin_console/request_button/request_button.jsx should match snapshot 1`] = `
-<div
-  className="form-group"
->
+<div>
   <div
-    className="col-sm-offset-4 col-sm-8"
+    class="form-group"
   >
-    <div>
-      <button
-        className="btn btn-tertiary"
-        disabled={false}
-        onClick={[Function]}
-        type="button"
-      >
-        <Memo(LoadingWrapper)
-          loading={false}
-          text={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Loading..."
-              id="admin.requestButton.loading"
-            />
-          }
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Button Text"
-            id="test2"
-          />
-        </Memo(LoadingWrapper)>
-      </button>
-    </div>
     <div
-      className="help-text"
+      class="col-sm-offset-4 col-sm-8"
     >
-      <MemoizedFormattedMessage
-        defaultMessage="Help Text"
-        id="test1"
-      />
+      <div>
+        <button
+          class="btn btn-tertiary"
+          type="button"
+        >
+          <span>
+            Button Text
+          </span>
+        </button>
+      </div>
+      <div
+        class="help-text"
+      >
+        <span>
+          Help Text
+        </span>
+      </div>
     </div>
   </div>
 </div>
 `;
 
 exports[`components/admin_console/request_button/request_button.jsx should match snapshot with request error 1`] = `
-<RequestButton
-  buttonText={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Button Text"
-      id="test2"
-    />
-  }
-  disabled={false}
-  errorMessage={
-    Object {
-      "defaultMessage": "Error Message: {error}",
-      "id": "error.message",
-    }
-  }
-  helpText={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Help Text"
-      id="test1"
-    />
-  }
-  includeDetailedError={true}
-  requestAction={
-    [MockFunction] {
-      "calls": Array [
-        Array [
-          [Function],
-          [Function],
-        ],
-      ],
-      "results": Array [
-        Object {
-          "type": "return",
-          "value": undefined,
-        },
-      ],
-    }
-  }
-  saveNeeded={false}
-  showSuccessMessage={true}
-  successMessage={
-    Object {
-      "defaultMessage": "Test Successful",
-      "id": "admin.requestButton.requestSuccess",
-    }
-  }
->
+<div>
   <div
-    className="form-group"
+    class="form-group"
   >
     <div
-      className="col-sm-offset-4 col-sm-8"
+      class="col-sm-offset-4 col-sm-8"
     >
       <div>
         <button
-          className="btn btn-tertiary"
-          disabled={false}
-          onClick={[Function]}
+          class="btn btn-tertiary"
           type="button"
         >
-          <Memo(LoadingWrapper)
-            loading={false}
-            text={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Loading..."
-                id="admin.requestButton.loading"
-              />
-            }
-          >
-            <FormattedMessage
-              defaultMessage="Button Text"
-              id="test2"
-            >
-              <span>
-                Button Text
-              </span>
-            </FormattedMessage>
-          </Memo(LoadingWrapper)>
+          <span>
+            Button Text
+          </span>
         </button>
         <div>
           <div
-            className="alert alert-warning"
+            class="alert alert-warning"
           >
-            <Memo(WarningIcon)>
-              <i
-                className="fa fa-warning"
-                title="Warning Icon"
-              />
-            </Memo(WarningIcon)>
-            <FormattedMessage
-              defaultMessage="Error Message: {error}"
-              id="error.message"
-              values={
-                Object {
-                  "error": "__message__ - __detailed_error__",
-                }
-              }
-            >
-              <span>
-                Error Message: __message__ - __detailed_error__
-              </span>
-            </FormattedMessage>
+            <i
+              class="fa fa-warning"
+              title="Warning Icon"
+            />
+            <span>
+              Error Message: __message__ - __detailed_error__
+            </span>
           </div>
         </div>
       </div>
       <div
-        className="help-text"
+        class="help-text"
       >
-        <FormattedMessage
-          defaultMessage="Help Text"
-          id="test1"
-        >
-          <span>
-            Help Text
-          </span>
-        </FormattedMessage>
+        <span>
+          Help Text
+        </span>
       </div>
     </div>
   </div>
-</RequestButton>
+</div>
 `;
 
 exports[`components/admin_console/request_button/request_button.jsx should match snapshot with request error 2`] = `
-<RequestButton
-  buttonText={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Button Text"
-      id="test2"
-    />
-  }
-  disabled={false}
-  errorMessage={
-    Object {
-      "defaultMessage": "Error Message: {error}",
-      "id": "error.message",
-    }
-  }
-  helpText={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Help Text"
-      id="test1"
-    />
-  }
-  includeDetailedError={false}
-  requestAction={
-    [MockFunction] {
-      "calls": Array [
-        Array [
-          [Function],
-          [Function],
-        ],
-        Array [
-          [Function],
-          [Function],
-        ],
-      ],
-      "results": Array [
-        Object {
-          "type": "return",
-          "value": undefined,
-        },
-        Object {
-          "type": "return",
-          "value": undefined,
-        },
-      ],
-    }
-  }
-  saveNeeded={false}
-  showSuccessMessage={true}
-  successMessage={
-    Object {
-      "defaultMessage": "Test Successful",
-      "id": "admin.requestButton.requestSuccess",
-    }
-  }
->
+<div>
   <div
-    className="form-group"
+    class="form-group"
   >
     <div
-      className="col-sm-offset-4 col-sm-8"
+      class="col-sm-offset-4 col-sm-8"
     >
       <div>
         <button
-          className="btn btn-tertiary"
-          disabled={false}
-          onClick={[Function]}
+          class="btn btn-tertiary"
           type="button"
         >
-          <Memo(LoadingWrapper)
-            loading={false}
-            text={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Loading..."
-                id="admin.requestButton.loading"
-              />
-            }
-          >
-            <FormattedMessage
-              defaultMessage="Button Text"
-              id="test2"
-            >
-              <span>
-                Button Text
-              </span>
-            </FormattedMessage>
-          </Memo(LoadingWrapper)>
+          <span>
+            Button Text
+          </span>
         </button>
         <div>
           <div
-            className="alert alert-warning"
+            class="alert alert-warning"
           >
-            <Memo(WarningIcon)>
-              <i
-                className="fa fa-warning"
-                title="Warning Icon"
-              />
-            </Memo(WarningIcon)>
-            <FormattedMessage
-              defaultMessage="Error Message: {error}"
-              id="error.message"
-              values={
-                Object {
-                  "error": "__message__",
-                }
-              }
-            >
-              <span>
-                Error Message: __message__
-              </span>
-            </FormattedMessage>
+            <i
+              class="fa fa-warning"
+              title="Warning Icon"
+            />
+            <span>
+              Error Message: __message__
+            </span>
           </div>
         </div>
       </div>
       <div
-        className="help-text"
+        class="help-text"
       >
-        <FormattedMessage
-          defaultMessage="Help Text"
-          id="test1"
-        >
-          <span>
-            Help Text
-          </span>
-        </FormattedMessage>
+        <span>
+          Help Text
+        </span>
       </div>
     </div>
   </div>
-</RequestButton>
+</div>
 `;
 
 exports[`components/admin_console/request_button/request_button.jsx should match snapshot with successMessage 1`] = `
-<RequestButton
-  buttonText={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Button Text"
-      id="test2"
-    />
-  }
-  disabled={false}
-  errorMessage={
-    Object {
-      "defaultMessage": "Test Failure: {error}",
-      "id": "admin.requestButton.requestFailure",
-    }
-  }
-  helpText={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Help Text"
-      id="test1"
-    />
-  }
-  includeDetailedError={false}
-  requestAction={
-    [MockFunction] {
-      "calls": Array [
-        Array [
-          [Function],
-          [Function],
-        ],
-      ],
-      "results": Array [
-        Object {
-          "type": "return",
-          "value": undefined,
-        },
-      ],
-    }
-  }
-  saveNeeded={false}
-  showSuccessMessage={true}
-  successMessage={
-    Object {
-      "defaultMessage": "Success Message",
-      "id": "success.message",
-    }
-  }
->
+<div>
   <div
-    className="form-group"
+    class="form-group"
   >
     <div
-      className="col-sm-offset-4 col-sm-8"
+      class="col-sm-offset-4 col-sm-8"
     >
       <div>
         <button
-          className="btn btn-tertiary"
-          disabled={false}
-          onClick={[Function]}
+          class="btn btn-tertiary"
           type="button"
         >
-          <Memo(LoadingWrapper)
-            loading={false}
-            text={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Loading..."
-                id="admin.requestButton.loading"
-              />
-            }
-          >
-            <FormattedMessage
-              defaultMessage="Button Text"
-              id="test2"
-            >
-              <span>
-                Button Text
-              </span>
-            </FormattedMessage>
-          </Memo(LoadingWrapper)>
+          <span>
+            Button Text
+          </span>
         </button>
         <div>
           <div
-            className="alert alert-success"
+            class="alert alert-success"
           >
-            <SuccessIcon>
-              <i
-                className="fa fa-check"
-                title="Success Icon"
-              />
-            </SuccessIcon>
-            <FormattedMessage
-              defaultMessage="Success Message"
-              id="success.message"
-            >
-              <span>
-                Success Message
-              </span>
-            </FormattedMessage>
+            <i
+              class="fa fa-check"
+              title="Success Icon"
+            />
+            <span>
+              Success Message
+            </span>
           </div>
         </div>
       </div>
       <div
-        className="help-text"
+        class="help-text"
       >
-        <FormattedMessage
-          defaultMessage="Help Text"
-          id="test1"
-        >
-          <span>
-            Help Text
-          </span>
-        </FormattedMessage>
+        <span>
+          Help Text
+        </span>
       </div>
     </div>
   </div>
-</RequestButton>
+</div>
 `;
 
 exports[`components/admin_console/request_button/request_button.jsx should match snapshot with successMessage 2`] = `
-<RequestButton
-  buttonText={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Button Text"
-      id="test2"
-    />
-  }
-  disabled={false}
-  errorMessage={
-    Object {
-      "defaultMessage": "Test Failure: {error}",
-      "id": "admin.requestButton.requestFailure",
-    }
-  }
-  helpText={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Help Text"
-      id="test1"
-    />
-  }
-  includeDetailedError={false}
-  requestAction={
-    [MockFunction] {
-      "calls": Array [
-        Array [
-          [Function],
-          [Function],
-        ],
-        Array [
-          [Function],
-          [Function],
-        ],
-      ],
-      "results": Array [
-        Object {
-          "type": "return",
-          "value": undefined,
-        },
-        Object {
-          "type": "return",
-          "value": undefined,
-        },
-      ],
-    }
-  }
-  saveNeeded={false}
-  showSuccessMessage={false}
-  successMessage={
-    Object {
-      "defaultMessage": "Success Message",
-      "id": "success.message",
-    }
-  }
->
+<div>
   <div
-    className="form-group"
+    class="form-group"
   >
     <div
-      className="col-sm-offset-4 col-sm-8"
+      class="col-sm-offset-4 col-sm-8"
     >
       <div>
         <button
-          className="btn btn-tertiary"
-          disabled={false}
-          onClick={[Function]}
+          class="btn btn-tertiary"
           type="button"
         >
-          <Memo(LoadingWrapper)
-            loading={false}
-            text={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Loading..."
-                id="admin.requestButton.loading"
-              />
-            }
-          >
-            <FormattedMessage
-              defaultMessage="Button Text"
-              id="test2"
-            >
-              <span>
-                Button Text
-              </span>
-            </FormattedMessage>
-          </Memo(LoadingWrapper)>
+          <span>
+            Button Text
+          </span>
         </button>
       </div>
       <div
-        className="help-text"
+        class="help-text"
       >
-        <FormattedMessage
-          defaultMessage="Help Text"
-          id="test1"
-        >
-          <span>
-            Help Text
-          </span>
-        </FormattedMessage>
+        <span>
+          Help Text
+        </span>
       </div>
     </div>
   </div>
-</RequestButton>
+</div>
 `;

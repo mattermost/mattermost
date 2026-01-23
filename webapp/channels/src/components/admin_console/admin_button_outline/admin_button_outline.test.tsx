@@ -1,39 +1,40 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+
+import {render, screen, fireEvent} from 'tests/react_testing_utils';
 
 import AdminButtonOutline from './admin_button_outline';
 
 describe('components/admin_console/admin_button_outline/AdminButtonOutline', () => {
     test('should match snapshot with prop disable false', () => {
         const onClick = jest.fn();
-        const wrapper = shallow(
+        const {container} = render(
             <AdminButtonOutline
                 onClick={onClick}
                 className='admin-btn-default'
                 disabled={false}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with prop disable true', () => {
         const onClick = jest.fn();
-        const wrapper = shallow(
+        const {container} = render(
             <AdminButtonOutline
                 onClick={onClick}
                 className='admin-btn-default'
                 disabled={true}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with children', () => {
         const onClick = jest.fn();
-        const wrapper = shallow(
+        const {container} = render(
             <AdminButtonOutline
                 onClick={onClick}
                 className='admin-btn-default'
@@ -42,12 +43,12 @@ describe('components/admin_console/admin_button_outline/AdminButtonOutline', () 
                 {'Test children'}
             </AdminButtonOutline>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with className is not provided in scss file', () => {
         const onClick = jest.fn();
-        const wrapper = shallow(
+        const {container} = render(
             <AdminButtonOutline
                 onClick={onClick}
                 className='btn-default'
@@ -56,22 +57,22 @@ describe('components/admin_console/admin_button_outline/AdminButtonOutline', () 
                 {'Test children'}
             </AdminButtonOutline>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should handle onClick', () => {
         const onClick = jest.fn();
-        const wrapper = shallow(
+        render(
             <AdminButtonOutline
                 onClick={onClick}
                 className='admin-btn-default'
-                disabled={true}
+                disabled={false}
             >
                 {'Test children'}
             </AdminButtonOutline>,
         );
 
-        wrapper.find('button').simulate('click');
+        fireEvent.click(screen.getByRole('button'));
         expect(onClick).toHaveBeenCalledTimes(1);
     });
 });

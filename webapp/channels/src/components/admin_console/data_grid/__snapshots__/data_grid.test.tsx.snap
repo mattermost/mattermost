@@ -1,265 +1,214 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/admin_console/data_grid/DataGrid should match snapshot while loading 1`] = `
-<div
-  className="DataGrid"
->
-  <Memo(DataGridSearch)
-    onSearch={[Function]}
-    term=""
-  />
-  <DataGridHeader
-    columns={Array []}
-  />
+<div>
   <div
-    className="DataGrid_rows"
-    style={Object {}}
+    class="DataGrid"
   >
     <div
-      className="DataGrid_loading"
+      class="DataGrid_search"
     >
-      <Memo(LoadingSpinner) />
-      <MemoizedFormattedMessage
-        defaultMessage="Loading"
-        id="admin.data_grid.loading"
-      />
+      <div
+        class="DataGrid_searchBar"
+      >
+        <span
+          aria-hidden="true"
+          class="DataGrid_searchIcon"
+        >
+          <i
+            class="fa fa-search"
+            title="Search Icon"
+          />
+        </span>
+        <input
+          data-testid="searchInput"
+          placeholder="Search"
+          type="text"
+          value=""
+        />
+        <i
+          class="DataGrid_clearButton fa fa-times-circle hidden"
+          data-testid="clear-search"
+        />
+      </div>
+    </div>
+    <div
+      class="DataGrid_header"
+    />
+    <div
+      class="DataGrid_rows"
+    >
+      <div
+        class="DataGrid_loading"
+      >
+        <span
+          class="LoadingSpinner"
+          data-testid="loadingSpinner"
+          id="loadingSpinner"
+        >
+          <span
+            class="fa fa-spinner fa-fw fa-pulse spinner"
+            title="Loading Icon"
+          />
+        </span>
+        <span>
+          Loading
+        </span>
+      </div>
     </div>
   </div>
 </div>
 `;
 
 exports[`components/admin_console/data_grid/DataGrid should match snapshot with content and custom styling on rows 1`] = `
-<div
-  className="DataGrid"
->
-  <Memo(DataGridSearch)
-    onSearch={[Function]}
-    term=""
-  />
-  <DataGridHeader
-    columns={
-      Array [
-        Object {
-          "field": "name",
-          "name": "Name",
-          "overflow": "hidden",
-          "width": 3,
-        },
-        Object {
-          "field": "team",
-          "name": "Team",
-          "textAlign": "center",
-        },
-      ]
-    }
-  />
+<div>
   <div
-    className="DataGrid_rows"
-    style={Object {}}
+    class="DataGrid"
   >
-    <Memo(DataGridRow)
-      columns={
-        Array [
-          Object {
-            "field": "name",
-            "name": "Name",
-            "overflow": "hidden",
-            "width": 3,
-          },
-          Object {
-            "field": "team",
-            "name": "Team",
-            "textAlign": "center",
-          },
-        ]
-      }
-      key="0"
-      row={
-        Object {
-          "cells": Object {
-            "name": "Joe Schmoe",
-            "team": "Admin Team",
-          },
-        }
-      }
+    <div
+      class="DataGrid_search"
+    >
+      <div
+        class="DataGrid_searchBar"
+      >
+        <span
+          aria-hidden="true"
+          class="DataGrid_searchIcon"
+        >
+          <i
+            class="fa fa-search"
+            title="Search Icon"
+          />
+        </span>
+        <input
+          data-testid="searchInput"
+          placeholder="Search"
+          type="text"
+          value=""
+        />
+        <i
+          class="DataGrid_clearButton fa fa-times-circle hidden"
+          data-testid="clear-search"
+        />
+      </div>
+    </div>
+    <div
+      class="DataGrid_header"
     />
-    <Memo(DataGridRow)
-      columns={
-        Array [
-          Object {
-            "field": "name",
-            "name": "Name",
-            "overflow": "hidden",
-            "width": 3,
-          },
-          Object {
-            "field": "team",
-            "name": "Team",
-            "textAlign": "center",
-          },
-        ]
-      }
-      key="1"
-      row={
-        Object {
-          "cells": Object {
-            "name": "Foo Bar",
-            "team": "Admin Team",
-          },
-        }
-      }
-    />
-    <Memo(DataGridRow)
-      columns={
-        Array [
-          Object {
-            "field": "name",
-            "name": "Name",
-            "overflow": "hidden",
-            "width": 3,
-          },
-          Object {
-            "field": "team",
-            "name": "Team",
-            "textAlign": "center",
-          },
-        ]
-      }
-      key="2"
-      row={
-        Object {
-          "cells": Object {
-            "name": "Some Guy",
-            "team": "Admin Team",
-          },
-        }
-      }
-    />
+    <div
+      class="DataGrid_rows"
+    >
+      <div
+        class="DataGrid_row"
+      />
+      <div
+        class="DataGrid_row"
+      />
+      <div
+        class="DataGrid_row"
+      />
+    </div>
   </div>
 </div>
 `;
 
 exports[`components/admin_console/data_grid/DataGrid should match snapshot with custom classes 1`] = `
-<div
-  className="DataGrid customTable"
->
-  <Memo(DataGridSearch)
-    onSearch={[Function]}
-    term=""
-  />
-  <DataGridHeader
-    columns={
-      Array [
-        Object {
-          "field": "name",
-          "name": "Name",
-        },
-        Object {
-          "field": "team",
-          "name": "Team",
-        },
-      ]
-    }
-  />
+<div>
   <div
-    className="DataGrid_rows"
-    style={Object {}}
+    class="DataGrid customTable"
   >
-    <Memo(DataGridRow)
-      columns={
-        Array [
-          Object {
-            "field": "name",
-            "name": "Name",
-          },
-          Object {
-            "field": "team",
-            "name": "Team",
-          },
-        ]
-      }
-      key="0"
-      row={
-        Object {
-          "cells": Object {
-            "name": "Joe Schmoe",
-            "team": "Admin Team",
-          },
-        }
-      }
+    <div
+      class="DataGrid_search"
+    >
+      <div
+        class="DataGrid_searchBar"
+      >
+        <span
+          aria-hidden="true"
+          class="DataGrid_searchIcon"
+        >
+          <i
+            class="fa fa-search"
+            title="Search Icon"
+          />
+        </span>
+        <input
+          data-testid="searchInput"
+          placeholder="Search"
+          type="text"
+          value=""
+        />
+        <i
+          class="DataGrid_clearButton fa fa-times-circle hidden"
+          data-testid="clear-search"
+        />
+      </div>
+    </div>
+    <div
+      class="DataGrid_header"
     />
-    <Memo(DataGridRow)
-      columns={
-        Array [
-          Object {
-            "field": "name",
-            "name": "Name",
-          },
-          Object {
-            "field": "team",
-            "name": "Team",
-          },
-        ]
-      }
-      key="1"
-      row={
-        Object {
-          "cells": Object {
-            "name": "Foo Bar",
-            "team": "Admin Team",
-          },
-        }
-      }
-    />
-    <Memo(DataGridRow)
-      columns={
-        Array [
-          Object {
-            "field": "name",
-            "name": "Name",
-          },
-          Object {
-            "field": "team",
-            "name": "Team",
-          },
-        ]
-      }
-      key="2"
-      row={
-        Object {
-          "cells": Object {
-            "name": "Some Guy",
-            "team": "Admin Team",
-          },
-        }
-      }
-    />
+    <div
+      class="DataGrid_rows"
+    >
+      <div
+        class="DataGrid_row"
+      />
+      <div
+        class="DataGrid_row"
+      />
+      <div
+        class="DataGrid_row"
+      />
+    </div>
   </div>
 </div>
 `;
 
 exports[`components/admin_console/data_grid/DataGrid should match snapshot with no items found 1`] = `
-<div
-  className="DataGrid"
->
-  <Memo(DataGridSearch)
-    onSearch={[Function]}
-    term=""
-  />
-  <DataGridHeader
-    columns={Array []}
-  />
+<div>
   <div
-    className="DataGrid_rows"
-    style={Object {}}
+    class="DataGrid"
   >
     <div
-      className="DataGrid_empty"
+      class="DataGrid_search"
     >
-      <MemoizedFormattedMessage
-        defaultMessage="No items found"
-        id="admin.data_grid.empty"
-      />
+      <div
+        class="DataGrid_searchBar"
+      >
+        <span
+          aria-hidden="true"
+          class="DataGrid_searchIcon"
+        >
+          <i
+            class="fa fa-search"
+            title="Search Icon"
+          />
+        </span>
+        <input
+          data-testid="searchInput"
+          placeholder="Search"
+          type="text"
+          value=""
+        />
+        <i
+          class="DataGrid_clearButton fa fa-times-circle hidden"
+          data-testid="clear-search"
+        />
+      </div>
+    </div>
+    <div
+      class="DataGrid_header"
+    />
+    <div
+      class="DataGrid_rows"
+    >
+      <div
+        class="DataGrid_empty"
+      >
+        <span>
+          No items found
+        </span>
+      </div>
     </div>
   </div>
 </div>

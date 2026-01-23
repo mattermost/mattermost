@@ -1,41 +1,43 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`SchemaText should render markdown text correctly 1`] = `
-<span
-  dangerouslySetInnerHTML={
-    Object {
-      "__html": "This is <strong>HELP TEXT</strong>",
-    }
-  }
-/>
+<div>
+  <span>
+    This is 
+    <strong>
+      HELP TEXT
+    </strong>
+  </span>
+</div>
 `;
 
 exports[`SchemaText should render plain text correctly 1`] = `
-<span>
-  This is help text
-</span>
+<div>
+  <span>
+    This is help text
+  </span>
+</div>
 `;
 
 exports[`SchemaText should render translated markdown text correctly 1`] = `
-<FormattedMarkdownMessage
-  defaultMessage="This is [{object}](https://example.com)"
-  id="help.text.markdown"
-  values={
-    Object {
-      "object": "a help link",
-    }
-  }
-/>
+<div>
+  <span>
+    This is 
+    <a
+      href="https://example.com"
+      rel="noopener noreferrer"
+      target="_blank"
+    >
+      a help link
+    </a>
+  </span>
+</div>
 `;
 
 exports[`SchemaText should render translated text correctly 1`] = `
-<MemoizedFormattedMessage
-  defaultMessage="This is {object}"
-  id="help.text"
-  values={
-    Object {
-      "object": "help text",
-    }
-  }
-/>
+<div>
+  <span>
+    This is help text
+  </span>
+</div>
 `;

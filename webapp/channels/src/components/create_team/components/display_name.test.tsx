@@ -1,13 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import type {ReactWrapper} from 'enzyme';
 import React from 'react';
 
 import DisplayName from 'components/create_team/components/display_name';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithIntl, screen, fireEvent} from 'tests/react_testing_utils';
 import {cleanUpUrlable} from 'utils/url';
 
 jest.mock('images/logo.png', () => 'logo.png');
@@ -21,51 +19,53 @@ describe('/components/create_team/components/display_name', () => {
         },
     };
 
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
     test('should match snapshot', () => {
-        const wrapper = shallow(<DisplayName {...defaultProps}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithIntl(<DisplayName {...defaultProps}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should run updateParent function', () => {
-        const wrapper = mountWithIntl(<DisplayName {...defaultProps}/>);
+        renderWithIntl(<DisplayName {...defaultProps}/>);
 
-        wrapper.find('button').simulate('click', {
-            preventDefault: () => jest.fn(),
-        });
+        fireEvent.click(screen.getByRole('button', {name: /next/i}));
 
-        expect(wrapper.prop('updateParent')).toHaveBeenCalled();
+        expect(defaultProps.updateParent).toHaveBeenCalled();
     });
 
     test('should pass state to updateParent function', () => {
-        const wrapper = mountWithIntl(<DisplayName {...defaultProps}/>);
+        renderWithIntl(<DisplayName {...defaultProps}/>);
 
-        wrapper.find('button').simulate('click', {
-            preventDefault: () => jest.fn(),
-        });
+        fireEvent.click(screen.getByRole('button', {name: /next/i}));
 
-        expect(wrapper.prop('updateParent')).toHaveBeenCalledWith(defaultProps.state);
+        expect(defaultProps.updateParent).toHaveBeenCalledWith(expect.objectContaining({
+            wizard: 'team_url',
+            team: expect.objectContaining({
+                display_name: 'test-team',
+            }),
+        }));
     });
 
     test('should pass updated team name to updateParent function', () => {
-        const wrapper = mountWithIntl(<DisplayName {...defaultProps}/>);
+        renderWithIntl(<DisplayName {...defaultProps}/>);
         const teamDisplayName = 'My Test Team';
-        const newState = {
-            ...defaultProps.state,
-            team: {
-                ...defaultProps.state.team,
-                display_name: teamDisplayName,
-                name: cleanUpUrlable(teamDisplayName),
-            },
+        const expectedTeam = {
+            ...defaultProps.state.team,
+            display_name: teamDisplayName,
+            name: cleanUpUrlable(teamDisplayName),
         };
 
-        (wrapper.find('.form-control') as unknown as ReactWrapper<any, any, HTMLInputElement>).instance().value = teamDisplayName;
-        wrapper.find('.form-control').simulate('change');
+        const input = screen.getByRole('textbox');
+        fireEvent.change(input, {target: {value: teamDisplayName}});
 
-        wrapper.find('button').simulate('click', {
-            preventDefault: () => jest.fn(),
-        });
+        fireEvent.click(screen.getByRole('button', {name: /next/i}));
 
-        expect(wrapper.prop('updateParent')).toHaveBeenCalledWith(defaultProps.state);
-        expect(wrapper.prop('updateParent').mock.calls[0][0]).toEqual(newState);
+        expect(defaultProps.updateParent).toHaveBeenCalledWith(expect.objectContaining({
+            wizard: 'team_url',
+            team: expectedTeam,
+        }));
     });
 });

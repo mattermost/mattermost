@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import JobCancelButton from './job_cancel_button';
+import {renderWithIntl, screen, fireEvent} from 'tests/react_testing_utils';
+
 import type {Props} from './table';
 import JobTable from './table';
 
@@ -100,7 +100,7 @@ describe('components/admin_console/jobs/table', () => {
         }, {
             create_at: 1540834294674,
             last_activity_at: 1540834294674,
-            id: '1236',
+            id: '1237',
             status: 'warning',
             type: 'data_retention',
             priority: 0,
@@ -110,21 +110,30 @@ describe('components/admin_console/jobs/table', () => {
         }],
     };
 
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
     test('should call create job func', () => {
-        const wrapper = shallow(
+        renderWithIntl(
             <JobTable {...baseProps}/>,
         );
 
-        wrapper.find('.job-table__create-button > div > .btn-tertiary').simulate('click', {preventDefault: jest.fn()});
+        const createButton = screen.getByRole('button', {name: 'Run Compliance Export Job Now'});
+        fireEvent.click(createButton);
         expect(createJob).toHaveBeenCalledTimes(1);
     });
 
     test('should call cancel job func', () => {
-        const wrapper = shallow(
+        const {container} = renderWithIntl(
             <JobTable {...baseProps}/>,
         );
 
-        wrapper.find(JobCancelButton).first().simulate('click', {preventDefault: jest.fn(), currentTarget: {getAttribute: () => '1234'}});
+        // JobCancelButton only shows for jobs with status 'pending' or 'in_progress'
+        const cancelButtons = container.querySelectorAll('.JobCancelButton');
+        expect(cancelButtons.length).toBeGreaterThan(0);
+
+        fireEvent.click(cancelButtons[0]);
         expect(cancelJob).toHaveBeenCalledTimes(1);
     });
 
@@ -138,7 +147,7 @@ describe('components/admin_console/jobs/table', () => {
             {header: 'Details'},
         ];
 
-        const wrapper = shallow(
+        const {container} = renderWithIntl(
             <JobTable
                 {...baseProps}
                 jobType='message_export'
@@ -147,15 +156,15 @@ describe('components/admin_console/jobs/table', () => {
         );
 
         // There should be ONLY 1 table element
-        const table = wrapper.find('table');
+        const table = container.querySelectorAll('table');
         expect(table).toHaveLength(1);
 
         // The table should have ONLY 1 thead element
-        const thead = table.find('thead');
+        const thead = container.querySelectorAll('thead');
         expect(thead).toHaveLength(1);
 
         // The number of th tags should be equal to number of columns
-        const headers = thead.find('th');
+        const headers = container.querySelectorAll('th');
         expect(headers).toHaveLength(cols.length);
     });
 
@@ -168,7 +177,7 @@ describe('components/admin_console/jobs/table', () => {
             {header: 'Details'},
         ];
 
-        const wrapper = shallow(
+        const {container} = renderWithIntl(
             <JobTable
                 {...baseProps}
                 downloadExportResults={false}
@@ -176,39 +185,39 @@ describe('components/admin_console/jobs/table', () => {
         );
 
         // There should be ONLY 1 table element
-        const table = wrapper.find('table');
+        const table = container.querySelectorAll('table');
         expect(table).toHaveLength(1);
 
         // The table should have ONLY 1 thead element
-        const thead = table.find('thead');
+        const thead = container.querySelectorAll('thead');
         expect(thead).toHaveLength(1);
 
         // The number of th tags should be equal to number of columns
-        const headers = thead.find('th');
+        const headers = container.querySelectorAll('th');
         expect(headers).toHaveLength(cols.length);
     });
 
     test('hide create job button', () => {
-        const wrapper = shallow(
+        const {container} = renderWithIntl(
             <JobTable
                 {...baseProps}
                 hideJobCreateButton={true}
             />,
         );
 
-        const button = wrapper.find('button.btn-default');
+        const button = container.querySelectorAll('button.btn-default');
         expect(button).toHaveLength(0);
     });
 
     test('add custom class', () => {
-        const wrapper = shallow(
+        const {container} = renderWithIntl(
             <JobTable
                 {...baseProps}
                 className={'job-table__data-retention'}
             />,
         );
 
-        const element = wrapper.find('.job-table__data-retention');
+        const element = container.querySelectorAll('.job-table__data-retention');
         expect(element).toHaveLength(1);
     });
 });
