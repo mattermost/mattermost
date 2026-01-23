@@ -26,6 +26,8 @@ var (
 		"TotalMessageCount",
 		"Status",
 		"BotID",
+		"ScheduledRecapId",
+		"SkipReason",
 	}
 
 	recapChannelColumns = []string{
@@ -75,6 +77,8 @@ func (s *SqlRecapStore) recapToMap(recap *model.Recap) map[string]any {
 		"TotalMessageCount": recap.TotalMessageCount,
 		"Status":            recap.Status,
 		"BotID":             recap.BotID,
+		"ScheduledRecapId":  recap.ScheduledRecapId,
+		"SkipReason":        recap.SkipReason,
 	}
 }
 
