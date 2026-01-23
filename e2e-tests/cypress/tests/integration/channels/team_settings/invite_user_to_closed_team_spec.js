@@ -49,10 +49,13 @@ describe('Team Settings', () => {
             // # Set 'sample.mattermost.com' as the only allowed email domain and save
             cy.get('#allowedDomains').click().type(emailDomain).type(' ');
             cy.findByText('Save').should('be.visible').click();
-
-            // # Close the modal
-            cy.get('#teamSettingsModalLabel').find('button').should('be.visible').click();
         });
+
+        // # Close the modal
+        cy.findByLabelText('Close').click();
+
+        // * Wait for modal to be closed
+        cy.get('#teamSettingsModal').should('not.exist');
 
         // # Open team menu and click 'Invite People'
         cy.uiOpenTeamMenu('Invite people');
@@ -63,7 +66,7 @@ describe('Team Settings', () => {
         // * Assert that the user has successfully been invited to the team
         cy.get('.invitation-modal-confirm--sent').should('be.visible').within(() => {
             cy.get('.username-or-icon').find('span').eq(0).should('have.text', userDetailsString);
-            cy.get('.InviteResultRow').find('div').eq(1).should('have.text', inviteSuccessMessage);
+            cy.get('.InviteResultRow').find('.reason').should('have.text', inviteSuccessMessage);
         });
 
         // # Click on the 'Invite More People button'
@@ -75,14 +78,14 @@ describe('Team Settings', () => {
         // * Assert that the invite failed and the correct error message is shown
         cy.get('.invitation-modal-confirm--not-sent').should('be.visible').within(() => {
             cy.get('.username-or-icon').find('span').eq(1).should('have.text', invalidEmail);
-            cy.get('.InviteResultRow').find('div').eq(1).should('have.text', inviteFailedMessage);
+            cy.get('.InviteResultRow').find('.reason').should('have.text', inviteFailedMessage);
         });
     });
 
     function inviteNewMemberToTeam(email) {
         cy.wait(TIMEOUTS.HALF_SEC);
 
-        cy.findByRole('combobox', {name: 'Add or Invite People'}).
+        cy.findByRole('combobox', {name: 'Invite People'}).
             typeWithForce(email).
             wait(TIMEOUTS.HALF_SEC).
             typeWithForce('{enter}');

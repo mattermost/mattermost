@@ -1107,13 +1107,6 @@ export type EnvironmentConfig = {
     [P in keyof AdminConfig]: EnvironmentConfigSettings<AdminConfig[P]>;
 }
 
-export type WarnMetricStatus = {
-    id: string;
-    limit: number;
-    acked: boolean;
-    store_status: string;
-};
-
 export enum CollapsedThreads {
     DISABLED = 'disabled',
     DEFAULT_ON = 'default_on',
