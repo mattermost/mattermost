@@ -74,8 +74,8 @@ describe('Onboarding', () => {
         // # Check the terms and privacy checkbox
         cy.get('#signup-body-card-form-check-terms-and-privacy').check();
 
-        // # Attempt to create an account by clicking on the 'Create Account' button
-        cy.findByText('Create Account').click();
+        // # Attempt to create an account by clicking on the 'Create account' button
+        cy.findByText('Create account').click();
 
         cy.wait(TIMEOUTS.HALF_SEC);
 

@@ -39,7 +39,7 @@ export default class SignupPage {
         this.usernameInput = page.locator('#input_name');
         this.passwordInput = page.locator('#input_password-input');
         this.passwordToggleButton = page.locator('#password_toggle');
-        this.createAccountButton = page.locator('button:has-text("Create Account")');
+        this.createAccountButton = page.locator('button:has-text("Create account")');
         this.emailError = page.locator('text=Please enter a valid email address');
         this.usernameError = page.locator(
             'text=Usernames have to begin with a lowercase letter and be 3-22 characters long. You can use lowercase letters, numbers, periods, dashes, and underscores.',

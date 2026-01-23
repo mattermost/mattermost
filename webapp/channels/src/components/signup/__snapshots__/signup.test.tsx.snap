@@ -148,7 +148,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               createMode={true}
               disabled={false}
               error=""
-              info="Must be 5-72 characters long."
+              info="Your password must be 5-72 characters long."
               inputSize="large"
               onChange={[Function]}
               value=""
@@ -297,7 +297,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               createMode={true}
               disabled={false}
               error=""
-              info="Must be 5-72 characters long."
+              info="Your password must be 5-72 characters long."
               inputSize="large"
               onChange={[Function]}
               value=""

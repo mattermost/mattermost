@@ -63,7 +63,7 @@ describe('Authentication', () => {
 
         cy.get('#signup-body-card-form-check-terms-and-privacy').check();
 
-        cy.findByText('Create Account').click();
+        cy.findByText('Create account').click();
 
         // * Make sure account was created successfully and we are at the select team page
         cy.findByText('Teams you can join:', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible');
@@ -117,7 +117,7 @@ describe('Authentication', () => {
 
         cy.get('#signup-body-card-form-check-terms-and-privacy').check();
 
-        cy.findByText('Create Account').click();
+        cy.findByText('Create account').click();
 
         // * Make sure account was not created successfully
         cy.get('.AlertBanner__title').scrollIntoView().should('be.visible');
@@ -152,7 +152,7 @@ describe('Authentication', () => {
 
             cy.get('#signup-body-card-form-check-terms-and-privacy').check();
 
-            cy.findByText('Create Account').click();
+            cy.findByText('Create account').click();
 
             // * Make sure account was created successfully and we are on the team joining page
             cy.findByText('Teams you can join:', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible');

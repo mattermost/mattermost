@@ -54,11 +54,6 @@ describe('Signup Email page', () => {
     });
 
     it('should match elements, body', () => {
-        const {
-            PRIVACY_POLICY_LINK,
-            TERMS_OF_SERVICE_LINK,
-        } = FixedCloudConfig.SupportSettings;
-
         // * Check elements in the body
         cy.get('.signup-body').should('be.visible');
         cy.get('.header-logo-link').should('be.visible');
@@ -83,7 +78,7 @@ describe('Signup Email page', () => {
 
         // * Check that submit button is disabled without accepting terms
         cy.get('#saveSetting').scrollIntoView().should('be.visible');
-        cy.get('#saveSetting').should('contain', 'Create Account').and('be.disabled');
+        cy.get('#saveSetting').should('contain', 'Create account').and('be.disabled');
 
         // * Check terms and privacy links (now part of checkbox label)
         cy.get('label[for="signup-body-card-form-check-terms-and-privacy"]').within(() => {

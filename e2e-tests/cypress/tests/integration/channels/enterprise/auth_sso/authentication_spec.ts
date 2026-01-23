@@ -60,7 +60,7 @@ describe('Authentication', () => {
 
         cy.get('#signup-body-card-form-check-terms-and-privacy').check();
 
-        cy.findByText('Create Account').click();
+        cy.findByText('Create account').click();
 
         // * Make sure account was not created successfully
         cy.get('.AlertBanner__title').scrollIntoView().should('be.visible');

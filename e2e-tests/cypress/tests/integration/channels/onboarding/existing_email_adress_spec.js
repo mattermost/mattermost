@@ -35,7 +35,7 @@ function signupWithEmail(name, pw) {
     cy.get('#signup-body-card-form-check-terms-and-privacy').check();
 
     // # Click on Create Account button
-    cy.findByText('Create Account').click();
+    cy.findByText('Create account').click();
 }
 
 describe('Cloud Onboarding', () => {

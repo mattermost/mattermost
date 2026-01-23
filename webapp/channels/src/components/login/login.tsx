@@ -48,7 +48,6 @@ import PasswordInput from 'components/widgets/inputs/password_input/password_inp
 import Constants from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {isEmbedded} from 'utils/embed';
-import {t} from 'utils/i18n';
 import {DesktopNotificationSounds} from 'utils/notification_sounds';
 import {showNotification} from 'utils/notifications';
 import {isDesktopApp} from 'utils/user_agent';
@@ -372,7 +371,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 mode = 'danger';
                 title = formatMessage({
                     id: 'login.get_terms_error',
-                    defaultMessage: 'Unable to load terms of service. If this issue persists, contact your System Administrator.',
+                    defaultMessage: 'Unable to load terms of use. If this issue persists, contact your System Administrator.',
                 });
                 break;
 
@@ -610,33 +609,42 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         currentLoginId = currentLoginId.trim().toLowerCase();
 
         if (!currentLoginId) {
-            t('login.noEmail');
-            t('login.noEmailLdapUsername');
-            t('login.noEmailUsername');
-            t('login.noEmailUsernameLdapUsername');
-            t('login.noLdapUsername');
-            t('login.noUsername');
-            t('login.noUsernameLdapUsername');
+            const ldapUsername = LdapLoginFieldName || formatMessage({id: 'login.ldapUsernameLower', defaultMessage: 'AD/LDAP username'});
 
-            // it's slightly weird to be constructing the message ID, but it's a bit nicer than triply nested if statements
-            let msgId = 'login.no';
-            if (enableSignInWithEmail) {
-                msgId += 'Email';
-            }
-            if (enableSignInWithUsername) {
-                msgId += 'Username';
-            }
-            if (ldapEnabled) {
-                msgId += 'LdapUsername';
+            let title;
+
+            // 3 methods, 2 methods, 1 method - Keep in mind order of cases.
+            switch (true) {
+            // three login methods enabled
+            case enableSignInWithEmail && enableSignInWithUsername && ldapEnabled:
+                title = formatMessage({id: 'login.noEmailUsernameLdapUsername', defaultMessage: 'Please enter your email, username or {ldapUsername}'}, {ldapUsername});
+                break;
+
+            // two login methods enabled
+            case enableSignInWithEmail && enableSignInWithUsername:
+                title = formatMessage({id: 'login.noEmailUsername', defaultMessage: 'Please enter your email or username'});
+                break;
+            case enableSignInWithEmail && ldapEnabled:
+                title = formatMessage({id: 'login.noEmailLdapUsername', defaultMessage: 'Please enter your email or {ldapUsername}'}, {ldapUsername});
+                break;
+            case enableSignInWithUsername && ldapEnabled:
+                title = formatMessage({id: 'login.noUsernameLdapUsername', defaultMessage: 'Please enter your username or {ldapUsername}'}, {ldapUsername});
+                break;
+
+            // one login method enabled
+            case enableSignInWithEmail:
+                title = formatMessage({id: 'login.noEmail', defaultMessage: 'Please enter your email'});
+                break;
+            case ldapEnabled:
+                title = formatMessage({id: 'login.noLdapUsername', defaultMessage: 'Please enter your {ldapUsername}'}, {ldapUsername});
+                break;
+            case enableSignInWithUsername:
+            default:
+                title = formatMessage({id: 'login.noUsername', defaultMessage: 'Please enter your username'});
+                break;
             }
 
-            setAlertBanner({
-                mode: 'danger',
-                title: formatMessage(
-                    {id: msgId},
-                    {ldapUsername: LdapLoginFieldName || formatMessage({id: 'login.ldapUsernameLower', defaultMessage: 'AD/LDAP username'})},
-                ),
-            });
+            setAlertBanner({mode: 'danger', title});
             setHasError(true);
             setIsWaiting(false);
 
