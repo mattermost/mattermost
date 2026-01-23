@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/platform/services/imageproxy"
@@ -89,8 +90,8 @@ type Channels struct {
 	scheduledPostMut sync.Mutex
 	scheduledPostTask *model.ScheduledTask
 
-	emailLoginAttempts *KeyedMutex
-	ldapLoginAttempts  *KeyedMutex
+	emailLoginAttempts *utils.KeyedMutex
+	ldapLoginAttempts  *utils.KeyedMutex
 	loginCleanupMut    sync.Mutex
 	loginCleanupTask   *model.ScheduledTask
 }
@@ -104,8 +105,8 @@ func NewChannels(s *Server) (*Channels, error) {
 		exportFilestore:    s.ExportFileBackend(),
 		cfgSvc:             s.Platform(),
 		interruptQuitChan:  make(chan struct{}),
-		emailLoginAttempts: NewKeyedMutex(15 * time.Minute),
-		ldapLoginAttempts:  NewKeyedMutex(15 * time.Minute),
+		emailLoginAttempts: utils.NewKeyedMutex(15 * time.Minute),
+		ldapLoginAttempts:  utils.NewKeyedMutex(15 * time.Minute),
 	}
 
 	// We are passing a partially filled Channels struct so that the enterprise
