@@ -3577,6 +3577,15 @@ func (c *Client4) GetFlaggingConfiguration(ctx context.Context) (*ContentFlaggin
 	return DecodeJSONFromResponse[*ContentFlaggingReportingConfig](r)
 }
 
+func (c *Client4) GetFlaggingConfigurationForTeam(ctx context.Context, teamId string) (*ContentFlaggingReportingConfig, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.contentFlaggingRoute()+"/flag/config?team_id="+teamId, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*ContentFlaggingReportingConfig](r)
+}
+
 func (c *Client4) GetTeamPostFlaggingFeatureStatus(ctx context.Context, teamId string) (map[string]bool, *Response, error) {
 	r, err := c.DoAPIGet(ctx, c.contentFlaggingRoute()+"/team/"+teamId+"/status", "")
 	if err != nil {

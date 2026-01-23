@@ -33,7 +33,7 @@ func setBasicCommonReviewerConfig(th *TestHelper) *model.AppError {
 }
 
 func TestGetFlaggingConfiguration(t *testing.T) {
-	th := Setup(t)
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 
@@ -65,6 +65,116 @@ func TestGetFlaggingConfiguration(t *testing.T) {
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 		require.Nil(t, status)
+	})
+
+	t.Run("Should successfully return configuration without team_id for any authenticated user", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense(t)
+
+		th.App.UpdateConfig(func(config *model.Config) {
+			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
+			config.ContentFlaggingSettings.SetDefaults()
+		})
+
+		config, resp, err := client.GetFlaggingConfiguration(context.Background())
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		require.NotNil(t, config)
+		require.NotNil(t, config.Reasons)
+		require.NotNil(t, config.ReporterCommentRequired)
+		require.NotNil(t, config.ReviewerCommentRequired)
+		// Reviewer-only fields should be nil when not requesting as a reviewer
+		require.Nil(t, config.NotifyReporterOnRemoval)
+		require.Nil(t, config.NotifyReporterOnDismissal)
+	})
+
+	t.Run("Should return 403 when team_id is provided but user is not a reviewer", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense(t)
+
+		config := model.ContentFlaggingSettingsRequest{
+			ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
+				EnableContentFlagging: model.NewPointer(true),
+			},
+			ReviewerSettings: &model.ReviewSettingsRequest{
+				ReviewerSettings: model.ReviewerSettings{
+					CommonReviewers: model.NewPointer(false),
+				},
+				ReviewerIDsSettings: model.ReviewerIDsSettings{
+					TeamReviewersSetting: map[string]*model.TeamReviewerSetting{
+						th.BasicTeam.Id: {
+							Enabled:     model.NewPointer(true),
+							ReviewerIds: []string{}, // Empty list - user is not a reviewer
+						},
+					},
+				},
+			},
+		}
+		config.SetDefaults()
+		appErr := th.App.SaveContentFlaggingConfig(config)
+		require.Nil(t, appErr)
+
+		flagConfig, resp, err := client.GetFlaggingConfigurationForTeam(context.Background(), th.BasicTeam.Id)
+		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+		require.Nil(t, flagConfig)
+	})
+
+	t.Run("Should successfully return configuration with reviewer fields when user is a reviewer", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense(t)
+
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		config, resp, err := client.GetFlaggingConfigurationForTeam(context.Background(), th.BasicTeam.Id)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		require.NotNil(t, config)
+		require.NotNil(t, config.Reasons)
+		require.NotNil(t, config.ReporterCommentRequired)
+		require.NotNil(t, config.ReviewerCommentRequired)
+		// Reviewer-only fields should be present when requesting as a reviewer
+		require.NotNil(t, config.NotifyReporterOnRemoval)
+		require.NotNil(t, config.NotifyReporterOnDismissal)
+	})
+
+	t.Run("Should successfully return configuration with reviewer fields when user is a team reviewer", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense(t)
+
+		config := model.ContentFlaggingSettingsRequest{
+			ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
+				EnableContentFlagging: model.NewPointer(true),
+			},
+			ReviewerSettings: &model.ReviewSettingsRequest{
+				ReviewerSettings: model.ReviewerSettings{
+					CommonReviewers: model.NewPointer(false),
+				},
+				ReviewerIDsSettings: model.ReviewerIDsSettings{
+					TeamReviewersSetting: map[string]*model.TeamReviewerSetting{
+						th.BasicTeam.Id: {
+							Enabled:     model.NewPointer(true),
+							ReviewerIds: []string{th.BasicUser.Id},
+						},
+					},
+				},
+			},
+		}
+		config.SetDefaults()
+		appErr := th.App.SaveContentFlaggingConfig(config)
+		require.Nil(t, appErr)
+
+		flagConfig, resp, err := client.GetFlaggingConfigurationForTeam(context.Background(), th.BasicTeam.Id)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		require.NotNil(t, flagConfig)
+		require.NotNil(t, flagConfig.Reasons)
+		require.NotNil(t, flagConfig.ReporterCommentRequired)
+		require.NotNil(t, flagConfig.ReviewerCommentRequired)
+		// Reviewer-only fields should be present when requesting as a team reviewer
+		require.NotNil(t, flagConfig.NotifyReporterOnRemoval)
+		require.NotNil(t, flagConfig.NotifyReporterOnDismissal)
 	})
 }
 
