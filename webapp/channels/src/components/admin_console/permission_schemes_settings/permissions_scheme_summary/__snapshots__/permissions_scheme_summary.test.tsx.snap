@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/admin_console/permission_schemes_settings/permissions_scheme_summary should match snapshot on default data 1`] = `
 <div
@@ -9,12 +9,16 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
   <div
     onClick={[Function]}
   >
-    <ConfirmModal
-      confirmButtonClass="btn btn-primary"
+    <Memo(ConfirmModal)
       confirmButtonText={
         <Memo(LoadingWrapper)
           loading={false}
-          text="Deleting..."
+          text={
+            Object {
+              "defaultMessage": "Deleting...",
+              "id": "admin.permissions.permissionsSchemeSummary.deleting",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Yes, Delete"
@@ -37,7 +41,6 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
           </p>
         </div>
       }
-      modalClass=""
       onCancel={[Function]}
       onConfirm={[Function]}
       show={false}
@@ -127,12 +130,16 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
   <div
     onClick={[Function]}
   >
-    <ConfirmModal
-      confirmButtonClass="btn btn-primary"
+    <Memo(ConfirmModal)
       confirmButtonText={
         <Memo(LoadingWrapper)
           loading={false}
-          text="Deleting..."
+          text={
+            Object {
+              "defaultMessage": "Deleting...",
+              "id": "admin.permissions.permissionsSchemeSummary.deleting",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Yes, Delete"
@@ -155,7 +162,6 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
           </p>
         </div>
       }
-      modalClass=""
       onCancel={[Function]}
       onConfirm={[Function]}
       show={false}
@@ -263,8 +269,6 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
       Team 8
     </span>
     <WithTooltip
-      id="id-extra-teams-overlay"
-      placement="bottom"
       title="Team 9, Team 10"
     >
       <span
@@ -295,12 +299,16 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
   <div
     onClick={[Function]}
   >
-    <ConfirmModal
-      confirmButtonClass="btn btn-primary"
+    <Memo(ConfirmModal)
       confirmButtonText={
         <Memo(LoadingWrapper)
           loading={false}
-          text="Deleting..."
+          text={
+            Object {
+              "defaultMessage": "Deleting...",
+              "id": "admin.permissions.permissionsSchemeSummary.deleting",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Yes, Delete"
@@ -323,7 +331,6 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
           </p>
         </div>
       }
-      modalClass=""
       onCancel={[Function]}
       onConfirm={[Function]}
       show={false}

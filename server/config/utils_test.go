@@ -35,6 +35,12 @@ func TestDesanitize(t *testing.T) {
 	actual.SqlSettings.DataSourceReplicas = append(actual.SqlSettings.DataSourceReplicas, "replica1")
 	actual.SqlSettings.DataSourceSearchReplicas = append(actual.SqlSettings.DataSourceSearchReplicas, "search_replica0")
 	actual.SqlSettings.DataSourceSearchReplicas = append(actual.SqlSettings.DataSourceSearchReplicas, "search_replica1")
+	actual.PluginSettings.Plugins = map[string]map[string]any{
+		"plugin1": {
+			"secret":    "value1",
+			"no_secret": "value2",
+		},
+	}
 
 	target := &model.Config{}
 	target.SetDefaults()
@@ -55,6 +61,12 @@ func TestDesanitize(t *testing.T) {
 	target.ElasticsearchSettings.Password = model.NewPointer(model.FakeSetting)
 	target.SqlSettings.DataSourceReplicas = []string{model.FakeSetting, model.FakeSetting}
 	target.SqlSettings.DataSourceSearchReplicas = []string{model.FakeSetting, model.FakeSetting}
+	target.PluginSettings.Plugins = map[string]map[string]any{
+		"plugin1": {
+			"secret":    model.FakeSetting,
+			"no_secret": "value2",
+		},
+	}
 
 	actualClone := actual.Clone()
 	desanitize(actual, target)
@@ -77,6 +89,7 @@ func TestDesanitize(t *testing.T) {
 	assert.Equal(t, actual.SqlSettings.DataSourceReplicas, target.SqlSettings.DataSourceReplicas)
 	assert.Equal(t, actual.SqlSettings.DataSourceSearchReplicas, target.SqlSettings.DataSourceSearchReplicas)
 	assert.Equal(t, actual.ServiceSettings.SplitKey, target.ServiceSettings.SplitKey)
+	assert.Equal(t, actual.PluginSettings.Plugins, target.PluginSettings.Plugins)
 }
 
 func TestFixInvalidLocales(t *testing.T) {
@@ -156,11 +169,6 @@ func TestIsDatabaseDSN(t *testing.T) {
 		Expected bool
 	}{
 		{
-			Name:     "Mysql DSN",
-			DSN:      "mysql://localhost",
-			Expected: true,
-		},
-		{
 			Name:     "Postgresql 'postgres' DSN",
 			DSN:      "postgres://localhost",
 			Expected: true,
@@ -218,7 +226,6 @@ func TestIsJSONMap(t *testing.T) {
 		{name: "array json", data: `["test1", "test2"]`, want: false},
 		{name: "bad json", data: `{huh?}`, want: false},
 		{name: "filename", data: "/tmp/logger.conf", want: false},
-		{name: "mysql dsn", data: "mysql://mmuser:@tcp(localhost:3306)/mattermost?charset=utf8mb4,utf8&readTimeout=30s", want: false},
 		{name: "postgres dsn", data: "postgres://mmuser:passwordlocalhost:5432/mattermost?sslmode=disable&connect_timeout=10", want: false},
 	}
 	for _, tt := range tests {

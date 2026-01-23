@@ -8,10 +8,10 @@ import GetLinkModal from 'components/get_link_modal';
 
 import type {PropsFromRedux} from './index';
 
-interface Props extends PropsFromRedux {
+type Props = PropsFromRedux & {
     onExited: () => void;
     fileId: string;
-}
+};
 
 const GetPublicLinkModal = ({
     actions,

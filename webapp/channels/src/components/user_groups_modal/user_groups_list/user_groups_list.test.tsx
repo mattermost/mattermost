@@ -12,6 +12,7 @@ describe('component/user_groups_modal', () => {
     const baseProps = {
         onExited: jest.fn(),
         onScroll: jest.fn(),
+        onToggle: jest.fn(),
         groups: [],
         searchTerm: '',
         backButtonAction: jest.fn(),

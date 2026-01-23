@@ -4,7 +4,6 @@
 package app
 
 import (
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,11 +14,14 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 )
 
+// TestWebConnShouldSendEvent is not exhaustive because some of the checks
+// happen inside web_hub.go before the event is actually broadcasted, and checked
+// via ShouldSendEvent.
 func TestWebConnShouldSendEvent(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_WEBSOCKETEVENTSCOPE", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_WEBSOCKETEVENTSCOPE")
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+
 	session, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Roles: th.BasicUser.GetRawRoles(), TeamMembers: []*model.TeamMember{
 		{
 			UserId: th.BasicUser.Id,
@@ -103,11 +105,11 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 	basicUserWc2.SetSessionExpiresAt(session4.ExpiresAt)
 
 	// By default, only BasicUser and BasicUser2 get added to the BasicTeam.
-	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
+	th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
 
 	// Create another channel with just BasicUser (implicitly) and SystemAdminUser to test channel broadcast
-	channel2 := th.CreateChannel(th.Context, th.BasicTeam)
-	th.AddUserToChannel(th.SystemAdminUser, channel2)
+	channel2 := th.CreateChannel(t, th.BasicTeam)
+	th.AddUserToChannel(t, th.SystemAdminUser, channel2)
 
 	cases := []struct {
 		Description        string
@@ -156,14 +158,6 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 			}
 		})
 	}
-
-	t.Run("should send to basic user in basic channel", func(t *testing.T) {
-		event = event.SetBroadcast(&model.WebsocketBroadcast{ChannelId: th.BasicChannel.Id})
-
-		assert.True(t, basicUserWc.ShouldSendEvent(event), "expected user 1")
-		assert.False(t, basicUser2Wc.ShouldSendEvent(event), "did not expect user 2")
-		assert.False(t, adminUserWc.ShouldSendEvent(event), "did not expect admin")
-	})
 
 	t.Run("should not send typing event unless in scope", func(t *testing.T) {
 		event2 := model.NewWebSocketEvent(model.WebsocketEventTyping, "", th.BasicChannel.Id, "", nil, "")
@@ -222,16 +216,8 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 		assert.False(t, basicUserWc.ShouldSendEvent(event2))
 	})
 
-	t.Run("should send to basic user and admin in channel2", func(t *testing.T) {
-		event = event.SetBroadcast(&model.WebsocketBroadcast{ChannelId: channel2.Id})
-
-		assert.True(t, basicUserWc.ShouldSendEvent(event), "expected user 1")
-		assert.False(t, basicUser2Wc.ShouldSendEvent(event), "did not expect user 2")
-		assert.True(t, adminUserWc.ShouldSendEvent(event), "expected admin")
-	})
-
 	t.Run("channel member cache invalidated after user added to channel", func(t *testing.T) {
-		th.AddUserToChannel(th.BasicUser2, channel2)
+		th.AddUserToChannel(t, th.BasicUser2, channel2)
 		basicUser2Wc.InvalidateCache()
 
 		event = event.SetBroadcast(&model.WebsocketBroadcast{ChannelId: channel2.Id})

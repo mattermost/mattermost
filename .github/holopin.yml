@@ -3,3 +3,5 @@ defaultSticker: clul38u2n156490gl8ti3srnek # sticker ID for "Mattermost QA Commu
 stickers:
   - id: clul38u2n156490gl8ti3srnek # sticker id
     alias: Mattermost QA Community Contributors # shorthand-string
+  - id: cm16x3e4g07500cl9y5kspako
+    alias: Mattermost Hacktoberfest 2024 Contributor

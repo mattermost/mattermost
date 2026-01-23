@@ -15,10 +15,11 @@ import {getUser} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 
 import {getHistory} from 'utils/browser_history';
 import {Preferences} from 'utils/constants';
+
+import type {ActionFuncAsync, ThunkActionFunc} from 'types/store';
 
 export function removeUserFromTeamAndGetStats(teamId: Team['id'], userId: UserProfile['id']): ActionFuncAsync {
     return async (dispatch, getState) => {

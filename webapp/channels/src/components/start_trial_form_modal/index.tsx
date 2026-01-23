@@ -12,7 +12,6 @@ import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
 
 import {requestTrialLicense} from 'actions/admin_actions';
 import {validateBusinessEmail} from 'actions/cloud';
-import {trackEvent} from 'actions/telemetry_actions';
 import {closeModal, openModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
@@ -25,7 +24,7 @@ import CountrySelector from 'components/payment_form/country_selector';
 import Input, {SIZE} from 'components/widgets/inputs/input/input';
 import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
 
-import {AboutLinks, LicenseLinks, ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
+import {AboutLinks, ModalIdentifiers} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -66,7 +65,7 @@ defineMessages({
     },
     TWO_THOUSAND_FIVE_HUNDRED_AND_UP: {
         id: 'TWO_THOUSAND_FIVE_HUNDRED_AND_UP',
-        defaultMessage: '2501+',
+        defaultMessage: '2501-5000',
     },
 });
 
@@ -81,7 +80,6 @@ export enum OrgSize {
 
 type Props = {
     onClose?: () => void;
-    page?: string;
 }
 
 function StartTrialFormModal(props: Props): JSX.Element | null {
@@ -121,7 +119,6 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
     };
 
     useEffect(() => {
-        trackEvent(TELEMETRY_CATEGORIES.SELF_HOSTED_START_TRIAL_MODAL, 'form_opened');
         if (email && !didOnce) {
             handleValidateBusinessEmail(email);
         }
@@ -158,32 +155,15 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
             company_country: country,
             company_size: orgSize,
         };
-        const {error, data} = await dispatch(requestTrialLicense(trialRequestBody, props.page || 'license'));
+        const {error, data} = await dispatch(requestTrialLicense(trialRequestBody));
         if (error) {
             setLoadStatus(TrialLoadStatus.Failed);
             let title;
-            let subtitle;
             let buttonText;
             let onTryAgain = handleErrorModalTryAgain;
 
             if ((data as any).status === 422) {
                 title = (<></>);
-                subtitle = (
-                    <FormattedMessage
-                        id='admin.license.trial-request.embargoed'
-                        defaultMessage='We were unable to process the request due to limitations for embargoed countries. <link>Learn more in our documentation</link>, or reach out to legal@mattermost.com for questions around export limitations.'
-                        values={{
-                            link: (text: string) => (
-                                <ExternalLink
-                                    location='trial_banner'
-                                    href={LicenseLinks.EMBARGOED_COUNTRIES}
-                                >
-                                    {text}
-                                </ExternalLink>
-                            ),
-                        }}
-                    />
-                );
                 buttonText = (
                     <FormattedMessage
                         id='admin.license.trial-request.embargoed.button'
@@ -198,7 +178,6 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
                 dialogProps: {
                     onTryAgain,
                     title,
-                    subtitle,
                     buttonText,
                 },
             }));
@@ -228,7 +207,6 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
         if (props.onClose) {
             props.onClose();
         }
-        trackEvent(TELEMETRY_CATEGORIES.SELF_HOSTED_START_TRIAL_MODAL, 'form_closed');
         dispatch(closeModal(ModalIdentifiers.START_TRIAL_FORM_MODAL));
     };
 
@@ -267,7 +245,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
             dialogClassName='a11y__modal'
             show={show}
             id='StartTrialFormModal'
-            role='dialog'
+            role='none'
             onHide={handleOnClose}
         >
             <Modal.Header closeButton={true}>
@@ -323,7 +301,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
                         setOrgSize(e.value as OrgSize);
                     }}
                     value={getOrgSizeDropdownValue()}
-                    options={Object.entries(OrgSize).map(([value, label]) => ({value, label}))}
+                    options={Object.entries(OrgSize).map(([value, label]) => ({value, label})) as any} // options type is not correctly set in DropdownInput component.
                     legend={formatMessage({id: 'start_trial_form.company_size', defaultMessage: 'Company Size'})}
                     placeholder={formatMessage({id: 'start_trial_form.company_size', defaultMessage: 'Company Size'})}
                     name='company_size_dropdown'
@@ -361,7 +339,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
                 <div className='buttons'>
                     <Button
                         disabled={isSubmitDisabled}
-                        className='confirm-btn'
+                        className='btn btn-primary'
                         onClick={requestLicense}
                     >
                         {btnText(status)}

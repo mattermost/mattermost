@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {HTMLAttributes} from 'react';
-import React, {forwardRef, useRef} from 'react';
+import type {AnchorHTMLAttributes} from 'react';
+import React, {cloneElement, forwardRef, useRef} from 'react';
+import type {DraggableProvided} from 'react-beautiful-dnd';
 import {useDispatch, useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 import styled, {css} from 'styled-components';
@@ -27,9 +28,8 @@ import type {GlobalState} from 'types/store';
 import BookmarkItemDotMenu from './bookmark_dot_menu';
 import BookmarkIcon from './bookmark_icon';
 
-type Props = {bookmark: ChannelBookmark};
-const BookmarkItem = <T extends HTMLAnchorElement>({bookmark}: Props) => {
-    const linkRef = useRef<T>(null);
+const useBookmarkLink = (bookmark: ChannelBookmark) => {
+    const linkRef = useRef<HTMLAnchorElement>(null);
     const dispatch = useDispatch();
     const fileInfo: FileInfo | undefined = useSelector((state: GlobalState) => (bookmark?.file_id && getFile(state, bookmark.file_id)) || undefined);
 
@@ -88,18 +88,38 @@ const BookmarkItem = <T extends HTMLAnchorElement>({bookmark}: Props) => {
         );
     }
 
+    return {
+        link,
+        icon,
+        open,
+    } as const;
+};
+
+type Props = {
+    bookmark: ChannelBookmark;
+    drag: DraggableProvided;
+    isDragging: boolean;
+    disableInteractions: boolean;
+};
+const BookmarkItem = (({bookmark, drag, disableInteractions}: Props) => {
+    const {link, open} = useBookmarkLink(bookmark);
+
     return (
-        <Chip>
-            {link}
+        <Chip
+            ref={drag.innerRef}
+            {...drag.draggableProps}
+            $disableInteractions={disableInteractions}
+        >
+            {link && cloneElement(link, {...drag.dragHandleProps, role: 'link'})}
             <BookmarkItemDotMenu
                 bookmark={bookmark}
                 open={open}
             />
         </Chip>
     );
-};
+});
 
-const Chip = styled.div`
+const Chip = styled.div<{$disableInteractions: boolean}>`
     position: relative;
     border-radius: 12px;
     overflow: hidden;
@@ -115,47 +135,49 @@ const Chip = styled.div`
         top: 3px;
     }
 
-    &:hover,
-    &:focus-within,
-    &:has([aria-expanded="true"]) {
-        button {
-            visibility: visible;
-        }
-    }
-
-    &:hover,
-    &:focus-within {
-        a {
-            text-decoration: none;
-        }
-    }
-
-    &:hover,
-    &:focus-within,
-    &:has([aria-expanded="true"]) {
-        a {
-            background: rgba(var(--center-channel-color-rgb), 0.08);
-            color: rgba(var(--center-channel-color-rgb), 1);
-        }
-    }
-
-    &:active:not(:has(button:active)),
-    &--active,
-    &--active:hover {
-        a {
-            background: rgba(var(--button-bg-rgb), 0.08);
-            color: rgb(var(--button-bg-rgb)) !important;
-
-            .icon__text {
-                color: rgb(var(--button-bg));
-            }
-
-            .icon {
-                color: rgb(var(--button-bg));
+    ${({$disableInteractions}) => !$disableInteractions && css`
+        &:hover,
+        &:focus-within,
+        &:has([aria-expanded="true"]) {
+            button {
+                visibility: visible;
             }
         }
 
-    }
+        &:hover,
+        &:focus-within {
+            a {
+                text-decoration: none;
+                cursor: pointer;
+            }
+        }
+
+        &:hover,
+        &:focus-within,
+        &:has([aria-expanded="true"]) {
+            a {
+                background: rgba(var(--center-channel-color-rgb), 0.08);
+                color: rgba(var(--center-channel-color-rgb), 1);
+            }
+        }
+
+        &:active:not(:has(button:active)),
+        &--active,
+        &--active:hover {
+            a {
+                background: rgba(var(--button-bg-rgb), 0.08);
+                color: rgb(var(--button-bg-rgb)) !important;
+
+                .icon__text {
+                    color: rgb(var(--button-bg));
+                }
+
+                .icon {
+                    color: rgb(var(--button-bg));
+                }
+            }
+        }
+    `}
 `;
 
 const Label = styled.span`
@@ -167,8 +189,18 @@ const Label = styled.span`
 
 const TARGET_BLANK_URL_PREFIX = '!';
 
-type DynamicLinkProps = {href: string; children: React.ReactNode; isFile: boolean; onClick?: HTMLAttributes<HTMLAnchorElement>['onClick']};
-const DynamicLink = forwardRef<HTMLAnchorElement, DynamicLinkProps>(({href, children, isFile, onClick}, ref) => {
+type DynamicLinkProps = AnchorHTMLAttributes<HTMLAnchorElement> & {
+    href: string;
+    children: React.ReactNode;
+    isFile: boolean;
+};
+const DynamicLink = forwardRef<HTMLAnchorElement, DynamicLinkProps>(({
+    href,
+    children,
+    isFile,
+    onClick,
+    ...otherProps
+}, ref) => {
     const siteURL = getSiteURL();
     const openInNewTab = shouldOpenInNewTab(href, siteURL);
 
@@ -177,6 +209,7 @@ const DynamicLink = forwardRef<HTMLAnchorElement, DynamicLinkProps>(({href, chil
     if (prefixed || openInNewTab) {
         return (
             <StyledExternalLink
+                {...otherProps}
                 href={prefixed ? href.substring(1) : href}
                 rel='noopener noreferrer'
                 target='_blank'
@@ -191,9 +224,9 @@ const DynamicLink = forwardRef<HTMLAnchorElement, DynamicLinkProps>(({href, chil
     if (href.startsWith(siteURL) && !isFile) {
         return (
             <StyledLink
+                {...otherProps}
                 to={href.slice(siteURL.length)}
                 ref={ref}
-                onClick={onClick}
             >
                 {children}
             </StyledLink>
@@ -202,6 +235,7 @@ const DynamicLink = forwardRef<HTMLAnchorElement, DynamicLinkProps>(({href, chil
 
     return (
         <StyledAnchor
+            {...otherProps}
             href={href}
             ref={ref}
             onClick={onClick}

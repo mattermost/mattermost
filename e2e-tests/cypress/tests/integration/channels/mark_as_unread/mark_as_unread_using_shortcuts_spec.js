@@ -61,8 +61,8 @@ describe('Mark as Unread', () => {
         // * Hover on the post with holding alt should show cursor
         cy.get(`#post_${post2.id}`).trigger('mouseover').type('{alt}', {release: false}).should(showCursor);
 
-        // # Mouse click on the post holding alt
-        cy.get(`#post_${post2.id}`).type('{alt}', {release: false}).click();
+        // # Mouse click on the post
+        cy.get(`#post_${post2.id}`).click();
 
         // * Verify the post is marked as unread
         verifyPostNextToNewMessageSeparator('post2');

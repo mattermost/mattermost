@@ -27,9 +27,6 @@ func Run(args []string) error {
 
 	RootCmd.PersistentFlags().String("config", filepath.Join(xdgConfigHomeVar, configParent, configFileName), "path to the configuration file")
 	_ = viper.BindPFlag("config", RootCmd.PersistentFlags().Lookup("config"))
-	RootCmd.PersistentFlags().String("config-path", xdgConfigHomeVar, "path to the configuration directory.")
-	_ = viper.BindPFlag("config-path", RootCmd.PersistentFlags().Lookup("config-path"))
-	_ = RootCmd.PersistentFlags().MarkHidden("config-path")
 	RootCmd.PersistentFlags().Bool("suppress-warnings", false, "disables printing warning messages")
 	_ = viper.BindPFlag("suppress-warnings", RootCmd.PersistentFlags().Lookup("suppress-warnings"))
 	RootCmd.PersistentFlags().String("format", "plain", "the format of the command output [plain, json]")
@@ -65,7 +62,14 @@ func Run(args []string) error {
 		}
 	}()
 
-	return RootCmd.Execute()
+	err := RootCmd.Execute()
+	// Flush the printer first before printing any error
+	_ = printer.Flush()
+	if err != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "Error: %s\n", err.Error())
+	}
+
+	return err
 }
 
 func printPanic(x any) {
@@ -108,9 +112,12 @@ var RootCmd = &cobra.Command{
 		}
 		quiet := viper.GetBool("quiet")
 		printer.SetQuiet(quiet)
+
+		perPage, err := cmd.Flags().GetInt("per-page")
+		if err == nil && perPage > MaxPageSize {
+			printer.PrintError(fmt.Sprintf("Per page value is greater than the maximum allowed. Mattermost might only return %d items.", MaxPageSize))
+		}
 	},
-	PersistentPostRun: func(cmd *cobra.Command, args []string) {
-		_ = printer.Flush()
-	},
-	SilenceUsage: true,
+	SilenceUsage:  true,
+	SilenceErrors: true,
 }

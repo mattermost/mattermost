@@ -118,7 +118,7 @@ export default class SystemRolePermissionDropdown extends React.PureComponent<Pr
             break;
         }
 
-        const ariaLabel = Utils.localizeMessage('admin.permissions.system_role_permissions.change_access', 'Change role access on a system console section');
+        const ariaLabel = Utils.localizeMessage({id: 'admin.permissions.system_role_permissions.change_access', defaultMessage: 'Change role access on a system console section'});
         return (
             <MenuWrapper
                 isDisabled={isDisabled}

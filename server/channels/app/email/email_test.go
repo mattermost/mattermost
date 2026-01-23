@@ -4,7 +4,6 @@
 package email
 
 import (
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -14,6 +13,8 @@ import (
 )
 
 func TestCondenseSiteURL(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	require.Equal(t, "", condenseSiteURL(""))
 	require.Equal(t, "mattermost.com", condenseSiteURL("mattermost.com"))
 	require.Equal(t, "mattermost.com", condenseSiteURL("mattermost.com/"))
@@ -35,9 +36,9 @@ func TestCondenseSiteURL(t *testing.T) {
 }
 
 func TestSendInviteEmails(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-	th.ConfigureInbucketMail()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.ConfigureInbucketMail(t)
 
 	emailTo := "test@example.com"
 
@@ -68,14 +69,15 @@ func TestSendInviteEmails(t *testing.T) {
 		require.Contains(t, email.Body.Text, "test-user", "Wrong received message %s", email.Body.Text)
 	}
 
-	th.UpdateConfig(func(cfg *model.Config) {
+	th.UpdateConfig(t, func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableEmailInvitations = true
 		*cfg.EmailSettings.SendEmailNotifications = false
 	})
 	t.Run("SendInviteEmails", func(t *testing.T) {
-		mail.DeleteMailBox(emailTo)
+		err := mail.DeleteMailBox(emailTo)
+		require.NoError(t, err, "Failed to delete mailbox")
 
-		err := th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, false, false, false)
+		err = th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, false, false, false)
 		require.NoError(t, err)
 
 		verifyMailbox(t)
@@ -83,13 +85,14 @@ func TestSendInviteEmails(t *testing.T) {
 
 	t.Run("SendInviteEmails can return error when SMTP connection fails", func(t *testing.T) {
 		originalPort := *th.service.config().EmailSettings.SMTPPort
-		th.UpdateConfig(func(cfg *model.Config) {
-			os.Setenv("MM_EMAILSETTINGS_SMTPPORT", "5432")
+		originalTimeout := *th.service.config().EmailSettings.SMTPServerTimeout
+		th.UpdateConfig(t, func(cfg *model.Config) {
 			*cfg.EmailSettings.SMTPPort = "5432"
+			*cfg.EmailSettings.SMTPServerTimeout = 4
 		})
-		defer th.UpdateConfig(func(cfg *model.Config) {
-			os.Setenv("MM_EMAILSETTINGS_SMTPPORT", originalPort)
+		defer th.UpdateConfig(t, func(cfg *model.Config) {
 			*cfg.EmailSettings.SMTPPort = originalPort
+			*cfg.EmailSettings.SMTPServerTimeout = originalTimeout
 		})
 
 		err := th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, true, false, false)
@@ -100,9 +103,10 @@ func TestSendInviteEmails(t *testing.T) {
 	})
 
 	t.Run("SendGuestInviteEmails", func(t *testing.T) {
-		mail.DeleteMailBox(emailTo)
+		err := mail.DeleteMailBox(emailTo)
+		require.NoError(t, err, "Failed to delete mailbox")
 
-		err := th.service.SendGuestInviteEmails(
+		err = th.service.SendGuestInviteEmails(
 			th.BasicTeam,
 			[]*model.Channel{th.BasicChannel},
 			"test-user",
@@ -111,6 +115,7 @@ func TestSendInviteEmails(t *testing.T) {
 			[]string{emailTo},
 			"http://testserver",
 			"hello world",
+			false,
 			false,
 			false,
 			false,
@@ -121,14 +126,15 @@ func TestSendInviteEmails(t *testing.T) {
 	})
 
 	t.Run("SendGuestInviteEmail can return error when SMTP connection fails", func(t *testing.T) {
+		originalTimeout := *th.service.config().EmailSettings.SMTPServerTimeout
 		originalPort := *th.service.config().EmailSettings.SMTPPort
-		th.UpdateConfig(func(cfg *model.Config) {
-			os.Setenv("MM_EMAILSETTINGS_SMTPPORT", "5432")
+		th.UpdateConfig(t, func(cfg *model.Config) {
 			*cfg.EmailSettings.SMTPPort = "5432"
+			*cfg.EmailSettings.SMTPServerTimeout = 4
 		})
-		defer th.UpdateConfig(func(cfg *model.Config) {
-			os.Setenv("MM_EMAILSETTINGS_SMTPPORT", originalPort)
+		defer th.UpdateConfig(t, func(cfg *model.Config) {
 			*cfg.EmailSettings.SMTPPort = originalPort
+			*cfg.EmailSettings.SMTPServerTimeout = originalTimeout
 		})
 
 		err := th.service.SendGuestInviteEmails(
@@ -140,6 +146,7 @@ func TestSendInviteEmails(t *testing.T) {
 			[]string{emailTo},
 			"http://testserver",
 			"hello world",
+			false,
 			false,
 			false,
 			false,
@@ -158,15 +165,17 @@ func TestSendInviteEmails(t *testing.T) {
 			true,
 			false,
 			false,
+			false,
 		)
 		require.Error(t, err)
 	})
 
 	t.Run("SendGuestInviteEmails should sanitize HTML input", func(t *testing.T) {
-		mail.DeleteMailBox(emailTo)
+		err := mail.DeleteMailBox(emailTo)
+		require.NoError(t, err, "Failed to delete mailbox")
 
 		message := `<a href="http://testserver">sanitized message</a>`
-		err := th.service.SendGuestInviteEmails(
+		err = th.service.SendGuestInviteEmails(
 			th.BasicTeam,
 			[]*model.Channel{th.BasicChannel},
 			"test-user",
@@ -175,6 +184,7 @@ func TestSendInviteEmails(t *testing.T) {
 			[]string{emailTo},
 			"http://testserver",
 			message,
+			false,
 			false,
 			false,
 			false,
@@ -188,9 +198,10 @@ func TestSendInviteEmails(t *testing.T) {
 	})
 
 	t.Run("SendInviteEmails should contain button URL with 'started by role' param for system user", func(t *testing.T) {
-		mail.DeleteMailBox(emailTo)
+		err := mail.DeleteMailBox(emailTo)
+		require.NoError(t, err, "Failed to delete mailbox")
 
-		err := th.service.SendInviteEmails(
+		err = th.service.SendInviteEmails(
 			th.BasicTeam,
 			"test-user",
 			th.BasicUser.Id,
@@ -208,9 +219,10 @@ func TestSendInviteEmails(t *testing.T) {
 	})
 
 	t.Run("SendInviteEmails should contain button URL with 'started by role' param for system admin", func(t *testing.T) {
-		mail.DeleteMailBox(emailTo)
+		err := mail.DeleteMailBox(emailTo)
+		require.NoError(t, err, "Failed to delete mailbox")
 
-		err := th.service.SendInviteEmails(
+		err = th.service.SendInviteEmails(
 			th.BasicTeam,
 			"test-user",
 			th.BasicUser.Id,
@@ -228,9 +240,10 @@ func TestSendInviteEmails(t *testing.T) {
 	})
 
 	t.Run("SendInviteEmails should contain button URL with 'started by role' param for first system admin", func(t *testing.T) {
-		mail.DeleteMailBox(emailTo)
+		err := mail.DeleteMailBox(emailTo)
+		require.NoError(t, err, "Failed to delete mailbox")
 
-		err := th.service.SendInviteEmails(
+		err = th.service.SendInviteEmails(
 			th.BasicTeam,
 			"test-user",
 			th.BasicUser.Id,
@@ -249,9 +262,9 @@ func TestSendInviteEmails(t *testing.T) {
 }
 
 func TestSendCloudWelcomeEmail(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-	th.ConfigureInbucketMail()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.ConfigureInbucketMail(t)
 
 	emailTo := "testclouduser@example.com"
 
@@ -276,9 +289,11 @@ func TestSendCloudWelcomeEmail(t *testing.T) {
 			require.Contains(t, resultsEmail.Subject, "Congratulations!", "Wrong subject message %s", resultsEmail.Subject)
 			require.Contains(t, resultsEmail.Body.Text, "Your workspace is ready to go!", "Wrong body %s", resultsEmail.Body.Text)
 		}
-		mail.DeleteMailBox(emailTo)
 
-		err := th.service.SendCloudWelcomeEmail(emailTo, th.BasicUser.Locale, "inviteID", "SomeName", "example.com", "https://example.com")
+		err := mail.DeleteMailBox(emailTo)
+		require.NoError(t, err, "Failed to delete mailbox")
+
+		err = th.service.SendCloudWelcomeEmail(emailTo, th.BasicUser.Locale, "inviteID", "SomeName", "example.com", "https://example.com")
 		require.NoError(t, err)
 
 		verifyMailbox(t)
@@ -286,6 +301,7 @@ func TestSendCloudWelcomeEmail(t *testing.T) {
 }
 
 func TestMailServiceConfig(t *testing.T) {
+	mainHelper.Parallel(t)
 	configuredReplyTo := "feedbackexample@test.com"
 	customReplyTo := "customreplyto@test.com"
 

@@ -8,6 +8,7 @@ import type {ChannelBookmarksState} from './channel_bookmarks';
 import type {ChannelCategoriesState} from './channel_categories';
 import type {ChannelsState} from './channels';
 import type {CloudState, CloudUsage} from './cloud';
+import type {ContentFlaggingState} from './content_flagging';
 import type {EmojisState} from './emojis';
 import type {FilesState} from './files';
 import type {GeneralState} from './general';
@@ -18,6 +19,7 @@ import type {JobsState} from './jobs';
 import type {LimitsState} from './limits';
 import type {PostsState} from './posts';
 import type {PreferenceType} from './preferences';
+import type {Recap} from './recaps';
 import type {
     AdminRequestsStatuses, ChannelsRequestsStatuses,
     FilesRequestsStatuses, GeneralRequestsStatuses,
@@ -25,8 +27,10 @@ import type {
     TeamsRequestsStatuses, UsersRequestsStatuses,
 } from './requests';
 import type {Role} from './roles';
+import type {ScheduledPostsState} from './schedule_post';
 import type {SchemesState} from './schemes';
 import type {SearchState} from './search';
+import type {RemoteClusterInfo} from './shared_channels';
 import type {TeamsState} from './teams';
 import type {ThreadsState} from './threads';
 import type {Typing} from './typing';
@@ -42,6 +46,19 @@ export type GlobalState = {
         channelBookmarks: ChannelBookmarksState;
         posts: PostsState;
         threads: ThreadsState;
+        recaps: {
+            byId: Record<string, Recap>;
+            allIds: string[];
+        };
+        agents: {
+            agents: Array<{
+                id: string;
+                displayName: string;
+                username: string;
+                service_id: string;
+                service_type: string;
+            }>;
+        };
         bots: {
             accounts: Record<string, Bot>;
         };
@@ -75,6 +92,12 @@ export type GlobalState = {
         cloud: CloudState;
         hostedCustomer: HostedCustomerState;
         usage: CloudUsage;
+        scheduledPosts: ScheduledPostsState;
+        sharedChannels?: {
+            remotes?: Record<string, RemoteClusterInfo[]>;
+            remotesByRemoteId?: Record<string, RemoteClusterInfo>;
+        };
+        contentFlagging: ContentFlaggingState;
     };
     errors: any[];
     requests: {
@@ -92,5 +115,6 @@ export type GlobalState = {
         lastConnectAt: number;
         lastDisconnectAt: number;
         connectionId: string;
+        serverHostname: string;
     };
 };

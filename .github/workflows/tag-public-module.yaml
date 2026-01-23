@@ -22,9 +22,11 @@ jobs:
     permissions:
       contents: write
     runs-on: ubuntu-22.04
+    env:
+      COMMIT_SHA: ${{ inputs.commit_sha }}
     steps:
       - name: release/checkout-mattermost
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
 
@@ -32,14 +34,31 @@ jobs:
         run: |
           echo LATEST_MODULE_TAG=$(git tag --list 'server/public/*' --format='%(refname:lstrip=-1)'  --sort -v:refname | head -1) >> ${GITHUB_ENV}
 
+      - name: release/validate-commit-sha
+        run: |
+          if [ -n "$COMMIT_SHA" ]; then
+            # Validate commit SHA format (40 character hex string)
+            if [[ ! "$COMMIT_SHA" =~ ^[a-f0-9]{40}$ ]]; then
+              echo "Error: Invalid commit SHA format. Must be a 40-character hexadecimal string."
+              exit 1
+            fi
+            # Verify the commit exists in the repository
+            if ! git cat-file -e "$COMMIT_SHA" 2>/dev/null; then
+              echo "Error: Commit SHA '$COMMIT_SHA' does not exist in the repository."
+              exit 1
+            fi
+            echo "Commit SHA validation passed: $COMMIT_SHA"
+          else
+            echo "No commit SHA provided, will use HEAD"
+          fi
+
       - name: release/generate-module-release-notes
         run: |
           echo "RELEASE_NOTES<<EOF" >> ${GITHUB_ENV}
-          if [ "${{ inputs.commit_sha }}" = "" ]; 
-            then
-              echo "$(git log --oneline --graph --decorate --abbrev-commit server/public/${{ env.LATEST_MODULE_TAG }}...$(git rev-parse HEAD) server/public)" >> ${GITHUB_ENV}
-            else
-              echo "$(git log --oneline --graph --decorate --abbrev-commit server/public/${{ env.LATEST_MODULE_TAG }}...${{ inputs.commit_sha }} server/public)" >> ${GITHUB_ENV}
+          if [ -z "$COMMIT_SHA" ]; then
+            echo "$(git log --oneline --graph --decorate --abbrev-commit server/public/${{ env.LATEST_MODULE_TAG }}...$(git rev-parse HEAD) server/public)" >> ${GITHUB_ENV}
+          else
+            echo "$(git log --oneline --graph --decorate --abbrev-commit server/public/${{ env.LATEST_MODULE_TAG }}...${COMMIT_SHA} server/public)" >> ${GITHUB_ENV}
           fi
           echo "EOF" >> ${GITHUB_ENV}
 
@@ -51,7 +70,7 @@ jobs:
           level: ${{ inputs.semver_bump }}
 
       - name: release/create-annotated-tag
-        uses: mattermost/actions/delivery/create-tag@93502485eec8db2fd67b54c71a02462e06d0fa46
+        uses: mattermost/actions/delivery/create-tag@d5174b860704729f4c14ef8489ae075742bfa08a
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:

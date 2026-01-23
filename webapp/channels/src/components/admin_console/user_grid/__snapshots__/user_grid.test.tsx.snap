@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/admin_console/user_grid/UserGrid should match snapshot with 2 users 1`] = `
 <DataGrid
@@ -45,7 +45,6 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
   loading={false}
   nextPage={[Function]}
   onSearch={[Function]}
-  page={0}
   placeholderEmpty={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="No users found"
@@ -368,7 +367,6 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
       "minHeight": "160px",
     }
   }
-  searchPlaceholder=""
   startCount={1}
   term=""
   total={2}
@@ -420,7 +418,6 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
   loading={false}
   nextPage={[Function]}
   onSearch={[Function]}
-  page={0}
   placeholderEmpty={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="No users found"
@@ -896,7 +893,6 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
       "minHeight": "240px",
     }
   }
-  searchPlaceholder=""
   startCount={1}
   term=""
   total={3}
@@ -948,7 +944,6 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
   loading={false}
   nextPage={[Function]}
   onSearch={[Function]}
-  page={0}
   placeholderEmpty={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="No users found"
@@ -1118,7 +1113,6 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
       "minHeight": "80px",
     }
   }
-  searchPlaceholder=""
   startCount={1}
   term=""
   total={1}

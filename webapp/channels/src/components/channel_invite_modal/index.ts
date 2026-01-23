@@ -10,7 +10,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import {getTeamStats, getTeamMembersByIds} from 'mattermost-redux/actions/teams';
 import {getProfilesNotInChannel, getProfilesInChannel, searchProfiles} from 'mattermost-redux/actions/users';
 import {Permissions} from 'mattermost-redux/constants';
-import {getRecentProfilesFromDMs} from 'mattermost-redux/selectors/entities/channels';
+import {getRecentProfilesFromDMs, getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {makeGetAllAssociatedGroupsForReference} from 'mattermost-redux/selectors/entities/groups';
 import {getTeammateNameDisplaySetting, isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
@@ -45,12 +45,22 @@ function makeMapStateToProps(initialState: GlobalState, initialProps: OwnProps) 
     }
 
     return (state: GlobalState, props: OwnProps) => {
+        // Check if this is an ABAC channel to bypass contaminated Redux state
+        const channel = props.channelId ? getChannel(state, props.channelId) : null;
+        const isAbacChannel = Boolean(channel?.policy_enforced);
+
         let profilesNotInCurrentChannel: UserProfile[];
         let profilesInCurrentChannel: UserProfile[];
         let profilesNotInCurrentTeam: UserProfile[];
         let membersInTeam;
 
-        if (props.channelId && props.teamId) {
+        if (isAbacChannel) {
+            // For ABAC channels, return empty arrays to force component to use fresh API data
+            profilesNotInCurrentChannel = [];
+            profilesInCurrentChannel = [];
+            profilesNotInCurrentTeam = [];
+            membersInTeam = props.teamId ? getMembersInTeam(state, props.teamId) : getMembersInCurrentTeam(state);
+        } else if (props.channelId && props.teamId) {
             profilesNotInCurrentChannel = doGetProfilesNotInChannel(state, props.channelId);
             profilesInCurrentChannel = doGetProfilesInChannel(state, props.channelId);
             profilesNotInCurrentTeam = getProfilesNotInTeam(state, props.teamId);
@@ -61,7 +71,9 @@ function makeMapStateToProps(initialState: GlobalState, initialProps: OwnProps) 
             profilesNotInCurrentTeam = getProfilesNotInCurrentTeam(state);
             membersInTeam = getMembersInCurrentTeam(state);
         }
-        const profilesFromRecentDMs = getRecentProfilesFromDMs(state);
+
+        // For ABAC channels, also return empty DM profiles to avoid contamination
+        const profilesFromRecentDMs = isAbacChannel ? [] : getRecentProfilesFromDMs(state);
         const config = getConfig(state);
         const license = getLicense(state);
 

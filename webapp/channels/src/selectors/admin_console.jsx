@@ -11,7 +11,7 @@ import {getMySystemPermissions, haveISystemPermission} from 'mattermost-redux/se
 
 import AdminDefinition from 'components/admin_console/admin_definition';
 
-import {isEnterpriseOrE20License} from '../utils/license_utils';
+import {isEnterpriseLicense} from '../utils/license_utils';
 
 export const getAdminDefinition = createSelector(
     'getAdminDefinition',
@@ -64,7 +64,7 @@ export const getShowManageUserSettings = createSelector(
     (license, state) => {
         const hasWriteUserManagementPermission = haveISystemPermission(state, {permission: Permissions.SYSCONSOLE_WRITE_USERMANAGEMENT_USERS});
 
-        const isEnterprise = isEnterpriseOrE20License(license);
+        const isEnterprise = isEnterpriseLicense(license);
 
         return hasWriteUserManagementPermission && isEnterprise;
     },
@@ -77,7 +77,7 @@ export const getShowLockedManageUserSettings = createSelector(
     (license, state) => {
         const hasWriteUserManagementPermission = haveISystemPermission(state, {permission: Permissions.SYSCONSOLE_WRITE_USERMANAGEMENT_USERS});
 
-        const isEnterprise = isEnterpriseOrE20License(license);
+        const isEnterprise = isEnterpriseLicense(license);
 
         return hasWriteUserManagementPermission && !isEnterprise;
     },

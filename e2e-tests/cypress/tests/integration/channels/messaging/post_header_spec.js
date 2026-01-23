@@ -74,7 +74,7 @@ describe('Post Header', () => {
             // * Check that the center dot menu button and dropdown are visible
             cy.get(`#post_${postId}`).should('be.visible');
             cy.get(`#CENTER_button_${postId}`).should('be.visible');
-            cy.get(`#CENTER_dropdown_${postId}`).should('be.visible').type('{esc}');
+            cy.get('body').type('{esc}');
 
             // # Click to other location like post textbox
             cy.uiGetPostTextBox().click();

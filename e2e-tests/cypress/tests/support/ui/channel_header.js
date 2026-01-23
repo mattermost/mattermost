@@ -32,7 +32,6 @@ Cypress.Commands.add('uiGetChannelFileButton', () => {
 Cypress.Commands.add('uiGetChannelMenu', (options = {exist: true}) => {
     if (options.exist) {
         return cy.get('#channelHeaderDropdownMenu').
-            find('.dropdown-menu').
             should('be.visible');
     }
 

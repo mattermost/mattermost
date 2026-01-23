@@ -6,10 +6,8 @@ import React from 'react';
 import {defineMessages, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import WithTooltip from 'components/with_tooltip';
-import {ShortcutKeys} from 'components/with_tooltip/shortcut';
+import {ShortcutKeys} from 'components/with_tooltip/tooltip_shortcut';
 
 import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
@@ -32,7 +30,6 @@ const shortcut = {
 
 type Props = {
     intl: IntlShape;
-    hasMultipleTeams: boolean;
     unreadFilterEnabled: boolean;
     actions: {
         setUnreadFilterEnabled: (enabled: boolean) => void;
@@ -65,27 +62,19 @@ export class ChannelFilter extends React.PureComponent<Props> {
     toggleUnreadFilter = () => {
         const {unreadFilterEnabled} = this.props;
 
-        if (unreadFilterEnabled) {
-            trackEvent('ui', 'ui_sidebar_unread_filter_disabled');
-        } else {
-            trackEvent('ui', 'ui_sidebar_unread_filter_enabled');
-        }
-
         this.props.actions.setUnreadFilterEnabled(!unreadFilterEnabled);
     };
 
     render() {
-        const {intl, unreadFilterEnabled, hasMultipleTeams} = this.props;
+        const {intl, unreadFilterEnabled} = this.props;
 
         const unreadsAriaLabel = intl.formatMessage({id: 'sidebar_left.channel_filter.filterUnreadAria', defaultMessage: 'unreads filter'});
 
         return (
             <div className='SidebarFilters'>
                 <WithTooltip
-                    id='channel-filter-tooltip'
                     title={unreadFilterEnabled ? messages.disableTooltip : messages.enableTooltip}
                     shortcut={shortcut}
-                    placement={hasMultipleTeams ? 'top' : 'right'}
                 >
                     <a
                         href='#'

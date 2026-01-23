@@ -17,6 +17,11 @@ const ProfilePopoverEmail = ({
         return null;
     }
 
+    function handleEmailClick(e: React.MouseEvent<HTMLAnchorElement>) {
+        e.preventDefault();
+        window.open(`mailto:${email}`);
+    }
+
     return (
         <div
             title={email}
@@ -28,7 +33,8 @@ const ProfilePopoverEmail = ({
                 aria-hidden='true'
             />
             <a
-                href={'mailto:' + email}
+                href={`mailto:${email}`}
+                onClick={handleEmailClick}
             >
                 {email}
             </a>

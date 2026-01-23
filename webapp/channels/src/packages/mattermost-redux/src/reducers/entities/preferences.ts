@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import type {PreferencesType, PreferenceType} from '@mattermost/types/preferences';
 
+import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {PreferenceTypes, UserTypes} from 'mattermost-redux/action_types';
 
 function getKey(preference: PreferenceType) {
@@ -42,7 +42,7 @@ function setAllUserPreferences(preferences: PreferenceType[]): {[key: string]: P
     return nextState;
 }
 
-function myPreferences(state: Record<string, PreferenceType> = {}, action: AnyAction) {
+function myPreferences(state: Record<string, PreferenceType> = {}, action: MMReduxAction) {
     switch (action.type) {
     case PreferenceTypes.RECEIVED_ALL_PREFERENCES:
         return setAllPreferences(action.data);
@@ -80,7 +80,7 @@ function myPreferences(state: Record<string, PreferenceType> = {}, action: AnyAc
     }
 }
 
-function userPreferences(state: Record<string, PreferencesType> = {}, action: AnyAction) {
+function userPreferences(state: Record<string, PreferencesType> = {}, action: MMReduxAction) {
     switch (action.type) {
     case PreferenceTypes.RECEIVED_USER_ALL_PREFERENCES:
         return setAllUserPreferences(action.data);

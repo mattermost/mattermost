@@ -9,8 +9,10 @@ import type {Post} from '@mattermost/types/posts';
 import {Posts} from 'mattermost-redux/constants';
 
 import Markdown from 'components/markdown';
+import {DataSpillageReport} from 'components/post_view/data_spillage_report/data_spillage_report';
 
-import type {TextFormattingOptions} from 'utils/text_formatting';
+import {PostTypes} from 'utils/constants';
+import {isChannelNamesMap, type TextFormattingOptions} from 'utils/text_formatting';
 
 import {renderReminderSystemBotMessage, renderSystemMessage, renderWranglerSystemMessage} from './system_message_helpers';
 
@@ -40,6 +42,13 @@ export type OwnProps = {
      */
     showPostEditedIndicator?: boolean;
     options?: TextFormattingOptions;
+
+    /**
+     * Whether or not to render text emoticons (:D) as emojis
+     */
+    renderEmoticonsAsEmoji?: boolean;
+
+    isRHS?: boolean;
 };
 
 type Props = PropsFromRedux & OwnProps;
@@ -52,12 +61,13 @@ export default class PostMarkdown extends React.PureComponent<Props> {
     };
 
     getOptions = memoize(
-        (options?: TextFormattingOptions, disableGroupHighlight?: boolean, mentionHighlight?: boolean, editedAt?: number) => {
+        (options?: TextFormattingOptions, disableGroupHighlight?: boolean, mentionHighlight?: boolean, editedAt?: number, renderEmoticonsAsEmoji?: boolean) => {
             return {
                 ...options,
                 disableGroupHighlight,
                 mentionHighlight,
                 editedAt,
+                renderEmoticonsAsEmoji,
             };
         });
 
@@ -90,9 +100,20 @@ export default class PostMarkdown extends React.PureComponent<Props> {
             return <div>{renderedWranglerMessage}</div>;
         }
 
+        if (this.props.post && this.props.post.type === PostTypes.CUSTOM_DATA_SPILLAGE_REPORT) {
+            return (
+                <div>
+                    <DataSpillageReport
+                        post={this.props.post}
+                        isRHS={this.props.isRHS}
+                    />
+                </div>
+            );
+        }
+
         // Proxy images if we have an image proxy and the server hasn't already rewritten the this.props.post's image URLs.
         const proxyImages = !this.props.post || !this.props.post.message_source || this.props.post.message === this.props.post.message_source;
-        const channelNamesMap = this.props.post && this.props.post.props && this.props.post.props.channel_mentions;
+        const channelNamesMap = isChannelNamesMap(this.props.post?.props?.channel_mentions) ? this.props.post?.props?.channel_mentions : undefined;
 
         this.props.pluginHooks?.forEach((o) => {
             if (o && o.hook && this.props.post) {
@@ -110,6 +131,7 @@ export default class PostMarkdown extends React.PureComponent<Props> {
             this.props.post?.props?.disable_group_highlight === true,
             mentionHighlight,
             this.props.post?.edit_at,
+            this.props?.renderEmoticonsAsEmoji,
         );
 
         let highlightKeys;

@@ -355,7 +355,7 @@ describe('Actions.Teams', () => {
         const member = members[TestHelper.basicTeam!.id];
 
         expect(member).toBeTruthy();
-        expect(Object.prototype.hasOwnProperty.call(member, 'mention_count')).toBeTruthy();
+        expect(Object.hasOwn(member, 'mention_count')).toBeTruthy();
     });
 
     it('getTeamMembersForUser', async () => {

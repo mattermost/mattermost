@@ -6,8 +6,7 @@ import {shallow} from 'enzyme';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 
-import {withIntl} from 'tests/helpers/intl-test-helper';
-import {render, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import SubMenuModal from './submenu_modal';
 
@@ -16,8 +15,8 @@ jest.mock('../../is_mobile_view_hack', () => ({
 }));
 
 (global as any).MutationObserver = class {
-    public disconnect() {}
-    public observe() {}
+    public disconnect() { }
+    public observe() { }
 };
 
 describe('components/submenu_modal', () => {
@@ -58,9 +57,9 @@ describe('components/submenu_modal', () => {
     });
 
     test('should hide on modal body click', async () => {
-        const view = render(withIntl(
+        const view = renderWithContext(
             <SubMenuModal {...baseProps}/>,
-        ));
+        );
 
         screen.getByText('Text A');
         screen.getByText('Text B');
@@ -78,17 +77,17 @@ describe('components/submenu_modal', () => {
             ...baseProps,
         };
 
-        render(
+        renderWithContext(
             <SubMenuModal {...props}/>,
         );
 
-        userEvent.click(screen.getByText('Text A'));
+        await userEvent.click(screen.getByText('Text A'));
         expect(action1).toHaveBeenCalledTimes(1);
 
-        userEvent.click(screen.getByText('Text B'));
+        await userEvent.click(screen.getByText('Text B'));
         expect(action2).toHaveBeenCalledTimes(1);
 
-        userEvent.click(screen.getByText('Text C'));
+        await userEvent.click(screen.getByText('Text C'));
         expect(action3).toHaveBeenCalledTimes(1);
     });
 

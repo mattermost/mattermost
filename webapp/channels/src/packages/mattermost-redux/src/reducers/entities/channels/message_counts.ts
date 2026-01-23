@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AnyAction} from 'redux';
-
 import type {
     Channel,
     ChannelMessageCount,
@@ -10,6 +8,7 @@ import type {
 } from '@mattermost/types/channels';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
+import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {
     AdminTypes,
     ChannelTypes,
@@ -18,7 +17,7 @@ import {
 } from 'mattermost-redux/action_types';
 import {General} from 'mattermost-redux/constants';
 
-export default function messageCounts(state: RelationOneToOne<Channel, ChannelMessageCount> = {}, action: AnyAction): RelationOneToOne<Channel, ChannelMessageCount> {
+export default function messageCounts(state: RelationOneToOne<Channel, ChannelMessageCount> = {}, action: MMReduxAction): RelationOneToOne<Channel, ChannelMessageCount> {
     switch (action.type) {
     case ChannelTypes.RECEIVED_CHANNEL: {
         const channel: ServerChannel = action.data;

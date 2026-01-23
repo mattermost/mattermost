@@ -69,8 +69,8 @@ type ChannelMember struct {
 	ExplicitRoles      string    `json:"explicit_roles"`
 }
 
-func (o *ChannelMember) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (o *ChannelMember) Auditable() map[string]any {
+	return map[string]any{
 		"channel_id":           o.ChannelId,
 		"user_id":              o.UserId,
 		"roles":                o.Roles,
@@ -86,6 +86,17 @@ func (o *ChannelMember) Auditable() map[string]interface{} {
 		"scheme_user":          o.SchemeUser,
 		"scheme_admin":         o.SchemeAdmin,
 		"explicit_roles":       o.ExplicitRoles,
+	}
+}
+
+// SanitizeForCurrentUser sanitizes channel member data based on whether
+// it's the current user's own membership or another user's membership
+func (o *ChannelMember) SanitizeForCurrentUser(currentUserId string) {
+	// If this is not the current user's own membership,
+	// sanitize sensitive timestamp fields
+	if o.UserId != currentUserId {
+		o.LastViewedAt = -1
+		o.LastUpdateAt = -1
 	}
 }
 
@@ -106,6 +117,12 @@ type ChannelMemberForExport struct {
 	ChannelMember
 	ChannelName string
 	Username    string
+}
+
+type ChannelMemberCursor struct {
+	Page          int // If page is -1, then FromChannelID is used as a cursor.
+	PerPage       int
+	FromChannelID string
 }
 
 func (o *ChannelMember) IsValid() *AppError {

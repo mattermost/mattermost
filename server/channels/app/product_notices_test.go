@@ -19,6 +19,7 @@ import (
 )
 
 func TestNoticeValidation(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockRoleStore := mocks.RoleStore{}
@@ -48,8 +49,6 @@ func TestNoticeValidation(t *testing.T) {
 		*cfg.AnnouncementSettings.AdminNoticesEnabled = true
 		*cfg.AnnouncementSettings.UserNoticesEnabled = true
 	})
-
-	defer th.TearDown()
 
 	type args struct {
 		client               model.NoticeClientType
@@ -472,63 +471,10 @@ func TestNoticeValidation(t *testing.T) {
 			wantOk:  true,
 		},
 		{
-			name: "notice with deprecating an external dependency",
-			args: args{
-				dbmsName: "mysql",
-				dbmsVer:  "5.6",
-				notice: &model.ProductNotice{
-					Conditions: model.Conditions{
-						DeprecatingDependency: &model.ExternalDependency{
-							Name:           "mysql",
-							MinimumVersion: "5.7",
-						},
-					},
-				},
-			},
-			wantErr: false,
-			wantOk:  true,
-		},
-		{
-			name: "notice with deprecating an external dependency, on a future version",
-			args: args{
-				dbmsName:      "mysql",
-				dbmsVer:       "5.6",
-				serverVersion: "5.32.1",
-				notice: &model.ProductNotice{
-					Conditions: model.Conditions{
-						ServerVersion: []string{">=v5.33"},
-						DeprecatingDependency: &model.ExternalDependency{
-							Name:           "mysql",
-							MinimumVersion: "5.7",
-						},
-					},
-				},
-			},
-			wantErr: false,
-			wantOk:  false,
-		},
-		{
 			name: "notice on a deprecating dependency, server is all good",
 			args: args{
 				dbmsName: "postgres",
 				dbmsVer:  "10",
-				notice: &model.ProductNotice{
-					Conditions: model.Conditions{
-						DeprecatingDependency: &model.ExternalDependency{
-							Name:           "postgres",
-							MinimumVersion: "10",
-						},
-					},
-				},
-			},
-			wantErr: false,
-			wantOk:  false,
-		},
-		{
-			name: "notice on a deprecating dependency, server has different dbms",
-			args: args{
-				dbmsName: "mysql",
-				dbmsVer:  "5.7",
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
 						DeprecatingDependency: &model.ExternalDependency{
@@ -599,8 +545,8 @@ func TestNoticeValidation(t *testing.T) {
 }
 
 func TestNoticeFetch(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	notices := model.ProductNotices{model.ProductNotice{
 		Conditions: model.Conditions{},
@@ -633,9 +579,11 @@ func TestNoticeFetch(t *testing.T) {
 	require.NoError(t, err)
 	server1 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.HasSuffix(r.URL.Path, "notices.json") {
-			w.Write(noticesBytes)
+			_, err = w.Write(noticesBytes)
+			require.NoError(t, err)
 		} else {
-			w.Write(noticesBytes2)
+			_, err = w.Write(noticesBytes2)
+			require.NoError(t, err)
 		}
 	}))
 	defer server1.Close()

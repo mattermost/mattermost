@@ -6,17 +6,11 @@ import {FormattedMessage} from 'react-intl';
 
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 
-import type {ModalData} from 'types/actions';
-
 import './renew_link.scss';
 
 export interface RenewalLinkProps {
-    telemetryInfo?: { success: string; error: string };
-    actions: {
-        openModal: <P>(modalData: ModalData<P>) => void;
-    };
     isDisabled?: boolean;
-    customBtnText?: JSX.Element;
+    className?: string;
 }
 
 const RenewalLink = (props: RenewalLinkProps) => {
@@ -34,9 +28,15 @@ const RenewalLink = (props: RenewalLinkProps) => {
         />
     );
 
+    // Default classes for general context
+    const defaultClassName = 'btn btn-primary';
+
+    // Use provided className or default
+    const buttonClassName = props.className || defaultClassName;
+
     return (
         <button
-            className='btn btn-primary annnouncementBar__renewLicense'
+            className={buttonClassName}
             disabled={props.isDisabled}
             onClick={(e) => handleLinkClick(e)}
         >

@@ -1,0 +1,16 @@
+- heading "Email notifications" [level=4]
+- group:
+  - group:
+    - radio "On" [checked]
+    - text: "On"
+    - radio "Off"
+    - text: "Off"
+  - text: When enabled, email notifications are sent for mentions and direct messages when you are offline or away for more than 5 minutes.
+- separator
+- group:
+  - checkbox "Notify me about replies to threads I’m following" [checked]
+  - text: Notify me about replies to threads I’m following
+- separator
+- alert
+- button "Save"
+- button "Cancel"

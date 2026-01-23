@@ -12,8 +12,7 @@
 
 import * as TIMEOUTS from '../../../../../fixtures/timeouts';
 import {getAdminAccount} from '../../../../../support/env';
-
-import {promoteToChannelOrTeamAdmin} from '../channel_moderation/helpers.js';
+import {promoteToChannelOrTeamAdmin} from '../channel_moderation/helpers.ts';
 
 describe('System console', () => {
     const sysadmin = getAdminAccount();
@@ -50,19 +49,28 @@ describe('System console', () => {
         });
     });
 
-    it('MM-41397 - License page shows upgrade to Enterprise for E20 licenses', () => {
+    it('MM-41397 - License page shows upgrade to Enterprise Advanced for Enterprise licenses', () => {
         cy.visit('/admin_console/about/license');
         cy.get('.admin-console__header').
             should('be.visible').
             and('have.text', 'Edition and License');
 
-        // Validate prompt to increase headcount in Enterprise licenses
+        // Validate Enterprise to Enterprise Advanced upgrade content
         cy.get('.EnterpriseEditionRightPannel').
             should('be.visible').
             within(() => {
-                cy.findByText('Need to increase your headcount?');
-                cy.findByText('We’re here to work with you and your needs. Contact us today to get more seats on your plan.');
-                cy.findByRole('button', {name: 'Contact sales'});
+                // Check the title
+                cy.get('.upgrade-title').should('have.text', 'Upgrade to Enterprise Advanced');
+
+                // Check the advantages list
+                cy.findByText('Attribute-based access control');
+                cy.findByText('Channel warning banners');
+                cy.findByText('AD/LDAP group sync');
+                cy.findByText('Advanced workflows with Playbooks');
+                cy.findByText('High availability');
+                cy.findByText('Advanced compliance');
+                cy.findByText('And more...');
+                cy.findByRole('button', {name: 'Contact Sales'});
             });
 
         // Validate Compare plans link is not present for Enterprise licenses
@@ -105,7 +113,7 @@ function verifyCreatePublicChannel(teamName, testUsers) {
         cy.visit(`/${teamName}/channels/town-square`);
 
         // # Click on create new channel at LHS
-        cy.uiBrowseOrCreateChannel('Create new channel').click();
+        cy.uiBrowseOrCreateChannel('Create new channel');
 
         cy.findByRole('dialog', {name: 'Create a new channel'}).within(() => {
             // * Verify if creating a public channel is disabled or not
@@ -125,7 +133,7 @@ function verifyRenamePrivateChannel(teamName, privateChannelName, testUsers) {
         cy.visit(`/${teamName}/channels/${privateChannelName}`);
 
         // * Click the dropdown menu and verify if the rename option is visible or not
-        cy.get('#channelHeaderDropdownIcon', {timeout: TIMEOUTS.TWO_MIN}).should('be.visible').click();
+        cy.get('#channelHeaderTitle', {timeout: TIMEOUTS.TWO_MIN}).should('be.visible').click();
         cy.get('#channelRename').should(canRename ? 'be.visible' : 'not.exist');
     }
 }

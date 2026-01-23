@@ -38,16 +38,16 @@ export default function Confirm() {
                 onKeyPress={onKeyPress}
                 className='form-group'
             >
-                <p>
+                <strong>
                     <FormattedMessage
                         id='mfa.confirm.complete'
-                        defaultMessage='**Set up complete!**'
+                        defaultMessage='Set up complete!'
                     />
-                </p>
+                </strong>
                 <p>
                     <FormattedMessage
                         id='mfa.confirm.secure'
-                        defaultMessage='Your account is now secure. Next time you sign in, you will be asked to enter a code from the Google Authenticator app on your phone.'
+                        defaultMessage='Your account is now secure. Next time you sign in, you will be asked to enter a code from your authenticator app on your phone.'
                     />
                 </p>
                 <button

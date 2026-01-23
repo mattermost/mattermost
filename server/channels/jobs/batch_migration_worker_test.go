@@ -20,8 +20,8 @@ type MockApp struct {
 	clusterInfo []*model.ClusterInfo
 }
 
-func (ma MockApp) GetClusterStatus(rctx request.CTX) []*model.ClusterInfo {
-	return ma.clusterInfo
+func (ma MockApp) GetClusterStatus(rctx request.CTX) ([]*model.ClusterInfo, error) {
+	return ma.clusterInfo, nil
 }
 
 func (ma *MockApp) SetInSync() {
@@ -45,6 +45,8 @@ func (ma *MockApp) SetOutOfSync() {
 }
 
 func TestBatchMigrationWorker(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	setupBatchWorker := func(t *testing.T, th *TestHelper, mockApp *MockApp, doMigrationBatch func(model.StringMap, store.Store) (model.StringMap, bool, error)) (model.Worker, *model.Job) {
 		t.Helper()
 
@@ -73,11 +75,14 @@ func TestBatchMigrationWorker(t *testing.T) {
 		waitDone(t, stopped, "worker did not stop")
 	}
 
-	assertJobReset := func(t *testing.T, th *TestHelper, job *model.Job) {
-		actualJob, appErr := th.Server.Jobs.GetJob(th.Context, job.Id)
-		require.Nil(t, appErr)
-		assert.Empty(t, actualJob.Progress)
-		assert.Empty(t, actualJob.Data)
+	assertJobResetEventually := func(t *testing.T, th *TestHelper, job *model.Job) {
+		t.Helper()
+		assert.EventuallyWithT(t, func(t *assert.CollectT) {
+			actualJob, appErr := th.Server.Jobs.GetJob(th.Context, job.Id)
+			require.Nil(t, appErr)
+			assert.Empty(t, actualJob.Progress, "expected no job progress")
+			assert.Empty(t, actualJob.Data, "expected no job data")
+		}, 5*time.Second, 250*time.Millisecond, "job never reset")
 	}
 
 	getBatchNumberFromData := func(t *testing.T, data model.StringMap) int {
@@ -100,8 +105,7 @@ func TestBatchMigrationWorker(t *testing.T) {
 	}
 
 	t.Run("done after three batches", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		mockApp := &MockApp{}
 
@@ -128,8 +132,7 @@ func TestBatchMigrationWorker(t *testing.T) {
 	})
 
 	t.Run("clusters not in sync before first batch", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		mockApp := &MockApp{}
 		mockApp.SetOutOfSync()
@@ -142,21 +145,17 @@ func TestBatchMigrationWorker(t *testing.T) {
 			return nil, false, nil
 		})
 
-		// Give the worker time to start running
-		time.Sleep(500 * time.Millisecond)
-
 		// Queue the work to be done
 		worker.JobChannel() <- *job
 
 		th.WaitForJobStatus(t, job, model.JobStatusPending)
-		assertJobReset(t, th, job)
+		assertJobResetEventually(t, th, job)
 
 		stopWorker(t, worker)
 	})
 
 	t.Run("clusters not in sync after first batch", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		mockApp := &MockApp{}
 
@@ -172,14 +171,11 @@ func TestBatchMigrationWorker(t *testing.T) {
 			return getDataFromBatchNumber(batchNumber), false, nil
 		})
 
-		// Give the worker time to start running
-		time.Sleep(500 * time.Millisecond)
-
 		// Queue the work to be done
 		worker.JobChannel() <- *job
 
 		th.WaitForJobStatus(t, job, model.JobStatusPending)
-		assertJobReset(t, th, job)
+		assertJobResetEventually(t, th, job)
 
 		stopWorker(t, worker)
 	})

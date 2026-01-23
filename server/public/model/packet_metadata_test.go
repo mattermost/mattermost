@@ -6,8 +6,8 @@ package model
 import (
 	"testing"
 
+	"github.com/goccy/go-yaml"
 	"github.com/stretchr/testify/require"
-	"gopkg.in/yaml.v2"
 )
 
 func TestPacketMetadataValidate(t *testing.T) {
@@ -25,7 +25,7 @@ func TestPacketMetadataValidate(t *testing.T) {
 				ServerID:      NewId(),
 				LicenseID:     NewId(),
 				CustomerID:    NewId(),
-				Extras:        map[string]interface{}{"key": "value"},
+				Extras:        map[string]any{"key": "value"},
 			},
 			expectErr: false,
 		},
@@ -36,7 +36,7 @@ func TestPacketMetadataValidate(t *testing.T) {
 				GeneratedAt:   1720097114454,
 				ServerVersion: "5.33.3",
 				ServerID:      NewId(),
-				Extras:        map[string]interface{}{"key": "value"},
+				Extras:        map[string]any{"key": "value"},
 			},
 			expectErr: false,
 		},

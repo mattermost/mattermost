@@ -10,6 +10,7 @@ describe('components/admin_console/group_settings/group_details/GroupProfile', (
     test('should match snapshot', () => {
         const wrapper = shallow(
             <GroupProfile
+                customID='test'
                 isDisabled={false}
                 name='Test'
                 showAtMention={true}

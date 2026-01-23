@@ -27,7 +27,6 @@ import './file_preview_modal_main_actions.scss';
 const COPIED_TOOLTIP_DURATION = 2000;
 
 interface Props {
-    usedInside?: 'Header' | 'Footer';
     showOnlyClose?: boolean;
     showClose?: boolean;
     showPublicLink?: boolean;
@@ -41,19 +40,30 @@ interface Props {
     content: string;
 }
 
-const FilePreviewModalMainActions: React.FC<Props> = (props: Props) => {
+const FilePreviewModalMainActions: React.FC<Props> = ({
+    showOnlyClose = false,
+    showClose = true,
+    showPublicLink = true,
+    filename,
+    fileURL,
+    fileInfo,
+    enablePublicLink,
+    canDownloadFiles,
+    canCopyContent,
+    handleModalClose,
+    content,
+}: Props) => {
     const intl = useIntl();
 
-    const tooltipPlacement = props.usedInside === 'Header' ? 'bottom' : 'top';
     const selectedFilePublicLink = useSelector((state: GlobalState) => selectFilePublicLink(state)?.link);
     const dispatch = useDispatch();
     const [publicLinkCopied, setPublicLinkCopied] = useState(false);
 
     useEffect(() => {
-        if (isFileInfo(props.fileInfo) && props.enablePublicLink) {
-            dispatch(getFilePublicLink(props.fileInfo.id));
+        if (isFileInfo(fileInfo) && enablePublicLink) {
+            dispatch(getFilePublicLink(fileInfo.id));
         }
-    }, [props.fileInfo, props.enablePublicLink]);
+    }, [fileInfo, enablePublicLink]);
 
     useEffect(() => {
         if (publicLinkCopied) {
@@ -74,14 +84,12 @@ const FilePreviewModalMainActions: React.FC<Props> = (props: Props) => {
     });
     const closeButton = (
         <WithTooltip
-            id='close-icon-tooltip'
             title={closeMessage}
-            placement={tooltipPlacement}
             key='publicLink'
         >
             <button
                 className='file-preview-modal-main-actions__action-item'
-                onClick={props.handleModalClose}
+                onClick={handleModalClose}
                 aria-label={closeMessage}
             >
                 <i className='icon icon-close'/>
@@ -103,9 +111,7 @@ const FilePreviewModalMainActions: React.FC<Props> = (props: Props) => {
     }
     const publicLink = (
         <WithTooltip
-            id='link-variant-icon-tooltip.text'
             key='filePreviewPublicLink'
-            placement={tooltipPlacement}
             title={publicTooltipMessage}
         >
             <a
@@ -125,16 +131,14 @@ const FilePreviewModalMainActions: React.FC<Props> = (props: Props) => {
     });
     const download = (
         <WithTooltip
-            id='download-icon-tooltip.text'
             key='download'
-            placement={tooltipPlacement}
             title={downloadMessage}
         >
             <ExternalLink
-                href={props.fileURL}
+                href={fileURL}
                 className='file-preview-modal-main-actions__action-item'
                 location='file_preview_modal_main_actions'
-                download={props.filename}
+                download={filename}
                 aria-label={downloadMessage}
             >
                 <i className='icon icon-download-outline'/>
@@ -145,26 +149,18 @@ const FilePreviewModalMainActions: React.FC<Props> = (props: Props) => {
     const copy = (
         <CopyButton
             className='file-preview-modal-main-actions__action-item'
-            isForText={getFileType(props.fileInfo.extension) === FileTypes.TEXT}
-            placement={tooltipPlacement}
-            content={props.content}
+            isForText={getFileType(fileInfo.extension) === FileTypes.TEXT}
+            content={content}
         />
     );
     return (
         <div className='file-preview-modal-main-actions__actions'>
-            {!props.showOnlyClose && props.canCopyContent && copy}
-            {!props.showOnlyClose && props.enablePublicLink && props.showPublicLink && publicLink}
-            {!props.showOnlyClose && props.canDownloadFiles && download}
-            {props.showClose && closeButton}
+            {!showOnlyClose && canCopyContent && copy}
+            {!showOnlyClose && enablePublicLink && showPublicLink && publicLink}
+            {!showOnlyClose && canDownloadFiles && download}
+            {showClose && closeButton}
         </div>
     );
-};
-
-FilePreviewModalMainActions.defaultProps = {
-    showOnlyClose: false,
-    usedInside: 'Header',
-    showClose: true,
-    showPublicLink: true,
 };
 
 export default memo(FilePreviewModalMainActions);

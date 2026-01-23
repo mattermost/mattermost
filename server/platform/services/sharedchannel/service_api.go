@@ -22,6 +22,10 @@ func (scs *Service) ShareChannel(sc *model.SharedChannel) (*model.SharedChannel,
 		return nil, fmt.Errorf("cannot fetch channel while sharing channel %s: %w", sc.ChannelId, err)
 	}
 
+	if !scs.server.Config().FeatureFlags.EnableSharedChannelsDMs && (channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup) {
+		return nil, errors.New("cannot share a direct or group channel")
+	}
+
 	// check if channel is already shared
 	scExisting, err := scs.server.GetStore().SharedChannel().Get(sc.ChannelId)
 	if err == nil {
@@ -59,6 +63,9 @@ func (scs *Service) ShareChannel(sc *model.SharedChannel) (*model.SharedChannel,
 	if err != nil {
 		return nil, err
 	}
+	// to avoid fetching the channel again, we manually set the shared
+	// flag before notifying the clients
+	channel.Shared = model.NewPointer(true)
 
 	scs.notifyClientsForSharedChannelConverted(channel)
 	return scNew, nil
@@ -80,7 +87,7 @@ func (scs *Service) UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedC
 	return scUpdated, nil
 }
 
-// UnshareChannel unshared the channel by deleting the SharedChannels record and unsets the Channel `shared` flag.
+// UnshareChannel unshares the channel by deleting the SharedChannels record and unsets the Channel `shared` flag.
 // Returns true if a shared channel existed and was deleted.
 func (scs *Service) UnshareChannel(channelID string) (bool, error) {
 	channel, err := scs.server.GetStore().Channel().Get(channelID, true)
@@ -93,6 +100,9 @@ func (scs *Service) UnshareChannel(channelID string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	// to avoid fetching the channel again, we manually set the shared
+	// flag before notifying the clients
+	channel.Shared = model.NewPointer(false)
 
 	scs.notifyClientsForSharedChannelConverted(channel)
 	return deleted, nil
@@ -134,7 +144,7 @@ func (scs *Service) InviteRemoteToChannel(channelID, remoteID, userID string, sh
 		}
 	}
 
-	rc, err := rcStore.Get(remoteID)
+	rc, err := rcStore.Get(remoteID, false)
 	if err != nil {
 		return model.NewAppError("InviteRemoteToChannel", "api.command_share.remote_id_invalid.error",
 			map[string]any{"Error": err.Error()}, "", http.StatusInternalServerError).Wrap(err)
@@ -144,7 +154,7 @@ func (scs *Service) InviteRemoteToChannel(channelID, remoteID, userID string, sh
 	// (also blocks cyclic invitations)
 	if err = scs.CheckCanInviteToSharedChannel(channelID); err != nil {
 		if errors.Is(err, model.ErrChannelHomedOnRemote) {
-			return model.NewAppError("InviteRemoteToChannel", "api.command_share.channel_invite_not_home.error", nil, "", http.StatusInternalServerError)
+			return model.NewAppError("InviteRemoteToChannel", "api.command_share.channel_invite_not_home.error", nil, "", http.StatusBadRequest)
 		}
 		scs.server.Log().Debug("InviteRemoteToChannel failed to check if can-invite",
 			mlog.String("name", rc.Name),
@@ -168,9 +178,31 @@ func (scs *Service) InviteRemoteToChannel(channelID, remoteID, userID string, sh
 	return nil
 }
 
+// unshareChannelIfNoActiveRemotes checks if there are any remaining
+// non-deleted remotes for the channel and unshares the channel if
+// there are none. Returns true if the channel was unshared.
+func (scs *Service) unshareChannelIfNoActiveRemotes(channelID string) (bool, error) {
+	opts := model.SharedChannelRemoteFilterOpts{ChannelId: channelID}
+	remotes, err := scs.server.GetStore().SharedChannel().GetRemotes(0, 1, opts)
+	if err != nil {
+		return false, fmt.Errorf("failed to check remaining remotes: %w", err)
+	}
+
+	// If no remotes remain, unshare the channel
+	if len(remotes) == 0 {
+		unshared, err := scs.UnshareChannel(channelID)
+		if err != nil {
+			return false, fmt.Errorf("failed to automatically unshare channel after removing last remote: %w", err)
+		}
+		return unshared, nil
+	}
+
+	return false, nil
+}
+
 func (scs *Service) UninviteRemoteFromChannel(channelID, remoteID string) error {
 	scr, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(channelID, remoteID)
-	if err != nil || scr.ChannelId != channelID {
+	if err != nil || scr.ChannelId != channelID || scr.DeleteAt != 0 {
 		return model.NewAppError("UninviteRemoteFromChannel", "api.command_share.channel_remote_id_not_exists",
 			map[string]any{"RemoteId": remoteID}, "", http.StatusInternalServerError)
 	}
@@ -185,6 +217,16 @@ func (scs *Service) UninviteRemoteFromChannel(channelID, remoteID string) error 
 		return model.NewAppError("UninviteRemoteFromChannel", "api.command_share.could_not_uninvite.error",
 			map[string]any{"RemoteId": remoteID, "Error": err.Error()}, "", code)
 	}
+
+	_, unshareErr := scs.unshareChannelIfNoActiveRemotes(channelID)
+	if unshareErr != nil {
+		// We don't want to fail the uninvite operation if the unshare fails
+		scs.server.Log().Error("Error during automatic unshare after uninvite",
+			mlog.String("channel_id", channelID),
+			mlog.Err(unshareErr),
+		)
+	}
+
 	return nil
 }
 
@@ -234,4 +276,42 @@ func (scs *Service) CheckCanInviteToSharedChannel(channelId string) error {
 		return model.ErrChannelHomedOnRemote
 	}
 	return nil
+}
+
+// updateMembershipSyncCursor updates the LastMembersSyncAt value for the shared channel remote
+// This provides centralized and consistent cursor management
+func (scs *Service) updateMembershipSyncCursor(channelID string, remoteID string, newTimestamp int64) error {
+	// Get the remote record
+	scr, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(channelID, remoteID)
+	if err != nil {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to get shared channel remote for cursor update",
+			mlog.String("channel_id", channelID),
+			mlog.String("remote_id", remoteID),
+			mlog.Int("timestamp", int(newTimestamp)),
+			mlog.Err(err),
+		)
+		return fmt.Errorf("failed to get shared channel remote for cursor update: %w", err)
+	}
+
+	if scr == nil {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Shared channel remote not found for cursor update",
+			mlog.String("channel_id", channelID),
+			mlog.String("remote_id", remoteID),
+		)
+		return fmt.Errorf("shared channel remote not found for channel %s and remote %s", channelID, remoteID)
+	}
+
+	// Update the cursor - the store will handle ensuring it only moves forward
+	err = scs.server.GetStore().SharedChannel().UpdateRemoteMembershipCursor(scr.Id, newTimestamp)
+	if err != nil {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update membership cursor",
+			mlog.String("channel_id", channelID),
+			mlog.String("remote_id", remoteID),
+			mlog.String("remote_record_id", scr.Id),
+			mlog.Int("timestamp", int(newTimestamp)),
+			mlog.Err(err),
+		)
+	}
+
+	return err
 }

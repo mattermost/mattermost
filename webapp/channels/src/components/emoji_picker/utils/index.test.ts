@@ -233,6 +233,19 @@ describe('getFilteredEmojis', () => {
 
         expect(getFilteredEmojis(allEmojis as any, filter, recentEmojisString, userSkinTone)).toEqual(filteredResults);
     });
+
+    test('Should be case-insensitive', () => {
+        const allEmojis = {
+            smile: smileEmoji,
+            thumbsup: thumbsupEmoji,
+            thumbsdown: thumbsdownEmoji,
+        };
+        const filter = 'DoWn';
+        const recentEmojisString: string[] = [];
+        const userSkinTone = '';
+
+        expect(getFilteredEmojis(allEmojis as any, filter, recentEmojisString, userSkinTone)).toStrictEqual([thumbsdownEmoji]);
+    });
 });
 
 describe('calculateCategoryRowIndex', () => {

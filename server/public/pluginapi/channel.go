@@ -278,7 +278,7 @@ func (c *ChannelService) waitForChannelCreation(channelID string) error {
 
 func channelMembersToChannelMemberSlice(cm model.ChannelMembers) []*model.ChannelMember {
 	cmp := make([]*model.ChannelMember, len(cm))
-	for i := 0; i < len(cm); i++ {
+	for i := range cm {
 		cmp[i] = &(cm)[i]
 	}
 

@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] = `
 <div>
@@ -11,6 +11,7 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
     >
       Desktop and mobile notifications
     </h4>
+    <div />
     <div
       class="sectionContent col-sm-10 col-sm-offset-2"
     >
@@ -69,6 +70,7 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
           >
             <label>
               <input
+                class="a11y--active a11y--focused"
                 type="checkbox"
               />
               Notify me about replies to threads I'm following
@@ -94,37 +96,55 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
             Trigger mobile notifications when I am:
           </label>
           <div
-            class="react-select singleSelect css-2b097c-container"
+            class="react-select singleSelect css-b62m3t-container"
           >
+            <span
+              class="css-1f43avz-a11yText-A11yText"
+              id="react-select-2-live-region"
+            />
+            <span
+              aria-atomic="false"
+              aria-live="polite"
+              aria-relevant="additions text"
+              class="css-1f43avz-a11yText-A11yText"
+              role="log"
+            />
             <div
-              class="react-select__control css-yk16xz-control"
+              class="react-select__control css-13cymwt-control"
             >
               <div
-                class="react-select__value-container react-select__value-container--has-value css-1hwfws3"
+                class="react-select__value-container react-select__value-container--has-value css-hlgwow"
               >
                 <div
-                  class="react-select__single-value css-1uccc91-singleValue"
+                  class="react-select__single-value css-1dimb5e-singleValue"
                 >
                   Offline
                 </div>
                 <input
-                  class="css-62g3xt-dummyInput"
+                  aria-activedescendant=""
+                  aria-autocomplete="list"
+                  aria-expanded="false"
+                  aria-haspopup="true"
+                  aria-labelledby="pushMobileNotificationsLabel"
+                  aria-readonly="true"
+                  class="css-1s80ejz-dummyInput-DummyInput"
                   id="pushMobileNotificationSelectInput"
-                  readonly=""
+                  inputmode="none"
+                  role="combobox"
                   tabindex="0"
                   value=""
                 />
               </div>
               <div
-                class="react-select__indicators css-1hb7zxy-IndicatorsContainer"
+                class="react-select__indicators css-1wy0on6"
               >
                 <div
                   aria-hidden="true"
-                  class="react-select__indicator react-select__dropdown-indicator css-tlfecz-indicatorContainer"
+                  class="react-select__indicator react-select__dropdown-indicator css-1xc3v61-indicatorContainer"
                 >
                   <svg
                     aria-hidden="true"
-                    class="css-6q0nyr-Svg"
+                    class="css-tj5bde-Svg"
                     focusable="false"
                     height="20"
                     viewBox="0 0 20 20"
@@ -143,6 +163,9 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
           class="setting-list-item"
         >
           <hr />
+          <div
+            role="alert"
+          />
           <button
             class="btn btn-primary "
             data-testid="saveSetting"
@@ -155,6 +178,7 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
           </button>
           <button
             class="btn btn-tertiary"
+            data-testid="cancelButton"
             id="cancelSetting"
           >
             Cancel
@@ -172,13 +196,14 @@ exports[`DesktopNotificationSettings should match snapshot, on min setting 1`] =
     class="section-min"
   >
     <div
-      class="secion-min__header"
+      class="section-min__header"
     >
       <h4
         class="section-min__title"
         id="desktopAndMobileTitle"
       >
         Desktop and mobile notifications
+        <div />
       </h4>
       <button
         aria-expanded="false"
@@ -187,6 +212,7 @@ exports[`DesktopNotificationSettings should match snapshot, on min setting 1`] =
         id="desktopAndMobileEdit"
       >
         <i
+          aria-hidden="true"
           class="icon-pencil-outline"
           title="Edit Icon"
         />
@@ -214,6 +240,7 @@ exports[`DesktopNotificationSettings should not show desktop thread notification
     >
       Desktop and mobile notifications
     </h4>
+    <div />
     <div
       class="sectionContent col-sm-10 col-sm-offset-2"
     >
@@ -272,6 +299,7 @@ exports[`DesktopNotificationSettings should not show desktop thread notification
           >
             <label>
               <input
+                class="a11y--active a11y--focused"
                 type="checkbox"
               />
               Use different settings for my mobile devices
@@ -286,37 +314,55 @@ exports[`DesktopNotificationSettings should not show desktop thread notification
             Trigger mobile notifications when I am:
           </label>
           <div
-            class="react-select singleSelect css-2b097c-container"
+            class="react-select singleSelect css-b62m3t-container"
           >
+            <span
+              class="css-1f43avz-a11yText-A11yText"
+              id="react-select-3-live-region"
+            />
+            <span
+              aria-atomic="false"
+              aria-live="polite"
+              aria-relevant="additions text"
+              class="css-1f43avz-a11yText-A11yText"
+              role="log"
+            />
             <div
-              class="react-select__control css-yk16xz-control"
+              class="react-select__control css-13cymwt-control"
             >
               <div
-                class="react-select__value-container react-select__value-container--has-value css-1hwfws3"
+                class="react-select__value-container react-select__value-container--has-value css-hlgwow"
               >
                 <div
-                  class="react-select__single-value css-1uccc91-singleValue"
+                  class="react-select__single-value css-1dimb5e-singleValue"
                 >
                   Offline
                 </div>
                 <input
-                  class="css-62g3xt-dummyInput"
+                  aria-activedescendant=""
+                  aria-autocomplete="list"
+                  aria-expanded="false"
+                  aria-haspopup="true"
+                  aria-labelledby="pushMobileNotificationsLabel"
+                  aria-readonly="true"
+                  class="css-1s80ejz-dummyInput-DummyInput"
                   id="pushMobileNotificationSelectInput"
-                  readonly=""
+                  inputmode="none"
+                  role="combobox"
                   tabindex="0"
                   value=""
                 />
               </div>
               <div
-                class="react-select__indicators css-1hb7zxy-IndicatorsContainer"
+                class="react-select__indicators css-1wy0on6"
               >
                 <div
                   aria-hidden="true"
-                  class="react-select__indicator react-select__dropdown-indicator css-tlfecz-indicatorContainer"
+                  class="react-select__indicator react-select__dropdown-indicator css-1xc3v61-indicatorContainer"
                 >
                   <svg
                     aria-hidden="true"
-                    class="css-6q0nyr-Svg"
+                    class="css-tj5bde-Svg"
                     focusable="false"
                     height="20"
                     viewBox="0 0 20 20"
@@ -335,6 +381,9 @@ exports[`DesktopNotificationSettings should not show desktop thread notification
           class="setting-list-item"
         >
           <hr />
+          <div
+            role="alert"
+          />
           <button
             class="btn btn-primary "
             data-testid="saveSetting"
@@ -347,6 +396,7 @@ exports[`DesktopNotificationSettings should not show desktop thread notification
           </button>
           <button
             class="btn btn-tertiary"
+            data-testid="cancelButton"
             id="cancelSetting"
           >
             Cancel

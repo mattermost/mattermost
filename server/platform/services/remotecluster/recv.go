@@ -57,13 +57,26 @@ func callback(listener TopicListener, msg model.RemoteClusterMsg, rc *model.Remo
 func (rcs *Service) ReceiveInviteConfirmation(confirm model.RemoteClusterInvite) (*model.RemoteCluster, error) {
 	store := rcs.server.GetStore().RemoteCluster()
 
-	rc, err := store.Get(confirm.RemoteId)
+	rc, err := store.Get(confirm.RemoteId, false)
 	if err != nil {
 		return nil, fmt.Errorf("cannot accept invite confirmation for remote %s: %w", confirm.RemoteId, err)
 	}
 
+	if rc.IsConfirmed() {
+		return nil, fmt.Errorf("cannot accept invite confirmation for remote %s: %w", confirm.RemoteId, RemoteClusterAlreadyConfirmedError)
+	}
+
 	rc.SiteURL = confirm.SiteURL
 	rc.RemoteToken = confirm.Token
+
+	// If the accepting cluster sent a RefreshedToken (its RemoteToken), set it as our Token
+	if confirm.Version >= 2 && confirm.RefreshedToken != "" {
+		rc.Token = confirm.RefreshedToken
+	} else {
+		// For older versions or if no RefreshedToken was provided, generate a new token
+		// to invalidate the original invite token and prevent reuse
+		rc.Token = model.NewId()
+	}
 
 	rcUpdated, err := store.Update(rc)
 	if err != nil {

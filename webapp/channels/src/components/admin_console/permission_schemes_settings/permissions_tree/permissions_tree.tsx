@@ -7,9 +7,14 @@ import {FormattedMessage} from 'react-intl';
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import type {Role} from '@mattermost/types/roles';
 
+import GeneralConstants from 'mattermost-redux/constants/general';
 import Permissions from 'mattermost-redux/constants/permissions';
 
-import {isEnterpriseLicense, isNonEnterpriseLicense} from 'utils/license_utils';
+import {
+    isEnterpriseLicense,
+    isMinimumEnterpriseAdvancedLicense,
+    isNonEnterpriseLicense,
+} from 'utils/license_utils';
 
 import type {AdditionalValues, Group} from './types';
 
@@ -91,14 +96,7 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
                         ],
                     },
                     Permissions.DELETE_PUBLIC_CHANNEL,
-                    {
-                        id: 'convert_public_channel_to_private',
-                        combined: true,
-                        permissions: [
-                            Permissions.CONVERT_PUBLIC_CHANNEL_TO_PRIVATE,
-                            Permissions.CONVERT_PRIVATE_CHANNEL_TO_PUBLIC,
-                        ],
-                    },
+                    Permissions.CONVERT_PUBLIC_CHANNEL_TO_PRIVATE,
                 ],
             },
             {
@@ -205,7 +203,7 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
     }
 
     updateGroups = () => {
-        const {config, scope, license} = this.props;
+        const {config, scope, license, role} = this.props;
 
         const teamsGroup = this.groups[0];
         const publicChannelsGroup = this.groups[1];
@@ -215,11 +213,30 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
         const sharedChannelsGroup = this.groups[9];
         const customGroupsGroup = this.groups[10];
 
-        if (config.EnableIncomingWebhooks === 'true' && !integrationsGroup.permissions.includes(Permissions.MANAGE_INCOMING_WEBHOOKS)) {
-            integrationsGroup.permissions.push(Permissions.MANAGE_INCOMING_WEBHOOKS);
+        if (config.EnableIncomingWebhooks === 'true') {
+            const incomingWebhookGroup = {
+                id: 'manage_incoming_webhooks_group',
+                permissions: [
+                    Permissions.MANAGE_OWN_INCOMING_WEBHOOKS,
+                    Permissions.MANAGE_OTHERS_INCOMING_WEBHOOKS,
+                    Permissions.BYPASS_INCOMING_WEBHOOK_CHANNEL_LOCK,
+                ],
+            };
+            if (!integrationsGroup.permissions.some((p: any) => p.id === 'manage_incoming_webhooks_group')) {
+                integrationsGroup.permissions.push(incomingWebhookGroup);
+            }
         }
-        if (config.EnableOutgoingWebhooks === 'true' && !integrationsGroup.permissions.includes(Permissions.MANAGE_OUTGOING_WEBHOOKS)) {
-            integrationsGroup.permissions.push(Permissions.MANAGE_OUTGOING_WEBHOOKS);
+        if (config.EnableOutgoingWebhooks === 'true') {
+            const outgoingWebhookGroup = {
+                id: 'manage_outgoing_webhooks_group',
+                permissions: [
+                    Permissions.MANAGE_OWN_OUTGOING_WEBHOOKS,
+                    Permissions.MANAGE_OTHERS_OUTGOING_WEBHOOKS,
+                ],
+            };
+            if (!integrationsGroup.permissions.some((p: any) => p.id === 'manage_outgoing_webhooks_group')) {
+                integrationsGroup.permissions.push(outgoingWebhookGroup);
+            }
         }
         if (config.EnableOAuthServiceProvider === 'true' && !integrationsGroup.permissions.includes(Permissions.MANAGE_OAUTH)) {
             integrationsGroup.permissions.push(Permissions.MANAGE_OAUTH);
@@ -227,8 +244,17 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
         if (config.EnableOutgoingOAuthConnections === 'true' && !integrationsGroup.permissions.includes(Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS)) {
             integrationsGroup.permissions.push(Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS);
         }
-        if (config.EnableCommands === 'true' && !integrationsGroup.permissions.includes(Permissions.MANAGE_SLASH_COMMANDS)) {
-            integrationsGroup.permissions.push(Permissions.MANAGE_SLASH_COMMANDS);
+        if (config.EnableCommands === 'true') {
+            const slashCommandGroup = {
+                id: 'manage_slash_commands_group',
+                permissions: [
+                    Permissions.MANAGE_OWN_SLASH_COMMANDS,
+                    Permissions.MANAGE_OTHERS_SLASH_COMMANDS,
+                ],
+            };
+            if (!integrationsGroup.permissions.some((p: any) => p.id === 'manage_slash_commands_group')) {
+                integrationsGroup.permissions.push(slashCommandGroup);
+            }
         }
         if (config.EnableCustomEmoji === 'true' && !integrationsGroup.permissions.includes(Permissions.CREATE_EMOJIS)) {
             integrationsGroup.permissions.push(Permissions.CREATE_EMOJIS);
@@ -246,7 +272,7 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
         if (scope === 'team_scope' && this.groups[0].id !== 'teams_team_scope') {
             this.groups[0].id = 'teams_team_scope';
         }
-        if (license?.IsLicensed === 'true' && license?.LDAPGroups === 'true' && !postsGroup.permissions.includes(Permissions.USE_GROUP_MENTIONS)) {
+        if (license?.IsLicensed === 'true' && (license?.LDAPGroups === 'true' || config.EnableCustomGroups === 'true') && !postsGroup.permissions.includes(Permissions.USE_GROUP_MENTIONS)) {
             postsGroup.permissions.push(Permissions.USE_GROUP_MENTIONS);
         }
         postsGroup.permissions.push({
@@ -263,6 +289,10 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
         }
         if (!this.props.customGroupsEnabled) {
             customGroupsGroup?.permissions.pop();
+        }
+
+        if ([GeneralConstants.TEAM_ADMIN_ROLE, GeneralConstants.SYSTEM_ADMIN_ROLE].includes(role.name || '')) {
+            privateChannelsGroup.permissions.push(Permissions.CONVERT_PRIVATE_CHANNEL_TO_PUBLIC);
         }
 
         if (license?.IsLicensed === 'true') {
@@ -286,6 +316,12 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
                     Permissions.ORDER_BOOKMARK_PRIVATE_CHANNEL,
                 ],
             });
+        }
+
+        if (isMinimumEnterpriseAdvancedLicense(license)) {
+            publicChannelsGroup.permissions.push(Permissions.MANAGE_PUBLIC_CHANNEL_BANNER);
+            privateChannelsGroup.permissions.push(Permissions.MANAGE_PRIVATE_CHANNEL_BANNER);
+            privateChannelsGroup.permissions.push(Permissions.MANAGE_CHANNEL_ACCESS_RULES);
         }
 
         this.groups = this.groups.filter((group) => {

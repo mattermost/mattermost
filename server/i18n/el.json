@@ -96,14 +96,6 @@
     "translation": "Παρουσιάστηκε σφάλμα κατά την κατασκευή παροχέα υπηρεσιών μεταδεδομένων."
   },
   {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "Δεν είναι δυνατή η δημιουργία του αρχείου eml."
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Δεν είναι δυνατό το κλείσιμο του αρχείου zip."
-  },
-  {
     "id": "ent.elasticsearch.index_user.error",
     "translation": "Αποτυχία ευρετηρίασης του χρήστη"
   },
@@ -128,48 +120,12 @@
     "translation": "Απέτυχε η διαγραφή του καναλιού"
   },
   {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Δεν είναι δυνατή η δημιουργία του αρχείου εξαγωγής zip."
-  },
-  {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "Δεν είναι δυνατή η δημιουργία του αρχείου προειδοποίησης."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "Δεν είναι δυνατή η δημιουργία του αρχείου zip"
-  },
-  {
     "id": "ent.account_migration.get_saml_users_failed",
     "translation": "Αδυναμία λήψης χρηστών SAML."
   },
   {
     "id": "ent.account_migration.get_all_failed",
     "translation": "Αδυναμία λήψης χρηστών."
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "Απέτυχε η ευρετηρίαση του χρήστη."
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "Απέτυχε η ευρετηρίαση της δημοσίευσης."
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "Απέτυχε η ευρετηρίαση του καναλιού."
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "Αποτυχία διαγραφής του χρήστη."
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "Αποτυχία διαγραφής της δημοσίευσης."
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "Απέτυχε η διαγραφή του καναλιού."
   },
   {
     "id": "app.submit_interactive_dialog.json_error",
@@ -1133,10 +1089,6 @@
   {
     "id": "api.channel.leave.left",
     "translation": "%v έφυγε από το κανάλι."
-  },
-  {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Είσαι το μόνο μέλος που έμεινε στο κανάλι, δοκίμασε να αλλάξεις 'Ιδιωτικό Κανάλι', αντί να το φύγεις."
   },
   {
     "id": "api.channel.leave.direct.app_error",
@@ -2183,10 +2135,6 @@
     "translation": "Απέτυχε η συγχώνευση της ρύθμισης που έχει δοθεί."
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Η νέα μορφή για τη διαμόρφωση του πελάτη δεν υποστηρίζεται ακόμη. Προσδιορίστε format=old στη συμβολοσειρά ερωτήματος."
-  },
-  {
     "id": "api.command_share.unshare_channel.help",
     "translation": "Καταργεί την κοινή χρήση του τρέχοντος καναλιού"
   },
@@ -2403,10 +2351,6 @@
   {
     "id": "api.error_set_first_admin_visit_marketplace_status",
     "translation": "Σφάλμα κατά την προσπάθεια αποθήκευσης της κατάστασης της πρώτης επίσκεψης του διαχειριστή στο marketplace."
-  },
-  {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Λείπει το client_secret."
   },
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",

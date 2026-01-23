@@ -57,7 +57,7 @@ func getOrphanedRecords(ss *SqlStore, cfg relationalCheckConfig) ([]model.Orphan
 		return nil, err
 	}
 
-	err = ss.GetMasterX().Select(&records, query, args...)
+	err = ss.GetMaster().Select(&records, query, args...)
 	return records, err
 }
 

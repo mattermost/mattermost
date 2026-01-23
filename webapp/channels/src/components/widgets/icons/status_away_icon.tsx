@@ -15,7 +15,7 @@ export default function StatusAwayIcon(props: React.HTMLAttributes<HTMLSpanEleme
                 viewBox='0 0 20 20'
                 style={style}
                 role='img'
-                aria-label={formatMessage({id: 'mobile.set_status.away.icon', defaultMessage: 'Away Icon'})}
+                aria-label={formatMessage({id: 'mobile.set_status.away.icon', defaultMessage: 'Away'})}
             >
                 <path
                     className='away--icon'

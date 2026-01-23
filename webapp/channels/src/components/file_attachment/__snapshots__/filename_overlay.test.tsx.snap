@@ -1,13 +1,11 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/file_attachment/FilenameOverlay should match snapshot, compact display 1`] = `
 <WithTooltip
-  id="file-name__tooltip"
-  placement="top"
   title="test_filename"
 >
   <a
-    className="post-image__name"
+    className="post-image__name btn btn-icon btn-sm"
     href="#"
     onClick={[MockFunction]}
     rel="noopener noreferrer"
@@ -33,12 +31,16 @@ exports[`components/file_attachment/FilenameOverlay should match snapshot, stand
   className="post-image__name"
 >
   <WithTooltip
-    id="file-name__tooltip"
-    placement="top"
-    title="Download"
+    title={
+      Object {
+        "defaultMessage": "Download",
+        "id": "view_image_popover.download",
+      }
+    }
   >
     <ForwardRef
       aria-label="download"
+      className="btn btn-icon btn-sm"
       download="test_filename"
       href="/api/v4/files/thumbnail_id?download=1"
       location="filename_overlay"
@@ -54,12 +56,16 @@ exports[`components/file_attachment/FilenameOverlay should match snapshot, with 
   className="post-image__name"
 >
   <WithTooltip
-    id="file-name__tooltip"
-    placement="top"
-    title="Download"
+    title={
+      Object {
+        "defaultMessage": "Download",
+        "id": "view_image_popover.download",
+      }
+    }
   >
     <ForwardRef
       aria-label="download"
+      className="btn btn-icon btn-sm"
       download="test_filename"
       href="/api/v4/files/thumbnail_id?download=1"
       location="filename_overlay"

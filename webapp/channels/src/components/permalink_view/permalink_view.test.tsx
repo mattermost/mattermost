@@ -1,12 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ReactWrapper} from 'enzyme';
 import {shallow} from 'enzyme';
 import nock from 'nock';
 import React from 'react';
 import type {ComponentProps} from 'react';
-import {act} from 'react-dom/test-utils';
 import type {match} from 'react-router-dom';
 
 import {CollapsedThreads} from '@mattermost/types/config';
@@ -21,8 +19,10 @@ import PermalinkView from 'components/permalink_view/permalink_view';
 
 import TestHelper from 'packages/mattermost-redux/test/test_helper';
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {act, waitFor} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
 import {getHistory} from 'utils/browser_history';
+import {joinPrivateChannelPrompt} from 'utils/channel_utils';
 import {ErrorPageTypes} from 'utils/constants';
 
 jest.mock('actions/channel_actions', () => ({
@@ -44,6 +44,7 @@ jest.mock('mattermost-redux/actions/posts', () => ({
         const replyPost1 = {id: 'replypostid1', message: 'some message', channel_id: 'channelid1', root_id: 'postid1'};
         const dmPost = {id: 'dmpostid1', message: 'some message', channel_id: 'dmchannelid'};
         const gmPost = {id: 'gmpostid1', message: 'some message', channel_id: 'gmchannelid'};
+        const privatePost = {id: 'privatepostid1', message: 'some message', channel_id: 'privatechannelid'};
 
         switch (postId) {
         case 'postid1':
@@ -56,6 +57,8 @@ jest.mock('mattermost-redux/actions/posts', () => ({
             return {type: 'MOCK_GET_POST_THREAD', data: {posts: {gmpostid1: gmPost}, order: [gmPost.id]}};
         case 'replypostid1':
             return {type: 'MOCK_GET_POST_THREAD', data: {posts: {replypostid1: replyPost1, postid1: post}, order: [post.id, replyPost1.id]}};
+        case 'privatepostid1':
+            return {type: 'MOCK_GET_POST_THREAD', data: {posts: {privatepostid1: privatePost}, order: [privatePost.id]}};
         default:
             return {type: 'MOCK_GET_POST_THREAD'};
         }
@@ -80,6 +83,14 @@ jest.mock('mattermost-redux/actions/channels', () => ({
     }),
 }));
 
+jest.mock('utils/channel_utils', () => ({
+    joinPrivateChannelPrompt: jest.fn(() => {
+        return async () => {
+            return {data: {join: false}};
+        };
+    }),
+}));
+
 describe('components/PermalinkView', () => {
     const baseProps: ComponentProps<typeof PermalinkView> = {
         channelId: 'channel_id',
@@ -101,41 +112,43 @@ describe('components/PermalinkView', () => {
     });
 
     test('should call baseProps.actions.focusPost on doPermalinkEvent', async () => {
-        await act(async () => {
-            mountWithIntl(
-                <PermalinkView {...baseProps}/>,
-            );
-        });
+        mountWithIntl(
+            <PermalinkView {...baseProps}/>,
+        );
 
-        expect(baseProps.actions.focusPost).toHaveBeenCalledTimes(1);
-        expect(baseProps.actions.focusPost).toBeCalledWith(baseProps.match.params.postid, baseProps.returnTo, baseProps.currentUserId);
+        await waitFor(() => {
+            expect(baseProps.actions.focusPost).toHaveBeenCalledTimes(1);
+            expect(baseProps.actions.focusPost).toHaveBeenCalledWith(baseProps.match.params.postid, baseProps.returnTo, baseProps.currentUserId);
+        });
     });
 
     test('should call baseProps.actions.focusPost when postid changes', async () => {
-        let wrapper: ReactWrapper<JSX.Element>;
-        await act(async () => {
-            wrapper = mountWithIntl(
-                <PermalinkView {...baseProps}/>,
-            );
-        });
-        const newPostid = `${baseProps.match.params.postid}_new`;
-        await wrapper!.setProps({...baseProps, match: {params: {postid: newPostid}}} as any);
+        const wrapper = mountWithIntl(
+            <PermalinkView {...baseProps}/>,
+        );
 
-        expect(baseProps.actions.focusPost).toHaveBeenCalledTimes(2);
-        expect(baseProps.actions.focusPost).toBeCalledWith(newPostid, baseProps.returnTo, baseProps.currentUserId);
+        const newPostid = `${baseProps.match.params.postid}_new`;
+
+        act(() => {
+            wrapper.setProps({...baseProps, match: {params: {postid: newPostid}}} as any);
+        });
+
+        await waitFor(() => {
+            expect(baseProps.actions.focusPost).toHaveBeenCalledTimes(2);
+            expect(baseProps.actions.focusPost).toHaveBeenCalledWith(newPostid, baseProps.returnTo, baseProps.currentUserId);
+        });
     });
 
     test('should match snapshot with archived channel', async () => {
         const props = {...baseProps, channelIsArchived: true};
 
-        let wrapper: ReactWrapper<any>;
-        await act(async () => {
-            wrapper = mountWithIntl(
-                <PermalinkView {...props}/>,
-            );
-        });
+        const wrapper = mountWithIntl(
+            <PermalinkView {...props}/>,
+        );
 
-        expect(wrapper!).toMatchSnapshot();
+        await waitFor(() => {});
+
+        expect(wrapper).toMatchSnapshot();
     });
 
     describe('actions', () => {
@@ -154,6 +167,7 @@ describe('components/PermalinkView', () => {
                 channels: {
                     channels: {
                         channelid1: TestHelper.getChannelMock({id: 'channelid1', name: 'channel1', type: 'O', team_id: 'current_team_id'}),
+                        privatechannelid: TestHelper.getChannelMock({id: 'privatechannelid', name: 'private_channel', type: 'P', team_id: 'current_team_id'}),
                         dmchannelid: TestHelper.getChannelMock({id: 'dmchannelid', name: 'dmchannel__current_user_id', type: 'D', team_id: ''}),
                         gmchannelid: TestHelper.getChannelMock({id: 'gmchannelid', name: 'gmchannel', type: 'G', team_id: ''}),
                     },
@@ -377,7 +391,193 @@ describe('components/PermalinkView', () => {
                     {type: 'MOCK_LOAD_CHANNELS_FOR_CURRENT_USER'},
                     {type: 'MOCK_GET_CHANNEL_STATS', args: ['channelid1']},
                 ]);
-                expect(getHistory().replace).not.toBeCalled();
+                expect(getHistory().replace).not.toHaveBeenCalled();
+            });
+
+            describe('focusPost - with prompt', () => {
+                function nockInfoForPrivatePost(postId: string) {
+                    nock(Client4.getPostRoute(postId)).
+                        get('/info').
+                        reply(200, {
+                            channel_type: 'P',
+                            has_joined_channel: false,
+                        });
+                }
+                test('should prompt admin user before redirect to private channel link', async () => {
+                    const testState = {
+                        ...initialState,
+                        entities: {
+                            ...initialState.entities,
+                            users: {
+                                ...initialState.entities.users,
+                                profiles: {
+                                    ...initialState.entities.users.profiles,
+                                    current_user_id: {
+                                        roles: 'system_admin',
+                                    },
+                                },
+                            },
+                        },
+                    };
+
+                    const postId = 'privatepostid1';
+                    nockInfoForPrivatePost(postId);
+
+                    const testStore = await mockStore(testState);
+                    await testStore.dispatch(focusPost(postId, undefined, baseProps.currentUserId));
+
+                    expect(getPostThread).not.toHaveBeenCalled();
+                    expect(testStore.getActions()).toEqual([]);
+                });
+
+                test('should prompt team admin before redirect to private channel link', async () => {
+                    const testState = {
+                        ...initialState,
+                        entities: {
+                            ...initialState.entities,
+                            users: {
+                                ...initialState.entities.users,
+                                profiles: {
+                                    ...initialState.entities.users.profiles,
+                                    current_user_id: {
+                                        roles: 'system_user',
+                                    },
+                                },
+                            },
+                            teams: {
+                                ...initialState.entities.teams,
+                                myMembers: {
+                                    current_team_id: {
+                                        scheme_user: true,
+                                        scheme_admin: true,
+                                    },
+                                },
+                            },
+                        },
+                    };
+                    const postId = 'privatepostid1';
+                    nockInfoForPrivatePost(postId);
+                    const testStore = await mockStore(testState);
+                    await testStore.dispatch(focusPost(postId, undefined, baseProps.currentUserId));
+                    expect(getPostThread).not.toHaveBeenCalled();
+                    expect(testStore.getActions()).toEqual([]);
+                });
+
+                test('should not prompt team admin before redirect to public channel link', async () => {
+                    const testState = {
+                        ...initialState,
+                        entities: {
+                            ...initialState.entities,
+                            users: {
+                                ...initialState.entities.users,
+                                profiles: {
+                                    ...initialState.entities.users.profiles,
+                                    current_user_id: {
+                                        roles: 'system_user',
+                                    },
+                                },
+                            },
+                            teams: {
+                                ...initialState.entities.teams,
+                                myMembers: {
+                                    current_team_id: {
+                                        scheme_user: true,
+                                        scheme_admin: true,
+                                    },
+                                },
+                            },
+                        },
+                    };
+                    const postId = 'postid1';
+                    nockInfoForPost(postId);
+
+                    const testStore = await mockStore(testState);
+                    await testStore.dispatch(focusPost(postId, undefined, baseProps.currentUserId));
+
+                    expect(getPostThread).toHaveBeenCalledWith(postId);
+                    expect(testStore.getActions()).toEqual([
+                        {
+                            type: 'MOCK_GET_POST_THREAD',
+                            data: {
+                                posts: {
+                                    replypostid1: {id: 'replypostid1', message: 'some message', channel_id: 'channelid1', root_id: postId},
+                                    postid1: {id: postId, message: 'some message', channel_id: 'channelid1'},
+                                },
+                                order: [postId, 'replypostid1'],
+                            },
+                        },
+                        {type: 'MOCK_SELECT_CHANNEL', args: ['channelid1']},
+                        {type: 'RECEIVED_FOCUSED_POST', channelId: 'channelid1', data: postId},
+                        {type: 'MOCK_LOAD_CHANNELS_FOR_CURRENT_USER'},
+                        {type: 'MOCK_GET_CHANNEL_STATS', args: ['channelid1']},
+                    ]);
+                    expect(getHistory().replace).toHaveBeenCalledWith('/currentteam/channels/channel1/postid1');
+                });
+
+                test('should allow redirect to private channel link if prompt response true', async () => {
+                    const testState = {
+                        ...initialState,
+                        entities: {
+                            ...initialState.entities,
+                            users: {
+                                ...initialState.entities.users,
+                                profiles: {
+                                    ...initialState.entities.users.profiles,
+                                    current_user_id: {
+                                        roles: 'system_user',
+                                    },
+                                },
+                            },
+                            channels: {
+                                ...initialState.entities.channels,
+                                myMembers: {
+                                    privatechannelid: {channel_id: 'privatechannelid', user_id: 'current_user_id'},
+                                },
+                            },
+                            teams: {
+                                ...initialState.entities.teams,
+                                myMembers: {
+                                    current_team_id: {
+                                        scheme_user: true,
+                                    },
+                                },
+                            },
+                        },
+                    };
+
+                    jest.mocked(joinPrivateChannelPrompt).mockReturnValueOnce(async () => ({data: {join: true}}));
+
+                    const postId = 'privatepostid1';
+                    nockInfoForPrivatePost(postId);
+
+                    const testStore = await mockStore(testState);
+                    await testStore.dispatch(focusPost(postId, undefined, baseProps.currentUserId));
+
+                    expect(getPostThread).toHaveBeenCalledWith(postId);
+                    expect(testStore.getActions()).toEqual([
+                        {
+                            type: 'MOCK_JOIN_CHANNEL',
+                            args: [
+                                'current_user',
+                                '',
+                                undefined,
+                            ],
+                        },
+                        {
+                            type: 'MOCK_GET_POST_THREAD',
+                            data: {
+                                posts: {
+                                    privatepostid1: {id: 'privatepostid1', message: 'some message', channel_id: 'privatechannelid'},
+                                },
+                                order: ['privatepostid1'],
+                            },
+                        },
+                        {type: 'MOCK_SELECT_CHANNEL', args: ['privatechannelid']},
+                        {type: 'RECEIVED_FOCUSED_POST', channelId: 'privatechannelid', data: postId},
+                        {type: 'MOCK_LOAD_CHANNELS_FOR_CURRENT_USER'},
+                        {type: 'MOCK_GET_CHANNEL_STATS', args: ['privatechannelid']},
+                    ]);
+                });
             });
         });
     });

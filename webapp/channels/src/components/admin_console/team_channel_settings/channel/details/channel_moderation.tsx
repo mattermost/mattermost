@@ -275,14 +275,15 @@ export const ChannelModerationTableRow = (props: ChannelModerationTableRow) => {
     return (
         <tr>
             <td>
-                <label
+                <div
+                    className='as-bs-label'
                     data-testid={channelModerationPermissionMessages?.title?.id?.replace(PERIOD_TO_SLASH_REGEX, '-')}
                 >
                     <FormattedMessage
                         id={channelModerationPermissionMessages?.title?.id}
                         defaultMessage={channelModerationPermissionMessages?.title?.defaultMessage}
                     />
-                </label>
+                </div>
                 <div
                     data-testid={channelModerationPermissionMessages?.description?.id?.replace(PERIOD_TO_SLASH_REGEX, '-')}
                 >

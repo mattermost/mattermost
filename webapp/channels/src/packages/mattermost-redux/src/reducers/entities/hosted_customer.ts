@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import type {Product} from '@mattermost/types/cloud';
 
+import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {HostedCustomerTypes} from 'mattermost-redux/action_types';
 
 export interface SelfHostedProducts {
@@ -18,7 +18,7 @@ const initialProducts = {
     productsLoaded: false,
 };
 
-function products(state: SelfHostedProducts = initialProducts, action: AnyAction) {
+function products(state: SelfHostedProducts = initialProducts, action: MMReduxAction) {
     switch (action.type) {
     case HostedCustomerTypes.RECEIVED_SELF_HOSTED_PRODUCTS: {
         const productList: Product[] = action.data;
@@ -46,7 +46,7 @@ export interface ErrorsReducer {
 }
 
 const emptyErrors = {};
-export function errors(state: ErrorsReducer = emptyErrors, action: AnyAction) {
+export function errors(state: ErrorsReducer = emptyErrors, action: MMReduxAction) {
     switch (action.type) {
     case HostedCustomerTypes.SELF_HOSTED_PRODUCTS_FAILED: {
         return {...state, products: true};

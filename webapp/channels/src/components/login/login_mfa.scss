@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-@import 'utils/mixins';
+@use 'utils/mixins';
 
 .login-mfa-form {
     display: flex;
@@ -19,8 +19,8 @@
         background-color: var(--center-channel-bg);
 
         .login-mfa-form-button-submit {
-            @include primary-button;
-            @include button-large;
+            @include mixins.primary-button;
+            @include mixins.button-large;
 
             flex: 1;
             margin: 0;

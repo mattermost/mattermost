@@ -30,11 +30,6 @@ const initialState = {
                 },
             },
         },
-        general: {
-            config: {
-                ExperimentalViewArchivedChannels: 'false',
-            },
-        },
         posts: {
             posts: {
                 root_id: {id: 'root_id', channel_id: '123'},
@@ -124,11 +119,15 @@ const initialState = {
             },
             pluginEnabled: true,
         },
+        general: {
+            config: {},
+        },
     },
     views: {
         rhs: {
             rhsState: null,
             searchTerms: '',
+            searchType: '',
         },
     },
 };
@@ -150,8 +149,11 @@ describe('executeCommand', () => {
                 {type: 'UPDATE_RHS_SEARCH_TERMS', terms: 'foo bar'},
                 {type: 'UPDATE_RHS_STATE', state: 'search'},
                 {type: 'UPDATE_RHS_SEARCH_RESULTS_TERMS', terms: ''},
+                {type: 'UPDATE_RHS_SEARCH_RESULTS_TYPE', searchType: ''},
                 {type: 'SEARCH_POSTS_REQUEST', isGettingMore: false},
+                {data: {firstInaccessiblePostTime: 0, searchType: 'posts'}, type: 'RECEIVED_SEARCH_TRUNCATION_INFO'},
                 {type: 'SEARCH_FILES_REQUEST', isGettingMore: false},
+                {data: {firstInaccessiblePostTime: 0, searchType: 'files'}, type: 'RECEIVED_SEARCH_TRUNCATION_INFO'},
             ]);
         });
     });
@@ -166,7 +168,7 @@ describe('executeCommand', () => {
 
             expect(result).toEqual({
                 error: {
-                    message: 'Keyboard shortcuts are not supported on your device',
+                    message: 'Keyboard shortcuts are not supported on your device.',
                 },
             });
         });

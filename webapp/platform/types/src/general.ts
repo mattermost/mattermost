@@ -2,6 +2,8 @@
 // See LICENSE.txt for license information.
 
 import type {ClientConfig, ClientLicense} from './config';
+import type {UserPropertyField} from './properties';
+import type {IDMappedObjects} from './utilities';
 
 export type GeneralState = {
     config: Partial<ClientConfig>;
@@ -9,6 +11,8 @@ export type GeneralState = {
     firstAdminCompleteSetup: boolean;
     license: ClientLicense;
     serverVersion: string;
+    customProfileAttributes: IDMappedObjects<UserPropertyField>;
+    cwsAvailability: 'pending' | 'available' | 'unavailable' | 'not_applicable';
 };
 
 export type SystemSetting = {

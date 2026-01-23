@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import isEmpty from 'lodash/isEmpty';
 import React from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
@@ -10,16 +9,13 @@ import type {Subscription} from '@mattermost/types/cloud';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
-import PricingModal from 'components/pricing_modal';
+import type {UseOpenPricingModalReturn} from 'components/common/hooks/useOpenPricingModal';
+import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 
 import {
     Preferences,
     CloudBanners,
     AnnouncementBarTypes,
-    ModalIdentifiers,
-    TELEMETRY_CATEGORIES,
     TrialPeriodDays,
 } from 'utils/constants';
 import {getLocaleDateFromUTC} from 'utils/utils';
@@ -43,26 +39,11 @@ type Props = {
     };
 };
 
+type PropsWithPricingModal = Props & UseOpenPricingModalReturn;
+
 const MAX_DAYS_BANNER = 'max_days_banner';
 const THREE_DAYS_BANNER = '3_days_banner';
-class CloudTrialAnnouncementBar extends React.PureComponent<Props> {
-    async componentDidMount() {
-        if (!isEmpty(this.props.subscription) && this.shouldShowBanner()) {
-            const {daysLeftOnTrial} = this.props;
-            if (this.isDismissable()) {
-                trackEvent(
-                    TELEMETRY_CATEGORIES.CLOUD_ADMIN,
-                    `bannerview_trial_${daysLeftOnTrial}_days`,
-                );
-            } else {
-                trackEvent(
-                    TELEMETRY_CATEGORIES.CLOUD_ADMIN,
-                    'bannerview_trial_limit_ended',
-                );
-            }
-        }
-    }
-
+class CloudTrialAnnouncementBarInternal extends React.PureComponent<PropsWithPricingModal> {
     handleClose = async () => {
         const {daysLeftOnTrial} = this.props;
         let dismissValue = '';
@@ -71,10 +52,6 @@ class CloudTrialAnnouncementBar extends React.PureComponent<Props> {
         } else if (daysLeftOnTrial <= TrialPeriodDays.TRIAL_WARNING_THRESHOLD && daysLeftOnTrial >= TrialPeriodDays.TRIAL_1_DAY) {
             dismissValue = THREE_DAYS_BANNER;
         }
-        trackEvent(
-            TELEMETRY_CATEGORIES.CLOUD_ADMIN,
-            `dismissed_banner_trial_${daysLeftOnTrial}_days`,
-        );
         await this.props.actions.savePreferences(this.props.currentUser.id, [{
             category: Preferences.CLOUD_TRIAL_BANNER,
             user_id: this.props.currentUser.id,
@@ -84,8 +61,8 @@ class CloudTrialAnnouncementBar extends React.PureComponent<Props> {
     };
 
     shouldShowBanner = () => {
-        const {isFreeTrial, userIsAdmin, isCloud} = this.props;
-        return isFreeTrial && userIsAdmin && isCloud;
+        const {isFreeTrial, userIsAdmin, isCloud, isAirGapped, subscription} = this.props;
+        return isFreeTrial && userIsAdmin && isCloud && !isAirGapped && !subscription?.is_cloud_preview;
     };
 
     isDismissable = () => {
@@ -99,22 +76,7 @@ class CloudTrialAnnouncementBar extends React.PureComponent<Props> {
     };
 
     showModal = () => {
-        const {daysLeftOnTrial} = this.props;
-        if (this.isDismissable()) {
-            trackEvent(
-                TELEMETRY_CATEGORIES.CLOUD_ADMIN,
-                `click_subscribe_from_trial_banner_${daysLeftOnTrial}_days`,
-            );
-        } else {
-            trackEvent(
-                TELEMETRY_CATEGORIES.CLOUD_ADMIN,
-                'click_subscribe_from_banner_trial_ended',
-            );
-        }
-        this.props.actions.openModal({
-            modalId: ModalIdentifiers.PRICING_MODAL,
-            dialogType: PricingModal,
-        });
+        this.props.openPricingModal();
     };
 
     render() {
@@ -199,5 +161,18 @@ const messages = defineMessages({
         defaultMessage: 'Upgrade Now',
     },
 });
+
+// Wrapper component to use the hook
+const CloudTrialAnnouncementBar: React.FC<Props> = (props) => {
+    const {openPricingModal, isAirGapped} = useOpenPricingModal();
+
+    return (
+        <CloudTrialAnnouncementBarInternal
+            {...props}
+            openPricingModal={openPricingModal}
+            isAirGapped={isAirGapped}
+        />
+    );
+};
 
 export default CloudTrialAnnouncementBar;

@@ -27,7 +27,7 @@ export default function usePreference(category: string, name: string): [string |
             value,
         };
         return dispatch(savePreferences(userId, [preference]));
-    }, [category, name, userId]);
+    }, [category, dispatch, name, userId]);
 
     return useMemo(() => ([preferenceValue, setPreference]), [preferenceValue, setPreference]);
 }

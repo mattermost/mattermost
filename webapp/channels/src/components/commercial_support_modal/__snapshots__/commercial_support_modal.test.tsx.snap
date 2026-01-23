@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/CommercialSupportModal should match snapshot 1`] = `
 <Modal
@@ -51,32 +51,44 @@ exports[`components/CommercialSupportModal should match snapshot 1`] = `
     <div
       className="CommercialSupportModal"
     >
-      <FormattedMarkdownMessage
-        defaultMessage="If you're experiencing issues, [submit a support ticket](!{supportLink}). To help with troubleshooting, it's recommended to download the Support Packet below that includes more details about your Mattermost environment."
-        id="commercial_support.description"
+      <MemoizedFormattedMessage
+        defaultMessage="If you're experiencing issues, <supportLink>submit a support ticket</supportLink>. To help with troubleshooting, it's recommended to download the Support Packet below that includes more details about your Mattermost environment."
+        id="commercial_support_modal.description"
         values={
           Object {
-            "supportLink": "https://support.mattermost.com/hc/en-us/requests/new",
+            "supportLink": [Function],
           }
         }
-      />
-      <AlertBanner
-        message={
-          <FormattedMarkdownMessage
-            defaultMessage="Before downloading the Support Packet, set **Output Logs to File** to **true** and set **File Log Level** to **DEBUG** [here](!/admin_console/environment/logging)."
-            id="commercial_support.warning.banner"
-          />
-        }
-        mode="info"
-        onDismiss={[Function]}
       />
       <div
         className="CommercialSupportModal__packet_contents_download"
       >
-        <FormattedMarkdownMessage
-          defaultMessage="**Select your Support Packet contents to download**"
-          id="commercial_support.download_contents"
+        <strong>
+          <MemoizedFormattedMessage
+            defaultMessage="Select your Support Packet contents to download"
+            id="commercial_support_modal.download_contents"
+          />
+        </strong>
+      </div>
+      <div
+        className="CommercialSupportModal__option"
+        key="basic.server.logs"
+      >
+        <input
+          checked={true}
+          className="CommercialSupportModal__options__checkbox"
+          disabled={true}
+          id="basic.server.logs"
+          name="basic.server.logs"
+          onChange={[Function]}
+          type="checkbox"
         />
+        <MemoizedFormattedMessage
+          defaultMessage="Server Logs"
+          id="mettormost.plugin.metrics.support.packet"
+        >
+          <Component />
+        </MemoizedFormattedMessage>
       </div>
       <div
         className="CommercialSupportModal__download"

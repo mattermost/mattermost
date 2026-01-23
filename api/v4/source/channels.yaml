@@ -287,7 +287,6 @@
 
 
                     __Minimum server version__: 5.26
-
                 deleted:
                   type: boolean
                   description: >
@@ -314,7 +313,6 @@
                     required to use this parameter.
 
                     __Minimum server version__: 5.35
-                
                 include_search_by_id:
                   type: boolean
                   default: false
@@ -322,6 +320,13 @@
                     If set to true, returns channels where given search 'term' matches channel ID.
 
                     __Minimum server version__: 5.35
+                exclude_remote:
+                  type: boolean
+                  default: false
+                  description: >
+                    If set to true, only returns channels that are local to this server.
+
+                    __Minimum server version__: 10.2
         description: The search terms and logic to use in the search.
         required: true
       responses:
@@ -636,6 +641,8 @@
                   type: string
                   description: Markdown-formatted text to display in the header of the
                     channel
+                banner_info:
+                  $ref: "#/components/schemas/ChannelBanner"
         description: Channel object to be updated
         required: true
       responses:
@@ -1122,64 +1129,6 @@
                 term:
                   description: The search term to match against the name or display name of
                     channels
-                  type: string
-        description: Search criteria
-        required: true
-      responses:
-        "201":
-          description: Channels search successful
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Channel"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-  "/api/v4/teams/{team_id}/channels/search_archived":
-    post:
-      tags:
-        - channels
-      summary: Search archived channels
-      description: >
-        Search archived channels on a team based on the search term provided in
-        the request body.
-
-
-        __Minimum server version__: 5.18
-
-
-        ##### Permissions
-
-        Must have the `list_team_channels` permission.
-
-
-        In server version 5.18 and later, a user without the `list_team_channels` permission will be able to use this endpoint, with the search results limited to the channels that the user is a member of.
-      operationId: SearchArchivedChannels
-      parameters:
-        - name: team_id
-          in: path
-          description: Team GUID
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - term
-              properties:
-                term:
-                  description: The search term to match against the name or display name of
-                    archived channels
                   type: string
         description: Search criteria
         required: true
@@ -2510,3 +2459,81 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+          
+  "/api/v4/sharedchannels/{channel_id}/remotes":
+    get:
+      tags:
+        - channels
+      summary: Get remote clusters for a shared channel
+      description: |
+        Gets the remote clusters information for a shared channel.
+        
+        __Minimum server version__: 10.10
+        
+        ##### Permissions
+        Must be authenticated and have the `read_channel` permission for the channel.
+      operationId: GetSharedChannelRemotes
+      parameters:
+        - name: channel_id
+          in: path
+          description: Channel GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Remote clusters retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RemoteClusterInfo"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  "/api/v4/channels/{channel_id}/common_teams":
+    get:
+      tags:
+        - channels
+        - group message
+      summary: Get common teams for members of a Group Message.
+      description: |
+        Gets all the common teams for all active members of a Group Message channel.
+        Returns empty list of no common teams are found.
+
+        __Minimum server version__: 9.1
+
+        ##### Permissions
+        Must be authenticated and have the `read_channel` permission for the channel.
+      operationId: GetGroupMessageMembersCommonTeams
+      parameters:
+        - name: channel_id
+          in: path
+          description: Channel GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Common teams retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Team"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+

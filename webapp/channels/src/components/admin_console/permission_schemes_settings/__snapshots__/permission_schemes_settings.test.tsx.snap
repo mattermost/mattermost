@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/admin_console/permission_schemes_settings/permission_schemes_settings should match snapshot loading 1`] = `<LoadingScreen />`;
 
@@ -76,7 +76,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
         }
         subtitle={
           Object {
-            "defaultMessage": "Use when specific teams need permission exceptions to the <link>System Scheme</link>",
+            "defaultMessage": "Use when specific teams need permission exceptions to the <link>System Scheme</link>.",
             "id": "admin.permissions.teamOverrideSchemesBannerText",
           }
         }
@@ -203,7 +203,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
         }
         subtitle={
           Object {
-            "defaultMessage": "Use when specific teams need permission exceptions to the <link>System Scheme</link>",
+            "defaultMessage": "Use when specific teams need permission exceptions to the <link>System Scheme</link>.",
             "id": "admin.permissions.teamOverrideSchemesBannerText",
           }
         }
@@ -309,7 +309,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
         }
         subtitle={
           Object {
-            "defaultMessage": "Use when specific teams need permission exceptions to the <link>System Scheme</link>",
+            "defaultMessage": "Use when specific teams need permission exceptions to the <link>System Scheme</link>.",
             "id": "admin.permissions.teamOverrideSchemesBannerText",
           }
         }
@@ -454,7 +454,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
         }
         subtitle={
           Object {
-            "defaultMessage": "Use when specific teams need permission exceptions to the <link>System Scheme</link>",
+            "defaultMessage": "Use when specific teams need permission exceptions to the <link>System Scheme</link>.",
             "id": "admin.permissions.teamOverrideSchemesBannerText",
           }
         }
@@ -598,7 +598,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
         }
         subtitle={
           Object {
-            "defaultMessage": "Use when specific teams need permission exceptions to the <link>System Scheme</link>",
+            "defaultMessage": "Use when specific teams need permission exceptions to the <link>System Scheme</link>.",
             "id": "admin.permissions.teamOverrideSchemesBannerText",
           }
         }

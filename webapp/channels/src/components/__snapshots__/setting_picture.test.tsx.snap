@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/SettingItemMin should match snapshot with active Save button 1`] = `
 <section
@@ -88,7 +88,12 @@ exports[`components/SettingItemMin should match snapshot with active Save button
           >
             <Memo(LoadingWrapper)
               loading={false}
-              text="Uploading..."
+              text={
+                Object {
+                  "defaultMessage": "Uploading...",
+                  "id": "setting_picture.uploading",
+                }
+              }
             >
               <MemoizedFormattedMessage
                 defaultMessage="Save"
@@ -192,7 +197,12 @@ exports[`components/SettingItemMin should match snapshot with active Save button
           >
             <Memo(LoadingWrapper)
               loading={false}
-              text="Uploading..."
+              text={
+                Object {
+                  "defaultMessage": "Uploading...",
+                  "id": "setting_picture.uploading",
+                }
+              }
             >
               <MemoizedFormattedMessage
                 defaultMessage="Save"
@@ -306,7 +316,12 @@ exports[`components/SettingItemMin should match snapshot, on loading picture 1`]
           >
             <Memo(LoadingWrapper)
               loading={true}
-              text="Uploading..."
+              text={
+                Object {
+                  "defaultMessage": "Uploading...",
+                  "id": "setting_picture.uploading",
+                }
+              }
             >
               <MemoizedFormattedMessage
                 defaultMessage="Save"
@@ -361,7 +376,6 @@ exports[`components/SettingItemMin should match snapshot, profile picture on fil
             className="img-preview__image"
           >
             <div
-              alt="profile image preview"
               className="profile-img-preview"
               style={
                 Object {
@@ -432,7 +446,12 @@ exports[`components/SettingItemMin should match snapshot, profile picture on fil
           >
             <Memo(LoadingWrapper)
               loading={false}
-              text="Uploading..."
+              text={
+                Object {
+                  "defaultMessage": "Uploading...",
+                  "id": "setting_picture.uploading",
+                }
+              }
             >
               <MemoizedFormattedMessage
                 defaultMessage="Save"
@@ -546,7 +565,12 @@ exports[`components/SettingItemMin should match snapshot, profile picture on sou
           >
             <Memo(LoadingWrapper)
               loading={false}
-              text="Uploading..."
+              text={
+                Object {
+                  "defaultMessage": "Uploading...",
+                  "id": "setting_picture.uploading",
+                }
+              }
             >
               <MemoizedFormattedMessage
                 defaultMessage="Save"
@@ -601,7 +625,6 @@ exports[`components/SettingItemMin should match snapshot, team icon on file 1`] 
             className="img-preview__image"
           >
             <div
-              alt="team image preview"
               className="team-img-preview"
               style={
                 Object {
@@ -672,7 +695,12 @@ exports[`components/SettingItemMin should match snapshot, team icon on file 1`] 
           >
             <Memo(LoadingWrapper)
               loading={false}
-              text="Uploading..."
+              text={
+                Object {
+                  "defaultMessage": "Uploading...",
+                  "id": "setting_picture.uploading",
+                }
+              }
             >
               <MemoizedFormattedMessage
                 defaultMessage="Save"
@@ -735,8 +763,6 @@ exports[`components/SettingItemMin should match snapshot, team icon on source 1`
           </div>
           <WithTooltip
             disabled={false}
-            id="removeIcon"
-            placement="right"
             title={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="Remove This Icon"
@@ -826,7 +852,12 @@ exports[`components/SettingItemMin should match snapshot, team icon on source 1`
           >
             <Memo(LoadingWrapper)
               loading={false}
-              text="Uploading..."
+              text={
+                Object {
+                  "defaultMessage": "Uploading...",
+                  "id": "setting_picture.uploading",
+                }
+              }
             >
               <MemoizedFormattedMessage
                 defaultMessage="Save"
@@ -889,8 +920,6 @@ exports[`components/SettingItemMin should match snapshot, user icon on source 1`
           </div>
           <WithTooltip
             disabled={false}
-            id="removeIcon"
-            placement="right"
             title={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="Remove Profile Picture"
@@ -980,7 +1009,12 @@ exports[`components/SettingItemMin should match snapshot, user icon on source 1`
           >
             <Memo(LoadingWrapper)
               loading={false}
-              text="Uploading..."
+              text={
+                Object {
+                  "defaultMessage": "Uploading...",
+                  "id": "setting_picture.uploading",
+                }
+              }
             >
               <MemoizedFormattedMessage
                 defaultMessage="Save"

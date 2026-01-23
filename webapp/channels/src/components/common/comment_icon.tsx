@@ -41,18 +41,18 @@ const CommentIcon = ({
         iconStyle = `${iconStyle} ${searchStyle}`;
     }
 
+    const replyTitle = intl.formatMessage({
+        id: 'post_info.comment_icon.tooltip.reply',
+        defaultMessage: 'Reply',
+    });
+
     return (
         <WithTooltip
-            id='comment-icon-tooltip'
-            placement='top'
-            title={intl.formatMessage({
-                id: 'post_info.comment_icon.tooltip.reply',
-                defaultMessage: 'Reply',
-            })}
+            title={replyTitle}
         >
             <button
                 id={`${location}_commentIcon_${postId}`}
-                aria-label={intl.formatMessage({id: 'post_info.comment_icon.tooltip.reply', defaultMessage: 'Reply'}).toLowerCase()}
+                aria-label={replyTitle.toLowerCase()}
                 className={`${iconStyle} ${extraClass}`}
                 onClick={handleCommentClick}
             >

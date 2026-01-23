@@ -10,7 +10,6 @@ import type {OAuthApp} from '@mattermost/types/integrations';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import FormError from 'components/form_error';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import icon50 from 'images/icon50x50.png';
 import {getHistory} from 'utils/browser_history';
@@ -21,6 +20,7 @@ export type Params = {
     redirectUri: string | null;
     state: string | null;
     scope: string | null;
+    resource: string | null;
 }
 
 type Props = {
@@ -71,7 +71,10 @@ export default class Authorize extends React.PureComponent<Props, State> {
             clientId: searchParams.get('client_id'),
             redirectUri: searchParams.get('redirect_uri'),
             state: searchParams.get('state'),
-            scope: searchParams.get('store'),
+            scope: searchParams.get('scope'),
+            resource: searchParams.get('resource'),
+            codeChallenge: searchParams.get('code_challenge'),
+            codeChallengeMethod: searchParams.get('code_challenge_method'),
         };
 
         this.props.actions.allowOAuth2(params).then(
@@ -130,30 +133,33 @@ export default class Authorize extends React.PureComponent<Props, State> {
                             />
                         </div>
                         <div className='text'>
-                            <FormattedMarkdownMessage
-                                id='authorize.title'
-                                defaultMessage='Authorize **{appName}** to Connect to Your **Mattermost** User Account'
+                            <FormattedMessage
+                                id='authorize.connectTitle'
+                                defaultMessage='Authorize <b>{appName}</b> to Connect to Your <b>Mattermost</b> User Account'
                                 values={{
                                     appName: app.name,
+                                    b: (chunks) => <b>{chunks}</b>,
                                 }}
                             />
                         </div>
                     </div>
                     <p>
-                        <FormattedMarkdownMessage
-                            id='authorize.app'
-                            defaultMessage='The app **{appName}** would like the ability to access and modify your basic information.'
+                        <FormattedMessage
+                            id='authorize.modificationAccess'
+                            defaultMessage='The app <b>{appName}</b> would like the ability to access and modify your basic information.'
                             values={{
                                 appName: app.name,
+                                b: (chunks) => <b>{chunks}</b>,
                             }}
                         />
                     </p>
                     <h2 className='prompt__allow'>
-                        <FormattedMarkdownMessage
-                            id='authorize.access'
-                            defaultMessage='Allow **{appName}** access?'
+                        <FormattedMessage
+                            id='authorize.allowAccess'
+                            defaultMessage='Allow <b>{appName}</b> access?'
                             values={{
                                 appName: app.name,
+                                b: (chunks) => <b>{chunks}</b>,
                             }}
                         />
                     </h2>

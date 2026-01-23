@@ -3,9 +3,12 @@
 
 import {createIntl} from 'react-intl';
 
+import type {Post} from '@mattermost/types/posts';
+
 import {Preferences} from 'mattermost-redux/constants';
 
 import enMessages from 'i18n/en.json';
+import {makeInitialState} from 'packages/mattermost-redux/test/test_store';
 import {PostListRowListIds, Constants} from 'utils/constants';
 import EmojiMap from 'utils/emoji_map';
 import * as PostUtils from 'utils/post_utils';
@@ -1354,6 +1357,49 @@ describe('makeGetIsReactionAlreadyAddedToPost', () => {
     });
 });
 
+describe('makeGetUserOrGroupMentionCountFromMessage', () => {
+    const baseState = makeInitialState({
+        entities: {
+            groups: {
+                groups: {
+                    group1: TestHelper.getGroupMock({id: 'group1', name: 'group.one', member_count: 4}),
+                },
+            },
+            users: {
+                profiles: {
+                    remoteUser: TestHelper.getUserMock({id: 'remoteUser', username: 'remote.user:org1'}),
+                    user1: TestHelper.getUserMock({id: 'user1', username: 'user.one'}),
+                    user2: TestHelper.getUserMock({id: 'user2', username: 'user.two'}),
+                },
+            },
+        },
+    });
+
+    test('should count mentioned users', () => {
+        const getUserOrGroupMentionCountFromMessage = PostUtils.makeGetUserOrGroupMentionCountFromMessage();
+
+        expect(getUserOrGroupMentionCountFromMessage(baseState, '@user.one @user.two Hello!')).toEqual(2);
+    });
+
+    test('should count mentioned groups', () => {
+        const getUserOrGroupMentionCountFromMessage = PostUtils.makeGetUserOrGroupMentionCountFromMessage();
+
+        expect(getUserOrGroupMentionCountFromMessage(baseState, '@group.one @user.one Hello!')).toEqual(5);
+    });
+
+    test('should count remote user mentions', () => {
+        const getUserOrGroupMentionCountFromMessage = PostUtils.makeGetUserOrGroupMentionCountFromMessage();
+
+        expect(getUserOrGroupMentionCountFromMessage(baseState, '@user.one @user.two @remote.user:org1 Hello!')).toEqual(3);
+    });
+
+    test('should not count non-existant users/groups', () => {
+        const getUserOrGroupMentionCountFromMessage = PostUtils.makeGetUserOrGroupMentionCountFromMessage();
+
+        expect(getUserOrGroupMentionCountFromMessage(baseState, '@not.user.three @fake.group @not.user:fake Hello!')).toEqual(0);
+    });
+});
+
 describe('makeGetUniqueEmojiNameReactionsForPost', () => {
     const baseState = {
         entities: {
@@ -1391,5 +1437,26 @@ describe('makeGetUniqueEmojiNameReactionsForPost', () => {
         const getUniqueEmojiNameReactionsForPost = PostUtils.makeGetUniqueEmojiNameReactionsForPost();
 
         expect(getUniqueEmojiNameReactionsForPost(baseState, 'post_id_1')).toEqual(['smile', 'cry']);
+    });
+});
+
+describe('shouldShowActionsMenu', () => {
+    const baseState = {
+        entities: {
+            general: {
+                config: {
+                    PluginsEnabled: 'true',
+                },
+            },
+        },
+    } as unknown as GlobalState;
+
+    test('should return false for burn-on-read posts', () => {
+        const borPost = TestHelper.getPostMock({
+            id: 'post_id_1',
+            type: Constants.PostTypes.BURN_ON_READ as Post['type'],
+        });
+
+        expect(PostUtils.shouldShowActionsMenu(baseState, borPost)).toBe(false);
     });
 });

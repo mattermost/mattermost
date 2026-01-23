@@ -51,17 +51,17 @@ Cypress.Commands.add('uiGetContentFilePreviewModal', () => {
 });
 
 Cypress.Commands.add('uiGetDownloadLinkFilePreviewModal', () => {
-    return cy.uiGetFilePreviewModal().find('.icon-link-variant').parent();
+    return cy.uiGetFilePreviewModal().find('.icon-link-variant');
 });
 
 Cypress.Commands.add('uiGetDownloadFilePreviewModal', () => {
-    return cy.uiGetFilePreviewModal().find('.icon-download-outline').parent();
+    return cy.uiGetFilePreviewModal().find('.icon-download-outline');
 });
 
 Cypress.Commands.add('uiGetArrowLeftFilePreviewModal', () => {
-    return cy.uiGetFilePreviewModal().find('.icon-chevron-left').parent();
+    return cy.uiGetFilePreviewModal().find('.icon-chevron-left');
 });
 
 Cypress.Commands.add('uiGetArrowRightFilePreviewModal', () => {
-    return cy.uiGetFilePreviewModal().find('.icon-chevron-right').parent();
+    return cy.uiGetFilePreviewModal().find('.icon-chevron-right');
 });

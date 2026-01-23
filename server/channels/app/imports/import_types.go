@@ -19,6 +19,7 @@ type LineImportData struct {
 	Team          *TeamImportData          `json:"team,omitempty"`
 	Channel       *ChannelImportData       `json:"channel,omitempty"`
 	User          *UserImportData          `json:"user,omitempty"`
+	Bot           *BotImportData           `json:"bot,omitempty"`
 	Post          *PostImportData          `json:"post,omitempty"`
 	DirectChannel *DirectChannelImportData `json:"direct_channel,omitempty"`
 	DirectPost    *DirectPostImportData    `json:"direct_post,omitempty"`
@@ -54,24 +55,36 @@ type ChannelImportData struct {
 	DeletedAt   *int64             `json:"deleted_at,omitempty"`
 }
 
+type Avatar struct {
+	ProfileImage     *string   `json:"profile_image,omitempty"`
+	ProfileImageData *zip.File `json:"-"`
+}
+
 type UserImportData struct {
-	ProfileImage       *string   `json:"profile_image,omitempty"`
-	ProfileImageData   *zip.File `json:"-"`
-	Username           *string   `json:"username"`
-	Email              *string   `json:"email"`
-	AuthService        *string   `json:"auth_service"`
-	AuthData           *string   `json:"auth_data,omitempty"`
-	Password           *string   `json:"password,omitempty"`
-	Nickname           *string   `json:"nickname"`
-	FirstName          *string   `json:"first_name"`
-	LastName           *string   `json:"last_name"`
-	Position           *string   `json:"position"`
-	Roles              *string   `json:"roles"`
-	Locale             *string   `json:"locale"`
-	UseMarkdownPreview *string   `json:"feature_enabled_markdown_preview,omitempty"`
-	UseFormatting      *string   `json:"formatting,omitempty"`
-	ShowUnreadSection  *string   `json:"show_unread_section,omitempty"`
-	DeleteAt           *int64    `json:"delete_at,omitempty"`
+	Avatar
+	Username           *string `json:"username"`
+	Email              *string `json:"email"`
+	AuthService        *string `json:"auth_service"`
+	AuthData           *string `json:"auth_data,omitempty"`
+	Password           *string `json:"password,omitempty"`
+	Nickname           *string `json:"nickname"`
+	FirstName          *string `json:"first_name"`
+	LastName           *string `json:"last_name"`
+	Position           *string `json:"position"`
+	Roles              *string `json:"roles"`
+	Locale             *string `json:"locale"`
+	UseMarkdownPreview *string `json:"feature_enabled_markdown_preview,omitempty"`
+	UseFormatting      *string `json:"formatting,omitempty"`
+	ShowUnreadSection  *string `json:"show_unread_section,omitempty"`
+	DeleteAt           *int64  `json:"delete_at,omitempty"`
+
+	SendOnCtrlEnter          *string `json:"send_on_ctrl_enter,omitempty"`
+	CodeBlockCtrlEnter       *string `json:"code_block_ctrl_enter,omitempty"`
+	ShowJoinLeave            *string `json:"show_join_leave,omitempty"`
+	ShowUnreadScrollPosition *string `json:"show_unread_scroll_position,omitempty"`
+	SyncDrafts               *string `json:"sync_drafts,omitempty"`
+	LimitVisibleDmsGms       *string `json:"limit_visible_dms_gms,omitempty"`
+	NameFormat               *string `json:"name_format,omitempty"`
 
 	Teams *[]UserTeamImportData `json:"teams,omitempty"`
 
@@ -87,6 +100,15 @@ type UserImportData struct {
 
 	NotifyProps  *UserNotifyPropsImportData `json:"notify_props,omitempty"`
 	CustomStatus *model.CustomStatus        `json:"custom_status,omitempty"`
+}
+
+type BotImportData struct {
+	Avatar
+	Username    *string `json:"username"`
+	Owner       *string `json:"owner"`
+	DisplayName *string `json:"display_name"`
+	Description *string `json:"description,omitempty"`
+	DeleteAt    *int64  `json:"delete_at,omitempty"`
 }
 
 type UserNotifyPropsImportData struct {
@@ -161,14 +183,16 @@ type ReactionImportData struct {
 type ReplyImportData struct {
 	User *string `json:"user"`
 
-	Type     *string `json:"type"`
-	Message  *string `json:"message"`
-	CreateAt *int64  `json:"create_at"`
-	EditAt   *int64  `json:"edit_at"`
+	Type     *string                `json:"type"`
+	Message  *string                `json:"message"`
+	Props    *model.StringInterface `json:"props"`
+	CreateAt *int64                 `json:"create_at"`
+	EditAt   *int64                 `json:"edit_at"`
 
 	FlaggedBy   *[]string               `json:"flagged_by,omitempty"`
 	Reactions   *[]ReactionImportData   `json:"reactions,omitempty"`
 	Attachments *[]AttachmentImportData `json:"attachments,omitempty"`
+	IsPinned    *bool                   `json:"is_pinned,omitempty"`
 }
 
 type PostImportData struct {
@@ -187,6 +211,8 @@ type PostImportData struct {
 	Replies     *[]ReplyImportData      `json:"replies,omitempty"`
 	Attachments *[]AttachmentImportData `json:"attachments,omitempty"`
 	IsPinned    *bool                   `json:"is_pinned,omitempty"`
+
+	ThreadFollowers *[]ThreadFollowerImportData `json:"thread_followers,omitempty"`
 }
 
 type DirectChannelImportData struct {
@@ -208,11 +234,13 @@ type DirectPostImportData struct {
 	CreateAt *int64                 `json:"create_at"`
 	EditAt   *int64                 `json:"edit_at"`
 
-	FlaggedBy   *[]string               `json:"flagged_by"`
+	FlaggedBy   *[]string               `json:"flagged_by,omitempty"`
 	Reactions   *[]ReactionImportData   `json:"reactions"`
 	Replies     *[]ReplyImportData      `json:"replies"`
 	Attachments *[]AttachmentImportData `json:"attachments"`
 	IsPinned    *bool                   `json:"is_pinned,omitempty"`
+
+	ThreadFollowers *[]ThreadFollowerImportData `json:"thread_followers,omitempty"`
 }
 
 type SchemeImportData struct {
@@ -254,4 +282,12 @@ type AttachmentImportData struct {
 type ComparablePreference struct {
 	Category string
 	Name     string
+}
+
+type ThreadFollowerImportData struct {
+	// User is the username of the follower. It's the general convention
+	// for import data types to name it as user for the username.
+	User           *string `json:"user"`
+	LastViewed     *int64  `json:"last_viewed,omitempty"`
+	UnreadMentions *int64  `json:"unread_mentions,omitempty"`
 }

@@ -42,7 +42,7 @@ declare namespace Cypress {
          *       // do something with roles
          *   });
          */
-        apiGetRolesByNames(names: string[]): Chainable<Role[]>;
+        apiGetRolesByNames(names: string[]): Chainable<{roles: Role[]}>;
 
         /**
          * Patch a role by ID.

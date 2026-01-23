@@ -39,7 +39,7 @@ export default class Integrations extends React.PureComponent <Props> {
 
     updateTitle = () => {
         const currentSiteName = this.props.siteName || '';
-        document.title = Utils.localizeMessage('admin.sidebar.integrations', 'Integrations') + ' - ' + this.props.team.display_name + ' ' + currentSiteName;
+        document.title = Utils.localizeMessage({id: 'admin.sidebar.integrations', defaultMessage: 'Integrations'}) + ' - ' + this.props.team.display_name + ' ' + currentSiteName;
     };
 
     render() {
@@ -49,7 +49,7 @@ export default class Integrations extends React.PureComponent <Props> {
             options.push(
                 <TeamPermissionGate
                     teamId={this.props.team.id}
-                    permissions={[Permissions.MANAGE_INCOMING_WEBHOOKS]}
+                    permissions={[Permissions.MANAGE_INCOMING_WEBHOOKS, Permissions.MANAGE_OWN_INCOMING_WEBHOOKS]}
                     key='incomingWebhookPermission'
                 >
                     <IntegrationOption
@@ -77,7 +77,7 @@ export default class Integrations extends React.PureComponent <Props> {
             options.push(
                 <TeamPermissionGate
                     teamId={this.props.team.id}
-                    permissions={[Permissions.MANAGE_OUTGOING_WEBHOOKS]}
+                    permissions={[Permissions.MANAGE_OUTGOING_WEBHOOKS, Permissions.MANAGE_OWN_OUTGOING_WEBHOOKS]}
                     key='outgoingWebhookPermission'
                 >
                     <IntegrationOption
@@ -105,7 +105,7 @@ export default class Integrations extends React.PureComponent <Props> {
             options.push(
                 <TeamPermissionGate
                     teamId={this.props.team.id}
-                    permissions={[Permissions.MANAGE_SLASH_COMMANDS]}
+                    permissions={[Permissions.MANAGE_SLASH_COMMANDS, Permissions.MANAGE_OWN_SLASH_COMMANDS]}
                     key='commandPermission'
                 >
                     <IntegrationOption
@@ -120,7 +120,7 @@ export default class Integrations extends React.PureComponent <Props> {
                         description={
                             <FormattedMessage
                                 id='integrations.command.description'
-                                defaultMessage='Slash commands send events to an external integration'
+                                defaultMessage='Slash commands send events to external integrations'
                             />
                         }
                         link={'/' + this.props.team.name + '/integrations/commands'}
@@ -147,7 +147,7 @@ export default class Integrations extends React.PureComponent <Props> {
                         description={
                             <FormattedMessage
                                 id='integrations.oauthApps.description'
-                                defaultMessage='Auth 2.0 allows external applications to make authorized requests to the Mattermost API'
+                                defaultMessage='OAuth 2.0 allows external applications to make authorized requests to the Mattermost API'
                             />
                         }
                         link={'/' + this.props.team.name + '/integrations/oauth2-apps'}

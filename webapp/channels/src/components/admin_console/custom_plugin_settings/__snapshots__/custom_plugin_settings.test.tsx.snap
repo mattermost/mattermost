@@ -1,8 +1,9 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/admin_console/CustomPluginSettings should match snapshot with no settings and plugin 1`] = `
 <div
   className="wrapper--fixed "
+  data-testid="sysconsole_section_testplugin"
 >
   <AdminHeader>
     testplugin
@@ -121,7 +122,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
               ]
             }
           />
-          <GeneratedSetting
+          <Memo(GeneratedSetting)
             disabled={false}
             helpText={
               <SchemaText
@@ -134,12 +135,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             onChange={[Function]}
             placeholder="e.g. 47KyfOxtk5+ovi1MDHFyzMDHIA6esMWb"
             regenerateHelpText="This is help text for the regenerate button."
-            regenerateText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Regenerate"
-                id="admin.regenerate"
-              />
-            }
             setByEnv={false}
             value="option3"
           />
@@ -180,8 +175,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
       savingMessage="Saving Config..."
     />
     <WithTooltip
-      id="error-tooltip"
-      placement="top"
       title=""
     >
       <div
@@ -205,6 +198,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
 exports[`components/admin_console/CustomPluginSettings should match snapshot with settings and no plugin 1`] = `
 <div
   className="wrapper--fixed "
+  data-testid="sysconsole_section_testplugin"
 >
   <AdminHeader>
     testplugin
@@ -232,8 +226,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
       savingMessage="Saving Config..."
     />
     <WithTooltip
-      id="error-tooltip"
-      placement="top"
       title=""
     >
       <div
@@ -257,6 +249,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
 exports[`components/admin_console/CustomPluginSettings should match snapshot with settings and plugin 1`] = `
 <div
   className="wrapper--fixed "
+  data-testid="sysconsole_section_testplugin"
 >
   <AdminHeader>
     testplugin
@@ -375,7 +368,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
               ]
             }
           />
-          <GeneratedSetting
+          <Memo(GeneratedSetting)
             disabled={false}
             helpText={
               <SchemaText
@@ -388,12 +381,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             onChange={[Function]}
             placeholder="e.g. 47KyfOxtk5+ovi1MDHFyzMDHIA6esMWb"
             regenerateHelpText="This is help text for the regenerate button."
-            regenerateText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Regenerate"
-                id="admin.regenerate"
-              />
-            }
             setByEnv={false}
             value="Q6DHXrFLOIS5sOI5JNF4PyDLqWm7vh23"
           />
@@ -434,8 +421,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
       savingMessage="Saving Config..."
     />
     <WithTooltip
-      id="error-tooltip"
-      placement="top"
       title=""
     >
       <div

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useState, useRef, memo} from 'react';
+import React, {useState, useRef, memo, useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useHistory} from 'react-router-dom';
 
@@ -26,6 +26,16 @@ const PasswordResetForm = ({location, siteName, actions}: Props) => {
     const [error, setError] = useState<React.ReactNode>(null);
 
     const passwordInput = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        document.title = intl.formatMessage(
+            {
+                id: 'password_form.pageTitle',
+                defaultMessage: 'Password Reset | {siteName}',
+            },
+            {siteName: siteName || 'Mattermost'},
+        );
+    }, [intl, siteName]);
 
     const handlePasswordReset = async (e: React.FormEvent) => {
         e.preventDefault();

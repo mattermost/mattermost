@@ -5,23 +5,17 @@ import React from 'react';
 
 import SuggestionList from 'components/suggestion/suggestion_list';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface SuggestionItem {}
+import type {SuggestionResults} from './suggestion_results';
 
 type SuggestionListProps = {
     ariaLiveRef?: React.RefObject<HTMLDivElement>;
-    renderDividers?: string[];
     renderNoResults?: boolean;
     preventClose?: () => void;
     onItemHover: (term: string) => void;
     onCompleteWord: (term: string, matchedPretext: string, e?: React.KeyboardEventHandler<HTMLDivElement>) => boolean;
     pretext: string;
-    matchedPretext: string[];
-    items: SuggestionItem[];
-    terms: string[];
+    results: SuggestionResults;
     selection: string;
-    components: Array<React.FunctionComponent<any>>;
-    wrapperHeight?: number;
 
     // suggestionBoxAlgn is an optional object that can be passed to align the SuggestionList with the keyboard caret
     // as the user is typing.
@@ -80,7 +74,7 @@ export default class ModalSuggestionList extends React.PureComponent<Props, Stat
     onModalScroll = (e: Event) => {
         const eventTarget = e.target as HTMLElement;
         if (this.state.scroll !== eventTarget.scrollTop &&
-            this.latestHeight !== 0) {
+            this.props.open) {
             this.setState({scroll: eventTarget.scrollTop});
         }
     };
@@ -132,7 +126,7 @@ export default class ModalSuggestionList extends React.PureComponent<Props, Stat
             return 0;
         }
 
-        const listElement = this.suggestionList?.current?.getContent()?.[0];
+        const listElement = this.suggestionList?.current?.getContent();
         if (!listElement) {
             return 0;
         }
@@ -180,7 +174,7 @@ export default class ModalSuggestionList extends React.PureComponent<Props, Stat
             return;
         }
 
-        const modalBodyContainer = this.container.current.closest('.modal-body');
+        const modalBodyContainer = this.container.current.closest('.modal-content');
         const modalBounds = modalBodyContainer?.getBoundingClientRect();
 
         if (modalBounds) {
@@ -200,11 +194,13 @@ export default class ModalSuggestionList extends React.PureComponent<Props, Stat
         let position = {};
         if (this.state.position === 'top') {
             position = {bottom: this.state.modalBounds.bottom - this.state.inputBounds.top};
+        } else {
+            position = {top: this.state.inputBounds.bottom - this.state.modalBounds.top};
         }
 
         return (
             <div
-                style={{position: 'absolute', zIndex: 101, width: this.state.inputBounds.width, ...position}}
+                style={{position: 'fixed', zIndex: 101, width: this.state.inputBounds.width, ...position}}
                 ref={this.container}
             >
                 <SuggestionList

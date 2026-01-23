@@ -30,8 +30,8 @@ type IncomingWebhook struct {
 	ChannelLocked bool   `json:"channel_locked"`
 }
 
-func (o *IncomingWebhook) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (o *IncomingWebhook) Auditable() map[string]any {
+	return map[string]any{
 		"id":             o.Id,
 		"create_at":      o.CreateAt,
 		"update_at":      o.UpdateAt,
@@ -66,7 +66,7 @@ type IncomingWebhooksWithCount struct {
 
 func (o *IncomingWebhook) IsValid() *AppError {
 	if !IsValidId(o.Id) {
-		return NewAppError("IncomingWebhook.IsValid", "model.incoming_hook.id.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("IncomingWebhook.IsValid", "model.incoming_hook.id.app_error", map[string]any{"Id": o.Id}, "", http.StatusBadRequest)
 	}
 
 	if o.CreateAt == 0 {

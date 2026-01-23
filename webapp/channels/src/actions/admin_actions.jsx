@@ -9,7 +9,6 @@ import * as UserActions from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
 
 import {emitUserLoggedOutEvent} from 'actions/global_actions';
-import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {getOnNavigationConfirmed} from 'selectors/views/admin';
 import store from 'stores/redux_store';
 
@@ -48,6 +47,42 @@ export async function getClusterStatus(success, error) {
 
 export async function ldapTest(success, error) {
     const {data, error: err} = await dispatch(AdminActions.testLdap());
+    if (data && success) {
+        success(data);
+    } else if (err && error) {
+        error({id: err.server_error_id, ...err});
+    }
+}
+
+export async function ldapTestConnection(success, error, settings) {
+    const {data, error: err} = await dispatch(AdminActions.testLdapConnection(settings));
+    if (data && success) {
+        success(data);
+    } else if (err && error) {
+        error({id: err.server_error_id, ...err});
+    }
+}
+
+export async function ldapTestFilters(success, error, settings) {
+    const {data, error: err} = await dispatch(AdminActions.testLdapFilters(settings));
+    if (data && success) {
+        success(data);
+    } else if (err && error) {
+        error({id: err.server_error_id, ...err});
+    }
+}
+
+export async function ldapTestAttributes(success, error, settings) {
+    const {data, error: err} = await dispatch(AdminActions.testLdapAttributes(settings));
+    if (data && success) {
+        success(data);
+    } else if (err && error) {
+        error({id: err.server_error_id, ...err});
+    }
+}
+
+export async function ldapTestGroupAttributes(success, error, settings) {
+    const {data, error: err} = await dispatch(AdminActions.testLdapGroupAttributes(settings));
     if (data && success) {
         success(data);
     } else if (err && error) {
@@ -133,10 +168,10 @@ export function getOAuthAppInfo(clientId) {
  * @param {*}
  * @returns {ActionResult<{redirect: string}>}
  */
-export function allowOAuth2({responseType, clientId, redirectUri, state, scope}) {
+export function allowOAuth2({responseType, clientId, redirectUri, state, scope, resource, codeChallenge, codeChallengeMethod}) {
     return bindClientFunc({
         clientFunc: Client4.authorizeOAuthApp,
-        params: [responseType, clientId, redirectUri, state, scope],
+        params: [responseType, clientId, redirectUri, state, scope, resource, codeChallenge, codeChallengeMethod],
     });
 }
 
@@ -229,6 +264,24 @@ export async function uploadIdpSamlCertificate(file, success, error) {
     const {data, error: err} = await dispatch(AdminActions.uploadIdpSamlCertificate(file));
     if (data && success) {
         success('saml-idp.crt');
+    } else if (err && error) {
+        error({id: err.server_error_id, ...err});
+    }
+}
+
+export async function uploadAuditCertificate(fileData, success, error) {
+    const {data, error: err} = await dispatch(AdminActions.uploadAuditCertificate(fileData));
+    if (data && success) {
+        success('audit.crt');
+    } else if (err && error) {
+        error({id: err.server_error_id, ...err});
+    }
+}
+
+export async function removeAuditCertificate(success, error) {
+    const {data, error: err} = await dispatch(AdminActions.removeAuditCertificate());
+    if (data && success) {
+        success(data);
     } else if (err && error) {
         error({id: err.server_error_id, ...err});
     }
@@ -349,20 +402,6 @@ export async function rebuildChannelsIndex(success, error) {
     };
     await jobCreate(undefined, error, job);
     success();
-}
-
-export async function blevePurgeIndexes(success, error) {
-    const purgeBleveIndexes = bindClientFunc({
-        clientFunc: Client4.purgeBleveIndexes,
-        params: [],
-    });
-
-    const {data, error: err} = await dispatch(purgeBleveIndexes);
-    if (data && success) {
-        success(data);
-    } else if (err && error) {
-        error({id: err.server_error_id, ...err});
-    }
 }
 
 export function setNavigationBlocked(blocked) {
@@ -497,7 +536,6 @@ export async function setSamlIdpCertificateFromMetadata(success, error, certData
 
 export function upgradeToE0() {
     return async () => {
-        trackEvent('api', 'upgrade_to_e0_requested');
         const data = await Client4.upgradeToEnterprise();
         return data;
     };
@@ -507,6 +545,17 @@ export function upgradeToE0Status() {
     return async () => {
         const data = await Client4.upgradeToEnterpriseStatus();
         return data;
+    };
+}
+
+export function isAllowedToUpgradeToEnterprise() {
+    return async () => {
+        try {
+            await Client4.isAllowedToUpgradeToEnterprise();
+            return {data: true};
+        } catch (error) {
+            return {error};
+        }
     };
 }
 
@@ -524,11 +573,9 @@ export function ping(getServerStatus, deviceId) {
     };
 }
 
-export function requestTrialLicense(requestLicenseBody, page) {
+export function requestTrialLicense(requestLicenseBody) {
     return async () => {
         try {
-            trackEvent('api', 'api_request_trial_license', {from_page: page});
-
             const response = await Client4.requestTrialLicense(requestLicenseBody);
             return {data: response};
         } catch (e) {

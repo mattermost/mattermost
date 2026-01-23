@@ -24,7 +24,6 @@ export type Props = {
     showActions?: boolean; //used for showing jump actions
     width: number;
     extraClasses?: string;
-    overlayPlacement?: string;
     jumpDirection?: 'up' | 'down';
 };
 
@@ -37,7 +36,6 @@ export default function Toast({
     showActions,
     width,
     extraClasses = '',
-    overlayPlacement = 'bottom',
     jumpDirection = 'down',
 }: Props) {
     function handleDismiss() {
@@ -70,8 +68,6 @@ export default function Toast({
                 {children}
             </div>
             <WithTooltip
-                id='toast-close__tooltip'
-                placement={overlayPlacement}
                 title={
                     <>
                         <FormattedMessage
@@ -81,7 +77,7 @@ export default function Toast({
                         <div className='tooltip__shortcut--txt'>
                             <FormattedMessage
                                 id='general_button.esc'
-                                defaultMessage='esc'
+                                defaultMessage='Esc'
                             />
                         </div>
                     </>

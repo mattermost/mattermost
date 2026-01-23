@@ -1,6 +1,4 @@
-@charset 'UTF-8';
-
-@import 'utils/variables';
+@use 'utils/variables';
 
 @media screen and (max-width: 768px) {
     #submenuModal {
@@ -84,7 +82,7 @@
 
                                 .MenuGroup {
                                     &.menu-divider {
-                                        background: $white;
+                                        background: variables.$white;
                                     }
                                 }
                             }

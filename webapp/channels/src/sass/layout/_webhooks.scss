@@ -1,4 +1,5 @@
-@charset "utf-8";
+@use "utils/mixins";
+@use "utils/variables";
 
 .webhooks__container {
     padding: 0 13px 15px;
@@ -6,7 +7,7 @@
     border-radius: 4px;
     margin-top: 10px;
 
-    @include alpha-property(background, $black, 0.1);
+    @include mixins.alpha-property(background, variables.$black, 0.1);
 }
 
 .post-attachment-dropdown {
@@ -371,25 +372,12 @@
             }
 
             button {
-                border: none;
                 margin-top: 8px;
-                background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                background: rgba(var(--center-channel-color-rgb), 0.08);
                 color: var(--center-channel-color);
-                font-size: 13px;
-                outline: 0;
 
                 &:hover {
-                    background-color: rgba(var(--center-channel-color-rgb), 0.12);
-                    text-decoration: none;
-                }
-
-                &[disabled] {
-                    cursor: auto;
-                    opacity: 0.5;
-                }
-
-                a {
-                    color: inherit;
+                    background: rgba(var(--center-channel-color-rgb), 0.16);
                 }
             }
 

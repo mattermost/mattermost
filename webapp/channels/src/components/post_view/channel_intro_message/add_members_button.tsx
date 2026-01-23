@@ -10,8 +10,6 @@ import type {Channel} from '@mattermost/types/channels';
 import {Permissions} from 'mattermost-redux/constants';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import AddGroupsToChannelModal from 'components/add_groups_to_channel_modal';
 import ChannelInviteModal from 'components/channel_invite_modal';
 import InvitationModal from 'components/invitation_modal';
@@ -67,16 +65,16 @@ const LessThanMaxFreeUsers = ({pluginButtons}: {pluginButtons: React.ReactNode})
             {pluginButtons}
             <div className='LessThanMaxFreeUsers'>
                 <ToggleModalButton
-                    ariaLabel={formatMessage({id: 'intro_messages.inviteOthers', defaultMessage: 'Invite others to the workspace'})}
                     id='introTextInvite'
                     className='btn btn-sm btn-primary'
                     modalId={ModalIdentifiers.INVITATION}
                     dialogType={InvitationModal}
-                    onClick={() => trackEvent('channel_intro_message', 'click_invite_button')}
+                    dialogProps={{focusOriginElement: 'browseOrAddChannelMenuButton'}}
                 >
                     <i
                         className='icon-email-plus-outline'
                         title={formatMessage({id: 'generic_icons.add', defaultMessage: 'Add Icon'})}
+                        aria-hidden='true'
                     />
                     <FormattedMessage
                         id='intro_messages.inviteOthersToWorkspace.button'
@@ -116,6 +114,7 @@ const MoreThanMaxFreeUsers = ({channel, pluginButtons}: {channel: Channel; plugi
                         <i
                             className='icon-account-plus-outline'
                             title={formatMessage({id: 'generic_icons.add', defaultMessage: 'Add Icon'})}
+                            aria-hidden='true'
                         />
                         {channel.group_constrained &&
                             <FormattedMessage

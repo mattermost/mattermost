@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`admin_console/system_roles should match snapshot 1`] = `
 <div
@@ -63,7 +63,6 @@ exports[`admin_console/system_roles should match snapshot 1`] = `
             endCount={1}
             loading={false}
             nextPage={[Function]}
-            page={1}
             previousPage={[Function]}
             rows={
               Array [
@@ -99,7 +98,6 @@ exports[`admin_console/system_roles should match snapshot 1`] = `
                 },
               ]
             }
-            searchPlaceholder=""
             startCount={0}
             term=""
           />

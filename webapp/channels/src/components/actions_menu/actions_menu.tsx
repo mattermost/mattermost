@@ -1,39 +1,34 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React from 'react';
 import type {IntlShape} from 'react-intl';
-import {FormattedMessage, injectIntl} from 'react-intl';
+import {injectIntl} from 'react-intl';
 
 import type {AppBinding} from '@mattermost/types/apps';
 import type {Post} from '@mattermost/types/posts';
 
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
-import Permissions from 'mattermost-redux/constants/permissions';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
-import type {OpenedFromType} from 'components/plugin_marketplace/marketplace_modal';
 import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import WithTooltip from 'components/with_tooltip';
 
 import Pluggable from 'plugins/pluggable';
 import {createCallContext} from 'utils/apps';
 import {Constants, Locations, ModalIdentifiers} from 'utils/constants';
 import * as PostUtils from 'utils/post_utils';
-import * as Utils from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
 import type {HandleBindingClick, OpenAppsModal, PostEphemeralCallResponseForPost} from 'types/apps';
-import type {PluginComponent} from 'types/store/plugins';
+import type {PostDropdownMenuAction, PostDropdownMenuItemComponent} from 'types/store/plugins';
+
+import ActionsMenuButton from './actions_menu_button';
+import ActionsMenuEmptyPopover from './actions_menu_empty_popover';
+import {ActionsMenuIcon} from './actions_menu_icon';
 
 import './actions_menu.scss';
-
-import {ActionsMenuIcon} from './actions_menu_icon';
 
 const MENU_BOTTOM_MARGIN = 80;
 
@@ -41,12 +36,12 @@ export const PLUGGABLE_COMPONENT = 'PostDropdownMenuItem';
 export type Props = {
     appBindings: AppBinding[] | null;
     appsEnabled: boolean;
-    handleDropdownOpened?: (open: boolean) => void;
+    handleDropdownOpened: (open: boolean) => void;
     intl: IntlShape;
-    isMenuOpen?: boolean;
+    isMenuOpen: boolean;
     isSysAdmin: boolean;
     location?: 'CENTER' | 'RHS_ROOT' | 'RHS_COMMENT' | 'SEARCH' | string;
-    pluginMenuItems?: PluginComponent[];
+    pluginMenuItems?: PostDropdownMenuAction[];
     post: Post;
     teamId: string;
     canOpenMarketplace: boolean;
@@ -54,9 +49,7 @@ export type Props = {
     /**
      * Components for overriding provided by plugins
      */
-    components: {
-        [componentName: string]: PluginComponent[];
-    };
+    pluginMenuItemComponents: PostDropdownMenuItemComponent[];
 
     actions: {
 
@@ -99,7 +92,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
         location: Locations.CENTER,
         pluginMenuItems: [],
     };
-    private buttonRef: React.RefObject<HTMLButtonElement>;
+    private buttonElement: HTMLButtonElement | null = null;
 
     constructor(props: Props) {
         super(props);
@@ -107,8 +100,6 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
         this.state = {
             openUp: false,
         };
-
-        this.buttonRef = React.createRef<HTMLButtonElement>();
     }
 
     componentDidUpdate(prevProps: Props) {
@@ -125,6 +116,10 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
         return state;
     }
 
+    private buttonRef = (element: HTMLButtonElement | null) => {
+        this.buttonElement = element;
+    };
+
     fetchBindings = () => {
         if (this.props.appsEnabled && !this.state.appBindings) {
             this.props.actions.fetchBindings(this.props.post.channel_id, this.props.teamId).then(({data}) => {
@@ -134,13 +129,16 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
     };
 
     handleOpenMarketplace = (): void => {
-        const openedFrom: OpenedFromType = 'actions_menu';
-        const openMarketplaceData = {
-            modalId: ModalIdentifiers.PLUGIN_MARKETPLACE,
-            dialogType: MarketplaceModal,
-            dialogProps: {openedFrom},
-        };
-        this.props.actions.openModal(openMarketplaceData);
+        this.closeDropdown();
+
+        // Wait for the menu to close to avoid clashing between the menu's focus trap and the modal's
+        requestAnimationFrame(() => {
+            const openMarketplaceData = {
+                modalId: ModalIdentifiers.PLUGIN_MARKETPLACE,
+                dialogType: MarketplaceModal,
+            };
+            this.props.actions.openModal(openMarketplaceData);
+        });
     };
 
     onClickAppBinding = async (binding: AppBinding) => {
@@ -193,37 +191,6 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
         }
     };
 
-    visitMarketplaceTip(): React.ReactElement {
-        return (
-            <SystemPermissionGate
-                permissions={[Permissions.MANAGE_SYSTEM]}
-                key='visit-marketplace-permissions'
-            >
-                <div className='visit-marketplace-text' >
-                    <FormattedMarkdownMessage
-                        id='post_info.actions.noActions'
-                        defaultMessage='No Actions currently\nconfigured for this server'
-                    />
-                </div>
-                <div className='visit-marketplace' >
-                    <button
-                        id='marketPlaceButton'
-                        className='btn btn-primary visit-marketplace-button'
-                        onClick={this.handleOpenMarketplace}
-                    >
-                        <ActionsMenuIcon name='icon-view-grid-plus-outline visit-marketplace-button-icon'/>
-                        <span className='visit-marketplace-button-text'>
-                            <FormattedMarkdownMessage
-                                id='post_info.actions.visitMarketplace'
-                                defaultMessage='Visit the Marketplace'
-                            />
-                        </span>
-                    </button>
-                </div>
-            </SystemPermissionGate>
-        );
-    }
-
     renderDivider = (suffix: string): React.ReactNode => {
         return (
             <li
@@ -234,14 +201,22 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
         );
     };
 
+    openDropdown = () => {
+        this.props.handleDropdownOpened(true);
+    };
+
+    closeDropdown = () => {
+        this.props.handleDropdownOpened(false);
+    };
+
     handleDropdownOpened = (open: boolean) => {
-        this.props.handleDropdownOpened?.(open);
+        this.props.handleDropdownOpened(open);
 
         if (!open) {
             return;
         }
 
-        const buttonRect = this.buttonRef.current?.getBoundingClientRect();
+        const buttonRect = this.buttonElement?.getBoundingClientRect();
         let y;
         if (typeof buttonRect?.y === 'undefined') {
             y = typeof buttonRect?.top == 'undefined' ? 0 : buttonRect?.top;
@@ -294,7 +269,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                         }}
                     />
                 );
-            }) || [];
+            });
 
         let appBindings = [] as JSX.Element[];
         if (this.props.appsEnabled && this.state.appBindings) {
@@ -338,9 +313,8 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
             );
         }
 
-        let menuItems;
         const hasApps = Boolean(appBindings.length);
-        const hasPluggables = Boolean(this.props.components[PLUGGABLE_COMPONENT]?.length);
+        const hasPluggables = Boolean(this.props.pluginMenuItemComponents?.length);
         const hasPluginItems = Boolean(pluginItems?.length);
 
         const hasPluginMenuItems = hasPluginItems || hasApps || hasPluggables;
@@ -348,67 +322,68 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
             return null;
         }
 
+        const buttonId = `${this.props.location}_actions_button_${this.props.post.id}`;
+        const popupId = `${this.props.location}_actions_dropdown_${this.props.post.id}`;
+
         if (hasPluginMenuItems) {
             const pluggable = (
                 <Pluggable
                     postId={this.props.post.id}
                     pluggableName={PLUGGABLE_COMPONENT}
                     key={this.props.post.id + 'pluggable'}
-                />);
+                />
+            );
 
-            menuItems = [
+            const menuItems = [
                 pluginItems,
                 appBindings,
                 pluggable,
                 marketPlace,
             ];
-        } else {
-            menuItems = [this.visitMarketplaceTip()];
-            if (!this.props.isSysAdmin) {
-                return null;
-            }
+
+            return (
+                <MenuWrapper
+                    open={this.props.isMenuOpen}
+                    onToggle={this.handleDropdownOpened}
+                >
+                    <ActionsMenuButton
+                        ref={this.buttonRef}
+                        buttonId={buttonId}
+                        popupId={popupId}
+                        isMenuOpen={this.props.isMenuOpen}
+                    />
+                    <Menu
+                        listId={popupId}
+                        openLeft={true}
+                        openUp={this.state.openUp}
+                        ariaLabel={formatMessage({id: 'post_info.menuAriaLabel', defaultMessage: 'Post extra options'})}
+                    >
+                        {menuItems}
+                    </Menu>
+                </MenuWrapper>
+            );
+        } else if (this.props.isSysAdmin) {
+            return (
+                <>
+
+                    <ActionsMenuButton
+                        ref={this.buttonRef}
+                        buttonId={buttonId}
+                        onClick={this.openDropdown}
+                        popupId={popupId}
+                        isMenuOpen={this.props.isMenuOpen}
+                    />
+                    <ActionsMenuEmptyPopover
+                        anchorElement={this.buttonElement}
+                        onOpenMarketplace={this.handleOpenMarketplace}
+                        onToggle={this.props.handleDropdownOpened}
+                        isOpen={this.props.isMenuOpen}
+                    />
+                </>
+            );
         }
 
-        return (
-            <MenuWrapper
-                open={this.props.isMenuOpen}
-                onToggle={this.handleDropdownOpened}
-            >
-                <WithTooltip
-                    id={`${this.props.location}_${this.props.post.id}_tooltip`}
-                    title={
-                        <FormattedMessage
-                            id='post_info.tooltip.actions'
-                            defaultMessage='Message actions'
-                        />
-                    }
-                    placement='top'
-                >
-                    <button
-                        key='more-actions-button'
-                        ref={this.buttonRef}
-                        id={`${this.props.location}_actions_button_${this.props.post.id}`}
-                        aria-label={Utils.localizeMessage('post_info.actions.tooltip.actions', 'Actions').toLowerCase()}
-                        className={classNames('post-menu__item', {
-                            'post-menu__item--active': this.props.isMenuOpen,
-                        })}
-                        type='button'
-                        aria-expanded='false'
-                    >
-                        <i className={'icon icon-apps'}/>
-                    </button>
-                </WithTooltip>
-                <Menu
-                    id={`${this.props.location}_actions_dropdown_${this.props.post.id}`}
-                    openLeft={true}
-                    openUp={this.state.openUp}
-                    ariaLabel={Utils.localizeMessage('post_info.menuAriaLabel', 'Post extra options')}
-                    key={`${this.props.location}_actions_dropdown_${this.props.post.id}`}
-                >
-                    {menuItems}
-                </Menu>
-            </MenuWrapper >
-        );
+        return null;
     }
 }
 

@@ -52,7 +52,7 @@ const ChannelInfoButton = ({channel}: Props) => {
 
     let tooltip;
     if (buttonActive) {
-        tooltip = intl.formatMessage({id: 'channel_header.closeChannelInfo', defaultMessage: 'Close info'});
+        tooltip = intl.formatMessage({id: 'channel_header.closeChannelInfo', defaultMessage: 'Close Info'});
     } else {
         tooltip = intl.formatMessage({id: 'channel_header.openChannelInfo', defaultMessage: 'View Info'});
     }
@@ -67,9 +67,10 @@ const ChannelInfoButton = ({channel}: Props) => {
             buttonClass={buttonClass}
             buttonId='channel-info-btn'
             onClick={toggleRHS}
-            iconComponent={<Icon className='icon-information-outline'/>}
             tooltip={tooltip}
-        />
+        >
+            <Icon className='icon-information-outline'/>
+        </HeaderIconWrapper>
     );
 };
 

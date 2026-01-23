@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {waitForObservations} from './performance_mock';
+import {waitFor} from 'tests/react_testing_utils';
 
 describe('PerformanceObserver', () => {
     test('should be able to observe a mark', async () => {
@@ -12,9 +12,9 @@ describe('PerformanceObserver', () => {
 
         const testMark = performance.mark('testMark');
 
-        await waitForObservations();
-
-        expect(callback).toHaveBeenCalledTimes(1);
+        await waitFor(() => {
+            expect(callback).toHaveBeenCalledTimes(1);
+        });
 
         const observedEntries = callback.mock.calls[0][0].getEntries();
         expect(observedEntries).toHaveLength(1);
@@ -34,9 +34,9 @@ describe('PerformanceObserver', () => {
         const testMarkA = performance.mark('testMarkA');
         const testMarkB = performance.mark('testMarkB');
 
-        await waitForObservations();
-
-        expect(callback).toHaveBeenCalledTimes(1);
+        await waitFor(() => {
+            expect(callback).toHaveBeenCalledTimes(1);
+        });
 
         // Both marks were batched into a single call
         const observedEntries = callback.mock.calls[0][0].getEntries();
@@ -63,9 +63,9 @@ describe('PerformanceObserver', () => {
         const testMarkB = performance.mark('testMarkB');
         const testMeasure = performance.measure('testMeasure', 'testMarkA', 'testMarkB');
 
-        await waitForObservations();
-
-        expect(callback).toHaveBeenCalledTimes(1);
+        await waitFor(() => {
+            expect(callback).toHaveBeenCalledTimes(1);
+        });
 
         const observedEntries = callback.mock.calls[0][0].getEntries();
         expect(observedEntries).toHaveLength(1);

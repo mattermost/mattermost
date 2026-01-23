@@ -46,8 +46,6 @@ const MultiSelectCard = (props: Props) => {
     if (props.tooltip) {
         button = (
             <WithTooltip
-                id={props.id}
-                placement='top'
                 title={props.tooltip}
             >
                 {button}

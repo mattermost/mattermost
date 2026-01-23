@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/integrations/InstalledCommand should call onDelete function 1`] = `
 <div
@@ -75,11 +75,19 @@ exports[`components/integrations/InstalledCommand should call onDelete function 
           id="installed_integrations.token"
           values={
             Object {
-              "token": "testToken",
+              "token": <code>
+                testToken
+              </code>,
             }
           }
         />
         <Memo(CopyText)
+          label={
+            Object {
+              "defaultMessage": "Copy Token",
+              "id": "integrations.copy_token",
+            }
+          }
           value="testToken"
         />
       </span>
@@ -181,11 +189,19 @@ exports[`components/integrations/InstalledCommand should call onRegenToken funct
           id="installed_integrations.token"
           values={
             Object {
-              "token": "testToken",
+              "token": <code>
+                testToken
+              </code>,
             }
           }
         />
         <Memo(CopyText)
+          label={
+            Object {
+              "defaultMessage": "Copy Token",
+              "id": "integrations.copy_token",
+            }
+          }
           value="testToken"
         />
       </span>
@@ -257,11 +273,19 @@ exports[`components/integrations/InstalledCommand should match snapshot 1`] = `
           id="installed_integrations.token"
           values={
             Object {
-              "token": "testToken",
+              "token": <code>
+                testToken
+              </code>,
             }
           }
         />
         <Memo(CopyText)
+          label={
+            Object {
+              "defaultMessage": "Copy Token",
+              "id": "integrations.copy_token",
+            }
+          }
           value="testToken"
         />
       </span>
@@ -331,11 +355,19 @@ exports[`components/integrations/InstalledCommand should match snapshot, not aut
           id="installed_integrations.token"
           values={
             Object {
-              "token": "testToken",
+              "token": <code>
+                testToken
+              </code>,
             }
           }
         />
         <Memo(CopyText)
+          label={
+            Object {
+              "defaultMessage": "Copy Token",
+              "id": "integrations.copy_token",
+            }
+          }
           value="testToken"
         />
       </span>

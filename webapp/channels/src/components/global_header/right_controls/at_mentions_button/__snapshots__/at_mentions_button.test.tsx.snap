@@ -1,9 +1,7 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/global/AtMentionsButton should match snapshot 1`] = `
 <WithTooltip
-  id="recentMentions"
-  placement="bottom"
   title={
     <React.Fragment>
       <Memo(MemoizedFormattedMessage)
@@ -29,15 +27,12 @@ exports[`components/global/AtMentionsButton should match snapshot 1`] = `
     </React.Fragment>
   }
 >
-  <ForwardRef
+  <HeaderIconButton
     aria-controls="searchContainer"
     aria-expanded={false}
     aria-label="Recent mentions"
-    compact={true}
     icon="at"
-    inverted={true}
     onClick={[Function]}
-    size="sm"
     toggled={false}
   />
 </WithTooltip>

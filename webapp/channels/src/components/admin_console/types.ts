@@ -1,7 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {MessageDescriptor} from 'react-intl';
+import type {FormatXMLElementFn} from 'intl-messageformat';
+import type {
+    MessageDescriptor,
+    PrimitiveType,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    IntlShape,
+} from 'react-intl';
 
 import type {CloudState, Product} from '@mattermost/types/cloud';
 import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
@@ -16,6 +22,7 @@ type Component = any
 type AdminDefinitionConfigSchemaComponent = {
     id: string;
     component: Component;
+    isBeta?: boolean;
 }
 
 export type ConsoleAccess = {read: {[key: string]: boolean}; write: {[key: string]: boolean}}
@@ -27,7 +34,8 @@ type AdminDefinitionSettingCustom = Omit<AdminDefinitionSettingBase, 'label'> & 
     key: string;
     showTitle?: boolean;
     component: Component;
-    label?: string;
+    label?: string | MessageDescriptor;
+    validate?: Validator;
 }
 
 type AdminDefinitionSettingBase = {
@@ -67,7 +75,7 @@ export type AdminDefinitionSettingInput = AdminDefinitionSettingBase & {
     setFromMetadataField?: string;
     dynamic_value?: (value: any, config: Partial<AdminConfig>, state: any) => string;
     max_length?: number;
-    default?: string;
+    default?: string | ((value: any, config: Partial<AdminConfig>, state: any) => string);
 }
 
 type AdminDefinitionSettingGenerated = AdminDefinitionSettingBase & {
@@ -92,7 +100,7 @@ type AdminDefinitionSettingDropdown = AdminDefinitionSettingBase & {
     isHelpHidden?: Check;
 }
 
-type AdminDefinitionSettingFileUpload = AdminDefinitionSettingBase & {
+export type AdminDefinitionSettingFileUpload = AdminDefinitionSettingBase & {
     type: 'fileupload';
     remove_help_text: string | MessageDescriptor;
     remove_button_text: string | MessageDescriptor;
@@ -117,7 +125,7 @@ type AdminDefinitionSettingLanguage = AdminDefinitionSettingBase & {
     no_result?: string | MessageDescriptor;
 }
 
-type AdminDefinitionSettingButton = AdminDefinitionSettingBase & {
+export type AdminDefinitionSettingButton = AdminDefinitionSettingBase & {
     type: 'button';
     action: (success: (data?: any) => void, error: (error: {message: string; detailed_error?: string}) => void, siteUrl: string) => void;
     loading?: string | MessageDescriptor;
@@ -147,17 +155,24 @@ type AdminDefinitionSettingRadio = AdminDefinitionSettingBase & {
     default?: string;
 }
 
+type AdminDefinitionSettingExpandable = AdminDefinitionSettingBase & {
+    type: typeof Constants.SettingsTypes.TYPE_EXPANDABLE_SETTING;
+    settings: AdminDefinitionSetting[];
+}
+
 export type AdminDefinitionSetting = AdminDefinitionSettingCustom |
 AdminDefinitionSettingInput | AdminDefinitionSettingGenerated |
 AdminDefinitionSettingBanner | AdminDefinitionSettingDropdown |
 AdminDefinitionSettingButton | AdminDefinitionSettingFileUpload |
 AdminDefinitionSettingJobsTable | AdminDefinitionSettingLanguage |
 AdminDefinitionSettingUsername | AdminDefinitionSettingPermission |
-AdminDefinitionSettingRadio | AdminDefinitionSettingRole;
+AdminDefinitionSettingRadio | AdminDefinitionSettingRole |
+AdminDefinitionSettingExpandable;
 
-type AdminDefinitionConfigSchemaSettings = {
+export type AdminDefinitionConfigSchemaSettings = {
     id: string;
     name: string | MessageDescriptor;
+    isBeta?: boolean;
     isHidden?: Check;
     onConfigLoad?: (config: Partial<AdminConfig>) => {[x: string]: string};
     onConfigSave?: (displayVal: any) => any;
@@ -171,10 +186,14 @@ export type AdminDefinitionConfigSchemaSection = {
     key: string;
     title?: string;
     subtitle?: string;
+    description?: string | MessageDescriptor;
+    license_sku?: string;
     settings: AdminDefinitionSetting[];
     header?: string | MessageDescriptor;
     footer?: string | MessageDescriptor;
     component?: Component;
+    componentProps?: any;
+    isHidden?: Check;
 }
 
 type RestrictedIndicatorType = {
@@ -187,7 +206,7 @@ export type AdminDefinitionSubSectionSchema = AdminDefinitionConfigSchemaCompone
 export type AdminDefinitionSubSection = {
     url: string;
     title?: string | MessageDescriptor;
-    searchableStrings?: Array<string|MessageDescriptor|[MessageDescriptor, {[key: string]: any}]>;
+    searchableStrings?: SearchableStrings;
     isHidden?: Check;
     isDiscovery?: boolean;
     isDisabled?: Check;
@@ -202,6 +221,11 @@ export type AdminDefinitionSection = {
     id?: string;
     subsections: {[key: string]: AdminDefinitionSubSection};
 }
+
+/** From {@link IntlShape.formatMessage}. Cannot discriminate overloaded method signature. */
+declare function formatMessageBasic(descriptor: MessageDescriptor, values?: Record<string, PrimitiveType | FormatXMLElementFn<string, string>>): string;
+
+export type SearchableStrings = Array<string | MessageDescriptor | Parameters<typeof formatMessageBasic>>;
 
 export type AdminDefinition = {[key: string]: AdminDefinitionSection}
 

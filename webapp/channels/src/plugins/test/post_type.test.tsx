@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {shallow, mount} from 'enzyme';
+import type {ComponentProps} from 'react';
 import React from 'react';
 
 import {Preferences} from 'mattermost-redux/constants';
@@ -12,18 +13,23 @@ const PostTypePlugin = () => (
     <span id='pluginId'>{'PostTypePlugin'}</span>
 );
 
+jest.mock('components/properties_card_view/propertyValueRenderer/post_preview_property_renderer/post_preview_property_renderer', () => {
+    return jest.fn(() => <div data-testid='post-preview-property-renderer-mock'>{'PostPreviewPropertyRenderer Mock'}</div>);
+});
+
 describe('plugins/PostMessageView', () => {
     const post = {type: 'testtype', message: 'this is some text', id: 'post_id'} as any;
-    const pluginPostTypes = {
-        testtype: {component: PostTypePlugin},
-    };
 
-    const requiredProps = {
+    const requiredProps: ComponentProps<typeof PostMessageView> = {
         post,
-        pluginPostTypes,
-        currentUser: {username: 'username'},
-        team: {name: 'team_name'},
-        emojis: {name: 'smile'},
+        pluginPostTypes: {
+            testtype: {
+                id: 'some id',
+                pluginId: 'some plugin id',
+                component: PostTypePlugin,
+                type: '',
+            },
+        },
         theme: Preferences.THEMES.denim,
         enableFormatting: true,
         currentRelativeTeamUrl: 'team_url',

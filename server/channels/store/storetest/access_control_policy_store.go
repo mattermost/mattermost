@@ -1,0 +1,545 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+package storetest
+
+import (
+	"testing"
+
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/stretchr/testify/require"
+)
+
+func TestAccessControlPolicyStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	t.Run("Save", func(t *testing.T) { testAccessControlPolicyStoreSaveAndGet(t, rctx, ss) })
+	t.Run("Delete", func(t *testing.T) { testAccessControlPolicyStoreDelete(t, rctx, ss) })
+	t.Run("SetActive", func(t *testing.T) { testAccessControlPolicyStoreSetActive(t, rctx, ss) })
+	t.Run("SetActiveMultiple", func(t *testing.T) { testAccessControlPolicyStoreSetActiveMultiple(t, rctx, ss) })
+	t.Run("GetAll", func(t *testing.T) { testAccessControlPolicyStoreGetAll(t, rctx, ss) })
+	t.Run("Search", func(t *testing.T) { testAccessControlPolicyStoreSearch(t, rctx, ss) })
+}
+
+func testAccessControlPolicyStoreSaveAndGet(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("Save parent policy", func(t *testing.T) {
+		policy := &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Name",
+			Type:     model.AccessControlPolicyTypeParent,
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Actions:    []string{"action"},
+					Expression: "user.properties.program == \"engineering\"",
+				},
+			},
+		}
+
+		policy, err := ss.AccessControlPolicy().Save(rctx, policy)
+		require.NoError(t, err)
+		require.NotNil(t, policy)
+
+		t.Cleanup(func() {
+			err := ss.AccessControlPolicy().Delete(rctx, policy.ID)
+			require.NoError(t, err)
+		})
+	})
+
+	t.Run("Save resource policy", func(t *testing.T) {
+		parent1 := model.NewId()
+
+		policy := &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Name",
+			Type:     model.AccessControlPolicyTypeChannel,
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{parent1},
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Actions:    []string{"action"},
+					Expression: "policies." + parent1 + " ==  true",
+				},
+			},
+		}
+
+		policy, err := ss.AccessControlPolicy().Save(rctx, policy)
+		require.NoError(t, err)
+		require.NotNil(t, policy)
+
+		t.Cleanup(func() {
+			err := ss.AccessControlPolicy().Delete(rctx, policy.ID)
+			require.NoError(t, err)
+		})
+	})
+
+	t.Run("update resource policy", func(t *testing.T) {
+		policyID := model.NewId()
+
+		policy := &model.AccessControlPolicy{
+			ID:       policyID,
+			Name:     "Name",
+			Type:     model.AccessControlPolicyTypeChannel,
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Actions:    []string{"action"},
+					Expression: "user.properties.program == \"engineering\"",
+				},
+			},
+		}
+
+		policy, err := ss.AccessControlPolicy().Save(rctx, policy)
+		require.NoError(t, err)
+		require.NotNil(t, policy)
+
+		policy.Rules = []model.AccessControlPolicyRule{
+			{
+				Actions:    []string{"action"},
+				Expression: "user.properties.program == \"engineering\" || user.properties.department == \"engineering\"",
+			},
+		}
+
+		policy, err = ss.AccessControlPolicy().Save(rctx, policy)
+		require.NoError(t, err)
+		require.NotNil(t, policy)
+
+		policy, err = ss.AccessControlPolicy().Get(rctx, policyID)
+		require.NoError(t, err)
+		require.NotNil(t, policy)
+		require.Equal(t, 2, policy.Revision)
+
+		t.Cleanup(func() {
+			err := ss.AccessControlPolicy().Delete(rctx, policy.ID)
+			require.NoError(t, err)
+		})
+	})
+
+	t.Run("Get non-existent policy", func(t *testing.T) {
+		id := model.NewId()
+		policy, err := ss.AccessControlPolicy().Get(rctx, id)
+		require.EqualError(t, err, store.NewErrNotFound("AccessControlPolicy", id).Error())
+		require.Nil(t, policy)
+	})
+}
+
+func testAccessControlPolicyStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("Delete parent policy", func(t *testing.T) {
+		policy := &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Name",
+			Type:     model.AccessControlPolicyTypeParent,
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Actions:    []string{"action"},
+					Expression: "user.properties.program == \"engineering\"",
+				},
+			},
+		}
+
+		policy, err := ss.AccessControlPolicy().Save(rctx, policy)
+		require.NoError(t, err)
+		require.NotNil(t, policy)
+
+		err = ss.AccessControlPolicy().Delete(rctx, policy.ID)
+		require.NoError(t, err)
+
+		id := policy.ID
+		policy, err = ss.AccessControlPolicy().Get(rctx, policy.ID)
+		require.EqualError(t, err, store.NewErrNotFound("AccessControlPolicy", id).Error())
+		require.Nil(t, policy)
+	})
+
+	t.Run("Delete resource policy", func(t *testing.T) {
+		parent1 := model.NewId()
+
+		policy := &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Name",
+			Type:     model.AccessControlPolicyTypeChannel,
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{parent1},
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Actions:    []string{"action"},
+					Expression: "policies." + parent1 + " ==  true",
+				},
+			},
+		}
+
+		policy, err := ss.AccessControlPolicy().Save(rctx, policy)
+		require.NoError(t, err)
+		require.NotNil(t, policy)
+
+		err = ss.AccessControlPolicy().Delete(rctx, policy.ID)
+		require.NoError(t, err)
+
+		id := policy.ID
+		policy, err = ss.AccessControlPolicy().Get(rctx, policy.ID)
+		require.EqualError(t, err, store.NewErrNotFound("AccessControlPolicy", id).Error())
+		require.Nil(t, policy)
+	})
+
+	t.Run("Delete non-existent policy", func(t *testing.T) {
+		err := ss.AccessControlPolicy().Delete(rctx, model.NewId())
+		require.NoError(t, err)
+	})
+}
+
+func testAccessControlPolicyStoreSetActive(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("Save policy", func(t *testing.T) {
+		id := model.NewId()
+		policy := &model.AccessControlPolicy{
+			ID:       id,
+			Name:     "Name",
+			Type:     model.AccessControlPolicyTypeChannel,
+			Active:   false,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Actions:    []string{"action"},
+					Expression: "user.properties.program == \"engineering\"",
+				},
+			},
+		}
+
+		policy, err := ss.AccessControlPolicy().Save(rctx, policy)
+		require.NoError(t, err)
+		require.NotNil(t, policy)
+
+		t.Cleanup(func() {
+			err = ss.AccessControlPolicy().Delete(rctx, id)
+			require.NoError(t, err)
+		})
+
+		policy, err = ss.AccessControlPolicy().Get(rctx, policy.ID)
+		require.NoError(t, err)
+		require.NotNil(t, policy)
+		require.False(t, policy.Active)
+
+		policy, err = ss.AccessControlPolicy().SetActiveStatus(rctx, policy.ID, true)
+		require.NoError(t, err)
+		require.NotNil(t, policy)
+		require.True(t, policy.Active)
+
+		policy, err = ss.AccessControlPolicy().Get(rctx, policy.ID)
+		require.NoError(t, err)
+		require.NotNil(t, policy)
+		require.True(t, policy.Active)
+	})
+}
+
+func testAccessControlPolicyStoreGetAll(t *testing.T, rctx request.CTX, ss store.Store) {
+	id := model.NewId()
+	parentPolicy := &model.AccessControlPolicy{
+		ID:       id,
+		Name:     "Name",
+		Type:     model.AccessControlPolicyTypeParent,
+		Active:   true,
+		Revision: 1,
+		Version:  model.AccessControlPolicyVersionV0_2,
+		Imports:  []string{},
+		Rules: []model.AccessControlPolicyRule{
+			{
+				Actions:    []string{"action"},
+				Expression: "user.properties.program == \"engineering\"",
+			},
+		},
+	}
+	t.Cleanup(func() {
+		err := ss.AccessControlPolicy().Delete(rctx, id)
+		require.NoError(t, err)
+	})
+
+	parentPolicy, err := ss.AccessControlPolicy().Save(rctx, parentPolicy)
+	require.NoError(t, err)
+	require.NotNil(t, parentPolicy)
+
+	id2 := model.NewId()
+	resourcePolicy := &model.AccessControlPolicy{
+		ID:       id2,
+		Name:     "Name",
+		Type:     model.AccessControlPolicyTypeChannel,
+		Active:   true,
+		Revision: 1,
+		Version:  model.AccessControlPolicyVersionV0_2,
+		Imports:  []string{parentPolicy.ID},
+		Rules: []model.AccessControlPolicyRule{
+			{
+				Actions:    []string{"action"},
+				Expression: "policies." + parentPolicy.ID + " ==  true",
+			},
+		},
+	}
+	t.Cleanup(func() {
+		err = ss.AccessControlPolicy().Delete(rctx, id2)
+		require.NoError(t, err)
+	})
+
+	id3 := "zzz" + model.NewId()[3:] // ensure the order of the ID
+	parentPolicy2 := &model.AccessControlPolicy{
+		ID:       id3,
+		Name:     "Name",
+		Type:     model.AccessControlPolicyTypeParent,
+		Active:   true,
+		Revision: 1,
+		Version:  model.AccessControlPolicyVersionV0_2,
+		Imports:  []string{},
+		Rules: []model.AccessControlPolicyRule{
+			{
+				Actions:    []string{"action"},
+				Expression: "user.properties.program == \"engineering\"",
+			},
+		},
+	}
+	t.Cleanup(func() {
+		err = ss.AccessControlPolicy().Delete(rctx, id3)
+		require.NoError(t, err)
+	})
+
+	_, err = ss.AccessControlPolicy().Save(rctx, parentPolicy2)
+	require.NoError(t, err)
+	require.NotNil(t, parentPolicy)
+
+	resourcePolicy, err = ss.AccessControlPolicy().Save(rctx, resourcePolicy)
+	require.NoError(t, err)
+	require.NotNil(t, resourcePolicy)
+	t.Run("GetAll", func(t *testing.T) {
+		policies, _, err := ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{Limit: 10})
+		require.NoError(t, err)
+		require.NotNil(t, policies)
+		require.Len(t, policies, 3)
+	})
+
+	t.Run("GetAll by type", func(t *testing.T) {
+		policies, _, err := ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{Type: model.AccessControlPolicyTypeParent, IncludeChildren: true, Limit: 10})
+		require.NoError(t, err)
+		require.NotNil(t, policies)
+		require.Len(t, policies, 2)
+		require.Equal(t, parentPolicy.ID, policies[0].ID)
+		require.Equal(t, map[string]any{"child_ids": []string{resourcePolicy.ID}}, policies[0].Props)
+		require.Equal(t, map[string]any{"child_ids": []string{}}, policies[1].Props)
+
+		policies, _, err = ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{Type: model.AccessControlPolicyTypeChannel})
+		require.NoError(t, err)
+		require.NotNil(t, policies)
+		require.Len(t, policies, 1)
+		require.Equal(t, resourcePolicy.ID, policies[0].ID)
+	})
+
+	t.Run("GetAll by parent", func(t *testing.T) {
+		policies, _, err := ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{ParentID: parentPolicy.ID})
+		require.NoError(t, err)
+		require.NotNil(t, policies)
+		require.Len(t, policies, 1)
+		require.Equal(t, resourcePolicy.ID, policies[0].ID)
+
+		policies, _, err = ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{ParentID: model.NewId()})
+		require.NoError(t, err)
+		require.NotNil(t, policies)
+		require.Len(t, policies, 0)
+	})
+
+	t.Run("GetAll by IDs", func(t *testing.T) {
+		// Test searching by specific IDs
+		policies, _, err := ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+			IDs:   []string{parentPolicy.ID, resourcePolicy.ID},
+			Limit: 10,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, policies)
+		require.Len(t, policies, 2)
+
+		// Verify we got the correct policies
+		foundIDs := make([]string, len(policies))
+		for i, p := range policies {
+			foundIDs[i] = p.ID
+		}
+		require.Contains(t, foundIDs, parentPolicy.ID)
+		require.Contains(t, foundIDs, resourcePolicy.ID)
+
+		// Test searching by single ID
+		policies, _, err = ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+			IDs:   []string{parentPolicy.ID},
+			Limit: 10,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, policies)
+		require.Len(t, policies, 1)
+		require.Equal(t, parentPolicy.ID, policies[0].ID)
+
+		// Test searching by non-existent IDs
+		policies, _, err = ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+			IDs:   []string{model.NewId(), model.NewId()},
+			Limit: 10,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, policies)
+		require.Len(t, policies, 0)
+
+		// Test combining IDs with Type filter
+		policies, _, err = ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+			IDs:   []string{parentPolicy.ID, resourcePolicy.ID},
+			Type:  model.AccessControlPolicyTypeParent,
+			Limit: 10,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, policies)
+		require.Len(t, policies, 1)
+		require.Equal(t, parentPolicy.ID, policies[0].ID)
+	})
+}
+
+func testAccessControlPolicyStoreSearch(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("ensure paging works fine", func(t *testing.T) {
+		ids := make([]string, 0, 15)
+		// Create 15 policies
+		for i := range 15 {
+			policy := &model.AccessControlPolicy{
+				ID:       model.NewId(),
+				Name:     "Policy " + string(rune('A'+i)),
+				Type:     model.AccessControlPolicyTypeChannel,
+				Active:   true,
+				Revision: 1,
+				Version:  model.AccessControlPolicyVersionV0_2,
+				Imports:  []string{},
+				Rules: []model.AccessControlPolicyRule{
+					{
+						Actions:    []string{"action"},
+						Expression: "user.properties.program == \"engineering\"",
+					},
+				},
+			}
+
+			policy, err := ss.AccessControlPolicy().Save(rctx, policy)
+			require.NoError(t, err)
+			require.NotNil(t, policy)
+			ids = append(ids, policy.ID)
+		}
+
+		t.Cleanup(func() {
+			// Clean up created policies
+			for _, id := range ids {
+				err := ss.AccessControlPolicy().Delete(rctx, id)
+				require.NoError(t, err)
+			}
+		})
+
+		// firt page should get 10
+		policies, _, err := ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+			Limit: 10,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, policies)
+		require.Len(t, policies, 10)
+
+		// second page should get only 5
+		policies, _, err = ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+			Limit: 10,
+			Cursor: model.AccessControlPolicyCursor{
+				ID: policies[len(policies)-1].ID,
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, policies)
+		require.Len(t, policies, 5)
+
+		// should get all 15 when no paging
+		policies, _, err = ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+			Limit: 20,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, policies)
+		require.Len(t, policies, 15)
+	})
+}
+
+func testAccessControlPolicyStoreSetActiveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("Set active status for multiple policies", func(t *testing.T) {
+		policy1 := &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Policy1",
+			Type:     model.AccessControlPolicyTypeChannel,
+			Active:   false,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Actions:    []string{"action1"},
+					Expression: "user.properties.program == \"engineering\"",
+				},
+			},
+		}
+
+		policy2 := &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Policy2",
+			Type:     model.AccessControlPolicyTypeParent,
+			Active:   false,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Actions:    []string{"action2"},
+					Expression: "user.properties.department == \"sales\"",
+				},
+			},
+		}
+
+		policy1, err := ss.AccessControlPolicy().Save(rctx, policy1)
+		require.NoError(t, err)
+		require.NotNil(t, policy1)
+
+		policy2, err = ss.AccessControlPolicy().Save(rctx, policy2)
+		require.NoError(t, err)
+		require.NotNil(t, policy2)
+
+		t.Cleanup(func() {
+			err = ss.AccessControlPolicy().Delete(rctx, policy1.ID)
+			require.NoError(t, err)
+			err = ss.AccessControlPolicy().Delete(rctx, policy2.ID)
+			require.NoError(t, err)
+		})
+
+		updates := []model.AccessControlPolicyActiveUpdate{
+			{ID: policy1.ID, Active: true},
+			{ID: policy2.ID, Active: true},
+		}
+
+		updatedPolicies, err := ss.AccessControlPolicy().SetActiveStatusMultiple(rctx, updates)
+		require.NoError(t, err)
+		require.Len(t, updatedPolicies, 2)
+
+		for _, p := range updatedPolicies {
+			require.True(t, p.Active)
+		}
+
+		p1, err := ss.AccessControlPolicy().Get(rctx, policy1.ID)
+		require.NoError(t, err)
+		require.NotNil(t, p1)
+		require.True(t, p1.Active)
+
+		p2, err := ss.AccessControlPolicy().Get(rctx, policy2.ID)
+		require.NoError(t, err)
+		require.NotNil(t, p2)
+		require.True(t, p2.Active)
+	})
+}

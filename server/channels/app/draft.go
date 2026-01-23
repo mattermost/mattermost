@@ -34,7 +34,7 @@ func (a *App) GetDraft(userID, channelID, rootID string) (*model.Draft, *model.A
 	return draft, nil
 }
 
-func (a *App) UpsertDraft(c request.CTX, draft *model.Draft, connectionID string) (*model.Draft, *model.AppError) {
+func (a *App) UpsertDraft(rctx request.CTX, draft *model.Draft, connectionID string) (*model.Draft, *model.AppError) {
 	if !*a.Config().ServiceSettings.AllowSyncedDrafts {
 		return nil, model.NewAppError("CreateDraft", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
@@ -42,12 +42,22 @@ func (a *App) UpsertDraft(c request.CTX, draft *model.Draft, connectionID string
 	// Check that channel exists and has not been deleted
 	channel, errCh := a.Srv().Store().Channel().Get(draft.ChannelId, true)
 	if errCh != nil {
-		err := model.NewAppError("CreateDraft", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "draft.channel_id"}, "", http.StatusBadRequest).Wrap(errCh)
+		err := model.NewAppError("CreateDraft", "api.context.invalid_param.app_error", map[string]any{"Name": "draft.channel_id"}, "", http.StatusBadRequest).Wrap(errCh)
 		return nil, err
 	}
 
 	if channel.DeleteAt != 0 {
 		err := model.NewAppError("CreateDraft", "api.draft.create_draft.can_not_draft_to_deleted.error", nil, "", http.StatusBadRequest)
+		return nil, err
+	}
+
+	restrictDM, err := a.CheckIfChannelIsRestrictedDM(rctx, channel)
+	if err != nil {
+		return nil, err
+	}
+
+	if restrictDM {
+		err := model.NewAppError("CreateDraft", "api.draft.create_draft.can_not_draft_to_restricted_dm.error", nil, "", http.StatusBadRequest)
 		return nil, err
 	}
 
@@ -70,12 +80,12 @@ func (a *App) UpsertDraft(c request.CTX, draft *model.Draft, connectionID string
 		return nil, model.NewAppError("CreateDraft", "app.draft.save.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
-	dt = a.prepareDraftWithFileInfos(c, draft.UserId, dt)
+	dt = a.prepareDraftWithFileInfos(rctx, draft.UserId, dt)
 
 	message := model.NewWebSocketEvent(model.WebsocketEventDraftCreated, "", dt.ChannelId, dt.UserId, nil, connectionID)
 	draftJSON, jsonErr := json.Marshal(dt)
 	if jsonErr != nil {
-		c.Logger().Warn("Failed to encode draft to JSON", mlog.Err(jsonErr))
+		rctx.Logger().Warn("Failed to encode draft to JSON", mlog.Err(jsonErr))
 	}
 	message.Add("draft", string(draftJSON))
 	a.Publish(message)
@@ -116,7 +126,7 @@ func (a *App) getFileInfosForDraft(rctx request.CTX, draft *model.Draft) ([]*mod
 		return nil, nil
 	}
 
-	allFileInfos, err := a.Srv().Store().FileInfo().GetByIds(draft.FileIds)
+	allFileInfos, err := a.Srv().Store().FileInfo().GetByIds(draft.FileIds, false, true)
 	if err != nil {
 		return nil, model.NewAppError("GetFileInfosForDraft", "app.draft.get_for_draft.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

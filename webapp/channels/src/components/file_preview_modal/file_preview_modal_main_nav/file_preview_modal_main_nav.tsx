@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {memo} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import './file_preview_modal_main_nav.scss';
 
@@ -16,22 +16,22 @@ interface Props {
 }
 
 const FilePreviewModalMainNav: React.FC<Props> = (props: Props) => {
+    const {formatMessage} = useIntl();
     const leftArrow = (
         <WithTooltip
             key='previewArrowLeft'
-            id='close-icon-tooltip'
             title={
                 <FormattedMessage
                     id='generic.close'
                     defaultMessage='Close'
                 />
             }
-            placement='bottom'
         >
             <button
                 id='previewArrowLeft'
                 className='file_preview_modal_main_nav__prev'
                 onClick={props.handlePrev}
+                aria-label={formatMessage({id: 'file_preview_modal_main_nav.prevAriaLabel', defaultMessage: 'Previous file'})}
             >
                 <i className='icon icon-chevron-left'/>
             </button>
@@ -41,19 +41,18 @@ const FilePreviewModalMainNav: React.FC<Props> = (props: Props) => {
     const rightArrow = (
         <WithTooltip
             key='publicLink'
-            id='close-icon-tooltip'
             title={
                 <FormattedMessage
                     id='generic.next'
                     defaultMessage='Next'
                 />
             }
-            placement='bottom'
         >
             <button
                 id='previewArrowRight'
                 className='file_preview_modal_main_nav__next'
                 onClick={props.handleNext}
+                aria-label={formatMessage({id: 'file_preview_modal_main_nav.nextAriaLabel', defaultMessage: 'Next file'})}
             >
                 <i className='icon icon-chevron-right'/>
             </button>
@@ -62,7 +61,11 @@ const FilePreviewModalMainNav: React.FC<Props> = (props: Props) => {
     return (
         <div className='file_preview_modal_main_nav'>
             {leftArrow}
-            <span className='modal-bar-file-count'>
+            <span
+                className='modal-bar-file-count'
+                aria-live='polite'
+                aria-atomic='true'
+            >
                 <FormattedMessage
                     id='file_preview_modal_main_nav.file'
                     defaultMessage='{count, number} of {total, number}'

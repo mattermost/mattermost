@@ -11,13 +11,15 @@ import WithTooltip from 'components/with_tooltip';
 import type {GlobalState} from 'types/store';
 
 interface ComponentProps {
-    tooltipDirection?: 'top' | 'right' | 'bottom' | 'left';
-    text: string;
+    text?: string;
     className?: string;
 }
 
 const CustomStatusText = (props: ComponentProps) => {
-    const {tooltipDirection, text, className} = props;
+    const {
+        text = '',
+        className = '',
+    } = props;
     const customStatusEnabled = useSelector((state: GlobalState) => {
         return isCustomStatusEnabled(state);
     });
@@ -49,19 +51,11 @@ const CustomStatusText = (props: ComponentProps) => {
 
     return (
         <WithTooltip
-            id='custom-status-tooltip'
-            placement={tooltipDirection}
             title={text}
         >
             {customStatusTextComponent}
         </WithTooltip>
     );
-};
-
-CustomStatusText.defaultProps = {
-    tooltipDirection: 'bottom',
-    text: '',
-    className: '',
 };
 
 export default CustomStatusText;

@@ -47,12 +47,14 @@ func newServerWithConfig(t *testing.T, f func(cfg *model.Config)) (*Server, erro
 	cfg.SqlSettings = *mainHelper.GetSQLSettings()
 	f(cfg)
 
-	store.Set(cfg)
+	_, _, err = store.Set(cfg)
+	require.NoError(t, err)
 
 	return NewServer(ConfigStore(store))
 }
 
 func TestStartServerSuccess(t *testing.T) {
+	mainHelper.Parallel(t)
 	s, err := newServerWithConfig(t, func(cfg *model.Config) {
 		*cfg.ServiceSettings.ListenAddress = "localhost:0"
 	})
@@ -61,13 +63,15 @@ func TestStartServerSuccess(t *testing.T) {
 	serverErr := s.Start()
 
 	client := &http.Client{}
-	checkEndpoint(t, client, "http://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/")
+	err = checkEndpoint(t, client, "http://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/")
+	require.NoError(t, err)
 
 	s.Shutdown()
 	require.NoError(t, serverErr)
 }
 
 func TestStartServerPortUnavailable(t *testing.T) {
+	mainHelper.Parallel(t)
 	// Listen on the next available port
 	listener, err := net.Listen("tcp", "localhost:0")
 	require.NoError(t, err)
@@ -86,6 +90,7 @@ func TestStartServerPortUnavailable(t *testing.T) {
 }
 
 func TestStartServerNoS3Bucket(t *testing.T) {
+	mainHelper.Parallel(t)
 	s3Host := os.Getenv("CI_MINIO_HOST")
 	if s3Host == "" {
 		s3Host = "localhost"
@@ -138,6 +143,7 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 }
 
 func TestStartServerTLSSuccess(t *testing.T) {
+	mainHelper.Parallel(t)
 	s, err := newServerWithConfig(t, func(cfg *model.Config) {
 		testDir, _ := fileutils.FindDir("tests")
 
@@ -155,41 +161,15 @@ func TestStartServerTLSSuccess(t *testing.T) {
 	}
 
 	client := &http.Client{Transport: tr}
-	checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/")
+	err = checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/")
+	require.NoError(t, err)
 
 	s.Shutdown()
 	require.NoError(t, serverErr)
 }
 
-func TestDatabaseTypeAndMattermostVersion(t *testing.T) {
-	sqlDrivernameEnvironment := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
-
-	if sqlDrivernameEnvironment != "" {
-		defer os.Setenv("MM_SQLSETTINGS_DRIVERNAME", sqlDrivernameEnvironment)
-	} else {
-		defer os.Unsetenv("MM_SQLSETTINGS_DRIVERNAME")
-	}
-
-	os.Setenv("MM_SQLSETTINGS_DRIVERNAME", "postgres")
-
-	th := Setup(t)
-	defer th.TearDown()
-
-	databaseType, mattermostVersion := th.Server.DatabaseTypeAndSchemaVersion()
-	assert.Equal(t, "postgres", databaseType)
-	assert.GreaterOrEqual(t, mattermostVersion, strconv.Itoa(1))
-
-	os.Setenv("MM_SQLSETTINGS_DRIVERNAME", "mysql")
-
-	th2 := Setup(t)
-	defer th2.TearDown()
-
-	databaseType, mattermostVersion = th2.Server.DatabaseTypeAndSchemaVersion()
-	assert.Equal(t, "mysql", databaseType)
-	assert.GreaterOrEqual(t, mattermostVersion, strconv.Itoa(1))
-}
-
 func TestStartServerTLSVersion(t *testing.T) {
+	mainHelper.Parallel(t)
 	configStore, _ := config.NewMemoryStore()
 	store, _ := config.NewStoreFromBacking(configStore, nil, false)
 	cfg := store.Get()
@@ -204,7 +184,8 @@ func TestStartServerTLSVersion(t *testing.T) {
 	*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
 	cfg.SqlSettings = *mainHelper.GetSQLSettings()
 
-	store.Set(cfg)
+	_, _, err := store.Set(cfg)
+	require.NoError(t, err)
 
 	s, err := NewServer(ConfigStore(store))
 	require.NoError(t, err)
@@ -229,7 +210,6 @@ func TestStartServerTLSVersion(t *testing.T) {
 	}
 
 	err = checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/")
-
 	if err != nil {
 		t.Errorf("Expected nil, got %s", err)
 	}
@@ -239,6 +219,7 @@ func TestStartServerTLSVersion(t *testing.T) {
 }
 
 func TestStartServerTLSOverwriteCipher(t *testing.T) {
+	mainHelper.Parallel(t)
 	s, err := newServerWithConfig(t, func(cfg *model.Config) {
 		testDir, _ := fileutils.FindDir("tests")
 
@@ -304,6 +285,7 @@ func checkEndpoint(t *testing.T, client *http.Client, url string) error {
 }
 
 func TestPanicLog(t *testing.T) {
+	mainHelper.Parallel(t)
 	// Creating a temp dir for log
 	tmpDir, err := os.MkdirTemp("", "mlog-test")
 	require.NoError(t, err, "cannot create tmp dir for log file")
@@ -334,7 +316,8 @@ func TestPanicLog(t *testing.T) {
 	require.NoError(t, err)
 	cfg := store.Get()
 	cfg.SqlSettings = *mainHelper.GetSQLSettings()
-	store.Set(cfg)
+	_, _, err = store.Set(cfg)
+	require.NoError(t, err)
 
 	// Creating a server with logger
 	s, err := NewServer(ConfigStore(store), SetLogger(logger))
@@ -362,15 +345,16 @@ func TestPanicLog(t *testing.T) {
 	}
 
 	client := &http.Client{Transport: tr}
-	client.Get("https://localhost:" + strconv.Itoa(s.ListenAddr.Port) + "/panic")
+	_, err = client.Get("https://localhost:" + strconv.Itoa(s.ListenAddr.Port) + "/panic")
+	require.Error(t, err)
 
 	err = logger.Flush()
 	assert.NoError(t, err, "flush should succeed")
 	s.Shutdown()
 
 	// Checking whether panic was logged
-	var panicLogged = false
-	var infoLogged = false
+	panicLogged := false
+	infoLogged := false
 
 	logFile, err := os.Open(config.GetLogFileLocation(tmpDir))
 	require.NoError(t, err, "cannot open log file")
@@ -516,6 +500,7 @@ func TestSentry(t *testing.T) {
 }
 
 func TestCancelTaskSetsTaskToNil(t *testing.T) {
+	mainHelper.Parallel(t)
 	var taskMut sync.Mutex
 	task := model.CreateRecurringTaskFromNextIntervalTime("a test task", func() {}, 5*time.Minute)
 	require.NotNil(t, task)
@@ -525,8 +510,8 @@ func TestCancelTaskSetsTaskToNil(t *testing.T) {
 }
 
 func TestOriginChecker(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowCorsFrom = ""

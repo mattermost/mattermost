@@ -5,11 +5,17 @@ import semver from 'semver';
 
 import type {CallsConfig, UserSessionState} from '@mattermost/calls-common/lib/types';
 
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
+
 import {suitePluginIds} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
 const CALLS_PLUGIN = `plugins-${suitePluginIds.calls}`;
+
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+const pluginState = (state: GlobalState) => state[CALLS_PLUGIN];
 
 export function isCallsEnabled(state: GlobalState, minVersion = '0.4.2') {
     return Boolean(state.plugins.plugins[suitePluginIds.calls] &&
@@ -18,32 +24,33 @@ export function isCallsEnabled(state: GlobalState, minVersion = '0.4.2') {
 
 // isCallsRingingEnabledOnServer is the flag for the ringing/notification feature in calls
 export function isCallsRingingEnabledOnServer(state: GlobalState) {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    return Boolean(state[CALLS_PLUGIN]?.callsConfig?.EnableRinging);
+    return Boolean(pluginState(state)?.callsConfig?.EnableRinging);
 }
 
-export function getSessionsInCalls(state: GlobalState): Record<string, Record<string, UserSessionState>> {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    return state[CALLS_PLUGIN]?.sessions || {};
-}
+export const getSessionsInCalls = createSelector(
+    'getSessionsInCalls',
+    pluginState,
+    (state): Record<string, Record<string, UserSessionState>> => {
+        return state?.sessions || {};
+    },
+);
 
-export function getCallsConfig(state: GlobalState): CallsConfig {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    return state[CALLS_PLUGIN]?.callsConfig;
-}
+export const getCallsConfig = createSelector(
+    'getCallsConfig',
+    pluginState,
+    (state): CallsConfig => {
+        return state?.callsConfig || {};
+    },
+);
 
 export function getCallsChannelState(state: GlobalState, channelId: string): {enabled?: boolean} {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    if (!state[CALLS_PLUGIN] || !state[CALLS_PLUGIN].channels) {
+    const callsState = pluginState(state);
+
+    if (!callsState || !callsState.channels || !callsState.channels[channelId]) {
         return {};
     }
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    return state[CALLS_PLUGIN].channels[channelId] || {};
+
+    return callsState.channels[channelId];
 }
 
 export function callsChannelExplicitlyEnabled(state: GlobalState, channelId: string) {

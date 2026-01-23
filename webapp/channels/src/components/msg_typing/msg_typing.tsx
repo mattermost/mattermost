@@ -4,14 +4,13 @@
 import React, {useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {WebSocketMessage} from '@mattermost/client';
+import {WebSocketEvents, type WebSocketMessage} from '@mattermost/client';
 
-import {SocketEvents} from 'utils/constants';
 import {useWebSocket} from 'utils/use_websocket';
 
 type Props = {
     channelId: string;
-    postId: string;
+    rootId: string;
     typingUsers: string[];
     userStartedTyping: (userId: string, channelId: string, rootId: string, now: number) => void;
     userStoppedTyping: (userId: string, channelId: string, rootId: string, now: number) => void;
@@ -21,26 +20,26 @@ export default function MsgTyping(props: Props) {
     const {userStartedTyping, userStoppedTyping} = props;
     useWebSocket({
         handler: useCallback((msg: WebSocketMessage) => {
-            if (msg.event === SocketEvents.TYPING) {
+            if (msg.event === WebSocketEvents.Typing) {
                 const channelId = msg.broadcast.channel_id;
                 const rootId = msg.data.parent_id;
                 const userId = msg.data.user_id;
 
-                if (props.channelId === channelId && props.postId === rootId) {
+                if (props.channelId === channelId && props.rootId === rootId) {
                     userStartedTyping(userId, channelId, rootId, Date.now());
                 }
-            } else if (msg.event === SocketEvents.POSTED) {
+            } else if (msg.event === WebSocketEvents.Posted) {
                 const post = JSON.parse(msg.data.post);
 
                 const channelId = post.channel_id;
                 const rootId = post.root_id;
                 const userId = post.user_id;
 
-                if (props.channelId === channelId && props.postId === rootId) {
+                if (props.channelId === channelId && props.rootId === rootId) {
                     userStoppedTyping(userId, channelId, rootId, Date.now());
                 }
             }
-        }, [props.channelId, props.postId, userStartedTyping, userStoppedTyping]),
+        }, [props.channelId, props.rootId, userStartedTyping, userStoppedTyping]),
     });
 
     const getTypingText = () => {

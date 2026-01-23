@@ -12,8 +12,6 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
-
 import BlockableLink from 'components/admin_console/blockable_link';
 import ConfirmModal from 'components/confirm_modal';
 import FormError from 'components/form_error';
@@ -26,9 +24,9 @@ import TeamMembers from './team_members/index';
 import {TeamModes} from './team_modes';
 import {TeamProfile} from './team_profile';
 
+import SaveChangesPanel from '../../../save_changes_panel';
 import {NeedDomainsError, NeedGroupsError, UsersWillBeRemovedError} from '../../errors';
 import RemoveConfirmModal from '../../remove_confirm_modal';
-import SaveChangesPanel from '../../save_changes_panel';
 
 export type Props = {
     teamID: string;
@@ -180,38 +178,55 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             serverError = <NeedGroupsError/>;
             saveNeeded = true;
         } else {
-            const patchTeamPromise = actions.patchTeam({
-                ...team,
-                group_constrained: syncChecked,
-                allowed_domains: allowedDomainsChecked ? allowedDomains : '',
-                allow_open_invite: allAllowedChecked,
-            });
             const patchTeamSyncable = groups.
                 filter((g) => {
                     return origGroups.some((group) => group.id === g.id && group.scheme_admin !== g.scheme_admin);
                 }).
                 map((g) => actions.patchGroupSyncable(g.id, teamID, SyncableType.Team, {scheme_admin: g.scheme_admin}));
-            const unlink = origGroups.
-                filter((g) => {
-                    return !groups.some((group) => group.id === g.id);
-                }).
-                map((g) => actions.unlinkGroupSyncable(g.id, teamID, SyncableType.Team));
+
             const link = groups.
                 filter((g) => {
                     return !origGroups.some((group) => group.id === g.id);
                 }).
                 map((g) => actions.linkGroupSyncable(g.id, teamID, SyncableType.Team, {auto_add: true, scheme_admin: g.scheme_admin}));
-            const result = await Promise.all([patchTeamPromise, ...patchTeamSyncable, ...unlink, ...link]);
-            const resultWithError = result.find((r) => r.error);
-            if (resultWithError) {
-                serverError = <FormError error={resultWithError.error?.message}/>;
-            } else {
-                if (unlink.length > 0) {
-                    trackEvent('admin_team_config_page', 'groups_removed_from_team', {count: unlink.length, team_id: teamID});
+
+            // First execute patch and link operations
+            const groupResult = await Promise.all([...patchTeamSyncable, ...link]);
+            const groupResultWithError = groupResult.find((r) => r.error);
+
+            if (groupResultWithError) {
+                serverError = <FormError error={groupResultWithError.error?.message}/>;
+            }
+
+            // After group operations succeed, patch the team
+            const patchTeamResult = await actions.patchTeam({
+                ...team,
+                group_constrained: syncChecked,
+                allowed_domains: allowedDomainsChecked ? allowedDomains : '',
+                allow_open_invite: allAllowedChecked,
+            });
+
+            if (patchTeamResult.error) {
+                serverError = <FormError error={patchTeamResult.error?.message}/>;
+            }
+
+            // After patching the team, handle unlinking groups
+            const unlink = origGroups.
+                filter((g) => {
+                    return !groups.some((group) => group.id === g.id);
+                }).
+                map((g) => actions.unlinkGroupSyncable(g.id, teamID, SyncableType.Team));
+
+            let unlinkResultWithError: ActionResult | undefined;
+            if (unlink.length > 0) {
+                const unlinkResult = await Promise.all(unlink);
+                unlinkResultWithError = unlinkResult.find((r) => r.error);
+                if (unlinkResultWithError) {
+                    serverError = <FormError error={unlinkResultWithError.error?.message}/>;
                 }
-                if (link.length > 0) {
-                    trackEvent('admin_team_config_page', 'groups_added_to_team', {count: link.length, team_id: teamID});
-                }
+            }
+
+            if (!patchTeamResult.error && !groupResultWithError && !unlinkResultWithError) {
                 await actions.getGroups(teamID);
             }
         }
@@ -234,24 +249,16 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             if (addUserActions.length > 0) {
                 const result = await Promise.all(addUserActions);
                 const resultWithError = result.find((r) => r.error);
-                const count = result.filter((r) => r.data).length;
                 if (resultWithError) {
                     serverError = <FormError error={resultWithError.error?.message}/>;
-                }
-                if (count > 0) {
-                    trackEvent('admin_team_config_page', 'members_added_to_team', {count, team_id: teamID});
                 }
             }
 
             if (removeUserActions.length > 0) {
                 const result = await Promise.all(removeUserActions);
                 const resultWithError = result.find((r) => r.error);
-                const count = result.filter((r) => r.data).length;
                 if (resultWithError) {
                     serverError = <FormError error={resultWithError.error?.message}/>;
-                }
-                if (count > 0) {
-                    trackEvent('admin_team_config_page', 'members_removed_from_team', {count, team_id: teamID});
                 }
             }
 
@@ -269,24 +276,16 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             if (rolesToPromote.length > 0) {
                 const result = await Promise.all(rolesToPromote);
                 const resultWithError = result.find((r) => r.error);
-                const count = result.filter((r) => r.data).length;
                 if (resultWithError) {
                     serverError = <FormError error={resultWithError.error?.message}/>;
-                }
-                if (count > 0) {
-                    trackEvent('admin_team_config_page', 'members_elevated_to_team_admin', {count, team_id: teamID});
                 }
             }
 
             if (rolesToDemote.length > 0) {
                 const result = await Promise.all(rolesToDemote);
                 const resultWithError = result.find((r) => r.error);
-                const count = result.filter((r) => r.data).length;
                 if (resultWithError) {
                     serverError = <FormError error={resultWithError.error?.message}/>;
-                }
-                if (count > 0) {
-                    trackEvent('admin_team_config_page', 'admins_demoted_to_team_member', {count, team_id: teamID});
                 }
             }
         }

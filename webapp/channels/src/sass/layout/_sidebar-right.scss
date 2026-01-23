@@ -1,4 +1,6 @@
-@charset "utf-8";
+@use "utils/functions";
+@use "utils/mixins";
+@use "utils/variables";
 
 .sidebar--right--width-holder {
     @media screen and (max-width: 768px) {
@@ -23,6 +25,10 @@
                 min-width: 304px;
                 max-width: 304px;
             }
+        }
+
+        @media screen and (max-width: 400px) {
+            min-width: unset;
         }
 
         @media screen and (min-width: 901px) {
@@ -91,7 +97,7 @@
         z-index: 5;
         width: 100%;
         height: 100%;
-        background-color: $yellow;
+        background-color: variables.$yellow;
         opacity: 0.1;
         pointer-events: none;
     }
@@ -123,9 +129,14 @@
         font-family: Metropolis, sans-serif;
         font-size: 1.6rem;
         font-weight: 600;
-        line-height: 1;
 
-        @include clearfix;
+        @include mixins.clearfix;
+        h2 {
+            margin: 0;
+            font-family: inherit;
+            font-size: inherit;
+            font-weight: inherit;
+        }
     }
 
     .sidebar--right__title__channel {
@@ -152,7 +163,7 @@
 
         &:active {
             background: rgba(var(--button-bg-rgb), 0.08);
-            color: v(button-bg);
+            color: functions.v(button-bg);
         }
     }
 
@@ -264,6 +275,8 @@
     height: 48px;
     align-items: center;
     justify-content: center;
+    border: none;
+    background: transparent;
     cursor: pointer;
     text-align: center;
     transform: translateX(0);

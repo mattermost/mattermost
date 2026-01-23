@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`admin_console/system_role_permissions should match snapshot 1`] = `
 <AdminPanel
@@ -108,6 +108,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
             },
             Object {
               "disabled": true,
+              "hasDescription": true,
               "name": "user_management_system_roles",
             },
           ],
@@ -170,6 +171,9 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
             },
             Object {
               "name": "environment_developer",
+            },
+            Object {
+              "name": "environment_mobile_security",
             },
           ],
         }
@@ -385,9 +389,6 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
             },
             Object {
               "name": "experimental_feature_flags",
-            },
-            Object {
-              "name": "experimental_bleve",
             },
           ],
         }
@@ -483,6 +484,7 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
             },
             Object {
               "disabled": true,
+              "hasDescription": true,
               "name": "user_management_system_roles",
             },
           ],
@@ -699,9 +701,6 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
             },
             Object {
               "name": "experimental_feature_flags",
-            },
-            Object {
-              "name": "experimental_bleve",
             },
           ],
         }

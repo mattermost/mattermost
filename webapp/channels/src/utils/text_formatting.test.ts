@@ -3,6 +3,8 @@
 
 import emojiRegex from 'emoji-regex';
 
+import type {DeepPartial} from '@mattermost/types/utilities';
+
 import {getEmojiMap} from 'selectors/emojis';
 import store from 'stores/redux_store';
 
@@ -21,6 +23,7 @@ import {
     isFormatTokenLimitError,
     doFormatText,
     replaceTokens,
+    isChannelNamesMap,
 } from 'utils/text_formatting';
 import type {ChannelNamesMap} from 'utils/text_formatting';
 
@@ -85,6 +88,11 @@ describe('formatText', () => {
             const output = formatText(`${spaces}${emoji}`, {}, emptyEmojiMap);
             expect(output).toBe(`<span class="all-emoji"><p>${spaces}<span data-emoticon="slightly_smiling_face">${emoji}</span></p></span>`);
         }
+    });
+
+    test('emoticons should not be rendered as emojis when renderEmoticonsAsEmoji is false', () => {
+        const output = formatText(':)', {renderEmoticonsAsEmoji: false}, emptyEmojiMap);
+        expect(output).toBe('<p>:)</p>');
     });
 
     test('code blocks newlines are not converted into <br/> with inline markdown image in the post', () => {
@@ -574,5 +582,39 @@ describe('replaceTokens', () => {
                 expect(result).toEqual(tc);
             });
         }
+    });
+});
+
+describe('isChannelsNameMap', () => {
+    it('happy path', () => {
+        const prop: ChannelNamesMap = {
+            'some id': {
+                display_name: 'some name',
+                team_name: 'some team name',
+            },
+            'some other id': 'simple string',
+            'without team name': {display_name: 'some other name'},
+        };
+        expect(isChannelNamesMap(prop)).toBe(true);
+    });
+
+    it('common false cases', () => {
+        expect(isChannelNamesMap('')).toBe(false);
+        expect(isChannelNamesMap(undefined)).toBe(false);
+        expect(isChannelNamesMap(true)).toBe(false);
+        expect(isChannelNamesMap(1)).toBe(false);
+    });
+
+    it('display names are required', () => {
+        const prop: DeepPartial<ChannelNamesMap> = {
+            'some id': {
+                display_name: 'some name',
+                team_name: 'some team name',
+            },
+        };
+        expect(isChannelNamesMap(prop)).toBe(true);
+
+        delete (prop['some id'] as any).display_name;
+        expect(isChannelNamesMap(prop)).toBe(false);
     });
 });

@@ -3,17 +3,34 @@
 mmctl completion zsh
 --------------------
 
-Generates the zsh autocompletion scripts
+Generate the autocompletion script for zsh
 
 Synopsis
 ~~~~~~~~
 
 
-To load completion, run
+Generate the autocompletion script for the zsh shell.
 
-. <(mmctl completion zsh)
+If shell completion is not already enabled in your environment you will need
+to enable it.  You can execute the following once:
 
-To configure your zsh shell to load completions for each session, add the above line to your ~/.zshrc
+	echo "autoload -U compinit; compinit" >> ~/.zshrc
+
+To load completions in your current shell session:
+
+	source <(mmctl completion zsh)
+
+To load completions for every new session, execute once:
+
+#### Linux:
+
+	mmctl completion zsh > "${fpath[1]}/_mmctl"
+
+#### macOS:
+
+	mmctl completion zsh > $(brew --prefix)/share/zsh/site-functions/_mmctl
+
+You will need to start a new shell for this setup to take effect.
 
 
 ::
@@ -25,7 +42,8 @@ Options
 
 ::
 
-  -h, --help   help for zsh
+  -h, --help              help for zsh
+      --no-descriptions   disable completion descriptions
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -45,5 +63,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl completion <mmctl_completion.rst>`_ 	 - Generates autocompletion scripts for bash and zsh
+* `mmctl completion <mmctl_completion.rst>`_ 	 - Generate the autocompletion script for the specified shell
 

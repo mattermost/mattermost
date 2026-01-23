@@ -5,6 +5,7 @@ package model
 
 import (
 	"net/http"
+	"strings"
 )
 
 const (
@@ -68,11 +69,15 @@ var PermissionGetPublicLink *Permission
 var PermissionManageWebhooks *Permission
 var PermissionManageOthersWebhooks *Permission
 var PermissionManageIncomingWebhooks *Permission
+var PermissionManageOwnIncomingWebhooks *Permission
 var PermissionManageOutgoingWebhooks *Permission
+var PermissionManageOwnOutgoingWebhooks *Permission
 var PermissionManageOthersIncomingWebhooks *Permission
 var PermissionManageOthersOutgoingWebhooks *Permission
+var PermissionManageOwnSlashCommands *Permission
 var PermissionManageOAuth *Permission
 var PermissionManageSystemWideOAuth *Permission
+var PermissionBypassIncomingWebhookChannelLock *Permission
 var PermissionManageEmojis *Permission
 var PermissionManageOthersEmojis *Permission
 var PermissionCreateEmojis *Permission
@@ -167,6 +172,9 @@ var PermissionGetLogs *Permission
 var PermissionGetAnalytics *Permission
 var PermissionReadLicenseInformation *Permission
 var PermissionManageLicenseInformation *Permission
+var PermissionManagePublicChannelBanner *Permission
+var PermissionManagePrivateChannelBanner *Permission
+var PermissionManageChannelAccessRules *Permission
 
 var PermissionSysconsoleReadAbout *Permission
 var PermissionSysconsoleWriteAbout *Permission
@@ -251,6 +259,9 @@ var PermissionSysconsoleWriteEnvironmentPerformanceMonitoring *Permission
 
 var PermissionSysconsoleReadEnvironmentDeveloper *Permission
 var PermissionSysconsoleWriteEnvironmentDeveloper *Permission
+
+var PermissionSysconsoleReadEnvironmentMobileSecurity *Permission
+var PermissionSysconsoleWriteEnvironmentMobileSecurity *Permission
 
 var PermissionSysconsoleReadSite *Permission
 var PermissionSysconsoleWriteSite *Permission
@@ -382,7 +393,7 @@ var PermissionRunView *Permission
 var PermissionSysconsoleReadProductsBoards *Permission
 var PermissionSysconsoleWriteProductsBoards *Permission
 
-// General permission that encompasses all system admin functions
+// PermissionManageSystem is a general permission that encompasses all system admin functions
 // in the future this could be broken up to allow access to some
 // admin functions but not others
 var PermissionManageSystem *Permission
@@ -424,10 +435,17 @@ func initializePermissions() {
 		"authentication.permissions.team_use_slash_commands.description",
 		PermissionScopeChannel,
 	}
+	// DEPRECATED - use PermissionManageOwnSlashCommands instead
 	PermissionManageSlashCommands = &Permission{
 		"manage_slash_commands",
 		"authentication.permissions.manage_slash_commands.name",
 		"authentication.permissions.manage_slash_commands.description",
+		PermissionScopeTeam,
+	}
+	PermissionManageOwnSlashCommands = &Permission{
+		"manage_own_slash_commands",
+		"authentication.permissions.manage_own_slash_commands.name",
+		"authentication.permissions.manage_own_slash_commands.description",
 		PermissionScopeTeam,
 	}
 	PermissionManageOthersSlashCommands = &Permission{
@@ -661,16 +679,30 @@ func initializePermissions() {
 		"authentication.permissions.manage_others_webhooks.description",
 		PermissionScopeTeam,
 	}
+	// DEPRECATED - use PermissionManageOwnIncomingWebhooks instead
 	PermissionManageIncomingWebhooks = &Permission{
 		"manage_incoming_webhooks",
 		"authentication.permissions.manage_incoming_webhooks.name",
 		"authentication.permissions.manage_incoming_webhooks.description",
 		PermissionScopeTeam,
 	}
+	PermissionManageOwnIncomingWebhooks = &Permission{
+		"manage_own_incoming_webhooks",
+		"authentication.permissions.manage_own_incoming_webhooks.name",
+		"authentication.permissions.manage_own_incoming_webhooks.description",
+		PermissionScopeTeam,
+	}
+	// DEPRECATED - use PermissionManageOwnOutgoingWebhooks instead
 	PermissionManageOutgoingWebhooks = &Permission{
 		"manage_outgoing_webhooks",
 		"authentication.permissions.manage_outgoing_webhooks.name",
 		"authentication.permissions.manage_outgoing_webhooks.description",
+		PermissionScopeTeam,
+	}
+	PermissionManageOwnOutgoingWebhooks = &Permission{
+		"manage_own_outgoing_webhooks",
+		"authentication.permissions.manage_own_outgoing_webhooks.name",
+		"authentication.permissions.manage_own_outgoing_webhooks.description",
 		PermissionScopeTeam,
 	}
 	PermissionManageOthersIncomingWebhooks = &Permission{
@@ -683,6 +715,12 @@ func initializePermissions() {
 		"manage_others_outgoing_webhooks",
 		"authentication.permissions.manage_others_outgoing_webhooks.name",
 		"authentication.permissions.manage_others_outgoing_webhooks.description",
+		PermissionScopeTeam,
+	}
+	PermissionBypassIncomingWebhookChannelLock = &Permission{
+		"bypass_incoming_webhook_channel_lock",
+		"authentication.permissions.bypass_incoming_webhook_channel_lock.name",
+		"authentication.permissions.bypass_incoming_webhook_channel_lock.description",
 		PermissionScopeTeam,
 	}
 	PermissionManageOAuth = &Permission{
@@ -835,6 +873,7 @@ func initializePermissions() {
 		PermissionScopeSystem,
 	}
 
+	// DEPRECATED
 	PermissionPurgeBleveIndexes = &Permission{
 		"purge_bleve_indexes",
 		"",
@@ -842,6 +881,7 @@ func initializePermissions() {
 		PermissionScopeSystem,
 	}
 
+	// DEPRECATED
 	PermissionCreatePostBleveIndexesJob = &Permission{
 		"create_post_bleve_indexes_job",
 		"",
@@ -849,6 +889,7 @@ func initializePermissions() {
 		PermissionScopeSystem,
 	}
 
+	// DEPRECATED
 	PermissionManagePostBleveIndexesJob = &Permission{
 		"manage_post_bleve_indexes_job",
 		"",
@@ -1280,6 +1321,27 @@ func initializePermissions() {
 		PermissionScopeChannel,
 	}
 
+	PermissionManagePublicChannelBanner = &Permission{
+		"manage_public_channel_banner",
+		"",
+		"",
+		PermissionScopeChannel,
+	}
+
+	PermissionManagePrivateChannelBanner = &Permission{
+		"manage_private_channel_banner",
+		"",
+		"",
+		PermissionScopeChannel,
+	}
+
+	PermissionManageChannelAccessRules = &Permission{
+		"manage_channel_access_rules",
+		"",
+		"",
+		PermissionScopeChannel,
+	}
+
 	PermissionReadOtherUsersTeams = &Permission{
 		"read_other_users_teams",
 		"authentication.permissions.read_other_users_teams.name",
@@ -1618,6 +1680,18 @@ func initializePermissions() {
 	}
 	PermissionSysconsoleWriteEnvironmentDeveloper = &Permission{
 		"sysconsole_write_environment_developer",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PermissionSysconsoleReadEnvironmentMobileSecurity = &Permission{
+		"sysconsole_read_environment_mobile_security",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PermissionSysconsoleWriteEnvironmentMobileSecurity = &Permission{
+		"sysconsole_write_environment_mobile_security",
 		"",
 		"",
 		PermissionScopeSystem,
@@ -2056,12 +2130,15 @@ func initializePermissions() {
 		"",
 		PermissionScopeSystem,
 	}
+
+	// DEPRECATED
 	PermissionSysconsoleReadExperimentalBleve = &Permission{
 		"sysconsole_read_experimental_bleve",
 		"",
 		"",
 		PermissionScopeSystem,
 	}
+	// DEPRECATED
 	PermissionSysconsoleWriteExperimentalBleve = &Permission{
 		"sysconsole_write_experimental_bleve",
 		"",
@@ -2262,6 +2339,7 @@ func initializePermissions() {
 		PermissionSysconsoleReadEnvironmentSessionLengths,
 		PermissionSysconsoleReadEnvironmentPerformanceMonitoring,
 		PermissionSysconsoleReadEnvironmentDeveloper,
+		PermissionSysconsoleReadEnvironmentMobileSecurity,
 		PermissionSysconsoleReadSiteCustomization,
 		PermissionSysconsoleReadSiteLocalization,
 		PermissionSysconsoleReadSiteUsersAndTeams,
@@ -2291,7 +2369,6 @@ func initializePermissions() {
 		PermissionSysconsoleReadComplianceCustomTermsOfService,
 		PermissionSysconsoleReadExperimentalFeatures,
 		PermissionSysconsoleReadExperimentalFeatureFlags,
-		PermissionSysconsoleReadExperimentalBleve,
 		PermissionSysconsoleReadProductsBoards,
 		PermissionSysconsoleReadIPFilters,
 	}
@@ -2321,6 +2398,7 @@ func initializePermissions() {
 		PermissionSysconsoleWriteEnvironmentSessionLengths,
 		PermissionSysconsoleWriteEnvironmentPerformanceMonitoring,
 		PermissionSysconsoleWriteEnvironmentDeveloper,
+		PermissionSysconsoleWriteEnvironmentMobileSecurity,
 		PermissionSysconsoleWriteSiteCustomization,
 		PermissionSysconsoleWriteSiteLocalization,
 		PermissionSysconsoleWriteSiteUsersAndTeams,
@@ -2350,7 +2428,6 @@ func initializePermissions() {
 		PermissionSysconsoleWriteComplianceCustomTermsOfService,
 		PermissionSysconsoleWriteExperimentalFeatures,
 		PermissionSysconsoleWriteExperimentalFeatureFlags,
-		PermissionSysconsoleWriteExperimentalBleve,
 		PermissionSysconsoleWriteProductsBoards,
 		PermissionSysconsoleWriteIPFilters,
 	}
@@ -2368,7 +2445,6 @@ func initializePermissions() {
 		PermissionEditOtherUsers,
 		PermissionReadOtherUsersTeams,
 		PermissionGetPublicLink,
-		PermissionManageOAuth,
 		PermissionManageSystemWideOAuth,
 		PermissionCreateTeam,
 		PermissionListUsersWithoutTeam,
@@ -2410,9 +2486,6 @@ func initializePermissions() {
 		PermissionManageElasticsearchPostAggregationJob,
 		PermissionReadElasticsearchPostIndexingJob,
 		PermissionReadElasticsearchPostAggregationJob,
-		PermissionPurgeBleveIndexes,
-		PermissionCreatePostBleveIndexesJob,
-		PermissionManagePostBleveIndexesJob,
 		PermissionCreateLdapSyncJob,
 		PermissionManageLdapSyncJob,
 		PermissionReadLdapSyncJob,
@@ -2441,7 +2514,7 @@ func initializePermissions() {
 	TeamScopedPermissions := []*Permission{
 		PermissionInviteUser,
 		PermissionAddUserToTeam,
-		PermissionManageSlashCommands,
+		PermissionManageOwnSlashCommands,
 		PermissionManageOthersSlashCommands,
 		PermissionCreatePublicChannel,
 		PermissionCreatePrivateChannel,
@@ -2449,10 +2522,11 @@ func initializePermissions() {
 		PermissionListTeamChannels,
 		PermissionJoinPublicChannels,
 		PermissionReadPublicChannel,
-		PermissionManageIncomingWebhooks,
-		PermissionManageOutgoingWebhooks,
+		PermissionManageOwnIncomingWebhooks,
+		PermissionManageOwnOutgoingWebhooks,
 		PermissionManageOthersIncomingWebhooks,
 		PermissionManageOthersOutgoingWebhooks,
+		PermissionBypassIncomingWebhookChannelLock,
 		PermissionCreateEmojis,
 		PermissionDeleteEmojis,
 		PermissionDeleteOthersEmojis,
@@ -2503,6 +2577,9 @@ func initializePermissions() {
 		PermissionEditBookmarkPrivateChannel,
 		PermissionDeleteBookmarkPrivateChannel,
 		PermissionOrderBookmarkPrivateChannel,
+		PermissionManagePublicChannelBanner,
+		PermissionManagePrivateChannelBanner,
+		PermissionManageChannelAccessRules,
 	}
 
 	GroupScopedPermissions := []*Permission{
@@ -2516,6 +2593,10 @@ func initializePermissions() {
 		PermissionPermanentDeleteUser,
 		PermissionManageWebhooks,
 		PermissionManageOthersWebhooks,
+		PermissionManageIncomingWebhooks,
+		PermissionManageOutgoingWebhooks,
+		PermissionManageSlashCommands,
+		PermissionManageOAuth,
 		PermissionManageEmojis,
 		PermissionManageOthersEmojis,
 		PermissionSysconsoleReadAuthentication,
@@ -2534,6 +2615,11 @@ func initializePermissions() {
 		PermissionSysconsoleWriteIntegrations,
 		PermissionSysconsoleReadCompliance,
 		PermissionSysconsoleWriteCompliance,
+		PermissionPurgeBleveIndexes,
+		PermissionCreatePostBleveIndexesJob,
+		PermissionManagePostBleveIndexesJob,
+		PermissionSysconsoleReadExperimentalBleve,
+		PermissionSysconsoleWriteExperimentalBleve,
 	}
 
 	PlaybookScopedPermissions := []*Permission{
@@ -2604,12 +2690,17 @@ func init() {
 }
 
 func MakePermissionError(s *Session, permissions []*Permission) *AppError {
-	permissionsStr := "permission="
+	return MakePermissionErrorForUser(s.UserId, permissions)
+}
+
+func MakePermissionErrorForUser(userId string, permissions []*Permission) *AppError {
+	var permissionsStr strings.Builder
+	permissionsStr.WriteString("permission=")
 	for i, permission := range permissions {
-		permissionsStr += permission.Id
+		permissionsStr.WriteString(permission.Id)
 		if i != len(permissions)-1 {
-			permissionsStr += ","
+			permissionsStr.WriteString(",")
 		}
 	}
-	return NewAppError("Permissions", "api.context.permissions.app_error", nil, "userId="+s.UserId+", "+permissionsStr, http.StatusForbidden)
+	return NewAppError("Permissions", "api.context.permissions.app_error", nil, "userId="+userId+", "+permissionsStr.String(), http.StatusForbidden)
 }

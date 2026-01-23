@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/UserProfile should match snapshot 1`] = `
 <Fragment>
@@ -50,10 +50,6 @@ exports[`components/UserProfile should match snapshot, when user is shared 1`] =
   >
     nickname
   </ProfilePopoverController>
-  <SharedUserIndicator
-    className="shared-user-icon"
-    id="sharedUserIndicator-user_id"
-  />
 </Fragment>
 `;
 

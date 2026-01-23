@@ -19,12 +19,13 @@ import {getGlobalItem} from 'selectors/storage';
 import {StoragePrefixes} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
+import type {EditingPostDetails} from 'types/store/views';
 
 export function getIsPostBeingEdited(state: GlobalState, postId: string) {
     return state.views.posts.editingPost.postId === postId && state.views.posts.editingPost.show;
 }
 export function getIsPostBeingEditedInRHS(state: GlobalState, postId: string) {
-    const editingPost = getEditingPost(state);
+    const editingPost = getEditingPostDetailsAndPost(state);
 
     return editingPost.isRHS && editingPost.postId === postId && state.views.posts.editingPost.show;
 }
@@ -33,15 +34,17 @@ export function getPostEditHistory(state: GlobalState): Post[] {
     return state.entities.posts.postEditHistory;
 }
 
-export const getEditingPost = createSelector(
-    'getEditingPost',
+export const getEditingPostDetailsAndPost = createSelector(
+    'getEditingPostDetailsAndPost',
     (state: GlobalState) => state.views.posts.editingPost,
     (state: GlobalState) => getPost(state, state.views.posts.editingPost.postId),
     (editingPost, post) => {
-        return {
+        const editingPostDetailsAndPost: EditingPostDetails & {post: Post} = {
             ...editingPost,
             post,
         };
+
+        return editingPostDetailsAndPost;
     },
 );
 

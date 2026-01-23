@@ -1,4 +1,4 @@
-@charset 'UTF-8';
+@use "utils/variables";
 
 .style--none {
     padding: 0;
@@ -21,7 +21,7 @@
     }
 }
 
-.rounded-button {
+.btn-round {
     border-radius: 50%;
 }
 
@@ -50,6 +50,10 @@ button {
     gap: 8px;
     outline: none !important;
     transition: all 0.15s ease;
+
+    &.btn-round {
+        border-radius: 50%;
+    }
 
     &.btn-icon {
         width: 40px;
@@ -153,7 +157,7 @@ button {
     &.btn-xs {
         height: 24px;
         padding: 0 10px;
-        font-size: 11px;
+        font-size: 12px;
         gap: 6px;
 
         i {
@@ -190,6 +194,7 @@ button {
     }
 
     &.btn-link {
+        height: initial;
         padding: 0;
         border: none;
         background: transparent;
@@ -225,6 +230,19 @@ button {
             color: rgba(var(--center-channel-color-rgb), 0.32) !important;
             opacity: 1;
         }
+
+        &.btn-success {
+            background-color: var(--online-indicator);
+            color: var(--button-color-rgb);
+
+            &:hover {
+                background-color: var(--online-indicator);
+            }
+
+            &:active {
+                background-color: var(--online-indicator);
+            }
+        }
     }
 
     &.btn-secondary {
@@ -249,6 +267,14 @@ button {
                 background-color: rgba(var(--error-text-color-rgb), 0.16);
                 color: var(--error-text);
             }
+        }
+
+        &:disabled,
+        &:disabled:hover,
+        &:disabled:active {
+            border-color: rgba(var(--center-channel-color-rgb), 0.32);
+            background: transparent;
+            color: rgba(var(--center-channel-color-rgb), 0.32) !important;
         }
 
         &:hover {
@@ -297,6 +323,20 @@ button {
             }
         }
     }
+    &.btn-tertiary.btn-inverted {
+        background-color: rgba(var(--sidebar-text-rgb), 0.12);
+        color: rgba(var(--sidebar-text-rgb), 1);
+
+        &:hover {
+            background-color: rgb(var(--sidebar-text-rgb), 0.16);
+        }
+
+        &:active,
+        &[aria-expanded="true"][aria-haspopup="true"] {
+            background-color: rgb(var(--sidebar-text-rgb), 0.24);
+            outline: none;
+        }
+    }
 
     &.btn-quaternary {
         background: transparent;
@@ -309,26 +349,39 @@ button {
         &:active {
             background-color: rgb(var(--button-bg-rgb), 0.12);
         }
+
+        &.btn-inverted {
+            color: rgb(var(--button-color-rgb));
+
+            &:hover {
+                background: rgba(var(--button-color-rgb), 0.12);
+            }
+
+            &:active,
+            &[aria-expanded="true"][aria-haspopup="true"] {
+                background-color: rgb(var(--button-color-rgb), 0.16);
+            }
+        }
     }
 
     &.btn-danger {
         background: var(--error-text);
-        color: $white;
+        color: variables.$white;
 
         .app__body & {
-            color: $white;
+            color: variables.$white;
 
             &:hover,
             &:focus,
             &:active {
-                color: $white;
+                color: variables.$white;
             }
         }
 
         &:hover,
         &:focus,
         &:active {
-            color: $white;
+            color: variables.$white;
         }
     }
 
@@ -340,8 +393,8 @@ button {
 
     &.btn-inactive {
         border-color: transparent;
-        background: $light-gray;
-        color: $white;
+        background: variables.$light-gray;
+        color: variables.$white;
     }
 
     .fa {
@@ -355,8 +408,4 @@ button {
             margin-left: 6px;
         }
     }
-}
-
-%btn-transition {
-    transition: all 0.15s ease;
 }

@@ -5,12 +5,12 @@ package app
 
 import (
 	"archive/zip"
+	"bytes"
 	"errors"
 	"fmt"
 	"image"
 	"io"
 	"os"
-	"path"
 	"path/filepath"
 	"testing"
 	"time"
@@ -26,10 +26,10 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	eMocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/mocks"
-	filesStoreMocks "github.com/mattermost/mattermost/server/v8/platform/shared/filestore/mocks"
 )
 
 func TestGeneratePublicLinkHash(t *testing.T) {
+	mainHelper.Parallel(t)
 	filename1 := model.NewId() + "/" + model.NewRandomString(16) + ".txt"
 	filename2 := model.NewId() + "/" + model.NewRandomString(16) + ".txt"
 	salt1 := model.NewRandomString(32)
@@ -48,8 +48,8 @@ func TestGeneratePublicLinkHash(t *testing.T) {
 }
 
 func TestDoUploadFile(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	teamID := model.NewId()
 	channelID := model.NewId()
@@ -60,8 +60,10 @@ func TestDoUploadFile(t *testing.T) {
 	info1, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data, true)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info1.Id)
-		th.App.RemoveFile(info1.Path)
+		err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info1.Id)
+		require.NoError(t, err)
+		appErr := th.App.RemoveFile(info1.Path)
+		require.Nil(t, appErr)
 	}()
 
 	value := fmt.Sprintf("20070204/teams/%v/channels/%v/users/%v/%v/%v", teamID, channelID, userID, info1.Id, filename)
@@ -70,8 +72,10 @@ func TestDoUploadFile(t *testing.T) {
 	info2, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data, true)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info2.Id)
-		th.App.RemoveFile(info2.Path)
+		err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info2.Id)
+		require.NoError(t, err)
+		appErr := th.App.RemoveFile(info2.Path)
+		require.Nil(t, appErr)
 	}()
 
 	value = fmt.Sprintf("20070204/teams/%v/channels/%v/users/%v/%v/%v", teamID, channelID, userID, info2.Id, filename)
@@ -80,8 +84,10 @@ func TestDoUploadFile(t *testing.T) {
 	info3, err := th.App.DoUploadFile(th.Context, time.Date(2008, 3, 5, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data, true)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info3.Id)
-		th.App.RemoveFile(info3.Path)
+		err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info3.Id)
+		require.NoError(t, err)
+		appErr := th.App.RemoveFile(info3.Path)
+		require.Nil(t, appErr)
 	}()
 
 	value = fmt.Sprintf("20080305/teams/%v/channels/%v/users/%v/%v/%v", teamID, channelID, userID, info3.Id, filename)
@@ -90,8 +96,10 @@ func TestDoUploadFile(t *testing.T) {
 	info4, err := th.App.DoUploadFile(th.Context, time.Date(2009, 3, 5, 1, 2, 3, 4, time.Local), "../../"+teamID, "../../"+channelID, "../../"+userID, "../../"+filename, data, true)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info4.Id)
-		th.App.RemoveFile(info4.Path)
+		err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info4.Id)
+		require.NoError(t, err)
+		appErr := th.App.RemoveFile(info4.Path)
+		require.Nil(t, appErr)
 	}()
 
 	value = fmt.Sprintf("20090305/teams/%v/channels/%v/users/%v/%v/%v", teamID, channelID, userID, info4.Id, filename)
@@ -100,8 +108,10 @@ func TestDoUploadFile(t *testing.T) {
 	info5, err := th.App.DoUploadFile(th.Context, time.Date(2008, 3, 5, 1, 2, 3, 4, time.Local), teamID, channelID, model.BookmarkFileOwner, filename, data, true)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info5.Id)
-		th.App.RemoveFile(info3.Path)
+		err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info5.Id)
+		require.NoError(t, err)
+		appErr := th.App.RemoveFile(info5.Path)
+		require.Nil(t, appErr)
 	}()
 
 	value = fmt.Sprintf("%v/teams/%v/channels/%v/%v/%v", model.BookmarkFileOwner, teamID, channelID, info5.Id, filename)
@@ -109,8 +119,8 @@ func TestDoUploadFile(t *testing.T) {
 }
 
 func TestUploadFile(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	channelID := th.BasicChannel.Id
 	filename := "test"
@@ -127,8 +137,10 @@ func TestUploadFile(t *testing.T) {
 	info1, err = th.App.UploadFile(th.Context, data, channelID, filename)
 	require.Nil(t, err, "UploadFile should succeed with valid data")
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info1.Id)
-		th.App.RemoveFile(info1.Path)
+		err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info1.Id)
+		require.NoError(t, err)
+		appErr := th.App.RemoveFile(info1.Path)
+		require.Nil(t, appErr)
 	}()
 
 	value := fmt.Sprintf("%v/teams/noteam/channels/%v/users/nouser/%v/%v",
@@ -137,8 +149,8 @@ func TestUploadFile(t *testing.T) {
 }
 
 func TestParseOldFilenames(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	fileID := model.NewId()
 
@@ -234,8 +246,8 @@ func TestParseOldFilenames(t *testing.T) {
 }
 
 func TestGetInfoForFilename(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	post := th.BasicPost
 	teamID := th.BasicTeam.Id
@@ -245,8 +257,8 @@ func TestGetInfoForFilename(t *testing.T) {
 }
 
 func TestFindTeamIdForFilename(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	teamID := th.App.findTeamIdForFilename(th.Context, th.BasicPost, "someid", "somefile.png")
 	assert.Equal(t, th.BasicTeam.Id, teamID)
@@ -259,8 +271,8 @@ func TestFindTeamIdForFilename(t *testing.T) {
 }
 
 func TestMigrateFilenamesToFileInfos(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	post := th.BasicPost
 	infos := th.App.MigrateFilenamesToFileInfos(th.Context, post)
@@ -279,78 +291,118 @@ func TestMigrateFilenamesToFileInfos(t *testing.T) {
 	fpath := fmt.Sprintf("/teams/%v/channels/%v/users/%v/%v/test.png", th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, fileID)
 	_, err := th.App.WriteFile(file, fpath)
 	require.Nil(t, err)
-	rpost, err := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Filenames: []string{fmt.Sprintf("/%v/%v/%v/test.png", th.BasicChannel.Id, th.BasicUser.Id, fileID)}}, th.BasicChannel, false, true)
+	rpost, _, err := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Filenames: []string{fmt.Sprintf("/%v/%v/%v/test.png", th.BasicChannel.Id, th.BasicUser.Id, fileID)}}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, err)
 
 	infos = th.App.MigrateFilenamesToFileInfos(th.Context, rpost)
 	assert.Equal(t, 1, len(infos))
 
-	rpost, err = th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Filenames: []string{fmt.Sprintf("/%v/%v/%v/../../test.png", th.BasicChannel.Id, th.BasicUser.Id, fileID)}}, th.BasicChannel, false, true)
+	rpost, _, err = th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Filenames: []string{fmt.Sprintf("/%v/%v/%v/../../test.png", th.BasicChannel.Id, th.BasicUser.Id, fileID)}}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, err)
 
 	infos = th.App.MigrateFilenamesToFileInfos(th.Context, rpost)
 	assert.Equal(t, 0, len(infos))
 }
 
-func TestCreateZipFileAndAddFiles(t *testing.T) {
+func TestWriteZipFile(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
-
-	const (
-		zipName   = "zip-file-name-to-heaven.zip"
-		directory = "directory-to-heaven"
-	)
-
-	t.Run("write file fails", func(t *testing.T) {
-		mockBackend := filesStoreMocks.FileBackend{}
-		mockBackend.On("WriteFile", mock.Anything, path.Join(directory, zipName)).Return(int64(666), errors.New("only those who dare to fail greatly can ever achieve greatly"))
-
-		err := th.App.CreateZipFileAndAddFiles(&mockBackend, []model.FileData{}, zipName, directory)
-
-		require.Error(t, err)
-		require.Equal(t, err.Error(), "only those who dare to fail greatly can ever achieve greatly")
-	})
 
 	t.Run("write no file", func(t *testing.T) {
-		mockBackend := filesStoreMocks.FileBackend{}
-		mockBackend.On("WriteFile", mock.Anything, path.Join(directory, zipName)).Return(int64(666), nil)
-		err := th.App.CreateZipFileAndAddFiles(&mockBackend, []model.FileData{}, zipName, directory)
+		buf := new(bytes.Buffer)
+		err := th.App.WriteZipFile(buf, []model.FileData{})
 		require.NoError(t, err)
+
+		// Verify it's a valid zip file
+		reader := bytes.NewReader(buf.Bytes())
+		z, err := zip.NewReader(reader, int64(buf.Len()))
+		require.NoError(t, err)
+		require.Len(t, z.File, 0)
 	})
 
 	t.Run("write one file", func(t *testing.T) {
-		mockBackend := filesStoreMocks.FileBackend{}
-		mockBackend.On("WriteFile", mock.Anything, path.Join(directory, zipName)).Return(int64(666), nil).Run(func(args mock.Arguments) {
-			r, err := zip.OpenReader(zipName)
-			require.NoError(t, err)
-			require.Len(t, r.File, 1)
-
-			file := r.File[0]
-			assert.Equal(t, "file1", file.Name)
-			now := time.Now().Truncate(time.Second) // Files are stored with a second precision
-			// Confirm that the file was created in the last 10 seconds
-			assert.GreaterOrEqual(t, file.Modified, now.Add(-10*time.Second))
-			assert.GreaterOrEqual(t, now, file.Modified)
-
-			fr, err := file.Open()
-			require.NoError(t, err)
-			b, err := io.ReadAll(fr)
-			require.NoError(t, err)
-			assert.Equal(t, []byte("content1"), b)
-		})
-		err := th.App.CreateZipFileAndAddFiles(&mockBackend, []model.FileData{
+		buf := new(bytes.Buffer)
+		err := th.App.WriteZipFile(buf, []model.FileData{
 			{
-				Filename: "file1",
+				Filename: "file1.txt",
 				Body:     []byte("content1"),
 			},
-		}, zipName, directory)
+		})
 		require.NoError(t, err)
+
+		// Verify the zip contents
+		reader := bytes.NewReader(buf.Bytes())
+		z, err := zip.NewReader(reader, int64(buf.Len()))
+		require.NoError(t, err)
+		require.Len(t, z.File, 1)
+
+		file := z.File[0]
+		assert.Equal(t, "file1.txt", file.Name)
+
+		now := time.Now().Truncate(time.Second) // Files are stored with a second precision
+		// Confirm that the file was created in the last 10 seconds
+		assert.GreaterOrEqual(t, file.Modified, now.Add(-10*time.Second))
+		assert.GreaterOrEqual(t, now, file.Modified)
+
+		// Check file content
+		fr, err := file.Open()
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			err = fr.Close()
+			require.NoError(t, err)
+		})
+
+		content, err := io.ReadAll(fr)
+		require.NoError(t, err)
+		assert.Equal(t, []byte("content1"), content)
+	})
+
+	t.Run("write multiple files", func(t *testing.T) {
+		buf := new(bytes.Buffer)
+		fileDatas := []model.FileData{
+			{
+				Filename: "file1.txt",
+				Body:     []byte("content1"),
+			},
+			{
+				Filename: "file2.txt",
+				Body:     []byte("content2"),
+			},
+			{
+				Filename: "dir/file3.txt",
+				Body:     []byte("content3"),
+			},
+		}
+
+		err := th.App.WriteZipFile(buf, fileDatas)
+		require.NoError(t, err)
+
+		// Verify the zip contents
+		reader := bytes.NewReader(buf.Bytes())
+		z, err := zip.NewReader(reader, int64(buf.Len()))
+		require.NoError(t, err)
+		require.Len(t, z.File, 3)
+
+		// Check each file
+		for i, zf := range z.File {
+			assert.Equal(t, fileDatas[i].Filename, zf.Name)
+
+			fr, err := zf.Open()
+			require.NoError(t, err)
+
+			content, err := io.ReadAll(fr)
+			require.NoError(t, err)
+			assert.Equal(t, fileDatas[i].Body, content)
+
+			err = fr.Close()
+			require.NoError(t, err)
+		}
 	})
 }
 
 func TestCopyFileInfos(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	teamID := model.NewId()
 	channelID := model.NewId()
@@ -361,8 +413,8 @@ func TestCopyFileInfos(t *testing.T) {
 	info1, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data, true)
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info1.Id)
-		th.App.RemoveFile(info1.Path)
+		err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info1.Id)
+		require.NoError(t, err)
 	}()
 
 	infoIds, err := th.App.CopyFileInfos(th.Context, userID, []string{info1.Id})
@@ -371,8 +423,10 @@ func TestCopyFileInfos(t *testing.T) {
 	info2, err := th.App.GetFileInfo(th.Context, infoIds[0])
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info2.Id)
-		th.App.RemoveFile(info2.Path)
+		err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info2.Id)
+		require.NoError(t, err)
+		appErr := th.App.RemoveFile(info2.Path)
+		require.Nil(t, appErr)
 	}()
 
 	assert.NotEqual(t, info1.Id, info2.Id, "should not be equal")
@@ -380,12 +434,13 @@ func TestCopyFileInfos(t *testing.T) {
 }
 
 func TestGenerateThumbnailImage(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("test generating thumbnail image", func(t *testing.T) {
 		// given
 		th := Setup(t)
-		defer th.TearDown()
+
 		img := createDummyImage()
-		dataPath, _ := fileutils.FindDir("data")
+		dataPath := *th.App.Config().FileSettings.Directory
 		thumbnailName := "thumb.jpg"
 		thumbnailPath := filepath.Join(dataPath, thumbnailName)
 
@@ -396,7 +451,7 @@ func TestGenerateThumbnailImage(t *testing.T) {
 		// then
 		outputImage, err := os.Stat(thumbnailPath)
 		assert.NoError(t, err)
-		assert.Equal(t, int64(957), outputImage.Size())
+		assert.Equal(t, int64(721), outputImage.Size())
 	})
 }
 
@@ -409,11 +464,12 @@ func createDummyImage() *image.RGBA {
 }
 
 func TestSearchFilesInTeamForUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	perPage := 5
 	searchTerm := "searchTerm"
 
 	setup := func(t *testing.T, enableElasticsearch bool) (*TestHelper, []*model.FileInfo) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 
 		fileInfos := make([]*model.FileInfo, 7)
 		for i := 0; i < cap(fileInfos); i++ {
@@ -452,11 +508,10 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 
 	t.Run("should return everything as first page of fileInfos from database", func(t *testing.T) {
 		th, fileInfos := setup(t, false)
-		defer th.TearDown()
 
 		page := 0
 
-		results, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, allFilesHaveMembership, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		require.Nil(t, err)
 		require.NotNil(t, results)
@@ -469,24 +524,24 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 			fileInfos[1].Id,
 			fileInfos[0].Id,
 		}, results.Order)
+		require.True(t, allFilesHaveMembership)
 	})
 
 	t.Run("should not return later pages of fileInfos from database", func(t *testing.T) {
 		th, _ := setup(t, false)
-		defer th.TearDown()
 
 		page := 1
 
-		results, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, allFilesHaveMembership, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		require.Nil(t, err)
 		require.NotNil(t, results)
 		assert.Equal(t, []string{}, results.Order)
+		require.True(t, allFilesHaveMembership)
 	})
 
 	t.Run("should return first page of fileInfos from ElasticSearch", func(t *testing.T) {
 		th, fileInfos := setup(t, true)
-		defer th.TearDown()
 
 		page := 0
 		resultsPage := []string{
@@ -507,17 +562,17 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 			th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, allFilesHaveMembership, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		require.Nil(t, err)
 		require.NotNil(t, results)
 		assert.Equal(t, resultsPage, results.Order)
+		require.True(t, allFilesHaveMembership)
 		es.AssertExpectations(t)
 	})
 
 	t.Run("should return later pages of fileInfos from ElasticSearch", func(t *testing.T) {
 		th, fileInfos := setup(t, true)
-		defer th.TearDown()
 
 		page := 1
 		resultsPage := []string{
@@ -535,17 +590,17 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 			th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, allFilesHaveMembership, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		require.Nil(t, err)
 		require.NotNil(t, results)
 		assert.Equal(t, resultsPage, results.Order)
+		require.True(t, allFilesHaveMembership)
 		es.AssertExpectations(t)
 	})
 
 	t.Run("should fall back to database if ElasticSearch fails on first page", func(t *testing.T) {
 		th, fileInfos := setup(t, true)
-		defer th.TearDown()
 
 		page := 0
 
@@ -560,7 +615,7 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 			th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, allFilesHaveMembership, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		require.Nil(t, err)
 		require.NotNil(t, results)
@@ -573,12 +628,12 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 			fileInfos[1].Id,
 			fileInfos[0].Id,
 		}, results.Order)
+		require.True(t, allFilesHaveMembership)
 		es.AssertExpectations(t)
 	})
 
 	t.Run("should return nothing if ElasticSearch fails on later pages", func(t *testing.T) {
 		th, _ := setup(t, true)
-		defer th.TearDown()
 
 		page := 1
 
@@ -593,15 +648,17 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 			th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, allFilesHaveMembership, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		require.Nil(t, err)
 		assert.Equal(t, []string{}, results.Order)
+		require.True(t, allFilesHaveMembership)
 		es.AssertExpectations(t)
 	})
 }
 
 func TestExtractContentFromFileInfo(t *testing.T) {
+	mainHelper.Parallel(t)
 	app := &App{}
 	fi := &model.FileInfo{
 		MimeType: "image/jpeg",
@@ -612,8 +669,8 @@ func TestExtractContentFromFileInfo(t *testing.T) {
 }
 
 func TestGetLastAccessibleFileTime(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	r, err := th.App.GetLastAccessibleFileTime()
 	require.Nil(t, err)
@@ -645,9 +702,9 @@ func TestGetLastAccessibleFileTime(t *testing.T) {
 }
 
 func TestComputeLastAccessibleFileTime(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("Updates the time, if cloud limit is applicable", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
@@ -676,7 +733,6 @@ func TestComputeLastAccessibleFileTime(t *testing.T) {
 
 	t.Run("Removes the time, if cloud limit is not applicable", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
@@ -704,8 +760,8 @@ func TestComputeLastAccessibleFileTime(t *testing.T) {
 }
 
 func TestSetFileSearchableContent(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	fileInfo, err := th.App.Srv().Store().FileInfo().Save(th.Context,
 		&model.FileInfo{
@@ -719,14 +775,217 @@ func TestSetFileSearchableContent(t *testing.T) {
 		})
 	require.NoError(t, err)
 
-	result, appErr := th.App.SearchFilesInTeamForUser(th.Context, "searchable", th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, 0, 60)
+	result, allFilesHaveMembership, appErr := th.App.SearchFilesInTeamForUser(th.Context, "searchable", th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, 0, 60)
 	require.Nil(t, appErr)
 	assert.Equal(t, 0, len(result.Order))
+	require.True(t, allFilesHaveMembership)
 
 	appErr = th.App.SetFileSearchableContent(th.Context, fileInfo.Id, "searchable")
 	require.Nil(t, appErr)
 
-	result, appErr = th.App.SearchFilesInTeamForUser(th.Context, "searchable", th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, 0, 60)
+	result, allFilesHaveMembership, appErr = th.App.SearchFilesInTeamForUser(th.Context, "searchable", th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, 0, 60)
 	require.Nil(t, appErr)
 	assert.Equal(t, 1, len(result.Order))
+	require.True(t, allFilesHaveMembership)
+}
+
+func TestPermanentDeleteFilesByPost(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	t.Run("should delete files for post", func(t *testing.T) {
+		// Create a post with a file attachment.
+		teamID := th.BasicTeam.Id
+		channelID := th.BasicChannel.Id
+		userID := th.BasicUser.Id
+		filename := "test"
+		data := []byte("abcd")
+
+		info1, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data, true)
+		require.Nil(t, err)
+
+		post := &model.Post{
+			Message:       "asd",
+			ChannelId:     channelID,
+			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+			UserId:        userID,
+			CreateAt:      0,
+			FileIds:       []string{info1.Id},
+		}
+
+		post, _, err = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		assert.Nil(t, err)
+
+		err = th.App.PermanentDeleteFilesByPost(th.Context, post.Id)
+		require.Nil(t, err)
+
+		_, err = th.App.GetFileInfo(th.Context, info1.Id)
+		require.NotNil(t, err)
+	})
+
+	t.Run("should not delete files for post that doesn't exist", func(t *testing.T) {
+		err := th.App.PermanentDeleteFilesByPost(th.Context, "postId1")
+		assert.Nil(t, err)
+	})
+
+	t.Run("should handle empty file list", func(t *testing.T) {
+		post := &model.Post{
+			Message:       "asd",
+			ChannelId:     th.BasicChannel.Id,
+			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+			UserId:        th.BasicUser.Id,
+			CreateAt:      0,
+		}
+
+		post, _, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		assert.Nil(t, err)
+
+		err = th.App.PermanentDeleteFilesByPost(th.Context, post.Id)
+		assert.Nil(t, err)
+	})
+}
+
+func TestFilterFilesByChannelPermissions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.GuestAccountsSettings.Enable = true
+	})
+
+	guestUser := th.CreateGuest(t)
+	_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, guestUser.Id, "")
+	require.Nil(t, appErr)
+
+	privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+
+	_, appErr = th.App.AddUserToChannel(th.Context, guestUser, privateChannel, false)
+	require.Nil(t, appErr)
+	_, appErr = th.App.AddUserToChannel(th.Context, guestUser, th.BasicChannel, false)
+	require.Nil(t, appErr)
+
+	post1 := th.CreatePost(t, th.BasicChannel)
+	post2 := th.CreatePost(t, privateChannel)
+	post3 := th.CreatePost(t, th.BasicChannel)
+
+	fileInfo1 := th.CreateFileInfo(t, th.BasicUser.Id, post1.Id, th.BasicChannel.Id)
+	fileInfo2 := th.CreateFileInfo(t, th.BasicUser.Id, post2.Id, privateChannel.Id)
+	fileInfo3 := th.CreateFileInfo(t, th.BasicUser.Id, post3.Id, th.BasicChannel.Id)
+
+	t.Run("should filter files when user has read_channel_content permission", func(t *testing.T) {
+		fileList := model.NewFileInfoList()
+		fileList.FileInfos[fileInfo1.Id] = fileInfo1
+		fileList.FileInfos[fileInfo2.Id] = fileInfo2
+		fileList.FileInfos[fileInfo3.Id] = fileInfo3
+		fileList.Order = []string{fileInfo1.Id, fileInfo2.Id, fileInfo3.Id}
+
+		// BasicUser should have access to all files
+		allFilesHaveMembership, appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.Len(t, fileList.FileInfos, 3)
+		require.Len(t, fileList.Order, 3)
+		require.True(t, allFilesHaveMembership)
+	})
+
+	t.Run("should filter files when guest has read_channel_content permission", func(t *testing.T) {
+		fileList := model.NewFileInfoList()
+		fileList.FileInfos[fileInfo1.Id] = fileInfo1
+		fileList.FileInfos[fileInfo2.Id] = fileInfo2
+		fileList.FileInfos[fileInfo3.Id] = fileInfo3
+		fileList.Order = []string{fileInfo1.Id, fileInfo2.Id, fileInfo3.Id}
+
+		allFilesHaveMembership, appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, guestUser.Id)
+		require.Nil(t, appErr)
+		require.Len(t, fileList.FileInfos, 3)
+		require.Len(t, fileList.Order, 3)
+		require.True(t, allFilesHaveMembership)
+	})
+
+	t.Run("should filter files when guest does not have read_channel_content permission", func(t *testing.T) {
+		channelGuestRole, appErr := th.App.GetRoleByName(th.Context, model.ChannelGuestRoleId)
+		require.Nil(t, appErr)
+
+		originalPermissions := make([]string, len(channelGuestRole.Permissions))
+		copy(originalPermissions, channelGuestRole.Permissions)
+
+		newPermissions := []string{}
+		for _, perm := range channelGuestRole.Permissions {
+			if perm != model.PermissionReadChannelContent.Id && perm != model.PermissionReadChannel.Id {
+				newPermissions = append(newPermissions, perm)
+			}
+		}
+
+		_, appErr = th.App.PatchRole(channelGuestRole, &model.RolePatch{
+			Permissions: &newPermissions,
+		})
+		require.Nil(t, appErr)
+
+		defer func() {
+			_, err := th.App.PatchRole(channelGuestRole, &model.RolePatch{
+				Permissions: &originalPermissions,
+			})
+			require.Nil(t, err)
+		}()
+
+		fileList := model.NewFileInfoList()
+		fileList.FileInfos[fileInfo1.Id] = fileInfo1
+		fileList.FileInfos[fileInfo2.Id] = fileInfo2
+		fileList.FileInfos[fileInfo3.Id] = fileInfo3
+		fileList.Order = []string{fileInfo1.Id, fileInfo2.Id, fileInfo3.Id}
+
+		allFilesHaveMembership, appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, guestUser.Id)
+		require.Nil(t, appErr)
+		require.Len(t, fileList.FileInfos, 0)
+		require.Len(t, fileList.Order, 0)
+		require.True(t, allFilesHaveMembership)
+	})
+
+	t.Run("should handle empty file list", func(t *testing.T) {
+		fileList := model.NewFileInfoList()
+		allFilesHaveMembership, appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.Len(t, fileList.FileInfos, 0)
+		require.Len(t, fileList.Order, 0)
+		require.True(t, allFilesHaveMembership)
+	})
+
+	t.Run("should handle nil file list", func(t *testing.T) {
+		allFilesHaveMembership, appErr := th.App.FilterFilesByChannelPermissions(th.Context, nil, th.BasicUser.Id)
+		require.True(t, allFilesHaveMembership)
+		require.Nil(t, appErr)
+	})
+
+	t.Run("should handle files with empty channel IDs", func(t *testing.T) {
+		fileList := model.NewFileInfoList()
+		fileWithoutChannel := &model.FileInfo{
+			Id:        model.NewId(),
+			ChannelId: "",
+			Name:      "test.txt",
+		}
+		fileList.FileInfos[fileWithoutChannel.Id] = fileWithoutChannel
+		fileList.Order = []string{fileWithoutChannel.Id}
+
+		allFilesHaveMembership, appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.Len(t, fileList.FileInfos, 0)
+		require.Len(t, fileList.Order, 0)
+		require.True(t, allFilesHaveMembership)
+	})
+
+	t.Run("should handle files from non-existent channels", func(t *testing.T) {
+		fileList := model.NewFileInfoList()
+		fileWithInvalidChannel := &model.FileInfo{
+			Id:        model.NewId(),
+			ChannelId: model.NewId(),
+			Name:      "test.txt",
+		}
+		fileList.FileInfos[fileWithInvalidChannel.Id] = fileWithInvalidChannel
+		fileList.Order = []string{fileWithInvalidChannel.Id}
+
+		allFilesHaveMembership, appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.Len(t, fileList.FileInfos, 0)
+		require.Len(t, fileList.Order, 0)
+		require.True(t, allFilesHaveMembership)
+	})
 }

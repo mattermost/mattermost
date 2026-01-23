@@ -11,6 +11,7 @@ import (
 )
 
 func TestGeneratePassword(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("Should be the minimum length or 4, whichever is less", func(t *testing.T) {
 		password1, err := generatePassword(5)
 		require.NoError(t, err)
@@ -34,8 +35,11 @@ func TestGeneratePassword(t *testing.T) {
 	})
 
 	t.Run("Should not fail on concurrent calls", func(t *testing.T) {
-		for i := 0; i < 10; i++ {
-			go generatePassword(10)
+		for range 10 {
+			go func() {
+				_, err := generatePassword(10)
+				require.NoError(t, err)
+			}()
 		}
 	})
 }

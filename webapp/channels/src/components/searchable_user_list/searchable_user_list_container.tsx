@@ -15,8 +15,9 @@ type Props = {
     total: number;
     extraInfo?: {[key: string]: Array<string | JSX.Element>};
     nextPage: (page: number) => void;
+    previousPage?: (page: number) => void;
     search: (term: string) => void;
-    actions?: React.ReactNode[];
+    actions?: Array<React.ComponentType<any>>;
     actionProps?: {
         mfaEnabled: boolean;
         enableUserAccessTokens: boolean;
@@ -53,6 +54,7 @@ export default function SearchableUserListContainer(props: Props) {
 
     const previousPage = () => {
         setPage(page - 1);
+        props.previousPage?.(page - 1);
     };
 
     const search = (term: string) => {

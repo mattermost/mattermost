@@ -30,7 +30,7 @@ function AirGappedModal({onClose}: Props) {
             dialogClassName={'AirGappedModal__dialog'}
             show={true}
             id='airGappedModal'
-            role='dialog'
+            role='none'
             onHide={() => onClose?.()}
         >
             <Modal.Header closeButton={true}>
@@ -62,7 +62,7 @@ function AirGappedModal({onClose}: Props) {
                 </div>
                 <div className='buttons'>
                     <Button
-                        className='confirm-btn'
+                        className='btn btn-primary'
                         onClick={() => onClose?.()}
                     >
                         {formatMessage({id: 'air_gapped_modal.close', defaultMessage: 'Close'})}

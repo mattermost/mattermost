@@ -37,6 +37,13 @@ export type AdminConsoleUserManagementTableProperties = {
     dateRange?: ReportDuration;
 };
 
+export type EditingPostDetails = {
+    postId: string;
+    refocusId: string;
+    isRHS: boolean;
+    show: boolean;
+};
+
 export type ViewsState = {
     admin: {
         navigationBlock: {
@@ -92,11 +99,7 @@ export type ViewsState = {
     rhsSuppressed: boolean;
 
     posts: {
-        editingPost: {
-            postId: string;
-            show: boolean;
-            isRHS: boolean;
-        };
+        editingPost: EditingPostDetails;
         menuActions: {
             [postId: string]: {
                 [actionId: string]: {
@@ -126,6 +129,10 @@ export type ViewsState = {
     i18n: I18nState;
 
     lhs: LhsViewState;
+
+    readout: {
+        message: string | null;
+    };
 
     search: {
         modalSearch: string;
@@ -191,14 +198,6 @@ export type ViewsState = {
         lastSelectedChannel: string;
     };
 
-    statusDropdown: {
-        isOpen: boolean;
-    };
-
-    addChannelDropdown: {
-        isOpen: boolean;
-    };
-
     addChannelCtaDropdown: {
         isOpen: boolean;
     };
@@ -212,6 +211,7 @@ export type ViewsState = {
     threads: {
         selectedThreadIdInTeam: RelationOneToOne<Team, UserThread['id'] | null>;
         lastViewedAt: {[id: string]: number};
+        lastUpdateAt: {[id: string]: number};
         manuallyUnread: {[id: string]: boolean};
         toastStatus: boolean;
     };
@@ -221,5 +221,7 @@ export type ViewsState = {
         shouldShowPreviewOnCreatePost: boolean;
         shouldShowPreviewOnEditChannelHeaderModal: boolean;
         shouldShowPreviewOnEditPostModal: boolean;
+        shouldShowPreviewOnChannelSettingsHeaderModal: boolean;
+        shouldShowPreviewOnChannelSettingsPurposeModal: boolean;
     };
 };

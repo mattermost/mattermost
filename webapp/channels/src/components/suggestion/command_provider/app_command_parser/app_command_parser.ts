@@ -3,6 +3,7 @@
 
 /* eslint-disable max-lines */
 
+import type {IntlShape} from 'react-intl';
 import type {Store} from 'redux';
 
 import {Constants} from 'utils/constants';
@@ -58,7 +59,8 @@ import type {
     AutocompleteSuggestion,
     AutocompleteStaticSelect,
     Channel,
-    ExtendedAutocompleteSuggestion} from './app_command_parser_dependencies';
+    ExtendedAutocompleteSuggestion,
+} from './app_command_parser_dependencies';
 
 export enum ParseState {
     Start = 'Start',
@@ -95,10 +97,6 @@ interface FormsCache {
     getSubmittableForm: (location: string, binding: AppBinding) => Promise<{form?: AppForm; error?: string} | undefined>;
 }
 
-interface Intl {
-    formatMessage(config: {id: string; defaultMessage: string}, values?: {[name: string]: any}): string;
-}
-
 const getCommandBindings = makeAppBindingsSelector(AppBindingLocations.COMMAND);
 const getRHSCommandBindings = makeRHSAppBindingSelector(AppBindingLocations.COMMAND);
 
@@ -116,7 +114,7 @@ export class ParsedCommand {
     values: {[name: string]: string | string[]} = {};
     location = '';
     error = '';
-    intl: Intl;
+    intl: IntlShape;
 
     constructor(command: string, formsCache: FormsCache, intl: any) {
         this.command = command;
@@ -867,9 +865,9 @@ export class AppCommandParser {
     private channelID: string;
     private teamID: string;
     private rootPostID?: string;
-    private intl: Intl;
+    private intl: IntlShape;
 
-    constructor(store: Store|null, intl: Intl, channelID: string, teamID = '', rootPostID = '') {
+    constructor(store: Store|null, intl: IntlShape, channelID: string, teamID = '', rootPostID = '') {
         this.store = store || getStore();
         this.channelID = channelID;
         this.rootPostID = rootPostID;

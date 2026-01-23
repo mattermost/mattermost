@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {ChainableT} from 'tests/types';
+
 import * as TIMEOUTS from '../fixtures/timeouts';
 
 const token = 'SSWS ' + Cypress.env('oktaMMAppToken');
@@ -29,10 +30,10 @@ interface User {
     password: string;
 }
 
-interface UserCollection {
-    admins: User[];
-    guests: User[];
-    regulars: User[];
+export interface UserCollection {
+    admins: Record<string, Partial<User>>;
+    guests: Record<string, Partial<User>>;
+    regulars: Record<string, Partial<User>>;
 }
 
 interface OktaResponse<T = any> {
@@ -148,7 +149,6 @@ function oktaDeleteUser(userId: string = '') {
         token,
     }).then((response: OktaResponse) => {
         expect(response.status).to.equal(204);
-        expect(response.data).is.empty;
         cy.task('oktaRequest', {
             baseUrl: Cypress.env('oktaApiUrl'),
             urlSuffix: '/users/' + userId,
@@ -156,7 +156,6 @@ function oktaDeleteUser(userId: string = '') {
             token,
         }).then((_response: OktaResponse) => {
             expect(_response.status).to.equal(204);
-            expect(_response.data).is.empty;
         });
     });
 }
@@ -176,7 +175,6 @@ function oktaDeleteSession(userId: string = '') {
         token,
     }).then((response: OktaResponse) => {
         expect(response.status).to.equal(204);
-        expect(response.data).is.empty;
 
         // Ensure we clear out these specific cookies
         ['JSESSIONID'].forEach((cookie) => {
@@ -362,7 +360,7 @@ declare global {
             oktaAddUsers: typeof oktaAddUsers;
             oktaRemoveUsers: typeof oktaRemoveUsers;
             checkOktaLoginPage: typeof checkOktaLoginPage;
-            doOktaLogin: typeof doOktaLogin;
+            doOktaLogin(user: User): ChainableT<void>;
         }
     }
 }

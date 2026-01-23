@@ -14,7 +14,7 @@ import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
-import {OverActiveUserLimits, SelfHostedProducts} from 'utils/constants';
+import {LicenseSkus, SelfHostedProducts} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import EnterpriseEditionLeftPanel from './enterprise_edition_left_panel';
@@ -64,13 +64,6 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
             preferences: {
                 myPreferences: {},
             },
-            admin: {
-                config: {
-                    ServiceSettings: {
-                        SelfHostedPurchase: true,
-                    },
-                },
-            },
             cloud: {
                 subscription: undefined,
             },
@@ -101,6 +94,7 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
         handleChange: jest.fn(),
         fileInputRef: React.createRef(),
         statsActiveUsers: 1,
+        isLicenseSetByEnvVar: false,
     };
 
     test('should format the Users field', () => {
@@ -139,30 +133,9 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
         expect(screen.getByText('ACTIVE USERS:')).not.toHaveClass('legend--over-seats-purchased');
     });
 
-    test('should add warning class to active users', () => {
-        const minWarning = Math.ceil(parseInt(license.Users, 10) * OverActiveUserLimits.MIN) + parseInt(license.Users, 10);
-        const props = {
-            ...baseProps,
-            statsActiveUsers: minWarning,
-        };
-
-        renderWithContext(
-            <EnterpriseEditionLeftPanel
-                {...props}
-            />,
-            initialState,
-        );
-
-        expect(screen.getByText(Intl.NumberFormat('en').format(minWarning))).toHaveClass('value');
-        expect(screen.getByText(Intl.NumberFormat('en').format(minWarning))).toHaveClass('value--warning-over-seats-purchased');
-        expect(screen.getByText(Intl.NumberFormat('en').format(minWarning))).not.toHaveClass('value--over-seats-purchased');
-        expect(screen.getByText('ACTIVE USERS:')).toHaveClass('legend');
-        expect(screen.getByText('ACTIVE USERS:')).toHaveClass('legend--warning-over-seats-purchased');
-        expect(screen.getByText('ACTIVE USERS:')).not.toHaveClass('legend--over-seats-purchased');
-    });
-
     test('should add over-seats-purchased class to active users', () => {
-        const exceedHighLimitExtraUsersError = Math.ceil(parseInt(license.Users, 10) * OverActiveUserLimits.MAX) + parseInt(license.Users, 10);
+        // Changed to not use the constant OverActiveUserLimits.MAX given that we are currently set to 0. So the active users will be 0
+        const exceedHighLimitExtraUsersError = Math.ceil(parseInt(license.Users, 10) * 0.2) + parseInt(license.Users, 10);
         const props = {
             ...baseProps,
             statsActiveUsers: exceedHighLimitExtraUsersError,
@@ -237,5 +210,86 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
         );
 
         expect(screen.getByText('Expires in 5 days')).toHaveClass('expiration-days-danger');
+    });
+
+    test('should render simplified panel for Entry license', () => {
+        const testLicense = {
+            ...license,
+            SkuShortName: LicenseSkus.Entry,
+        };
+
+        const testState = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    license: testLicense,
+                },
+            },
+        });
+
+        const props = {
+            ...baseProps,
+            license: testLicense,
+        };
+
+        renderWithContext(
+            <EnterpriseEditionLeftPanel
+                {...props}
+            />,
+            testState,
+        );
+
+        // Check for the title section - should only show the plan name, not "Enterprise Edition"
+        expect(screen.getByText('Mattermost Entry')).toBeInTheDocument();
+
+        // Verify that "Enterprise Edition" pre-title is no longer displayed
+        expect(screen.queryByText('Enterprise Edition')).not.toBeInTheDocument();
+
+        // Check for the subtitle with limits link
+        expect(screen.getByText(/Entry offers Enterprise Advanced capabilities/)).toBeInTheDocument();
+        expect(screen.getByText('with limits')).toBeInTheDocument();
+
+        // Check for the "Have a license?" section
+        expect(screen.getByText('Have a license?')).toBeInTheDocument();
+        expect(screen.getByText('Upload your license here to unlock licensed features')).toBeInTheDocument();
+
+        // Check for the upload license button
+        const uploadButton = screen.getByRole('button', {name: /Upload license/i});
+        expect(uploadButton).toBeInTheDocument();
+
+        // Verify that the license details section is NOT rendered for Entry SKU
+        expect(screen.queryByText('License details')).not.toBeInTheDocument();
+        expect(screen.queryByText('LICENSED SEATS:')).not.toBeInTheDocument();
+        expect(screen.queryByText('ACTIVE USERS:')).not.toBeInTheDocument();
+    });
+
+    test('should disable upload button for Entry license when license is set by env var', () => {
+        const testLicense = {
+            ...license,
+            SkuShortName: LicenseSkus.Entry,
+        };
+
+        const testState = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    license: testLicense,
+                },
+            },
+        });
+
+        const props = {
+            ...baseProps,
+            license: testLicense,
+            isLicenseSetByEnvVar: true,
+        };
+
+        renderWithContext(
+            <EnterpriseEditionLeftPanel
+                {...props}
+            />,
+            testState,
+        );
+
+        const uploadButton = screen.getByRole('button', {name: /Upload license/i});
+        expect(uploadButton).toBeDisabled();
     });
 });

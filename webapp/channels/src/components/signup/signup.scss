@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-@import 'utils/mixins';
+@use 'utils/mixins';
 
 .signup-body {
     display: flex;
@@ -130,7 +130,7 @@
             box-shadow: var(--elevation-5);
 
             &.with-error {
-                @include shake-horizontally;
+                @include mixins.shake-horizontally;
             }
 
             .signup-body-card-content {
@@ -142,6 +142,7 @@
                 box-shadow: none;
 
                 .signup-body-card-title {
+                    margin: 0;
                     color: var(--center-channel-color);
                     font-family: 'Metropolis';
                     font-size: 22px;
@@ -166,28 +167,11 @@
                         margin-top: 22px;
                     }
 
-                    .newsletter {
-                        margin-top: 24px;
-                        margin-bottom: 32px;
-                        color: rgba(var(--center-channel-color-rgb), 0.75);
-                        font-family: 'Open Sans';
-                        font-size: 12px;
-                        font-style: normal;
-                        font-weight: 400;
-                        line-height: 16px;
-
-                        .interested {
-                            display: block;
-                            color: var(--center-channel-color);
-                        }
-                    }
-
                     .signup-body-card-form-button-submit {
-                        @include primary-button;
-                        @include button-large;
+                        @include mixins.primary-button;
+                        @include mixins.button-large;
 
-                        width: 100%;
-                        margin-top: 30px;
+                        width: 100%;                    
                     }
                 }
 
@@ -220,19 +204,6 @@
                         flex-direction: column;
                         margin-top: 22px;
                         row-gap: 24px;
-                    }
-                }
-
-                .signup-body-card-agreement {
-                    margin-top: 32px;
-                    color: rgba(var(--center-channel-color-rgb), 0.75);
-                    font-size: 11px;
-                    line-height: 16px;
-
-                    a {
-                        @include link;
-
-                        font-size: 11px;
                     }
                 }
             }
@@ -273,8 +244,8 @@
             justify-content: center;
 
             .signup-body-content-button-return {
-                @include primary-button;
-                @include button-medium;
+                @include mixins.primary-button;
+                @include mixins.button-medium;
             }
         }
     }

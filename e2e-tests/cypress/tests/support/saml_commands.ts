@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {AdminConfig} from '@mattermost/types/config';
+
 import * as TIMEOUTS from '../fixtures/timeouts';
 import {ChainableT} from '../types';
 import {stubClipboard} from '../utils';
@@ -51,7 +52,7 @@ function doSamlLogin(settings) {
     cy.checkLoginPage(settings);
 
     //click the login button
-    cy.findByText(settings.loginButtonText).should('be.visible').click().wait(TIMEOUTS.ONE_SEC);
+    return cy.findByText(settings.loginButtonText).should('be.visible').click().wait(TIMEOUTS.ONE_SEC);
 }
 
 Cypress.Commands.add('doSamlLogin', doSamlLogin);
@@ -65,7 +66,7 @@ function doSamlLogout(settings) {
 
     // # Logout then check login page
     cy.uiLogout();
-    cy.checkLoginPage(settings);
+    return cy.checkLoginPage(settings);
 }
 
 Cypress.Commands.add('doSamlLogout', doSamlLogout);
@@ -79,7 +80,7 @@ function getInvitePeopleLink(settings: TestSettings): ChainableT<any> {
     cy.checkLeftSideBar(settings);
 
     // # Open team menu and click 'Invite People'
-    cy.uiOpenTeamMenu('Invite People');
+    cy.uiOpenTeamMenu('Invite people');
 
     stubClipboard().as('clipboard');
     cy.checkInvitePeoplePage();
@@ -99,14 +100,14 @@ Cypress.Commands.add('getInvitePeopleLink', getInvitePeopleLink);
  * @param {AdminConfig} config - The config object
  * @returns {TestSettings} - The settings to use for SAML tests
  */
-function setTestSettings(loginButtonText: string, config: AdminConfig): TestSettings {
-    return {
+function setTestSettings(loginButtonText: string, config: AdminConfig): ChainableT<TestSettings> {
+    return cy.wrap({
         loginButtonText,
         siteName: config.TeamSettings.SiteName,
         siteUrl: config.ServiceSettings.SiteURL,
         teamName: '',
         user: null,
-    };
+    });
 }
 
 Cypress.Commands.add('setTestSettings', setTestSettings);

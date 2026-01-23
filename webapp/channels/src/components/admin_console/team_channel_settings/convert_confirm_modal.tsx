@@ -5,7 +5,6 @@ import React from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
 import ConfirmModal from 'components/confirm_modal';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 type Props = {
 
@@ -39,14 +38,17 @@ const ConvertConfirmModal = ({show, onConfirm, onCancel, displayName, toPublic}:
     let titleMessage;
     let convertMessage;
     let confirmMessage;
+    let convertConfirmationMessage;
     if (toPublic) {
         titleMessage = messages.toPublicTitle;
         convertMessage = messages.toPublicMessage;
         confirmMessage = messages.toPublicConfirm;
+        convertConfirmationMessage = messages.toPublicMessageConfirmation;
     } else {
         titleMessage = messages.toPrivateTitle;
         convertMessage = messages.toPrivateMessage;
         confirmMessage = messages.toPrivateConfirm;
+        convertConfirmationMessage = messages.toPrivateMessageConfirmation;
     }
 
     const title = (
@@ -57,10 +59,20 @@ const ConvertConfirmModal = ({show, onConfirm, onCancel, displayName, toPublic}:
     );
 
     const message = (
-        <FormattedMarkdownMessage
-            {...convertMessage}
-            values={{displayName}}
-        />
+        <>
+            <p>
+                <FormattedMessage
+                    {...convertMessage}
+                    values={{displayName: <strong>{displayName}</strong>}}
+                />
+            </p>
+            <p>
+                <FormattedMessage
+                    {...convertConfirmationMessage}
+                    values={{displayName: <strong>{displayName}</strong>}}
+                />
+            </p>
+        </>
     );
 
     const confirmButton = (
@@ -99,11 +111,12 @@ const messages = defineMessages({
         defaultMessage: 'Yes, convert to private channel',
     },
     toPrivateMessage: {
-        id: 'admin.team_channel_settings.convertConfirmModal.toPrivateMessage',
-
-        // This eslint-disable comment can be removed once this component no longer uses FormattedMarkdownMessage
-        // eslint-disable-next-line formatjs/no-multiple-whitespaces
-        defaultMessage: 'When you convert **{displayName}** to a private channel, history and membership are preserved. Publicly shared files remain accessible to anyone with the link. Membership in a private channel is by invitation only.  \n \nAre you sure you want to convert **{displayName}** to a private channel?',
+        id: 'admin.team_channel_settings.convertConfirmModal.toPrivateMessageFirstLine',
+        defaultMessage: 'When you convert {displayName} to a private channel, history and membership are preserved. Publicly shared files remain accessible to anyone with the link. Membership in a private channel is by invitation only.',
+    },
+    toPrivateMessageConfirmation: {
+        id: 'admin.team_channel_settings.convertConfirmModal.toPrivateMessageSecondLine',
+        defaultMessage: 'Are you sure you want to convert {displayName} to a private channel?',
     },
     toPrivateTitle: {
         id: 'admin.team_channel_settings.convertConfirmModal.toPrivateTitle',
@@ -114,11 +127,12 @@ const messages = defineMessages({
         defaultMessage: 'Yes, convert to public channel',
     },
     toPublicMessage: {
-        id: 'admin.team_channel_settings.convertConfirmModal.toPublicMessage',
-
-        // This eslint-disable comment can be removed once this component no longer uses FormattedMarkdownMessage
-        // eslint-disable-next-line formatjs/no-multiple-whitespaces
-        defaultMessage: 'When you convert **{displayName}** to a public channel, history and membership are preserved. Public channels are discoverable and can by joined by users on the system without invitation.  \n \nAre you sure you want to convert **{displayName}** to a public channel?',
+        id: 'admin.team_channel_settings.convertConfirmModal.toPublicMessageFirstLine',
+        defaultMessage: 'When you convert {displayName} to a public channel, history and membership are preserved. Public channels are discoverable and can be joined by users on the system without invitation.',
+    },
+    toPublicMessageConfirmation: {
+        id: 'admin.team_channel_settings.convertConfirmModal.toPublicMessageSecondLine',
+        defaultMessage: 'Are you sure you want to convert {displayName} to a public channel?',
     },
     toPublicTitle: {
         id: 'admin.team_channel_settings.convertConfirmModal.toPublicTitle',

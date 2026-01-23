@@ -13,7 +13,7 @@ import (
 const maxUserAgentVersionLength = 128
 
 var platformNames = map[uasurfer.Platform]string{
-	uasurfer.PlatformUnknown:      "Windows",
+	uasurfer.PlatformUnknown:      "Unknown",
 	uasurfer.PlatformWindows:      "Windows",
 	uasurfer.PlatformMac:          "Macintosh",
 	uasurfer.PlatformLinux:        "Linux",
@@ -24,8 +24,18 @@ var platformNames = map[uasurfer.Platform]string{
 	uasurfer.PlatformWindowsPhone: "Windows Phone",
 }
 
-func getPlatformName(ua *uasurfer.UserAgent) string {
+func getPlatformName(ua *uasurfer.UserAgent, userAgentString string) string {
 	platform := ua.OS.Platform
+
+	if platform == uasurfer.PlatformUnknown && strings.Contains(userAgentString, "Mattermost Mobile/") {
+		if strings.Contains(userAgentString, "iPhone") {
+			platform = uasurfer.PlatformiPhone
+		} else if strings.Contains(userAgentString, "iPad") {
+			platform = uasurfer.PlatformiPad
+		} else {
+			platform = uasurfer.PlatformLinux
+		}
+	}
 
 	name, ok := platformNames[platform]
 	if !ok {
@@ -48,7 +58,7 @@ var osNames = map[uasurfer.OSName]string{
 	uasurfer.OSLinux:        "Linux",
 }
 
-func getOSName(ua *uasurfer.UserAgent) string {
+func getOSName(ua *uasurfer.UserAgent, userAgentString string) string {
 	os := ua.OS
 
 	if os.Name == uasurfer.OSWindows {
@@ -77,7 +87,19 @@ func getOSName(ua *uasurfer.UserAgent) string {
 		}
 	}
 
-	name, ok := osNames[os.Name]
+	osName := os.Name
+
+	if osName == uasurfer.OSUnknown && strings.Contains(userAgentString, "Mattermost Mobile/") {
+		if strings.Contains(userAgentString, "iPhone") {
+			osName = uasurfer.OSiOS
+		} else if strings.Contains(userAgentString, "iPad") {
+			osName = uasurfer.OSiOS
+		} else {
+			osName = uasurfer.OSAndroid
+		}
+	}
+
+	name, ok := osNames[osName]
 	if ok {
 		return name
 	}

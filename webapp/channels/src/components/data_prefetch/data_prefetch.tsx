@@ -26,7 +26,6 @@ type Props = {
 
     actions: {
         prefetchChannelPosts: (channelId: string, delay?: number) => Promise<ActionResult>;
-        trackPreloadedChannels: (prefetchQueueObj: Record<string, string[]>) => void;
     };
 }
 
@@ -68,10 +67,6 @@ export default class DataPrefetch extends React.PureComponent<Props> {
             await queue.clear();
             this.prefetchData();
         }
-
-        if (currentChannelId && sidebarLoaded && (!prevProps.currentChannelId || !prevProps.sidebarLoaded)) {
-            this.props.actions.trackPreloadedChannels(prefetchQueueObj);
-        }
     }
 
     public prefetchPosts = (channelId: string) => {
@@ -89,13 +84,13 @@ export default class DataPrefetch extends React.PureComponent<Props> {
     private prefetchData = () => {
         const {prefetchRequestStatus, prefetchQueueObj} = this.props;
         for (const priority in prefetchQueueObj) {
-            if (!prefetchQueueObj.hasOwnProperty(priority)) {
+            if (!Object.hasOwn(prefetchQueueObj, priority)) {
                 continue;
             }
 
             const priorityQueue = prefetchQueueObj[priority];
             for (const channelId of priorityQueue) {
-                if (!prefetchRequestStatus.hasOwnProperty(channelId)) {
+                if (!Object.hasOwn(prefetchRequestStatus, channelId)) {
                     queue.add(async () => this.prefetchPosts(channelId));
                 }
             }

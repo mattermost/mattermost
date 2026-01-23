@@ -20,7 +20,6 @@ func TestSqlX(t *testing.T) {
 	t.Run("NamedQuery", func(t *testing.T) {
 		testDrivers := []string{
 			model.DatabaseDriverPostgres,
-			model.DatabaseDriverMysql,
 		}
 
 		for _, driver := range testDrivers {
@@ -42,15 +41,10 @@ func TestSqlX(t *testing.T) {
 
 			defer store.Close()
 
-			tx, err := store.GetMasterX().Beginx()
+			tx, err := store.GetMaster().Beginx()
 			require.NoError(t, err)
 
-			var query string
-			if store.DriverName() == model.DatabaseDriverMysql {
-				query = `SELECT SLEEP(:Timeout);`
-			} else if store.DriverName() == model.DatabaseDriverPostgres {
-				query = `SELECT pg_sleep(:timeout);`
-			}
+			query := `SELECT pg_sleep(:timeout);`
 			arg := struct{ Timeout int }{Timeout: 2}
 			_, err = tx.NamedQuery(query, arg)
 			require.Equal(t, context.DeadlineExceeded, err)
@@ -89,4 +83,63 @@ func TestSqlX(t *testing.T) {
 			assert.Equal(t, q.out, out)
 		}
 	})
+}
+
+func TestSqlxSelect(t *testing.T) {
+	testDrivers := []string{
+		model.DatabaseDriverPostgres,
+	}
+	for _, driver := range testDrivers {
+		t.Run(driver, func(t *testing.T) {
+			settings, err := makeSqlSettings(driver)
+			if err != nil {
+				t.Skip(err)
+			}
+			*settings.QueryTimeout = 1
+			store := &SqlStore{
+				rrCounter:   0,
+				srCounter:   0,
+				settings:    settings,
+				logger:      mlog.CreateConsoleTestLogger(t),
+				quitMonitor: make(chan struct{}),
+				wgMonitor:   &sync.WaitGroup{},
+			}
+
+			require.NoError(t, store.initConnection())
+			defer store.Close()
+
+			t.Run("SelectCtx", func(t *testing.T) {
+				var result []string
+				err := store.GetMaster().SelectCtx(context.Background(), &result, "SELECT 'test' AS col")
+				require.NoError(t, err)
+				require.Equal(t, []string{"test"}, result)
+
+				// Test timeout
+				ctx, cancel := context.WithTimeout(context.Background(), 1)
+				defer cancel()
+				query := "SELECT pg_sleep(2)"
+				err = store.GetMaster().SelectCtx(ctx, &result, query)
+				require.Error(t, err)
+				require.Equal(t, context.DeadlineExceeded, err)
+			})
+
+			t.Run("SelectBuilderCtx", func(t *testing.T) {
+				var result []string
+				builder := store.getQueryBuilder().
+					Select("'test' AS col")
+				err := store.GetMaster().SelectBuilderCtx(context.Background(), &result, builder)
+				require.NoError(t, err)
+				require.Equal(t, []string{"test"}, result)
+
+				// Test timeout
+				ctx, cancel := context.WithTimeout(context.Background(), 1)
+				defer cancel()
+				builder = store.getQueryBuilder().
+					Select("pg_sleep(2)")
+				err = store.GetMaster().SelectBuilderCtx(ctx, &result, builder)
+				require.Error(t, err)
+				require.Equal(t, context.DeadlineExceeded, err)
+			})
+		})
+	}
 }

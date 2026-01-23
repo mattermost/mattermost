@@ -10,11 +10,11 @@ import {createDirectChannel} from 'mattermost-redux/actions/channels';
 
 import {Constants} from 'utils/constants';
 
-import type {PluginComponent} from 'types/store/plugins';
+import type {CallButtonAction} from 'types/store/plugins';
 
 type Props = {
     channelMember?: ChannelMembership;
-    pluginCallComponents: PluginComponent[];
+    pluginCallComponents: CallButtonAction[];
     sidebarOpen: boolean;
     currentUserId: string;
     userId: string;

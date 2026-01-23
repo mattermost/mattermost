@@ -7,7 +7,6 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import {readMultipleChannels} from 'mattermost-redux/actions/channels';
 
-import {trackEvent} from 'actions/telemetry_actions';
 import {getUnreadChannels} from 'selectors/views/channel_sidebar';
 
 import * as Menu from 'components/menu';
@@ -35,7 +34,6 @@ export default function UnreadChannels({
         }
 
         dispatch(readMultipleChannels(unreadChannels.map((v) => v.id)));
-        trackEvent('ui', 'ui_sidebar_category_menu_viewUnreadCategory');
     }, [unreadChannels, dispatch]);
 
     if (unreadChannels.length === 0) {
@@ -44,8 +42,11 @@ export default function UnreadChannels({
 
     return (
         <div className='SidebarChannelGroup dropDisabled a11y__section'>
-            <SidebarCategoryHeaderStatic displayName={intl.formatMessage({id: 'sidebar.types.unreads', defaultMessage: 'UNREADS'})}>
-                <SidebarCategoryGenericMenu id='unreads'>
+            <SidebarCategoryHeaderStatic displayName={intl.formatMessage({id: 'sidebar.types.unreadChannels.displayName', defaultMessage: 'UNREADS'})}>
+                <SidebarCategoryGenericMenu
+                    id='unreads'
+                    name={intl.formatMessage({id: 'sidebar.types.unreadChannels.ariaLabel', defaultMessage: 'Unread'})}
+                >
                     <MarkAsReadMenuItem
                         id={'unreads'}
                         handleViewCategory={handleViewCategory}

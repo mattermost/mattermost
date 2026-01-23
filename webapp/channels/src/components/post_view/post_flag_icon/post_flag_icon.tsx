@@ -82,9 +82,7 @@ const PostFlagIcon = ({
 
     return (
         <WithTooltip
-            id='flagTooltip'
             key={`flagtooltipkey${isFlagged ? 'flagged' : ''}`}
-            placement='top'
             title={
                 isFlagged ? (
                     <FormattedMessage
@@ -102,7 +100,7 @@ const PostFlagIcon = ({
             <button
                 ref={buttonRef}
                 id={`${location}_flagIcon_${postId}`}
-                aria-label={isFlagged ? intl.formatMessage({id: 'flag_post.unflag', defaultMessage: 'Remove from Saved'}).toLowerCase() : intl.formatMessage({id: 'flag_post.flag', defaultMessage: 'Save'}).toLowerCase()}
+                aria-label={isFlagged ? intl.formatMessage({id: 'flag_post.unflag', defaultMessage: 'Remove from Saved'}).toLowerCase() : intl.formatMessage({id: 'flag_post.flag', defaultMessage: 'Save Message'}).toLowerCase()}
                 className='post-menu__item'
                 onClick={handlePress}
             >

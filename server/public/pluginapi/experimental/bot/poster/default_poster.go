@@ -20,7 +20,7 @@ func NewPoster(postAPI PostAPI, id string) Poster {
 }
 
 // DM posts a simple Direct Message to the specified user
-func (p *defaultPoster) DM(mattermostUserID, format string, args ...interface{}) (string, error) {
+func (p *defaultPoster) DM(mattermostUserID, format string, args ...any) (string, error) {
 	post := &model.Post{
 		Message: fmt.Sprintf(format, args...),
 	}
@@ -44,7 +44,7 @@ func (p *defaultPoster) DMWithAttachments(mattermostUserID string, attachments .
 }
 
 // Ephemeral sends an ephemeral message to a user
-func (p *defaultPoster) Ephemeral(userID, channelID, format string, args ...interface{}) {
+func (p *defaultPoster) Ephemeral(userID, channelID, format string, args ...any) {
 	post := &model.Post{
 		UserId:    p.id,
 		ChannelId: channelID,
@@ -53,7 +53,7 @@ func (p *defaultPoster) Ephemeral(userID, channelID, format string, args ...inte
 	p.postAPI.SendEphemeralPost(userID, post)
 }
 
-func (p *defaultPoster) UpdatePostByID(postID, format string, args ...interface{}) error {
+func (p *defaultPoster) UpdatePostByID(postID, format string, args ...any) error {
 	post, err := p.postAPI.GetPost(postID)
 	if err != nil {
 		return err

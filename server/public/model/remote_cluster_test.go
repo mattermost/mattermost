@@ -78,6 +78,34 @@ func TestRemoteClusterMsgIsValid(t *testing.T) {
 	}
 }
 
+func TestRemoteClusterInviteIsValid(t *testing.T) {
+	id := NewId()
+	url := "https://localhost:8080/test"
+	token := NewId()
+
+	data := []struct {
+		name   string
+		invite *RemoteClusterInvite
+		valid  bool
+	}{
+		{name: "Zero value", invite: &RemoteClusterInvite{}, valid: false},
+		{name: "Missing remote id", invite: &RemoteClusterInvite{Token: token, SiteURL: url}, valid: false},
+		{name: "Missing site url", invite: &RemoteClusterInvite{RemoteId: id, Token: token}, valid: false},
+		{name: "Bad site url", invite: &RemoteClusterInvite{RemoteId: id, Token: token, SiteURL: ":/localhost"}, valid: false},
+		{name: "Missing token", invite: &RemoteClusterInvite{RemoteId: id, SiteURL: url}, valid: false},
+		{name: "RemoteClusterInvite valid", invite: &RemoteClusterInvite{RemoteId: id, Token: token, SiteURL: url}, valid: true},
+	}
+
+	for _, item := range data {
+		appErr := item.invite.IsValid()
+		if item.valid {
+			assert.Nil(t, appErr, item.name)
+		} else {
+			assert.NotNil(t, appErr, item.name)
+		}
+	}
+}
+
 func TestFixTopics(t *testing.T) {
 	testData := []struct {
 		topics   string
@@ -130,11 +158,55 @@ func TestRemoteClusterInviteEncryption(t *testing.T) {
 	}
 }
 
+func TestRemoteClusterInviteBackwardCompatibility(t *testing.T) {
+	// Test that we can decrypt invites created with the old scrypt method
+	oldInvite := RemoteClusterInvite{
+		RemoteId:       NewId(),
+		SiteURL:        "https://example.com:8065",
+		Token:          NewId(),
+		RefreshedToken: NewId(),
+		Version:        2, // Old version using scrypt
+	}
+
+	password := "test password"
+
+	// Encrypt with old method (scrypt)
+	encrypted, err := oldInvite.Encrypt(password)
+	require.NoError(t, err)
+
+	// Decrypt should work with backward compatibility
+	decryptedInvite := RemoteClusterInvite{}
+	err = decryptedInvite.Decrypt(encrypted, password)
+	require.NoError(t, err)
+	assert.Equal(t, oldInvite, decryptedInvite)
+
+	// Test new version (PBKDF2)
+	newInvite := RemoteClusterInvite{
+		RemoteId:       NewId(),
+		SiteURL:        "https://example.com:8065",
+		Token:          NewId(),
+		RefreshedToken: NewId(),
+		Version:        3, // New version using PBKDF2
+	}
+
+	// Encrypt with new method (PBKDF2)
+	encrypted, err = newInvite.Encrypt(password)
+	require.NoError(t, err)
+
+	// Decrypt should work
+	decryptedInvite = RemoteClusterInvite{}
+	err = decryptedInvite.Decrypt(encrypted, password)
+	require.NoError(t, err)
+	assert.Equal(t, newInvite, decryptedInvite)
+}
+
 func makeInvite(url string) RemoteClusterInvite {
 	return RemoteClusterInvite{
-		RemoteId: NewId(),
-		SiteURL:  url,
-		Token:    NewId(),
+		RemoteId:       NewId(),
+		SiteURL:        url,
+		Token:          NewId(),
+		RefreshedToken: NewId(),
+		Version:        3,
 	}
 }
 

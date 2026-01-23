@@ -13,7 +13,6 @@ import LoginMfa from 'components/login/login_mfa';
 
 import {ClaimErrors} from 'utils/constants';
 import {isValidPassword} from 'utils/password';
-import {localizeMessage} from 'utils/utils';
 
 import type {SubmitOptions} from './email_to_ldap';
 import ErrorLabel from './error_label';
@@ -46,7 +45,7 @@ const LDAPToEmail = (props: Props) => {
 
         const ldapPassword = ldapPasswordInput.current?.value;
         if (!ldapPassword) {
-            setLdapPasswordError(localizeMessage('claim.ldap_to_email.ldapPasswordError', 'Please enter your AD/LDAP password.'));
+            setLdapPasswordError(formatMessage({id: 'claim.ldap_to_email.ldapPasswordError', defaultMessage: 'Please enter your AD/LDAP password.'}));
             setPasswordError('');
             setConfirmError('');
             setServerError('');
@@ -55,7 +54,7 @@ const LDAPToEmail = (props: Props) => {
 
         const password = passwordInput.current?.value;
         if (!password) {
-            setPasswordError(localizeMessage('claim.ldap_to_email.pwdError', 'Please enter your password.'));
+            setPasswordError(formatMessage({id: 'claim.ldap_to_email.pwdError', defaultMessage: 'Please enter your password.'}));
             setConfirmError('');
             setLdapPasswordError('');
             setServerError('');
@@ -75,7 +74,7 @@ const LDAPToEmail = (props: Props) => {
 
         const confirmPassword = passwordConfirmInput.current?.value;
         if (!confirmPassword || password !== confirmPassword) {
-            setConfirmError(localizeMessage('claim.ldap_to_email.pwdNotMatch', 'Passwords do not match.'));
+            setConfirmError(formatMessage({id: 'claim.ldap_to_email.pwdNotMatch', defaultMessage: 'Passwords do not match.'}));
             setPasswordError('');
             setLdapPasswordError('');
             setServerError('');

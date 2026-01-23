@@ -16,11 +16,11 @@ const (
 	ActionKey = "-action"
 )
 
-// responsef creates an ephemeral command response using printf syntax.
-func responsef(format string, args ...any) *model.CommandResponse {
+// response creates an ephemeral command response with the given message.
+func response(message string) *model.CommandResponse {
 	return &model.CommandResponse{
 		ResponseType: model.CommandResponseTypeEphemeral,
-		Text:         fmt.Sprintf(format, args...),
+		Text:         message,
 		Type:         model.PostTypeDefault,
 	}
 }
@@ -38,7 +38,7 @@ func parseNamedArgs(cmd string) map[string]string {
 		m[ActionKey] = split[1] // prefix with hyphen to avoid collision with arg named "action"
 	}
 
-	for i := 0; i < len(split); i++ {
+	for i := range split {
 		if !strings.HasPrefix(split[i], "--") {
 			continue
 		}

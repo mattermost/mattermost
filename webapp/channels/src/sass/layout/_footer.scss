@@ -1,15 +1,15 @@
-@charset 'UTF-8';
+@use "utils/variables";
 
 .footer-pane {
     padding-bottom: 1em;
-    background: $bg--gray;
+    background: variables.$bg--gray;
 
     .footer-link {
         padding: 0 1.5em;
 
         &.copyright {
             padding-right: 0;
-            color: $dark-gray;
+            color: variables.$dark-gray;
         }
     }
 

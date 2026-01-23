@@ -12,6 +12,8 @@ import WithTooltip from 'components/with_tooltip';
 import {AnnouncementBarTypes} from 'utils/constants';
 import {isStringContainingUrl} from 'utils/url';
 
+import './default_announcement_bar.scss';
+
 type Props = {
     id?: string;
     showCloseButton: boolean;
@@ -41,8 +43,6 @@ type State = {
     showTooltip: boolean;
     isStringContainingUrl: boolean;
 }
-
-const OVERLAY_ANNOUNCEMENT_HIDE_DELAY = 600;
 
 export default class AnnouncementBar extends React.PureComponent<Props, State> {
     messageRef: React.RefObject<HTMLDivElement>;
@@ -83,19 +83,39 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
     componentDidMount() {
         this.props.actions.incrementAnnouncementBarCount();
         document.body.classList.add('announcement-bar--fixed');
+
+        // Set CSS custom property for dynamic height calculation
+        const newCount = (this.props.announcementBarCount || 0) + 1;
+        document.documentElement.style.setProperty('--announcement-bar-count', newCount.toString());
     }
 
-    componentDidUpdate() {
-        if (this.props.announcementBarCount === 1) {
-            document.body.classList.add('announcement-bar--fixed');
+    componentDidUpdate(prevProps: Props) {
+        // Update CSS custom property if count changed
+        if (prevProps.announcementBarCount !== this.props.announcementBarCount) {
+            const count = this.props.announcementBarCount || 0;
+            document.documentElement.style.setProperty('--announcement-bar-count', count.toString());
+
+            // Add/remove class based on count
+            if (count > 0) {
+                document.body.classList.add('announcement-bar--fixed');
+            } else {
+                document.body.classList.remove('announcement-bar--fixed');
+            }
         }
     }
 
     componentWillUnmount() {
-        if (this.props.announcementBarCount === 1) {
-            document.body.classList.remove('announcement-bar--fixed');
-        }
         this.props.actions.decrementAnnouncementBarCount();
+        const newCount = Math.max((this.props.announcementBarCount || 1) - 1, 0);
+
+        // Remove class only when no announcement bars left
+        if (newCount === 0) {
+            document.body.classList.remove('announcement-bar--fixed');
+            document.documentElement.style.removeProperty('--announcement-bar-count');
+        } else {
+            // Update count
+            document.documentElement.style.setProperty('--announcement-bar-count', newCount.toString());
+        }
     }
 
     handleClose = (e: any) => {
@@ -129,6 +149,8 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
             barClass = 'announcement-bar announcement-bar-advisor-ack';
         } else if (this.props.type === AnnouncementBarTypes.GENERAL) {
             barClass = 'announcement-bar announcement-bar-general';
+        } else if (this.props.type === AnnouncementBarTypes.WARNING) {
+            barClass = 'announcement-bar announcement-bar-warning';
         }
 
         if (this.props.className) {
@@ -174,6 +196,7 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
                 <button
                     onClick={this.props.onButtonClick}
                     disabled={this.props.ctaDisabled}
+                    className='btn btn-tertiary btn-xs btn-inverted'
                 >
                     <FormattedMessage
                         {...this.props.modalButtonText}
@@ -185,6 +208,7 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
                 <button
                     onClick={this.props.onButtonClick}
                     disabled={this.props.ctaDisabled}
+                    className='btn btn-tertiary btn-xs btn-inverted'
                 >
                     {this.props.ctaText}
                 </button>
@@ -194,10 +218,9 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
         if (this.state.showTooltip) {
             barContent = (
                 <WithTooltip
-                    id='announcement-bar__tooltip'
                     title={this.props.tooltipMsg ? this.props.tooltipMsg : message}
-                    placement='bottom'
-                    delayHide={this.state.isStringContainingUrl ? OVERLAY_ANNOUNCEMENT_HIDE_DELAY : 0}
+                    className='announcementBarTooltip'
+                    delayClose={true}
                 >
                     {barContent}
 

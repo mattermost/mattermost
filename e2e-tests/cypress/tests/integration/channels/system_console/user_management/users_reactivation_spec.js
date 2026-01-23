@@ -12,21 +12,23 @@
 
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
 import * as MESSAGES from '../../../../fixtures/messages';
-
 import {getRandomId} from '../../../../utils';
 
 describe('System Console > User Management > Reactivation', () => {
+    let teamName;
     before(() => {
         cy.shouldNotRunOnCloudEdition();
 
         // # Do initial setup
         cy.apiInitSetup().then(({team}) => {
-            // # Visit town-square
-            cy.visit(`/${team.name}`);
+            teamName = team.name;
         });
     });
 
     it('MM-T952 Reactivating a user results in them showing up in the normal spot in the list, without the `Deactivated` label.', () => {
+        // # Visit town-square
+        cy.visit(`/${teamName}`);
+
         // # Create two users with same random prefix
         const id = getRandomId();
 

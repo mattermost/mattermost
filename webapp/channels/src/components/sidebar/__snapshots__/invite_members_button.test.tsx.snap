@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/sidebar/invite_members_button should match snapshot 1`] = `
 <Provider
@@ -13,9 +13,7 @@ exports[`components/sidebar/invite_members_button should match snapshot 1`] = `
     }
   }
 >
-  <InviteMembersButton
-    isAdmin={false}
-  >
+  <InviteMembersButton>
     <Memo(TeamPermissionGate)
       permissions={
         Array [
@@ -32,6 +30,11 @@ exports[`components/sidebar/invite_members_button should match snapshot 1`] = `
         <ToggleModalButton
           ariaLabel="Invite Members"
           className="intro-links color--link cursor--pointer"
+          dialogProps={
+            Object {
+              "focusOriginElement": "inviteMembersButton",
+            }
+          }
           dialogType={
             Object {
               "$$typeof": Symbol(react.memo),
@@ -42,19 +45,19 @@ exports[`components/sidebar/invite_members_button should match snapshot 1`] = `
           }
           id="inviteMembersButton"
           modalId="invitation"
-          onClick={[Function]}
         >
           <button
-            aria-label="Invite Members dialog"
+            aria-label="Invite Members"
             className="style--none intro-links color--link cursor--pointer"
             id="inviteMembersButton"
             onClick={[Function]}
           >
             <div
-              aria-label="Invite Members"
+              aria-label="Invite Users"
               className="SidebarChannelNavigator__inviteMembersLhsButton"
             >
               <i
+                aria-hidden="true"
                 className="icon-plus-box"
               />
               <FormattedMessage

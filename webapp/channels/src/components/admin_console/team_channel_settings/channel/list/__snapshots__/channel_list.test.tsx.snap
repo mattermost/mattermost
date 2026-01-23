@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`admin_console/team_channel_settings/channel/ChannelList should match snapshot 1`] = `
 <div
@@ -86,9 +86,17 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "keys": Array [
               "group_constrained",
               "exclude_group_constrained",
+              "access_control_policy_enforced",
             ],
             "name": "Management",
             "values": Object {
+              "access_control_policy_enforced": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Attribute Based"
+                  id="admin.channel_list.attributed_based"
+                />,
+                "value": false,
+              },
               "exclude_group_constrained": Object {
                 "name": <Memo(MemoizedFormattedMessage)
                   defaultMessage="Manual Invites"
@@ -132,7 +140,6 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
     loading={false}
     nextPage={[Function]}
     onSearch={[Function]}
-    page={0}
     placeholderEmpty={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="No channels found"
@@ -161,10 +168,14 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "management": <span
               className="group-description adjusted row-content"
             >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Manual Invites"
-                id="admin.channel_settings.channel_row.managementMethod.manual"
-              />
+              <span
+                className="group-indicator channel-indicator channel-indicator--larger"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Manual Invites"
+                  id="admin.channel_settings.channel_row.managementMethod.manual"
+                />
+              </span>
             </span>,
             "name": <span
               className="group-name overflow--ellipsis row-content"
@@ -172,6 +183,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             >
               <GlobeIcon
                 className="channel-icon"
+                data-testid="DN-archive-icon"
               />
               <span
                 className="TeamList_channelDisplayName"
@@ -194,7 +206,6 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
         "minHeight": "40px",
       }
     }
-    searchPlaceholder=""
     startCount={1}
     term=""
     total={1}
@@ -288,9 +299,17 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "keys": Array [
               "group_constrained",
               "exclude_group_constrained",
+              "access_control_policy_enforced",
             ],
             "name": "Management",
             "values": Object {
+              "access_control_policy_enforced": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Attribute Based"
+                  id="admin.channel_list.attributed_based"
+                />,
+                "value": false,
+              },
               "exclude_group_constrained": Object {
                 "name": <Memo(MemoizedFormattedMessage)
                   defaultMessage="Manual Invites"
@@ -334,7 +353,6 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
     loading={false}
     nextPage={[Function]}
     onSearch={[Function]}
-    page={0}
     placeholderEmpty={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="No channels found"
@@ -363,10 +381,14 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "management": <span
               className="group-description adjusted row-content"
             >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Manual Invites"
-                id="admin.channel_settings.channel_row.managementMethod.manual"
-              />
+              <span
+                className="group-indicator channel-indicator channel-indicator--larger"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Manual Invites"
+                  id="admin.channel_settings.channel_row.managementMethod.manual"
+                />
+              </span>
             </span>,
             "name": <span
               className="group-name overflow--ellipsis row-content"
@@ -374,6 +396,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             >
               <GlobeIcon
                 className="channel-icon"
+                data-testid="DN-archive-icon"
               />
               <span
                 className="TeamList_channelDisplayName"
@@ -408,10 +431,14 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "management": <span
               className="group-description adjusted row-content"
             >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Manual Invites"
-                id="admin.channel_settings.channel_row.managementMethod.manual"
-              />
+              <span
+                className="group-indicator channel-indicator channel-indicator--larger"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Manual Invites"
+                  id="admin.channel_settings.channel_row.managementMethod.manual"
+                />
+              </span>
             </span>,
             "name": <span
               className="group-name overflow--ellipsis row-content"
@@ -419,6 +446,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             >
               <GlobeIcon
                 className="channel-icon"
+                data-testid="DN-archive-icon"
               />
               <span
                 className="TeamList_channelDisplayName"
@@ -453,10 +481,14 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "management": <span
               className="group-description adjusted row-content"
             >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Manual Invites"
-                id="admin.channel_settings.channel_row.managementMethod.manual"
-              />
+              <span
+                className="group-indicator channel-indicator channel-indicator--larger"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Manual Invites"
+                  id="admin.channel_settings.channel_row.managementMethod.manual"
+                />
+              </span>
             </span>,
             "name": <span
               className="group-name overflow--ellipsis row-content"
@@ -464,6 +496,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             >
               <GlobeIcon
                 className="channel-icon"
+                data-testid="DN-archive-icon"
               />
               <span
                 className="TeamList_channelDisplayName"
@@ -498,10 +531,14 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "management": <span
               className="group-description adjusted row-content"
             >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Manual Invites"
-                id="admin.channel_settings.channel_row.managementMethod.manual"
-              />
+              <span
+                className="group-indicator channel-indicator channel-indicator--larger"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Manual Invites"
+                  id="admin.channel_settings.channel_row.managementMethod.manual"
+                />
+              </span>
             </span>,
             "name": <span
               className="group-name overflow--ellipsis row-content"
@@ -509,6 +546,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             >
               <GlobeIcon
                 className="channel-icon"
+                data-testid="DN-archive-icon"
               />
               <span
                 className="TeamList_channelDisplayName"
@@ -543,10 +581,14 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "management": <span
               className="group-description adjusted row-content"
             >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Manual Invites"
-                id="admin.channel_settings.channel_row.managementMethod.manual"
-              />
+              <span
+                className="group-indicator channel-indicator channel-indicator--larger"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Manual Invites"
+                  id="admin.channel_settings.channel_row.managementMethod.manual"
+                />
+              </span>
             </span>,
             "name": <span
               className="group-name overflow--ellipsis row-content"
@@ -554,6 +596,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             >
               <GlobeIcon
                 className="channel-icon"
+                data-testid="DN-archive-icon"
               />
               <span
                 className="TeamList_channelDisplayName"
@@ -588,10 +631,14 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "management": <span
               className="group-description adjusted row-content"
             >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Manual Invites"
-                id="admin.channel_settings.channel_row.managementMethod.manual"
-              />
+              <span
+                className="group-indicator channel-indicator channel-indicator--larger"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Manual Invites"
+                  id="admin.channel_settings.channel_row.managementMethod.manual"
+                />
+              </span>
             </span>,
             "name": <span
               className="group-name overflow--ellipsis row-content"
@@ -599,6 +646,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             >
               <GlobeIcon
                 className="channel-icon"
+                data-testid="DN-archive-icon"
               />
               <span
                 className="TeamList_channelDisplayName"
@@ -633,10 +681,14 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "management": <span
               className="group-description adjusted row-content"
             >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Manual Invites"
-                id="admin.channel_settings.channel_row.managementMethod.manual"
-              />
+              <span
+                className="group-indicator channel-indicator channel-indicator--larger"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Manual Invites"
+                  id="admin.channel_settings.channel_row.managementMethod.manual"
+                />
+              </span>
             </span>,
             "name": <span
               className="group-name overflow--ellipsis row-content"
@@ -644,6 +696,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             >
               <GlobeIcon
                 className="channel-icon"
+                data-testid="DN-archive-icon"
               />
               <span
                 className="TeamList_channelDisplayName"
@@ -678,10 +731,14 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "management": <span
               className="group-description adjusted row-content"
             >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Manual Invites"
-                id="admin.channel_settings.channel_row.managementMethod.manual"
-              />
+              <span
+                className="group-indicator channel-indicator channel-indicator--larger"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Manual Invites"
+                  id="admin.channel_settings.channel_row.managementMethod.manual"
+                />
+              </span>
             </span>,
             "name": <span
               className="group-name overflow--ellipsis row-content"
@@ -689,6 +746,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             >
               <GlobeIcon
                 className="channel-icon"
+                data-testid="DN-archive-icon"
               />
               <span
                 className="TeamList_channelDisplayName"
@@ -723,10 +781,14 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "management": <span
               className="group-description adjusted row-content"
             >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Manual Invites"
-                id="admin.channel_settings.channel_row.managementMethod.manual"
-              />
+              <span
+                className="group-indicator channel-indicator channel-indicator--larger"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Manual Invites"
+                  id="admin.channel_settings.channel_row.managementMethod.manual"
+                />
+              </span>
             </span>,
             "name": <span
               className="group-name overflow--ellipsis row-content"
@@ -734,6 +796,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             >
               <GlobeIcon
                 className="channel-icon"
+                data-testid="DN-archive-icon"
               />
               <span
                 className="TeamList_channelDisplayName"
@@ -768,10 +831,14 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "management": <span
               className="group-description adjusted row-content"
             >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Manual Invites"
-                id="admin.channel_settings.channel_row.managementMethod.manual"
-              />
+              <span
+                className="group-indicator channel-indicator channel-indicator--larger"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Manual Invites"
+                  id="admin.channel_settings.channel_row.managementMethod.manual"
+                />
+              </span>
             </span>,
             "name": <span
               className="group-name overflow--ellipsis row-content"
@@ -779,6 +846,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             >
               <GlobeIcon
                 className="channel-icon"
+                data-testid="DN-archive-icon"
               />
               <span
                 className="TeamList_channelDisplayName"
@@ -801,7 +869,6 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
         "minHeight": "400px",
       }
     }
-    searchPlaceholder=""
     startCount={1}
     term=""
     total={30}
@@ -895,9 +962,17 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "keys": Array [
               "group_constrained",
               "exclude_group_constrained",
+              "access_control_policy_enforced",
             ],
             "name": "Management",
             "values": Object {
+              "access_control_policy_enforced": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Attribute Based"
+                  id="admin.channel_list.attributed_based"
+                />,
+                "value": false,
+              },
               "exclude_group_constrained": Object {
                 "name": <Memo(MemoizedFormattedMessage)
                   defaultMessage="Manual Invites"
@@ -941,7 +1016,6 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
     loading={false}
     nextPage={[Function]}
     onSearch={[Function]}
-    page={0}
     placeholderEmpty={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="No channels found"
@@ -970,23 +1044,244 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "management": <span
               className="group-description adjusted row-content"
             >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Manual Invites"
-                id="admin.channel_settings.channel_row.managementMethod.manual"
-              />
+              <span
+                className="group-indicator channel-indicator channel-indicator--larger"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Manual Invites"
+                  id="admin.channel_settings.channel_row.managementMethod.manual"
+                />
+              </span>
             </span>,
             "name": <span
               className="group-name overflow--ellipsis row-content"
               data-testid="channel-display-name"
             >
-              <SharedChannelIndicator
-                channelType="O"
+              <GlobeIcon
                 className="channel-icon"
+                data-testid="DN-archive-icon"
               />
               <span
                 className="TeamList_channelDisplayName"
               >
                 DN
+              </span>
+              <SharedChannelIndicator
+                className="channel-icon"
+                withTooltip={true}
+              />
+            </span>,
+            "team": <span
+              className="group-description row-content"
+            >
+              teamDisplayName
+            </span>,
+          },
+          "onClick": [Function],
+        },
+      ]
+    }
+    rowsContainerStyles={
+      Object {
+        "minHeight": "40px",
+      }
+    }
+    startCount={1}
+    term=""
+    total={1}
+  />
+</div>
+`;
+
+exports[`admin_console/team_channel_settings/channel/ChannelList should render correct icon for archived private channel 1`] = `
+<div
+  className="ChannelsList"
+>
+  <DataGrid
+    columns={
+      Array [
+        Object {
+          "field": "name",
+          "fixed": true,
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Name"
+            id="admin.channel_settings.channel_list.nameHeader"
+          />,
+          "width": 4,
+        },
+        Object {
+          "field": "team",
+          "fixed": true,
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Team"
+            id="admin.channel_settings.channel_list.teamHeader"
+          />,
+          "width": 1.5,
+        },
+        Object {
+          "field": "management",
+          "fixed": true,
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Management"
+            id="admin.channel_settings.channel_list.managementHeader"
+          />,
+        },
+        Object {
+          "field": "edit",
+          "fixed": true,
+          "name": "",
+          "textAlign": "right",
+        },
+      ]
+    }
+    endCount={1}
+    filterProps={
+      Object {
+        "keys": Array [
+          "teams",
+          "channels",
+          "management",
+        ],
+        "onFilter": [Function],
+        "options": Object {
+          "channels": Object {
+            "keys": Array [
+              "public",
+              "private",
+              "deleted",
+            ],
+            "name": "Channels",
+            "values": Object {
+              "deleted": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Archived"
+                  id="admin.channel_list.archived"
+                />,
+                "value": false,
+              },
+              "private": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Private"
+                  id="admin.channel_list.private"
+                />,
+                "value": false,
+              },
+              "public": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Public"
+                  id="admin.channel_list.public"
+                />,
+                "value": false,
+              },
+            },
+          },
+          "management": Object {
+            "keys": Array [
+              "group_constrained",
+              "exclude_group_constrained",
+              "access_control_policy_enforced",
+            ],
+            "name": "Management",
+            "values": Object {
+              "access_control_policy_enforced": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Attribute Based"
+                  id="admin.channel_list.attributed_based"
+                />,
+                "value": false,
+              },
+              "exclude_group_constrained": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Manual Invites"
+                  id="admin.channel_list.manual_invites"
+                />,
+                "value": false,
+              },
+              "group_constrained": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Group Sync"
+                  id="admin.channel_list.group_sync"
+                />,
+                "value": false,
+              },
+            },
+          },
+          "teams": Object {
+            "keys": Array [
+              "team_ids",
+            ],
+            "name": "Teams",
+            "type": Object {
+              "$$typeof": Symbol(react.memo),
+              "WrappedComponent": [Function],
+              "compare": null,
+              "type": [Function],
+            },
+            "values": Object {
+              "team_ids": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Teams"
+                  id="admin.team_settings.title"
+                />,
+                "value": Array [],
+              },
+            },
+          },
+        },
+      }
+    }
+    loading={false}
+    nextPage={[Function]}
+    onSearch={[Function]}
+    placeholderEmpty={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="No channels found"
+        id="admin.channel_settings.channel_list.no_channels_found"
+      />
+    }
+    previousPage={[Function]}
+    rows={
+      Array [
+        Object {
+          "cells": Object {
+            "edit": <span
+              className="group-actions TeamList_editRow"
+              data-testid="DNedit"
+            >
+              <Link
+                to="/admin_console/user_management/channels/archived-private"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Edit"
+                  id="admin.channel_settings.channel_row.configure"
+                />
+              </Link>
+            </span>,
+            "id": "archived-private",
+            "management": <span
+              className="group-description adjusted row-content"
+            >
+              <span
+                className="group-indicator channel-indicator channel-indicator--larger"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Manual Invites"
+                  id="admin.channel_settings.channel_row.managementMethod.manual"
+                />
+              </span>
+            </span>,
+            "name": <span
+              className="group-name overflow--ellipsis row-content"
+              data-testid="channel-display-name"
+            >
+              <ArchiveLockOutlineIcon
+                className="channel-icon"
+                data-testid="DN-archive-icon"
+              />
+              <span
+                className="TeamList_channelDisplayName"
+              >
+                Archived Private
               </span>
             </span>,
             "team": <span
@@ -1004,7 +1299,219 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
         "minHeight": "40px",
       }
     }
-    searchPlaceholder=""
+    startCount={1}
+    term=""
+    total={1}
+  />
+</div>
+`;
+
+exports[`admin_console/team_channel_settings/channel/ChannelList should render correct icon for archived public channel 1`] = `
+<div
+  className="ChannelsList"
+>
+  <DataGrid
+    columns={
+      Array [
+        Object {
+          "field": "name",
+          "fixed": true,
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Name"
+            id="admin.channel_settings.channel_list.nameHeader"
+          />,
+          "width": 4,
+        },
+        Object {
+          "field": "team",
+          "fixed": true,
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Team"
+            id="admin.channel_settings.channel_list.teamHeader"
+          />,
+          "width": 1.5,
+        },
+        Object {
+          "field": "management",
+          "fixed": true,
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Management"
+            id="admin.channel_settings.channel_list.managementHeader"
+          />,
+        },
+        Object {
+          "field": "edit",
+          "fixed": true,
+          "name": "",
+          "textAlign": "right",
+        },
+      ]
+    }
+    endCount={1}
+    filterProps={
+      Object {
+        "keys": Array [
+          "teams",
+          "channels",
+          "management",
+        ],
+        "onFilter": [Function],
+        "options": Object {
+          "channels": Object {
+            "keys": Array [
+              "public",
+              "private",
+              "deleted",
+            ],
+            "name": "Channels",
+            "values": Object {
+              "deleted": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Archived"
+                  id="admin.channel_list.archived"
+                />,
+                "value": false,
+              },
+              "private": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Private"
+                  id="admin.channel_list.private"
+                />,
+                "value": false,
+              },
+              "public": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Public"
+                  id="admin.channel_list.public"
+                />,
+                "value": false,
+              },
+            },
+          },
+          "management": Object {
+            "keys": Array [
+              "group_constrained",
+              "exclude_group_constrained",
+              "access_control_policy_enforced",
+            ],
+            "name": "Management",
+            "values": Object {
+              "access_control_policy_enforced": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Attribute Based"
+                  id="admin.channel_list.attributed_based"
+                />,
+                "value": false,
+              },
+              "exclude_group_constrained": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Manual Invites"
+                  id="admin.channel_list.manual_invites"
+                />,
+                "value": false,
+              },
+              "group_constrained": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Group Sync"
+                  id="admin.channel_list.group_sync"
+                />,
+                "value": false,
+              },
+            },
+          },
+          "teams": Object {
+            "keys": Array [
+              "team_ids",
+            ],
+            "name": "Teams",
+            "type": Object {
+              "$$typeof": Symbol(react.memo),
+              "WrappedComponent": [Function],
+              "compare": null,
+              "type": [Function],
+            },
+            "values": Object {
+              "team_ids": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Teams"
+                  id="admin.team_settings.title"
+                />,
+                "value": Array [],
+              },
+            },
+          },
+        },
+      }
+    }
+    loading={false}
+    nextPage={[Function]}
+    onSearch={[Function]}
+    placeholderEmpty={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="No channels found"
+        id="admin.channel_settings.channel_list.no_channels_found"
+      />
+    }
+    previousPage={[Function]}
+    rows={
+      Array [
+        Object {
+          "cells": Object {
+            "edit": <span
+              className="group-actions TeamList_editRow"
+              data-testid="DNedit"
+            >
+              <Link
+                to="/admin_console/user_management/channels/archived-public"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Edit"
+                  id="admin.channel_settings.channel_row.configure"
+                />
+              </Link>
+            </span>,
+            "id": "archived-public",
+            "management": <span
+              className="group-description adjusted row-content"
+            >
+              <span
+                className="group-indicator channel-indicator channel-indicator--larger"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Manual Invites"
+                  id="admin.channel_settings.channel_row.managementMethod.manual"
+                />
+              </span>
+            </span>,
+            "name": <span
+              className="group-name overflow--ellipsis row-content"
+              data-testid="channel-display-name"
+            >
+              <ArchiveOutlineIcon
+                className="channel-icon"
+                data-testid="DN-archive-icon"
+              />
+              <span
+                className="TeamList_channelDisplayName"
+              >
+                Archived Public
+              </span>
+            </span>,
+            "team": <span
+              className="group-description row-content"
+            >
+              teamDisplayName
+            </span>,
+          },
+          "onClick": [Function],
+        },
+      ]
+    }
+    rowsContainerStyles={
+      Object {
+        "minHeight": "40px",
+      }
+    }
     startCount={1}
     term=""
     total={1}

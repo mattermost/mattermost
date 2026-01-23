@@ -1,12 +1,11 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/admin_console/data_grid/DataGrid should match snapshot while loading 1`] = `
 <div
   className="DataGrid"
 >
-  <DataGridSearch
+  <Memo(DataGridSearch)
     onSearch={[Function]}
-    placeholder=""
     term=""
   />
   <DataGridHeader
@@ -33,9 +32,8 @@ exports[`components/admin_console/data_grid/DataGrid should match snapshot with 
 <div
   className="DataGrid"
 >
-  <DataGridSearch
+  <Memo(DataGridSearch)
     onSearch={[Function]}
-    placeholder=""
     term=""
   />
   <DataGridHeader
@@ -145,9 +143,8 @@ exports[`components/admin_console/data_grid/DataGrid should match snapshot with 
 <div
   className="DataGrid customTable"
 >
-  <DataGridSearch
+  <Memo(DataGridSearch)
     onSearch={[Function]}
-    placeholder=""
     term=""
   />
   <DataGridHeader
@@ -245,9 +242,8 @@ exports[`components/admin_console/data_grid/DataGrid should match snapshot with 
 <div
   className="DataGrid"
 >
-  <DataGridSearch
+  <Memo(DataGridSearch)
     onSearch={[Function]}
-    placeholder=""
     term=""
   />
   <DataGridHeader

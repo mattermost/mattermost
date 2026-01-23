@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dgryski/dgoogauth"
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/require"
 
@@ -21,8 +22,8 @@ import (
 )
 
 func TestWebSocketTrailingSlash(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	url := fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port)
 	_, _, err := websocket.DefaultDialer.Dial(url+model.APIURLSuffix+"/websocket/", nil)
@@ -30,14 +31,10 @@ func TestWebSocketTrailingSlash(t *testing.T) {
 }
 
 func TestWebSocketEvent(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
-	WebSocketClient, err := th.CreateWebSocketClient()
-	require.NoError(t, err)
-	defer WebSocketClient.Close()
-
-	WebSocketClient.Listen()
+	WebSocketClient := th.CreateConnectedWebSocketClient(t)
 
 	resp := <-WebSocketClient.ResponseChannel
 	require.Equal(t, resp.Status, model.StatusOk, "should have responded OK to authentication challenge")
@@ -99,8 +96,8 @@ func TestWebSocketEvent(t *testing.T) {
 }
 
 func TestCreateDirectChannelWithSocket(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	user2 := th.BasicUser2
@@ -108,8 +105,8 @@ func TestCreateDirectChannelWithSocket(t *testing.T) {
 	users := make([]*model.User, 0)
 	users = append(users, user2)
 
-	for i := 0; i < 10; i++ {
-		users = append(users, th.CreateUser())
+	for range 10 {
+		users = append(users, th.CreateUser(t))
 	}
 
 	WebSocketClient, err := th.CreateWebSocketClient()
@@ -154,8 +151,8 @@ func TestCreateDirectChannelWithSocket(t *testing.T) {
 }
 
 func TestWebsocketOriginSecurity(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	url := fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port)
 
@@ -204,8 +201,8 @@ func TestWebsocketOriginSecurity(t *testing.T) {
 }
 
 func TestWebSocketReconnectRace(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	WebSocketClient, err := th.CreateWebSocketClient()
 	require.NoError(t, err)
@@ -224,7 +221,7 @@ func TestWebSocketReconnectRace(t *testing.T) {
 
 	WebSocketClient.Close()
 
-	for i := 0; i < n; i++ {
+	for range n {
 		go func() {
 			defer wg.Done()
 			ws, err := th.CreateReliableWebSocketClient(connID, seq+1)
@@ -238,27 +235,24 @@ func TestWebSocketReconnectRace(t *testing.T) {
 }
 
 func TestWebSocketSendBinary(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	client := th.CreateClient()
-	th.LoginBasicWithClient(client)
-	WebSocketClient, err := th.CreateWebSocketClientWithClient(client)
-	require.NoError(t, err)
-	defer WebSocketClient.Close()
-	WebSocketClient.Listen()
+	th.LoginBasicWithClient(t, client)
+	WebSocketClient := th.CreateConnectedWebSocketClientWithClient(t, client)
 	resp := <-WebSocketClient.ResponseChannel
 	require.Equal(t, resp.Status, model.StatusOk)
 
 	client2 := th.CreateClient()
-	th.LoginBasic2WithClient(client2)
-	WebSocketClient2, err := th.CreateWebSocketClientWithClient(client2)
+	th.LoginBasic2WithClient(t, client2)
+	_ = th.CreateConnectedWebSocketClientWithClient(t, client2)
+
+	// Wait for statuses to be updated
+	time.Sleep(time.Second)
+
+	err := WebSocketClient.SendBinaryMessage("get_statuses", nil)
 	require.NoError(t, err)
-	defer WebSocketClient2.Close()
-
-	time.Sleep(1000 * time.Millisecond)
-
-	WebSocketClient.SendBinaryMessage("get_statuses", nil)
 	resp = <-WebSocketClient.ResponseChannel
 	require.Nil(t, resp.Error, resp.Error)
 	require.Equal(t, resp.SeqReply, WebSocketClient.Sequence-1)
@@ -270,23 +264,21 @@ func TestWebSocketSendBinary(t *testing.T) {
 	require.True(t, ok)
 	require.Equal(t, model.StatusOnline, status)
 
-	WebSocketClient.SendBinaryMessage("get_statuses_by_ids", map[string]any{
+	err = WebSocketClient.SendBinaryMessage("get_statuses_by_ids", map[string]any{
 		"user_ids": []string{th.BasicUser2.Id},
 	})
+	require.NoError(t, err)
 	status, ok = resp.Data[th.BasicUser2.Id]
 	require.True(t, ok)
 	require.Equal(t, model.StatusOnline, status)
 }
 
 func TestWebSocketStatuses(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
-	WebSocketClient, err := th.CreateWebSocketClient()
-	require.NoError(t, err)
-	defer WebSocketClient.Close()
-	WebSocketClient.Listen()
+	WebSocketClient := th.CreateConnectedWebSocketClient(t)
 
 	resp := <-WebSocketClient.ResponseChannel
 	require.Equal(t, resp.Status, model.StatusOk, "should have responded OK to authentication challenge")
@@ -297,25 +289,26 @@ func TestWebSocketStatuses(t *testing.T) {
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	ruser, _, err := client.CreateUser(context.Background(), &user)
 	require.NoError(t, err)
-	th.LinkUserToTeam(ruser, rteam)
+	th.LinkUserToTeam(t, ruser, rteam)
 	_, err = th.App.Srv().Store().User().VerifyEmail(ruser.Id, ruser.Email)
 	require.NoError(t, err)
 
 	user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	ruser2, _, err := client.CreateUser(context.Background(), &user2)
 	require.NoError(t, err)
-	th.LinkUserToTeam(ruser2, rteam)
+	th.LinkUserToTeam(t, ruser2, rteam)
 	_, err = th.App.Srv().Store().User().VerifyEmail(ruser2.Id, ruser2.Email)
 	require.NoError(t, err)
 
-	client.Login(context.Background(), user.Email, user.Password)
-
-	th.LoginBasic2()
-
-	WebSocketClient2, err := th.CreateWebSocketClient()
+	_, _, err = client.Login(context.Background(), user.Email, user.Password)
 	require.NoError(t, err)
 
-	time.Sleep(1000 * time.Millisecond)
+	th.LoginBasic2(t)
+
+	WebSocketClient2 := th.CreateConnectedWebSocketClient(t)
+
+	// Wait for statuses to be updated
+	time.Sleep(time.Second)
 
 	WebSocketClient.GetStatuses()
 	resp = <-WebSocketClient.ResponseChannel
@@ -420,13 +413,10 @@ func TestWebSocketStatuses(t *testing.T) {
 }
 
 func TestWebSocketPresence(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
-	wsClient, err := th.CreateWebSocketClient()
-	require.NoError(t, err)
-	defer wsClient.Close()
-	wsClient.Listen()
+	wsClient := th.CreateConnectedWebSocketClient(t)
 
 	resp := <-wsClient.ResponseChannel
 	require.Equal(t, resp.Status, model.StatusOk, "should have responded OK to authentication challenge")
@@ -453,8 +443,8 @@ func TestWebSocketPresence(t *testing.T) {
 }
 
 func TestWebSocketUpgrade(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	buffer := &mlog.Buffer{}
 	err := mlog.AddWriterTarget(th.TestLogger, buffer, true, mlog.StdAll...)
@@ -466,4 +456,216 @@ func TestWebSocketUpgrade(t *testing.T) {
 	require.Equal(t, resp.StatusCode, http.StatusBadRequest)
 	require.NoError(t, th.TestLogger.Flush())
 	testlib.AssertLog(t, buffer, mlog.LvlDebug.Name, "URL Blocked because of CORS. Url: ")
+}
+
+func TestValidateDisconnectErrCode(t *testing.T) {
+	testCases := []struct {
+		name    string
+		errCode string
+		valid   bool
+	}{
+		{
+			name:    "empty string",
+			errCode: "",
+			valid:   false,
+		},
+		{
+			name:    "non-numeric string",
+			errCode: "not-a-number",
+			valid:   false,
+		},
+		{
+			name:    "valid standard close code - 1000",
+			errCode: "1000",
+			valid:   true,
+		},
+		{
+			name:    "valid standard close code - 1001",
+			errCode: "1001",
+			valid:   true,
+		},
+		{
+			name:    "valid standard close code - 1015",
+			errCode: "1015",
+			valid:   true,
+		},
+		{
+			name:    "valid standard close code - 1016",
+			errCode: "1016",
+			valid:   true,
+		},
+		{
+			name:    "out of range (too low)",
+			errCode: "999",
+			valid:   false,
+		},
+		{
+			name:    "out of range (too high)",
+			errCode: "1017",
+			valid:   false,
+		},
+		{
+			name:    "valid custom code - client ping timeout",
+			errCode: "4000",
+			valid:   true,
+		},
+		{
+			name:    "valid custom code - client sequence mismatch",
+			errCode: "4001",
+			valid:   true,
+		},
+		{
+			name:    "invalid custom code",
+			errCode: "5000",
+			valid:   false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := validateDisconnectErrCode(tc.errCode)
+			require.Equal(t, tc.valid, result)
+		})
+	}
+}
+
+// Helper function to enable MFA enforcement in config
+func enableMFAEnforcement(th *TestHelper) {
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableMultifactorAuthentication = true
+		*cfg.ServiceSettings.EnforceMultifactorAuthentication = true
+	})
+}
+
+// Helper function to set up MFA for a user
+func setupUserWithMFA(t *testing.T, th *TestHelper, user *model.User) string {
+	// Setup MFA properly - following authentication_test.go pattern
+	secret, appErr := th.App.GenerateMfaSecret(user.Id)
+	require.Nil(t, appErr)
+	err := th.Server.Store().User().UpdateMfaActive(user.Id, true)
+	require.NoError(t, err)
+	err = th.Server.Store().User().UpdateMfaSecret(user.Id, secret.Secret)
+	require.NoError(t, err)
+	return secret.Secret
+}
+
+func TestWebSocketMFAEnforcement(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("WebSocket works when MFA enforcement is disabled", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		// MFA enforcement disabled - should work normally
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
+		defer webSocketClient.Close()
+
+		webSocketClient.GetStatuses()
+
+		select {
+		case resp := <-webSocketClient.ResponseChannel:
+			require.Nil(t, resp.Error, "WebSocket should work when MFA enforcement is disabled")
+			require.Equal(t, resp.Status, model.StatusOk)
+		case <-time.After(3 * time.Second):
+			require.Fail(t, "Expected WebSocket response but got timeout")
+		}
+	})
+
+	t.Run("WebSocket blocked when MFA required but user has no MFA", func(t *testing.T) {
+		th := SetupEnterprise(t).InitBasic(t)
+
+		// Enable MFA enforcement in config
+		enableMFAEnforcement(th)
+		// Defer the teardown to reset the config after the test
+		defer func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ServiceSettings.EnforceMultifactorAuthentication = false
+			})
+		}()
+
+		// Create user without MFA using existing basic user to avoid license timing issues
+		user := th.BasicUser
+
+		// Login user (this should work for initial authentication)
+		client := th.CreateClient()
+		_, _, err := client.Login(context.Background(), user.Email, "Pa$$word11")
+		require.NoError(t, err)
+
+		// Create WebSocket client - initial connection succeeds, but subsequent API requests require completed MFA
+		webSocketClient, err := th.CreateWebSocketClientWithClient(client)
+		require.NoError(t, err)
+		require.NotNil(t, webSocketClient, "webSocketClient should not be nil")
+		webSocketClient.Listen()
+		defer webSocketClient.Close()
+
+		// First, consume the successful authentication challenge response
+		authResp := <-webSocketClient.ResponseChannel
+		require.Nil(t, authResp.Error, "Authentication challenge should succeed")
+		require.Equal(t, authResp.Status, model.StatusOk)
+
+		// Individual WebSocket requests should be blocked due to MFA requirement
+		webSocketClient.GetStatuses()
+
+		// Should get authentication error due to MFA requirement on the second request
+		select {
+		case resp := <-webSocketClient.ResponseChannel:
+			t.Logf("Received response: Error=%v, Status=%s, SeqReply=%d", resp.Error, resp.Status, resp.SeqReply)
+			require.NotNil(t, resp.Error, "Should get authentication error due to MFA requirement")
+			require.Equal(t, "api.web_socket_router.not_authenticated.app_error", resp.Error.Id,
+				"Should get specific 'not authenticated' error ID due to MFA requirement")
+		case <-time.After(3 * time.Second):
+			require.Fail(t, "Expected WebSocket error response but got timeout")
+		}
+	})
+
+	t.Run("WebSocket connection allowed when user has MFA active", func(t *testing.T) {
+		th := SetupEnterprise(t).InitBasic(t)
+
+		// Enable MFA enforcement in config
+		enableMFAEnforcement(th)
+		// Defer the teardown to reset the config after the test
+		defer func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ServiceSettings.EnforceMultifactorAuthentication = false
+			})
+		}()
+
+		// Create user and set up MFA
+		user := &model.User{
+			Email:    th.GenerateTestEmail(),
+			Username: model.NewUsername(),
+			Password: "password123",
+		}
+		ruser, _, err := th.Client.CreateUser(context.Background(), user)
+		require.NoError(t, err)
+
+		th.LinkUserToTeam(t, ruser, th.BasicTeam)
+		_, err = th.App.Srv().Store().User().VerifyEmail(ruser.Id, ruser.Email)
+		require.NoError(t, err)
+
+		// Setup MFA for the user and get the secret
+		secretString := setupUserWithMFA(t, th, ruser)
+
+		// Generate TOTP token from the user's MFA secret
+		code := dgoogauth.ComputeCode(secretString, time.Now().UTC().Unix()/30)
+		token := fmt.Sprintf("%06d", code)
+
+		client := th.CreateClient()
+		_, _, err = client.LoginWithMFA(context.Background(), user.Email, user.Password, token)
+		require.NoError(t, err)
+
+		// WebSocket connection should work
+		webSocketClient := th.CreateConnectedWebSocketClientWithClient(t, client)
+		defer webSocketClient.Close()
+
+		// Should be able to get statuses
+		webSocketClient.GetStatuses()
+
+		select {
+		case resp := <-webSocketClient.ResponseChannel:
+			require.Nil(t, resp.Error, "WebSocket should work when MFA is properly set up")
+			require.Equal(t, resp.Status, model.StatusOk)
+		case <-time.After(5 * time.Second):
+			require.Fail(t, "Expected WebSocket response but got timeout")
+		}
+	})
 }

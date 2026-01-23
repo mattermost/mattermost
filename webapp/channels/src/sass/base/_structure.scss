@@ -1,4 +1,5 @@
-@charset 'UTF-8';
+@use "utils/mixins";
+@use "utils/variables";
 
 html,
 body {
@@ -8,7 +9,7 @@ body {
 body {
     position: relative;
     width: 100%;
-    background: $bg--gray;
+    background: variables.$bg--gray;
 
     &.sticky {
         .container-fluid {
@@ -18,7 +19,7 @@ body {
     }
 
     &.admin-onboarding {
-        background-image: url('images/admin-onboarding-background.jpg');
+        background-image: url("images/admin-onboarding-background.jpg");
         background-repeat: no-repeat;
         background-size: cover;
     }
@@ -29,9 +30,9 @@ body {
 }
 
 .sticky {
-    background: $white;
+    background: variables.$white;
 
-    >.channel-view {
+    > .channel-view {
         overflow: auto;
         height: 100vh;
         padding: 0 15px;
@@ -40,7 +41,7 @@ body {
     .inner-wrap {
         width: 100%;
 
-        >.row {
+        > .row {
             &.content {
                 min-height: calc(100vh - 89px);
 
@@ -64,7 +65,7 @@ body {
         overflow: auto;
     }
 
-    >.row {
+    > .row {
         &.main {
             position: relative;
             height: 100%;
@@ -73,14 +74,14 @@ body {
 }
 
 .container-fluid {
-    @include pie-clearfix;
+    @include mixins.pie-clearfix;
 
     position: relative;
     height: 100%;
 }
 
 .channel-view {
-    @include clearfix;
+    @include mixins.clearfix;
 
     position: relative;
     height: 100%;
@@ -102,7 +103,7 @@ body.admin-onboarding #root {
 .app__body {
     #root.channel-view {
         &:has(.backstage-body) {
-            background-color: $bg--gray;
+            background-color: variables.$bg--gray;
         }
     }
 }
@@ -115,8 +116,11 @@ body.app__body #root {
 
     --columns: min-content minmax(385px, 1fr) min-content;
     grid-template:
-        "announcement announcement announcement"min-content "admin-announcement admin-announcement admin-announcement"min-content "header header header"min-content "team-sidebar main app-sidebar"
-        "footer footer footer"min-content / var(--columns);
+        "announcement announcement announcement" min-content
+        "admin-announcement admin-announcement admin-announcement" min-content
+        "header header header" min-content
+        "team-sidebar main app-sidebar"
+        "footer footer footer" min-content / var(--columns);
 
     > :only-child {
         grid-area: main;
@@ -128,10 +132,12 @@ body.app__body #root {
         padding-bottom: 0;
         padding-right: 0;
         grid-template:
-            'announcement announcement'min-content 'admin-announcement admin-announcement'min-content 'header header'min-content 'lhs center'
-            'footer footer'min-content;
-        grid-template-columns: auto 1fr;
-        /* lhs takes its content width, center takes remaining space */
+            "announcement announcement" min-content
+            "admin-announcement admin-announcement" min-content
+            "header header" min-content
+            "lhs center"
+            "footer footer" min-content;
+        grid-template-columns: auto 1fr; /* lhs takes its content width, center takes remaining space */
     }
 
     &.container-fluid {
@@ -164,9 +170,7 @@ body.app__body #root {
         margin: 0 4px 4px 4px;
         border-radius: var(--radius-l);
         grid-area: main;
-        grid-template:
-            'lhs center rhs'
-        ;
+        grid-template: "lhs center rhs";
         grid-template-columns: min-content minmax(385px, 1fr) min-content;
 
         &:has(.backstage-body) {
@@ -175,8 +179,8 @@ body.app__body #root {
             margin: 0;
             border-radius: 0;
             grid-template:
-                'header'min-content 'main'
-            ;
+                "header" min-content
+                "main";
         }
 
         &:has(#playbooks-backstageRoot) {
@@ -204,7 +208,6 @@ body.app__body #root {
     #channel_view,
     .product-wrapper {
         grid-area: center;
-        overflow: visible;
     }
 
     .product-wrapper {
@@ -213,6 +216,7 @@ body.app__body #root {
 
     .sidebar--right--width-holder {
         grid-area: rhs;
+        transform: none;
     }
 
     #sidebar-right {
@@ -234,8 +238,11 @@ body.app__body #root {
             padding-right: 0;
             z-index: 17;
             grid-template:
-                'announcement'min-content 'header'min-content 'main'auto 'footer'min-content / auto;
-
+                "announcement" min-content
+                "admin-announcement" min-content
+                "header" min-content
+                "main" auto
+                "footer" min-content / auto;
             .team-sidebar,
             .app-bar {
                 grid-area: main;
@@ -247,9 +254,7 @@ body.app__body #root {
 
             .main-wrapper {
                 margin: 0;
-                grid-template:
-                    'main'
-                ;
+                grid-template: "main";
                 padding: 0;
                 border-radius: 0;
 
@@ -280,7 +285,7 @@ body.app__body #root {
                 position: absolute;
                 width: 100%;
                 grid-area: center;
-                transition: width .25s ease-in-out;
+                transition: width 0.25s ease-in-out;
                 border-radius: var(--radius-l);
             }
 
@@ -298,7 +303,6 @@ body.app__body #root {
 #channel_view.channel-view {
     overflow: hidden;
     border-radius: var(--radius-l);
-    border-left: var(--border-light);
     background: var(--center-channel-bg);
     box-shadow: var(--elevation-1);
 }

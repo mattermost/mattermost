@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/integrations/InstalledOutgoingWebhooks should match snapshot 1`] = `
 <div>
@@ -240,14 +240,19 @@ exports[`components/integrations/InstalledOutgoingWebhooks should match snapshot
     />
   }
   emptyTextSearch={
-    <FormattedMarkdownMessage
-      defaultMessage="No outgoing webhooks match {searchTerm}"
-      id="installed_outgoing_webhooks.emptySearch"
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="No outgoing webhooks match <b>{searchTerm}</b>"
+      id="installed_outgoing_webhooks.search.empty"
+      values={
+        Object {
+          "b": [Function],
+        }
+      }
     />
   }
   header={
     <Memo(MemoizedFormattedMessage)
-      defaultMessage="Installed Outgoing Webhooks"
+      defaultMessage="Outgoing Webhooks"
       id="installed_outgoing_webhooks.header"
     />
   }

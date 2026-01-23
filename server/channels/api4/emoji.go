@@ -11,7 +11,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/web"
 )
 
@@ -33,7 +32,11 @@ func (api *API) InitEmoji() {
 }
 
 func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
-	defer io.Copy(io.Discard, r.Body)
+	defer func() {
+		if _, err := io.Copy(io.Discard, r.Body); err != nil {
+			c.Logger.Warn("Error while discarding request body", mlog.Err(err))
+		}
+	}()
 
 	if !*c.App.Config().ServiceSettings.EnableCustomEmoji {
 		c.Err = model.NewAppError("createEmoji", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -50,7 +53,7 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("createEmoji", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCreateEmoji, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	// Allow any user with CREATE_EMOJIS permission at Team level to create emojis at system level
@@ -133,12 +136,12 @@ func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("deleteEmoji", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventDeleteEmoji, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	emoji, err := c.App.GetEmoji(c.AppContext, c.Params.EmojiId)
 	if err != nil {
-		audit.AddEventParameter(auditRec, "emoji_id", c.Params.EmojiId)
+		model.AddEventParameterToAuditRec(auditRec, "emoji_id", c.Params.EmojiId)
 		c.Err = err
 		return
 	}
@@ -291,7 +294,9 @@ func getEmojiImage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "image/"+imageType)
 	w.Header().Set("Cache-Control", "max-age=2592000, private")
-	w.Write(image)
+	if _, err := w.Write(image); err != nil {
+		c.Logger.Warn("Error while writing image response", mlog.Err(err))
+	}
 }
 
 func searchEmojis(c *Context, w http.ResponseWriter, r *http.Request) {

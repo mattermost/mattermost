@@ -24,7 +24,6 @@ export type Props = {
     updateTab: (notifications: string) => void;
     closeModal: () => void;
     collapseModal: () => void;
-    setEnforceFocus: () => void;
     setRequireConfirm: () => void;
     pluginSettings: {[tabName: string]: PluginConfiguration};
     userPreferences?: PreferencesType;
@@ -81,7 +80,6 @@ export default function UserSettings(props: Props) {
                     updateSection={props.updateSection}
                     closeModal={props.closeModal}
                     collapseModal={props.collapseModal}
-                    setEnforceFocus={props.setEnforceFocus}
                     setRequireConfirm={props.setRequireConfirm}
                     adminMode={props.adminMode}
                     userPreferences={props.userPreferences}

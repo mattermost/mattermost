@@ -32,7 +32,7 @@ const FeatureList = (props: FeatureListProps) => {
         intl.formatMessage(
             {
                 id: 'admin.billing.subscription.planDetails.features.limitedFileStorage',
-                defaultMessage: 'Limited to {limit} File Storage',
+                defaultMessage: 'Limited to {limit} file storage',
             },
             {
 
@@ -149,6 +149,14 @@ const FeatureList = (props: FeatureListProps) => {
         }),
     ];
 
+    const featuresCloudAdvanced = [
+        intl.formatMessage({
+            id: 'admin.billing.subscription.planDetails.features.abac',
+            defaultMessage: 'Attribute-based access control (ABAC)',
+        }),
+        ...featuresCloudEnterprise,
+    ];
+
     let features: string[] = [];
 
     switch (props.subscriptionPlan) {
@@ -161,6 +169,9 @@ const FeatureList = (props: FeatureListProps) => {
         break;
     case CloudProducts.ENTERPRISE:
         features = featuresCloudEnterprise;
+        break;
+    case CloudProducts.ADVANCED:
+        features = featuresCloudAdvanced;
         break;
     default:
         // unknown product

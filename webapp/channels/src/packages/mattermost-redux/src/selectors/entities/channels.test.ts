@@ -481,13 +481,13 @@ describe('makeGetChannel', () => {
     test('should return non-DM/non-GM channels directly from the store', () => {
         const getChannel = Selectors.makeGetChannel();
 
-        expect(getChannel(testState, {id: channel1.id})).toBe(channel1);
+        expect(getChannel(testState, channel1.id)).toBe(channel1);
     });
 
     test('should return DMs with computed data added', () => {
         const getChannel = Selectors.makeGetChannel();
 
-        expect(getChannel(testState, {id: channel2.id})).toEqual({
+        expect(getChannel(testState, channel2.id)).toEqual({
             ...channel2,
             display_name: user2.username,
             status: 'offline',
@@ -498,7 +498,7 @@ describe('makeGetChannel', () => {
     test('should return GMs with computed data added', () => {
         const getChannel = Selectors.makeGetChannel();
 
-        expect(getChannel(testState, {id: channel3.id})).toEqual({
+        expect(getChannel(testState, channel3.id)).toEqual({
             ...channel3,
             display_name: [user2.username, user3.username].sort(sortUsernames).join(', '),
         });
@@ -2189,7 +2189,7 @@ describe('Selectors.Channels.getUnreadStatus', () => {
     });
 
     it('get unreads', () => {
-        expect(Selectors.getUnreadStatus(testState)).toBe(69);
+        expect(Selectors.getUnreadStatus(testState)).toBe(5);
     });
 
     it('get unreads with a missing profile entity', () => {
@@ -2208,7 +2208,7 @@ describe('Selectors.Channels.getUnreadStatus', () => {
             },
         };
 
-        expect(Selectors.getUnreadStatus(newState)).toBe(69);
+        expect(Selectors.getUnreadStatus(newState)).toBe(5);
     });
 
     it('get unreads with a deactivated user', () => {
@@ -2230,7 +2230,7 @@ describe('Selectors.Channels.getUnreadStatus', () => {
                 },
             },
         };
-        expect(Selectors.getUnreadStatus(newState)).toBe(69);
+        expect(Selectors.getUnreadStatus(newState)).toBe(5);
     });
 
     it('get unreads with a deactivated channel', () => {
@@ -2253,17 +2253,44 @@ describe('Selectors.Channels.getUnreadStatus', () => {
             },
         };
 
-        expect(Selectors.getUnreadStatus(newState)).toBe(65);
+        expect(Selectors.getUnreadStatus(newState)).toBe(1);
+    });
+
+    it('should not count unreads and mentions from a muted channel', () => {
+        const mutedChannelId = channel2.id;
+        const newMyMembers = {
+            ...testState.entities.channels.myMembers,
+            [mutedChannelId]: {
+                ...testState.entities.channels.myMembers[mutedChannelId],
+                notify_props: {
+                    ...testState.entities.channels.myMembers[mutedChannelId].notify_props,
+                    mark_unread: 'mention',
+                },
+                mention_count: 3,
+                msg_count: 10,
+            },
+        };
+
+        const newState = {
+            ...testState,
+            entities: {
+                ...testState.entities,
+                channels: {
+                    ...testState.entities.channels,
+                    myMembers: newMyMembers,
+                },
+            },
+        };
+
+        expect(Selectors.getUnreadStatus(newState)).toBe(1);
     });
 });
 
 describe('Selectors.Channels.getUnreadStatus', () => {
     const team1 = {id: 'team1', delete_at: 0};
-    const team2 = {id: 'team2', delete_at: 0};
 
     const channelA = {id: 'channelA', name: 'channelA', team_id: 'team1', delete_at: 0};
     const channelB = {id: 'channelB', name: 'channelB', team_id: 'team1', delete_at: 0};
-    const channelC = {id: 'channelB', name: 'channelB', team_id: 'team2', delete_at: 0};
 
     const dmChannel = {id: 'dmChannel', name: 'user1__user2', team_id: '', delete_at: 0, type: General.DM_CHANNEL};
     const gmChannel = {id: 'gmChannel', name: 'gmChannel', team_id: 'team1', delete_at: 0, type: General.GM_CHANNEL};
@@ -2496,61 +2523,6 @@ describe('Selectors.Channels.getUnreadStatus', () => {
 
         expect(unreadMeta.isUnread).toBe(true); // gmChannel is unread
         expect(unreadMeta.unreadMentionCount).toBe(gmMember.mention_count);
-    });
-
-    test('should count mentions and messages for other teams from team members', () => {
-        const myMemberA = {mention_count: 2, msg_count: 3, notify_props: {mark_unread: 'all'}};
-        const myMemberC = {mention_count: 5, msg_count: 7, notify_props: {mark_unread: 'all'}};
-
-        const teamMember1 = {msg_count: 1, mention_count: 2};
-        const teamMember2 = {msg_count: 3, mention_count: 6};
-
-        const state = {
-            entities: {
-                general: {config: {}},
-                preferences: {
-                    myPreferences: {},
-                },
-                threads: {
-                    counts: {},
-                },
-                channels: {
-                    channels: {
-                        channelA,
-                        channelC,
-                    },
-                    messageCounts: {
-                        channelA: {total: 11},
-                        channelC: {total: 17},
-                    },
-                    myMembers: {
-                        channelA: myMemberA,
-                        channelC: myMemberC,
-                    },
-                },
-                teams: {
-                    currentTeamId: 'team1',
-                    myMembers: {
-                        team1: teamMember1,
-                        team2: teamMember2,
-                    },
-                    teams: {
-                        team1,
-                        team2,
-                    },
-                },
-                users: {
-                    currentUserId: 'user1',
-                    profiles: {},
-                },
-            },
-        } as unknown as GlobalState;
-
-        const unreadStatus = Selectors.getUnreadStatus(state);
-        const unreadMeta = Selectors.basicUnreadMeta(unreadStatus);
-
-        expect(unreadMeta.isUnread).toBe(true); // channelA and channelC are unread
-        expect(unreadMeta.unreadMentionCount).toBe(myMemberA.mention_count + teamMember2.mention_count);
     });
 });
 

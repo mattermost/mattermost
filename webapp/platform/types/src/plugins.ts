@@ -55,6 +55,7 @@ export type PluginSettingSection = {
     header?: string;
     footer?: string;
     custom?: boolean;
+    fallback?: boolean;
 };
 
 export type PluginSetting = {
@@ -108,6 +109,7 @@ export type PluginStatusRedux = {
 
 export type ClientPluginManifest = {
     id: string;
+    name: string;
     min_server_version?: string;
     version: string;
     webapp: {

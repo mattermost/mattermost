@@ -4,41 +4,95 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {ChannelType} from '@mattermost/types/channels';
-
 import WithTooltip from 'components/with_tooltip';
-
-import {Constants} from 'utils/constants';
 
 type Props = {
     className?: string;
-    channelType: ChannelType;
     withTooltip?: boolean;
+    remoteNames?: string[];
 };
 
 const SharedChannelIndicator: React.FC<Props> = (props: Props): JSX.Element => {
-    let sharedIcon;
-    if (props.channelType === Constants.PRIVATE_CHANNEL) {
-        sharedIcon = (<i className={`${props.className || ''} icon-circle-multiple-outline-lock`}/>);
-    } else {
-        sharedIcon = (<i className={`${props.className || ''} icon-circle-multiple-outline`}/>);
-    }
+    const sharedIcon = (
+        <i
+            data-testid='SharedChannelIcon'
+            className={`${props.className || ''} icon-circle-multiple-outline`}
+        />
+    );
 
     if (!props.withTooltip) {
         return sharedIcon;
     }
 
-    const sharedTooltipText = (
-        <FormattedMessage
-            id='shared_channel_indicator.tooltip'
-            defaultMessage='Shared with trusted organizations'
-        />
-    );
+    let sharedTooltipText;
+
+    if (props.remoteNames && props.remoteNames.length > 0) {
+        // If we have remote names, display them in the tooltip
+        // Show first 3 remotes and then "and N others" if there are more
+        const MAX_DISPLAY_NAMES = 3;
+        const MAX_NAME_LENGTH = 30;
+        const MAX_TOOLTIP_LENGTH = 120; // Maximum overall tooltip length
+
+        // Truncate long organization names
+        const truncatedNames = props.remoteNames.map((name) => (
+            name.length > MAX_NAME_LENGTH ?
+                `${name.substring(0, MAX_NAME_LENGTH)}...` :
+                name
+        ));
+
+        if (truncatedNames.length <= MAX_DISPLAY_NAMES) {
+            // If we have 3 or fewer organizations, just display them all separated by commas
+            sharedTooltipText = (
+                <FormattedMessage
+                    id='shared_channel_indicator.tooltip_with_names.few'
+                    defaultMessage='Shared with: {organizations}'
+                    values={{
+                        organizations: truncatedNames.join(', '),
+                    }}
+                />
+            );
+        } else {
+            // If we have more than MAX_DISPLAY_NAMES organizations, show the first few and then "and N others"
+            const displayNames = truncatedNames.slice(0, MAX_DISPLAY_NAMES);
+            const remainingCount = truncatedNames.length - MAX_DISPLAY_NAMES;
+
+            sharedTooltipText = (
+                <FormattedMessage
+                    id='shared_channel_indicator.tooltip_with_names.many'
+                    defaultMessage='Shared with: {organizations} and {count, number} {count, plural, one {other} other {others}}'
+                    values={{
+                        organizations: displayNames.join(', '),
+                        count: remainingCount,
+                    }}
+                />
+            );
+        }
+
+        // Add a final truncation to enforce maximum tooltip length
+        if (truncatedNames.join(', ').length > MAX_TOOLTIP_LENGTH) {
+            const truncatedStr = truncatedNames.join(', ').substring(0, MAX_TOOLTIP_LENGTH - 3) + '...';
+            sharedTooltipText = (
+                <FormattedMessage
+                    id='shared_channel_indicator.tooltip_with_names'
+                    defaultMessage='Shared with: {remoteNames}'
+                    values={{
+                        remoteNames: truncatedStr,
+                    }}
+                />
+            );
+        }
+    } else {
+        // Fallback to generic message if no remote names are available
+        sharedTooltipText = (
+            <FormattedMessage
+                id='shared_channel_indicator.tooltip'
+                defaultMessage='Shared with trusted organizations'
+            />
+        );
+    }
 
     return (
         <WithTooltip
-            id='sharedTooltip'
-            placement='bottom'
             title={sharedTooltipText}
         >
             {sharedIcon}

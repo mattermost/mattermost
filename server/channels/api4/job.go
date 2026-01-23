@@ -6,13 +6,15 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"path"
 	"path/filepath"
 	"strconv"
 	"time"
 
+	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/web"
 )
 
@@ -55,7 +57,7 @@ func getJob(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	config := c.App.Config()
-	const FilePath = "export"
+	const oldFilePath = "export"
 	const FileMime = "application/zip"
 
 	c.RequireJobId()
@@ -90,19 +92,53 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fileName := job.Id + ".zip"
-	filePath := filepath.Join(FilePath, fileName)
-	fileReader, err := c.App.FileReader(filePath)
-	if err != nil {
-		c.Err = err
-		c.Err.StatusCode = http.StatusNotFound
+	exportDir, ok := job.Data["export_dir"]
+	fileName := path.Base(exportDir)
+	if !ok || exportDir == "" || fileName == "/" || fileName == "." {
+		// Could be a pre-overhaul job. Try the old method:
+		fileName = job.Id + ".zip"
+		filePath := filepath.Join(oldFilePath, fileName)
+		var fileReader filestore.ReadCloseSeeker
+		fileReader, err = c.App.ExportFileReader(filePath)
+		if err != nil {
+			c.Err = model.NewAppError("unableToDownloadJob", "api.job.unable_to_download_job", nil,
+				"job.Data did not include export_dir, export_dir was malformed, or jobId.zip wasn't found",
+				http.StatusNotFound).Wrap(err)
+			return
+		}
+		defer fileReader.Close()
+
+		// We are able to pass 0 for content size due to the fact that Golang's serveContent (https://golang.org/src/net/http/fs.go)
+		// already sets that for us
+		web.WriteFileResponse(fileName, FileMime, 0, time.UnixMilli(job.LastActivityAt), *c.App.Config().ServiceSettings.WebserverMode, fileReader, true, w, r)
 		return
 	}
-	defer fileReader.Close()
 
-	// We are able to pass 0 for content size due to the fact that Golang's serveContent (https://golang.org/src/net/http/fs.go)
-	// already sets that for us
-	web.WriteFileResponse(fileName, FileMime, 0, time.Unix(0, job.LastActivityAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, true, w, r)
+	// We have a base directory, we're using that as the exported filename:
+	fileName += ".zip"
+
+	cleanedExportDir := filepath.Clean(exportDir)
+	if !filepath.IsLocal(cleanedExportDir) {
+		c.Err = model.NewAppError("unableToDownloadJob", "api.job.unable_to_download_job", nil,
+			"job.Data did not include export_dir, export_dir was malformed, or jobId.zip wasn't found",
+			http.StatusNotFound)
+		return
+	}
+
+	zipReader, err := c.App.ExportZipReader(cleanedExportDir, false)
+	if err != nil {
+		c.Err = model.NewAppError("unableToDownloadJob", "api.job.unable_to_download_job", nil,
+			"error creating zip reader", http.StatusNotFound).Wrap(err)
+		return
+	}
+	defer zipReader.Close()
+
+	if err := web.WriteStreamResponse(w, zipReader, fileName, FileMime, true); err != nil {
+		c.Err = model.NewAppError("unableToDownloadJob", "api.job.unable_to_download_job", nil,
+			"failure to WriteStreamResponse", http.StatusInternalServerError).
+			Wrap(err)
+		return
+	}
 }
 
 func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -112,9 +148,9 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("createJob", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCreateJob, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameterAuditable(auditRec, "job", &job)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "job", &job)
 
 	hasPermission, permissionRequired := c.App.SessionHasPermissionToCreateJob(*c.AppContext.Session(), &job)
 	if permissionRequired == nil {
@@ -197,7 +233,7 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 	if status == "" {
 		jobs, appErr = c.App.GetJobsByTypesPage(c.AppContext, validJobTypes, c.Params.Page, c.Params.PerPage)
 	} else {
-		jobs, appErr = c.App.GetJobsByTypeAndStatus(c.AppContext, validJobTypes, status, c.Params.Page, c.Params.PerPage)
+		jobs, appErr = c.App.GetJobsByTypesAndStatuses(c.AppContext, validJobTypes, []string{status}, c.Params.Page, c.Params.PerPage)
 	}
 
 	if appErr != nil {
@@ -210,7 +246,9 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("getJobs", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -241,7 +279,9 @@ func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func cancelJob(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -250,9 +290,9 @@ func cancelJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("cancelJob", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCancelJob, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "job_id", c.Params.JobId)
+	model.AddEventParameterToAuditRec(auditRec, "job_id", c.Params.JobId)
 
 	job, err := c.App.GetJob(c.AppContext, c.Params.JobId)
 	if err != nil {
@@ -291,9 +331,9 @@ func updateJobStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updateJobStatus", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateJobStatus, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "job_id", c.Params.JobId)
+	model.AddEventParameterToAuditRec(auditRec, "job_id", c.Params.JobId)
 
 	props := model.StringInterfaceFromJSON(r.Body)
 	status, ok := props["status"].(string)

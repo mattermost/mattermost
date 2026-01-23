@@ -1,3 +1,6 @@
+@use "utils/functions";
+@use "utils/variables";
+
 @use 'sass:color';
 
 #ldap_groups {
@@ -16,7 +19,7 @@
         position: relative;
         display: flex;
         padding: 8px 20px;
-        background: $white;
+        background: variables.$white;
 
         .group-list-search {
             position: relative;
@@ -27,7 +30,7 @@
             border: 1px solid rgba(0, 0, 0, 0.1);
             border-radius: 15px;
             margin-top: 2px;
-            stroke: $dark-gray;
+            stroke: variables.$dark-gray;
 
             input {
                 width: 100%;
@@ -83,7 +86,7 @@
                 display: inline-block;
                 width: 18px;
                 height: 18px;
-                border: 2px solid $dark-gray;
+                border: 2px solid variables.$dark-gray;
                 border-radius: 3px;
                 margin-right: 7px;
                 vertical-align: middle;
@@ -92,8 +95,8 @@
                     border: 0;
 
                     svg {
-                        background: $white;
-                        fill: $primary-color;
+                        background: variables.$white;
+                        fill: variables.$primary-color;
                     }
                 }
             }
@@ -115,7 +118,7 @@
         .group-description {
             display: block;
             width: 150px;
-            color: $black;
+            color: variables.$black;
             opacity: 1;
 
             &.adjusted {
@@ -129,7 +132,7 @@
     }
 
     .groups-list--body {
-        background: $bg--gray;
+        background: variables.$bg--gray;
         cursor: pointer;
 
         .groups-list-loading {
@@ -139,8 +142,8 @@
 
         .groups-list-empty {
             margin-top: 1rem;
-            background: alpha-color($white, 0.5);
-            color: $gray;
+            background: functions.alpha-color(variables.$white, 0.5);
+            color: variables.$gray;
             font-size: 1.6rem;
             text-align: center;
 
@@ -161,10 +164,10 @@
         justify-content: flex-end;
         padding: 5px;
         border-top: solid 1px rgba(0, 0, 0, 0.1);
-        background: $white;
+        background: variables.$white;
 
         .btn-tertiary {
-            color: $dark-gray;
+            color: variables.$dark-gray;
 
             &.disabled {
                 opacity: 0.5;
@@ -173,7 +176,7 @@
 
         .counter {
             margin-bottom: 2px;
-            color: $dark-gray;
+            color: variables.$dark-gray;
             font-size: 1.1em;
         }
     }
@@ -184,7 +187,7 @@
         min-height: 18px;
         align-items: center;
         justify-content: space-around;
-        border: 2px solid $dark-gray;
+        border: 2px solid variables.$dark-gray;
         border-radius: 3px;
         margin: 5px 5px 4px 14px;
 
@@ -192,8 +195,8 @@
             border: 0;
 
             svg {
-                background: $white;
-                fill: $primary-color;
+                background: variables.$white;
+                fill: variables.$primary-color;
             }
         }
     }
@@ -233,16 +236,16 @@
 
         >a {
             padding: 3px 5px;
-            color: $black;
+            color: variables.$black;
             text-decoration: none;
 
             &:hover {
                 border-radius: 3px;
-                background-color: $light-gray;
+                background-color: variables.$light-gray;
             }
 
             &.warning {
-                color: $red;
+                color: variables.$red;
             }
         }
     }
@@ -264,7 +267,7 @@
 
     .group {
         &.checked {
-            background-color: color.adjust($primary-color, $lightness: 40%);
+            background-color: color.adjust(variables.$primary-color, $lightness: 40%);
 
             .group-description {
                 opacity: 1;
@@ -272,11 +275,11 @@
         }
 
         &:nth-child(even) {
-            background: alpha-color($white, 0.5);
+            background: functions.alpha-color(variables.$white, 0.5);
         }
 
         &.checked:nth-child(even) {
-            background-color: color.adjust($primary-color, $lightness: 40%);
+            background-color: color.adjust(variables.$primary-color, $lightness: 40%);
         }
 
         .group-row {
@@ -293,11 +296,11 @@
         height: 34px;
         flex-direction: row;
         align-items: center;
-        border: 2px solid $transparent;
+        border: 2px solid variables.$transparent;
 
         &:hover {
-            border-left: 2px solid $primary-color;
-            background-color: color.adjust($primary-color, $lightness: 45%);
+            border-left: 2px solid variables.$primary-color;
+            background-color: color.adjust(variables.$primary-color, $lightness: 45%);
 
             .group-description {
                 opacity: 1;
@@ -343,10 +346,10 @@
     .group-users--header {
         padding: 10px 20px;
         background: #333;
-        color: $white;
+        color: variables.$white;
 
         a {
-            color: $white;
+            color: variables.$white;
             text-decoration: underline;
         }
     }
@@ -360,7 +363,7 @@
             display: none;
             width: 100%;
             height: 100%;
-            background: $light-gray;
+            background: variables.$light-gray;
             text-align: center;
 
             &.active {
@@ -376,15 +379,15 @@
 
         .group-users-empty {
             padding: 20px;
-            background: alpha-color($white, 0.5);
-            color: $gray;
+            background: functions.alpha-color(variables.$white, 0.5);
+            color: variables.$gray;
             font-size: 1.5em;
             text-align: center;
         }
 
         .group-users-row {
             &:nth-child(even) {
-                background: alpha-color($white, 0.5);
+                background: functions.alpha-color(variables.$white, 0.5);
             }
 
             display: flex;
@@ -407,7 +410,7 @@
 
                 .display-name,
                 .email {
-                    color: $gray;
+                    color: variables.$gray;
                 }
             }
 
@@ -424,7 +427,7 @@
         justify-content: flex-end;
         padding: 5px;
         margin: 0 15px 15px 15px;
-        background: $white;
+        background: variables.$white;
 
         &.empty {
             height: 0;
@@ -433,7 +436,7 @@
         }
 
         .btn-tertiary {
-            color: $dark-gray;
+            color: variables.$dark-gray;
 
             &.disabled {
                 opacity: 0.5;
@@ -442,7 +445,7 @@
 
         .counter {
             margin-bottom: 2px;
-            color: $dark-gray;
+            color: variables.$dark-gray;
             font-size: 1.1em;
         }
     }
@@ -462,12 +465,12 @@
                 }
 
                 padding: 6px 20px;
-                border-bottom: solid 1px alpha-color(#ccc, 0.75);
+                border-bottom: solid 1px functions.alpha-color(#ccc, 0.75);
             }
 
             tr {
                 &:not(:last-child) {
-                    border-bottom: solid 1px alpha-color(#ccc, 0.75);
+                    border-bottom: solid 1px functions.alpha-color(#ccc, 0.75);
                 }
 
                 &:last-child {
@@ -495,7 +498,7 @@
                 width: 18px;
                 height: 18px;
                 padding: 0;
-                border: 2px solid $dark-gray;
+                border: 2px solid variables.$dark-gray;
                 border-radius: 3px;
                 background: none;
 
@@ -504,7 +507,7 @@
                 }
 
                 &.disabled {
-                    border-color: $light-gray;
+                    border-color: variables.$light-gray;
                 }
 
                 &.checked {
@@ -527,8 +530,8 @@
 
     .group-teams-and-channels-empty {
         padding: 20px;
-        background: alpha-color($white, 0.5);
-        color: $gray;
+        background: functions.alpha-color(variables.$white, 0.5);
+        color: variables.$gray;
         font-size: 1.5em;
         text-align: center;
     }
@@ -549,7 +552,7 @@
 
         .group-teams-and-channels-row {
             &:nth-child(even) {
-                background: alpha-color($white, 0.5);
+                background: functions.alpha-color(variables.$white, 0.5);
             }
 
             .team-icon,
@@ -626,7 +629,7 @@
             .teams-list--header {
                 display: flex;
                 justify-content: space-between;
-                border-bottom: 1px solid $dark-gray;
+                border-bottom: 1px solid variables.$dark-gray;
                 font-size: 1.1em;
                 font-weight: bold;
             }
@@ -654,14 +657,14 @@
         top: 33px;
         width: 100%;
         padding: 5px 8px;
-        border: 1px solid $gray;
+        border: 1px solid variables.$gray;
         border-radius: 2px;
-        background: $white;
+        background: variables.$white;
 
         a {
             display: block;
             padding: 7px;
-            color: $dark-gray;
+            color: variables.$dark-gray;
         }
     }
 }

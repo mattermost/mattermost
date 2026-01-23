@@ -74,8 +74,7 @@ export default class InteractiveDialog extends React.PureComponent<Props, State>
                 if (error) {
                     errors[elem.name] = (
                         <FormattedMessage
-                            id={error.id}
-                            defaultMessage={error.defaultMessage}
+                            {...error}
                             values={error.values}
                         />
                     );
@@ -203,8 +202,9 @@ export default class InteractiveDialog extends React.PureComponent<Props, State>
                 onHide={this.onHide}
                 onExited={this.props.onExited}
                 backdrop='static'
-                role='dialog'
+                role='none'
                 aria-labelledby='interactiveDialogModalLabel'
+                style={{overflowY: 'hidden'}}
             >
                 <form
                     onSubmit={this.handleSubmit}

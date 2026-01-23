@@ -5,7 +5,7 @@ import {shallow} from 'enzyme';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import CreateTeam from './create_team';
+import {CreateTeam} from './create_team';
 
 describe('component/create_team', () => {
     const baseProps = {
@@ -25,6 +25,7 @@ describe('component/create_team', () => {
         },
         history: jest.fn(),
         location: jest.fn(),
+        intl: {formatMessage: jest.fn()},
     } as any;
 
     test('should match snapshot default', () => {

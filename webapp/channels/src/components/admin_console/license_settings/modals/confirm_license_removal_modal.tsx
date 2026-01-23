@@ -56,10 +56,10 @@ const ConfirmLicenseRemovalModal: React.FC<Props> = (props: Props): JSX.Element 
         >
             <>
                 <div className='content-body'>
-                    <div className='no-header__img alert-svg'>
+                    <div className='alert-svg'>
                         <AlertSvg
-                            width={150}
-                            height={150}
+                            width={130.5}
+                            height={103.5}
                         />
                     </div>
                     <div className='title'>
@@ -79,7 +79,7 @@ const ConfirmLicenseRemovalModal: React.FC<Props> = (props: Props): JSX.Element 
                 <div className='content-footer'>
                     <button
                         onClick={handleOnClose}
-                        className='btn light-blue-btn'
+                        className='btn btn-tertiary'
                         id='cancel-removal'
                     >
                         <FormattedMessage

@@ -10,7 +10,7 @@ module.exports = async ({numberOfMessages, ...rest}) => {
         // Parallel posting of the messages (Promise.all) is not handled well by the server
         // resulting in random failed posts
         // so we use serial posting
-        // eslint-disable-next-line no-await-in-loop
+
         results.push(await postMessageAs({message: `Message ${i}`, ...rest}));
     }
 

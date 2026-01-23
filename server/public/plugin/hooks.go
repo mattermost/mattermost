@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 
+	saml2 "github.com/mattermost/gosaml2"
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
@@ -61,6 +62,8 @@ const (
 	OnSharedChannelsAttachmentSyncMsgID       = 43
 	OnSharedChannelsProfileImageSyncMsgID     = 44
 	GenerateSupportDataID                     = 45
+	OnSAMLLoginID                             = 46
+	EmailNotificationWillBeSentID             = 47
 	TotalHooksID                              = iota
 )
 
@@ -312,6 +315,21 @@ type Hooks interface {
 	// Minimum server version: 8.0
 	ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, error)
 
+	// EmailNotificationWillBeSent is invoked before an email notification is sent to a user.
+	// This allows plugins to customize the email notification content including subject,
+	// title, subtitle, message content, buttons, and other email properties.
+	//
+	// To reject an email notification, return an non-empty string describing why the notification was rejected.
+	// To modify the notification, return the replacement, non-nil *model.EmailNotificationContent and an empty string.
+	// To allow the notification without modification, return a nil *model.EmailNotificationContent and an empty string.
+	//
+	// Note that core identifiers (PostId, ChannelId, TeamId, SenderId, RecipientId, RootId) and
+	// context fields (ChannelType, IsDirectMessage, etc.) are immutable and changes to them will be ignored.
+	// Only customizable content fields can be modified.
+	//
+	// Minimum server version: 11.00
+	EmailNotificationWillBeSent(emailNotification *model.EmailNotification) (*model.EmailNotificationContent, string)
+
 	// NotificationWillBePushed is invoked before a push notification is sent to the push
 	// notification server.
 	//
@@ -387,6 +405,17 @@ type Hooks interface {
 	// GenerateSupportData is invoked when a Support Packet gets generated.
 	// It allows plugins to include their own content in the Support Packet.
 	//
+	// Plugins may specififes a "support_packet" field in the manifest props with a custom text.
+	// By doing so, the plugin will be included in the Support Packet UI and the user will be able to select it.
+	// This hook will only be called, if the user selects the plugin in the Support Packet UI.
+	//
+	// If no "support_packet" is specified, this hook will always be called.
+	//
 	// Minimum server version: 9.8
 	GenerateSupportData(c *Context) ([]*model.FileData, error)
+
+	// OnSAMLLogin is invoked after a successful SAML login.
+	//
+	// Minimum server version: 10.7
+	OnSAMLLogin(c *Context, user *model.User, assertion *saml2.AssertionInfo) error
 }

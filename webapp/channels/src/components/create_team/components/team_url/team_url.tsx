@@ -9,8 +9,6 @@ import type {Team} from '@mattermost/types/teams';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
-
 import ExternalLink from 'components/external_link';
 import WithTooltip from 'components/with_tooltip';
 
@@ -57,9 +55,11 @@ type Props = {
 }
 
 export default class TeamUrl extends React.PureComponent<Props, State> {
+    teamURLInput: React.RefObject<HTMLInputElement>;
+
     constructor(props: Props) {
         super(props);
-
+        this.teamURLInput = React.createRef();
         this.state = {
             nameError: '',
             isLoading: false,
@@ -67,13 +67,8 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
         };
     }
 
-    public componentDidMount() {
-        trackEvent('signup', 'signup_team_02_url');
-    }
-
     public submitBack = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
         e.preventDefault();
-        trackEvent('signup', 'click_back');
         const newState = this.props.state;
         newState.wizard = 'display_name';
         this.props.updateParent(newState);
@@ -81,7 +76,6 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
 
     public submitNext = async (e: React.MouseEvent<Button, MouseEvent>) => {
         e.preventDefault();
-        trackEvent('signup', 'click_finish');
 
         const name = this.state.teamURL!.trim();
         const cleanedName = URL.cleanUpUrlable(name);
@@ -95,6 +89,7 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
                     defaultMessage='This field is required'
                 />),
             });
+            this.teamURLInput.current?.focus();
             return;
         }
 
@@ -109,6 +104,7 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
                     }}
                 />),
             });
+            this.teamURLInput.current?.focus();
             return;
         }
 
@@ -119,6 +115,7 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
                     defaultMessage="Use only lower case letters, numbers and dashes. Must start with a letter and can't end in a dash."
                 />),
             });
+            this.teamURLInput.current?.focus();
             return;
         }
 
@@ -171,7 +168,6 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
 
         if (data) {
             this.props.history.push('/' + data.name + '/channels/' + Constants.DEFAULT_CHANNEL);
-            trackEvent('signup', 'signup_team_03_complete');
         } else if (error) {
             this.setState({nameError: error.message});
             this.setState({isLoading: false});
@@ -191,7 +187,15 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
         let nameError = null;
         let nameDivClass = 'form-group';
         if (this.state.nameError) {
-            nameError = <label className='control-label'>{this.state.nameError}</label>;
+            nameError = (
+                <label
+                    role='alert'
+                    className='control-label'
+                    id='teamURLInputError'
+                >
+                    {this.state.nameError}
+                </label>
+            );
             nameDivClass += ' has-error';
         }
 
@@ -221,21 +225,19 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
                         className='signup-team-logo'
                         src={logoImage}
                     />
-                    <h5>
+                    <label htmlFor='teamURLInput'>
                         <FormattedMessage
                             id='create_team.team_url.teamUrl'
                             tagName='strong'
                             defaultMessage='Team URL'
                         />
-                    </h5>
+                    </label>
                     <div className={nameDivClass}>
                         <div className='row'>
                             <div className='col-sm-11'>
                                 <div className='input-group input-group--limit'>
                                     <WithTooltip
-                                        id='urlTooltip'
                                         title={title}
-                                        placement={'top'}
                                     >
                                         <span className='input-group-addon'>
                                             {title}
@@ -244,6 +246,7 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
                                     <input
                                         id='teamURLInput'
                                         type='text'
+                                        ref={this.teamURLInput}
                                         className='form-control'
                                         placeholder=''
                                         maxLength={128}
@@ -252,6 +255,7 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
                                         onFocus={this.handleFocus}
                                         onChange={this.handleTeamURLInputChange}
                                         spellCheck='false'
+                                        aria-describedby='teamURLInputError'
                                     />
                                 </div>
                             </div>

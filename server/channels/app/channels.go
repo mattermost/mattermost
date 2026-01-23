@@ -4,9 +4,13 @@
 package app
 
 import (
+	"net/http"
+	"os"
+	"os/signal"
 	"runtime"
 	"strings"
 	"sync"
+	"syscall"
 
 	"github.com/pkg/errors"
 
@@ -61,6 +65,8 @@ type Channels struct {
 	Saml             einterfaces.SamlInterface
 	Notification     einterfaces.NotificationInterface
 	Ldap             einterfaces.LdapInterface
+	AccessControl    einterfaces.AccessControlServiceInterface
+	Intune           einterfaces.IntuneInterface
 
 	// These are used to prevent concurrent upload requests
 	// for a given upload session which could cause inconsistencies
@@ -76,16 +82,23 @@ type Channels struct {
 
 	postReminderMut  sync.Mutex
 	postReminderTask *model.ScheduledTask
+
+	interruptQuitChan     chan struct{}
+	scheduledPostMut      sync.Mutex
+	scheduledPostTask     *model.ScheduledTask
+	emailLoginAttemptsMut sync.Mutex
+	ldapLoginAttemptsMut  sync.Mutex
 }
 
 func NewChannels(s *Server) (*Channels, error) {
 	ch := &Channels{
-		srv:             s,
-		imageProxy:      imageproxy.MakeImageProxy(s.platform, s.httpService, s.Log()),
-		uploadLockMap:   map[string]bool{},
-		filestore:       s.FileBackend(),
-		exportFilestore: s.ExportFileBackend(),
-		cfgSvc:          s.Platform(),
+		srv:               s,
+		imageProxy:        imageproxy.MakeImageProxy(s.platform, s.httpService, s.Log()),
+		uploadLockMap:     map[string]bool{},
+		filestore:         s.FileBackend(),
+		exportFilestore:   s.ExportFileBackend(),
+		cfgSvc:            s.Platform(),
+		interruptQuitChan: make(chan struct{}),
 	}
 
 	// We are passing a partially filled Channels struct so that the enterprise
@@ -123,6 +136,64 @@ func NewChannels(s *Server) (*Channels, error) {
 		})
 	}
 
+	if intuneInterface != nil {
+		ch.Intune = intuneInterface(New(ServerConnector(ch)))
+	}
+
+	if pushProxyInterface != nil {
+		app := New(ServerConnector(ch))
+		s.PushProxy = pushProxyInterface(app)
+
+		// Add config listener to regenerate token when push proxy URL changes
+		app.AddConfigListener(func(oldCfg, newCfg *model.Config) {
+			// Only cluster leader should regenerate to avoid duplicate requests
+			if !app.IsLeader() {
+				return
+			}
+
+			oldURL := model.SafeDereference(oldCfg.EmailSettings.PushNotificationServer)
+			newURL := model.SafeDereference(newCfg.EmailSettings.PushNotificationServer)
+
+			// If push proxy URL changed
+			if oldURL != newURL {
+				if newURL != "" {
+					// URL changed to a new value, regenerate token
+					s.Log().Info("Push notification server URL changed, regenerating auth token",
+						mlog.String("old_url", oldURL),
+						mlog.String("new_url", newURL))
+
+					if err := s.PushProxy.GenerateAuthToken(); err != nil {
+						s.Log().Error("Failed to regenerate auth token after config change", mlog.Err(err))
+					}
+				} else if oldURL != "" {
+					// URL was cleared, delete the old token
+					s.Log().Info("Push notification server URL cleared, removing auth token")
+					if err := s.PushProxy.DeleteAuthToken(); err != nil {
+						s.Log().Error("Failed to delete auth token after URL cleared", mlog.Err(err))
+					}
+				}
+			}
+		})
+	}
+
+	if accessControlServiceInterface != nil {
+		app := New(ServerConnector(ch))
+		ch.AccessControl = accessControlServiceInterface(app)
+
+		appErr := ch.AccessControl.Init(request.EmptyContext(s.Log()))
+		if appErr != nil && appErr.StatusCode != http.StatusNotImplemented {
+			s.Log().Error("An error occurred while initializing Access Control", mlog.Err(appErr))
+		}
+
+		app.AddLicenseListener(func(newCfg, old *model.License) {
+			if ch.AccessControl != nil {
+				if appErr := ch.AccessControl.Init(request.EmptyContext(s.Log())); appErr != nil && appErr.StatusCode != http.StatusNotImplemented {
+					s.Log().Error("An error occurred while initializing Access Control", mlog.Err(appErr))
+				}
+			}
+		})
+	}
+
 	var imgErr error
 	decoderConcurrency := int(*ch.cfgSvc.Config().FileSettings.MaxImageDecoderConcurrency)
 	if decoderConcurrency == -1 {
@@ -154,6 +225,20 @@ func (ch *Channels) Start() error {
 	// Start plugins
 	ctx := request.EmptyContext(ch.srv.Log())
 	ch.initPlugins(ctx, *ch.cfgSvc.Config().PluginSettings.Directory, *ch.cfgSvc.Config().PluginSettings.ClientDirectory)
+
+	interruptChan := make(chan os.Signal, 1)
+	signal.Notify(interruptChan, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		select {
+		case <-interruptChan:
+			if err := ch.Stop(); err != nil {
+				ch.srv.Log().Warn("Error stopping channels", mlog.Err(err))
+			}
+			os.Exit(1)
+		case <-ch.interruptQuitChan:
+			return
+		}
+	}()
 
 	ch.AddConfigListener(func(prevCfg, cfg *model.Config) {
 		// We compute the difference between configs
@@ -204,6 +289,8 @@ func (ch *Channels) Stop() error {
 	}
 	ch.dndTaskMut.Unlock()
 
+	close(ch.interruptQuitChan)
+
 	return nil
 }
 
@@ -215,7 +302,7 @@ func (ch *Channels) RemoveConfigListener(id string) {
 	ch.cfgSvc.RemoveConfigListener(id)
 }
 
-func (ch *Channels) RunMultiHook(hookRunnerFunc func(hooks plugin.Hooks) bool, hookId int) {
+func (ch *Channels) RunMultiHook(hookRunnerFunc func(hooks plugin.Hooks, manifest *model.Manifest) bool, hookId int) {
 	if env := ch.GetPluginsEnvironment(); env != nil {
 		env.RunMultiPluginHook(hookRunnerFunc, hookId)
 	}

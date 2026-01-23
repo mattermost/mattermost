@@ -11,7 +11,6 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {isCurrentUserGuestUser, isCurrentUserSystemAdmin, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 
-import {trackEvent as trackEventAction} from 'actions/telemetry_actions';
 import {openModal} from 'actions/views/modals';
 import {
     openInvitationsModal,
@@ -20,7 +19,6 @@ import {
     switchToChannels,
 } from 'actions/views/onboarding_tasks';
 import {setProductMenuSwitcherOpen} from 'actions/views/product_menu';
-import {setStatusDropdown} from 'actions/views/status_dropdown';
 import {getOnboardingTaskPreferences} from 'selectors/onboarding';
 
 import Channels from 'components/common/svg_images_components/channels_svg';
@@ -30,6 +28,7 @@ import Phone from 'components/common/svg_images_components/phone_svg';
 import Security from 'components/common/svg_images_components/security_svg';
 import Sunglasses from 'components/common/svg_images_components/sunglasses_svg';
 import LearnMoreTrialModal from 'components/learn_more_trial_modal/learn_more_trial_modal';
+import {openMenu} from 'components/menu';
 import {
     AutoTourStatus,
     FINISHED,
@@ -38,13 +37,13 @@ import {
     TTNameMapToATStatusKey,
     TutorialTourName,
 } from 'components/tours';
+import {ELEMENT_ID_FOR_USER_ACCOUNT_MENU_BUTTON} from 'components/user_account_menu/user_account_menu';
 
-import {ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
+import {ModalIdentifiers} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
 import {OnboardingTaskCategory, OnboardingTaskList, OnboardingTasksName, TaskNameMapToSteps} from './constants';
-import {generateTelemetryTag} from './utils';
 
 const useGetTaskDetails = () => {
     const {formatMessage} = useIntl();
@@ -171,7 +170,7 @@ export const useHandleOnBoardingTaskData = () => {
     const dispatch = useDispatch();
     const currentUserId = useSelector(getCurrentUserId);
     const storeSavePreferences = useCallback(
-        (taskCategory: string, taskName, step: number) => {
+        (taskCategory: string, taskName: string, step: number) => {
             const preferences = [
                 {
                     user_id: currentUserId,
@@ -188,16 +187,8 @@ export const useHandleOnBoardingTaskData = () => {
     return useCallback((
         taskName: string,
         step: number,
-        trackEvent = true,
-        trackEventSuffix?: string,
-        taskCategory = OnboardingTaskCategory,
     ) => {
-        storeSavePreferences(taskCategory, taskName, step);
-        if (trackEvent) {
-            const eventSuffix = trackEventSuffix ? `${step}--${trackEventSuffix}` : step.toString();
-            const telemetryTag = generateTelemetryTag(OnboardingTaskCategory, taskName, eventSuffix);
-            trackEventAction(OnboardingTaskCategory, telemetryTag);
-        }
+        storeSavePreferences(OnboardingTaskCategory, taskName, step);
     }, [storeSavePreferences]);
 };
 
@@ -214,7 +205,7 @@ export const useHandleOnBoardingTaskTrigger = () => {
     return (taskName: string) => {
         switch (taskName) {
         case OnboardingTasksName.CHANNELS_TOUR: {
-            handleSaveData(taskName, TaskNameMapToSteps[taskName].STARTED, true);
+            handleSaveData(taskName, TaskNameMapToSteps[taskName].STARTED);
             const tourCategory = TutorialTourName.ONBOARDING_TUTORIAL_STEP;
             const preferences = [
                 {
@@ -239,9 +230,9 @@ export const useHandleOnBoardingTaskTrigger = () => {
             break;
         }
         case OnboardingTasksName.COMPLETE_YOUR_PROFILE: {
-            dispatch(setStatusDropdown(true));
+            openMenu(ELEMENT_ID_FOR_USER_ACCOUNT_MENU_BUTTON);
             dispatch(setShowOnboardingCompleteProfileTour(true));
-            handleSaveData(taskName, TaskNameMapToSteps[taskName].STARTED, true);
+            handleSaveData(taskName, TaskNameMapToSteps[taskName].STARTED);
             if (inAdminConsole) {
                 dispatch(switchToChannels());
             }
@@ -250,7 +241,7 @@ export const useHandleOnBoardingTaskTrigger = () => {
         case OnboardingTasksName.VISIT_SYSTEM_CONSOLE: {
             dispatch(setProductMenuSwitcherOpen(true));
             dispatch(setShowOnboardingVisitConsoleTour(true));
-            handleSaveData(taskName, TaskNameMapToSteps[taskName].STARTED, true);
+            handleSaveData(taskName, TaskNameMapToSteps[taskName].STARTED);
             break;
         }
         case OnboardingTasksName.INVITE_PEOPLE: {
@@ -261,11 +252,11 @@ export const useHandleOnBoardingTaskTrigger = () => {
             } else {
                 dispatch(openInvitationsModal());
             }
-            handleSaveData(taskName, TaskNameMapToSteps[taskName].FINISHED, true);
+            handleSaveData(taskName, TaskNameMapToSteps[taskName].FINISHED);
             break;
         }
         case OnboardingTasksName.DOWNLOAD_APP: {
-            handleSaveData(taskName, TaskNameMapToSteps[taskName].FINISHED, true);
+            handleSaveData(taskName, TaskNameMapToSteps[taskName].FINISHED);
             const preferences = [{
                 user_id: currentUserId,
                 category: OnboardingTaskCategory,
@@ -277,19 +268,12 @@ export const useHandleOnBoardingTaskTrigger = () => {
             break;
         }
         case OnboardingTasksName.START_TRIAL: {
-            trackEventAction(
-                TELEMETRY_CATEGORIES.SELF_HOSTED_START_TRIAL_TASK_LIST,
-                'open_start_trial_modal',
-            );
             dispatch(openModal({
                 modalId: ModalIdentifiers.LEARN_MORE_TRIAL_MODAL,
                 dialogType: LearnMoreTrialModal,
-                dialogProps: {
-                    launchedBy: 'onboarding',
-                },
             }));
 
-            handleSaveData(taskName, TaskNameMapToSteps[taskName].FINISHED, true);
+            handleSaveData(taskName, TaskNameMapToSteps[taskName].FINISHED);
             break;
         }
         default:

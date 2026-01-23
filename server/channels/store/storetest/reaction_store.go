@@ -4,7 +4,6 @@
 package storetest
 
 import (
-	"context"
 	"errors"
 	"sync"
 	"testing"
@@ -61,7 +60,7 @@ func testReactionSave(t *testing.T, rctx request.CTX, ss store.Store) {
 	assert.Zero(t, saved.DeleteAt, "should've saved reaction delete_at with zero value and returned it")
 
 	var secondUpdateAt int64
-	postList, err := ss.Post().Get(context.Background(), reaction1.PostId, model.GetPostsOptions{}, "", map[string]bool{})
+	postList, err := ss.Post().Get(rctx, reaction1.PostId, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err)
 
 	assert.True(t, postList.Posts[post.Id].HasReactions, "should've set HasReactions = true on post")
@@ -85,7 +84,7 @@ func testReactionSave(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, nErr = ss.Reaction().Save(reaction2)
 	require.NoError(t, nErr)
 
-	postList, err = ss.Post().Get(context.Background(), reaction2.PostId, model.GetPostsOptions{}, "", map[string]bool{})
+	postList, err = ss.Post().Get(rctx, reaction2.PostId, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err)
 
 	assert.NotEqual(t, postList.Posts[post.Id].UpdateAt, secondUpdateAt, "should've marked post as updated even if HasReactions doesn't change")
@@ -152,7 +151,7 @@ func testReactionDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 		_, nErr := ss.Reaction().Save(reaction)
 		require.NoError(t, nErr)
 
-		result, err := ss.Post().Get(context.Background(), reaction.PostId, model.GetPostsOptions{}, "", map[string]bool{})
+		result, err := ss.Post().Get(rctx, reaction.PostId, model.GetPostsOptions{}, "", map[string]bool{})
 		require.NoError(t, err)
 
 		firstUpdateAt := result.Posts[post.Id].UpdateAt
@@ -165,7 +164,7 @@ func testReactionDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		assert.Empty(t, reactions, "should've deleted reaction")
 
-		postList, err := ss.Post().Get(context.Background(), post.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		postList, err := ss.Post().Get(rctx, post.Id, model.GetPostsOptions{}, "", map[string]bool{})
 		require.NoError(t, err)
 
 		assert.False(t, postList.Posts[post.Id].HasReactions, "should've set HasReactions = false on post")
@@ -366,6 +365,8 @@ func testReactionGetForPostSince(t *testing.T, rctx request.CTX, ss store.Store,
 		_, err := ss.Reaction().Save(reaction)
 		require.NoError(t, err)
 
+		time.Sleep(5 * time.Millisecond)
+
 		if del > 0 {
 			_, err = ss.Reaction().Delete(reaction)
 			require.NoError(t, err)
@@ -383,6 +384,7 @@ func testReactionGetForPostSince(t *testing.T, rctx request.CTX, ss store.Store,
 		returned, err := ss.Reaction().GetForPostSince(postId, later-1, "", false)
 		require.NoError(t, err)
 		require.Len(t, returned, 2, "should've returned 2 non-deleted reactions")
+		assert.Less(t, returned[0].CreateAt, returned[1].CreateAt)
 		for _, r := range returned {
 			assert.Zero(t, r.DeleteAt, "should not have returned deleted reaction")
 		}
@@ -394,7 +396,10 @@ func testReactionGetForPostSince(t *testing.T, rctx request.CTX, ss store.Store,
 		require.NoError(t, err)
 		require.Len(t, returned, 3, "should've returned 3 reactions")
 		var count int
-		for _, r := range returned {
+		for i, r := range returned {
+			if i > 0 {
+				assert.Less(t, returned[i-1].CreateAt, returned[i].CreateAt)
+			}
 			if r.DeleteAt > 0 {
 				count++
 			}
@@ -435,7 +440,7 @@ func forceUpdateAt(reaction *model.Reaction, updateAt int64, s SqlStore) error {
 		"updateat":  updateAt,
 	}
 
-	sqlResult, err := s.GetMasterX().NamedExec(`
+	sqlResult, err := s.GetMaster().NamedExec(`
 		UPDATE
 			Reactions
 		SET
@@ -462,10 +467,10 @@ func forceUpdateAt(reaction *model.Reaction, updateAt int64, s SqlStore) error {
 }
 
 func forceNULL(reaction *model.Reaction, s SqlStore) error {
-	if _, err := s.GetMasterX().Exec(`UPDATE Reactions SET UpdateAt = NULL WHERE UpdateAt = 0`); err != nil {
+	if _, err := s.GetMaster().Exec(`UPDATE Reactions SET UpdateAt = NULL WHERE UpdateAt = 0`); err != nil {
 		return err
 	}
-	if _, err := s.GetMasterX().Exec(`UPDATE Reactions SET DeleteAt = NULL WHERE DeleteAt = 0`); err != nil {
+	if _, err := s.GetMaster().Exec(`UPDATE Reactions SET DeleteAt = NULL WHERE DeleteAt = 0`); err != nil {
 		return err
 	}
 	return nil
@@ -552,15 +557,15 @@ func testReactionDeleteAllWithEmojiName(t *testing.T, rctx request.CTX, ss store
 	assert.Empty(t, returned, "should've only removed reactions with emoji name")
 
 	// check that the posts are updated
-	postList, err := ss.Post().Get(context.Background(), post.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	postList, err := ss.Post().Get(rctx, post.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err)
 	assert.True(t, postList.Posts[post.Id].HasReactions, "post should still have reactions")
 
-	postList, err = ss.Post().Get(context.Background(), post2.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	postList, err = ss.Post().Get(rctx, post2.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err)
 	assert.True(t, postList.Posts[post2.Id].HasReactions, "post should still have reactions")
 
-	postList, err = ss.Post().Get(context.Background(), post3.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	postList, err = ss.Post().Get(rctx, post3.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err)
 	assert.False(t, postList.Posts[post3.Id].HasReactions, "post shouldn't have reactions any more")
 }
@@ -637,15 +642,15 @@ func testPermanentDeleteByUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.Len(t, returned, 0, "should remove reaction for user")
 
 	// check that the posts are updated
-	postList, err := ss.Post().Get(context.Background(), post.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	postList, err := ss.Post().Get(rctx, post.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err)
 	assert.True(t, postList.Posts[post.Id].HasReactions, "post should still have reactions")
 
-	postList, err = ss.Post().Get(context.Background(), post2.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	postList, err = ss.Post().Get(rctx, post2.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err)
 	assert.False(t, postList.Posts[post2.Id].HasReactions, "post shouldn't have reactions any more")
 
-	postList, err = ss.Post().Get(context.Background(), post3.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	postList, err = ss.Post().Get(rctx, post3.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err)
 	assert.False(t, postList.Posts[post3.Id].HasReactions, "post shouldn't have reactions any more")
 }
@@ -704,7 +709,11 @@ func testReactionStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss st
 		require.NoError(t, err)
 	}
 
-	_, _, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(0, 2000, limit, model.RetentionPolicyCursor{})
+	_, _, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(model.RetentionPolicyBatchConfigs{
+		Now:                 0,
+		GlobalPolicyEndTime: 2000,
+		Limit:               limit,
+	}, model.RetentionPolicyCursor{})
 	require.NoError(t, err)
 
 	rows, err := ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 1000)
@@ -714,8 +723,10 @@ func testReactionStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss st
 	require.Contains(t, rows[0].Ids, olderPost.Id)
 
 	for _, row := range rows {
-		err = ss.Reaction().DeleteOrphanedRowsByIds(row)
+		var deleted int64
+		deleted, err = ss.Reaction().DeleteOrphanedRowsByIds(row)
 		require.NoError(t, err)
+		require.Equal(t, int64(2), deleted)
 	}
 
 	rows, err = ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 1000)

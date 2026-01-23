@@ -169,8 +169,12 @@ func (scs *Service) onReceiveUploadCreate(msg model.RemoteClusterMsg, rc *model.
 	}
 
 	// make sure channel is shared for the remote sender
-	if _, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(us.ChannelId, rc.RemoteId); err != nil {
+	hasRemote, err := scs.server.GetStore().SharedChannel().HasRemote(us.ChannelId, rc.RemoteId)
+	if err != nil {
 		return fmt.Errorf("could not validate upload session for remote: %w", err)
+	}
+	if !hasRemote {
+		return model.NewAppError("createUpload", "api.upload.create.upload_channel_not_shared_with_remote.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	// make sure file attachments are enabled
@@ -185,6 +189,12 @@ func (scs *Service) onReceiveUploadCreate(msg model.RemoteClusterMsg, rc *model.
 	if scs.server.Config().FileSettings.MaxFileSize == nil || us.FileSize > *scs.server.Config().FileSettings.MaxFileSize {
 		return model.NewAppError("createUpload", "api.upload.create.upload_too_large.app_error",
 			map[string]any{"channelId": us.ChannelId}, "", http.StatusRequestEntityTooLarge)
+	}
+
+	// validate upload type for shared channels - only allow attachments
+	if us.Type != model.UploadTypeAttachment {
+		return model.NewAppError("onReceiveUploadCreate", "api.upload.invalid_type_for_shared_channel.app_error",
+			nil, "", http.StatusBadRequest)
 	}
 
 	us.RemoteId = rc.RemoteId // don't let remotes try to impersonate each other

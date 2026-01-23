@@ -7,11 +7,11 @@ import React from 'react';
 import type {ChangeEvent} from 'react';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, injectIntl} from 'react-intl';
-import type {Styles as ReactSelectStyles, ValueType} from 'react-select';
+import type {InputProps, OnChangeValue, StylesConfig} from 'react-select';
+import {components} from 'react-select';
 import CreatableReactSelect from 'react-select/creatable';
 
 import {LightbulbOutlineIcon} from '@mattermost/compass-icons/components';
-import type {PreferencesType} from '@mattermost/types/preferences';
 import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
 
 import ExternalLink from 'components/external_link';
@@ -27,11 +27,12 @@ import DesktopAndMobileNotificationSettings from './desktop_and_mobile_notificat
 import DesktopNotificationSoundsSettings from './desktop_notification_sounds_setting';
 import EmailNotificationSetting from './email_notification_setting';
 import ManageAutoResponder from './manage_auto_responder/manage_auto_responder';
+import SendTestNotificationNotice from './send_test_notification_notice';
 
 import SettingDesktopHeader from '../headers/setting_desktop_header';
 import SettingMobileHeader from '../headers/setting_mobile_header';
 
-import type {PropsFromRedux} from './index';
+import type {OwnProps, PropsFromRedux} from './index';
 
 const WHITE_SPACE_REGEX = /\s+/g;
 const COMMA_REGEX = /,/g;
@@ -39,16 +40,6 @@ const COMMA_REGEX = /,/g;
 type MultiInputValue = {
     label: string;
     value: string;
-}
-
-export type OwnProps = {
-    user: UserProfile;
-    updateSection: (section: string) => void;
-    activeSection: string;
-    closeModal: () => void;
-    collapseModal: () => void;
-    adminMode?: boolean;
-    userPreferences?: PreferencesType;
 }
 
 export type Props = PropsFromRedux & OwnProps & WrappedComponentProps;
@@ -222,6 +213,18 @@ function getDefaultStateFromProps(props: Props): State {
     };
 }
 
+export const CreatableReactSelectInput = (props: InputProps<MultiInputValue, true>) => {
+    const ariaProps = {
+        'aria-labelledby': 'settingTitle',
+    };
+
+    return (
+        <components.Input
+            {...props}
+            {...ariaProps}
+        />);
+};
+
 class NotificationsTab extends React.PureComponent<Props, State> {
     static defaultProps = {
         activeSection: '',
@@ -361,7 +364,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         this.setState({isCustomKeysWithNotificationInputChecked: checked});
     };
 
-    handleChangeForCustomKeysWithNotificationInput = (values: ValueType<{ value: string }>) => {
+    handleChangeForCustomKeysWithNotificationInput = (values: OnChangeValue<{ value: string }, true>) => {
         if (values && Array.isArray(values) && values.length > 0) {
             // Check the custom keys input checkbox when atleast a single key is entered
             if (this.state.isCustomKeysWithNotificationInputChecked === false) {
@@ -429,7 +432,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         }
     };
 
-    handleChangeForCustomKeysWithHightlightInput = (values: ValueType<{ value: string }>) => {
+    handleChangeForCustomKeysWithHighlightInput = (values: OnChangeValue<{ value: string }, true>) => {
         if (values && Array.isArray(values) && values.length > 0) {
             const customKeysWithHighlight = values.
                 map((value: MultiInputValue) => {
@@ -588,8 +591,8 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                             DropdownIndicator: () => null,
                             Menu: () => null,
                             MenuList: () => null,
+                            Input: CreatableReactSelectInput,
                         }}
-                        aria-labelledby='notificationTriggerCustom'
                         onChange={this.handleChangeForCustomKeysWithNotificationInput}
                         value={this.state.customKeysWithNotification}
                         inputValue={this.state.customKeysWithNotificationInputValue}
@@ -613,7 +616,16 @@ class NotificationsTab extends React.PureComponent<Props, State> {
             expandedSection = (
                 <SettingItemMax
                     title={this.props.intl.formatMessage({id: 'user.settings.notifications.keywordsWithNotification.title', defaultMessage: 'Keywords that trigger notifications'})}
-                    inputs={inputs}
+                    inputs={
+                        <fieldset>
+                            <legend className='hidden-label'>
+                                {this.props.intl.formatMessage({id: 'user.settings.notifications.keywordsWithNotification.title', defaultMessage: 'Keywords that trigger notifications'})}
+                            </legend>
+                            <div>
+                                {inputs}
+                            </div>
+                        </fieldset>
+                    }
                     submit={this.handleSubmit}
                     saving={this.state.isSaving}
                     serverError={serverError}
@@ -682,7 +694,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                             MenuList: () => null,
                         }}
                         aria-labelledby='mentionKeysWithHighlightInput'
-                        onChange={this.handleChangeForCustomKeysWithHightlightInput}
+                        onChange={this.handleChangeForCustomKeysWithHighlightInput}
                         value={this.state.customKeysWithHighlight}
                         inputValue={this.state.customKeysWithHighlightInputValue}
                         onInputChange={this.handleChangeForCustomKeysWithHighlightInputValue}
@@ -972,7 +984,11 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         const areAllSectionsInactive = this.props.activeSection === '';
 
         return (
-            <div id='notificationSettings'>
+            <div
+                id='notificationsSettings'
+                aria-labelledby='notificationsButton'
+                role='tabpanel'
+            >
                 <SettingMobileHeader
                     closeModal={this.props.closeModal}
                     collapseModal={this.props.collapseModal}
@@ -999,7 +1015,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                                 id='user.settings.notifications.learnMore'
                                 defaultMessage='<a>Learn more about notifications</a>'
                                 values={{
-                                    a: (chunks: string) => ((
+                                    a: (chunks) => ((
                                         <ExternalLink
                                             location='user_settings_notifications'
                                             href='https://mattermost.com/pl/about-notifications'
@@ -1092,7 +1108,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                             {keywordsWithHighlightSection}
                         </>
                     )}
-                    <div className='divider-dark'/>
+                    <SendTestNotificationNotice adminMode={this.props.adminMode}/>
                 </div>
             </div>
 
@@ -1100,7 +1116,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
     }
 }
 
-const customKeywordsSelectorStyles: ReactSelectStyles = {
+const customKeywordsSelectorStyles = {
     container: ((baseStyle) => ({
         ...baseStyle,
         marginBlockStart: '10px',
@@ -1138,13 +1154,16 @@ const customKeywordsSelectorStyles: ReactSelectStyles = {
             color: 'rgba(var(--center-channel-color-rgb), 0.56);',
         },
     })),
-};
+} satisfies StylesConfig<MultiInputValue, true>;
 
 const validNotificationLevels = Object.values(NotificationLevels);
 
+/**
+ * Check's if user's global notification settings for desktop and mobile are different
+ */
 export function areDesktopAndMobileSettingsDifferent(
     desktopActivity: UserNotifyProps['desktop'],
-    pushActivity: UserNotifyProps['push'],
+    pushActivity?: UserNotifyProps['push'],
     desktopThreads?: UserNotifyProps['desktop_threads'],
     pushThreads?: UserNotifyProps['push_threads'],
     isCollapsedThreadsEnabled?: boolean,

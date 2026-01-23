@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/MarketplaceItemApp MarketplaceItem should render 1`] = `
 <Fragment>
@@ -17,7 +17,12 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render 1`] = `
       >
         <Memo(LoadingWrapper)
           loading={false}
-          text="Installing..."
+          text={
+            Object {
+              "defaultMessage": "Installing...",
+              "id": "marketplace_modal.installing",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Install"
@@ -32,7 +37,6 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render 1`] = `
     installed={false}
     installing={false}
     name="name"
-    trackEvent={[MockFunction]}
     updateDetails={null}
     versionLabel={null}
   />
@@ -65,7 +69,6 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render installed a
     installed={true}
     installing={false}
     name="name"
-    trackEvent={[MockFunction]}
     updateDetails={null}
     versionLabel={null}
   />
@@ -89,7 +92,12 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with empty 
       >
         <Memo(LoadingWrapper)
           loading={false}
-          text="Installing..."
+          text={
+            Object {
+              "defaultMessage": "Installing...",
+              "id": "marketplace_modal.installing",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Install"
@@ -105,7 +113,6 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with empty 
     installing={false}
     labels={Array []}
     name="name"
-    trackEvent={[MockFunction]}
     updateDetails={null}
     versionLabel={null}
   />
@@ -129,7 +136,12 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with icon 1
       >
         <Memo(LoadingWrapper)
           loading={false}
-          text="Installing..."
+          text={
+            Object {
+              "defaultMessage": "Installing...",
+              "id": "marketplace_modal.installing",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Install"
@@ -146,7 +158,6 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with icon 1
     installed={false}
     installing={false}
     name="name"
-    trackEvent={[MockFunction]}
     updateDetails={null}
     versionLabel={null}
   />
@@ -170,7 +181,12 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with no hom
       >
         <Memo(LoadingWrapper)
           loading={false}
-          text="Installing..."
+          text={
+            Object {
+              "defaultMessage": "Installing...",
+              "id": "marketplace_modal.installing",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Install"
@@ -184,7 +200,6 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with no hom
     installed={false}
     installing={false}
     name="name"
-    trackEvent={[MockFunction]}
     updateDetails={null}
     versionLabel={null}
   />
@@ -208,7 +223,12 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with no plu
       >
         <Memo(LoadingWrapper)
           loading={false}
-          text="Installing..."
+          text={
+            Object {
+              "defaultMessage": "Installing...",
+              "id": "marketplace_modal.installing",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Install"
@@ -222,7 +242,6 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with no plu
     installed={false}
     installing={false}
     name="name"
-    trackEvent={[MockFunction]}
     updateDetails={null}
     versionLabel={null}
   />
@@ -246,7 +265,12 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with one la
       >
         <Memo(LoadingWrapper)
           loading={false}
-          text="Installing..."
+          text={
+            Object {
+              "defaultMessage": "Installing...",
+              "id": "marketplace_modal.installing",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Install"
@@ -270,7 +294,6 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with one la
       ]
     }
     name="name"
-    trackEvent={[MockFunction]}
     updateDetails={null}
     versionLabel={null}
   />
@@ -294,7 +317,12 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with server
       >
         <Memo(LoadingWrapper)
           loading={false}
-          text="Installing..."
+          text={
+            Object {
+              "defaultMessage": "Installing...",
+              "id": "marketplace_modal.installing",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Try Again"
@@ -310,7 +338,6 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with server
     installed={false}
     installing={false}
     name="name"
-    trackEvent={[MockFunction]}
     updateDetails={null}
     versionLabel={null}
   />
@@ -334,7 +361,12 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with two la
       >
         <Memo(LoadingWrapper)
           loading={false}
-          text="Installing..."
+          text={
+            Object {
+              "defaultMessage": "Installing...",
+              "id": "marketplace_modal.installing",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Install"
@@ -363,7 +395,6 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with two la
       ]
     }
     name="name"
-    trackEvent={[MockFunction]}
     updateDetails={null}
     versionLabel={null}
   />
@@ -387,7 +418,12 @@ exports[`components/MarketplaceItemApp MarketplaceItem when installing 1`] = `
       >
         <Memo(LoadingWrapper)
           loading={false}
-          text="Installing..."
+          text={
+            Object {
+              "defaultMessage": "Installing...",
+              "id": "marketplace_modal.installing",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Install"
@@ -403,7 +439,6 @@ exports[`components/MarketplaceItemApp MarketplaceItem when installing 1`] = `
     installing={false}
     isInstalling={true}
     name="name"
-    trackEvent={[MockFunction]}
     updateDetails={null}
     versionLabel={null}
   />

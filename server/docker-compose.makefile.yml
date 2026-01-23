@@ -1,26 +1,11 @@
-version: '2.4'
 services:
-  mysql:
-    restart: 'no'
-    container_name: mattermost-mysql
-    ports:
-      - "3306:3306"
-    extends:
-        file: build/docker-compose.common.yml
-        service: mysql
-  mysql-read-replica:
-    restart: 'no'
-    container_name: mattermost-mysql-read-replica
-    ports:
-      - "3307:3306"
-    extends:
-        file: build/docker-compose.common.yml
-        service: mysql-read-replica
   postgres:
     restart: 'no'
     container_name: mattermost-postgres
     ports:
       - "5432:5432"
+    volumes:
+     - "postgres-14-data:/var/lib/postgresql/data"
     extends:
         file: build/docker-compose.common.yml
         service: postgres
@@ -29,6 +14,7 @@ services:
     container_name: mattermost-minio
     ports:
       - "9000:9000"
+      - "9002:9002"
     extends:
         file: build/docker-compose.common.yml
         service: minio
@@ -67,6 +53,13 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: opensearch
+  redis:
+    container_name: mattermost-redis
+    ports:
+      - "6379:6379"
+    extends:
+        file: build/docker-compose.common.yml
+        service: redis
   dejavu:
     restart: 'no'
     container_name: mattermost-dejavu
@@ -122,3 +115,6 @@ networks:
       config:
         - subnet: 192.168.254.0/24
           ip_range: 192.168.254.0/24
+
+volumes:
+  postgres-14-data:

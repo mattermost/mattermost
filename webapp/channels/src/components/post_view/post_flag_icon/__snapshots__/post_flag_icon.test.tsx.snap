@@ -1,10 +1,8 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/post_view/PostFlagIcon should match snapshot 1`] = `
 <WithTooltip
-  id="flagTooltip"
   key="flagtooltipkey"
-  placement="top"
   title={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Save Message"
@@ -13,7 +11,7 @@ exports[`components/post_view/PostFlagIcon should match snapshot 1`] = `
   }
 >
   <button
-    aria-label="save"
+    aria-label="save message"
     className="post-menu__item"
     id="CENTER_flagIcon_post_id"
     onClick={[Function]}
@@ -27,9 +25,7 @@ exports[`components/post_view/PostFlagIcon should match snapshot 1`] = `
 
 exports[`components/post_view/PostFlagIcon should match snapshot 2`] = `
 <WithTooltip
-  id="flagTooltip"
   key="flagtooltipkeyflagged"
-  placement="top"
   title={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Remove from Saved"

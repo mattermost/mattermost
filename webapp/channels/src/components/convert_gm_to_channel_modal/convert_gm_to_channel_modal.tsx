@@ -17,7 +17,6 @@ import type {UserProfile} from '@mattermost/types/users';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import {getGroupMessageMembersCommonTeams} from 'actions/team_actions';
-import {trackEvent} from 'actions/telemetry_actions';
 
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
@@ -62,7 +61,7 @@ const ConvertGmToChannelModal = (props: Props) => {
             map((user) => displayUsername(user, props.teammateNameDisplaySetting));
 
         setChannelMemberNames(validProfilesInChannel);
-    }, [props.profilesInChannel]);
+    }, [props.profilesInChannel, props.currentUserId, props.teammateNameDisplaySetting]);
 
     const [commonTeamsById, setCommonTeamsById] = useState<{[id: string]: Team}>({});
     const [commonTeamsFetched, setCommonTeamsFetched] = useState<boolean>(false);
@@ -109,7 +108,7 @@ const ConvertGmToChannelModal = (props: Props) => {
 
         work();
         setTimeout(() => setLoadingAnimationTimeout(true), 1200);
-    }, []);
+    }, [dispatch, props.channel.id]);
 
     const handleConfirm = useCallback(async () => {
         if (!selectedTeamId) {
@@ -134,9 +133,8 @@ const ConvertGmToChannelModal = (props: Props) => {
         }
 
         setConversionError(undefined);
-        trackEvent('actions', 'convert_group_message_to_private_channel', {channel_id: props.channel.id});
         props.onExited();
-    }, [selectedTeamId, props.channel.id, channelName, channelURL.current, props.actions.moveChannelsInSidebar]);
+    }, [selectedTeamId, props, channelName, formatMessage]);
 
     const showLoader = !commonTeamsFetched || !loadingAnimationTimeout;
     const canCreate = selectedTeamId !== undefined && channelName !== '' && !nameError && !urlError;
@@ -168,7 +166,7 @@ const ConvertGmToChannelModal = (props: Props) => {
             );
         } else {
             subBody = (
-                <React.Fragment>
+                <>
                     <WarningTextSection channelMemberNames={channelMemberNames}/>
 
                     {
@@ -199,7 +197,7 @@ const ConvertGmToChannelModal = (props: Props) => {
                         </div>
                     }
 
-                </React.Fragment>
+                </>
             );
         }
 

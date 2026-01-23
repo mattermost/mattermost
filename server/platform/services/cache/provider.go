@@ -74,14 +74,17 @@ func (c *cacheProvider) Type() string {
 }
 
 type redisProvider struct {
-	client  rueidis.Client
-	metrics einterfaces.MetricsInterface
+	client      rueidis.Client
+	cachePrefix string
+	metrics     einterfaces.MetricsInterface
 }
 
 type RedisOptions struct {
-	RedisAddr     string
-	RedisPassword string
-	RedisDB       int
+	RedisAddr        string
+	RedisPassword    string
+	RedisDB          int
+	RedisCachePrefix string
+	DisableCache     bool
 }
 
 // NewProvider creates a new CacheProvider
@@ -91,17 +94,29 @@ func NewRedisProvider(opts *RedisOptions) (Provider, error) {
 		Password:          opts.RedisPassword,
 		SelectDB:          opts.RedisDB,
 		ForceSingleClient: true,
-		CacheSizeEachConn: 16 * (1 << 20), // 16MiB local cache size
-		//TODO: look into MaxFlushDelay
+		CacheSizeEachConn: 32 * (1 << 20), // 32MiB local cache size
+		DisableCache:      opts.DisableCache,
+		// This is used to collect more commands before flushing to Redis.
+		// This increases latency at the cost of lower CPU usage at Redis.
+		// It's a tradeoff we are willing to make because Redis is only
+		// meant to be used at very high scales. The docs suggest 20us,
+		// but going as high as 250us doesn't make any material difference.
+		MaxFlushDelay: 250 * time.Microsecond,
+		DisableRetry:  true,
+		// The default is 10s, which is a bit too high
+		ConnWriteTimeout: 5 * time.Second,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return &redisProvider{client: client}, nil
+	return &redisProvider{client: client, cachePrefix: opts.RedisCachePrefix}, nil
 }
 
 // NewCache creates a new cache with given opts
 func (r *redisProvider) NewCache(opts *CacheOptions) (Cache, error) {
+	if r.cachePrefix != "" {
+		opts.Name = r.cachePrefix + ":" + opts.Name
+	}
 	rr, err := NewRedis(opts, r.client)
 	rr.metrics = r.metrics
 	return rr, err

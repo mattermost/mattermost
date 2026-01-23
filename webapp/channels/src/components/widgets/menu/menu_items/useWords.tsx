@@ -1,9 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PrimitiveType, FormatXMLElementFn} from 'intl-messageformat';
 import React from 'react';
-import type {ReactNode} from 'react';
 import {defineMessage, useIntl} from 'react-intl';
 
 import type {LimitSummary} from 'components/common/hooks/useGetHighestThresholdCloudLimit';
@@ -19,9 +17,9 @@ interface Words {
     status: React.ReactNode;
 }
 
-export default function useWords(highestLimit: LimitSummary | false, isAdminUser: boolean, callerInfo: string): Words | false {
+export default function useWords(highestLimit: LimitSummary | false, isAdminUser: boolean): Words | false {
     const intl = useIntl();
-    const openPricingModal = useOpenPricingModal();
+    const {openPricingModal, isAirGapped} = useOpenPricingModal();
     if (!highestLimit) {
         return false;
     }
@@ -39,16 +37,23 @@ export default function useWords(highestLimit: LimitSummary | false, isAdminUser
         });
     }
 
-    const values: Record<string, PrimitiveType | FormatXMLElementFn<string, string> | ((chunks: React.ReactNode | React.ReactNodeArray) => JSX.Element)> = {
+    const values = {
         callToAction,
-        a: (chunks: React.ReactNode | React.ReactNodeArray) => (
-            <a
-                id='view_plans_cta'
-                onClick={() => openPricingModal({trackingLocation: callerInfo})}
-            >
-                {chunks}
-            </a>),
-
+        a: (chunks: React.ReactNode | React.ReactNodeArray) => {
+            if (isAirGapped) {
+                // Return plain text if air-gapped
+                return <>{chunks}</>;
+            }
+            return (
+                <a
+                    id='view_plans_cta'
+                    onClick={openPricingModal}
+                >
+                    {chunks}
+                </a>
+            );
+        },
+        limit: '',
     };
 
     let featureToNotifyOn = '';
@@ -71,7 +76,6 @@ export default function useWords(highestLimit: LimitSummary | false, isAdminUser
         values.a = (chunks: React.ReactNode | React.ReactNodeArray) => (
             <NotifyAdminCTA
                 ctaText={chunks}
-                callerInfo={callerInfo}
                 notifyRequestData={{
                     required_feature: featureToNotifyOn,
                     required_plan: LicenseSkus.Professional,
@@ -83,19 +87,25 @@ export default function useWords(highestLimit: LimitSummary | false, isAdminUser
     case LimitTypes.messageHistory: {
         let description = defineMessage({
             id: 'workspace_limits.menu_limit.warn.messages_history',
-            defaultMessage: 'You’re getting closer to the free {limit} message limit. <a>{callToAction}</a>',
+
+            // eslint-disable-next-line formatjs/enforce-placeholders -- limit, callToAction provided
+            defaultMessage: 'You\'re getting closer to the free {limit} message limit. <a>{callToAction}</a>',
         });
         values.limit = intl.formatNumber(highestLimit.limit);
         if (usageRatio >= limitThresholds.danger) {
             if (isAdminUser) {
                 description = defineMessage({
                     id: 'workspace_limits.menu_limit.critical.messages_history',
+
+                    // eslint-disable-next-line formatjs/enforce-placeholders -- limit, callToAction provided
                     defaultMessage: 'You’re close to hitting the free {limit} message history limit <a>{callToAction}</a>',
                 });
             } else {
                 description = defineMessage({
                     id: 'workspace_limits.menu_limit.critical.messages_history_non_admin',
-                    defaultMessage: 'You\'re almost at the message limit. Your admin can upgrade your plan for unlimited messages. <a>{callToAction}</a>',
+
+                    // eslint-disable-next-line formatjs/enforce-placeholders -- callToAction provided
+                    defaultMessage: 'You’re almost at the message limit. Your admin can upgrade your plan for unlimited messages. <a>{callToAction}</a>',
                 });
             }
         }
@@ -103,12 +113,16 @@ export default function useWords(highestLimit: LimitSummary | false, isAdminUser
             if (isAdminUser) {
                 description = defineMessage({
                     id: 'workspace_limits.menu_limit.reached.messages_history',
+
+                    // eslint-disable-next-line formatjs/enforce-placeholders -- limit, callToAction provided
                     defaultMessage: 'You’ve reached the free message history limit. You can only view up to the last {limit} messages in your history. <a>{callToAction}</a>',
                 });
                 values.limit = inK(highestLimit.limit);
             } else {
                 description = defineMessage({
                     id: 'workspace_limits.menu_limit.reached.messages_history_non_admin',
+
+                    // eslint-disable-next-line formatjs/enforce-placeholders -- callToAction provided
                     defaultMessage: 'You’ve reached your message limit. Your admin can upgrade your plan for unlimited messages. <a>{callToAction}</a>',
                 });
             }
@@ -117,13 +131,17 @@ export default function useWords(highestLimit: LimitSummary | false, isAdminUser
             if (isAdminUser) {
                 description = defineMessage({
                     id: 'workspace_limits.menu_limit.over.messages_history',
+
+                    // eslint-disable-next-line formatjs/enforce-placeholders -- limit, callToAction provided
                     defaultMessage: 'You’re over the free message history limit. You can only view up to the last {limit} messages in your history. <a>{callToAction}</a>',
                 });
                 values.limit = inK(highestLimit.limit);
             } else {
                 description = defineMessage({
                     id: 'workspace_limits.menu_limit.over.messages_history_non_admin',
-                    defaultMessage: 'You\'re over your message limit. Your admin can upgrade your plan for unlimited messages. <a>{callToAction}</a>',
+
+                    // eslint-disable-next-line formatjs/enforce-placeholders -- callToAction provided
+                    defaultMessage: 'You’re over your message limit. Your admin can upgrade your plan for unlimited messages. <a>{callToAction}</a>',
                 });
             }
         }
@@ -132,7 +150,7 @@ export default function useWords(highestLimit: LimitSummary | false, isAdminUser
                 id: 'workspace_limits.menu_limit.messages',
                 defaultMessage: 'Total messages',
             }),
-            description: intl.formatMessage<ReactNode>(
+            description: intl.formatMessage(
                 description,
                 values,
             ),
@@ -142,24 +160,32 @@ export default function useWords(highestLimit: LimitSummary | false, isAdminUser
     case LimitTypes.fileStorage: {
         let description = defineMessage({
             id: 'workspace_limits.menu_limit.warn.files_storage',
+
+            // eslint-disable-next-line formatjs/enforce-placeholders -- limit, callToAction provided
             defaultMessage: 'You’re getting closer to the {limit} file storage limit. <a>{callToAction}</a>',
         });
         values.limit = asGBString(highestLimit.limit, intl.formatNumber);
         if (usageRatio >= limitThresholds.danger) {
             description = defineMessage({
                 id: 'workspace_limits.menu_limit.critical.files_storage',
+
+                // eslint-disable-next-line formatjs/enforce-placeholders -- limit, callToAction provided
                 defaultMessage: 'You’re getting closer to the {limit} file storage limit. <a>{callToAction}</a>',
             });
         }
         if (usageRatio >= limitThresholds.reached) {
             description = defineMessage({
                 id: 'workspace_limits.menu_limit.reached.files_storage',
+
+                // eslint-disable-next-line formatjs/enforce-placeholders -- limit, callToAction provided
                 defaultMessage: 'You’ve reached the {limit} file storage limit. You can only access the most recent {limit} worth of files. <a>{callToAction}</a>',
             });
         }
         if (usageRatio >= limitThresholds.exceeded) {
             description = defineMessage({
                 id: 'workspace_limits.menu_limit.over.files_storage',
+
+                // eslint-disable-next-line formatjs/enforce-placeholders -- limit, callToAction provided
                 defaultMessage: 'You’re over the {limit} file storage limit. You can only access the most recent {limit} worth of files. <a>{callToAction}</a>',
             });
         }
@@ -169,7 +195,7 @@ export default function useWords(highestLimit: LimitSummary | false, isAdminUser
                 id: 'workspace_limits.menu_limit.file_storage',
                 defaultMessage: 'File storage limit',
             }),
-            description: intl.formatMessage<ReactNode>(
+            description: intl.formatMessage(
                 description,
                 values,
             ),

@@ -3,7 +3,7 @@
 
 import React from 'react';
 import type {ChangeEvent, FormEvent, SyntheticEvent} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import type {CustomEmoji} from '@mattermost/types/emojis';
@@ -19,7 +19,6 @@ import SpinnerButton from 'components/spinner_button';
 import {getHistory} from 'utils/browser_history';
 import {Constants} from 'utils/constants';
 import type EmojiMap from 'utils/emoji_map';
-import {localizeMessage} from 'utils/utils';
 
 export interface AddEmojiProps {
     actions: {
@@ -174,7 +173,7 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
                 error: (
                     <FormattedMessage
                         id='add_emoji.imageTooLarge'
-                        defaultMessage='Unable to create emoji. Image must be less than 1 MB in size.'
+                        defaultMessage='Unable to create emoji. Image must be less than 512 KiB in size.'
                     />
                 ),
             });
@@ -327,7 +326,7 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
                                 <div className='form__help'>
                                     <FormattedMessage
                                         id='add_emoji.name.help'
-                                        defaultMessage="Name your emoji. The name can be up to 64 characters, and can contain lowercase letters, numbers, and the symbols '-' and '_'."
+                                        defaultMessage="Specify an emoji name that's up to 64 characters. It can contain lowercase letters, numbers, and the symbols '-', '+' and '_'."
                                     />
                                 </div>
                             </div>
@@ -363,7 +362,7 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
                                     <div className='form__help'>
                                         <FormattedMessage
                                             id='add_emoji.image.help'
-                                            defaultMessage='Specify a .gif, .png, or .jpg file of up to 64 KB for your emoji. The dimensions can be up to 128 pixels by 128 pixels.'
+                                            defaultMessage='Specify a .gif, .png, or .jpg file for your emoji. The file can be up to 512 KiB. The dimensions are resized automatically to 128 pixels by 128 pixels while maintaining the aspect ratio.'
                                         />
                                     </div>
                                 </div>
@@ -389,7 +388,7 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
                                 className='btn btn-primary'
                                 type='submit'
                                 spinning={this.state.saving}
-                                spinningText={localizeMessage('add_emoji.saving', 'Saving...')}
+                                spinningText={defineMessage({id: 'add_emoji.saving', defaultMessage: 'Saving...'})}
                                 onClick={this.handleSaveButtonClick}
                             >
                                 <FormattedMessage

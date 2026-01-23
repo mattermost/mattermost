@@ -5,6 +5,7 @@ import React, {createRef} from 'react';
 import type {RefObject} from 'react';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessages, injectIntl} from 'react-intl';
+import type {SelectInstance} from 'react-select';
 import ReactSelect from 'react-select';
 
 import type {AdminConfig} from '@mattermost/types/config';
@@ -81,7 +82,7 @@ export const searchableStrings = [
 ];
 
 class DataRetentionSettings extends React.PureComponent<Props, State> {
-    inputRef: RefObject<ReactSelect<OptionType>>;
+    inputRef: RefObject<SelectInstance<OptionType>>;
     constructor(props: Props) {
         super(props);
         this.inputRef = createRef();
@@ -534,7 +535,6 @@ class DataRetentionSettings extends React.PureComponent<Props, State> {
                                         columns={this.getGlobalPolicyColumns()}
                                         rows={this.getGlobalPolicyRows()}
                                         loading={false}
-                                        page={0}
                                         nextPage={() => {}}
                                         previousPage={() => {}}
                                         startCount={1}
@@ -572,7 +572,6 @@ class DataRetentionSettings extends React.PureComponent<Props, State> {
                                         columns={this.getCustomPolicyColumns()}
                                         rows={this.getCustomPolicyRows(startCount, endCount)}
                                         loading={this.state.customPoliciesLoading}
-                                        page={this.state.page}
                                         nextPage={this.nextPage}
                                         previousPage={this.previousPage}
                                         startCount={startCount}

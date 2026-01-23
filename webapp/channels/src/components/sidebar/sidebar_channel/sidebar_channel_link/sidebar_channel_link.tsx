@@ -3,13 +3,15 @@
 
 import classNames from 'classnames';
 import React from 'react';
+import {type WrappedComponentProps, injectIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import type {Channel} from '@mattermost/types/channels';
 
-import {mark, trackEvent} from 'actions/telemetry_actions';
+import {mark} from 'actions/telemetry_actions';
 
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
+import SharedChannelIndicator from 'components/shared_channel_indicator';
 import {ChannelsAndDirectMessagesTour} from 'components/tours/onboarding_tour';
 import WithTooltip from 'components/with_tooltip';
 
@@ -18,7 +20,6 @@ import Constants, {RHSStates} from 'utils/constants';
 import {wrapEmojis} from 'utils/emoji_utils';
 import {cmdOrCtrlPressed} from 'utils/keyboard';
 import {Mark} from 'utils/performance_telemetry';
-import {localizeMessage} from 'utils/utils';
 
 import type {RhsState} from 'types/store/rhs';
 
@@ -27,7 +28,7 @@ import ChannelPencilIcon from '../channel_pencil_icon';
 import SidebarChannelIcon from '../sidebar_channel_icon';
 import SidebarChannelMenu from '../sidebar_channel_menu';
 
-type Props = {
+type Props = WrappedComponentProps & {
     channel: Channel;
     link: string;
     label: string;
@@ -61,6 +62,8 @@ type Props = {
     hasUrgent: boolean;
     rhsState?: RhsState;
     rhsOpen?: boolean;
+    isSharedChannel?: boolean;
+    remoteNames: string[];
 
     actions: {
         markMostRecentPostInChannelAsUnread: (channelId: string) => void;
@@ -69,6 +72,7 @@ type Props = {
         multiSelectChannelAdd: (channelId: string) => void;
         unsetEditingPost: () => void;
         closeRightHandSide: () => void;
+        fetchChannelRemotes: (channelId: string) => void;
     };
 };
 
@@ -77,7 +81,7 @@ type State = {
     showTooltip: boolean;
 };
 
-export default class SidebarChannelLink extends React.PureComponent<Props, State> {
+export class SidebarChannelLink extends React.PureComponent<Props, State> {
     labelRef: React.RefObject<HTMLDivElement>;
 
     constructor(props: Props) {
@@ -93,11 +97,22 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
 
     componentDidMount(): void {
         this.enableToolTipIfNeeded();
+
+        if (this.props.isSharedChannel && this.props.channel?.id && this.props.remoteNames.length === 0) {
+            this.props.actions.fetchChannelRemotes(this.props.channel.id);
+        }
     }
 
     componentDidUpdate(prevProps: Props): void {
         if (prevProps.label !== this.props.label) {
             this.enableToolTipIfNeeded();
+        }
+
+        if (this.props.isSharedChannel &&
+            (prevProps.channel?.id !== this.props.channel?.id || prevProps.channel?.team_id !== this.props.channel?.team_id) &&
+            this.props.remoteNames.length === 0 &&
+            this.props.channel?.id) {
+            this.props.actions.fetchChannelRemotes(this.props.channel.id);
         }
     }
 
@@ -108,7 +123,7 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
     };
 
     getAriaLabel = (): string => {
-        const {label, ariaLabelPrefix, unreadMentions} = this.props;
+        const {label, ariaLabelPrefix, unreadMentions, intl} = this.props;
 
         let ariaLabel = label;
 
@@ -117,13 +132,13 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
         }
 
         if (unreadMentions === 1) {
-            ariaLabel += ` ${unreadMentions} ${localizeMessage('accessibility.sidebar.types.mention', 'mention')}`;
+            ariaLabel += ` ${unreadMentions} ${intl.formatMessage({id: 'accessibility.sidebar.types.mention', defaultMessage: 'mention'})}`;
         } else if (unreadMentions > 1) {
-            ariaLabel += ` ${unreadMentions} ${localizeMessage('accessibility.sidebar.types.mentions', 'mentions')}`;
+            ariaLabel += ` ${unreadMentions} ${intl.formatMessage({id: 'accessibility.sidebar.types.mentions', defaultMessage: 'mentions'})}`;
         }
 
         if (this.props.isUnread && unreadMentions === 0) {
-            ariaLabel += ` ${localizeMessage('accessibility.sidebar.types.unread', 'unread')}`;
+            ariaLabel += ` ${intl.formatMessage({id: 'accessibility.sidebar.types.unread', defaultMessage: 'unread'})}`;
         }
 
         return ariaLabel.toLowerCase();
@@ -136,10 +151,6 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
         if (this.props.rhsOpen && this.props.rhsState === RHSStates.EDIT_HISTORY) {
             this.props.actions.closeRightHandSide();
         }
-
-        setTimeout(() => {
-            trackEvent('ui', 'ui_channel_selected_v2');
-        }, 0);
     };
 
     handleSelectChannel = (event: React.MouseEvent<HTMLAnchorElement>): void => {
@@ -199,9 +210,7 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
         if (this.state.showTooltip) {
             labelElement = (
                 <WithTooltip
-                    id='channel-displayname__tooltip'
                     title={label}
-                    placement={'top'}
                 >
                     {labelElement}
                 </WithTooltip>
@@ -223,11 +232,20 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
             />
         ) : null;
 
+        const sharedChannelIcon = this.props.isSharedChannel ? (
+            <SharedChannelIndicator
+                className='icon'
+                withTooltip={true}
+                remoteNames={this.props.remoteNames}
+            />
+        ) : null;
+
         const content = (
             <>
                 <SidebarChannelIcon
                     isDeleted={channel.delete_at !== 0}
                     icon={icon}
+                    channelType={channel.type}
                 />
                 <div
                     className='SidebarChannelLinkLabel_wrapper'
@@ -238,6 +256,7 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
                         pluggableName='SidebarChannelLinkLabel'
                         channel={this.props.channel}
                     />
+                    {sharedChannelIcon}
                 </div>
                 <ChannelPencilIcon id={channel.id}/>
                 <ChannelMentionBadge
@@ -288,3 +307,5 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
         );
     }
 }
+
+export default injectIntl(SidebarChannelLink);

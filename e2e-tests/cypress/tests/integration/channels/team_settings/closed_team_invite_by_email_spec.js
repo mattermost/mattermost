@@ -55,7 +55,7 @@ describe('Team Settings', () => {
 
     it('MM-T385 Invite new user to closed team using email invite', () => {
         // # Open 'Team Settings' modal
-        cy.uiOpenTeamMenu('Team Settings');
+        cy.uiOpenTeamMenu('Team settings');
 
         // * Check that the 'Team Settings' modal was opened
         cy.get('#teamSettingsModal').should('exist').within(() => {
@@ -75,7 +75,7 @@ describe('Team Settings', () => {
         });
 
         // # Open the 'Invite People' full screen modal
-        cy.uiOpenTeamMenu('Invite People');
+        cy.uiOpenTeamMenu('Invite people');
 
         // # Wait half a second to ensure that the modal has been fully loaded
         cy.wait(TIMEOUTS.HALF_SEC);
@@ -85,7 +85,7 @@ describe('Team Settings', () => {
             cy.get('.InviteAs').findByTestId('inviteMembersLink').click();
         }
 
-        cy.findByRole('textbox', {name: 'Add or Invite People'}).type(email, {force: true}).wait(TIMEOUTS.HALF_SEC).type('{enter}', {force: true});
+        cy.findByRole('combobox', {name: 'Invite People'}).type(email, {force: true}).wait(TIMEOUTS.HALF_SEC).type('{enter}', {force: true});
         cy.findByTestId('inviteButton').click();
 
         // # Wait for a while to ensure that email notification is sent and logout from sysadmin account
@@ -114,8 +114,11 @@ describe('Team Settings', () => {
         cy.wait(TIMEOUTS.HALF_SEC);
         cy.get('#input_password-input').type(password);
 
+        // # Check the terms and privacy checkbox
+        cy.get('#signup-body-card-form-check-terms-and-privacy').check();
+
         // # Attempt to create an account by clicking on the 'Create Account' button
-        cy.findByText('Create Account').click();
+        cy.findByText('Create account').click();
 
         // # Close the onboarding tutorial
         cy.uiCloseOnboardingTaskList();

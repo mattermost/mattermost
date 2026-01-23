@@ -78,13 +78,13 @@ describe('MM-T2574 Session Lengths', () => {
             },
         };
 
-        cy.get('#extendSessionLengthWithActivityfalse').check();
+        cy.get('#extendSessionLengthWithActivityfalse').should('exist').check();
         Object.entries(helpText).forEach(([key, value]) => {
             cy.findByTestId(key).should('exist');
             cy.findByTestId(`${key}help-text`).should('have.text', value.false);
         });
 
-        cy.get('#extendSessionLengthWithActivitytrue').check();
+        cy.get('#extendSessionLengthWithActivitytrue').should('exist').check();
         Object.entries(helpText).forEach(([key, value]) => {
             if (value.true) {
                 cy.findByTestId(key).should('exist');

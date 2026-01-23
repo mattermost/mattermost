@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/DatabaseSettings should match snapshot 1`] = `
 <form
@@ -11,7 +11,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
   >
     <AdminHeader>
       <MemoizedFormattedMessage
-        defaultMessage="Database Settings"
+        defaultMessage="Database"
         id="admin.database.title"
       />
     </AdminHeader>
@@ -219,13 +219,8 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
         disabled={false}
         helpText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Minimum number of characters in a hashtag. This must be greater than or equal to 2. MySQL databases must be configured to support searching strings shorter than three characters, <link>see documentation</link>."
+            defaultMessage="Minimum number of characters in a hashtag. This must be greater than or equal to 2."
             id="admin.service.minimumHashtagLengthDescription"
-            values={
-              Object {
-                "link": [Function],
-              }
-            }
           />
         }
         id="minimumHashtagLength"
@@ -340,39 +335,33 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
         setByEnv={false}
         value={true}
       />
-      <div
-        className="form-group"
-      >
-        <label
-          className="control-label col-sm-4"
-        >
-          <MemoizedFormattedMessage
+      <SettingSet
+        label={
+          <Memo(MemoizedFormattedMessage)
             defaultMessage="Schema Migrations:"
             id="admin.database.migrations_table.title"
           />
-        </label>
+        }
+      >
         <div
-          className="col-sm-8"
+          className="migrations-table-setting"
         >
-          <div
-            className="migrations-table-setting"
-          >
-            <Connect(Component)
-              createHelpText={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="All applied migrations."
-                  id="admin.database.migrations_table.help_text"
-                />
-              }
-            />
-          </div>
+          <Connect(Component)
+            createHelpText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="All applied migrations."
+                id="admin.database.migrations_table.help_text"
+              />
+            }
+          />
         </div>
-      </div>
+      </SettingSet>
       <div
         className="form-group"
       >
         <label
           className="control-label col-sm-4"
+          htmlFor="activeSearchBackend"
         >
           <MemoizedFormattedMessage
             defaultMessage="Active Search Backend:"
@@ -385,6 +374,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
           <input
             className="form-control"
             disabled={true}
+            id="activeSearchBackend"
             type="text"
             value=""
           />
@@ -392,7 +382,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
             className="help-text"
           >
             <MemoizedFormattedMessage
-              defaultMessage="Shows the currently active backend used for search. Values can be none, database, elasticsearch, bleve etc."
+              defaultMessage="Shows the currently active backend used for search. Values can be none, database, elasticsearch."
               id="admin.database.search_backend.help_text"
             />
           </div>
@@ -414,8 +404,6 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
         }
       />
       <WithTooltip
-        id="error-tooltip"
-        placement="top"
         title=""
       >
         <div

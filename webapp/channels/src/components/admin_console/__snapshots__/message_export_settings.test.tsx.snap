@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/MessageExportSettings should match snapshot, disabled, actiance 1`] = `
 <form
@@ -67,17 +67,25 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
       <Memo(DropdownSetting)
         disabled={true}
         helpText={
-          <FormattedMarkdownMessage
-            defaultMessage="Format of the compliance export. Corresponds to the system that you want to import the data into.{lineBreak} {lineBreak}For Actiance XML, compliance export files are written to the exports subdirectory of the configured [Local Storage Directory]({url}). For Global Relay EML, they are emailed to the configured email address."
-            id="admin.complianceExport.exportFormat.description"
-            values={
-              Object {
-                "lineBreak": "
-",
-                "url": "http://localhost:8065/admin_console/environment/file_storage",
-              }
-            }
-          />
+          <React.Fragment>
+            <p>
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Format of the compliance export. Corresponds to the system that you want to import the data into."
+                id="admin.complianceExport.exportFormatDetail.intro"
+              />
+            </p>
+            <p>
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="For Actiance XML, compliance export files are written to the exports subdirectory of the configured <a>Local Storage Directory</a>. For Global Relay EML, they are emailed to the configured email address."
+                id="admin.complianceExport.exportFormatDetail.details"
+                values={
+                  Object {
+                    "a": [Function],
+                  }
+                }
+              />
+            </p>
+          </React.Fragment>
         }
         id="exportFormat"
         label={
@@ -100,7 +108,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
               "value": "csv",
             },
             Object {
-              "text": "GlobalRelay EML",
+              "text": "Global Relay EML",
               "value": "globalrelay",
             },
           ]
@@ -139,8 +147,6 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
         }
       />
       <WithTooltip
-        id="error-tooltip"
-        placement="top"
         title=""
       >
         <div
@@ -223,17 +229,25 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
       <Memo(DropdownSetting)
         disabled={true}
         helpText={
-          <FormattedMarkdownMessage
-            defaultMessage="Format of the compliance export. Corresponds to the system that you want to import the data into.{lineBreak} {lineBreak}For Actiance XML, compliance export files are written to the exports subdirectory of the configured [Local Storage Directory]({url}). For Global Relay EML, they are emailed to the configured email address."
-            id="admin.complianceExport.exportFormat.description"
-            values={
-              Object {
-                "lineBreak": "
-",
-                "url": "http://localhost:8065/admin_console/environment/file_storage",
-              }
-            }
-          />
+          <React.Fragment>
+            <p>
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Format of the compliance export. Corresponds to the system that you want to import the data into."
+                id="admin.complianceExport.exportFormatDetail.intro"
+              />
+            </p>
+            <p>
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="For Actiance XML, compliance export files are written to the exports subdirectory of the configured <a>Local Storage Directory</a>. For Global Relay EML, they are emailed to the configured email address."
+                id="admin.complianceExport.exportFormatDetail.details"
+                values={
+                  Object {
+                    "a": [Function],
+                  }
+                }
+              />
+            </p>
+          </React.Fragment>
         }
         id="exportFormat"
         label={
@@ -256,7 +270,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
               "value": "csv",
             },
             Object {
-              "text": "GlobalRelay EML",
+              "text": "Global Relay EML",
               "value": "globalrelay",
             },
           ]
@@ -409,8 +423,6 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
         }
       />
       <WithTooltip
-        id="error-tooltip"
-        placement="top"
         title=""
       >
         <div
@@ -493,17 +505,25 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
       <Memo(DropdownSetting)
         disabled={false}
         helpText={
-          <FormattedMarkdownMessage
-            defaultMessage="Format of the compliance export. Corresponds to the system that you want to import the data into.{lineBreak} {lineBreak}For Actiance XML, compliance export files are written to the exports subdirectory of the configured [Local Storage Directory]({url}). For Global Relay EML, they are emailed to the configured email address."
-            id="admin.complianceExport.exportFormat.description"
-            values={
-              Object {
-                "lineBreak": "
-",
-                "url": "http://localhost:8065/admin_console/environment/file_storage",
-              }
-            }
-          />
+          <React.Fragment>
+            <p>
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Format of the compliance export. Corresponds to the system that you want to import the data into."
+                id="admin.complianceExport.exportFormatDetail.intro"
+              />
+            </p>
+            <p>
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="For Actiance XML, compliance export files are written to the exports subdirectory of the configured <a>Local Storage Directory</a>. For Global Relay EML, they are emailed to the configured email address."
+                id="admin.complianceExport.exportFormatDetail.details"
+                values={
+                  Object {
+                    "a": [Function],
+                  }
+                }
+              />
+            </p>
+          </React.Fragment>
         }
         id="exportFormat"
         label={
@@ -526,7 +546,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
               "value": "csv",
             },
             Object {
-              "text": "GlobalRelay EML",
+              "text": "Global Relay EML",
               "value": "globalrelay",
             },
           ]
@@ -565,8 +585,6 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
         }
       />
       <WithTooltip
-        id="error-tooltip"
-        placement="top"
         title=""
       >
         <div
@@ -649,17 +667,25 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
       <Memo(DropdownSetting)
         disabled={false}
         helpText={
-          <FormattedMarkdownMessage
-            defaultMessage="Format of the compliance export. Corresponds to the system that you want to import the data into.{lineBreak} {lineBreak}For Actiance XML, compliance export files are written to the exports subdirectory of the configured [Local Storage Directory]({url}). For Global Relay EML, they are emailed to the configured email address."
-            id="admin.complianceExport.exportFormat.description"
-            values={
-              Object {
-                "lineBreak": "
-",
-                "url": "http://localhost:8065/admin_console/environment/file_storage",
-              }
-            }
-          />
+          <React.Fragment>
+            <p>
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Format of the compliance export. Corresponds to the system that you want to import the data into."
+                id="admin.complianceExport.exportFormatDetail.intro"
+              />
+            </p>
+            <p>
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="For Actiance XML, compliance export files are written to the exports subdirectory of the configured <a>Local Storage Directory</a>. For Global Relay EML, they are emailed to the configured email address."
+                id="admin.complianceExport.exportFormatDetail.details"
+                values={
+                  Object {
+                    "a": [Function],
+                  }
+                }
+              />
+            </p>
+          </React.Fragment>
         }
         id="exportFormat"
         label={
@@ -682,7 +708,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
               "value": "csv",
             },
             Object {
-              "text": "GlobalRelay EML",
+              "text": "Global Relay EML",
               "value": "globalrelay",
             },
           ]
@@ -835,8 +861,6 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
         }
       />
       <WithTooltip
-        id="error-tooltip"
-        placement="top"
         title=""
       >
         <div

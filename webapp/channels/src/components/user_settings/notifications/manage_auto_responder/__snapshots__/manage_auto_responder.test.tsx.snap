@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/user_settings/notifications/ManageAutoResponder should match snapshot, default disabled 1`] = `
 <ManageAutoResponder
@@ -10,9 +10,7 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
   submit={[MockFunction]}
   updateSection={[MockFunction]}
 >
-  <SettingItemMax
-    containerStyle=""
-    infoPosition="bottom"
+  <Memo(SettingItemMax)
     inputs={
       Array [
         <div
@@ -43,7 +41,6 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
       ]
     }
     saving={false}
-    section=""
     shiftEnter={true}
     submit={[MockFunction]}
     title={
@@ -120,6 +117,9 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
             className="setting-list-item"
           >
             <hr />
+            <div
+              role="alert"
+            />
             <SaveButton
               disabled={false}
               onClick={[Function]}
@@ -157,6 +157,7 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
             </SaveButton>
             <button
               className="btn btn-tertiary"
+              data-testid="cancelButton"
               id="cancelSetting"
               onClick={[Function]}
             >
@@ -173,7 +174,7 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
         </div>
       </div>
     </section>
-  </SettingItemMax>
+  </Memo(SettingItemMax)>
 </ManageAutoResponder>
 `;
 
@@ -187,9 +188,7 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
   submit={[MockFunction]}
   updateSection={[MockFunction]}
 >
-  <SettingItemMax
-    containerStyle=""
-    infoPosition="bottom"
+  <Memo(SettingItemMax)
     inputs={
       Array [
         <div
@@ -215,15 +214,21 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
           <div
             className="pt-2"
           >
-            <textarea
+            <LocalizedPlaceholderTextarea
               className="form-control"
               id="autoResponderMessageInput"
               maxLength={200}
               onChange={[Function]}
-              placeholder="Message"
+              placeholder={
+                Object {
+                  "defaultMessage": "Message",
+                  "id": "user.settings.notifications.autoResponderPlaceholder",
+                }
+              }
               rows={5}
               style={
                 Object {
+                  "height": "auto",
                   "resize": "none",
                 }
               }
@@ -242,7 +247,6 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
       ]
     }
     saving={false}
-    section=""
     shiftEnter={true}
     submit={[MockFunction]}
     title={
@@ -308,20 +312,42 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
               <div
                 className="pt-2"
               >
-                <textarea
+                <LocalizedPlaceholderTextarea
                   className="form-control"
                   id="autoResponderMessageInput"
                   maxLength={200}
                   onChange={[Function]}
-                  placeholder="Message"
+                  placeholder={
+                    Object {
+                      "defaultMessage": "Message",
+                      "id": "user.settings.notifications.autoResponderPlaceholder",
+                    }
+                  }
                   rows={5}
                   style={
                     Object {
+                      "height": "auto",
                       "resize": "none",
                     }
                   }
                   value="Hello World!"
-                />
+                >
+                  <textarea
+                    className="form-control"
+                    id="autoResponderMessageInput"
+                    maxLength={200}
+                    onChange={[Function]}
+                    placeholder="Message"
+                    rows={5}
+                    style={
+                      Object {
+                        "height": "auto",
+                        "resize": "none",
+                      }
+                    }
+                    value="Hello World!"
+                  />
+                </LocalizedPlaceholderTextarea>
               </div>
             </div>
             <div
@@ -342,6 +368,9 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
             className="setting-list-item"
           >
             <hr />
+            <div
+              role="alert"
+            />
             <SaveButton
               disabled={false}
               onClick={[Function]}
@@ -379,6 +408,7 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
             </SaveButton>
             <button
               className="btn btn-tertiary"
+              data-testid="cancelButton"
               id="cancelSetting"
               onClick={[Function]}
             >
@@ -395,6 +425,6 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
         </div>
       </div>
     </section>
-  </SettingItemMax>
+  </Memo(SettingItemMax)>
 </ManageAutoResponder>
 `;

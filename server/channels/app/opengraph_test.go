@@ -24,23 +24,26 @@ func BenchmarkForceHTMLEncodingToUTF8(b *testing.B) {
 	ContentType := "text/html; utf-8"
 
 	b.Run("with converting", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			r := forceHTMLEncodingToUTF8(strings.NewReader(HTML), ContentType)
 
 			og := opengraph.NewOpenGraph()
-			og.ProcessHTML(r)
+			err := og.ProcessHTML(r)
+			require.NoError(b, err)
 		}
 	})
 
 	b.Run("without converting", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			og := opengraph.NewOpenGraph()
-			og.ProcessHTML(strings.NewReader(HTML))
+			err := og.ProcessHTML(strings.NewReader(HTML))
+			require.NoError(b, err)
 		}
 	})
 }
 
 func TestMakeOpenGraphURLsAbsolute(t *testing.T) {
+	mainHelper.Parallel(t)
 	for name, tc := range map[string]struct {
 		HTML       string
 		RequestURL string
@@ -126,6 +129,7 @@ func TestMakeOpenGraphURLsAbsolute(t *testing.T) {
 }
 
 func TestOpenGraphDecodeHTMLEntities(t *testing.T) {
+	mainHelper.Parallel(t)
 	og := opengraph.NewOpenGraph()
 	og.Title = "Test&#39;s are the best.&copy;"
 	og.Description = "Test&#39;s are the worst.&copy;"

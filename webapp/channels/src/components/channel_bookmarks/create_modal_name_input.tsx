@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ComponentProps} from 'react';
 import React, {useCallback, useRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import styled from 'styled-components';
@@ -11,7 +10,7 @@ import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
 import type {Emoji} from '@mattermost/types/emojis';
 import type {FileInfo} from '@mattermost/types/files';
 
-import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
+import useEmojiPicker from 'components/emoji_picker/use_emoji_picker';
 import Input from 'components/widgets/inputs/input/input';
 
 import Constants, {A11yCustomEventTypes, type A11yFocusEventDetail} from 'utils/constants';
@@ -20,6 +19,7 @@ import {isKeyPressed} from 'utils/keyboard';
 import BookmarkIcon from './bookmark_icon';
 
 type Props = {
+    maxLength: number;
     type: ChannelBookmark['type'];
     fileInfo: FileInfo | undefined;
     imageUrl: string | undefined;
@@ -33,6 +33,7 @@ type Props = {
     onAddCustomEmojiClick?: () => void;
 }
 const CreateModalNameInput = ({
+    maxLength,
     type,
     imageUrl,
     fileInfo,
@@ -48,7 +49,6 @@ const CreateModalNameInput = ({
     const {formatMessage} = useIntl();
 
     const targetRef = useRef<HTMLButtonElement>(null);
-    const getTargetRef = () => targetRef.current;
 
     const icon = (
         <BookmarkIcon
@@ -88,12 +88,7 @@ const CreateModalNameInput = ({
         setEmoji('');
     };
 
-    const handleEmojiClose = () => {
-        setShowEmojiPicker(false);
-        refocusEmojiButton();
-    };
-
-    const handleInputChange: ComponentProps<typeof Input>['onChange'] = useCallback((e) => {
+    const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setDisplayName(e.currentTarget.value);
     }, []);
 
@@ -110,34 +105,36 @@ const CreateModalNameInput = ({
         }
     };
 
+    const {
+        emojiPicker,
+        getReferenceProps,
+        setReference,
+    } = useEmojiPicker({
+        showEmojiPicker,
+        setShowEmojiPicker,
+
+        onAddCustomEmojiClick,
+        onEmojiClick: handleEmojiClick,
+    });
+
     return (
         <>
             <NameWrapper>
-                {showEmojiPicker && (
-                    <EmojiPickerOverlay
-                        target={getTargetRef}
-                        show={showEmojiPicker}
-                        onHide={handleEmojiClose}
-                        onEmojiClick={handleEmojiClick}
-                        placement='right'
-                        onAddCustomEmojiClick={onAddCustomEmojiClick}
-                    />
-
-                )}
                 <button
-                    ref={targetRef}
+                    ref={setReference}
                     type='button'
                     onClick={toggleEmojiPicker}
                     onKeyDown={handleEmojiKeyDown}
                     aria-label={formatMessage({id: 'emoji_picker.emojiPicker.button.ariaLabel', defaultMessage: 'select an emoji'})}
-                    aria-expanded={showEmojiPicker ? 'true' : 'false'}
-
                     className='channelBookmarksMenuButton emoji-picker__container BookmarkCreateModal__emoji-button'
+                    {...getReferenceProps()}
                 >
                     {icon}
                     <ChevronDownIcon size={'12px'}/>
                 </button>
+                {emojiPicker}
                 <Input
+                    maxLength={maxLength}
                     type='text'
                     name='bookmark-display-name'
                     onChange={handleInputChange}

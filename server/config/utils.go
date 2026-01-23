@@ -88,6 +88,14 @@ func desanitize(actual, target *model.Config) {
 	if *target.ServiceSettings.SplitKey == model.FakeSetting {
 		*target.ServiceSettings.SplitKey = *actual.ServiceSettings.SplitKey
 	}
+
+	for id, settings := range target.PluginSettings.Plugins {
+		for k, v := range settings {
+			if v == model.FakeSetting {
+				settings[k] = actual.PluginSettings.Plugins[id][k]
+			}
+		}
+	}
 }
 
 // fixConfig patches invalid or missing data in the configuration.
@@ -126,7 +134,7 @@ func fixInvalidLocales(cfg *model.Config) bool {
 
 	if *cfg.LocalizationSettings.AvailableLocales != "" {
 		isDefaultClientLocaleInAvailableLocales := false
-		for _, word := range strings.Split(*cfg.LocalizationSettings.AvailableLocales, ",") {
+		for word := range strings.SplitSeq(*cfg.LocalizationSettings.AvailableLocales, ",") {
 			if _, ok := locales[word]; !ok {
 				*cfg.LocalizationSettings.AvailableLocales = ""
 				isDefaultClientLocaleInAvailableLocales = true
@@ -161,8 +169,7 @@ func Merge(cfg *model.Config, patch *model.Config, mergeConfig *utils.MergeConfi
 }
 
 func IsDatabaseDSN(dsn string) bool {
-	return strings.HasPrefix(dsn, "mysql://") ||
-		strings.HasPrefix(dsn, "postgres://") ||
+	return strings.HasPrefix(dsn, "postgres://") ||
 		strings.HasPrefix(dsn, "postgresql://")
 }
 

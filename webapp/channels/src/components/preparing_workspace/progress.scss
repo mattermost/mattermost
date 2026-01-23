@@ -1,7 +1,7 @@
 @use 'sass:color';
 
-@import 'utils/variables';
-@import 'utils/mixins';
+@use 'utils/variables';
+@use 'utils/mixins';
 
 .PreparingWorkspaceProgress {
     position: fixed;
@@ -25,12 +25,12 @@
         height: 6px;
         border-radius: 6px;
         margin: 5px 0;
-        background: $primary-color;
+        background: variables.$primary-color;
         opacity: 0.2;
 
         &.active {
             opacity: 1;
-            outline: 3px solid color.adjust($primary-color, $lightness: 50%);
+            outline: 3px solid color.adjust(variables.$primary-color, $lightness: 50%);
         }
     }
 

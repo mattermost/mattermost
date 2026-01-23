@@ -25,16 +25,16 @@ export default function LHSNearingLimitsModal() {
     const product = useSelector(getSubscriptionProduct);
     const usage = useGetUsage();
     const intl = useIntl();
-    const openPricingModal = useOpenPricingModal();
+    const {openPricingModal, isAirGapped} = useOpenPricingModal();
 
     const [limits] = useGetLimits();
 
-    const primaryAction = {
+    const primaryAction = isAirGapped ? undefined : {
         message: defineMessage({
             id: 'workspace_limits.modals.view_plans',
             defaultMessage: 'View plans',
         }),
-        onClick: () => openPricingModal({trackingLocation: 'cloud_usage_lhs_nearing_limit_modal'}),
+        onClick: () => openPricingModal(),
     };
     const secondaryAction = {
         message: defineMessage({
@@ -48,6 +48,7 @@ export default function LHSNearingLimitsModal() {
     const highestLimit = useGetHighestThresholdCloudLimit(usage, limits);
     let title: Message = defineMessage({
         id: 'workspace_limits.modals.informational.title',
+        // eslint-disable-next-line formatjs/enforce-placeholders -- planName provided via values property
         defaultMessage: '{planName} limits',
         values: {
             planName: product?.name,
@@ -56,6 +57,7 @@ export default function LHSNearingLimitsModal() {
 
     let description: Message = defineMessage({
         id: 'workspace_limits.modals.informational.description.freeLimits',
+        // eslint-disable-next-line formatjs/enforce-placeholders -- planName, messages, storage provided via values property
         defaultMessage: '{planName} is restricted to {messages} message history and {storage} file storage.',
         values: {
             planName: product?.name,

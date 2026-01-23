@@ -24,7 +24,7 @@ import BlockableLink from 'components/admin_console/blockable_link';
 import {GroupProfileAndSettings} from 'components/admin_console/group_settings/group_details/group_profile_and_settings';
 import GroupTeamsAndChannels from 'components/admin_console/group_settings/group_details/group_teams_and_channels';
 import GroupUsers from 'components/admin_console/group_settings/group_details/group_users';
-import SaveChangesPanel from 'components/admin_console/team_channel_settings/save_changes_panel';
+import SaveChangesPanel from 'components/admin_console/save_changes_panel';
 import ChannelSelectorModal from 'components/channel_selector_modal';
 import FormError from 'components/form_error';
 import TeamSelectorModal from 'components/team_selector_modal';
@@ -68,7 +68,7 @@ export type Props = {
             id: string,
             syncableID: string,
             syncableType: SyncableType,
-            patch: SyncablePatch
+            patch: Partial<SyncablePatch>
         ) => Promise<ActionResult>;
         patchGroup: (id: string, patch: GroupPatch) => Promise<ActionResult>;
         setNavigationBlocked: (blocked: boolean) => {
@@ -479,7 +479,7 @@ class GroupDetails extends React.PureComponent<Props, State> {
                     serverError = (
                         <FormattedMessage
                             id='admin.group_settings.group_detail.invalidOrReservedMentionNameError'
-                            defaultMessage='Only letters (a-z), numbers(0-9), periods, dashes and underscores are allowed.'
+                            defaultMessage='Only letters (a-z), numbers (0-9), periods, dashes and underscores are allowed.'
                         />
                     );
                 } else if (
@@ -531,7 +531,7 @@ class GroupDetails extends React.PureComponent<Props, State> {
                             this.props.groupID,
                             syncableID,
                             syncableType,
-                            {scheme_admin: value, auto_add: false},
+                            {scheme_admin: value},
                         ),
                     );
                 }
@@ -761,6 +761,7 @@ class GroupDetails extends React.PureComponent<Props, State> {
                                 total={memberCount}
                                 groupID={this.props.groupID}
                                 getMembers={this.props.actions.getMembers}
+                                source={group.source}
                             />
                         </AdminPanel>
                     </div>

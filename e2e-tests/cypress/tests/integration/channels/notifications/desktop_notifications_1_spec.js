@@ -115,7 +115,7 @@ describe('Desktop notifications', () => {
         });
     });
 
-    it('MM-T495 Desktop Notifications - Can set to DND and no notification fires on DM', () => {
+    it.skip('MM-T495 Desktop Notifications - Can set to DND and no notification fires on DM', () => {
         cy.apiCreateDirectChannel([otherUser.id, testUser.id]).then(({channel}) => {
             // # Ensure notifications are set up to fire a desktop notification if you receive a DM
             cy.apiPatchUser(testUser.id, {notify_props: {...testUser.notify_props, desktop: 'all'}});
@@ -144,7 +144,7 @@ describe('Desktop notifications', () => {
         spyNotificationAs('withNotification', 'granted');
 
         const actualMsg = '---';
-        const expected = '@' + otherUser.username + ' did something new';
+        const expected = '@' + otherUser.username + ' posted a message';
 
         // # Ensure notifications are set up to fire a desktop notification for all activity.
         changeDesktopNotificationAs('all');

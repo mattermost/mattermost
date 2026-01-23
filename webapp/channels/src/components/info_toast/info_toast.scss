@@ -1,5 +1,3 @@
-@charset 'UTF-8';
-
 .info-toast {
     position: fixed;
     z-index: 99;
@@ -11,14 +9,16 @@
     align-items: center;
     padding: 8px;
     border-radius: 4px;
-    background: var(--center-channel-text);
+    background: rgb(var(--center-channel-color-rgb));
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.12);
-    color: var(--sidebar-text);
+    color: rgb(var(--center-channel-bg-rgb));
     font-weight: 600;
     grid-template-columns: min-content auto min-content auto;
     line-height: 20px;
 
     .info-toast__icon_button {
+        border: none;
+        background: none;
         color: inherit;
     }
 

@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import type {AppBinding, AppCommandFormMap} from '@mattermost/types/apps';
 
+import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {AppsTypes} from 'mattermost-redux/action_types';
 import {validateBindings} from 'mattermost-redux/utils/apps';
 
-export function mainBindings(state: AppBinding[] = [], action: AnyAction): AppBinding[] {
+export function mainBindings(state: AppBinding[] = [], action: MMReduxAction): AppBinding[] {
     switch (action.type) {
     case AppsTypes.FAILED_TO_FETCH_APP_BINDINGS: {
         if (!state.length) {
@@ -34,7 +34,7 @@ export function mainBindings(state: AppBinding[] = [], action: AnyAction): AppBi
     }
 }
 
-function mainForms(state: AppCommandFormMap = {}, action: AnyAction): AppCommandFormMap {
+function mainForms(state: AppCommandFormMap = {}, action: MMReduxAction): AppCommandFormMap {
     switch (action.type) {
     case AppsTypes.RECEIVED_APP_BINDINGS:
         return {};
@@ -56,7 +56,7 @@ const main = combineReducers({
     forms: mainForms,
 });
 
-function rhsBindings(state: AppBinding[] = [], action: AnyAction): AppBinding[] {
+function rhsBindings(state: AppBinding[] = [], action: MMReduxAction): AppBinding[] {
     switch (action.type) {
     case AppsTypes.RECEIVED_APP_RHS_BINDINGS: {
         const bindings = action.data;
@@ -67,7 +67,7 @@ function rhsBindings(state: AppBinding[] = [], action: AnyAction): AppBinding[] 
     }
 }
 
-function rhsForms(state: AppCommandFormMap = {}, action: AnyAction): AppCommandFormMap {
+function rhsForms(state: AppCommandFormMap = {}, action: MMReduxAction): AppCommandFormMap {
     switch (action.type) {
     case AppsTypes.RECEIVED_APP_RHS_BINDINGS:
         return {};
@@ -89,7 +89,7 @@ const rhs = combineReducers({
     forms: rhsForms,
 });
 
-export function pluginEnabled(state = true, action: AnyAction): boolean {
+export function pluginEnabled(state = true, action: MMReduxAction): boolean {
     switch (action.type) {
     case AppsTypes.APPS_PLUGIN_ENABLED: {
         return true;

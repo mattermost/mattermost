@@ -4,7 +4,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import {logError} from 'mattermost-redux/actions/errors';
+import {logError, LogErrorBarMode} from 'mattermost-redux/actions/errors';
 
 import store from 'stores/redux_store';
 
@@ -42,8 +42,7 @@ function preRenderSetup(onPreRenderSetupReady: () => void) {
                     stack: error?.stack,
                     url,
                 },
-                true,
-                true,
+                {errorBarMode: LogErrorBarMode.InDevMode},
             ),
         );
     };
@@ -54,10 +53,10 @@ function preRenderSetup(onPreRenderSetupReady: () => void) {
 }
 
 function renderReactRootComponent() {
-    ReactDOM.render((
-        <App/>
-    ),
-    document.getElementById('root'));
+    // We're using React 18, but we're using the deprecated way of starting React because ReactDOM.createRoot enables
+    // new features such as automatic batching which breaks some components. This will need to be changed in the future
+    // because this method of starting the app will be removed in React 19.
+    ReactDOM.render(<App/>, document.getElementById('root')!);
 }
 
 /**

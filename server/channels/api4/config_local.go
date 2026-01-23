@@ -7,10 +7,10 @@ import (
 	"encoding/json"
 	"net/http"
 	"reflect"
+	"strconv"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/config"
 )
@@ -25,12 +25,26 @@ func (api *API) InitConfigLocal() {
 }
 
 func localGetConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("localGetConfig", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventLocalGetConfig, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	cfg := c.App.GetSanitizedConfig()
+	filterMasked, _ := strconv.ParseBool(r.URL.Query().Get("remove_masked"))
+	filterDefaults, _ := strconv.ParseBool(r.URL.Query().Get("remove_defaults"))
+
+	filterOpts := model.ConfigFilterOptions{
+		GetConfigOptions: model.GetConfigOptions{
+			RemoveDefaults: filterDefaults,
+			RemoveMasked:   filterMasked,
+		},
+	}
+
+	m, err := model.FilterConfig(c.App.Config(), filterOpts)
+	if err != nil {
+		c.Err = model.NewAppError("getConfig", "api.filter_config_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
 	auditRec.Success()
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	if err := json.NewEncoder(w).Encode(cfg); err != nil {
+	if err := json.NewEncoder(w).Encode(m); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
@@ -43,18 +57,12 @@ func localUpdateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("localUpdateConfig", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventLocalUpdateConfig, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	cfg.SetDefaults()
 
 	appCfg := c.App.Config()
-
-	// Do not allow plugin uploads to be toggled through the API
-	cfg.PluginSettings.EnableUploads = appCfg.PluginSettings.EnableUploads
-
-	// Do not allow certificates to be changed through the API
-	cfg.PluginSettings.SignaturePublicKeyFiles = appCfg.PluginSettings.SignaturePublicKeyFiles
 
 	c.App.HandleMessageExportConfig(cfg, appCfg)
 
@@ -77,7 +85,7 @@ func localUpdateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddEventPriorState(&diffs)
 
-	newCfg.Sanitize()
+	c.App.SanitizedConfig(newCfg)
 
 	auditRec.Success()
 	c.LogAudit("updateConfig")
@@ -96,7 +104,7 @@ func localPatchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("localPatchConfig", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventLocalPatchConfig, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	appCfg := c.App.Config()
@@ -157,7 +165,7 @@ func localMigrateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("migrateConfig", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventMigrateConfig, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
@@ -176,22 +184,13 @@ func localMigrateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func localGetClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("localGetClientConfig", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventLocalGetClientConfig, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-
-	format := r.URL.Query().Get("format")
-
-	if format == "" {
-		c.Err = model.NewAppError("getClientConfig", "api.config.client.old_format.app_error", nil, "", http.StatusNotImplemented)
-		return
-	}
-
-	if format != "old" {
-		c.SetInvalidParam("format")
-		return
-	}
 
 	auditRec.Success()
 
-	w.Write([]byte(model.MapToJSON(c.App.Srv().Platform().ClientConfigWithComputed())))
+	_, err := w.Write([]byte(model.MapToJSON(c.App.Srv().Platform().ClientConfigWithComputed())))
+	if err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }

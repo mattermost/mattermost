@@ -2,16 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React, {memo} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {ClientLicense} from '@mattermost/types/config';
 
 import ContactUsButton from 'components/announcement_bar/contact_sales/contact_us';
-import TwoPeopleChattingSvg from 'components/common/svg_images_components/two_people_chatting_svg';
-import WomanUpArrowsAndCloudsSvg from 'components/common/svg_images_components/woman_up_arrows_and_clouds_svg';
-import WomanWithCardSvg from 'components/common/svg_images_components/woman_with_card_svg';
+import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
+import SetupSystemSvg from 'components/common/svg_images_components/setup_system_svg';
+import ExternalLink from 'components/external_link';
 
-import {isEnterpriseOrE20License} from 'utils/license_utils';
+import {LicenseSkus, LicenseLinks} from 'utils/constants';
 
 export interface EnterpriseEditionProps {
     isTrialLicense: boolean;
@@ -21,47 +21,92 @@ export interface EnterpriseEditionProps {
 const EnterpriseEditionRightPanel = ({
     isTrialLicense,
     license,
-
 }: EnterpriseEditionProps) => {
+    const intl = useIntl();
+    const [openContactSales] = useOpenSalesLink();
     const upgradeAdvantages = [
-        'AD/LDAP Group sync',
-        'High Availability',
-        'Advanced compliance',
-        'Advanced roles and permissions',
-        'And more...',
+        intl.formatMessage({
+            id: 'admin.license.upgradeAdvantage.adLdapSync',
+            defaultMessage: 'AD/LDAP Group sync',
+        }),
+        intl.formatMessage({
+            id: 'admin.license.upgradeAdvantage.highAvailability',
+            defaultMessage: 'High Availability',
+        }),
+        intl.formatMessage({
+            id: 'admin.license.upgradeAdvantage.advancedCompliance',
+            defaultMessage: 'Advanced compliance',
+        }),
+        intl.formatMessage({
+            id: 'admin.license.upgradeAdvantage.advancedRoles',
+            defaultMessage: 'Advanced roles and permissions',
+        }),
+        intl.formatMessage({
+            id: 'admin.license.upgradeAdvantage.andMore',
+            defaultMessage: 'And more...',
+        }),
     ];
 
-    const isEnterpriseOrE20 = isEnterpriseOrE20License(license);
+    const enterpriseToAdvancedAdvantages = [
+        intl.formatMessage({
+            id: 'admin.license.enterpriseToAdvancedAdvantage.attributeBasedAccess',
+            defaultMessage: 'Attribute-based access control',
+        }),
+        intl.formatMessage({
+            id: 'admin.license.enterpriseToAdvancedAdvantage.channelWarningBanners',
+            defaultMessage: 'Channel warning banners',
+        }),
+        intl.formatMessage({
+            id: 'admin.license.enterpriseToAdvancedAdvantage.adLdapGroupSync',
+            defaultMessage: 'AD/LDAP group sync',
+        }),
+        intl.formatMessage({
+            id: 'admin.license.enterpriseToAdvancedAdvantage.advancedWorkflows',
+            defaultMessage: 'Advanced workflows with Playbooks',
+        }),
+        intl.formatMessage({
+            id: 'admin.license.enterpriseToAdvancedAdvantage.highAvailability',
+            defaultMessage: 'High availability',
+        }),
+        intl.formatMessage({
+            id: 'admin.license.enterpriseToAdvancedAdvantage.advancedCompliance',
+            defaultMessage: 'Advanced compliance',
+        }),
+        intl.formatMessage({
+            id: 'admin.license.upgradeAdvantage.andMore',
+            defaultMessage: 'And more...',
+        }),
+    ];
+
+    const isEnterpriseAdvanced = license?.SkuShortName === LicenseSkus.EnterpriseAdvanced;
+    const isEnterprise = license?.SkuShortName === LicenseSkus.Enterprise;
+    const isProfessional = license?.SkuShortName === LicenseSkus.Professional;
+    const isEntry = license?.SkuShortName === LicenseSkus.Entry;
 
     const contactSalesBtn = (
         <div className='purchase-card'>
-            <ContactUsButton
-                eventID='post_trial_contact_sales'
-                customClass='light-blue-btn'
-            />
+            <ContactUsButton/>
         </div>
     );
 
-    const isGovSku = license.IsGovSku === 'true';
-
     const title = () => {
         if (isTrialLicense) {
-            if (isGovSku) {
-                return (
-                    <FormattedMessage
-                        id='admin.license.purchaseEnterpriseGovPlanTitle'
-                        defaultMessage='Purchase the Enterprise Gov Plan'
-                    />
-                );
-            }
             return (
                 <FormattedMessage
                     id='admin.license.purchaseEnterprisePlanTitle'
-                    defaultMessage='Purchase the Enterprise Plan'
+                    defaultMessage='Purchase Enterprise Advanced'
                 />
             );
         }
-        if (isEnterpriseOrE20) {
+        if (isEntry) {
+            return (
+                <FormattedMessage
+                    id='admin.license.entryPlanTitle'
+                    defaultMessage='Get access to full message history, AI-powered coordination, and secure workflow continuity'
+                />
+            );
+        }
+        if (isEnterpriseAdvanced) {
             return (
                 <FormattedMessage
                     id='admin.license.enterprisePlanTitle'
@@ -69,43 +114,40 @@ const EnterpriseEditionRightPanel = ({
                 />
             );
         }
-        if (isGovSku) {
+        if (isEnterprise) {
             return (
                 <FormattedMessage
-                    id='admin.license.upgradeToEnterpriseGov'
-                    defaultMessage='Upgrade to the Enterprise Gov Plan'
+                    id='admin.license.upgradeToEnterpriseAdvanced'
+                    defaultMessage='Upgrade to Enterprise Advanced'
+                />
+            );
+        }
+        if (isProfessional) {
+            return (
+                <FormattedMessage
+                    id='admin.license.upgradeToEnterprise'
+                    defaultMessage='Upgrade to Enterprise'
                 />
             );
         }
         return (
             <FormattedMessage
                 id='admin.license.upgradeToEnterprise'
-                defaultMessage='Upgrade to the Enterprise Plan'
+                defaultMessage='Upgrade to Enterprise'
             />
         );
     };
 
     const svgImage = () => {
-        if (isTrialLicense) {
-            return (
-                <WomanWithCardSvg
-                    width={200}
-                    height={200}
-                />
-            );
+        if (isEnterpriseAdvanced) {
+            return null; //No image
         }
-        if (isEnterpriseOrE20) {
-            return (
-                <TwoPeopleChattingSvg
-                    width={200}
-                    height={200}
-                />
-            );
-        }
+
+        // Show the setup system image for Entry SKU and other SKUs
         return (
-            <WomanUpArrowsAndCloudsSvg
-                width={200}
-                height={200}
+            <SetupSystemSvg
+                width={197}
+                height={120}
             />
         );
     };
@@ -115,33 +157,82 @@ const EnterpriseEditionRightPanel = ({
             return (
                 <FormattedMessage
                     id='admin.license.purchaseEnterprisePlanSubtitle'
-                    defaultMessage='Continue your access to Enterprise features by purchasing a license today.'
+                    defaultMessage='Continue your access to Enterprise Advanced features by purchasing a license.'
                 />
             );
         }
-        if (isEnterpriseOrE20) {
+        if (isEntry) {
+            return (
+                <FormattedMessage
+                    id='admin.license.entryPlanSubtitle'
+                    defaultMessage='Purchase a plan to unlock full access, or <link>start a trial</link> to remove limits while you evaluate Enterprise Advanced.'
+                    values={{
+                        link: (msg: React.ReactNode) => (
+                            <ExternalLink
+                                location='entry_trial_license'
+                                href={LicenseLinks.TRIAL_INFO_LINK}
+                            >
+                                {msg}
+                            </ExternalLink>
+                        ),
+                    }}
+                />
+            );
+        }
+        if (isEnterpriseAdvanced) {
             return (
                 <FormattedMessage
                     id='admin.license.enterprisePlanSubtitle'
-                    defaultMessage='We’re here to work with you and your needs. Contact us today to get more seats on your plan.'
+                    defaultMessage="We're here to work with you and your needs. Contact us today to get more seats on your plan."
                 />
             );
         }
+        const advantages = isEnterprise ? enterpriseToAdvancedAdvantages : upgradeAdvantages;
+
         return (
             <div className='advantages-list'>
-                {upgradeAdvantages.map((item: string, i: number) => {
+                {advantages.map((item, i) => {
                     return (
                         <div
                             className='item'
                             key={i.toString()}
                         >
-                            <i className='fa fa-lock'/>{item}
+                            <i className='fa fa-lock'/>
+                            {item}
                         </div>
                     );
                 })}
             </div>
         );
     };
+
+    // For Entry SKU, render custom buttons
+    if (isEntry) {
+        return (
+            <div className='EnterpriseEditionRightPannel entry'>
+                <div className='svg-image'>
+                    {svgImage()}
+                </div>
+                <div className='upgrade-title'>
+                    {title()}
+                </div>
+                <div className='upgrade-subtitle'>
+                    {subtitle()}
+                </div>
+                <div className='purchase_buttons'>
+                    <button
+                        className='btn btn-primary'
+                        onClick={openContactSales}
+                    >
+                        <FormattedMessage
+                            id='admin.license.contactSales'
+                            defaultMessage='Questions? Contact sales'
+                        />
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className='EnterpriseEditionRightPannel'>

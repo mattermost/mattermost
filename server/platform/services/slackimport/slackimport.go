@@ -88,21 +88,22 @@ type Actions struct {
 	AddUserToChannel       func(request.CTX, *model.User, *model.Channel, bool) (*model.ChannelMember, *model.AppError)
 	JoinUserToTeam         func(*model.Team, *model.User, string) (*model.TeamMember, *model.AppError)
 	CreateDirectChannel    func(request.CTX, string, string, ...model.ChannelOption) (*model.Channel, *model.AppError)
-	CreateGroupChannel     func(request.CTX, []string) (*model.Channel, *model.AppError)
+	CreateGroupChannel     func(request.CTX, []string, string, ...model.ChannelOption) (*model.Channel, *model.AppError)
 	CreateChannel          func(*model.Channel, bool) (*model.Channel, *model.AppError)
 	DoUploadFile           func(time.Time, string, string, string, string, []byte) (*model.FileInfo, *model.AppError)
 	GenerateThumbnailImage func(request.CTX, image.Image, string, string)
 	GeneratePreviewImage   func(request.CTX, image.Image, string, string)
-	InvalidateAllCaches    func()
+	InvalidateAllCaches    func() *model.AppError
 	MaxPostSize            func() int
 	PrepareImage           func(fileData []byte) (image.Image, string, func(), error)
 }
 
 // SlackImporter is a service that allows to import slack dumps into mattermost
 type SlackImporter struct {
-	store   store.Store
-	actions Actions
-	config  *model.Config
+	store         store.Store
+	actions       Actions
+	config        *model.Config
+	isAdminImport bool
 }
 
 // New creates a new SlackImporter service instance. It receive a store, a set of actions and the current config.
@@ -112,6 +113,17 @@ func New(store store.Store, actions Actions, config *model.Config) *SlackImporte
 		store:   store,
 		actions: actions,
 		config:  config,
+	}
+}
+
+// NewWithAdminFlag creates a new SlackImporter service instance with information about whether this is an admin import.
+// This allows for enhanced security controls based on the importing user's role.
+func NewWithAdminFlag(store store.Store, actions Actions, config *model.Config, isAdminImport bool) *SlackImporter {
+	return &SlackImporter{
+		store:         store,
+		actions:       actions,
+		config:        config,
+		isAdminImport: isAdminImport,
 	}
 }
 
@@ -140,6 +152,8 @@ func (si *SlackImporter) SlackImport(rctx request.CTX, fileData multipart.File, 
 			log.WriteString(i18n.T("api.slackimport.slack_import.open.app_error", map[string]any{"Filename": file.Name}))
 			return model.NewAppError("SlackImport", "api.slackimport.slack_import.open.app_error", map[string]any{"Filename": file.Name}, "", http.StatusInternalServerError).Wrap(err), log
 		}
+		defer fileReader.Close()
+
 		reader := utils.NewLimitedReaderWithError(fileReader, slackImportMaxFileSize)
 		if file.Name == "channels.json" {
 			publicChannels, err = slackParseChannels(reader, model.ChannelTypeOpen)
@@ -208,7 +222,9 @@ func (si *SlackImporter) SlackImport(rctx request.CTX, fileData multipart.File, 
 		si.deactivateSlackBotUser(rctx, botUser)
 	}
 
-	si.actions.InvalidateAllCaches()
+	if err := si.actions.InvalidateAllCaches(); err != nil {
+		return err, log
+	}
 
 	log.WriteString(i18n.T("api.slackimport.slack_import.notes"))
 	log.WriteString("=======\r\n\r\n")
@@ -390,9 +406,9 @@ func (si *SlackImporter) slackAddPosts(rctx request.CTX, teamId string, channel 
 			}
 
 			props := make(model.StringInterface)
-			props["override_username"] = sPost.BotUsername
+			props[model.PostPropsOverrideUsername] = sPost.BotUsername
 			if len(sPost.Attachments) > 0 {
-				props["attachments"] = sPost.Attachments
+				props[model.PostPropsAttachments] = sPost.Attachments
 			}
 
 			post := &model.Post{
@@ -534,8 +550,10 @@ func (si *SlackImporter) slackUploadFile(rctx request.CTX, slackPostFile *slackF
 	}
 	defer openFile.Close()
 
+	// since this is an attachment, we should treat it as a file and apply according limits
+	reader := utils.NewLimitedReaderWithError(openFile, *si.config.FileSettings.MaxFileSize)
 	timestamp := utils.TimeFromMillis(slackConvertTimeStamp(slackTimestamp))
-	uploadedFile, err := si.oldImportFile(rctx, timestamp, openFile, teamId, channelId, userId, filepath.Base(file.Name))
+	uploadedFile, err := si.oldImportFile(rctx, timestamp, reader, teamId, channelId, userId, filepath.Base(file.Name))
 	if err != nil {
 		rctx.Logger().Warn("Slack Import: An error occurred when uploading file.", mlog.String("file_id", slackPostFile.Id), mlog.Err(err))
 		return nil, false
@@ -712,8 +730,15 @@ func (si *SlackImporter) oldImportUser(rctx request.CTX, team *model.Team, user 
 		return nil
 	}
 
-	if _, err := si.store.User().VerifyEmail(ruser.Id, ruser.Email); err != nil {
-		rctx.Logger().Warn("Failed to set email verified.", mlog.Err(err))
+	// Only system admins can automatically verify emails during import
+	if si.isAdminImport {
+		if _, err := si.store.User().VerifyEmail(ruser.Id, ruser.Email); err != nil {
+			rctx.Logger().Warn("Failed to set email verified for admin import.", mlog.Err(err))
+		}
+	} else {
+		// Non-admin users: emails remain unverified
+		rctx.Logger().Debug("Email verification skipped for non-admin import.",
+			mlog.String("user_email", ruser.Email))
 	}
 
 	if _, err := si.actions.JoinUserToTeam(team, user, ""); err != nil {
@@ -758,7 +783,7 @@ func (si *SlackImporter) oldImportChannel(rctx request.CTX, channel *model.Chann
 		if creator == nil {
 			return nil
 		}
-		sc, err := si.actions.CreateGroupChannel(rctx, members)
+		sc, err := si.actions.CreateGroupChannel(rctx, members, "")
 		if err != nil {
 			return nil
 		}
@@ -784,12 +809,16 @@ func (si *SlackImporter) oldImportChannel(rctx request.CTX, channel *model.Chann
 
 func (si *SlackImporter) oldImportFile(rctx request.CTX, timestamp time.Time, file io.Reader, teamId string, channelId string, userId string, fileName string) (*model.FileInfo, error) {
 	buf := bytes.NewBuffer(nil)
-	io.Copy(buf, file)
-	data := buf.Bytes()
-
-	fileInfo, err := si.actions.DoUploadFile(timestamp, teamId, channelId, userId, fileName, data)
+	_, err := io.Copy(buf, file)
 	if err != nil {
 		return nil, err
+	}
+
+	data := buf.Bytes()
+
+	fileInfo, appErr := si.actions.DoUploadFile(timestamp, teamId, channelId, userId, fileName, data)
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	if fileInfo.IsImage() && !fileInfo.IsSvg() {
@@ -809,19 +838,19 @@ func (si *SlackImporter) oldImportIncomingWebhookPost(rctx request.CTX, post *mo
 	linkWithTextRegex := regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
 	post.Message = linkWithTextRegex.ReplaceAllString(post.Message, "[${2}](${1})")
 
-	post.AddProp("from_webhook", "true")
+	post.AddProp(model.PostPropsFromWebhook, "true")
 
-	if _, ok := props["override_username"]; !ok {
-		post.AddProp("override_username", model.DefaultWebhookUsername)
+	if _, ok := props[model.PostPropsOverrideUsername]; !ok {
+		post.AddProp(model.PostPropsOverrideUsername, model.DefaultWebhookUsername)
 	}
 
 	if len(props) > 0 {
 		for key, val := range props {
-			if key == "attachments" {
+			if key == model.PostPropsAttachments {
 				if attachments, success := val.([]*model.SlackAttachment); success {
 					model.ParseSlackAttachment(post, attachments)
 				}
-			} else if key != "from_webhook" {
+			} else if key != model.PostPropsFromWebhook {
 				post.AddProp(key, val)
 			}
 		}

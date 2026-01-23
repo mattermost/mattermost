@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Moment} from 'moment-timezone';
 import moment from 'moment-timezone';
 
 export function getBrowserTimezone() {
-    return moment.tz.guess();
+    return new Intl.DateTimeFormat().resolvedOptions().timeZone;
 }
 
 export function getBrowserUtcOffset() {
@@ -27,4 +28,25 @@ export function getCurrentDateTimeForTimezone(timezone: string) {
 
 export function getCurrentMomentForTimezone(timezone?: string) {
     return timezone ? moment.tz(timezone) : moment();
+}
+
+export function isBeforeTime(dateTime1: Moment, dateTime2: Moment) {
+    const a = dateTime1.clone().set({year: 0, month: 0, date: 1});
+    const b = dateTime2.clone().set({year: 0, month: 0, date: 1});
+
+    return a.isBefore(b);
+}
+
+export function isValidTimezone(timezone: string): boolean {
+    return moment.tz.zone(timezone) !== null;
+}
+
+export function parseDateInTimezone(value: string, timezone?: string): Moment | null {
+    if (!timezone || !isValidTimezone(timezone)) {
+        const parsed = moment(value);
+        return parsed.isValid() ? parsed : null;
+    }
+
+    const parsed = moment.tz(value, timezone);
+    return parsed.isValid() ? parsed : null;
 }

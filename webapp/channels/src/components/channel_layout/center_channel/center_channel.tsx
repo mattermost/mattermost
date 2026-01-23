@@ -2,43 +2,42 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
+import React, {lazy} from 'react';
 import {Route, Switch, Redirect} from 'react-router-dom';
 
 import {makeAsyncComponent} from 'components/async_load';
 import ChannelIdentifierRouter from 'components/channel_layout/channel_identifier_router';
-import PlaybookRunner from 'components/channel_layout/playbook_runner';
 import LoadingScreen from 'components/loading_screen';
-import PermalinkView from 'components/permalink_view';
 
+import {SCHEDULED_POST_URL_SUFFIX} from 'utils/constants';
 import {IDENTIFIER_PATH_PATTERN, ID_PATH_PATTERN, TEAM_NAME_PATH_PATTERN} from 'utils/path';
 
 import type {OwnProps, PropsFromRedux} from './index';
 
-const LazyChannelHeaderMobile = makeAsyncComponent(
-    'LazyChannelHeaderMobile',
-    React.lazy(() => import('components/channel_header_mobile')),
-);
-
-const LazyGlobalThreads = makeAsyncComponent(
-    'LazyGlobalThreads',
-    React.lazy(() => import('components/threading/global_threads')),
+const MobileChannelHeader = makeAsyncComponent('MobileChannelHeader', lazy(() => import('components/mobile_channel_header')));
+const GlobalThreads = makeAsyncComponent('GlobalThreads', lazy(() => import('components/threading/global_threads')),
     (
         <div className='app__content'>
             <LoadingScreen/>
         </div>
     ),
 );
-
-const LazyDrafts = makeAsyncComponent(
-    'LazyDrafts',
-    React.lazy(() => import('components/drafts')),
+const Drafts = makeAsyncComponent('Drafts', lazy(() => import('components/drafts')),
     (
         <div className='app__content'>
             <LoadingScreen/>
         </div>
     ),
 );
+const Recaps = makeAsyncComponent('Recaps', lazy(() => import('components/recaps')),
+    (
+        <div className='app__content'>
+            <LoadingScreen/>
+        </div>
+    ),
+);
+const PermalinkView = makeAsyncComponent('PermalinkView', lazy(() => import('components/permalink_view')));
+const PlaybookRunner = makeAsyncComponent('PlaybookRunner', lazy(() => import('components/channel_layout/playbook_runner')));
 
 type Props = PropsFromRedux & OwnProps;
 
@@ -84,13 +83,7 @@ export default class CenterChannel extends React.PureComponent<Props, State> {
                     'move--left-small': this.props.rhsMenuOpen,
                 })}
             >
-                {isMobileView && (
-                    <div className='row header'>
-                        <div id='navbar_wrapper'>
-                            <LazyChannelHeaderMobile/>
-                        </div>
-                    </div>
-                )}
+                {isMobileView && <MobileChannelHeader/>}
                 <div className='row main'>
                     <Switch>
                         <Route
@@ -114,12 +107,20 @@ export default class CenterChannel extends React.PureComponent<Props, State> {
                         {isCollapsedThreadsEnabled ? (
                             <Route
                                 path={`/:team(${TEAM_NAME_PATH_PATTERN})/threads/:threadIdentifier(${ID_PATH_PATTERN})?`}
-                                component={LazyGlobalThreads}
+                                component={GlobalThreads}
                             />
                         ) : null}
                         <Route
+                            path={`/:team(${TEAM_NAME_PATH_PATTERN})/recaps`}
+                            component={Recaps}
+                        />
+                        <Route
                             path={`/:team(${TEAM_NAME_PATH_PATTERN})/drafts`}
-                            component={LazyDrafts}
+                            component={Drafts}
+                        />
+                        <Route
+                            path={`/:team(${TEAM_NAME_PATH_PATTERN})/${SCHEDULED_POST_URL_SUFFIX}`}
+                            component={Drafts}
                         />
 
                         <Redirect to={lastChannelPath}/>

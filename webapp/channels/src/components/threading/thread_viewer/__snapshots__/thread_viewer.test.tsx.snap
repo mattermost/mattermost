@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/threading/ThreadViewer should match snapshot 1`] = `
 <Fragment>
@@ -9,6 +9,7 @@ exports[`components/threading/ThreadViewer should match snapshot 1`] = `
       className="post-right-comments-container"
     >
       <FileUploadOverlay
+        id="threadView"
         overlayType="right"
       />
       <DeferredRenderWrapper

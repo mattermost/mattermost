@@ -14,7 +14,7 @@ import type {Props} from 'components/logged_in/logged_in';
 
 import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
 
-jest.mock('actions/websocket_actions.jsx', () => ({
+jest.mock('actions/websocket_actions', () => ({
     initialize: jest.fn(),
     close: jest.fn(),
 }));
@@ -34,10 +34,12 @@ describe('components/logged_in/LoggedIn', () => {
     const baseProps: Props = {
         currentUser: {} as UserProfile,
         mfaRequired: false,
+        customProfileAttributesEnabled: false,
         actions: {
             autoUpdateTimezone: jest.fn(),
             getChannelURLAction: jest.fn(),
             updateApproximateViewTime: jest.fn(),
+            getCustomProfileAttributeFields: jest.fn(),
         },
         isCurrentChannelManuallyUnread: false,
         showTermsOfService: false,
@@ -172,7 +174,7 @@ describe('components/logged_in/LoggedIn', () => {
 
         shallow(<LoggedIn {...props}>{children}</LoggedIn>);
 
-        expect(BrowserStore.signalLogin).toBeCalledTimes(1);
+        expect(BrowserStore.signalLogin).toHaveBeenCalledTimes(1);
     });
 
     it('should set state to unfocused if it starts in the background', () => {
@@ -188,7 +190,7 @@ describe('components/logged_in/LoggedIn', () => {
         };
 
         shallow(<LoggedIn {...props}>{children}</LoggedIn>);
-        expect(obj.emitBrowserFocus).toBeCalledTimes(1);
+        expect(obj.emitBrowserFocus).toHaveBeenCalledTimes(1);
     });
 
     it('should not make viewChannel call on unload', () => {
@@ -203,5 +205,29 @@ describe('components/logged_in/LoggedIn', () => {
 
         fireEvent(window, new Event('beforeunload'));
         expect(fetch).not.toHaveBeenCalledWith('/api/v4/channels/members/me/view');
+    });
+
+    describe('custom profile attributes', () => {
+        it('should call getCustomProfileAttributeFields when feature is enabled on mount', () => {
+            const props = {
+                ...baseProps,
+                customProfileAttributesEnabled: true,
+            };
+
+            shallow(<LoggedIn {...props}>{children}</LoggedIn>);
+
+            expect(props.actions.getCustomProfileAttributeFields).toHaveBeenCalledTimes(1);
+        });
+
+        it('should not call getCustomProfileAttributeFields when feature is disabled', () => {
+            const props = {
+                ...baseProps,
+                customProfileAttributesEnabled: false,
+            };
+
+            shallow(<LoggedIn {...props}>{children}</LoggedIn>);
+
+            expect(props.actions.getCustomProfileAttributeFields).not.toHaveBeenCalled();
+        });
     });
 });

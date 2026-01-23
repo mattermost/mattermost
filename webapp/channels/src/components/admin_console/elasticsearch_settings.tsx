@@ -14,11 +14,12 @@ import ExternalLink from 'components/external_link';
 
 import {DocLinks, JobStatuses, JobTypes} from 'utils/constants';
 
-import AdminSettings from './admin_settings';
-import type {BaseProps, BaseState} from './admin_settings';
 import BooleanSetting from './boolean_setting';
 import JobsTable from './jobs';
+import OLDAdminSettings from './old_admin_settings';
+import type {BaseProps, BaseState} from './old_admin_settings';
 import RequestButton from './request_button/request_button';
+import SettingSet from './setting_set';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
 
@@ -64,18 +65,18 @@ export const messages = defineMessages({
     bulkIndexingTitle: {id: 'admin.elasticsearch.bulkIndexingTitle', defaultMessage: 'Bulk Indexing:'},
     help: {id: 'admin.elasticsearch.createJob.help', defaultMessage: 'All users, channels and posts in the database will be indexed from oldest to newest. Elasticsearch is available during indexing but search results may be incomplete until the indexing job is complete.'},
     rebuildChannelsIndexTitle: {id: 'admin.elasticsearch.rebuildChannelsIndexTitle', defaultMessage: 'Rebuild Channels Index'},
-    rebuildChannelIndexHelpText: {id: 'admin.elasticsearch.rebuildChannelsIndex.helpText', defaultMessage: 'This purges the channels index and re-indexes all channels in the database, from oldest to newest. Channel autocomplete is available during indexing but search results may be incomplete until the indexing job is complete.\n<b>Note- Please ensure no other indexing job is in progress in the table above.</b>'},
+    rebuildChannelIndexHelpText: {id: 'admin.elasticsearch.rebuildChannelsIndex.helpText', defaultMessage: 'This purges the channels index and re-indexes all channels in the database, from oldest to newest. Channel autocomplete is available during indexing but search results may be incomplete until the indexing job is complete.\n\n<b>Note- Please ensure no other indexing job is in progress in the table above.</b>'}, // eslint-disable-line formatjs/no-multiple-whitespaces
     rebuildChannelsIndexButtonText: {id: 'admin.elasticsearch.rebuildChannelsIndex.title', defaultMessage: 'Rebuild Channels Index'},
     purgeIndexesHelpText: {id: 'admin.elasticsearch.purgeIndexesHelpText', defaultMessage: 'Purging will entirely remove the indexes on the Elasticsearch server. Search results may be incomplete until a bulk index of the existing database is rebuilt.'},
-    purgeIndexesButton: {id: 'admin.elasticsearch.purgeIndexesButton', defaultMessage: 'Purge Index'},
+    purgeIndexesButton: {id: 'admin.elasticsearch.purgeIndexesButton', defaultMessage: 'Purge Indexes'},
     label: {id: 'admin.elasticsearch.purgeIndexesButton.label', defaultMessage: 'Purge Indexes:'},
     enableSearchingTitle: {id: 'admin.elasticsearch.enableSearchingTitle', defaultMessage: 'Enable Elasticsearch for search queries:'},
     enableSearchingDescription: {id: 'admin.elasticsearch.enableSearchingDescription', defaultMessage: 'Requires a successful connection to the Elasticsearch server. When true, Elasticsearch will be used for all search queries using the latest index. Search results may be incomplete until a bulk index of the existing post database is finished. When false, database search is used.'},
 });
 
 export const searchableStrings: Array<string|MessageDescriptor|[MessageDescriptor, {[key: string]: any}]> = [
-    [messages.connectionUrlDescription, {documentationLink: ''}],
-    [messages.enableIndexingDescription, {documentationLink: ''}],
+    [messages.connectionUrlDescription, {link: (msg: string) => msg}],
+    [messages.enableIndexingDescription, {link: (msg: string) => msg}],
     messages.title,
     messages.enableIndexingTitle,
     messages.connectionUrlTitle,
@@ -98,7 +99,7 @@ export const searchableStrings: Array<string|MessageDescriptor|[MessageDescripto
     messages.enableSearchingDescription,
 ];
 
-export default class ElasticsearchSettings extends AdminSettings<Props, State> {
+export default class ElasticsearchSettings extends OLDAdminSettings<Props, State> {
     getConfigFromState = (config: AdminConfig) => {
         config.ElasticsearchSettings.ConnectionURL = this.state.connectionUrl;
         config.ElasticsearchSettings.Backend = this.state.backend;
@@ -419,27 +420,24 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                     })}
                     disabled={!this.state.enableIndexing}
                 />
-                <div className='form-group'>
-                    <label className='control-label col-sm-4'>
-                        <FormattedMessage {...messages.bulkIndexingTitle}/>
-                    </label>
-                    <div className='col-sm-8'>
-                        <div className='job-table-setting'>
-                            <JobsTable
-                                jobType={JobTypes.ELASTICSEARCH_POST_INDEXING as JobType}
-                                disabled={!this.state.canPurgeAndIndex || this.props.isDisabled!}
-                                createJobButtonText={
-                                    <FormattedMessage
-                                        id='admin.elasticsearch.createJob.title'
-                                        defaultMessage='Index Now'
-                                    />
-                                }
-                                createJobHelpText={<FormattedMessage {...messages.help}/>}
-                                getExtraInfoText={this.getExtraInfo}
-                            />
-                        </div>
+                <SettingSet
+                    label={<FormattedMessage {...messages.bulkIndexingTitle}/>}
+                >
+                    <div className='job-table-setting'>
+                        <JobsTable
+                            jobType={JobTypes.ELASTICSEARCH_POST_INDEXING as JobType}
+                            disabled={!this.state.canPurgeAndIndex || this.props.isDisabled!}
+                            createJobButtonText={
+                                <FormattedMessage
+                                    id='admin.elasticsearch.createJob.title'
+                                    defaultMessage='Index Now'
+                                />
+                            }
+                            createJobHelpText={<FormattedMessage {...messages.help}/>}
+                            getExtraInfoText={this.getExtraInfo}
+                        />
                     </div>
-                </div>
+                </SettingSet>
                 <RequestButton
                     id='rebuildChannelsIndexButton'
                     requestAction={rebuildChannelsIndex}
@@ -458,6 +456,7 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                     })}
                     errorMessage={defineMessage({
                         id: 'admin.elasticsearch.rebuildIndexSuccessfully.error',
+                        // eslint-disable-next-line formatjs/enforce-placeholders -- error provided by RequestButton
                         defaultMessage: 'Failed to trigger channels index rebuild job: {error}',
                     })}
                     disabled={!this.state.canPurgeAndIndex || this.props.isDisabled!}
@@ -474,6 +473,7 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                     })}
                     errorMessage={defineMessage({
                         id: 'admin.elasticsearch.purgeIndexesButton.error',
+                        // eslint-disable-next-line formatjs/enforce-placeholders -- error provided by RequestButton
                         defaultMessage: 'Failed to purge indexes: {error}',
                     })}
                     disabled={this.props.isDisabled || !this.state.canPurgeAndIndex}

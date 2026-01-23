@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
@@ -33,7 +34,9 @@ func getPostsUsage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(json)
+	if _, err := w.Write(json); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getStorageUsage(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -50,7 +53,9 @@ func getStorageUsage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(json)
+	if _, err := w.Write(json); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getTeamsUsage(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -70,5 +75,7 @@ func getTeamsUsage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(json)
+	if _, err := w.Write(json); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }

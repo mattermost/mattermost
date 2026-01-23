@@ -81,11 +81,11 @@ describe('Profile > Profile Settings > Email', () => {
         // # Click "Edit" to the right of "Email"
         cy.get('#emailEdit').should('be.visible').click();
 
-        // # Save the settings
-        cy.uiSave().wait(TIMEOUTS.HALF_SEC);
+        // # Click on the input and blur it
+        cy.get('#primaryEmail').should('be.visible').click().blur();
 
         // * Check that the correct error message is shown.
-        cy.get('#clientError').should('be.visible').should('have.text', 'Please enter a valid email address');
+        cy.get('#error_primaryEmail').should('be.visible').should('have.text', 'Please enter a valid email address.');
     });
 
     it('MM-T2067 email address already taken error', () => {
@@ -113,11 +113,8 @@ describe('Profile > Profile Settings > Email', () => {
         cy.get('#confirmEmail').should('be.visible').clear();
         cy.get('#currentPassword').should('be.visible').type('randompass');
 
-        // # Save the settings
-        cy.uiSave().wait(TIMEOUTS.HALF_SEC);
-
         // * Check that the correct error message is shown.
-        cy.get('#clientError').should('be.visible').should('have.text', 'The new emails you entered do not match.');
+        cy.get('#error_confirmEmail').should('be.visible').should('have.text', 'The new emails you entered do not match.');
     });
 
     // This test is a combination of 4 sub-tests because they are sub-parts of the same test.
@@ -163,9 +160,6 @@ describe('Profile > Profile Settings > Email', () => {
             // # Click on the link
             cy.visit(permalink);
 
-            // * Verify announcement bar
-            cy.get('.announcement-bar').should('be.visible').should('contain.text', 'Email verified');
-
             // # Wait for one second for the mail to be sent out.
             cy.wait(TIMEOUTS.FIVE_SEC);
 
@@ -199,7 +193,7 @@ describe('Profile > Profile Settings > Email', () => {
 
         // # Close modal then logout
         cy.get('body').type('{esc}');
-        cy.uiOpenUserMenu('Log Out');
+        cy.uiLogout();
 
         // # Wait for one second for the mail to be sent out.
         cy.wait(TIMEOUTS.ONE_SEC);

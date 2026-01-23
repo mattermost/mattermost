@@ -93,6 +93,22 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
             updateChannelMemberSchemeRoles: jest.fn(),
             deleteChannel: jest.fn(),
             unarchiveChannel: jest.fn(),
+            getAccessControlPolicy: jest.fn().mockResolvedValue({data: null}),
+            deleteAccessControlPolicy: jest.fn(),
+            assignChannelToAccessControlPolicy: jest.fn(),
+            unassignChannelsFromAccessControlPolicy: jest.fn(),
+            searchPolicies: jest.fn(),
+
+            // Channel-level access rules actions
+            getAccessControlFields: jest.fn().mockResolvedValue({data: []}),
+            getVisualAST: jest.fn().mockResolvedValue({data: {}}),
+            saveChannelAccessPolicy: jest.fn().mockResolvedValue({data: {}}),
+            validateChannelExpression: jest.fn().mockResolvedValue({data: {}}),
+            createAccessControlSyncJob: jest.fn().mockResolvedValue({data: {}}),
+            updateAccessControlPolicyActive: jest.fn().mockResolvedValue({data: {}}),
+            searchUsersForExpression: jest.fn().mockResolvedValue({data: {users: [], total: 0}}),
+            getChannelMembers: jest.fn().mockResolvedValue({data: []}),
+            getProfilesByIds: jest.fn().mockResolvedValue({data: []}),
         };
 
         const additionalProps = {
@@ -100,6 +116,7 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
             guestAccountsEnabled: true,
             channelModerationEnabled: true,
             channelGroupsEnabled: true,
+            abacSupported: true,
             isDisabled: false,
         };
 
@@ -217,6 +234,22 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
             updateChannelMemberSchemeRoles: jest.fn(),
             deleteChannel: jest.fn(),
             unarchiveChannel: jest.fn(),
+            getAccessControlPolicy: jest.fn().mockResolvedValue({data: null}),
+            deleteAccessControlPolicy: jest.fn(),
+            assignChannelToAccessControlPolicy: jest.fn(),
+            unassignChannelsFromAccessControlPolicy: jest.fn(),
+            searchPolicies: jest.fn(),
+
+            // Channel-level access rules actions
+            getAccessControlFields: jest.fn().mockResolvedValue({data: []}),
+            getVisualAST: jest.fn().mockResolvedValue({data: {}}),
+            saveChannelAccessPolicy: jest.fn().mockResolvedValue({data: {}}),
+            validateChannelExpression: jest.fn().mockResolvedValue({data: {}}),
+            createAccessControlSyncJob: jest.fn().mockResolvedValue({data: {}}),
+            updateAccessControlPolicyActive: jest.fn().mockResolvedValue({data: {}}),
+            searchUsersForExpression: jest.fn().mockResolvedValue({data: {users: [], total: 0}}),
+            getChannelMembers: jest.fn().mockResolvedValue({data: []}),
+            getProfilesByIds: jest.fn().mockResolvedValue({data: []}),
         };
 
         const additionalProps = {
@@ -225,6 +258,7 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
             channelModerationEnabled: true,
             channelGroupsEnabled: false,
             isDisabled: false,
+            abacSupported: false,
         };
 
         if (!testChannel.id) {
@@ -342,6 +376,22 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
             updateChannelMemberSchemeRoles: jest.fn(),
             deleteChannel: jest.fn(),
             unarchiveChannel: jest.fn(),
+            getAccessControlPolicy: jest.fn().mockResolvedValue({data: null}),
+            deleteAccessControlPolicy: jest.fn(),
+            assignChannelToAccessControlPolicy: jest.fn(),
+            unassignChannelsFromAccessControlPolicy: jest.fn(),
+            searchPolicies: jest.fn(),
+
+            // Channel-level access rules actions
+            getAccessControlFields: jest.fn().mockResolvedValue({data: []}),
+            getVisualAST: jest.fn().mockResolvedValue({data: {}}),
+            saveChannelAccessPolicy: jest.fn().mockResolvedValue({data: {}}),
+            validateChannelExpression: jest.fn().mockResolvedValue({data: {}}),
+            createAccessControlSyncJob: jest.fn().mockResolvedValue({data: {}}),
+            updateAccessControlPolicyActive: jest.fn().mockResolvedValue({data: {}}),
+            searchUsersForExpression: jest.fn().mockResolvedValue({data: {users: [], total: 0}}),
+            getChannelMembers: jest.fn().mockResolvedValue({data: []}),
+            getProfilesByIds: jest.fn().mockResolvedValue({data: []}),
         };
 
         const additionalProps = {
@@ -350,6 +400,7 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
             channelModerationEnabled: true,
             channelGroupsEnabled: false,
             isDisabled: false,
+            abacSupported: true,
         };
 
         if (!testChannel.id) {

@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/mfa/components/Confirm should match snapshot 1`] = `
 <div>
@@ -7,15 +7,15 @@ exports[`components/mfa/components/Confirm should match snapshot 1`] = `
     onKeyPress={[Function]}
     onSubmit={[Function]}
   >
-    <p>
+    <strong>
       <MemoizedFormattedMessage
-        defaultMessage="**Set up complete!**"
+        defaultMessage="Set up complete!"
         id="mfa.confirm.complete"
       />
-    </p>
+    </strong>
     <p>
       <MemoizedFormattedMessage
-        defaultMessage="Your account is now secure. Next time you sign in, you will be asked to enter a code from the Google Authenticator app on your phone."
+        defaultMessage="Your account is now secure. Next time you sign in, you will be asked to enter a code from your authenticator app on your phone."
         id="mfa.confirm.secure"
       />
     </p>

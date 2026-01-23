@@ -4,7 +4,6 @@
 package app
 
 import (
-	"context"
 	"encoding/csv"
 	"io"
 	"os"
@@ -28,6 +27,7 @@ type permissionInheritanceTestData struct {
 }
 
 func TestGetRolesByNames(t *testing.T) {
+	mainHelper.Parallel(t)
 	testPermissionInheritance(t, func(t *testing.T, th *TestHelper, testData permissionInheritanceTestData) {
 		actualRoles, err := th.App.GetRolesByNames([]string{testData.channelRole.Name})
 		require.Nil(t, err)
@@ -42,8 +42,9 @@ func TestGetRolesByNames(t *testing.T) {
 }
 
 func TestGetRoleByName(t *testing.T) {
+	mainHelper.Parallel(t)
 	testPermissionInheritance(t, func(t *testing.T, th *TestHelper, testData permissionInheritanceTestData) {
-		actualRole, err := th.App.GetRoleByName(context.Background(), testData.channelRole.Name)
+		actualRole, err := th.App.GetRoleByName(th.Context, testData.channelRole.Name)
 		require.Nil(t, err)
 		require.NotNil(t, actualRole)
 		require.Equal(t, testData.channelRole.Name, actualRole.Name)
@@ -52,6 +53,7 @@ func TestGetRoleByName(t *testing.T) {
 }
 
 func TestGetRoleByID(t *testing.T) {
+	mainHelper.Parallel(t)
 	testPermissionInheritance(t, func(t *testing.T, th *TestHelper, testData permissionInheritanceTestData) {
 		actualRole, err := th.App.GetRole(testData.channelRole.Id)
 		require.Nil(t, err)
@@ -62,6 +64,7 @@ func TestGetRoleByID(t *testing.T) {
 }
 
 func TestGetAllRoles(t *testing.T) {
+	mainHelper.Parallel(t)
 	testPermissionInheritance(t, func(t *testing.T, th *TestHelper, testData permissionInheritanceTestData) {
 		actualRoles, err := th.App.GetAllRoles()
 		require.Nil(t, err)
@@ -77,11 +80,11 @@ func TestGetAllRoles(t *testing.T) {
 
 // testPermissionInheritance tests 48 combinations of scheme, permission, role data.
 func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th *TestHelper, testData permissionInheritanceTestData)) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.Srv().SetLicense(model.NewTestLicense(""))
-	th.App.SetPhase2PermissionsMigrationStatus(true)
+	err := th.App.SetPhase2PermissionsMigrationStatus(true)
+	require.NoError(t, err)
 
 	permissionsDefault := []string{
 		model.PermissionManageChannelRoles.Id,
@@ -89,41 +92,53 @@ func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th 
 	}
 
 	// Defer resetting the system scheme permissions
-	systemSchemeRoles, err := th.App.GetRolesByNames([]string{
+	systemSchemeRoles, appErr := th.App.GetRolesByNames([]string{
 		model.ChannelGuestRoleId,
 		model.ChannelUserRoleId,
 		model.ChannelAdminRoleId,
 	})
-	require.Nil(t, err)
+	require.Nil(t, appErr)
 	require.Len(t, systemSchemeRoles, 3)
 
 	// defer resetting the system role permissions
 	for _, systemRole := range systemSchemeRoles {
-		defer th.App.PatchRole(systemRole, &model.RolePatch{
-			Permissions: &systemRole.Permissions,
-		})
+		defer func() {
+			_, appErr = th.App.PatchRole(systemRole, &model.RolePatch{
+				Permissions: &systemRole.Permissions,
+			})
+			require.Nil(t, appErr)
+		}()
 	}
 
 	// Make a channel scheme, clear its permissions
-	channelScheme, err := th.App.CreateScheme(&model.Scheme{
+	channelScheme, appErr := th.App.CreateScheme(&model.Scheme{
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
 		Scope:       model.SchemeScopeChannel,
 	})
-	require.Nil(t, err)
-	defer th.App.DeleteScheme(channelScheme.Id)
+	require.Nil(t, appErr)
+	defer func() {
+		_, appErr = th.App.DeleteScheme(channelScheme.Id)
+		require.Nil(t, appErr)
+	}()
 
-	team := th.CreateTeam()
-	defer th.App.PermanentDeleteTeamId(th.Context, team.Id)
+	team := th.CreateTeam(t)
+	defer func() {
+		appErr = th.App.PermanentDeleteTeamId(th.Context, team.Id)
+		require.Nil(t, appErr)
+	}()
 
 	// Make a channel
-	channel := th.CreateChannel(th.Context, team)
-	defer th.App.PermanentDeleteChannel(th.Context, channel)
+	channel := th.CreateChannel(t, team)
+	defer func() {
+		appErr = th.App.PermanentDeleteChannel(th.Context, channel)
+		require.Nil(t, appErr)
+	}()
 
 	// Set the channel scheme
 	channel.SchemeId = &channelScheme.Id
-	channel, err = th.App.UpdateChannelScheme(th.Context, channel)
-	require.Nil(t, err)
+	channel, appErr = th.App.UpdateChannelScheme(th.Context, channel)
+	require.Nil(t, appErr)
 
 	// Get the truth table from CSV
 	file, e := os.Open("tests/channel-role-has-permission.csv")
@@ -174,7 +189,7 @@ func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th 
 				}
 
 				// add or remove the permission from the higher-scoped scheme
-				higherScopedRole, testErr := th.App.GetRoleByName(context.Background(), roleNameUnderTest)
+				higherScopedRole, testErr := th.App.GetRoleByName(th.Context, roleNameUnderTest)
 				require.Nil(t, testErr)
 
 				var higherScopedPermissions []string
@@ -196,7 +211,7 @@ func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th 
 				case higherScopedAdmin:
 					channelRoleName = channelScheme.DefaultChannelAdminRole
 				}
-				channelRole, testErr := th.App.GetRoleByName(context.Background(), channelRoleName)
+				channelRole, testErr := th.App.GetRoleByName(th.Context, channelRoleName)
 				require.Nil(t, testErr)
 
 				// add or remove the permission from the channel scheme
@@ -225,18 +240,21 @@ func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th 
 	test(model.ChannelGuestRoleId, model.ChannelUserRoleId, model.ChannelAdminRoleId)
 
 	// create a team scheme
-	teamScheme, err := th.App.CreateScheme(&model.Scheme{
+	teamScheme, appErr := th.App.CreateScheme(&model.Scheme{
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
 		Scope:       model.SchemeScopeTeam,
 	})
-	require.Nil(t, err)
-	defer th.App.DeleteScheme(teamScheme.Id)
+	require.Nil(t, appErr)
+	defer func() {
+		_, appErr = th.App.DeleteScheme(teamScheme.Id)
+		require.Nil(t, appErr)
+	}()
 
 	// assign the scheme to the team
 	team.SchemeId = &teamScheme.Id
-	_, err = th.App.UpdateTeamScheme(team)
-	require.Nil(t, err)
+	_, appErr = th.App.UpdateTeamScheme(team)
+	require.Nil(t, appErr)
 
 	// test 24 combinations where the higher-scoped scheme is a TEAM scheme
 	test(teamScheme.DefaultChannelGuestRole, teamScheme.DefaultChannelUserRole, teamScheme.DefaultChannelAdminRole)

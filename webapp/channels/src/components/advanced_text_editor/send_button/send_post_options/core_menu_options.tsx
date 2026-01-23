@@ -1,0 +1,201 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import {DateTime} from 'luxon';
+import React, {memo, useCallback} from 'react';
+import {FormattedMessage} from 'react-intl';
+import {useSelector} from 'react-redux';
+
+import {getCurrentLocale} from 'selectors/i18n';
+
+import useTimePostBoxIndicator from 'components/advanced_text_editor/use_post_box_indicator';
+import * as Menu from 'components/menu';
+import type {Props as MenuItemProps} from 'components/menu/menu_item';
+import Timestamp from 'components/timestamp';
+
+import RecentUsedCustomDate from './recent_used_custom_date';
+
+type Props = {
+    handleOnSelect: (e: React.FormEvent, scheduledAt: number) => void;
+    channelId: string;
+}
+
+/**
+ * Formats a timestamp in the teammate's timezone using the current user's locale.
+ * @param userCurrentTimestamp - Timestamp in milliseconds (UTC)
+ * @param teammateTimezoneString - IANA timezone string (e.g., "America/New_York")
+ * @param userLocale - User's locale code (e.g., "fr", "en", "de")
+ * @returns Formatted time string respecting the user's locale
+ * @example
+ * // US locale: "8:00 AM"
+ * // French locale: "08:00"
+ * getScheduledTimeInTeammateTimezone(1635768000000, 'Europe/Paris', 'fr')
+ */
+function getScheduledTimeInTeammateTimezone(userCurrentTimestamp: number, teammateTimezoneString: string, userLocale: string): string {
+    const scheduledTimeUTC = DateTime.fromMillis(userCurrentTimestamp, {zone: 'utc'});
+    const teammateScheduledTime = scheduledTimeUTC.setZone(teammateTimezoneString);
+    const formattedTime = teammateScheduledTime.
+        setLocale(userLocale).
+        toLocaleString(DateTime.TIME_SIMPLE);
+    return formattedTime;
+}
+
+function getNextWeekday(dateTime: DateTime, targetWeekday: number) {
+    const daysDifference = targetWeekday - dateTime.weekday;
+    const adjustedDays = (daysDifference + 7) % 7;
+    const deltaDays = adjustedDays === 0 ? 7 : adjustedDays;
+    return dateTime.plus({days: deltaDays});
+}
+
+function CoreMenuOptions({handleOnSelect, channelId}: Props) {
+    const {
+        userCurrentTimezone,
+        teammateTimezone,
+        teammateDisplayName,
+        isDM,
+        isSelfDM,
+        isBot,
+    } = useTimePostBoxIndicator(channelId);
+
+    const locale = useSelector(getCurrentLocale);
+    const now = DateTime.now().setZone(userCurrentTimezone);
+    const tomorrow9amTime = DateTime.now().
+        setZone(userCurrentTimezone).
+        plus({days: 1}).
+        set({hour: 9, minute: 0, second: 0, millisecond: 0}).
+        toMillis();
+
+    const nextMonday = getNextWeekday(now, 1).set({
+        hour: 9,
+        minute: 0,
+        second: 0,
+        millisecond: 0,
+    }).toMillis();
+
+    const timeComponent = (
+        <Timestamp
+            value={tomorrow9amTime.valueOf()}
+            useDate={false}
+        />
+    );
+
+    const extraProps: Partial<MenuItemProps> = {};
+
+    if (isDM && !isBot && !isSelfDM) {
+        const teammateTimezoneString = teammateTimezone.useAutomaticTimezone ? teammateTimezone.automaticTimezone : teammateTimezone.manualTimezone || 'UTC';
+        const scheduledTimeInTeammateTimezone = getScheduledTimeInTeammateTimezone(tomorrow9amTime, teammateTimezoneString, locale);
+        const teammateTimeDisplay = (
+            <FormattedMessage
+                id='create_post_button.option.schedule_message.options.teammate_user_hour'
+                defaultMessage='{time} {user}’s time'
+                values={{
+                    user: (
+                        <span className='userDisplayName'>
+                            {teammateDisplayName}
+                        </span>
+                    ),
+                    time: scheduledTimeInTeammateTimezone,
+                }}
+            />
+        );
+
+        extraProps.trailingElements = teammateTimeDisplay;
+    }
+
+    const tomorrowClickHandler = useCallback((e: React.UIEvent) => handleOnSelect(e, tomorrow9amTime), [handleOnSelect, tomorrow9amTime]);
+
+    const optionTomorrow = (
+        <Menu.Item
+            key={'scheduling_time_tomorrow_9_am'}
+            data-testid='scheduling_time_tomorrow_9_am'
+            onClick={tomorrowClickHandler}
+            labels={
+                <FormattedMessage
+                    id='create_post_button.option.schedule_message.options.tomorrow'
+                    defaultMessage='Tomorrow at {9amTime}'
+                    values={{'9amTime': timeComponent}}
+                />
+            }
+            className='core-menu-options'
+            autoFocus={true}
+            {...extraProps}
+        />
+    );
+
+    const nextMondayClickHandler = useCallback((e: React.UIEvent) => handleOnSelect(e, nextMonday), [handleOnSelect, nextMonday]);
+
+    const optionNextMonday = (
+        <Menu.Item
+            key={'scheduling_time_next_monday_9_am'}
+            data-testid='scheduling_time_next_monday_9_am'
+            onClick={nextMondayClickHandler}
+            labels={
+                <FormattedMessage
+                    id='create_post_button.option.schedule_message.options.next_monday'
+                    defaultMessage='Next Monday at {9amTime}'
+                    values={{'9amTime': timeComponent}}
+                />
+            }
+            className='core-menu-options'
+            {...extraProps}
+        />
+    );
+
+    const optionMonday = (
+        <Menu.Item
+            key={'scheduling_time_monday_9_am'}
+            data-testid='scheduling_time_monday_9_am'
+            onClick={nextMondayClickHandler}
+            labels={
+                <FormattedMessage
+                    id='create_post_button.option.schedule_message.options.monday'
+                    defaultMessage='Monday at {9amTime}'
+                    values={{
+                        '9amTime': timeComponent,
+                    }}
+                />
+            }
+            className='core-menu-options'
+            autoFocus={now.weekday === 5 || now.weekday === 6}
+            {...extraProps}
+        />
+    );
+
+    let options: React.ReactElement[] = [];
+
+    switch (now.weekday) {
+    // Sunday
+    case 7:
+        options = [optionTomorrow];
+        break;
+
+        // Monday
+    case 1:
+        options = [optionTomorrow, optionNextMonday];
+        break;
+
+        // Friday and Saturday
+    case 5:
+    case 6:
+        options = [optionMonday];
+        break;
+
+        // Tuesday to Thursday
+    default:
+        options = [optionTomorrow, optionMonday];
+    }
+
+    return (
+        <>
+            {options}
+            <RecentUsedCustomDate
+                handleOnSelect={handleOnSelect}
+                userCurrentTimezone={userCurrentTimezone}
+                tomorrow9amTime={tomorrow9amTime}
+                nextMonday={nextMonday}
+            />
+        </>
+    );
+}
+
+export default memo(CoreMenuOptions);

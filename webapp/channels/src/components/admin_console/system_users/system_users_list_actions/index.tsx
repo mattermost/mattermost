@@ -35,6 +35,7 @@ import Constants, {ModalIdentifiers} from 'utils/constants';
 import type {GlobalState} from 'types/store';
 
 import ConfirmManageUserSettingsModal from './confirm_manage_user_settings_modal';
+import ConfirmResetFailedAttemptsModal from './confirm_reset_failed_attempts_modal';
 import CreateGroupSyncablesMembershipsModal from './create_group_syncables_membership_modal';
 import DeactivateMemberModal from './deactivate_member_modal';
 import DemoteToGuestModal from './demote_to_guest_modal';
@@ -134,6 +135,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                     adminMode: true,
                     isContentProductSettings: true,
                     userID: user.id,
+                    focusOriginElement: menuButtonId,
                 },
             }));
         }
@@ -144,6 +146,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
             dialogProps: {
                 user,
                 onConfirm: onConfirmManageUserSettingsClick,
+                focusOriginElement: menuButtonId,
             },
         }));
     }, [user]);
@@ -281,6 +284,9 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
     }, [user.id, user.auth_service, updateUser, onError]);
 
     const handleDeactivateMemberClick = useCallback(() => {
+        if (user.auth_service === Constants.LDAP_SERVICE) {
+            return;
+        }
         function onDeactivateMemberSuccess() {
             updateUser({delete_at: new Date().getMilliseconds()});
         }
@@ -297,6 +303,47 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
             }),
         );
     }, [user, updateUser, onError]);
+
+    const handleResetAttemptsClick = useCallback(() => {
+        function onResetAttemptsSuccess() {
+            updateUser({failed_attempts: 0});
+        }
+
+        dispatch(
+            openModal({
+                modalId: ModalIdentifiers.CONFIRM_RESET_FAILED_ATTEMPTS_MODAL,
+                dialogType: ConfirmResetFailedAttemptsModal,
+                dialogProps: {
+                    user,
+                    onError,
+                    onSuccess: onResetAttemptsSuccess,
+                },
+            }),
+        );
+    }, [user, updateUser, onError]);
+
+    const disableActivationToggle = user.auth_service === Constants.LDAP_SERVICE;
+
+    const getManagedByLDAPText = (managedByLDAP: boolean) => {
+        return managedByLDAP ? {
+            trailingElements: formatMessage({
+                id: 'admin.system_users.list.actions.menu.managedByLdap',
+                defaultMessage: '(Managed by LDAP)',
+            }),
+        } : {};
+    };
+
+    const showResetFailedAttempts = useCallback(() => {
+        if (user.failed_attempts === undefined) {
+            return false;
+        }
+
+        if (user.auth_service !== Constants.LDAP_SERVICE && user.auth_service !== '') {
+            return false;
+        }
+
+        return true;
+    }, [user]);
 
     return (
         <Menu.Container
@@ -335,7 +382,8 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                             defaultMessage='Activate'
                         />
                     }
-                    disabled={user.auth_service === Constants.LDAP_SERVICE}
+                    disabled={disableActivationToggle}
+                    {...getManagedByLDAPText(disableActivationToggle)}
                     onClick={handleActivateUserClick}
                 />
             )}
@@ -397,6 +445,18 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                     onClick={handleResetPasswordClick}
                 />
             }
+            {showResetFailedAttempts() && (
+                <Menu.Item
+                    id={`${menuItemIdPrefix}-resetAttempts`}
+                    labels={
+                        <FormattedMessage
+                            id='admin.system_users.list.actions.menu.resetAttempts'
+                            defaultMessage='Reset login attempts'
+                        />
+                    }
+                    onClick={handleResetAttemptsClick}
+                />
+            )}
             {user.mfa_active && config.ServiceSettings?.EnableMultifactorAuthentication &&
                 <Menu.Item
                     id={`${menuItemIdPrefix}-removeMFA`}
@@ -464,7 +524,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                         labels={
                             <FormattedMessage
                                 id='admin.system_users.list.actions.menu.removeSessions'
-                                defaultMessage='Remove sessions'
+                                defaultMessage='Revoke sessions'
                             />
                         }
                         onClick={handleRemoveSessionsClick}
@@ -496,6 +556,8 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                         />
                     }
                     onClick={handleDeactivateMemberClick}
+                    disabled={disableActivationToggle}
+                    {...getManagedByLDAPText(disableActivationToggle)}
                 />
             )}
         </Menu.Container>

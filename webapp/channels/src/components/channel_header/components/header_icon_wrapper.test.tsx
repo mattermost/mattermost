@@ -17,7 +17,7 @@ describe('components/channel_header/components/HeaderIconWrapper', () => {
     );
 
     const baseProps = {
-        iconComponent: mentionsIcon,
+        children: mentionsIcon,
         buttonClass: 'button_class',
         buttonId: 'button_id',
         onClick: jest.fn(),
@@ -34,7 +34,7 @@ describe('components/channel_header/components/HeaderIconWrapper', () => {
         expect(screen.getByLabelText('Recent mentions')).toBeVisible();
         expect(screen.queryByText('Recent mentions')).not.toBeInTheDocument();
 
-        userEvent.hover(screen.getByLabelText('Recent mentions'));
+        await userEvent.hover(screen.getByLabelText('Recent mentions'));
 
         await waitFor(() => {
             expect(screen.queryByText('Recent mentions')).toBeInTheDocument();
@@ -55,7 +55,7 @@ describe('components/channel_header/components/HeaderIconWrapper', () => {
         expect(screen.queryByText('b')).not.toBeInTheDocument();
         expect(screen.queryByText('c')).not.toBeInTheDocument();
 
-        userEvent.hover(screen.getByLabelText('Recent mentions'));
+        await userEvent.hover(screen.getByLabelText('Recent mentions'));
 
         await waitFor(() => {
             expect(screen.queryByText('Recent mentions')).toBeInTheDocument();

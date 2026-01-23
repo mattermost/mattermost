@@ -5,6 +5,8 @@ package model
 
 import (
 	"net/http"
+	"strings"
+	"unicode/utf8"
 )
 
 type ChannelBookmarkType string
@@ -14,6 +16,8 @@ const (
 	ChannelBookmarkFile    ChannelBookmarkType = "file"
 	BookmarkFileOwner                          = "bookmark"
 	MaxBookmarksPerChannel                     = 50
+	DisplayNameMaxRunes                        = 64
+	LinkMaxRunes                               = 1024
 )
 
 type ChannelBookmark struct {
@@ -34,8 +38,8 @@ type ChannelBookmark struct {
 	ParentId    string              `json:"parent_id,omitempty"`
 }
 
-func (o *ChannelBookmark) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (o *ChannelBookmark) Auditable() map[string]any {
+	return map[string]any{
 		"id":          o.Id,
 		"create_at":   o.CreateAt,
 		"update_at":   o.UpdateAt,
@@ -90,7 +94,7 @@ func (o *ChannelBookmark) IsValid() *AppError {
 		return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.owner_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if o.DisplayName == "" {
+	if o.DisplayName == "" || utf8.RuneCountInString(o.DisplayName) > DisplayNameMaxRunes {
 		return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.display_name.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -98,11 +102,19 @@ func (o *ChannelBookmark) IsValid() *AppError {
 		return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.type.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if o.Type == ChannelBookmarkLink && (o.LinkUrl == "" || !IsValidHTTPURL(o.LinkUrl)) {
+	if o.Type == ChannelBookmarkLink && o.FileId != "" {
+		return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.file_id.missing_or_invalid.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+	}
+
+	if o.Type == ChannelBookmarkFile && o.LinkUrl != "" {
 		return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.link_url.missing_or_invalid.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if o.Type == ChannelBookmarkLink && o.ImageUrl != "" && !IsValidHTTPURL(o.ImageUrl) {
+	if o.Type == ChannelBookmarkLink && (o.LinkUrl == "" || !IsValidHTTPURL(o.LinkUrl) || utf8.RuneCountInString(o.LinkUrl) > LinkMaxRunes) {
+		return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.link_url.missing_or_invalid.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+	}
+
+	if o.Type == ChannelBookmarkLink && o.ImageUrl != "" && (!IsValidHTTPURL(o.ImageUrl) || utf8.RuneCountInString(o.ImageUrl) > LinkMaxRunes) {
 		return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.image_url.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
@@ -131,6 +143,7 @@ func (o *ChannelBookmark) PreSave() {
 	}
 
 	o.DisplayName = SanitizeUnicode(o.DisplayName)
+	o.Emoji = strings.Trim(o.Emoji, ":")
 	if o.CreateAt == 0 {
 		o.CreateAt = GetMillis()
 	}
@@ -140,6 +153,7 @@ func (o *ChannelBookmark) PreSave() {
 func (o *ChannelBookmark) PreUpdate() {
 	o.UpdateAt = GetMillis()
 	o.DisplayName = SanitizeUnicode(o.DisplayName)
+	o.Emoji = strings.Trim(o.Emoji, ":")
 }
 
 func (o *ChannelBookmark) ToBookmarkWithFileInfo(f *FileInfo) *ChannelBookmarkWithFileInfo {
@@ -156,7 +170,7 @@ func (o *ChannelBookmark) ToBookmarkWithFileInfo(f *FileInfo) *ChannelBookmarkWi
 			SortOrder:   o.SortOrder,
 			LinkUrl:     o.LinkUrl,
 			ImageUrl:    o.ImageUrl,
-			Emoji:       o.Emoji,
+			Emoji:       strings.Trim(o.Emoji, ":"),
 			Type:        o.Type,
 			OriginalId:  o.OriginalId,
 			ParentId:    o.ParentId,
@@ -179,8 +193,8 @@ type ChannelBookmarkPatch struct {
 	Emoji       *string `json:"emoji,omitempty"`
 }
 
-func (o *ChannelBookmarkPatch) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (o *ChannelBookmarkPatch) Auditable() map[string]any {
+	return map[string]any{
 		"file_id": o.FileId,
 	}
 }
@@ -212,7 +226,7 @@ type ChannelBookmarkWithFileInfo struct {
 	FileInfo *FileInfo `json:"file,omitempty"`
 }
 
-func (o *ChannelBookmarkWithFileInfo) Auditable() map[string]interface{} {
+func (o *ChannelBookmarkWithFileInfo) Auditable() map[string]any {
 	a := o.ChannelBookmark.Auditable()
 	if o.FileInfo != nil {
 		a["file"] = o.FileInfo.Auditable()

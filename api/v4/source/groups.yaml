@@ -8,9 +8,6 @@
         team.
 
 
-        `not_associated_to_team` **OR** `not_associated_to_channel` is required.
-
-
         If you use `not_associated_to_team`, you must be a team admin for that particular team (permission to manage that team).
 
 
@@ -49,14 +46,12 @@
           in: query
           description: Team GUID which is used to return all the groups not associated to
             this team
-          required: true
           schema:
             type: string
         - name: not_associated_to_channel
           in: query
           description: Group GUID which is used to return all the groups not associated to
             this channel
-          required: true
           schema:
             type: string
         - name: since
@@ -110,30 +105,24 @@
             schema:
               type: object
               required:
-                - group
+                - name
+                - display_name
+                - source
+                - allow_reference
                 - user_ids
               properties:
-                group:
-                  type: object
-                  required:
-                    - name
-                    - display_name
-                    - source
-                    - allow_reference
-                  description: Group object to create.
-                  properties:
-                    name:
-                      type: string
-                      description: The unique group name used for at-mentioning.
-                    display_name:
-                      type: string
-                      description: The display name of the group which can include spaces.
-                    source:
-                      type: string
-                      description: Must be `custom`
-                    allow_reference:
-                      type: boolean
-                      description: Must be true
+                name:
+                  type: string
+                  description: The unique group name used for at-mentioning.
+                display_name:
+                  type: string
+                  description: The display name of the group which can include spaces.
+                source:
+                  type: string
+                  description: Must be `custom`
+                allow_reference:
+                  type: boolean
+                  description: Must be true
                 user_ids:
                   type: array
                   description: The user ids of the group members to add.
@@ -854,7 +843,9 @@
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/StatusOK"
+                type: array
+                items:
+                   $ref: "#/components/schemas/GroupMember"
     post:
       tags:
         - groups
@@ -898,7 +889,9 @@
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/StatusOK"
+                type: array
+                items:
+                   $ref: "#/components/schemas/GroupMember"
   "/api/v4/groups/{group_id}/stats":
     get:
       tags:
@@ -1036,6 +1029,59 @@
           schema:
             type: boolean
             default: false
+        - name: include_member_count
+          in: query
+          description: Boolean which adds a `member_count` field to each group object.
+          schema:
+            type: boolean
+            default: false
+        - name: include_timezones
+          in: query
+          description: Boolean which adds timezone information for group members.
+          schema:
+            type: boolean
+            default: false
+        - name: include_total_count
+          in: query
+          description: Boolean which adds total count of groups in the response.
+          schema:
+            type: boolean
+            default: false
+        - name: include_archived
+          in: query
+          description: Boolean which includes archived groups in the response.
+          schema:
+            type: boolean
+            default: false
+        - name: filter_archived
+          in: query
+          description: Boolean which filters out archived groups from the response.
+          schema:
+            type: boolean
+            default: false
+        - name: filter_parent_team_permitted
+          in: query
+          description: Boolean which filters groups based on parent team permissions.
+          schema:
+            type: boolean
+            default: false
+        - name: filter_has_member
+          in: query
+          description: User ID to filter groups that have this member.
+          schema:
+            type: string
+        - name: include_member_ids
+          in: query
+          description: Boolean which adds member IDs to the group objects.
+          schema:
+            type: boolean
+            default: false
+        - name: only_syncable_sources
+          in: query
+          description: Boolean which includes groups from syncable sources.
+          schema:
+            type: boolean
+            default: false
       responses:
         "200":
           description: Group list retrieval successful
@@ -1146,5 +1192,42 @@
                   $ref: "#/components/schemas/Group"
         "400":
           $ref: "#/components/responses/BadRequest"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/groups/names":
+    post:
+      tags:
+        - groups
+      summary: Get groups by name
+      description: |
+        Get a list of groups based on a provided list of names.
+
+        ##### Permissions
+        Requires an active session but no other permissions.
+        
+        __Minimum server version__: 11.0
+      operationId: GetGroupsByNames
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+        description: List of group names
+        required: true
+      responses:
+        "200":
+          description: Group list retrieval successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Group"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
         "501":
           $ref: "#/components/responses/NotImplemented"

@@ -19,11 +19,26 @@ const (
 	LicenseGracePeriod  = DayInMilliseconds * 10 //10 days
 	LicenseRenewalLink  = "https://mattermost.com/renew/"
 
-	LicenseShortSkuE10          = "E10"
-	LicenseShortSkuE20          = "E20"
-	LicenseShortSkuProfessional = "professional"
-	LicenseShortSkuEnterprise   = "enterprise"
+	LicenseShortSkuE10                = "E10"
+	LicenseShortSkuE20                = "E20"
+	LicenseShortSkuProfessional       = "professional"
+	LicenseShortSkuEnterprise         = "enterprise"
+	LicenseShortSkuEnterpriseAdvanced = "advanced"
+	LicenseShortSkuMattermostEntry    = "entry"
+
+	ProfessionalTier = 10
+	EnterpriseTier   = 20
+
+	EntryTier              = 30
+	EnterpriseAdvancedTier = 30
 )
+
+var LicenseToLicenseTier = map[string]int{
+	LicenseShortSkuProfessional:       ProfessionalTier,
+	LicenseShortSkuEnterprise:         EnterpriseTier,
+	LicenseShortSkuEnterpriseAdvanced: EnterpriseAdvancedTier,
+	LicenseShortSkuMattermostEntry:    EntryTier,
+}
 
 const (
 	LicenseUpForRenewalEmailSent = "LicenseUpForRenewalEmailSent"
@@ -45,18 +60,37 @@ type LicenseRecord struct {
 	Bytes    string `json:"-"`
 }
 
+type LicenseLimits struct {
+	PostHistory         int64 `json:"post_history"`
+	BoardCards          int64 `json:"board_cards"`
+	PlaybookRuns        int64 `json:"playbook_runs"`
+	CallDurationSeconds int64 `json:"call_duration"`
+	AgentsPrompts       int64 `json:"agents_prompts"`
+	PushNotifications   int64 `json:"push_notifications"`
+}
+
 type License struct {
-	Id           string    `json:"id"`
-	IssuedAt     int64     `json:"issued_at"`
-	StartsAt     int64     `json:"starts_at"`
-	ExpiresAt    int64     `json:"expires_at"`
-	Customer     *Customer `json:"customer"`
-	Features     *Features `json:"features"`
-	SkuName      string    `json:"sku_name"`
-	SkuShortName string    `json:"sku_short_name"`
-	IsTrial      bool      `json:"is_trial"`
-	IsGovSku     bool      `json:"is_gov_sku"`
-	SignupJWT    *string   `json:"signup_jwt"`
+	Id                  string    `json:"id"`
+	IssuedAt            int64     `json:"issued_at"`
+	StartsAt            int64     `json:"starts_at"`
+	ExpiresAt           int64     `json:"expires_at"`
+	Customer            *Customer `json:"customer"`
+	Features            *Features `json:"features"`
+	SkuName             string    `json:"sku_name"`
+	SkuShortName        string    `json:"sku_short_name"`
+	IsTrial             bool      `json:"is_trial"`
+	IsGovSku            bool      `json:"is_gov_sku"`
+	IsSeatCountEnforced bool      `json:"is_seat_count_enforced"`
+	// ExtraUsers provides a grace mechanism that allows a configurable number of users
+	// beyond the base license limit before restricting user creation. When nil, defaults to 0.
+	// For example: 100 licensed users + 5 ExtraUsers = 105 total allowed users.
+	ExtraUsers *int           `json:"extra_users"`
+	SignupJWT  *string        `json:"signup_jwt"`
+	Limits     *LicenseLimits `json:"limits"`
+}
+
+func (l *License) IsMattermostEntry() bool {
+	return l != nil && l.SkuShortName == LicenseShortSkuMattermostEntry
 }
 
 type Customer struct {
@@ -80,6 +114,7 @@ type TrialLicenseRequest struct {
 	CompanyName           string `json:"company_name"`
 	CompanyCountry        string `json:"company_country"`
 	CompanySize           string `json:"company_size"`
+	ServerVersion         string `json:"server_version"`
 }
 
 // If any of the below fields are set, this is not a legacy request, and all fields should be validated
@@ -338,6 +373,11 @@ func (l *License) IsStarted() bool {
 	return l.StartsAt < GetMillis()
 }
 
+// Cloud preview is a cloud license, that is also a trial, and the difference between the start and end date is exactly 1 hour.
+func (l *License) IsCloudPreview() bool {
+	return l.IsCloud() && l.IsTrialLicense() && l.ExpiresAt-l.StartsAt == 1*time.Hour.Milliseconds()
+}
+
 func (l *License) IsCloud() bool {
 	return l != nil && l.Features != nil && l.Features.Cloud != nil && *l.Features.Cloud
 }
@@ -356,8 +396,7 @@ func (l *License) IsSanctionedTrial() bool {
 func (l *License) HasEnterpriseMarketplacePlugins() bool {
 	return *l.Features.EnterprisePlugins ||
 		l.SkuShortName == LicenseShortSkuE20 ||
-		l.SkuShortName == LicenseShortSkuProfessional ||
-		l.SkuShortName == LicenseShortSkuEnterprise
+		MinimumProfessionalLicense(l)
 }
 
 func (l *License) HasRemoteClusterService() bool {
@@ -371,8 +410,7 @@ func (l *License) HasRemoteClusterService() bool {
 	}
 
 	return (l.Features != nil && l.Features.RemoteClusterService != nil && *l.Features.RemoteClusterService) ||
-		l.SkuShortName == LicenseShortSkuProfessional ||
-		l.SkuShortName == LicenseShortSkuEnterprise
+		MinimumProfessionalLicense(l)
 }
 
 func (l *License) HasSharedChannels() bool {
@@ -381,13 +419,7 @@ func (l *License) HasSharedChannels() bool {
 	}
 
 	return (l.Features != nil && l.Features.SharedChannels != nil && *l.Features.SharedChannels) ||
-		l.SkuShortName == LicenseShortSkuProfessional ||
-		l.SkuShortName == LicenseShortSkuEnterprise
-}
-
-// IsE20OrEnterprise returns true when the license is for E20 or Enterprise.
-func (l *License) IsE20OrEnterprise() bool {
-	return l.SkuShortName == LicenseShortSkuE20 || l.SkuShortName == LicenseShortSkuEnterprise
+		MinimumProfessionalLicense(l)
 }
 
 // NewTestLicense returns a license that expires in the future and has the given features.
@@ -457,4 +489,21 @@ func (lr *LicenseRecord) IsValid() *AppError {
 
 func (lr *LicenseRecord) PreSave() {
 	lr.CreateAt = GetMillis()
+}
+
+// MinimumProfessionalLicense returns true if the provided license is at least a professional license.
+// Higher tier licenses also satisfy the condition.
+func MinimumProfessionalLicense(license *License) bool {
+	return license != nil && LicenseToLicenseTier[license.SkuShortName] >= ProfessionalTier
+}
+
+// MinimumEnterpriseLicense returns true if the provided license is at least a enterprise license.
+// Higher tier licenses also satisfy the condition.
+func MinimumEnterpriseLicense(license *License) bool {
+	return license != nil && LicenseToLicenseTier[license.SkuShortName] >= EnterpriseTier
+}
+
+// MinimumEnterpriseAdvancedLicense returns true if the provided license is at least an Enterprise Advanced license.
+func MinimumEnterpriseAdvancedLicense(license *License) bool {
+	return license != nil && LicenseToLicenseTier[license.SkuShortName] >= EnterpriseAdvancedTier
 }

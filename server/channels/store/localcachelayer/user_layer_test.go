@@ -8,14 +8,16 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	cmocks "github.com/mattermost/mattermost/server/v8/platform/services/cache/mocks"
 )
 
 func TestUserStore(t *testing.T) {
@@ -23,6 +25,8 @@ func TestUserStore(t *testing.T) {
 }
 
 func TestUserStoreCache(t *testing.T) {
+	rctx := request.TestContext(t)
+
 	fakeUserIds := []string{"123"}
 	fakeUser := []*model.User{{
 		Id:          "123",
@@ -37,12 +41,12 @@ func TestUserStoreCache(t *testing.T) {
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
 		require.NoError(t, err)
 
-		gotUser, err := cachedStore.User().GetProfileByIds(context.Background(), fakeUserIds, &store.UserGetByIdsOpts{}, true)
+		gotUser, err := cachedStore.User().GetProfileByIds(rctx, fakeUserIds, &store.UserGetByIdsOpts{}, true)
 		require.NoError(t, err)
 		assert.Equal(t, fakeUser, gotUser)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetProfileByIds", 1)
 
-		_, _ = cachedStore.User().GetProfileByIds(context.Background(), fakeUserIds, &store.UserGetByIdsOpts{}, true)
+		_, _ = cachedStore.User().GetProfileByIds(rctx, fakeUserIds, &store.UserGetByIdsOpts{}, true)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetProfileByIds", 1)
 	})
 
@@ -52,12 +56,12 @@ func TestUserStoreCache(t *testing.T) {
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
 		require.NoError(t, err)
 
-		gotUser, err := cachedStore.User().GetProfileByIds(context.Background(), fakeUserIds, &store.UserGetByIdsOpts{}, true)
+		gotUser, err := cachedStore.User().GetProfileByIds(rctx, fakeUserIds, &store.UserGetByIdsOpts{}, true)
 		require.NoError(t, err)
 		assert.Equal(t, fakeUser, gotUser)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetProfileByIds", 1)
 
-		_, _ = cachedStore.User().GetProfileByIds(context.Background(), fakeUserIds, &store.UserGetByIdsOpts{}, false)
+		_, _ = cachedStore.User().GetProfileByIds(rctx, fakeUserIds, &store.UserGetByIdsOpts{}, false)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetProfileByIds", 2)
 	})
 
@@ -67,13 +71,13 @@ func TestUserStoreCache(t *testing.T) {
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
 		require.NoError(t, err)
 
-		gotUser, err := cachedStore.User().GetProfileByIds(context.Background(), fakeUserIds, &store.UserGetByIdsOpts{}, true)
+		gotUser, err := cachedStore.User().GetProfileByIds(rctx, fakeUserIds, &store.UserGetByIdsOpts{}, true)
 		require.NoError(t, err)
 		assert.Equal(t, fakeUser, gotUser)
 
 		cachedStore.User().InvalidateProfileCacheForUser("123")
 
-		_, _ = cachedStore.User().GetProfileByIds(context.Background(), fakeUserIds, &store.UserGetByIdsOpts{}, true)
+		_, _ = cachedStore.User().GetProfileByIds(rctx, fakeUserIds, &store.UserGetByIdsOpts{}, true)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetProfileByIds", 2)
 	})
 
@@ -83,27 +87,27 @@ func TestUserStoreCache(t *testing.T) {
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
 		require.NoError(t, err)
 
-		storedUsers, err := mockStore.User().GetProfileByIds(context.Background(), fakeUserIds, &store.UserGetByIdsOpts{}, false)
+		storedUsers, err := mockStore.User().GetProfileByIds(rctx, fakeUserIds, &store.UserGetByIdsOpts{}, false)
 		require.NoError(t, err)
 
 		originalProps := make([]model.StringMap, len(storedUsers))
 
-		for i := 0; i < len(storedUsers); i++ {
+		for i := range storedUsers {
 			originalProps[i] = storedUsers[i].NotifyProps
 			storedUsers[i].NotifyProps = map[string]string{}
 			storedUsers[i].NotifyProps["key"] = "somevalue"
 		}
 
-		cachedUsers, err := cachedStore.User().GetProfileByIds(context.Background(), fakeUserIds, &store.UserGetByIdsOpts{}, true)
+		cachedUsers, err := cachedStore.User().GetProfileByIds(rctx, fakeUserIds, &store.UserGetByIdsOpts{}, true)
 		require.NoError(t, err)
 
-		for i := 0; i < len(storedUsers); i++ {
+		for i := range storedUsers {
 			assert.Equal(t, storedUsers[i].Id, cachedUsers[i].Id)
 		}
 
-		cachedUsers, err = cachedStore.User().GetProfileByIds(context.Background(), fakeUserIds, &store.UserGetByIdsOpts{}, true)
+		cachedUsers, err = cachedStore.User().GetProfileByIds(rctx, fakeUserIds, &store.UserGetByIdsOpts{}, true)
 		require.NoError(t, err)
-		for i := 0; i < len(storedUsers); i++ {
+		for i := range storedUsers {
 			storedUsers[i].Props = model.StringMap{}
 			storedUsers[i].Timezone = model.StringMap{}
 			assert.Equal(t, storedUsers[i], cachedUsers[i])
@@ -114,9 +118,30 @@ func TestUserStoreCache(t *testing.T) {
 			assert.NotEqual(t, storedUsers[i], cachedUsers[i])
 		}
 
-		for i := 0; i < len(storedUsers); i++ {
+		for i := range storedUsers {
 			storedUsers[i].NotifyProps = originalProps[i]
 		}
+	})
+
+	t.Run("assert **model.User not passed", func(t *testing.T) {
+		mockStore := getMockStore(t)
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
+		require.NoError(t, err)
+
+		cmock := cmocks.NewCache(t)
+		cmock.On("GetMulti", []string{"123"}, mock.MatchedBy(func(values []any) bool {
+			if len(values) != 1 {
+				return false
+			}
+			_, ok := values[0].(*model.User)
+			return ok
+		})).Return(nil)
+
+		cachedStore.user.rootStore.userProfileByIdsCache = cmock
+
+		_, err = cachedStore.User().GetProfileByIds(rctx, fakeUserIds, &store.UserGetByIdsOpts{}, true)
+		require.NoError(t, err)
 	})
 }
 
@@ -301,9 +326,26 @@ func TestUserStoreGetCache(t *testing.T) {
 
 		storedUser.NotifyProps = originalProps
 	})
+
+	t.Run("assert **model.User not passed", func(t *testing.T) {
+		mockStore := getMockStore(t)
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
+		require.NoError(t, err)
+
+		cmock := cmocks.NewCache(t)
+		cmock.On("Get", "123", mock.AnythingOfType("*model.User")).Return(nil)
+
+		cachedStore.user.rootStore.userProfileByIdsCache = cmock
+
+		_, err = cachedStore.User().Get(context.Background(), fakeUserId)
+		require.NoError(t, err)
+	})
 }
 
 func TestUserStoreGetManyCache(t *testing.T) {
+	rctx := request.TestContext(t)
+
 	fakeUser := &model.User{
 		Id:          "123",
 		AuthData:    model.NewPointer("authData"),
@@ -321,13 +363,13 @@ func TestUserStoreGetManyCache(t *testing.T) {
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
 		require.NoError(t, err)
 
-		gotUsers, err := cachedStore.User().GetMany(context.Background(), []string{fakeUser.Id, otherFakeUser.Id})
+		gotUsers, err := cachedStore.User().GetMany(rctx, []string{fakeUser.Id, otherFakeUser.Id})
 		require.NoError(t, err)
 		assert.Len(t, gotUsers, 2)
 		assert.Contains(t, gotUsers, fakeUser)
 		assert.Contains(t, gotUsers, otherFakeUser)
 
-		gotUsers, err = cachedStore.User().GetMany(context.Background(), []string{fakeUser.Id, otherFakeUser.Id})
+		gotUsers, err = cachedStore.User().GetMany(rctx, []string{fakeUser.Id, otherFakeUser.Id})
 		require.NoError(t, err)
 		assert.Len(t, gotUsers, 2)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetMany", 1)
@@ -339,7 +381,7 @@ func TestUserStoreGetManyCache(t *testing.T) {
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
 		require.NoError(t, err)
 
-		gotUsers, err := cachedStore.User().GetMany(context.Background(), []string{fakeUser.Id, otherFakeUser.Id})
+		gotUsers, err := cachedStore.User().GetMany(rctx, []string{fakeUser.Id, otherFakeUser.Id})
 		require.NoError(t, err)
 		assert.Len(t, gotUsers, 2)
 		assert.Contains(t, gotUsers, fakeUser)
@@ -347,7 +389,7 @@ func TestUserStoreGetManyCache(t *testing.T) {
 
 		cachedStore.User().InvalidateProfileCacheForUser("123")
 
-		gotUsers, err = cachedStore.User().GetMany(context.Background(), []string{fakeUser.Id, otherFakeUser.Id})
+		gotUsers, err = cachedStore.User().GetMany(rctx, []string{fakeUser.Id, otherFakeUser.Id})
 		require.NoError(t, err)
 		assert.Len(t, gotUsers, 2)
 		mockStore.User().(*mocks.UserStore).AssertCalled(t, "GetMany", mock.Anything, []string{"123"})

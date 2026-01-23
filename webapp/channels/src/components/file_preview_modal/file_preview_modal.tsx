@@ -4,6 +4,7 @@
 import classNames from 'classnames';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
+import {FormattedMessage} from 'react-intl';
 
 import type {FileInfo} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
@@ -12,7 +13,7 @@ import {getFileDownloadUrl, getFilePreviewUrl, getFileUrl} from 'mattermost-redu
 
 import ArchivedPreview from 'components/archived_preview';
 import AudioVideoPreview from 'components/audio_video_preview';
-import CodePreview from 'components/code_preview';
+import CodePreview, {hasSupportedLanguage} from 'components/code_preview';
 import FileInfoPreview from 'components/file_info_preview';
 import LoadingImagePreview from 'components/loading_image_preview';
 import type {Props as PDFPreviewComponentProps} from 'components/pdf_preview';
@@ -27,7 +28,7 @@ import FilePreviewModalFooter from './file_preview_modal_footer/file_preview_mod
 import FilePreviewModalHeader from './file_preview_modal_header/file_preview_modal_header';
 import ImagePreview from './image_preview';
 import PopoverBar from './popover_bar';
-import {isFileInfo} from './types';
+import {isFileInfo, isLinkInfo} from './types';
 import type {LinkInfo} from './types';
 
 import './file_preview_modal.scss';
@@ -48,11 +49,6 @@ export type Props = {
     isMobileView: boolean;
     pluginFilePreviewComponents: FilePreviewComponent[];
     onExited: () => void;
-
-    /**
-     * The id of the post the files are attached to
-     */
-    postId?: string;
 
     /**
      * The post the files are attached to
@@ -163,21 +159,51 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         }
     };
 
+    isImageUrl = (url: string): boolean => {
+        const fileType = Utils.getFileType(url);
+        return fileType === FileTypes.IMAGE || fileType === FileTypes.SVG;
+    };
+
+    private getFileTypeFromFileInfo = (fileInfo: FileInfo | LinkInfo): typeof FileTypes[keyof typeof FileTypes] => {
+        if (isFileInfo(fileInfo)) {
+            return Utils.getFileType(fileInfo.extension);
+        }
+
+        if (isLinkInfo(fileInfo)) {
+            // if extension is not available or is longer than 5 characters, use the link to determine the file type
+            const maxLenghtExtension = 11; // applescript is the longest extension
+            const extensionOrLink = fileInfo.extension && fileInfo.extension.length <= maxLenghtExtension ? fileInfo.extension : fileInfo.link;
+            return Utils.getFileType(extensionOrLink);
+        }
+
+        return FileTypes.OTHER;
+    };
+
     loadImage = (index: number) => {
         const fileInfo = this.props.fileInfos[index];
         if (isFileInfo(fileInfo) && fileInfo.archived) {
             this.handleImageLoaded(index);
             return;
         }
-        const fileType = Utils.getFileType(fileInfo.extension);
 
-        if (fileType === FileTypes.IMAGE && isFileInfo(fileInfo)) {
-            let previewUrl;
-            if (fileInfo.has_preview_image) {
-                previewUrl = getFilePreviewUrl(fileInfo.id);
-            } else {
-                // some images (eg animated gifs) just show the file itself and not a preview
-                previewUrl = getFileUrl(fileInfo.id);
+        // Determine file type using helper method
+        const fileType = this.getFileTypeFromFileInfo(fileInfo);
+
+        // Check if this is an image
+        const isImage = fileType === FileTypes.IMAGE;
+
+        if (isImage) {
+            let previewUrl = '';
+            if (isFileInfo(fileInfo)) {
+                if (fileInfo.has_preview_image) {
+                    previewUrl = getFilePreviewUrl(fileInfo.id);
+                } else {
+                    // some images (eg animated gifs) just show the file itself and not a preview
+                    previewUrl = getFileUrl(fileInfo.id);
+                }
+            } else if (isLinkInfo(fileInfo)) {
+                // For LinkInfo, use the link directly
+                previewUrl = fileInfo.link;
             }
 
             Utils.loadImage(
@@ -268,7 +294,9 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         }
 
         const fileInfo = this.props.fileInfos[this.state.imageIndex];
-        const fileType = Utils.getFileType(fileInfo.extension);
+
+        // Determine file type using helper method
+        const fileType = this.getFileTypeFromFileInfo(fileInfo);
 
         let showPublicLink;
         let fileName;
@@ -344,7 +372,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                             handleZoomReset={this.handleZoomReset}
                         />
                     );
-                } else if (CodePreview.supports(fileInfo)) {
+                } else if (hasSupportedLanguage(fileInfo)) {
                     dialogClassName += ' modal-code';
                     canCopyContent = true;
                     content = (
@@ -352,7 +380,6 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                             fileInfo={fileInfo as FileInfo}
                             fileUrl={fileUrl}
                             getContent={this.getContent}
-                            className='file-preview-modal__code-preview'
                         />
                     );
                 } else {
@@ -365,12 +392,16 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                 }
             } else {
                 // display a progress indicator when the preview for an image is still loading
-                const loading = Utils.localizeMessage('view_image.loading', 'Loading');
                 const progress = Math.floor(this.state.progress[this.state.imageIndex]);
 
                 content = (
                     <LoadingImagePreview
-                        loading={loading}
+                        loading={
+                            <FormattedMessage
+                                id='view_image.loading'
+                                defaultMessage='Loading'
+                            />
+                        }
                         progress={progress}
                     />
                 );
@@ -401,7 +432,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                 dialogClassName={dialogClassName}
                 animation={true}
                 backdrop={false}
-                role='dialog'
+                role='none'
                 style={{paddingLeft: 0}}
                 aria-labelledby='viewImageModalLabel'
             >

@@ -1,4 +1,4 @@
-@charset "UTF-8";
+@use "utils/functions";
 
 .modal {
     .channel-switcher,
@@ -35,6 +35,11 @@
         height: 362px;
         padding: 0;
 
+        .input-wrapper {
+            position: inherit !important;
+            height: 42px;
+        }
+
         .icon-magnify {
             position: absolute;
             top: 1.1rem;
@@ -51,11 +56,11 @@
             height: 40px;
             padding: 0 34px;
             border-radius: 4px;
-            margin: 0 32px;
+            margin: 2px 32px;
 
             &:focus {
                 padding: 0 33px;
-                border: 1px solid v(button-bg);
+                border: 1px solid functions.v(button-bg);
             }
         }
 
@@ -173,12 +178,13 @@ body:not(.app__body) {
 }
 
 .channel-switcher__hint {
+    color: rgb(var(--center-channel-color-rgb));
     font-size: 12px;
 }
 
 .channel-switcher__header,
 .channel-invite__header {
-    h1 {
+    h2 {
         margin: 0 0 0.8rem;
         font-size: 2rem;
         font-weight: 600;

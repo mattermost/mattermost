@@ -142,7 +142,7 @@ describe('components/integrations/EditCommand', () => {
         instance.submitCommand = jest.fn();
         wrapper.instance().editCommand(commands.r5tpgt4iepf45jt768jz84djic);
 
-        expect(instance.handleConfirmModal).not.toBeCalled();
-        expect(instance.submitCommand).toBeCalled();
+        expect(instance.handleConfirmModal).not.toHaveBeenCalled();
+        expect(instance.submitCommand).toHaveBeenCalled();
     });
 });

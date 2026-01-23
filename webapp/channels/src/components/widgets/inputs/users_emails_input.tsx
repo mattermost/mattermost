@@ -4,10 +4,10 @@
 import classNames from 'classnames';
 import React from 'react';
 import type {RefObject} from 'react';
-import type {MessageDescriptor} from 'react-intl';
-import {FormattedMessage, defineMessages} from 'react-intl';
+import type {MessageDescriptor, IntlShape} from 'react-intl';
+import {FormattedMessage, defineMessages, injectIntl} from 'react-intl';
 import {components} from 'react-select';
-import type {FormatOptionLabelMeta, InputActionMeta, InputProps, OptionsType, Styles, ValueType} from 'react-select';
+import type {FormatOptionLabelMeta, InputActionMeta, InputProps, Options, StylesConfig, SelectInstance, MultiValue, SingleValue, OptionsOrGroups, GroupBase, MultiValueRemoveProps} from 'react-select';
 import AsyncCreatable from 'react-select/async-creatable';
 
 import type {UserProfile} from '@mattermost/types/users';
@@ -50,6 +50,7 @@ type Props = {
     autoFocus?: boolean;
     suppressNoOptionsMessage?: boolean;
     onPaste?: (e: ClipboardEvent) => void;
+    intl: IntlShape;
 }
 
 export type EmailInvite = {
@@ -59,6 +60,7 @@ export type EmailInvite = {
 
 type State = {
     options: UserProfile[];
+    prevValue: string;
 }
 
 const multipleValuesDelimiter = /[\s,;]+/;
@@ -78,20 +80,21 @@ const messages = defineMessages({
     },
 });
 
-export default class UsersEmailsInput extends React.PureComponent<Props, State> {
+export class UsersEmailsInput extends React.PureComponent<Props, State> {
     static defaultProps = {
         noMatchMessage: messages.noMatchDefault,
         validAddress: messages.validAddressDefault,
         loadingMessage: messages.loadingDefault,
         showError: false,
     };
-    private selectRef: RefObject<AsyncCreatable<UserProfile | EmailInvite> & { handleInputChange: (newValue: string, actionMeta: InputActionMeta | { action: 'custom' }) => string }>;
+    private selectRef: RefObject<SelectInstance<UserProfile | EmailInvite, true>>;
 
     constructor(props: Props) {
         super(props);
         this.selectRef = React.createRef();
         this.state = {
             options: [],
+            prevValue: this.props.inputValue,
         };
     }
 
@@ -151,7 +154,7 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
                 return this.getCreateLabel((user as EmailInvite).value);
             }
             return (
-                <React.Fragment>
+                <>
                     <Avatar
                         size='lg'
                         username={(user as UserProfile).username}
@@ -160,21 +163,21 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
                     {this.renderUserName(user as UserProfile)}
                     {botBadge}
                     {guestBadge}
-                </React.Fragment>
+                </>
             );
         }
 
         if ((user as EmailInvite).value && isEmail((user as EmailInvite).value)) {
             return (
-                <React.Fragment>
+                <>
                     <MailIcon className='mail-icon'/>
                     <span>{(user as EmailInvite).value}</span>
-                </React.Fragment>
+                </>
             );
         }
 
         return (
-            <React.Fragment>
+            <>
                 <Avatar
                     size='sm'
                     username={(user as UserProfile).username}
@@ -183,11 +186,11 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
                 {getDisplayName(user as UserProfile)}
                 {botBadge}
                 {guestBadge}
-            </React.Fragment>
+            </>
         );
     };
 
-    onChange = (value: ValueType<UserProfile | EmailInvite>) => {
+    onChange = (value: MultiValue<EmailInvite | UserProfile> | SingleValue<EmailInvite | UserProfile>) => {
         if (this.props.onChange) {
             if (value) {
                 this.props.onChange((value as Array<UserProfile | EmailInvite>).map((v) => {
@@ -203,7 +206,7 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
     };
 
     getCreateLabel = (value: string) => (
-        <React.Fragment>
+        <>
             <MailPlusIcon className='mail-plus-icon'/>
             <FormattedMarkdownMessage
                 key='widgets.users_emails_input.valid_email'
@@ -211,10 +214,10 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
                 values={{email: value}}
                 disableLinks={true}
             />
-        </React.Fragment>
+        </>
     );
 
-    Input = (props: InputProps) => {
+    Input = (props: InputProps<EmailInvite | UserProfile, true>) => {
         const handlePaste = (e: ClipboardEvent) => {
             e.preventDefault();
             const clipboardText = e.clipboardData?.getData('Text') || '';
@@ -257,11 +260,44 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
         );
     };
 
-    MultiValueRemove = ({children, innerProps}: {children: React.ReactNode | React.ReactNodeArray; innerProps: Record<string, any>}) => (
-        <div {...innerProps}>
-            {children || <CloseCircleSolidIcon/>}
-        </div>
-    );
+    private renderAriaLabel = (option: UserProfile | EmailInvite): string => {
+        if (!option) {
+            return '';
+        }
+
+        if (this.isUserProfile(option)) {
+            return (option as UserProfile).username;
+        }
+
+        return (option as EmailInvite).value;
+    };
+
+    MultiValueRemove = (props: MultiValueRemoveProps<EmailInvite | UserProfile, true>) => {
+        const {children, innerProps} = props;
+
+        return (
+            <div
+                {...innerProps}
+                role='button'
+                tabIndex={0}
+                aria-label={this.props.intl.formatMessage({
+                    id: 'multiselect.remove',
+                    defaultMessage: 'Remove {label}',
+                }, {
+                    label: this.renderAriaLabel(props.data),
+                })}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        innerProps.onClick?.(e as unknown as React.MouseEvent<HTMLDivElement, MouseEvent>);
+                    }
+                }}
+            >
+                {children || <CloseCircleSolidIcon/>}
+            </div>
+        );
+    };
 
     components = {
         NoOptionsMessage: this.props.suppressNoOptionsMessage ? () => null : this.NoOptionsMessage,
@@ -271,35 +307,47 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
     };
 
     handleInputChange = async (inputValue: string, action: InputActionMeta) => {
-        if (action.action === 'input-blur' && inputValue !== '') {
+        if (action.action === 'input-blur' && action.prevInputValue !== '') {
             const values = this.formatValuesForCreatable();
 
             // Check if the input is an existing user by username or email.
             const option = this.state.options.find((o) =>
-                this.props.inputValue === o.username || this.props.inputValue === ('@' + o.username) ||
-                this.props.inputValue === o.email,
+                action.prevInputValue === o.username || action.prevInputValue === ('@' + o.username) ||
+                action.prevInputValue === o.email,
             );
 
             if (option) {
                 this.onChange([...values, option]);
                 this.props.onInputChange('');
+                this.setState((state) => ({
+                    ...state,
+                    prevValue: action.prevInputValue,
+                }));
                 return;
             }
 
             // Check if the input is a valid new email, if the email invitations are enabled.
-            if (this.props.emailInvitationsEnabled && isEmail(this.props.inputValue)) {
-                const email = this.props.inputValue;
+            if (this.props.emailInvitationsEnabled && isEmail(action.prevInputValue)) {
+                const email = action.prevInputValue;
                 this.onChange([...values, {value: email, label: email}]);
                 this.props.onInputChange('');
+                this.setState((state) => ({
+                    ...state,
+                    prevValue: action.prevInputValue,
+                }));
             }
-        } else if (action.action === 'input-change' && inputValue !== '' && inputValue?.[inputValue.length - 1].match(multipleValuesDelimiter)) {
-            const newValuesCount = await this.appendDelimitedValues(inputValue);
+        } else if (action.action === 'input-change' && action.prevInputValue !== '' && action.prevInputValue?.[action.prevInputValue.length - 1].match(multipleValuesDelimiter)) {
+            const newValuesCount = await this.appendDelimitedValues(action.prevInputValue);
             if (newValuesCount === 0) {
                 return;
             }
         }
         if (action.action !== 'input-blur' && action.action !== 'menu-close') {
             this.props.onInputChange(inputValue);
+            this.setState((state) => ({
+                ...state,
+                prevValue: action.prevInputValue,
+            }));
         }
     };
 
@@ -327,16 +375,16 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
         }
     };
 
-    showAddEmail = (inputValue: string, value: ValueType<UserProfile | EmailInvite>, options: OptionsType<UserProfile | EmailInvite>): boolean => {
+    showAddEmail = (inputValue: string, value: Options<UserProfile | EmailInvite>, options: OptionsOrGroups<EmailInvite | UserProfile, GroupBase<EmailInvite | UserProfile>>): boolean => {
         return this.props.emailInvitationsEnabled && options.length === 0 && isEmail(inputValue);
     };
 
     onFocus = () => {
-        this.selectRef.current?.handleInputChange(this.props.inputValue, {action: 'custom'});
+        this.selectRef.current?.onInputChange(this.props.inputValue, {action: 'set-value', prevInputValue: this.props.inputValue});
     };
 
     onBlur = () => {
-        this.selectRef.current?.handleInputChange(this.props.inputValue, {action: 'input-blur'});
+        this.selectRef.current?.onInputChange(this.props.inputValue, {action: 'input-blur', prevInputValue: this.state.prevValue});
         if (this.props.onBlur) {
             this.props.onBlur();
         }
@@ -460,7 +508,7 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
 
         const Msg: any = components.NoOptionsMessage;
 
-        const styles: Partial<Styles> = {
+        const styles = {
             placeholder: (css) => ({
                 ...css,
 
@@ -482,7 +530,7 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
                     textAlign: 'left',
                 },
             }),
-        };
+        } satisfies StylesConfig<UserProfile | EmailInvite, true >;
 
         return (
             <>
@@ -511,8 +559,8 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
                     onInputChange={this.handleInputChange}
                     inputValue={this.props.inputValue}
                     openMenuOnFocus={true}
-                    onFocus={this.onFocus}
-                    onBlur={this.onBlur}
+                    onFocus={() => this.onFocus}
+                    onBlur={() => this.onBlur}
                     tabSelectsValue={true}
                     value={values}
                     aria-label={this.props.ariaLabel}
@@ -535,3 +583,5 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
         );
     }
 }
+
+export default injectIntl(UsersEmailsInput);

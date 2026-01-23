@@ -10,11 +10,6 @@ export interface Props {
     name: string;
     imageUrl: string;
 }
-declare module 'react' {
-    interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
-        alt?: string;
-    }
-}
 
 const PostEmoji = ({children, name, imageUrl}: Props) => {
     const emojiText = `:${name}:`;
@@ -26,17 +21,15 @@ const PostEmoji = ({children, name, imageUrl}: Props) => {
 
     return (
         <WithTooltip
-            id='postEmoji__tooltip'
             title={emojiText}
             emoji={name}
-            emojiStyle='large'
-            placement='top'
+            isEmojiLarge={true}
         >
             <span
-                alt={emojiText}
                 className='emoticon'
                 data-testid={`postEmoji.${emojiText}`}
                 style={{backgroundImage: backgroundImageUrl}}
+                aria-label={emojiText}
             >
                 {children}
             </span>

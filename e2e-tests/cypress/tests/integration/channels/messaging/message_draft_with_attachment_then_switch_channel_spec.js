@@ -23,6 +23,7 @@ describe('Message Draft with attachment and Switch Channels', () => {
                 testChannel2 = out.channel;
             });
             cy.visit(`/${team.name}/channels/town-square`);
+            cy.get('#channelHeaderTitle').should('be.visible').should('contain', 'Town Square');
         });
     });
 

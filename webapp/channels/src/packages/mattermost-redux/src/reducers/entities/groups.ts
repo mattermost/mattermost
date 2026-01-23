@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
-import type {GroupChannel, GroupSyncablesState, GroupTeam, Group} from '@mattermost/types/groups';
+import type {GroupChannel, GroupSyncablesState, GroupTeam, Group, GroupMember} from '@mattermost/types/groups';
 
+import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {GroupTypes} from 'mattermost-redux/action_types';
 
-function syncables(state: Record<string, GroupSyncablesState> = {}, action: AnyAction) {
+function syncables(state: Record<string, GroupSyncablesState> = {}, action: MMReduxAction) {
     switch (action.type) {
     case GroupTypes.RECEIVED_GROUP_TEAMS: {
         return {
@@ -141,7 +141,7 @@ function syncables(state: Record<string, GroupSyncablesState> = {}, action: AnyA
     }
 }
 
-function myGroups(state: string[] = [], action: AnyAction) {
+function myGroups(state: string[] = [], action: MMReduxAction) {
     switch (action.type) {
     case GroupTypes.ADD_MY_GROUP: {
         const groupId = action.id;
@@ -185,7 +185,7 @@ function myGroups(state: string[] = [], action: AnyAction) {
     }
 }
 
-function stats(state: any = {}, action: AnyAction) {
+function stats(state: any = {}, action: MMReduxAction) {
     switch (action.type) {
     case GroupTypes.RECEIVED_GROUP_STATS: {
         const stat = action.data;
@@ -199,7 +199,7 @@ function stats(state: any = {}, action: AnyAction) {
     }
 }
 
-function groups(state: Record<string, Group> = {}, action: AnyAction) {
+function groups(state: Record<string, Group> = {}, action: MMReduxAction) {
     switch (action.type) {
     case GroupTypes.CREATE_GROUP_SUCCESS:
     case GroupTypes.PATCHED_GROUP:
@@ -242,6 +242,46 @@ function groups(state: Record<string, Group> = {}, action: AnyAction) {
         }
 
         return nextState;
+    }
+    case GroupTypes.RECEIVED_MEMBER_TO_REMOVE_FROM_GROUP: {
+        const dataInfo: GroupMember = action.data;
+
+        const group = state[dataInfo.group_id];
+
+        if (Array.isArray(group?.member_ids)) {
+            const newMemberIds = new Set(group.member_ids);
+            newMemberIds.delete(dataInfo.user_id);
+            const newGroup = {...group,
+                member_ids: [...newMemberIds],
+                member_count: newMemberIds.size,
+            };
+            return {
+                ...state,
+                [group.id]: newGroup,
+            };
+        }
+
+        return state;
+    }
+    case GroupTypes.RECEIVED_MEMBER_TO_ADD_TO_GROUP: {
+        const {group_id: groupId, user_id: userId}: GroupMember = action.data;
+
+        const group = state[groupId];
+
+        if (Array.isArray(group?.member_ids)) {
+            const newMemberIds = new Set(group.member_ids);
+            newMemberIds.add(userId);
+            const newGroup = {...group,
+                member_ids: [...newMemberIds],
+                member_count: newMemberIds.size,
+            };
+            return {
+                ...state,
+                [group.id]: newGroup,
+            };
+        }
+
+        return state;
     }
     default:
         return state;

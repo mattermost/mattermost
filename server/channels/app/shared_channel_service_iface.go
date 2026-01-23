@@ -6,6 +6,7 @@ package app
 // TODO: platform: remove this and use from platform package
 import (
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 )
 
@@ -15,6 +16,7 @@ type SharedChannelServiceIFace interface {
 	Start() error
 	NotifyChannelChanged(channelId string)
 	NotifyUserProfileChanged(userID string)
+	NotifyUserStatusChanged(status *model.Status)
 	SendChannelInvite(channel *model.Channel, userId string, rc *model.RemoteCluster, options ...sharedchannel.InviteOption) error
 	Active() bool
 	InviteRemoteToChannel(channelID, remoteID, userID string, shareIfNotShared bool) error
@@ -25,6 +27,9 @@ type SharedChannelServiceIFace interface {
 	CheckChannelNotShared(channelID string) error
 	CheckChannelIsShared(channelID string) error
 	CheckCanInviteToSharedChannel(channelId string) error
+	HandleMembershipChange(channelID, userID string, isAdd bool, remoteID string)
+	IsRemoteClusterDirectlyConnected(remoteId string) bool
+	TransformMentionsOnReceiveForTesting(rctx request.CTX, post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster, mentionTransforms map[string]string)
 }
 
 func NewMockSharedChannelService(service SharedChannelServiceIFace) *mockSharedChannelService {
@@ -89,4 +94,18 @@ func (mrcs *mockSharedChannelService) SendChannelInvite(channel *model.Channel, 
 
 func (mrcs *mockSharedChannelService) NumInvitations() int {
 	return mrcs.numInvitations
+}
+
+func (mrcs *mockSharedChannelService) HandleMembershipChange(channelID, userID string, isAdd bool, remoteID string) {
+	if mrcs.SharedChannelServiceIFace != nil {
+		mrcs.SharedChannelServiceIFace.HandleMembershipChange(channelID, userID, isAdd, remoteID)
+	}
+}
+
+func (mrcs *mockSharedChannelService) IsRemoteClusterDirectlyConnected(remoteId string) bool {
+	if mrcs.SharedChannelServiceIFace != nil {
+		return mrcs.SharedChannelServiceIFace.IsRemoteClusterDirectlyConnected(remoteId)
+	}
+	// Default behavior for mock: Local server is always connected
+	return remoteId == ""
 }

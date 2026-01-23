@@ -14,16 +14,15 @@ import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entitie
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
-import {addVisibleUsersInCurrentChannelToStatusPoll} from 'actions/status_actions';
+import {addVisibleUsersInCurrentChannelAndSelfToStatusPoll} from 'actions/status_actions';
 import {addUserToTeam} from 'actions/team_actions';
 import LocalStorageStore from 'stores/local_storage_store';
 
 import {isSuccess} from 'types/actions';
-import type {GlobalState} from 'types/store';
+import type {ActionFuncAsync} from 'types/store';
 
-export function initializeTeam(team: Team): ActionFuncAsync<Team, GlobalState> {
+export function initializeTeam(team: Team): ActionFuncAsync<Team> {
     return async (dispatch, getState) => {
         dispatch(selectTeam(team.id));
 
@@ -31,17 +30,9 @@ export function initializeTeam(team: Team): ActionFuncAsync<Team, GlobalState> {
         const currentUser = getCurrentUser(state);
         LocalStorageStore.setPreviousTeamId(currentUser.id, team.id);
 
-        try {
-            await dispatch(fetchChannelsAndMembers(team.id));
-        } catch (error) {
-            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
-            dispatch(logError(error as ServerError));
-            return {error: error as ServerError};
-        }
-
         const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
         if (enabledUserStatuses) {
-            dispatch(addVisibleUsersInCurrentChannelToStatusPoll());
+            dispatch(addVisibleUsersInCurrentChannelAndSelfToStatusPoll());
         }
 
         const license = getLicense(state);
@@ -81,7 +72,7 @@ export function initializeTeam(team: Team): ActionFuncAsync<Team, GlobalState> {
     };
 }
 
-export function joinTeam(teamname: string, joinedOnFirstLoad: boolean): ActionFuncAsync<Team, GlobalState> {
+export function joinTeam(teamname: string, joinedOnFirstLoad: boolean): ActionFuncAsync<Team> {
     return async (dispatch, getState) => {
         const state = getState();
         const currentUser = getCurrentUser(state);
@@ -99,6 +90,14 @@ export function joinTeam(teamname: string, joinedOnFirstLoad: boolean): ActionFu
                         }
 
                         await dispatch(initializeTeam(team));
+
+                        try {
+                            await dispatch(fetchChannelsAndMembers(team.id));
+                        } catch (error) {
+                            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
+                            dispatch(logError(error as ServerError));
+                            return {error: error as ServerError};
+                        }
 
                         return {data: team};
                     }

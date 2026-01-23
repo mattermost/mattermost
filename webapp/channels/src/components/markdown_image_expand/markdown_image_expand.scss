@@ -1,5 +1,5 @@
-@import "sass/utils/functions";
-@import "utils/variables";
+@use 'utils/functions';
+@use 'utils/variables';
 
 .markdown-image-expand {
     position: relative;
@@ -18,7 +18,7 @@
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
     border-radius: 16px;
     background-color: var(--center-channel-bg);
-    box-shadow: $elevation-1;
+    box-shadow: variables.$elevation-1;
     color: rgba(var(--center-channel-color-rgb), 0.64);
     font-size: 18px;
     line-height: 21px;
@@ -34,7 +34,7 @@
 
     &:hover {
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
-        box-shadow: $elevation-2;
+        box-shadow: variables.$elevation-2;
     }
 }
 

@@ -16,6 +16,7 @@ import (
 
 const (
 	DefaultPageSize = 200
+	MaxPageSize     = 200
 )
 
 func checkInteractiveTerminal() error {

@@ -2,13 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
-import {localizeMessage} from 'utils/utils';
+import {FormattedMessage} from 'react-intl';
 
 export type AttachmentTextOverflowType = 'ellipsis';
 
 const MAX_POST_HEIGHT = 600;
-const MARGIN_CHANGE_FOR_COMPACT_POST = 22;
+const MARGIN_CHANGE_FOR_COMPACT_POST = 12;
 
 type Props = {
     children?: React.ReactNode;
@@ -132,10 +131,20 @@ export default class ShowMore extends React.PureComponent<Props, State> {
             }
 
             let showIcon = 'fa fa-angle-up';
-            let showText = localizeMessage('post_info.message.show_less', 'Show less');
+            let showText = (
+                <FormattedMessage
+                    id='post_info.message.show_less'
+                    defaultMessage='Show less'
+                />
+            );
             if (isCollapsed) {
                 showIcon = 'fa fa-angle-down';
-                showText = localizeMessage('post_info.message.show_more', 'Show more');
+                showText = (
+                    <FormattedMessage
+                        id='post_info.message.show_more'
+                        defaultMessage='Show more'
+                    />
+                );
             }
             switch (overflowType) {
             case 'ellipsis':

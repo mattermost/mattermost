@@ -1,13 +1,15 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/marketplace/ doesn't show web marketplace banner in FeatureFlags.StreamlinedMarketplace for Cloud 1`] = `
 <Modal
   animation={true}
   aria-label="App Marketplace"
+  aria-labelledby="genericModalLabel"
+  aria-modal="true"
   autoFocus={true}
   backdrop={true}
   bsClass="modal"
-  dialogClassName="a11y__modal GenericModal GenericModal__compassDesign marketplace-modal streamlined-marketplace"
+  dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign marketplace-modal streamlined-marketplace"
   dialogComponentClass={[Function]}
   enforceFocus={true}
   id="marketplace-modal"
@@ -28,29 +30,53 @@ exports[`components/marketplace/ doesn't show web marketplace banner in FeatureF
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
+  style={Object {}}
 >
   <div
-    className="GenericModal__wrapper-enter-key-press-catcher"
+    className="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
     onKeyDown={[Function]}
-    tabIndex={0}
   >
     <ModalHeader
       bsClass="modal-header"
-      closeButton={true}
+      closeButton={false}
       closeLabel="Close"
     >
       <div
-        className="GenericModal__header"
+        className="GenericModal__header__text_container"
       >
-        <h1
-          className="modal-title"
-          id="genericModalLabel"
+        <div
+          className="GenericModal__header"
         >
-          App Marketplace
-        </h1>
+          <h1
+            className="modal-title"
+            id="genericModalLabel"
+          >
+            App Marketplace
+          </h1>
+        </div>
       </div>
+      <button
+        aria-label="Close"
+        className="close"
+        onClick={[Function]}
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+        >
+          ×
+        </span>
+        <span
+          className="sr-only"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Close"
+            id="generic_modal.close"
+          />
+        </span>
+      </button>
     </ModalHeader>
     <ModalBody
       bsClass="modal-body"
@@ -66,7 +92,7 @@ exports[`components/marketplace/ doesn't show web marketplace banner in FeatureF
         <span>
           Error connecting to the marketplace server. Please check your settings in the 
           <Link
-            key=".1"
+            key="1/.1"
             to="/admin_console/plugins/plugin_management"
           >
             System Console
@@ -90,10 +116,12 @@ exports[`components/marketplace/ hides search, shows web marketplace banner in F
 <Modal
   animation={true}
   aria-label="App Marketplace"
+  aria-labelledby="genericModalLabel"
+  aria-modal="true"
   autoFocus={true}
   backdrop={true}
   bsClass="modal"
-  dialogClassName="a11y__modal GenericModal GenericModal__compassDesign marketplace-modal streamlined-marketplace with-web-marketplace-link"
+  dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign marketplace-modal streamlined-marketplace with-web-marketplace-link"
   dialogComponentClass={[Function]}
   enforceFocus={true}
   id="marketplace-modal"
@@ -114,29 +142,53 @@ exports[`components/marketplace/ hides search, shows web marketplace banner in F
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
+  style={Object {}}
 >
   <div
-    className="GenericModal__wrapper-enter-key-press-catcher"
+    className="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
     onKeyDown={[Function]}
-    tabIndex={0}
   >
     <ModalHeader
       bsClass="modal-header"
-      closeButton={true}
+      closeButton={false}
       closeLabel="Close"
     >
       <div
-        className="GenericModal__header"
+        className="GenericModal__header__text_container"
       >
-        <h1
-          className="modal-title"
-          id="genericModalLabel"
+        <div
+          className="GenericModal__header"
         >
-          App Marketplace
-        </h1>
+          <h1
+            className="modal-title"
+            id="genericModalLabel"
+          >
+            App Marketplace
+          </h1>
+        </div>
       </div>
+      <button
+        aria-label="Close"
+        className="close"
+        onClick={[Function]}
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+        >
+          ×
+        </span>
+        <span
+          className="sr-only"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Close"
+            id="generic_modal.close"
+          />
+        </span>
+      </button>
     </ModalHeader>
     <ModalBody
       bsClass="modal-body"
@@ -152,7 +204,7 @@ exports[`components/marketplace/ hides search, shows web marketplace banner in F
         <span>
           Error connecting to the marketplace server. Please check your settings in the 
           <Link
-            key=".1"
+            key="1/.1"
             to="/admin_console/plugins/plugin_management"
           >
             System Console
@@ -177,10 +229,12 @@ exports[`components/marketplace/ should render default 1`] = `
 <Modal
   animation={true}
   aria-label="App Marketplace"
+  aria-labelledby="genericModalLabel"
+  aria-modal="true"
   autoFocus={true}
   backdrop={true}
   bsClass="modal"
-  dialogClassName="a11y__modal GenericModal GenericModal__compassDesign marketplace-modal"
+  dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign marketplace-modal"
   dialogComponentClass={[Function]}
   enforceFocus={true}
   id="marketplace-modal"
@@ -201,49 +255,73 @@ exports[`components/marketplace/ should render default 1`] = `
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
+  style={Object {}}
 >
   <div
-    className="GenericModal__wrapper-enter-key-press-catcher"
+    className="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
     onKeyDown={[Function]}
-    tabIndex={0}
   >
     <ModalHeader
       bsClass="modal-header"
-      closeButton={true}
+      closeButton={false}
       closeLabel="Close"
     >
       <div
-        className="GenericModal__header"
+        className="GenericModal__header__text_container"
       >
-        <h1
-          className="modal-title"
-          id="genericModalLabel"
+        <div
+          className="GenericModal__header"
         >
-          App Marketplace
-        </h1>
+          <h1
+            className="modal-title"
+            id="genericModalLabel"
+          >
+            App Marketplace
+          </h1>
+        </div>
+        <ForwardRef
+          autoFocus={true}
+          clearable={true}
+          containerClassName="marketplace-modal-search"
+          id="searchMarketplaceTextbox"
+          inputClassName="search_input"
+          inputPrefix={
+            <MagnifyIcon
+              size={24}
+            />
+          }
+          inputSize="large"
+          name="searchMarketplaceTextbox"
+          onChange={[Function]}
+          onClear={[Function]}
+          placeholder="Search marketplace"
+          type="text"
+          useLegend={false}
+          value=""
+        />
       </div>
-      <ForwardRef
-        autoFocus={true}
-        clearable={true}
-        containerClassName="marketplace-modal-search"
-        id="searchMarketplaceTextbox"
-        inputClassName="search_input"
-        inputPrefix={
-          <MagnifyIcon
-            size={24}
+      <button
+        aria-label="Close"
+        className="close"
+        onClick={[Function]}
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+        >
+          ×
+        </span>
+        <span
+          className="sr-only"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Close"
+            id="generic_modal.close"
           />
-        }
-        inputSize="large"
-        name="searchMarketplaceTextbox"
-        onChange={[Function]}
-        onClear={[Function]}
-        placeholder="Search marketplace"
-        type="text"
-        useLegend={false}
-        value=""
-      />
+        </span>
+      </button>
     </ModalHeader>
     <ModalBody
       bsClass="modal-body"
@@ -315,10 +393,12 @@ exports[`components/marketplace/ should render with error banner 1`] = `
 <Modal
   animation={true}
   aria-label="App Marketplace"
+  aria-labelledby="genericModalLabel"
+  aria-modal="true"
   autoFocus={true}
   backdrop={true}
   bsClass="modal"
-  dialogClassName="a11y__modal GenericModal GenericModal__compassDesign marketplace-modal"
+  dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign marketplace-modal"
   dialogComponentClass={[Function]}
   enforceFocus={true}
   id="marketplace-modal"
@@ -339,49 +419,73 @@ exports[`components/marketplace/ should render with error banner 1`] = `
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
+  style={Object {}}
 >
   <div
-    className="GenericModal__wrapper-enter-key-press-catcher"
+    className="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
     onKeyDown={[Function]}
-    tabIndex={0}
   >
     <ModalHeader
       bsClass="modal-header"
-      closeButton={true}
+      closeButton={false}
       closeLabel="Close"
     >
       <div
-        className="GenericModal__header"
+        className="GenericModal__header__text_container"
       >
-        <h1
-          className="modal-title"
-          id="genericModalLabel"
+        <div
+          className="GenericModal__header"
         >
-          App Marketplace
-        </h1>
+          <h1
+            className="modal-title"
+            id="genericModalLabel"
+          >
+            App Marketplace
+          </h1>
+        </div>
+        <ForwardRef
+          autoFocus={true}
+          clearable={true}
+          containerClassName="marketplace-modal-search"
+          id="searchMarketplaceTextbox"
+          inputClassName="search_input"
+          inputPrefix={
+            <MagnifyIcon
+              size={24}
+            />
+          }
+          inputSize="large"
+          name="searchMarketplaceTextbox"
+          onChange={[Function]}
+          onClear={[Function]}
+          placeholder="Search marketplace"
+          type="text"
+          useLegend={false}
+          value=""
+        />
       </div>
-      <ForwardRef
-        autoFocus={true}
-        clearable={true}
-        containerClassName="marketplace-modal-search"
-        id="searchMarketplaceTextbox"
-        inputClassName="search_input"
-        inputPrefix={
-          <MagnifyIcon
-            size={24}
+      <button
+        aria-label="Close"
+        className="close"
+        onClick={[Function]}
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+        >
+          ×
+        </span>
+        <span
+          className="sr-only"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Close"
+            id="generic_modal.close"
           />
-        }
-        inputSize="large"
-        name="searchMarketplaceTextbox"
-        onChange={[Function]}
-        onClear={[Function]}
-        placeholder="Search marketplace"
-        type="text"
-        useLegend={false}
-        value=""
-      />
+        </span>
+      </button>
     </ModalHeader>
     <ModalBody
       bsClass="modal-body"
@@ -397,7 +501,7 @@ exports[`components/marketplace/ should render with error banner 1`] = `
         <span>
           Error connecting to the marketplace server. Please check your settings in the 
           <Link
-            key=".1"
+            key="1/.1"
             to="/admin_console/plugins/plugin_management"
           >
             System Console
@@ -470,10 +574,12 @@ exports[`components/marketplace/ should render with no plugins available 1`] = `
 <Modal
   animation={true}
   aria-label="App Marketplace"
+  aria-labelledby="genericModalLabel"
+  aria-modal="true"
   autoFocus={true}
   backdrop={true}
   bsClass="modal"
-  dialogClassName="a11y__modal GenericModal GenericModal__compassDesign marketplace-modal"
+  dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign marketplace-modal"
   dialogComponentClass={[Function]}
   enforceFocus={true}
   id="marketplace-modal"
@@ -494,49 +600,73 @@ exports[`components/marketplace/ should render with no plugins available 1`] = `
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
+  style={Object {}}
 >
   <div
-    className="GenericModal__wrapper-enter-key-press-catcher"
+    className="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
     onKeyDown={[Function]}
-    tabIndex={0}
   >
     <ModalHeader
       bsClass="modal-header"
-      closeButton={true}
+      closeButton={false}
       closeLabel="Close"
     >
       <div
-        className="GenericModal__header"
+        className="GenericModal__header__text_container"
       >
-        <h1
-          className="modal-title"
-          id="genericModalLabel"
+        <div
+          className="GenericModal__header"
         >
-          App Marketplace
-        </h1>
+          <h1
+            className="modal-title"
+            id="genericModalLabel"
+          >
+            App Marketplace
+          </h1>
+        </div>
+        <ForwardRef
+          autoFocus={true}
+          clearable={true}
+          containerClassName="marketplace-modal-search"
+          id="searchMarketplaceTextbox"
+          inputClassName="search_input"
+          inputPrefix={
+            <MagnifyIcon
+              size={24}
+            />
+          }
+          inputSize="large"
+          name="searchMarketplaceTextbox"
+          onChange={[Function]}
+          onClear={[Function]}
+          placeholder="Search marketplace"
+          type="text"
+          useLegend={false}
+          value=""
+        />
       </div>
-      <ForwardRef
-        autoFocus={true}
-        clearable={true}
-        containerClassName="marketplace-modal-search"
-        id="searchMarketplaceTextbox"
-        inputClassName="search_input"
-        inputPrefix={
-          <MagnifyIcon
-            size={24}
+      <button
+        aria-label="Close"
+        className="close"
+        onClick={[Function]}
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+        >
+          ×
+        </span>
+        <span
+          className="sr-only"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Close"
+            id="generic_modal.close"
           />
-        }
-        inputSize="large"
-        name="searchMarketplaceTextbox"
-        onChange={[Function]}
-        onClear={[Function]}
-        placeholder="Search marketplace"
-        type="text"
-        useLegend={false}
-        value=""
-      />
+        </span>
+      </button>
     </ModalHeader>
     <ModalBody
       bsClass="modal-body"
@@ -616,10 +746,12 @@ exports[`components/marketplace/ should render with plugins available 1`] = `
 <Modal
   animation={true}
   aria-label="App Marketplace"
+  aria-labelledby="genericModalLabel"
+  aria-modal="true"
   autoFocus={true}
   backdrop={true}
   bsClass="modal"
-  dialogClassName="a11y__modal GenericModal GenericModal__compassDesign marketplace-modal"
+  dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign marketplace-modal"
   dialogComponentClass={[Function]}
   enforceFocus={true}
   id="marketplace-modal"
@@ -640,49 +772,73 @@ exports[`components/marketplace/ should render with plugins available 1`] = `
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
+  style={Object {}}
 >
   <div
-    className="GenericModal__wrapper-enter-key-press-catcher"
+    className="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
     onKeyDown={[Function]}
-    tabIndex={0}
   >
     <ModalHeader
       bsClass="modal-header"
-      closeButton={true}
+      closeButton={false}
       closeLabel="Close"
     >
       <div
-        className="GenericModal__header"
+        className="GenericModal__header__text_container"
       >
-        <h1
-          className="modal-title"
-          id="genericModalLabel"
+        <div
+          className="GenericModal__header"
         >
-          App Marketplace
-        </h1>
+          <h1
+            className="modal-title"
+            id="genericModalLabel"
+          >
+            App Marketplace
+          </h1>
+        </div>
+        <ForwardRef
+          autoFocus={true}
+          clearable={true}
+          containerClassName="marketplace-modal-search"
+          id="searchMarketplaceTextbox"
+          inputClassName="search_input"
+          inputPrefix={
+            <MagnifyIcon
+              size={24}
+            />
+          }
+          inputSize="large"
+          name="searchMarketplaceTextbox"
+          onChange={[Function]}
+          onClear={[Function]}
+          placeholder="Search marketplace"
+          type="text"
+          useLegend={false}
+          value=""
+        />
       </div>
-      <ForwardRef
-        autoFocus={true}
-        clearable={true}
-        containerClassName="marketplace-modal-search"
-        id="searchMarketplaceTextbox"
-        inputClassName="search_input"
-        inputPrefix={
-          <MagnifyIcon
-            size={24}
+      <button
+        aria-label="Close"
+        className="close"
+        onClick={[Function]}
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+        >
+          ×
+        </span>
+        <span
+          className="sr-only"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Close"
+            id="generic_modal.close"
           />
-        }
-        inputSize="large"
-        name="searchMarketplaceTextbox"
-        onChange={[Function]}
-        onClear={[Function]}
-        placeholder="Search marketplace"
-        type="text"
-        useLegend={false}
-        value=""
-      />
+        </span>
+      </button>
     </ModalHeader>
     <ModalBody
       bsClass="modal-body"
@@ -780,10 +936,12 @@ exports[`components/marketplace/ should render with plugins installed 1`] = `
 <Modal
   animation={true}
   aria-label="App Marketplace"
+  aria-labelledby="genericModalLabel"
+  aria-modal="true"
   autoFocus={true}
   backdrop={true}
   bsClass="modal"
-  dialogClassName="a11y__modal GenericModal GenericModal__compassDesign marketplace-modal"
+  dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign marketplace-modal"
   dialogComponentClass={[Function]}
   enforceFocus={true}
   id="marketplace-modal"
@@ -804,49 +962,73 @@ exports[`components/marketplace/ should render with plugins installed 1`] = `
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
+  style={Object {}}
 >
   <div
-    className="GenericModal__wrapper-enter-key-press-catcher"
+    className="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
     onKeyDown={[Function]}
-    tabIndex={0}
   >
     <ModalHeader
       bsClass="modal-header"
-      closeButton={true}
+      closeButton={false}
       closeLabel="Close"
     >
       <div
-        className="GenericModal__header"
+        className="GenericModal__header__text_container"
       >
-        <h1
-          className="modal-title"
-          id="genericModalLabel"
+        <div
+          className="GenericModal__header"
         >
-          App Marketplace
-        </h1>
+          <h1
+            className="modal-title"
+            id="genericModalLabel"
+          >
+            App Marketplace
+          </h1>
+        </div>
+        <ForwardRef
+          autoFocus={true}
+          clearable={true}
+          containerClassName="marketplace-modal-search"
+          id="searchMarketplaceTextbox"
+          inputClassName="search_input"
+          inputPrefix={
+            <MagnifyIcon
+              size={24}
+            />
+          }
+          inputSize="large"
+          name="searchMarketplaceTextbox"
+          onChange={[Function]}
+          onClear={[Function]}
+          placeholder="Search marketplace"
+          type="text"
+          useLegend={false}
+          value=""
+        />
       </div>
-      <ForwardRef
-        autoFocus={true}
-        clearable={true}
-        containerClassName="marketplace-modal-search"
-        id="searchMarketplaceTextbox"
-        inputClassName="search_input"
-        inputPrefix={
-          <MagnifyIcon
-            size={24}
+      <button
+        aria-label="Close"
+        className="close"
+        onClick={[Function]}
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+        >
+          ×
+        </span>
+        <span
+          className="sr-only"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Close"
+            id="generic_modal.close"
           />
-        }
-        inputSize="large"
-        name="searchMarketplaceTextbox"
-        onChange={[Function]}
-        onClear={[Function]}
-        placeholder="Search marketplace"
-        type="text"
-        useLegend={false}
-        value=""
-      />
+        </span>
+      </button>
     </ModalHeader>
     <ModalBody
       bsClass="modal-body"

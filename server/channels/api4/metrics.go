@@ -35,4 +35,6 @@ func submitPerformanceReport(c *Context, w http.ResponseWriter, r *http.Request)
 		c.Err = appErr
 		return
 	}
+
+	ReturnStatusOK(w)
 }

@@ -4,7 +4,6 @@
 package config
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -20,9 +19,6 @@ import (
 )
 
 func getDsn(driver string, source string) string {
-	if driver == model.DatabaseDriverMysql {
-		return driver + "://" + source
-	}
 	return source
 }
 
@@ -39,7 +35,7 @@ func setupConfigDatabase(t *testing.T, cfg *model.Config, files map[string][]byt
 
 	ds := &DatabaseStore{
 		driverName:     *mainHelper.GetSQLSettings().DriverName,
-		db:             mainHelper.GetSQLStore().GetMasterX().DB,
+		db:             mainHelper.GetSQLStore().GetMaster().DB,
 		dataSourceName: *mainHelper.Settings.DataSource,
 	}
 
@@ -80,7 +76,7 @@ func getActualDatabaseConfig(t *testing.T) (string, *model.Config) {
 			ID    string `db:"id"`
 			Value []byte `db:"value"`
 		}
-		err := mainHelper.GetSQLStore().GetMasterX().Get(&actual, "SELECT Id, Value FROM Configurations WHERE Active")
+		err := mainHelper.GetSQLStore().GetMaster().Get(&actual, "SELECT Id, Value FROM Configurations WHERE Active")
 		require.NoError(t, err)
 
 		var actualCfg *model.Config
@@ -92,7 +88,7 @@ func getActualDatabaseConfig(t *testing.T) (string, *model.Config) {
 		ID    string `db:"Id"`
 		Value []byte `db:"Value"`
 	}
-	err := mainHelper.GetSQLStore().GetMasterX().Get(&actual, "SELECT Id, Value FROM Configurations WHERE Active")
+	err := mainHelper.GetSQLStore().GetMaster().Get(&actual, "SELECT Id, Value FROM Configurations WHERE Active")
 	require.NoError(t, err)
 
 	var actualCfg *model.Config
@@ -213,7 +209,7 @@ func TestDatabaseStoreNew(t *testing.T) {
 		_, err := NewDatabaseStore("")
 		require.Error(t, err)
 
-		_, err = NewDatabaseStore("mysql")
+		_, err = NewDatabaseStore("postgres")
 		require.Error(t, err)
 	})
 
@@ -548,7 +544,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		require.NoError(t, err)
 		defer ds.Close()
 
-		_, err = mainHelper.GetSQLStore().GetMasterX().Exec("DROP TABLE Configurations")
+		_, err = mainHelper.GetSQLStore().GetMaster().Exec("DROP TABLE Configurations")
 		require.NoError(t, err)
 
 		newCfg := minimalConfig
@@ -558,26 +554,6 @@ func TestDatabaseStoreSet(t *testing.T) {
 		assert.True(t, strings.HasPrefix(err.Error(), "failed to persist: failed to query active configuration"), "unexpected error: "+err.Error())
 
 		assert.Equal(t, "", *ds.Get().ServiceSettings.SiteURL)
-	})
-
-	t.Run("persist failed: too long", func(t *testing.T) {
-		if *mainHelper.Settings.DriverName == "postgres" {
-			t.Skip("No limit for postgres")
-		}
-		_, tearDown := setupConfigDatabase(t, emptyConfig, nil)
-		defer tearDown()
-
-		ds, err := newTestDatabaseStore(nil)
-		require.NoError(t, err)
-		defer ds.Close()
-
-		longSiteURL := fmt.Sprintf("http://%s", strings.Repeat("a", MaxWriteLength))
-		newCfg := emptyConfig.Clone()
-		newCfg.ServiceSettings.SiteURL = model.NewPointer(longSiteURL)
-
-		_, _, err = ds.Set(newCfg)
-		require.Error(t, err)
-		assert.True(t, strings.HasPrefix(err.Error(), "failed to persist: marshalled configuration failed length check: value is too long"), "unexpected error: "+err.Error())
 	})
 
 	t.Run("listeners notified", func(t *testing.T) {
@@ -829,7 +805,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 
 		truncateTables(t)
 		id := model.NewId()
-		_, err = mainHelper.GetSQLStore().GetMasterX().NamedExec("INSERT INTO Configurations (Id, Value, CreateAt, Active) VALUES(:id, :value, :createat, TRUE)", map[string]any{
+		_, err = mainHelper.GetSQLStore().GetMaster().NamedExec("INSERT INTO Configurations (Id, Value, CreateAt, Active) VALUES(:id, :value, :createat, TRUE)", map[string]any{
 			"id":       id,
 			"value":    cfgData,
 			"createat": model.GetMillis(),
@@ -947,28 +923,6 @@ func TestDatabaseSetFile(t *testing.T) {
 		data, err := ds.GetFile("existing")
 		require.NoError(t, err)
 		require.Equal(t, []byte("overwritten file"), data)
-	})
-
-	t.Run("max length", func(t *testing.T) {
-		if *mainHelper.Settings.DriverName == "postgres" {
-			t.Skip("No limit for postgres")
-		}
-		longFile := bytes.Repeat([]byte("a"), MaxWriteLength)
-
-		err := ds.SetFile("toolong", longFile)
-		require.NoError(t, err)
-	})
-
-	t.Run("too long", func(t *testing.T) {
-		if *mainHelper.Settings.DriverName == "postgres" {
-			t.Skip("No limit for postgres")
-		}
-		longFile := bytes.Repeat([]byte("a"), MaxWriteLength+1)
-
-		err := ds.SetFile("toolong", longFile)
-		if assert.Error(t, err) {
-			assert.True(t, strings.HasPrefix(err.Error(), "file data failed length check: value is too long"))
-		}
 	})
 }
 
@@ -1100,17 +1054,10 @@ func TestDatabaseStoreString(t *testing.T) {
 	require.NotNil(t, ds)
 	defer ds.Close()
 
-	if *mainHelper.GetSQLSettings().DriverName == "postgres" {
-		maskedDSN := ds.String()
-		assert.True(t, strings.HasPrefix(maskedDSN, "postgres://"))
-		assert.False(t, strings.Contains(maskedDSN, "mmuser"))
-		assert.False(t, strings.Contains(maskedDSN, "mostest"))
-	} else {
-		maskedDSN := ds.String()
-		assert.False(t, strings.HasPrefix(maskedDSN, "mysql://"))
-		assert.False(t, strings.Contains(maskedDSN, "mmuser"))
-		assert.False(t, strings.Contains(maskedDSN, "mostest"))
-	}
+	maskedDSN := ds.String()
+	assert.True(t, strings.HasPrefix(maskedDSN, "postgres://"))
+	assert.False(t, strings.Contains(maskedDSN, "mmuser"))
+	assert.False(t, strings.Contains(maskedDSN, "mostest"))
 }
 
 func TestCleanUp(t *testing.T) {
@@ -1122,40 +1069,79 @@ func TestCleanUp(t *testing.T) {
 	require.NotNil(t, ds)
 	defer ds.Close()
 
-	dbs, ok := ds.backingStore.(*DatabaseStore)
-	require.True(t, ok, "should be a DatabaseStore instance")
+	t.Run("should keep last 5 configurations regardless", func(t *testing.T) {
+		dbs, ok := ds.backingStore.(*DatabaseStore)
+		require.True(t, ok, "should be a DatabaseStore instance")
 
-	b, err := marshalConfig(ds.config)
-	require.NoError(t, err)
+		b, err := marshalConfig(ds.config)
+		require.NoError(t, err)
 
-	ds.config.JobSettings.CleanupConfigThresholdDays = model.NewPointer(30) // we set 30 days as threshold
+		ds.config.JobSettings.CleanupConfigThresholdDays = model.NewPointer(30) // we set 30 days as threshold
 
-	now := time.Now()
-	for i := 0; i < 5; i++ {
-		// 20 days, we expect to remove at least 3 configuration values from the store
-		// first 2 (0 and 1) will be within a month constraint, others will be older than
-		// a month hence we expect 3 configurations to be removed from the database.
-		m := -1 * i * 24 * 20
+		var initialCount int
+		row := dbs.db.QueryRow("SELECT COUNT(*) FROM Configurations")
+		err = row.Scan(&initialCount)
+		require.NoError(t, err)
+		require.Less(t, initialCount, 5, "should have less than 5 configurations before test")
+
+		now := time.Now()
+		for i := range 10 {
+			// we are simulating that each config was created 40 days apart
+			// so all but last 5 should be deleted
+			m := -1 * i * 24 * 40
+			params := map[string]any{
+				"id":        model.NewId(),
+				"value":     string(b),
+				"create_at": model.GetMillisForTime(now.Add(time.Duration(m) * time.Hour)),
+			}
+
+			_, err = dbs.db.NamedExec("INSERT INTO Configurations (Id, Value, CreateAt) VALUES (:id, :value, :create_at)", params)
+			require.NoError(t, err)
+		}
+		var beforeCleanup int
+		row = dbs.db.QueryRow("SELECT COUNT(*) FROM Configurations")
+		err = row.Scan(&beforeCleanup)
+		require.NoError(t, err)
+		require.Equal(t, 10+initialCount, beforeCleanup, "should have more than 10 configurations before cleanup")
+
+		err = ds.CleanUp()
+		require.NoError(t, err)
+
+		var count int
+		row = dbs.db.QueryRow("SELECT COUNT(*) FROM Configurations")
+		err = row.Scan(&count)
+		require.NoError(t, err)
+		require.Equal(t, 5, count, "should have only 5 configurations left")
+	})
+
+	t.Run("should keep the active configuration regardless", func(t *testing.T) {
+		b, err := marshalConfig(ds.config)
+		require.NoError(t, err)
+
+		dbs, ok := ds.backingStore.(*DatabaseStore)
+		require.True(t, ok, "should be a DatabaseStore instance")
+
+		// remove all other configurations
+		_, err = dbs.db.Exec("DELETE FROM Configurations")
+		require.NoError(t, err)
+
 		params := map[string]any{
-			"id":        model.NewId(),
-			"value":     string(b),
-			"create_at": model.GetMillisForTime(now.Add(time.Duration(m) * time.Hour)),
+			"id":    model.NewId(),
+			"value": string(b),
+			// we set the create_at to 100 days ago so it wouldn't be deleted if it is active
+			"create_at": model.GetMillisForTime(time.Now().Add(time.Duration(-1*100*24) * time.Hour)),
 		}
 
 		_, err = dbs.db.NamedExec("INSERT INTO Configurations (Id, Value, CreateAt) VALUES (:id, :value, :create_at)", params)
 		require.NoError(t, err)
-	}
-	var initialCount int
-	row := dbs.db.QueryRow("SELECT COUNT(*) FROM Configurations")
-	err = row.Scan(&initialCount)
-	require.NoError(t, err)
 
-	err = ds.CleanUp()
-	require.NoError(t, err)
+		err = ds.CleanUp()
+		require.NoError(t, err)
 
-	var count int
-	row = dbs.db.QueryRow("SELECT COUNT(*) FROM Configurations")
-	err = row.Scan(&count)
-	require.NoError(t, err)
-	require.True(t, count+3 == initialCount)
+		var count int
+		row := dbs.db.QueryRow("SELECT COUNT(*) FROM Configurations")
+		err = row.Scan(&count)
+		require.NoError(t, err)
+		require.Equal(t, 1, count, "should have only 1 configuration left")
+	})
 }

@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/PushSettings should match snapshot, licensed 1`] = `
 <form
@@ -50,6 +50,12 @@ exports[`components/PushSettings should match snapshot, licensed 1`] = `
         }
       />
       <Memo(DropdownSetting)
+        helpText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Location of the push notification server. Global uses geobalancing to route requests to the nearest server for optimal performance."
+            id="admin.email.pushServerLocationHelp"
+          />
+        }
         id="pushNotificationServerLocation"
         label={
           <Memo(MemoizedFormattedMessage)
@@ -59,9 +65,13 @@ exports[`components/PushSettings should match snapshot, licensed 1`] = `
         }
         onChange={[Function]}
         setByEnv={false}
-        value="us"
+        value="global"
         values={
           Array [
+            Object {
+              "text": "Global",
+              "value": "global",
+            },
             Object {
               "text": "US",
               "value": "us",
@@ -69,6 +79,10 @@ exports[`components/PushSettings should match snapshot, licensed 1`] = `
             Object {
               "text": "Germany",
               "value": "de",
+            },
+            Object {
+              "text": "Japan",
+              "value": "jp",
             },
           ]
         }
@@ -129,19 +143,19 @@ exports[`components/PushSettings should match snapshot, licensed 1`] = `
           }
         }
         setByEnv={false}
-        value="https://push.mattermost.com"
+        value="https://global.push.mattermost.com"
       />
       <AdminTextSetting
         helpText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Maximum total number of users in a channel before users typing messages, @all, @here, and @channel no longer send notifications because of performance."
+            defaultMessage="The maximum number of users that can be mentioned using @here, @all, or @channel. Above this limit, mentions and typing indicators are disabled, and users will see a system message if they try to use them."
             id="admin.team.maxNotificationsPerChannelDescription"
           />
         }
         id="maxNotificationsPerChannel"
         label={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Max Notifications Per Channel:"
+            defaultMessage="Large Channel Notification Threshold:"
             id="admin.team.maxNotificationsPerChannelTitle"
           />
         }
@@ -172,8 +186,6 @@ exports[`components/PushSettings should match snapshot, licensed 1`] = `
         }
       />
       <WithTooltip
-        id="error-tooltip"
-        placement="top"
         title=""
       >
         <div
@@ -262,19 +274,19 @@ exports[`components/PushSettings should match snapshot, unlicensed 1`] = `
           }
         }
         setByEnv={false}
-        value="https://push.mattermost.com"
+        value="https://global.push.mattermost.com"
       />
       <AdminTextSetting
         helpText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Maximum total number of users in a channel before users typing messages, @all, @here, and @channel no longer send notifications because of performance."
+            defaultMessage="The maximum number of users that can be mentioned using @here, @all, or @channel. Above this limit, mentions and typing indicators are disabled, and users will see a system message if they try to use them."
             id="admin.team.maxNotificationsPerChannelDescription"
           />
         }
         id="maxNotificationsPerChannel"
         label={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Max Notifications Per Channel:"
+            defaultMessage="Large Channel Notification Threshold:"
             id="admin.team.maxNotificationsPerChannelTitle"
           />
         }
@@ -305,8 +317,6 @@ exports[`components/PushSettings should match snapshot, unlicensed 1`] = `
         }
       />
       <WithTooltip
-        id="error-tooltip"
-        placement="top"
         title=""
       >
         <div

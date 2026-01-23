@@ -62,7 +62,7 @@ describe('components/EmoticonProvider', () => {
         emoticonProvider.handlePretextChanged(pretext, resultsCallback);
         expect(resultsCallback).toHaveBeenCalled();
         const args = resultsCallback.mock.calls[0][0];
-        const results = args.items.filter(
+        const results = args.groups[0].items.filter(
             (item: Emoji) => item.name.indexOf('skin') === -1,
         );
         expect(results.map((item: Emoji) => item.name)).toEqual([
@@ -86,7 +86,7 @@ describe('components/EmoticonProvider', () => {
         emoticonProvider.handlePretextChanged(pretext, resultsCallback);
         expect(resultsCallback).toHaveBeenCalled();
         const args = resultsCallback.mock.calls[0][0];
-        expect(args.items.length).toEqual(0);
+        expect(args.groups[0].items.length).toEqual(0);
     });
 
     it('should exclude blocklisted emojis from suggested emojis', () => {
@@ -114,8 +114,9 @@ describe('components/EmoticonProvider', () => {
         emoticonProvider.handlePretextChanged(pretext, resultsCallback);
         expect(resultsCallback).toHaveBeenCalled();
         const args = resultsCallback.mock.calls[0][0];
-        expect(args.items.length).toEqual(1);
-        expect(args.items[0].name).toEqual('not-blocklisted');
+        expect(args.groups.length).toEqual(1);
+        expect(args.groups[0].items.length).toEqual(1);
+        expect(args.groups[0].items[0].name).toEqual('not-blocklisted');
     });
 
     it('should suggest emojis ordered by recently used first (system only)', () => {
@@ -129,7 +130,7 @@ describe('components/EmoticonProvider', () => {
             emoticonProvider.handlePretextChanged(pretext, resultsCallback);
             expect(resultsCallback).toHaveBeenCalled();
             const args = resultsCallback.mock.calls[0][0];
-            const results = args.items.filter(
+            const results = args.groups[0].items.filter(
                 (item: Emoji) => item.name.indexOf('skin') === -1,
             );
             expect(results.map((item: Emoji) => item.name)).toEqual([
@@ -153,7 +154,7 @@ describe('components/EmoticonProvider', () => {
         emoticonProvider.handlePretextChanged(pretext, resultsCallback);
         expect(resultsCallback).toHaveBeenCalled();
         const args = resultsCallback.mock.calls[0][0];
-        const results = args.items.filter(
+        const results = args.groups[0].items.filter(
             (item: Emoji) => item.name.indexOf('skin') === -1,
         );
         expect(results.map((item: Emoji) => item.name)).toEqual([
@@ -182,7 +183,7 @@ describe('components/EmoticonProvider', () => {
         emoticonProvider.handlePretextChanged(pretext, resultsCallback);
         expect(resultsCallback).toHaveBeenCalled();
         const args = resultsCallback.mock.calls[0][0];
-        const results = args.items.filter(
+        const results = args.groups[0].items.filter(
             (item: Emoji) => item.name.indexOf('skin') === -1,
         );
         expect(results.map((item: Emoji) => item.name)).toEqual([
@@ -210,7 +211,7 @@ describe('components/EmoticonProvider', () => {
         emoticonProvider.handlePretextChanged(pretext, resultsCallback);
         expect(resultsCallback).toHaveBeenCalled();
         const args = resultsCallback.mock.calls[0][0];
-        const results = args.items.filter(
+        const results = args.groups[0].items.filter(
             (item: Emoji) => item.name.indexOf('skin') === -1,
         );
         expect(results.map((item: Emoji) => item.name)).toEqual([

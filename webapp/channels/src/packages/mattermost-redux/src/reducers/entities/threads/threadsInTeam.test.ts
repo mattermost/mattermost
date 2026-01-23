@@ -1,10 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Team} from '@mattermost/types/teams';
+import type {UserThread} from '@mattermost/types/threads';
+import type {RelationOneToMany} from '@mattermost/types/utilities';
+
 import {ThreadTypes} from 'mattermost-redux/action_types';
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
-import {handleFollowChanged} from './threadsInTeam';
+import {handleFollowChanged, unreadThreadsInTeamReducer} from './threadsInTeam';
 import type {ExtraData} from './types';
 
 describe('handleFollowChanged', () => {
@@ -72,5 +76,25 @@ describe('handleFollowChanged', () => {
             team_id1: expected,
             team_id2: ['id2_1', 'id2_2'],
         });
+    });
+});
+
+describe('unreadThreadsInTeam', () => {
+    test('RECEIVED_THREADS should update the state if there are unread threads', () => {
+        const state = deepFreeze({});
+        const nextState: RelationOneToMany<Team, UserThread> = unreadThreadsInTeamReducer(state, {
+            type: ThreadTypes.RECEIVED_THREADS,
+            data: {
+                team_id: 'a',
+                threads: [
+                    {id: 't1', unread_replies: 1},
+                    {id: 't2', unread_mentions: 1},
+                    {id: 't3'},
+                ],
+            },
+        }, {threads: {}});
+
+        expect(nextState).not.toBe(state);
+        expect(nextState.a).toEqual(['t1', 't2']);
     });
 });

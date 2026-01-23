@@ -13,6 +13,7 @@ import {
     SortAlphabeticalAscendingIcon,
     ClockOutlineIcon,
     ChevronRightIcon,
+    CheckIcon,
 } from '@mattermost/compass-icons/components';
 import type {ChannelCategory} from '@mattermost/types/channel_categories';
 import {CategorySorting} from '@mattermost/types/channel_categories';
@@ -22,7 +23,6 @@ import {readMultipleChannels} from 'mattermost-redux/actions/channels';
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 import {shouldShowUnreadsCategory} from 'mattermost-redux/selectors/entities/preferences';
 
-import {trackEvent} from 'actions/telemetry_actions';
 import {openModal} from 'actions/views/modals';
 import {makeGetUnreadIdsForCategory} from 'selectors/views/channel_sidebar';
 
@@ -49,7 +49,6 @@ const SidebarCategoryMenu = ({
     const showUnreadsCategory = useSelector(shouldShowUnreadsCategory);
     const getUnreadsIdsForCategory = useMemo(makeGetUnreadIdsForCategory, [category]);
     const unreadsIds = useSelector((state: GlobalState) => getUnreadsIdsForCategory(state, category));
-
     const {formatMessage} = useIntl();
 
     let muteUnmuteCategoryMenuItem: JSX.Element | null = null;
@@ -138,7 +137,6 @@ const SidebarCategoryMenu = ({
 
     function handleSortChannels(sorting: CategorySorting) {
         dispatch(setCategorySorting(category.id, sorting));
-        trackEvent('ui', `ui_sidebar_sort_dm_${sorting}`);
     }
 
     let sortChannelsSelectedValue = (
@@ -160,7 +158,7 @@ const SidebarCategoryMenu = ({
         sortChannelsSelectedValue = (
             <FormattedMessage
                 id='user.settings.sidebar.recent'
-                defaultMessage='Recent Activity'
+                defaultMessage='Recent activity'
             />
         );
         sortChannelsIcon = <ClockOutlineIcon size={18}/>;
@@ -194,16 +192,18 @@ const SidebarCategoryMenu = ({
                     />
                 )}
                 onClick={() => handleSortChannels(CategorySorting.Alphabetical)}
+                trailingElements={category.sorting === CategorySorting.Alphabetical ? <CheckIcon size={16}/> : null}
             />
             <Menu.Item
                 id={`sortByMostRecent-${category.id}`}
                 labels={(
                     <FormattedMessage
                         id='sidebar.sortedByRecencyLabel'
-                        defaultMessage='Recent Activity'
+                        defaultMessage='Recent activity'
                     />
                 )}
                 onClick={() => handleSortChannels(CategorySorting.Recency)}
+                trailingElements={category.sorting === CategorySorting.Recency ? <CheckIcon size={16}/> : null}
             />
             <Menu.Item
                 id={`sortManual-${category.id}`}
@@ -214,27 +214,28 @@ const SidebarCategoryMenu = ({
                     />
                 )}
                 onClick={() => handleSortChannels(CategorySorting.Manual)}
+                trailingElements={category.sorting === CategorySorting.Manual ? <CheckIcon size={16}/> : null}
             />
         </Menu.SubMenu>
     );
 
     const handleViewCategory = useCallback(() => {
         dispatch(readMultipleChannels(unreadsIds));
-        trackEvent('ui', 'ui_sidebar_category_menu_viewCategory');
     }, [dispatch, unreadsIds]);
 
-    const markAsReadMenuItem = showUnreadsCategory ?
-        null :
-        (
-            <MarkAsReadMenuItem
-                id={category.id}
-                handleViewCategory={handleViewCategory}
-                numChannels={unreadsIds.length}
-            />
-        );
+    const markAsReadMenuItem = showUnreadsCategory === false ? (
+        <MarkAsReadMenuItem
+            id={category.id}
+            handleViewCategory={handleViewCategory}
+            numChannels={unreadsIds.length}
+        />
+    ) : null;
 
     return (
-        <SidebarCategoryGenericMenu id={category.id}>
+        <SidebarCategoryGenericMenu
+            id={category.id}
+            name={category.display_name}
+        >
             {markAsReadMenuItem}
             {markAsReadMenuItem && <Menu.Separator/>}
             {muteUnmuteCategoryMenuItem}

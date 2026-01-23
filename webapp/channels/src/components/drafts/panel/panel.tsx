@@ -1,45 +1,74 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useState} from 'react';
+import classNames from 'classnames';
+import React, {memo} from 'react';
 
 import {makeIsEligibleForClick} from 'utils/utils';
+
 import './panel.scss';
 
 type Props = {
-    children: ({hover}: {hover: boolean}) => React.ReactNode;
+    children: React.ReactNode;
     onClick: () => void;
+    hasError: boolean;
+    innerRef?: React.Ref<HTMLDivElement>;
+    isHighlighted?: boolean;
+    style?: React.CSSProperties;
+    className?: string;
+    dataTestId?: string;
+    dataPostId?: string;
+    ariaLabel?: string;
 };
 
 const isEligibleForClick = makeIsEligibleForClick('.hljs, code');
 
-function Panel({children, onClick}: Props) {
-    const [hover, setHover] = useState(false);
-
-    const handleMouseOver = () => {
-        setHover(true);
-    };
-
-    const handleMouseLeave = () => {
-        setHover(false);
-    };
-
+function Panel({
+    children,
+    onClick,
+    hasError,
+    innerRef,
+    isHighlighted,
+    style,
+    className,
+    dataTestId,
+    dataPostId,
+    ariaLabel,
+}: Props) {
     const handleOnClick = (e: React.MouseEvent<HTMLElement>) => {
         if (isEligibleForClick(e)) {
             onClick();
         }
     };
 
+    const handleOnKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            onClick();
+        }
+    };
+
     return (
-        <article
-            className='Panel'
-            onMouseOver={handleMouseOver}
+        <div
+            data-testid={dataTestId}
+            data-postid={dataPostId}
+            className={classNames(
+                'Panel',
+                {
+                    draftError: hasError,
+                    highlighted: isHighlighted,
+                },
+                className,
+            )}
+            style={style}
             onClick={handleOnClick}
-            onMouseLeave={handleMouseLeave}
-            role='button'
+            onKeyDown={handleOnKeyDown}
+            role='link'
+            tabIndex={0}
+            ref={innerRef}
+            aria-label={ariaLabel}
         >
-            {children({hover})}
-        </article>
+            {children}
+        </div>
     );
 }
 

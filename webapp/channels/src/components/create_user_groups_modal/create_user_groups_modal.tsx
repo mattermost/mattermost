@@ -3,7 +3,7 @@
 
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage, type IntlShape, injectIntl} from 'react-intl';
+import {FormattedMessage, type IntlShape, defineMessage, injectIntl} from 'react-intl';
 
 import type {GroupCreateWithUserIds} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
@@ -14,8 +14,6 @@ import AddUserToGroupMultiSelect from 'components/add_user_to_group_multiselect'
 import Input from 'components/widgets/inputs/input/input';
 
 import Constants, {ItemStatus} from 'utils/constants';
-import * as Utils from 'utils/utils';
-import {localizeMessage} from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
 
@@ -39,10 +37,11 @@ type State = {
     savingEnabled: boolean;
     usersToAdd: UserProfile[];
     mentionUpdatedManually: boolean;
-    mentionInputErrorText: string;
-    nameInputErrorText: string;
+    mentionInputErrorText: React.ReactNode;
+    nameInputErrorText: React.ReactNode;
     showUnknownError: boolean;
     saving: boolean;
+    saved: boolean;
 }
 
 export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
@@ -60,6 +59,7 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
             nameInputErrorText: '',
             showUnknownError: false,
             saving: false,
+            saved: false,
         };
     }
 
@@ -94,20 +94,35 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
         this.setState({usersToAdd});
     };
 
-    goBack = () => {
+    onExited = () => {
         if (typeof this.props.backButtonCallback === 'function') {
             this.props.backButtonCallback();
-            this.props.onExited();
         }
+        this.props.onExited();
     };
 
     createGroup = async (users?: UserProfile[]) => {
-        this.setState({showUnknownError: false, mentionInputErrorText: '', nameInputErrorText: '', saving: true});
+        this.setState({
+            showUnknownError: false,
+            mentionInputErrorText: '',
+            nameInputErrorText: '',
+            saving: true,
+            saved: false,
+        });
+
         let mention = this.state.mention;
         const displayName = this.state.name;
 
         if (!displayName || !displayName.trim()) {
-            this.setState({nameInputErrorText: Utils.localizeMessage('user_groups_modal.nameIsEmpty', 'Name is a required field.'), saving: false});
+            this.setState({
+                nameInputErrorText: (
+                    <FormattedMessage
+                        id='user_groups_modal.nameIsEmpty'
+                        defaultMessage='Name is a required field.'
+                    />
+                ),
+                saving: false,
+            });
             return;
         }
 
@@ -120,18 +135,42 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
         }
 
         if (mention.length < 1) {
-            this.setState({mentionInputErrorText: Utils.localizeMessage('user_groups_modal.mentionIsEmpty', 'Mention is a required field.'), saving: false});
+            this.setState({
+                mentionInputErrorText: (
+                    <FormattedMessage
+                        id='user_groups_modal.mentionIsEmpty'
+                        defaultMessage='Mention is a required field.'
+                    />
+                ),
+                saving: false,
+            });
             return;
         }
 
         if (Constants.SPECIAL_MENTIONS.includes(mention.toLowerCase())) {
-            this.setState({mentionInputErrorText: Utils.localizeMessage('user_groups_modal.mentionReservedWord', 'Mention contains a reserved word.'), saving: false});
+            this.setState({
+                mentionInputErrorText: (
+                    <FormattedMessage
+                        id='user_groups_modal.mentionReservedWord'
+                        defaultMessage='Mention contains a reserved word.'
+                    />
+                ),
+                saving: false,
+            });
             return;
         }
 
         const mentionRegEx = new RegExp(/^[a-z0-9.\-_]+$/);
         if (!mentionRegEx.test(mention)) {
-            this.setState({mentionInputErrorText: Utils.localizeMessage('user_groups_modal.mentionInvalidError', 'Invalid character in mention.'), saving: false});
+            this.setState({
+                mentionInputErrorText: (
+                    <FormattedMessage
+                        id='user_groups_modal.mentionInvalidError'
+                        defaultMessage='Invalid character in mention.'
+                    />
+                ),
+                saving: false,
+            });
             return;
         }
 
@@ -149,16 +188,29 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
 
         if (data?.error) {
             if (data.error?.server_error_id === 'app.custom_group.unique_name') {
-                this.setState({mentionInputErrorText: Utils.localizeMessage('user_groups_modal.mentionNotUnique', 'Mention needs to be unique.')});
+                this.setState({
+                    mentionInputErrorText: (
+                        <FormattedMessage
+                            id='user_groups_modal.mentionNotUnique'
+                            defaultMessage='Mention needs to be unique.'
+                        />
+                    ),
+                });
             } else if (data.error?.server_error_id === 'app.group.username_conflict') {
-                this.setState({mentionInputErrorText: Utils.localizeMessage('user_groups_modal.mentionUsernameConflict', 'A username already exists with this name. Mention must be unique.')});
+                this.setState({
+                    mentionInputErrorText: (
+                        <FormattedMessage
+                            id='user_groups_modal.mentionUsernameConflict'
+                            defaultMessage='A username already exists with this name. Mention must be unique.'
+                        />
+                    ),
+                });
             } else {
                 this.setState({showUnknownError: true});
             }
             this.setState({saving: false});
-        } else if (typeof this.props.backButtonCallback === 'function') {
-            this.goBack();
         } else {
+            this.setState({saved: true});
             this.doHide();
         }
     };
@@ -169,11 +221,23 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
                 dialogClassName='a11y__modal user-groups-modal-create'
                 show={this.state.show}
                 onHide={this.doHide}
-                onExited={this.props.onExited}
-                role='dialog'
+                onExited={this.onExited}
+                role='none'
                 aria-labelledby='createUserGroupsModalLabel'
                 id='createUserGroupsModal'
             >
+                <div
+                    role='alert'
+                    aria-live='polite'
+                    className='sr-only'
+                >
+                    {this.state.saved &&
+                        <FormattedMessage
+                            id='user_groups_modal.groupCreatedSuccess'
+                            defaultMessage='Group created successfully'
+                        />
+                    }
+                </div>
                 <Modal.Header closeButton={true}>
                     {
                         typeof this.props.backButtonCallback === 'function' ? (
@@ -182,9 +246,7 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
                                     type='button'
                                     className='modal-header-back-button btn btn-icon'
                                     aria-label={this.props.intl.formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}
-                                    onClick={() => {
-                                        this.goBack();
-                                    }}
+                                    onClick={this.doHide}
                                 >
                                     <i className='icon icon-arrow-left'/>
                                 </button>
@@ -217,48 +279,50 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
                         <div className='group-name-input-wrapper'>
                             <Input
                                 type='text'
-                                placeholder={Utils.localizeMessage('user_groups_modal.name', 'Name')}
+                                placeholder={defineMessage({id: 'user_groups_modal.name', defaultMessage: 'Name'})}
                                 onChange={this.updateNameState}
                                 value={this.state.name}
                                 data-testid='nameInput'
                                 maxLength={64}
                                 autoFocus={true}
+                                required={true}
                                 customMessage={{type: ItemStatus.ERROR, value: this.state.nameInputErrorText}}
                             />
                         </div>
                         <div className='group-mention-input-wrapper'>
                             <Input
                                 type='text'
-                                placeholder={Utils.localizeMessage('user_groups_modal.mention', 'Mention')}
+                                placeholder={defineMessage({id: 'user_groups_modal.mention', defaultMessage: 'Mention'})}
                                 onChange={this.updateMentionState}
                                 value={this.state.mention}
                                 maxLength={64}
                                 data-testid='mentionInput'
+                                required={true}
                                 customMessage={{type: ItemStatus.ERROR, value: this.state.mentionInputErrorText}}
                             />
                         </div>
-                        <h2>
-                            <FormattedMessage
-                                id='user_groups_modal.addPeople'
-                                defaultMessage='Add People'
-                            />
-                        </h2>
-                        <div className='group-add-user'>
-                            <AddUserToGroupMultiSelect
-                                multilSelectKey={'addUsersToGroupKey'}
-                                onSubmitCallback={this.createGroup}
-                                focusOnLoad={false}
-                                savingEnabled={this.isSaveEnabled()}
-                                addUserCallback={this.addUserCallback}
-                                deleteUserCallback={this.deleteUserCallback}
-                                backButtonText={localizeMessage('multiselect.cancelButton', 'Cancel')}
-                                backButtonClick={
-                                    typeof this.props.backButtonCallback === 'function' ? this.goBack : this.doHide
-                                }
-                                backButtonClass={'multiselect-back'}
-                                saving={this.state.saving}
-                            />
-                        </div>
+                        <fieldset className='group-add-people-fieldset'>
+                            <legend>
+                                <FormattedMessage
+                                    id='user_groups_modal.addPeople'
+                                    defaultMessage='Add people'
+                                />
+                            </legend>
+                            <div className='group-add-user'>
+                                <AddUserToGroupMultiSelect
+                                    multilSelectKey={'addUsersToGroupKey'}
+                                    onSubmitCallback={this.createGroup}
+                                    focusOnLoad={false}
+                                    savingEnabled={this.isSaveEnabled()}
+                                    addUserCallback={this.addUserCallback}
+                                    deleteUserCallback={this.deleteUserCallback}
+                                    backButtonText={defineMessage({id: 'multiselect.cancelButton', defaultMessage: 'Cancel'})}
+                                    backButtonClick={this.doHide}
+                                    backButtonClass={'multiselect-back'}
+                                    saving={this.state.saving}
+                                />
+                            </div>
+                        </fieldset>
                         {
                             this.state.showUnknownError &&
                             <div className='Input___error group-error'>

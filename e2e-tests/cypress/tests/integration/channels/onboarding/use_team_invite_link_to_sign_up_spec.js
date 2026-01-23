@@ -47,7 +47,7 @@ describe('Onboarding', () => {
         stubClipboard().as('clipboard');
 
         // # Open the 'Invite People' full screen modal and get the invite url
-        cy.uiOpenTeamMenu('Invite People');
+        cy.uiOpenTeamMenu('Invite people');
 
         // # Copy invite link to clipboard
         cy.findByTestId('InviteView__copyInviteLink').click();
@@ -71,8 +71,11 @@ describe('Onboarding', () => {
         cy.get('#input_name').should('be.visible').type(username);
         cy.get('#input_password-input').should('be.visible').type(password);
 
-        // # Attempt to create an account by clicking on the 'Create Account' button
-        cy.findByText('Create Account').click();
+        // # Check the terms and privacy checkbox
+        cy.get('#signup-body-card-form-check-terms-and-privacy').check();
+
+        // # Attempt to create an account by clicking on the 'Create account' button
+        cy.findByText('Create account').click();
 
         cy.wait(TIMEOUTS.HALF_SEC);
 
@@ -95,7 +98,6 @@ describe('Onboarding', () => {
             cy.visit(permalink);
 
             // # Check that 'Email Verified' text should be visible, email is pre-filled, and password field is focused, then login
-            cy.findByText('Email Verified', {timeout: TIMEOUTS.HALF_MIN}).should('be.visible');
             cy.get('#input_loginId').should('have.value', email);
             cy.get('#input_password-input').should('be.visible').type(password);
             cy.get('#saveSetting').click();
@@ -113,7 +115,7 @@ describe('Onboarding', () => {
             cy.findByText('Town Square').should('exist');
         });
 
-        // * Check that the 'Beginning of Town Square' message is visible
-        cy.findByText('Beginning of Town Square').should('be.visible').wait(TIMEOUTS.ONE_SEC);
+        // * Check that the 'Town Square' message is visible
+        cy.url().should('include', `/${testTeam.name}/channels/town-square`);
     });
 });

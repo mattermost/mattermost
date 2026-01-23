@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/integrations/AbstractOutgoingWebhook should match snapshot 1`] = `
 <div
@@ -332,7 +332,12 @@ callbackUrl2.com
           id="saveWebhook"
           onClick={[Function]}
           spinning={false}
-          spinningText="Loading"
+          spinningText={
+            Object {
+              "defaultMessage": "Loading",
+              "id": "loading_id",
+            }
+          }
           type="submit"
         >
           <MemoizedFormattedMessage

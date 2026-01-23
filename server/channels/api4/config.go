@@ -8,19 +8,21 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/config"
 )
 
-var writeFilter func(c *Context, structField reflect.StructField) bool
-var readFilter func(c *Context, structField reflect.StructField) bool
-var permissionMap map[string]*model.Permission
+var (
+	writeFilter   func(c *Context, structField reflect.StructField) bool
+	readFilter    func(c *Context, structField reflect.StructField) bool
+	permissionMap map[string]*model.Permission
+)
 
 type filterType string
 
@@ -53,7 +55,7 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("getConfig", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventGetConfig, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	cfg, err := config.Merge(&model.Config{}, c.App.GetSanitizedConfig(), &utils.MergeConfig{
@@ -66,34 +68,41 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	filterMasked, _ := strconv.ParseBool(r.URL.Query().Get("remove_masked"))
+	filterDefaults, _ := strconv.ParseBool(r.URL.Query().Get("remove_defaults"))
 	auditRec.Success()
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+
+	filterOpts := model.ConfigFilterOptions{
+		GetConfigOptions: model.GetConfigOptions{
+			RemoveDefaults: filterDefaults,
+			RemoveMasked:   filterMasked,
+		},
+	}
 	if c.App.Channels().License().IsCloud() {
-		js, jsonErr := cfg.ToJSONFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)
-		if jsonErr != nil {
-			c.Err = model.NewAppError("getConfig", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
-			return
-		}
-		w.Write(js)
+		filterOpts.TagFilters = append(filterOpts.TagFilters, model.FilterTag{
+			TagType: model.ConfigAccessTagType,
+			TagName: model.ConfigAccessTagCloudRestrictable,
+		})
+	}
+	m, err := model.FilterConfig(cfg, filterOpts)
+	if err != nil {
+		c.Err = model.NewAppError("getConfig", "api.filter_config_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
-	if err := json.NewEncoder(w).Encode(cfg); err != nil {
+
+	if err := json.NewEncoder(w).Encode(m); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
 func configReload(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("configReload", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventConfigReload, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionReloadConfig) {
+	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionReloadConfig) {
 		c.SetPermissionError(model.PermissionReloadConfig)
-		return
-	}
-
-	if !c.AppContext.Session().IsUnrestricted() && *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
-		c.Err = model.NewAppError("configReload", "api.restricted_system_admin", nil, "", http.StatusBadRequest)
 		return
 	}
 
@@ -116,9 +125,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updateConfig", audit.Fail)
-
-	// audit.AddEventParameter(auditRec, "config", cfg)  // TODO We can do this but do we want to?
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateConfig, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	cfg.SetDefaults()
@@ -151,6 +158,9 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	// This shallow-copies the slice header. So be careful if there are concurrent
 	// modifications to the slice.
 	cfg.PluginSettings.SignaturePublicKeyFiles = appCfg.PluginSettings.SignaturePublicKeyFiles
+
+	// Do not allow import directory to be changed through the API
+	*cfg.ImportSettings.Directory = *appCfg.ImportSettings.Directory
 
 	// Do not allow marketplace URL to be toggled through the API if EnableUploads are disabled.
 	if cfg.PluginSettings.EnableUploads != nil && !*appCfg.PluginSettings.EnableUploads {
@@ -205,7 +215,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddEventPriorState(&diffs)
 
-	newCfg.Sanitize()
+	c.App.SanitizedConfig(newCfg)
 
 	cfg, err = config.Merge(&model.Config{}, newCfg, &utils.MergeConfig{
 		StructFieldFilter: func(structField reflect.StructField, base, patch reflect.Value) bool {
@@ -217,7 +227,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//auditRec.AddEventResultState(cfg) // TODO we can do this too but do we want to? the config object is huge
+	// auditRec.AddEventResultState(cfg) // TODO we can do this too but do we want to? the config object is huge
 	auditRec.AddEventObjectType("config")
 	auditRec.Success()
 	c.LogAudit("updateConfig")
@@ -229,7 +239,9 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("updateConfig", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			return
 		}
-		w.Write(js)
+		if _, err := w.Write(js); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
 		return
 	}
 
@@ -239,18 +251,6 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	format := r.URL.Query().Get("format")
-
-	if format == "" {
-		c.Err = model.NewAppError("getClientConfig", "api.config.client.old_format.app_error", nil, "", http.StatusNotImplemented)
-		return
-	}
-
-	if format != "old" {
-		c.SetInvalidParam("format")
-		return
-	}
-
 	var config map[string]string
 	if c.AppContext.Session().UserId == "" {
 		config = c.App.Srv().Platform().LimitedClientConfigWithComputed()
@@ -271,7 +271,9 @@ func getEnvironmentConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	})
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	w.Write([]byte(model.StringInterfaceToJSON(envConfig)))
+	if _, err := w.Write([]byte(model.StringInterfaceToJSON(envConfig))); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -282,7 +284,7 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("patchConfig", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventPatchConfig, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), model.SysconsoleWritePermissions) {
@@ -303,6 +305,12 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Do not allow plugin uploads to be toggled through the API
 	if cfg.PluginSettings.EnableUploads != nil && *cfg.PluginSettings.EnableUploads != *appCfg.PluginSettings.EnableUploads {
 		c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]any{"Name": "PluginSettings.EnableUploads"}, "", http.StatusForbidden)
+		return
+	}
+
+	// Do not allow import directory to be changed through the API
+	if cfg.ImportSettings.Directory != nil && *cfg.ImportSettings.Directory != *appCfg.ImportSettings.Directory {
+		c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]any{"Name": "ImportSettings.Directory"}, "", http.StatusForbidden)
 		return
 	}
 
@@ -355,7 +363,7 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.AddEventPriorState(&diffs)
 
-	newCfg.Sanitize()
+	c.App.SanitizedConfig(newCfg)
 
 	auditRec.Success()
 
@@ -376,7 +384,9 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("patchConfig", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			return
 		}
-		w.Write(js)
+		if _, err := w.Write(js); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
 		return
 	}
 
@@ -393,12 +403,8 @@ func makeFilterConfigByPermission(accessType filterType) func(c *Context, struct
 
 		tagPermissions := strings.Split(structField.Tag.Get("access"), ",")
 
-		// If there are no access tag values and the role has manage_system, no need to continue
-		// checking permissions.
-		if len(tagPermissions) == 0 {
-			if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-				return true
-			}
+		if c.AppContext.Session().IsUnrestricted() {
+			return true
 		}
 
 		// one iteration for write_restrictable value, it could be anywhere in the order of values

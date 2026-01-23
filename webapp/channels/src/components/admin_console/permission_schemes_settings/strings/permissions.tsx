@@ -18,7 +18,7 @@ export const permissionRolesStrings: Record<string, Record<string, MessageDescri
     convert_public_channel_to_private: defineMessages({
         name: {
             id: 'admin.permissions.permission.convert_public_channel_to_private.name',
-            defaultMessage: 'Convert Channels',
+            defaultMessage: 'Convert to private',
         },
         description: {
             id: 'admin.permissions.permission.convert_public_channel_to_private.description',
@@ -28,7 +28,7 @@ export const permissionRolesStrings: Record<string, Record<string, MessageDescri
     convert_private_channel_to_public: defineMessages({
         name: {
             id: 'admin.permissions.permission.convert_private_channel_to_public.name',
-            defaultMessage: 'Convert Channels',
+            defaultMessage: 'Convert to public',
         },
         description: {
             id: 'admin.permissions.permission.convert_private_channel_to_public.description',
@@ -288,11 +288,31 @@ export const permissionRolesStrings: Record<string, Record<string, MessageDescri
     manage_slash_commands: defineMessages({
         name: {
             id: 'admin.permissions.permission.manage_slash_commands.name',
-            defaultMessage: 'Manage Slash Commands',
+            defaultMessage: 'Manage Others\'',
         },
         description: {
             id: 'admin.permissions.permission.manage_slash_commands.description',
-            defaultMessage: 'Create, edit and delete custom slash commands.',
+            defaultMessage: 'Create, edit and delete slash commands owned by other users.',
+        },
+    }),
+    manage_own_slash_commands: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.manage_own_slash_commands.name',
+            defaultMessage: 'Manage Own',
+        },
+        description: {
+            id: 'admin.permissions.permission.manage_own_slash_commands.description',
+            defaultMessage: 'Create, edit and delete your own slash commands.',
+        },
+    }),
+    manage_others_slash_commands: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.manage_others_slash_commands.name',
+            defaultMessage: 'Manage Others\'',
+        },
+        description: {
+            id: 'admin.permissions.permission.manage_others_slash_commands.description',
+            defaultMessage: 'Create, edit and delete slash commands owned by other users.',
         },
     }),
     manage_system: defineMessages({
@@ -328,21 +348,71 @@ export const permissionRolesStrings: Record<string, Record<string, MessageDescri
     manage_incoming_webhooks: defineMessages({
         name: {
             id: 'admin.permissions.permission.manage_incoming_webhooks.name',
-            defaultMessage: 'Manage Incoming Webhooks',
+            defaultMessage: 'Manage Others\'',
         },
         description: {
             id: 'admin.permissions.permission.manage_incoming_webhooks.description',
-            defaultMessage: 'Create, edit, and delete incoming webhooks.',
+            defaultMessage: 'Create, edit, and delete incoming webhooks owned by other users.',
+        },
+    }),
+    manage_own_incoming_webhooks: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.manage_own_incoming_webhooks.name',
+            defaultMessage: 'Manage Own',
+        },
+        description: {
+            id: 'admin.permissions.permission.manage_own_incoming_webhooks.description',
+            defaultMessage: 'Create, edit, and delete your own incoming webhooks.',
+        },
+    }),
+    manage_others_incoming_webhooks: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.manage_others_incoming_webhooks.name',
+            defaultMessage: 'Manage Others\'',
+        },
+        description: {
+            id: 'admin.permissions.permission.manage_others_incoming_webhooks.description',
+            defaultMessage: 'Create, edit, and delete incoming webhooks owned by other users.',
+        },
+    }),
+    bypass_incoming_webhook_channel_lock: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.bypass_incoming_webhook_channel_lock.name',
+            defaultMessage: 'Bypass Channel Lock',
+        },
+        description: {
+            id: 'admin.permissions.permission.bypass_incoming_webhook_channel_lock.description',
+            defaultMessage: 'Allow incoming webhooks to post to any channel without requiring a locked default channel.',
         },
     }),
     manage_outgoing_webhooks: defineMessages({
         name: {
             id: 'admin.permissions.permission.manage_outgoing_webhooks.name',
-            defaultMessage: 'Manage Outgoing Webhooks',
+            defaultMessage: 'Manage Others\'',
         },
         description: {
             id: 'admin.permissions.permission.manage_outgoing_webhooks.description',
-            defaultMessage: 'Create, edit, and delete outgoing webhooks.',
+            defaultMessage: 'Create, edit, and delete outgoing webhooks owned by other users.',
+        },
+    }),
+    manage_own_outgoing_webhooks: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.manage_own_outgoing_webhooks.name',
+            defaultMessage: 'Manage Own',
+        },
+        description: {
+            id: 'admin.permissions.permission.manage_own_outgoing_webhooks.description',
+            defaultMessage: 'Create, edit, and delete your own outgoing webhooks.',
+        },
+    }),
+    manage_others_outgoing_webhooks: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.manage_others_outgoing_webhooks.name',
+            defaultMessage: 'Manage Others\'',
+        },
+        description: {
+            id: 'admin.permissions.permission.manage_others_outgoing_webhooks.description',
+            defaultMessage: 'Create, edit, and delete outgoing webhooks owned by other users.',
         },
     }),
     permanent_delete_user: defineMessages({
@@ -502,7 +572,7 @@ export const permissionRolesStrings: Record<string, Record<string, MessageDescri
         },
         description: {
             id: 'admin.permissions.permission.playbook_public_manage_members.description',
-            defaultMessage: 'Add and remove public playbook members.',
+            defaultMessage: 'Add and remove public playbook members (including playbook admins).',
         },
     }),
     playbook_public_make_private: defineMessages({
@@ -542,7 +612,7 @@ export const permissionRolesStrings: Record<string, Record<string, MessageDescri
         },
         description: {
             id: 'admin.permissions.permission.playbook_private_manage_members.description',
-            defaultMessage: 'Add and remove private playbook members.',
+            defaultMessage: 'Add and remove private playbook members (including playbook admins).',
         },
     }),
     playbook_private_make_public: defineMessages({
@@ -623,6 +693,36 @@ export const permissionRolesStrings: Record<string, Record<string, MessageDescri
         description: {
             id: 'admin.permissions.permission.manage_outgoing_oauth_connections.description',
             defaultMessage: 'Create, edit, and delete outgoing OAuth credentials.',
+        },
+    }),
+    manage_public_channel_banner: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.manage_public_channel_banner.name',
+            defaultMessage: 'Manage Channel Banner',
+        },
+        description: {
+            id: 'admin.permissions.permission.manage_public_channel_banner.description',
+            defaultMessage: 'Enable, disable and edit channel banner.',
+        },
+    }),
+    manage_private_channel_banner: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.manage_private_channel_banner.name',
+            defaultMessage: 'Manage Channel Banner',
+        },
+        description: {
+            id: 'admin.permissions.permission.manage_private_channel_banner.description',
+            defaultMessage: 'Enable, disable and edit channel banner.',
+        },
+    }),
+    manage_channel_access_rules: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.manage_channel_access_rules.name',
+            defaultMessage: 'Manage Channel Access Control Policy',
+        },
+        description: {
+            id: 'admin.permissions.permission.manage_channel_access_rules.description',
+            defaultMessage: 'Configure attribute-based access control policy for channels.',
         },
     }),
 };

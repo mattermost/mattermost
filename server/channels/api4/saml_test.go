@@ -15,8 +15,8 @@ import (
 )
 
 func TestGetSamlMetadata(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 
 	_, resp, err := client.GetSamlMetadata(context.Background())
@@ -27,8 +27,8 @@ func TestGetSamlMetadata(t *testing.T) {
 }
 
 func TestSamlCompleteCSRFPass(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
 
 	url := th.Client.URL + "/login/sso/saml"
 	req, err := http.NewRequest("POST", url, nil)
@@ -55,8 +55,9 @@ func TestSamlCompleteCSRFPass(t *testing.T) {
 }
 
 func TestSamlResetId(t *testing.T) {
-	th := SetupEnterprise(t).InitBasic()
-	defer th.TearDown()
+	mainHelper.Parallel(t)
+	th := SetupEnterprise(t).InitBasic(t)
+
 	th.App.Channels().Saml = &mocks.SamlInterface{}
 
 	user := th.BasicUser

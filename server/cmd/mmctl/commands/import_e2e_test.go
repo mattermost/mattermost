@@ -5,6 +5,7 @@ package commands
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"time"
@@ -14,11 +15,12 @@ import (
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/spf13/cobra"
 )
 
 func (s *MmctlE2ETestSuite) TestImportUploadCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 	importName := "import_test.zip"
 	importFilePath := filepath.Join(server.GetPackagePath(), "tests", importName)
 	info, err := os.Stat(importFilePath)
@@ -90,7 +92,7 @@ func (s *MmctlE2ETestSuite) TestImportUploadCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestImportProcessCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 	importName := "import_test.zip"
 	importFilePath := filepath.Join(server.GetPackagePath(), "tests", "import_test.zip")
 
@@ -129,7 +131,7 @@ func (s *MmctlE2ETestSuite) TestImportProcessCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestImportListAvailableCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 	importName := "import_test.zip"
 	importFilePath := filepath.Join(server.GetPackagePath(), "tests", importName)
 
@@ -160,7 +162,7 @@ func (s *MmctlE2ETestSuite) TestImportListAvailableCmdF() {
 		}
 
 		numImports := 3
-		for i := 0; i < numImports; i++ {
+		for range numImports {
 			err := importUploadCmdF(c, cmd, []string{importFilePath})
 			s.Require().Nil(err)
 		}
@@ -180,7 +182,7 @@ func (s *MmctlE2ETestSuite) TestImportListAvailableCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestImportListIncompleteCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.RunForAllClients("no incomplete import uploads", func(c client.Client) {
 		printer.Clean()
@@ -249,7 +251,7 @@ func (s *MmctlE2ETestSuite) TestImportListIncompleteCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestImportJobShowCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	job, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
 		Type: model.JobTypeImportProcess,
@@ -295,7 +297,7 @@ func (s *MmctlE2ETestSuite) TestImportJobShowCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestImportJobListCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.Run("no permissions", func() {
 		printer.Clean()
@@ -368,7 +370,7 @@ func (s *MmctlE2ETestSuite) TestImportJobListCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestImportValidateCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	importName := "import_test.zip"
 	importFilePath := filepath.Join(server.GetPackagePath(), "tests", importName)
@@ -428,5 +430,55 @@ func (s *MmctlE2ETestSuite) TestImportValidateCmdF() {
 			Attachments:    0,
 		}, printer.GetLines()[0].(Statistics))
 		s.Require().Equal("Validation complete\n", printer.GetLines()[2])
+	})
+}
+
+func (s *MmctlE2ETestSuite) TestImportDeleteCmdF() {
+	s.SetupTestHelper().InitBasic(s.T())
+	s.Run("no permissions", func() {
+		printer.Clean()
+
+		err := importDeleteCmdF(s.th.Client, &cobra.Command{}, []string{"import1.zip"})
+		s.Require().EqualError(err, "failed to delete import: You do not have the appropriate permissions.")
+		s.Require().Empty(printer.GetLines())
+		s.Require().Empty(printer.GetErrorLines())
+	})
+
+	s.RunForSystemAdminAndLocal("delete import", func(c client.Client) {
+		importName := "import_test.zip"
+		importFilePath := filepath.Join(server.GetPackagePath(), "tests", importName)
+		importPath, err := filepath.Abs(filepath.Join(*s.th.App.Config().FileSettings.Directory,
+			*s.th.App.Config().ImportSettings.Directory))
+		s.Require().Nil(err)
+
+		cmd := &cobra.Command{}
+
+		newImportName := "new_import_test.zip"
+		err = utils.CopyFile(importFilePath, filepath.Join(importPath, newImportName))
+		s.Require().Nil(err)
+
+		printer.Clean()
+		imports, appErr := s.th.App.ListImports()
+		s.Require().Nil(appErr)
+		s.Require().NotEmpty(imports)
+		s.Require().Equal(newImportName, imports[0])
+
+		err = importDeleteCmdF(c, cmd, []string{newImportName})
+		s.Require().Nil(err)
+		s.Require().Empty(printer.GetErrorLines())
+		s.Require().Len(printer.GetLines(), 1)
+		s.Equal(fmt.Sprintf(`Import file "%s" has been deleted`, newImportName), printer.GetLines()[0])
+
+		imports, appErr = s.th.App.ListImports()
+		s.Require().Nil(appErr)
+		s.Require().Empty(imports)
+
+		//idempotency check
+
+		err = importDeleteCmdF(c, cmd, []string{newImportName})
+		s.Require().Nil(err)
+		s.Require().Empty(printer.GetErrorLines())
+		s.Require().Len(printer.GetLines(), 2)
+		s.Equal(fmt.Sprintf(`Import file "%s" has been deleted`, newImportName), printer.GetLines()[0])
 	})
 }

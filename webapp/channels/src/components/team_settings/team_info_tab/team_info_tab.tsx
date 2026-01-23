@@ -47,7 +47,7 @@ const translations = defineMessages({
 });
 type Props = PropsFromRedux & OwnProps;
 
-const InfoTab = ({team, hasChanges, maxFileSize, closeModal, collapseModal, hasChangeTabError, setHasChangeTabError, setHasChanges, actions}: Props) => {
+const InfoTab = ({team, hasChanges, maxFileSize, closeModal, collapseModal, hasChangeTabError, setHasChangeTabError, setHasChanges, setJustSaved, actions}: Props) => {
     const [name, setName] = useState<Team['display_name']>(team.display_name);
     const [description, setDescription] = useState<Team['description']>(team.description);
     const [teamIconFile, setTeamIconFile] = useState<File | undefined>();
@@ -100,13 +100,15 @@ const InfoTab = ({team, hasChanges, maxFileSize, closeModal, collapseModal, hasC
         }
         setSaveChangesPanelState('saved');
         setHasChangeTabError(false);
-    }, [handleNameDescriptionSubmit, handleTeamIconSubmit, setHasChangeTabError]);
+        setJustSaved(true); // Flag that save just completed
+    }, [handleNameDescriptionSubmit, handleTeamIconSubmit, setHasChangeTabError, setJustSaved]);
 
     const handleClose = useCallback(() => {
         setSaveChangesPanelState('editing');
         setHasChanges(false);
         setHasChangeTabError(false);
-    }, [setHasChangeTabError, setHasChanges]);
+        setJustSaved(false); // Reset flag when panel closes
+    }, [setHasChangeTabError, setHasChanges, setJustSaved]);
 
     const handleCancel = useCallback(() => {
         setName(team.display_name ?? team.name);
@@ -190,7 +192,7 @@ const InfoTab = ({team, hasChanges, maxFileSize, closeModal, collapseModal, hasC
                             className='fa fa-angle-left'
                             aria-label={formatMessage({
                                 id: 'generic_icons.collapse',
-                                defaultMessage: 'Collapes Icon',
+                                defaultMessage: 'Collapse Icon',
                             })}
                             onClick={handleCollapseModal}
                         />
@@ -198,7 +200,12 @@ const InfoTab = ({team, hasChanges, maxFileSize, closeModal, collapseModal, hasC
                     <span>{formatMessage({id: 'team_settings_modal.title', defaultMessage: 'Team Settings'})}</span>
                 </h4>
             </div>
-            <div className='modal-info-tab-content user-settings' >
+            <div
+                className='modal-info-tab-content user-settings'
+                id='infoSettings'
+                aria-labelledby='infoButton'
+                role='tabpanel'
+            >
                 <div className='name-description-container' >
                     <TeamNameSection
                         name={name}
@@ -219,14 +226,15 @@ const InfoTab = ({team, hasChanges, maxFileSize, closeModal, collapseModal, hasC
                     teamName={team.display_name ?? team.name}
                     clientError={imageClientError}
                 />
-                {hasChanges ?
+                {hasChanges && (
                     <SaveChangesPanel
                         handleCancel={handleCancel}
                         handleSubmit={handleSaveChanges}
                         handleClose={handleClose}
                         tabChangeError={hasChangeTabError}
                         state={saveChangesPanelState}
-                    /> : undefined}
+                    />
+                )}
             </div>
         </>
     );

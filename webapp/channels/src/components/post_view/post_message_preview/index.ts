@@ -28,6 +28,7 @@ export type OwnProps = {
     metadata: PostPreviewMetadata;
     preventClickAction?: boolean;
     previewFooterMessage?: string;
+    usePostAsSource?: boolean;
 }
 
 function makeMapStateToProps() {
@@ -39,7 +40,7 @@ function makeMapStateToProps() {
         let user = null;
         let embedVisible = false;
         let channelDisplayName = ownProps.metadata.channel_display_name;
-        const previewPost = getPost(state, ownProps.metadata.post_id);
+        const previewPost = ownProps.metadata.post || getPost(state, ownProps.metadata.post_id);
 
         if (previewPost && previewPost.user_id) {
             user = getUser(state, previewPost.user_id);
@@ -49,7 +50,7 @@ function makeMapStateToProps() {
         }
 
         if (ownProps.metadata.channel_type === General.DM_CHANNEL) {
-            channelDisplayName = getChannel(state, {id: ownProps.metadata.channel_id})?.display_name || '';
+            channelDisplayName = getChannel(state, ownProps.metadata.channel_id)?.display_name || '';
         }
 
         return {

@@ -1,8 +1,8 @@
-@import 'sass/utils/module';
+@use 'utils/variables';
 
 .TeamRow {
     &:nth-child(odd) {
-        background: alpha-color($white, 0.5);
+        background: alpha-color(variables.$white, 0.5);
     }
 }
 
@@ -11,7 +11,7 @@
     height: 80px;
     flex-direction: row;
     align-items: center;
-    border: 2px solid $transparent;
+    border: 2px solid variables.$transparent;
 }
 
 .TeamRow__row .TeamRow__team-name {
@@ -52,16 +52,16 @@
 
     > a {
         padding: 3px 5px;
-        color: $black;
+        color: variables.$black;
         text-decoration: none;
 
         &:hover {
             border-radius: 3px;
-            background-color: $light-gray;
+            background-color: variables.$light-gray;
         }
 
         &.warning {
-            color: $red;
+            color: variables.$red;
         }
     }
 }

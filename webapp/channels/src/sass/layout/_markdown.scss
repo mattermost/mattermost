@@ -1,4 +1,6 @@
-@charset "UTF-8";
+@use "utils/animations";
+@use "utils/functions";
+@use "utils/variables";
 
 h1.markdown__heading {
     font-size: 28px;
@@ -49,7 +51,8 @@ h6.markdown__heading {
 }
 
 #post-list,
-#rhsContainer {
+#rhsContainer,
+.textbox-preview-area {
     .markdown-inline-img {
         max-height: 500px;
         border-radius: 4px;
@@ -108,7 +111,7 @@ h6.markdown__heading {
 
         &:hover {
             z-index: 2;
-            box-shadow: 0 2px 5px 0 rgba($black, 0.1), 0 2px 5px 0 rgba($black, 0.1);
+            box-shadow: 0 2px 5px 0 rgba(variables.$black, 0.1), 0 2px 5px 0 rgba(variables.$black, 0.1);
             transition: all 0.1s linear;
         }
     }
@@ -124,7 +127,7 @@ h6.markdown__heading {
 
         &:hover {
             z-index: 2;
-            box-shadow: 0 2px 2px 0 rgba($black, 0.1), 0 2px 2px 0 rgba($black, 0.1);
+            box-shadow: 0 2px 2px 0 rgba(variables.$black, 0.1), 0 2px 2px 0 rgba(variables.$black, 0.1);
             transition: all 0.1s linear;
         }
     }
@@ -145,46 +148,13 @@ h6.markdown__heading {
     }
 }
 
-#channelHeaderDescription,
-#header-popover {
-    .markdown-inline-img {
-        max-height: 18px;
-        border-radius: 2px;
-        margin: 2px;
-        -moz-force-broken-image-icon: 1;
-    }
-
-    .markdown-inline-img--loading {
-        height: 18px;
-        visibility: hidden;
-    }
-
+.textbox-preview-area {
     .markdown-inline-img--hover {
-        border: 1px solid transparent;
-
         &:hover {
-            z-index: 2;
-            box-shadow: 0 2px 2px 0 rgba($black, 0.1), 0 2px 2px 0 rgba($black, 0.1);
-            transition: all 0.1s linear;
+            border: 1px solid transparent;
+            box-shadow: none;
+            cursor: default;
         }
-    }
-
-    .markdown-inline-img--no-border {
-        border: unset;
-    }
-
-    div.markdown__paragraph-inline {
-        display: inline-block;
-        line-height: 22px;
-    }
-
-    .broken-image {
-        max-height: 18px;
-        border-radius: unset;
-    }
-
-    .image-loaded-container {
-        display: inline-block;
     }
 }
 
@@ -240,7 +210,7 @@ h6.markdown__heading {
         display: flex;
         flex-direction: row;
         padding: 8.5px;
-        border: 1px solid rgba(v(center-channel-color-rgb), 0.2);
+        border: 1px solid rgba(functions.v(center-channel-color-rgb), 0.2);
         border-radius: 0.25em;
         margin: 5px 0;
         cursor: auto;
@@ -248,29 +218,6 @@ h6.markdown__heading {
         overflow-x: auto;
         visibility: visible;
         white-space: pre;
-    }
-}
-
-.post-code__context-menu {
-    &.react-contextmenu {
-        background-color: $white;
-    }
-
-    .react-contextmenu-item {
-        .span {
-            display: inline-block;
-            padding: 3px 0;
-        }
-
-        &.react-contextmenu-item--divider {
-            border-top: 1px solid rgba(63, 67, 80, 0.16);
-            margin: 5px 15px;
-        }
-
-        &.react-contextmenu-item--divider:hover {
-            background: unset;
-            color: unset;
-        }
     }
 }
 
@@ -283,7 +230,7 @@ h6.markdown__heading {
     height: 36px;
     padding: 4px 4px 0;
     border-radius: 0 0 0 2px;
-    color: $white;
+    color: variables.$white;
     user-select: none;
 
     >span {
@@ -320,7 +267,7 @@ h6.markdown__heading {
         }
 
         .icon-check {
-            @include fade-in;
+            @include animations.fade-in;
 
             color: #3db887;
         }
@@ -389,6 +336,23 @@ h6.markdown__heading {
     }
 }
 
+.markdown__list {
+    >li {
+        &.list-item--task-list {
+            list-style-type: none;
+
+            input[type="checkbox"] {
+                margin-left: -17px;
+                vertical-align: top;
+
+                &:disabled {
+                    cursor: default;
+                }
+            }
+        }
+    }
+}
+
 ol.markdown__list {
     display: table;
     padding: 0;
@@ -406,28 +370,39 @@ ol.markdown__list {
             text-align: right;
             word-break: keep-all;
         }
+        // Special rules for task items within ordered lists
+        &.list-item--task-list {
+            &::before {
+                // The counter is erased for task items
+                content: "";
+            }
+            input[type="checkbox"] {
+                // Margins are adjusted to align better the checkbox with the text
+                margin-right: 2px;
+                margin-left: -19px;
+            }
+        }
     }
 }
 
 blockquote {
     position: relative;
-    padding: 10px 10px 10px 38px;
-    border: none;
-    margin-bottom: 0;
+    padding: 2px 12px 2px 12px;
+    border-left: 2px solid rgba(var(--center-channel-color-rgb), 0.20);
+    margin: 6px 0 0 0;
+    color: rgba(var(--center-channel-color-rgb), 0.72);
     font-size: inherit;
 
-    &::before {
-        position: absolute;
-        top: 5px;
-        left: 8px;
-        display: inline-block;
-        content: '\f10d';
-        font-family: FontAwesome, sans-serif;
-        font-size: 20px;
-        font-style: normal;
-        font-weight: normal;
-        opacity: 0.73;
-        text-decoration: inherit;
+    &:first-child {
+        margin-top: 0;
+    }
+
+    +p {
+        margin-top: 6px;
+
+        .post & {
+            margin-top: 6px;
+        }
     }
 }
 

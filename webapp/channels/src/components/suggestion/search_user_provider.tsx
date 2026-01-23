@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {defineMessage} from 'react-intl';
 
 import type {UserAutocomplete} from '@mattermost/types/autocomplete';
 import type {UserProfile} from '@mattermost/types/users';
@@ -17,7 +18,7 @@ import type {ResultsCallback} from './provider';
 import {SuggestionContainer} from './suggestion';
 import type {SuggestionProps} from './suggestion';
 
-const SearchUserSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<UserProfile>>((props, ref) => {
+export const SearchUserSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<UserProfile>>((props, ref) => {
     const {item} = props;
 
     const username = item.username;
@@ -35,7 +36,6 @@ const SearchUserSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<Us
     if (item.remote_id) {
         sharedIcon = (
             <SharedUserIndicator
-                id={`sharedUserIndicator-${item.id}`}
                 className='mention__shared-user-icon'
             />
         );
@@ -50,6 +50,7 @@ const SearchUserSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<Us
                 size='sm'
                 username={username}
                 url={Utils.imageURLForUser(item.id, item.last_picture_update)}
+                alt=''
             />
             <div className='suggestion-list__ellipsis'>
                 <span className='suggestion-list__main'>
@@ -65,21 +66,26 @@ const SearchUserSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<Us
 SearchUserSuggestion.displayName = 'SearchUserSuggestion';
 
 export default class SearchUserProvider extends Provider {
-    private autocompleteUsersInTeam: (username: string) => Promise<UserAutocomplete>;
-    constructor(userSearchFunc: (username: string) => Promise<UserAutocomplete>) {
+    private autocompleteUsersInTeam: (username: string, teamId: string) => Promise<UserAutocomplete>;
+    constructor(userSearchFunc: (username: string, teamId: string) => Promise<UserAutocomplete>) {
         super();
         this.autocompleteUsersInTeam = userSearchFunc;
     }
 
-    handlePretextChanged(pretext: string, resultsCallback: ResultsCallback<UserProfile>) {
+    handlePretextChanged(pretext: string, resultsCallback: ResultsCallback<UserProfile>, teamId: string) {
+        // no autocomplete on All teams
+        if (teamId === '') {
+            return false;
+        }
+
         const captured = (/\bfrom:\s*(\S*)$/i).exec(pretext.toLowerCase());
 
-        this.doAutocomplete(captured, resultsCallback);
+        this.doAutocomplete(captured, teamId, resultsCallback);
 
         return Boolean(captured);
     }
 
-    async doAutocomplete(captured: RegExpExecArray | null, resultsCallback: ResultsCallback<UserProfile>) {
+    async doAutocomplete(captured: RegExpExecArray | null, teamId: string, resultsCallback: ResultsCallback<UserProfile>) {
         if (!captured) {
             return;
         }
@@ -88,7 +94,7 @@ export default class SearchUserProvider extends Provider {
 
         this.startNewRequest(usernamePrefix);
 
-        const data = await this.autocompleteUsersInTeam(usernamePrefix);
+        const data = await this.autocompleteUsersInTeam(usernamePrefix, teamId);
 
         if (this.shouldCancelDispatch(usernamePrefix)) {
             return;
@@ -99,9 +105,16 @@ export default class SearchUserProvider extends Provider {
 
         resultsCallback({
             matchedPretext: usernamePrefix,
-            terms: mentions,
-            items: users,
-            component: SearchUserSuggestion,
+            groups: [{
+                key: 'users',
+                label: defineMessage({
+                    id: 'suggestion.users',
+                    defaultMessage: 'Users',
+                }),
+                terms: mentions,
+                items: users,
+                component: SearchUserSuggestion,
+            }],
         });
     }
 

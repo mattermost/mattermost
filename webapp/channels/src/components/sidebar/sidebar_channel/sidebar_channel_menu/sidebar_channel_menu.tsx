@@ -16,8 +16,6 @@ import {
     ExitToAppIcon,
 } from '@mattermost/compass-icons/components';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import ChannelInviteModal from 'components/channel_invite_modal';
 import ChannelMoveToSubmenu from 'components/channel_move_to_sub_menu';
 import * as Menu from 'components/menu';
@@ -39,7 +37,7 @@ const SidebarChannelMenu = ({
     isUnread,
     managePrivateChannelMembers,
     managePublicChannelMembers,
-    markMultipleChannelsAsRead,
+    readMultipleChannels,
     markMostRecentPostInChannelAsUnread,
     muteChannel,
     onMenuToggle,
@@ -56,8 +54,7 @@ const SidebarChannelMenu = ({
     if (isUnread) {
         function handleMarkAsRead() {
             // We use mark multiple to not update the active channel in the server
-            markMultipleChannelsAsRead({[channel.id]: Date.now()});
-            trackEvent('ui', 'ui_sidebar_channel_menu_markAsRead');
+            readMultipleChannels([channel.id]);
         }
 
         markAsReadUnreadMenuItem = (
@@ -77,7 +74,6 @@ const SidebarChannelMenu = ({
     } else {
         function handleMarkAsUnread() {
             markMostRecentPostInChannelAsUnread(channel.id);
-            trackEvent('ui', 'ui_sidebar_channel_menu_markAsUnread');
         }
 
         markAsReadUnreadMenuItem = (
@@ -99,7 +95,6 @@ const SidebarChannelMenu = ({
     if (isFavorite) {
         function handleUnfavoriteChannel() {
             unfavoriteChannel(channel.id);
-            trackEvent('ui', 'ui_sidebar_channel_menu_unfavorite');
         }
 
         favoriteUnfavoriteMenuItem = (
@@ -118,7 +113,6 @@ const SidebarChannelMenu = ({
     } else {
         function handleFavoriteChannel() {
             favoriteChannel(channel.id);
-            trackEvent('ui', 'ui_sidebar_channel_menu_favorite');
         }
 
         favoriteUnfavoriteMenuItem = (
@@ -148,8 +142,8 @@ const SidebarChannelMenu = ({
         if (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL) {
             muteChannelText = (
                 <FormattedMessage
-                    id='sidebar_left.sidebar_channel_menu.unmuteConversation'
-                    defaultMessage='Unmute Conversation'
+                    id='sidebar_left.sidebar_channel_menu.unmute'
+                    defaultMessage='Unmute'
                 />
             );
         }
@@ -176,8 +170,8 @@ const SidebarChannelMenu = ({
         if (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL) {
             muteChannelText = (
                 <FormattedMessage
-                    id='sidebar_left.sidebar_channel_menu.muteConversation'
-                    defaultMessage='Mute Conversation'
+                    id='sidebar_left.sidebar_channel_menu.mute'
+                    defaultMessage='Mute'
                 />
             );
         }
@@ -225,7 +219,6 @@ const SidebarChannelMenu = ({
                 dialogType: ChannelInviteModal,
                 dialogProps: {channel},
             });
-            trackEvent('ui', 'ui_sidebar_channel_menu_addMembers');
         }
 
         addMembersMenuItem = (
@@ -271,7 +264,6 @@ const SidebarChannelMenu = ({
             channelLeaveHandler(() => {
                 isLeaving.current = false;
             });
-            trackEvent('ui', 'ui_sidebar_channel_menu_leave');
         }
 
         leaveChannelMenuItem = (
@@ -297,7 +289,6 @@ const SidebarChannelMenu = ({
                 children: <DotsVerticalIcon size={16}/>,
             }}
             menuButtonTooltip={{
-                id: `SidebarChannelMenu-ButtonTooltip-${channel.id}`,
                 class: 'hidden-xs',
                 text: formatMessage({id: 'sidebar_left.sidebar_channel_menu.editChannel', defaultMessage: 'Channel options'}),
             }}

@@ -10,7 +10,7 @@ import type {IDMappedObjects, RelationOneToManyUnique, RelationOneToOne} from '.
 
 export type UserNotifyProps = {
     desktop: 'default' | 'all' | 'mention' | 'none';
-    desktop_sound: 'true' | 'false';
+    desktop_sound: 'default' | 'true' | 'false';
     calls_desktop_sound: 'true' | 'false';
     email: 'true' | 'false';
     mark_unread: 'all' | 'mention';
@@ -21,7 +21,7 @@ export type UserNotifyProps = {
     channel: 'true' | 'false';
     mention_keys: string;
     highlight_keys: string;
-    desktop_notification_sound?: 'Bing' | 'Crackle' | 'Down' | 'Hello' | 'Ripple' | 'Upstairs';
+    desktop_notification_sound?: 'default' | 'Bing' | 'Crackle' | 'Down' | 'Hello' | 'Ripple' | 'Upstairs';
     calls_notification_sound?: 'Dynamic' | 'Calm' | 'Urgent' | 'Cheerful';
     desktop_threads?: 'default' | 'all' | 'mention' | 'none';
     email_threads?: 'default' | 'all' | 'mention' | 'none';
@@ -39,6 +39,7 @@ export type UserProfile = {
     delete_at: number;
     username: string;
     password: string;
+    auth_data?: string;
     auth_service: string;
     email: string;
     nickname: string;
@@ -60,6 +61,8 @@ export type UserProfile = {
     terms_of_service_create_at: number;
     remote_id?: string;
     status?: string;
+    custom_profile_attributes?: Record<string, string | string[]>;
+    failed_attempts?: number;
 };
 
 export type UserProfileWithLastViewAt = UserProfile & {
@@ -74,7 +77,6 @@ export type UsersState = {
     profiles: IDMappedObjects<UserProfile>;
     profilesInTeam: RelationOneToManyUnique<Team, UserProfile>;
     profilesNotInTeam: RelationOneToManyUnique<Team, UserProfile>;
-    profilesWithoutTeam: Set<string>;
     profilesInChannel: RelationOneToManyUnique<Channel, UserProfile>;
     profilesNotInChannel: RelationOneToManyUnique<Channel, UserProfile>;
     profilesInGroup: RelationOneToManyUnique<Group, UserProfile>;
@@ -99,6 +101,11 @@ export type UserStatus = {
     manual?: boolean;
     last_activity_at?: number;
     active_channel?: string;
+
+    /**
+     * The time when a user's timed DND status will expire. Unlike other timestamps in the app, this is in seconds
+     * instead of milliseconds.
+     */
     dnd_end_time?: number;
 };
 

@@ -8,6 +8,7 @@ import {Modal} from 'react-bootstrap';
 import GetLinkModal from 'components/get_link_modal';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {act} from 'tests/react_testing_utils';
 
 describe('components/GetLinkModal', () => {
     const onHide = jest.fn();
@@ -18,6 +19,14 @@ describe('components/GetLinkModal', () => {
         title: 'title',
         link: 'https://mattermost.com',
     };
+
+    beforeEach(() => {
+        jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+        jest.useRealTimers();
+    });
 
     test('should match snapshot when all props is set', () => {
         const helpText = 'help text';
@@ -67,5 +76,45 @@ describe('components/GetLinkModal', () => {
         );
         wrapper.find('#linkModalTextArea').simulate('click');
         expect(wrapper.state('copiedLink')).toBe(true);
+    });
+
+    test('should change button state when copying', () => {
+        const wrapper = mountWithIntl(
+            <GetLinkModal {...requiredProps}/>,
+        );
+
+        // Initial state
+        expect(wrapper.find('#linkModalCopyLink').text()).toContain('Copy Link');
+        expect(wrapper.find('#linkModalCopyLink').hasClass('btn-primary')).toBe(true);
+        expect(wrapper.find('#linkModalCopyLink').hasClass('btn-success')).toBe(false);
+
+        // After copying
+        wrapper.find('#linkModalCopyLink').simulate('click');
+        expect(wrapper.find('#linkModalCopyLink').text()).toContain('Copied');
+        expect(wrapper.find('#linkModalCopyLink').hasClass('btn-primary')).toBe(true);
+        expect(wrapper.find('#linkModalCopyLink').hasClass('btn-success')).toBe(true);
+
+        // After timeout
+        act(() => {
+            jest.advanceTimersByTime(1000);
+        });
+        wrapper.update();
+        expect(wrapper.find('#linkModalCopyLink').text()).toContain('Copy Link');
+        expect(wrapper.find('#linkModalCopyLink').hasClass('btn-primary')).toBe(true);
+        expect(wrapper.find('#linkModalCopyLink').hasClass('btn-success')).toBe(false);
+    });
+
+    test('should cleanup timeout on unmount', () => {
+        const wrapper = mountWithIntl(
+            <GetLinkModal {...requiredProps}/>,
+        );
+
+        wrapper.find('#linkModalCopyLink').simulate('click');
+        expect(wrapper.state('copiedLink')).toBe(true);
+
+        wrapper.unmount();
+        jest.advanceTimersByTime(1000);
+
+        // If we get here without errors, the timeout was properly cleaned up
     });
 });

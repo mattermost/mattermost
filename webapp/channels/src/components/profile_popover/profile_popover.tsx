@@ -5,6 +5,7 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {getCurrentChannelId, getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
+import {getLicense, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentRelativeTeamUrl, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
@@ -16,15 +17,19 @@ import {getMembershipForEntities} from 'actions/views/profile_popover';
 import {getSelectedPost} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
 
+import {usePluginVisibilityInSharedChannel} from 'components/common/hooks/usePluginVisibilityInSharedChannel';
+
 import Pluggable from 'plugins/pluggable';
 import {getHistory} from 'utils/browser_history';
 import {A11yCustomEventTypes, UserStatuses} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
+import {isEnterpriseLicense} from 'utils/license_utils';
 import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
 import ProfilePopoverAvatar from './profile_popover_avatar';
+import ProfilePopoverCustomAttributes from './profile_popover_custom_attributes';
 import ProfilePopoverCustomStatus from './profile_popover_custom_status';
 import ProfilePopoverEmail from './profile_popover_email';
 import ProfilePopoverLastActive from './profile_popover_last_active';
@@ -71,12 +76,16 @@ const ProfilePopover = ({
     const user = useSelector((state: GlobalState) => getUser(state, userId));
     const currentTeamId = useSelector((state: GlobalState) => getCurrentTeamId(state));
     const channelId = useSelector((state: GlobalState) => (channelIdProp || getDefaultChannelId(state)));
+    const pluginItemsVisible = usePluginVisibilityInSharedChannel(channelId);
     const isMobileView = useSelector(getIsMobileView);
     const teamUrl = useSelector(getCurrentRelativeTeamUrl);
     const modals = useSelector((state: GlobalState) => state.views.modals);
     const status = useSelector((state: GlobalState) => getStatusForUserId(state, userId) || UserStatuses.OFFLINE);
     const currentUserTimezone = useSelector(getCurrentTimezone);
     const currentUserId = useSelector(getCurrentUserId);
+    const license = useSelector((state: GlobalState) => getLicense(state));
+    const isEnterprise = isEnterpriseLicense(license);
+    const enableCustomProfileAttributes = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'CustomProfileAttributes') === 'true' && isEnterprise && !fromWebhook);
 
     const [loadingDMChannel, setLoadingDMChannel] = useState<string>();
 
@@ -96,18 +105,18 @@ const ProfilePopover = ({
                 },
             ));
         };
-    }, []);
+    }, [returnFocus]);
 
     const handleCloseModals = useCallback(() => {
         for (const modal in modals?.modalState) {
-            if (!Object.prototype.hasOwnProperty.call(modals, modal)) {
+            if (!Object.hasOwn(modals, modal)) {
                 continue;
             }
             if (modals?.modalState[modal].open) {
                 dispatch(closeModal(modal));
             }
         }
-    }, [modals]);
+    }, [modals, dispatch]);
 
     const handleShowDirectChannel = useCallback(async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
@@ -130,7 +139,7 @@ const ProfilePopover = ({
             hide?.();
             getHistory().push(`${teamUrl}/messages/@${user.username}`);
         }
-    }, [user, loadingDMChannel, handleCloseModals, isMobileView, hide, teamUrl]);
+    }, [user, loadingDMChannel, handleCloseModals, isMobileView, hide, teamUrl, dispatch]);
 
     useEffect(() => {
         if (currentTeamId && userId) {
@@ -140,7 +149,7 @@ const ProfilePopover = ({
                 channelId,
             ));
         }
-    }, []);
+    }, [channelId, userId, currentTeamId, dispatch]);
 
     if (!user) {
         return null;
@@ -151,7 +160,7 @@ const ProfilePopover = ({
     const fullname = overwriteName || Utils.getFullName(user);
 
     return (
-        <>
+        <div className='user-profile-popover_container'>
             <ProfilePopoverTitle
                 channelId={channelId}
                 isBot={user.is_bot}
@@ -175,19 +184,28 @@ const ProfilePopover = ({
                 />
                 <hr/>
                 <ProfilePopoverEmail
-                    email={user.email}
+                    email={Utils.getEmail(user)}
                     haveOverrideProp={haveOverrideProp}
                     isBot={user.is_bot}
                 />
-                <div className='user-profile-popover-pluggables'>
-                    <Pluggable
-                        pluggableName={PLUGGABLE_COMPONENT_NAME_PROFILE_POPOVER}
-                        user={user}
-                        hide={hide}
-                        status={hideStatus ? null : status}
-                        fromWebhook={fromWebhook}
+                {pluginItemsVisible && (
+                    <div className='user-profile-popover-pluggables'>
+                        <Pluggable
+                            pluggableName={PLUGGABLE_COMPONENT_NAME_PROFILE_POPOVER}
+                            user={user}
+                            hide={hide}
+                            status={hideStatus ? null : status}
+                            fromWebhook={fromWebhook}
+                        />
+                    </div>
+                )}
+
+                {enableCustomProfileAttributes && !user.is_bot && (
+                    <ProfilePopoverCustomAttributes
+                        userID={userId}
+                        hideStatus={hideStatus}
                     />
-                </div>
+                )}
                 <ProfilePopoverTimezone
                     currentUserTimezone={currentUserTimezone}
                     profileUserTimezone={user.timezone}
@@ -202,6 +220,8 @@ const ProfilePopover = ({
                     returnFocus={handleReturnFocus}
                     hide={hide}
                 />
+            </div>
+            <div className='user-profile-popover-bottom-row'>
                 <hr className='user-popover__bottom-row-hr'/>
                 <ProfilePopoverOverrideDisclaimer
                     haveOverrideProp={haveOverrideProp}
@@ -226,14 +246,16 @@ const ProfilePopover = ({
                     user={user}
                     hide={hide}
                 />
-                <Pluggable
-                    pluggableName='PopoverUserActions'
-                    user={user}
-                    hide={hide}
-                    status={hideStatus ? null : status}
-                />
+                {pluginItemsVisible && (
+                    <Pluggable
+                        pluggableName='PopoverUserActions'
+                        user={user}
+                        hide={hide}
+                        status={hideStatus ? null : status}
+                    />
+                )}
             </div>
-        </>
+        </div>
     );
 };
 

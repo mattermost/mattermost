@@ -9,6 +9,7 @@ import type {Team} from '@mattermost/types/teams';
 import type {UserProfile, UsersState} from '@mattermost/types/users';
 import type {IDMappedObjects, RelationOneToManyUnique, RelationOneToOne} from '@mattermost/types/utilities';
 
+import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {UserTypes, ChannelTypes} from 'mattermost-redux/action_types';
 
 function profilesToSet(state: RelationOneToManyUnique<Team, UserProfile>, action: AnyAction) {
@@ -88,7 +89,7 @@ function removeProfileFromSet(state: RelationOneToManyUnique<Team, UserProfile>,
     };
 }
 
-function currentUserId(state: UsersState['currentUserId'] = '', action: AnyAction) {
+function currentUserId(state: UsersState['currentUserId'] = '', action: MMReduxAction) {
     switch (action.type) {
     case UserTypes.RECEIVED_ME: {
         const data = action.data;
@@ -108,7 +109,7 @@ function currentUserId(state: UsersState['currentUserId'] = '', action: AnyActio
     return state;
 }
 
-function mySessions(state: UsersState['mySessions'] = [], action: AnyAction) {
+function mySessions(state: UsersState['mySessions'] = [], action: MMReduxAction) {
     switch (action.type) {
     case UserTypes.RECEIVED_SESSIONS:
         return [...action.data];
@@ -146,7 +147,7 @@ function mySessions(state: UsersState['mySessions'] = [], action: AnyAction) {
     }
 }
 
-function myAudits(state: UsersState['myAudits'] = [], action: AnyAction) {
+function myAudits(state: UsersState['myAudits'] = [], action: MMReduxAction) {
     switch (action.type) {
     case UserTypes.RECEIVED_AUDITS:
         return [...action.data];
@@ -218,7 +219,7 @@ function receiveUserProfile(state: IDMappedObjects<UserProfile>, received: UserP
     };
 }
 
-function profiles(state: UsersState['profiles'] = {}, action: AnyAction) {
+function profiles(state: UsersState['profiles'] = {}, action: MMReduxAction) {
     switch (action.type) {
     case UserTypes.RECEIVED_ME:
     case UserTypes.RECEIVED_PROFILE: {
@@ -226,8 +227,37 @@ function profiles(state: UsersState['profiles'] = {}, action: AnyAction) {
 
         return receiveUserProfile(state, user);
     }
+    case UserTypes.RECEIVED_CPA_VALUES: {
+        const {userID, customAttributeValues} = action.data;
+        const existingProfile = state[userID];
+        if (!existingProfile) {
+            return state;
+        }
+        const profileAttributes = {...existingProfile.custom_profile_attributes, ...customAttributeValues};
+        return receiveUserProfile(state, {...existingProfile, custom_profile_attributes: profileAttributes});
+    }
+    case UserTypes.CLEAR_CPA_VALUES: {
+        const {fieldId} = action.data;
+
+        return Object.values(state).reduce<Record<string, UserProfile>>((nextState, profile) => {
+            // Only modify profiles that have this field value
+            if (profile.custom_profile_attributes && profile.custom_profile_attributes[fieldId] !== undefined) {
+                const newAttributes = {...profile.custom_profile_attributes};
+                delete newAttributes[fieldId];
+
+                nextState[profile.id] = {
+                    ...profile,
+                    custom_profile_attributes: newAttributes,
+                };
+            } else {
+                nextState[profile.id] = profile;
+            }
+
+            return nextState;
+        }, {});
+    }
     case UserTypes.RECEIVED_PROFILES_LIST: {
-        const users: UserProfile[] = action.data;
+        const users: UserProfile[] = action.data || [] as UserProfile[];
 
         return users.reduce(receiveUserProfile, state);
     }
@@ -264,7 +294,7 @@ function profiles(state: UsersState['profiles'] = {}, action: AnyAction) {
     }
 }
 
-function profilesInTeam(state: UsersState['profilesInTeam'] = {}, action: AnyAction) {
+function profilesInTeam(state: UsersState['profilesInTeam'] = {}, action: MMReduxAction) {
     switch (action.type) {
     case UserTypes.RECEIVED_PROFILE_IN_TEAM:
         return addProfileToSet(state, action.data.id, action.data.user_id);
@@ -292,7 +322,7 @@ function profilesInTeam(state: UsersState['profilesInTeam'] = {}, action: AnyAct
     }
 }
 
-function profilesNotInTeam(state: UsersState['profilesNotInTeam'] = {}, action: AnyAction) {
+function profilesNotInTeam(state: UsersState['profilesNotInTeam'] = {}, action: MMReduxAction) {
     switch (action.type) {
     case UserTypes.RECEIVED_PROFILE_NOT_IN_TEAM:
         return addProfileToSet(state, action.data.id, action.data.user_id);
@@ -320,38 +350,7 @@ function profilesNotInTeam(state: UsersState['profilesNotInTeam'] = {}, action: 
     }
 }
 
-function profilesWithoutTeam(state: UsersState['profilesWithoutTeam'] = new Set<string>(), action: AnyAction) {
-    switch (action.type) {
-    case UserTypes.RECEIVED_PROFILE_WITHOUT_TEAM: {
-        const nextSet = new Set(state);
-        Object.values(action.data as string[]).forEach((id: string) => nextSet.add(id));
-        return nextSet;
-    }
-    case UserTypes.RECEIVED_PROFILES_LIST_WITHOUT_TEAM: {
-        const nextSet = new Set(state);
-        action.data.forEach((user: UserProfile) => nextSet.add(user.id));
-        return nextSet;
-    }
-    case UserTypes.RECEIVED_PROFILE_IN_TEAM: {
-        const nextSet = new Set(state);
-        nextSet.delete(action.data.id);
-        return nextSet;
-    }
-    case UserTypes.PROFILE_NO_LONGER_VISIBLE: {
-        const nextSet = new Set(state);
-        nextSet.delete(action.data.user_id);
-        return nextSet;
-    }
-
-    case UserTypes.LOGOUT_SUCCESS:
-        return new Set<string>();
-
-    default:
-        return state;
-    }
-}
-
-function profilesInChannel(state: UsersState['profilesInChannel'] = {}, action: AnyAction) {
+function profilesInChannel(state: UsersState['profilesInChannel'] = {}, action: MMReduxAction) {
     switch (action.type) {
     case UserTypes.RECEIVED_PROFILE_IN_CHANNEL:
         return addProfileToSet(state, action.data.id, action.data.user_id);
@@ -383,7 +382,7 @@ function profilesInChannel(state: UsersState['profilesInChannel'] = {}, action: 
     }
 }
 
-function profilesNotInChannel(state: UsersState['profilesNotInChannel'] = {}, action: AnyAction) {
+function profilesNotInChannel(state: UsersState['profilesNotInChannel'] = {}, action: MMReduxAction) {
     switch (action.type) {
     case UserTypes.RECEIVED_PROFILE_NOT_IN_CHANNEL:
         return addProfileToSet(state, action.data.id, action.data.user_id);
@@ -422,7 +421,7 @@ function profilesNotInChannel(state: UsersState['profilesNotInChannel'] = {}, ac
     }
 }
 
-function profilesInGroup(state: UsersState['profilesInGroup'] = {}, action: AnyAction) {
+function profilesInGroup(state: UsersState['profilesInGroup'] = {}, action: MMReduxAction) {
     switch (action.type) {
     case UserTypes.RECEIVED_PROFILES_LIST_IN_GROUP: {
         return profileListToSet(state, action);
@@ -468,7 +467,7 @@ function profilesInGroup(state: UsersState['profilesInGroup'] = {}, action: AnyA
     }
 }
 
-function profilesNotInGroup(state: UsersState['profilesNotInGroup'] = {}, action: AnyAction) {
+function profilesNotInGroup(state: UsersState['profilesNotInGroup'] = {}, action: MMReduxAction) {
     switch (action.type) {
     case UserTypes.RECEIVED_PROFILES_FOR_GROUP: {
         const id = action.id;
@@ -499,7 +498,7 @@ function profilesNotInGroup(state: UsersState['profilesNotInGroup'] = {}, action
     }
 }
 
-function dndEndTimes(state: UsersState['dndEndTimes'] = {}, action: AnyAction) {
+function dndEndTimes(state: UsersState['dndEndTimes'] = {}, action: MMReduxAction) {
     switch (action.type) {
     case UserTypes.RECEIVED_DND_END_TIMES: {
         return {...state, ...action.data};
@@ -520,7 +519,7 @@ function dndEndTimes(state: UsersState['dndEndTimes'] = {}, action: AnyAction) {
     }
 }
 
-function statuses(state: RelationOneToOne<UserProfile, string> = {}, action: AnyAction) {
+function statuses(state: RelationOneToOne<UserProfile, string> = {}, action: MMReduxAction) {
     switch (action.type) {
     case UserTypes.RECEIVED_STATUSES: {
         return {...state, ...action.data};
@@ -542,7 +541,7 @@ function statuses(state: RelationOneToOne<UserProfile, string> = {}, action: Any
     }
 }
 
-function isManualStatus(state: RelationOneToOne<UserProfile, boolean> = {}, action: AnyAction) {
+function isManualStatus(state: RelationOneToOne<UserProfile, boolean> = {}, action: MMReduxAction) {
     switch (action.type) {
     case UserTypes.RECEIVED_STATUSES_IS_MANUAL: {
         return {...state, ...action.data};
@@ -564,7 +563,7 @@ function isManualStatus(state: RelationOneToOne<UserProfile, boolean> = {}, acti
     }
 }
 
-function myUserAccessTokens(state: UsersState['myUserAccessTokens'] = {}, action: AnyAction) {
+function myUserAccessTokens(state: UsersState['myUserAccessTokens'] = {}, action: MMReduxAction) {
     switch (action.type) {
     case UserTypes.RECEIVED_MY_USER_ACCESS_TOKEN: {
         const nextState = {...state};
@@ -615,7 +614,7 @@ function myUserAccessTokens(state: UsersState['myUserAccessTokens'] = {}, action
     }
 }
 
-function stats(state: UsersState['stats'] = {}, action: AnyAction) {
+function stats(state: UsersState['stats'] = {}, action: MMReduxAction) {
     switch (action.type) {
     case UserTypes.RECEIVED_USER_STATS: {
         const stat = action.data;
@@ -629,7 +628,7 @@ function stats(state: UsersState['stats'] = {}, action: AnyAction) {
     }
 }
 
-function filteredStats(state: UsersState['filteredStats'] = {}, action: AnyAction) {
+function filteredStats(state: UsersState['filteredStats'] = {}, action: MMReduxAction) {
     switch (action.type) {
     case UserTypes.RECEIVED_FILTERED_USER_STATS: {
         const stat = action.data;
@@ -643,7 +642,7 @@ function filteredStats(state: UsersState['filteredStats'] = {}, action: AnyActio
     }
 }
 
-function lastActivity(state: UsersState['lastActivity'] = {}, action: AnyAction) {
+function lastActivity(state: UsersState['lastActivity'] = {}, action: MMReduxAction) {
     switch (action.type) {
     case UserTypes.RECEIVED_LAST_ACTIVITIES: {
         return {...state, ...action.data};
@@ -685,9 +684,6 @@ export default combineReducers({
 
     // object where every key is a team id and has a Set with the users id that are not members of the team
     profilesNotInTeam,
-
-    // set with user ids for users that are not on any team
-    profilesWithoutTeam,
 
     // object where every key is a channel id and has a Set with the users id that are members of the channel
     profilesInChannel,

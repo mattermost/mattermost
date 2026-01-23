@@ -92,8 +92,7 @@ func TestParamsFromRequest(t *testing.T) {
 			mustURL("?page=hello"),
 			nil,
 			&Params{
-				Page: PageDefault,
-
+				Page:        PageDefault,
 				PerPage:     PerPageDefault,
 				LogsPerPage: LogsPerPageDefault,
 				LimitAfter:  LimitDefault,
@@ -105,8 +104,7 @@ func TestParamsFromRequest(t *testing.T) {
 			mustURL("?page=-1"),
 			nil,
 			&Params{
-				Page: PageDefault,
-
+				Page:        PageDefault,
 				PerPage:     PerPageDefault,
 				LogsPerPage: LogsPerPageDefault,
 				LimitAfter:  LimitDefault,
@@ -480,7 +478,6 @@ func TestParamsFromRequest(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		testCase := testCase
 		t.Run(testCase.Description, func(t *testing.T) {
 			t.Parallel()
 

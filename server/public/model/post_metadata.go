@@ -3,6 +3,10 @@
 
 package model
 
+import (
+	"maps"
+)
+
 type PostMetadata struct {
 	// Embeds holds information required to render content embedded in the post. This includes the OpenGraph metadata
 	// for links in the post.
@@ -28,6 +32,9 @@ type PostMetadata struct {
 
 	// Acknowledgements holds acknowledgements made by users to the post
 	Acknowledgements []*PostAcknowledgement `json:"acknowledgements,omitempty"`
+
+	ExpireAt   int64    `json:"expire_at,omitempty"`
+	Recipients []string `json:"recipients,omitempty"`
 }
 
 func (p *PostMetadata) Auditable() map[string]any {
@@ -73,9 +80,7 @@ func (p *PostMetadata) Copy() *PostMetadata {
 	copy(filesCopy, p.Files)
 
 	imagesCopy := map[string]*PostImage{}
-	for k, v := range p.Images {
-		imagesCopy[k] = v
-	}
+	maps.Copy(imagesCopy, p.Images)
 
 	reactionsCopy := make([]*Reaction, len(p.Reactions))
 	copy(reactionsCopy, p.Reactions)

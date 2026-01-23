@@ -7,11 +7,8 @@ import {CloudTypes} from 'mattermost-redux/action_types';
 import {getCloudCustomer, getCloudProducts, getCloudSubscription, getInvoices} from 'mattermost-redux/actions/cloud';
 import {Client4} from 'mattermost-redux/client';
 import {getCloudErrors} from 'mattermost-redux/selectors/entities/cloud';
-import type {ActionFunc, ThunkActionFunc} from 'mattermost-redux/types/actions';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
-
-import type {GlobalState} from 'types/store';
+import type {ActionFunc, ThunkActionFunc} from 'types/store';
 
 export function getInstallation() {
     return async () => {
@@ -25,7 +22,6 @@ export function getInstallation() {
 }
 
 export function validateBusinessEmail(email = '') {
-    trackEvent('api', 'api_validate_business_email');
     return async () => {
         try {
             const res = await Client4.validateBusinessEmail(email);
@@ -37,7 +33,6 @@ export function validateBusinessEmail(email = '') {
 }
 
 export function validateWorkspaceBusinessEmail() {
-    trackEvent('api', 'api_validate_workspace_business_email');
     return async () => {
         try {
             const res = await Client4.validateWorkspaceBusinessEmail();
@@ -125,7 +120,21 @@ export function getTeamsUsage(): ThunkActionFunc<Promise<boolean | ServerError>>
     };
 }
 
-export function retryFailedCloudFetches(): ActionFunc<boolean, GlobalState> {
+export function getCloudPreviewModalData(): ThunkActionFunc<Promise<boolean | ServerError>> {
+    return async () => {
+        try {
+            const result = await Client4.getCloudPreviewModalData();
+            if (result) {
+                return {data: result};
+            }
+        } catch (error) {
+            return error;
+        }
+        return true;
+    };
+}
+
+export function retryFailedCloudFetches(): ActionFunc<boolean> {
     return (dispatch, getState) => {
         const errors = getCloudErrors(getState());
         if (Object.keys(errors).length === 0) {

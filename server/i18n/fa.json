@@ -244,10 +244,6 @@
     "translation": "شناسه اصلی نامعتبر است."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "پیام نامعتبر است."
-  },
-  {
     "id": "model.post.is_valid.id.app_error",
     "translation": "شناسه نامعتبر است."
   },
@@ -1248,10 +1244,6 @@
     "translation": "یک یا چند پست به سایت راه دور {{.Remote}} تحویل داده نشد زیرا آفلاین است. پست(ها) زمانی که سایت آنلاین باشد تحویل داده می شود."
   },
   {
-    "id": "searchengine.bleve.disabled.error",
-    "translation": "خطا در پاکسازی شاخص های Bleve: موتور غیرفعال است"
-  },
-  {
     "id": "plugin_api.send_mail.missing_to",
     "translation": "آدرس TO موجود نیست."
   },
@@ -1696,74 +1688,6 @@
     "translation": "داده صادرات پیام انتخاب نشد."
   },
   {
-    "id": "ent.message_export.global_relay_export.get_attachment_error",
-    "translation": "دریافت اطلاعات پرونده برای یک پست انجام نشد."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "پرونده موقت صادرات باز نمی شود."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "دریافت ایمیل از پرونده موقت امکان پذیر نیست."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "نمی توان اطلاعات پرونده موقت صادرات را بدست آورد."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
-    "translation": "اتصال به سرور smtp امکان پذیر نیست"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "نمی توان ایمیل را برای آدرس دهی تنظیم کرد."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "خواندن اطلاعات ایمیل امکان پذیر نیست."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "نوشتن پیام ایمیل امکان پذیر نیست."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "پیام ایمیل قابل تنظیم نیست."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "تنظیم ایمیل از آدرس امکان پذیر نیست."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "تحویل ایمیل به Global Relay امکان پذیر نیست."
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "تولید داده های فایل EML امکان پذیر نیست."
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "ایجاد پرونده EML امکان پذیر نیست."
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "پرونده zip بسته نمی شود."
-  },
-  {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "پیوست به صادرات رله جهانی امکان پذیر نیست."
-  },
-  {
-    "id": "ent.message_export.csv_export.get_attachment_error",
-    "translation": "دریافت اطلاعات پرونده برای یک پست انجام نشد."
-  },
-  {
-    "id": "ent.message_export.actiance_export.get_attachment_error",
-    "translation": "دریافت اطلاعات پرونده برای یک پست انجام نشد."
-  },
-  {
     "id": "ent.ldap_id_migrate.app_error",
     "translation": "قادر به مهاجرت نیست."
   },
@@ -1896,10 +1820,6 @@
     "translation": "مجوز شما از ID Loaded Push Notifications پشتیبانی نمی کند."
   },
   {
-    "id": "ent.get_users_in_channel_during",
-    "translation": "در دوره زمانی مشخص کاربران در کانال قرار نگرفتند."
-  },
-  {
     "id": "ent.elasticsearch.test_config.reenter_password",
     "translation": "URL یا نام کاربری جستجوی الاستیک سرور تغییر کرده است. برای آزمایش اتصال ، لطفاً رمز ورود جستجوی الاستیک را دوباره وارد کنید."
   },
@@ -1974,10 +1894,6 @@
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
     "translation": "شاخص های جستجوی الاستیک بازخوانی نشد"
-  },
-  {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "ایندکس Elasticsearch حذف نشد"
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
@@ -2302,18 +2218,6 @@
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "هنگام فعال کردن خوشه بندی ، امکان فعال سازی دسته ای ایمیل وجود ندارد."
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "Bleve IndexingDir باید تنظیم شود وقتی Bleve EnableIndexing روی true تنظیم شود"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "وقتی Bleve EnableSearching روی true تنظیم شد ، باید تنظیمات Indexing روی true باشد"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "وقتی Bleve EnableAutocomplete روی true تنظیم می شود باید تنظیمات Indexing روی true باشد"
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_missing.error",
@@ -2992,14 +2896,6 @@
     "translation": "حساب های مهمان غیرفعال شده است"
   },
   {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "تلاش برای استفاده از ویژگی آزمایشی ClientSideCertEnable بدون مجوز معتبر شرکت."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "سعی در ورود به سیستم با استفاده از ویژگی آزمایشی ClientSideCert بدون ارائه گواهی معتبر است."
-  },
-  {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "ورود بات ممنوع است."
   },
@@ -3268,72 +3164,8 @@
     "translation": "صادرات انطباق برای کار '{{.JobName}}' در '{{.FilePath}}' انجام نشد"
   },
   {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "بارگیری الگوهای صادرات امکان پذیر نیست. لطفا دوباره تلاش کنید."
-  },
-  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "عملکرد انطباق توسط مجوز فعلی غیرفعال شده است. لطفاً در مورد به روزرسانی مجوز شرکت خود با سرپرست سیستم خود تماس بگیرید."
-  },
-  {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "خواندن مجدد پرونده صادرات موقت رله جهانی امکان پذیر نیست."
-  },
-  {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "پرونده صادرات موقت باز نمی شود."
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "پرونده بارگذاری شده از صادرات رله جهانی حذف شد زیرا برای ارسال بسیار بزرگ بود."
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "ایجاد پرونده صادرات zip امکان پذیر نیست."
-  },
-  {
-    "id": "ent.compliance.csv.write_file.appError",
-    "translation": "امکان نوشتن فایل csv وجود ندارد."
-  },
-  {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "ایجاد پرونده هشدار امکان پذیر نیست."
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "صادر کردن پست امکان پذیر نیست."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "ایجاد فایل zip امکان پذیر نیست"
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "تبدیل فراداده به json امکان پذیر نیست."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "اضافه کردن پرونده فراداده به پرونده zip امکان پذیر نیست."
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "افزودن سرصفحه به صادرات CSV امکان پذیر نیست."
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "ایجاد پرونده صادرات CSV موقت امکان پذیر نیست."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "پیوست به صادرات CSV اضافه نمی شود."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "پیوست در پرونده zip کپی نمی شود."
-  },
-  {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "قالب خروجی ناشناخته {{.ExportType}}"
   },
   {
     "id": "ent.cluster.timeout.error",
@@ -3354,14 +3186,6 @@
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " پرونده ای را ضمیمه کرد."
-  },
-  {
-    "id": "ent.actiance.export.write_file.appError",
-    "translation": "امکان نوشتن فایل export وجود ندارد."
-  },
-  {
-    "id": "ent.actiance.export.marshalToXml.appError",
-    "translation": "صادرات به XML قابل تبدیل نیست."
   },
   {
     "id": "ent.account_migration.get_saml_users_failed",
@@ -3390,162 +3214,6 @@
   {
     "id": "brand.save_brand_image.check_image_limits.app_error",
     "translation": "بررسی محدودیت های تصویر ناموفق بود. رزولوشن خیلی بالاست"
-  },
-  {
-    "id": "bleveengine.stop_user_index.error",
-    "translation": "ایندکس کاربر بسته نشد."
-  },
-  {
-    "id": "bleveengine.stop_post_index.error",
-    "translation": "ایندکس پست بسته نشد."
-  },
-  {
-    "id": "bleveengine.stop_file_index.error",
-    "translation": "فهرست فایل بسته نشد."
-  },
-  {
-    "id": "bleveengine.stop_channel_index.error",
-    "translation": "ایندکس کانال بسته نشد."
-  },
-  {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "جستجوی کاربر کامل نشد."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "جستجوی کاربر کامل نشد."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "جستجوی کاربر کامل نشد."
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "جستجوی پست کامل نشد."
-  },
-  {
-    "id": "bleveengine.search_files.error",
-    "translation": "جستجوی فایل کامل نشد."
-  },
-  {
-    "id": "bleveengine.search_channels.error",
-    "translation": "جستجوی کانال کامل نشد."
-  },
-  {
-    "id": "bleveengine.purge_user_index.error",
-    "translation": "ایندکس های کاربرپاک نشدند."
-  },
-  {
-    "id": "bleveengine.purge_post_index.error",
-    "translation": "ایندکس های پست پاک نشدند."
-  },
-  {
-    "id": "bleveengine.purge_file_index.error",
-    "translation": "فهرست‌های فایل پاک نشد."
-  },
-  {
-    "id": "bleveengine.purge_channel_index.error",
-    "translation": "ایندکس های کانال پاک نشدند."
-  },
-  {
-    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "سعی می شود وقتی تمام موجودیت ها تکمیل شد ، یک دسته جدید را ایندکس سازی کنید."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "کارگر ایندکس سازی Bleve در تجزیه زمان شروع موفق نشد.."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "کارگر ایندکس سازی Bleve در تجزیه زمان پایان موفق نشد."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": "قدیمی ترین موجودیت (کاربر، کانال یا پست) را نمی توان از پایگاه داده بازیابی کرد."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "ایندکس Bleve اجرا نشد: موتور غیرفعال است."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "ایندکس دسته ای کاربرانجام نشد."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "ایندکس دسته ای پست انجام نشد."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
-    "translation": "فهرست بندی دسته ای فایل انجام نشد."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "ایندکس دسته ای کانال انجام نشد."
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "ایندکس کاربرانجام نشد."
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "ایندکس پست انجام نشد."
-  },
-  {
-    "id": "bleveengine.index_file.error",
-    "translation": "فهرست کردن فایل انجام نشد."
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "ایندکس کانال انجام نشد."
-  },
-  {
-    "id": "bleveengine.delete_user_posts.error",
-    "translation": "پست های کاربر حذف نشد"
-  },
-  {
-    "id": "bleveengine.delete_user_files.error",
-    "translation": "فایل های پست حذف نشد."
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "کاربر حذف نشد."
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "پست حذف نشد."
-  },
-  {
-    "id": "bleveengine.delete_files_batch.error",
-    "translation": "فایل ها حذف نشدند."
-  },
-  {
-    "id": "bleveengine.delete_file.error",
-    "translation": "فایل حذف نشد."
-  },
-  {
-    "id": "bleveengine.delete_channel_posts.error",
-    "translation": "پست های کانال حذف نشد"
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "کانال حذف نشد."
-  },
-  {
-    "id": "bleveengine.create_user_index.error",
-    "translation": "خطا در ایجاد ایندکس کاربر bleve."
-  },
-  {
-    "id": "bleveengine.create_post_index.error",
-    "translation": "خطا در ایجاد ایندکس پست bleve."
-  },
-  {
-    "id": "bleveengine.create_channel_index.error",
-    "translation": "خطا در ایجاد ایندکس کانال bleve."
-  },
-  {
-    "id": "bleveengine.already_started.error",
-    "translation": "Bleve قبلاً شروع شده است."
   },
   {
     "id": "app.webhooks.update_outgoing.app_error",
@@ -3996,10 +3664,6 @@
     "translation": "دریافت پست های کانال امکان پذیر نیست."
   },
   {
-    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "دریافت دسته ای از پست ها برای ایندکس سازی امکان پذیر نیست."
-  },
-  {
     "id": "app.post.get_posts_around.get.app_error",
     "translation": "دریافت پست های کانال امکان پذیر نیست."
   },
@@ -4018,10 +3682,6 @@
   {
     "id": "app.post.get_flagged_posts.app_error",
     "translation": "دریافت پست های پرچم دار امکان پذیر نیست."
-  },
-  {
-    "id": "app.post.get_files_batch_for_indexing.get.app_error",
-    "translation": "نمی توان دسته ای از فایل ها را برای نمایه سازی دریافت کرد."
   },
   {
     "id": "app.post.get_direct_posts.app_error",
@@ -4194,10 +3854,6 @@
   {
     "id": "app.plugin.get_cluster_plugin_statuses.app_error",
     "translation": "دریافت وضعیت پلاگین از خوشه امکان پذیر نیست."
-  },
-  {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "تنظیم پلاگین بصورت مدیریت شده توسط فروشگاه پرونده امکان پذیر نیست."
   },
   {
     "id": "app.plugin.filesystem.app_error",
@@ -4558,10 +4214,6 @@
   {
     "id": "api.unmarshal_error",
     "translation": "بازگشایی نشد."
-  },
-  {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "خطا در خواندن فایل از backend"
   },
   {
     "id": "api.unable_to_create_zip_file",
@@ -5356,10 +5008,6 @@
     "translation": "دریافت کانال توسط شناسه امکان پذیر نیست."
   },
   {
-    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "دریافت دسته کانالها برای ایندکس سازی امکان پذیر نیست."
-  },
-  {
     "id": "app.channel.get_channels.not_found.app_error",
     "translation": "هیچ کانال پیدا نشد."
   },
@@ -5532,10 +5180,6 @@
     "translation": "وب هوک در بین تیم ها به روز نمی شود."
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "رمزگشایی بارگیری چند بخشی از وب هوک امکان پذیر نیست."
-  },
-  {
     "id": "api.webhook.create_outgoing.triggers.app_error",
     "translation": "trigger_words یا channel_id باید تنظیم شوند."
   },
@@ -5570,14 +5214,6 @@
   {
     "id": "api.web_socket.connect.upgrade.app_error",
     "translation": "اتصال وب سوکت به روز نشد."
-  },
-  {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "نمی توان کاربران را برای یک کانال بایگانی شده بازیابی کرد"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "نمی توان پست های یک کانال بایگانی شده را بازیابی کرد"
   },
   {
     "id": "api.user.verify_email.token_parse.error",
@@ -7005,10 +6641,6 @@
     "translation": "پیکربندی داده شده ادغام نشد."
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "قالب جدید برای پیکربندی سرویس گیرنده هنوز پشتیبانی نمی شود. لطفا format=old را در رشته جستجو مشخص کنید."
-  },
-  {
     "id": "api.command_shrug.name",
     "translation": "شانه بالا"
   },
@@ -7545,10 +7177,6 @@
     "translation": "invalid_request: بد grant_type."
   },
   {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: گم شده client_secret."
-  },
-  {
     "id": "api.command_invite.channel.app_error",
     "translation": "خطا در بازیابی کانال فعلی."
   },
@@ -8074,10 +7702,6 @@
   {
     "id": "api.channel.leave.left",
     "translation": "%v کانال را ترک کرد."
-  },
-  {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "شما تنها عضو باقیمانده هستید ، به جای خروج ، کانال خصوصی را حذف کنید."
   },
   {
     "id": "api.channel.leave.direct.app_error",

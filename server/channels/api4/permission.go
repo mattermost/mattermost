@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 func (api *API) InitPermissions() {
@@ -25,5 +26,7 @@ func appendAncillaryPermissionsPost(c *Context, w http.ResponseWriter, r *http.R
 		c.SetJSONEncodingError(err)
 		return
 	}
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }

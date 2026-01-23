@@ -13,7 +13,6 @@ import * as TeamActions from 'mattermost-redux/actions/teams';
 import {getChannelMembersInChannels} from 'mattermost-redux/selectors/entities/channels';
 import {getTeamMember} from 'mattermost-redux/selectors/entities/teams';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc, ActionFuncAsync} from 'mattermost-redux/types/actions';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import {addUsersToTeam} from 'actions/team_actions';
@@ -22,6 +21,8 @@ import type {InviteResult} from 'components/invitation_modal/result_table';
 import type {InviteResults} from 'components/invitation_modal/result_view';
 
 import {ConsolePages} from 'utils/constants';
+
+import type {DispatchFunc, ActionFuncAsync} from 'types/store';
 
 export function sendMembersInvites(teamId: string, users: UserProfile[], emails: string[]): ActionFuncAsync<InviteResults> {
     return async (dispatch, getState) => {
@@ -120,6 +121,7 @@ export function sendMembersInvites(teamId: string, users: UserProfile[], emails:
                             email,
                             reason: defineMessage({
                                 id: 'admin.environment.smtp.smtpFailure',
+                                // eslint-disable-next-line formatjs/enforce-placeholders -- a placeholder provided via messageWithLink when path is set
                                 defaultMessage: 'SMTP is not configured in System Console. Can be configured <a>here</a>.',
                             }),
                             path: ConsolePages.SMTP,
@@ -228,6 +230,7 @@ export async function sendGuestInviteForUser(
             user,
             reason: defineMessage({
                 id: 'invite.guests.new-member',
+                // eslint-disable-next-line formatjs/enforce-placeholders -- count provided via values property, consumed by FormattedMessage in result_table
                 defaultMessage: 'This guest has been added to the team and {count, plural, one {channel} other {channels}}.',
                 values: {
                     count: channels.length,
@@ -243,6 +246,7 @@ export function sendGuestsInvites(
     users: UserProfile[],
     emails: string[],
     message: string,
+    guestMagicLink = false,
 ): ActionFuncAsync<InviteResults> {
     return async (dispatch, getState) => {
         const state = getState();
@@ -263,7 +267,7 @@ export function sendGuestsInvites(
         if (emails.length > 0) {
             let response;
             try {
-                response = await dispatch(TeamActions.sendEmailGuestInvitesToChannelsGracefully(teamId, channels.map((x) => x.id), emails, message));
+                response = await dispatch(TeamActions.sendEmailGuestInvitesToChannelsGracefully(teamId, channels.map((x) => x.id), emails, message, guestMagicLink));
             } catch (e) {
                 response = {
                     data: emails.map((email) => ({
@@ -299,6 +303,7 @@ export function sendGuestsInvites(
                                 email: res.email,
                                 reason: defineMessage({
                                     id: 'admin.environment.smtp.smtpFailure',
+                                    // eslint-disable-next-line formatjs/enforce-placeholders -- a placeholder provided via messageWithLink when path is set
                                     defaultMessage: 'SMTP is not configured in System Console. Can be configured <a>here</a>.',
                                 }),
                                 path: ConsolePages.SMTP,
@@ -443,6 +448,7 @@ export function sendMembersInvitesToChannels(
                                 email,
                                 reason: defineMessage({
                                     id: 'admin.environment.smtp.smtpFailure',
+                                    // eslint-disable-next-line formatjs/enforce-placeholders -- a placeholder provided via messageWithLink when path is set
                                     defaultMessage: 'SMTP is not configured in System Console. Can be configured <a>here</a>.',
                                 }),
                                 path: ConsolePages.SMTP,

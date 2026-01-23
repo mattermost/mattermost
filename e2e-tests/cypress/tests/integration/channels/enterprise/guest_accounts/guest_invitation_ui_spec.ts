@@ -53,7 +53,7 @@ describe('Guest Account - Guest User Invitation Flow', () => {
 
     it('MM-T4451 Verify UI Elements of Guest User Invitation Flow', () => {
         // # Open team menu and click 'Invite People'
-        cy.uiOpenTeamMenu('Invite People');
+        cy.uiOpenTeamMenu('Invite people');
 
         // * Verify Invite Guest link
         cy.findByTestId('inviteGuestLink').should('be.visible').click();
@@ -117,7 +117,7 @@ describe('Guest Account - Guest User Invitation Flow', () => {
         cy.visit(`/${testTeam.name}/channels/town-square`);
 
         // # Open team menu and click 'Invite People'
-        cy.uiOpenTeamMenu('Invite People');
+        cy.uiOpenTeamMenu('Invite people');
 
         // * Verify if Invite Members modal is displayed when guest account feature is disabled
         cy.findByTestId('invitationModal').find('h1').should('have.text', `Invite people to ${testTeam.display_name}`);
@@ -164,7 +164,7 @@ describe('Guest Account - Guest User Invitation Flow', () => {
         cy.apiDemoteUserToGuest(newUser.id);
 
         // # Open team menu and click 'Invite People'
-        cy.uiOpenTeamMenu('Invite People');
+        cy.uiOpenTeamMenu('Invite people');
 
         // # Click invite members if needed
         cy.get('.InviteAs').findByTestId('inviteMembersLink').click();
@@ -226,7 +226,7 @@ describe('Guest Account - Guest User Invitation Flow', () => {
 
     it('hides the copy link button when inviting guests', () => {
         // # Open team menu and click 'Invite People'
-        cy.uiOpenTeamMenu('Invite People');
+        cy.uiOpenTeamMenu('Invite people');
 
         // # Select Guest
         cy.findByTestId('inviteGuestLink').should('be.visible').click();

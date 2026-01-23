@@ -12,7 +12,7 @@ import {asGBString, inK} from 'utils/limits';
 import LimitLine from './limit_line';
 
 export function messageToElement(x: Message | React.ReactNode): React.ReactNode {
-    if (Object.prototype.hasOwnProperty.call(x, 'defaultMessage')) {
+    if (isMessage(x)) {
         return (
             <FormattedMessage
                 id={(x as Message).id}
@@ -23,6 +23,10 @@ export function messageToElement(x: Message | React.ReactNode): React.ReactNode 
     }
 
     return x;
+}
+
+function isMessage(x: Message | React.ReactNode): x is Message {
+    return Boolean(x) && typeof x === 'object' && Object.hasOwn(x as object, 'defaultMessage');
 }
 
 interface Props {

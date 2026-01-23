@@ -14,8 +14,6 @@ import type {UserProfile, UserTimezone} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 import ThemeSetting from 'components/user_settings/display/user_settings_theme';
@@ -28,6 +26,7 @@ import {a11yFocus} from 'utils/utils';
 
 import ManageLanguages from './manage_languages';
 import ManageTimezones from './manage_timezones';
+import RenderEmoticonsAsEmoji from './render_emoticons_as_emoji';
 
 import SettingDesktopHeader from '../headers/setting_desktop_header';
 import SettingMobileHeader from '../headers/setting_mobile_header';
@@ -94,7 +93,6 @@ type Props = OwnProps & {
     closeModal: () => void;
     collapseModal: () => void;
     setRequireConfirm?: () => void;
-    setEnforceFocus?: () => void;
     timezones: Timezone[];
     userTimezone: UserTimezone;
     allowCustomThemes: boolean;
@@ -121,6 +119,7 @@ type Props = OwnProps & {
     timezoneLabel: string;
     lastActiveDisplay: boolean;
     lastActiveTimeEnabled: boolean;
+    renderEmoticonsAsEmoji: string;
     actions: {
         savePreferences: (userId: string, preferences: PreferenceType[]) => void;
         autoUpdateTimezone: (deviceTimezone: string) => void;
@@ -188,17 +187,6 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
     componentDidUpdate(prevProps: Props) {
         if (this.props.teammateNameDisplay !== prevProps.teammateNameDisplay) {
             this.updateState();
-        }
-    }
-
-    trackChangeIfNecessary(preference: PreferenceType, oldValue: any): void {
-        const props = {
-            field: 'display.' + preference.name,
-            value: preference.value,
-        };
-
-        if (preference.value !== oldValue) {
-            trackEvent('settings', 'user_settings_update', props);
         }
     }
 
@@ -317,8 +305,6 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             oneClickReactionsOnPostsPreference,
             colorizeUsernamesPreference,
         ];
-
-        this.trackChangeIfNecessary(collapsedReplyThreadsPreference, this.props.collapsedReplyThreads);
 
         await this.props.actions.savePreferences(userId, preferences);
 
@@ -841,7 +827,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             defaultDisplay: 'true',
             title: defineMessage({
                 id: 'user.settings.display.availabilityStatusOnPostsTitle',
-                defaultMessage: 'Show user availability on posts',
+                defaultMessage: 'Show online availability on profile images',
             }),
             firstOption: {
                 value: 'true',
@@ -1105,7 +1091,6 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                         areAllSectionsInactive={this.props.activeSection === ''}
                         updateSection={this.updateSection}
                         setRequireConfirm={this.props.setRequireConfirm}
-                        setEnforceFocus={this.props.setEnforceFocus}
                         allowCustomThemes={this.props.allowCustomThemes}
                     />
                     <div className='divider-dark'/>
@@ -1144,13 +1129,55 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 },
                 description: defineMessage({
                     id: 'user.settings.display.oneClickReactionsOnPostsDescription',
-                    defaultMessage: 'When enabled, you can react in one-click with recently used reactions when hovering over a message.',
+                    defaultMessage: 'When enabled, you can react quickly with recently used reactions when hovering over a message.',
                 }),
             });
         }
 
+        const renderEmoticonsAsEmojiSection = (
+            <div>
+                <SettingItem
+                    active={this.props.activeSection === 'renderEmoticonsAsEmoji'}
+                    areAllSectionsInactive={this.props.activeSection === ''}
+                    title={
+                        <FormattedMessage
+                            id='user.settings.display.renderEmoticonsAsEmojiTitle'
+                            defaultMessage='Render emoticons as emojis'
+                        />
+                    }
+                    describe={
+                        this.props.renderEmoticonsAsEmoji === 'true' ? (
+                            <FormattedMessage
+                                id='user.settings.advance.on'
+                                defaultMessage='On'
+                            />
+                        ) : (
+                            <FormattedMessage
+                                id='user.settings.advance.off'
+                                defaultMessage='Off'
+                            />
+                        )
+                    }
+                    section='renderEmoticonsAsEmoji'
+                    updateSection={this.updateSection}
+                    max={(
+                        <RenderEmoticonsAsEmoji
+                            renderEmoticonsAsEmoji={this.props.renderEmoticonsAsEmoji}
+                            user={this.props.user}
+                            updateSection={this.updateSection}
+                        />
+                    )}
+                />
+                <div className='divider-dark'/>
+            </div>
+        );
+
         return (
-            <div id='displaySettings'>
+            <div
+                id='displaySettings'
+                aria-labelledby='displayButton'
+                role='tabpanel'
+            >
                 <SettingMobileHeader
                     closeModal={this.props.closeModal}
                     collapseModal={this.props.collapseModal}
@@ -1185,6 +1212,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                     {clickToReply}
                     {channelDisplayModeSection}
                     {oneClickReactionsOnPostsSection}
+                    {renderEmoticonsAsEmojiSection}
                     {languagesSection}
                 </div>
             </div>

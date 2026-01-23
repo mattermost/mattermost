@@ -6,7 +6,7 @@ import {FormattedMessage} from 'react-intl';
 
 import SystemAnalytics from 'components/analytics/system_analytics';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 
 const StatTypes = Constants.StatTypes;
@@ -59,7 +59,7 @@ describe('components/analytics/system_analytics/system_analytics.tsx', () => {
         expect(screen.queryByTestId('totalPostsLineChart')).not.toBeInTheDocument();
     });
 
-    test('system data', () => {
+    test('system data', async () => {
         const state = {
             ...initialState,
             entities: {
@@ -90,20 +90,23 @@ describe('components/analytics/system_analytics/system_analytics.tsx', () => {
 
         renderWithContext(<SystemAnalytics {...baseProps}/>, state, {useMockedStore: true});
 
+        const detailsElement = screen.getByText('Load Advanced Statistics');
+        await userEvent.click(detailsElement);
+
+        await screen.findByTestId('totalPostsLineChart');
+
         expect(screen.getByTestId('totalPosts')).toHaveTextContent('45');
         expect(screen.getByTestId('totalPostsLineChart')).toBeInTheDocument();
     });
 
     test('plugins data', async () => {
-        const totalPlaybooksID = 'total_playbooks';
-        const totalPlaybookRunsID = 'total_playbook_runs';
         const playbooksStats = {
             playbook_count: {
                 id: 'total_playbooks',
                 icon: 'fa-book',
                 name:
     <FormattedMessage
-        id={totalPlaybooksID}
+        id='total_playbooks'
         defaultMessage='Total Playbooks'
     />,
                 value: 45,
@@ -113,7 +116,7 @@ describe('components/analytics/system_analytics/system_analytics.tsx', () => {
                 icon: 'fa-list-alt',
                 name:
     <FormattedMessage
-        id={totalPlaybookRunsID}
+        id='total_playbook_runs'
         defaultMessage='Total Runs'
     />,
                 value: 45,
@@ -231,7 +234,8 @@ describe('components/analytics/system_analytics/system_analytics.tsx', () => {
 
         renderWithContext(<SystemAnalytics {...baseProps}/>, state, {useMockedStore: true});
 
-        await new Promise(process.nextTick);
+        const detailsElement = screen.getByText('Load Advanced Statistics');
+        await userEvent.click(detailsElement);
 
         expect(screen.getByTestId('totalPosts')).toHaveTextContent('45');
         expect(screen.getByTestId('totalPostsLineChart')).toBeInTheDocument();

@@ -5,14 +5,16 @@ package model
 
 import (
 	"net/http"
+
+	"github.com/mattermost/mattermost/server/public/utils/timeutils"
 )
 
 const (
 	JobTypeDataRetention                 = "data_retention"
 	JobTypeMessageExport                 = "message_export"
+	JobTypeCLIMessageExport              = "cli_message_export"
 	JobTypeElasticsearchPostIndexing     = "elasticsearch_post_indexing"
 	JobTypeElasticsearchPostAggregation  = "elasticsearch_post_aggregation"
-	JobTypeBlevePostIndexing             = "bleve_post_indexing"
 	JobTypeLdapSync                      = "ldap_sync"
 	JobTypeMigrations                    = "migrations"
 	JobTypePlugins                       = "plugins"
@@ -36,10 +38,15 @@ const (
 	JobTypeS3PathMigration               = "s3_path_migration"
 	JobTypeCleanupDesktopTokens          = "cleanup_desktop_tokens"
 	JobTypeDeleteEmptyDraftsMigration    = "delete_empty_drafts_migration"
-	JobTypeRefreshPostStats              = "refresh_post_stats"
+	JobTypeRefreshMaterializedViews      = "refresh_materialized_views"
 	JobTypeDeleteOrphanDraftsMigration   = "delete_orphan_drafts_migration"
 	JobTypeExportUsersToCSV              = "export_users_to_csv"
 	JobTypeDeleteDmsPreferencesMigration = "delete_dms_preferences_migration"
+	JobTypeMobileSessionMetadata         = "mobile_session_metadata"
+	JobTypeAccessControlSync             = "access_control_sync"
+	JobTypePushProxyAuth                 = "push_proxy_auth"
+	JobTypeRecap                         = "recap"
+	JobTypeDeleteExpiredPosts            = "delete_expired_posts"
 
 	JobStatusPending         = "pending"
 	JobStatusInProgress      = "in_progress"
@@ -55,7 +62,6 @@ var AllJobTypes = [...]string{
 	JobTypeMessageExport,
 	JobTypeElasticsearchPostIndexing,
 	JobTypeElasticsearchPostAggregation,
-	JobTypeBlevePostIndexing,
 	JobTypeLdapSync,
 	JobTypeMigrations,
 	JobTypePlugins,
@@ -71,7 +77,8 @@ var AllJobTypes = [...]string{
 	JobTypeLastAccessiblePost,
 	JobTypeLastAccessibleFile,
 	JobTypeCleanupDesktopTokens,
-	JobTypeRefreshPostStats,
+	JobTypeRefreshMaterializedViews,
+	JobTypeMobileSessionMetadata,
 }
 
 type Job struct {
@@ -86,8 +93,8 @@ type Job struct {
 	Data           StringMap `json:"data"`
 }
 
-func (j *Job) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (j *Job) Auditable() map[string]any {
+	return map[string]any{
 		"id":               j.Id,
 		"type":             j.Type,
 		"priority":         j.Priority,
@@ -98,6 +105,75 @@ func (j *Job) Auditable() map[string]interface{} {
 		"progress":         j.Progress,
 		"data":             j.Data, // TODO do we want this here
 	}
+}
+
+func (j *Job) MarshalYAML() (any, error) {
+	return struct {
+		Id             string    `yaml:"id"`
+		Type           string    `yaml:"type"`
+		Priority       int64     `yaml:"priority"`
+		CreateAt       string    `yaml:"create_at"`
+		StartAt        string    `yaml:"start_at"`
+		LastActivityAt string    `yaml:"last_activity_at"`
+		Status         string    `yaml:"status"`
+		Progress       int64     `yaml:"progress"`
+		Data           StringMap `yaml:"data"`
+	}{
+		Id:             j.Id,
+		Type:           j.Type,
+		Priority:       j.Priority,
+		CreateAt:       timeutils.FormatMillis(j.CreateAt),
+		StartAt:        timeutils.FormatMillis(j.StartAt),
+		LastActivityAt: timeutils.FormatMillis(j.LastActivityAt),
+		Status:         j.Status,
+		Progress:       j.Progress,
+		Data:           j.Data,
+	}, nil
+}
+
+func (j *Job) UnmarshalYAML(unmarshal func(any) error) error {
+	out := struct {
+		Id             string    `yaml:"id"`
+		Type           string    `yaml:"type"`
+		Priority       int64     `yaml:"priority"`
+		CreateAt       string    `yaml:"create_at"`
+		StartAt        string    `yaml:"start_at"`
+		LastActivityAt string    `yaml:"last_activity_at"`
+		Status         string    `yaml:"status"`
+		Progress       int64     `yaml:"progress"`
+		Data           StringMap `yaml:"data"`
+	}{}
+
+	err := unmarshal(&out)
+	if err != nil {
+		return err
+	}
+
+	createAt, err := timeutils.ParseFormatedMillis(out.CreateAt)
+	if err != nil {
+		return err
+	}
+	updateAt, err := timeutils.ParseFormatedMillis(out.StartAt)
+	if err != nil {
+		return err
+	}
+	deleteAt, err := timeutils.ParseFormatedMillis(out.LastActivityAt)
+	if err != nil {
+		return err
+	}
+
+	*j = Job{
+		Id:             out.Id,
+		Type:           out.Type,
+		Priority:       out.Priority,
+		CreateAt:       createAt,
+		StartAt:        updateAt,
+		LastActivityAt: deleteAt,
+		Status:         out.Status,
+		Progress:       out.Progress,
+		Data:           out.Data,
+	}
+	return nil
 }
 
 func (j *Job) IsValid() *AppError {

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useRef, useMemo, memo} from 'react';
+import React, {useRef, useMemo, memo, useEffect} from 'react';
 
 import {Client4} from 'mattermost-redux/client';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
@@ -22,6 +22,7 @@ type OwnProps = {
     channelId?: string;
     disableHighlight?: boolean;
     disableGroupHighlight?: boolean;
+    fetchMissingUsers?: boolean;
 }
 
 type Props = OwnProps & PropsFromRedux;
@@ -33,6 +34,12 @@ const AtMention = (props: Props) => {
         () => getUserOrGroupFromMentionName(props.mentionName, props.usersByUsername, props.groupsByName, props.disableGroupHighlight),
         [props.mentionName, props.usersByUsername, props.groupsByName, props.disableGroupHighlight],
     );
+
+    useEffect(() => {
+        if (!user && !group && props.fetchMissingUsers) {
+            props.getMissingMentionedUsers(props.mentionName);
+        }
+    }, [props.mentionName]);
 
     const returnFocus = () => {
         document.dispatchEvent(new CustomEvent<A11yFocusEventDetail>(
@@ -53,20 +60,19 @@ const AtMention = (props: Props) => {
         return (
             <>
                 <ProfilePopover
-                    triggerComponentClass={classNames({'mention--highlight': highlightMention})}
+                    triggerComponentClass={classNames('style--none', {'mention--highlight': highlightMention})}
                     userId={user.id}
                     src={Client4.getProfilePictureUrl(user.id, user.last_picture_update)}
                     channelId={props.channelId}
                     returnFocus={returnFocus}
+                    triggerComponentAs='button'
                 >
-                    <a
+                    <span
                         ref={ref}
                         className='mention-link'
-                        role='button'
-                        tabIndex={0}
                     >
                         {'@' + userDisplayName}
-                    </a>
+                    </span>
                 </ProfilePopover>
                 {userMentionNameSuffix}
             </>

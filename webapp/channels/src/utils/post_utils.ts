@@ -10,6 +10,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import type {ServerError} from '@mattermost/types/errors';
 import type {Group} from '@mattermost/types/groups';
+import {isMessageAttachmentArray} from '@mattermost/types/message_attachments';
 import type {Post, PostPriorityMetadata} from '@mattermost/types/posts';
 import {PostPriority} from '@mattermost/types/posts';
 import type {Reaction} from '@mattermost/types/reactions';
@@ -59,7 +60,7 @@ export function fromAutoResponder(post: Post): boolean {
 }
 
 export function isFromWebhook(post: Post): boolean {
-    return post.props && post.props.from_webhook === 'true';
+    return post.props?.from_webhook === 'true';
 }
 
 export function isFromBot(post: Post): boolean {
@@ -153,6 +154,11 @@ export function shouldShowActionsMenu(state: GlobalState, post: Post): boolean {
     }
 
     if (isSystemMessage(post)) {
+        return false;
+    }
+
+    // Hide plugin/app actions for burn-on-read posts
+    if (post.type === Constants.PostTypes.BURN_ON_READ) {
         return false;
     }
 
@@ -545,7 +551,7 @@ export function createAriaLabelForPost(post: Post, author: string, isFlagged: bo
     }
 
     let attachmentCount = 0;
-    if (post.props && post.props.attachments) {
+    if (isMessageAttachmentArray(post.props?.attachments)) {
         attachmentCount += post.props.attachments.length;
     }
     if (post.file_ids) {
@@ -634,10 +640,27 @@ export function areConsecutivePostsBySameUser(post: Post, previousPost: Post): b
     if (!(post && previousPost)) {
         return false;
     }
-    return post.user_id === previousPost.user_id && // The post is by the same user
-        post.create_at - previousPost.create_at <= Posts.POST_COLLAPSE_TIMEOUT && // And was within a short time period
-        !(post.props && post.props.from_webhook) && !(previousPost.props && previousPost.props.from_webhook) && // And neither is from a webhook
-        !isSystemMessage(post) && !isSystemMessage(previousPost); // And neither is a system message
+
+    const sameUser = post.user_id === previousPost.user_id;
+    const withinTimeWindow = post.create_at - previousPost.create_at <= Posts.POST_COLLAPSE_TIMEOUT;
+    const notFromWebhook = !(post.props && post.props.from_webhook) && !(previousPost.props && previousPost.props.from_webhook);
+    const notSystemMessage = !isSystemMessage(post) && !isSystemMessage(previousPost);
+    const sameAiGeneratedStatus = post.props?.ai_generated_by === previousPost.props?.ai_generated_by;
+    const notBoRMessage = post.type !== Constants.PostTypes.BURN_ON_READ && previousPost.type !== Constants.PostTypes.BURN_ON_READ; // And neither is a burn-on-read post
+
+    return sameUser &&
+        withinTimeWindow &&
+        notFromWebhook &&
+        notSystemMessage &&
+        sameAiGeneratedStatus &&
+        notBoRMessage;
+}
+
+// Checks if a post has valid AI-generated metadata
+export function hasAiGeneratedMetadata(post: Post): boolean {
+    return Boolean(post.props && post.props.ai_generated_by && post.props.ai_generated_by_username) &&
+        typeof post.props.ai_generated_by === 'string' &&
+        typeof post.props.ai_generated_by_username === 'string';
 }
 
 // Constructs the URL of a post.
@@ -757,19 +780,32 @@ export function makeGetIsReactionAlreadyAddedToPost(): (state: GlobalState, post
     );
 }
 
-export function getMentionDetails(usersByUsername: Record<string, UserProfile | Group>, mentionName: string): UserProfile | Group | undefined {
+/**
+ * Given the text of an at-mention without the @, returns an array containing that text and every substring of it that
+ * can be made by removing trailing punctiuation.
+ *
+ * For example, getPotentialMentionsForName('username') returns ['username'] and
+ * getPotentialMentionsForName('username..') return ['username..', 'username.', 'username'].
+ */
+export function getPotentialMentionsForName(mentionName: string): string[] {
     let mentionNameToLowerCase = mentionName.toLowerCase();
 
-    while (mentionNameToLowerCase.length > 0) {
-        if (usersByUsername.hasOwnProperty(mentionNameToLowerCase)) {
-            return usersByUsername[mentionNameToLowerCase];
-        }
+    const potentialMentions = [mentionNameToLowerCase];
 
-        // Repeatedly trim off trailing punctuation in case this is at the end of a sentence
-        if ((/[._-]$/).test(mentionNameToLowerCase)) {
-            mentionNameToLowerCase = mentionNameToLowerCase.substring(0, mentionNameToLowerCase.length - 1);
-        } else {
-            break;
+    // Repeatedly trim off trailing punctuation in case this is at the end of a sentence
+    while (mentionNameToLowerCase.length > 0 && (/[._-]$/).test(mentionNameToLowerCase)) {
+        mentionNameToLowerCase = mentionNameToLowerCase.substring(0, mentionNameToLowerCase.length - 1);
+
+        potentialMentions.push(mentionNameToLowerCase);
+    }
+
+    return potentialMentions;
+}
+
+export function getMentionDetails<T extends UserProfile | Group>(entitiesByName: Record<string, T>, mentionName: string): T | undefined {
+    for (const potentialMention of getPotentialMentionsForName(mentionName)) {
+        if (Object.hasOwn(entitiesByName, potentialMention)) {
+            return entitiesByName[potentialMention];
         }
     }
 
@@ -783,11 +819,11 @@ export function getUserOrGroupFromMentionName(
     groupsDisabled?: boolean,
     getMention = getMentionDetails,
 ): [UserProfile?, Group?] {
-    const user = getMention(users, mentionName) as UserProfile | undefined;
+    const user = getMention(users, mentionName);
 
     // prioritizes user if user exists with the same name as a group.
     if (!user && !groupsDisabled) {
-        const group = getMention(groups, mentionName) as Group | undefined;
+        const group = getMention(groups, mentionName);
         if (group && !group.allow_reference) {
             return [undefined, undefined]; // remove group mention if not allowed to reference
         }

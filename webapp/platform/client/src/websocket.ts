@@ -1,12 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-const MAX_WEBSOCKET_FAILS = 7;
-const MIN_WEBSOCKET_RETRY_TIME = 3000; // 3 sec
-const MAX_WEBSOCKET_RETRY_TIME = 300000; // 5 mins
-const JITTER_RANGE = 2000; // 2 sec
-
-const WEBSOCKET_HELLO = 'hello';
+import {WebSocketEvents} from './websocket_events';
+import type {WebSocketMessage} from './websocket_message';
 
 export type MessageListener = (msg: WebSocketMessage) => void;
 export type FirstConnectListener = () => void;
@@ -15,9 +11,34 @@ export type MissedMessageListener = () => void;
 export type ErrorListener = (event: Event) => void;
 export type CloseListener = (connectFailCount: number) => void;
 
+export type WebSocketClientConfig = {
+    maxWebSocketFails: number;
+    minWebSocketRetryTime: number;
+    maxWebSocketRetryTime: number;
+    reconnectJitterRange: number;
+    newWebSocketFn: (url: string) => WebSocket;
+    clientPingInterval: number;
+}
+
+// Custom close error codes must be in the range of 4000-4999
+const clientPingTimeoutErrCode = 4000;
+const clientSequenceMismatchErrCode = 4001;
+
+const defaultWebSocketClientConfig: WebSocketClientConfig = {
+    maxWebSocketFails: 7,
+    minWebSocketRetryTime: 3000, // 3 seconds
+    maxWebSocketRetryTime: 300000, // 5 minutes
+    reconnectJitterRange: 2000, // 2 seconds
+    newWebSocketFn: (url: string) => {
+        return new WebSocket(url);
+    },
+    clientPingInterval: 30000, // 30 seconds
+};
+
 export default class WebSocketClient {
+    private config: WebSocketClientConfig;
+
     private conn: WebSocket | null;
-    private connectionUrl: string | null;
 
     // responseSequence is the number to track a response sent
     // via the websocket. A response will always have the same sequence number
@@ -29,6 +50,7 @@ export default class WebSocketClient {
     private serverSequence: number;
     private connectFailCount: number;
     private responseCallbacks: {[x: number]: ((msg: any) => void)};
+    private lastErrCode: string | null;
 
     /**
      * @deprecated Use messageListeners instead
@@ -68,24 +90,47 @@ export default class WebSocketClient {
     private closeListeners = new Set<CloseListener>();
 
     private connectionId: string | null;
+    private serverHostname: string | null;
     private postedAck: boolean;
 
-    constructor() {
+    private pingInterval: ReturnType<typeof setInterval> | null;
+    private waitingForPong: boolean;
+
+    // reconnectTimeout is used for automatic reconnect after socket close
+    private reconnectTimeout: ReturnType<typeof setTimeout> | null;
+
+    // Network event handlers
+    private onlineHandler: (() => void) | null = null;
+    private offlineHandler: (() => void) | null = null;
+
+    constructor(config?: Partial<WebSocketClientConfig>) {
         this.conn = null;
-        this.connectionUrl = null;
         this.responseSequence = 1;
         this.serverSequence = 0;
         this.connectFailCount = 0;
         this.responseCallbacks = {};
         this.connectionId = '';
+        this.serverHostname = '';
         this.postedAck = false;
+        this.reconnectTimeout = null;
+        this.config = {...defaultWebSocketClientConfig, ...config};
+        this.pingInterval = null;
+        this.waitingForPong = false;
+        this.lastErrCode = null;
     }
 
     // on connect, only send auth cookie and blank state.
     // on hello, get the connectionID and store it.
     // on reconnect, send cookie, connectionID, sequence number.
-    initialize(connectionUrl = this.connectionUrl, token?: string, postedAck?: boolean) {
+    initialize(connectionUrl: string, token?: string, postedAck?: boolean) {
         if (this.conn) {
+            return;
+        }
+
+        // We have a timeout waiting to re-initialize the websocket.
+        // We should wait until that fires before initializing,
+        // otherwise we may not respect the configured backoff.
+        if (this.reconnectTimeout) {
             return;
         }
 
@@ -102,16 +147,134 @@ export default class WebSocketClient {
             this.postedAck = postedAck;
         }
 
+        // Setup network event listener
+        // Remove existing listeners if any
+        if (this.onlineHandler) {
+            window.removeEventListener('online', this.onlineHandler);
+        }
+        if (this.offlineHandler) {
+            window.removeEventListener('offline', this.offlineHandler);
+        }
+
+        this.onlineHandler = () => {
+            // If we're already connected, don't need to do anything
+            if (this.conn && this.conn.readyState === WebSocket.OPEN) {
+                return;
+            }
+
+            console.log('network online event received, scheduling reconnect'); // eslint-disable-line no-console
+
+            // Set a timer to reconnect after a delay to avoid rapid connection attempts
+            this.clearReconnectTimeout();
+            this.reconnectTimeout = setTimeout(
+                () => {
+                    this.reconnectTimeout = null;
+                    this.initialize(connectionUrl, token, this.postedAck);
+                },
+                this.config.minWebSocketRetryTime,
+            );
+        };
+
+        this.offlineHandler = () => {
+            // If we've detected a full disconnection, don't need to do anything more
+            if (this.conn && this.conn.readyState !== WebSocket.OPEN) {
+                return;
+            }
+
+            console.log('network offline event received, checking connection'); // eslint-disable-line no-console
+
+            // If we haven't detected a full disconnection,
+            // send a ping immediately to test the socket
+            //
+            // NOTE: There is a potential race condition here with the regular ping interval.
+            // If we send this ping close to when the interval check occurs (e.g., at 29.5s of the 30s interval),
+            // the server might not have enough time to respond before the interval executes.
+            // When the interval runs, it will see we're still waiting for a pong and close the connection,
+            // even though the network might be fine and the server just needs a bit more time to respond.
+            // This race condition is rare and the impact is just an unnecessary reconnect,
+            // so we accept this limitation to keep the implementation simple.
+            this.waitingForPong = true;
+            this.ping(() => {
+                this.waitingForPong = false;
+            });
+        };
+
+        window.addEventListener('online', this.onlineHandler);
+        window.addEventListener('offline', this.offlineHandler);
+
         // Add connection id, and last_sequence_number to the query param.
         // We cannot use a cookie because it will bleed across tabs.
         // We cannot also send it as part of the auth_challenge, because the session cookie is already sent with the request.
-        this.conn = new WebSocket(`${connectionUrl}?connection_id=${this.connectionId}&sequence_number=${this.serverSequence}${this.postedAck ? '&posted_ack=true' : ''}`);
-        this.connectionUrl = connectionUrl;
+        let websocketUrl = `${connectionUrl}?connection_id=${this.connectionId}&sequence_number=${this.serverSequence}`;
+
+        if (this.postedAck) {
+            websocketUrl += '&posted_ack=true';
+        }
+
+        if (this.lastErrCode) {
+            websocketUrl += `&disconnect_err_code=${encodeURIComponent(this.lastErrCode)}`;
+        }
+
+        if (this.config.newWebSocketFn) {
+            this.conn = this.config.newWebSocketFn(websocketUrl);
+        } else {
+            this.conn = new WebSocket(websocketUrl);
+        }
+
+        const onclose = (event: CloseEvent) => {
+            this.conn = null;
+            this.responseSequence = 1;
+
+            if (!this.lastErrCode && event && event.code) {
+                this.lastErrCode = `${event.code}`;
+            }
+
+            if (this.connectFailCount === 0) {
+                console.log(`websocket closed: ${this.lastErrCode}`); //eslint-disable-line no-console
+            }
+
+            this.connectFailCount++;
+
+            this.closeCallback?.(this.connectFailCount);
+            this.closeListeners.forEach((listener) => listener(this.connectFailCount));
+
+            // Make sure we stop pinging if the connection is closed
+            this.stopPingInterval();
+
+            // If we've failed a bunch of connections then start backing off
+            let retryTime = this.config.minWebSocketRetryTime;
+            if (this.connectFailCount > this.config.maxWebSocketFails) {
+                retryTime = retryTime * this.connectFailCount * this.connectFailCount;
+                if (retryTime > this.config.maxWebSocketRetryTime) {
+                    retryTime = this.config.maxWebSocketRetryTime;
+                }
+            }
+
+            // Applying jitter to avoid thundering herd problems.
+            retryTime += Math.random() * this.config.reconnectJitterRange;
+
+            // If we already have a reconnect timeout waiting,
+            // we should let that handle the next connection.
+            if (this.reconnectTimeout) {
+                return;
+            }
+
+            this.reconnectTimeout = setTimeout(
+                () => {
+                    this.reconnectTimeout = null;
+                    this.initialize(connectionUrl, token, this.postedAck);
+                },
+                retryTime,
+            );
+        };
+        this.conn.onclose = onclose;
 
         this.conn.onopen = () => {
             if (token) {
                 this.sendMessage('authentication_challenge', {token});
             }
+
+            this.lastErrCode = null;
 
             if (this.connectFailCount > 0) {
                 console.log('websocket re-established connection'); //eslint-disable-line no-console
@@ -123,41 +286,55 @@ export default class WebSocketClient {
                 this.firstConnectListeners.forEach((listener) => listener());
             }
 
-            this.connectFailCount = 0;
-        };
+            this.stopPingInterval();
 
-        this.conn.onclose = () => {
-            this.conn = null;
-            this.responseSequence = 1;
+            // Send a ping immediately to test the socket
+            this.waitingForPong = true;
+            this.ping(() => {
+                this.waitingForPong = false;
+            });
 
-            if (this.connectFailCount === 0) {
-                console.log('websocket closed'); //eslint-disable-line no-console
-            }
-
-            this.connectFailCount++;
-
-            this.closeCallback?.(this.connectFailCount);
-            this.closeListeners.forEach((listener) => listener(this.connectFailCount));
-
-            let retryTime = MIN_WEBSOCKET_RETRY_TIME;
-
-            // If we've failed a bunch of connections then start backing off
-            if (this.connectFailCount > MAX_WEBSOCKET_FAILS) {
-                retryTime = MIN_WEBSOCKET_RETRY_TIME * this.connectFailCount * this.connectFailCount;
-                if (retryTime > MAX_WEBSOCKET_RETRY_TIME) {
-                    retryTime = MAX_WEBSOCKET_RETRY_TIME;
-                }
-            }
-
-            // Applying jitter to avoid thundering herd problems.
-            retryTime += Math.random() * JITTER_RANGE;
-
-            setTimeout(
+            // And every 30 seconds after, checking to ensure
+            // we're getting responses from the server
+            this.pingInterval = setInterval(
                 () => {
-                    this.initialize(connectionUrl, token, postedAck);
+                    if (!this.waitingForPong) {
+                        this.waitingForPong = true;
+                        this.ping(() => {
+                            this.waitingForPong = false;
+                        });
+                        return;
+                    }
+
+                    this.stopPingInterval();
+
+                    // If we aren't connected, we should already be trying to
+                    // re-connect the websocket. So there's nothing more to do here.
+                    if (!this.conn || this.conn.readyState !== WebSocket.OPEN) {
+                        return;
+                    }
+
+                    console.log('ping received no response within time limit: re-establishing websocket'); //eslint-disable-line no-console
+
+                    const closeEvent = new CloseEvent('close', {
+                        code: clientPingTimeoutErrCode,
+                        wasClean: false,
+                    });
+
+                    // Calling conn.close() will trigger the onclose callback,
+                    // but sometimes with a significant delay. So instead, we
+                    // call the onclose callback ourselves immediately. We also
+                    // unset the callback on the old connection to ensure it
+                    // is only called once.
+                    this.connectFailCount = 0;
+                    this.responseSequence = 1;
+                    this.conn.onclose = () => {};
+                    this.conn.close();
+                    onclose(closeEvent);
                 },
-                retryTime,
-            );
+                this.config.clientPingInterval);
+
+            this.connectFailCount = 0;
         };
 
         this.conn.onerror = (evt) => {
@@ -186,7 +363,7 @@ export default class WebSocketClient {
                 }
             } else if (this.eventCallback || this.messageListeners.size > 0) {
                 // We check the hello packet, which is always the first packet in a stream.
-                if (msg.event === WEBSOCKET_HELLO && (this.missedEventCallback || this.missedMessageListeners.size > 0)) {
+                if (msg.event === WebSocketEvents.Hello && (this.missedEventCallback || this.missedMessageListeners.size > 0)) {
                     console.log('got connection id ', msg.data.connection_id); //eslint-disable-line no-console
                     // If we already have a connectionId present, and server sends a different one,
                     // that means it's either a long timeout, or server restart, or sequence number is not found.
@@ -210,16 +387,33 @@ export default class WebSocketClient {
                     // If it's a fresh connection, we have to set the connectionId regardless.
                     // And if it's an existing connection, setting it again is harmless, and keeps the code simple.
                     this.connectionId = msg.data.connection_id;
+
+                    // Also update the server hostname
+                    this.serverHostname = msg.data.server_hostname;
                 }
 
                 // Now we check for sequence number, and if it does not match,
                 // we just disconnect and reconnect.
                 if (msg.seq !== this.serverSequence) {
                     console.log('missed websocket event, act_seq=' + msg.seq + ' exp_seq=' + this.serverSequence); //eslint-disable-line no-console
-                    // We are not calling this.close() because we need to auto-restart.
+
+                    const closeEvent = new CloseEvent('close', {
+                        code: clientSequenceMismatchErrCode,
+                        wasClean: false,
+                    });
+
+                    // Calling conn.close() will trigger the onclose callback,
+                    // but sometimes with a significant delay. So instead, we
+                    // call the onclose callback ourselves immediately. We also
+                    // unset the callback on the old connection to ensure it
+                    // is only called once.
                     this.connectFailCount = 0;
                     this.responseSequence = 1;
-                    this.conn?.close(); // Will auto-reconnect after MIN_WEBSOCKET_RETRY_TIME.
+                    if (this.conn) {
+                        this.conn.onclose = () => {};
+                        this.conn.close();
+                        onclose(closeEvent);
+                    }
                     return;
                 }
                 this.serverSequence = msg.seq + 1;
@@ -353,11 +547,53 @@ export default class WebSocketClient {
     close() {
         this.connectFailCount = 0;
         this.responseSequence = 1;
+        this.clearReconnectTimeout();
+        this.lastErrCode = null;
+        this.stopPingInterval();
+
         if (this.conn && this.conn.readyState === WebSocket.OPEN) {
             this.conn.onclose = () => {};
             this.conn.close();
             this.conn = null;
-            console.log('websocket closed'); //eslint-disable-line no-console
+            console.log('websocket closed manually'); //eslint-disable-line no-console
+        }
+
+        if (this.onlineHandler) {
+            window.removeEventListener('online', this.onlineHandler);
+            this.onlineHandler = null;
+        }
+        if (this.offlineHandler) {
+            window.removeEventListener('offline', this.offlineHandler);
+            this.offlineHandler = null;
+        }
+    }
+
+    clearReconnectTimeout() {
+        if (this.reconnectTimeout) {
+            clearTimeout(this.reconnectTimeout);
+            this.reconnectTimeout = null;
+        }
+    }
+
+    stopPingInterval() {
+        if (this.pingInterval) {
+            clearInterval(this.pingInterval);
+            this.pingInterval = null;
+        }
+    }
+
+    ping(responseCallback?: (msg: any) => void) {
+        const msg = {
+            action: 'ping',
+            seq: this.responseSequence++,
+        };
+
+        if (responseCallback) {
+            this.responseCallbacks[msg.seq] = responseCallback;
+        }
+
+        if (this.conn && this.conn.readyState === WebSocket.OPEN) {
+            this.conn.send(JSON.stringify(msg));
         }
     }
 
@@ -372,11 +608,10 @@ export default class WebSocketClient {
             this.responseCallbacks[msg.seq] = responseCallback;
         }
 
+        // Only try to send the message if the websocket is open.
+        // If the websocket is closed here, we will drop the message.
         if (this.conn && this.conn.readyState === WebSocket.OPEN) {
             this.conn.send(JSON.stringify(msg));
-        } else if (!this.conn || this.conn.readyState === WebSocket.CLOSED) {
-            this.conn = null;
-            this.initialize();
         }
     }
 
@@ -440,18 +675,4 @@ export default class WebSocketClient {
         };
         this.sendMessage('get_statuses_by_ids', data, callback);
     }
-}
-
-export type WebSocketBroadcast = {
-    omit_users: Record<string, boolean>;
-    user_id: string;
-    channel_id: string;
-    team_id: string;
-}
-
-export type WebSocketMessage<T = any> = {
-    event: string;
-    data: T;
-    broadcast: WebSocketBroadcast;
-    seq: number;
 }

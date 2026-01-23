@@ -73,14 +73,14 @@ describe('components/admin_console/permission_schemes_settings/permissions_schem
                 }}
             />,
         );
-        expect(deleteScheme).not.toBeCalled();
+        expect(deleteScheme).not.toHaveBeenCalled();
         wrapper.find('.delete-button').first().simulate('click', {stopPropagation: jest.fn()});
-        expect(deleteScheme).not.toBeCalled();
+        expect(deleteScheme).not.toHaveBeenCalled();
         wrapper.find(ConfirmModal).first().props().onCancel?.(true);
-        expect(deleteScheme).not.toBeCalled();
+        expect(deleteScheme).not.toHaveBeenCalled();
 
         wrapper.find('.delete-button').first().simulate('click', {stopPropagation: jest.fn()});
         wrapper.find(ConfirmModal).first().props().onConfirm?.(true);
-        expect(deleteScheme).toBeCalledWith('id');
+        expect(deleteScheme).toHaveBeenCalledWith('id');
     });
 });

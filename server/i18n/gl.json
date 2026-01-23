@@ -72,10 +72,6 @@
     "translation": "invalid_request: «grant_type» incorrecto."
   },
   {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Falta o «client_secret»."
-  },
-  {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
     "translation": "invalid_request: «client_id» incorrecto."
   },
@@ -122,10 +118,6 @@
   {
     "id": "api.channel.leave.left",
     "translation": "%v saíu da canle."
-  },
-  {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Vostede é o único membro que queda, tente eliminar a canle privada no canto de abandonar."
   },
   {
     "id": "api.channel.create_default_channels.town_square",

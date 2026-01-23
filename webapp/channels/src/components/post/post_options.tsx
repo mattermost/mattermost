@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classnames from 'classnames';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -14,6 +14,7 @@ import {isPostEphemeral} from 'mattermost-redux/utils/post_utils';
 
 import ActionsMenu from 'components/actions_menu';
 import CommentIcon from 'components/common/comment_icon';
+import {usePluginVisibilityInSharedChannel} from 'components/common/hooks/usePluginVisibilityInSharedChannel';
 import DotMenu from 'components/dot_menu';
 import PostFlagIcon from 'components/post_view/post_flag_icon';
 import PostReaction from 'components/post_view/post_reaction';
@@ -22,7 +23,7 @@ import PostRecentReactions from 'components/post_view/post_recent_reactions';
 import {Locations, Constants} from 'utils/constants';
 import {isSystemMessage, fromAutoResponder} from 'utils/post_utils';
 
-import type {PluginComponent} from 'types/store/plugins';
+import type {PostActionComponent} from 'types/store/plugins';
 
 type Props = {
     post: Post;
@@ -52,28 +53,44 @@ type Props = {
     isPostHeaderVisible?: boolean | null;
     isPostBeingEdited?: boolean;
     canDelete?: boolean;
-    pluginActions: PluginComponent[];
+    pluginActions: PostActionComponent[];
+    isBurnOnReadPost?: boolean;
+    shouldDisplayBurnOnReadConcealed?: boolean;
     actions: {
         emitShortcutReactToLastPostFrom: (emittedFrom: 'CENTER' | 'RHS_ROOT' | 'NO_WHERE') => void;
     };
 };
 
 const PostOptions = (props: Props): JSX.Element => {
-    const dotMenuRef = useRef<HTMLDivElement>(null);
-
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [showDotMenu, setShowDotMenu] = useState(false);
     const [showActionsMenu, setShowActionsMenu] = useState(false);
 
+    const toggleEmojiPicker = useCallback((show: boolean) => {
+        setShowEmojiPicker(show);
+        props.handleDropdownOpened!(show);
+    }, [props.handleDropdownOpened]);
+
+    const lastEmittedFrom = useRef(props.shortcutReactToLastPostEmittedFrom);
     useEffect(() => {
+        // Confirm that lastEmittedFrom actually changed to avoid toggling the emoji picker when another dependency
+        // changes without the user pressing the hotkey again
+        if (lastEmittedFrom.current === props.shortcutReactToLastPostEmittedFrom) {
+            return;
+        }
+
+        lastEmittedFrom.current = props.shortcutReactToLastPostEmittedFrom;
+
         const locationToUse = props.location === 'RHS_COMMENT' ? Locations.RHS_ROOT : props.location;
+
         if (props.isLastPost &&
             (props.shortcutReactToLastPostEmittedFrom === locationToUse) &&
                 props.isPostHeaderVisible) {
-            toggleEmojiPicker();
             props.actions.emitShortcutReactToLastPostFrom(Locations.NO_WHERE);
+            toggleEmojiPicker(!showEmojiPicker);
         }
-    }, [props.isLastPost, props.shortcutReactToLastPostEmittedFrom]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.isLastPost, props.shortcutReactToLastPostEmittedFrom, props.location, props.isPostHeaderVisible, showEmojiPicker]);
 
     const {
         channelIsArchived,
@@ -92,11 +109,6 @@ const PostOptions = (props: Props): JSX.Element => {
         props.removePost(props.post);
     }
 
-    const toggleEmojiPicker = () => {
-        setShowEmojiPicker(!showEmojiPicker);
-        props.handleDropdownOpened!(!showEmojiPicker);
-    };
-
     const handleDotMenuOpened = (open: boolean) => {
         setShowDotMenu(open);
         props.handleDropdownOpened!(open);
@@ -107,28 +119,30 @@ const PostOptions = (props: Props): JSX.Element => {
         props.handleDropdownOpened!(open);
     };
 
-    const getDotMenuRef = () => dotMenuRef.current;
-
     const isPostDeleted = post && post.state === Posts.POST_DELETED;
     const hoverLocal = props.hover || showEmojiPicker || showDotMenu || showActionsMenu;
-    const showCommentIcon = isFromAutoResponder || (!systemMessage && (isMobileView ||
+    const isBurnOnReadPost = props.isBurnOnReadPost || false;
+    const showCommentIcon = !isBurnOnReadPost && (isFromAutoResponder || (!systemMessage && (isMobileView ||
             hoverLocal || (!post.root_id && Boolean(props.hasReplies)) ||
-            props.isFirstReply) && props.location === Locations.CENTER);
+            props.isFirstReply) && props.location === Locations.CENTER));
     const commentIconExtraClass = isMobileView ? '' : 'pull-right';
 
     let commentIcon;
     if (showCommentIcon) {
         commentIcon = (
-            <CommentIcon
-                handleCommentClick={props.handleCommentClick}
-                postId={post.id}
-                extraClass={commentIconExtraClass}
-                commentCount={props.collapsedThreadsEnabled ? 0 : props.replyCount}
-            />
+            <li>
+                <CommentIcon
+                    handleCommentClick={props.handleCommentClick}
+                    postId={post.id}
+                    extraClass={commentIconExtraClass}
+                    commentCount={props.collapsedThreadsEnabled ? 0 : props.replyCount}
+                />
+            </li>
         );
     }
 
-    const showRecentlyUsedReactions = (!isMobileView && !isReadOnly && !isEphemeral && !post.failed && !systemMessage && !channelIsArchived && oneClickReactionsEnabled && props.enableEmojiPicker && hoverLocal);
+    // Don't show reactions for unrevealed BoR posts - users can't react to concealed content
+    const showRecentlyUsedReactions = (!isMobileView && !isReadOnly && !isEphemeral && !post.failed && !systemMessage && !channelIsArchived && oneClickReactionsEnabled && props.enableEmojiPicker && hoverLocal && !props.shouldDisplayBurnOnReadConcealed);
 
     let showRecentReactions: ReactNode;
     if (showRecentlyUsedReactions) {
@@ -147,55 +161,65 @@ const PostOptions = (props: Props): JSX.Element => {
         );
     }
 
-    const showReactionIcon = !systemMessage && !isReadOnly && !isEphemeral && !post.failed && props.enableEmojiPicker && !channelIsArchived;
+    // Don't show emoji picker button for unrevealed BoR posts
+    const showReactionIcon = !systemMessage && !isReadOnly && !isEphemeral && !post.failed && props.enableEmojiPicker && !channelIsArchived && !props.shouldDisplayBurnOnReadConcealed;
     let postReaction;
     if (showReactionIcon) {
         postReaction = (
-            <PostReaction
-                channelId={post.channel_id}
-                location={props.location}
-                postId={post.id}
-                teamId={props.teamId}
-                getDotMenuRef={getDotMenuRef}
-                showEmojiPicker={showEmojiPicker}
-                toggleEmojiPicker={toggleEmojiPicker}
-            />
+            <li>
+                <PostReaction
+                    channelId={post.channel_id}
+                    location={props.location}
+                    postId={post.id}
+                    teamId={props.teamId}
+                    showEmojiPicker={showEmojiPicker}
+                    setShowEmojiPicker={toggleEmojiPicker}
+                />
+            </li>
         );
     }
 
+    // Don't show save button for unrevealed BoR posts
     let flagIcon: ReactNode = null;
-    if (!isMobileView && (!isEphemeral && !post.failed && !systemMessage)) {
+    if (!isMobileView && (!isEphemeral && !post.failed && !systemMessage) && !props.shouldDisplayBurnOnReadConcealed) {
         flagIcon = (
-            <PostFlagIcon
-                location={props.location}
-                postId={post.id}
-                isFlagged={props.isFlagged}
-            />
+            <li>
+                <PostFlagIcon
+                    location={props.location}
+                    postId={post.id}
+                    isFlagged={props.isFlagged}
+                />
+            </li>
         );
     }
 
     // Action menus
     const showActionsMenuIcon = props.shouldShowActionsMenu && (isMobileView || hoverLocal);
     const actionsMenu = showActionsMenuIcon && (
-        <ActionsMenu
-            post={post}
-            location={props.location}
-            handleDropdownOpened={handleActionsMenuOpened}
-            isMenuOpen={showActionsMenu}
-        />
+        <li>
+            <ActionsMenu
+                post={post}
+                location={props.location}
+                handleDropdownOpened={handleActionsMenuOpened}
+                isMenuOpen={showActionsMenu}
+            />
+        </li>
     );
 
     let pluginItems: ReactNode = null;
-    if ((!isEphemeral && !post.failed && !systemMessage) && hoverLocal) {
+    const pluginItemsVisible = usePluginVisibilityInSharedChannel(post.channel_id);
+
+    if ((!isEphemeral && !post.failed && !systemMessage && !isBurnOnReadPost) && hoverLocal && pluginItemsVisible) {
         pluginItems = props.pluginActions?.
             map((item) => {
                 if (item.component) {
-                    const Component = item.component as any;
+                    const Component = item.component;
                     return (
-                        <Component
-                            post={props.post}
-                            key={item.id}
-                        />
+                        <li key={item.id}>
+                            <Component
+                                post={props.post}
+                            />
+                        </li>
                     );
                 }
                 return null;
@@ -203,17 +227,19 @@ const PostOptions = (props: Props): JSX.Element => {
     }
 
     const dotMenu = (
-        <DotMenu
-            post={props.post}
-            location={props.location}
-            isFlagged={props.isFlagged}
-            handleDropdownOpened={handleDotMenuOpened}
-            handleCommentClick={props.handleCommentClick}
-            handleAddReactionClick={toggleEmojiPicker}
-            isReadOnly={isReadOnly || channelIsArchived}
-            isMenuOpen={showDotMenu}
-            enableEmojiPicker={props.enableEmojiPicker}
-        />
+        <li>
+            <DotMenu
+                post={props.post}
+                location={props.location}
+                isFlagged={props.isFlagged}
+                handleDropdownOpened={handleDotMenuOpened}
+                handleCommentClick={props.handleCommentClick}
+                handleAddReactionClick={toggleEmojiPicker}
+                isReadOnly={isReadOnly || channelIsArchived}
+                isMenuOpen={showDotMenu}
+                enableEmojiPicker={props.enableEmojiPicker}
+            />
+        </li>
     );
 
     // Build post options
@@ -234,10 +260,11 @@ const PostOptions = (props: Props): JSX.Element => {
     } else if (props.location === Locations.SEARCH) {
         const hasCRTFooter = props.collapsedThreadsEnabled && !post.root_id && (post.reply_count > 0 || post.is_following);
         options = (
-            <div className='col__controls post-menu'>
+            <ul className='col__controls post-menu'>
                 {dotMenu}
                 {flagIcon}
                 {props.canReply && !hasCRTFooter &&
+                <li>
                     <CommentIcon
                         location={props.location}
                         handleCommentClick={props.handleCommentClick}
@@ -246,23 +273,25 @@ const PostOptions = (props: Props): JSX.Element => {
                         searchStyle={'search-item__comment'}
                         extraClass={props.replyCount ? 'icon--visible' : ''}
                     />
+                </li>
                 }
-                <a
-                    href='#'
-                    onClick={props.handleJumpClick}
-                    className='search-item__jump'
-                >
-                    <FormattedMessage
-                        id='search_item.jump'
-                        defaultMessage='Jump'
-                    />
-                </a>
-            </div>
+                <li>
+                    <a
+                        href='#'
+                        onClick={props.handleJumpClick}
+                        className='search-item__jump'
+                    >
+                        <FormattedMessage
+                            id='search_item.jump'
+                            defaultMessage='Jump'
+                        />
+                    </a>
+                </li>
+            </ul>
         );
     } else if (!props.isPostBeingEdited) {
         options = (
-            <div
-                ref={dotMenuRef}
+            <ul
                 data-testid={`post-menu-${props.post.id}`}
                 className={classnames('col post-menu', {'post-menu--position': !hoverLocal && showCommentIcon})}
             >
@@ -274,7 +303,7 @@ const PostOptions = (props: Props): JSX.Element => {
                 {actionsMenu}
                 {commentIcon}
                 {(collapsedThreadsEnabled || showRecentlyUsedReactions) && dotMenu}
-            </div>
+            </ul>
         );
     }
 

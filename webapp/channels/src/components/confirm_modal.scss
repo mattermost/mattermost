@@ -1,3 +1,11 @@
-.modal-confirm .modal-footer .checkbox {
-    margin-right: auto;
+.ConfirmModal {
+    &__footer {
+        display: flex;
+        justify-content: end;
+        padding: 32px 0;
+
+        .checkbox {
+            margin-right: auto;
+        }
+    }
 }

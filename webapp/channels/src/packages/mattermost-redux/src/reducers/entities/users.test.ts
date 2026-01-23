@@ -16,7 +16,7 @@ describe('Reducers.users', () => {
     describe('profilesInChannel', () => {
         it('initial state', () => {
             const state = undefined;
-            const action = {type: undefined};
+            const action = {type: 'testinit'};
             const expectedState = {
                 profilesInChannel: {},
             };
@@ -295,7 +295,7 @@ describe('Reducers.users', () => {
     describe('profilesNotInChannel', () => {
         it('initial state', () => {
             const state = undefined;
-            const action = {type: undefined};
+            const action = {type: 'testinit'};
             const expectedState = {
                 profilesNotInChannel: {},
             };
@@ -615,7 +615,7 @@ describe('Reducers.users', () => {
     describe('profilesNotInGroup', () => {
         it('initial state', () => {
             const state = undefined;
-            const action = {type: undefined};
+            const action = {type: 'testinit'};
             const expectedState = {
                 profilesNotInGroup: {},
             };
@@ -1053,6 +1053,136 @@ describe('Reducers.users', () => {
             expect(newProfiles.second_user_id).toEqual(secondUser);
             expect(newProfiles.third_user_id).toEqual(thirdUser);
         });
+
+        test('UserTypes.RECEIVED_CPA_VALUES, should merge existing users custom attributes', () => {
+            const firstUser = TestHelper.getUserMock({id: 'first_user_id'});
+            const secondUser = TestHelper.getUserMock({id: 'second_user_id'});
+            const state = {
+                profiles: {
+                    first_user_id: firstUser,
+                    second_user_id: secondUser,
+                },
+            };
+            const action = {
+                type: UserTypes.RECEIVED_CPA_VALUES,
+                data: {
+                    userID: 'first_user_id',
+                    customAttributeValues: {field1: 'value1'},
+                },
+            };
+            const {profiles: newProfiles} = reducer(state as unknown as ReducerState, action);
+
+            expect(newProfiles.first_user_id.custom_profile_attributes!.field1).toEqual('value1');
+
+            // update field
+            const updateAction = {
+                type: UserTypes.RECEIVED_CPA_VALUES,
+                data: {
+                    userID: 'first_user_id',
+                    customAttributeValues: {field1: 'updatedValue'},
+                },
+            };
+            const {profiles: updatedProfiles} = reducer(state as unknown as ReducerState, updateAction);
+
+            expect(updatedProfiles.first_user_id.custom_profile_attributes!.field1).toEqual('updatedValue');
+        });
+
+        test('UserTypes.CLEAR_CPA_VALUES, should clear the custom profile attribute value for specified field ID', () => {
+            const user1 = TestHelper.getUserMock({
+                id: 'user1',
+                custom_profile_attributes: {
+                    field1: 'value1',
+                    field2: 'value2',
+                },
+            });
+
+            const user2 = TestHelper.getUserMock({
+                id: 'user2',
+                custom_profile_attributes: {
+                    field1: 'user2_value1',
+                    field3: 'user2_value3',
+                },
+            });
+
+            const user3 = TestHelper.getUserMock({
+                id: 'user3',
+
+                // No custom profile attributes
+            });
+
+            const state = deepFreezeAndThrowOnMutation({
+                profiles: {user1, user2, user3},
+            }) as UsersState;
+
+            const action = {
+                type: UserTypes.CLEAR_CPA_VALUES,
+                data: {
+                    fieldId: 'field1',
+                },
+            };
+
+            const newState = reducer(state, action);
+
+            // Check user1 (had field1, should be removed)
+            expect(newState.profiles.user1.custom_profile_attributes).toEqual({
+                field2: 'value2',
+            });
+
+            // Check user2 (had field1, should be removed)
+            expect(newState.profiles.user2.custom_profile_attributes).toEqual({
+                field3: 'user2_value3',
+            });
+
+            // Check user3 (had no attributes, should remain the same)
+            expect(newState.profiles.user3.custom_profile_attributes).toBeUndefined();
+        });
+
+        test('UserTypes.CLEAR_CPA_VALUES, should return the same state if no profiles have the specified field', () => {
+            const user1 = TestHelper.getUserMock({
+                id: 'user1',
+                custom_profile_attributes: {
+                    field1: 'value1',
+                    field2: 'value2',
+                },
+            });
+
+            const state = deepFreezeAndThrowOnMutation({
+                profiles: {user1},
+            }) as UsersState;
+
+            const action = {
+                type: UserTypes.CLEAR_CPA_VALUES,
+                data: {
+                    fieldId: 'non_existent_field',
+                },
+            };
+
+            const newState = reducer(state, action);
+
+            // State should have changed (new object), but values should remain the same
+            expect(newState).not.toBe(state);
+            expect(newState.profiles.user1).toBe(user1);
+            expect(newState.profiles.user1.custom_profile_attributes).toEqual({
+                field1: 'value1',
+                field2: 'value2',
+            });
+        });
+
+        test('UserTypes.CLEAR_CPA_VALUES, should handle empty profiles state', () => {
+            const state = deepFreezeAndThrowOnMutation({
+                profiles: {},
+            }) as UsersState;
+
+            const action = {
+                type: UserTypes.CLEAR_CPA_VALUES,
+                data: {
+                    fieldId: 'field1',
+                },
+            };
+
+            const newState = reducer(state as UsersState, action);
+            expect(newState.profiles).toEqual({});
+        });
     });
 
     test('PROFILE_NO_LONGER_VISIBLE should remove references to users from state', () => {
@@ -1073,7 +1203,6 @@ describe('Reducers.users', () => {
             profilesNotInTeam: {
                 team2: new Set([user.id]),
             },
-            profilesWithoutTeam: new Set([user.id]),
             profilesInChannel: {
                 channel1: new Set([user.id]),
             },
@@ -1120,7 +1249,6 @@ describe('Reducers.users', () => {
             profilesNotInTeam: {
                 team2: new Set(),
             },
-            profilesWithoutTeam: new Set(),
             profilesInChannel: {
                 channel1: new Set(),
             },

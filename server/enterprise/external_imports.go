@@ -15,19 +15,9 @@ import (
 	// Needed to ensure the init() method in the EE gets run
 	_ "github.com/mattermost/enterprise/data_retention"
 	// Needed to ensure the init() method in the EE gets run
-	_ "github.com/mattermost/enterprise/elasticsearch"
-	// Needed to ensure the init() method in the EE gets run
 	_ "github.com/mattermost/enterprise/ldap"
 	// Needed to ensure the init() method in the EE gets run
-	_ "github.com/mattermost/enterprise/message_export"
-	// Needed to ensure the init() method in the EE gets run
 	_ "github.com/mattermost/enterprise/cloud"
-	// Needed to ensure the init() method in the EE gets run
-	_ "github.com/mattermost/enterprise/message_export/actiance_export"
-	// Needed to ensure the init() method in the EE gets run
-	_ "github.com/mattermost/enterprise/message_export/csv_export"
-	// Needed to ensure the init() method in the EE gets run
-	_ "github.com/mattermost/enterprise/message_export/global_relay_export"
 	// Needed to ensure the init() method in the EE gets run
 	_ "github.com/mattermost/enterprise/notification"
 	// Needed to ensure the init() method in the EE gets run
@@ -44,4 +34,18 @@ import (
 	_ "github.com/mattermost/enterprise/ip_filtering"
 	// Needed to ensure the init() method in the EE gets run
 	_ "github.com/mattermost/enterprise/outgoing_oauth_connections"
+	// Needed to ensure the init() method in the EE gets run
+	_ "github.com/mattermost/enterprise/access_control"
+	// Needed to ensure the init() method in the EE gets run
+	_ "github.com/mattermost/enterprise/message_export"
+	// Needed to ensure the init() method in the EE gets run
+	_ "github.com/mattermost/enterprise/message_export/actiance_export"
+	// Needed to ensure the init() method in the EE gets run
+	_ "github.com/mattermost/enterprise/push_proxy"
+	// Needed to ensure the init() method in the EE gets run
+	_ "github.com/mattermost/enterprise/message_export/csv_export"
+	// Needed to ensure the init() method in the EE gets run
+	_ "github.com/mattermost/enterprise/message_export/global_relay_export"
+	// Needed to ensure the init() method in the EE gets run
+	_ "github.com/mattermost/enterprise/intune"
 )

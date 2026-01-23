@@ -18,12 +18,6 @@ describe('Archived channels', () => {
     let testUser;
 
     before(() => {
-        cy.apiUpdateConfig({
-            TeamSettings: {
-                ExperimentalViewArchivedChannels: true,
-            },
-        });
-
         cy.apiInitSetup().then(({team, user}) => {
             testTeam = team;
             testUser = user;
@@ -109,7 +103,7 @@ describe('Archived channels', () => {
 function verifyViewingArchivedChannel(channel) {
     // * Verify that we've switched to the correct channel and that the header contains the archived icon
     cy.get('#channelHeaderTitle').should('contain', channel.display_name);
-    cy.get('#channelHeaderInfo .icon__archive').should('be.visible');
+    cy.findByTestId('channel-header-archive-icon').should('be.visible');
 
     // * Verify that the channel is visible in the sidebar with the archived icon
     cy.get(`#sidebarItem_${channel.name}`).should('be.visible').
@@ -124,5 +118,5 @@ function verifyUsername(username) {
     cy.uiOpenUserMenu().findByText(`@${username}`);
 
     // # Close the user menu
-    cy.uiGetSetStatusButton().click();
+    cy.get('body').type('{esc}');
 }

@@ -36,7 +36,6 @@ func TestRequireHookId(t *testing.T) {
 
 func TestCloudKeyRequired(t *testing.T) {
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
@@ -52,7 +51,6 @@ func TestCloudKeyRequired(t *testing.T) {
 
 func TestMfaRequired(t *testing.T) {
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockUserStore := mocks.UserStore{}

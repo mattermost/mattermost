@@ -1,8 +1,8 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/TextBox should match snapshot with additional, optional props 1`] = `
 <div
-  className="textarea-wrapper textarea-wrapper-preview"
+  className="textarea-wrapper textarea-wrapper-preview textarea-wrapper-preview--disabled"
 >
   <div
     className="form-control custom-textarea textbox-preview-area"
@@ -134,11 +134,6 @@ exports[`components/TextBox should match snapshot with additional, optional prop
           "requestStarted": false,
           "triggerCharacter": ":",
         },
-      ]
-    }
-    renderDividers={
-      Array [
-        "all",
       ]
     }
     spellCheck="true"
@@ -283,11 +278,6 @@ exports[`components/TextBox should match snapshot with required props 1`] = `
         },
       ]
     }
-    renderDividers={
-      Array [
-        "all",
-      ]
-    }
     spellCheck="true"
     style={
       Object {
@@ -430,11 +420,6 @@ exports[`components/TextBox should throw error when new property is too long 1`]
         },
       ]
     }
-    renderDividers={
-      Array [
-        "all",
-      ]
-    }
     spellCheck="true"
     style={
       Object {
@@ -575,11 +560,6 @@ exports[`components/TextBox should throw error when value is too long 1`] = `
           "requestStarted": false,
           "triggerCharacter": ":",
         },
-      ]
-    }
-    renderDividers={
-      Array [
-        "all",
       ]
     }
     spellCheck="true"

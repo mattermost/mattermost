@@ -12,30 +12,40 @@ import (
 )
 
 const (
-	SessionCookieToken                = "MMAUTHTOKEN"
-	SessionCookieUser                 = "MMUSERID"
-	SessionCookieCsrf                 = "MMCSRF"
-	SessionCookieCloudUrl             = "MMCLOUDURL"
-	SessionCacheSize                  = 35000
-	SessionPropPlatform               = "platform"
-	SessionPropOs                     = "os"
-	SessionPropBrowser                = "browser"
-	SessionPropType                   = "type"
-	SessionPropUserAccessTokenId      = "user_access_token_id"
-	SessionPropIsBot                  = "is_bot"
-	SessionPropIsBotValue             = "true"
-	SessionPropOAuthAppID             = "oauth_app_id"
-	SessionPropMattermostAppID        = "mattermost_app_id"
-	SessionTypeUserAccessToken        = "UserAccessToken"
-	SessionTypeCloudKey               = "CloudKey"
-	SessionTypeRemoteclusterToken     = "RemoteClusterToken"
-	SessionPropIsGuest                = "is_guest"
-	SessionActivityTimeout            = 1000 * 60 * 5  // 5 minutes
-	SessionUserAccessTokenExpiryHours = 100 * 365 * 24 // 100 years
+	SessionCookieToken                    = "MMAUTHTOKEN"
+	SessionCookieUser                     = "MMUSERID"
+	SessionCookieCsrf                     = "MMCSRF"
+	SessionCookieCloudUrl                 = "MMCLOUDURL"
+	SessionCacheSize                      = 35000
+	SessionPropPlatform                   = "platform"
+	SessionPropOs                         = "os"
+	SessionPropBrowser                    = "browser"
+	SessionPropType                       = "type"
+	SessionPropUserAccessTokenId          = "user_access_token_id"
+	SessionPropIsBot                      = "is_bot"
+	SessionPropIsBotValue                 = "true"
+	SessionPropOAuthAppID                 = "oauth_app_id"
+	SessionPropMattermostAppID            = "mattermost_app_id"
+	SessionPropLastRemovedDeviceId        = "last_removed_device_id"
+	SessionPropDeviceNotificationDisabled = "device_notification_disabled"
+	SessionPropMobileVersion              = "mobile_version"
+	SessionTypeUserAccessToken            = "UserAccessToken"
+	SessionTypeCloudKey                   = "CloudKey"
+	SessionTypeRemoteclusterToken         = "RemoteClusterToken"
+	SessionPropIsGuest                    = "is_guest"
+	SessionActivityTimeout                = 1000 * 60 * 5  // 5 minutes
+	SessionUserAccessTokenExpiryHours     = 100 * 365 * 24 // 100 years
 )
 
 //msgp:tuple StringMap
 type StringMap map[string]string
+
+type MobileSessionMetadata struct {
+	Version              string
+	Platform             string
+	Count                float64
+	NotificationDisabled string
+}
 
 // Session contains the user session details.
 // This struct's serializer methods are auto-generated. If a new field is added/removed,
@@ -58,8 +68,8 @@ type Session struct {
 	Local          bool          `json:"local" db:"-"`
 }
 
-func (s *Session) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (s *Session) Auditable() map[string]any {
+	return map[string]any{
 		"id":               s.Id,
 		"create_at":        s.CreateAt,
 		"expires_at":       s.ExpiresAt,
@@ -73,7 +83,7 @@ func (s *Session) Auditable() map[string]interface{} {
 	}
 }
 
-// Returns true if the session is unrestricted, which should grant it
+// IsUnrestricted returns true if the session is unrestricted, which should grant it
 // with all permissions. This is used for local mode sessions
 func (s *Session) IsUnrestricted() bool {
 	return s.Local
@@ -242,6 +252,14 @@ func (s *Session) IsIntegration() bool {
 
 func (s *Session) IsSSOLogin() bool {
 	return s.IsOAuthUser() || s.IsSaml()
+}
+
+func (s *Session) IsGuest() bool {
+	val, ok := s.Props[SessionPropIsGuest]
+	if !ok {
+		return false
+	}
+	return val == "true"
 }
 
 func (s *Session) GetUserRoles() []string {

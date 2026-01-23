@@ -188,17 +188,28 @@ func AppendQueryParamsToURL(baseURL string, params map[string]string) string {
 	return u.String()
 }
 
-// Validates RedirectURL passed during OAuth or SAML
-func IsValidWebAuthRedirectURL(config *model.Config, redirectURL string) bool {
+// ValidateWebAuthRedirectUrl validates a RedirectURL passed during OAuth or SAML.
+func ValidateWebAuthRedirectUrl(config *model.Config, redirectURL string) error {
 	u, err := url.Parse(redirectURL)
-	if err == nil && (u.Scheme == "http" || u.Scheme == "https") {
-		if config.ServiceSettings.SiteURL != nil {
-			siteURL := *config.ServiceSettings.SiteURL
-			return strings.Index(strings.ToLower(redirectURL), strings.ToLower(siteURL)) == 0
-		}
-		return false
+	if err != nil {
+		return errors.Wrap(err, "failed to parse redirect URL")
 	}
-	return true
+
+	if config.ServiceSettings.SiteURL == nil {
+		return errors.New("SiteURL is not configured")
+	}
+	siteURL, err := url.Parse(*config.ServiceSettings.SiteURL)
+	if err != nil {
+		return errors.Wrap(err, "failed to parse SiteURL from config")
+	}
+
+	if u.Scheme != siteURL.Scheme {
+		return errors.Errorf("redirect URL scheme %q does not match site URL scheme %q", u.Scheme, siteURL.Scheme)
+	}
+	if u.Host != siteURL.Host {
+		return errors.Errorf("redirect URL host %q does not match site URL host %q", u.Host, siteURL.Host)
+	}
+	return nil
 }
 
 // Validates Mobile Custom URL Scheme passed during OAuth or SAML

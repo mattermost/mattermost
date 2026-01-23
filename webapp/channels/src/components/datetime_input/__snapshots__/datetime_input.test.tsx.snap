@@ -1,0 +1,76 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`components/datetime_input/DateTimeInput should match snapshot 1`] = `
+<div>
+  <div
+    class="dateTime"
+  >
+    <div
+      class="dateTime__date"
+    >
+      <div
+        class="date-picker__wrapper"
+      >
+        <div
+          class="date-time-input"
+          role="button"
+          tabindex="0"
+        >
+          <span
+            class="date-time-input__label"
+          >
+            Date
+          </span>
+          <span
+            class="date-time-input__icon"
+          >
+            <i
+              class="icon-calendar-outline"
+            />
+          </span>
+          <span
+            class="date-time-input__value"
+          >
+            6/8/2025
+          </span>
+        </div>
+      </div>
+    </div>
+    <div
+      class="dateTime__time"
+    >
+      <button
+        aria-controls="expiryTimeMenu"
+        aria-expanded="false"
+        aria-haspopup="true"
+        aria-label="Time"
+        class="date-time-input"
+        data-testid="time_button"
+        id="time_button"
+      >
+        <span
+          class="date-time-input__label"
+        >
+          Time
+        </span>
+        <span
+          class="date-time-input__icon"
+        >
+          <i
+            class="icon-clock-outline"
+          />
+        </span>
+        <span
+          class="date-time-input__value"
+        >
+          <time
+            datetime="2025-06-08T12:09:00.000"
+          >
+            12:09 PM
+          </time>
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+`;

@@ -14,7 +14,6 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import BackstageList from 'components/backstage/components/backstage_list';
 import ExternalLink from 'components/external_link';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import InstalledIncomingWebhook, {matchesFilter} from 'components/integrations/installed_incoming_webhook';
 
 import {DeveloperLinks} from 'utils/constants';
@@ -92,7 +91,7 @@ export default class InstalledIncomingWebhooks extends React.PureComponent<Props
             if (channelA) {
                 displayNameA = channelA.display_name;
             } else {
-                displayNameA = Utils.localizeMessage('installed_incoming_webhooks.unknown_channel', 'A Private Webhook');
+                displayNameA = Utils.localizeMessage({id: 'installed_incoming_webhooks.unknown_channel', defaultMessage: 'A Private Webhook'});
             }
         }
 
@@ -125,7 +124,7 @@ export default class InstalledIncomingWebhooks extends React.PureComponent<Props
                 header={
                     <FormattedMessage
                         id='installed_incoming_webhooks.header'
-                        defaultMessage='Installed Incoming Webhooks'
+                        defaultMessage='Incoming Webhooks'
                     />
                 }
                 addText={
@@ -143,9 +142,13 @@ export default class InstalledIncomingWebhooks extends React.PureComponent<Props
                     />
                 }
                 emptyTextSearch={
-                    <FormattedMarkdownMessage
+                    <FormattedMessage
                         id='installed_incoming_webhooks.emptySearch'
-                        defaultMessage='No incoming webhooks match {searchTerm}'
+                        // eslint-disable-next-line formatjs/enforce-placeholders -- searchTerm provided by BackstageList
+                        defaultMessage='No incoming webhooks match <strong>{searchTerm}</strong>'
+                        values={{
+                            strong: (chunks) => <strong>{chunks}</strong>,
+                        }}
                     />
                 }
                 helpText={
@@ -178,7 +181,7 @@ export default class InstalledIncomingWebhooks extends React.PureComponent<Props
                         }}
                     />
                 }
-                searchPlaceholder={Utils.localizeMessage('installed_incoming_webhooks.search', 'Search Incoming Webhooks')}
+                searchPlaceholder={Utils.localizeMessage({id: 'installed_incoming_webhooks.search', defaultMessage: 'Search Incoming Webhooks'})}
                 loading={this.state.loading}
                 nextPage={this.nextPage}
                 previousPage={this.previousPage}

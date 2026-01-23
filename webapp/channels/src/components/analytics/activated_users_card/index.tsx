@@ -53,7 +53,7 @@ const ActivatedUserCard = ({activatedUsers, seatsPurchased, isCloud}: ActivatedU
                 />
                 <FormattedMessage
                     id='analytics.team.overageUsersSeats'
-                    defaultMessage='This exceeds total paid seats'
+                    defaultMessage='This exceeds total licensed seats'
                 >
                     {(text) => <span>{text}</span>}
                 </FormattedMessage>

@@ -7,6 +7,7 @@ import styled, {css} from 'styled-components';
 import type {PostAction, PostActionOption} from '@mattermost/types/integration_actions';
 
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
+import {secureGetFromRecord} from 'mattermost-redux/utils/post_utils';
 import {changeOpacity} from 'mattermost-redux/utils/theme_utils';
 
 import Markdown from 'components/markdown';
@@ -25,7 +26,6 @@ const getStatusColors = (theme: Theme) => {
 const markdownOptions = {
     mentionHighlight: false,
     markdown: false,
-    autolinkedUrlSchemes: [],
 };
 
 type Props = {
@@ -45,16 +45,18 @@ const ActionButton = ({
     actionExecuting,
     actionExecutingMessage,
 }: Props) => {
-    const handleActionClick = useCallback((e) => handleAction(e, action.options), [action.options, handleAction]);
+    const handleActionClick = useCallback((e: React.MouseEvent) => handleAction(e, action.options), [action.options, handleAction]);
     let hexColor: string | null | undefined;
 
     if (action.style) {
         const STATUS_COLORS = getStatusColors(theme);
         hexColor =
-            STATUS_COLORS[action.style] ||
-            theme[action.style] ||
+            secureGetFromRecord(STATUS_COLORS, action.style) ||
+            secureGetFromRecord(theme, action.style) ||
             (action.style.match('^#(?:[0-9a-fA-F]{3}){1,2}$') && action.style);
     }
+
+    const name = action.name || action.id || '';
 
     return (
         <ActionBtn
@@ -71,7 +73,7 @@ const ActionButton = ({
                 text={actionExecutingMessage}
             >
                 <Markdown
-                    message={action.name}
+                    message={name}
                     options={markdownOptions}
                 />
             </LoadingWrapper>

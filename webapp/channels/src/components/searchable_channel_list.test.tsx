@@ -4,6 +4,8 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
+import type {Channel} from '@mattermost/types/channels';
+
 import {SearchableChannelList} from 'components/searchable_channel_list';
 
 import {type MockIntl} from 'tests/helpers/intl-test-helper';
@@ -29,7 +31,7 @@ describe('components/SearchableChannelList', () => {
         noResultsText: <>{'no channel found'}</>,
         filter: Filter.All,
         intl: {
-            formatMessage: jest.fn(),
+            formatMessage: ({defaultMessage}) => defaultMessage,
         } as MockIntl,
     };
 
@@ -49,5 +51,55 @@ describe('components/SearchableChannelList', () => {
         wrapper.setProps({isSearch: true});
 
         expect(wrapper.state('page')).toEqual(0);
+    });
+
+    test('should render ArchiveOutlineIcon for archived public channels', () => {
+        const channels = [
+            {
+                id: 'channel1',
+                name: 'archived-public-channel',
+                display_name: 'Archived Public Channel',
+                type: 'O',
+                delete_at: 1234567890,
+                team_id: 'team1',
+                purpose: '',
+            } as Channel,
+        ];
+
+        const wrapper = shallow(
+            <SearchableChannelList
+                {...baseProps}
+                channels={channels}
+            />,
+        );
+
+        const channelRow = wrapper.find('.more-modal__row').first();
+        expect(channelRow.find('ArchiveOutlineIcon')).toHaveLength(1);
+        expect(channelRow.find('ArchiveLockOutlineIcon')).toHaveLength(0);
+    });
+
+    test('should render ArchiveLockOutlineIcon for archived private channels', () => {
+        const channels = [
+            {
+                id: 'channel2',
+                name: 'archived-private-channel',
+                display_name: 'Archived Private Channel',
+                type: 'P',
+                delete_at: 1234567890,
+                team_id: 'team1',
+                purpose: '',
+            } as Channel,
+        ];
+
+        const wrapper = shallow(
+            <SearchableChannelList
+                {...baseProps}
+                channels={channels}
+            />,
+        );
+
+        const channelRow = wrapper.find('.more-modal__row').first();
+        expect(channelRow.find('ArchiveLockOutlineIcon')).toHaveLength(1);
+        expect(channelRow.find('ArchiveOutlineIcon')).toHaveLength(0);
     });
 });

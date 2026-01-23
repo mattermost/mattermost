@@ -4,18 +4,16 @@
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import type {IntlShape} from 'react-intl';
-import {injectIntl, FormattedMessage} from 'react-intl';
+import {injectIntl, FormattedMessage, defineMessage} from 'react-intl';
 
 import type {Channel, ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import MultiSelect from 'components/multiselect/multiselect';
 import type {Value} from 'components/multiselect/multiselect';
 
 import Constants from 'utils/constants';
-import {localizeMessage} from 'utils/utils';
 
 type ChannelWithTeamDataValue = ChannelWithTeamData & Value;
 
@@ -26,13 +24,15 @@ type Props = {
     intl: IntlShape;
     groupID: string;
     actions: {
-        loadChannels: (page?: number, perPage?: number, notAssociatedToGroup?: string, excludeDefaultChannels?: boolean, excludePolicyConstrained?: boolean) => Promise<ActionResult<ChannelWithTeamData[]>>;
+        loadChannels: (page?: number, perPage?: number, notAssociatedToGroup?: string, excludeDefaultChannels?: boolean, excludePolicyConstrained?: boolean, excludeAccessControlPolicyEnforced?: boolean) => Promise<ActionResult<ChannelWithTeamData[]>>;
         setModalSearchTerm: (term: string) => void;
         searchAllChannels: (term: string, opts?: ChannelSearchOpts) => Promise<ActionResult<ChannelWithTeamData[]>>;
     };
     alreadySelected?: string[];
     excludePolicyConstrained?: boolean;
+    excludeAccessControlPolicyEnforced?: boolean;
     excludeTeamIds?: string[];
+    excludeTypes?: string[];
 }
 
 type State = {
@@ -58,7 +58,7 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
     };
 
     componentDidMount() {
-        this.props.actions.loadChannels(0, CHANNELS_PER_PAGE + 1, this.props.groupID, false, this.props.excludePolicyConstrained).then((response) => {
+        this.props.actions.loadChannels(0, CHANNELS_PER_PAGE + 1, this.props.groupID, false, this.props.excludePolicyConstrained, this.props.excludeAccessControlPolicyEnforced).then((response) => {
             this.setState({channels: response.data!.sort(compareChannels)});
             this.setChannelsLoadingState(false);
         });
@@ -70,7 +70,7 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
 
             const searchTerm = this.props.searchTerm;
             if (searchTerm === '') {
-                this.props.actions.loadChannels(0, CHANNELS_PER_PAGE + 1, this.props.groupID, false, this.props.excludePolicyConstrained).then((response) => {
+                this.props.actions.loadChannels(0, CHANNELS_PER_PAGE + 1, this.props.groupID, false, this.props.excludePolicyConstrained, this.props.excludeAccessControlPolicyEnforced).then((response) => {
                     this.setState({channels: response.data!.sort(compareChannels)});
                     this.setChannelsLoadingState(false);
                 });
@@ -132,7 +132,7 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
     handlePageChange = (page: number, prevPage: number) => {
         if (page > prevPage) {
             this.setChannelsLoadingState(true);
-            this.props.actions.loadChannels(page, CHANNELS_PER_PAGE + 1, this.props.groupID, false, this.props.excludePolicyConstrained).then((response) => {
+            this.props.actions.loadChannels(page, CHANNELS_PER_PAGE + 1, this.props.groupID, false, this.props.excludePolicyConstrained, this.props.excludeAccessControlPolicyEnforced).then((response) => {
                 const newState = [...this.state.channels];
                 const stateChannelIDs = this.state.channels.map((stateChannel) => stateChannel.id);
                 response.data!.forEach((serverChannel) => {
@@ -188,9 +188,12 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
                     </div>
                 </div>
                 <div className='more-modal__actions'>
-                    <div className='more-modal__actions--round'>
+                    <button
+                        className='more-modal__actions--round'
+                        aria-label='Select channel'
+                    >
                         <i className='icon icon-plus'/>
-                    </div>
+                    </button>
                 </div>
             </div>
         );
@@ -208,7 +211,7 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
             />
         );
 
-        const buttonSubmitText = localizeMessage('multiselect.add', 'Add');
+        const buttonSubmitText = defineMessage({id: 'multiselect.add', defaultMessage: 'Add'});
 
         let options = this.state.channels.map((i): ChannelWithTeamDataValue => ({...i, label: i.display_name, value: i.id}));
         if (this.props.alreadySelected) {
@@ -220,6 +223,9 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
         if (this.props.excludeTeamIds) {
             options = options.filter((channel) => this.props.excludeTeamIds?.indexOf(channel.team_id) === -1);
         }
+        if (this.props.excludeTypes) {
+            options = options.filter((channel) => this.props.excludeTypes?.indexOf(channel.type) === -1);
+        }
         const values = this.state.values.map((i): ChannelWithTeamDataValue => ({...i, label: i.display_name, value: i.id}));
 
         return (
@@ -228,7 +234,7 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
                 show={this.state.show}
                 onHide={this.handleHide}
                 onExited={this.handleExit}
-                role='dialog'
+                role='none'
                 aria-labelledby='channelSelectorModalLabel'
             >
                 <Modal.Header closeButton={true}>
@@ -236,9 +242,12 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
                         componentClass='h1'
                         id='channelSelectorModalLabel'
                     >
-                        <FormattedMarkdownMessage
-                            id='add_channels_to_scheme.title'
-                            defaultMessage='Add Channels to **Channel Selection** List'
+                        <FormattedMessage
+                            id='channelSelectorModal.title'
+                            defaultMessage='Add Channels to <b>Channel Selection</b> List'
+                            values={{
+                                b: (chunks) => <b>{chunks}</b>,
+                            }}
                         />
                     </Modal.Title>
                 </Modal.Header>
@@ -261,7 +270,7 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
                         buttonSubmitText={buttonSubmitText}
                         saving={false}
                         loading={this.state.loadingChannels}
-                        placeholderText={localizeMessage('multiselect.addChannelsPlaceholder', 'Search and add channels')}
+                        placeholderText={defineMessage({id: 'multiselect.addChannelsPlaceholder', defaultMessage: 'Search and add channels'})}
                     />
                 </Modal.Body>
             </Modal>

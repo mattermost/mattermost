@@ -23,7 +23,7 @@ const AppBarMarketplace = () => {
             openModal({
                 modalId: ModalIdentifiers.PLUGIN_MARKETPLACE,
                 dialogType: MarketplaceModal,
-                dialogProps: {openedFrom: 'app_bar'},
+                dialogProps: {},
             }),
         );
     }, [dispatch]);
@@ -32,9 +32,8 @@ const AppBarMarketplace = () => {
 
     return (
         <WithTooltip
-            id='tooltip-app-bar-marketplace'
             title={label}
-            placement='left'
+            isVertical={false}
         >
             <button
                 key='app_bar_marketplace'

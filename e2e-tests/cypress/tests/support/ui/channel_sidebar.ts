@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {ChainableT} from 'tests/types';
+
 import {getRandomId} from '../../utils';
 
 /**
@@ -13,13 +14,10 @@ import {getRandomId} from '../../utils';
  *   cy.uiCreateSidebarCategory();
  */
 function uiCreateSidebarCategory(categoryName: string = `category-${getRandomId()}`): ChainableT<any> {
-    // # Click the New Category/Channel Dropdown button
-    cy.uiGetLHSAddChannelButton().click();
+    // # Click on the sidebar menu dropdown and select Create Category
+    cy.uiBrowseOrCreateChannel('Create new category');
 
-    // # Click the Create new category dropdown item
-    cy.get('.AddChannelDropdown').should('be.visible').contains('.MenuItem', 'Create new category').click();
-
-    cy.findByRole('dialog', {name: 'Rename Category'}).should('be.visible').within(() => {
+    cy.findByRole('dialog', {name: 'Create New Category'}).should('be.visible').within(() => {
         // # Fill in the category name and click 'Create'
         cy.findByRole('textbox').should('be.visible').typeWithForce(categoryName).
             invoke('val').should('equal', categoryName);
@@ -62,7 +60,7 @@ function uiMoveChannelToCategory(channelName: string, categoryName: string, newC
     });
 
     if (newCategory) {
-        cy.findByRole('dialog', {name: 'Rename Category'}).should('be.visible').within(() => {
+        cy.findByRole('dialog', {name: 'Create New Category'}).should('be.visible').within(() => {
             // # Fill in the category name and click 'Create'
             cy.findByRole('textbox').should('be.visible').typeWithForce(categoryName).
                 invoke('val').should('equal', categoryName);

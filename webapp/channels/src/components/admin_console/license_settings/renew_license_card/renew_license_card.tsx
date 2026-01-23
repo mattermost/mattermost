@@ -9,7 +9,6 @@ import type {ClientLicense} from '@mattermost/types/config';
 
 import AlertBanner from 'components/alert_banner';
 import ContactUsButton from 'components/announcement_bar/contact_sales/contact_us';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import {getSkuDisplayName} from 'utils/subscription';
 import {getRemainingDaysFromFutureTimestamp} from 'utils/utils';
@@ -29,8 +28,7 @@ const RenewLicenseCard: React.FC<RenewLicenseCardProps> = ({license, totalUsers,
     const contactSalesBtn = (
         <div className='purchase-card'>
             <ContactUsButton
-                eventID='post_trial_contact_sales'
-                customClass='light-blue-btn'
+                customClass='btn-primary'
             />
         </div>
     );
@@ -40,7 +38,7 @@ const RenewLicenseCard: React.FC<RenewLicenseCardProps> = ({license, totalUsers,
             id='admin.license.renewalCard.licenseExpiring'
             defaultMessage='License expires in {days} days on {date, date, long}.'
             values={{
-                date: endOfLicense,
+                date: endOfLicense.toDate(),
                 days: daysToEndLicense,
             }}
         />
@@ -52,7 +50,7 @@ const RenewLicenseCard: React.FC<RenewLicenseCardProps> = ({license, totalUsers,
                 id='admin.license.renewalCard.licenseExpired'
                 defaultMessage='License expired on {date, date, long}.'
                 values={{
-                    date: endOfLicense,
+                    date: endOfLicense.toDate(),
                 }}
             />
         );
@@ -75,22 +73,22 @@ const RenewLicenseCard: React.FC<RenewLicenseCardProps> = ({license, totalUsers,
                 />
             </div>
             <div className='RenewLicenseCard__licensedUsersNum'>
-                <FormattedMarkdownMessage
-                    id='admin.license.renewalCard.licensedUsersNum'
-                    defaultMessage='**Licensed Users:** {licensedUsersNum}'
-                    values={{
-                        licensedUsersNum: license.Users,
-                    }}
-                />
+                <strong>
+                    <FormattedMessage
+                        id='admin.license.renewalCard.usersNumbers_licensed'
+                        defaultMessage='Licensed Users: '
+                    />
+                </strong>
+                {license.Users}
             </div>
             <div className='RenewLicenseCard__activeUsersNum'>
-                <FormattedMarkdownMessage
-                    id='admin.license.renewalCard.usersNumbers'
-                    defaultMessage='**Active Users:** {activeUsersNum}'
-                    values={{
-                        activeUsersNum: totalUsers,
-                    }}
-                />
+                <strong>
+                    <FormattedMessage
+                        id='admin.license.renewalCard.usersNumbers_active'
+                        defaultMessage='Active Users: '
+                    />
+                </strong>
+                {totalUsers}
             </div>
             <div className='RenewLicenseCard__buttons'>
                 {contactSalesBtn}

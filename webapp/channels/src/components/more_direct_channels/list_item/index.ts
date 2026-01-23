@@ -15,4 +15,4 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-export default connect(mapStateToProps)(ListItem);
+export default connect(mapStateToProps, null, null, {forwardRef: true})(ListItem);

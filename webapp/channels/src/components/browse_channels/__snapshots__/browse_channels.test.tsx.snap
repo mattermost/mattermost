@@ -1,10 +1,8 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/BrowseChannels should match snapshot and state 1`] = `
 <GenericModal
-  aria-labelledby="browseChannelsModalLabel"
   aria-modal={true}
-  autoCloseOnCancelButton={true}
   autoCloseOnConfirmButton={false}
   bodyPadding={false}
   compassDesign={true}
@@ -33,7 +31,6 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
     </Memo(TeamPermissionGate)>
   }
   id="browseChannelsModal"
-  keyboardEscape={true}
   modalHeaderText={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Browse Channels"
@@ -41,10 +38,8 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
     />
   }
   onExited={[Function]}
-  show={true}
 >
   <injectIntl(SearchableChannelList)
-    canShowArchivedChannels={true}
     changeFilter={[Function]}
     channels={
       Array [

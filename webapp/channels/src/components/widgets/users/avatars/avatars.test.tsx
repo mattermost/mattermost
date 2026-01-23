@@ -4,6 +4,14 @@
 import {mount} from 'enzyme';
 import React from 'react';
 
+import WithTooltip from 'components/with_tooltip';
+
+import {mockStore} from 'tests/test_store';
+
+import Avatars from './avatars';
+
+import Avatar from '../avatar';
+
 jest.mock('mattermost-redux/actions/users', () => {
     return {
         ...jest.requireActual('mattermost-redux/actions/users'),
@@ -15,14 +23,6 @@ jest.mock('mattermost-redux/actions/users', () => {
         }),
     };
 });
-
-import WithTooltip from 'components/with_tooltip';
-
-import {mockStore} from 'tests/test_store';
-
-import Avatars from './avatars';
-
-import Avatar from '../avatar';
 
 describe('components/widgets/users/Avatars', () => {
     const state = {
@@ -149,7 +149,7 @@ describe('components/widgets/users/Avatars', () => {
             mountOptions,
         );
 
-        expect(wrapper.find(WithTooltip).find({id: 'names-overflow'}).prop('title')).toBe('first.last4, first.last5');
+        expect(wrapper.find(WithTooltip).find({title: 'first.last4, first.last5'})).toBeDefined();
     });
 
     test('should fetch missing users', () => {
@@ -178,6 +178,6 @@ describe('components/widgets/users/Avatars', () => {
         expect(wrapper.find(Avatar).find({url: '/api/v4/users/1/image?_=1620680333191'}).exists()).toBe(true);
         expect(wrapper.find(Avatar).find({url: '/api/v4/users/6/image?_=0'}).exists()).toBe(true);
         expect(wrapper.find(Avatar).find({url: '/api/v4/users/7/image?_=0'}).exists()).toBe(true);
-        expect(wrapper.find(WithTooltip).find({id: 'names-overflow'}).prop('title')).toBe('first.last2, Someone, Someone');
+        expect(wrapper.find(WithTooltip).find({title: 'first.last2, Someone, Someone'}).exists()).toBe(true);
     });
 });

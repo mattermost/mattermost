@@ -22,7 +22,7 @@ export type Props = {
     /**
      * The user the roles are being managed for
      */
-    user?: UserProfile;
+    user: UserProfile;
 
     /**
      * The personal access tokens for a user, object with token ids as keys
@@ -53,10 +53,9 @@ export default class ManageTokensModal extends React.PureComponent<Props, State>
         };
     }
 
-    public componentDidUpdate(prevProps: Props): void {
+    public componentDidMount(): void {
         const userId = this.props.user ? this.props.user.id : null;
-        const prevUserId = prevProps.user ? prevProps.user.id : null;
-        if (userId && prevUserId !== userId) {
+        if (userId) {
             this.props.actions.getUserAccessTokensForUser(userId, 0, 200);
         }
     }
@@ -73,10 +72,6 @@ export default class ManageTokensModal extends React.PureComponent<Props, State>
 
     private renderContents = (): JSX.Element => {
         const {user, userAccessTokens} = this.props;
-
-        if (!user) {
-            return <LoadingScreen/>;
-        }
 
         let name = UserUtils.getFullName(user);
         if (name) {
@@ -190,7 +185,7 @@ export default class ManageTokensModal extends React.PureComponent<Props, State>
                 onHide={this.onModalDismissed}
                 onExited={this.props.onExited}
                 dialogClassName='a11y__modal manage-teams'
-                role='dialog'
+                role='none'
                 aria-labelledby='manageTokensModalLabel'
             >
                 <Modal.Header closeButton={true}>

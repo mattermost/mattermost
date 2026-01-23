@@ -1,9 +1,8 @@
 components:
   securitySchemes:
-    bearerAuth:            # arbitrary name for the security scheme
+    bearerAuth:
       type: http
       scheme: bearer
-      bearerFormat: Token
   responses:
     Forbidden:
       description: Do not have appropriate permissions
@@ -174,8 +173,6 @@ components:
         team_id:
           type: string
         total_member_count:
-          type: integer
-        active_member_count:
           type: integer
     TeamExists:
       type: object
@@ -404,6 +401,69 @@ components:
           type: string
         metadata:
           $ref: "#/components/schemas/PostMetadata"
+    PropertyField:
+      type: object
+      properties:
+        id:
+          type: string
+        group_id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+        attrs:
+          type: object
+        target_id:
+          type: string
+        target_type:
+          type: string
+        create_at:
+          type: integer
+          format: int64
+        update_at:
+          type: integer
+          format: int64
+        delete_at:
+          type: integer
+          format: int64
+    PropertyFieldPatch:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        attrs:
+          type: object
+        target_id:
+          type: string
+        target_type:
+          type: string
+    PropertyValue:
+      type: object
+      properties:
+        id:
+          type: string
+        target_id:
+          type: string
+        target_type:
+          type: string
+        group_id:
+          type: string
+        field_id:
+          type: string
+        value:
+          type: string
+        create_at:
+          type: integer
+          format: int64
+        update_at:
+          type: integer
+          format: int64
+        delete_at:
+          type: integer
+          format: int64
     FileInfoList:
       type: object
       properties:
@@ -1220,6 +1280,129 @@ components:
           type: string
         session_id:
           type: string
+    LdapSettings:
+      type: object
+      properties:
+        Enable:
+          type: boolean
+        EnableSync:
+          type: boolean
+        LdapServer:
+          type: string
+        LdapPort:
+          type: integer
+        ConnectionSecurity:
+          type: string
+        BaseDN:
+          type: string
+        BindUsername:
+          type: string
+        BindPassword:
+          type: string
+        MaximumLoginAttempts:
+          type: integer
+        UserFilter:
+          type: string
+        GroupFilter:
+          type: string
+        GuestFilter:
+          type: string
+        EnableAdminFilter:
+          type: boolean
+        AdminFilter:
+          type: string
+        GroupDisplayNameAttribute:
+          type: string
+        GroupIdAttribute:
+          type: string
+        FirstNameAttribute:
+          type: string
+        LastNameAttribute:
+          type: string
+        EmailAttribute:
+          type: string
+        UsernameAttribute:
+          type: string
+        NicknameAttribute:
+          type: string
+        IdAttribute:
+          type: string
+        PositionAttribute:
+          type: string
+        LoginIdAttribute:
+          type: string
+        PictureAttribute:
+          type: string
+        SyncIntervalMinutes:
+          type: integer
+        SkipCertificateVerification:
+          type: boolean
+        PublicCertificateFile:
+          type: string
+        PrivateKeyFile:
+          type: string
+        QueryTimeout:
+          type: integer
+        MaxPageSize:
+          type: integer
+        LoginFieldName:
+          type: string
+        LoginButtonColor:
+          type: string
+        LoginButtonBorderColor:
+          type: string
+        LoginButtonTextColor:
+          type: string
+    LdapDiagnosticResult:
+      type: object
+      properties:
+        test_name:
+          type: string
+          description: Name/type of the diagnostic test being performed
+        test_value:
+          type: string
+          description: The actual test value (filter string or attribute name)
+        total_count:
+          type: integer
+          description: Number of entries found by the filter
+        message:
+          type: string
+          description: Optional success/info message
+        error:
+          type: string
+          description: Optional error message if test failed
+        sample_results:
+          type: array
+          description: Array of sample LDAP entries found
+          items:
+            type: object
+            properties:
+              dn:
+                type: string
+                description: Distinguished Name
+              username:
+                type: string
+                description: Username
+              email:
+                type: string
+                description: Email
+              first_name:
+                type: string
+                description: First name
+              last_name:
+                type: string
+                description: Last name
+              id:
+                type: string
+                description: ID attribute
+              display_name:
+                type: string
+                description: Display name for groups
+              available_attributes:
+                type: object
+                description: Map of all available LDAP attributes
+                additionalProperties:
+                  type: string
     Config:
       type: object
       properties:
@@ -1429,6 +1612,8 @@ components:
               type: string
             AmazonS3SSL:
               type: boolean
+            AmazonS3StorageClass:
+              type: string
         EmailSettings:
           type: object
           properties:
@@ -1509,6 +1694,12 @@ components:
               type: string
             ReportAProblemLink:
               type: string
+            ReportAProblemType:
+              type: string
+            ReportAProblemMail:
+              type: string
+            AllowDownloadLogs:
+              type: boolean
             SupportEmail:
               type: string
         GitLabSettings:
@@ -1901,6 +2092,8 @@ components:
               type: boolean
             AmazonS3SSL:
               type: boolean
+            AmazonS3StorageClass:
+              type: string
         EmailSettings:
           type: object
           properties:
@@ -1980,6 +2173,12 @@ components:
             HelpLink:
               type: boolean
             ReportAProblemLink:
+              type: boolean
+            ReportAProblemType:
+              type: boolean
+            ReportAProblemMail:
+              type: boolean
+            AllowDownloadLogs:
               type: boolean
             SupportEmail:
               type: boolean
@@ -2176,6 +2375,18 @@ components:
         private_key_file:
           description: Status is good when `true`
           type: boolean
+    IntuneLoginRequest:
+      type: object
+      description: Request body for Microsoft Intune MAM authentication using Azure AD/Entra ID access token
+      required:
+        - access_token
+      properties:
+        access_token:
+          type: string
+          description: Microsoft Entra ID access token obtained via MSAL (Microsoft Authentication Library). This token must be scoped to the Intune MAM app registration and will be validated against the configured tenant.
+        device_id:
+          type: string
+          description: Optional mobile device identifier used for push notifications. If provided, the device will be registered for receiving push notifications.
     Compliance:
       type: object
       properties:
@@ -2205,29 +2416,29 @@ components:
         emails:
           type: string
     ClusterInfo:
-      type: object
+      type: array
       properties:
-        id:
-          description: The unique ID for the node
-          type: string
-        version:
-          description: The server version the node is on
-          type: string
-        config_hash:
-          description: The hash of the configuartion file the node is using
-          type: string
-        internode_url:
-          description: The URL used to communicate with those node from other nodes
-          type: string
-        hostname:
-          description: The hostname for this node
-          type: string
-        last_ping:
-          description: The time of the last ping to this node
-          type: integer
-        is_alive:
-          description: Whether or not the node is alive and well
-          type: boolean
+        items:
+          type: object
+          properties:
+            id:
+              description: The unique ID for the node
+              type: string
+            version:
+              description: The server version the node is on
+              type: string
+            schema_version:
+              description: The number of the latest DB migration successfully executed for the node
+              type: string
+            config_hash:
+              description: The hash of the configuration file the node is using
+              type: string
+            ipaddress:
+              description: The IP address of the node
+              type: string
+            hostname:
+              description: The hostname for this node
+              type: string
     AppError:
       type: object
       properties:
@@ -2288,6 +2499,112 @@ components:
           type: integer
           description: The last time of update for the application
           format: int64
+    ClientRegistrationRequest:
+      type: object
+      description: OAuth 2.0 Dynamic Client Registration request as defined in RFC 7591
+      required:
+        - redirect_uris
+      properties:
+        redirect_uris:
+          type: array
+          items:
+            type: string
+          description: Array of redirection URI strings for use in redirect-based flows such as the authorization code and implicit flows
+          minItems: 1
+        client_name:
+          type: string
+          description: Human-readable string name of the client to be presented to the end-user during authorization
+          maxLength: 64
+        client_uri:
+          type: string
+          description: URL string of a web page providing information about the client
+          maxLength: 256
+          format: uri
+    ClientRegistrationResponse:
+      type: object
+      description: OAuth 2.0 Dynamic Client Registration response as defined in RFC 7591
+      properties:
+        client_id:
+          type: string
+          description: OAuth 2.0 client identifier string
+        client_secret:
+          type: string
+          description: OAuth 2.0 client secret string
+        redirect_uris:
+          type: array
+          items:
+            type: string
+          description: Array of the registered redirection URI strings
+        token_endpoint_auth_method:
+          type: string
+          description: String indicator of the requested authentication method for the token endpoint
+          enum:
+            - client_secret_post
+            - none
+        grant_types:
+          type: array
+          items:
+            type: string
+          description: Array of OAuth 2.0 grant type strings that the client can use at the token endpoint
+        response_types:
+          type: array
+          items:
+            type: string
+          description: Array of the OAuth 2.0 response type strings that the client can use at the authorization endpoint
+        scope:
+          type: string
+          description: Space-separated list of scope values that the client can use when requesting access tokens
+        client_name:
+          type: string
+          description: Human-readable string name of the client to be presented to the end-user during authorization
+        client_uri:
+          type: string
+          description: URL string of a web page providing information about the client
+          format: uri
+    AuthorizationServerMetadata:
+      type: object
+      description: OAuth 2.0 Authorization Server Metadata as defined in RFC 8414
+      properties:
+        issuer:
+          type: string
+          description: The authorization server's issuer identifier, which is a URL that uses the "https" scheme
+        authorization_endpoint:
+          type: string
+          description: URL of the authorization server's authorization endpoint
+        token_endpoint:
+          type: string
+          description: URL of the authorization server's token endpoint
+        response_types_supported:
+          type: array
+          items:
+            type: string
+          description: JSON array containing a list of the OAuth 2.0 response_type values that this authorization server supports
+        registration_endpoint:
+          type: string
+          description: URL of the authorization server's OAuth 2.0 Dynamic Client Registration endpoint
+        scopes_supported:
+          type: array
+          items:
+            type: string
+          description: JSON array containing a list of the OAuth 2.0 scope values that this authorization server supports
+        grant_types_supported:
+          type: array
+          items:
+            type: string
+          description: JSON array containing a list of the OAuth 2.0 grant type values that this authorization server supports
+        token_endpoint_auth_methods_supported:
+          type: array
+          items:
+            type: string
+          description: JSON array containing a list of client authentication methods supported by the token endpoint
+        code_challenge_methods_supported:
+          type: array
+          items:
+            type: string
+          description: JSON array containing a list of PKCE code challenge methods supported by this authorization server
+      required:
+        - issuer
+        - response_types_supported
     Job:
       type: object
       properties:
@@ -2490,11 +2807,33 @@ components:
           type: string
           description: Set to "true" to enable mentions for first name. Defaults to "true"
             if a first name is set, "false" otherwise.
+        auto_responder_message:
+          type: string
+          description: The message sent to users when they are auto-responded to.
+            Defaults to "".
+        push_threads:
+          type: string
+          description: Set to "all" to enable mobile push notifications for followed threads and "none" to disable.
+            Defaults to "all".
+        comments:
+          type: string
+          description: Set to "any" to enable notifications for comments to any post you have
+            replied to, "root" for comments on your posts, and "never" to disable. Only
+            affects users with collapsed reply threads disabled.
+            Defaults to "never".
+        desktop_threads:
+          type: string
+          description: Set to "all" to enable desktop notifications for followed threads and "none" to disable.
+            Defaults to "all".
+        email_threads:
+          type: string
+          description: Set to "all" to enable email notifications for followed threads and "none" to disable.
+            Defaults to "all".
     Timezone:
       type: object
       properties:
         useAutomaticTimezone:
-          type: boolean
+          type: string
           description: Set to "true" to use the browser/system timezone, "false" to set
             manually. Defaults to "true".
         manualTimezone:
@@ -3055,6 +3394,19 @@ components:
           format: int64
         has_syncables:
           type: boolean
+    GroupMember:
+      type: object
+      properties:
+        group_id:
+          type: string
+        user_id:
+          type: string
+        create_at:
+          type: integer
+          format: int64
+        delete_at:
+          type: integer
+          format: int64
     GroupSyncableTeam:
       type: object
       properties:
@@ -3352,7 +3704,7 @@ components:
           type: array
           description: list of users participating in this thread. only includes IDs unless 'extended' was set to 'true'
           items:
-            $ref: "#/components/schemas/Post"
+            $ref: "#/components/schemas/User"
         post:
           $ref: "#/components/schemas/Post"
     RelationalIntegrityCheckData:
@@ -3505,6 +3857,9 @@ components:
         create_at:
           description: Time in milliseconds that the remote cluster was created
           type: integer
+        delete_at:
+          description: Time in milliseconds that the remote cluster record was deleted
+          type: integer
         last_ping_at:
           description: Time in milliseconds when the last ping to the remote cluster was run
           type: integer
@@ -3535,6 +3890,47 @@ components:
           description: The time in milliseconds a remote cluster was last pinged successfully
           type: integer
           format: int64
+    SharedChannelRemote:
+      type: object
+      properties:
+        id:
+          description: The id of the shared channel remote
+          type: string
+        channel_id:
+          description: The id of the channel
+          type: string
+        creator_id:
+          description: Id of the user that invited the remote to share the channel
+          type: string
+        create_at:
+          description: Time in milliseconds that the remote was invited to the channel
+          type: integer
+        update_at:
+          description: Time in milliseconds that the shared channel remote record was last updated
+          type: integer
+        delete_at:
+          description: Time in milliseconds that the shared chanenl remote record was deleted
+          type: integer
+        is_invite_accepted:
+          description: Indicates if the invite has been accepted by the remote
+          type: boolean
+        is_invite_confirmed:
+          description: Indicates if the invite has been confirmed by the remote
+          type: boolean
+        remote_id:
+          description: Id of the remote cluster that the channel is shared with
+          type: string
+        last_post_update_at:
+          description: Time in milliseconds of the last post in the channel that was synchronized with the remote update_at
+          type: integer
+        last_post_id:
+          description: Id of the last post in the channel that was synchronized with the remote
+          type: string
+        last_post_create_at:
+          description: Time in milliseconds of the last post in the channel that was synchronized with the remote create_at
+          type: string
+        last_post_create_id:
+          type: string
     SystemStatusResponse:
       type: object
       properties:
@@ -3606,6 +4002,52 @@ components:
         bytes:
           type: number
           description: Total file storage usage for the instance in bytes rounded down to the most significant digit
+    BridgeAgentInfo:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the agent
+        displayName:
+          type: string
+          description: Human-readable name for the agent
+        username:
+          type: string
+          description: Username associated with the agent bot
+        service_id:
+          type: string
+          description: ID of the service providing this agent
+        service_type:
+          type: string
+          description: Type of the service (e.g., openai, anthropic)
+    BridgeServiceInfo:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the LLM service
+        name:
+          type: string
+          description: Name of the LLM service
+        type:
+          type: string
+          description: Type of the service (e.g., openai, anthropic, azure)
+    AgentsResponse:
+      type: object
+      properties:
+        agents:
+          type: array
+          items:
+            $ref: "#/components/schemas/BridgeAgentInfo"
+          description: List of available agents
+    ServicesResponse:
+      type: object
+      properties:
+        services:
+          type: array
+          items:
+            $ref: "#/components/schemas/BridgeServiceInfo"
+          description: List of available LLM services
     PostAcknowledgement:
       type: object
       properties:
@@ -3637,14 +4079,39 @@ components:
           description: The time in milliseconds a user was created
           type: integer
           format: int64
+        update_at:
+          description: The time in milliseconds a user was last updated
+          type: integer
+          format: int64
+        delete_at:
+          description: The time in milliseconds a user was deleted
+          type: integer
+          format: int64
         username:
+          type: string
+        auth_data:
+          type: string
+        auth_service:
           type: string
         email:
           type: string
-        display_name:
+        nickname:
           type: string
-          description: Calculated display name based on user
-        last_login_at:
+        first_name:
+          type: string
+        last_name:
+          type: string
+        position:
+          type: string
+        roles:
+          type: string
+        locale:
+          type: string
+        timezone:
+          $ref: "#/components/schemas/Timezone"
+        disable_welcome_email:
+          type: boolean
+        last_login:
           description: Last time the user was logged in
           type: integer
           format: int64
@@ -3672,6 +4139,37 @@ components:
           $ref: "#/components/schemas/AllowedIPRange"
         state:
           description: The current state of the installation
+          type: string
+    MessageDescriptor:
+      type: object
+      properties:
+        id:
+          description: The i18n message ID
+          type: string
+        defaultMessage:
+          description: The default message text
+          type: string
+        values:
+          description: Optional values for message interpolation
+          type: object
+          additionalProperties: true
+    PreviewModalContentData:
+      type: object
+      properties:
+        skuLabel:
+          $ref: "#/components/schemas/MessageDescriptor"
+        title:
+          $ref: "#/components/schemas/MessageDescriptor"
+        subtitle:
+          $ref: "#/components/schemas/MessageDescriptor"
+        videoUrl:
+          description: URL of the video content
+          type: string
+        videoPoster:
+          description: URL of the video poster/thumbnail image
+          type: string
+        useCase:
+          description: The use case category for this content
           type: string
     ServerLimits:
       type: object
@@ -3735,6 +4233,483 @@ components:
         audiences:
           description: The audiences of the outgoing OAuth connection.
           type: string
+    ScheduledPost:
+      type: object
+      properties:
+        id:
+          type: string
+        create_at:
+          description: The time in milliseconds a scheduled post was created
+          type: integer
+          format: int64
+        update_at:
+          description: The time in milliseconds a scheduled post was last updated
+          type: integer
+          format: int64
+        user_id:
+          type: string
+        channel_id:
+          type: string
+        root_id:
+          type: string
+        message:
+          type: string
+        props:
+          type: object
+        file_ids:
+          type: array
+          items:
+            type: string
+        scheduled_at:
+          description: The time in milliseconds a scheduled post is scheduled to be sent at
+          type: integer
+          format: int64
+        processed_at:
+          description: The time in milliseconds a scheduled post was processed at
+          type: integer
+          format: int64
+        error_code:
+          type: string
+          description: Explains the error behind why a scheduled post could not have been sent
+        metadata:
+          $ref: "#/components/schemas/PostMetadata"
+    AccessControlFieldsAutocompleteResponse:
+      type: object
+      properties:
+        fields:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: The name of the field.
+              description:
+                type: string
+                description: A description of the field.
+    AccessControlPoliciesWithCount:
+      type: object
+      properties:
+        policies:
+          type: array
+          items:
+            $ref: "#/components/schemas/AccessControlPolicy"
+        total_count:
+          type: integer
+          description: The total number of policies.
+    AccessControlPolicy:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The unique identifier of the policy.
+        name:
+          type: string
+          description: The unique name for the policy.
+        display_name:
+          type: string
+          description: The human-readable name for the policy.
+        description:
+          type: string
+          description: A description of the policy.
+        expression:
+          type: string
+          description: The CEL expression defining the policy rules.
+        is_active:
+          type: boolean
+          description: Whether the policy is currently active and enforced.
+        create_at:
+          type: integer
+          format: int64
+          description: The time in milliseconds the policy was created.
+        update_at:
+          type: integer
+          format: int64
+          description: The time in milliseconds the policy was last updated.
+        delete_at:
+          type: integer
+          format: int64
+          description: The time in milliseconds the policy was deleted.
+    AccessControlPolicySearch:
+      type: object
+      properties:
+        term:
+          type: string
+          description: The search term to match against policy names or display names.
+        type:
+          type: string
+          description: The type of policy (e.g., 'parent' or 'channel').
+        parent_id:
+          type: string
+          description: The ID of the parent policy to search within.
+        ids:
+          type: array
+          items:
+            type: string
+          description: List of policy IDs to filter by.
+        active:
+          type: boolean
+          description: Filter policies by active status.
+        include_children:
+          type: boolean
+          description: Whether to include child policies in the result.
+        cursor:
+          $ref: "#/components/schemas/AccessControlPolicyCursor"
+        limit:
+          type: integer
+          description: The maximum number of policies to return.
+    AccessControlPolicyCursor:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The ID of the policy to start searching after.
+    AccessControlPolicyTestResponse:
+      type: object
+      properties:
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+          description: A list of users affected by the policy expression.
+        total_count:
+          type: integer
+          description: The total number of users affected.
+    ChannelSearch: # Added based on dataretention.yaml and access_control.go usage
+      type: object
+      properties:
+        term:
+          type: string
+          description: The string to search in the channel name, display name, and purpose.
+        team_ids:
+          type: array
+          items:
+            type: string
+          description: Filters results to channels belonging to the given team ids.
+        public:
+          type: boolean
+          description: Filters results to only return Public / Open channels.
+        private:
+          type: boolean
+          description: Filters results to only return Private channels.
+        deleted:
+          type: boolean
+          description: Filters results to only return deleted / archived channels.
+        include_deleted:
+          type: boolean
+          description: Whether to include deleted channels in the search results.
+        # Add other potential search fields like not_associated_to_group, exclude_default_channels etc.
+    ChannelsWithCount: # Added based on access_control.go usage
+      type: object
+      properties:
+        channels:
+          $ref: "#/components/schemas/ChannelListWithTeamData" # Referencing existing type used in similar contexts
+        total_count:
+          type: integer
+          description: The total number of channels.
+    ExpressionError:
+      type: object
+      properties:
+        message:
+          type: string
+          description: The error message.
+        field:
+          type: string
+          description: The field related to the error, if applicable.
+        line:
+          type: integer
+          description: The line number where the error occurred in the expression.
+        column:
+          type: integer
+          description: The column number where the error occurred in the expression.
+    QueryExpressionParams:
+      type: object
+      properties:
+        expression:
+          type: string
+          description: The policy expression to test.
+        term:
+          type: string
+          description: A search term to filter users against whom the expression is tested.
+        limit:
+          type: integer
+          description: The maximum number of users to return.
+        after:
+          type: string
+          description: The ID of the user to start the test after (for pagination).
+        channelId:
+          type: string
+          description: The channel ID to contextually test the expression against (required for channel admins).
+    CELExpression:
+      type: object
+      properties:
+        expression:
+          type: string
+          description: The CEL expression to visualize.
+        channelId:
+          type: string
+          description: The channel ID to contextually test the expression against (required for channel admins).
+    VisualExpression:
+      type: object
+      properties:
+        conditions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Condition"
+          description: The visual AST for the CEL expression
+    Condition:
+      type: object
+      properties:
+        attribute:
+          type: string
+          description: The attribute name.
+        operator:
+          type: string
+          description: The operator of a single condition.
+        value:
+          type: string
+          description: The value.
+        value_type:
+          type: string
+          description: The value type.
+    ChannelBanner:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+          description: enabled indicates whether the channel banner is enabled or not
+        text:
+          type: string
+          description: text is the actual text that renders in the channel banner. Markdown is supported.
+        background_color:
+          type: string
+          description: background_color is the HEX color code for the banner's background
+    ContentFlaggingConfig:
+      type: object
+      properties:
+        EnableContentFlagging:
+          type: boolean
+          description: Flag to enable or disable content flagging feature
+          example: true
+          NotificationSettings:
+            $ref: '#/components/schemas/NotificationSettings'
+          AdditionalSettings:
+            $ref: '#/components/schemas/AdditionalSettings'
+          ReviewerSettings:
+            $ref: '#/components/schemas/ReviewerSettings'
+    NotificationSettings:
+      type: object
+      properties:
+        EventTargetMapping:
+          $ref: '#/components/schemas/EventTargetMapping'
+      required:
+        - EventTargetMapping
+    EventTargetMapping:
+      type: object
+      properties:
+        assigned:
+          type: array
+          items:
+            type: string
+          description: List of targets to notify when content is assigned
+          example: [ ]
+        dismissed:
+          type: array
+          items:
+            type: string
+          description: List of targets to notify when content is dismissed
+          example: [ ]
+        flagged:
+          type: array
+          items:
+            type: string
+          description: List of targets to notify when content is flagged
+          example: [ "reviewers" ]
+        removed:
+          type: array
+          items:
+            type: string
+          description: List of targets to notify when content is removed
+          example: [ ]
+      required:
+        - assigned
+        - dismissed
+        - flagged
+        - removed
+    AdditionalSettings:
+      type: object
+      properties:
+        Reasons:
+          type: array
+          items:
+            type: string
+          description: Predefined reasons for flagging content
+          example: [ "reason 1", "reason 2", "reason 3" ]
+        ReporterCommentRequired:
+          type: boolean
+          description: Whether a comment is required from the reporter
+          example: false
+        ReviewerCommentRequired:
+          type: boolean
+          description: Whether a comment is required from the reviewer
+          example: false
+        HideFlaggedContent:
+          type: boolean
+          description: Whether to hide flagged content from general view
+          example: true
+      required:
+        - Reasons
+        - ReporterCommentRequired
+        - ReviewerCommentRequired
+        - HideFlaggedContent
+    ReviewerSettings:
+      type: object
+      properties:
+        CommonReviewers:
+          type: boolean
+          description: Whether to use common reviewers across all teams
+          example: true
+        SystemAdminsAsReviewers:
+          type: boolean
+          description: Whether system administrators can act as reviewers
+          example: false
+        TeamAdminsAsReviewers:
+          type: boolean
+          description: Whether team administrators can act as reviewers
+          example: true
+        CommonReviewerIds:
+          type: array
+          items:
+            type: string
+          description: List of user IDs designated as common reviewers
+          example: [ "onymzj7qcjnz7dcnhtjp1noc3w" ]
+        TeamReviewersSetting:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/TeamReviewerConfig'
+          description: Team-specific reviewer configuration, keyed by team ID
+          example:
+            "8guxic3sg7nijeu5dgxt1fh4ia":
+              Enabled: true
+              ReviewerIds: [ ]
+            "u1ujk34a47gfxp856pdczs9gey":
+              Enabled: false
+              ReviewerIds: [ ]
+      required:
+        - CommonReviewers
+        - SystemAdminsAsReviewers
+        - TeamAdminsAsReviewers
+        - CommonReviewerIds
+        - TeamReviewersSetting
+    TeamReviewerConfig:
+      type: object
+      properties:
+        Enabled:
+          type: boolean
+          description: Whether team-specific reviewers are enabled for this team
+          example: true
+        ReviewerIds:
+          type: array
+          items:
+            type: string
+          description: List of user IDs designated as reviewers for this specific team
+          example: [ ]
+      required:
+        - Enabled
+        - ReviewerIds
+    AccessControlPolicyActiveUpdateRequest:
+      type: object
+      properties:
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/AccessControlPolicyActiveUpdate"
+    AccessControlPolicyActiveUpdate:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The ID of the policy.
+        active:
+          type: boolean
+          description: The active status of the policy.
+    Recap:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the recap
+        user_id:
+          type: string
+          description: ID of the user who created the recap
+        title:
+          type: string
+          description: AI-generated title for the recap (max 5 words)
+        create_at:
+          type: integer
+          format: int64
+          description: The time in milliseconds the recap was created
+        update_at:
+          type: integer
+          format: int64
+          description: The time in milliseconds the recap was last updated
+        delete_at:
+          type: integer
+          format: int64
+          description: The time in milliseconds the recap was deleted
+        read_at:
+          type: integer
+          format: int64
+          description: The time in milliseconds the recap was marked as read
+        total_message_count:
+          type: integer
+          description: Total number of messages summarized across all channels
+        status:
+          type: string
+          enum: [pending, processing, completed, failed]
+          description: Current status of the recap job
+        bot_id:
+          type: string
+          description: ID of the AI agent/bot used to generate this recap
+        channels:
+          type: array
+          items:
+            $ref: "#/components/schemas/RecapChannel"
+          description: List of channel summaries included in this recap
+    RecapChannel:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the recap channel
+        recap_id:
+          type: string
+          description: ID of the parent recap
+        channel_id:
+          type: string
+          description: ID of the channel that was summarized
+        channel_name:
+          type: string
+          description: Display name of the channel
+        highlights:
+          type: array
+          items:
+            type: string
+          description: Key discussion points and important information from the channel
+        action_items:
+          type: array
+          items:
+            type: string
+          description: Tasks, todos, and action items mentioned in the channel
+        source_post_ids:
+          type: array
+          items:
+            type: string
+          description: IDs of the posts used to generate this summary
+        create_at:
+          type: integer
+          format: int64
+          description: The time in milliseconds the recap channel was created
 externalDocs:
   description: Find out more about Mattermost
   url: 'https://about.mattermost.com'

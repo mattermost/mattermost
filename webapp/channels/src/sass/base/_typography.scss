@@ -1,4 +1,5 @@
-@charset 'UTF-8';
+@use "utils/mixins";
+@use "utils/variables";
 
 b,
 strong {
@@ -6,19 +7,19 @@ strong {
 }
 
 a {
-    color: $primary-color;
+    color: variables.$primary-color;
     cursor: pointer;
     text-decoration: none;
     word-break: break-word;
 
     &:focus,
     &:hover {
-        color: $primary-color--hover;
+        color: variables.$primary-color--hover;
     }
 }
 
 .color--link {
-    color: $link-color;
+    color: variables.$link-color;
     cursor: pointer;
 
     &:hover,
@@ -28,7 +29,7 @@ a {
 }
 
 body {
-    @include font-smoothing;
+    @include mixins.font-smoothing;
 
     font-family: 'Open Sans', sans-serif;
 }
@@ -49,7 +50,7 @@ h1 {
 
 label {
     &.has-error {
-        color: $red;
+        color: variables.$red;
         font-weight: normal;
     }
 }
@@ -227,7 +228,7 @@ ol {
 
 .color--link--adminack {
     padding-left: 20px;
-    color: $white;
+    color: variables.$white;
     cursor: pointer;
     text-decoration: underline;
 

@@ -8,12 +8,12 @@ import type {FileInfo} from '@mattermost/types/files';
 
 import {General} from 'mattermost-redux/constants';
 
-import FileUpload, {type FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
-
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import {clearFileInput} from 'utils/utils';
 
 import type {FilesWillUploadHook} from 'types/store/plugins';
+
+import FileUpload, {type FileUpload as FileUploadClass} from './file_upload';
 
 const generatedIdRegex = /[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}/;
 
@@ -66,12 +66,14 @@ describe('components/FileUpload', () => {
         onUploadError: jest.fn(),
         onUploadStart: jest.fn(),
         onUploadProgress: jest.fn(),
-        postType: 'post',
+        postType: 'post' as const,
         maxFileSize: MaxFileSize,
         canUploadFiles: true,
         rootId: 'root_id',
         pluginFileUploadMethods: [],
         pluginFilesWillUploadHooks: [],
+        centerChannelPostBeingEdited: false,
+        rhsPostBeingEdited: false,
         actions: {
             uploadFile,
         },
@@ -151,7 +153,7 @@ describe('components/FileUpload', () => {
         wrapper.setState({menuOpen: true});
         instance.handleLocalFileUploaded(evt);
         expect(baseProps.onClick).toHaveBeenCalledTimes(1);
-        expect(instance.handleMaxUploadReached).not.toBeCalled();
+        expect(instance.handleMaxUploadReached).not.toHaveBeenCalled();
         expect(wrapper.state('menuOpen')).toEqual(false);
 
         // not allow file upload, max limit has been reached
@@ -160,7 +162,7 @@ describe('components/FileUpload', () => {
         instance.handleLocalFileUploaded(evt);
         expect(baseProps.onClick).toHaveBeenCalledTimes(1);
         expect(instance.handleMaxUploadReached).toHaveBeenCalledTimes(1);
-        expect(instance.handleMaxUploadReached).toBeCalledWith(evt);
+        expect(instance.handleMaxUploadReached).toHaveBeenCalledWith(evt);
         expect(wrapper.state('menuOpen')).toEqual(false);
     });
 
@@ -285,9 +287,9 @@ describe('components/FileUpload', () => {
         const instance = wrapper.instance() as FileUploadClass;
         instance.checkPluginHooksAndUploadFiles(files);
 
-        expect(uploadFile).not.toBeCalled();
+        expect(uploadFile).not.toHaveBeenCalled();
 
-        expect(baseProps.onUploadStart).toBeCalledWith([], props.channelId);
+        expect(baseProps.onUploadStart).toHaveBeenCalledWith([], props.channelId);
 
         expect(baseProps.onUploadError).toHaveBeenCalledTimes(2);
         expect(baseProps.onUploadError.mock.calls[0][0]).toEqual(null);
@@ -305,9 +307,9 @@ describe('components/FileUpload', () => {
         const instance = wrapper.instance() as FileUploadClass;
         instance.checkPluginHooksAndUploadFiles(files);
 
-        expect(uploadFile).not.toBeCalled();
+        expect(uploadFile).not.toHaveBeenCalled();
 
-        expect(baseProps.onUploadStart).toBeCalledWith([], props.channelId);
+        expect(baseProps.onUploadStart).toHaveBeenCalledWith([], props.channelId);
 
         expect(baseProps.onUploadError).toHaveBeenCalledTimes(2);
         expect(baseProps.onUploadError.mock.calls[0][0]).toEqual(null);
@@ -323,9 +325,9 @@ describe('components/FileUpload', () => {
         const instance = wrapper.instance() as FileUploadClass;
         instance.checkPluginHooksAndUploadFiles(files);
 
-        expect(uploadFile).not.toBeCalled();
+        expect(uploadFile).not.toHaveBeenCalled();
 
-        expect(baseProps.onUploadStart).toBeCalledWith([], baseProps.channelId);
+        expect(baseProps.onUploadStart).toHaveBeenCalledWith([], baseProps.channelId);
 
         expect(baseProps.onUploadError).toHaveBeenCalledTimes(2);
         expect(baseProps.onUploadError.mock.calls[0][0]).toEqual(null);
@@ -341,13 +343,13 @@ describe('components/FileUpload', () => {
         instance.uploadFiles = jest.fn();
         instance.handleChange(e);
 
-        expect(instance.uploadFiles).toBeCalled();
+        expect(instance.uploadFiles).toHaveBeenCalled();
         expect(instance.uploadFiles).toHaveBeenCalledWith(e.target.files);
 
-        expect(clearFileInput).toBeCalled();
+        expect(clearFileInput).toHaveBeenCalled();
         expect(clearFileInput).toHaveBeenCalledWith(e.target);
 
-        expect(baseProps.onFileUploadChange).toBeCalled();
+        expect(baseProps.onFileUploadChange).toHaveBeenCalled();
         expect(baseProps.onFileUploadChange).toHaveBeenCalledWith();
     });
 
@@ -361,13 +363,13 @@ describe('components/FileUpload', () => {
         instance.uploadFiles = jest.fn();
         instance.handleDrop(e);
 
-        expect(baseProps.onUploadError).toBeCalled();
+        expect(baseProps.onUploadError).toHaveBeenCalled();
         expect(baseProps.onUploadError).toHaveBeenCalledWith(null);
 
-        expect(instance.uploadFiles).toBeCalled();
+        expect(instance.uploadFiles).toHaveBeenCalled();
         expect(instance.uploadFiles).toHaveBeenCalledWith(e.dataTransfer.files);
 
-        expect(baseProps.onFileUploadChange).toBeCalled();
+        expect(baseProps.onFileUploadChange).toHaveBeenCalled();
         expect(baseProps.onFileUploadChange).toHaveBeenCalledWith();
     });
 

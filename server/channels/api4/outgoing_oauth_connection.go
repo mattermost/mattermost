@@ -12,7 +12,6 @@ import (
 
 	"github.com/mattermost/logr/v2"
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
@@ -37,12 +36,12 @@ func (api *API) InitOutgoingOAuthConnection() {
 // other users can use them in their outgoing webhooks and slash commands if they have permissions to manage those.
 func checkOutgoingOAuthConnectionReadPermissions(c *Context, teamId string) bool {
 	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOutgoingOAuthConnections) ||
-		c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PermissionManageOutgoingWebhooks) ||
-		c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PermissionManageSlashCommands) {
+		c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PermissionManageOwnOutgoingWebhooks) ||
+		c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PermissionManageOwnSlashCommands) {
 		return true
 	}
 
-	c.SetPermissionError(model.PermissionManageOutgoingWebhooks, model.PermissionManageSlashCommands)
+	c.SetPermissionError(model.PermissionManageOwnOutgoingWebhooks, model.PermissionManageOwnSlashCommands)
 	return false
 }
 
@@ -63,7 +62,7 @@ func ensureOutgoingOAuthConnectionInterface(c *Context, where string) (einterfac
 		return nil, false
 	}
 
-	if c.App.OutgoingOAuthConnections() == nil || c.App.License() == nil || c.App.License().SkuShortName != model.LicenseShortSkuEnterprise {
+	if c.App.OutgoingOAuthConnections() == nil || !model.MinimumEnterpriseLicense(c.App.License()) {
 		c.Err = model.NewAppError(where, "api.license.upgrade_needed.app_error", nil, "", http.StatusNotImplemented)
 		return nil, false
 	}
@@ -205,7 +204,7 @@ func getOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Reque
 }
 
 func createOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("createOutgoingOauthConnection", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCreateOutgoingOauthConnection, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -224,7 +223,7 @@ func createOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	audit.AddEventParameterAuditable(auditRec, "outgoing_oauth_connection", &inputConnection)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "outgoing_oauth_connection", &inputConnection)
 
 	inputConnection.CreatorId = c.AppContext.Session().UserId
 
@@ -249,9 +248,9 @@ func createOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Re
 }
 
 func updateOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("updateOutgoingOAuthConnection", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateOutgoingOAuthConnection, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "outgoing_oauth_connection_id", c.Params.OutgoingOAuthConnectionID)
+	model.AddEventParameterToAuditRec(auditRec, "outgoing_oauth_connection_id", c.Params.OutgoingOAuthConnectionID)
 	c.LogAudit("attempt")
 
 	if !checkOutgoingOAuthConnectionWritePermissions(c) {
@@ -315,9 +314,9 @@ func updateOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Re
 }
 
 func deleteOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("deleteOutgoingOAuthConnection", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventDeleteOutgoingOAuthConnection, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "outgoing_oauth_connection_id", c.Params.OutgoingOAuthConnectionID)
+	model.AddEventParameterToAuditRec(auditRec, "outgoing_oauth_connection_id", c.Params.OutgoingOAuthConnectionID)
 	c.LogAudit("attempt")
 
 	if !checkOutgoingOAuthConnectionWritePermissions(c) {
@@ -356,7 +355,7 @@ func deleteOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Re
 // with the provided connection configuration. If the credentials are valid, the request will return a 200 status code and
 // if the credentials are invalid, the request will return a 400 status code.
 func validateOutgoingOAuthConnectionCredentials(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("validateOutgoingOAuthConnectionCredentials", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventValidateOutgoingOAuthConnectionCredentials, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -392,7 +391,7 @@ func validateOutgoingOAuthConnectionCredentials(c *Context, w http.ResponseWrite
 		inputConnection.ClientSecret = storedConnection.ClientSecret
 	}
 
-	audit.AddEventParameterAuditable(auditRec, "outgoing_oauth_connection", inputConnection)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "outgoing_oauth_connection", inputConnection)
 
 	resultStatusCode := http.StatusOK
 

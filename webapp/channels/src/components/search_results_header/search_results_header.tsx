@@ -5,14 +5,17 @@ import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
+import PopoutButton from 'components/popout_button';
 import WithTooltip from 'components/with_tooltip';
 
 import {RHSStates} from 'utils/constants';
+import {isPopoutWindow} from 'utils/popouts/popout_windows';
 
 import type {PropsFromRedux} from './index';
 
 export interface Props extends PropsFromRedux {
     children: React.ReactNode;
+    newWindowHandler?: () => void;
 }
 
 function SearchResultsHeader(props: Props) {
@@ -48,9 +51,14 @@ function SearchResultsHeader(props: Props) {
         </>
     );
 
+    const expandOrCollapseSidebarButtonAriaLabel = props.isExpanded ? formatMessage({id: 'rhs_header.collapseSidebarTooltip.icon', defaultMessage: 'Collapse Sidebar Icon'}) : formatMessage({id: 'rhs_header.expandSidebarTooltip.icon', defaultMessage: 'Expand Sidebar Icon'});
+
     return (
         <div className='sidebar--right__header'>
-            <span className='sidebar--right__title'>
+            <span
+                className='sidebar--right__title'
+                id='rhsPanelTitle'
+            >
                 {props.canGoBack && (
                     <button
                         className='sidebar--right__back btn btn-icon btn-sm'
@@ -63,51 +71,53 @@ function SearchResultsHeader(props: Props) {
                 {props.children}
             </span>
             <div className='pull-right'>
-                {showExpand && (
+                {showExpand && !isPopoutWindow() && (
                     <WithTooltip
-                        placement='bottom'
-                        id={props.isExpanded ? 'shrinkSidebarTooltip' : 'expandSidebarTooltip'}
                         title={sidebarTooltipContent}
                     >
                         <button
                             type='button'
                             className='sidebar--right__expand btn btn-icon btn-sm'
                             onClick={props.actions.toggleRhsExpanded}
+                            aria-label={expandOrCollapseSidebarButtonAriaLabel}
                         >
                             <i
                                 className='icon icon-arrow-expand'
-                                aria-label={formatMessage({id: 'rhs_header.expandSidebarTooltip.icon', defaultMessage: 'Expand Sidebar Icon'})}
+                                aria-hidden='true'
                             />
                             <i
                                 className='icon icon-arrow-collapse'
-                                aria-label={formatMessage({id: 'rhs_header.collapseSidebarTooltip.icon', defaultMessage: 'Collapse Sidebar Icon'})}
+                                aria-hidden='true'
                             />
                         </button>
                     </WithTooltip>
                 )}
-                <WithTooltip
-                    placement='top'
-                    id='closeSidebarTooltip'
-                    title={
-                        <FormattedMessage
-                            id='rhs_header.closeSidebarTooltip'
-                            defaultMessage='Close'
-                        />
-                    }
-                >
-                    <button
-                        id='searchResultsCloseButton'
-                        type='button'
-                        className='sidebar--right__close btn btn-icon btn-sm'
-                        aria-label='Close'
-                        onClick={props.actions.closeRightHandSide}
+                {props.newWindowHandler && (
+                    <PopoutButton onClick={props.newWindowHandler}/>
+                )}
+                {!isPopoutWindow() &&
+                    <WithTooltip
+                        title={
+                            <FormattedMessage
+                                id='rhs_header.closeSidebarTooltip'
+                                defaultMessage='Close'
+                            />
+                        }
                     >
-                        <i
-                            className='icon icon-close'
-                            aria-label={formatMessage({id: 'rhs_header.closeTooltip.icon', defaultMessage: 'Close Sidebar Icon'})}
-                        />
-                    </button>
-                </WithTooltip>
+                        <button
+                            id='searchResultsCloseButton'
+                            type='button'
+                            className='sidebar--right__close btn btn-icon btn-sm'
+                            aria-label='Close'
+                            onClick={props.actions.closeRightHandSide}
+                        >
+                            <i
+                                className='icon icon-close'
+                                aria-label={formatMessage({id: 'rhs_header.closeTooltip.icon', defaultMessage: 'Close Sidebar Icon'})}
+                            />
+                        </button>
+                    </WithTooltip>
+                }
             </div>
         </div>
     );

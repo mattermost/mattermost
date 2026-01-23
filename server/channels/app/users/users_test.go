@@ -12,8 +12,7 @@ import (
 )
 
 func TestIsUsernameTaken(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	user := th.BasicUser
 	taken := th.service.IsUsernameTaken(user.Username)
@@ -34,7 +33,6 @@ func TestIsUsernameTaken(t *testing.T) {
 
 func TestFirstUserPromoted(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	user, err := th.service.CreateUser(th.Context, &model.User{
 		Username: model.NewUsername(),
@@ -56,7 +54,8 @@ func TestFirstUserPromoted(t *testing.T) {
 
 	require.Equal(t, model.SystemUserRoleId, user2.Roles)
 
-	th.dbStore.User().PermanentDelete(th.Context, user.Id)
+	err = th.dbStore.User().PermanentDelete(th.Context, user.Id)
+	require.NoError(t, err)
 
 	b := &model.Bot{
 		UserId:   user2.Id,

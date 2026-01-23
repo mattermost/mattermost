@@ -23,14 +23,16 @@ type webSocketHandler struct {
 }
 
 func (wh webSocketHandler) ServeWebSocket(conn *platform.WebConn, r *model.WebSocketRequest) {
-	mlog.Debug("Websocket request", mlog.String("action", r.Action))
+	// Don't log ping requests to reduce log noise
+	if r.Action != "ping" {
+		mlog.Debug("Websocket request", mlog.String("action", r.Action))
+	}
 
 	hub := wh.app.Srv().Platform().GetHubForUserId(conn.UserId)
 	if hub == nil {
 		return
 	}
 	session, sessionErr := wh.app.GetSession(conn.GetSessionToken())
-	defer wh.app.ReturnSessionToPool(session)
 
 	if sessionErr != nil {
 		mlog.Error(

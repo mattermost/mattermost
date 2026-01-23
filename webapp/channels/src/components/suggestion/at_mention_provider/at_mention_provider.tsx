@@ -1,8 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {defineMessages} from 'react-intl';
+import React from 'react';
+import {defineMessage} from 'react-intl';
 
+import {CreationOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -20,29 +22,23 @@ import type {GlobalState} from 'types/store';
 
 import AtMentionSuggestion from './at_mention_suggestion';
 
+import type {ResultsCallback} from '../provider';
 import Provider from '../provider';
+import type {Loading, ProviderResultsGroup} from '../suggestion_results';
 
 const profilesInChannelOptions = {active: true};
-const regexForAtMention = /(?:^|\W)@([\p{L}\d\-_. ]*)$/iu;
+const regexForAtMention = /(?:^|\W)([@＠]([\p{L}\d\-_. ]*))$/iu;
 
 type UserProfileWithLastViewAt = UserProfile & {last_viewed_at?: number};
 
 type CreatedProfile = UserProfile & {
-    type: string;
     isCurrentUser?: boolean;
     last_viewed_at?: number;
 };
 
-type CreatedGroup = Group & {type: string};
-
-type Results = {
-    matchedPretext: string;
-    terms: string[];
-    items: any;
-    component: React.ElementType;
-};
-
-type ResultsCallback = (results: Results) => void;
+type SpecialMention = {
+    username: string;
+}
 
 export type Props = {
     currentUserId: string;
@@ -69,6 +65,7 @@ export default class AtMentionProvider extends Provider {
     public data: any;
     public lastCompletedWord: string;
     public lastPrefixWithNoResults: string;
+    public triggerCharacter: string = '@';
     public getProfilesInChannel: (state: GlobalState, channelId: string, filters?: Filters | undefined) => UserProfile[];
     public addLastViewAtToProfiles: (state: GlobalState, profiles: UserProfile[]) => UserProfileWithLastViewAt[];
 
@@ -113,7 +110,6 @@ export default class AtMentionProvider extends Provider {
             item.startsWith(this.latestPrefix),
         ).map((name) => ({
             username: name,
-            type: Constants.MENTION_SPECIAL,
         }));
     }
 
@@ -200,7 +196,7 @@ export default class AtMentionProvider extends Provider {
     localMembers() {
         const localMembers = this.getProfilesWithLastViewAtInChannel().
             filter((profile) => this.filterProfile(profile)).
-            map((profile) => this.createFromProfile(profile, Constants.MENTION_MEMBERS)).
+            map((profile) => this.createFromProfile(profile)).
             splice(0, 25);
 
         return localMembers;
@@ -213,7 +209,7 @@ export default class AtMentionProvider extends Provider {
 
         const priorityProfiles = this.priorityProfiles.
             filter((profile) => this.filterProfile(profile)).
-            map((profile) => this.createFromProfile(profile, Constants.MENTION_MEMBERS));
+            map((profile) => this.createFromProfile(profile));
 
         return priorityProfiles;
     }
@@ -226,7 +222,6 @@ export default class AtMentionProvider extends Provider {
 
         const localGroups = this.autocompleteGroups.
             filter((group) => this.filterGroup(group)).
-            map((group) => this.createFromGroup(group, Constants.MENTION_GROUPS)).
             sort((a, b) => a.name.localeCompare(b.name)).
             splice(0, 25);
 
@@ -241,7 +236,7 @@ export default class AtMentionProvider extends Provider {
 
         const remoteMembers = (this.data.users || []).
             filter((profile: UserProfileWithLastViewAt) => this.filterProfile(profile)).
-            map((profile: UserProfileWithLastViewAt) => this.createFromProfile(profile, Constants.MENTION_MEMBERS));
+            map((profile: UserProfileWithLastViewAt) => this.createFromProfile(profile));
 
         return remoteMembers;
     }
@@ -252,8 +247,7 @@ export default class AtMentionProvider extends Provider {
             return [];
         }
         const remoteGroups = ((this.data.groups || []) as Group[]).
-            filter((group: Group) => this.filterGroup(group)).
-            map((group: Group) => this.createFromGroup(group, Constants.MENTION_GROUPS));
+            filter((group: Group) => this.filterGroup(group));
 
         return remoteGroups;
     }
@@ -266,11 +260,7 @@ export default class AtMentionProvider extends Provider {
         }
 
         return (this.data.out_of_channel || []).
-            filter((profile: UserProfileWithLastViewAt) => this.filterProfile(profile)).
-            map((profile: UserProfileWithLastViewAt) => ({
-                type: Constants.MENTION_NONMEMBERS,
-                ...profile,
-            }));
+            filter((profile: UserProfileWithLastViewAt) => this.filterProfile(profile));
     }
 
     items() {
@@ -318,6 +308,17 @@ export default class AtMentionProvider extends Provider {
         // Combine the local and remote members, sorting to mix the results together.
         const localAndRemoteMembers = localMembers.concat(remoteMembers).sort(orderUsers);
 
+        // Get agents - these are already User objects from the backend
+        // Only show agents if bridge is enabled (indicated by presence of agents data)
+        let agents: CreatedProfile[] = [];
+        if (this.data && this.data.agents && Array.isArray(this.data.agents) && this.data.agents.length > 0) {
+            const agentUsers = this.data.agents as UserProfileWithLastViewAt[];
+            agents = agentUsers.
+                filter((user: UserProfileWithLastViewAt) => this.filterProfile(user)).
+                map((user: UserProfileWithLastViewAt) => this.createFromProfile(user)).
+                sort(orderUsers);
+        }
+
         // handle groups
         const localGroups = this.localGroups();
 
@@ -329,7 +330,7 @@ export default class AtMentionProvider extends Provider {
         const remoteGroups = this.remoteGroups().filter((group) => !localGroupIds[group.id]);
 
         // comparator which prioritises users with usernames starting with search term
-        const orderGroups = (a: CreatedGroup, b: CreatedGroup) => {
+        const orderGroups = (a: Group, b: Group) => {
             const aStartsWith = a.name.startsWith(this.latestPrefix);
             const bStartsWith = b.name.startsWith(this.latestPrefix);
 
@@ -352,52 +353,62 @@ export default class AtMentionProvider extends Provider {
             filter((member) => !localUserIds[member.id]).
             sort(orderUsers);
 
-        return [...priorityProfiles, ...localAndRemoteMembers, ...localAndRemoteGroups, ...specialMentions, ...remoteNonMembers];
+        const items = [];
+
+        if (priorityProfiles.length > 0 || localAndRemoteMembers.length > 0) {
+            items.push(membersGroup([...priorityProfiles, ...localAndRemoteMembers]));
+        }
+        if (agents.length > 0) {
+            items.push(agentsGroup(agents));
+        }
+        if (localAndRemoteGroups.length > 0) {
+            items.push(groupsGroup(localAndRemoteGroups));
+        }
+        if (specialMentions.length > 0) {
+            items.push(specialMentionsGroup(specialMentions));
+        }
+        if (remoteNonMembers.length > 0) {
+            items.push(nonMembersGroup(remoteNonMembers));
+        }
+
+        return items;
     }
 
     // updateMatches invokes the resultCallback with the metadata for rendering at mentions
-    updateMatches(resultCallback: ResultsCallback, items: any[]) {
-        if (items.length === 0) {
+    updateMatches(resultCallback: ResultsCallback<unknown>, groups: Array<ProviderResultsGroup<UserProfile | Group | SpecialMention | Loading>>, matchedPretext: string) {
+        if (groups.length === 0) {
             this.lastPrefixWithNoResults = this.latestPrefix;
         } else if (this.lastPrefixWithNoResults === this.latestPrefix) {
             this.lastPrefixWithNoResults = '';
         }
-        const mentions = items.map((item) => {
-            if (item.username) {
-                return '@' + item.username;
-            } else if (item.name) {
-                return '@' + item.name;
-            }
-            return '';
-        });
 
         resultCallback({
-            matchedPretext: `@${this.latestPrefix}`,
-            terms: mentions,
-            items,
-            component: AtMentionSuggestion,
+            matchedPretext,
+            groups,
         });
     }
 
-    handlePretextChanged(pretext: string, resultCallback: ResultsCallback) {
+    handlePretextChanged(pretext: string, resultCallback: ResultsCallback<unknown>) {
         const captured = regexForAtMention.exec(pretext.toLowerCase());
         if (!captured) {
             return false;
         }
 
-        if (this.lastCompletedWord && captured[0].trim().startsWith(this.lastCompletedWord.trim())) {
+        const matchedPretext = captured[1];
+        const prefix = captured[2];
+
+        if (this.lastCompletedWord && prefix.trim().startsWith(this.lastCompletedWord.trim())) {
             // It appears we're still matching a channel handle that we already completed
             return false;
         }
 
-        const prefix = captured[1];
         if (this.lastPrefixWithNoResults && prefix.startsWith(this.lastPrefixWithNoResults)) {
             // Just give up since we know it won't return any results
             return false;
         }
 
         this.startNewRequest(prefix);
-        this.updateMatches(resultCallback, this.items());
+        this.updateMatches(resultCallback, this.items(), matchedPretext);
 
         // If we haven't gotten server-side results in 500 ms, add the loading indicator.
         let showLoadingIndicator: NodeJS.Timeout | null = setTimeout(() => {
@@ -405,10 +416,7 @@ export default class AtMentionProvider extends Provider {
                 return;
             }
 
-            this.updateMatches(resultCallback, [...this.items(), ...[{
-                type: Constants.MENTION_MORE_MEMBERS,
-                loading: true,
-            }]]);
+            this.updateMatches(resultCallback, [...this.items(), ...[otherMembersGroup()]], matchedPretext);
 
             showLoadingIndicator = null;
         }, 500);
@@ -426,7 +434,7 @@ export default class AtMentionProvider extends Provider {
                 if (this.data && groupsData && groupsData.data) {
                     this.data.groups = groupsData.data;
                 }
-                this.updateMatches(resultCallback, this.items());
+                this.updateMatches(resultCallback, this.items(), matchedPretext);
             });
         });
 
@@ -434,52 +442,82 @@ export default class AtMentionProvider extends Provider {
     }
 
     handleCompleteWord(term: string) {
-        this.lastCompletedWord = term;
+        const termWithoutAt = term.replace(/^[@＠]/, '');
+        this.lastCompletedWord = termWithoutAt;
         this.lastPrefixWithNoResults = '';
     }
 
-    createFromProfile(profile: UserProfile | UserProfileWithLastViewAt, type: string): CreatedProfile {
+    createFromProfile(profile: UserProfile | UserProfileWithLastViewAt): CreatedProfile {
         if (profile.id === this.currentUserId) {
             return {
-                type,
                 ...profile,
                 isCurrentUser: true,
             };
         }
 
-        return {
-            type,
-            ...profile,
-        };
-    }
-
-    createFromGroup(group: Group, type: string): CreatedGroup {
-        return {
-            type,
-            ...group,
-        };
+        return profile;
     }
 }
 
-defineMessages({
-    groupDivider: {
-        id: 'suggestion.search.group',
-        defaultMessage: 'Group Mentions',
-    },
-    memberDivider: {
-        id: 'suggestion.mention.members',
-        defaultMessage: 'Channel Members',
-    },
-    moreMembersDivider: {
-        id: 'suggestion.mention.moremembers',
-        defaultMessage: 'Other Members',
-    },
-    nonmemberDivider: {
-        id: 'suggestion.mention.nonmembers',
-        defaultMessage: 'Not in Channel',
-    },
-    specialDivider: {
-        id: 'suggestion.mention.special',
-        defaultMessage: 'Special Mentions',
-    },
-});
+export function membersGroup(items: CreatedProfile[]) {
+    return {
+        key: 'members',
+        label: defineMessage({id: 'suggestion.mention.members', defaultMessage: 'Channel Members'}),
+        items,
+        terms: items.map((profile) => '@' + profile.username),
+        component: AtMentionSuggestion,
+    };
+}
+
+export function agentsGroup(items: CreatedProfile[]) {
+    return {
+        key: 'agents',
+        label: defineMessage({id: 'suggestion.mention.agents', defaultMessage: 'Agents'}),
+        icon: <CreationOutlineIcon size={16}/>,
+        items,
+        terms: items.map((profile) => '@' + profile.username),
+        component: AtMentionSuggestion,
+    };
+}
+
+export function groupsGroup(items: Group[]) {
+    return {
+        key: 'groups',
+        label: defineMessage({id: 'suggestion.search.group', defaultMessage: 'Group Mentions'}),
+        items,
+        terms: items.map((group) => '@' + group.name),
+        component: AtMentionSuggestion,
+    };
+}
+
+export function specialMentionsGroup(items: Array<{username: string}>) {
+    return {
+        key: 'specialMentions',
+        label: defineMessage({id: 'suggestion.mention.special', defaultMessage: 'Special Mentions'}),
+        items,
+        terms: items.map((item) => '@' + item.username),
+        component: AtMentionSuggestion,
+    };
+}
+
+export function nonMembersGroup(items: CreatedProfile[]) {
+    return {
+        key: 'nonMembers',
+        label: defineMessage({id: 'suggestion.mention.nonmembers', defaultMessage: 'Not in Channel'}),
+        items,
+        terms: items.map((item) => '@' + item.username),
+        component: AtMentionSuggestion,
+    };
+}
+
+export function otherMembersGroup() {
+    return {
+        key: 'otherMembers',
+        label: defineMessage({id: 'suggestion.mention.moremembers', defaultMessage: 'Other Members'}),
+        items: [{
+            loading: true as const,
+        }],
+        terms: [''],
+        component: AtMentionSuggestion,
+    };
+}

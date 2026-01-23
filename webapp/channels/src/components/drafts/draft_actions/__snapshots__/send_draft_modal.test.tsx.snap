@@ -1,13 +1,9 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/drafts/draft_actions/send_draft_modal should have called onConfirm 1`] = `
 <GenericModal
-  autoCloseOnCancelButton={true}
-  autoCloseOnConfirmButton={true}
-  bodyPadding={true}
   compassDesign={true}
   confirmButtonText="Yes, send now"
-  enforceFocus={true}
   handleCancel={[Function]}
   handleConfirm={
     [MockFunction] {
@@ -22,11 +18,8 @@ exports[`components/drafts/draft_actions/send_draft_modal should have called onC
       ],
     }
   }
-  id="genericModal"
-  keyboardEscape={true}
   modalHeaderText="Send message now"
   onExited={[MockFunction]}
-  show={true}
 >
   <MemoizedFormattedMessage
     defaultMessage="Are you sure you want to send this message to <strong>{displayName}</strong>?"
@@ -43,16 +36,10 @@ exports[`components/drafts/draft_actions/send_draft_modal should have called onC
 
 exports[`components/drafts/draft_actions/send_draft_modal should have called onExited 1`] = `
 <GenericModal
-  autoCloseOnCancelButton={true}
-  autoCloseOnConfirmButton={true}
-  bodyPadding={true}
   compassDesign={true}
   confirmButtonText="Yes, send now"
-  enforceFocus={true}
   handleCancel={[Function]}
   handleConfirm={[MockFunction]}
-  id="genericModal"
-  keyboardEscape={true}
   modalHeaderText="Send message now"
   onExited={
     [MockFunction] {
@@ -67,7 +54,6 @@ exports[`components/drafts/draft_actions/send_draft_modal should have called onE
       ],
     }
   }
-  show={true}
 >
   <MemoizedFormattedMessage
     defaultMessage="Are you sure you want to send this message to <strong>{displayName}</strong>?"
@@ -86,6 +72,9 @@ exports[`components/drafts/draft_actions/send_draft_modal should match snapshot 
 <ContextProvider
   value={
     Object {
+      "getServerState": undefined,
+      "identityFunctionCheck": "once",
+      "stabilityCheck": "once",
       "store": Object {
         "clearActions": [Function],
         "dispatch": [Function],
@@ -94,22 +83,14 @@ exports[`components/drafts/draft_actions/send_draft_modal should match snapshot 
         "replaceReducer": [Function],
         "subscribe": [Function],
       },
-      "subscription": Subscription {
+      "subscription": Object {
+        "addNestedSub": [Function],
+        "getListeners": [Function],
         "handleChangeWrapper": [Function],
-        "listeners": Object {
-          "notify": [Function],
-        },
-        "onStateChange": [Function],
-        "parentSub": undefined,
-        "store": Object {
-          "clearActions": [Function],
-          "dispatch": [Function],
-          "getActions": [Function],
-          "getState": [Function],
-          "replaceReducer": [Function],
-          "subscribe": [Function],
-        },
-        "unsubscribe": null,
+        "isSubscribed": [Function],
+        "notifyNestedSubs": [Function],
+        "trySubscribe": [Function],
+        "tryUnsubscribe": [Function],
       },
     }
   }

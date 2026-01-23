@@ -8,6 +8,8 @@ import type {IntlShape, MessageDescriptor} from 'react-intl';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Posts} from 'mattermost-redux/constants';
+import type {MessageData} from 'mattermost-redux/utils/post_list';
+import {secureGetFromRecord} from 'mattermost-redux/utils/post_utils';
 
 import Markdown from 'components/markdown';
 
@@ -189,11 +191,7 @@ export type Props = {
     currentUserId: string;
     currentUsername: string;
     intl: IntlShape;
-    messageData: Array<{
-        actorId?: string;
-        postType: string;
-        userIds: string[];
-    }>;
+    messageData: MessageData[];
     showJoinLeave: boolean;
     userProfiles: UserProfile[];
     actions: {
@@ -267,7 +265,8 @@ export class CombinedSystemMessage extends React.PureComponent<Props> {
                 return userId !== currentUserId && userId !== currentUsername;
             }).
             map((userId) => {
-                return allUsernames[userId] ? `@${allUsernames[userId]}` : someone;
+                const username = secureGetFromRecord(allUsernames, userId);
+                return username ? `@${username}` : someone;
             }).
             filter((username) => {
                 return username && username !== '';
@@ -302,11 +301,16 @@ export class CombinedSystemMessage extends React.PureComponent<Props> {
             singleline: true,
         };
 
+        const selectedPostTypeMessage = secureGetFromRecord(postTypeMessage, postType);
+        if (!selectedPostTypeMessage) {
+            return <></>;
+        }
+
         if (numOthers > 1) {
             return (
                 <LastUsers
                     actor={actor}
-                    expandedLocale={postTypeMessage[postType].many_expanded}
+                    expandedLocale={selectedPostTypeMessage.many_expanded}
                     formatOptions={options}
                     postType={postType}
                     usernames={usernames}
@@ -316,16 +320,16 @@ export class CombinedSystemMessage extends React.PureComponent<Props> {
 
         let localeHolder: MessageDescriptor = {};
         if (numOthers === 0) {
-            localeHolder = postTypeMessage[postType].one;
+            localeHolder = selectedPostTypeMessage.one;
 
             if (
                 (userIds[0] === this.props.currentUserId || userIds[0] === this.props.currentUsername) &&
-                postTypeMessage[postType].one_you
+                selectedPostTypeMessage.one_you
             ) {
-                localeHolder = postTypeMessage[postType].one_you;
+                localeHolder = selectedPostTypeMessage.one_you;
             }
         } else if (numOthers === 1) {
-            localeHolder = postTypeMessage[postType].two;
+            localeHolder = selectedPostTypeMessage.two;
         }
 
         const formattedMessage = formatMessage(localeHolder, {firstUser, secondUser, actor});
@@ -378,9 +382,9 @@ export class CombinedSystemMessage extends React.PureComponent<Props> {
         }
 
         return (
-            <React.Fragment>
+            <>
                 {content}
-            </React.Fragment>
+            </>
         );
     }
 }

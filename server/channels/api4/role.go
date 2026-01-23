@@ -9,7 +9,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
 const GetRolesByNamesMax = 100
@@ -47,7 +46,10 @@ func getAllRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+		return
+	}
 }
 
 func getRole(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -73,7 +75,7 @@ func getRoleByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	role, err := c.App.GetRoleByName(r.Context(), c.Params.RoleName)
+	role, err := c.App.GetRoleByName(c.AppContext, c.Params.RoleName)
 	if err != nil {
 		c.Err = err
 		return
@@ -119,7 +121,10 @@ func getRolesByNames(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+		return
+	}
 }
 
 func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -134,8 +139,8 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("patchRole", audit.Fail)
-	audit.AddEventParameterAuditable(auditRec, "role_patch", &patch)
+	auditRec := c.MakeAuditRecord(model.AuditEventPatchRole, model.AuditStatusFail)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "role_patch", &patch)
 	defer c.LogAuditRec(auditRec)
 
 	oldRole, appErr := c.App.GetRole(c.Params.RoleId)

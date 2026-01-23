@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/ChannelInfoModal should match snapshot 1`] = `
 <Modal
@@ -28,7 +28,7 @@ exports[`components/ChannelInfoModal should match snapshot 1`] = `
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader

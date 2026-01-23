@@ -21,6 +21,9 @@ import './tour_tip.scss';
 
 export type TourTipEventSource = 'next' | 'prev' | 'dismiss' | 'jump' | 'skipped' | 'open' | 'punchOut'
 
+// If this needs to alter, change in _variables $z-index-tour-tips-popover as well
+const DEFAULT_Z_INDEX_TOUR_TIPS_POPOVER = 1300;
+
 type Props = {
     show: boolean;
     screen: JSX.Element;
@@ -84,7 +87,7 @@ export const TourTip = ({
     placement = 'right-start',
     showOptOut = true,
     width = 352,
-    zIndex = 999,
+    zIndex = DEFAULT_Z_INDEX_TOUR_TIPS_POPOVER,
     hideBackdrop = false,
     tippyBlueStyle = false,
 }: Props) => {

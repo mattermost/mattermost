@@ -11,6 +11,7 @@ const {
     dbGetUser,
     dbGetUserSession,
     dbUpdateUserSession,
+    dbRefreshPostStats,
 } = require('./db_request');
 const externalRequest = require('./external_request').default;
 const {fileExist, writeToFile} = require('./file_util');
@@ -42,6 +43,7 @@ module.exports = (on, config) => {
         dbGetUser,
         dbGetUserSession,
         dbUpdateUserSession,
+        dbRefreshPostStats,
         externalRequest,
         fileExist,
         writeToFile,

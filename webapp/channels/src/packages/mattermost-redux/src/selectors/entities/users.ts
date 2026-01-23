@@ -17,15 +17,16 @@ import {General} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {
     getCurrentChannelId,
-    getCurrentUser,
-    getCurrentUserId,
+    getCurrentUser as getCurrentUserInternal,
+    getCurrentUserId as getCurrentUserIdInternal,
     getMyCurrentChannelMembership,
-    getUsers,
+    getUsers as getUsersInternal,
     getMembersInTeam,
     getMembersInChannel,
 } from 'mattermost-redux/selectors/entities/common';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getDirectShowPreferences, getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
+import {secureGetFromRecord} from 'mattermost-redux/utils/post_utils';
 import {
     displayUsername,
     filterProfilesStartingWithTerm,
@@ -38,7 +39,10 @@ import {
     applyRolesFilters,
 } from 'mattermost-redux/utils/user_utils';
 
-export {getCurrentUser, getCurrentUserId, getUsers};
+// Re-define these types to ensure that these are typed correctly when mattermost-redux is published
+export const getCurrentUser: (state: GlobalState) => UserProfile = getCurrentUserInternal;
+export const getCurrentUserId: (state: GlobalState) => string = getCurrentUserIdInternal;
+export const getUsers: (state: GlobalState) => IDMappedObjects<UserProfile> = getUsersInternal;
 
 export type Filters = {
     role?: string;
@@ -49,6 +53,7 @@ export type Filters = {
     channel_roles?: string[];
     team_roles?: string[];
     exclude_bots?: boolean;
+    exclude_remote?: boolean;
 };
 
 export function getUserIdsInChannels(state: GlobalState): RelationOneToManyUnique<Channel, UserProfile> {
@@ -65,10 +70,6 @@ export function getUserIdsInTeams(state: GlobalState): RelationOneToManyUnique<T
 
 export function getUserIdsNotInTeams(state: GlobalState): RelationOneToManyUnique<Team, UserProfile> {
     return state.entities.users.profilesNotInTeam;
-}
-
-export function getUserIdsWithoutTeam(state: GlobalState): Set<UserProfile['id']> {
-    return state.entities.users.profilesWithoutTeam;
 }
 
 export function getUserIdsInGroups(state: GlobalState): RelationOneToManyUnique<Group, UserProfile> {
@@ -95,6 +96,17 @@ export function getUser(state: GlobalState, id: UserProfile['id']): UserProfile 
     return state.entities.users.profiles[id];
 }
 
+export function makeGetUsersByIds(): (state: GlobalState, ids: Array<UserProfile['id']>) => UserProfile[] {
+    return createSelector(
+        'getUsersByIds',
+        getUsers,
+        (state: GlobalState, ids: string[]) => ids,
+        (users, ids) => {
+            return ids.map((userId) => users[userId]);
+        },
+    );
+}
+
 export const getUsersByUsername: (a: GlobalState) => Record<string, UserProfile> = createSelector(
     'getUsersByUsername',
     getUsers,
@@ -102,7 +114,7 @@ export const getUsersByUsername: (a: GlobalState) => Record<string, UserProfile>
         const usersByUsername: Record<string, UserProfile> = {};
 
         for (const id in users) {
-            if (users.hasOwnProperty(id)) {
+            if (Object.hasOwn(users, id)) {
                 const user = users[id];
                 usersByUsername[user.username] = user;
             }
@@ -334,6 +346,10 @@ export function filterProfiles(profiles: IDMappedObjects<UserProfile>, filters?:
         users = users.filter((user) => user.delete_at === 0);
     }
 
+    if (filters.exclude_remote) {
+        users = users.filter((user) => !user.remote_id);
+    }
+
     return users.reduce((acc, user) => {
         acc[user.id] = user;
         return acc;
@@ -371,21 +387,23 @@ export const getActiveProfilesInCurrentChannelWithoutSorting: (state: GlobalStat
     },
 );
 
-export const getProfilesNotInCurrentChannel: (state: GlobalState) => UserProfile[] = createSelector(
+export const getProfilesNotInCurrentChannel: (state: GlobalState, filters?: Filters) => UserProfile[] = createSelector(
     'getProfilesNotInCurrentChannel',
     getUsers,
     getProfileSetNotInCurrentChannel,
-    (profiles, notInCurrentChannelProfileSet) => {
-        return sortAndInjectProfiles(profiles, notInCurrentChannelProfileSet);
+    (state: GlobalState, filters?: Filters) => filters,
+    (profiles, notInCurrentChannelProfileSet, filters) => {
+        return sortAndInjectProfiles(filterProfiles(profiles, filters), notInCurrentChannelProfileSet);
     },
 );
 
-export const getProfilesInCurrentTeam: (state: GlobalState) => UserProfile[] = createSelector(
+export const getProfilesInCurrentTeam: (state: GlobalState, filters?: Filters) => UserProfile[] = createSelector(
     'getProfilesInCurrentTeam',
     getUsers,
     getProfileSetInCurrentTeam,
-    (profiles, currentTeamProfileSet) => {
-        return sortAndInjectProfiles(profiles, currentTeamProfileSet);
+    (state: GlobalState, filters?: Filters) => filters,
+    (profiles, currentTeamProfileSet, filters) => {
+        return sortAndInjectProfiles(filterProfiles(profiles, filters), currentTeamProfileSet);
     },
 );
 
@@ -418,16 +436,6 @@ export const getProfilesNotInCurrentTeam: (state: GlobalState) => UserProfile[] 
     getProfileSetNotInCurrentTeam,
     (profiles, notInCurrentTeamProfileSet) => {
         return sortAndInjectProfiles(profiles, notInCurrentTeamProfileSet);
-    },
-);
-
-export const getProfilesWithoutTeam: (state: GlobalState, filters: Filters) => UserProfile[] = createSelector(
-    'getProfilesWithoutTeam',
-    getUsers,
-    getUserIdsWithoutTeam,
-    (state: GlobalState, filters: Filters) => filters,
-    (profiles, withoutTeamProfileSet, filters) => {
-        return sortAndInjectProfiles(filterProfiles(profiles, filters), withoutTeamProfileSet);
     },
 );
 
@@ -524,8 +532,8 @@ export function searchProfilesNotInCurrentChannel(state: GlobalState, term: stri
     return profiles;
 }
 
-export function searchProfilesInCurrentTeam(state: GlobalState, term: string, skipCurrent = false): UserProfile[] {
-    const profiles = filterProfilesStartingWithTerm(getProfilesInCurrentTeam(state), term);
+export function searchProfilesInCurrentTeam(state: GlobalState, term: string, skipCurrent = false, filters?: Filters): UserProfile[] {
+    const profiles = filterProfilesStartingWithTerm(getProfilesInCurrentTeam(state, filters), term);
     if (skipCurrent) {
         removeCurrentUserFromList(profiles, getCurrentUserId(state));
     }
@@ -549,15 +557,6 @@ export function searchProfilesNotInCurrentTeam(state: GlobalState, term: string,
     }
 
     return profiles;
-}
-
-export function searchProfilesWithoutTeam(state: GlobalState, term: string, skipCurrent = false, filters: Filters): UserProfile[] {
-    const filteredProfiles = filterProfilesStartingWithTerm(getProfilesWithoutTeam(state, filters), term);
-    if (skipCurrent) {
-        removeCurrentUserFromList(filteredProfiles, getCurrentUserId(state));
-    }
-
-    return filteredProfiles;
 }
 
 function removeCurrentUserFromList(profiles: UserProfile[], currentUserId: UserProfile['id']) {
@@ -665,22 +664,22 @@ export function makeGetProfilesNotInChannel(): (state: GlobalState, channelId: C
 export function makeGetProfilesByIdsAndUsernames(): (
     state: GlobalState,
     props: {
-        allUserIds: Array<UserProfile['id']>;
-        allUsernames: Array<UserProfile['username']>;
+        allUserIds?: Array<UserProfile['id']>;
+        allUsernames?: Array<UserProfile['username']>;
     }
 ) => UserProfile[] {
     return createSelector(
         'makeGetProfilesByIdsAndUsernames',
         getUsers,
         getUsersByUsername,
-        (state: GlobalState, props: {allUserIds: Array<UserProfile['id']>; allUsernames: Array<UserProfile['username']>}) => props.allUserIds,
+        (state: GlobalState, props: {allUserIds?: Array<UserProfile['id']>; allUsernames?: Array<UserProfile['username']>}) => props.allUserIds,
         (state, props) => props.allUsernames,
-        (allProfilesById: Record<string, UserProfile>, allProfilesByUsername: Record<string, UserProfile>, allUserIds: string[], allUsernames: string[]) => {
+        (allProfilesById: Record<string, UserProfile>, allProfilesByUsername: Record<string, UserProfile>, allUserIds: string[] = [], allUsernames: string[] = []) => {
             const userProfiles: UserProfile[] = [];
 
             if (allUserIds && allUserIds.length > 0) {
                 const profilesById = allUserIds.
-                    filter((userId) => allProfilesById[userId]).
+                    filter((userId) => secureGetFromRecord(allProfilesById, userId)).
                     map((userId) => allProfilesById[userId]);
 
                 if (profilesById && profilesById.length > 0) {
@@ -690,7 +689,7 @@ export function makeGetProfilesByIdsAndUsernames(): (
 
             if (allUsernames && allUsernames.length > 0) {
                 const profilesByUsername = allUsernames.
-                    filter((username) => allProfilesByUsername[username]).
+                    filter((username) => secureGetFromRecord(allProfilesByUsername, username)).
                     map((username) => allProfilesByUsername[username]);
 
                 if (profilesByUsername && profilesByUsername.length > 0) {

@@ -3,12 +3,13 @@
 
 import React, {useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
 
-import {setStatusDropdown} from 'actions/views/status_dropdown';
 import {makeGetCustomStatus, showPostHeaderUpdateStatusButton, isCustomStatusEnabled} from 'selectors/views/custom_status';
 
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
+import {openMenu} from 'components/menu';
+import {ELEMENT_ID_FOR_USER_ACCOUNT_MENU_BUTTON} from 'components/user_account_menu/user_account_menu';
 import EmojiIcon from 'components/widgets/icons/emoji_icon';
 
 import type {GlobalState} from 'types/store';
@@ -22,7 +23,6 @@ interface ComponentProps {
 const PostHeaderCustomStatus = (props: ComponentProps) => {
     const getCustomStatus = useMemo(makeGetCustomStatus, []);
     const {userId, isSystemMessage, isBot} = props;
-    const dispatch = useDispatch();
     const userCustomStatus = useSelector((state: GlobalState) => getCustomStatus(state, userId));
     const showUpdateStatusButton = useSelector(showPostHeaderUpdateStatusButton);
     const customStatusEnabled = useSelector(isCustomStatusEnabled);
@@ -51,7 +51,7 @@ const PostHeaderCustomStatus = (props: ComponentProps) => {
 
     const updateStatus = (event: React.MouseEvent) => {
         event.preventDefault();
-        dispatch(setStatusDropdown(true));
+        openMenu(ELEMENT_ID_FOR_USER_ACCOUNT_MENU_BUTTON);
     };
 
     return (

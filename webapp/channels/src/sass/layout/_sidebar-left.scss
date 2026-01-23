@@ -1,27 +1,8 @@
-@charset "UTF-8";
+@use "utils/variables";
 
 /* Height durations for height and opacity of sidebar channels needs to be different for optimum fps see PR #9732 */
 $sidebarHeightTransitionDuration: 0.18s;
 $sidebarOpacityAnimationDuration: 0.15s;
-
-#TeamSidebar {
-    z-index: 13;
-    display: flex;
-    width: 64px;
-    height: 100%;
-    flex-direction: column;
-    background-color: var(--sidebar-header-bg);
-    text-align: center;
-
-    .TeamSidebarWrapper {
-        position: relative;
-        overflow: hidden;
-        height: 100%;
-        flex: 1 1 auto;
-        background-color: rgba(0, 0, 0, 0.2);
-        -webkit-overflow-scrolling: touch;
-    }
-}
 
 #SidebarContainer {
     position: relative;
@@ -31,8 +12,10 @@ $sidebarOpacityAnimationDuration: 0.15s;
     min-width: 240px;
     max-width: 240px;
     height: 100%;
+    min-height: 0;
     flex-direction: column;
     background-color: var(--sidebar-bg);
+    overflow-x: visible;
 
     @media screen and (min-width: 769px) {
         width: var(--overrideLhsWidth, 264px);
@@ -161,7 +144,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
         &.desktop {
             display: block;
 
-            .AddChannelDropdown_dropdownButton,
             .SidebarFilters_filterButton,
             .SidebarChannelNavigator_backButton,
             .SidebarChannelNavigator_inviteUsers,
@@ -178,7 +160,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
         &.webapp {
             display: flex;
 
-            .AddChannelDropdown_dropdownButton,
             .SidebarChannelNavigator_inviteUsers,
             .SidebarChannelNavigator_jumpToButton,
             .SidebarFilters_filterButton {
@@ -195,8 +176,10 @@ $sidebarOpacityAnimationDuration: 0.15s;
         &__inviteMembersLhsButton,
         &__addChannelsCtaLhsButton {
             display: flex;
-            padding: 6px 0;
-            margin-left: 15px;
+            padding-top: 6px;
+            padding-right: 0px;
+            padding-bottom: 6px;
+            padding-left: 15px;
             color: rgba(var(--sidebar-text-rgb), 0.64);
             line-height: 20px;
             list-style: none;
@@ -213,13 +196,12 @@ $sidebarOpacityAnimationDuration: 0.15s;
 
             &--untouched {
                 color: var(--sidebar-unread-text);
-                font-weight: $font-weight--semibold;
+                font-weight: variables.$font-weight--semibold;
             }
         }
 
         &__addChannelsCtaLhsButton {
             border: none;
-            margin-left: 0;
             background: none;
 
             div {
@@ -228,7 +210,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
             }
         }
 
-        .AddChannelDropdown_dropdownButton,
         .SidebarChannelNavigator_inviteUsers,
         .SidebarChannelNavigator_jumpToButton,
         .SidebarFilters_filterButtontton,
@@ -331,35 +312,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
         color: var(--sidebar-bg);
     }
 
-    .AddChannelDropdown {
-        height: 30px;
-
-        .dropdown-menu {
-            min-width: 250px;
-            margin-top: 0;
-            line-height: 19px;
-
-            span {
-                color: rgba(var(--center-channel-color-rgb), 0.9);
-
-                &:not(.MenuItem__help-text) {
-                    white-space: nowrap;
-                }
-            }
-
-            button {
-                padding: 1px 16px;
-            }
-
-            i {
-                color: rgba(var(--center-channel-color-rgb), 0.64);
-                font-size: 16px;
-                line-height: 16px;
-            }
-        }
-    }
-
-    .AddChannelDropdown_dropdownButton,
     .SidebarChannelNavigator_inviteUsers {
         z-index: 1;
         width: 28px;
@@ -370,47 +322,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
         background: transparent;
         color: rgba(var(--sidebar-text-rgb), 0.8);
         font-size: 20px;
-    }
-
-    .AddChannelDropdown_dropdownButton:hover,
-    .AddChannelDropdown_dropdownButton:active,
-    .AddChannelDropdown_dropdownButton:focus {
-        background-color: rgba(var(--sidebar-text-rgb), 0.16);
-        color: var(--sidebar-text);
-        cursor: pointer;
-    }
-
-    .AddChannelDropdown_dropdownButton:focus {
-        outline-style: none;
-    }
-
-    .sidebar-header {
-        display: flex;
-        overflow: hidden;
-        flex-direction: row;
-        align-items: center;
-    }
-
-    .SidebarHeaderMenuWrapper {
-        overflow: hidden;
-        padding-left: 5px;
-        border-radius: 4px;
-        background: transparent;
-
-        &:hover,
-        &:active,
-        &:focus {
-            background-color: rgba(var(--sidebar-text-rgb), 0.08);
-        }
-
-        &.MenuWrapper--open {
-            background-color: rgba(var(--sidebar-text-rgb), 0.16);
-        }
-    }
-
-    .AddChannelDropdown_dropdownButton {
-        background-color: rgba(var(--sidebar-text-rgb), 0.08);
-        color: rgba(var(--sidebar-text-rgb), 0.64);
     }
 
     .SidebarMenu {
@@ -559,32 +470,11 @@ $sidebarOpacityAnimationDuration: 0.15s;
 
     .SidebarNavContainer {
         position: relative;
-        flex: 1 1 auto;
-
-        .scrollbar--view {
-            z-index: unset !important;
-            margin-top: 8px;
-        }
-
-        .scrollbar--view ~ div {
-            z-index: 2;
-
-            div {
-                z-index: 2;
-            }
-        }
-
-        .scrollbar--verticalTrack {
-            top: 2px;
-            right: 2px;
-            bottom: 2px;
-            border-radius: 3px;
-            pointer-events: none;
-        }
-
-        .scrollbar--vertical {
-            pointer-events: all;
-        }
+        display: flex;
+        overflow: clip;
+        min-height: 0;
+        flex: 1;
+        flex-direction: column;
     }
 
     .SidebarCategory_newLabel {
@@ -752,26 +642,13 @@ $sidebarOpacityAnimationDuration: 0.15s;
         }
     }
 
-    .AddChannelsCtaDropdown .dropdown-menu {
-        min-width: 210px !important;
-        margin-left: 20px;
-
-        .MenuItem button span {
-            color: rgba(var(--center-channel-color-rgb), 0.9);
-
-            i {
-                color: rgba(var(--center-channel-color-rgb), 0.64);
-            }
-        }
-    }
-
     #inviteMembersButton,
     #addChannelsCta {
         display: flex;
         width: 100%;
         margin-top: -6px;
 
-        &:hover {
+        &:hover, &[aria-expanded=true] {
             background-color: var(--sidebar-text-hover-bg);
         }
     }
@@ -1377,45 +1254,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
     #SidebarContainer {
         +.inner-wrap #app-content {
             margin-left: 305px;
-        }
-    }
-}
-
-/* context menu shown when right-clicking on a channel in the LHS when using the desktop app */
-.react-contextmenu--visible {
-    z-index: 100;
-    padding: 2px 0;
-    border: 1px solid #c6c6c6;
-    border-radius: 5px;
-    background: #f0f0f0;
-    color: black;
-    cursor: pointer;
-}
-
-.react-contextmenu-item {
-    padding: 0 22px;
-    margin: 1px 0;
-
-    &:hover {
-        background: #489dfe;
-        color: $white;
-    }
-
-    &:focus,
-    span {
-        outline: none;
-    }
-}
-
-// Manual override of the global menu (and items) styling for the sidebar dropdown menu
-#sidebarDropdownMenu {
-    position: fixed;
-
-    .MenuItem {
-        >button,
-        >div,
-        >a {
-            padding: 0 32px 0 24px;
         }
     }
 }

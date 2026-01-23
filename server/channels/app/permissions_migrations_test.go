@@ -4,7 +4,6 @@
 package app
 
 import (
-	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -14,6 +13,7 @@ import (
 )
 
 func TestApplyPermissionsMap(t *testing.T) {
+	mainHelper.Parallel(t)
 	tt := []struct {
 		Name           string
 		RoleMap        map[string]map[string]bool
@@ -199,13 +199,13 @@ func TestApplyPermissionsMap(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.Name, func(t *testing.T) {
 			result := applyPermissionsMap(&model.Role{Name: "system_admin"}, tc.RoleMap, tc.TranslationMap)
-			sort.Strings(result)
-			assert.Equal(t, tc.ExpectedResult, result)
+			assert.ElementsMatch(t, tc.ExpectedResult, result)
 		})
 	}
 }
 
 func TestApplyPermissionsMapToSchemeRole(t *testing.T) {
+	mainHelper.Parallel(t)
 	schemeRoleName := model.NewId()
 	tt := []struct {
 		Name           string
@@ -270,8 +270,7 @@ func TestApplyPermissionsMapToSchemeRole(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.Name, func(t *testing.T) {
 			result := applyPermissionsMap(&model.Role{Name: schemeRoleName, DisplayName: sqlstore.SchemeRoleDisplayNameTeamAdmin}, tc.RoleMap, tc.TranslationMap)
-			sort.Strings(result)
-			assert.Equal(t, tc.ExpectedResult, result)
+			assert.ElementsMatch(t, tc.ExpectedResult, result)
 		})
 	}
 }

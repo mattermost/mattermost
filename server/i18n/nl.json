@@ -208,10 +208,6 @@
     "translation": "Een direct kanaal kan niet verlaten worden."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Je bent het laatste lid, probeer de privékanaal te verwijderen in plaats van dit te verlaten."
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v heeft het kanaal verlaten."
   },
@@ -926,10 +922,6 @@
     "translation": "ophalen"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Nieuw formaat voor de client configuratie is nog niet ondersteund. Gebruik format=old in de query."
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "Sorry, we kunnen de pagina niet vinden."
   },
@@ -1193,10 +1185,6 @@
     "translation": "ongeldige aanvraag: Foutief client_id."
   },
   {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "ongeldige aanvraag (invalid_request): Ontbrekend client_secret."
-  },
-  {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
     "translation": "ongeldige aanvraag: Foutief grant_type."
   },
@@ -1330,15 +1318,15 @@
   },
   {
     "id": "api.post.disabled_all",
-    "translation": "@all is uitgeschakeld in dit kanaal omdat dit kanaal meer dan {{.Users}} gebruikers bevat."
+    "translation": "@all-meldingen zijn uitgeschakeld in kanalen met meer dan {{.Users}} gebruikers. Neem contact op met je systeembeheerder voor meer informatie."
   },
   {
     "id": "api.post.disabled_channel",
-    "translation": "@channel is uitgeschakeld in dit kanaal omdat dit kanaal meer dan {{.Users}} gebruikers bevat."
+    "translation": "@kanaal-meldingen zijn uitgeschakeld in kanalen met meer dan {{.Users}} gebruikers. Neem contact op met je systeembeheerder voor meer informatie."
   },
   {
     "id": "api.post.disabled_here",
-    "translation": "@here is uitgeschakeld in dit kanaal omdat dit kanaal meer dan {{.Users}} gebruikers bevat."
+    "translation": "@here-meldingen zijn uitgeschakeld in kanalen met meer dan {{.Users}} gebruikers. Neem contact op met je systeembeheerder voor meer informatie."
   },
   {
     "id": "api.post.do_action.action_id.app_error",
@@ -2079,14 +2067,6 @@
     "translation": "Het is verboden voor Bots om in te loggen."
   },
   {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Er is geprobeerd aan te melden met de experimentele functie ClientSideCert zonder een geldig certificaat te verstrekken."
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Er is geprobeerd om de experimentele functie te gebruiken ClientSideCert zonder een geldig Enterprise-licentie."
-  },
-  {
     "id": "api.user.login.inactive.app_error",
     "translation": "Inloggen in niet mogelijk, omdat het account uitgeschakeld is. Neem contact op met een beheerder."
   },
@@ -2293,10 +2273,6 @@
   {
     "id": "api.webhook.create_outgoing.triggers.app_error",
     "translation": "Ofwel trigger_words of channel_id moet ingesteld zijn."
-  },
-  {
-    "id": "api.webhook.incoming.error",
-    "translation": "Kan multipart payload van inkomende webhook niet decoderen."
   },
   {
     "id": "api.webhook.team_mismatch.app_error",
@@ -2999,60 +2975,8 @@
     "translation": "Systeem Console is ingesteld op alleen-lezen wanneer Hoge Beschikbaarheid is ingeschakeld, tenzij ReadOnlyConfig is uitgeschakeld in het configuratiebestand."
   },
   {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "Onbekende uitvoerindeling {{.ExportType}}"
-  },
-  {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "De bijlage kan niet worden gekopieerd naar het zip-bestand."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "Bijlage kan niet worden toegevoegd aan CSV-export."
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "Kan tijdelijk CSV-exportbestand niet maken."
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "Er kon geen koptekst aan de CSV-export worden toegevoegd."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "Kon metagegevensbestand niet toevoegen aan het ZIP-bestand."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Kan metadata niet omzetten naar json."
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "Kan een bericht niet exporteren."
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Fout bij het aanmaken van het zip-bestand."
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "Het geüploade bestand is verwijderd uit de Global Relay-export omdat het te groot was om te verzenden."
-  },
-  {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "Kan het tijdelijke exportbestand niet openen."
-  },
-  {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Kan het tijdelijke exportbestand van Global Relay niet opnieuw lezen."
-  },
-  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "Compliance functionaliteit is uitgeschakeld met de huidige licentie. Neem contact op met de beheerder voor een upgrade van de licentie."
-  },
-  {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "Exportsjablonen kunnen niet worden geladen. Probeer het opnieuw."
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -3064,31 +2988,31 @@
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Elasticsearch-aggregator kon geen indexeertaak aanmaken"
+    "translation": "{{.Backend}}-aggregator kon geen indexeertaak aanmaken"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Elasticsearch-aggregator kon de indexen niet wissen"
+    "translation": "{{.Backend}}-aggregator kon de indexen niet wissen"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Elasticsearch-aggregator kon de indexen niet ophalen"
+    "translation": "{{.Backend}}-aggregator kon de indexen niet ophalen"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Elasticsearch-aggregator werker mislukte omwille van een gefaalde indexeertaak"
+    "translation": "{{.Backend}}-aggregator werker mislukte omwille van een gefaalde indexeertaak"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "Het opzetten van Elasticsearch Client mislukte"
+    "translation": "Het opzetten van {{.Backend}} Client mislukte"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "Fout bij het verwijderen van de Elastisearch index"
+    "translation": "Fout bij het verwijderen van de {{.Backend}} index"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "Fout bij het verwijderen van de Elastisearch indexen"
+    "translation": "Fout bij het verwijderen van de {{.Backend}} indexen"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -3096,7 +3020,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "Elasticsearch-zoeken is niet ingeschakeld op deze server"
+    "translation": "{{.Backend}} zoeken is niet ingeschakeld op deze server"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -3104,23 +3028,19 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Elasticsearch indexing worker is er niet in geslaagd de eindtijd te verwerken"
+    "translation": "{{.Backend}} indexing worker is er niet in geslaagd de eindtijd te verwerken"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Elasticsearch indexing worker is er niet in geslaagd de starttijd te verwerken"
+    "translation": "{{.Backend}} indexing worker is er niet in geslaagd de starttijd te verwerken"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
-    "translation": "Elasticsearch is niet gestart"
-  },
-  {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "Fout bij het verwijderen van de Elastisearch index"
+    "translation": "{{.Backend}} is niet gestart"
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "Elasticsearch zoeken is uitgeschakeld op deze server"
+    "translation": "{{.Backend}} zoeken is uitgeschakeld op deze server"
   },
   {
     "id": "ent.elasticsearch.search_posts.parse_matches_failed",
@@ -3136,19 +3056,19 @@
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch is reeds gestopt."
+    "translation": "{{.Backend}} is reeds gestopt."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch is uitgeschakeld."
+    "translation": "{{.Backend}} is uitgeschakeld."
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
-    "translation": "Jouw licentie biedt geen ondersteuning voor Elasticsearch."
+    "translation": "Je Mattermost licentie ondersteunt geïndexeerd zoeken niet."
   },
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
-    "translation": "De Elasticsearch Server URL of gebruikersnaam is gewijzigd. Voer het Elasticsearch-wachtwoord opnieuw in om de verbinding te testen."
+    "translation": "De URL of gebruikersnaam van de zoekserver is gewijzigd. Voer het wachtwoord opnieuw in om de verbinding te testen."
   },
   {
     "id": "ent.ldap.app_error",
@@ -3233,58 +3153,6 @@
   {
     "id": "ent.ldap_groups.reachable_groups_error",
     "translation": "fout bij ophalen van groepen voor gebruiker"
-  },
-  {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Bijlage kan niet worden toegevoegd aan de Global Relay-export."
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Het zip-bestand kon niet worden gesloten."
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "Kan het eml-bestand niet aanmaken."
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Kan geen eml-bestand genereren."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "Kan de e-mail niet afleveren bij Global Relay."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "Kan het From e-mailadres niet instellen."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "Kan het e-mailbericht niet instellen."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "Kan het e-mailbericht niet schrijven."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "De e-mailgegevens kunnen niet worden gelezen."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "Kan het To e-mailadres niet instellen."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Kan de informatie van het tijdelijke export bestand niet krijgen."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "Er kan geen e-mail worden opgehaald uit het tijdelijke bestand."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Kan het tijdelijke exportbestand niet openen."
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
@@ -3708,27 +3576,27 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
-    "translation": "De Elasticsearch AggregatePostsAfterDays instelling moet een getal zijn dat groter is dan of gelijk is aan 1."
+    "translation": "De AggregatePostsAfterDays instelling moet een getal zijn dat groter is dan of gelijk is aan 1."
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "Elastic Search Username instelling moet ingevuld zijn wanneer Elastic Search indexing is ingeschakeld."
+    "translation": "Search Username instelling moet ingevuld zijn wanneer indexing is ingeschakeld."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "De instelling Elastisearch IndexingEnabled moet worden ingesteld op waar als de functie Elastisearch SearchEnabled ingesteld is op waar"
+    "translation": "{{.EnableIndexing}} instelling moet worden ingesteld op actief als {{.Searching}} is ingesteld op actief"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "Elasticsearch Live Indexing Batch Size moet ten minste 1 zijn."
+    "translation": "Search Live Indexing Batch Size moet ten minste 1 zijn."
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
-    "translation": "De Elasticsearch PostsAggregatorJobStartTime instelling moet een tijd zijn in de notatie \"uu:mm\"."
+    "translation": "De search PostsAggregatorJobStartTime instelling moet een tijd zijn in de notatie \"uu:mm\"."
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "Elasticsearch Timeout Aanvraag moet ten minste 1 seconde zijn."
+    "translation": "Search Timeout Aanvraag moet ten minste 1 seconde zijn."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -3948,7 +3816,7 @@
   },
   {
     "id": "model.config.is_valid.sql_driver.app_error",
-    "translation": "Ongeldig stuurprogrammanaam bij SQL-instellingen. Moet 'mysql' of 'postgres' zijn."
+    "translation": "Ongeldige stuurprogrammanaam voor SQL-instellingen. Moet 'postgres' zijn."
   },
   {
     "id": "model.config.is_valid.sql_idle.app_error",
@@ -4104,7 +3972,7 @@
   },
   {
     "id": "model.incoming_hook.id.app_error",
-    "translation": "Ongeldig Id."
+    "translation": "Ongeldig Id. :{{.Id}}"
   },
   {
     "id": "model.incoming_hook.parse_data.app_error",
@@ -4309,10 +4177,6 @@
   {
     "id": "model.post.is_valid.id.app_error",
     "translation": "Ongeldig Id."
-  },
-  {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Ongeldig bericht."
   },
   {
     "id": "model.post.is_valid.original_id.app_error",
@@ -4612,11 +4476,11 @@
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": "Kon de opdracht niet vinden."
+    "translation": "Kon de opdracht {{.command_id}} niet vinden."
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": "Kan binnenkomende data niet verwerken."
+    "translation": "Kan inkomende gegevens voor webhook {{.hook_id}} niet verwerken."
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",
@@ -4628,7 +4492,7 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "Deze webhook is niet toegestaan om te posten naar het aangevraagde kanaal."
+    "translation": "Deze webhook mag niet posten naar het gevraagde kanaal {{.channel_id}}"
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
@@ -4644,7 +4508,7 @@
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "Onjuiste kanaal rechten."
+    "translation": "Gebruiker {{.user}} heeft niet de juiste rechten voor kanaal {{.channel}}"
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
@@ -4656,7 +4520,7 @@
   },
   {
     "id": "web.incoming_webhook.user.app_error",
-    "translation": "De gebruiker kan niet worden gevonden."
+    "translation": "Kon de gebruiker {{.user}} niet vinden"
   },
   {
     "id": "api.license.request_trial_license.app_error",
@@ -4728,7 +4592,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 10+"
+    "translation": "Windows 11+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -4736,19 +4600,19 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Versie 17.0+"
+    "translation": "Versie 17.4+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Versie 115+"
+    "translation": "Versie 140+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Versie 126+"
+    "translation": "Versie 140+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Versie 126+"
+    "translation": "Versie 140+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -4803,10 +4667,6 @@
     "translation": "Download de nieuwste Chrome browser"
   },
   {
-    "id": "searchengine.bleve.disabled.error",
-    "translation": "Fout bij leegmaken van Bleve indexen: de engine is uitgeschakeld"
-  },
-  {
     "id": "plugin_api.bot_cant_create_bot",
     "translation": "Een bot-gebruiker kan geen bot-gebruiker aanmaken."
   },
@@ -4852,7 +4712,7 @@
   },
   {
     "id": "model.user.is_valid.auth_data_type.app_error",
-    "translation": "Ongeldige gebruiker, auth data moet ingesteld zijn met auth type."
+    "translation": "Ongeldige gebruiker: Auth-gegevens kunnen alleen worden ingesteld als de gebruiker een externe auth-service, en niet e-mail/wachtwoord gebruikt voor authenticatie."
   },
   {
     "id": "model.user.is_valid.auth_data_pwd.app_error",
@@ -4912,19 +4772,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "De Bleve IndexingEnabled instelling moet op waar worden ingesteld wanneer Bleve AutocompleteEnabled ingesteld is op waar"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "De instelling Bleve IndexingEnabled moet worden ingesteld op waar als de functie Bleve SearchEnabled is ingesteld"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "De instelling Bleve IndexingEnabled moet worden ingesteld op waar als de functie BleveSearchEnabled ingesteld is op waar"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "De Bleve IndexingEnabled instelling moet op waar worden ingesteld als Bleve AutocompleteEnabled is ingesteld op waar"
+    "translation": "{{.EnableIndexing}} instelling moet worden ingesteld op actief als {{.Autocomplete}} is ingesteld op actief"
   },
   {
     "id": "model.command.is_valid.autocomplete_data.app_error",
@@ -4964,11 +4812,11 @@
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Verwerken van Elasticsearch-serverversie is mislukt."
+    "translation": "Verwerken van {{.Backend}}-serverversie is mislukt."
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Ophalen van Elasticsearch-serverversie is mislukt."
+    "translation": "Ophalen van {{.Backend}}-serverversie is mislukt."
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
@@ -4988,11 +4836,11 @@
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "Elasticsearch zoeken is uitgeschakeld op deze server"
+    "translation": "{{.Backend}} zoeken is uitgeschakeld op deze server"
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
-    "translation": "Fout bij het vernieuwen van de Elasticsearch-indexen"
+    "translation": "Zoekindexen zijn niet vernieuwd"
   },
   {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
@@ -5016,139 +4864,15 @@
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "Het aanmaken van het Elasticsearch-sjabloon voor gebruikers is mislukt"
+    "translation": "Het aanmaken van het {{.Backend}}-sjabloon voor gebruikers is mislukt"
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Het aanmaken van het Elasticsearch-sjabloon voor berichten is mislukt"
+    "translation": "Het aanmaken van het {{.Backend}}-sjabloon voor berichten is mislukt"
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "Elasticsearch-sjabloon voor kanalen kon niet aangemaakt worden"
-  },
-  {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "Fout bij het aanmaken van het waarschuwingsbestand."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "Fout bij het aanmaken van het zip-bestand"
-  },
-  {
-    "id": "bleveengine.stop_user_index.error",
-    "translation": "Fout bij het sluiten van gebruikersindex."
-  },
-  {
-    "id": "bleveengine.stop_post_index.error",
-    "translation": "Fout bij het sluiten van berichtenindex."
-  },
-  {
-    "id": "bleveengine.stop_channel_index.error",
-    "translation": "Fout bij het sluiten van kanalenindex."
-  },
-  {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "Fout bij het zoeken naar gebruikers."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "Fout bij het zoeken naar gebruikers."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "Fout bij het zoeken naar gebruikers."
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "Fout bij het zoeken naar berichten."
-  },
-  {
-    "id": "bleveengine.search_channels.error",
-    "translation": "Fout bij het zoeken naar kanalen."
-  },
-  {
-    "id": "bleveengine.purge_user_index.error",
-    "translation": "Fout bij het opschonen van de gebruikerindexen."
-  },
-  {
-    "id": "bleveengine.purge_post_index.error",
-    "translation": "Fout bij het opschonen van de berichtindexen."
-  },
-  {
-    "id": "bleveengine.purge_channel_index.error",
-    "translation": "Fout bij het opschonen van kanaalindexen."
-  },
-  {
-    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "We proberen een nieuwe batch te indexeren als alle entiteiten zijn voltooid."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "Bleve indexing worker geeft een fout bij het verwerken de starttijd."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "Bleve indexing worker geeft een fout bij het verwerken de eindtijd."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": "De oudste entititeit (gebruiker,kanaal of bericht) kon niet worden opgehaald vanuit de databank."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Fout bij het uitvoeren van Bleve-indexeertaak: de engine is niet actief."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "Fout bij het indexeren van gebruikerbatch."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "Fout bij het indexeren van berichtenbatch."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "Fout bij het indexeren van de kanaalbatch."
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "De gebruiker kon niet worden geïndexeerd."
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "Het bericht kon niet worden geïndexeerd."
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "Het indexeren van het kanaal is mislukt."
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "Verwijderen van de gebruiker is mislukt."
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "Verwijderen van het bericht is mislukt."
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "Verwijderen van het kanaal is mislukt."
-  },
-  {
-    "id": "bleveengine.create_user_index.error",
-    "translation": "Fout bij het maken van de bleve-gebruikersindex."
-  },
-  {
-    "id": "bleveengine.create_post_index.error",
-    "translation": "Fout bij het maken van de bleve-berichtenindex."
-  },
-  {
-    "id": "bleveengine.create_channel_index.error",
-    "translation": "Fout bij het maken van de bleve-kanaalindex."
-  },
-  {
-    "id": "bleveengine.already_started.error",
-    "translation": "Bleve is reeds gestart."
+    "translation": "{{.Backend}}-sjabloon voor kanalen kon niet aangemaakt worden"
   },
   {
     "id": "app.user_terms_of_service.save.app_error",
@@ -5279,10 +5003,6 @@
     "translation": "Er is een fout opgetreden bij het ophalen van de publieke sleutel."
   },
   {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Plugin kan niet worden ingesteld als beheerd door het bestandsarchief."
-  },
-  {
     "id": "app.plugin.delete_public_key.delete.app_error",
     "translation": "Er deed zich een fout voor tijdens het verwijderen van publieke sleutel."
   },
@@ -5400,11 +5120,11 @@
   },
   {
     "id": "app.channel.get.find.app_error",
-    "translation": "Er is een probleem opgetreden bij het zoeken naar het kanaal."
+    "translation": "Er is een fout opgetreden bij het vinden van het kanaal {{.channel_id}}."
   },
   {
     "id": "app.channel.get.existing.app_error",
-    "translation": "Het bestaande kanaal kon niet gevonden worden."
+    "translation": "Kan het bestaande kanaal {{.channel_id}} niet vinden."
   },
   {
     "id": "app.channel.delete.app_error",
@@ -5819,10 +5539,6 @@
     "translation": "Er is een fout gevonden bij het zoeken naar de audit data."
   },
   {
-    "id": "bleveengine.delete_channel_posts.error",
-    "translation": "Fout bij het verwijden van de kanaalberichten"
-  },
-  {
     "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
     "translation": "Service Provider Identifier is verplicht"
   },
@@ -5841,10 +5557,6 @@
   {
     "id": "ent.cluster.json_encode.error",
     "translation": "Er trad een fout op bij het opstellen van het JSON verzoek"
-  },
-  {
-    "id": "bleveengine.delete_user_posts.error",
-    "translation": "Fout bij het verwijderen van de berichten van de gebruiker"
   },
   {
     "id": "app.scheme.delete.app_error",
@@ -6073,10 +5785,6 @@
   {
     "id": "app.command.createcommand.internal_error",
     "translation": "Kan de opdracht niet bewaren."
-  },
-  {
-    "id": "ent.get_users_in_channel_during",
-    "translation": "Ophalen van gebruikers in kanaal tijdens opgegeven periode is mislukt."
   },
   {
     "id": "app.command.tryexecutecustomcommand.internal_error",
@@ -6447,10 +6155,6 @@
     "translation": " voegde een bestand toe."
   },
   {
-    "id": "ent.actiance.export.marshalToXml.appError",
-    "translation": "Kan export niet converteren naar XML."
-  },
-  {
     "id": "app.job.update.app_error",
     "translation": "Taak kan niet worden bijgewerkt."
   },
@@ -6699,10 +6403,6 @@
     "translation": "Kan niet SAML migreren."
   },
   {
-    "id": "ent.message_export.csv_export.get_attachment_error",
-    "translation": "Fout bij het verkrijgen van de bestandsinfo voor een bericht."
-  },
-  {
     "id": "ent.ldap.no.users.checkcertificate",
     "translation": "Geen LDAP gebruikers gevonden, controleer je gebruikersfilter en certificaten."
   },
@@ -6761,14 +6461,6 @@
   {
     "id": "model.search_params_list.is_valid.include_deleted_channels.app_error",
     "translation": "Alle IncludeDeletedChannels parameters moeten dezelfde waarde hebben."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.get_attachment_error",
-    "translation": "Fout bij het verkrijgen van de bestandsinfo voor een bericht."
-  },
-  {
-    "id": "ent.message_export.actiance_export.get_attachment_error",
-    "translation": "Fout bij het verkrijgen van de bestandsinfo voor een bericht."
   },
   {
     "id": "ent.ldap.do_login.x509.app_error",
@@ -7011,10 +6703,6 @@
     "translation": "Kanaalleden kunnen niet worden opgehaald."
   },
   {
-    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Kan de kanalenbatch niet ophalen voor indexering."
-  },
-  {
     "id": "app.channel.get_by_scheme.app_error",
     "translation": "De kanalen voor het opgegeven schema kunnen niet worden opgehaald."
   },
@@ -7049,10 +6737,6 @@
   {
     "id": "app.post.get_posts_created_at.app_error",
     "translation": "Fout bij het ophalen van berichten voor het kanaal."
-  },
-  {
-    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Kan de berichten-batch niet ophalen voor indexering."
   },
   {
     "id": "app.post.get_posts.app_error",
@@ -7343,14 +7027,6 @@
     "translation": "Aangepaste rechtenschema's worden niet ondersteund door je huidige licentie"
   },
   {
-    "id": "ent.compliance.csv.write_file.appError",
-    "translation": "Kan het csv-bestand niet schrijven."
-  },
-  {
-    "id": "ent.actiance.export.write_file.appError",
-    "translation": "Kan het exportbestand niet schrijven."
-  },
-  {
     "id": "api.file.write_file.app_error",
     "translation": "Kan het bestand niet schrijven."
   },
@@ -7395,40 +7071,8 @@
     "translation": "Kan geen gegevens aan het bestand toevoegen."
   },
   {
-    "id": "ent.compliance.global_relay.write_file.appError",
-    "translation": "Kan het bestand voor globalrelay niet schrijven."
-  },
-  {
     "id": "api.user.get_authorization_code.endpoint.app_error",
     "translation": "Fout bij het ophalen van het endpoint van het Discovery Document."
-  },
-  {
-    "id": "bleveengine.delete_files_batch.error",
-    "translation": "Verwijderen van de bestanden is mislukt."
-  },
-  {
-    "id": "bleveengine.delete_file.error",
-    "translation": "Verwijderen van het bestand is mislukt."
-  },
-  {
-    "id": "bleveengine.create_file_index.error",
-    "translation": "Fout bij het maken van de bleve-bestandenindex."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
-    "translation": "Fout bij het indexeren van de batch met bestanden."
-  },
-  {
-    "id": "bleveengine.index_file.error",
-    "translation": "Het bestand kon niet worden geïndexeerd."
-  },
-  {
-    "id": "bleveengine.delete_user_files.error",
-    "translation": "Verwijderen van de bestanden van de gebruiker is mislukt."
-  },
-  {
-    "id": "bleveengine.delete_post_files.error",
-    "translation": "Fout bij het verwijderen van de bestanden van het bericht."
   },
   {
     "id": "ent.elasticsearch.delete_post_files.error",
@@ -7440,15 +7084,7 @@
   },
   {
     "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
-    "translation": "Elasticsearch-sjabloon voor berichten aanmaken is mislukt"
-  },
-  {
-    "id": "bleveengine.stop_file_index.error",
-    "translation": "Fout bij het sluiten van bestanden index."
-  },
-  {
-    "id": "bleveengine.search_files.error",
-    "translation": "Het zoeken naar bestanden is niet voltooid."
+    "translation": "{{.Backend}}-sjabloon voor berichten aanmaken is mislukt"
   },
   {
     "id": "api.job.unable_to_download_job.incorrect_job_type",
@@ -7480,7 +7116,7 @@
   },
   {
     "id": "ent.elasticsearch.search_files.disabled",
-    "translation": "Elastichsearch naar bestanden is op deze server uitgeschakeld"
+    "translation": "{{.Backend}} naar bestanden is op deze server uitgeschakeld"
   },
   {
     "id": "api.oauth.redirecting_back",
@@ -7531,10 +7167,6 @@
     "translation": "Voor en Na parameters voor getThreadsForUser sluiten elkaar uit"
   },
   {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Fout bij het lezen van het bestand vanuit backend"
-  },
-  {
     "id": "api.unable_to_create_zip_file",
     "translation": "Fout bij het maken van het zip-bestand."
   },
@@ -7557,10 +7189,6 @@
   {
     "id": "model.config.is_valid.export.directory.app_error",
     "translation": "De waarde voor Directory mag niet leeg zijn."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
-    "translation": "Kan geen verbinding maken met de smtp server"
   },
   {
     "id": "app.export.zip_create.error",
@@ -7589,14 +7217,6 @@
   {
     "id": "mfa.activate.app_error",
     "translation": "De MFA-actief status kan niet worden bijgewerkt voor de gebruiker."
-  },
-  {
-    "id": "bleveengine.purge_file_index.error",
-    "translation": "Fout bij het opschonen van kanaalindexen."
-  },
-  {
-    "id": "app.post.get_files_batch_for_indexing.get.app_error",
-    "translation": "De berichtenbatch voor indexering kan niet worden opgehaald."
   },
   {
     "id": "api.custom_status.recent_custom_statuses.delete.app_error",
@@ -7692,7 +7312,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second Floor, Palo Alto, CA, 94301"
+    "translation": "© 2015 - {{ .CurrentYear }} Mattermost, Inc. 2100 Geng Road, Suite 210, Palo Alto, CA, 94303"
   },
   {
     "id": "api.post.search_files.invalid_body.app_error",
@@ -8072,7 +7692,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "|Beveiligde verbinding | Weergavenaam |ConnectieID | SiteURL | Uitnodiging aanvaard | Online | Laatste ping  |"
+    "translation": "|Beveiligde verbinding | Weergavenaam |ConnectieID | SiteURL | Standaard Team | Uitnodiging aanvaard | Online | Laatste ping | Verwijderd |"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
@@ -8355,7 +7975,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "Fout bij het toevoegen van de nieuwe proeflicentie. Je hebt eerder al een proeflicentie toegepast op deze Mattermost instance.Als je jouw proefperiode wil verlengen, neem dan [contact op met ons verkoopteam](https://mattermost.com/contact-us/)."
+    "translation": "Het is niet gelukt om een nieuwe proeflicentie toe te passen omdat je werkruimte al een proeflicentie heeft. Als je je proefperiode wilt verlengen, neem dan [contact op met ons verkoopteam](https://mattermost.com/contact-us/)."
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
@@ -8514,14 +8134,6 @@
     "translation": "Het is niet gelukt om de aangepaste status bij te werken. Voeg een emoji of een aangepaste tekststatus of beide toe."
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Kan geen berichten ophalen voor een gearchiveerd kanaal"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Kan geen berichten ophalen voor een gearchiveerd kanaal"
-  },
-  {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": "Het aantal ontvangen Post ID's heeft de maximumgrootte van {{.MaxLength}} overschreden"
   },
@@ -8611,11 +8223,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
-    "translation": "Elasticsearch Bulk Indexering Batchgrootte moet ten minste {{.BatchSize}} zijn."
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
-    "translation": "Bleve Bulk Indexering Batchgrootte moet ten minste {{.BatchSize}} zijn."
+    "translation": "Bulkzoek Indexering Batchgrootte moet ten minste {{.BatchSize}} zijn."
   },
   {
     "id": "app.channel.get_file_count.app_error",
@@ -8819,7 +8427,7 @@
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
-    "translation": "Je kan niet bevestigen in een gearchiveerd kanaal."
+    "translation": "Je kan geen bevestig bewaren in een gearchiveerd kanaal."
   },
   {
     "id": "api.acknowledgement.delete.deadline.app_error",
@@ -8848,10 +8456,6 @@
   {
     "id": "model.draft.is_valid.priority.app_error",
     "translation": "Ongeldige prioriteit"
-  },
-  {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "Ongeldig bericht."
   },
   {
     "id": "model.draft.is_valid.file_ids.app_error",
@@ -8947,19 +8551,19 @@
   },
   {
     "id": "ent.elasticsearch.create_client.client_key_missing",
-    "translation": "Kon het client-keybestand voor Elasticsearch niet openen"
+    "translation": "Kon het client-keybestand voor {{.Backend}}niet openen"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_missing",
-    "translation": "Kon het client-certificaatbestand voor Elasticsearch niet openen"
+    "translation": "Kon het client-certificaatbestand voor {{.Backend}} niet openen"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_malformed",
-    "translation": "Het decoderen van het client-certificaat voor Elasticsearch is mislukt"
+    "translation": "Het decoderen van het client-certificaat voor {{.Backend}} is mislukt"
   },
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
-    "translation": "Kon het CA-bestand voor Elasticsearch niet openen"
+    "translation": "Kon het CA-bestand voor {{.Backend}} niet openen"
   },
   {
     "id": "api.server.cws.health_check.app_error",
@@ -9067,7 +8671,7 @@
   },
   {
     "id": "ent.elasticsearch.max_version.app_error",
-    "translation": "Elasticsearch versie {{.Version}} is hoger dan de maximaal ondersteunde versie van {{.MaxVersion}}"
+    "translation": "{{.Backend}} versie {{.Version}} is hoger dan de maximaal ondersteunde versie van {{.MaxVersion}}"
   },
   {
     "id": "model.config.is_valid.persistent_notifications_recipients.app_error",
@@ -9898,16 +9502,8 @@
     "translation": "Kanalen automatisch aanvullen kan niet worden ingeschakeld omdat het schema van de kanaalindex verouderd is. Het wordt aanbevolen om je kanaalindex te regenereren. Zie de Mattermost changelog voor meer informatie"
   },
   {
-    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "Het schema van je Elasticsearch kanaalindex is verouderd. Het wordt aanbevolen om je kanaalindex te regenereren.\nKlik op de `Kanalenindex herbouwen` knop in [Elasticsearch sectie in System Console]({{.ElasticsearchSection}}) om het probleem op te lossen.\nZie Mattermost changelog voor meer informatie."
-  },
-  {
-    "id": "bleveengine.purge_list.not_implemented",
-    "translation": "De functie lijst leegmaken is niet beschikbaar voor Bleve."
-  },
-  {
     "id": "ent.elasticsearch.purge_index.delete_failed",
-    "translation": "Het verwijderen van een Elasticsearch-index is mislukt"
+    "translation": "Het is niet gelukt een zoekindex te verwijderen"
   },
   {
     "id": "ent.elasticsearch.purge_indexes.unknown_index",
@@ -9967,7 +9563,7 @@
   },
   {
     "id": "app.user.update_active.user_limit.exceeded",
-    "translation": "Kan gebruiker niet activeren. Server overschrijdt veilige gebruikerslimiet. Neem contact op met je beheerder met: ERROR_SAFETY_LIMITS_EXCEEDED."
+    "translation": "Kan gebruiker niet activeren. Server overschrijdt veilige gebruikerslimiet. ERROR_SAFETY_LIMITS_EXCEEDED."
   },
   {
     "id": "model.user.is_valid.pwd_max_length.app_error",
@@ -10012,14 +9608,6 @@
   {
     "id": "app.limits.get_app_limits.user_count.store_error",
     "translation": "Fout bij het ophalen van het aantal gebruikers"
-  },
-  {
-    "id": "ent.compliance.csv.metadata.close.appError",
-    "translation": "Kan het zip-bestand niet sluiten"
-  },
-  {
-    "id": "ent.compliance.csv.seek.appError",
-    "translation": "Fout bij het zoeken van het begin van exportbestand."
   },
   {
     "id": "store.sql_team.save_team.existing.app_error",
@@ -10128,5 +9716,1987 @@
   {
     "id": "app.webhooks.get_incoming_count.app_error",
     "translation": "Kan de webhook niet ophalen voor teamID={{.TeamID}}, userID={{.UserID}}, err={{.Error}}."
+  },
+  {
+    "id": "api.user.login_with_desktop_token.not_oauth_or_saml_user.app_error",
+    "translation": "Gebruiker is geen OAuth of SAML gebruiker."
+  },
+  {
+    "id": "api.shared_channel.get_shared_channel_remotes_error",
+    "translation": "Kan gedeelde externe kanalen niet ophalen"
+  },
+  {
+    "id": "api.shared_channel.has_remote_error",
+    "translation": "Kan niet bepalen of kanaal wordt gedeeld met de externe"
+  },
+  {
+    "id": "api.shared_channel.invite_remote_to_channel_error",
+    "translation": "Kan externe niet uitnodigen voor kanaal"
+  },
+  {
+    "id": "app.import.import_direct_channel.no_members.error",
+    "translation": "Er zijn geen leden voor het directe kanaal"
+  },
+  {
+    "id": "app.thread.get_threadmembers_for_export.app_error",
+    "translation": "Kan geen leden voor dit draadje ophalen voor export."
+  },
+  {
+    "id": "model.thread.is_valid.post_id.app_error",
+    "translation": "Ongeldig bericht ID."
+  },
+  {
+    "id": "model.thread.is_valid.user_id.app_error",
+    "translation": "Ongeldige gebruikers-id."
+  },
+  {
+    "id": "api.shared_channel.uninvite_remote_to_channel_error",
+    "translation": "Kan uitnodiging voor kanaal niet intrekken voor remote"
+  },
+  {
+    "id": "app.import.import_direct_channel.get_channel_members.error",
+    "translation": "Fout bij het ophalen van de kanaalleden voor direct kanaal"
+  },
+  {
+    "id": "app.post.save.thread_membership.app_error",
+    "translation": "Kan lidmaatschap voor dit draadje niet opslaan voor bericht."
+  },
+  {
+    "id": "api.plugin.upload.file_too_large.app_error",
+    "translation": "De grootte van de geüploade plugin overschrijdt de limiet. Deze limiet kan worden gewijzigd in de Systeemconsole via Bestandsopslag > Maximale bestandsgrootte"
+  },
+  {
+    "id": "api.upload.create.upload_channel_not_shared_with_remote.app_error",
+    "translation": "Bestand kon niet worden geüpload. Uploadkanaal wordt niet gedeeld met remote."
+  },
+  {
+    "id": "app.session.set_extra_session_prop.app_error",
+    "translation": "Kan de extra sessie-eigenschappen niet bijwerken."
+  },
+  {
+    "id": "api.remote_cluster.generate_invite_cluster_is_confirmed",
+    "translation": "Kan geen uitnodigingscode genereren voor een bevestigde cluster"
+  },
+  {
+    "id": "api.post.delete_post.not_enabled.app_error",
+    "translation": "Kan bericht niet verwijderen, ServiceSettings.EnableAPIPostDeletion is niet ingeschakeld."
+  },
+  {
+    "id": "api.user.update_active.cannot_modify_status_when_user_is_managed_by_ldap.app_error",
+    "translation": "Je kan de gebruikersstatus niet wijzigen. Gebruiker wordt beheerd door LDAP"
+  },
+  {
+    "id": "app.file_info.get_by_post_id.app_error",
+    "translation": "Geen bestanden gevonden voor bericht."
+  },
+  {
+    "id": "app.file_info.permanent_delete_for_post.app_error",
+    "translation": "Fout bij het definitief verwijderen van bestand voor bericht."
+  },
+  {
+    "id": "app.post.permanent_delete_post.error",
+    "translation": "Fout bij het definitief verwijderen van bericht."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "Kan geen direct kanaal maken met een gebruiker op afstand"
+  },
+  {
+    "id": "api.channel.create_group.remote_restricted.app_error",
+    "translation": "Kan geen groepskanaal maken met externe gebruikers"
+  },
+  {
+    "id": "api.license.add_license.copy.app_error",
+    "translation": "Fout bij het kopiëren van de licentie naar de buffer"
+  },
+  {
+    "id": "api.remote_cluster.create_invite_error",
+    "translation": "Kan cluster op afstand niet uitnodigen"
+  },
+  {
+    "id": "app.post.create_post.shared_dm_or_gm.app_error",
+    "translation": "Kan het bericht niet maken in een privé-bericht of groepsbericht met externe gebruikers"
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.remote_id.app_error",
+    "translation": "Ongeldig extern id."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.site_url.app_error",
+    "translation": "Ongeldige site-URL."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.token.app_error",
+    "translation": "Ongeldig token."
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_request.app_error",
+    "translation": "ongeldig_verzoek: Bad request."
+  },
+  {
+    "id": "api.scheduled_posts.feature_disabled",
+    "translation": "Functie voor geplande berichten is uitgeschakeld"
+  },
+  {
+    "id": "api.scheduled_posts.license_error",
+    "translation": "Voor de functie Geplande berichten is een licentie nodig"
+  },
+  {
+    "id": "app.bot.update.app_error",
+    "translation": "Kan de bot niet bijwerken."
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_permission.error",
+    "translation": "Je hebt geen toestemming om deze resource te verwijderen."
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_error",
+    "translation": "Fout bij het verwijderen van de gepland bericht uit de database."
+  },
+  {
+    "id": "app.delete_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Geplande post bestaat niet."
+  },
+  {
+    "id": "app.import.import_bot.owner_could_not_found.error",
+    "translation": "Kan de eigenaar van de bot niet vinden"
+  },
+  {
+    "id": "app.delete_scheduled_post.get_scheduled_post.error",
+    "translation": "Kan bestaande gepland bericht niet ophalen uit database."
+  },
+  {
+    "id": "app.get_user_team_scheduled_posts.error",
+    "translation": "Fout opgetreden bij het ophalen van geplande berichten."
+  },
+  {
+    "id": "app.import.import_line.null_bot.error",
+    "translation": "Regel met importgegevens heeft type \"bot\" maar het botobject is null"
+  },
+  {
+    "id": "app.import.validate_bot_import_data.owner_missing.error",
+    "translation": "Bot eigenaar ontbreekt"
+  },
+  {
+    "id": "app.save_scheduled_post.channel_deleted.app_error",
+    "translation": "Kan geen bericht plannen in een gearchiveerd kanaal."
+  },
+  {
+    "id": "app.save_scheduled_post.save.app_error",
+    "translation": "Er is een fout opgetreden bij het opslaan van het gepland bericht."
+  },
+  {
+    "id": "app.update_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Gepland bericht bestaat niet."
+  },
+  {
+    "id": "app.update_scheduled_post.get_scheduled_post.error",
+    "translation": "Kan bestaand gepland bericht niet ophalen uit database."
+  },
+  {
+    "id": "app.update_scheduled_post.update.error",
+    "translation": "Het is niet gelukt om bijgewerkte geplande berichten op te slaan in de database."
+  },
+  {
+    "id": "app.update_scheduled_post.update_permission.error",
+    "translation": "Je hebt geen toestemming om deze resourcebij te werken."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.empty_post.app_error",
+    "translation": "Kan geen leeg bericht plannen. Geplande berichten moeten minstens een bericht of bestandsbijlagen hebben."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.id.app_error",
+    "translation": "Geplande berichten moeten een ID hebben."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.processed_at.app_error",
+    "translation": "Fout verwerkt op het moment."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.scheduled_at.app_error",
+    "translation": "Ongeldig gepland op tijdstip."
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.create_post",
+    "translation": "Het bericht kan niet worden aangemaakt"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_bot",
+    "translation": "Kan de systeembot niet ophalen"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_channel",
+    "translation": "Kan de systeembot geen privé-bericht sturen"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_user",
+    "translation": "Kan de gebruiker niet ophalen"
+  },
+  {
+    "id": "app.notifications.send_test_message.message_body",
+    "translation": "Als je deze testmelding hebt ontvangen, dan werkt het!"
+  },
+  {
+    "id": "app.file_info.seek.gif.app_error",
+    "translation": "Kan niet naar het begin van de GIF-gegevens zoeken."
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_archived",
+    "translation": "Kanaal is gearchiveerd"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_member",
+    "translation": "Geen lid van het kanaal"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_permission",
+    "translation": "Geen toestemming om in kanaal te posten"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.thread_deleted",
+    "translation": "Draadje is verwijderd"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unable_to_send",
+    "translation": "Kan het bericht niet verzenden"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unknown",
+    "translation": "Onbekende fout"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_deleted",
+    "translation": "Gebruikersaccount is verwijderd"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_missing",
+    "translation": "Gebruiker bestaat niet"
+  },
+  {
+    "id": "model.config.is_valid.storage_class.app_error",
+    "translation": "Ongeldige opslagklasse {{.Value}}."
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_not_found",
+    "translation": "Kanaal niet gevonden"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.invalid_post",
+    "translation": "Ongeldige inhoud van bericht"
+  },
+  {
+    "id": "app.scheduled_post.failed_message_detail",
+    "translation": {
+      "one": "- {{.Count}} in kanaal {{.ChannelName}}. Reden: {{.ErrorReason}}",
+      "other": "- {{.Count}} in kanalen {{.ChannelName}}. Reden: {{.ErrorReason}}"
+    }
+  },
+  {
+    "id": "app.scheduled_post.private_channel",
+    "translation": "Privé-kanaal"
+  },
+  {
+    "id": "app.scheduled_post.failed_messages",
+    "translation": {
+      "one": "Fout bij het verzenden {{.Count}} gepland bericht.",
+      "other": "Fout bij het verzenden {{.Count}} geplande berichten."
+    }
+  },
+  {
+    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
+    "translation": "Kan geplande berichten voor gebruiker niet verwijderen."
+  },
+  {
+    "id": "app.scheduled_post.unknown_channel",
+    "translation": "Onbekend Kanaal"
+  },
+  {
+    "id": "api.post.deduplicate_create_post.cache_error",
+    "translation": "Kan post niet in cache plaatsen na ontdubbelen van een client die hetzelfde verzoek herhaalt."
+  },
+  {
+    "id": "app.plugin.seek.app_error",
+    "translation": "Kan de leespositie niet terugzetten naar het begin van de plugin-bundel."
+  },
+  {
+    "id": "web.command_webhook.general.app_error",
+    "translation": "Kon de opdracht webhook {{.hook_id}} niet verwerken."
+  },
+  {
+    "id": "web.incoming_webhook.decode.app_error",
+    "translation": "Kan de payload van mediatype {{.media_type}} voor inkomende webhook {{.hook_id}} niet decoderen."
+  },
+  {
+    "id": "web.incoming_webhook.general.app_error",
+    "translation": "Kan de payload van mediatype {{.media_type}} voor inkomende webhook {{.hook_id}} niet verwerken."
+  },
+  {
+    "id": "web.incoming_webhook.media_type.app_error",
+    "translation": "Kan de media voor inkomende webhook {{.hook_id}} niet verwerken."
+  },
+  {
+    "id": "model.draft.is_valid.message_length.app_error",
+    "translation": "De eigenschap Conceptbericht is langer dan de maximaal toegestane lengte."
+  },
+  {
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "De eigenschap Postbericht is langer dan de maximaal toegestane lengte."
+  },
+  {
+    "id": "api.filter_config_error",
+    "translation": "Kan de configuratie niet filteren."
+  },
+  {
+    "id": "app.export.export_custom_emoji.mkdir.error",
+    "translation": "Kan geen map maken voor aangepaste emoji-afbeeldingen"
+  },
+  {
+    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
+    "translation": "Gebruikersrollen zijn niet consistent met de gaststatus."
+  },
+  {
+    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
+    "translation": "Kan eigenschapgroep Aangepaste profielattributen niet registreren"
+  },
+  {
+    "id": "app.custom_profile_attributes.create_property_field.app_error",
+    "translation": "Kan geen aangepast profielattribuutveld maken"
+  },
+  {
+    "id": "app.custom_profile_attributes.get_property_field.app_error",
+    "translation": "Kan geen aangepast profielattribuutveld krijgen"
+  },
+  {
+    "id": "app.custom_profile_attributes.limit_reached.app_error",
+    "translation": "Veldlimiet aangepaste profielattributen bereikt"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_delete.app_error",
+    "translation": "Kan aangepast profielattribuutveld niet verwijderen"
+  },
+  {
+    "id": "app.custom_profile_attributes.list_property_values.app_error",
+    "translation": "Kan de waarden van aangepaste profielattributen niet ophalen"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_not_found.app_error",
+    "translation": "Aangepast profielattribuutveld niet gevonden"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_update.app_error",
+    "translation": "Kan aangepast profielattribuutveld niet bijwerken"
+  },
+  {
+    "id": "app.custom_profile_attributes.search_property_fields.app_error",
+    "translation": "Kan niet zoeken in aangepaste profielattribuutvelden"
+  },
+  {
+    "id": "app.file_info.delete_for_post_ids.app_error",
+    "translation": "Het is niet gelukt de gevraagde bestanden uit de database te verwijderen"
+  },
+  {
+    "id": "app.file_info.get_by_ids.app_error",
+    "translation": "Kan de bestandsinfo niet krijgen via id's voor de bewerkingsgeschiedenis van berichten."
+  },
+  {
+    "id": "app.file_info.undelete_for_post_ids.app_error",
+    "translation": "Het is niet gelukt om bijlagen van berichtbestanden te herstellen."
+  },
+  {
+    "id": "app.post.restore_post_version.get_single.app_error",
+    "translation": "Het is niet gelukt om de oude berichttversie te krijgen."
+  },
+  {
+    "id": "app.post.restore_post_version.not_allowed.app_error",
+    "translation": "Je beschikt niet over de juiste rechten."
+  },
+  {
+    "id": "app.post.restore_post_version.not_an_history_item.app_error",
+    "translation": "De opgegeven geschiedenis-ID van het bericht komt niet overeen met een geschiedenisitem voor het opgegeven bericht."
+  },
+  {
+    "id": "app.post.restore_post_version.not_valid_post_history_item.app_error",
+    "translation": "De opgegeven postgeschiedenis-ID komt niet overeen met een postgeschiedenisitem."
+  },
+  {
+    "id": "app.role.delete.app_error",
+    "translation": "Kan rol niet verwijderen."
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.activity_message",
+    "translation": "Kanaalactiviteit berekenen: {{.NumCompleted}}/{{.NumChannels}} kanalen voltooid."
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.channel_message",
+    "translation": "Kanaalinformatie exporteren voor {{.NumChannels}} kanalen."
+  },
+  {
+    "id": "ent.message_export.calculate_channel_exports.app_error",
+    "translation": "Fout bij het berekenen van kanaalexportgegevens."
+  },
+  {
+    "id": "ent.message_export.job_data_conversion.app_error",
+    "translation": "Fout bij het converteren van een waarde uit het gegevensveld van de taak."
+  },
+  {
+    "id": "model.link_metadata.is_valid.url_length.app_error",
+    "translation": "De lengte van de URL met linkmetagegevens is {{ .Length }} tekens lang, wat meer is dan de maximale limiet van {{ .MaxLength }} tekens."
+  },
+  {
+    "id": "model.property_field.is_valid.app_error",
+    "translation": "Ongeldig eigenschapsveld: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "model.property_value.is_valid.app_error",
+    "translation": "Ongeldige waarde voor de eigenschap: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "api.command.execute_command.deleted.error",
+    "translation": "Kan geen opdracht uitvoeren in verwijderde chatroom."
+  },
+  {
+    "id": "api.file.zip_file_reader.app_error",
+    "translation": "Kon geen zip-bestandslezer vinden."
+  },
+  {
+    "id": "api.custom_profile_attributes.license_error",
+    "translation": "Jouw licentie ondersteunt geen Aangepaste Profielattributen."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Het aanmaken van de kanaalbladwijzer is mislukt."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Het verwijderen van de kanaalbladwijzer is mislukt."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Het bijwerken van de kanaalbladwijzer is mislukt."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
+    "translation": "Het bijwerken van de sorteervolgorde van de kanaalbladwijzers is mislukt."
+  },
+  {
+    "id": "app.file_info.get_count.app_error",
+    "translation": "Het is niet gelukt om alle bestanden te tellen."
+  },
+  {
+    "id": "app.file_info.get_storage_usage.app_error",
+    "translation": "Het is niet gelukt om het opslaggebruik van alle bestanden op te halen."
+  },
+  {
+    "id": "api.context.get_session.app_error",
+    "translation": "Sessie niet gevonden."
+  },
+  {
+    "id": "app.custom_profile_attributes.count_property_fields.app_error",
+    "translation": "Kan het aantal velden voor de aangepaste profielattribuutgroep niet tellen"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_upsert.app_error",
+    "translation": "Kan aangepaste profielattribuutvelden niet uploaden"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_id.app_error",
+    "translation": "Ongeldige gebruikers-id aan clientzijde: {{.Id}}"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_ids.app_error",
+    "translation": "Aantal elementen in ClientSideUserIds {{.CurrentLength}} is hoger dan de maximale limiet van {{.MaxLength}}."
+  },
+  {
+    "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
+    "translation": "Kanaalbanners kunnen alleen geconfigureerd worden op Publieke en Private kanalen."
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.invalid_length.app_error",
+    "translation": "De informatietekst van de kanaalbanner is te lang. De maximaal toegestane lengte is {{.maxLength}} tekens."
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.channel_type.app_error",
+    "translation": "Kanaalbanners kunnen alleen geconfigureerd worden op Publieke en Private kanalen"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.empty.app_error",
+    "translation": "De informatietekst van de kanaalbanner kan niet leeg zijn als de kanaalbanner is ingeschakeld"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.empty.app_error",
+    "translation": "De kleur van de kanaalbanner kan niet leeg zijn als de kanaalbanner is ingeschakeld"
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.ldap_and_email_only.app_error",
+    "translation": "De auth-service voor gebruikers moet LDAP of e-mail zijn."
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.permissions.app_error",
+    "translation": "Je hebt geen toestemming om deze resource bij te werken."
+  },
+  {
+    "id": "app.drafts.permanent_delete_by_user.app_error",
+    "translation": "Kan concepten voor gebruiker niet verwijderen."
+  },
+  {
+    "id": "app.group.license_error",
+    "translation": "LDAP-licentie vereist."
+  },
+  {
+    "id": "ent.ldap.get_user_by_auth.app_error",
+    "translation": "Fout bij het ophalen van gebruiker."
+  },
+  {
+    "id": "license_error.feature_unavailable",
+    "translation": "Functie is niet beschikbaar voor de huidige licentie"
+  },
+  {
+    "id": "api.user.check_user_login_attempts.too_many_ldap.app_error",
+    "translation": "Je account is vergrendeld vanwege te veel mislukte wachtwoordpogingen. Neem contact op met je systeembeheerder."
+  },
+  {
+    "id": "app.user.reset_password_failed_attempts.app_error",
+    "translation": "Inlogpogingen zijn niet gereset."
+  },
+  {
+    "id": "model.config.is_valid.ldap_max_login_attempts.app_error",
+    "translation": "Ongeldige maximale aanmeldpogingen voor ldap-instellingen. Moet een positief getal zijn."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_conversion.app_error",
+    "translation": "Kan het eigenschapveld niet converteren naar een aangepast profielattribuutveld"
+  },
+  {
+    "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
+    "translation": "Ongeldige eigenschap waarde attributen : {{.AttributeName}} ({{.Reason}})."
+  },
+  {
+    "id": "api.custom_profile_attributes.invalid_field_patch",
+    "translation": "Ongeldige patch voor aangepaste profieleigenschappen"
+  },
+  {
+    "id": "model.access_policy.is_valid.rules_imports.app_error",
+    "translation": "Beleid moet of regels importeren of definiëren."
+  },
+  {
+    "id": "model.access_policy.is_valid.type.app_error",
+    "translation": "Ongeldig beleidstype."
+  },
+  {
+    "id": "model.access_policy.is_valid.version.app_error",
+    "translation": "Versie is niet geldig voor dit toegangscontrolebeleid."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules.app_error",
+    "translation": "Regel(s) is/zijn niet geldig."
+  },
+  {
+    "id": "model.access_policy.is_valid.id.app_error",
+    "translation": "Ongeldig policy id."
+  },
+  {
+    "id": "model.access_policy.is_valid.imports.app_error",
+    "translation": "Ongeldige invoer voor het beleid."
+  },
+  {
+    "id": "model.access_policy.is_valid.name.app_error",
+    "translation": "Ongeldige naam voor het beleid."
+  },
+  {
+    "id": "model.access_policy.is_valid.revision.app_error",
+    "translation": "Ongeldige beleidsherziening."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.empty_index_prefix.app_error",
+    "translation": "IndexPrefix kan niet leeg zijn als GlobalSearchPrefix is ingesteld."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error",
+    "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} moet een prefix zijn van IndexPrefix {{.IndexPrefix}}."
+  },
+  {
+    "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
+    "translation": "Kan aangepaste profielattribuutwaarden voor gebruiker niet verwijderen"
+  },
+  {
+    "id": "app.custom_profile_attributes.validate_value.app_error",
+    "translation": "Fout bij het valideren van de waarde van de eigenschap"
+  },
+  {
+    "id": "ent.ldap.cpa_field_mapping.list_error",
+    "translation": "Fout bij het ophalen van CPA-velden"
+  },
+  {
+    "id": "ent.ldap.update_cpa.empty_attribute",
+    "translation": "Lege LDAP attribuutwaarde"
+  },
+  {
+    "id": "ent.saml.cpa_field_mapping.list_error",
+    "translation": "Fout bij het ophalen van CPA-veld(en)"
+  },
+  {
+    "id": "ent.saml.update_cpa.empty_attribute_statement",
+    "translation": "SAML assertie attribuut verklaring is ongeldig"
+  },
+  {
+    "id": "web.incoming_webhook.parse_form.app_error",
+    "translation": "Mislukt bij het parsen van het formulier voor webhook {{.hook_id}}."
+  },
+  {
+    "id": "api.admin.add_certificate.app_error",
+    "translation": "Het is niet gelukt om een certificaat toe te voegen."
+  },
+  {
+    "id": "api.admin.add_certificate.multiple_files.app_error",
+    "translation": "Te veel bestanden onder 'certificaat' in aanvraag."
+  },
+  {
+    "id": "api.admin.remove_certificate.app_error",
+    "translation": "Fout bij het verwijderen van het certificaat."
+  },
+  {
+    "id": "app.import.profile_image.open.app_error",
+    "translation": "Fout bij het openen van het profielafbeeldingsbestand: {{.FileName}}"
+  },
+  {
+    "id": "app.import.profile_image.read_data.app_error",
+    "translation": "Fout bij het lezen van profielafbeeldingsgegevens."
+  },
+  {
+    "id": "app.submit_interactive_dialog.decode_json_error",
+    "translation": "Er is een fout opgetreden bij het decoderen van de JSON-respons van een interactief dialoogvenster."
+  },
+  {
+    "id": "app.submit_interactive_dialog.read_body_error",
+    "translation": "Er is een fout opgetreden bij het lezen van het antwoord van een interactief dialoogvenster."
+  },
+  {
+    "id": "ent.ldap.do_login.invalid_id",
+    "translation": "Ongeldige AD/LDAP-id"
+  },
+  {
+    "id": "ent.ldap_groups.invalid_ldap_id",
+    "translation": "Ongeldige AD/LDAP-id"
+  },
+  {
+    "id": "web.incoming_webhook.parse_multipart.app_error",
+    "translation": "Fout bij het parsen van het multipart formulier voor webhook {{.hook_id}}."
+  },
+  {
+    "id": "api.license.load_metric.app_error",
+    "translation": "Fout bij het berekenen van maandelijkse actieve gebruikers."
+  },
+  {
+    "id": "ent.saml.login.ldap_user_missing",
+    "translation": "Er is geen gebruiker geregistreerd op de AD/LDAP-server die overeenkomt met de SAML-gebruiker."
+  },
+  {
+    "id": "license_error.feature_unavailable.specific",
+    "translation": "{{.Feature}} functie is niet beschikbaar binnen de huidige licentie"
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.invalid.app_error",
+    "translation": "Ongeldige link om een probleem te melden. Moet een geldige URL zijn en beginnen met http:// of https://."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.missing.app_error",
+    "translation": "De link Een probleem melden is vereist."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.invalid.app_error",
+    "translation": "Ongeldig e-mailadres voor Een probleem melden. Moet een geldig e-mailadres zijn."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.missing.app_error",
+    "translation": "Een probleem melden mail is vereist."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
+    "translation": "Kan de waarde voor een gesynchroniseerd aangepast profielattribuutveld niet bijwerken"
+  },
+  {
+    "id": "api.access_control_policy.get_channels.limit.app_error",
+    "translation": "Limiet kanalen ophalen is ongeldig."
+  },
+  {
+    "id": "api.access_control_policy.get_fields.limit.app_error",
+    "translation": "Limiet velden ophalen is ongeldig."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.rejected",
+    "translation": "Gebruiker heeft niet de vereiste kenmerken om lid te worden van het kanaal."
+  },
+  {
+    "id": "api.channel.update_channel.not_allowed.app_error",
+    "translation": "Kanalen met afgedwongen beleid kunnen niet worden bijgewerkt."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_hook_error.app_error",
+    "translation": "Er is een fout opgetreden in de OnSamlLogin hook. Neem contact op met je systeembeheerder."
+  },
+  {
+    "id": "app.channel.get.app_error",
+    "translation": "Kan kanaal niet ophalen."
+  },
+  {
+    "id": "app.group.user_not_found",
+    "translation": "Fout bij het bijwerken van groep. Gebruiker met gebruikersnaam \"{{.Username}}\" kon niet worden gevonden."
+  },
+  {
+    "id": "app.pap.assign_access_control_policy_to_channels.app_error",
+    "translation": "Kan toegangscontrolebeleid niet toewijzen aan kanalen."
+  },
+  {
+    "id": "app.pap.check_expression.app_error",
+    "translation": "Kon expressie niet controleren."
+  },
+  {
+    "id": "app.pap.create_access_control_policy.app_error",
+    "translation": "Kon het toegangscontrolebeleid niet aanmaken."
+  },
+  {
+    "id": "app.pap.delete_access_control_policy.app_error",
+    "translation": "Kon het toegangscontrolebeleid niet verwijderen."
+  },
+  {
+    "id": "app.pap.delete_policy.app_error",
+    "translation": "Kan toegangscontrolebeleid niet verwijderen."
+  },
+  {
+    "id": "app.pap.expression_to_visual_ast.app_error",
+    "translation": "Kon geen visuele AST uit expressie genereren."
+  },
+  {
+    "id": "app.pap.get_access_control_auto_complete.app_error",
+    "translation": "Toegangscontrole kon niet autocomplete niet ophalen."
+  },
+  {
+    "id": "app.pap.get_all_access_control_policies.app_error",
+    "translation": "Kon geen toegangscontrolebeleid ophalen."
+  },
+  {
+    "id": "app.pap.get_channel_access_control_attributes.app_error",
+    "translation": "Kon geen kenmerken voor kanaal ophalen."
+  },
+  {
+    "id": "app.pap.get_channel_members_to_remove.app_error",
+    "translation": "Kan kanaalleden niet verwijderen."
+  },
+  {
+    "id": "app.pap.get_policy.app_error",
+    "translation": "Kan het toegangscontrolebeleid niet ophalen."
+  },
+  {
+    "id": "app.pap.get_policy_attributes.app_error",
+    "translation": "Kon geen kenmerken voor beleid ophalen."
+  },
+  {
+    "id": "app.pap.init.app_error",
+    "translation": "Kan de toegangscontroledienst niet initialiseren."
+  },
+  {
+    "id": "app.pap.is_ready.app_error",
+    "translation": "De toegangscontroleservice is niet gereed."
+  },
+  {
+    "id": "app.pap.missing_attribute.app_error",
+    "translation": "Er ontbreekt een attribuut in de expressie."
+  },
+  {
+    "id": "app.pap.normalize_policy.app_error",
+    "translation": "Kan beleidsexpressie niet normaliseren."
+  },
+  {
+    "id": "app.pap.query_expression.app_error",
+    "translation": "Kon geen query uitvoeren voor expressie."
+  },
+  {
+    "id": "app.pap.save_policy.app_error",
+    "translation": "Kan toegangscontrolebeleid niet opslaan."
+  },
+  {
+    "id": "app.pap.search_access_control_policies.app_error",
+    "translation": "Kon het toegangscontrolebeleid niet doorzoeken."
+  },
+  {
+    "id": "app.pdp.access_evaluation.app_error",
+    "translation": "Mislukte evaluatie van toegangscontrolebeleid."
+  },
+  {
+    "id": "app.pap.unassign_access_control_policy_from_channels.app_error",
+    "translation": "Kan toegangscontrolebeleid niet weghalen van de kanalen."
+  },
+  {
+    "id": "app.pap.update_access_control_policy_active.app_error",
+    "translation": "Kon de actieve status van het toegangscontrolebeleid niet wijzigen."
+  },
+  {
+    "id": "ent.access_control.sync_job.app_error",
+    "translation": "Fout bij het uitvoeren van de sync taak voor toegangscontrole."
+  },
+  {
+    "id": "model.access_policy.inherit.version.app_error",
+    "translation": "Kon het toegangscontrolebeleid niet overerven."
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.invalid.app_error",
+    "translation": "De kleur van de kanaalbanner moet een geldige hexadecimale kleur zijn (bijvoorbeeld #FF0000 of #F00)"
+  },
+  {
+    "id": "model.config.is_valid.directory_whitespace.app_error",
+    "translation": "Spatie voor of spatie achteraan gedetecteerd voor {{.Setting}}. Gevonden \"{{.Value}}\"."
+  },
+  {
+    "id": "app.group.create_syncable_memberships.error",
+    "translation": "Kan geen synchroniseerbare lidmaatschappen voor groepen maken."
+  },
+  {
+    "id": "app.group.delete_invalid_syncable_memberships.error",
+    "translation": "Kan ongeldige synchroniseerbare lidmaatschappen van groepen niet verwijderen."
+  },
+  {
+    "id": "app.import.validate_attachment_import_data.invalid_path.error",
+    "translation": "Fout bij het valideren van de bijlage importgegevens Ongeldig pad: \"{{.Path}}\""
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.invalid_image_path.error",
+    "translation": "Het importveld Emoji-afbeelding heeft een ongeldig pad: \"{{.Path}}\""
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.attachment.error",
+    "translation": "Fout bij het valideren van gegevens uit bijlage van direct bericht."
+  },
+  {
+    "id": "app.import.validate_post_import_data.attachment.error",
+    "translation": "Fout bij het valideren van gegevens uit bijlage van bericht."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.attachment.error",
+    "translation": "Fout bij het valideren van gegevens uit bijlage van antwoord op een bericht."
+  },
+  {
+    "id": "app.import.validate_user_import_data.invalid_image_path.error",
+    "translation": "Het pad van de afbeelding voor het gebruikersprofiel is ongeldig: \"{{.Path}}\""
+  },
+  {
+    "id": "ent.access_control.job_data_conversion.app_error",
+    "translation": "Het is niet gelukt om gegevens uit de vorige opdracht te halen."
+  },
+  {
+    "id": "app.acknowledgement.delete.missing_post.app_error",
+    "translation": "Kan bevestiging voor ontbrekende post niet verwijderen"
+  },
+  {
+    "id": "app.acknowledgement.batch_save.app_error",
+    "translation": "De batch met bevesting-objecten is niet bewaard"
+  },
+  {
+    "id": "app.acknowledgement.save.missing_post.app_error",
+    "translation": "Kan bevestiging voor ontbrekende post niet opslaan"
+  },
+  {
+    "id": "model.acknowledgement.is_valid.channel_id.app_error",
+    "translation": "Ongeldig kanaalid."
+  },
+  {
+    "id": "api.user.create_user.license_user_limits.exceeded",
+    "translation": "Kan geen gebruiker aanmaken. Server overschrijdt maximum aantal gelicentieerde gebruikers. Neem contact op met je beheerder met: ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
+  },
+  {
+    "id": "app.user.update_active.license_user_limit.exceeded",
+    "translation": "Kan gebruiker niet activeren. Server overschrijdt maximum aantal gelicentieerde gebruikers. ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
+  },
+  {
+    "id": "api.ldap.invalid_test_type.app_error",
+    "translation": "Ongeldig testtype: {{.TestType}}"
+  },
+  {
+    "id": "api.remote_cluster.import_not_allowed.app_error",
+    "translation": "Importeren van externe cluster is niet toegestaan"
+  },
+  {
+    "id": "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error",
+    "translation": "Toegangscontroleservice niet beschikbaar. Kan gebruikers niet filteren voor kanaal met kenmerkengebaseerde toegangscontrole."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid",
+    "translation": "Maximum Bestandbackups van audit logs config mag niet negatief zijn."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_queue_size_invalid",
+    "translation": "Maximum Bestandsqueue van audit logs config moet groter zijn dan nul."
+  },
+  {
+    "id": "api.team.invite_guests.policy_enforced_channel.app_error",
+    "translation": "Kan geen gastgebruikers uitnodigen voor dit kanaal omdat het toegangsbeperkingen heeft op basis van gebruikerskenmerken."
+  },
+  {
+    "id": "ent.ldap.connection.test_failed",
+    "translation": "LDAPverbindingstest mislukt: Server: {{.Server}}:{{.Port}}, Verbindingsbeveiliging {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, Publieke certificaatssleutel {{.PublicCertFilename}}, BindGebruikersnaam: {{.BindUsername}}. Fout: {{.Error}}"
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_age_invalid",
+    "translation": "Maximum Bestandsleeftijd van audit logs config mag niet negatief zijn."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_size_invalid",
+    "translation": "Maximale bestandsgrootte van audit logs config moet groter zijn dan nul."
+  },
+  {
+    "id": "api.command_share.service_inactive",
+    "translation": "Gedeelde Kanalen Service is ingeschakeld maar niet actief."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_empty",
+    "translation": "Als het loggen van auditbestanden is ingeschakeld, moet er een bestandsnaam worden opgegeven."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_is_directory",
+    "translation": "De bestandsnaam mag geen directory zijn."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.unset_user_scheme.app_error",
+    "translation": "Ongeldige update kanaallid: Een kanaallid heeft altijd een gebruikersschema."
+  },
+  {
+    "id": "api.team.update_team_member_roles.unset_user_scheme.app_error",
+    "translation": "Ongeldige update teamlid: Een teamlid heeft altijd een gebruikersschema."
+  },
+  {
+    "id": "api.upload.invalid_type_for_shared_channel.app_error",
+    "translation": "Bestand kon niet worden geüpload. Uploadkanaal wordt niet gedeeld met remote."
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.thread_follower.error",
+    "translation": "Fout bij het valideren van volggegevens van het directe berichtdraadje."
+  },
+  {
+    "id": "app.import.validate_post_import_data.thread_follower.error",
+    "translation": "Fout bij het valideren van de volggegevens van het postdraadje."
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.empty.error",
+    "translation": "Importeer volgergegevens leeg."
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.user_missing.error",
+    "translation": "Vereiste volger eigenschap ontbreekt: user."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.reasons_not_set.app_error",
+    "translation": "Redenen voor markeren kunnen niet leeg zijn."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.team_reviewers_not_set.app_error",
+    "translation": "Teambeoordelaars of extra beoordelaars moeten worden ingesteld wanneer je \"Ingeschakeld\" voor een team instelt."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.common_reviewers_not_set.app_error",
+    "translation": "Gemeenschappelijke beoordelaars of extra beoordelaars moeten worden ingesteld als \"Dezelfde beoordelaars voor alle teams\" is ingeschakeld."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.invalid_event",
+    "translation": "Ongeldige markeringsgebeurtenis gespecificeerd."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.invalid_target",
+    "translation": "Ongeldig markering gebeurtenisdoel opgegeven."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled",
+    "translation": "Meldingen voor nieuwe gemarkeerde berichten kunnen niet worden uitgeschakeld voor beoordelaars."
+  },
+  {
+    "id": "app.cloud.preview_modal_bucket_url_not_configured",
+    "translation": "Voorbeeld bucket URL is niet geconfigureerd"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_fetch_error",
+    "translation": "Afhalen van modale voorbeeldgegevens mislukt"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_parse_error",
+    "translation": "Fout bij het parsen van preview modal-gegevens"
+  },
+  {
+    "id": "api.content_flagging.error.disabled",
+    "translation": "De markeerfunctie voor inhoud is uitgeschakeld."
+  },
+  {
+    "id": "api.content_flagging.error.license",
+    "translation": "Je licentie ondersteunt het markeren van inhoud niet."
+  },
+  {
+    "id": "app.access_control.insufficient_permissions",
+    "translation": "Je hebt geen rechten om dit toegangscontrolebeleid te beheren."
+  },
+  {
+    "id": "app.pap.access_control.channel_group_constrained",
+    "translation": "Kanaal is groepsgebonden en kan geen toegangscontrolebeleid hebben."
+  },
+  {
+    "id": "app.pap.access_control.channel_not_private",
+    "translation": "Beleid voor toegangscontrole kan alleen worden toegepast op privékanalen."
+  },
+  {
+    "id": "app.pap.access_control.channel_shared",
+    "translation": "Op gedeelde kanalen kan geen toegangscontrolebeleid worden toegepast."
+  },
+  {
+    "id": "app.pap.access_control.insufficient_channel_permissions",
+    "translation": "Je hebt geen toestemming om de toegangscontrole voor dit kanaal te beheren."
+  },
+  {
+    "id": "app.pap.access_control.insufficient_permissions",
+    "translation": "Je hebt geen rechten om dit toegangscontrolebeleid te beheren."
+  },
+  {
+    "id": "model.access_policy.inherit.already_imported.app_error",
+    "translation": "Het bovenliggend beleid is al geïmporteerd."
+  },
+  {
+    "id": "model.config.is_valid.experimental_view_archived_channels.app_error",
+    "translation": "Het verbergen van gearchiveerde kanalen wordt niet langer ondersteund. Maak deze kanalen privé en verwijder in plaats daarvan leden."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
+    "translation": "Kan waarde voor een door de beheerder beheerd aangepast profielattribuutveld niet bijwerken"
+  },
+  {
+    "id": "app.lookup_interactive_dialog.decode_json_error",
+    "translation": "Er is een fout opgetreden bij het decoderen van de JSON respons van het interactief dialoogvenster voor opzoeken."
+  },
+  {
+    "id": "app.lookup_interactive_dialog.json_error",
+    "translation": "Er is een fout opgetreden bij het verwerken van het JSON antwoord van het interactief opzoeken van een dialoogvenster."
+  },
+  {
+    "id": "app.lookup_interactive_dialog.read_body_error",
+    "translation": "Er is een fout opgetreden bij het lezen van de respons bij het opzoeken van het interactief dialoogvenster ."
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.bulk_processor_create_failed",
+    "translation": "Aanmaken van Elasticsearch-bulkprocessor is mislukt"
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.sync_bulk_processor_create_failed",
+    "translation": "Aanmaken van Elasticsearch-bulkprocessor is mislukt"
+  },
+  {
+    "id": "model.config.is_valid.client_side_cert_enable.app_error",
+    "translation": "Certificaat-gebaseerde authenticatie is verwijderd. Schakel ClientSideCertEnable uit om verder te gaan."
+  },
+  {
+    "id": "api.user.check_user_password.invalid_hash.app_error",
+    "translation": "Het formaat van het gehashte wachtwoord is ongeldig en kon niet worden verwerkt."
+  },
+  {
+    "id": "app.user.check_user_password.failed_migration",
+    "translation": "Het is niet gelukt om het wachtwoord van de gebruiker te migreren naar de nieuwste hashingmethode."
+  },
+  {
+    "id": "app.user.check_user_password.failed_update",
+    "translation": "Het is niet gelukt om het wachtwoord van de gebruiker bij te werken."
+  },
+  {
+    "id": "app.job.get_existing_jobs.error",
+    "translation": "Niet in staat om bestaande taken op te halen."
+  },
+  {
+    "id": "app.submit_interactive_dialog.invalid_response",
+    "translation": "Er is een ongeldige reactie gevonden bij het indienen van een interactief dialoogvenster."
+  },
+  {
+    "id": "api.channel.patch_update_channel.restricted_dm.app_error",
+    "translation": "Kan een kanaal met beperkte directe berichten niet bijwerken."
+  },
+  {
+    "id": "api.command.execute_command.restricted_dm.error",
+    "translation": "Kan geen bericht plaatsen in beperkt DM"
+  },
+  {
+    "id": "api.content_flagging.error.comment_required",
+    "translation": "Voeg een opmerking toe waarin je uitlegt waarom je dit bericht markeert."
+  },
+  {
+    "id": "api.content_flagging.error.comment_too_long",
+    "translation": "De reden voor het markeren van een bericht kan niet langer zijn dan {{.MaxLength}} tekens."
+  },
+  {
+    "id": "api.content_flagging.error.not_available_on_team",
+    "translation": "De markeerfunctie voor inhoud is niet ingeschakeld in dit team."
+  },
+  {
+    "id": "api.content_flagging.error.post_not_in_progress",
+    "translation": "Het gemarkeerde bericht moet de status 'in behandeling' of 'toegewezen' hebben om bewaard of verwijderd te worden."
+  },
+  {
+    "id": "api.content_flagging.error.reason_invalid",
+    "translation": "Onbekende reden opgegeven voor markeren van bericht."
+  },
+  {
+    "id": "api.content_flagging.error.reason_required",
+    "translation": "Selecteer een reden om dit bericht te markeren."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
+    "translation": "Kan concept niet opslaan in beperkt directe berichten kanaal"
+  },
+  {
+    "id": "api.file.upload_file.get_channel.app_error",
+    "translation": "Kan bestand niet uploaden naar beperkte DM"
+  },
+  {
+    "id": "api.file.upload_file.restricted_dm.error",
+    "translation": "Kan bestand niet uploaden naar beperkte DM"
+  },
+  {
+    "id": "api.post.create_post.can_not_post_in_restricted_dm.error",
+    "translation": "Kan niet posten naar beperkt kanaal met directe berichten."
+  },
+  {
+    "id": "api.post.delete_post.can_not_delete_from_restricted_dm.error",
+    "translation": "Kan geen bericht verwijderen in een beperkt kanaal met directe berichten."
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "Kan bericht in een beperkt kanaal met directe berichten niet bijwerken."
+  },
+  {
+    "id": "api.post.update_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "Kan bericht in beperkt kanaal met directe berichten niet bijwerken."
+  },
+  {
+    "id": "api.reaction.delete.restricted_dm.error",
+    "translation": "Kan niet reageren in beperkt DM"
+  },
+  {
+    "id": "api.reaction.save.restricted_dm.error",
+    "translation": "Kan niet reageren in beperkt DM"
+  },
+  {
+    "id": "app.channel.get_common_teams.app_error",
+    "translation": "Fout bij het ophalen van gemeenschappelijke teams voor kanaal"
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.in_progress",
+    "translation": "Kan dit bericht niet markeren omdat het al gemarkeerd is."
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.removed",
+    "translation": "Kan dit bericht niet markeren, het is verwijderd in een eerder verzoek voor markering."
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.retained",
+    "translation": "Kan dit bericht niet markeren omdat het is bewaard in een eerder verzoek om markering."
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.unknown",
+    "translation": "Kan dit bericht niet markeren omdat het een onbekende status heeft."
+  },
+  {
+    "id": "app.content_flagging.create_property_values.app_error",
+    "translation": "Kan de waarden van eigenschappen voor de gemarkeerde post niet opslaan."
+  },
+  {
+    "id": "app.content_flagging.flag_post.marshal_comment.app_error",
+    "translation": "Mislukt om commentaar van markerende gebruiker te verzamelen"
+  },
+  {
+    "id": "app.content_flagging.flag_post.marshal_reason.app_error",
+    "translation": "Faalde om de reden van de vlaggende gebruiker te verzamelen"
+  },
+  {
+    "id": "app.content_flagging.flag_post_confirmation.message",
+    "translation": "Het bericht van @{{.username}} is gemarkeerd voor beoordeling. Je ontvangt bericht zodra het is beoordeeld door een inhoudsbeoordeelaar. "
+  },
+  {
+    "id": "app.content_flagging.get_group.error",
+    "translation": "Fout bij het ophalen van de Content Flagging bot."
+  },
+  {
+    "id": "app.content_flagging.get_status_property.app_error",
+    "translation": "Fout bij het ophalen van het Statusveld."
+  },
+  {
+    "id": "app.content_flagging.get_users_in_team.app_error",
+    "translation": "Fout bij het zoeken van beoordeelaars in het team."
+  },
+  {
+    "id": "app.content_flagging.keep_flag_post.marshal_comment.app_error",
+    "translation": "Fout bij het verkeken van de commentaar van de beoordeelaar"
+  },
+  {
+    "id": "app.content_flagging.keep_post.status_update.app_error",
+    "translation": "Fout bij het bijwerken van de status van gemarkeerde bericht bij het verwijderen van gemarkeerd bericht "
+  },
+  {
+    "id": "app.content_flagging.keep_post.undelete.app_error",
+    "translation": "Fout bij het bericht in de database bij te werken toen werd geprobeerd het gemarkeerde bericht en de bijhorende data te verwijderen."
+  },
+  {
+    "id": "app.content_flagging.marshal_property_values.app_error",
+    "translation": "Fout bij  de waarden van de eigenschap Content Flagging te verzenden in de WebSocket-gebeurtenis."
+  },
+  {
+    "id": "app.content_flagging.no_status_property.app_error",
+    "translation": "Kan gemarkeerd bericht niet ophalen omdat het bericht niet gemarkeerd is."
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.app_error",
+    "translation": "Overschrijven van bericht met verwijderd bericht mislukt bij definitief verwijderen van gemarkeerd bericht."
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.marshal_comment.app_error",
+    "translation": "Fout bij het verwerken van de commentaar van de beoordeelaar"
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.update_property_value.app_error",
+    "translation": "Faalde in het bijwerken van de status van gemarkeerde berichten bij het permanent verwijderen van gemarkeerde berichten."
+  },
+  {
+    "id": "app.content_flagging.search_property_fields.app_error",
+    "translation": "Fout bij het zoeken naar Content Flagging eigenschapsvelden."
+  },
+  {
+    "id": "app.content_flagging.search_property_values.app_error",
+    "translation": "Fout bij het ophalen van de waarden van de inhoudsmarkeringseigenschappen uit de database."
+  },
+  {
+    "id": "app.content_flagging.search_status_property.app_error",
+    "translation": "Fout bij het zoeken van de Property Values voor de gemelde post."
+  },
+  {
+    "id": "app.post_priority.delete_for_post.app_error",
+    "translation": "Fout bij het permanent verwijderen van de prioriteitsgegevens uit de database voor het bericht."
+  },
+  {
+    "id": "app.save_scheduled_post.restricted_dm.error",
+    "translation": "Kan bericht niet plannen in een beperkte DM"
+  },
+  {
+    "id": "app.system.content_review_bot.bot_displayname",
+    "translation": "Inhoud beoordelen"
+  },
+  {
+    "id": "app.upload.create.cannot_upload_to_restricted_dm.error",
+    "translation": "Kan geen bestand uploaden naar een beperkt direct bericht."
+  },
+  {
+    "id": "api.encoding_error",
+    "translation": "Er is een fout opgetreden bij het coderen van JSON voor het API-antwoord"
+  },
+  {
+    "id": "app.content_flagging.get_reviewer_settings.app_error",
+    "translation": "Fout bij het ophalen van instellingen voor inhoudsbeoordelaar uit de database"
+  },
+  {
+    "id": "app.content_flagging.save_reviewer_settings.app_error",
+    "translation": "Het is niet gelukt om de instellingen van de inhoudsbeoordelaar op te slaan in de database."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.libretranslate.url.app_error",
+    "translation": "De URL van LibreTranslate moet een geldige URL zijn en beginnen met http:// of https://."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.provider.app_error",
+    "translation": "Ongeldige autotranslation provider, mag niet leeg zijn."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.provider.unsupported.app_error",
+    "translation": "Niet-ondersteunde provider voor automatische vertalingen."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.fetch.app_error",
+    "translation": "Ongeldige fetch timeout voor instellingen voor automatische vertalingen. Moet een positief getal zijn."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.new_post.app_error",
+    "translation": "Ongeldige time-out voor nieuwe berichten bij instellingen voor automatische vertalingen. Moet een positief getal zijn."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
+    "translation": "Ongeldige melding timeout voor automatische vertalingen. Moet een positief getal zijn. Moet een positief getal zijn."
+  },
+  {
+    "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
+    "translation": "Kanaal ID komt niet overeen met het kanaal ID van het gemarkeerde bericht."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations_for_channel.restricted_permission.app_error",
+    "translation": "Kan geen rechten toevoegen die beperkt zijn door het machtigingsschema van het team of het systeem."
+  },
+  {
+    "id": "api.content_flagging.error.user_not_reviewer",
+    "translation": "De gebruiker is geen inhoudsbeoordelaar."
+  },
+  {
+    "id": "api.team.get_team.flagged_post_mismatch.app_error",
+    "translation": "TeamID komt niet overeen met de teamID van het gemarkeerde bericht."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.no_reviewer_field.app_error",
+    "translation": "Geen eigenschapveld ReviewerID gevonden."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.update_status_property_value.app_error",
+    "translation": "Fout bij het bijwerken van de waarde van de Status-eigenschap bij het instellen van reviewer."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.upsert_property_value.app_error",
+    "translation": "Fout bij het instellen van een beoordelaar voor een gemarkeerd bericht."
+  },
+  {
+    "id": "app.content_flagging.missing_flagged_post_id_field.app_error",
+    "translation": "Kan het eigenschapveld Flagged Post ID niet vinden."
+  },
+  {
+    "id": "app.content_flagging.missing_reporting_user_id_field.app_error",
+    "translation": "Kan het reporting user veld niet vinden."
+  },
+  {
+    "id": "app.content_flagging.missing_reporting_user_id_property_value.app_error",
+    "translation": "Kan de waarde voor het reporting user veld niet vinden."
+  },
+  {
+    "id": "app.content_flagging.search_common_reviewers.app_error",
+    "translation": "Kan de term niet vinden in Common Reviewers."
+  },
+  {
+    "id": "app.content_flagging.search_reviewer_posts.app_error",
+    "translation": "Kan reviewer berichten niet vinden het gemarkeerde bericht."
+  },
+  {
+    "id": "app.content_flagging.search_sysadmin_reviewers.app_error",
+    "translation": "Kan de zoekterm niet vinden in System Admin Reviewers."
+  },
+  {
+    "id": "app.content_flagging.search_team_admin_reviewers.app_error",
+    "translation": "Kan de zoekterm niet vinden in Team Admin Reviewers."
+  },
+  {
+    "id": "app.content_flagging.search_team_reviewers.app_error",
+    "translation": "Kan de zoekterm niet vinden in Team Reviewers."
+  },
+  {
+    "id": "app.content_flagging.get_thread_replies.app_error",
+    "translation": "Het is niet gelukt om reacties op de gemarkeerde post op te halen."
+  },
+  {
+    "id": "app.content_flagging.missing_manage_by_field.app_error",
+    "translation": "Manage By-eigenschapsveld is niet gevonden."
+  },
+  {
+    "id": "app.content_flagging.missing_status_field.app_error",
+    "translation": "Status-eigenschapsveld niet gevonden."
+  },
+  {
+    "id": "app.content_flagging.set_thread_replies_properties.app_error",
+    "translation": "Het is niet gelukt om eigenschappen in te stellen op antwoorden op het draadje voor het gemarkeerde bericht."
+  },
+  {
+    "id": "api.user.delete_channel.not_enabled.for_admin.app_error",
+    "translation": "Permanente kanaalverwijdering is niet ingeschakeld. ServiceSettings.EnableAPIChannelDeletion moet op true staan om dit commando te kunnen gebruiken. Zie https://mattermost.com/pl/environment-configuration-settings voor meer informatie"
+  },
+  {
+    "id": "api.user.delete_team.not_enabled.for_admin.app_error",
+    "translation": "De permanente teamverwijderingsfunctie is niet ingeschakeld. ServiceSettings.EnableAPITeamDeletion moet op true staan om deze opdracht te kunnen gebruiken. Zie https://mattermost.com/pl/environment-configuration-settings voor meer informatie."
+  },
+  {
+    "id": "api.user.delete_user.not_enabled.for_admin.app_error",
+    "translation": "De permanente gebruikersverwijderingsfunctie is niet ingeschakeld. ServiceSettings.EnableAPIUserDeletion moet worden ingesteld op true om deze opdracht te gebruiken. Zie https://mattermost.com/pl/environment-configuration-settings voor meer informatie."
+  },
+  {
+    "id": "app.agents.get_agents.app_error",
+    "translation": "Fout bij het ophalen van de agenten."
+  },
+  {
+    "id": "app.agents.get_agents.bridge_call_failed",
+    "translation": "Bridge call mislukt."
+  },
+  {
+    "id": "app.agents.get_services.app_error",
+    "translation": "Fout bij het ophalen van de LLM-diensten."
+  },
+  {
+    "id": "app.agents.get_services.bridge_call_failed",
+    "translation": "Bridge call mislukt."
+  },
+  {
+    "id": "api.command.move_command.creator_no_permission.app_error",
+    "translation": "Geen rechten om commando te verplaatsen"
+  },
+  {
+    "id": "api.oauth.allow_oauth.pkce_required_public.app_error",
+    "translation": "PKCE (Proof Key for Code Exchange) is nodig voor publieke OAuth clients die gebruik maken van authorisatie code flow."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.disabled.app_error",
+    "translation": "OAuth serviceprovider is uitgeschakeld."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.invalid_url.app_error",
+    "translation": "Ongeldige URL-configuratie voor metagegevens van autorisatieserver."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.site_url_required.app_error",
+    "translation": "De URL van de site moet worden geconfigureerd om metagegevens van de autorisatieserver op te geven."
+  },
+  {
+    "id": "api.oauth.get_access_token.resource_mismatch.app_error",
+    "translation": "De resource parameter komt niet overeen tussen autorisatie- en tokenverzoeken."
+  },
+  {
+    "id": "api.oauth.regenerate_secret.public_client.app_error",
+    "translation": "invalid_request: Kan geheim niet regenereren voor openbare OAuth-clients."
+  },
+  {
+    "id": "api.post.fill_in_post_props.invalid_ai_generated_user.app_error",
+    "translation": "De AI-gegenereerde gebruiker moet de maker van het bericht of een bot zijn."
+  },
+  {
+    "id": "app.custom_profile_attributes.patch_field.app_error",
+    "translation": "Kan aangepast Custom Profile Attribute niet patchen"
+  },
+  {
+    "id": "app.post.rewrite.agent_call_failed",
+    "translation": "Fout bij het aanspreken van AI-agent."
+  },
+  {
+    "id": "app.post.rewrite.empty_response",
+    "translation": "Leeg antwoord van AI."
+  },
+  {
+    "id": "app.post.rewrite.invalid_action",
+    "translation": "Ongeldige herschrijfactie."
+  },
+  {
+    "id": "app.post.rewrite.parse_response_failed",
+    "translation": "Fout bij het parsen van het herschrijfantwoord van AI."
+  },
+  {
+    "id": "ent.push_proxy.delete.app_error",
+    "translation": "Fout bij het verwijderen van push proxy auth token."
+  },
+  {
+    "id": "ent.push_proxy.generate.bad_status.app_error",
+    "translation": "Fout bij het ophalen van auth token van de push proxy server."
+  },
+  {
+    "id": "ent.push_proxy.generate.create_request.app_error",
+    "translation": "Aanmaken HTTP-verzoek voor push proxy auth is mislukt."
+  },
+  {
+    "id": "ent.push_proxy.generate.empty_token.app_error",
+    "translation": "Push proxy retourneerde leeg auth token."
+  },
+  {
+    "id": "ent.push_proxy.generate.encrypt.app_error",
+    "translation": "Fout bij het versleutelen van de payload voor push proxy auth."
+  },
+  {
+    "id": "ent.push_proxy.generate.http_request.app_error",
+    "translation": "HTTP-verzoek verzenden naar push-proxy is mislukt."
+  },
+  {
+    "id": "ent.push_proxy.generate.marshal.app_error",
+    "translation": "Fout bij verwerken payload voor push proxy auth."
+  },
+  {
+    "id": "ent.push_proxy.generate.marshal_request.app_error",
+    "translation": "Fout bij het verwerken van request body voor push proxy auth."
+  },
+  {
+    "id": "ent.push_proxy.generate.no_key.app_error",
+    "translation": "Geen coderingssleutel beschikbaar voor push proxy auth."
+  },
+  {
+    "id": "ent.push_proxy.generate.parse_response.app_error",
+    "translation": "Fout bij het verwerken van het antwoord van het push proxy auth endpoint."
+  },
+  {
+    "id": "ent.push_proxy.generate.save_system.app_error",
+    "translation": "Fout bij het opslaan van het auth token."
+  },
+  {
+    "id": "ent.push_proxy.worker.interface_nil.app_error",
+    "translation": "Push proxy interface is leeg."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge.app_error",
+    "translation": "Code challenge is vereist bij gebruik van PKCE."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge.format.app_error",
+    "translation": "De code-uitdaging moet base64url-gecodeerd zijn (met de tekens A-Z, a-z, 0-9, -, _)."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge.length.app_error",
+    "translation": "Code challenge moet tussen 43 en 128 tekens lang zijn."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge_method.app_error",
+    "translation": "Code challenge methode is vereist bij het gebruik van PKCE."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge_method.unsupported.app_error",
+    "translation": "Alleen de 'S256' code-challenge methode wordt ondersteund."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.has_fragment.app_error",
+    "translation": "Resource parameter kan geen fragmentcomponent bevatten."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.invalid_uri.app_error",
+    "translation": "De resource parameter moet een geldige URI zijn."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.length.app_error",
+    "translation": "De resource parameter kan niet langer zijn dan 512 tekens."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.not_absolute.app_error",
+    "translation": "De resource parameter moet een absolute URI zijn."
+  },
+  {
+    "id": "model.authorize.validate_pkce.not_used_in_auth.app_error",
+    "translation": "PKCE code verifier verstrekt, maar PKCE is niet gebruikt tijdens autorisatie."
+  },
+  {
+    "id": "model.authorize.validate_pkce.public_client_required.app_error",
+    "translation": "PKCE (Proof Key for Code Exchange) is vereist voor publieke clients."
+  },
+  {
+    "id": "model.authorize.validate_pkce.verification_failed.app_error",
+    "translation": "PKCE codeverificateur komt niet overeen met de code-challenge."
+  },
+  {
+    "id": "model.authorize.validate_pkce.verifier_required.app_error",
+    "translation": "PKCE code verifier is vereist wanneer PKCE wordt gebruikt."
+  },
+  {
+    "id": "model.dcr.is_valid.client_name.app_error",
+    "translation": "De naam van de client mag niet langer zijn dan 64 tekens."
+  },
+  {
+    "id": "model.dcr.is_valid.client_uri_format.app_error",
+    "translation": "Ongeldig client URI formaat."
+  },
+  {
+    "id": "model.dcr.is_valid.client_uri_length.app_error",
+    "translation": "De URI van de client moet uit minder dan 256 tekens bestaan."
+  },
+  {
+    "id": "model.dcr.is_valid.redirect_uri_format.app_error",
+    "translation": "Ongeldige redirect URI-indeling."
+  },
+  {
+    "id": "model.dcr.is_valid.redirect_uris.app_error",
+    "translation": "Ten minste één redirect URI is vereist."
+  },
+  {
+    "id": "model.dcr.is_valid.unsupported_auth_method.app_error",
+    "translation": "Niet ondersteunde token_endpoint_auth_methode meegegeven."
+  },
+  {
+    "id": "model.oauth.validate_grant.credentials.app_error",
+    "translation": "Ongeldige client credentials."
+  },
+  {
+    "id": "model.oauth.validate_grant.pkce_required.app_error",
+    "translation": "PKCE (Proof Key for Code Exchange) is vereist voor publieke clients."
+  },
+  {
+    "id": "model.oauth.validate_grant.public_client_refresh_token.app_error",
+    "translation": "Publieke clients kunnen geen refresh token grant type gebruiken."
+  },
+  {
+    "id": "model.oauth.validate_grant.public_client_secret.app_error",
+    "translation": "Publieke cliënten mogen geen cliëntgeheim opgeven."
+  },
+  {
+    "id": "api.file.get_file.invalid_flagged_post.app_error",
+    "translation": "Foutief gemarkeerd post-ID opgegeven."
+  },
+  {
+    "id": "api.file.get_file_info.app_error",
+    "translation": "Fout bij het ophalen van de bestandsinfo."
+  },
+  {
+    "id": "api.post.get_posts_for_reporting.channel_not_found",
+    "translation": "Kanaal niet gevonden"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.guest_magic_link_disabled.error",
+    "translation": "Magische link voor gasten is niet ingeschakeld"
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.footer.info",
+    "translation": "Deze e-mail is naar je gestuurd omdat iemand een login link voor Mattermost heeft aangevraagd. Als je hier niet om gevraagd hebt, kun je deze e-mail gerust negeren."
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.footer.title",
+    "translation": "Heb je deze e-mail niet aangevraagd?"
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.subtitle",
+    "translation": "Klik op de knop hieronder om je aan te melden bij je account. Vergeet niet om deze link met niemand anders te delen."
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.title",
+    "translation": "Aanmelden bij Mattermost"
+  },
+  {
+    "id": "api.templates.guest_magic_link_subject",
+    "translation": "Aanmelden bij {{ .SiteName }}"
+  },
+  {
+    "id": "api.user.guest_magic_link.expired_token.app_error",
+    "translation": "Deze uitnodigingslink is verlopen."
+  },
+  {
+    "id": "api.user.guest_magic_link.invalid_token.app_error",
+    "translation": "Ongeldige uitnodigingslink."
+  },
+  {
+    "id": "api.user.guest_magic_link.invalid_token_type.app_error",
+    "translation": "Ongeldig uitnodigingslink type ."
+  },
+  {
+    "id": "api.user.guest_magic_link.missing_token.app_error",
+    "translation": "Ontbrekend uitnodigingstoken."
+  },
+  {
+    "id": "api.user.guest_magic_link.username_generation_failed.app_error",
+    "translation": "Kon geen unieke gebruikersnaam genereren. Neem contact op met je systeembeheerder."
+  },
+  {
+    "id": "api.user.login.guest_magic_link.disabled.error",
+    "translation": "Inloggen met magische link is uitgeschakeld."
+  },
+  {
+    "id": "api.user.promote_guest_to_user.magic_link_enabled.app_error",
+    "translation": "Kan gast niet omzetten naar gewone gebruiker omdat de gast authenticatie via magische link gebruikt."
+  },
+  {
+    "id": "api.user.send_password_reset.guest_magic_link.app_error",
+    "translation": "Kan wachtwoord voor gastaccounts met magische link niet opnieuw instellen."
+  },
+  {
+    "id": "app.pap.update_access_control_policies_active.app_error",
+    "translation": "Kan actieve status van toegangscontrolebeleid niet bijwerken."
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.app_error",
+    "translation": "Kan geen berichten ophalen voor rapportage."
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.invalid_input_error",
+    "translation": "Kan geen berichten ophalen voor rapportage. Ongeldige invoer."
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.license_error",
+    "translation": "Je licentie ondersteunt het rapporteren over berichten niet."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_base64",
+    "translation": "Ongeldig cursorformaat: kan base64 niet decoderen."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_exclude_system_posts",
+    "translation": "Ongeldig cursorformaat: exclude_system_posts moet een boolean zijn."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_format",
+    "translation": "Ongeldig cursorformaat: verwacht 8 delen."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_include_deleted",
+    "translation": "Ongeldig cursorformaat: include_deleted moet een boolean zijn."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_timestamp",
+    "translation": "Ongeldig cursorformaat: tijdstempel moet een geheel getal zijn."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_version",
+    "translation": "Ongeldig cursorformaat: versie moet een geheel getal zijn."
+  },
+  {
+    "id": "model.post.decode_cursor.unsupported_version",
+    "translation": "Niet-ondersteunde cursorversie."
+  },
+  {
+    "id": "model.post.query_params.invalid_channel_id",
+    "translation": "Ongeldige kanaal id."
+  },
+  {
+    "id": "model.post.query_params.invalid_cursor_id",
+    "translation": "Ongeldige cursor-id."
+  },
+  {
+    "id": "model.post.query_params.invalid_sort_direction",
+    "translation": "Ongeldige sorteerrichting."
+  },
+  {
+    "id": "model.post.query_params.invalid_time_field",
+    "translation": "Ongeldig tijdveld."
+  },
+  {
+    "id": "store.sql_autotranslation.channel_not_found",
+    "translation": "Kanaal niet gevonden."
+  },
+  {
+    "id": "store.sql_autotranslation.get.app_error",
+    "translation": "Kan geen vertaling ophalen."
+  },
+  {
+    "id": "store.sql_autotranslation.get_active_languages.app_error",
+    "translation": "Kan de actieve talen niet ophalen."
+  },
+  {
+    "id": "store.sql_autotranslation.get_channel_enabled.app_error",
+    "translation": "Kan automatische vertalingsstatus van het kanaal niet ophalen."
+  },
+  {
+    "id": "store.sql_autotranslation.get_user_enabled.app_error",
+    "translation": "Kan automatische vertalingsstatus voor de gebruiker niet ophalen."
+  },
+  {
+    "id": "store.sql_autotranslation.get_user_language.app_error",
+    "translation": "Kan de taal van de gebruiker niet ophalen."
+  },
+  {
+    "id": "store.sql_autotranslation.is_channel_enabled.app_error",
+    "translation": "Kan automatische vertalingsstatus van het kanaal niet ophalen."
+  },
+  {
+    "id": "store.sql_autotranslation.member_not_found",
+    "translation": "Lid niet gevonden."
+  },
+  {
+    "id": "store.sql_autotranslation.meta_json.app_error",
+    "translation": "Fout bij het verwerken van de JSON vertaalmetagegevens."
+  },
+  {
+    "id": "store.sql_autotranslation.query_build_error",
+    "translation": "Fout bij het maken van de query."
+  },
+  {
+    "id": "store.sql_autotranslation.save.app_error",
+    "translation": "Fout bij het bewaren van de vertaling."
+  },
+  {
+    "id": "store.sql_autotranslation.save.invalid_translation",
+    "translation": "Vertaalvalidatie mislukt. Het vertaalobject is ongeldig."
+  },
+  {
+    "id": "store.sql_autotranslation.save.meta_json.app_error",
+    "translation": "Het serialiseren van vertaalmetagegevens naar JSON is mislukt."
+  },
+  {
+    "id": "store.sql_autotranslation.set_channel_enabled.app_error",
+    "translation": "Kan automatische vertaling van het kanaal niet inschakelen."
+  },
+  {
+    "id": "store.sql_autotranslation.set_user_enabled.app_error",
+    "translation": "Kan automatische vertaling voor de gebruiker niet instellen."
+  },
+  {
+    "id": "api.post.burn_post.user_not_in_channel.app_error",
+    "translation": "Je hebt geen toestemming om dit bericht te verbranden. Je moet lid zijn van het kanaal."
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.app_error",
+    "translation": "Er is een fout opgetreden tijdens het maken van een burn-on-read bericht."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.config.app_error",
+    "translation": "Verbranden bij gelezen berichten is niet ingeschakeld. Schakel de feature flag en service-instelling in."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.license.app_error",
+    "translation": "Voor burn-on-read berichten is een Enterprise Advanced licentie nodig."
+  },
+  {
+    "id": "api.post.get_link_metadata_for_permalink.burn_on_read.app_error",
+    "translation": "Kan linkmetadata voor burn-on-read postpermalink niet ophalen."
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_burn_on_read_post.error",
+    "translation": "Burn-on-read berichten kunnen niet worden bijgewerkt."
+  },
+  {
+    "id": "api.post.reveal_post.cannot_reveal_own_post.app_error",
+    "translation": "Je kunt je eigen burn-on-read bericht niet onthullen."
+  },
+  {
+    "id": "api.post.reveal_post.disabled.app_error",
+    "translation": "De burn-on-read functie is niet ingeschakeld of vereist een Enterprise Advanced licentie."
+  },
+  {
+    "id": "api.post.reveal_post.user_not_in_channel.app_error",
+    "translation": "Je hebt geen toestemming om dit bericht te onthullen. Je moet lid zijn van het kanaal."
+  },
+  {
+    "id": "api.post.update_post.burn_on_read.app_error",
+    "translation": "Burn on read berichten kunnen niet worden bewerkt."
+  },
+  {
+    "id": "api.reaction.save.burn_on_read.app_error",
+    "translation": "Je kunt niet reageren op een burn-on-read bericht."
+  },
+  {
+    "id": "api.user.login_by_intune.account_locked.app_error",
+    "translation": "Je account is gedeactiveerd. Neem contact op met je systeembeheerder."
+  },
+  {
+    "id": "api.user.login_by_intune.bot_login_forbidden.app_error",
+    "translation": "Bot-accounts kunnen zich niet aanmelden met Microsoft-verificatie."
+  },
+  {
+    "id": "api.user.login_by_intune.not_available.app_error",
+    "translation": "Microsoft Intune-verificatie is niet beschikbaar."
+  },
+  {
+    "id": "api.user.login_by_intune.not_configured.app_error",
+    "translation": "Microsoft Intune-verificatie is niet geconfigureerd."
+  },
+  {
+    "id": "api.user.oauth_to_email.magic_link.app_error",
+    "translation": "Magische Link is de enige beschikbare aanmeldingsmethode voor dit account."
+  },
+  {
+    "id": "api.user.update_password.magic_link.app_error",
+    "translation": "Kan wachtwoord voor Magic Link-accounts niet bijwerken."
+  },
+  {
+    "id": "app.burn_post.not_burn_on_read.app_error",
+    "translation": "Deze post is geen burn-on-read post en kan niet worden vernietigd."
+  },
+  {
+    "id": "app.burn_post.not_revealed.app_error",
+    "translation": "Dit burn-on-read bericht is nog niet onthuld. Je moet het onthullen voordat je het verbrandt."
+  },
+  {
+    "id": "app.burn_post.read_receipt.get.error",
+    "translation": "Er is een fout opgetreden bij het ophalen van de leesbevestiging."
+  },
+  {
+    "id": "app.burn_post.read_receipt.update.error",
+    "translation": "Er is een fout opgetreden tijdens het bijwerken van de leesbevestiging."
+  },
+  {
+    "id": "app.post.get_post.app_error",
+    "translation": "Er is een fout opgetreden tijdens het ophalen van de burn-on-read berichtinhoud."
+  },
+  {
+    "id": "app.reveal_post.cannot_reveal_own_post.app_error",
+    "translation": "Je kunt je eigen burn-on-read bericht niet onthullen."
+  },
+  {
+    "id": "app.reveal_post.missing_expire_at.app_error",
+    "translation": "De burn-on-read post mist de vereiste verlooptijd."
+  },
+  {
+    "id": "app.reveal_post.not_burn_on_read.app_error",
+    "translation": "Deze post is geen burn-on-read post en kan niet worden onthuld."
+  },
+  {
+    "id": "app.reveal_post.post_expired.app_error",
+    "translation": "Deze burn-on-read post is verlopen en kan niet langer worden getoond."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.get.error",
+    "translation": "Er is een fout opgetreden bij het ophalen van de leesbevestiging."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.get_unread_count.error",
+    "translation": "Fout bij het ophalen van het aantal ongelezen bij de leesbevestiging."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.save.error",
+    "translation": "Er is een fout opgetreden bij het opslaan van de leesbevestiging."
+  },
+  {
+    "id": "app.reveal_post.read_receipt_expired.error",
+    "translation": "Je toegang tot deze burn-on-read post is verlopen."
+  },
+  {
+    "id": "ent.intune.login.account_not_found.app_error",
+    "translation": "Je account is nog niet volledig ingesteld. Meld je eerst aan bij Mattermost via het web of de desktop app."
+  },
+  {
+    "id": "ent.intune.login.extract_auth_data.app_error",
+    "translation": "Authenticatie mislukt. Probeer het opnieuw of neem contact op met je systeembeheerder."
+  },
+  {
+    "id": "ent.intune.login.not_configured.app_error",
+    "translation": "Microsoft Intune-verificatie is niet geconfigureerd."
+  },
+  {
+    "id": "ent.intune.validate_token.invalid_tenant_id.app_error",
+    "translation": "Authenticatie mislukt. Ongeldige configuratie."
+  },
+  {
+    "id": "ent.intune.validate_token.invalid_token.app_error",
+    "translation": "Authenticatie mislukt. Probeer het opnieuw."
+  },
+  {
+    "id": "ent.intune.validate_token.jwks_init.app_error",
+    "translation": "De initialisatie van de authenticatiedienst is mislukt. Neem contact op met je systeembeheerder."
+  },
+  {
+    "id": "ent.intune.validate_token.missing_claims.app_error",
+    "translation": "Authenticatie mislukt. Vereiste gebruikersinformatie ontbreekt."
+  },
+  {
+    "id": "ent.intune.validate_token.token_expired.app_error",
+    "translation": "Authenticatiesessie is verlopen. Probeer opnieuw in te loggen."
+  },
+  {
+    "id": "model.config.is_valid.intune_auth_service.app_error",
+    "translation": "Intune MAM Auth Service is vereist als Intune is ingeschakeld."
+  },
+  {
+    "id": "model.config.is_valid.intune_auth_service_invalid.app_error",
+    "translation": "Intune MAM Auth Service moet 'office365' of 'saml' zijn."
+  },
+  {
+    "id": "model.config.is_valid.intune_client_id.app_error",
+    "translation": "Intune MAM Client ID is vereist wanneer Intune is ingeschakeld."
+  },
+  {
+    "id": "model.config.is_valid.intune_client_id_format.app_error",
+    "translation": "Intune MAM Client ID moet een geldige UUID zijn."
+  },
+  {
+    "id": "model.config.is_valid.intune_requires_office365.app_error",
+    "translation": "Intune MAM vereist dat OpenId Connect (Office 365) is ingeschakeld wanneer Auth Service is ingesteld op 'office365'."
+  },
+  {
+    "id": "model.config.is_valid.intune_requires_saml.app_error",
+    "translation": "Intune MAM vereist dat SAML is ingeschakeld als Auth Service is ingesteld op 'saml'."
+  },
+  {
+    "id": "model.config.is_valid.intune_tenant_id.app_error",
+    "translation": "Intune MAM Tenant ID is vereist wanneer Intune is ingeschakeld."
+  },
+  {
+    "id": "model.config.is_valid.intune_tenant_id_format.app_error",
+    "translation": "Intune MAM Tenant ID moet een geldige UUID zijn."
+  },
+  {
+    "id": "api.content_flagging.error.invalid_post_type",
+    "translation": "Het markeren van een bericht van het type '{{.PostType}}' is niet toegestaan."
+  },
+  {
+    "id": "model.config.is_valid.guest_accounts.cannot_enforce_multifactor_authentication_when_guest_magic_link_is_enabled.app_error",
+    "translation": "Je kunt multifactorauthenticatie niet afdwingen voor gastaccounts als magische linkauthenticatie is ingeschakeld."
+  },
+  {
+    "id": "app.update_scheduled_post.convert_to_post.error",
+    "translation": "Kan gepland bericht niet omzetten naar berichtformaat."
   }
 ]

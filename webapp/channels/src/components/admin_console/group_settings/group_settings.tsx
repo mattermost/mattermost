@@ -9,6 +9,7 @@ import ExternalLink from 'components/external_link';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
+import Pluggable from 'plugins/pluggable';
 import {DocLinks} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
 
@@ -50,6 +51,7 @@ const GroupSettings = ({isDisabled}: Props) => {
                     <AdminPanel
                         id='ldap_groups'
                         title={defineMessage({id: 'admin.group_settings.ldapGroupsTitle', defaultMessage: 'AD/LDAP Groups'})}
+                        // eslint-disable-next-line formatjs/enforce-placeholders -- placeholders via subtitleValues
                         subtitle={defineMessage({id: 'admin.group_settings.ldapGroupsDescription', defaultMessage: 'Connect AD/LDAP and create groups in Mattermost. To get started, configure group attributes on the <link>AD/LDAP</link> configuration page.'})}
                         subtitleValues={{
                             link: (msg: React.ReactNode) => (
@@ -66,6 +68,9 @@ const GroupSettings = ({isDisabled}: Props) => {
                             readOnly={isDisabled}
                         />
                     </AdminPanel>
+                    <Pluggable
+                        pluggableName='SystemConsoleGroupTable'
+                    />
                 </div>
             </div>
         </div>

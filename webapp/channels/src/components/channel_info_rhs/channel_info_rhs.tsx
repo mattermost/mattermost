@@ -10,6 +10,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import ChannelInviteModal from 'components/channel_invite_modal';
 import ChannelNotificationsModal from 'components/channel_notifications_modal';
+import Scrollbars from 'components/common/scrollbars';
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import EditChannelPurposeModal from 'components/edit_channel_purpose_modal';
 import MoreDirectChannels from 'components/more_direct_channels';
@@ -42,19 +43,15 @@ export interface Props {
     channelStats: ChannelStats;
     currentUser: UserProfile;
     currentTeam: Team;
-
     isArchived: boolean;
     isFavorite: boolean;
     isMuted: boolean;
     isInvitingPeople: boolean;
     isMobile: boolean;
-
     canManageMembers: boolean;
     canManageProperties: boolean;
-
     dmUser?: DMUser;
     channelMembers: UserProfile[];
-
     actions: {
         closeRightHandSide: () => void;
         unfavoriteChannel: (channelId: string) => void;
@@ -109,7 +106,7 @@ const ChannelInfoRhs = ({
             return actions.openModal({
                 modalId: ModalIdentifiers.CREATE_DM_CHANNEL,
                 dialogType: MoreDirectChannels,
-                dialogProps: {isExistingChannel: true},
+                dialogProps: {isExistingChannel: true, focusOriginElement: 'channelInfoRHSAddPeopleButton'},
             });
         }
 
@@ -135,7 +132,7 @@ const ChannelInfoRhs = ({
     const openNotificationSettings = () => actions.openModal({
         modalId: ModalIdentifiers.CHANNEL_NOTIFICATIONS,
         dialogType: ChannelNotificationsModal,
-        dialogProps: {channel, currentUser},
+        dialogProps: {channel, currentUser, focusOriginElement: 'channelInfoRHSNotificationSettings'},
     });
 
     const gmUsers = channelMembers.filter((user) => {
@@ -155,48 +152,42 @@ const ChannelInfoRhs = ({
                 isMobile={isMobile}
                 onClose={actions.closeRightHandSide}
             />
-
-            <TopButtons
-                channelType={channel.type}
-                channelURL={channelURL}
-
-                isFavorite={isFavorite}
-                isMuted={isMuted}
-                isInvitingPeople={isInvitingPeople}
-
-                canAddPeople={canManageMembers}
-
-                actions={{toggleFavorite, toggleMute, addPeople}}
-            />
-
-            <AboutArea
-                channel={channel}
-
-                dmUser={dmUser}
-                gmUsers={gmUsers}
-
-                canEditChannelProperties={canEditChannelProperties}
-
-                actions={{
-                    editChannelHeader,
-                    editChannelPurpose,
-                }}
-            />
-
-            <Divider/>
-
-            <Menu
-                channel={channel}
-                channelStats={channelStats}
-                isArchived={isArchived}
-                actions={{
-                    openNotificationSettings,
-                    showChannelFiles: actions.showChannelFiles,
-                    showPinnedPosts: actions.showPinnedPosts,
-                    showChannelMembers: actions.showChannelMembers,
-                    getChannelStats: actions.getChannelStats,
-                }}
-            />
+            <Scrollbars
+                color='--center-channel-color-rgb'
+            >
+                <TopButtons
+                    channelType={channel.type}
+                    channelURL={channelURL}
+                    isFavorite={isFavorite}
+                    isMuted={isMuted}
+                    isInvitingPeople={isInvitingPeople}
+                    canAddPeople={canManageMembers}
+                    actions={{toggleFavorite, toggleMute, addPeople}}
+                />
+                <AboutArea
+                    channel={channel}
+                    dmUser={dmUser}
+                    gmUsers={gmUsers}
+                    canEditChannelProperties={canEditChannelProperties}
+                    actions={{
+                        editChannelHeader,
+                        editChannelPurpose,
+                    }}
+                />
+                <Divider/>
+                <Menu
+                    channel={channel}
+                    channelStats={channelStats}
+                    isArchived={isArchived}
+                    actions={{
+                        openNotificationSettings,
+                        showChannelFiles: actions.showChannelFiles,
+                        showPinnedPosts: actions.showPinnedPosts,
+                        showChannelMembers: actions.showChannelMembers,
+                        getChannelStats: actions.getChannelStats,
+                    }}
+                />
+            </Scrollbars>
         </div>
     );
 };

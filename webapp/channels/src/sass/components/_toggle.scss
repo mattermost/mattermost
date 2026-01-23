@@ -1,14 +1,16 @@
+@use "utils/variables";
+
 @use 'sass:color';
 
 // Based on https://codepen.io/aanjulena/pen/ZLZjzV
 // Colors
 $brand-primary: #2a9fd8;
-$gray: #6b7381;
-$gray-light: color.adjust($gray, $lightness: 15%);
-$gray-lighter: color.adjust($gray, $lightness: 30%);
+variables.$gray: #6b7381;
+$gray-light: color.adjust(variables.$gray, $lightness: 15%);
+$gray-lighter: color.adjust(variables.$gray, $lightness: 30%);
 
 // Button Colors
-$btn-default-color: $gray;
+$btn-default-color: variables.$gray;
 $btn-default-bg: $gray-lighter;
 
 // Toggle Sizes

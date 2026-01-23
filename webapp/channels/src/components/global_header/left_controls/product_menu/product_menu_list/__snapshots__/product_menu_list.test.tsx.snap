@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/global/product_switcher_menu should match snapshot with id 1`] = `
 <Memo(MenuGroup)>
@@ -47,6 +47,7 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
           "sysconsole_read_environment_session_lengths",
           "sysconsole_read_environment_performance_monitoring",
           "sysconsole_read_environment_developer",
+          "sysconsole_read_environment_mobile_security",
           "sysconsole_read_authentication_signup",
           "sysconsole_read_authentication_email",
           "sysconsole_read_authentication_password",
@@ -136,11 +137,6 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
       teamId=""
     >
       <MenuItemToggleModalRedux
-        dialogProps={
-          Object {
-            "openedFrom": "product_menu",
-          }
-        }
         dialogType={[Function]}
         icon={
           <ViewGridPlusOutlineIcon
@@ -234,6 +230,7 @@ exports[`components/global/product_switcher_menu should match snapshot with most
           "sysconsole_read_environment_session_lengths",
           "sysconsole_read_environment_performance_monitoring",
           "sysconsole_read_environment_developer",
+          "sysconsole_read_environment_mobile_security",
           "sysconsole_read_authentication_signup",
           "sysconsole_read_authentication_email",
           "sysconsole_read_authentication_password",
@@ -323,11 +320,6 @@ exports[`components/global/product_switcher_menu should match snapshot with most
       teamId=""
     >
       <MenuItemToggleModalRedux
-        dialogProps={
-          Object {
-            "openedFrom": "product_menu",
-          }
-        }
         dialogType={[Function]}
         icon={
           <ViewGridPlusOutlineIcon
@@ -501,6 +493,7 @@ exports[`components/global/product_switcher_menu should show integrations should
   <li
     className="MenuGroup menu-divider"
     onClick={[Function]}
+    role="separator"
   />
   <div
     onClick={[Function]}
@@ -547,6 +540,7 @@ exports[`components/global/product_switcher_menu should show integrations should
           "sysconsole_read_environment_session_lengths",
           "sysconsole_read_environment_performance_monitoring",
           "sysconsole_read_environment_developer",
+          "sysconsole_read_environment_mobile_security",
           "sysconsole_read_authentication_signup",
           "sysconsole_read_authentication_email",
           "sysconsole_read_authentication_password",
@@ -636,11 +630,6 @@ exports[`components/global/product_switcher_menu should show integrations should
       teamId=""
     >
       <MenuItemToggleModalRedux
-        dialogProps={
-          Object {
-            "openedFrom": "product_menu",
-          }
-        }
         dialogType={[Function]}
         icon={
           <ViewGridPlusOutlineIcon

@@ -208,10 +208,6 @@
     "translation": "Невозможно покинуть канал личных сообщений."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Вы единственный оставшийся участник, попробуйте удалить частный канал вместо того, чтобы покинуть."
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v покинул канал."
   },
@@ -928,10 +924,6 @@
     "translation": "пожимание плечами"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Новый формат конфигурации клиента пока не поддерживается. Пожалуйста, укажите format=old в строке запроса."
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "Извините, мы не смогли найти страницу."
   },
@@ -1194,10 +1186,6 @@
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
     "translation": "invalid_request: Плохой client_id."
-  },
-  {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Отсутствует client_secret."
   },
   {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
@@ -2084,14 +2072,6 @@
     "translation": "Логин бота запрещен."
   },
   {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Попытка войти с использованием экспериментальной возможности ClientSideCert без предоставления действительного сертификата."
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Попытка использования экспериментальной возможности ClientSideCert без действительной корпоративной лицензии."
-  },
-  {
     "id": "api.user.login.inactive.app_error",
     "translation": "Вход не удался, поскольку ваша учетная запись отключена. Пожалуйста, свяжитесь с администратором."
   },
@@ -2298,10 +2278,6 @@
   {
     "id": "api.webhook.create_outgoing.triggers.app_error",
     "translation": "Должны быть заданы trigger_words или channel_id."
-  },
-  {
-    "id": "api.webhook.incoming.error",
-    "translation": "Не удалось декодировать многочастную полезную нагрузку входящего вебхука."
   },
   {
     "id": "api.webhook.team_mismatch.app_error",
@@ -3004,60 +2980,8 @@
     "translation": "Системная консоль устанавливается только для чтения, если включена Высокая доступность, если только ReadOnlyConfig не отключен в файле конфигурации."
   },
   {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "Неизвестный формат вывода {{.ExportType}}"
-  },
-  {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "Невозможно скопировать вложение в zip-файл."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "Невозможно добавить вложение в экспорт CSV."
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "Невозможно создать временный файл экспорта CSV."
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "Невозможно добавить заголовок в экспорт CSV."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "Невозможно добавить файл метаданных в zip-файл."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Невозможно преобразовать метаданные в формат json."
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "Невозможно экспортировать сообщение."
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Невозможно создать файл экспорта zip."
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "Загруженный файл был удален из экспорта Global Relay, поскольку он был слишком большим для отправки."
-  },
-  {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "Невозможно открыть временный файл экспорта."
-  },
-  {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Невозможно перечитать файл временного экспорта Global Relay."
-  },
-  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "Функция комплаенса недоступна при текущей лицензии. Пожалуйста, свяжитесь с системным администратором по поводу улучшения вашей корпоративной лицензии."
-  },
-  {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "Невозможно загрузить шаблоны экспорта. Пожалуйста, попробуйте еще раз."
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -3069,31 +2993,31 @@
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Работнику агрегатора Elasticsearch не удалось создать задание индексации"
+    "translation": "Рабочий агрегатор {{.Backend}} не смог создать задание на индексирование"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Работнику агрегатора Elasticsearch не удалось удалить индексы"
+    "translation": "Рабочему агрегатору {{.Backend}} не удалось удалить индексы"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Работнику агрегатора Elasticsearch не удалось получить индексы"
+    "translation": "Рабочему агрегатору {{.Backend}} не удалось получить индексы"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Сбой в работе сборщика Elasticsearch из-за сбоя задания индексирования"
+    "translation": "Сбой в работе сборщика {{.Backend}} из-за сбоя задания индексирования"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "Ошибка установки клиента Elasticsearch"
+    "translation": "Ошибка установки клиента {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "Не удалось удалить индекс Elasticsearch"
+    "translation": "Не удалось удалить индекс {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "Не удалось получить индексы Elasticsearch"
+    "translation": "Не удалось получить индексы {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -3101,7 +3025,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "Поиск Elasticsearch не включен на этом сервере"
+    "translation": "Поиск {{.Backend}} не включен на этом сервере"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -3109,23 +3033,19 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Работнику индексирования Elasticsearch не удалось проанализировать время окончания"
+    "translation": "Работнику индексирования {{.Backend}} не удалось проанализировать время окончания"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Работнику индексирования Elasticsearch не удалось проанализировать время начала"
+    "translation": "Работнику индексирования {{.Backend}} не удалось проанализировать время начала"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
-    "translation": "Elasticsearch не запущен"
-  },
-  {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "Не удалось удалить индекс Elasticsearch"
+    "translation": "{{.Backend}} не запущен"
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "Поиск Elasticsearch отключен на этом сервере"
+    "translation": "Поиск {{.Backend}} отключен на этом сервере"
   },
   {
     "id": "ent.elasticsearch.search_posts.parse_matches_failed",
@@ -3141,19 +3061,19 @@
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch уже остановлен."
+    "translation": "{{.Backend}} уже остановлен."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch отключён."
+    "translation": "{{.Backend}} отключён."
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
-    "translation": "Ваша версия сервера Mattermost не поддерживает Elasticsearch."
+    "translation": "Ваша лицензия Mattermost не поддерживает индексированный поиск."
   },
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
-    "translation": "URL или имя пользователя сервера Elasticsearch были изменены. Пожалуйста, введите пароль Elasticsearch еще раз, чтобы проверить соединение."
+    "translation": "URL поискового сервера или имя пользователя изменились. Пожалуйста, повторно введите пароль, чтобы проверить соединение."
   },
   {
     "id": "ent.ldap.app_error",
@@ -3238,58 +3158,6 @@
   {
     "id": "ent.ldap_groups.reachable_groups_error",
     "translation": "ошибка при получении групп для пользователя"
-  },
-  {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Невозможно добавить вложение в экспорт Global Relay."
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Невозможно закрыть zip-файл."
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "Невозможно создать файл eml."
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Невозможно сгенерировать данные файла eml."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "Невозможно доставить письмо в Global Relay."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "Невозможно установить адрес \"От кого\" электронной почты."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "Невозможно установить сообщение электронной почты."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "Невозможно написать сообщение электронной почты."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "Невозможно прочитать информацию электронной почты."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "Невозможно установить адрес \"Кому\" электронной почты."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Невозможно получить информацию о временном файле экспорта."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "Невозможно получить письмо из временного файла."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Невозможно открыть временный файл экспорта."
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
@@ -3713,27 +3581,27 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
-    "translation": "Параметр Elasticsearch AggregatePostsAfterDays должен быть числом больше или равным 1."
+    "translation": "Настройка поиска AggregatePostsAfterDays должна быть числом больше или равным 1."
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "Elastic Search ConnectionUrl setting must be provided when Elastic Search indexing is enabled."
+    "translation": "Настройка Search ConnectionUrl должна быть указана, если включена индексация."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Для параметра Elasticsearch EnableIndexing должно быть установлено значение true, если для параметра Elasticsearch SearchEnabled установлено значение true"
+    "translation": "{{.EnableIndexing}} параметр должен быть установлен в true, когда {{.Searching}} установлен в true"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "Размер пакета живого индексирования Elasticsearch должен быть не менее 1."
+    "translation": "Размер пакета живого индексирования должен быть не менее 1."
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
-    "translation": "Параметр Elasticsearch PostsAggregatorJobStartTime должен быть временем в формате «чч:мм»."
+    "translation": "Параметр поиска PostsAggregatorJobStartTime должен быть временем в формате «чч:мм»."
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "Время ожидания запроса Elasticsearch должно составлять не менее 1 секунды."
+    "translation": "Время ожидания запроса должно составлять не менее 1 секунды."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -4109,7 +3977,7 @@
   },
   {
     "id": "model.incoming_hook.id.app_error",
-    "translation": "Недопустимый идентификатор."
+    "translation": "Неверный идентификатор: {{.Id}}."
   },
   {
     "id": "model.incoming_hook.parse_data.app_error",
@@ -4314,10 +4182,6 @@
   {
     "id": "model.post.is_valid.id.app_error",
     "translation": "Недопустимый идентификатор."
-  },
-  {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Неверное сообщение."
   },
   {
     "id": "model.post.is_valid.original_id.app_error",
@@ -4617,11 +4481,11 @@
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": "Не удалось найти команду."
+    "translation": "Не удалось найти команду {{.command_id}}."
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": "Невозможно разобрать входящие данные."
+    "translation": "Невозможно разобрать входящие данные вебхука {{.hook_id}}."
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",
@@ -4633,7 +4497,7 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "Этому вебхуку не разрешено публиковать сообщения на запрошенном канале."
+    "translation": "Этому вебхуку не разрешено публиковать сообщения на запрошенном канале {{.channel_id}}"
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
@@ -4649,7 +4513,7 @@
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "Несоответствующие права канала."
+    "translation": "Пользователь {{.user}} не имеет соответствующих прав на канал {{.channel}}"
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
@@ -4661,7 +4525,7 @@
   },
   {
     "id": "web.incoming_webhook.user.app_error",
-    "translation": "Не удалось найти пользователя."
+    "translation": "Не удалось найти пользователя {{.user}}"
   },
   {
     "id": "api.license.request-trial.bad-request",
@@ -4832,10 +4696,6 @@
     "translation": "Неверный параметр показа непрочитанного раздела для пользователя"
   },
   {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Невозможно задать плагин как управляемый файловым хранилищем."
-  },
-  {
     "id": "app.plugin.install_marketplace_plugin.app_error",
     "translation": "Не удалось установить плагин из магазина плагинов."
   },
@@ -4916,92 +4776,12 @@
     "translation": "Не удалось сохранить условия использования."
   },
   {
-    "id": "bleveengine.create_channel_index.error",
-    "translation": "Ошибка при создании индекса канала bleve."
-  },
-  {
-    "id": "bleveengine.create_post_index.error",
-    "translation": "Ошибка при создании индекса сообщений bleve."
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "Не получилось удалить канал."
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "Не получилось удалить сообщение."
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "Не получилось удалить пользователя."
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "Не удалось проиндексировать сообщение."
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "Не удалось проиндексировать пользователя."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "Не удалось проиндексировать пакет сообщений."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "Не удалось проиндексировать пакет пользователей."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "Работнику индексирования Bleve не удалось проанализировать время начала."
-  },
-  {
-    "id": "bleveengine.purge_channel_index.error",
-    "translation": "Не удалось очистить индексы канала."
-  },
-  {
-    "id": "bleveengine.purge_post_index.error",
-    "translation": "Не удалось очистить индексы сообщений."
-  },
-  {
-    "id": "bleveengine.purge_user_index.error",
-    "translation": "Не удалось очистить индексы пользователей."
-  },
-  {
-    "id": "bleveengine.search_channels.error",
-    "translation": "Поиск каналов не удалось завершить."
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "Поиск сообщений не удалось завершить."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "Поиск пользователей не удалось завершить."
-  },
-  {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "Поиск пользователей не удалось завершить."
-  },
-  {
-    "id": "bleveengine.stop_post_index.error",
-    "translation": "Не удалось закрыть индекс сообщения."
-  },
-  {
-    "id": "bleveengine.stop_user_index.error",
-    "translation": "Не удалось закрыть индекс пользователя."
-  },
-  {
     "id": "ent.cluster.timeout.error",
     "translation": "Тайм-аут ожидания ответа кластера"
   },
   {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "Невозможно создать файл уведомления."
-  },
-  {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "Не удалось создать шаблон Elasticsearch для каналов"
+    "translation": "Не удалось создать шаблон {{.Backend}} для каналов"
   },
   {
     "id": "ent.elasticsearch.delete_channel.error",
@@ -5017,11 +4797,11 @@
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
-    "translation": "Не удалось обновить индексы Elasticsearch"
+    "translation": "Не удалось обновить поисковые индексы"
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "Поиск Elasticsearch отключен на этом сервере"
+    "translation": "Поиск {{.Backend}} отключен на этом сервере"
   },
   {
     "id": "ent.elasticsearch.search_channels.search_failed",
@@ -5037,11 +4817,11 @@
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Не удалось получить версию сервера Elasticsearch."
+    "translation": "Не удалось получить версию сервера {{.Backend}}."
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Не удалось проанализировать версию сервера Elasticsearch."
+    "translation": "Не удалось проанализировать версию сервера {{.Backend}}."
   },
   {
     "id": "ent.ldap.validate_admin_filter.app_error",
@@ -5058,14 +4838,6 @@
   {
     "id": "model.command.is_valid.autocomplete_data.app_error",
     "translation": "Неверные AutocompleteData"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "Параметр Bleve EnableIndexing должен иметь значение true, если для Bleve EnableSearching установлено значение true"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "Параметр Bleve IndexingDir должен быть установлен, если для параметра Bleve EnableIndexing установлено значение true"
   },
   {
     "id": "model.config.is_valid.saml_guest_attribute.app_error",
@@ -5110,10 +4882,6 @@
   {
     "id": "plugin_api.bot_cant_create_bot",
     "translation": "Учетная запись бота не может создать другую учетную запись бота."
-  },
-  {
-    "id": "searchengine.bleve.disabled.error",
-    "translation": "Ошибка очистки индексов Bleve: движок отключен"
   },
   {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
@@ -5364,56 +5132,16 @@
     "translation": "Не удалось получить Условия использования."
   },
   {
-    "id": "bleveengine.already_started.error",
-    "translation": "Bleve уже запущен."
-  },
-  {
-    "id": "bleveengine.create_user_index.error",
-    "translation": "Ошибка при создании индекса пользователей bleve."
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "Не удалось проиндексировать канал."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "Не удалось проиндексировать пакет каналов."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Не удалось запустить задание индексирования Bleve: движок неактивен."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "Работнику индексирования Bleve не удалось проанализировать время окончания."
-  },
-  {
-    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "Попытка проиндексировать новый пакет, когда все элементы уже были завершены."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "Поиск пользователей не удалось завершить."
-  },
-  {
-    "id": "bleveengine.stop_channel_index.error",
-    "translation": "Не удалось закрыть индекс канала."
-  },
-  {
     "id": "ent.cluster.json_encode.error",
     "translation": "Произошла ошибка во время маршалирования запроса JSON"
   },
   {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "Невозможно создать файл zip"
-  },
-  {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Не удалось создать шаблон Elasticsearch для сообщений"
+    "translation": "Не удалось создать шаблон {{.Backend}} для сообщений"
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "Не удалось создать шаблон Elasticsearch для пользователей"
+    "translation": "Не удалось создать шаблон {{.Backend}} для пользователей"
   },
   {
     "id": "ent.elasticsearch.index_channel.error",
@@ -5448,12 +5176,8 @@
     "translation": "Имена каналов не могут быть в шестнадцатеричном формате. Пожалуйста, введите другое имя канала."
   },
   {
-    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "Параметр Bleve EnableIndexing должен иметь значение true, если для Bleve EnableAutocomplete установлено значение true"
-  },
-  {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Параметр Elasticsearch IndexingEnabled должен иметь значение true, если для Elasticsearch AutocompleteEnabled установлено значение true"
+    "translation": "{{.EnableIndexing}} параметр должен быть установлен в true, когда {{.Autocomplete}} установлен в true"
   },
   {
     "id": "model.config.is_valid.saml_admin_attribute.app_error",
@@ -5530,10 +5254,6 @@
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
     "translation": "Эта версия вашего браузера больше не поддерживается Mattermost"
-  },
-  {
-    "id": "ent.get_users_in_channel_during",
-    "translation": "Не удалось получить пользователей в канале в течение указанного периода времени."
   },
   {
     "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
@@ -5709,11 +5429,11 @@
   },
   {
     "id": "app.channel.get.existing.app_error",
-    "translation": "Не удалось найти существующий канал."
+    "translation": "Не удалось найти существующий канал {{.channel_id}}."
   },
   {
     "id": "app.channel.get.find.app_error",
-    "translation": "Возникла проблема при поиске канала."
+    "translation": "Возникла проблема при поиске канала {{.channel_id}}."
   },
   {
     "id": "app.channel.get_all_channels.app_error",
@@ -5793,19 +5513,19 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Версия 126+"
+    "translation": "Версия 132+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Версия 126+"
+    "translation": "Версия 132+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Версия 115+"
+    "translation": "Версия 119+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Версия 17.0+"
+    "translation": "Версия 17.4+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
@@ -5857,14 +5577,6 @@
   },
   {
     "id": "ent.elasticsearch.delete_channel_posts.error",
-    "translation": "Не получилось удалить сообщения канала"
-  },
-  {
-    "id": "bleveengine.delete_user_posts.error",
-    "translation": "Не получилось удалить сообщения пользователя"
-  },
-  {
-    "id": "bleveengine.delete_channel_posts.error",
     "translation": "Не получилось удалить сообщения канала"
   },
   {
@@ -6460,10 +6172,6 @@
     "translation": " прикрепил файл."
   },
   {
-    "id": "ent.actiance.export.marshalToXml.appError",
-    "translation": "Не удалось экспортировать в XML."
-  },
-  {
     "id": "api.user.delete_channel.not_enabled.app_error",
     "translation": "Функция удаления команды навсегда недоступна. Пожалуйста, обратитесь к системному администратору."
   },
@@ -6624,10 +6332,6 @@
     "translation": "Не удалось получить участников канала."
   },
   {
-    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Невозможно получить пакет каналов для индексации."
-  },
-  {
     "id": "app.channel.get_by_scheme.app_error",
     "translation": "Невозможно получить каналы для предоставленной схемы."
   },
@@ -6658,10 +6362,6 @@
   {
     "id": "app.post.get_posts_created_at.app_error",
     "translation": "Не удалось получить сообщения для канала."
-  },
-  {
-    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Невозможно получить пакет сообщений для индексации."
   },
   {
     "id": "app.post.get_posts.app_error",
@@ -7160,22 +6860,6 @@
     "translation": "Возникла ошибка по время проверки ответа от провайдера учётных записей. Пожалуйста, свяжитесь с системным администратором."
   },
   {
-    "id": "ent.message_export.global_relay_export.get_attachment_error",
-    "translation": "Не удалось получить информацию о файле для сообщения."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
-    "translation": "Не удалось подключиться к серверу smtp"
-  },
-  {
-    "id": "ent.message_export.csv_export.get_attachment_error",
-    "translation": "Не удалось получить информацию о файле для сообщения."
-  },
-  {
-    "id": "ent.message_export.actiance_export.get_attachment_error",
-    "translation": "Не удалось получить информацию о файле для сообщения."
-  },
-  {
     "id": "ent.ldap.no.users.checkcertificate",
     "translation": "Пользователи LDAP не найдены, проверьте пользовательский фильтр и сертификаты."
   },
@@ -7201,7 +6885,7 @@
   },
   {
     "id": "ent.elasticsearch.search_files.disabled",
-    "translation": "На этом сервере отключена функция поиска файлов Elasticsearch"
+    "translation": "На этом сервере отключена функция поиска файлов {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
@@ -7229,59 +6913,7 @@
   },
   {
     "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
-    "translation": "Не удалось создать шаблон Elasticsearch для файлов"
-  },
-  {
-    "id": "ent.compliance.global_relay.write_file.appError",
-    "translation": "Невозможно записать global relay файл."
-  },
-  {
-    "id": "ent.compliance.csv.write_file.appError",
-    "translation": "Невозможно записать csv-файл."
-  },
-  {
-    "id": "ent.actiance.export.write_file.appError",
-    "translation": "Не удалось записать экспортный файл."
-  },
-  {
-    "id": "bleveengine.stop_file_index.error",
-    "translation": "Не удалось закрыть индекс файлов."
-  },
-  {
-    "id": "bleveengine.search_files.error",
-    "translation": "Поиск файлов не завершился."
-  },
-  {
-    "id": "bleveengine.purge_file_index.error",
-    "translation": "Не удалось очистить индексы файлов."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
-    "translation": "Не удалось проиндексировать пакет файлов."
-  },
-  {
-    "id": "bleveengine.index_file.error",
-    "translation": "Не удалось проиндексировать файл."
-  },
-  {
-    "id": "bleveengine.delete_user_files.error",
-    "translation": "Не удалось удалить пользовательские файлы."
-  },
-  {
-    "id": "bleveengine.delete_post_files.error",
-    "translation": "Не удалось удалить файлы сообщений."
-  },
-  {
-    "id": "bleveengine.delete_files_batch.error",
-    "translation": "Не удалось удалить файлы."
-  },
-  {
-    "id": "bleveengine.delete_file.error",
-    "translation": "Не удалось удалить файл."
-  },
-  {
-    "id": "bleveengine.create_file_index.error",
-    "translation": "Ошибка при создании индекса bleve-файла."
+    "translation": "Не удалось создать шаблон {{.Backend}} для файлов"
   },
   {
     "id": "app.user.verify_email.app_error",
@@ -7484,10 +7116,6 @@
     "translation": "Ошибка поиска в сообщениях"
   },
   {
-    "id": "app.post.get_files_batch_for_indexing.get.app_error",
-    "translation": "Не удалось получить пакет файлов для индексации."
-  },
-  {
     "id": "app.insert_error",
     "translation": "ошибка insert"
   },
@@ -7558,10 +7186,6 @@
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",
     "translation": "Ошибка получения endpoint из Discovery Document."
-  },
-  {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Ошибка чтения файла из бэкэнда"
   },
   {
     "id": "api.unable_to_create_zip_file",
@@ -7917,7 +7541,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Безопасное соединение | Отображаемое имя | Идентификатор подключения | URL сайта | Приглашение принято | Онлайн | Последний пинг |"
+    "translation": "| Безопасное соединение | Отображаемое имя | Идентификатор подключения | Адрес сайта | Команда по умолчанию | Приглашение принято | Онлайн | Последний пинг | Удалено |"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
@@ -8404,14 +8028,6 @@
     "translation": "Список администраторов пуст."
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Не удается получить пользователей для архивного канала"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Не удается получить сообщения для архивного канала"
-  },
-  {
     "id": "api.user.upload_profile_user.check_image_limits.app_error",
     "translation": "Ошибка проверки ограничений изображения. Разрешение слишком высокое."
   },
@@ -8520,10 +8136,6 @@
     "translation": "Ошибка проверки ограничений изображения. Разрешение слишком высокое."
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": "Самый старый объект (пользователь, канал или сообщение) не может быть извлечен из базы данных."
-  },
-  {
     "id": "app.valid_password_generic.app_error",
     "translation": "Пароль недействителен"
   },
@@ -8617,11 +8229,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
-    "translation": "Размер пакета массового индексирования Elasticsearch должен быть не менее {{.BatchSize}}."
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
-    "translation": "Размер пакета массового индексирования Bleve должен быть не менее {{.BatchSize}}."
+    "translation": "Размер пакета массового индексирования должен быть не менее {{.BatchSize}}."
   },
   {
     "id": "app.user.update_thread_read_for_user_by_post.app_error",
@@ -8840,10 +8448,6 @@
     "translation": "Некорректные свойства."
   },
   {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "Неверное сообщение."
-  },
-  {
     "id": "model.draft.is_valid.file_ids.app_error",
     "translation": "Недопустимые идентификаторы файлов."
   },
@@ -8925,7 +8529,7 @@
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
-    "translation": "Вы не можете подтвердить в архивированном канале."
+    "translation": "Вы не можете сохранить подтверждение в архивированном канале."
   },
   {
     "id": "api.acknowledgement.delete.deadline.app_error",
@@ -8949,19 +8553,19 @@
   },
   {
     "id": "ent.elasticsearch.create_client.client_key_missing",
-    "translation": "Не удалось открыть файл клиентского ключа для Elasticsearch"
+    "translation": "Не удалось открыть файл клиентского ключа для {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_missing",
-    "translation": "Не удалось открыть файл сертификата клиента для Elasticsearch"
+    "translation": "Не удалось открыть файл сертификата клиента для {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_malformed",
-    "translation": "Не удалось декодировать сертификат клиента для Elasticsearch"
+    "translation": "Не удалось декодировать сертификат клиента для {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
-    "translation": "Не удалось открыть файл CA для Elasticsearch"
+    "translation": "Не удалось открыть файл CA для {{.Backend}}"
   },
   {
     "id": "api.server.cws.health_check.app_error",
@@ -9013,7 +8617,7 @@
   },
   {
     "id": "ent.elasticsearch.max_version.app_error",
-    "translation": "Версия Elasticsearch {{.Version}} выше максимально поддерживаемой версии {{.MaxVersion}}"
+    "translation": "Версия {{.Backend}} {{.Version}} выше максимально поддерживаемой версии {{.MaxVersion}}"
   },
   {
     "id": "api.user.invalidate_password_recovery_tokens.error",
@@ -9932,10 +9536,6 @@
     "translation": "Невозможно активировать пользователя. На сервере превышен лимит безопасных пользователей. Обратись к своему администратору с сообщением: ERROR_SAFETY_LIMITS_EXCEEDED."
   },
   {
-    "id": "bleveengine.purge_list.not_implemented",
-    "translation": "Функция очищения списка недоступна для Bleve."
-  },
-  {
     "id": "model.scheme.is_valid.app_error",
     "translation": "Неверная схема."
   },
@@ -9949,7 +9549,7 @@
   },
   {
     "id": "ent.elasticsearch.purge_index.delete_failed",
-    "translation": "Не удалось удалить индекс Elasticsearch"
+    "translation": "Не удалось удалить поисковый индекс"
   },
   {
     "id": "model.user.is_valid.pwd_min_length.app_error",
@@ -9966,10 +9566,6 @@
   {
     "id": "api.user.auth_switch.not_available.login_disabled.app_error",
     "translation": "Передача аутентификации недоступна, так как не включен ни вход по электронной почте, ни вход по имени пользователя."
-  },
-  {
-    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "Схема индекса Elasticsearch для вашего канала устарела. Рекомендуется перегенерировать индекс каналов.\nНажмите кнопку `Rebuild Channels Index` в разделе [Elasticsearch в Системной консоли]({{.ElasticsearchSection}}), чтобы исправить проблему.\nБолее подробную информацию смотрите в журнале изменений Mattermost."
   },
   {
     "id": "api.post.check_for_out_of_team_mentions.message.multiple",
@@ -10002,14 +9598,6 @@
   {
     "id": "app.limits.get_app_limits.user_count.store_error",
     "translation": "Не удалось получить количество пользователей"
-  },
-  {
-    "id": "ent.compliance.csv.metadata.close.appError",
-    "translation": "Невозможно закрыть zip-файл"
-  },
-  {
-    "id": "ent.compliance.csv.seek.appError",
-    "translation": "Невозможно перейти к началу файла экспорта."
   },
   {
     "id": "store.sql_team.save_team.existing.app_error",
@@ -10118,5 +9706,349 @@
   {
     "id": "app.webhooks.get_incoming_count.app_error",
     "translation": "Невозможно получить вебхук для teamID={{.TeamID}}, userID={{.UserID}}, err={{.Error}}."
+  },
+  {
+    "id": "api.user.login_with_desktop_token.not_oauth_or_saml_user.app_error",
+    "translation": "Пользователь не является пользователем OAuth или SAML."
+  },
+  {
+    "id": "api.plugin.upload.file_too_large.app_error",
+    "translation": "Размер загруженного плагина превышает лимит. Этот лимит можно изменить в Системной консоли через File Storage > Maximum File Size"
+  },
+  {
+    "id": "app.import.import_direct_channel.no_members.error",
+    "translation": "Для канала личных сообщений нет участников"
+  },
+  {
+    "id": "api.upload.create.upload_channel_not_shared_with_remote.app_error",
+    "translation": "Не удалось загрузить файл. Канал загрузки не используется совместно с удаленным."
+  },
+  {
+    "id": "api.remote_cluster.generate_invite_cluster_is_confirmed",
+    "translation": "Невозможно сгенерировать код приглашения для подтвержденного кластера"
+  },
+  {
+    "id": "api.shared_channel.has_remote_error",
+    "translation": "Не удалось определить, является ли канал общим с удаленным"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_request.app_error",
+    "translation": "invalid_request: Неверный запрос."
+  },
+  {
+    "id": "api.scheduled_posts.license_error",
+    "translation": "для функции запланированных сообщений требуется лицензия"
+  },
+  {
+    "id": "api.scheduled_posts.feature_disabled",
+    "translation": "функция запланированных сообщений отключена"
+  },
+  {
+    "id": "api.post.delete_post.not_enabled.app_error",
+    "translation": "Невозможно удалить сообщение, ServiceSettings.EnableAPIPostDeletion не включен."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "Невозможно создать канал личных сообщений с удаленным пользователем"
+  },
+  {
+    "id": "api.channel.create_group.remote_restricted.app_error",
+    "translation": "Невозможно создать канал в группе с удалёнными пользователями"
+  },
+  {
+    "id": "api.license.add_license.copy.app_error",
+    "translation": "Не удалось скопировать содержимое файла лицензии в буфер"
+  },
+  {
+    "id": "api.remote_cluster.create_invite_error",
+    "translation": "Не удалось создать приглашение на удаленный кластер"
+  },
+  {
+    "id": "app.bot.update.app_error",
+    "translation": "Невозможно обновить бота."
+  },
+  {
+    "id": "api.user.update_active.cannot_modify_status_when_user_is_managed_by_ldap.app_error",
+    "translation": "Вы не можете изменить статус пользователя. Пользователь управляется из LDAP-каталога"
+  },
+  {
+    "id": "api.filter_config_error",
+    "translation": "Невозможно отфильтровать конфигурацию."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.cache_error",
+    "translation": "Не удалось закешировать сообщение после дедупликации клиента, повторяющего один и тот же запрос."
+  },
+  {
+    "id": "api.shared_channel.get_shared_channel_remotes_error",
+    "translation": "Не удалось получить данные управления общим каналом"
+  },
+  {
+    "id": "api.shared_channel.invite_remote_to_channel_error",
+    "translation": "Не удалось пригласить удалённо на канал"
+  },
+  {
+    "id": "api.shared_channel.uninvite_remote_to_channel_error",
+    "translation": "Не удалось отменить приглашение дистанционного пользователя на канал"
+  },
+  {
+    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
+    "translation": "Невозможно зарегистрировать группу свойств \"Атрибуты пользовательского профиля\""
+  },
+  {
+    "id": "app.custom_profile_attributes.create_property_field.app_error",
+    "translation": "Невозможно создать поле \"Атрибут пользовательского профиля\""
+  },
+  {
+    "id": "app.custom_profile_attributes.get_property_field.app_error",
+    "translation": "Невозможно получить поле \"Атрибут пользовательского профиля\""
+  },
+  {
+    "id": "app.custom_profile_attributes.limit_reached.app_error",
+    "translation": "Достигнут лимит поля \"Атрибуты пользовательского профиля\""
+  },
+  {
+    "id": "app.custom_profile_attributes.list_property_values.app_error",
+    "translation": "Невозможно получить значения пользовательских атрибутов профиля"
+  },
+  {
+    "id": "api.custom_profile_attributes.license_error",
+    "translation": "Ваша лицензия не поддерживает пользовательские атрибуты профиля."
+  },
+  {
+    "id": "api.file.zip_file_reader.app_error",
+    "translation": "Невозможно получить программу для чтения zip-файлов."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Не удалось создать закладку канала."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Не удалось удалить закладку канала."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Не удалось обновить закладку канала."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
+    "translation": "Не удалось обновить порядок сортировки закладок канала."
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_permission.error",
+    "translation": "У вас нет разрешения на удаление этого ресурса."
+  },
+  {
+    "id": "api.command.execute_command.deleted.error",
+    "translation": "Невозможно выполнить команду в удаленном канале."
+  },
+  {
+    "id": "api.context.get_session.app_error",
+    "translation": "Сеанс не найден."
+  },
+  {
+    "id": "app.custom_profile_attributes.count_property_fields.app_error",
+    "translation": "Невозможно подсчитать количество полей для группы атрибутов пользовательского профиля"
+  },
+  {
+    "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
+    "translation": "Баннер канала можно настроить только на публичных и приватных каналах."
+  },
+  {
+    "id": "app.import.import_direct_channel.get_channel_members.error",
+    "translation": "Не удалось получить участников приватного канала"
+  },
+  {
+    "id": "app.get_user_team_scheduled_posts.error",
+    "translation": "Возникла ошибка при получении запланированных сообщений."
+  },
+  {
+    "id": "app.import.import_bot.owner_could_not_found.error",
+    "translation": "Невозможно найти владельца бота"
+  },
+  {
+    "id": "app.save_scheduled_post.channel_deleted.app_error",
+    "translation": "Невозможно запланировать сообщение в заархивированном канале."
+  },
+  {
+    "id": "app.save_scheduled_post.save.app_error",
+    "translation": "Произошла ошибка при сохранении запланированного сообщения."
+  },
+  {
+    "id": "app.import.import_line.null_bot.error",
+    "translation": "Строка импортируемых данных имеет тип \"бот\", но объект бота - null"
+  },
+  {
+    "id": "app.import.validate_bot_import_data.owner_missing.error",
+    "translation": "Владелец бота пропал"
+  },
+  {
+    "id": "app.file_info.get_count.app_error",
+    "translation": "Не удалось получить количество всех файлов."
+  },
+  {
+    "id": "app.file_info.get_storage_usage.app_error",
+    "translation": "Не удалось получить данные об использовании хранилища для всех файлов."
+  },
+  {
+    "id": "app.session.set_extra_session_prop.app_error",
+    "translation": "Невозможно обновить дополнительные свойства сеанса."
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.create_post",
+    "translation": "Сообщение не может быть создано"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_bot",
+    "translation": "Невозможно получить системного бота"
+  },
+  {
+    "id": "app.file_info.undelete_for_post_ids.app_error",
+    "translation": "Не удалось восстановить вложения файлов в сообщении."
+  },
+  {
+    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
+    "translation": "Роли пользователей не соответствуют статусу гостя."
+  },
+  {
+    "id": "app.role.delete.app_error",
+    "translation": "Невозможно удалить роль."
+  },
+  {
+    "id": "app.file_info.seek.gif.app_error",
+    "translation": "Невозможно перейти к началу GIF данных."
+  },
+  {
+    "id": "app.scheduled_post.error_reason.invalid_post",
+    "translation": "Неверное содержимое сообщения"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_member",
+    "translation": "Не участник канала"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_permission",
+    "translation": "Нет разрешения на сообщение в канале"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.thread_deleted",
+    "translation": "Обсуждение было удалено"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unknown",
+    "translation": "Неизвестная ошибка"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_deleted",
+    "translation": "Учётная запись пользователя удалена"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unable_to_send",
+    "translation": "Невозможно отправить сообщение"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_missing",
+    "translation": "Пользователь не существует"
+  },
+  {
+    "id": "app.scheduled_post.failed_message_detail",
+    "translation": {
+      "few": "- {{.Count}} в канале {{.ChannelName}}. Причина: {{.ErrorReason}}",
+      "many": "- {{.Count}} в канале {{.ChannelName}}. Причина: {{.ErrorReason}}",
+      "one": "- {{.Count}} в канале {{.ChannelName}}. Причина: {{.ErrorReason}}"
+    }
+  },
+  {
+    "id": "app.scheduled_post.failed_messages",
+    "translation": {
+      "few": "Не удалось отправить {{.Count}} запланированных сообщения.",
+      "many": "Не удалось отправить {{.Count}} запланированных сообщений.",
+      "one": "Не удалось отправить {{.Count}} запланированное сообщение."
+    }
+  },
+  {
+    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
+    "translation": "Невозможно удалить запланированные сообщения для пользователя."
+  },
+  {
+    "id": "app.scheduled_post.unknown_channel",
+    "translation": "Неизвестный канал"
+  },
+  {
+    "id": "app.scheduled_post.private_channel",
+    "translation": "Приватный канал"
+  },
+  {
+    "id": "app.update_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Запланированное сообщение не существует."
+  },
+  {
+    "id": "app.file_info.permanent_delete_for_post.app_error",
+    "translation": "Не удалось окончательно удалить файл для сообщения."
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_not_found",
+    "translation": "Канал не найден"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_archived",
+    "translation": "Канал отправлен в архив"
+  },
+  {
+    "id": "app.group.license_error",
+    "translation": "Требуется лицензия LDAP."
+  },
+  {
+    "id": "api.custom_profile_attributes.invalid_field_patch",
+    "translation": "Патч для недействительного поля атрибута пользовательского профиля"
+  },
+  {
+    "id": "api.user.check_user_login_attempts.too_many_ldap.app_error",
+    "translation": "Ваша учётная запись заблокирована из-за слишком большого количества неудачных попыток ввода пароля. Обратитесь к своему системному администратору."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_conversion.app_error",
+    "translation": "Невозможно преобразовать поле свойства в поле атрибута пользовательского профиля"
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_error",
+    "translation": "Не удалось удалить запланированное сообщение из базы данных."
+  },
+  {
+    "id": "app.delete_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Запланированное сообщение не существует."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_upsert.app_error",
+    "translation": "Невозможно вставить пользовательские поля атрибутов профиля"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_delete.app_error",
+    "translation": "Невозможно удалить поле Атрибут пользовательского профиля"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_not_found.app_error",
+    "translation": "Поле Атрибут пользовательского профиля не найдено"
+  },
+  {
+    "id": "app.custom_profile_attributes.search_property_fields.app_error",
+    "translation": "Невозможно выполнить поиск по полям пользовательских атрибутов профиля"
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.ldap_and_email_only.app_error",
+    "translation": "Служба аутентификации пользователей должна быть LDAP или Email."
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.permissions.app_error",
+    "translation": "У вас нет разрешения на обновление этого ресурса."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_update.app_error",
+    "translation": "Невозможно обновить поле Атрибут пользовательского профиля"
+  },
+  {
+    "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
+    "translation": "Неверное значение свойства Атрибут : {{.AttributeName}} ({{.Reason}})."
   }
 ]

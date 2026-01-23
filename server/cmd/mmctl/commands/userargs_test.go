@@ -20,11 +20,6 @@ func (s *MmctlUnitTestSuite) TestGetUserFromArgs() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), notFoundEmail, "").
-			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, notFoundErr).
-			Times(1)
-		s.client.
-			EXPECT().
 			GetUserByUsername(context.TODO(), notFoundEmail, "").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, notFoundErr).
 			Times(1)

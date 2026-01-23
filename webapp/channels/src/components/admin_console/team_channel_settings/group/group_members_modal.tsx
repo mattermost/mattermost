@@ -45,7 +45,7 @@ const GroupMembersModal: React.FC<Props> = ({
             show={show}
             onHide={handleHide}
             onExited={handleExit}
-            role='dialog'
+            role='none'
             aria-labelledby='groupMemberModalLabel'
             id='groupMembersModal'
         >

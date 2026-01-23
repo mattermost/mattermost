@@ -14,13 +14,13 @@ import (
 	"log"
 	"os"
 	"path"
+	"slices"
 	"strings"
 	"text/template"
 )
 
 const (
-	OpenTracingParamsMarker = "@openTracingParams"
-	ErrorType               = "error"
+	ErrorType = "error"
 )
 
 func isError(typeName string) bool {
@@ -29,9 +29,6 @@ func isError(typeName string) bool {
 
 func main() {
 	if err := buildTimerLayer(); err != nil {
-		log.Fatal(err)
-	}
-	if err := buildOpenTracingLayer(); err != nil {
 		log.Fatal(err)
 	}
 	if err := buildRetryLayer(); err != nil {
@@ -65,28 +62,14 @@ func buildTimerLayer() error {
 	return os.WriteFile(path.Join("timerlayer", "timerlayer.go"), formatedCode, 0644)
 }
 
-func buildOpenTracingLayer() error {
-	code, err := generateLayer("OpenTracingLayer", "opentracing_layer.go.tmpl")
-	if err != nil {
-		return err
-	}
-	formatedCode, err := format.Source(code)
-	if err != nil {
-		return err
-	}
-
-	return os.WriteFile(path.Join("opentracinglayer", "opentracinglayer.go"), formatedCode, 0644)
-}
-
 type methodParam struct {
 	Name string
 	Type string
 }
 
 type methodData struct {
-	Params        []methodParam
-	Results       []string
-	ParamsToTrace map[string]bool
+	Params  []methodParam
+	Results []string
 }
 
 type subStore struct {
@@ -102,20 +85,9 @@ type storeMetadata struct {
 func extractMethodMetadata(method *ast.Field, src []byte) methodData {
 	params := []methodParam{}
 	results := []string{}
-	paramsToTrace := map[string]bool{}
 	ast.Inspect(method.Type, func(expr ast.Node) bool {
 		switch e := expr.(type) {
 		case *ast.FuncType:
-			if method.Doc != nil {
-				for _, comment := range method.Doc.List {
-					s := comment.Text
-					if idx := strings.Index(s, OpenTracingParamsMarker); idx != -1 {
-						for _, p := range strings.Split(s[idx+len(OpenTracingParamsMarker):], ",") {
-							paramsToTrace[strings.TrimSpace(p)] = true
-						}
-					}
-				}
-			}
 			if e.Params != nil {
 				for _, param := range e.Params.List {
 					for _, paramName := range param.Names {
@@ -128,23 +100,10 @@ func extractMethodMetadata(method *ast.Field, src []byte) methodData {
 					results = append(results, string(src[result.Type.Pos()-1:result.Type.End()-1]))
 				}
 			}
-
-			for paramName := range paramsToTrace {
-				found := false
-				for _, param := range params {
-					if param.Name == paramName {
-						found = true
-						break
-					}
-				}
-				if !found {
-					log.Fatalf("Unable to find a parameter called '%s' (method '%s') that is mentioned in the '%s' comment. Maybe it was renamed?", paramName, method.Names[0].Name, OpenTracingParamsMarker)
-				}
-			}
 		}
 		return true
 	})
-	return methodData{Params: params, Results: results, ParamsToTrace: paramsToTrace}
+	return methodData{Params: params, Results: results}
 }
 
 func extractStoreMetadata() (*storeMetadata, error) {
@@ -190,8 +149,7 @@ func extractStoreMetadata() (*storeMetadata, error) {
 						metadata.Methods[methodName] = extractMethodMetadata(method, src)
 					}
 				}
-			} else if strings.HasSuffix(x.Name.Name, "Store") {
-				subStoreName := strings.TrimSuffix(x.Name.Name, "Store")
+			} else if subStoreName, ok := strings.CutSuffix(x.Name.Name, "Store"); ok {
 				metadata.SubStores[subStoreName] = subStore{Methods: map[string]methodData{}}
 				for _, method := range x.Type.(*ast.InterfaceType).Methods.List {
 					methodName := method.Names[0].Name
@@ -254,26 +212,17 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 			return strings.Join(vars, ", ")
 		},
 		"errorToBoolean": func(results []string) string {
-			for _, typeName := range results {
-				if isError(typeName) {
-					return "err == nil"
-				}
+			if slices.ContainsFunc(results, isError) {
+				return "err == nil"
 			}
 			return "true"
 		},
 		"errorPresent": func(results []string) bool {
-			for _, typeName := range results {
-				if isError(typeName) {
-					return true
-				}
-			}
-			return false
+			return slices.ContainsFunc(results, isError)
 		},
 		"errorVar": func(results []string) string {
-			for _, typeName := range results {
-				if isError(typeName) {
-					return "err"
-				}
+			if slices.ContainsFunc(results, isError) {
+				return "err"
 			}
 			return ""
 		},
@@ -292,7 +241,7 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 			paramsWithType := []string{}
 			for _, param := range params {
 				switch param.Type {
-				case "ChannelSearchOpts", "UserGetByIdsOpts", "ThreadMembershipOpts":
+				case "ChannelSearchOpts", "UserGetByIdsOpts", "ThreadMembershipOpts", "GetPolicyOptions":
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s store.%s", param.Name, param.Type))
 				case "*UserGetByIdsOpts", "*SidebarCategorySearchOpts":
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s *store.%s", param.Name, strings.TrimPrefix(param.Type, "*")))
@@ -306,7 +255,7 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 			paramsWithType := []string{}
 			for _, param := range params {
 				switch param.Type {
-				case "ChannelSearchOpts", "UserGetByIdsOpts", "ThreadMembershipOpts":
+				case "ChannelSearchOpts", "UserGetByIdsOpts", "ThreadMembershipOpts", "GetPolicyOptions":
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s store.%s", param.Name, param.Type))
 				case "*UserGetByIdsOpts", "*SidebarCategorySearchOpts":
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s *store.%s", param.Name, strings.TrimPrefix(param.Type, "*")))

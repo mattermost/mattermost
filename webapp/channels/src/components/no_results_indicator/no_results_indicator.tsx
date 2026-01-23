@@ -6,7 +6,7 @@ import React from 'react';
 import type {ReactNode, CSSProperties} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
-import {SearchSVG, ChannelSearchSVG, MentionsSVG, SavedMessagesSVG, PinSVG, ChannelFilesSVG, UserGroupsSVG, UserGroupMembersSVG} from 'components/common/svg_images_components';
+import {SearchSVG, ChannelSearchSVG, MentionsSVG, SavedMessagesSVG, PinSVG, ChannelFilesSVG, UserGroupsSVG} from 'components/common/svg_images_components';
 
 import {NoResultsVariant, NoResultsLayout} from './types';
 import './no_results_indicator.scss';
@@ -35,7 +35,7 @@ const iconMap: {[key in NoResultsVariant]: React.ReactNode } = {
     [NoResultsVariant.ChannelFiles]: <ChannelFilesSVG className='no-results__icon'/>,
     [NoResultsVariant.ChannelFilesFiltered]: <ChannelFilesSVG className='no-results__icon'/>,
     [NoResultsVariant.UserGroups]: <UserGroupsSVG className='no-results__icon'/>,
-    [NoResultsVariant.UserGroupMembers]: <UserGroupMembersSVG className='no-results__icon'/>,
+    [NoResultsVariant.UserGroupMembers]: <UserGroupsSVG className='no-results__icon'/>,
     [NoResultsVariant.UserGroupsArchived]: <UserGroupsSVG className='no-results__icon'/>,
 };
 

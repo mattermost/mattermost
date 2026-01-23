@@ -16,7 +16,7 @@ const (
 	ClusterEventInvalidateCacheForChannel                   ClusterEvent = "inv_channel"
 	ClusterEventInvalidateCacheForChannelGuestCount         ClusterEvent = "inv_channel_guest_count"
 	ClusterEventInvalidateCacheForUser                      ClusterEvent = "inv_user"
-	ClusterEventInvalidateCacheForUserTeams                 ClusterEvent = "inv_user_teams"
+	ClusterEventInvalidateWebConnCacheForUser               ClusterEvent = "inv_user_teams"
 	ClusterEventClearSessionCacheForUser                    ClusterEvent = "clear_session_user"
 	ClusterEventInvalidateCacheForRoles                     ClusterEvent = "inv_roles"
 	ClusterEventInvalidateCacheForRolePermissions           ClusterEvent = "inv_role_permissions"
@@ -36,11 +36,15 @@ const (
 	ClusterEventInvalidateCacheForLastPostTime              ClusterEvent = "inv_last_post_time"
 	ClusterEventInvalidateCacheForPostsUsage                ClusterEvent = "inv_posts_usage"
 	ClusterEventInvalidateCacheForTeams                     ClusterEvent = "inv_teams"
+	ClusterEventInvalidateCacheForContentFlagging           ClusterEvent = "inv_content_flagging"
+	ClusterEventInvalidateCacheForReadReceipts              ClusterEvent = "inv_read_receipts"
+	ClusterEventInvalidateCacheForTemporaryPosts            ClusterEvent = "inv_temporary_posts"
 	ClusterEventClearSessionCacheForAllUsers                ClusterEvent = "inv_all_user_sessions"
 	ClusterEventInstallPlugin                               ClusterEvent = "install_plugin"
 	ClusterEventRemovePlugin                                ClusterEvent = "remove_plugin"
 	ClusterEventPluginEvent                                 ClusterEvent = "plugin_event"
 	ClusterEventInvalidateCacheForTermsOfService            ClusterEvent = "inv_terms_of_service"
+	ClusterEventInvalidateCacheForUserAutoTranslation       ClusterEvent = "inv_user_autotranslation"
 	ClusterEventBusyStateChanged                            ClusterEvent = "busy_state_change"
 	// Note: if you are adding a new event, please also add it in the slice of
 	// m.ClusterEventMap in metrics/metrics.go file.
@@ -58,6 +62,8 @@ const (
 	ClusterGossipEventResponseSaveConfig            = "gossip_response_save_config"
 	ClusterGossipEventRequestWebConnCount           = "gossip_request_webconn_count"
 	ClusterGossipEventResponseWebConnCount          = "gossip_response_webconn_count"
+	ClusterGossipEventRequestWSQueues               = "gossip_request_ws_queues"
+	ClusterGossipEventResponseWSQueues              = "gossip_response_ws_queues"
 
 	// SendTypes for ClusterMessage.
 	ClusterSendBestEffort = "best_effort"

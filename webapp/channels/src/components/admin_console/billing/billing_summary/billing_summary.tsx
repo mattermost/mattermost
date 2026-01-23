@@ -10,7 +10,6 @@ import type {Invoice, InvoiceLineItem, Product} from '@mattermost/types/cloud';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {trackEvent} from 'actions/telemetry_actions';
 import {openModal} from 'actions/views/modals';
 
 import BlockableLink from 'components/admin_console/blockable_link';
@@ -37,8 +36,8 @@ const messages = defineMessages({
 export const noBillingHistory = (
     <div className='BillingSummary__noBillingHistory'>
         <EmptyBillingHistorySvg
-            height={167}
-            width={234}
+            height={116}
+            width={152}
         />
         <div className='BillingSummary__noBillingHistory-title'>
             <FormattedMessage
@@ -55,8 +54,7 @@ export const noBillingHistory = (
         <ExternalLink
             location='billing_summary'
             href={CloudLinks.BILLING_DOCS}
-            className='BillingSummary__noBillingHistory-link'
-            onClick={() => trackEvent('cloud_admin', 'click_how_billing_works', {screen: 'subscriptions'})}
+            className='btn btn-primary BillingSummary__noBillingHistory-link'
         >
             <FormattedMessage
                 id='admin.billing.subscriptions.billing_summary.noBillingHistory.link'
@@ -84,7 +82,7 @@ export const FreeTrial = ({daysLeftOnTrial}: FreeTrialProps) => {
                 {daysLeftOnTrial > TrialPeriodDays.TRIAL_1_DAY &&
                     <FormattedMessage
                         id='admin.billing.subscription.freeTrial.title'
-                        defaultMessage={'You\'re currently on a free trial'}
+                        defaultMessage="You're currently on a free trial"
                     />
                 }
                 {(daysLeftOnTrial === TrialPeriodDays.TRIAL_1_DAY || daysLeftOnTrial === TrialPeriodDays.TRIAL_0_DAYS) &&
@@ -98,30 +96,29 @@ export const FreeTrial = ({daysLeftOnTrial}: FreeTrialProps) => {
                 {daysLeftOnTrial > TrialPeriodDays.TRIAL_WARNING_THRESHOLD &&
                     <FormattedMessage
                         id='admin.billing.subscription.freeTrial.description'
-                        defaultMessage='Your free trial will expire in {daysLeftOnTrial} days. Add your payment information to continue after the trial ends.'
+                        defaultMessage='Your free trial will expire in {daysLeftOnTrial} days. Contact Sales to continue after the trial ends.'
                         values={{daysLeftOnTrial}}
                     />
                 }
                 {(daysLeftOnTrial > TrialPeriodDays.TRIAL_1_DAY && daysLeftOnTrial <= TrialPeriodDays.TRIAL_WARNING_THRESHOLD) &&
                     <FormattedMessage
                         id='admin.billing.subscription.freeTrial.lessThan3Days.description'
-                        defaultMessage='Your free trial will end in {daysLeftOnTrial, number} {daysLeftOnTrial, plural, one {day} other {days}}. Add payment information to continue enjoying the benefits of Cloud Professional.'
+                        defaultMessage='Your free trial will end in {daysLeftOnTrial, number} {daysLeftOnTrial, plural, one {day} other {days}}. Contact Sales to continue enjoying the benefits of Cloud Professional.'
                         values={{daysLeftOnTrial}}
                     />
                 }
                 {(daysLeftOnTrial === TrialPeriodDays.TRIAL_1_DAY || daysLeftOnTrial === TrialPeriodDays.TRIAL_0_DAYS) &&
                     <FormattedMessage
                         id='admin.billing.subscription.freeTrial.lastDay.description'
-                        defaultMessage='Your free trial has ended. Add payment information to continue enjoying the benefits of Cloud Professional.'
+                        defaultMessage='Your free trial has ended. Contact Sales to continue enjoying the benefits of Cloud Professional.'
                     />
                 }
             </div>
             <button
                 type='button'
                 onClick={() => openSalesLink()}
-                className='UpgradeMattermostCloud__upgradeButton'
+                className='UpgradeMattermostCloud__upgradeButton btn btn-primary'
             >
-
                 <FormattedMessage
                     id='admin.billing.subscription.privateCloudCard.contactSales'
                     defaultMessage='Contact Sales'
@@ -273,10 +270,8 @@ export const InvoiceInfo = ({invoice, product, fullCharges, partialCharges, hasM
                             defaultMessage='Partial charges'
                         />
                         <WithTooltip
-                            id='BillingSubscriptions__seatOverageTooltip'
                             title={messages.partialChargesTooltipTitle}
                             hint={messages.partialChargesTooltipText}
-                            placement='bottom'
                         >
                             <i className='icon-information-outline'/>
                         </WithTooltip>

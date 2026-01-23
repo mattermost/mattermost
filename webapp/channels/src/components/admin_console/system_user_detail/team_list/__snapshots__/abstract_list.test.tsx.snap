@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`admin_console/system_user_detail/team_list/AbstractList should match snapshot if loading 1`] = `
 <div
@@ -106,7 +106,6 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       doMakeUserTeamMember={[MockFunction]}
       doRemoveUserFromTeam={[MockFunction]}
       key="id11"
-      onRowClick={[MockFunction]}
       team={
         Object {
           "description": "Team 11 description",
@@ -120,7 +119,6 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       doMakeUserTeamMember={[MockFunction]}
       doRemoveUserFromTeam={[MockFunction]}
       key="id12"
-      onRowClick={[MockFunction]}
       team={
         Object {
           "description": "Team 12 description",
@@ -134,7 +132,6 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       doMakeUserTeamMember={[MockFunction]}
       doRemoveUserFromTeam={[MockFunction]}
       key="id13"
-      onRowClick={[MockFunction]}
       team={
         Object {
           "description": "Team 13 description",
@@ -148,7 +145,6 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       doMakeUserTeamMember={[MockFunction]}
       doRemoveUserFromTeam={[MockFunction]}
       key="id14"
-      onRowClick={[MockFunction]}
       team={
         Object {
           "description": "Team 14 description",
@@ -162,7 +158,6 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       doMakeUserTeamMember={[MockFunction]}
       doRemoveUserFromTeam={[MockFunction]}
       key="id15"
-      onRowClick={[MockFunction]}
       team={
         Object {
           "description": "Team 15 description",
@@ -176,7 +171,6 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       doMakeUserTeamMember={[MockFunction]}
       doRemoveUserFromTeam={[MockFunction]}
       key="id16"
-      onRowClick={[MockFunction]}
       team={
         Object {
           "description": "Team 16 description",
@@ -190,7 +184,6 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       doMakeUserTeamMember={[MockFunction]}
       doRemoveUserFromTeam={[MockFunction]}
       key="id17"
-      onRowClick={[MockFunction]}
       team={
         Object {
           "description": "Team 17 description",
@@ -204,7 +197,6 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       doMakeUserTeamMember={[MockFunction]}
       doRemoveUserFromTeam={[MockFunction]}
       key="id18"
-      onRowClick={[MockFunction]}
       team={
         Object {
           "description": "Team 18 description",
@@ -218,7 +210,6 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       doMakeUserTeamMember={[MockFunction]}
       doRemoveUserFromTeam={[MockFunction]}
       key="id19"
-      onRowClick={[MockFunction]}
       team={
         Object {
           "description": "Team 19 description",
@@ -232,7 +223,6 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       doMakeUserTeamMember={[MockFunction]}
       doRemoveUserFromTeam={[MockFunction]}
       key="id20"
-      onRowClick={[MockFunction]}
       team={
         Object {
           "description": "Team 20 description",
@@ -349,7 +339,6 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       doMakeUserTeamMember={[MockFunction]}
       doRemoveUserFromTeam={[MockFunction]}
       key="id1"
-      onRowClick={[MockFunction]}
       team={
         Object {
           "description": "Team 1 description",
@@ -363,7 +352,6 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       doMakeUserTeamMember={[MockFunction]}
       doRemoveUserFromTeam={[MockFunction]}
       key="id2"
-      onRowClick={[MockFunction]}
       team={
         Object {
           "description": "The 2 description",
@@ -377,7 +365,6 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       doMakeUserTeamMember={[MockFunction]}
       doRemoveUserFromTeam={[MockFunction]}
       key="id3"
-      onRowClick={[MockFunction]}
       team={
         Object {
           "description": "Team 3 description",
@@ -391,7 +378,6 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       doMakeUserTeamMember={[MockFunction]}
       doRemoveUserFromTeam={[MockFunction]}
       key="id4"
-      onRowClick={[MockFunction]}
       team={
         Object {
           "description": "Team 4 description",
@@ -405,7 +391,6 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       doMakeUserTeamMember={[MockFunction]}
       doRemoveUserFromTeam={[MockFunction]}
       key="id5"
-      onRowClick={[MockFunction]}
       team={
         Object {
           "description": "Team 5 description",
@@ -419,7 +404,6 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       doMakeUserTeamMember={[MockFunction]}
       doRemoveUserFromTeam={[MockFunction]}
       key="id6"
-      onRowClick={[MockFunction]}
       team={
         Object {
           "description": "Team 6 description",
@@ -433,7 +417,6 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       doMakeUserTeamMember={[MockFunction]}
       doRemoveUserFromTeam={[MockFunction]}
       key="id7"
-      onRowClick={[MockFunction]}
       team={
         Object {
           "description": "Team 7 description",
@@ -447,7 +430,6 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       doMakeUserTeamMember={[MockFunction]}
       doRemoveUserFromTeam={[MockFunction]}
       key="id8"
-      onRowClick={[MockFunction]}
       team={
         Object {
           "description": "Team 8 description",
@@ -461,7 +443,6 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       doMakeUserTeamMember={[MockFunction]}
       doRemoveUserFromTeam={[MockFunction]}
       key="id9"
-      onRowClick={[MockFunction]}
       team={
         Object {
           "description": "Team 9 description",
@@ -475,7 +456,6 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       doMakeUserTeamMember={[MockFunction]}
       doRemoveUserFromTeam={[MockFunction]}
       key="id10"
-      onRowClick={[MockFunction]}
       team={
         Object {
           "description": "Team 10 description",
@@ -592,7 +572,6 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       doMakeUserTeamMember={[MockFunction]}
       doRemoveUserFromTeam={[MockFunction]}
       key="id1"
-      onRowClick={[MockFunction]}
       team={
         Object {
           "description": "Team 1 description",
@@ -606,7 +585,6 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       doMakeUserTeamMember={[MockFunction]}
       doRemoveUserFromTeam={[MockFunction]}
       key="id2"
-      onRowClick={[MockFunction]}
       team={
         Object {
           "description": "The 2 description",

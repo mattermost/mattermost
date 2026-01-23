@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/post_view/Reaction should apply read-only class if user does not have permission to add reaction 1`] = `
 <Connect(ReactionTooltip)
@@ -6,7 +6,6 @@ exports[`components/post_view/Reaction should apply read-only class if user does
   canRemoveReactions={true}
   currentUserReacted={false}
   emojiName="smile"
-  id="post_id-smile-reaction"
   onShow={[Function]}
   reactions={
     Array [
@@ -26,7 +25,7 @@ exports[`components/post_view/Reaction should apply read-only class if user does
   }
 >
   <button
-    aria-label="react with smile"
+    aria-label="2 users reacted with :smile:"
     className="Reaction Reaction--unreacted Reaction--read-only"
     id="postReaction-post_id-smile"
     onClick={[Function]}
@@ -35,6 +34,8 @@ exports[`components/post_view/Reaction should apply read-only class if user does
       className="d-flex align-items-center"
     >
       <img
+        alt=""
+        aria-hidden={true}
         className="Reaction__emoji emoticon"
         src="emoji_image_url"
       />
@@ -73,7 +74,6 @@ exports[`components/post_view/Reaction should apply read-only class if user does
   canRemoveReactions={false}
   currentUserReacted={true}
   emojiName="smile"
-  id="post_id-smile-reaction"
   onShow={[Function]}
   reactions={
     Array [
@@ -93,7 +93,7 @@ exports[`components/post_view/Reaction should apply read-only class if user does
   }
 >
   <button
-    aria-label="react with smile"
+    aria-label="2 users reacted with :smile:"
     className="Reaction Reaction--reacted Reaction--read-only"
     id="postReaction-post_id-smile"
     onClick={[Function]}
@@ -102,6 +102,8 @@ exports[`components/post_view/Reaction should apply read-only class if user does
       className="d-flex align-items-center"
     >
       <img
+        alt=""
+        aria-hidden={true}
         className="Reaction__emoji emoticon"
         src="emoji_image_url"
       />
@@ -140,7 +142,6 @@ exports[`components/post_view/Reaction should match snapshot 1`] = `
   canRemoveReactions={true}
   currentUserReacted={false}
   emojiName="smile"
-  id="post_id-smile-reaction"
   onShow={[Function]}
   reactions={
     Array [
@@ -160,7 +161,7 @@ exports[`components/post_view/Reaction should match snapshot 1`] = `
   }
 >
   <button
-    aria-label="react with smile"
+    aria-label="2 users reacted with :smile:. Click to add."
     className="Reaction Reaction--unreacted "
     id="postReaction-post_id-smile"
     onClick={[Function]}
@@ -169,6 +170,8 @@ exports[`components/post_view/Reaction should match snapshot 1`] = `
       className="d-flex align-items-center"
     >
       <img
+        alt=""
+        aria-hidden={true}
         className="Reaction__emoji emoticon"
         src="emoji_image_url"
       />
@@ -207,7 +210,6 @@ exports[`components/post_view/Reaction should match snapshot when a current user
   canRemoveReactions={true}
   currentUserReacted={true}
   emojiName="smile"
-  id="post_id-smile-reaction"
   onShow={[Function]}
   reactions={
     Array [
@@ -227,7 +229,7 @@ exports[`components/post_view/Reaction should match snapshot when a current user
   }
 >
   <button
-    aria-label="remove reaction smile"
+    aria-label="2 users reacted with :smile:. Click to remove."
     className="Reaction Reaction--reacted "
     id="postReaction-post_id-smile"
     onClick={[Function]}
@@ -236,6 +238,8 @@ exports[`components/post_view/Reaction should match snapshot when a current user
       className="d-flex align-items-center"
     >
       <img
+        alt=""
+        aria-hidden={true}
         className="Reaction__emoji emoticon"
         src="emoji_image_url"
       />

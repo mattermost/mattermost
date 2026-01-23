@@ -12,7 +12,7 @@
 
 import {
     promoteToChannelOrTeamAdmin,
-} from '../enterprise/system_console/channel_moderation/helpers.js';
+} from '../enterprise/system_console/channel_moderation/helpers.ts';
 
 describe('Manage Members', () => {
     let testTeam;
@@ -34,13 +34,13 @@ describe('Manage Members', () => {
         cy.visit(`/${testTeam.name}/channels/town-square`);
 
         // # Open team menu and click 'Manage Members'
-        cy.uiOpenTeamMenu('Manage Members');
+        cy.uiOpenTeamMenu('Manage members');
 
         // # Open member dropdown
         cy.get(`#teamMembersDropdown_${testUser.username}`).should('be.visible').click();
 
         // # Click Make Team Admin
-        cy.get(`#teamMembersDropdown_${testUser.username} ~ div button:contains(Make Team Admin)`).should('be.visible').click();
+        cy.get('li').contains('Make Team Admin').should('be.visible').click();
 
         // * Verify dropdown shows that user is now a Team Admin
         cy.get(`#teamMembersDropdown_${testUser.username} span:contains(Team Admin)`).should('be.visible');
@@ -61,13 +61,13 @@ describe('Manage Members', () => {
                 cy.visit(`/${testTeam.name}/channels/town-square`);
 
                 // # Open team menu and click 'Manage Members'
-                cy.uiOpenTeamMenu('Manage Members');
+                cy.uiOpenTeamMenu('Manage members');
 
                 // # Open member dropdown
                 cy.get(`#teamMembersDropdown_${user.username}`).should('be.visible').click();
 
                 // # Click Make Team Admin
-                cy.get(`#teamMembersDropdown_${user.username} ~ div button:contains(Make Team Admin)`).should('be.visible').click();
+                cy.get('li').contains('Make Team Admin').should('be.visible').click();
 
                 // * Verify dropdown shows that user is now a Team Admin
                 cy.get(`#teamMembersDropdown_${user.username} span:contains(Team Admin)`).should('be.visible');
@@ -94,13 +94,13 @@ describe('Manage Members', () => {
                         cy.visit(`/${testTeam.name}/channels/town-square`);
 
                         // # Open team menu and click 'Manage Members'
-                        cy.uiOpenTeamMenu('Manage Members');
+                        cy.uiOpenTeamMenu('Manage members');
 
                         // # Open member dropdown
                         cy.get(`#teamMembersDropdown_${user.username}`).should('be.visible').click();
 
                         // # Click Remove from Team
-                        cy.get(`#teamMembersDropdown_${user.username} ~ div button:contains(Remove from Team)`).should('be.visible').click();
+                        cy.get('li').contains('Remove from Team').should('be.visible').click();
 
                         // * Verify teammate no longer appears
                         cy.get(`#teamMembersDropdown_${user.username}`).should('not.exist');
@@ -139,13 +139,13 @@ describe('Manage Members', () => {
                 cy.visit(`/${testTeam.name}/channels/town-square`);
 
                 // # Open team menu and click 'Manage Members'
-                cy.uiOpenTeamMenu('Manage Members');
+                cy.uiOpenTeamMenu('Manage members');
 
                 // # Open member dropdown
                 cy.get(`#teamMembersDropdown_${user.username}`).should('be.visible').click();
 
                 // # Click Remove from Team
-                cy.get(`#teamMembersDropdown_${user.username} ~ div button:contains(Remove from Team)`).should('be.visible').click();
+                cy.get('li').contains('Remove from Team').should('be.visible').click();
 
                 // * Verify teammate no longer appears
                 cy.get(`#teamMembersDropdown_${user.username}`).should('not.exist');

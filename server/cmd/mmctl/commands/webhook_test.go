@@ -35,22 +35,22 @@ func (s *MmctlUnitTestSuite) TestListWebhookCmd() {
 	}
 
 	var mockIncomingWebhooksPage1 []*model.IncomingWebhook
-	for i := 0; i < 200; i++ {
+	for range 200 {
 		mockIncomingWebhooksPage1 = append(mockIncomingWebhooksPage1, &mockIncomingWebhook)
 	}
 
 	var mockIncomingWebhooksPage2 []*model.IncomingWebhook
-	for i := 0; i < 50; i++ {
+	for range 50 {
 		mockIncomingWebhooksPage2 = append(mockIncomingWebhooksPage2, &mockIncomingWebhook)
 	}
 
 	var mockOutgoingWebhooksPage1 []*model.OutgoingWebhook
-	for i := 0; i < 200; i++ {
+	for range 200 {
 		mockOutgoingWebhooksPage1 = append(mockOutgoingWebhooksPage1, &mockOutgoingWebhook)
 	}
 
 	var mockOutgoingWebhooksPage2 []*model.OutgoingWebhook
-	for i := 0; i < 50; i++ {
+	for range 50 {
 		mockOutgoingWebhooksPage2 = append(mockOutgoingWebhooksPage2, &mockOutgoingWebhook)
 	}
 
@@ -112,7 +112,7 @@ func (s *MmctlUnitTestSuite) TestListWebhookCmd() {
 		err := listWebhookCmdF(s.client, &cobra.Command{}, []string{})
 		s.Require().Nil(err)
 		if s.Len(printer.GetLines(), 500) {
-			for i := 0; i < 250; i++ {
+			for i := range 250 {
 				s.Require().Equal(&mockIncomingWebhook, printer.GetLines()[i])
 			}
 			for i := 250; i < 500; i++ {
@@ -178,7 +178,7 @@ func (s *MmctlUnitTestSuite) TestListWebhookCmd() {
 		s.Require().Nil(err)
 		s.Len(printer.GetErrorLines(), 0)
 		if s.Len(printer.GetLines(), 500) {
-			for i := 0; i < 250; i++ {
+			for i := range 250 {
 				s.Require().Equal(&mockIncomingWebhook, printer.GetLines()[i])
 			}
 			for i := 250; i < 500; i++ {
@@ -265,13 +265,13 @@ func (s *MmctlUnitTestSuite) TestCreateIncomingWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelID, "").
+			GetChannel(context.TODO(), channelID).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailID, "").
+			GetUserByUsername(context.TODO(), emailID, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
@@ -309,13 +309,13 @@ func (s *MmctlUnitTestSuite) TestCreateIncomingWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelID, "").
+			GetChannel(context.TODO(), channelID).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailID, "").
+			GetUserByUsername(context.TODO(), emailID, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
@@ -460,7 +460,7 @@ func (s *MmctlUnitTestSuite) TestCreateOutgoingWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailID, "").
+			GetUserByUsername(context.TODO(), emailID, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
@@ -506,7 +506,7 @@ func (s *MmctlUnitTestSuite) TestCreateOutgoingWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailID, "").
+			GetUserByUsername(context.TODO(), emailID, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 

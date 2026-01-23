@@ -17,6 +17,7 @@ const ClusterTableContainer = () => {
     const [clusterInfos, setClusterInfos] = useState<ClusterInfo[] | null>(null);
 
     const load = useCallback(() => {
+        setClusterInfos(null);
         getClusterStatus(setClusterInfos, null);
     }, []);
 

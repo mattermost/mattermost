@@ -13,8 +13,8 @@ type SwitchRequest struct {
 	LdapLoginId    string `json:"ldap_id"`
 }
 
-func (o *SwitchRequest) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (o *SwitchRequest) Auditable() map[string]any {
+	return map[string]any{
 		"current_service": o.CurrentService,
 		"new_service":     o.NewService,
 		"email":           o.Email,

@@ -7,11 +7,11 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @mark_as_unread
 
-import {markAsUnreadFromPost, switchToChannel} from './helpers';
 import * as TIMEOUTS from '../../../fixtures/timeouts';
+
+import {markAsUnreadFromPost, switchToChannel} from './helpers';
 
 describe('Verify unread toast appears after repeated manual marking post as unread', () => {
     let firstPost;

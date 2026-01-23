@@ -1,0 +1,25 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`components/admin_console/access_control/channel_list should match snapshot with channels 1`] = `
+<ContextConsumer>
+  <Component />
+</ContextConsumer>
+`;
+
+exports[`components/admin_console/access_control/channel_list should match snapshot with channels to add 1`] = `
+<ContextConsumer>
+  <Component />
+</ContextConsumer>
+`;
+
+exports[`components/admin_console/access_control/channel_list should match snapshot with channels to remove 1`] = `
+<ContextConsumer>
+  <Component />
+</ContextConsumer>
+`;
+
+exports[`components/admin_console/access_control/channel_list should match snapshot with no channels 1`] = `
+<ContextConsumer>
+  <Component />
+</ContextConsumer>
+`;

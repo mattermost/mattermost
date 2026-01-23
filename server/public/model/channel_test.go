@@ -87,10 +87,71 @@ func TestChannelIsValid(t *testing.T) {
 	require.NotNil(t, o.IsValid())
 }
 
+func TestChannelBannerBackgroundColorValidation(t *testing.T) {
+	o := Channel{
+		Id:       NewId(),
+		CreateAt: GetMillis(),
+		UpdateAt: GetMillis(),
+		Name:     "valid-name",
+		Type:     ChannelTypeOpen,
+		Header:   "valid-header",
+		Purpose:  "valid-purpose",
+		BannerInfo: &ChannelBannerInfo{
+			Enabled: NewPointer(true),
+			Text:    NewPointer("Banner Text"),
+		},
+	}
+
+	// Test with nil background color
+	o.BannerInfo.BackgroundColor = nil
+	require.NotNil(t, o.IsValid())
+	require.Equal(t, "model.channel.is_valid.banner_info.background_color.empty.app_error", o.IsValid().Id)
+
+	// Test with empty background color
+	o.BannerInfo.BackgroundColor = NewPointer("")
+	require.NotNil(t, o.IsValid())
+	require.Equal(t, "model.channel.is_valid.banner_info.background_color.empty.app_error", o.IsValid().Id)
+
+	// Test with invalid background color (no # prefix)
+	o.BannerInfo.BackgroundColor = NewPointer("FF0000")
+	require.NotNil(t, o.IsValid())
+	require.Equal(t, "model.channel.is_valid.banner_info.background_color.invalid.app_error", o.IsValid().Id)
+
+	// Test with invalid background color (invalid characters)
+	o.BannerInfo.BackgroundColor = NewPointer("#GGGGGG")
+	require.NotNil(t, o.IsValid())
+	require.Equal(t, "model.channel.is_valid.banner_info.background_color.invalid.app_error", o.IsValid().Id)
+
+	// Test with invalid background color (wrong length)
+	o.BannerInfo.BackgroundColor = NewPointer("#FF00")
+	require.NotNil(t, o.IsValid())
+	require.Equal(t, "model.channel.is_valid.banner_info.background_color.invalid.app_error", o.IsValid().Id)
+
+	// Test with invalid background color (wrong length)
+	o.BannerInfo.BackgroundColor = NewPointer("#FF00000")
+	require.NotNil(t, o.IsValid())
+	require.Equal(t, "model.channel.is_valid.banner_info.background_color.invalid.app_error", o.IsValid().Id)
+
+	// Test with valid 6-digit hex color
+	o.BannerInfo.BackgroundColor = NewPointer("#FF0000")
+	require.Nil(t, o.IsValid())
+
+	// Test with valid 6-digit hex color (lowercase)
+	o.BannerInfo.BackgroundColor = NewPointer("#ff0000")
+	require.Nil(t, o.IsValid())
+
+	// Test with valid 3-digit hex color
+	o.BannerInfo.BackgroundColor = NewPointer("#F00")
+	require.Nil(t, o.IsValid())
+
+	// Test with valid 3-digit hex color (lowercase)
+	o.BannerInfo.BackgroundColor = NewPointer("#f00")
+	require.Nil(t, o.IsValid())
+}
+
 func TestChannelPreSave(t *testing.T) {
 	o := Channel{Name: "test"}
 	o.PreSave()
-	o.Etag()
 }
 
 func TestChannelPreUpdate(t *testing.T) {
@@ -113,4 +174,50 @@ func TestGetGroupNameFromUserIds(t *testing.T) {
 	name := GetGroupNameFromUserIds([]string{NewId(), NewId(), NewId(), NewId(), NewId()})
 
 	require.LessOrEqual(t, len(name), ChannelNameMaxLength)
+}
+
+func TestSanitize(t *testing.T) {
+	schemaId := NewId()
+	o := Channel{
+		Id:                NewId(),
+		CreateAt:          1,
+		UpdateAt:          1,
+		DeleteAt:          1,
+		Name:              NewId(),
+		DisplayName:       NewId(),
+		Header:            NewId(),
+		Purpose:           NewId(),
+		LastPostAt:        1,
+		TotalMsgCount:     1,
+		ExtraUpdateAt:     1,
+		CreatorId:         NewId(),
+		SchemeId:          &schemaId,
+		Props:             make(map[string]any),
+		GroupConstrained:  NewPointer(true),
+		Shared:            NewPointer(true),
+		TotalMsgCountRoot: 1,
+		PolicyID:          &schemaId,
+		LastRootPostAt:    1,
+	}
+	s := o.Sanitize()
+
+	require.NotEqual(t, "", s.Id)
+	require.Equal(t, int64(0), s.CreateAt)
+	require.Equal(t, int64(0), s.UpdateAt)
+	require.Equal(t, int64(0), s.DeleteAt)
+	require.Equal(t, "", s.Name)
+	require.NotEqual(t, "", s.DisplayName)
+	require.Equal(t, "", s.Header)
+	require.Equal(t, "", s.Purpose)
+	require.Equal(t, int64(0), s.LastPostAt)
+	require.Equal(t, int64(0), s.TotalMsgCount)
+	require.Equal(t, int64(0), s.ExtraUpdateAt)
+	require.Equal(t, "", s.CreatorId)
+	require.Nil(t, s.SchemeId)
+	require.Nil(t, s.Props)
+	require.Nil(t, s.GroupConstrained)
+	require.Nil(t, s.Shared)
+	require.Equal(t, int64(0), s.TotalMsgCountRoot)
+	require.Nil(t, s.PolicyID)
+	require.Equal(t, int64(0), s.LastRootPostAt)
 }

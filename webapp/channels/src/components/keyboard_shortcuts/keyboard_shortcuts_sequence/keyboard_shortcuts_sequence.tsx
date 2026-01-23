@@ -60,10 +60,10 @@ function KeyboardShortcutSequence({shortcut, hideDescription, hoistDescription, 
         ));
 
         return (
-            <React.Fragment>
+            <>
                 <span>{'\t|\t'}</span>
                 {shortcutKeys}
-            </React.Fragment>
+            </>
         );
     };
 

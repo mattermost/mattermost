@@ -13,7 +13,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
@@ -36,6 +35,8 @@ func (api *API) InitUserLocal() {
 	api.BaseRoutes.User.Handle("/email/verify/member", api.APILocal(verifyUserEmailWithoutToken)).Methods(http.MethodPost)
 	api.BaseRoutes.User.Handle("/promote", api.APILocal(promoteGuestToUser)).Methods(http.MethodPost)
 	api.BaseRoutes.User.Handle("/demote", api.APILocal(demoteUserToGuest)).Methods(http.MethodPost)
+
+	api.BaseRoutes.User.Handle("/auth", api.APILocal(updateUserAuth)).Methods(http.MethodPut)
 
 	api.BaseRoutes.UserByUsername.Handle("", api.APILocal(localGetUserByUsername)).Methods(http.MethodGet)
 	api.BaseRoutes.UserByEmail.Handle("", api.APILocal(localGetUserByEmail)).Methods(http.MethodGet)
@@ -229,7 +230,9 @@ func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func localGetUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -257,7 +260,7 @@ func localGetUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		options.Since = since
 	}
 
-	users, appErr := c.App.GetUsersByIds(userIDs, options)
+	users, appErr := c.App.GetUsersByIds(c.AppContext, userIDs, options)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -269,7 +272,9 @@ func localGetUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func localGetUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -316,7 +321,7 @@ func localDeleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	userId := c.Params.UserId
 
-	auditRec := c.MakeAuditRecord("localDeleteUser", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventLocalDeleteUser, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	user, err := c.App.GetUser(userId)
@@ -324,7 +329,7 @@ func localDeleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	audit.AddEventParameter(auditRec, "user_id", c.Params.UserId)
+	model.AddEventParameterToAuditRec(auditRec, "user_id", c.Params.UserId)
 	auditRec.AddEventPriorState(user)
 	auditRec.AddEventObjectType("user")
 
@@ -343,7 +348,7 @@ func localDeleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func localPermanentDeleteAllUsers(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("localPermanentDeleteAllUsers", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventLocalPermanentDeleteAllUsers, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if err := c.App.PermanentDeleteAllUsers(c.AppContext); err != nil {
@@ -435,5 +440,7 @@ func localGetUploadsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }

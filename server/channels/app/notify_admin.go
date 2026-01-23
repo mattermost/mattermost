@@ -83,8 +83,8 @@ func filterNotificationData(data []*model.NotifyAdminData, test func(*model.Noti
 	return
 }
 
-func (a *App) SendNotifyAdminPosts(c request.CTX, workspaceName string, currentSKU string, trial bool) *model.AppError {
-	if !a.CanNotifyAdmin(c, trial) {
+func (a *App) SendNotifyAdminPosts(rctx request.CTX, workspaceName string, currentSKU string, trial bool) *model.AppError {
+	if !a.CanNotifyAdmin(rctx, trial) {
 		return model.NewAppError("SendNotifyAdminPosts", "app.notify_admin.send_notification_post.app_error", nil, "Cannot notify yet", http.StatusForbidden)
 	}
 
@@ -98,7 +98,7 @@ func (a *App) SendNotifyAdminPosts(c request.CTX, workspaceName string, currentS
 		return appErr
 	}
 
-	systemBot, appErr := a.GetSystemBot(c)
+	systemBot, appErr := a.GetSystemBot(rctx)
 	if appErr != nil {
 		return appErr
 	}
@@ -113,71 +113,42 @@ func (a *App) SendNotifyAdminPosts(c request.CTX, workspaceName string, currentS
 	data = filterNotificationData(data, func(nad *model.NotifyAdminData) bool { return nad.RequiredPlan != currentSKU })
 
 	if len(data) == 0 {
-		c.Logger().Warn("No notification data available")
+		rctx.Logger().Warn("No notification data available")
 		return nil
 	}
 
-	userBasedPaidFeatureData, userBasedPluginData := a.groupNotifyAdminByUser(data)
+	userBasedPaidFeatureData := a.groupNotifyAdminByUser(data)
 	featureBasedData := a.groupNotifyAdminByPaidFeature(data)
 	pluginBasedData := a.groupNotifyAdminByPlugin(data)
 
 	for _, admin := range sysadmins {
 		if len(userBasedPaidFeatureData) > 0 && len(featureBasedData) > 0 {
-			a.upgradePlanAdminNotifyPost(c, workspaceName, userBasedPaidFeatureData, featureBasedData, systemBot, admin, trial)
-		}
-
-		if len(userBasedPluginData) > 0 {
-			a.pluginInstallAdminNotifyPost(c, userBasedPluginData, pluginBasedData, systemBot, admin)
+			a.upgradePlanAdminNotifyPost(rctx, workspaceName, userBasedPaidFeatureData, featureBasedData, systemBot, admin, trial)
 		}
 	}
 
-	a.FinishSendAdminNotifyPost(c, trial, now, pluginBasedData)
+	a.FinishSendAdminNotifyPost(rctx, trial, now, pluginBasedData)
 	return nil
 }
 
-func (a *App) pluginInstallAdminNotifyPost(c request.CTX, userBasedData map[string][]*model.NotifyAdminData, pluginBasedPluginData map[string][]*model.NotifyAdminData, systemBot *model.Bot, admin *model.User) {
-	props := make(model.StringInterface)
-
-	channel, appErr := a.GetOrCreateDirectChannel(c, systemBot.UserId, admin.Id)
-	if appErr != nil {
-		c.Logger().Warn("Error getting direct channel", mlog.Err(appErr))
-		return
-	}
-
-	post := &model.Post{
-		UserId:    systemBot.UserId,
-		ChannelId: channel.Id,
-		Type:      fmt.Sprintf("%spl_notification", model.PostCustomTypePrefix), // webapp will have to create renderer for this custom post type
-	}
-
-	props["requested_plugins_by_plugin_ids"] = pluginBasedPluginData
-	props["requested_plugins_by_user_ids"] = userBasedData
-	post.SetProps(props)
-
-	_, appErr = a.CreatePost(c, post, channel, false, true)
-	if appErr != nil {
-		c.Logger().Warn("Error creating post", mlog.Err(appErr))
-	}
-}
-
-func (a *App) upgradePlanAdminNotifyPost(c request.CTX, workspaceName string, userBasedData map[string][]*model.NotifyAdminData, featureBasedData map[model.MattermostFeature][]*model.NotifyAdminData, systemBot *model.Bot, admin *model.User, trial bool) {
+func (a *App) upgradePlanAdminNotifyPost(rctx request.CTX, workspaceName string, userBasedData map[string][]*model.NotifyAdminData, featureBasedData map[model.MattermostFeature][]*model.NotifyAdminData, systemBot *model.Bot, admin *model.User, trial bool) {
 	props := make(model.StringInterface)
 	T := i18n.GetUserTranslations(admin.Locale)
 
-	message := T("app.cloud.upgrade_plan_bot_message", map[string]interface{}{"UsersNum": len(userBasedData), "WorkspaceName": workspaceName})
+	message := T("app.cloud.upgrade_plan_bot_message", map[string]any{"UsersNum": len(userBasedData), "WorkspaceName": workspaceName})
 	if len(userBasedData) == 1 {
-		message = T("app.cloud.upgrade_plan_bot_message_single", map[string]interface{}{"UsersNum": len(userBasedData), "WorkspaceName": workspaceName}) // todo (allan): investigate if translations library can do this
+		message = T("app.cloud.upgrade_plan_bot_message_single", map[string]any{"UsersNum": len(userBasedData), "WorkspaceName": workspaceName}) // todo (allan): investigate if translations library can do this
 	}
 	if trial {
-		message = T("app.cloud.trial_plan_bot_message", map[string]interface{}{"UsersNum": len(userBasedData), "WorkspaceName": workspaceName})
+		message = T("app.cloud.trial_plan_bot_message", map[string]any{"UsersNum": len(userBasedData), "WorkspaceName": workspaceName})
 		if len(userBasedData) == 1 {
-			message = T("app.cloud.trial_plan_bot_message_single", map[string]interface{}{"UsersNum": len(userBasedData), "WorkspaceName": workspaceName})
+			message = T("app.cloud.trial_plan_bot_message_single", map[string]any{"UsersNum": len(userBasedData), "WorkspaceName": workspaceName})
 		}
 	}
 
-	channel, appErr := a.GetOrCreateDirectChannel(c, systemBot.UserId, admin.Id)
+	channel, appErr := a.GetOrCreateDirectChannel(rctx, systemBot.UserId, admin.Id)
 	if appErr != nil {
-		c.Logger().Warn("Error getting direct channel", mlog.Err(appErr))
+		rctx.Logger().Warn("Error getting direct channel", mlog.Err(appErr))
 		return
 	}
 
@@ -193,10 +164,10 @@ func (a *App) upgradePlanAdminNotifyPost(c request.CTX, workspaceName string, us
 	props["trial"] = trial
 	post.SetProps(props)
 
-	_, appErr = a.CreatePost(c, post, channel, false, true)
+	_, _, appErr = a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true})
 
 	if appErr != nil {
-		c.Logger().Warn("Error creating post", mlog.Err(appErr))
+		rctx.Logger().Warn("Error creating post", mlog.Err(appErr))
 	}
 }
 
@@ -276,17 +247,12 @@ func (a *App) FinishSendAdminNotifyPost(rctx request.CTX, trial bool, now int64,
 	}
 }
 
-func (a *App) groupNotifyAdminByUser(data []*model.NotifyAdminData) (map[string][]*model.NotifyAdminData, map[string][]*model.NotifyAdminData) {
+func (a *App) groupNotifyAdminByUser(data []*model.NotifyAdminData) map[string][]*model.NotifyAdminData {
 	userBasedPaidFeatureData := make(map[string][]*model.NotifyAdminData)
-	userBasedPluginData := make(map[string][]*model.NotifyAdminData)
 	for _, d := range data {
-		if strings.HasPrefix(string(d.RequiredFeature), string(model.PluginFeature)) {
-			userBasedPluginData[d.UserId] = append(userBasedPluginData[d.UserId], d)
-		} else {
-			userBasedPaidFeatureData[d.UserId] = append(userBasedPaidFeatureData[d.UserId], d)
-		}
+		userBasedPaidFeatureData[d.UserId] = append(userBasedPaidFeatureData[d.UserId], d)
 	}
-	return userBasedPaidFeatureData, userBasedPluginData
+	return userBasedPaidFeatureData
 }
 
 func (a *App) groupNotifyAdminByPaidFeature(data []*model.NotifyAdminData) map[model.MattermostFeature][]*model.NotifyAdminData {
@@ -304,8 +270,8 @@ func (a *App) groupNotifyAdminByPlugin(data []*model.NotifyAdminData) map[string
 	myMap := make(map[string][]*model.NotifyAdminData)
 	for _, d := range data {
 		if strings.HasPrefix(string(d.RequiredFeature), string(model.PluginFeature)) {
-			plugins := strings.Split(d.RequiredPlan, ",")
-			for _, plugin := range plugins {
+			plugins := strings.SplitSeq(d.RequiredPlan, ",")
+			for plugin := range plugins {
 				myMap[plugin] = append(myMap[plugin], d)
 			}
 		}

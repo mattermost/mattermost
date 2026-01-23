@@ -3,10 +3,10 @@
 
 import type {ReactWrapper} from 'enzyme';
 import React from 'react';
-import {act} from 'react-dom/test-utils';
 import {Provider} from 'react-redux';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {act} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
 
 import RenewalLink from './renewal_link';
@@ -58,15 +58,9 @@ describe('components/RenewalLink', () => {
         jest.clearAllMocks();
     });
 
-    const props = {
-        actions: {
-            openModal: jest.fn,
-        },
-    };
-
     test('should show Contact sales button', async () => {
         const store = mockStore(initialState);
-        const wrapper = mountWithIntl(<Provider store={store}><RenewalLink {...props}/></Provider>);
+        const wrapper = mountWithIntl(<Provider store={store}><RenewalLink/></Provider>);
 
         // wait for the promise to resolve and component to update
         await actImmediate(wrapper);

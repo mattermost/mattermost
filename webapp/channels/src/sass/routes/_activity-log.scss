@@ -1,4 +1,4 @@
-@charset 'UTF-8';
+@use "utils/variables";
 
 .animation--highlight {
     &::before {
@@ -17,7 +17,7 @@
     display: table;
     width: 100%;
     padding: 15px 0;
-    border-top: 1px solid $light-gray;
+    border-top: 1px solid variables.$light-gray;
     line-height: 1.8;
 
     &:first-child {

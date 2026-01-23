@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import moment from 'moment';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 import {matchPath, useLocation} from 'react-router-dom';
@@ -11,7 +11,6 @@ import {GenericModal} from '@mattermost/components';
 
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 
-import {trackEvent} from 'actions/telemetry_actions';
 import {isModalOpen} from 'selectors/views/modals';
 
 import BlockableLink from 'components/admin_console/blockable_link';
@@ -19,11 +18,11 @@ import SystemRolesSVG from 'components/admin_console/feature_discovery/features/
 import Carousel from 'components/common/carousel/carousel';
 import useOpenInvitePeopleModal from 'components/common/hooks/useOpenInvitePeopleModal';
 import GuestAccessSvg from 'components/common/svg_images_components/guest_access_svg';
-import HandsSvg from 'components/common/svg_images_components/hands_svg';
 import MonitorImacLikeSVG from 'components/common/svg_images_components/monitor_imaclike_svg';
-import PersonWithChecklistSvg from 'components/common/svg_images_components/person_with_checklist';
+import PersonWithChecklistSvg from 'components/common/svg_images_components/person_with_checklist_svg';
+import SuccessSvg from 'components/common/svg_images_components/success_svg';
 
-import {ConsolePages, DocLinks, ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
+import {ConsolePages, DocLinks, ModalIdentifiers} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -56,15 +55,6 @@ const TrialBenefitsModal = ({
     const isCloud = license?.Cloud === 'true';
 
     const openInvitePeopleModal = useOpenInvitePeopleModal();
-
-    useEffect(() => {
-        if (!trialJustStarted) {
-            trackEvent(
-                TELEMETRY_CATEGORIES.SELF_HOSTED_START_TRIAL_MODAL,
-                'benefits_modal_post_enterprise_view',
-            );
-        }
-    }, []);
 
     // by default all licence last 30 days plus 8 hours. We use this value as a fallback for the trial license duration information shown in the modal
     const trialLicenseDuration = (1000 * 60 * 60 * 24 * 30) + (1000 * 60 * 60 * 8);
@@ -154,7 +144,7 @@ const TrialBenefitsModal = ({
                     id='trial_benefits.modal.trialStartedDescriptionBody'
                     defaultMessage='You now have access to <guestAccountsLink>guest accounts</guestAccountsLink>, <autoComplianceReportsLink>automated compliance reports</autoComplianceReportsLink>, and <mobileSecureNotificationsLink>mobile secure-ID push notifications</mobileSecureNotificationsLink>, among many other features.'
                     values={{
-                        guestAccountsLink: (text: string) => (
+                        guestAccountsLink: (text) => (
                             <BlockableLink
                                 to={ConsolePages.GUEST_ACCOUNTS}
                                 onClick={handleOnClose}
@@ -162,7 +152,7 @@ const TrialBenefitsModal = ({
                                 {text}
                             </BlockableLink>
                         ),
-                        autoComplianceReportsLink: (text: string) => (
+                        autoComplianceReportsLink: (text) => (
                             <BlockableLink
                                 to={ConsolePages.COMPLIANCE_EXPORT}
                                 onClick={handleOnClose}
@@ -170,7 +160,7 @@ const TrialBenefitsModal = ({
                                 {text}
                             </BlockableLink>
                         ),
-                        mobileSecureNotificationsLink: (text: string) => (
+                        mobileSecureNotificationsLink: (text) => (
                             <BlockableLink
                                 to={ConsolePages.PUSH_NOTIFICATION_CENTER}
                                 onClick={handleOnClose}
@@ -184,9 +174,10 @@ const TrialBenefitsModal = ({
         ),
         svgWrapperClassName: 'handsSvg',
         svgElement: (
-            <HandsSvg
-                width={200}
-                height={100}
+            <SuccessSvg
+                width={162}
+                height={103.5
+                }
             />
         ),
         bottomLeftMessage: formatMessage({id: 'trial_benefits.modal.onlyVisibleToAdmins', defaultMessage: 'Only visible to admins'}),
@@ -205,17 +196,6 @@ const TrialBenefitsModal = ({
         openInvitePeopleModal();
         handleOnClose();
     };
-
-    const handleOnPrevNextSlideClick = useCallback((slideIndex: number) => {
-        const slideId = steps[slideIndex - 1]?.id;
-
-        if (slideId) {
-            trackEvent(
-                TELEMETRY_CATEGORIES.SELF_HOSTED_START_TRIAL_MODAL,
-                'benefits_modal_slide_shown_' + slideId,
-            );
-        }
-    }, [steps]);
 
     const getSlides = useCallback(() => steps.map(({id, ...rest}) => (
         <TrialBenefitsModalStep
@@ -312,8 +292,6 @@ const TrialBenefitsModal = ({
                 dataSlides={getSlides()}
                 id={'trialBenefitsModalCarousel'}
                 infiniteSlide={false}
-                onNextSlideClick={handleOnPrevNextSlideClick}
-                onPrevSlideClick={handleOnPrevNextSlideClick}
             />
         );
     };

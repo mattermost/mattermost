@@ -11,11 +11,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"maps"
 	"net"
 	"net/mail"
 	"net/url"
 	"os"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -26,6 +28,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const (
@@ -41,8 +44,11 @@ const (
 
 var ErrMaxPropSizeExceeded = fmt.Errorf("max prop size of %d exceeded", maxPropSizeBytes)
 
+//msgp:ignore StringInterface StringSet
 type StringInterface map[string]any
 type StringSet map[string]struct{}
+
+//msgp:tuple StringArray
 type StringArray []string
 
 func (ss StringSet) Has(val string) bool {
@@ -74,13 +80,7 @@ func (sa StringArray) Remove(input string) StringArray {
 }
 
 func (sa StringArray) Contains(input string) bool {
-	for index := range sa {
-		if sa[index] == input {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(sa, input)
 }
 func (sa StringArray) Equals(input StringArray) bool {
 	if len(sa) != len(input) {
@@ -228,6 +228,7 @@ func AppErrorInit(t i18n.TranslateFunc) {
 	})
 }
 
+//msgp:ignore AppError
 type AppError struct {
 	Id              string `json:"id"`
 	Message         string `json:"message"`               // Message to be display to the end user without debugging information
@@ -448,9 +449,7 @@ func GetEndOfDayMillis(thisTime time.Time, timeZoneOffset int) int64 {
 
 func CopyStringMap(originalMap map[string]string) map[string]string {
 	copyMap := make(map[string]string, len(originalMap))
-	for k, v := range originalMap {
-		copyMap[k] = v
-	}
+	maps.Copy(copyMap, originalMap)
 	return copyMap
 }
 
@@ -615,18 +614,33 @@ func isLower(s string) bool {
 	return strings.ToLower(s) == s
 }
 
-func IsValidEmail(email string) bool {
-	if !isLower(email) {
+func IsValidEmail(input string) bool {
+	if !isLower(input) {
 		return false
 	}
 
-	if addr, err := mail.ParseAddress(email); err != nil {
+	if addr, err := mail.ParseAddress(input); err != nil {
 		return false
-	} else if addr.Name != "" {
-		// mail.ParseAddress accepts input of the form "Billy Bob <billy@example.com>" which we don't allow
+	} else if addr.Address != input {
+		// mail.ParseAddress accepts input of the form "Billy Bob <billy@example.com>" or "<billy@example.com>",
+		// which we don't allow. We compare the user input with the parsed addr.Address to ensure we only
+		// accept plain addresses like "billy@example.com"
+
+		// Log a warning for admins in case pre-existing users with emails like <billy@example.com>, which used
+		// to be valid before https://github.com/mattermost/mattermost/pull/29661, know how to deal with this
+		// error. We don't need to check for the case addr.Name != "", since that has always been rejected
+		if addr.Name == "" {
+			mlog.Warn("email seems to be enclosed in angle brackets, which is not valid; if this relates to an existing user, use the following mmctl command to modify their email: `mmctl user email \"<affecteduser@domain.com>\" affecteduser@domain.com`", mlog.String("email", input))
+		}
 		return false
 	}
 
+	// mail.ParseAddress accepts quoted strings for the address
+	// which can lead to sending to the wrong email address
+	// check for multiple '@' symbols and invalidate
+	if strings.Count(input, "@") > 1 {
+		return false
+	}
 	return true
 }
 
@@ -678,13 +692,14 @@ func IsValidAlphaNumHyphenUnderscorePlus(s string) bool {
 }
 
 func Etag(parts ...any) string {
-	etag := CurrentVersion
+	var etag strings.Builder
+	etag.WriteString(CurrentVersion)
 
 	for _, part := range parts {
-		etag += fmt.Sprintf(".%v", part)
+		etag.WriteString(fmt.Sprintf(".%v", part))
 	}
 
-	return etag
+	return etag.String()
 }
 
 var (
@@ -697,8 +712,8 @@ var (
 func ParseHashtags(text string) (string, string) {
 	words := strings.Fields(text)
 
-	hashtagString := ""
-	plainString := ""
+	var hashtagStringSb strings.Builder
+	var plainString strings.Builder
 	for _, word := range words {
 		// trim off surrounding punctuation
 		word = puncStart.ReplaceAllString(word, "")
@@ -708,11 +723,12 @@ func ParseHashtags(text string) (string, string) {
 		word = hashtagStart.ReplaceAllString(word, "#")
 
 		if validHashtag.MatchString(word) {
-			hashtagString += " " + word
+			hashtagStringSb.WriteString(" " + word)
 		} else {
-			plainString += " " + word
+			plainString.WriteString(" " + word)
 		}
 	}
+	hashtagString := hashtagStringSb.String()
 
 	if len(hashtagString) > 1000 {
 		hashtagString = hashtagString[:999]
@@ -724,7 +740,7 @@ func ParseHashtags(text string) (string, string) {
 		}
 	}
 
-	return strings.TrimSpace(hashtagString), strings.TrimSpace(plainString)
+	return strings.TrimSpace(hashtagString), strings.TrimSpace(plainString.String())
 }
 
 func ClearMentionTags(post string) string {
@@ -850,7 +866,7 @@ func IsCloud() bool {
 	return os.Getenv("MM_CLOUD_INSTALLATION_ID") != ""
 }
 
-func sliceToMapKey(s ...string) map[string]any {
+func SliceToMapKey(s ...string) map[string]any {
 	m := make(map[string]any)
 	for i := range s {
 		m[s[i]] = struct{}{}
@@ -861,4 +877,24 @@ func sliceToMapKey(s ...string) map[string]any {
 	}
 
 	return m
+}
+
+// LimitRunes limits the number of runes in a string to the given maximum.
+// It returns the potentially truncated string and a boolean indicating whether truncation occurred.
+func LimitRunes(s string, maxRunes int) (string, bool) {
+	runes := []rune(s)
+	if len(runes) > maxRunes {
+		return string(runes[:maxRunes]), true
+	}
+
+	return s, false
+}
+
+// LimitBytes limits the number of bytes in a string to the given maximum.
+// It returns the potentially truncated string and a boolean indicating whether truncation occurred.
+func LimitBytes(s string, maxBytes int) (string, bool) {
+	if len(s) > maxBytes {
+		return s[:maxBytes], true
+	}
+	return s, false
 }

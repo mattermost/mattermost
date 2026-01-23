@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/ChannelHeader should match snapshot with last active display 1`] = `
 <div
@@ -67,37 +67,24 @@ exports[`components/ChannelHeader should match snapshot with last active display
                 "username": "some-user",
               }
             }
+            remoteNames={Array []}
           />
           <div
             className="channel-header__icons"
           >
             <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
-              buttonId="channelHeaderPinButton"
-              iconComponent={
-                <i
-                  aria-hidden="true"
-                  className="icon icon-pin-outline channel-header__pin"
-                />
-              }
-              onClick={[Function]}
-              tooltip="Pinned messages"
-            />
-            <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
               buttonId="channelHeaderFilesButton"
-              iconComponent={
-                <i
-                  className="icon icon-file-text-outline"
-                />
-              }
               onClick={[Function]}
               tooltip="Channel files"
-            />
+            >
+              <i
+                className="icon icon-file-text-outline"
+              />
+            </HeaderIconWrapper>
           </div>
           <div
             className="channel-header__description"
-            dir="auto"
             id="channelHeaderDescription"
           >
             <span
@@ -107,7 +94,7 @@ exports[`components/ChannelHeader should match snapshot with last active display
                 className="last-active__text"
               >
                 <MemoizedFormattedMessage
-                  defaultMessage="Active {timestamp}"
+                  defaultMessage="Last online {timestamp}"
                   id="channel_header.lastActive"
                   values={
                     Object {
@@ -128,92 +115,72 @@ exports[`components/ChannelHeader should match snapshot with last active display
                 />
               </span>
             </span>
-            <div
-              className="header-popover-text-measurer"
-            >
-              <Connect(Markdown)
-                imageProps={
-                  Object {
-                    "hideUtilities": true,
-                  }
+            <ChannelHeaderText
+              channel={
+                Object {
+                  "create_at": 0,
+                  "creator_id": "id",
+                  "delete_at": 0,
+                  "display_name": "name",
+                  "group_constrained": false,
+                  "header": "not the bot description",
+                  "id": "channel_id",
+                  "last_post_at": 0,
+                  "last_root_post_at": 0,
+                  "name": "DN",
+                  "purpose": "purpose",
+                  "scheme_id": "id",
+                  "status": "offline",
+                  "team_id": "team_id",
+                  "type": "D",
+                  "update_at": 0,
                 }
-                message="not the bot description"
-                options={
-                  Object {
-                    "atMentions": true,
-                    "channelNamesMap": undefined,
-                    "mentionHighlight": false,
-                    "singleline": true,
-                  }
+              }
+              dmUser={
+                Object {
+                  "auth_service": "",
+                  "bot_description": "",
+                  "create_at": 0,
+                  "delete_at": 0,
+                  "email": "",
+                  "first_name": "",
+                  "id": "user_id",
+                  "is_bot": false,
+                  "last_activity_at": 0,
+                  "last_name": "",
+                  "last_password_update": 0,
+                  "last_picture_update": 0,
+                  "locale": "",
+                  "mfa_active": false,
+                  "nickname": "",
+                  "notify_props": Object {
+                    "calls_desktop_sound": "true",
+                    "channel": "false",
+                    "comments": "never",
+                    "desktop": "default",
+                    "desktop_sound": "false",
+                    "email": "false",
+                    "first_name": "false",
+                    "highlight_keys": "",
+                    "mark_unread": "mention",
+                    "mention_keys": "",
+                    "push": "none",
+                    "push_status": "offline",
+                  },
+                  "password": "",
+                  "position": "",
+                  "props": Object {
+                    "show_last_active": "true",
+                  },
+                  "roles": "",
+                  "terms_of_service_create_at": 0,
+                  "terms_of_service_id": "",
+                  "update_at": 0,
+                  "username": "some-user",
                 }
-              />
-            </div>
-            <span
-              className="header-description__text"
-              onClick={[Function]}
-              onMouseOut={[Function]}
-              onMouseOver={[Function]}
-            >
-              <Overlay
-                animation={[Function]}
-                onHide={[Function]}
-                placement="bottom"
-                rootClose={true}
-                show={false}
-                target={null}
-              >
-                <Memo(Popover)
-                  className="channel-header__popover"
-                  id="header-popover"
-                  placement="bottom"
-                  popoverSize="lg"
-                  popoverStyle="info"
-                  style={
-                    Object {
-                      "maxWidth": 16,
-                      "transform": "translate(0px, 0px)",
-                    }
-                  }
-                >
-                  <span
-                    onClick={[Function]}
-                  >
-                    <Connect(Markdown)
-                      imageProps={
-                        Object {
-                          "hideUtilities": true,
-                        }
-                      }
-                      message="not the bot description"
-                      options={
-                        Object {
-                          "atMentions": true,
-                          "channelNamesMap": undefined,
-                          "mentionHighlight": false,
-                          "singleline": false,
-                        }
-                      }
-                    />
-                  </span>
-                </Memo(Popover)>
-              </Overlay>
-              <Connect(Markdown)
-                imageProps={
-                  Object {
-                    "hideUtilities": true,
-                  }
-                }
-                message="not the bot description"
-                options={
-                  Object {
-                    "atMentions": true,
-                    "channelNamesMap": undefined,
-                    "mentionHighlight": false,
-                    "singleline": true,
-                  }
-                }
-              />
-            </span>
+              }
+              teamId="team_id"
+            />
           </div>
         </div>
       </div>
@@ -358,128 +325,95 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
                 "username": "some-user",
               }
             }
+            remoteNames={Array []}
           />
           <div
             className="channel-header__icons"
           >
             <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
-              buttonId="channelHeaderPinButton"
-              iconComponent={
-                <i
-                  aria-hidden="true"
-                  className="icon icon-pin-outline channel-header__pin"
-                />
-              }
-              onClick={[Function]}
-              tooltip="Pinned messages"
-            />
-            <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
               buttonId="channelHeaderFilesButton"
-              iconComponent={
-                <i
-                  className="icon icon-file-text-outline"
-                />
-              }
               onClick={[Function]}
               tooltip="Channel files"
-            />
+            >
+              <i
+                className="icon icon-file-text-outline"
+              />
+            </HeaderIconWrapper>
           </div>
           <div
             className="channel-header__description"
-            dir="auto"
             id="channelHeaderDescription"
           >
             <span
               className="header-status__text"
             />
-            <div
-              className="header-popover-text-measurer"
-            >
-              <Connect(Markdown)
-                imageProps={
-                  Object {
-                    "hideUtilities": true,
-                  }
+            <ChannelHeaderText
+              channel={
+                Object {
+                  "create_at": 0,
+                  "creator_id": "id",
+                  "delete_at": 0,
+                  "display_name": "name",
+                  "group_constrained": false,
+                  "header": "not the bot description",
+                  "id": "channel_id",
+                  "last_post_at": 0,
+                  "last_root_post_at": 0,
+                  "name": "DN",
+                  "purpose": "purpose",
+                  "scheme_id": "id",
+                  "status": "offline",
+                  "team_id": "team_id",
+                  "type": "D",
+                  "update_at": 0,
                 }
-                message="not the bot description"
-                options={
-                  Object {
-                    "atMentions": true,
-                    "channelNamesMap": undefined,
-                    "mentionHighlight": false,
-                    "singleline": true,
-                  }
+              }
+              dmUser={
+                Object {
+                  "auth_service": "",
+                  "bot_description": "",
+                  "create_at": 0,
+                  "delete_at": 0,
+                  "email": "",
+                  "first_name": "",
+                  "id": "user_id",
+                  "is_bot": false,
+                  "last_activity_at": 0,
+                  "last_name": "",
+                  "last_password_update": 0,
+                  "last_picture_update": 0,
+                  "locale": "",
+                  "mfa_active": false,
+                  "nickname": "",
+                  "notify_props": Object {
+                    "calls_desktop_sound": "true",
+                    "channel": "false",
+                    "comments": "never",
+                    "desktop": "default",
+                    "desktop_sound": "false",
+                    "email": "false",
+                    "first_name": "false",
+                    "highlight_keys": "",
+                    "mark_unread": "mention",
+                    "mention_keys": "",
+                    "push": "none",
+                    "push_status": "offline",
+                  },
+                  "password": "",
+                  "position": "",
+                  "props": Object {
+                    "show_last_active": "false",
+                  },
+                  "roles": "",
+                  "terms_of_service_create_at": 0,
+                  "terms_of_service_id": "",
+                  "update_at": 0,
+                  "username": "some-user",
                 }
-              />
-            </div>
-            <span
-              className="header-description__text"
-              onClick={[Function]}
-              onMouseOut={[Function]}
-              onMouseOver={[Function]}
-            >
-              <Overlay
-                animation={[Function]}
-                onHide={[Function]}
-                placement="bottom"
-                rootClose={true}
-                show={false}
-                target={null}
-              >
-                <Memo(Popover)
-                  className="channel-header__popover"
-                  id="header-popover"
-                  placement="bottom"
-                  popoverSize="lg"
-                  popoverStyle="info"
-                  style={
-                    Object {
-                      "maxWidth": 16,
-                      "transform": "translate(0px, 0px)",
-                    }
-                  }
-                >
-                  <span
-                    onClick={[Function]}
-                  >
-                    <Connect(Markdown)
-                      imageProps={
-                        Object {
-                          "hideUtilities": true,
-                        }
-                      }
-                      message="not the bot description"
-                      options={
-                        Object {
-                          "atMentions": true,
-                          "channelNamesMap": undefined,
-                          "mentionHighlight": false,
-                          "singleline": false,
-                        }
-                      }
-                    />
-                  </span>
-                </Memo(Popover)>
-              </Overlay>
-              <Connect(Markdown)
-                imageProps={
-                  Object {
-                    "hideUtilities": true,
-                  }
-                }
-                message="not the bot description"
-                options={
-                  Object {
-                    "atMentions": true,
-                    "channelNamesMap": undefined,
-                    "mentionHighlight": false,
-                    "singleline": true,
-                  }
-                }
-              />
-            </span>
+              }
+              teamId="team_id"
+            />
           </div>
         </div>
       </div>
@@ -580,145 +514,66 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
         <div
           className="channel-header__title dropdown"
         >
-          <Memo(ChannelHeaderTitle) />
+          <Memo(ChannelHeaderTitle)
+            remoteNames={Array []}
+          />
           <div
             className="channel-header__icons"
           >
             <HeaderIconWrapper
               buttonClass="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
               buttonId="member_rhs"
-              iconComponent={
-                <React.Fragment>
-                  <i
-                    aria-hidden="true"
-                    className="icon icon-account-outline channel-header__members"
-                  />
-                  <span
-                    className="icon__text"
-                    id="channelMemberCountText"
-                  >
-                    -
-                  </span>
-                </React.Fragment>
-              }
               onClick={[Function]}
               tooltip="Members"
-            />
-            <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
-              buttonId="channelHeaderPinButton"
-              iconComponent={
-                <i
-                  aria-hidden="true"
-                  className="icon icon-pin-outline channel-header__pin"
-                />
-              }
-              onClick={[Function]}
-              tooltip="Pinned messages"
-            />
+            >
+              <i
+                aria-hidden="true"
+                className="icon icon-account-outline channel-header__members"
+              />
+              <span
+                className="icon__text"
+                id="channelMemberCountText"
+              >
+                2
+              </span>
+            </HeaderIconWrapper>
             <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs  channel-header__icon--active"
               buttonId="channelHeaderFilesButton"
-              iconComponent={
-                <i
-                  className="icon icon-file-text-outline"
-                />
-              }
               onClick={[Function]}
               tooltip="Channel files"
-            />
+            >
+              <i
+                className="icon icon-file-text-outline"
+              />
+            </HeaderIconWrapper>
           </div>
           <div
             className="channel-header__description"
-            dir="auto"
             id="channelHeaderDescription"
           >
-            <div
-              className="header-popover-text-measurer"
-            >
-              <Connect(Markdown)
-                imageProps={
-                  Object {
-                    "hideUtilities": true,
-                  }
+            <ChannelHeaderText
+              channel={
+                Object {
+                  "create_at": 0,
+                  "creator_id": "id",
+                  "delete_at": 0,
+                  "display_name": "name",
+                  "group_constrained": false,
+                  "header": "header",
+                  "id": "channel_id",
+                  "last_post_at": 0,
+                  "last_root_post_at": 0,
+                  "name": "Test",
+                  "purpose": "purpose",
+                  "scheme_id": "id",
+                  "team_id": "team_id",
+                  "type": "O",
+                  "update_at": 0,
                 }
-                message="header"
-                options={
-                  Object {
-                    "atMentions": true,
-                    "channelNamesMap": undefined,
-                    "mentionHighlight": false,
-                    "singleline": true,
-                  }
-                }
-              />
-            </div>
-            <span
-              className="header-description__text"
-              onClick={[Function]}
-              onMouseOut={[Function]}
-              onMouseOver={[Function]}
-            >
-              <Overlay
-                animation={[Function]}
-                onHide={[Function]}
-                placement="bottom"
-                rootClose={true}
-                show={false}
-                target={null}
-              >
-                <Memo(Popover)
-                  className="channel-header__popover"
-                  id="header-popover"
-                  placement="bottom"
-                  popoverSize="lg"
-                  popoverStyle="info"
-                  style={
-                    Object {
-                      "maxWidth": 16,
-                      "transform": "translate(0px, 0px)",
-                    }
-                  }
-                >
-                  <span
-                    onClick={[Function]}
-                  >
-                    <Connect(Markdown)
-                      imageProps={
-                        Object {
-                          "hideUtilities": true,
-                        }
-                      }
-                      message="header"
-                      options={
-                        Object {
-                          "atMentions": true,
-                          "channelNamesMap": undefined,
-                          "mentionHighlight": false,
-                          "singleline": false,
-                        }
-                      }
-                    />
-                  </span>
-                </Memo(Popover)>
-              </Overlay>
-              <Connect(Markdown)
-                imageProps={
-                  Object {
-                    "hideUtilities": true,
-                  }
-                }
-                message="header"
-                options={
-                  Object {
-                    "atMentions": true,
-                    "channelNamesMap": undefined,
-                    "mentionHighlight": false,
-                    "singleline": true,
-                  }
-                }
-              />
-            </span>
+              }
+              teamId="team_id"
+            />
           </div>
         </div>
       </div>
@@ -817,145 +672,66 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
         <div
           className="channel-header__title dropdown"
         >
-          <Memo(ChannelHeaderTitle) />
+          <Memo(ChannelHeaderTitle)
+            remoteNames={Array []}
+          />
           <div
             className="channel-header__icons"
           >
             <HeaderIconWrapper
               buttonClass="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
               buttonId="member_rhs"
-              iconComponent={
-                <React.Fragment>
-                  <i
-                    aria-hidden="true"
-                    className="icon icon-account-outline channel-header__members"
-                  />
-                  <span
-                    className="icon__text"
-                    id="channelMemberCountText"
-                  >
-                    -
-                  </span>
-                </React.Fragment>
-              }
               onClick={[Function]}
               tooltip="Members"
-            />
-            <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
-              buttonId="channelHeaderPinButton"
-              iconComponent={
-                <i
-                  aria-hidden="true"
-                  className="icon icon-pin-outline channel-header__pin"
-                />
-              }
-              onClick={[Function]}
-              tooltip="Pinned messages"
-            />
+            >
+              <i
+                aria-hidden="true"
+                className="icon icon-account-outline channel-header__members"
+              />
+              <span
+                className="icon__text"
+                id="channelMemberCountText"
+              >
+                2
+              </span>
+            </HeaderIconWrapper>
             <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
               buttonId="channelHeaderFilesButton"
-              iconComponent={
-                <i
-                  className="icon icon-file-text-outline"
-                />
-              }
               onClick={[Function]}
               tooltip="Channel files"
-            />
+            >
+              <i
+                className="icon icon-file-text-outline"
+              />
+            </HeaderIconWrapper>
           </div>
           <div
             className="channel-header__description"
-            dir="auto"
             id="channelHeaderDescription"
           >
-            <div
-              className="header-popover-text-measurer"
-            >
-              <Connect(Markdown)
-                imageProps={
-                  Object {
-                    "hideUtilities": true,
-                  }
+            <ChannelHeaderText
+              channel={
+                Object {
+                  "create_at": 0,
+                  "creator_id": "id",
+                  "delete_at": 0,
+                  "display_name": "name",
+                  "group_constrained": false,
+                  "header": "header",
+                  "id": "channel_id",
+                  "last_post_at": 0,
+                  "last_root_post_at": 0,
+                  "name": "Test",
+                  "purpose": "purpose",
+                  "scheme_id": "id",
+                  "team_id": "team_id",
+                  "type": "O",
+                  "update_at": 0,
                 }
-                message="header"
-                options={
-                  Object {
-                    "atMentions": true,
-                    "channelNamesMap": undefined,
-                    "mentionHighlight": false,
-                    "singleline": true,
-                  }
-                }
-              />
-            </div>
-            <span
-              className="header-description__text"
-              onClick={[Function]}
-              onMouseOut={[Function]}
-              onMouseOver={[Function]}
-            >
-              <Overlay
-                animation={[Function]}
-                onHide={[Function]}
-                placement="bottom"
-                rootClose={true}
-                show={false}
-                target={null}
-              >
-                <Memo(Popover)
-                  className="channel-header__popover"
-                  id="header-popover"
-                  placement="bottom"
-                  popoverSize="lg"
-                  popoverStyle="info"
-                  style={
-                    Object {
-                      "maxWidth": 16,
-                      "transform": "translate(0px, 0px)",
-                    }
-                  }
-                >
-                  <span
-                    onClick={[Function]}
-                  >
-                    <Connect(Markdown)
-                      imageProps={
-                        Object {
-                          "hideUtilities": true,
-                        }
-                      }
-                      message="header"
-                      options={
-                        Object {
-                          "atMentions": true,
-                          "channelNamesMap": undefined,
-                          "mentionHighlight": false,
-                          "singleline": false,
-                        }
-                      }
-                    />
-                  </span>
-                </Memo(Popover)>
-              </Overlay>
-              <Connect(Markdown)
-                imageProps={
-                  Object {
-                    "hideUtilities": true,
-                  }
-                }
-                message="header"
-                options={
-                  Object {
-                    "atMentions": true,
-                    "channelNamesMap": undefined,
-                    "mentionHighlight": false,
-                    "singleline": true,
-                  }
-                }
-              />
-            </span>
+              }
+              teamId="team_id"
+            />
           </div>
         </div>
       </div>
@@ -1054,145 +830,66 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
         <div
           className="channel-header__title dropdown"
         >
-          <Memo(ChannelHeaderTitle) />
+          <Memo(ChannelHeaderTitle)
+            remoteNames={Array []}
+          />
           <div
             className="channel-header__icons"
           >
             <HeaderIconWrapper
               buttonClass="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
               buttonId="member_rhs"
-              iconComponent={
-                <React.Fragment>
-                  <i
-                    aria-hidden="true"
-                    className="icon icon-account-outline channel-header__members"
-                  />
-                  <span
-                    className="icon__text"
-                    id="channelMemberCountText"
-                  >
-                    -
-                  </span>
-                </React.Fragment>
-              }
               onClick={[Function]}
               tooltip="Members"
-            />
-            <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
-              buttonId="channelHeaderPinButton"
-              iconComponent={
-                <i
-                  aria-hidden="true"
-                  className="icon icon-pin-outline channel-header__pin"
-                />
-              }
-              onClick={[Function]}
-              tooltip="Pinned messages"
-            />
+            >
+              <i
+                aria-hidden="true"
+                className="icon icon-account-outline channel-header__members"
+              />
+              <span
+                className="icon__text"
+                id="channelMemberCountText"
+              >
+                2
+              </span>
+            </HeaderIconWrapper>
             <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
               buttonId="channelHeaderFilesButton"
-              iconComponent={
-                <i
-                  className="icon icon-file-text-outline"
-                />
-              }
               onClick={[Function]}
               tooltip="Channel files"
-            />
+            >
+              <i
+                className="icon icon-file-text-outline"
+              />
+            </HeaderIconWrapper>
           </div>
           <div
             className="channel-header__description"
-            dir="auto"
             id="channelHeaderDescription"
           >
-            <div
-              className="header-popover-text-measurer"
-            >
-              <Connect(Markdown)
-                imageProps={
-                  Object {
-                    "hideUtilities": true,
-                  }
+            <ChannelHeaderText
+              channel={
+                Object {
+                  "create_at": 0,
+                  "creator_id": "id",
+                  "delete_at": 0,
+                  "display_name": "name",
+                  "group_constrained": false,
+                  "header": "header",
+                  "id": "channel_id",
+                  "last_post_at": 0,
+                  "last_root_post_at": 0,
+                  "name": "Test",
+                  "purpose": "purpose",
+                  "scheme_id": "id",
+                  "team_id": "team_id",
+                  "type": "O",
+                  "update_at": 0,
                 }
-                message="header"
-                options={
-                  Object {
-                    "atMentions": true,
-                    "channelNamesMap": undefined,
-                    "mentionHighlight": false,
-                    "singleline": true,
-                  }
-                }
-              />
-            </div>
-            <span
-              className="header-description__text"
-              onClick={[Function]}
-              onMouseOut={[Function]}
-              onMouseOver={[Function]}
-            >
-              <Overlay
-                animation={[Function]}
-                onHide={[Function]}
-                placement="bottom"
-                rootClose={true}
-                show={false}
-                target={null}
-              >
-                <Memo(Popover)
-                  className="channel-header__popover"
-                  id="header-popover"
-                  placement="bottom"
-                  popoverSize="lg"
-                  popoverStyle="info"
-                  style={
-                    Object {
-                      "maxWidth": 16,
-                      "transform": "translate(0px, 0px)",
-                    }
-                  }
-                >
-                  <span
-                    onClick={[Function]}
-                  >
-                    <Connect(Markdown)
-                      imageProps={
-                        Object {
-                          "hideUtilities": true,
-                        }
-                      }
-                      message="header"
-                      options={
-                        Object {
-                          "atMentions": true,
-                          "channelNamesMap": undefined,
-                          "mentionHighlight": false,
-                          "singleline": false,
-                        }
-                      }
-                    />
-                  </span>
-                </Memo(Popover)>
-              </Overlay>
-              <Connect(Markdown)
-                imageProps={
-                  Object {
-                    "hideUtilities": true,
-                  }
-                }
-                message="header"
-                options={
-                  Object {
-                    "atMentions": true,
-                    "channelNamesMap": undefined,
-                    "mentionHighlight": false,
-                    "singleline": true,
-                  }
-                }
-              />
-            </span>
+              }
+              teamId="team_id"
+            />
           </div>
         </div>
       </div>
@@ -1291,145 +988,66 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
         <div
           className="channel-header__title dropdown"
         >
-          <Memo(ChannelHeaderTitle) />
+          <Memo(ChannelHeaderTitle)
+            remoteNames={Array []}
+          />
           <div
             className="channel-header__icons"
           >
             <HeaderIconWrapper
               buttonClass="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
               buttonId="member_rhs"
-              iconComponent={
-                <React.Fragment>
-                  <i
-                    aria-hidden="true"
-                    className="icon icon-account-outline channel-header__members"
-                  />
-                  <span
-                    className="icon__text"
-                    id="channelMemberCountText"
-                  >
-                    -
-                  </span>
-                </React.Fragment>
-              }
               onClick={[Function]}
               tooltip="Members"
-            />
-            <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs channel-header__icon--active"
-              buttonId="channelHeaderPinButton"
-              iconComponent={
-                <i
-                  aria-hidden="true"
-                  className="icon icon-pin-outline channel-header__pin"
-                />
-              }
-              onClick={[Function]}
-              tooltip="Pinned messages"
-            />
+            >
+              <i
+                aria-hidden="true"
+                className="icon icon-account-outline channel-header__members"
+              />
+              <span
+                className="icon__text"
+                id="channelMemberCountText"
+              >
+                2
+              </span>
+            </HeaderIconWrapper>
             <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
               buttonId="channelHeaderFilesButton"
-              iconComponent={
-                <i
-                  className="icon icon-file-text-outline"
-                />
-              }
               onClick={[Function]}
               tooltip="Channel files"
-            />
+            >
+              <i
+                className="icon icon-file-text-outline"
+              />
+            </HeaderIconWrapper>
           </div>
           <div
             className="channel-header__description"
-            dir="auto"
             id="channelHeaderDescription"
           >
-            <div
-              className="header-popover-text-measurer"
-            >
-              <Connect(Markdown)
-                imageProps={
-                  Object {
-                    "hideUtilities": true,
-                  }
+            <ChannelHeaderText
+              channel={
+                Object {
+                  "create_at": 0,
+                  "creator_id": "id",
+                  "delete_at": 0,
+                  "display_name": "name",
+                  "group_constrained": false,
+                  "header": "header",
+                  "id": "channel_id",
+                  "last_post_at": 0,
+                  "last_root_post_at": 0,
+                  "name": "Test",
+                  "purpose": "purpose",
+                  "scheme_id": "id",
+                  "team_id": "team_id",
+                  "type": "O",
+                  "update_at": 0,
                 }
-                message="header"
-                options={
-                  Object {
-                    "atMentions": true,
-                    "channelNamesMap": undefined,
-                    "mentionHighlight": false,
-                    "singleline": true,
-                  }
-                }
-              />
-            </div>
-            <span
-              className="header-description__text"
-              onClick={[Function]}
-              onMouseOut={[Function]}
-              onMouseOver={[Function]}
-            >
-              <Overlay
-                animation={[Function]}
-                onHide={[Function]}
-                placement="bottom"
-                rootClose={true}
-                show={false}
-                target={null}
-              >
-                <Memo(Popover)
-                  className="channel-header__popover"
-                  id="header-popover"
-                  placement="bottom"
-                  popoverSize="lg"
-                  popoverStyle="info"
-                  style={
-                    Object {
-                      "maxWidth": 16,
-                      "transform": "translate(0px, 0px)",
-                    }
-                  }
-                >
-                  <span
-                    onClick={[Function]}
-                  >
-                    <Connect(Markdown)
-                      imageProps={
-                        Object {
-                          "hideUtilities": true,
-                        }
-                      }
-                      message="header"
-                      options={
-                        Object {
-                          "atMentions": true,
-                          "channelNamesMap": undefined,
-                          "mentionHighlight": false,
-                          "singleline": false,
-                        }
-                      }
-                    />
-                  </span>
-                </Memo(Popover)>
-              </Overlay>
-              <Connect(Markdown)
-                imageProps={
-                  Object {
-                    "hideUtilities": true,
-                  }
-                }
-                message="header"
-                options={
-                  Object {
-                    "atMentions": true,
-                    "channelNamesMap": undefined,
-                    "mentionHighlight": false,
-                    "singleline": true,
-                  }
-                }
-              />
-            </span>
+              }
+              teamId="team_id"
+            />
           </div>
         </div>
       </div>
@@ -1528,145 +1146,66 @@ exports[`components/ChannelHeader should render archived view 1`] = `
         <div
           className="channel-header__title dropdown"
         >
-          <Memo(ChannelHeaderTitle) />
+          <Memo(ChannelHeaderTitle)
+            remoteNames={Array []}
+          />
           <div
             className="channel-header__icons"
           >
             <HeaderIconWrapper
               buttonClass="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
               buttonId="member_rhs"
-              iconComponent={
-                <React.Fragment>
-                  <i
-                    aria-hidden="true"
-                    className="icon icon-account-outline channel-header__members"
-                  />
-                  <span
-                    className="icon__text"
-                    id="channelMemberCountText"
-                  >
-                    -
-                  </span>
-                </React.Fragment>
-              }
               onClick={[Function]}
               tooltip="Members"
-            />
-            <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
-              buttonId="channelHeaderPinButton"
-              iconComponent={
-                <i
-                  aria-hidden="true"
-                  className="icon icon-pin-outline channel-header__pin"
-                />
-              }
-              onClick={[Function]}
-              tooltip="Pinned messages"
-            />
+            >
+              <i
+                aria-hidden="true"
+                className="icon icon-account-outline channel-header__members"
+              />
+              <span
+                className="icon__text"
+                id="channelMemberCountText"
+              >
+                2
+              </span>
+            </HeaderIconWrapper>
             <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
               buttonId="channelHeaderFilesButton"
-              iconComponent={
-                <i
-                  className="icon icon-file-text-outline"
-                />
-              }
               onClick={[Function]}
               tooltip="Channel files"
-            />
+            >
+              <i
+                className="icon icon-file-text-outline"
+              />
+            </HeaderIconWrapper>
           </div>
           <div
             className="channel-header__description"
-            dir="auto"
             id="channelHeaderDescription"
           >
-            <div
-              className="header-popover-text-measurer"
-            >
-              <Connect(Markdown)
-                imageProps={
-                  Object {
-                    "hideUtilities": true,
-                  }
+            <ChannelHeaderText
+              channel={
+                Object {
+                  "create_at": 0,
+                  "creator_id": "id",
+                  "delete_at": 1234,
+                  "display_name": "name",
+                  "group_constrained": false,
+                  "header": "header",
+                  "id": "channel_id",
+                  "last_post_at": 0,
+                  "last_root_post_at": 0,
+                  "name": "Test",
+                  "purpose": "purpose",
+                  "scheme_id": "id",
+                  "team_id": "team_id",
+                  "type": "O",
+                  "update_at": 0,
                 }
-                message="header"
-                options={
-                  Object {
-                    "atMentions": true,
-                    "channelNamesMap": undefined,
-                    "mentionHighlight": false,
-                    "singleline": true,
-                  }
-                }
-              />
-            </div>
-            <span
-              className="header-description__text"
-              onClick={[Function]}
-              onMouseOut={[Function]}
-              onMouseOver={[Function]}
-            >
-              <Overlay
-                animation={[Function]}
-                onHide={[Function]}
-                placement="bottom"
-                rootClose={true}
-                show={false}
-                target={null}
-              >
-                <Memo(Popover)
-                  className="channel-header__popover"
-                  id="header-popover"
-                  placement="bottom"
-                  popoverSize="lg"
-                  popoverStyle="info"
-                  style={
-                    Object {
-                      "maxWidth": 16,
-                      "transform": "translate(0px, 0px)",
-                    }
-                  }
-                >
-                  <span
-                    onClick={[Function]}
-                  >
-                    <Connect(Markdown)
-                      imageProps={
-                        Object {
-                          "hideUtilities": true,
-                        }
-                      }
-                      message="header"
-                      options={
-                        Object {
-                          "atMentions": true,
-                          "channelNamesMap": undefined,
-                          "mentionHighlight": false,
-                          "singleline": false,
-                        }
-                      }
-                    />
-                  </span>
-                </Memo(Popover)>
-              </Overlay>
-              <Connect(Markdown)
-                imageProps={
-                  Object {
-                    "hideUtilities": true,
-                  }
-                }
-                message="header"
-                options={
-                  Object {
-                    "atMentions": true,
-                    "channelNamesMap": undefined,
-                    "mentionHighlight": false,
-                    "singleline": true,
-                  }
-                }
-              />
-            </span>
+              }
+              teamId="team_id"
+            />
           </div>
         </div>
       </div>
@@ -1765,13 +1304,13 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
         <div
           className="channel-header__title dropdown"
         >
-          <Memo(ChannelHeaderTitle) />
+          <Memo(ChannelHeaderTitle)
+            remoteNames={Array []}
+          />
           <div
             className="channel-header__icons"
           >
             <WithTooltip
-              id="channelMutedTooltip"
-              placement="bottom"
               title={
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Unmute"
@@ -1780,12 +1319,13 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
               }
             >
               <button
-                aria-label="Muted Icon"
+                aria-label="Unmute"
                 className="channel-header__mute inactive btn btn-icon btn-xs"
                 id="toggleMute"
                 onClick={[Function]}
               >
                 <i
+                  aria-hidden={true}
                   className="icon icon-bell-off-outline"
                 />
               </button>
@@ -1793,138 +1333,57 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
             <HeaderIconWrapper
               buttonClass="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
               buttonId="member_rhs"
-              iconComponent={
-                <React.Fragment>
-                  <i
-                    aria-hidden="true"
-                    className="icon icon-account-outline channel-header__members"
-                  />
-                  <span
-                    className="icon__text"
-                    id="channelMemberCountText"
-                  >
-                    -
-                  </span>
-                </React.Fragment>
-              }
               onClick={[Function]}
               tooltip="Members"
-            />
-            <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
-              buttonId="channelHeaderPinButton"
-              iconComponent={
-                <i
-                  aria-hidden="true"
-                  className="icon icon-pin-outline channel-header__pin"
-                />
-              }
-              onClick={[Function]}
-              tooltip="Pinned messages"
-            />
+            >
+              <i
+                aria-hidden="true"
+                className="icon icon-account-outline channel-header__members"
+              />
+              <span
+                className="icon__text"
+                id="channelMemberCountText"
+              >
+                2
+              </span>
+            </HeaderIconWrapper>
             <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
               buttonId="channelHeaderFilesButton"
-              iconComponent={
-                <i
-                  className="icon icon-file-text-outline"
-                />
-              }
               onClick={[Function]}
               tooltip="Channel files"
-            />
+            >
+              <i
+                className="icon icon-file-text-outline"
+              />
+            </HeaderIconWrapper>
           </div>
           <div
             className="channel-header__description"
-            dir="auto"
             id="channelHeaderDescription"
           >
-            <div
-              className="header-popover-text-measurer"
-            >
-              <Connect(Markdown)
-                imageProps={
-                  Object {
-                    "hideUtilities": true,
-                  }
+            <ChannelHeaderText
+              channel={
+                Object {
+                  "create_at": 0,
+                  "creator_id": "id",
+                  "delete_at": 0,
+                  "display_name": "name",
+                  "group_constrained": false,
+                  "header": "header",
+                  "id": "channel_id",
+                  "last_post_at": 0,
+                  "last_root_post_at": 0,
+                  "name": "Test",
+                  "purpose": "purpose",
+                  "scheme_id": "id",
+                  "team_id": "team_id",
+                  "type": "O",
+                  "update_at": 0,
                 }
-                message="header"
-                options={
-                  Object {
-                    "atMentions": true,
-                    "channelNamesMap": undefined,
-                    "mentionHighlight": false,
-                    "singleline": true,
-                  }
-                }
-              />
-            </div>
-            <span
-              className="header-description__text"
-              onClick={[Function]}
-              onMouseOut={[Function]}
-              onMouseOver={[Function]}
-            >
-              <Overlay
-                animation={[Function]}
-                onHide={[Function]}
-                placement="bottom"
-                rootClose={true}
-                show={false}
-                target={null}
-              >
-                <Memo(Popover)
-                  className="channel-header__popover"
-                  id="header-popover"
-                  placement="bottom"
-                  popoverSize="lg"
-                  popoverStyle="info"
-                  style={
-                    Object {
-                      "maxWidth": 16,
-                      "transform": "translate(0px, 0px)",
-                    }
-                  }
-                >
-                  <span
-                    onClick={[Function]}
-                  >
-                    <Connect(Markdown)
-                      imageProps={
-                        Object {
-                          "hideUtilities": true,
-                        }
-                      }
-                      message="header"
-                      options={
-                        Object {
-                          "atMentions": true,
-                          "channelNamesMap": undefined,
-                          "mentionHighlight": false,
-                          "singleline": false,
-                        }
-                      }
-                    />
-                  </span>
-                </Memo(Popover)>
-              </Overlay>
-              <Connect(Markdown)
-                imageProps={
-                  Object {
-                    "hideUtilities": true,
-                  }
-                }
-                message="header"
-                options={
-                  Object {
-                    "atMentions": true,
-                    "channelNamesMap": undefined,
-                    "mentionHighlight": false,
-                    "singleline": true,
-                  }
-                }
-              />
-            </span>
+              }
+              teamId="team_id"
+            />
           </div>
         </div>
       </div>
@@ -2023,145 +1482,66 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
         <div
           className="channel-header__title dropdown"
         >
-          <Memo(ChannelHeaderTitle) />
+          <Memo(ChannelHeaderTitle)
+            remoteNames={Array []}
+          />
           <div
             className="channel-header__icons"
           >
             <HeaderIconWrapper
               buttonClass="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
               buttonId="member_rhs"
-              iconComponent={
-                <React.Fragment>
-                  <i
-                    aria-hidden="true"
-                    className="icon icon-account-outline channel-header__members"
-                  />
-                  <span
-                    className="icon__text"
-                    id="channelMemberCountText"
-                  >
-                    -
-                  </span>
-                </React.Fragment>
-              }
               onClick={[Function]}
               tooltip="Members"
-            />
-            <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs channel-header__icon--active"
-              buttonId="channelHeaderPinButton"
-              iconComponent={
-                <i
-                  aria-hidden="true"
-                  className="icon icon-pin-outline channel-header__pin"
-                />
-              }
-              onClick={[Function]}
-              tooltip="Pinned messages"
-            />
+            >
+              <i
+                aria-hidden="true"
+                className="icon icon-account-outline channel-header__members"
+              />
+              <span
+                className="icon__text"
+                id="channelMemberCountText"
+              >
+                2
+              </span>
+            </HeaderIconWrapper>
             <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
               buttonId="channelHeaderFilesButton"
-              iconComponent={
-                <i
-                  className="icon icon-file-text-outline"
-                />
-              }
               onClick={[Function]}
               tooltip="Channel files"
-            />
+            >
+              <i
+                className="icon icon-file-text-outline"
+              />
+            </HeaderIconWrapper>
           </div>
           <div
             className="channel-header__description"
-            dir="auto"
             id="channelHeaderDescription"
           >
-            <div
-              className="header-popover-text-measurer"
-            >
-              <Connect(Markdown)
-                imageProps={
-                  Object {
-                    "hideUtilities": true,
-                  }
+            <ChannelHeaderText
+              channel={
+                Object {
+                  "create_at": 0,
+                  "creator_id": "id",
+                  "delete_at": 0,
+                  "display_name": "name",
+                  "group_constrained": false,
+                  "header": "header",
+                  "id": "channel_id",
+                  "last_post_at": 0,
+                  "last_root_post_at": 0,
+                  "name": "Test",
+                  "purpose": "purpose",
+                  "scheme_id": "id",
+                  "team_id": "team_id",
+                  "type": "O",
+                  "update_at": 0,
                 }
-                message="header"
-                options={
-                  Object {
-                    "atMentions": true,
-                    "channelNamesMap": undefined,
-                    "mentionHighlight": false,
-                    "singleline": true,
-                  }
-                }
-              />
-            </div>
-            <span
-              className="header-description__text"
-              onClick={[Function]}
-              onMouseOut={[Function]}
-              onMouseOver={[Function]}
-            >
-              <Overlay
-                animation={[Function]}
-                onHide={[Function]}
-                placement="bottom"
-                rootClose={true}
-                show={false}
-                target={null}
-              >
-                <Memo(Popover)
-                  className="channel-header__popover"
-                  id="header-popover"
-                  placement="bottom"
-                  popoverSize="lg"
-                  popoverStyle="info"
-                  style={
-                    Object {
-                      "maxWidth": 16,
-                      "transform": "translate(0px, 0px)",
-                    }
-                  }
-                >
-                  <span
-                    onClick={[Function]}
-                  >
-                    <Connect(Markdown)
-                      imageProps={
-                        Object {
-                          "hideUtilities": true,
-                        }
-                      }
-                      message="header"
-                      options={
-                        Object {
-                          "atMentions": true,
-                          "channelNamesMap": undefined,
-                          "mentionHighlight": false,
-                          "singleline": false,
-                        }
-                      }
-                    />
-                  </span>
-                </Memo(Popover)>
-              </Overlay>
-              <Connect(Markdown)
-                imageProps={
-                  Object {
-                    "hideUtilities": true,
-                  }
-                }
-                message="header"
-                options={
-                  Object {
-                    "atMentions": true,
-                    "channelNamesMap": undefined,
-                    "mentionHighlight": false,
-                    "singleline": true,
-                  }
-                }
-              />
-            </span>
+              }
+              teamId="team_id"
+            />
           </div>
         </div>
       </div>
@@ -2302,37 +1682,24 @@ exports[`components/ChannelHeader should render properly when custom status is e
                 "username": "some-user",
               }
             }
+            remoteNames={Array []}
           />
           <div
             className="channel-header__icons"
           >
             <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
-              buttonId="channelHeaderPinButton"
-              iconComponent={
-                <i
-                  aria-hidden="true"
-                  className="icon icon-pin-outline channel-header__pin"
-                />
-              }
-              onClick={[Function]}
-              tooltip="Pinned messages"
-            />
-            <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
               buttonId="channelHeaderFilesButton"
-              iconComponent={
-                <i
-                  className="icon icon-file-text-outline"
-                />
-              }
               onClick={[Function]}
               tooltip="Channel files"
-            />
+            >
+              <i
+                className="icon icon-file-text-outline"
+              />
+            </HeaderIconWrapper>
           </div>
           <div
             className="channel-header__description"
-            dir="auto"
             id="channelHeaderDescription"
           >
             <span
@@ -2342,7 +1709,7 @@ exports[`components/ChannelHeader should render properly when custom status is e
                 className="last-active__text"
               >
                 <MemoizedFormattedMessage
-                  defaultMessage="Active {timestamp}"
+                  defaultMessage="Last online {timestamp}"
                   id="channel_header.lastActive"
                   values={
                     Object {
@@ -2363,92 +1730,70 @@ exports[`components/ChannelHeader should render properly when custom status is e
                 />
               </span>
             </span>
-            <div
-              className="header-popover-text-measurer"
-            >
-              <Connect(Markdown)
-                imageProps={
-                  Object {
-                    "hideUtilities": true,
-                  }
+            <ChannelHeaderText
+              channel={
+                Object {
+                  "create_at": 0,
+                  "creator_id": "id",
+                  "delete_at": 0,
+                  "display_name": "name",
+                  "group_constrained": false,
+                  "header": "not the bot description",
+                  "id": "channel_id",
+                  "last_post_at": 0,
+                  "last_root_post_at": 0,
+                  "name": "DN",
+                  "purpose": "purpose",
+                  "scheme_id": "id",
+                  "status": "offline",
+                  "team_id": "team_id",
+                  "type": "D",
+                  "update_at": 0,
                 }
-                message="not the bot description"
-                options={
-                  Object {
-                    "atMentions": true,
-                    "channelNamesMap": undefined,
-                    "mentionHighlight": false,
-                    "singleline": true,
-                  }
+              }
+              dmUser={
+                Object {
+                  "auth_service": "",
+                  "bot_description": "",
+                  "create_at": 0,
+                  "delete_at": 0,
+                  "email": "",
+                  "first_name": "",
+                  "id": "user_id",
+                  "is_bot": false,
+                  "last_activity_at": 0,
+                  "last_name": "",
+                  "last_password_update": 0,
+                  "last_picture_update": 0,
+                  "locale": "",
+                  "mfa_active": false,
+                  "nickname": "",
+                  "notify_props": Object {
+                    "calls_desktop_sound": "true",
+                    "channel": "false",
+                    "comments": "never",
+                    "desktop": "default",
+                    "desktop_sound": "false",
+                    "email": "false",
+                    "first_name": "false",
+                    "highlight_keys": "",
+                    "mark_unread": "mention",
+                    "mention_keys": "",
+                    "push": "none",
+                    "push_status": "offline",
+                  },
+                  "password": "",
+                  "position": "",
+                  "props": Object {},
+                  "roles": "",
+                  "terms_of_service_create_at": 0,
+                  "terms_of_service_id": "",
+                  "update_at": 0,
+                  "username": "some-user",
                 }
-              />
-            </div>
-            <span
-              className="header-description__text"
-              onClick={[Function]}
-              onMouseOut={[Function]}
-              onMouseOver={[Function]}
-            >
-              <Overlay
-                animation={[Function]}
-                onHide={[Function]}
-                placement="bottom"
-                rootClose={true}
-                show={false}
-                target={null}
-              >
-                <Memo(Popover)
-                  className="channel-header__popover"
-                  id="header-popover"
-                  placement="bottom"
-                  popoverSize="lg"
-                  popoverStyle="info"
-                  style={
-                    Object {
-                      "maxWidth": 16,
-                      "transform": "translate(0px, 0px)",
-                    }
-                  }
-                >
-                  <span
-                    onClick={[Function]}
-                  >
-                    <Connect(Markdown)
-                      imageProps={
-                        Object {
-                          "hideUtilities": true,
-                        }
-                      }
-                      message="not the bot description"
-                      options={
-                        Object {
-                          "atMentions": true,
-                          "channelNamesMap": undefined,
-                          "mentionHighlight": false,
-                          "singleline": false,
-                        }
-                      }
-                    />
-                  </span>
-                </Memo(Popover)>
-              </Overlay>
-              <Connect(Markdown)
-                imageProps={
-                  Object {
-                    "hideUtilities": true,
-                  }
-                }
-                message="not the bot description"
-                options={
-                  Object {
-                    "atMentions": true,
-                    "channelNamesMap": undefined,
-                    "mentionHighlight": false,
-                    "singleline": true,
-                  }
-                }
-              />
-            </span>
+              }
+              teamId="team_id"
+            />
           </div>
         </div>
       </div>
@@ -2591,37 +1936,24 @@ exports[`components/ChannelHeader should render properly when custom status is s
                 "username": "some-user",
               }
             }
+            remoteNames={Array []}
           />
           <div
             className="channel-header__icons"
           >
             <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
-              buttonId="channelHeaderPinButton"
-              iconComponent={
-                <i
-                  aria-hidden="true"
-                  className="icon icon-pin-outline channel-header__pin"
-                />
-              }
-              onClick={[Function]}
-              tooltip="Pinned messages"
-            />
-            <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
               buttonId="channelHeaderFilesButton"
-              iconComponent={
-                <i
-                  className="icon icon-file-text-outline"
-                />
-              }
               onClick={[Function]}
               tooltip="Channel files"
-            />
+            >
+              <i
+                className="icon icon-file-text-outline"
+              />
+            </HeaderIconWrapper>
           </div>
           <div
             className="channel-header__description"
-            dir="auto"
             id="channelHeaderDescription"
           >
             <span
@@ -2631,7 +1963,7 @@ exports[`components/ChannelHeader should render properly when custom status is s
                 className="last-active__text"
               >
                 <MemoizedFormattedMessage
-                  defaultMessage="Active {timestamp}"
+                  defaultMessage="Last online {timestamp}"
                   id="channel_header.lastActive"
                   values={
                     Object {
@@ -2662,102 +1994,78 @@ exports[`components/ChannelHeader should render properly when custom status is s
                     }
                   }
                   showTooltip={true}
-                  tooltipDirection="bottom"
                   userID="user_id"
                 />
                 <CustomStatusText
                   className="custom-emoji__text"
                   text="In a meeting"
-                  tooltipDirection="bottom"
                 />
               </div>
             </span>
-            <div
-              className="header-popover-text-measurer"
-            >
-              <Connect(Markdown)
-                imageProps={
-                  Object {
-                    "hideUtilities": true,
-                  }
+            <ChannelHeaderText
+              channel={
+                Object {
+                  "create_at": 0,
+                  "creator_id": "id",
+                  "delete_at": 0,
+                  "display_name": "name",
+                  "group_constrained": false,
+                  "header": "not the bot description",
+                  "id": "channel_id",
+                  "last_post_at": 0,
+                  "last_root_post_at": 0,
+                  "name": "DN",
+                  "purpose": "purpose",
+                  "scheme_id": "id",
+                  "status": "offline",
+                  "team_id": "team_id",
+                  "type": "D",
+                  "update_at": 0,
                 }
-                message="not the bot description"
-                options={
-                  Object {
-                    "atMentions": true,
-                    "channelNamesMap": undefined,
-                    "mentionHighlight": false,
-                    "singleline": true,
-                  }
+              }
+              dmUser={
+                Object {
+                  "auth_service": "",
+                  "bot_description": "",
+                  "create_at": 0,
+                  "delete_at": 0,
+                  "email": "",
+                  "first_name": "",
+                  "id": "user_id",
+                  "is_bot": false,
+                  "last_activity_at": 0,
+                  "last_name": "",
+                  "last_password_update": 0,
+                  "last_picture_update": 0,
+                  "locale": "",
+                  "mfa_active": false,
+                  "nickname": "",
+                  "notify_props": Object {
+                    "calls_desktop_sound": "true",
+                    "channel": "false",
+                    "comments": "never",
+                    "desktop": "default",
+                    "desktop_sound": "false",
+                    "email": "false",
+                    "first_name": "false",
+                    "highlight_keys": "",
+                    "mark_unread": "mention",
+                    "mention_keys": "",
+                    "push": "none",
+                    "push_status": "offline",
+                  },
+                  "password": "",
+                  "position": "",
+                  "props": Object {},
+                  "roles": "",
+                  "terms_of_service_create_at": 0,
+                  "terms_of_service_id": "",
+                  "update_at": 0,
+                  "username": "some-user",
                 }
-              />
-            </div>
-            <span
-              className="header-description__text"
-              onClick={[Function]}
-              onMouseOut={[Function]}
-              onMouseOver={[Function]}
-            >
-              <Overlay
-                animation={[Function]}
-                onHide={[Function]}
-                placement="bottom"
-                rootClose={true}
-                show={false}
-                target={null}
-              >
-                <Memo(Popover)
-                  className="channel-header__popover"
-                  id="header-popover"
-                  placement="bottom"
-                  popoverSize="lg"
-                  popoverStyle="info"
-                  style={
-                    Object {
-                      "maxWidth": 16,
-                      "transform": "translate(0px, 0px)",
-                    }
-                  }
-                >
-                  <span
-                    onClick={[Function]}
-                  >
-                    <Connect(Markdown)
-                      imageProps={
-                        Object {
-                          "hideUtilities": true,
-                        }
-                      }
-                      message="not the bot description"
-                      options={
-                        Object {
-                          "atMentions": true,
-                          "channelNamesMap": undefined,
-                          "mentionHighlight": false,
-                          "singleline": false,
-                        }
-                      }
-                    />
-                  </span>
-                </Memo(Popover)>
-              </Overlay>
-              <Connect(Markdown)
-                imageProps={
-                  Object {
-                    "hideUtilities": true,
-                  }
-                }
-                message="not the bot description"
-                options={
-                  Object {
-                    "atMentions": true,
-                    "channelNamesMap": undefined,
-                    "mentionHighlight": false,
-                    "singleline": true,
-                  }
-                }
-              />
-            </span>
+              }
+              teamId="team_id"
+            />
           </div>
         </div>
       </div>
@@ -2858,145 +2166,66 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
         <div
           className="channel-header__title dropdown"
         >
-          <Memo(ChannelHeaderTitle) />
+          <Memo(ChannelHeaderTitle)
+            remoteNames={Array []}
+          />
           <div
             className="channel-header__icons"
           >
             <HeaderIconWrapper
               buttonClass="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
               buttonId="member_rhs"
-              iconComponent={
-                <React.Fragment>
-                  <i
-                    aria-hidden="true"
-                    className="icon icon-account-outline channel-header__members"
-                  />
-                  <span
-                    className="icon__text"
-                    id="channelMemberCountText"
-                  >
-                    -
-                  </span>
-                </React.Fragment>
-              }
               onClick={[Function]}
               tooltip="Members"
-            />
-            <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
-              buttonId="channelHeaderPinButton"
-              iconComponent={
-                <i
-                  aria-hidden="true"
-                  className="icon icon-pin-outline channel-header__pin"
-                />
-              }
-              onClick={[Function]}
-              tooltip="Pinned messages"
-            />
+            >
+              <i
+                aria-hidden="true"
+                className="icon icon-account-outline channel-header__members"
+              />
+              <span
+                className="icon__text"
+                id="channelMemberCountText"
+              >
+                2
+              </span>
+            </HeaderIconWrapper>
             <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
               buttonId="channelHeaderFilesButton"
-              iconComponent={
-                <i
-                  className="icon icon-file-text-outline"
-                />
-              }
               onClick={[Function]}
               tooltip="Channel files"
-            />
+            >
+              <i
+                className="icon icon-file-text-outline"
+              />
+            </HeaderIconWrapper>
           </div>
           <div
             className="channel-header__description"
-            dir="auto"
             id="channelHeaderDescription"
           >
-            <div
-              className="header-popover-text-measurer"
-            >
-              <Connect(Markdown)
-                imageProps={
-                  Object {
-                    "hideUtilities": true,
-                  }
+            <ChannelHeaderText
+              channel={
+                Object {
+                  "create_at": 0,
+                  "creator_id": "id",
+                  "delete_at": 0,
+                  "display_name": "name",
+                  "group_constrained": false,
+                  "header": "header",
+                  "id": "channel_id",
+                  "last_post_at": 0,
+                  "last_root_post_at": 0,
+                  "name": "DN",
+                  "purpose": "purpose",
+                  "scheme_id": "id",
+                  "team_id": "team_id",
+                  "type": "O",
+                  "update_at": 0,
                 }
-                message="header"
-                options={
-                  Object {
-                    "atMentions": true,
-                    "channelNamesMap": undefined,
-                    "mentionHighlight": false,
-                    "singleline": true,
-                  }
-                }
-              />
-            </div>
-            <span
-              className="header-description__text"
-              onClick={[Function]}
-              onMouseOut={[Function]}
-              onMouseOver={[Function]}
-            >
-              <Overlay
-                animation={[Function]}
-                onHide={[Function]}
-                placement="bottom"
-                rootClose={true}
-                show={false}
-                target={null}
-              >
-                <Memo(Popover)
-                  className="channel-header__popover"
-                  id="header-popover"
-                  placement="bottom"
-                  popoverSize="lg"
-                  popoverStyle="info"
-                  style={
-                    Object {
-                      "maxWidth": 16,
-                      "transform": "translate(0px, 0px)",
-                    }
-                  }
-                >
-                  <span
-                    onClick={[Function]}
-                  >
-                    <Connect(Markdown)
-                      imageProps={
-                        Object {
-                          "hideUtilities": true,
-                        }
-                      }
-                      message="header"
-                      options={
-                        Object {
-                          "atMentions": true,
-                          "channelNamesMap": undefined,
-                          "mentionHighlight": false,
-                          "singleline": false,
-                        }
-                      }
-                    />
-                  </span>
-                </Memo(Popover)>
-              </Overlay>
-              <Connect(Markdown)
-                imageProps={
-                  Object {
-                    "hideUtilities": true,
-                  }
-                }
-                message="header"
-                options={
-                  Object {
-                    "atMentions": true,
-                    "channelNamesMap": undefined,
-                    "mentionHighlight": false,
-                    "singleline": true,
-                  }
-                }
-              />
-            </span>
+              }
+              teamId="team_id"
+            />
           </div>
         </div>
       </div>
@@ -3095,145 +2324,66 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
         <div
           className="channel-header__title dropdown"
         >
-          <Memo(ChannelHeaderTitle) />
+          <Memo(ChannelHeaderTitle)
+            remoteNames={Array []}
+          />
           <div
             className="channel-header__icons"
           >
             <HeaderIconWrapper
               buttonClass="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
               buttonId="member_rhs"
-              iconComponent={
-                <React.Fragment>
-                  <i
-                    aria-hidden="true"
-                    className="icon icon-account-outline channel-header__members"
-                  />
-                  <span
-                    className="icon__text"
-                    id="channelMemberCountText"
-                  >
-                    -
-                  </span>
-                </React.Fragment>
-              }
               onClick={[Function]}
               tooltip="Members"
-            />
-            <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
-              buttonId="channelHeaderPinButton"
-              iconComponent={
-                <i
-                  aria-hidden="true"
-                  className="icon icon-pin-outline channel-header__pin"
-                />
-              }
-              onClick={[Function]}
-              tooltip="Pinned messages"
-            />
+            >
+              <i
+                aria-hidden="true"
+                className="icon icon-account-outline channel-header__members"
+              />
+              <span
+                className="icon__text"
+                id="channelMemberCountText"
+              >
+                2
+              </span>
+            </HeaderIconWrapper>
             <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
               buttonId="channelHeaderFilesButton"
-              iconComponent={
-                <i
-                  className="icon icon-file-text-outline"
-                />
-              }
               onClick={[Function]}
               tooltip="Channel files"
-            />
+            >
+              <i
+                className="icon icon-file-text-outline"
+              />
+            </HeaderIconWrapper>
           </div>
           <div
             className="channel-header__description"
-            dir="auto"
             id="channelHeaderDescription"
           >
-            <div
-              className="header-popover-text-measurer"
-            >
-              <Connect(Markdown)
-                imageProps={
-                  Object {
-                    "hideUtilities": true,
-                  }
+            <ChannelHeaderText
+              channel={
+                Object {
+                  "create_at": 0,
+                  "creator_id": "id",
+                  "delete_at": 0,
+                  "display_name": "name",
+                  "group_constrained": false,
+                  "header": "header",
+                  "id": "channel_id",
+                  "last_post_at": 0,
+                  "last_root_post_at": 0,
+                  "name": "Test",
+                  "purpose": "purpose",
+                  "scheme_id": "id",
+                  "team_id": "team_id",
+                  "type": "O",
+                  "update_at": 0,
                 }
-                message="header"
-                options={
-                  Object {
-                    "atMentions": true,
-                    "channelNamesMap": undefined,
-                    "mentionHighlight": false,
-                    "singleline": true,
-                  }
-                }
-              />
-            </div>
-            <span
-              className="header-description__text"
-              onClick={[Function]}
-              onMouseOut={[Function]}
-              onMouseOver={[Function]}
-            >
-              <Overlay
-                animation={[Function]}
-                onHide={[Function]}
-                placement="bottom"
-                rootClose={true}
-                show={false}
-                target={null}
-              >
-                <Memo(Popover)
-                  className="channel-header__popover"
-                  id="header-popover"
-                  placement="bottom"
-                  popoverSize="lg"
-                  popoverStyle="info"
-                  style={
-                    Object {
-                      "maxWidth": 16,
-                      "transform": "translate(0px, 0px)",
-                    }
-                  }
-                >
-                  <span
-                    onClick={[Function]}
-                  >
-                    <Connect(Markdown)
-                      imageProps={
-                        Object {
-                          "hideUtilities": true,
-                        }
-                      }
-                      message="header"
-                      options={
-                        Object {
-                          "atMentions": true,
-                          "channelNamesMap": undefined,
-                          "mentionHighlight": false,
-                          "singleline": false,
-                        }
-                      }
-                    />
-                  </span>
-                </Memo(Popover)>
-              </Overlay>
-              <Connect(Markdown)
-                imageProps={
-                  Object {
-                    "hideUtilities": true,
-                  }
-                }
-                message="header"
-                options={
-                  Object {
-                    "atMentions": true,
-                    "channelNamesMap": undefined,
-                    "mentionHighlight": false,
-                    "singleline": true,
-                  }
-                }
-              />
-            </span>
+              }
+              teamId="team_id"
+            />
           </div>
         </div>
       </div>
@@ -3332,157 +2482,73 @@ exports[`components/ChannelHeader should render properly when populated with cha
         <div
           className="channel-header__title dropdown"
         >
-          <Memo(ChannelHeaderTitle) />
+          <Memo(ChannelHeaderTitle)
+            remoteNames={Array []}
+          />
           <div
             className="channel-header__icons"
           >
             <HeaderIconWrapper
               buttonClass="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
               buttonId="member_rhs"
-              iconComponent={
-                <React.Fragment>
-                  <i
-                    aria-hidden="true"
-                    className="icon icon-account-outline channel-header__members"
-                  />
-                  <span
-                    className="icon__text"
-                    id="channelMemberCountText"
-                  >
-                    -
-                  </span>
-                </React.Fragment>
-              }
               onClick={[Function]}
               tooltip="Members"
-            />
-            <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
-              buttonId="channelHeaderPinButton"
-              iconComponent={
-                <i
-                  aria-hidden="true"
-                  className="icon icon-pin-outline channel-header__pin"
-                />
-              }
-              onClick={[Function]}
-              tooltip="Pinned messages"
-            />
+            >
+              <i
+                aria-hidden="true"
+                className="icon icon-account-outline channel-header__members"
+              />
+              <span
+                className="icon__text"
+                id="channelMemberCountText"
+              >
+                2
+              </span>
+            </HeaderIconWrapper>
             <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
               buttonId="channelHeaderFilesButton"
-              iconComponent={
-                <i
-                  className="icon icon-file-text-outline"
-                />
-              }
               onClick={[Function]}
               tooltip="Channel files"
-            />
+            >
+              <i
+                className="icon icon-file-text-outline"
+              />
+            </HeaderIconWrapper>
           </div>
           <div
             className="channel-header__description"
-            dir="auto"
             id="channelHeaderDescription"
           >
-            <div
-              className="header-popover-text-measurer"
-            >
-              <Connect(Markdown)
-                imageProps={
-                  Object {
-                    "hideUtilities": true,
-                  }
-                }
-                message="See ~test"
-                options={
-                  Object {
-                    "atMentions": true,
-                    "channelNamesMap": Object {
+            <ChannelHeaderText
+              channel={
+                Object {
+                  "create_at": 0,
+                  "creator_id": "id",
+                  "delete_at": 0,
+                  "display_name": "name",
+                  "group_constrained": false,
+                  "header": "See ~test",
+                  "id": "channel_id",
+                  "last_post_at": 0,
+                  "last_root_post_at": 0,
+                  "name": "Test",
+                  "props": Object {
+                    "channel_mentions": Object {
                       "test": Object {
                         "display_name": "Test",
                       },
                     },
-                    "mentionHighlight": false,
-                    "singleline": true,
-                  }
+                  },
+                  "purpose": "purpose",
+                  "scheme_id": "id",
+                  "team_id": "team_id",
+                  "type": "O",
+                  "update_at": 0,
                 }
-              />
-            </div>
-            <span
-              className="header-description__text"
-              onClick={[Function]}
-              onMouseOut={[Function]}
-              onMouseOver={[Function]}
-            >
-              <Overlay
-                animation={[Function]}
-                onHide={[Function]}
-                placement="bottom"
-                rootClose={true}
-                show={false}
-                target={null}
-              >
-                <Memo(Popover)
-                  className="channel-header__popover"
-                  id="header-popover"
-                  placement="bottom"
-                  popoverSize="lg"
-                  popoverStyle="info"
-                  style={
-                    Object {
-                      "maxWidth": 16,
-                      "transform": "translate(0px, 0px)",
-                    }
-                  }
-                >
-                  <span
-                    onClick={[Function]}
-                  >
-                    <Connect(Markdown)
-                      imageProps={
-                        Object {
-                          "hideUtilities": true,
-                        }
-                      }
-                      message="See ~test"
-                      options={
-                        Object {
-                          "atMentions": true,
-                          "channelNamesMap": Object {
-                            "test": Object {
-                              "display_name": "Test",
-                            },
-                          },
-                          "mentionHighlight": false,
-                          "singleline": false,
-                        }
-                      }
-                    />
-                  </span>
-                </Memo(Popover)>
-              </Overlay>
-              <Connect(Markdown)
-                imageProps={
-                  Object {
-                    "hideUtilities": true,
-                  }
-                }
-                message="See ~test"
-                options={
-                  Object {
-                    "atMentions": true,
-                    "channelNamesMap": Object {
-                      "test": Object {
-                        "display_name": "Test",
-                      },
-                    },
-                    "mentionHighlight": false,
-                    "singleline": true,
-                  }
-                }
-              />
-            </span>
+              }
+              teamId="team_id"
+            />
           </div>
         </div>
       </div>
@@ -3595,196 +2661,71 @@ exports[`components/ChannelHeader should render shared view 1`] = `
         <div
           className="channel-header__title dropdown"
         >
-          <Memo(ChannelHeaderTitle) />
+          <Memo(ChannelHeaderTitle)
+            remoteNames={Array []}
+          />
           <div
             className="channel-header__icons"
           >
             <HeaderIconWrapper
               buttonClass="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
               buttonId="member_rhs"
-              iconComponent={
-                <React.Fragment>
-                  <i
-                    aria-hidden="true"
-                    className="icon icon-account-outline channel-header__members"
-                  />
-                  <span
-                    className="icon__text"
-                    id="channelMemberCountText"
-                  >
-                    -
-                  </span>
-                </React.Fragment>
-              }
               onClick={[Function]}
               tooltip="Members"
-            />
-            <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
-              buttonId="channelHeaderPinButton"
-              iconComponent={
-                <i
-                  aria-hidden="true"
-                  className="icon icon-pin-outline channel-header__pin"
-                />
-              }
-              onClick={[Function]}
-              tooltip="Pinned messages"
-            />
+            >
+              <i
+                aria-hidden="true"
+                className="icon icon-account-outline channel-header__members"
+              />
+              <span
+                className="icon__text"
+                id="channelMemberCountText"
+              >
+                2
+              </span>
+            </HeaderIconWrapper>
             <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
               buttonId="channelHeaderFilesButton"
-              iconComponent={
-                <i
-                  className="icon icon-file-text-outline"
-                />
-              }
               onClick={[Function]}
               tooltip="Channel files"
-            />
+            >
+              <i
+                className="icon icon-file-text-outline"
+              />
+            </HeaderIconWrapper>
           </div>
           <div
             className="channel-header__description"
-            dir="auto"
             id="channelHeaderDescription"
           >
-            <div
-              className="header-popover-text-measurer"
-            >
-              <Connect(Markdown)
-                imageProps={
-                  Object {
-                    "hideUtilities": true,
-                  }
+            <ChannelHeaderText
+              channel={
+                Object {
+                  "create_at": 0,
+                  "creator_id": "id",
+                  "delete_at": 0,
+                  "display_name": "name",
+                  "group_constrained": false,
+                  "header": "header",
+                  "id": "channel_id",
+                  "last_post_at": 0,
+                  "last_root_post_at": 0,
+                  "name": "Test",
+                  "purpose": "purpose",
+                  "scheme_id": "id",
+                  "shared": true,
+                  "team_id": "team_id",
+                  "type": "O",
+                  "update_at": 0,
                 }
-                message="header"
-                options={
-                  Object {
-                    "atMentions": true,
-                    "channelNamesMap": undefined,
-                    "mentionHighlight": false,
-                    "singleline": true,
-                  }
-                }
-              />
-            </div>
-            <span
-              className="header-description__text"
-              onClick={[Function]}
-              onMouseOut={[Function]}
-              onMouseOver={[Function]}
-            >
-              <Overlay
-                animation={[Function]}
-                onHide={[Function]}
-                placement="bottom"
-                rootClose={true}
-                show={false}
-                target={null}
-              >
-                <Memo(Popover)
-                  className="channel-header__popover"
-                  id="header-popover"
-                  placement="bottom"
-                  popoverSize="lg"
-                  popoverStyle="info"
-                  style={
-                    Object {
-                      "maxWidth": 16,
-                      "transform": "translate(0px, 0px)",
-                    }
-                  }
-                >
-                  <span
-                    onClick={[Function]}
-                  >
-                    <Connect(Markdown)
-                      imageProps={
-                        Object {
-                          "hideUtilities": true,
-                        }
-                      }
-                      message="header"
-                      options={
-                        Object {
-                          "atMentions": true,
-                          "channelNamesMap": undefined,
-                          "mentionHighlight": false,
-                          "singleline": false,
-                        }
-                      }
-                    />
-                  </span>
-                </Memo(Popover)>
-              </Overlay>
-              <Connect(Markdown)
-                imageProps={
-                  Object {
-                    "hideUtilities": true,
-                  }
-                }
-                message="header"
-                options={
-                  Object {
-                    "atMentions": true,
-                    "channelNamesMap": undefined,
-                    "mentionHighlight": false,
-                    "singleline": true,
-                  }
-                }
-              />
-            </span>
+              }
+              teamId="team_id"
+            />
           </div>
         </div>
       </div>
     </div>
-    <Connect(injectIntl(ChannelHeaderPlug))
-      channel={
-        Object {
-          "create_at": 0,
-          "creator_id": "id",
-          "delete_at": 0,
-          "display_name": "name",
-          "group_constrained": false,
-          "header": "header",
-          "id": "channel_id",
-          "last_post_at": 0,
-          "last_root_post_at": 0,
-          "name": "Test",
-          "purpose": "purpose",
-          "scheme_id": "id",
-          "shared": true,
-          "team_id": "team_id",
-          "type": "O",
-          "update_at": 0,
-        }
-      }
-      channelMember={
-        Object {
-          "channel_id": "channel_id",
-          "last_update_at": 0,
-          "last_viewed_at": 0,
-          "mention_count": 0,
-          "mention_count_root": 0,
-          "msg_count": 0,
-          "msg_count_root": 0,
-          "notify_props": Object {
-            "channel_auto_follow_threads": "off",
-            "desktop": "default",
-            "email": "default",
-            "ignore_channel_mentions": "default",
-            "mark_unread": "all",
-            "push": "default",
-          },
-          "roles": "channel_user",
-          "scheme_admin": false,
-          "scheme_user": true,
-          "urgent_mention_count": 0,
-          "user_id": "user_id",
-        }
-      }
-    />
-    <Connect(CallButton) />
     <ChannelInfoButton
       channel={
         Object {
@@ -3834,153 +2775,83 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
         <div
           className="channel-header__title dropdown"
         >
-          <Memo(ChannelHeaderTitle) />
+          <Memo(ChannelHeaderTitle)
+            remoteNames={Array []}
+          />
           <div
             className="channel-header__icons"
           >
             <HeaderIconWrapper
               buttonClass="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
               buttonId="member_rhs"
-              iconComponent={
-                <React.Fragment>
-                  <i
-                    aria-hidden="true"
-                    className="icon icon-account-outline channel-header__members"
-                  />
-                  <span
-                    className="icon__text"
-                    id="channelMemberCountText"
-                  >
-                    -
-                  </span>
-                </React.Fragment>
-              }
               onClick={[Function]}
               tooltip="Members"
-            />
+            >
+              <i
+                aria-hidden="true"
+                className="icon icon-account-outline channel-header__members"
+              />
+              <span
+                className="icon__text"
+                id="channelMemberCountText"
+              >
+                2
+              </span>
+            </HeaderIconWrapper>
             <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
               buttonId="channelHeaderPinButton"
-              iconComponent={
-                <React.Fragment>
-                  <i
-                    aria-hidden="true"
-                    className="icon icon-pin-outline channel-header__pin"
-                  />
-                  <span
-                    className="icon__text"
-                    id="channelPinnedPostCountText"
-                  >
-                    2
-                  </span>
-                </React.Fragment>
-              }
               onClick={[Function]}
               tooltip="Pinned messages"
-            />
+            >
+              <i
+                aria-hidden="true"
+                className="icon icon-pin-outline channel-header__pin"
+              />
+              <span
+                className="icon__text"
+                id="channelPinnedPostCountText"
+              >
+                2
+              </span>
+            </HeaderIconWrapper>
             <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
               buttonId="channelHeaderFilesButton"
-              iconComponent={
-                <i
-                  className="icon icon-file-text-outline"
-                />
-              }
               onClick={[Function]}
               tooltip="Channel files"
-            />
+            >
+              <i
+                className="icon icon-file-text-outline"
+              />
+            </HeaderIconWrapper>
           </div>
           <div
             className="channel-header__description"
-            dir="auto"
             id="channelHeaderDescription"
           >
-            <div
-              className="header-popover-text-measurer"
-            >
-              <Connect(Markdown)
-                imageProps={
-                  Object {
-                    "hideUtilities": true,
-                  }
+            <ChannelHeaderText
+              channel={
+                Object {
+                  "create_at": 0,
+                  "creator_id": "id",
+                  "delete_at": 0,
+                  "display_name": "name",
+                  "group_constrained": false,
+                  "header": "header",
+                  "id": "channel_id",
+                  "last_post_at": 0,
+                  "last_root_post_at": 0,
+                  "name": "Test",
+                  "purpose": "purpose",
+                  "scheme_id": "id",
+                  "team_id": "team_id",
+                  "type": "O",
+                  "update_at": 0,
                 }
-                message="header"
-                options={
-                  Object {
-                    "atMentions": true,
-                    "channelNamesMap": undefined,
-                    "mentionHighlight": false,
-                    "singleline": true,
-                  }
-                }
-              />
-            </div>
-            <span
-              className="header-description__text"
-              onClick={[Function]}
-              onMouseOut={[Function]}
-              onMouseOver={[Function]}
-            >
-              <Overlay
-                animation={[Function]}
-                onHide={[Function]}
-                placement="bottom"
-                rootClose={true}
-                show={false}
-                target={null}
-              >
-                <Memo(Popover)
-                  className="channel-header__popover"
-                  id="header-popover"
-                  placement="bottom"
-                  popoverSize="lg"
-                  popoverStyle="info"
-                  style={
-                    Object {
-                      "maxWidth": 16,
-                      "transform": "translate(0px, 0px)",
-                    }
-                  }
-                >
-                  <span
-                    onClick={[Function]}
-                  >
-                    <Connect(Markdown)
-                      imageProps={
-                        Object {
-                          "hideUtilities": true,
-                        }
-                      }
-                      message="header"
-                      options={
-                        Object {
-                          "atMentions": true,
-                          "channelNamesMap": undefined,
-                          "mentionHighlight": false,
-                          "singleline": false,
-                        }
-                      }
-                    />
-                  </span>
-                </Memo(Popover)>
-              </Overlay>
-              <Connect(Markdown)
-                imageProps={
-                  Object {
-                    "hideUtilities": true,
-                  }
-                }
-                message="header"
-                options={
-                  Object {
-                    "atMentions": true,
-                    "channelNamesMap": undefined,
-                    "mentionHighlight": false,
-                    "singleline": true,
-                  }
-                }
-              />
-            </span>
+              }
+              teamId="team_id"
+            />
           </div>
         </div>
       </div>

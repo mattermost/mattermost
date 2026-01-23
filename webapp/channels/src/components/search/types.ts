@@ -24,9 +24,9 @@ export type OwnProps = {
 
 export type StateProps = {
     isRhsExpanded: boolean;
-    isRhsOpen: boolean;
     isSearchingTerm: boolean;
     searchTerms: string;
+    searchTeam: string;
     searchType: SearchType;
     searchVisible: boolean;
     hideMobileSearchBarInRHS: boolean;
@@ -36,25 +36,25 @@ export type StateProps = {
     isChannelFiles: boolean;
     currentChannel?: Channel;
     isMobileView: boolean;
+    crossTeamSearchEnabled: boolean;
 }
 
 export type DispatchProps = {
     actions: {
         updateSearchTerms: (term: string) => Action;
+        updateSearchTeam: (teamId: string|null) => Action;
         updateSearchTermsForShortcut: () => void;
         updateSearchType: (searchType: string) => Action;
         showSearchResults: (isMentionSearch: boolean) => unknown;
         showChannelFiles: (channelId: string) => void;
-        showMentions: () => void;
-        showFlaggedPosts: () => void;
         setRhsExpanded: (expanded: boolean) => Action;
         closeRightHandSide: () => void;
-        autocompleteChannelsForSearch: (term: string, success?: (channels: Channel[]) => void, error?: (err: ServerError) => void) => void;
+        autocompleteChannelsForSearch: (term: string, teamId: string, success?: (channels: Channel[]) => void, error?: (err: ServerError) => void) => void;
         autocompleteUsersInTeam: (username: string) => Promise<UserAutocomplete>;
         updateRhsState: (rhsState: string) => void;
-        getMorePostsForSearch: () => void;
+        getMorePostsForSearch: (teamId: string) => void;
         openRHSSearch: () => void;
-        getMoreFilesForSearch: () => void;
+        getMoreFilesForSearch: (teamId: string) => void;
         filterFilesSearchByExt: (extensions: string[]) => void;
     };
 }

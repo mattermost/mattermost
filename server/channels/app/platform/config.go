@@ -6,8 +6,8 @@ package platform
 import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
-	"crypto/md5"
 	"crypto/rand"
+	"crypto/sha256"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
@@ -21,6 +21,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/config"
@@ -38,6 +39,23 @@ type ServiceConfig struct {
 
 func (ps *PlatformService) Config() *model.Config {
 	return ps.configStore.Get()
+}
+
+// getSanitizedConfig gets the configuration without any secrets.
+func (ps *PlatformService) getSanitizedConfig(rctx request.CTX, opts *model.SanitizeOptions) *model.Config {
+	cfg := ps.Config().Clone()
+
+	manifests, err := ps.getPluginManifests()
+	if err != nil {
+		// getPluginManifests might error, e.g. when plugins are disabled.
+		// Sanitize all plugin settings in this case.
+		rctx.Logger().Warn("Failed to get plugin manifests for config sanitization. Will sanitize all plugin settings.", mlog.Err(err))
+		cfg.Sanitize(nil, opts)
+	} else {
+		cfg.Sanitize(manifests, opts)
+	}
+
+	return cfg
 }
 
 // Registers a function with a given listener to be called when the config is reloaded and may have changed. The function
@@ -73,7 +91,7 @@ func (ps *PlatformService) IsConfigReadOnly() bool {
 func (ps *PlatformService) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError) {
 	if ps.pluginEnv != nil {
 		var hookErr error
-		ps.pluginEnv.RunMultiHook(func(hooks plugin.Hooks) bool {
+		ps.pluginEnv.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			var cfg *model.Config
 			cfg, hookErr = hooks.ConfigurationWillBeSaved(newCfg)
 			if hookErr == nil && cfg != nil {
@@ -114,11 +132,11 @@ func (ps *PlatformService) ReloadConfig() error {
 	return nil
 }
 
-func (ps *PlatformService) GetEnvironmentOverridesWithFilter(filter func(reflect.StructField) bool) map[string]interface{} {
+func (ps *PlatformService) GetEnvironmentOverridesWithFilter(filter func(reflect.StructField) bool) map[string]any {
 	return ps.configStore.GetEnvironmentOverridesWithFilter(filter)
 }
 
-func (ps *PlatformService) GetEnvironmentOverrides() map[string]interface{} {
+func (ps *PlatformService) GetEnvironmentOverrides() map[string]any {
 	return ps.configStore.GetEnvironmentOverrides()
 }
 
@@ -219,7 +237,7 @@ func (ps *PlatformService) regenerateClientConfig() {
 	clientConfigJSON, _ := json.Marshal(clientConfig)
 	ps.clientConfig.Store(clientConfig)
 	ps.limitedClientConfig.Store(limitedClientConfig)
-	ps.clientConfigHash.Store(fmt.Sprintf("%x", md5.Sum(clientConfigJSON)))
+	ps.clientConfigHash.Store(fmt.Sprintf("%x", sha256.Sum256(clientConfigJSON)))
 }
 
 // AsymmetricSigningKey will return a private key that can be used for asymmetric signing.
@@ -291,7 +309,7 @@ func (ps *PlatformService) EnsureAsymmetricSigningKey() error {
 	case "P-256":
 		curve = elliptic.P256()
 	default:
-		return fmt.Errorf("unknown curve: " + key.ECDSAKey.Curve)
+		return fmt.Errorf("unknown curve: %s", key.ECDSAKey.Curve)
 	}
 	ps.asymmetricSigningKey.Store(&ecdsa.PrivateKey{
 		PublicKey: ecdsa.PublicKey{
@@ -369,12 +387,7 @@ func (ps *PlatformService) IsFirstUserAccount() bool {
 }
 
 func (ps *PlatformService) MaxPostSize() int {
-	maxPostSize := ps.Store.Post().GetMaxPostSize()
-	if maxPostSize == 0 {
-		return model.PostMessageMaxRunesV1
-	}
-
-	return maxPostSize
+	return ps.Store.Post().GetMaxPostSize()
 }
 
 func (ps *PlatformService) isUpgradedFromTE() bool {

@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
 
 import type {Team, TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
@@ -12,16 +13,14 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isGuest, isAdmin, isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 
 import ConfirmModal from 'components/confirm_modal';
+import * as Menu from 'components/menu';
 import DropdownIcon from 'components/widgets/icons/fa_dropdown_icon';
-import Menu from 'components/widgets/menu/menu';
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {getHistory} from 'utils/browser_history';
-import * as Utils from 'utils/utils';
 
 const ROWS_FROM_BOTTOM_TO_OPEN_UP = 3;
 
-type Props = {
+type Props = WrappedComponentProps & {
     user: UserProfile;
     currentUser: UserProfile;
     teamMember: TeamMembership;
@@ -50,7 +49,7 @@ type State = {
     role: string|null;
 }
 
-export default class TeamMembersDropdown extends React.PureComponent<Props, State> {
+class TeamMembersDropdown extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
 
@@ -141,7 +140,7 @@ export default class TeamMembersDropdown extends React.PureComponent<Props, Stat
             );
         }
 
-        const {currentTeam, teamMember, user} = this.props;
+        const {currentTeam, teamMember, user, intl} = this.props;
 
         let currentRoles = null;
 
@@ -250,49 +249,74 @@ export default class TeamMembersDropdown extends React.PureComponent<Props, Stat
         }
 
         const menuRemove = (
-            <Menu.ItemAction
+            <Menu.Item
                 id='removeFromTeam'
                 onClick={this.handleRemoveFromTeam}
-                text={Utils.localizeMessage('team_members_dropdown.leave_team', 'Remove From Team')}
+                labels={
+                    <FormattedMessage
+                        id='team_members_dropdown.leave_team'
+                        defaultMessage='Remove from Team'
+                    />
+                }
             />
         );
         const menuMakeAdmin = (
-            <Menu.ItemAction
+            <Menu.Item
                 onClick={this.handleMakeAdmin}
-                text={Utils.localizeMessage('team_members_dropdown.makeAdmin', 'Make Team Admin')}
+                labels={
+                    <FormattedMessage
+                        id='team_members_dropdown.makeAdmin'
+                        defaultMessage='Make Team Admin'
+                    />
+                }
             />
         );
         const menuMakeMember = (
-            <Menu.ItemAction
+            <Menu.Item
                 onClick={this.handleMakeMember}
-                text={Utils.localizeMessage('team_members_dropdown.makeMember', 'Make Member')}
+                labels={
+                    <FormattedMessage
+                        id='team_members_dropdown.makeMember'
+                        defaultMessage='Make Team Member'
+                    />
+                }
             />
         );
         return (
-            <MenuWrapper>
-                <button
-                    id={`teamMembersDropdown_${user.username}`}
-                    className='dropdown-toggle theme color--link style--none'
-                    type='button'
-                    aria-expanded='true'
+            <>
+                <Menu.Container
+                    menuButton={{
+                        id: `teamMembersDropdown_${user.username}`,
+                        class: 'dropdown-toggle theme color--link style--none',
+                        children: (
+                            <>
+                                <span>{currentRoles} </span>
+                                <DropdownIcon/>
+                            </>
+                        ),
+                    }}
+                    menu={{
+                        id: `teamMembersDropdown_${user.username}_menu`,
+                        'aria-label': intl.formatMessage({id: 'team_members_dropdown.menuAriaLabel', defaultMessage: 'Change the role of a team member'}),
+                    }}
+                    anchorOrigin={{
+                        vertical: openUp ? 'top' : 'bottom',
+                        horizontal: 'right',
+                    }}
+                    transformOrigin={{
+                        vertical: openUp ? 'bottom' : 'top',
+                        horizontal: 'right',
+                    }}
                 >
-                    <span>{currentRoles} </span>
-                    <DropdownIcon/>
-                </button>
-                <div>
-                    <Menu
-                        openLeft={true}
-                        openUp={openUp}
-                        ariaLabel={Utils.localizeMessage('team_members_dropdown.menuAriaLabel', 'Change the role of a team member')}
-                    >
-                        {canRemoveFromTeam ? menuRemove : null}
-                        {showMakeAdmin ? menuMakeAdmin : null}
-                        {showMakeMember ? menuMakeMember : null}
-                    </Menu>
-                    {makeDemoteModal}
-                    {serverError}
-                </div>
-            </MenuWrapper>
+                    {canRemoveFromTeam ? menuRemove : null}
+                    {showMakeAdmin ? menuMakeAdmin : null}
+                    {showMakeMember ? menuMakeMember : null}
+                </Menu.Container>
+                {makeDemoteModal}
+                {serverError}
+            </>
         );
     }
 }
+
+export default injectIntl(TeamMembersDropdown);

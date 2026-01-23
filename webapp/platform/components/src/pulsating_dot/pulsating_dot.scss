@@ -35,3 +35,37 @@
         animation: pulse2 2s ease 0s infinite;
     }
 }
+
+@keyframes pulse1 {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    80% {
+        opacity: 0;
+        transform: scale(2.5);
+    }
+
+    100% {
+        opacity: 0;
+        transform: scale(2.5);
+    }
+}
+
+@keyframes pulse2 {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    30% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    100% {
+        opacity: 0;
+        transform: scale(2.5);
+    }
+}

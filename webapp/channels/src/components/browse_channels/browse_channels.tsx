@@ -63,7 +63,6 @@ export type Props = {
     teamId: string;
     teamName?: string;
     channelsRequestStarted?: boolean;
-    canShowArchivedChannels?: boolean;
     myChannelMemberships: RelationOneToOne<Channel, ChannelMembership>;
     shouldHideJoinedChannels: boolean;
     rhsState?: RhsState;
@@ -110,11 +109,8 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
 
         const promises = [
             this.props.actions.getChannels(this.props.teamId, 0, CHANNELS_CHUNK_SIZE * 2),
+            this.props.actions.getArchivedChannels(this.props.teamId, 0, CHANNELS_CHUNK_SIZE * 2),
         ];
-
-        if (this.props.canShowArchivedChannels) {
-            promises.push(this.props.actions.getArchivedChannels(this.props.teamId, 0, CHANNELS_CHUNK_SIZE * 2));
-        }
 
         Promise.all(promises).then((results) => {
             const channelIDsForMemberCount = results.flatMap((result) => {
@@ -314,7 +310,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                         id='createNewChannelButton'
                         className={buttonClassName}
                         onClick={this.handleNewChannel}
-                        aria-label={localizeMessage('more_channels.create', 'Create New Channel')}
+                        aria-label={localizeMessage({id: 'more_channels.create', defaultMessage: 'Create New Channel'})}
                     >
                         {icon}
                         <FormattedMessage
@@ -339,7 +335,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
         );
 
         const body = this.state.loading ? <LoadingScreen/> : (
-            <React.Fragment>
+            <>
                 <SearchableChannelList
                     channels={this.activeChannels}
                     channelsPerPage={CHANNELS_PER_PAGE}
@@ -351,7 +347,6 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                     loading={search ? searching : channelsRequestStarted}
                     changeFilter={this.changeFilter}
                     filter={this.state.filter}
-                    canShowArchivedChannels={this.props.canShowArchivedChannels}
                     myChannelMemberships={this.props.myChannelMemberships}
                     closeModal={this.props.actions.closeModal}
                     hideJoinedChannelsPreference={this.handleShowJoinedChannelsPreference}
@@ -359,7 +354,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                     channelsMemberCount={this.props.channelsMemberCount}
                 />
                 {serverError}
-            </React.Fragment>
+            </>
         );
 
         const title = (
@@ -371,9 +366,8 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
 
         return (
             <GenericModal
-                onExited={this.handleExit}
                 id='browseChannelsModal'
-                aria-labelledby='browseChannelsModalLabel'
+                onExited={this.handleExit}
                 compassDesign={true}
                 modalHeaderText={title}
                 headerButton={createNewChannelButton('btn-secondary btn-sm')}

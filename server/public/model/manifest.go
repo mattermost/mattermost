@@ -12,8 +12,8 @@ import (
 	"strings"
 
 	"github.com/blang/semver/v4"
+	"github.com/goccy/go-yaml"
 	"github.com/pkg/errors"
-	"gopkg.in/yaml.v2"
 )
 
 type PluginOption struct {
@@ -89,6 +89,10 @@ type PluginSetting struct {
 	// and the opposite environment is running the plugin, the setting will be hidden in the admin console UI.
 	// Note that this functionality is entirely client-side, so the plugin needs to handle the case of invalid submissions.
 	Hosting string `json:"hosting"`
+
+	// If true, the setting is sanitized before showing it in the System Console or returning it via the API.
+	// This is useful for settings that contain sensitive information.
+	Secret bool `json:"secret"`
 }
 
 type PluginSettingsSection struct {
@@ -112,6 +116,9 @@ type PluginSettingsSection struct {
 
 	// If true, the section will load the custom component registered using `registry.registerAdminConsoleCustomSection`
 	Custom bool `json:"custom" yaml:"custom"`
+
+	// If true and Custom = true, the settings defined under this section will still render as fallback (unless the individual setting is type 'custom') when the plugin is disabled.
+	Fallback bool `json:"fallback" yaml:"fallback"`
 }
 
 type PluginSettingsSchema struct {
@@ -247,7 +254,7 @@ func (m *Manifest) HasClient() bool {
 func (m *Manifest) ClientManifest() *Manifest {
 	cm := new(Manifest)
 	*cm = *m
-	cm.Name = ""
+	cm.Name = m.Name
 	cm.Description = ""
 	cm.Server = nil
 	if cm.Webapp != nil {

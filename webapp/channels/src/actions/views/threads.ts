@@ -5,14 +5,14 @@ import {batchActions} from 'redux-batched-actions';
 
 import {updateThreadRead} from 'mattermost-redux/actions/threads';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {getThread} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {ThunkActionFunc} from 'mattermost-redux/types/actions';
 
 import {isThreadManuallyUnread, isThreadOpen} from 'selectors/views/threads';
 
 import {ActionTypes, Threads} from 'utils/constants';
 
-import type {GlobalState} from 'types/store';
+import type {ThunkActionFunc} from 'types/store';
 
 export function updateThreadLastOpened(threadId: string, lastViewedAt: number) {
     return {
@@ -20,6 +20,16 @@ export function updateThreadLastOpened(threadId: string, lastViewedAt: number) {
         data: {
             threadId,
             lastViewedAt,
+        },
+    };
+}
+
+export function updateThreadLastUpdateAt(threadId: string, lastUpdateAt: number) {
+    return {
+        type: Threads.CHANGED_LAST_UPDATE_AT,
+        data: {
+            threadId,
+            lastUpdateAt,
         },
     };
 }
@@ -51,13 +61,14 @@ export function updateThreadToastStatus(status: boolean) {
     };
 }
 
-export function markThreadAsRead(threadId: string): ThunkActionFunc<void, GlobalState> {
+export function markThreadAsRead(threadId: string): ThunkActionFunc<void> {
     return (dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
         const currentTeamId = getCurrentTeamId(state);
+        const thread = getThread(state, threadId);
 
-        if (isThreadOpen(state, threadId) && window.isActive && !isThreadManuallyUnread(state, threadId)) {
+        if (thread && isThreadOpen(state, threadId) && window.isActive && !isThreadManuallyUnread(state, threadId)) {
             // mark thread as read on the server
             dispatch(updateThreadRead(currentUserId, currentTeamId, threadId, Date.now()));
         }

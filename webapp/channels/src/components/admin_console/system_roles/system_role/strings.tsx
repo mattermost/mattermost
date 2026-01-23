@@ -107,6 +107,10 @@ export const sectionStrings: Record<string, Record<string, MessageDescriptor>> =
             id: 'admin.permissions.sysconsole_section_user_management_system_roles.name',
             defaultMessage: 'Delegated Granular Administration',
         },
+        description: {
+            id: 'admin.permissions.sysconsole_section_user_management_system_roles.description',
+            defaultMessage: 'Restricts the System Console interface only. The underlying API endpoints are accessible to all users in a read-only state for basic product functionality.',
+        },
     }),
     environment: defineMessages({
         name: {
@@ -194,6 +198,12 @@ export const sectionStrings: Record<string, Record<string, MessageDescriptor>> =
         name: {
             id: 'admin.permissions.sysconsole_section_environment_developer.name',
             defaultMessage: 'Developer',
+        },
+    }),
+    environment_mobile_security: defineMessages({
+        name: {
+            id: 'admin.permissions.sysconsole_section_environment_mobile_security.name',
+            defaultMessage: 'Mobile Security',
         },
     }),
     site: defineMessages({
@@ -422,12 +432,6 @@ export const sectionStrings: Record<string, Record<string, MessageDescriptor>> =
         name: {
             id: 'admin.permissions.sysconsole_section_experimental_feature_flags.name',
             defaultMessage: 'Feature Flags',
-        },
-    }),
-    experimental_bleve: defineMessages({
-        name: {
-            id: 'admin.permissions.sysconsole_section_experimental_bleve.name',
-            defaultMessage: 'Bleve',
         },
     }),
 };

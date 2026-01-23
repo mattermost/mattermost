@@ -5,42 +5,16 @@ import React from 'react';
 import type {RouteComponentProps} from 'react-router-dom';
 import {bindActionCreators} from 'redux';
 
-import {ServiceEnvironment} from '@mattermost/types/config';
-
-import {Client4} from 'mattermost-redux/client';
-import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
-
 import * as GlobalActions from 'actions/global_actions';
 
 import testConfigureStore from 'packages/mattermost-redux/test/test_store';
 import {renderWithContext, waitFor} from 'tests/react_testing_utils';
+import * as BrowserUtils from 'utils/browser_utils';
 import {StoragePrefixes} from 'utils/constants';
 
 import {handleLoginLogoutSignal, redirectToOnboardingOrDefaultTeam} from './actions';
 import type {Props} from './root';
 import Root, {doesRouteBelongToTeamControllerRoutes} from './root';
-
-jest.mock('mattermost-redux/client/rudder', () => ({
-    rudderAnalytics: {
-        identify: jest.fn(),
-        load: jest.fn(),
-        page: jest.fn(),
-        ready: jest.fn((callback) => callback()), // Default behavior: calls the callback
-        track: jest.fn(),
-    },
-    RudderTelemetryHandler: jest.fn(),
-}));
-
-jest.mock('mattermost-redux/client/rudder', () => {
-    const actual = jest.requireActual('mattermost-redux/client/rudder');
-    return {
-        ...actual,
-        rudderAnalytics: {
-            ...actual.rudderAnalytics,
-            ready: jest.fn((callback) => callback()),
-        },
-    };
-});
 
 jest.mock('actions/telemetry_actions');
 
@@ -49,24 +23,20 @@ jest.mock('components/team_sidebar', () => () => <div/>);
 jest.mock('components/mobile_view_watcher', () => () => <div/>);
 jest.mock('./performance_reporter_controller', () => () => <div/>);
 
-jest.mock('utils/utils', () => {
-    const original = jest.requireActual('utils/utils');
+jest.mock('utils/utils', () => ({
+    applyTheme: jest.fn(),
+}));
 
-    return {
-        ...original,
-        applyTheme: jest.fn(),
-    };
-});
+jest.mock('utils/browser_utils', () => ({
+    reloadPage: jest.fn(),
+}));
 
 jest.mock('actions/global_actions', () => ({
     redirectUserToDefaultTeam: jest.fn(),
 }));
 
 jest.mock('mattermost-redux/actions/general', () => ({
-    getFirstAdminSetupComplete: jest.fn(() => Promise.resolve({
-        type: 'FIRST_ADMIN_COMPLETE_SETUP_RECEIVED',
-        data: true,
-    })),
+    ...jest.requireActual('mattermost-redux/actions/general'),
     setUrl: () => {},
 }));
 
@@ -74,7 +44,6 @@ describe('components/Root', () => {
     const store = testConfigureStore();
 
     const baseProps: Props = {
-        theme: {} as Theme,
         isConfigLoaded: true,
         telemetryEnabled: true,
         noAccounts: false,
@@ -93,6 +62,7 @@ describe('components/Root', () => {
         rhsState: null,
         shouldShowAppBar: false,
         isCloud: false,
+        enableDesktopLandingPage: true,
         actions: {
             loadConfigAndMe: jest.fn().mockImplementation(() => {
                 return Promise.resolve({
@@ -100,17 +70,15 @@ describe('components/Root', () => {
                     isMeRequested: false,
                 });
             }),
-            getFirstAdminSetupComplete: jest.fn(),
-            getProfiles: jest.fn(),
             loadRecentlyUsedCustomEmojis: jest.fn(),
             migrateRecentEmojis: jest.fn(),
-            registerCustomPostRenderer: jest.fn(),
             initializeProducts: jest.fn(),
             ...bindActionCreators({
                 handleLoginLogoutSignal,
                 redirectToOnboardingOrDefaultTeam,
             }, store.dispatch),
         },
+        dispatch: store.dispatch,
         permalinkRedirectTeamName: 'myTeam',
         ...{
             location: {
@@ -120,14 +88,13 @@ describe('components/Root', () => {
                 push: jest.fn(),
             } as unknown as RouteComponentProps['history'],
         } as RouteComponentProps,
+        isDevModeEnabled: false,
     };
 
     let originalMatchMedia: (query: string) => MediaQueryList;
-    let originalReload: () => void;
 
     beforeAll(() => {
         originalMatchMedia = window.matchMedia;
-        originalReload = window.location.reload;
 
         Object.defineProperty(window, 'matchMedia', {
             writable: true,
@@ -136,22 +103,17 @@ describe('components/Root', () => {
                 media: query,
             })),
         });
-
-        Object.defineProperty(window.location, 'reload', {
-            configurable: true,
-            writable: true,
-        });
-
-        window.location.reload = jest.fn();
     });
 
     afterEach(() => {
         jest.restoreAllMocks();
+
+        // Reset the reloadPage mock after each test
+        (BrowserUtils.reloadPage as jest.Mock).mockClear();
     });
 
     afterAll(() => {
         window.matchMedia = originalMatchMedia;
-        window.location.reload = originalReload;
     });
 
     test('should load config and license on mount and redirect to sign-up page', async () => {
@@ -220,7 +182,7 @@ describe('components/Root', () => {
         });
     });
 
-    test('should call history on props change', () => {
+    test('should call history on props change', async () => {
         const props = {
             ...baseProps,
             noAccounts: false,
@@ -240,10 +202,12 @@ describe('components/Root', () => {
 
         rerender(<Root {...props2}/>);
 
-        expect(props.history.push).toHaveBeenLastCalledWith('/signup_user_complete');
+        await waitFor(() => {
+            expect(props.history.push).toHaveBeenLastCalledWith('/signup_user_complete');
+        });
     });
 
-    test('should reload on focus after getting signal login event from another tab', () => {
+    test('should reload on focus after getting signal login event from another tab', async () => {
         renderWithContext(<Root {...baseProps}/>);
 
         const loginSignal = new StorageEvent('storage', {
@@ -255,67 +219,9 @@ describe('components/Root', () => {
         window.dispatchEvent(loginSignal);
         window.dispatchEvent(new Event('focus'));
 
-        expect(window.location.reload).toBeCalledTimes(1);
-    });
-
-    test('should not set a TelemetryHandler when onConfigLoaded is called if Rudder is not configured', async () => {
-        const props = {
-            ...baseProps,
-            serviceEnvironment: ServiceEnvironment.DEV,
-            actions: {
-                ...baseProps.actions,
-                loadConfigAndMe: jest.fn().mockImplementation(() => {
-                    return Promise.resolve({
-                        isLoaded: true,
-                        isMeRequested: true,
-                    });
-                }),
-            },
-        };
-
-        renderWithContext(<Root {...props}/>);
-
-        // Wait for the component to load config and call onConfigLoaded
         await waitFor(() => {
-            expect(props.actions.loadConfigAndMe).toHaveBeenCalledTimes(1);
+            expect(BrowserUtils.reloadPage).toHaveBeenCalledTimes(1);
         });
-
-        Client4.trackEvent('category', 'event');
-
-        expect(Client4.telemetryHandler).not.toBeDefined();
-    });
-
-    test('should set a TelemetryHandler when onConfigLoaded is called if Rudder is configured', async () => {
-        const props = {
-            ...baseProps,
-            isConfigLoaded: false,
-            serviceEnvironment: ServiceEnvironment.TEST,
-            actions: {
-                ...baseProps.actions,
-                loadConfigAndMe: jest.fn().mockImplementation(() => {
-                    return Promise.resolve({
-                        isLoaded: true,
-                        isMeRequested: true,
-                    });
-                }),
-            },
-        };
-
-        const {rerender} = renderWithContext(<Root {...props}/>);
-
-        // Wait for the component to load config and call onConfigLoaded
-        await waitFor(() => {
-            expect(props.actions.loadConfigAndMe).toHaveBeenCalledTimes(1);
-        });
-
-        const props2 = {
-            ...props,
-            isConfigLoaded: true,
-        };
-
-        rerender(<Root {...props2}/>);
-
-        expect(Client4.telemetryHandler).toBeDefined();
     });
 
     describe('showLandingPageIfNecessary', () => {
@@ -348,6 +254,19 @@ describe('components/Root', () => {
                         pathname: '/login/desktop',
                     },
                 } as RouteComponentProps,
+            };
+
+            renderWithContext(<Root {...props}/>);
+
+            await waitFor(() => {
+                expect(props.history.push).not.toHaveBeenCalled();
+            });
+        });
+
+        test('should not show when disabled', async () => {
+            const props = {
+                ...landingProps,
+                enableDesktopLandingPage: false,
             };
 
             renderWithContext(<Root {...props}/>);
@@ -402,5 +321,18 @@ describe('doesRouteBelongToTeamControllerRoutes', () => {
         expect(doesRouteBelongToTeamControllerRoutes('/access_problem')).toBe(false);
         expect(doesRouteBelongToTeamControllerRoutes('/login')).toBe(false);
         expect(doesRouteBelongToTeamControllerRoutes('/error')).toBe(false);
+    });
+
+    test('should return false for admin_console routes', () => {
+        expect(doesRouteBelongToTeamControllerRoutes('/admin_console/about')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/admin_console/reporting')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/admin_console/user_management')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/admin_console/environment')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/admin_console/site_config')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/admin_console/plugins/')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/admin_console/integrations/')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/admin_console/integrations/bot_accounts')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/admin_console/compliance')).toBe(false);
+        expect(doesRouteBelongToTeamControllerRoutes('/admin_console/experimental')).toBe(false);
     });
 });

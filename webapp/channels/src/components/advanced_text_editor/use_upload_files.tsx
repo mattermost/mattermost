@@ -14,7 +14,7 @@ import {getCurrentLocale} from 'selectors/i18n';
 import FilePreview from 'components/file_preview';
 import type {FilePreviewInfo} from 'components/file_preview/file_preview';
 import FileUpload from 'components/file_upload';
-import type {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
+import type {FileUpload as FileUploadClass, TextEditorLocationType} from 'components/file_upload/file_upload';
 import type TextboxClass from 'components/textbox/textbox';
 
 import type {PostDraft} from 'types/store/draft';
@@ -29,11 +29,12 @@ const useUploadFiles = (
     channelId: string,
     isThreadView: boolean,
     storedDrafts: React.MutableRefObject<Record<string, PostDraft | undefined>>,
-    readOnlyChannel: boolean,
+    isDisabled: boolean,
     textboxRef: React.RefObject<TextboxClass>,
     handleDraftChange: (draft: PostDraft, options?: {instant?: boolean; show?: boolean}) => void,
     focusTextbox: (forceFocust?: boolean) => void,
     setServerError: (err: (ServerError & { submittedMessage?: string }) | null) => void,
+    isPostBeingEdited?: boolean,
 ): [React.ReactNode, React.ReactNode] => {
     const locale = useSelector(getCurrentLocale);
 
@@ -141,7 +142,7 @@ const useUploadFiles = (
     }, [draft, fileUploadRef, handleDraftChange, handleUploadError, handleFileUploadChange]);
 
     let attachmentPreview = null;
-    if (!readOnlyChannel && (draft.fileInfos.length > 0 || draft.uploadsInProgress.length > 0)) {
+    if (!isDisabled && (draft.fileInfos.length > 0 || draft.uploadsInProgress.length > 0)) {
         attachmentPreview = (
             <FilePreview
                 fileInfos={draft.fileInfos}
@@ -152,12 +153,14 @@ const useUploadFiles = (
         );
     }
 
-    let postType = 'post';
-    if (postId) {
+    let postType: TextEditorLocationType = 'post';
+    if (isPostBeingEdited) {
+        postType = 'edit_post';
+    } else if (postId) {
         postType = isThreadView ? 'thread' : 'comment';
     }
 
-    const fileUploadJSX = readOnlyChannel ? null : (
+    const fileUploadJSX = isDisabled ? null : (
         <FileUpload
             ref={fileUploadRef}
             fileCount={getFileCount(draft)}

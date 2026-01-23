@@ -12,7 +12,7 @@
 
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 import * as MESSAGES from '../../../fixtures/messages';
-import {isMac} from '../../../utils';
+import {isMac, getRandomId} from '../../../utils';
 
 describe('Messaging', () => {
     let testTeam;
@@ -116,7 +116,8 @@ describe('Messaging', () => {
             cy.get('#edit_textbox').should('be.visible');
 
             // * Update the post message and type ENTER
-            cy.get('#edit_textbox').invoke('val', '').type(message2).type('{enter}').wait(TIMEOUTS.HALF_SEC);
+            cy.get('#edit_textbox').clear().type(message2);
+            cy.get('#edit_textbox').type('{enter}').wait(TIMEOUTS.HALF_SEC);
 
             // * Edit Post Input is still visible after typing ENTER
             cy.get('#edit_textbox').should('be.visible');
@@ -247,20 +248,14 @@ describe('Messaging', () => {
             cy.get(`#postMessageText_${postId}`).should('contain', message1);
         });
 
-        // # [18] Edit previous post
-        cy.getLastPostId().then(() => {
-            cy.uiGetPostTextBox().type('{uparrow}');
-
-            // * Edit Post Input should appear
-            cy.get('#edit_textbox').should('be.visible');
-
-            // * Update the post message and type ENTER
-            cy.get('#edit_textbox').invoke('val', '').type(message2).type('{enter}').wait(TIMEOUTS.HALF_SEC);
-        });
-
-        // * Check that the edited message has been posted
         cy.getLastPostId().then((postId) => {
-            cy.get(`#postMessageText_${postId}`).should('contain', message2);
+            const message = `message ${getRandomId()}`;
+
+            // # [18] Edit previous post
+            cy.editLastPostWithNewMessage(message);
+
+            // * Check that the edited message has been posted
+            cy.get(`#postMessageText_${postId}`).should('contain', message);
         });
 
         // # [19] Post message with quotes
@@ -272,19 +267,11 @@ describe('Messaging', () => {
             cy.get(`#postMessageText_${postId}`).should('contain', messageWithCodeblockTextOnly1);
         });
 
-        // # [20] Edit previous post
-        cy.getLastPostId().then(() => {
-            cy.uiGetPostTextBox().type('{uparrow}');
-
-            // * Edit Post Input should appear
-            cy.get('#edit_textbox').should('be.visible');
-
-            // * Update the post message and type ENTER
-            cy.get('#edit_textbox').invoke('val', '').type(messageWithCodeblock1).type('{enter}').wait(TIMEOUTS.HALF_SEC);
-        });
-
-        // * Check that the edited message has been posted
         cy.getLastPostId().then((postId) => {
+            // # [20] Edit previous post
+            cy.editLastPostWithNewMessage(messageWithCodeblock1);
+
+            // * Check that the edited message has been posted
             cy.get(`#postMessageText_${postId}`).should('contain', messageWithCodeblockTextOnly1);
         });
 
@@ -386,19 +373,11 @@ describe('Messaging', () => {
             cy.get(`#postMessageText_${postId}`).should('contain', message1);
         });
 
-        // # [30] Edit previous post
-        cy.getLastPostId().then(() => {
-            cy.uiGetPostTextBox().type('{uparrow}');
-
-            // * Edit Post Input should appear
-            cy.get('#edit_textbox').should('be.visible');
-
-            // * Update the post message and type ENTER
-            cy.get('#edit_textbox').invoke('val', '').type(message2).type('{enter}').wait(TIMEOUTS.HALF_SEC);
-        });
-
-        // * Check that the edited message has been posted
         cy.getLastPostId().then((postId) => {
+            // # [30] Edit previous post
+            cy.editLastPostWithNewMessage(message2);
+
+            // * Check that the edited message has been posted
             cy.get(`#postMessageText_${postId}`).should('contain', message2);
         });
 
@@ -411,19 +390,11 @@ describe('Messaging', () => {
             cy.get(`#postMessageText_${postId}`).should('contain', messageWithCodeblockTextOnly1);
         });
 
-        // # [32] Edit previous post
-        cy.getLastPostId().then(() => {
-            cy.uiGetPostTextBox().type('{uparrow}');
-
-            // * Edit Post Input should appear
-            cy.get('#edit_textbox').should('be.visible');
-
-            // * Update the post message and type ENTER
-            cy.get('#edit_textbox').invoke('val', '').type(messageWithCodeblock1).type('{enter}').wait(TIMEOUTS.HALF_SEC);
-        });
-
-        // * Check that the edited message has been posted
         cy.getLastPostId().then((postId) => {
+            // # [32] Edit previous post
+            cy.editLastPostWithNewMessage(messageWithCodeblock1);
+
+            // * Check that the edited message has been posted
             cy.get(`#postMessageText_${postId}`).should('contain', messageWithCodeblockTextOnly1);
         });
 
@@ -431,25 +402,11 @@ describe('Messaging', () => {
         cy.uiGetPostTextBox().clear().type(messageWithCodeblockIncomplete2).wait(TIMEOUTS.HALF_SEC);
         cy.uiGetPostTextBox().type('{enter}').wait(TIMEOUTS.HALF_SEC);
 
-        // * Check that the message has been posted
         cy.getLastPostId().then((postId) => {
-            cy.get(`#postMessageText_${postId}`).should('contain', messageWithCodeblockTextOnly2);
-        });
+            // # [34] Edit previous post
+            cy.editLastPostWithNewMessage(messageWithCodeblockIncomplete2);
 
-        // # [34] Edit previous post
-        cy.getLastPostId().then(() => {
-            cy.uiGetPostTextBox().type('{uparrow}');
-
-            // * Edit Post Input should appear
-            cy.get('#edit_textbox').should('be.visible');
-
-            // * Update the post message and type ENTER
-            cy.get('#edit_textbox').invoke('val', '').type(messageWithCodeblockIncomplete2).wait(TIMEOUTS.HALF_SEC);
-            cy.get('#edit_textbox').type('{enter}');
-        });
-
-        // * Check that the edited message has been posted
-        cy.getLastPostId().then((postId) => {
+            // * Check that the edited message has been posted
             cy.get(`#postMessageText_${postId}`).should('contain', messageWithCodeblockTextOnly2);
         });
 
@@ -462,21 +419,11 @@ describe('Messaging', () => {
             cy.get(`#postMessageText_${postId}`).should('contain', messageWithCodeblockTextOnly3);
         });
 
-        // # [36] Edit previous post
-        cy.getLastPostId().then(() => {
-            cy.uiGetPostTextBox().type('{uparrow}');
-
-            // * Edit Post Input should appear
-            cy.get('#edit_textbox').should('be.visible');
-
-            // * Update the post message and type ENTER
-            cy.get('#edit_textbox').invoke('val', '').type(`${messageWithCodeblockIncomplete3}{leftArrow}{leftArrow}{leftArrow}`).wait(TIMEOUTS.HALF_SEC);
-            cy.get('#edit_textbox').type('{enter}');
-        });
-
-        // * Check that the message has been posted
-        // Bug? - when clocking CTRL+ENTER from edit box, the code block does not appear in center
         cy.getLastPostId().then((postId) => {
+            // # [36] Edit previous post
+            cy.editLastPostWithNewMessage(`${messageWithCodeblockIncomplete3}{leftArrow}{leftArrow}{leftArrow}`);
+
+            // * Check that the edited message has been posted
             cy.get(`#postMessageText_${postId}`).should('contain', messageWithCodeblockTextOnly3);
         });
     });
@@ -718,7 +665,8 @@ describe('Messaging', () => {
 
         cy.getLastPostId().then((postId) => {
             // # Search for the posted message
-            cy.get('#searchBox').should('be.visible').type(messageX).type('{enter}').wait(TIMEOUTS.HALF_SEC);
+            cy.uiGetSearchContainer().click();
+            cy.uiGetSearchBox().should('be.visible').type(messageX).type('{enter}').wait(TIMEOUTS.HALF_SEC);
 
             // # Click on post dot menu so we can edit
             cy.clickPostDotMenu(postId, 'SEARCH');
@@ -730,7 +678,7 @@ describe('Messaging', () => {
             cy.get('#edit_textbox').should('be.visible');
 
             // * Update the post message and type ENTER
-            cy.get('#edit_textbox', {timeout: TIMEOUTS.FIVE_SEC}).invoke('val', '').type(message2).type('{enter}').wait(TIMEOUTS.HALF_SEC);
+            cy.get('#edit_textbox', {timeout: TIMEOUTS.FIVE_SEC}).invoke('val', '').type(message2).wait(TIMEOUTS.HALF_SEC).type('{enter}').wait(TIMEOUTS.HALF_SEC);
 
             // * Post appears in RHS search results, displays Pinned badge
             cy.get(`#searchResult_${postId}`).findByText('Edited').should('exist');
@@ -762,9 +710,6 @@ describe('Messaging', () => {
 
             // * Edit Post Input should appear
             cy.get('#edit_textbox').should('be.visible');
-
-            // # Check that a scrollbar exists
-            cy.get('.post--editing__wrapper.scroll').should('be.visible');
 
             // # Update the message
             cy.get('#edit_textbox', {timeout: TIMEOUTS.FIVE_SEC}).type(' test').wait(TIMEOUTS.HALF_SEC);

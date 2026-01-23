@@ -3,10 +3,10 @@
 
 import type {ReactWrapper} from 'enzyme';
 import React from 'react';
-import {act} from 'react-dom/test-utils';
 import {Provider} from 'react-redux';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {act} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
 
 import RenewalLicenseCard from './renew_license_card';
@@ -77,6 +77,6 @@ describe('components/RenewalLicenseCard', () => {
         await actImmediate(wrapper);
 
         expect(wrapper.find('button').length).toEqual(1);
-        expect(wrapper.find('button').at(0).text().includes('Contact sales')).toBe(true);
+        expect(wrapper.find('button').at(0).text().includes('Contact Sales')).toBe(true);
     });
 });

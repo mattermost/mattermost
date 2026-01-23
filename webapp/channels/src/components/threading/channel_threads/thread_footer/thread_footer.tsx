@@ -10,12 +10,12 @@ import type {UserThread} from '@mattermost/types/threads';
 import {threadIsSynthetic} from '@mattermost/types/threads';
 
 import {setThreadFollow, getThread as fetchThread} from 'mattermost-redux/actions/threads';
+import {Posts} from 'mattermost-redux/constants';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {trackEvent} from 'actions/telemetry_actions';
 import {selectPost} from 'actions/views/rhs';
 
 import Button from 'components/threading/common/button';
@@ -63,21 +63,24 @@ function ThreadFooter({
 
     const participantIds = useMemo(() => (participants || []).map(({id}) => id).reverse(), [participants]);
 
-    const handleReply = useCallback((e) => {
+    const handleReply = useCallback((e: React.MouseEvent) => {
         if (replyClick) {
             replyClick(e);
             return;
         }
 
-        trackEvent('crt', 'replied_using_footer');
         e.stopPropagation();
         dispatch(selectPost({id: threadId, channel_id: channelId} as Post));
     }, [replyClick, threadId, channelId]);
 
-    const handleFollowing = useCallback((e) => {
+    const handleFollowing = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
         dispatch(setThreadFollow(currentUserId, currentTeamId, threadId, !isFollowing));
     }, [isFollowing]);
+
+    if (post.delete_at > 0 || post.state === Posts.POST_DELETED) {
+        return null;
+    }
 
     return (
         <div className='ThreadFooter'>
@@ -85,12 +88,10 @@ function ThreadFooter({
                 <div className='indicator'/>
             ) : (
                 <WithTooltip
-                    id='threadFooterIndicator'
-                    placement='top'
                     title={
                         <FormattedMessage
                             id='threading.numNewMessages'
-                            defaultMessage='{newReplies, plural, =0 {no unread messages} =1 {one unread message} other {# unread messages}}'
+                            defaultMessage='{newReplies, plural, =0 {No unread messages} =1 {One unread message} other {# unread messages}}'
                             values={{newReplies: thread.unread_replies}}
                         />
                     }

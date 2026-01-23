@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/ConfigurationBar should match snapshot, expired 1`] = `
 <Connect(AnnouncementBar)
@@ -22,13 +22,8 @@ exports[`components/ConfigurationBar should match snapshot, expired 1`] = `
           }
         />
       </React.Fragment>
-      <Memo(Connect(RenewalLink))
-        telemetryInfo={
-          Object {
-            "error": "renew_license_banner_fail",
-            "success": "renew_license_banner_success",
-          }
-        }
+      <RenewalLink
+        className="btn btn-tertiary btn-xs btn-inverted annnouncementBar__renewLicense"
       />
     </div>
   }
@@ -78,13 +73,8 @@ exports[`components/ConfigurationBar should match snapshot, expired, in grace pe
           }
         />
       </React.Fragment>
-      <Memo(Connect(RenewalLink))
-        telemetryInfo={
-          Object {
-            "error": "renew_license_banner_fail",
-            "success": "renew_license_banner_success",
-          }
-        }
+      <RenewalLink
+        className="btn btn-tertiary btn-xs btn-inverted annnouncementBar__renewLicense"
       />
     </div>
   }
@@ -156,6 +146,7 @@ exports[`components/ConfigurationBar should match snapshot, expiring, trial lice
             id="announcement_bar.error.purchase_a_license_now"
           />
         }
+        className="btn btn-tertiary btn-xs btn-inverted annnouncementBar__purchaseNow"
       />
     </div>
   }
@@ -194,6 +185,7 @@ exports[`components/ConfigurationBar should match snapshot, expiring, trial lice
             id="announcement_bar.error.purchase_a_license_now"
           />
         }
+        className="btn btn-tertiary btn-xs btn-inverted annnouncementBar__purchaseNow"
       />
     </div>
   }

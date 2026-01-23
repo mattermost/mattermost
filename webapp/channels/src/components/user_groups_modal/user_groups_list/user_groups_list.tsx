@@ -2,24 +2,23 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import type {ListChildComponentProps} from 'react-window';
 import {VariableSizeList} from 'react-window';
 import InfiniteLoader from 'react-window-infinite-loader';
 
+import {AccountMultipleOutlineIcon, ArchiveOutlineIcon, RestoreIcon} from '@mattermost/compass-icons/components';
 import type {Group, GroupPermissions} from '@mattermost/types/groups';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import LoadingScreen from 'components/loading_screen';
+import * as Menu from 'components/menu';
 import NoResultsIndicator from 'components/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
 import ViewUserGroupModal from 'components/view_user_group_modal';
-import Menu from 'components/widgets/menu/menu';
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {ModalIdentifiers} from 'utils/constants';
-import * as Utils from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
 
@@ -34,6 +33,7 @@ export type Props = {
     onExited: () => void;
     backButtonAction: () => void;
     hasNextPage: boolean;
+    onToggle: (isOpen: boolean) => void;
     actions: {
         archiveGroup: (groupId: string) => Promise<ActionResult>;
         restoreGroup: (groupId: string) => Promise<ActionResult>;
@@ -52,12 +52,14 @@ const UserGroupsList = (props: Props) => {
         backButtonAction,
         onExited,
         actions,
+        onToggle,
     } = props;
 
     const infiniteLoaderRef = useRef<InfiniteLoader | null>(null);
     const variableSizeListRef = useRef<VariableSizeList | null>(null);
     const [hasMounted, setHasMounted] = useState(false);
     const [overflowState, setOverflowState] = useState('overlay');
+    const {formatMessage} = useIntl();
 
     useEffect(() => {
         if (groups.length === 1) {
@@ -108,13 +110,6 @@ const UserGroupsList = (props: Props) => {
         onExited();
     }, [actions.openModal, onExited, backButtonAction]);
 
-    const groupListOpenUp = (groupListItemIndex: number): boolean => {
-        if (groupListItemIndex === 0) {
-            return false;
-        }
-        return true;
-    };
-
     const Item = ({index, style}: ListChildComponentProps) => {
         if (groups.length === 0 && searchTerm) {
             return (
@@ -131,18 +126,19 @@ const UserGroupsList = (props: Props) => {
             }
 
             return (
-                <div
+                <button
                     className='group-row'
                     style={style}
                     key={group.id}
                     onClick={() => {
                         goToViewGroupModal(group);
                     }}
+                    aria-label={formatMessage({id: 'user_groups_list.groupAriaLabel', defaultMessage: '{group_name} group'}, {group_name: group.display_name})}
                 >
                     <span className='group-display-name'>
                         {
                             group.delete_at > 0 &&
-                            <i className='icon icon-archive-outline'/>
+                            <ArchiveOutlineIcon size={16}/>
                         }
                         {group.display_name}
                     </span>
@@ -159,55 +155,68 @@ const UserGroupsList = (props: Props) => {
                         />
                     </div>
                     <div className='group-action'>
-                        <MenuWrapper
-                            isDisabled={false}
-                            stopPropagationOnToggle={true}
-                            id={`customWrapper-${group.id}`}
+                        <Menu.Container
+                            menuButton={{
+                                id: `customWrapper-${group.id}`,
+                                class: 'btn btn-icon btn-xs',
+                                children: <i className='icon icon-dots-vertical'/>,
+                                'aria-label': formatMessage({id: 'user_groups_list.menuAriaLabel', defaultMessage: '{group_name} actions'}, {group_name: group.display_name}),
+                            }}
+                            menu={{
+                                id: 'group-actions-menu',
+                                onToggle,
+                                'aria-label': formatMessage({id: 'user_groups_list.menuAriaLabel', defaultMessage: '{group_name} actions'}, {group_name: group.display_name}),
+                                className: 'group-actions-menu',
+                            }}
                         >
-                            <button className='btn btn-icon btn-xs'>
-                                <i className='icon icon-dots-vertical'/>
-                            </button>
-                            <Menu
-                                openLeft={true}
-                                openUp={groupListOpenUp(index)}
-                                className={'group-actions-menu'}
-                                ariaLabel={Utils.localizeMessage('admin.user_item.menuAriaLabel', 'User Actions Menu')}
-                            >
-                                <Menu.Group>
-                                    <Menu.ItemAction
-                                        onClick={() => {
-                                            goToViewGroupModal(group);
-                                        }}
-                                        icon={<i className='icon-account-multiple-outline'/>}
-                                        text={Utils.localizeMessage('user_groups_modal.viewGroup', 'View Group')}
-                                        disabled={false}
+                            <Menu.Item
+                                id='view-group'
+                                onClick={() => {
+                                    goToViewGroupModal(group);
+                                }}
+                                labels={
+                                    <FormattedMessage
+                                        id='user_groups_modal.viewGroup'
+                                        defaultMessage='View Group'
                                     />
-                                </Menu.Group>
-                                <Menu.Group>
-                                    <Menu.ItemAction
-                                        show={groupPermissionsMap[group.id].can_delete}
-                                        onClick={() => {
-                                            archiveGroup(group.id);
-                                        }}
-                                        icon={<i className='icon-archive-outline'/>}
-                                        text={Utils.localizeMessage('user_groups_modal.archiveGroup', 'Archive Group')}
-                                        disabled={false}
-                                        isDangerous={true}
-                                    />
-                                    <Menu.ItemAction
-                                        show={groupPermissionsMap[group.id].can_restore}
-                                        onClick={() => {
-                                            restoreGroup(group.id);
-                                        }}
-                                        icon={<i className='icon-restore'/>}
-                                        text={Utils.localizeMessage('user_groups_modal.restoreGroup', 'Restore Group')}
-                                        disabled={false}
-                                    />
-                                </Menu.Group>
-                            </Menu>
-                        </MenuWrapper>
+                                }
+                                leadingElement={<AccountMultipleOutlineIcon size={18}/>}
+                            />
+                            <Menu.Separator/>
+                            {groupPermissionsMap[group.id].can_delete && (
+                                <Menu.Item
+                                    id='archive-group'
+                                    onClick={() => {
+                                        archiveGroup(group.id);
+                                    }}
+                                    labels={
+                                        <FormattedMessage
+                                            id='user_groups_modal.archiveGroup'
+                                            defaultMessage='Archive Group'
+                                        />
+                                    }
+                                    leadingElement={<ArchiveOutlineIcon size={18}/>}
+                                    isDestructive={true}
+                                />
+                            )}
+                            {groupPermissionsMap[group.id].can_restore && (
+                                <Menu.Item
+                                    id='restore-group'
+                                    onClick={() => {
+                                        restoreGroup(group.id);
+                                    }}
+                                    labels={
+                                        <FormattedMessage
+                                            id='user_groups_modal.restoreGroup'
+                                            defaultMessage='Restore Group'
+                                        />
+                                    }
+                                    leadingElement={<RestoreIcon size={18}/>}
+                                />
+                            )}
+                        </Menu.Container>
                     </div>
-                </div>
+                </button>
             );
         }
         if (loading) {

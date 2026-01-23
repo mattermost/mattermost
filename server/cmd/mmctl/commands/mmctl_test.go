@@ -4,14 +4,19 @@
 package commands
 
 import (
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/golang/mock/gomock"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/api4"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/mocks"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
-
-	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-
-	"github.com/mattermost/mattermost/server/v8/channels/api4"
 )
 
 var EnableEnterpriseTests string
@@ -45,13 +50,8 @@ func (s *MmctlE2ETestSuite) SetupTest() {
 }
 
 func (s *MmctlE2ETestSuite) TearDownTest() {
-	// if a test helper was used, we run the teardown and remove it
-	// from the structure to avoid reusing the same helper between
-	// tests
-	if s.th != nil {
-		s.th.TearDown()
-		s.th = nil
-	}
+	// Remove the test helper from the structure to avoid reusing the same helper between tests
+	s.th = nil
 }
 
 func (s *MmctlE2ETestSuite) SetupTestHelper() *api4.TestHelper {
@@ -64,6 +64,29 @@ func (s *MmctlE2ETestSuite) SetupEnterpriseTestHelper() *api4.TestHelper {
 		s.T().SkipNow()
 	}
 	s.th = api4.SetupEnterprise(s.T())
+	return s.th
+}
+
+func (s *MmctlE2ETestSuite) SetupMessageExportTestHelper() *api4.TestHelper {
+	if EnableEnterpriseTests != "true" {
+		s.T().SkipNow()
+	}
+
+	jobs.DefaultWatcherPollingInterval = 100
+	s.th = api4.SetupEnterprise(s.T()).InitBasic(s.T())
+	s.th.App.Srv().SetLicense(model.NewTestLicense("message_export"))
+	s.th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.MessageExportSettings.DownloadExportResults = true
+		*cfg.MessageExportSettings.EnableExport = true
+		*cfg.MessageExportSettings.ExportFormat = model.ComplianceExportTypeActiance
+	})
+
+	err := s.th.App.Srv().Jobs.StartWorkers()
+	require.NoError(s.T(), err)
+
+	err = s.th.App.Srv().Jobs.StartSchedulers()
+	require.NoError(s.T(), err)
+
 	return s.th
 }
 
@@ -95,4 +118,52 @@ func (s *MmctlE2ETestSuite) RunForAllClients(testName string, fn func(client.Cli
 	s.Run(testName+"/LocalClient", func() {
 		fn(s.th.LocalClient)
 	})
+}
+
+func (s *MmctlE2ETestSuite) CheckErrorID(err error, errorId string) {
+	api4.CheckErrorID(s.T(), err, errorId)
+}
+
+// Helper functions for compliance export job testing
+
+// getMostRecentJobWithId gets the most recent job with the specified ID
+func (s *MmctlE2ETestSuite) getMostRecentJobWithId(id string) *model.Job {
+	list, _, err := s.th.SystemAdminClient.GetJobsByType(context.Background(), model.JobTypeMessageExport, 0, 1)
+	s.Require().NoError(err)
+	s.Require().Len(list, 1)
+	s.Require().Equal(id, list[0].Id)
+	return list[0]
+}
+
+// checkJobForStatus polls until the job with the specified ID reaches the expected status
+func (s *MmctlE2ETestSuite) checkJobForStatus(id string, status string) {
+	doneChan := make(chan bool)
+	var job *model.Job
+	go func() {
+		defer close(doneChan)
+		for {
+			job = s.getMostRecentJobWithId(id)
+			if job.Status == status {
+				break
+			}
+			time.Sleep(100 * time.Millisecond)
+		}
+		s.Require().Equal(status, job.Status)
+	}()
+	select {
+	case <-doneChan:
+	case <-time.After(15 * time.Second):
+		s.Require().Fail(fmt.Sprintf("expected job's status to be %s, got %s", status, job.Status))
+	}
+}
+
+// runJobForTest creates a job and waits for it to complete
+func (s *MmctlE2ETestSuite) runJobForTest(jobData map[string]string) *model.Job {
+	job, _, err := s.th.SystemAdminClient.CreateJob(context.Background(),
+		&model.Job{Type: model.JobTypeMessageExport, Data: jobData})
+	s.Require().NoError(err)
+	// poll until completion
+	s.checkJobForStatus(job.Id, model.JobStatusSuccess)
+	job = s.getMostRecentJobWithId(job.Id)
+	return job
 }

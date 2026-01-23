@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {shallow} from 'enzyme';
 import React from 'react';
 import type {ComponentProps} from 'react';
 import type {RouteComponentProps} from 'react-router-dom';
@@ -8,8 +9,6 @@ import type {RouteComponentProps} from 'react-router-dom';
 import type {Scheme} from '@mattermost/types/schemes';
 
 import PermissionSchemesSettings from 'components/admin_console/permission_schemes_settings/permission_schemes_settings';
-
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 
 describe('components/admin_console/permission_schemes_settings/permission_schemes_settings', () => {
     const defaultProps: ComponentProps<typeof PermissionSchemesSettings> = {
@@ -32,14 +31,14 @@ describe('components/admin_console/permission_schemes_settings/permission_scheme
     };
 
     test('should match snapshot loading', () => {
-        const wrapper = shallowWithIntl(
+        const wrapper = shallow(
             <PermissionSchemesSettings {...defaultProps}/>,
         );
         expect(wrapper).toMatchSnapshot();
     });
 
     test('should match snapshot without schemes', () => {
-        const wrapper = shallowWithIntl(
+        const wrapper = shallow(
             <PermissionSchemesSettings
                 {...defaultProps}
                 schemes={{}}
@@ -50,7 +49,7 @@ describe('components/admin_console/permission_schemes_settings/permission_scheme
     });
 
     test('should match snapshot with schemes', () => {
-        const wrapper = shallowWithIntl(
+        const wrapper = shallow(
             <PermissionSchemesSettings {...defaultProps}/>,
         );
         wrapper.setState({loading: false, phase2MigrationIsComplete: true});
@@ -58,7 +57,7 @@ describe('components/admin_console/permission_schemes_settings/permission_scheme
     });
 
     test('should show migration in-progress view', () => {
-        const wrapper = shallowWithIntl(
+        const wrapper = shallow(
             <PermissionSchemesSettings {...defaultProps}/>,
         );
         wrapper.setState({loading: false, phase2MigrationIsComplete: false});
@@ -68,7 +67,7 @@ describe('components/admin_console/permission_schemes_settings/permission_scheme
     test('should show migration on hold view', () => {
         const testProps = {...defaultProps};
         testProps.jobsAreEnabled = false;
-        const wrapper = shallowWithIntl(
+        const wrapper = shallow(
             <PermissionSchemesSettings {...testProps}/>,
         );
         wrapper.setState({loading: false, phase2MigrationIsComplete: false});
@@ -78,7 +77,7 @@ describe('components/admin_console/permission_schemes_settings/permission_scheme
     test('should show normal view (jobs disabled after migration)', () => {
         const testProps = {...defaultProps};
         testProps.jobsAreEnabled = false;
-        const wrapper = shallowWithIntl(
+        const wrapper = shallow(
             <PermissionSchemesSettings {...testProps}/>,
         );
         wrapper.setState({loading: false, phase2MigrationIsComplete: true});

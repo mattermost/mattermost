@@ -14,7 +14,7 @@ import {getCategoriesForCurrentTeam} from 'selectors/views/channel_sidebar';
 
 import type {GlobalState} from 'types/store';
 
-import {prefetchQueue, trackPreloadedChannels} from './actions';
+import {prefetchQueue} from './actions';
 import DataPrefetch from './data_prefetch';
 
 function isSidebarLoaded(state: GlobalState) {
@@ -41,7 +41,6 @@ function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             prefetchChannelPosts,
-            trackPreloadedChannels,
         }, dispatch),
     };
 }

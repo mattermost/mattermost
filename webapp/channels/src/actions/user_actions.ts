@@ -22,18 +22,18 @@ import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entitie
 import {getBool, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId, getTeamMember} from 'mattermost-redux/selectors/entities/teams';
 import * as Selectors from 'mattermost-redux/selectors/entities/users';
-import type {ActionResult, ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {calculateUnreadCount} from 'mattermost-redux/utils/channel_utils';
 
 import {loadCustomEmojisForCustomStatusesByUserIds} from 'actions/emoji_actions';
-import {loadStatusesForProfilesList, loadStatusesForProfilesMap} from 'actions/status_actions';
+import {loadStatusesForProfilesList} from 'actions/status_actions';
 import {getDisplayedChannels} from 'selectors/views/channel_sidebar';
 import store from 'stores/redux_store';
 
 import {Constants, Preferences, UserStatuses} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
-import type {GlobalState} from 'types/store';
+import type {ActionFunc, ActionFuncAsync, ThunkActionFunc, GlobalState} from 'types/store';
 
 const dispatch = store.dispatch;
 const getState = store.getState;
@@ -150,16 +150,6 @@ export function loadTeamMembersForProfilesList(profiles: UserProfile[], teamId: 
         await doDispatch(getTeamMembersByIds(teamIdParam, userIdsToLoad));
 
         return {data: true};
-    };
-}
-
-export function loadProfilesWithoutTeam(page: number, perPage: number, options?: Record<string, any>): ActionFuncAsync {
-    return async (doDispatch) => {
-        const {data} = await doDispatch(UserActions.getProfilesWithoutTeam(page, perPage, options));
-
-        doDispatch(loadStatusesForProfilesMap(data!));
-
-        return {data};
     };
 }
 
@@ -406,10 +396,17 @@ export async function loadProfilesForDM() {
     await dispatch(loadCustomEmojisForCustomStatusesByUserIds(profileIds));
 }
 
-export function autocompleteUsersInTeam(username: string): ThunkActionFunc<Promise<UserAutocomplete>> {
+export function autocompleteUsersInCurrentTeam(username: string): ThunkActionFunc<Promise<UserAutocomplete>> {
     return async (doDispatch, doGetState) => {
         const currentTeamId = getCurrentTeamId(doGetState());
         const {data} = await doDispatch(UserActions.autocompleteUsers(username, currentTeamId));
+        return data!;
+    };
+}
+
+export function autocompleteUsersInTeam(username: string, teamId: string): ThunkActionFunc<Promise<UserAutocomplete>> {
+    return async (doDispatch) => {
+        const {data} = await doDispatch(UserActions.autocompleteUsers(username, teamId));
         return data!;
     };
 }
@@ -418,6 +415,13 @@ export function autocompleteUsers(username: string): ThunkActionFunc<Promise<Use
     return async (doDispatch) => {
         const {data} = await doDispatch(UserActions.autocompleteUsers(username));
         return data!;
+    };
+}
+
+export function canUserDirectMessage(userId: string, otherUserId: string): ActionFuncAsync<{can_dm: boolean}> {
+    return async (doDispatch) => {
+        const {data} = await doDispatch(UserActions.canUserDirectMessage(userId, otherUserId));
+        return {data};
     };
 }
 

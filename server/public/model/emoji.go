@@ -25,8 +25,8 @@ type Emoji struct {
 	Name      string `json:"name"`
 }
 
-func (emoji *Emoji) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (emoji *Emoji) Auditable() map[string]any {
+	return map[string]any{
 		"id":         emoji.Id,
 		"create_at":  emoji.CreateAt,
 		"update_at":  emoji.UpdateAt,

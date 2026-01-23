@@ -16,8 +16,4 @@ export type Group = {
     isVisible?: (license?: ClientLicense) => boolean;
 }
 
-export type AdditionalValues = {
-    [edit_post: string]: {
-        editTimeLimitButton: JSX.Element;
-    };
-}
+export type AdditionalValues = Record<string, Record<string, any>>;

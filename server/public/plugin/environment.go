@@ -38,10 +38,10 @@ type registeredPlugin struct {
 
 // PrepackagedPlugin is a plugin prepackaged with the server and found on startup.
 type PrepackagedPlugin struct {
-	Path      string
-	IconData  string
-	Manifest  *model.Manifest
-	Signature []byte
+	Path          string
+	IconData      string
+	Manifest      *model.Manifest
+	SignaturePath string
 }
 
 // Environment represents the execution environment of active plugins.
@@ -483,7 +483,7 @@ func (env *Environment) Shutdown() {
 	env.TogglePluginHealthCheckJob(false)
 
 	var wg sync.WaitGroup
-	env.registeredPlugins.Range(func(key, value any) bool {
+	env.registeredPlugins.Range(func(_, value any) bool {
 		rp := value.(registeredPlugin)
 
 		if rp.supervisor == nil || !env.IsActive(rp.BundleInfo.Manifest.Id) {
@@ -599,7 +599,7 @@ func (env *Environment) HooksForPlugin(id string) (Hooks, error) {
 //
 // If hookRunnerFunc returns false, iteration will not continue. The iteration order among active
 // plugins is not specified.
-func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks) bool, hookId int) {
+func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks, manifest *model.Manifest) bool, hookId int) {
 	startTime := time.Now()
 
 	env.registeredPlugins.Range(func(key, value any) bool {
@@ -610,7 +610,7 @@ func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks) bool
 		}
 
 		hookStartTime := time.Now()
-		result := hookRunnerFunc(rp.supervisor.Hooks())
+		result := hookRunnerFunc(rp.supervisor.Hooks(), rp.BundleInfo.Manifest)
 
 		if env.metrics != nil {
 			elapsedTime := float64(time.Since(hookStartTime)) / float64(time.Second)

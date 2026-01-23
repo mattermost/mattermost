@@ -27,168 +27,245 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
+const warningsFilename = "warnings.txt"
+
 // We use this map to identify the exportable preferences.
 // Here we link the preference category and name, to the name of the relevant field in the import struct.
-var exportablePreferences = map[imports.ComparablePreference]string{{
-	Category: model.PreferenceCategoryTheme,
-	Name:     "",
-}: "Theme", {
-	Category: model.PreferenceCategoryAdvancedSettings,
-	Name:     "feature_enabled_markdown_preview",
-}: "UseMarkdownPreview", {
-	Category: model.PreferenceCategoryAdvancedSettings,
-	Name:     "formatting",
-}: "UseFormatting", {
-	Category: model.PreferenceCategorySidebarSettings,
-	Name:     "show_unread_section",
-}: "ShowUnreadSection", {
-	Category: model.PreferenceCategoryDisplaySettings,
-	Name:     model.PreferenceNameUseMilitaryTime,
-}: "UseMilitaryTime", {
-	Category: model.PreferenceCategoryDisplaySettings,
-	Name:     model.PreferenceNameCollapseSetting,
-}: "CollapsePreviews", {
-	Category: model.PreferenceCategoryDisplaySettings,
-	Name:     model.PreferenceNameMessageDisplay,
-}: "MessageDisplay", {
-	Category: model.PreferenceCategoryDisplaySettings,
-	Name:     "channel_display_mode",
-}: "CollapseConsecutive", {
-	Category: model.PreferenceCategoryDisplaySettings,
-	Name:     "collapse_consecutive_messages",
-}: "ColorizeUsernames", {
-	Category: model.PreferenceCategoryDisplaySettings,
-	Name:     "colorize_usernames",
-}: "ChannelDisplayMode", {
-	Category: model.PreferenceCategoryTutorialSteps,
-	Name:     "",
-}: "TutorialStep", {
-	Category: model.PreferenceCategoryNotifications,
-	Name:     model.PreferenceNameEmailInterval,
-}: "EmailInterval",
+var exportablePreferences = map[imports.ComparablePreference]string{
+	{
+		Category: model.PreferenceCategoryTheme,
+		Name:     "",
+	}: "Theme",
+	{
+		Category: model.PreferenceCategoryAdvancedSettings,
+		Name:     "feature_enabled_markdown_preview",
+	}: "UseMarkdownPreview",
+	{
+		Category: model.PreferenceCategoryAdvancedSettings,
+		Name:     "formatting",
+	}: "UseFormatting",
+	{
+		Category: model.PreferenceCategoryAdvancedSettings,
+		Name:     "send_on_ctrl_enter",
+	}: "SendOnCtrlEnter",
+	{
+		Category: model.PreferenceCategoryAdvancedSettings,
+		Name:     "code_block_ctrl_enter",
+	}: "CodeBlockCtrlEnter",
+	{
+		Category: model.PreferenceCategoryAdvancedSettings,
+		Name:     "join_leave",
+	}: "ShowJoinLeave",
+	{
+		Category: model.PreferenceCategoryAdvancedSettings,
+		Name:     "unread_scroll_position",
+	}: "ShowUnreadScrollPosition",
+	{
+		Category: model.PreferenceCategoryAdvancedSettings,
+		Name:     "sync_drafts",
+	}: "SyncDrafts",
+	{
+		Category: model.PreferenceCategorySidebarSettings,
+		Name:     model.PreferenceNameShowUnreadSection,
+	}: "ShowUnreadSection",
+	{
+		Category: model.PreferenceCategorySidebarSettings,
+		Name:     model.PreferenceLimitVisibleDmsGms,
+	}: "LimitVisibleDmsGms",
+	{
+		Category: model.PreferenceCategoryDisplaySettings,
+		Name:     model.PreferenceNameUseMilitaryTime,
+	}: "UseMilitaryTime",
+	{
+		Category: model.PreferenceCategoryDisplaySettings,
+		Name:     model.PreferenceNameCollapseSetting,
+	}: "CollapsePreviews",
+	{
+		Category: model.PreferenceCategoryDisplaySettings,
+		Name:     model.PreferenceNameMessageDisplay,
+	}: "MessageDisplay",
+	{
+		Category: model.PreferenceCategoryDisplaySettings,
+		Name:     model.PreferenceNameChannelDisplayMode,
+	}: "ChannelDisplayMode",
+	{
+		Category: model.PreferenceCategoryDisplaySettings,
+		Name:     model.PreferenceNameCollapseConsecutive,
+	}: "CollapseConsecutive",
+	{
+		Category: model.PreferenceCategoryDisplaySettings,
+		Name:     model.PreferenceNameColorizeUsernames,
+	}: "ColorizeUsernames",
+	{
+		Category: model.PreferenceCategoryDisplaySettings,
+		Name:     model.PreferenceNameNameFormat,
+	}: "NameFormat",
+	{
+		Category: model.PreferenceCategoryTutorialSteps,
+		Name:     "",
+	}: "TutorialStep",
+	{
+		Category: model.PreferenceCategoryNotifications,
+		Name:     model.PreferenceNameEmailInterval,
+	}: "EmailInterval",
 }
 
-func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job *model.Job, opts model.BulkExportOpts) *model.AppError {
+func (a *App) BulkExport(rctx request.CTX, writer io.Writer, outPath string, job *model.Job, opts model.BulkExportOpts) *model.AppError {
 	var zipWr *zip.Writer
 	if opts.CreateArchive {
 		var err error
 		zipWr = zip.NewWriter(writer)
-		defer zipWr.Close()
+		defer func() {
+			if err = zipWr.Close(); err != nil {
+				rctx.Logger().Error("Error closing zip writer", mlog.Err(err))
+			}
+		}()
 		writer, err = zipWr.Create("import.jsonl")
 		if err != nil {
 			return model.NewAppError("BulkExport", "app.export.zip_create.error",
-				nil, "err="+err.Error(), http.StatusInternalServerError)
+				nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
-	if job != nil && job.Data == nil {
+	if job == nil {
+		job = &model.Job{
+			Data: make(model.StringMap),
+		}
+	} else if job.Data == nil {
 		job.Data = make(model.StringMap)
 	}
 
-	ctx.Logger().Info("Bulk export: exporting version")
+	rctx.Logger().Info("Bulk export: exporting version")
 	if err := a.exportVersion(writer); err != nil {
 		return err
 	}
 
 	if opts.IncludeRolesAndSchemes {
-		if err := a.exportRolesAndSchemes(ctx, job, writer); err != nil {
+		if err := a.exportRolesAndSchemes(rctx, job, writer); err != nil {
 			return err
 		}
 	}
 
-	ctx.Logger().Info("Bulk export: exporting teams")
-	teamNames, err := a.exportAllTeams(ctx, job, writer)
-	if err != nil {
-		return err
+	rctx.Logger().Info("Bulk export: exporting teams")
+	teamNames, appErr := a.exportAllTeams(rctx, job, writer)
+	if appErr != nil {
+		return appErr
 	}
 
-	ctx.Logger().Info("Bulk export: exporting channels")
-	if err = a.exportAllChannels(ctx, job, writer, teamNames, opts.IncludeArchivedChannels); err != nil {
-		return err
+	rctx.Logger().Info("Bulk export: exporting channels")
+	if appErr = a.exportAllChannels(rctx, job, writer, teamNames, opts.IncludeArchivedChannels); appErr != nil {
+		return appErr
 	}
 
-	ctx.Logger().Info("Bulk export: exporting users")
-	profilePictures, err := a.exportAllUsers(ctx, job, writer, opts.IncludeArchivedChannels, opts.IncludeProfilePictures)
-	if err != nil {
-		return err
+	rctx.Logger().Info("Bulk export: exporting users")
+	profilePictures, appErr := a.exportAllUsers(rctx, job, writer, opts.IncludeArchivedChannels, opts.IncludeProfilePictures)
+	if appErr != nil {
+		return appErr
 	}
 
-	ctx.Logger().Info("Bulk export: exporting posts")
-	attachments, err := a.exportAllPosts(ctx, job, writer, opts.IncludeAttachments, opts.IncludeArchivedChannels)
-	if err != nil {
-		return err
+	rctx.Logger().Info("Bulk export: exporting bots")
+	botPPs, appErr := a.exportAllBots(rctx, job, writer, opts.IncludeProfilePictures)
+	if appErr != nil {
+		return appErr
+	}
+	profilePictures = append(profilePictures, botPPs...)
+
+	rctx.Logger().Info("Bulk export: exporting posts")
+	attachments, appErr := a.exportAllPosts(rctx, job, writer, opts.IncludeAttachments, opts.IncludeArchivedChannels)
+	if appErr != nil {
+		return appErr
 	}
 
-	ctx.Logger().Info("Bulk export: exporting emoji")
-	emojiPaths, err := a.exportCustomEmoji(ctx, job, writer, outPath, "exported_emoji", !opts.CreateArchive)
-	if err != nil {
-		return err
+	rctx.Logger().Info("Bulk export: exporting emoji")
+	emojiPaths, appErr := a.exportCustomEmoji(rctx, job, writer, outPath, "exported_emoji", !opts.CreateArchive)
+	if appErr != nil {
+		return appErr
 	}
 
-	ctx.Logger().Info("Bulk export: exporting direct channels")
-	if err = a.exportAllDirectChannels(ctx, job, writer, opts.IncludeArchivedChannels); err != nil {
-		return err
+	rctx.Logger().Info("Bulk export: exporting direct channels")
+	if appErr = a.exportAllDirectChannels(rctx, job, writer, opts.IncludeArchivedChannels); appErr != nil {
+		return appErr
 	}
 
-	ctx.Logger().Info("Bulk export: exporting direct posts")
-	directAttachments, err := a.exportAllDirectPosts(ctx, job, writer, opts.IncludeAttachments, opts.IncludeArchivedChannels)
-	if err != nil {
-		return err
+	rctx.Logger().Info("Bulk export: exporting direct posts")
+	directAttachments, appErr := a.exportAllDirectPosts(rctx, job, writer, opts.IncludeAttachments, opts.IncludeArchivedChannels)
+	if appErr != nil {
+		return appErr
 	}
 
 	if opts.IncludeAttachments {
-		ctx.Logger().Info("Bulk export: exporting file attachments")
-		if err = a.exportAttachments(ctx, attachments, outPath, zipWr); err != nil {
-			return err
+		rctx.Logger().Info("Bulk export: exporting file attachments")
+		warnings, appErr := a.exportAttachments(rctx, attachments, outPath, zipWr)
+		if appErr != nil {
+			return appErr
 		}
 
-		ctx.Logger().Info("Bulk export: exporting direct file attachments")
-		if err = a.exportAttachments(ctx, directAttachments, outPath, zipWr); err != nil {
-			return err
+		rctx.Logger().Info("Bulk export: exporting direct file attachments")
+		newWarnings, appErr := a.exportAttachments(rctx, directAttachments, outPath, zipWr)
+		if appErr != nil {
+			return appErr
 		}
+		warnings = append(warnings, newWarnings...)
 
 		totalExportedEmojis := 0
 		emojisLen := len(emojiPaths)
-		ctx.Logger().Info("Bulk export: exporting custom emojis")
+		rctx.Logger().Info("Bulk export: exporting custom emojis")
 		for _, emojiPath := range emojiPaths {
-			if err := a.exportFile(outPath, emojiPath, zipWr); err != nil {
-				return err
+			if err := a.exportFile(rctx, outPath, emojiPath, zipWr); err != nil {
+				rctx.Logger().Warn("Unable to export emoji", mlog.String("emoji_path", emojiPath), mlog.Err(err))
+			} else {
+				totalExportedEmojis++
 			}
-			totalExportedEmojis++
 			if totalExportedEmojis%10 == 0 {
-				ctx.Logger().Info("Bulk export: exporting emojis progress", mlog.Int("total_successfully_exported_emojis", totalExportedEmojis), mlog.Int("total_emojis_to_export", emojisLen))
+				rctx.Logger().Info("Bulk export: exporting emojis progress", mlog.Int("total_successfully_exported_emojis", totalExportedEmojis), mlog.Int("total_emojis_to_export", emojisLen))
 			}
 		}
 
-		updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "attachments_exported", len(attachments)+len(directAttachments)+len(emojiPaths))
+		if len(warnings) > 0 {
+			warningsFile, _ := zipWr.Create(warningsFilename)
+			for _, warning := range warnings {
+				_, err := warningsFile.Write([]byte(warning + "\n"))
+				if err != nil {
+					return model.NewAppError("BulkExport", "app.export.zip_create.error",
+						nil, "", http.StatusInternalServerError).Wrap(err)
+				}
+			}
+			updateJobProgress(rctx.Logger(), a.Srv().Store(), job, "num_warnings", len(warnings))
+		}
+
+		updateJobProgress(rctx.Logger(), a.Srv().Store(), job, "attachments_exported", len(attachments)+len(directAttachments)+len(emojiPaths))
 	}
 
 	if opts.IncludeProfilePictures {
-		ctx.Logger().Info("Bulk export: exporting profile pictures")
+		rctx.Logger().Info("Bulk export: exporting profile pictures")
 		for _, profilePicture := range profilePictures {
-			if err := a.exportFile(outPath, profilePicture, zipWr); err != nil {
-				ctx.Logger().Warn("Unable to export profile picture", mlog.String("profile_picture", profilePicture), mlog.Err(err))
+			if err := a.exportFile(rctx, outPath, profilePicture, zipWr); err != nil {
+				rctx.Logger().Warn("Unable to export profile picture", mlog.String("profile_picture", profilePicture), mlog.Err(err))
 			}
 		}
-		updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "profile_pictures_exported", len(profilePictures))
+		updateJobProgress(rctx.Logger(), a.Srv().Store(), job, "profile_pictures_exported", len(profilePictures))
 	}
 
 	return nil
 }
 
-func (a *App) exportAttachments(ctx request.CTX, attachments []imports.AttachmentImportData, outPath string, zipWr *zip.Writer) *model.AppError {
+func (a *App) exportAttachments(rctx request.CTX, attachments []imports.AttachmentImportData, outPath string,
+	zipWr *zip.Writer) ([]string, *model.AppError) {
 	totalExportedFiles := 0
 	attachmentsLen := len(attachments)
+	var warnings []string
 	for _, attachment := range attachments {
-		if err := a.exportFile(outPath, *attachment.Path, zipWr); err != nil {
-			return err
+		if err := a.exportFile(rctx, outPath, *attachment.Path, zipWr); err != nil {
+			rctx.Logger().Warn("Unable to export file attachment", mlog.String("attachment_path", *attachment.Path), mlog.Err(err))
+			warnings = append(warnings, fmt.Sprintf("Unable to export file attachment, attachment path: %s , error: %s", *attachment.Path, err.Error()))
+		} else {
+			totalExportedFiles++
 		}
-		totalExportedFiles++
 		if totalExportedFiles%10 == 0 {
-			ctx.Logger().Info("Bulk export: exporting file attachments progress", mlog.Int("total_successfully_exported_files", totalExportedFiles), mlog.Int("total_files_to_export", attachmentsLen))
+			rctx.Logger().Info("Bulk export: exporting file attachments progress", mlog.Int("total_successfully_exported_files", totalExportedFiles), mlog.Int("total_files_to_export", attachmentsLen))
 		}
 	}
-	return nil
+	return warnings, nil
 }
 
 func (a *App) exportWriteLine(w io.Writer, line *imports.LineImportData) *model.AppError {
@@ -222,7 +299,7 @@ func (a *App) exportVersion(writer io.Writer) *model.AppError {
 	return a.exportWriteLine(writer, versionLine)
 }
 
-func (a *App) exportRolesAndSchemes(ctx request.CTX, job *model.Job, writer io.Writer) *model.AppError {
+func (a *App) exportRolesAndSchemes(rctx request.CTX, job *model.Job, writer io.Writer) *model.AppError {
 	// We export schemes first since they'll already include their attached roles
 	// which we map to avoid exporting them twice later in exportRoles.
 	schemeRolesMap := make(map[string]bool)
@@ -232,42 +309,42 @@ func (a *App) exportRolesAndSchemes(ctx request.CTX, job *model.Job, writer io.W
 		return model.NewAppError("exportRolesAndSchemes", "app.role.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
-	ctx.Logger().Info("Bulk export: exporting team schemes")
-	if err := a.exportSchemes(ctx, job, writer, model.SchemeScopeTeam, schemeRolesMap, roles); err != nil {
+	rctx.Logger().Info("Bulk export: exporting team schemes")
+	if err := a.exportSchemes(rctx, job, writer, model.SchemeScopeTeam, schemeRolesMap, roles); err != nil {
 		return err
 	}
 
-	ctx.Logger().Info("Bulk export: exporting channel schemes")
-	if err := a.exportSchemes(ctx, job, writer, model.SchemeScopeChannel, schemeRolesMap, roles); err != nil {
+	rctx.Logger().Info("Bulk export: exporting channel schemes")
+	if err := a.exportSchemes(rctx, job, writer, model.SchemeScopeChannel, schemeRolesMap, roles); err != nil {
 		return err
 	}
 
-	ctx.Logger().Info("Bulk export: exporting roles")
-	if err := a.exportRoles(ctx, job, writer, schemeRolesMap, roles); err != nil {
+	rctx.Logger().Info("Bulk export: exporting roles")
+	if err := a.exportRoles(rctx, job, writer, schemeRolesMap, roles); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (a *App) exportRoles(ctx request.CTX, job *model.Job, writer io.Writer, schemeRoles map[string]bool, allRoles []*model.Role) *model.AppError {
+func (a *App) exportRoles(rctx request.CTX, job *model.Job, writer io.Writer, schemeRoles map[string]bool, allRoles []*model.Role) *model.AppError {
 	var cnt int
 	for _, role := range allRoles {
 		// We skip any roles that will be included as part of custom schemes.
 		if !schemeRoles[role.Name] {
-			if err := a.exportWriteLine(writer, ImportLineFromRole(role)); err != nil {
+			if err := a.exportWriteLine(writer, importLineFromRole(role)); err != nil {
 				return err
 			}
 			cnt++
 		}
 	}
 
-	updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "roles_exported", cnt)
+	updateJobProgress(rctx.Logger(), a.Srv().Store(), job, "roles_exported", cnt)
 
 	return nil
 }
 
-func (a *App) exportSchemes(ctx request.CTX, job *model.Job, writer io.Writer, scope string, schemeRolesMap map[string]bool, allRoles []*model.Role) *model.AppError {
+func (a *App) exportSchemes(rctx request.CTX, job *model.Job, writer io.Writer, scope string, schemeRolesMap map[string]bool, allRoles []*model.Role) *model.AppError {
 	rolesMap := make(map[string]*model.Role, len(allRoles))
 	for _, role := range allRoles {
 		rolesMap[role.Name] = role
@@ -307,14 +384,14 @@ func (a *App) exportSchemes(ctx request.CTX, job *model.Job, writer io.Writer, s
 				schemeRolesMap[scheme.DefaultChannelGuestRole] = true
 			}
 
-			if err := a.exportWriteLine(writer, ImportLineFromScheme(scheme, rolesMap)); err != nil {
+			if err := a.exportWriteLine(writer, importLineFromScheme(scheme, rolesMap)); err != nil {
 				return err
 			}
 		}
 
 		cnt += len(schemes)
 
-		updateJobProgress(ctx.Logger(), a.Srv().Store(), job, fmt.Sprintf("%s_schemes_exported", scope), cnt)
+		updateJobProgress(rctx.Logger(), a.Srv().Store(), job, fmt.Sprintf("%s_schemes_exported", scope), cnt)
 
 		if len(schemes) < pageSize {
 			return nil
@@ -322,7 +399,7 @@ func (a *App) exportSchemes(ctx request.CTX, job *model.Job, writer io.Writer, s
 	}
 }
 
-func (a *App) exportAllTeams(ctx request.CTX, job *model.Job, writer io.Writer) (map[string]bool, *model.AppError) {
+func (a *App) exportAllTeams(rctx request.CTX, job *model.Job, writer io.Writer) (map[string]bool, *model.AppError) {
 	afterId := strings.Repeat("0", 26)
 	teamNames := make(map[string]bool)
 	cnt := 0
@@ -336,7 +413,7 @@ func (a *App) exportAllTeams(ctx request.CTX, job *model.Job, writer io.Writer) 
 			break
 		}
 		cnt += len(teams)
-		updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "teams_exported", cnt)
+		updateJobProgress(rctx.Logger(), a.Srv().Store(), job, "teams_exported", cnt)
 
 		for _, team := range teams {
 			afterId = team.Id
@@ -347,7 +424,7 @@ func (a *App) exportAllTeams(ctx request.CTX, job *model.Job, writer io.Writer) 
 			}
 			teamNames[team.Name] = true
 
-			teamLine := ImportLineFromTeam(team)
+			teamLine := importLineFromTeam(team)
 			if err := a.exportWriteLine(writer, teamLine); err != nil {
 				return nil, err
 			}
@@ -357,12 +434,11 @@ func (a *App) exportAllTeams(ctx request.CTX, job *model.Job, writer io.Writer) 
 	return teamNames, nil
 }
 
-func (a *App) exportAllChannels(ctx request.CTX, job *model.Job, writer io.Writer, teamNames map[string]bool, withArchived bool) *model.AppError {
+func (a *App) exportAllChannels(rctx request.CTX, job *model.Job, writer io.Writer, teamNames map[string]bool, withArchived bool) *model.AppError {
 	afterId := strings.Repeat("0", 26)
 	cnt := 0
 	for {
 		channels, err := a.Srv().Store().Channel().GetAllChannelsForExportAfter(1000, afterId)
-
 		if err != nil {
 			return model.NewAppError("exportAllChannels", "app.channel.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -371,7 +447,7 @@ func (a *App) exportAllChannels(ctx request.CTX, job *model.Job, writer io.Write
 			break
 		}
 		cnt += len(channels)
-		updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "channels_exported", cnt)
+		updateJobProgress(rctx.Logger(), a.Srv().Store(), job, "channels_exported", cnt)
 
 		for _, channel := range channels {
 			afterId = channel.Id
@@ -385,7 +461,7 @@ func (a *App) exportAllChannels(ctx request.CTX, job *model.Job, writer io.Write
 				continue
 			}
 
-			channelLine := ImportLineFromChannel(channel)
+			channelLine := importLineFromChannel(channel)
 			if err := a.exportWriteLine(writer, channelLine); err != nil {
 				return err
 			}
@@ -395,13 +471,12 @@ func (a *App) exportAllChannels(ctx request.CTX, job *model.Job, writer io.Write
 	return nil
 }
 
-func (a *App) exportAllUsers(ctx request.CTX, job *model.Job, writer io.Writer, includeArchivedChannels, includeProfilePictures bool) ([]string, *model.AppError) {
+func (a *App) exportAllUsers(rctx request.CTX, job *model.Job, writer io.Writer, includeArchivedChannels, includeProfilePictures bool) ([]string, *model.AppError) {
 	afterId := strings.Repeat("0", 26)
 	cnt := 0
 	profilePictures := []string{}
 	for {
 		users, err := a.Srv().Store().User().GetAllAfter(1000, afterId)
-
 		if err != nil {
 			return profilePictures, model.NewAppError("exportAllUsers", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -410,14 +485,19 @@ func (a *App) exportAllUsers(ctx request.CTX, job *model.Job, writer io.Writer, 
 			break
 		}
 		cnt += len(users)
-		updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "users_exported", cnt)
+		updateJobProgress(rctx.Logger(), a.Srv().Store(), job, "users_exported", cnt)
 
 		for _, user := range users {
 			afterId = user.Id
 
-			// Gathering here the exportable preferences to pass them on to ImportLineFromUser
+			// Skip bots as they are exported separately.
+			if user.IsBot {
+				continue
+			}
+
+			// Gathering here the exportable preferences to pass them on to importLineFromUser
 			exportedPrefs := make(map[string]*string)
-			allPrefs, err := a.GetPreferencesForUser(ctx, user.Id)
+			allPrefs, err := a.GetPreferencesForUser(rctx, user.Id)
 			if err != nil {
 				return profilePictures, err
 			}
@@ -453,7 +533,7 @@ func (a *App) exportAllUsers(ctx request.CTX, job *model.Job, writer io.Writer, 
 				}
 			}
 
-			userLine := ImportLineFromUser(user, exportedPrefs)
+			userLine := importLineFromUser(user, exportedPrefs)
 
 			if includeProfilePictures {
 				var pp string
@@ -475,7 +555,7 @@ func (a *App) exportAllUsers(ctx request.CTX, job *model.Job, writer io.Writer, 
 			}
 
 			// Do the Team Memberships.
-			members, err := a.buildUserTeamAndChannelMemberships(ctx, user.Id, includeArchivedChannels)
+			members, err := a.buildUserTeamAndChannelMemberships(rctx, user.Id, includeArchivedChannels)
 			if err != nil {
 				return profilePictures, err
 			}
@@ -491,11 +571,68 @@ func (a *App) exportAllUsers(ctx request.CTX, job *model.Job, writer io.Writer, 
 	return profilePictures, nil
 }
 
-func (a *App) buildUserTeamAndChannelMemberships(c request.CTX, userID string, includeArchivedChannels bool) (*[]imports.UserTeamImportData, *model.AppError) {
+func (a *App) exportAllBots(rctx request.CTX, job *model.Job, writer io.Writer, includeProfilePictures bool) ([]string, *model.AppError) {
+	afterId := ""
+	cnt := 0
+	profilePictures := []string{}
+
+	const pageSize = 1000
+
+	for {
+		bots, err := a.Srv().Store().Bot().GetAllAfter(pageSize, afterId)
+		if err != nil {
+			return profilePictures, model.NewAppError("exportAllBots", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		cnt += len(bots)
+		updateJobProgress(rctx.Logger(), a.Srv().Store(), job, "bots_exported", cnt)
+
+		for _, bot := range bots {
+			afterId = bot.UserId
+
+			var ownerUsername string
+			owner, err := a.Srv().Store().User().Get(rctx.Context(), bot.OwnerId)
+			if err != nil {
+				var nfErr *store.ErrNotFound
+				if errors.As(err, &nfErr) {
+					ownerUsername = bot.OwnerId
+				} else {
+					return profilePictures, model.NewAppError("exportAllBots", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+				}
+			} else {
+				ownerUsername = owner.Username
+			}
+
+			botLine := importLineFromBot(bot, ownerUsername)
+
+			if includeProfilePictures {
+				pp, err := a.GetProfileImagePath(model.UserFromBot(bot))
+				if err != nil {
+					return profilePictures, err
+				}
+				if pp != "" {
+					botLine.Bot.ProfileImage = &pp
+					profilePictures = append(profilePictures, pp)
+				}
+			}
+
+			if err := a.exportWriteLine(writer, botLine); err != nil {
+				return profilePictures, err
+			}
+		}
+
+		if len(bots) < pageSize {
+			break
+		}
+	}
+
+	return profilePictures, nil
+}
+
+func (a *App) buildUserTeamAndChannelMemberships(rctx request.CTX, userID string, includeArchivedChannels bool) (*[]imports.UserTeamImportData, *model.AppError) {
 	var memberships []imports.UserTeamImportData
 
 	members, err := a.Srv().Store().Team().GetTeamMembersForExport(userID)
-
 	if err != nil {
 		return nil, model.NewAppError("buildUserTeamAndChannelMemberships", "app.team.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -506,10 +643,10 @@ func (a *App) buildUserTeamAndChannelMemberships(c request.CTX, userID string, i
 			continue
 		}
 
-		memberData := ImportUserTeamDataFromTeamMember(member)
+		memberData := importUserTeamDataFromTeamMember(member)
 
 		// Do the Channel Memberships.
-		channelMembers, err := a.buildUserChannelMemberships(c, userID, member.TeamId, includeArchivedChannels)
+		channelMembers, err := a.buildUserChannelMemberships(rctx, userID, member.TeamId, includeArchivedChannels)
 		if err != nil {
 			return nil, err
 		}
@@ -528,21 +665,21 @@ func (a *App) buildUserTeamAndChannelMemberships(c request.CTX, userID string, i
 	return &memberships, nil
 }
 
-func (a *App) buildUserChannelMemberships(c request.CTX, userID string, teamID string, includeArchivedChannels bool) (*[]imports.UserChannelImportData, *model.AppError) {
+func (a *App) buildUserChannelMemberships(rctx request.CTX, userID string, teamID string, includeArchivedChannels bool) (*[]imports.UserChannelImportData, *model.AppError) {
 	members, nErr := a.Srv().Store().Channel().GetChannelMembersForExport(userID, teamID, includeArchivedChannels)
 	if nErr != nil {
 		return nil, model.NewAppError("buildUserChannelMemberships", "app.channel.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	category := model.PreferenceCategoryFavoriteChannel
-	preferences, err := a.GetPreferenceByCategoryForUser(c, userID, category)
+	preferences, err := a.GetPreferenceByCategoryForUser(rctx, userID, category)
 	if err != nil && err.StatusCode != http.StatusNotFound {
 		return nil, err
 	}
 
 	memberships := make([]imports.UserChannelImportData, len(members))
 	for i, member := range members {
-		memberships[i] = *ImportUserChannelDataFromChannelMemberAndPreferences(member, &preferences)
+		memberships[i] = *importUserChannelDataFromChannelMemberAndPreferences(member, &preferences)
 	}
 	return &memberships, nil
 }
@@ -567,7 +704,7 @@ func (a *App) buildUserNotifyProps(notifyProps model.StringMap) *imports.UserNot
 	}
 }
 
-func (a *App) exportAllPosts(ctx request.CTX, job *model.Job, writer io.Writer, withAttachments bool, includeArchivedChannels bool) ([]imports.AttachmentImportData, *model.AppError) {
+func (a *App) exportAllPosts(rctx request.CTX, job *model.Job, writer io.Writer, withAttachments bool, includeArchivedChannels bool) ([]imports.AttachmentImportData, *model.AppError) {
 	var attachments []imports.AttachmentImportData
 	afterId := strings.Repeat("0", 26)
 	var postProcessCount uint64
@@ -576,7 +713,7 @@ func (a *App) exportAllPosts(ctx request.CTX, job *model.Job, writer io.Writer, 
 	cnt := 0
 	for {
 		if time.Since(logCheckpoint) > 5*time.Minute {
-			ctx.Logger().Debug(fmt.Sprintf("Bulk Export: processed %d posts", postProcessCount))
+			rctx.Logger().Debug(fmt.Sprintf("Bulk Export: processed %d posts", postProcessCount))
 			logCheckpoint = time.Now()
 		}
 
@@ -589,7 +726,7 @@ func (a *App) exportAllPosts(ctx request.CTX, job *model.Job, writer io.Writer, 
 			return attachments, nil
 		}
 		cnt += len(posts)
-		updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "posts_exported", cnt)
+		updateJobProgress(rctx.Logger(), a.Srv().Store(), job, "posts_exported", cnt)
 
 		for _, post := range posts {
 			afterId = post.Id
@@ -600,11 +737,20 @@ func (a *App) exportAllPosts(ctx request.CTX, job *model.Job, writer io.Writer, 
 				continue
 			}
 
-			postLine := ImportLineForPost(post)
+			postLine := importLineForPost(post)
 
-			replies, replyAttachments, err := a.buildPostReplies(ctx, post.Id, withAttachments)
+			replies, replyAttachments, err := a.buildPostReplies(rctx, post.Id, withAttachments)
 			if err != nil {
 				return nil, err
+			}
+
+			followers, err := a.buildThreadFollowers(rctx, post.Id)
+			if err != nil {
+				return nil, err
+			}
+
+			if len(followers) > 0 {
+				postLine.Post.ThreadFollowers = &followers
 			}
 
 			if withAttachments && len(replyAttachments) > 0 {
@@ -614,7 +760,7 @@ func (a *App) exportAllPosts(ctx request.CTX, job *model.Job, writer io.Writer, 
 			postLine.Post.Replies = &replies
 			postLine.Post.Reactions = &[]imports.ReactionImportData{}
 			if post.HasReactions {
-				postLine.Post.Reactions, err = a.BuildPostReactions(ctx, post.Id)
+				postLine.Post.Reactions, err = a.BuildPostReactions(rctx, post.Id)
 				if err != nil {
 					return nil, err
 				}
@@ -639,7 +785,7 @@ func (a *App) exportAllPosts(ctx request.CTX, job *model.Job, writer io.Writer, 
 	}
 }
 
-func (a *App) buildPostReplies(ctx request.CTX, postID string, withAttachments bool) ([]imports.ReplyImportData, []imports.AttachmentImportData, *model.AppError) {
+func (a *App) buildPostReplies(rctx request.CTX, postID string, withAttachments bool) ([]imports.ReplyImportData, []imports.AttachmentImportData, *model.AppError) {
 	var replies []imports.ReplyImportData
 	var attachments []imports.AttachmentImportData
 
@@ -649,10 +795,10 @@ func (a *App) buildPostReplies(ctx request.CTX, postID string, withAttachments b
 	}
 
 	for _, reply := range replyPosts {
-		replyImportObject := ImportReplyFromPost(reply)
+		replyImportObject := importReplyFromPost(reply)
 		if reply.HasReactions {
 			var appErr *model.AppError
-			replyImportObject.Reactions, appErr = a.BuildPostReactions(ctx, reply.Id)
+			replyImportObject.Reactions, appErr = a.BuildPostReactions(rctx, reply.Id)
 			if appErr != nil {
 				return nil, nil, appErr
 			}
@@ -674,7 +820,22 @@ func (a *App) buildPostReplies(ctx request.CTX, postID string, withAttachments b
 	return replies, attachments, nil
 }
 
-func (a *App) BuildPostReactions(ctx request.CTX, postID string) (*[]ReactionImportData, *model.AppError) {
+func (a *App) buildThreadFollowers(_ request.CTX, postID string) ([]imports.ThreadFollowerImportData, *model.AppError) {
+	var followers []imports.ThreadFollowerImportData
+
+	threadFollowers, nErr := a.Srv().Store().Thread().GetThreadMembershipsForExport(postID)
+	if nErr != nil {
+		return nil, model.NewAppError("buildThreadFollowers", "app.thread.get_threadmembers_for_export.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+	}
+
+	for _, member := range threadFollowers {
+		followers = append(followers, *importFollowerFromThreadMember(member))
+	}
+
+	return followers, nil
+}
+
+func (a *App) BuildPostReactions(rctx request.CTX, postID string) (*[]ReactionImportData, *model.AppError) {
 	var reactionsOfPost []imports.ReactionImportData
 
 	reactions, nErr := a.Srv().Store().Reaction().GetForPost(postID, true)
@@ -687,12 +848,12 @@ func (a *App) BuildPostReactions(ctx request.CTX, postID string) (*[]ReactionImp
 		if err != nil {
 			var nfErr *store.ErrNotFound
 			if errors.As(err, &nfErr) { // this is a valid case, the user that reacted might've been deleted by now
-				ctx.Logger().Info("Skipping reactions by user since the entity doesn't exist anymore", mlog.String("user_id", reaction.UserId))
+				rctx.Logger().Info("Skipping reactions by user since the entity doesn't exist anymore", mlog.String("user_id", reaction.UserId))
 				continue
 			}
 			return nil, model.NewAppError("BuildPostReactions", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
-		reactionsOfPost = append(reactionsOfPost, *ImportReactionFromPost(user, reaction))
+		reactionsOfPost = append(reactionsOfPost, *importReactionFromPost(user, reaction))
 	}
 
 	return &reactionsOfPost, nil
@@ -712,12 +873,12 @@ func (a *App) buildPostAttachments(postID string) ([]imports.AttachmentImportDat
 	return attachments, nil
 }
 
-func (a *App) exportCustomEmoji(c request.CTX, job *model.Job, writer io.Writer, outPath, exportDir string, exportFiles bool) ([]string, *model.AppError) {
+func (a *App) exportCustomEmoji(rctx request.CTX, job *model.Job, writer io.Writer, outPath, exportDir string, exportFiles bool) ([]string, *model.AppError) {
 	var emojiPaths []string
 	pageNumber := 0
 	cnt := 0
 	for {
-		customEmojiList, err := a.GetEmojiList(c, pageNumber, 100, model.EmojiSortByName)
+		customEmojiList, err := a.GetEmojiList(rctx, pageNumber, 100, model.EmojiSortByName)
 
 		if err != nil {
 			return nil, err
@@ -727,7 +888,7 @@ func (a *App) exportCustomEmoji(c request.CTX, job *model.Job, writer io.Writer,
 			break
 		}
 		cnt += len(customEmojiList)
-		updateJobProgress(c.Logger(), a.Srv().Store(), job, "emojis_exported", cnt)
+		updateJobProgress(rctx.Logger(), a.Srv().Store(), job, "emojis_exported", cnt)
 
 		pageNumber++
 
@@ -735,40 +896,45 @@ func (a *App) exportCustomEmoji(c request.CTX, job *model.Job, writer io.Writer,
 		pathToDir := filepath.Join(outPath, exportDir)
 		if exportFiles {
 			if _, err := os.Stat(pathToDir); os.IsNotExist(err) {
-				os.Mkdir(pathToDir, os.ModePerm)
-			}
-		}
-
-		for _, emoji := range customEmojiList {
-			emojiImagePath := filepath.Join(emojiPath, emoji.Id, "image")
-			filePath := filepath.Join(exportDir, emoji.Id, "image")
-			if exportFiles {
-				err := a.copyEmojiImages(emoji.Id, emojiImagePath, pathToDir)
-				if err != nil {
-					return nil, model.NewAppError("BulkExport", "app.export.export_custom_emoji.copy_emoji_images.error", nil, "err="+err.Error(), http.StatusBadRequest)
+				if err := os.Mkdir(pathToDir, os.ModePerm); err != nil {
+					return nil, model.NewAppError("BulkExport", "app.export.export_custom_emoji.mkdir.error", nil, "", http.StatusBadRequest).Wrap(err)
 				}
-			} else {
-				filePath = filepath.Join("emoji", emoji.Id, "image")
-				emojiPaths = append(emojiPaths, filePath)
 			}
 
-			emojiImportObject := ImportLineFromEmoji(emoji, filePath)
-			if err := a.exportWriteLine(writer, emojiImportObject); err != nil {
-				return nil, err
+			for _, emoji := range customEmojiList {
+				emojiImagePath := filepath.Join(emojiPath, emoji.Id, "image")
+				filePath := filepath.Join(exportDir, emoji.Id, "image")
+				if exportFiles {
+					err := a.copyEmojiImages(rctx, emoji.Id, emojiImagePath, pathToDir)
+					if err != nil {
+						return nil, model.NewAppError("BulkExport", "app.export.export_custom_emoji.copy_emoji_images.error", nil, "", http.StatusBadRequest).Wrap(err)
+					}
+				} else {
+					filePath = filepath.Join("emoji", emoji.Id, "image")
+					emojiPaths = append(emojiPaths, filePath)
+				}
+
+				emojiImportObject := importLineFromEmoji(emoji, filePath)
+				if err := a.exportWriteLine(writer, emojiImportObject); err != nil {
+					return nil, err
+				}
 			}
 		}
 	}
-
 	return emojiPaths, nil
 }
 
 // Copies emoji files from 'data/emoji' dir to 'exported_emoji' dir
-func (a *App) copyEmojiImages(emojiId string, emojiImagePath string, pathToDir string) error {
+func (a *App) copyEmojiImages(rctx request.CTX, emojiId string, emojiImagePath string, pathToDir string) error {
 	fromPath, err := os.Open(emojiImagePath)
 	if fromPath == nil || err != nil {
-		return errors.New("Error reading " + emojiImagePath + "file")
+		return errors.New("Error reading " + emojiImagePath + " file")
 	}
-	defer fromPath.Close()
+	defer func() {
+		if err = fromPath.Close(); err != nil {
+			rctx.Logger().Error("Error closing source file", mlog.String("path", emojiImagePath), mlog.Err(err))
+		}
+	}()
 
 	emojiDir := pathToDir + "/" + emojiId
 
@@ -786,8 +952,11 @@ func (a *App) copyEmojiImages(emojiId string, emojiImagePath string, pathToDir s
 	if err != nil {
 		return errors.New("Error creating the image file " + err.Error())
 	}
-	defer toPath.Close()
-
+	defer func() {
+		if err = toPath.Close(); err != nil {
+			rctx.Logger().Error("Error closing destination file", mlog.String("path", emojiDir+"/image"), mlog.Err(err))
+		}
+	}()
 	_, err = io.Copy(toPath, fromPath)
 	if err != nil {
 		return errors.New("Error copying emojis " + err.Error())
@@ -796,7 +965,7 @@ func (a *App) copyEmojiImages(emojiId string, emojiImagePath string, pathToDir s
 	return nil
 }
 
-func (a *App) exportAllDirectChannels(ctx request.CTX, job *model.Job, writer io.Writer, includeArchivedChannels bool) *model.AppError {
+func (a *App) exportAllDirectChannels(rctx request.CTX, job *model.Job, writer io.Writer, includeArchivedChannels bool) *model.AppError {
 	afterId := strings.Repeat("0", 26)
 	cnt := 0
 	for {
@@ -809,19 +978,43 @@ func (a *App) exportAllDirectChannels(ctx request.CTX, job *model.Job, writer io
 			break
 		}
 		cnt += len(channels)
-		updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "direct_channels_exported", cnt)
+		updateJobProgress(rctx.Logger(), a.Srv().Store(), job, "direct_channels_exported", cnt)
 
 		for _, channel := range channels {
 			afterId = channel.Id
+
+			// Skip deleted.
+			if channel.DeleteAt != 0 {
+				continue
+			}
 
 			// Skip if there are no active members in the channel
 			if len(channel.Members) == 0 {
 				continue
 			}
 
-			// Skip deleted.
-			if channel.DeleteAt != 0 {
-				continue
+			// Skip if the channel member structure is not intact
+			switch channel.Type {
+			case model.ChannelTypeGroup:
+				groupMembers := make([]string, len(channel.Members))
+				for i, m := range channel.Members {
+					groupMembers[i] = m.UserId
+				}
+				if channel.Name != model.GetGroupNameFromUserIds(groupMembers) {
+					// this is the case of a group channel when other user is permanently deleted
+					// we skip this channel and inform by logging it.
+					job.Data["skipped_direct_channels"] = job.Data["skipped_direct_channels"] + "," + channel.Id
+					rctx.Logger().Warn("Skipping group channels with partially deleted members", mlog.String("channel_id", channel.Id))
+					continue
+				}
+			case model.ChannelTypeDirect:
+				if _, u2 := channel.GetBothUsersForDM(); u2 != "" && len(channel.Members) == 1 {
+					// this is the case of a direct channel when other user is permanently deleted
+					// we skip this channel and inform by logging it.
+					job.Data["skipped_direct_channels"] = job.Data["skipped_direct_channels"] + "," + channel.Id
+					rctx.Logger().Info("Skipping direct channel with one active member", mlog.String("channel_id", channel.Id), mlog.String("user_id", channel.Members[0].UserId))
+					continue
+				}
 			}
 
 			favoritedBy, err := a.buildFavoritedByList(channel.Id)
@@ -834,7 +1027,7 @@ func (a *App) exportAllDirectChannels(ctx request.CTX, job *model.Job, writer io
 				return err
 			}
 
-			channelLine := ImportLineFromDirectChannel(channel, favoritedBy, shownBy)
+			channelLine := importLineFromDirectChannel(channel, favoritedBy, shownBy)
 			if err := a.exportWriteLine(writer, channelLine); err != nil {
 				return err
 			}
@@ -916,7 +1109,7 @@ func (a *App) buildShownByList(channel *model.DirectChannelForExport) ([]string,
 	return shownBy, nil
 }
 
-func (a *App) exportAllDirectPosts(ctx request.CTX, job *model.Job, writer io.Writer, withAttachments, includeArchivedChannels bool) ([]imports.AttachmentImportData, *model.AppError) {
+func (a *App) exportAllDirectPosts(rctx request.CTX, job *model.Job, writer io.Writer, withAttachments, includeArchivedChannels bool) ([]imports.AttachmentImportData, *model.AppError) {
 	var attachments []imports.AttachmentImportData
 	afterId := strings.Repeat("0", 26)
 	var postProcessCount uint64
@@ -925,7 +1118,7 @@ func (a *App) exportAllDirectPosts(ctx request.CTX, job *model.Job, writer io.Wr
 	cnt := 0
 	for {
 		if time.Since(logCheckpoint) > 5*time.Minute {
-			ctx.Logger().Debug(fmt.Sprintf("Bulk Export: processed %d direct posts", postProcessCount))
+			rctx.Logger().Debug(fmt.Sprintf("Bulk Export: processed %d direct posts", postProcessCount))
 			logCheckpoint = time.Now()
 		}
 
@@ -938,14 +1131,19 @@ func (a *App) exportAllDirectPosts(ctx request.CTX, job *model.Job, writer io.Wr
 			break
 		}
 		cnt += len(posts)
-		updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "direct_posts_exported", cnt)
+		updateJobProgress(rctx.Logger(), a.Srv().Store(), job, "direct_posts_exported", cnt)
 
+		channelsToSkip := model.SliceToMapKey(strings.Split(job.Data["skipped_direct_channels"], ",")...)
 		for _, post := range posts {
 			afterId = post.Id
 			postProcessCount++
 
 			// Skip deleted.
 			if post.DeleteAt != 0 {
+				continue
+			}
+
+			if _, ok := channelsToSkip[post.ChannelId]; ok {
 				continue
 			}
 
@@ -964,7 +1162,7 @@ func (a *App) exportAllDirectPosts(ctx request.CTX, job *model.Job, writer io.Wr
 			}
 
 			// Do the Replies.
-			replies, replyAttachments, err := a.buildPostReplies(ctx, post.Id, withAttachments)
+			replies, replyAttachments, err := a.buildPostReplies(rctx, post.Id, withAttachments)
 			if err != nil {
 				return nil, err
 			}
@@ -973,11 +1171,21 @@ func (a *App) exportAllDirectPosts(ctx request.CTX, job *model.Job, writer io.Wr
 				attachments = append(attachments, replyAttachments...)
 			}
 
-			postLine := ImportLineForDirectPost(post)
+			postLine := importLineForDirectPost(post)
 			postLine.DirectPost.Replies = &replies
 			if len(postAttachments) > 0 {
 				postLine.DirectPost.Attachments = &postAttachments
 			}
+
+			followers, err := a.buildThreadFollowers(rctx, post.Id)
+			if err != nil {
+				return nil, err
+			}
+
+			if len(followers) > 0 {
+				postLine.DirectPost.ThreadFollowers = &followers
+			}
+
 			if err := a.exportWriteLine(writer, postLine); err != nil {
 				return nil, err
 			}
@@ -986,42 +1194,53 @@ func (a *App) exportAllDirectPosts(ctx request.CTX, job *model.Job, writer io.Wr
 	return attachments, nil
 }
 
-func (a *App) exportFile(outPath, filePath string, zipWr *zip.Writer) *model.AppError {
-	var wr io.Writer
-	var err error
+func (a *App) exportFile(rctx request.CTX, outPath, filePath string, zipWr *zip.Writer) *model.AppError {
 	rd, appErr := a.FileReader(filePath)
 	if appErr != nil {
 		return appErr
 	}
-	defer rd.Close()
+	defer func() {
+		if err := rd.Close(); err != nil {
+			rctx.Logger().Error("Error closing file", mlog.Err(err))
+		}
+	}()
 
 	if zipWr != nil {
-		wr, err = zipWr.CreateHeader(&zip.FileHeader{
+		wr, err := zipWr.CreateHeader(&zip.FileHeader{
 			Name:   filepath.Join(model.ExportDataDir, filePath),
 			Method: zip.Store,
 		})
 		if err != nil {
 			return model.NewAppError("exportFileAttachment", "app.export.export_attachment.zip_create_header.error",
-				nil, "err="+err.Error(), http.StatusInternalServerError)
+				nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		if _, err = io.Copy(wr, rd); err != nil {
+			return model.NewAppError("exportFileAttachment", "app.export.export_attachment.copy_file.error",
+				nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	} else {
 		filePath = filepath.Join(outPath, model.ExportDataDir, filePath)
-		if err = os.MkdirAll(filepath.Dir(filePath), 0700); err != nil {
+		if err := os.MkdirAll(filepath.Dir(filePath), 0700); err != nil {
 			return model.NewAppError("exportFileAttachment", "app.export.export_attachment.mkdirall.error",
-				nil, "err="+err.Error(), http.StatusInternalServerError)
+				nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
-		wr, err = os.Create(filePath)
+		file, err := os.Create(filePath)
 		if err != nil {
 			return model.NewAppError("exportFileAttachment", "app.export.export_attachment.create_file.error",
-				nil, "err="+err.Error(), http.StatusInternalServerError)
+				nil, "", http.StatusInternalServerError).Wrap(err)
 		}
-		defer wr.(*os.File).Close()
-	}
+		defer func() {
+			if err = file.Close(); err != nil {
+				rctx.Logger().Error("Error closing file", mlog.Err(err))
+			}
+		}()
 
-	if _, err := io.Copy(wr, rd); err != nil {
-		return model.NewAppError("exportFileAttachment", "app.export.export_attachment.copy_file.error",
-			nil, "err="+err.Error(), http.StatusInternalServerError)
+		if _, err = io.Copy(file, rd); err != nil {
+			return model.NewAppError("exportFileAttachment", "app.export.export_attachment.copy_file.error",
+				nil, "", http.StatusInternalServerError).Wrap(err)
+		}
 	}
 
 	return nil
@@ -1059,7 +1278,7 @@ func (a *App) GeneratePresignURLForExport(name string) (*model.PresignURLRespons
 	p := path.Join(*a.Config().ExportSettings.Directory, filepath.Base(name))
 	found, err := b.FileExists(p)
 	if err != nil {
-		return nil, model.NewAppError("GeneratePresignURLForExport", "app.eport.generate_presigned_url.fileexist.app_error", nil, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("GeneratePresignURLForExport", "app.eport.generate_presigned_url.fileexist.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if !found {
 		return nil, model.NewAppError("GeneratePresignURLForExport", "app.eport.generate_presigned_url.notfound.app_error", nil, "", http.StatusInternalServerError)
@@ -1067,7 +1286,7 @@ func (a *App) GeneratePresignURLForExport(name string) (*model.PresignURLRespons
 
 	link, exp, err := backend.GeneratePublicLink(p)
 	if err != nil {
-		return nil, model.NewAppError("GeneratePresignURLForExport", "app.eport.generate_presigned_url.link.app_error", nil, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("GeneratePresignURLForExport", "app.eport.generate_presigned_url.link.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return &model.PresignURLResponse{

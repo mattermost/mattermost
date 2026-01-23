@@ -36,7 +36,7 @@ describe('Account Settings', () => {
         cy.uiClose();
     });
 
-    it('MM-T2081 Password: Error on blank', () => {
+    it('MM-T2081 Password: Save should be disabled on blank', () => {
         // # Go to Profile > Security
         cy.uiOpenProfileModal('Security');
 
@@ -49,12 +49,8 @@ describe('Account Settings', () => {
         // # Click "Edit" to the right of "Password"
         cy.get('#passwordEdit').should('be.visible').click();
 
-        // # Save the settings
-        cy.uiSave();
-
-        // * Check that there is an error
-        cy.get('#clientError').should('be.visible').should('contain', 'Please enter your current password.');
-        cy.get('#serverError').should('not.exist');
+        // # Check that save button is disabled
+        cy.get('button[type="submit"]').should('be.disabled');
 
         cy.uiClose();
     });

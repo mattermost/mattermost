@@ -90,7 +90,7 @@ describe('Incoming webhook', () => {
                 cy.wrap(el).should('contain', 'The following should be markdown formatted');
                 cy.wrap(el).should('contain', '(mouse emoji, strawberry emoji, then formatting as indicated):');
                 cy.get('.emoticon').eq(0).parent().
-                    should('have.html', `<span alt=":hamster:" class="emoticon" title=":hamster:" style="background-image: url(&quot;${baseUrl}/static/emoji/1f439.png&quot;);">:hamster:</span>`);
+                    should('have.html', `<span alt=":hamster:" class="emoticon" data-testid="postEmoji.:hamster:" style="background-image: url(&quot;${baseUrl}/static/emoji/1f439.png&quot;);">🐹</span>`);
                 cy.get('.emoticon').eq(1).parent().
                     should('have.html', `<span alt=":strawberry:" class="emoticon" title=":strawberry:" style="background-image: url(&quot;${baseUrl}/static/emoji/1f353.png&quot;);">:strawberry:</span>`);
                 cy.wrap(el).find('strong').should('have.text', 'bold');

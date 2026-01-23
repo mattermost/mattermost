@@ -4,18 +4,24 @@
 import React from 'react';
 import styled from 'styled-components';
 
-import Heading from '@mattermost/compass-components/components/heading'; // eslint-disable-line no-restricted-imports
 import glyphMap, {ProductChannelsIcon} from '@mattermost/compass-icons/components';
 
 import {useCurrentProduct} from 'utils/products';
 
-const ProductBrandingContainer = styled.div`
+const ProductBrandingContainer = styled.span`
     display: flex;
     align-items: center;
+`;
 
-    > * + * {
-        margin-left: 8px;
-    }
+const ProductBrandingHeading = styled.span`
+    font-family: 'Metropolis';
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: bold;
+    margin: 0;
+    color: inherit;
+
+    margin-left: 8px;
 `;
 
 const ProductBranding = (): JSX.Element => {
@@ -24,15 +30,14 @@ const ProductBranding = (): JSX.Element => {
     const Icon = currentProduct?.switcherIcon ? glyphMap[currentProduct.switcherIcon] : ProductChannelsIcon;
 
     return (
-        <ProductBrandingContainer tabIndex={0}>
+        <ProductBrandingContainer tabIndex={-1}>
             <Icon size={24}/>
-            <Heading
-                element='h1'
-                size={200}
-                margin='none'
-            >
+            <h1 className='sr-only'>
                 {currentProduct ? currentProduct.switcherText : 'Channels'}
-            </Heading>
+            </h1>
+            <ProductBrandingHeading>
+                {currentProduct ? currentProduct.switcherText : 'Channels'}
+            </ProductBrandingHeading>
         </ProductBrandingContainer>
     );
 };

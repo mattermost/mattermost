@@ -12,11 +12,8 @@ import type {ServerError} from '@mattermost/types/errors';
 import {CursorPaginationDirection} from '@mattermost/types/reports';
 import type {ReportDuration, UserReport} from '@mattermost/types/reports';
 
-import Preferences from 'mattermost-redux/constants/preferences';
-
 import {AdminConsoleListTable, ElapsedDurationCell, PAGE_SIZES, LoadingStates} from 'components/admin_console/list_table';
 import type {TableMeta} from 'components/admin_console/list_table';
-import AlertBanner from 'components/alert_banner';
 import SharedUserIndicator from 'components/shared_user_indicator';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
@@ -71,7 +68,6 @@ function SystemUsers(props: Props) {
     const [userReports, setUserReports] = useState<UserReportWithError[]>([]);
     const [userCount, setUserCount] = useState<number | undefined>();
     const [loadingState, setLoadingState] = useState<LoadingStates>(LoadingStates.Loading);
-    const [showMySqlBanner, setShowMySqlBanner] = useState(props.isMySql && !props.hideMySqlNotification);
 
     // Effect to get the total user count
     useEffect(() => {
@@ -151,21 +147,14 @@ function SystemUsers(props: Props) {
         props.tablePropertyDateRange,
     ]);
 
-    function handleDismissMySqlNotice() {
-        setShowMySqlBanner(false);
-        props.savePreferences(props.currentUser.id, [{
-            category: Preferences.CATEGORY_REPORTING,
-            name: Preferences.HIDE_MYSQL_STATS_NOTIFICATION,
-            user_id: props.currentUser.id,
-            value: 'true',
-        }]);
-    }
-
     // Handlers for table actions
 
     function handleRowClick(userId: UserReport['id']) {
         if (userId.length !== 0) {
-            history.push(`/admin_console/user_management/user/${userId}`);
+            const remoteID = userReports.find((userReport) => userReport.id === userId)?.remote_id;
+            if (!remoteID) {
+                history.push(`/admin_console/user_management/user/${userId}`);
+            }
         }
     }
 
@@ -276,13 +265,11 @@ function SystemUsers(props: Props) {
                                 {getDisplayName(info.row.original) || ''}
                                 {isRemoteUser && (
                                     <SharedUserIndicator
-                                        id={`sharedUserIndicator-${info.row.original.id}`}
                                         title={formatMessage({id: 'admin.system_users.list.userIsRemote', defaultMessage: 'Remote user'})}
                                         ariaLabel={formatMessage({id: 'admin.system_users.list.userIsRemoteAriaLabel', defaultMessage: 'This is a remote user'})}
                                         role='img'
                                         className='icon-12'
                                         withTooltip={true}
-                                        placement='top'
                                     />
                                 )}
                             </div>
@@ -362,7 +349,7 @@ function SystemUsers(props: Props) {
                     defaultMessage: 'Last post',
                 }),
                 cell: (info: CellContext<UserReport, number | undefined>) => <ElapsedDurationCell date={info.getValue()}/>,
-                enableHiding: !props.isMySql,
+                enableHiding: true,
                 enablePinning: false,
                 enableSorting: false,
             },
@@ -377,7 +364,7 @@ function SystemUsers(props: Props) {
                 meta: {
                     isNumeric: true,
                 },
-                enableHiding: !props.isMySql,
+                enableHiding: true,
                 enablePinning: false,
                 enableSorting: false,
             },
@@ -392,7 +379,7 @@ function SystemUsers(props: Props) {
                 meta: {
                     isNumeric: true,
                 },
-                enableHiding: !props.isMySql,
+                enableHiding: true,
                 enablePinning: false,
                 enableSorting: false,
             },
@@ -403,16 +390,21 @@ function SystemUsers(props: Props) {
                     id: 'admin.system_users.list.actions',
                     defaultMessage: 'Actions',
                 }),
-                cell: (info: CellContext<UserReport, null>) => (
-                    <SystemUsersListAction
-                        rowIndex={info.cell.row.index}
-                        tableId={tableId}
-                        user={info.row.original}
-                        currentUser={props.currentUser}
-                        updateUser={(updatedUser) => updateUserReport(info.row.original.id, updatedUser)}
-                        onError={(error) => updateUserReport(info.row.original.id, {error})}
-                    />
-                ),
+                cell: (info: CellContext<UserReport, null>) => {
+                    if (info.row.original?.remote_id?.length) {
+                        return (<></>);
+                    }
+                    return (
+                        <SystemUsersListAction
+                            rowIndex={info.cell.row.index}
+                            tableId={tableId}
+                            user={info.row.original}
+                            currentUser={props.currentUser}
+                            updateUser={(updatedUser) => updateUserReport(info.row.original.id, updatedUser)}
+                            onError={(error) => updateUserReport(info.row.original.id, {error})}
+                        />
+                    );
+                },
                 enableHiding: false,
                 enablePinning: true,
                 enableSorting: false,
@@ -435,11 +427,6 @@ function SystemUsers(props: Props) {
 
     const columnVisibility = {
         ...props.tablePropertyColumnVisibility,
-        ...(props.isMySql ? {
-            [ColumnNames.lastPostDate]: false,
-            [ColumnNames.daysActive]: false,
-            [ColumnNames.totalPosts]: false,
-        } : {}),
     };
 
     const table = useReactTable({
@@ -492,49 +479,6 @@ function SystemUsers(props: Props) {
                 <RevokeSessionsButton/>
             </AdminHeader>
             <div className='admin-console__wrapper'>
-                {showMySqlBanner &&
-                <AlertBanner
-                    className='systemUsers__mySqlAlertBanner'
-                    mode='warning'
-                    title={
-                        <FormattedMessage
-                            id='admin.system_users.mysql_stats.title'
-                            defaultMessage='Some statistics are unavailable for servers using MySQL'
-                        />
-                    }
-                    message={
-                        <>
-                            <FormattedMessage
-                                id='admin.system_users.mysql_stats.desc'
-                                defaultMessage='Use of MySQL may limit the availability of some statistics features. We recommend transitioning from MySQL to PostgreSQL to fully leverage improved performance and comprehensive analytics. While you’re still using MySQL, please use the export functionality to view all user statistics.'
-                            />
-                            <div className='systemUsers__mySqlAlertBanner-buttons'>
-                                <button
-                                    type='button'
-                                    className='btn btn-primary'
-                                    onClick={() => window.open('https://mattermost.com/pl/user-stats-learn-more', '_blank')}
-                                >
-                                    <FormattedMessage
-                                        id='admin.system_users.mysql_stats.learn_more'
-                                        defaultMessage='Learn more'
-                                    />
-                                </button>
-                                <button
-                                    type='button'
-                                    className='btn btn-tertiary'
-                                    onClick={handleDismissMySqlNotice}
-                                >
-                                    <FormattedMessage
-                                        id='admin.system_users.mysql_stats.dismiss'
-                                        defaultMessage='Dismiss'
-                                    />
-                                </button>
-                            </div>
-                        </>
-                    }
-                    onDismiss={handleDismissMySqlNotice}
-                />
-                }
                 <div className='admin-console__container ignore-marking'>
                     <div className='admin-console__filters-rows'>
                         <SystemUsersSearch
@@ -547,7 +491,6 @@ function SystemUsers(props: Props) {
                             filterStatus={props.tablePropertyFilterStatus}
                         />
                         <SystemUsersColumnTogglerMenu
-                            isMySql={props.isMySql}
                             allColumns={table.getAllLeafColumns()}
                             visibleColumnsLength={table.getVisibleLeafColumns()?.length ?? 0}
                         />
@@ -556,7 +499,7 @@ function SystemUsers(props: Props) {
                         />
                         <SystemUsersExport
                             currentUserId={props.currentUser.id}
-                            dateRange={props.tablePropertyDateRange}
+                            usersLenght={userReports.length}
                         />
                     </div>
                     <AdminConsoleListTable<UserReport>

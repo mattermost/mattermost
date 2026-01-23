@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/integrations/InstalledOutgoingWebhook Should match snapshot of makeDisplayName 1`] = `"hook display name"`;
 
@@ -128,11 +128,19 @@ exports[`components/integrations/InstalledOutgoingWebhook should match snapshot 
           id="installed_integrations.token"
           values={
             Object {
-              "token": "xoxz1z7c3tgi9xhrfudn638q9r",
+              "token": <code>
+                xoxz1z7c3tgi9xhrfudn638q9r
+              </code>,
             }
           }
         />
         <Memo(CopyText)
+          label={
+            Object {
+              "defaultMessage": "Copy Token",
+              "id": "integrations.copy_token",
+            }
+          }
           value="xoxz1z7c3tgi9xhrfudn638q9r"
         />
       </span>

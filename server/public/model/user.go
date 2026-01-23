@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -16,11 +17,11 @@ import (
 
 	"github.com/pkg/errors"
 
-	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/text/language"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/timezones"
+	"github.com/mattermost/mattermost/server/v8/channels/app/password/hashers"
 )
 
 const (
@@ -67,6 +68,8 @@ const (
 	UserRolesMaxLength    = 256
 
 	DesktopTokenTTL = time.Minute * 3
+
+	UserAuthServiceMagicLink = "magic_link"
 )
 
 //msgp:tuple User
@@ -75,44 +78,45 @@ const (
 // This struct's serializer methods are auto-generated. If a new field is added/removed,
 // please run make gen-serialized.
 type User struct {
-	Id                     string    `json:"id"`
-	CreateAt               int64     `json:"create_at,omitempty"`
-	UpdateAt               int64     `json:"update_at,omitempty"`
-	DeleteAt               int64     `json:"delete_at"`
-	Username               string    `json:"username"`
-	Password               string    `json:"password,omitempty"`
-	AuthData               *string   `json:"auth_data,omitempty"`
-	AuthService            string    `json:"auth_service"`
-	Email                  string    `json:"email"`
-	EmailVerified          bool      `json:"email_verified,omitempty"`
-	Nickname               string    `json:"nickname"`
-	FirstName              string    `json:"first_name"`
-	LastName               string    `json:"last_name"`
-	Position               string    `json:"position"`
-	Roles                  string    `json:"roles"`
-	AllowMarketing         bool      `json:"allow_marketing,omitempty"`
-	Props                  StringMap `json:"props,omitempty"`
-	NotifyProps            StringMap `json:"notify_props,omitempty"`
-	LastPasswordUpdate     int64     `json:"last_password_update,omitempty"`
-	LastPictureUpdate      int64     `json:"last_picture_update,omitempty"`
-	FailedAttempts         int       `json:"failed_attempts,omitempty"`
-	Locale                 string    `json:"locale"`
-	Timezone               StringMap `json:"timezone"`
-	MfaActive              bool      `json:"mfa_active,omitempty"`
-	MfaSecret              string    `json:"mfa_secret,omitempty"`
-	RemoteId               *string   `json:"remote_id,omitempty"`
-	LastActivityAt         int64     `json:"last_activity_at,omitempty"`
-	IsBot                  bool      `json:"is_bot,omitempty"`
-	BotDescription         string    `json:"bot_description,omitempty"`
-	BotLastIconUpdate      int64     `json:"bot_last_icon_update,omitempty"`
-	TermsOfServiceId       string    `json:"terms_of_service_id,omitempty"`
-	TermsOfServiceCreateAt int64     `json:"terms_of_service_create_at,omitempty"`
-	DisableWelcomeEmail    bool      `json:"disable_welcome_email"`
-	LastLogin              int64     `json:"last_login,omitempty"`
+	Id                     string      `json:"id"`
+	CreateAt               int64       `json:"create_at,omitempty"`
+	UpdateAt               int64       `json:"update_at,omitempty"`
+	DeleteAt               int64       `json:"delete_at"`
+	Username               string      `json:"username"`
+	Password               string      `json:"password,omitempty"`
+	AuthData               *string     `json:"auth_data,omitempty"`
+	AuthService            string      `json:"auth_service"`
+	Email                  string      `json:"email"`
+	EmailVerified          bool        `json:"email_verified,omitempty"`
+	Nickname               string      `json:"nickname"`
+	FirstName              string      `json:"first_name"`
+	LastName               string      `json:"last_name"`
+	Position               string      `json:"position"`
+	Roles                  string      `json:"roles"`
+	AllowMarketing         bool        `json:"allow_marketing,omitempty"`
+	Props                  StringMap   `json:"props,omitempty"`
+	NotifyProps            StringMap   `json:"notify_props,omitempty"`
+	LastPasswordUpdate     int64       `json:"last_password_update,omitempty"`
+	LastPictureUpdate      int64       `json:"last_picture_update,omitempty"`
+	FailedAttempts         int         `json:"failed_attempts,omitempty"`
+	Locale                 string      `json:"locale"`
+	Timezone               StringMap   `json:"timezone"`
+	MfaActive              bool        `json:"mfa_active,omitempty"`
+	MfaSecret              string      `json:"mfa_secret,omitempty"`
+	RemoteId               *string     `json:"remote_id,omitempty"`
+	LastActivityAt         int64       `json:"last_activity_at,omitempty"`
+	IsBot                  bool        `json:"is_bot,omitempty"`
+	BotDescription         string      `json:"bot_description,omitempty"`
+	BotLastIconUpdate      int64       `json:"bot_last_icon_update,omitempty"`
+	TermsOfServiceId       string      `json:"terms_of_service_id,omitempty"`
+	TermsOfServiceCreateAt int64       `json:"terms_of_service_create_at,omitempty"`
+	DisableWelcomeEmail    bool        `json:"disable_welcome_email"`
+	LastLogin              int64       `json:"last_login,omitempty"`
+	MfaUsedTimestamps      StringArray `json:"mfa_used_timestamps,omitempty"`
 }
 
-func (u *User) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (u *User) Auditable() map[string]any {
+	return map[string]any{
 		"id":                         u.Id,
 		"create_at":                  u.CreateAt,
 		"update_at":                  u.UpdateAt,
@@ -144,7 +148,7 @@ func (u *User) Auditable() map[string]interface{} {
 }
 
 func (u *User) LogClone() any {
-	return map[string]interface{}{
+	return map[string]any{
 		"id":              u.Id,
 		"create_at":       u.CreateAt,
 		"update_at":       u.UpdateAt,
@@ -194,8 +198,8 @@ type UserPatch struct {
 	RemoteId    *string   `json:"remote_id"`
 }
 
-func (u *UserPatch) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (u *UserPatch) Auditable() map[string]any {
+	return map[string]any{
 		"username":     u.Username,
 		"nickname":     u.Nickname,
 		"first_name":   u.FirstName,
@@ -216,8 +220,8 @@ type UserAuth struct {
 	AuthService string  `json:"auth_service,omitempty"`
 }
 
-func (u *UserAuth) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (u *UserAuth) Auditable() map[string]any {
+	return map[string]any{
 		"auth_service": u.AuthService,
 	}
 }
@@ -240,6 +244,19 @@ type UserForIndexing struct {
 type ViewUsersRestrictions struct {
 	Teams    []string
 	Channels []string
+}
+
+//msgp:ignore GetUsersNotInChannelOptions
+type GetUsersNotInChannelOptions struct {
+	TeamID string `json:"team_id"`
+	// Page-based pagination (used for non-ABAC channels)
+	// This will be discarded if the channel has an ABAC policy and CursorID will be used.
+	Page  int `json:"page"`
+	Limit int `json:"limit"`
+	// Cursor-based pagination (used for ABAC channels)
+	// If CursorID is empty for ABAC channels, it will start from the beginning
+	CursorID string `json:"cursor_id"`
+	Etag     string `json:"etag"`
 }
 
 func (r *ViewUsersRestrictions) Hash() string {
@@ -485,7 +502,7 @@ func (u *User) PreSave() *AppError {
 		u.Props = make(map[string]string)
 	}
 
-	if u.NotifyProps == nil || len(u.NotifyProps) == 0 {
+	if len(u.NotifyProps) == 0 {
 		u.SetDefaultNotifications()
 	}
 
@@ -494,8 +511,8 @@ func (u *User) PreSave() *AppError {
 	}
 
 	if u.Password != "" {
-		hashed, err := HashPassword(u.Password)
-		if errors.Is(err, bcrypt.ErrPasswordTooLong) {
+		hashed, err := hashers.Hash(u.Password)
+		if errors.Is(err, hashers.ErrPasswordTooLong) {
 			return NewAppError("User.PreSave", "model.user.pre_save.password_too_long.app_error",
 				nil, "user_id="+u.Id, http.StatusBadRequest).Wrap(err)
 		} else if err != nil {
@@ -535,7 +552,7 @@ func (u *User) PreUpdate() {
 		u.AuthData = nil
 	}
 
-	if u.NotifyProps == nil || len(u.NotifyProps) == 0 {
+	if len(u.NotifyProps) == 0 {
 		u.SetDefaultNotifications()
 	} else if _, ok := u.NotifyProps[MentionKeysNotifyProp]; ok {
 		// Remove any blank mention keys
@@ -566,7 +583,7 @@ func (u *User) SetDefaultNotifications() {
 	u.NotifyProps[DesktopSoundNotifyProp] = "true"
 	u.NotifyProps[MentionKeysNotifyProp] = ""
 	u.NotifyProps[ChannelMentionsNotifyProp] = "true"
-	u.NotifyProps[PushStatusNotifyProp] = StatusAway
+	u.NotifyProps[PushStatusNotifyProp] = StatusOnline
 	u.NotifyProps[CommentsNotifyProp] = CommentsNotifyNever
 	u.NotifyProps[FirstNameNotifyProp] = "false"
 	u.NotifyProps[DesktopThreadsNotifyProp] = UserNotifyAll
@@ -591,7 +608,7 @@ func (u *User) UpdateMentionKeysFromUsername(oldUsername string) {
 func (u *User) GetMentionKeys() []string {
 	var keys []string
 
-	for _, key := range strings.Split(u.NotifyProps[MentionKeysNotifyProp], ",") {
+	for key := range strings.SplitSeq(u.NotifyProps[MentionKeysNotifyProp], ",") {
 		trimmedKey := strings.TrimSpace(key)
 
 		if trimmedKey == "" {
@@ -658,23 +675,28 @@ func (u *User) Etag(showFullName, showEmail bool) string {
 // Remove any private data from the user object
 func (u *User) Sanitize(options map[string]bool) {
 	u.Password = ""
-	u.AuthData = NewPointer("")
 	u.MfaSecret = ""
+	u.MfaUsedTimestamps = nil
 	u.LastLogin = 0
 
-	if len(options) != 0 && !options["email"] {
-		u.Email = ""
-		delete(u.Props, UserPropsKeyRemoteEmail)
-	}
-	if len(options) != 0 && !options["fullname"] {
-		u.FirstName = ""
-		u.LastName = ""
-	}
-	if len(options) != 0 && !options["passwordupdate"] {
-		u.LastPasswordUpdate = 0
-	}
-	if len(options) != 0 && !options["authservice"] {
-		u.AuthService = ""
+	if len(options) != 0 {
+		if !options["email"] {
+			u.Email = ""
+			delete(u.Props, UserPropsKeyRemoteEmail)
+		}
+		if !options["fullname"] {
+			u.FirstName = ""
+			u.LastName = ""
+		}
+		if !options["passwordupdate"] {
+			u.LastPasswordUpdate = 0
+		}
+		if !options["authservice"] {
+			u.AuthService = ""
+		}
+		if !options["authdata"] {
+			u.AuthData = NewPointer("")
+		}
 	}
 }
 
@@ -694,21 +716,23 @@ func (u *User) SanitizeInput(isAdmin bool) {
 	u.FailedAttempts = 0
 	u.MfaActive = false
 	u.MfaSecret = ""
+	u.MfaUsedTimestamps = StringArray{}
 	u.Email = strings.TrimSpace(u.Email)
 	u.LastActivityAt = 0
 }
 
 func (u *User) ClearNonProfileFields(asAdmin bool) {
 	u.Password = ""
-	u.AuthData = NewPointer("")
 	u.MfaSecret = ""
+	u.MfaUsedTimestamps = nil
 	u.EmailVerified = false
 	u.AllowMarketing = false
 	u.LastPasswordUpdate = 0
-	u.FailedAttempts = 0
 
 	if !asAdmin {
+		u.AuthData = NewPointer("")
 		u.NotifyProps = StringMap{}
+		u.FailedAttempts = 0
 	}
 }
 
@@ -850,6 +874,11 @@ func (u *User) IsGuest() bool {
 	return IsInRole(u.Roles, SystemGuestRoleId)
 }
 
+func (u *User) IsMagicLinkEnabled() bool {
+	// Magic link is only enabled for guest users
+	return u.AuthService == UserAuthServiceMagicLink && u.IsGuest()
+}
+
 func (u *User) IsSystemAdmin() bool {
 	return IsInRole(u.Roles, SystemAdminRoleId)
 }
@@ -865,13 +894,7 @@ func (u *User) IsInRole(inRole string) bool {
 func IsInRole(userRoles string, inRole string) bool {
 	roles := strings.Split(userRoles, " ")
 
-	for _, r := range roles {
-		if r == inRole {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(roles, inRole)
 }
 
 func (u *User) IsSSOUser() bool {
@@ -913,6 +936,22 @@ func (u *User) IsRemote() bool {
 // GetRemoteID returns the remote id for this user or "" if not a remote user.
 func (u *User) GetRemoteID() string {
 	return SafeDereference(u.RemoteId)
+}
+
+func (u *User) GetOriginalRemoteID() string {
+	if u.Props == nil {
+		if u.IsRemote() {
+			return UserOriginalRemoteIdUnknown
+		}
+		return "" // Local user
+	}
+	if originalId, exists := u.Props[UserPropsKeyOriginalRemoteId]; exists && originalId != "" {
+		return originalId
+	}
+	if u.IsRemote() {
+		return UserOriginalRemoteIdUnknown
+	}
+	return "" // Local user
 }
 
 func (u *User) GetAuthData() string {
@@ -961,19 +1000,8 @@ func (u *UserPatch) SetField(fieldName string, fieldValue string) {
 	}
 }
 
-// HashPassword generates a hash using the bcrypt.GenerateFromPassword
-func HashPassword(password string) (string, error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), 10)
-	if err != nil {
-		return "", err
-	}
-
-	return string(hash), nil
-}
-
 var validUsernameChars = regexp.MustCompile(`^[a-z0-9\.\-_]+$`)
-var validUsername = regexp.MustCompile(`^[a-z][a-z0-9\.\-_]*$`)
-var validUsernameCharsForRemote = regexp.MustCompile(`^[a-z][a-z0-9\.\-_:]*$`)
+var validUsernameCharsForRemote = regexp.MustCompile(`^[a-z0-9\.\-_:]*$`)
 
 var restrictedUsernames = map[string]struct{}{
 	"all":       {},
@@ -987,7 +1015,7 @@ func IsValidUsername(s string) bool {
 		return false
 	}
 
-	if !validUsername.MatchString(s) {
+	if !validUsernameChars.MatchString(s) {
 		return false
 	}
 
@@ -1087,4 +1115,9 @@ type UserPostStats struct {
 	LastPostDate *int64 `json:"last_post_date,omitempty"`
 	DaysActive   *int   `json:"days_active,omitempty"`
 	TotalPosts   *int   `json:"total_posts,omitempty"`
+}
+
+type LoginTypeResponse struct {
+	AuthService   string `json:"auth_service"`
+	IsDeactivated bool   `json:"is_deactivated,omitempty"`
 }

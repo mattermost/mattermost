@@ -57,7 +57,7 @@ describe('components/SingleImageView', () => {
             <SingleImageView {...baseProps}/>,
         );
 
-        wrapper.find('SizeAwareImage').at(0).simulate('click', {preventDefault: () => {}});
+        wrapper.find(SizeAwareImage).at(0).simulate('click', {preventDefault: () => { }});
         expect(baseProps.actions.openModal).toHaveBeenCalledTimes(1);
     });
 
@@ -75,9 +75,12 @@ describe('components/SingleImageView', () => {
         );
 
         const instance = wrapper.instance() as SingleImageView;
-        instance.toggleEmbedVisibility();
+        const event = {
+            stopPropagation: jest.fn(),
+        } as unknown as React.MouseEvent<HTMLButtonElement>;
+        instance.toggleEmbedVisibility(event);
         expect(props.actions.toggleEmbedVisibility).toHaveBeenCalledTimes(1);
-        expect(props.actions.toggleEmbedVisibility).toBeCalledWith('original_post_id');
+        expect(props.actions.toggleEmbedVisibility).toHaveBeenCalledWith('original_post_id');
     });
 
     test('should set loaded state on callback of onImageLoaded on SizeAwareImage component', () => {

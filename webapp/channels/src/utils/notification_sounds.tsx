@@ -1,9 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ReactNode} from 'react';
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage} from 'react-intl';
+
+import type {ChannelNotifyProps} from '@mattermost/types/channels';
+import type {UserNotifyProps} from '@mattermost/types/users';
+
+import type {SelectOption} from 'components/widgets/modals/components/react_select_item';
 
 import bing from 'sounds/bing.mp3';
 import calls_calm from 'sounds/calls_calm.mp3';
@@ -15,79 +18,78 @@ import down from 'sounds/down.mp3';
 import hello from 'sounds/hello.mp3';
 import ripple from 'sounds/ripple.mp3';
 import upstairs from 'sounds/upstairs.mp3';
+import {DesktopSound} from 'utils/constants';
 import * as UserAgent from 'utils/user_agent';
 
-export const notificationSounds = new Map([
-    ['Bing', bing],
-    ['Crackle', crackle],
-    ['Down', down],
-    ['Hello', hello],
-    ['Ripple', ripple],
-    ['Upstairs', upstairs],
+export const DesktopNotificationSounds = {
+    DEFAULT: 'default',
+    BING: 'Bing',
+    CRACKLE: 'Crackle',
+    DOWN: 'Down',
+    HELLO: 'Hello',
+    RIPPLE: 'Ripple',
+    UPSTAIRS: 'Upstairs',
+} as const;
+
+export const notificationSounds = new Map<string, string>([
+    [DesktopNotificationSounds.BING, bing],
+    [DesktopNotificationSounds.CRACKLE, crackle],
+    [DesktopNotificationSounds.DOWN, down],
+    [DesktopNotificationSounds.HELLO, hello],
+    [DesktopNotificationSounds.RIPPLE, ripple],
+    [DesktopNotificationSounds.UPSTAIRS, upstairs],
 ]);
 
 export const notificationSoundKeys = Array.from(notificationSounds.keys());
 
-export const optionsOfMessageNotificationSoundsSelect: Array<{value: string; label: ReactNode}> = notificationSoundKeys.map((soundName) => {
-    if (soundName === 'Bing') {
+export const optionsOfMessageNotificationSoundsSelect: SelectOption[] = notificationSoundKeys.map((soundName) => {
+    if (soundName === DesktopNotificationSounds.BING) {
         return {
             value: soundName,
-            label: (
-                <FormattedMessage
-                    id='user.settings.notifications.desktopNotificationSound.soundBing'
-                    defaultMessage='Bing'
-                />
-            ),
+            label: defineMessage({
+                id: 'user.settings.notifications.desktopNotificationSound.soundBing',
+                defaultMessage: 'Bing',
+            }),
         };
-    } else if (soundName === 'Crackle') {
+    } else if (soundName === DesktopNotificationSounds.CRACKLE) {
         return {
             value: soundName,
-            label: (
-                <FormattedMessage
-                    id='user.settings.notifications.desktopNotificationSound.soundCrackle'
-                    defaultMessage='Crackle'
-                />
-            ),
+            label: defineMessage({
+                id: 'user.settings.notifications.desktopNotificationSound.soundCrackle',
+                defaultMessage: 'Crackle',
+            }),
         };
-    } else if (soundName === 'Down') {
+    } else if (soundName === DesktopNotificationSounds.DOWN) {
         return {
             value: soundName,
-            label: (
-                <FormattedMessage
-                    id='user.settings.notifications.desktopNotificationSound.soundDown'
-                    defaultMessage='Down'
-                />
-            ),
+            label: defineMessage({
+                id: 'user.settings.notifications.desktopNotificationSound.soundDown',
+                defaultMessage: 'Down',
+            }),
         };
-    } else if (soundName === 'Hello') {
+    } else if (soundName === DesktopNotificationSounds.HELLO) {
         return {
             value: soundName,
-            label: (
-                <FormattedMessage
-                    id='user.settings.notifications.desktopNotificationSound.soundHello'
-                    defaultMessage='Hello'
-                />
-            ),
+            label: defineMessage({
+                id: 'user.settings.notifications.desktopNotificationSound.soundHello',
+                defaultMessage: 'Hello',
+            }),
         };
-    } else if (soundName === 'Ripple') {
+    } else if (soundName === DesktopNotificationSounds.RIPPLE) {
         return {
             value: soundName,
-            label: (
-                <FormattedMessage
-                    id='user.settings.notifications.desktopNotificationSound.soundRipple'
-                    defaultMessage='Ripple'
-                />
-            ),
+            label: defineMessage({
+                id: 'user.settings.notifications.desktopNotificationSound.soundRipple',
+                defaultMessage: 'Ripple',
+            }),
         };
-    } else if (soundName === 'Upstairs') {
+    } else if (soundName === DesktopNotificationSounds.UPSTAIRS) {
         return {
             value: soundName,
-            label: (
-                <FormattedMessage
-                    id='user.settings.notifications.desktopNotificationSound.soundUpstairs'
-                    defaultMessage='Upstairs'
-                />
-            ),
+            label: defineMessage({
+                id: 'user.settings.notifications.desktopNotificationSound.soundUpstairs',
+                defaultMessage: 'Upstairs',
+            }),
         };
     }
     return {
@@ -115,46 +117,38 @@ export const callsNotificationSounds = new Map([
 
 export const callNotificationSoundKeys = Array.from(callsNotificationSounds.keys());
 
-export const optionsOfIncomingCallSoundsSelect: Array<{value: string; label: ReactNode}> = callNotificationSoundKeys.map((soundName) => {
+export const optionsOfIncomingCallSoundsSelect: SelectOption[] = callNotificationSoundKeys.map((soundName) => {
     if (soundName === 'Dynamic') {
         return {
             value: soundName,
-            label: (
-                <FormattedMessage
-                    id='user.settings.notifications.desktopNotificationSound.soundDynamic'
-                    defaultMessage='Dynamic'
-                />
-            ),
+            label: defineMessage({
+                id: 'user.settings.notifications.desktopNotificationSound.soundDynamic',
+                defaultMessage: 'Dynamic',
+            }),
         };
     } else if (soundName === 'Calm') {
         return {
             value: soundName,
-            label: (
-                <FormattedMessage
-                    id='user.settings.notifications.desktopNotificationSound.soundCalm'
-                    defaultMessage='Calm'
-                />
-            ),
+            label: defineMessage({
+                id: 'user.settings.notifications.desktopNotificationSound.soundCalm',
+                defaultMessage: 'Calm',
+            }),
         };
     } else if (soundName === 'Urgent') {
         return {
             value: soundName,
-            label: (
-                <FormattedMessage
-                    id='user.settings.notifications.desktopNotificationSound.soundUrgent'
-                    defaultMessage='Urgent'
-                />
-            ),
+            label: defineMessage({
+                id: 'user.settings.notifications.desktopNotificationSound.soundUrgent',
+                defaultMessage: 'Urgent',
+            }),
         };
     } else if (soundName === 'Cheerful') {
         return {
             value: soundName,
-            label: (
-                <FormattedMessage
-                    id='user.settings.notifications.desktopNotificationSound.soundCheerful'
-                    defaultMessage='Cheerful'
-                />
-            ),
+            label: defineMessage({
+                id: 'user.settings.notifications.desktopNotificationSound.soundCheerful',
+                defaultMessage: 'Cheerful',
+            }),
         };
     }
     return {
@@ -248,4 +242,16 @@ export function loopNotificationRing(name: string) {
 
 export function hasSoundOptions() {
     return (!UserAgent.isEdge());
+}
+
+/**
+ * This conversion is needed because User's preference for desktop sound is stored as either true or false. On the other hand,
+ * Channel's specific desktop sound is stored as either On or Off.
+ */
+export function convertDesktopSoundNotifyPropFromUserToDesktop(userNotifyDesktopSound?: UserNotifyProps['desktop_sound']): ChannelNotifyProps['desktop_sound'] {
+    if (userNotifyDesktopSound && userNotifyDesktopSound === 'false') {
+        return DesktopSound.OFF;
+    }
+
+    return DesktopSound.ON;
 }

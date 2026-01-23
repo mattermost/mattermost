@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/integrations/InstalledOutgoingOAuthConnection should match snapshot 1`] = `
 <div
@@ -57,15 +57,15 @@ exports[`components/integrations/InstalledOutgoingOAuthConnection should match s
       <span
         className="item-details__token"
       >
-        <FormattedMarkdownMessage
-          defaultMessage="Client ID: **{clientId}**"
+        <MemoizedFormattedMessage
+          defaultMessage="Client ID: "
           id="installed_integrations.client_id"
-          values={
-            Object {
-              "clientId": "someid",
-            }
-          }
         />
+        <strong>
+          <code>
+            someid
+          </code>
+        </strong>
       </span>
     </div>
     <div
@@ -91,7 +91,9 @@ exports[`components/integrations/InstalledOutgoingOAuthConnection should match s
           id="installed_integrations.audience_urls"
           values={
             Object {
-              "urls": "https://myaudience.com",
+              "urls": <code>
+                https://myaudience.com
+              </code>,
             }
           }
         />
@@ -108,7 +110,9 @@ exports[`components/integrations/InstalledOutgoingOAuthConnection should match s
           id="installed_integrations.token_url"
           values={
             Object {
-              "url": "https://tokenurl.com",
+              "url": <code>
+                https://tokenurl.com
+              </code>,
             }
           }
         />

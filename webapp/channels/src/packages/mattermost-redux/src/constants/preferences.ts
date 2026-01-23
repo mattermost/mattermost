@@ -48,6 +48,7 @@ const Preferences = {
     SHOW_UNREAD_SECTION: 'show_unread_section',
     CATEGORY_ADVANCED_SETTINGS: 'advanced_settings',
     ADVANCED_FILTER_JOIN_LEAVE: 'join_leave',
+    RENDER_EMOTICONS_AS_EMOJI: 'render_emoticons_as_emoji',
     ADVANCED_CODE_BLOCK_ON_CTRL_ENTER: 'code_block_ctrl_enter',
     ADVANCED_SEND_ON_CTRL_ENTER: 'send_on_ctrl_enter',
     ADVANCED_SYNC_DRAFTS: 'sync_drafts',
@@ -56,7 +57,6 @@ const Preferences = {
 
     CATEGORY_PERFORMANCE_DEBUGGING: 'performance_debugging',
     NAME_DISABLE_CLIENT_PLUGINS: 'disable_client_plugins',
-    NAME_DISABLE_TELEMETRY: 'disable_telemetry',
     NAME_DISABLE_TYPING_MESSAGES: 'disable_typing_messages',
 
     UNREAD_SCROLL_POSITION: 'unread_scroll_position',
@@ -71,14 +71,16 @@ const Preferences = {
     CATEGORY_ONBOARDING: 'category_onboarding',
 
     CATEGORY_DRAFTS: 'drafts',
-    DRAFTS_TOUR_TIP_SHOWED: 'drafts_tour_tip_showed',
 
     CATEGORY_REPORTING: 'reporting',
 
     HIDE_BATCH_EXPORT_CONFIRM_MODAL: 'hide_batch_export_confirm_modal',
-    HIDE_MYSQL_STATS_NOTIFICATION: 'hide_mysql_stats_notifcation',
 
     CATEGORY_OVERAGE_USERS_BANNER: 'overage_users_banner',
+    CATEGORY_POST_HISTORY_LIMIT_BANNER: 'post_history_limit_banner',
+
+    CATEGORY_BURN_ON_READ: 'burn_on_read',
+    BURN_ON_READ_SKIP_CONFIRMATION: 'skip_delete_confirmation',
 
     CATEGORY_THEME: 'theme',
     THEMES: {

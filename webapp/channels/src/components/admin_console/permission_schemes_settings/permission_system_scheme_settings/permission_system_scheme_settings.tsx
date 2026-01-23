@@ -20,7 +20,7 @@ import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import AdminPanelTogglable from 'components/widgets/admin_console/admin_panel_togglable';
 
-import {PermissionsScope, DefaultRolePermissions, DocLinks} from 'utils/constants';
+import {PermissionsScope, DefaultRolePermissions, DocLinks, ModeratedPermissions} from 'utils/constants';
 
 import GuestPermissionsTree, {GUEST_INCLUDED_PERMISSIONS} from '../guest_permissions_tree';
 import PermissionsTree, {EXCLUDED_PERMISSIONS} from '../permissions_tree';
@@ -62,7 +62,6 @@ type RolesState = {
     all_users: {name: string; display_name: string; permissions: Role['permissions']};
     guests: {name: string; display_name: string; permissions: Role['permissions']};
 }
-
 class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
     private rolesNeeded: string[];
 
@@ -338,6 +337,27 @@ class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
         role.permissions = newPermissions;
         roles[roleId as keyof RolesState] = role;
 
+        if (roleId === 'all_users') {
+            const channelAdminRole = {...roles.channel_admin} as Role;
+            const channelAdminPermissions = [...channelAdminRole.permissions!];
+            const teamAdminRole = {...roles.team_admin} as Role;
+            const teamAdminPermissions = [...teamAdminRole.permissions!];
+            for (const permission of permissions) {
+                if (ModeratedPermissions.indexOf(permission) !== -1 && role.permissions.indexOf(permission) !== -1) {
+                    if (channelAdminPermissions.indexOf(permission) === -1) {
+                        channelAdminPermissions.push(permission);
+                    }
+                    if (teamAdminPermissions.indexOf(permission) === -1) {
+                        teamAdminPermissions.push(permission);
+                    }
+                }
+            }
+            channelAdminRole.permissions = channelAdminPermissions;
+            roles.channel_admin = channelAdminRole;
+            teamAdminRole.permissions = teamAdminPermissions;
+            roles.team_admin = teamAdminRole;
+        }
+
         this.setState({roles, saveNeeded: true});
         this.props.actions.setNavigationBlocked(true);
     };
@@ -361,6 +381,7 @@ class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
         if (!this.state.loaded) {
             return <LoadingScreen/>;
         }
+
         const isLicensed = this.props.license?.IsLicensed === 'true';
         return (
             <div className='wrapper--fixed'>
@@ -384,7 +405,7 @@ class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
                                 <span>
                                     <FormattedMessage
                                         id='admin.permissions.systemScheme.introBanner'
-                                        defaultMessage='Configure the default permissions for Team Admins, Channel Admins and other members. This scheme is inherited by all teams unless a <link>Team Override Scheme</link>is applied in specific teams.'
+                                        defaultMessage='Configure the default permissions for Team Admins, Channel Admins and other members. This scheme is inherited by all teams unless a <link>Team Override Scheme</link> is applied in specific teams.'
                                         values={{
                                             link: (msg: React.ReactNode) => (
                                                 <ExternalLink
@@ -517,6 +538,7 @@ class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
                     <BlockableLink
                         className='btn btn-tertiary'
                         to='/admin_console/user_management/permissions'
+                        data-testid='permission-scheme-cancel-button'
                     >
                         <FormattedMessage
                             id='admin.permissions.permissionSchemes.cancel'

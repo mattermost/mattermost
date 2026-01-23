@@ -1,12 +1,10 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/sidebar/channel_filter should match snapshot 1`] = `
 <div
   className="SidebarFilters"
 >
   <WithTooltip
-    id="channel-filter-tooltip"
-    placement="right"
     shortcut={
       Object {
         "default": Array [
@@ -56,8 +54,6 @@ exports[`components/sidebar/channel_filter should match snapshot if the unread f
   className="SidebarFilters"
 >
   <WithTooltip
-    id="channel-filter-tooltip"
-    placement="right"
     shortcut={
       Object {
         "default": Array [

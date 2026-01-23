@@ -4,7 +4,10 @@
 package platform
 
 import (
+	"fmt"
 	"hash/maphash"
+	"iter"
+	"maps"
 	"runtime"
 	"runtime/debug"
 	"strconv"
@@ -14,6 +17,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 const (
@@ -24,7 +28,11 @@ const (
 type SuiteIFace interface {
 	GetSession(token string) (*model.Session, *model.AppError)
 	RolesGrantPermission(roleNames []string, permissionId string) bool
-	UserCanSeeOtherUser(c request.CTX, userID string, otherUserId string) (bool, *model.AppError)
+	HasPermissionToReadChannel(rctx request.CTX, userID string, channel *model.Channel) (bool, bool)
+	UserCanSeeOtherUser(rctx request.CTX, userID string, otherUserId string) (bool, *model.AppError)
+	MFARequired(rctx request.CTX) *model.AppError
+	MakeAuditRecord(rctx request.CTX, event string, initialStatus string) *model.AuditRecord
+	LogAuditRec(rctx request.CTX, auditRec *model.AuditRecord, err error)
 }
 
 type webConnActivityMessage struct {
@@ -44,6 +52,11 @@ type webConnSessionMessage struct {
 	isRegistered chan bool
 }
 
+type webConnRegisterMessage struct {
+	conn *WebConn
+	err  chan error
+}
+
 type webConnCheckMessage struct {
 	userID       string
 	connectionID string
@@ -55,6 +68,8 @@ type webConnCountMessage struct {
 	result chan int
 }
 
+var hubSemaphoreCount = runtime.NumCPU() * 4
+
 // Hub is the central place to manage all websocket connections in the server.
 // It handles different websocket events and sending messages to individual
 // user connections.
@@ -64,7 +79,7 @@ type Hub struct {
 	connectionCount int64
 	platform        *PlatformService
 	connectionIndex int
-	register        chan *WebConn
+	register        chan *webConnRegisterMessage
 	unregister      chan *WebConn
 	broadcast       chan *model.WebSocketEvent
 	stop            chan struct{}
@@ -77,13 +92,16 @@ type Hub struct {
 	checkConn       chan *webConnCheckMessage
 	connCount       chan *webConnCountMessage
 	broadcastHooks  map[string]BroadcastHook
+
+	// Hub-specific semaphore for limiting concurrent goroutines
+	hubSemaphore chan struct{}
 }
 
 // newWebHub creates a new Hub.
 func newWebHub(ps *PlatformService) *Hub {
 	return &Hub{
 		platform:        ps,
-		register:        make(chan *WebConn),
+		register:        make(chan *webConnRegisterMessage),
 		unregister:      make(chan *WebConn),
 		broadcast:       make(chan *model.WebSocketEvent, broadcastQueueSize),
 		stop:            make(chan struct{}),
@@ -94,6 +112,7 @@ func newWebHub(ps *PlatformService) *Hub {
 		checkRegistered: make(chan *webConnSessionMessage),
 		checkConn:       make(chan *webConnCheckMessage),
 		connCount:       make(chan *webConnCountMessage),
+		hubSemaphore:    make(chan struct{}, hubSemaphoreCount),
 	}
 }
 
@@ -107,7 +126,7 @@ func (ps *PlatformService) hubStart(broadcastHooks map[string]BroadcastHook) {
 
 	hubs := make([]*Hub, numberOfHubs)
 
-	for i := 0; i < numberOfHubs; i++ {
+	for i := range numberOfHubs {
 		hubs[i] = newWebHub(ps)
 		hubs[i].connectionIndex = i
 		hubs[i].broadcastHooks = broadcastHooks
@@ -142,21 +161,25 @@ func (ps *PlatformService) GetHubForUserId(userID string) *Hub {
 	// https://mattermost.atlassian.net/browse/MM-26629.
 	var hash maphash.Hash
 	hash.SetSeed(ps.hashSeed)
-	hash.Write([]byte(userID))
+	_, err := hash.Write([]byte(userID))
+	if err != nil {
+		ps.logger.Error("Unable to write userID to hash", mlog.String("userID", userID), mlog.Err(err))
+	}
 	index := hash.Sum64() % uint64(len(ps.hubs))
 
 	return ps.hubs[int(index)]
 }
 
 // HubRegister registers a connection to a hub.
-func (ps *PlatformService) HubRegister(webConn *WebConn) {
+func (ps *PlatformService) HubRegister(webConn *WebConn) error {
 	hub := ps.GetHubForUserId(webConn.UserId)
 	if hub != nil {
 		if metrics := ps.metricsIFace; metrics != nil {
 			metrics.IncrementWebSocketBroadcastUsersRegistered(strconv.Itoa(hub.connectionIndex), 1)
 		}
-		hub.Register(webConn)
+		return hub.Register(webConn)
 	}
+	return nil
 }
 
 // HubUnregister unregisters a connection from a hub.
@@ -195,30 +218,41 @@ func (ps *PlatformService) InvalidateCacheForChannelPosts(channelID string) {
 	ps.Store.Post().InvalidateLastPostTimeCache(channelID)
 }
 
+func (ps *PlatformService) InvalidateCacheForReadReceipts(postID string) {
+	ps.Store.ReadReceipt().InvalidateReadReceiptForPostsCache(postID)
+}
+
+func (ps *PlatformService) InvalidateCacheForTemporaryPost(id string) {
+	ps.Store.TemporaryPost().InvalidateTemporaryPost(id)
+}
+
 func (ps *PlatformService) InvalidateCacheForUser(userID string) {
 	ps.InvalidateChannelCacheForUser(userID)
 	ps.Store.User().InvalidateProfileCacheForUser(userID)
 }
 
-func (ps *PlatformService) InvalidateChannelCacheForUser(userID string) {
-	ps.Store.Channel().InvalidateAllChannelMembersForUser(userID)
-	ps.ClearUserSessionCache(userID)
-
-	ps.Store.User().InvalidateProfilesInChannelCacheByUser(userID)
-}
-
-func (ps *PlatformService) InvalidateCacheForUserTeams(userID string) {
-	ps.invalidateWebConnSessionCacheForUser(userID)
-	ps.Store.Team().InvalidateAllTeamIdsForUser(userID)
-
+func (ps *PlatformService) invalidateWebConnSessionCacheForUser(userID string) {
+	ps.invalidateWebConnSessionCacheForUserSkipClusterSend(userID)
 	if ps.clusterIFace != nil {
 		msg := &model.ClusterMessage{
-			Event:    model.ClusterEventInvalidateCacheForUserTeams,
+			Event:    model.ClusterEventInvalidateWebConnCacheForUser,
 			SendType: model.ClusterSendBestEffort,
 			Data:     []byte(userID),
 		}
 		ps.clusterIFace.SendClusterMessage(msg)
 	}
+}
+
+func (ps *PlatformService) InvalidateChannelCacheForUser(userID string) {
+	ps.Store.Channel().InvalidateAllChannelMembersForUser(userID)
+	ps.invalidateWebConnSessionCacheForUser(userID)
+	ps.Store.User().InvalidateProfilesInChannelCacheByUser(userID)
+}
+
+func (ps *PlatformService) InvalidateCacheForUserTeams(userID string) {
+	ps.invalidateWebConnSessionCacheForUser(userID)
+	// This method has its own cluster broadcast hidden inside localcachelayer.
+	ps.Store.Team().InvalidateAllTeamIdsForUser(userID)
 }
 
 // UpdateWebConnUserActivity sets the LastUserActivityAt of the hub for the given session.
@@ -239,7 +273,86 @@ func (ps *PlatformService) SessionIsRegistered(session model.Session) bool {
 	return false
 }
 
-func (ps *PlatformService) CheckWebConn(userID, connectionID string) *CheckConnResult {
+func (ps *PlatformService) CheckWebConn(userID, connectionID string, seqNum int64) *CheckConnResult {
+	if ps.Cluster() == nil || seqNum == 0 {
+		hub := ps.GetHubForUserId(userID)
+		if hub != nil {
+			return hub.CheckConn(userID, connectionID)
+		}
+		return nil
+	}
+
+	// We need some extra care for HA
+	// Check other nodes
+	// If any nodes return with an aq and/or dq, use that.
+	// If all nodes return empty, proceed with local case.
+	// We have to do this because a client might reconnect with an older seq num to a node
+	// which it had connected before. So checking its local queue will lead the server to believe
+	// that there is no msg loss, whereas there is actually loss.
+	queueMap, err := ps.Cluster().GetWSQueues(userID, connectionID, seqNum)
+	if err != nil {
+		// If there is an error we do not have enough data to say anything reliably.
+		// Fall back to unreliable case.
+		ps.Log().Error("Error while getting websocket queues",
+			mlog.String("connection_id", connectionID),
+			mlog.String("user_id", userID),
+			mlog.Int("sequence_number", seqNum),
+			mlog.Err(err))
+		return nil
+	}
+
+	connRes := &CheckConnResult{
+		ConnectionID: connectionID,
+		UserID:       userID,
+	}
+	for _, queues := range queueMap {
+		if queues == nil || queues.ActiveQ == nil {
+			continue
+		}
+		// parse the activeq
+		aq := make(chan model.WebSocketMessage, sendQueueSize)
+		for _, aqItem := range queues.ActiveQ {
+			item, err := ps.UnmarshalAQItem(aqItem)
+			if err != nil {
+				ps.Log().Error("Error while unmarshalling websocket message from active queue",
+					mlog.String("connection_id", connectionID),
+					mlog.String("user_id", userID),
+					mlog.Err(err))
+				return nil
+			}
+			// This cannot block because all send queues are of sendQueueSize at max.
+			// TODO: There could be a case where there's severe message loss, and to
+			// reliably get the messages, we need to get send queues from multiple nodes.
+			// We leave that case for Redis.
+			aq <- item
+		}
+
+		connRes.ActiveQueue = aq
+		connRes.ReuseCount = queues.ReuseCount
+
+		// parse the deadq
+		if queues.DeadQ != nil {
+			dq, dqPtr, err := ps.UnmarshalDQ(queues.DeadQ)
+			if err != nil {
+				ps.Log().Error("Error while unmarshalling websocket message from dead queue",
+					mlog.String("connection_id", connectionID),
+					mlog.String("user_id", userID),
+					mlog.Err(err))
+				return nil
+			}
+
+			// We check if atleast one item has been written.
+			// Length of dq is always guaranteed to be deadQueueSize.
+			if dq[0] != nil {
+				connRes.DeadQueue = dq
+				connRes.DeadQueuePointer = dqPtr
+			}
+		}
+
+		return connRes
+	}
+
+	// Now we check local queue
 	hub := ps.GetHubForUserId(userID)
 	if hub != nil {
 		return hub.CheckConn(userID, connectionID)
@@ -258,11 +371,17 @@ func (ps *PlatformService) WebConnCountForUser(userID string) int {
 }
 
 // Register registers a connection to the hub.
-func (h *Hub) Register(webConn *WebConn) {
+func (h *Hub) Register(webConn *WebConn) error {
+	wr := &webConnRegisterMessage{
+		conn: webConn,
+		err:  make(chan error),
+	}
 	select {
-	case h.register <- webConn:
+	case h.register <- wr:
+		return <-wr.err
 	case <-h.stop:
 	}
+	return nil
 }
 
 // Unregister unregisters a connection from the hub.
@@ -367,10 +486,39 @@ func (h *Hub) SendMessage(conn *WebConn, msg model.WebSocketMessage) {
 	}
 }
 
+// ProcessAsync executes a function with hub-specific concurrency control
+func (h *Hub) ProcessAsync(f func()) {
+	h.hubSemaphore <- struct{}{}
+	go func() {
+		defer func() {
+			<-h.hubSemaphore
+		}()
+
+		// Add timeout protection
+		done := make(chan struct{})
+		go func() {
+			defer close(done)
+			f()
+		}()
+
+		select {
+		case <-done:
+			// Function completed normally
+		case <-time.After(5 * time.Second):
+			h.platform.Log().Warn("ProcessAsync function timed out after 5 seconds")
+		}
+	}()
+}
+
 // Stop stops the hub.
 func (h *Hub) Stop() {
 	close(h.stop)
 	<-h.didStop
+	// Ensure that all remaining elements are processed
+	// before shutting down.
+	for range hubSemaphoreCount {
+		h.hubSemaphore <- struct{}{}
+	}
 }
 
 // Start starts the hub.
@@ -385,14 +533,17 @@ func (h *Hub) Start() {
 		ticker := time.NewTicker(inactiveConnReaperInterval)
 		defer ticker.Stop()
 
-		connIndex := newHubConnectionIndex(inactiveConnReaperInterval)
+		connIndex := newHubConnectionIndex(inactiveConnReaperInterval,
+			h.platform.Store,
+			h.platform.logger,
+			*h.platform.Config().ServiceSettings.EnableWebHubChannelIteration,
+		)
 
 		for {
 			select {
 			case webSessionMessage := <-h.checkRegistered:
-				conns := connIndex.ForUser(webSessionMessage.userID)
 				var isRegistered bool
-				for _, conn := range conns {
+				for conn := range connIndex.ForUser(webSessionMessage.userID) {
 					if !conn.Active.Load() {
 						continue
 					}
@@ -419,22 +570,27 @@ func (h *Hub) Start() {
 				req.result <- connIndex.ForUserActiveCount(req.userID)
 			case <-ticker.C:
 				connIndex.RemoveInactiveConnections()
-			case webConn := <-h.register:
+			case webConnReg := <-h.register:
 				// Mark the current one as active.
 				// There is no need to check if it was inactive or not,
 				// we will anyways need to make it active.
-				webConn.Active.Store(true)
+				webConnReg.conn.Active.Store(true)
 
-				connIndex.Add(webConn)
+				err := connIndex.Add(webConnReg.conn)
+				if err != nil {
+					webConnReg.err <- err
+					continue
+				}
 				atomic.StoreInt64(&h.connectionCount, int64(connIndex.AllActive()))
 
-				if webConn.IsAuthenticated() && webConn.reuseCount == 0 {
+				if webConnReg.conn.IsBasicAuthenticated() && webConnReg.conn.reuseCount == 0 {
 					// The hello message should only be sent when the reuseCount is 0.
 					// i.e in server restart, or long timeout, or fresh connection case.
 					// In case of seq number not found in dead queue, it is handled by
 					// the webconn write pump.
-					webConn.send <- webConn.createHelloMessage()
+					webConnReg.conn.send <- webConnReg.conn.createHelloMessage()
 				}
+				webConnReg.err <- nil
 			case webConn := <-h.unregister:
 				// If already removed (via queue full), then removing again becomes a noop.
 				// But if not removed, mark inactive.
@@ -447,9 +603,11 @@ func (h *Hub) Start() {
 				}
 
 				conns := connIndex.ForUser(webConn.UserId)
-				if len(conns) == 0 || areAllInactive(conns) {
+				// areAllInactive also returns true if there are no connections,
+				// which is intentional.
+				if areAllInactive(conns) {
 					userID := webConn.UserId
-					h.platform.Go(func() {
+					h.ProcessAsync(func() {
 						// If this is an HA setup, get count for this user
 						// from other nodes.
 						var clusterCnt int
@@ -468,13 +626,13 @@ func (h *Hub) Start() {
 						// Only set to offline if there are no
 						// active connections in other nodes as well.
 						if clusterCnt == 0 {
-							h.platform.SetStatusOffline(userID, false)
+							h.platform.QueueSetStatusOffline(userID, false)
 						}
 					})
 					continue
 				}
 				var latestActivity int64
-				for _, conn := range conns {
+				for conn := range conns {
 					if !conn.Active.Load() {
 						continue
 					}
@@ -490,11 +648,23 @@ func (h *Hub) Start() {
 					})
 				}
 			case userID := <-h.invalidateUser:
-				for _, webConn := range connIndex.ForUser(userID) {
+				for webConn := range connIndex.ForUser(userID) {
 					webConn.InvalidateCache()
 				}
+
+				if !*h.platform.Config().ServiceSettings.EnableWebHubChannelIteration {
+					continue
+				}
+
+				err := connIndex.InvalidateCMCacheForUser(userID)
+				if err != nil {
+					h.platform.Log().Error("Error while invalidating channel member cache", mlog.String("user_id", userID), mlog.Err(err))
+					for webConn := range connIndex.ForUser(userID) {
+						closeAndRemoveConn(connIndex, webConn)
+					}
+				}
 			case activity := <-h.activity:
-				for _, webConn := range connIndex.ForUser(activity.userID) {
+				for webConn := range connIndex.ForUser(activity.userID) {
 					if !webConn.Active.Load() {
 						continue
 					}
@@ -515,8 +685,7 @@ func (h *Hub) Start() {
 							mlog.String("user_id", directMsg.conn.UserId),
 							mlog.String("conn_id", directMsg.conn.GetConnectionID()))
 					}
-					close(directMsg.conn.send)
-					connIndex.Remove(directMsg.conn)
+					closeAndRemoveConn(connIndex, directMsg.conn)
 				}
 			case msg := <-h.broadcast:
 				if metrics := h.platform.metricsIFace; metrics != nil {
@@ -542,33 +711,46 @@ func (h *Hub) Start() {
 									mlog.String("user_id", webConn.UserId),
 									mlog.String("conn_id", webConn.GetConnectionID()))
 							}
-							close(webConn.send)
-							connIndex.Remove(webConn)
+							closeAndRemoveConn(connIndex, webConn)
 						}
 					}
 				}
 
-				if connID := msg.GetBroadcast().ConnectionId; connID != "" {
-					if webConn := connIndex.ForConnection(connID); webConn != nil {
-						broadcast(webConn)
-						continue
-					}
-				} else if msg.GetBroadcast().UserId != "" {
-					candidates := connIndex.ForUser(msg.GetBroadcast().UserId)
-					for _, webConn := range candidates {
+				// Quick return for a single connection.
+				if webConn := connIndex.ForConnection(msg.GetBroadcast().ConnectionId); webConn != nil {
+					broadcast(webConn)
+					continue
+				}
+
+				fastIteration := *h.platform.Config().ServiceSettings.EnableWebHubChannelIteration
+				var targetConns iter.Seq[*WebConn]
+				if userID := msg.GetBroadcast().UserId; userID != "" {
+					targetConns = connIndex.ForUser(userID)
+				} else if channelID := msg.GetBroadcast().ChannelId; channelID != "" && fastIteration {
+					targetConns = connIndex.ForChannel(channelID)
+				}
+				if targetConns != nil {
+					for webConn := range targetConns {
 						broadcast(webConn)
 					}
 					continue
 				}
 
-				candidates := connIndex.All()
-				for webConn := range candidates {
+				// There are multiple hubs in a system. So while supporting both channel based iteration and the old
+				// method, there would be events scoped to a channel being sent to multiple hubs. And only one hub would
+				// have the targetConns. Therefore, we need to stop here if channel based iteration is enabled, and it's a
+				// channel-scoped event.
+				if channelID := msg.GetBroadcast().ChannelId; channelID != "" && fastIteration {
+					continue
+				}
+
+				for webConn := range connIndex.All() {
 					broadcast(webConn)
 				}
 			case <-h.stop:
 				for webConn := range connIndex.All() {
 					webConn.Close()
-					h.platform.SetStatusOffline(webConn.UserId, false)
+					h.platform.SetStatusOffline(webConn.UserId, false, false)
 				}
 
 				h.explicitStop = true
@@ -602,9 +784,10 @@ func (h *Hub) Start() {
 }
 
 // areAllInactive returns whether all of the connections
-// are inactive or not.
-func areAllInactive(conns []*WebConn) bool {
-	for _, conn := range conns {
+// are inactive or not. It also returns true if there are
+// no connections which is also intentional.
+func areAllInactive(conns iter.Seq[*WebConn]) bool {
+	for conn := range conns {
 		if conn.Active.Load() {
 			return false
 		}
@@ -612,61 +795,150 @@ func areAllInactive(conns []*WebConn) bool {
 	return true
 }
 
+// closeAndRemoveConn closes the send channel which will close the
+// websocket connection, and then it removes the webConn from the conn index.
+func closeAndRemoveConn(connIndex *hubConnectionIndex, conn *WebConn) {
+	close(conn.send)
+	connIndex.Remove(conn)
+}
+
 // hubConnectionIndex provides fast addition, removal, and iteration of web connections.
-// It requires 3 functionalities which need to be very fast:
+// It requires 4 functionalities which need to be very fast:
 // - check if a connection exists or not.
 // - get all connections for a given userID.
+// - get all connections for a given channelID.
 // - get all connections.
 type hubConnectionIndex struct {
-	// byUserId stores the list of connections for a given userID
-	byUserId map[string][]*WebConn
-	// byConnection serves the dual purpose of storing the index of the webconn
-	// in the value of byUserId map, and also to get all connections.
-	byConnection   map[*WebConn]int
+	// byUserId stores the set of connections for a given userID
+	byUserId map[string]map[*WebConn]struct{}
+	// byChannelID stores the set of connections for a given channelID
+	byChannelID map[string]map[*WebConn]struct{}
+	// byConnection serves the dual purpose of storing the channelIDs
+	// and also to get all connections
+	byConnection   map[*WebConn][]string
 	byConnectionId map[string]*WebConn
 	// staleThreshold is the limit beyond which inactive connections
 	// will be deleted.
 	staleThreshold time.Duration
+
+	fastIteration bool
+	store         store.Store
+	logger        mlog.LoggerIFace
 }
 
-func newHubConnectionIndex(interval time.Duration) *hubConnectionIndex {
+func newHubConnectionIndex(interval time.Duration,
+	store store.Store,
+	logger mlog.LoggerIFace,
+	fastIteration bool,
+) *hubConnectionIndex {
 	return &hubConnectionIndex{
-		byUserId:       make(map[string][]*WebConn),
-		byConnection:   make(map[*WebConn]int),
+		byUserId:       make(map[string]map[*WebConn]struct{}),
+		byChannelID:    make(map[string]map[*WebConn]struct{}),
+		byConnection:   make(map[*WebConn][]string),
 		byConnectionId: make(map[string]*WebConn),
 		staleThreshold: interval,
+		store:          store,
+		logger:         logger,
+		fastIteration:  fastIteration,
 	}
 }
 
-func (i *hubConnectionIndex) Add(wc *WebConn) {
-	i.byUserId[wc.UserId] = append(i.byUserId[wc.UserId], wc)
-	i.byConnection[wc] = len(i.byUserId[wc.UserId]) - 1
+func (i *hubConnectionIndex) Add(wc *WebConn) error {
+	var channelIDs []string
+	if i.fastIteration {
+		cm, err := i.store.Channel().GetAllChannelMembersForUser(request.EmptyContext(i.logger), wc.UserId, false, false)
+		if err != nil {
+			return fmt.Errorf("error getChannelMembersForUser: %v", err)
+		}
+
+		// Store channel IDs and add to byChannelID
+		channelIDs = make([]string, 0, len(cm))
+		for chID := range cm {
+			channelIDs = append(channelIDs, chID)
+
+			// Initialize the channel's map if it doesn't exist
+			if _, ok := i.byChannelID[chID]; !ok {
+				i.byChannelID[chID] = make(map[*WebConn]struct{})
+			}
+			i.byChannelID[chID][wc] = struct{}{}
+		}
+	}
+
+	// Initialize the user's map if it doesn't exist
+	if _, ok := i.byUserId[wc.UserId]; !ok {
+		i.byUserId[wc.UserId] = make(map[*WebConn]struct{})
+	}
+	i.byUserId[wc.UserId][wc] = struct{}{}
+	i.byConnection[wc] = channelIDs
 	i.byConnectionId[wc.GetConnectionID()] = wc
+	return nil
 }
 
 func (i *hubConnectionIndex) Remove(wc *WebConn) {
-	wc.Platform.ReturnSessionToPool(wc.GetSession())
-
-	userConnIndex, ok := i.byConnection[wc]
+	channelIDs, ok := i.byConnection[wc]
 	if !ok {
 		return
 	}
 
-	// get the conn slice.
-	userConnections := i.byUserId[wc.UserId]
-	// get the last connection.
-	last := userConnections[len(userConnections)-1]
-	// set the slot that we are trying to remove to be the last connection.
-	userConnections[userConnIndex] = last
-	// remove the last connection pointer from slice.
-	userConnections[len(userConnections)-1] = nil
-	// remove the last connection from the slice.
-	i.byUserId[wc.UserId] = userConnections[:len(userConnections)-1]
-	// set the index of the connection that was moved to the new index.
-	i.byConnection[last] = userConnIndex
+	// Remove from byUserId
+	if userConns, ok := i.byUserId[wc.UserId]; ok {
+		delete(userConns, wc)
+	}
+
+	if i.fastIteration {
+		// Remove from byChannelID for each channel
+		for _, chID := range channelIDs {
+			if channelConns, ok := i.byChannelID[chID]; ok {
+				delete(channelConns, wc)
+			}
+		}
+	}
 
 	delete(i.byConnection, wc)
 	delete(i.byConnectionId, wc.GetConnectionID())
+}
+
+func (i *hubConnectionIndex) InvalidateCMCacheForUser(userID string) error {
+	// We make this query first to fail fast in case of an error.
+	cm, err := i.store.Channel().GetAllChannelMembersForUser(request.EmptyContext(i.logger), userID, false, false)
+	if err != nil {
+		return err
+	}
+
+	// Get all connections for this user
+	conns := i.ForUser(userID)
+
+	// Remove all user connections from existing channels
+	for conn := range conns {
+		if channelIDs, ok := i.byConnection[conn]; ok {
+			// Remove from old channels
+			for _, chID := range channelIDs {
+				if channelConns, ok := i.byChannelID[chID]; ok {
+					delete(channelConns, conn)
+				}
+			}
+		}
+	}
+
+	// Add connections to new channels
+	for conn := range conns {
+		newChannelIDs := make([]string, 0, len(cm))
+		for chID := range cm {
+			newChannelIDs = append(newChannelIDs, chID)
+			// Initialize channel map if needed
+			if _, ok := i.byChannelID[chID]; !ok {
+				i.byChannelID[chID] = make(map[*WebConn]struct{})
+			}
+			i.byChannelID[chID][conn] = struct{}{}
+		}
+
+		// Update connection metadata
+		if _, ok := i.byConnection[conn]; ok {
+			i.byConnection[conn] = newChannelIDs
+		}
+	}
+
+	return nil
 }
 
 func (i *hubConnectionIndex) Has(wc *WebConn) bool {
@@ -675,24 +947,19 @@ func (i *hubConnectionIndex) Has(wc *WebConn) bool {
 }
 
 // ForUser returns all connections for a user ID.
-func (i *hubConnectionIndex) ForUser(id string) []*WebConn {
-	// Fast path if there is only one or fewer connection.
-	if len(i.byUserId[id]) <= 1 {
-		return i.byUserId[id]
-	}
-	// If there are multiple connections per user,
-	// then we have to return a clone of the slice
-	// to allow connIndex.Remove to be safely called while
-	// iterating the slice.
-	conns := make([]*WebConn, len(i.byUserId[id]))
-	copy(conns, i.byUserId[id])
-	return conns
+func (i *hubConnectionIndex) ForUser(id string) iter.Seq[*WebConn] {
+	return maps.Keys(i.byUserId[id])
+}
+
+// ForChannel returns all connections for a channelID.
+func (i *hubConnectionIndex) ForChannel(channelID string) iter.Seq[*WebConn] {
+	return maps.Keys(i.byChannelID[channelID])
 }
 
 // ForUserActiveCount returns the number of active connections for a userID
 func (i *hubConnectionIndex) ForUserActiveCount(id string) int {
 	cnt := 0
-	for _, conn := range i.ForUser(id) {
+	for conn := range i.ForUser(id) {
 		if conn.Active.Load() {
 			cnt++
 		}
@@ -706,7 +973,7 @@ func (i *hubConnectionIndex) ForConnection(id string) *WebConn {
 }
 
 // All returns the full webConn index.
-func (i *hubConnectionIndex) All() map[*WebConn]int {
+func (i *hubConnectionIndex) All() map[*WebConn][]string {
 	return i.byConnection
 }
 
@@ -717,7 +984,7 @@ func (i *hubConnectionIndex) RemoveInactiveByConnectionID(userID, connectionID s
 	if userID == "" {
 		return nil
 	}
-	for _, conn := range i.ForUser(userID) {
+	for conn := range i.ForUser(userID) {
 		if conn.GetConnectionID() == connectionID && !conn.Active.Load() {
 			i.Remove(conn)
 			return conn

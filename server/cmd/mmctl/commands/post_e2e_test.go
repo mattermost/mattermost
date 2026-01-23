@@ -13,7 +13,7 @@ import (
 )
 
 func (s *MmctlE2ETestSuite) TestPostListCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	var createNewChannelAndPosts = func() (string, *model.Post, *model.Post) {
 		channelName := model.NewRandomString(10)
@@ -22,10 +22,10 @@ func (s *MmctlE2ETestSuite) TestPostListCmd() {
 		channel, err := s.th.App.CreateChannel(s.th.Context, &model.Channel{Name: channelName, DisplayName: channelDisplayName, Type: model.ChannelTypePrivate, TeamId: s.th.BasicTeam.Id}, false)
 		s.Require().Nil(err)
 
-		post1, err := s.th.App.CreatePost(s.th.Context, &model.Post{Message: model.NewRandomString(15), UserId: s.th.BasicUser.Id, ChannelId: channel.Id}, channel, false, false)
+		post1, _, err := s.th.App.CreatePost(s.th.Context, &model.Post{Message: model.NewRandomString(15), UserId: s.th.BasicUser.Id, ChannelId: channel.Id}, channel, model.CreatePostFlags{})
 		s.Require().Nil(err)
 
-		post2, err := s.th.App.CreatePost(s.th.Context, &model.Post{Message: model.NewRandomString(15), UserId: s.th.BasicUser.Id, ChannelId: channel.Id}, channel, false, false)
+		post2, _, err := s.th.App.CreatePost(s.th.Context, &model.Post{Message: model.NewRandomString(15), UserId: s.th.BasicUser.Id, ChannelId: channel.Id}, channel, model.CreatePostFlags{})
 		s.Require().Nil(err)
 
 		return channelName, post1, post2
@@ -109,7 +109,7 @@ func (s *MmctlE2ETestSuite) TestPostListCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestPostCreateCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.Run("Create a post for System Admin Client", func() {
 		printer.Clean()

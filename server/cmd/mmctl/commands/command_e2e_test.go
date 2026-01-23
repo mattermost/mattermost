@@ -16,7 +16,7 @@ import (
 )
 
 func (s *MmctlE2ETestSuite) TestListCommandCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.RunForAllClients("List commands for a non existing team", func(c client.Client) {
 		printer.Clean()
@@ -163,7 +163,7 @@ func (s *MmctlE2ETestSuite) TestListCommandCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestArchiveCommandCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	teamOfBasicUser, appErr := s.th.App.CreateTeam(s.th.Context, &model.Team{
 		DisplayName: "dn_" + model.NewId(),
@@ -207,7 +207,7 @@ func (s *MmctlE2ETestSuite) TestArchiveCommandCmdF() {
 		err := archiveCommandCmdF(c, &cobra.Command{}, []string{command.Id})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(map[string]interface{}{"status": "ok"}, printer.GetLines()[0])
+		s.Require().Equal(map[string]any{"status": "ok"}, printer.GetLines()[0])
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		rcommand, err := s.th.App.GetCommand(command.Id)
@@ -252,7 +252,7 @@ func (s *MmctlE2ETestSuite) TestArchiveCommandCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestModifyCommandCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	// create new command
 	newCmd := &model.Command{
@@ -316,5 +316,63 @@ func (s *MmctlE2ETestSuite) TestModifyCommandCmdF() {
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
 		s.EqualError(err, "a trigger word must not contain spaces")
+	})
+}
+
+func (s *MmctlE2ETestSuite) TestShowCommandCmdF() {
+	s.SetupTestHelper().InitBasic(s.T())
+
+	s.RunForSystemAdminAndLocal("Show non existent cmd", func(c client.Client) {
+		printer.Clean()
+
+		err := showCommandCmdF(c, &cobra.Command{}, []string{"nonexistent-command-id"})
+		s.Require().Error(err)
+		s.Require().Equal("unable to find command 'nonexistent-command-id'", err.Error())
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.RunForSystemAdminAndLocal("Show commands with cmd id", func(c client.Client) {
+		// create new command
+		printer.Clean()
+		newCmd := &model.Command{
+			CreatorId: s.th.BasicUser.Id,
+			TeamId:    s.th.BasicTeam.Id,
+			URL:       "http://nowhere.com",
+			Method:    model.CommandMethodPost,
+			Trigger:   model.NewRandomString(6),
+		}
+
+		command, _, err := c.CreateCommand(context.Background(), newCmd)
+		s.Require().NoError(err)
+		err = showCommandCmdF(c, &cobra.Command{}, []string{command.Id})
+		s.Require().NoError(err)
+		s.Len(printer.GetLines(), 1)
+		s.Len(printer.GetErrorLines(), 0)
+		s.Equal(command, printer.GetLines()[0])
+	})
+
+	s.RunForSystemAdminAndLocal("Show commands with team:trigger", func(c client.Client) {
+		// create new command
+		printer.Clean()
+		trigger := model.NewRandomString(6)
+		newCmd := &model.Command{
+			CreatorId: s.th.BasicUser.Id,
+			TeamId:    s.th.BasicTeam.Id,
+			URL:       "http://nowhere.com",
+			Method:    model.CommandMethodPost,
+			Trigger:   trigger,
+		}
+
+		command, _, err := c.CreateCommand(context.Background(), newCmd)
+
+		s.Require().NoError(err)
+		err = showCommandCmdF(c, &cobra.Command{}, []string{s.th.BasicTeam.Name + ":" + trigger})
+		s.Require().NoError(err)
+		s.Len(printer.GetLines(), 1)
+		s.Len(printer.GetErrorLines(), 0)
+		outputCmd := printer.GetLines()[0].(*model.Command)
+		s.Require().Equal(command.TeamId, outputCmd.TeamId)
+		s.Require().Equal(command.Trigger, outputCmd.Trigger)
 	})
 }

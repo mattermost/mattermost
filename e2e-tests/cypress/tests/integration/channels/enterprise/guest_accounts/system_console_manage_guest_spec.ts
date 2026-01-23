@@ -66,7 +66,7 @@ describe('Guest Account - Verify Manage Guest Users', () => {
         cy.get('#systemUsersTable-cell-0_actionsColumn').should('have.text', 'Guest').click();
 
         // * Verify the manage options which should be displayed for Guest User
-        const includeOptions = ['Deactivate', 'Manage roles', 'Manage teams', 'Reset password', 'Update email', 'Promote to member', 'Remove sessions'];
+        const includeOptions = ['Deactivate', 'Manage roles', 'Manage teams', 'Reset password', 'Update email', 'Promote to member', 'Revoke sessions'];
         includeOptions.forEach((includeOption) => {
             cy.findByText(includeOption).should('be.visible');
         });
@@ -85,9 +85,9 @@ describe('Guest Account - Verify Manage Guest Users', () => {
 
         // * Update email of Guest User
         const email = `temp-${getRandomId()}@mattermost.com`;
-        cy.findByTestId('resetEmailModal').should('be.visible').within(() => {
-            cy.findByTestId('resetEmailForm').should('be.visible').get('input').type(email);
-            cy.findByTestId('resetEmailButton').click();
+        cy.get('#resetEmailModal').should('be.visible').within(() => {
+            cy.get('input[type="email"]').type(email);
+            cy.get('button.btn-primary.confirm').click();
         });
 
         // * Verify if Guest's email was updated
@@ -102,12 +102,12 @@ describe('Guest Account - Verify Manage Guest Users', () => {
     it('MM-18048 Revoke Session of a Guest User and Verify', () => {
         // # Click on the Revoke Session option
         cy.get('#systemUsersTable-cell-0_actionsColumn').should('have.text', 'Guest').click();
-        cy.findByText('Remove sessions').click();
+        cy.findByText('Revoke sessions').click();
 
         // * Verify the confirmation message displayed
         cy.get('#confirmModal').should('be.visible').within(() => {
-            cy.get('#confirmModalLabel').should('be.visible').and('have.text', `Revoke Sessions for ${guestUser.username}`);
-            cy.get('.modal-body').should('be.visible').and('have.text', `This action revokes all sessions for ${guestUser.username}. They will be logged out from all devices. Are you sure you want to revoke all sessions for ${guestUser.username}?`);
+            cy.get('#genericModalLabel').should('be.visible').and('have.text', `Revoke Sessions for ${guestUser.username}`);
+            cy.get('.modal-body .ConfirmModal__body').should('be.visible').and('have.text', `This action revokes all sessions for ${guestUser.username}. They will be logged out from all devices. Are you sure you want to revoke all sessions for ${guestUser.username}?`);
         });
 
         // * Verify the behavior when Cancel button in the confirmation message is clicked

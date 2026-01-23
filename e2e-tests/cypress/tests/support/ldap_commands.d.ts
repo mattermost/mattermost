@@ -22,7 +22,7 @@ declare namespace Cypress {
         * @param {UserProfile} admin - an admin user
         * @returns {boolean} - true if sync run successfully
         */
-        runLdapSync(admin: {UserProfile}): boolean;
+        runLdapSync(admin: UserProfile): boolean;
 
         /**
         * getLdapSyncJobStatus is a task that runs an external request for ldap_sync job status

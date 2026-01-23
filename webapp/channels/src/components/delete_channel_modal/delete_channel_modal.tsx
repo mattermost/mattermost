@@ -7,17 +7,11 @@ import {FormattedMessage} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-
-import {getHistory} from 'utils/browser_history';
 import Constants from 'utils/constants';
 
 export type Props = {
     onExited: () => void;
     channel: Channel;
-    currentTeamDetails?: {name: string};
-    canViewArchivedChannels?: boolean;
-    penultimateViewedChannelName: string;
     actions: {
         deleteChannel: (channelId: string) => void;
     };
@@ -37,12 +31,6 @@ export default class DeleteChannelModal extends React.PureComponent<Props, State
         if (this.props.channel.id.length !== Constants.CHANNEL_ID_LENGTH) {
             return;
         }
-        if (!this.props.canViewArchivedChannels) {
-            const {penultimateViewedChannelName} = this.props;
-            if (this.props.currentTeamDetails) {
-                getHistory().push('/' + this.props.currentTeamDetails.name + '/channels/' + penultimateViewedChannelName);
-            }
-        }
         this.props.actions.deleteChannel(this.props.channel.id);
         this.onHide();
     };
@@ -52,14 +40,13 @@ export default class DeleteChannelModal extends React.PureComponent<Props, State
     };
 
     render() {
-        const {canViewArchivedChannels} = this.props;
         return (
             <Modal
                 dialogClassName='a11y__modal'
                 show={this.state.show}
                 onHide={this.onHide}
                 onExited={this.props.onExited}
-                role='dialog'
+                role='none'
                 aria-labelledby='deleteChannelModalLabel'
                 id='deleteChannelModal'
             >
@@ -76,22 +63,22 @@ export default class DeleteChannelModal extends React.PureComponent<Props, State
                 </Modal.Header>
                 <Modal.Body>
                     <div className='alert alert-danger'>
-                        {!canViewArchivedChannels &&
-                            <FormattedMarkdownMessage
-                                id='delete_channel.question'
-                                defaultMessage='This will archive the channel from the team and remove it from the user interface. Archived channels can be unarchived if needed again. \n \nAre you sure you wish to archive the {display_name} channel?'
+                        <p>
+                            <FormattedMessage
+                                id='deleteChannelModal.canViewArchivedChannelsWarning'
+                                defaultMessage='This will archive the channel from the team. Channel contents will still be accessible by channel members.'
+                            />
+                        </p>
+                        <p>
+                            <FormattedMessage
+                                id='deleteChannelModal.confirmArchive'
+                                defaultMessage='Are you sure you wish to archive the <strong>{display_name}</strong> channel?'
                                 values={{
                                     display_name: this.props.channel.display_name,
+                                    strong: (chunks) => <strong>{chunks}</strong>,
                                 }}
-                            />}
-                        {canViewArchivedChannels &&
-                            <FormattedMarkdownMessage
-                                id='delete_channel.viewArchived.question'
-                                defaultMessage={'This will archive the channel from the team. Channel contents will still be accessible by channel members.\n \nAre you sure you wish to archive the **{display_name}** channel?'}
-                                values={{
-                                    display_name: this.props.channel.display_name,
-                                }}
-                            />}
+                            />
+                        </p>
                     </div>
                 </Modal.Body>
                 <Modal.Footer>

@@ -13,11 +13,12 @@ import ExternalLink from 'components/external_link';
 
 import {DocLinks} from 'utils/constants';
 
-import type {BaseState} from './admin_settings';
-import AdminSettings from './admin_settings';
 import BooleanSetting from './boolean_setting';
 import MigrationsTable from './database';
+import type {BaseState} from './old_admin_settings';
+import OLDAdminSettings from './old_admin_settings';
 import RequestButton from './request_button/request_button';
+import SettingSet from './setting_set';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
 
@@ -43,7 +44,7 @@ interface State extends BaseState {
 }
 
 const messages = defineMessages({
-    title: {id: 'admin.database.title', defaultMessage: 'Database Settings'},
+    title: {id: 'admin.database.title', defaultMessage: 'Database'},
     recycleDescription: {id: 'admin.recycle.recycleDescription', defaultMessage: 'Deployments using multiple databases can switch from one master database to another without restarting the Mattermost server by updating "config.json" to the new desired configuration and using the {reloadConfiguration} feature to load the new settings while the server is running. The administrator should then use {featureName} feature to recycle the database connections based on the new settings.'},
     featureName: {id: 'admin.recycle.recycleDescription.featureName', defaultMessage: 'Recycle Database Connections'},
     reloadConfiguration: {id: 'admin.recycle.recycleDescription.reloadConfiguration', defaultMessage: 'Environment > Web Server > Reload Configuration from Disk'},
@@ -66,7 +67,7 @@ const messages = defineMessages({
     connMaxIdleTimeTitle: {id: 'admin.sql.connMaxIdleTimeTitle', defaultMessage: 'Maximum Connection Idle Time:'},
     connMaxIdleTimeDescription: {id: 'admin.sql.connMaxIdleTimeDescription', defaultMessage: 'Maximum idle time for a connection to the database in milliseconds.'},
     minimumHashtagLengthTitle: {id: 'admin.service.minimumHashtagLengthTitle', defaultMessage: 'Minimum Hashtag Length:'},
-    minimumHashtagLengthDescription: {id: 'admin.service.minimumHashtagLengthDescription', defaultMessage: 'Minimum number of characters in a hashtag. This must be greater than or equal to 2. MySQL databases must be configured to support searching strings shorter than three characters, <link>see documentation</link>.'},
+    minimumHashtagLengthDescription: {id: 'admin.service.minimumHashtagLengthDescription', defaultMessage: 'Minimum number of characters in a hashtag. This must be greater than or equal to 2.'},
     traceTitle: {id: 'admin.sql.traceTitle', defaultMessage: 'SQL Statement Logging: '},
     traceDescription: {id: 'admin.sql.traceDescription', defaultMessage: '(Development Mode) When true, executing SQL statements are written to the log.'},
 });
@@ -98,7 +99,7 @@ export const searchableStrings: Array<string|MessageDescriptor|[MessageDescripto
     messages.traceDescription,
 ];
 
-export default class DatabaseSettings extends AdminSettings<Props, State> {
+export default class DatabaseSettings extends OLDAdminSettings<Props, State> {
     constructor(props: Props) {
         super(props);
 
@@ -186,6 +187,7 @@ export default class DatabaseSettings extends AdminSettings<Props, State> {
                     showSuccessMessage={false}
                     errorMessage={defineMessage({
                         id: 'admin.recycle.reloadFail',
+                        // eslint-disable-next-line formatjs/enforce-placeholders -- error provided by RequestButton
                         defaultMessage: 'Recycling unsuccessful: {error}',
                     })}
                     includeDetailedError={true}
@@ -319,19 +321,7 @@ export default class DatabaseSettings extends AdminSettings<Props, State> {
                     }
                     placeholder={defineMessage({id: 'admin.service.minimumHashtagLengthExample', defaultMessage: 'E.g.: "3"'})}
                     helpText={
-                        <FormattedMessage
-                            {...messages.minimumHashtagLengthDescription}
-                            values={{
-                                link: (msg) => (
-                                    <ExternalLink
-                                        location='database_settings'
-                                        href='https://dev.mysql.com/doc/refman/8.0/en/fulltext-fine-tuning.html'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            }}
-                        />
+                        <FormattedMessage {...messages.minimumHashtagLengthDescription}/>
                     }
                     value={this.state.minimumHashtagLength}
                     onChange={this.handleChange}
@@ -378,31 +368,29 @@ export default class DatabaseSettings extends AdminSettings<Props, State> {
                     setByEnv={this.isSetByEnv('SqlSettings.DisableDatabaseSearch')}
                     disabled={this.props.isDisabled}
                 />
-                <div className='form-group'>
-                    <label
-                        className='control-label col-sm-4'
-                    >
+                <SettingSet
+                    label={
                         <FormattedMessage
                             id='admin.database.migrations_table.title'
                             defaultMessage='Schema Migrations:'
                         />
-                    </label>
-                    <div className='col-sm-8'>
-                        <div className='migrations-table-setting'>
-                            <MigrationsTable
-                                createHelpText={
-                                    <FormattedMessage
-                                        id='admin.database.migrations_table.help_text'
-                                        defaultMessage='All applied migrations.'
-                                    />
-                                }
-                            />
-                        </div>
+                    }
+                >
+                    <div className='migrations-table-setting'>
+                        <MigrationsTable
+                            createHelpText={
+                                <FormattedMessage
+                                    id='admin.database.migrations_table.help_text'
+                                    defaultMessage='All applied migrations.'
+                                />
+                            }
+                        />
                     </div>
-                </div>
+                </SettingSet>
                 <div className='form-group'>
                     <label
                         className='control-label col-sm-4'
+                        htmlFor='activeSearchBackend'
                     >
                         <FormattedMessage
                             id='admin.database.search_backend.title'
@@ -411,6 +399,7 @@ export default class DatabaseSettings extends AdminSettings<Props, State> {
                     </label>
                     <div className='col-sm-8'>
                         <input
+                            id='activeSearchBackend'
                             type='text'
                             className='form-control'
                             value={this.state.searchBackend}
@@ -419,7 +408,7 @@ export default class DatabaseSettings extends AdminSettings<Props, State> {
                         <div className='help-text'>
                             <FormattedMessage
                                 id='admin.database.search_backend.help_text'
-                                defaultMessage='Shows the currently active backend used for search. Values can be none, database, elasticsearch, bleve etc.'
+                                defaultMessage='Shows the currently active backend used for search. Values can be none, database, elasticsearch.'
                             />
                         </div>
                     </div>

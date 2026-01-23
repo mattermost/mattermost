@@ -1,7 +1,11 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, enable gitlab 1`] = `
-<div>
+<div
+  aria-labelledby="securityButton"
+  id="securitySettings"
+  role="tabpanel"
+>
   <SettingMobileHeader
     closeModal={[MockFunction]}
     collapseModal={[MockFunction]}
@@ -103,7 +107,8 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       modalId="access_history"
     >
       <i
-        className="fa fa-clock-o"
+        aria-hidden="true"
+        className="icon icon-clock-outline"
         title="Access History Icon"
       />
       <MemoizedFormattedMessage
@@ -116,7 +121,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       dialogType={
         Object {
           "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
+          "WrappedComponent": Object {
+            "$$typeof": Symbol(react.memo),
+            "compare": null,
+            "type": [Function],
+          },
           "compare": null,
           "type": [Function],
         }
@@ -125,7 +134,8 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       modalId="activity_log"
     >
       <i
-        className="fa fa-clock-o"
+        aria-hidden="true"
+        className="icon icon-clock-outline"
         title="Active Sessions Icon"
       />
       <MemoizedFormattedMessage
@@ -138,7 +148,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 `;
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, enable google 1`] = `
-<div>
+<div
+  aria-labelledby="securityButton"
+  id="securitySettings"
+  role="tabpanel"
+>
   <SettingMobileHeader
     closeModal={[MockFunction]}
     collapseModal={[MockFunction]}
@@ -240,7 +254,8 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       modalId="access_history"
     >
       <i
-        className="fa fa-clock-o"
+        aria-hidden="true"
+        className="icon icon-clock-outline"
         title="Access History Icon"
       />
       <MemoizedFormattedMessage
@@ -253,7 +268,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       dialogType={
         Object {
           "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
+          "WrappedComponent": Object {
+            "$$typeof": Symbol(react.memo),
+            "compare": null,
+            "type": [Function],
+          },
           "compare": null,
           "type": [Function],
         }
@@ -262,7 +281,8 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       modalId="activity_log"
     >
       <i
-        className="fa fa-clock-o"
+        aria-hidden="true"
+        className="icon icon-clock-outline"
         title="Active Sessions Icon"
       />
       <MemoizedFormattedMessage
@@ -275,7 +295,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 `;
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, enable office365 1`] = `
-<div>
+<div
+  aria-labelledby="securityButton"
+  id="securitySettings"
+  role="tabpanel"
+>
   <SettingMobileHeader
     closeModal={[MockFunction]}
     collapseModal={[MockFunction]}
@@ -377,7 +401,8 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       modalId="access_history"
     >
       <i
-        className="fa fa-clock-o"
+        aria-hidden="true"
+        className="icon icon-clock-outline"
         title="Access History Icon"
       />
       <MemoizedFormattedMessage
@@ -390,7 +415,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       dialogType={
         Object {
           "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
+          "WrappedComponent": Object {
+            "$$typeof": Symbol(react.memo),
+            "compare": null,
+            "type": [Function],
+          },
           "compare": null,
           "type": [Function],
         }
@@ -399,7 +428,8 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       modalId="activity_log"
     >
       <i
-        className="fa fa-clock-o"
+        aria-hidden="true"
+        className="icon icon-clock-outline"
         title="Active Sessions Icon"
       />
       <MemoizedFormattedMessage
@@ -412,7 +442,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 `;
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, enable openID 1`] = `
-<div>
+<div
+  aria-labelledby="securityButton"
+  id="securitySettings"
+  role="tabpanel"
+>
   <SettingMobileHeader
     closeModal={[MockFunction]}
     collapseModal={[MockFunction]}
@@ -514,7 +548,8 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       modalId="access_history"
     >
       <i
-        className="fa fa-clock-o"
+        aria-hidden="true"
+        className="icon icon-clock-outline"
         title="Access History Icon"
       />
       <MemoizedFormattedMessage
@@ -527,7 +562,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       dialogType={
         Object {
           "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
+          "WrappedComponent": Object {
+            "$$typeof": Symbol(react.memo),
+            "compare": null,
+            "type": [Function],
+          },
           "compare": null,
           "type": [Function],
         }
@@ -536,7 +575,8 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       modalId="activity_log"
     >
       <i
-        className="fa fa-clock-o"
+        aria-hidden="true"
+        className="icon icon-clock-outline"
         title="Active Sessions Icon"
       />
       <MemoizedFormattedMessage
@@ -549,7 +589,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 `;
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, to email 1`] = `
-<div>
+<div
+  aria-labelledby="securityButton"
+  id="securitySettings"
+  role="tabpanel"
+>
   <SettingMobileHeader
     closeModal={[MockFunction]}
     collapseModal={[MockFunction]}
@@ -652,7 +696,8 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       modalId="access_history"
     >
       <i
-        className="fa fa-clock-o"
+        aria-hidden="true"
+        className="icon icon-clock-outline"
         title="Access History Icon"
       />
       <MemoizedFormattedMessage
@@ -665,7 +710,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       dialogType={
         Object {
           "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
+          "WrappedComponent": Object {
+            "$$typeof": Symbol(react.memo),
+            "compare": null,
+            "type": [Function],
+          },
           "compare": null,
           "type": [Function],
         }
@@ -674,7 +723,8 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       modalId="activity_log"
     >
       <i
-        className="fa fa-clock-o"
+        aria-hidden="true"
+        className="icon icon-clock-outline"
         title="Active Sessions Icon"
       />
       <MemoizedFormattedMessage

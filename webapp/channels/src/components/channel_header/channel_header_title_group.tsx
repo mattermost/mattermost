@@ -48,7 +48,7 @@ const ChannelHeaderTitleGroup = ({
     const displayNames = channel.display_name.split(', ');
 
     return (
-        <React.Fragment>
+        <>
             {displayNames.map((displayName, index) => {
                 if (!membersMap[displayName]) {
                     return displayName;
@@ -64,7 +64,7 @@ const ChannelHeaderTitleGroup = ({
                     </React.Fragment>
                 );
             })}
-        </React.Fragment>
+        </>
     );
 };
 

@@ -34,7 +34,7 @@ func (s *SqlDesktopTokensStore) GetUserId(token string, minCreateAt int64) (*str
 		})
 
 	dt := struct{ UserId string }{}
-	err := s.GetReplicaX().GetBuilder(&dt, query)
+	err := s.GetReplica().GetBuilder(&dt, query)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -58,7 +58,7 @@ func (s *SqlDesktopTokensStore) Insert(token string, createAt int64, userId stri
 		return errors.Wrap(err, "insert_desktoptokens_tosql")
 	}
 
-	if _, err = s.GetMasterX().Exec(query, args...); err != nil {
+	if _, err = s.GetMaster().Exec(query, args...); err != nil {
 		return errors.Wrap(err, "failed to insert token row")
 	}
 
@@ -78,7 +78,7 @@ func (s *SqlDesktopTokensStore) Delete(token string) error {
 		return errors.Wrap(err, "delete_desktoptokens_tosql")
 	}
 
-	if _, err = s.GetMasterX().Exec(query, args...); err != nil {
+	if _, err = s.GetMaster().Exec(query, args...); err != nil {
 		return errors.Wrap(err, "failed to delete token row")
 	}
 	return nil
@@ -97,7 +97,7 @@ func (s *SqlDesktopTokensStore) DeleteByUserId(userId string) error {
 		return errors.Wrap(err, "delete_by_userid_desktoptokens_tosql")
 	}
 
-	if _, err = s.GetMasterX().Exec(query, args...); err != nil {
+	if _, err = s.GetMaster().Exec(query, args...); err != nil {
 		return errors.Wrap(err, "failed to delete token row")
 	}
 	return nil
@@ -116,7 +116,7 @@ func (s *SqlDesktopTokensStore) DeleteOlderThan(minCreateAt int64) error {
 		return errors.Wrap(err, "delete_old_desktoptokens_tosql")
 	}
 
-	if _, err = s.GetMasterX().Exec(query, args...); err != nil {
+	if _, err = s.GetMaster().Exec(query, args...); err != nil {
 		return errors.Wrap(err, "failed to delete token row")
 	}
 	return nil

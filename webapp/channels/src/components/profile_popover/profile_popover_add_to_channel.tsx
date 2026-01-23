@@ -53,12 +53,10 @@ const ProfilePopoverAddToChannel = ({
 
     return (
         <WithTooltip
-            id='user_profile.add_user_to_channel.icon'
             title={formatMessage({
                 id: 'user_profile.add_user_to_channel',
                 defaultMessage: 'Add to a Channel',
             })}
-            placement='top'
         >
             {/* This span is necessary as tooltip is not able to pass trigger props to a custom component */}
             <span>

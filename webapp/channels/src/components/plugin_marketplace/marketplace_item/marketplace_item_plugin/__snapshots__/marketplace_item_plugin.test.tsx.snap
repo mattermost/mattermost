@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/MarketplaceItemPlugin MarketplaceItem should render 1`] = `
 <Fragment>
@@ -17,7 +17,12 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render 1`] = `
       >
         <Memo(LoadingWrapper)
           loading={false}
-          text="Installing..."
+          text={
+            Object {
+              "defaultMessage": "Installing...",
+              "id": "marketplace_modal.installing",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Install"
@@ -35,7 +40,6 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render 1`] = `
     installing={false}
     isDefaultMarketplace={true}
     name="name"
-    trackEvent={[MockFunction]}
     updateDetails={
       <UpdateDetails
         installedVersion=""
@@ -97,7 +101,6 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render installe
     installing={false}
     isDefaultMarketplace={true}
     name="name"
-    trackEvent={[MockFunction]}
     updateDetails={
       <UpdateDetails
         installedVersion="1.0.0"
@@ -143,7 +146,12 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with emp
       >
         <Memo(LoadingWrapper)
           loading={false}
-          text="Installing..."
+          text={
+            Object {
+              "defaultMessage": "Installing...",
+              "id": "marketplace_modal.installing",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Install"
@@ -162,7 +170,6 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with emp
     isDefaultMarketplace={true}
     labels={Array []}
     name="name"
-    trackEvent={[MockFunction]}
     updateDetails={
       <UpdateDetails
         installedVersion=""
@@ -208,7 +215,12 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with no 
       >
         <Memo(LoadingWrapper)
           loading={false}
-          text="Installing..."
+          text={
+            Object {
+              "defaultMessage": "Installing...",
+              "id": "marketplace_modal.installing",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Install"
@@ -225,7 +237,6 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with no 
     installing={false}
     isDefaultMarketplace={true}
     name="name"
-    trackEvent={[MockFunction]}
     updateDetails={
       <UpdateDetails
         installedVersion=""
@@ -271,7 +282,12 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with no 
       >
         <Memo(LoadingWrapper)
           loading={false}
-          text="Installing..."
+          text={
+            Object {
+              "defaultMessage": "Installing...",
+              "id": "marketplace_modal.installing",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Install"
@@ -288,7 +304,6 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with no 
     installing={false}
     isDefaultMarketplace={true}
     name="name"
-    trackEvent={[MockFunction]}
     updateDetails={
       <UpdateDetails
         installedVersion=""
@@ -334,7 +349,12 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with no 
       >
         <Memo(LoadingWrapper)
           loading={false}
-          text="Installing..."
+          text={
+            Object {
+              "defaultMessage": "Installing...",
+              "id": "marketplace_modal.installing",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Install"
@@ -350,7 +370,6 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with no 
     installing={false}
     isDefaultMarketplace={true}
     name="name"
-    trackEvent={[MockFunction]}
     updateDetails={
       <UpdateDetails
         installedVersion=""
@@ -396,7 +415,12 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with one
       >
         <Memo(LoadingWrapper)
           loading={false}
-          text="Installing..."
+          text={
+            Object {
+              "defaultMessage": "Installing...",
+              "id": "marketplace_modal.installing",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Install"
@@ -423,7 +447,6 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with one
       ]
     }
     name="name"
-    trackEvent={[MockFunction]}
     updateDetails={
       <UpdateDetails
         installedVersion=""
@@ -469,7 +492,12 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with plu
       >
         <Memo(LoadingWrapper)
           loading={false}
-          text="Installing..."
+          text={
+            Object {
+              "defaultMessage": "Installing...",
+              "id": "marketplace_modal.installing",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Install"
@@ -500,7 +528,6 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with plu
         "version": "",
       }
     }
-    trackEvent={[MockFunction]}
     updateDetails={
       <UpdateDetails
         installedVersion=""
@@ -546,7 +573,12 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with ser
       >
         <Memo(LoadingWrapper)
           loading={false}
-          text="Installing..."
+          text={
+            Object {
+              "defaultMessage": "Installing...",
+              "id": "marketplace_modal.installing",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Try Again"
@@ -565,7 +597,6 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with ser
     installing={false}
     isDefaultMarketplace={true}
     name="name"
-    trackEvent={[MockFunction]}
     updateDetails={
       <UpdateDetails
         installedVersion=""
@@ -611,7 +642,12 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with two
       >
         <Memo(LoadingWrapper)
           loading={false}
-          text="Installing..."
+          text={
+            Object {
+              "defaultMessage": "Installing...",
+              "id": "marketplace_modal.installing",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Install"
@@ -643,7 +679,6 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with two
       ]
     }
     name="name"
-    trackEvent={[MockFunction]}
     updateDetails={
       <UpdateDetails
         installedVersion=""
@@ -706,7 +741,6 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with upd
     isDefaultMarketplace={true}
     name="name"
     releaseNotesUrl="http://example.com/release"
-    trackEvent={[MockFunction]}
     updateDetails={
       <UpdateDetails
         installedVersion="0.9.9"
@@ -770,7 +804,6 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with upd
     installing={false}
     isDefaultMarketplace={true}
     name="name"
-    trackEvent={[MockFunction]}
     updateDetails={
       <UpdateDetails
         installedVersion="0.9.9"
@@ -800,8 +833,7 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with upd
 `;
 
 exports[`components/MarketplaceItemPlugin UpdateConfirmationModal should add extra warning for major version change 1`] = `
-<ConfirmModal
-  confirmButtonClass="btn btn-primary"
+<Memo(ConfirmModal)
   confirmButtonText={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Update"
@@ -812,7 +844,7 @@ exports[`components/MarketplaceItemPlugin UpdateConfirmationModal should add ext
     Array [
       <p>
         <Memo(MemoizedFormattedMessage)
-          defaultMessage="Are you sure you want to update the pluginName plugin to 1.0.0?"
+          defaultMessage="Are you sure you want to update the {name} plugin to {version}?"
           id="marketplace_modal.list.update_confirmation.message.intro"
           values={
             Object {
@@ -823,13 +855,13 @@ exports[`components/MarketplaceItemPlugin UpdateConfirmationModal should add ext
         />
       </p>,
       <p>
-        <FormattedMarkdownMessage
-          defaultMessage="You currently have {installedVersion} installed. View the [release notes](!{releaseNotesUrl}) to learn about the changes included in this update."
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="You currently have {installedVersion} installed. View the <a>release notes</a> to learn about the changes included in this update."
           id="marketplace_modal.list.update_confirmation.message.current_with_release_notes"
           values={
             Object {
+              "a": [Function],
               "installedVersion": "0.0.1",
-              "releaseNotesUrl": "http://example.com/release",
             }
           }
         />
@@ -837,19 +869,18 @@ exports[`components/MarketplaceItemPlugin UpdateConfirmationModal should add ext
       <p
         className="alert alert-warning"
       >
-        <FormattedMarkdownMessage
-          defaultMessage="This update may contain breaking changes. Consult the [release notes](!{releaseNotesUrl}) before upgrading."
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="This update may contain breaking changes. Consult the <a>release notes</a> before upgrading."
           id="marketplace_modal.list.update_confirmation.message.warning_major_version_with_release_notes"
           values={
             Object {
-              "releaseNotesUrl": "http://example.com/release",
+              "a": [Function],
             }
           }
         />
       </p>,
     ]
   }
-  modalClass=""
   onCancel={[Function]}
   onConfirm={[Function]}
   show={true}
@@ -863,8 +894,7 @@ exports[`components/MarketplaceItemPlugin UpdateConfirmationModal should add ext
 `;
 
 exports[`components/MarketplaceItemPlugin UpdateConfirmationModal should add extra warning for major version change, even without release notes 1`] = `
-<ConfirmModal
-  confirmButtonClass="btn btn-primary"
+<Memo(ConfirmModal)
   confirmButtonText={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Update"
@@ -875,7 +905,7 @@ exports[`components/MarketplaceItemPlugin UpdateConfirmationModal should add ext
     Array [
       <p>
         <Memo(MemoizedFormattedMessage)
-          defaultMessage="Are you sure you want to update the pluginName plugin to 1.0.0?"
+          defaultMessage="Are you sure you want to update the {name} plugin to {version}?"
           id="marketplace_modal.list.update_confirmation.message.intro"
           values={
             Object {
@@ -887,7 +917,7 @@ exports[`components/MarketplaceItemPlugin UpdateConfirmationModal should add ext
       </p>,
       <p>
         <Memo(MemoizedFormattedMessage)
-          defaultMessage="You currently have 0.0.1 installed."
+          defaultMessage="You currently have {installedVersion} installed."
           id="marketplace_modal.list.update_confirmation.message.current"
           values={
             Object {
@@ -906,7 +936,6 @@ exports[`components/MarketplaceItemPlugin UpdateConfirmationModal should add ext
       </p>,
     ]
   }
-  modalClass=""
   onCancel={[Function]}
   onConfirm={[Function]}
   show={true}
@@ -922,8 +951,7 @@ exports[`components/MarketplaceItemPlugin UpdateConfirmationModal should add ext
 exports[`components/MarketplaceItemPlugin UpdateConfirmationModal should avoid exception on invalid semver 1`] = `null`;
 
 exports[`components/MarketplaceItemPlugin UpdateConfirmationModal should render without release notes url 1`] = `
-<ConfirmModal
-  confirmButtonClass="btn btn-primary"
+<Memo(ConfirmModal)
   confirmButtonText={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Update"
@@ -934,7 +962,7 @@ exports[`components/MarketplaceItemPlugin UpdateConfirmationModal should render 
     Array [
       <p>
         <Memo(MemoizedFormattedMessage)
-          defaultMessage="Are you sure you want to update the pluginName plugin to 0.0.2?"
+          defaultMessage="Are you sure you want to update the {name} plugin to {version}?"
           id="marketplace_modal.list.update_confirmation.message.intro"
           values={
             Object {
@@ -946,7 +974,7 @@ exports[`components/MarketplaceItemPlugin UpdateConfirmationModal should render 
       </p>,
       <p>
         <Memo(MemoizedFormattedMessage)
-          defaultMessage="You currently have 0.0.1 installed."
+          defaultMessage="You currently have {installedVersion} installed."
           id="marketplace_modal.list.update_confirmation.message.current"
           values={
             Object {
@@ -957,7 +985,6 @@ exports[`components/MarketplaceItemPlugin UpdateConfirmationModal should render 
       </p>,
     ]
   }
-  modalClass=""
   onCancel={[Function]}
   onConfirm={[Function]}
   show={true}

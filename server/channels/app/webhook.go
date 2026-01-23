@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"maps"
 	"net/http"
 	"regexp"
 	"strings"
@@ -28,11 +29,12 @@ const (
 	TriggerwordsStartsWith = 1
 
 	MaxIntegrationResponseSize = 1024 * 1024 // Posts can be <100KB at most, so this is likely more than enough
+	MaxDialogResponseSize      = 1024 * 1024 // 1MB limit for dialog responses to prevent OOM attacks
 )
 
 var linkWithTextRegex = regexp.MustCompile(`<([^\n<\|>]+)\|([^\|\n>]+)>`)
 
-func (a *App) handleWebhookEvents(c request.CTX, post *model.Post, team *model.Team, channel *model.Channel, user *model.User) *model.AppError {
+func (a *App) handleWebhookEvents(rctx request.CTX, post *model.Post, team *model.Team, channel *model.Channel, user *model.User) *model.AppError {
 	if !*a.Config().ServiceSettings.EnableOutgoingWebhooks {
 		return nil
 	}
@@ -88,22 +90,23 @@ func (a *App) handleWebhookEvents(c request.CTX, post *model.Post, team *model.T
 			TriggerWord: triggerWord,
 			FileIds:     strings.Join(post.FileIds, ","),
 		}
-		a.TriggerWebhook(c, payload, hook, post, channel)
+		a.TriggerWebhook(rctx, payload, hook, post, channel)
 	}
 
 	return nil
 }
 
-func (a *App) TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayload, hook *model.OutgoingWebhook, post *model.Post, channel *model.Channel) {
+func (a *App) TriggerWebhook(rctx request.CTX, payload *model.OutgoingWebhookPayload, hook *model.OutgoingWebhook, post *model.Post, channel *model.Channel) {
+	logger := rctx.Logger().With(mlog.String("outgoing_webhook_id", hook.Id), mlog.String("post_id", post.Id), mlog.String("channel_id", channel.Id), mlog.String("content_type", hook.ContentType))
+
 	var jsonBytes []byte
 	var err error
-
 	contentType := "application/x-www-form-urlencoded"
 	if hook.ContentType == "application/json" {
 		contentType = "application/json"
 		jsonBytes, err = json.Marshal(payload)
 		if err != nil {
-			c.Logger().Warn("Failed to encode to JSON", mlog.Err(err))
+			logger.Warn("Failed to encode to JSON", mlog.Err(err))
 			return
 		}
 	}
@@ -129,16 +132,16 @@ func (a *App) TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayloa
 
 			// Retrieve an access token from a connection if one exists to use for the webhook request
 			if a.Config().ServiceSettings.EnableOutgoingOAuthConnections != nil && *a.Config().ServiceSettings.EnableOutgoingOAuthConnections && a.OutgoingOAuthConnections() != nil {
-				connection, err := a.OutgoingOAuthConnections().GetConnectionForAudience(c, url)
+				connection, err := a.OutgoingOAuthConnections().GetConnectionForAudience(rctx, url)
 				if err != nil {
-					c.Logger().Error("Failed to find an outgoing oauth connection for the webhook", mlog.Err(err))
+					logger.Error("Failed to find an outgoing oauth connection for the webhook", mlog.Err(err))
 					return
 				}
 
 				if connection != nil {
-					accessToken, err = a.OutgoingOAuthConnections().RetrieveTokenForConnection(c, connection)
+					accessToken, err = a.OutgoingOAuthConnections().RetrieveTokenForConnection(rctx, connection)
 					if err != nil {
-						c.Logger().Error("Failed to retrieve token for outgoing oauth connection", mlog.Err(err))
+						logger.Error("Failed to retrieve token for outgoing oauth connection", mlog.Err(err))
 						return
 					}
 				}
@@ -147,9 +150,9 @@ func (a *App) TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayloa
 			webhookResp, err := a.doOutgoingWebhookRequest(url, body, contentType, accessToken)
 			if err != nil {
 				if errors.Is(err, context.DeadlineExceeded) {
-					c.Logger().Error("Outgoing Webhook POST timed out. Consider increasing ServiceSettings.OutgoingIntegrationRequestsTimeout.", mlog.Err(err))
+					logger.Error("Outgoing Webhook POST timed out. Consider increasing ServiceSettings.OutgoingIntegrationRequestsTimeout.", mlog.Err(err))
 				} else {
-					c.Logger().Error("Outgoing Webhook POST failed", mlog.Err(err))
+					logger.Error("Outgoing Webhook POST failed", mlog.Err(err))
 				}
 				return
 			}
@@ -162,16 +165,16 @@ func (a *App) TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayloa
 				if len(webhookResp.Props) == 0 {
 					webhookResp.Props = make(model.StringInterface)
 				}
-				webhookResp.Props["webhook_display_name"] = hook.DisplayName
+				webhookResp.Props[model.PostPropsWebhookDisplayName] = hook.DisplayName
 
 				text := ""
 				if webhookResp.Text != nil {
-					text = a.ProcessSlackText(*webhookResp.Text)
+					text = a.ProcessSlackText(rctx, *webhookResp.Text)
 				}
-				webhookResp.Attachments = a.ProcessSlackAttachments(webhookResp.Attachments)
+				webhookResp.Attachments = a.ProcessSlackAttachments(rctx, webhookResp.Attachments)
 				// attachments is in here for slack compatibility
 				if len(webhookResp.Attachments) > 0 {
-					webhookResp.Props["attachments"] = webhookResp.Attachments
+					webhookResp.Props[model.PostPropsAttachments] = webhookResp.Attachments
 				}
 				if *a.Config().ServiceSettings.EnablePostUsernameOverride && hook.Username != "" && webhookResp.Username == "" {
 					webhookResp.Username = hook.Username
@@ -180,8 +183,8 @@ func (a *App) TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayloa
 				if *a.Config().ServiceSettings.EnablePostIconOverride && hook.IconURL != "" && webhookResp.IconURL == "" {
 					webhookResp.IconURL = hook.IconURL
 				}
-				if _, err := a.CreateWebhookPost(c, hook.CreatorId, channel, text, webhookResp.Username, webhookResp.IconURL, "", webhookResp.Props, webhookResp.Type, postRootId, webhookResp.Priority); err != nil {
-					c.Logger().Error("Failed to create response post.", mlog.Err(err))
+				if _, err := a.CreateWebhookPost(rctx, hook.CreatorId, channel, text, webhookResp.Username, webhookResp.IconURL, "", webhookResp.Props, webhookResp.Type, postRootId, webhookResp.Priority); err != nil {
+					logger.Error("Failed to create response post.", mlog.Err(err))
 				}
 			}
 		}()
@@ -223,7 +226,7 @@ func (a *App) doOutgoingWebhookRequest(url string, body io.Reader, contentType s
 	return &hookResp, nil
 }
 
-func SplitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.AppError) {
+func splitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.AppError) {
 	splits := make([]*model.Post, 0)
 	remainingText := post.Message
 
@@ -231,13 +234,13 @@ func SplitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 	base.Message = ""
 	base.SetProps(make(map[string]any))
 	for k, v := range post.GetProps() {
-		if k != "attachments" {
+		if k != model.PostPropsAttachments {
 			base.AddProp(k, v)
 		}
 	}
 
 	if utf8.RuneCountInString(model.StringInterfaceToJSON(base.GetProps())) > model.PostPropsMaxUserRunes {
-		return nil, model.NewAppError("SplitWebhookPost", "web.incoming_webhook.split_props_length.app_error", map[string]any{"Max": model.PostPropsMaxUserRunes}, "", http.StatusBadRequest)
+		return nil, model.NewAppError("splitWebhookPost", "web.incoming_webhook.split_props_length.app_error", map[string]any{"Max": model.PostPropsMaxUserRunes}, "", http.StatusBadRequest)
 	}
 
 	for utf8.RuneCountInString(remainingText) > maxPostSize {
@@ -258,17 +261,15 @@ func SplitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 	split.Message = remainingText
 	splits = append(splits, split)
 
-	attachments, _ := post.GetProp("attachments").([]*model.SlackAttachment)
+	attachments, _ := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 	for _, attachment := range attachments {
 		newAttachment := *attachment
 		for {
 			lastSplit := splits[len(splits)-1]
 			newProps := make(map[string]any)
-			for k, v := range lastSplit.GetProps() {
-				newProps[k] = v
-			}
-			origAttachments, _ := newProps["attachments"].([]*model.SlackAttachment)
-			newProps["attachments"] = append(origAttachments, &newAttachment)
+			maps.Copy(newProps, lastSplit.GetProps())
+			origAttachments, _ := newProps[model.PostPropsAttachments].([]*model.SlackAttachment)
+			newProps[model.PostPropsAttachments] = append(origAttachments, &newAttachment)
 			newPropsString := model.StringInterfaceToJSON(newProps)
 			runeCount := utf8.RuneCountInString(newPropsString)
 
@@ -286,7 +287,7 @@ func SplitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 			truncationNeeded := runeCount - model.PostPropsMaxUserRunes
 			textRuneCount := utf8.RuneCountInString(attachment.Text)
 			if textRuneCount < truncationNeeded {
-				return nil, model.NewAppError("SplitWebhookPost", "web.incoming_webhook.split_props_length.app_error", map[string]any{"Max": model.PostPropsMaxUserRunes}, "", http.StatusBadRequest)
+				return nil, model.NewAppError("splitWebhookPost", "web.incoming_webhook.split_props_length.app_error", map[string]any{"Max": model.PostPropsMaxUserRunes}, "", http.StatusBadRequest)
 			}
 			x := 0
 			for index := range attachment.Text {
@@ -304,12 +305,12 @@ func SplitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 	return splits, nil
 }
 
-func (a *App) CreateWebhookPost(c request.CTX, userID string, channel *model.Channel, text, overrideUsername, overrideIconURL, overrideIconEmoji string, props model.StringInterface, postType string, postRootId string, priority *model.PostPriority) (*model.Post, *model.AppError) {
+func (a *App) CreateWebhookPost(rctx request.CTX, userID string, channel *model.Channel, text, overrideUsername, overrideIconURL, overrideIconEmoji string, props model.StringInterface, postType string, postRootId string, priority *model.PostPriority) (*model.Post, *model.AppError) {
 	// parse links into Markdown format
 	text = linkWithTextRegex.ReplaceAllString(text, "[${2}](${1})")
 
 	post := &model.Post{UserId: userID, ChannelId: channel.Id, Message: text, Type: postType, RootId: postRootId}
-	post.AddProp("from_webhook", "true")
+	post.AddProp(model.PostPropsFromWebhook, "true")
 
 	if priority != nil {
 		if priority.Priority == nil {
@@ -332,41 +333,46 @@ func (a *App) CreateWebhookPost(c request.CTX, userID string, channel *model.Cha
 
 	if *a.Config().ServiceSettings.EnablePostUsernameOverride {
 		if overrideUsername != "" {
-			post.AddProp("override_username", overrideUsername)
+			post.AddProp(model.PostPropsOverrideUsername, overrideUsername)
 		} else {
-			post.AddProp("override_username", model.DefaultWebhookUsername)
+			post.AddProp(model.PostPropsOverrideUsername, model.DefaultWebhookUsername)
 		}
 	}
 
 	if *a.Config().ServiceSettings.EnablePostIconOverride {
 		if overrideIconURL != "" {
-			post.AddProp("override_icon_url", overrideIconURL)
+			post.AddProp(model.PostPropsOverrideIconURL, overrideIconURL)
 		}
 		if overrideIconEmoji != "" {
-			post.AddProp("override_icon_emoji", overrideIconEmoji)
+			post.AddProp(model.PostPropsOverrideIconEmoji, overrideIconEmoji)
 		}
 	}
 
 	if len(props) > 0 {
 		for key, val := range props {
-			if key == "attachments" {
+			switch key {
+			case model.PostPropsAttachments:
 				if attachments, success := val.([]*model.SlackAttachment); success {
 					model.ParseSlackAttachment(post, attachments)
 				}
-			} else if key != "override_icon_url" && key != "override_username" && key != "from_webhook" {
+			case model.PostPropsOverrideIconURL,
+				model.PostPropsOverrideUsername,
+				model.PostPropsFromWebhook:
+			// Do nothing
+			default:
 				post.AddProp(key, val)
 			}
 		}
 	}
 
-	splits, err := SplitWebhookPost(post, a.MaxPostSize())
+	splits, err := splitWebhookPost(post, a.MaxPostSize())
 	if err != nil {
 		return nil, err
 	}
 
 	for _, split := range splits {
-		if _, err = a.CreatePost(c, split, channel, false, false); err != nil {
-			return nil, model.NewAppError("CreateWebhookPost", "api.post.create_webhook_post.creating.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+		if _, _, err := a.CreatePost(rctx, split, channel, model.CreatePostFlags{}); err != nil {
+			return nil, model.NewAppError("CreateWebhookPost", "api.post.create_webhook_post.creating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -528,12 +534,13 @@ func (a *App) CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.Outgoin
 	if hook.ChannelId != "" {
 		channel, errCh := a.Srv().Store().Channel().Get(hook.ChannelId, true)
 		if errCh != nil {
+			errCtx := map[string]any{"channel_id": hook.ChannelId}
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(errCh, &nfErr):
-				return nil, model.NewAppError("CreateOutgoingWebhook", "app.channel.get.existing.app_error", nil, "", http.StatusNotFound).Wrap(errCh)
+				return nil, model.NewAppError("CreateOutgoingWebhook", "app.channel.get.existing.app_error", errCtx, "", http.StatusNotFound).Wrap(errCh)
 			default:
-				return nil, model.NewAppError("CreateOutgoingWebhook", "app.channel.get.find.app_error", nil, "", http.StatusInternalServerError).Wrap(errCh)
+				return nil, model.NewAppError("CreateOutgoingWebhook", "app.channel.get.find.app_error", errCtx, "", http.StatusInternalServerError).Wrap(errCh)
 			}
 		}
 
@@ -578,13 +585,13 @@ func (a *App) CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.Outgoin
 	return webhook, nil
 }
 
-func (a *App) UpdateOutgoingWebhook(c request.CTX, oldHook, updatedHook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError) {
+func (a *App) UpdateOutgoingWebhook(rctx request.CTX, oldHook, updatedHook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableOutgoingWebhooks {
 		return nil, model.NewAppError("UpdateOutgoingWebhook", "api.outgoing_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	if updatedHook.ChannelId != "" {
-		channel, err := a.GetChannel(c, updatedHook.ChannelId)
+		channel, err := a.GetChannel(rctx, updatedHook.ChannelId)
 		if err != nil {
 			return nil, err
 		}
@@ -721,7 +728,7 @@ func (a *App) RegenOutgoingWebhookToken(hook *model.OutgoingWebhook) (*model.Out
 	return webhook, nil
 }
 
-func (a *App) HandleIncomingWebhook(c request.CTX, hookID string, req *model.IncomingWebhookRequest) *model.AppError {
+func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.IncomingWebhookRequest) *model.AppError {
 	if !*a.Config().ServiceSettings.EnableIncomingWebhooks {
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -763,13 +770,13 @@ func (a *App) HandleIncomingWebhook(c request.CTX, hookID string, req *model.Inc
 		req.Props = make(model.StringInterface)
 	}
 
-	req.Props["webhook_display_name"] = hook.DisplayName
+	req.Props[model.PostPropsWebhookDisplayName] = hook.DisplayName
 
-	text = a.ProcessSlackText(text)
-	req.Attachments = a.ProcessSlackAttachments(req.Attachments)
+	text = a.ProcessSlackText(rctx, text)
+	req.Attachments = a.ProcessSlackAttachments(rctx, req.Attachments)
 	// attachments is in here for slack compatibility
 	if len(req.Attachments) > 0 {
-		req.Props["attachments"] = req.Attachments
+		req.Props[model.PostPropsAttachments] = req.Attachments
 		webhookType = model.PostTypeSlackAttachment
 	}
 
@@ -780,9 +787,9 @@ func (a *App) HandleIncomingWebhook(c request.CTX, hookID string, req *model.Inc
 		if channelName[0] == '@' {
 			result, nErr := a.Srv().Store().User().GetByUsername(channelName[1:])
 			if nErr != nil {
-				return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.user.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
+				return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.user.app_error", map[string]any{"user": channelName[1:]}, "", http.StatusBadRequest).Wrap(nErr)
 			}
-			ch, err := a.GetOrCreateDirectChannel(c, hook.UserId, result.Id)
+			ch, err := a.GetOrCreateDirectChannel(rctx, hook.UserId, result.Id)
 			if err != nil {
 				return err
 			}
@@ -806,12 +813,13 @@ func (a *App) HandleIncomingWebhook(c request.CTX, hookID string, req *model.Inc
 		var err error
 		channel, err = a.Srv().Store().Channel().Get(hook.ChannelId, true)
 		if err != nil {
+			errCtx := map[string]any{"channel_id": hook.ChannelId}
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(err, &nfErr):
-				return model.NewAppError("HandleIncomingWebhook", "app.channel.get.existing.app_error", nil, "", http.StatusNotFound).Wrap(err)
+				return model.NewAppError("HandleIncomingWebhook", "app.channel.get.existing.app_error", errCtx, "", http.StatusNotFound).Wrap(err)
 			default:
-				return model.NewAppError("HandleIncomingWebhook", "app.channel.get.find.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+				return model.NewAppError("HandleIncomingWebhook", "app.channel.get.find.app_error", errCtx, "", http.StatusInternalServerError).Wrap(err)
 			}
 		}
 	}
@@ -831,16 +839,21 @@ func (a *App) HandleIncomingWebhook(c request.CTX, hookID string, req *model.Inc
 	}
 
 	if hook.ChannelLocked && hook.ChannelId != channel.Id {
-		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.channel_locked.app_error", nil, "", http.StatusForbidden)
+		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.channel_locked.app_error", map[string]any{"channel_id": channel.Id}, "", http.StatusForbidden)
 	}
 
 	resultU := <-uchan
 	if resultU.NErr != nil {
-		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.user.app_error", nil, "", http.StatusForbidden).Wrap(resultU.NErr)
+		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.user.app_error", map[string]any{"user": hook.UserId}, "", http.StatusForbidden).Wrap(resultU.NErr)
 	}
 
-	if channel.Type != model.ChannelTypeOpen && !a.HasPermissionToChannel(c, hook.UserId, channel.Id, model.PermissionReadChannelContent) {
-		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.permissions.app_error", nil, "", http.StatusForbidden)
+	restrictedChannel := false
+	if channel.Type != model.ChannelTypeOpen {
+		hasPermission, _ := a.HasPermissionToChannel(rctx, hook.UserId, channel.Id, model.PermissionReadChannelContent)
+		restrictedChannel = !hasPermission
+	}
+	if restrictedChannel {
+		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.permissions.app_error", map[string]any{"user": hook.UserId, "channel": channel.Id}, "", http.StatusForbidden)
 	}
 
 	overrideUsername := hook.Username
@@ -853,7 +866,7 @@ func (a *App) HandleIncomingWebhook(c request.CTX, hookID string, req *model.Inc
 		overrideIconURL = req.IconURL
 	}
 
-	_, err := a.CreateWebhookPost(c, hook.UserId, channel, text, overrideUsername, overrideIconURL, req.IconEmoji, req.Props, webhookType, "", req.Priority)
+	_, err := a.CreateWebhookPost(rctx, hook.UserId, channel, text, overrideUsername, overrideIconURL, req.IconEmoji, req.Props, webhookType, "", req.Priority)
 	return err
 }
 
@@ -881,7 +894,7 @@ func (a *App) CreateCommandWebhook(commandID string, args *model.CommandArgs) (*
 	return savedHook, nil
 }
 
-func (a *App) HandleCommandWebhook(c request.CTX, hookID string, response *model.CommandResponse) *model.AppError {
+func (a *App) HandleCommandWebhook(rctx request.CTX, hookID string, response *model.CommandResponse) *model.AppError {
 	if response == nil {
 		return model.NewAppError("HandleCommandWebhook", "app.command_webhook.handle_command_webhook.parse", nil, "", http.StatusBadRequest)
 	}
@@ -891,7 +904,7 @@ func (a *App) HandleCommandWebhook(c request.CTX, hookID string, response *model
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(nErr, &nfErr):
-			return model.NewAppError("HandleCommandWebhook", "app.command_webhook.get.missing", map[string]any{"hook_id": hookID}, "", http.StatusNotFound).Wrap(nErr)
+			return model.NewAppError("HandleCommandWebhook", "app.command_webhook.get.missing", nil, "", http.StatusNotFound).Wrap(nErr)
 		default:
 			return model.NewAppError("HandleCommandWebhook", "app.command_webhook.get.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
@@ -904,7 +917,7 @@ func (a *App) HandleCommandWebhook(c request.CTX, hookID string, response *model
 		case errors.As(cmdErr, &appErr):
 			return appErr
 		default:
-			return model.NewAppError("HandleCommandWebhook", "web.command_webhook.command.app_error", nil, "", http.StatusBadRequest).Wrap(cmdErr)
+			return model.NewAppError("HandleCommandWebhook", "web.command_webhook.command.app_error", map[string]any{"command_id": hook.CommandId}, "", http.StatusBadRequest).Wrap(cmdErr)
 		}
 	}
 
@@ -925,6 +938,6 @@ func (a *App) HandleCommandWebhook(c request.CTX, hookID string, response *model
 		}
 	}
 
-	_, err := a.HandleCommandResponse(c, cmd, args, response, false)
+	_, err := a.HandleCommandResponse(rctx, cmd, args, response, false)
 	return err
 }
