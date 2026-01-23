@@ -14,6 +14,34 @@ type ScheduledRecapStore struct {
 	mock.Mock
 }
 
+// CountForUser provides a mock function with given fields: userId
+func (_m *ScheduledRecapStore) CountForUser(userId string) (int64, error) {
+	ret := _m.Called(userId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CountForUser")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (int64, error)); ok {
+		return rf(userId)
+	}
+	if rf, ok := ret.Get(0).(func(string) int64); ok {
+		r0 = rf(userId)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(userId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Delete provides a mock function with given fields: id
 func (_m *ScheduledRecapStore) Delete(id string) error {
 	ret := _m.Called(id)

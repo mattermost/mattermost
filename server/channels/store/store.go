@@ -1305,6 +1305,16 @@ type RecapStore interface {
 	DeleteRecapChannels(recapId string) error
 	SaveRecapChannel(recapChannel *model.RecapChannel) error
 	GetRecapChannelsByRecapId(recapId string) ([]*model.RecapChannel, error)
+
+	// CountForUserSince returns count of recaps created by user since given timestamp
+	// Used for daily limit enforcement (pass midnight timestamp in user timezone)
+	// Excludes skipped recaps from the count
+	CountForUserSince(userId string, since int64) (int64, error)
+
+	// GetLastCompletedManualRecap returns the most recent completed manual recap for user
+	// Manual recap = ScheduledRecapId is empty. Used for cooldown checking.
+	// Returns nil, nil if no manual recap exists.
+	GetLastCompletedManualRecap(userId string) (*model.Recap, error)
 }
 
 type ScheduledRecapStore interface {
@@ -1317,6 +1327,10 @@ type ScheduledRecapStore interface {
 	// Query operations
 	GetForUser(userId string, page, perPage int) ([]*model.ScheduledRecap, error)
 	GetDueBefore(timestamp int64, limit int) ([]*model.ScheduledRecap, error)
+
+	// CountForUser returns count of active (non-deleted, enabled) scheduled recaps for a user
+	// Used for max scheduled recaps limit enforcement
+	CountForUser(userId string) (int64, error)
 
 	// State updates (efficient single-field updates)
 	UpdateNextRunAt(id string, nextRunAt int64) error
