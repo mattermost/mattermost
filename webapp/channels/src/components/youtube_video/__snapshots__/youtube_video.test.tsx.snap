@@ -68,7 +68,6 @@ exports[`YoutubeVideo should match init snapshot 1`] = `
             onError={[Function]}
             play={[Function]}
             thumbnailUrl="https://img.youtube.com/vi/xqCoNej8Zxo/maxresdefault.jpg"
-            useMaxResThumbnail={true}
             videoTitle="Youtube title"
           >
             <div

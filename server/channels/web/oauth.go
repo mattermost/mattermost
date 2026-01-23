@@ -403,7 +403,8 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 			redirectURL = utils.AppendQueryParamsToURL(c.GetSiteURLHeader()+"/login/desktop", queryString)
 
 			auditRec.Success()
-			c.LogAudit("success")
+			auditRec.Actor.UserId = user.Id
+			c.LogAuditWithUserId(user.Id, "authenticated")
 
 			w.Header().Set("Content-Type", "text/html; charset=utf-8")
 			http.Redirect(w, r, redirectURL, http.StatusTemporaryRedirect)
