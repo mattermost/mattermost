@@ -5,6 +5,7 @@ package app
 
 import (
 	"archive/zip"
+	"context"
 	"errors"
 	"fmt"
 	"image"
@@ -814,5 +815,143 @@ func TestPermanentDeleteFilesByPost(t *testing.T) {
 
 		err = th.App.PermanentDeleteFilesByPost(th.Context, post.Id)
 		assert.Nil(t, err)
+	})
+}
+
+func TestFilterFilesByChannelPermissions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.GuestAccountsSettings.Enable = true
+	})
+
+	guestUser := th.CreateGuest()
+	_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, guestUser.Id, "")
+	require.Nil(t, appErr)
+
+	privateChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+
+	_, appErr = th.App.AddUserToChannel(th.Context, guestUser, privateChannel, false)
+	require.Nil(t, appErr)
+	_, appErr = th.App.AddUserToChannel(th.Context, guestUser, th.BasicChannel, false)
+	require.Nil(t, appErr)
+
+	post1 := th.CreatePost(th.BasicChannel)
+	post2 := th.CreatePost(privateChannel)
+	post3 := th.CreatePost(th.BasicChannel)
+
+	fileInfo1 := th.CreateFileInfo(th.BasicUser.Id, post1.Id, th.BasicChannel.Id)
+	fileInfo2 := th.CreateFileInfo(th.BasicUser.Id, post2.Id, privateChannel.Id)
+	fileInfo3 := th.CreateFileInfo(th.BasicUser.Id, post3.Id, th.BasicChannel.Id)
+
+	t.Run("should filter files when user has read_channel_content permission", func(t *testing.T) {
+		fileList := model.NewFileInfoList()
+		fileList.FileInfos[fileInfo1.Id] = fileInfo1
+		fileList.FileInfos[fileInfo2.Id] = fileInfo2
+		fileList.FileInfos[fileInfo3.Id] = fileInfo3
+		fileList.Order = []string{fileInfo1.Id, fileInfo2.Id, fileInfo3.Id}
+
+		// BasicUser should have access to all files
+		appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.Len(t, fileList.FileInfos, 3)
+		require.Len(t, fileList.Order, 3)
+	})
+
+	t.Run("should filter files when guest has read_channel_content permission", func(t *testing.T) {
+		fileList := model.NewFileInfoList()
+		fileList.FileInfos[fileInfo1.Id] = fileInfo1
+		fileList.FileInfos[fileInfo2.Id] = fileInfo2
+		fileList.FileInfos[fileInfo3.Id] = fileInfo3
+		fileList.Order = []string{fileInfo1.Id, fileInfo2.Id, fileInfo3.Id}
+
+		appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, guestUser.Id)
+		require.Nil(t, appErr)
+		require.Len(t, fileList.FileInfos, 3)
+		require.Len(t, fileList.Order, 3)
+	})
+
+	t.Run("should filter files when guest does not have read_channel_content permission", func(t *testing.T) {
+		channelGuestRole, appErr := th.App.GetRoleByName(context.Background(), model.ChannelGuestRoleId)
+		require.Nil(t, appErr)
+
+		originalPermissions := make([]string, len(channelGuestRole.Permissions))
+		copy(originalPermissions, channelGuestRole.Permissions)
+
+		newPermissions := []string{}
+		for _, perm := range channelGuestRole.Permissions {
+			if perm != model.PermissionReadChannelContent.Id && perm != model.PermissionReadChannel.Id {
+				newPermissions = append(newPermissions, perm)
+			}
+		}
+
+		_, appErr = th.App.PatchRole(channelGuestRole, &model.RolePatch{
+			Permissions: &newPermissions,
+		})
+		require.Nil(t, appErr)
+
+		defer func() {
+			_, err := th.App.PatchRole(channelGuestRole, &model.RolePatch{
+				Permissions: &originalPermissions,
+			})
+			require.Nil(t, err)
+		}()
+
+		fileList := model.NewFileInfoList()
+		fileList.FileInfos[fileInfo1.Id] = fileInfo1
+		fileList.FileInfos[fileInfo2.Id] = fileInfo2
+		fileList.FileInfos[fileInfo3.Id] = fileInfo3
+		fileList.Order = []string{fileInfo1.Id, fileInfo2.Id, fileInfo3.Id}
+
+		appErr = th.App.FilterFilesByChannelPermissions(th.Context, fileList, guestUser.Id)
+		require.Nil(t, appErr)
+		require.Len(t, fileList.FileInfos, 0)
+		require.Len(t, fileList.Order, 0)
+	})
+
+	t.Run("should handle empty file list", func(t *testing.T) {
+		fileList := model.NewFileInfoList()
+		appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.Len(t, fileList.FileInfos, 0)
+		require.Len(t, fileList.Order, 0)
+	})
+
+	t.Run("should handle nil file list", func(t *testing.T) {
+		appErr := th.App.FilterFilesByChannelPermissions(th.Context, nil, th.BasicUser.Id)
+		require.Nil(t, appErr)
+	})
+
+	t.Run("should handle files with empty channel IDs", func(t *testing.T) {
+		fileList := model.NewFileInfoList()
+		fileWithoutChannel := &model.FileInfo{
+			Id:        model.NewId(),
+			ChannelId: "",
+			Name:      "test.txt",
+		}
+		fileList.FileInfos[fileWithoutChannel.Id] = fileWithoutChannel
+		fileList.Order = []string{fileWithoutChannel.Id}
+
+		appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.Len(t, fileList.FileInfos, 0)
+		require.Len(t, fileList.Order, 0)
+	})
+
+	t.Run("should handle files from non-existent channels", func(t *testing.T) {
+		fileList := model.NewFileInfoList()
+		fileWithInvalidChannel := &model.FileInfo{
+			Id:        model.NewId(),
+			ChannelId: model.NewId(),
+			Name:      "test.txt",
+		}
+		fileList.FileInfos[fileWithInvalidChannel.Id] = fileWithInvalidChannel
+		fileList.Order = []string{fileWithInvalidChannel.Id}
+
+		appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.Len(t, fileList.FileInfos, 0)
+		require.Len(t, fileList.Order, 0)
 	})
 }
