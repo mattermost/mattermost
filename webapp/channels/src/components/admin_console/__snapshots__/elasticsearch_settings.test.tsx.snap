@@ -277,7 +277,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
           />
         }
         id="testConfig"
-        includeDetailedError={false}
+        includeDetailedError={true}
         requestAction={[Function]}
         saveNeeded={false}
         showSuccessMessage={true}
@@ -771,7 +771,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
           />
         }
         id="testConfig"
-        includeDetailedError={false}
+        includeDetailedError={true}
         requestAction={[Function]}
         saveNeeded={false}
         showSuccessMessage={true}
