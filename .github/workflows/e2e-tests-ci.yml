@@ -17,9 +17,6 @@ on:
         required: true
 
 jobs:
-  # ══════════════════════════════════════════════════════════════════════════════
-  # RESOLVE PR NUMBER FROM COMMIT SHA (required for PR-only workflow)
-  # ══════════════════════════════════════════════════════════════════════════════
   resolve-pr:
     runs-on: ubuntu-24.04
     outputs:
@@ -43,15 +40,11 @@ jobs:
             exit 1
           fi
 
-  # ══════════════════════════════════════════════════════════════════════════════
-  # CYPRESS E2E TESTS (smoke → full)
-  # ══════════════════════════════════════════════════════════════════════════════
   e2e-cypress:
     needs: resolve-pr
     uses: ./.github/workflows/e2e-tests-cypress.yml
     with:
       commit_sha: "${{ inputs.commit_sha }}"
-      workers_number: "20"
       server: "onprem"
       enable_reporting: true
       report_type: "PR"
@@ -62,14 +55,9 @@ jobs:
       AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_TOKEN }}"
       PUSH_NOTIFICATION_SERVER: "${{ secrets.MM_E2E_PUSH_NOTIFICATION_SERVER }}"
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
-      REPORT_TM4J_API_KEY: "${{ secrets.MM_E2E_REPORT_TM4J_API_KEY }}"
-      REPORT_TM4J_TEST_CYCLE_LINK_PREFIX: "${{ secrets.MM_E2E_REPORT_TM4J_TEST_CYCLE_LINK_PREFIX }}"
       CWS_URL: "${{ secrets.MM_E2E_CWS_URL }}"
       CWS_EXTRA_HTTP_HEADERS: "${{ secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS }}"
 
-  # ══════════════════════════════════════════════════════════════════════════════
-  # PLAYWRIGHT E2E TESTS (smoke → full)
-  # ══════════════════════════════════════════════════════════════════════════════
   e2e-playwright:
     needs: resolve-pr
     uses: ./.github/workflows/e2e-tests-playwright.yml

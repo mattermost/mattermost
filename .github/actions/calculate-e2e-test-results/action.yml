@@ -1,0 +1,67 @@
+---
+name: Calculate E2E Test Results
+description: Parse test results from summary.json and calculate pass/fail status
+
+inputs:
+  results_path:
+    description: Path to the results directory (e.g., cypress/results or playwright/results)
+    required: true
+  default_failed_count:
+    description: Default failed count when summary file is missing (Cypress uses 1, Playwright uses 0)
+    required: false
+    default: "1"
+  check_ad_cycle:
+    description: Whether to check ad_cycle.json for results (Cypress full report)
+    required: false
+    default: "false"
+
+outputs:
+  passed:
+    description: Number of passed tests
+    value: ${{ steps.calculate.outputs.passed }}
+  failed:
+    description: Number of failed tests
+    value: ${{ steps.calculate.outputs.failed }}
+  smoke_passed:
+    description: Whether smoke tests passed (true/false)
+    value: ${{ steps.calculate.outputs.smoke_passed }}
+  commit_status_message:
+    description: Message for commit status (e.g., "All test cases passed" or "X test cases failed")
+    value: ${{ steps.calculate.outputs.commit_status_message }}
+
+runs:
+  using: composite
+  steps:
+    - name: ci/calculate-test-results
+      id: calculate
+      shell: bash
+      run: |
+        RESULTS_PATH="${{ inputs.results_path }}"
+        SUMMARY_FILE="${RESULTS_PATH}/summary.json"
+        AD_CYCLE_FILE="${RESULTS_PATH}/ad_cycle.json"
+        DEFAULT_FAILED="${{ inputs.default_failed_count }}"
+        CHECK_AD_CYCLE="${{ inputs.check_ad_cycle }}"
+
+        PASSED=0
+        FAILED="$DEFAULT_FAILED"
+
+        # Check ad_cycle.json first if enabled (Cypress full report uses this)
+        if [ "$CHECK_AD_CYCLE" = "true" ] && [ -f "$AD_CYCLE_FILE" ]; then
+          PASSED=$(jq -r '.pass' "$AD_CYCLE_FILE")
+          FAILED=$(jq -r '.fail' "$AD_CYCLE_FILE")
+        elif [ -f "$SUMMARY_FILE" ]; then
+          PASSED=$(jq '.passed' "$SUMMARY_FILE")
+          FAILED=$(jq '.failed' "$SUMMARY_FILE")
+        fi
+
+        echo "passed=${PASSED}" >> $GITHUB_OUTPUT
+        echo "failed=${FAILED}" >> $GITHUB_OUTPUT
+
+        # Determine smoke_passed
+        if [ "$FAILED" = "0" ]; then
+          echo "smoke_passed=true" >> $GITHUB_OUTPUT
+          echo "commit_status_message=All test cases passed" >> $GITHUB_OUTPUT
+        else
+          echo "smoke_passed=false" >> $GITHUB_OUTPUT
+          echo "commit_status_message=${FAILED} test cases failed" >> $GITHUB_OUTPUT
+        fi

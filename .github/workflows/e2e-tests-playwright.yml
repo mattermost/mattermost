@@ -6,10 +6,6 @@ on:
       commit_sha:
         type: string
         required: true
-      workers_number:
-        type: string
-        required: false
-        default: "1"
       enable_reporting:
         type: boolean
         required: false
@@ -18,12 +14,6 @@ on:
         type: string
         required: false
         default: onprem
-      enabled_docker_services:
-        type: string
-        required: false
-      mm_env:
-        type: string
-        required: false
       report_type:
         type: string
         required: false
@@ -44,57 +34,9 @@ on:
       AWS_SECRET_ACCESS_KEY:
         required: true
 
-env:
-  TERM: xterm
-
 jobs:
-  # ════════════════════════════════════════════════════════════════════════════
-  # PREFLIGHT CHECKS
-  # ════════════════════════════════════════════════════════════════════════════
-  update-initial-status:
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: mattermost/actions/delivery/update-commit-status@main
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          repository_full_name: ${{ github.repository }}
-          commit_sha: ${{ inputs.commit_sha }}
-          context: E2E Tests/playwright-smoke
-          description: Playwright smoke tests
-          status: pending
-
-  playwright-check:
-    runs-on: ubuntu-24.04
-    needs:
-      - update-initial-status
-    defaults:
-      run:
-        working-directory: e2e-tests/playwright
-    steps:
-      - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          ref: ${{ inputs.commit_sha }}
-          fetch-depth: 0
-      - name: ci/setup-node
-        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v4.4.0
-        with:
-          node-version-file: ".nvmrc"
-          cache: npm
-          cache-dependency-path: "e2e-tests/playwright/package-lock.json"
-      - name: ci/get-webapp-node-modules
-        working-directory: webapp
-        run: make node_modules
-      - name: ci/playwright/npm-install
-        run: npm ci
-      - name: ci/playwright/npm-check
-        run: npm run check
-
   shell-check:
     runs-on: ubuntu-24.04
-    needs:
-      - update-initial-status
     defaults:
       run:
         working-directory: e2e-tests
@@ -107,432 +49,88 @@ jobs:
       - name: ci/shell-check
         run: make check-shell
 
-  # ════════════════════════════════════════════════════════════════════════════
-  # GENERATE BUILD VARIABLES
-  # ════════════════════════════════════════════════════════════════════════════
   generate-build-variables:
     runs-on: ubuntu-24.04
-    needs:
-      - update-initial-status
     outputs:
-      branch_smoke: "${{ steps.generate.outputs.branch_smoke }}"
-      branch_full: "${{ steps.generate.outputs.branch_full }}"
-      build_id: "${{ steps.generate.outputs.build_id }}"
-      server_image: "${{ steps.generate.outputs.server_image }}"
-      workers: "${{ steps.generate.outputs.workers }}"
+      branch: "${{ steps.build-vars.outputs.branch }}"
+      build_id: "${{ steps.build-vars.outputs.build_id }}"
+      server_image: "${{ steps.build-vars.outputs.server_image }}"
     steps:
       - name: ci/generate-build-variables
-        id: generate
+        id: build-vars
+        env:
+          COMMIT_SHA: ${{ inputs.commit_sha }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
         run: |
-          COMMIT_SHA="${{ inputs.commit_sha }}"
           SERVER_IMAGE_TAG="${COMMIT_SHA::7}"
-          WORKERS="${{ inputs.workers_number }}"
-          PR_NUMBER="${{ inputs.pr_number }}"
 
-          # Generate branch names for smoke and full tests
-          # Must match regex '^(server-)?pr-[0-9]+(-smoke|-full)?$' for TYPE=PR reporting
+          # Generate branch name
           if [ -n "$PR_NUMBER" ]; then
-            echo "branch_smoke=server-pr-${PR_NUMBER}-smoke" >> $GITHUB_OUTPUT
-            echo "branch_full=server-pr-${PR_NUMBER}-full" >> $GITHUB_OUTPUT
+            echo "branch=server-pr-${PR_NUMBER}" >> $GITHUB_OUTPUT
           else
-            echo "branch_smoke=server-commit-${SERVER_IMAGE_TAG}-smoke" >> $GITHUB_OUTPUT
-            echo "branch_full=server-commit-${SERVER_IMAGE_TAG}-full" >> $GITHUB_OUTPUT
+            echo "branch=server-commit-${SERVER_IMAGE_TAG}" >> $GITHUB_OUTPUT
           fi
 
-          # Generate build ID (same for smoke and full)
-          echo "build_id=${{ github.run_id }}_${{ github.run_attempt }}-${SERVER_IMAGE_TAG}-pr-onprem-ent" >> $GITHUB_OUTPUT
+          # Generate build ID
+          echo "build_id=${RUN_ID}_${RUN_ATTEMPT}-${SERVER_IMAGE_TAG}-playwright-onprem-ent" >> $GITHUB_OUTPUT
 
-          # Generate server image from commit SHA
+          # Generate server image
           echo "server_image=mattermostdevelopment/mattermost-enterprise-edition:${SERVER_IMAGE_TAG}" >> $GITHUB_OUTPUT
 
-          # Generate workers array
-          [ "$WORKERS" -gt "0" ] # Assert workers is valid
-          echo "workers=$(jq --slurp --compact-output '[range('"$WORKERS"')] | map(tostring)' /dev/null)" >> $GITHUB_OUTPUT
-
-  # ════════════════════════════════════════════════════════════════════════════
-  # SMOKE TESTS
-  # ════════════════════════════════════════════════════════════════════════════
-  smoke-test:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 60
+  playwright-smoke:
     needs:
-      - playwright-check
       - shell-check
       - generate-build-variables
-    defaults:
-      run:
-        working-directory: e2e-tests
-    env:
-      AUTOMATION_DASHBOARD_URL: "${{ secrets.AUTOMATION_DASHBOARD_URL }}"
-      AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.AUTOMATION_DASHBOARD_TOKEN }}"
-      SERVER: "${{ inputs.server }}"
-      SERVER_IMAGE: "${{ needs.generate-build-variables.outputs.server_image }}"
-      MM_LICENSE: "${{ secrets.MM_LICENSE }}"
-      ENABLED_DOCKER_SERVICES: "postgres inbucket"
-      TEST: playwright
-      TEST_FILTER: "--grep @smoke"
-      MM_ENV: "${{ inputs.mm_env }}"
-      BRANCH: "${{ needs.generate-build-variables.outputs.branch_smoke }}"
-      BUILD_ID: "${{ needs.generate-build-variables.outputs.build_id }}"
-      CI_BASE_URL: "ubuntu-24.04-smoke"
-    steps:
-      - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          ref: ${{ inputs.commit_sha }}
-          fetch-depth: 0
-      - name: ci/setup-node
-        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v4.4.0
-        with:
-          node-version-file: ".nvmrc"
-          cache: npm
-          cache-dependency-path: "e2e-tests/playwright/package-lock.json"
-      - name: ci/get-webapp-node-modules
-        working-directory: webapp
-        run: make node_modules
-      - name: ci/run-smoke-tests
-        run: |
-          make cloud-init
-          make
-          make cloud-teardown
-      - name: ci/upload-smoke-results
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        if: always()
-        with:
-          name: playwright-smoke-results
-          path: |
-            e2e-tests/playwright/logs/
-            e2e-tests/playwright/results/
-          retention-days: 5
-
-  smoke-report:
-    runs-on: ubuntu-24.04
-    needs:
-      - smoke-test
-      - generate-build-variables
-    outputs:
-      passed: "${{ steps.calculate-results.outputs.passed }}"
-      failed: "${{ steps.calculate-results.outputs.failed }}"
-      smoke_passed: "${{ steps.calculate-results.outputs.smoke_passed }}"
-      report_url: "${{ steps.upload-to-s3.outputs.report_url }}"
-    defaults:
-      run:
-        working-directory: e2e-tests
-    steps:
-      - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          ref: ${{ inputs.commit_sha }}
-          fetch-depth: 0
-      - name: ci/download-smoke-results
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-        with:
-          name: playwright-smoke-results
-          path: e2e-tests/playwright/
-      - name: ci/aws-configure
-        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
-        with:
-          aws-region: us-east-1
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      - name: ci/upload-to-s3
-        id: upload-to-s3
-        run: |
-          PR_NUMBER="${{ inputs.pr_number }}"
-          LOCAL_RESULTS_PATH="playwright/results/"
-          LOCAL_LOGS_PATH="playwright/logs/"
-          RUN_ID="${{ github.run_id }}"
-          COMMIT_SHA="${{ inputs.commit_sha }}"
-          # Use PR number if available, otherwise use commit SHA prefix
-          if [ -n "$PR_NUMBER" ]; then
-            S3_PATH="server-pr-${PR_NUMBER}/e2e-reports/playwright-smoke/${RUN_ID}"
-          else
-            S3_PATH="server-commit-${COMMIT_SHA::7}/e2e-reports/playwright-smoke/${RUN_ID}"
-          fi
-
-          if [[ -d "$LOCAL_LOGS_PATH" ]]; then
-            aws s3 sync "$LOCAL_LOGS_PATH" "s3://${AWS_S3_BUCKET}/${S3_PATH}/logs/" \
-              --acl public-read --cache-control "no-cache"
-          fi
-
-          if [[ -d "$LOCAL_RESULTS_PATH" ]]; then
-            aws s3 sync "$LOCAL_RESULTS_PATH" "s3://${AWS_S3_BUCKET}/${S3_PATH}/results/" \
-              --acl public-read --cache-control "no-cache"
-          fi
-
-          REPORT_URL="https://${AWS_S3_BUCKET}.s3.amazonaws.com/${S3_PATH}/results/reporter/index.html"
-          echo "report_url=$REPORT_URL" >> "$GITHUB_OUTPUT"
-        env:
-          AWS_REGION: us-east-1
-          AWS_S3_BUCKET: mattermost-cypress-report
-      - name: ci/calculate-smoke-results
-        id: calculate-results
-        run: |
-          SUMMARY_FILE="playwright/results/summary.json"
-          if [ -f "$SUMMARY_FILE" ]; then
-            PASSED=$(jq '.passed' "$SUMMARY_FILE")
-            FAILED=$(jq '.failed' "$SUMMARY_FILE")
-          else
-            PASSED=0
-            FAILED=1
-          fi
-          echo "passed=${PASSED}" >> $GITHUB_OUTPUT
-          echo "failed=${FAILED}" >> $GITHUB_OUTPUT
-          if [ "$FAILED" = "0" ]; then
-            echo "smoke_passed=true" >> $GITHUB_OUTPUT
-          else
-            echo "smoke_passed=false" >> $GITHUB_OUTPUT
-          fi
-      - name: ci/assert-smoke-results
-        run: |
-          [ "${{ steps.calculate-results.outputs.failed }}" = "0" ]
-
-  update-smoke-success-status:
-    runs-on: ubuntu-24.04
-    if: success()
-    needs:
-      - smoke-report
-    steps:
-      - uses: mattermost/actions/delivery/update-commit-status@main
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          repository_full_name: ${{ github.repository }}
-          commit_sha: ${{ inputs.commit_sha }}
-          context: E2E Tests/playwright-smoke
-          description: "Smoke tests passed (${{ needs.smoke-report.outputs.passed }} passed)"
-          status: success
-          target_url: ${{ needs.smoke-report.outputs.report_url }}
-
-  update-smoke-failure-status:
-    runs-on: ubuntu-24.04
-    if: failure()
-    needs:
-      - smoke-report
-    steps:
-      - uses: mattermost/actions/delivery/update-commit-status@main
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          repository_full_name: ${{ github.repository }}
-          commit_sha: ${{ inputs.commit_sha }}
-          context: E2E Tests/playwright-smoke
-          description: "Smoke tests failed (${{ needs.smoke-report.outputs.failed }} failed)"
-          status: failure
-          target_url: ${{ needs.smoke-report.outputs.report_url }}
+    uses: ./.github/workflows/e2e-tests-playwright-template.yml
+    with:
+      test_type: smoke
+      test_filter: "--grep @smoke"
+      timeout_minutes: 30
+      enabled_docker_services: "postgres inbucket"
+      commit_sha: ${{ inputs.commit_sha }}
+      branch: ${{ needs.generate-build-variables.outputs.branch }}
+      build_id: ${{ needs.generate-build-variables.outputs.build_id }}
+      server_image: ${{ needs.generate-build-variables.outputs.server_image }}
+      server: ${{ inputs.server }}
+      context_name: "E2E Tests/playwright-smoke"
+      run_playwright_check: true
+      pr_number: ${{ inputs.pr_number }}
+    secrets:
+      MM_LICENSE: ${{ secrets.MM_LICENSE }}
+      AUTOMATION_DASHBOARD_URL: ${{ secrets.AUTOMATION_DASHBOARD_URL }}
+      AUTOMATION_DASHBOARD_TOKEN: ${{ secrets.AUTOMATION_DASHBOARD_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
   # ════════════════════════════════════════════════════════════════════════════
-  # FULL TESTS (only if smoke passes)
+  # FULL TESTS (only if smoke passes and pr_number is provided)
   # ════════════════════════════════════════════════════════════════════════════
-  update-full-initial-status:
-    runs-on: ubuntu-24.04
+  playwright-full:
     needs:
-      - smoke-report
-    if: needs.smoke-report.outputs.smoke_passed == 'true' && inputs.pr_number != ''
-    steps:
-      - uses: mattermost/actions/delivery/update-commit-status@main
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          repository_full_name: ${{ github.repository }}
-          commit_sha: ${{ inputs.commit_sha }}
-          context: E2E Tests/playwright-full
-          description: Playwright full tests
-          status: pending
-
-  full-test:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 120
-    continue-on-error: true
-    needs:
-      - smoke-report
+      - playwright-smoke
       - generate-build-variables
-      - update-full-initial-status
-    if: needs.smoke-report.outputs.smoke_passed == 'true' && inputs.pr_number != ''
-    strategy:
-      fail-fast: false
-      matrix:
-        worker_index: ${{ fromJSON(needs.generate-build-variables.outputs.workers) }}
-    defaults:
-      run:
-        working-directory: e2e-tests
-    env:
-      AUTOMATION_DASHBOARD_URL: "${{ secrets.AUTOMATION_DASHBOARD_URL }}"
-      AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.AUTOMATION_DASHBOARD_TOKEN }}"
-      SERVER: "${{ inputs.server }}"
-      SERVER_IMAGE: "${{ needs.generate-build-variables.outputs.server_image }}"
-      MM_LICENSE: "${{ secrets.MM_LICENSE }}"
-      ENABLED_DOCKER_SERVICES: "postgres inbucket minio openldap elasticsearch keycloak"
-      TEST: playwright
-      TEST_FILTER: "--grep-invert \"@smoke|@visual\""
-      MM_ENV: "${{ inputs.mm_env }}"
-      BRANCH: "${{ needs.generate-build-variables.outputs.branch_full }}"
-      BUILD_ID: "${{ needs.generate-build-variables.outputs.build_id }}"
-      CI_BASE_URL: "ubuntu-24.04-${{ matrix.worker_index }}"
-    steps:
-      - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          ref: ${{ inputs.commit_sha }}
-          fetch-depth: 0
-      - name: ci/setup-node
-        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v4.4.0
-        with:
-          node-version-file: ".nvmrc"
-          cache: npm
-          cache-dependency-path: "e2e-tests/playwright/package-lock.json"
-      - name: ci/get-webapp-node-modules
-        working-directory: webapp
-        run: make node_modules
-      - name: ci/run-full-tests
-        run: |
-          make cloud-init
-          make
-          make cloud-teardown
-      - name: ci/upload-full-results
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        if: always()
-        with:
-          name: playwright-full-results-${{ matrix.worker_index }}
-          path: |
-            e2e-tests/playwright/logs/
-            e2e-tests/playwright/results/
-          retention-days: 5
-
-  full-report:
-    runs-on: ubuntu-24.04
-    needs:
-      - full-test
-      - generate-build-variables
-      - smoke-report
-    if: always() && needs.smoke-report.outputs.smoke_passed == 'true' && inputs.pr_number != ''
-    outputs:
-      passed: "${{ steps.calculate-results.outputs.passed }}"
-      failed: "${{ steps.calculate-results.outputs.failed }}"
-      commit_status_message: "${{ steps.calculate-results.outputs.commit_status_message }}"
-      report_url: "${{ steps.upload-to-s3.outputs.report_url }}"
-    defaults:
-      run:
-        working-directory: e2e-tests
-    steps:
-      - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          ref: ${{ inputs.commit_sha }}
-          fetch-depth: 0
-      - name: ci/download-full-results
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-        with:
-          pattern: playwright-full-results-*
-          path: e2e-tests/playwright/
-          merge-multiple: true
-      - name: ci/upload-combined-results
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: playwright-full-results
-          path: |
-            e2e-tests/playwright/logs/
-            e2e-tests/playwright/results/
-      - name: ci/aws-configure
-        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
-        with:
-          aws-region: us-east-1
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      - name: ci/upload-to-s3
-        id: upload-to-s3
-        env:
-          AWS_REGION: us-east-1
-          AWS_S3_BUCKET: mattermost-cypress-report
-          PR_NUMBER: "${{ inputs.pr_number }}"
-          RUN_ID: "${{ github.run_id }}"
-        run: |
-          LOCAL_RESULTS_PATH="playwright/results/"
-          LOCAL_LOGS_PATH="playwright/logs/"
-          S3_PATH="server-pr-${PR_NUMBER}/e2e-reports/playwright-full/${RUN_ID}"
-
-          if [[ -d "$LOCAL_LOGS_PATH" ]]; then
-            aws s3 sync "$LOCAL_LOGS_PATH" "s3://${AWS_S3_BUCKET}/${S3_PATH}/logs/" \
-              --acl public-read --cache-control "no-cache"
-          fi
-
-          if [[ -d "$LOCAL_RESULTS_PATH" ]]; then
-            aws s3 sync "$LOCAL_RESULTS_PATH" "s3://${AWS_S3_BUCKET}/${S3_PATH}/results/" \
-              --acl public-read --cache-control "no-cache"
-          fi
-
-          REPORT_URL="https://${AWS_S3_BUCKET}.s3.amazonaws.com/${S3_PATH}/results/reporter/index.html"
-          echo "report_url=$REPORT_URL" >> "$GITHUB_OUTPUT"
-      - name: ci/setup-node
-        if: "${{ inputs.enable_reporting }}"
-        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v4.4.0
-        with:
-          node-version-file: ".nvmrc"
-          cache: npm
-          cache-dependency-path: "e2e-tests/playwright/package-lock.json"
-      - name: ci/publish-report
-        if: "${{ inputs.enable_reporting }}"
-        env:
-          TYPE: "${{ inputs.report_type }}"
-          TEST: playwright
-          SERVER: "${{ inputs.server }}"
-          SERVER_IMAGE: "${{ needs.generate-build-variables.outputs.server_image }}"
-          AUTOMATION_DASHBOARD_URL: "${{ secrets.AUTOMATION_DASHBOARD_URL }}"
-          WEBHOOK_URL: "${{ secrets.REPORT_WEBHOOK_URL }}"
-          BRANCH: "${{ needs.generate-build-variables.outputs.branch_full }}"
-          BUILD_ID: "${{ needs.generate-build-variables.outputs.build_id }}"
-          MM_ENV: "${{ inputs.mm_env }}"
-          PR_NUMBER: "${{ inputs.pr_number }}"
-        run: make report
-      - name: ci/calculate-results
-        id: calculate-results
-        run: |
-          SUMMARY_FILE="playwright/results/summary.json"
-          if [ -f "$SUMMARY_FILE" ]; then
-            PASSED=$(jq '.passed' "$SUMMARY_FILE")
-            FAILED=$(jq '.failed' "$SUMMARY_FILE")
-          else
-            PASSED=0
-            FAILED=0
-          fi
-          echo "passed=${PASSED}" >> $GITHUB_OUTPUT
-          echo "failed=${FAILED}" >> $GITHUB_OUTPUT
-          if [ "$FAILED" = "0" ]; then
-            echo "commit_status_message=All test cases passed" >> $GITHUB_OUTPUT
-          else
-            echo "commit_status_message=${FAILED} test cases failed" >> $GITHUB_OUTPUT
-          fi
-
-  update-full-success-status:
-    runs-on: ubuntu-24.04
-    if: needs.full-report.result == 'success'
-    needs:
-      - full-report
-    steps:
-      - uses: mattermost/actions/delivery/update-commit-status@main
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          repository_full_name: ${{ github.repository }}
-          commit_sha: ${{ inputs.commit_sha }}
-          context: E2E Tests/playwright-full
-          description: "${{ needs.full-report.outputs.commit_status_message }}"
-          status: success
-          target_url: ${{ needs.full-report.outputs.report_url }}
-
-  update-full-failure-status:
-    runs-on: ubuntu-24.04
-    if: needs.full-report.result == 'failure'
-    needs:
-      - full-report
-    steps:
-      - uses: mattermost/actions/delivery/update-commit-status@main
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          repository_full_name: ${{ github.repository }}
-          commit_sha: ${{ inputs.commit_sha }}
-          context: E2E Tests/playwright-full
-          description: "${{ needs.full-report.outputs.commit_status_message || 'Tests failed' }}"
-          status: failure
-          target_url: ${{ needs.full-report.outputs.report_url }}
+    if: needs.playwright-smoke.outputs.smoke_passed == 'true' && inputs.pr_number != ''
+    uses: ./.github/workflows/e2e-tests-playwright-template.yml
+    with:
+      test_type: full
+      test_filter: '--grep-invert "@smoke|@visual"'
+      timeout_minutes: 120
+      enabled_docker_services: "postgres inbucket minio openldap elasticsearch keycloak"
+      commit_sha: ${{ inputs.commit_sha }}
+      branch: ${{ needs.generate-build-variables.outputs.branch }}
+      build_id: ${{ needs.generate-build-variables.outputs.build_id }}
+      server_image: ${{ needs.generate-build-variables.outputs.server_image }}
+      server: ${{ inputs.server }}
+      enable_reporting: ${{ inputs.enable_reporting }}
+      report_type: ${{ inputs.report_type }}
+      pr_number: ${{ inputs.pr_number }}
+      context_name: "E2E Tests/playwright-full"
+    secrets:
+      MM_LICENSE: ${{ secrets.MM_LICENSE }}
+      AUTOMATION_DASHBOARD_URL: ${{ secrets.AUTOMATION_DASHBOARD_URL }}
+      AUTOMATION_DASHBOARD_TOKEN: ${{ secrets.AUTOMATION_DASHBOARD_TOKEN }}
+      REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

@@ -107,7 +107,7 @@ jobs:
   update-initial-status:
     runs-on: ubuntu-24.04
     steps:
-      - uses: mattermost/actions/delivery/update-commit-status@main
+      - uses: mattermost/actions/delivery/update-commit-status@f324ac89b05cc3511cb06e60642ac2fb829f0a63
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
@@ -535,7 +535,7 @@ jobs:
       - test
       - report
     steps:
-      - uses: mattermost/actions/delivery/update-commit-status@main
+      - uses: mattermost/actions/delivery/update-commit-status@f324ac89b05cc3511cb06e60642ac2fb829f0a63
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
@@ -558,7 +558,7 @@ jobs:
       - test
       - report
     steps:
-      - uses: mattermost/actions/delivery/update-commit-status@main
+      - uses: mattermost/actions/delivery/update-commit-status@f324ac89b05cc3511cb06e60642ac2fb829f0a63
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:

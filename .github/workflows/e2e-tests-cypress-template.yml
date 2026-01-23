@@ -1,0 +1,345 @@
+---
+name: E2E Tests - Cypress Template
+on:
+  workflow_call:
+    inputs:
+      # Test configuration
+      test_type:
+        description: "Type of test run (smoke or full)"
+        type: string
+        required: true
+      test_filter:
+        description: "Test filter arguments"
+        type: string
+        required: true
+      workers:
+        description: "Number of parallel workers"
+        type: number
+        required: false
+        default: 1
+      timeout_minutes:
+        description: "Job timeout in minutes"
+        type: number
+        required: false
+        default: 30
+      enabled_docker_services:
+        description: "Space-separated list of docker services to enable"
+        type: string
+        required: false
+        default: "postgres inbucket"
+
+      # Common build variables
+      commit_sha:
+        type: string
+        required: true
+      branch:
+        type: string
+        required: true
+      build_id:
+        type: string
+        required: true
+      server_image:
+        type: string
+        required: true
+      server:
+        type: string
+        required: false
+        default: onprem
+
+      # Reporting options
+      enable_reporting:
+        type: boolean
+        required: false
+        default: false
+      report_type:
+        type: string
+        required: false
+      pr_number:
+        type: string
+        required: false
+      check_ad_cycle:
+        description: "Check automation dashboard cycle for results"
+        type: boolean
+        required: false
+        default: false
+
+      # Commit status configuration
+      context_name:
+        description: "GitHub commit status context name"
+        type: string
+        required: true
+
+      # Control flow
+      run_cypress_check:
+        description: "Whether to run cypress lint/check job"
+        type: boolean
+        required: false
+        default: false
+
+    outputs:
+      passed:
+        description: "Number of passed tests"
+        value: ${{ jobs.report.outputs.passed }}
+      failed:
+        description: "Number of failed tests"
+        value: ${{ jobs.report.outputs.failed }}
+      smoke_passed:
+        description: "Whether smoke tests passed (for gating full tests)"
+        value: ${{ jobs.report.outputs.smoke_passed }}
+      status_check_url:
+        description: "URL to test results"
+        value: ${{ jobs.generate-test-cycle.outputs.status_check_url }}
+
+    secrets:
+      MM_LICENSE:
+        required: false
+      AUTOMATION_DASHBOARD_URL:
+        required: false
+      AUTOMATION_DASHBOARD_TOKEN:
+        required: false
+      PUSH_NOTIFICATION_SERVER:
+        required: false
+      REPORT_WEBHOOK_URL:
+        required: false
+      CWS_URL:
+        required: false
+      CWS_EXTRA_HTTP_HEADERS:
+        required: false
+
+jobs:
+  update-initial-status:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: ci/set-initial-status
+        uses: mattermost/actions/delivery/update-commit-status@f324ac89b05cc3511cb06e60642ac2fb829f0a63
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          repository_full_name: ${{ github.repository }}
+          commit_sha: ${{ inputs.commit_sha }}
+          context: ${{ inputs.context_name }}
+          description: "Cypress ${{ inputs.test_type }} tests"
+          status: pending
+
+  cypress-check:
+    if: inputs.run_cypress_check
+    runs-on: ubuntu-24.04
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ inputs.commit_sha }}
+          fetch-depth: 0
+      - name: ci/setup-node
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+          cache-dependency-path: "e2e-tests/cypress/package-lock.json"
+      - name: ci/cypress/npm-install
+        working-directory: e2e-tests/cypress
+        run: npm ci
+      - name: ci/cypress/npm-check
+        working-directory: e2e-tests/cypress
+        run: npm run check
+
+  generate-test-cycle:
+    runs-on: ubuntu-24.04
+    outputs:
+      status_check_url: "${{ steps.generate-cycle.outputs.status_check_url }}"
+      workers: "${{ steps.generate-workers.outputs.workers }}"
+    steps:
+      - name: ci/generate-workers
+        id: generate-workers
+        run: |
+          echo "workers=$(jq -nc '[range(${{ inputs.workers }})]')" >> $GITHUB_OUTPUT
+
+      - name: ci/checkout-repo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ inputs.commit_sha }}
+          fetch-depth: 0
+      - name: ci/setup-node
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+          cache-dependency-path: "e2e-tests/cypress/package-lock.json"
+
+      - name: ci/generate-test-cycle
+        id: generate-cycle
+        working-directory: e2e-tests
+        env:
+          AUTOMATION_DASHBOARD_URL: "${{ secrets.AUTOMATION_DASHBOARD_URL }}"
+          AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.AUTOMATION_DASHBOARD_TOKEN }}"
+          BRANCH: "${{ inputs.branch }}-${{ inputs.test_type }}"
+          BUILD_ID: "${{ inputs.build_id }}"
+          TEST: cypress
+          TEST_FILTER: "${{ inputs.test_filter }}"
+        run: |
+          set -e -o pipefail
+          make generate-test-cycle | tee generate-test-cycle.out
+          TEST_CYCLE_ID=$(sed -nE "s/^.*id: '([^']+)'.*$/\1/p" <generate-test-cycle.out)
+          if [ -n "$TEST_CYCLE_ID" ]; then
+            echo "status_check_url=https://automation-dashboard.vercel.app/cycles/${TEST_CYCLE_ID}" >> $GITHUB_OUTPUT
+          else
+            echo "status_check_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_OUTPUT
+          fi
+
+  run-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: ${{ fromJSON(inputs.timeout_minutes) }}
+    continue-on-error: ${{ inputs.workers > 1 }}
+    needs:
+      - cypress-check
+      - generate-test-cycle
+    if: always() && (needs.cypress-check.result == 'success' || needs.cypress-check.result == 'skipped') && needs.generate-test-cycle.result == 'success'
+    strategy:
+      fail-fast: false
+      matrix:
+        worker_index: ${{ fromJSON(needs.generate-test-cycle.outputs.workers) }}
+    defaults:
+      run:
+        working-directory: e2e-tests
+    env:
+      AUTOMATION_DASHBOARD_URL: "${{ secrets.AUTOMATION_DASHBOARD_URL }}"
+      AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.AUTOMATION_DASHBOARD_TOKEN }}"
+      SERVER: "${{ inputs.server }}"
+      SERVER_IMAGE: "${{ inputs.server_image }}"
+      MM_LICENSE: "${{ secrets.MM_LICENSE }}"
+      ENABLED_DOCKER_SERVICES: "${{ inputs.enabled_docker_services }}"
+      TEST: cypress
+      TEST_FILTER: "${{ inputs.test_filter }}"
+      BRANCH: "${{ inputs.branch }}-${{ inputs.test_type }}"
+      BUILD_ID: "${{ inputs.build_id }}"
+      CI_BASE_URL: "${{ inputs.test_type }}-test-${{ matrix.worker_index }}"
+      CYPRESS_pushNotificationServer: "${{ secrets.PUSH_NOTIFICATION_SERVER }}"
+      CWS_URL: "${{ secrets.CWS_URL }}"
+      CWS_EXTRA_HTTP_HEADERS: "${{ secrets.CWS_EXTRA_HTTP_HEADERS }}"
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ inputs.commit_sha }}
+          fetch-depth: 0
+      - name: ci/setup-node
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+          cache-dependency-path: "e2e-tests/cypress/package-lock.json"
+      - name: ci/run-tests
+        run: |
+          make cloud-init
+          make
+          make cloud-teardown
+      - name: ci/upload-results
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: cypress-${{ inputs.test_type }}-results-${{ matrix.worker_index }}
+          path: |
+            e2e-tests/cypress/logs/
+            e2e-tests/cypress/results/
+          retention-days: 5
+
+  report:
+    runs-on: ubuntu-24.04
+    needs:
+      - generate-test-cycle
+      - run-tests
+    if: always() && needs.generate-test-cycle.result == 'success'
+    outputs:
+      passed: "${{ steps.calculate-results.outputs.passed }}"
+      failed: "${{ steps.calculate-results.outputs.failed }}"
+      smoke_passed: "${{ steps.calculate-results.outputs.smoke_passed }}"
+      commit_status_message: "${{ steps.calculate-results.outputs.commit_status_message }}"
+    defaults:
+      run:
+        working-directory: e2e-tests
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ inputs.commit_sha }}
+          fetch-depth: 0
+      - name: ci/setup-node
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+          cache-dependency-path: "e2e-tests/cypress/package-lock.json"
+      - name: ci/download-results
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          pattern: cypress-${{ inputs.test_type }}-results-*
+          path: e2e-tests/cypress/
+          merge-multiple: true
+      - name: ci/upload-combined-results
+        if: inputs.workers > 1
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: cypress-${{ inputs.test_type }}-results
+          path: |
+            e2e-tests/cypress/logs/
+            e2e-tests/cypress/results/
+      - name: ci/publish-report
+        if: inputs.enable_reporting
+        env:
+          TYPE: "${{ inputs.report_type }}"
+          TEST: cypress
+          SERVER: "${{ inputs.server }}"
+          SERVER_IMAGE: "${{ inputs.server_image }}"
+          AUTOMATION_DASHBOARD_URL: "${{ secrets.AUTOMATION_DASHBOARD_URL }}"
+          WEBHOOK_URL: "${{ secrets.REPORT_WEBHOOK_URL }}"
+          BRANCH: "${{ inputs.branch }}-${{ inputs.test_type }}"
+          BUILD_ID: "${{ inputs.build_id }}"
+          PR_NUMBER: "${{ inputs.pr_number }}"
+        run: make report
+      - name: ci/calculate-results
+        id: calculate-results
+        uses: ./.github/actions/calculate-e2e-test-results
+        with:
+          results_path: e2e-tests/cypress/results
+          default_failed_count: ${{ inputs.test_type == 'smoke' && '1' || '0' }}
+          check_ad_cycle: "${{ inputs.check_ad_cycle }}"
+      - name: ci/assert-results
+        if: inputs.test_type == 'smoke'
+        run: |
+          [ "${{ steps.calculate-results.outputs.failed }}" = "0" ]
+
+  update-success-status:
+    runs-on: ubuntu-24.04
+    if: success()
+    needs:
+      - generate-test-cycle
+      - report
+    steps:
+      - uses: mattermost/actions/delivery/update-commit-status@f324ac89b05cc3511cb06e60642ac2fb829f0a63
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          repository_full_name: ${{ github.repository }}
+          commit_sha: ${{ inputs.commit_sha }}
+          context: ${{ inputs.context_name }}
+          description: "${{ needs.report.outputs.commit_status_message || format('{0} tests passed ({1} passed)', inputs.test_type, needs.report.outputs.passed) }}"
+          status: success
+          target_url: ${{ needs.generate-test-cycle.outputs.status_check_url }}
+
+  update-failure-status:
+    runs-on: ubuntu-24.04
+    if: failure()
+    needs:
+      - generate-test-cycle
+      - report
+    steps:
+      - uses: mattermost/actions/delivery/update-commit-status@f324ac89b05cc3511cb06e60642ac2fb829f0a63
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          repository_full_name: ${{ github.repository }}
+          commit_sha: ${{ inputs.commit_sha }}
+          context: ${{ inputs.context_name }}
+          description: "${{ needs.report.outputs.commit_status_message || format('{0} tests failed ({1} failed)', inputs.test_type, needs.report.outputs.failed) }}"
+          status: failure
+          target_url: ${{ needs.generate-test-cycle.outputs.status_check_url }}
