@@ -109,7 +109,6 @@ func (a *App) SessionHasPermissionToChannel(c request.CTX, session model.Session
 		return false, false
 	} else if appErr != nil {
 		c.Logger().Warn("Failed to get channel", mlog.String("channel_id", channelID), mlog.Err(appErr))
-		return false, false
 	}
 
 	if session.IsUnrestricted() {
@@ -134,10 +133,6 @@ func (a *App) SessionHasPermissionToChannel(c request.CTX, session model.Session
 	}
 
 	if appErr == nil && channel.TeamId != "" {
-		return a.SessionHasPermissionToTeam(session, channel.TeamId, permission), isMember
-	}
-
-	if channel.TeamId != "" {
 		return a.SessionHasPermissionToTeam(session, channel.TeamId, permission), isMember
 	}
 

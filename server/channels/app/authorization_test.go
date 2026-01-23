@@ -250,7 +250,7 @@ func TestSessionHasPermissionToChannel(t *testing.T) {
 		err := th.App.DeleteChannel(th.Context, th.BasicChannel, th.SystemAdminUser.Id)
 		require.Nil(t, err)
 
-		ok, _ := th.App.HasPermissionToReadChannel(th.Context, th.BasicUser.Id, th.BasicChannel)
+		ok, _ := th.App.SessionHasPermissionToChannel(th.Context, session, th.BasicChannel.Id, model.PermissionReadChannel)
 		assert.False(t, ok)
 	})
 
