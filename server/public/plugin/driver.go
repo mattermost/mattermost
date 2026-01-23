@@ -54,9 +54,7 @@ type Driver interface {
 	// TODO: add this
 	// RowsColumnScanType(rowsID string, index int) reflect.Type
 
-	// Note: the following cannot be implemented because either MySQL or PG
-	// does not support it. So this implementation has to be a common subset
-	// of both DB implementations.
+	// Note: the following are not currently implemented.
 	// RowsColumnTypeLength(rowsID string, index int) (int64, bool)
 	// RowsColumnTypeNullable(rowsID string, index int) (bool, bool)
 	// ResetSession(ctx context.Context) error

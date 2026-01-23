@@ -31,13 +31,10 @@ describe('components/multiselect/multiselect', () => {
         ariaLabelRenderer: element as any,
         loading: false,
         onAdd: jest.fn(),
-        onPageChange: jest.fn(),
         onSelect: jest.fn(),
         optionRenderer: element,
         selectedItemRef,
         options: users,
-        perPage: 5,
-        page: 1,
     };
 
     test('MultiSelectList should have selected item scrollIntoView to align at bottom of list', () => {

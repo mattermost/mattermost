@@ -26,7 +26,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import {calculateUnreadCount} from 'mattermost-redux/utils/channel_utils';
 
 import {loadCustomEmojisForCustomStatusesByUserIds} from 'actions/emoji_actions';
-import {loadStatusesForProfilesList, loadStatusesForProfilesMap} from 'actions/status_actions';
+import {loadStatusesForProfilesList} from 'actions/status_actions';
 import {getDisplayedChannels} from 'selectors/views/channel_sidebar';
 import store from 'stores/redux_store';
 
@@ -150,16 +150,6 @@ export function loadTeamMembersForProfilesList(profiles: UserProfile[], teamId: 
         await doDispatch(getTeamMembersByIds(teamIdParam, userIdsToLoad));
 
         return {data: true};
-    };
-}
-
-export function loadProfilesWithoutTeam(page: number, perPage: number, options?: Record<string, any>): ActionFuncAsync {
-    return async (doDispatch) => {
-        const {data} = await doDispatch(UserActions.getProfilesWithoutTeam(page, perPage, options));
-
-        doDispatch(loadStatusesForProfilesMap(data!));
-
-        return {data};
     };
 }
 

@@ -34,7 +34,10 @@ const AccessProblem = ({
 
     return (
         <div className='AccessProblem__body'>
-            <AccessProblemSVG/>
+            <AccessProblemSVG
+                width={320}
+                height={190}
+            />
             <div className='AccessProblem__title'>
                 {formatMessage({id: 'login.contact_admin.title', defaultMessage: 'Contact your workspace admin'})}
             </div>
