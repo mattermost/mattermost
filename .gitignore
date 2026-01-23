@@ -163,3 +163,6 @@ docker-compose.override.yaml
 **/CLAUDE.local.md
 **/CLAUDE.md
 .cursorrules
+
+# Planning files (local only)
+.planning
