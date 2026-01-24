@@ -19,12 +19,8 @@ func getPageComments(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page, ok := c.ValidatePageBelongsToWiki()
-	if !ok {
-		return
-	}
-
-	_, channel, ok := c.GetWikiForRead()
+	// Use combined validator to avoid double wiki fetch
+	page, _, channel, ok := c.GetPageForRead()
 	if !ok {
 		return
 	}
@@ -72,12 +68,8 @@ func createPageComment(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page, ok := c.ValidatePageBelongsToWiki()
-	if !ok {
-		return
-	}
-
-	_, channel, ok := c.GetWikiForRead()
+	// Use combined validator to avoid double wiki fetch
+	page, _, channel, ok := c.GetPageForRead()
 	if !ok {
 		return
 	}
@@ -95,7 +87,7 @@ func createPageComment(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	auditRec.AddMeta("page_id", c.Params.PageId)
 
-	comment, appErr := c.App.CreatePageComment(c.AppContext, c.Params.PageId, req.Message, req.InlineAnchor)
+	comment, appErr := c.App.CreatePageComment(c.AppContext, c.Params.PageId, req.Message, req.InlineAnchor, c.Params.WikiId, page, channel)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -138,12 +130,8 @@ func createPageCommentReply(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	_, channel, ok := c.GetWikiForRead()
-	if !ok {
-		return
-	}
-
-	page, ok := c.ValidatePageBelongsToWiki()
+	// Use combined validator to avoid double wiki fetch
+	page, _, channel, ok := c.GetPageForRead()
 	if !ok {
 		return
 	}
@@ -162,7 +150,7 @@ func createPageCommentReply(c *Context, w http.ResponseWriter, r *http.Request) 
 	auditRec.AddMeta("page_id", c.Params.PageId)
 	auditRec.AddMeta("parent_comment_id", parentCommentId)
 
-	reply, appErr := c.App.CreatePageCommentReply(c.AppContext, c.Params.PageId, parentCommentId, req.Message)
+	reply, appErr := c.App.CreatePageCommentReply(c.AppContext, c.Params.PageId, parentCommentId, req.Message, c.Params.WikiId, page, channel)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -193,7 +181,7 @@ func validateInlinePageComment(c *Context, commentId, pageId, handlerName string
 			"api.wiki.comment.deleted.app_error",
 			nil,
 			"",
-			http.StatusBadRequest,
+			http.StatusNotFound,
 		)
 		return nil
 	}
@@ -254,17 +242,24 @@ func resolvePageComment(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("comment_id", commentId)
 	auditRec.AddMeta("page_id", c.Params.PageId)
 
+	// Use GetPageForRead to get page, wiki, and channel in one operation
+	page, _, channel, ok := c.GetPageForRead()
+	if !ok {
+		return
+	}
+
 	comment := validateInlinePageComment(c, commentId, c.Params.PageId, "resolvePageComment")
 	if comment == nil {
 		return
 	}
 
-	if !c.App.CanResolvePageComment(c.AppContext, c.AppContext.Session(), comment, c.Params.PageId) {
+	if !c.App.CanResolvePageComment(c.AppContext, c.AppContext.Session(), comment, c.Params.PageId, page) {
 		c.SetPermissionError(model.PermissionCreatePost)
 		return
 	}
 
-	resolvedComment, resolveErr := c.App.ResolvePageComment(c.AppContext, comment, c.AppContext.Session().UserId)
+	// Pass page and channel to avoid redundant fetches for WebSocket event
+	resolvedComment, resolveErr := c.App.ResolvePageComment(c.AppContext, comment, c.AppContext.Session().UserId, page, channel)
 	if resolveErr != nil {
 		c.Err = resolveErr
 		return
@@ -296,17 +291,24 @@ func unresolvePageComment(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("comment_id", commentId)
 	auditRec.AddMeta("page_id", c.Params.PageId)
 
+	// Use GetPageForRead to get page, wiki, and channel in one operation
+	page, _, channel, ok := c.GetPageForRead()
+	if !ok {
+		return
+	}
+
 	comment := validateInlinePageComment(c, commentId, c.Params.PageId, "unresolvePageComment")
 	if comment == nil {
 		return
 	}
 
-	if !c.App.CanResolvePageComment(c.AppContext, c.AppContext.Session(), comment, c.Params.PageId) {
+	if !c.App.CanResolvePageComment(c.AppContext, c.AppContext.Session(), comment, c.Params.PageId, page) {
 		c.SetPermissionError(model.PermissionCreatePost)
 		return
 	}
 
-	unresolvedComment, unresolveErr := c.App.UnresolvePageComment(c.AppContext, comment)
+	// Pass page and channel to avoid redundant fetches for WebSocket event
+	unresolvedComment, unresolveErr := c.App.UnresolvePageComment(c.AppContext, comment, page, channel)
 	if unresolveErr != nil {
 		c.Err = unresolveErr
 		return

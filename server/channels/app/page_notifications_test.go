@@ -29,7 +29,7 @@ func TestHandlePageUpdateNotification(t *testing.T) {
 		// This test verifies the function doesn't panic
 		// The actual notification sending is tested via integration tests
 		require.NotPanics(t, func() {
-			th.App.handlePageUpdateNotification(th.Context, page, th.BasicUser.Id)
+			th.App.handlePageUpdateNotification(th.Context, page, th.BasicUser.Id, nil, nil)
 		})
 	})
 
@@ -47,7 +47,7 @@ func TestHandlePageUpdateNotification(t *testing.T) {
 		require.Nil(t, appErr)
 
 		require.NotPanics(t, func() {
-			th.App.handlePageUpdateNotification(th.Context, otherPage, th.BasicUser.Id)
+			th.App.handlePageUpdateNotification(th.Context, otherPage, th.BasicUser.Id, nil, nil)
 		})
 	})
 }

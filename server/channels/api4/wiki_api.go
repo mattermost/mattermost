@@ -208,7 +208,7 @@ func deleteWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddEventPriorState(oldWiki)
 
-	if appErr := c.App.DeleteWiki(c.AppContext, c.Params.WikiId, c.AppContext.Session().UserId); appErr != nil {
+	if appErr := c.App.DeleteWiki(c.AppContext, c.Params.WikiId, c.AppContext.Session().UserId, oldWiki); appErr != nil {
 		c.Err = appErr
 		return
 	}
@@ -281,12 +281,8 @@ func getPageActiveEditors(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pagePost, ok := c.ValidatePageBelongsToWiki()
-	if !ok {
-		return
-	}
-
-	_, channel, ok := c.GetWikiForRead()
+	// Use GetPageForRead to combine page validation and wiki/channel fetch in one operation
+	pagePost, _, channel, ok := c.GetPageForRead()
 	if !ok {
 		return
 	}
@@ -319,12 +315,8 @@ func getPageVersionHistory(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pagePost, ok := c.ValidatePageBelongsToWiki()
-	if !ok {
-		return
-	}
-
-	_, channel, ok := c.GetWikiForRead()
+	// Use GetPageForRead to combine page validation and wiki/channel fetch in one operation
+	pagePost, _, channel, ok := c.GetPageForRead()
 	if !ok {
 		return
 	}

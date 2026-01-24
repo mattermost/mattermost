@@ -471,7 +471,7 @@ func TestPublishPageDraft(t *testing.T) {
 		assert.Equal(t, model.PostTypePage, publishedPage.Type)
 		assert.Equal(t, channel.Id, publishedPage.ChannelId)
 
-		_, getDraftErr := th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, pageId)
+		_, getDraftErr := th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, pageId, false)
 		assert.NotNil(t, getDraftErr)
 	})
 
@@ -522,7 +522,7 @@ func TestPublishPageDraft(t *testing.T) {
 			require.Nil(t, err)
 			lastUpdateAt = savedDraft.UpdateAt
 
-			retrievedDraft, getDraftErr := th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, pageId)
+			retrievedDraft, getDraftErr := th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, pageId, false)
 			require.Nil(t, getDraftErr)
 			retrievedContent, _ := retrievedDraft.GetDocumentJSON()
 			assert.JSONEq(t, finalContent, retrievedContent)
@@ -600,7 +600,7 @@ func TestPublishPageDraft(t *testing.T) {
 		})
 		require.Nil(t, err)
 
-		childDraft, err := th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, childPageId)
+		childDraft, err := th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, childPageId, false)
 		require.Nil(t, err)
 		assert.Equal(t, parentPageId, childDraft.Props[model.DraftPropsPageParentID], "Child draft should reference parent page ID")
 
@@ -615,7 +615,7 @@ func TestPublishPageDraft(t *testing.T) {
 		// With unified ID model, published page ID equals draft ID
 		assert.Equal(t, parentPageId, publishedParent.Id, "Published page should have same ID as draft (unified ID model)")
 
-		updatedChildDraft, err := th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, childPageId)
+		updatedChildDraft, err := th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, childPageId, false)
 		require.Nil(t, err)
 		// The child draft's parent reference should still be valid since draft ID == published page ID
 		assert.Equal(t, publishedParent.Id, updatedChildDraft.Props[model.DraftPropsPageParentID], "Child draft should reference the parent page ID")
@@ -703,7 +703,7 @@ func TestPageDraftWhenPageDeleted(t *testing.T) {
 		require.Nil(t, err)
 
 		// Verify draft exists before deletion
-		draftBefore, getDraftErr := th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, pageId)
+		draftBefore, getDraftErr := th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, pageId, false)
 		require.Nil(t, getDraftErr)
 		require.NotNil(t, draftBefore)
 
@@ -712,7 +712,7 @@ func TestPageDraftWhenPageDeleted(t *testing.T) {
 		require.Nil(t, err)
 
 		// Draft should be deleted along with the page
-		_, getDraftErr = th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, pageId)
+		_, getDraftErr = th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, pageId, false)
 		require.NotNil(t, getDraftErr, "Draft should be deleted when page is deleted")
 		require.Equal(t, "app.draft.get_page_draft.not_found", getDraftErr.Id)
 	})
@@ -733,7 +733,7 @@ func TestPageDraftWhenPageDeleted(t *testing.T) {
 		require.Nil(t, err)
 
 		// New draft should be unaffected
-		draftAfter, getDraftErr := th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, newPageId)
+		draftAfter, getDraftErr := th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, newPageId, false)
 		require.Nil(t, getDraftErr, "Draft for new page should be unaffected")
 		draftAfterContent, _ := draftAfter.GetDocumentJSON()
 		require.JSONEq(t, content, draftAfterContent)
@@ -773,11 +773,11 @@ func TestPageDraftWhenPageDeleted(t *testing.T) {
 		require.Nil(t, err)
 
 		// Both drafts should be deleted along with the page
-		_, err = th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, pageId)
+		_, err = th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, pageId, false)
 		require.NotNil(t, err, "User 1 draft should be deleted")
 		require.Equal(t, "app.draft.get_page_draft.not_found", err.Id)
 
-		_, err = th.App.GetPageDraft(th.Context, user2.Id, createdWiki.Id, pageId)
+		_, err = th.App.GetPageDraft(th.Context, user2.Id, createdWiki.Id, pageId, false)
 		require.NotNil(t, err, "User 2 draft should be deleted")
 		require.Equal(t, "app.draft.get_page_draft.not_found", err.Id)
 	})

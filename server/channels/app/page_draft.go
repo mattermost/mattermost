@@ -20,7 +20,8 @@ import (
 // If lastUpdateAt == 0, creates a new draft. Otherwise, updates with optimistic locking.
 // Content is stored in PageContents table with status='draft'.
 // Metadata (FileIds, Props) is stored in Drafts table with WikiId.
-func (a *App) UpsertPageDraft(rctx request.CTX, userId, wikiId, pageId, contentJSON, title string, lastUpdateAt int64, props map[string]any) (*model.PageDraft, *model.AppError) {
+// wiki and channel are optional - if provided, avoids redundant DB fetches.
+func (a *App) UpsertPageDraft(rctx request.CTX, userId, wikiId, pageId, contentJSON, title string, lastUpdateAt int64, props map[string]any, wiki *model.Wiki, channel *model.Channel) (*model.PageDraft, *model.AppError) {
 	result := "failure"
 	defer func() {
 		if a.Metrics() != nil {
@@ -35,14 +36,20 @@ func (a *App) UpsertPageDraft(rctx request.CTX, userId, wikiId, pageId, contentJ
 		mlog.String("title", title),
 		mlog.Int("last_update_at", int(lastUpdateAt)))
 
-	wiki, wikiErr := a.GetWiki(rctx, wikiId)
-	if wikiErr != nil {
-		return nil, model.NewAppError("UpsertPageDraft", "app.draft.save_page.wiki_not_found.app_error", nil, "", http.StatusNotFound).Wrap(wikiErr)
+	if wiki == nil {
+		var wikiErr *model.AppError
+		wiki, wikiErr = a.GetWiki(rctx, wikiId)
+		if wikiErr != nil {
+			return nil, model.NewAppError("UpsertPageDraft", "app.draft.save_page.wiki_not_found.app_error", nil, "", http.StatusNotFound).Wrap(wikiErr)
+		}
 	}
 
-	channel, chanErr := a.GetChannel(rctx, wiki.ChannelId)
-	if chanErr != nil {
-		return nil, model.NewAppError("UpsertPageDraft", "app.draft.save_page.channel_not_found.app_error", nil, "", http.StatusNotFound).Wrap(chanErr)
+	if channel == nil {
+		var chanErr *model.AppError
+		channel, chanErr = a.GetChannel(rctx, wiki.ChannelId)
+		if chanErr != nil {
+			return nil, model.NewAppError("UpsertPageDraft", "app.draft.save_page.channel_not_found.app_error", nil, "", http.StatusNotFound).Wrap(chanErr)
+		}
 	}
 
 	if channel.DeleteAt != 0 {
@@ -184,20 +191,23 @@ func (a *App) upsertPageDraftContent(rctx request.CTX, pageId, userId, wikiId, c
 
 // SavePageDraftWithMetadata is an alias for UpsertPageDraft for backward compatibility.
 func (a *App) SavePageDraftWithMetadata(rctx request.CTX, userId, wikiId, pageId, contentJSON, title string, lastUpdateAt int64, props map[string]any) (*model.PageDraft, *model.AppError) {
-	return a.UpsertPageDraft(rctx, userId, wikiId, pageId, contentJSON, title, lastUpdateAt, props)
+	return a.UpsertPageDraft(rctx, userId, wikiId, pageId, contentJSON, title, lastUpdateAt, props, nil, nil)
 }
 
 // GetPageDraft fetches a page draft from PageContents (status='draft') and Drafts tables
-func (a *App) GetPageDraft(rctx request.CTX, userId, wikiId, pageId string) (*model.PageDraft, *model.AppError) {
+// skipWikiValidation can be true if wiki was already validated by the API layer.
+func (a *App) GetPageDraft(rctx request.CTX, userId, wikiId, pageId string, skipWikiValidation bool) (*model.PageDraft, *model.AppError) {
 	rctx.Logger().Debug("Getting page draft",
 		mlog.String("user_id", userId),
 		mlog.String("wiki_id", wikiId),
 		mlog.String("page_id", pageId))
 
-	// Validate wiki exists
-	_, wikiErr := a.GetWiki(rctx, wikiId)
-	if wikiErr != nil {
-		return nil, model.NewAppError("GetPageDraft", "app.draft.get_page_draft.wiki_not_found.app_error", nil, "", http.StatusNotFound).Wrap(wikiErr)
+	// Validate wiki exists (skip if API layer already validated)
+	if !skipWikiValidation {
+		_, wikiErr := a.GetWiki(rctx, wikiId)
+		if wikiErr != nil {
+			return nil, model.NewAppError("GetPageDraft", "app.draft.get_page_draft.wiki_not_found.app_error", nil, "", http.StatusNotFound).Wrap(wikiErr)
+		}
 	}
 
 	// Fetch content from PageContents table with status='draft'
@@ -304,21 +314,28 @@ func (a *App) MovePageDraft(rctx request.CTX, userId, wikiId, pageId, newParentI
 }
 
 // GetPageDraftsForWiki fetches page drafts for a wiki from both tables with pagination
-func (a *App) GetPageDraftsForWiki(rctx request.CTX, userId, wikiId string, offset, limit int) ([]*model.PageDraft, *model.AppError) {
+// wiki and channel are optional - if provided, avoids redundant DB fetches.
+func (a *App) GetPageDraftsForWiki(rctx request.CTX, userId, wikiId string, offset, limit int, wiki *model.Wiki, channel *model.Channel) ([]*model.PageDraft, *model.AppError) {
 	rctx.Logger().Debug("Getting page drafts for wiki",
 		mlog.String("user_id", userId),
 		mlog.String("wiki_id", wikiId),
 		mlog.Int("offset", offset),
 		mlog.Int("limit", limit))
 
-	wiki, wikiErr := a.GetWiki(rctx, wikiId)
-	if wikiErr != nil {
-		return nil, model.NewAppError("GetPageDraftsForWiki", "app.draft.get_wiki_drafts.wiki_not_found.app_error", nil, "", http.StatusNotFound).Wrap(wikiErr)
+	if wiki == nil {
+		var wikiErr *model.AppError
+		wiki, wikiErr = a.GetWiki(rctx, wikiId)
+		if wikiErr != nil {
+			return nil, model.NewAppError("GetPageDraftsForWiki", "app.draft.get_wiki_drafts.wiki_not_found.app_error", nil, "", http.StatusNotFound).Wrap(wikiErr)
+		}
 	}
 
-	channel, chanErr := a.GetChannel(rctx, wiki.ChannelId)
-	if chanErr != nil {
-		return nil, model.NewAppError("GetPageDraftsForWiki", "app.draft.get_wiki_drafts.channel_not_found.app_error", nil, "", http.StatusNotFound).Wrap(chanErr)
+	if channel == nil {
+		var chanErr *model.AppError
+		channel, chanErr = a.GetChannel(rctx, wiki.ChannelId)
+		if chanErr != nil {
+			return nil, model.NewAppError("GetPageDraftsForWiki", "app.draft.get_wiki_drafts.channel_not_found.app_error", nil, "", http.StatusNotFound).Wrap(chanErr)
+		}
 	}
 
 	if channel.DeleteAt != 0 {
@@ -426,7 +443,7 @@ func (a *App) validateParentPage(rctx request.CTX, parentId string, wiki *model.
 }
 
 func (a *App) validatePageDraftForPublish(rctx request.CTX, userId, wikiId, draftId, parentId, message string) (*model.PageDraft, *model.Wiki, *model.Channel, *model.AppError) {
-	draft, err := a.GetPageDraft(rctx, userId, wikiId, draftId)
+	draft, err := a.GetPageDraft(rctx, userId, wikiId, draftId, false)
 	if err != nil {
 		return nil, nil, nil, model.NewAppError("validatePageDraftForPublish", "app.draft.publish_page.not_found",
 			nil, "", http.StatusNotFound).Wrap(err)
@@ -527,13 +544,13 @@ func (a *App) updatePageFromDraft(rctx request.CTX, pageId, wikiId, parentId, ti
 		return nil, circErr
 	}
 
-	updatedPost, err := a.UpdatePageWithOptimisticLocking(rctx, page, title, content, searchText, baseEditAt, force)
+	updatedPost, err := a.UpdatePageWithOptimisticLocking(rctx, page, title, content, searchText, baseEditAt, force, nil)
 	if err != nil {
 		return nil, err
 	}
 
 	if parentId != page.PageParentId {
-		if parentErr := a.ChangePageParent(rctx, pageId, parentId); parentErr != nil {
+		if parentErr := a.ChangePageParent(rctx, pageId, parentId, wikiId); parentErr != nil {
 			return nil, parentErr
 		}
 		// Use master context to avoid replica lag after parent change
@@ -889,7 +906,8 @@ func (a *App) rollbackPageUpdate(rctx request.CTX, pageId string, originalConten
 
 	// Restore parent if it was changed
 	if originalParentId != newParentId {
-		if err := a.ChangePageParent(rctx, pageId, originalParentId); err != nil {
+		// Pass empty wikiId - ChangePageParent will fetch it from page props
+		if err := a.ChangePageParent(rctx, pageId, originalParentId, ""); err != nil {
 			rctx.Logger().Warn("Failed to restore original parent during rollback - content was restored but hierarchy may be inconsistent",
 				mlog.String("page_id", pageId),
 				mlog.String("original_parent", originalParentId),

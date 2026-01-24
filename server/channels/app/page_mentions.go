@@ -124,11 +124,12 @@ func (a *App) CalculateMentionDelta(currentMentions, previouslyNotified []string
 	return newMentions
 }
 
-// handlePageMentions extracts mentions from page content and sends notifications
-func (a *App) handlePageMentions(rctx request.CTX, page *model.Post, channelId, content, authorUserID string) {
+// handlePageMentions extracts mentions from page content and sends notifications.
+// Accepts channel as parameter to avoid redundant DB fetches when channel is already available.
+func (a *App) handlePageMentions(rctx request.CTX, page *model.Post, channel *model.Channel, content, authorUserID string) {
 	rctx.Logger().Debug("handlePageMentions called",
 		mlog.String("page_id", page.Id),
-		mlog.String("channel_id", channelId),
+		mlog.String("channel_id", channel.Id),
 		mlog.Int("content_length", len(content)))
 
 	if content == "" {
@@ -163,13 +164,9 @@ func (a *App) handlePageMentions(rctx request.CTX, page *model.Post, channelId, 
 		return
 	}
 
-	channel, chanErr := a.GetChannel(rctx, channelId)
-	if chanErr != nil {
-		rctx.Logger().Warn("Failed to get channel for mention notifications", mlog.String("channel_id", channelId), mlog.Err(chanErr))
-		return
-	}
-
-	a.sendPageMentionNotifications(rctx, page, channel, authorUserID, newMentions, content)
+	// Get wikiId from page Props if available
+	wikiId, _ := page.Props[model.PagePropsWikiID].(string)
+	a.sendPageMentionNotifications(rctx, page, channel, authorUserID, newMentions, content, wikiId)
 
 	updatedPage := page.Clone()
 	a.SetNotifiedMentions(updatedPage, currentMentions)
@@ -181,7 +178,9 @@ func (a *App) handlePageMentions(rctx request.CTX, page *model.Post, channelId, 
 	}
 }
 
-func (a *App) sendPageMentionNotifications(rctx request.CTX, page *model.Post, channel *model.Channel, authorUserID string, mentionedUserIDs []string, content string) {
+// sendPageMentionNotifications sends notifications for page mentions.
+// wikiId is optional - if empty, it will be fetched from the page's property values.
+func (a *App) sendPageMentionNotifications(rctx request.CTX, page *model.Post, channel *model.Channel, authorUserID string, mentionedUserIDs []string, content string, wikiId string) {
 	if len(mentionedUserIDs) == 0 {
 		rctx.Logger().Debug("No mentions in page", mlog.String("page_id", page.Id))
 		return
@@ -213,12 +212,16 @@ func (a *App) sendPageMentionNotifications(rctx request.CTX, page *model.Post, c
 			mlog.Int("mention_count", len(mentionedUserIDs)))
 	}
 
-	wikiId, wikiIdErr := a.GetWikiIdForPage(rctx, page.Id)
-	if wikiIdErr != nil {
-		rctx.Logger().Warn("Failed to get wiki ID for page mention channel posts",
-			mlog.String("page_id", page.Id),
-			mlog.Err(wikiIdErr))
-		return
+	// Use provided wikiId or fetch if not provided
+	if wikiId == "" {
+		var wikiIdErr *model.AppError
+		wikiId, wikiIdErr = a.GetWikiIdForPost(rctx, page)
+		if wikiIdErr != nil {
+			rctx.Logger().Warn("Failed to get wiki ID for page mention channel posts",
+				mlog.String("page_id", page.Id),
+				mlog.Err(wikiIdErr))
+			return
+		}
 	}
 
 	rctx.Logger().Debug("Starting channel post creation for page mentions",

@@ -250,7 +250,7 @@ func TestMultiUserPageEditing(t *testing.T) {
 		require.Equal(t, th.BasicUser.Id, draft.UserId)
 
 		th.Context.Session().UserId = th.BasicUser2.Id
-		retrievedDraft, appErr := th.App.GetPageDraft(th.Context, th.BasicUser2.Id, wiki.Id, pageId)
+		retrievedDraft, appErr := th.App.GetPageDraft(th.Context, th.BasicUser2.Id, wiki.Id, pageId, false)
 		require.NotNil(t, appErr)
 		require.Nil(t, retrievedDraft)
 		assert.Equal(t, "app.draft.get_page_draft.not_found", appErr.Id)
@@ -316,7 +316,7 @@ func TestConcurrentPageHierarchyOperations(t *testing.T) {
 		errors := make(chan *model.AppError, 2)
 
 		go func() {
-			err := th.App.ChangePageParent(th.Context, child1.Id, parentPage.Id)
+			err := th.App.ChangePageParent(th.Context, child1.Id, parentPage.Id, "")
 			if err != nil {
 				errors <- err
 			}
@@ -324,7 +324,7 @@ func TestConcurrentPageHierarchyOperations(t *testing.T) {
 		}()
 
 		go func() {
-			err := th.App.ChangePageParent(th.Context, child2.Id, parentPage.Id)
+			err := th.App.ChangePageParent(th.Context, child2.Id, parentPage.Id, "")
 			if err != nil {
 				errors <- err
 			}
@@ -378,7 +378,7 @@ func TestConcurrentPageHierarchyOperations(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		err1 := th.App.ChangePageParent(th.Context, parent1.Id, parent2.Id)
+		err1 := th.App.ChangePageParent(th.Context, parent1.Id, parent2.Id, "")
 		require.NotNil(t, err1)
 		assert.Contains(t, err1.Id, "circular_reference")
 	})
@@ -420,20 +420,24 @@ func TestPagePermissionsMultiUser(t *testing.T) {
 	})
 	require.Nil(t, appErr)
 
-	t.Run("user2 cannot access private channel page", func(t *testing.T) {
-		th.Context.Session().UserId = th.BasicUser2.Id
+	// Create a client for User2 to test permission checks via API
+	client2 := th.CreateClient()
+	_, _, loginErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+	require.NoError(t, loginErr)
 
-		_, appErr := th.App.GetPageWithContent(th.Context, privatePage.Id)
-		require.NotNil(t, appErr)
-		assert.Equal(t, "api.context.permissions.app_error", appErr.Id)
+	t.Run("user2 cannot access private channel page via API", func(t *testing.T) {
+		// Permission check happens in API layer (GetWikiForRead), not App layer
+		_, resp, err := client2.GetPage(context.Background(), privateWiki.Id, privatePage.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("user2 can access after being added to private channel", func(t *testing.T) {
 		th.AddUserToChannel(t, th.BasicUser2, privateChannel)
 
-		th.Context.Session().UserId = th.BasicUser2.Id
-		retrievedPage, appErr := th.App.GetPageWithContent(th.Context, privatePage.Id)
-		require.Nil(t, appErr)
+		retrievedPage, resp, err := client2.GetPage(context.Background(), privateWiki.Id, privatePage.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 		assert.Equal(t, privatePage.Id, retrievedPage.Id)
 	})
 
@@ -441,10 +445,10 @@ func TestPagePermissionsMultiUser(t *testing.T) {
 		appErr := th.App.RemoveUserFromChannel(th.Context, th.BasicUser2.Id, th.BasicUser.Id, privateChannel)
 		require.Nil(t, appErr)
 
-		th.Context.Session().UserId = th.BasicUser2.Id
-		_, appErr = th.App.GetPageWithContent(th.Context, privatePage.Id)
-		require.NotNil(t, appErr)
-		assert.Equal(t, "api.context.permissions.app_error", appErr.Id)
+		// Permission check happens in API layer
+		_, resp, err := client2.GetPage(context.Background(), privateWiki.Id, privatePage.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 	})
 }
 

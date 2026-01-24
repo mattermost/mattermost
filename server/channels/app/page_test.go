@@ -217,7 +217,7 @@ func TestUpdatePage(t *testing.T) {
 		require.Nil(t, err)
 
 		newContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Updated content"}]}]}`
-		updatedPage, err := th.App.UpdatePage(sessionCtx, page, "Updated Title", newContent, "")
+		updatedPage, err := th.App.UpdatePage(sessionCtx, page, "Updated Title", newContent, "", nil)
 		require.Nil(t, err)
 		require.NotNil(t, updatedPage)
 		require.Equal(t, "Updated Title", updatedPage.Props["title"])
@@ -237,7 +237,7 @@ func TestUpdatePage(t *testing.T) {
 		require.Nil(t, err)
 
 		invalidContent := `{"invalid json`
-		updatedPage, err := th.App.UpdatePage(sessionCtx, page, "Test Page", invalidContent, "")
+		updatedPage, err := th.App.UpdatePage(sessionCtx, page, "Test Page", invalidContent, "", nil)
 		require.NotNil(t, err)
 		require.Nil(t, updatedPage)
 		require.Equal(t, "app.page.update.invalid_content.app_error", err.Id)
@@ -258,7 +258,7 @@ func TestUpdatePage(t *testing.T) {
 
 		// Title with BIDI control characters that should be stripped
 		titleWithBIDI := "Updated\u202ATitle\u202B"
-		updatedPage, err := th.App.UpdatePage(sessionCtx, page, titleWithBIDI, "", "")
+		updatedPage, err := th.App.UpdatePage(sessionCtx, page, titleWithBIDI, "", "", nil)
 		require.Nil(t, err)
 		require.NotNil(t, updatedPage)
 		require.Equal(t, "UpdatedTitle", updatedPage.Props["title"], "BIDI characters should be stripped from title")
@@ -649,7 +649,7 @@ func TestChangePageParent(t *testing.T) {
 		child, err := th.App.CreateWikiPage(th.Context, wiki.Id, "", "Child", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		err = th.App.ChangePageParent(sessionCtx, child.Id, newParent.Id)
+		err = th.App.ChangePageParent(sessionCtx, child.Id, newParent.Id, "")
 		require.Nil(t, err)
 
 		updatedChild, getErr := th.App.Srv().Store().Post().GetSingle(th.Context, child.Id, false)
@@ -664,7 +664,7 @@ func TestChangePageParent(t *testing.T) {
 		child, err := th.App.CreateWikiPage(th.Context, wiki.Id, parent.Id, "Child", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		err = th.App.ChangePageParent(sessionCtx, child.Id, "")
+		err = th.App.ChangePageParent(sessionCtx, child.Id, "", "")
 		require.Nil(t, err)
 
 		updatedChild, getErr := th.App.Srv().Store().Post().GetSingle(th.Context, child.Id, false)
@@ -679,7 +679,7 @@ func TestChangePageParent(t *testing.T) {
 		child, err := th.App.CreateWikiPage(th.Context, wiki.Id, parent.Id, "Child", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		err = th.App.ChangePageParent(sessionCtx, parent.Id, child.Id)
+		err = th.App.ChangePageParent(sessionCtx, parent.Id, child.Id, "")
 		require.NotNil(t, err)
 		require.Equal(t, "app.page.change_parent.circular_reference.app_error", err.Id)
 	})
@@ -688,7 +688,7 @@ func TestChangePageParent(t *testing.T) {
 		page, err := th.App.CreateWikiPage(th.Context, wiki.Id, "", "Page", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		err = th.App.ChangePageParent(sessionCtx, page.Id, page.Id)
+		err = th.App.ChangePageParent(sessionCtx, page.Id, page.Id, "")
 		require.NotNil(t, err)
 		require.Equal(t, "app.page.change_parent.circular_reference.app_error", err.Id)
 	})
@@ -703,7 +703,7 @@ func TestChangePageParent(t *testing.T) {
 		pageC, err := th.App.CreateWikiPage(th.Context, wiki.Id, pageB.Id, "Page C", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		err = th.App.ChangePageParent(sessionCtx, pageA.Id, pageC.Id)
+		err = th.App.ChangePageParent(sessionCtx, pageA.Id, pageC.Id, "")
 		require.NotNil(t, err)
 		require.Equal(t, "app.page.change_parent.circular_reference.app_error", err.Id)
 	})
@@ -719,7 +719,7 @@ func TestChangePageParent(t *testing.T) {
 		}, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, postErr)
 
-		err = th.App.ChangePageParent(sessionCtx, child.Id, regularPost.Id)
+		err = th.App.ChangePageParent(sessionCtx, child.Id, regularPost.Id, "")
 		require.NotNil(t, err)
 		require.Equal(t, "app.page.change_parent.invalid_parent.app_error", err.Id)
 	})
@@ -749,7 +749,7 @@ func TestChangePageParent(t *testing.T) {
 		child, err := th.App.CreateWikiPage(th.Context, wiki.Id, "", "Child", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		err = th.App.ChangePageParent(sessionCtx, child.Id, parentInOtherChannel.Id)
+		err = th.App.ChangePageParent(sessionCtx, child.Id, parentInOtherChannel.Id, "")
 		require.NotNil(t, err)
 		require.Equal(t, "app.page.change_parent.parent_different_channel.app_error", err.Id)
 	})
@@ -784,7 +784,7 @@ func TestPageDepthLimit(t *testing.T) {
 		}
 
 		require.NotNil(t, lastPage)
-		depth, err := th.App.calculatePageDepth(th.Context, lastPage.Id)
+		depth, err := th.App.calculatePageDepth(th.Context, lastPage.Id, nil)
 		require.Nil(t, err)
 		require.Equal(t, model.PostPageMaxDepth, depth, "Last page should be at max depth")
 	})
@@ -801,7 +801,7 @@ func TestPageDepthLimit(t *testing.T) {
 		}
 
 		// Verify the last page is at depth PostPageMaxDepth (the maximum)
-		depth, err := th.App.calculatePageDepth(th.Context, parentID)
+		depth, err := th.App.calculatePageDepth(th.Context, parentID, nil)
 		require.Nil(t, err)
 		require.Equal(t, model.PostPageMaxDepth, depth, "Last created page should be at max depth")
 
@@ -822,7 +822,7 @@ func TestPageDepthLimit(t *testing.T) {
 		}
 
 		// Verify the last page in chain is at max depth
-		depth, err := th.App.calculatePageDepth(th.Context, deepParentID)
+		depth, err := th.App.calculatePageDepth(th.Context, deepParentID, nil)
 		require.Nil(t, err)
 		require.Equal(t, model.PostPageMaxDepth, depth, "Last page in chain should be at max depth")
 
@@ -831,7 +831,7 @@ func TestPageDepthLimit(t *testing.T) {
 		require.Nil(t, err)
 
 		// Try to move it under the deepest page - this would make it depth PostPageMaxDepth + 1, which should fail
-		err = th.App.ChangePageParent(sessionCtx, separatePage.Id, deepParentID)
+		err = th.App.ChangePageParent(sessionCtx, separatePage.Id, deepParentID, "")
 		require.NotNil(t, err, "Should not allow moving page to depth > PostPageMaxDepth")
 		require.Equal(t, "app.page.change_parent.max_depth_exceeded.app_error", err.Id)
 	})
@@ -843,7 +843,7 @@ func TestPageDepthLimit(t *testing.T) {
 		child, err := th.App.CreateWikiPage(th.Context, wiki.Id, "", "Child", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		err = th.App.ChangePageParent(sessionCtx, child.Id, parent2.Id)
+		err = th.App.ChangePageParent(sessionCtx, child.Id, parent2.Id, "")
 		require.Nil(t, err)
 
 		updatedChild, err := th.App.GetSinglePost(th.Context, child.Id, false)
@@ -855,21 +855,21 @@ func TestPageDepthLimit(t *testing.T) {
 		level1, err := th.App.CreateWikiPage(th.Context, wiki.Id, "", "Level 1", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		depth, err := th.App.calculatePageDepth(th.Context, level1.Id)
+		depth, err := th.App.calculatePageDepth(th.Context, level1.Id, nil)
 		require.Nil(t, err)
 		require.Equal(t, 0, depth, "Level 1 page (root) should have depth 0")
 
 		level2, err := th.App.CreateWikiPage(th.Context, wiki.Id, level1.Id, "Level 2", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		depth, err = th.App.calculatePageDepth(th.Context, level2.Id)
+		depth, err = th.App.calculatePageDepth(th.Context, level2.Id, nil)
 		require.Nil(t, err)
 		require.Equal(t, 1, depth, "Level 2 page should have depth 1")
 
 		level3, err := th.App.CreateWikiPage(th.Context, wiki.Id, level2.Id, "Level 3", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		depth, err = th.App.calculatePageDepth(th.Context, level3.Id)
+		depth, err = th.App.calculatePageDepth(th.Context, level3.Id, nil)
 		require.Nil(t, err)
 		require.Equal(t, 2, depth, "Level 3 page should have depth 2")
 	})
@@ -885,7 +885,7 @@ func TestPageDepthLimit(t *testing.T) {
 		}
 
 		// Verify destination is at expected depth
-		destDepth, err := th.App.calculatePageDepth(th.Context, destinationID)
+		destDepth, err := th.App.calculatePageDepth(th.Context, destinationID, nil)
 		require.Nil(t, err)
 		require.Equal(t, destinationDepth-1, destDepth) // depth is 0-indexed, so depth 4 for 5th level
 
@@ -905,7 +905,7 @@ func TestPageDepthLimit(t *testing.T) {
 		}
 
 		// Try to move subtree root under destination - should fail because combined depth exceeds max
-		err = th.App.ChangePageParent(sessionCtx, subtreeRoot.Id, destinationID)
+		err = th.App.ChangePageParent(sessionCtx, subtreeRoot.Id, destinationID, "")
 		require.NotNil(t, err, "Should not allow moving subtree when combined depth exceeds max")
 		require.Equal(t, "app.page.change_parent.subtree_max_depth_exceeded.app_error", err.Id)
 	})
@@ -1249,7 +1249,7 @@ func TestCreatePageComment(t *testing.T) {
 	require.NotNil(t, page)
 
 	t.Run("successfully creates top-level page comment", func(t *testing.T) {
-		comment, appErr := th.App.CreatePageComment(rctx, page.Id, "This is a comment on the page", nil)
+		comment, appErr := th.App.CreatePageComment(rctx, page.Id, "This is a comment on the page", nil, "", nil, nil)
 		require.Nil(t, appErr)
 		require.NotNil(t, comment)
 
@@ -1265,7 +1265,7 @@ func TestCreatePageComment(t *testing.T) {
 	})
 
 	t.Run("fails when page does not exist", func(t *testing.T) {
-		comment, appErr := th.App.CreatePageComment(rctx, "invalid_page_id", "Comment on non-existent page", nil)
+		comment, appErr := th.App.CreatePageComment(rctx, "invalid_page_id", "Comment on non-existent page", nil, "", nil, nil)
 		require.NotNil(t, appErr)
 		require.Nil(t, comment)
 		require.Equal(t, "app.page.create_comment.page_not_found.app_error", appErr.Id)
@@ -1279,18 +1279,18 @@ func TestCreatePageComment(t *testing.T) {
 		}, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, err)
 
-		comment, appErr := th.App.CreatePageComment(rctx, regularPost.Id, "Comment on regular post", nil)
+		comment, appErr := th.App.CreatePageComment(rctx, regularPost.Id, "Comment on regular post", nil, "", nil, nil)
 		require.NotNil(t, appErr)
 		require.Nil(t, comment)
 		require.Equal(t, "app.page.create_comment.not_a_page.app_error", appErr.Id)
 	})
 
 	t.Run("creates multiple comments on same page", func(t *testing.T) {
-		comment1, appErr := th.App.CreatePageComment(rctx, page.Id, "First comment", nil)
+		comment1, appErr := th.App.CreatePageComment(rctx, page.Id, "First comment", nil, "", nil, nil)
 		require.Nil(t, appErr)
 		require.NotNil(t, comment1)
 
-		comment2, appErr := th.App.CreatePageComment(rctx, page.Id, "Second comment", nil)
+		comment2, appErr := th.App.CreatePageComment(rctx, page.Id, "Second comment", nil, "", nil, nil)
 		require.Nil(t, appErr)
 		require.NotNil(t, comment2)
 
@@ -1304,20 +1304,20 @@ func TestCreatePageComment(t *testing.T) {
 			"start": 10,
 			"end":   20,
 		}
-		comment, appErr := th.App.CreatePageComment(rctx, page.Id, "Inline comment", inlineAnchor)
+		comment, appErr := th.App.CreatePageComment(rctx, page.Id, "Inline comment", inlineAnchor, "", nil, nil)
 		require.Nil(t, appErr)
 		require.NotNil(t, comment)
 		require.NotNil(t, comment.GetProp("inline_anchor"))
 	})
 
 	t.Run("fails with empty message", func(t *testing.T) {
-		comment, appErr := th.App.CreatePageComment(rctx, page.Id, "", nil)
+		comment, appErr := th.App.CreatePageComment(rctx, page.Id, "", nil, "", nil, nil)
 		require.NotNil(t, appErr)
 		require.Nil(t, comment)
 	})
 
 	t.Run("fails with whitespace-only message", func(t *testing.T) {
-		comment, appErr := th.App.CreatePageComment(rctx, page.Id, "   ", nil)
+		comment, appErr := th.App.CreatePageComment(rctx, page.Id, "   ", nil, "", nil, nil)
 		require.NotNil(t, appErr)
 		require.Nil(t, comment)
 		require.Equal(t, "app.page.create_comment.empty_message.app_error", appErr.Id)
@@ -1333,11 +1333,11 @@ func TestCreatePageCommentReply(t *testing.T) {
 	page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "", "")
 	require.Nil(t, err)
 
-	topLevelComment, appErr := th.App.CreatePageComment(rctx, page.Id, "Top-level comment", nil)
+	topLevelComment, appErr := th.App.CreatePageComment(rctx, page.Id, "Top-level comment", nil, "", nil, nil)
 	require.Nil(t, appErr)
 
 	t.Run("successfully creates reply to top-level comment", func(t *testing.T) {
-		reply, appErr := th.App.CreatePageCommentReply(rctx, page.Id, topLevelComment.Id, "This is a reply")
+		reply, appErr := th.App.CreatePageCommentReply(rctx, page.Id, topLevelComment.Id, "This is a reply", "", nil, nil)
 		require.Nil(t, appErr)
 		require.NotNil(t, reply)
 
@@ -1353,14 +1353,14 @@ func TestCreatePageCommentReply(t *testing.T) {
 	})
 
 	t.Run("fails when page does not exist", func(t *testing.T) {
-		reply, appErr := th.App.CreatePageCommentReply(rctx, "invalid_page_id", topLevelComment.Id, "Reply to non-existent page")
+		reply, appErr := th.App.CreatePageCommentReply(rctx, "invalid_page_id", topLevelComment.Id, "Reply to non-existent page", "", nil, nil)
 		require.NotNil(t, appErr)
 		require.Nil(t, reply)
 		require.Equal(t, "app.page.create_comment_reply.page_not_found.app_error", appErr.Id)
 	})
 
 	t.Run("fails when parent comment does not exist", func(t *testing.T) {
-		reply, appErr := th.App.CreatePageCommentReply(rctx, page.Id, "invalid_comment_id", "Reply to non-existent comment")
+		reply, appErr := th.App.CreatePageCommentReply(rctx, page.Id, "invalid_comment_id", "Reply to non-existent comment", "", nil, nil)
 		require.NotNil(t, appErr)
 		require.Nil(t, reply)
 		require.Equal(t, "app.page.create_comment_reply.parent_not_found.app_error", appErr.Id)
@@ -1374,27 +1374,27 @@ func TestCreatePageCommentReply(t *testing.T) {
 		}, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, err)
 
-		reply, appErr := th.App.CreatePageCommentReply(rctx, page.Id, regularPost.Id, "Reply to regular post")
+		reply, appErr := th.App.CreatePageCommentReply(rctx, page.Id, regularPost.Id, "Reply to regular post", "", nil, nil)
 		require.NotNil(t, appErr)
 		require.Nil(t, reply)
 		require.Equal(t, "app.page.create_comment_reply.parent_not_comment.app_error", appErr.Id)
 	})
 
 	t.Run("enforces one-level nesting - cannot reply to a reply", func(t *testing.T) {
-		reply1, appErr := th.App.CreatePageCommentReply(rctx, page.Id, topLevelComment.Id, "First reply")
+		reply1, appErr := th.App.CreatePageCommentReply(rctx, page.Id, topLevelComment.Id, "First reply", "", nil, nil)
 		require.Nil(t, appErr)
 
-		reply2, appErr := th.App.CreatePageCommentReply(rctx, page.Id, reply1.Id, "Reply to reply (should fail)")
+		reply2, appErr := th.App.CreatePageCommentReply(rctx, page.Id, reply1.Id, "Reply to reply (should fail)", "", nil, nil)
 		require.NotNil(t, appErr)
 		require.Nil(t, reply2)
 		require.Equal(t, "app.page.create_comment_reply.reply_to_reply_not_allowed.app_error", appErr.Id)
 	})
 
 	t.Run("creates multiple replies to same comment", func(t *testing.T) {
-		reply1, appErr := th.App.CreatePageCommentReply(rctx, page.Id, topLevelComment.Id, "Reply 1")
+		reply1, appErr := th.App.CreatePageCommentReply(rctx, page.Id, topLevelComment.Id, "Reply 1", "", nil, nil)
 		require.Nil(t, appErr)
 
-		reply2, appErr := th.App.CreatePageCommentReply(rctx, page.Id, topLevelComment.Id, "Reply 2")
+		reply2, appErr := th.App.CreatePageCommentReply(rctx, page.Id, topLevelComment.Id, "Reply 2", "", nil, nil)
 		require.Nil(t, appErr)
 
 		require.NotEqual(t, reply1.Id, reply2.Id)
@@ -1405,13 +1405,13 @@ func TestCreatePageCommentReply(t *testing.T) {
 	})
 
 	t.Run("fails with empty message", func(t *testing.T) {
-		reply, appErr := th.App.CreatePageCommentReply(rctx, page.Id, topLevelComment.Id, "")
+		reply, appErr := th.App.CreatePageCommentReply(rctx, page.Id, topLevelComment.Id, "", "", nil, nil)
 		require.NotNil(t, appErr)
 		require.Nil(t, reply)
 	})
 
 	t.Run("fails with whitespace-only message", func(t *testing.T) {
-		reply, appErr := th.App.CreatePageCommentReply(rctx, page.Id, topLevelComment.Id, "   ")
+		reply, appErr := th.App.CreatePageCommentReply(rctx, page.Id, topLevelComment.Id, "   ", "", nil, nil)
 		require.NotNil(t, appErr)
 		require.Nil(t, reply)
 		require.Equal(t, "app.page.create_comment_reply.empty_message.app_error", appErr.Id)
@@ -1421,7 +1421,7 @@ func TestCreatePageCommentReply(t *testing.T) {
 		otherPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Other Page", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		reply, appErr := th.App.CreatePageCommentReply(rctx, otherPage.Id, topLevelComment.Id, "Reply with wrong page")
+		reply, appErr := th.App.CreatePageCommentReply(rctx, otherPage.Id, topLevelComment.Id, "Reply with wrong page", "", nil, nil)
 		require.NotNil(t, appErr)
 		require.Nil(t, reply)
 		require.Equal(t, "app.page.create_comment_reply.parent_wrong_page.app_error", appErr.Id)
@@ -1745,7 +1745,7 @@ func TestPageMentionSystemMessages(t *testing.T) {
 		page, appErr := th.App.GetPage(rctx, createdPage.Id)
 		require.Nil(t, appErr)
 		updatedContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"mention","attrs":{"id":"` + user2.Id + `","label":"@` + user2.Username + `"}},{"type":"text","text":" added in update"}]}]}`
-		_, updatePageErr := th.App.UpdatePage(rctx, page, "Update Test Page", updatedContent, "")
+		_, updatePageErr := th.App.UpdatePage(rctx, page, "Update Test Page", updatedContent, "", nil)
 		require.Nil(t, updatePageErr)
 
 		allPosts, searchErr := th.App.Srv().Store().Post().GetPostsSince(th.Context, model.GetPostsSinceOptions{ChannelId: th.BasicChannel.Id, Time: 0}, true, map[string]bool{})
@@ -1780,7 +1780,7 @@ func TestPageVersionHistory(t *testing.T) {
 		// First edit
 		page, appErr := th.App.GetPage(sessionCtx, createdPage.Id)
 		require.Nil(t, appErr)
-		_, err = th.App.UpdatePage(sessionCtx, page, "Version Test Updated", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Version 2"}]}]}`, "")
+		_, err = th.App.UpdatePage(sessionCtx, page, "Version Test Updated", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Version 2"}]}]}`, "", nil)
 		require.Nil(t, err)
 
 		// Get edit history
@@ -1818,7 +1818,7 @@ func TestPageVersionHistory(t *testing.T) {
 		// Edit as BasicUser
 		page, appErr := th.App.GetPage(sessionCtx, createdPage.Id)
 		require.Nil(t, appErr)
-		_, err = th.App.UpdatePage(sessionCtx, page, "Shared Page Updated", `{"type":"doc","content":[]}`, "")
+		_, err = th.App.UpdatePage(sessionCtx, page, "Shared Page Updated", `{"type":"doc","content":[]}`, "", nil)
 		require.Nil(t, err)
 
 		// BasicUser2 (not author) should be able to view history
@@ -1833,7 +1833,7 @@ func TestPageVersionHistory(t *testing.T) {
 		// Edit page (change both title and content)
 		page, appErr := th.App.GetPage(sessionCtx, createdPage.Id)
 		require.Nil(t, appErr)
-		_, err = th.App.UpdatePage(sessionCtx, page, "Updated Title", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Updated Content"}]}]}`, "")
+		_, err = th.App.UpdatePage(sessionCtx, page, "Updated Title", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Updated Content"}]}]}`, "", nil)
 		require.Nil(t, err)
 
 		// Get historical version
@@ -1882,7 +1882,7 @@ func TestUpdatePageWithOptimisticLocking_Success(t *testing.T) {
 	page, appErr := th.App.GetPage(sessionCtx, createdPage.Id)
 	require.Nil(t, appErr)
 	newContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Updated content"}]}]}`
-	updatedPage, err := th.App.UpdatePageWithOptimisticLocking(sessionCtx, page, "Updated Title", newContent, "updated search text", baseEditAt, false)
+	updatedPage, err := th.App.UpdatePageWithOptimisticLocking(sessionCtx, page, "Updated Title", newContent, "updated search text", baseEditAt, false, nil)
 
 	require.Nil(t, err)
 	require.NotNil(t, updatedPage)
@@ -1912,7 +1912,7 @@ func TestUpdatePageWithOptimisticLocking_Conflict(t *testing.T) {
 	page, appErr := th.App.GetPage(sessionCtx, createdPage.Id)
 	require.Nil(t, appErr)
 	firstUpdateContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"First update content"}]}]}`
-	firstUpdate, err := th.App.UpdatePageWithOptimisticLocking(sessionCtx, page, "First Update Title", firstUpdateContent, "first update search", 0, false)
+	firstUpdate, err := th.App.UpdatePageWithOptimisticLocking(sessionCtx, page, "First Update Title", firstUpdateContent, "first update search", 0, false, nil)
 	require.Nil(t, err)
 	require.NotNil(t, firstUpdate)
 	require.Greater(t, firstUpdate.EditAt, int64(0), "After first update, EditAt should be non-zero")
@@ -1923,7 +1923,7 @@ func TestUpdatePageWithOptimisticLocking_Conflict(t *testing.T) {
 	page, appErr = th.App.GetPage(sessionCtx, createdPage.Id)
 	require.Nil(t, appErr)
 	content1 := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"User 1 content"}]}]}`
-	updated1, err1 := th.App.UpdatePageWithOptimisticLocking(sessionCtx, page, "User 1 Title", content1, "user 1 search", baseEditAt, false)
+	updated1, err1 := th.App.UpdatePageWithOptimisticLocking(sessionCtx, page, "User 1 Title", content1, "user 1 search", baseEditAt, false, nil)
 	require.Nil(t, err1)
 	require.NotNil(t, updated1)
 	require.Greater(t, updated1.EditAt, baseEditAt)
@@ -1932,7 +1932,7 @@ func TestUpdatePageWithOptimisticLocking_Conflict(t *testing.T) {
 	page, appErr = th.App.GetPage(sessionCtx, createdPage.Id)
 	require.Nil(t, appErr)
 	content2 := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"User 2 content"}]}]}`
-	_, err2 := th.App.UpdatePageWithOptimisticLocking(sessionCtx, page, "User 2 Title", content2, "user 2 search", baseEditAt, false)
+	_, err2 := th.App.UpdatePageWithOptimisticLocking(sessionCtx, page, "User 2 Title", content2, "user 2 search", baseEditAt, false, nil)
 
 	require.NotNil(t, err2)
 	require.Equal(t, "app.page.update.conflict.app_error", err2.Id)
@@ -1964,7 +1964,7 @@ func TestUpdatePageWithOptimisticLocking_DeletedPage(t *testing.T) {
 	// Try to update with the page reference from before deletion
 	// UpdatePageWithOptimisticLocking internally fetches fresh from master for conflict detection
 	newContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Updated content"}]}]}`
-	_, updateErr := th.App.UpdatePageWithOptimisticLocking(sessionCtx, page, "Updated Title", newContent, "updated search", baseEditAt, false)
+	_, updateErr := th.App.UpdatePageWithOptimisticLocking(sessionCtx, page, "Updated Title", newContent, "updated search", baseEditAt, false, nil)
 
 	require.NotNil(t, updateErr)
 	require.Equal(t, 404, updateErr.StatusCode)
@@ -1996,7 +1996,7 @@ func TestUpdatePageWithOptimisticLocking_ErrorDetailsIncludeModifier(t *testing.
 	page, appErr := th.App.GetPage(user1Session, createdPage.Id)
 	require.Nil(t, appErr)
 	firstUpdateContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"First update content"}]}]}`
-	firstUpdate, err := th.App.UpdatePageWithOptimisticLocking(user1Session, page, "First Update Title", firstUpdateContent, "first update search", 0, false)
+	firstUpdate, err := th.App.UpdatePageWithOptimisticLocking(user1Session, page, "First Update Title", firstUpdateContent, "first update search", 0, false, nil)
 	require.Nil(t, err)
 	require.NotNil(t, firstUpdate)
 	require.Greater(t, firstUpdate.EditAt, int64(0), "After first update, EditAt should be non-zero")
@@ -2008,7 +2008,7 @@ func TestUpdatePageWithOptimisticLocking_ErrorDetailsIncludeModifier(t *testing.
 	page, appErr = th.App.GetPage(user2Session, createdPage.Id)
 	require.Nil(t, appErr)
 	content2 := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"User 2 content"}]}]}`
-	updated2, err2 := th.App.UpdatePageWithOptimisticLocking(user2Session, page, "User 2 Title", content2, "user 2 search", baseEditAt, false)
+	updated2, err2 := th.App.UpdatePageWithOptimisticLocking(user2Session, page, "User 2 Title", content2, "user 2 search", baseEditAt, false, nil)
 	require.Nil(t, err2)
 	require.NotNil(t, updated2)
 
@@ -2016,7 +2016,7 @@ func TestUpdatePageWithOptimisticLocking_ErrorDetailsIncludeModifier(t *testing.
 	page, appErr = th.App.GetPage(user1Session, createdPage.Id)
 	require.Nil(t, appErr)
 	content1 := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"User 1 content"}]}]}`
-	_, err1 := th.App.UpdatePageWithOptimisticLocking(user1Session, page, "User 1 Title", content1, "user 1 search", baseEditAt, false)
+	_, err1 := th.App.UpdatePageWithOptimisticLocking(user1Session, page, "User 1 Title", content1, "user 1 search", baseEditAt, false, nil)
 
 	require.NotNil(t, err1)
 	require.Equal(t, 409, err1.StatusCode)

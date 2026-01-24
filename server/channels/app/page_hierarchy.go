@@ -14,16 +14,16 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-// GetPageChildren fetches direct children of a page
+// GetPageChildren fetches direct children of a page.
+// Note: Permission checks should be performed by the caller (API layer) before calling this method.
 func (a *App) GetPageChildren(rctx request.CTX, postID string, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
 	parentPost, appErr := a.GetSinglePost(rctx, postID, false)
 	if appErr != nil {
 		return nil, model.NewAppError("GetPageChildren", "app.post.get_page_children.parent.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
 	}
 
-	if hasPermission, _ := a.HasPermissionToChannel(rctx, rctx.Session().UserId, parentPost.ChannelId, model.PermissionReadChannel); !hasPermission {
-		return nil, model.NewAppError("GetPageChildren", "app.post.get_page_children.permissions.app_error", nil, "", http.StatusForbidden)
-	}
+	// Verify parent exists but don't check permissions here - that's the API layer's job
+	_ = parentPost
 
 	postList, err := a.Srv().Store().Page().GetPageChildren(postID, options)
 	if err != nil {
@@ -155,7 +155,8 @@ func (a *App) calculateMaxDepthFromPostList(postList *model.PostList) int {
 // ChangePageParent updates the parent of a page.
 // Uses optimistic locking to handle concurrent modifications in HA cluster mode.
 // If another node modifies the page concurrently, returns a conflict error.
-func (a *App) ChangePageParent(rctx request.CTX, postID string, newParentID string) *model.AppError {
+// wikiID is optional - if empty, it will be fetched from the page's props or property values.
+func (a *App) ChangePageParent(rctx request.CTX, postID string, newParentID string, wikiID string) *model.AppError {
 	start := time.Now()
 	defer func() {
 		if a.Metrics() != nil {
@@ -176,10 +177,19 @@ func (a *App) ChangePageParent(rctx request.CTX, postID string, newParentID stri
 	// Store UpdateAt for optimistic locking - will fail if page was modified concurrently
 	expectedUpdateAt := post.UpdateAt
 
-	// Get wiki ID for websocket broadcast
-	wikiID, wikiErr := a.GetWikiIdForPage(rctx, postID)
-	if wikiErr != nil {
-		return model.NewAppError("ChangePageParent", "app.page.change_parent.wiki_not_found.app_error", nil, "", http.StatusBadRequest).Wrap(wikiErr)
+	// Get wiki ID for websocket broadcast (use provided or fetch from page)
+	if wikiID == "" {
+		// Try to get from page.Props first (fast path)
+		if propWikiID, ok := page.Props[model.PagePropsWikiID].(string); ok && propWikiID != "" {
+			wikiID = propWikiID
+		} else {
+			// Fallback to property values lookup
+			var wikiErr *model.AppError
+			wikiID, wikiErr = a.GetWikiIdForPage(rctx, postID)
+			if wikiErr != nil {
+				return model.NewAppError("ChangePageParent", "app.page.change_parent.wiki_not_found.app_error", nil, "", http.StatusBadRequest).Wrap(wikiErr)
+			}
+		}
 	}
 
 	if newParentID != "" {
@@ -253,10 +263,15 @@ func (a *App) ChangePageParent(rctx request.CTX, postID string, newParentID stri
 // Returns the depth (0 for root pages) and any error encountered
 // Note: This is an internal function that bypasses permission checks.
 // Callers must ensure the user has appropriate permissions before calling.
-func (a *App) calculatePageDepth(rctx request.CTX, pageID string) (int, *model.AppError) {
-	page, err := a.GetSinglePost(rctx, pageID, false)
-	if err != nil {
-		return 0, model.NewAppError("calculatePageDepth", "app.page.calculate_depth.not_found", nil, "", http.StatusBadRequest).Wrap(err)
+// page is optional - if provided, avoids a DB fetch.
+func (a *App) calculatePageDepth(rctx request.CTX, pageID string, page *model.Post) (int, *model.AppError) {
+	// Use provided page or fetch if not provided
+	if page == nil {
+		var err *model.AppError
+		page, err = a.GetSinglePost(rctx, pageID, false)
+		if err != nil {
+			return 0, model.NewAppError("calculatePageDepth", "app.page.calculate_depth.not_found", nil, "", http.StatusBadRequest).Wrap(err)
+		}
 	}
 
 	if page.PageParentId == "" {
@@ -318,8 +333,8 @@ func (a *App) calculateSubtreeMaxDepth(rctx request.CTX, pageID string) (int, *m
 }
 
 // BuildBreadcrumbPath builds the breadcrumb navigation path for a page.
-// Accepts pre-fetched wiki and channel to avoid redundant DB queries.
-func (a *App) BuildBreadcrumbPath(rctx request.CTX, page *model.Post, wiki *model.Wiki, channel *model.Channel) (*model.BreadcrumbPath, *model.AppError) {
+// Accepts pre-fetched wiki, channel, and optionally team to avoid redundant DB queries.
+func (a *App) BuildBreadcrumbPath(rctx request.CTX, page *model.Post, wiki *model.Wiki, channel *model.Channel, team *model.Team) (*model.BreadcrumbPath, *model.AppError) {
 	start := time.Now()
 	defer func() {
 		if a.Metrics() != nil {
@@ -334,9 +349,13 @@ func (a *App) BuildBreadcrumbPath(rctx request.CTX, page *model.Post, wiki *mode
 		return nil, err
 	}
 
-	team, err := a.GetTeam(channel.TeamId)
-	if err != nil {
-		return nil, err
+	// Use provided team or fetch if not provided
+	if team == nil {
+		var teamErr *model.AppError
+		team, teamErr = a.GetTeam(channel.TeamId)
+		if teamErr != nil {
+			return nil, teamErr
+		}
 	}
 
 	wikiId := wiki.Id

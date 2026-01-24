@@ -8039,10 +8039,6 @@
     "translation": "Unable to get parent page."
   },
   {
-    "id": "app.post.get_page_children.permissions.app_error",
-    "translation": "You do not have permission to view page children."
-  },
-  {
     "id": "app.post.get_page_descendants.app_error",
     "translation": "Unable to get page descendants."
   },
@@ -9349,6 +9345,10 @@
     "translation": "Cannot create wiki in archived channel."
   },
   {
+    "id": "app.wiki.create_page.channel_not_found.app_error",
+    "translation": "Channel not found for wiki."
+  },
+  {
     "id": "app.wiki.delete.app_error",
     "translation": "Unable to delete wiki."
   },
@@ -9393,12 +9393,16 @@
     "translation": "Unable to get wiki property field."
   },
   {
-    "id": "app.wiki.get_wiki_for_page.not_found",
-    "translation": "Wiki not found for page."
-  },
-  {
     "id": "app.wiki.get_wiki_for_page.post_not_found",
     "translation": "Post not found when getting wiki for page."
+  },
+  {
+    "id": "app.wiki.get_wiki_for_post.nil_post",
+    "translation": "Post cannot be nil."
+  },
+  {
+    "id": "app.wiki.get_wiki_for_post.not_found",
+    "translation": "Wiki not found for post."
   },
   {
     "id": "app.wiki.marshal_wiki_id.app_error",

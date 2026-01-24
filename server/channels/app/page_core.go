@@ -37,6 +37,17 @@ const (
 // If pageID is provided, it will be used as the page's ID (for publishing drafts with unified IDs).
 // If pageID is empty, a new ID will be generated.
 func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, content, userID, searchText, pageID string) (*model.Post, *model.AppError) {
+	channel, chanErr := a.GetChannel(rctx, channelID)
+	if chanErr != nil {
+		return nil, chanErr
+	}
+
+	return a.CreatePageWithChannel(rctx, channel, title, pageParentID, content, userID, searchText, pageID)
+}
+
+// CreatePageWithChannel creates a new page using a pre-fetched channel.
+// Use this when the channel has already been fetched to avoid redundant DB calls.
+func (a *App) CreatePageWithChannel(rctx request.CTX, channel *model.Channel, title, pageParentID, content, userID, searchText, pageID string) (*model.Post, *model.AppError) {
 	start := time.Now()
 	defer func() {
 		if a.Metrics() != nil {
@@ -53,14 +64,11 @@ func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, conte
 		return nil, model.NewAppError("CreatePage", "app.page.create.title_too_long.app_error", map[string]any{"MaxLength": model.MaxPageTitleLength}, "", http.StatusBadRequest)
 	}
 
-	channel, chanErr := a.GetChannel(rctx, channelID)
-	if chanErr != nil {
-		return nil, chanErr
-	}
-
 	if channel.DeleteAt != 0 {
 		return nil, model.NewAppError("CreatePage", "app.page.create.deleted_channel.app_error", nil, "", http.StatusBadRequest)
 	}
+
+	channelID := channel.Id
 
 	if pageParentID != "" {
 		parentPage, err := a.GetPage(rctx, pageParentID)
@@ -71,7 +79,7 @@ func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, conte
 			return nil, model.NewAppError("CreatePage", "app.page.create.parent_different_channel.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		parentDepth, depthErr := a.calculatePageDepth(rctx, pageParentID)
+		parentDepth, depthErr := a.calculatePageDepth(rctx, pageParentID, parentPage)
 		if depthErr != nil {
 			return nil, depthErr
 		}
@@ -166,8 +174,9 @@ func (a *App) GetPageWithDeleted(rctx request.CTX, pageID string) (*model.Post, 
 	return post, nil
 }
 
-// GetPageWithContent fetches a page with permission check and loads content.
+// GetPageWithContent fetches a page and loads its content.
 // Returns *model.Post with Message field populated from PageContent table.
+// Note: Permission checks should be performed by the API layer before calling this method.
 func (a *App) GetPageWithContent(rctx request.CTX, pageID string) (*model.Post, *model.AppError) {
 	start := time.Now()
 	defer func() {
@@ -182,10 +191,8 @@ func (a *App) GetPageWithContent(rctx request.CTX, pageID string) (*model.Post, 
 	}
 	post := page
 
-	session := rctx.Session()
-	if hasPermission, _ := a.HasPermissionToChannel(rctx, session.UserId, post.ChannelId, model.PermissionReadPage); !hasPermission {
-		return nil, model.NewAppError("GetPageWithContent", "api.context.permissions.app_error", nil, "", http.StatusForbidden)
-	}
+	// Note: Permission checks are performed by the API layer (GetWikiForRead/GetPageForRead)
+	// before calling this method. App layer focuses on business logic only.
 
 	pageContent, contentErr := a.Srv().Store().Page().GetPageContent(pageID)
 	if contentErr != nil {
@@ -314,7 +321,8 @@ func (a *App) loadPageContentForPost(rctx request.CTX, post *model.Post) *model.
 }
 
 // UpdatePage updates a page's title and/or content.
-func (a *App) UpdatePage(rctx request.CTX, page *model.Post, title, content, searchText string) (*model.Post, *model.AppError) {
+// channel is optional - if provided, avoids a DB fetch for mention handling.
+func (a *App) UpdatePage(rctx request.CTX, page *model.Post, title, content, searchText string, channel *model.Channel) (*model.Post, *model.AppError) {
 	pageID := page.Id
 
 	if title != "" {
@@ -338,7 +346,20 @@ func (a *App) UpdatePage(rctx request.CTX, page *model.Post, title, content, sea
 
 	session := rctx.Session()
 	if content != "" {
-		a.handlePageMentions(rctx, updatedPost, updatedPost.ChannelId, content, session.UserId)
+		// Use provided channel or fetch if not provided
+		if channel == nil {
+			var chanErr *model.AppError
+			channel, chanErr = a.GetChannel(rctx, updatedPost.ChannelId)
+			if chanErr != nil {
+				rctx.Logger().Warn("Failed to get channel for mention handling",
+					mlog.String("page_id", pageID),
+					mlog.String("channel_id", updatedPost.ChannelId),
+					mlog.Err(chanErr))
+			}
+		}
+		if channel != nil {
+			a.handlePageMentions(rctx, updatedPost, channel, content, session.UserId)
+		}
 	}
 
 	if enrichErr := a.EnrichPageWithProperties(rctx, updatedPost, true); enrichErr != nil {
@@ -360,7 +381,7 @@ func (a *App) UpdatePage(rctx request.CTX, page *model.Post, title, content, sea
 		}
 	}
 
-	a.handlePageUpdateNotification(rctx, updatedPost, session.UserId)
+	a.handlePageUpdateNotification(rctx, updatedPost, session.UserId, nil, nil)
 
 	// Invalidate cache so other nodes see the update
 	a.invalidateCacheForChannelPosts(updatedPost.ChannelId)
@@ -383,7 +404,8 @@ func (a *App) UpdatePage(rctx request.CTX, page *model.Post, title, content, sea
 // baseEditAt is the EditAt timestamp the client last saw when they started editing
 // Returns 409 Conflict if the page content was modified by someone else
 // Returns 404 Not Found if the page was deleted
-func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, page *model.Post, title, content, searchText string, baseEditAt int64, force bool) (*model.Post, *model.AppError) {
+// channel is optional - if provided, avoids a redundant DB fetch for mention handling.
+func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, page *model.Post, title, content, searchText string, baseEditAt int64, force bool, channel *model.Channel) (*model.Post, *model.AppError) {
 	start := time.Now()
 	defer func() {
 		if a.Metrics() != nil {
@@ -415,7 +437,7 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, page *model.Post
 	// So we need to compare directly: if they don't match, there's a conflict
 	if !force && post.EditAt != baseEditAt {
 		modifiedBy := post.UserId
-		if lastModifiedBy, ok := post.Props["last_modified_by"].(string); ok && lastModifiedBy != "" {
+		if lastModifiedBy, ok := post.Props[model.PagePropsLastModifiedBy].(string); ok && lastModifiedBy != "" {
 			modifiedBy = lastModifiedBy
 		}
 		modifiedAt := post.EditAt
@@ -436,7 +458,7 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, page *model.Post
 		post.Message = content
 	}
 
-	post.Props["last_modified_by"] = session.UserId
+	post.Props[model.PagePropsLastModifiedBy] = session.UserId
 
 	updatedPost, storeErr := a.Srv().Store().Page().Update(rctx, post)
 	if storeErr != nil {
@@ -449,7 +471,19 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, page *model.Post
 	}
 
 	if content != "" {
-		a.handlePageMentions(rctx, updatedPost, updatedPost.ChannelId, content, session.UserId)
+		if channel == nil {
+			var chanErr *model.AppError
+			channel, chanErr = a.GetChannel(rctx, updatedPost.ChannelId)
+			if chanErr != nil {
+				rctx.Logger().Warn("Failed to get channel for mention handling",
+					mlog.String("page_id", pageID),
+					mlog.String("channel_id", updatedPost.ChannelId),
+					mlog.Err(chanErr))
+			}
+		}
+		if channel != nil {
+			a.handlePageMentions(rctx, updatedPost, channel, content, session.UserId)
+		}
 	}
 
 	if enrichErr := a.EnrichPageWithProperties(rctx, updatedPost, true); enrichErr != nil {
@@ -474,7 +508,7 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, page *model.Post
 	// Broadcast POST_EDITED event so all clients update their page content
 	a.sendPageEditedEvent(rctx, updatedPost)
 
-	a.handlePageUpdateNotification(rctx, updatedPost, session.UserId)
+	a.handlePageUpdateNotification(rctx, updatedPost, session.UserId, nil, nil)
 
 	// Invalidate cache so other nodes see the update
 	a.invalidateCacheForChannelPosts(updatedPost.ChannelId)

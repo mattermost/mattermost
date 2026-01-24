@@ -55,7 +55,7 @@ func TestHandlePageCommentThreadCreation(t *testing.T) {
 			"offset": 10,
 		}
 
-		inlineComment, commentErr := th.App.CreatePageComment(rctx, page.Id, "Inline comment", inlineAnchor)
+		inlineComment, commentErr := th.App.CreatePageComment(rctx, page.Id, "Inline comment", inlineAnchor, "", nil, nil)
 		require.Nil(t, commentErr)
 		require.Equal(t, "", inlineComment.RootId, "Inline comments should have empty RootId")
 
@@ -213,7 +213,7 @@ func TestHandlePageCommentThreadCreation(t *testing.T) {
 			"offset": 5,
 		}
 
-		inlineComment, commentErr := th.App.CreatePageComment(rctx, page.Id, "Inline comment", inlineAnchor)
+		inlineComment, commentErr := th.App.CreatePageComment(rctx, page.Id, "Inline comment", inlineAnchor, "", nil, nil)
 		require.Nil(t, commentErr)
 		require.Equal(t, "", inlineComment.RootId, "Inline comments have empty RootId")
 
@@ -277,7 +277,7 @@ func TestHandlePageCommentThreadCreation(t *testing.T) {
 			"offset": 3,
 		}
 
-		inlineComment, commentErr := th.App.CreatePageComment(rctx, page.Id, "Inline comment", inlineAnchor)
+		inlineComment, commentErr := th.App.CreatePageComment(rctx, page.Id, "Inline comment", inlineAnchor, "", nil, nil)
 		require.Nil(t, commentErr)
 
 		thread, threadErr := th.App.Srv().Store().Thread().Get(inlineComment.Id)
@@ -297,7 +297,7 @@ func TestHandlePageCommentThreadCreation(t *testing.T) {
 			"offset": 0,
 		}
 
-		inlineComment, commentErr := th.App.CreatePageComment(rctx, page.Id, "Timestamp test", inlineAnchor)
+		inlineComment, commentErr := th.App.CreatePageComment(rctx, page.Id, "Timestamp test", inlineAnchor, "", nil, nil)
 		require.Nil(t, commentErr)
 
 		thread, threadErr := th.App.Srv().Store().Thread().Get(inlineComment.Id)

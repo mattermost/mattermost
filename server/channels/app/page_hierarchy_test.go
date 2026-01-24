@@ -38,7 +38,7 @@ func TestBuildBreadcrumbPath(t *testing.T) {
 	require.Nil(t, appErr)
 
 	t.Run("build breadcrumb for deeply nested page", func(t *testing.T) {
-		breadcrumb, appErr := th.App.BuildBreadcrumbPath(sessionCtx, child, wiki, channel)
+		breadcrumb, appErr := th.App.BuildBreadcrumbPath(sessionCtx, child, wiki, channel, nil)
 		require.Nil(t, appErr)
 		require.NotNil(t, breadcrumb)
 		require.NotNil(t, breadcrumb.Items)
@@ -48,7 +48,7 @@ func TestBuildBreadcrumbPath(t *testing.T) {
 	})
 
 	t.Run("build breadcrumb for root page", func(t *testing.T) {
-		breadcrumb, appErr := th.App.BuildBreadcrumbPath(sessionCtx, grandparent, wiki, channel)
+		breadcrumb, appErr := th.App.BuildBreadcrumbPath(sessionCtx, grandparent, wiki, channel, nil)
 		require.Nil(t, appErr)
 		require.NotNil(t, breadcrumb)
 		require.NotNil(t, breadcrumb.Items)
@@ -100,19 +100,19 @@ func TestCalculatePageDepth(t *testing.T) {
 	require.Nil(t, appErr)
 
 	t.Run("root page has depth 0", func(t *testing.T) {
-		depth, appErr := th.App.calculatePageDepth(rctx, root.Id)
+		depth, appErr := th.App.calculatePageDepth(rctx, root.Id, nil)
 		require.Nil(t, appErr)
 		require.Equal(t, 0, depth)
 	})
 
 	t.Run("child page has depth 1", func(t *testing.T) {
-		depth, appErr := th.App.calculatePageDepth(rctx, child.Id)
+		depth, appErr := th.App.calculatePageDepth(rctx, child.Id, nil)
 		require.Nil(t, appErr)
 		require.Equal(t, 1, depth)
 	})
 
 	t.Run("grandchild page has depth 2", func(t *testing.T) {
-		depth, appErr := th.App.calculatePageDepth(rctx, grandchild.Id)
+		depth, appErr := th.App.calculatePageDepth(rctx, grandchild.Id, nil)
 		require.Nil(t, appErr)
 		require.Equal(t, 2, depth)
 	})

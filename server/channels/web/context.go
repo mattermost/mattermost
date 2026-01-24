@@ -945,41 +945,92 @@ func (c *Context) GetRemoteID(r *http.Request) string {
 	return r.Header.Get(model.HeaderRemoteclusterId)
 }
 
+// GetPageForRead validates a page belongs to the wiki and user has read permission.
+// Returns page, wiki, and channel in a single operation to avoid redundant DB fetches.
+// Use this instead of calling ValidatePageBelongsToWiki() + GetWikiForRead() separately.
+func (c *Context) GetPageForRead() (*model.Post, *model.Wiki, *model.Channel, bool) {
+	if c.Err != nil {
+		return nil, nil, nil, false
+	}
+
+	// Get wiki and channel first (includes permission check)
+	wiki, channel, ok := c.GetWikiForRead()
+	if !ok {
+		return nil, nil, nil, false
+	}
+
+	// Get page
+	page, err := c.App.GetPage(c.AppContext, c.Params.PageId)
+	if err != nil {
+		c.Err = model.NewAppError("GetPageForRead", "api.wiki.page_not_found",
+			nil, "", err.StatusCode).Wrap(err)
+		return nil, nil, nil, false
+	}
+
+	// Validate page belongs to this wiki
+	pageWikiId, ok := page.Props[model.PagePropsWikiID].(string)
+	if !ok || pageWikiId == "" {
+		// Fallback: get wiki_id from PropertyValues (source of truth)
+		var wikiErr *model.AppError
+		pageWikiId, wikiErr = c.App.GetWikiIdForPage(c.AppContext, c.Params.PageId)
+		if wikiErr != nil || pageWikiId == "" {
+			c.Err = model.NewAppError("GetPageForRead", "api.wiki.page_wiki_not_set",
+				nil, "", http.StatusBadRequest)
+			return nil, nil, nil, false
+		}
+	}
+
+	if pageWikiId != c.Params.WikiId {
+		c.Err = model.NewAppError("GetPageForRead", "api.wiki.page_wiki_mismatch",
+			nil, "", http.StatusBadRequest)
+		return nil, nil, nil, false
+	}
+
+	// Validate channel match
+	if page.ChannelId != wiki.ChannelId {
+		c.Err = model.NewAppError("GetPageForRead", "api.wiki.page_channel_mismatch", nil, "", http.StatusBadRequest)
+		return nil, nil, nil, false
+	}
+
+	return page, wiki, channel, true
+}
+
 // GetPageForModify validates a page can be modified by the current user.
 // It performs all permission checks needed for page modification operations:
 // 1. Validates page belongs to the wiki specified in the URL
 // 2. Checks wiki modify permission
 // 3. Checks page-level modify permission for the specified operation
 // 4. Validates page's channel matches wiki's channel
-func (c *Context) GetPageForModify(operation app.PageOperation, callerContext string) (*model.Wiki, *model.Post, bool) {
+// Returns wiki, page, channel, and success bool.
+func (c *Context) GetPageForModify(operation app.PageOperation, callerContext string) (*model.Wiki, *model.Post, *model.Channel, bool) {
 	if c.Err != nil {
-		return nil, nil, false
+		return nil, nil, nil, false
 	}
 
 	// Get page and validate it belongs to this wiki
 	page, ok := c.ValidatePageBelongsToWiki()
 	if !ok {
-		return nil, nil, false
+		return nil, nil, nil, false
 	}
 
 	// Check wiki modify permission
 	wiki, channel, ok := c.GetWikiForModify(callerContext)
 	if !ok {
-		return nil, nil, false
+		return nil, nil, nil, false
 	}
 
 	// Check page-level modify permission
 	if !c.hasPagePermission(channel, page, operation) {
-		return nil, nil, false
+		return nil, nil, nil, false
 	}
 
 	// Validate channel match
 	if page.ChannelId != wiki.ChannelId {
 		c.Err = model.NewAppError(callerContext, "api.wiki.page_channel_mismatch", nil, "", http.StatusBadRequest)
-		return nil, nil, false
+		return nil, nil, nil, false
 	}
 
-	return wiki, page, true
+	return wiki, page, channel, true
 }
 
 // hasPagePermission checks if the current user can perform an operation on a page.

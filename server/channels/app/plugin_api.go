@@ -1645,7 +1645,7 @@ func (api *PluginAPI) LinkPageToFirstWiki(pageID, channelID string) *model.AppEr
 
 	// Use the first wiki
 	wikiID := wikis[0].Id
-	return api.app.AddPageToWiki(api.ctx, pageID, wikiID)
+	return api.app.AddPageToWiki(api.ctx, pageID, wikiID, nil)
 }
 
 // GetFirstWikiForChannel retrieves the ID of the first wiki in the given channel.

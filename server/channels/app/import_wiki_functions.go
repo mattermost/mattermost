@@ -447,9 +447,9 @@ func (a *App) importPageComment(rctx request.CTX, data *imports.PageCommentImpor
 	var comment *model.Post
 	var createErr *model.AppError
 	if parentCommentId != "" {
-		comment, createErr = a.CreatePageCommentReply(rctx, page.Id, parentCommentId, *data.Content)
+		comment, createErr = a.CreatePageCommentReply(rctx, page.Id, parentCommentId, *data.Content, "", nil, nil)
 	} else {
-		comment, createErr = a.CreatePageComment(rctx, page.Id, *data.Content, inlineAnchor)
+		comment, createErr = a.CreatePageComment(rctx, page.Id, *data.Content, inlineAnchor, "", nil, nil)
 	}
 
 	if createErr != nil {
@@ -463,7 +463,8 @@ func (a *App) importPageComment(rctx request.CTX, data *imports.PageCommentImpor
 
 	// If the comment was resolved in the source system, resolve it here too
 	if data.IsResolved != nil && *data.IsResolved {
-		_, resolveErr := a.ResolvePageComment(rctx, comment, user.Id)
+		// Pass nil for page/channel - function will fetch if needed for WebSocket event
+		_, resolveErr := a.ResolvePageComment(rctx, comment, user.Id, nil, nil)
 		if resolveErr != nil {
 			rctx.Logger().Warn("Failed to resolve imported comment",
 				mlog.String("comment_id", comment.Id),
@@ -1300,7 +1301,8 @@ func (a *App) RepairOrphanedPageHierarchy(rctx request.CTX, channelId string) (i
 		}
 
 		// Update page parent using ChangePageParent (includes cycle detection)
-		if changeErr := a.ChangePageParent(rctx, page.Id, parentPage.Id); changeErr != nil {
+		// Pass empty wikiId - ChangePageParent will fetch it from page props
+		if changeErr := a.ChangePageParent(rctx, page.Id, parentPage.Id, ""); changeErr != nil {
 			rctx.Logger().Warn("Failed to repair orphaned page hierarchy",
 				mlog.String("page_id", page.Id),
 				mlog.String("parent_id", parentPage.Id),

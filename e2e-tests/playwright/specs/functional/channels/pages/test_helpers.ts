@@ -2444,10 +2444,14 @@ export async function deletePageThroughUI(page: Page, pageTitle: string) {
     await deleteMenuItem.click();
 
     // Confirm deletion in modal
+    const deleteModal = page.getByRole('dialog');
     const deleteButton = page.locator('[data-testid="delete-button"]');
     await deleteButton.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
     await deleteButton.click();
 
+    // Wait for the modal to close, which indicates the delete operation completed
+    // If the delete fails, the modal stays open and this will timeout
+    await deleteModal.waitFor({state: 'hidden', timeout: MODAL_CLOSE_TIMEOUT});
     await page.waitForLoadState('networkidle');
 }
 

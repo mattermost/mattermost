@@ -92,7 +92,7 @@ func updatePageParent(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "new_parent_id", req.NewParentId)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
-	if appErr := c.App.ChangePageParent(c.AppContext, c.Params.PageId, req.NewParentId); appErr != nil {
+	if appErr := c.App.ChangePageParent(c.AppContext, c.Params.PageId, req.NewParentId, c.Params.WikiId); appErr != nil {
 		c.Err = appErr
 		return
 	}
@@ -172,7 +172,7 @@ func movePageToWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if appErr := c.App.MovePageToWiki(c.AppContext, page, req.TargetWikiId, req.ParentPageId); appErr != nil {
+	if appErr := c.App.MovePageToWiki(c.AppContext, page, req.TargetWikiId, req.ParentPageId, c.Params.WikiId, sourceWiki, targetWiki); appErr != nil {
 		c.Err = appErr
 		return
 	}
@@ -252,7 +252,7 @@ func duplicatePage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	duplicatedPage, appErr := c.App.DuplicatePage(c.AppContext, page, req.TargetWikiId, req.ParentPageId, req.Title, c.AppContext.Session().UserId)
+	duplicatedPage, appErr := c.App.DuplicatePage(c.AppContext, page, req.TargetWikiId, req.ParentPageId, req.Title, c.AppContext.Session().UserId, targetWiki, channel)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -276,25 +276,9 @@ func getPageBreadcrumb(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page, ok := c.ValidatePageBelongsToWiki()
+	// Use GetPageForRead to get page, wiki, and channel in one operation
+	page, wiki, channel, ok := c.GetPageForRead()
 	if !ok {
-		return
-	}
-
-	wiki, appErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	channel, appErr := c.App.GetChannel(c.AppContext, wiki.ChannelId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	if hasPermission, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel); !hasPermission {
-		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 
@@ -302,7 +286,14 @@ func getPageBreadcrumb(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	breadcrumbPath, appErr := c.App.BuildBreadcrumbPath(c.AppContext, page, wiki, channel)
+	// Fetch team once here to pass to BuildBreadcrumbPath, avoiding a redundant fetch
+	team, teamErr := c.App.GetTeam(channel.TeamId)
+	if teamErr != nil {
+		c.Err = teamErr
+		return
+	}
+
+	breadcrumbPath, appErr := c.App.BuildBreadcrumbPath(c.AppContext, page, wiki, channel, team)
 	if appErr != nil {
 		c.Err = appErr
 		return

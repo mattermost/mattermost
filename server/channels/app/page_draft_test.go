@@ -125,7 +125,7 @@ func TestGetPageDraft(t *testing.T) {
 	require.Nil(t, appErr)
 
 	t.Run("successfully retrieves existing draft", func(t *testing.T) {
-		draft, appErr := th.App.GetPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, pageId)
+		draft, appErr := th.App.GetPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, pageId, false)
 		require.Nil(t, appErr)
 		require.NotNil(t, draft)
 		require.Equal(t, createdDraft.UserId, draft.UserId)
@@ -139,7 +139,7 @@ func TestGetPageDraft(t *testing.T) {
 	})
 
 	t.Run("fails with non-existent draft", func(t *testing.T) {
-		draft, appErr := th.App.GetPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, model.NewId())
+		draft, appErr := th.App.GetPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, model.NewId(), false)
 		require.NotNil(t, appErr)
 		require.Nil(t, draft)
 		require.Equal(t, "app.draft.get_page_draft.not_found", appErr.Id)
@@ -147,14 +147,14 @@ func TestGetPageDraft(t *testing.T) {
 
 	t.Run("fails with wrong user id", func(t *testing.T) {
 		otherUser := th.CreateUser(t)
-		draft, appErr := th.App.GetPageDraft(th.Context, otherUser.Id, createdWiki.Id, pageId)
+		draft, appErr := th.App.GetPageDraft(th.Context, otherUser.Id, createdWiki.Id, pageId, false)
 		require.NotNil(t, appErr)
 		require.Nil(t, draft)
 		require.Equal(t, "app.draft.get_page_draft.not_found", appErr.Id)
 	})
 
 	t.Run("fails with wrong wiki id", func(t *testing.T) {
-		draft, appErr := th.App.GetPageDraft(th.Context, th.BasicUser.Id, model.NewId(), pageId)
+		draft, appErr := th.App.GetPageDraft(th.Context, th.BasicUser.Id, model.NewId(), pageId, false)
 		require.NotNil(t, appErr)
 		require.Nil(t, draft)
 		require.Equal(t, "app.draft.get_page_draft.wiki_not_found.app_error", appErr.Id)
@@ -179,14 +179,14 @@ func TestDeletePageDraft(t *testing.T) {
 		_, appErr := th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, createdWiki.Id, pageId, validContent, "Draft to Delete", 0, nil)
 		require.Nil(t, appErr)
 
-		draft, appErr := th.App.GetPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, pageId)
+		draft, appErr := th.App.GetPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, pageId, false)
 		require.Nil(t, appErr)
 		require.NotNil(t, draft)
 
 		appErr = th.App.DeletePageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, pageId)
 		require.Nil(t, appErr)
 
-		draft, appErr = th.App.GetPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, pageId)
+		draft, appErr = th.App.GetPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, pageId, false)
 		require.NotNil(t, appErr)
 		require.Nil(t, draft)
 	})
@@ -207,7 +207,7 @@ func TestDeletePageDraft(t *testing.T) {
 		appErr = th.App.DeletePageDraft(th.Context, otherUser.Id, createdWiki.Id, pageId)
 		require.NotNil(t, appErr)
 
-		draft, appErr := th.App.GetPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, pageId)
+		draft, appErr := th.App.GetPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, pageId, false)
 		require.Nil(t, appErr)
 		require.NotNil(t, draft)
 	})
@@ -241,7 +241,7 @@ func TestGetPageDraftsForWiki(t *testing.T) {
 		_, appErr = th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, createdWiki1.Id, pageId3, validContent3, "Draft 3", 0, nil)
 		require.Nil(t, appErr)
 
-		drafts, appErr := th.App.GetPageDraftsForWiki(th.Context, th.BasicUser.Id, createdWiki1.Id, 0, 200)
+		drafts, appErr := th.App.GetPageDraftsForWiki(th.Context, th.BasicUser.Id, createdWiki1.Id, 0, 200, nil, nil)
 		require.Nil(t, appErr)
 		require.NotNil(t, drafts)
 		require.Len(t, drafts, 4)
@@ -271,7 +271,7 @@ func TestGetPageDraftsForWiki(t *testing.T) {
 		createdEmptyWiki, err := th.App.CreateWiki(th.Context, emptyWiki, th.BasicUser.Id)
 		require.Nil(t, err)
 
-		drafts, appErr := th.App.GetPageDraftsForWiki(th.Context, th.BasicUser.Id, createdEmptyWiki.Id, 0, 200)
+		drafts, appErr := th.App.GetPageDraftsForWiki(th.Context, th.BasicUser.Id, createdEmptyWiki.Id, 0, 200, nil, nil)
 		require.Nil(t, appErr)
 		require.NotNil(t, drafts)
 		require.Len(t, drafts, 1)
@@ -295,7 +295,7 @@ func TestGetPageDraftsForWiki(t *testing.T) {
 		_, appErr := th.App.SavePageDraftWithMetadata(th.Context, otherUser.Id, createdWiki3.Id, otherPageId, validContent, "Other Draft", 0, nil)
 		require.Nil(t, appErr)
 
-		basicUserDrafts, appErr := th.App.GetPageDraftsForWiki(th.Context, th.BasicUser.Id, createdWiki3.Id, 0, 200)
+		basicUserDrafts, appErr := th.App.GetPageDraftsForWiki(th.Context, th.BasicUser.Id, createdWiki3.Id, 0, 200, nil, nil)
 		require.Nil(t, appErr)
 
 		for _, draft := range basicUserDrafts {
@@ -303,14 +303,14 @@ func TestGetPageDraftsForWiki(t *testing.T) {
 			require.NotEqual(t, otherPageId, draft.PageId)
 		}
 
-		otherUserDrafts, appErr := th.App.GetPageDraftsForWiki(th.Context, otherUser.Id, createdWiki3.Id, 0, 200)
+		otherUserDrafts, appErr := th.App.GetPageDraftsForWiki(th.Context, otherUser.Id, createdWiki3.Id, 0, 200, nil, nil)
 		require.Nil(t, appErr)
 		require.Len(t, otherUserDrafts, 1)
 		require.Equal(t, otherPageId, otherUserDrafts[0].PageId)
 	})
 
 	t.Run("fails with non-existent wiki", func(t *testing.T) {
-		drafts, appErr := th.App.GetPageDraftsForWiki(th.Context, th.BasicUser.Id, model.NewId(), 0, 200)
+		drafts, appErr := th.App.GetPageDraftsForWiki(th.Context, th.BasicUser.Id, model.NewId(), 0, 200, nil, nil)
 		require.NotNil(t, appErr)
 		require.Nil(t, drafts)
 		require.Equal(t, "app.draft.get_wiki_drafts.wiki_not_found.app_error", appErr.Id)
@@ -340,7 +340,7 @@ func TestGetPageDraftsForWiki(t *testing.T) {
 		err = th.App.DeleteChannel(th.Context, archivedChannel, th.BasicUser.Id)
 		require.Nil(t, err)
 
-		drafts, appErr := th.App.GetPageDraftsForWiki(th.Context, th.BasicUser.Id, createdArchivedWiki.Id, 0, 200)
+		drafts, appErr := th.App.GetPageDraftsForWiki(th.Context, th.BasicUser.Id, createdArchivedWiki.Id, 0, 200, nil, nil)
 		require.NotNil(t, appErr)
 		require.Nil(t, drafts)
 		require.Equal(t, "app.draft.get_wiki_drafts.deleted_channel.app_error", appErr.Id)
@@ -412,7 +412,7 @@ func TestUpsertPageDraft(t *testing.T) {
 		pageId := model.NewId()
 		content := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Draft content"}]}]}`
 
-		draft, appErr := th.App.UpsertPageDraft(rctx, th.BasicUser.Id, createdWiki.Id, pageId, content, "New Draft", 0, nil)
+		draft, appErr := th.App.UpsertPageDraft(rctx, th.BasicUser.Id, createdWiki.Id, pageId, content, "New Draft", 0, nil, nil, nil)
 		require.Nil(t, appErr)
 		require.NotNil(t, draft)
 		require.Equal(t, "New Draft", draft.Title)
@@ -423,13 +423,13 @@ func TestUpsertPageDraft(t *testing.T) {
 		pageId := model.NewId()
 		content := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Initial"}]}]}`
 
-		draft, appErr := th.App.UpsertPageDraft(rctx, th.BasicUser.Id, createdWiki.Id, pageId, content, "Initial Title", 0, nil)
+		draft, appErr := th.App.UpsertPageDraft(rctx, th.BasicUser.Id, createdWiki.Id, pageId, content, "Initial Title", 0, nil, nil, nil)
 		require.Nil(t, appErr)
 
 		updateAt := draft.UpdateAt
 		updatedContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Updated"}]}]}`
 
-		updatedDraft, appErr := th.App.UpsertPageDraft(rctx, th.BasicUser.Id, createdWiki.Id, pageId, updatedContent, "Updated Title", updateAt, nil)
+		updatedDraft, appErr := th.App.UpsertPageDraft(rctx, th.BasicUser.Id, createdWiki.Id, pageId, updatedContent, "Updated Title", updateAt, nil, nil, nil)
 		require.Nil(t, appErr)
 		require.NotNil(t, updatedDraft)
 		require.Equal(t, "Updated Title", updatedDraft.Title)
@@ -443,7 +443,7 @@ func TestUpsertPageDraft(t *testing.T) {
 		content := `{"type":"doc","content":[]}`
 		props := map[string]any{model.DraftPropsPageParentID: parentPage.Id}
 
-		draft, appErr := th.App.UpsertPageDraft(rctx, th.BasicUser.Id, createdWiki.Id, pageId, content, "Child Draft", 0, props)
+		draft, appErr := th.App.UpsertPageDraft(rctx, th.BasicUser.Id, createdWiki.Id, pageId, content, "Child Draft", 0, props, nil, nil)
 		require.Nil(t, appErr)
 		require.NotNil(t, draft)
 		require.Equal(t, parentPage.Id, draft.Props[model.DraftPropsPageParentID])
@@ -470,14 +470,14 @@ func TestMovePageDraft(t *testing.T) {
 
 		pageId := model.NewId()
 		content := `{"type":"doc","content":[]}`
-		_, appErr = th.App.UpsertPageDraft(rctx, th.BasicUser.Id, createdWiki.Id, pageId, content, "Draft to Move", 0, nil)
+		_, appErr = th.App.UpsertPageDraft(rctx, th.BasicUser.Id, createdWiki.Id, pageId, content, "Draft to Move", 0, nil, nil, nil)
 		require.Nil(t, appErr)
 
 		appErr = th.App.MovePageDraft(rctx, th.BasicUser.Id, createdWiki.Id, pageId, parentPage.Id)
 		require.Nil(t, appErr)
 
 		// Verify the draft was updated
-		draft, appErr := th.App.GetPageDraft(rctx, th.BasicUser.Id, createdWiki.Id, pageId)
+		draft, appErr := th.App.GetPageDraft(rctx, th.BasicUser.Id, createdWiki.Id, pageId, false)
 		require.Nil(t, appErr)
 		require.Equal(t, parentPage.Id, draft.Props[model.DraftPropsPageParentID])
 	})
@@ -489,14 +489,14 @@ func TestMovePageDraft(t *testing.T) {
 		pageId := model.NewId()
 		content := `{"type":"doc","content":[]}`
 		props := map[string]any{model.DraftPropsPageParentID: parentPage.Id}
-		_, appErr = th.App.UpsertPageDraft(rctx, th.BasicUser.Id, createdWiki.Id, pageId, content, "Draft with Parent", 0, props)
+		_, appErr = th.App.UpsertPageDraft(rctx, th.BasicUser.Id, createdWiki.Id, pageId, content, "Draft with Parent", 0, props, nil, nil)
 		require.Nil(t, appErr)
 
 		appErr = th.App.MovePageDraft(rctx, th.BasicUser.Id, createdWiki.Id, pageId, "")
 		require.Nil(t, appErr)
 
 		// Verify the draft was moved to root
-		draft, appErr := th.App.GetPageDraft(rctx, th.BasicUser.Id, createdWiki.Id, pageId)
+		draft, appErr := th.App.GetPageDraft(rctx, th.BasicUser.Id, createdWiki.Id, pageId, false)
 		require.Nil(t, appErr)
 		require.Empty(t, draft.Props[model.DraftPropsPageParentID])
 	})

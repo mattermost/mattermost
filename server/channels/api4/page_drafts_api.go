@@ -24,7 +24,7 @@ func getPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pageDraft, appErr := c.App.GetPageDraft(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId, c.Params.PageId)
+	pageDraft, appErr := c.App.GetPageDraft(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId, c.Params.PageId, true)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -131,7 +131,7 @@ func deletePageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Explicit ownership validation before delete
-	pageDraft, appErr := c.App.GetPageDraft(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId, c.Params.PageId)
+	pageDraft, appErr := c.App.GetPageDraft(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId, c.Params.PageId, true)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -170,7 +170,7 @@ func movePageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Explicit ownership validation before move
-	pageDraft, appErr := c.App.GetPageDraft(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId, c.Params.PageId)
+	pageDraft, appErr := c.App.GetPageDraft(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId, c.Params.PageId, true)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -215,11 +215,12 @@ func getPageDraftsForWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, _, ok := c.GetWikiForRead(); !ok {
+	wiki, channel, ok := c.GetWikiForRead()
+	if !ok {
 		return
 	}
 
-	pageDrafts, appErr := c.App.GetPageDraftsForWiki(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId, c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+	pageDrafts, appErr := c.App.GetPageDraftsForWiki(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId, c.Params.Page*c.Params.PerPage, c.Params.PerPage, wiki, channel)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -358,7 +359,7 @@ func publishPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Explicit ownership validation before publish
-	pageDraft, appErr := c.App.GetPageDraft(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId, c.Params.PageId)
+	pageDraft, appErr := c.App.GetPageDraft(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId, c.Params.PageId, true)
 	if appErr != nil {
 		c.Err = appErr
 		return

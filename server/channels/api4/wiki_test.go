@@ -187,7 +187,7 @@ func TestListChannelWikis(t *testing.T) {
 	})
 
 	t.Run("list excludes deleted wikis by default", func(t *testing.T) {
-		appErr := th.App.DeleteWiki(th.Context, wiki1.Id, th.BasicUser.Id)
+		appErr := th.App.DeleteWiki(th.Context, wiki1.Id, th.BasicUser.Id, nil)
 		require.Nil(t, appErr)
 
 		wikis, resp, err := th.Client.GetWikisForChannel(context.Background(), th.BasicChannel.Id)
@@ -367,7 +367,7 @@ func TestGetPages(t *testing.T) {
 	page1, _, appErr = th.App.CreatePost(th.Context, page1, th.BasicChannel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
 
-	appErr = th.App.AddPageToWiki(th.Context, page1.Id, wiki.Id)
+	appErr = th.App.AddPageToWiki(th.Context, page1.Id, wiki.Id, nil)
 	require.Nil(t, appErr)
 
 	page2 := &model.Post{
@@ -379,7 +379,7 @@ func TestGetPages(t *testing.T) {
 	page2, _, appErr = th.App.CreatePost(th.Context, page2, th.BasicChannel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
 
-	appErr = th.App.AddPageToWiki(th.Context, page2.Id, wiki.Id)
+	appErr = th.App.AddPageToWiki(th.Context, page2.Id, wiki.Id, nil)
 	require.Nil(t, appErr)
 
 	t.Run("get pages successfully", func(t *testing.T) {
@@ -503,7 +503,7 @@ func TestCrossChannelAccess(t *testing.T) {
 		pageInChannel1, _, appErr = th.App.CreatePost(th.Context, pageInChannel1, channel1, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 
-		appErr = th.App.AddPageToWiki(th.Context, pageInChannel1.Id, wiki2.Id)
+		appErr = th.App.AddPageToWiki(th.Context, pageInChannel1.Id, wiki2.Id, nil)
 		require.NotNil(t, appErr)
 		require.Equal(t, "app.wiki.add.channel_mismatch", appErr.Id)
 	})
@@ -736,7 +736,7 @@ func TestWikiPermissions(t *testing.T) {
 		page, _, appErr = th.App.CreatePost(th.Context, page, publicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 
-		appErr = th.App.AddPageToWiki(th.Context, page.Id, wiki.Id)
+		appErr = th.App.AddPageToWiki(th.Context, page.Id, wiki.Id, nil)
 		require.Nil(t, appErr)
 
 		th.RemovePermissionFromRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
@@ -771,7 +771,7 @@ func TestWikiPermissions(t *testing.T) {
 		page, _, appErr = th.App.CreatePost(th.Context, page, publicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 
-		appErr = th.App.AddPageToWiki(th.Context, page.Id, wiki.Id)
+		appErr = th.App.AddPageToWiki(th.Context, page.Id, wiki.Id, nil)
 		require.Nil(t, appErr)
 
 		pages, resp, err := th.Client.GetPages(context.Background(), wiki.Id, 0, 100)
@@ -835,7 +835,7 @@ func TestPageDraftToPublishE2E(t *testing.T) {
 		require.Equal(t, pageId, savedDraft.PageId)
 		require.Equal(t, draftTitle, savedDraft.Title)
 
-		retrievedDraft, appErr := th.App.GetPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, pageId)
+		retrievedDraft, appErr := th.App.GetPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, pageId, false)
 		require.Nil(t, appErr)
 		retrievedContent, _ := retrievedDraft.GetDocumentJSON()
 		assert.JSONEq(t, draftMessage, retrievedContent)
@@ -860,7 +860,7 @@ func TestPageDraftToPublishE2E(t *testing.T) {
 		require.Equal(t, th.BasicChannel.Id, publishedPage.ChannelId)
 		require.Equal(t, pageTitle, publishedPage.Props["title"])
 
-		_, appErr = th.App.GetPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, pageId)
+		_, appErr = th.App.GetPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, pageId, false)
 		require.NotNil(t, appErr)
 		require.Equal(t, "app.draft.get_page_draft.not_found", appErr.Id)
 
@@ -1290,10 +1290,10 @@ func TestPageCommentsE2E(t *testing.T) {
 			"text":      "test anchor text",
 			"anchor_id": model.NewId(),
 		}
-		inlineComment1, appErr := th.App.CreatePageComment(th.Context, page.Id, "Inline comment should appear in feed", inlineAnchor)
+		inlineComment1, appErr := th.App.CreatePageComment(th.Context, page.Id, "Inline comment should appear in feed", inlineAnchor, "", nil, nil)
 		require.Nil(t, appErr)
 
-		inlineComment2, appErr := th.App.CreatePageComment(th.Context, page.Id, "Another inline comment", inlineAnchor)
+		inlineComment2, appErr := th.App.CreatePageComment(th.Context, page.Id, "Another inline comment", inlineAnchor, "", nil, nil)
 		require.Nil(t, appErr)
 
 		channelPosts, resp, err := th.Client.GetPostsForChannel(context.Background(), th.BasicChannel.Id, 0, 100, "", false, false)
@@ -1360,7 +1360,7 @@ func TestPageCommentsE2E(t *testing.T) {
 			"text":      "search test anchor text",
 			"anchor_id": model.NewId(),
 		}
-		_, appErr := th.App.CreatePageComment(th.Context, page.Id, "Unique search term: xyzabc123", inlineAnchor)
+		_, appErr := th.App.CreatePageComment(th.Context, page.Id, "Unique search term: xyzabc123", inlineAnchor, "", nil, nil)
 		require.Nil(t, appErr)
 
 		regularPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
@@ -2779,9 +2779,9 @@ func TestResolvePageComment(t *testing.T) {
 	wiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 	require.Nil(t, appErr)
 
-	pageContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Test Page Content"}]}]}`
-	page, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", pageContent, th.BasicUser.Id, "", "")
-	require.Nil(t, appErr)
+	page, resp, err := th.Client.CreatePage(context.Background(), wiki.Id, "", "Test Page")
+	require.NoError(t, err)
+	CheckCreatedStatus(t, resp)
 
 	comment := &model.Post{
 		ChannelId: th.BasicChannel.Id,

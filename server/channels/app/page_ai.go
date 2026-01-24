@@ -663,24 +663,43 @@ func (a *App) SummarizeThreadToPage(rctx request.CTX, agentID, threadID, wikiID,
 
 // buildConversationText formats posts into a readable conversation string for AI summarization
 func (a *App) buildConversationText(rctx request.CTX, postList *model.PostList) string {
-	var sb strings.Builder
-
+	// Collect unique user IDs to batch fetch
+	userIDsMap := make(map[string]bool)
 	for _, postID := range postList.Order {
 		post := postList.Posts[postID]
-		if post == nil {
+		if post == nil || post.IsSystemMessage() {
+			continue
+		}
+		userIDsMap[post.UserId] = true
+	}
+
+	// Batch fetch all users at once (avoids N+1 queries)
+	userIDs := make([]string, 0, len(userIDsMap))
+	for id := range userIDsMap {
+		userIDs = append(userIDs, id)
+	}
+
+	usernameMap := make(map[string]string)
+	if len(userIDs) > 0 {
+		users, err := a.Srv().Store().User().GetProfileByIds(rctx, userIDs, nil, false)
+		if err == nil {
+			for _, user := range users {
+				usernameMap[user.Id] = user.Username
+			}
+		}
+	}
+
+	var sb strings.Builder
+	for _, postID := range postList.Order {
+		post := postList.Posts[postID]
+		if post == nil || post.IsSystemMessage() {
 			continue
 		}
 
-		// Skip system messages
-		if post.IsSystemMessage() {
-			continue
-		}
-
-		// Get username
+		// Get username from pre-fetched map
 		username := post.UserId
-		user, err := a.GetUser(post.UserId)
-		if err == nil && user != nil {
-			username = user.Username
+		if name, ok := usernameMap[post.UserId]; ok {
+			username = name
 		}
 
 		// Format: @username: message

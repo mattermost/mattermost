@@ -118,12 +118,12 @@ func TestGetPageVersionHistory(t *testing.T) {
 
 		// Make first edit
 		content1 := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"First edit"}]}]}`
-		_, appErr = th.App.UpdatePage(rctx, page, "Title After Edit 1", content1, "First edit")
+		_, appErr = th.App.UpdatePage(rctx, page, "Title After Edit 1", content1, "First edit", nil)
 		require.Nil(t, appErr)
 
 		// Make second edit
 		content2 := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Second edit"}]}]}`
-		_, appErr = th.App.UpdatePage(rctx, page, "Title After Edit 2", content2, "Second edit")
+		_, appErr = th.App.UpdatePage(rctx, page, "Title After Edit 2", content2, "Second edit", nil)
 		require.Nil(t, appErr)
 
 		// Get version history
@@ -172,7 +172,7 @@ func TestGetPageVersionHistory(t *testing.T) {
 		// Make multiple edits to create history
 		for i := range 5 {
 			content := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Edit ` + string(rune('A'+i)) + `"}]}]}`
-			_, appErr = th.App.UpdatePage(rctx, page, "Title "+string(rune('A'+i)), content, "Edit "+string(rune('A'+i)))
+			_, appErr = th.App.UpdatePage(rctx, page, "Title "+string(rune('A'+i)), content, "Edit "+string(rune('A'+i)), nil)
 			require.Nil(t, appErr)
 		}
 
@@ -202,7 +202,7 @@ func TestGetPageVersionHistory(t *testing.T) {
 
 		// Make an edit
 		newContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Updated content"}]}]}`
-		_, appErr = th.App.UpdatePage(rctx, page, "Updated Title", newContent, "Updated content")
+		_, appErr = th.App.UpdatePage(rctx, page, "Updated Title", newContent, "Updated content", nil)
 		require.Nil(t, appErr)
 
 		// Get version history
@@ -236,7 +236,7 @@ func TestRestorePageVersion(t *testing.T) {
 
 		// Make an edit
 		newContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Modified content"}]}]}`
-		_, appErr = th.App.UpdatePage(rctx, page, "Modified Title", newContent, "Modified content")
+		_, appErr = th.App.UpdatePage(rctx, page, "Modified Title", newContent, "Modified content", nil)
 		require.Nil(t, appErr)
 
 		// Get version history
@@ -268,7 +268,7 @@ func TestRestorePageVersion(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Make an edit
-		_, appErr = th.App.UpdatePage(rctx, page, "Updated Title", "", "")
+		_, appErr = th.App.UpdatePage(rctx, page, "Updated Title", "", "", nil)
 		require.Nil(t, appErr)
 
 		// Get version history
@@ -292,7 +292,7 @@ func TestRestorePageVersion(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Make an edit to ensure some history exists
-		_, appErr = th.App.UpdatePage(rctx, page, "Updated", "", "")
+		_, appErr = th.App.UpdatePage(rctx, page, "Updated", "", "", nil)
 		require.Nil(t, appErr)
 
 		// Create a fake post version that doesn't exist in PageContents
@@ -314,9 +314,9 @@ func TestRestorePageVersion(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Make multiple edits
-		_, appErr = th.App.UpdatePage(rctx, page, "Second Title", "", "")
+		_, appErr = th.App.UpdatePage(rctx, page, "Second Title", "", "", nil)
 		require.Nil(t, appErr)
-		_, appErr = th.App.UpdatePage(rctx, page, "Third Title", "", "")
+		_, appErr = th.App.UpdatePage(rctx, page, "Third Title", "", "", nil)
 		require.Nil(t, appErr)
 
 		// Get version history

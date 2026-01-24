@@ -67,11 +67,13 @@ func getWikiPage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// GetPageWithContent loads page content and metadata in one call
-	// and performs permission check internally
 	page, appErr := c.App.GetPageWithContent(c.AppContext, c.Params.PageId)
 	if appErr != nil {
 		c.Err = appErr
+		return
+	}
+
+	if !c.CheckPagePermission(page, app.PageOperationRead) {
 		return
 	}
 
@@ -108,12 +110,12 @@ func deletePage(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("wiki_id", c.Params.WikiId)
 	auditRec.AddMeta("page_id", c.Params.PageId)
 
-	wiki, page, ok := c.GetPageForModify(app.PageOperationDelete, "deletePage")
+	wiki, page, channel, ok := c.GetPageForModify(app.PageOperationDelete, "deletePage")
 	if !ok {
 		return
 	}
 
-	if appErr := c.App.DeleteWikiPage(c.AppContext, page, c.Params.WikiId); appErr != nil {
+	if appErr := c.App.DeleteWikiPage(c.AppContext, page, c.Params.WikiId, wiki, channel); appErr != nil {
 		c.Err = appErr
 		return
 	}
@@ -273,12 +275,12 @@ func updatePage(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("wiki_id", c.Params.WikiId)
 	auditRec.AddMeta("page_id", c.Params.PageId)
 
-	_, page, ok := c.GetPageForModify(app.PageOperationEdit, "updatePage")
+	_, page, channel, ok := c.GetPageForModify(app.PageOperationEdit, "updatePage")
 	if !ok {
 		return
 	}
 
-	updatedPage, appErr := c.App.UpdatePage(c.AppContext, page, req.Title, req.Content, req.SearchText)
+	updatedPage, appErr := c.App.UpdatePage(c.AppContext, page, req.Title, req.Content, req.SearchText, channel)
 	if appErr != nil {
 		c.Err = appErr
 		return

@@ -11,33 +11,43 @@ import (
 
 const twoHoursInMilliseconds = int64(2 * 60 * 60 * 1000)
 
-func (a *App) handlePageUpdateNotification(rctx request.CTX, page *model.Post, userId string) {
-	wikiId, _ := page.Props[model.PagePropsWikiID].(string)
-	if wikiId == "" {
-		var err *model.AppError
-		wikiId, err = a.GetWikiIdForPage(rctx, page.Id)
-		if err != nil {
-			rctx.Logger().Warn("Failed to get wiki for page update notification",
-				mlog.String("page_id", page.Id),
-				mlog.Err(err))
+// handlePageUpdateNotification handles creating or updating page update notifications.
+// wiki and channel are optional - if provided, avoids DB fetches.
+func (a *App) handlePageUpdateNotification(rctx request.CTX, page *model.Post, userId string, wiki *model.Wiki, channel *model.Channel) {
+	// Use provided wiki or fetch if not provided
+	if wiki == nil {
+		wikiId, _ := page.Props[model.PagePropsWikiID].(string)
+		if wikiId == "" {
+			var err *model.AppError
+			wikiId, err = a.GetWikiIdForPost(rctx, page)
+			if err != nil {
+				rctx.Logger().Warn("Failed to get wiki for page update notification",
+					mlog.String("page_id", page.Id),
+					mlog.Err(err))
+				return
+			}
+		}
+
+		var wikiErr *model.AppError
+		wiki, wikiErr = a.GetWiki(rctx, wikiId)
+		if wikiErr != nil {
+			rctx.Logger().Warn("Failed to get wiki details for page update notification",
+				mlog.String("wiki_id", wikiId),
+				mlog.Err(wikiErr))
 			return
 		}
 	}
 
-	wiki, wikiErr := a.GetWiki(rctx, wikiId)
-	if wikiErr != nil {
-		rctx.Logger().Warn("Failed to get wiki details for page update notification",
-			mlog.String("wiki_id", wikiId),
-			mlog.Err(wikiErr))
-		return
-	}
-
-	channel, chanErr := a.GetChannel(rctx, page.ChannelId)
-	if chanErr != nil {
-		rctx.Logger().Warn("Failed to get channel for page update notification",
-			mlog.String("channel_id", page.ChannelId),
-			mlog.Err(chanErr))
-		return
+	// Use provided channel or fetch if not provided
+	if channel == nil {
+		var chanErr *model.AppError
+		channel, chanErr = a.GetChannel(rctx, page.ChannelId)
+		if chanErr != nil {
+			rctx.Logger().Warn("Failed to get channel for page update notification",
+				mlog.String("channel_id", page.ChannelId),
+				mlog.Err(chanErr))
+			return
+		}
 	}
 
 	twoHoursAgo := model.GetMillis() - twoHoursInMilliseconds

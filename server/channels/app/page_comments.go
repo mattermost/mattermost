@@ -84,37 +84,53 @@ func (a *App) GetPageComments(rctx request.CTX, pageID string, offset, limit int
 	return comments, nil
 }
 
-// CreatePageComment creates a top-level comment on a page
-func (a *App) CreatePageComment(rctx request.CTX, pageID, message string, inlineAnchor map[string]any) (*model.Post, *model.AppError) {
+// CreatePageComment creates a top-level comment on a page.
+// wikiID is optional - if empty, it will be fetched from the page's property values.
+// page and channel are optional - if provided, avoids DB fetches.
+func (a *App) CreatePageComment(rctx request.CTX, pageID, message string, inlineAnchor map[string]any, wikiID string, page *model.Post, channel *model.Channel) (*model.Post, *model.AppError) {
 	if strings.TrimSpace(message) == "" {
 		return nil, model.NewAppError("CreatePageComment",
 			"app.page.create_comment.empty_message.app_error",
 			nil, "message cannot be empty", http.StatusBadRequest)
 	}
 
-	page, err := a.GetPage(rctx, pageID)
-	if err != nil {
-		if err.Id == "app.page.get.not_a_page.app_error" {
+	// Use provided page or fetch if not provided
+	if page == nil {
+		var err *model.AppError
+		page, err = a.GetPage(rctx, pageID)
+		if err != nil {
+			if err.Id == "app.page.get.not_a_page.app_error" {
+				return nil, model.NewAppError("CreatePageComment",
+					"app.page.create_comment.not_a_page.app_error",
+					nil, "", http.StatusBadRequest).Wrap(err)
+			}
 			return nil, model.NewAppError("CreatePageComment",
-				"app.page.create_comment.not_a_page.app_error",
-				nil, "", http.StatusBadRequest).Wrap(err)
+				"app.page.create_comment.page_not_found.app_error",
+				nil, "", http.StatusNotFound).Wrap(err)
 		}
-		return nil, model.NewAppError("CreatePageComment",
-			"app.page.create_comment.page_not_found.app_error",
-			nil, "", http.StatusNotFound).Wrap(err)
 	}
 
-	channel, chanErr := a.GetChannel(rctx, page.ChannelId)
-	if chanErr != nil {
-		return nil, chanErr
+	// Use provided channel or fetch if not provided
+	if channel == nil {
+		var chanErr *model.AppError
+		channel, chanErr = a.GetChannel(rctx, page.ChannelId)
+		if chanErr != nil {
+			return nil, chanErr
+		}
 	}
 
 	props := model.StringInterface{
 		model.PagePropsPageID: pageID,
 	}
 
-	wikiID, wikiErr := a.GetWikiIdForPage(rctx, pageID)
-	if wikiErr == nil && wikiID != "" {
+	// Use provided wikiID or fetch if not provided
+	if wikiID == "" {
+		fetchedWikiID, wikiErr := a.GetWikiIdForPost(rctx, page)
+		if wikiErr == nil && fetchedWikiID != "" {
+			wikiID = fetchedWikiID
+		}
+	}
+	if wikiID != "" {
 		props[model.PagePropsWikiID] = wikiID
 	}
 
@@ -148,19 +164,25 @@ func (a *App) CreatePageComment(rctx request.CTX, pageID, message string, inline
 	return createdComment, nil
 }
 
-// CreatePageCommentReply creates a reply to a page comment (one level of nesting only)
-func (a *App) CreatePageCommentReply(rctx request.CTX, pageID, parentCommentID, message string) (*model.Post, *model.AppError) {
+// CreatePageCommentReply creates a reply to a page comment (one level of nesting only).
+// wikiID is optional - if empty, it will be fetched from the page's property values.
+// page and channel are optional - if provided, avoids DB fetches.
+func (a *App) CreatePageCommentReply(rctx request.CTX, pageID, parentCommentID, message string, wikiID string, page *model.Post, channel *model.Channel) (*model.Post, *model.AppError) {
 	if strings.TrimSpace(message) == "" {
 		return nil, model.NewAppError("CreatePageCommentReply",
 			"app.page.create_comment_reply.empty_message.app_error",
 			nil, "message cannot be empty", http.StatusBadRequest)
 	}
 
-	page, err := a.GetPage(rctx, pageID)
-	if err != nil {
-		return nil, model.NewAppError("CreatePageCommentReply",
-			"app.page.create_comment_reply.page_not_found.app_error",
-			nil, "", http.StatusNotFound).Wrap(err)
+	// Use provided page or fetch if not provided
+	if page == nil {
+		var err *model.AppError
+		page, err = a.GetPage(rctx, pageID)
+		if err != nil {
+			return nil, model.NewAppError("CreatePageCommentReply",
+				"app.page.create_comment_reply.page_not_found.app_error",
+				nil, "", http.StatusNotFound).Wrap(err)
+		}
 	}
 
 	parentComment, err := a.GetSinglePost(rctx, parentCommentID, false)
@@ -189,9 +211,13 @@ func (a *App) CreatePageCommentReply(rctx request.CTX, pageID, parentCommentID, 
 			nil, "Can only reply to top-level comments", http.StatusBadRequest)
 	}
 
-	channel, chanErr := a.GetChannel(rctx, page.ChannelId)
-	if chanErr != nil {
-		return nil, chanErr
+	// Use provided channel or fetch if not provided
+	if channel == nil {
+		var chanErr *model.AppError
+		channel, chanErr = a.GetChannel(rctx, page.ChannelId)
+		if chanErr != nil {
+			return nil, chanErr
+		}
 	}
 
 	rootID := pageID
@@ -204,8 +230,14 @@ func (a *App) CreatePageCommentReply(rctx request.CTX, pageID, parentCommentID, 
 		model.PagePropsParentCommentID: parentCommentID,
 	}
 
-	wikiID, wikiErr := a.GetWikiIdForPage(rctx, pageID)
-	if wikiErr == nil && wikiID != "" {
+	// Use provided wikiID or fetch if not provided
+	if wikiID == "" {
+		fetchedWikiID, wikiErr := a.GetWikiIdForPost(rctx, page)
+		if wikiErr == nil && fetchedWikiID != "" {
+			wikiID = fetchedWikiID
+		}
+	}
+	if wikiID != "" {
 		replyProps[model.PagePropsWikiID] = wikiID
 	}
 
@@ -273,14 +305,20 @@ func (a *App) TransformPageCommentReply(rctx request.CTX, post *model.Post, pare
 	return true
 }
 
-func (a *App) CanResolvePageComment(rctx request.CTX, session *model.Session, comment *model.Post, pageId string) bool {
+// CanResolvePageComment checks if the user can resolve a comment.
+// page is optional - if provided, avoids a DB fetch.
+func (a *App) CanResolvePageComment(rctx request.CTX, session *model.Session, comment *model.Post, pageId string, page *model.Post) bool {
 	if comment.UserId == session.UserId {
 		return true
 	}
 
-	page, err := a.GetSinglePost(rctx, pageId, false)
-	if err != nil {
-		return false
+	// Use provided page or fetch if not provided
+	if page == nil {
+		var err *model.AppError
+		page, err = a.GetSinglePost(rctx, pageId, false)
+		if err != nil {
+			return false
+		}
 	}
 
 	if page.UserId == session.UserId {
@@ -295,7 +333,9 @@ func (a *App) CanResolvePageComment(rctx request.CTX, session *model.Session, co
 	return member.SchemeAdmin
 }
 
-func (a *App) ResolvePageComment(rctx request.CTX, comment *model.Post, userId string) (*model.Post, *model.AppError) {
+// ResolvePageComment marks a comment as resolved.
+// page and channel are optional - if provided, they're used for WebSocket events without extra DB fetches.
+func (a *App) ResolvePageComment(rctx request.CTX, comment *model.Post, userId string, page *model.Post, channel *model.Channel) (*model.Post, *model.AppError) {
 	props := comment.GetProps()
 	if resolved, ok := props[model.PagePropsCommentResolved].(bool); ok && resolved {
 		return comment, nil
@@ -307,7 +347,7 @@ func (a *App) ResolvePageComment(rctx request.CTX, comment *model.Post, userId s
 	newProps[model.PagePropsCommentResolved] = true
 	newProps[model.PagePropsResolvedAt] = model.GetMillis()
 	newProps[model.PagePropsResolvedBy] = userId
-	newProps["resolution_reason"] = "manual"
+	newProps[model.PagePropsResolutionReason] = model.PageResolutionReasonManual
 	comment.SetProps(newProps)
 
 	updatedComment, _, updateErr := a.UpdatePost(rctx, comment, &model.UpdatePostOptions{})
@@ -315,23 +355,28 @@ func (a *App) ResolvePageComment(rctx request.CTX, comment *model.Post, userId s
 		return nil, updateErr
 	}
 
-	pageId, ok := comment.Props[model.PagePropsPageID].(string)
-	if !ok || pageId == "" {
-		return updatedComment, nil
-	}
-
-	page, pageErr := a.GetSinglePost(rctx, pageId, false)
-	if pageErr == nil {
-		channel, channelErr := a.GetChannel(rctx, page.ChannelId)
-		if channelErr == nil {
-			a.SendCommentResolvedEvent(rctx, updatedComment, page, channel)
+	// Send WebSocket event - use provided page/channel or fetch if not provided
+	if page != nil && channel != nil {
+		a.SendCommentResolvedEvent(rctx, updatedComment, page, channel)
+	} else {
+		pageId, ok := comment.Props[model.PagePropsPageID].(string)
+		if ok && pageId != "" {
+			fetchedPage, pageErr := a.GetSinglePost(rctx, pageId, false)
+			if pageErr == nil {
+				fetchedChannel, channelErr := a.GetChannel(rctx, fetchedPage.ChannelId)
+				if channelErr == nil {
+					a.SendCommentResolvedEvent(rctx, updatedComment, fetchedPage, fetchedChannel)
+				}
+			}
 		}
 	}
 
 	return updatedComment, nil
 }
 
-func (a *App) UnresolvePageComment(rctx request.CTX, comment *model.Post) (*model.Post, *model.AppError) {
+// UnresolvePageComment marks a comment as unresolved.
+// page and channel are optional - if provided, they're used for WebSocket events without extra DB fetches.
+func (a *App) UnresolvePageComment(rctx request.CTX, comment *model.Post, page *model.Post, channel *model.Channel) (*model.Post, *model.AppError) {
 	props := comment.GetProps()
 	newProps := make(model.StringInterface)
 	maps.Copy(newProps, props)
@@ -347,16 +392,19 @@ func (a *App) UnresolvePageComment(rctx request.CTX, comment *model.Post) (*mode
 		return nil, updateErr
 	}
 
-	pageId, ok := comment.Props[model.PagePropsPageID].(string)
-	if !ok || pageId == "" {
-		return updatedComment, nil
-	}
-
-	page, pageErr := a.GetSinglePost(rctx, pageId, false)
-	if pageErr == nil {
-		channel, channelErr := a.GetChannel(rctx, page.ChannelId)
-		if channelErr == nil {
-			a.SendCommentUnresolvedEvent(rctx, updatedComment, page, channel)
+	// Send WebSocket event - use provided page/channel or fetch if not provided
+	if page != nil && channel != nil {
+		a.SendCommentUnresolvedEvent(rctx, updatedComment, page, channel)
+	} else {
+		pageId, ok := comment.Props[model.PagePropsPageID].(string)
+		if ok && pageId != "" {
+			fetchedPage, pageErr := a.GetSinglePost(rctx, pageId, false)
+			if pageErr == nil {
+				fetchedChannel, channelErr := a.GetChannel(rctx, fetchedPage.ChannelId)
+				if channelErr == nil {
+					a.SendCommentUnresolvedEvent(rctx, updatedComment, fetchedPage, fetchedChannel)
+				}
+			}
 		}
 	}
 
