@@ -10,6 +10,7 @@ export type Draft = {
     user_id: string;
     channel_id: string;
     wiki_id?: string;
+    page_id?: string;
     root_id: string;
     message: string;
     type?: PostType;

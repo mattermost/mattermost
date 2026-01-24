@@ -107,7 +107,8 @@ const AllWikiThreads = ({wikiId, onThreadClick}: Props) => {
                 return;
             }
 
-            const post = JSON.parse(msg.data.comment);
+            const data = msg.data as {comment: string; page_id: string};
+            const post = JSON.parse(data.comment);
 
             // Check if it's an inline comment for a page in this wiki
             if (pageInlineCommentHasAnchor(post) && post.props?.page_id) {

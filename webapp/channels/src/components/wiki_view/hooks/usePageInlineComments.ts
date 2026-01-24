@@ -120,11 +120,12 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
                 return;
             }
 
-            if (msg.data.page_id !== pageId) {
+            const data = msg.data as {page_id: string; comment: string};
+            if (data.page_id !== pageId) {
                 return;
             }
 
-            const post = JSON.parse(msg.data.comment);
+            const post = JSON.parse(data.comment);
 
             // Only add if it's an inline comment and not resolved (Confluence behavior: no highlight for resolved comments)
             if (pageInlineCommentHasAnchor(post) && !post.props?.comment_resolved) {
@@ -147,10 +148,12 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
         }
 
         const handleCommentUpdate = (msg: WebSocketMessage) => {
+            const data = msg.data as {comment_id?: string; page_id?: string} | undefined;
+
             // Handle comment resolution - removes highlight
             if (msg.event === SocketEvents.PAGE_COMMENT_RESOLVED) {
-                const commentId = msg.data?.comment_id;
-                const eventPageId = msg.data?.page_id;
+                const commentId = data?.comment_id;
+                const eventPageId = data?.page_id;
 
                 if (commentId && eventPageId === pageId) {
                     setInlineComments((prev) => prev.filter((comment) => comment.id !== commentId));
@@ -160,7 +163,7 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
 
             // Handle comment unresolve - adds highlight back
             if (msg.event === SocketEvents.PAGE_COMMENT_UNRESOLVED) {
-                const eventPageId = msg.data?.page_id;
+                const eventPageId = data?.page_id;
 
                 if (eventPageId === pageId) {
                     fetchInlineComments(true);
@@ -170,8 +173,8 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
 
             // Handle comment deletion - removes highlight and mark
             if (msg.event === SocketEvents.PAGE_COMMENT_DELETED) {
-                const commentId = msg.data?.comment_id;
-                const eventPageId = msg.data?.page_id;
+                const commentId = data?.comment_id;
+                const eventPageId = data?.page_id;
 
                 if (commentId && eventPageId === pageId) {
                     // Find the anchor ID for this comment before removing it

@@ -152,13 +152,14 @@ const WikiPageThreadViewer = (props: Props) => {
         const handlePageCommentEvents = (msg: WebSocketMessage) => {
             // Handle new page comments (only in list mode)
             if (msg.event === SocketEvents.PAGE_COMMENT_CREATED && !props.focusedInlineCommentId) {
-                const pageId = msg.data.page_id;
+                const data = msg.data as {page_id: string; comment: string};
+                const pageId = data.page_id;
 
                 if (pageId !== props.rootPostId) {
                     return;
                 }
 
-                const post = JSON.parse(msg.data.comment);
+                const post = JSON.parse(data.comment);
 
                 dispatch(receivedPosts({
                     posts: {[post.id]: post},
@@ -174,8 +175,9 @@ const WikiPageThreadViewer = (props: Props) => {
 
             // Handle comment resolution changes
             if (msg.event === SocketEvents.PAGE_COMMENT_RESOLVED || msg.event === SocketEvents.PAGE_COMMENT_UNRESOLVED) {
-                const commentId = msg.data.comment_id;
-                const pageId = msg.data.page_id;
+                const data = msg.data as {comment_id: string; page_id: string; resolved_at?: number; resolved_by?: string};
+                const commentId = data.comment_id;
+                const pageId = data.page_id;
 
                 if (pageId !== props.rootPostId) {
                     return;
@@ -187,8 +189,8 @@ const WikiPageThreadViewer = (props: Props) => {
                             const updatedProps = {...comment.props};
                             if (msg.event === SocketEvents.PAGE_COMMENT_RESOLVED) {
                                 updatedProps.comment_resolved = true;
-                                updatedProps.resolved_at = msg.data.resolved_at;
-                                updatedProps.resolved_by = msg.data.resolved_by;
+                                updatedProps.resolved_at = data.resolved_at;
+                                updatedProps.resolved_by = data.resolved_by;
                                 updatedProps.resolution_reason = 'manual';
                             } else {
                                 delete updatedProps.comment_resolved;

@@ -9,7 +9,7 @@ import type {WebSocketMessage, WebSocketMessages} from '@mattermost/client';
 import {WebSocketEvents} from '@mattermost/client';
 import type {ChannelBookmarkWithFileInfo, UpdateChannelBookmarkResponse} from '@mattermost/types/channel_bookmarks';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
-import type {Draft} from '@mattermost/types/drafts';
+import type {Draft, PageDraft} from '@mattermost/types/drafts';
 import type {Emoji} from '@mattermost/types/emojis';
 import type {Group, GroupMember} from '@mattermost/types/groups';
 import type {OpenDialogRequest} from '@mattermost/types/integrations';
@@ -668,26 +668,32 @@ export function handleEvent(msg: WebSocketMessage) {
         dispatch(handleDeleteDraftEvent(msg));
         break;
     case SocketEvents.PAGE_DRAFT_CREATED:
-    case SocketEvents.PAGE_DRAFT_UPDATED:
+    case SocketEvents.PAGE_DRAFT_UPDATED: {
         dispatch(handleUpsertDraftEvent(msg));
 
         // Handle active editors notification for page drafts
-        if (msg.data.page_id && msg.data.user_id) {
-            dispatch(handleActiveEditorDraftUpdated(msg.data.page_id, msg.data.user_id, msg.data.timestamp));
+        const draftData = msg.data as {page_id?: string; user_id?: string; timestamp?: number};
+        if (draftData.page_id && draftData.user_id) {
+            dispatch(handleActiveEditorDraftUpdated(draftData.page_id, draftData.user_id, draftData.timestamp ?? Date.now()));
         }
         break;
-    case SocketEvents.PAGE_DRAFT_DELETED:
+    }
+    case SocketEvents.PAGE_DRAFT_DELETED: {
         // Handle active editors notification when page draft is deleted
-        if (msg.data.page_id && msg.data.user_id) {
-            dispatch(handleActiveEditorDraftDeleted(msg.data.page_id, msg.data.user_id));
+        const deletedDraftData = msg.data as {page_id?: string; user_id?: string};
+        if (deletedDraftData.page_id && deletedDraftData.user_id) {
+            dispatch(handleActiveEditorDraftDeleted(deletedDraftData.page_id, deletedDraftData.user_id));
         }
         break;
-    case SocketEvents.PAGE_EDITOR_STOPPED:
+    }
+    case SocketEvents.PAGE_EDITOR_STOPPED: {
         // Handle active editors notification when user stops editing
-        if (msg.data.page_id && msg.data.user_id) {
-            dispatch(handleActiveEditorStopped(msg.data.page_id, msg.data.user_id));
+        const editorData = msg.data as {page_id?: string; user_id?: string};
+        if (editorData.page_id && editorData.user_id) {
+            dispatch(handleActiveEditorStopped(editorData.page_id, editorData.user_id));
         }
         break;
+    }
     case SocketEvents.PAGE_PUBLISHED:
         handlePagePublishedEvent(msg);
         break;
@@ -987,12 +993,21 @@ export function handlePostUnreadEvent(msg: WebSocketMessages.PostUnread) {
     );
 }
 
+interface PagePublishedEventData {
+    page: string;
+    page_id: string;
+    wiki_id: string;
+    source_wiki_id?: string;
+    user_id: string;
+}
+
 export function handlePagePublishedEvent(msg: WebSocketMessage) {
-    const page = JSON.parse(msg.data.page);
-    const pageId = msg.data.page_id;
-    const wikiId = msg.data.wiki_id;
-    const sourceWikiId = msg.data.source_wiki_id;
-    const publishingUserId = msg.data.user_id;
+    const eventData = msg.data as PagePublishedEventData;
+    const page = JSON.parse(eventData.page);
+    const pageId = eventData.page_id;
+    const wikiId = eventData.wiki_id;
+    const sourceWikiId = eventData.source_wiki_id;
+    const publishingUserId = eventData.user_id;
 
     const currentUserId = getCurrentUserId(getState());
     const isCurrentUserPublishing = currentUserId === publishingUserId;
@@ -1017,9 +1032,15 @@ export function handlePagePublishedEvent(msg: WebSocketMessage) {
     }
 }
 
+interface PageDeletedEventData {
+    page_id: string;
+    wiki_id: string;
+}
+
 export function handlePageDeletedEvent(msg: WebSocketMessage) {
-    const pageId = msg.data.page_id;
-    const wikiId = msg.data.wiki_id;
+    const eventData = msg.data as PageDeletedEventData;
+    const pageId = eventData.page_id;
+    const wikiId = eventData.wiki_id;
 
     dispatch(batchActions([
         {
@@ -1033,11 +1054,19 @@ export function handlePageDeletedEvent(msg: WebSocketMessage) {
     ]));
 }
 
+interface PageTitleUpdatedEventData {
+    page_id: string;
+    title: string;
+    wiki_id: string;
+    update_at: number;
+}
+
 export function handlePageTitleUpdatedEvent(msg: WebSocketMessage) {
-    const pageId = msg.data.page_id;
-    const title = msg.data.title;
-    const wikiId = msg.data.wiki_id;
-    const updateAt = msg.data.update_at;
+    const eventData = msg.data as PageTitleUpdatedEventData;
+    const pageId = eventData.page_id;
+    const title = eventData.title;
+    const wikiId = eventData.wiki_id;
+    const updateAt = eventData.update_at;
 
     const state = getState();
     const existingPage = getPost(state, pageId);
@@ -1067,12 +1096,21 @@ export function handlePageTitleUpdatedEvent(msg: WebSocketMessage) {
     ]));
 }
 
+interface PageMovedEventData {
+    page_id: string;
+    new_parent_id: string;
+    wiki_id: string;
+    source_wiki_id?: string;
+    update_at: number;
+}
+
 export async function handlePageMovedEvent(msg: WebSocketMessage) {
-    const pageId = msg.data.page_id;
-    const newParentId = msg.data.new_parent_id;
-    const wikiId = msg.data.wiki_id;
-    const sourceWikiId = msg.data.source_wiki_id;
-    const updateAt = msg.data.update_at;
+    const eventData = msg.data as PageMovedEventData;
+    const pageId = eventData.page_id;
+    const newParentId = eventData.new_parent_id;
+    const wikiId = eventData.wiki_id;
+    const sourceWikiId = eventData.source_wiki_id;
+    const updateAt = eventData.update_at;
 
     const state = getState();
     let existingPage = getPost(state, pageId);
@@ -1082,7 +1120,7 @@ export async function handlePageMovedEvent(msg: WebSocketMessage) {
     // but hasn't loaded the source wiki
     if (!existingPage) {
         const result = await dispatch(fetchPage(pageId, wikiId));
-        if (result.error) {
+        if (result.error || !result.data) {
             return;
         }
         existingPage = result.data;
@@ -1098,7 +1136,7 @@ export async function handlePageMovedEvent(msg: WebSocketMessage) {
         update_at: updateAt,
     };
 
-    const actions = [
+    const actions: MMReduxAction[] = [
         {
             type: PostTypes.RECEIVED_POST,
             data: updatedPage,
@@ -1119,17 +1157,28 @@ export async function handlePageMovedEvent(msg: WebSocketMessage) {
     dispatch(batchActions(actions));
 }
 
+interface WikiCreatedEventData {
+    wiki_id: string;
+    channel_id: string;
+    title: string;
+    description: string;
+    create_at: number;
+    update_at: number;
+    sort_order: number;
+}
+
 export function handleWikiCreatedEvent(msg: WebSocketMessage) {
+    const eventData = msg.data as WikiCreatedEventData;
     const wiki = {
-        id: msg.data.wiki_id,
-        channel_id: msg.data.channel_id,
-        title: msg.data.title,
-        description: msg.data.description,
+        id: eventData.wiki_id,
+        channel_id: eventData.channel_id,
+        title: eventData.title,
+        description: eventData.description,
         props: {},
-        create_at: msg.data.create_at,
-        update_at: msg.data.update_at,
+        create_at: eventData.create_at,
+        update_at: eventData.update_at,
         delete_at: 0,
-        sort_order: msg.data.sort_order,
+        sort_order: eventData.sort_order,
     };
 
     dispatch({
@@ -1138,12 +1187,21 @@ export function handleWikiCreatedEvent(msg: WebSocketMessage) {
     });
 }
 
+interface WikiUpdatedEventData {
+    wiki_id: string;
+    channel_id: string;
+    title: string;
+    description: string;
+    update_at: number;
+}
+
 export function handleWikiUpdatedEvent(msg: WebSocketMessage) {
-    const wikiId = msg.data.wiki_id;
-    const channelId = msg.data.channel_id;
-    const title = msg.data.title;
-    const description = msg.data.description;
-    const updateAt = msg.data.update_at;
+    const eventData = msg.data as WikiUpdatedEventData;
+    const wikiId = eventData.wiki_id;
+    const channelId = eventData.channel_id;
+    const title = eventData.title;
+    const description = eventData.description;
+    const updateAt = eventData.update_at;
 
     const wiki = {
         id: wikiId,
@@ -1159,15 +1217,28 @@ export function handleWikiUpdatedEvent(msg: WebSocketMessage) {
     });
 }
 
+interface WikiMovedEventData {
+    wiki_id: string;
+    action: 'removed' | 'added';
+    source_channel_id: string;
+    target_channel_id: string;
+    title: string;
+    description: string;
+    create_at: number;
+    update_at: number;
+    sort_order: number;
+}
+
 export function handleWikiMovedEvent(msg: WebSocketMessage) {
     if (!msg.data) {
         return;
     }
 
-    const wikiId = msg.data.wiki_id;
-    const action = msg.data.action;
-    const sourceChannelId = msg.data.source_channel_id;
-    const targetChannelId = msg.data.target_channel_id;
+    const data = msg.data as WikiMovedEventData;
+    const wikiId = data.wiki_id;
+    const action = data.action;
+    const sourceChannelId = data.source_channel_id;
+    const targetChannelId = data.target_channel_id;
 
     if (action === 'removed') {
         // Wiki was removed from this channel - delete it from local state
@@ -1180,13 +1251,13 @@ export function handleWikiMovedEvent(msg: WebSocketMessage) {
         const wiki = {
             id: wikiId,
             channel_id: targetChannelId,
-            title: msg.data.title,
-            description: msg.data.description,
+            title: data.title,
+            description: data.description,
             props: {},
-            create_at: msg.data.create_at,
-            update_at: msg.data.update_at,
+            create_at: data.create_at,
+            update_at: data.update_at,
             delete_at: 0,
-            sort_order: msg.data.sort_order,
+            sort_order: data.sort_order,
         };
 
         dispatch({
@@ -1196,13 +1267,19 @@ export function handleWikiMovedEvent(msg: WebSocketMessage) {
     }
 }
 
+interface WikiDeletedEventData {
+    wiki_id: string;
+    channel_id: string;
+}
+
 export function handleWikiDeletedEvent(msg: WebSocketMessage) {
     if (!msg.data) {
         return;
     }
 
-    const wikiId = msg.data.wiki_id;
-    const channelId = msg.data.channel_id;
+    const data = msg.data as WikiDeletedEventData;
+    const wikiId = data.wiki_id;
+    const channelId = data.channel_id;
 
     dispatch({
         type: WikiTypes.DELETED_WIKI,
@@ -2124,11 +2201,14 @@ function handlePostAcknowledgementRemoved(msg: WebSocketMessages.PostAcknowledge
 
 function handleUpsertDraftEvent(msg: WebSocketMessages.PostDraft | WebSocketMessage): ThunkActionFunc<void> {
     return async (doDispatch, doGetState) => {
-        const draft = JSON.parse(msg.data.draft) as Draft;
+        const draftData = (msg.data as {draft: string}).draft;
+        const rawDraft = JSON.parse(draftData);
 
         // Check if this is a page draft (has wiki_id field)
-        if (draft.wiki_id) {
-            const pageId = draft.page_id;
+        // Page drafts have a different structure than channel drafts
+        if (rawDraft.wiki_id && rawDraft.page_id) {
+            const pageDraft = rawDraft as PageDraft;
+            const pageId = pageDraft.page_id;
 
             // Check if the page has already been published
             // This prevents race condition where a page_draft_updated event arrives after the page was published
@@ -2147,26 +2227,30 @@ function handleUpsertDraftEvent(msg: WebSocketMessages.PostDraft | WebSocketMess
             }
 
             // Handle page draft
-            const transformedDraft = transformPageServerDraft(draft, draft.wiki_id, draft.page_id, draft.user_id);
+            const transformedDraft = transformPageServerDraft(pageDraft, pageDraft.wiki_id, pageDraft.page_id, pageDraft.user_id);
             transformedDraft.value.show = true;
 
             // Update active editors for this page
-            const userId = draft.user_id;
-            const timestamp = draft.update_at;
+            const userId = pageDraft.user_id;
+            const timestamp = pageDraft.update_at;
             const isCreate = msg.event === SocketEvents.PAGE_DRAFT_CREATED;
 
-            const activeEditorAction = isCreate ?
-                handleActiveEditorDraftCreated(pageId, userId, timestamp) :
-                handleActiveEditorDraftUpdated(pageId, userId, timestamp);
-
+            // Dispatch draft actions
             doDispatch(batchActions([
                 setGlobalItem(transformedDraft.key, transformedDraft.value),
                 setGlobalDraftSource(transformedDraft.key, true),
-                activeEditorAction,
             ]));
+
+            // Dispatch active editor action separately (it's a thunk)
+            if (isCreate) {
+                doDispatch(handleActiveEditorDraftCreated(pageId, userId, timestamp));
+            } else {
+                doDispatch(handleActiveEditorDraftUpdated(pageId, userId, timestamp));
+            }
         } else {
             // Handle channel draft
-            const {key, value} = transformServerDraft(draft);
+            const channelDraft = rawDraft as Draft;
+            const {key, value} = transformServerDraft(channelDraft);
             value.show = true;
 
             doDispatch(setGlobalDraft(key, value, true));
@@ -2218,10 +2302,11 @@ function handleDeleteScheduledPostEvent(msg: WebSocketMessages.ScheduledPost): T
 
 function handleDeleteDraftEvent(msg: WebSocketMessages.PostDraft | WebSocketMessage): ThunkActionFunc<void> {
     return async (doDispatch) => {
-        const draft = JSON.parse(msg.data.draft) as Draft;
+        const draftData = (msg.data as {draft: string}).draft;
+        const draft = JSON.parse(draftData) as Draft;
 
         // Check if this is a page draft
-        if (draft.wiki_id) {
+        if (draft.wiki_id && draft.page_id) {
             const pageId = draft.page_id;
             const userId = draft.user_id;
 
