@@ -274,10 +274,10 @@ func ParseSearchParams(text string, timeZoneOffset int) []*SearchParams {
 	excludedDate := ""
 	excludedExtensions := []string{}
 	extensions := []string{}
-	postTypes := []string{}
-	excludedPostTypes := []string{}
-	wikiNames := []string{}
-	excludedWikiNames := []string{}
+	var postTypes []string
+	var excludedPostTypes []string
+	var wikiNames []string
+	var excludedWikiNames []string
 
 	for _, flag := range flags {
 		if flag.name == "in" || flag.name == "channel" {

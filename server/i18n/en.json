@@ -9441,6 +9441,46 @@
     "translation": "Cannot update wiki in archived channel."
   },
   {
+    "id": "app.wiki_export.get_all_wikis.error",
+    "translation": "Failed to get wikis for export."
+  },
+  {
+    "id": "app.wiki_export.get_comments.error",
+    "translation": "Failed to get comments for wiki export."
+  },
+  {
+    "id": "app.wiki_export.get_pages.error",
+    "translation": "Failed to get pages for wiki export."
+  },
+  {
+    "id": "app.wiki_export.invalid_channel_id.error",
+    "translation": "Invalid channel ID for wiki export."
+  },
+  {
+    "id": "app.wiki_export.write_comment.error",
+    "translation": "Failed to write comment to export."
+  },
+  {
+    "id": "app.wiki_export.write_page.error",
+    "translation": "Failed to write page to export."
+  },
+  {
+    "id": "app.wiki_export.write_resolve.error",
+    "translation": "Failed to resolve write operation for wiki export."
+  },
+  {
+    "id": "app.wiki_export.write_version.error",
+    "translation": "Failed to write version to export."
+  },
+  {
+    "id": "app.wiki_export.write_wiki.error",
+    "translation": "Failed to write wiki to export."
+  },
+  {
+    "id": "app.wiki_export.writer_nil.error",
+    "translation": "Wiki export writer is not initialized."
+  },
+  {
     "id": "basic_security_check.url.too_long_error",
     "translation": "URL is too long"
   },
@@ -12871,5 +12911,45 @@
   {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Couldn't find the user {{.user}}"
+  },
+  {
+    "id": "wiki_export.worker.config.nil_directory",
+    "translation": "Export directory is not configured."
+  },
+  {
+    "id": "wiki_export.worker.write_file.error",
+    "translation": "Failed to write wiki export file."
+  },
+  {
+    "id": "wiki_import.worker.config.nil_directory",
+    "translation": "Import directory is not configured."
+  },
+  {
+    "id": "wiki_import.worker.do_job.abs_path",
+    "translation": "Failed to resolve file path."
+  },
+  {
+    "id": "wiki_import.worker.do_job.file_not_found",
+    "translation": "Import file not found."
+  },
+  {
+    "id": "wiki_import.worker.do_job.invalid_path",
+    "translation": "Invalid import file path."
+  },
+  {
+    "id": "wiki_import.worker.do_job.is_directory",
+    "translation": "Import path is a directory, not a file."
+  },
+  {
+    "id": "wiki_import.worker.do_job.missing_file",
+    "translation": "Missing import file in job data."
+  },
+  {
+    "id": "wiki_import.worker.do_job.open_file",
+    "translation": "Failed to open import file."
+  },
+  {
+    "id": "wiki_import.worker.do_job.stat_file",
+    "translation": "Failed to get import file information."
   }
 ]

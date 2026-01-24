@@ -73,6 +73,7 @@ func genStore() *mocks.Store {
 	mock.On("TemporaryPost").Return(&mocks.TemporaryPostStore{})
 	mock.On("Wiki").Return(&mocks.WikiStore{})
 	mock.On("Page").Return(&mocks.PageStore{})
+	mock.On("Recap").Return(&mocks.RecapStore{})
 	return mock
 }
 

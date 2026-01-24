@@ -821,3 +821,18 @@ func (a *App) setWikiIdInPostProps(rctx request.CTX, pageId, wikiId string) *mod
 
 	return nil
 }
+
+// InvalidateCacheForWikiImport invalidates caches after a wiki import completes.
+// This ensures all cluster nodes see the imported wiki data.
+func (a *App) InvalidateCacheForWikiImport(rctx request.CTX, channelIds []string) {
+	rctx.Logger().Debug("Invalidating caches for wiki import",
+		mlog.Int("channel_count", len(channelIds)))
+
+	// Invalidate post caches for each affected channel
+	for _, channelId := range channelIds {
+		a.invalidateCacheForChannelPosts(channelId)
+	}
+
+	// Clear channel caches to ensure channel-level wiki queries are refreshed
+	a.Srv().Store().Channel().ClearCaches()
+}

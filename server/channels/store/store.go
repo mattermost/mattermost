@@ -1258,6 +1258,16 @@ type WikiStore interface {
 	// Supports both direct wiki IDs and case-insensitive name matching.
 	// Team scoping is applied when teamId is provided.
 	ResolveNamesToIDs(names []string, teamId string) ([]string, error)
+
+	// GetWikisForExport returns wikis in a channel with team/channel names for export
+	GetWikisForExport(channelId string) ([]*model.WikiForExport, error)
+
+	// GetPagesForExport returns pages for a wiki with content and user info for export.
+	// Uses cursor-based pagination - pass empty afterId for first page.
+	GetPagesForExport(wikiId string, limit int, afterId string) ([]*model.PageForExport, error)
+
+	// GetPageCommentsForExport returns comments for a page with user info for export
+	GetPageCommentsForExport(pageId string) ([]*model.PageCommentForExport, error)
 }
 
 // PageStore manages page hierarchy operations.

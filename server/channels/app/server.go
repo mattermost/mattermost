@@ -65,6 +65,8 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/refresh_materialized_views"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/resend_invitation_email"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/s3_path_migration"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/wiki_export"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/wiki_import"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/config"
@@ -1503,6 +1505,18 @@ func (s *Server) initJobs() {
 	s.Jobs.RegisterJobType(
 		model.JobTypeImportProcess,
 		import_process.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
+		nil,
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeWikiExport,
+		wiki_export.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
+		nil,
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeWikiImport,
+		wiki_import.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
 		nil,
 	)
 

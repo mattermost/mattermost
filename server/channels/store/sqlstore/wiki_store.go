@@ -846,3 +846,104 @@ func stringSliceToInterface(s []string) []any {
 	}
 	return result
 }
+
+// GetWikisForExport returns wikis in a channel with team/channel names for export
+func (s *SqlWikiStore) GetWikisForExport(channelId string) ([]*model.WikiForExport, error) {
+	if !model.IsValidId(channelId) {
+		return nil, store.NewErrInvalidInput("Wiki", "channelId", channelId)
+	}
+
+	query := s.getQueryBuilder().
+		Select(
+			"w.Id", "w.ChannelId", "w.Title", "w.Description", "w.Icon", "w.Props",
+			"w.CreateAt", "w.UpdateAt", "w.DeleteAt", "w.SortOrder",
+			`t.Name AS "TeamName"`, `c.Name AS "ChannelName"`,
+		).
+		From("Wikis w").
+		Join("Channels c ON w.ChannelId = c.Id").
+		Join("Teams t ON c.TeamId = t.Id").
+		Where(sq.Eq{"w.ChannelId": channelId}).
+		Where(sq.Eq{"w.DeleteAt": 0}).
+		OrderBy("w.SortOrder ASC")
+
+	var wikis []*model.WikiForExport
+	if err := s.GetReplica().SelectBuilder(&wikis, query); err != nil {
+		return nil, errors.Wrap(err, "failed to get wikis for export")
+	}
+
+	return wikis, nil
+}
+
+// GetPagesForExport returns pages for a wiki with content and user info for export.
+// Uses cursor-based pagination - pass empty afterId for first page.
+func (s *SqlWikiStore) GetPagesForExport(wikiId string, limit int, afterId string) ([]*model.PageForExport, error) {
+	if !model.IsValidId(wikiId) {
+		return nil, store.NewErrInvalidInput("Page", "wikiId", wikiId)
+	}
+	if limit <= 0 {
+		return nil, store.NewErrInvalidInput("Page", "limit", strconv.Itoa(limit))
+	}
+	if afterId != "" && !model.IsValidId(afterId) {
+		return nil, store.NewErrInvalidInput("Page", "afterId", afterId)
+	}
+
+	// Extract wiki_id and page_parent_id from Props JSON in SQL to avoid business logic in store
+	query := s.getQueryBuilder().
+		Select(
+			"p.Id", `t.Name AS "TeamName"`, `c.Name AS "ChannelName"`, `u.Username AS "Username"`,
+			`p.Message AS "Title"`, `COALESCE(pc.Content, '') AS "Content"`, "p.Props",
+			`p.Props->>'wiki_id' AS "WikiId"`,
+			`COALESCE(p.Props->>'page_parent_id', '') AS "PageParentId"`,
+			"p.CreateAt",
+		).
+		From("Posts p").
+		Join("Channels c ON p.ChannelId = c.Id").
+		Join("Teams t ON c.TeamId = t.Id").
+		Join("Users u ON p.UserId = u.Id").
+		LeftJoin("PageContents pc ON p.Id = pc.PageId AND pc.UserId = ''").
+		Where(sq.Eq{"p.Type": model.PostTypePage}).
+		Where(sq.Eq{"p.DeleteAt": 0}).
+		Where(sq.Expr("p.Props->>'wiki_id' = ?", wikiId)).
+		OrderBy("p.Id ASC").
+		Limit(uint64(limit))
+
+	if afterId != "" {
+		query = query.Where(sq.Gt{"p.Id": afterId})
+	}
+
+	var pages []*model.PageForExport
+	if err := s.GetReplica().SelectBuilder(&pages, query); err != nil {
+		return nil, errors.Wrap(err, "failed to query pages for export")
+	}
+
+	return pages, nil
+}
+
+// GetPageCommentsForExport returns comments for a page with user info for export
+func (s *SqlWikiStore) GetPageCommentsForExport(pageId string) ([]*model.PageCommentForExport, error) {
+	if !model.IsValidId(pageId) {
+		return nil, store.NewErrInvalidInput("PageComment", "pageId", pageId)
+	}
+
+	query := s.getQueryBuilder().
+		Select(
+			"p.Id", `t.Name AS "TeamName"`, `c.Name AS "ChannelName"`, `u.Username AS "Username"`,
+			`p.Message AS "Content"`, `p.RootId AS "PageId"`, `COALESCE(p.ParentId, '') AS "ParentCommentId"`,
+			"p.Props", "p.CreateAt",
+		).
+		From("Posts p").
+		Join("Channels c ON p.ChannelId = c.Id").
+		Join("Teams t ON c.TeamId = t.Id").
+		Join("Users u ON p.UserId = u.Id").
+		Where(sq.Eq{"p.RootId": pageId}).
+		Where(sq.Eq{"p.Type": model.PostTypePageComment}).
+		Where(sq.Eq{"p.DeleteAt": 0}).
+		OrderBy("p.CreateAt ASC")
+
+	var comments []*model.PageCommentForExport
+	if err := s.GetReplica().SelectBuilder(&comments, query); err != nil {
+		return nil, errors.Wrap(err, "failed to query page comments for export")
+	}
+
+	return comments, nil
+}

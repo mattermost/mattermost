@@ -906,6 +906,8 @@ export const JobTypes = {
     LDAP_SYNC: 'ldap_sync',
     MESSAGE_EXPORT: 'message_export',
     ACCESS_CONTROL_SYNC: 'access_control_sync',
+    WIKI_EXPORT: 'wiki_export',
+    WIKI_IMPORT: 'wiki_import',
 } as const;
 
 export const JobStatuses = {

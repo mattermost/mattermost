@@ -58,15 +58,11 @@ func getJob(c *Context, w http.ResponseWriter, r *http.Request) {
 func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	config := c.App.Config()
 	const oldFilePath = "export"
-	const FileMime = "application/zip"
+	const zipMime = "application/zip"
+	const jsonlMime = "application/x-ndjson"
 
 	c.RequireJobId()
 	if c.Err != nil {
-		return
-	}
-
-	if !*config.MessageExportSettings.DownloadExportResults {
-		c.Err = model.NewAppError("downloadExportResultsNotEnabled", "app.job.download_export_results_not_enabled", nil, "", http.StatusNotImplemented)
 		return
 	}
 
@@ -76,19 +72,60 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Currently, this endpoint only supports downloading the compliance report.
-	// If you need to download another job type, you will need to alter this section of the code to accommodate it.
-	if job.Type == model.JobTypeMessageExport && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionDownloadComplianceExportResult) {
-		c.SetPermissionError(model.PermissionDownloadComplianceExportResult)
-		return
-	} else if job.Type != model.JobTypeMessageExport {
+	// Check permissions and config based on job type
+	switch job.Type {
+	case model.JobTypeMessageExport:
+		if !*config.MessageExportSettings.DownloadExportResults {
+			c.Err = model.NewAppError("downloadExportResultsNotEnabled", "app.job.download_export_results_not_enabled", nil, "", http.StatusNotImplemented)
+			return
+		}
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionDownloadComplianceExportResult) {
+			c.SetPermissionError(model.PermissionDownloadComplianceExportResult)
+			return
+		}
+	case model.JobTypeWikiExport:
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageJobs) {
+			c.SetPermissionError(model.PermissionManageJobs)
+			return
+		}
+	default:
 		c.Err = model.NewAppError("unableToDownloadJob", "api.job.unable_to_download_job.incorrect_job_type", nil, "", http.StatusBadRequest)
 		return
 	}
 
-	isDownloadable, _ := strconv.ParseBool(job.Data["is_downloadable"])
+	isDownloadable, _ := strconv.ParseBool(job.Data[model.WikiJobDataKeyIsDownloadable])
 	if !isDownloadable {
 		c.Err = model.NewAppError("unableToDownloadJob", "api.job.unable_to_download_job", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	// Handle wiki export separately - it's a single JSONL file, not a zip
+	if job.Type == model.JobTypeWikiExport {
+		exportDir := job.Data[model.WikiJobDataKeyExportDir]
+		exportFile := job.Data[model.WikiJobDataKeyExportFile]
+		if exportDir == "" || exportFile == "" {
+			c.Err = model.NewAppError("unableToDownloadJob", "api.job.unable_to_download_job", nil,
+				"wiki export job missing export_dir or export_file", http.StatusNotFound)
+			return
+		}
+
+		filePath := filepath.Join(exportDir, exportFile)
+		cleanedPath := filepath.Clean(filePath)
+		if !filepath.IsLocal(cleanedPath) {
+			c.Err = model.NewAppError("unableToDownloadJob", "api.job.unable_to_download_job", nil,
+				"invalid export path", http.StatusBadRequest)
+			return
+		}
+
+		fileReader, appErr := c.App.ExportFileReader(cleanedPath)
+		if appErr != nil {
+			c.Err = model.NewAppError("unableToDownloadJob", "api.job.unable_to_download_job", nil,
+				"wiki export file not found", http.StatusNotFound).Wrap(appErr)
+			return
+		}
+		defer fileReader.Close()
+
+		web.WriteFileResponse(exportFile, jsonlMime, 0, time.UnixMilli(job.LastActivityAt), *c.App.Config().ServiceSettings.WebserverMode, fileReader, true, w, r)
 		return
 	}
 
@@ -110,7 +147,7 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		// We are able to pass 0 for content size due to the fact that Golang's serveContent (https://golang.org/src/net/http/fs.go)
 		// already sets that for us
-		web.WriteFileResponse(fileName, FileMime, 0, time.UnixMilli(job.LastActivityAt), *c.App.Config().ServiceSettings.WebserverMode, fileReader, true, w, r)
+		web.WriteFileResponse(fileName, zipMime, 0, time.UnixMilli(job.LastActivityAt), *c.App.Config().ServiceSettings.WebserverMode, fileReader, true, w, r)
 		return
 	}
 
@@ -133,7 +170,7 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	defer zipReader.Close()
 
-	if err := web.WriteStreamResponse(w, zipReader, fileName, FileMime, true); err != nil {
+	if err := web.WriteStreamResponse(w, zipReader, fileName, zipMime, true); err != nil {
 		c.Err = model.NewAppError("unableToDownloadJob", "api.job.unable_to_download_job", nil,
 			"failure to WriteStreamResponse", http.StatusInternalServerError).
 			Wrap(err)

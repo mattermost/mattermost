@@ -200,6 +200,36 @@ func (_m *WikiStore) GetPageByTitleInWiki(wikiId string, title string) (*model.P
 	return r0, r1
 }
 
+// GetPageCommentsForExport provides a mock function with given fields: pageId
+func (_m *WikiStore) GetPageCommentsForExport(pageId string) ([]*model.PageCommentForExport, error) {
+	ret := _m.Called(pageId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPageCommentsForExport")
+	}
+
+	var r0 []*model.PageCommentForExport
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) ([]*model.PageCommentForExport, error)); ok {
+		return rf(pageId)
+	}
+	if rf, ok := ret.Get(0).(func(string) []*model.PageCommentForExport); ok {
+		r0 = rf(pageId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PageCommentForExport)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(pageId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetPages provides a mock function with given fields: wikiId, offset, limit
 func (_m *WikiStore) GetPages(wikiId string, offset int, limit int) ([]*model.Post, error) {
 	ret := _m.Called(wikiId, offset, limit)
@@ -223,6 +253,66 @@ func (_m *WikiStore) GetPages(wikiId string, offset int, limit int) ([]*model.Po
 
 	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
 		r1 = rf(wikiId, offset, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetPagesForExport provides a mock function with given fields: wikiId, limit, afterId
+func (_m *WikiStore) GetPagesForExport(wikiId string, limit int, afterId string) ([]*model.PageForExport, error) {
+	ret := _m.Called(wikiId, limit, afterId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPagesForExport")
+	}
+
+	var r0 []*model.PageForExport
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, int, string) ([]*model.PageForExport, error)); ok {
+		return rf(wikiId, limit, afterId)
+	}
+	if rf, ok := ret.Get(0).(func(string, int, string) []*model.PageForExport); ok {
+		r0 = rf(wikiId, limit, afterId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PageForExport)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, int, string) error); ok {
+		r1 = rf(wikiId, limit, afterId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetWikisForExport provides a mock function with given fields: channelId
+func (_m *WikiStore) GetWikisForExport(channelId string) ([]*model.WikiForExport, error) {
+	ret := _m.Called(channelId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetWikisForExport")
+	}
+
+	var r0 []*model.WikiForExport
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) ([]*model.WikiForExport, error)); ok {
+		return rf(channelId)
+	}
+	if rf, ok := ret.Get(0).(func(string) []*model.WikiForExport); ok {
+		r0 = rf(channelId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.WikiForExport)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(channelId)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -271,6 +361,36 @@ func (_m *WikiStore) MoveWikiToChannel(wikiId string, targetChannelId string, ti
 
 	if rf, ok := ret.Get(1).(func(string, string, int64) error); ok {
 		r1 = rf(wikiId, targetChannelId, timestamp)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ResolveNamesToIDs provides a mock function with given fields: names, teamId
+func (_m *WikiStore) ResolveNamesToIDs(names []string, teamId string) ([]string, error) {
+	ret := _m.Called(names, teamId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ResolveNamesToIDs")
+	}
+
+	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func([]string, string) ([]string, error)); ok {
+		return rf(names, teamId)
+	}
+	if rf, ok := ret.Get(0).(func([]string, string) []string); ok {
+		r0 = rf(names, teamId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func([]string, string) error); ok {
+		r1 = rf(names, teamId)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -349,36 +469,6 @@ func (_m *WikiStore) Update(wiki *model.Wiki) (*model.Wiki, error) {
 
 	if rf, ok := ret.Get(1).(func(*model.Wiki) error); ok {
 		r1 = rf(wiki)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// ResolveNamesToIDs provides a mock function with given fields: names, teamId
-func (_m *WikiStore) ResolveNamesToIDs(names []string, teamId string) ([]string, error) {
-	ret := _m.Called(names, teamId)
-
-	if len(ret) == 0 {
-		panic("no return value specified for ResolveNamesToIDs")
-	}
-
-	var r0 []string
-	var r1 error
-	if rf, ok := ret.Get(0).(func([]string, string) ([]string, error)); ok {
-		return rf(names, teamId)
-	}
-	if rf, ok := ret.Get(0).(func([]string, string) []string); ok {
-		r0 = rf(names, teamId)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]string)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func([]string, string) error); ok {
-		r1 = rf(names, teamId)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -20,6 +20,20 @@ const (
 	PageStatusInProgress = "In progress"
 	PageStatusInReview   = "In review"
 	PageStatusDone       = "Done"
+
+	// Wiki export/import constants
+	WikiExportFormatVersion = 1
+	WikiExportFileSuffix    = "_wiki_export.jsonl"
+
+	// Job data keys for wiki export/import
+	WikiJobDataKeyChannelIds         = "channel_ids"
+	WikiJobDataKeyIncludeComments    = "include_comments"
+	WikiJobDataKeyIncludeAttachments = "include_attachments"
+	WikiJobDataKeyImportFile         = "import_file"
+	WikiJobDataKeyLocalMode          = "local_mode"
+	WikiJobDataKeyExportDir          = "export_dir"
+	WikiJobDataKeyExportFile         = "export_file"
+	WikiJobDataKeyIsDownloadable     = "is_downloadable"
 )
 
 type Wiki struct {
@@ -168,4 +182,48 @@ func (w *Wiki) SetShowMentionsInChannelFeed(show bool) {
 		w.Props = make(StringInterface)
 	}
 	w.Props["show_mentions_in_channel_feed"] = show
+}
+
+// WikiForExport contains wiki data with team/channel names for bulk export
+type WikiForExport struct {
+	Wiki
+	TeamName    string `json:"team_name" db:"TeamName"`
+	ChannelName string `json:"channel_name" db:"ChannelName"`
+}
+
+// PageForExport contains page data with content and metadata for bulk export
+type PageForExport struct {
+	Id                   string `json:"id" db:"Id"`
+	TeamName             string `json:"team_name" db:"TeamName"`
+	ChannelName          string `json:"channel_name" db:"ChannelName"`
+	Username             string `json:"username" db:"Username"`
+	Title                string `json:"title" db:"Title"`
+	Content              string `json:"content" db:"Content"`
+	WikiId               string `json:"wiki_id"`
+	PageParentId         string `json:"page_parent_id,omitempty"`
+	ParentImportSourceId string `json:"parent_import_source_id,omitempty"`
+	Props                string `json:"props,omitempty" db:"Props"`
+	CreateAt             int64  `json:"create_at" db:"CreateAt"`
+}
+
+// PageCommentForExport contains page comment data for bulk export
+type PageCommentForExport struct {
+	Id                        string `json:"id" db:"Id"`
+	TeamName                  string `json:"team_name" db:"TeamName"`
+	ChannelName               string `json:"channel_name" db:"ChannelName"`
+	Username                  string `json:"username" db:"Username"`
+	Content                   string `json:"content" db:"Content"`
+	PageId                    string `json:"page_id" db:"PageId"`
+	PageImportSourceId        string `json:"page_import_source_id"`
+	ParentCommentId           string `json:"parent_comment_id,omitempty" db:"ParentCommentId"`
+	ParentCommentImportSource string `json:"parent_comment_import_source,omitempty"`
+	Props                     string `json:"props,omitempty" db:"Props"`
+	CreateAt                  int64  `json:"create_at" db:"CreateAt"`
+}
+
+// WikiBulkExportOpts contains options for wiki bulk export
+type WikiBulkExportOpts struct {
+	ChannelIds         []string // Empty means all channels with wikis
+	IncludeComments    bool     // Include page comments
+	IncludeAttachments bool     // Include file attachments
 }

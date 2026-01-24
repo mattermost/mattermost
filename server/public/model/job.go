@@ -47,6 +47,8 @@ const (
 	JobTypePushProxyAuth                 = "push_proxy_auth"
 	JobTypeRecap                         = "recap"
 	JobTypeDeleteExpiredPosts            = "delete_expired_posts"
+	JobTypeWikiExport                    = "wiki_export"
+	JobTypeWikiImport                    = "wiki_import"
 
 	JobStatusPending         = "pending"
 	JobStatusInProgress      = "in_progress"
@@ -79,6 +81,8 @@ var AllJobTypes = [...]string{
 	JobTypeCleanupDesktopTokens,
 	JobTypeRefreshMaterializedViews,
 	JobTypeMobileSessionMetadata,
+	JobTypeWikiExport,
+	JobTypeWikiImport,
 }
 
 type Job struct {

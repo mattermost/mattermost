@@ -374,6 +374,78 @@ func TestDownloadJob(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 }
 
+func TestDownloadWikiExportJob(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	jobName := model.NewId()
+	job := &model.Job{
+		Id:     jobName,
+		Type:   model.JobTypeWikiExport,
+		Status: model.JobStatusSuccess,
+		Data:   map[string]string{},
+	}
+
+	_, err := th.App.Srv().Store().Job().Save(job)
+	require.NoError(t, err)
+	defer func() {
+		_, delErr := th.App.Srv().Store().Job().Delete(job.Id)
+		require.NoError(t, delErr, "Failed to delete job %s", job.Id)
+	}()
+
+	// Normal user cannot download wiki export (no permission)
+	_, resp, err := th.Client.DownloadJob(context.Background(), job.Id)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	// System admin without is_downloadable flag should get bad request
+	_, resp, err = th.SystemAdminClient.DownloadJob(context.Background(), job.Id)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+
+	// Set is_downloadable but missing export_dir/export_file
+	job.Data[model.WikiJobDataKeyIsDownloadable] = "true"
+	updateStatus, err := th.App.Srv().Store().Job().UpdateOptimistically(job, model.JobStatusSuccess)
+	require.True(t, updateStatus)
+	require.NoError(t, err)
+
+	_, resp, err = th.SystemAdminClient.DownloadJob(context.Background(), job.Id)
+	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
+
+	// Set export_dir and export_file but file doesn't exist
+	exportDir := "export"
+	exportFile := job.Id + model.WikiExportFileSuffix
+	job.Data[model.WikiJobDataKeyExportDir] = exportDir
+	job.Data[model.WikiJobDataKeyExportFile] = exportFile
+	updateStatus, err = th.App.Srv().Store().Job().UpdateOptimistically(job, model.JobStatusSuccess)
+	require.True(t, updateStatus)
+	require.NoError(t, err)
+
+	_, resp, err = th.SystemAdminClient.DownloadJob(context.Background(), job.Id)
+	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
+
+	// Create the actual export file
+	filePath := filepath.Join(*th.App.Config().FileSettings.Directory, exportDir, exportFile)
+	err = os.MkdirAll(filepath.Dir(filePath), 0770)
+	require.NoError(t, err)
+
+	testContent := `{"type":"version","version":{"version":1}}` + "\n"
+	err = os.WriteFile(filePath, []byte(testContent), 0600)
+	require.NoError(t, err)
+	defer os.Remove(filePath)
+
+	// System admin should now be able to download
+	data, resp, err := th.SystemAdminClient.DownloadJob(context.Background(), job.Id)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+	require.Equal(t, testContent, string(data))
+
+	// Verify content-type header is set correctly for JSONL
+	require.Contains(t, resp.Header.Get("Content-Type"), "application/x-ndjson")
+}
+
 func TestCancelJob(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
