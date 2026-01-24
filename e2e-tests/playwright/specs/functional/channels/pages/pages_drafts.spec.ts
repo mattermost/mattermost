@@ -1404,8 +1404,11 @@ test('handles page deletion while user has unpublished draft', {tag: '@pages'}, 
     await pageA.waitForLoadState('networkidle');
     await ensurePanelOpen(pageA);
 
-    // * Verify the deleted page is not in the hierarchy
+    // Wait for hierarchy to fully hydrate after page load
     const hierarchyPanel = getHierarchyPanel(pageA);
+    await hierarchyPanel.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+
+    // * Verify the deleted page is not in the hierarchy
     const deletedPageNode = hierarchyPanel.locator('[data-testid="page-tree-node"]', {
         hasText: 'Page To Be Deleted',
     });

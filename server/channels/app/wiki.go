@@ -286,7 +286,7 @@ func (a *App) AddPageToWiki(rctx request.CTX, pageId, wikiId string, page *model
 			mlog.Err(err))
 	}
 
-	rctx.Logger().Info("PropertyValue created successfully",
+	rctx.Logger().Debug("PropertyValue created successfully",
 		mlog.String("page_id", pageId),
 		mlog.String("wiki_id", wikiId),
 		mlog.String("page_title", pageTitle),
@@ -335,7 +335,7 @@ func (a *App) DeleteWikiPage(rctx request.CTX, page *model.Post, wikiId string, 
 		return deletePageErr
 	}
 
-	rctx.Logger().Info("Wiki page deleted", mlog.String("page_id", pageId), mlog.String("wiki_id", wikiId))
+	rctx.Logger().Debug("Wiki page deleted", mlog.String("page_id", pageId), mlog.String("wiki_id", wikiId))
 
 	return nil
 }
@@ -345,7 +345,7 @@ func (a *App) DeleteWikiPage(rctx request.CTX, page *model.Post, wikiId string, 
 // If pageID is empty, a new ID will be generated.
 func (a *App) CreateWikiPage(rctx request.CTX, wikiId, parentId, title, content, userId, searchText, pageID string) (*model.Post, *model.AppError) {
 	isChild := parentId != ""
-	rctx.Logger().Info("DEBUG CreateWikiPage ENTRY",
+	rctx.Logger().Debug("CreateWikiPage entry",
 		mlog.String("wiki_id", wikiId),
 		mlog.String("parent_id", parentId),
 		mlog.String("title", title),
@@ -388,7 +388,7 @@ func (a *App) CreateWikiPage(rctx request.CTX, wikiId, parentId, title, content,
 	// Add wiki_id to the in-memory post so subsequent updates don't lose it
 	createdPage.AddProp(model.PagePropsWikiID, wikiId)
 
-	rctx.Logger().Info("Wiki page created and linked successfully",
+	rctx.Logger().Debug("Wiki page created and linked successfully",
 		mlog.String("page_id", createdPage.Id),
 		mlog.String("wiki_id", wikiId),
 		mlog.String("parent_id", parentId),

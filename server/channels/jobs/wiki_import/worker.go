@@ -125,6 +125,10 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 				mlog.Int("line_number", lineNumber),
 				mlog.String("import_file", importFileName),
 				mlog.Err(appErr))
+			// Initialize job.Data if nil before writing (defensive check)
+			if job.Data == nil {
+				job.Data = make(map[string]string)
+			}
 			job.Data["line_number"] = strconv.Itoa(lineNumber)
 			return appErr
 		}

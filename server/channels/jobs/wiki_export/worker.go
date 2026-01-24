@@ -87,6 +87,11 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 			return model.NewAppError("WikiExportWorker", "wiki_export.worker.write_file.error", nil, "", http.StatusInternalServerError).Wrap(writerErr)
 		}
 
+		// Initialize job.Data if nil (can happen if job was created without data)
+		if job.Data == nil {
+			job.Data = make(map[string]string)
+		}
+
 		// Mark export as downloadable
 		job.Data[model.WikiJobDataKeyIsDownloadable] = "true"
 		job.Data[model.WikiJobDataKeyExportDir] = outPath

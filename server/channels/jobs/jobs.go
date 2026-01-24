@@ -61,12 +61,17 @@ func (srv *JobServer) CreateJobOnce(rctx request.CTX, jobType string, jobData ma
 }
 
 func (srv *JobServer) _createJob(rctx request.CTX, jobType string, jobData map[string]string) (*model.Job, *model.AppError) {
+	// Ensure Data is never nil to prevent panics when workers write to it
+	data := jobData
+	if data == nil {
+		data = make(map[string]string)
+	}
 	job := model.Job{
 		Id:       model.NewId(),
 		Type:     jobType,
 		CreateAt: model.GetMillis(),
 		Status:   model.JobStatusPending,
-		Data:     jobData,
+		Data:     data,
 	}
 
 	if err := job.IsValid(); err != nil {

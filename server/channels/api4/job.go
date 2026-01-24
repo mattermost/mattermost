@@ -66,19 +66,20 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !*config.MessageExportSettings.DownloadExportResults {
+		c.Err = model.NewAppError("downloadExportResultsNotEnabled", "app.job.download_export_results_not_enabled", nil, "", http.StatusNotImplemented)
+		return
+	}
+
 	job, err := c.App.GetJob(c.AppContext, c.Params.JobId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	// Check permissions and config based on job type
+	// Check permissions based on job type
 	switch job.Type {
 	case model.JobTypeMessageExport:
-		if !*config.MessageExportSettings.DownloadExportResults {
-			c.Err = model.NewAppError("downloadExportResultsNotEnabled", "app.job.download_export_results_not_enabled", nil, "", http.StatusNotImplemented)
-			return
-		}
 		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionDownloadComplianceExportResult) {
 			c.SetPermissionError(model.PermissionDownloadComplianceExportResult)
 			return
