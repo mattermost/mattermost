@@ -10,7 +10,7 @@ import type {AppBinding, AppCallRequest, AppCallResponse} from '@mattermost/type
 import type {Audit} from '@mattermost/types/audits';
 import type {UserAutocomplete, AutocompleteSuggestion} from '@mattermost/types/autocomplete';
 import type {Bot, BotPatch} from '@mattermost/types/bots';
-import type {ChannelBookmark, ChannelBookmarkCreate, ChannelBookmarkPatch} from '@mattermost/types/channel_bookmarks';
+import type {ChannelBookmark, ChannelBookmarkCreate, ChannelBookmarkPatch, UpdateChannelBookmarkResponse} from '@mattermost/types/channel_bookmarks';
 import type {ChannelCategory, OrderedChannelCategories} from '@mattermost/types/channel_categories';
 import type {
     Channel,
@@ -2058,7 +2058,7 @@ export default class Client4 {
     };
 
     updateChannelBookmark = (channelId: string, channelBookmarkId: string, patch: ChannelBookmarkPatch, connectionId: string) => {
-        return this.doFetch<{updated: ChannelBookmark; deleted: ChannelBookmark}>(
+        return this.doFetch<UpdateChannelBookmarkResponse>(
             `${this.getChannelBookmarkRoute(channelId, channelBookmarkId)}`,
             {method: 'patch', body: JSON.stringify(patch), headers: {'Connection-Id': connectionId}},
         );

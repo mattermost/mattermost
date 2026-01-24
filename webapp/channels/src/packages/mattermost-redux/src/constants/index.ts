@@ -14,6 +14,5 @@ import Stats from './stats';
 import Teams from './teams';
 import Threads from './threads';
 import Users from './users';
-import WebsocketEvents from './websocket';
 
-export {General, Preferences, Posts, PostTypes, Files, RequestStatus, WebsocketEvents, Teams, Stats, Permissions, Emoji, Plugins, Users, Roles, Threads};
+export {General, Preferences, Posts, PostTypes, Files, RequestStatus, Teams, Stats, Permissions, Emoji, Plugins, Users, Roles, Threads};
