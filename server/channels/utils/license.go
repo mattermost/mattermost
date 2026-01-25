@@ -55,6 +55,45 @@ func (l *LicenseValidatorImpl) LicenseFromBytes(licenseBytes []byte) (*model.Lic
 }
 
 func (l *LicenseValidatorImpl) ValidateLicense(signed []byte) (string, error) {
+	format := DetectLicenseFormat(signed)
+
+	switch format {
+	case LicenseFormatKeygen:
+		return l.validateKeygenLicense(signed)
+	case LicenseFormatLegacyRSA:
+		return l.validateRSALicense(signed)
+	default:
+		return "", fmt.Errorf("unknown license format")
+	}
+}
+
+// validateKeygenLicense handles Keygen Ed25519-signed license files
+func (l *LicenseValidatorImpl) validateKeygenLicense(certificate []byte) (string, error) {
+	validator := NewKeygenLicenseValidator()
+
+	// Keygen licenses are PEM-encoded certificates, not base64
+	licenseData, err := validator.VerifyAndDecode(string(certificate))
+	if err != nil {
+		return "", fmt.Errorf("keygen license verification failed: %w", err)
+	}
+
+	// Convert to model.License for compatibility with existing code
+	license, err := ConvertKeygenToModelLicense(licenseData)
+	if err != nil {
+		return "", fmt.Errorf("keygen license conversion failed: %w", err)
+	}
+
+	// Return JSON string for existing interface compatibility
+	licenseJSON, err := json.Marshal(license)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal license: %w", err)
+	}
+
+	return string(licenseJSON), nil
+}
+
+// validateRSALicense handles legacy RSA-signed licenses (existing logic)
+func (l *LicenseValidatorImpl) validateRSALicense(signed []byte) (string, error) {
 	decoded := make([]byte, base64.StdEncoding.DecodedLen(len(signed)))
 
 	_, err := base64.StdEncoding.Decode(decoded, signed)

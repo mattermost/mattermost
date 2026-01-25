@@ -111,6 +111,78 @@ func TestValidateLicense(t *testing.T) {
 	})
 }
 
+func TestValidateLicense_FormatDetection(t *testing.T) {
+	validator := &LicenseValidatorImpl{}
+
+	t.Run("detects keygen format", func(t *testing.T) {
+		keygenLicense := []byte("-----BEGIN LICENSE FILE-----\nsome-content\n-----END LICENSE FILE-----")
+		_, err := validator.ValidateLicense(keygenLicense)
+		// Should fail verification (invalid content) but prove routing worked
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "keygen")
+	})
+
+	t.Run("detects RSA format", func(t *testing.T) {
+		// RSA licenses are base64-encoded, so anything without Keygen header is RSA
+		rsaLicense := []byte("dGVzdC1iYXNlNjQtY29udGVudA==") // "test-base64-content"
+		_, err := validator.ValidateLicense(rsaLicense)
+		// Should fail (invalid RSA signature) but prove routing worked
+		require.Error(t, err)
+		assert.NotContains(t, err.Error(), "keygen")
+	})
+
+	t.Run("rejects empty license", func(t *testing.T) {
+		_, err := validator.ValidateLicense([]byte{})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "unknown license format")
+	})
+
+	t.Run("rejects whitespace-only license", func(t *testing.T) {
+		_, err := validator.ValidateLicense([]byte("   \n\t  "))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "unknown license format")
+	})
+}
+
+func TestLicenseFromBytes_FormatDetection(t *testing.T) {
+	validator := &LicenseValidatorImpl{}
+
+	t.Run("keygen format goes through keygen path", func(t *testing.T) {
+		keygenLicense := []byte("-----BEGIN LICENSE FILE-----\ninvalid\n-----END LICENSE FILE-----")
+		license, appErr := validator.LicenseFromBytes(keygenLicense)
+		require.NotNil(t, appErr)
+		assert.Equal(t, model.InvalidLicenseError, appErr.Id)
+		assert.Nil(t, license)
+	})
+
+	t.Run("RSA format goes through RSA path", func(t *testing.T) {
+		rsaLicense := []byte("dGVzdA==") // "test" in base64
+		license, appErr := validator.LicenseFromBytes(rsaLicense)
+		require.NotNil(t, appErr)
+		assert.Equal(t, model.InvalidLicenseError, appErr.Id)
+		assert.Nil(t, license)
+	})
+}
+
+func TestValidateRSALicense_BackwardsCompatibility(t *testing.T) {
+	validator := &LicenseValidatorImpl{}
+
+	t.Run("short license rejected", func(t *testing.T) {
+		// License too short (less than 256 bytes after decode)
+		shortLicense := []byte("YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXo=") // "abcdefghijklmnopqrstuvwxyz"
+		_, err := validator.validateRSALicense(shortLicense)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "not long enough")
+	})
+
+	t.Run("invalid base64 rejected", func(t *testing.T) {
+		invalidBase64 := []byte("not-valid-base64!!!!")
+		_, err := validator.validateRSALicense(invalidBase64)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "decoding")
+	})
+}
+
 func TestGetLicenseFileLocation(t *testing.T) {
 	fileName := GetLicenseFileLocation("")
 	require.NotEmpty(t, fileName, "invalid default file name")
