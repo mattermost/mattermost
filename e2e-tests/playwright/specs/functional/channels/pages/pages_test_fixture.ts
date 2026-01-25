@@ -50,9 +50,8 @@ export const test = base.extend<PagesTestFixtures, PagesWorkerFixtures>({
     pagesWorkerSetup: [
         // eslint-disable-next-line no-empty-pattern
         async ({}, use) => {
-            const {getAdminClient, createRandomTeam, getOnPremServerConfig} = await import(
-                '@mattermost/playwright-lib'
-            );
+            const {getAdminClient, createRandomTeam, getOnPremServerConfig} =
+                await import('@mattermost/playwright-lib');
 
             // Login admin
             const {adminClient, adminUser} = await getAdminClient();
@@ -152,9 +151,8 @@ export const testWithRegularUser = base.extend<PermissionsTestFixtures, Permissi
     permissionsWorkerSetup: [
         // eslint-disable-next-line no-empty-pattern
         async ({}, use) => {
-            const {getAdminClient, createRandomTeam, getOnPremServerConfig} = await import(
-                '@mattermost/playwright-lib'
-            );
+            const {getAdminClient, createRandomTeam, getOnPremServerConfig} =
+                await import('@mattermost/playwright-lib');
 
             // Login admin
             const {adminClient} = await getAdminClient();
