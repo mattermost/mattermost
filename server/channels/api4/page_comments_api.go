@@ -197,7 +197,7 @@ func validateInlinePageComment(c *Context, commentId, pageId, handlerName string
 		return nil
 	}
 
-	commentPageId, ok := comment.Props["page_id"].(string)
+	commentPageId, ok := comment.Props[model.PagePropsPageID].(string)
 	if !ok || commentPageId != pageId {
 		c.Err = model.NewAppError(
 			handlerName,

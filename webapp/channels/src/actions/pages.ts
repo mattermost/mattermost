@@ -456,8 +456,6 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
 
             dispatch(batchActions([...actions, ...cleanupActions]));
 
-            dispatch(removeGlobalItem(draftKey));
-
             // Clear outline cache for the published page so fresh headings are extracted
             dispatch(clearOutlineCache(data.id));
 
@@ -650,9 +648,10 @@ function moveDraftInHierarchy(draftId: string, newParentId: string | null, wikiI
         if (syncedDraftsAreAllowedAndEnabled(state)) {
             try {
                 await Client4.movePageDraft(wikiId, draftId, newParentId || '');
-            } catch {
-                // Ignore error - local state has been updated
-                // and the next autosave will sync the props
+            } catch (error) {
+                // Local state has been updated; next autosave will sync.
+                // Still log error for debugging purposes.
+                dispatch(logError(error));
             }
         }
 
@@ -966,7 +965,7 @@ export function unresolvePageComment(wikiId: string, pageId: string, commentId: 
 }
 
 export function fetchPageStatusField(): ActionFuncAsync {
-    return async (dispatch) => {
+    return async (dispatch, getState) => {
         try {
             const field = await Client4.getPageStatusField();
 
@@ -977,13 +976,15 @@ export function fetchPageStatusField(): ActionFuncAsync {
 
             return {data: field};
         } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
             return {error};
         }
     };
 }
 
 export function fetchPageStatus(postId: string): ActionFuncAsync {
-    return async (dispatch) => {
+    return async (dispatch, getState) => {
         try {
             const data = await Client4.getPageStatus(postId);
 
@@ -997,6 +998,8 @@ export function fetchPageStatus(postId: string): ActionFuncAsync {
 
             return {data};
         } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
             return {error};
         }
     };
@@ -1028,6 +1031,8 @@ export function updatePageStatus(postId: string, status: string): ActionFuncAsyn
 
             return {data: true};
         } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
             return {error};
         }
     };

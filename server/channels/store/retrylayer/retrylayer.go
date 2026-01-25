@@ -8029,11 +8029,11 @@ func (s *RetryLayerPageStore) CreatePage(rctx request.CTX, post *model.Post, con
 
 }
 
-func (s *RetryLayerPageStore) DeletePage(pageID string, deleteByID string) error {
+func (s *RetryLayerPageStore) DeletePage(pageID string, deleteByID string, newParentID string) error {
 
 	tries := 0
 	for {
-		err := s.PageStore.DeletePage(pageID, deleteByID)
+		err := s.PageStore.DeletePage(pageID, deleteByID, newParentID)
 		if err == nil {
 			return nil
 		}

@@ -5919,6 +5919,10 @@
     "translation": "Failed to delete draft after publishing."
   },
   {
+    "id": "app.draft.publish_page.check_existing_error",
+    "translation": "Unable to check for existing page during draft publishing."
+  },
+  {
     "id": "app.draft.publish_page.content_error",
     "translation": "Unable to resolve page draft content for publishing."
   },
@@ -7311,6 +7315,10 @@
     "translation": "Failed to calculate subtree depth."
   },
   {
+    "id": "app.page.change_parent.app_error",
+    "translation": "Unable to change page parent."
+  },
+  {
     "id": "app.page.change_parent.circular_reference.app_error",
     "translation": "Cannot change parent: would create circular reference."
   },
@@ -7321,6 +7329,10 @@
   {
     "id": "app.page.change_parent.max_depth_exceeded.app_error",
     "translation": "Changing parent would exceed maximum hierarchy depth."
+  },
+  {
+    "id": "app.page.change_parent.not_found",
+    "translation": "Page not found."
   },
   {
     "id": "app.page.change_parent.not_found.app_error",
@@ -7407,10 +7419,6 @@
     "translation": "Cannot reply to a comment reply."
   },
   {
-    "id": "app.page.delete.reparent_error.app_error",
-    "translation": "Unable to reparent child pages during deletion."
-  },
-  {
     "id": "app.page.delete.store_error.app_error",
     "translation": "Unable to delete page."
   },
@@ -7475,12 +7483,40 @@
     "translation": "Unable to get active editors."
   },
   {
+    "id": "app.page.get_ancestors.app_error",
+    "translation": "Unable to get page ancestors."
+  },
+  {
+    "id": "app.page.get_ancestors.not_found",
+    "translation": "Page not found."
+  },
+  {
+    "id": "app.page.get_channel_pages.app_error",
+    "translation": "Unable to get channel pages."
+  },
+  {
+    "id": "app.page.get_children.app_error",
+    "translation": "Unable to get page children."
+  },
+  {
+    "id": "app.page.get_children.parent.app_error",
+    "translation": "Parent page not found."
+  },
+  {
     "id": "app.page.get_comments.page_not_found.app_error",
     "translation": "Page not found for comments."
   },
   {
     "id": "app.page.get_comments.store_error.app_error",
     "translation": "Unable to get page comments."
+  },
+  {
+    "id": "app.page.get_descendants.app_error",
+    "translation": "Unable to get page descendants."
+  },
+  {
+    "id": "app.page.get_descendants.not_found",
+    "translation": "Page not found."
   },
   {
     "id": "app.page.get_field.app_error",
@@ -7983,14 +8019,6 @@
     "translation": "Unable to get user counts with posts."
   },
   {
-    "id": "app.post.change_page_parent.app_error",
-    "translation": "Unable to change page parent."
-  },
-  {
-    "id": "app.post.change_page_parent.not_found",
-    "translation": "Page not found for parent change."
-  },
-  {
     "id": "app.post.cloud.get.app_error",
     "translation": "Can not fetch the post as it is past the cloud's plan limit."
   },
@@ -8015,40 +8043,12 @@
     "translation": "Unable to get the post."
   },
   {
-    "id": "app.post.get_channel_pages.app_error",
-    "translation": "Unable to get channel pages."
-  },
-  {
     "id": "app.post.get_direct_posts.app_error",
     "translation": "Unable to get direct posts."
   },
   {
     "id": "app.post.get_flagged_posts.app_error",
     "translation": "Unable to get the flagged posts."
-  },
-  {
-    "id": "app.post.get_page_ancestors.app_error",
-    "translation": "Unable to get page ancestors."
-  },
-  {
-    "id": "app.post.get_page_ancestors.not_found",
-    "translation": "Page not found for ancestors."
-  },
-  {
-    "id": "app.post.get_page_children.app_error",
-    "translation": "Unable to get page children."
-  },
-  {
-    "id": "app.post.get_page_children.parent.app_error",
-    "translation": "Unable to get parent page."
-  },
-  {
-    "id": "app.post.get_page_descendants.app_error",
-    "translation": "Unable to get page descendants."
-  },
-  {
-    "id": "app.post.get_page_descendants.not_found",
-    "translation": "Page not found for descendants."
   },
   {
     "id": "app.post.get_post.app_error",

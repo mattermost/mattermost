@@ -91,21 +91,10 @@ func (a *App) CreatePageWithChannel(rctx request.CTX, channel *model.Channel, ti
 	}
 
 	if content != "" {
-		trimmedContent := strings.TrimSpace(content)
-
-		// If content looks like JSON (starts with {), validate it
-		if strings.HasPrefix(trimmedContent, "{") {
-			if err := model.ValidateTipTapDocument(content); err != nil {
-				return nil, model.NewAppError("CreatePage", "app.page.create.invalid_content.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-			}
-		} else {
-			// Not JSON - treat as plain text and auto-convert to TipTap JSON
-			content = convertPlainTextToTipTapJSON(content)
-
-			// Extract search text from plain content if not provided
-			if searchText == "" {
-				searchText = content
-			}
+		var contentErr error
+		content, searchText, contentErr = validateAndNormalizePageContent(content, searchText)
+		if contentErr != nil {
+			return nil, model.NewAppError("CreatePage", "app.page.create.invalid_content.app_error", nil, "", http.StatusBadRequest).Wrap(contentErr)
 		}
 	}
 
@@ -137,7 +126,7 @@ func (a *App) CreatePageWithChannel(rctx request.CTX, channel *model.Channel, ti
 		return nil, contentErr
 	}
 
-	// Invalidate cache so other nodes see the new page
+	// Invalidate cache across cluster so other nodes see the new page
 	a.invalidateCacheForChannelPosts(createdPage.ChannelId)
 
 	return createdPage, nil
@@ -332,6 +321,15 @@ func (a *App) UpdatePage(rctx request.CTX, page *model.Post, title, content, sea
 		}
 	}
 
+	// Validate and normalize content
+	if content != "" {
+		var contentErr error
+		content, searchText, contentErr = validateAndNormalizePageContent(content, searchText)
+		if contentErr != nil {
+			return nil, model.NewAppError("UpdatePage", "app.page.update.invalid_content.app_error", nil, "", http.StatusBadRequest).Wrap(contentErr)
+		}
+	}
+
 	updatedPost, storeErr := a.Srv().Store().Page().UpdatePageWithContent(rctx, pageID, title, content, searchText)
 	if storeErr != nil {
 		var nfErr *store.ErrNotFound
@@ -383,7 +381,10 @@ func (a *App) UpdatePage(rctx request.CTX, page *model.Post, title, content, sea
 
 	a.handlePageUpdateNotification(rctx, updatedPost, session.UserId, nil, nil)
 
-	// Invalidate cache so other nodes see the update
+	// CRITICAL: Invalidate cache across cluster BEFORE WebSocket broadcast.
+	// In HA clusters, clients on other nodes may request data immediately after
+	// receiving the WebSocket event. Cache must be invalidated first to prevent
+	// serving stale data.
 	a.invalidateCacheForChannelPosts(updatedPost.ChannelId)
 
 	// Broadcast POST_EDITED event so clients update the page
@@ -428,6 +429,15 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, page *model.Post
 		title = model.SanitizeUnicode(title)
 		if len(title) > model.MaxPageTitleLength {
 			return nil, model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.title_too_long.app_error", map[string]any{"MaxLength": model.MaxPageTitleLength}, "", http.StatusBadRequest)
+		}
+	}
+
+	// Validate and normalize content
+	if content != "" {
+		var contentErr error
+		content, _, contentErr = validateAndNormalizePageContent(content, searchText)
+		if contentErr != nil {
+			return nil, model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.invalid_content.app_error", nil, "", http.StatusBadRequest).Wrap(contentErr)
 		}
 	}
 
@@ -505,13 +515,16 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, page *model.Post
 		}
 	}
 
+	// CRITICAL: Invalidate cache across cluster BEFORE WebSocket broadcast.
+	// In HA clusters, clients on other nodes may request data immediately after
+	// receiving the WebSocket event. Cache must be invalidated first to prevent
+	// serving stale data.
+	a.invalidateCacheForChannelPosts(updatedPost.ChannelId)
+
 	// Broadcast POST_EDITED event so all clients update their page content
 	a.sendPageEditedEvent(rctx, updatedPost)
 
 	a.handlePageUpdateNotification(rctx, updatedPost, session.UserId, nil, nil)
-
-	// Invalidate cache so other nodes see the update
-	a.invalidateCacheForChannelPosts(updatedPost.ChannelId)
 
 	return updatedPost, nil
 }
@@ -530,18 +543,16 @@ func (a *App) DeletePage(rctx request.CTX, page *model.Post, wikiId string) *mod
 	pageID := page.Id
 	session := rctx.Session()
 
-	// Reparent any children to the deleted page's parent (or make them root pages)
-	// This prevents orphaned pages when a parent is deleted
-	if err := a.Srv().Store().Page().ReparentChildren(pageID, page.PageParentId); err != nil {
-		return model.NewAppError("DeletePage", "app.page.delete.reparent_error.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	// Atomic deletion of content, comments, and page post in a single transaction
-	if err := a.Srv().Store().Page().DeletePage(pageID, session.UserId); err != nil {
+	// Atomic deletion with reparenting: reparents children to the deleted page's parent,
+	// then deletes content, comments, and page post - all in a single transaction.
+	// This prevents race conditions where a new child could be added between reparenting and deletion.
+	if err := a.Srv().Store().Page().DeletePage(pageID, session.UserId, page.PageParentId); err != nil {
 		return model.NewAppError("DeletePage", "app.page.delete.store_error.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	// Invalidate cache so other nodes see the deletion
+	// CRITICAL: Invalidate cache across cluster BEFORE WebSocket broadcast.
+	// In HA clusters, clients on other nodes may request data immediately after
+	// receiving the WebSocket event.
 	a.invalidateCacheForChannelPosts(page.ChannelId)
 
 	a.broadcastPageDeleted(pageID, wikiId, page.ChannelId, rctx.Session().UserId)
@@ -572,6 +583,7 @@ func (a *App) RestorePage(rctx request.CTX, page *model.Post) *model.AppError {
 	restoredPost.DeleteAt = 0
 	restoredPost.UpdateAt = model.GetMillis()
 
+	// CRITICAL: Invalidate cache across cluster BEFORE WebSocket broadcast.
 	a.invalidateCacheForChannelPosts(restoredPost.ChannelId)
 
 	if enrichErr := a.EnrichPageWithProperties(rctx, restoredPost, true); enrichErr != nil {
@@ -760,6 +772,36 @@ func (a *App) sendPageEditedEvent(rctx request.CTX, page *model.Post) {
 	})
 
 	a.Publish(message)
+}
+
+// validateAndNormalizePageContent validates and normalizes page content.
+// If content looks like JSON, validates it as TipTap document.
+// If content is plain text, converts it to TipTap JSON format.
+// Returns the normalized content, updated searchText, and any validation error.
+func validateAndNormalizePageContent(content, searchText string) (string, string, error) {
+	if content == "" {
+		return content, searchText, nil
+	}
+
+	trimmedContent := strings.TrimSpace(content)
+
+	// If content looks like JSON (starts with {), validate it as TipTap
+	if strings.HasPrefix(trimmedContent, "{") {
+		if err := model.ValidateTipTapDocument(content); err != nil {
+			return "", "", err
+		}
+		return content, searchText, nil
+	}
+
+	// Not JSON - treat as plain text and auto-convert to TipTap JSON
+	normalizedContent := convertPlainTextToTipTapJSON(content)
+
+	// Extract search text from plain content if not provided
+	if searchText == "" {
+		searchText = content
+	}
+
+	return normalizedContent, searchText, nil
 }
 
 // isValidTipTapJSON checks if the given content is valid TipTap JSON format

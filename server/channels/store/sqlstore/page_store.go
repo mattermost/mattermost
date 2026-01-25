@@ -258,14 +258,34 @@ func (s *SqlPageStore) SoftDeletePagePost(pageID, deleteByID string) error {
 }
 
 // DeletePage soft-deletes a page and all its associated data (content, comments, and drafts).
-// All operations are performed in a single transaction to ensure data consistency.
-func (s *SqlPageStore) DeletePage(pageID string, deleteByID string) error {
+// It also atomically reparents any child pages to newParentID (or makes them root pages if empty).
+// All operations are performed in a single transaction to ensure data consistency and prevent
+// race conditions where a new child could be added between reparenting and deletion.
+func (s *SqlPageStore) DeletePage(pageID string, deleteByID string, newParentID string) error {
 	if pageID == "" {
 		return store.NewErrInvalidInput("Post", "pageID", pageID)
 	}
 
 	return s.ExecuteInTransaction(func(transaction *sqlxTxWrapper) error {
 		now := model.GetMillis()
+
+		// FIRST: Reparent children INSIDE the transaction to prevent race conditions.
+		// This must happen before deleting the page to ensure no orphaned children.
+		// If a concurrent request tries to add a child, it will either:
+		// - See the page as deleted (if it checks after our delete) and fail
+		// - Get its child reparented (if it succeeds before our reparent runs)
+		reparentQuery := s.getQueryBuilder().
+			Update("Posts").
+			Set("PageParentId", newParentID).
+			Set("UpdateAt", now).
+			Where(sq.And{
+				sq.Eq{"PageParentId": pageID},
+				sq.Eq{"DeleteAt": 0},
+				sq.Eq{"Type": model.PostTypePage},
+			})
+		if _, err := transaction.ExecBuilder(reparentQuery); err != nil {
+			return errors.Wrap(err, "failed to reparent children")
+		}
 
 		// Soft-delete published content only (UserId=''), preserving for potential page restore
 		softDeletePublishedQuery := s.getQueryBuilder().
@@ -385,8 +405,9 @@ func (s *SqlPageStore) RestorePage(pageID string) error {
 	})
 }
 
-// Update updates a page (following MM pattern - no business logic, just UPDATE)
-// Returns store.ErrNotFound if page doesn't exist or was deleted
+// Update updates a page with optimistic locking using EditAt for compare-and-swap.
+// The page.EditAt field MUST contain the EditAt value the caller read before making changes.
+// Returns store.ErrNotFound if page doesn't exist, was deleted, or EditAt doesn't match (concurrent modification).
 func (s *SqlPageStore) Update(rctx request.CTX, page *model.Post) (*model.Post, error) {
 	if page.Type != model.PostTypePage {
 		return nil, store.NewErrInvalidInput("Post", "Type", page.Type)
@@ -447,7 +468,9 @@ func (s *SqlPageStore) Update(rctx request.CTX, page *model.Post) (*model.Post, 
 			oldContent = &currentContent
 		}
 
-		// Update the Post
+		// Update the Post with optimistic locking via EditAt.
+		// The WHERE clause includes EditAt to ensure no concurrent modification occurred
+		// between when the caller read the page and now (compare-and-swap pattern).
 		now := model.GetMillis()
 		updateQuery := s.getQueryBuilder().
 			Update("Posts").
@@ -458,6 +481,7 @@ func (s *SqlPageStore) Update(rctx request.CTX, page *model.Post) (*model.Post, 
 			Where(sq.And{
 				sq.Eq{"Id": page.Id},
 				sq.Eq{"DeleteAt": 0},
+				sq.Eq{"EditAt": page.EditAt}, // Optimistic lock: fail if EditAt changed
 			})
 
 		updateSQL, updateArgs, buildErr := updateQuery.ToSql()
@@ -596,23 +620,62 @@ func (s *SqlPageStore) GetChannelPages(channelID string) (*model.PostList, error
 // ChangePageParent updates the parent of a page using optimistic locking.
 // Only updates if UpdateAt matches expectedUpdateAt to prevent concurrent modifications.
 // Returns ErrNotFound if no rows affected (page not found or concurrent modification).
+// Returns ErrInvalidInput if the move would create a cycle in the hierarchy.
+//
+// Uses a transaction with cycle detection to prevent race conditions where concurrent
+// move operations could create cycles (e.g., moving P1 under P2 while P2 is moved under P1).
 func (s *SqlPageStore) ChangePageParent(postID string, newParentID string, expectedUpdateAt int64) error {
-	updateQuery := s.getQueryBuilder().
-		Update("Posts").
-		Set("PageParentId", newParentID).
-		Set("UpdateAt", model.GetMillis()).
-		Where(sq.And{
-			sq.Eq{"Id": postID},
-			sq.Eq{"DeleteAt": 0},
-			sq.Eq{"UpdateAt": expectedUpdateAt},
-		})
+	return s.ExecuteInTransaction(func(transaction *sqlxTxWrapper) error {
+		// If setting a parent, check for cycles atomically within the transaction
+		if newParentID != "" {
+			// Direct self-reference check
+			if newParentID == postID {
+				return store.NewErrInvalidInput("Post", "PageParentId", "cannot set page as its own parent")
+			}
 
-	result, err := s.GetMaster().ExecBuilder(updateQuery)
-	if err != nil {
-		return errors.Wrapf(err, "failed to update parent for post_id=%s", postID)
-	}
+			// Check if postID is an ancestor of newParentID (would create cycle)
+			cycleCheckQuery := `
+			WITH RECURSIVE ancestors AS (
+				SELECT Id, PageParentId
+				FROM Posts WHERE Id = $1 AND Type = 'page' AND DeleteAt = 0
+				UNION ALL
+				SELECT p.Id, p.PageParentId
+				FROM Posts p
+				INNER JOIN ancestors a ON p.Id = a.PageParentId
+				WHERE a.PageParentId IS NOT NULL AND a.PageParentId != ''
+				  AND p.Type = 'page' AND p.DeleteAt = 0
+			)
+			SELECT 1 FROM ancestors WHERE Id = $2 LIMIT 1`
 
-	return s.checkRowsAffected(result, "Post", postID)
+			var cycleExists int
+			err := transaction.Get(&cycleExists, cycleCheckQuery, newParentID, postID)
+			if err == nil {
+				// Row found means postID is an ancestor of newParentID - cycle detected
+				return store.NewErrInvalidInput("Post", "PageParentId", "would create cycle in hierarchy")
+			} else if err != sql.ErrNoRows {
+				return errors.Wrap(err, "failed to check for cycle")
+			}
+			// sql.ErrNoRows means no cycle - proceed with update
+		}
+
+		// Perform the update with optimistic locking
+		updateQuery := s.getQueryBuilder().
+			Update("Posts").
+			Set("PageParentId", newParentID).
+			Set("UpdateAt", model.GetMillis()).
+			Where(sq.And{
+				sq.Eq{"Id": postID},
+				sq.Eq{"DeleteAt": 0},
+				sq.Eq{"UpdateAt": expectedUpdateAt},
+			})
+
+		result, err := transaction.ExecBuilder(updateQuery)
+		if err != nil {
+			return errors.Wrapf(err, "failed to update parent for post_id=%s", postID)
+		}
+
+		return s.checkRowsAffected(result, "Post", postID)
+	})
 }
 
 // ReparentChildren updates all direct children of a page to a new parent.
@@ -1112,7 +1175,9 @@ func (s *SqlPageStore) GetManyPageContents(pageIDs []string) ([]*model.PageConte
 		return nil, errors.Wrap(err, "page_content_getmany_tosql")
 	}
 
-	rows, err := s.GetReplica().Query(queryString, args...)
+	// Use GetMaster() for read-after-write consistency in HA mode,
+	// matching GetPageContent() behavior.
+	rows, err := s.GetMaster().Query(queryString, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get PageContents with pageIds=%v", pageIDs)
 	}

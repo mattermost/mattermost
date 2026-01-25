@@ -254,7 +254,7 @@ func (a *App) AddPageToWiki(rctx request.CTX, pageId, wikiId string, page *model
 		return model.NewAppError("AddPageToWiki", "app.wiki.marshal_wiki_id.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	value := &model.PropertyValue{
-		TargetType: "post",
+		TargetType: model.PropertyValueTargetTypePost,
 		TargetID:   pageId,
 		GroupID:    group.ID,
 		FieldID:    wikiField.ID,

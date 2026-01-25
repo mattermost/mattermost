@@ -1669,7 +1669,7 @@ func testDeletePage(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		require.NotNil(t, getDraft2)
 
-		err = ss.Page().DeletePage(page.Id, userID)
+		err = ss.Page().DeletePage(page.Id, userID, "")
 		require.NoError(t, err)
 
 		_, err = ss.Draft().Get(userID, wikiID, page.Id, false)
@@ -1712,7 +1712,7 @@ func testDeletePage(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		require.NotNil(t, getDraft)
 
-		err = ss.Page().DeletePage(page.Id, userID)
+		err = ss.Page().DeletePage(page.Id, userID, "")
 		require.NoError(t, err)
 
 		_, err = ss.Draft().GetPageDraft(page.Id, userID)
@@ -1764,7 +1764,7 @@ func testDeletePage(t *testing.T, rctx request.CTX, ss store.Store) {
 		_, err = ss.Draft().UpsertPageDraft(draft2)
 		require.NoError(t, err)
 
-		err = ss.Page().DeletePage(page1.Id, userID)
+		err = ss.Page().DeletePage(page1.Id, userID, "")
 		require.NoError(t, err)
 
 		_, err = ss.Draft().Get(userID, wikiID, page1.Id, false)

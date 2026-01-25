@@ -19,7 +19,7 @@ import (
 func (a *App) GetPageChildren(rctx request.CTX, postID string, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
 	parentPost, appErr := a.GetSinglePost(rctx, postID, false)
 	if appErr != nil {
-		return nil, model.NewAppError("GetPageChildren", "app.post.get_page_children.parent.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
+		return nil, model.NewAppError("GetPageChildren", "app.page.get_children.parent.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
 	}
 
 	// Verify parent exists but don't check permissions here - that's the API layer's job
@@ -30,9 +30,9 @@ func (a *App) GetPageChildren(rctx request.CTX, postID string, options model.Get
 		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(err, &invErr):
-			return nil, model.NewAppError("GetPageChildren", "app.post.get_page_children.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+			return nil, model.NewAppError("GetPageChildren", "app.page.get_children.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		default:
-			return nil, model.NewAppError("GetPageChildren", "app.post.get_page_children.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return nil, model.NewAppError("GetPageChildren", "app.page.get_children.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -52,9 +52,9 @@ func (a *App) GetPageAncestors(rctx request.CTX, postID string) (*model.PostList
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetPageAncestors", "app.post.get_page_ancestors.not_found", nil, "", http.StatusNotFound).Wrap(err)
+			return nil, model.NewAppError("GetPageAncestors", "app.page.get_ancestors.not_found", nil, "", http.StatusNotFound).Wrap(err)
 		default:
-			return nil, model.NewAppError("GetPageAncestors", "app.post.get_page_ancestors.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return nil, model.NewAppError("GetPageAncestors", "app.page.get_ancestors.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -74,9 +74,9 @@ func (a *App) GetPageDescendants(rctx request.CTX, postID string) (*model.PostLi
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetPageDescendants", "app.post.get_page_descendants.not_found", nil, "", http.StatusNotFound).Wrap(err)
+			return nil, model.NewAppError("GetPageDescendants", "app.page.get_descendants.not_found", nil, "", http.StatusNotFound).Wrap(err)
 		default:
-			return nil, model.NewAppError("GetPageDescendants", "app.post.get_page_descendants.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return nil, model.NewAppError("GetPageDescendants", "app.page.get_descendants.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -100,7 +100,7 @@ func (a *App) GetChannelPages(rctx request.CTX, channelID string) (*model.PostLi
 
 	postList, err := a.Srv().Store().Page().GetChannelPages(channelID)
 	if err != nil {
-		return nil, model.NewAppError("GetChannelPages", "app.post.get_channel_pages.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("GetChannelPages", "app.page.get_channel_pages.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if enrichErr := a.EnrichPagesWithProperties(rctx, postList); enrichErr != nil {
@@ -165,7 +165,7 @@ func (a *App) ChangePageParent(rctx request.CTX, postID string, newParentID stri
 	}()
 
 	// Use master DB to avoid replica lag issues in HA
-	page, err := a.GetPage(rctx.With(RequestContextWithMaster), postID)
+	page, err := a.GetPage(RequestContextWithMaster(rctx), postID)
 	if err != nil {
 		return model.NewAppError("ChangePageParent", "app.page.change_parent.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
 	}
@@ -236,13 +236,18 @@ func (a *App) ChangePageParent(rctx request.CTX, postID string, newParentID stri
 	}
 
 	// Use optimistic locking: only update if UpdateAt hasn't changed since we read the page
+	// The store layer also performs atomic cycle detection to prevent race conditions
 	if storeErr := a.Srv().Store().Page().ChangePageParent(postID, newParentID, expectedUpdateAt); storeErr != nil {
 		var nfErr *store.ErrNotFound
+		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(storeErr, &nfErr):
-			return model.NewAppError("ChangePageParent", "app.post.change_page_parent.not_found", nil, "", http.StatusNotFound).Wrap(storeErr)
+			return model.NewAppError("ChangePageParent", "app.page.change_parent.not_found", nil, "", http.StatusNotFound).Wrap(storeErr)
+		case errors.As(storeErr, &invErr):
+			// Cycle detected at store level (race condition prevention)
+			return model.NewAppError("ChangePageParent", "app.page.change_parent.circular_reference.app_error", nil, "", http.StatusBadRequest).Wrap(storeErr)
 		default:
-			return model.NewAppError("ChangePageParent", "app.post.change_page_parent.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
+			return model.NewAppError("ChangePageParent", "app.page.change_parent.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
 		}
 	}
 

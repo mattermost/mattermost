@@ -6,6 +6,7 @@ import {batchActions} from 'redux-batched-actions';
 import type {PageDraft as ServerPageDraft} from '@mattermost/types/drafts';
 
 import {WikiTypes} from 'mattermost-redux/action_types';
+import {logError} from 'mattermost-redux/actions/errors';
 import * as WikiActions from 'mattermost-redux/actions/wikis';
 import {syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
@@ -191,10 +192,13 @@ export function removePageDraft(wikiId: string, pageId: string): ActionFuncAsync
 
         // Delete from server first (if sync is enabled) - delegate to Redux layer
         if (syncedDraftsAreAllowedAndEnabled(state)) {
-            await dispatch(WikiActions.deletePageDraft(wikiId, pageId));
+            const result = await dispatch(WikiActions.deletePageDraft(wikiId, pageId));
 
-            // Still remove from local storage even if server delete fails
-            // This prevents the draft from being stuck in UI
+            // Log error but continue - still remove from local storage
+            // to prevent the draft from being stuck in UI
+            if (result.error) {
+                dispatch(logError(result.error));
+            }
         }
 
         // Remove from local storage and notify Redux

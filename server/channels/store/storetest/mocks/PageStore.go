@@ -63,17 +63,17 @@ func (_m *PageStore) CreatePage(rctx request.CTX, post *model.Post, content stri
 	return r0, r1
 }
 
-// DeletePage provides a mock function with given fields: pageID, deleteByID
-func (_m *PageStore) DeletePage(pageID string, deleteByID string) error {
-	ret := _m.Called(pageID, deleteByID)
+// DeletePage provides a mock function with given fields: pageID, deleteByID, newParentID
+func (_m *PageStore) DeletePage(pageID string, deleteByID string, newParentID string) error {
+	ret := _m.Called(pageID, deleteByID, newParentID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeletePage")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string) error); ok {
-		r0 = rf(pageID, deleteByID)
+	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
+		r0 = rf(pageID, deleteByID, newParentID)
 	} else {
 		r0 = ret.Error(0)
 	}

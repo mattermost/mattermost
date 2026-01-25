@@ -412,6 +412,14 @@ func (a *App) UnresolvePageComment(rctx request.CTX, comment *model.Post, page *
 }
 
 func (a *App) SendCommentCreatedEvent(rctx request.CTX, comment *model.Post, page *model.Post, channel *model.Channel) {
+	commentJSON, jsonErr := comment.ToJSON()
+	if jsonErr != nil {
+		rctx.Logger().Warn("Failed to encode comment to JSON for WebSocket event",
+			mlog.String("comment_id", comment.Id),
+			mlog.Err(jsonErr))
+		return
+	}
+
 	message := model.NewWebSocketEvent(
 		model.WebsocketEventPageCommentCreated,
 		channel.TeamId,
@@ -422,7 +430,6 @@ func (a *App) SendCommentCreatedEvent(rctx request.CTX, comment *model.Post, pag
 	)
 	message.Add("comment_id", comment.Id)
 	message.Add("page_id", page.Id)
-	commentJSON, _ := comment.ToJSON()
 	message.Add("comment", commentJSON)
 	message.SetBroadcast(&model.WebsocketBroadcast{
 		ChannelId:           comment.ChannelId,

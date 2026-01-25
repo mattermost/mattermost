@@ -45,7 +45,7 @@ func (a *App) WikiBulkExport(rctx request.CTX, writer io.Writer, job *model.Job,
 	)
 
 	// Write version line
-	if err := writeExportLine(writer, "version", model.WikiExportFormatVersion); err != nil {
+	if err := writeExportLine(writer, "version", map[string]any{"version": model.WikiExportFormatVersion}); err != nil {
 		return nil, model.NewAppError("WikiBulkExport", "app.wiki_export.write_version.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 

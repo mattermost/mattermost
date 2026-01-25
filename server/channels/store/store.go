@@ -1280,8 +1280,9 @@ type PageStore interface {
 	// GetPage fetches a page by ID
 	GetPage(pageID string, includeDeleted bool) (*model.Post, error)
 
-	// DeletePage soft-deletes a page and all its associated data (content and comments)
-	DeletePage(pageID string, deleteByID string) error
+	// DeletePage soft-deletes a page and all its associated data (content and comments).
+	// It also atomically reparents any child pages to newParentID (or makes them root pages if empty).
+	DeletePage(pageID string, deleteByID string, newParentID string) error
 
 	// RestorePage restores a soft-deleted page and its content in a single transaction
 	RestorePage(pageID string) error

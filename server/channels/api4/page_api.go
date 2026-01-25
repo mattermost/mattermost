@@ -261,6 +261,8 @@ func updatePage(c *Context, w http.ResponseWriter, r *http.Request) {
 		Title      string `json:"title,omitempty"`
 		Content    string `json:"content,omitempty"`
 		SearchText string `json:"search_text,omitempty"`
+		BaseEditAt int64  `json:"base_edit_at,omitempty"`
+		Force      bool   `json:"force,omitempty"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -280,7 +282,7 @@ func updatePage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedPage, appErr := c.App.UpdatePage(c.AppContext, page, req.Title, req.Content, req.SearchText, channel)
+	updatedPage, appErr := c.App.UpdatePageWithOptimisticLocking(c.AppContext, page, req.Title, req.Content, req.SearchText, req.BaseEditAt, req.Force, channel)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -290,6 +292,7 @@ func updatePage(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventResultState(updatedPage)
 	auditRec.AddEventObjectType("page")
 
+	w.Header().Set(model.HeaderEtagServer, updatedPage.Etag())
 	if err := json.NewEncoder(w).Encode(updatedPage); err != nil {
 		c.Logger.Warn("Error encoding response", mlog.Err(err))
 	}
@@ -408,6 +411,11 @@ func extractPageImageText(c *Context, w http.ResponseWriter, r *http.Request) {
 
 // summarizeThreadToPage handles POST /api/v4/wiki/{wiki_id}/pages/summarize-thread
 func summarizeThreadToPage(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
 	if hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !hasPermission {
 		c.SetPermissionError(model.PermissionReadChannel)
 		return

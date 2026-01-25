@@ -189,23 +189,23 @@ const PagesHierarchyPanel = ({
         return allNodeIds;
     }, [searchQuery, filteredTree, expandedNodes]);
 
-    const handlePageSelect = (pageId: string) => {
+    const handlePageSelect = useCallback((pageId: string) => {
         // Check if this is a new draft (not an edit of published page)
         // New drafts have has_published_version = false/undefined
         const isNewDraft = drafts.some((draft) => draft.rootId === pageId && !draft.props?.has_published_version);
         onPageSelect(pageId, isNewDraft);
-    };
+    }, [drafts, onPageSelect]);
 
-    const handleToggleExpanded = (nodeId: string) => {
+    const handleToggleExpanded = useCallback((nodeId: string) => {
         actions.toggleNodeExpanded(wikiId, nodeId);
-    };
+    }, [actions, wikiId]);
 
-    const handleNewPage = () => {
+    const handleNewPage = useCallback(() => {
         if (menuHandlers.creatingPage) {
             return;
         }
         menuHandlers.handleCreateRootPage();
-    };
+    }, [menuHandlers]);
 
     if (loading && pages.length === 0) {
         return (

@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -56,18 +55,14 @@ func (a *App) UpsertPageDraft(rctx request.CTX, userId, wikiId, pageId, contentJ
 		return nil, model.NewAppError("UpsertPageDraft", "app.draft.save_page.deleted_channel.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	// Auto-convert plain text to TipTap JSON if content is not already valid JSON
-	// This supports AI-generated content that may be in plain text/markdown format
+	// Validate and normalize content (auto-converts plain text to TipTap JSON)
 	processedContent := contentJSON
 	if contentJSON != "" {
-		trimmed := strings.TrimSpace(contentJSON)
-		if !strings.HasPrefix(trimmed, "{") || !isValidTipTapJSON(contentJSON) {
-			// Not valid TipTap JSON - convert plain text to TipTap JSON
-			processedContent = convertPlainTextToTipTapJSON(contentJSON)
-			rctx.Logger().Debug("Auto-converted plain text to TipTap JSON for draft",
-				mlog.String("page_id", pageId),
-				mlog.Int("original_length", len(contentJSON)),
-				mlog.Int("converted_length", len(processedContent)))
+		var contentErr error
+		processedContent, _, contentErr = validateAndNormalizePageContent(contentJSON, "")
+		if contentErr != nil {
+			return nil, model.NewAppError("UpsertPageDraft", "app.draft.save_page.invalid_content",
+				nil, "", http.StatusBadRequest).Wrap(contentErr)
 		}
 	}
 
@@ -584,9 +579,13 @@ func (a *App) applyDraftToPage(rctx request.CTX, draft *model.PageDraft, wikiId,
 	}
 
 	// With unified page ID model, check if a published page exists with this draft's PageId
+	// Only treat ErrNotFound as "new page" - other errors should propagate
 	var isUpdate bool
 	if _, getErr := a.GetPage(rctx, draft.PageId); getErr == nil {
 		isUpdate = true
+	} else if getErr.StatusCode != http.StatusNotFound {
+		return nil, model.NewAppError("applyDraftToPage", "app.draft.publish_page.check_existing_error",
+			nil, "", getErr.StatusCode).Wrap(getErr)
 	}
 
 	var page *model.Post
@@ -764,14 +763,20 @@ func (a *App) BroadcastWikiDeleted(wiki *model.Wiki) {
 // BroadcastPageDraftUpdated broadcasts a draft update to all clients with access to the channel.
 // This notifies other users of active editors and draft content changes.
 func (a *App) BroadcastPageDraftUpdated(channelId string, draft *model.PageDraft) {
+	draftJSON, jsonErr := json.Marshal(draft)
+	if jsonErr != nil {
+		mlog.Warn("Failed to marshal draft for WebSocket event",
+			mlog.String("page_id", draft.PageId),
+			mlog.String("user_id", draft.UserId),
+			mlog.Err(jsonErr))
+		return
+	}
+
 	message := model.NewWebSocketEvent(model.WebsocketEventPageDraftUpdated, "", channelId, "", nil, "")
 	message.Add("page_id", draft.PageId)
 	message.Add("user_id", draft.UserId)
 	message.Add("timestamp", draft.UpdateAt)
-	draftJSON, jsonErr := json.Marshal(draft)
-	if jsonErr == nil {
-		message.Add("draft", string(draftJSON))
-	}
+	message.Add("draft", string(draftJSON))
 	message.SetBroadcast(&model.WebsocketBroadcast{
 		ChannelId:           channelId,
 		ReliableClusterSend: true,
@@ -826,8 +831,17 @@ func (a *App) PublishPageDraft(rctx request.CTX, userId string, opts model.Publi
 	}
 
 	// Check if this is creating a new page or updating an existing one (for rollback logic)
+	// Only treat ErrNotFound as "new page" - other errors should propagate
 	existingPage, existingPageErr := a.GetPage(rctx, opts.PageId)
-	isNewPage := existingPageErr != nil
+	var isNewPage bool
+	if existingPageErr != nil {
+		if existingPageErr.StatusCode == http.StatusNotFound {
+			isNewPage = true
+		} else {
+			return nil, model.NewAppError("PublishPageDraft", "app.draft.publish_page.check_existing_error",
+				nil, "", existingPageErr.StatusCode).Wrap(existingPageErr)
+		}
+	}
 
 	// For updates, save original state for potential rollback
 	var originalContent *model.PageContent

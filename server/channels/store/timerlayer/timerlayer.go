@@ -6521,10 +6521,10 @@ func (s *TimerLayerPageStore) CreatePage(rctx request.CTX, post *model.Post, con
 	return result, err
 }
 
-func (s *TimerLayerPageStore) DeletePage(pageID string, deleteByID string) error {
+func (s *TimerLayerPageStore) DeletePage(pageID string, deleteByID string, newParentID string) error {
 	start := time.Now()
 
-	err := s.PageStore.DeletePage(pageID, deleteByID)
+	err := s.PageStore.DeletePage(pageID, deleteByID, newParentID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

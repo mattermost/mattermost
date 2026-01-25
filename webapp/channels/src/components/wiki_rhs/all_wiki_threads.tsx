@@ -100,6 +100,10 @@ const AllWikiThreads = ({wikiId, onThreadClick}: Props) => {
         fetchAllThreads();
     }, [fetchAllThreads]);
 
+    // Store fetchAllThreads in a ref to avoid stale closures in the WebSocket listener
+    const fetchAllThreadsRef = useRef(fetchAllThreads);
+    fetchAllThreadsRef.current = fetchAllThreads;
+
     // Listen for WebSocket events for new comments
     useEffect(() => {
         const handleNewComment = (msg: WebSocketMessage) => {
@@ -112,7 +116,7 @@ const AllWikiThreads = ({wikiId, onThreadClick}: Props) => {
 
             // Check if it's an inline comment for a page in this wiki
             if (pageInlineCommentHasAnchor(post) && post.props?.page_id) {
-                fetchAllThreads();
+                fetchAllThreadsRef.current();
             }
         };
 
@@ -121,7 +125,7 @@ const AllWikiThreads = ({wikiId, onThreadClick}: Props) => {
         return () => {
             WebSocketClient.removeMessageListener(handleNewComment);
         };
-    }, [fetchAllThreads]);
+    }, []);
 
     if (loading) {
         return (
