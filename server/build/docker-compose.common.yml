@@ -132,3 +132,30 @@ services:
     command: -config.file=/etc/promtail/docker-config.yaml
     networks:
       - mm-test
+  keygen:
+    image: "keygen/api:latest"
+    restart: always
+    networks:
+      - mm-test
+    environment:
+      DATABASE_URL: "postgres://mmuser:mostest@postgres:5432/keygen"
+      REDIS_URL: "redis://redis:6379/1"
+      KEYGEN_MODE: "singleplayer"
+      KEYGEN_EDITION: "CE"
+      KEYGEN_HOST: "localhost"
+      SECRET_KEY_BASE: "${KEYGEN_SECRET_KEY_BASE:-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef}"
+      ENCRYPTION_DETERMINISTIC_KEY: "${KEYGEN_ENCRYPTION_DETERMINISTIC_KEY:-MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=}"
+      ENCRYPTION_PRIMARY_KEY: "${KEYGEN_ENCRYPTION_PRIMARY_KEY:-MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=}"
+      ENCRYPTION_KEY_DERIVATION_SALT: "${KEYGEN_ENCRYPTION_KEY_DERIVATION_SALT:-MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    command: web
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s

@@ -33,6 +33,7 @@ func main() {
 		"redis":         6379,
 		"dejavu":        1358,
 		"keycloak":      8080,
+		"keygen":        3000,
 		"prometheus":    9090,
 		"grafana":       3000,
 		"loki":          3100,
