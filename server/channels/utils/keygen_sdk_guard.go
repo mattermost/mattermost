@@ -23,11 +23,11 @@ type keygenSDKSnapshot struct {
 }
 
 type keygenSDKUpdate struct {
-	account      *string
-	product      *string
-	licenseKey   *string
-	publicKey    *string
-	httpClient   *http.Client
+	account       *string
+	product       *string
+	licenseKey    *string
+	publicKey     *string
+	httpClient    *http.Client
 	setHTTPClient bool
 }
 

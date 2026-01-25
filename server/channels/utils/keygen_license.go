@@ -6,6 +6,7 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"strings"
 	"time"
 
@@ -39,7 +40,7 @@ type KeygenLicenseData struct {
 	// Expiry is when the license itself expires (nil if perpetual)
 	Expiry *time.Time
 	// Metadata contains custom key-value pairs from the license
-	Metadata map[string]interface{}
+	Metadata map[string]any
 	// Issued is when the license file was generated
 	Issued time.Time
 	// TTLExpiry is when the license file itself expires (meta.expiry)
@@ -133,7 +134,7 @@ func extractLicenseData(dataset *keygen.LicenseFileDataset) *KeygenLicenseData {
 	data := &KeygenLicenseData{
 		Issued:       dataset.Issued,
 		TTLExpiry:    dataset.Expiry,
-		Metadata:     make(map[string]interface{}),
+		Metadata:     make(map[string]any),
 		Entitlements: make([]string, 0),
 	}
 
@@ -147,9 +148,7 @@ func extractLicenseData(dataset *keygen.LicenseFileDataset) *KeygenLicenseData {
 		data.PolicyID = lic.PolicyId
 
 		if lic.Metadata != nil {
-			for k, v := range lic.Metadata {
-				data.Metadata[k] = v
-			}
+			maps.Copy(data.Metadata, lic.Metadata)
 		}
 	}
 

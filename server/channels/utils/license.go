@@ -79,8 +79,8 @@ func (l *LicenseValidatorImpl) validateKeygenLicense(certificate []byte) (string
 		return "", fmt.Errorf("keygen license verification failed: %w", err)
 	}
 
-	if err := ValidateKeygenOnlineIfConfigured(licenseData.Key); err != nil {
-		return "", err
+	if err2 := ValidateKeygenOnlineIfConfigured(licenseData.Key); err2 != nil {
+		return "", err2
 	}
 
 	// Convert to model.License for compatibility with existing code

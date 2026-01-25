@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 	"time"
 
 	keygen "github.com/keygen-sh/keygen-go/v3"
@@ -221,7 +222,7 @@ func (v *HybridValidator) licenseToKeygenData(result *KeygenOnlineValidationResu
 		Name:     license.Name,
 		Expiry:   license.Expiry,
 		PolicyID: license.PolicyId,
-		Metadata: make(map[string]interface{}),
+		Metadata: make(map[string]any),
 		// For online validation, Issued/TTLExpiry come from the API response
 		// These will be set based on license creation time
 		Issued:       time.Now(),                     // Approximate - actual issued time not always available
@@ -231,9 +232,7 @@ func (v *HybridValidator) licenseToKeygenData(result *KeygenOnlineValidationResu
 
 	// Copy metadata
 	if license.Metadata != nil {
-		for k, v := range license.Metadata {
-			data.Metadata[k] = v
-		}
+		maps.Copy(data.Metadata, license.Metadata)
 	}
 
 	// Extract license creation time if available

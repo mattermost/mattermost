@@ -726,7 +726,7 @@ func TestValidateSKU_InvalidSKUs(t *testing.T) {
 		{"unknown SKU", "unknown"},
 		{"case sensitive - uppercase ENTERPRISE", "ENTERPRISE"},
 		{"case sensitive - uppercase E10", "e10"},
-		{"typo", "enterprize"},
+		{"typo", "enterprise"},
 	}
 
 	for _, tt := range tests {

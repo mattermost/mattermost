@@ -146,9 +146,6 @@ func TestHybridValidationResult(t *testing.T) {
 
 	// Test offline result
 	offlineResult := &HybridValidationResult{
-		License: &KeygenLicenseData{
-			ID: "offline-id",
-		},
 		Source:             ValidationSourceOffline,
 		ValidationCode:     "",
 		WasOfflineFallback: true,
@@ -449,7 +446,7 @@ func TestHybridValidator_licenseToKeygenData(t *testing.T) {
 			PolicyId: "policy-123",
 			Expiry:   &expiry,
 			Created:  created,
-			Metadata: map[string]interface{}{
+			Metadata: map[string]any{
 				"skuShortName": "enterprise",
 				"customerId":   "cust-456",
 			},

@@ -712,7 +712,7 @@ func TestKeygenLicense_TrialDuration(t *testing.T) {
 
 		// Verify StartsAt and ExpiresAt difference equals trial duration
 		duration := license.ExpiresAt - license.StartsAt
-		expectedDuration := int64((30*24*time.Hour + 8*time.Hour).Milliseconds())
+		expectedDuration := (30*24*time.Hour + 8*time.Hour).Milliseconds()
 		assert.Equal(t, expectedDuration, duration,
 			"Trial duration should be 30 days + 8 hours")
 	})
