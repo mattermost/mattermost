@@ -516,9 +516,9 @@ func TestMapSDKError(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			result := client.mapSDKError(tc.inputErr)
 			if tc.expectErr == nil {
-				assert.Nil(t, result)
+				assert.NoError(t, result)
 			} else {
-				require.NotNil(t, result)
+				require.Error(t, result)
 				assert.True(t, errors.Is(result, tc.expectErr), "expected error to wrap %v, got %v", tc.expectErr, result)
 			}
 		})

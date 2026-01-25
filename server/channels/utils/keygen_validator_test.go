@@ -16,12 +16,12 @@ import (
 
 // mockLicenseCache implements LicenseCache for testing
 type mockLicenseCache struct {
-	certificate  string
-	saveErr      error
-	getErr       error
-	saveCalled   bool
-	savedCert    string
-	getCalled    bool
+	certificate string
+	saveErr     error
+	getErr      error
+	saveCalled  bool
+	savedCert   string
+	getCalled   bool
 }
 
 func (m *mockLicenseCache) GetCachedCertificate(ctx context.Context) (string, error) {
@@ -514,7 +514,7 @@ func TestHybridValidator_licenseToKeygenData_NilCases(t *testing.T) {
 func TestHybridValidator_WrappedErrors(t *testing.T) {
 	// Test wrapped network error
 	wrappedNetworkErr := errors.Unwrap(ErrKeygenOnlineNetworkError)
-	assert.Nil(t, wrappedNetworkErr) // Sentinel errors don't wrap
+	assert.NoError(t, wrappedNetworkErr) // Sentinel errors don't wrap
 
 	// Test that errors.Is works with wrapped errors
 	wrappedErr := errors.New("wrapped: " + ErrKeygenOnlineExpired.Error())

@@ -480,7 +480,9 @@ func (lr *LicenseRecord) IsValid() *AppError {
 		return NewAppError("LicenseRecord.IsValid", "model.license_record.is_valid.create_at.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if lr.Bytes == "" || len(lr.Bytes) > 10000 {
+	// Increased from 10000 to 100000 to support Keygen license certificates
+	// which can be significantly larger than legacy license files
+	if lr.Bytes == "" || len(lr.Bytes) > 100000 {
 		return NewAppError("LicenseRecord.IsValid", "model.license_record.is_valid.bytes.app_error", nil, "", http.StatusBadRequest)
 	}
 

@@ -6,6 +6,7 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -21,6 +22,9 @@ var (
 	ErrKeygenInvalidSKU = errors.New("keygen license has invalid SKU short name")
 )
 
+// mattermostIDLength is the required length for Mattermost IDs
+const mattermostIDLength = 26
+
 // validSKUs is the set of valid Mattermost SKU short names
 var validSKUs = map[string]bool{
 	model.LicenseShortSkuE10:                true,
@@ -29,6 +33,26 @@ var validSKUs = map[string]bool{
 	model.LicenseShortSkuEnterprise:         true,
 	model.LicenseShortSkuEnterpriseAdvanced: true,
 	model.LicenseShortSkuMattermostEntry:    true,
+}
+
+// convertKeygenIDToMattermostID converts a Keygen UUID to a valid Mattermost ID.
+// Mattermost IDs must be exactly 26 alphanumeric characters.
+// Keygen UUIDs are in format: f5a618af-7076-407c-93bc-495caafa65c2
+// This function strips hyphens and takes the first 26 characters.
+func convertKeygenIDToMattermostID(keygenID string) string {
+	// Remove hyphens from UUID
+	id := strings.ReplaceAll(keygenID, "-", "")
+
+	// Ensure we have at least 26 characters
+	if len(id) >= mattermostIDLength {
+		return id[:mattermostIDLength]
+	}
+
+	// Pad with zeros if somehow shorter (shouldn't happen with valid UUIDs)
+	for len(id) < mattermostIDLength {
+		id += "0"
+	}
+	return id
 }
 
 // extractMetadata safely extracts a value from the metadata map with a default fallback.
@@ -161,22 +185,35 @@ func mapKeygenCustomer(metadata map[string]any) (*model.Customer, error) {
 // mapKeygenFeatures extracts feature flags from Keygen metadata.
 // It calls SetDefaults() first to ensure all pointers are initialized,
 // then overrides with values from metadata.
+//
+// For the "users" field, it supports both:
+//   - Flat metadata: metadata["users"] = 100
+//   - Nested metadata: metadata["features"]["users"] = 100
+//
+// Flat metadata takes precedence (checked first) for simpler Keygen UI configuration.
 func mapKeygenFeatures(metadata map[string]any) *model.Features {
 	features := &model.Features{}
 
 	// First set defaults (critical for nil pointer safety)
 	features.SetDefaults()
 
+	// Check for flat "users" key first (simpler Keygen UI configuration)
+	if users := extractMetadataInt(metadata, "users", -1); users >= 0 {
+		features.Users = model.NewPointer(users)
+	}
+
 	// Extract features sub-object from metadata
 	featuresData := extractMetadata[map[string]any](metadata, "features", nil)
 	if featuresData == nil {
-		return features // Return defaults if no features specified
+		return features // Return defaults/flat values if no features sub-object
 	}
 
-	// Override with values from metadata
-	// Users (int)
-	if users := extractMetadataInt(featuresData, "users", -1); users >= 0 {
-		features.Users = model.NewPointer(users)
+	// Override with values from nested features object
+	// Users (int) - only override if not already set from flat metadata
+	if features.Users == nil || *features.Users == 0 {
+		if users := extractMetadataInt(featuresData, "users", -1); users >= 0 {
+			features.Users = model.NewPointer(users)
+		}
 	}
 
 	// Boolean feature flags - only override if present
@@ -321,7 +358,8 @@ func ConvertKeygenToModelLicense(data *KeygenLicenseData) (*model.License, error
 	license := &model.License{}
 
 	// 1. Map ID from Keygen data
-	license.Id = data.ID
+	// Convert Keygen UUID to valid Mattermost ID format (26 alphanumeric chars)
+	license.Id = convertKeygenIDToMattermostID(data.ID)
 
 	// 2. Map timestamps
 	license.IssuedAt = data.Issued.UnixMilli()

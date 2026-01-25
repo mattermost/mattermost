@@ -207,31 +207,43 @@ func NewKeygenAPIClientFromEnv() (*KeygenAPIClient, error) {
 // Network errors (IsNetworkError returns true) should trigger offline fallback.
 // Definitive failures (IsDefinitiveFailure returns true) should NOT trigger fallback.
 func (c *KeygenAPIClient) Validate(ctx context.Context, licenseKey string) (*KeygenOnlineValidationResult, error) {
-	// Configure SDK with account/product/license
-	keygen.Account = c.config.AccountID
-	keygen.Product = c.config.ProductID
-	keygen.LicenseKey = licenseKey
+	httpClient := c.httpClient.StandardClient()
+	update := keygenSDKUpdate{
+		account:       &c.config.AccountID,
+		product:       &c.config.ProductID,
+		licenseKey:    &licenseKey,
+		httpClient:    httpClient,
+		setHTTPClient: true,
+	}
 
-	// Set the HTTP client for retries
-	keygen.HTTPClient = c.httpClient.StandardClient()
+	var license *keygen.License
+	var validationCode ValidationCode
+	var entitlements []keygen.Entitlement
 
-	// Call SDK validation
-	license, err := keygen.Validate(ctx)
+	err := withKeygenSDK(update, func() error {
+		var err error
+		license, err = keygen.Validate(ctx)
+		if err != nil {
+			return err
+		}
+
+		// Extract validation code from the license
+		validationCode = ValidationCodeValid
+		if license != nil && license.LastValidation != nil {
+			validationCode = ValidationCode(license.LastValidation.Code)
+		}
+
+		// Fetch entitlements for the license
+		entitlements, err = license.Entitlements(ctx)
+		if err != nil {
+			// Log but don't fail - entitlements are optional for validation
+			entitlements = nil
+		}
+
+		return nil
+	})
 	if err != nil {
 		return nil, c.mapSDKError(err)
-	}
-
-	// Extract validation code from the license
-	validationCode := ValidationCodeValid
-	if license != nil && license.LastValidation != nil {
-		validationCode = ValidationCode(license.LastValidation.Code)
-	}
-
-	// Fetch entitlements for the license
-	entitlements, err := license.Entitlements(ctx)
-	if err != nil {
-		// Log but don't fail - entitlements are optional for validation
-		entitlements = nil
 	}
 
 	return &KeygenOnlineValidationResult{

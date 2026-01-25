@@ -15,6 +15,47 @@ import (
 )
 
 // =============================================================================
+// convertKeygenIDToMattermostID Tests
+// =============================================================================
+
+func TestConvertKeygenIDToMattermostID(t *testing.T) {
+	tests := []struct {
+		name     string
+		keygenID string
+		expected string
+	}{
+		{
+			name:     "standard UUID",
+			keygenID: "f5a618af-7076-407c-93bc-495caafa65c2",
+			expected: "f5a618af7076407c93bc495caa", // 32 chars without hyphens, take first 26
+		},
+		{
+			name:     "another UUID",
+			keygenID: "12345678-1234-1234-1234-123456789012",
+			expected: "12345678123412341234123456",
+		},
+		{
+			name:     "already no hyphens (32 char hex)",
+			keygenID: "f5a618af7076407c93bc495caafa65c2",
+			expected: "f5a618af7076407c93bc495caa",
+		},
+		{
+			name:     "short ID gets padded",
+			keygenID: "short",
+			expected: "short000000000000000000000", // 5 + 21 zeros = 26
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := convertKeygenIDToMattermostID(tt.keygenID)
+			assert.Equal(t, 26, len(result), "ID should be exactly 26 characters")
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+// =============================================================================
 // extractMetadata Tests
 // =============================================================================
 
@@ -344,9 +385,9 @@ func TestMapKeygenCustomer_EmptyValuesAllowed(t *testing.T) {
 
 func TestMapKeygenCustomer_MissingFields(t *testing.T) {
 	tests := []struct {
-		name        string
-		metadata    map[string]any
-		missingKey  string
+		name       string
+		metadata   map[string]any
+		missingKey string
 	}{
 		{
 			name: "missing customerId",
@@ -471,6 +512,58 @@ func TestMapKeygenFeatures_UsersFieldMapsCorrectly(t *testing.T) {
 				},
 			}
 			features := mapKeygenFeatures(metadata)
+			assert.Equal(t, tt.expected, *features.Users)
+		})
+	}
+}
+
+func TestMapKeygenFeatures_FlatUsersMetadata(t *testing.T) {
+	// Test flat "users" key at top level of metadata (simpler Keygen UI configuration)
+	tests := []struct {
+		name     string
+		metadata map[string]any
+		expected int
+	}{
+		{
+			name: "flat users metadata",
+			metadata: map[string]any{
+				"users": float64(100),
+			},
+			expected: 100,
+		},
+		{
+			name: "flat users takes precedence over nested",
+			metadata: map[string]any{
+				"users": float64(200),
+				"features": map[string]any{
+					"users": float64(500),
+				},
+			},
+			expected: 200,
+		},
+		{
+			name: "nested users used when flat not present",
+			metadata: map[string]any{
+				"features": map[string]any{
+					"users": float64(300),
+				},
+			},
+			expected: 300,
+		},
+		{
+			name: "flat users as int (direct value)",
+			metadata: map[string]any{
+				"users": 150,
+			},
+			expected: 150,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			features := mapKeygenFeatures(tt.metadata)
+			require.NotNil(t, features)
+			require.NotNil(t, features.Users)
 			assert.Equal(t, tt.expected, *features.Users)
 		})
 	}
@@ -677,7 +770,8 @@ func TestConvertKeygenToModelLicense_HappyPath(t *testing.T) {
 	require.NotNil(t, license)
 
 	// Verify all fields
-	assert.Equal(t, "f5a618af-7076-407c-93bc-495caafa65c2", license.Id)
+	// ID is converted from UUID to 26-char alphanumeric
+	assert.Equal(t, "f5a618af7076407c93bc495caa", license.Id)
 	assert.Equal(t, data.Issued.UnixMilli(), license.IssuedAt)
 	assert.Equal(t, data.Issued.UnixMilli(), license.StartsAt) // defaults to IssuedAt
 	assert.Equal(t, expiry.UnixMilli(), license.ExpiresAt)
@@ -1024,7 +1118,7 @@ func TestConvertKeygenToModelLicense_MinimalValidMetadata(t *testing.T) {
 func TestConvertKeygenToModelLicense_AllOptionalFieldsPopulated(t *testing.T) {
 	expiry := time.Date(2027, 1, 24, 0, 0, 0, 0, time.UTC)
 	data := &KeygenLicenseData{
-		ID:     "full-test",
+		ID:     "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
 		Issued: time.Date(2026, 1, 24, 16, 0, 0, 0, time.UTC),
 		Expiry: &expiry,
 		Metadata: map[string]any{
@@ -1041,10 +1135,10 @@ func TestConvertKeygenToModelLicense_AllOptionalFieldsPopulated(t *testing.T) {
 			"signupJwt":           "full-jwt-token",
 			"startsAt":            "2026-02-01T00:00:00Z",
 			"features": map[string]any{
-				"users":         float64(1000),
-				"ldap":          true,
-				"saml":          true,
-				"cluster":       true,
+				"users":          float64(1000),
+				"ldap":           true,
+				"saml":           true,
+				"cluster":        true,
 				"futureFeatures": false,
 			},
 			"limits": map[string]any{
@@ -1063,7 +1157,8 @@ func TestConvertKeygenToModelLicense_AllOptionalFieldsPopulated(t *testing.T) {
 	require.NotNil(t, license)
 
 	// Verify all populated
-	assert.Equal(t, "full-test", license.Id)
+	// ID is converted from UUID to 26-char alphanumeric
+	assert.Equal(t, "a1b2c3d4e5f67890abcdef1234", license.Id)
 	assert.True(t, license.IsTrial)
 	assert.True(t, license.IsGovSku)
 	assert.True(t, license.IsSeatCountEnforced)
@@ -1093,10 +1188,10 @@ func TestConvertKeygenToModelLicense_AllOptionalFieldsPopulated(t *testing.T) {
 func TestKeygenProducesEquivalentLicense(t *testing.T) {
 	// Create a "golden" license that represents what legacy would produce
 	goldenLicense := &model.License{
-		Id:           "test-id",
-		IssuedAt:     time.Date(2024, 1, 24, 16, 0, 0, 0, time.UTC).UnixMilli(),
-		StartsAt:     time.Date(2024, 1, 24, 16, 0, 0, 0, time.UTC).UnixMilli(),
-		ExpiresAt:    time.Date(2025, 1, 24, 0, 0, 0, 0, time.UTC).UnixMilli(),
+		Id:        "test-id",
+		IssuedAt:  time.Date(2024, 1, 24, 16, 0, 0, 0, time.UTC).UnixMilli(),
+		StartsAt:  time.Date(2024, 1, 24, 16, 0, 0, 0, time.UTC).UnixMilli(),
+		ExpiresAt: time.Date(2025, 1, 24, 0, 0, 0, 0, time.UTC).UnixMilli(),
 		Customer: &model.Customer{
 			Id:      "cust_enterprise_001",
 			Name:    "Enterprise Admin",
@@ -1231,4 +1326,258 @@ func TestKeygenFeaturesOverrideOrder(t *testing.T) {
 	assert.True(t, *license.Features.SAML, "SAML should have default value (true from FutureFeatures)")
 	assert.True(t, *license.Features.Cluster, "Cluster should have default value")
 	assert.True(t, *license.Features.FutureFeatures, "FutureFeatures should default to true")
+}
+
+// =============================================================================
+// SKU Tier Hierarchy Tests (Phase 3 - SKU-07)
+// =============================================================================
+
+func TestKeygenLicense_MinimumProfessionalLicense(t *testing.T) {
+	// Test all 6 SKUs against MinimumProfessionalLicense
+	// Expected results based on tier map in model/license.go:
+	// - E10: false (not in tier map)
+	// - E20: false (not in tier map)
+	// - Professional: true (tier 10 >= 10)
+	// - Enterprise: true (tier 20 >= 10)
+	// - Advanced: true (tier 30 >= 10)
+	// - Entry: true (tier 30 >= 10)
+
+	tests := []struct {
+		skuShortName string
+		expected     bool
+	}{
+		{model.LicenseShortSkuE10, false},
+		{model.LicenseShortSkuE20, false},
+		{model.LicenseShortSkuProfessional, true},
+		{model.LicenseShortSkuEnterprise, true},
+		{model.LicenseShortSkuEnterpriseAdvanced, true},
+		{model.LicenseShortSkuMattermostEntry, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.skuShortName, func(t *testing.T) {
+			license := createKeygenLicenseForSKU(t, tt.skuShortName)
+			result := model.MinimumProfessionalLicense(license)
+			assert.Equal(t, tt.expected, result,
+				"MinimumProfessionalLicense(%s) should be %v", tt.skuShortName, tt.expected)
+		})
+	}
+}
+
+func TestKeygenLicense_MinimumEnterpriseLicense(t *testing.T) {
+	// Expected results:
+	// - E10: false
+	// - E20: false
+	// - Professional: false (tier 10 < 20)
+	// - Enterprise: true (tier 20 >= 20)
+	// - Advanced: true (tier 30 >= 20)
+	// - Entry: true (tier 30 >= 20)
+
+	tests := []struct {
+		skuShortName string
+		expected     bool
+	}{
+		{model.LicenseShortSkuE10, false},
+		{model.LicenseShortSkuE20, false},
+		{model.LicenseShortSkuProfessional, false},
+		{model.LicenseShortSkuEnterprise, true},
+		{model.LicenseShortSkuEnterpriseAdvanced, true},
+		{model.LicenseShortSkuMattermostEntry, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.skuShortName, func(t *testing.T) {
+			license := createKeygenLicenseForSKU(t, tt.skuShortName)
+			result := model.MinimumEnterpriseLicense(license)
+			assert.Equal(t, tt.expected, result,
+				"MinimumEnterpriseLicense(%s) should be %v", tt.skuShortName, tt.expected)
+		})
+	}
+}
+
+func TestKeygenLicense_MinimumEnterpriseAdvancedLicense(t *testing.T) {
+	// Expected results:
+	// - E10: false
+	// - E20: false
+	// - Professional: false (tier 10 < 30)
+	// - Enterprise: false (tier 20 < 30)
+	// - Advanced: true (tier 30 >= 30)
+	// - Entry: true (tier 30 >= 30)
+
+	tests := []struct {
+		skuShortName string
+		expected     bool
+	}{
+		{model.LicenseShortSkuE10, false},
+		{model.LicenseShortSkuE20, false},
+		{model.LicenseShortSkuProfessional, false},
+		{model.LicenseShortSkuEnterprise, false},
+		{model.LicenseShortSkuEnterpriseAdvanced, true},
+		{model.LicenseShortSkuMattermostEntry, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.skuShortName, func(t *testing.T) {
+			license := createKeygenLicenseForSKU(t, tt.skuShortName)
+			result := model.MinimumEnterpriseAdvancedLicense(license)
+			assert.Equal(t, tt.expected, result,
+				"MinimumEnterpriseAdvancedLicense(%s) should be %v", tt.skuShortName, tt.expected)
+		})
+	}
+}
+
+func TestKeygenLicense_HasSharedChannels(t *testing.T) {
+	// HasSharedChannels returns true if:
+	// - Features.SharedChannels is true, OR
+	// - MinimumProfessionalLicense is true
+
+	t.Run("Professional tier gets SharedChannels via tier", func(t *testing.T) {
+		license := createKeygenLicenseForSKU(t, model.LicenseShortSkuProfessional)
+		// Explicitly set SharedChannels to false in features
+		license.Features.SharedChannels = model.NewPointer(false)
+
+		// Should still return true because MinimumProfessionalLicense is true
+		assert.True(t, license.HasSharedChannels())
+	})
+
+	t.Run("E10 needs explicit SharedChannels flag", func(t *testing.T) {
+		license := createKeygenLicenseForSKU(t, model.LicenseShortSkuE10)
+		license.Features.SharedChannels = model.NewPointer(false)
+
+		// E10 is not in tier map, so needs explicit flag
+		assert.False(t, license.HasSharedChannels())
+
+		// Enable explicitly
+		license.Features.SharedChannels = model.NewPointer(true)
+		assert.True(t, license.HasSharedChannels())
+	})
+
+	t.Run("E20 needs explicit SharedChannels flag", func(t *testing.T) {
+		license := createKeygenLicenseForSKU(t, model.LicenseShortSkuE20)
+		license.Features.SharedChannels = model.NewPointer(false)
+
+		// E20 is not in tier map
+		assert.False(t, license.HasSharedChannels())
+	})
+}
+
+func TestKeygenLicense_HasRemoteClusterService(t *testing.T) {
+	// HasRemoteClusterService returns true if:
+	// - HasSharedChannels is true, OR
+	// - Features.RemoteClusterService is true, OR
+	// - MinimumProfessionalLicense is true
+
+	t.Run("Enterprise tier gets RemoteClusterService via tier", func(t *testing.T) {
+		license := createKeygenLicenseForSKU(t, model.LicenseShortSkuEnterprise)
+		license.Features.RemoteClusterService = model.NewPointer(false)
+		license.Features.SharedChannels = model.NewPointer(false)
+
+		// Should still return true because MinimumProfessionalLicense is true
+		assert.True(t, license.HasRemoteClusterService())
+	})
+
+	t.Run("E10 needs explicit flag", func(t *testing.T) {
+		license := createKeygenLicenseForSKU(t, model.LicenseShortSkuE10)
+		license.Features.RemoteClusterService = model.NewPointer(false)
+		license.Features.SharedChannels = model.NewPointer(false)
+
+		// E10 is not in tier map
+		assert.False(t, license.HasRemoteClusterService())
+
+		// Enable via SharedChannels
+		license.Features.SharedChannels = model.NewPointer(true)
+		assert.True(t, license.HasRemoteClusterService())
+	})
+}
+
+func TestKeygenLicense_HasEnterpriseMarketplacePlugins(t *testing.T) {
+	// HasEnterpriseMarketplacePlugins returns true if:
+	// - Features.EnterprisePlugins is true, OR
+	// - SkuShortName == E20, OR
+	// - MinimumProfessionalLicense is true
+
+	t.Run("E20 gets plugins via SKU check", func(t *testing.T) {
+		license := createKeygenLicenseForSKU(t, model.LicenseShortSkuE20)
+		license.Features.EnterprisePlugins = model.NewPointer(false)
+
+		// E20 has explicit SKU check
+		assert.True(t, license.HasEnterpriseMarketplacePlugins())
+	})
+
+	t.Run("Professional gets plugins via tier", func(t *testing.T) {
+		license := createKeygenLicenseForSKU(t, model.LicenseShortSkuProfessional)
+		license.Features.EnterprisePlugins = model.NewPointer(false)
+
+		assert.True(t, license.HasEnterpriseMarketplacePlugins())
+	})
+
+	t.Run("E10 needs explicit flag", func(t *testing.T) {
+		license := createKeygenLicenseForSKU(t, model.LicenseShortSkuE10)
+		license.Features.EnterprisePlugins = model.NewPointer(false)
+
+		assert.False(t, license.HasEnterpriseMarketplacePlugins())
+
+		// Enable explicitly
+		license.Features.EnterprisePlugins = model.NewPointer(true)
+		assert.True(t, license.HasEnterpriseMarketplacePlugins())
+	})
+}
+
+func TestKeygenLicense_IsMattermostEntry(t *testing.T) {
+	// Test IsMattermostEntry detection
+
+	t.Run("Entry SKU returns true", func(t *testing.T) {
+		license := createKeygenLicenseForSKU(t, model.LicenseShortSkuMattermostEntry)
+		assert.True(t, license.IsMattermostEntry())
+	})
+
+	t.Run("Other SKUs return false", func(t *testing.T) {
+		otherSKUs := []string{
+			model.LicenseShortSkuE10,
+			model.LicenseShortSkuE20,
+			model.LicenseShortSkuProfessional,
+			model.LicenseShortSkuEnterprise,
+			model.LicenseShortSkuEnterpriseAdvanced,
+		}
+
+		for _, sku := range otherSKUs {
+			t.Run(sku, func(t *testing.T) {
+				license := createKeygenLicenseForSKU(t, sku)
+				assert.False(t, license.IsMattermostEntry())
+			})
+		}
+	})
+}
+
+// Helper function to create a Keygen-converted license for a given SKU
+func createKeygenLicenseForSKU(t *testing.T, skuShortName string) *model.License {
+	t.Helper()
+
+	skuNames := map[string]string{
+		model.LicenseShortSkuE10:                "Mattermost E10",
+		model.LicenseShortSkuE20:                "Mattermost E20",
+		model.LicenseShortSkuProfessional:       "Mattermost Professional",
+		model.LicenseShortSkuEnterprise:         "Mattermost Enterprise",
+		model.LicenseShortSkuEnterpriseAdvanced: "Mattermost Enterprise Advanced",
+		model.LicenseShortSkuMattermostEntry:    "Mattermost Entry",
+	}
+
+	expiry := time.Date(2027, 1, 24, 0, 0, 0, 0, time.UTC)
+	data := &KeygenLicenseData{
+		ID:     "test-" + skuShortName,
+		Issued: time.Now(),
+		Expiry: &expiry,
+		Metadata: map[string]any{
+			"customerId":    "cust_test",
+			"customerName":  "Test Customer",
+			"customerEmail": "test@example.com",
+			"companyName":   "Test Corp",
+			"skuName":       skuNames[skuShortName],
+			"skuShortName":  skuShortName,
+		},
+	}
+
+	license, err := ConvertKeygenToModelLicense(data)
+	require.NoError(t, err)
+	return license
 }

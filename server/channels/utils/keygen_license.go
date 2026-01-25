@@ -83,9 +83,17 @@ func (v *KeygenLicenseValidator) VerifyAndDecode(certificate string) (*KeygenLic
 		return nil, ErrKeygenPublicKeyNotSet
 	}
 
-	// Configure SDK with public key
-	keygen.PublicKey = v.publicKey
+	publicKey := v.publicKey
+	var data *KeygenLicenseData
+	err := withKeygenSDK(keygenSDKUpdate{publicKey: &publicKey}, func() error {
+		var err error
+		data, err = v.verifyAndDecodeLocked(certificate)
+		return err
+	})
+	return data, err
+}
 
+func (v *KeygenLicenseValidator) verifyAndDecodeLocked(certificate string) (*KeygenLicenseData, error) {
 	// Create license file from certificate
 	cert := strings.TrimSpace(certificate)
 	lic := &keygen.LicenseFile{Certificate: cert}
@@ -168,9 +176,17 @@ func (v *KeygenLicenseValidator) VerifyAndDecrypt(certificate, licenseKey string
 		return nil, ErrKeygenPublicKeyNotSet
 	}
 
-	// Configure SDK with public key
-	keygen.PublicKey = v.publicKey
+	publicKey := v.publicKey
+	var data *KeygenLicenseData
+	err := withKeygenSDK(keygenSDKUpdate{publicKey: &publicKey}, func() error {
+		var err error
+		data, err = v.verifyAndDecryptLocked(certificate, licenseKey)
+		return err
+	})
+	return data, err
+}
 
+func (v *KeygenLicenseValidator) verifyAndDecryptLocked(certificate, licenseKey string) (*KeygenLicenseData, error) {
 	// Create license file from certificate
 	cert := strings.TrimSpace(certificate)
 	lic := &keygen.LicenseFile{Certificate: cert}
@@ -188,7 +204,7 @@ func (v *KeygenLicenseValidator) VerifyAndDecrypt(certificate, licenseKey string
 	if err != nil {
 		// If the file isn't encrypted, fall back to Decode()
 		if errors.Is(err, keygen.ErrLicenseFileNotEncrypted) {
-			return v.VerifyAndDecode(certificate)
+			return v.verifyAndDecodeLocked(certificate)
 		}
 		// If the license key is wrong for decryption
 		if errors.Is(err, keygen.ErrLicenseKeyMissing) || errors.Is(err, keygen.ErrLicenseKeyNotGenuine) {
@@ -223,9 +239,16 @@ func (v *KeygenLicenseValidator) IsEncrypted(certificate string) bool {
 		return false
 	}
 
-	// Configure SDK with public key
-	keygen.PublicKey = v.publicKey
+	publicKey := v.publicKey
+	encrypted := false
+	_ = withKeygenSDK(keygenSDKUpdate{publicKey: &publicKey}, func() error {
+		encrypted = v.isEncryptedLocked(certificate)
+		return nil
+	})
+	return encrypted
+}
 
+func (v *KeygenLicenseValidator) isEncryptedLocked(certificate string) bool {
 	// Create license file from certificate
 	cert := strings.TrimSpace(certificate)
 	lic := &keygen.LicenseFile{Certificate: cert}

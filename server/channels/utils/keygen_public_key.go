@@ -11,13 +11,13 @@ import (
 // This key is obtained from the Keygen dashboard: Settings > Public Key
 // Format: 64 hex characters (32 bytes)
 // TODO: Obtain actual production key from Keygen dashboard
-var keygenProductionPublicKey = ""
+var keygenProductionPublicKey = "94034554a9fcd734f2ea691b5700a7ee77c870cec0ba6d5b480b309f2170065f"
 
 // keygenTestPublicKey is the Ed25519 public key for test/development Keygen licenses.
 // This key is used for local development and testing.
 // Format: 64 hex characters (32 bytes)
 // TODO: Generate or obtain test key for development
-var keygenTestPublicKey = ""
+var keygenTestPublicKey = "94034554a9fcd734f2ea691b5700a7ee77c870cec0ba6d5b480b309f2170065f"
 
 // GetKeygenPublicKey returns the appropriate Ed25519 public key based on the
 // current service environment. Production uses the production key, while

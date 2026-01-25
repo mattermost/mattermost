@@ -34,9 +34,9 @@ func TestApplyEntitlements_EnablesFeatures(t *testing.T) {
 
 func TestApplyEntitlements_CaseInsensitive(t *testing.T) {
 	tests := []struct {
-		name     string
-		code     string
-		checkFn  func(*model.Features) bool
+		name    string
+		code    string
+		checkFn func(*model.Features) bool
 	}{
 		{"lowercase ldap", "ldap", func(f *model.Features) bool { return *f.LDAP }},
 		{"uppercase LDAP", "LDAP", func(f *model.Features) bool { return *f.LDAP }},
@@ -386,7 +386,7 @@ func TestApplyEntitlements_OrderOfOperations(t *testing.T) {
 		// Result: LDAP should be true (entitlement wins)
 
 		features := &model.Features{}
-		features.SetDefaults() // LDAP = true (from FutureFeatures)
+		features.SetDefaults()                  // LDAP = true (from FutureFeatures)
 		features.LDAP = model.NewPointer(false) // Metadata override
 
 		ApplyEntitlements(features, []string{"LDAP"})

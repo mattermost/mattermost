@@ -4,6 +4,7 @@
 package utils
 
 import (
+	"context"
 	"crypto"
 	"crypto/rsa"
 	"crypto/sha512"
@@ -11,6 +12,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"io"
 	"maps"
@@ -77,6 +79,10 @@ func (l *LicenseValidatorImpl) validateKeygenLicense(certificate []byte) (string
 		return "", fmt.Errorf("keygen license verification failed: %w", err)
 	}
 
+	if err := ValidateKeygenOnlineIfConfigured(licenseData.Key); err != nil {
+		return "", err
+	}
+
 	// Convert to model.License for compatibility with existing code
 	license, err := ConvertKeygenToModelLicense(licenseData)
 	if err != nil {
@@ -90,6 +96,34 @@ func (l *LicenseValidatorImpl) validateKeygenLicense(certificate []byte) (string
 	}
 
 	return string(licenseJSON), nil
+}
+
+func ValidateKeygenOnlineIfConfigured(licenseKey string) error {
+	apiClient, err := NewKeygenAPIClientFromEnv()
+	if err != nil {
+		if errors.Is(err, ErrKeygenConfigMissing) {
+			return nil
+		}
+		return fmt.Errorf("keygen online validation config error: %w", err)
+	}
+
+	if licenseKey == "" {
+		return fmt.Errorf("keygen license key missing for online validation")
+	}
+
+	result, err := apiClient.Validate(context.Background(), licenseKey)
+	if err != nil {
+		if ShouldFallbackToOffline(err) {
+			return nil
+		}
+		return fmt.Errorf("keygen online validation failed: %w", err)
+	}
+
+	if result != nil && result.ValidationCode != ValidationCodeValid {
+		return fmt.Errorf("keygen license not valid: %s", result.ValidationCode)
+	}
+
+	return nil
 }
 
 // validateRSALicense handles legacy RSA-signed licenses (existing logic)

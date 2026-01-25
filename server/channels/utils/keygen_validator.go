@@ -224,7 +224,7 @@ func (v *HybridValidator) licenseToKeygenData(result *KeygenOnlineValidationResu
 		Metadata: make(map[string]interface{}),
 		// For online validation, Issued/TTLExpiry come from the API response
 		// These will be set based on license creation time
-		Issued:       time.Now(), // Approximate - actual issued time not always available
+		Issued:       time.Now(),                     // Approximate - actual issued time not always available
 		TTLExpiry:    time.Now().Add(24 * time.Hour), // Default TTL for online validation
 		Entitlements: make([]string, 0),
 	}
