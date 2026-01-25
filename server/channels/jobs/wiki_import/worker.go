@@ -27,6 +27,9 @@ type AppIface interface {
 	FileExists(path string) (bool, *model.AppError)
 	FileSize(path string) (int64, *model.AppError)
 	FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
+	ExportFileExists(path string) (bool, *model.AppError)
+	ExportFileSize(path string) (int64, *model.AppError)
+	ExportFileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
 	BulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int) (int, *model.AppError)
 	InvalidateCacheForWikiImport(rctx request.CTX, channelIds []string)
 	Log() *mlog.Logger
@@ -48,34 +51,89 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 			return model.NewAppError("WikiImportWorker", "wiki_import.worker.do_job.missing_file", nil, "", http.StatusBadRequest)
 		}
 
+		isLocalMode := job.Data[model.WikiJobDataKeyLocalMode] == "true"
+
 		// Validate filename doesn't contain path traversal
+		// For local_mode, absolute paths are allowed since we read directly from filesystem
+		// For non-local mode, we only allow relative paths within the import directory
 		cleanedFilename := filepath.Clean(importFileName)
-		if strings.Contains(cleanedFilename, "..") || filepath.IsAbs(cleanedFilename) {
+		if strings.Contains(cleanedFilename, "..") {
 			return model.NewAppError("WikiImportWorker", "wiki_import.worker.do_job.invalid_path", map[string]any{"File": importFileName}, "path traversal attempt detected", http.StatusBadRequest)
+		}
+		if !isLocalMode && filepath.IsAbs(cleanedFilename) {
+			return model.NewAppError("WikiImportWorker", "wiki_import.worker.do_job.invalid_path", map[string]any{"File": importFileName}, "absolute paths not allowed in non-local mode", http.StatusBadRequest)
 		}
 
 		var importFilePath string
 		var importFile filestore.ReadCloseSeeker
-		if job.Data[model.WikiJobDataKeyLocalMode] == "true" {
-			// Read from local filesystem
+		var useExportFilestore bool
+		if isLocalMode {
+			// Try reading from local filesystem first
 			fileInfo, err := os.Stat(importFileName)
 			if err != nil {
 				if errors.Is(err, os.ErrNotExist) {
-					return model.NewAppError("WikiImportWorker", "wiki_import.worker.do_job.file_not_found", map[string]any{"File": importFileName}, "", http.StatusNotFound)
+					// File not found locally - try export filestore as fallback
+					// This handles HA setups where files are in S3, not local disk
+					if app.Config().ExportSettings.Directory == nil || *app.Config().ExportSettings.Directory == "" {
+						return model.NewAppError("WikiImportWorker", "wiki_import.worker.do_job.file_not_found", map[string]any{"File": importFileName}, "", http.StatusNotFound)
+					}
+					if app.Config().FileSettings.Directory == nil || *app.Config().FileSettings.Directory == "" {
+						return model.NewAppError("WikiImportWorker", "wiki_import.worker.do_job.file_not_found", map[string]any{"File": importFileName}, "", http.StatusNotFound)
+					}
+					exportDir := *app.Config().ExportSettings.Directory
+					dataDir := *app.Config().FileSettings.Directory
+					exportBasePath := filepath.Join(dataDir, exportDir)
+
+					// Check if the import path is within the export directory
+					// Extract the relative path within export directory using CutPrefix
+					var exportRelativePath string
+					var found bool
+					if exportRelativePath, found = strings.CutPrefix(importFileName, exportBasePath); !found {
+						exportRelativePath, found = strings.CutPrefix(importFileName, exportDir)
+					}
+					if found {
+						exportRelativePath = strings.TrimPrefix(exportRelativePath, string(filepath.Separator))
+						importFilePath = filepath.Join(exportDir, exportRelativePath)
+
+						// Check if file exists in export filestore
+						if ok, appErr := app.ExportFileExists(importFilePath); appErr != nil {
+							return appErr
+						} else if ok {
+							useExportFilestore = true
+							logger.Debug("File not found locally, using export filestore",
+								mlog.String("original_path", importFileName),
+								mlog.String("export_path", importFilePath))
+						} else {
+							return model.NewAppError("WikiImportWorker", "wiki_import.worker.do_job.file_not_found", map[string]any{"File": importFileName}, "", http.StatusNotFound)
+						}
+					} else {
+						return model.NewAppError("WikiImportWorker", "wiki_import.worker.do_job.file_not_found", map[string]any{"File": importFileName}, "", http.StatusNotFound)
+					}
+				} else {
+					return model.NewAppError("WikiImportWorker", "wiki_import.worker.do_job.stat_file", map[string]any{"File": importFileName}, err.Error(), http.StatusInternalServerError).Wrap(err)
 				}
-				return model.NewAppError("WikiImportWorker", "wiki_import.worker.do_job.stat_file", map[string]any{"File": importFileName}, err.Error(), http.StatusInternalServerError).Wrap(err)
 			}
 
-			if fileInfo.IsDir() {
-				return model.NewAppError("WikiImportWorker", "wiki_import.worker.do_job.is_directory", map[string]any{"File": importFileName}, "", http.StatusBadRequest)
-			}
+			if !useExportFilestore {
+				if fileInfo.IsDir() {
+					return model.NewAppError("WikiImportWorker", "wiki_import.worker.do_job.is_directory", map[string]any{"File": importFileName}, "", http.StatusBadRequest)
+				}
 
-			f, err := os.Open(importFileName)
-			if err != nil {
-				return model.NewAppError("WikiImportWorker", "wiki_import.worker.do_job.open_file", map[string]any{"File": importFileName}, err.Error(), http.StatusInternalServerError).Wrap(err)
+				f, err := os.Open(importFileName)
+				if err != nil {
+					return model.NewAppError("WikiImportWorker", "wiki_import.worker.do_job.open_file", map[string]any{"File": importFileName}, err.Error(), http.StatusInternalServerError).Wrap(err)
+				}
+				defer f.Close()
+				importFile = f
+			} else {
+				// Read from export filestore
+				var appErr *model.AppError
+				importFile, appErr = app.ExportFileReader(importFilePath)
+				if appErr != nil {
+					return appErr
+				}
+				defer importFile.Close()
 			}
-			defer f.Close()
-			importFile = f
 		} else {
 			// Validate config before use
 			if app.Config().ImportSettings.Directory == nil || *app.Config().ImportSettings.Directory == "" {
@@ -117,9 +175,71 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 			}
 		}
 
-		// Wiki imports use JSONL directly without a zip wrapper
-		// Pass nil for attachmentsReader since wiki exports don't include attachments yet
-		lineNumber, appErr := app.BulkImport(appContext, importFile, nil, false, 1)
+		// Determine if this is a zip file (with attachments) or plain JSONL
+		var jsonlReader io.Reader
+		var attachmentsReader *zip.Reader
+
+		isZip := strings.HasSuffix(strings.ToLower(importFileName), ".zip")
+		if isZip {
+			// Get file size for zip.NewReader
+			var fileSize int64
+			if useExportFilestore {
+				var appErr *model.AppError
+				fileSize, appErr = app.ExportFileSize(importFilePath)
+				if appErr != nil {
+					return appErr
+				}
+			} else if isLocalMode {
+				fileInfo, err := os.Stat(importFileName)
+				if err != nil {
+					return model.NewAppError("WikiImportWorker", "wiki_import.worker.do_job.stat_file", map[string]any{"File": importFileName}, err.Error(), http.StatusInternalServerError).Wrap(err)
+				}
+				fileSize = fileInfo.Size()
+			} else {
+				var appErr *model.AppError
+				fileSize, appErr = app.FileSize(importFilePath)
+				if appErr != nil {
+					return appErr
+				}
+			}
+
+			// Create zip reader - requires io.ReaderAt which is implemented by underlying file types
+			readerAt, ok := importFile.(io.ReaderAt)
+			if !ok {
+				return model.NewAppError("WikiImportWorker", "wiki_import.worker.do_job.reader_at", map[string]any{"File": importFileName}, "file does not support random access required for zip reading", http.StatusInternalServerError)
+			}
+			zipReader, err := zip.NewReader(readerAt, fileSize)
+			if err != nil {
+				return model.NewAppError("WikiImportWorker", "wiki_import.worker.do_job.invalid_zip", map[string]any{"File": importFileName}, err.Error(), http.StatusBadRequest).Wrap(err)
+			}
+
+			// Find the JSONL file in the zip (at data/import.jsonl)
+			var jsonlFile *zip.File
+			for _, f := range zipReader.File {
+				if f.Name == "data/import.jsonl" {
+					jsonlFile = f
+					break
+				}
+			}
+			if jsonlFile == nil {
+				return model.NewAppError("WikiImportWorker", "wiki_import.worker.do_job.missing_jsonl", map[string]any{"File": importFileName}, "zip does not contain data/import.jsonl", http.StatusBadRequest)
+			}
+
+			// Open the JSONL file for reading
+			jsonlFileReader, err := jsonlFile.Open()
+			if err != nil {
+				return model.NewAppError("WikiImportWorker", "wiki_import.worker.do_job.open_jsonl", map[string]any{"File": importFileName}, err.Error(), http.StatusInternalServerError).Wrap(err)
+			}
+			defer jsonlFileReader.Close()
+
+			jsonlReader = jsonlFileReader
+			attachmentsReader = zipReader
+		} else {
+			// Plain JSONL file
+			jsonlReader = importFile
+		}
+
+		lineNumber, appErr := app.BulkImport(appContext, jsonlReader, attachmentsReader, false, 1)
 		if appErr != nil {
 			logger.Error("Wiki bulk import failed",
 				mlog.Int("line_number", lineNumber),
@@ -134,7 +254,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 		}
 
 		// Clean up import file if not in local mode
-		if job.Data[model.WikiJobDataKeyLocalMode] != "true" {
+		if !isLocalMode {
 			if appErr := app.RemoveFile(importFilePath); appErr != nil {
 				logger.Warn("Failed to remove import file", mlog.String("path", importFilePath), mlog.Err(appErr))
 			}

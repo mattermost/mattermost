@@ -162,7 +162,12 @@ func (s *SqlWikiStore) Get(id string) (*model.Wiki, error) {
 }
 
 func (s *SqlWikiStore) GetForChannel(channelId string, includeDeleted bool) ([]*model.Wiki, error) {
-	builder := s.tableSelectQuery.Where(sq.Eq{"ChannelId": channelId})
+	builder := s.tableSelectQuery
+
+	// Only filter by channelId if it's provided (empty string means "all channels")
+	if channelId != "" {
+		builder = builder.Where(sq.Eq{"ChannelId": channelId})
+	}
 
 	if !includeDeleted {
 		builder = builder.Where(sq.Eq{"DeleteAt": 0})
@@ -887,20 +892,26 @@ func (s *SqlWikiStore) GetPagesForExport(wikiId string, limit int, afterId strin
 		return nil, store.NewErrInvalidInput("Page", "afterId", afterId)
 	}
 
-	// Extract wiki_id and page_parent_id from Props JSON in SQL to avoid business logic in store
+	// Extract wiki_id, page_parent_id, title, and parent's import_source_id from Props JSON in SQL
+	// Note: Page title is stored in Props->>'title', not in Message column
+	// Note: pc.Content is JSONB, so we cast to text and use empty string as fallback
+	// Note: pp is the parent post, used to get parent's import_source_id for hierarchy export
 	query := s.getQueryBuilder().
 		Select(
 			"p.Id", `t.Name AS "TeamName"`, `c.Name AS "ChannelName"`, `u.Username AS "Username"`,
-			`p.Message AS "Title"`, `COALESCE(pc.Content, '') AS "Content"`, "p.Props",
+			`COALESCE(p.Props->>'title', '') AS "Title"`, `COALESCE(pc.Content::text, '') AS "Content"`, "p.Props",
 			`p.Props->>'wiki_id' AS "WikiId"`,
 			`COALESCE(p.Props->>'page_parent_id', '') AS "PageParentId"`,
-			"p.CreateAt",
+			// For parent's import_source_id: use the parent's import_source_id if it was imported, otherwise use its page ID
+			`COALESCE(pp.Props->>'import_source_id', pp.Id, '') AS "ParentImportSourceId"`,
+			"p.CreateAt", "p.UpdateAt", "p.FileIds",
 		).
 		From("Posts p").
 		Join("Channels c ON p.ChannelId = c.Id").
 		Join("Teams t ON c.TeamId = t.Id").
 		Join("Users u ON p.UserId = u.Id").
 		LeftJoin("PageContents pc ON p.Id = pc.PageId AND pc.UserId = ''").
+		LeftJoin("Posts pp ON p.Props->>'page_parent_id' = pp.Id").
 		Where(sq.Eq{"p.Type": model.PostTypePage}).
 		Where(sq.Eq{"p.DeleteAt": 0}).
 		Where(sq.Expr("p.Props->>'wiki_id' = ?", wikiId)).
@@ -925,11 +936,14 @@ func (s *SqlWikiStore) GetPageCommentsForExport(pageId string) ([]*model.PageCom
 		return nil, store.NewErrInvalidInput("PageComment", "pageId", pageId)
 	}
 
+	// Note: ParentCommentId is stored in Props->>'parent_comment_id', not in a ParentId column
+	// Use quoted column aliases to match struct db tags exactly (PostgreSQL lowercases unquoted identifiers)
 	query := s.getQueryBuilder().
 		Select(
-			"p.Id", `t.Name AS "TeamName"`, `c.Name AS "ChannelName"`, `u.Username AS "Username"`,
-			`p.Message AS "Content"`, `p.RootId AS "PageId"`, `COALESCE(p.ParentId, '') AS "ParentCommentId"`,
-			"p.Props", "p.CreateAt",
+			`p.Id AS "Id"`, `t.Name AS "TeamName"`, `c.Name AS "ChannelName"`, `u.Username AS "Username"`,
+			`p.Message AS "Content"`, `p.RootId AS "PageId"`,
+			`COALESCE(p.Props->>'parent_comment_id', '') AS "ParentCommentId"`,
+			`p.Props AS "Props"`, `p.CreateAt AS "CreateAt"`,
 		).
 		From("Posts p").
 		Join("Channels c ON p.ChannelId = c.Id").

@@ -23,7 +23,7 @@ func TestWikiBulkExportEmptyChannelIds(t *testing.T) {
 	opts := model.WikiBulkExportOpts{
 		ChannelIds: []string{},
 	}
-	appErr := th.App.WikiBulkExport(th.Context, &buf, nil, opts)
+	_, appErr := th.App.WikiBulkExport(th.Context, &buf, nil, opts)
 	require.Nil(t, appErr)
 
 	// Should at least have the version line
@@ -46,7 +46,7 @@ func TestWikiBulkExportVersionLine(t *testing.T) {
 	opts := model.WikiBulkExportOpts{
 		ChannelIds: []string{th.BasicChannel.Id},
 	}
-	appErr := th.App.WikiBulkExport(th.Context, &buf, nil, opts)
+	_, appErr := th.App.WikiBulkExport(th.Context, &buf, nil, opts)
 	require.Nil(t, appErr)
 
 	// Should have the version line

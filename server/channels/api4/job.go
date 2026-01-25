@@ -66,25 +66,28 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !*config.MessageExportSettings.DownloadExportResults {
-		c.Err = model.NewAppError("downloadExportResultsNotEnabled", "app.job.download_export_results_not_enabled", nil, "", http.StatusNotImplemented)
-		return
-	}
-
 	job, err := c.App.GetJob(c.AppContext, c.Params.JobId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	// Check permissions based on job type
+	// Check download settings and permissions based on job type
 	switch job.Type {
 	case model.JobTypeMessageExport:
+		if !*config.MessageExportSettings.DownloadExportResults {
+			c.Err = model.NewAppError("downloadExportResultsNotEnabled", "app.job.download_export_results_not_enabled", nil, "", http.StatusNotImplemented)
+			return
+		}
 		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionDownloadComplianceExportResult) {
 			c.SetPermissionError(model.PermissionDownloadComplianceExportResult)
 			return
 		}
 	case model.JobTypeWikiExport:
+		if !*config.WikiExportSettings.DownloadExportResults {
+			c.Err = model.NewAppError("downloadExportResultsNotEnabled", "app.job.wiki_download_export_results_not_enabled", nil, "", http.StatusNotImplemented)
+			return
+		}
 		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageJobs) {
 			c.SetPermissionError(model.PermissionManageJobs)
 			return
@@ -263,6 +266,7 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 	isValidStatus := model.IsValidJobStatus(status)
 	if status != "" && !isValidStatus {
 		c.Err = model.NewAppError("getJobs", "api.job.status.invalid", nil, "", http.StatusBadRequest)
+		return
 	}
 
 	var jobs []*model.Job

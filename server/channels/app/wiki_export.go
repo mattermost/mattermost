@@ -23,26 +23,30 @@ const (
 
 // WikiBulkExport exports wikis and pages to JSONL format.
 // The output format matches the import format used by importWiki/importPage.
-func (a *App) WikiBulkExport(rctx request.CTX, writer io.Writer, job *model.Job, opts model.WikiBulkExportOpts) *model.AppError {
+// Returns WikiExportResult containing attachments that need to be written to zip.
+func (a *App) WikiBulkExport(rctx request.CTX, writer io.Writer, job *model.Job, opts model.WikiBulkExportOpts) (*model.WikiExportResult, *model.AppError) {
+	result := &model.WikiExportResult{}
+
 	// Validate inputs
 	if writer == nil {
-		return model.NewAppError("WikiBulkExport", "app.wiki_export.writer_nil.error", nil, "", http.StatusBadRequest)
+		return nil, model.NewAppError("WikiBulkExport", "app.wiki_export.writer_nil.error", nil, "", http.StatusBadRequest)
 	}
 
 	// Validate channelIds don't contain empty strings
 	for _, id := range opts.ChannelIds {
 		if strings.TrimSpace(id) == "" {
-			return model.NewAppError("WikiBulkExport", "app.wiki_export.invalid_channel_id.error", nil, "empty channel ID provided", http.StatusBadRequest)
+			return nil, model.NewAppError("WikiBulkExport", "app.wiki_export.invalid_channel_id.error", nil, "empty channel ID provided", http.StatusBadRequest)
 		}
 	}
 
 	rctx.Logger().Info("Starting wiki bulk export",
 		mlog.Int("channel_count", len(opts.ChannelIds)),
+		mlog.Bool("include_attachments", opts.IncludeAttachments),
 	)
 
 	// Write version line
-	if err := writeExportLine(writer, "version", map[string]any{"version": model.WikiExportFormatVersion}); err != nil {
-		return model.NewAppError("WikiBulkExport", "app.wiki_export.write_version.error", nil, "", http.StatusInternalServerError).Wrap(err)
+	if err := writeExportLine(writer, "version", model.WikiExportFormatVersion); err != nil {
+		return nil, model.NewAppError("WikiBulkExport", "app.wiki_export.write_version.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// Track channels we're exporting for resolve_wiki_placeholders
@@ -58,7 +62,7 @@ func (a *App) WikiBulkExport(rctx request.CTX, writer io.Writer, job *model.Job,
 		var appErr *model.AppError
 		channelIds, appErr = a.getChannelsWithWikis(rctx)
 		if appErr != nil {
-			return appErr
+			return nil, appErr
 		}
 	}
 
@@ -93,17 +97,23 @@ func (a *App) WikiBulkExport(rctx request.CTX, writer io.Writer, job *model.Job,
 			}
 
 			if err := writeExportLine(writer, "wiki", wikiData); err != nil {
-				return model.NewAppError("WikiBulkExport", "app.wiki_export.write_wiki.error", nil, "", http.StatusInternalServerError).Wrap(err)
+				return nil, model.NewAppError("WikiBulkExport", "app.wiki_export.write_wiki.error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 			totalWikis++
 			exportedChannels[channelId] = true
 
 			// Export pages for this wiki
-			pagesExported, appErr := a.exportWikiPages(rctx, writer, wiki, opts, job)
+			pagesExported, pageAttachments, appErr := a.exportWikiPages(rctx, writer, wiki, opts, job)
 			if appErr != nil {
-				return appErr
+				return nil, appErr
 			}
 			totalPages += pagesExported
+			// Convert imports.AttachmentImportData to model.WikiExportAttachment
+			for _, att := range pageAttachments {
+				if att.Path != nil {
+					result.Attachments = append(result.Attachments, model.WikiExportAttachment{Path: *att.Path})
+				}
+			}
 		}
 	}
 
@@ -127,32 +137,35 @@ func (a *App) WikiBulkExport(rctx request.CTX, writer io.Writer, job *model.Job,
 			Channel: &channel.Name,
 		}
 		if err := writeExportLine(writer, "resolve_wiki_placeholders", resolveData); err != nil {
-			return model.NewAppError("WikiBulkExport", "app.wiki_export.write_resolve.error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return nil, model.NewAppError("WikiBulkExport", "app.wiki_export.write_resolve.error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
 	rctx.Logger().Info("Wiki bulk export completed",
 		mlog.Int("wikis_exported", totalWikis),
 		mlog.Int("pages_exported", totalPages),
+		mlog.Int("attachments_count", len(result.Attachments)),
 		mlog.Int("failed_channels", len(failedChannels)),
 	)
 
 	// Update job data with export stats
 	if job != nil && job.Data != nil {
-		job.Data["wikis_exported"] = strconv.Itoa(totalWikis)
-		job.Data["pages_exported"] = strconv.Itoa(totalPages)
+		job.Data[model.WikiJobDataKeyWikisExported] = strconv.Itoa(totalWikis)
+		job.Data[model.WikiJobDataKeyPagesExported] = strconv.Itoa(totalPages)
 		if len(failedChannels) > 0 {
-			job.Data["failed_channels"] = strings.Join(failedChannels, ",")
+			job.Data[model.WikiJobDataKeyFailedChannels] = strings.Join(failedChannels, ",")
 		}
 	}
 
-	return nil
+	return result, nil
 }
 
 // exportWikiPages exports all pages for a wiki
-func (a *App) exportWikiPages(rctx request.CTX, writer io.Writer, wiki *model.WikiForExport, opts model.WikiBulkExportOpts, job *model.Job) (int, *model.AppError) {
+// Returns the number of pages exported and list of attachments to write
+func (a *App) exportWikiPages(rctx request.CTX, writer io.Writer, wiki *model.WikiForExport, opts model.WikiBulkExportOpts, job *model.Job) (int, []imports.AttachmentImportData, *model.AppError) {
 	pagesExported := 0
 	afterId := ""
+	var allAttachments []imports.AttachmentImportData
 
 	// Track pages with failed comment exports
 	var failedCommentPages []string
@@ -160,7 +173,7 @@ func (a *App) exportWikiPages(rctx request.CTX, writer io.Writer, wiki *model.Wi
 	for {
 		pages, err := a.Srv().Store().Wiki().GetPagesForExport(wiki.Id, ExportPageBatchSize, afterId)
 		if err != nil {
-			return pagesExported, model.NewAppError("exportWikiPages", "app.wiki_export.get_pages.error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return pagesExported, nil, model.NewAppError("exportWikiPages", "app.wiki_export.get_pages.error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		if len(pages) == 0 {
@@ -186,20 +199,39 @@ func (a *App) exportWikiPages(rctx request.CTX, writer io.Writer, wiki *model.Wi
 				pageData.ParentImportSourceId = &page.ParentImportSourceId
 			}
 
-			// Include import_source_id in props for idempotency
+			// Include import_source_id and page_status in props for idempotency
 			importSourceId := page.Id
+			exportProps := model.StringInterface{
+				model.PostPropsImportSourceId: importSourceId,
+			}
 			if page.Props != "" {
 				propsMap := model.StringInterfaceFromJSON(jsonReader(page.Props))
 				if existingSourceId, ok := propsMap[model.PostPropsImportSourceId].(string); ok && existingSourceId != "" {
-					importSourceId = existingSourceId
+					exportProps[model.PostPropsImportSourceId] = existingSourceId
+				}
+				// Include page_status if set
+				if pageStatus, ok := propsMap[model.PagePropsPageStatus].(string); ok && pageStatus != "" {
+					exportProps[model.PagePropsPageStatus] = pageStatus
 				}
 			}
-			pageData.Props = &model.StringInterface{
-				model.PostPropsImportSourceId: importSourceId,
+			pageData.Props = &exportProps
+
+			// Export attachments if requested and page has files
+			if opts.IncludeAttachments && page.FileIds != "" {
+				pageAttachments, appErr := a.buildPageAttachments(page.Id)
+				if appErr != nil {
+					rctx.Logger().Warn("Failed to build attachments for page",
+						mlog.String("page_id", page.Id),
+						mlog.Err(appErr),
+					)
+				} else if len(pageAttachments) > 0 {
+					pageData.Attachments = &pageAttachments
+					allAttachments = append(allAttachments, pageAttachments...)
+				}
 			}
 
 			if err := writeExportLine(writer, "page", pageData); err != nil {
-				return pagesExported, model.NewAppError("exportWikiPages", "app.wiki_export.write_page.error", nil, "", http.StatusInternalServerError).Wrap(err)
+				return pagesExported, nil, model.NewAppError("exportWikiPages", "app.wiki_export.write_page.error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 			pagesExported++
 
@@ -224,10 +256,25 @@ func (a *App) exportWikiPages(rctx request.CTX, writer io.Writer, wiki *model.Wi
 
 	// Track failed comment pages in job data
 	if job != nil && job.Data != nil && len(failedCommentPages) > 0 {
-		job.Data["failed_comment_pages"] = strings.Join(failedCommentPages, ",")
+		job.Data[model.WikiJobDataKeyFailedCommentPages] = strings.Join(failedCommentPages, ",")
 	}
 
-	return pagesExported, nil
+	return pagesExported, allAttachments, nil
+}
+
+// buildPageAttachments builds attachment data for a page's files
+func (a *App) buildPageAttachments(pageID string) ([]imports.AttachmentImportData, *model.AppError) {
+	infos, nErr := a.Srv().Store().FileInfo().GetForPost(pageID, false, false, false)
+	if nErr != nil {
+		return nil, model.NewAppError("buildPageAttachments", "app.file_info.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+	}
+
+	attachments := make([]imports.AttachmentImportData, 0, len(infos))
+	for _, info := range infos {
+		attachments = append(attachments, imports.AttachmentImportData{Path: &info.Path})
+	}
+
+	return attachments, nil
 }
 
 // exportPageComments exports comments for a page (Phase 2)
@@ -263,17 +310,27 @@ func (a *App) exportPageComments(rctx request.CTX, writer io.Writer, page *model
 			commentData.ParentCommentImportSourceId = &comment.ParentCommentImportSource
 		}
 
-		// Include import_source_id in props
+		// Include import_source_id and inline_anchor in props
 		importSourceId := comment.Id
+		exportProps := model.StringInterface{
+			model.PostPropsImportSourceId: importSourceId,
+		}
 		if comment.Props != "" {
 			propsMap := model.StringInterfaceFromJSON(jsonReader(comment.Props))
 			if existingSourceId, ok := propsMap[model.PostPropsImportSourceId].(string); ok && existingSourceId != "" {
-				importSourceId = existingSourceId
+				exportProps[model.PostPropsImportSourceId] = existingSourceId
+			}
+			// Check if comment is resolved
+			if resolved, ok := propsMap[model.PagePropsCommentResolved].(bool); ok && resolved {
+				isResolved := true
+				commentData.IsResolved = &isResolved
+			}
+			// Include inline_anchor if present (for inline comments)
+			if inlineAnchor, ok := propsMap[model.PagePropsInlineAnchor].(map[string]any); ok {
+				exportProps[model.PagePropsInlineAnchor] = inlineAnchor
 			}
 		}
-		commentData.Props = &model.StringInterface{
-			model.PostPropsImportSourceId: importSourceId,
-		}
+		commentData.Props = &exportProps
 
 		if err := writeExportLine(writer, "page_comment", commentData); err != nil {
 			return model.NewAppError("exportPageComments", "app.wiki_export.write_comment.error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -328,19 +385,5 @@ func writeExportLine(writer io.Writer, lineType string, data any) error {
 
 // jsonReader creates an io.Reader from a JSON string
 func jsonReader(s string) io.Reader {
-	return &jsonStringReader{s: s, i: 0}
-}
-
-type jsonStringReader struct {
-	s string
-	i int
-}
-
-func (r *jsonStringReader) Read(p []byte) (n int, err error) {
-	if r.i >= len(r.s) {
-		return 0, io.EOF
-	}
-	n = copy(p, r.s[r.i:])
-	r.i += n
-	return n, nil
+	return strings.NewReader(s)
 }

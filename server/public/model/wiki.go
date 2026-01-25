@@ -26,14 +26,21 @@ const (
 	WikiExportFileSuffix    = "_wiki_export.jsonl"
 
 	// Job data keys for wiki export/import
-	WikiJobDataKeyChannelIds         = "channel_ids"
-	WikiJobDataKeyIncludeComments    = "include_comments"
-	WikiJobDataKeyIncludeAttachments = "include_attachments"
-	WikiJobDataKeyImportFile         = "import_file"
-	WikiJobDataKeyLocalMode          = "local_mode"
-	WikiJobDataKeyExportDir          = "export_dir"
-	WikiJobDataKeyExportFile         = "export_file"
-	WikiJobDataKeyIsDownloadable     = "is_downloadable"
+	WikiJobDataKeyChannelIds          = "channel_ids"
+	WikiJobDataKeyIncludeComments     = "include_comments"
+	WikiJobDataKeyIncludeAttachments  = "include_attachments"
+	WikiJobDataKeyImportFile          = "import_file"
+	WikiJobDataKeyLocalMode           = "local_mode"
+	WikiJobDataKeyExportDir           = "export_dir"
+	WikiJobDataKeyExportFile          = "export_file"
+	WikiJobDataKeyIsDownloadable      = "is_downloadable"
+	WikiJobDataKeyWikisExported       = "wikis_exported"
+	WikiJobDataKeyPagesExported       = "pages_exported"
+	WikiJobDataKeyAttachmentsExported = "attachments_exported"
+	WikiJobDataKeyFailedChannels      = "failed_channels"
+	WikiJobDataKeyFailedCommentPages  = "failed_comment_pages"
+	WikiJobDataKeyFailedAttachments   = "failed_attachments"
+	WikiJobDataKeyAttachmentsTotal    = "attachments_total"
 )
 
 type Wiki struct {
@@ -192,18 +199,21 @@ type WikiForExport struct {
 }
 
 // PageForExport contains page data with content and metadata for bulk export
+// Note: db tags use lowercase to match PostgreSQL's default behavior of lowercasing unquoted column names
 type PageForExport struct {
-	Id                   string `json:"id" db:"Id"`
+	Id                   string `json:"id" db:"id"`
 	TeamName             string `json:"team_name" db:"TeamName"`
 	ChannelName          string `json:"channel_name" db:"ChannelName"`
 	Username             string `json:"username" db:"Username"`
 	Title                string `json:"title" db:"Title"`
 	Content              string `json:"content" db:"Content"`
-	WikiId               string `json:"wiki_id"`
-	PageParentId         string `json:"page_parent_id,omitempty"`
-	ParentImportSourceId string `json:"parent_import_source_id,omitempty"`
-	Props                string `json:"props,omitempty" db:"Props"`
-	CreateAt             int64  `json:"create_at" db:"CreateAt"`
+	WikiId               string `json:"wiki_id" db:"WikiId"`
+	PageParentId         string `json:"page_parent_id,omitempty" db:"PageParentId"`
+	ParentImportSourceId string `json:"parent_import_source_id,omitempty" db:"ParentImportSourceId"`
+	Props                string `json:"props,omitempty" db:"props"`
+	CreateAt             int64  `json:"create_at" db:"createat"`
+	UpdateAt             int64  `json:"update_at" db:"updateat"`
+	FileIds              string `json:"file_ids,omitempty" db:"fileids"`
 }
 
 // PageCommentForExport contains page comment data for bulk export
@@ -226,4 +236,14 @@ type WikiBulkExportOpts struct {
 	ChannelIds         []string // Empty means all channels with wikis
 	IncludeComments    bool     // Include page comments
 	IncludeAttachments bool     // Include file attachments
+}
+
+// WikiExportAttachment represents a file attachment to be exported
+type WikiExportAttachment struct {
+	Path string
+}
+
+// WikiExportResult contains the result of a wiki export including attachments to write
+type WikiExportResult struct {
+	Attachments []WikiExportAttachment
 }

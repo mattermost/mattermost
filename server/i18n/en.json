@@ -7107,6 +7107,10 @@
     "translation": "Unable to update job status. Invalid status set"
   },
   {
+    "id": "app.job.wiki_download_export_results_not_enabled",
+    "translation": "WikiExportSettings.DownloadExportResults is disabled. Please enable this setting to download wiki exports."
+  },
+  {
     "id": "app.last_accessible_file.app_error",
     "translation": "Error fetching last accessible file"
   },
@@ -12913,8 +12917,16 @@
     "translation": "Couldn't find the user {{.user}}"
   },
   {
+    "id": "wiki_export.worker.close_zip.error",
+    "translation": "Failed to close wiki export zip file."
+  },
+  {
     "id": "wiki_export.worker.config.nil_directory",
     "translation": "Export directory is not configured."
+  },
+  {
+    "id": "wiki_export.worker.create_zip_entry.error",
+    "translation": "Failed to create zip entry for wiki export."
   },
   {
     "id": "wiki_export.worker.write_file.error",
@@ -12937,6 +12949,10 @@
     "translation": "Invalid import file path."
   },
   {
+    "id": "wiki_import.worker.do_job.invalid_zip",
+    "translation": "Invalid or corrupted zip file."
+  },
+  {
     "id": "wiki_import.worker.do_job.is_directory",
     "translation": "Import path is a directory, not a file."
   },
@@ -12945,8 +12961,20 @@
     "translation": "Missing import file in job data."
   },
   {
+    "id": "wiki_import.worker.do_job.missing_jsonl",
+    "translation": "Wiki export data file not found in zip archive."
+  },
+  {
     "id": "wiki_import.worker.do_job.open_file",
     "translation": "Failed to open import file."
+  },
+  {
+    "id": "wiki_import.worker.do_job.open_jsonl",
+    "translation": "Failed to open wiki export data file from zip archive."
+  },
+  {
+    "id": "wiki_import.worker.do_job.reader_at",
+    "translation": "Import file does not support random access reading."
   },
   {
     "id": "wiki_import.worker.do_job.stat_file",

@@ -69,7 +69,14 @@ func (a *App) importWiki(rctx request.CTX, data *imports.WikiImportData, dryRun 
 
 	var existingWiki *model.Wiki
 	for _, wiki := range existingWikis {
+		// Match by import_source_id in props (for imported wikis)
 		if wikiSourceId, ok := wiki.Props[model.PostPropsImportSourceId].(string); ok && wikiSourceId == importSourceId {
+			existingWiki = wiki
+			break
+		}
+		// Also match by wiki.Id (for wikis created locally, not originally imported)
+		// The export uses wiki.Id as import_source_id when no import_source_id exists
+		if wiki.Id == importSourceId {
 			existingWiki = wiki
 			break
 		}
@@ -280,6 +287,19 @@ func (a *App) importPage(rctx request.CTX, data *imports.PageImportData, dryRun 
 		return propsErr
 	}
 
+	// Preserve original CreateAt for page ordering (pages are ordered by CreateAt)
+	if data.CreateAt != nil && *data.CreateAt > 0 && *data.CreateAt != page.CreateAt {
+		page.CreateAt = *data.CreateAt
+		// Use Overwrite to update CreateAt without creating a version history entry
+		if _, err := a.Srv().Store().Post().Overwrite(rctx, page); err != nil {
+			rctx.Logger().Warn("Failed to set CreateAt for imported page",
+				mlog.String("page_id", page.Id),
+				mlog.Millis("create_at", *data.CreateAt),
+				mlog.Err(err),
+			)
+		}
+	}
+
 	// Store parent_import_source_id for deferred hierarchy repair if parent wasn't found
 	if deferredParentSourceId != "" {
 		oldPage := page.Clone()
@@ -488,11 +508,14 @@ func getImportSourceId(props *model.StringInterface) string {
 	return ""
 }
 
-// getPageByImportSourceId finds a page by its import_source_id in Props within a channel
+// getPageByImportSourceId finds a page by its import_source_id in Props within a channel.
+// Also checks if a page's ID matches the importSourceId (for locally created pages).
 func (a *App) getPageByImportSourceId(rctx request.CTX, channelId, importSourceId string) (*model.Post, error) {
 	if !model.IsValidId(channelId) {
 		return nil, errors.New("invalid channel ID")
 	}
+
+	// First, try to find by import_source_id in Props (for imported pages)
 	posts, err := a.Srv().Store().Post().GetPostsByTypeAndProps(channelId, model.PostTypePage, model.PostPropsImportSourceId, importSourceId)
 	if err != nil {
 		return nil, err
@@ -500,12 +523,24 @@ func (a *App) getPageByImportSourceId(rctx request.CTX, channelId, importSourceI
 	if len(posts) > 0 {
 		return posts[0], nil
 	}
+
+	// Also check if a page exists with ID matching importSourceId (for locally created pages)
+	// The export uses page.Id as import_source_id when no import_source_id exists
+	if model.IsValidId(importSourceId) {
+		post, err := a.Srv().Store().Post().GetSingle(rctx, importSourceId, false)
+		if err == nil && post != nil && post.Type == model.PostTypePage && post.ChannelId == channelId {
+			return post, nil
+		}
+	}
+
 	return nil, nil
 }
 
 // findPageByImportSourceId finds a page by import_source_id across all channels.
 // This is a more expensive query - search across all pages.
+// Also checks if a page's ID matches the importSourceId (for locally created pages).
 func (a *App) findPageByImportSourceId(rctx request.CTX, importSourceId string) (*model.Post, *model.AppError) {
+	// First, try to find by import_source_id in Props (for imported pages)
 	posts, err := a.Srv().Store().Post().GetPostsByTypeAndPropsGlobal(model.PostTypePage, model.PostPropsImportSourceId, importSourceId)
 	if err != nil {
 		return nil, model.NewAppError("findPageByImportSourceId", "app.import.find_page.error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -513,6 +548,15 @@ func (a *App) findPageByImportSourceId(rctx request.CTX, importSourceId string) 
 	if len(posts) > 0 {
 		return posts[0], nil
 	}
+
+	// Also check if a page exists with ID matching importSourceId (for locally created pages)
+	if model.IsValidId(importSourceId) {
+		post, perr := a.Srv().Store().Post().GetSingle(rctx, importSourceId, false)
+		if perr == nil && post != nil && post.Type == model.PostTypePage {
+			return post, nil
+		}
+	}
+
 	return nil, nil
 }
 
@@ -546,6 +590,7 @@ var allowedImportProps = map[string]bool{
 	"import_source_id":        true,
 	"inline_anchor":           true,
 	"parent_import_source_id": true,
+	"page_status":             true,
 }
 
 // updatePostPropsFromImport merges allowed import Props into an existing post.
