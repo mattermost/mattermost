@@ -352,6 +352,12 @@ func ConvertKeygenToModelLicense(data *KeygenLicenseData) (*model.License, error
 	// 4. Map features (uses defaults if not specified)
 	license.Features = mapKeygenFeatures(data.Metadata)
 
+	// 4b. Apply entitlements (supplements metadata features, never disables)
+	// Order is critical: SetDefaults() → metadata override → entitlement supplement
+	if len(data.Entitlements) > 0 {
+		ApplyEntitlements(license.Features, data.Entitlements)
+	}
+
 	// 5. Map SKU info (required)
 	skuName, err := extractMetadataRequired[string](data.Metadata, "skuName")
 	if err != nil {
