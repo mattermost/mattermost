@@ -393,6 +393,10 @@ func TestDownloadWikiExportJob(t *testing.T) {
 		require.NoError(t, delErr, "Failed to delete job %s", job.Id)
 	}()
 
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.MessageExportSettings.DownloadExportResults = true
+	})
+
 	// Normal user cannot download wiki export (no permission)
 	_, resp, err := th.Client.DownloadJob(context.Background(), job.Id)
 	require.Error(t, err)
