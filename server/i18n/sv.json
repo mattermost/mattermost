@@ -11262,5 +11262,9 @@
   {
     "id": "ent.push_proxy.worker.interface_nil.app_error",
     "translation": "Push-proxy-gränssnittet är tomt."
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_burn_on_read_post.error",
+    "translation": "Inlägg som bränns upp vid läsning kan inte uppdateras."
   }
 ]
