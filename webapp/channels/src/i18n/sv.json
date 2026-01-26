@@ -14,7 +14,7 @@
   "about.date": "Byggdatum:",
   "about.dbversion": "Databasschemaversion:",
   "about.desktopVersion": "Skrivbordsversion:",
-  "about.enterpriseEditionLearn": "Läs mer om Mattermost {planName} på ",
+  "about.enterpriseEditionLearn": "Läs mer om Enterprise Edition på {link}",
   "about.enterpriseEditionSst": "Tillförlitlig meddelandetjänst för organisationer",
   "about.enterpriseEditionSt": "Modern kommunikation innanför din brandvägg.",
   "about.hash": "Bygg-hash:",
