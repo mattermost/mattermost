@@ -2409,10 +2409,6 @@
     "translation": "Unable to count total unique users."
   },
   {
-    "id": "api.license.add_license.server_unreachable.app_error",
-    "translation": "Licensing server could not be reached. Please check your internet connection and try again."
-  },
-  {
     "id": "api.license.add_license.no_file.app_error",
     "translation": "No file under 'license' in request."
   },
@@ -2427,6 +2423,10 @@
   {
     "id": "api.license.add_license.save_active.app_error",
     "translation": "Active license ID did not save properly."
+  },
+  {
+    "id": "api.license.add_license.server_unreachable.app_error",
+    "translation": "Licensing server could not be reached. Please check your internet connection and try again."
   },
   {
     "id": "api.license.add_license.unique_users.app_error",
