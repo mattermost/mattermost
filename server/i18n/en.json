@@ -3179,10 +3179,6 @@
     "translation": "Service only available in Mattermost Enterprise edition"
   },
   {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "CWS Server failed to subscribe to newsletter."
-  },
-  {
     "id": "api.server.hosted_signup_unavailable.error",
     "translation": "Portal unavailable for self-hosted signup."
   },

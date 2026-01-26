@@ -43,7 +43,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         disabled={true}
         helpText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="The type of the search backend."
+            defaultMessage="The type of the search backend. Changing this setting requires a server restart before taking effect."
             id="admin.elasticsearch.backendDescription"
           />
         }
@@ -537,7 +537,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         disabled={false}
         helpText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="The type of the search backend."
+            defaultMessage="The type of the search backend. Changing this setting requires a server restart before taking effect."
             id="admin.elasticsearch.backendDescription"
           />
         }
