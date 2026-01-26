@@ -6,9 +6,9 @@
 import React from 'react';
 import {batchActions} from 'redux-batched-actions';
 
-import {AlertCircleOutlineIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';
 import type {WebSocketMessage, WebSocketMessages} from '@mattermost/client';
 import {WebSocketEvents} from '@mattermost/client';
+import {AlertCircleOutlineIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';
 import type {ChannelBookmarkWithFileInfo, UpdateChannelBookmarkResponse} from '@mattermost/types/channel_bookmarks';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {Draft} from '@mattermost/types/drafts';
