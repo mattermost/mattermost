@@ -28,10 +28,8 @@ export type CustomEmoji = {
 export type SystemEmoji = {
     name: string;
     category: EmojiCategory;
-    image: string;
     short_name: string;
     short_names: string[];
-    batch: number;
     skins?: string[];
     skin_variations?: Record<string, SystemEmojiVariation>;
     unified: string;
