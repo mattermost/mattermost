@@ -155,14 +155,16 @@ func ValidateLogFilePath(filePath string, loggingRoot string) error {
 		return fmt.Errorf("cannot resolve logging root %s: %w", loggingRoot, err)
 	}
 
-	// Check if file is within the logging root
-	rel, err := filepath.Rel(absRoot, absPath)
-	if err != nil {
-		return fmt.Errorf("path %s is not relative to logging root %s: %w", absPath, absRoot, err)
+	// Ensure root has trailing separator for proper prefix matching
+	// This prevents /tmp/log matching /tmp/logger
+	rootWithSep := absRoot
+	if !strings.HasSuffix(rootWithSep, string(filepath.Separator)) {
+		rootWithSep += string(filepath.Separator)
 	}
 
-	// Reject if path escapes the logging root (contains "..")
-	if strings.HasPrefix(rel, "..") || strings.Contains(rel, string(filepath.Separator)+"..") {
+	// Check if file is within the logging root
+	// Allow exact match (absPath == absRoot) or proper prefix match
+	if absPath != absRoot && !strings.HasPrefix(absPath, rootWithSep) {
 		return fmt.Errorf("path %s is outside logging root %s", filePath, absRoot)
 	}
 

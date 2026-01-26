@@ -188,12 +188,22 @@ func (ps *PlatformService) GetLogsSkipSend(rctx request.CTX, page, perPage int, 
 	return lines, nil
 }
 
-func (ps *PlatformService) GetLogFile(_ request.CTX) (*model.FileData, error) {
+func (ps *PlatformService) GetLogFile(rctx request.CTX) (*model.FileData, error) {
 	if !*ps.Config().LogSettings.EnableFile {
 		return nil, errors.New("Unable to retrieve mattermost logs because LogSettings.EnableFile is set to false")
 	}
 
 	mattermostLog := config.GetLogFileLocation(*ps.Config().LogSettings.FileLocation)
+
+	// Validate the file path to prevent arbitrary file reads
+	if err := ps.validateLogFilePath(mattermostLog); err != nil {
+		rctx.Logger().Error("Blocked attempt to read log file outside allowed root",
+			mlog.String("path", mattermostLog),
+			mlog.String("config_section", "LogSettings.FileLocation"),
+			mlog.Err(err))
+		return nil, errors.Wrapf(err, "log file path %s is outside allowed logging directory", mattermostLog)
+	}
+
 	mattermostLogFileData, err := os.ReadFile(mattermostLog)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed read mattermost log file at path %s", mattermostLog)
