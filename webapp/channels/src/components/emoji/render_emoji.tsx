@@ -5,13 +5,11 @@ import React from 'react';
 import type {MouseEvent, KeyboardEvent} from 'react';
 import {useSelector} from 'react-redux';
 
-import {getEmojiImageUrl} from 'mattermost-redux/utils/emoji_utils';
+import {Emoji} from '@mattermost/shared/components/emoji';
 
 import {getEmojiMap} from 'selectors/emojis';
 
 import type {GlobalState} from 'types/store';
-
-const emptyEmojiStyle = {};
 
 interface ComponentProps {
     emojiName: string;
@@ -22,8 +20,8 @@ interface ComponentProps {
 
 const RenderEmoji = ({
     emojiName = '',
-    emojiStyle = emptyEmojiStyle,
-    size = 16,
+    emojiStyle,
+    size,
     onClick,
 }: ComponentProps) => {
     const emojiMap = useSelector((state: GlobalState) => getEmojiMap(state));
@@ -33,29 +31,13 @@ const RenderEmoji = ({
     }
 
     const emojiFromMap = emojiMap.get(emojiName);
-    if (!emojiFromMap) {
-        return null;
-    }
-    const emojiImageUrl = getEmojiImageUrl(emojiFromMap);
 
     return (
-        <span
+        <Emoji
+            emoji={emojiFromMap}
+            emojiStyle={emojiStyle}
+            size={size}
             onClick={onClick}
-            className='emoticon'
-            aria-label={`:${emojiName}:`}
-            data-emoticon={emojiName}
-            style={{
-                backgroundImage: `url(${emojiImageUrl})`,
-                backgroundSize: 'contain',
-                height: size,
-                width: size,
-                maxHeight: size,
-                maxWidth: size,
-                minHeight: size,
-                minWidth: size,
-                overflow: 'hidden',
-                ...emojiStyle,
-            }}
         />
     );
 };

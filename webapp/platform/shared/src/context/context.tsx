@@ -3,9 +3,12 @@
 
 import React, {useMemo} from 'react';
 
+import type {Emoji} from '@mattermost/types/emojis';
+
 /* eslint-disable no-underscore-dangle */
 
 export interface SharedContextValue {
+    useEmojiUrl: (emoji?: Emoji) => string;
 }
 
 declare global {
@@ -26,13 +29,17 @@ SharedContext.displayName = 'MattermostSharedContext';
 
 export interface SharedProviderProps {
     children?: React.ReactNode;
+
+    useEmojiUrl: (emoji?: Emoji) => string;
 }
 
 export function SharedProvider({
     children,
+    useEmojiUrl,
 }: SharedProviderProps) {
     const contextValue = useMemo(() => ({
-    }), []);
+        useEmojiUrl,
+    }), [useEmojiUrl]);
 
     return <SharedContext.Provider value={contextValue}>{children}</SharedContext.Provider>;
 }

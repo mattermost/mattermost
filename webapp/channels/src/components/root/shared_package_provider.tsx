@@ -4,6 +4,9 @@
 import React from 'react';
 
 import {SharedProvider} from '@mattermost/shared/context';
+import type {Emoji} from '@mattermost/types/emojis';
+
+import {getEmojiImageUrl} from 'mattermost-redux/utils/emoji_utils';
 
 export interface SharedPackageProviderProps {
     children: React.ReactNode;
@@ -11,8 +14,16 @@ export interface SharedPackageProviderProps {
 
 export default function SharedPackageProvider({children}: SharedPackageProviderProps) {
     return (
-        <SharedProvider>
+        <SharedProvider useEmojiUrl={useEmojiUrl}>
             {children}
         </SharedProvider>
     );
+}
+
+function useEmojiUrl(emoji?: Emoji) {
+    if (!emoji) {
+        return '';
+    }
+
+    return getEmojiImageUrl(emoji);
 }
