@@ -14,6 +14,34 @@ type PropertyFieldStore struct {
 	mock.Mock
 }
 
+// CheckPropertyNameConflict provides a mock function with given fields: field
+func (_m *PropertyFieldStore) CheckPropertyNameConflict(field *model.PropertyField) (model.PropertyFieldTargetLevel, error) {
+	ret := _m.Called(field)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CheckPropertyNameConflict")
+	}
+
+	var r0 model.PropertyFieldTargetLevel
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.PropertyField) (model.PropertyFieldTargetLevel, error)); ok {
+		return rf(field)
+	}
+	if rf, ok := ret.Get(0).(func(*model.PropertyField) model.PropertyFieldTargetLevel); ok {
+		r0 = rf(field)
+	} else {
+		r0 = ret.Get(0).(model.PropertyFieldTargetLevel)
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.PropertyField) error); ok {
+		r1 = rf(field)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // CountForGroup provides a mock function with given fields: groupID, includeDeleted
 func (_m *PropertyFieldStore) CountForGroup(groupID string, includeDeleted bool) (int64, error) {
 	ret := _m.Called(groupID, includeDeleted)

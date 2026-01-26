@@ -291,3 +291,94 @@ func (s *SqlPropertyFieldStore) Delete(groupID string, id string) error {
 
 	return nil
 }
+
+// CheckPropertyNameConflict checks if a property field would conflict with
+// existing properties in the hierarchy. It should be called before creating
+// a new property field to enforce hierarchical uniqueness.
+//
+// The hierarchy works as follows:
+//   - System-level properties (TargetType="system") conflict with any team or channel
+//     property with the same name in the same ObjectType and GroupID
+//   - Team-level properties (TargetType="team") conflict with system properties and
+//     channel properties within that team
+//   - Channel-level properties (TargetType="channel") conflict with system properties
+//     and the team property of the channel's team
+//
+// Returns the conflict level ("system", "team", or "channel") if a conflict exists,
+// or an empty string if no conflict. Legacy properties (ObjectType="") skip the
+// check entirely and rely on the database constraint for uniqueness.
+//
+// For channel-level properties, the method uses a subquery to look up the channel's
+// TeamId, which handles DM channels naturally (they have empty TeamId).
+func (s *SqlPropertyFieldStore) CheckPropertyNameConflict(field *model.PropertyField) (model.PropertyFieldTargetLevel, error) {
+	// Legacy properties (ObjectType = "") use old uniqueness via DB constraint
+	if field.ObjectType == "" {
+		return "", nil
+	}
+
+	var conflictLevel model.PropertyFieldTargetLevel
+
+	switch field.TargetType {
+	case string(model.PropertyFieldTargetLevelSystem):
+		// Creating system-level: check if any team or channel has this property in this group
+		// Uses COALESCE for short-circuit evaluation
+		query := `
+			SELECT COALESCE(
+				(SELECT 'team' FROM PropertyFields
+				 WHERE ObjectType = $1 AND GroupID = $2 AND TargetType = 'team' AND Name = $3 AND DeleteAt = 0
+				 LIMIT 1),
+				(SELECT 'channel' FROM PropertyFields
+				 WHERE ObjectType = $1 AND GroupID = $2 AND TargetType = 'channel' AND Name = $3 AND DeleteAt = 0
+				 LIMIT 1),
+				''
+			)`
+		if err := s.GetReplica().DB.Get(&conflictLevel, query, field.ObjectType, field.GroupID, field.Name); err != nil {
+			return "", errors.Wrap(err, "property_field_check_conflict_system")
+		}
+
+	case string(model.PropertyFieldTargetLevelTeam):
+		// Creating team-level: check system OR channels in this team within this group
+		// TargetID is the team ID for team-level properties
+		query := `
+			SELECT COALESCE(
+				(SELECT 'system' FROM PropertyFields
+				 WHERE ObjectType = $1 AND GroupID = $2 AND TargetType = 'system' AND Name = $3 AND DeleteAt = 0
+				 LIMIT 1),
+				(SELECT 'channel' FROM PropertyFields pf
+				 JOIN Channels c ON c.Id = pf.TargetID AND c.TeamId = $4
+				 WHERE pf.ObjectType = $1 AND pf.GroupID = $2 AND pf.TargetType = 'channel' AND pf.Name = $3 AND pf.DeleteAt = 0
+				 LIMIT 1),
+				''
+			)`
+		if err := s.GetReplica().DB.Get(&conflictLevel, query, field.ObjectType, field.GroupID, field.Name, field.TargetID); err != nil {
+			return "", errors.Wrap(err, "property_field_check_conflict_team")
+		}
+
+	case string(model.PropertyFieldTargetLevelChannel):
+		// Creating channel-level: check system OR this channel's team within this group
+		// Uses subquery to get TeamId from Channels table - handles DM channels naturally
+		// (DM channels have empty TeamId, so TargetID = '' won't match any team-level property)
+		// TargetID is the channel ID for channel-level properties
+		query := `
+			SELECT COALESCE(
+				(SELECT 'system' FROM PropertyFields
+				 WHERE ObjectType = $1 AND GroupID = $2 AND TargetType = 'system' AND Name = $3 AND DeleteAt = 0
+				 LIMIT 1),
+				(SELECT 'team' FROM PropertyFields
+				 WHERE ObjectType = $1 AND GroupID = $2 AND TargetType = 'team' AND Name = $3
+				 AND TargetID = (SELECT TeamId FROM Channels WHERE Id = $4)
+				 AND DeleteAt = 0
+				 LIMIT 1),
+				''
+			)`
+		if err := s.GetReplica().DB.Get(&conflictLevel, query, field.ObjectType, field.GroupID, field.Name, field.TargetID); err != nil {
+			return "", errors.Wrap(err, "property_field_check_conflict_channel")
+		}
+
+	default:
+		// Unknown target type - let DB constraint handle
+		return "", nil
+	}
+
+	return conflictLevel, nil
+}

@@ -5,11 +5,38 @@ package properties
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
 func (ps *PropertyService) CreatePropertyField(field *model.PropertyField) (*model.PropertyField, error) {
+	// Legacy properties (ObjectType = "") skip conflict check
+	if field.ObjectType == "" {
+		return ps.fieldStore.Create(field)
+	}
+
+	// Check for hierarchical name conflicts
+	// The store method uses a subquery to look up the channel's TeamId when needed
+	conflictLevel, err := ps.fieldStore.CheckPropertyNameConflict(field)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check property name conflict: %w", err)
+	}
+
+	if conflictLevel != "" {
+		return nil, model.NewAppError(
+			"CreatePropertyField",
+			"app.property_field.create.name_conflict.app_error",
+			map[string]any{
+				"Name":          field.Name,
+				"ConflictLevel": string(conflictLevel),
+				"TargetType":    field.TargetType,
+			},
+			fmt.Sprintf("property name %q conflicts with existing %s-level property", field.Name, string(conflictLevel)),
+			http.StatusConflict,
+		)
+	}
+
 	return ps.fieldStore.Create(field)
 }
 

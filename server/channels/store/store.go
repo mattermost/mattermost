@@ -1126,6 +1126,7 @@ type PropertyFieldStore interface {
 	SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
 	Update(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error)
 	Delete(groupID string, id string) error
+	CheckPropertyNameConflict(field *model.PropertyField) (model.PropertyFieldTargetLevel, error)
 }
 
 type PropertyValueStore interface {

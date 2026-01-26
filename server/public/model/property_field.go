@@ -27,6 +27,16 @@ const (
 	PropertyFieldObjectTypeMaxRunes = 255
 )
 
+// PropertyFieldTargetLevel represents the hierarchy level of a property field.
+// Used both for TargetType field values and for conflict detection results.
+type PropertyFieldTargetLevel string
+
+const (
+	PropertyFieldTargetLevelSystem  PropertyFieldTargetLevel = "system"
+	PropertyFieldTargetLevelTeam    PropertyFieldTargetLevel = "team"
+	PropertyFieldTargetLevelChannel PropertyFieldTargetLevel = "channel"
+)
+
 type PropertyField struct {
 	ID         string            `json:"id"`
 	GroupID    string            `json:"group_id"`
