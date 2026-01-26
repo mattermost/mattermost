@@ -964,11 +964,17 @@ func (s *SqlPostStore) GetEtag(channelId, language string, allowFromCache, colla
 
 	var et etagPosts
 	err := s.GetReplica().Get(&et, sql, args...)
-	var result string
+	var time int64
 	if err != nil {
-		result = fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
+		time = model.GetMillis()
 	} else {
-		result = fmt.Sprintf("%v.%v", model.CurrentVersion, et.UpdateAt)
+		time = et.UpdateAt
+	}
+	var result string
+	if language != "" {
+		result = fmt.Sprintf("%v.%v.%s", model.CurrentVersion, time, language)
+	} else {
+		result = fmt.Sprintf("%v.%v", model.CurrentVersion, time)
 	}
 
 	return result
