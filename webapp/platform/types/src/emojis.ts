@@ -61,3 +61,11 @@ export type RecentEmojiData = {
     name: string;
     usageCount: number;
 };
+
+export function isSystemEmoji(emoji: Emoji): emoji is SystemEmoji {
+    if ('category' in emoji) {
+        return emoji.category !== 'custom';
+    }
+
+    return !('id' in emoji);
+}
