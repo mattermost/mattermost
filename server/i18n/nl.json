@@ -8594,10 +8594,6 @@
     "translation": "Contacteer de verkoopsafdeling"
   },
   {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "CWS-server kan zich niet abonneren op nieuwsbrief."
-  },
-  {
     "id": "api.server.cws.needs_enterprise_edition",
     "translation": "Dienst alleen beschikbaar in Mattermost Enterprise editie"
   },

@@ -8610,10 +8610,6 @@
     "translation": "Hoppar över installationen av plugin {{.Id}} eftersom den befintliga versionen är samma eller nyare."
   },
   {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "CWS Server misslyckades med att prenumerera på nyhetsbrev."
-  },
-  {
     "id": "api.license.request-trial.bad-request.business-email",
     "translation": "Felaktig företagsmejl för prova på-period"
   },

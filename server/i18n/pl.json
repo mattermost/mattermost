@@ -8612,10 +8612,6 @@
     "translation": "Pomijanie instalacji wtyczki {{.Id}}, ponieważ istniejąca wersja jest równa lub nowsza."
   },
   {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "Serwer CWS nie zdołał zapisać się do newslettera."
-  },
-  {
     "id": "api.license.request-trial.bad-request.business-email",
     "translation": "Nieprawidłowy e-mail służbowy dla wersji testowej"
   },
