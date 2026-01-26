@@ -263,8 +263,11 @@ export function createChannelMentionSuggestion(props: ChannelMentionBridgeProps)
                     const {event} = mentionProps;
 
                     if (event.key === 'Escape') {
-                        closePopup();
-                        return true;
+                        // Return false to let TipTap handle Escape and properly exit suggestion mode.
+                        // TipTap will call onExit which closes the popup.
+                        // Returning true here would prevent TipTap from exiting suggestion state,
+                        // breaking subsequent ~ triggers.
+                        return false;
                     }
 
                     if (event.key === 'ArrowUp') {
