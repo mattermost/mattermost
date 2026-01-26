@@ -35,7 +35,7 @@
   "devDependencies": {
     "@playwright/test": "1.57.0",
     "@types/luxon": "3.7.1",
-    "@typescript-eslint/eslint-plugin": "8.50.0",
+    "@typescript-eslint/eslint-plugin": "8.53.1",
     "cross-env": "10.1.0",
     "dayjs": "1.11.19",
     "eslint": "9.39.2",
@@ -44,8 +44,8 @@
     "eslint-plugin-import": "2.32.0",
     "glob": "13.0.0",
     "luxon": "3.7.2",
-    "prettier": "3.7.4",
+    "prettier": "3.8.0",
     "typescript": "5.9.3",
-    "zod": "4.2.1"
+    "zod": "4.3.5"
   }
 }
