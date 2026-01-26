@@ -95,8 +95,10 @@ describe('Channel Settings Modal', () => {
         // # Edit channel name
         cy.get('#input_channel-settings-name').clear().type('Updated Channel Name');
 
-        // * Verify URL is updated automatically
-        cy.get('.url-input-label').should('contain', 'updated-channel-name');
+        // * Verify URL remains unchanged (does not auto-update when editing existing channels)
+        cy.get('@originalUrl').then((originalUrl) => {
+            cy.get('.url-input-label').should('contain', originalUrl);
+        });
 
         // # Click Save
         cy.get('[data-testid="SaveChangesPanel__save-btn"]').click();
@@ -133,6 +135,99 @@ describe('Channel Settings Modal', () => {
 
         // * Verify channel header shows updated name
         cy.get('#channelHeaderTitle').should('contain', originalTestChannel.display_name);
+    });
+
+    it('MM-T31: Channel name changes do not auto-update URL, URL only changes when explicitly modified', () => {
+        // # Create a new channel for this test
+        cy.apiCreateChannel(testTeam.id, 'url-behavior-test', 'URL Behavior Test').then(({channel}) => {
+            cy.visit(`/${testTeam.name}/channels/${channel.name}`);
+
+            // # Open channel settings modal
+            cy.get('#channelHeaderDropdownButton').click();
+            cy.findByText('Channel Settings').click();
+
+            // # Store original values
+            cy.get('#input_channel-settings-name').invoke('val').as('originalName');
+            cy.get('.url-input-label').invoke('val').as('originalUrl');
+
+            // # Verify changing channel name does NOT auto-update URL
+
+            // # Change the channel name
+            cy.get('#input_channel-settings-name').clear().type('New Channel Name');
+
+            // * Verify URL remains unchanged after name change
+            cy.get('@originalUrl').then((originalUrl) => {
+                cy.get('.url-input-label').should('contain', originalUrl);
+            });
+
+            // # Save the name change
+            cy.get('[data-testid="SaveChangesPanel__save-btn"]').click();
+
+            // * Verify changes are saved
+            cy.get('.SaveChangesPanel').should('contain', 'Settings saved');
+
+            // * Verify URL is still the original URL after saving
+            cy.get('@originalUrl').then((originalUrl) => {
+                cy.get('.url-input-label').should('contain', originalUrl);
+            });
+
+            // # Verify URL only changes when explicitly modified
+
+            // # Click the URL edit button to enable URL editing
+            cy.get('.url-input-button').click();
+
+            // # Modify the URL explicitly
+            cy.get('.url-input-container input').clear().type('explicitly-changed-url');
+
+            // # Confirm the URL change
+            cy.get('.url-input-container button.url-input-button').click();
+
+            // * Verify URL has been updated to the new value
+            cy.get('.url-input-label').should('contain', 'explicitly-changed-url');
+
+            // # Save the URL change
+            cy.get('[data-testid="SaveChangesPanel__save-btn"]').click();
+
+            // * Verify changes are saved
+            cy.get('.SaveChangesPanel').should('contain', 'Settings saved');
+
+            // # Close the modal
+            cy.get('.GenericModal .modal-header button[aria-label="Close"]').click();
+
+            // * Verify the URL has actually changed by checking the browser URL
+            cy.url().should('include', 'explicitly-changed-url');
+
+            // # Verify subsequent name changes still don't affect the explicitly set URL
+
+            // # Open channel settings modal again
+            cy.get('#channelHeaderDropdownButton').click();
+            cy.findByText('Channel Settings').click();
+
+            // # Store the current URL (which should be the explicitly changed one)
+            cy.get('.url-input-label').invoke('val').as('currentUrl');
+
+            // # Change the channel name again
+            cy.get('#input_channel-settings-name').clear().type('Another Name Change');
+
+            // * Verify URL remains the explicitly set URL, not auto-generated from new name
+            cy.get('@currentUrl').then((currentUrl) => {
+                cy.get('.url-input-label').should('contain', currentUrl);
+            });
+
+            // * Verify URL does NOT contain auto-generated value from new name
+            cy.get('.url-input-label').should('not.contain', 'another-name-change');
+
+            // # Save the second name change
+            cy.get('[data-testid="SaveChangesPanel__save-btn"]').click();
+
+            // * Verify changes are saved
+            cy.get('.SaveChangesPanel').should('contain', 'Settings saved');
+
+            // * Final verification: URL should still be the explicitly set one
+            cy.get('@currentUrl').then((currentUrl) => {
+                cy.get('.url-input-label').should('contain', currentUrl);
+            });
+        });
     });
 
     it('MM-T4: Shows error for invalid channel name', () => {
