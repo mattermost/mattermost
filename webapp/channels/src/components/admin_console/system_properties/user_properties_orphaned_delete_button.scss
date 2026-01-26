@@ -1,0 +1,12 @@
+.orphaned-field-delete-button {
+    padding: 4px 8px;
+
+    &:hover:not(:disabled) {
+        background: rgba(var(--error-text-color-rgb), 0.08);
+    }
+
+    &:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+}
