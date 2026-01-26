@@ -1972,7 +1972,7 @@ func TestUpdatePost(t *testing.T) {
 			Message:   "original message",
 			UserId:    th.BasicUser.Id,
 		}
-		createdPost, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
+		createdPost, _, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, err)
 
 		// Try to update with spoofed embeds (the attack vector)
@@ -1998,7 +1998,7 @@ func TestUpdatePost(t *testing.T) {
 			},
 		}
 
-		updatedPost, err := th.App.UpdatePost(th.Context, updatePost, nil)
+		updatedPost, _, err := th.App.UpdatePost(th.Context, updatePost, nil)
 		require.Nil(t, err)
 		require.NotNil(t, updatedPost.Metadata)
 
