@@ -5773,7 +5773,7 @@
   "search_files_list_option.after": "Files after a date",
   "search_files_list_option.before": "Files before a date",
   "search_files_list_option.exclude": "Exclude search terms",
-  "search_files_list_option.ext": "Files with an extension",
+  "search_files_list_option.ext": "Files with a extension",
   "search_files_list_option.from": "Files from a user",
   "search_files_list_option.in": "Files in a channel",
   "search_files_list_option.on": "Files on a date",
