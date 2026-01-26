@@ -8,6 +8,7 @@ import {defineMessage, defineMessages, FormattedDate, FormattedMessage, Formatte
 import type {IntlShape} from 'react-intl';
 import ReactSelect from 'react-select';
 import type {OnChangeValue, ActionMeta, StylesConfig} from 'react-select';
+import {useSelector} from 'react-redux';
 
 import type {UserPropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 import type {UserProfile} from '@mattermost/types/users';
@@ -16,6 +17,10 @@ import type {LogErrorOptions} from 'mattermost-redux/actions/errors';
 import {LogErrorBarMode} from 'mattermost-redux/actions/errors';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isEmail} from 'mattermost-redux/utils/helpers';
+
+import {getPluginDisplayName} from 'selectors/plugins';
+
+import type {GlobalState} from 'types/store';
 
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
@@ -187,6 +192,16 @@ type State = {
     emailError?: string;
     customAttributeValues: Record<string, string | string[]>;
 }
+
+// Private component to get plugin display name
+type PluginDisplayNameProps = {
+    pluginId?: string;
+};
+
+const PluginDisplayName: React.FC<PluginDisplayNameProps> = ({pluginId}) => {
+    const displayName = useSelector((state: GlobalState) => getPluginDisplayName(state, pluginId));
+    return <>{displayName}</>;
+};
 
 export class UserSettingsGeneralTab extends PureComponent<Props, State> {
     public submitActive = false;
@@ -1514,6 +1529,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                                 id='user.settings.general.field_managed_by_plugin'
                                 defaultMessage='This field is managed by a plugin and cannot be edited.'
                             />
+                            {' '}(<PluginDisplayName pluginId={attribute.attrs?.source_plugin_id}/>)
                         </span>
                     );
                 } else if (isAdminManaged) {

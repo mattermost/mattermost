@@ -10,8 +10,9 @@ import type {IntlShape, WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 import ReactSelect from 'react-select';
+import {useSelector} from 'react-redux';
 
-import {SyncIcon, LockOutlineIcon} from '@mattermost/compass-icons/components';
+import {SyncIcon, PowerPlugOutlineIcon} from '@mattermost/compass-icons/components';
 import type {ServerError} from '@mattermost/types/errors';
 import type {UserPropertyField} from '@mattermost/types/properties';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
@@ -36,6 +37,10 @@ import AtIcon from 'components/widgets/icons/at_icon';
 import SheidOutlineIcon from 'components/widgets/icons/shield_outline_icon';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import WithTooltip from 'components/with_tooltip';
+
+import {getPluginDisplayName} from 'selectors/plugins';
+
+import type {GlobalState} from 'types/store';
 
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import {validHttpUrl} from 'utils/url';
@@ -96,6 +101,16 @@ const CPAMultiSelect: React.FC<CPAMultiSelectProps> = ({
             }}
         />
     );
+};
+
+// Private component to get plugin display name
+type PluginDisplayNameProps = {
+    pluginId?: string;
+};
+
+const PluginDisplayName: React.FC<PluginDisplayNameProps> = ({pluginId}) => {
+    const displayName = useSelector((state: GlobalState) => getPluginDisplayName(state, pluginId));
+    return <>{displayName}</>;
 };
 
 export type Params = {
@@ -349,7 +364,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         // Render indicator if field is synced or protected
         const syncIndicator = isLockedFromEditing ? (
             <div className='user-property-field-values__sync-indicator'>
-                {isSynced ? <SyncIcon size={18}/> : <LockOutlineIcon size={18}/>}
+                {isSynced ? <SyncIcon size={18}/> : <PowerPlugOutlineIcon size={18}/>}
                 <span>
                     {isSynced ? (
                         <FormattedMessage
@@ -364,7 +379,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                             id='admin.userManagement.userDetail.managedByPlugin'
                             defaultMessage='Managed by plugin: {pluginId}'
                             values={{
-                                pluginId: field.attrs?.source_plugin_id || this.props.intl.formatMessage({id: 'admin.userManagement.userDetail.unknownPlugin', defaultMessage: 'unknown'}),
+                                pluginId: <PluginDisplayName pluginId={field.attrs?.source_plugin_id}/>,
                             }}
                         />
                     )}

@@ -4,13 +4,18 @@
 import type {FocusEventHandler, KeyboardEventHandler} from 'react';
 import React, {useMemo} from 'react';
 import {FormattedList, FormattedMessage, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 import type {GroupBase} from 'react-select';
 import {components} from 'react-select';
 import type {CreatableProps} from 'react-select/creatable';
 import CreatableSelect from 'react-select/creatable';
 
-import {SyncIcon, LockOutlineIcon} from '@mattermost/compass-icons/components';
+import {SyncIcon, PowerPlugOutlineIcon} from '@mattermost/compass-icons/components';
 import {supportsOptions, type PropertyFieldOption, type UserPropertyField} from '@mattermost/types/properties';
+
+import {getPluginDisplayName} from 'selectors/plugins';
+
+import type {GlobalState} from 'types/store';
 
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
@@ -35,6 +40,7 @@ const UserPropertyValues = ({
     autoFocus,
 }: Props) => {
     const {formatMessage} = useIntl();
+    const pluginDisplayName = useSelector((state: GlobalState) => getPluginDisplayName(state, field.attrs?.source_plugin_id));
 
     const [query, setQuery] = React.useState('');
     const {promptEditLdapLink, promptEditSamlLink} = useAttributeLinkModal(field, updateField);
@@ -144,24 +150,23 @@ const UserPropertyValues = ({
     }
 
     if (field.attrs?.protected) {
-        const sourcePluginId = field.attrs?.source_plugin_id as string | undefined;
         const isOrphaned = useIsFieldOrphaned(field);
 
         return (
             <>
                 <span className='user-property-field-values'>
-                    <LockOutlineIcon size={18}/>
+                    <PowerPlugOutlineIcon size={18}/>
                     {isOrphaned ? (
                         <FormattedMessage
                             id='admin.system_properties.user_properties.table.values.plugin_removed'
                             defaultMessage='Plugin removed: {pluginId}'
-                            values={{pluginId: sourcePluginId || 'unknown'}}
+                            values={{pluginId: pluginDisplayName}}
                         />
                     ) : (
                         <FormattedMessage
                             id='admin.system_properties.user_properties.table.values.managed_by_plugin'
                             defaultMessage='Managed by plugin: {pluginId}'
-                            values={{pluginId: sourcePluginId || 'unknown'}}
+                            values={{pluginId: pluginDisplayName}}
                         />
                     )}
                 </span>
