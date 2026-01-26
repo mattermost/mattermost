@@ -85,6 +85,9 @@ func TestGetAdvancedLogs(t *testing.T) {
 			require.NoError(t, err)
 		})
 
+		// Set MM_LOG_PATH to allow advanced logging to write to our temp directory
+		t.Setenv("MM_LOG_PATH", dir)
+
 		// Setup log files for each setting
 		optLDAP := map[string]string{
 			"filename": path.Join(dir, "ldap.log"),
@@ -125,7 +128,6 @@ func TestGetAdvancedLogs(t *testing.T) {
 
 		th.Service.UpdateConfig(func(c *model.Config) {
 			c.LogSettings.AdvancedLoggingJSON = logCfgData
-			c.LogSettings.FileLocation = &dir
 			// Audit logs are not testable as they are part of the server, not the platform
 		})
 
@@ -186,6 +188,9 @@ func TestGetAdvancedLogs(t *testing.T) {
 			require.NoError(t, err)
 		})
 
+		// Set MM_LOG_PATH to restrict log file access to logDir
+		t.Setenv("MM_LOG_PATH", logDir)
+
 		// Create a file outside the log directory that should not be accessible
 		outsideDir, err := os.MkdirTemp("", "outside")
 		require.NoError(t, err)
@@ -202,11 +207,6 @@ func TestGetAdvancedLogs(t *testing.T) {
 		validLog := path.Join(logDir, "valid.log")
 		err = os.WriteFile(validLog, []byte("valid log data"), 0644)
 		require.NoError(t, err)
-
-		// Configure the service to use our test log directory
-		th.Service.UpdateConfig(func(c *model.Config) {
-			c.LogSettings.FileLocation = &logDir
-		})
 
 		// Test 1: Attempt to read file outside log directory using absolute path
 		optOutside := map[string]string{

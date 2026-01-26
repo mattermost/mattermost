@@ -109,8 +109,8 @@ func GetLogFileLocation(fileLocation string) string {
 // This is used for security validation to prevent arbitrary file reads via advanced logging.
 // The logging root is determined by:
 // 1. MM_LOG_PATH environment variable (if set and non-empty)
-// 2. The configured log directory (LogSettings.FileLocation or default "logs" directory)
-func GetLogRootPath(fileLocation string) string {
+// 2. The default "logs" directory (found relative to the binary)
+func GetLogRootPath() string {
 	// Check environment variable first
 	if envPath := os.Getenv("MM_LOG_PATH"); envPath != "" {
 		absPath, err := filepath.Abs(envPath)
@@ -119,9 +119,13 @@ func GetLogRootPath(fileLocation string) string {
 		}
 	}
 
-	// Fall back to directory containing the log file
-	logFilePath := GetLogFileLocation(fileLocation)
-	return filepath.Dir(logFilePath)
+	// Fall back to default logs directory
+	logsDir, _ := fileutils.FindDir("logs")
+	absPath, err := filepath.Abs(logsDir)
+	if err != nil {
+		return logsDir
+	}
+	return absPath
 }
 
 // ValidateLogFilePath validates that a log file path is within the logging root directory.
@@ -169,7 +173,7 @@ func ValidateLogFilePath(filePath string, loggingRoot string) error {
 // This is called during config save to identify configurations that will cause server startup to fail in a future version.
 // Currently only logs errors; in a future version this will block server startup.
 func WarnIfLogPathsOutsideRoot(cfg *model.Config) {
-	loggingRoot := GetLogRootPath(*cfg.LogSettings.FileLocation)
+	loggingRoot := GetLogRootPath()
 
 	// Check LogSettings.AdvancedLoggingJSON
 	if !utils.IsEmptyJSON(cfg.LogSettings.AdvancedLoggingJSON) {

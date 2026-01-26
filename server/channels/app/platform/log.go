@@ -207,12 +207,12 @@ func (ps *PlatformService) GetLogFile(_ request.CTX) (*model.FileData, error) {
 
 // validateLogFilePath validates that a log file path is within the logging root directory.
 // This prevents arbitrary file read/write vulnerabilities in logging configuration.
-// The logging root is determined by MM_LOG_PATH environment variable or the configured log directory.
+// The logging root is determined by MM_LOG_PATH environment variable or the default logs directory.
 // Currently used to validate paths when reading logs via GetAdvancedLogs.
 // In future versions, this will also be used to validate paths when saving logging config.
 func (ps *PlatformService) validateLogFilePath(filePath string) error {
-	// Get the logging root path (from env var or config)
-	loggingRoot := config.GetLogRootPath(*ps.Config().LogSettings.FileLocation)
+	// Get the logging root path (from env var or default logs directory)
+	loggingRoot := config.GetLogRootPath()
 
 	return config.ValidateLogFilePath(filePath, loggingRoot)
 }
@@ -223,8 +223,7 @@ func (ps *PlatformService) GetAdvancedLogs(rctx request.CTX) ([]*model.FileData,
 		ret  []*model.FileData
 	)
 
-	rctx.Logger().Debug("Advanced logs access requested",
-		mlog.String("user_id", rctx.Session().UserId))
+	rctx.Logger().Debug("Advanced logs access requested")
 
 	for name, loggingJSON := range map[string]json.RawMessage{
 		"LogSettings.AdvancedLoggingJSON":               ps.Config().LogSettings.AdvancedLoggingJSON,
