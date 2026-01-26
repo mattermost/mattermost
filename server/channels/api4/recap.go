@@ -15,6 +15,7 @@ import (
 func (api *API) InitRecap() {
 	api.BaseRoutes.Recaps.Handle("", api.APISessionRequired(createRecap)).Methods(http.MethodPost)
 	api.BaseRoutes.Recaps.Handle("", api.APISessionRequired(getRecaps)).Methods(http.MethodGet)
+	api.BaseRoutes.Recaps.Handle("/limit_status", api.APISessionRequired(getRecapLimitStatus)).Methods(http.MethodGet)
 	api.BaseRoutes.Recaps.Handle("/{recap_id:[A-Za-z0-9]+}", api.APISessionRequired(getRecap)).Methods(http.MethodGet)
 	api.BaseRoutes.Recaps.Handle("/{recap_id:[A-Za-z0-9]+}/read", api.APISessionRequired(markRecapAsRead)).Methods(http.MethodPost)
 	api.BaseRoutes.Recaps.Handle("/{recap_id:[A-Za-z0-9]+}/regenerate", api.APISessionRequired(regenerateRecap)).Methods(http.MethodPost)
@@ -39,6 +40,20 @@ func addRecapChannelIDsToAuditRec(auditRec *model.AuditRecord, recap *model.Reca
 		channelIDs = append(channelIDs, channel.ChannelId)
 	}
 	model.AddEventParameterToAuditRec(auditRec, "channel_ids", channelIDs)
+}
+
+func getRecapLimitStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+	userID := c.AppContext.Session().UserId
+
+	status, err := c.App.GetRecapLimitStatus(userID)
+	if err != nil {
+		c.Err = model.NewAppError("getRecapLimitStatus", "api.recap.get_limit_status.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(status); err != nil {
+		c.Logger.Warn("Error writing response", mlog.Err(err))
+	}
 }
 
 func createRecap(c *Context, w http.ResponseWriter, r *http.Request) {

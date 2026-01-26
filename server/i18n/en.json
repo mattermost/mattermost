@@ -3027,6 +3027,10 @@
     "translation": "You do not have permission to access this recap."
   },
   {
+    "id": "api.recap.get_limit_status.app_error",
+    "translation": "Unable to get recap limit status."
+  },
+  {
     "id": "api.remote_cluster.accept_invitation_error",
     "translation": "Could not accept the remote cluster invitation"
   },
