@@ -1008,6 +1008,189 @@ test.describe('Wiki Export/Import Admin Console', () => {
         expect(unresolvedAfter!.props?.comment_resolved).toBeFalsy();
     });
 
+    test('MM-WIKI-EXPORT-UI-1 Export panel should display checkboxes for Include Attachments and Include Comments', async ({
+        pw,
+    }) => {
+        const {adminUser} = await pw.initSetup();
+        if (!adminUser) {
+            throw new Error('Failed to create admin user');
+        }
+
+        const {page, systemConsolePage} = await pw.testBrowser.login(adminUser);
+        await systemConsolePage.goto();
+        await systemConsolePage.toBeVisible();
+        await systemConsolePage.sidebar.goToItem('Wiki Export/Import');
+
+        const exportPanel = page.locator('#wikiExportPanel');
+        await expect(exportPanel).toBeVisible();
+
+        // Verify Include Attachments checkbox is visible and checked by default
+        const attachmentsCheckbox = exportPanel.locator('input[type="checkbox"]').first();
+        await expect(attachmentsCheckbox).toBeVisible();
+        await expect(attachmentsCheckbox).toBeChecked();
+
+        // Verify Include Comments checkbox is visible and checked by default
+        const commentsCheckbox = exportPanel.locator('input[type="checkbox"]').nth(1);
+        await expect(commentsCheckbox).toBeVisible();
+        await expect(commentsCheckbox).toBeChecked();
+
+        // Verify checkbox labels (use exact match to avoid matching help text)
+        await expect(exportPanel.getByText('Include Attachments', {exact: true})).toBeVisible();
+        await expect(exportPanel.getByText('Include Comments', {exact: true})).toBeVisible();
+    });
+
+    test('MM-WIKI-EXPORT-UI-2 Export checkboxes can be toggled', async ({pw}) => {
+        const {adminUser} = await pw.initSetup();
+        if (!adminUser) {
+            throw new Error('Failed to create admin user');
+        }
+
+        const {page, systemConsolePage} = await pw.testBrowser.login(adminUser);
+        await systemConsolePage.goto();
+        await systemConsolePage.toBeVisible();
+        await systemConsolePage.sidebar.goToItem('Wiki Export/Import');
+
+        const exportPanel = page.locator('#wikiExportPanel');
+        const attachmentsCheckbox = exportPanel.locator('input[type="checkbox"]').first();
+        const commentsCheckbox = exportPanel.locator('input[type="checkbox"]').nth(1);
+
+        // Both should be checked by default
+        await expect(attachmentsCheckbox).toBeChecked();
+        await expect(commentsCheckbox).toBeChecked();
+
+        // Uncheck both
+        await attachmentsCheckbox.click();
+        await commentsCheckbox.click();
+
+        await expect(attachmentsCheckbox).not.toBeChecked();
+        await expect(commentsCheckbox).not.toBeChecked();
+
+        // Re-check them
+        await attachmentsCheckbox.click();
+        await commentsCheckbox.click();
+
+        await expect(attachmentsCheckbox).toBeChecked();
+        await expect(commentsCheckbox).toBeChecked();
+    });
+
+    test('MM-WIKI-EXPORT-UI-3 Import panel should display file upload button and file selection dropdown', async ({
+        pw,
+    }) => {
+        const {adminUser} = await pw.initSetup();
+        if (!adminUser) {
+            throw new Error('Failed to create admin user');
+        }
+
+        const {page, systemConsolePage} = await pw.testBrowser.login(adminUser);
+        await systemConsolePage.goto();
+        await systemConsolePage.toBeVisible();
+        await systemConsolePage.sidebar.goToItem('Wiki Export/Import');
+
+        const importPanel = page.locator('#wikiImportPanel');
+        await expect(importPanel).toBeVisible();
+
+        // Verify file upload button is visible
+        const uploadButton = importPanel.getByRole('button', {name: 'Choose File'});
+        await expect(uploadButton).toBeVisible();
+
+        // Verify the upload section label
+        await expect(importPanel.getByText('Upload File')).toBeVisible();
+
+        // Verify file type help text
+        await expect(importPanel.getByText('Supports .jsonl and .zip files')).toBeVisible();
+
+        // Verify import file label
+        await expect(importPanel.getByText('Import File:')).toBeVisible();
+    });
+
+    test('MM-WIKI-EXPORT-UI-4 Import button should be disabled when no file is selected', async ({pw}) => {
+        const {adminUser} = await pw.initSetup();
+        if (!adminUser) {
+            throw new Error('Failed to create admin user');
+        }
+
+        const {page, systemConsolePage} = await pw.testBrowser.login(adminUser);
+        await systemConsolePage.goto();
+        await systemConsolePage.toBeVisible();
+        await systemConsolePage.sidebar.goToItem('Wiki Export/Import');
+
+        const importPanel = page.locator('#wikiImportPanel');
+        const importButton = importPanel.getByRole('button', {name: 'Run Wiki Import'});
+
+        // Import button should be disabled when no file is selected
+        await expect(importButton).toBeDisabled();
+    });
+
+    test('MM-WIKI-EXPORT-UI-5 File selection dropdown should show available import files after export', async ({
+        pw,
+    }) => {
+        test.slow();
+
+        const {adminClient, adminUser, team} = await pw.initSetup();
+        if (!adminUser || !adminClient) {
+            throw new Error('Failed to create admin user or client');
+        }
+
+        // Create a channel with wiki and page to ensure export has content
+        const channel = await adminClient.createChannel({
+            team_id: team.id,
+            name: `ui-test-${Date.now()}`,
+            display_name: 'UI Test Channel',
+            type: 'O',
+        });
+        const wiki = await adminClient.createWiki({
+            channel_id: channel.id,
+            title: 'UI Test Wiki',
+        });
+        const pageContent = {
+            type: 'doc' as const,
+            content: [{type: 'paragraph', content: [{type: 'text', text: 'Test content'}]}],
+        };
+        await pw.createPageViaDraft(adminClient, wiki.id, 'Test Page', pageContent);
+
+        // Create an export job and wait for it to complete
+        const exportJob = await adminClient.createJob({
+            type: 'wiki_export',
+            data: {channel_ids: channel.id},
+        });
+
+        let completedExportJob: Job | undefined;
+        for (let i = 0; i < 30; i++) {
+            await pw.wait(pw.duration.two_sec);
+            completedExportJob = await adminClient.getJob(exportJob.id);
+            if (completedExportJob.status === 'success') {
+                break;
+            }
+        }
+        expect(completedExportJob?.status).toBe('success');
+
+        // Upload the export file for import
+        const importFilename = await downloadExportAndUploadForImport(adminClient, completedExportJob!.id);
+
+        // Navigate to wiki export/import page
+        const {page, systemConsolePage} = await pw.testBrowser.login(adminUser);
+        await systemConsolePage.goto();
+        await systemConsolePage.toBeVisible();
+        await systemConsolePage.sidebar.goToItem('Wiki Export/Import');
+
+        const importPanel = page.locator('#wikiImportPanel');
+        await expect(importPanel).toBeVisible();
+
+        // Wait for imports to load (loading indicator should disappear)
+        await expect(importPanel.locator('.fa-spinner')).toBeHidden({timeout: 10000});
+
+        // Verify the file selection dropdown is visible
+        const fileDropdown = importPanel.locator('#importFile');
+        await expect(fileDropdown).toBeVisible();
+
+        // Select the uploaded file
+        await fileDropdown.selectOption(importFilename);
+
+        // Verify the import button is now enabled
+        const importButton = importPanel.getByRole('button', {name: 'Run Wiki Import'});
+        await expect(importButton).toBeEnabled();
+    });
+
     test('MM-WIKI-EXPORT-14 Full round trip with comments AND attachments should preserve all content', async ({
         pw,
     }) => {

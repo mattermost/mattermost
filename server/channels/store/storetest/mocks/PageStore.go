@@ -219,9 +219,9 @@ func (_m *PageStore) GetManyPageContentsWithDeleted(pageIDs []string) ([]*model.
 	return r0, r1
 }
 
-// GetPage provides a mock function with given fields: pageID, includeDeleted
-func (_m *PageStore) GetPage(pageID string, includeDeleted bool) (*model.Post, error) {
-	ret := _m.Called(pageID, includeDeleted)
+// GetPage provides a mock function with given fields: rctx, pageID, includeDeleted
+func (_m *PageStore) GetPage(rctx request.CTX, pageID string, includeDeleted bool) (*model.Post, error) {
+	ret := _m.Called(rctx, pageID, includeDeleted)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetPage")
@@ -229,19 +229,19 @@ func (_m *PageStore) GetPage(pageID string, includeDeleted bool) (*model.Post, e
 
 	var r0 *model.Post
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, bool) (*model.Post, error)); ok {
-		return rf(pageID, includeDeleted)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, bool) (*model.Post, error)); ok {
+		return rf(rctx, pageID, includeDeleted)
 	}
-	if rf, ok := ret.Get(0).(func(string, bool) *model.Post); ok {
-		r0 = rf(pageID, includeDeleted)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, bool) *model.Post); ok {
+		r0 = rf(rctx, pageID, includeDeleted)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Post)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
-		r1 = rf(pageID, includeDeleted)
+	if rf, ok := ret.Get(1).(func(request.CTX, string, bool) error); ok {
+		r1 = rf(rctx, pageID, includeDeleted)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -6617,10 +6617,10 @@ func (s *TimerLayerPageStore) GetManyPageContentsWithDeleted(pageIDs []string) (
 	return result, err
 }
 
-func (s *TimerLayerPageStore) GetPage(pageID string, includeDeleted bool) (*model.Post, error) {
+func (s *TimerLayerPageStore) GetPage(rctx request.CTX, pageID string, includeDeleted bool) (*model.Post, error) {
 	start := time.Now()
 
-	result, err := s.PageStore.GetPage(pageID, includeDeleted)
+	result, err := s.PageStore.GetPage(rctx, pageID, includeDeleted)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -15020,6 +15020,22 @@ func (s *TimerLayerWikiStore) GetPageByTitleInWiki(wikiId string, title string) 
 	return result, err
 }
 
+func (s *TimerLayerWikiStore) GetPageCommentsForExport(pageId string) ([]*model.PageCommentForExport, error) {
+	start := time.Now()
+
+	result, err := s.WikiStore.GetPageCommentsForExport(pageId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("WikiStore.GetPageCommentsForExport", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerWikiStore) GetPages(wikiId string, offset int, limit int) ([]*model.Post, error) {
 	start := time.Now()
 
@@ -15032,6 +15048,38 @@ func (s *TimerLayerWikiStore) GetPages(wikiId string, offset int, limit int) ([]
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("WikiStore.GetPages", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerWikiStore) GetPagesForExport(wikiId string, limit int, afterId string) ([]*model.PageForExport, error) {
+	start := time.Now()
+
+	result, err := s.WikiStore.GetPagesForExport(wikiId, limit, afterId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("WikiStore.GetPagesForExport", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerWikiStore) GetWikisForExport(channelId string) ([]*model.WikiForExport, error) {
+	start := time.Now()
+
+	result, err := s.WikiStore.GetWikisForExport(channelId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("WikiStore.GetWikisForExport", success, elapsed)
 	}
 	return result, err
 }
@@ -15064,6 +15112,22 @@ func (s *TimerLayerWikiStore) MoveWikiToChannel(wikiId string, targetChannelId s
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("WikiStore.MoveWikiToChannel", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerWikiStore) ResolveNamesToIDs(names []string, teamId string) ([]string, error) {
+	start := time.Now()
+
+	result, err := s.WikiStore.ResolveNamesToIDs(names, teamId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("WikiStore.ResolveNamesToIDs", success, elapsed)
 	}
 	return result, err
 }

@@ -148,7 +148,7 @@ func (s *SqlPageStore) CreatePage(rctx request.CTX, post *model.Post, content, s
 	return createdPost, nil
 }
 
-func (s *SqlPageStore) GetPage(pageID string, includeDeleted bool) (*model.Post, error) {
+func (s *SqlPageStore) GetPage(rctx request.CTX, pageID string, includeDeleted bool) (*model.Post, error) {
 	if pageID == "" {
 		return nil, store.NewErrInvalidInput("Post", "pageID", pageID)
 	}
@@ -175,7 +175,8 @@ func (s *SqlPageStore) GetPage(pageID string, includeDeleted bool) (*model.Post,
 	}
 
 	var post model.Post
-	if err := s.GetReplica().Get(&post, queryString, args...); err != nil {
+	// Use DBXFromContext to respect RequestContextWithMaster flag for read-after-write consistency.
+	if err := s.DBXFromContext(rctx.Context()).Get(&post, queryString, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Post", pageID)
 		}
@@ -502,9 +503,11 @@ func (s *SqlPageStore) Update(rctx request.CTX, page *model.Post) (*model.Post, 
 			return store.NewErrNotFound("Post", page.Id)
 		}
 
-		// Update PageContents if content exists
+		// Update PageContents only if there's new content to save.
+		// When doing a metadata-only update (e.g., rename), page.Message is empty
+		// and we should NOT overwrite the existing content.
 		// UserId = '' means published content (drafts have non-empty UserId)
-		if hasContent {
+		if hasContent && page.Message != "" {
 			contentUpdateQuery := s.getQueryBuilder().
 				Update("PageContents").
 				Set("Content", page.Message).
@@ -557,6 +560,9 @@ func (s *SqlPageStore) Update(rctx request.CTX, page *model.Post) (*model.Post, 
 	return &updatedPost, nil
 }
 
+// GetPageChildren fetches direct children of a page.
+// Uses GetReplica() as this is a listing operation that doesn't require
+// read-after-write consistency - callers are querying existing hierarchy data.
 func (s *SqlPageStore) GetPageChildren(postID string, options model.GetPostsOptions) (*model.PostList, error) {
 	query := s.getQueryBuilder().
 		Select(postSliceColumnsWithName("p")...).
@@ -1141,7 +1147,9 @@ func (s *SqlPageStore) GetPageContent(pageID string) (*model.PageContent, error)
 	var contentJSON string
 
 	// Use GetMaster() for read-after-write consistency in HA mode.
-	// This method is typically called after UpdatePageContent() writes to master.
+	// This method is called in flows where content was just written (page creation,
+	// content update, draft publish) and must return the current state immediately.
+	// Replica lag could cause stale data to be returned to the user.
 	if err := s.GetMaster().QueryRow(queryString, args...).Scan(
 		&pageContent.PageId,
 		&contentJSON,
@@ -1163,6 +1171,9 @@ func (s *SqlPageStore) GetPageContent(pageID string) (*model.PageContent, error)
 	return &pageContent, nil
 }
 
+// GetManyPageContents fetches multiple page contents by IDs.
+// Uses GetReplica() as this is a batch/export operation where slight replication
+// lag is acceptable - callers are fetching existing content for export or bulk display.
 func (s *SqlPageStore) GetManyPageContents(pageIDs []string) ([]*model.PageContent, error) {
 	if len(pageIDs) == 0 {
 		return []*model.PageContent{}, nil
@@ -1175,9 +1186,7 @@ func (s *SqlPageStore) GetManyPageContents(pageIDs []string) ([]*model.PageConte
 		return nil, errors.Wrap(err, "page_content_getmany_tosql")
 	}
 
-	// Use GetMaster() for read-after-write consistency in HA mode,
-	// matching GetPageContent() behavior.
-	rows, err := s.GetMaster().Query(queryString, args...)
+	rows, err := s.GetReplica().Query(queryString, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get PageContents with pageIds=%v", pageIDs)
 	}
@@ -1213,6 +1222,10 @@ func (s *SqlPageStore) GetManyPageContents(pageIDs []string) ([]*model.PageConte
 	return pageContents, nil
 }
 
+// GetPageContentWithDeleted fetches page content including soft-deleted content.
+// Used for version history retrieval and restore operations.
+// Uses GetReplica() as this reads historical data that was written well before
+// the current request - no read-after-write consistency concerns.
 func (s *SqlPageStore) GetPageContentWithDeleted(pageID string) (*model.PageContent, error) {
 	// UserId = '' means published content (drafts have non-empty UserId)
 	query := s.pageContentQuery.Where(sq.Eq{"PageId": pageID, "UserId": PublishedPageContentUserId})

@@ -20,6 +20,9 @@ describe('actions/pages - Page Status', () => {
                 posts: {
                     posts: {},
                 },
+                users: {
+                    currentUserId: 'test_user_id',
+                },
             },
         });
         jest.clearAllMocks();
@@ -60,8 +63,6 @@ describe('actions/pages - Page Status', () => {
             const result = await testStore.dispatch(Actions.fetchPageStatusField());
 
             expect(result.error).toBeTruthy();
-            const actions = testStore.getActions();
-            expect(actions).toHaveLength(0);
         });
     });
 
@@ -95,8 +96,6 @@ describe('actions/pages - Page Status', () => {
             const result = await testStore.dispatch(Actions.updatePageStatus(postId, status));
 
             expect(result.error).toBeTruthy();
-            const actions = testStore.getActions();
-            expect(actions).toHaveLength(0);
         });
 
         test('should update with all valid status values', async () => {

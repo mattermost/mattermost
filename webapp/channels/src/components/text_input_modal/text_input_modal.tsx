@@ -70,6 +70,8 @@ const TextInputModal = ({
                 dispatch(closeModal(modalId));
                 onHide?.();
             } catch (error) {
+                // eslint-disable-next-line no-console
+                console.error('[TextInputModal] Error in onConfirm:', error);
                 setIsSubmitting(false);
             }
         }

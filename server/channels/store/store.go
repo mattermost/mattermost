@@ -1277,8 +1277,9 @@ type PageStore interface {
 	// CreatePage creates a page and its content in a single transaction
 	CreatePage(rctx request.CTX, post *model.Post, content, searchText string) (*model.Post, error)
 
-	// GetPage fetches a page by ID
-	GetPage(pageID string, includeDeleted bool) (*model.Post, error)
+	// GetPage fetches a page by ID.
+	// Uses DBXFromContext to respect master flag for read-after-write consistency.
+	GetPage(rctx request.CTX, pageID string, includeDeleted bool) (*model.Post, error)
 
 	// DeletePage soft-deletes a page and all its associated data (content and comments).
 	// It also atomically reparents any child pages to newParentID (or makes them root pages if empty).

@@ -441,11 +441,12 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, page *model.Post
 		}
 	}
 
-	// Check for conflicts (business logic - following MM pattern)
-	// Uses EditAt instead of UpdateAt to only detect content changes, not metadata/hierarchy changes
-	// Note: baseEditAt=0 means "page was never edited" (fresh page), post.EditAt > 0 means "someone edited"
-	// So we need to compare directly: if they don't match, there's a conflict
-	if !force && post.EditAt != baseEditAt {
+	// Check for conflicts only when content is being updated.
+	// Title-only updates (rename) skip conflict detection because:
+	// 1. Title changes are atomic and don't risk losing content
+	// 2. Users expect consecutive renames to work without conflict errors
+	// 3. Conflict detection is meant to protect content edits, not metadata changes
+	if content != "" && !force && post.EditAt != baseEditAt {
 		modifiedBy := post.UserId
 		if lastModifiedBy, ok := post.Props[model.PagePropsLastModifiedBy].(string); ok && lastModifiedBy != "" {
 			modifiedBy = lastModifiedBy

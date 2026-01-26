@@ -586,3 +586,170 @@ test('shows placeholder when cursor at beginning of empty line', {tag: '@pages'}
     // * Verify first line is now empty (placeholder should be visible via CSS)
     await expect(editorElement.locator('p').first()).toBeEmpty();
 });
+
+/**
+ * @objective Verify slash command inserts numbered list when selected
+ */
+test('inserts numbered list when selected from slash command menu', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
+
+    // # Create wiki and page
+    await createWikiThroughUI(page, `Slash Numbered Wiki ${await pw.random.id()}`);
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Slash Numbered List Test');
+
+    // # Insert numbered list via slash command
+    await insertViaSlashCommand(page, 'Numbered list');
+
+    const editor = await getEditorAndWait(page);
+
+    // * Verify ordered list is inserted
+    const listElement = editor.locator('ol li');
+    await expect(listElement.first()).toBeVisible();
+
+    // # Type text into the list item
+    await page.waitForTimeout(UI_MICRO_WAIT * 2);
+    await page.keyboard.type('First numbered item');
+
+    // * Verify numbered list contains the typed text
+    await expect(listElement.first().locator('p')).toHaveText('First numbered item');
+});
+
+/**
+ * @objective Verify slash command inserts quote block when selected
+ */
+test('inserts quote block when selected from slash command menu', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
+
+    // # Create wiki and page
+    await createWikiThroughUI(page, `Slash Quote Wiki ${await pw.random.id()}`);
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Slash Quote Test');
+
+    // # Insert quote via slash command
+    await insertViaSlashCommand(page, 'Quote');
+
+    const editor = await getEditorAndWait(page);
+
+    // * Verify blockquote is inserted
+    const quoteElement = editor.locator('blockquote');
+    await expect(quoteElement).toBeVisible();
+
+    // # Type text into the quote
+    await page.waitForTimeout(UI_MICRO_WAIT * 2);
+    await page.keyboard.type('This is a quoted text');
+
+    // * Verify quote contains the typed text
+    await expect(quoteElement).toContainText('This is a quoted text');
+});
+
+/**
+ * @objective Verify slash command inserts callout block when selected
+ */
+test('inserts callout block when selected from slash command menu', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
+
+    // # Create wiki and page
+    await createWikiThroughUI(page, `Slash Callout Wiki ${await pw.random.id()}`);
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Slash Callout Test');
+
+    // # Insert callout via slash command
+    await insertViaSlashCommand(page, 'Callout');
+
+    const editor = await getEditorAndWait(page);
+
+    // * Verify callout block is inserted (has data-type="calloutBlock" or similar)
+    const calloutElement = editor.locator('[data-type="calloutBlock"], .callout-block, [class*="callout"]');
+    await expect(calloutElement.first()).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // # Type text into the callout
+    await page.waitForTimeout(UI_MICRO_WAIT * 2);
+    await page.keyboard.type('Important callout message');
+
+    // * Verify callout contains the typed text
+    await expect(calloutElement.first()).toContainText('Important callout message');
+});
+
+/**
+ * @objective Verify slash command inserts code block when selected
+ */
+test('inserts code block when selected from slash command menu', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
+
+    // # Create wiki and page
+    await createWikiThroughUI(page, `Slash Code Wiki ${await pw.random.id()}`);
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Slash Code Test');
+
+    // # Insert code block via slash command
+    await insertViaSlashCommand(page, 'Code block');
+
+    const editor = await getEditorAndWait(page);
+
+    // * Verify code block (pre element) is inserted
+    const codeElement = editor.locator('pre');
+    await expect(codeElement).toBeVisible();
+
+    // # Type code into the block
+    await page.waitForTimeout(UI_MICRO_WAIT * 2);
+    await page.keyboard.type('const x = 42;');
+
+    // * Verify code block contains the typed code
+    await expect(codeElement).toContainText('const x = 42;');
+});
+
+/**
+ * @objective Verify slash command inserts divider when selected
+ */
+test('inserts divider when selected from slash command menu', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
+
+    // # Create wiki and page
+    await createWikiThroughUI(page, `Slash Divider Wiki ${await pw.random.id()}`);
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Slash Divider Test');
+
+    // # Type some content first
+    const editor = await getEditorAndWait(page);
+    await editor.click();
+    await page.keyboard.type('Content before divider');
+    await page.keyboard.press('Enter');
+
+    // # Insert divider via slash command
+    await insertViaSlashCommand(page, 'Divider');
+
+    // * Verify horizontal rule is inserted
+    const hrElement = editor.locator('hr');
+    await expect(hrElement).toBeVisible({timeout: ELEMENT_TIMEOUT});
+});

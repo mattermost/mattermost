@@ -470,6 +470,18 @@ export default class Client4 {
         return `${this.getBaseRoute()}/jobs`;
     }
 
+    getImportsRoute() {
+        return `${this.getBaseRoute()}/imports`;
+    }
+
+    getUploadsRoute() {
+        return `${this.getBaseRoute()}/uploads`;
+    }
+
+    getUploadRoute(uploadId: string) {
+        return `${this.getUploadsRoute()}/${uploadId}`;
+    }
+
     getRecapsRoute() {
         return `${this.getBaseRoute()}/recaps`;
     }
@@ -3555,6 +3567,29 @@ export default class Client4 {
         return this.doFetch<StatusOK>(
             `${this.getJobsRoute()}/${id}/cancel`,
             {method: 'post'},
+        );
+    };
+
+    // Imports Routes
+    listImports = () => {
+        return this.doFetch<string[]>(
+            `${this.getImportsRoute()}`,
+            {method: 'get'},
+        );
+    };
+
+    // Uploads Routes
+    createUploadSession = (session: {type: string; filename: string; file_size: number; channel_id?: string}) => {
+        return this.doFetch<{id: string; type: string; create_at: number; user_id: string; filename: string; file_size: number}>(
+            `${this.getUploadsRoute()}`,
+            {method: 'post', body: JSON.stringify(session)},
+        );
+    };
+
+    uploadData = (uploadId: string, data: File) => {
+        return this.doFetch<FileInfo>(
+            `${this.getUploadRoute(uploadId)}`,
+            {method: 'post', body: data, headers: {'Content-Type': 'application/octet-stream'}},
         );
     };
 

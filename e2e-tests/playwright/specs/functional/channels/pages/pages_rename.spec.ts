@@ -296,6 +296,7 @@ test('verifies content is not replaced with title after rename', {tag: '@pages'}
     const channel = await createTestChannel(adminClient, team.id, `Content Preserve Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
+
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 

@@ -329,6 +329,7 @@ describe('components/TextInputModal', () => {
     });
 
     test('should handle onConfirm error and re-enable button', async () => {
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
         const failingOnConfirm = jest.fn().mockRejectedValue(new Error('Test error'));
         renderWithContext(
             <TextInputModal
@@ -351,6 +352,9 @@ describe('components/TextInputModal', () => {
         await waitFor(() => {
             expect(confirmButton).not.toBeDisabled();
         });
+
+        expect(consoleSpy).toHaveBeenCalledWith('[TextInputModal] Error in onConfirm:', expect.any(Error));
+        consoleSpy.mockRestore();
     });
 
     test('should use ariaLabel when provided', () => {

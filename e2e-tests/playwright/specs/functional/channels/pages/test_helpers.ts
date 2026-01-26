@@ -754,14 +754,15 @@ export async function createPageThroughUI(page: Page, pageTitle: string, pageCon
     // # Wait for URL to change from draft to published page (navigation after publish)
     // URL pattern changes from: /wiki/{channelId}/{wikiId}/drafts/{draftId}
     // to: /wiki/{channelId}/{wikiId}/{pageId}
-    await page.waitForURL(/\/wiki\/[^/]+\/[^/]+\/[^/]+$/, {timeout: HIERARCHY_TIMEOUT});
+    // Regex allows optional query string or hash at the end
+    await page.waitForURL(/\/wiki\/[^/]+\/[^/]+\/[^/]+(?:[?#]|$)/, {timeout: PAGE_LOAD_TIMEOUT});
 
     // # Wait for navigation and network to settle after publish
     await page.waitForLoadState('networkidle');
 
     // # Wait for page viewer to appear (means publish succeeded and page loaded)
     const pageViewer = page.locator('[data-testid="page-viewer-content"]');
-    await pageViewer.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT * 3});
+    await pageViewer.waitFor({state: 'visible', timeout: PAGE_LOAD_TIMEOUT * 2});
 
     // Extract page ID from URL pattern: /:teamName/wiki/:channelId/:wikiId/:pageId
     const url = page.url();
@@ -849,14 +850,15 @@ export async function createChildPageThroughContextMenu(
     // # Wait for URL to change from draft to published page (navigation after publish)
     // URL pattern changes from: /wiki/{channelId}/{wikiId}/drafts/{draftId}
     // to: /wiki/{channelId}/{wikiId}/{pageId}
-    await page.waitForURL(/\/wiki\/[^/]+\/[^/]+\/[^/]+$/, {timeout: HIERARCHY_TIMEOUT});
+    // Regex allows optional query string or hash at the end
+    await page.waitForURL(/\/wiki\/[^/]+\/[^/]+\/[^/]+(?:[?#]|$)/, {timeout: PAGE_LOAD_TIMEOUT});
 
     // # Wait for navigation and network to settle after publish
     await page.waitForLoadState('networkidle');
 
     // # Wait for page viewer to appear (means publish succeeded and page loaded)
     const pageViewer = page.locator('[data-testid="page-viewer-content"]');
-    await pageViewer.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT * 3});
+    await pageViewer.waitFor({state: 'visible', timeout: PAGE_LOAD_TIMEOUT * 2});
 
     // Extract page ID from URL pattern: /:teamName/wiki/:channelId/:wikiId/:pageId
     const url = page.url();
@@ -995,12 +997,15 @@ export async function renamePageViaContextMenu(page: Page, currentTitle: string,
     await modalInput.clear();
     await modalInput.fill(newTitle);
 
-    // # Click confirm button in modal
-    const confirmButton = renameModal.locator('button.btn-primary');
-    await confirmButton.click();
+    // Wait for React to process the input change and verify the value is set
+    await page.waitForTimeout(UI_MICRO_WAIT);
+    await expect(modalInput).toHaveValue(newTitle);
 
-    // # Wait for modal to close promptly after user action
-    await renameModal.waitFor({state: 'hidden', timeout: MODAL_CLOSE_TIMEOUT});
+    // # Submit by pressing Enter on the input (triggers handleKeyDown in TextInputModal)
+    await modalInput.press('Enter');
+
+    // # Wait for modal to close - allow extra time for async operation to complete
+    await renameModal.waitFor({state: 'hidden', timeout: ELEMENT_TIMEOUT});
 
     // # Wait for rename to complete and propagate
     await page.waitForLoadState('networkidle');
@@ -3907,4 +3912,80 @@ export async function verifyBlockAttributes(
     if (options.classPattern) {
         await expect(block).toHaveClass(options.classPattern);
     }
+}
+
+// ============================================================================
+// Resilience Test Helpers
+// ============================================================================
+
+/**
+ * Performs rapid clicks on an element for stress testing
+ * @param locator - Element to click rapidly
+ * @param times - Number of times to click
+ * @param delayMs - Optional delay between clicks (default: 50ms)
+ */
+export async function rapidClick(locator: Locator, times: number, delayMs: number = 50): Promise<void> {
+    for (let i = 0; i < times; i++) {
+        await locator.click({force: true});
+        if (delayMs > 0) {
+            await locator.page().waitForTimeout(delayMs);
+        }
+    }
+}
+
+/**
+ * Performs undo action using platform-aware keyboard shortcut
+ * @param page - Playwright page object
+ */
+export async function undoAction(page: Page): Promise<void> {
+    await pressModifierKey(page, 'z');
+    await page.waitForTimeout(UI_MICRO_WAIT * 2);
+}
+
+/**
+ * Performs redo action using platform-aware keyboard shortcut
+ * @param page - Playwright page object
+ */
+export async function redoAction(page: Page): Promise<void> {
+    const isMac = process.platform === 'darwin';
+    if (isMac) {
+        await page.keyboard.press('Meta+Shift+z');
+    } else {
+        await page.keyboard.press('Control+y');
+    }
+    await page.waitForTimeout(UI_MICRO_WAIT * 2);
+}
+
+/**
+ * Verifies that text in editor has specific formatting via HTML tag
+ * @param editor - The editor locator
+ * @param tag - HTML tag to check for (e.g., 'strong', 'em', 's')
+ * @param text - Text that should have the formatting
+ */
+export async function verifyTextHasFormatting(editor: Locator, tag: string, text: string): Promise<void> {
+    const element = editor.locator(`${tag}:has-text("${text}")`);
+    await expect(element).toBeVisible({timeout: ELEMENT_TIMEOUT});
+}
+
+/**
+ * Verifies that text in editor does NOT have specific formatting
+ * @param editor - The editor locator
+ * @param tag - HTML tag to check is absent (e.g., 'strong', 'em', 's')
+ * @param text - Text that should NOT have the formatting
+ */
+export async function verifyTextNoFormatting(editor: Locator, tag: string, text: string): Promise<void> {
+    const element = editor.locator(`${tag}:has-text("${text}")`);
+    await expect(element).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
+}
+
+/**
+ * Clicks a formatting button by its icon class
+ * @param page - Playwright page object
+ * @param iconClass - Icon class (e.g., 'icon-format-bold')
+ */
+export async function clickFormattingButtonByIcon(page: Page, iconClass: string): Promise<void> {
+    const formattingBar = await waitForFormattingBar(page);
+    const button = formattingBar.locator(`button:has(i.${iconClass})`);
+    await button.click();
+    await page.waitForTimeout(UI_MICRO_WAIT);
 }
