@@ -70,7 +70,6 @@ exports[`components/admin_console/access_control/PolicyList should match snapsho
     loading={false}
     nextPage={[Function]}
     onSearch={[Function]}
-    page={0}
     placeholderEmpty={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="No policies found"
@@ -161,7 +160,6 @@ exports[`components/admin_console/access_control/PolicyList should match snapsho
     loading={false}
     nextPage={[Function]}
     onSearch={[Function]}
-    page={0}
     placeholderEmpty={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="No policies found"
@@ -252,7 +250,6 @@ exports[`components/admin_console/access_control/PolicyList should match snapsho
     loading={false}
     nextPage={[Function]}
     onSearch={[Function]}
-    page={0}
     placeholderEmpty={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="No policies found"

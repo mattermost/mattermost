@@ -45,7 +45,7 @@ var ConfigSetCmd = &cobra.Command{
 	Use:     "set",
 	Short:   "Set config setting",
 	Long:    "Sets the value of a config setting by its name in dot notation. Accepts multiple values for array settings",
-	Example: "config set SqlSettings.DriverName mysql\nconfig set SqlSettings.DataSourceReplicas \"replica1\" \"replica2\"",
+	Example: "config set SqlSettings.DriverName postgres\nconfig set SqlSettings.DataSourceReplicas \"replica1\" \"replica2\"",
 	Args:    cobra.MinimumNArgs(2),
 	RunE:    withClient(configSetCmdF),
 }

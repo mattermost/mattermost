@@ -29,7 +29,6 @@ const state: GlobalState = {
             profiles: {},
             profilesInTeam: {},
             profilesNotInTeam: {},
-            profilesWithoutTeam: new Set(),
             profilesInChannel: {},
             profilesNotInChannel: {},
             profilesInGroup: {},
@@ -103,6 +102,10 @@ const state: GlobalState = {
             threads: {},
             counts: {},
             countsIncludingDirect: {},
+        },
+        recaps: {
+            byId: {},
+            allIds: [],
         },
         preferences: {
             myPreferences: {},
