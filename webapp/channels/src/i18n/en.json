@@ -6868,5 +6868,17 @@
   "yourcomputer": "Your computer",
   "youtube_video.play_button.aria_label": "Play video",
   "youtube_video.play.aria_label": "Play {videoTitle} on YouTube",
-  "youtube_video.thumbnail.alt_text": "Thumbnail for {videoTitle} on YouTube"
+  "youtube_video.thumbnail.alt_text": "Thumbnail for {videoTitle} on YouTube",
+  "recaps.usageBadge.ariaLabel": "Daily recap usage: {used} of {limit}",
+  "recaps.usageBadge.popover.title": "Daily recap usage",
+  "recaps.usageBadge.popover.unlimited": "{used} recaps today (no limit)",
+  "recaps.usageBadge.popover.usage": "{used} of {limit} recaps used today",
+  "recaps.usageBadge.popover.approachingLimit": "Approaching daily limit",
+  "recaps.usageBadge.popover.limitReached": "Daily limit reached. Resets at {time}.",
+  "recaps.usageBadge.popover.cooldown": "Available again in {relative} ({time})",
+  "recaps.usageBadge.popover.resetTime": "Resets at {time}",
+  "recaps.cooldown.hoursMinutes": "~{hours}h {minutes}m",
+  "recaps.cooldown.minutes": "~{minutes}m",
+  "recaps.addRecap.cooldownTooltip": "Available again at {time}",
+  "recaps.addRecap.limitReachedTooltip": "Daily limit reached"
 }

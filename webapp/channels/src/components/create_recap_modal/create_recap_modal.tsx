@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useCallback, useEffect} from 'react';
+import React, {useState, useCallback, useEffect, useMemo} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useHistory} from 'react-router-dom';
@@ -15,12 +15,14 @@ import {getAgents} from 'mattermost-redux/actions/agents';
 import {createRecap, createScheduledRecap, updateScheduledRecap} from 'mattermost-redux/actions/recaps';
 import {getAgents as getAgentsSelector} from 'mattermost-redux/selectors/entities/agents';
 import {getMyChannels, getUnreadChannelIds} from 'mattermost-redux/selectors/entities/channels';
+import {getRecapLimitStatus} from 'mattermost-redux/selectors/entities/recaps';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {AgentDropdown} from 'components/common/agents';
 import PaginationDots from 'components/common/pagination_dots';
+import RecapUsageBadge from 'components/recaps/recap_usage_badge';
 
 import ChannelSelector from './channel_selector';
 import ChannelSummary from './channel_summary';
@@ -45,6 +47,7 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
     const myChannels = useSelector(getMyChannels);
     const unreadChannelIds = useSelector(getUnreadChannelIds);
     const agents = useSelector(getAgentsSelector);
+    const limitStatus = useSelector(getRecapLimitStatus);
 
     const [currentStep, setCurrentStep] = useState(1);
     const [recapName, setRecapName] = useState('');
@@ -71,6 +74,29 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
 
     // Edit mode detection
     const isEditMode = Boolean(editScheduledRecap);
+
+    // Determine if action should be blocked
+    const isBlocked = useMemo(() => {
+        if (!limitStatus) {
+            return false;
+        }
+
+        // For "run once" (manual recap): check cooldown and daily limit
+        if (runOnce) {
+            if (limitStatus.cooldown.is_active) {
+                return true;
+            }
+            const {daily} = limitStatus;
+            if (daily.limit !== -1 && daily.used >= daily.limit) {
+                return true;
+            }
+        }
+
+        // For scheduled: check max scheduled recaps (not implemented in status yet - future enhancement)
+        // Current behavior: don't block scheduled creation from UI, let API reject if over limit
+
+        return false;
+    }, [limitStatus, runOnce]);
 
     // Fetch AI agents on mount
     useEffect(() => {
@@ -257,6 +283,10 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
             return selectedChannelIds.length > 0;
         } else if (currentStep === 3) {
             if (runOnce) {
+                // On final step, also check limits for run-once
+                if (isBlocked) {
+                    return false;
+                }
                 // Run once summary step
                 return selectedChannelIds.length > 0 && selectedBotId.length > 0;
             }
@@ -388,6 +418,7 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
                 }
             </span>
             <div className='create-recap-modal-header-actions'>
+                <RecapUsageBadge/>
                 <AgentDropdown
                     showLabel={true}
                     selectedBotId={selectedBotId}
@@ -467,4 +498,3 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
 };
 
 export default CreateRecapModal;
-

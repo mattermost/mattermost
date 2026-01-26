@@ -1,0 +1,116 @@
+.RecapUsageBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: none;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    background-color: rgba(var(--center-channel-color-rgb), 0.08);
+    color: var(--center-channel-color);
+    transition: background-color 0.15s ease;
+
+    &:hover {
+        background-color: rgba(var(--center-channel-color-rgb), 0.16);
+    }
+
+    .icon {
+        font-size: 14px;
+    }
+
+    &--warning {
+        background-color: rgba(var(--away-indicator-rgb), 0.16);
+        color: var(--away-indicator);
+
+        &:hover {
+            background-color: rgba(var(--away-indicator-rgb), 0.24);
+        }
+    }
+
+    &--error {
+        background-color: rgba(var(--error-text-rgb), 0.16);
+        color: var(--error-text);
+
+        &:hover {
+            background-color: rgba(var(--error-text-rgb), 0.24);
+        }
+    }
+
+    &__popover {
+        background-color: var(--center-channel-bg);
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 8px;
+        box-shadow: var(--elevation-5);
+        padding: 12px;
+        min-width: 240px;
+        max-width: 300px;
+        z-index: 1000;
+    }
+
+    &__popover-header {
+        font-size: 12px;
+        font-weight: 600;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+    }
+
+    &__popover-body {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    &__popover-usage {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--center-channel-color);
+    }
+
+    &__popover-warning {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: var(--away-indicator);
+
+        .icon {
+            font-size: 14px;
+        }
+    }
+
+    &__popover-error {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: var(--error-text);
+
+        .icon {
+            font-size: 14px;
+        }
+    }
+
+    &__popover-cooldown {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: var(--error-text);
+        padding: 8px;
+        background-color: rgba(var(--error-text-rgb), 0.08);
+        border-radius: 4px;
+
+        .icon {
+            font-size: 14px;
+        }
+    }
+
+    &__popover-reset {
+        font-size: 12px;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+    }
+}
