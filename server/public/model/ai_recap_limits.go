@@ -33,6 +33,27 @@ type EffectiveRecapLimits struct {
 	SourceID string      `json:"source_id"` // Group ID or User ID if overridden, empty for system
 }
 
+// RecapLimitStatus contains the current user's limit status for UI display
+type RecapLimitStatus struct {
+	EffectiveLimits EffectiveRecapLimits `json:"effective_limits"`
+	Daily           DailyUsageStatus     `json:"daily"`
+	Cooldown        CooldownStatus       `json:"cooldown"`
+}
+
+// DailyUsageStatus tracks daily recap usage
+type DailyUsageStatus struct {
+	Used    int   `json:"used"`
+	Limit   int   `json:"limit"`
+	ResetAt int64 `json:"reset_at"` // Unix timestamp ms for midnight in user timezone
+}
+
+// CooldownStatus tracks cooldown state
+type CooldownStatus struct {
+	IsActive          bool  `json:"is_active"`
+	AvailableAt       int64 `json:"available_at"`        // Unix timestamp ms when cooldown ends
+	RetryAfterSeconds int   `json:"retry_after_seconds"` // Seconds until available
+}
+
 // IsLimitEnabled returns true if the given limit value is enabled (not unlimited).
 // Useful for enforcement code to check if a limit should be enforced.
 func IsLimitEnabled(limitValue int) bool {

@@ -4,8 +4,62 @@
 package app
 
 import (
+	"time"
+
 	"github.com/mattermost/mattermost/server/public/model"
 )
+
+// GetRecapLimitStatus returns the current user's limit status for UI display
+func (a *App) GetRecapLimitStatus(userID string) (*model.RecapLimitStatus, error) {
+	// Get effective limits
+	limits, appErr := a.GetEffectiveLimits(userID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	// Get user timezone for daily reset calculation
+	user, appErr := a.GetUser(userID)
+	if appErr != nil {
+		return nil, appErr
+	}
+	loc := user.GetTimezoneLocation()
+	now := time.Now().In(loc)
+	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc)
+	startOfNextDay := startOfDay.AddDate(0, 0, 1)
+
+	// Count daily usage (excluding skipped)
+	dailyCount, err := a.Srv().Store().Recap().CountForUserSince(userID, startOfDay.UnixMilli())
+	if err != nil {
+		return nil, err
+	}
+
+	// Calculate cooldown status
+	var cooldown model.CooldownStatus
+	if limits.CooldownMinutes > 0 {
+		lastRecap, err := a.Srv().Store().Recap().GetLastCompletedManualRecap(userID)
+		if err != nil {
+			return nil, err
+		}
+		if lastRecap != nil {
+			cooldownEnd := lastRecap.CreateAt + int64(limits.CooldownMinutes)*60*1000
+			if cooldownEnd > now.UnixMilli() {
+				cooldown.IsActive = true
+				cooldown.AvailableAt = cooldownEnd
+				cooldown.RetryAfterSeconds = int((cooldownEnd - now.UnixMilli()) / 1000)
+			}
+		}
+	}
+
+	return &model.RecapLimitStatus{
+		EffectiveLimits: *limits,
+		Daily: model.DailyUsageStatus{
+			Used:    int(dailyCount),
+			Limit:   limits.MaxRecapsPerDay,
+			ResetAt: startOfNextDay.UnixMilli(),
+		},
+		Cooldown: cooldown,
+	}, nil
+}
 
 // GetEffectiveLimits returns the resolved recap limits for a given user.
 // Currently returns system defaults; Phase 8 will add group/user resolution.
