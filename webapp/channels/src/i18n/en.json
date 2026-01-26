@@ -927,7 +927,7 @@
   "admin.database.search_backend.title": "Active Search Backend:",
   "admin.database.title": "Database",
   "admin.developer.title": "Developer Settings",
-  "admin.elasticsearch.backendDescription": "The type of the search backend.",
+  "admin.elasticsearch.backendDescription": "The type of the search backend. Changing this setting requires a server restart before taking effect.",
   "admin.elasticsearch.backendExample": "E.g.: \"elasticsearch\"",
   "admin.elasticsearch.backendTitle": "Backend type:",
   "admin.elasticsearch.bulkIndexingTitle": "Bulk Indexing:",
