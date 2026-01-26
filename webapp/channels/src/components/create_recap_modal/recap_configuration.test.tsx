@@ -31,6 +31,8 @@ describe('RecapConfiguration', () => {
         recapType: null as 'selected' | 'all_unreads' | null,
         setRecapType: jest.fn(),
         unreadChannels: mockUnreadChannels,
+        runOnce: false,
+        setRunOnce: jest.fn(),
     };
 
     beforeEach(() => {

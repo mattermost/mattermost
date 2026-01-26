@@ -171,53 +171,63 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
         setIsSubmitting(true);
         setError(null);
 
-        try {
-            if (runOnce) {
-                // Run once: create immediate recap (existing behavior)
-                await dispatch(createRecap(recapName, selectedChannelIds, selectedBotId));
-                onExited();
-                history.push(`${teamUrl}/recaps`);
-            } else if (isEditMode && editScheduledRecap) {
-                // Edit mode: update existing scheduled recap
-                const input: ScheduledRecapInput = {
-                    title: recapName,
-                    days_of_week: daysOfWeek,
-                    time_of_day: timeOfDay,
-                    timezone: userTimezone || 'UTC',
-                    time_period: timePeriod,
-                    channel_mode: recapType === 'all_unreads' ? 'all_unreads' : 'specific',
-                    channel_ids: recapType === 'selected' ? selectedChannelIds : undefined,
-                    custom_instructions: customInstructions || undefined,
-                    agent_id: selectedBotId,
-                    is_recurring: true,
-                };
-                await dispatch(updateScheduledRecap(editScheduledRecap.id, input));
-                onExited();
-                history.push(`${teamUrl}/recaps?tab=scheduled`);
-            } else {
-                // Create new scheduled recap
-                const input: ScheduledRecapInput = {
-                    title: recapName,
-                    days_of_week: daysOfWeek,
-                    time_of_day: timeOfDay,
-                    timezone: userTimezone || 'UTC',
-                    time_period: timePeriod,
-                    channel_mode: recapType === 'all_unreads' ? 'all_unreads' : 'specific',
-                    channel_ids: recapType === 'selected' ? selectedChannelIds : undefined,
-                    custom_instructions: customInstructions || undefined,
-                    agent_id: selectedBotId,
-                    is_recurring: true,
-                };
-                await dispatch(createScheduledRecap(input));
-                onExited();
-                history.push(`${teamUrl}/recaps?tab=scheduled`);
+        if (runOnce) {
+            // Run once: create immediate recap (existing behavior)
+            const result = await dispatch(createRecap(recapName, selectedChannelIds, selectedBotId));
+            if (result.error) {
+                setError(result.error.message || formatMessage({id: 'recaps.modal.error.createFailed', defaultMessage: 'Failed to create recap. Please try again.'}));
+                setIsSubmitting(false);
+                return;
             }
-        } catch (err) {
-            const errorMsg = runOnce
-                ? formatMessage({id: 'recaps.modal.error.createFailed', defaultMessage: 'Failed to create recap. Please try again.'})
-                : formatMessage({id: 'recaps.modal.error.scheduleFailed', defaultMessage: 'Failed to save scheduled recap. Please try again.'});
-            setError(errorMsg);
-            setIsSubmitting(false);
+
+            onExited();
+            history.push(`${teamUrl}/recaps`);
+        } else if (isEditMode && editScheduledRecap) {
+            // Edit mode: update existing scheduled recap
+            const input: ScheduledRecapInput = {
+                title: recapName,
+                days_of_week: daysOfWeek,
+                time_of_day: timeOfDay,
+                timezone: userTimezone || 'UTC',
+                time_period: timePeriod,
+                channel_mode: recapType === 'all_unreads' ? 'all_unreads' : 'specific',
+                channel_ids: recapType === 'selected' ? selectedChannelIds : undefined,
+                custom_instructions: customInstructions || undefined,
+                agent_id: selectedBotId,
+                is_recurring: true,
+            };
+            const result = await dispatch(updateScheduledRecap(editScheduledRecap.id, input));
+            if (result.error) {
+                setError(result.error.message || formatMessage({id: 'recaps.modal.error.scheduleFailed', defaultMessage: 'Failed to save scheduled recap. Please try again.'}));
+                setIsSubmitting(false);
+                return;
+            }
+
+            onExited();
+            history.push(`${teamUrl}/recaps?tab=scheduled`);
+        } else {
+            // Create new scheduled recap
+            const input: ScheduledRecapInput = {
+                title: recapName,
+                days_of_week: daysOfWeek,
+                time_of_day: timeOfDay,
+                timezone: userTimezone || 'UTC',
+                time_period: timePeriod,
+                channel_mode: recapType === 'all_unreads' ? 'all_unreads' : 'specific',
+                channel_ids: recapType === 'selected' ? selectedChannelIds : undefined,
+                custom_instructions: customInstructions || undefined,
+                agent_id: selectedBotId,
+                is_recurring: true,
+            };
+            const result = await dispatch(createScheduledRecap(input));
+            if (result.error) {
+                setError(result.error.message || formatMessage({id: 'recaps.modal.error.scheduleFailed', defaultMessage: 'Failed to save scheduled recap. Please try again.'}));
+                setIsSubmitting(false);
+                return;
+            }
+
+            onExited();
+            history.push(`${teamUrl}/recaps?tab=scheduled`);
         }
     }, [
         selectedChannelIds,
@@ -305,7 +315,7 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
                     unreadChannels={unreadChannels}
                 />
             );
-        case 3:
+        case 3: {
             if (runOnce) {
                 // Run once: show summary
                 return (
@@ -315,10 +325,11 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
                     />
                 );
             }
+
             // Scheduled: show schedule configuration
             // Get the selected agent's display name
             const selectedAgent = agents.find((agent) => agent.id === selectedBotId);
-            const agentName = selectedAgent?.display_name || selectedAgent?.username || 'Copilot';
+            const agentName = selectedAgent?.displayName || selectedAgent?.username || 'Copilot';
             return (
                 <ScheduleConfiguration
                     daysOfWeek={daysOfWeek}
@@ -334,6 +345,7 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
                     agentName={agentName}
                 />
             );
+        }
         default:
             return null;
         }
