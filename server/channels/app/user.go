@@ -2895,7 +2895,7 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(c request.CTX, userID, tea
 	}
 	a.sanitizeProfiles(userThread.Participants, false)
 	userThread.Post.SanitizeProps()
-	sanitizedPost, appErr := a.SanitizePostMetadataForUser(c, userThread.Post, userID)
+	sanitizedPost, isMemberForPreviews, appErr := a.SanitizePostMetadataForUser(c, userThread.Post, userID)
 	if appErr != nil {
 		return appErr
 	}
@@ -2908,6 +2908,16 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(c request.CTX, userID, tea
 	message.Add("thread", string(payload))
 	message.Add("previous_unread_replies", int64(0))
 	message.Add("previous_unread_mentions", int64(0))
+
+	auditRec := a.MakeAuditRecord(c, "websocketPost", model.AuditStatusSuccess)
+	defer a.LogAuditRec(c, auditRec, nil)
+	model.AddEventParameterToAuditRec(auditRec, "post_id", userThread.Post.Id)
+	model.AddEventParameterToAuditRec(auditRec, "user_id", userID)
+	model.AddEventParameterToAuditRec(auditRec, "source", "UpdateThreadFollowForUserFromChannelAdd")
+	if !isMemberForPreviews {
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
+	}
+	auditRec.Success()
 
 	a.Publish(message)
 	return nil

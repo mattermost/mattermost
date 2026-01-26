@@ -55,11 +55,11 @@ func (*JoinProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArg
 
 	switch channel.Type {
 	case model.ChannelTypeOpen:
-		if !a.HasPermissionToChannel(c, args.UserId, channel.Id, model.PermissionJoinPublicChannels) {
+		if ok, _ := a.HasPermissionToChannel(c, args.UserId, channel.Id, model.PermissionJoinPublicChannels); !ok {
 			return &model.CommandResponse{Text: args.T("api.command_join.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 		}
 	case model.ChannelTypePrivate:
-		if !a.HasPermissionToChannel(c, args.UserId, channel.Id, model.PermissionReadChannel) {
+		if ok, _ := a.HasPermissionToChannel(c, args.UserId, channel.Id, model.PermissionReadChannel); !ok {
 			return &model.CommandResponse{Text: args.T("api.command_join.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 		}
 	default:

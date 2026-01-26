@@ -24,7 +24,7 @@ func testSaveAcknowledgementForPost(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("save acknowledgment for post should save acknowledgement", func(t *testing.T) {
-		post, err := th.App.CreatePostAsUser(th.Context, &model.Post{
+		post, _, err := th.App.CreatePostAsUser(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   "message",
@@ -41,7 +41,7 @@ func testSaveAcknowledgementForPost(t *testing.T) {
 	})
 
 	t.Run("saving acknowledgment should update the post's update_at", func(t *testing.T) {
-		post, err := th.App.CreatePostAsUser(th.Context, &model.Post{
+		post, _, err := th.App.CreatePostAsUser(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   "message",
@@ -65,7 +65,7 @@ func testDeleteAcknowledgementForPost(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	post, err1 := th.App.CreatePostAsUser(th.Context, &model.Post{
+	post, _, err1 := th.App.CreatePostAsUser(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		CreateAt:  model.GetMillis(),
@@ -138,7 +138,7 @@ func testGetAcknowledgementsForPostList(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	p1, err := th.App.CreatePostAsUser(th.Context, &model.Post{
+	p1, _, err := th.App.CreatePostAsUser(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		CreateAt:  model.GetMillis(),
@@ -146,7 +146,7 @@ func testGetAcknowledgementsForPostList(t *testing.T) {
 	}, "", true)
 	require.Nil(t, err)
 
-	p2, err := th.App.CreatePostAsUser(th.Context, &model.Post{
+	p2, _, err := th.App.CreatePostAsUser(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		CreateAt:  model.GetMillis(),
@@ -154,7 +154,7 @@ func testGetAcknowledgementsForPostList(t *testing.T) {
 	}, "", true)
 	require.Nil(t, err)
 
-	p3, err := th.App.CreatePostAsUser(th.Context, &model.Post{
+	p3, _, err := th.App.CreatePostAsUser(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		CreateAt:  model.GetMillis(),

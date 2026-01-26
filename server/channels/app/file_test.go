@@ -299,13 +299,13 @@ func TestMigrateFilenamesToFileInfos(t *testing.T) {
 	fpath := fmt.Sprintf("/teams/%v/channels/%v/users/%v/%v/test.png", th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, fileID)
 	_, err := th.App.WriteFile(file, fpath)
 	require.Nil(t, err)
-	rpost, err := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Filenames: []string{fmt.Sprintf("/%v/%v/%v/test.png", th.BasicChannel.Id, th.BasicUser.Id, fileID)}}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+	rpost, _, err := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Filenames: []string{fmt.Sprintf("/%v/%v/%v/test.png", th.BasicChannel.Id, th.BasicUser.Id, fileID)}}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, err)
 
 	infos = th.App.MigrateFilenamesToFileInfos(th.Context, rpost)
 	assert.Equal(t, 1, len(infos))
 
-	rpost, err = th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Filenames: []string{fmt.Sprintf("/%v/%v/%v/../../test.png", th.BasicChannel.Id, th.BasicUser.Id, fileID)}}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+	rpost, _, err = th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Filenames: []string{fmt.Sprintf("/%v/%v/%v/../../test.png", th.BasicChannel.Id, th.BasicUser.Id, fileID)}}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, err)
 
 	infos = th.App.MigrateFilenamesToFileInfos(th.Context, rpost)
@@ -482,7 +482,7 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 
 		page := 0
 
-		results, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, allFilesHaveMembership, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		require.Nil(t, err)
 		require.NotNil(t, results)
@@ -495,6 +495,7 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 			fileInfos[1].Id,
 			fileInfos[0].Id,
 		}, results.Order)
+		require.True(t, allFilesHaveMembership)
 	})
 
 	t.Run("should not return later pages of fileInfos from database", func(t *testing.T) {
@@ -503,11 +504,12 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 
 		page := 1
 
-		results, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, allFilesHaveMembership, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		require.Nil(t, err)
 		require.NotNil(t, results)
 		assert.Equal(t, []string{}, results.Order)
+		require.True(t, allFilesHaveMembership)
 	})
 
 	t.Run("should return first page of fileInfos from ElasticSearch", func(t *testing.T) {
@@ -533,11 +535,12 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 			th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, allFilesHaveMembership, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		require.Nil(t, err)
 		require.NotNil(t, results)
 		assert.Equal(t, resultsPage, results.Order)
+		require.True(t, allFilesHaveMembership)
 		es.AssertExpectations(t)
 	})
 
@@ -561,11 +564,12 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 			th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, allFilesHaveMembership, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		require.Nil(t, err)
 		require.NotNil(t, results)
 		assert.Equal(t, resultsPage, results.Order)
+		require.True(t, allFilesHaveMembership)
 		es.AssertExpectations(t)
 	})
 
@@ -586,7 +590,7 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 			th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, allFilesHaveMembership, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		require.Nil(t, err)
 		require.NotNil(t, results)
@@ -599,6 +603,7 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 			fileInfos[1].Id,
 			fileInfos[0].Id,
 		}, results.Order)
+		require.True(t, allFilesHaveMembership)
 		es.AssertExpectations(t)
 	})
 
@@ -619,10 +624,11 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 			th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, allFilesHaveMembership, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		require.Nil(t, err)
 		assert.Equal(t, []string{}, results.Order)
+		require.True(t, allFilesHaveMembership)
 		es.AssertExpectations(t)
 	})
 }
@@ -749,16 +755,18 @@ func TestSetFileSearchableContent(t *testing.T) {
 		})
 	require.NoError(t, err)
 
-	result, appErr := th.App.SearchFilesInTeamForUser(th.Context, "searchable", th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, 0, 60)
+	result, allFilesHaveMembership, appErr := th.App.SearchFilesInTeamForUser(th.Context, "searchable", th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, 0, 60)
 	require.Nil(t, appErr)
 	assert.Equal(t, 0, len(result.Order))
+	require.True(t, allFilesHaveMembership)
 
 	appErr = th.App.SetFileSearchableContent(th.Context, fileInfo.Id, "searchable")
 	require.Nil(t, appErr)
 
-	result, appErr = th.App.SearchFilesInTeamForUser(th.Context, "searchable", th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, 0, 60)
+	result, allFilesHaveMembership, appErr = th.App.SearchFilesInTeamForUser(th.Context, "searchable", th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, 0, 60)
 	require.Nil(t, appErr)
 	assert.Equal(t, 1, len(result.Order))
+	require.True(t, allFilesHaveMembership)
 }
 
 func TestPermanentDeleteFilesByPost(t *testing.T) {
@@ -786,7 +794,7 @@ func TestPermanentDeleteFilesByPost(t *testing.T) {
 			FileIds:       []string{info1.Id},
 		}
 
-		post, err = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		post, _, err = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		assert.Nil(t, err)
 
 		err = th.App.PermanentDeleteFilesByPost(th.Context, post.Id)
@@ -810,7 +818,7 @@ func TestPermanentDeleteFilesByPost(t *testing.T) {
 			CreateAt:      0,
 		}
 
-		post, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		post, _, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		assert.Nil(t, err)
 
 		err = th.App.PermanentDeleteFilesByPost(th.Context, post.Id)
@@ -853,7 +861,7 @@ func TestFilterFilesByChannelPermissions(t *testing.T) {
 		fileList.Order = []string{fileInfo1.Id, fileInfo2.Id, fileInfo3.Id}
 
 		// BasicUser should have access to all files
-		appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, th.BasicUser.Id)
+		_, appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		require.Len(t, fileList.FileInfos, 3)
 		require.Len(t, fileList.Order, 3)
@@ -866,7 +874,7 @@ func TestFilterFilesByChannelPermissions(t *testing.T) {
 		fileList.FileInfos[fileInfo3.Id] = fileInfo3
 		fileList.Order = []string{fileInfo1.Id, fileInfo2.Id, fileInfo3.Id}
 
-		appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, guestUser.Id)
+		_, appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, guestUser.Id)
 		require.Nil(t, appErr)
 		require.Len(t, fileList.FileInfos, 3)
 		require.Len(t, fileList.Order, 3)
@@ -904,7 +912,7 @@ func TestFilterFilesByChannelPermissions(t *testing.T) {
 		fileList.FileInfos[fileInfo3.Id] = fileInfo3
 		fileList.Order = []string{fileInfo1.Id, fileInfo2.Id, fileInfo3.Id}
 
-		appErr = th.App.FilterFilesByChannelPermissions(th.Context, fileList, guestUser.Id)
+		_, appErr = th.App.FilterFilesByChannelPermissions(th.Context, fileList, guestUser.Id)
 		require.Nil(t, appErr)
 		require.Len(t, fileList.FileInfos, 0)
 		require.Len(t, fileList.Order, 0)
@@ -912,14 +920,14 @@ func TestFilterFilesByChannelPermissions(t *testing.T) {
 
 	t.Run("should handle empty file list", func(t *testing.T) {
 		fileList := model.NewFileInfoList()
-		appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, th.BasicUser.Id)
+		_, appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		require.Len(t, fileList.FileInfos, 0)
 		require.Len(t, fileList.Order, 0)
 	})
 
 	t.Run("should handle nil file list", func(t *testing.T) {
-		appErr := th.App.FilterFilesByChannelPermissions(th.Context, nil, th.BasicUser.Id)
+		_, appErr := th.App.FilterFilesByChannelPermissions(th.Context, nil, th.BasicUser.Id)
 		require.Nil(t, appErr)
 	})
 
@@ -933,7 +941,7 @@ func TestFilterFilesByChannelPermissions(t *testing.T) {
 		fileList.FileInfos[fileWithoutChannel.Id] = fileWithoutChannel
 		fileList.Order = []string{fileWithoutChannel.Id}
 
-		appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, th.BasicUser.Id)
+		_, appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		require.Len(t, fileList.FileInfos, 0)
 		require.Len(t, fileList.Order, 0)
@@ -949,7 +957,7 @@ func TestFilterFilesByChannelPermissions(t *testing.T) {
 		fileList.FileInfos[fileWithInvalidChannel.Id] = fileWithInvalidChannel
 		fileList.Order = []string{fileWithInvalidChannel.Id}
 
-		appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, th.BasicUser.Id)
+		_, appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		require.Len(t, fileList.FileInfos, 0)
 		require.Len(t, fileList.Order, 0)
