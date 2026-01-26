@@ -5,7 +5,7 @@ import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import {CheckIcon, ChevronRightIcon, DotsHorizontalIcon, EyeOutlineIcon, PencilOutlineIcon, SyncIcon, TrashCanOutlineIcon, ContentCopyIcon} from '@mattermost/compass-icons/components';
+import {CheckIcon, ChevronRightIcon, DotsHorizontalIcon, EyeOutlineIcon, LockOutlineIcon, PencilOutlineIcon, SyncIcon, TrashCanOutlineIcon, ContentCopyIcon} from '@mattermost/compass-icons/components';
 import type {FieldVisibility, UserPropertyField} from '@mattermost/types/properties';
 
 import {openModal} from 'actions/views/modals';
@@ -186,7 +186,7 @@ const DotMenu = ({
                 class: 'btn btn-transparent user-property-field-dotmenu-menu-button',
                 children: (
                     <>
-                        <DotsHorizontalIcon size={18}/>
+                        {isProtected ? <LockOutlineIcon size={18}/> : <DotsHorizontalIcon size={18}/>}
                     </>
                 ),
                 dataTestId: `${menuId}-${field.id}`,
