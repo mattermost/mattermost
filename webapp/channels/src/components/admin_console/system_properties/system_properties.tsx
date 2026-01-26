@@ -34,14 +34,10 @@ export default function SystemProperties(props: Props) {
         userProperties.save();
     };
 
-    const handleCancel = () => {
-        userProperties.cancel();
-    };
-
     useEffect(() => {
         // block nav when changes are pending
         dispatch(setNavigationBlocked(hasChanges));
-    }, [hasChanges]);
+    }, [hasChanges, dispatch]);
 
     return (
         <div
@@ -75,7 +71,6 @@ export default function SystemProperties(props: Props) {
                 saving={saving}
                 saveNeeded={hasChanges}
                 onClick={handleSave}
-                onCancel={handleCancel}
                 serverError={saveError ? (
                     <FormattedMessage
                         tagName={DangerText}

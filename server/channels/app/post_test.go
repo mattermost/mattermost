@@ -1999,10 +1999,8 @@ func TestUpdatePost(t *testing.T) {
 		}
 
 		updatedPost, _, err := th.App.UpdatePost(th.Context, updatePost, nil)
-		require.Nil(t, err)
-		require.NotNil(t, updatedPost.Metadata)
 
-		// Verify embeds were stripped
+		require.Nil(t, err)
 		assert.Empty(t, updatedPost.Metadata.Embeds, "spoofed embeds should be stripped")
 	})
 
