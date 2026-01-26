@@ -3488,7 +3488,6 @@ const AdminDefinition: AdminDefinitionType = {
                     name: defineMessage({id: 'admin.site.recaps', defaultMessage: 'Recaps'}),
                     sections: [
                         {
-                            // Master toggle section
                             key: 'AIRecapSettings.Global',
                             title: '',
                             settings: [
@@ -3502,7 +3501,6 @@ const AdminDefinition: AdminDefinitionType = {
                             ],
                         },
                         {
-                            // Quota Limits section
                             key: 'AIRecapSettings.QuotaLimits',
                             title: 'Quota Limits',
                             description: defineMessage({id: 'admin.recaps.sections.quota.description', defaultMessage: 'Control how many recaps users can create.'}),
@@ -3543,7 +3541,6 @@ const AdminDefinition: AdminDefinitionType = {
                             ],
                         },
                         {
-                            // Content Limits section
                             key: 'AIRecapSettings.ContentLimits',
                             title: 'Content Limits',
                             description: defineMessage({id: 'admin.recaps.sections.content.description', defaultMessage: 'Control how much content can be included in each recap.'}),
@@ -3584,7 +3581,6 @@ const AdminDefinition: AdminDefinitionType = {
                             ],
                         },
                         {
-                            // Time Limits section
                             key: 'AIRecapSettings.TimeLimits',
                             title: 'Time Limits',
                             description: defineMessage({id: 'admin.recaps.sections.time.description', defaultMessage: 'Control timing between recap requests.'}),
