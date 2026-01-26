@@ -844,14 +844,15 @@ const defaultServerConfig: AdminConfig = {
     AutoTranslationSettings: {
         Enable: false,
         Provider: '',
-        TimeoutsMs: {
-            NewPost: 800,
-            Fetch: 2000,
-            Notification: 300,
-        },
         LibreTranslate: {
             URL: '',
             APIKey: '',
+        },
+        TimeoutsMs: {
+            Short: 1200,
+            Medium: 2500,
+            Long: 6000,
+            Notification: 300,
         },
     },
 };
