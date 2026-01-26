@@ -77,11 +77,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 140+"
+    "translation": "Version 142+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 140+"
+    "translation": "Version 142+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -7260,7 +7260,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
+    "translation": "© 2015 - {{ .CurrentYear }} Mattermost, Inc. 2100 Geng Road, Suite 210, Palo Alto, CA, 94303"
   },
   {
     "id": "api.templates.welcome_body.serverURL",
@@ -11266,5 +11266,9 @@
   {
     "id": "api.post.patch_post.can_not_update_burn_on_read_post.error",
     "translation": "Inlägg som bränns upp vid läsning kan inte uppdateras."
+  },
+  {
+    "id": "api.post.burn_post.user_not_in_channel.app_error",
+    "translation": "Du har inte tillstånd att bränna det här inlägget. Du måste vara medlem i kanalen."
   }
 ]
