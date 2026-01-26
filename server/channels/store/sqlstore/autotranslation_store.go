@@ -204,7 +204,7 @@ func (s *SqlAutoTranslationStore) Get(objectType, objectID, dstLang string) (*mo
 	var translation Translation
 	if err := s.GetReplica().GetBuilder(&translation, query); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, nil
+			return nil, store.NewErrNotFound("Translation", objectID)
 		}
 		return nil, errors.Wrapf(err, "failed to get translation for object_id=%s, dst_lang=%s", objectID, dstLang)
 	}
