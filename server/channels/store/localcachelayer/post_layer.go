@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
@@ -23,7 +24,9 @@ func (s *LocalCachePostStore) handleClusterInvalidateLastPostTime(msg *model.Clu
 	if bytes.Equal(msg.Data, clearCacheMessageData) {
 		s.rootStore.lastPostTimeCache.Purge()
 	} else {
-		s.rootStore.lastPostTimeCache.Remove(string(msg.Data))
+		key := string(msg.Data)
+		s.rootStore.lastPostTimeCache.Remove(key)
+		s.invalidateLastPostTimeCacheLocales(key)
 	}
 }
 
@@ -57,7 +60,29 @@ func (s LocalCachePostStore) ClearCaches() {
 }
 
 func (s LocalCachePostStore) InvalidateLastPostTimeCache(channelId string) {
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.lastPostTimeCache, channelId, nil)
+	// Collect all keys to invalidate: base channelId and all channelId.locale variants
+	keysToInvalidate := []string{channelId}
+
+	// Find all locale variants (keys that start with "channelId.")
+	localePrefix := channelId + "."
+	err := s.rootStore.lastPostTimeCache.Scan(func(keys []string) error {
+		for _, key := range keys {
+			if strings.HasPrefix(key, localePrefix) {
+				keysToInvalidate = append(keysToInvalidate, key)
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		s.rootStore.logger.Warn("Error scanning lastPostTimeCache for locale variants", mlog.Err(err))
+		// Fall back to single key invalidation if scan fails
+		s.rootStore.doInvalidateCacheCluster(s.rootStore.lastPostTimeCache, channelId, nil)
+	} else {
+		// Remove all collected keys at once
+		if len(keysToInvalidate) > 0 {
+			s.rootStore.doMultiInvalidateCacheCluster(s.rootStore.lastPostTimeCache, keysToInvalidate, nil)
+		}
+	}
 
 	// Keys are "{channelid}{limit}" and caching only occurs on limits of 30 and 60
 	s.rootStore.doInvalidateCacheCluster(s.rootStore.postLastPostsCache, channelId+"30", nil)
@@ -71,21 +96,51 @@ func (s LocalCachePostStore) InvalidateLastPostTimeCache(channelId string) {
 	}
 }
 
-func (s LocalCachePostStore) GetEtag(channelId string, allowFromCache, collapsedThreads bool) string {
+// invalidateLastPostTimeCacheLocales removes all locale variants (channelId.locale) from the cache
+func (s *LocalCachePostStore) invalidateLastPostTimeCacheLocales(channelId string) {
+	localePrefix := channelId + "."
+	var keysToRemove []string
+
+	err := s.rootStore.lastPostTimeCache.Scan(func(keys []string) error {
+		for _, key := range keys {
+			if strings.HasPrefix(key, localePrefix) {
+				keysToRemove = append(keysToRemove, key)
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		s.rootStore.logger.Warn("Error scanning lastPostTimeCache for locale variants", mlog.Err(err))
+		return
+	}
+
+	if len(keysToRemove) > 0 {
+		err = s.rootStore.lastPostTimeCache.RemoveMulti(keysToRemove)
+		if err != nil {
+			s.rootStore.logger.Warn("Error removing locale variants from lastPostTimeCache", mlog.Err(err))
+		}
+	}
+}
+
+func (s LocalCachePostStore) GetEtag(channelId, language string, allowFromCache, collapsedThreads bool) string {
+	cacheKey := channelId
+	if language != "" {
+		cacheKey = fmt.Sprintf("%s.%s", channelId, language)
+	}
 	if allowFromCache {
 		var lastTime int64
-		if err := s.rootStore.doStandardReadCache(s.rootStore.lastPostTimeCache, channelId, &lastTime); err == nil {
+		if err := s.rootStore.doStandardReadCache(s.rootStore.lastPostTimeCache, cacheKey, &lastTime); err == nil {
 			return fmt.Sprintf("%v.%v", model.CurrentVersion, lastTime)
 		}
 	}
 
-	result := s.PostStore.GetEtag(channelId, allowFromCache, collapsedThreads)
+	result := s.PostStore.GetEtag(channelId, language, allowFromCache, collapsedThreads)
 
 	splittedResult := strings.Split(result, ".")
 
 	lastTime, _ := strconv.ParseInt((splittedResult[len(splittedResult)-1]), 10, 64)
 
-	s.rootStore.doStandardAddToCache(s.rootStore.lastPostTimeCache, channelId, lastTime)
+	s.rootStore.doStandardAddToCache(s.rootStore.lastPostTimeCache, cacheKey, lastTime)
 
 	return result
 }
