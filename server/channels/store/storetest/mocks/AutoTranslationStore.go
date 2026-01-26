@@ -249,12 +249,12 @@ func (_m *AutoTranslationStore) IsChannelEnabled(channelID string) (bool, *model
 	return r0, r1
 }
 
-// IsUserEnabled provides a mock function with given fields: userID, channelID
-func (_m *AutoTranslationStore) IsUserEnabled(userID string, channelID string) (bool, *model.AppError) {
+// IsUserDisabled provides a mock function with given fields: userID, channelID
+func (_m *AutoTranslationStore) IsUserDisabled(userID string, channelID string) (bool, *model.AppError) {
 	ret := _m.Called(userID, channelID)
 
 	if len(ret) == 0 {
-		panic("no return value specified for IsUserEnabled")
+		panic("no return value specified for IsUserDisabled")
 	}
 
 	var r0 bool
@@ -319,17 +319,17 @@ func (_m *AutoTranslationStore) SetChannelEnabled(channelID string, enabled bool
 	return r0
 }
 
-// SetUserEnabled provides a mock function with given fields: userID, channelID, enabled
-func (_m *AutoTranslationStore) SetUserEnabled(userID string, channelID string, enabled bool) *model.AppError {
-	ret := _m.Called(userID, channelID, enabled)
+// SetUserDisabled provides a mock function with given fields: userID, channelID, disabled
+func (_m *AutoTranslationStore) SetUserDisabled(userID string, channelID string, disabled bool) *model.AppError {
+	ret := _m.Called(userID, channelID, disabled)
 
 	if len(ret) == 0 {
-		panic("no return value specified for SetUserEnabled")
+		panic("no return value specified for SetUserDisabled")
 	}
 
 	var r0 *model.AppError
 	if rf, ok := ret.Get(0).(func(string, string, bool) *model.AppError); ok {
-		r0 = rf(userID, channelID, enabled)
+		r0 = rf(userID, channelID, disabled)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)

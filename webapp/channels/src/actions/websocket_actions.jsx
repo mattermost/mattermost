@@ -745,7 +745,7 @@ function handleChannelMemberUpdatedEvent(msg) {
         const existingMember = getMyChannelMemberInternal(state, channelMember.channel_id);
 
         // If user autotranslation changed, delete posts for this channel
-        if (existingMember && existingMember.autotranslation_enabled !== channelMember.autotranslation_enabled) {
+        if (existingMember && existingMember.autotranslation_disabled !== channelMember.autotranslation_disabled) {
             doDispatch(resetReloadPostsInChannel(channelMember.channel_id));
         }
 

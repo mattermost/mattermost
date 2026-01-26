@@ -297,5 +297,5 @@ channels/db/migrations/postgres/000149_create_recaps.down.sql
 channels/db/migrations/postgres/000149_create_recaps.up.sql
 channels/db/migrations/postgres/000150_add_translation_state.down.sql
 channels/db/migrations/postgres/000150_add_translation_state.up.sql
-channels/db/migrations/postgres/000151_add_autotranslationenabled_channelmembers.down.sql
-channels/db/migrations/postgres/000151_add_autotranslationenabled_channelmembers.up.sql
+channels/db/migrations/postgres/000151_add_autotranslationdisabled_channelmembers.down.sql
+channels/db/migrations/postgres/000151_add_autotranslationdisabled_channelmembers.up.sql

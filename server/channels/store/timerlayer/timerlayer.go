@@ -946,10 +946,10 @@ func (s *TimerLayerAutoTranslationStore) IsChannelEnabled(channelID string) (boo
 	return result, resultVar1
 }
 
-func (s *TimerLayerAutoTranslationStore) IsUserEnabled(userID string, channelID string) (bool, *model.AppError) {
+func (s *TimerLayerAutoTranslationStore) IsUserDisabled(userID string, channelID string) (bool, *model.AppError) {
 	start := time.Now()
 
-	result, resultVar1 := s.AutoTranslationStore.IsUserEnabled(userID, channelID)
+	result, resultVar1 := s.AutoTranslationStore.IsUserDisabled(userID, channelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -957,7 +957,7 @@ func (s *TimerLayerAutoTranslationStore) IsUserEnabled(userID string, channelID 
 		if true {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("AutoTranslationStore.IsUserEnabled", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("AutoTranslationStore.IsUserDisabled", success, elapsed)
 	}
 	return result, resultVar1
 }
@@ -994,10 +994,10 @@ func (s *TimerLayerAutoTranslationStore) SetChannelEnabled(channelID string, ena
 	return result
 }
 
-func (s *TimerLayerAutoTranslationStore) SetUserEnabled(userID string, channelID string, enabled bool) *model.AppError {
+func (s *TimerLayerAutoTranslationStore) SetUserDisabled(userID string, channelID string, disabled bool) *model.AppError {
 	start := time.Now()
 
-	result := s.AutoTranslationStore.SetUserEnabled(userID, channelID, enabled)
+	result := s.AutoTranslationStore.SetUserDisabled(userID, channelID, disabled)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -1005,7 +1005,7 @@ func (s *TimerLayerAutoTranslationStore) SetUserEnabled(userID string, channelID
 		if true {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("AutoTranslationStore.SetUserEnabled", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("AutoTranslationStore.SetUserDisabled", success, elapsed)
 	}
 	return result
 }

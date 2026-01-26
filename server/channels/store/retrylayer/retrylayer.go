@@ -926,9 +926,9 @@ func (s *RetryLayerAutoTranslationStore) IsChannelEnabled(channelID string) (boo
 
 }
 
-func (s *RetryLayerAutoTranslationStore) IsUserEnabled(userID string, channelID string) (bool, *model.AppError) {
+func (s *RetryLayerAutoTranslationStore) IsUserDisabled(userID string, channelID string) (bool, *model.AppError) {
 
-	return s.AutoTranslationStore.IsUserEnabled(userID, channelID)
+	return s.AutoTranslationStore.IsUserDisabled(userID, channelID)
 
 }
 
@@ -944,9 +944,9 @@ func (s *RetryLayerAutoTranslationStore) SetChannelEnabled(channelID string, ena
 
 }
 
-func (s *RetryLayerAutoTranslationStore) SetUserEnabled(userID string, channelID string, enabled bool) *model.AppError {
+func (s *RetryLayerAutoTranslationStore) SetUserDisabled(userID string, channelID string, disabled bool) *model.AppError {
 
-	return s.AutoTranslationStore.SetUserEnabled(userID, channelID, enabled)
+	return s.AutoTranslationStore.SetUserDisabled(userID, channelID, disabled)
 
 }
 

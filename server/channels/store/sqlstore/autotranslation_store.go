@@ -105,46 +105,48 @@ func (s *SqlAutoTranslationStore) SetChannelEnabled(channelID string, enabled bo
 	return nil
 }
 
-func (s *SqlAutoTranslationStore) IsUserEnabled(userID, channelID string) (bool, *model.AppError) {
+func (s *SqlAutoTranslationStore) IsUserDisabled(userID, channelID string) (bool, *model.AppError) {
 	query := s.getQueryBuilder().
-		Select("cm.AutoTranslationEnabled").
+		Select("cm.AutoTranslationDisabled").
 		From("ChannelMembers cm").
 		Join("Channels c ON cm.Channelid = c.id").
 		Where(sq.Eq{"cm.UserId": userID, "cm.ChannelId": channelID}).
 		Where("c.AutoTranslation = true")
 
-	var enabled bool
-	if err := s.GetReplica().GetBuilder(&enabled, query); err != nil {
+	var disabled bool
+	if err := s.GetReplica().GetBuilder(&disabled, query); err != nil {
 		if err == sql.ErrNoRows {
-			return false, nil
+			return true, model.NewAppError("SqlAutoTranslationStore.IsUserDisabled",
+				"store.sql_autotranslation.user_channel_not_found", nil,
+				"userId="+userID+",channelId="+channelID, 404)
 		}
-		return false, model.NewAppError("SqlAutoTranslationStore.IsUserEnabled",
-			"store.sql_autotranslation.get_user_enabled.app_error", nil, err.Error(), 500)
+		return true, model.NewAppError("SqlAutoTranslationStore.IsUserDisabled",
+			"store.sql_autotranslation.is_user_disabled.app_error", nil, err.Error(), 500)
 	}
 
-	return enabled, nil
+	return disabled, nil
 }
 
-func (s *SqlAutoTranslationStore) SetUserEnabled(userID, channelID string, enabled bool) *model.AppError {
+func (s *SqlAutoTranslationStore) SetUserDisabled(userID, channelID string, disabled bool) *model.AppError {
 	query := s.getQueryBuilder().
 		Update("ChannelMembers").
-		Set("AutoTranslationEnabled", enabled).
+		Set("AutoTranslationDisabled", disabled).
 		Where(sq.Eq{"UserId": userID, "ChannelId": channelID})
 
 	result, err := s.GetMaster().ExecBuilder(query)
 	if err != nil {
-		return model.NewAppError("SqlAutoTranslationStore.SetUserEnabled",
-			"store.sql_autotranslation.set_user_enabled.app_error", nil, err.Error(), 500)
+		return model.NewAppError("SqlAutoTranslationStore.SetUserDisabled",
+			"store.sql_autotranslation.set_user_disabled.app_error", nil, err.Error(), 500)
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return model.NewAppError("SqlAutoTranslationStore.SetUserEnabled",
-			"store.sql_autotranslation.set_user_enabled.app_error", nil, err.Error(), 500)
+		return model.NewAppError("SqlAutoTranslationStore.SetUserDisabled",
+			"store.sql_autotranslation.set_user_disabled.app_error", nil, err.Error(), 500)
 	}
 
 	if rowsAffected == 0 {
-		return model.NewAppError("SqlAutoTranslationStore.SetUserEnabled",
+		return model.NewAppError("SqlAutoTranslationStore.SetUserDisabled",
 			"store.sql_autotranslation.member_not_found", nil,
 			"user_id="+userID+", channel_id="+channelID, 404)
 	}
@@ -160,12 +162,14 @@ func (s *SqlAutoTranslationStore) GetUserLanguage(userID, channelID string) (str
 		Join("Channels c ON cm.ChannelId = c.Id").
 		Where(sq.Eq{"u.Id": userID, "c.Id": channelID}).
 		Where("c.AutoTranslation = true").
-		Where("cm.AutoTranslationEnabled = true")
+		Where("cm.AutoTranslationDisabled = false")
 
 	var locale string
 	if err := s.GetReplica().GetBuilder(&locale, query); err != nil {
 		if err == sql.ErrNoRows {
-			return "", nil
+			return "", model.NewAppError("SqlAutoTranslationStore.GetUserLanguage",
+				"store.sql_autotranslation.user_language_not_found", nil,
+				"userId="+userID+",channelId="+channelID, 404)
 		}
 		return "", model.NewAppError("SqlAutoTranslationStore.GetUserLanguage",
 			"store.sql_autotranslation.get_user_language.app_error", nil, err.Error(), 500)

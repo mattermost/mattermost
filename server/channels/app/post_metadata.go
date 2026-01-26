@@ -119,6 +119,9 @@ func (a *App) populatePostListTranslations(rctx request.CTX, list *model.PostLis
 	for channelID, postIDs := range postsNeedingTranslations {
 		userLang, err := a.AutoTranslation().GetUserLanguage(userID, channelID)
 		if err != nil {
+			if err.StatusCode == http.StatusNotFound {
+				continue // User not eligible for translation - skip silently
+			}
 			var notAvailErr *model.ErrAutoTranslationNotAvailable
 			if !errors.As(err, &notAvailErr) {
 				// Log non-availability errors

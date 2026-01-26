@@ -1160,8 +1160,8 @@ type AttributesStore interface {
 type AutoTranslationStore interface {
 	IsChannelEnabled(channelID string) (bool, *model.AppError)
 	SetChannelEnabled(channelID string, enabled bool) *model.AppError
-	IsUserEnabled(userID, channelID string) (bool, *model.AppError)
-	SetUserEnabled(userID, channelID string, enabled bool) *model.AppError
+	IsUserDisabled(userID, channelID string) (bool, *model.AppError)
+	SetUserDisabled(userID, channelID string, disabled bool) *model.AppError
 	GetUserLanguage(userID, channelID string) (string, *model.AppError)
 	Get(objectID, dstLang string) (*model.Translation, *model.AppError)
 	GetBatch(objectIDs []string, dstLang string) (map[string]*model.Translation, *model.AppError)

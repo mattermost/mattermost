@@ -263,14 +263,14 @@ export function patchChannel(channelId: string, patch: Partial<Channel>): Action
     });
 }
 
-export function setMyChannelAutotranslation(channelId: string, enabled: boolean): ActionFuncAsync<boolean> {
+export function setMyChannelAutotranslationDisabled(channelId: string, disabled: boolean): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         const state = getState();
         const myChannelMember = getMyChannelMemberSelector(state, channelId);
-        const wasEnabled = myChannelMember?.autotranslation_enabled;
+        const wasDisabled = myChannelMember?.autotranslation_disabled ?? true;
 
         try {
-            await Client4.setMyChannelAutotranslation(channelId, enabled);
+            await Client4.setMyChannelAutotranslationDisabled(channelId, disabled);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -281,12 +281,12 @@ export function setMyChannelAutotranslation(channelId: string, enabled: boolean)
             type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBER,
             data: {
                 ...myChannelMember,
-                autotranslation_enabled: enabled,
+                autotranslation_disabled: disabled,
             },
         });
 
-        // If autotranslation changed, delete posts for this channel
-        if (wasEnabled !== enabled) {
+        // If autotranslation disabled state changed, delete posts for this channel
+        if (wasDisabled !== disabled) {
             await dispatch(resetReloadPostsInChannel(channelId));
         }
 

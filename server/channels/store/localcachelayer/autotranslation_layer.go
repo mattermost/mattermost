@@ -69,27 +69,27 @@ func (s LocalCacheAutoTranslationStore) SetChannelEnabled(channelID string, enab
 	return nil
 }
 
-// IsUserEnabled checks if auto-translation is enabled for a user in a channel (with caching)
-func (s LocalCacheAutoTranslationStore) IsUserEnabled(userID, channelID string) (bool, *model.AppError) {
+// IsUserDisabled checks if auto-translation is disabled for a user in a channel (with caching)
+func (s LocalCacheAutoTranslationStore) IsUserDisabled(userID, channelID string) (bool, *model.AppError) {
 	key := userAutoTranslationKey(userID, channelID)
 
-	var enabled bool
-	if err := s.rootStore.doStandardReadCache(s.rootStore.userAutoTranslationCache, key, &enabled); err == nil {
-		return enabled, nil
+	var disabled bool
+	if err := s.rootStore.doStandardReadCache(s.rootStore.userAutoTranslationCache, key, &disabled); err == nil {
+		return disabled, nil
 	}
 
-	enabled, appErr := s.AutoTranslationStore.IsUserEnabled(userID, channelID)
+	disabled, appErr := s.AutoTranslationStore.IsUserDisabled(userID, channelID)
 	if appErr != nil {
-		return false, appErr
+		return true, appErr
 	}
 
-	s.rootStore.doStandardAddToCache(s.rootStore.userAutoTranslationCache, key, enabled)
-	return enabled, nil
+	s.rootStore.doStandardAddToCache(s.rootStore.userAutoTranslationCache, key, disabled)
+	return disabled, nil
 }
 
-// SetUserEnabled sets auto-translation status for a user in a channel and invalidates cache
-func (s LocalCacheAutoTranslationStore) SetUserEnabled(userID, channelID string, enabled bool) *model.AppError {
-	appErr := s.AutoTranslationStore.SetUserEnabled(userID, channelID, enabled)
+// SetUserDisabled sets auto-translation disabled status for a user in a channel and invalidates cache
+func (s LocalCacheAutoTranslationStore) SetUserDisabled(userID, channelID string, disabled bool) *model.AppError {
+	appErr := s.AutoTranslationStore.SetUserDisabled(userID, channelID, disabled)
 	if appErr != nil {
 		return appErr
 	}

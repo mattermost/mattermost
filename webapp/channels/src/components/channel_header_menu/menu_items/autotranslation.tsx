@@ -8,7 +8,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {TranslateIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 
-import {setMyChannelAutotranslation} from 'mattermost-redux/actions/channels';
+import {setMyChannelAutotranslationDisabled} from 'mattermost-redux/actions/channels';
 import {isChannelAutotranslated} from 'mattermost-redux/selectors/entities/channels';
 
 import {openModal} from 'actions/views/modals';
@@ -42,8 +42,8 @@ const Autotranslation = ({channel, ...rest}: Props): JSX.Element => {
                 }),
             );
         } else {
-            // Enable directly without confirmation
-            dispatch(setMyChannelAutotranslation(channel.id, true));
+            // Enable directly without confirmation (set disabled = false)
+            dispatch(setMyChannelAutotranslationDisabled(channel.id, false));
         }
     }, [channel, config, dispatch]);
 

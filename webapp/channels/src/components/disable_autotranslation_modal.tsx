@@ -7,7 +7,7 @@ import {useDispatch} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
 
-import {setMyChannelAutotranslation} from 'mattermost-redux/actions/channels';
+import {setMyChannelAutotranslationDisabled} from 'mattermost-redux/actions/channels';
 
 import {sendEphemeralPost} from 'actions/global_actions';
 import {closeModal} from 'actions/views/modals';
@@ -31,7 +31,7 @@ const DisableAutotranslationModal = ({channel}: Props) => {
 
     const handleConfirm = useCallback(async () => {
         handleHide();
-        await dispatch(setMyChannelAutotranslation(channel.id, false));
+        await dispatch(setMyChannelAutotranslationDisabled(channel.id, true));
 
         // Disabling autotranslations removes all the posts in a channel,
         // so we need to wait for the posts to be removed before sending the ephemeral post.
