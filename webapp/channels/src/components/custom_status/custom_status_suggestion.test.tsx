@@ -21,10 +21,6 @@ describe('components/custom_status/custom_status_emoji', () => {
         handleClear: jest.fn(),
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     it('should match snapshot', () => {
         const {container} = renderWithContext(
             <CustomStatusSuggestion {...baseProps}/>,

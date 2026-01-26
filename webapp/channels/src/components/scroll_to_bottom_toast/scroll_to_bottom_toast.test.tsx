@@ -13,10 +13,6 @@ describe('ScrollToBottomToast Component', () => {
     const mockOnDismiss = jest.fn();
     const mockOnClick = jest.fn();
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     it('should render ScrollToBottomToast component', () => {
         const {container} = renderWithContext(
             <ScrollToBottomToast

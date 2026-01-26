@@ -22,10 +22,6 @@ describe('ExternalImage', () => {
         src: 'https://example.com/image.png',
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should render an image', () => {
         const {container} = render(<ExternalImage {...baseProps}/>);
 

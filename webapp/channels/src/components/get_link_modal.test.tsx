@@ -19,7 +19,6 @@ describe('components/GetLinkModal', () => {
     };
 
     beforeEach(() => {
-        jest.clearAllMocks();
         jest.useFakeTimers();
     });
 

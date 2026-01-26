@@ -49,10 +49,6 @@ describe('components/ListModal', () => {
         titleBarButtonTextOnClick: () => {},
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     it('should match snapshot', async () => {
         const {baseElement} = renderWithContext(
             <ListModal {...baseProps}/>,

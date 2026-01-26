@@ -32,10 +32,6 @@ describe('components/MarkdownImage', () => {
         },
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should match snapshot', () => {
         const props = {...baseProps, src: '/images/logo.png'};
         const {container} = renderWithContext(

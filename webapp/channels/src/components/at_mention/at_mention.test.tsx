@@ -29,10 +29,6 @@ describe('components/AtMention', () => {
         getMissingMentionedUsers: jest.fn(),
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should match snapshot when mentioning user', () => {
         const {container} = render(
             <AtMention

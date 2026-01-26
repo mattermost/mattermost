@@ -23,10 +23,6 @@ describe('components/SingleImageView', () => {
         enablePublicLink: false,
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should match snapshot', () => {
         const {container} = renderWithContext(
             <SingleImageView {...baseProps}/>,
