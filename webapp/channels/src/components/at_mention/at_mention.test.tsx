@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render} from '@testing-library/react';
 import React from 'react';
 
 import {General} from 'mattermost-redux/constants';
 
+import {render} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import AtMention from './at_mention';

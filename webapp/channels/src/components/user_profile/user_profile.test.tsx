@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render} from '@testing-library/react';
 import React from 'react';
 
 import type {UserProfile as UserProfileType} from '@mattermost/types/users';
 
 import {Preferences} from 'mattermost-redux/constants';
+
+import {render} from 'tests/react_testing_utils';
 
 import UserProfile from './user_profile';
 

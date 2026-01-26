@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render, waitFor} from '@testing-library/react';
 import React from 'react';
 
 import PDFPreview from 'components/pdf_preview';
 import type {Props} from 'components/pdf_preview';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {render, renderWithContext, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 const mockGetDocument = jest.fn();

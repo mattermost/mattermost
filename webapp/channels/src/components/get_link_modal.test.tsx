@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen} from '@testing-library/react';
 import React from 'react';
 
 import GetLinkModal from 'components/get_link_modal';
 
-import {renderWithContext, act, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, act, screen, userEvent} from 'tests/react_testing_utils';
 
 describe('components/GetLinkModal', () => {
     const onHide = jest.fn();

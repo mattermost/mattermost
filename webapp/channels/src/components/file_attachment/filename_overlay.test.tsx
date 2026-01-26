@@ -1,14 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render, screen} from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import FilenameOverlay from 'components/file_attachment/filename_overlay';
 import AttachmentIcon from 'components/widgets/icons/attachment_icon';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {render, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 describe('components/file_attachment/FilenameOverlay', () => {
     function emptyFunction() {} //eslint-disable-line no-empty-function
