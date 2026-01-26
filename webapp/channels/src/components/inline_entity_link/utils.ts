@@ -6,14 +6,14 @@ import {InlineEntityTypes} from './constants';
 
 export type ParsedInlineEntity = {
     type: InlineEntityType | null;
-    value: string;
+    postId: string;
     teamName: string;
     channelName: string;
 };
 
 export function parseInlineEntityUrl(url: string): ParsedInlineEntity {
     let type: InlineEntityType | null = null;
-    let value = '';
+    let postId = '';
     let teamName = '';
     let channelName = '';
 
@@ -22,7 +22,7 @@ export function parseInlineEntityUrl(url: string): ParsedInlineEntity {
         if (urlObj.searchParams.get('view') !== 'citation') {
             return {
                 type: null,
-                value,
+                postId,
                 teamName,
                 channelName,
             };
@@ -30,7 +30,7 @@ export function parseInlineEntityUrl(url: string): ParsedInlineEntity {
     } catch (e) {
         return {
             type: null,
-            value,
+            postId,
             teamName,
             channelName,
         };
@@ -49,7 +49,7 @@ export function parseInlineEntityUrl(url: string): ParsedInlineEntity {
     if (postMatch) {
         type = InlineEntityTypes.POST;
         teamName = postMatch[1];
-        value = postMatch[2]; // postId
+        postId = postMatch[2];
     } else {
         const channelMatch = (/\/([a-z0-9\-_]+)\/channels\/([a-z0-9\-__][a-z0-9\-__.]+)/).exec(urlWithoutQuery);
         if (channelMatch) {
@@ -62,14 +62,13 @@ export function parseInlineEntityUrl(url: string): ParsedInlineEntity {
             if (teamMatch) {
                 type = InlineEntityTypes.TEAM;
                 teamName = teamMatch[1];
-                value = teamMatch[1]; // teamName as value
             }
         }
     }
 
     return {
         type,
-        value,
+        postId,
         teamName,
         channelName,
     };

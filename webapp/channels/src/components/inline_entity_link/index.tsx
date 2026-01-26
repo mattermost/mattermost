@@ -27,7 +27,7 @@ export default function InlineEntityLink({url, text, className}: Props) {
     const dispatch = useDispatch();
     const intl = useIntl();
 
-    const {type, value, teamName, channelName} = parseInlineEntityUrl(url);
+    const {type, postId, teamName, channelName} = parseInlineEntityUrl(url);
 
     if (!type) {
         return (
@@ -43,7 +43,7 @@ export default function InlineEntityLink({url, text, className}: Props) {
     const handleClick = (e: MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        dispatch(handleInlineEntityClick(type, value, teamName, channelName));
+        dispatch(handleInlineEntityClick(type, postId, teamName, channelName));
     };
 
     let tooltipText = '';

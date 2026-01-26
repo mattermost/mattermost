@@ -10,7 +10,7 @@ describe('parseInlineEntityUrl', () => {
         const result = parseInlineEntityUrl(url);
         expect(result).toEqual({
             type: InlineEntityTypes.POST,
-            value: 'postid123',
+            postId: 'postid123',
             teamName: 'team-name',
             channelName: '',
         });
@@ -21,7 +21,7 @@ describe('parseInlineEntityUrl', () => {
         const result = parseInlineEntityUrl(url);
         expect(result).toEqual({
             type: InlineEntityTypes.CHANNEL,
-            value: '',
+            postId: '',
             teamName: 'team-name',
             channelName: 'channel-name',
         });
@@ -32,7 +32,7 @@ describe('parseInlineEntityUrl', () => {
         const result = parseInlineEntityUrl(url);
         expect(result).toEqual({
             type: InlineEntityTypes.TEAM,
-            value: 'team-name',
+            postId: '',
             teamName: 'team-name',
             channelName: '',
         });

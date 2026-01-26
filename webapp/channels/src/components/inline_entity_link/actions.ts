@@ -6,7 +6,7 @@ import {getTeamByName} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {switchTeam} from 'actions/team_actions';
-import {loadIfNecessaryAndSwitchToChannelById, switchToChannel} from 'actions/views/channel';
+import {switchToChannel} from 'actions/views/channel';
 
 import {focusPost} from 'components/permalink_view/actions';
 
@@ -17,7 +17,7 @@ import type {ActionFunc} from 'types/store';
 import type {InlineEntityType} from './constants';
 import {InlineEntityTypes} from './constants';
 
-export function handleInlineEntityClick(type: InlineEntityType, value: string, teamName?: string, channelName?: string): ActionFunc {
+export function handleInlineEntityClick(type: InlineEntityType, postId: string, teamName: string, channelName: string): ActionFunc {
     return (dispatch, getState) => {
         const state = getState();
         const returnTo = getHistory().location?.pathname || '';
@@ -25,15 +25,11 @@ export function handleInlineEntityClick(type: InlineEntityType, value: string, t
         switch (type) {
         case InlineEntityTypes.POST: {
             const currentUserId = getCurrentUserId(state);
-            dispatch(focusPost(value, returnTo, currentUserId, {skipRedirectReplyPermalink: true}));
+            dispatch(focusPost(postId, returnTo, currentUserId, {skipRedirectReplyPermalink: true}));
             break;
         }
         case InlineEntityTypes.CHANNEL: {
-            // value will be empty if we parsed it from URL in utils.ts for CHANNEL type,
-            // but keeping check in case it's passed explicitly.
-            if (value) {
-                dispatch(loadIfNecessaryAndSwitchToChannelById(value));
-            } else if (teamName && channelName) {
+            if (teamName && channelName) {
                 dispatch(getChannelByNameAndTeamName(teamName, channelName)).then((result) => {
                     if (result.data) {
                         dispatch(switchToChannel(result.data));
@@ -43,9 +39,8 @@ export function handleInlineEntityClick(type: InlineEntityType, value: string, t
             break;
         }
         case InlineEntityTypes.TEAM: {
-            if (value) {
-                // value is teamName from parsing logic
-                const team = getTeamByName(state, value);
+            if (teamName) {
+                const team = getTeamByName(state, teamName);
                 if (team) {
                     dispatch(switchTeam(`/${team.name}`, team));
                 }

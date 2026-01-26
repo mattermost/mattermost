@@ -1,13 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
-import * as redux from 'react-redux';
 
-import {LinkVariantIcon} from '@mattermost/compass-icons/components';
-
-import WithTooltip from 'components/with_tooltip';
+import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
 
 import * as Actions from './actions';
 import {InlineEntityTypes} from './constants';
@@ -16,18 +12,11 @@ import InlineEntityLink from './index';
 
 // Mock the actions
 jest.mock('./actions', () => ({
-    handleInlineEntityClick: jest.fn(),
+    handleInlineEntityClick: jest.fn(() => ({type: 'MOCK_ACTION'})),
 }));
 
 describe('InlineEntityLink', () => {
-    const useDispatchMock = jest.spyOn(redux, 'useDispatch');
-    const mockDispatch = jest.fn();
-
     beforeEach(() => {
-        useDispatchMock.mockReturnValue(mockDispatch);
-    });
-
-    afterEach(() => {
         jest.clearAllMocks();
     });
 
@@ -43,12 +32,13 @@ describe('InlineEntityLink', () => {
             url: 'http://invalid-url.com',
         };
 
-        const wrapper = shallow(<InlineEntityLink {...props}/>);
+        renderWithContext(<InlineEntityLink {...props}/>);
 
-        expect(wrapper.find('a').prop('href')).toBe(props.url);
-        expect(wrapper.find('a').prop('className')).toBe(props.className);
-        expect(wrapper.text()).toBe(props.text);
-        expect(wrapper.find(LinkVariantIcon).exists()).toBe(false);
+        const link = screen.getByRole('link');
+        expect(link).toHaveAttribute('href', props.url);
+        expect(link).toHaveClass('custom-class');
+        expect(link).toHaveTextContent('Link Text');
+        expect(screen.queryByTestId('linkVariantIcon')).not.toBeInTheDocument();
     });
 
     test('should render as a Post link correctly', () => {
@@ -57,13 +47,13 @@ describe('InlineEntityLink', () => {
             url: 'http://localhost:8065/team-name/pl/postid123?view=citation',
         };
 
-        const wrapper = shallow(<InlineEntityLink {...props}/>);
+        renderWithContext(<InlineEntityLink {...props}/>);
 
-        expect(wrapper.find(WithTooltip).prop('title')).toBe('Go to post');
-        expect(wrapper.find('a').prop('href')).toBe(props.url);
-        expect(wrapper.find('a').hasClass('inline-entity-link')).toBe(true);
-        expect(wrapper.find('a').hasClass('custom-class')).toBe(true);
-        expect(wrapper.find(LinkVariantIcon).exists()).toBe(true);
+        const link = screen.getByRole('link');
+        expect(link).toHaveAttribute('href', props.url);
+        expect(link).toHaveClass('inline-entity-link');
+        expect(link).toHaveClass('custom-class');
+        expect(link).toHaveAttribute('aria-label', 'Go to post');
     });
 
     test('should render as a Channel link correctly', () => {
@@ -72,12 +62,12 @@ describe('InlineEntityLink', () => {
             url: 'http://localhost:8065/team-name/channels/channel-name?view=citation',
         };
 
-        const wrapper = shallow(<InlineEntityLink {...props}/>);
+        renderWithContext(<InlineEntityLink {...props}/>);
 
-        expect(wrapper.find(WithTooltip).prop('title')).toBe('Go to channel');
-        expect(wrapper.find('a').prop('href')).toBe(props.url);
-        expect(wrapper.find('a').hasClass('inline-entity-link')).toBe(true);
-        expect(wrapper.find(LinkVariantIcon).exists()).toBe(true);
+        const link = screen.getByRole('link');
+        expect(link).toHaveAttribute('href', props.url);
+        expect(link).toHaveClass('inline-entity-link');
+        expect(link).toHaveAttribute('aria-label', 'Go to channel');
     });
 
     test('should render as a Team link correctly', () => {
@@ -86,36 +76,68 @@ describe('InlineEntityLink', () => {
             url: 'http://localhost:8065/team-name?view=citation',
         };
 
-        const wrapper = shallow(<InlineEntityLink {...props}/>);
+        renderWithContext(<InlineEntityLink {...props}/>);
 
-        expect(wrapper.find(WithTooltip).prop('title')).toBe('Go to team');
-        expect(wrapper.find('a').prop('href')).toBe(props.url);
-        expect(wrapper.find('a').hasClass('inline-entity-link')).toBe(true);
-        expect(wrapper.find(LinkVariantIcon).exists()).toBe(true);
+        const link = screen.getByRole('link');
+        expect(link).toHaveAttribute('href', props.url);
+        expect(link).toHaveClass('inline-entity-link');
+        expect(link).toHaveAttribute('aria-label', 'Go to team');
     });
 
-    test('should handle click event and dispatch action', () => {
+    test('should handle click event and dispatch action for Post', () => {
         const props = {
             ...baseProps,
             url: 'http://localhost:8065/team-name/pl/postid123?view=citation',
         };
 
-        const wrapper = shallow(<InlineEntityLink {...props}/>);
-        const mockEvent = {
-            preventDefault: jest.fn(),
-            stopPropagation: jest.fn(),
-        };
+        renderWithContext(<InlineEntityLink {...props}/>);
+        const link = screen.getByRole('link');
 
-        wrapper.find('a').simulate('click', mockEvent);
+        fireEvent.click(link);
 
-        expect(mockEvent.preventDefault).toHaveBeenCalled();
-        expect(mockEvent.stopPropagation).toHaveBeenCalled();
         expect(Actions.handleInlineEntityClick).toHaveBeenCalledWith(
             InlineEntityTypes.POST,
             'postid123',
             'team-name',
             '',
         );
-        expect(mockDispatch).toHaveBeenCalled();
+    });
+
+    test('should handle click event and dispatch action for Channel', () => {
+        const props = {
+            ...baseProps,
+            url: 'http://localhost:8065/team-name/channels/channel-name?view=citation',
+        };
+
+        renderWithContext(<InlineEntityLink {...props}/>);
+        const link = screen.getByRole('link');
+
+        fireEvent.click(link);
+
+        expect(Actions.handleInlineEntityClick).toHaveBeenCalledWith(
+            InlineEntityTypes.CHANNEL,
+            '',
+            'team-name',
+            'channel-name',
+        );
+    });
+
+    test('should handle click event and dispatch action for Team', () => {
+        const props = {
+            ...baseProps,
+            url: 'http://localhost:8065/team-name?view=citation',
+        };
+
+        renderWithContext(<InlineEntityLink {...props}/>);
+        const link = screen.getByRole('link');
+
+        fireEvent.click(link);
+
+        expect(Actions.handleInlineEntityClick).toHaveBeenCalledWith(
+            InlineEntityTypes.TEAM,
+            '',
+            'team-name',
+            '',
+        );
     });
 });
