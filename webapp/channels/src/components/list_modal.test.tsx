@@ -6,7 +6,7 @@ import React from 'react';
 
 import type {Group} from '@mattermost/types/groups';
 
-import {renderWithIntl} from 'tests/react_testing_utils';
+import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ListModal, {DEFAULT_NUM_PER_PAGE} from './list_modal';
@@ -54,7 +54,7 @@ describe('components/ListModal', () => {
     });
 
     it('should match snapshot', async () => {
-        const {baseElement} = renderWithIntl(
+        const {baseElement} = renderWithContext(
             <ListModal {...baseProps}/>,
         );
 
@@ -76,7 +76,7 @@ describe('components/ListModal', () => {
     it('should update numPerPage', async () => {
         const numPerPage = totalCount - 1; // numPerPage = 2
         const props = {...baseProps, numPerPage};
-        renderWithIntl(
+        renderWithContext(
             <ListModal {...props}/>,
         );
 
@@ -97,7 +97,7 @@ describe('components/ListModal', () => {
             titleBarButtonText: 'Add Foo',
             titleBarButtonOnClick: jest.fn(),
         };
-        const {baseElement} = renderWithIntl(
+        const {baseElement} = renderWithContext(
             <ListModal {...props}/>,
         );
 
@@ -115,7 +115,7 @@ describe('components/ListModal', () => {
     test('should have called onHide when handleExit is called', async () => {
         const onHide = jest.fn();
         const props = {...baseProps, onHide};
-        const {baseElement} = renderWithIntl(
+        const {baseElement} = renderWithContext(
             <ListModal {...props}/>,
         );
 
@@ -139,7 +139,7 @@ describe('components/ListModal', () => {
             ...baseProps,
             numPerPage: 2, // Set to 2 so Next button appears when we have 2 items
         };
-        renderWithIntl(
+        renderWithContext(
             <ListModal {...props}/>,
         );
 
@@ -178,7 +178,7 @@ describe('components/ListModal', () => {
     });
 
     test('search input', async () => {
-        renderWithIntl(
+        renderWithContext(
             <ListModal {...baseProps}/>,
         );
 

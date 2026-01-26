@@ -7,7 +7,7 @@ import React from 'react';
 
 import * as useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 
-import {renderWithIntl} from 'tests/react_testing_utils';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import AtPlanMention from './index';
 
@@ -19,7 +19,7 @@ describe('components/AtPlanMention', () => {
             isAirGapped: false,
         }));
 
-        renderWithIntl(<AtPlanMention plan='Enterprise trial'/>);
+        renderWithContext(<AtPlanMention plan='Enterprise trial'/>);
         await userEvent.click(screen.getByText('Enterprise trial'));
 
         expect(openPricingModal).toHaveBeenCalledTimes(1);
@@ -32,7 +32,7 @@ describe('components/AtPlanMention', () => {
             isAirGapped: false,
         }));
 
-        renderWithIntl(<AtPlanMention plan='Enterprise plan'/>);
+        renderWithContext(<AtPlanMention plan='Enterprise plan'/>);
         await userEvent.click(screen.getByText('Enterprise plan'));
 
         expect(openPricingModal).toHaveBeenCalledTimes(1);
@@ -45,7 +45,7 @@ describe('components/AtPlanMention', () => {
             isAirGapped: false,
         }));
 
-        renderWithIntl(<AtPlanMention plan='Professional plan'/>);
+        renderWithContext(<AtPlanMention plan='Professional plan'/>);
         await userEvent.click(screen.getByText('Professional plan'));
 
         expect(openPricingModal).toHaveBeenCalledTimes(1);
@@ -58,7 +58,7 @@ describe('components/AtPlanMention', () => {
             isAirGapped: true,
         }));
 
-        renderWithIntl(<AtPlanMention plan='Enterprise plan'/>);
+        renderWithContext(<AtPlanMention plan='Enterprise plan'/>);
 
         // When air-gapped, renders as span instead of anchor
         expect(screen.getByText('Enterprise plan').tagName).toBe('SPAN');

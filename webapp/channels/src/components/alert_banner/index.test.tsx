@@ -3,13 +3,13 @@
 
 import React from 'react';
 
-import {renderWithIntl} from 'tests/react_testing_utils';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import AlertBanner from '.';
 
 describe('Components/AlertBanner', () => {
     test('should match snapshot', () => {
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <AlertBanner
                 mode='info'
                 message='message'
@@ -21,7 +21,7 @@ describe('Components/AlertBanner', () => {
     });
 
     test('should match snapshot for app variant', () => {
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <AlertBanner
                 mode='info'
                 message='message'
@@ -34,7 +34,7 @@ describe('Components/AlertBanner', () => {
     });
 
     test('should match snapshot when icon disabled', () => {
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <AlertBanner
                 hideIcon={true}
                 mode='info'
@@ -48,7 +48,7 @@ describe('Components/AlertBanner', () => {
     });
 
     test('should match snapshot when buttons are passed', () => {
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <AlertBanner
                 hideIcon={true}
                 mode='info'

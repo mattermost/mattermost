@@ -74,9 +74,7 @@ exports[`components/analytics/statistic_count.tsx should match snapshot, on load
       <div
         class="content"
       >
-        <span>
-          Loading...
-        </span>
+        Loading...
       </div>
     </div>
   </div>

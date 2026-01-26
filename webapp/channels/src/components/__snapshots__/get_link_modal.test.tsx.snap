@@ -74,9 +74,7 @@ exports[`components/GetLinkModal should have called onHide when close button is 
               id="linkModalCloseButton"
               type="button"
             >
-              <span>
-                Close
-              </span>
+              Close
             </button>
             <button
               class="btn btn-primary btn-success pull-left"
@@ -87,9 +85,7 @@ exports[`components/GetLinkModal should have called onHide when close button is 
               <i
                 class="icon icon-check"
               />
-              <span>
-                Copied
-              </span>
+              Copied
             </button>
           </div>
         </div>
@@ -173,9 +169,7 @@ exports[`components/GetLinkModal should have called onHide when close button is 
               id="linkModalCloseButton"
               type="button"
             >
-              <span>
-                Close
-              </span>
+              Close
             </button>
             <button
               class="btn btn-primary pull-left"
@@ -186,9 +180,7 @@ exports[`components/GetLinkModal should have called onHide when close button is 
               <i
                 class="icon icon-link-variant"
               />
-              <span>
-                Copy Link
-              </span>
+              Copy Link
             </button>
           </div>
         </div>
@@ -277,9 +269,7 @@ exports[`components/GetLinkModal should match snapshot when all props is set 1`]
               id="linkModalCloseButton"
               type="button"
             >
-              <span>
-                Close
-              </span>
+              Close
             </button>
             <button
               class="btn btn-primary pull-left"
@@ -290,9 +280,7 @@ exports[`components/GetLinkModal should match snapshot when all props is set 1`]
               <i
                 class="icon icon-link-variant"
               />
-              <span>
-                Copy Link
-              </span>
+              Copy Link
             </button>
           </div>
         </div>
@@ -376,9 +364,7 @@ exports[`components/GetLinkModal should match snapshot when helpText is not set 
               id="linkModalCloseButton"
               type="button"
             >
-              <span>
-                Close
-              </span>
+              Close
             </button>
             <button
               class="btn btn-primary pull-left"
@@ -389,9 +375,7 @@ exports[`components/GetLinkModal should match snapshot when helpText is not set 
               <i
                 class="icon icon-link-variant"
               />
-              <span>
-                Copy Link
-              </span>
+              Copy Link
             </button>
           </div>
         </div>

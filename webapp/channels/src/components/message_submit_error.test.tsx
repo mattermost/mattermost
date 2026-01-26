@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {renderWithIntl, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import MessageSubmitError from './message_submit_error';
 
@@ -25,7 +25,7 @@ describe('components/MessageSubmitError', () => {
             submittedMessage,
         };
 
-        renderWithIntl(
+        renderWithContext(
             <MessageSubmitError {...props}/>,
         );
 
@@ -47,7 +47,7 @@ describe('components/MessageSubmitError', () => {
             submittedMessage,
         };
 
-        renderWithIntl(
+        renderWithContext(
             <MessageSubmitError {...props}/>,
         );
 

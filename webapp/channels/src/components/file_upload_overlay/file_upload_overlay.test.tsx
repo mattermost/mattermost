@@ -3,13 +3,13 @@
 
 import React from 'react';
 
-import {renderWithIntl} from 'tests/react_testing_utils';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import FileUploadOverlay from './index';
 
 describe('components/FileUploadOverlay', () => {
     test('should match snapshot when file upload is showing with no overlay type', () => {
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <FileUploadOverlay
                 overlayType=''
                 id={'fileUploadOverlay'}
@@ -20,7 +20,7 @@ describe('components/FileUploadOverlay', () => {
     });
 
     test('should match snapshot when file upload is showing with overlay type of right', () => {
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <FileUploadOverlay
                 overlayType='right'
                 id={'fileUploadOverlay'}
@@ -31,7 +31,7 @@ describe('components/FileUploadOverlay', () => {
     });
 
     test('should match snapshot when file upload is showing with overlay type of center', () => {
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <FileUploadOverlay
                 overlayType='center'
                 id={'fileUploadOverlay'}

@@ -2,17 +2,13 @@
 
 exports[`components/error_page/ErrorTitle should match snapshot, channel_not_found type 1`] = `
 <div>
-  <span>
-    Channel Not Found
-  </span>
+  Channel Not Found
 </div>
 `;
 
 exports[`components/error_page/ErrorTitle should match snapshot, local_storage type 1`] = `
 <div>
-  <span>
-    Cannot Load Mattermost
-  </span>
+  Cannot Load Mattermost
 </div>
 `;
 
@@ -24,64 +20,48 @@ exports[`components/error_page/ErrorTitle should match snapshot, no type but wit
 
 exports[`components/error_page/ErrorTitle should match snapshot, no type nor title 1`] = `
 <div>
-  <span>
-    Error
-  </span>
+  Error
 </div>
 `;
 
 exports[`components/error_page/ErrorTitle should match snapshot, oauth_access_denied type 1`] = `
 <div>
-  <span>
-    Authorization Error
-  </span>
+  Authorization Error
 </div>
 `;
 
 exports[`components/error_page/ErrorTitle should match snapshot, oauth_invalid_param type 1`] = `
 <div>
-  <span>
-    OAuth Parameter Error
-  </span>
+  OAuth Parameter Error
 </div>
 `;
 
 exports[`components/error_page/ErrorTitle should match snapshot, oauth_invalid_redirect_url type 1`] = `
 <div>
-  <span>
-    OAuth Parameter Error
-  </span>
+  OAuth Parameter Error
 </div>
 `;
 
 exports[`components/error_page/ErrorTitle should match snapshot, oauth_missing_code type 1`] = `
 <div>
-  <span>
-    Mattermost Needs Your Help
-  </span>
+  Mattermost Needs Your Help
 </div>
 `;
 
 exports[`components/error_page/ErrorTitle should match snapshot, page_not_found type 1`] = `
 <div>
-  <span>
-    Page Not Found
-  </span>
+  Page Not Found
 </div>
 `;
 
 exports[`components/error_page/ErrorTitle should match snapshot, permalink_not_found type 1`] = `
 <div>
-  <span>
-    Message Not Found
-  </span>
+  Message Not Found
 </div>
 `;
 
 exports[`components/error_page/ErrorTitle should match snapshot, team_not_found type 1`] = `
 <div>
-  <span>
-    Team Not Found
-  </span>
+  Team Not Found
 </div>
 `;

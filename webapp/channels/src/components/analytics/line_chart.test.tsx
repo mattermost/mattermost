@@ -3,13 +3,13 @@
 
 import React from 'react';
 
-import {renderWithIntl} from 'tests/react_testing_utils';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import LineChart from './line_chart';
 
 describe('components/analytics/line_chart.tsx', () => {
     test('should match snapshot, on loading', () => {
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <LineChart
                 id='test'
                 title='Test'
@@ -27,7 +27,7 @@ describe('components/analytics/line_chart.tsx', () => {
             labels: [],
         };
 
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <LineChart
                 id='test'
                 title='Test'
@@ -48,7 +48,7 @@ describe('components/analytics/line_chart.tsx', () => {
             labels: ['test1', 'test2', 'test3'],
         };
 
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <LineChart
                 id='test'
                 title='Test'

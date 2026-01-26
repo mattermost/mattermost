@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {renderWithIntl} from 'tests/react_testing_utils';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import PostDeletedModal from './post_deleted_modal';
 
@@ -13,7 +13,7 @@ describe('components/PostDeletedModal', () => {
     };
 
     test('should match snapshot', () => {
-        const {baseElement} = renderWithIntl(
+        const {baseElement} = renderWithContext(
             <PostDeletedModal {...baseProps}/>,
         );
 

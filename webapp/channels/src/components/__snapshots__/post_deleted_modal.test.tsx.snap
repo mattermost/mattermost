@@ -52,18 +52,14 @@ exports[`components/PostDeletedModal should match snapshot 1`] = `
               class="modal-title"
               id="postDeletedModalLabel"
             >
-              <span>
-                Comment could not be posted
-              </span>
+              Comment could not be posted
             </h1>
           </div>
           <div
             class="modal-body"
           >
             <p>
-              <span>
-                Someone deleted the message on which you tried to post a comment.
-              </span>
+              Someone deleted the message on which you tried to post a comment.
             </p>
           </div>
           <div
@@ -74,9 +70,7 @@ exports[`components/PostDeletedModal should match snapshot 1`] = `
               data-testid="postDeletedModalOkButton"
               type="button"
             >
-              <span>
-                Okay
-              </span>
+              Okay
             </button>
           </div>
         </div>

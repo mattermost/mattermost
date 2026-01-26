@@ -6,7 +6,7 @@ import React from 'react';
 
 import GetLinkModal from 'components/get_link_modal';
 
-import {renderWithIntl, act} from 'tests/react_testing_utils';
+import {renderWithContext, act} from 'tests/react_testing_utils';
 
 describe('components/GetLinkModal', () => {
     const onHide = jest.fn();
@@ -31,7 +31,7 @@ describe('components/GetLinkModal', () => {
         const helpText = 'help text';
         const props = {...requiredProps, helpText};
 
-        const {baseElement} = renderWithIntl(
+        const {baseElement} = renderWithContext(
             <GetLinkModal {...props}/>,
         );
 
@@ -39,7 +39,7 @@ describe('components/GetLinkModal', () => {
     });
 
     test('should match snapshot when helpText is not set', () => {
-        const {baseElement} = renderWithIntl(
+        const {baseElement} = renderWithContext(
             <GetLinkModal {...requiredProps}/>,
         );
 
@@ -50,7 +50,7 @@ describe('components/GetLinkModal', () => {
         const newOnHide = jest.fn();
         const props = {...requiredProps, onHide: newOnHide};
 
-        const {baseElement} = renderWithIntl(
+        const {baseElement} = renderWithContext(
             <GetLinkModal {...props}/>,
         );
 
@@ -82,7 +82,7 @@ describe('components/GetLinkModal', () => {
     });
 
     test('should have handle copyLink', () => {
-        const {baseElement} = renderWithIntl(
+        const {baseElement} = renderWithContext(
             <GetLinkModal {...requiredProps}/>,
         );
 
@@ -101,7 +101,7 @@ describe('components/GetLinkModal', () => {
     });
 
     test('should change button state when copying', () => {
-        renderWithIntl(
+        renderWithContext(
             <GetLinkModal {...requiredProps}/>,
         );
 
@@ -128,7 +128,7 @@ describe('components/GetLinkModal', () => {
     });
 
     test('should cleanup timeout on unmount', () => {
-        const {unmount} = renderWithIntl(
+        const {unmount} = renderWithContext(
             <GetLinkModal {...requiredProps}/>,
         );
 

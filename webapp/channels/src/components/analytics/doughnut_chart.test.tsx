@@ -6,13 +6,13 @@ import React from 'react';
 
 import DoughnutChart from 'components/analytics/doughnut_chart';
 
-import {renderWithIntl} from 'tests/react_testing_utils';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 jest.mock('chart.js');
 
 describe('components/analytics/doughnut_chart.tsx', () => {
     test('should match snapshot, on loading', () => {
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <DoughnutChart
                 title='Test'
                 height={400}
@@ -27,7 +27,7 @@ describe('components/analytics/doughnut_chart.tsx', () => {
         const Chart = jest.requireMock('chart.js');
         const data: ChartData | undefined = undefined;
 
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <DoughnutChart
                 title='Test'
                 height={400}
@@ -48,7 +48,7 @@ describe('components/analytics/doughnut_chart.tsx', () => {
             ],
         };
 
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <DoughnutChart
                 title='Test'
                 height={400}
@@ -71,7 +71,7 @@ describe('components/analytics/doughnut_chart.tsx', () => {
             labels: ['test1', 'test2', 'test3'],
         };
 
-        const {unmount} = renderWithIntl(
+        const {unmount} = renderWithContext(
             <DoughnutChart
                 title='Test'
                 height={400}
@@ -101,7 +101,7 @@ describe('components/analytics/doughnut_chart.tsx', () => {
             labels: ['test1', 'test2', 'test3', 'test4'],
         };
 
-        const {rerender} = renderWithIntl(
+        const {rerender} = renderWithContext(
             <DoughnutChart
                 title='Test'
                 height={400}

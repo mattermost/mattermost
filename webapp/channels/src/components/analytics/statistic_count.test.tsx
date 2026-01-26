@@ -4,13 +4,13 @@
 import {screen} from '@testing-library/react';
 import React from 'react';
 
-import {renderWithIntl} from 'tests/react_testing_utils';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import StatisticCount from './statistic_count';
 
 describe('components/analytics/statistic_count.tsx', () => {
     test('should match snapshot, on loading', () => {
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <StatisticCount
                 title='Test'
                 icon='test-icon'
@@ -21,7 +21,7 @@ describe('components/analytics/statistic_count.tsx', () => {
     });
 
     test('should match snapshot, loaded', () => {
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <StatisticCount
                 title='Test'
                 icon='test-icon'
@@ -33,7 +33,7 @@ describe('components/analytics/statistic_count.tsx', () => {
     });
 
     test('should match snapshot, loaded with zero value', () => {
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <StatisticCount
                 title='Test Zero'
                 icon='test-icon'
@@ -46,7 +46,7 @@ describe('components/analytics/statistic_count.tsx', () => {
 
     test('should apply formatter function when provided', () => {
         const mockFormatter = (value: number) => `${value}%`;
-        renderWithIntl(
+        renderWithContext(
             <StatisticCount
                 title='Test'
                 icon='test-icon'

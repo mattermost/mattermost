@@ -88,9 +88,7 @@ exports[`components/ListModal should match snapshot 1`] = `
                   <span
                     class="member-count pull-left"
                   >
-                    <span>
-                      1 - 2 of 3 total
-                    </span>
+                    1 - 2 of 3 total
                   </span>
                 </div>
               </div>
@@ -218,9 +216,7 @@ exports[`components/ListModal should match snapshot with title bar button 1`] = 
                   <span
                     class="member-count pull-left"
                   >
-                    <span>
-                      1 - 2 of 3 total
-                    </span>
+                    1 - 2 of 3 total
                   </span>
                 </div>
               </div>

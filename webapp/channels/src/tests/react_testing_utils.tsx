@@ -17,7 +17,6 @@ import configureStore from 'store';
 import globalStore from 'stores/redux_store';
 
 import WebSocketClient from 'client/web_websocket_client';
-import defaultMessages from 'i18n/en.json';
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import mockStore from 'tests/test_store';
 import {WebSocketContext} from 'utils/use_websocket';
@@ -97,28 +96,6 @@ export const renderWithContext = (
         },
         store: testStore,
     };
-};
-
-export const renderWithIntl = (
-    component: React.ReactElement,
-    options?: IntlOptions,
-) => {
-    const locale = options?.locale ?? 'en';
-    const messages = options?.messages ?? defaultMessages;
-
-    return render(component, {
-        wrapper: ({children}) => (
-            <IntlProvider
-                locale={locale}
-                defaultLocale='en'
-                timeZone='Etc/UTC'
-                messages={messages}
-                textComponent='span'
-            >
-                {children}
-            </IntlProvider>
-        ),
-    });
 };
 
 export const renderHookWithContext = <TProps, TResult>(

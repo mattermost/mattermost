@@ -5,7 +5,7 @@ import {screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
-import {renderWithIntl} from 'tests/react_testing_utils';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import ScrollToBottomToast from './scroll_to_bottom_toast';
 
@@ -18,7 +18,7 @@ describe('ScrollToBottomToast Component', () => {
     });
 
     it('should render ScrollToBottomToast component', () => {
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <ScrollToBottomToast
                 onDismiss={mockOnDismiss}
                 onClick={mockOnClick}
@@ -31,7 +31,7 @@ describe('ScrollToBottomToast Component', () => {
     });
 
     it('should call onClick when clicked', async () => {
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <ScrollToBottomToast
                 onDismiss={mockOnDismiss}
                 onClick={mockOnClick}
@@ -44,7 +44,7 @@ describe('ScrollToBottomToast Component', () => {
     });
 
     it('should call onDismiss when close button is clicked', async () => {
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <ScrollToBottomToast
                 onDismiss={mockOnDismiss}
                 onClick={mockOnClick}

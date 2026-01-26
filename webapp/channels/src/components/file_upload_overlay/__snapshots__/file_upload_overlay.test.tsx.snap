@@ -18,9 +18,7 @@ exports[`components/FileUploadOverlay should match snapshot when file upload is 
           loading="lazy"
           src=""
         />
-        <span>
-          Drop a file to upload it.
-        </span>
+        Drop a file to upload it.
       </div>
     </div>
   </div>
@@ -45,9 +43,7 @@ exports[`components/FileUploadOverlay should match snapshot when file upload is 
           loading="lazy"
           src=""
         />
-        <span>
-          Drop a file to upload it.
-        </span>
+        Drop a file to upload it.
       </div>
     </div>
   </div>
@@ -72,9 +68,7 @@ exports[`components/FileUploadOverlay should match snapshot when file upload is 
           loading="lazy"
           src=""
         />
-        <span>
-          Drop a file to upload it.
-        </span>
+        Drop a file to upload it.
       </div>
     </div>
   </div>

@@ -46,9 +46,7 @@ exports[`components/analytics/line_chart.tsx should match snapshot, loaded witho
         class="content"
       >
         <h5>
-          <span>
-            Not enough data for a meaningful representation.
-          </span>
+          Not enough data for a meaningful representation.
         </h5>
       </div>
     </div>
@@ -72,9 +70,7 @@ exports[`components/analytics/line_chart.tsx should match snapshot, on loading 1
       <div
         class="content"
       >
-        <span>
-          Loading...
-        </span>
+        Loading...
       </div>
     </div>
   </div>

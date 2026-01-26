@@ -6,7 +6,7 @@ import React from 'react';
 
 import SingleImageView from 'components/single_image_view/single_image_view';
 
-import {renderWithIntl} from 'tests/react_testing_utils';
+import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 describe('components/SingleImageView', () => {
@@ -28,7 +28,7 @@ describe('components/SingleImageView', () => {
     });
 
     test('should match snapshot', () => {
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <SingleImageView {...baseProps}/>,
         );
 
@@ -50,7 +50,7 @@ describe('components/SingleImageView', () => {
             extension: 'svg',
         });
         const props = {...baseProps, fileInfo};
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <SingleImageView {...props}/>,
         );
 
@@ -66,7 +66,7 @@ describe('components/SingleImageView', () => {
     });
 
     test('should call openModal on handleImageClick', () => {
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <SingleImageView {...baseProps}/>,
         );
 
@@ -92,7 +92,7 @@ describe('components/SingleImageView', () => {
             },
         };
 
-        renderWithIntl(
+        renderWithContext(
             <SingleImageView {...props}/>,
         );
 
@@ -102,7 +102,7 @@ describe('components/SingleImageView', () => {
     });
 
     test('should set loaded state on callback of onImageLoaded on SizeAwareImage component', () => {
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <SingleImageView {...baseProps}/>,
         );
 
@@ -123,7 +123,7 @@ describe('components/SingleImageView', () => {
     });
 
     test('should correctly pass prop down to surround small images with a container', () => {
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <SingleImageView {...baseProps}/>,
         );
 
@@ -134,7 +134,7 @@ describe('components/SingleImageView', () => {
     });
 
     test('should not show filename when image is displayed', () => {
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <SingleImageView
                 {...baseProps}
                 isEmbedVisible={true}
@@ -145,7 +145,7 @@ describe('components/SingleImageView', () => {
     });
 
     test('should show filename when image is collapsed', () => {
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <SingleImageView
                 {...baseProps}
                 isEmbedVisible={false}
@@ -162,7 +162,7 @@ describe('components/SingleImageView', () => {
                 isInPermalink: true,
             };
 
-            const {container} = renderWithIntl(<SingleImageView {...props}/>);
+            const {container} = renderWithContext(<SingleImageView {...props}/>);
 
             expect(container.querySelector('.image-permalink')).toBeInTheDocument();
             expect(container).toMatchSnapshot();
