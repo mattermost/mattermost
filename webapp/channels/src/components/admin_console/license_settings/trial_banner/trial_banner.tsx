@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState} from 'react';
-import type {ReactNode} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -108,7 +107,7 @@ const TrialBanner = ({
         case TrialLoadStatus.Failed:
             return formatMessage({id: 'start_trial.modal.failed', defaultMessage: 'Failed'});
         case TrialLoadStatus.Embargoed:
-            return formatMessage<ReactNode>(
+            return formatMessage(
                 {
                     id: 'admin.license.trial-request.embargoed',
                     defaultMessage: 'We were unable to process the request due to limitations for embargoed countries. <link>Learn more in our documentation</link>, or reach out to legal@mattermost.com for questions around export limitations.',
@@ -342,7 +341,7 @@ const TrialBanner = ({
                 <p className='upgrade-legal-terms'>
                     <FormattedMessage
                         id='admin.license.upgrade-and-trial-request.accept-terms-initial-part'
-                        defaultMessage='By selecting <strong>Upgrade Server And Start trial</strong>, I agree to the <linkEvaluation>Mattermost Software and Services License Agreement</linkEvaluation>, <linkPrivacy>Privacy Policy</linkPrivacy>, and receiving product emails. '
+                        defaultMessage='By selecting <strong>Upgrade Server And Start trial</strong>, I agree to the <linkEvaluation>Mattermost Software Evaluation Agreement</linkEvaluation>, <linkPrivacy>Privacy Policy</linkPrivacy>, and receiving product emails. '
                         values={{
                             strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
                             linkEvaluation: (msg: React.ReactNode) => (
