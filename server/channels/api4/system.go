@@ -101,7 +101,7 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 		PluginPackets: r.Form["plugin_packets"],
 	}
 
-	auditRec.AddMeta("include_logs", includeLogs)
+	auditRec.AddMeta("include_logs", supportPacketOptions.IncludeLogs)
 	auditRec.AddMeta("plugin_packets", supportPacketOptions.PluginPackets)
 
 	// Checking to see if the server has a e10 or e20 license (this feature is only permitted for servers with licenses)
