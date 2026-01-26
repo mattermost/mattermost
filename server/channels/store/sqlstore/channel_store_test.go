@@ -51,35 +51,62 @@ func TestChannelStoreInternalDataTypes(t *testing.T) {
 }
 
 func testNewMapFromChannelMemberModel(t *testing.T) {
-	m := model.ChannelMember{
-		ChannelId:     model.NewId(),
-		UserId:        model.NewId(),
-		Roles:         "channel_user channel_admin custom_role",
-		LastViewedAt:  12345,
-		MsgCount:      2,
-		MentionCount:  1,
-		NotifyProps:   model.StringMap{"key": "value"},
-		LastUpdateAt:  54321,
-		SchemeGuest:   false,
-		SchemeUser:    true,
-		SchemeAdmin:   true,
-		ExplicitRoles: "custom_role",
-	}
+	t.Run("direct membership with empty SourceID", func(t *testing.T) {
+		m := model.ChannelMember{
+			ChannelId:     model.NewId(),
+			UserId:        model.NewId(),
+			Roles:         "channel_user channel_admin custom_role",
+			LastViewedAt:  12345,
+			MsgCount:      2,
+			MentionCount:  1,
+			NotifyProps:   model.StringMap{"key": "value"},
+			LastUpdateAt:  54321,
+			SchemeGuest:   false,
+			SchemeUser:    true,
+			SchemeAdmin:   true,
+			ExplicitRoles: "custom_role",
+			SourceID:      "",
+		}
 
-	db := NewMapFromChannelMemberModel(&m)
+		db := NewMapFromChannelMemberModel(&m)
 
-	assert.Equal(t, m.ChannelId, db["ChannelId"])
-	assert.Equal(t, m.UserId, db["UserId"])
-	assert.Equal(t, m.LastViewedAt, db["LastViewedAt"])
-	assert.Equal(t, m.MsgCount, db["MsgCount"])
-	assert.Equal(t, m.MentionCount, db["MentionCount"])
-	assert.Equal(t, int64(0), m.MentionCountRoot)
-	assert.Equal(t, m.NotifyProps, db["NotifyProps"])
-	assert.Equal(t, m.LastUpdateAt, db["LastUpdateAt"])
-	assert.Equal(t, sql.NullBool{Bool: false, Valid: true}, db["SchemeGuest"])
-	assert.Equal(t, sql.NullBool{Bool: true, Valid: true}, db["SchemeUser"])
-	assert.Equal(t, sql.NullBool{Bool: true, Valid: true}, db["SchemeAdmin"])
-	assert.Equal(t, m.ExplicitRoles, db["Roles"])
+		assert.Equal(t, m.ChannelId, db["ChannelId"])
+		assert.Equal(t, m.UserId, db["UserId"])
+		assert.Equal(t, m.LastViewedAt, db["LastViewedAt"])
+		assert.Equal(t, m.MsgCount, db["MsgCount"])
+		assert.Equal(t, m.MentionCount, db["MentionCount"])
+		assert.Equal(t, int64(0), m.MentionCountRoot)
+		assert.Equal(t, m.NotifyProps, db["NotifyProps"])
+		assert.Equal(t, m.LastUpdateAt, db["LastUpdateAt"])
+		assert.Equal(t, sql.NullBool{Bool: false, Valid: true}, db["SchemeGuest"])
+		assert.Equal(t, sql.NullBool{Bool: true, Valid: true}, db["SchemeUser"])
+		assert.Equal(t, sql.NullBool{Bool: true, Valid: true}, db["SchemeAdmin"])
+		assert.Equal(t, m.ExplicitRoles, db["Roles"])
+		assert.Equal(t, "", db["SourceID"])
+	})
+
+	t.Run("synthetic membership with SourceID", func(t *testing.T) {
+		sourceID := model.NewId()
+		m := model.ChannelMember{
+			ChannelId:     model.NewId(),
+			UserId:        model.NewId(),
+			Roles:         "channel_user",
+			LastViewedAt:  0,
+			MsgCount:      0,
+			MentionCount:  0,
+			NotifyProps:   model.StringMap{},
+			LastUpdateAt:  54321,
+			SchemeGuest:   false,
+			SchemeUser:    true,
+			SchemeAdmin:   false,
+			ExplicitRoles: "",
+			SourceID:      sourceID,
+		}
+
+		db := NewMapFromChannelMemberModel(&m)
+
+		assert.Equal(t, sourceID, db["SourceID"])
+	})
 }
 
 func testChannelMemberWithSchemeRolesToModel(t *testing.T) {
@@ -120,6 +147,37 @@ func testChannelMemberWithSchemeRolesToModel(t *testing.T) {
 		assert.Equal(t, db.SchemeUser.Bool, m.SchemeUser)
 		assert.Equal(t, db.SchemeAdmin.Bool, m.SchemeAdmin)
 		assert.Equal(t, db.Roles, m.ExplicitRoles)
+		assert.Equal(t, "", m.SourceID) // Direct membership has empty SourceID
+	})
+
+	t.Run("SyntheticMembership", func(t *testing.T) {
+		sourceChannelID := model.NewId()
+		db := channelMemberWithSchemeRoles{
+			ChannelId:                     model.NewId(),
+			UserId:                        model.NewId(),
+			Roles:                         "",
+			LastViewedAt:                  0,
+			MsgCount:                      0,
+			MentionCount:                  0,
+			NotifyProps:                   model.StringMap{},
+			LastUpdateAt:                  54321,
+			SchemeGuest:                   sql.NullBool{Valid: true, Bool: false},
+			SchemeUser:                    sql.NullBool{Valid: true, Bool: true},
+			SchemeAdmin:                   sql.NullBool{Valid: true, Bool: false},
+			SourceID:                      sourceChannelID,
+			TeamSchemeDefaultGuestRole:    sql.NullString{Valid: false},
+			TeamSchemeDefaultUserRole:     sql.NullString{Valid: false},
+			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: false},
+			ChannelSchemeDefaultGuestRole: sql.NullString{Valid: false},
+			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: false},
+			ChannelSchemeDefaultAdminRole: sql.NullString{Valid: false},
+		}
+
+		m := db.ToModel()
+
+		assert.Equal(t, sourceChannelID, m.SourceID)
+		assert.True(t, m.IsSynthetic())
+		assert.Equal(t, "channel_user", m.Roles)
 	})
 
 	// Example data *before* the Phase 2 migration has taken place.

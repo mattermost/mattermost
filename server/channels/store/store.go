@@ -323,6 +323,12 @@ type ChannelStore interface {
 	GetTeamForChannel(channelID string) (*model.Team, error)
 	IsReadOnlyChannel(channelID string) (bool, error)
 	IsChannelReadOnlyScheme(schemeID string) (bool, error)
+
+	// Channel link methods
+	CreateChannelLink(rctx request.CTX, link *model.ChannelLink) (*model.ChannelLink, error)
+	DeleteChannelLink(rctx request.CTX, sourceID, destinationID string) error
+	GetLinksForSource(rctx request.CTX, sourceID string) ([]*model.ChannelLink, error)
+	GetLinksForDestination(rctx request.CTX, destinationID, sourceType string) ([]*model.ChannelLink, error)
 }
 
 type ChannelMemberHistoryStore interface {
