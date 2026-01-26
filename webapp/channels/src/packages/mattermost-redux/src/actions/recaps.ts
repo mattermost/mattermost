@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Recap, ScheduledRecap, ScheduledRecapInput} from '@mattermost/types/recaps';
+import type {Recap, ScheduledRecap, ScheduledRecapInput, RecapLimitStatus} from '@mattermost/types/recaps';
 
 import {RecapTypes} from 'mattermost-redux/action_types';
 import {logError} from 'mattermost-redux/actions/errors';
@@ -201,6 +201,27 @@ export function updateScheduledRecap(id: string, input: ScheduledRecapInput): Ac
 
         dispatch({type: RecapTypes.RECEIVED_SCHEDULED_RECAP, data});
         dispatch({type: RecapTypes.UPDATE_SCHEDULED_RECAP_SUCCESS});
+
+        return {data};
+    };
+}
+
+export function getRecapLimitStatus(): ActionFuncAsync<RecapLimitStatus> {
+    return async (dispatch, getState) => {
+        dispatch({type: RecapTypes.GET_RECAP_LIMIT_STATUS_REQUEST});
+
+        let data: RecapLimitStatus;
+        try {
+            data = await Client4.getRecapLimitStatus();
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch({type: RecapTypes.GET_RECAP_LIMIT_STATUS_FAILURE, error});
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch({type: RecapTypes.RECEIVED_RECAP_LIMIT_STATUS, data});
+        dispatch({type: RecapTypes.GET_RECAP_LIMIT_STATUS_SUCCESS});
 
         return {data};
     };

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Recap, ScheduledRecap} from '@mattermost/types/recaps';
+import type {Recap, ScheduledRecap, RecapLimitStatus} from '@mattermost/types/recaps';
 import {RecapStatus} from '@mattermost/types/recaps';
 import type {GlobalState} from '@mattermost/types/store';
 
@@ -14,6 +14,10 @@ export function getAllRecaps(state: GlobalState): Recap[] {
 
 export function getRecap(state: GlobalState, recapId: string): Recap | undefined {
     return state.entities.recaps.byId[recapId] || undefined;
+}
+
+export function getRecapLimitStatus(state: GlobalState): RecapLimitStatus | null {
+    return state.entities.recaps.limitStatus;
 }
 
 export const getRecapsByStatus = createSelector(
@@ -92,4 +96,3 @@ export const getPausedScheduledRecaps = createSelector(
 export function getScheduledRecapById(state: GlobalState, id: string): ScheduledRecap | undefined {
     return getScheduledRecapsState(state)[id];
 }
-

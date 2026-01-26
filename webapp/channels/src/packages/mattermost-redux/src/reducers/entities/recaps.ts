@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Recap, ScheduledRecap} from '@mattermost/types/recaps';
+import type {Recap, ScheduledRecap, RecapLimitStatus} from '@mattermost/types/recaps';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {RecapTypes, UserTypes} from 'mattermost-redux/action_types';
@@ -10,12 +10,14 @@ export type RecapsState = {
     byId: Record<string, Recap>;
     allIds: string[];
     scheduledRecaps: Record<string, ScheduledRecap>;
+    limitStatus: RecapLimitStatus | null;
 };
 
 const initialState: RecapsState = {
     byId: {},
     allIds: [],
     scheduledRecaps: {},
+    limitStatus: null,
 };
 
 export default function recapsReducer(state = initialState, action: MMReduxAction): RecapsState {
@@ -83,6 +85,12 @@ export default function recapsReducer(state = initialState, action: MMReduxActio
             scheduledRecaps: newScheduledRecaps,
         };
     }
+
+    case RecapTypes.RECEIVED_RECAP_LIMIT_STATUS:
+        return {
+            ...state,
+            limitStatus: action.data as RecapLimitStatus,
+        };
 
     case RecapTypes.DELETE_SCHEDULED_RECAP_SUCCESS: {
         const {id} = action.data as {id: string};
