@@ -24,7 +24,7 @@ func newSqlLicenseStore(sqlStore *SqlStore) store.LicenseStore {
 
 // Save validates and stores the license instance in the database. The Id
 // and Bytes fields are mandatory. The Bytes field is limited to a maximum
-// of 10000 bytes. Provided license is saved only if missing.
+// of 100000 bytes (increased to support Keygen certificates). Provided license is saved only if missing.
 func (ls SqlLicenseStore) Save(license *model.LicenseRecord) error {
 	license.PreSave()
 	if err := license.IsValid(); err != nil {

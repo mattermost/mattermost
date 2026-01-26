@@ -130,6 +130,11 @@ func (ps *PlatformService) LoadLicense() {
 func (ps *PlatformService) SaveLicense(licenseBytes []byte) (*model.License, *model.AppError) {
 	licenseStr, err := utils.LicenseValidator.ValidateLicense(licenseBytes)
 	if err != nil {
+		// Check if this is a network error (licensing server unreachable)
+		if utils.IsNetworkError(err) {
+			return nil, model.NewAppError("addLicense", model.LicenseServerUnreachableError, nil, "", http.StatusServiceUnavailable).Wrap(err)
+		}
+		// Otherwise, it's an invalid license
 		return nil, model.NewAppError("addLicense", model.InvalidLicenseError, nil, "", http.StatusBadRequest).Wrap(err)
 	}
 

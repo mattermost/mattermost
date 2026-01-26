@@ -4,6 +4,7 @@
 package utils
 
 import (
+	"context"
 	"crypto"
 	"crypto/rsa"
 	"crypto/sha512"
@@ -11,6 +12,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"io"
 	"maps"
@@ -18,6 +20,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -43,6 +46,11 @@ type LicenseValidatorImpl struct {
 func (l *LicenseValidatorImpl) LicenseFromBytes(licenseBytes []byte) (*model.License, *model.AppError) {
 	licenseStr, err := l.ValidateLicense(licenseBytes)
 	if err != nil {
+		// Check if this is a network error (licensing server unreachable)
+		if IsNetworkError(err) {
+			return nil, model.NewAppError("LicenseFromBytes", model.LicenseServerUnreachableError, nil, "", http.StatusServiceUnavailable).Wrap(err)
+		}
+		// Otherwise, it's an invalid license
 		return nil, model.NewAppError("LicenseFromBytes", model.InvalidLicenseError, nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
@@ -55,6 +63,99 @@ func (l *LicenseValidatorImpl) LicenseFromBytes(licenseBytes []byte) (*model.Lic
 }
 
 func (l *LicenseValidatorImpl) ValidateLicense(signed []byte) (string, error) {
+	format := DetectLicenseFormat(signed)
+
+	switch format {
+	case LicenseFormatKeygen:
+		return l.validateKeygenLicense(signed)
+	case LicenseFormatLegacyRSA:
+		return l.validateRSALicense(signed)
+	default:
+		return "", fmt.Errorf("unknown license format")
+	}
+}
+
+// validateKeygenLicense handles Keygen Ed25519-signed license files
+func (l *LicenseValidatorImpl) validateKeygenLicense(certificate []byte) (string, error) {
+	validator := NewKeygenLicenseValidator()
+
+	// Keygen licenses are PEM-encoded certificates, not base64
+	licenseData, err := validator.VerifyAndDecode(string(certificate))
+	if err != nil {
+		return "", fmt.Errorf("keygen license verification failed: %w", err)
+	}
+
+	if err2 := ValidateKeygenOnlineIfConfigured(licenseData.Key); err2 != nil {
+		return "", err2
+	}
+
+	// Convert to model.License for compatibility with existing code
+	license, err := ConvertKeygenToModelLicense(licenseData)
+	if err != nil {
+		return "", fmt.Errorf("keygen license conversion failed: %w", err)
+	}
+
+	// Return JSON string for existing interface compatibility
+	licenseJSON, err := json.Marshal(license)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal license: %w", err)
+	}
+
+	return string(licenseJSON), nil
+}
+
+// ValidateKeygenOnlineIfConfigured performs online Keygen license validation if the
+// required environment variables (KEYGEN_ACCOUNT_ID, KEYGEN_PRODUCT_ID) are configured.
+//
+// Security behavior:
+//   - If env vars are NOT set: Returns nil (allows offline-only validation for airgapped instances)
+//   - If env vars ARE set: Online validation is REQUIRED. Network failures will cause validation
+//     to fail rather than falling back to offline validation. This prevents bypassing online
+//     validation by disconnecting from the internet.
+//
+// For airgapped/offline instances, operators should NOT set the KEYGEN_ACCOUNT_ID and
+// KEYGEN_PRODUCT_ID environment variables.
+//
+// Timeout: The validation has a total timeout of 15 seconds to prevent long waits for users.
+func ValidateKeygenOnlineIfConfigured(licenseKey string) error {
+	apiClient, err := NewKeygenAPIClientFromEnv()
+	if err != nil {
+		if errors.Is(err, ErrKeygenConfigMissing) {
+			// Config not set - this is an airgapped/offline instance
+			// Allow offline validation to proceed
+			return nil
+		}
+		return fmt.Errorf("keygen online validation config error: %w", err)
+	}
+
+	// Config IS set - online validation is now REQUIRED
+	// Network failures will cause validation to fail (no offline fallback)
+
+	if licenseKey == "" {
+		return fmt.Errorf("keygen license key missing for online validation")
+	}
+
+	// Create a context with timeout to prevent long waits
+	// 15 seconds allows for 2 retries with reasonable wait times
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	result, err := apiClient.Validate(ctx, licenseKey)
+	if err != nil {
+		// Return the error - do NOT fallback to offline validation
+		// This prevents users from bypassing online validation by disconnecting
+		return fmt.Errorf("keygen online validation failed: %w", err)
+	}
+
+	if result != nil && result.ValidationCode != ValidationCodeValid {
+		return fmt.Errorf("keygen license not valid: %s", result.ValidationCode)
+	}
+
+	return nil
+}
+
+// validateRSALicense handles legacy RSA-signed licenses (existing logic)
+func (l *LicenseValidatorImpl) validateRSALicense(signed []byte) (string, error) {
 	decoded := make([]byte, base64.StdEncoding.DecodedLen(len(signed)))
 
 	_, err := base64.StdEncoding.Decode(decoded, signed)

@@ -184,7 +184,8 @@ func TestLicenseRecordIsValid(t *testing.T) {
 	appErr = lr.IsValid()
 	assert.NotNil(t, appErr)
 
-	lr.Bytes = strings.Repeat("0123456789", 1001)
+	// Exceeds 100,000 char limit (increased for Keygen certificates)
+	lr.Bytes = strings.Repeat("0123456789", 10001)
 	appErr = lr.IsValid()
 	assert.NotNil(t, appErr)
 

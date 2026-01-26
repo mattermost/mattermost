@@ -1364,6 +1364,10 @@ func (s *Server) doLicenseExpirationCheck() {
 		return
 	}
 
+	if !s.checkKeygenOnlineLicenseValidity() {
+		return
+	}
+
 	if license.IsCloud() || license.IsMattermostEntry() {
 		return
 	}
@@ -1410,6 +1414,67 @@ func (s *Server) doLicenseExpirationCheck() {
 	if appErr := s.RemoveLicense(); appErr != nil {
 		mlog.Error("Error while removing the license.", mlog.Err(appErr))
 	}
+}
+
+func (s *Server) checkKeygenOnlineLicenseValidity() bool {
+	record, err := s.getActiveLicenseRecord()
+	if err != nil {
+		mlog.Warn("Failed to load active license record for Keygen validation.", mlog.Err(err))
+		return true
+	}
+	if record == nil || record.Bytes == "" {
+		return true
+	}
+
+	licenseBytes := []byte(record.Bytes)
+	if !utils.IsKeygenLicense(licenseBytes) {
+		return true
+	}
+
+	licenseData, err := utils.VerifyKeygenLicense(licenseBytes)
+	if err != nil {
+		mlog.Warn("Failed to decode Keygen license during expiration check.", mlog.Err(err))
+		return true
+	}
+	if licenseData.Key == "" {
+		mlog.Debug("Skipping Keygen online validation: license key missing from certificate.")
+		return true
+	}
+
+	if err := utils.ValidateKeygenOnlineIfConfigured(licenseData.Key); err != nil {
+		mlog.Warn("Keygen online validation failed during expiration check.", mlog.Err(err))
+		if appErr := s.RemoveLicense(); appErr != nil {
+			mlog.Error("Error while removing invalid Keygen license.", mlog.Err(appErr))
+		}
+		return false
+	}
+
+	return true
+}
+
+func (s *Server) getActiveLicenseRecord() (*model.LicenseRecord, error) {
+	system, err := s.Store().System().GetByName(model.SystemActiveLicenseId)
+	if err != nil {
+		if store.IsErrNotFound(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	if system == nil || system.Value == "" {
+		return nil, nil
+	}
+
+	rctx := store.RequestContextWithMaster(request.EmptyContext(s.Log()))
+	record, err := s.Store().License().Get(rctx, system.Value)
+	if err != nil {
+		if store.IsErrNotFound(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return record, nil
 }
 
 // SendRemoveExpiredLicenseEmail formats an email and uses the email service to send the email to user with link pointing to CWS
