@@ -272,5 +272,4 @@ describe('components/datetime_input/DateTimeInput', () => {
             expect(props.time).toBeDefined();
         });
     });
-
 });
