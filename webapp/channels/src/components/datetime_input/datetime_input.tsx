@@ -23,14 +23,14 @@ import {getCurrentMomentForTimezone, isBeforeTime} from 'utils/timezone';
 
 const CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES = 30;
 
-export function getRoundedTime(value: Moment, roundedTo = CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES) {
-    const start = moment(value);
-    const diff = start.minute() % roundedTo;
+export function getRoundedTime(value: Moment, roundedTo = CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES): Moment {
+    const diff = value.minute() % roundedTo;
     if (diff === 0) {
-        return value;
+        // Always return a new moment for consistency, even if no rounding needed
+        return moment(value).seconds(0).milliseconds(0);
     }
     const remainder = roundedTo - diff;
-    return start.add(remainder, 'm').seconds(0).milliseconds(0);
+    return moment(value).add(remainder, 'm').seconds(0).milliseconds(0);
 }
 
 export const getTimeInIntervals = (startTime: Moment, interval = CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES): Date[] => {
@@ -120,22 +120,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
         };
     }, [handleKeyDown]);
 
-    // Auto-round time if it's not already on an interval boundary
-    // This ensures consistent behavior across all callers (DND, Custom Status, Post Reminder, etc.)
-    // Uses default 30-minute interval if not specified
     useEffect(() => {
-        if (time) {
-            const interval = timePickerInterval || CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES;
-            const rounded = getRoundedTime(time, interval);
-
-            // Only update if the time actually needs rounding
-            if (!rounded.isSame(time, 'minute')) {
-                handleChange(rounded);
-            }
-        }
-    }, [time, timePickerInterval, handleChange]);
-
-    const setTimeAndOptions = () => {
         const currentTime = getCurrentMomentForTimezone(timezone);
         let startTime = moment(time).startOf('day');
 
@@ -146,9 +131,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
         }
 
         setTimeOptions(getTimeInIntervals(startTime, timePickerInterval));
-    };
-
-    useEffect(setTimeAndOptions, [time]);
+    }, [time, timezone, allowPastDates, timePickerInterval]);
 
     const handleDayChange = (day: Date, modifiers: DayModifiers) => {
         if (modifiers.today) {
@@ -257,7 +240,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
                 >
                     {timeOptions.map((option, index) => (
                         <Menu.Item
-                            key={index}
+                            key={option.getTime()}
                             id={`time_option_${index}`}
                             data-testid={`time_option_${index}`}
                             labels={
