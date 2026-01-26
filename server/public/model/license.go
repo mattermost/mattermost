@@ -14,10 +14,11 @@ const (
 	DayInSeconds      = 24 * 60 * 60
 	DayInMilliseconds = DayInSeconds * 1000
 
-	ExpiredLicenseError = "api.license.add_license.expired.app_error"
-	InvalidLicenseError = "api.license.add_license.invalid.app_error"
-	LicenseGracePeriod  = DayInMilliseconds * 10 //10 days
-	LicenseRenewalLink  = "https://mattermost.com/renew/"
+	ExpiredLicenseError           = "api.license.add_license.expired.app_error"
+	InvalidLicenseError           = "api.license.add_license.invalid.app_error"
+	LicenseServerUnreachableError = "api.license.add_license.server_unreachable.app_error"
+	LicenseGracePeriod            = DayInMilliseconds * 10 //10 days
+	LicenseRenewalLink            = "https://mattermost.com/renew/"
 
 	LicenseShortSkuE10                = "E10"
 	LicenseShortSkuE20                = "E20"

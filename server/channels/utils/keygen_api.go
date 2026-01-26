@@ -99,23 +99,24 @@ type KeygenAPIConfig struct {
 	AccountID string
 	// ProductID is the Keygen product ID (from env: KEYGEN_PRODUCT_ID)
 	ProductID string
-	// Timeout is the request timeout (default: 30s)
+	// Timeout is the request timeout (default: 10s)
 	Timeout time.Duration
-	// RetryMax is the maximum number of retries (default: 3)
+	// RetryMax is the maximum number of retries (default: 2)
 	RetryMax int
-	// RetryWaitMin is the minimum wait time between retries (default: 1s)
+	// RetryWaitMin is the minimum wait time between retries (default: 500ms)
 	RetryWaitMin time.Duration
-	// RetryWaitMax is the maximum wait time between retries (default: 5s)
+	// RetryWaitMax is the maximum wait time between retries (default: 2s)
 	RetryWaitMax time.Duration
 }
 
 // DefaultKeygenAPIConfig returns a KeygenAPIConfig with sensible defaults.
+// Total maximum wait time with retries: ~30 seconds (10s timeout × 2 retries + wait times)
 func DefaultKeygenAPIConfig() KeygenAPIConfig {
 	return KeygenAPIConfig{
-		Timeout:      30 * time.Second,
-		RetryMax:     3,
-		RetryWaitMin: 1 * time.Second,
-		RetryWaitMax: 5 * time.Second,
+		Timeout:      10 * time.Second,
+		RetryMax:     2,
+		RetryWaitMin: 500 * time.Millisecond,
+		RetryWaitMax: 2 * time.Second,
 	}
 }
 
@@ -140,16 +141,16 @@ type KeygenAPIClient struct {
 func NewKeygenAPIClient(config KeygenAPIConfig) *KeygenAPIClient {
 	// Apply defaults for zero values
 	if config.Timeout == 0 {
-		config.Timeout = 30 * time.Second
+		config.Timeout = 10 * time.Second
 	}
 	if config.RetryMax == 0 {
-		config.RetryMax = 3
+		config.RetryMax = 2
 	}
 	if config.RetryWaitMin == 0 {
-		config.RetryWaitMin = 1 * time.Second
+		config.RetryWaitMin = 500 * time.Millisecond
 	}
 	if config.RetryWaitMax == 0 {
-		config.RetryWaitMax = 5 * time.Second
+		config.RetryWaitMax = 2 * time.Second
 	}
 
 	// Create retryable HTTP client with linear jitter backoff
@@ -383,6 +384,13 @@ func IsDefinitiveFailure(err error) bool {
 //
 // Returns true only for network errors where the API could not be reached.
 // Returns false for definitive validation failures or nil errors.
+//
+// SECURITY NOTE: This function is intended for use in contexts where offline fallback
+// is explicitly allowed (e.g., airgapped instances). In production validation paths
+// where KEYGEN_ACCOUNT_ID and KEYGEN_PRODUCT_ID are configured, network errors should
+// cause validation to FAIL rather than fallback, to prevent bypassing online validation
+// by disconnecting from the internet. See ValidateKeygenOnlineIfConfigured for the
+// production behavior.
 func ShouldFallbackToOffline(err error) bool {
 	if err == nil {
 		return false
