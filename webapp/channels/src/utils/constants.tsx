@@ -71,11 +71,7 @@ export const Preferences = {
     CATEGORY_ADVANCED_SETTINGS: 'advanced_settings',
     TUTORIAL_STEP: 'tutorial_step',
     TUTORIAL_STEP_AUTO_TOUR_STATUS: 'tutorial_step_auto_tour_status',
-    CRT_TUTORIAL_TRIGGERED: 'crt_tutorial_triggered',
-    CRT_TUTORIAL_AUTO_TOUR_STATUS: 'crt_tutorial_auto_tour_status',
-    CRT_TUTORIAL_STEP: 'crt_tutorial_step',
     EXPLORE_OTHER_TOOLS_TUTORIAL_STEP: 'explore_other_tools_step',
-    CRT_THREAD_PANE_STEP: 'crt_thread_pane_step',
     CHANNEL_DISPLAY_MODE: 'channel_display_mode',
     CHANNEL_DISPLAY_MODE_CENTERED: 'centered',
     CHANNEL_DISPLAY_MODE_FULL_SCREEN: 'full',
@@ -255,8 +251,6 @@ export const ActionTypes = keyMirror({
     INCREMENT_EMOJI_PICKER_PAGE: null,
     SET_RECENT_SKIN: null,
 
-    ADD_CHANNEL_CTA_DROPDOWN_TOGGLE: null,
-
     SHOW_ONBOARDING_TASK_COMPLETION: null,
     SHOW_ONBOARDING_COMPLETE_PROFILE_TOUR: null,
     SHOW_ONBOARDING_VISIT_CONSOLE_TOUR: null,
@@ -361,6 +355,7 @@ export const ModalIdentifiers = {
     EDIT_CHANNEL_PURPOSE: 'edit_channel_purpose',
     NOTIFICATIONS: 'notifications',
     DELETE_POST: 'delete_post',
+    BURN_ON_READ_CONFIRMATION: 'burn_on_read_confirmation',
     CONVERT_CHANNEL: 'convert_channel',
     RESET_STATUS: 'reset_status',
     LEAVE_TEAM: 'leave_team',
@@ -485,6 +480,7 @@ export const ModalIdentifiers = {
     ATTRIBUTE_MODAL_SAML: 'attribute_modal_saml',
     FLAG_POST: 'flag_post',
     REMOVE_FLAGGED_POST: 'remove_flagged_post',
+    CREATE_RECAP_MODAL: 'create_recap_modal',
 };
 
 export const UserStatuses = {
@@ -616,93 +612,13 @@ export const AppEvents = {
     FOCUS_EDIT_TEXTBOX: 'focus_edit_textbox',
 };
 
+/**
+ * @deprecated Use WebSocketEvents from @mattermost/client instead.
+ */
 export const SocketEvents = {
-    POSTED: 'posted',
-    POST_EDITED: 'post_edited',
-    POST_DELETED: 'post_deleted',
-    POST_UPDATED: 'post_updated',
-    POST_UNREAD: 'post_unread',
-    CHANNEL_CONVERTED: 'channel_converted',
-    CHANNEL_CREATED: 'channel_created',
-    CHANNEL_DELETED: 'channel_deleted',
-    CHANNEL_UNARCHIVED: 'channel_restored',
-    CHANNEL_UPDATED: 'channel_updated',
-    CHANNEL_BOOKMARK_CREATED: 'channel_bookmark_created',
-    CHANNEL_BOOKMARK_DELETED: 'channel_bookmark_deleted',
-    CHANNEL_BOOKMARK_UPDATED: 'channel_bookmark_updated',
-    CHANNEL_BOOKMARK_SORTED: 'channel_bookmark_sorted',
-    MULTIPLE_CHANNELS_VIEWED: 'multiple_channels_viewed',
-    CHANNEL_MEMBER_UPDATED: 'channel_member_updated',
-    CHANNEL_SCHEME_UPDATED: 'channel_scheme_updated',
-    DIRECT_ADDED: 'direct_added',
-    GROUP_ADDED: 'group_added',
-    NEW_USER: 'new_user',
-    ADDED_TO_TEAM: 'added_to_team',
-    JOIN_TEAM: 'join_team',
-    LEAVE_TEAM: 'leave_team',
-    UPDATE_TEAM: 'update_team',
-    DELETE_TEAM: 'delete_team',
-    UPDATE_TEAM_SCHEME: 'update_team_scheme',
-    USER_ADDED: 'user_added',
-    USER_REMOVED: 'user_removed',
-    USER_UPDATED: 'user_updated',
-    USER_ROLE_UPDATED: 'user_role_updated',
-    MEMBERROLE_UPDATED: 'memberrole_updated',
-    ROLE_ADDED: 'role_added',
-    ROLE_REMOVED: 'role_removed',
-    ROLE_UPDATED: 'role_updated',
-    TYPING: 'typing',
-    PREFERENCE_CHANGED: 'preference_changed',
-    PREFERENCES_CHANGED: 'preferences_changed',
-    PREFERENCES_DELETED: 'preferences_deleted',
-    EPHEMERAL_MESSAGE: 'ephemeral_message',
-    STATUS_CHANGED: 'status_change',
-    HELLO: 'hello',
-    REACTION_ADDED: 'reaction_added',
-    REACTION_REMOVED: 'reaction_removed',
-    EMOJI_ADDED: 'emoji_added',
-    PLUGIN_ENABLED: 'plugin_enabled',
-    PLUGIN_DISABLED: 'plugin_disabled',
-    LICENSE_CHANGED: 'license_changed',
-    CONFIG_CHANGED: 'config_changed',
-    PLUGIN_STATUSES_CHANGED: 'plugin_statuses_changed',
-    OPEN_DIALOG: 'open_dialog',
-    RECEIVED_GROUP: 'received_group',
-    GROUP_MEMBER_ADD: 'group_member_add',
-    GROUP_MEMBER_DELETED: 'group_member_deleted',
-    RECEIVED_GROUP_ASSOCIATED_TO_TEAM: 'received_group_associated_to_team',
-    RECEIVED_GROUP_NOT_ASSOCIATED_TO_TEAM: 'received_group_not_associated_to_team',
-    RECEIVED_GROUP_ASSOCIATED_TO_CHANNEL: 'received_group_associated_to_channel',
-    RECEIVED_GROUP_NOT_ASSOCIATED_TO_CHANNEL: 'received_group_not_associated_to_channel',
-    SIDEBAR_CATEGORY_CREATED: 'sidebar_category_created',
-    SIDEBAR_CATEGORY_UPDATED: 'sidebar_category_updated',
-    SIDEBAR_CATEGORY_DELETED: 'sidebar_category_deleted',
-    SIDEBAR_CATEGORY_ORDER_UPDATED: 'sidebar_category_order_updated',
-    USER_ACTIVATION_STATUS_CHANGED: 'user_activation_status_change',
-    CLOUD_PAYMENT_STATUS_UPDATED: 'cloud_payment_status_updated',
-    CLOUD_SUBSCRIPTION_CHANGED: 'cloud_subscription_changed',
     APPS_FRAMEWORK_REFRESH_BINDINGS: 'custom_com.mattermost.apps_refresh_bindings',
     APPS_FRAMEWORK_PLUGIN_ENABLED: 'custom_com.mattermost.apps_plugin_enabled',
     APPS_FRAMEWORK_PLUGIN_DISABLED: 'custom_com.mattermost.apps_plugin_disabled',
-    FIRST_ADMIN_VISIT_MARKETPLACE_STATUS_RECEIVED: 'first_admin_visit_marketplace_status_received',
-    THREAD_UPDATED: 'thread_updated',
-    THREAD_FOLLOW_CHANGED: 'thread_follow_changed',
-    THREAD_READ_CHANGED: 'thread_read_changed',
-    POST_ACKNOWLEDGEMENT_ADDED: 'post_acknowledgement_added',
-    POST_ACKNOWLEDGEMENT_REMOVED: 'post_acknowledgement_removed',
-    DRAFT_CREATED: 'draft_created',
-    DRAFT_UPDATED: 'draft_updated',
-    DRAFT_DELETED: 'draft_deleted',
-    SCHEDULED_POST_CREATED: 'scheduled_post_created',
-    SCHEDULED_POST_UPDATED: 'scheduled_post_updated',
-    SCHEDULED_POST_DELETED: 'scheduled_post_deleted',
-    PERSISTENT_NOTIFICATION_TRIGGERED: 'persistent_notification_triggered',
-    HOSTED_CUSTOMER_SIGNUP_PROGRESS_UPDATED: 'hosted_customer_signup_progress_updated',
-    CPA_FIELD_CREATED: 'custom_profile_attributes_field_created',
-    CPA_FIELD_UPDATED: 'custom_profile_attributes_field_updated',
-    CPA_FIELD_DELETED: 'custom_profile_attributes_field_deleted',
-    CPA_VALUES_UPDATED: 'custom_profile_attributes_values_updated',
-    CONTENT_FLAGGING_REPORT_VALUE_CHANGED: 'content_flagging_report_value_updated',
 };
 
 export const TutorialSteps = {
@@ -719,24 +635,6 @@ export const TutorialSteps = {
 
 // note: add steps in same order as the keys in TutorialSteps above
 export const AdminTutorialSteps = ['START_TRIAL'];
-
-export const CrtTutorialSteps = {
-    WELCOME_POPOVER: 0,
-    LIST_POPOVER: 1,
-    UNREAD_POPOVER: 2,
-    FINISHED: 999,
-};
-
-export const CrtTutorialTriggerSteps = {
-    START: 0,
-    STARTED: 1,
-    FINISHED: 999,
-};
-
-export const CrtThreadPaneSteps = {
-    THREADS_PANE_POPOVER: 0,
-    FINISHED: 999,
-};
 
 export const TopLevelProducts = {
     BOARDS: 'Boards',
@@ -907,6 +805,7 @@ export const ErrorPageTypes = {
     CHANNEL_NOT_FOUND: 'channel_not_found',
     POST_NOT_FOUND: 'post_not_found',
     CLOUD_ARCHIVED: 'cloud_archived',
+    MAGIC_LINK_ALREADY_LOGGED_IN: 'magic_link_already_logged_in',
 };
 
 export const JobTypes = {
@@ -1502,9 +1401,6 @@ export const Constants = {
     UserStatuses,
     TutorialSteps,
     AdminTutorialSteps,
-    CrtTutorialSteps,
-    CrtTutorialTriggerSteps,
-    CrtThreadPaneSteps,
     PostTypes,
     ErrorPageTypes,
     AnnouncementBarTypes,
@@ -1557,7 +1453,7 @@ export const Constants = {
     DEFAULT_CHARACTER_LIMIT: 4000,
     IMAGE_TYPE_GIF: 'gif',
     TEXT_TYPES: ['txt', 'rtf', 'vtt'],
-    IMAGE_TYPES: ['jpg', 'gif', 'bmp', 'png', 'jpeg', 'tiff', 'tif', 'psd', 'webp'],
+    IMAGE_TYPES: ['jpg', 'gif', 'bmp', 'png', 'jpeg', 'tiff', 'tif', 'webp'],
     AUDIO_TYPES: ['mp3', 'wav', 'wma', 'm4a', 'flac', 'aac', 'ogg', 'm4r'],
     VIDEO_TYPES: ['mp4', 'avi', 'webm', 'mkv', 'wmv', 'mpg', 'mov', 'flv'],
     PRESENTATION_TYPES: ['ppt', 'pptx'],
@@ -1628,7 +1524,7 @@ export const Constants = {
     EMAIL_SERVICE: 'email',
     LDAP_SERVICE: 'ldap',
     SAML_SERVICE: 'saml',
-    MAGIC_LINK_SERVICE: 'guest_magic_link',
+    MAGIC_LINK_SERVICE: 'magic_link',
     USERNAME_SERVICE: 'username',
     SIGNIN_CHANGE: 'signin_change',
     PASSWORD_CHANGE: 'password_change',
@@ -2179,7 +2075,7 @@ export const searchFilesHintOptions = [{searchTerm: 'From:', message: defineMess
     {searchTerm: 'On:', message: defineMessage({id: 'search_files_list_option.on', defaultMessage: 'Files on a date'})},
     {searchTerm: 'Before:', message: defineMessage({id: 'search_files_list_option.before', defaultMessage: 'Files before a date'})},
     {searchTerm: 'After:', message: defineMessage({id: 'search_files_list_option.after', defaultMessage: 'Files after a date'})},
-    {searchTerm: 'Ext:', message: defineMessage({id: 'search_files_list_option.ext', defaultMessage: 'Files with a extension'})},
+    {searchTerm: 'Ext:', message: defineMessage({id: 'search_files_list_option.ext', defaultMessage: 'Files with an extension'})},
     {searchTerm: '-', message: defineMessage({id: 'search_files_list_option.exclude', defaultMessage: 'Exclude search terms'}), additionalDisplay: '—'},
     {searchTerm: '""', message: defineMessage({id: 'search_files_list_option.phrases', defaultMessage: 'Files with phrases'})},
 ];
