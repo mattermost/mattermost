@@ -109,6 +109,9 @@ func TestGenerateSupportPacket(t *testing.T) {
 	})
 
 	t.Run("with advanced logs", func(t *testing.T) {
+		// Set MM_LOG_PATH to allow advanced logging to read from our temp directory
+		t.Setenv("MM_LOG_PATH", dir)
+
 		optLDAP := map[string]string{
 			"filename": path.Join(dir, "ldap.log"),
 		}

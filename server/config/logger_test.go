@@ -73,10 +73,10 @@ func TestGetLogRootPath(t *testing.T) {
 		t.Setenv("MM_LOG_PATH", "")
 
 		result := GetLogRootPath()
-		// Should return the default logs directory (non-empty)
-		assert.NotEmpty(t, result)
-		// Should be an absolute path
-		assert.True(t, filepath.IsAbs(result))
+		// Should return a valid path (non-empty)
+		assert.NotEmpty(t, result, "GetLogRootPath should return a non-empty path")
+		// Should be an absolute path (either from FindDir or current working directory)
+		assert.True(t, filepath.IsAbs(result), "GetLogRootPath returned non-absolute path: %s", result)
 	})
 }
 
