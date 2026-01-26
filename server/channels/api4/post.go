@@ -895,6 +895,10 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// MM-67055: Strip client-supplied metadata.embeds to prevent spoofing.
+	// This matches createPost behavior.
+	post.SanitizeInput()
+
 	auditRec := c.MakeAuditRecord(model.AuditEventUpdatePost, model.AuditStatusFail)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "post", &post)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
