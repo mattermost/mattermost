@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent} from '@testing-library/react';
 import React from 'react';
 
 import {CustomStatusDuration} from '@mattermost/types/users';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 
 import CustomStatusSuggestion from './custom_status_suggestion';
 
@@ -44,16 +43,22 @@ describe('components/custom_status/custom_status_emoji', () => {
         expect(container).toMatchSnapshot();
     });
 
-    it('should call handleSuggestionClick when click occurs on div', () => {
+    it('should call handleSuggestionClick when click occurs on div', async () => {
+        // Suppress the DOM nesting warning (button inside button) which is a component issue
+        const originalError = console.error;
+        console.error = jest.fn();
+
         const {container} = renderWithContext(
             <CustomStatusSuggestion {...baseProps}/>,
         );
 
-        fireEvent.click(container.querySelector('.statusSuggestion__row')!);
+        await userEvent.click(container.querySelector('.statusSuggestion__row')!);
         expect(baseProps.handleSuggestionClick).toHaveBeenCalledTimes(1);
+
+        console.error = originalError;
     });
 
-    it('should render clearButton when hover occurs on div', () => {
+    it('should render clearButton when hover occurs on div', async () => {
         // Suppress the DOM nesting warning (button inside button) which is a component issue
         const originalError = console.error;
         console.error = jest.fn();
@@ -63,7 +68,7 @@ describe('components/custom_status/custom_status_emoji', () => {
         );
 
         expect(container.querySelector('.suggestion-clear')).not.toBeInTheDocument();
-        fireEvent.mouseEnter(container.querySelector('.statusSuggestion__row')!);
+        await userEvent.hover(container.querySelector('.statusSuggestion__row')!);
         expect(container.querySelector('.suggestion-clear')).toBeInTheDocument();
 
         console.error = originalError;

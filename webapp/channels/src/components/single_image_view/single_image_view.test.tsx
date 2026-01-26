@@ -6,7 +6,7 @@ import React from 'react';
 
 import SingleImageView from 'components/single_image_view/single_image_view';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 describe('components/SingleImageView', () => {
@@ -61,7 +61,7 @@ describe('components/SingleImageView', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should call openModal on handleImageClick', () => {
+    test('should call openModal on handleImageClick', async () => {
         const {container} = renderWithContext(
             <SingleImageView {...baseProps}/>,
         );
@@ -75,11 +75,11 @@ describe('components/SingleImageView', () => {
         fireEvent.load(img!);
 
         // Click the image
-        fireEvent.click(img!);
+        await userEvent.click(img!);
         expect(baseProps.actions.openModal).toHaveBeenCalledTimes(1);
     });
 
-    test('should call toggleEmbedVisibility with post id', () => {
+    test('should call toggleEmbedVisibility with post id', async () => {
         const props = {
             ...baseProps,
             actions: {
@@ -92,7 +92,7 @@ describe('components/SingleImageView', () => {
             <SingleImageView {...props}/>,
         );
 
-        fireEvent.click(screen.getByRole('button', {name: 'Toggle Embed Visibility'}));
+        await userEvent.click(screen.getByRole('button', {name: 'Toggle Embed Visibility'}));
         expect(props.actions.toggleEmbedVisibility).toHaveBeenCalledTimes(1);
         expect(props.actions.toggleEmbedVisibility).toHaveBeenCalledWith('original_post_id');
     });

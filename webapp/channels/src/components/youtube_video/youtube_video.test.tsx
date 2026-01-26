@@ -6,7 +6,7 @@ import React from 'react';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -60,19 +60,19 @@ describe('YoutubeVideo', () => {
         expect(screen.getByRole('heading', {level: 4})).toHaveTextContent('YouTube - Youtube title');
     });
 
-    test('should match snapshot for playing state', () => {
+    test('should match snapshot for playing state', async () => {
         const {container} = renderWithContext(
             <YoutubeVideo {...baseProps}/>,
             initialState,
         );
 
         // Click the play button to set playing state
-        fireEvent.click(screen.getByRole('button', {name: /Play Youtube title on YouTube/}));
+        await userEvent.click(screen.getByRole('button', {name: /Play Youtube title on YouTube/}));
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot for playing state and `youtubeReferrerPolicy = true`', () => {
+    test('should match snapshot for playing state and `youtubeReferrerPolicy = true`', async () => {
         const {container} = renderWithContext(
             <YoutubeVideo
                 {...baseProps}
@@ -82,7 +82,7 @@ describe('YoutubeVideo', () => {
         );
 
         // Click the play button to set playing state
-        fireEvent.click(screen.getByRole('button', {name: /Play Youtube title on YouTube/}));
+        await userEvent.click(screen.getByRole('button', {name: /Play Youtube title on YouTube/}));
 
         expect(container).toMatchSnapshot();
 

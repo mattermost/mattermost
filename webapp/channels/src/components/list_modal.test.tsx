@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, fireEvent, waitFor} from '@testing-library/react';
+import {screen, waitFor} from '@testing-library/react';
 import React from 'react';
 
 import type {Group} from '@mattermost/types/groups';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ListModal, {DEFAULT_NUM_PER_PAGE} from './list_modal';
@@ -122,7 +122,7 @@ describe('components/ListModal', () => {
 
         // Click the modal close button
         const closeButton = baseElement.querySelector('.close') as HTMLElement;
-        fireEvent.click(closeButton);
+        await userEvent.click(closeButton);
 
         // Wait for onHide to be called (called after exit animation)
         await waitFor(() => {
@@ -149,7 +149,7 @@ describe('components/ListModal', () => {
         expect(screen.getByTestId('item-234')).toBeInTheDocument();
 
         // Click Next
-        fireEvent.click(screen.getByRole('button', {name: 'Next'}));
+        await userEvent.click(screen.getByRole('button', {name: 'Next'}));
 
         // Wait for page 2 items
         await waitFor(() => {
@@ -161,7 +161,7 @@ describe('components/ListModal', () => {
         expect(screen.getByTestId('item-345')).toBeInTheDocument();
 
         // Click Previous
-        fireEvent.click(screen.getByRole('button', {name: 'Previous'}));
+        await userEvent.click(screen.getByRole('button', {name: 'Previous'}));
 
         // Wait for page 1 items again
         await waitFor(() => {
@@ -185,7 +185,7 @@ describe('components/ListModal', () => {
 
         // Type in search input
         const searchInput = screen.getByPlaceholderText('search for name');
-        fireEvent.change(searchInput, {target: {value: mockSearchTerm}});
+        await userEvent.type(searchInput, mockSearchTerm);
 
         // Wait for filtered items
         await waitFor(() => {

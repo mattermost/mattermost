@@ -4,7 +4,7 @@
 import {screen, fireEvent} from '@testing-library/react';
 import React from 'react';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 
 import MarkdownImage from './markdown_image';
@@ -237,7 +237,7 @@ describe('components/MarkdownImage', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should call openModal when showModal is called', () => {
+    test('should call openModal when showModal is called', async () => {
         const props = {...baseProps, src: 'https://example.com/image.png'};
         const {container} = renderWithContext(
             <MarkdownImage {...props}/>,
@@ -253,7 +253,7 @@ describe('components/MarkdownImage', () => {
         fireEvent.load(img!);
 
         // Click the image to trigger showModal
-        fireEvent.click(img!);
+        await userEvent.click(img!);
 
         expect(props.actions.openModal).toHaveBeenCalledTimes(1);
     });

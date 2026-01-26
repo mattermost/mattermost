@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, fireEvent} from '@testing-library/react';
+import {screen} from '@testing-library/react';
 import React from 'react';
 
 import GetLinkModal from 'components/get_link_modal';
 
-import {renderWithContext, act} from 'tests/react_testing_utils';
+import {renderWithContext, act, userEvent} from 'tests/react_testing_utils';
 
 describe('components/GetLinkModal', () => {
     const onHide = jest.fn();
@@ -45,7 +45,8 @@ describe('components/GetLinkModal', () => {
         expect(baseElement).toMatchSnapshot();
     });
 
-    test('should have called onHide when close button is clicked', () => {
+    test('should have called onHide when close button is clicked', async () => {
+        const user = userEvent.setup({advanceTimers: jest.advanceTimersByTime});
         const newOnHide = jest.fn();
         const props = {...requiredProps, onHide: newOnHide};
 
@@ -55,12 +56,12 @@ describe('components/GetLinkModal', () => {
 
         // Click the modal header X button (triggers Modal's onHide)
         const modalCloseButton = baseElement.querySelector('.close') as HTMLElement;
-        fireEvent.click(modalCloseButton);
+        await user.click(modalCloseButton);
         expect(newOnHide).toHaveBeenCalledTimes(1);
 
         // Copy link to set copiedLink state to true
         const copyButton = screen.getByRole('button', {name: /Copy Link/});
-        fireEvent.click(copyButton);
+        await user.click(copyButton);
         expect(copyButton).toHaveTextContent('Copied');
         expect(copyButton).toHaveClass('btn-success');
 
@@ -69,7 +70,7 @@ describe('components/GetLinkModal', () => {
 
         // Click the footer close button
         const footerCloseButton = baseElement.querySelector('#linkModalCloseButton') as HTMLElement;
-        fireEvent.click(footerCloseButton);
+        await user.click(footerCloseButton);
         expect(newOnHide).toHaveBeenCalledTimes(2);
 
         // Take snapshot after closing (copiedLink should be reset)
@@ -80,7 +81,8 @@ describe('components/GetLinkModal', () => {
         expect(copyButton).not.toHaveClass('btn-success');
     });
 
-    test('should have handle copyLink', () => {
+    test('should have handle copyLink', async () => {
+        const user = userEvent.setup({advanceTimers: jest.advanceTimersByTime});
         const {baseElement} = renderWithContext(
             <GetLinkModal {...requiredProps}/>,
         );
@@ -92,14 +94,15 @@ describe('components/GetLinkModal', () => {
         expect(copyButton).toHaveTextContent('Copy Link');
 
         // Click on the textarea triggers copyLink
-        fireEvent.click(textarea);
+        await user.click(textarea);
 
         // Button should now show "Copied"
         expect(copyButton).toHaveTextContent('Copied');
         expect(copyButton).toHaveClass('btn-success');
     });
 
-    test('should change button state when copying', () => {
+    test('should change button state when copying', async () => {
+        const user = userEvent.setup({advanceTimers: jest.advanceTimersByTime});
         renderWithContext(
             <GetLinkModal {...requiredProps}/>,
         );
@@ -112,7 +115,7 @@ describe('components/GetLinkModal', () => {
         expect(copyButton).not.toHaveClass('btn-success');
 
         // After copying
-        fireEvent.click(copyButton);
+        await user.click(copyButton);
         expect(copyButton).toHaveTextContent('Copied');
         expect(copyButton).toHaveClass('btn-primary');
         expect(copyButton).toHaveClass('btn-success');
@@ -126,13 +129,14 @@ describe('components/GetLinkModal', () => {
         expect(copyButton).not.toHaveClass('btn-success');
     });
 
-    test('should cleanup timeout on unmount', () => {
+    test('should cleanup timeout on unmount', async () => {
+        const user = userEvent.setup({advanceTimers: jest.advanceTimersByTime});
         const {unmount} = renderWithContext(
             <GetLinkModal {...requiredProps}/>,
         );
 
         const copyButton = screen.getByRole('button', {name: /Copy Link/});
-        fireEvent.click(copyButton);
+        await user.click(copyButton);
         expect(copyButton).toHaveTextContent('Copied');
 
         unmount();
