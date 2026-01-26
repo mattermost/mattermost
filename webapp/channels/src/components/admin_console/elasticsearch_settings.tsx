@@ -277,7 +277,7 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
                     helpText={
                         <FormattedMessage
                             id='admin.elasticsearch.backendDescription'
-                            defaultMessage='The type of the search backend.'
+                            defaultMessage='The type of the search backend. Changing this setting requires a server restart before taking effect.'
                         />
                     }
                     value={this.state.backend}
