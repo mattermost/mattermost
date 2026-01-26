@@ -957,9 +957,6 @@ func (s *SqlPostStore) GetEtag(channelId, language string, allowFromCache, colla
 		q.Where(sq.Eq{"Posts.RootId": ""})
 	}
 
-	if collapsedThreads {
-		q.Where(sq.Eq{"RootId": ""})
-	}
 	sql, args := q.MustSql()
 
 	var et etagPosts

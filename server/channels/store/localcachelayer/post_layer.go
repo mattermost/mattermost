@@ -138,7 +138,7 @@ func (s LocalCachePostStore) GetEtag(channelId, language string, allowFromCache,
 
 	splittedResult := strings.Split(result, ".")
 
-	lastTime, _ := strconv.ParseInt((splittedResult[len(splittedResult)-1]), 10, 64)
+	lastTime, _ := strconv.ParseInt((splittedResult[1]), 10, 64)
 
 	s.rootStore.doStandardAddToCache(s.rootStore.lastPostTimeCache, cacheKey, lastTime)
 
