@@ -1953,9 +1953,9 @@ func TestUpdatePost(t *testing.T) {
 		// syncRemotePriorityMetadata and syncRemoteAcknowledgementsMetadata after
 		// calling UpdatePost. See sync_recv.go::upsertSyncPost
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic(t)
+		th := Setup(t).InitBasic()
 
-		th.AddUserToChannel(t, th.BasicUser, th.BasicChannel)
+		th.AddUserToChannel(th.BasicUser, th.BasicChannel)
 		th.Context.Session().UserId = th.BasicUser.Id
 
 		// Create a basic post
