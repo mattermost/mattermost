@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"os"
 	"testing"
 	"time"
 
@@ -287,12 +288,16 @@ func TestNewKeygenAPIClientFromEnv(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			// Set environment variables for this test
+			// Set or unset environment variables for this test
 			if tc.accountID != "" {
 				t.Setenv("KEYGEN_ACCOUNT_ID", tc.accountID)
+			} else {
+				os.Unsetenv("KEYGEN_ACCOUNT_ID")
 			}
 			if tc.productID != "" {
 				t.Setenv("KEYGEN_PRODUCT_ID", tc.productID)
+			} else {
+				os.Unsetenv("KEYGEN_PRODUCT_ID")
 			}
 
 			client, err := NewKeygenAPIClientFromEnv()

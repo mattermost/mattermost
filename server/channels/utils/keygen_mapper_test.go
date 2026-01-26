@@ -1186,9 +1186,16 @@ func TestConvertKeygenToModelLicense_AllOptionalFieldsPopulated(t *testing.T) {
 // =============================================================================
 
 func TestKeygenProducesEquivalentLicense(t *testing.T) {
+	// Use a UUID that converts to a predictable 26-character ID
+	// UUID: test0000-0000-0000-0000-000000000000
+	// Without hyphens: test00000000000000000000000000 (32 chars)
+	// First 26 chars: test0000000000000000000000
+	testUUID := "test0000-0000-0000-0000-000000000000"
+	expectedID := "test0000000000000000000000"
+
 	// Create a "golden" license that represents what legacy would produce
 	goldenLicense := &model.License{
-		Id:        "test-id",
+		Id:        expectedID,
 		IssuedAt:  time.Date(2024, 1, 24, 16, 0, 0, 0, time.UTC).UnixMilli(),
 		StartsAt:  time.Date(2024, 1, 24, 16, 0, 0, 0, time.UTC).UnixMilli(),
 		ExpiresAt: time.Date(2025, 1, 24, 0, 0, 0, 0, time.UTC).UnixMilli(),
@@ -1212,7 +1219,7 @@ func TestKeygenProducesEquivalentLicense(t *testing.T) {
 	// Create equivalent Keygen license data
 	expiry := time.Date(2025, 1, 24, 0, 0, 0, 0, time.UTC)
 	keygenData := &KeygenLicenseData{
-		ID:     "test-id",
+		ID:     testUUID,
 		Issued: time.Date(2024, 1, 24, 16, 0, 0, 0, time.UTC),
 		Expiry: &expiry,
 		Metadata: map[string]any{
