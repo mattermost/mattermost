@@ -1310,7 +1310,7 @@ func testCheckPropertyNameConflict(t *testing.T, _ request.CTX, ss store.Store) 
 			TargetType: string(model.PropertyFieldTargetLevelTeam),
 			TargetID:   team.Id,
 			Name:       "legacy-property",
-		})
+		}, "")
 		require.NoError(t, err)
 		require.Empty(t, conflict, "legacy properties should skip conflict check")
 	})
@@ -1322,7 +1322,7 @@ func testCheckPropertyNameConflict(t *testing.T, _ request.CTX, ss store.Store) 
 			TargetType: "unknown",
 			TargetID:   model.NewId(),
 			Name:       propertyName,
-		})
+		}, "")
 		require.NoError(t, err)
 		require.Empty(t, conflict, "unknown target type should return empty string")
 	})
@@ -1337,7 +1337,7 @@ func testCheckPropertyNameConflict(t *testing.T, _ request.CTX, ss store.Store) 
 				TargetType: string(model.PropertyFieldTargetLevelSystem),
 				TargetID:   "",
 				Name:       systemPropertyName,
-			})
+			}, "")
 			require.NoError(t, err)
 			require.Empty(t, conflict)
 		})
@@ -1362,7 +1362,7 @@ func testCheckPropertyNameConflict(t *testing.T, _ request.CTX, ss store.Store) 
 				TargetType: string(model.PropertyFieldTargetLevelSystem),
 				TargetID:   "",
 				Name:       teamPropName,
-			})
+			}, "")
 			require.NoError(t, err)
 			require.Equal(t, model.PropertyFieldTargetLevelTeam, conflict)
 		})
@@ -1387,7 +1387,7 @@ func testCheckPropertyNameConflict(t *testing.T, _ request.CTX, ss store.Store) 
 				TargetType: string(model.PropertyFieldTargetLevelSystem),
 				TargetID:   "",
 				Name:       channelPropName,
-			})
+			}, "")
 			require.NoError(t, err)
 			require.Equal(t, model.PropertyFieldTargetLevelChannel, conflict)
 		})
@@ -1422,7 +1422,7 @@ func testCheckPropertyNameConflict(t *testing.T, _ request.CTX, ss store.Store) 
 				TargetType: string(model.PropertyFieldTargetLevelSystem),
 				TargetID:   "",
 				Name:       bothPropName,
-			})
+			}, "")
 			require.NoError(t, err)
 			require.Equal(t, model.PropertyFieldTargetLevelTeam, conflict)
 		})
@@ -1446,7 +1446,7 @@ func testCheckPropertyNameConflict(t *testing.T, _ request.CTX, ss store.Store) 
 				TargetType: string(model.PropertyFieldTargetLevelSystem),
 				TargetID:   "",
 				Name:       differentObjectTypeProp,
-			})
+			}, "")
 			require.NoError(t, err)
 			require.Empty(t, conflict)
 		})
@@ -1473,7 +1473,7 @@ func testCheckPropertyNameConflict(t *testing.T, _ request.CTX, ss store.Store) 
 				TargetType: string(model.PropertyFieldTargetLevelSystem),
 				TargetID:   "",
 				Name:       deletedPropName,
-			})
+			}, "")
 			require.NoError(t, err)
 			require.Empty(t, conflict)
 		})
@@ -1488,7 +1488,7 @@ func testCheckPropertyNameConflict(t *testing.T, _ request.CTX, ss store.Store) 
 				TargetType: string(model.PropertyFieldTargetLevelTeam),
 				TargetID:   team.Id,
 				Name:       teamPropName,
-			})
+			}, "")
 			require.NoError(t, err)
 			require.Empty(t, conflict)
 		})
@@ -1513,7 +1513,7 @@ func testCheckPropertyNameConflict(t *testing.T, _ request.CTX, ss store.Store) 
 				TargetType: string(model.PropertyFieldTargetLevelTeam),
 				TargetID:   team.Id,
 				Name:       systemPropName,
-			})
+			}, "")
 			require.NoError(t, err)
 			require.Equal(t, model.PropertyFieldTargetLevelSystem, conflict)
 		})
@@ -1538,7 +1538,7 @@ func testCheckPropertyNameConflict(t *testing.T, _ request.CTX, ss store.Store) 
 				TargetType: string(model.PropertyFieldTargetLevelTeam),
 				TargetID:   team.Id,
 				Name:       channelInTeamPropName,
-			})
+			}, "")
 			require.NoError(t, err)
 			require.Equal(t, model.PropertyFieldTargetLevelChannel, conflict)
 		})
@@ -1563,7 +1563,7 @@ func testCheckPropertyNameConflict(t *testing.T, _ request.CTX, ss store.Store) 
 				TargetType: string(model.PropertyFieldTargetLevelTeam),
 				TargetID:   team.Id,
 				Name:       channelInOtherTeamPropName,
-			})
+			}, "")
 			require.NoError(t, err)
 			require.Empty(t, conflict)
 		})
@@ -1588,7 +1588,7 @@ func testCheckPropertyNameConflict(t *testing.T, _ request.CTX, ss store.Store) 
 				TargetType: string(model.PropertyFieldTargetLevelTeam),
 				TargetID:   team.Id,
 				Name:       teamPropInOtherTeam,
-			})
+			}, "")
 			require.NoError(t, err)
 			require.Empty(t, conflict, "team-level properties in different teams should not conflict")
 		})
@@ -1624,7 +1624,7 @@ func testCheckPropertyNameConflict(t *testing.T, _ request.CTX, ss store.Store) 
 				TargetType: string(model.PropertyFieldTargetLevelTeam),
 				TargetID:   team.Id,
 				Name:       bothPropName,
-			})
+			}, "")
 			require.NoError(t, err)
 			require.Equal(t, model.PropertyFieldTargetLevelSystem, conflict)
 		})
@@ -1639,7 +1639,7 @@ func testCheckPropertyNameConflict(t *testing.T, _ request.CTX, ss store.Store) 
 				TargetType: string(model.PropertyFieldTargetLevelChannel),
 				TargetID:   channel.Id,
 				Name:       channelPropName,
-			})
+			}, "")
 			require.NoError(t, err)
 			require.Empty(t, conflict)
 		})
@@ -1664,7 +1664,7 @@ func testCheckPropertyNameConflict(t *testing.T, _ request.CTX, ss store.Store) 
 				TargetType: string(model.PropertyFieldTargetLevelChannel),
 				TargetID:   channel.Id,
 				Name:       systemPropName,
-			})
+			}, "")
 			require.NoError(t, err)
 			require.Equal(t, model.PropertyFieldTargetLevelSystem, conflict)
 		})
@@ -1689,7 +1689,7 @@ func testCheckPropertyNameConflict(t *testing.T, _ request.CTX, ss store.Store) 
 				TargetType: string(model.PropertyFieldTargetLevelChannel),
 				TargetID:   channel.Id,
 				Name:       teamPropName,
-			})
+			}, "")
 			require.NoError(t, err)
 			require.Equal(t, model.PropertyFieldTargetLevelTeam, conflict)
 		})
@@ -1714,7 +1714,7 @@ func testCheckPropertyNameConflict(t *testing.T, _ request.CTX, ss store.Store) 
 				TargetType: string(model.PropertyFieldTargetLevelChannel),
 				TargetID:   channel.Id,
 				Name:       teamPropInOtherTeam,
-			})
+			}, "")
 			require.NoError(t, err)
 			require.Empty(t, conflict)
 		})
@@ -1739,7 +1739,7 @@ func testCheckPropertyNameConflict(t *testing.T, _ request.CTX, ss store.Store) 
 				TargetType: string(model.PropertyFieldTargetLevelChannel),
 				TargetID:   channel.Id,
 				Name:       channelPropInOtherTeam,
-			})
+			}, "")
 			require.NoError(t, err)
 			require.Empty(t, conflict, "channel-level properties in different teams should not conflict")
 		})
@@ -1765,7 +1765,7 @@ func testCheckPropertyNameConflict(t *testing.T, _ request.CTX, ss store.Store) 
 				TargetType: string(model.PropertyFieldTargetLevelChannel),
 				TargetID:   channel2.Id,
 				Name:       channelPropSameTeam,
-			})
+			}, "")
 			require.NoError(t, err)
 			require.Empty(t, conflict, "channel-level properties in different channels should not conflict")
 		})
@@ -1800,7 +1800,7 @@ func testCheckPropertyNameConflict(t *testing.T, _ request.CTX, ss store.Store) 
 				TargetType: string(model.PropertyFieldTargetLevelChannel),
 				TargetID:   channel.Id,
 				Name:       bothPropName,
-			})
+			}, "")
 			require.NoError(t, err)
 			require.Equal(t, model.PropertyFieldTargetLevelSystem, conflict)
 		})
@@ -1827,7 +1827,7 @@ func testCheckPropertyNameConflict(t *testing.T, _ request.CTX, ss store.Store) 
 				TargetType: string(model.PropertyFieldTargetLevelChannel),
 				TargetID:   fakeChannelID,
 				Name:       teamOnlyPropName,
-			})
+			}, "")
 			require.NoError(t, err)
 			require.Empty(t, conflict, "channels without team association should not check team-level conflicts")
 		})
@@ -1853,7 +1853,7 @@ func testCheckPropertyNameConflict(t *testing.T, _ request.CTX, ss store.Store) 
 				TargetType: string(model.PropertyFieldTargetLevelChannel),
 				TargetID:   fakeChannelID,
 				Name:       systemPropForDM,
-			})
+			}, "")
 			require.NoError(t, err)
 			require.Equal(t, model.PropertyFieldTargetLevelSystem, conflict)
 		})
@@ -1883,7 +1883,7 @@ func testCheckPropertyNameConflict(t *testing.T, _ request.CTX, ss store.Store) 
 				TargetType: string(model.PropertyFieldTargetLevelSystem),
 				TargetID:   "",
 				Name:       isolationPropName,
-			})
+			}, "")
 			require.NoError(t, err)
 			require.Empty(t, conflict, "different groups should not conflict")
 
@@ -1894,7 +1894,7 @@ func testCheckPropertyNameConflict(t *testing.T, _ request.CTX, ss store.Store) 
 				TargetType: string(model.PropertyFieldTargetLevelTeam),
 				TargetID:   team.Id,
 				Name:       isolationPropName,
-			})
+			}, "")
 			require.NoError(t, err)
 			require.Equal(t, model.PropertyFieldTargetLevelSystem, conflict, "same group should conflict")
 		})
@@ -1920,7 +1920,7 @@ func testCheckPropertyNameConflict(t *testing.T, _ request.CTX, ss store.Store) 
 				TargetType: string(model.PropertyFieldTargetLevelSystem),
 				TargetID:   "",
 				Name:       teamIsolationProp,
-			})
+			}, "")
 			require.NoError(t, err)
 			require.Empty(t, conflict, "different groups should not conflict")
 		})
@@ -1946,7 +1946,7 @@ func testCheckPropertyNameConflict(t *testing.T, _ request.CTX, ss store.Store) 
 				TargetType: string(model.PropertyFieldTargetLevelSystem),
 				TargetID:   "",
 				Name:       channelIsolationProp,
-			})
+			}, "")
 			require.NoError(t, err)
 			require.Empty(t, conflict, "different groups should not conflict")
 
@@ -1957,9 +1957,144 @@ func testCheckPropertyNameConflict(t *testing.T, _ request.CTX, ss store.Store) 
 				TargetType: string(model.PropertyFieldTargetLevelTeam),
 				TargetID:   team.Id,
 				Name:       channelIsolationProp,
-			})
+			}, "")
 			require.NoError(t, err)
 			require.Empty(t, conflict, "different groups should not conflict")
+		})
+	})
+
+	t.Run("excludeID parameter", func(t *testing.T) {
+		t.Run("should exclude specified ID from conflict check", func(t *testing.T) {
+			// Create a system-level property
+			systemProp, cErr := ss.PropertyField().Create(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+				TargetID:   "",
+				Type:       model.PropertyFieldTypeText,
+				Name:       "exclude-test-prop-" + model.NewId(),
+			})
+			require.NoError(t, cErr)
+
+			// Without excludeID, checking for same name at team level should conflict
+			conflict, err := ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelTeam),
+				TargetID:   team.Id,
+				Name:       systemProp.Name,
+			}, "")
+			require.NoError(t, err)
+			require.Equal(t, model.PropertyFieldTargetLevelSystem, conflict)
+
+			// With excludeID set to the system property's ID, conflict should still be found
+			// because we're checking from team level and the system property is NOT excluded
+			// (exclusion only works for properties at different levels if they match)
+			conflict, err = ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelTeam),
+				TargetID:   team.Id,
+				Name:       systemProp.Name,
+			}, systemProp.ID)
+			require.NoError(t, err)
+			require.Empty(t, conflict, "should not conflict when excludeID matches the conflicting property")
+		})
+
+		t.Run("property can update to itself without conflict", func(t *testing.T) {
+			// Create a team-level property
+			_, cErr := ss.PropertyField().Create(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelTeam),
+				TargetID:   team.Id,
+				Type:       model.PropertyFieldTypeText,
+				Name:       "self-update-test-" + model.NewId(),
+			})
+			require.NoError(t, cErr)
+
+			// Create a channel property with the same name in the same team
+			channelProp, cErr := ss.PropertyField().Create(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelChannel),
+				TargetID:   channel.Id,
+				Type:       model.PropertyFieldTypeText,
+				Name:       "self-update-channel-" + model.NewId(),
+			})
+			require.NoError(t, cErr)
+
+			// Without excludeID, checking channel property name at team level should not conflict
+			// because they have different names
+			conflict, err := ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelTeam),
+				TargetID:   team.Id,
+				Name:       channelProp.Name,
+			}, "")
+			require.NoError(t, err)
+			require.Equal(t, model.PropertyFieldTargetLevelChannel, conflict)
+
+			// Simulating an update where we're checking if the team property can
+			// be renamed to something that would conflict with a channel property,
+			// but the channel property is excluded (as if we're updating that channel property)
+			conflict, err = ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelTeam),
+				TargetID:   team.Id,
+				Name:       channelProp.Name,
+			}, channelProp.ID)
+			require.NoError(t, err)
+			require.Empty(t, conflict, "should not conflict when checking against excluded property")
+		})
+
+		t.Run("excludeID only excludes matching property", func(t *testing.T) {
+			// Create two channel properties with same name in different teams
+			name := "multi-exclude-test-" + model.NewId()
+			channelProp1, cErr := ss.PropertyField().Create(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelChannel),
+				TargetID:   channel.Id,
+				Type:       model.PropertyFieldTypeText,
+				Name:       name,
+			})
+			require.NoError(t, cErr)
+
+			channelProp2, cErr := ss.PropertyField().Create(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelChannel),
+				TargetID:   channelInTeam2.Id,
+				Type:       model.PropertyFieldTypeText,
+				Name:       name,
+			})
+			require.NoError(t, cErr)
+
+			// Creating system-level with excludeID for channelProp1 should still
+			// conflict with channelProp2
+			conflict, err := ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+				TargetID:   "",
+				Name:       name,
+			}, channelProp1.ID)
+			require.NoError(t, err)
+			require.Equal(t, model.PropertyFieldTargetLevelChannel, conflict, "should still conflict with non-excluded property")
+
+			// Excluding channelProp2 should still conflict with channelProp1
+			conflict, err = ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+				TargetID:   "",
+				Name:       name,
+			}, channelProp2.ID)
+			require.NoError(t, err)
+			require.Equal(t, model.PropertyFieldTargetLevelChannel, conflict, "should still conflict with non-excluded property")
 		})
 	})
 }

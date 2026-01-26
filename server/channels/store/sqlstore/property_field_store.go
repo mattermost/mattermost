@@ -292,9 +292,30 @@ func (s *SqlPropertyFieldStore) Delete(groupID string, id string) error {
 	return nil
 }
 
+// buildConflictSubquery creates a subquery to check for property conflicts at a given level.
+// The excludeID is only added to the WHERE clause when non-empty.
+// Uses Question placeholder format (?) for proper parameter merging when combining queries.
+func (s *SqlPropertyFieldStore) buildConflictSubquery(level string, objectType, groupID, name, excludeID string) sq.SelectBuilder {
+	builder := sq.StatementBuilder.PlaceholderFormat(sq.Question).
+		Select(fmt.Sprintf("'%s'", level)).
+		From("PropertyFields").
+		Where(sq.Eq{"ObjectType": objectType}).
+		Where(sq.Eq{"GroupID": groupID}).
+		Where(sq.Eq{"TargetType": level}).
+		Where(sq.Eq{"Name": name}).
+		Where(sq.Eq{"DeleteAt": 0}).
+		Limit(1)
+
+	if excludeID != "" {
+		builder = builder.Where(sq.NotEq{"ID": excludeID})
+	}
+
+	return builder
+}
+
 // CheckPropertyNameConflict checks if a property field would conflict with
 // existing properties in the hierarchy. It should be called before creating
-// a new property field to enforce hierarchical uniqueness.
+// or updating a property field to enforce hierarchical uniqueness.
 //
 // The hierarchy works as follows:
 //   - System-level properties (TargetType="system") conflict with any team or channel
@@ -310,7 +331,12 @@ func (s *SqlPropertyFieldStore) Delete(groupID string, id string) error {
 //
 // For channel-level properties, the method uses a subquery to look up the channel's
 // TeamId, which handles DM channels naturally (they have empty TeamId).
-func (s *SqlPropertyFieldStore) CheckPropertyNameConflict(field *model.PropertyField) (model.PropertyFieldTargetLevel, error) {
+//
+// The excludeID parameter allows excluding a specific property field ID from the
+// conflict check. This is useful when updating a property field, where the field
+// being updated should not conflict with itself. Pass an empty string when creating
+// new fields.
+func (s *SqlPropertyFieldStore) CheckPropertyNameConflict(field *model.PropertyField, excludeID string) (model.PropertyFieldTargetLevel, error) {
 	// Legacy properties (ObjectType = "") use old uniqueness via DB constraint
 	if field.ObjectType == "" {
 		return "", nil
@@ -320,58 +346,112 @@ func (s *SqlPropertyFieldStore) CheckPropertyNameConflict(field *model.PropertyF
 
 	switch field.TargetType {
 	case string(model.PropertyFieldTargetLevelSystem):
-		// Creating system-level: check if any team or channel has this property in this group
+		// Creating/updating system-level: check if any team or channel has this property in this group
 		// Uses COALESCE for short-circuit evaluation
-		query := `
-			SELECT COALESCE(
-				(SELECT 'team' FROM PropertyFields
-				 WHERE ObjectType = $1 AND GroupID = $2 AND TargetType = 'team' AND Name = $3 AND DeleteAt = 0
-				 LIMIT 1),
-				(SELECT 'channel' FROM PropertyFields
-				 WHERE ObjectType = $1 AND GroupID = $2 AND TargetType = 'channel' AND Name = $3 AND DeleteAt = 0
-				 LIMIT 1),
-				''
-			)`
-		if err := s.GetReplica().DB.Get(&conflictLevel, query, field.ObjectType, field.GroupID, field.Name); err != nil {
+
+		// Build team subquery
+		teamSubquery := s.buildConflictSubquery("team", field.ObjectType, field.GroupID, field.Name, excludeID)
+		teamSQL, teamArgs, err := teamSubquery.ToSql()
+		if err != nil {
+			return "", errors.Wrap(err, "property_field_check_conflict_system_team_sql")
+		}
+
+		// Build channel subquery
+		channelSubquery := s.buildConflictSubquery("channel", field.ObjectType, field.GroupID, field.Name, excludeID)
+		channelSQL, channelArgs, err := channelSubquery.ToSql()
+		if err != nil {
+			return "", errors.Wrap(err, "property_field_check_conflict_system_channel_sql")
+		}
+
+		// Combine with COALESCE, use Rebind to convert ? placeholders to $1, $2, etc.
+		query := fmt.Sprintf("SELECT COALESCE((%s), (%s), '')", teamSQL, channelSQL)
+		args := append(teamArgs, channelArgs...)
+
+		if err := s.GetReplica().DB.Get(&conflictLevel, s.GetReplica().DB.Rebind(query), args...); err != nil {
 			return "", errors.Wrap(err, "property_field_check_conflict_system")
 		}
 
 	case string(model.PropertyFieldTargetLevelTeam):
-		// Creating team-level: check system OR channels in this team within this group
+		// Creating/updating team-level: check system OR channels in this team within this group
 		// TargetID is the team ID for team-level properties
-		query := `
-			SELECT COALESCE(
-				(SELECT 'system' FROM PropertyFields
-				 WHERE ObjectType = $1 AND GroupID = $2 AND TargetType = 'system' AND Name = $3 AND DeleteAt = 0
-				 LIMIT 1),
-				(SELECT 'channel' FROM PropertyFields pf
-				 JOIN Channels c ON c.Id = pf.TargetID AND c.TeamId = $4
-				 WHERE pf.ObjectType = $1 AND pf.GroupID = $2 AND pf.TargetType = 'channel' AND pf.Name = $3 AND pf.DeleteAt = 0
-				 LIMIT 1),
-				''
-			)`
-		if err := s.GetReplica().DB.Get(&conflictLevel, query, field.ObjectType, field.GroupID, field.Name, field.TargetID); err != nil {
+
+		// Build system subquery
+		systemSubquery := s.buildConflictSubquery("system", field.ObjectType, field.GroupID, field.Name, excludeID)
+		systemSQL, systemArgs, err := systemSubquery.ToSql()
+		if err != nil {
+			return "", errors.Wrap(err, "property_field_check_conflict_team_system_sql")
+		}
+
+		// Build channel subquery (requires JOIN with Channels table)
+		// Use Question placeholder format for proper parameter merging
+		channelSubquery := sq.StatementBuilder.PlaceholderFormat(sq.Question).
+			Select("'channel'").
+			From("PropertyFields pf").
+			Join("Channels c ON c.Id = pf.TargetID AND c.TeamId = ?", field.TargetID).
+			Where(sq.Eq{"pf.ObjectType": field.ObjectType}).
+			Where(sq.Eq{"pf.GroupID": field.GroupID}).
+			Where(sq.Eq{"pf.TargetType": "channel"}).
+			Where(sq.Eq{"pf.Name": field.Name}).
+			Where(sq.Eq{"pf.DeleteAt": 0}).
+			Limit(1)
+
+		if excludeID != "" {
+			channelSubquery = channelSubquery.Where(sq.NotEq{"pf.ID": excludeID})
+		}
+
+		channelSQL, channelArgs, err := channelSubquery.ToSql()
+		if err != nil {
+			return "", errors.Wrap(err, "property_field_check_conflict_team_channel_sql")
+		}
+
+		// Combine with COALESCE, use Rebind to convert ? placeholders to $1, $2, etc.
+		query := fmt.Sprintf("SELECT COALESCE((%s), (%s), '')", systemSQL, channelSQL)
+		args := append(systemArgs, channelArgs...)
+
+		if err := s.GetReplica().DB.Get(&conflictLevel, s.GetReplica().DB.Rebind(query), args...); err != nil {
 			return "", errors.Wrap(err, "property_field_check_conflict_team")
 		}
 
 	case string(model.PropertyFieldTargetLevelChannel):
-		// Creating channel-level: check system OR this channel's team within this group
+		// Creating/updating channel-level: check system OR this channel's team within this group
 		// Uses subquery to get TeamId from Channels table - handles DM channels naturally
 		// (DM channels have empty TeamId, so TargetID = '' won't match any team-level property)
 		// TargetID is the channel ID for channel-level properties
-		query := `
-			SELECT COALESCE(
-				(SELECT 'system' FROM PropertyFields
-				 WHERE ObjectType = $1 AND GroupID = $2 AND TargetType = 'system' AND Name = $3 AND DeleteAt = 0
-				 LIMIT 1),
-				(SELECT 'team' FROM PropertyFields
-				 WHERE ObjectType = $1 AND GroupID = $2 AND TargetType = 'team' AND Name = $3
-				 AND TargetID = (SELECT TeamId FROM Channels WHERE Id = $4)
-				 AND DeleteAt = 0
-				 LIMIT 1),
-				''
-			)`
-		if err := s.GetReplica().DB.Get(&conflictLevel, query, field.ObjectType, field.GroupID, field.Name, field.TargetID); err != nil {
+
+		// Build system subquery
+		systemSubquery := s.buildConflictSubquery("system", field.ObjectType, field.GroupID, field.Name, excludeID)
+		systemSQL, systemArgs, err := systemSubquery.ToSql()
+		if err != nil {
+			return "", errors.Wrap(err, "property_field_check_conflict_channel_system_sql")
+		}
+
+		// Build team subquery (requires subquery to get TeamId from Channels)
+		// Use Question placeholder format for proper parameter merging
+		teamSubquery := sq.StatementBuilder.PlaceholderFormat(sq.Question).
+			Select("'team'").
+			From("PropertyFields").
+			Where(sq.Eq{"ObjectType": field.ObjectType}).
+			Where(sq.Eq{"GroupID": field.GroupID}).
+			Where(sq.Eq{"TargetType": "team"}).
+			Where(sq.Eq{"Name": field.Name}).
+			Where(sq.Expr("TargetID = (SELECT TeamId FROM Channels WHERE Id = ?)", field.TargetID)).
+			Where(sq.Eq{"DeleteAt": 0}).
+			Limit(1)
+
+		if excludeID != "" {
+			teamSubquery = teamSubquery.Where(sq.NotEq{"ID": excludeID})
+		}
+
+		teamSQL, teamArgs, err := teamSubquery.ToSql()
+		if err != nil {
+			return "", errors.Wrap(err, "property_field_check_conflict_channel_team_sql")
+		}
+
+		// Combine with COALESCE, use Rebind to convert ? placeholders to $1, $2, etc.
+		query := fmt.Sprintf("SELECT COALESCE((%s), (%s), '')", systemSQL, teamSQL)
+		args := append(systemArgs, teamArgs...)
+
+		if err := s.GetReplica().DB.Get(&conflictLevel, s.GetReplica().DB.Rebind(query), args...); err != nil {
 			return "", errors.Wrap(err, "property_field_check_conflict_channel")
 		}
 
