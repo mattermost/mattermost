@@ -624,8 +624,6 @@ export const SocketEvents = {
     "custom_com.mattermost.apps_refresh_bindings",
   APPS_FRAMEWORK_PLUGIN_ENABLED: "custom_com.mattermost.apps_plugin_enabled",
   APPS_FRAMEWORK_PLUGIN_DISABLED: "custom_com.mattermost.apps_plugin_disabled",
-  FILE_DOWNLOAD_REJECTED: "file_download_rejected",
-  SHOW_TOAST: "show_toast",
 };
 
 export const TutorialSteps = {

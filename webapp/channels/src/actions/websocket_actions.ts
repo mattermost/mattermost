@@ -682,10 +682,10 @@ export function handleEvent(msg: WebSocketMessage) {
     case WebSocketEvents.RecapUpdated:
         dispatch(handleRecapUpdated(msg));
         break;
-    case SocketEvents.FILE_DOWNLOAD_REJECTED:
+    case WebSocketEvents.FileDownloadRejected:
         dispatch(handleFileDownloadRejected(msg));
         break;
-    case SocketEvents.SHOW_TOAST:
+    case WebSocketEvents.ShowToast:
         dispatch(handleShowToast(msg));
         break;
     default:
@@ -2015,7 +2015,7 @@ export function handleRecapUpdated(msg: WebSocketMessages.RecapUpdated): ThunkAc
     };
 }
 
-export function handleFileDownloadRejected(msg) {
+export function handleFileDownloadRejected(msg: WebSocketMessages.FileDownloadRejected): ThunkActionFunc<void> {
     return (dispatch, getState) => {
         const {file_id: fileId, file_name: fileName, rejection_reason: rejectionReason, channel_id: channelId, post_id: postId, download_type: downloadType} = msg.data;
 
@@ -2093,22 +2093,25 @@ export function handleFileDownloadRejected(msg) {
     };
 }
 
-function handleShowToast(msg) {
-    const {message, position} = msg.data;
-    if (message) {
-        dispatch(openModal({
-            modalId: ModalIdentifiers.INFO_TOAST,
-            dialogType: InfoToast,
-            dialogProps: {
-                content: {
-                    message,
-                    icon: React.createElement(InformationOutlineIcon, {size: 18}),
+function handleShowToast(msg: WebSocketMessages.ShowToast): ThunkActionFunc<void> {
+    return (doDispatch) => {
+        const {message, position} = msg.data;
+        if (message) {
+            const toastPosition = position as 'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right' | undefined;
+            doDispatch(openModal({
+                modalId: ModalIdentifiers.INFO_TOAST,
+                dialogType: InfoToast,
+                dialogProps: {
+                    content: {
+                        message,
+                        icon: React.createElement(InformationOutlineIcon, {size: 18}),
+                    },
+                    position: toastPosition || 'bottom-right',
+                    onExited: () => {
+                        doDispatch(closeModal(ModalIdentifiers.INFO_TOAST));
+                    },
                 },
-                position: position || 'bottom-right',
-                onExited: () => {
-                    dispatch(closeModal(ModalIdentifiers.INFO_TOAST));
-                },
-            },
-        }));
-    }
+            }));
+        }
+    };
 }
