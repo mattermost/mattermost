@@ -870,6 +870,8 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 	// Always use incoming metadata when provided, otherwise retain existing
 	if receivedUpdatedPost.Metadata != nil {
 		newPost.Metadata = receivedUpdatedPost.Metadata.Copy()
+		// MM-67055: Strip embeds - always server-generated. Preserves Priority/Acks for Shared Channels sync.
+		newPost.Metadata.Embeds = nil
 	} else {
 		// Restore the post metadata that was stripped by the plugin. Set it to
 		// the last known good.

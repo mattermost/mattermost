@@ -1955,6 +1955,60 @@ func TestUpdatePost(t *testing.T) {
 		}
 	})
 
+	t.Run("should strip client-supplied embeds", func(t *testing.T) {
+		// MM-67055: Verify that client-supplied metadata.embeds are stripped.
+		// This prevents WebSocket message spoofing via permalink embeds.
+		//
+		// Note: Priority and Acknowledgements are stored in separate database tables,
+		// not in post metadata. Shared Channels handles them separately via
+		// syncRemotePriorityMetadata and syncRemoteAcknowledgementsMetadata after
+		// calling UpdatePost. See sync_recv.go::upsertSyncPost
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.AddUserToChannel(t, th.BasicUser, th.BasicChannel)
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		// Create a basic post
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "original message",
+			UserId:    th.BasicUser.Id,
+		}
+		createdPost, _, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, err)
+
+		// Try to update with spoofed embeds (the attack vector)
+		updatePost := &model.Post{
+			Id:        createdPost.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "updated message",
+			UserId:    th.BasicUser.Id,
+			Metadata: &model.PostMetadata{
+				Embeds: []*model.PostEmbed{
+					{
+						Type: model.PostEmbedPermalink,
+						Data: &model.PreviewPost{
+							PostID: "spoofed-post-id",
+							Post: &model.Post{
+								Id:      "spoofed-post-id",
+								UserId:  th.BasicUser2.Id,
+								Message: "Spoofed message from another user!",
+							},
+						},
+					},
+				},
+			},
+		}
+
+		updatedPost, _, err := th.App.UpdatePost(th.Context, updatePost, nil)
+		require.Nil(t, err)
+		require.NotNil(t, updatedPost.Metadata)
+
+		// Verify embeds were stripped
+		assert.Empty(t, updatedPost.Metadata.Embeds, "spoofed embeds should be stripped")
+	})
+
 	t.Run("cannot update post in restricted DM", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
