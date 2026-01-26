@@ -86,3 +86,34 @@ export type ScheduledRecapInput = {
     is_recurring: boolean;
 };
 
+// Recap limit status for UI display
+export type RecapLimitStatus = {
+    effective_limits: EffectiveRecapLimits;
+    daily: DailyUsageStatus;
+    cooldown: CooldownStatus;
+};
+
+export type EffectiveRecapLimits = {
+    max_recaps_per_day: number;
+    max_scheduled_recaps: number;
+    max_channels_per_recap: number;
+    max_posts_per_recap: number;
+    max_tokens_per_recap: number;
+    max_posts_per_day: number;
+    cooldown_minutes: number;
+    source: string;
+    source_id: string;
+};
+
+export type DailyUsageStatus = {
+    used: number;
+    limit: number;
+    reset_at: number; // Unix timestamp ms
+};
+
+export type CooldownStatus = {
+    is_active: boolean;
+    available_at: number; // Unix timestamp ms
+    retry_after_seconds: number;
+};
+
