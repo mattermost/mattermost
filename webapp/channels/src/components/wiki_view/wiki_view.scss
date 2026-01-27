@@ -518,6 +518,19 @@ body.fullscreen-mode {
     .PagePane {
         width: 100%;
         height: 100%;
+
+        &__header {
+            position: fixed;
+            z-index: 902;
+            top: 0;
+            right: 0;
+            left: 0;
+            background: var(--center-channel-bg);
+        }
+
+        &__content {
+            margin-top: 56px;
+        }
     }
 
     #sidebar-right {
@@ -532,6 +545,10 @@ body.fullscreen-mode {
     .rhs-open-expanded .WikiView {
         .PagePane {
             padding-right: 400px;
+
+            &__header {
+                right: 400px;
+            }
         }
     }
 }

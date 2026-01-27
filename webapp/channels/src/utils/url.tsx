@@ -242,7 +242,7 @@ export function validateChannelUrl(url: string, intl?: IntlShape): Array<React.R
 
 // Returns true when the URL could possibly cause any external requests.
 // Currently returns false only for permalinks
-const permalinkPath = new RegExp('^/[0-9a-z_-]{1,64}/pl/[0-9a-z_-]{26}$');
+const permalinkPath = new RegExp('^/[0-9a-z_-]{1,64}/pl/[0-9a-z_-]{26}(\\?view=citation)?$');
 export function mightTriggerExternalRequest(url: string, siteURL?: string): boolean {
     if (siteURL && siteURL !== '') {
         let standardSiteURL = siteURL;
