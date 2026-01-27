@@ -50,4 +50,15 @@
     .Menu__divider {
         margin: 8px 0;
     }
+
+    // System items have gray 16x16 icons in 24x24 container
+    // Product icons are blue 24x24 (handled by ProductMenuItem)
+    &__systemIcon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+    }
 }
