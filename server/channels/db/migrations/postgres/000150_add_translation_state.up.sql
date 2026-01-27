@@ -6,4 +6,4 @@ ADD COLUMN IF NOT EXISTS state varchar(20) NOT NULL;
 -- This index is only for states that need monitoring/cleanup
 CREATE INDEX IF NOT EXISTS idx_translations_state 
 ON translations(state) 
-WHERE state IN ('processing', 'unavailable');
+WHERE state IN ('processing');

@@ -2,36 +2,111 @@
 
 exports[`component/create_team should match snapshot default 1`] = `
 <div>
-  <Connect(Component) />
-  <BackButton
-    url="/undefined/channels/undefined"
-  />
-  <div
-    className="col-sm-12"
-  >
+  <div>
     <div
-      className="signup-team__container"
+      class="signup-header"
     >
-      <Memo(SiteNameAndDescription)
-        customDescriptionText=""
-        siteName=""
-      />
-      <div
-        className="signup__content"
+      <a
+        data-testid="back_button"
+        href="/undefined/channels/undefined"
       >
-        <Switch>
-          <Route
-            path="/display_name"
-            render={[Function]}
-          />
-          <Route
-            path="/team_url"
-            render={[Function]}
-          />
-          <Redirect
-            to="/display_name"
-          />
-        </Switch>
+        <span
+          class="fa fa-1x fa-angle-left"
+          id="back_button_icon"
+          title="Back Icon"
+        />
+        Back
+      </a>
+    </div>
+    <div
+      class="col-sm-12"
+    >
+      <div
+        class="signup-team__container"
+      >
+        <h1
+          id="site_name"
+        />
+        <h3
+          class="color--light"
+          id="site_description"
+        >
+          All team communication in one place, searchable and accessible anywhere
+        </h3>
+        <div
+          class="signup__content"
+        >
+          <div>
+            <form>
+              <img
+                alt="signup logo"
+                class="signup-team-logo"
+                src=""
+              />
+              <label
+                for="teamNameInput"
+              >
+                <strong>
+                  Team Name
+                </strong>
+              </label>
+              <div
+                class="form-group"
+              >
+                <div
+                  class="row"
+                >
+                  <div
+                    class="col-sm-9"
+                  >
+                    <div
+                      class="Input_container"
+                    >
+                      <div
+                        class="Input_fieldset Input_fieldset___legend"
+                        data-testid="input-wrapper"
+                      >
+                        <label
+                          class="Input_legend Input_legend___focus"
+                          for="input_teamNameInput"
+                        >
+                                                  
+                        </label>
+                        <div
+                          class="Input_wrapper"
+                        >
+                          <input
+                            class="Input form-control medium Input__focus"
+                            id="teamNameInput"
+                            maxlength="64"
+                            name="teamNameInput"
+                            spellcheck="false"
+                            type="text"
+                            value=""
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div>
+                Name your team in any language. Your team name shows in menus and headings.
+              </div>
+              <button
+                class="btn btn-primary mt-8"
+                disabled=""
+                id="teamNameNextButton"
+                type="submit"
+              >
+                Next
+                <i
+                  class="icon icon-chevron-right"
+                />
+              </button>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
   </div>

@@ -270,7 +270,7 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
                         defaultMessage: 'e.g.: 5000',
                     })}
                     helpText={timeoutError ? (
-                        <span className='error-message'>{timeoutError}</span>
+                        <span className='autotranslation-error error-message'>{timeoutError}</span>
                     ) : (
                         <FormattedMessage
                             id='admin.site.localization.autoTranslationTimeoutDescription'
