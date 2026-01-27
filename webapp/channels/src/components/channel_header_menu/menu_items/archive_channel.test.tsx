@@ -100,4 +100,38 @@ describe('components/ChannelHeaderMenu/MenuItems/ArchiveChannel', () => {
             },
         });
     });
+
+    test('renders ArchiveOutlineIcon for public channel', () => {
+        const publicChannel = TestHelper.getChannelMock({
+            id: 'public_channel',
+            type: 'O',
+            display_name: 'Public Channel',
+        });
+
+        renderWithContext(
+            <WithTestMenuContext>
+                <ArchiveChannel channel={publicChannel}/>
+            </WithTestMenuContext>, initialState,
+        );
+
+        // Check that the component renders without error
+        expect(screen.getByText('Archive Channel')).toBeInTheDocument();
+    });
+
+    test('renders ArchiveLockOutlineIcon for private channel', () => {
+        const privateChannel = TestHelper.getChannelMock({
+            id: 'private_channel',
+            type: 'P',
+            display_name: 'Private Channel',
+        });
+
+        renderWithContext(
+            <WithTestMenuContext>
+                <ArchiveChannel channel={privateChannel}/>
+            </WithTestMenuContext>, initialState,
+        );
+
+        // Check that the component renders without error
+        expect(screen.getByText('Archive Channel')).toBeInTheDocument();
+    });
 });

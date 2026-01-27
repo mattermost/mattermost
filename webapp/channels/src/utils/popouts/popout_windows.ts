@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {IntlShape} from 'react-intl';
-
 import type {PopoutViewProps} from '@mattermost/desktop-api';
 
 import {Client4} from 'mattermost-redux/client';
@@ -23,7 +21,7 @@ export function registerRHSPluginPopoutListener(pluginId: string, onPopoutOpened
 
 export const FOCUS_REPLY_POST = 'focus-reply-post';
 export async function popoutThread(
-    intl: IntlShape,
+    titleTemplate: string,
     threadId: string,
     teamName: string,
     onFocusPost: (postId: string, returnTo: string) => void,
@@ -32,10 +30,7 @@ export async function popoutThread(
         `/_popout/thread/${teamName}/${threadId}`,
         {
             isRHS: true,
-            titleTemplate: intl.formatMessage({
-                id: 'thread_popout.title',
-                defaultMessage: 'Thread - {channelName} - {teamName}',
-            }),
+            titleTemplate,
         },
     );
 
@@ -53,9 +48,8 @@ export async function popoutThread(
 }
 
 export async function popoutRhsPlugin(
-    intl: IntlShape,
+    titleTemplate: string,
     pluginId: string,
-    pluginDisplayName: string,
     teamName: string,
     channelName: string,
 ) {
@@ -63,16 +57,28 @@ export async function popoutRhsPlugin(
         `/_popout/rhs/${teamName}/${channelName}/plugin/${pluginId}`,
         {
             isRHS: true,
-            titleTemplate: intl.formatMessage({
-                id: 'rhs_plugin_popout.title',
-                defaultMessage: '{serverName} - {pluginDisplayName}',
-            }, {serverName: '{serverName}', pluginDisplayName}),
+            titleTemplate,
         },
     );
 
     pluginPopoutListeners.get(pluginId)?.(teamName, channelName, listeners);
 
     return listeners;
+}
+
+export async function popoutHelp() {
+    return popout(
+        '/_popout/help',
+        {
+
+            // Not really RHS, but this gives a desirable window size.
+            isRHS: true,
+
+            // Note: titleTemplate is intentionally omitted so that the desktop
+            // app uses document.title, allowing dynamic title updates as the
+            // user navigates between help pages.
+        },
+    );
 }
 
 /**

@@ -5973,8 +5973,7 @@ func testGetPostsForReporting(t *testing.T, rctx request.CTX, ss store.Store, s 
 		//
 		// For reporting queries, we expect the query to use index seeks, not table scans
 		//
-		// Note: The actual query plan depends on the database (PostgreSQL vs MySQL),
-		// data distribution, and statistics. This test just verifies the query executes
+		// Note: The actual query plan depends on data distribution and statistics. This test just verifies the query executes
 		// efficiently by checking that it completes in a reasonable time.
 
 		// Create a larger dataset to better test index usage

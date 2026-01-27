@@ -85,7 +85,7 @@ describe('Profile > Profile Settings > Email', () => {
         cy.get('#primaryEmail').should('be.visible').click().blur();
 
         // * Check that the correct error message is shown.
-        cy.get('#error_primaryEmail').should('be.visible').should('have.text', 'Please enter a valid email address');
+        cy.get('#error_primaryEmail').should('be.visible').should('have.text', 'Please enter a valid email address.');
     });
 
     it('MM-T2067 email address already taken error', () => {

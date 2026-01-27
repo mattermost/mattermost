@@ -788,11 +788,11 @@ func (a *App) UploadFileX(rctx request.CTX, channelID, name string, input io.Rea
 		o(t)
 	}
 
-	rctx = rctx.WithLogger(rctx.Logger().With(
+	rctx = rctx.WithLogFields(
 		mlog.String("file_name", name),
 		mlog.String("channel_id", channelID),
 		mlog.String("user_id", t.UserId),
-	))
+	)
 
 	if *a.Config().FileSettings.DriverName == "" {
 		return nil, t.newAppError("api.file.upload_file.storage.app_error", http.StatusNotImplemented)
@@ -1441,11 +1441,11 @@ func populateZipfile(w *zip.Writer, fileDatas []model.FileData) error {
 	return nil
 }
 
-func (a *App) SearchFilesInTeamForUser(rctx request.CTX, terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.FileInfoList, *model.AppError) {
+func (a *App) SearchFilesInTeamForUser(rctx request.CTX, terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.FileInfoList, bool, *model.AppError) {
 	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
 
 	if !*a.Config().ServiceSettings.EnableFileSearch {
-		return nil, model.NewAppError("SearchFilesInTeamForUser", "store.sql_file_info.search.disabled", nil, fmt.Sprintf("teamId=%v userId=%v", teamId, userId), http.StatusNotImplemented)
+		return nil, false, model.NewAppError("SearchFilesInTeamForUser", "store.sql_file_info.search.disabled", nil, fmt.Sprintf("teamId=%v userId=%v", teamId, userId), http.StatusNotImplemented)
 	}
 
 	finalParamsList := []*model.SearchParams{}
@@ -1469,7 +1469,7 @@ func (a *App) SearchFilesInTeamForUser(rctx request.CTX, terms string, userId st
 
 	// If the processed search params are empty, return empty search results.
 	if len(finalParamsList) == 0 {
-		return model.NewFileInfoList(), nil
+		return model.NewFileInfoList(), true, nil
 	}
 
 	fileInfoSearchResults, nErr := a.Srv().Store().FileInfo().Search(rctx, finalParamsList, userId, teamId, page, perPage)
@@ -1477,26 +1477,27 @@ func (a *App) SearchFilesInTeamForUser(rctx request.CTX, terms string, userId st
 		var appErr *model.AppError
 		switch {
 		case errors.As(nErr, &appErr):
-			return nil, appErr
+			return nil, false, appErr
 		default:
-			return nil, model.NewAppError("SearchFilesInTeamForUser", "app.post.search.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+			return nil, false, model.NewAppError("SearchFilesInTeamForUser", "app.post.search.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 	}
 
 	if appErr := a.filterInaccessibleFiles(fileInfoSearchResults, filterFileOptions{assumeSortedCreatedAt: true}); appErr != nil {
-		return nil, appErr
+		return nil, false, appErr
 	}
 
-	if appErr := a.FilterFilesByChannelPermissions(rctx, fileInfoSearchResults, userId); appErr != nil {
-		return nil, appErr
+	allFilesHaveMembership, appErr := a.FilterFilesByChannelPermissions(rctx, fileInfoSearchResults, userId)
+	if appErr != nil {
+		return nil, false, appErr
 	}
 
-	return fileInfoSearchResults, nil
+	return fileInfoSearchResults, allFilesHaveMembership, nil
 }
 
-func (a *App) FilterFilesByChannelPermissions(rctx request.CTX, fileList *model.FileInfoList, userID string) *model.AppError {
+func (a *App) FilterFilesByChannelPermissions(rctx request.CTX, fileList *model.FileInfoList, userID string) (bool, *model.AppError) {
 	if fileList == nil || fileList.FileInfos == nil || len(fileList.FileInfos) == 0 {
-		return nil
+		return true, nil // On an empty file list, we consider all files as having membership
 	}
 
 	channels := make(map[string]*model.Channel)
@@ -1510,7 +1511,7 @@ func (a *App) FilterFilesByChannelPermissions(rctx request.CTX, fileList *model.
 		channelIDs := slices.Collect(maps.Keys(channels))
 		channelList, err := a.GetChannels(rctx, channelIDs)
 		if err != nil && err.StatusCode != http.StatusNotFound {
-			return err
+			return false, err
 		}
 		for _, channel := range channelList {
 			channels[channel.Id] = channel
@@ -1520,6 +1521,7 @@ func (a *App) FilterFilesByChannelPermissions(rctx request.CTX, fileList *model.
 	channelReadPermission := make(map[string]bool)
 	filteredFiles := make(map[string]*model.FileInfo)
 	filteredOrder := []string{}
+	allFilesHaveMembership := true
 
 	for _, fileID := range fileList.Order {
 		fileInfo, ok := fileList.FileInfos[fileID]
@@ -1530,10 +1532,14 @@ func (a *App) FilterFilesByChannelPermissions(rctx request.CTX, fileList *model.
 		if _, ok := channelReadPermission[fileInfo.ChannelId]; !ok {
 			channel := channels[fileInfo.ChannelId]
 			allowed := false
+			isMember := true
 			if channel != nil {
-				allowed = a.HasPermissionToReadChannel(rctx, userID, channel)
+				allowed, isMember = a.HasPermissionToReadChannel(rctx, userID, channel)
 			}
 			channelReadPermission[fileInfo.ChannelId] = allowed
+			if allowed {
+				allFilesHaveMembership = allFilesHaveMembership && isMember
+			}
 		}
 
 		if channelReadPermission[fileInfo.ChannelId] {
@@ -1545,7 +1551,7 @@ func (a *App) FilterFilesByChannelPermissions(rctx request.CTX, fileList *model.
 	fileList.FileInfos = filteredFiles
 	fileList.Order = filteredOrder
 
-	return nil
+	return allFilesHaveMembership, nil
 }
 
 func (a *App) ExtractContentFromFileInfo(rctx request.CTX, fileInfo *model.FileInfo) error {
