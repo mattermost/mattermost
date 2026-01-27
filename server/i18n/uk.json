@@ -7632,10 +7632,6 @@
     "translation": "Не вдалося надіслати електронні листи щодо поновлення ліцензії"
   },
   {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "Серверу CWS не вдалося підписатися на розсилку новин."
-  },
-  {
     "id": "api.server.hosted_signup_unavailable.error",
     "translation": "Портал недоступний для самостійної реєстрації."
   },
