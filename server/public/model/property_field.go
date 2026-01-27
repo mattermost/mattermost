@@ -9,8 +9,6 @@ import (
 	"fmt"
 	"net/http"
 	"unicode/utf8"
-
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 type PropertyFieldType string
@@ -70,31 +68,29 @@ func (pf *PropertyField) PreSave() {
 
 // EnsureOptionIDs generates IDs for any options that don't have them in select/multiselect fields.
 // This ensures option IDs are always set, similar to how field IDs are auto-generated.
-func (pf *PropertyField) EnsureOptionIDs() {
+func (pf *PropertyField) EnsureOptionIDs() error {
 	if pf.Type != PropertyFieldTypeSelect && pf.Type != PropertyFieldTypeMultiselect {
-		return
+		return nil
 	}
 
 	if pf.Attrs == nil {
-		return
+		return nil
 	}
 
 	optionsRaw, ok := pf.Attrs[PropertyFieldAttributeOptions]
 	if !ok {
-		return
+		return nil
 	}
 
 	options, ok := optionsRaw.([]any)
 	if !ok {
-		mlog.Warn("PropertyField options attribute is not a slice", mlog.String("field_id", pf.ID), mlog.String("field_type", string(pf.Type)))
-		return
+		return fmt.Errorf("options attribute is not a slice for field ID: %s", pf.ID)
 	}
 
 	for i, optRaw := range options {
 		optMap, ok := optRaw.(map[string]any)
 		if !ok {
-			mlog.Warn("PropertyField option is not a map", mlog.String("field_id", pf.ID), mlog.Int("option_index", i))
-			continue
+			return fmt.Errorf("option at index %d is not a map for field ID: %s", i, pf.ID)
 		}
 
 		// Generate ID if missing or empty
@@ -102,6 +98,8 @@ func (pf *PropertyField) EnsureOptionIDs() {
 			optMap["id"] = NewId()
 		}
 	}
+
+	return nil
 }
 
 func (pf *PropertyField) IsValid() error {

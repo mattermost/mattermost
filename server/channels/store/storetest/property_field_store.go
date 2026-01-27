@@ -282,7 +282,11 @@ func testGetFieldByName(t *testing.T, _ request.CTX, ss store.Store) {
 		Name:     "unique-field-name", // Same name as the first field
 		Type:     model.PropertyFieldTypeSelect,
 		Attrs: map[string]any{
-			"options": []string{"a", "b", "c"},
+			"options": []any{
+				map[string]any{"name": "a"},
+				map[string]any{"name": "b"},
+				map[string]any{"name": "c"},
+			},
 		},
 	}
 	_, cErr = ss.PropertyField().Create(duplicateNameField)
@@ -438,7 +442,10 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 			Name:    "Second field",
 			Type:    model.PropertyFieldTypeSelect,
 			Attrs: map[string]any{
-				"options": []string{"a", "b"},
+				"options": []any{
+					map[string]any{"name": "a"},
+					map[string]any{"name": "b"},
+				},
 			},
 		}
 
@@ -458,7 +465,11 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 
 		field2.Name = "Updated second"
 		field2.Attrs = map[string]any{
-			"options": []string{"x", "y", "z"},
+			"options": []any{
+				map[string]any{"name": "x"},
+				map[string]any{"name": "y"},
+				map[string]any{"name": "z"},
+			},
 		}
 
 		_, err := ss.PropertyField().Update("", []*model.PropertyField{field1, field2})
@@ -479,7 +490,15 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, "Updated second", updated2.Name)
 		require.Equal(t, model.PropertyFieldTypeSelect, updated2.Type)
-		require.ElementsMatch(t, []string{"x", "y", "z"}, updated2.Attrs["options"])
+		options := updated2.Attrs["options"].([]any)
+		require.Len(t, options, 3)
+		optionNames := []string{}
+		for _, opt := range options {
+			optMap := opt.(map[string]any)
+			require.NotEmpty(t, optMap["id"], "Option should have an ID")
+			optionNames = append(optionNames, optMap["name"].(string))
+		}
+		require.ElementsMatch(t, []string{"x", "y", "z"}, optionNames)
 		require.Greater(t, updated2.UpdateAt, updated2.CreateAt)
 	})
 

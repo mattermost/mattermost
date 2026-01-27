@@ -613,7 +613,8 @@ func TestPropertyField_EnsureOptionIDs(t *testing.T) {
 			},
 		}
 
-		pf.EnsureOptionIDs()
+		err := pf.EnsureOptionIDs()
+		require.NoError(t, err)
 
 		options := pf.Attrs[PropertyFieldAttributeOptions].([]any)
 		require.Len(t, options, 3)
@@ -636,7 +637,8 @@ func TestPropertyField_EnsureOptionIDs(t *testing.T) {
 			},
 		}
 
-		pf.EnsureOptionIDs()
+		err := pf.EnsureOptionIDs()
+		require.NoError(t, err)
 
 		options := pf.Attrs[PropertyFieldAttributeOptions].([]any)
 		require.Len(t, options, 2)
@@ -661,7 +663,8 @@ func TestPropertyField_EnsureOptionIDs(t *testing.T) {
 			},
 		}
 
-		pf.EnsureOptionIDs()
+		err := pf.EnsureOptionIDs()
+		require.NoError(t, err)
 
 		options := pf.Attrs[PropertyFieldAttributeOptions].([]any)
 		assert.Equal(t, existingID1, options[0].(map[string]any)["id"])
@@ -682,7 +685,8 @@ func TestPropertyField_EnsureOptionIDs(t *testing.T) {
 			},
 		}
 
-		pf.EnsureOptionIDs()
+		err := pf.EnsureOptionIDs()
+		require.NoError(t, err)
 
 		options := pf.Attrs[PropertyFieldAttributeOptions].([]any)
 
@@ -707,7 +711,8 @@ func TestPropertyField_EnsureOptionIDs(t *testing.T) {
 			},
 		}
 
-		pf.EnsureOptionIDs()
+		err := pf.EnsureOptionIDs()
+		require.NoError(t, err)
 
 		options := pf.Attrs[PropertyFieldAttributeOptions].([]any)
 
@@ -719,5 +724,38 @@ func TestPropertyField_EnsureOptionIDs(t *testing.T) {
 		id2 := options[1].(map[string]any)["id"]
 		assert.IsType(t, "", id2)
 		assert.Len(t, id2.(string), 26)
+	})
+
+	t.Run("returns error when options attribute is not a slice", func(t *testing.T) {
+		pf := &PropertyField{
+			ID:   "field123",
+			Type: PropertyFieldTypeSelect,
+			Attrs: StringInterface{
+				PropertyFieldAttributeOptions: "not a slice",
+			},
+		}
+
+		err := pf.EnsureOptionIDs()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "options attribute is not a slice")
+		assert.Contains(t, err.Error(), "field123")
+	})
+
+	t.Run("returns error when option is not a map", func(t *testing.T) {
+		pf := &PropertyField{
+			ID:   "field456",
+			Type: PropertyFieldTypeMultiselect,
+			Attrs: StringInterface{
+				PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "Valid Option", "id": "valid_id"},
+					"not a map",
+				},
+			},
+		}
+
+		err := pf.EnsureOptionIDs()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "option at index 1 is not a map")
+		assert.Contains(t, err.Error(), "field456")
 	})
 }
