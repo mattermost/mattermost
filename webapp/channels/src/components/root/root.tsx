@@ -424,7 +424,7 @@ export default class Root extends React.PureComponent<Props, State> {
                         <ModalController/>
                         <AnnouncementBarController/>
                         <SystemNotice/>
-                        <GlobalHeader/>
+                        {!this.props.isProductSidebarEnabled && <GlobalHeader/>}
                         <CloudEffects/>
                         <ProductSidebar/>
                         <TeamSidebar/>

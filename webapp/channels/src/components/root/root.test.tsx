@@ -89,6 +89,7 @@ describe('components/Root', () => {
             } as unknown as RouteComponentProps['history'],
         } as RouteComponentProps,
         isDevModeEnabled: false,
+        isProductSidebarEnabled: false,
     };
 
     let originalMatchMedia: (query: string) => MediaQueryList;

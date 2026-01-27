@@ -17,6 +17,7 @@ import {loadRecentlyUsedCustomEmojis, migrateRecentEmojis} from 'actions/emoji_a
 import {isDevModeEnabled} from 'selectors/general';
 import {getShowLaunchingWorkspace} from 'selectors/onboarding';
 import {shouldShowAppBar} from 'selectors/plugins';
+import {isProductSidebarEnabled} from 'selectors/views/product_sidebar';
 import {
     getIsRhsExpanded,
     getIsRhsOpen,
@@ -69,6 +70,7 @@ function mapStateToProps(state: GlobalState) {
         shouldShowAppBar: shouldShowAppBar(state),
         isCloud: isCurrentLicenseCloud(state),
         isDevModeEnabled: isDevModeEnabled(state),
+        isProductSidebarEnabled: isProductSidebarEnabled(state),
     };
 }
 
