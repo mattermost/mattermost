@@ -31,3 +31,20 @@
         }
     }
 }
+
+// Mobile responsive - follows TeamSidebar pattern
+@media screen and (max-width: 768px) {
+    .ProductSidebar {
+        position: fixed;
+        z-index: 17;
+        top: 0;
+        left: 0;
+        height: 100%;
+        transform: translate3d(-56px, 0, 0);
+        transition: transform 0.35s ease;
+
+        &.move--right {
+            transform: translate3d(0, 0, 0);
+        }
+    }
+}
