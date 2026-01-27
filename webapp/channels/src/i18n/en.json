@@ -5566,6 +5566,7 @@
   "post.burn_on_read.view_message": "View message",
   "post.error.access": "The post you're requesting is private or does not exist.",
   "post.error.title": "Post Not Found",
+  "post.message_attachment.action_failed": "Action failed to execute",
   "post.reminder.acknowledgement": "You will be reminded at {reminderTime}, {reminderDate} about this message from {username}: {permaLink}",
   "post.reminder.systemBot": "Hi there, here's your reminder about this message from {username}: {permaLink}",
   "post.renderError.message": "An error occurred while rendering this post.",
