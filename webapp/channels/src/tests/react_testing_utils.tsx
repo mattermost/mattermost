@@ -25,6 +25,11 @@ import type {GlobalState} from 'types/store';
 export * from '@testing-library/react';
 export {userEvent};
 
+export type IntlOptions = {
+    messages?: Record<string, string>;
+    locale?: string;
+}
+
 export type FullContextOptions = {
     intlMessages?: Record<string, string>;
     locale?: string;
