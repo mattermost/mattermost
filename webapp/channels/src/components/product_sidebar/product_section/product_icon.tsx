@@ -47,7 +47,8 @@ export interface ProductIconProps {
  * - Active state with blue bar indicator
  */
 const ProductIcon = ({icon, destination, name, active, onClick}: ProductIconProps): JSX.Element => {
-    const IconComponent = glyphMap[icon];
+    // Fallback to product-channels icon if the specified icon doesn't exist in glyphMap
+    const IconComponent = glyphMap[icon] || glyphMap['product-channels'];
 
     return (
         <WithTooltip
