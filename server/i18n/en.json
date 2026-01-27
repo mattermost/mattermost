@@ -3159,10 +3159,6 @@
     "translation": "Service only available in Mattermost Enterprise edition"
   },
   {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "CWS Server failed to subscribe to newsletter."
-  },
-  {
     "id": "api.server.hosted_signup_unavailable.error",
     "translation": "Portal unavailable for self-hosted signup."
   },
@@ -6923,10 +6919,6 @@
     "translation": "Could not update active status of access control policies."
   },
   {
-    "id": "app.pap.update_access_control_policy_active.app_error",
-    "translation": "Could not change active status of access control policy."
-  },
-  {
     "id": "app.pdp.access_evaluation.app_error",
     "translation": "Failed evaluate access control policy."
   },
@@ -8547,6 +8539,10 @@
   {
     "id": "ent.autotranslation.provider_not_initialized",
     "translation": "Translation provider is not initialized."
+  },
+  {
+    "id": "ent.autotranslation.store_error",
+    "translation": "Unable to process auto-translation request."
   },
   {
     "id": "ent.autotranslation.unmask.missing_mask",
@@ -11595,78 +11591,6 @@
   {
     "id": "sharedchannel.permalink.not_found",
     "translation": "This post contains permalinks to other channels which may not be visible to users in other sites."
-  },
-  {
-    "id": "store.sql_autotranslation.channel_not_found",
-    "translation": "Channel not found."
-  },
-  {
-    "id": "store.sql_autotranslation.get.app_error",
-    "translation": "Unable to get translation."
-  },
-  {
-    "id": "store.sql_autotranslation.get_active_languages.app_error",
-    "translation": "Unable to get active languages."
-  },
-  {
-    "id": "store.sql_autotranslation.get_all_by_state_page.app_error",
-    "translation": "Unable to get translations by state."
-  },
-  {
-    "id": "store.sql_autotranslation.get_all_for_object.app_error",
-    "translation": "Unable to get translations for object."
-  },
-  {
-    "id": "store.sql_autotranslation.get_batch.app_error",
-    "translation": "Unable to get translation batch."
-  },
-  {
-    "id": "store.sql_autotranslation.get_by_state_older_than.app_error",
-    "translation": "Failed to retrieve translations by state and time."
-  },
-  {
-    "id": "store.sql_autotranslation.get_channel_enabled.app_error",
-    "translation": "Unable to get channel autotranslation enabled status."
-  },
-  {
-    "id": "store.sql_autotranslation.get_user_enabled.app_error",
-    "translation": "Unable to get user autotranslation enabled status."
-  },
-  {
-    "id": "store.sql_autotranslation.get_user_language.app_error",
-    "translation": "Unable to get user language."
-  },
-  {
-    "id": "store.sql_autotranslation.is_channel_enabled.app_error",
-    "translation": "Unable to get channel autotranslation enabled status."
-  },
-  {
-    "id": "store.sql_autotranslation.member_not_found",
-    "translation": "Member not found."
-  },
-  {
-    "id": "store.sql_autotranslation.meta_json.app_error",
-    "translation": "Failed to parse translation metadata JSON."
-  },
-  {
-    "id": "store.sql_autotranslation.query_build_error",
-    "translation": "Failed to build query."
-  },
-  {
-    "id": "store.sql_autotranslation.save.app_error",
-    "translation": "Unable to save translation."
-  },
-  {
-    "id": "store.sql_autotranslation.save.meta_json.app_error",
-    "translation": "Failed to serialize translation metadata to JSON."
-  },
-  {
-    "id": "store.sql_autotranslation.set_channel_enabled.app_error",
-    "translation": "Unable to set channel autotranslation enabled status."
-  },
-  {
-    "id": "store.sql_autotranslation.set_user_enabled.app_error",
-    "translation": "Unable to set user autotranslation enabled status."
   },
   {
     "id": "store.sql_bot.get.missing.app_error",

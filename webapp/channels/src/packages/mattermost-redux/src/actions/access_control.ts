@@ -125,16 +125,6 @@ export function getAccessControlFields(after: string, limit: number, channelId?:
     });
 }
 
-export function updateAccessControlPolicyActive(policyId: string, active: boolean) {
-    return bindClientFunc({
-        clientFunc: Client4.updateAccessControlPolicyActive,
-        params: [
-            policyId,
-            active,
-        ],
-    });
-}
-
 export function searchUsersForExpression(expression: string, term: string, after: string, limit: number, channelId?: string): ActionFuncAsync<AccessControlTestResult> {
     return async (dispatch, getState) => {
         let data;

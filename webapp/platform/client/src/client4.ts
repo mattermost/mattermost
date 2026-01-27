@@ -10,7 +10,7 @@ import type {AppBinding, AppCallRequest, AppCallResponse} from '@mattermost/type
 import type {Audit} from '@mattermost/types/audits';
 import type {UserAutocomplete, AutocompleteSuggestion} from '@mattermost/types/autocomplete';
 import type {Bot, BotPatch} from '@mattermost/types/bots';
-import type {ChannelBookmark, ChannelBookmarkCreate, ChannelBookmarkPatch} from '@mattermost/types/channel_bookmarks';
+import type {ChannelBookmark, ChannelBookmarkCreate, ChannelBookmarkPatch, UpdateChannelBookmarkResponse} from '@mattermost/types/channel_bookmarks';
 import type {ChannelCategory, OrderedChannelCategories} from '@mattermost/types/channel_categories';
 import type {
     Channel,
@@ -38,7 +38,6 @@ import type {
     NotifyAdminRequest,
     Subscription,
     ValidBusinessEmail,
-    NewsletterRequestBody,
     Installation,
     PreviewModalContentData,
 } from '@mattermost/types/cloud';
@@ -2041,7 +2040,7 @@ export default class Client4 {
     };
 
     updateChannelBookmark = (channelId: string, channelBookmarkId: string, patch: ChannelBookmarkPatch, connectionId: string) => {
-        return this.doFetch<{updated: ChannelBookmark; deleted: ChannelBookmark}>(
+        return this.doFetch<UpdateChannelBookmarkResponse>(
             `${this.getChannelBookmarkRoute(channelId, channelBookmarkId)}`,
             {method: 'PATCH', body: JSON.stringify(patch), headers: {'Connection-Id': connectionId}},
         );
@@ -4242,13 +4241,6 @@ export default class Client4 {
         );
     };
 
-    subscribeToNewsletter = (newletterRequestBody: NewsletterRequestBody) => {
-        return this.doFetch<StatusOK>(
-            `${this.getHostedCustomerRoute()}/subscribe-newsletter`,
-            {method: 'post', body: JSON.stringify(newletterRequestBody)},
-        );
-    };
-
     cwsAvailabilityCheck = () => {
         return this.doFetchWithResponse(
             `${this.getCloudRoute()}/check-cws-connection`,
@@ -4686,13 +4678,6 @@ export default class Client4 {
         return this.doFetch<ChannelsWithTotalCount>(
             `${this.getBaseRoute()}/access_control_policies/${policyId}/resources/channels/search?term=${term}`,
             {method: 'post', body: JSON.stringify({term, ...opts})},
-        );
-    };
-
-    updateAccessControlPolicyActive = (policyId: string, active: boolean) => {
-        return this.doFetch<StatusOK>(
-            `${this.getBaseRoute()}/access_control_policies/${policyId}/activate?active=${active}`,
-            {method: 'get'},
         );
     };
 
