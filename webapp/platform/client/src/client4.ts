@@ -5,7 +5,7 @@
 
 import type {AccessControlPolicy, CELExpressionError, AccessControlTestResult, AccessControlPoliciesResult, AccessControlPolicyChannelsResult, AccessControlVisualAST, AccessControlAttributes, AccessControlPolicyActiveUpdate} from '@mattermost/types/access_control';
 import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery} from '@mattermost/types/admin';
-import type {Agent} from '@mattermost/types/agents';
+import type {Agent, LLMService} from '@mattermost/types/agents';
 import type {AppBinding, AppCallRequest, AppCallResponse} from '@mattermost/types/apps';
 import type {Audit} from '@mattermost/types/audits';
 import type {UserAutocomplete, AutocompleteSuggestion} from '@mattermost/types/autocomplete';
@@ -3695,6 +3695,20 @@ export default class Client4 {
         );
     };
 
+    getAgentsStatus = () => {
+        return this.doFetch<{available: boolean; reason?: string}>(
+            `${this.getAgentsRoute()}/status`,
+            {method: 'get'},
+        );
+    };
+
+    getLLMServices = () => {
+        return this.doFetch<LLMService[]>(
+            `${this.getBaseRoute()}/llmservices`,
+            {method: 'get'},
+        );
+    };
+
     getEnvironmentConfig = () => {
         return this.doFetch<EnvironmentConfig>(
             `${this.getBaseRoute()}/config/environment`,
@@ -5042,13 +5056,6 @@ export default class Client4 {
         return this.doFetch<ChannelsWithTotalCount>(
             `${this.getBaseRoute()}/access_control_policies/${policyId}/resources/channels/search?term=${term}`,
             {method: 'post', body: JSON.stringify({term, ...opts})},
-        );
-    };
-
-    updateAccessControlPolicyActive = (policyId: string, active: boolean) => {
-        return this.doFetch<StatusOK>(
-            `${this.getBaseRoute()}/access_control_policies/${policyId}/activate?active=${active}`,
-            {method: 'get'},
         );
     };
 

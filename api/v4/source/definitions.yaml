@@ -4054,6 +4054,15 @@ components:
           items:
             $ref: "#/components/schemas/BridgeServiceInfo"
           description: List of available LLM services
+    AgentsIntegrityResponse:
+      type: object
+      properties:
+        available:
+          type: boolean
+          description: Whether the AI plugin bridge is available
+        reason:
+          type: string
+          description: Reason code if not available (translation ID)
     PostAcknowledgement:
       type: object
       properties:

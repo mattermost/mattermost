@@ -20,5 +20,6 @@ import useGetAgentsBridgeEnabled from './useGetAgentsBridgeEnabled';
 export default function useVisionCapability(): boolean {
     // Vision is available when agents are available
     // The actual vision capability depends on the configured AI model
-    return useGetAgentsBridgeEnabled();
+    const status = useGetAgentsBridgeEnabled();
+    return status.available;
 }

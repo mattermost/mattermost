@@ -31,6 +31,8 @@ import {
     isOutsideRemoteUserHour,
     makeClient,
     mergeWithOnPremServerConfig,
+    installAndEnablePlugin,
+    isPluginActive,
 } from './server';
 import {
     toBeFocusedWithFocusVisible,
@@ -94,6 +96,8 @@ export class PlaywrightExtended {
     readonly getAdminClient;
     readonly mergeWithOnPremServerConfig;
     readonly initSetup;
+    readonly installAndEnablePlugin;
+    readonly isPluginActive;
 
     // ./test_action
     readonly toBeFocusedWithFocusVisible;
@@ -158,6 +162,8 @@ export class PlaywrightExtended {
         this.getAdminClient = getAdminClient;
         this.mergeWithOnPremServerConfig = mergeWithOnPremServerConfig;
         this.isOutsideRemoteUserHour = isOutsideRemoteUserHour;
+        this.installAndEnablePlugin = installAndEnablePlugin;
+        this.isPluginActive = isPluginActive;
 
         // ./test_action
         this.toBeFocusedWithFocusVisible = toBeFocusedWithFocusVisible;

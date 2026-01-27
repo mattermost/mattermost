@@ -191,7 +191,7 @@ func (a *App) ExtractPageImageText(
 	}
 
 	// Prepare completion request with file ID for vision
-	client := a.getBridgeClient(rctx.Session().UserId)
+	client := a.GetBridgeClient(rctx.Session().UserId)
 	completionRequest := agentclient.CompletionRequest{
 		Posts: []agentclient.Post{
 			{Role: "system", Message: pageImageExtractionSystemPrompt},
@@ -540,7 +540,8 @@ func (a *App) SummarizeThreadToPage(rctx request.CTX, agentID, threadID, wikiID,
 	userID := rctx.Session().UserId
 
 	// Check if AI plugin bridge is available
-	if !a.isAIPluginBridgeAvailable(rctx) {
+	available, _ := a.GetAIPluginBridgeStatus(rctx)
+	if !available {
 		return "", model.NewAppError("SummarizeThreadToPage", "app.page.summarize_thread.ai_not_available", nil, "AI plugin bridge is not available", http.StatusServiceUnavailable)
 	}
 
@@ -585,7 +586,7 @@ func (a *App) SummarizeThreadToPage(rctx request.CTX, agentID, threadID, wikiID,
 	userPrompt := fmt.Sprintf(threadSummarizationUserPrompt, conversationText)
 
 	// Create bridge client and call AI
-	client := a.getBridgeClient(userID)
+	client := a.GetBridgeClient(userID)
 	completionRequest := agentclient.CompletionRequest{
 		Posts: []agentclient.Post{
 			{Role: "system", Message: threadSummarizationSystemPrompt},

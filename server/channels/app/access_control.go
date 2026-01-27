@@ -302,15 +302,6 @@ func (a *App) GetAccessControlFieldsAutocomplete(rctx request.CTX, after string,
 	return fields, nil
 }
 
-func (a *App) UpdateAccessControlPolicyActive(rctx request.CTX, policyID string, active bool) *model.AppError {
-	_, err := a.Srv().Store().AccessControlPolicy().SetActiveStatus(rctx, policyID, active)
-	if err != nil {
-		return model.NewAppError("UpdateAccessControlPolicyActive", "app.pap.update_access_control_policy_active.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	return nil
-}
-
 func (a *App) UpdateAccessControlPoliciesActive(rctx request.CTX, updates []model.AccessControlPolicyActiveUpdate) ([]*model.AccessControlPolicy, *model.AppError) {
 	acs := a.Srv().ch.AccessControl
 	if acs == nil {
