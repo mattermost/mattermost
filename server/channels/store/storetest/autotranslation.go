@@ -50,36 +50,36 @@ func testAutoTranslationIsChannelEnabled(t *testing.T, rctx request.CTX, ss stor
 
 	t.Run("default value is false", func(t *testing.T) {
 		enabled, appErr := ss.AutoTranslation().IsChannelEnabled(channel.Id)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		assert.False(t, enabled, "autotranslation should be disabled by default")
 	})
 
 	t.Run("returns true after enabling", func(t *testing.T) {
 		// Enable autotranslation
 		appErr := ss.AutoTranslation().SetChannelEnabled(channel.Id, true)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 
 		// Verify it's enabled
 		enabled, appErr := ss.AutoTranslation().IsChannelEnabled(channel.Id)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		assert.True(t, enabled)
 	})
 
 	t.Run("returns false after disabling", func(t *testing.T) {
 		// Disable autotranslation
 		appErr := ss.AutoTranslation().SetChannelEnabled(channel.Id, false)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 
 		// Verify it's disabled
 		enabled, appErr := ss.AutoTranslation().IsChannelEnabled(channel.Id)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		assert.False(t, enabled)
 	})
 
 	t.Run("returns error for non-existent channel", func(t *testing.T) {
-		enabled, appErr := ss.AutoTranslation().IsChannelEnabled("nonexistent")
-		assert.NotNil(t, appErr)
-		assert.Equal(t, 404, appErr.StatusCode)
+		enabled, err := ss.AutoTranslation().IsChannelEnabled("nonexistent")
+		assert.Error(t, err)
+		assert.True(t, store.IsErrNotFound(err))
 		assert.False(t, enabled)
 	})
 }
@@ -111,21 +111,21 @@ func testAutoTranslationSetChannelEnabled(t *testing.T, rctx request.CTX, ss sto
 
 	t.Run("successfully enables autotranslation", func(t *testing.T) {
 		appErr := ss.AutoTranslation().SetChannelEnabled(channel.Id, true)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 
 		// Verify via IsChannelEnabled
 		enabled, appErr := ss.AutoTranslation().IsChannelEnabled(channel.Id)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		assert.True(t, enabled)
 	})
 
 	t.Run("successfully disables autotranslation", func(t *testing.T) {
 		appErr := ss.AutoTranslation().SetChannelEnabled(channel.Id, false)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 
 		// Verify via IsChannelEnabled
 		enabled, appErr := ss.AutoTranslation().IsChannelEnabled(channel.Id)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		assert.False(t, enabled)
 	})
 
@@ -137,7 +137,7 @@ func testAutoTranslationSetChannelEnabled(t *testing.T, rctx request.CTX, ss sto
 
 		// Enable autotranslation
 		appErr := ss.AutoTranslation().SetChannelEnabled(channel.Id, true)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 
 		// Verify timestamp was updated
 		updatedChannel, nErr := ss.Channel().Get(channel.Id, true)
@@ -146,9 +146,9 @@ func testAutoTranslationSetChannelEnabled(t *testing.T, rctx request.CTX, ss sto
 	})
 
 	t.Run("returns error for non-existent channel", func(t *testing.T) {
-		appErr := ss.AutoTranslation().SetChannelEnabled("nonexistent", true)
-		assert.NotNil(t, appErr)
-		assert.Equal(t, 404, appErr.StatusCode)
+		err := ss.AutoTranslation().SetChannelEnabled("nonexistent", true)
+		assert.Error(t, err)
+		assert.True(t, store.IsErrNotFound(err))
 	})
 }
 
@@ -198,54 +198,54 @@ func testAutoTranslationIsUserEnabled(t *testing.T, rctx request.CTX, ss store.S
 	t.Run("returns false when channel is disabled", func(t *testing.T) {
 		// Channel autotranslation is disabled by default
 		enabled, appErr := ss.AutoTranslation().IsUserEnabled(user.Id, channel.Id)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		assert.False(t, enabled)
 	})
 
 	t.Run("returns false when channel enabled but user disabled", func(t *testing.T) {
 		// Enable channel autotranslation
 		appErr := ss.AutoTranslation().SetChannelEnabled(channel.Id, true)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 
 		// User autotranslation is disabled by default
 		enabled, appErr := ss.AutoTranslation().IsUserEnabled(user.Id, channel.Id)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		assert.False(t, enabled)
 	})
 
 	t.Run("returns true when both channel and user enabled", func(t *testing.T) {
 		// Enable channel autotranslation
 		appErr := ss.AutoTranslation().SetChannelEnabled(channel.Id, true)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 
 		// Enable user autotranslation
 		appErr = ss.AutoTranslation().SetUserEnabled(user.Id, channel.Id, true)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 
 		// Verify both are enabled
 		enabled, appErr := ss.AutoTranslation().IsUserEnabled(user.Id, channel.Id)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		assert.True(t, enabled)
 	})
 
 	t.Run("returns false after disabling user", func(t *testing.T) {
 		// Ensure channel is enabled
 		appErr := ss.AutoTranslation().SetChannelEnabled(channel.Id, true)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 
 		// Disable user autotranslation
 		appErr = ss.AutoTranslation().SetUserEnabled(user.Id, channel.Id, false)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 
 		// Verify user is disabled
 		enabled, appErr := ss.AutoTranslation().IsUserEnabled(user.Id, channel.Id)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		assert.False(t, enabled)
 	})
 
 	t.Run("returns false for non-existent user or channel", func(t *testing.T) {
 		enabled, appErr := ss.AutoTranslation().IsUserEnabled("nonexistent", channel.Id)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		assert.False(t, enabled)
 	})
 }
@@ -295,18 +295,18 @@ func testAutoTranslationSetUserEnabled(t *testing.T, rctx request.CTX, ss store.
 
 	t.Run("successfully enables user autotranslation", func(t *testing.T) {
 		appErr := ss.AutoTranslation().SetUserEnabled(user.Id, channel.Id, true)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 	})
 
 	t.Run("successfully disables user autotranslation", func(t *testing.T) {
 		appErr := ss.AutoTranslation().SetUserEnabled(user.Id, channel.Id, false)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 	})
 
 	t.Run("returns error for non-existent user or channel", func(t *testing.T) {
-		appErr := ss.AutoTranslation().SetUserEnabled("nonexistent", channel.Id, true)
-		assert.NotNil(t, appErr)
-		assert.Equal(t, 404, appErr.StatusCode)
+		err := ss.AutoTranslation().SetUserEnabled("nonexistent", channel.Id, true)
+		assert.Error(t, err)
+		assert.True(t, store.IsErrNotFound(err))
 	})
 }
 
@@ -366,53 +366,53 @@ func testAutoTranslationGetUserLanguage(t *testing.T, rctx request.CTX, ss store
 
 	t.Run("returns empty when channel disabled", func(t *testing.T) {
 		locale, appErr := ss.AutoTranslation().GetUserLanguage(userEN.Id, channel.Id)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		assert.Empty(t, locale)
 	})
 
 	t.Run("returns empty when channel enabled but user disabled", func(t *testing.T) {
 		appErr := ss.AutoTranslation().SetChannelEnabled(channel.Id, true)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 
 		locale, appErr := ss.AutoTranslation().GetUserLanguage(userEN.Id, channel.Id)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		assert.Empty(t, locale)
 	})
 
 	t.Run("returns user locale when both enabled", func(t *testing.T) {
 		// Enable channel
 		appErr := ss.AutoTranslation().SetChannelEnabled(channel.Id, true)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 
 		// Enable user
 		appErr = ss.AutoTranslation().SetUserEnabled(userEN.Id, channel.Id, true)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 
 		// Get language
 		locale, appErr := ss.AutoTranslation().GetUserLanguage(userEN.Id, channel.Id)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		assert.Equal(t, "en", locale)
 	})
 
 	t.Run("returns correct locale for different users", func(t *testing.T) {
 		// Enable channel
 		appErr := ss.AutoTranslation().SetChannelEnabled(channel.Id, true)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 
 		// Enable both users
 		appErr = ss.AutoTranslation().SetUserEnabled(userEN.Id, channel.Id, true)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		appErr = ss.AutoTranslation().SetUserEnabled(userES.Id, channel.Id, true)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 
 		// Verify English user
 		locale, appErr := ss.AutoTranslation().GetUserLanguage(userEN.Id, channel.Id)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		assert.Equal(t, "en", locale)
 
 		// Verify Spanish user
 		locale, appErr = ss.AutoTranslation().GetUserLanguage(userES.Id, channel.Id)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		assert.Equal(t, "es", locale)
 	})
 }
@@ -471,23 +471,23 @@ func testAutoTranslationGetActiveDestinationLanguages(t *testing.T, rctx request
 		// Enable autotranslation for first 4 users only
 		if i < 4 {
 			appErr := ss.AutoTranslation().SetUserEnabled(user.Id, channel.Id, true)
-			require.Nil(t, appErr)
+			require.NoError(t, appErr)
 		}
 	}
 
 	t.Run("returns empty when channel disabled", func(t *testing.T) {
 		languages, appErr := ss.AutoTranslation().GetActiveDestinationLanguages(channel.Id, "", nil)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 		assert.Empty(t, languages)
 	})
 
 	t.Run("returns all enabled user languages", func(t *testing.T) {
 		// Enable channel
 		appErr := ss.AutoTranslation().SetChannelEnabled(channel.Id, true)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 
 		languages, appErr := ss.AutoTranslation().GetActiveDestinationLanguages(channel.Id, "", nil)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 
 		// Should return en, es, fr, de (4 unique languages, 5th user is disabled)
 		assert.Len(t, languages, 4)
@@ -500,11 +500,11 @@ func testAutoTranslationGetActiveDestinationLanguages(t *testing.T, rctx request
 	t.Run("excludes specified user", func(t *testing.T) {
 		// Enable channel
 		appErr := ss.AutoTranslation().SetChannelEnabled(channel.Id, true)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 
 		// Exclude Spanish user
 		languages, appErr := ss.AutoTranslation().GetActiveDestinationLanguages(channel.Id, users[1].Id, nil)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 
 		// Should return en, fr, de (excluded es)
 		assert.Len(t, languages, 3)
@@ -517,12 +517,12 @@ func testAutoTranslationGetActiveDestinationLanguages(t *testing.T, rctx request
 	t.Run("filters to specific users", func(t *testing.T) {
 		// Enable channel
 		appErr := ss.AutoTranslation().SetChannelEnabled(channel.Id, true)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 
 		// Filter to only first two users (en, es)
 		filterIDs := []string{users[0].Id, users[1].Id}
 		languages, appErr := ss.AutoTranslation().GetActiveDestinationLanguages(channel.Id, "", filterIDs)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 
 		// Should return only en, es
 		assert.Len(t, languages, 2)
@@ -533,12 +533,12 @@ func testAutoTranslationGetActiveDestinationLanguages(t *testing.T, rctx request
 	t.Run("filters and excludes user", func(t *testing.T) {
 		// Enable channel
 		appErr := ss.AutoTranslation().SetChannelEnabled(channel.Id, true)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 
 		// Filter to first two users but exclude the first one
 		filterIDs := []string{users[0].Id, users[1].Id}
 		languages, appErr := ss.AutoTranslation().GetActiveDestinationLanguages(channel.Id, users[0].Id, filterIDs)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 
 		// Should return only es
 		assert.Len(t, languages, 1)
