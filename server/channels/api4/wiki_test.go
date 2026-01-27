@@ -3459,8 +3459,7 @@ func TestWikiPermissionViolations(t *testing.T) {
 		// Try to move wiki to target channel
 		url := "/wikis/" + createdWiki.Id + "/move"
 		payload := map[string]string{"target_channel_id": targetChannel.Id}
-		payloadBytes, _ := json.Marshal(payload)
-		httpResp, err := client2.DoAPIPost(context.Background(), url, string(payloadBytes))
+		httpResp, err := client2.DoAPIPatchJSON(context.Background(), url, payload)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, model.BuildResponse(httpResp))
 	})

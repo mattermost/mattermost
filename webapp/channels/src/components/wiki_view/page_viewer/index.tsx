@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useCallback} from 'react';
+import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
@@ -42,7 +43,7 @@ const PageViewer = ({pageId, wikiId}: Props) => {
         if (contentRef.current) {
             // Content is painted, layout complete
         }
-    });
+    }, []);
 
     const dispatch = useDispatch();
     const page = useSelector((state: GlobalState) => getPage(state, pageId));
@@ -152,10 +153,17 @@ const PageViewer = ({pageId, wikiId}: Props) => {
                                 channelId={page.channel_id}
                             />
                             <span className='PageViewer__authorText'>
-                                {'By '}
-                                <UserProfile
-                                    userId={page.user_id}
-                                    channelId={page.channel_id}
+                                <FormattedMessage
+                                    id='page_viewer.by_author'
+                                    defaultMessage='By {author}'
+                                    values={{
+                                        author: (
+                                            <UserProfile
+                                                userId={page.user_id}
+                                                channelId={page.channel_id}
+                                            />
+                                        ),
+                                    }}
                                 />
                             </span>
                         </div>
@@ -165,7 +173,12 @@ const PageViewer = ({pageId, wikiId}: Props) => {
                         data-testid='page-viewer-status'
                     >
                         <span className='PageViewer__status-indicator'/>
-                        {pageStatus || 'In progress'}
+                        {pageStatus || (
+                            <FormattedMessage
+                                id='page_viewer.status.in_progress'
+                                defaultMessage='In progress'
+                            />
+                        )}
                     </span>
                 </div>
             </div>

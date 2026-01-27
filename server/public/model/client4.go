@@ -7692,7 +7692,7 @@ func (c *Client4) DeleteWiki(ctx context.Context, wikiId string) (*Response, err
 
 // MoveWikiToChannel moves a wiki and all its pages to another channel.
 func (c *Client4) MoveWikiToChannel(ctx context.Context, wikiId string, request map[string]string) (*Wiki, *Response, error) {
-	r, err := c.DoAPIPostJSON(ctx, c.wikiRoute(wikiId)+"/move", request)
+	r, err := c.DoAPIPatchJSON(ctx, c.wikiRoute(wikiId)+"/move", request)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7770,7 +7770,7 @@ func (c *Client4) DeletePage(ctx context.Context, wikiId, pageId string) (*Respo
 
 // RestorePage restores a soft-deleted page.
 func (c *Client4) RestorePage(ctx context.Context, wikiId, pageId string) (*Response, error) {
-	r, err := c.DoAPIPost(ctx, c.wikiPageRoute(wikiId, pageId)+"/restore", "")
+	r, err := c.DoAPIPatchJSON(ctx, c.wikiPageRoute(wikiId, pageId)+"/restore", nil)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -7798,7 +7798,7 @@ func (c *Client4) MovePageToWiki(ctx context.Context, sourceWikiId, pageId, targ
 	payload := map[string]string{
 		"target_wiki_id": targetWikiId,
 	}
-	r, err := c.DoAPIPostJSON(ctx, c.wikiPageRoute(sourceWikiId, pageId)+"/move", payload)
+	r, err := c.DoAPIPatchJSON(ctx, c.wikiPageRoute(sourceWikiId, pageId)+"/move", payload)
 	if err != nil {
 		return BuildResponse(r), err
 	}

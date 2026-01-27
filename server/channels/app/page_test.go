@@ -2030,7 +2030,7 @@ func TestConvertPlainTextToTipTapJSON(t *testing.T) {
 		result := convertPlainTextToTipTapJSON(plainText)
 
 		require.NotEmpty(t, result)
-		require.True(t, isValidTipTapJSON(result), "converted text should be valid TipTap JSON")
+		require.NoError(t, model.ValidateTipTapDocument(result), "converted text should be valid TipTap JSON")
 
 		var doc map[string]any
 		err := json.Unmarshal([]byte(result), &doc)
@@ -2042,7 +2042,7 @@ func TestConvertPlainTextToTipTapJSON(t *testing.T) {
 		plainText := "Line 1\nLine 2\nLine 3"
 		result := convertPlainTextToTipTapJSON(plainText)
 
-		require.True(t, isValidTipTapJSON(result))
+		require.NoError(t, model.ValidateTipTapDocument(result))
 
 		var doc map[string]any
 		err := json.Unmarshal([]byte(result), &doc)
@@ -2055,7 +2055,7 @@ func TestConvertPlainTextToTipTapJSON(t *testing.T) {
 		plainText := ""
 		result := convertPlainTextToTipTapJSON(plainText)
 
-		require.True(t, isValidTipTapJSON(result))
+		require.NoError(t, model.ValidateTipTapDocument(result))
 
 		var doc map[string]any
 		err := json.Unmarshal([]byte(result), &doc)
@@ -2072,34 +2072,7 @@ Key points:
 - Refresh tokens for UX`
 
 		result := convertPlainTextToTipTapJSON(aiSummary)
-		require.True(t, isValidTipTapJSON(result), "AI summary should convert to valid TipTap JSON")
-	})
-}
-
-func TestIsValidTipTapJSON(t *testing.T) {
-	t.Run("validates correct TipTap JSON", func(t *testing.T) {
-		validJSON := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Hello"}]}]}`
-		require.True(t, isValidTipTapJSON(validJSON))
-	})
-
-	t.Run("rejects invalid JSON", func(t *testing.T) {
-		invalidJSON := `{"invalid json`
-		require.False(t, isValidTipTapJSON(invalidJSON))
-	})
-
-	t.Run("rejects JSON without type doc", func(t *testing.T) {
-		wrongType := `{"type":"paragraph","content":[]}`
-		require.False(t, isValidTipTapJSON(wrongType))
-	})
-
-	t.Run("rejects plain text", func(t *testing.T) {
-		plainText := "This is plain text"
-		require.False(t, isValidTipTapJSON(plainText))
-	})
-
-	t.Run("validates empty TipTap document", func(t *testing.T) {
-		emptyDoc := `{"type":"doc","content":[]}`
-		require.True(t, isValidTipTapJSON(emptyDoc))
+		require.NoError(t, model.ValidateTipTapDocument(result), "AI summary should convert to valid TipTap JSON")
 	})
 }
 
@@ -2142,6 +2115,130 @@ func TestCreatePageContentValidation(t *testing.T) {
 
 		jsonContent, jsonErr := pageContent.GetDocumentJSON()
 		require.NoError(t, jsonErr)
-		require.True(t, isValidTipTapJSON(jsonContent), "auto-converted content should be valid TipTap JSON")
+		require.NoError(t, model.ValidateTipTapDocument(jsonContent), "auto-converted content should be valid TipTap JSON")
+	})
+}
+
+func TestExtractFileIdsFromContent(t *testing.T) {
+	t.Run("extracts single file ID", func(t *testing.T) {
+		content := `{"type":"doc","content":[{"type":"image","attrs":{"src":"/api/v4/files/abc123def456ghi789jkl012mn"}}]}`
+		fileIds := extractFileIdsFromContent(content)
+		require.Len(t, fileIds, 1)
+		require.Equal(t, "abc123def456ghi789jkl012mn", fileIds[0])
+	})
+
+	t.Run("extracts multiple file IDs", func(t *testing.T) {
+		content := `{"type":"doc","content":[
+			{"type":"image","attrs":{"src":"/api/v4/files/abc123def456ghi789jkl012mn"}},
+			{"type":"image","attrs":{"src":"/api/v4/files/xyz789abc123def456ghi012jk"}}
+		]}`
+		fileIds := extractFileIdsFromContent(content)
+		require.Len(t, fileIds, 2)
+		require.Contains(t, fileIds, "abc123def456ghi789jkl012mn")
+		require.Contains(t, fileIds, "xyz789abc123def456ghi012jk")
+	})
+
+	t.Run("deduplicates file IDs", func(t *testing.T) {
+		content := `{"type":"doc","content":[
+			{"type":"image","attrs":{"src":"/api/v4/files/abc123def456ghi789jkl012mn"}},
+			{"type":"image","attrs":{"src":"/api/v4/files/abc123def456ghi789jkl012mn"}}
+		]}`
+		fileIds := extractFileIdsFromContent(content)
+		require.Len(t, fileIds, 1)
+		require.Equal(t, "abc123def456ghi789jkl012mn", fileIds[0])
+	})
+
+	t.Run("returns nil for empty content", func(t *testing.T) {
+		fileIds := extractFileIdsFromContent("")
+		require.Nil(t, fileIds)
+	})
+
+	t.Run("returns nil for content without files", func(t *testing.T) {
+		content := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Hello"}]}]}`
+		fileIds := extractFileIdsFromContent(content)
+		require.Nil(t, fileIds)
+	})
+}
+
+func TestCreatePageAttachesFiles(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.SetupPagePermissions()
+
+	t.Run("attaches files referenced in content to page", func(t *testing.T) {
+		// Set session user for file attachment
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		// Create a file with empty PostId (simulating file uploaded for page editor)
+		fileInfo := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+		require.Empty(t, fileInfo.PostId)
+
+		// Create page with content referencing the file
+		content := `{"type":"doc","content":[{"type":"image","attrs":{"src":"/api/v4/files/` + fileInfo.Id + `"}}]}`
+		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Page with Image", "", content, th.BasicUser.Id, "", "")
+		require.Nil(t, err)
+		require.NotNil(t, page)
+
+		// Verify the file's PostId is now set to the page ID
+		updatedFileInfo, storeErr := th.App.Srv().Store().FileInfo().Get(fileInfo.Id)
+		require.NoError(t, storeErr)
+		require.Equal(t, page.Id, updatedFileInfo.PostId, "File should be attached to the page")
+	})
+}
+
+func TestUpdatePageAttachesFiles(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.SetupPagePermissions()
+
+	t.Run("attaches new files when updating page content", func(t *testing.T) {
+		// Set session user for file attachment
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		// Create a page without files
+		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "", "")
+		require.Nil(t, err)
+
+		// Create a file with empty PostId
+		fileInfo := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+		require.Empty(t, fileInfo.PostId)
+
+		// Update page with content referencing the file
+		content := `{"type":"doc","content":[{"type":"image","attrs":{"src":"/api/v4/files/` + fileInfo.Id + `"}}]}`
+		updatedPage, updateErr := th.App.UpdatePage(th.Context, page, "", content, "", nil)
+		require.Nil(t, updateErr)
+		require.NotNil(t, updatedPage)
+
+		// Verify the file's PostId is now set to the page ID
+		updatedFileInfo, storeErr := th.App.Srv().Store().FileInfo().Get(fileInfo.Id)
+		require.NoError(t, storeErr)
+		require.Equal(t, page.Id, updatedFileInfo.PostId, "File should be attached to the page")
+	})
+}
+
+func TestUpdatePageWithOptimisticLockingAttachesFiles(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.SetupPagePermissions()
+
+	t.Run("attaches new files when updating page with optimistic locking", func(t *testing.T) {
+		// Set session user for file attachment
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		// Create a page without files
+		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "", "")
+		require.Nil(t, err)
+
+		// Create a file with empty PostId
+		fileInfo := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+		require.Empty(t, fileInfo.PostId)
+
+		// Update page with content referencing the file
+		content := `{"type":"doc","content":[{"type":"image","attrs":{"src":"/api/v4/files/` + fileInfo.Id + `"}}]}`
+		updatedPage, updateErr := th.App.UpdatePageWithOptimisticLocking(th.Context, page, "", content, "", page.EditAt, false, nil)
+		require.Nil(t, updateErr)
+		require.NotNil(t, updatedPage)
+
+		// Verify the file's PostId is now set to the page ID
+		updatedFileInfo, storeErr := th.App.Srv().Store().FileInfo().Get(fileInfo.Id)
+		require.NoError(t, storeErr)
+		require.Equal(t, page.Id, updatedFileInfo.PostId, "File should be attached to the page")
 	})
 }

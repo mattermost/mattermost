@@ -1089,9 +1089,13 @@ test.describe('Wiki Export/Import Admin Console', () => {
         const importPanel = page.locator('#wikiImportPanel');
         await expect(importPanel).toBeVisible();
 
+        // Wait for imports to load (loading indicator should disappear)
+        await expect(importPanel.locator('.fa-spinner')).toBeHidden({timeout: 10000});
+
         // Verify file upload button is visible
-        const uploadButton = importPanel.getByRole('button', {name: 'Choose File'});
+        const uploadButton = importPanel.locator('#uploadFileButton');
         await expect(uploadButton).toBeVisible();
+        await expect(uploadButton).toHaveText('Choose File');
 
         // Verify the upload section label
         await expect(importPanel.getByText('Upload File')).toBeVisible();

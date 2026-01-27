@@ -5,6 +5,7 @@ package api4
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -207,6 +208,10 @@ func createPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	req.Title = strings.TrimSpace(req.Title)
+	if req.Title == "" {
+		c.Err = model.NewAppError("createPage", "api.page.create.empty_title.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
 	if len(req.Title) > model.MaxPageTitleLength {
 		c.Err = model.NewAppError("createPage", "api.page.create.title_too_long.app_error",
 			map[string]any{"MaxLength": model.MaxPageTitleLength}, "", http.StatusBadRequest)
@@ -484,5 +489,65 @@ func summarizeThreadToPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+// exportPageToMarkdown handles POST /api/v4/wiki/{wiki_id}/pages/{page_id}/export/markdown
+// Client sends markdown + file references, server bundles into ZIP with actual files
+func exportPageToMarkdown(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireWikiId()
+	c.RequirePageId()
+	if c.Err != nil {
+		return
+	}
+
+	// Validate page access (includes wiki permission check and page ownership validation)
+	_, _, _, ok := c.GetPageForRead()
+	if !ok {
+		return
+	}
+
+	// Parse request body
+	var req model.MarkdownExportRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		c.SetInvalidParamWithErr("body", err)
+		return
+	}
+
+	// Validate request (includes file reference validation)
+	if appErr := req.IsValid(); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	// Security: Validate all files belong to this page before processing
+	// This prevents attackers from exfiltrating files from other pages
+	for _, fileRef := range req.Files {
+		fileInfo, appErr := c.App.GetFileInfo(c.AppContext, fileRef.FileId)
+		if appErr != nil {
+			c.Err = model.NewAppError("exportPageToMarkdown", "api.page.export.file_not_found.error",
+				map[string]any{"FileId": fileRef.FileId}, "", http.StatusBadRequest).Wrap(appErr)
+			return
+		}
+		if fileInfo.PostId != c.Params.PageId {
+			c.Err = model.NewAppError("exportPageToMarkdown", "api.page.export.file_not_owned.error",
+				map[string]any{"FileId": fileRef.FileId}, "", http.StatusForbidden)
+			return
+		}
+	}
+
+	// Generate ZIP with markdown + files
+	zipData, appErr := c.App.ExportPageToMarkdownZip(c.AppContext, c.Params.PageId, req)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	// Stream ZIP response
+	w.Header().Set("Content-Type", "application/zip")
+	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s.zip"`, req.Filename))
+	w.Header().Set("Content-Length", fmt.Sprintf("%d", len(zipData)))
+	if _, err := w.Write(zipData); err != nil {
+		c.Logger.Warn("Error writing ZIP response", mlog.Err(err))
 	}
 }

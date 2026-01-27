@@ -125,63 +125,14 @@ func (a *App) UpsertPageDraft(rctx request.CTX, userId, wikiId, pageId, contentJ
 	return combinedDraft, nil
 }
 
-// upsertPageDraftContent handles the create-or-update decision logic for page drafts.
-// This business logic was moved from the Store layer to maintain proper layer separation.
+// upsertPageDraftContent creates or updates a page draft content.
+// Delegates to the Store's optimized UpsertPageDraftContent which uses UPDATE...RETURNING
+// to avoid N+1 queries (existence check + update + fetch).
 // If lastUpdateAt == 0, creates or updates a draft for a new page.
 // If lastUpdateAt > 0, tries to update existing draft with optimistic locking;
 // if no draft exists, creates one with BaseUpdateAt set for conflict detection.
 func (a *App) upsertPageDraftContent(rctx request.CTX, pageId, userId, wikiId, content, title string, lastUpdateAt int64) (*model.PageContent, error) {
-	draftStore := a.Srv().Store().Draft()
-
-	// Check if draft already exists
-	exists, currentUpdateAt, err := draftStore.PageDraftExists(pageId, userId)
-	if err != nil {
-		return nil, err
-	}
-
-	if lastUpdateAt == 0 {
-		// New page draft - try update first, then create
-		if exists {
-			// Draft exists, update it (no version check for new page drafts)
-			rowsAffected, updateErr := draftStore.UpdatePageDraftContent(pageId, userId, content, title, 0)
-			if updateErr != nil {
-				return nil, updateErr
-			}
-			if rowsAffected > 0 {
-				return draftStore.GetPageDraft(pageId, userId)
-			}
-		}
-		// No existing draft - create new one
-		draftContent := &model.PageContent{
-			PageId: pageId,
-			UserId: userId,
-			WikiId: wikiId,
-			Title:  title,
-		}
-		if setErr := draftContent.SetDocumentJSON(content); setErr != nil {
-			return nil, setErr
-		}
-		return draftStore.CreatePageDraft(draftContent)
-	}
-
-	// Editing existing page - use optimistic locking
-	if exists {
-		// Try to update with version check
-		rowsAffected, updateErr := draftStore.UpdatePageDraftContent(pageId, userId, content, title, lastUpdateAt)
-		if updateErr != nil {
-			return nil, updateErr
-		}
-		if rowsAffected > 0 {
-			return draftStore.GetPageDraft(pageId, userId)
-		}
-		// Update failed - check if version conflict
-		if currentUpdateAt != lastUpdateAt {
-			return nil, store.NewErrConflict("PageContent", fmt.Errorf("version_conflict"), "updateat mismatch")
-		}
-	}
-
-	// No draft exists for editing an existing page - create one with BaseUpdateAt
-	return draftStore.CreateDraftForExistingPage(pageId, userId, wikiId, content, title, lastUpdateAt)
+	return a.Srv().Store().Draft().UpsertPageDraftContent(pageId, userId, wikiId, content, title, lastUpdateAt)
 }
 
 // SavePageDraftWithMetadata is an alias for UpsertPageDraft for backward compatibility.
@@ -604,6 +555,10 @@ func (a *App) applyDraftToPage(rctx request.CTX, draft *model.PageDraft, wikiId,
 	// the content was saved successfully. The error is logged in applyDraftPageStatus.
 	_ = a.applyDraftPageStatus(rctx, page, draft, isUpdate)
 
+	// Set content on the returned page to avoid extra DB fetch in caller.
+	// The content was already resolved above and saved to PageContents table.
+	page.Message = content
+
 	return page, nil
 }
 
@@ -899,9 +854,7 @@ func (a *App) PublishPageDraft(rctx request.CTX, userId string, opts model.Publi
 			mlog.String("page_id", savedPost.Id), mlog.Err(updateErr))
 	}
 
-	if contentErr := a.loadPageContentForPost(rctx, savedPost); contentErr != nil {
-		return nil, contentErr
-	}
+	// Note: Content is already set on savedPost by applyDraftToPage, no extra fetch needed
 
 	// Broadcast to all clients in the channel
 	a.BroadcastPagePublished(savedPost, opts.WikiId, wiki.ChannelId, opts.PageId, userId)

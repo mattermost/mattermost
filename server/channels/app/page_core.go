@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -16,6 +17,9 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
+
+// fileIdPattern matches file IDs in /api/v4/files/{fileId} URLs within TipTap content
+var fileIdPattern = regexp.MustCompile(`/api/v4/files/([a-z0-9]{26})`)
 
 // PageOperation represents the type of operation being performed on a page
 type PageOperation int
@@ -116,6 +120,14 @@ func (a *App) CreatePageWithChannel(rctx request.CTX, channel *model.Channel, ti
 			return nil, model.NewAppError("CreatePage", "app.page.create.invalid_content.app_error", nil, "", http.StatusBadRequest).Wrap(createErr)
 		}
 		return nil, model.NewAppError("CreatePage", "app.page.create.store_error.app_error", nil, "", http.StatusInternalServerError).Wrap(createErr)
+	}
+
+	// Attach files referenced in the content to this page
+	if content != "" {
+		fileIds := extractFileIdsFromContent(content)
+		if len(fileIds) > 0 {
+			a.attachFileIDsToPost(rctx, createdPage.Id, channelID, userID, fileIds)
+		}
 	}
 
 	if enrichErr := a.EnrichPageWithProperties(rctx, createdPage, true); enrichErr != nil {
@@ -343,6 +355,14 @@ func (a *App) UpdatePage(rctx request.CTX, page *model.Post, title, content, sea
 	}
 
 	session := rctx.Session()
+
+	// Attach files referenced in the content to this page
+	if content != "" {
+		fileIds := extractFileIdsFromContent(content)
+		if len(fileIds) > 0 {
+			a.attachFileIDsToPost(rctx, pageID, updatedPost.ChannelId, session.UserId, fileIds)
+		}
+	}
 	if content != "" {
 		// Use provided channel or fetch if not provided
 		if channel == nil {
@@ -479,6 +499,14 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, page *model.Post
 		}
 
 		return nil, model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.store_error.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
+	}
+
+	// Attach files referenced in the content to this page
+	if content != "" {
+		fileIds := extractFileIdsFromContent(content)
+		if len(fileIds) > 0 {
+			a.attachFileIDsToPost(rctx, pageID, updatedPost.ChannelId, session.UserId, fileIds)
+		}
 	}
 
 	if content != "" {
@@ -775,6 +803,35 @@ func (a *App) sendPageEditedEvent(rctx request.CTX, page *model.Post) {
 	a.Publish(message)
 }
 
+// extractFileIdsFromContent extracts Mattermost file IDs from TipTap JSON content.
+// It searches for /api/v4/files/{fileId} patterns in the content string.
+// Returns a deduplicated slice of file IDs.
+func extractFileIdsFromContent(content string) []string {
+	if content == "" {
+		return nil
+	}
+
+	matches := fileIdPattern.FindAllStringSubmatch(content, -1)
+	if len(matches) == 0 {
+		return nil
+	}
+
+	// Deduplicate file IDs
+	seen := make(map[string]bool)
+	var fileIds []string
+	for _, match := range matches {
+		if len(match) > 1 {
+			fileId := match[1]
+			if !seen[fileId] {
+				seen[fileId] = true
+				fileIds = append(fileIds, fileId)
+			}
+		}
+	}
+
+	return fileIds
+}
+
 // validateAndNormalizePageContent validates and normalizes page content.
 // If content looks like JSON, validates it as TipTap document.
 // If content is plain text, converts it to TipTap JSON format.
@@ -803,11 +860,6 @@ func validateAndNormalizePageContent(content, searchText string) (string, string
 	}
 
 	return normalizedContent, searchText, nil
-}
-
-// isValidTipTapJSON checks if the given content is valid TipTap JSON format
-func isValidTipTapJSON(content string) bool {
-	return model.ValidateTipTapDocument(content) == nil
 }
 
 // convertPlainTextToTipTapJSON converts plain text content to TipTap JSON format

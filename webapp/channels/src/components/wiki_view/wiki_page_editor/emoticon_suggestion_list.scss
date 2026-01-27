@@ -1,0 +1,82 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.tiptap-emoticon-popup {
+    position: absolute;
+    z-index: 1000;
+
+    .suggestion-list__item {
+        position: relative;
+        z-index: 101;
+        display: flex;
+        width: 100%;
+        min-height: 30px;
+        align-items: center;
+        padding: 4px 12px;
+        border: none;
+        margin: 0;
+        background: transparent;
+        color: var(--center-channel-color) !important;
+        cursor: pointer;
+        font-size: 13px !important;
+        line-height: 30px !important;
+        text-align: left;
+
+        &.suggestion--selected,
+        &:hover {
+            background-color: rgba(var(--center-channel-color-rgb), 0.08) !important;
+        }
+
+        * {
+            color: inherit !important;
+        }
+    }
+
+    .emoticon-suggestion__image-container {
+        display: inline-flex;
+        width: 24px;
+        height: 24px;
+        flex: 0 0 24px;
+        align-items: center;
+        justify-content: center;
+        margin-right: 8px;
+    }
+
+    .emoticon-suggestion__image {
+        max-width: 20px;
+        max-height: 20px;
+        vertical-align: middle;
+    }
+
+    .pull-left {
+        float: left;
+    }
+}
+
+.tiptap-emoticon-suggestions {
+    position: relative;
+    width: 300px;
+    max-width: 100%;
+    max-height: 292px;
+    padding: 8px 0;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 4px;
+    margin: 0;
+    background-color: var(--center-channel-bg);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    list-style: none;
+    -webkit-overflow-scrolling: touch;
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    &::-webkit-scrollbar-track {
+        width: 0;
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        border: 1px solid var(--center-channel-bg);
+        border-radius: 4px;
+        background-color: rgba(var(--center-channel-color-rgb), 0.24) !important;
+    }
+}

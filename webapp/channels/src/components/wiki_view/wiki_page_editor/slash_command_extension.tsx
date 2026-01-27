@@ -2,10 +2,11 @@
 // See LICENSE.txt for license information.
 
 import {Extension} from '@tiptap/core';
+import type {Editor, Range} from '@tiptap/core';
 import Suggestion from '@tiptap/suggestion';
-import type {SuggestionOptions} from '@tiptap/suggestion';
+import type {SuggestionOptions, SuggestionProps, SuggestionKeyDownProps} from '@tiptap/suggestion';
 import React from 'react';
-import ReactDOM from 'react-dom';
+import {createRoot, type Root} from 'react-dom/client';
 
 import {filterFormattingActions, type FormattingAction} from './formatting_actions';
 import SlashCommandMenu from './slash_command_menu';
@@ -45,14 +46,18 @@ export const SlashCommandExtension = Extension.create<SlashCommandOptions>({
                 render: () => {
                     const POPUP_ID = 'tiptap-slash-command-popup-singleton';
                     let popup: HTMLElement | null = null;
+                    let root: Root | null = null;
                     let componentRef: SlashCommandMenuRef | null = null;
                     let currentItems: FormattingAction[] = [];
                     let commandFunction: ((item: FormattingAction) => void) | null = null;
 
                     const closePopup = () => {
                         const existingPopup = document.getElementById(POPUP_ID);
+                        if (root) {
+                            root.unmount();
+                            root = null;
+                        }
                         if (existingPopup && existingPopup.parentNode) {
-                            ReactDOM.unmountComponentAtNode(existingPopup);
                             existingPopup.parentNode.removeChild(existingPopup);
                         }
                         popup = null;
@@ -70,7 +75,10 @@ export const SlashCommandExtension = Extension.create<SlashCommandOptions>({
 
                     const renderComponent = (items: FormattingAction[]) => {
                         if (popup && commandFunction) {
-                            ReactDOM.render(
+                            if (!root) {
+                                root = createRoot(popup);
+                            }
+                            root.render(
                                 <SlashCommandMenu
                                     ref={(ref) => {
                                         componentRef = ref;
@@ -83,13 +91,12 @@ export const SlashCommandExtension = Extension.create<SlashCommandOptions>({
                                         closePopup();
                                     }}
                                 />,
-                                popup,
                             );
                         }
                     };
 
                     return {
-                        onStart: (props: any) => {
+                        onStart: (props: SuggestionProps<FormattingAction>) => {
                             const {items, command, clientRect, range} = props;
                             currentItems = items || [];
                             commandFunction = command;
@@ -136,7 +143,7 @@ export const SlashCommandExtension = Extension.create<SlashCommandOptions>({
                             }, 0);
                         },
 
-                        onUpdate: (props: any) => {
+                        onUpdate: (props: SuggestionProps<FormattingAction>) => {
                             const {items, clientRect, range} = props;
                             currentItems = items || [];
 
@@ -169,7 +176,7 @@ export const SlashCommandExtension = Extension.create<SlashCommandOptions>({
                             renderComponent(currentItems);
                         },
 
-                        onKeyDown: (props: any) => {
+                        onKeyDown: (props: SuggestionKeyDownProps) => {
                             if (props.event.key === 'Escape') {
                                 closePopup();
                                 return true;
@@ -187,7 +194,7 @@ export const SlashCommandExtension = Extension.create<SlashCommandOptions>({
                         },
                     };
                 },
-                command: ({editor, range, props}: {editor: any; range: any; props: FormattingAction}) => {
+                command: ({editor, range, props}: {editor: Editor; range: Range; props: FormattingAction}) => {
                     const rangeToUse = globalLastValidRange || range;
 
                     editor.chain().focus().deleteRange(rangeToUse).run();

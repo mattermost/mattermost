@@ -422,7 +422,7 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
             const data = await Client4.publishPageDraft(wikiId, draftId, pageParentId, title, finalSearchText, draftMessage, finalPageStatus, force, baseEditAt) as Page;
 
             const actions: AnyAction[] = [
-                {type: WikiTypes.PUBLISH_DRAFT_SUCCESS, data: {draftId, pageId: data.id, optimisticId: isFirstTimeDraft ? undefined : pendingPageId}},
+                {type: WikiTypes.PUBLISH_DRAFT_SUCCESS, data: {draftId, pageId: data.id, publishedAt: data.update_at, optimisticId: isFirstTimeDraft ? undefined : pendingPageId}},
                 {type: PostActionTypes.RECEIVED_POST, data},
                 {type: WikiTypes.RECEIVED_PAGE_IN_WIKI, data: {page: data, wikiId, pendingPageId: isFirstTimeDraft ? undefined : pendingPageId}},
                 {type: WikiTypes.DELETED_DRAFT, data: {id: draftId, wikiId}},

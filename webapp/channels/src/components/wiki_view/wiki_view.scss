@@ -16,6 +16,22 @@
         left: 12px;
     }
 
+    &__pocWarning {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px 16px;
+        background: rgba(var(--away-indicator-rgb), 0.12);
+        color: var(--away-indicator);
+        font-size: 13px;
+        font-weight: 500;
+        gap: 8px;
+
+        i {
+            font-size: 16px;
+        }
+    }
+
     .PagePane {
         display: flex;
         min-width: 0;
@@ -512,8 +528,8 @@ body.fullscreen-mode {
         height: 100vh;
     }
 
-    &.rhs-open .WikiView,
-    &.rhs-open-expanded .WikiView {
+    .rhs-open .WikiView,
+    .rhs-open-expanded .WikiView {
         .PagePane {
             padding-right: 400px;
         }

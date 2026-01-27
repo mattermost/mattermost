@@ -992,6 +992,11 @@ func (c *Context) GetPageForRead() (*model.Post, *model.Wiki, *model.Channel, bo
 		return nil, nil, nil, false
 	}
 
+	// Check page-level read permission
+	if !c.hasPagePermission(channel, page, app.PageOperationRead) {
+		return nil, nil, nil, false
+	}
+
 	return page, wiki, channel, true
 }
 

@@ -334,8 +334,8 @@ func createPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventResultState(pageDraft)
 	auditRec.AddEventObjectType("page_draft")
 
-	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(pageDraft); err != nil {
 		c.Logger.Warn("Error encoding page draft response", mlog.Err(err))
 	}

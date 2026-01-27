@@ -2641,8 +2641,20 @@
     "translation": "Outgoing webhooks have been disabled by the system admin."
   },
   {
+    "id": "api.page.create.empty_title.app_error",
+    "translation": "Page title cannot be empty."
+  },
+  {
     "id": "api.page.create.title_too_long.app_error",
     "translation": "Page title is too long. Maximum length is {{.MaxLength}} characters."
+  },
+  {
+    "id": "api.page.export.file_not_found.error",
+    "translation": "File not found: {{.FileId}}"
+  },
+  {
+    "id": "api.page.export.file_not_owned.error",
+    "translation": "File does not belong to this page: {{.FileId}}"
   },
   {
     "id": "api.page.permission.guest_cannot_access",
@@ -7699,6 +7711,38 @@
     "translation": "No status options available."
   },
   {
+    "id": "app.page_export.close_zip.error",
+    "translation": "Failed to close export ZIP file."
+  },
+  {
+    "id": "app.page_export.copy_file.error",
+    "translation": "Failed to copy file to export."
+  },
+  {
+    "id": "app.page_export.create_md.error",
+    "translation": "Failed to create markdown file in export."
+  },
+  {
+    "id": "app.page_export.create_zip_entry.error",
+    "translation": "Failed to create file entry in export."
+  },
+  {
+    "id": "app.page_export.file_not_owned.error",
+    "translation": "File does not belong to this page."
+  },
+  {
+    "id": "app.page_export.get_file_info.error",
+    "translation": "Failed to get file info for page export."
+  },
+  {
+    "id": "app.page_export.read_file.error",
+    "translation": "Failed to read file for page export."
+  },
+  {
+    "id": "app.page_export.write_md.error",
+    "translation": "Failed to write markdown content to export."
+  },
+  {
     "id": "app.pap.access_control.channel_group_constrained",
     "translation": "Channel is group constrained and cannot have access control policies applied."
   },
@@ -12007,6 +12051,38 @@
   {
     "id": "model.page_draft.publish_options.wiki_id.app_error",
     "translation": "Invalid wiki ID in publish options."
+  },
+  {
+    "id": "model.page_export.file_id_invalid",
+    "translation": "Invalid file ID format."
+  },
+  {
+    "id": "model.page_export.file_id_required",
+    "translation": "File ID is required."
+  },
+  {
+    "id": "model.page_export.filename_invalid_chars",
+    "translation": "Filename contains invalid characters."
+  },
+  {
+    "id": "model.page_export.filename_required",
+    "translation": "Filename is required."
+  },
+  {
+    "id": "model.page_export.filename_too_long",
+    "translation": "Filename is too long."
+  },
+  {
+    "id": "model.page_export.local_path_invalid_prefix",
+    "translation": "Local path must start with attachments directory."
+  },
+  {
+    "id": "model.page_export.local_path_traversal",
+    "translation": "Local path contains invalid path traversal characters."
+  },
+  {
+    "id": "model.page_export.markdown_required",
+    "translation": "Markdown content is required."
   },
   {
     "id": "model.plugin_command.error.app_error",

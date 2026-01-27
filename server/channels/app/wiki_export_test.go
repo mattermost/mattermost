@@ -60,10 +60,10 @@ func TestWikiBulkExportVersionLine(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "version", versionLine["type"])
 
-	// Check version data
-	versionData, ok := versionLine["version"].(map[string]any)
-	require.True(t, ok)
-	assert.Equal(t, float64(1), versionData["version"])
+	// Check version is an integer (not an object)
+	versionNum, ok := versionLine["version"].(float64)
+	require.True(t, ok, "version should be a number, not an object")
+	assert.Equal(t, float64(1), versionNum)
 }
 
 func TestWriteExportLine(t *testing.T) {
@@ -76,8 +76,8 @@ func TestWriteExportLine(t *testing.T) {
 		{
 			name:     "version line",
 			lineType: "version",
-			data:     map[string]any{"version": 1},
-			expected: `{"type":"version","version":{"version":1}}`,
+			data:     1,
+			expected: `{"type":"version","version":1}`,
 		},
 		{
 			name:     "wiki line",

@@ -1244,7 +1244,7 @@ export function handleWikiMovedEvent(msg: WebSocketMessage) {
         // Wiki was removed from this channel - delete it from local state
         dispatch({
             type: WikiTypes.DELETED_WIKI,
-            data: {id: wikiId, channelId: sourceChannelId},
+            data: {wikiId, channelId: sourceChannelId},
         });
     } else if (action === 'added') {
         // Wiki was added to this channel - add it to local state
@@ -1283,7 +1283,7 @@ export function handleWikiDeletedEvent(msg: WebSocketMessage) {
 
     dispatch({
         type: WikiTypes.DELETED_WIKI,
-        data: {id: wikiId, channelId},
+        data: {wikiId, channelId},
     });
 }
 

@@ -38,6 +38,7 @@ test('moves page between wikis in same channel', {tag: '@pages'}, async ({pw, sh
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
+
     await channelsPage.goto(team.name, channel.name);
     await page.waitForLoadState('networkidle');
 

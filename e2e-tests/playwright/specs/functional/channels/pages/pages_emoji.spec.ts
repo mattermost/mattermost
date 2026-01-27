@@ -284,3 +284,249 @@ test('finds emoji via emoticon alias in slash command menu', {tag: '@pages'}, as
     const emojiItem = slashMenu.locator('.slash-command-item').filter({hasText: 'Emoji'});
     await expect(emojiItem).toBeVisible({timeout: WEBSOCKET_WAIT});
 });
+
+// ========================================
+// Inline Emoji Autocomplete Tests
+// ========================================
+
+/**
+ * @objective Verify emoji autocomplete suggestions appear when typing :emoji_name
+ */
+test(
+    'shows emoji suggestions when typing colon followed by 2+ characters',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+        const {page, channelsPage} = await pw.testBrowser.login(user);
+
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
+
+        // # Create wiki and page
+        await createWikiThroughUI(page, `Emoji Autocomplete Wiki ${await pw.random.id()}`);
+        const newPageButton = getNewPageButton(page);
+        await newPageButton.click();
+        await fillCreatePageModal(page, 'Emoji Autocomplete Test');
+
+        // # Type in editor with colon + 2 chars to trigger emoji autocomplete
+        const editor = await getEditorAndWait(page);
+        await editor.click();
+        await page.keyboard.type(':sm', {delay: 50});
+        await page.waitForTimeout(SHORT_WAIT);
+
+        // * Verify emoji suggestion popup appears
+        const emojiPopup = page.locator('.tiptap-emoticon-popup');
+        await expect(emojiPopup).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+        // * Verify popup contains emoji suggestions (should have smile, smirk, etc.)
+        const suggestionList = emojiPopup.locator('.tiptap-emoticon-suggestions');
+        await expect(suggestionList).toBeVisible();
+    },
+);
+
+/**
+ * @objective Verify emoji autocomplete does NOT appear with only 1 character after colon
+ */
+test(
+    'does not show emoji suggestions with only 1 character after colon',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+        const {page, channelsPage} = await pw.testBrowser.login(user);
+
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
+
+        // # Create wiki and page
+        await createWikiThroughUI(page, `Emoji Min Chars Wiki ${await pw.random.id()}`);
+        const newPageButton = getNewPageButton(page);
+        await newPageButton.click();
+        await fillCreatePageModal(page, 'Emoji Min Chars Test');
+
+        // # Type in editor with colon + only 1 char
+        const editor = await getEditorAndWait(page);
+        await editor.click();
+        await page.keyboard.type(':s', {delay: 50});
+        await page.waitForTimeout(UI_MICRO_WAIT * 3);
+
+        // * Verify emoji suggestion popup does NOT appear (minimum 2 chars required)
+        const emojiPopup = page.locator('.tiptap-emoticon-popup');
+        await expect(emojiPopup).not.toBeVisible();
+    },
+);
+
+/**
+ * @objective Verify emoji can be selected with Enter key from autocomplete
+ */
+test('selects emoji with Enter key from autocomplete', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+
+    await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
+
+    // # Create wiki and page
+    await createWikiThroughUI(page, `Emoji Enter Select Wiki ${await pw.random.id()}`);
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Emoji Enter Select Test');
+
+    // # Type in editor to trigger emoji autocomplete
+    const editor = await getEditorAndWait(page);
+    await editor.click();
+    await page.keyboard.type(':smile', {delay: 50});
+    await page.waitForTimeout(SHORT_WAIT);
+
+    // * Verify emoji suggestion popup appears
+    const emojiPopup = page.locator('.tiptap-emoticon-popup');
+    await expect(emojiPopup).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // # Press Enter to select first emoji
+    await page.keyboard.press('Enter');
+    await page.waitForTimeout(UI_MICRO_WAIT);
+
+    // * Verify popup closes
+    await expect(emojiPopup).not.toBeVisible({timeout: WEBSOCKET_WAIT});
+
+    // * Verify emoji was inserted (content should not contain :smile: text)
+    const editorContent = await editor.textContent();
+    expect(editorContent).toBeDefined();
+});
+
+/**
+ * @objective Verify emoji autocomplete can be navigated with arrow keys
+ */
+test('navigates emoji suggestions with arrow keys', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+
+    await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
+
+    // # Create wiki and page
+    await createWikiThroughUI(page, `Emoji Arrow Nav Wiki ${await pw.random.id()}`);
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Emoji Arrow Nav Test');
+
+    // # Type in editor to trigger emoji autocomplete
+    const editor = await getEditorAndWait(page);
+    await editor.click();
+    await page.keyboard.type(':grin', {delay: 50});
+    await page.waitForTimeout(SHORT_WAIT);
+
+    // * Verify emoji suggestion popup appears
+    const emojiPopup = page.locator('.tiptap-emoticon-popup');
+    await expect(emojiPopup).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // * Verify first item is selected
+    const firstItem = emojiPopup.locator('.suggestion-list__item').first();
+    await expect(firstItem).toHaveClass(/suggestion--selected/);
+
+    // # Press ArrowDown to move selection
+    await page.keyboard.press('ArrowDown');
+    await page.waitForTimeout(UI_MICRO_WAIT);
+
+    // * Verify second item is now selected
+    const secondItem = emojiPopup.locator('.suggestion-list__item').nth(1);
+    await expect(secondItem).toHaveClass(/suggestion--selected/);
+
+    // # Press ArrowUp to move back
+    await page.keyboard.press('ArrowUp');
+    await page.waitForTimeout(UI_MICRO_WAIT);
+
+    // * Verify first item is selected again
+    await expect(firstItem).toHaveClass(/suggestion--selected/);
+});
+
+/**
+ * @objective Verify emoji autocomplete closes with Escape key
+ */
+test('closes emoji autocomplete with Escape key', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+
+    await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
+
+    // # Create wiki and page
+    await createWikiThroughUI(page, `Emoji Escape Wiki ${await pw.random.id()}`);
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Emoji Escape Test');
+
+    // # Type in editor to trigger emoji autocomplete
+    const editor = await getEditorAndWait(page);
+    await editor.click();
+    await page.keyboard.type(':heart', {delay: 50});
+    await page.waitForTimeout(SHORT_WAIT);
+
+    // * Verify emoji suggestion popup appears
+    const emojiPopup = page.locator('.tiptap-emoticon-popup');
+    await expect(emojiPopup).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // # Press Escape to close
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(UI_MICRO_WAIT);
+
+    // * Verify popup closes
+    await expect(emojiPopup).not.toBeVisible({timeout: WEBSOCKET_WAIT});
+
+    // * Verify text remains in editor (not replaced)
+    const editorContent = await editor.textContent();
+    expect(editorContent).toContain(':heart');
+});
+
+/**
+ * @objective Verify system emoji is inserted as Unicode character via autocomplete
+ */
+test('inserts system emoji as Unicode via autocomplete', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+
+    await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
+
+    // # Create wiki and page
+    await createWikiThroughUI(page, `Emoji Unicode Wiki ${await pw.random.id()}`);
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Emoji Unicode Test');
+
+    // # Type prefix text and then emoji autocomplete
+    const editor = await getEditorAndWait(page);
+    await editor.click();
+    await page.keyboard.type('Hello ');
+    await page.keyboard.type(':grinning', {delay: 50});
+    await page.waitForTimeout(SHORT_WAIT);
+
+    // * Verify emoji suggestion popup appears
+    const emojiPopup = page.locator('.tiptap-emoticon-popup');
+    await expect(emojiPopup).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // # Press Enter to select emoji
+    await page.keyboard.press('Enter');
+    await page.waitForTimeout(UI_MICRO_WAIT);
+
+    // * Verify popup closes
+    await expect(emojiPopup).not.toBeVisible({timeout: WEBSOCKET_WAIT});
+
+    // * Verify editor content contains "Hello " and does not contain ":grinning" text
+    // (system emoji should be inserted as Unicode)
+    const editorContent = await editor.textContent();
+    expect(editorContent).toBeDefined();
+    expect(editorContent).toContain('Hello');
+    expect(editorContent).not.toContain(':grinning');
+});

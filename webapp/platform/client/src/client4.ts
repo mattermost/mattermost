@@ -2237,7 +2237,7 @@ export default class Client4 {
         }
         return this.doFetch<StatusOK>(
             `${this.getWikiPageRoute(sourceWikiId, pageId)}/move`,
-            {method: 'post', body: JSON.stringify(body)},
+            {method: 'PATCH', body: JSON.stringify(body)},
         );
     };
 
@@ -2245,7 +2245,7 @@ export default class Client4 {
         return this.doFetch<Wiki>(
             `${this.getWikiRoute(wikiId)}/move`,
             {
-                method: 'post',
+                method: 'PATCH',
                 body: JSON.stringify({target_channel_id: targetChannelId}),
             },
         );

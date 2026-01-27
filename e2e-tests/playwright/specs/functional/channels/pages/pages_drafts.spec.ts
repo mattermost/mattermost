@@ -23,6 +23,7 @@ import {
     enterEditMode,
     verifyPageContentContains,
     openHierarchyNodeActionsMenu,
+    withRolePermissions,
     AUTOSAVE_WAIT,
     EDITOR_LOAD_WAIT,
     ELEMENT_TIMEOUT,
@@ -1367,6 +1368,9 @@ test('handles page deletion while user has unpublished draft', {tag: '@pages'}, 
     const {team, user: userA, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
+    // # Grant delete_page permission to channel_user role so User B can delete User A's page
+    const restorePermissions = await withRolePermissions(adminClient, 'channel_user', ['delete_page']);
+
     // # Create second user with permissions to delete
     const {user: userB} = await createTestUserInChannel(pw, adminClient, team, channel);
 
@@ -1419,4 +1423,7 @@ test('handles page deletion while user has unpublished draft', {tag: '@pages'}, 
         hasText: 'Page To Be Deleted',
     });
     await expect(orphanDraftNode).not.toBeVisible();
+
+    // # Restore original permissions
+    await restorePermissions();
 });

@@ -17,13 +17,10 @@ import (
 // GetPageChildren fetches direct children of a page.
 // Note: Permission checks should be performed by the caller (API layer) before calling this method.
 func (a *App) GetPageChildren(rctx request.CTX, postID string, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
-	parentPost, appErr := a.GetSinglePost(rctx, postID, false)
+	_, appErr := a.GetSinglePost(rctx, postID, false)
 	if appErr != nil {
 		return nil, model.NewAppError("GetPageChildren", "app.page.get_children.parent.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
 	}
-
-	// Verify parent exists but don't check permissions here - that's the API layer's job
-	_ = parentPost
 
 	postList, err := a.Srv().Store().Page().GetPageChildren(postID, options)
 	if err != nil {

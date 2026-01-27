@@ -1,7 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {EditorState} from '@tiptap/pm/state';
 import {TextSelection} from '@tiptap/pm/state';
+import type {Editor} from '@tiptap/react';
 import {BubbleMenu} from '@tiptap/react/menus';
 import React, {useState, useCallback, useMemo, useEffect, useRef} from 'react';
 import {useIntl} from 'react-intl';
@@ -20,7 +22,7 @@ const MAX_LINK_DISPLAY_LENGTH = 40;
 type Mode = 'link' | 'format';
 
 type Props = {
-    editor: any;
+    editor: Editor | null;
     uploadsEnabled: boolean;
     onSetLink: () => void;
     onAddMedia: () => void;
@@ -158,13 +160,15 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddMedia, onA
 
     // shouldShow callback - this is called with fresh editor state
     // We set mode here to keep React in sync with the current editor state
-    const shouldShow = useCallback(({editor: currentEditor, state}: {editor: any; state: any}) => {
+    const shouldShow = useCallback(({editor: currentEditor, state}: {editor: Editor; state: unknown}) => {
+        const editorState = state as EditorState;
+
         // Don't show if user explicitly dismissed with Escape
         if (dismissed) {
             return false;
         }
 
-        const {selection} = state;
+        const {selection} = editorState;
         const isLinkActive = currentEditor.isActive('link');
         const isLinkMode = isLinkActive && selection.empty;
 
@@ -182,7 +186,7 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddMedia, onA
             return false;
         }
 
-        const text = state.doc.textBetween(selection.from, selection.to).trim();
+        const text = editorState.doc.textBetween(selection.from, selection.to).trim();
         return text.length > 0;
     }, [dismissed]);
 
@@ -384,7 +388,7 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddMedia, onA
                             onClick={() => editor.chain().focus().addColumnBefore().run()}
                             disabled={!editor.can().addColumnBefore()}
                             className='formatting-btn'
-                            title={formatMessage({id: 'formatting_bar.add_column_before', defaultMessage: 'Add Column Before'})}
+                            aria-label={formatMessage({id: 'formatting_bar.add_column_before', defaultMessage: 'Add Column Before'})}
                         >
                             {'◀|'}
                         </button>
@@ -397,7 +401,7 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddMedia, onA
                             onClick={() => editor.chain().focus().addColumnAfter().run()}
                             disabled={!editor.can().addColumnAfter()}
                             className='formatting-btn'
-                            title={formatMessage({id: 'formatting_bar.add_column_after', defaultMessage: 'Add Column After'})}
+                            aria-label={formatMessage({id: 'formatting_bar.add_column_after', defaultMessage: 'Add Column After'})}
                         >
                             {'|▶'}
                         </button>
@@ -410,7 +414,7 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddMedia, onA
                             onClick={() => editor.chain().focus().deleteColumn().run()}
                             disabled={!editor.can().deleteColumn()}
                             className='formatting-btn'
-                            title={formatMessage({id: 'formatting_bar.delete_column', defaultMessage: 'Delete Column'})}
+                            aria-label={formatMessage({id: 'formatting_bar.delete_column', defaultMessage: 'Delete Column'})}
                         >
                             {'⊟|'}
                         </button>
@@ -423,7 +427,7 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddMedia, onA
                             onClick={() => editor.chain().focus().addRowBefore().run()}
                             disabled={!editor.can().addRowBefore()}
                             className='formatting-btn'
-                            title={formatMessage({id: 'formatting_bar.add_row_before', defaultMessage: 'Add Row Before'})}
+                            aria-label={formatMessage({id: 'formatting_bar.add_row_before', defaultMessage: 'Add Row Before'})}
                         >
                             {'▲═'}
                         </button>
@@ -436,7 +440,7 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddMedia, onA
                             onClick={() => editor.chain().focus().addRowAfter().run()}
                             disabled={!editor.can().addRowAfter()}
                             className='formatting-btn'
-                            title={formatMessage({id: 'formatting_bar.add_row_after', defaultMessage: 'Add Row After'})}
+                            aria-label={formatMessage({id: 'formatting_bar.add_row_after', defaultMessage: 'Add Row After'})}
                         >
                             {'═▼'}
                         </button>
@@ -449,7 +453,7 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddMedia, onA
                             onClick={() => editor.chain().focus().deleteRow().run()}
                             disabled={!editor.can().deleteRow()}
                             className='formatting-btn'
-                            title={formatMessage({id: 'formatting_bar.delete_row', defaultMessage: 'Delete Row'})}
+                            aria-label={formatMessage({id: 'formatting_bar.delete_row', defaultMessage: 'Delete Row'})}
                         >
                             {'⊟═'}
                         </button>
@@ -462,7 +466,7 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddMedia, onA
                             onClick={() => editor.chain().focus().deleteTable().run()}
                             disabled={!editor.can().deleteTable()}
                             className='formatting-btn'
-                            title={formatMessage({id: 'formatting_bar.delete_table', defaultMessage: 'Delete Table'})}
+                            aria-label={formatMessage({id: 'formatting_bar.delete_table', defaultMessage: 'Delete Table'})}
                         >
                             {'🗑'}
                         </button>

@@ -221,18 +221,9 @@ func duplicatePage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
-	page, err := c.App.GetPage(c.AppContext, c.Params.PageId)
-	if err != nil {
-		c.Logger.Error("GetPage failed in duplicatePage",
-			mlog.String("page_id", c.Params.PageId),
-			mlog.Err(err),
-		)
-		c.Err = err
-		return
-	}
-	c.Logger.Info("GetPage succeeded", mlog.String("page_id", page.Id))
-
-	if !c.CheckPagePermission(page, app.PageOperationRead) {
+	// GetPageForRead validates source wiki exists, page belongs to it, and user has read permission
+	page, _, _, ok := c.GetPageForRead()
+	if !ok {
 		return
 	}
 

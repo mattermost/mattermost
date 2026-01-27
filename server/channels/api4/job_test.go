@@ -435,7 +435,7 @@ func TestDownloadWikiExportJob(t *testing.T) {
 	err = os.MkdirAll(filepath.Dir(filePath), 0770)
 	require.NoError(t, err)
 
-	testContent := `{"type":"version","version":{"version":1}}` + "\n"
+	testContent := `{"type":"version","version":1}` + "\n"
 	err = os.WriteFile(filePath, []byte(testContent), 0600)
 	require.NoError(t, err)
 	defer os.Remove(filePath)

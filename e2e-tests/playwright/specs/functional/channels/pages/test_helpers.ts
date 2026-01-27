@@ -521,34 +521,46 @@ export async function createWikiThroughUI(page: Page, wikiName: string) {
 }
 
 /**
- * Waits for a wiki view to be fully loaded
- * @param page - Playwright page object
- */
-/**
  * Waits for the wiki view React component to be mounted and rendered.
  *
  * Handles several scenarios to ensure robust waiting:
- * 1. Component mounting/unmounting during route transitions - Playwright's
- *    waitFor with 'visible' state automatically retries, handling transient states
+ * 1. Component mounting/unmounting during route transitions - uses retry logic
+ *    to handle transient states where wiki-view briefly disappears
  * 2. Loading states - waits for loading indicator to disappear if present
  * 3. Async rendering - small delay ensures hierarchy panels have settled
+ *
+ * Uses expect().toBeVisible() with retries for more robust handling of
+ * race conditions during navigation.
  */
 export async function waitForWikiViewLoad(page: Page, timeout = 60000) {
     const wikiView = page.locator('[data-testid="wiki-view"]');
 
-    // Wait for the wiki view to be visible with retries to handle any temporary unmounts
-    await wikiView.waitFor({state: 'visible', timeout});
+    // Use expect with timeout for better retry behavior during route transitions.
+    // This handles cases where the wiki-view briefly unmounts during navigation.
+    try {
+        await expect(wikiView).toBeVisible({timeout});
+    } catch (error) {
+        // On failure, gather diagnostic info before throwing
+        const url = page.url();
+        const bodyContent = await page
+            .locator('body')
+            .innerHTML()
+            .catch(() => '[failed to get body]');
+        const hasError = bodyContent.includes('error') || bodyContent.includes('Error');
+
+        throw new Error(
+            `Wiki view not visible after ${timeout}ms. ` +
+                `URL: ${url}. ` +
+                `Body contains error text: ${hasError}. ` +
+                `Original error: ${error instanceof Error ? error.message : String(error)}`,
+        );
+    }
 
     // Wait for loading to complete by ensuring loading indicator is not visible
-    // This handles race conditions where loading indicator appears after initial check
     const loadingLocator = page.locator('[data-testid="wiki-view-loading"]');
 
     // Wait for the loading indicator to be detached/hidden
     // Use 'detached' state which covers both "hidden" and "not in DOM" cases
-    // This properly handles:
-    // 1. Loading indicator never appears (immediate detached state)
-    // 2. Loading indicator currently visible (waits for it to be removed)
-    // 3. Loading indicator appears briefly then disappears (waits for detachment)
     await loadingLocator.waitFor({state: 'detached', timeout: timeout}).catch(async () => {
         // If still attached after timeout, check if it's at least hidden
         const isStillVisible = await loadingLocator.isVisible().catch(() => false);

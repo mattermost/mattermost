@@ -562,10 +562,24 @@ func (s *SqlDraftStore) BatchUpdateDraftParentId(userId, wikiId, oldParentId, ne
 // UpdateDraftParent atomically updates only the page_parent_id prop in the Drafts table.
 // This is used for move operations and does not touch the PageContents table (content/title).
 // It uses a read-modify-write pattern to merge the new parent_id into existing props.
+// Uses GetMaster() for the read to ensure consistency in this read-modify-write flow.
 func (s *SqlDraftStore) UpdateDraftParent(userId, wikiId, draftId, newParentId string) error {
-	// First, get the current draft to read its props
-	draft, err := s.Get(userId, wikiId, draftId, false)
-	if err != nil {
+	// Read the current draft from master to get its props (read-modify-write consistency)
+	getQuery := s.getQueryBuilder().
+		Select(draftSliceColumns()...).
+		From("Drafts").
+		Where(sq.Eq{
+			"UserId":    userId,
+			"ChannelId": wikiId,
+			"RootId":    draftId,
+			"DeleteAt":  0,
+		})
+
+	draft := model.Draft{}
+	if err := s.GetMaster().GetBuilder(&draft, getQuery); err != nil {
+		if err == sql.ErrNoRows {
+			return store.NewErrNotFound("Draft", draftId)
+		}
 		return errors.Wrapf(err, "failed to get draft for move userId=%s, wikiId=%s, draftId=%s", userId, wikiId, draftId)
 	}
 
@@ -580,7 +594,7 @@ func (s *SqlDraftStore) UpdateDraftParent(userId, wikiId, draftId, newParentId s
 	newUpdateAt := model.GetMillis()
 
 	// Update only the props and updateAt, no optimistic locking on content
-	query := s.getQueryBuilder().
+	updateQuery := s.getQueryBuilder().
 		Update("Drafts").
 		Set("Props", propsJSON).
 		Set("UpdateAt", newUpdateAt).
@@ -590,7 +604,7 @@ func (s *SqlDraftStore) UpdateDraftParent(userId, wikiId, draftId, newParentId s
 			"RootId":    draftId,
 		})
 
-	result, err := s.GetMaster().ExecBuilder(query)
+	result, err := s.GetMaster().ExecBuilder(updateQuery)
 	if err != nil {
 		return errors.Wrapf(err, "failed to update parent for draft userId=%s, wikiId=%s, draftId=%s", userId, wikiId, draftId)
 	}
@@ -641,6 +655,8 @@ func (s *SqlDraftStore) CreatePageDraft(content *model.PageContent) (*model.Page
 
 // PageDraftExists checks if a draft exists for the given pageId and userId.
 // Returns (exists, updateAt, error). This is a pure data access method with no business logic.
+// Uses GetMaster() because this is typically called in write-decision flows (upsert)
+// where read-after-write consistency is critical to avoid duplicate creation attempts.
 func (s *SqlDraftStore) PageDraftExists(pageId, userId string) (bool, int64, error) {
 	query := s.getQueryBuilder().
 		Select("UpdateAt").
@@ -653,7 +669,7 @@ func (s *SqlDraftStore) PageDraftExists(pageId, userId string) (bool, int64, err
 	}
 
 	var updateAt int64
-	err = s.GetReplica().QueryRow(queryString, args...).Scan(&updateAt)
+	err = s.GetMaster().QueryRow(queryString, args...).Scan(&updateAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return false, 0, nil

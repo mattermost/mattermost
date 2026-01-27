@@ -76,6 +76,7 @@ import Callout from './callout_extension';
 import {createChannelMentionSuggestion} from './channel_mention_mm_bridge';
 import CommentAnchor from './comment_anchor_mark';
 import CommentHighlightPlugin, {COMMENT_HIGHLIGHT_PLUGIN_KEY} from './comment_highlight_plugin';
+import {EmojiSuggestionExtension} from './emoticon_mm_bridge';
 import FileAttachment from './file_attachment_extension';
 import {uploadMediaForEditor, validateFile, isVideoFile, isMediaFile} from './file_upload_helper';
 import FormattingBarBubble from './formatting_bar_bubble';
@@ -359,11 +360,8 @@ const TipTapEditor = ({
     currentUserId,
     channelId,
     teamId,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     pageId,
     pageTitle = '',
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    pageParentId = null,
     wikiId,
     pages = [],
     isExistingPage = false,
@@ -467,13 +465,14 @@ const TipTapEditor = ({
                             src: fileUrl,
                             alt: file.name,
                             title: file.name,
+                            filename: file.name,
                         };
 
                         if (position === undefined) {
-                            currentEditor.chain().focus().setImage(imageAttrs).run();
+                            currentEditor.chain().focus().insertContent({type: 'imageResize', attrs: imageAttrs}).run();
                         } else {
                             currentEditor.chain().insertContentAt(position, {
-                                type: 'image',
+                                type: 'imageResize',
                                 attrs: imageAttrs,
                             }).focus().run();
                         }
@@ -767,7 +766,7 @@ const TipTapEditor = ({
                                     const currentEditor = editorRef.current;
                                     const validatedUrl = validateImageUrl(url);
                                     if (validatedUrl && currentEditor) {
-                                        currentEditor.chain().focus().setImage({src: validatedUrl}).run();
+                                        currentEditor.chain().focus().insertContent({type: 'imageResize', attrs: {src: validatedUrl}}).run();
                                     }
                                 },
                                 onCancel: () => {},
@@ -975,6 +974,11 @@ const TipTapEditor = ({
                     }) as any,
                 }) as any,
             );
+        }
+
+        // Emoji autocomplete (works for all users)
+        if (editable) {
+            exts.push(EmojiSuggestionExtension);
         }
 
         return exts;
@@ -1419,7 +1423,7 @@ const TipTapEditor = ({
                 onConfirm: (url: string) => {
                     const validatedUrl = validateImageUrl(url);
                     if (validatedUrl && currentEditor) {
-                        currentEditor.chain().focus().setImage({src: validatedUrl}).run();
+                        currentEditor.chain().focus().insertContent({type: 'imageResize', attrs: {src: validatedUrl}}).run();
                     }
                 },
                 onCancel: () => {},
@@ -1582,61 +1586,34 @@ const TipTapEditor = ({
 };
 
 // Custom comparison function to prevent unnecessary re-renders
-// Only re-render if props that affect the editor actually change
 const arePropsEqual = (prevProps: Props, nextProps: Props) => {
-    // Compare primitive props
-    if (
-        prevProps.editable !== nextProps.editable ||
-        prevProps.placeholder !== nextProps.placeholder ||
-        prevProps.currentUserId !== nextProps.currentUserId ||
-        prevProps.channelId !== nextProps.channelId ||
-        prevProps.teamId !== nextProps.teamId ||
-        prevProps.pageId !== nextProps.pageId ||
-        prevProps.pageTitle !== nextProps.pageTitle ||
-        prevProps.pageParentId !== nextProps.pageParentId ||
-        prevProps.wikiId !== nextProps.wikiId
-    ) {
+    // Extract props that need special handling:
+    // - inlineComments: compare by IDs only
+    // - contentKey: only compare in viewer mode
+    // - content: never compare (editor manages its own content state)
+    // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unused-vars
+    const {inlineComments: prevComments, contentKey: prevContentKey, content: _prevContent, ...prevRest} = prevProps;
+    // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unused-vars
+    const {inlineComments: nextComments, contentKey: nextContentKey, content: _nextContent, ...nextRest} = nextProps;
+
+    // Use shallowEqual for primitives and function references
+    if (!shallowEqual(prevRest, nextRest)) {
         return false;
     }
 
-    // Compare function props by reference (they should be memoized)
-    if (prevProps.onContentChange !== nextProps.onContentChange) {
-        return false;
-    }
-    if (prevProps.onCommentClick !== nextProps.onCommentClick) {
-        return false;
-    }
-    if (prevProps.onCreateInlineComment !== nextProps.onCreateInlineComment) {
-        return false;
-    }
-    if (prevProps.onTranslatedPageCreated !== nextProps.onTranslatedPageCreated) {
+    // inlineComments: compare by IDs only, not full objects
+    const prevIds = prevComments?.map((c) => c.id).join(',') ?? '';
+    const nextIds = nextComments?.map((c) => c.id).join(',') ?? '';
+    if (prevIds !== nextIds) {
         return false;
     }
 
-    // Compare inlineComments array - check if IDs changed
-    if (prevProps.inlineComments?.length !== nextProps.inlineComments?.length) {
+    // contentKey: only check in viewer mode (edit mode ignores to prevent re-renders during typing)
+    if (!nextProps.editable && prevContentKey !== nextContentKey) {
         return false;
     }
 
-    // If we have inline comments, check if the IDs match (don't deep compare entire objects)
-    if (prevProps.inlineComments && nextProps.inlineComments) {
-        const prevIds = prevProps.inlineComments.map((c) => c.id).join(',');
-        const nextIds = nextProps.inlineComments.map((c) => c.id).join(',');
-        if (prevIds !== nextIds) {
-            return false;
-        }
-    }
-
-    // Content handling: In viewer mode, allow re-renders when content changes
-    // In edit mode, ignore content to prevent re-renders during typing
-    if (!nextProps.editable) {
-        // Viewer mode: check contentKey to detect when content changes
-        if (prevProps.contentKey !== nextProps.contentKey) {
-            return false;
-        }
-    }
-
-    return true; // Props are equal, skip re-render
+    return true;
 };
 
 export default React.memo(TipTapEditor, arePropsEqual);

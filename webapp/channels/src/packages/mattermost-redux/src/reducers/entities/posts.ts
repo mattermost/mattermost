@@ -566,6 +566,11 @@ export function postsInChannel(state: Record<string, PostOrderBlock[]> = {}, act
             return state;
         }
 
+        // Pages are not shown in channel feed, so don't add them to the order arrays
+        if (post.type === PostTypeConstants.PAGE) {
+            return state;
+        }
+
         const postsForChannel = state[post.channel_id];
         if (!postsForChannel) {
             // Don't save newly created posts until the channel has been loaded

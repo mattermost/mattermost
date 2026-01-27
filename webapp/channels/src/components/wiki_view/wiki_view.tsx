@@ -529,6 +529,13 @@ const WikiView = () => {
                         className={classNames('PagePane', {'PagePane--sidebarCollapsed': isPanesPanelCollapsed})}
                         data-testid='wiki-page-pane'
                     >
+                        <div className='WikiView__pocWarning'>
+                            <i className='icon icon-alert-outline'/>
+                            <FormattedMessage
+                                id='wiki.poc_warning'
+                                defaultMessage='Wiki feature POC - expect updates and improvements, possible data loss.'
+                            />
+                        </div>
                         {headerProps && (
                             <WikiPageHeader
                                 {...headerProps}

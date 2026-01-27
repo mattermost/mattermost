@@ -645,7 +645,7 @@
           $ref: "#/components/responses/NotFound"
 
   /api/v4/wikis/{wiki_id}/pages/{page_id}/restore:
-    post:
+    patch:
       tags:
         - wikis
       summary: Restore deleted page
@@ -687,7 +687,7 @@
           $ref: "#/components/responses/NotFound"
 
   /api/v4/wikis/{wiki_id}/move:
-    post:
+    patch:
       tags:
         - wikis
       summary: Move wiki to another channel
@@ -927,7 +927,7 @@
           $ref: "#/components/responses/NotFound"
 
   /api/v4/wikis/{wiki_id}/pages/{page_id}/move:
-    post:
+    patch:
       tags:
         - wikis
       summary: Move page to another wiki
@@ -1014,6 +1014,83 @@
             application/json:
               schema:
                 $ref: "#/components/schemas/Post"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v4/wikis/{wiki_id}/pages/{page_id}/export/markdown:
+    post:
+      tags:
+        - wikis
+      summary: Export page to markdown
+      description: |
+        Exports a page to markdown format with attached files as a ZIP archive.
+        The client provides the pre-converted markdown content and file references,
+        and the server packages them into a downloadable ZIP file.
+
+        __Minimum server version__: TBD
+
+        ##### Permissions
+        Must have `read_channel_content` permission in the wiki's channel.
+      operationId: ExportPageToMarkdown
+      parameters:
+        - name: wiki_id
+          in: path
+          description: Wiki GUID
+          required: true
+          schema:
+            type: string
+        - name: page_id
+          in: path
+          description: Page (Post) GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - markdown
+                - filename
+              properties:
+                markdown:
+                  type: string
+                  description: The markdown content to export
+                filename:
+                  type: string
+                  description: The filename for the markdown file (without extension)
+                files:
+                  type: array
+                  description: List of file references to include in the export
+                  items:
+                    type: object
+                    required:
+                      - file_id
+                      - local_path
+                    properties:
+                      file_id:
+                        type: string
+                        description: The ID of the file to include
+                      local_path:
+                        type: string
+                        description: The local path for the file in the export (e.g., "attachments/image.png")
+        description: Export request data
+        required: true
+      responses:
+        "200":
+          description: Page export successful
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
