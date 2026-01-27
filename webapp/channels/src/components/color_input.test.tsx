@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {render, screen, fireEvent} from 'tests/react_testing_utils';
+import {render, screen, fireEvent, userEvent} from 'tests/react_testing_utils';
 
 import ColorInput from './color_input';
 
@@ -22,38 +22,38 @@ describe('components/ColorInput', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, opened', () => {
+    test('should match snapshot, opened', async () => {
         const {container} = render(
             <ColorInput {...baseProps}/>,
         );
 
-        fireEvent.click(container.querySelector('.input-group-addon')!);
+        await userEvent.click(container.querySelector('.input-group-addon')!);
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, toggle picker', () => {
+    test('should match snapshot, toggle picker', async () => {
         const {container} = render(
             <ColorInput {...baseProps}/>,
         );
-        fireEvent.click(container.querySelector('.input-group-addon')!);
-        fireEvent.click(container.querySelector('.input-group-addon')!);
+        await userEvent.click(container.querySelector('.input-group-addon')!);
+        await userEvent.click(container.querySelector('.input-group-addon')!);
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, click on picker', () => {
+    test('should match snapshot, click on picker', async () => {
         const {container} = render(
             <ColorInput {...baseProps}/>,
         );
 
-        fireEvent.click(container.querySelector('.input-group-addon')!);
-        fireEvent.click(container.querySelector('.color-popover')!);
+        await userEvent.click(container.querySelector('.input-group-addon')!);
+        await userEvent.click(container.querySelector('.color-popover')!);
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should have match state on togglePicker', () => {
+    test('should have match state on togglePicker', async () => {
         const {container} = render(
             <ColorInput {...baseProps}/>,
         );
@@ -62,15 +62,15 @@ describe('components/ColorInput', () => {
         expect(container.querySelector('.color-popover')).not.toBeInTheDocument();
 
         // Click to open
-        fireEvent.click(container.querySelector('.input-group-addon')!);
+        await userEvent.click(container.querySelector('.input-group-addon')!);
         expect(container.querySelector('.color-popover')).toBeInTheDocument();
 
         // Click to close
-        fireEvent.click(container.querySelector('.input-group-addon')!);
+        await userEvent.click(container.querySelector('.input-group-addon')!);
         expect(container.querySelector('.color-popover')).not.toBeInTheDocument();
 
         // Click to open again
-        fireEvent.click(container.querySelector('.input-group-addon')!);
+        await userEvent.click(container.querySelector('.input-group-addon')!);
         expect(container.querySelector('.color-popover')).toBeInTheDocument();
     });
 

@@ -5,7 +5,7 @@ import React from 'react';
 
 import DisplayName from 'components/create_team/components/display_name';
 
-import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, fireEvent, userEvent} from 'tests/react_testing_utils';
 import {cleanUpUrlable} from 'utils/url';
 
 jest.mock('images/logo.png', () => 'logo.png');
@@ -24,18 +24,18 @@ describe('/components/create_team/components/display_name', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should run updateParent function', () => {
+    test('should run updateParent function', async () => {
         renderWithContext(<DisplayName {...defaultProps}/>);
 
-        fireEvent.click(screen.getByRole('button', {name: /next/i}));
+        await userEvent.click(screen.getByRole('button', {name: /next/i}));
 
         expect(defaultProps.updateParent).toHaveBeenCalled();
     });
 
-    test('should pass state to updateParent function', () => {
+    test('should pass state to updateParent function', async () => {
         renderWithContext(<DisplayName {...defaultProps}/>);
 
-        fireEvent.click(screen.getByRole('button', {name: /next/i}));
+        await userEvent.click(screen.getByRole('button', {name: /next/i}));
 
         expect(defaultProps.updateParent).toHaveBeenCalledWith(expect.objectContaining({
             wizard: 'team_url',
@@ -45,7 +45,7 @@ describe('/components/create_team/components/display_name', () => {
         }));
     });
 
-    test('should pass updated team name to updateParent function', () => {
+    test('should pass updated team name to updateParent function', async () => {
         renderWithContext(<DisplayName {...defaultProps}/>);
         const teamDisplayName = 'My Test Team';
         const expectedTeam = {
@@ -57,7 +57,7 @@ describe('/components/create_team/components/display_name', () => {
         const input = screen.getByRole('textbox');
         fireEvent.change(input, {target: {value: teamDisplayName}});
 
-        fireEvent.click(screen.getByRole('button', {name: /next/i}));
+        await userEvent.click(screen.getByRole('button', {name: /next/i}));
 
         expect(defaultProps.updateParent).toHaveBeenCalledWith(expect.objectContaining({
             wizard: 'team_url',

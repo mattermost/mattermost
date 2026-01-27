@@ -5,7 +5,7 @@ import React from 'react';
 
 import RadioButtonGroup from 'components/common/radio_group';
 
-import {render, screen, fireEvent} from 'tests/react_testing_utils';
+import {render, screen, userEvent} from 'tests/react_testing_utils';
 
 describe('/components/common/RadioButtonGroup', () => {
     const onChange = jest.fn();
@@ -28,11 +28,11 @@ describe('/components/common/RadioButtonGroup', () => {
         expect(buttons.length).toBe(3);
     });
 
-    test('test radio button group onChange function', () => {
+    test('test radio button group onChange function', async () => {
         render(<RadioButtonGroup {...baseProps}/>);
 
         const buttons = screen.getAllByRole('radio');
-        fireEvent.click(buttons[0]);
+        await userEvent.click(buttons[0]);
 
         expect(onChange).toHaveBeenCalledTimes(1);
     });

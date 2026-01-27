@@ -17,7 +17,6 @@ import configureStore from 'store';
 import globalStore from 'stores/redux_store';
 
 import WebSocketClient from 'client/web_websocket_client';
-import defaultMessages from 'i18n/en.json';
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import mockStore from 'tests/test_store';
 import {WebSocketContext} from 'utils/use_websocket';

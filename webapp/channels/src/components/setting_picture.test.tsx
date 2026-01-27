@@ -7,7 +7,7 @@ import {FormattedMessage} from 'react-intl';
 
 import SettingPicture from 'components/setting_picture';
 
-import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, fireEvent, userEvent} from 'tests/react_testing_utils';
 
 const helpText: ReactNode = (
     <FormattedMessage
@@ -98,7 +98,7 @@ describe('components/SettingItemMin', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with removeSrc state active', () => {
+    test('should match snapshot with removeSrc state active', async () => {
         const props = {...baseProps, onRemove: jest.fn()};
         const {container} = renderWithContext(
             <SettingPicture {...props}/>,
@@ -106,12 +106,12 @@ describe('components/SettingItemMin', () => {
 
         // Click the remove button to set removeSrc state
         const removeButton = screen.getByTestId('removeSettingPicture');
-        fireEvent.click(removeButton);
+        await userEvent.click(removeButton);
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match state and call props.updateSection on handleCancel', () => {
+    test('should match state and call props.updateSection on handleCancel', async () => {
         const props = {...baseProps, updateSection: jest.fn(), onRemove: jest.fn()};
         const {container} = renderWithContext(
             <SettingPicture {...props}/>,
@@ -119,11 +119,11 @@ describe('components/SettingItemMin', () => {
 
         // First click remove to set removeSrc state
         const removeButton = screen.getByTestId('removeSettingPicture');
-        fireEvent.click(removeButton);
+        await userEvent.click(removeButton);
 
         // Then click cancel
         const cancelButton = screen.getByTestId('cancelSettingPicture');
-        fireEvent.click(cancelButton);
+        await userEvent.click(cancelButton);
 
         expect(props.updateSection).toHaveBeenCalledTimes(1);
 
@@ -131,7 +131,7 @@ describe('components/SettingItemMin', () => {
         expect(container.querySelector('.profile-img')).toBeInTheDocument();
     });
 
-    test('should call props.onRemove on handleSave', () => {
+    test('should call props.onRemove on handleSave', async () => {
         const props = {...baseProps, onRemove: jest.fn()};
         renderWithContext(
             <SettingPicture {...props}/>,
@@ -139,16 +139,16 @@ describe('components/SettingItemMin', () => {
 
         // First click remove to set removeSrc state
         const removeButton = screen.getByTestId('removeSettingPicture');
-        fireEvent.click(removeButton);
+        await userEvent.click(removeButton);
 
         // Then click save
         const saveButton = screen.getByTestId('saveSettingPicture');
-        fireEvent.click(saveButton);
+        await userEvent.click(saveButton);
 
         expect(props.onRemove).toHaveBeenCalledTimes(1);
     });
 
-    test('should call props.onSetDefault on handleSave', () => {
+    test('should call props.onSetDefault on handleSave', async () => {
         const props = {...baseProps, onSetDefault: jest.fn()};
         renderWithContext(
             <SettingPicture {...props}/>,
@@ -156,28 +156,28 @@ describe('components/SettingItemMin', () => {
 
         // First click remove/setDefault button to set setDefaultSrc state
         const removeButton = screen.getByTestId('removeSettingPicture');
-        fireEvent.click(removeButton);
+        await userEvent.click(removeButton);
 
         // Then click save
         const saveButton = screen.getByTestId('saveSettingPicture');
-        fireEvent.click(saveButton);
+        await userEvent.click(saveButton);
 
         expect(props.onSetDefault).toHaveBeenCalledTimes(1);
     });
 
-    test('should match state and call props.onSubmit on handleSave', () => {
+    test('should match state and call props.onSubmit on handleSave', async () => {
         const props = {...baseProps, onSubmit: jest.fn(), submitActive: true};
         renderWithContext(
             <SettingPicture {...props}/>,
         );
 
         const saveButton = screen.getByTestId('saveSettingPicture');
-        fireEvent.click(saveButton);
+        await userEvent.click(saveButton);
 
         expect(props.onSubmit).toHaveBeenCalledTimes(1);
     });
 
-    test('should match state on handleRemoveSrc', () => {
+    test('should match state on handleRemoveSrc', async () => {
         const props = {...baseProps, onRemove: jest.fn()};
         const {container} = renderWithContext(
             <SettingPicture {...props}/>,
@@ -188,13 +188,13 @@ describe('components/SettingItemMin', () => {
 
         // Click remove
         const removeButton = screen.getByTestId('removeSettingPicture');
-        fireEvent.click(removeButton);
+        await userEvent.click(removeButton);
 
         // Image should be hidden (removeSrc is true)
         expect(container.querySelector('.profile-img')).not.toBeInTheDocument();
     });
 
-    test('should match state and call props.onFileChange on handleFileChange', () => {
+    test('should match state and call props.onFileChange on handleFileChange', async () => {
         const props = {...baseProps, onFileChange: jest.fn(), onRemove: jest.fn()};
         const {container} = renderWithContext(
             <SettingPicture {...props}/>,
@@ -202,7 +202,7 @@ describe('components/SettingItemMin', () => {
 
         // First click remove to set removeSrc state
         const removeButton = screen.getByTestId('removeSettingPicture');
-        fireEvent.click(removeButton);
+        await userEvent.click(removeButton);
 
         // Verify image is hidden
         expect(container.querySelector('.profile-img')).not.toBeInTheDocument();

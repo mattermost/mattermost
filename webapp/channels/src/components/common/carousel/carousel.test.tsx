@@ -5,7 +5,7 @@ import React from 'react';
 
 import Carousel from 'components/common/carousel/carousel';
 
-import {renderWithContext, fireEvent, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import {BtnStyle} from './carousel_button';
 
@@ -93,7 +93,7 @@ describe('/components/common/Carousel', () => {
 
         const buttonNext = container.querySelector('a.next') as HTMLElement;
 
-        fireEvent.click(buttonNext);
+        await userEvent.click(buttonNext);
 
         await waitFor(() => {
             const activeSlideAfterClick = container.querySelector('div.active-anim');
@@ -102,7 +102,7 @@ describe('/components/common/Carousel', () => {
         });
     });
 
-    test('test carousel executes custom next and prev btn callback functions', () => {
+    test('test carousel executes custom next and prev btn callback functions', async () => {
         const onPrevSlideClick = jest.fn();
         const onNextSlideClick = jest.fn();
         const props = {
@@ -114,8 +114,8 @@ describe('/components/common/Carousel', () => {
         const buttonNext = container.querySelector('a.next') as HTMLElement;
         const buttonPrev = container.querySelector('a.prev') as HTMLElement;
 
-        fireEvent.click(buttonNext);
-        fireEvent.click(buttonPrev);
+        await userEvent.click(buttonNext);
+        await userEvent.click(buttonPrev);
 
         expect(onNextSlideClick).toHaveBeenCalledWith(2);
         expect(onPrevSlideClick).toHaveBeenCalledWith(1);

@@ -6,7 +6,7 @@ import {FormattedMessage} from 'react-intl';
 
 import RequestButton from 'components/admin_console/request_button/request_button';
 
-import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 describe('components/admin_console/request_button/request_button.jsx', () => {
     test('should match snapshot', () => {
@@ -32,7 +32,7 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should call saveConfig and request actions when saveNeeded is true', () => {
+    test('should call saveConfig and request actions when saveNeeded is true', async () => {
         const requestActionSuccess = jest.fn((success) => success());
         const saveConfigActionSuccess = jest.fn((success) => success());
 
@@ -56,13 +56,13 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
             />,
         );
 
-        fireEvent.click(screen.getByRole('button'));
+        await userEvent.click(screen.getByRole('button'));
 
         expect(requestActionSuccess.mock.calls.length).toBe(1);
         expect(saveConfigActionSuccess.mock.calls.length).toBe(0);
     });
 
-    test('should call only request action when saveNeeded is false', () => {
+    test('should call only request action when saveNeeded is false', async () => {
         const requestActionSuccess = jest.fn((success) => success());
         const saveConfigActionSuccess = jest.fn((success) => success());
 
@@ -86,13 +86,13 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
             />,
         );
 
-        fireEvent.click(screen.getByRole('button'));
+        await userEvent.click(screen.getByRole('button'));
 
         expect(requestActionSuccess.mock.calls.length).toBe(1);
         expect(saveConfigActionSuccess.mock.calls.length).toBe(1);
     });
 
-    test('should match snapshot with successMessage', () => {
+    test('should match snapshot with successMessage', async () => {
         const requestActionSuccess = jest.fn((success) => success());
 
         // Success & showSuccessMessage=true
@@ -119,7 +119,7 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
             />,
         );
 
-        fireEvent.click(screen.getAllByRole('button')[0]);
+        await userEvent.click(screen.getAllByRole('button')[0]);
         expect(container1).toMatchSnapshot();
 
         // Success & showSuccessMessage=false
@@ -146,12 +146,12 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
             />,
         );
 
-        fireEvent.click(screen.getAllByRole('button')[1]);
+        await userEvent.click(screen.getAllByRole('button')[1]);
 
         expect(container2).toMatchSnapshot();
     });
 
-    test('should match snapshot with request error', () => {
+    test('should match snapshot with request error', async () => {
         const requestActionFailure = jest.fn((success, error) => error({
             message: '__message__',
             detailed_error: '__detailed_error__',
@@ -181,7 +181,7 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
             />,
         );
 
-        fireEvent.click(screen.getAllByRole('button')[0]);
+        await userEvent.click(screen.getAllByRole('button')[0]);
         expect(container1).toMatchSnapshot();
 
         // Error & includeDetailedError=false
@@ -207,7 +207,7 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
             />,
         );
 
-        fireEvent.click(screen.getAllByRole('button')[1]);
+        await userEvent.click(screen.getAllByRole('button')[1]);
 
         expect(container2).toMatchSnapshot();
     });

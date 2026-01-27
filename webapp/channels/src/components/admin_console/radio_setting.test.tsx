@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {render, screen, fireEvent} from 'tests/react_testing_utils';
+import {render, screen, userEvent} from 'tests/react_testing_utils';
 
 import RadioSetting from './radio_setting';
 
@@ -27,7 +27,7 @@ describe('components/admin_console/RadioSetting', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('onChange', () => {
+    test('onChange', async () => {
         const onChange = jest.fn();
         render(
             <RadioSetting
@@ -45,7 +45,7 @@ describe('components/admin_console/RadioSetting', () => {
         );
 
         const radios = screen.getAllByRole('radio');
-        fireEvent.click(radios[2]);
+        await userEvent.click(radios[2]);
 
         expect(onChange).toHaveBeenCalledTimes(1);
         expect(onChange).toHaveBeenCalledWith('string.id', 'Administration');

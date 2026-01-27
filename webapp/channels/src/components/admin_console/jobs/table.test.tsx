@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import type {Props} from './table';
 import JobTable from './table';
@@ -110,17 +110,17 @@ describe('components/admin_console/jobs/table', () => {
         }],
     };
 
-    test('should call create job func', () => {
+    test('should call create job func', async () => {
         renderWithContext(
             <JobTable {...baseProps}/>,
         );
 
         const createButton = screen.getByRole('button', {name: 'Run Compliance Export Job Now'});
-        fireEvent.click(createButton);
+        await userEvent.click(createButton);
         expect(createJob).toHaveBeenCalledTimes(1);
     });
 
-    test('should call cancel job func', () => {
+    test('should call cancel job func', async () => {
         const {container} = renderWithContext(
             <JobTable {...baseProps}/>,
         );
@@ -129,7 +129,7 @@ describe('components/admin_console/jobs/table', () => {
         const cancelButtons = container.querySelectorAll('.JobCancelButton');
         expect(cancelButtons.length).toBeGreaterThan(0);
 
-        fireEvent.click(cancelButtons[0]);
+        await userEvent.click(cancelButtons[0]);
         expect(cancelJob).toHaveBeenCalledTimes(1);
     });
 

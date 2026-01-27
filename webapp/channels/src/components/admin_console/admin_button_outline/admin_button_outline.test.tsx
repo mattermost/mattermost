@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {render, screen, fireEvent} from 'tests/react_testing_utils';
+import {render, screen, userEvent} from 'tests/react_testing_utils';
 
 import AdminButtonOutline from './admin_button_outline';
 
@@ -60,7 +60,7 @@ describe('components/admin_console/admin_button_outline/AdminButtonOutline', () 
         expect(container).toMatchSnapshot();
     });
 
-    test('should handle onClick', () => {
+    test('should handle onClick', async () => {
         const onClick = jest.fn();
         render(
             <AdminButtonOutline
@@ -72,7 +72,7 @@ describe('components/admin_console/admin_button_outline/AdminButtonOutline', () 
             </AdminButtonOutline>,
         );
 
-        fireEvent.click(screen.getByRole('button'));
+        await userEvent.click(screen.getByRole('button'));
         expect(onClick).toHaveBeenCalledTimes(1);
     });
 });
