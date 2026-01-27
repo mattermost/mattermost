@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
-import {MemoryRouter} from 'react-router-dom';
+
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import ProductMenuItem from './product_menu_item';
 import type {ProductMenuItemProps} from './product_menu_item';
@@ -17,20 +17,31 @@ describe('components/ProductMenuItem', () => {
         onClick: jest.fn(),
     };
 
-    const renderComponent = (props: ProductMenuItemProps) => {
-        return shallow(
-            <MemoryRouter>
-                <ProductMenuItem {...props}/>
-            </MemoryRouter>,
-        ).find(ProductMenuItem).shallow();
-    };
-
-    test('should render correctly with string icon from glyphMap', () => {
-        const wrapper = renderComponent(defaultProps);
-        expect(wrapper).toMatchSnapshot();
+    beforeEach(() => {
+        jest.clearAllMocks();
     });
 
-    test('should render correctly with React element icon', () => {
+    test('should render menu item with correct text', () => {
+        renderWithContext(<ProductMenuItem {...defaultProps}/>);
+
+        expect(screen.getByRole('menuitem')).toBeInTheDocument();
+        expect(screen.getByText('Test Product')).toBeInTheDocument();
+    });
+
+    test('should render with string icon from glyphMap', () => {
+        renderWithContext(<ProductMenuItem {...defaultProps}/>);
+
+        // When icon is a string, the component looks up the glyph from glyphMap
+        // The icon should be rendered with proper styling
+        const menuItem = screen.getByRole('menuitem');
+        expect(menuItem).toBeInTheDocument();
+
+        // The ProductChannelsIcon should be rendered (via glyphMap lookup)
+        // We can verify the menu item contains an svg element
+        expect(menuItem.querySelector('svg')).toBeInTheDocument();
+    });
+
+    test('should render with React element icon', () => {
         const CustomIcon = (
             <svg data-testid='custom-svg-icon'>
                 <rect
@@ -44,9 +55,9 @@ describe('components/ProductMenuItem', () => {
             icon: CustomIcon,
         };
 
-        const wrapper = renderComponent(props);
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('[data-testid="custom-svg-icon"]').exists()).toBe(true);
+        renderWithContext(<ProductMenuItem {...props}/>);
+
+        expect(screen.getByTestId('custom-svg-icon')).toBeInTheDocument();
     });
 
     test('should show check icon when active is true', () => {
@@ -55,38 +66,51 @@ describe('components/ProductMenuItem', () => {
             active: true,
         };
 
-        const wrapper = renderComponent(props);
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('CheckIcon').exists()).toBe(true);
+        renderWithContext(<ProductMenuItem {...props}/>);
+
+        const menuItem = screen.getByRole('menuitem');
+
+        // When active, there should be two SVG elements: the product icon and the check icon
+        const svgElements = menuItem.querySelectorAll('svg');
+        expect(svgElements.length).toBe(2);
     });
 
     test('should not show check icon when active is false', () => {
-        const wrapper = renderComponent(defaultProps);
-        expect(wrapper.find('CheckIcon').exists()).toBe(false);
+        renderWithContext(<ProductMenuItem {...defaultProps}/>);
+
+        const menuItem = screen.getByRole('menuitem');
+
+        // When not active, there should only be one SVG element: the product icon
+        const svgElements = menuItem.querySelectorAll('svg');
+        expect(svgElements.length).toBe(1);
     });
 
-    test('should call onClick when clicked', () => {
+    test('should call onClick when clicked', async () => {
         const onClick = jest.fn();
         const props: ProductMenuItemProps = {
             ...defaultProps,
             onClick,
         };
 
-        const wrapper = renderComponent(props);
-        wrapper.simulate('click');
+        renderWithContext(<ProductMenuItem {...props}/>);
+
+        await userEvent.click(screen.getByRole('menuitem'));
+
         expect(onClick).toHaveBeenCalledTimes(1);
     });
 
     test('should render tour tip when provided', () => {
-        const TourTip = <div data-testid='tour-tip'>{'Tour tip content'}</div>;
+        const tourTipContent = 'Tour tip content';
+        const TourTip = <div data-testid='tour-tip'>{tourTipContent}</div>;
         const props: ProductMenuItemProps = {
             ...defaultProps,
             tourTip: TourTip,
         };
 
-        const wrapper = renderComponent(props);
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('[data-testid="tour-tip"]').exists()).toBe(true);
+        renderWithContext(<ProductMenuItem {...props}/>);
+
+        expect(screen.getByTestId('tour-tip')).toBeInTheDocument();
+        expect(screen.getByText(tourTipContent)).toBeInTheDocument();
     });
 
     test('should pass correct id to menu item', () => {
@@ -95,24 +119,29 @@ describe('components/ProductMenuItem', () => {
             id: 'test-menu-item-id',
         };
 
-        const wrapper = renderComponent(props);
-        expect(wrapper.prop('id')).toBe('test-menu-item-id');
+        renderWithContext(<ProductMenuItem {...props}/>);
+
+        expect(screen.getByRole('menuitem')).toHaveAttribute('id', 'test-menu-item-id');
     });
 
     test('should render with correct destination link', () => {
-        const wrapper = renderComponent(defaultProps);
-        expect(wrapper.prop('to')).toBe('/test-destination');
+        renderWithContext(<ProductMenuItem {...defaultProps}/>);
+
+        const menuItem = screen.getByRole('menuitem');
+        expect(menuItem).toHaveAttribute('href', '/test-destination');
     });
 
     test('should render custom React component as icon', () => {
-        const CustomIconComponent = () => <span data-testid='custom-component-icon'>{'Custom Icon'}</span>;
+        const customIconText = 'Custom Icon';
+        const CustomIconComponent = () => <span data-testid='custom-component-icon'>{customIconText}</span>;
         const props: ProductMenuItemProps = {
             ...defaultProps,
             icon: <CustomIconComponent/>,
         };
 
-        const wrapper = renderComponent(props);
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('CustomIconComponent').exists()).toBe(true);
+        renderWithContext(<ProductMenuItem {...props}/>);
+
+        expect(screen.getByTestId('custom-component-icon')).toBeInTheDocument();
+        expect(screen.getByText(customIconText)).toBeInTheDocument();
     });
 });
