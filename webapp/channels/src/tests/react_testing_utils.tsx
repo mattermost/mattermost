@@ -28,31 +28,9 @@ export * from '@testing-library/react';
 export {userEvent};
 
 export type IntlOptions = {
-    locale?: string;
     messages?: Record<string, string>;
+    locale?: string;
 }
-
-export const renderWithIntl = (
-    component: React.ReactElement,
-    options?: IntlOptions,
-) => {
-    const locale = options?.locale ?? 'en';
-    const messages = options?.messages ?? defaultMessages;
-
-    return render(component, {
-        wrapper: ({children}) => (
-            <IntlProvider
-                locale={locale}
-                defaultLocale='en'
-                timeZone='Etc/UTC'
-                messages={messages}
-                textComponent='span'
-            >
-                {children}
-            </IntlProvider>
-        ),
-    });
-};
 
 export type FullContextOptions = {
     intlMessages?: Record<string, string>;
