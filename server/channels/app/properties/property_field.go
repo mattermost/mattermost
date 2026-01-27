@@ -28,11 +28,7 @@ func (ps *PropertyService) CreatePropertyField(field *model.PropertyField) (*mod
 		return nil, model.NewAppError(
 			"CreatePropertyField",
 			"app.property_field.create.name_conflict.app_error",
-			map[string]any{
-				"Name":          field.Name,
-				"ConflictLevel": string(conflictLevel),
-				"TargetType":    field.TargetType,
-			},
+			map[string]any{"Name": field.Name, "ConflictLevel": string(conflictLevel)},
 			fmt.Sprintf("property name %q conflicts with existing %s-level property", field.Name, string(conflictLevel)),
 			http.StatusConflict,
 		)
@@ -137,11 +133,7 @@ func (ps *PropertyService) UpdatePropertyFields(groupID string, fields []*model.
 				return nil, model.NewAppError(
 					"UpdatePropertyFields",
 					"app.property_field.update.name_conflict.app_error",
-					map[string]any{
-						"Name":          field.Name,
-						"ConflictLevel": string(conflictLevel),
-						"TargetType":    field.TargetType,
-					},
+					map[string]any{"Name": field.Name, "ConflictLevel": string(conflictLevel)},
 					fmt.Sprintf("property name %q conflicts with existing %s-level property", field.Name, string(conflictLevel)),
 					http.StatusConflict,
 				)

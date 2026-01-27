@@ -7355,6 +7355,14 @@
     "translation": "Prepackged plugin version could not be parsed."
   },
   {
+    "id": "app.property_field.create.name_conflict.app_error",
+    "translation": "Cannot create property \"{{.Name}}\": a property with this name already exists at the {{.ConflictLevel}} level."
+  },
+  {
+    "id": "app.property_field.update.name_conflict.app_error",
+    "translation": "Cannot update property to \"{{.Name}}\": a property with this name already exists at the {{.ConflictLevel}} level."
+  },
+  {
     "id": "app.reaction.bulk_get_for_post_ids.app_error",
     "translation": "Unable to get reactions for post."
   },
