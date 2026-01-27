@@ -2856,7 +2856,6 @@
   "admin.site.fileSharingDownloads": "Udostępnianie plików i ściąganie",
   "admin.site.localization": "Języki",
   "admin.site.localization.autoTranslationInfo": "Automatyczne tłumaczenie musi być również włączone w każdym kanale, w którym jest potrzebne.",
-  "admin.site.localization.autoTranslationInfoSecondary": "W przypadku wykrycia wielu języków, użytkownik zostanie poproszony o włączenie automatycznego tłumaczenia. [Dowiedz się więcej](https://docs.mattermost.com/).",
   "admin.site.localization.autoTranslationProviderDescription": "<strong>UWAGA:</strong> Jeśli korzystasz z zewnętrznych usług tłumaczeniowych (np. opartych na chmurze), dane wiadomości{br}mogą być przetwarzane poza Twoim środowiskiem.",
   "admin.site.localization.autoTranslationProviderLibreTranslateAPIKeyDescription": "Jeśli serwer LibreTranslate wymaga klucza API, wprowadź go tutaj. W przeciwnym razie pozostaw to pole puste. Zapoznaj się z dokumentacją <link>LibreTranslate</link> dotyczącą zarządzania kluczami API.",
   "admin.site.localization.autoTranslationProviderLibreTranslateAPIKeyExample": "Wprowadź klucz API LibreTranslate",
