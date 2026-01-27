@@ -291,9 +291,9 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			UserId:                   c.AppContext.Session().UserId,
 		}
 		if c.App.AutoTranslation() != nil && c.App.AutoTranslation().IsFeatureAvailable() {
-			member, err := c.App.GetChannelMember(c.AppContext, channelId, c.AppContext.Session().UserId)
-			if err != nil {
-				c.Err = err
+			member, getMemberErr := c.App.GetChannelMember(c.AppContext, channelId, c.AppContext.Session().UserId)
+			if getMemberErr != nil {
+				c.Err = getMemberErr
 				return
 			}
 			if member.AutoTranslation {
