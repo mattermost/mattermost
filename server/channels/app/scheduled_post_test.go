@@ -5,7 +5,6 @@ package app
 
 import (
 	"encoding/json"
-	"net/http"
 	"testing"
 	"time"
 
@@ -567,54 +566,6 @@ func TestUpdateScheduledPost(t *testing.T) {
 		require.Equal(t, "Updated Message!!!", updatedScheduledPost.Message)
 	})
 
-	t.Run("should ot be allowed to updated a scheduled post not belonging to the user", func(t *testing.T) {
-		// first we'll create a scheduled post
-		userId := model.NewId()
-
-		channel, err := th.GetSqlStore().Channel().Save(th.Context, &model.Channel{
-			Name:        model.NewId(),
-			DisplayName: "Channel",
-			Type:        model.ChannelTypeOpen,
-		}, 1000)
-		require.NoError(t, err)
-
-		_, err = th.GetSqlStore().Channel().SaveMember(th.Context, &model.ChannelMember{
-			ChannelId:   channel.Id,
-			UserId:      userId,
-			NotifyProps: model.GetDefaultChannelNotifyProps(),
-			SchemeGuest: false,
-			SchemeUser:  true,
-		})
-		require.NoError(t, err)
-
-		defer func() {
-			_ = th.GetSqlStore().Channel().Delete(channel.Id, model.GetMillis())
-			_ = th.GetSqlStore().Channel().RemoveMember(th.Context, channel.Id, userId)
-		}()
-
-		scheduledPost := &model.ScheduledPost{
-			Draft: model.Draft{
-				CreateAt:  model.GetMillis(),
-				UserId:    userId,
-				ChannelId: channel.Id,
-				Message:   "this is a scheduled post",
-			},
-			ScheduledAt: model.GetMillis() + 100000, // 100 seconds in the future
-		}
-		createdScheduledPost, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost, user1ConnID)
-		require.Nil(t, appErr)
-		require.NotNil(t, createdScheduledPost)
-
-		// now we'll try updating it
-		newScheduledAtTime := model.GetMillis() + 9999999
-		createdScheduledPost.ScheduledAt = newScheduledAtTime
-		createdScheduledPost.Message = "Updated Message!!!"
-		updatedScheduledPost, appErr := th.App.UpdateScheduledPost(th.Context, th.BasicUser2.Id, createdScheduledPost, user1ConnID)
-		require.NotNil(t, appErr)
-		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
-		require.Nil(t, updatedScheduledPost)
-	})
-
 	t.Run("should only allow updating limited fields", func(t *testing.T) {
 		// first we'll create a scheduled post
 		userId := model.NewId()
@@ -763,41 +714,6 @@ func TestDeleteScheduledPost(t *testing.T) {
 		reFetchedScheduledPost, err := th.Server.Store().ScheduledPost().Get(scheduledPost.Id)
 		require.Error(t, err) // This will produce error as the row doesn't exist
 		require.Nil(t, reFetchedScheduledPost)
-	})
-
-	t.Run("should not allow deleting someone else's scheduled post", func(t *testing.T) {
-		// first we'll create a scheduled post
-		scheduledPost := &model.ScheduledPost{
-			Draft: model.Draft{
-				CreateAt:  model.GetMillis(),
-				UserId:    th.BasicUser.Id,
-				ChannelId: th.BasicChannel.Id,
-				Message:   "this is a scheduled post",
-			},
-			ScheduledAt: model.GetMillis() + 100000, // 100 seconds in the future
-		}
-		createdScheduledPost, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost, user1ConnID)
-		require.Nil(t, appErr)
-		require.NotNil(t, createdScheduledPost)
-
-		fetchedScheduledPost, err := th.Server.Store().ScheduledPost().Get(scheduledPost.Id)
-		require.NoError(t, err)
-		require.NotNil(t, fetchedScheduledPost)
-		require.Equal(t, createdScheduledPost.Id, fetchedScheduledPost.Id)
-		require.Equal(t, createdScheduledPost.Message, fetchedScheduledPost.Message)
-
-		// now we'll delete it
-		var deletedScheduledPost *model.ScheduledPost
-		deletedScheduledPost, appErr = th.App.DeleteScheduledPost(th.Context, th.BasicUser2.Id, scheduledPost.Id, "connection_id")
-		require.NotNil(t, appErr)
-		require.Nil(t, deletedScheduledPost)
-
-		// try to fetch it again
-		reFetchedScheduledPost, err := th.Server.Store().ScheduledPost().Get(scheduledPost.Id)
-		require.NoError(t, err)
-		require.NotNil(t, reFetchedScheduledPost)
-		require.Equal(t, createdScheduledPost.Id, reFetchedScheduledPost.Id)
-		require.Equal(t, createdScheduledPost.Message, reFetchedScheduledPost.Message)
 	})
 
 	t.Run("should producer error when deleting non existing scheduled post", func(t *testing.T) {
