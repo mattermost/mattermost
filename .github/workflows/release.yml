@@ -1,0 +1,66 @@
+name: Build Release
+
+on:
+  push:
+    tags:
+      - 'v*-custom.*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build Mattermost
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'server/go.mod'
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Building version: $VERSION"
+
+      - name: Build Team Edition
+        working-directory: ./server
+        run: |
+          make package BUILD_ENTERPRISE=false
+
+      - name: Build Enterprise Edition
+        working-directory: ./server
+        run: |
+          make package BUILD_ENTERPRISE=true
+
+      - name: List build artifacts
+        run: |
+          echo "Build artifacts:"
+          find server/dist -name "*.tar.gz" -type f
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            server/dist/mattermost-team-*.tar.gz
+            server/dist/mattermost-*.tar.gz
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          body: |
+            Custom Mattermost build v${{ steps.version.outputs.version }}
+
+            ## Downloads
+            - **Team Edition**: `mattermost-team-${{ steps.version.outputs.version }}-linux-amd64.tar.gz`
+            - **Enterprise Edition**: `mattermost-${{ steps.version.outputs.version }}-linux-amd64.tar.gz`
+
+            See [CLAUDE.md](https://github.com/stalecontext/mattermost-extended/blob/master/CLAUDE.md) for deployment instructions.
