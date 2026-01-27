@@ -680,6 +680,11 @@
             justify-content: center;
         }
 
+        &--clickable {
+            @extend .file-details__preview;
+            cursor: pointer;
+        }
+
         // helper to center the image icon in the preview window
         .file-details__preview-helper {
             display: inline-block;
