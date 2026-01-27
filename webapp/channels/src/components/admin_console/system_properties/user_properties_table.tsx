@@ -156,7 +156,6 @@ export function UserPropertiesTable({
                                 value={getValue()}
                                 label={formatMessage({id: 'admin.system_properties.user_properties.table.property_name.input.name', defaultMessage: 'Attribute Name'})}
                                 deleted={toDelete}
-                                borderless={!warning}
                                 testid='property-field-input'
                                 autoFocus={isCreatePending(row.original) && !supportsOptions(row.original)}
                                 setValue={(value: string) => {
@@ -351,7 +350,6 @@ type EditCellProps = {
     footer?: ReactNode;
     strong?: boolean;
     maxLength?: number;
-    borderless?: boolean;
 };
 const EditCell = (props: EditCellProps) => {
     const [value, setValue] = useState(props.value);

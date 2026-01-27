@@ -3019,6 +3019,14 @@
     "translation": "You cannot save reaction for the other user."
   },
   {
+    "id": "api.recap.disabled.app_error",
+    "translation": "This feature is not enabled."
+  },
+  {
+    "id": "api.recap.permission_denied",
+    "translation": "You do not have permission to access this recap."
+  },
+  {
     "id": "api.remote_cluster.accept_invitation_error",
     "translation": "Could not accept the remote cluster invitation"
   },
@@ -3149,10 +3157,6 @@
   {
     "id": "api.server.cws.needs_enterprise_edition",
     "translation": "Service only available in Mattermost Enterprise edition"
-  },
-  {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "CWS Server failed to subscribe to newsletter."
   },
   {
     "id": "api.server.hosted_signup_unavailable.error",
@@ -4849,6 +4853,14 @@
   {
     "id": "app.agents.get_services.bridge_call_failed",
     "translation": "Bridge call failed."
+  },
+  {
+    "id": "app.ai.summarize.agent_call_failed",
+    "translation": "AI agent call failed."
+  },
+  {
+    "id": "app.ai.summarize.parse_failed",
+    "translation": "Failed to parse AI summarization response."
   },
   {
     "id": "app.analytics.getanalytics.internal_error",
@@ -7367,6 +7379,58 @@
     "translation": "Reaction limit has been reached for this post."
   },
   {
+    "id": "app.recap.delete.app_error",
+    "translation": "Failed to delete recap."
+  },
+  {
+    "id": "app.recap.delete_channels.app_error",
+    "translation": "Failed to delete recap channels."
+  },
+  {
+    "id": "app.recap.get.app_error",
+    "translation": "Failed to get recap."
+  },
+  {
+    "id": "app.recap.get_channel.app_error",
+    "translation": "Failed to get channel."
+  },
+  {
+    "id": "app.recap.get_channels.app_error",
+    "translation": "Failed to get recap channels."
+  },
+  {
+    "id": "app.recap.get_last_viewed.app_error",
+    "translation": "Failed to get last viewed timestamp."
+  },
+  {
+    "id": "app.recap.get_team.app_error",
+    "translation": "Failed to get team."
+  },
+  {
+    "id": "app.recap.list.app_error",
+    "translation": "Failed to get recaps."
+  },
+  {
+    "id": "app.recap.mark_read.app_error",
+    "translation": "Failed to mark recap as read."
+  },
+  {
+    "id": "app.recap.permission_denied",
+    "translation": "No permission for recap."
+  },
+  {
+    "id": "app.recap.save.app_error",
+    "translation": "Failed to save recap."
+  },
+  {
+    "id": "app.recap.save_channel.app_error",
+    "translation": "Failed to save recap channel."
+  },
+  {
+    "id": "app.recap.update.app_error",
+    "translation": "Failed to update recap."
+  },
+  {
     "id": "app.recover.delete.app_error",
     "translation": "Unable to delete token."
   },
@@ -8419,6 +8483,102 @@
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " attached a file."
+  },
+  {
+    "id": "ent.autotranslation.add_task.missing_object_id",
+    "translation": "Translation task must include an object ID."
+  },
+  {
+    "id": "ent.autotranslation.add_task.missing_object_type",
+    "translation": "Translation task must include an object type."
+  },
+  {
+    "id": "ent.autotranslation.add_task.nil_task",
+    "translation": "Translation task cannot be null."
+  },
+  {
+    "id": "ent.autotranslation.create_translation_failed",
+    "translation": "Failed to create translation."
+  },
+  {
+    "id": "ent.autotranslation.detect_language.nil_context",
+    "translation": "Context is required for language detection."
+  },
+  {
+    "id": "ent.autotranslation.detect_language.text_too_large",
+    "translation": "Text exceeds maximum size for language detection."
+  },
+  {
+    "id": "ent.autotranslation.detect_remote.error",
+    "translation": "Failed to detect language using translation provider."
+  },
+  {
+    "id": "ent.autotranslation.extract_content.mask_error",
+    "translation": "Failed to mask content for translation."
+  },
+  {
+    "id": "ent.autotranslation.extract_post.nil_post",
+    "translation": "Post object cannot be null."
+  },
+  {
+    "id": "ent.autotranslation.feature_unavailable",
+    "translation": "Auto-translation is not available. Please contact your system administrator about upgrading your enterprise license."
+  },
+  {
+    "id": "ent.autotranslation.invalid_input",
+    "translation": "Invalid language code provided."
+  },
+  {
+    "id": "ent.autotranslation.mask_verification_failed",
+    "translation": "Failed to update translation with new mask values."
+  },
+  {
+    "id": "ent.autotranslation.no_translatable_content",
+    "translation": "Content contains no translatable text."
+  },
+  {
+    "id": "ent.autotranslation.provider_not_available",
+    "translation": "Translation provider is not available."
+  },
+  {
+    "id": "ent.autotranslation.provider_not_initialized",
+    "translation": "Translation provider is not initialized."
+  },
+  {
+    "id": "ent.autotranslation.store_error",
+    "translation": "Unable to process auto-translation request."
+  },
+  {
+    "id": "ent.autotranslation.unmask.missing_mask",
+    "translation": "Translation contains unrecognized tokens."
+  },
+  {
+    "id": "ent.autotranslation.unmask.orphan_token",
+    "translation": "Translation contains invalid tokens."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.invalid_json",
+    "translation": "Unable to parse JSON content."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.invalid_type",
+    "translation": "Unsupported content type for translation."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.nil_content",
+    "translation": "Content cannot be null."
+  },
+  {
+    "id": "ent.autotranslation.validate_content.text_too_large",
+    "translation": "Content exceeds maximum size for translation."
+  },
+  {
+    "id": "ent.autotranslation.validate_id.empty",
+    "translation": "Required ID cannot be empty."
+  },
+  {
+    "id": "ent.autotranslation.validate_id.invalid",
+    "translation": "Invalid ID format."
   },
   {
     "id": "ent.cluster.config_changed.info",
@@ -9733,6 +9893,10 @@
     "translation": "Invalid RemoteImageProxyURL for atmos/camo. Must be set to your shared key."
   },
   {
+    "id": "model.config.is_valid.autotranslation.agents.llm_service_id.app_error",
+    "translation": "Invalid autotranslation agents configuration: AI service must not be empty."
+  },
+  {
     "id": "model.config.is_valid.autotranslation.libretranslate.url.app_error",
     "translation": "LibreTranslate URL must be a valid URL and start with http:// or https://."
   },
@@ -9745,16 +9909,20 @@
     "translation": "Unsupported autotranslation provider."
   },
   {
-    "id": "model.config.is_valid.autotranslation.timeouts.fetch.app_error",
-    "translation": "Invalid fetch timeout for autotranslation settings. Must be a positive number."
+    "id": "model.config.is_valid.autotranslation.timeouts.long.app_error",
+    "translation": "Invalid long timeout for autotranslation settings. Must be a positive number."
   },
   {
-    "id": "model.config.is_valid.autotranslation.timeouts.new_post.app_error",
-    "translation": "Invalid new post timeout for autotranslation settings. Must be a positive number."
+    "id": "model.config.is_valid.autotranslation.timeouts.medium.app_error",
+    "translation": "Invalid medium timeout for autotranslation settings. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
     "translation": "Invalid notification timeout for autotranslation settings. Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.short.app_error",
+    "translation": "Invalid short timeout for autotranslation settings. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.cache_type.app_error",
@@ -11129,6 +11297,42 @@
     "translation": "Invalid token."
   },
   {
+    "id": "model.translation.is_valid.lang.app_error",
+    "translation": "Invalid language code. Use a standard ISO code such as 'en', 'ja', or 'fr'."
+  },
+  {
+    "id": "model.translation.is_valid.nil.app_error",
+    "translation": "Translation object cannot be null."
+  },
+  {
+    "id": "model.translation.is_valid.object_id.app_error",
+    "translation": "Invalid object id."
+  },
+  {
+    "id": "model.translation.is_valid.object_json.app_error",
+    "translation": "Invalid object JSON."
+  },
+  {
+    "id": "model.translation.is_valid.object_type.app_error",
+    "translation": "Invalid object type."
+  },
+  {
+    "id": "model.translation.is_valid.provider.app_error",
+    "translation": "Invalid translation provider."
+  },
+  {
+    "id": "model.translation.is_valid.text.app_error",
+    "translation": "Invalid translation text."
+  },
+  {
+    "id": "model.translation.is_valid.type.app_error",
+    "translation": "Invalid translation type."
+  },
+  {
+    "id": "model.translation.is_valid.type_invalid.app_error",
+    "translation": "Invalid translation type. Must be 'string' or 'object'."
+  },
+  {
     "id": "model.upload_session.is_valid.channel_id.app_error",
     "translation": "Invalid value for ChannelId."
   },
@@ -11389,66 +11593,6 @@
     "translation": "This post contains permalinks to other channels which may not be visible to users in other sites."
   },
   {
-    "id": "store.sql_autotranslation.channel_not_found",
-    "translation": "Channel not found."
-  },
-  {
-    "id": "store.sql_autotranslation.get.app_error",
-    "translation": "Unable to get translation."
-  },
-  {
-    "id": "store.sql_autotranslation.get_active_languages.app_error",
-    "translation": "Unable to get active languages."
-  },
-  {
-    "id": "store.sql_autotranslation.get_channel_enabled.app_error",
-    "translation": "Unable to get channel autotranslation enabled status."
-  },
-  {
-    "id": "store.sql_autotranslation.get_user_enabled.app_error",
-    "translation": "Unable to get user autotranslation enabled status."
-  },
-  {
-    "id": "store.sql_autotranslation.get_user_language.app_error",
-    "translation": "Unable to get user language."
-  },
-  {
-    "id": "store.sql_autotranslation.is_channel_enabled.app_error",
-    "translation": "Unable to get channel autotranslation enabled status."
-  },
-  {
-    "id": "store.sql_autotranslation.member_not_found",
-    "translation": "Member not found."
-  },
-  {
-    "id": "store.sql_autotranslation.meta_json.app_error",
-    "translation": "Failed to parse translation metadata JSON."
-  },
-  {
-    "id": "store.sql_autotranslation.query_build_error",
-    "translation": "Failed to build query."
-  },
-  {
-    "id": "store.sql_autotranslation.save.app_error",
-    "translation": "Unable to save translation."
-  },
-  {
-    "id": "store.sql_autotranslation.save.invalid_translation",
-    "translation": "Translation validation failed. The translation object is invalid."
-  },
-  {
-    "id": "store.sql_autotranslation.save.meta_json.app_error",
-    "translation": "Failed to serialize translation metadata to JSON."
-  },
-  {
-    "id": "store.sql_autotranslation.set_channel_enabled.app_error",
-    "translation": "Unable to set channel autotranslation enabled status."
-  },
-  {
-    "id": "store.sql_autotranslation.set_user_enabled.app_error",
-    "translation": "Unable to set user autotranslation enabled status."
-  },
-  {
     "id": "store.sql_bot.get.missing.app_error",
     "translation": "Bot does not exist."
   },
@@ -11582,11 +11726,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 140+"
+    "translation": "Version 142+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 140+"
+    "translation": "Version 142+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",

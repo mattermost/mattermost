@@ -53,7 +53,7 @@ type FileInfo struct {
 	Width           int     `json:"width,omitempty"`
 	Height          int     `json:"height,omitempty"`
 	HasPreviewImage bool    `json:"has_preview_image,omitempty"`
-	MiniPreview     *[]byte `json:"mini_preview"` // declared as *[]byte to avoid postgres/mysql differences in deserialization
+	MiniPreview     *[]byte `json:"mini_preview"` // pointer to distinguish NULL (no preview) from empty data
 	Content         string  `json:"-"`
 	RemoteId        *string `json:"remote_id"`
 	Archived        bool    `json:"archived"`

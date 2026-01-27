@@ -567,27 +567,6 @@ describe('Actions.Users', () => {
         expect(notInTeam.size > 0).toBeTruthy();
     });
 
-    it('getProfilesWithoutTeam', async () => {
-        nock(Client4.getBaseRoute()).
-            post('/users').
-            reply(200, TestHelper.fakeUserWithId());
-
-        const user = await TestHelper.basicClient4!.createUser(TestHelper.fakeUser(), '', '');
-
-        nock(Client4.getBaseRoute()).
-            get('/users').
-            query(true).
-            reply(200, [user]);
-
-        await store.dispatch(Actions.getProfilesWithoutTeam(0));
-        const {profilesWithoutTeam, profiles} = store.getState().entities.users;
-
-        expect(profilesWithoutTeam).toBeTruthy();
-        expect(profilesWithoutTeam.size > 0).toBeTruthy();
-        expect(profiles).toBeTruthy();
-        expect(Object.keys(profiles).length > 0).toBeTruthy();
-    });
-
     it('getProfilesInChannel', async () => {
         nock(Client4.getBaseRoute()).
             get('/users').
