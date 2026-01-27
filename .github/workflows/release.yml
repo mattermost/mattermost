@@ -43,11 +43,16 @@ jobs:
           npm ci
           npm run build
 
-      - name: Build Team Edition
+      - name: Build Server Binaries
         working-directory: ./server
         run: |
           make setup-go-work
-          make package BUILD_ENTERPRISE=false BUILD_NUMBER=${{ steps.version.outputs.version }}
+          make build-linux BUILD_ENTERPRISE=false BUILD_NUMBER=${{ steps.version.outputs.version }}
+
+      - name: Package Team Edition
+        working-directory: ./server
+        run: |
+          make package-linux BUILD_ENTERPRISE=false BUILD_NUMBER=${{ steps.version.outputs.version }}
 
       - name: List build artifacts
         run: |
