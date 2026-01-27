@@ -275,6 +275,26 @@ export const permissionRolesStrings: Record<string, Record<string, MessageDescri
             defaultMessage: 'Update public channel names, headers and purposes.',
         },
     }),
+    manage_public_channel_auto_translation: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.manage_public_channel_auto_translation.name',
+            defaultMessage: 'Manage Public Channel Auto Translation',
+        },
+        description: {
+            id: 'admin.permissions.permission.manage_public_channel_auto_translation.description',
+            defaultMessage: 'Manage public channel auto translation.',
+        },
+    }),
+    manage_private_channel_auto_translation: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.manage_private_channel_auto_translation.name',
+            defaultMessage: 'Manage Private Channel Auto Translation',
+        },
+        description: {
+            id: 'admin.permissions.permission.manage_private_channel_auto_translation.description',
+            defaultMessage: 'Manage private channel auto translation.',
+        },
+    }),
     manage_roles: defineMessages({
         name: {
             id: 'admin.permissions.permission.manage_roles.name',

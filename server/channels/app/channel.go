@@ -948,6 +948,7 @@ func (a *App) PatchChannel(rctx request.CTX, channel *model.Channel, patch *mode
 	oldChannelDisplayName := channel.DisplayName
 	oldChannelHeader := channel.Header
 	oldChannelPurpose := channel.Purpose
+	oldChannelAutotranslation := channel.AutoTranslation
 
 	channel.Patch(patch)
 	a.handleChannelCategoryName(channel)
@@ -972,6 +973,12 @@ func (a *App) PatchChannel(rctx request.CTX, channel *model.Channel, patch *mode
 
 	if channel.Purpose != oldChannelPurpose {
 		if err = a.PostUpdateChannelPurposeMessage(rctx, userID, channel, oldChannelPurpose, channel.Purpose); err != nil {
+			rctx.Logger().Warn(err.Error())
+		}
+	}
+
+	if channel.AutoTranslation != oldChannelAutotranslation {
+		if err = a.postUpdateChannelAutotranslationMessage(rctx, userID, channel, channel.AutoTranslation); err != nil {
 			rctx.Logger().Warn(err.Error())
 		}
 	}
@@ -1961,6 +1968,37 @@ func (a *App) PostUpdateChannelPurposeMessage(rctx request.CTX, userID string, c
 	}
 	if _, _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		return model.NewAppError("", "app.channel.post_update_channel_purpose_message.post.error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return nil
+}
+
+func (a *App) postUpdateChannelAutotranslationMessage(rctx request.CTX, userID string, channel *model.Channel, newChannelAutotranslation bool) *model.AppError {
+	user, err := a.Srv().Store().User().Get(context.Background(), userID)
+	if err != nil {
+		return model.NewAppError("PostUpdateChannelAutotranslationMessage", "api.channel.post_update_channel_autotranslation_message.retrieve_user.error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	var message string
+	if newChannelAutotranslation {
+		message = fmt.Sprintf(i18n.T("api.channel.post_update_channel_autotranslation_message.enabled"), user.Username)
+	} else {
+		message = fmt.Sprintf(i18n.T("api.channel.post_update_channel_autotranslation_message.disabled"), user.Username)
+	}
+
+	post := &model.Post{
+		ChannelId: channel.Id,
+		Message:   message,
+		Type:      model.PostTypeAutotranslationChange,
+		UserId:    userID,
+		Props: model.StringInterface{
+			"username": user.Username,
+			"enabled":  newChannelAutotranslation,
+		},
+	}
+
+	if _, _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+		return model.NewAppError("PostUpdateChannelAutotranslationMessage", "api.channel.post_update_channel_autotranslation_message.create_post.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
