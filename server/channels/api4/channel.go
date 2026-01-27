@@ -1872,6 +1872,7 @@ func updateChannelMemberAutotranslation(c *Context, w http.ResponseWriter, r *ht
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
 	model.AddEventParameterToAuditRec(auditRec, "autotranslation", props.Autotranslation)
+	model.AddEventParameterToAuditRec(auditRec, "user_id", c.Params.UserId)
 
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
