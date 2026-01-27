@@ -51,3 +51,19 @@
         color: var(--sidebar-text);
     }
 }
+
+// Override MUI Popover positioning for UserAccountMenu in sidebar context
+// The menu should appear to the right of the sidebar, not overlapping it
+// This targets the MuiPopover that opens from the userAccountMenuButton within ProductSidebar
+.ProductSidebar .MuiPopover-root .MuiPopover-paper {
+    // Position menu to the right of the sidebar (64px wide)
+    left: 64px !important;
+
+    // Anchor menu to bottom of viewport minus some padding for the avatar
+    // Adjust vertical position to align with avatar
+    bottom: 8px !important;
+    top: auto !important;
+
+    // Transform origin should be bottom-left since menu opens to the right
+    transform-origin: bottom left !important;
+}
