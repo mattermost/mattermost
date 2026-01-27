@@ -118,7 +118,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               autoFocus={true}
               className="signup-body-card-form-email-input"
               customMessage={null}
-              data-testid="signup-body-card-form-email-input"
               disabled={false}
               inputSize="large"
               name="email"
@@ -136,7 +135,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
                   "value": "You can use lowercase letters, numbers, periods, dashes, and underscores.",
                 }
               }
-              data-testid="signup-body-card-form-name-input"
               disabled={false}
               inputSize="large"
               name="name"
@@ -148,7 +146,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
             <ForwardRef
               className="signup-body-card-form-password-input"
               createMode={true}
-              data-testid="signup-body-card-form-password-input"
               disabled={false}
               error=""
               info="Your password must be 5-72 characters long."
@@ -156,28 +153,29 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               onChange={[Function]}
               value=""
             />
-            <div
-              className="newsletter"
-            >
-              <span
-                className="interested"
-              >
-                Interested in receiving Mattermost security, product, promotions, and company updates updates via newsletter?
-              </span>
-              <span
-                className="link"
-              >
-                Sign up at 
-                <ForwardRef
-                  href="https://mattermost.com/security-updates/"
-                  key="1/.1"
-                  location="signup"
-                >
-                  https://mattermost.com/security-updates/
-                </ForwardRef>
-                .
-              </span>
-            </div>
+            <CheckInput
+              ariaLabel="Terms and privacy policy checkbox"
+              checked={false}
+              id="signup-body-card-form-check-terms-and-privacy"
+              name="terms"
+              onChange={[Function]}
+              text={
+                Array [
+                  "I agree to the ",
+                  <ForwardRef
+                    location="signup-terms-of-use"
+                  >
+                    Acceptable Use Policy
+                  </ForwardRef>,
+                  " and the ",
+                  <ForwardRef
+                    location="signup-privacy-policy"
+                  >
+                    Privacy Policy
+                  </ForwardRef>,
+                ]
+              }
+            />
             <SaveButton
               defaultMessage="Create account"
               disabled={true}
@@ -214,21 +212,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               url="/oauth/gitlab/signup"
             />
           </div>
-          <p
-            className="signup-body-card-agreement"
-          >
-            <MemoizedFormattedMessage
-              defaultMessage="By proceeding to create your account and use {siteName}, you agree to our <termsOfUseLink>Terms of Use</termsOfUseLink> and <privacyPolicyLink>Privacy Policy</privacyPolicyLink>.  If you do not agree, you cannot use {siteName}."
-              id="signup.agreement"
-              values={
-                Object {
-                  "privacyPolicyLink": [Function],
-                  "siteName": "Mattermost",
-                  "termsOfUseLink": [Function],
-                }
-              }
-            />
-          </p>
         </div>
       </div>
     </div>
@@ -284,7 +267,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               autoFocus={true}
               className="signup-body-card-form-email-input"
               customMessage={null}
-              data-testid="signup-body-card-form-email-input"
               disabled={false}
               inputSize="large"
               name="email"
@@ -302,7 +284,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
                   "value": "You can use lowercase letters, numbers, periods, dashes, and underscores.",
                 }
               }
-              data-testid="signup-body-card-form-name-input"
               disabled={false}
               inputSize="large"
               name="name"
@@ -314,7 +295,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
             <ForwardRef
               className="signup-body-card-form-password-input"
               createMode={true}
-              data-testid="signup-body-card-form-password-input"
               disabled={false}
               error=""
               info="Your password must be 5-72 characters long."
@@ -322,28 +302,29 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               onChange={[Function]}
               value=""
             />
-            <div
-              className="newsletter"
-            >
-              <span
-                className="interested"
-              >
-                Interested in receiving Mattermost security, product, promotions, and company updates updates via newsletter?
-              </span>
-              <span
-                className="link"
-              >
-                Sign up at 
-                <ForwardRef
-                  href="https://mattermost.com/security-updates/"
-                  key="1/.1"
-                  location="signup"
-                >
-                  https://mattermost.com/security-updates/
-                </ForwardRef>
-                .
-              </span>
-            </div>
+            <CheckInput
+              ariaLabel="Terms and privacy policy checkbox"
+              checked={false}
+              id="signup-body-card-form-check-terms-and-privacy"
+              name="terms"
+              onChange={[Function]}
+              text={
+                Array [
+                  "I agree to the ",
+                  <ForwardRef
+                    location="signup-terms-of-use"
+                  >
+                    Acceptable Use Policy
+                  </ForwardRef>,
+                  " and the ",
+                  <ForwardRef
+                    location="signup-privacy-policy"
+                  >
+                    Privacy Policy
+                  </ForwardRef>,
+                ]
+              }
+            />
             <SaveButton
               defaultMessage="Create account"
               disabled={true}
@@ -426,21 +407,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               url="/login/sso/saml?action=signup"
             />
           </div>
-          <p
-            className="signup-body-card-agreement"
-          >
-            <MemoizedFormattedMessage
-              defaultMessage="By proceeding to create your account and use {siteName}, you agree to our <termsOfUseLink>Terms of Use</termsOfUseLink> and <privacyPolicyLink>Privacy Policy</privacyPolicyLink>.  If you do not agree, you cannot use {siteName}."
-              id="signup.agreement"
-              values={
-                Object {
-                  "privacyPolicyLink": [Function],
-                  "siteName": "Mattermost",
-                  "termsOfUseLink": [Function],
-                }
-              }
-            />
-          </p>
         </div>
       </div>
     </div>

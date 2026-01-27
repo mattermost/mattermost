@@ -34,8 +34,6 @@ type CloudInterface interface {
 
 	CheckCWSConnection(userId string) error
 
-	SubscribeToNewsletter(userID string, req *model.SubscribeNewsletterRequest) error
-
 	ApplyIPFilters(userID string, ranges *model.AllowedIPRanges) (*model.AllowedIPRanges, error)
 	GetIPFilters(userID string) (*model.AllowedIPRanges, error)
 	GetInstallation(userID string) (*model.Installation, error)
