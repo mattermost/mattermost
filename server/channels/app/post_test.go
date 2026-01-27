@@ -4,6 +4,7 @@
 package app
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -1950,6 +1951,60 @@ func TestUpdatePost(t *testing.T) {
 				require.Len(t, previewPost.Metadata.Embeds, testCase.Length)
 			})
 		}
+	})
+
+	t.Run("should strip client-supplied embeds", func(t *testing.T) {
+		// MM-67055: Verify that client-supplied metadata.embeds are stripped.
+		// This prevents WebSocket message spoofing via permalink embeds.
+		//
+		// Note: Priority and Acknowledgements are stored in separate database tables,
+		// not in post metadata. Shared Channels handles them separately via
+		// syncRemotePriorityMetadata and syncRemoteAcknowledgementsMetadata after
+		// calling UpdatePost. See sync_recv.go::upsertSyncPost
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.AddUserToChannel(t, th.BasicUser, th.BasicChannel)
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		// Create a basic post
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "original message",
+			UserId:    th.BasicUser.Id,
+		}
+		createdPost, _, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, err)
+
+		// Try to update with spoofed embeds (the attack vector)
+		updatePost := &model.Post{
+			Id:        createdPost.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "updated message",
+			UserId:    th.BasicUser.Id,
+			Metadata: &model.PostMetadata{
+				Embeds: []*model.PostEmbed{
+					{
+						Type: model.PostEmbedPermalink,
+						Data: &model.PreviewPost{
+							PostID: "spoofed-post-id",
+							Post: &model.Post{
+								Id:      "spoofed-post-id",
+								UserId:  th.BasicUser2.Id,
+								Message: "Spoofed message from another user!",
+							},
+						},
+					},
+				},
+			},
+		}
+
+		updatedPost, _, err := th.App.UpdatePost(th.Context, updatePost, nil)
+		require.Nil(t, err)
+		require.NotNil(t, updatedPost.Metadata)
+
+		// Verify embeds were stripped
+		assert.Empty(t, updatedPost.Metadata.Embeds, "spoofed embeds should be stripped")
 	})
 
 	t.Run("cannot update post in restricted DM", func(t *testing.T) {
@@ -4420,6 +4475,56 @@ func TestPermanentDeletePost(t *testing.T) {
 		_, tmpErr = th.App.Srv().Store().TemporaryPost().Get(th.Context, post.Id)
 		assert.Error(t, tmpErr)
 		assert.True(t, store.IsErrNotFound(tmpErr))
+	})
+
+	t.Run("should send unrevealed post in websocket broadcast", func(t *testing.T) {
+		// Enable feature with license
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.EnableBurnOnRead = model.NewPointer(true)
+		})
+
+		// Create a burn-on-read post
+		//teamID := th.BasicTeam.Id
+		channelID := th.BasicChannel.Id
+		userID := th.BasicUser.Id
+
+		wsMessages, closeWS := connectFakeWebSocket(t, th, userID, "", []model.WebsocketEventType{model.WebsocketEventPostDeleted})
+		defer closeWS()
+
+		post := &model.Post{
+			Message:       "burn on read message with file",
+			ChannelId:     channelID,
+			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+			UserId:        userID,
+			CreateAt:      0,
+			Type:          model.PostTypeBurnOnRead,
+		}
+		post.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(model.DefaultExpirySeconds*1000))
+
+		post, _, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+		require.Equal(t, model.PostTypeBurnOnRead, post.Type)
+
+		appErr = th.App.PermanentDeletePost(th.Context, post.Id, userID)
+		require.Nil(t, appErr)
+
+		var received *model.WebSocketEvent
+		select {
+		case received = <-wsMessages:
+			// the post sent in websocket payload shouldn't contain message or file IDs
+			data := received.GetData()
+			postJSON, ok := data["post"].(string)
+			require.True(t, ok)
+			var receivedPost model.Post
+			err := json.Unmarshal([]byte(postJSON), &receivedPost)
+			require.NoError(t, err)
+			require.Equal(t, post.Id, receivedPost.Id)
+			require.Equal(t, "", receivedPost.Message)
+			require.Equal(t, 0, len(receivedPost.FileIds))
+		case <-time.After(10 * time.Second):
+			require.Fail(t, "Did not receive websocket message in time")
+		}
 	})
 }
 

@@ -4589,11 +4589,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Wersja 140+"
+    "translation": "Wersja 142+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Wersja 140+"
+    "translation": "Wersja 142+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -8612,10 +8612,6 @@
     "translation": "Pomijanie instalacji wtyczki {{.Id}}, ponieważ istniejąca wersja jest równa lub nowsza."
   },
   {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "Serwer CWS nie zdołał zapisać się do newslettera."
-  },
-  {
     "id": "api.license.request-trial.bad-request.business-email",
     "translation": "Nieprawidłowy e-mail służbowy dla wersji testowej"
   },
@@ -11690,5 +11686,73 @@
   {
     "id": "app.update_scheduled_post.convert_to_post.error",
     "translation": "Nie można przekonwertować zaplanowanego postu na format postu."
+  },
+  {
+    "id": "api.recap.disabled.app_error",
+    "translation": "Ta funkcja nie jest włączona."
+  },
+  {
+    "id": "api.recap.permission_denied",
+    "translation": "Nie masz uprawnień dostępu do tego podsumowania."
+  },
+  {
+    "id": "app.ai.summarize.agent_call_failed",
+    "translation": "Połączenie z agentem AI nie powiodło się."
+  },
+  {
+    "id": "app.ai.summarize.parse_failed",
+    "translation": "Nie udało się przeanalizować odpowiedzi podsumowania AI."
+  },
+  {
+    "id": "app.recap.delete.app_error",
+    "translation": "Nie udało się usunąć podsumowania."
+  },
+  {
+    "id": "app.recap.delete_channels.app_error",
+    "translation": "Nie udało się usunąć kanałów podsumowania."
+  },
+  {
+    "id": "app.recap.get.app_error",
+    "translation": "Nie udało się uzyskać podsumowania."
+  },
+  {
+    "id": "app.recap.get_channel.app_error",
+    "translation": "Nie udało się uzyskać kanału."
+  },
+  {
+    "id": "app.recap.get_channels.app_error",
+    "translation": "Nie udało się pobrać kanałów podsumowujących."
+  },
+  {
+    "id": "app.recap.get_last_viewed.app_error",
+    "translation": "Nie udało się uzyskać znacznika czasu ostatniego wyświetlenia."
+  },
+  {
+    "id": "app.recap.get_team.app_error",
+    "translation": "Nie udało się pozyskać zespołu."
+  },
+  {
+    "id": "app.recap.list.app_error",
+    "translation": "Nie udało się uzyskać podsumowania."
+  },
+  {
+    "id": "app.recap.mark_read.app_error",
+    "translation": "Nie udało się oznaczyć podsumowania jako przeczytane."
+  },
+  {
+    "id": "app.recap.permission_denied",
+    "translation": "Brak pozwolenia na podsumowanie."
+  },
+  {
+    "id": "app.recap.save.app_error",
+    "translation": "Nie udało się zapisać podsumowania."
+  },
+  {
+    "id": "app.recap.save_channel.app_error",
+    "translation": "Nie udało się zapisać kanału podsumowania."
+  },
+  {
+    "id": "app.recap.update.app_error",
+    "translation": "Nie udało się zaktualizować podsumowania."
   }
 ]
