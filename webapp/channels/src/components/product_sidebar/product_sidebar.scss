@@ -1,0 +1,19 @@
+.ProductSidebar {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 56px;
+    height: 100%;
+    background-color: var(--sidebar-header-bg);
+    z-index: 17;
+    grid-area: product-sidebar;
+
+    &__topSection,
+    &__bottomSection {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 8px;
+        gap: 4px;
+    }
+}
