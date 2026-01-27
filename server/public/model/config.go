@@ -980,7 +980,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.EnableBurnOnRead == nil {
-		s.EnableBurnOnRead = NewPointer(false)
+		s.EnableBurnOnRead = NewPointer(true)
 	}
 
 	if s.BurnOnReadDurationSeconds == nil {
@@ -2784,29 +2784,36 @@ func (s *LocalizationSettings) SetDefaults() {
 }
 
 type AutoTranslationSettings struct {
-	Enable         *bool                           `access:"site_localization,cloud_restrictable"`
-	Provider       *string                         `access:"site_localization,cloud_restrictable"`
-	TimeoutsMs     *AutoTranslationTimeoutsInMs    `access:"site_localization,cloud_restrictable"`
-	LibreTranslate *LibreTranslateProviderSettings `access:"site_localization,cloud_restrictable"`
-	// TODO: Enable Agents provider in future release
-	// Agents         *AgentsProviderSettings         `access:"site_localization,cloud_restrictable"`
+	Enable          *bool                           `access:"site_localization,cloud_restrictable"`
+	Provider        *string                         `access:"site_localization,cloud_restrictable"`
+	TargetLanguages *[]string                       `access:"site_localization,cloud_restrictable"`
+	TimeoutsMs      *AutoTranslationTimeoutsInMs    `access:"site_localization,cloud_restrictable"`
+	LibreTranslate  *LibreTranslateProviderSettings `access:"site_localization,cloud_restrictable"`
+	Agents          *AgentsProviderSettings         `access:"site_localization,cloud_restrictable"`
 }
 
+// AutoTranslationTimeoutsInMs defines content-aware timeout thresholds.
+// Based on LibreTranslate benchmark findings, timeouts are set according to content length:
+// - Short: ≤200 runes
+// - Medium: ≤500 runes
+// - Long: >500 runes
+// - Notification: preserved for notification-specific timeout requirements
 type AutoTranslationTimeoutsInMs struct {
-	NewPost      *int `access:"site_localization,cloud_restrictable"`
-	Fetch        *int `access:"site_localization,cloud_restrictable"`
-	Notification *int `access:"site_localization,cloud_restrictable"`
+	Short        *int `access:"site_localization,cloud_restrictable"` // ≤200 runes, default: 1200ms
+	Medium       *int `access:"site_localization,cloud_restrictable"` // ≤500 runes, default: 2500ms
+	Long         *int `access:"site_localization,cloud_restrictable"` // >500 runes, default: 6000ms
+	Notification *int `access:"site_localization,cloud_restrictable"` // Notification timeout, default: 300ms
 }
 
+// LibreTranslateProviderSettings configures the LibreTranslate translation provider.
 type LibreTranslateProviderSettings struct {
-	URL    *string `access:"site_localization,cloud_restrictable"`
-	APIKey *string `access:"site_localization,cloud_restrictable"`
+	URL    *string `access:"site_localization,cloud_restrictable"` // LibreTranslate server URL
+	APIKey *string `access:"site_localization,cloud_restrictable"` // Optional API key for authenticated requests
 }
 
-// TODO: Enable Agents provider in future release
-// type AgentsProviderSettings struct {
-// 	BotUserId *string `access:"site_localization,cloud_restrictable"`
-// }
+type AgentsProviderSettings struct {
+	LLMServiceID *string `access:"site_localization,cloud_restrictable"`
+}
 
 func (s *AutoTranslationSettings) SetDefaults() {
 	if s.Enable == nil {
@@ -2815,6 +2822,10 @@ func (s *AutoTranslationSettings) SetDefaults() {
 
 	if s.Provider == nil {
 		s.Provider = NewPointer("")
+	}
+
+	if s.TargetLanguages == nil {
+		s.TargetLanguages = &[]string{"en"}
 	}
 
 	if s.TimeoutsMs == nil {
@@ -2827,20 +2838,23 @@ func (s *AutoTranslationSettings) SetDefaults() {
 	}
 	s.LibreTranslate.SetDefaults()
 
-	// TODO: Enable Agents provider in future release
-	// if s.Agents == nil {
-	// 	s.Agents = &AgentsProviderSettings{}
-	// }
-	// s.Agents.SetDefaults()
+	if s.Agents == nil {
+		s.Agents = &AgentsProviderSettings{}
+	}
+	s.Agents.SetDefaults()
 }
 
 func (s *AutoTranslationTimeoutsInMs) SetDefaults() {
-	if s.NewPost == nil {
-		s.NewPost = NewPointer(800)
+	if s.Short == nil {
+		s.Short = NewPointer(1200)
 	}
 
-	if s.Fetch == nil {
-		s.Fetch = NewPointer(2000)
+	if s.Medium == nil {
+		s.Medium = NewPointer(2500)
+	}
+
+	if s.Long == nil {
+		s.Long = NewPointer(6000)
 	}
 
 	if s.Notification == nil {
@@ -2858,12 +2872,11 @@ func (s *LibreTranslateProviderSettings) SetDefaults() {
 	}
 }
 
-// TODO: Enable Agents provider in future release
-// func (s *AgentsProviderSettings) SetDefaults() {
-// 	if s.BotUserId == nil {
-// 		s.BotUserId = NewPointer("")
-// 	}
-// }
+func (s *AgentsProviderSettings) SetDefaults() {
+	if s.LLMServiceID == nil {
+		s.LLMServiceID = NewPointer("")
+	}
+}
 
 type SamlSettings struct {
 	// Basic
@@ -4829,22 +4842,24 @@ func (s *AutoTranslationSettings) isValid() *AppError {
 		if s.LibreTranslate == nil || s.LibreTranslate.URL == nil || *s.LibreTranslate.URL == "" || !IsValidHTTPURL(*s.LibreTranslate.URL) {
 			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.libretranslate.url.app_error", nil, "", http.StatusBadRequest)
 		}
-	// TODO: Enable Agents provider in future release
-	// case "agents":
-	// 	if s.Agents == nil || s.Agents.BotUserId == nil || *s.Agents.BotUserId == "" {
-	// 		return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.agents.bot_user_id.app_error", nil, "", http.StatusBadRequest)
-	// 	}
+	case "agents":
+		if s.Agents == nil || s.Agents.LLMServiceID == nil || *s.Agents.LLMServiceID == "" {
+			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.agents.llm_service_id.app_error", nil, "", http.StatusBadRequest)
+		}
 	default:
 		return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.provider.unsupported.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	// Validate timeouts if set
 	if s.TimeoutsMs != nil {
-		if s.TimeoutsMs.NewPost != nil && *s.TimeoutsMs.NewPost <= 0 {
-			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.new_post.app_error", nil, "", http.StatusBadRequest)
+		if s.TimeoutsMs.Short != nil && *s.TimeoutsMs.Short <= 0 {
+			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.short.app_error", nil, "", http.StatusBadRequest)
 		}
-		if s.TimeoutsMs.Fetch != nil && *s.TimeoutsMs.Fetch <= 0 {
-			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.fetch.app_error", nil, "", http.StatusBadRequest)
+		if s.TimeoutsMs.Medium != nil && *s.TimeoutsMs.Medium <= 0 {
+			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.medium.app_error", nil, "", http.StatusBadRequest)
+		}
+		if s.TimeoutsMs.Long != nil && *s.TimeoutsMs.Long <= 0 {
+			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.long.app_error", nil, "", http.StatusBadRequest)
 		}
 		if s.TimeoutsMs.Notification != nil && *s.TimeoutsMs.Notification <= 0 {
 			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.notification.app_error", nil, "", http.StatusBadRequest)
@@ -5061,49 +5076,39 @@ func (o *Config) Sanitize(pluginManifests []*Manifest, opts *SanitizeOptions) {
 	o.PluginSettings.Sanitize(pluginManifests)
 }
 
-// SanitizeDataSource redacts sensitive information (username and password) from a database
+// SanitizeDataSource redacts sensitive information (username and password) from a PostgreSQL
 // connection string while preserving other connection parameters.
 //
-// Parameters:
-//   - driverName: The database driver name (postgres or mysql)
-//   - dataSource: The database connection string to sanitize
+// Example:
 //
-// Returns:
-//   - The sanitized connection string with username/password replaced by SanitizedPassword
-//   - An error if the driverName is not supported or if parsing fails
-//
-// Examples:
-//   - PostgreSQL: "postgres://user:pass@host:5432/db" -> "postgres://****:****@host:5432/db"
-//   - MySQL: "user:pass@tcp(host:3306)/db" -> "****:****@tcp(host:3306)/db"
+//	"postgres://user:pass@host:5432/db" -> "postgres://****:****@host:5432/db"
 func SanitizeDataSource(driverName, dataSource string) (string, error) {
-	// Handle empty data source
 	if dataSource == "" {
 		return "", nil
 	}
 
-	switch driverName {
-	case DatabaseDriverPostgres:
-		u, err := url.Parse(dataSource)
-		if err != nil {
-			return "", err
-		}
-		u.User = url.UserPassword(SanitizedPassword, SanitizedPassword)
-
-		// Remove username and password from query string
-		params := u.Query()
-		params.Del("user")
-		params.Del("password")
-		u.RawQuery = params.Encode()
-
-		// Unescape the URL to make it human-readable
-		out, err := url.QueryUnescape(u.String())
-		if err != nil {
-			return "", err
-		}
-		return out, nil
-	default:
-		return "", errors.New("invalid drivername. Not postgres or mysql.")
+	if driverName != DatabaseDriverPostgres {
+		return "", errors.New("invalid drivername: only postgres is supported")
 	}
+
+	u, err := url.Parse(dataSource)
+	if err != nil {
+		return "", err
+	}
+	u.User = url.UserPassword(SanitizedPassword, SanitizedPassword)
+
+	// Remove username and password from query string
+	params := u.Query()
+	params.Del("user")
+	params.Del("password")
+	u.RawQuery = params.Encode()
+
+	// Unescape the URL to make it human-readable
+	out, err := url.QueryUnescape(u.String())
+	if err != nil {
+		return "", err
+	}
+	return out, nil
 }
 
 type FilterTag struct {

@@ -136,10 +136,8 @@ func (o *LinkMetadata) DeserializeDataToConcreteType() error {
 	var b []byte
 	switch t := o.Data.(type) {
 	case []byte:
-		// MySQL uses a byte slice for JSON
 		b = t
 	case string:
-		// Postgres uses a string for JSON
 		b = []byte(t)
 	}
 

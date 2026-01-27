@@ -137,6 +137,10 @@ function BurnOnReadBadge({
 
     const tooltipContent = getTooltipContent();
 
+    // When sender has an active timer (all recipients revealed), hide badge UI
+    // The timer chip handles deletion in this state, showing both is redundant
+    const senderHasActiveTimer = isSender && typeof expireAt === 'number';
+
     // Get plain text for aria-label
     const getAriaLabel = () => {
         if (isSender) {
@@ -206,8 +210,8 @@ function BurnOnReadBadge({
                 maxExpireAt={maxExpireAt}
             />
 
-            {/* Only render badge UI if there's tooltip content */}
-            {tooltipContent && (
+            {/* Only render badge UI if there's tooltip content and sender doesn't have active timer */}
+            {tooltipContent && !senderHasActiveTimer && (
                 <WithTooltip
                     id={`burn-on-read-tooltip-${post.id}`}
                     title={tooltipContent}
@@ -218,7 +222,6 @@ function BurnOnReadBadge({
                         className='BurnOnReadBadge'
                         data-testid={`burn-on-read-badge-${post.id}`}
                         aria-label={getAriaLabel()}
-                        role='button'
                         onClick={isInteractive ? handleClick : undefined}
                         disabled={!isInteractive}
                     >

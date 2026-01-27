@@ -15,7 +15,7 @@ import {
 } from 'mattermost-redux/selectors/entities/content_flagging';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {reconnect} from 'actions/websocket_actions.jsx';
+import {reconnect} from 'actions/websocket_actions';
 import LocalStorageStore from 'stores/local_storage_store';
 
 import {makeAsyncComponent, makeAsyncPluggableComponent} from 'components/async_load';
