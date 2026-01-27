@@ -255,6 +255,5 @@ describe('components/channel_members_rhs/Member', () => {
     afterEach(() => {
         jest.clearAllTimers();
         jest.useRealTimers();
-        jest.clearAllMocks();
     });
 });

@@ -23,10 +23,6 @@ describe('components/ChannelHeaderMenu/MenuItems/OpenMembersRHS', () => {
         jest.spyOn(require('react-redux'), 'useDispatch');
     });
 
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('renders the component correctly, handles click event, rhs closed', async () => {
         const state = {
             views: {

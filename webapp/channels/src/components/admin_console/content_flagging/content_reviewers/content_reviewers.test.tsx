@@ -56,10 +56,6 @@ describe('ContentFlaggingContentReviewers', () => {
         setByEnv: false,
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     it('renders the component with correct title and description', () => {
         renderWithContext(<ContentFlaggingContentReviewers {...defaultProps}/>);
 

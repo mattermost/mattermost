@@ -21,10 +21,6 @@ describe('ContentFlaggingAdditionalSettingsSection', () => {
         } as ContentFlaggingAdditionalSettings,
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should render with initial values', () => {
         renderWithContext(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
 

@@ -66,10 +66,6 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
         },
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should render user profile pill with avatar and display name', () => {
         const {container} = renderWithContext(
             <MultiUserProfilePill {...baseProps}/>,

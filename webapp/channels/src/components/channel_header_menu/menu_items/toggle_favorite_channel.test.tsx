@@ -22,10 +22,6 @@ describe('components/ChannelHeaderMenu/MenuItems/ToggleFavoriteChannel', () => {
         jest.spyOn(require('react-redux'), 'useDispatch');
     });
 
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('renders the component correctly, handles correct click event, is favorite false', async () => {
         renderWithContext(
             <WithTestMenuContext>

@@ -26,8 +26,6 @@ describe('PopoutButton', () => {
     };
 
     beforeEach(() => {
-        jest.clearAllMocks();
-
         mockCanPopout = true;
     });
 

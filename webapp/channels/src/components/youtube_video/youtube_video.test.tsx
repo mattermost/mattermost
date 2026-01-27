@@ -130,8 +130,7 @@ describe('YoutubeVideo', () => {
                 'https://img.youtube.com/vi/xqCoNej8Zxo/maxresdefault.jpg',
             );
 
-            // Simulate an image error
-            // fireEvent.error used because userEvent doesn't support image loading events
+            // Simulate thumbnail loading failure to test fallback behavior - fireEvent used because userEvent doesn't support image loading events
             fireEvent.error(thumbnail!);
 
             // Verify that hqdefault is used after error (useMaxResThumbnail is now false)

@@ -64,10 +64,6 @@ const baseProps = {
 };
 
 describe('ChannelSettingsConfigurationTab', () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     it('should render with the correct initial values when banner is disabled', () => {
         renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
 

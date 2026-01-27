@@ -80,11 +80,10 @@ describe('components/new_search/SearchBoxSuggestions', () => {
         const props = {...baseProps};
         renderWithContext(<SearchBoxSuggestions {...props}/>);
 
-        // fireEvent.mouseMove used because userEvent.hover only triggers mouseEnter/mouseOver, not mouseMove
+        // Simulate mouse move to change selection - fireEvent used because userEvent.hover only triggers mouseEnter/mouseOver, not mouseMove
         fireEvent.mouseMove(screen.getByText('test-username2'));
         expect(baseProps.setSelectedTerm).toHaveBeenCalledWith('user2');
 
-        // fireEvent.mouseMove used because userEvent.hover only triggers mouseEnter/mouseOver, not mouseMove
         fireEvent.mouseMove(screen.getByText('test-username1'));
         expect(baseProps.setSelectedTerm).toHaveBeenCalledWith('user1');
     });

@@ -28,8 +28,6 @@ describe('AppsFormDateField', () => {
     };
 
     beforeEach(() => {
-        jest.clearAllMocks();
-
         // Mock current time to avoid timezone-dependent tests
         jest.useFakeTimers();
         jest.setSystemTime(new Date('2025-01-15T10:00:00.000Z'));
@@ -102,11 +100,10 @@ describe('AppsFormDateField', () => {
         renderComponent();
         const button = screen.getByRole('button');
 
-        // fireEvent.keyDown used because userEvent doesn't work well with fake timers
+        // Simulate keyboard Enter key - fireEvent used because userEvent doesn't work well with fake timers
         fireEvent.keyDown(button, {key: 'Enter'});
         expect(button).toBeInTheDocument();
 
-        // fireEvent.keyDown used because userEvent doesn't work well with fake timers
         fireEvent.keyDown(button, {key: ' '});
         expect(button).toBeInTheDocument();
     });

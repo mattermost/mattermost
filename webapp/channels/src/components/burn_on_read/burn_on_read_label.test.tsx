@@ -14,10 +14,6 @@ describe('BurnOnReadLabel', () => {
         durationMinutes: 10,
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     it('should render correctly with duration', () => {
         renderWithContext(
             <BurnOnReadLabel {...defaultProps}/>,

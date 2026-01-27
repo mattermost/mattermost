@@ -164,7 +164,6 @@ describe('ChannelSettingsModal', () => {
     }
 
     beforeEach(() => {
-        jest.clearAllMocks();
         mockPrivateChannelPermission = true;
         mockPublicChannelPermission = true;
         mockManageChannelAccessRulesPermission = false; // Default to no access rules permission
@@ -516,10 +515,6 @@ describe('ChannelSettingsModal', () => {
     });
 
     describe('warn-once modal closing behavior', () => {
-        beforeEach(() => {
-            jest.clearAllMocks();
-        });
-
         it('should close immediately when no unsaved changes exist', async () => {
             renderWithContext(<ChannelSettingsModal {...baseProps}/>, makeTestState());
 

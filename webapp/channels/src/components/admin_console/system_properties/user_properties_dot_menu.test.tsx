@@ -32,10 +32,6 @@ describe('UserPropertyDotMenu', () => {
     const deleteField = jest.fn();
     const createField = jest.fn();
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     const renderComponent = (field: UserPropertyField = baseField, dotMenuProps?: Partial<ComponentProps<typeof DotMenu>>) => {
         return renderWithContext(
             (

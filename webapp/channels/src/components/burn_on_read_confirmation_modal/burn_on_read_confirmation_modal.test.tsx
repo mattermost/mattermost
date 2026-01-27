@@ -14,10 +14,6 @@ describe('BurnOnReadConfirmationModal', () => {
         onCancel: jest.fn(),
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     it('should render receiver delete message when show is true and isSenderDelete is false', () => {
         renderWithContext(<BurnOnReadConfirmationModal {...baseProps}/>);
 

@@ -47,8 +47,6 @@ const baseProps = {
 describe('ChannelSettingsArchiveTab', () => {
     const {getHistory} = require('utils/browser_history');
     beforeEach(() => {
-        jest.clearAllMocks();
-
         jest.spyOn(teams, 'getCurrentTeam').mockReturnValue({
             id: 'team1',
             name: 'team-name',

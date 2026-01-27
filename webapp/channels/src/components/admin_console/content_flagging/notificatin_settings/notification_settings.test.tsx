@@ -32,10 +32,6 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
         onChange: jest.fn(),
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should render section title and description', () => {
         renderWithContext(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
 

@@ -115,10 +115,6 @@ describe('RewriteMenu', () => {
         customPromptRef: React.createRef<HTMLInputElement>(),
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should not render agent dropdown when no agents', () => {
         renderWithContext(
             <RewriteMenu

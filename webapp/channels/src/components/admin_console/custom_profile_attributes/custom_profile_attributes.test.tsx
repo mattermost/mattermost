@@ -55,10 +55,6 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
 
     const initialState = createInitialState({attr1, attr2});
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should not render anything when no attributes exist', () => {
         const {container} = renderWithContext(
             <CustomProfileAttributes {...baseProps}/>,

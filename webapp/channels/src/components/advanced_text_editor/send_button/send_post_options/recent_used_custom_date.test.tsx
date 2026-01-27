@@ -51,7 +51,6 @@ describe('CoreMenuOptions Component', () => {
     let nextMonday: number;
 
     beforeEach(() => {
-        jest.clearAllMocks();
         handleOnSelect.mockReset();
         now = DateTime.fromISO('2024-11-01T10:00:00', {zone: userCurrentTimezone});
         jest.useFakeTimers();

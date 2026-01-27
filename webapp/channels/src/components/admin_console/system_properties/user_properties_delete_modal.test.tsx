@@ -21,10 +21,6 @@ describe('RemoveUserPropertyFieldModal', () => {
     const onCancel = jest.fn();
     const onExited = jest.fn();
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     it('renders with the correct field name', () => {
         renderWithContext(
             <RemoveUserPropertyFieldModal

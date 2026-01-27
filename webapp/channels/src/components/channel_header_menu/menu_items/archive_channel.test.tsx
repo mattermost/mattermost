@@ -66,10 +66,6 @@ describe('components/ChannelHeaderMenu/MenuItems/ArchiveChannel', () => {
         jest.spyOn(require('react-redux'), 'useDispatch');
     });
 
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('renders the component correctly', () => {
         renderWithContext(
             <ArchiveChannel channel={channel}/>, initialState,

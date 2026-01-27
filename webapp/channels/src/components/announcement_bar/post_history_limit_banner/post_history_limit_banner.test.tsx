@@ -54,8 +54,6 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
     let mockToLocaleDateString: jest.SpyInstance;
 
     beforeEach(() => {
-        jest.clearAllMocks();
-
         mockOpenPricingModal = jest.fn();
         mockUseOpenPricingModal.mockReturnValue({openPricingModal: mockOpenPricingModal});
 

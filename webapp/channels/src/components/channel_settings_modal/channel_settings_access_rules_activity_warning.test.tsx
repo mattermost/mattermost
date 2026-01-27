@@ -186,8 +186,6 @@ describe('ChannelSettingsAccessRulesTab - Activity Warning Integration', () => {
     };
 
     beforeEach(() => {
-        jest.clearAllMocks();
-
         // Set up default mock implementations
         mockUseChannelAccessControlActions.mockReturnValue(mockActions);
         mockUseChannelSystemPolicies.mockReturnValue({

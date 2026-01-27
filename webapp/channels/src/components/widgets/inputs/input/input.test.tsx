@@ -72,7 +72,7 @@ describe('components/widgets/inputs/Input', () => {
 
             const input = container.querySelector('input') as HTMLInputElement;
 
-            // fireEvent.focus/blur used because userEvent doesn't have direct focus/blur methods
+            // Trigger validation on blur - fireEvent used because userEvent doesn't have direct focus/blur methods
             await act(async () => {
                 fireEvent.focus(input);
                 fireEvent.blur(input);
@@ -99,7 +99,6 @@ describe('components/widgets/inputs/Input', () => {
             const button = document.createElement('button');
             document.body.appendChild(button);
 
-            // fireEvent.focus/blur used because userEvent doesn't have direct focus/blur methods
             await act(async () => {
                 fireEvent.focus(input);
 

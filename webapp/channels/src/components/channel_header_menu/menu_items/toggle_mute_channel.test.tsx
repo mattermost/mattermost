@@ -23,10 +23,6 @@ describe('components/ChannelHeaderMenu/MenuItems/ToggleMuteChannel', () => {
         jest.spyOn(require('react-redux'), 'useDispatch');
     });
 
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('renders the component correctly, public channel, not muted', async () => {
         renderWithContext(
             <WithTestMenuContext>

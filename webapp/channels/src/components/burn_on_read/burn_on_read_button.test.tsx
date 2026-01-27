@@ -19,10 +19,6 @@ describe('BurnOnReadButton', () => {
         durationMinutes: 10,
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     it('should render correctly when disabled', () => {
         renderWithContext(
             <BurnOnReadButton {...defaultProps}/>,

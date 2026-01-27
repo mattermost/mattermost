@@ -39,8 +39,6 @@ describe('TeamReviewersSection', () => {
     };
 
     beforeEach(() => {
-        jest.clearAllMocks();
-
         mockSearchTeams.mockReturnValue(async () => ({
             data: {
                 teams: mockTeams,

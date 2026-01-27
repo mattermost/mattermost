@@ -15,10 +15,6 @@ describe('ChannelActivityWarningModal', () => {
         channelName: 'test-channel',
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should render modal when isOpen is true', () => {
         renderWithContext(
             <ChannelActivityWarningModal {...defaultProps}/>,

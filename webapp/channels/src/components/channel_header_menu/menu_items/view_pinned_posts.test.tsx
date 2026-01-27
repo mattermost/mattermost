@@ -22,10 +22,6 @@ describe('components/ChannelHeaderMenu/MenuItems/ViewPinnedPosts', () => {
         jest.spyOn(require('react-redux'), 'useDispatch');
     });
 
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('renders the component correctly, handles correct click event', async () => {
         const state = {
             views: {

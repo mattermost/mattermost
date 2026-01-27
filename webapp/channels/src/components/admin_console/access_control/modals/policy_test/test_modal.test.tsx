@@ -85,8 +85,6 @@ describe('TestResultsModal', () => {
     };
 
     beforeEach(() => {
-        jest.clearAllMocks();
-
         // Mock Redux thunk that returns successful user search response
         mockSearchUsers.mockReturnValue(() => Promise.resolve({
             data: {
@@ -94,10 +92,6 @@ describe('TestResultsModal', () => {
                 total: 2,
             },
         }));
-    });
-
-    afterEach(() => {
-        jest.clearAllMocks();
     });
 
     it('should render modal with proper title and structure', async () => {

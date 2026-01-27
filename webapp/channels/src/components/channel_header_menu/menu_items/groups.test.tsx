@@ -24,9 +24,6 @@ describe('components/ChannelHeaderMenu/MenuItems/Groups', () => {
         jest.spyOn(require('react-redux'), 'useDispatch');
     });
 
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
     const channel = TestHelper.getChannelMock();
 
     test('renders the component correctly, handle click event for add groups', async () => {

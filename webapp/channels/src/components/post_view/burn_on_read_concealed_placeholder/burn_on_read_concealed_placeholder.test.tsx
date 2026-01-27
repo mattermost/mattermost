@@ -14,10 +14,6 @@ describe('BurnOnReadConcealedPlaceholder', () => {
         onReveal: jest.fn(),
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     it('should render with concealed placeholder text', () => {
         renderWithContext(
             <BurnOnReadConcealedPlaceholder {...baseProps}/>,

@@ -41,10 +41,6 @@ describe('UserPropertyValues', () => {
         );
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     it('renders correctly for select/multiselect field types', () => {
         renderComponent();
 
@@ -91,7 +87,7 @@ describe('UserPropertyValues', () => {
         await userEvent.clear(input);
         await userEvent.type(input, 'New Option');
 
-        // fireEvent.blur used because userEvent doesn't have direct focus/blur methods
+        // Trigger blur to save the new option value - fireEvent used because userEvent doesn't have direct focus/blur methods
         fireEvent.blur(input);
 
         expect(updateField).toHaveBeenCalledWith({

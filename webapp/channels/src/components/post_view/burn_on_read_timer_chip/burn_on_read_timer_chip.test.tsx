@@ -15,7 +15,6 @@ describe('BurnOnReadTimerChip', () => {
 
     beforeEach(() => {
         jest.useFakeTimers();
-        jest.clearAllMocks();
     });
 
     afterEach(() => {
@@ -40,7 +39,7 @@ describe('BurnOnReadTimerChip', () => {
 
         const chip = screen.getByRole('button');
 
-        // Use fireEvent.click here because userEvent doesn't work well with fake timers
+        // Click the timer chip to verify onClick handler is called - fireEvent used because userEvent doesn't work well with fake timers
         fireEvent.click(chip);
 
         expect(onClick).toHaveBeenCalledTimes(1);
@@ -57,7 +56,7 @@ describe('BurnOnReadTimerChip', () => {
 
         const chip = screen.getByRole('button');
 
-        // fireEvent.keyDown used because userEvent doesn't work well with fake timers
+        // Press Enter key to verify keyboard accessibility for the timer chip - fireEvent used because userEvent doesn't work well with fake timers
         fireEvent.keyDown(chip, {key: 'Enter', code: 'Enter'});
 
         expect(onClick).toHaveBeenCalled();

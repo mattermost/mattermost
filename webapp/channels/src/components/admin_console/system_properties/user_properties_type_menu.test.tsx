@@ -36,10 +36,6 @@ describe('UserPropertyTypeMenu', () => {
         );
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     it('renders with correct current type', () => {
         renderComponent();
 

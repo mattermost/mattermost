@@ -96,8 +96,7 @@ describe('components/new_search/NewSearch', () => {
 
         expect(screen.queryByText('Messages')).not.toBeInTheDocument();
 
-        // fireEvent.keyDown used because userEvent.keyboard requires element focus
-        // and this tests a global keyboard shortcut that should work from any element
+        // Trigger global keyboard shortcut (Ctrl+Shift+F) to open search from any element - fireEvent used because userEvent.keyboard requires element focus
         await act(() => fireEvent.keyDown(
             screen.getByText('Outside'),
             {key: 'f', code: 'KeyF', keyCode: 70, charCode: 70, ctrlKey: true, shiftKey: true},

@@ -46,8 +46,6 @@ describe('ChannelHeaderTitleFavorite Component', () => {
     } as Channel;
 
     beforeEach(() => {
-        jest.clearAllMocks();
-
         // Spy on selectors
         isCurrentChannelFavoriteMock = jest.spyOn(channelsSelectors, 'isCurrentChannelFavorite');
         getCurrentChannelMock = jest.spyOn(channelsSelectors, 'getCurrentChannel');
@@ -204,8 +202,7 @@ describe('ChannelHeaderTitleFavorite Component', () => {
 
         const button = screen.getByRole('button', {name: ADD_TO_FAVORITES_REGEX});
 
-        // Ensure the ref is set by triggering a focus event
-        // fireEvent.focus used because userEvent doesn't have direct focus/blur methods
+        // Trigger focus to ensure the button ref is set before clicking - fireEvent used because userEvent doesn't have direct focus/blur methods
         fireEvent.focus(button);
 
         await act(async () => {

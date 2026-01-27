@@ -69,10 +69,6 @@ describe('AppsFormComponent', () => {
         },
     };
 
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should render form with title, header, fields and initial values', () => {
         renderWithContext(
             <AppsForm

@@ -57,10 +57,6 @@ describe('UserPropertiesTable', () => {
     const deleteField = jest.fn();
     const reorderField = jest.fn();
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     const renderComponent = (fields = baseFields) => {
         const collection = collectionFromArray(fields);
 
@@ -99,7 +95,7 @@ describe('UserPropertiesTable', () => {
         await userEvent.clear(field1Input);
         await userEvent.type(field1Input, 'Edited Field 1');
 
-        // fireEvent.blur used because userEvent doesn't have direct focus/blur methods
+        // Trigger blur to save the edited field name - fireEvent used because userEvent doesn't have direct focus/blur methods
         fireEvent.blur(field1Input);
 
         expect(updateField).toHaveBeenCalledWith({

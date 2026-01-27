@@ -31,10 +31,6 @@ describe('ReasonOption', () => {
         theme: {} as any,
     } as unknown as MultiValueProps<{label: string; value: string}, true>;
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should render the reason option with correct label', () => {
         renderWithContext(<ReasonOption {...mockProps}/>);
 

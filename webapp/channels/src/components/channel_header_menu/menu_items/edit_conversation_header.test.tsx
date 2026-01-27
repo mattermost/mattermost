@@ -23,9 +23,6 @@ describe('components/ChannelHeaderMenu/MenuItems/EditConversationHeader', () => 
         jest.spyOn(require('react-redux'), 'useDispatch');
     });
 
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
     const channel = TestHelper.getChannelMock();
 
     test('renders the component correctly, handle click event', async () => {

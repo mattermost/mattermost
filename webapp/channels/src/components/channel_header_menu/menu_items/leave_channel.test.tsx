@@ -25,10 +25,6 @@ describe('components/ChannelHeaderMenu/MenuItems/LeaveChannelTest', () => {
         jest.spyOn(require('react-redux'), 'useDispatch');
     });
 
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('renders the component correctly, handle click event correctly for Public Channel', async () => {
         const channel = TestHelper.getChannelMock();
 

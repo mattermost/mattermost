@@ -48,7 +48,6 @@ describe('CoreMenuOptions Component', () => {
     const handleOnSelect = jest.fn();
 
     beforeEach(() => {
-        jest.clearAllMocks();
         handleOnSelect.mockReset();
         mockedUseTimePostBoxIndicator.mockReturnValue({
             ...defaultUseTimePostBoxIndicatorReturnValue,

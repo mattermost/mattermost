@@ -245,6 +245,5 @@ describe('components/more_direct_channels/list_item/user_details/UserDetails', (
     afterEach(() => {
         jest.clearAllTimers();
         jest.useRealTimers();
-        jest.clearAllMocks();
     });
 });

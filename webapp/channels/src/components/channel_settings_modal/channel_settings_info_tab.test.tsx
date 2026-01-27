@@ -126,7 +126,6 @@ const baseProps = {
 
 describe('ChannelSettingsInfoTab', () => {
     beforeEach(() => {
-        jest.clearAllMocks();
         mockChannelPropertiesPermission = true;
         mockConvertToPublicPermission = true;
         mockConvertToPrivatePermission = true;

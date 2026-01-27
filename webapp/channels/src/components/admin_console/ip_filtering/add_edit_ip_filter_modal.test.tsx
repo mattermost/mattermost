@@ -124,7 +124,7 @@ describe('IPFilteringAddOrEditModal', () => {
         await userEvent.clear(getByLabelText('Enter IP Range'));
         await userEvent.type(getByLabelText('Enter IP Range'), 'invalid-cidr');
 
-        // fireEvent.blur used because userEvent doesn't have direct focus/blur methods
+        // Trigger validation on blur - fireEvent used because userEvent doesn't have direct focus/blur methods
         fireEvent.blur(getByLabelText('Enter IP Range'));
         await userEvent.click(getByTestId('save-add-edit-button'));
 
@@ -145,7 +145,6 @@ describe('IPFilteringAddOrEditModal', () => {
         await userEvent.clear(getByLabelText('Enter IP Range'));
         await userEvent.type(getByLabelText('Enter IP Range'), 'invalid-cidr');
 
-        // fireEvent.blur used because userEvent doesn't have direct focus/blur methods
         fireEvent.blur(getByLabelText('Enter IP Range'));
 
         expect(getByTestId('save-add-edit-button')).toBeDisabled();

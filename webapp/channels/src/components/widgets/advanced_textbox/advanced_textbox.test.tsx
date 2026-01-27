@@ -52,10 +52,6 @@ describe('AdvancedTextbox', () => {
         descriptionMessage: 'This is a description',
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('renders correctly with all props', () => {
         render(<AdvancedTextbox {...defaultProps}/>);
 

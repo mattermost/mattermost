@@ -91,7 +91,7 @@ describe('components/ColorInput', () => {
         const input = screen.getByRole('textbox');
         const colorIcon = container.querySelector('.color-icon') as HTMLElement;
 
-        // fireEvent.focus/blur used because userEvent doesn't have direct focus/blur methods
+        // Simulate focus on input - fireEvent used because userEvent doesn't have direct focus/blur methods
         fireEvent.focus(input);
 
         await userEvent.clear(input);
@@ -109,7 +109,6 @@ describe('components/ColorInput', () => {
             />,
         );
 
-        // fireEvent.focus/blur used because userEvent doesn't have direct focus/blur methods
         fireEvent.blur(input);
 
         // After blur, the input should show the normalized value

@@ -23,10 +23,6 @@ describe('components/ChannelHeaderMenu/MenuItems/Notification', () => {
         jest.spyOn(require('react-redux'), 'useDispatch');
     });
 
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('renders the component correctly, handle click event', async () => {
         const channel = TestHelper.getChannelMock();
         const user = TestHelper.getUserMock();
