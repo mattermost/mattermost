@@ -10434,10 +10434,6 @@
     "translation": "アクセス制御サービスの準備ができていません。"
   },
   {
-    "id": "app.pap.update_access_control_policy_active.app_error",
-    "translation": "アクセス制御ポリシーの有効化状況を変更できませんでした。"
-  },
-  {
     "id": "app.pdp.access_evaluation.app_error",
     "translation": "アクセス制御ポリシーを評価できませんでした。"
   },

@@ -9314,10 +9314,6 @@
     "translation": "채널에서 액세스 제어 정책을 할당 해제할 수 없습니다."
   },
   {
-    "id": "app.pap.update_access_control_policy_active.app_error",
-    "translation": "액세스 제어 정책의 활성 상태를 변경할 수 없습니다."
-  },
-  {
     "id": "app.pdp.access_evaluation.app_error",
     "translation": "액세스 제어 정책을 평가하지 못했습니다."
   },
