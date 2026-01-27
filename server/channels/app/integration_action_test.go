@@ -229,7 +229,7 @@ func TestPostActionResponseSizeLimit(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+		post, _, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
 		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 		require.True(t, ok)
@@ -272,7 +272,7 @@ func TestPostActionResponseSizeLimit(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+		post, _, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
 		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 		require.True(t, ok)
