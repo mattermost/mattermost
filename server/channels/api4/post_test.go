@@ -284,9 +284,9 @@ func TestCreatePost(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 		fileId := fileResp.FileInfos[0].Id
 
-		th.RemovePermissionFromRole(t, model.PermissionUploadFile.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(model.PermissionUploadFile.Id, model.ChannelUserRoleId)
 		defer func() {
-			th.AddPermissionToRole(t, model.PermissionUploadFile.Id, model.ChannelUserRoleId)
+			th.AddPermissionToRole(model.PermissionUploadFile.Id, model.ChannelUserRoleId)
 		}()
 
 		post := &model.Post{
@@ -1648,9 +1648,9 @@ func TestUpdatePost(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 		fileId := fileResp.FileInfos[0].Id
 
-		th.RemovePermissionFromRole(t, model.PermissionUploadFile.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(model.PermissionUploadFile.Id, model.ChannelUserRoleId)
 		defer func() {
-			th.AddPermissionToRole(t, model.PermissionUploadFile.Id, model.ChannelUserRoleId)
+			th.AddPermissionToRole(model.PermissionUploadFile.Id, model.ChannelUserRoleId)
 		}()
 
 		updatePost := &model.Post{

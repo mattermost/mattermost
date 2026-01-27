@@ -13,7 +13,7 @@ import (
 
 func TestUpdateScheduledPost(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
@@ -38,14 +38,14 @@ func TestUpdateScheduledPost(t *testing.T) {
 		createdScheduledPost.Message = "Updated Message!!!"
 
 		// Switch to BasicUser2
-		th.LoginBasic2(t)
+		th.LoginBasic2()
 
 		_, resp, err := th.Client.UpdateScheduledPost(context.Background(), createdScheduledPost)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 
 		// Switch back to original user and verify the post wasn't modified
-		th.LoginBasic(t)
+		th.LoginBasic()
 
 		fetchedPost, err := th.App.Srv().Store().ScheduledPost().Get(createdScheduledPost.Id)
 		require.NoError(t, err)
@@ -57,7 +57,7 @@ func TestUpdateScheduledPost(t *testing.T) {
 
 func TestDeleteScheduledPost(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
@@ -76,14 +76,14 @@ func TestDeleteScheduledPost(t *testing.T) {
 		require.NotNil(t, createdScheduledPost)
 
 		// Switch to BasicUser2
-		th.LoginBasic2(t)
+		th.LoginBasic2()
 
 		_, resp, err := th.Client.DeleteScheduledPost(context.Background(), createdScheduledPost.Id)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 
 		// Switch back to original user and verify the post wasn't deleted
-		th.LoginBasic(t)
+		th.LoginBasic()
 
 		fetchedPost, err := th.App.Srv().Store().ScheduledPost().Get(createdScheduledPost.Id)
 		require.NoError(t, err)
