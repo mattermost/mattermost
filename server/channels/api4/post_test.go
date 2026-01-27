@@ -284,9 +284,9 @@ func TestCreatePost(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 		fileId := fileResp.FileInfos[0].Id
 
-		th.RemovePermissionFromRole(model.PermissionUploadFile.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionUploadFile.Id, model.ChannelUserRoleId)
 		defer func() {
-			th.AddPermissionToRole(model.PermissionUploadFile.Id, model.ChannelUserRoleId)
+			th.AddPermissionToRole(t, model.PermissionUploadFile.Id, model.ChannelUserRoleId)
 		}()
 
 		post := &model.Post{
@@ -1636,7 +1636,7 @@ func TestUpdatePost(t *testing.T) {
 	})
 
 	t.Run("should prevent updating post with files when user lacks upload_file permission in target channel", func(t *testing.T) {
-		postWithoutFiles, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+		postWithoutFiles, appErr := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: channel.Id,
 			Message:   "Post without files",
@@ -1648,9 +1648,9 @@ func TestUpdatePost(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 		fileId := fileResp.FileInfos[0].Id
 
-		th.RemovePermissionFromRole(model.PermissionUploadFile.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionUploadFile.Id, model.ChannelUserRoleId)
 		defer func() {
-			th.AddPermissionToRole(model.PermissionUploadFile.Id, model.ChannelUserRoleId)
+			th.AddPermissionToRole(t, model.PermissionUploadFile.Id, model.ChannelUserRoleId)
 		}()
 
 		updatePost := &model.Post{
@@ -1666,7 +1666,7 @@ func TestUpdatePost(t *testing.T) {
 	})
 
 	t.Run("should allow updating post with files when user has upload_file permission", func(t *testing.T) {
-		postWithoutFiles, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+		postWithoutFiles, appErr := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: channel.Id,
 			Message:   "Post without files",

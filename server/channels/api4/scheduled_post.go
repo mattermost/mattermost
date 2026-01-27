@@ -75,8 +75,7 @@ func createSchedulePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterAuditableToAuditRec(auditRec, "scheduledPost", &scheduledPost)
 
 	if len(scheduledPost.FileIds) > 0 {
-		hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), scheduledPost.ChannelId, model.PermissionUploadFile)
-		if !hasPermission {
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), scheduledPost.ChannelId, model.PermissionUploadFile) {
 			c.SetPermissionError(model.PermissionUploadFile)
 			return
 		}
