@@ -321,50 +321,48 @@ func removeEmbeddedPostsFromMetadata(post *model.Post) {
 	post.Metadata.Embeds = newEmbeds
 }
 
-func (a *App) sanitizePostMetadataForUserAndChannel(rctx request.CTX, post *model.Post, previewedPost *model.PreviewPost, previewedChannel *model.Channel, userID string) *model.Post {
-	if post.Metadata == nil || len(post.Metadata.Embeds) == 0 || previewedPost == nil {
-		return post
-	}
-
-	if previewedChannel != nil && !a.HasPermissionToReadChannel(rctx, userID, previewedChannel) {
-		removePermalinkMetadataFromPost(post)
-	}
-
-	return post
-}
-
-func (a *App) SanitizePostMetadataForUser(rctx request.CTX, post *model.Post, userID string) (*model.Post, *model.AppError) {
+func (a *App) SanitizePostMetadataForUser(rctx request.CTX, post *model.Post, userID string) (*model.Post, bool, *model.AppError) {
 	if post.Metadata == nil || len(post.Metadata.Embeds) == 0 {
-		return post, nil
+		return post, true, nil
 	}
 
 	previewPost := post.GetPreviewPost()
 	if previewPost == nil {
-		return post, nil
+		return post, true, nil
 	}
 
 	previewedChannel, err := a.GetChannel(rctx, previewPost.Post.ChannelId)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
-	if previewedChannel != nil && !a.HasPermissionToReadChannel(rctx, userID, previewedChannel) {
-		removePermalinkMetadataFromPost(post)
+	isMember := true
+
+	if previewedChannel != nil {
+		var hasPermission bool
+		hasPermission, isMember = a.HasPermissionToReadChannel(rctx, userID, previewedChannel)
+		if !hasPermission {
+			removePermalinkMetadataFromPost(post)
+			// Since we remove the permalink metadata, we return true
+			isMember = true
+		}
 	}
 
-	return post, nil
+	return post, isMember, nil
 }
 
-func (a *App) SanitizePostListMetadataForUser(rctx request.CTX, postList *model.PostList, userID string) (*model.PostList, *model.AppError) {
+func (a *App) SanitizePostListMetadataForUser(rctx request.CTX, postList *model.PostList, userID string) (*model.PostList, bool, *model.AppError) {
 	clonedPostList := postList.Clone()
+	allPreviewsHaveMembership := true
 	for postID, post := range clonedPostList.Posts {
-		sanitizedPost, err := a.SanitizePostMetadataForUser(rctx, post, userID)
+		sanitizedPost, isMember, err := a.SanitizePostMetadataForUser(rctx, post, userID)
 		if err != nil {
-			return nil, err
+			return nil, false, err
 		}
 		clonedPostList.Posts[postID] = sanitizedPost
+		allPreviewsHaveMembership = allPreviewsHaveMembership && isMember
 	}
-	return clonedPostList, nil
+	return clonedPostList, allPreviewsHaveMembership, nil
 }
 
 func (a *App) getFileMetadataForPost(rctx request.CTX, post *model.Post, fromMaster, includeDeleted bool) ([]*model.FileInfo, int64, *model.AppError) {

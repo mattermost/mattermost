@@ -156,7 +156,6 @@ type Props = {
     canDelete: boolean;
     userId: string;
     threadId: UserThread['id'];
-    isCollapsedThreadsEnabled: boolean;
     isFollowingThread?: boolean;
     isMentionedInRootPost?: boolean;
     threadReplyCount?: number;

@@ -36,8 +36,6 @@ type Props = {
     options?: TextFormattingOptions; /* Options specific to text formatting */
     compactDisplay?: boolean; /* Set to render post body compactly */
     isRHS?: boolean; /* Flags if the post_message_view is for the RHS (Reply). */
-    isRHSOpen?: boolean; /* Whether or not the RHS is visible */
-    isRHSExpanded?: boolean; /* Whether or not the RHS is expanded */
     theme: Theme; /* Logged in user's theme */
     pluginPostTypes?: {
         [postType: string]: PostPluginComponent;

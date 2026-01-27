@@ -5,11 +5,11 @@ import {useCallback, useEffect, useRef} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {WebSocketMessage} from '@mattermost/client';
+import {WebSocketEvents} from '@mattermost/client';
 
 import {getAgentsStatus} from 'mattermost-redux/actions/agents';
 import {getAgentsStatus as getAgentsStatusSelector} from 'mattermost-redux/selectors/entities/agents';
 
-import {SocketEvents} from 'utils/constants';
 import {useWebSocket} from 'utils/use_websocket/hooks';
 
 const AI_PLUGIN_ID = 'mattermost-ai';
@@ -68,10 +68,10 @@ export default function useGetAgentsBridgeEnabled(): AgentsBridgeStatus {
         // Note: When a plugin is enabled/disabled, the backend fires CONFIG_CHANGED first,
         // then PLUGIN_ENABLED/PLUGIN_DISABLED. We debounce to avoid duplicate fetches.
         const isPluginEvent =
-            (msg.event === SocketEvents.PLUGIN_ENABLED || msg.event === SocketEvents.PLUGIN_DISABLED) &&
+            (msg.event === WebSocketEvents.PluginEnabled || msg.event === WebSocketEvents.PluginDisabled) &&
             msg.data?.manifest?.id === AI_PLUGIN_ID;
 
-        const isConfigChange = msg.event === SocketEvents.CONFIG_CHANGED;
+        const isConfigChange = msg.event === WebSocketEvents.ConfigChanged;
 
         if (isPluginEvent || isConfigChange) {
             debouncedRefetch();

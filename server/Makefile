@@ -154,8 +154,8 @@ TEMPLATES_DIR=templates
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
 PLUGIN_PACKAGES += mattermost-plugin-calls-v1.11.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.5.0
-PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.11.0
-PLUGIN_PACKAGES += mattermost-plugin-jira-v4.5.0
+PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.12.0
+PLUGIN_PACKAGES += mattermost-plugin-jira-v4.5.1
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.6.1
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.11.0
@@ -174,7 +174,7 @@ PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.3.0
 ifeq ($(FIPS_ENABLED),true)
 	PLUGIN_PACKAGES  = mattermost-plugin-playbooks-v2.6.1%2B0e01d28-fips
 	PLUGIN_PACKAGES += mattermost-plugin-agents-v1.7.2%2B866e2dd-fips
-	PLUGIN_PACKAGES += mattermost-plugin-boards-v9.2.1%2Bdf49b26-fips
+	PLUGIN_PACKAGES += mattermost-plugin-boards-v9.2.2%2B4282c63-fips
 endif
 
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)

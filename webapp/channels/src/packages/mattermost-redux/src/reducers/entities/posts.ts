@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {WebSocketMessages} from '@mattermost/client';
 import type {
     OpenGraphMetadata,
     Post,
@@ -396,7 +397,7 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
     }
 
     case PostTypes.POST_TRANSLATION_UPDATED: {
-        const data: PostTranslationUpdateData = action.data;
+        const data: WebSocketMessages.PostTranslationUpdated['data'] = action.data;
         if (!state[data.object_id]) {
             return state;
         }
@@ -427,14 +428,6 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
     default:
         return state;
     }
-}
-
-type PostTranslationUpdateData = {
-    language: string;
-    object_id: string;
-    src_lang: string;
-    state: 'ready' | 'skipped' | 'processing' | 'unavailable';
-    translation: string;
 }
 
 function handlePostReceived(nextState: any, post: Post, nestedPermalinkLevel?: number) {
@@ -943,9 +936,7 @@ export function postsInChannel(state: Record<string, PostOrderBlock[]> = {}, act
 
             // For BoR posts: only remove the post itself (BoR doesn't support threads)
             // For regular posts: remove the post and its thread replies
-            const nextOrder = isBoRPost ?
-                block.order.filter((postId: string) => postId !== post.id) :
-                block.order.filter((postId: string) => postId !== post.id && prevPosts[postId]?.root_id !== post.id);
+            const nextOrder = isBoRPost ? block.order.filter((postId: string) => postId !== post.id) : block.order.filter((postId: string) => postId !== post.id && prevPosts[postId]?.root_id !== post.id);
 
             if (nextOrder.length !== block.order.length) {
                 nextPostsForChannel[i] = {

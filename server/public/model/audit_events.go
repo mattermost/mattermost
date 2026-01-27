@@ -44,6 +44,7 @@ const (
 	AuditEventDeleteChannelBookmark          = "deleteChannelBookmark"          // delete bookmark
 	AuditEventUpdateChannelBookmark          = "updateChannelBookmark"          // update bookmark
 	AuditEventUpdateChannelBookmarkSortOrder = "updateChannelBookmarkSortOrder" // update display order of bookmarks
+	AuditEventListChannelBookmarksForChannel = "listChannelBookmarksForChannel" // list bookmarks for channel
 )
 
 // Channel Categories
@@ -63,6 +64,7 @@ const (
 	AuditEventCreateDirectChannel                = "createDirectChannel"                // create direct message channel between two users
 	AuditEventCreateGroupChannel                 = "createGroupChannel"                 // create group message channel with multiple users
 	AuditEventDeleteChannel                      = "deleteChannel"                      // delete channel
+	AuditEventGetPinnedPosts                     = "getPinnedPosts"                     // get pinned posts
 	AuditEventLocalAddChannelMember              = "localAddChannelMember"              // add channel member locally
 	AuditEventLocalCreateChannel                 = "localCreateChannel"                 // create channel locally
 	AuditEventLocalDeleteChannel                 = "localDeleteChannel"                 // delete channel locally
@@ -157,6 +159,11 @@ const (
 	AuditEventUploadFileMultipart       = "uploadFileMultipart"       // upload file using multipart form data
 	AuditEventUploadFileMultipartLegacy = "uploadFileMultipartLegacy" // upload file using legacy multipart method
 	AuditEventUploadFileSimple          = "uploadFileSimple"          // upload file using simple direct upload method
+	AuditEventGetFileThumbnail          = "getFileThumbnail"          // get file thumbnail
+	AuditEventGetFileInfosForPost       = "getFileInfosForPost"       // get file infos for post
+	AuditEventGetFileInfo               = "getFileInfo"               // get file info
+	AuditEventGetFilePreview            = "getFilePreview"            // get file preview
+	AuditEventSearchFiles               = "searchFiles"               // search for files
 )
 
 // Groups
@@ -245,17 +252,38 @@ const (
 
 // Posts
 const (
-	AuditEventCreatePost         = "createPost"         // create post
-	AuditEventDeletePost         = "deletePost"         // delete post
-	AuditEventLocalDeletePost    = "localDeletePost"    // delete post locally
-	AuditEventMoveThread         = "moveThread"         // move thread and replies to different channel
-	AuditEventPatchPost          = "patchPost"          // update post meta properties
-	AuditEventRestorePostVersion = "restorePostVersion" // restore post to previous version
-	AuditEventSaveIsPinnedPost   = "saveIsPinnedPost"   // pin or unpin post
-	AuditEventSearchPosts        = "searchPosts"        // search for posts
-	AuditEventUpdatePost         = "updatePost"         // update post content
-	AuditEventRevealPost         = "revealPost"         // reveal a post that was hidden due to burn on read
-	AuditEventBurnPost           = "burnPost"           // burn a post that was hidden due to burn on read
+	AuditEventCreateEphemeralPost                = "createEphemeralPost"                // create ephemeral post
+	AuditEventCreatePost                         = "createPost"                         // create post
+	AuditEventDeletePost                         = "deletePost"                         // delete post
+	AuditEventGetEditHistoryForPost              = "getEditHistoryForPost"              // get edit history for post
+	AuditEventGetFlaggedPosts                    = "getFlaggedPosts"                    // get flagged posts
+	AuditEventGetPostsForChannel                 = "getPostsForChannel"                 // get posts for channel
+	AuditEventGetPostsForChannelAroundLastUnread = "getPostsForChannelAroundLastUnread" // get posts for channel around last unread
+	AuditEventGetPost                            = "getPost"                            // get post
+	AuditEventGetPostThread                      = "getPostThread"                      // get post thread
+	AuditEventGetPostsByIds                      = "getPostsByIds"                      // get posts by ids
+	AuditEventGetThreadForUser                   = "getThreadForUser"                   // get thread for user
+	AuditEventLocalDeletePost                    = "localDeletePost"                    // delete post locally
+	AuditEventMoveThread                         = "moveThread"                         // move thread and replies to different channel
+	AuditEventNotificationAck                    = "notificationAck"                    // notification ack
+	AuditEventPatchPost                          = "patchPost"                          // update post meta properties
+	AuditEventRestorePostVersion                 = "restorePostVersion"                 // restore post to previous version
+	AuditEventSaveIsPinnedPost                   = "saveIsPinnedPost"                   // pin or unpin post
+	AuditEventSearchPosts                        = "searchPosts"                        // search for posts
+	AuditEventUpdatePost                         = "updatePost"                         // update post content
+	AuditEventRevealPost                         = "revealPost"                         // reveal a post that was hidden due to burn on read
+	AuditEventBurnPost                           = "burnPost"                           // burn a post that was hidden due to burn on read
+	AuditEventWebsocketPost                      = "websocketPost"                      // post received via websocket
+)
+
+// Recaps
+const (
+	AuditEventCreateRecap     = "createRecap"     // create recap summarizing channel content
+	AuditEventGetRecap        = "getRecap"        // view a single recap
+	AuditEventGetRecaps       = "getRecaps"       // list user's recaps
+	AuditEventMarkRecapAsRead = "markRecapAsRead" // mark recap as read
+	AuditEventRegenerateRecap = "regenerateRecap" // regenerate recap with updated channel content
+	AuditEventDeleteRecap     = "deleteRecap"     // delete recap
 )
 
 // Preferences
@@ -393,6 +421,7 @@ const (
 	AuditEventLocalDeleteUser              = "localDeleteUser"              // delete user locally
 	AuditEventLocalPermanentDeleteAllUsers = "localPermanentDeleteAllUsers" // permanently delete all users locally
 	AuditEventLogin                        = "login"                        // user login to system
+	AuditEventLoginWithDesktopToken        = "loginWithDesktopToken"        // user login to system with desktop token
 	AuditEventLogout                       = "logout"                       // user logout from system
 	AuditEventMigrateAuthToLdap            = "migrateAuthToLdap"            // migrate user authentication method to LDAP
 	AuditEventMigrateAuthToSaml            = "migrateAuthToSaml"            // migrate user authentication method to SAML
