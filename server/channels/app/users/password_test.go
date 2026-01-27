@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
@@ -130,4 +131,24 @@ func TestIsPasswordValidWithSettings(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestComparePassword(t *testing.T) {
+	password := "a password"
+	hashBytes, err := bcrypt.GenerateFromPassword([]byte(password), 10)
+	require.NoError(t, err)
+	hash := string(hashBytes)
+
+	t.Run("password length ok", func(t *testing.T) {
+		err := ComparePassword(hash, password)
+		assert.NoError(t, err)
+	})
+
+	t.Run("password too long", func(t *testing.T) {
+		err := ComparePassword(hash, strings.Repeat("a", model.PasswordMaximumLength+1))
+		assert.Error(t, err)
+		errInvalid, ok := err.(*ErrInvalidPassword)
+		assert.True(t, ok)
+		assert.Equal(t, "model.user.is_valid.pwd_max_length.app_error", errInvalid.Id())
+	})
 }
