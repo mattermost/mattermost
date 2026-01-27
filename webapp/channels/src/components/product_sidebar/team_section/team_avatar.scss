@@ -1,0 +1,80 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.TeamAvatar {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    overflow: visible;
+
+    // Override TeamIcon sizing to match design specs (40px, 8px radius)
+    .TeamIcon {
+        width: 40px;
+        height: 40px;
+        min-width: 40px;
+        min-height: 40px;
+        border-radius: 8px;
+
+        .TeamIcon__content {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+        }
+
+        .TeamIcon__image,
+        .TeamIcon__initials {
+            width: 40px;
+            height: 40px;
+            min-width: 40px;
+            min-height: 40px;
+            border-radius: 8px;
+            font-size: 18px;
+        }
+    }
+
+    // Clickable state
+    &--clickable {
+        cursor: pointer;
+
+        &:hover {
+            .TeamIcon__content {
+                filter: brightness(1.1);
+            }
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--button-bg);
+            outline-offset: 2px;
+        }
+    }
+
+    // Stack effect for multiple teams
+    &--stacked {
+        // First shadow layer (behind avatar)
+        &::before {
+            content: '';
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            background-color: rgba(255, 255, 255, 0.16);
+            border-radius: 6px;
+            bottom: -4px;
+            left: 4px;
+            z-index: -1;
+        }
+
+        // Second shadow layer (furthest back)
+        &::after {
+            content: '';
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background-color: rgba(255, 255, 255, 0.08);
+            border-radius: 4px;
+            bottom: -8px;
+            left: 8px;
+            z-index: -2;
+        }
+    }
+}
