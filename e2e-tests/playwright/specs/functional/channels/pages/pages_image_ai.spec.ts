@@ -266,7 +266,7 @@ test('opens Image AI menu when button is clicked', {tag: '@pages'}, async ({pw, 
  * @precondition
  * AI plugin is enabled and agents are configured (test will skip gracefully if not available)
  */
-test('hides Image AI bubble when clicking outside image', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+test('hides Image AI bubble when pressing Escape', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
 
     // # Configure AI plugin if enabled
@@ -309,9 +309,8 @@ test('hides Image AI bubble when clicking outside image', {tag: '@pages'}, async
     const imageAIBubble = getImageAIBubble(page);
     await expect(imageAIBubble).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
-    // # Click outside the image (on the text)
-    const firstParagraph = editor.locator('p').first();
-    await firstParagraph.click();
+    // # Press Escape to dismiss the bubble
+    await page.keyboard.press('Escape');
     await page.waitForTimeout(UI_MICRO_WAIT * 3);
 
     // * Verify Image AI bubble is hidden

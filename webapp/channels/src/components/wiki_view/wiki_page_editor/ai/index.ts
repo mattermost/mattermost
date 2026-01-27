@@ -10,8 +10,6 @@ export type {Language, LanguagePickerProps} from './language_picker';
 export {default as TranslatePageModal} from './translate_page_modal';
 export type {TranslatePageModalProps} from './translate_page_modal';
 export {default as usePageTranslate} from './use_page_translate';
-export {default as ImageAIBubble} from './image_ai_bubble';
-export type {ImageAIAction} from './image_ai_bubble';
 export {default as ImageExtractionDialog} from './image_extraction_dialog';
 export type {ImageExtractionDialogProps} from './image_extraction_dialog';
 export {default as ImageExtractionCompleteDialog} from './image_extraction_complete_dialog';

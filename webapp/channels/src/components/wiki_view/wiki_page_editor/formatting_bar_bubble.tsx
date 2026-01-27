@@ -2,12 +2,18 @@
 // See LICENSE.txt for license information.
 
 import type {EditorState} from '@tiptap/pm/state';
-import {TextSelection} from '@tiptap/pm/state';
+import {NodeSelection, TextSelection} from '@tiptap/pm/state';
 import type {Editor} from '@tiptap/react';
 import {BubbleMenu} from '@tiptap/react/menus';
 import React, {useState, useCallback, useMemo, useEffect, useRef} from 'react';
 import {useIntl} from 'react-intl';
 
+import ChevronDownIcon from '@mattermost/compass-icons/components/chevron-down';
+import CreationOutlineIcon from '@mattermost/compass-icons/components/creation-outline';
+import MessageTextOutlineIcon from '@mattermost/compass-icons/components/message-text-outline';
+import PencilOutlineIcon from '@mattermost/compass-icons/components/pencil-outline';
+
+import * as Menu from 'components/menu';
 import WithTooltip from 'components/with_tooltip';
 
 import {getHistory} from 'utils/browser_history';
@@ -16,10 +22,13 @@ import {isUrlSafe} from 'utils/url';
 import {FORMATTING_ACTIONS, type FormattingAction} from './formatting_actions';
 
 import './formatting_bar_bubble.scss';
+import './ai/image_ai_bubble.scss';
 
 const MAX_LINK_DISPLAY_LENGTH = 40;
 
-type Mode = 'link' | 'format';
+export type ImageAIAction = 'extract_handwriting' | 'describe_image';
+
+type Mode = 'link' | 'format' | 'image';
 
 type Props = {
     editor: Editor | null;
@@ -29,14 +38,17 @@ type Props = {
     onAddEmoji?: () => void;
     onAddComment?: (selection: {text: string; from: number; to: number}) => void;
     onAIRewrite?: () => void;
+    onImageAIAction?: (action: ImageAIAction, imageElement: HTMLImageElement) => void;
+    visionEnabled?: boolean;
 };
 
-const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddMedia, onAddEmoji, onAddComment, onAIRewrite}: Props) => {
+const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddMedia, onAddEmoji, onAddComment, onAIRewrite, onImageAIAction, visionEnabled = false}: Props) => {
     const {formatMessage} = useIntl();
     const [mode, setMode] = useState<Mode>('format');
     const [dismissed, setDismissed] = useState(false);
-    const [, setUpdateTrigger] = useState(0);
+    const [shouldRenderBubble, setShouldRenderBubble] = useState(false);
     const lastSelectionPos = useRef<number | null>(null);
+    const capturedImageRef = useRef<HTMLImageElement | null>(null);
 
     // Listen to editor updates to re-render when selection changes
     // This ensures button active states are updated correctly
@@ -54,18 +66,39 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddMedia, onA
             }
             lastSelectionPos.current = currentPos;
 
-            // Trigger re-render to update button active states
-            setUpdateTrigger((prev) => prev + 1);
+            // Track whether we have a valid selection that should show the bubble
+            const {selection} = editor.state;
+            const editorState = editor.state;
+
+            // Check 1: Image selected (with AI available)
+            const isNodeSelection = selection instanceof NodeSelection;
+            const isImageSelected = onImageAIAction && isNodeSelection &&
+                selection.node &&
+                (selection.node.type.name === 'image' || selection.node.type.name === 'imageResize');
+
+            // Check 2: Cursor in a link
+            const isLinkActive = editor.isActive('link') && selection.empty;
+
+            // Check 3: Text is selected
+            const isTextSelection = selection instanceof TextSelection && !selection.empty;
+            const hasTextSelected = isTextSelection &&
+                editorState.doc.textBetween(selection.from, selection.to).trim().length > 0;
+
+            const shouldShow = Boolean(isImageSelected) || isLinkActive || hasTextSelected;
+            setShouldRenderBubble(shouldShow);
         };
 
         editor.on('selectionUpdate', handleSelectionUpdate);
         editor.on('transaction', handleSelectionUpdate);
 
+        // Run once on mount to set initial state
+        handleSelectionUpdate();
+
         return () => {
             editor.off('selectionUpdate', handleSelectionUpdate);
             editor.off('transaction', handleSelectionUpdate);
         };
-    }, [editor]);
+    }, [editor, onImageAIAction]);
 
     // Handle Escape key to dismiss bubble menu
     useEffect(() => {
@@ -76,6 +109,17 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddMedia, onA
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {
                 setDismissed(true);
+
+                // Change selection to trigger shouldShow re-evaluation
+                // This aligns with standard editor behavior where Escape modifies selection
+                const {selection} = editor.state;
+                if (selection instanceof NodeSelection) {
+                    // For image/node selection: move cursor after the node
+                    editor.commands.setTextSelection(selection.to);
+                } else if (!selection.empty) {
+                    // For text selection: collapse to cursor at end of selection
+                    editor.commands.setTextSelection(selection.to);
+                }
             }
         };
 
@@ -158,6 +202,20 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddMedia, onA
         return editor.getAttributes('link').href || '';
     }, [editor]);
 
+    const handleExtractHandwriting = useCallback(() => {
+        const imageElement = capturedImageRef.current;
+        if (imageElement && onImageAIAction) {
+            onImageAIAction('extract_handwriting', imageElement);
+        }
+    }, [onImageAIAction]);
+
+    const handleDescribeImage = useCallback(() => {
+        const imageElement = capturedImageRef.current;
+        if (imageElement && onImageAIAction) {
+            onImageAIAction('describe_image', imageElement);
+        }
+    }, [onImageAIAction]);
+
     // shouldShow callback - this is called with fresh editor state
     // We set mode here to keep React in sync with the current editor state
     const shouldShow = useCallback(({editor: currentEditor, state}: {editor: Editor; state: unknown}) => {
@@ -165,10 +223,42 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddMedia, onA
 
         // Don't show if user explicitly dismissed with Escape
         if (dismissed) {
+            capturedImageRef.current = null;
             return false;
         }
 
         const {selection} = editorState;
+
+        // Check for image selection first (NodeSelection on image)
+        // Only show image toolbar if AI is available (onImageAIAction provided)
+        // Also require editor focus to prevent showing on page load/refresh
+        if (onImageAIAction && currentEditor.isFocused && selection instanceof NodeSelection) {
+            const {node} = selection;
+            if (node && (node.type.name === 'image' || node.type.name === 'imageResize')) {
+                // Capture the image element while it's selected
+                try {
+                    if (currentEditor?.view) {
+                        const pos = selection.from;
+                        const domNode = currentEditor.view.nodeDOM(pos);
+
+                        if (domNode instanceof HTMLImageElement) {
+                            capturedImageRef.current = domNode;
+                        } else if (domNode instanceof HTMLElement) {
+                            const img = domNode.querySelector('img');
+                            capturedImageRef.current = img;
+                        }
+                    }
+                } catch {
+                    // View may not be fully mounted yet
+                }
+                setMode('image');
+                return true;
+            }
+        }
+
+        // Clear captured image when not in image mode
+        capturedImageRef.current = null;
+
         const isLinkActive = currentEditor.isActive('link');
         const isLinkMode = isLinkActive && selection.empty;
 
@@ -188,7 +278,7 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddMedia, onA
 
         const text = editorState.doc.textBetween(selection.from, selection.to).trim();
         return text.length > 0;
-    }, [dismissed]);
+    }, [dismissed, onImageAIAction]);
 
     if (!editor) {
         return null;
@@ -523,6 +613,112 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddMedia, onA
         </div>
     );
 
+    // Render image AI toolbar when an image is selected
+    const renderImageToolbar = () => {
+        if (!visionEnabled) {
+            return (
+                <div
+                    className='image-ai-bubble-container'
+                    data-testid='image-ai-bubble'
+                >
+                    <WithTooltip
+                        title={formatMessage({
+                            id: 'image_ai.vision_not_available',
+                            defaultMessage: 'Vision AI is not available. Configure a vision-capable AI model to enable image analysis.',
+                        })}
+                    >
+                        <button
+                            type='button'
+                            className='image-ai-bubble-button disabled'
+                            disabled={true}
+                            data-testid='image-ai-menu-button'
+                        >
+                            <CreationOutlineIcon size={16}/>
+                            <span className='image-ai-bubble-button-text'>
+                                {formatMessage({id: 'image_ai.button_label', defaultMessage: 'AI'})}
+                            </span>
+                            <ChevronDownIcon size={12}/>
+                        </button>
+                    </WithTooltip>
+                </div>
+            );
+        }
+
+        return (
+            <div
+                className='image-ai-bubble-container'
+                data-testid='image-ai-bubble'
+            >
+                <Menu.Container
+                    menu={{
+                        id: 'image-ai-bubble-menu',
+                        'aria-label': formatMessage({id: 'image_ai.menu_aria_label', defaultMessage: 'Image AI tools'}),
+                        width: '220px',
+                    }}
+                    menuButton={{
+                        id: 'image-ai-bubble-button',
+                        dataTestId: 'image-ai-menu-button',
+                        'aria-label': formatMessage({id: 'image_ai.button_aria_label', defaultMessage: 'Image AI tools'}),
+                        class: 'image-ai-bubble-button',
+                        children: (
+                            <>
+                                <CreationOutlineIcon size={16}/>
+                                <span className='image-ai-bubble-button-text'>
+                                    {formatMessage({id: 'image_ai.button_label', defaultMessage: 'AI'})}
+                                </span>
+                                <ChevronDownIcon size={12}/>
+                            </>
+                        ),
+                    }}
+                    menuHeader={(
+                        <div className='image-ai-bubble-menu-header'>
+                            {formatMessage({id: 'image_ai.header', defaultMessage: 'IMAGE AI'})}
+                        </div>
+                    )}
+                >
+                    <Menu.Item
+                        id='extract-handwriting'
+                        data-testid='image-ai-extract-handwriting'
+                        leadingElement={<PencilOutlineIcon size={18}/>}
+                        labels={
+                            <span>
+                                {formatMessage({id: 'image_ai.extract_handwriting', defaultMessage: 'Extract handwriting'})}
+                            </span>
+                        }
+                        onClick={handleExtractHandwriting}
+                    />
+                    <Menu.Item
+                        id='describe-image'
+                        data-testid='image-ai-describe-image'
+                        leadingElement={<MessageTextOutlineIcon size={18}/>}
+                        labels={
+                            <span>
+                                {formatMessage({id: 'image_ai.describe_image', defaultMessage: 'Describe image'})}
+                            </span>
+                        }
+                        onClick={handleDescribeImage}
+                    />
+                </Menu.Container>
+            </div>
+        );
+    };
+
+    const renderToolbar = () => {
+        switch (mode) {
+        case 'link':
+            return renderLinkToolbar();
+        case 'image':
+            return renderImageToolbar();
+        default:
+            return renderFormattingToolbar();
+        }
+    };
+
+    // Don't render BubbleMenu at all when there's nothing valid to show
+    if (!shouldRenderBubble) {
+        return null;
+    }
+
     return (
         <BubbleMenu
             editor={editor}
@@ -531,7 +727,7 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddMedia, onA
             {/* key={mode} forces React to unmount/remount when mode changes,
                 ensuring Tippy receives the new content */}
             <div key={mode}>
-                {mode === 'link' ? renderLinkToolbar() : renderFormattingToolbar()}
+                {renderToolbar()}
             </div>
         </BubbleMenu>
     );

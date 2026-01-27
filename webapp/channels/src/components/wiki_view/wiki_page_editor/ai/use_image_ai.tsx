@@ -12,7 +12,7 @@ import {Client4} from 'mattermost-redux/client';
 
 import {createPage as createPageAction} from 'actions/pages';
 
-import type {ImageAIAction} from './image_ai_bubble';
+import type {ImageAIAction} from '../formatting_bar_bubble';
 
 interface UseImageAIReturn {
 

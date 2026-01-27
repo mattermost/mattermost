@@ -15,7 +15,7 @@ import {TableRow} from '@tiptap/extension-table-row';
 import TaskItem from '@tiptap/extension-task-item';
 import TaskList from '@tiptap/extension-task-list';
 import {TextStyle} from '@tiptap/extension-text-style';
-import {Plugin, PluginKey} from '@tiptap/pm/state';
+import {NodeSelection, Plugin, PluginKey, TextSelection} from '@tiptap/pm/state';
 import {useEditor, EditorContent, ReactNodeViewRenderer, type Editor} from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import React, {useEffect, useState, useMemo, useCallback, useRef} from 'react';
@@ -66,12 +66,10 @@ import {
     usePageProofread,
     usePageTranslate,
     TranslatePageModal,
-    ImageAIBubble,
     ImageExtractionDialog,
     ImageExtractionCompleteDialog,
     useImageAI,
 } from './ai';
-import type {ImageAIAction} from './ai';
 import Callout from './callout_extension';
 import {createChannelMentionSuggestion} from './channel_mention_mm_bridge';
 import CommentAnchor from './comment_anchor_mark';
@@ -79,6 +77,7 @@ import CommentHighlightPlugin, {COMMENT_HIGHLIGHT_PLUGIN_KEY} from './comment_hi
 import {EmojiSuggestionExtension} from './emoticon_mm_bridge';
 import FileAttachment from './file_attachment_extension';
 import {uploadMediaForEditor, validateFile, isVideoFile, isMediaFile} from './file_upload_helper';
+import type {ImageAIAction} from './formatting_bar_bubble';
 import FormattingBarBubble from './formatting_bar_bubble';
 import InlineCommentExtension from './inline_comment_extension';
 import InlineCommentToolbar from './inline_comment_toolbar';
@@ -1011,6 +1010,31 @@ const TipTapEditor = ({
                 class: 'tiptap-editor-content',
                 'data-placeholder': placeholder,
             },
+
+            // Handle clicks when a node (image) is selected - ProseMirror's default behavior
+            // doesn't always change NodeSelection on clicks, unlike TextSelection
+            handleClick: (view, pos, event) => {
+                const {selection} = view.state;
+
+                // Only intervene when we have a NodeSelection (e.g., image selected)
+                if (selection instanceof NodeSelection) {
+                    const target = event.target as HTMLElement;
+
+                    // Check if click is on the selected node (image or its resize wrapper)
+                    const isClickOnSelectedNode = target.tagName === 'IMG' ||
+                        target.closest('.image-resizer') !== null ||
+                        target.closest('[data-type="imageResize"]') !== null;
+
+                    if (!isClickOnSelectedNode) {
+                        // Clicked elsewhere - create TextSelection at click position
+                        const tr = view.state.tr.setSelection(TextSelection.create(view.state.doc, pos));
+                        view.dispatch(tr);
+                        return true; // handled
+                    }
+                }
+
+                return false; // let default handling proceed
+            },
         },
     }, [editable, placeholder]);
 
@@ -1535,6 +1559,8 @@ const TipTapEditor = ({
                             onAddEmoji={openEmojiPicker}
                             onAddComment={commentHandler}
                             onAIRewrite={aiRewriteHandler}
+                            onImageAIAction={isAIAvailable ? onImageAIAction : undefined}
+                            visionEnabled={isVisionEnabled}
                         />
                         {emojiPicker}
                     </>
@@ -1555,13 +1581,6 @@ const TipTapEditor = ({
                     onClose={closeTranslateModal}
                     onTranslate={translatePage}
                     isTranslating={isTranslating}
-                />
-            )}
-            {editor && editable && isAIAvailable && (
-                <ImageAIBubble
-                    editor={editor}
-                    onImageAIAction={onImageAIAction}
-                    visionEnabled={isVisionEnabled}
                 />
             )}
             {isAIAvailable && imageActionType && (
