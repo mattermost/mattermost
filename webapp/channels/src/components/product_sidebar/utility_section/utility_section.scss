@@ -1,0 +1,60 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.UtilitySection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.UtilityButton {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: var(--radius-s, 4px);
+    background: transparent;
+    cursor: pointer;
+    transition: background-color 150ms ease;
+
+    // Hover state
+    &:hover {
+        background-color: rgba(var(--sidebar-text-rgb), 0.08);
+
+        // On hover, icon should become fully opaque
+        svg {
+            color: var(--sidebar-text) !important;
+        }
+    }
+
+    // Focus state for accessibility
+    &:focus {
+        outline: none;
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--button-bg);
+        outline-offset: -2px;
+    }
+
+    // Active state with blue bar indicator
+    &--active {
+        background-color: rgba(var(--sidebar-text-rgb), 0.16);
+
+        // Blue bar indicator positioned at sidebar edge
+        &::before {
+            content: '';
+            position: absolute;
+            left: -8px;
+            top: 0;
+            width: 3px;
+            height: 40px;
+            background-color: var(--button-bg);
+            border-radius: 0 4px 4px 0;
+        }
+    }
+}
