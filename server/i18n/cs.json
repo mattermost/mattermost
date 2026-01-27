@@ -7768,10 +7768,6 @@
     "translation": "CWS Server není k dispozici."
   },
   {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "CWS Server selhal při nastavení odebírání novinek."
-  },
-  {
     "id": "api.team.invite_guests_to_channels.disabled.error",
     "translation": "Účty návštěvníků jsou zakázané"
   },

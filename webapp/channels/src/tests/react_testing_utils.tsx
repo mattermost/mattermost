@@ -24,8 +24,14 @@ import mockStore from 'tests/test_store';
 import {WebSocketContext} from 'utils/use_websocket';
 
 import type {GlobalState} from 'types/store';
+
 export * from '@testing-library/react';
 export {userEvent};
+
+export type IntlOptions = {
+    messages?: Record<string, string>;
+    locale?: string;
+}
 
 export type FullContextOptions = {
     intlMessages?: Record<string, string>;
