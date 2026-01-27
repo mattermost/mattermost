@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {DotsHorizontalIcon} from '@mattermost/compass-icons/components';
 import React from 'react';
 import {useIntl} from 'react-intl';
+
+import {DotsHorizontalIcon} from '@mattermost/compass-icons/components';
 
 import * as Menu from 'components/menu';
 

@@ -3,9 +3,10 @@
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {getPinnedProductIds} from 'selectors/views/product_sidebar';
+
+import type {ActionFuncAsync} from 'types/store';
 
 import {Preferences} from 'utils/constants';
 
