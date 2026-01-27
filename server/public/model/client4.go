@@ -3089,6 +3089,17 @@ func (c *Client4) UpdateChannelNotifyProps(ctx context.Context, channelId, userI
 	return BuildResponse(r), nil
 }
 
+// UpdateChannelMemberAutotranslation will update the autotranslation setting for a user in a channel.
+func (c *Client4) UpdateChannelMemberAutotranslation(ctx context.Context, channelId, userId string, autotranslation bool) (*Response, error) {
+	requestBody := map[string]any{"autotranslation": autotranslation}
+	r, err := c.DoAPIPutJSON(ctx, c.channelMemberRoute(channelId, userId)+"/autotranslation", requestBody)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 // AddChannelMember adds user to channel and return a channel member.
 func (c *Client4) AddChannelMember(ctx context.Context, channelId, userId string) (*ChannelMember, *Response, error) {
 	requestBody := map[string]string{"user_id": userId}
