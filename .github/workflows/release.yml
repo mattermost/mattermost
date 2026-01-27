@@ -32,15 +32,16 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Building version: $VERSION"
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.11.1'
+
       - name: Build Team Edition
         working-directory: ./server
         run: |
-          make package BUILD_ENTERPRISE=false
-
-      - name: Build Enterprise Edition
-        working-directory: ./server
-        run: |
-          make package BUILD_ENTERPRISE=true
+          make setup-go-work
+          make package BUILD_ENTERPRISE=false BUILD_NUMBER=${{ steps.version.outputs.version }}
 
       - name: List build artifacts
         run: |
@@ -48,19 +49,20 @@ jobs:
           find server/dist -name "*.tar.gz" -type f
 
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: |
-            server/dist/mattermost-team-*.tar.gz
-            server/dist/mattermost-*.tar.gz
+            server/dist/mattermost-team-${{ steps.version.outputs.version }}-linux-amd64.tar.gz
           draft: false
           prerelease: false
           generate_release_notes: true
           body: |
-            Custom Mattermost build v${{ steps.version.outputs.version }}
+            Custom Mattermost Team Edition v${{ steps.version.outputs.version }}
 
             ## Downloads
-            - **Team Edition**: `mattermost-team-${{ steps.version.outputs.version }}-linux-amd64.tar.gz`
-            - **Enterprise Edition**: `mattermost-${{ steps.version.outputs.version }}-linux-amd64.tar.gz`
+            - **Linux amd64**: `mattermost-team-${{ steps.version.outputs.version }}-linux-amd64.tar.gz`
+
+            ## Changes
+            - Aggressive real-time status tracking for improved "Last Online" accuracy
 
             See [CLAUDE.md](https://github.com/stalecontext/mattermost-extended/blob/master/CLAUDE.md) for deployment instructions.
