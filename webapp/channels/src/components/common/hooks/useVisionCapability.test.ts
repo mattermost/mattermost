@@ -24,7 +24,7 @@ describe('useVisionCapability', () => {
             {
                 entities: {
                     agents: {
-                        agents: [],
+                        agentsStatus: {available: false},
                     },
                 },
             },
@@ -39,7 +39,7 @@ describe('useVisionCapability', () => {
             {
                 entities: {
                     agents: {
-                        agents: [{id: 'agent1', displayName: 'Test Agent'}],
+                        agentsStatus: {available: true},
                     },
                 },
             },
