@@ -1,0 +1,53 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.MoreMenu__wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    // Menu button styling via Menu.Container
+    .MoreMenuButton {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        background: transparent;
+        border-radius: 8px;
+        cursor: pointer;
+        color: rgba(var(--sidebar-text-rgb), 0.72);
+
+        &:hover {
+            color: var(--sidebar-text);
+            background: rgba(var(--sidebar-text-rgb), 0.08);
+        }
+
+        &[aria-expanded="true"] {
+            color: var(--sidebar-text);
+            background: rgba(var(--sidebar-text-rgb), 0.16);
+        }
+    }
+}
+
+.MoreMenu {
+    width: 241px;
+    padding: 8px 0;
+    border: 1px solid rgba(63, 67, 80, 0.16);
+    border-radius: 4px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    background: var(--center-channel-bg);
+
+    .Menu__item {
+        height: 36px;
+        padding: 6px 16px;
+        font-family: 'Open Sans', sans-serif;
+        font-size: 14px;
+        line-height: 20px;
+    }
+
+    .Menu__divider {
+        margin: 8px 0;
+    }
+}

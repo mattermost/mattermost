@@ -1,0 +1,25 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.MoreMenuButton {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    color: rgba(var(--sidebar-text-rgb), 0.72);
+
+    &:hover {
+        color: var(--sidebar-text);
+        background: rgba(var(--sidebar-text-rgb), 0.08);
+    }
+
+    &.active {
+        color: var(--sidebar-text);
+        background: rgba(var(--sidebar-text-rgb), 0.16);
+    }
+}
