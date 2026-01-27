@@ -10,6 +10,8 @@ import {isProductSidebarEnabled} from 'selectors/views/product_sidebar';
 import {ProductSection} from './product_section';
 import {SearchButton} from './search_button';
 import {TeamSection} from './team_section';
+import {UserSection} from './user_section';
+import {UtilitySection} from './utility_section';
 
 import './product_sidebar.scss';
 
@@ -33,8 +35,8 @@ const ProductSidebar = (): JSX.Element | null => {
                 <ProductSection />
             </div>
             <div className="ProductSidebar__bottomSection">
-                {/* Utility buttons - Phase 5 */}
-                {/* User avatar - Phase 5 */}
+                <UtilitySection />
+                <UserSection />
             </div>
         </nav>
     );
