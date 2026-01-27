@@ -206,6 +206,9 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
                 return;
             }
 
+            // Fetch the new limit status to update the usage badge immediately
+            dispatch(fetchRecapLimitStatus());
+
             onExited();
             history.push(`${teamUrl}/recaps`);
         } else if (isEditMode && editScheduledRecap) {

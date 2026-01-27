@@ -2,10 +2,11 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    padding: 4px 8px;
+    padding: 2px 6px;
     border-radius: 4px;
     border: none;
-    font-size: 12px;
+    font-size: 11px;
+    line-height: 16px;
     font-weight: 600;
     cursor: pointer;
     background-color: rgba(var(--center-channel-color-rgb), 0.08);
@@ -17,7 +18,7 @@
     }
 
     .icon {
-        font-size: 14px;
+        font-size: 12px;
     }
 
     &--warning {

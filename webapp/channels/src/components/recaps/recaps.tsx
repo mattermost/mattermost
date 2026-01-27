@@ -117,7 +117,11 @@ const Recaps = () => {
             );
         }
 
-        return formatMessage({id: 'recaps.addRecap.limitReachedTooltip', defaultMessage: 'Daily limit reached'});
+        const resetTime = new Date(limitStatus.daily.reset_at);
+        return formatMessage(
+            {id: 'recaps.addRecap.limitReachedTooltip', defaultMessage: 'Daily limit reached. Resets at {time}'},
+            {time: formatTime(resetTime, {hour: 'numeric', minute: '2-digit'})}
+        );
     }, [limitStatus, isCreationBlocked, formatMessage, formatTime]);
 
     // Redirect if feature flag is disabled

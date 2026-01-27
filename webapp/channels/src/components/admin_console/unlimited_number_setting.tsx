@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import type {ChangeEvent} from 'react';
 
 import Setting from 'components/widgets/settings/setting';
@@ -41,6 +41,12 @@ const UnlimitedNumberSetting: React.FC<Props> = ({
     const isDisabled = disabled || setByEnv;
     const isUnlimited = value === -1;
 
+    const [inputValue, setInputValue] = useState<string>(isUnlimited ? '' : String(value));
+
+    useEffect(() => {
+        setInputValue(isUnlimited ? '' : String(value));
+    }, [value, isUnlimited]);
+
     const handleCheckboxChange = (e: ChangeEvent<HTMLInputElement>) => {
         const checked = e.target.checked;
         if (checked) {
@@ -51,12 +57,12 @@ const UnlimitedNumberSetting: React.FC<Props> = ({
     };
 
     const handleNumberChange = (e: ChangeEvent<HTMLInputElement>) => {
-        const parsed = parseInt(e.target.value, 10);
+        const newValue = e.target.value;
+        setInputValue(newValue);
+
+        const parsed = parseInt(newValue, 10);
         if (!isNaN(parsed) && parsed >= 1) {
             onChange(id, parsed);
-        } else if (e.target.value === '') {
-            // Allow empty input while typing, but don't call onChange with invalid value
-            // The input will show empty, user can type a new value
         }
     };
 
@@ -76,7 +82,7 @@ const UnlimitedNumberSetting: React.FC<Props> = ({
                     type='number'
                     className='form-control'
                     style={{display: 'inline-block', width: 'auto', marginRight: '16px'}}
-                    value={isUnlimited ? '' : value}
+                    value={inputValue}
                     onChange={handleNumberChange}
                     disabled={isDisabled || isUnlimited}
                     placeholder={isUnlimited ? unlimitedLabel : placeholder}

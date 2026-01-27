@@ -145,6 +145,7 @@ const RecapConfiguration = ({
                             toggled={runOnce}
                             onToggle={() => setRunOnce(!runOnce)}
                             size='btn-sm'
+                            toggleClassName='btn-toggle-primary'
                         />
                         <label
                             htmlFor='run-once-toggle'
