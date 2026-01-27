@@ -4,11 +4,13 @@
 package elasticsearch
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"testing"
 
 	elastic "github.com/elastic/go-elasticsearch/v8"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -170,5 +172,43 @@ func (s *ElasticsearchInterfaceTestSuite) TestSyncBulkIndexChannels() {
 		appErr := s.CommonTestSuite.ESImpl.SyncBulkIndexChannels(s.th.Context, []*model.Channel{channel}, getUserIDsForChannel, []string{})
 		s.Require().NotNil(appErr)
 		s.Require().Contains(appErr.Error(), "test.error")
+	})
+}
+
+func (s *ElasticsearchInterfaceTestSuite) TestTemplateCreationClientError() {
+	s.Run("Should handle error with CausedBy information from elasticsearch", func() {
+		// Invalid template request that will trigger an error with caused_by
+		invalidTemplateBody := map[string]any{
+			"index_patterns": []string{"test-invalid-*"},
+			"template": map[string]any{
+				"settings": map[string]any{
+					"analysis": map[string]any{
+						"analyzer": map[string]any{
+							"my_analyzer": map[string]any{
+								"type":      "custom",
+								"tokenizer": "nonexistent_tokenizer",
+							},
+						},
+					},
+				},
+			},
+		}
+
+		templateBytes, err := json.Marshal(invalidTemplateBody)
+		s.Require().NoError(err)
+
+		_, err = s.client.Indices.PutIndexTemplate("test-invalid-template").
+			Raw(bytes.NewReader(templateBytes)).
+			Do(s.ctx)
+
+		var esErr *types.ElasticsearchError
+		s.Require().ErrorAs(err, &esErr)
+
+		s.Require().NotNil(esErr.ErrorCause.CausedBy, "Expected CausedBy to be present")
+		s.Require().NotEmpty(esErr.ErrorCause.CausedBy.Type)
+		s.Require().NotEmpty(*esErr.ErrorCause.CausedBy.Reason)
+
+		// clean up after test
+		_, _ = s.client.Indices.DeleteIndexTemplate("test-invalid-template").Do(s.ctx)
 	})
 }
