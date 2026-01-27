@@ -20,6 +20,7 @@ describe('components/SingleImageView', () => {
             getFilePublicLink: jest.fn(),
         },
         enablePublicLink: false,
+        isFileRejected: false,
     };
 
     test('should match snapshot', () => {
