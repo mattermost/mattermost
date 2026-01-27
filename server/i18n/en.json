@@ -9909,20 +9909,8 @@
     "translation": "Unsupported autotranslation provider."
   },
   {
-    "id": "model.config.is_valid.autotranslation.timeouts.long.app_error",
-    "translation": "Invalid long timeout for autotranslation settings. Must be a positive number."
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.medium.app_error",
-    "translation": "Invalid medium timeout for autotranslation settings. Must be a positive number."
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
-    "translation": "Invalid notification timeout for autotranslation settings. Must be a positive number."
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.short.app_error",
-    "translation": "Invalid short timeout for autotranslation settings. Must be a positive number."
+    "id": "model.config.is_valid.autotranslation.timeout.app_error",
+    "translation": "Invalid timeout for autotranslation settings. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.cache_type.app_error",
