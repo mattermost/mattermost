@@ -7,7 +7,7 @@ import React from 'react';
 import useTimePostBoxIndicator from 'components/advanced_text_editor/use_post_box_indicator';
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
-import {renderWithContext, fireEvent, screen} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
 
 import CoreMenuOptions from './core_menu_options';
 
@@ -137,6 +137,8 @@ describe('CoreMenuOptions Component', () => {
         renderComponent();
 
         const tomorrowOption = screen.getByText(/Tomorrow at/);
+
+        // Use fireEvent.click here because userEvent doesn't work well with fake timers
         fireEvent.click(tomorrowOption);
 
         const expectedTimestamp = DateTime.now().

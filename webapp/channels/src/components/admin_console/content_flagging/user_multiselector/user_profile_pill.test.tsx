@@ -8,7 +8,7 @@ import type {Group} from '@mattermost/types/groups';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {fireEvent, renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import type {AutocompleteOptionType} from './user_multiselector';
@@ -110,7 +110,7 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
         expect(removeComponent).toBeInTheDocument();
     });
 
-    test('should call onClick when remove button is clicked', () => {
+    test('should call onClick when remove button is clicked', async () => {
         const mockOnClick = jest.fn();
         const propsWithClick = {
             ...baseProps,
@@ -128,7 +128,7 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
         expect(removeComponent).toBeInTheDocument();
         expect(removeComponent).toBeDefined();
 
-        fireEvent.click(removeComponent!);
+        await userEvent.click(removeComponent!);
         expect(mockOnClick).toHaveBeenCalledTimes(1);
     });
 

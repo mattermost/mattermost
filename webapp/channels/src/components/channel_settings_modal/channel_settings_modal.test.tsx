@@ -1,13 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, waitFor} from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import {General} from 'mattermost-redux/constants';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, waitFor, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelSettingsModal from './channel_settings_modal';

@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, fireEvent, act, waitFor} from '@testing-library/react';
 import React from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -9,7 +8,7 @@ import type {Channel} from '@mattermost/types/channels';
 import {favoriteChannel, unfavoriteChannel} from 'mattermost-redux/actions/channels';
 import * as channelsSelectors from 'mattermost-redux/selectors/entities/channels';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {act, fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import type {A11yFocusEventDetail} from 'utils/constants';
 import {A11yCustomEventTypes} from 'utils/constants';
 
@@ -66,7 +65,7 @@ describe('ChannelHeaderTitleFavorite Component', () => {
         return renderWithContext(<ChannelHeaderTitleFavorite/>);
     }
 
-    it('should dispatch favoriteChannel when "Add to Favorites" button is clicked', () => {
+    it('should dispatch favoriteChannel when "Add to Favorites" button is clicked', async () => {
         isCurrentChannelFavoriteMock.mockReturnValue(false);
         getCurrentChannelMock.mockReturnValue(activeChannel);
 
@@ -79,7 +78,7 @@ describe('ChannelHeaderTitleFavorite Component', () => {
         renderComponent();
 
         const button = screen.getByRole('button', {name: ADD_TO_FAVORITES_REGEX});
-        fireEvent.click(button);
+        await userEvent.click(button);
 
         expect(dispatchMock).toHaveBeenCalledTimes(1);
         expect(dispatchMock).toHaveBeenCalledWith({
@@ -88,7 +87,7 @@ describe('ChannelHeaderTitleFavorite Component', () => {
         });
     });
 
-    it('should dispatch unfavoriteChannel when "Remove from Favorites" button is clicked', () => {
+    it('should dispatch unfavoriteChannel when "Remove from Favorites" button is clicked', async () => {
         isCurrentChannelFavoriteMock.mockReturnValue(true);
         getCurrentChannelMock.mockReturnValue(activeChannel);
 
@@ -101,7 +100,7 @@ describe('ChannelHeaderTitleFavorite Component', () => {
         renderComponent();
 
         const button = screen.getByRole('button', {name: REMOVE_FROM_FAVORITES_REGEX});
-        fireEvent.click(button);
+        await userEvent.click(button);
 
         expect(dispatchMock).toHaveBeenCalledTimes(1);
         expect(dispatchMock).toHaveBeenCalledWith({
@@ -206,10 +205,11 @@ describe('ChannelHeaderTitleFavorite Component', () => {
         const button = screen.getByRole('button', {name: ADD_TO_FAVORITES_REGEX});
 
         // Ensure the ref is set by triggering a focus event
+        // fireEvent.focus used because userEvent doesn't have direct focus/blur methods
         fireEvent.focus(button);
 
-        act(() => {
-            fireEvent.click(button);
+        await act(async () => {
+            await userEvent.click(button);
         });
 
         expect(dispatchMock).toHaveBeenCalledWith({

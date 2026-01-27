@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render, screen, fireEvent} from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import React from 'react';
 import type {ComponentProps} from 'react';
+
+import {fireEvent, render, screen, userEvent} from 'tests/react_testing_utils';
 
 import AdvancedTextbox from './advanced_textbox';
 
@@ -274,6 +274,8 @@ describe('AdvancedTextbox', () => {
 
         // Focus the textbox
         const textbox = screen.getByTestId('mock-textbox');
+
+        // fireEvent.focus used because userEvent doesn't have direct focus/blur methods
         fireEvent.focus(textbox);
 
         // Label should now have active class
@@ -286,6 +288,8 @@ describe('AdvancedTextbox', () => {
 
         // Focus the textbox
         const textbox = screen.getByTestId('mock-textbox');
+
+        // fireEvent.focus/blur used because userEvent doesn't have direct focus/blur methods
         fireEvent.focus(textbox);
 
         // Label should have active class
@@ -293,6 +297,7 @@ describe('AdvancedTextbox', () => {
         expect(label).toHaveClass('AdvancedTextbox__label--active');
 
         // Blur the textbox
+        // fireEvent.blur used because userEvent doesn't have direct focus/blur methods
         fireEvent.blur(textbox);
 
         // Label should not have active class
@@ -305,6 +310,8 @@ describe('AdvancedTextbox', () => {
 
         // Focus the textbox
         const textbox = screen.getByTestId('mock-textbox');
+
+        // fireEvent.focus/blur used because userEvent doesn't have direct focus/blur methods
         fireEvent.focus(textbox);
 
         // Label should have active class
@@ -312,6 +319,7 @@ describe('AdvancedTextbox', () => {
         expect(label).toHaveClass('AdvancedTextbox__label--active');
 
         // Blur the textbox
+        // fireEvent.blur used because userEvent doesn't have direct focus/blur methods
         fireEvent.blur(textbox);
 
         // Label should still have active class because there's a value

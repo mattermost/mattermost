@@ -9,7 +9,7 @@ import * as modalActions from 'actions/views/modals';
 import ChannelNotificationsModal from 'components/channel_notifications_modal';
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
-import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {ModalIdentifiers} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -27,7 +27,7 @@ describe('components/ChannelHeaderMenu/MenuItems/Notification', () => {
         jest.clearAllMocks();
     });
 
-    test('renders the component correctly, handle click event', () => {
+    test('renders the component correctly, handle click event', async () => {
         const channel = TestHelper.getChannelMock();
         const user = TestHelper.getUserMock();
 
@@ -43,7 +43,7 @@ describe('components/ChannelHeaderMenu/MenuItems/Notification', () => {
         const menuItemMG = screen.getByText('Notification Preferences');
         expect(menuItemMG).toBeInTheDocument();
 
-        fireEvent.click(menuItemMG); // Simulate click on the menu item
+        await userEvent.click(menuItemMG); // Simulate click on the menu item
         expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
         expect(modalActions.openModal).toHaveBeenCalledTimes(1);
         expect(modalActions.openModal).toHaveBeenCalledWith({

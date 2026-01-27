@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {renderWithContext, fireEvent, screen} from 'tests/react_testing_utils';
+import {renderWithContext, userEvent, screen} from 'tests/react_testing_utils';
 
 import BurnOnReadLabel from './burn_on_read_label';
 
@@ -62,7 +62,7 @@ describe('BurnOnReadLabel', () => {
         expect(closeButton).not.toBeInTheDocument();
     });
 
-    it('should call onRemove when close button is clicked', () => {
+    it('should call onRemove when close button is clicked', async () => {
         const onRemove = jest.fn();
         renderWithContext(
             <BurnOnReadLabel
@@ -72,7 +72,7 @@ describe('BurnOnReadLabel', () => {
         );
 
         const closeButton = screen.getByRole('button');
-        fireEvent.click(closeButton);
+        await userEvent.click(closeButton);
 
         expect(onRemove).toHaveBeenCalledTimes(1);
     });

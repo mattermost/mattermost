@@ -34,6 +34,8 @@ describe('components/SingleImageView', () => {
         expect(img).toBeInTheDocument();
         Object.defineProperty(img, 'naturalHeight', {value: 100, configurable: true});
         Object.defineProperty(img, 'naturalWidth', {value: 100, configurable: true});
+
+        // fireEvent.load used because userEvent doesn't support image loading events
         fireEvent.load(img!);
         expect(container).toMatchSnapshot();
     });
@@ -56,6 +58,8 @@ describe('components/SingleImageView', () => {
         expect(img).toBeInTheDocument();
         Object.defineProperty(img, 'naturalHeight', {value: 100, configurable: true});
         Object.defineProperty(img, 'naturalWidth', {value: 100, configurable: true});
+
+        // fireEvent.load used because userEvent doesn't support image loading events
         fireEvent.load(img!);
         expect(container).toMatchSnapshot();
     });
@@ -71,6 +75,8 @@ describe('components/SingleImageView', () => {
         // Simulate loaded state
         Object.defineProperty(img, 'naturalHeight', {value: 100, configurable: true});
         Object.defineProperty(img, 'naturalWidth', {value: 100, configurable: true});
+
+        // fireEvent.load used because userEvent doesn't support image loading events
         fireEvent.load(img!);
 
         // Click the image
@@ -110,6 +116,8 @@ describe('components/SingleImageView', () => {
         expect(img).toBeInTheDocument();
         Object.defineProperty(img, 'naturalHeight', {value: 100, configurable: true});
         Object.defineProperty(img, 'naturalWidth', {value: 100, configurable: true});
+
+        // fireEvent.load used because userEvent doesn't support image loading events
         fireEvent.load(img!);
 
         // After load, should have image-fade-in class (loaded = true)

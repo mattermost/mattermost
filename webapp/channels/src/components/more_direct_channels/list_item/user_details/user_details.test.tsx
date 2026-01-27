@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import type {UserProfile} from '@mattermost/types/users';
 
-import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, waitFor, userEvent} from 'tests/react_testing_utils';
 
 import UserDetails from './user_details';
 

@@ -77,7 +77,7 @@ describe('components/MarkdownImage', () => {
         expect(img).toBeInTheDocument();
         expect(img).not.toHaveClass('broken-image');
 
-        // Simulate load failure
+        // fireEvent.error used because userEvent doesn't support image loading events
         fireEvent.error(img!);
 
         // After load failure, image should have broken-image class
@@ -101,7 +101,7 @@ describe('components/MarkdownImage', () => {
 
         const img = container.querySelector('img');
 
-        // Simulate load failure
+        // fireEvent.error used because userEvent doesn't support image loading events
         fireEvent.error(img!);
         expect(container.querySelector('img')).toHaveClass('broken-image');
 
@@ -161,7 +161,7 @@ describe('components/MarkdownImage', () => {
         Object.defineProperty(img, 'naturalHeight', {value: 90, configurable: true});
         Object.defineProperty(img, 'naturalWidth', {value: 1041, configurable: true});
 
-        // Simulate successful load
+        // fireEvent.load used because userEvent doesn't support image loading events
         fireEvent.load(img!);
 
         // After load, should not have loading class and onImageLoaded should be called
@@ -186,7 +186,7 @@ describe('components/MarkdownImage', () => {
         Object.defineProperty(img, 'naturalHeight', {value: 90, configurable: true});
         Object.defineProperty(img, 'naturalWidth', {value: 100, configurable: true});
 
-        // Simulate load
+        // fireEvent.load used because userEvent doesn't support image loading events
         fireEvent.load(img!);
 
         expect(container).toMatchSnapshot();
@@ -204,7 +204,7 @@ describe('components/MarkdownImage', () => {
         Object.defineProperty(img, 'naturalHeight', {value: 90, configurable: true});
         Object.defineProperty(img, 'naturalWidth', {value: 1041, configurable: true});
 
-        // Simulate load
+        // fireEvent.load used because userEvent doesn't support image loading events
         fireEvent.load(img!);
 
         // After load, should have hover and cursor classes for clickable preview
@@ -226,7 +226,7 @@ describe('components/MarkdownImage', () => {
         Object.defineProperty(img, 'naturalHeight', {value: 90, configurable: true});
         Object.defineProperty(img, 'naturalWidth', {value: 1041, configurable: true});
 
-        // Simulate load
+        // fireEvent.load used because userEvent doesn't support image loading events
         fireEvent.load(img!);
 
         // When imageIsLink, should have no-border class and not cursor--pointer
@@ -248,7 +248,7 @@ describe('components/MarkdownImage', () => {
         Object.defineProperty(img, 'naturalHeight', {value: 90, configurable: true});
         Object.defineProperty(img, 'naturalWidth', {value: 1041, configurable: true});
 
-        // Simulate load
+        // fireEvent.load used because userEvent doesn't support image loading events
         fireEvent.load(img!);
 
         // Click the image to trigger showModal
@@ -269,7 +269,7 @@ describe('components/MarkdownImage', () => {
         Object.defineProperty(img, 'naturalHeight', {value: 90, configurable: true});
         Object.defineProperty(img, 'naturalWidth', {value: 1041, configurable: true});
 
-        // Simulate load
+        // fireEvent.load used because userEvent doesn't support image loading events
         fireEvent.load(img!);
 
         // After load, should have scaled-down class
@@ -300,7 +300,7 @@ describe('components/MarkdownImage', () => {
         Object.defineProperty(img, 'naturalHeight', {value: 76, configurable: true});
         Object.defineProperty(img, 'naturalWidth', {value: 50, configurable: true});
 
-        // Simulate load to get final state
+        // fireEvent.load used because userEvent doesn't support image loading events
         fireEvent.load(img!);
 
         expect(img).toHaveAttribute('width', '50');
@@ -331,7 +331,7 @@ describe('components/MarkdownImage', () => {
         Object.defineProperty(img, 'naturalHeight', {value: 250, configurable: true});
         Object.defineProperty(img, 'naturalWidth', {value: 50, configurable: true});
 
-        // Simulate load
+        // fireEvent.load used because userEvent doesn't support image loading events
         fireEvent.load(img!);
 
         expect(container).toMatchSnapshot();
@@ -360,7 +360,7 @@ describe('components/MarkdownImage', () => {
         Object.defineProperty(img, 'naturalHeight', {value: 250, configurable: true});
         Object.defineProperty(img, 'naturalWidth', {value: 50, configurable: true});
 
-        // Simulate load
+        // fireEvent.load used because userEvent doesn't support image loading events
         fireEvent.load(img!);
 
         expect(container).toMatchSnapshot();

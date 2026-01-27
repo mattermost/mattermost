@@ -131,6 +131,7 @@ describe('YoutubeVideo', () => {
             );
 
             // Simulate an image error
+            // fireEvent.error used because userEvent doesn't support image loading events
             fireEvent.error(thumbnail!);
 
             // Verify that hqdefault is used after error (useMaxResThumbnail is now false)

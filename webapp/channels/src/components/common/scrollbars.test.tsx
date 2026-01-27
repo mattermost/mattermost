@@ -33,6 +33,7 @@ describe('Scrollbars', () => {
         );
 
         // Ideally, we'd actually scroll the content of the element, but jsdom doesn't implement scroll events
+        // fireEvent.scroll used because userEvent doesn't support scroll events
         fireEvent.scroll(document.querySelector('.simplebar-content-wrapper')!);
 
         expect(onScroll).toHaveBeenCalled();

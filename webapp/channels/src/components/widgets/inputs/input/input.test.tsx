@@ -1,11 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {act, screen, fireEvent} from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import React from 'react';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {act, fireEvent, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import Input from './input';
 
@@ -74,6 +72,7 @@ describe('components/widgets/inputs/Input', () => {
 
             const input = container.querySelector('input') as HTMLInputElement;
 
+            // fireEvent.focus/blur used because userEvent doesn't have direct focus/blur methods
             await act(async () => {
                 fireEvent.focus(input);
                 fireEvent.blur(input);
@@ -100,6 +99,7 @@ describe('components/widgets/inputs/Input', () => {
             const button = document.createElement('button');
             document.body.appendChild(button);
 
+            // fireEvent.focus/blur used because userEvent doesn't have direct focus/blur methods
             await act(async () => {
                 fireEvent.focus(input);
 
@@ -119,7 +119,7 @@ describe('components/widgets/inputs/Input', () => {
 
             // Click the button
             await act(async () => {
-                fireEvent.click(button);
+                await userEvent.click(button);
             });
 
             // Should validate after click

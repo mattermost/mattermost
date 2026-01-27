@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, waitFor, fireEvent} from '@testing-library/react';
 import React from 'react';
 
 import type {UserProfile} from '@mattermost/types/users';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import TestResultsModal from './test_modal';
@@ -147,7 +146,8 @@ describe('TestResultsModal', () => {
 
         // Perform search
         const searchInput = screen.getByTestId('search-input');
-        fireEvent.change(searchInput, {target: {value: 'test search'}});
+        await userEvent.clear(searchInput);
+        await userEvent.type(searchInput, 'test search');
 
         await waitFor(() => {
             expect(mockSearchUsers).toHaveBeenCalledWith('test search', '', 50);
@@ -172,7 +172,7 @@ describe('TestResultsModal', () => {
 
         // Click next page - this should trigger pagination with page=2 which translates to 20 users per page
         const nextPageButton = screen.getByTestId('next-page-button');
-        fireEvent.click(nextPageButton);
+        await userEvent.click(nextPageButton);
 
         // The nextPage function gets called with page 1 (second page), but since it's above USERS_PER_PAGE (10)
         // but less than USERS_TO_FETCH (50), it should use the cursor logic and call with the last user's ID
@@ -199,7 +199,7 @@ describe('TestResultsModal', () => {
 
         // Click next page while loading
         const nextPageButton = screen.getByTestId('next-page-button');
-        fireEvent.click(nextPageButton);
+        await userEvent.click(nextPageButton);
 
         // Should not make additional call while loading
         expect(mockSearchUsers).toHaveBeenCalledTimes(1);
@@ -241,7 +241,7 @@ describe('TestResultsModal', () => {
 
         // Find and click the close button
         const closeButton = screen.getByLabelText('Close');
-        fireEvent.click(closeButton);
+        await userEvent.click(closeButton);
 
         await waitFor(() => {
             expect(mockOnExited).toHaveBeenCalled();
@@ -302,15 +302,16 @@ describe('TestResultsModal', () => {
 
         // Perform first search
         const searchInput = screen.getByTestId('search-input');
-        fireEvent.change(searchInput, {target: {value: 'search1'}});
+        await userEvent.clear(searchInput);
+        await userEvent.type(searchInput, 'search1');
 
         await waitFor(() => {
             expect(mockSearchUsers).toHaveBeenCalledWith('search1', '', 50);
         });
 
         // Perform second search
-        fireEvent.change(searchInput, {target: {value: ''}});
-        fireEvent.change(searchInput, {target: {value: 'search2'}});
+        await userEvent.clear(searchInput);
+        await userEvent.type(searchInput, 'search2');
 
         await waitFor(() => {
             expect(mockSearchUsers).toHaveBeenCalledWith('search2', '', 50);

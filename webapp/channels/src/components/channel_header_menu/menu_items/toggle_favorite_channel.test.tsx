@@ -8,7 +8,7 @@ import * as channelActions from 'mattermost-redux/actions/channels';
 
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
-import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ToggleFavoriteChannel from './toggle_favorite_channel';
@@ -26,7 +26,7 @@ describe('components/ChannelHeaderMenu/MenuItems/ToggleFavoriteChannel', () => {
         jest.clearAllMocks();
     });
 
-    test('renders the component correctly, handles correct click event, is favorite false', () => {
+    test('renders the component correctly, handles correct click event, is favorite false', async () => {
         renderWithContext(
             <WithTestMenuContext>
                 <ToggleFavoriteChannel
@@ -39,13 +39,13 @@ describe('components/ChannelHeaderMenu/MenuItems/ToggleFavoriteChannel', () => {
         const menuItem = screen.getByText('Add to Favorites');
         expect(menuItem).toBeInTheDocument();
 
-        fireEvent.click(menuItem); // Simulate click on the menu item
+        await userEvent.click(menuItem); // Simulate click on the menu item
         // expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
         expect(channelActions.favoriteChannel).toHaveBeenCalledTimes(1);
         expect(channelActions.favoriteChannel).toHaveBeenCalledWith(channel.id);
     });
 
-    test('renders the component correctly, handles correct click event, is favorite true', () => {
+    test('renders the component correctly, handles correct click event, is favorite true', async () => {
         renderWithContext(
             <WithTestMenuContext>
                 <ToggleFavoriteChannel
@@ -58,7 +58,7 @@ describe('components/ChannelHeaderMenu/MenuItems/ToggleFavoriteChannel', () => {
         const menuItem = screen.getByText('Remove from Favorites');
         expect(menuItem).toBeInTheDocument();
 
-        fireEvent.click(menuItem); // Simulate click on the menu item
+        await userEvent.click(menuItem); // Simulate click on the menu item
         expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
         expect(channelActions.unfavoriteChannel).toHaveBeenCalledTimes(1);
     });

@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, fireEvent} from '@testing-library/react';
 import React from 'react';
 import type {MultiValueProps} from 'react-select/dist/declarations/src/components/MultiValue';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import {ReasonOption} from './reason_option';
 
@@ -55,11 +54,11 @@ describe('ReasonOption', () => {
         expect(removeButton).toBeInTheDocument();
     });
 
-    test('should call onClick when remove button is clicked', () => {
+    test('should call onClick when remove button is clicked', async () => {
         const {container} = renderWithContext(<ReasonOption {...mockProps}/>);
 
         const removeButton = container.querySelector('.Remove');
-        fireEvent.click(removeButton!);
+        await userEvent.click(removeButton!);
 
         expect(mockProps.removeProps.onClick).toHaveBeenCalledTimes(1);
     });

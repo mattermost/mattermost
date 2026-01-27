@@ -10,7 +10,7 @@ import LocalStorageStore from 'stores/local_storage_store';
 import DeleteChannelModal from 'components/delete_channel_modal';
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
-import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {ModalIdentifiers} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -79,7 +79,7 @@ describe('components/ChannelHeaderMenu/MenuItems/ArchiveChannel', () => {
         expect(menuItem).toBeInTheDocument(); // Check if text "Add Members" renders
     });
 
-    test('dispatches openModal action on click with default channel', () => {
+    test('dispatches openModal action on click with default channel', async () => {
         renderWithContext(
             <WithTestMenuContext>
                 <ArchiveChannel channel={channel}/>
@@ -88,7 +88,7 @@ describe('components/ChannelHeaderMenu/MenuItems/ArchiveChannel', () => {
 
         const menuItem = screen.getByText('Archive Channel');
         expect(menuItem).toBeInTheDocument(); // Check if text "Add Members" renders
-        fireEvent.click(menuItem); // Simulate click on the menu item
+        await userEvent.click(menuItem); // Simulate click on the menu item
 
         expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
         expect(modalActions.openModal).toHaveBeenCalledTimes(1);

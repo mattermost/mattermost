@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, waitFor} from '@testing-library/react';
 import React from 'react';
 
 import type {AllowedIPRange} from '@mattermost/types/config';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import IPFilteringAddOrEditModal from './add_edit_ip_filter_modal';
 
@@ -73,9 +72,11 @@ describe('IPFilteringAddOrEditModal', () => {
             />,
         );
 
-        fireEvent.change(getByLabelText('Enter a name for this rule'), {target: {value: 'Test IP Filter 2'}});
-        fireEvent.change(getByLabelText('Enter IP Range'), {target: {value: '10.0.0.0/8'}});
-        fireEvent.click(getByTestId('save-add-edit-button'));
+        await userEvent.clear(getByLabelText('Enter a name for this rule'));
+        await userEvent.type(getByLabelText('Enter a name for this rule'), 'Test IP Filter 2');
+        await userEvent.clear(getByLabelText('Enter IP Range'));
+        await userEvent.type(getByLabelText('Enter IP Range'), '10.0.0.0/8');
+        await userEvent.click(getByTestId('save-add-edit-button'));
 
         await waitFor(() => {
             expect(onSave).toHaveBeenCalledWith({
@@ -96,9 +97,11 @@ describe('IPFilteringAddOrEditModal', () => {
             />,
         );
 
-        fireEvent.change(getByLabelText('Enter a name for this rule'), {target: {value: 'Test IP Filter 2'}});
-        fireEvent.change(getByLabelText('Enter IP Range'), {target: {value: '10.0.0.0/8'}});
-        fireEvent.click(getByTestId('save-add-edit-button'));
+        await userEvent.clear(getByLabelText('Enter a name for this rule'));
+        await userEvent.type(getByLabelText('Enter a name for this rule'), 'Test IP Filter 2');
+        await userEvent.clear(getByLabelText('Enter IP Range'));
+        await userEvent.type(getByLabelText('Enter IP Range'), '10.0.0.0/8');
+        await userEvent.click(getByTestId('save-add-edit-button'));
 
         await waitFor(() => {
             expect(onSave).toHaveBeenCalledWith({
@@ -118,9 +121,12 @@ describe('IPFilteringAddOrEditModal', () => {
             />,
         );
 
-        fireEvent.change(getByLabelText('Enter IP Range'), {target: {value: 'invalid-cidr'}});
+        await userEvent.clear(getByLabelText('Enter IP Range'));
+        await userEvent.type(getByLabelText('Enter IP Range'), 'invalid-cidr');
+
+        // fireEvent.blur used because userEvent doesn't have direct focus/blur methods
         fireEvent.blur(getByLabelText('Enter IP Range'));
-        fireEvent.click(getByTestId('save-add-edit-button'));
+        await userEvent.click(getByTestId('save-add-edit-button'));
 
         await waitFor(() => {
             expect(getByText('Invalid CIDR address range')).toBeInTheDocument();
@@ -129,14 +135,17 @@ describe('IPFilteringAddOrEditModal', () => {
         });
     });
 
-    test('disables the Save button when an invalid CIDR is entered', () => {
+    test('disables the Save button when an invalid CIDR is entered', async () => {
         const {getByLabelText, getByTestId} = renderWithContext(
             <IPFilteringAddOrEditModal
                 {...baseProps}
             />,
         );
 
-        fireEvent.change(getByLabelText('Enter IP Range'), {target: {value: 'invalid-cidr'}});
+        await userEvent.clear(getByLabelText('Enter IP Range'));
+        await userEvent.type(getByLabelText('Enter IP Range'), 'invalid-cidr');
+
+        // fireEvent.blur used because userEvent doesn't have direct focus/blur methods
         fireEvent.blur(getByLabelText('Enter IP Range'));
 
         expect(getByTestId('save-add-edit-button')).toBeDisabled();

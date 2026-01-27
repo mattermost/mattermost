@@ -772,6 +772,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         await userEvent.type(input, 'ftp://invalid-scheme');
 
         // Focus and blur explicitly to trigger validation without relatedTarget
+        // fireEvent.focus/blur used because userEvent doesn't have direct focus/blur methods
         await act(async () => {
             fireEvent.focus(input);
             fireEvent.blur(input, {relatedTarget: null});
@@ -816,6 +817,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         await userEvent.type(input, 'invalid-email');
 
         // Focus and blur explicitly to trigger validation without relatedTarget
+        // fireEvent.focus/blur used because userEvent doesn't have direct focus/blur methods
         await act(async () => {
             fireEvent.focus(input);
             fireEvent.blur(input, {relatedTarget: null});

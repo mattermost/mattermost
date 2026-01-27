@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, fireEvent, waitFor} from '@testing-library/react';
 import React from 'react';
 
 import type {TeamReviewerSetting} from '@mattermost/types/config';
@@ -9,7 +8,7 @@ import type {Team} from '@mattermost/types/teams';
 
 import {searchTeams} from 'mattermost-redux/actions/teams';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import TeamReviewersSection from './team_reviewers_section';
@@ -88,7 +87,8 @@ describe('TeamReviewersSection', () => {
         });
 
         const searchInput = screen.getByRole('textbox');
-        fireEvent.change(searchInput, {target: {value: 'search term'}});
+        await userEvent.clear(searchInput);
+        await userEvent.type(searchInput, 'search term');
 
         await waitFor(() => {
             expect(mockSearchTeams).toHaveBeenCalledWith('search term', {page: 0, per_page: 10});
@@ -120,7 +120,7 @@ describe('TeamReviewersSection', () => {
         });
 
         const nextButton = screen.getByRole('button', {name: /next/i});
-        fireEvent.click(nextButton);
+        await userEvent.click(nextButton);
 
         await waitFor(() => {
             expect(mockSearchTeams).toHaveBeenCalledWith('', {page: 1, per_page: 10});
@@ -153,7 +153,7 @@ describe('TeamReviewersSection', () => {
         });
 
         const nextButton = screen.getByRole('button', {name: /Next page/i});
-        fireEvent.click(nextButton);
+        await userEvent.click(nextButton);
 
         await waitFor(() => {
             expect(mockSearchTeams).toHaveBeenCalledWith('', {page: 1, per_page: 10});
@@ -161,7 +161,7 @@ describe('TeamReviewersSection', () => {
 
         // Then go back to previous page
         const prevButton = screen.getByRole('button', {name: /Previous page/i});
-        fireEvent.click(prevButton);
+        await userEvent.click(prevButton);
 
         await waitFor(() => {
             expect(mockSearchTeams).toHaveBeenCalledWith('', {page: 0, per_page: 10});
@@ -192,7 +192,7 @@ describe('TeamReviewersSection', () => {
         });
 
         const toggle = screen.getAllByRole('button', {name: /enable or disable content reviewers for this team/i})[0];
-        fireEvent.click(toggle);
+        await userEvent.click(toggle);
 
         expect(onChange).toHaveBeenCalledWith({
             team1: {
@@ -233,7 +233,7 @@ describe('TeamReviewersSection', () => {
         });
 
         const toggle = screen.getAllByRole('button', {name: /enable or disable content reviewers for this team/i})[0];
-        fireEvent.click(toggle);
+        await userEvent.click(toggle);
 
         expect(onChange).toHaveBeenCalledWith({
             team1: {
@@ -327,7 +327,7 @@ describe('TeamReviewersSection', () => {
 
         // Go to next page
         const nextButton = screen.getByRole('button', {name: /next/i});
-        fireEvent.click(nextButton);
+        await userEvent.click(nextButton);
 
         await waitFor(() => {
             expect(mockSearchTeams).toHaveBeenCalledWith('', {page: 1, per_page: 10});
@@ -335,7 +335,8 @@ describe('TeamReviewersSection', () => {
 
         // Search - should reset to page 0
         const searchInput = screen.getByRole('textbox');
-        fireEvent.change(searchInput, {target: {value: 'search'}});
+        await userEvent.clear(searchInput);
+        await userEvent.type(searchInput, 'search');
 
         await waitFor(() => {
             expect(mockSearchTeams).toHaveBeenCalledWith('search', {page: 0, per_page: 10});
@@ -388,7 +389,7 @@ describe('TeamReviewersSection', () => {
         const toggle = screen.getAllByRole('button', {name: /enable or disable content reviewers for this team/i})[0];
 
         // First click - enable
-        fireEvent.click(toggle);
+        await userEvent.click(toggle);
         expect(onChange).toHaveBeenCalledWith({
             team1: {
                 Enabled: true,
@@ -416,7 +417,7 @@ describe('TeamReviewersSection', () => {
         const updatedToggle = screen.getAllByRole('button', {name: /enable or disable content reviewers for this team/i})[0];
 
         // Second click - disable
-        fireEvent.click(updatedToggle);
+        await userEvent.click(updatedToggle);
         expect(onChange).toHaveBeenCalledWith({
             team1: {
                 Enabled: true,
@@ -454,7 +455,7 @@ describe('TeamReviewersSection', () => {
         });
 
         const disableForAllButton = screen.getByTestId('disableForAllTeamsButton');
-        fireEvent.click(disableForAllButton);
+        await userEvent.click(disableForAllButton);
 
         expect(onChange).toHaveBeenCalledWith({
             team1: {

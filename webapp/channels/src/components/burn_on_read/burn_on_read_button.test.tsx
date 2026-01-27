@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {renderWithContext, fireEvent, screen} from 'tests/react_testing_utils';
+import {renderWithContext, userEvent, screen} from 'tests/react_testing_utils';
 
 import BurnOnReadButton from './burn_on_read_button';
 
@@ -46,7 +46,7 @@ describe('BurnOnReadButton', () => {
         expect(button).toHaveClass('control');
     });
 
-    it('should call onToggle with true when clicked while disabled', () => {
+    it('should call onToggle with true when clicked while disabled', async () => {
         const onToggle = jest.fn();
         renderWithContext(
             <BurnOnReadButton
@@ -57,13 +57,13 @@ describe('BurnOnReadButton', () => {
         );
 
         const button = screen.getByRole('button');
-        fireEvent.click(button);
+        await userEvent.click(button);
 
         expect(onToggle).toHaveBeenCalledTimes(1);
         expect(onToggle).toHaveBeenCalledWith(true);
     });
 
-    it('should call onToggle with false when clicked while enabled', () => {
+    it('should call onToggle with false when clicked while enabled', async () => {
         const onToggle = jest.fn();
         renderWithContext(
             <BurnOnReadButton
@@ -74,7 +74,7 @@ describe('BurnOnReadButton', () => {
         );
 
         const button = screen.getByRole('button');
-        fireEvent.click(button);
+        await userEvent.click(button);
 
         expect(onToggle).toHaveBeenCalledTimes(1);
         expect(onToggle).toHaveBeenCalledWith(false);

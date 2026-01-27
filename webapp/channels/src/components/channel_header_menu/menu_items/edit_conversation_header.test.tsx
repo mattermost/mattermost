@@ -9,7 +9,7 @@ import * as modalActions from 'actions/views/modals';
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
-import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {ModalIdentifiers} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -28,7 +28,7 @@ describe('components/ChannelHeaderMenu/MenuItems/EditConversationHeader', () => 
     });
     const channel = TestHelper.getChannelMock();
 
-    test('renders the component correctly, handle click event', () => {
+    test('renders the component correctly, handle click event', async () => {
         renderWithContext(
             <WithTestMenuContext>
                 <EditConversationHeader channel={channel}/>
@@ -38,7 +38,7 @@ describe('components/ChannelHeaderMenu/MenuItems/EditConversationHeader', () => 
         const menuItem = screen.getByText('Edit Header');
         expect(menuItem).toBeInTheDocument();
 
-        fireEvent.click(menuItem); // Simulate click on the menu item
+        await userEvent.click(menuItem); // Simulate click on the menu item
         expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
         expect(modalActions.openModal).toHaveBeenCalledTimes(1);
         expect(modalActions.openModal).toHaveBeenCalledWith({

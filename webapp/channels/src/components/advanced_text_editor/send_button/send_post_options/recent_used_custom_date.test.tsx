@@ -6,7 +6,7 @@ import React from 'react';
 
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
-import {renderWithContext, fireEvent, screen} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
 import {scheduledPosts} from 'utils/constants';
 
 import RecentUsedCustomDate from './recent_used_custom_date';
@@ -134,6 +134,8 @@ describe('CoreMenuOptions Component', () => {
         renderComponent(state, handleOnSelectMock);
 
         const recentCustomOption = screen.getByText(recentUsedCustomDateString);
+
+        // Use fireEvent.click here because userEvent doesn't work well with fake timers
         fireEvent.click(recentCustomOption);
 
         expect(handleOnSelectMock).toHaveBeenCalledWith(expect.anything(), recentTimestamp);

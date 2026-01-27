@@ -8,7 +8,7 @@ import * as rhsActions from 'actions/views/rhs';
 
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
-import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {RHSStates} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -26,7 +26,7 @@ describe('components/ChannelHeaderMenu/MenuItems/ToggleInfo', () => {
         jest.clearAllMocks();
     });
 
-    test('renders the component correctly, handles click event, rhs closed', () => {
+    test('renders the component correctly, handles click event, rhs closed', async () => {
         const state = {
             views: {
                 rhs: {
@@ -45,13 +45,13 @@ describe('components/ChannelHeaderMenu/MenuItems/ToggleInfo', () => {
         const menuItem = screen.getByText('View Info');
         expect(menuItem).toBeInTheDocument();
 
-        fireEvent.click(menuItem); // Simulate click on the menu item
+        await userEvent.click(menuItem); // Simulate click on the menu item
         // expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
         expect(rhsActions.showChannelInfo).toHaveBeenCalledTimes(1);
         expect(rhsActions.showChannelInfo).toHaveBeenCalledWith(channel.id);
     });
 
-    test('renders the component correctly, handles correct click event, rhs open', () => {
+    test('renders the component correctly, handles correct click event, rhs open', async () => {
         const state = {
             views: {
                 rhs: {
@@ -72,7 +72,7 @@ describe('components/ChannelHeaderMenu/MenuItems/ToggleInfo', () => {
         const menuItem = screen.getByText('Close Info');
         expect(menuItem).toBeInTheDocument();
 
-        fireEvent.click(menuItem); // Simulate click on the menu item
+        await userEvent.click(menuItem); // Simulate click on the menu item
         expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
         expect(rhsActions.closeRightHandSide).toHaveBeenCalledTimes(1);
     });
