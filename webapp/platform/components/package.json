@@ -6,6 +6,7 @@
   "types": "dist/index.d.ts",
   "styles": "dist/index.esm.css",
   "scripts": {
+    "postinstall": "npm run build",
     "build": "rollup -c",
     "check": "eslint --ext .js,.jsx,.tsx,.ts ./src --quiet",
     "check-types": "tsc -b",

@@ -86,12 +86,13 @@
     }
   },
   "scripts": {
+    "postinstall": "npm run build",
     "build": "parcel build --no-optimize",
     "check": "npm run check:eslint && npm run check:stylelint",
     "check:eslint": "eslint --ext .js,.jsx,.tsx,.ts ./src --quiet",
     "check:stylelint": "stylelint \"**/*.{css,scss}\"",
-    "fix": "eslint --ext .js,.jsx,.tsx,.ts ./src --quiet --fix && stylelint \"**/*.{css,scss}\" --fix",
     "check-types": "tsc -b",
+    "fix": "eslint --ext .js,.jsx,.tsx,.ts ./src --quiet --fix && stylelint \"**/*.{css,scss}\" --fix",
     "run": "parcel watch",
     "test": "jest",
     "test-ci": "jest --ci --forceExit --detectOpenHandles --maxWorkers=100% --logHeapUsage",
