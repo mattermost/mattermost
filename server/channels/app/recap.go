@@ -188,6 +188,11 @@ func (a *App) ProcessRecapChannel(rctx request.CTX, recapID, channelID, userID, 
 		Success:   false,
 	}
 
+	// Verify user has permission to read this channel (defense-in-depth)
+	if hasPermission, _ := a.HasPermissionToChannel(rctx, userID, channelID, model.PermissionReadChannel); !hasPermission {
+		return result, model.NewAppError("ProcessRecapChannel", "app.recap.channel_permission_denied.app_error", nil, "user_id="+userID+" channel_id="+channelID, http.StatusForbidden)
+	}
+
 	// Get channel info
 	channel, err := a.GetChannel(rctx, channelID)
 	if err != nil {
@@ -201,7 +206,7 @@ func (a *App) ProcessRecapChannel(rctx request.CTX, recapID, channelID, userID, 
 	}
 
 	// Fetch posts for recap
-	posts, postsErr := a.fetchPostsForRecap(rctx, channelID, lastViewedAt, 100)
+	posts, postsErr := a.fetchPostsForRecap(rctx, channelID, lastViewedAt, 100, userID)
 	if postsErr != nil {
 		return result, postsErr
 	}
@@ -245,10 +250,12 @@ func (a *App) ProcessRecapChannel(rctx request.CTX, recapID, channelID, userID, 
 	return result, nil
 }
 
-// fetchPostsForRecap fetches posts for a channel after the given timestamp and enriches them with user information
-func (a *App) fetchPostsForRecap(rctx request.CTX, channelID string, lastViewedAt int64, limit int) ([]*model.Post, *model.AppError) {
-	// Get posts after lastViewedAt
+// fetchPostsForRecap fetches posts for a channel after the given timestamp and enriches them with user information.
+// The userID parameter is required to ensure proper visibility filtering (e.g., burn-on-read posts).
+func (a *App) fetchPostsForRecap(rctx request.CTX, channelID string, lastViewedAt int64, limit int, userID string) ([]*model.Post, *model.AppError) {
+	// Get posts after lastViewedAt with user context for proper visibility filtering
 	options := model.GetPostsSinceOptions{
+		UserId:    userID,
 		ChannelId: channelID,
 		Time:      lastViewedAt,
 	}
@@ -259,8 +266,14 @@ func (a *App) fetchPostsForRecap(rctx request.CTX, channelID string, lastViewedA
 	}
 
 	if len(postList.Posts) == 0 {
-		// If there are no unread posts, get the most recent 15 posts to include in the recap
-		postList, err = a.GetPosts(rctx, channelID, 0, 20)
+		// If there are no unread posts, get the most recent 20 posts to include in the recap
+		// Use GetPostsPage with user context for proper visibility filtering
+		postList, err = a.GetPostsPage(rctx, model.GetPostsOptions{
+			UserId:    userID,
+			ChannelId: channelID,
+			Page:      0,
+			PerPage:   20,
+		})
 		if err != nil {
 			return nil, err
 		}

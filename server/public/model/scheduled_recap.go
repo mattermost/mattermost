@@ -182,6 +182,15 @@ func (sr *ScheduledRecap) IsValid() *AppError {
 		return NewAppError("ScheduledRecap.IsValid", "model.scheduled_recap.is_valid.channel_ids_empty.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	// Validate AgentId is present and valid format
+	if sr.AgentId == "" {
+		return NewAppError("ScheduledRecap.IsValid", "model.scheduled_recap.is_valid.agent_id_empty.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if !IsValidId(sr.AgentId) {
+		return NewAppError("ScheduledRecap.IsValid", "model.scheduled_recap.is_valid.agent_id.app_error", nil, "agent_id="+sr.AgentId, http.StatusBadRequest)
+	}
+
 	return nil
 }
 

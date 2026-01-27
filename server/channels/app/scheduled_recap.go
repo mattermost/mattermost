@@ -27,6 +27,15 @@ func (a *App) CreateScheduledRecap(rctx request.CTX, recap *model.ScheduledRecap
 		return nil, err
 	}
 
+	// Validate channel access when using specific channel mode
+	if recap.ChannelMode == model.ChannelModeSpecific {
+		for _, channelID := range recap.ChannelIds {
+			if hasPermission, _ := a.HasPermissionToChannel(rctx, recap.UserId, channelID, model.PermissionReadChannel); !hasPermission {
+				return nil, model.NewAppError("CreateScheduledRecap", "app.scheduled_recap.channel_access_denied.app_error", nil, "channel_id="+channelID, http.StatusForbidden)
+			}
+		}
+	}
+
 	// Compute NextRunAt before saving
 	nextRunAt, err := recap.ComputeNextRunAt(time.Now())
 	if err != nil {
@@ -76,6 +85,15 @@ func (a *App) UpdateScheduledRecap(rctx request.CTX, recap *model.ScheduledRecap
 		return nil, err
 	}
 
+	// Validate channel access when using specific channel mode
+	if recap.ChannelMode == model.ChannelModeSpecific {
+		for _, channelID := range recap.ChannelIds {
+			if hasPermission, _ := a.HasPermissionToChannel(rctx, recap.UserId, channelID, model.PermissionReadChannel); !hasPermission {
+				return nil, model.NewAppError("UpdateScheduledRecap", "app.scheduled_recap.channel_access_denied.app_error", nil, "channel_id="+channelID, http.StatusForbidden)
+			}
+		}
+	}
+
 	// If enabled, recompute NextRunAt
 	if recap.Enabled {
 		nextRunAt, err := recap.ComputeNextRunAt(time.Now())
@@ -109,6 +127,16 @@ func (a *App) CreateRecapFromSchedule(rctx request.CTX, sr *model.ScheduledRecap
 		// TODO: Implement GetChannelsWithUnreadForUser when all_unreads mode is needed
 		channelIDs = sr.ChannelIds
 	}
+
+	// Filter channels to only those the user currently has access to.
+	// This handles the case where the user lost access between scheduling and execution.
+	accessibleChannelIDs := make([]string, 0, len(channelIDs))
+	for _, channelID := range channelIDs {
+		if hasPermission, _ := a.HasPermissionToChannel(rctx, sr.UserId, channelID, model.PermissionReadChannel); hasPermission {
+			accessibleChannelIDs = append(accessibleChannelIDs, channelID)
+		}
+	}
+	channelIDs = accessibleChannelIDs
 
 	if len(channelIDs) == 0 {
 		return nil, model.NewAppError("CreateRecapFromSchedule", "app.scheduled_recap.no_channels.app_error", nil, "", http.StatusBadRequest)

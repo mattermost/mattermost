@@ -67,9 +67,7 @@ func createScheduledRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord(model.AuditEventCreateScheduledRecap, model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	auditRec.AddEventObjectType("scheduled_recap")
-	model.AddEventParameterToAuditRec(auditRec, "title", recap.Title)
-	model.AddEventParameterToAuditRec(auditRec, "agent_id", recap.AgentId)
-	model.AddEventParameterToAuditRec(auditRec, "channel_mode", recap.ChannelMode)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "scheduled_recap", &recap)
 
 	savedRecap, err := c.App.CreateScheduledRecap(c.AppContext, &recap)
 	if err != nil {
@@ -190,6 +188,7 @@ func updateScheduledRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	auditRec.AddEventObjectType("scheduled_recap")
 	model.AddEventParameterToAuditRec(auditRec, "scheduled_recap_id", c.Params.ScheduledRecapId)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "scheduled_recap", &recap)
 	auditRec.AddEventPriorState(existingRecap)
 
 	updatedRecap, err := c.App.UpdateScheduledRecap(c.AppContext, &recap)

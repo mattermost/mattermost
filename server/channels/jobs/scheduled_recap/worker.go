@@ -50,8 +50,23 @@ func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, app AppIfa
 		rctx := request.EmptyContext(logger)
 		_, appErr := app.CreateRecapFromSchedule(rctx, sr)
 		if appErr != nil {
+			logger.Info("Scheduled recap execution failed",
+				mlog.String("event", model.AuditEventExecuteScheduledRecap),
+				mlog.String("scheduled_recap_id", scheduledRecapID),
+				mlog.String("user_id", sr.UserId),
+				mlog.Int("channel_count", len(sr.ChannelIds)),
+				mlog.String("status", "failed"),
+				mlog.Err(appErr))
 			return fmt.Errorf("failed to create recap from schedule: %w", appErr)
 		}
+
+		// Audit log: successful scheduled recap execution
+		logger.Info("Scheduled recap executed",
+			mlog.String("event", model.AuditEventExecuteScheduledRecap),
+			mlog.String("scheduled_recap_id", scheduledRecapID),
+			mlog.String("user_id", sr.UserId),
+			mlog.Int("channel_count", len(sr.ChannelIds)),
+			mlog.String("status", "success"))
 
 		// Compute next run time
 		now := time.Now()

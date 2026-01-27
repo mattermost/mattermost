@@ -5,6 +5,7 @@ package recap
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -40,6 +41,11 @@ func processRecapJob(logger mlog.LoggerIFace, job *model.Job, storeInstance stor
 	channelIDs := strings.Split(job.Data["channel_ids"], ",")
 	agentID := job.Data["agent_id"]
 
+	// Validate required job data fields
+	if recapID == "" || userID == "" || len(channelIDs) == 0 || (len(channelIDs) == 1 && channelIDs[0] == "") {
+		return fmt.Errorf("invalid job data: missing required fields (recap_id=%s, user_id=%s, channel_count=%d)", recapID, userID, len(channelIDs))
+	}
+
 	logger.Info("Starting recap job",
 		mlog.String("recap_id", recapID),
 		mlog.String("agent_id", agentID),
@@ -52,6 +58,7 @@ func processRecapJob(logger mlog.LoggerIFace, job *model.Job, storeInstance stor
 	totalMessages := 0
 	successfulChannels := []string{}
 	failedChannels := []string{}
+	permissionDeniedChannels := []string{}
 
 	for i, channelID := range channelIDs {
 		// Update progress
@@ -63,10 +70,19 @@ func processRecapJob(logger mlog.LoggerIFace, job *model.Job, storeInstance stor
 		// Process the channel
 		result, err := appInstance.ProcessRecapChannel(request.EmptyContext(logger), recapID, channelID, userID, agentID)
 		if err != nil {
-			logger.Warn("Failed to process channel",
-				mlog.String("channel_id", channelID),
-				mlog.Err(err))
-			failedChannels = append(failedChannels, channelID)
+			// Check if this is a permission denied error (403)
+			if err.StatusCode == http.StatusForbidden {
+				logger.Info("Channel skipped due to permission denied",
+					mlog.String("channel_id", channelID),
+					mlog.String("user_id", userID))
+				// Track permission-denied channels separately
+				permissionDeniedChannels = append(permissionDeniedChannels, channelID)
+			} else {
+				logger.Warn("Failed to process channel",
+					mlog.String("channel_id", channelID),
+					mlog.Err(err))
+				failedChannels = append(failedChannels, channelID)
+			}
 			continue
 		}
 
@@ -81,7 +97,24 @@ func processRecapJob(logger mlog.LoggerIFace, job *model.Job, storeInstance stor
 	}
 
 	// Update recap with final data (title is already set by user in CreateRecap)
-	recap, _ := storeInstance.Recap().GetRecap(recapID)
+	recap, err := storeInstance.Recap().GetRecap(recapID)
+	if err != nil {
+		return fmt.Errorf("failed to fetch recap: %w", err)
+	}
+
+	// Verify recap ownership matches job data (defense-in-depth)
+	if recap.UserId != userID {
+		return fmt.Errorf("user_id mismatch: recap user=%s, job user=%s", recap.UserId, userID)
+	}
+
+	// Verify agent_id matches if specified
+	if agentID != "" && recap.BotID != agentID {
+		logger.Warn("Agent ID mismatch between job and recap",
+			mlog.String("job_agent_id", agentID),
+			mlog.String("recap_agent_id", recap.BotID))
+		// Continue processing but log the discrepancy
+	}
+
 	recap.TotalMessageCount = totalMessages
 	recap.UpdateAt = model.GetMillis()
 
@@ -117,7 +150,8 @@ func processRecapJob(logger mlog.LoggerIFace, job *model.Job, storeInstance stor
 	logger.Info("Recap job completed",
 		mlog.String("recap_id", recapID),
 		mlog.Int("successful_channels", len(successfulChannels)),
-		mlog.Int("failed_channels", len(failedChannels)))
+		mlog.Int("failed_channels", len(failedChannels)),
+		mlog.Int("permission_denied_channels", len(permissionDeniedChannels)))
 
 	return nil
 }
