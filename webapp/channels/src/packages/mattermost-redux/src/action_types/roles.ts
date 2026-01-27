@@ -22,7 +22,6 @@ export default keyMirror({
 
     RECEIVED_ROLES: null,
     RECEIVED_ROLE: null,
-    ROLE_DELETED: null,
 
     SET_PENDING_ROLES: null,
 });

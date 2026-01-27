@@ -414,6 +414,30 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 	// so we just return the one that was passed with post
 	rpost = a.PreparePostForClient(rctx, rpost, &model.PreparePostForClientOpts{IsEditPost: true})
 
+	// Initialize translations for the post before sending WebSocket events
+	// This ensures translation metadata is included in the 'posted' event
+	// Check if auto-translation is available before making database calls
+	if a.AutoTranslation() != nil && a.AutoTranslation().IsFeatureAvailable() {
+		enabled, atErr := a.AutoTranslation().IsChannelEnabled(rpost.ChannelId)
+		if atErr == nil && enabled {
+			_, translateErr := a.AutoTranslation().Translate(rctx.Context(), model.TranslationObjectTypePost, rpost.Id, rpost.ChannelId, rpost.UserId, rpost)
+			if translateErr != nil {
+				var notAvailErr *model.ErrAutoTranslationNotAvailable
+				if errors.As(translateErr, &notAvailErr) {
+					// Feature not available - log at debug level and continue
+					rctx.Logger().Debug("Auto-translation feature not available", mlog.String("post_id", rpost.Id), mlog.Err(translateErr))
+				} else if translateErr.Id == "ent.autotranslation.no_translatable_content" {
+					// No translatable content (only URLs/mentions) - this is expected, don't log
+				} else {
+					// Unexpected error - log at warn level but don't fail post creation
+					rctx.Logger().Warn("Failed to translate post", mlog.String("post_id", rpost.Id), mlog.Err(translateErr))
+				}
+			}
+		} else if atErr != nil {
+			rctx.Logger().Warn("Failed to check if channel is enabled for auto-translation", mlog.String("channel_id", rpost.ChannelId), mlog.Err(atErr))
+		}
+	}
+
 	a.applyPostWillBeConsumedHook(&rpost)
 
 	if rpost.RootId != "" {
@@ -841,6 +865,8 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 	// Always use incoming metadata when provided, otherwise retain existing
 	if receivedUpdatedPost.Metadata != nil {
 		newPost.Metadata = receivedUpdatedPost.Metadata.Copy()
+		// MM-67055: Strip embeds - always server-generated. Preserves Priority/Acks for Shared Channels sync.
+		newPost.Metadata.Embeds = nil
 	} else {
 		// Restore the post metadata that was stripped by the plugin. Set it to
 		// the last known good.
@@ -878,6 +904,30 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 	rpost, nErr = a.addPostPreviewProp(rctx, rpost)
 	if nErr != nil {
 		return nil, false, model.NewAppError("UpdatePost", "app.post.update.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+	}
+
+	// Re-translate post if content changed
+	// Our updated Translate() function detects content changes via NormHash comparison
+	// and automatically re-initializes translations for all configured languages
+	if a.AutoTranslation() != nil && a.AutoTranslation().IsFeatureAvailable() {
+		enabled, atErr := a.AutoTranslation().IsChannelEnabled(rpost.ChannelId)
+		if atErr == nil && enabled {
+			_, translateErr := a.AutoTranslation().Translate(rctx.Context(), model.TranslationObjectTypePost, rpost.Id, rpost.ChannelId, rpost.UserId, rpost)
+			if translateErr != nil {
+				var notAvailErr *model.ErrAutoTranslationNotAvailable
+				if errors.As(translateErr, &notAvailErr) {
+					// Feature not available - log at debug level and continue
+					rctx.Logger().Debug("Auto-translation feature not available for edited post", mlog.String("post_id", rpost.Id), mlog.Err(translateErr))
+				} else if translateErr.Id == "ent.autotranslation.no_translatable_content" {
+					// No translatable content (only URLs/mentions) - this is expected, don't log
+				} else {
+					// Unexpected error - log at warn level but don't fail post update
+					rctx.Logger().Warn("Failed to translate edited post", mlog.String("post_id", rpost.Id), mlog.Err(translateErr))
+				}
+			}
+		} else if atErr != nil {
+			rctx.Logger().Warn("Failed to check if channel is enabled for auto-translation", mlog.String("channel_id", rpost.ChannelId), mlog.Err(atErr))
+		}
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", rpost.ChannelId, "", nil, "")
@@ -2514,7 +2564,7 @@ func (a *App) SetPostReminder(rctx request.CTX, postID, userID string, targetTim
 }
 
 func (a *App) CheckPostReminders(rctx request.CTX) {
-	rctx = rctx.WithLogger(rctx.Logger().With(mlog.String("component", "post_reminders")))
+	rctx = rctx.WithLogFields(mlog.String("component", "post_reminders"))
 	systemBot, appErr := a.GetSystemBot(rctx)
 	if appErr != nil {
 		rctx.Logger().Error("Failed to get system bot", mlog.Err(appErr))
@@ -2898,18 +2948,20 @@ func (a *App) PermanentDeletePost(rctx request.CTX, postID, deleteByID string) *
 		return model.NewAppError("DeletePost", "app.post.get.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
+	postHasFiles := len(post.FileIds) > 0
+
 	// If the post is a burn-on-read post, we should get the original post contents
 	if post.Type == model.PostTypeBurnOnRead {
-		tmpPost, appErr := a.getBurnOnReadPost(rctx, post)
+		revealedPost, appErr := a.getBurnOnReadPost(rctx, post)
 		if appErr != nil {
 			rctx.Logger().Warn("Failed to get burn-on-read post", mlog.Err(appErr))
 		}
-		if tmpPost != nil {
-			post = tmpPost
+		if revealedPost != nil {
+			postHasFiles = len(revealedPost.FileIds) > 0
 		}
 	}
 
-	if len(post.FileIds) > 0 {
+	if postHasFiles {
 		appErr := a.PermanentDeleteFilesByPost(rctx, post.Id)
 		if appErr != nil {
 			return appErr
@@ -3036,7 +3088,7 @@ func (a *App) RewriteMessage(
 	}
 
 	// Prepare completion request in the format expected by the client
-	client := a.getBridgeClient(rctx.Session().UserId)
+	client := a.GetBridgeClient(rctx.Session().UserId)
 	completionRequest := agentclient.CompletionRequest{
 		Posts: []agentclient.Post{
 			{Role: "system", Message: model.RewriteSystemPrompt},

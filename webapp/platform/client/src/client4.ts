@@ -5,12 +5,12 @@
 
 import type {AccessControlPolicy, CELExpressionError, AccessControlTestResult, AccessControlPoliciesResult, AccessControlPolicyChannelsResult, AccessControlVisualAST, AccessControlAttributes, AccessControlPolicyActiveUpdate} from '@mattermost/types/access_control';
 import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery} from '@mattermost/types/admin';
-import type {Agent} from '@mattermost/types/agents';
+import type {Agent, LLMService} from '@mattermost/types/agents';
 import type {AppBinding, AppCallRequest, AppCallResponse} from '@mattermost/types/apps';
 import type {Audit} from '@mattermost/types/audits';
 import type {UserAutocomplete, AutocompleteSuggestion} from '@mattermost/types/autocomplete';
 import type {Bot, BotPatch} from '@mattermost/types/bots';
-import type {ChannelBookmark, ChannelBookmarkCreate, ChannelBookmarkPatch} from '@mattermost/types/channel_bookmarks';
+import type {ChannelBookmark, ChannelBookmarkCreate, ChannelBookmarkPatch, UpdateChannelBookmarkResponse} from '@mattermost/types/channel_bookmarks';
 import type {ChannelCategory, OrderedChannelCategories} from '@mattermost/types/channel_categories';
 import type {
     Channel,
@@ -38,7 +38,6 @@ import type {
     NotifyAdminRequest,
     Subscription,
     ValidBusinessEmail,
-    NewsletterRequestBody,
     Installation,
     PreviewModalContentData,
 } from '@mattermost/types/cloud';
@@ -2041,7 +2040,7 @@ export default class Client4 {
     };
 
     updateChannelBookmark = (channelId: string, channelBookmarkId: string, patch: ChannelBookmarkPatch, connectionId: string) => {
-        return this.doFetch<{updated: ChannelBookmark; deleted: ChannelBookmark}>(
+        return this.doFetch<UpdateChannelBookmarkResponse>(
             `${this.getChannelBookmarkRoute(channelId, channelBookmarkId)}`,
             {method: 'PATCH', body: JSON.stringify(patch), headers: {'Connection-Id': connectionId}},
         );
@@ -3403,6 +3402,20 @@ export default class Client4 {
         );
     };
 
+    getAgentsStatus = () => {
+        return this.doFetch<{available: boolean; reason?: string}>(
+            `${this.getAgentsRoute()}/status`,
+            {method: 'get'},
+        );
+    };
+
+    getLLMServices = () => {
+        return this.doFetch<LLMService[]>(
+            `${this.getBaseRoute()}/llmservices`,
+            {method: 'get'},
+        );
+    };
+
     getEnvironmentConfig = () => {
         return this.doFetch<EnvironmentConfig>(
             `${this.getBaseRoute()}/config/environment`,
@@ -4225,13 +4238,6 @@ export default class Client4 {
         }
         return this.doFetch<Product[]>(
             `${this.getCloudRoute()}/products${query}`, {method: 'get'},
-        );
-    };
-
-    subscribeToNewsletter = (newletterRequestBody: NewsletterRequestBody) => {
-        return this.doFetch<StatusOK>(
-            `${this.getHostedCustomerRoute()}/subscribe-newsletter`,
-            {method: 'post', body: JSON.stringify(newletterRequestBody)},
         );
     };
 
