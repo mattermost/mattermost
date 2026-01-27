@@ -14,6 +14,20 @@
         flex-direction: column;
         align-items: center;
         padding: 8px;
-        gap: 4px;
+        gap: 8px;
+    }
+
+    // Scrollable product area for when many products are registered
+    &__topSection {
+        overflow-y: auto;
+        overflow-x: hidden;
+
+        // Hide scrollbar but keep functionality
+        scrollbar-width: none; // Firefox
+        -ms-overflow-style: none; // IE/Edge
+
+        &::-webkit-scrollbar {
+            display: none; // Chrome/Safari
+        }
     }
 }
