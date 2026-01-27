@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {renderWithIntl} from 'tests/react_testing_utils';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import DataGrid from './data_grid';
 
@@ -25,7 +25,7 @@ describe('components/admin_console/data_grid/DataGrid', () => {
     };
 
     test('should match snapshot with no items found', () => {
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <DataGrid
                 {...baseProps}
             />,
@@ -34,7 +34,7 @@ describe('components/admin_console/data_grid/DataGrid', () => {
     });
 
     test('should match snapshot while loading', () => {
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <DataGrid
                 {...baseProps}
                 loading={true}
@@ -44,7 +44,7 @@ describe('components/admin_console/data_grid/DataGrid', () => {
     });
 
     test('should match snapshot with content and custom styling on rows', () => {
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <DataGrid
                 {...baseProps}
                 rows={[
@@ -62,7 +62,7 @@ describe('components/admin_console/data_grid/DataGrid', () => {
     });
 
     test('should match snapshot with custom classes', () => {
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <DataGrid
                 {...baseProps}
                 rows={[

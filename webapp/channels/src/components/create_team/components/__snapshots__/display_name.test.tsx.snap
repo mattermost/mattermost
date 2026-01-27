@@ -57,18 +57,14 @@ exports[`/components/create_team/components/display_name should match snapshot 1
         </div>
       </div>
       <div>
-        <span>
-          Name your team in any language. Your team name shows in menus and headings.
-        </span>
+        Name your team in any language. Your team name shows in menus and headings.
       </div>
       <button
         class="btn btn-primary mt-8"
         id="teamNameNextButton"
         type="submit"
       >
-        <span>
-          Next
-        </span>
+        Next
         <i
           class="icon icon-chevron-right"
         />

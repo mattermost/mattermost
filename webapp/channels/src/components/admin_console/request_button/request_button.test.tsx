@@ -6,13 +6,13 @@ import {FormattedMessage} from 'react-intl';
 
 import RequestButton from 'components/admin_console/request_button/request_button';
 
-import {renderWithIntl, screen, fireEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
 
 describe('components/admin_console/request_button/request_button.jsx', () => {
     test('should match snapshot', () => {
         const emptyFunction = jest.fn();
 
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <RequestButton
                 requestAction={emptyFunction}
                 helpText={
@@ -36,7 +36,7 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
         const requestActionSuccess = jest.fn((success) => success());
         const saveConfigActionSuccess = jest.fn((success) => success());
 
-        renderWithIntl(
+        renderWithContext(
             <RequestButton
                 requestAction={requestActionSuccess}
                 helpText={
@@ -66,7 +66,7 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
         const requestActionSuccess = jest.fn((success) => success());
         const saveConfigActionSuccess = jest.fn((success) => success());
 
-        renderWithIntl(
+        renderWithContext(
             <RequestButton
                 requestAction={requestActionSuccess}
                 helpText={
@@ -96,7 +96,7 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
         const requestActionSuccess = jest.fn((success) => success());
 
         // Success & showSuccessMessage=true
-        const {container: container1} = renderWithIntl(
+        const {container: container1} = renderWithContext(
             <RequestButton
                 requestAction={requestActionSuccess}
                 helpText={
@@ -123,7 +123,7 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
         expect(container1).toMatchSnapshot();
 
         // Success & showSuccessMessage=false
-        const {container: container2} = renderWithIntl(
+        const {container: container2} = renderWithContext(
             <RequestButton
                 requestAction={requestActionSuccess}
                 helpText={
@@ -158,7 +158,7 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
         }));
 
         // Error & includeDetailedError=true
-        const {container: container1} = renderWithIntl(
+        const {container: container1} = renderWithContext(
             <RequestButton
                 requestAction={requestActionFailure}
                 helpText={
@@ -185,7 +185,7 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
         expect(container1).toMatchSnapshot();
 
         // Error & includeDetailedError=false
-        const {container: container2} = renderWithIntl(
+        const {container: container2} = renderWithContext(
             <RequestButton
                 requestAction={requestActionFailure}
                 helpText={

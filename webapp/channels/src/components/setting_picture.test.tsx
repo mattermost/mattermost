@@ -7,7 +7,7 @@ import {FormattedMessage} from 'react-intl';
 
 import SettingPicture from 'components/setting_picture';
 
-import {renderWithIntl, screen, fireEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
 
 const helpText: ReactNode = (
     <FormattedMessage
@@ -41,7 +41,7 @@ describe('components/SettingItemMin', () => {
     });
 
     test('should match snapshot, profile picture on source', () => {
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <SettingPicture {...baseProps}/>,
         );
 
@@ -50,7 +50,7 @@ describe('components/SettingItemMin', () => {
 
     test('should match snapshot, profile picture on file', () => {
         const props = {...baseProps, file: mockFile, src: ''};
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <SettingPicture {...props}/>,
         );
 
@@ -59,7 +59,7 @@ describe('components/SettingItemMin', () => {
 
     test('should match snapshot, user icon on source', () => {
         const props = {...baseProps, onSetDefault: jest.fn()};
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <SettingPicture {...props}/>,
         );
 
@@ -68,7 +68,7 @@ describe('components/SettingItemMin', () => {
 
     test('should match snapshot, team icon on source', () => {
         const props = {...baseProps, onRemove: jest.fn(), imageContext: 'team'};
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <SettingPicture {...props}/>,
         );
 
@@ -77,7 +77,7 @@ describe('components/SettingItemMin', () => {
 
     test('should match snapshot, team icon on file', () => {
         const props = {...baseProps, onRemove: jest.fn(), imageContext: 'team', file: mockFile, src: ''};
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <SettingPicture {...props}/>,
         );
 
@@ -86,7 +86,7 @@ describe('components/SettingItemMin', () => {
 
     test('should match snapshot, on loading picture', () => {
         const props = {...baseProps, loadingPicture: true};
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <SettingPicture {...props}/>,
         );
 
@@ -95,7 +95,7 @@ describe('components/SettingItemMin', () => {
 
     test('should match snapshot with active Save button', () => {
         const props = {...baseProps, submitActive: true};
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <SettingPicture {...props}/>,
         );
 
@@ -104,7 +104,7 @@ describe('components/SettingItemMin', () => {
 
     test('should match snapshot with removeSrc state active', () => {
         const props = {...baseProps, onRemove: jest.fn()};
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <SettingPicture {...props}/>,
         );
 
@@ -117,7 +117,7 @@ describe('components/SettingItemMin', () => {
 
     test('should match state and call props.updateSection on handleCancel', () => {
         const props = {...baseProps, updateSection: jest.fn(), onRemove: jest.fn()};
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <SettingPicture {...props}/>,
         );
 
@@ -137,7 +137,7 @@ describe('components/SettingItemMin', () => {
 
     test('should call props.onRemove on handleSave', () => {
         const props = {...baseProps, onRemove: jest.fn()};
-        renderWithIntl(
+        renderWithContext(
             <SettingPicture {...props}/>,
         );
 
@@ -154,7 +154,7 @@ describe('components/SettingItemMin', () => {
 
     test('should call props.onSetDefault on handleSave', () => {
         const props = {...baseProps, onSetDefault: jest.fn()};
-        renderWithIntl(
+        renderWithContext(
             <SettingPicture {...props}/>,
         );
 
@@ -171,7 +171,7 @@ describe('components/SettingItemMin', () => {
 
     test('should match state and call props.onSubmit on handleSave', () => {
         const props = {...baseProps, onSubmit: jest.fn(), submitActive: true};
-        renderWithIntl(
+        renderWithContext(
             <SettingPicture {...props}/>,
         );
 
@@ -183,7 +183,7 @@ describe('components/SettingItemMin', () => {
 
     test('should match state on handleRemoveSrc', () => {
         const props = {...baseProps, onRemove: jest.fn()};
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <SettingPicture {...props}/>,
         );
 
@@ -200,7 +200,7 @@ describe('components/SettingItemMin', () => {
 
     test('should match state and call props.onFileChange on handleFileChange', () => {
         const props = {...baseProps, onFileChange: jest.fn(), onRemove: jest.fn()};
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <SettingPicture {...props}/>,
         );
 

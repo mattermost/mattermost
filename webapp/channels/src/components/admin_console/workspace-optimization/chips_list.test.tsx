@@ -6,7 +6,7 @@ import React from 'react';
 import ChipsList from 'components/admin_console/workspace-optimization/chips_list';
 import type {ChipsInfoType} from 'components/admin_console/workspace-optimization/chips_list';
 
-import {renderWithIntl, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import {ItemStatus} from './dashboard.type';
 
@@ -23,12 +23,12 @@ describe('components/admin_console/workspace-optimization/chips_list', () => {
     };
 
     test('should match snapshot', () => {
-        const {container} = renderWithIntl(<ChipsList {...baseProps}/>);
+        const {container} = renderWithContext(<ChipsList {...baseProps}/>);
         expect(container).toMatchSnapshot();
     });
 
     test('test chips list lenght is 3 as defined in baseProps', () => {
-        renderWithIntl(<ChipsList {...baseProps}/>);
+        renderWithContext(<ChipsList {...baseProps}/>);
         const chips = screen.getAllByRole('button');
 
         expect(chips.length).toBe(3);
@@ -39,7 +39,7 @@ describe('components/admin_console/workspace-optimization/chips_list', () => {
             chipsData: {...overallScoreChips, [ItemStatus.ERROR]: 0},
             hideCountZeroChips: true,
         };
-        renderWithIntl(<ChipsList {...zeroErrorProps}/>);
+        renderWithContext(<ChipsList {...zeroErrorProps}/>);
         const chips = screen.getAllByRole('button');
 
         expect(chips.length).toBe(2);
@@ -50,7 +50,7 @@ describe('components/admin_console/workspace-optimization/chips_list', () => {
             chipsData: {...overallScoreChips, [ItemStatus.ERROR]: 0},
             hideCountZeroChips: false,
         };
-        renderWithIntl(<ChipsList {...zeroErrorProps}/>);
+        renderWithContext(<ChipsList {...zeroErrorProps}/>);
         const chips = screen.getAllByRole('button');
 
         expect(chips.length).toBe(3);

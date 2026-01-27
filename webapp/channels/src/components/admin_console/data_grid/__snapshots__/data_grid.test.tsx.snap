@@ -51,9 +51,7 @@ exports[`components/admin_console/data_grid/DataGrid should match snapshot while
             title="Loading Icon"
           />
         </span>
-        <span>
-          Loading
-        </span>
+        Loading
       </div>
     </div>
   </div>
@@ -205,9 +203,7 @@ exports[`components/admin_console/data_grid/DataGrid should match snapshot with 
       <div
         class="DataGrid_empty"
       >
-        <span>
-          No items found
-        </span>
+        No items found
       </div>
     </div>
   </div>

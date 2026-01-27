@@ -11,9 +11,7 @@ exports[`/components/common/SiteNameAndDescription should match snapshot, defaul
     class="color--light"
     id="site_description"
   >
-    <span>
-      All team communication in one place, searchable and accessible anywhere
-    </span>
+    All team communication in one place, searchable and accessible anywhere
   </h3>
 </div>
 `;

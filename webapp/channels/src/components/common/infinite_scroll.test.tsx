@@ -5,7 +5,7 @@ import React from 'react';
 
 import InfiniteScroll from 'components/common/infinite_scroll';
 
-import {renderWithIntl, fireEvent, waitFor, act} from 'tests/react_testing_utils';
+import {renderWithContext, fireEvent, waitFor, act} from 'tests/react_testing_utils';
 
 describe('/components/common/InfiniteScroll', () => {
     const baseProps = {
@@ -24,7 +24,7 @@ describe('/components/common/InfiniteScroll', () => {
     });
 
     test('should match snapshot', () => {
-        const {container} = renderWithIntl(<InfiniteScroll {...baseProps}><div/></InfiniteScroll>);
+        const {container} = renderWithContext(<InfiniteScroll {...baseProps}><div/></InfiniteScroll>);
         expect(container).toMatchSnapshot();
 
         const wrapperDiv = container.querySelector(`.${baseProps.styleClass}`);
@@ -40,7 +40,7 @@ describe('/components/common/InfiniteScroll', () => {
         const addEventListenerSpy = jest.spyOn(HTMLDivElement.prototype, 'addEventListener');
         const removeEventListenerSpy = jest.spyOn(HTMLDivElement.prototype, 'removeEventListener');
 
-        const {unmount} = renderWithIntl(<InfiniteScroll {...baseProps}><div/></InfiniteScroll>);
+        const {unmount} = renderWithContext(<InfiniteScroll {...baseProps}><div/></InfiniteScroll>);
 
         expect(addEventListenerSpy).toHaveBeenCalledWith('scroll', expect.any(Function));
 
@@ -53,7 +53,7 @@ describe('/components/common/InfiniteScroll', () => {
     });
 
     test('should execute call back function when scroll reaches the bottom and there \'s more data and no current fetch is taking place', async () => {
-        const {container} = renderWithIntl(<InfiniteScroll {...baseProps}><div/></InfiniteScroll>);
+        const {container} = renderWithContext(<InfiniteScroll {...baseProps}><div/></InfiniteScroll>);
 
         expect(baseProps.callBack).toHaveBeenCalledTimes(0);
 
@@ -83,7 +83,7 @@ describe('/components/common/InfiniteScroll', () => {
             totalItems: 0,
         };
 
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <InfiniteScroll {...propsWithNoData}><div/></InfiniteScroll>,
         );
 
@@ -128,7 +128,7 @@ describe('/components/common/InfiniteScroll', () => {
             callBack: slowCallback,
         };
 
-        const {container} = renderWithIntl(<InfiniteScroll {...propsWithSlowCallback}><div/></InfiniteScroll>);
+        const {container} = renderWithContext(<InfiniteScroll {...propsWithSlowCallback}><div/></InfiniteScroll>);
         let loadingDiv = container.querySelector('.loading-screen');
         expect(loadingDiv).not.toBeInTheDocument();
 

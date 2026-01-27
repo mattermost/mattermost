@@ -5,7 +5,7 @@ import React from 'react';
 import type {ComponentProps} from 'react';
 import {MemoryRouter} from 'react-router-dom';
 
-import {renderWithIntl, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import BackstageSidebar from './backstage_sidebar';
@@ -32,7 +32,7 @@ describe('components/backstage/components/BackstageSidebar', () => {
 
     // Helper to render with router at integrations path to show children
     const renderAtIntegrationsPath = (props: ComponentProps<typeof BackstageSidebar>) => {
-        return renderWithIntl(
+        return renderWithContext(
             <MemoryRouter initialEntries={['/team_name/integrations']}>
                 <BackstageSidebar {...props}/>
             </MemoryRouter>,

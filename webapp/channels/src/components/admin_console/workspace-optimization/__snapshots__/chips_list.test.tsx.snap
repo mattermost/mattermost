@@ -5,23 +5,17 @@ exports[`components/admin_console/workspace-optimization/chips_list should match
   <button
     class="StyledChip-cgKRRy kTqman info"
   >
-    <span>
-      Suggestions: 3
-    </span>
+    Suggestions: 3
   </button>
   <button
     class="StyledChip-cgKRRy kTqman warning"
   >
-    <span>
-      Warnings: 2
-    </span>
+    Warnings: 2
   </button>
   <button
     class="StyledChip-cgKRRy kTqman error"
   >
-    <span>
-      Problems: 1
-    </span>
+    Problems: 1
   </button>
 </div>
 `;

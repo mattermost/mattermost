@@ -13,17 +13,13 @@ exports[`components/admin_console/request_button/request_button.jsx should match
           class="btn btn-tertiary"
           type="button"
         >
-          <span>
-            Button Text
-          </span>
+          Button Text
         </button>
       </div>
       <div
         class="help-text"
       >
-        <span>
-          Help Text
-        </span>
+        Help Text
       </div>
     </div>
   </div>
@@ -43,9 +39,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
           class="btn btn-tertiary"
           type="button"
         >
-          <span>
-            Button Text
-          </span>
+          Button Text
         </button>
         <div>
           <div
@@ -55,18 +49,14 @@ exports[`components/admin_console/request_button/request_button.jsx should match
               class="fa fa-warning"
               title="Warning Icon"
             />
-            <span>
-              Error Message: __message__ - __detailed_error__
-            </span>
+            Error Message: __message__ - __detailed_error__
           </div>
         </div>
       </div>
       <div
         class="help-text"
       >
-        <span>
-          Help Text
-        </span>
+        Help Text
       </div>
     </div>
   </div>
@@ -86,9 +76,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
           class="btn btn-tertiary"
           type="button"
         >
-          <span>
-            Button Text
-          </span>
+          Button Text
         </button>
         <div>
           <div
@@ -98,18 +86,14 @@ exports[`components/admin_console/request_button/request_button.jsx should match
               class="fa fa-warning"
               title="Warning Icon"
             />
-            <span>
-              Error Message: __message__
-            </span>
+            Error Message: __message__
           </div>
         </div>
       </div>
       <div
         class="help-text"
       >
-        <span>
-          Help Text
-        </span>
+        Help Text
       </div>
     </div>
   </div>
@@ -129,9 +113,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
           class="btn btn-tertiary"
           type="button"
         >
-          <span>
-            Button Text
-          </span>
+          Button Text
         </button>
         <div>
           <div
@@ -141,18 +123,14 @@ exports[`components/admin_console/request_button/request_button.jsx should match
               class="fa fa-check"
               title="Success Icon"
             />
-            <span>
-              Success Message
-            </span>
+            Success Message
           </div>
         </div>
       </div>
       <div
         class="help-text"
       >
-        <span>
-          Help Text
-        </span>
+        Help Text
       </div>
     </div>
   </div>
@@ -172,17 +150,13 @@ exports[`components/admin_console/request_button/request_button.jsx should match
           class="btn btn-tertiary"
           type="button"
         >
-          <span>
-            Button Text
-          </span>
+          Button Text
         </button>
       </div>
       <div
         class="help-text"
       >
-        <span>
-          Help Text
-        </span>
+        Help Text
       </div>
     </div>
   </div>

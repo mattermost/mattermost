@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {renderWithIntl, screen, fireEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
 
 import type {Props} from './table';
 import JobTable from './table';
@@ -115,7 +115,7 @@ describe('components/admin_console/jobs/table', () => {
     });
 
     test('should call create job func', () => {
-        renderWithIntl(
+        renderWithContext(
             <JobTable {...baseProps}/>,
         );
 
@@ -125,7 +125,7 @@ describe('components/admin_console/jobs/table', () => {
     });
 
     test('should call cancel job func', () => {
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <JobTable {...baseProps}/>,
         );
 
@@ -147,7 +147,7 @@ describe('components/admin_console/jobs/table', () => {
             {header: 'Details'},
         ];
 
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <JobTable
                 {...baseProps}
                 jobType='message_export'
@@ -177,7 +177,7 @@ describe('components/admin_console/jobs/table', () => {
             {header: 'Details'},
         ];
 
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <JobTable
                 {...baseProps}
                 downloadExportResults={false}
@@ -198,7 +198,7 @@ describe('components/admin_console/jobs/table', () => {
     });
 
     test('hide create job button', () => {
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <JobTable
                 {...baseProps}
                 hideJobCreateButton={true}
@@ -210,7 +210,7 @@ describe('components/admin_console/jobs/table', () => {
     });
 
     test('add custom class', () => {
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <JobTable
                 {...baseProps}
                 className={'job-table__data-retention'}

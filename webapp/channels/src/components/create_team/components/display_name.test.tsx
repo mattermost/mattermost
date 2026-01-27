@@ -5,7 +5,7 @@ import React from 'react';
 
 import DisplayName from 'components/create_team/components/display_name';
 
-import {renderWithIntl, screen, fireEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
 import {cleanUpUrlable} from 'utils/url';
 
 jest.mock('images/logo.png', () => 'logo.png');
@@ -24,12 +24,12 @@ describe('/components/create_team/components/display_name', () => {
     });
 
     test('should match snapshot', () => {
-        const {container} = renderWithIntl(<DisplayName {...defaultProps}/>);
+        const {container} = renderWithContext(<DisplayName {...defaultProps}/>);
         expect(container).toMatchSnapshot();
     });
 
     test('should run updateParent function', () => {
-        renderWithIntl(<DisplayName {...defaultProps}/>);
+        renderWithContext(<DisplayName {...defaultProps}/>);
 
         fireEvent.click(screen.getByRole('button', {name: /next/i}));
 
@@ -37,7 +37,7 @@ describe('/components/create_team/components/display_name', () => {
     });
 
     test('should pass state to updateParent function', () => {
-        renderWithIntl(<DisplayName {...defaultProps}/>);
+        renderWithContext(<DisplayName {...defaultProps}/>);
 
         fireEvent.click(screen.getByRole('button', {name: /next/i}));
 
@@ -50,7 +50,7 @@ describe('/components/create_team/components/display_name', () => {
     });
 
     test('should pass updated team name to updateParent function', () => {
-        renderWithIntl(<DisplayName {...defaultProps}/>);
+        renderWithContext(<DisplayName {...defaultProps}/>);
         const teamDisplayName = 'My Test Team';
         const expectedTeam = {
             ...defaultProps.state.team,

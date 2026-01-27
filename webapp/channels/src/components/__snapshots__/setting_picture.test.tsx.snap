@@ -33,9 +33,7 @@ exports[`components/SettingItemMin should match snapshot with active Save button
           class="setting-list-item pt-3"
           id="setting-picture__helptext"
         >
-          <span>
-            Upload a picture in BMP, JPG or PNG format. Maximum file size: 52428800
-          </span>
+          Upload a picture in BMP, JPG or PNG format. Maximum file size: 52428800
         </div>
         <div
           class="setting-list-item"
@@ -55,9 +53,7 @@ exports[`components/SettingItemMin should match snapshot with active Save button
               class="btn btn-primary btn-file"
               data-testid="inputSettingPictureButton"
             >
-              <span>
-                Select
-              </span>
+              Select
             </button>
             <button
               aria-label="Save"
@@ -65,9 +61,7 @@ exports[`components/SettingItemMin should match snapshot with active Save button
               data-testid="saveSettingPicture"
               tabindex="0"
             >
-              <span>
-                Save
-              </span>
+              Save
             </button>
           </span>
           <button
@@ -75,9 +69,7 @@ exports[`components/SettingItemMin should match snapshot with active Save button
             class="btn btn-tertiary theme ml-2"
             data-testid="cancelSettingPicture"
           >
-            <span>
-              Cancel
-            </span>
+            Cancel
           </button>
         </div>
       </div>
@@ -109,9 +101,7 @@ exports[`components/SettingItemMin should match snapshot with removeSrc state ac
           class="setting-list-item pt-3"
           id="setting-picture__helptext"
         >
-          <span>
-            Upload a picture in BMP, JPG or PNG format. Maximum file size: 52428800
-          </span>
+          Upload a picture in BMP, JPG or PNG format. Maximum file size: 52428800
         </div>
         <div
           class="setting-list-item"
@@ -131,9 +121,7 @@ exports[`components/SettingItemMin should match snapshot with removeSrc state ac
               class="btn btn-primary btn-file"
               data-testid="inputSettingPictureButton"
             >
-              <span>
-                Select
-              </span>
+              Select
             </button>
             <button
               aria-label="Save"
@@ -141,9 +129,7 @@ exports[`components/SettingItemMin should match snapshot with removeSrc state ac
               data-testid="saveSettingPicture"
               tabindex="0"
             >
-              <span>
-                Save
-              </span>
+              Save
             </button>
           </span>
           <button
@@ -151,9 +137,7 @@ exports[`components/SettingItemMin should match snapshot with removeSrc state ac
             class="btn btn-tertiary theme ml-2"
             data-testid="cancelSettingPicture"
           >
-            <span>
-              Cancel
-            </span>
+            Cancel
           </button>
         </div>
       </div>
@@ -195,9 +179,7 @@ exports[`components/SettingItemMin should match snapshot, on loading picture 1`]
           class="setting-list-item pt-3"
           id="setting-picture__helptext"
         >
-          <span>
-            Upload a picture in BMP, JPG or PNG format. Maximum file size: 52428800
-          </span>
+          Upload a picture in BMP, JPG or PNG format. Maximum file size: 52428800
         </div>
         <div
           class="setting-list-item"
@@ -219,9 +201,7 @@ exports[`components/SettingItemMin should match snapshot, on loading picture 1`]
               data-testid="inputSettingPictureButton"
               disabled=""
             >
-              <span>
-                Select
-              </span>
+              Select
             </button>
             <button
               aria-label="Uploading..."
@@ -239,9 +219,7 @@ exports[`components/SettingItemMin should match snapshot, on loading picture 1`]
                   class="fa fa-spinner fa-fw fa-pulse spinner"
                   title="Loading Icon"
                 />
-                <span>
-                  Uploading...
-                </span>
+                Uploading...
               </span>
             </button>
           </span>
@@ -250,9 +228,7 @@ exports[`components/SettingItemMin should match snapshot, on loading picture 1`]
             class="btn btn-tertiary theme ml-2"
             data-testid="cancelSettingPicture"
           >
-            <span>
-              Cancel
-            </span>
+            Cancel
           </button>
         </div>
       </div>
@@ -301,9 +277,7 @@ exports[`components/SettingItemMin should match snapshot, profile picture on fil
           class="setting-list-item pt-3"
           id="setting-picture__helptext"
         >
-          <span>
-            Upload a picture in BMP, JPG or PNG format. Maximum file size: 52428800
-          </span>
+          Upload a picture in BMP, JPG or PNG format. Maximum file size: 52428800
         </div>
         <div
           class="setting-list-item"
@@ -323,9 +297,7 @@ exports[`components/SettingItemMin should match snapshot, profile picture on fil
               class="btn btn-primary btn-file"
               data-testid="inputSettingPictureButton"
             >
-              <span>
-                Select
-              </span>
+              Select
             </button>
             <button
               aria-label="Save"
@@ -334,9 +306,7 @@ exports[`components/SettingItemMin should match snapshot, profile picture on fil
               disabled=""
               tabindex="-1"
             >
-              <span>
-                Save
-              </span>
+              Save
             </button>
           </span>
           <button
@@ -344,9 +314,7 @@ exports[`components/SettingItemMin should match snapshot, profile picture on fil
             class="btn btn-tertiary theme ml-2"
             data-testid="cancelSettingPicture"
           >
-            <span>
-              Cancel
-            </span>
+            Cancel
           </button>
         </div>
       </div>
@@ -388,9 +356,7 @@ exports[`components/SettingItemMin should match snapshot, profile picture on sou
           class="setting-list-item pt-3"
           id="setting-picture__helptext"
         >
-          <span>
-            Upload a picture in BMP, JPG or PNG format. Maximum file size: 52428800
-          </span>
+          Upload a picture in BMP, JPG or PNG format. Maximum file size: 52428800
         </div>
         <div
           class="setting-list-item"
@@ -410,9 +376,7 @@ exports[`components/SettingItemMin should match snapshot, profile picture on sou
               class="btn btn-primary btn-file"
               data-testid="inputSettingPictureButton"
             >
-              <span>
-                Select
-              </span>
+              Select
             </button>
             <button
               aria-label="Save"
@@ -421,9 +385,7 @@ exports[`components/SettingItemMin should match snapshot, profile picture on sou
               disabled=""
               tabindex="-1"
             >
-              <span>
-                Save
-              </span>
+              Save
             </button>
           </span>
           <button
@@ -431,9 +393,7 @@ exports[`components/SettingItemMin should match snapshot, profile picture on sou
             class="btn btn-tertiary theme ml-2"
             data-testid="cancelSettingPicture"
           >
-            <span>
-              Cancel
-            </span>
+            Cancel
           </button>
         </div>
       </div>
@@ -482,9 +442,7 @@ exports[`components/SettingItemMin should match snapshot, team icon on file 1`] 
           class="setting-list-item pt-3"
           id="setting-picture__helptext"
         >
-          <span>
-            Upload a picture in BMP, JPG or PNG format. Maximum file size: 52428800
-          </span>
+          Upload a picture in BMP, JPG or PNG format. Maximum file size: 52428800
         </div>
         <div
           class="setting-list-item"
@@ -504,9 +462,7 @@ exports[`components/SettingItemMin should match snapshot, team icon on file 1`] 
               class="btn btn-primary btn-file"
               data-testid="inputSettingPictureButton"
             >
-              <span>
-                Select
-              </span>
+              Select
             </button>
             <button
               aria-label="Save"
@@ -515,9 +471,7 @@ exports[`components/SettingItemMin should match snapshot, team icon on file 1`] 
               disabled=""
               tabindex="-1"
             >
-              <span>
-                Save
-              </span>
+              Save
             </button>
           </span>
           <button
@@ -525,9 +479,7 @@ exports[`components/SettingItemMin should match snapshot, team icon on file 1`] 
             class="btn btn-tertiary theme ml-2"
             data-testid="cancelSettingPicture"
           >
-            <span>
-              Cancel
-            </span>
+            Cancel
           </button>
         </div>
       </div>
@@ -584,9 +536,7 @@ exports[`components/SettingItemMin should match snapshot, team icon on source 1`
               <span
                 class="sr-only"
               >
-                <span>
-                  Remove This Icon
-                </span>
+                Remove This Icon
               </span>
             </button>
           </div>
@@ -595,9 +545,7 @@ exports[`components/SettingItemMin should match snapshot, team icon on source 1`
           class="setting-list-item pt-3"
           id="setting-picture__helptext"
         >
-          <span>
-            Upload a picture in BMP, JPG or PNG format. Maximum file size: 52428800
-          </span>
+          Upload a picture in BMP, JPG or PNG format. Maximum file size: 52428800
         </div>
         <div
           class="setting-list-item"
@@ -617,9 +565,7 @@ exports[`components/SettingItemMin should match snapshot, team icon on source 1`
               class="btn btn-primary btn-file"
               data-testid="inputSettingPictureButton"
             >
-              <span>
-                Select
-              </span>
+              Select
             </button>
             <button
               aria-label="Save"
@@ -628,9 +574,7 @@ exports[`components/SettingItemMin should match snapshot, team icon on source 1`
               disabled=""
               tabindex="-1"
             >
-              <span>
-                Save
-              </span>
+              Save
             </button>
           </span>
           <button
@@ -638,9 +582,7 @@ exports[`components/SettingItemMin should match snapshot, team icon on source 1`
             class="btn btn-tertiary theme ml-2"
             data-testid="cancelSettingPicture"
           >
-            <span>
-              Cancel
-            </span>
+            Cancel
           </button>
         </div>
       </div>
@@ -697,9 +639,7 @@ exports[`components/SettingItemMin should match snapshot, user icon on source 1`
               <span
                 class="sr-only"
               >
-                <span>
-                  Remove Profile Picture
-                </span>
+                Remove Profile Picture
               </span>
             </button>
           </div>
@@ -708,9 +648,7 @@ exports[`components/SettingItemMin should match snapshot, user icon on source 1`
           class="setting-list-item pt-3"
           id="setting-picture__helptext"
         >
-          <span>
-            Upload a picture in BMP, JPG or PNG format. Maximum file size: 52428800
-          </span>
+          Upload a picture in BMP, JPG or PNG format. Maximum file size: 52428800
         </div>
         <div
           class="setting-list-item"
@@ -730,9 +668,7 @@ exports[`components/SettingItemMin should match snapshot, user icon on source 1`
               class="btn btn-primary btn-file"
               data-testid="inputSettingPictureButton"
             >
-              <span>
-                Select
-              </span>
+              Select
             </button>
             <button
               aria-label="Save"
@@ -741,9 +677,7 @@ exports[`components/SettingItemMin should match snapshot, user icon on source 1`
               disabled=""
               tabindex="-1"
             >
-              <span>
-                Save
-              </span>
+              Save
             </button>
           </span>
           <button
@@ -751,9 +685,7 @@ exports[`components/SettingItemMin should match snapshot, user icon on source 1`
             class="btn btn-tertiary theme ml-2"
             data-testid="cancelSettingPicture"
           >
-            <span>
-              Cancel
-            </span>
+            Cancel
           </button>
         </div>
       </div>

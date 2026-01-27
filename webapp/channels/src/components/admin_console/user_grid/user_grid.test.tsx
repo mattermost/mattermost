@@ -6,7 +6,7 @@ import React from 'react';
 import type {TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {renderWithIntl, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import UserGrid from './user_grid';
@@ -60,7 +60,7 @@ describe('components/admin_console/user_grid/UserGrid', () => {
     };
 
     test('should match snapshot with 2 users', () => {
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <UserGrid
                 {...baseProps}
             />,
@@ -69,7 +69,7 @@ describe('components/admin_console/user_grid/UserGrid', () => {
     });
 
     test('should match snapshot with 2 users and 1 added included', () => {
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <UserGrid
                 {...baseProps}
                 includeUsers={{[notSavedUser.id]: notSavedUser}}
@@ -79,7 +79,7 @@ describe('components/admin_console/user_grid/UserGrid', () => {
     });
 
     test('should match snapshot with 2 users and 1 removed user', () => {
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <UserGrid
                 {...baseProps}
                 excludeUsers={{[user1.id]: user1}}
@@ -90,7 +90,7 @@ describe('components/admin_console/user_grid/UserGrid', () => {
 
     test('should return pagination props while taking into account added or removed users when getPaginationProps is called', () => {
         // Test initial state: 2 users should show "1 - 2 of 2"
-        const {rerender} = renderWithIntl(
+        const {rerender} = renderWithContext(
             <UserGrid {...baseProps}/>,
         );
 

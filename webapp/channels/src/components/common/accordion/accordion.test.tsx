@@ -5,7 +5,7 @@ import React from 'react';
 
 import Accordion from 'components/common/accordion/accordion';
 
-import {renderWithIntl, fireEvent} from 'tests/react_testing_utils';
+import {renderWithContext, fireEvent} from 'tests/react_testing_utils';
 
 describe('/components/common/Accordion', () => {
     const texts = ['First List Item', 'Second List Item', 'Third List Item'];
@@ -53,19 +53,19 @@ describe('/components/common/Accordion', () => {
     };
 
     test('should match snapshot', () => {
-        const {container} = renderWithIntl(<Accordion {...baseProps}/>);
+        const {container} = renderWithContext(<Accordion {...baseProps}/>);
         expect(container).toMatchSnapshot();
     });
 
     test('test accordion items length is 2 as specified in items property in baseProps', () => {
-        const {container} = renderWithIntl(<Accordion {...baseProps}/>);
+        const {container} = renderWithContext(<Accordion {...baseProps}/>);
         const accordionItems = container.querySelectorAll('.accordion-card');
 
         expect(accordionItems.length).toBe(2);
     });
 
     test('test accordion opens first accordion item when clicked', () => {
-        const {container} = renderWithIntl(<Accordion {...baseProps}/>);
+        const {container} = renderWithContext(<Accordion {...baseProps}/>);
         const firstAccordionCard = container.querySelector('ul li.accordion-card');
         const header = firstAccordionCard!.querySelector('.accordion-card-header') as HTMLElement;
         fireEvent.click(header);
@@ -76,7 +76,7 @@ describe('/components/common/Accordion', () => {
     });
 
     test('test accordion opens ONLY one accordion item at a time if NO openMultiple prop is set or set to FALSE', () => {
-        const {container} = renderWithIntl(<Accordion {...baseProps}/>);
+        const {container} = renderWithContext(<Accordion {...baseProps}/>);
         const accordionCards = container.querySelectorAll('ul li.accordion-card');
         const firstAccordionCard = accordionCards[0];
         const secondAccordionCard = accordionCards[1];
@@ -98,7 +98,7 @@ describe('/components/common/Accordion', () => {
     });
 
     test('test accordion opens MORE THAN one accordion item at a time if openMultiple prop IS set to TRUE', () => {
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <Accordion
                 {...baseProps}
                 expandMultiple={true}

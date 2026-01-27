@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {renderWithIntl} from 'tests/react_testing_utils';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import SchemaText from './schema_text';
 
@@ -15,7 +15,7 @@ describe('SchemaText', () => {
     };
 
     test('should render plain text correctly', () => {
-        const {container} = renderWithIntl(<SchemaText {...baseProps}/>);
+        const {container} = renderWithContext(<SchemaText {...baseProps}/>);
 
         expect(container).toMatchSnapshot();
     });
@@ -27,7 +27,7 @@ describe('SchemaText', () => {
             text: 'This is **HELP TEXT**',
         };
 
-        const {container} = renderWithIntl(<SchemaText {...props}/>);
+        const {container} = renderWithContext(<SchemaText {...props}/>);
 
         expect(container).toMatchSnapshot();
     });
@@ -42,7 +42,7 @@ describe('SchemaText', () => {
             },
         };
 
-        const {container} = renderWithIntl(<SchemaText {...props}/>);
+        const {container} = renderWithContext(<SchemaText {...props}/>);
 
         expect(container).toMatchSnapshot();
     });
@@ -58,7 +58,7 @@ describe('SchemaText', () => {
             },
         };
 
-        const {container} = renderWithIntl(<SchemaText {...props}/>);
+        const {container} = renderWithContext(<SchemaText {...props}/>);
 
         expect(container).toMatchSnapshot();
     });
@@ -70,7 +70,7 @@ describe('SchemaText', () => {
             text: 'This is [a link](https://example.com)',
         };
 
-        const {container} = renderWithIntl(<SchemaText {...props}/>);
+        const {container} = renderWithContext(<SchemaText {...props}/>);
 
         const span = container.querySelector('span');
         expect(span).toHaveProperty('innerHTML', 'This is <a href="https://example.com" rel="noopener noreferrer" target="_blank">a link</a>');
@@ -83,7 +83,7 @@ describe('SchemaText', () => {
             text: 'This is [a link](http://localhost:8065/api/v4/users/src_id)',
         };
 
-        const {container} = renderWithIntl(<SchemaText {...props}/>);
+        const {container} = renderWithContext(<SchemaText {...props}/>);
 
         const span = container.querySelector('span');
         expect(span).toHaveProperty('innerHTML', 'This is <a href="http://localhost:8065/api/v4/users/src_id">a link</a>');
@@ -96,7 +96,7 @@ describe('SchemaText', () => {
             text: 'This is [a link](!https://example.com)',
         };
 
-        const {container} = renderWithIntl(<SchemaText {...props}/>);
+        const {container} = renderWithContext(<SchemaText {...props}/>);
 
         const span = container.querySelector('span');
         expect(span).toHaveProperty('innerHTML', 'This is <a href="https://example.com" rel="noopener noreferrer" target="_blank">a link</a>');
