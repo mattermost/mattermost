@@ -14,7 +14,10 @@ import './user_section.scss';
 export const UserSection = (): JSX.Element => {
     return (
         <div className="UserSection">
-            <UserAccountMenu />
+            <UserAccountMenu
+                anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
+                transformOrigin={{vertical: 'bottom', horizontal: 'left'}}
+            />
         </div>
     );
 };

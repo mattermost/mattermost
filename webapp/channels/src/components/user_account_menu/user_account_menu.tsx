@@ -27,7 +27,17 @@ import type {PropsFromRedux} from './index';
 
 import './user_account_menu.scss';
 
-type Props = PropsFromRedux;
+type Props = PropsFromRedux & {
+    // Optional positioning props for different contexts (e.g., sidebar vs header)
+    anchorOrigin?: {
+        vertical: 'top' | 'bottom';
+        horizontal: 'left' | 'right';
+    };
+    transformOrigin?: {
+        vertical: 'top' | 'bottom';
+        horizontal: 'left' | 'right';
+    };
+};
 
 export const ELEMENT_ID_FOR_USER_ACCOUNT_MENU_BUTTON = 'userAccountMenuButton';
 export const ELEMENT_ID_FOR_USER_ACCOUNT_MENU = 'userAccountMenu';
@@ -67,11 +77,11 @@ export default function UserAccountMenu(props: Props) {
                 id: ELEMENT_ID_FOR_USER_ACCOUNT_MENU,
                 width: '264px',
             }}
-            anchorOrigin={{
+            anchorOrigin={props.anchorOrigin ?? {
                 vertical: 'bottom',
                 horizontal: 'right',
             }}
-            transformOrigin={{
+            transformOrigin={props.transformOrigin ?? {
                 vertical: 'top',
                 horizontal: 'right',
             }}
