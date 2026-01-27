@@ -61,7 +61,7 @@ describe('/components/common/InfiniteScroll', () => {
         Object.defineProperty(scrollContainer, 'scrollTop', {value: 500, configurable: true});
 
         await act(async () => {
-            // fireEvent.scroll used because userEvent doesn't support scroll events
+            // Simulate scroll event - fireEvent used because userEvent doesn't support scroll events
             fireEvent.scroll(scrollContainer);
 
             // Wait for debounce (200ms) plus some buffer
@@ -92,7 +92,6 @@ describe('/components/common/InfiniteScroll', () => {
         Object.defineProperty(scrollContainer, 'scrollTop', {value: 500, configurable: true});
 
         await act(async () => {
-            // fireEvent.scroll used because userEvent doesn't support scroll events
             fireEvent.scroll(scrollContainer);
 
             // Wait for debounce (200ms) plus some buffer
@@ -106,7 +105,6 @@ describe('/components/common/InfiniteScroll', () => {
 
         // Subsequent scroll should not trigger callback since isEndofData is now true
         await act(async () => {
-            // fireEvent.scroll used because userEvent doesn't support scroll events
             fireEvent.scroll(scrollContainer);
             await new Promise((resolve) => setTimeout(resolve, 250));
         });
@@ -139,7 +137,6 @@ describe('/components/common/InfiniteScroll', () => {
         Object.defineProperty(scrollContainer, 'scrollTop', {value: 500, configurable: true});
 
         await act(async () => {
-            // fireEvent.scroll used because userEvent doesn't support scroll events
             fireEvent.scroll(scrollContainer);
 
             // Wait for debounce (200ms) plus some buffer

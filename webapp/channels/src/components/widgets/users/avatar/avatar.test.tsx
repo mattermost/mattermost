@@ -86,7 +86,7 @@ describe('components/widgets/users/Avatar', () => {
         const avatar = screen.getByRole('img') as HTMLImageElement;
         expect(avatar.src).toContain('userid123');
 
-        // fireEvent.error used because userEvent doesn't support image loading events
+        // Simulate image error event - fireEvent used because userEvent doesn't support image loading events
         fireEvent.error(avatar);
 
         // Should fall back to default user avatar (replace ?_= with /default)
@@ -103,7 +103,6 @@ describe('components/widgets/users/Avatar', () => {
         const avatar = screen.getByRole('img') as HTMLImageElement;
         const initialSrc = avatar.src;
 
-        // fireEvent.error used because userEvent doesn't support image loading events
         fireEvent.error(avatar);
 
         // Should change from the initial URL (bot icon set, even if empty in test environment)
@@ -124,7 +123,6 @@ describe('components/widgets/users/Avatar', () => {
         const avatar = screen.getByRole('img') as HTMLImageElement;
         const initialSrc = avatar.src;
 
-        // fireEvent.error used because userEvent doesn't support image loading events
         fireEvent.error(avatar);
 
         // Should not change src if it's already the fallback

@@ -271,7 +271,7 @@ describe('AdvancedTextbox', () => {
         // Focus the textbox
         const textbox = screen.getByTestId('mock-textbox');
 
-        // fireEvent.focus used because userEvent doesn't have direct focus/blur methods
+        // Simulate focus event - fireEvent used because userEvent doesn't have direct focus/blur methods
         fireEvent.focus(textbox);
 
         // Label should now have active class
@@ -285,15 +285,13 @@ describe('AdvancedTextbox', () => {
         // Focus the textbox
         const textbox = screen.getByTestId('mock-textbox');
 
-        // fireEvent.focus/blur used because userEvent doesn't have direct focus/blur methods
         fireEvent.focus(textbox);
 
         // Label should have active class
         let label = document.querySelector('.AdvancedTextbox__label');
         expect(label).toHaveClass('AdvancedTextbox__label--active');
 
-        // Blur the textbox
-        // fireEvent.blur used because userEvent doesn't have direct focus/blur methods
+        // Simulate blur event - fireEvent used because userEvent doesn't have direct focus/blur methods
         fireEvent.blur(textbox);
 
         // Label should not have active class
@@ -307,15 +305,12 @@ describe('AdvancedTextbox', () => {
         // Focus the textbox
         const textbox = screen.getByTestId('mock-textbox');
 
-        // fireEvent.focus/blur used because userEvent doesn't have direct focus/blur methods
         fireEvent.focus(textbox);
 
         // Label should have active class
         let label = document.querySelector('.AdvancedTextbox__label');
         expect(label).toHaveClass('AdvancedTextbox__label--active');
 
-        // Blur the textbox
-        // fireEvent.blur used because userEvent doesn't have direct focus/blur methods
         fireEvent.blur(textbox);
 
         // Label should still have active class because there's a value
