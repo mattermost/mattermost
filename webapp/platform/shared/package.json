@@ -15,6 +15,13 @@
   "module": "dist/module.js",
   "source": "src/**/index.ts",
   "types": "dist/types.d.ts",
+  "typesVersions": {
+    ">=3.1": {
+      "*": [
+        "./dist/*/index.d.ts"
+      ]
+    }
+  },
   "exports": {
     ".": {
       "types": [
