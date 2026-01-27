@@ -8602,10 +8602,6 @@
     "translation": "プラグイン {{.Id}} は、既存のバージョンと同じかより新しいため、インストールをスキップします。"
   },
   {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "CWSサーバーがニュースレターを購読できませんでした。"
-  },
-  {
     "id": "api.license.request-trial.bad-request.business-email",
     "translation": "トライアル用のビジネス用電子メールが不正です"
   },

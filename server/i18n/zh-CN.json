@@ -8742,10 +8742,6 @@
     "translation": "持久通知的频率无效。必须至少为两分钟。"
   },
   {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "CWS 服务器订阅通讯失败。"
-  },
-  {
     "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
     "translation": "持久通知消息最多允许 {{.MaxRecipients}} 个收件人。"
   },
