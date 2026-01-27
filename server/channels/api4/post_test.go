@@ -16,6 +16,7 @@ import (
 	"os"
 	"reflect"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -2559,6 +2560,59 @@ func TestGetPostsForChannel(t *testing.T) {
 		CheckOKStatus(t, resp)
 		require.NotEmpty(t, posts.Order)
 	})
+
+	t.Run("Language selection with AutoTranslation enabled", func(t *testing.T) {
+		// Create a channel with AutoTranslation enabled
+		channel := th.CreatePublicChannel(t)
+		appErr := th.App.Srv().Store().AutoTranslation().SetChannelEnabled(channel.Id, true)
+		require.Nil(t, appErr)
+
+		// Update user locale
+		user := th.BasicUser
+		user.Locale = "es"
+		_, appErr = th.App.UpdateUser(th.Context, user, false)
+		require.Nil(t, appErr)
+
+		// Create a post in the channel
+		th.CreatePostWithClient(t, th.Client, channel)
+
+		// Refresh channel to get updated AutoTranslation field
+		channel, appErr = th.App.GetChannel(th.Context, channel.Id)
+		require.Nil(t, appErr)
+		require.True(t, channel.AutoTranslation, "channel should have AutoTranslation enabled")
+
+		// Test: When since == 0, isMember == true, and channel.AutoTranslation == true,
+		// language should be set to user.Locale and included in etag
+		_, resp, err := th.Client.GetPostsForChannel(context.Background(), channel.Id, 0, 60, "", false, false)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.NotEmpty(t, resp.Etag)
+
+		// Verify etag contains the language (format: "version.time.language")
+		// When language is set, etag format is: "version.time.language"
+		etagParts := strings.Split(resp.Etag, ".")
+		// Language is included in etag
+		require.Equal(t, "es", etagParts[len(etagParts)-1], "etag should contain user locale")
+
+		// Test: When channel.AutoTranslation is false, language should not be set
+		channel2 := th.CreatePublicChannel(t)
+		appErr = th.App.Srv().Store().AutoTranslation().SetChannelEnabled(channel2.Id, false)
+		require.Nil(t, appErr)
+		th.CreatePostWithClient(t, th.Client, channel2)
+
+		channel2, appErr = th.App.GetChannel(th.Context, channel2.Id)
+		require.Nil(t, appErr)
+		require.False(t, channel2.AutoTranslation, "channel should have AutoTranslation disabled")
+
+		_, resp, err = th.Client.GetPostsForChannel(context.Background(), channel2.Id, 0, 60, "", false, false)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		// When AutoTranslation is disabled, the last part of the etag should be a number (timestamp), not a language code
+		etagParts2 := strings.Split(resp.Etag, ".")
+		require.NotEmpty(t, etagParts2, "etag should not be empty")
+		_, err = strconv.ParseInt(etagParts2[len(etagParts2)-1], 10, 64)
+		require.NoError(t, err, "last part of etag should be numeric when AutoTranslation is disabled")
+	})
 }
 
 func TestGetFlaggedPostsForUser(t *testing.T) {
@@ -3337,6 +3391,97 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 		NextPostId: "",
 		PrevPostId: post10.Id,
 	}, posts)
+
+	t.Run("Language selection with AutoTranslation enabled", func(t *testing.T) {
+		// Create a channel with AutoTranslation enabled
+		channel := th.CreatePublicChannel(t)
+		appErr := th.App.Srv().Store().AutoTranslation().SetChannelEnabled(channel.Id, true)
+		require.Nil(t, appErr)
+
+		// Add user to channel
+		_, _, err = client.AddChannelMember(context.Background(), channel.Id, userId)
+		require.NoError(t, err)
+
+		// Update user locale
+		user := th.BasicUser
+		user.Locale = "fr"
+		_, appErr = th.App.UpdateUser(th.Context, user, false)
+		require.Nil(t, appErr)
+
+		// Refresh channel to get updated AutoTranslation field
+		channel, appErr = th.App.GetChannel(th.Context, channel.Id)
+		require.Nil(t, appErr)
+		require.True(t, channel.AutoTranslation, "channel should have AutoTranslation enabled")
+
+		// Create a post in the channel
+		th.CreatePostWithClient(t, client, channel)
+
+		// Test: When postList.Order is empty and channel.AutoTranslation is true,
+		// language should be set to user.Locale and included in etag
+		// To get an empty postList, we need to set lastViewedAt to 0 or a very old time
+		channelMember, err := th.App.Srv().Store().Channel().GetMember(th.Context, channel.Id, userId)
+		require.NoError(t, err)
+		channelMember.LastViewedAt = 0
+		_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, channelMember)
+		require.NoError(t, err)
+		th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channel.Id)
+
+		// This should return empty postList, triggering the language selection logic
+		posts, resp, err := client.GetPostsAroundLastUnread(context.Background(), userId, channel.Id, 20, 20, false)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+
+		// When postList is empty and AutoTranslation is enabled, language should be included in etag
+		etagParts := strings.Split(resp.Etag, ".")
+		// When language is set, etag format is: "version.time.language"
+		require.Equal(t, "fr", etagParts[len(etagParts)-1], "etag should contain user locale when AutoTranslation is enabled and postList is empty")
+
+		// Test: When postList.Order is not empty, language selection logic should not run
+		// Set lastViewedAt to a time before the post
+		post := th.CreatePostWithClient(t, client, channel)
+		channelMember, err = th.App.Srv().Store().Channel().GetMember(th.Context, channel.Id, userId)
+		require.NoError(t, err)
+		channelMember.LastViewedAt = post.CreateAt - 1
+		_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, channelMember)
+		require.NoError(t, err)
+		th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channel.Id)
+
+		// This should return a non-empty postList, so language selection logic should not run
+		posts, resp, err = client.GetPostsAroundLastUnread(context.Background(), userId, channel.Id, 20, 20, false)
+		require.NoError(t, err)
+		require.NotEmpty(t, posts.Order, "should return posts when there are unread posts")
+		// When postList is not empty, etag is not set in the response (it's only set when postList is empty)
+
+		// Test: When channel.AutoTranslation is false, language should not be set
+		channel2 := th.CreatePublicChannel(t)
+		appErr = th.App.Srv().Store().AutoTranslation().SetChannelEnabled(channel2.Id, false)
+		require.Nil(t, err)
+
+		_, _, err = client.AddChannelMember(context.Background(), channel2.Id, userId)
+		require.NoError(t, err)
+
+		channel2, appErr = th.App.GetChannel(th.Context, channel2.Id)
+		require.Nil(t, appErr)
+		require.False(t, channel2.AutoTranslation, "channel should have AutoTranslation disabled")
+
+		// Set lastViewedAt to 0 to get empty postList
+		channelMember2, err := th.App.Srv().Store().Channel().GetMember(th.Context, channel2.Id, userId)
+		require.NoError(t, err)
+		channelMember2.LastViewedAt = 0
+		_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, channelMember2)
+		require.NoError(t, err)
+		th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channel2.Id)
+
+		posts, resp, err = client.GetPostsAroundLastUnread(context.Background(), userId, channel2.Id, 20, 20, false)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+
+		// When AutoTranslation is disabled, language should not be included in etag
+		etagParts = strings.Split(resp.Etag, ".")
+		require.NotEmpty(t, etagParts, "etag should not be empty")
+		_, err = strconv.ParseInt(etagParts[len(etagParts)-1], 10, 64)
+		require.NoError(t, err, "last part of etag should be numeric when AutoTranslation is disabled")
+	})
 }
 
 func TestGetPost(t *testing.T) {

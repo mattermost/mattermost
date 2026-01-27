@@ -130,7 +130,7 @@ func (s LocalCachePostStore) GetEtag(channelId, language string, allowFromCache,
 	if allowFromCache {
 		var lastTime int64
 		if err := s.rootStore.doStandardReadCache(s.rootStore.lastPostTimeCache, cacheKey, &lastTime); err == nil {
-			return fmt.Sprintf("%v.%v", model.CurrentVersion, lastTime)
+			return fmt.Sprintf("%v.%v.%s", model.CurrentVersion, lastTime, language)
 		}
 	}
 
@@ -138,7 +138,12 @@ func (s LocalCachePostStore) GetEtag(channelId, language string, allowFromCache,
 
 	splittedResult := strings.Split(result, ".")
 
-	lastTime, _ := strconv.ParseInt((splittedResult[1]), 10, 64)
+	lastTime, parseErr := strconv.ParseInt((splittedResult[len(splittedResult)-1]), 10, 64)
+	if parseErr != nil {
+		// If the last element is not valid, it is probably the language,
+		// so use the second to last element.
+		lastTime, _ = strconv.ParseInt((splittedResult[len(splittedResult)-2]), 10, 64)
+	}
 
 	s.rootStore.doStandardAddToCache(s.rootStore.lastPostTimeCache, cacheKey, lastTime)
 
