@@ -247,8 +247,8 @@ func testAutoTranslationGetUserLanguage(t *testing.T, rctx request.CTX, ss store
 		channel, nErr = ss.Channel().Update(rctx, channel)
 		require.NoError(t, nErr)
 
-		locale, nErr := ss.AutoTranslation().GetUserLanguage(userEN.Id, channel.Id)
-		require.NoError(t, nErr)
+		locale, getLocaleErr := ss.AutoTranslation().GetUserLanguage(userEN.Id, channel.Id)
+		require.NoError(t, getLocaleErr)
 		assert.Empty(t, locale)
 	})
 
@@ -263,8 +263,8 @@ func testAutoTranslationGetUserLanguage(t *testing.T, rctx request.CTX, ss store
 		require.NoError(t, nErr)
 
 		// Get language
-		locale, nErr := ss.AutoTranslation().GetUserLanguage(userEN.Id, channel.Id)
-		require.NoError(t, nErr)
+		locale, getLocaleErr := ss.AutoTranslation().GetUserLanguage(userEN.Id, channel.Id)
+		require.NoError(t, getLocaleErr)
 		assert.Equal(t, "en", locale)
 	})
 

@@ -1228,7 +1228,7 @@ func TestPatchChannel(t *testing.T) {
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 
-		_, resp, err = client.PatchChannel(context.Background(), privateChannel.Id, patch)
+		_, _, err = client.PatchChannel(context.Background(), privateChannel.Id, patch)
 		require.NoError(t, err)
 		patchedChannel, appErr := th.App.GetChannel(th.Context, privateChannel.Id)
 		require.Nil(t, appErr)
@@ -1237,7 +1237,7 @@ func TestPatchChannel(t *testing.T) {
 		th.AddPermissionToRole(t, model.PermissionManagePublicChannelAutoTranslation.Id, model.SystemUserRoleId)
 		defer th.RemovePermissionFromRole(t, model.PermissionManagePublicChannelAutoTranslation.Id, model.SystemUserRoleId)
 
-		_, resp, err = client.PatchChannel(context.Background(), th.BasicChannel.Id, patch)
+		_, _, err = client.PatchChannel(context.Background(), th.BasicChannel.Id, patch)
 		require.NoError(t, err)
 		patchedChannel, appErr = th.App.GetChannel(th.Context, privateChannel.Id)
 		require.Nil(t, appErr)
@@ -1271,7 +1271,7 @@ func TestPatchChannel(t *testing.T) {
 		require.Contains(t, []string{"api.channel.patch_update_channel.feature_not_available.app_error", "api.channel.patch_update_channel.auto_translation_restricted.app_error"}, appErr.Id)
 	})
 
-	t.Run("Patch channel with autotranslation on dm is only available for members", func(t *testing.T) {
+	t.Run("Patch channel with autotranslation on DM is only available for members", func(t *testing.T) {
 		mockAutoTranslation := &einterfacesmocks.AutoTranslationInterface{}
 		mockAutoTranslation.On("IsFeatureAvailable").Return(true)
 		mockAutoTranslation.On("IsChannelEnabled", mock.Anything).Return(true, nil)
@@ -1310,7 +1310,7 @@ func TestPatchChannel(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
-	t.Run("Patch channel with autotranslation on dm is only available for members", func(t *testing.T) {
+	t.Run("Patch channel with autotranslation on GM is only available for members", func(t *testing.T) {
 		mockAutoTranslation := &einterfacesmocks.AutoTranslationInterface{}
 		mockAutoTranslation.On("IsFeatureAvailable").Return(true)
 		mockAutoTranslation.On("IsChannelEnabled", mock.Anything).Return(true, nil)
