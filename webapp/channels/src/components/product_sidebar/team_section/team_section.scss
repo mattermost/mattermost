@@ -1,0 +1,68 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.TeamSection {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 0 8px;
+
+    // Wrapper for single-team avatar to enable tooltip interaction
+    &__avatarWrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    // Menu button styling - remove default button appearance
+    &__menuButton {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: none;
+        background: transparent;
+
+        &:focus-visible {
+            outline: 2px solid var(--button-bg);
+            outline-offset: 2px;
+            border-radius: 8px;
+        }
+    }
+
+    // Dropdown menu styling
+    &__menu {
+        min-width: 200px;
+        max-width: 280px;
+        max-height: 320px;
+        overflow-y: auto;
+
+        // Team icon sizing within menu items (24px)
+        .TeamIcon {
+            width: 24px;
+            height: 24px;
+            min-width: 24px;
+            min-height: 24px;
+
+            .TeamIcon__content {
+                width: 24px;
+                height: 24px;
+            }
+
+            .TeamIcon__image,
+            .TeamIcon__initials {
+                width: 24px;
+                height: 24px;
+                min-width: 24px;
+                min-height: 24px;
+                font-size: 11px;
+                border-radius: 4px;
+            }
+        }
+    }
+
+    // Checkmark icon for current team
+    &__checkIcon {
+        color: var(--button-bg);
+    }
+}

@@ -7,6 +7,8 @@ import {useIntl} from 'react-intl';
 
 import {isProductSidebarEnabled} from 'selectors/views/product_sidebar';
 
+import {TeamSection} from './team_section';
+
 import './product_sidebar.scss';
 
 const ProductSidebar = (): JSX.Element | null => {
@@ -24,7 +26,7 @@ const ProductSidebar = (): JSX.Element | null => {
             aria-label={formatMessage({id: 'product_sidebar.ariaLabel', defaultMessage: 'Product sidebar'})}
         >
             <div className="ProductSidebar__topSection">
-                {/* Team avatar - Phase 2 */}
+                <TeamSection />
                 {/* Product navigation - Phase 3 */}
             </div>
             <div className="ProductSidebar__bottomSection">
