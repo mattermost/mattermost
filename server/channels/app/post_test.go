@@ -49,7 +49,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 
 		pendingPostId := makePendingPostId(th.BasicUser)
 
-		post, err := th.App.CreatePostAsUser(th.Context.WithSession(session), &model.Post{
+		post, _, err := th.App.CreatePostAsUser(th.Context.WithSession(session), &model.Post{
 			UserId:        th.BasicUser.Id,
 			ChannelId:     th.BasicChannel.Id,
 			Message:       "message",
@@ -58,7 +58,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, "message", post.Message)
 
-		duplicatePost, err := th.App.CreatePostAsUser(th.Context.WithSession(session), &model.Post{
+		duplicatePost, _, err := th.App.CreatePostAsUser(th.Context.WithSession(session), &model.Post{
 			UserId:        th.BasicUser.Id,
 			ChannelId:     th.BasicChannel.Id,
 			Message:       "message",
@@ -105,7 +105,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 
 		pendingPostId := makePendingPostId(th.BasicUser)
 
-		post, err := th.App.CreatePostAsUser(th.Context.WithSession(session), &model.Post{
+		post, _, err := th.App.CreatePostAsUser(th.Context.WithSession(session), &model.Post{
 			UserId:        th.BasicUser.Id,
 			ChannelId:     th.BasicChannel.Id,
 			Message:       "message",
@@ -115,7 +115,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 		require.Equal(t, "Post rejected by plugin. rejected", err.Id)
 		require.Nil(t, post)
 
-		duplicatePost, err := th.App.CreatePostAsUser(th.Context.WithSession(session), &model.Post{
+		duplicatePost, _, err := th.App.CreatePostAsUser(th.Context.WithSession(session), &model.Post{
 			UserId:        th.BasicUser.Id,
 			ChannelId:     th.BasicChannel.Id,
 			Message:       "message",
@@ -171,7 +171,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			var appErr *model.AppError
-			post, appErr = th.App.CreatePostAsUser(th.Context.WithSession(session), &model.Post{
+			post, _, appErr = th.App.CreatePostAsUser(th.Context.WithSession(session), &model.Post{
 				UserId:        th.BasicUser.Id,
 				ChannelId:     th.BasicChannel.Id,
 				Message:       "plugin delayed",
@@ -185,7 +185,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 		time.Sleep(2 * time.Second)
 
 		// Try creating a duplicate post
-		duplicatePost, err := th.App.CreatePostAsUser(th.Context.WithSession(session), &model.Post{
+		duplicatePost, _, err := th.App.CreatePostAsUser(th.Context.WithSession(session), &model.Post{
 			UserId:        th.BasicUser.Id,
 			ChannelId:     th.BasicChannel.Id,
 			Message:       "plugin delayed",
@@ -214,7 +214,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 
 		pendingPostId := makePendingPostId(th.BasicUser)
 
-		post, err := th.App.CreatePostAsUser(th.Context.WithSession(session), &model.Post{
+		post, _, err := th.App.CreatePostAsUser(th.Context.WithSession(session), &model.Post{
 			UserId:        th.BasicUser.Id,
 			ChannelId:     th.BasicChannel.Id,
 			Message:       "message",
@@ -225,7 +225,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 
 		time.Sleep(pendingPostIDsCacheTTL)
 
-		duplicatePost, err := th.App.CreatePostAsUser(th.Context.WithSession(session), &model.Post{
+		duplicatePost, _, err := th.App.CreatePostAsUser(th.Context.WithSession(session), &model.Post{
 			UserId:        th.BasicUser.Id,
 			ChannelId:     th.BasicChannel.Id,
 			Message:       "message",
@@ -254,7 +254,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, th.BasicUser, privateChannel)
 
-		post, err := th.App.CreatePostAsUser(th.Context.WithSession(sessionBasicUser), &model.Post{
+		post, _, err := th.App.CreatePostAsUser(th.Context.WithSession(sessionBasicUser), &model.Post{
 			UserId:        th.BasicUser.Id,
 			ChannelId:     privateChannel.Id,
 			Message:       "message",
@@ -263,7 +263,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, "message", post.Message)
 
-		postAsDifferentUser, err := th.App.CreatePostAsUser(th.Context.WithSession(sessionBasicUser2), &model.Post{
+		postAsDifferentUser, _, err := th.App.CreatePostAsUser(th.Context.WithSession(sessionBasicUser2), &model.Post{
 			UserId:        th.BasicUser2.Id,
 			ChannelId:     th.BasicChannel.Id,
 			Message:       "message2",
@@ -364,18 +364,19 @@ func TestUpdatePostEditAt(t *testing.T) {
 	post := th.BasicPost.Clone()
 
 	post.IsPinned = true
-	saved, err := th.App.UpdatePost(th.Context, post, &model.UpdatePostOptions{SafeUpdate: true})
+	saved, isMemberForPreviews, err := th.App.UpdatePost(th.Context, post, &model.UpdatePostOptions{SafeUpdate: true})
 	require.Nil(t, err)
 	assert.Equal(t, saved.EditAt, post.EditAt, "shouldn't have updated post.EditAt when pinning post")
+	assert.True(t, isMemberForPreviews)
 	post = saved.Clone()
 
 	time.Sleep(time.Millisecond * 100)
 
 	post.Message = model.NewId()
-	saved, err = th.App.UpdatePost(th.Context, post, &model.UpdatePostOptions{SafeUpdate: true})
+	saved, isMemberForPreviews, err = th.App.UpdatePost(th.Context, post, &model.UpdatePostOptions{SafeUpdate: true})
 	require.Nil(t, err)
 	assert.NotEqual(t, saved.EditAt, post.EditAt, "should have updated post.EditAt when updating post message")
-
+	assert.True(t, isMemberForPreviews)
 	time.Sleep(time.Millisecond * 200)
 }
 
@@ -390,7 +391,7 @@ func TestUpdatePostTimeLimit(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.PostEditTimeLimit = -1
 	})
-	_, err := th.App.UpdatePost(th.Context, post, &model.UpdatePostOptions{SafeUpdate: true})
+	_, _, err := th.App.UpdatePost(th.Context, post, &model.UpdatePostOptions{SafeUpdate: true})
 	require.Nil(t, err)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -398,14 +399,14 @@ func TestUpdatePostTimeLimit(t *testing.T) {
 	})
 	post.Message = model.NewId()
 
-	_, err = th.App.UpdatePost(th.Context, post, &model.UpdatePostOptions{SafeUpdate: true})
+	_, _, err = th.App.UpdatePost(th.Context, post, &model.UpdatePostOptions{SafeUpdate: true})
 	require.Nil(t, err, "should allow you to edit the post")
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.PostEditTimeLimit = 1
 	})
 	post.Message = model.NewId()
-	_, err = th.App.UpdatePost(th.Context, post, &model.UpdatePostOptions{SafeUpdate: true})
+	_, _, err = th.App.UpdatePost(th.Context, post, &model.UpdatePostOptions{SafeUpdate: true})
 	require.Nil(t, err, "should allow you to edit an old post because the time check is applied above in the call hierarchy")
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -422,7 +423,7 @@ func TestUpdatePostInArchivedChannel(t *testing.T) {
 	appErr := th.App.DeleteChannel(th.Context, archivedChannel, "")
 	require.Nil(t, appErr)
 
-	_, err := th.App.UpdatePost(th.Context, post, &model.UpdatePostOptions{SafeUpdate: true})
+	_, _, err := th.App.UpdatePost(th.Context, post, &model.UpdatePostOptions{SafeUpdate: true})
 	require.NotNil(t, err)
 	require.Equal(t, "api.post.update_post.can_not_update_post_in_deleted.error", err.Id)
 }
@@ -452,7 +453,7 @@ func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
 		CreateAt:      0,
 	}
 
-	_, err = th.App.CreatePostAsUser(th.Context, &replyPost, "", true)
+	_, _, err = th.App.CreatePostAsUser(th.Context, &replyPost, "", true)
 	require.Nil(t, err)
 }
 
@@ -473,7 +474,7 @@ func TestPostAttachPostToChildPost(t *testing.T) {
 		CreateAt:      0,
 	}
 
-	res1, err := th.App.CreatePostAsUser(th.Context, &replyPost1, "", true)
+	res1, _, err := th.App.CreatePostAsUser(th.Context, &replyPost1, "", true)
 	require.Nil(t, err)
 
 	replyPost2 := model.Post{
@@ -485,7 +486,7 @@ func TestPostAttachPostToChildPost(t *testing.T) {
 		CreateAt:      0,
 	}
 
-	_, err = th.App.CreatePostAsUser(th.Context, &replyPost2, "", true)
+	_, _, err = th.App.CreatePostAsUser(th.Context, &replyPost2, "", true)
 	assert.Equalf(t, err.StatusCode, http.StatusBadRequest, "Expected BadRequest error, got %v", err)
 
 	replyPost3 := model.Post{
@@ -497,7 +498,7 @@ func TestPostAttachPostToChildPost(t *testing.T) {
 		CreateAt:      0,
 	}
 
-	_, err = th.App.CreatePostAsUser(th.Context, &replyPost3, "", true)
+	_, _, err = th.App.CreatePostAsUser(th.Context, &replyPost3, "", true)
 	assert.Nil(t, err)
 }
 
@@ -559,7 +560,7 @@ func TestUpdatePostPluginHooks(t *testing.T) {
 		}, true, th.App, th.Context)
 
 		pendingPostId := makePendingPostId(th.BasicUser)
-		post, err := th.App.CreatePostAsUser(th.Context, &model.Post{
+		post, _, err := th.App.CreatePostAsUser(th.Context, &model.Post{
 			UserId:        th.BasicUser.Id,
 			ChannelId:     th.BasicChannel.Id,
 			Message:       "message",
@@ -568,7 +569,7 @@ func TestUpdatePostPluginHooks(t *testing.T) {
 		require.Nil(t, err)
 
 		post.Message = "new message"
-		updatedPost, err := th.App.UpdatePost(th.Context, post, nil)
+		updatedPost, _, err := th.App.UpdatePost(th.Context, post, nil)
 		require.Nil(t, updatedPost)
 		require.NotNil(t, err)
 		require.Equal(t, "Post rejected by plugin. rejected", err.Id)
@@ -626,7 +627,7 @@ func TestUpdatePostPluginHooks(t *testing.T) {
 		}, true, th.App, th.Context)
 
 		pendingPostId := makePendingPostId(th.BasicUser)
-		post, err := th.App.CreatePostAsUser(th.Context, &model.Post{
+		post, _, err := th.App.CreatePostAsUser(th.Context, &model.Post{
 			UserId:        th.BasicUser.Id,
 			ChannelId:     th.BasicChannel.Id,
 			Message:       "message",
@@ -635,7 +636,8 @@ func TestUpdatePostPluginHooks(t *testing.T) {
 		require.Nil(t, err)
 
 		post.Message = "new message"
-		updatedPost, err := th.App.UpdatePost(th.Context, post, nil)
+		updatedPost, isMemberForPreviews, err := th.App.UpdatePost(th.Context, post, nil)
+		require.True(t, isMemberForPreviews)
 		require.Nil(t, err)
 		require.NotNil(t, updatedPost)
 		require.Equal(t, "2 new message 1", updatedPost.Message)
@@ -683,7 +685,7 @@ func TestPostChannelMentions(t *testing.T) {
 		CreateAt:      0,
 	}
 
-	post, err = th.App.CreatePostAsUser(th.Context, post, "", true)
+	post, _, err = th.App.CreatePostAsUser(th.Context, post, "", true)
 	require.Nil(t, err)
 	assert.Equal(t, map[string]any{
 		"mention-test": map[string]any{
@@ -693,7 +695,8 @@ func TestPostChannelMentions(t *testing.T) {
 	}, post.GetProp(model.PostPropsChannelMentions))
 
 	post.Message = fmt.Sprintf("goodbye, ~%v!", channelToMention2.Name)
-	result, err := th.App.UpdatePost(th.Context, post, nil)
+	result, isMemberForPreviews, err := th.App.UpdatePost(th.Context, post, nil)
+	require.True(t, isMemberForPreviews)
 	require.Nil(t, err)
 	assert.Equal(t, map[string]any{
 		"mention-test2": map[string]any{
@@ -703,7 +706,8 @@ func TestPostChannelMentions(t *testing.T) {
 	}, result.GetProp(model.PostPropsChannelMentions))
 
 	result.Message = "no more mentions!"
-	result, err = th.App.UpdatePost(th.Context, result, nil)
+	result, isMemberForPreviews, err = th.App.UpdatePost(th.Context, result, nil)
+	require.True(t, isMemberForPreviews)
 	require.Nil(t, err)
 	assert.Nil(t, result.GetProp(model.PostPropsChannelMentions))
 }
@@ -860,7 +864,7 @@ func TestDeletePostWithFileAttachments(t *testing.T) {
 		FileIds:       []string{info1.Id},
 	}
 
-	post, err = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+	post, _, err = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 	assert.Nil(t, err)
 
 	// Delete the post.
@@ -914,7 +918,7 @@ func TestDeletePostWithRestrictedDM(t *testing.T) {
 			ChannelId: dmChannel.Id,
 			Message:   "test post",
 		}
-		post, err = th.App.CreatePost(th.Context, post, dmChannel, model.CreatePostFlags{})
+		post, _, err = th.App.CreatePost(th.Context, post, dmChannel, model.CreatePostFlags{})
 		require.Nil(t, err)
 
 		// Try to delete the post
@@ -969,7 +973,7 @@ func TestCreatePost(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 		}
 
-		rpost, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		rpost, _, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 		assert.Equal(t, "![image]("+proxiedImageURL+")", rpost.Message)
 	})
@@ -986,7 +990,7 @@ func TestCreatePost(t *testing.T) {
 				Message:   "This post does not have mentions",
 				UserId:    th.BasicUser.Id,
 			}
-			rpost, err := th.App.CreatePost(th.Context, postWithNoMention, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+			rpost, _, err := th.App.CreatePost(th.Context, postWithNoMention, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 			require.Nil(t, err)
 			assert.Equal(t, rpost.GetProps(), model.StringInterface{})
 
@@ -995,7 +999,7 @@ func TestCreatePost(t *testing.T) {
 				Message:   "This post has @here mention @all",
 				UserId:    th.BasicUser.Id,
 			}
-			rpost, err = th.App.CreatePost(th.Context, postWithMention, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+			rpost, _, err = th.App.CreatePost(th.Context, postWithMention, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 			require.Nil(t, err)
 			assert.Equal(t, rpost.GetProps(), model.StringInterface{})
 		})
@@ -1009,7 +1013,7 @@ func TestCreatePost(t *testing.T) {
 				Message:   "This post does not have mentions",
 				UserId:    th.BasicUser.Id,
 			}
-			rpost, err := th.App.CreatePost(th.Context, postWithNoMention, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+			rpost, _, err := th.App.CreatePost(th.Context, postWithNoMention, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 			require.Nil(t, err)
 			assert.Equal(t, rpost.GetProps(), model.StringInterface{})
 
@@ -1018,7 +1022,7 @@ func TestCreatePost(t *testing.T) {
 				Message:   "This post has @here mention @all",
 				UserId:    th.BasicUser.Id,
 			}
-			rpost, err = th.App.CreatePost(th.Context, postWithMention, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+			rpost, _, err = th.App.CreatePost(th.Context, postWithMention, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 			require.Nil(t, err)
 			assert.Equal(t, rpost.GetProp(model.PostPropsMentionHighlightDisabled), true)
 
@@ -1045,7 +1049,7 @@ func TestCreatePost(t *testing.T) {
 
 		th.Context.Session().UserId = th.BasicUser.Id
 
-		referencedPost, err := th.App.CreatePost(th.Context, referencedPost, th.BasicChannel, model.CreatePostFlags{})
+		referencedPost, _, err := th.App.CreatePost(th.Context, referencedPost, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, err)
 
 		permalink := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
@@ -1057,7 +1061,7 @@ func TestCreatePost(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 		}
 
-		previewPost, err = th.App.CreatePost(th.Context, previewPost, channelForPreview, model.CreatePostFlags{})
+		previewPost, _, err = th.App.CreatePost(th.Context, previewPost, channelForPreview, model.CreatePostFlags{})
 		require.Nil(t, err)
 
 		assert.Equal(t, previewPost.GetProps(), model.StringInterface{"previewed_post": referencedPost.Id})
@@ -1074,7 +1078,7 @@ func TestCreatePost(t *testing.T) {
 			Message:   "hello world",
 			UserId:    th.BasicUser.Id,
 		}
-		referencedPost, err := th.App.CreatePost(th.Context, referencedPost, th.BasicChannel, model.CreatePostFlags{})
+		referencedPost, _, err := th.App.CreatePost(th.Context, referencedPost, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, err)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -1090,7 +1094,7 @@ func TestCreatePost(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 		}
 
-		previewPost, err = th.App.CreatePost(th.Context, previewPost, channelForPreview, model.CreatePostFlags{})
+		previewPost, _, err = th.App.CreatePost(th.Context, previewPost, channelForPreview, model.CreatePostFlags{})
 		require.Nil(t, err)
 
 		sqlStore := th.GetSqlStore()
@@ -1146,7 +1150,7 @@ func TestCreatePost(t *testing.T) {
 					Message:   "hello world",
 					UserId:    testCase.Author,
 				}
-				referencedPost, err = th.App.CreatePost(th.Context, referencedPost, testCase.Channel, model.CreatePostFlags{})
+				referencedPost, _, err = th.App.CreatePost(th.Context, referencedPost, testCase.Channel, model.CreatePostFlags{})
 				require.Nil(t, err)
 
 				permalink := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
@@ -1156,7 +1160,7 @@ func TestCreatePost(t *testing.T) {
 					UserId:    th.BasicUser.Id,
 				}
 
-				previewPost, err = th.App.CreatePost(th.Context, previewPost, th.BasicChannel, model.CreatePostFlags{})
+				previewPost, _, err = th.App.CreatePost(th.Context, previewPost, th.BasicChannel, model.CreatePostFlags{})
 				require.Nil(t, err)
 
 				require.Len(t, previewPost.Metadata.Embeds, testCase.Length)
@@ -1198,7 +1202,7 @@ func TestCreatePost(t *testing.T) {
 			Message:   "hello world",
 			UserId:    user1.Id,
 		}
-		createdPost, appErr := th.App.CreatePost(th.Context, newPost, dm, model.CreatePostFlags{})
+		createdPost, _, appErr := th.App.CreatePost(th.Context, newPost, dm, model.CreatePostFlags{})
 		require.NotNil(t, appErr)
 		require.Nil(t, createdPost)
 	})
@@ -1238,7 +1242,7 @@ func TestCreatePost(t *testing.T) {
 			Message:   "hello world",
 			UserId:    user1.Id,
 		}
-		createdPost, appErr := th.App.CreatePost(th.Context, newPost, gm, model.CreatePostFlags{})
+		createdPost, _, appErr := th.App.CreatePost(th.Context, newPost, gm, model.CreatePostFlags{})
 		require.NotNil(t, appErr)
 		require.Nil(t, createdPost)
 	})
@@ -1260,7 +1264,7 @@ func TestCreatePost(t *testing.T) {
 			Message:   "hello world",
 			UserId:    th.BasicUser.Id,
 		}
-		referencedPost, err := th.App.CreatePost(th.Context, referencedPost, th.BasicChannel, model.CreatePostFlags{})
+		referencedPost, _, err := th.App.CreatePost(th.Context, referencedPost, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, err)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -1276,7 +1280,7 @@ func TestCreatePost(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 		}
 
-		previewPost, err = th.App.CreatePost(th.Context, previewPost, channelForPreview, model.CreatePostFlags{})
+		previewPost, _, err = th.App.CreatePost(th.Context, previewPost, channelForPreview, model.CreatePostFlags{})
 		require.Nil(t, err)
 
 		n := 1000
@@ -1286,7 +1290,7 @@ func TestCreatePost(t *testing.T) {
 			go func() {
 				defer wg.Done()
 				post := previewPost.Clone()
-				_, appErr := th.App.UpdatePost(th.Context, post, nil)
+				_, _, appErr := th.App.UpdatePost(th.Context, post, nil)
 				require.Nil(t, appErr)
 			}()
 		}
@@ -1306,7 +1310,7 @@ func TestCreatePost(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 		}
 		postToCreate.AddProp(model.PostPropsForceNotification, model.NewId())
-		createdPost, err := th.App.CreatePost(th.Context, postToCreate, th.BasicChannel, model.CreatePostFlags{})
+		createdPost, _, err := th.App.CreatePost(th.Context, postToCreate, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, err)
 		require.Empty(t, createdPost.GetProp(model.PostPropsForceNotification))
 	})
@@ -1322,7 +1326,7 @@ func TestCreatePost(t *testing.T) {
 			Message:   "hello world",
 			UserId:    th.BasicUser.Id,
 		}
-		createdPost, err := th.App.CreatePost(th.Context, postToCreate, th.BasicChannel, model.CreatePostFlags{ForceNotification: true})
+		createdPost, _, err := th.App.CreatePost(th.Context, postToCreate, th.BasicChannel, model.CreatePostFlags{ForceNotification: true})
 		require.Nil(t, err)
 		require.NotEmpty(t, createdPost.GetProp(model.PostPropsForceNotification))
 	})
@@ -1343,7 +1347,7 @@ func TestCreatePost(t *testing.T) {
 			FileIds:   []string{model.NewId()},
 		}
 
-		createdPost, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
+		createdPost, _, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 		require.Empty(t, createdPost.FileIds)
 	})
@@ -1374,7 +1378,7 @@ func TestPatchPost(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 		}
 
-		rpost, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		rpost, _, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 		assert.NotEqual(t, "![image]("+proxiedImageURL+")", rpost.Message)
 
@@ -1382,7 +1386,7 @@ func TestPatchPost(t *testing.T) {
 			Message: model.NewPointer("![image](" + imageURL + ")"),
 		}
 
-		rpost, err = th.App.PatchPost(th.Context, rpost.Id, patch, nil)
+		rpost, _, err = th.App.PatchPost(th.Context, rpost.Id, patch, nil)
 		require.Nil(t, err)
 		assert.Equal(t, "![image]("+proxiedImageURL+")", rpost.Message)
 	})
@@ -1399,19 +1403,19 @@ func TestPatchPost(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 		}
 
-		rpost, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		rpost, _, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
 		t.Run("Does not set prop when user has USE_CHANNEL_MENTIONS", func(t *testing.T) {
 			patchWithNoMention := &model.PostPatch{Message: model.NewPointer("This patch has no channel mention")}
 
-			rpost, err = th.App.PatchPost(th.Context, rpost.Id, patchWithNoMention, nil)
+			rpost, _, err = th.App.PatchPost(th.Context, rpost.Id, patchWithNoMention, nil)
 			require.Nil(t, err)
 			assert.Equal(t, rpost.GetProps(), model.StringInterface{})
 
 			patchWithMention := &model.PostPatch{Message: model.NewPointer("This patch has a mention now @here")}
 
-			rpost, err = th.App.PatchPost(th.Context, rpost.Id, patchWithMention, nil)
+			rpost, _, err = th.App.PatchPost(th.Context, rpost.Id, patchWithMention, nil)
 			require.Nil(t, err)
 			assert.Equal(t, rpost.GetProps(), model.StringInterface{})
 		})
@@ -1421,13 +1425,13 @@ func TestPatchPost(t *testing.T) {
 			th.RemovePermissionFromRole(t, model.PermissionUseChannelMentions.Id, model.ChannelAdminRoleId)
 
 			patchWithNoMention := &model.PostPatch{Message: model.NewPointer("This patch still does not have a mention")}
-			rpost, err = th.App.PatchPost(th.Context, rpost.Id, patchWithNoMention, nil)
+			rpost, _, err = th.App.PatchPost(th.Context, rpost.Id, patchWithNoMention, nil)
 			require.Nil(t, err)
 			assert.Equal(t, rpost.GetProps(), model.StringInterface{})
 
 			patchWithMention := &model.PostPatch{Message: model.NewPointer("This patch has a mention now @here")}
 
-			rpost, err = th.App.PatchPost(th.Context, rpost.Id, patchWithMention, nil)
+			rpost, _, err = th.App.PatchPost(th.Context, rpost.Id, patchWithMention, nil)
 			require.Nil(t, err)
 			assert.Equal(t, rpost.GetProp(model.PostPropsMentionHighlightDisabled), true)
 
@@ -1473,14 +1477,14 @@ func TestPatchPost(t *testing.T) {
 			ChannelId: dmChannel.Id,
 			Message:   "test post",
 		}
-		post, err = th.App.CreatePost(th.Context, post, dmChannel, model.CreatePostFlags{})
+		post, _, err = th.App.CreatePost(th.Context, post, dmChannel, model.CreatePostFlags{})
 		require.Nil(t, err)
 
 		// Try to patch the post
 		patch := &model.PostPatch{
 			Message: model.NewPointer("updated message"),
 		}
-		_, appErr := th.App.PatchPost(th.Context, post.Id, patch, model.DefaultUpdatePostOptions())
+		_, _, appErr := th.App.PatchPost(th.Context, post.Id, patch, model.DefaultUpdatePostOptions())
 		require.NotNil(t, appErr)
 		require.Equal(t, "api.post.patch_post.can_not_update_post_in_restricted_dm.error", appErr.Id)
 		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
@@ -1508,7 +1512,7 @@ func TestCreatePostAsUser(t *testing.T) {
 		require.NoError(t, err)
 
 		time.Sleep(1 * time.Millisecond)
-		_, appErr := th.App.CreatePostAsUser(th.Context, post, "", true)
+		_, _, appErr := th.App.CreatePostAsUser(th.Context, post, "", true)
 		require.Nil(t, appErr)
 
 		channelMemberAfter, err := th.App.Srv().Store().Channel().GetMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
@@ -1532,7 +1536,7 @@ func TestCreatePostAsUser(t *testing.T) {
 		require.NoError(t, err)
 
 		time.Sleep(1 * time.Millisecond)
-		_, appErr := th.App.CreatePostAsUser(th.Context, post, "", true)
+		_, _, appErr := th.App.CreatePostAsUser(th.Context, post, "", true)
 		require.Nil(t, appErr)
 
 		channelMemberAfter, err := th.App.Srv().Store().Channel().GetMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
@@ -1563,7 +1567,7 @@ func TestCreatePostAsUser(t *testing.T) {
 		require.NoError(t, err)
 
 		time.Sleep(1 * time.Millisecond)
-		_, appErr = th.App.CreatePostAsUser(th.Context, post, "", true)
+		_, _, appErr = th.App.CreatePostAsUser(th.Context, post, "", true)
 		require.Nil(t, appErr)
 
 		channelMemberAfter, err := th.App.Srv().Store().Channel().GetMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
@@ -1589,7 +1593,7 @@ func TestCreatePostAsUser(t *testing.T) {
 			UserId:    bot.UserId,
 		}
 
-		_, appErr = th.App.CreatePostAsUser(th.Context, post, "", true)
+		_, _, appErr = th.App.CreatePostAsUser(th.Context, post, "", true)
 		require.Nil(t, appErr)
 
 		require.NoError(t, th.TestLogger.Flush())
@@ -1610,7 +1614,7 @@ func TestCreatePostAsUser(t *testing.T) {
 			Message:   "test",
 			UserId:    th.BasicUser2.Id,
 		}
-		rootPost, appErr := th.App.CreatePostAsUser(th.Context, post, "", true)
+		rootPost, _, appErr := th.App.CreatePostAsUser(th.Context, post, "", true)
 		require.Nil(t, appErr)
 
 		channelMemberBefore, err := th.App.Srv().Store().Channel().GetMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
@@ -1623,7 +1627,7 @@ func TestCreatePostAsUser(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			RootId:    rootPost.Id,
 		}
-		_, appErr = th.App.CreatePostAsUser(th.Context, replyPost, "", true)
+		_, _, appErr = th.App.CreatePostAsUser(th.Context, replyPost, "", true)
 		require.Nil(t, appErr)
 
 		channelMemberAfter, err := th.App.Srv().Store().Channel().GetMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
@@ -1646,7 +1650,7 @@ func TestCreatePostAsUser(t *testing.T) {
 			Message:   "test",
 			UserId:    th.BasicUser2.Id,
 		}
-		rootPost, appErr := th.App.CreatePostAsUser(th.Context, post, "", true)
+		rootPost, _, appErr := th.App.CreatePostAsUser(th.Context, post, "", true)
 		require.Nil(t, appErr)
 
 		channelMemberBefore, err := th.App.Srv().Store().Channel().GetMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
@@ -1659,7 +1663,7 @@ func TestCreatePostAsUser(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			RootId:    rootPost.Id,
 		}
-		_, appErr = th.App.CreatePostAsUser(th.Context, replyPost, "", true)
+		_, _, appErr = th.App.CreatePostAsUser(th.Context, replyPost, "", true)
 		require.Nil(t, appErr)
 
 		channelMemberAfter, err := th.App.Srv().Store().Channel().GetMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
@@ -1705,7 +1709,7 @@ func TestCreatePostAsUser(t *testing.T) {
 			Message:   "test post",
 		}
 
-		_, appErr := th.App.CreatePostAsUser(th.Context, post, "", true)
+		_, _, appErr := th.App.CreatePostAsUser(th.Context, post, "", true)
 		require.NotNil(t, appErr)
 		require.Equal(t, "api.post.create_post.can_not_post_in_restricted_dm.error", appErr.Id)
 		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
@@ -1726,7 +1730,7 @@ func TestPatchPostInArchivedChannel(t *testing.T) {
 	appErr := th.App.DeleteChannel(th.Context, archivedChannel, "")
 	require.Nil(t, appErr)
 
-	_, err := th.App.PatchPost(th.Context, post.Id, &model.PostPatch{IsPinned: model.NewPointer(true)}, nil)
+	_, _, err := th.App.PatchPost(th.Context, post.Id, &model.PostPatch{IsPinned: model.NewPointer(true)}, nil)
 	require.NotNil(t, err)
 	require.Equal(t, "api.post.patch_post.can_not_update_post_in_deleted.error", err.Id)
 }
@@ -1751,7 +1755,7 @@ func TestUpdateEphemeralPost(t *testing.T) {
 
 		th.Context.Session().UserId = th.BasicUser.Id
 
-		referencedPost, err := th.App.CreatePost(th.Context, referencedPost, th.BasicChannel, model.CreatePostFlags{})
+		referencedPost, _, err := th.App.CreatePost(th.Context, referencedPost, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, err)
 
 		permalink := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
@@ -1762,7 +1766,7 @@ func TestUpdateEphemeralPost(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 		}
 
-		testPost = th.App.UpdateEphemeralPost(th.Context, th.BasicUser.Id, testPost)
+		testPost, _ = th.App.UpdateEphemeralPost(th.Context, th.BasicUser.Id, testPost)
 		require.NotNil(t, testPost.Metadata)
 		require.Len(t, testPost.Metadata.Embeds, 1)
 		require.Equal(t, model.PostEmbedPermalink, testPost.Metadata.Embeds[0].Type)
@@ -1788,7 +1792,7 @@ func TestUpdateEphemeralPost(t *testing.T) {
 
 		th.Context.Session().UserId = th.BasicUser.Id
 
-		referencedPost, err := th.App.CreatePost(th.Context, referencedPost, th.BasicChannel, model.CreatePostFlags{})
+		referencedPost, _, err := th.App.CreatePost(th.Context, referencedPost, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, err)
 
 		permalink := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
@@ -1799,7 +1803,7 @@ func TestUpdateEphemeralPost(t *testing.T) {
 			UserId:    th.BasicUser2.Id,
 		}
 
-		testPost = th.App.UpdateEphemeralPost(th.Context, th.BasicUser2.Id, testPost)
+		testPost, _ = th.App.UpdateEphemeralPost(th.Context, th.BasicUser2.Id, testPost)
 		require.Nil(t, testPost.Metadata.Embeds)
 	})
 }
@@ -1829,14 +1833,15 @@ func TestUpdatePost(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 		}
 
-		rpost, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		rpost, _, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 		assert.NotEqual(t, "![image]("+proxiedImageURL+")", rpost.Message)
 
 		post.Id = rpost.Id
 		post.Message = "![image](" + imageURL + ")"
 
-		rpost, err = th.App.UpdatePost(th.Context, post, nil)
+		rpost, isMemberForPreviews, err := th.App.UpdatePost(th.Context, post, nil)
+		require.True(t, isMemberForPreviews)
 		require.Nil(t, err)
 		assert.Equal(t, "![image]("+proxiedImageURL+")", rpost.Message)
 	})
@@ -1859,7 +1864,7 @@ func TestUpdatePost(t *testing.T) {
 
 		th.Context.Session().UserId = th.BasicUser.Id
 
-		referencedPost, err := th.App.CreatePost(th.Context, referencedPost, th.BasicChannel, model.CreatePostFlags{})
+		referencedPost, _, err := th.App.CreatePost(th.Context, referencedPost, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, err)
 
 		permalink := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
@@ -1871,12 +1876,13 @@ func TestUpdatePost(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 		}
 
-		testPost, err = th.App.CreatePost(th.Context, testPost, channelForTestPost, model.CreatePostFlags{})
+		testPost, _, err = th.App.CreatePost(th.Context, testPost, channelForTestPost, model.CreatePostFlags{})
 		require.Nil(t, err)
 		assert.Equal(t, model.StringInterface{}, testPost.GetProps())
 
 		testPost.Message = permalink
-		testPost, err = th.App.UpdatePost(th.Context, testPost, nil)
+		testPost, isMemberForPreviews, err := th.App.UpdatePost(th.Context, testPost, nil)
+		require.True(t, isMemberForPreviews)
 		require.Nil(t, err)
 		assert.Equal(t, model.StringInterface{model.PostPropsPreviewedPost: referencedPost.Id}, testPost.GetProps())
 	})
@@ -1925,24 +1931,79 @@ func TestUpdatePost(t *testing.T) {
 					Message:   "hello world",
 					UserId:    testCase.Author,
 				}
-				_, err = th.App.CreatePost(th.Context, referencedPost, testCase.Channel, model.CreatePostFlags{})
+				_, _, err = th.App.CreatePost(th.Context, referencedPost, testCase.Channel, model.CreatePostFlags{})
 				require.Nil(t, err)
 
 				previewPost := &model.Post{
 					ChannelId: th.BasicChannel.Id,
 					UserId:    th.BasicUser.Id,
 				}
-				previewPost, err = th.App.CreatePost(th.Context, previewPost, th.BasicChannel, model.CreatePostFlags{})
+				previewPost, _, err = th.App.CreatePost(th.Context, previewPost, th.BasicChannel, model.CreatePostFlags{})
 				require.Nil(t, err)
 
 				permalink := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
 				previewPost.Message = permalink
-				previewPost, err = th.App.UpdatePost(th.Context, previewPost, nil)
+				previewPost, isMemberForPreviews, err := th.App.UpdatePost(th.Context, previewPost, nil)
+				require.True(t, isMemberForPreviews)
 				require.Nil(t, err)
 
 				require.Len(t, previewPost.Metadata.Embeds, testCase.Length)
 			})
 		}
+	})
+
+	t.Run("should strip client-supplied embeds", func(t *testing.T) {
+		// MM-67055: Verify that client-supplied metadata.embeds are stripped.
+		// This prevents WebSocket message spoofing via permalink embeds.
+		//
+		// Note: Priority and Acknowledgements are stored in separate database tables,
+		// not in post metadata. Shared Channels handles them separately via
+		// syncRemotePriorityMetadata and syncRemoteAcknowledgementsMetadata after
+		// calling UpdatePost. See sync_recv.go::upsertSyncPost
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.AddUserToChannel(t, th.BasicUser, th.BasicChannel)
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		// Create a basic post
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "original message",
+			UserId:    th.BasicUser.Id,
+		}
+		createdPost, _, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, err)
+
+		// Try to update with spoofed embeds (the attack vector)
+		updatePost := &model.Post{
+			Id:        createdPost.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "updated message",
+			UserId:    th.BasicUser.Id,
+			Metadata: &model.PostMetadata{
+				Embeds: []*model.PostEmbed{
+					{
+						Type: model.PostEmbedPermalink,
+						Data: &model.PreviewPost{
+							PostID: "spoofed-post-id",
+							Post: &model.Post{
+								Id:      "spoofed-post-id",
+								UserId:  th.BasicUser2.Id,
+								Message: "Spoofed message from another user!",
+							},
+						},
+					},
+				},
+			},
+		}
+
+		updatedPost, _, err := th.App.UpdatePost(th.Context, updatePost, nil)
+		require.Nil(t, err)
+		require.NotNil(t, updatedPost.Metadata)
+
+		// Verify embeds were stripped
+		assert.Empty(t, updatedPost.Metadata.Embeds, "spoofed embeds should be stripped")
 	})
 
 	t.Run("cannot update post in restricted DM", func(t *testing.T) {
@@ -1982,12 +2043,12 @@ func TestUpdatePost(t *testing.T) {
 			ChannelId: dmChannel.Id,
 			Message:   "test post",
 		}
-		post, err = th.App.CreatePost(th.Context, post, dmChannel, model.CreatePostFlags{})
+		post, _, err = th.App.CreatePost(th.Context, post, dmChannel, model.CreatePostFlags{})
 		require.Nil(t, err)
 
 		// Try to update the post
 		post.Message = "updated message"
-		_, appErr := th.App.UpdatePost(th.Context, post, model.DefaultUpdatePostOptions())
+		_, _, appErr := th.App.UpdatePost(th.Context, post, model.DefaultUpdatePostOptions())
 		require.NotNil(t, appErr)
 		require.Equal(t, "api.post.update_post.can_not_update_post_in_restricted_dm.error", appErr.Id)
 		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
@@ -2009,7 +2070,7 @@ func TestSearchPostsForUser(t *testing.T) {
 
 		posts := make([]*model.Post, 7)
 		for i := 0; i < cap(posts); i++ {
-			post, err := th.App.CreatePost(th.Context, &model.Post{
+			post, _, err := th.App.CreatePost(th.Context, &model.Post{
 				UserId:    th.BasicUser.Id,
 				ChannelId: th.BasicChannel.Id,
 				Message:   searchTerm,
@@ -2042,7 +2103,7 @@ func TestSearchPostsForUser(t *testing.T) {
 
 		page := 0
 
-		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, allPostHaveMembership, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		assert.Nil(t, err)
 		assert.Equal(t, []string{
@@ -2054,6 +2115,7 @@ func TestSearchPostsForUser(t *testing.T) {
 			posts[1].Id,
 			posts[0].Id,
 		}, results.Order)
+		assert.True(t, allPostHaveMembership)
 	})
 
 	t.Run("should not return later pages of posts from database", func(t *testing.T) {
@@ -2062,10 +2124,11 @@ func TestSearchPostsForUser(t *testing.T) {
 
 		page := 1
 
-		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, allPostHaveMembership, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		assert.Nil(t, err)
 		assert.Equal(t, []string{}, results.Order)
+		assert.True(t, allPostHaveMembership)
 	})
 
 	t.Run("should return first page of posts from ElasticSearch", func(t *testing.T) {
@@ -2091,10 +2154,11 @@ func TestSearchPostsForUser(t *testing.T) {
 			th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, allPostHaveMembership, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		assert.Nil(t, err)
 		assert.Equal(t, resultsPage, results.Order)
+		assert.True(t, allPostHaveMembership)
 		es.AssertExpectations(t)
 	})
 
@@ -2118,10 +2182,11 @@ func TestSearchPostsForUser(t *testing.T) {
 			th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, allPostHaveMembership, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		assert.Nil(t, err)
 		assert.Equal(t, resultsPage, results.Order)
+		assert.True(t, allPostHaveMembership)
 		es.AssertExpectations(t)
 	})
 
@@ -2142,7 +2207,7 @@ func TestSearchPostsForUser(t *testing.T) {
 			th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, allPostHaveMembership, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		assert.Nil(t, err)
 		assert.Equal(t, []string{
@@ -2154,6 +2219,7 @@ func TestSearchPostsForUser(t *testing.T) {
 			posts[1].Id,
 			posts[0].Id,
 		}, results.Order)
+		assert.True(t, allPostHaveMembership)
 		es.AssertExpectations(t)
 	})
 
@@ -2174,10 +2240,11 @@ func TestSearchPostsForUser(t *testing.T) {
 			th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, allPostHaveMembership, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		assert.Nil(t, err)
 		assert.Equal(t, []string{}, results.Order)
+		assert.True(t, allPostHaveMembership)
 		es.AssertExpectations(t)
 	})
 
@@ -2189,12 +2256,12 @@ func TestSearchPostsForUser(t *testing.T) {
 
 		searchQueryWithPrefix := fmt.Sprintf("in:~%s %s", th.BasicChannel.Name, searchTerm)
 
-		resultsWithPrefix, err := th.App.SearchPostsForUser(th.Context, searchQueryWithPrefix, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		resultsWithPrefix, _, err := th.App.SearchPostsForUser(th.Context, searchQueryWithPrefix, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 		assert.Nil(t, err)
 		assert.Greater(t, len(resultsWithPrefix.PostList.Posts), 0, "searching using a tilde in front of a channel should return results")
 		searchQueryWithoutPrefix := fmt.Sprintf("in:%s %s", th.BasicChannel.Name, searchTerm)
 
-		resultsWithoutPrefix, err := th.App.SearchPostsForUser(th.Context, searchQueryWithoutPrefix, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		resultsWithoutPrefix, _, err := th.App.SearchPostsForUser(th.Context, searchQueryWithoutPrefix, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 		assert.Nil(t, err)
 		assert.Equal(t, len(resultsWithPrefix.Posts), len(resultsWithoutPrefix.Posts), "searching using a tilde in front of a channel should return the same number of results")
 		for k, v := range resultsWithPrefix.Posts {
@@ -2210,12 +2277,12 @@ func TestSearchPostsForUser(t *testing.T) {
 
 		searchQueryWithPrefix := fmt.Sprintf("from:@%s %s", th.BasicUser.Username, searchTerm)
 
-		resultsWithPrefix, err := th.App.SearchPostsForUser(th.Context, searchQueryWithPrefix, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		resultsWithPrefix, _, err := th.App.SearchPostsForUser(th.Context, searchQueryWithPrefix, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 		assert.Nil(t, err)
 		assert.Greater(t, len(resultsWithPrefix.PostList.Posts), 0, "searching using a 'at' symbol in front of a channel should return results")
 		searchQueryWithoutPrefix := fmt.Sprintf("from:@%s %s", th.BasicUser.Username, searchTerm)
 
-		resultsWithoutPrefix, err := th.App.SearchPostsForUser(th.Context, searchQueryWithoutPrefix, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		resultsWithoutPrefix, _, err := th.App.SearchPostsForUser(th.Context, searchQueryWithoutPrefix, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 		assert.Nil(t, err)
 		assert.Equal(t, len(resultsWithPrefix.Posts), len(resultsWithoutPrefix.Posts), "searching using an 'at' symbol in front of a channel should return the same number of results")
 		for k, v := range resultsWithPrefix.Posts {
@@ -2236,19 +2303,19 @@ func TestCountMentionsFromPost(t *testing.T) {
 		channel := th.CreateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, user2, channel)
 
-		post1, err := th.App.CreatePost(th.Context, &model.Post{
+		post1, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "test",
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
-		_, err = th.App.CreatePost(th.Context, &model.Post{
+		_, _, err = th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "test2",
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
-		_, err = th.App.CreatePost(th.Context, &model.Post{
+		_, _, err = th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "test3",
@@ -2273,19 +2340,19 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		user2.NotifyProps[model.MentionKeysNotifyProp] = "apple"
 
-		post1, err := th.App.CreatePost(th.Context, &model.Post{
+		post1, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   fmt.Sprintf("@%s", user2.Username),
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
-		_, err = th.App.CreatePost(th.Context, &model.Post{
+		_, _, err = th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "test2",
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
-		_, err = th.App.CreatePost(th.Context, &model.Post{
+		_, _, err = th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "apple",
@@ -2312,19 +2379,19 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		user2.NotifyProps[model.ChannelMentionsNotifyProp] = "true"
 
-		post1, err := th.App.CreatePost(th.Context, &model.Post{
+		post1, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "test",
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
-		_, err = th.App.CreatePost(th.Context, &model.Post{
+		_, _, err = th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "@channel",
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
-		_, err = th.App.CreatePost(th.Context, &model.Post{
+		_, _, err = th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "@all",
@@ -2351,19 +2418,19 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		user2.NotifyProps[model.ChannelMentionsNotifyProp] = "false"
 
-		post1, err := th.App.CreatePost(th.Context, &model.Post{
+		post1, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "test",
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
-		_, err = th.App.CreatePost(th.Context, &model.Post{
+		_, _, err = th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "@channel",
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
-		_, err = th.App.CreatePost(th.Context, &model.Post{
+		_, _, err = th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "@all",
@@ -2393,19 +2460,19 @@ func TestCountMentionsFromPost(t *testing.T) {
 		}, channel.Id, user2.Id)
 		require.Nil(t, err)
 
-		post1, err := th.App.CreatePost(th.Context, &model.Post{
+		post1, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "test",
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
-		_, err = th.App.CreatePost(th.Context, &model.Post{
+		_, _, err = th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "@channel",
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
-		_, err = th.App.CreatePost(th.Context, &model.Post{
+		_, _, err = th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "@all",
@@ -2430,33 +2497,33 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		user2.NotifyProps[model.CommentsNotifyProp] = model.CommentsNotifyRoot
 
-		post1, err := th.App.CreatePost(th.Context, &model.Post{
+		post1, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user2.Id,
 			ChannelId: channel.Id,
 			Message:   "test",
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
-		_, err = th.App.CreatePost(th.Context, &model.Post{
+		_, _, err = th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			RootId:    post1.Id,
 			Message:   "test2",
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
-		post3, err := th.App.CreatePost(th.Context, &model.Post{
+		post3, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "test3",
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
-		_, err = th.App.CreatePost(th.Context, &model.Post{
+		_, _, err = th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user2.Id,
 			ChannelId: channel.Id,
 			RootId:    post3.Id,
 			Message:   "test4",
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
-		_, err = th.App.CreatePost(th.Context, &model.Post{
+		_, _, err = th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			RootId:    post3.Id,
@@ -2484,33 +2551,33 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		user2.NotifyProps[model.CommentsNotifyProp] = model.CommentsNotifyAny
 
-		post1, err := th.App.CreatePost(th.Context, &model.Post{
+		post1, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user2.Id,
 			ChannelId: channel.Id,
 			Message:   "test",
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
-		_, err = th.App.CreatePost(th.Context, &model.Post{
+		_, _, err = th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			RootId:    post1.Id,
 			Message:   "test2",
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
-		post3, err := th.App.CreatePost(th.Context, &model.Post{
+		post3, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "test3",
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
-		_, err = th.App.CreatePost(th.Context, &model.Post{
+		_, _, err = th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user2.Id,
 			ChannelId: channel.Id,
 			RootId:    post3.Id,
 			Message:   "test4",
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
-		_, err = th.App.CreatePost(th.Context, &model.Post{
+		_, _, err = th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			RootId:    post3.Id,
@@ -2536,7 +2603,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		channel := th.CreateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, user2, channel)
 
-		post1, err := th.App.CreatePost(th.Context, &model.Post{
+		post1, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "test",
@@ -2546,7 +2613,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 			},
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
-		_, err = th.App.CreatePost(th.Context, &model.Post{
+		_, _, err = th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "test2",
@@ -2556,7 +2623,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 			},
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
-		_, err = th.App.CreatePost(th.Context, &model.Post{
+		_, _, err = th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "test3",
@@ -2585,14 +2652,14 @@ func TestCountMentionsFromPost(t *testing.T) {
 		channel, err := th.App.createDirectChannel(th.Context, user1.Id, user2.Id)
 		require.Nil(t, err)
 
-		post1, err := th.App.CreatePost(th.Context, &model.Post{
+		post1, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "test",
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
-		_, err = th.App.CreatePost(th.Context, &model.Post{
+		_, _, err = th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "test2",
@@ -2621,21 +2688,21 @@ func TestCountMentionsFromPost(t *testing.T) {
 		channel, err := th.App.createGroupChannel(th.Context, []string{user1.Id, user2.Id, user3.Id}, user1.Id)
 		require.Nil(t, err)
 
-		post1, err := th.App.CreatePost(th.Context, &model.Post{
+		post1, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "test",
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
-		_, err = th.App.CreatePost(th.Context, &model.Post{
+		_, _, err = th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "test2",
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
-		_, err = th.App.CreatePost(th.Context, &model.Post{
+		_, _, err = th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user3.Id,
 			ChannelId: channel.Id,
 			Message:   "test3",
@@ -2663,19 +2730,19 @@ func TestCountMentionsFromPost(t *testing.T) {
 		channel := th.CreateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, user2, channel)
 
-		_, err := th.App.CreatePost(th.Context, &model.Post{
+		_, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   fmt.Sprintf("@%s", user2.Username),
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
-		post2, err := th.App.CreatePost(th.Context, &model.Post{
+		post2, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "test2",
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
-		_, err = th.App.CreatePost(th.Context, &model.Post{
+		_, _, err = th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   fmt.Sprintf("@%s", user2.Username),
@@ -2700,13 +2767,13 @@ func TestCountMentionsFromPost(t *testing.T) {
 		channel := th.CreateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, user2, channel)
 
-		post1, err := th.App.CreatePost(th.Context, &model.Post{
+		post1, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   fmt.Sprintf("@%s", user2.Username),
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
-		_, err = th.App.CreatePost(th.Context, &model.Post{
+		_, _, err = th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user2.Id,
 			ChannelId: channel.Id,
 			Message:   fmt.Sprintf("@%s", user2.Username),
@@ -2733,26 +2800,26 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		user2.NotifyProps[model.CommentsNotifyProp] = model.CommentsNotifyAny
 
-		post1, err := th.App.CreatePost(th.Context, &model.Post{
+		post1, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "test1",
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
-		_, err = th.App.CreatePost(th.Context, &model.Post{
+		_, _, err = th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user2.Id,
 			ChannelId: channel.Id,
 			RootId:    post1.Id,
 			Message:   "test2",
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
-		post3, err := th.App.CreatePost(th.Context, &model.Post{
+		post3, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "test3",
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
-		_, err = th.App.CreatePost(th.Context, &model.Post{
+		_, _, err = th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			RootId:    post1.Id,
@@ -2787,13 +2854,13 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		user2.NotifyProps[model.CommentsNotifyProp] = model.CommentsNotifyAny
 
-		post1, err := th.App.CreatePost(th.Context, &model.Post{
+		post1, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "test1",
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
-		_, err = th.App.CreatePost(th.Context, &model.Post{
+		_, _, err = th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user2.Id,
 			ChannelId: channel.Id,
 			RootId:    post1.Id,
@@ -2803,13 +2870,13 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		time.Sleep(time.Millisecond * 2)
 
-		post3, err := th.App.CreatePost(th.Context, &model.Post{
+		post3, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "test3",
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
-		_, err = th.App.CreatePost(th.Context, &model.Post{
+		_, _, err = th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			RootId:    post1.Id,
@@ -2843,19 +2910,19 @@ func TestCountMentionsFromPost(t *testing.T) {
 		channel := th.CreateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, user2, channel)
 
-		post1, err := th.App.CreatePost(th.Context, &model.Post{
+		post1, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "test1",
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
-		_, err = th.App.CreatePost(th.Context, &model.Post{
+		_, _, err = th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user2.Id,
 			ChannelId: channel.Id,
 			Message:   fmt.Sprintf("@%s", user2.Username),
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
-		_, err = th.App.CreatePost(th.Context, &model.Post{
+		_, _, err = th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user2.Id,
 			ChannelId: channel.Id,
 			Message:   fmt.Sprintf("@%s", user2.Username),
@@ -2885,7 +2952,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		numPosts := 215
 
-		post1, err := th.App.CreatePost(th.Context, &model.Post{
+		post1, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   fmt.Sprintf("@%s", user2.Username),
@@ -2893,7 +2960,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		require.Nil(t, err)
 
 		for i := 0; i < numPosts-1; i++ {
-			_, err = th.App.CreatePost(th.Context, &model.Post{
+			_, _, err = th.App.CreatePost(th.Context, &model.Post{
 				UserId:    user1.Id,
 				ChannelId: channel.Id,
 				Message:   fmt.Sprintf("@%s", user2.Username),
@@ -2925,7 +2992,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		user2.NotifyProps[model.MentionKeysNotifyProp] = "apple"
 
-		post1, err := th.App.CreatePost(th.Context, &model.Post{
+		post1, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   fmt.Sprintf("@%s", user2.Username),
@@ -2937,14 +3004,14 @@ func TestCountMentionsFromPost(t *testing.T) {
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
-		_, err = th.App.CreatePost(th.Context, &model.Post{
+		_, _, err = th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   fmt.Sprintf("@%s", user2.Username),
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
-		_, err = th.App.CreatePost(th.Context, &model.Post{
+		_, _, err = th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "apple",
@@ -2977,7 +3044,7 @@ func TestFillInPostProps(t *testing.T) {
 
 		channel := th.CreateChannel(t, th.BasicTeam)
 
-		post1, err := th.App.CreatePost(th.Context, &model.Post{
+		post1, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "test123123 @group1 @group2 blah blah blah",
@@ -3009,7 +3076,7 @@ func TestFillInPostProps(t *testing.T) {
 		channel := th.CreateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, guest, channel)
 
-		post1, err := th.App.CreatePost(th.Context, &model.Post{
+		post1, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    guest.Id,
 			ChannelId: channel.Id,
 			Message:   "test123123 @group1 @group2 blah blah blah",
@@ -3043,7 +3110,7 @@ func TestFillInPostProps(t *testing.T) {
 		channel := th.CreateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, guest, channel)
 
-		post1, err := th.App.CreatePost(th.Context, &model.Post{
+		post1, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    guest.Id,
 			ChannelId: channel.Id,
 			Message:   "test123123 @group1 @group2 blah blah blah",
@@ -3175,7 +3242,7 @@ func TestFillInPostProps(t *testing.T) {
 
 		dmChannelBetweenUser1AndUser2 := th.CreateDmChannel(t, user2)
 
-		post, err := th.App.CreatePost(th.Context, &model.Post{
+		post, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: dmChannelBetweenUser1AndUser2.Id,
 			Message:   "Testing out i should not be able to mention channel2 from team2? ~" + channel2.Name,
@@ -3200,7 +3267,7 @@ func TestFillInPostProps(t *testing.T) {
 
 		dmChannel := th.CreateDmChannel(t, user2)
 
-		post, err := th.App.CreatePost(th.Context, &model.Post{
+		post, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: dmChannel.Id,
 			Message:   "Check out ~" + channel.Name,
@@ -3233,14 +3300,14 @@ func TestThreadMembership(t *testing.T) {
 		channel := th.CreateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, user2, channel)
 
-		postRoot, err := th.App.CreatePost(th.Context, &model.Post{
+		postRoot, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "root post",
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
-		_, err = th.App.CreatePost(th.Context, &model.Post{
+		_, _, err = th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			RootId:    postRoot.Id,
@@ -3257,14 +3324,14 @@ func TestThreadMembership(t *testing.T) {
 		require.NoError(t, err2)
 		require.Len(t, memberships, 1)
 
-		post2, err := th.App.CreatePost(th.Context, &model.Post{
+		post2, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user2.Id,
 			ChannelId: channel.Id,
 			Message:   "second post",
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
-		_, err = th.App.CreatePost(th.Context, &model.Post{
+		_, _, err = th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user2.Id,
 			ChannelId: channel.Id,
 			RootId:    post2.Id,
@@ -3302,9 +3369,9 @@ func TestFollowThreadSkipsParticipants(t *testing.T) {
 	appErr = th.App.JoinChannel(th.Context, channel, sysadmin.Id)
 	require.Nil(t, appErr)
 
-	p1, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: user.Id, ChannelId: channel.Id, Message: "Hi @" + sysadmin.Username}, channel, model.CreatePostFlags{})
+	p1, _, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: user.Id, ChannelId: channel.Id, Message: "Hi @" + sysadmin.Username}, channel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
-	_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: p1.Id, UserId: user.Id, ChannelId: channel.Id, Message: "Hola"}, channel, model.CreatePostFlags{})
+	_, _, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: p1.Id, UserId: user.Id, ChannelId: channel.Id, Message: "Hola"}, channel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
 
 	threadMembership, appErr := th.App.GetThreadMembershipForUser(user.Id, p1.Id)
@@ -3313,7 +3380,7 @@ func TestFollowThreadSkipsParticipants(t *testing.T) {
 	require.Nil(t, appErr)
 	require.Len(t, thread.Participants, 1) // length should be 1, the original poster, since sysadmin was just mentioned but didn't post
 
-	_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: p1.Id, UserId: sysadmin.Id, ChannelId: channel.Id, Message: "sysadmin reply"}, channel, model.CreatePostFlags{})
+	_, _, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: p1.Id, UserId: sysadmin.Id, ChannelId: channel.Id, Message: "sysadmin reply"}, channel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
 
 	threadMembership, appErr = th.App.GetThreadMembershipForUser(user.Id, p1.Id)
@@ -3364,12 +3431,12 @@ func TestAutofollowBasedOnRootPost(t *testing.T) {
 	require.Nil(t, appErr)
 	appErr = th.App.JoinChannel(th.Context, channel, user2.Id)
 	require.Nil(t, appErr)
-	p1, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: user.Id, ChannelId: channel.Id, Message: "Hi @" + user2.Username}, channel, model.CreatePostFlags{})
+	p1, _, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: user.Id, ChannelId: channel.Id, Message: "Hi @" + user2.Username}, channel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
 	m, err := th.App.GetThreadMembershipsForUser(user2.Id, th.BasicTeam.Id)
 	require.NoError(t, err)
 	require.Len(t, m, 0)
-	_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: p1.Id, UserId: user.Id, ChannelId: channel.Id, Message: "Hola"}, channel, model.CreatePostFlags{})
+	_, _, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: p1.Id, UserId: user.Id, ChannelId: channel.Id, Message: "Hola"}, channel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
 	m, err = th.App.GetThreadMembershipsForUser(user2.Id, th.BasicTeam.Id)
 	require.NoError(t, err)
@@ -3392,9 +3459,9 @@ func TestViewChannelShouldNotUpdateThreads(t *testing.T) {
 	require.Nil(t, appErr)
 	appErr = th.App.JoinChannel(th.Context, channel, user2.Id)
 	require.Nil(t, appErr)
-	p1, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: user.Id, ChannelId: channel.Id, Message: "Hi @" + user2.Username}, channel, model.CreatePostFlags{})
+	p1, _, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: user.Id, ChannelId: channel.Id, Message: "Hi @" + user2.Username}, channel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
-	_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: p1.Id, UserId: user.Id, ChannelId: channel.Id, Message: "Hola"}, channel, model.CreatePostFlags{})
+	_, _, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: p1.Id, UserId: user.Id, ChannelId: channel.Id, Message: "Hola"}, channel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
 	m, err := th.App.GetThreadMembershipsForUser(user2.Id, th.BasicTeam.Id)
 	require.NoError(t, err)
@@ -3429,14 +3496,14 @@ func TestCollapsedThreadFetch(t *testing.T) {
 			require.Nil(t, appErr)
 		}()
 
-		postRoot, appErr := th.App.CreatePost(th.Context, &model.Post{
+		postRoot, _, appErr := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "root post",
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
-		_, appErr = th.App.CreatePost(th.Context, &model.Post{
+		_, _, appErr = th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			RootId:    postRoot.Id,
@@ -3472,7 +3539,7 @@ func TestCollapsedThreadFetch(t *testing.T) {
 			require.Nil(t, appErr)
 		}()
 
-		postRoot, err := th.App.CreatePost(th.Context, &model.Post{
+		postRoot, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "root post",
@@ -3491,7 +3558,7 @@ func TestCollapsedThreadFetch(t *testing.T) {
 		require.NotPanics(t, func() {
 			// We're only testing that this doesn't panic, not checking the error
 			// #nosec G104 - purposely not checking error as we're in a NotPanics block
-			_, _ = th.App.CreatePost(th.Context, &model.Post{
+			_, _, _ = th.App.CreatePost(th.Context, &model.Post{
 				UserId:    user1.Id,
 				ChannelId: channel.Id,
 				RootId:    postRoot.Id,
@@ -3527,14 +3594,14 @@ func TestCollapsedThreadFetch(t *testing.T) {
 		th.LinkUserToTeam(t, user3, th.BasicTeam)
 		th.AddUserToChannel(t, user3, channel)
 
-		postRoot, appErr := th.App.CreatePost(th.Context, &model.Post{
+		postRoot, _, appErr := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "root post",
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
-		_, appErr = th.App.CreatePost(th.Context, &model.Post{
+		_, _, appErr = th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user3.Id,
 			ChannelId: channel.Id,
 			RootId:    postRoot.Id,
@@ -3598,7 +3665,7 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 
 		channel := th.CreateChannel(t, th.BasicTeam, WithShared(true))
 
-		_, err := th.App.CreatePost(th.Context, &model.Post{
+		_, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user.Id,
 			ChannelId: channel.Id,
 			Message:   "Hello folks",
@@ -3621,14 +3688,14 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 
 		channel := th.CreateChannel(t, th.BasicTeam, WithShared(true))
 
-		post, err := th.App.CreatePost(th.Context, &model.Post{
+		post, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user.Id,
 			ChannelId: channel.Id,
 			Message:   "Hello folks",
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err, "Creating a post should not error")
 
-		_, err = th.App.UpdatePost(th.Context, post, &model.UpdatePostOptions{SafeUpdate: true})
+		_, _, err = th.App.UpdatePost(th.Context, post, &model.UpdatePostOptions{SafeUpdate: true})
 		require.Nil(t, err, "Updating a post should not error")
 
 		require.Len(t, sharedChannelService.channelNotifications, 2)
@@ -3648,7 +3715,7 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 
 		channel := th.CreateChannel(t, th.BasicTeam, WithShared(true))
 
-		post, err := th.App.CreatePost(th.Context, &model.Post{
+		post, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user.Id,
 			ChannelId: channel.Id,
 			Message:   "Hello folks",
@@ -3682,11 +3749,11 @@ func TestAutofollowOnPostingAfterUnfollow(t *testing.T) {
 	require.Nil(t, appErr)
 	appErr = th.App.JoinChannel(th.Context, channel, user2.Id)
 	require.Nil(t, appErr)
-	p1, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: user.Id, ChannelId: channel.Id, Message: "Hi @" + user2.Username}, channel, model.CreatePostFlags{})
+	p1, _, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: user.Id, ChannelId: channel.Id, Message: "Hi @" + user2.Username}, channel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
-	_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: p1.Id, UserId: user2.Id, ChannelId: channel.Id, Message: "Hola"}, channel, model.CreatePostFlags{})
+	_, _, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: p1.Id, UserId: user2.Id, ChannelId: channel.Id, Message: "Hola"}, channel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
-	_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: p1.Id, UserId: user.Id, ChannelId: channel.Id, Message: "reply"}, channel, model.CreatePostFlags{})
+	_, _, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: p1.Id, UserId: user.Id, ChannelId: channel.Id, Message: "reply"}, channel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
 
 	// unfollow thread
@@ -3697,7 +3764,7 @@ func TestAutofollowOnPostingAfterUnfollow(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, m.Following)
 
-	_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: p1.Id, UserId: user.Id, ChannelId: channel.Id, Message: "another reply"}, channel, model.CreatePostFlags{})
+	_, _, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: p1.Id, UserId: user.Id, ChannelId: channel.Id, Message: "another reply"}, channel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
 
 	// User should be following thread after posting in it, even after previously
@@ -3713,7 +3780,7 @@ func TestGetPostIfAuthorized(t *testing.T) {
 
 	t.Run("Private channel", func(t *testing.T) {
 		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
-		post, err := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: privateChannel.Id, Message: "Hello"}, privateChannel, model.CreatePostFlags{})
+		post, _, err := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: privateChannel.Id, Message: "Hello"}, privateChannel, model.CreatePostFlags{})
 		require.Nil(t, err)
 		require.NotNil(t, post)
 
@@ -3726,17 +3793,17 @@ func TestGetPostIfAuthorized(t *testing.T) {
 		require.NotNil(t, session2)
 
 		// User is not authorized to get post
-		_, err = th.App.GetPostIfAuthorized(th.Context, post.Id, session2, false)
+		_, err, _ = th.App.GetPostIfAuthorized(th.Context, post.Id, session2, false)
 		require.NotNil(t, err)
 
 		// User is authorized to get post
-		_, err = th.App.GetPostIfAuthorized(th.Context, post.Id, session1, false)
+		_, err, _ = th.App.GetPostIfAuthorized(th.Context, post.Id, session1, false)
 		require.Nil(t, err)
 	})
 
 	t.Run("Public channel", func(t *testing.T) {
 		publicChannel := th.CreateChannel(t, th.BasicTeam)
-		post, err := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: publicChannel.Id, Message: "Hello"}, publicChannel, model.CreatePostFlags{})
+		post, _, err := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: publicChannel.Id, Message: "Hello"}, publicChannel, model.CreatePostFlags{})
 		require.Nil(t, err)
 		require.NotNil(t, post)
 
@@ -3749,11 +3816,11 @@ func TestGetPostIfAuthorized(t *testing.T) {
 		require.NotNil(t, session2)
 
 		// User is authorized to get post
-		_, err = th.App.GetPostIfAuthorized(th.Context, post.Id, session2, false)
+		_, err, _ = th.App.GetPostIfAuthorized(th.Context, post.Id, session2, false)
 		require.Nil(t, err)
 
 		// User is authorized to get post
-		_, err = th.App.GetPostIfAuthorized(th.Context, post.Id, session1, false)
+		_, err, _ = th.App.GetPostIfAuthorized(th.Context, post.Id, session1, false)
 		require.Nil(t, err)
 
 		th.App.UpdateConfig(func(c *model.Config) {
@@ -3762,11 +3829,11 @@ func TestGetPostIfAuthorized(t *testing.T) {
 		})
 
 		// User is not authorized to get post
-		_, err = th.App.GetPostIfAuthorized(th.Context, post.Id, session2, false)
+		_, err, _ = th.App.GetPostIfAuthorized(th.Context, post.Id, session2, false)
 		require.NotNil(t, err)
 
 		// User is authorized to get post
-		_, err = th.App.GetPostIfAuthorized(th.Context, post.Id, session1, false)
+		_, err, _ = th.App.GetPostIfAuthorized(th.Context, post.Id, session1, false)
 		require.Nil(t, err)
 	})
 }
@@ -3787,9 +3854,9 @@ func TestShouldNotRefollowOnOthersReply(t *testing.T) {
 	require.Nil(t, appErr)
 	appErr = th.App.JoinChannel(th.Context, channel, user2.Id)
 	require.Nil(t, appErr)
-	p1, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: user.Id, ChannelId: channel.Id, Message: "Hi @" + user2.Username}, channel, model.CreatePostFlags{})
+	p1, _, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: user.Id, ChannelId: channel.Id, Message: "Hi @" + user2.Username}, channel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
-	_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: p1.Id, UserId: user2.Id, ChannelId: channel.Id, Message: "Hola"}, channel, model.CreatePostFlags{})
+	_, _, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: p1.Id, UserId: user2.Id, ChannelId: channel.Id, Message: "Hola"}, channel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
 
 	// User2 unfollows thread
@@ -3801,7 +3868,7 @@ func TestShouldNotRefollowOnOthersReply(t *testing.T) {
 	require.False(t, m.Following)
 
 	// user posts in the thread
-	_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: p1.Id, UserId: user.Id, ChannelId: channel.Id, Message: "another reply"}, channel, model.CreatePostFlags{})
+	_, _, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: p1.Id, UserId: user.Id, ChannelId: channel.Id, Message: "another reply"}, channel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
 
 	// User2 should still not be following the thread because they manually
@@ -3811,7 +3878,7 @@ func TestShouldNotRefollowOnOthersReply(t *testing.T) {
 	require.False(t, m.Following)
 
 	// user posts in the thread mentioning user2
-	_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: p1.Id, UserId: user.Id, ChannelId: channel.Id, Message: "reply with mention @" + user2.Username}, channel, model.CreatePostFlags{})
+	_, _, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: p1.Id, UserId: user.Id, ChannelId: channel.Id, Message: "reply with mention @" + user2.Username}, channel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
 
 	// User2 should now be following the thread because they were explicitly mentioned
@@ -3942,14 +4009,14 @@ func TestGetEditHistoryForPost(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 	}
 
-	rpost, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+	rpost, _, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, err)
 
 	// update the post message
 	patch := &model.PostPatch{
 		Message: model.NewPointer("new message edited"),
 	}
-	_, err1 := th.App.PatchPost(th.Context, rpost.Id, patch, nil)
+	_, _, err1 := th.App.PatchPost(th.Context, rpost.Id, patch, nil)
 	require.Nil(t, err1)
 
 	// update the post message again
@@ -3957,7 +4024,7 @@ func TestGetEditHistoryForPost(t *testing.T) {
 		Message: model.NewPointer("new message edited again"),
 	}
 
-	_, err2 := th.App.PatchPost(th.Context, rpost.Id, patch, nil)
+	_, _, err2 := th.App.PatchPost(th.Context, rpost.Id, patch, nil)
 	require.Nil(t, err2)
 
 	t.Run("should return the edit history", func(t *testing.T) {
@@ -3987,25 +4054,25 @@ func TestGetEditHistoryForPost(t *testing.T) {
 			FileIds:   model.StringArray{fileInfo.Id},
 		}
 
-		_, err = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		_, _, err = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
 		patch := &model.PostPatch{
 			Message: model.NewPointer("new message edited"),
 		}
-		_, appErr := th.App.PatchPost(th.Context, post.Id, patch, nil)
+		_, _, appErr := th.App.PatchPost(th.Context, post.Id, patch, nil)
 		require.Nil(t, appErr)
 
 		patch = &model.PostPatch{
 			Message: model.NewPointer("new message edited 2"),
 		}
-		_, appErr = th.App.PatchPost(th.Context, post.Id, patch, nil)
+		_, _, appErr = th.App.PatchPost(th.Context, post.Id, patch, nil)
 		require.Nil(t, appErr)
 
 		patch = &model.PostPatch{
 			Message: model.NewPointer("new message edited 3"),
 		}
-		_, appErr = th.App.PatchPost(th.Context, post.Id, patch, nil)
+		_, _, appErr = th.App.PatchPost(th.Context, post.Id, patch, nil)
 		require.Nil(t, appErr)
 
 		edits, err := th.App.GetEditHistoryForPost(post.Id)
@@ -4033,25 +4100,25 @@ func TestGetEditHistoryForPost(t *testing.T) {
 			FileIds:   model.StringArray{fileInfo.Id},
 		}
 
-		_, appErr = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		_, _, appErr = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
 		patch := &model.PostPatch{
 			Message: model.NewPointer("new message edited"),
 		}
-		_, appErr = th.App.PatchPost(th.Context, post.Id, patch, nil)
+		_, _, appErr = th.App.PatchPost(th.Context, post.Id, patch, nil)
 		require.Nil(t, appErr)
 
 		patch = &model.PostPatch{
 			Message: model.NewPointer("new message edited 2"),
 		}
-		_, appErr = th.App.PatchPost(th.Context, post.Id, patch, nil)
+		_, _, appErr = th.App.PatchPost(th.Context, post.Id, patch, nil)
 		require.Nil(t, appErr)
 
 		patch = &model.PostPatch{
 			Message: model.NewPointer("new message edited 3"),
 		}
-		_, appErr = th.App.PatchPost(th.Context, post.Id, patch, nil)
+		_, _, appErr = th.App.PatchPost(th.Context, post.Id, patch, nil)
 		require.Nil(t, appErr)
 
 		// now delete the file info, and it should still be include in edit history metadata
@@ -4087,7 +4154,7 @@ func TestCopyWranglerPostlist(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 		FileIds:   []string{fileInfo.Id},
 	}
-	rootPost, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+	rootPost, _, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, err)
 
 	// Add a reaction to the post
@@ -4111,7 +4178,7 @@ func TestCopyWranglerPostlist(t *testing.T) {
 		Posts:               []*model.Post{rootPost},
 		FileAttachmentCount: 1,
 	}
-	newRootPost, err := th.App.CopyWranglerPostlist(th.Context, wpl, targetChannel)
+	newRootPost, _, err := th.App.CopyWranglerPostlist(th.Context, wpl, targetChannel)
 	require.Nil(t, err)
 
 	// Check that the new post has the same message and file attachment
@@ -4278,7 +4345,7 @@ func TestPermanentDeletePost(t *testing.T) {
 			FileIds:       []string{info1.Id},
 		}
 
-		post, err = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		post, _, err = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		assert.Nil(t, err)
 
 		// Delete the post.
@@ -4317,7 +4384,7 @@ func TestPermanentDeletePost(t *testing.T) {
 			FileIds:       []string{info1.Id},
 		}
 
-		post, appErr = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		post, _, appErr = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		assert.Nil(t, appErr)
 
 		infos, err := th.App.Srv().Store().FileInfo().GetForPost(post.Id, true, true, false)
@@ -4372,7 +4439,7 @@ func TestPermanentDeletePost(t *testing.T) {
 		}
 		post.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(model.DefaultExpirySeconds*1000))
 
-		post, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		post, _, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 		require.Equal(t, model.PostTypeBurnOnRead, post.Type)
 
@@ -4569,10 +4636,11 @@ func TestFilterPostsByChannelPermissions(t *testing.T) {
 		postList.Posts[post3.Id] = post3
 		postList.Order = []string{post1.Id, post2.Id, post3.Id}
 
-		appErr := th.App.FilterPostsByChannelPermissions(th.Context, postList, th.BasicUser.Id)
+		allPostHaveMembership, appErr := th.App.FilterPostsByChannelPermissions(th.Context, postList, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		require.Len(t, postList.Posts, 3)
 		require.Len(t, postList.Order, 3)
+		require.True(t, allPostHaveMembership)
 	})
 
 	t.Run("should filter posts when guest has read_channel_content permission", func(t *testing.T) {
@@ -4582,10 +4650,11 @@ func TestFilterPostsByChannelPermissions(t *testing.T) {
 		postList.Posts[post3.Id] = post3
 		postList.Order = []string{post1.Id, post2.Id, post3.Id}
 
-		appErr := th.App.FilterPostsByChannelPermissions(th.Context, postList, guestUser.Id)
+		allPostHaveMembership, appErr := th.App.FilterPostsByChannelPermissions(th.Context, postList, guestUser.Id)
 		require.Nil(t, appErr)
 		require.Len(t, postList.Posts, 3)
 		require.Len(t, postList.Order, 3)
+		require.True(t, allPostHaveMembership)
 	})
 
 	t.Run("should filter posts when guest does not have read_channel_content permission", func(t *testing.T) {
@@ -4620,22 +4689,24 @@ func TestFilterPostsByChannelPermissions(t *testing.T) {
 		postList.Posts[post3.Id] = post3
 		postList.Order = []string{post1.Id, post2.Id, post3.Id}
 
-		appErr = th.App.FilterPostsByChannelPermissions(th.Context, postList, guestUser.Id)
+		allPostHaveMembership, appErr := th.App.FilterPostsByChannelPermissions(th.Context, postList, guestUser.Id)
 		require.Nil(t, appErr)
 		require.Len(t, postList.Posts, 0)
 		require.Len(t, postList.Order, 0)
+		require.True(t, allPostHaveMembership)
 	})
 
 	t.Run("should handle empty post list", func(t *testing.T) {
 		postList := model.NewPostList()
-		appErr := th.App.FilterPostsByChannelPermissions(th.Context, postList, th.BasicUser.Id)
+		allPostHaveMembership, appErr := th.App.FilterPostsByChannelPermissions(th.Context, postList, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		require.Len(t, postList.Posts, 0)
 		require.Len(t, postList.Order, 0)
+		require.True(t, allPostHaveMembership)
 	})
 
 	t.Run("should handle nil post list", func(t *testing.T) {
-		appErr := th.App.FilterPostsByChannelPermissions(th.Context, nil, th.BasicUser.Id)
+		_, appErr := th.App.FilterPostsByChannelPermissions(th.Context, nil, th.BasicUser.Id)
 		require.Nil(t, appErr)
 	})
 
@@ -4649,10 +4720,11 @@ func TestFilterPostsByChannelPermissions(t *testing.T) {
 		postList.Posts[postWithoutChannel.Id] = postWithoutChannel
 		postList.Order = []string{postWithoutChannel.Id}
 
-		appErr := th.App.FilterPostsByChannelPermissions(th.Context, postList, th.BasicUser.Id)
+		allPostHaveMembership, appErr := th.App.FilterPostsByChannelPermissions(th.Context, postList, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		require.Len(t, postList.Posts, 0)
 		require.Len(t, postList.Order, 0)
+		require.True(t, allPostHaveMembership)
 	})
 
 	t.Run("should handle posts from non-existent channels", func(t *testing.T) {
@@ -4665,10 +4737,11 @@ func TestFilterPostsByChannelPermissions(t *testing.T) {
 		postList.Posts[postWithInvalidChannel.Id] = postWithInvalidChannel
 		postList.Order = []string{postWithInvalidChannel.Id}
 
-		appErr := th.App.FilterPostsByChannelPermissions(th.Context, postList, th.BasicUser.Id)
+		allPostHaveMembership, appErr := th.App.FilterPostsByChannelPermissions(th.Context, postList, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		require.Len(t, postList.Posts, 0)
 		require.Len(t, postList.Order, 0)
+		require.True(t, allPostHaveMembership)
 	})
 }
 
@@ -4690,7 +4763,7 @@ func TestRevealPost(t *testing.T) {
 		}
 		post.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(model.DefaultExpirySeconds*1000))
 
-		createdPost, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
+		createdPost, _, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 		require.NotNil(t, createdPost)
 		return createdPost
@@ -4703,7 +4776,7 @@ func TestRevealPost(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			Message:   "regular message",
 		}
-		createdPost, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
+		createdPost, _, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 		require.NotNil(t, createdPost)
 		return createdPost
@@ -4736,7 +4809,7 @@ func TestRevealPost(t *testing.T) {
 		}
 
 		// First save the post normally (which will add expire_at automatically)
-		createdPost, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
+		createdPost, _, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 
 		// Now manually remove the expire_at prop to test missing prop scenario
@@ -4871,7 +4944,7 @@ func TestRevealPost(t *testing.T) {
 		}
 		post.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(model.DefaultExpirySeconds*1000))
 
-		createdPost, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
+		createdPost, _, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 		require.NotNil(t, createdPost)
 
@@ -4912,7 +4985,7 @@ func TestBurnPost(t *testing.T) {
 		}
 		post.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(model.DefaultExpirySeconds*1000))
 
-		createdPost, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
+		createdPost, _, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 		require.NotNil(t, createdPost)
 		return createdPost
@@ -4925,7 +4998,7 @@ func TestBurnPost(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			Message:   "regular message",
 		}
-		createdPost, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
+		createdPost, _, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 		require.NotNil(t, createdPost)
 		return createdPost
@@ -5029,7 +5102,7 @@ func TestGetFlaggedPostsWithExpiredBurnOnRead(t *testing.T) {
 		}
 		borPost.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(10*1000)) // 10 seconds
 
-		createdPost, appErr := th.App.CreatePost(th.Context, borPost, th.BasicChannel, model.CreatePostFlags{})
+		createdPost, _, appErr := th.App.CreatePost(th.Context, borPost, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 		require.NotNil(t, createdPost)
 
@@ -5084,7 +5157,7 @@ func TestGetFlaggedPostsWithExpiredBurnOnRead(t *testing.T) {
 		}
 		borPost.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(10*1000))
 
-		createdPost, appErr := th.App.CreatePost(th.Context, borPost, th.BasicChannel, model.CreatePostFlags{})
+		createdPost, _, appErr := th.App.CreatePost(th.Context, borPost, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 
 		// User2 reveals and flags the post
@@ -5126,7 +5199,7 @@ func TestGetFlaggedPostsWithExpiredBurnOnRead(t *testing.T) {
 		}
 		borPost.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(10*1000))
 
-		createdPost, appErr := th.App.CreatePost(th.Context, borPost, th.BasicChannel, model.CreatePostFlags{})
+		createdPost, _, appErr := th.App.CreatePost(th.Context, borPost, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 
 		// User2 reveals and flags the post
@@ -5168,7 +5241,7 @@ func TestGetFlaggedPostsWithExpiredBurnOnRead(t *testing.T) {
 		}
 		borPost.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(3600*1000)) // 1 hour
 
-		createdPost, appErr := th.App.CreatePost(th.Context, borPost, th.BasicChannel, model.CreatePostFlags{})
+		createdPost, _, appErr := th.App.CreatePost(th.Context, borPost, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 
 		// User2 reveals and flags the post

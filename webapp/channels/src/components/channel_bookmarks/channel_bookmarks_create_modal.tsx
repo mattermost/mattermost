@@ -367,6 +367,15 @@ function ChannelBookmarkCreateModal({
         }
     }
 
+    let linkCustomMessage;
+    if (linkError) {
+        linkCustomMessage = {type: 'error' as const, value: linkError};
+    } else if (validatedLink && !linkErrorBypass) {
+        linkCustomMessage = null;
+    } else {
+        linkCustomMessage = {type: 'info' as const, value: linkMessage};
+    }
+
     return (
         <GenericModal
             enforceFocus={!showEmojiPicker}
@@ -398,7 +407,7 @@ function ChannelBookmarkCreateModal({
                             data-testid='linkInput'
                             autoFocus={true}
                             addon={linkStatusIndicator}
-                            customMessage={linkError ? {type: 'error', value: linkError} : {value: linkMessage}}
+                            customMessage={linkCustomMessage}
                         />
                     </>
                 ) : (
@@ -649,6 +658,8 @@ export const useBookmarkLinkValidation = (link: string, onValidated: (validatedL
         const handler = setTimeout(async () => {
             cancel();
             if (!link) {
+                setError(undefined);
+                setSuppressed(false);
                 return;
             }
 

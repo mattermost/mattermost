@@ -179,4 +179,36 @@ describe('CoreMenuOptions Component', () => {
         // Check the trailing element is NOT rendered in the component as this is a bot
         expect(screen.queryByText(/John Doe/)).toBeNull();
     });
+
+    it('should format teammate time according to user locale', () => {
+        setMockDate(2); // Tuesday
+
+        const stateWithFrenchLocale = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                users: {
+                    ...initialState.entities.users,
+                    profiles: {
+                        currentUserId: {
+                            locale: 'fr',
+                        },
+                    },
+                },
+            },
+        };
+
+        mockedUseTimePostBoxIndicator.mockReturnValue({
+            ...defaultUseTimePostBoxIndicatorReturnValue,
+            isDM: true,
+            isSelfDM: false,
+            isBot: false,
+        });
+
+        renderComponent(stateWithFrenchLocale);
+
+        // Verify French format (no AM/PM)
+        const timeTexts = screen.getAllByText(/\d{2}:\d{2}(?!\s*[AP]M)/);
+        expect(timeTexts.length).toBeGreaterThan(0);
+    });
 });

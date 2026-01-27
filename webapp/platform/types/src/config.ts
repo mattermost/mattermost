@@ -754,14 +754,19 @@ export type LocalizationSettings = {
 
 export type AutoTranslationSettings = {
     Enable: boolean;
-    Provider: '' | 'libretranslate';
+    TargetLanguages: string[];
+    Provider: '' | 'libretranslate' | 'agents';
     LibreTranslate: {
         URL: string;
         APIKey: string;
     };
+    Agents?: {
+        LLMServiceID: string;
+    };
     TimeoutsMs: {
-        NewPost: number;
-        Fetch: number;
+        Short: number;
+        Medium: number;
+        Long: number;
         Notification: number;
     };
 };
@@ -1106,13 +1111,6 @@ export type EnvironmentConfigSettings<T> = {
 export type EnvironmentConfig = {
     [P in keyof AdminConfig]: EnvironmentConfigSettings<AdminConfig[P]>;
 }
-
-export type WarnMetricStatus = {
-    id: string;
-    limit: number;
-    acked: boolean;
-    store_status: string;
-};
 
 export enum CollapsedThreads {
     DISABLED = 'disabled',

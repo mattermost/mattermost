@@ -159,11 +159,6 @@ func trimInput(input string) string {
 	return input
 }
 
-// Returns the column name for PostgreSQL.
-func quoteColumnName(driver string, columnName string) string {
-	return columnName
-}
-
 // scanRowsIntoMap scans SQL rows into a map, using a provided scanner function to extract key-value pairs
 func scanRowsIntoMap[K comparable, V any](rows *sql.Rows, scanner func(rows *sql.Rows) (K, V, error), defaults map[K]V) (map[K]V, error) {
 	results := make(map[K]V, len(defaults))
