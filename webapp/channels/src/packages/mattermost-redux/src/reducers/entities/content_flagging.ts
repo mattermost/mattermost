@@ -13,7 +13,7 @@ import type {
 } from '@mattermost/types/properties';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
-import {ContentFlaggingTypes} from 'mattermost-redux/action_types';
+import {ContentFlaggingTypes, UserTypes} from 'mattermost-redux/action_types';
 
 function settings(state: ContentFlaggingState['settings'] = {} as ContentFlaggingConfig, action: MMReduxAction) {
     switch (action.type) {
@@ -23,6 +23,8 @@ function settings(state: ContentFlaggingState['settings'] = {} as ContentFlaggin
             ...action.data,
         };
     }
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
     default:
         return state;
     }
@@ -36,6 +38,8 @@ function fields(state: ContentFlaggingState['fields'] = {} as NameMappedProperty
             ...action.data,
         };
     }
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
     default:
         return state;
     }
@@ -67,6 +71,8 @@ function postValues(state: ContentFlaggingState['postValues'] = {}, action: MMRe
             [postId]: Object.values(valuesByFieldId),
         };
     }
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
     default:
         return state;
     }
@@ -80,6 +86,8 @@ function flaggedPosts(state: ContentFlaggingState['flaggedPosts'] = {}, action: 
             [action.data.id]: action.data,
         };
     }
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
     default:
         return state;
     }
@@ -93,6 +101,8 @@ function channels(state: ContentFlaggingState['channels'] = {}, action: MMReduxA
             [action.data.id]: action.data,
         };
     }
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
     default:
         return state;
     }
@@ -106,6 +116,8 @@ function teams(state: ContentFlaggingState['teams'] = {}, action: MMReduxAction)
             [action.data.id]: action.data,
         };
     }
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
     default:
         return state;
     }
