@@ -71,6 +71,7 @@ const AnnouncementBarController = makeAsyncComponent('AnnouncementBarController'
 const SystemNotice = makeAsyncComponent('SystemNotice', lazy(() => import('components/system_notice')));
 const CloudEffects = makeAsyncComponent('CloudEffects', lazy(() => import('components/cloud_effects')));
 const TeamSidebar = makeAsyncComponent('TeamSidebar', lazy(() => import('components/team_sidebar')));
+const ProductSidebar = makeAsyncComponent('ProductSidebar', lazy(() => import('components/product_sidebar')));
 const SidebarRight = makeAsyncComponent('SidebarRight', lazy(() => import('components/sidebar_right')));
 const ModalController = makeAsyncComponent('ModalController', lazy(() => import('components/modal_controller')));
 const AppBar = makeAsyncComponent('AppBar', lazy(() => import('components/app_bar/app_bar')));
@@ -425,6 +426,7 @@ export default class Root extends React.PureComponent<Props, State> {
                         <SystemNotice/>
                         <GlobalHeader/>
                         <CloudEffects/>
+                        <ProductSidebar/>
                         <TeamSidebar/>
                         <div className='main-wrapper'>
                             <Switch>
