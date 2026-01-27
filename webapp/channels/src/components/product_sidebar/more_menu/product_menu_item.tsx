@@ -5,8 +5,8 @@ import React, {useCallback} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {useIntl} from 'react-intl';
 
-import {CheckboxMarkedIcon, CheckboxBlankOutlineIcon} from '@mattermost/compass-icons/components';
-import {glyphMap} from '@mattermost/compass-icons';
+import glyphMap, {CheckboxMarkedIcon, CheckboxBlankOutlineIcon} from '@mattermost/compass-icons/components';
+import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 
 import {toggleProductPin} from 'actions/views/product_sidebar';
 import {isProductPinned} from 'selectors/views/product_sidebar';
@@ -42,7 +42,7 @@ const ProductMenuItem = ({productId, name, icon}: Props): JSX.Element => {
     }, [handleClick]);
 
     // Dynamic icon lookup from compass-icons glyphMap
-    const IconComponent = glyphMap[icon as keyof typeof glyphMap] || glyphMap['product-channels'];
+    const IconComponent = glyphMap[icon as IconGlyphTypes] || glyphMap['product-channels'];
 
     const ariaLabel = formatMessage(
         {
