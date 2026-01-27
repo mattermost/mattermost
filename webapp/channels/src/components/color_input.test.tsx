@@ -14,10 +14,6 @@ describe('components/ColorInput', () => {
         value: '#ffffff',
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should match snapshot, init', () => {
         const {container} = render(
             <ColorInput {...baseProps}/>,

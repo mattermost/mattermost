@@ -36,10 +36,6 @@ describe('components/SettingItemMin', () => {
         type: 'image/jpeg',
     });
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should match snapshot, profile picture on source', () => {
         const {container} = renderWithContext(
             <SettingPicture {...baseProps}/>,

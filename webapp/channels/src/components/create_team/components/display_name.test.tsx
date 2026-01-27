@@ -19,10 +19,6 @@ describe('/components/create_team/components/display_name', () => {
         },
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should match snapshot', () => {
         const {container} = renderWithContext(<DisplayName {...defaultProps}/>);
         expect(container).toMatchSnapshot();

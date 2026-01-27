@@ -110,10 +110,6 @@ describe('components/admin_console/jobs/table', () => {
         }],
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should call create job func', () => {
         renderWithContext(
             <JobTable {...baseProps}/>,

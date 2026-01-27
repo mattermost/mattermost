@@ -16,10 +16,6 @@ describe('/components/common/RadioButtonGroup', () => {
         onChange,
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should match snapshot', () => {
         const {container} = render(<RadioButtonGroup {...baseProps}/>);
         expect(container).toMatchSnapshot();

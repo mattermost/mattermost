@@ -19,10 +19,6 @@ describe('/components/common/InfiniteScroll', () => {
         bufferValue: 100,
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should match snapshot', () => {
         const {container} = renderWithContext(<InfiniteScroll {...baseProps}><div/></InfiniteScroll>);
         expect(container).toMatchSnapshot();
