@@ -1,0 +1,48 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.ProductMenuItem {
+    display: flex;
+    align-items: center;
+    height: 36px;
+    padding: 6px 16px;
+    cursor: pointer;
+    gap: 8px;
+
+    &:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+    }
+
+    &:focus {
+        outline: none;
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+    }
+
+    &:focus-visible {
+        box-shadow: 0 0 0 2px var(--sidebar-text-active-border) inset;
+    }
+
+    &__checkbox {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 16px;
+        height: 16px;
+        color: var(--center-channel-color-56);
+    }
+
+    &__icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+    }
+
+    &__name {
+        font-family: 'Open Sans', sans-serif;
+        font-size: 14px;
+        line-height: 20px;
+        color: var(--center-channel-color);
+    }
+}

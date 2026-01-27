@@ -3,3 +3,4 @@
 
 export {default as MoreMenu} from './more_menu';
 export {default as MoreMenuButton} from './more_menu_button';
+export {default as ProductMenuItem} from './product_menu_item';
