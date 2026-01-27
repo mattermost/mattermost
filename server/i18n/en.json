@@ -6935,10 +6935,6 @@
     "translation": "Could not update active status of access control policies."
   },
   {
-    "id": "app.pap.update_access_control_policy_active.app_error",
-    "translation": "Could not change active status of access control policy."
-  },
-  {
     "id": "app.pdp.access_evaluation.app_error",
     "translation": "Failed evaluate access control policy."
   },
