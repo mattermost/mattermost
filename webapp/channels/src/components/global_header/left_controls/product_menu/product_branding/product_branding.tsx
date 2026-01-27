@@ -36,7 +36,12 @@ const ProductBranding = (): JSX.Element => {
 
         if (typeof currentProduct.switcherIcon === 'string') {
             const Icon = glyphMap[currentProduct.switcherIcon as IconGlyphTypes];
-            return <Icon size={24}/>;
+            if (Icon) {
+                return <Icon size={24}/>;
+            }
+
+            // Fallback if icon name not found in glyphMap
+            return <ProductChannelsIcon size={24}/>;
         }
 
         // React element - render directly

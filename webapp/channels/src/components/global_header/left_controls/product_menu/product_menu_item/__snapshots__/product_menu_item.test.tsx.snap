@@ -1,0 +1,91 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`components/ProductMenuItem should render correctly with React element icon 1`] = `
+<MenuItem
+  onClick={[MockFunction]}
+  role="menuitem"
+  to="/test-destination"
+>
+  <svg
+    data-testid="custom-svg-icon"
+  >
+    <rect
+      height="24"
+      width="24"
+    />
+  </svg>
+  <MenuItemTextContainer>
+    Test Product
+  </MenuItemTextContainer>
+</MenuItem>
+`;
+
+exports[`components/ProductMenuItem should render correctly with string icon from glyphMap 1`] = `
+<MenuItem
+  onClick={[MockFunction]}
+  role="menuitem"
+  to="/test-destination"
+>
+  <ProductChannelsIcon
+    color="var(--button-bg)"
+    size={24}
+  />
+  <MenuItemTextContainer>
+    Test Product
+  </MenuItemTextContainer>
+</MenuItem>
+`;
+
+exports[`components/ProductMenuItem should render custom React component as icon 1`] = `
+<MenuItem
+  onClick={[MockFunction]}
+  role="menuitem"
+  to="/test-destination"
+>
+  <CustomIconComponent />
+  <MenuItemTextContainer>
+    Test Product
+  </MenuItemTextContainer>
+</MenuItem>
+`;
+
+exports[`components/ProductMenuItem should render tour tip when provided 1`] = `
+<MenuItem
+  onClick={[MockFunction]}
+  role="menuitem"
+  to="/test-destination"
+>
+  <ProductChannelsIcon
+    color="var(--button-bg)"
+    size={24}
+  />
+  <MenuItemTextContainer>
+    Test Product
+  </MenuItemTextContainer>
+  <div
+    data-testid="tour-tip"
+  >
+    Tour tip content
+  </div>
+</MenuItem>
+`;
+
+exports[`components/ProductMenuItem should show check icon when active is true 1`] = `
+<MenuItem
+  onClick={[MockFunction]}
+  role="menuitem"
+  to="/test-destination"
+>
+  <ProductChannelsIcon
+    color="var(--button-bg)"
+    size={24}
+  />
+  <MenuItemTextContainer>
+    Test Product
+  </MenuItemTextContainer>
+  <CheckIcon
+    color="var(--button-bg)"
+    size={18}
+  />
+</MenuItem>
+`;
