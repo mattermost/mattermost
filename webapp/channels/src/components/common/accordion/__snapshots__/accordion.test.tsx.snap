@@ -1,51 +1,103 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`/components/common/Accordion should match snapshot 1`] = `
-<ul
-  className="Accordion"
->
-  <AccordionCard
-    data={
-      Object {
-        "description": "First accordion Item Description",
-        "items": Array [
+<div>
+  <ul
+    class="Accordion"
+  >
+    <li
+      class="accordion-card"
+    >
+      <div
+        class="accordion-card-header"
+        role="button"
+      >
+        <div
+          class="accordion-card-header__body"
+        >
+          <div
+            class="accordion-card-header__body__title"
+          >
+            First Accordion Item
+          </div>
+          <div
+            class="accordion-card-header__body__description"
+          >
+            First accordion Item Description
+          </div>
+        </div>
+        <div
+          class="accordion-card-header__chevron"
+        >
+          <i
+            class="icon-chevron-down"
+          />
+        </div>
+      </div>
+      <div
+        class="accordion-card-container"
+        style="height: 0px;"
+      >
+        <div
+          class="accordion-card-container__content"
+        >
           <p
-            className="accordion-item-content-el"
+            class="accordion-item-content-el"
           >
             First List Item
-          </p>,
+          </p>
           <p
-            className="accordion-item-content-el"
+            class="accordion-item-content-el"
           >
             Second List Item
-          </p>,
-        ],
-        "title": "First Accordion Item",
-      }
-    }
-    isExpanded={false}
-    key="0"
-    onButtonClick={[Function]}
-    onHeaderClick={[MockFunction]}
-  />
-  <AccordionCard
-    data={
-      Object {
-        "description": "Second accordion Item Description",
-        "items": Array [
+          </p>
+        </div>
+      </div>
+    </li>
+    <li
+      class="accordion-card"
+    >
+      <div
+        class="accordion-card-header"
+        role="button"
+      >
+        <div
+          class="accordion-card-header__body"
+        >
+          <div
+            class="accordion-card-header__body__title"
+          >
+            Second Accordion Item
+          </div>
+          <div
+            class="accordion-card-header__body__description"
+          >
+            Second accordion Item Description
+          </div>
+        </div>
+        <div
+          class="accordion-card-header__chevron"
+        >
+          <i
+            class="icon-chevron-down"
+          />
+        </div>
+      </div>
+      <div
+        class="accordion-card-container"
+        style="height: 0px;"
+      >
+        <div
+          class="accordion-card-container__content"
+        >
           <p
-            className="accordion-item-content-el"
+            class="accordion-item-content-el"
           >
             Third List Item
-          </p>,
-        ],
-        "title": "Second Accordion Item",
-      }
-    }
-    isExpanded={false}
-    key="1"
-    onButtonClick={[Function]}
-    onHeaderClick={[MockFunction]}
-  />
-</ul>
+          </p>
+        </div>
+      </div>
+    </li>
+  </ul>
+</div>
 `;
