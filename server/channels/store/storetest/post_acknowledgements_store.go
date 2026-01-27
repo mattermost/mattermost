@@ -555,7 +555,7 @@ func testPostAcknowledgementsStoreDeleteAllForPost(t *testing.T, rctx request.CT
 
 		// Create active acknowledgement
 		ack1 := &model.PostAcknowledgement{PostId: post.Id, UserId: userID1, AcknowledgedAt: 0, ChannelId: post.ChannelId}
-		ack1, err = ss.PostAcknowledgement().SaveWithModel(ack1)
+		_, err = ss.PostAcknowledgement().SaveWithModel(ack1)
 		require.NoError(t, err)
 
 		// Create another acknowledgement and soft-delete it

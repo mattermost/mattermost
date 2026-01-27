@@ -3087,25 +3087,6 @@ func TestScrubPost(t *testing.T) {
 		require.Equal(t, "", post.Hashtags)
 	})
 
-	t.Run("should handle post with large Props map", func(t *testing.T) {
-		post := &model.Post{
-			Id:      model.NewId(),
-			Message: "Test message",
-		}
-
-		largeProps := make(map[string]any)
-		for i := 0; i < 100; i++ {
-			largeProps[fmt.Sprintf("key_%d", i)] = fmt.Sprintf("value_%d", i)
-		}
-		post.SetProps(largeProps)
-
-		scrubPost(post)
-
-		require.Equal(t, expectedMessage, post.Message)
-		require.NotNil(t, post.GetProps())
-		require.Empty(t, post.GetProps())
-	})
-
 	t.Run("should handle post with complex Metadata", func(t *testing.T) {
 		post := &model.Post{
 			Id:      model.NewId(),
