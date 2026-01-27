@@ -5,10 +5,26 @@ import React from 'react';
 
 import SingleImageView from 'components/single_image_view/single_image_view';
 
-import {fireEvent, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 describe('components/SingleImageView', () => {
+    // Mock fetch to simulate successful thumbnail availability check
+    const mockFetch = jest.fn(() =>
+        Promise.resolve({
+            status: 200,
+            headers: new Headers(),
+        } as Response),
+    );
+
+    beforeEach(() => {
+        global.fetch = mockFetch;
+        mockFetch.mockClear();
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
     const baseProps = {
         postId: 'original_post_id',
         fileInfo: TestHelper.getFileInfoMock({id: 'file_info_id'}),
@@ -23,10 +39,15 @@ describe('components/SingleImageView', () => {
         isFileRejected: false,
     };
 
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const {container} = renderWithContext(
             <SingleImageView {...baseProps}/>,
         );
+
+        // Wait for thumbnail availability check to complete
+        await waitFor(() => {
+            expect(container.querySelector('img')).toBeInTheDocument();
+        });
 
         expect(container).toMatchSnapshot();
 
@@ -39,7 +60,7 @@ describe('components/SingleImageView', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, SVG image', () => {
+    test('should match snapshot, SVG image', async () => {
         const fileInfo = TestHelper.getFileInfoMock({
             id: 'svg_file_info_id',
             name: 'name_svg',
@@ -49,6 +70,11 @@ describe('components/SingleImageView', () => {
         const {container} = renderWithContext(
             <SingleImageView {...props}/>,
         );
+
+        // Wait for thumbnail availability check to complete
+        await waitFor(() => {
+            expect(container.querySelector('img')).toBeInTheDocument();
+        });
 
         expect(container).toMatchSnapshot();
 
@@ -65,6 +91,11 @@ describe('components/SingleImageView', () => {
         const {container} = renderWithContext(
             <SingleImageView {...baseProps}/>,
         );
+
+        // Wait for thumbnail availability check to complete
+        await waitFor(() => {
+            expect(container.querySelector('img')).toBeInTheDocument();
+        });
 
         const img = container.querySelector('img');
         expect(img).toBeInTheDocument();
@@ -92,15 +123,25 @@ describe('components/SingleImageView', () => {
             <SingleImageView {...props}/>,
         );
 
+        // Wait for thumbnail availability check to complete
+        await waitFor(() => {
+            expect(screen.getByRole('button', {name: 'Toggle Embed Visibility'})).toBeInTheDocument();
+        });
+
         await userEvent.click(screen.getByRole('button', {name: 'Toggle Embed Visibility'}));
         expect(props.actions.toggleEmbedVisibility).toHaveBeenCalledTimes(1);
         expect(props.actions.toggleEmbedVisibility).toHaveBeenCalledWith('original_post_id');
     });
 
-    test('should set loaded state on callback of onImageLoaded on SizeAwareImage component', () => {
+    test('should set loaded state on callback of onImageLoaded on SizeAwareImage component', async () => {
         const {container} = renderWithContext(
             <SingleImageView {...baseProps}/>,
         );
+
+        // Wait for thumbnail availability check to complete
+        await waitFor(() => {
+            expect(container.querySelector('.image-loaded')).toBeInTheDocument();
+        });
 
         // Initially should not have image-fade-in class (loaded = false)
         const imageLoadedDiv = container.querySelector('.image-loaded');
@@ -118,10 +159,15 @@ describe('components/SingleImageView', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should correctly pass prop down to surround small images with a container', () => {
+    test('should correctly pass prop down to surround small images with a container', async () => {
         const {container} = renderWithContext(
             <SingleImageView {...baseProps}/>,
         );
+
+        // Wait for thumbnail availability check to complete
+        await waitFor(() => {
+            expect(container.querySelector('.file-preview__button')).toBeInTheDocument();
+        });
 
         // The SizeAwareImage component should receive handleSmallImageContainer=true
         // This is verified by checking that the component renders correctly
@@ -129,7 +175,7 @@ describe('components/SingleImageView', () => {
         expect(container.querySelector('.file-preview__button')).toBeInTheDocument();
     });
 
-    test('should not show filename when image is displayed', () => {
+    test('should not show filename when image is displayed', async () => {
         const {container} = renderWithContext(
             <SingleImageView
                 {...baseProps}
@@ -137,10 +183,15 @@ describe('components/SingleImageView', () => {
             />,
         );
 
+        // Wait for thumbnail availability check to complete (image-header--expanded indicates full render)
+        await waitFor(() => {
+            expect(container.querySelector('.image-header--expanded')).toBeInTheDocument();
+        });
+
         expect(container.querySelector('.image-header')?.textContent).toHaveLength(0);
     });
 
-    test('should show filename when image is collapsed', () => {
+    test('should show filename when image is collapsed', async () => {
         const {container} = renderWithContext(
             <SingleImageView
                 {...baseProps}
@@ -148,17 +199,27 @@ describe('components/SingleImageView', () => {
             />,
         );
 
+        // Wait for thumbnail availability check to complete (toggle button indicates full render)
+        await waitFor(() => {
+            expect(container.querySelector('.single-image-view__toggle')).toBeInTheDocument();
+        });
+
         expect(container.querySelector('.image-header')?.textContent).toEqual(baseProps.fileInfo.name);
     });
 
     describe('permalink preview', () => {
-        test('should render with permalink styling if in permalink', () => {
+        test('should render with permalink styling if in permalink', async () => {
             const props = {
                 ...baseProps,
                 isInPermalink: true,
             };
 
             const {container} = renderWithContext(<SingleImageView {...props}/>);
+
+            // Wait for thumbnail availability check to complete
+            await waitFor(() => {
+                expect(container.querySelector('.image-permalink')).toBeInTheDocument();
+            });
 
             expect(container.querySelector('.image-permalink')).toBeInTheDocument();
             expect(container).toMatchSnapshot();
