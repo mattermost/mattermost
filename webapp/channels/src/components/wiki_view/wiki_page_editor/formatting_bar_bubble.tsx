@@ -381,7 +381,10 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddMedia, onA
     const buttons: JSX.Element[] = [];
     let lastCategory: string | null = null;
 
-    FORMATTING_ACTIONS.forEach((action) => {
+    // Only show actions that make sense for formatting selected text
+    const selectionActions = FORMATTING_ACTIONS.filter((action) => action.showForSelection);
+
+    selectionActions.forEach((action) => {
         if (lastCategory && lastCategory !== action.category) {
             buttons.push(renderDivider(`divider-${action.id}`));
         }

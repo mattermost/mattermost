@@ -387,7 +387,9 @@ const WikiView = () => {
         // Use refs to preserve draft parent ID and title across renders
         const effectiveParentId = isDraft ? (currentDraft?.props?.page_parent_id || draftParentIdRef.current) : undefined;
         const effectiveTitle = isDraft ? (currentDraft?.props?.title || draftTitleRef.current) : undefined;
-        const isExistingPage = currentDraft ? isEditingExistingPage(currentDraft) : false;
+        const isExistingPage = currentDraft?.props?.has_published_version === undefined ?
+            undefined :
+            isEditingExistingPage(currentDraft);
 
         return {
             wikiId: wikiId || '',
@@ -454,7 +456,12 @@ const WikiView = () => {
             return null;
         }
 
-        const isExistingPage = isEditingExistingPage(currentDraft);
+        // Use undefined when draft props aren't loaded yet to prevent flash of "Draft" badge
+        // Only return true/false when we're certain about the draft state
+        const hasPublishedVersion = currentDraft?.props?.has_published_version;
+        const isExistingPage = hasPublishedVersion === undefined ?
+            undefined :
+            isEditingExistingPage(currentDraft);
         const publishedPageId = getPublishedPageIdFromDraft(currentDraft);
 
         // Determine author: use original author if editing existing page, otherwise current user

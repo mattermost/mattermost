@@ -108,12 +108,31 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
             expect(screen.getByPlaceholderText('Untitled page...')).toBeInTheDocument();
         });
 
-        test('should render draft status badge', () => {
-            const {container} = renderWithContext(<WikiPageEditor {...baseProps}/>, initialState);
+        test('should render draft badge when isExistingPage is false (new draft)', () => {
+            const props = {...baseProps, isExistingPage: false};
+            const {container} = renderWithContext(<WikiPageEditor {...props}/>, initialState);
 
-            const statusBadge = container.querySelector('.page-status');
+            const statusBadge = container.querySelector('.page-status.badge');
             expect(statusBadge).toBeInTheDocument();
             expect(statusBadge?.textContent).toBe('Draft');
+        });
+
+        test('should NOT render draft badge when isExistingPage is undefined (loading/unknown state)', () => {
+            // This tests the fix for the flash issue - when isExistingPage is undefined
+            // (e.g., during route transition), we don't show the badge
+            const props = {...baseProps, isExistingPage: undefined};
+            const {container} = renderWithContext(<WikiPageEditor {...props}/>, initialState);
+
+            const statusBadge = container.querySelector('[data-testid="wiki-page-draft-badge"]');
+            expect(statusBadge).not.toBeInTheDocument();
+        });
+
+        test('should NOT render draft badge when isExistingPage is true (editing existing page)', () => {
+            const props = {...baseProps, isExistingPage: true};
+            const {container} = renderWithContext(<WikiPageEditor {...props}/>, initialState);
+
+            const statusBadge = container.querySelector('[data-testid="wiki-page-draft-badge"]');
+            expect(statusBadge).not.toBeInTheDocument();
         });
 
         test('should render page status selector with label', () => {
@@ -404,6 +423,7 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
                 ...baseProps,
                 showAuthor: true,
                 pageId: 'test_page_id',
+                isExistingPage: false, // Must be explicitly false to show draft badge
             };
             const {container} = renderWithContext(<WikiPageEditor {...props}/>, initialState);
 

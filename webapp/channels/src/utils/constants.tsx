@@ -517,7 +517,6 @@ export const ModalIdentifiers = {
     PAGE_RENAME: 'page_rename',
     PAGE_VERSION_HISTORY: 'page_version_history',
     PAGE_CONFLICT_WARNING: 'page_conflict_warning',
-    PAGE_CONFIRM_OVERWRITE: 'page_confirm_overwrite',
     PAGE_LINK: 'page_link',
     PAGE_IMAGE_URL: 'page_image_url',
     CONFIRM_MANAGE_USER_SETTINGS_MODAL: 'confirm_switch_to_settings',

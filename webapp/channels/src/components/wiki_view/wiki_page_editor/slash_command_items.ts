@@ -81,7 +81,7 @@ export const SLASH_COMMANDS: SlashCommandItem[] = [
         description: 'Highlight important information',
         icon: 'i',
         command: (editor: Editor) => {
-            editor.chain().focus().setCallout({type: DEFAULT_CALLOUT_TYPE}).run();
+            editor.chain().focus().toggleCallout({type: DEFAULT_CALLOUT_TYPE}).run();
         },
         aliases: ['callout', 'alert', 'note', 'tip', 'warning', 'info'],
     },

@@ -71,8 +71,26 @@ const Callout = Node.create({
             setCallout: (attrs) => ({commands}) => {
                 return commands.wrapIn(this.name, attrs);
             },
-            toggleCallout: (attrs) => ({commands}) => {
-                return commands.toggleWrap(this.name, attrs);
+            toggleCallout: (attrs) => ({commands, state, tr, dispatch}) => {
+                const {selection} = state;
+                const calloutNode = findParentNode((node) => node.type.name === 'callout')(selection);
+
+                if (calloutNode) {
+                    // Already inside a callout - unwrap it
+                    // We can't use lift() because the callout has isolating: true
+                    // So we manually replace the callout with its content
+                    if (dispatch) {
+                        const {node, pos} = calloutNode;
+                        const endPos = pos + node.nodeSize;
+                        const content = node.content;
+                        tr.replaceWith(pos, endPos, content);
+                        dispatch(tr);
+                    }
+                    return true;
+                }
+
+                // Not inside a callout - wrap the selection
+                return commands.wrapIn(this.name, attrs);
             },
             updateCalloutType: (type: CalloutType) => ({tr, state, dispatch}) => {
                 const {selection} = state;

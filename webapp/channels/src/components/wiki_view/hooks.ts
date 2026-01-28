@@ -20,12 +20,9 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import {savePageDraft} from 'actions/page_drafts';
 import {fetchChannelDefaultPage, publishPageDraft, fetchPage, fetchWiki} from 'actions/pages';
 import {openModal, closeModal} from 'actions/views/modals';
-import {openPagesPanel, closePagesPanel} from 'actions/views/pages_hierarchy';
 import {openPageInEditMode} from 'actions/wiki_edit';
-import {getIsPanesPanelCollapsed} from 'selectors/pages_hierarchy';
 
 import ConflictWarningModal from 'components/conflict_warning_modal';
-import ConfirmOverwriteModal from 'components/conflict_warning_modal/confirm_overwrite_modal';
 import PageVersionHistoryModal from 'components/page_version_history';
 
 import {ModalIdentifiers, PagePropsKeys} from 'utils/constants';
@@ -516,8 +513,6 @@ export function useWikiPageActions(
                     setConflictPageData(conflictPage);
 
                     // Open conflict modal via modal manager
-                    // Note: Modal callbacks intentionally capture values at modal open time
-                    // so the modal operates on the data it was opened with
                     dispatch(openModal({
                         modalId: ModalIdentifiers.PAGE_CONFLICT_WARNING,
                         dialogType: ConflictWarningModal,
@@ -527,98 +522,43 @@ export function useWikiPageActions(
                                 if (conflictPage?.id && capturedWikiId) {
                                     const teamName = getTeamNameFromPath(location.pathname);
                                     const pageUrl = getWikiUrl(teamName, capturedChannelId, capturedWikiId, conflictPage.id);
-                                    window.open(pageUrl, '_blank');
+                                    history.push(pageUrl);
                                 }
                             },
-                            onCopyContent: async () => {
-                                if (conflictContentRef.current) {
-                                    const {extractPlaintextFromTipTapJSON} = await import('utils/tiptap_utils');
-                                    const plainText = extractPlaintextFromTipTapJSON(conflictContentRef.current);
-                                    navigator.clipboard.writeText(plainText || conflictContentRef.current);
+                            onContinueEditing: () => {
+                                // Modal closed, user stays on their draft
+                            },
+                            onOverwrite: async () => {
+                                if (!capturedWikiId || !capturedDraft) {
+                                    return;
                                 }
-                                dispatch(closeModal(ModalIdentifiers.PAGE_CONFLICT_WARNING));
-                            },
-                            onOverwrite: () => {
-                                // Close conflict modal and show confirmation modal
-                                dispatch(closeModal(ModalIdentifiers.PAGE_CONFLICT_WARNING));
-                                dispatch(openModal({
-                                    modalId: ModalIdentifiers.PAGE_CONFIRM_OVERWRITE,
-                                    dialogType: ConfirmOverwriteModal,
-                                    dialogProps: {
-                                        currentPage: conflictPage,
-                                        onConfirm: async () => {
-                                            dispatch(closeModal(ModalIdentifiers.PAGE_CONFIRM_OVERWRITE));
 
-                                            // Use captured values from when the conflict was detected
-                                            if (!capturedWikiId || !capturedDraft) {
-                                                return;
-                                            }
+                                const overwriteContent = conflictContentRef.current || latestContentRef.current || capturedDraft.message || '';
+                                const overwriteTitle = latestTitleRef.current || capturedDraft.props?.[PagePropsKeys.TITLE] || '';
+                                const overwriteStatus = latestStatusRef.current === null ? (capturedDraft.props?.[PagePropsKeys.PAGE_STATUS] as string | undefined) : latestStatusRef.current;
+                                const overwriteDraftRootId = capturedDraft.rootId;
+                                const overwritePageParentIdFromDraft = capturedDraft.props?.[PagePropsKeys.PAGE_PARENT_ID];
 
-                                            const overwriteContent = conflictContentRef.current || latestContentRef.current || capturedDraft.message || '';
-                                            const overwriteTitle = latestTitleRef.current || capturedDraft.props?.[PagePropsKeys.TITLE] || '';
-                                            const overwriteStatus = latestStatusRef.current === null ? (capturedDraft.props?.[PagePropsKeys.PAGE_STATUS] as string | undefined) : latestStatusRef.current;
-                                            const overwriteDraftRootId = capturedDraft.rootId;
-                                            const overwritePageParentIdFromDraft = capturedDraft.props?.[PagePropsKeys.PAGE_PARENT_ID];
+                                try {
+                                    const overwriteResult = await dispatch(publishPageDraft(
+                                        capturedWikiId,
+                                        overwriteDraftRootId,
+                                        overwritePageParentIdFromDraft || '',
+                                        overwriteTitle,
+                                        '',
+                                        overwriteContent,
+                                        overwriteStatus,
+                                        true, // force = true
+                                    ));
 
-                                            try {
-                                                const overwriteResult = await dispatch(publishPageDraft(
-                                                    capturedWikiId,
-                                                    overwriteDraftRootId,
-                                                    overwritePageParentIdFromDraft || '',
-                                                    overwriteTitle,
-                                                    '',
-                                                    overwriteContent,
-                                                    overwriteStatus,
-                                                    true, // force = true
-                                                ));
-
-                                                if (overwriteResult.data) {
-                                                    const teamName = getTeamNameFromPath(location.pathname);
-                                                    const redirectUrl = getWikiUrl(teamName, capturedChannelId, capturedWikiId, overwriteResult.data.id);
-                                                    history.replace(redirectUrl);
-                                                }
-                                            } catch (e) {
-                                                // Handle error silently
-                                            }
-                                        },
-                                        onCancel: () => {
-                                            // Go back to conflict modal
-                                            dispatch(closeModal(ModalIdentifiers.PAGE_CONFIRM_OVERWRITE));
-                                            dispatch(openModal({
-                                                modalId: ModalIdentifiers.PAGE_CONFLICT_WARNING,
-                                                dialogType: ConflictWarningModal,
-                                                dialogProps: {
-                                                    currentPage: conflictPage,
-                                                    onViewChanges: () => {
-                                                        if (conflictPage?.id && capturedWikiId) {
-                                                            const teamName = getTeamNameFromPath(location.pathname);
-                                                            const pageUrl = getWikiUrl(teamName, capturedChannelId, capturedWikiId, conflictPage.id);
-                                                            window.open(pageUrl, '_blank');
-                                                        }
-                                                    },
-                                                    onCopyContent: async () => {
-                                                        if (conflictContentRef.current) {
-                                                            const {extractPlaintextFromTipTapJSON} = await import('utils/tiptap_utils');
-                                                            const plainText = extractPlaintextFromTipTapJSON(conflictContentRef.current);
-                                                            navigator.clipboard.writeText(plainText || conflictContentRef.current);
-                                                        }
-                                                        dispatch(closeModal(ModalIdentifiers.PAGE_CONFLICT_WARNING));
-                                                    },
-                                                    onOverwrite: () => {
-                                                        // This will be handled by the modal itself opening ConfirmOverwrite
-                                                        dispatch(closeModal(ModalIdentifiers.PAGE_CONFLICT_WARNING));
-                                                    },
-                                                    onCancel: () => {
-                                                        // Just close the modal
-                                                    },
-                                                },
-                                            }));
-                                        },
-                                    },
-                                }));
-                            },
-                            onCancel: () => {
-                                // Just close the modal - handled by the modal itself
+                                    if (overwriteResult.data) {
+                                        const teamName = getTeamNameFromPath(location.pathname);
+                                        const redirectUrl = getWikiUrl(teamName, capturedChannelId, capturedWikiId, overwriteResult.data.id);
+                                        history.replace(redirectUrl);
+                                    }
+                                } catch (e) {
+                                    // Handle error silently
+                                }
                             },
                         },
                     }));
@@ -701,29 +641,14 @@ type UseFullscreenResult = {
 
 /**
  * Manages fullscreen state for the wiki view.
- * Handles toggling, escape key, body class management, and preserves/restores panel state.
+ * Handles toggling, escape key, and body class management.
  */
 export function useFullscreen(): UseFullscreenResult {
-    const dispatch = useDispatch();
     const [isFullscreen, setIsFullscreen] = useState(false);
-    const isPanesPanelCollapsed = useSelector((state: GlobalState) => getIsPanesPanelCollapsed(state));
-
-    const panelStateBeforeFullscreenRef = useRef<boolean | null>(null);
 
     const toggleFullscreen = useCallback(() => {
-        const newFullscreenState = !isFullscreen;
-        setIsFullscreen(newFullscreenState);
-
-        if (newFullscreenState) {
-            panelStateBeforeFullscreenRef.current = isPanesPanelCollapsed;
-            dispatch(closePagesPanel());
-        } else {
-            if (panelStateBeforeFullscreenRef.current === false) {
-                dispatch(openPagesPanel());
-            }
-            panelStateBeforeFullscreenRef.current = null;
-        }
-    }, [isFullscreen, isPanesPanelCollapsed, dispatch]);
+        setIsFullscreen((prev) => !prev);
+    }, []);
 
     // Escape key handler
     useEffect(() => {

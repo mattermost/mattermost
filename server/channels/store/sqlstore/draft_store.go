@@ -562,9 +562,15 @@ func (s *SqlDraftStore) BatchUpdateDraftParentId(userId, wikiId, oldParentId, ne
 // UpdateDraftParent atomically updates only the page_parent_id prop in the Drafts table.
 // This is used for move operations and does not touch the PageContents table (content/title).
 // It uses a read-modify-write pattern to merge the new parent_id into existing props.
-// Uses GetMaster() for the read to ensure consistency in this read-modify-write flow.
-func (s *SqlDraftStore) UpdateDraftParent(userId, wikiId, draftId, newParentId string) error {
-	// Read the current draft from master to get its props (read-modify-write consistency)
+// Wrapped in a transaction to ensure atomicity under concurrent access.
+func (s *SqlDraftStore) UpdateDraftParent(userId, wikiId, draftId, newParentId string) (err error) {
+	transaction, err := s.GetMaster().Beginx()
+	if err != nil {
+		return errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	// Read the current draft within transaction to get its props
 	getQuery := s.getQueryBuilder().
 		Select(draftSliceColumns()...).
 		From("Drafts").
@@ -576,7 +582,7 @@ func (s *SqlDraftStore) UpdateDraftParent(userId, wikiId, draftId, newParentId s
 		})
 
 	draft := model.Draft{}
-	if err := s.GetMaster().GetBuilder(&draft, getQuery); err != nil {
+	if err = transaction.GetBuilder(&draft, getQuery); err != nil {
 		if err == sql.ErrNoRows {
 			return store.NewErrNotFound("Draft", draftId)
 		}
@@ -593,7 +599,7 @@ func (s *SqlDraftStore) UpdateDraftParent(userId, wikiId, draftId, newParentId s
 	propsJSON := model.StringInterfaceToJSON(props)
 	newUpdateAt := model.GetMillis()
 
-	// Update only the props and updateAt, no optimistic locking on content
+	// Update only the props and updateAt within transaction
 	updateQuery := s.getQueryBuilder().
 		Update("Drafts").
 		Set("Props", propsJSON).
@@ -604,7 +610,7 @@ func (s *SqlDraftStore) UpdateDraftParent(userId, wikiId, draftId, newParentId s
 			"RootId":    draftId,
 		})
 
-	result, err := s.GetMaster().ExecBuilder(updateQuery)
+	result, err := transaction.ExecBuilder(updateQuery)
 	if err != nil {
 		return errors.Wrapf(err, "failed to update parent for draft userId=%s, wikiId=%s, draftId=%s", userId, wikiId, draftId)
 	}
@@ -616,6 +622,10 @@ func (s *SqlDraftStore) UpdateDraftParent(userId, wikiId, draftId, newParentId s
 
 	if rowsAffected == 0 {
 		return store.NewErrNotFound("Draft", draftId)
+	}
+
+	if err = transaction.Commit(); err != nil {
+		return errors.Wrap(err, "commit_transaction")
 	}
 
 	return nil
@@ -646,10 +656,21 @@ func (s *SqlDraftStore) CreatePageDraft(content *model.PageContent) (*model.Page
 		return nil, errors.Wrapf(err, "failed to create page draft with pageId=%s, userId=%s", content.PageId, content.UserId)
 	}
 
-	// Return the content directly instead of re-reading from replica
-	// to avoid read-after-write consistency issues with replica lag.
-	// HasPublishedVersion is false for newly created drafts.
-	content.HasPublishedVersion = false
+	// Check if a published version exists for this page (UserId = '' means published)
+	// This is needed when editing an existing page for the first time
+	existsQuery := s.getQueryBuilder().
+		Select("1").
+		From("PageContents").
+		Where(sq.Eq{"PageId": content.PageId, "UserId": "", "DeleteAt": 0}).
+		Prefix("SELECT EXISTS(").
+		Suffix(")")
+
+	var hasPublished bool
+	if checkErr := s.GetMaster().GetBuilder(&hasPublished, existsQuery); checkErr != nil {
+		// If check fails, default to false (safe fallback)
+		hasPublished = false
+	}
+	content.HasPublishedVersion = hasPublished
 	return content, nil
 }
 
@@ -1105,7 +1126,10 @@ func (s *SqlDraftStore) PublishPageDraft(pageId, userId string) (*model.PageCont
 	defer finalizeTransactionX(tx, &err)
 
 	// Step 1: Delete old published row if exists (UserId = '' means published)
-	_, err = tx.Exec(`DELETE FROM PageContents WHERE PageId = $1 AND UserId = ''`, pageId)
+	deleteQuery := s.getQueryBuilder().
+		Delete("PageContents").
+		Where(sq.Eq{"PageId": pageId, "UserId": ""})
+	_, err = tx.ExecBuilder(deleteQuery)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to delete old published row")
 	}
@@ -1163,13 +1187,14 @@ func (s *SqlDraftStore) CreateDraftFromPublished(pageId, userId string) (*model.
 	// Copy from published to new draft row and return the inserted data
 	// UserId = '' means published (source), UserId = $1 (non-empty) means draft (destination)
 	// Use RETURNING to avoid read-after-write consistency issues with replica lag
+	// Filter for DeleteAt = 0 to avoid copying soft-deleted content
 	var content model.PageContent
 	var contentJSON string
 	err = s.GetMaster().QueryRow(`
 		INSERT INTO PageContents (PageId, UserId, WikiId, Title, Content, SearchText, BaseUpdateAt, CreateAt, UpdateAt, DeleteAt)
 		SELECT PageId, $1, WikiId, Title, Content, SearchText, UpdateAt, $2, $2, 0
 		FROM PageContents
-		WHERE PageId = $3 AND UserId = ''
+		WHERE PageId = $3 AND UserId = '' AND DeleteAt = 0
 		RETURNING PageId, UserId, WikiId, Title, Content, SearchText, BaseUpdateAt, CreateAt, UpdateAt, DeleteAt`,
 		userId, now, pageId).Scan(
 		&content.PageId,

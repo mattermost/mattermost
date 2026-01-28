@@ -51,7 +51,7 @@ const WikiPageHeader = ({
     pageId,
     channelId,
     isDraft,
-    isExistingPage = false,
+    isExistingPage,
     parentPageId,
     draftTitle,
     onEdit,

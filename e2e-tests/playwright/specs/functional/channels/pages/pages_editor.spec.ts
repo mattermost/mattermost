@@ -15,8 +15,6 @@ import {
     openPageLinkModalViaButton,
     waitForPageInHierarchy,
     fillCreatePageModal,
-    waitForFormattingBar,
-    verifyFormattingButtonExists,
     typeInEditor,
     publishPage,
     getEditorAndWait,
@@ -1713,29 +1711,366 @@ test('pastes image from clipboard without broken image icon', {tag: '@pages'}, a
 });
 
 /**
- * @objective Verify divider button appears in formatting bar after refactoring
+ * @objective Verify link modal supports external URL linking
+ *
+ * @precondition
+ * Pages/Wiki feature is enabled on the server
  */
-test('formatting bar includes divider button from shared registry', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+test('inserts external URL link via link modal', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
-    // # Create wiki and page
-    await createWikiThroughUI(page, `Formatting Bar Wiki ${await pw.random.id()}`);
+    // # Create wiki through UI
+    await createWikiThroughUI(page, `External Link Wiki ${await pw.random.id()}`);
+
+    // # Create new page
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
-    await fillCreatePageModal(page, 'Formatting Bar Test');
+    await fillCreatePageModal(page, 'Page With External Link');
 
-    // # Type and select text
-    await getEditorAndWait(page);
-    await typeInEditor(page, 'Test text for formatting');
+    // # Wait for navigation to the new draft page
+    await page
+        .locator('[data-testid="wiki-page-publish-button"]')
+        .waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
+
+    // # Wait for editor to load
+    const editor = await getEditorAndWait(page);
+
+    // # Open link modal via Ctrl+L keyboard shortcut
+    await editor.click();
+    await page.waitForTimeout(UI_MICRO_WAIT * 2);
+    const linkModal = await openPageLinkModal(editor);
+
+    // * Verify modal opens
+    await expect(linkModal).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // * Verify both tabs are visible
+    const pageTab = linkModal.locator('[data-testid="tab-page"]');
+    const urlTab = linkModal.locator('[data-testid="tab-url"]');
+    await expect(pageTab).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await expect(urlTab).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // # Click on Web URL tab
+    await urlTab.click();
+
+    // * Verify URL input is visible
+    const urlInput = linkModal.locator('[data-testid="url-input"]');
+    await expect(urlInput).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // # Enter external URL
+    await urlInput.fill('https://mattermost.com');
+
+    // # Enter custom link text
+    const linkTextInput = linkModal.locator('input[id="link-text-input"]');
+    await linkTextInput.fill('Mattermost Website');
+
+    // # Click Insert Link button
+    await linkModal.locator('button:has-text("Insert Link")').click();
+
+    // * Verify modal closes
+    await expect(linkModal).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // * Verify link was inserted with correct text
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
+    const editorContent = await editor.textContent();
+    expect(editorContent).toContain('Mattermost Website');
+
+    // * Verify the link element exists with correct href
+    const externalLink = editor.locator('a').filter({hasText: 'Mattermost Website'}).first();
+    await expect(externalLink).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    const href = await externalLink.getAttribute('href');
+    expect(href).toBe('https://mattermost.com');
+
+    // # Publish and verify persistence
+    await publishPage(page);
+    await page.waitForLoadState('networkidle');
+
+    // * Verify link persists after publish
+    const pageContent = getPageViewerContent(page);
+    await expect(pageContent).toBeVisible();
+    await expect(pageContent).toContainText('Mattermost Website');
+
+    const publishedLink = pageContent.locator('a').filter({hasText: 'Mattermost Website'}).first();
+    await expect(publishedLink).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    const publishedHref = await publishedLink.getAttribute('href');
+    expect(publishedHref).toBe('https://mattermost.com');
+});
+
+/**
+ * @objective Verify clicking external URL link in published page opens in new tab
+ *
+ * @precondition
+ * Pages/Wiki feature is enabled on the server
+ */
+test(
+    'clicking external URL link in published page opens in new tab',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+        // # Create wiki through UI
+        await createWikiThroughUI(page, `External Link Click Wiki ${await pw.random.id()}`);
+
+        // # Create new page
+        const newPageButton = getNewPageButton(page);
+        await newPageButton.click();
+        await fillCreatePageModal(page, 'Page With Clickable External Link');
+
+        // # Wait for navigation to the new draft page
+        await page
+            .locator('[data-testid="wiki-page-publish-button"]')
+            .waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
+
+        // # Wait for editor to load
+        const editor = await getEditorAndWait(page);
+
+        // # Open link modal via Ctrl+L keyboard shortcut
+        await editor.click();
+        await page.waitForTimeout(UI_MICRO_WAIT * 2);
+        const linkModal = await openPageLinkModal(editor);
+
+        // # Click on Web URL tab
+        const urlTab = linkModal.locator('[data-testid="tab-url"]');
+        await urlTab.click();
+
+        // # Enter external URL
+        const urlInput = linkModal.locator('[data-testid="url-input"]');
+        await urlInput.fill('https://example.com');
+
+        // # Enter custom link text
+        const linkTextInput = linkModal.locator('input[id="link-text-input"]');
+        await linkTextInput.fill('Example Site');
+
+        // # Click Insert Link button
+        await linkModal.locator('button:has-text("Insert Link")').click();
+
+        // * Verify modal closes
+        await expect(linkModal).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+        // # Publish the page
+        await publishPage(page);
+        await page.waitForLoadState('networkidle');
+
+        // * Verify link is visible in published view
+        const pageContent = getPageViewerContent(page);
+        await expect(pageContent).toBeVisible();
+
+        const publishedLink = pageContent.locator('a').filter({hasText: 'Example Site'}).first();
+        await expect(publishedLink).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+        // # Click the external link and wait for new tab to open
+        const [popup] = await Promise.all([page.waitForEvent('popup'), publishedLink.click()]);
+
+        // * Verify new tab opened with correct URL
+        await popup.waitForLoadState('domcontentloaded');
+        expect(popup.url()).toContain('example.com');
+
+        // * Verify original page is still on the wiki page (didn't navigate away)
+        expect(page.url()).toContain('wiki');
+
+        // # Clean up: close the popup
+        await popup.close();
+    },
+);
+
+/**
+ * @objective Verify external URL link uses URL as fallback when link text is empty
+ *
+ * @precondition
+ * Pages/Wiki feature is enabled on the server
+ */
+test('uses URL as fallback link text when link text is empty', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+    // # Create wiki through UI
+    await createWikiThroughUI(page, `URL Fallback Wiki ${await pw.random.id()}`);
+
+    // # Create new page
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Page With URL Fallback');
+
+    // # Wait for navigation to the new draft page
+    await page
+        .locator('[data-testid="wiki-page-publish-button"]')
+        .waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
+
+    // # Wait for editor to load
+    const editor = await getEditorAndWait(page);
+
+    // # Open link modal via Ctrl+L keyboard shortcut
+    await editor.click();
+    await page.waitForTimeout(UI_MICRO_WAIT * 2);
+    const linkModal = await openPageLinkModal(editor);
+
+    // * Verify modal opens
+    await expect(linkModal).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // # Click on Web URL tab
+    const urlTab = linkModal.locator('[data-testid="tab-url"]');
+    await urlTab.click();
+
+    // # Enter external URL
+    const urlInput = linkModal.locator('[data-testid="url-input"]');
+    await urlInput.fill('https://github.com/mattermost');
+
+    // # Do NOT enter link text - leave it empty to test fallback
+    const linkTextInput = linkModal.locator('input[id="link-text-input"]');
+    await expect(linkTextInput).toHaveValue('');
+
+    // # Click Insert Link button
+    await linkModal.locator('button:has-text("Insert Link")').click();
+
+    // * Verify modal closes
+    await expect(linkModal).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // * Verify link was inserted with URL as link text (fallback)
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
+    const editorContent = await editor.textContent();
+    expect(editorContent).toContain('https://github.com/mattermost');
+
+    // * Verify the link element exists with URL as both text and href
+    const externalLink = editor.locator('a').filter({hasText: 'https://github.com/mattermost'}).first();
+    await expect(externalLink).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    const href = await externalLink.getAttribute('href');
+    expect(href).toBe('https://github.com/mattermost');
+});
+
+/**
+ * @objective Verify link modal shows error for invalid URLs
+ *
+ * @precondition
+ * Pages/Wiki feature is enabled on the server
+ */
+test('shows error for invalid URL in link modal', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+    // # Create wiki through UI
+    await createWikiThroughUI(page, `Invalid URL Wiki ${await pw.random.id()}`);
+
+    // # Create new page
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Page With Invalid URL Test');
+
+    // # Wait for navigation to the new draft page
+    await page
+        .locator('[data-testid="wiki-page-publish-button"]')
+        .waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
+
+    // # Wait for editor to load
+    const editor = await getEditorAndWait(page);
+
+    // # Open link modal via Ctrl+L keyboard shortcut
+    await editor.click();
+    await page.waitForTimeout(UI_MICRO_WAIT * 2);
+    const linkModal = await openPageLinkModal(editor);
+
+    // * Verify modal opens
+    await expect(linkModal).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // # Click on Web URL tab
+    const urlTab = linkModal.locator('[data-testid="tab-url"]');
+    await urlTab.click();
+
+    // # Enter invalid URL
+    const urlInput = linkModal.locator('[data-testid="url-input"]');
+    await urlInput.fill('not-a-valid-url');
+
+    // # Click Insert Link button
+    await linkModal.locator('button:has-text("Insert Link")').click();
+
+    // * Verify error message is shown
+    const errorMessage = linkModal.locator('[data-testid="url-error"]');
+    await expect(errorMessage).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // * Verify modal is still open (didn't close on error)
+    await expect(linkModal).toBeVisible();
+});
+
+/**
+ * @objective Verify selected text can be hyperlinked to external URL
+ *
+ * @precondition
+ * Pages/Wiki feature is enabled on the server
+ */
+test('hyperlinks selected text to external URL', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+    // # Create wiki through UI
+    await createWikiThroughUI(page, `Select Text Link Wiki ${await pw.random.id()}`);
+
+    // # Create new page
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Page With Selected Text Link');
+
+    // # Wait for navigation to the new draft page
+    await page
+        .locator('[data-testid="wiki-page-publish-button"]')
+        .waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
+
+    // # Wait for editor to load
+    const editor = await getEditorAndWait(page);
+
+    // # Type text that we'll select
+    await typeInEditor(page, 'Click here');
+    await page.waitForTimeout(UI_MICRO_WAIT);
+
+    // # Select all text using Ctrl+A
     await selectTextInEditor(page);
-    await page.waitForTimeout(SHORT_WAIT);
+    await page.waitForTimeout(UI_MICRO_WAIT);
 
-    // # Wait for formatting bar
-    const formattingBar = await waitForFormattingBar(page);
+    // # Open link modal with selection
+    await pressModifierKey(page, 'l');
 
-    // * Verify divider button exists (from shared registry)
-    await verifyFormattingButtonExists(formattingBar, 'icon-minus');
+    const linkModal = page.locator('[data-testid="page-link-modal"]').first();
+    await expect(linkModal).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // * Verify the link text input has the selected text pre-filled
+    const linkTextInput = linkModal.locator('input[id="link-text-input"]');
+    await expect(linkTextInput).toHaveValue('Click here');
+
+    // # Click on Web URL tab
+    const urlTab = linkModal.locator('[data-testid="tab-url"]');
+    await urlTab.click();
+
+    // * Verify link text is still preserved after switching tabs
+    await expect(linkTextInput).toHaveValue('Click here');
+
+    // # Enter external URL
+    const urlInput = linkModal.locator('[data-testid="url-input"]');
+    await urlInput.fill('https://docs.mattermost.com');
+
+    // # Click Insert Link button
+    await linkModal.locator('button:has-text("Insert Link")').click();
+
+    // * Verify modal closes
+    await expect(linkModal).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // * Verify link was created with selected text
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
+    const externalLink = editor.locator('a').filter({hasText: 'Click here'}).first();
+    await expect(externalLink).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // * Verify link href is correct
+    const href = await externalLink.getAttribute('href');
+    expect(href).toBe('https://docs.mattermost.com');
 });

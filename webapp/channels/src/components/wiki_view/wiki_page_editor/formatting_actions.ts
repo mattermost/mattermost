@@ -15,6 +15,7 @@ export interface FormattingAction {
     keyboardShortcut?: string;
     requiresModal?: boolean;
     modalType?: 'link' | 'image' | 'emoji';
+    showForSelection?: boolean; // Show in formatting bar when text is selected
 }
 
 export const FORMATTING_ACTIONS: FormattingAction[] = [
@@ -28,6 +29,7 @@ export const FORMATTING_ACTIONS: FormattingAction[] = [
         aliases: ['b', 'strong'],
         category: 'text',
         keyboardShortcut: 'Ctrl+B',
+        showForSelection: true,
     },
     {
         id: 'italic',
@@ -39,6 +41,7 @@ export const FORMATTING_ACTIONS: FormattingAction[] = [
         aliases: ['i', 'em', 'emphasis'],
         category: 'text',
         keyboardShortcut: 'Ctrl+I',
+        showForSelection: true,
     },
     {
         id: 'strike',
@@ -49,6 +52,7 @@ export const FORMATTING_ACTIONS: FormattingAction[] = [
         isActive: (editor: Editor) => editor.isActive('strike'),
         aliases: ['strikethrough', 'del'],
         category: 'text',
+        showForSelection: true,
     },
     {
         id: 'h1',
@@ -75,6 +79,7 @@ export const FORMATTING_ACTIONS: FormattingAction[] = [
         isActive: (editor: Editor) => editor.isActive('heading', {level: 1}),
         aliases: ['heading1', 'h1'],
         category: 'block',
+        showForSelection: true,
     },
     {
         id: 'h2',
@@ -101,6 +106,7 @@ export const FORMATTING_ACTIONS: FormattingAction[] = [
         isActive: (editor: Editor) => editor.isActive('heading', {level: 2}),
         aliases: ['heading2', 'h2'],
         category: 'block',
+        showForSelection: true,
     },
     {
         id: 'h3',
@@ -127,6 +133,7 @@ export const FORMATTING_ACTIONS: FormattingAction[] = [
         isActive: (editor: Editor) => editor.isActive('heading', {level: 3}),
         aliases: ['heading3', 'h3'],
         category: 'block',
+        showForSelection: true,
     },
     {
         id: 'bulletList',
@@ -142,6 +149,7 @@ export const FORMATTING_ACTIONS: FormattingAction[] = [
         isActive: (editor: Editor) => editor.isActive('bulletList'),
         aliases: ['ul', 'bulletlist', 'unordered'],
         category: 'list',
+        showForSelection: true,
     },
     {
         id: 'orderedList',
@@ -157,6 +165,7 @@ export const FORMATTING_ACTIONS: FormattingAction[] = [
         isActive: (editor: Editor) => editor.isActive('orderedList'),
         aliases: ['ol', 'orderedlist', 'numbered'],
         category: 'list',
+        showForSelection: true,
     },
     {
         id: 'blockquote',
@@ -188,6 +197,7 @@ export const FORMATTING_ACTIONS: FormattingAction[] = [
         isActive: (editor: Editor) => editor.isActive('blockquote'),
         aliases: ['quote', 'citation'],
         category: 'block',
+        showForSelection: true,
     },
     {
         id: 'callout',
@@ -199,7 +209,7 @@ export const FORMATTING_ACTIONS: FormattingAction[] = [
             const hasSelection = from !== to;
 
             if (hasSelection) {
-                editor.chain().focus().setCallout({type: 'info'}).run();
+                editor.chain().focus().toggleCallout({type: 'info'}).run();
             } else {
                 // Slash command case: insert callout and let cursor be placed inside
                 // Don't try to manually set selection - let TipTap handle it
@@ -216,6 +226,7 @@ export const FORMATTING_ACTIONS: FormattingAction[] = [
         isActive: (editor: Editor) => editor.isActive('callout'),
         aliases: ['callout', 'alert', 'note', 'tip', 'warning', 'info'],
         category: 'block',
+        showForSelection: true,
     },
     {
         id: 'codeBlock',
@@ -242,6 +253,7 @@ export const FORMATTING_ACTIONS: FormattingAction[] = [
         isActive: (editor: Editor) => editor.isActive('codeBlock'),
         aliases: ['code', 'codeblock', 'pre'],
         category: 'block',
+        showForSelection: true,
     },
     {
         id: 'link',
@@ -254,6 +266,7 @@ export const FORMATTING_ACTIONS: FormattingAction[] = [
         category: 'media',
         requiresModal: true,
         modalType: 'link',
+        showForSelection: true,
     },
     {
         id: 'image',

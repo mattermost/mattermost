@@ -6,10 +6,66 @@
         padding: 16px 0;
     }
 
+    &__tabs {
+        display: flex;
+        border-bottom: 1px solid var(--center-channel-color-16);
+        margin-bottom: 16px;
+        gap: 0;
+    }
+
+    &__tab {
+        display: flex;
+        align-items: center;
+        padding: 10px 16px;
+        border: none;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -1px;
+        background: none;
+        color: var(--center-channel-color-64);
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        gap: 8px;
+        transition: all 0.15s ease;
+
+        &:hover {
+            color: var(--center-channel-color);
+        }
+
+        &--active {
+            border-bottom-color: var(--button-bg);
+            color: var(--button-bg);
+        }
+
+        .icon {
+            font-size: 18px;
+        }
+    }
+
+    &__content {
+        min-height: 200px;
+    }
+
     &__label {
         display: block;
         margin-bottom: 8px;
         font-weight: 600;
+    }
+
+    &__url-input {
+        width: 100%;
+        margin-bottom: 16px;
+
+        &.is-invalid {
+            border-color: var(--error-text);
+        }
+    }
+
+    &__error-text {
+        margin-top: -12px;
+        margin-bottom: 16px;
+        color: var(--error-text);
+        font-size: 12px;
     }
 
     &__search-wrapper {

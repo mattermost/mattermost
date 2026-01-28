@@ -460,4 +460,197 @@ describe('PageLinkModal', () => {
         const insertButton = screen.getByText('Insert Link');
         expect(insertButton).not.toBeDisabled();
     });
+
+    describe('URL mode', () => {
+        const propsWithUrlCallback = {
+            ...baseProps,
+            onSelectUrl: jest.fn(),
+        };
+
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
+
+        test('renders tabs for Wiki page and Web URL modes', () => {
+            renderWithContext(<PageLinkModal {...propsWithUrlCallback}/>);
+
+            expect(screen.getByTestId('tab-page')).toBeInTheDocument();
+            expect(screen.getByTestId('tab-url')).toBeInTheDocument();
+            expect(screen.getByText('Wiki page')).toBeInTheDocument();
+            expect(screen.getByText('Web URL')).toBeInTheDocument();
+        });
+
+        test('starts in page mode by default', () => {
+            renderWithContext(<PageLinkModal {...propsWithUrlCallback}/>);
+
+            const pageTab = screen.getByTestId('tab-page');
+            expect(pageTab).toHaveAttribute('aria-selected', 'true');
+            expect(screen.getByLabelText('Search for a page')).toBeInTheDocument();
+        });
+
+        test('switches to URL mode when Web URL tab is clicked', () => {
+            renderWithContext(<PageLinkModal {...propsWithUrlCallback}/>);
+
+            const urlTab = screen.getByTestId('tab-url');
+            fireEvent.click(urlTab);
+
+            expect(urlTab).toHaveAttribute('aria-selected', 'true');
+            expect(screen.getByTestId('url-input')).toBeInTheDocument();
+            expect(screen.queryByLabelText('Search for a page')).not.toBeInTheDocument();
+        });
+
+        test('shows URL input with placeholder in URL mode', () => {
+            renderWithContext(<PageLinkModal {...propsWithUrlCallback}/>);
+
+            const urlTab = screen.getByTestId('tab-url');
+            fireEvent.click(urlTab);
+
+            const urlInput = screen.getByTestId('url-input');
+            expect(urlInput).toHaveAttribute('placeholder', 'https://example.com');
+        });
+
+        test('Insert Link button is disabled when URL is empty', () => {
+            renderWithContext(<PageLinkModal {...propsWithUrlCallback}/>);
+
+            const urlTab = screen.getByTestId('tab-url');
+            fireEvent.click(urlTab);
+
+            const insertButton = screen.getByText('Insert Link');
+            expect(insertButton).toBeDisabled();
+        });
+
+        test('Insert Link button is enabled when URL is entered', () => {
+            renderWithContext(<PageLinkModal {...propsWithUrlCallback}/>);
+
+            const urlTab = screen.getByTestId('tab-url');
+            fireEvent.click(urlTab);
+
+            const urlInput = screen.getByTestId('url-input');
+            fireEvent.change(urlInput, {target: {value: 'https://example.com'}});
+
+            const insertButton = screen.getByText('Insert Link');
+            expect(insertButton).not.toBeDisabled();
+        });
+
+        test('calls onSelectUrl with URL and link text when Insert Link is clicked', () => {
+            renderWithContext(<PageLinkModal {...propsWithUrlCallback}/>);
+
+            const urlTab = screen.getByTestId('tab-url');
+            fireEvent.click(urlTab);
+
+            const urlInput = screen.getByTestId('url-input');
+            fireEvent.change(urlInput, {target: {value: 'https://example.com/page'}});
+
+            const linkTextInput = screen.getByLabelText('Link text');
+            fireEvent.change(linkTextInput, {target: {value: 'Example Page'}});
+
+            const insertButton = screen.getByText('Insert Link');
+            fireEvent.click(insertButton);
+
+            expect(propsWithUrlCallback.onSelectUrl).toHaveBeenCalledWith('https://example.com/page', 'Example Page');
+        });
+
+        test('uses URL as fallback link text when link text is empty', () => {
+            renderWithContext(<PageLinkModal {...propsWithUrlCallback}/>);
+
+            const urlTab = screen.getByTestId('tab-url');
+            fireEvent.click(urlTab);
+
+            const urlInput = screen.getByTestId('url-input');
+            fireEvent.change(urlInput, {target: {value: 'https://example.com'}});
+
+            const insertButton = screen.getByText('Insert Link');
+            fireEvent.click(insertButton);
+
+            expect(propsWithUrlCallback.onSelectUrl).toHaveBeenCalledWith('https://example.com', 'https://example.com');
+        });
+
+        test('shows error for invalid URL format', () => {
+            renderWithContext(<PageLinkModal {...propsWithUrlCallback}/>);
+
+            const urlTab = screen.getByTestId('tab-url');
+            fireEvent.click(urlTab);
+
+            const urlInput = screen.getByTestId('url-input');
+            fireEvent.change(urlInput, {target: {value: 'not-a-url'}});
+
+            const insertButton = screen.getByText('Insert Link');
+            fireEvent.click(insertButton);
+
+            expect(screen.getByTestId('url-error')).toBeInTheDocument();
+            expect(propsWithUrlCallback.onSelectUrl).not.toHaveBeenCalled();
+        });
+
+        test('allows http URLs', () => {
+            renderWithContext(<PageLinkModal {...propsWithUrlCallback}/>);
+
+            const urlTab = screen.getByTestId('tab-url');
+            fireEvent.click(urlTab);
+
+            const urlInput = screen.getByTestId('url-input');
+            fireEvent.change(urlInput, {target: {value: 'http://example.com'}});
+
+            const insertButton = screen.getByText('Insert Link');
+            fireEvent.click(insertButton);
+
+            expect(propsWithUrlCallback.onSelectUrl).toHaveBeenCalledWith('http://example.com', 'http://example.com');
+        });
+
+        test('clears error when URL is changed', () => {
+            renderWithContext(<PageLinkModal {...propsWithUrlCallback}/>);
+
+            const urlTab = screen.getByTestId('tab-url');
+            fireEvent.click(urlTab);
+
+            const urlInput = screen.getByTestId('url-input');
+            fireEvent.change(urlInput, {target: {value: 'not-a-url'}});
+
+            const insertButton = screen.getByText('Insert Link');
+            fireEvent.click(insertButton);
+
+            expect(screen.getByTestId('url-error')).toBeInTheDocument();
+
+            fireEvent.change(urlInput, {target: {value: 'https://example.com'}});
+
+            expect(screen.queryByTestId('url-error')).not.toBeInTheDocument();
+        });
+
+        test('pressing Enter in URL mode submits the form', () => {
+            renderWithContext(<PageLinkModal {...propsWithUrlCallback}/>);
+
+            const urlTab = screen.getByTestId('tab-url');
+            fireEvent.click(urlTab);
+
+            const urlInput = screen.getByTestId('url-input');
+            fireEvent.change(urlInput, {target: {value: 'https://example.com'}});
+            fireEvent.keyDown(urlInput, {key: 'Enter'});
+
+            expect(propsWithUrlCallback.onSelectUrl).toHaveBeenCalledWith('https://example.com', 'https://example.com');
+        });
+
+        test('shows help text for URL mode', () => {
+            renderWithContext(<PageLinkModal {...propsWithUrlCallback}/>);
+
+            const urlTab = screen.getByTestId('tab-url');
+            fireEvent.click(urlTab);
+
+            expect(screen.getByText(/Enter a full URL/)).toBeInTheDocument();
+        });
+
+        test('link text placeholder changes based on mode', () => {
+            renderWithContext(<PageLinkModal {...propsWithUrlCallback}/>);
+
+            // In page mode, placeholder shows selected page title (first page: Getting Started Guide)
+            let linkTextInput = screen.getByLabelText('Link text') as HTMLInputElement;
+            expect(linkTextInput.placeholder).toBe('Getting Started Guide');
+
+            // Switch to URL mode
+            const urlTab = screen.getByTestId('tab-url');
+            fireEvent.click(urlTab);
+
+            // Placeholder should reference URL
+            linkTextInput = screen.getByLabelText('Link text') as HTMLInputElement;
+            expect(linkTextInput.placeholder).toContain('URL');
+        });
+    });
 });

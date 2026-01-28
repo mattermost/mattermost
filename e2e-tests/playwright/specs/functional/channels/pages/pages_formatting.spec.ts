@@ -9,7 +9,6 @@ import {
     getEditorAndWait,
     typeInEditor,
     selectTextInEditor,
-    waitForFormattingBar,
     publishPage,
     getPageViewerContent,
     pressModifierKey,
@@ -382,6 +381,47 @@ test('inserts heading 3 via formatting bar', {tag: '@pages'}, async ({pw, shared
 });
 
 /**
+ * @objective Verify H4, H5, H6 headings via markdown input and persistence after publish
+ */
+test('inserts lower-level headings (H4-H6) via markdown input', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
+
+    // # Create wiki and page
+    await createWikiThroughUI(page, `Lower Headings Wiki ${await pw.random.id()}`);
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Lower Headings Test');
+
+    // # Type H4, H5, H6 via markdown syntax
+    const editor = await getEditorAndWait(page);
+    await editor.click();
+    await page.keyboard.type('#### H4 heading');
+    await page.keyboard.press('Enter');
+    await page.keyboard.type('##### H5 heading');
+    await page.keyboard.press('Enter');
+    await page.keyboard.type('###### H6 heading');
+
+    // * Verify all headings are created in editor
+    await verifyEditorElement(editor, 'h4', 'H4 heading');
+    await verifyEditorElement(editor, 'h5', 'H5 heading');
+    await verifyEditorElement(editor, 'h6', 'H6 heading');
+
+    // # Publish
+    await publishPage(page);
+
+    // * Verify all headings persist after publish
+    const pageContent = getPageViewerContent(page);
+    await expect(pageContent.locator('h4')).toContainText('H4 heading');
+    await expect(pageContent.locator('h5')).toContainText('H5 heading');
+    await expect(pageContent.locator('h6')).toContainText('H6 heading');
+});
+
+/**
  * @objective Verify quote via formatting bar
  */
 test('inserts quote via formatting bar', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
@@ -442,9 +482,9 @@ test('inserts code block via formatting bar', {tag: '@pages'}, async ({pw, share
 });
 
 /**
- * @objective Verify divider via formatting bar
+ * @objective Verify divider via slash command
  */
-test('inserts divider via formatting bar button', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+test('inserts divider via slash command', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
@@ -458,16 +498,8 @@ test('inserts divider via formatting bar button', {tag: '@pages'}, async ({pw, s
     await newPageButton.click();
     await fillCreatePageModal(page, 'Divider Format Test');
 
-    // # Type text and select it
-    await typeInEditor(page, 'Text before divider');
-    await selectTextInEditor(page);
-    await page.waitForTimeout(SHORT_WAIT);
-
-    // # Click divider button in formatting bar
-    const formattingBar = await waitForFormattingBar(page);
-    const dividerButton = formattingBar.locator('button:has(i.icon-minus)');
-    await dividerButton.click();
-    await page.waitForTimeout(UI_MICRO_WAIT * 3);
+    // # Insert divider via slash command
+    await insertViaSlashCommand(page, 'Divider');
 
     // * Verify horizontal rule is inserted
     const editor = await getEditorAndWait(page);
@@ -680,9 +712,9 @@ test('list formatting persists after publish', {tag: '@pages'}, async ({pw, shar
 // ============================================================================
 
 /**
- * @objective Verify table can be inserted via formatting bar button
+ * @objective Verify table can be inserted via slash command
  */
-test('inserts table via formatting bar button', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+test('inserts table via slash command', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
@@ -696,14 +728,8 @@ test('inserts table via formatting bar button', {tag: '@pages'}, async ({pw, sha
     await newPageButton.click();
     await fillCreatePageModal(page, 'Table Insert Test');
 
-    // # Type some text first
-    await typeInEditor(page, 'Content before table');
-
-    // # Select text to show formatting bar
-    await selectTextInEditor(page);
-
-    // # Click table button in formatting bar
-    await clickFormattingButtonByIcon(page, 'icon-table-large');
+    // # Insert table via slash command
+    await insertViaSlashCommand(page, 'Table');
 
     // * Verify table is inserted
     const editor = await getEditorAndWait(page);
@@ -728,12 +754,8 @@ test('inserts table with 3x3 grid structure', {tag: '@pages'}, async ({pw, share
     await newPageButton.click();
     await fillCreatePageModal(page, 'Table Grid Test');
 
-    // # Type and select text to show formatting bar
-    await typeInEditor(page, 'Table test');
-    await selectTextInEditor(page);
-
-    // # Click table button
-    await clickFormattingButtonByIcon(page, 'icon-table-large');
+    // # Insert table via slash command
+    await insertViaSlashCommand(page, 'Table');
 
     // * Verify table structure
     const editor = await getEditorAndWait(page);
@@ -766,10 +788,8 @@ test('allows typing in table cells', {tag: '@pages'}, async ({pw, sharedPagesSet
     await newPageButton.click();
     await fillCreatePageModal(page, 'Table Type Test');
 
-    // # Type and select text, then insert table
-    await typeInEditor(page, 'Test');
-    await selectTextInEditor(page);
-    await clickFormattingButtonByIcon(page, 'icon-table-large');
+    // # Insert table via slash command
+    await insertViaSlashCommand(page, 'Table');
 
     const editor = await getEditorAndWait(page);
     const table = editor.locator('table');
@@ -806,10 +826,8 @@ test('navigates table cells with Tab key', {tag: '@pages'}, async ({pw, sharedPa
     await newPageButton.click();
     await fillCreatePageModal(page, 'Table Nav Test');
 
-    // # Insert table
-    await typeInEditor(page, 'Nav test');
-    await selectTextInEditor(page);
-    await clickFormattingButtonByIcon(page, 'icon-table-large');
+    // # Insert table via slash command
+    await insertViaSlashCommand(page, 'Table');
 
     const editor = await getEditorAndWait(page);
     const table = editor.locator('table');
@@ -852,10 +870,8 @@ test('table persists after publish', {tag: '@pages'}, async ({pw, sharedPagesSet
     await newPageButton.click();
     await fillCreatePageModal(page, 'Table Persist Test');
 
-    // # Insert table with content
-    await typeInEditor(page, 'Persist test');
-    await selectTextInEditor(page);
-    await clickFormattingButtonByIcon(page, 'icon-table-large');
+    // # Insert table via slash command
+    await insertViaSlashCommand(page, 'Table');
 
     const editor = await getEditorAndWait(page);
     const table = editor.locator('table');

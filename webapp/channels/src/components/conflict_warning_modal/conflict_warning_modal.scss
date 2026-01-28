@@ -1,114 +1,175 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-.conflict-warning-modal,
-.confirm-overwrite-modal {
+.conflict-warning-modal {
     .modal-content {
+        max-width: 560px;
         border-radius: 8px;
     }
 
     .modal-header {
         padding: 20px 24px;
-        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        border-bottom: none;
 
         .modal-title {
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 600;
         }
     }
 
     .modal-body {
-        padding: 24px;
+        padding: 0 24px 24px;
     }
 
     .modal-footer {
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        justify-content: flex-end;
         padding: 16px 24px;
         border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        gap: 12px;
     }
-}
 
-.conflict-warning-modal {
     .conflict-warning-content {
-        .conflict-warning-primary {
-            display: flex;
-            align-items: flex-start;
-            padding: 16px;
-            border-radius: 4px;
-            margin-bottom: 20px;
-            background-color: rgba(var(--button-bg-rgb), 0.08);
-            gap: 12px;
-
-            i {
-                flex-shrink: 0;
-                margin-top: 2px;
-                color: rgba(var(--button-bg-rgb), 1);
-                font-size: 20px;
-            }
+        .conflict-warning-description {
+            margin: 0 0 20px;
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            font-size: 14px;
+            line-height: 20px;
         }
 
         .conflict-warning-info {
-            padding: 12px;
+            padding: 12px 16px;
             border-radius: 4px;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
             background-color: rgba(var(--center-channel-color-rgb), 0.04);
 
-            strong {
-                font-weight: 600;
+            .conflict-warning-info-row {
+                display: flex;
+                color: rgba(var(--center-channel-color-rgb), 0.72);
+                font-size: 14px;
+                gap: 8px;
+                line-height: 20px;
+
+                &:not(:last-child) {
+                    margin-bottom: 4px;
+                }
+
+                .conflict-warning-info-value {
+                    color: var(--center-channel-color);
+                    font-weight: 600;
+                }
             }
+        }
+
+        .conflict-warning-question {
+            margin: 0 0 12px;
+            color: var(--center-channel-color);
+            font-size: 14px;
+            font-weight: 600;
         }
 
         .conflict-warning-options {
-            margin-bottom: 16px;
-            color: rgba(var(--center-channel-color-rgb), 0.72);
-            font-size: 14px;
-        }
-
-        .conflict-warning-actions {
             display: flex;
+            flex-direction: column;
             gap: 8px;
         }
-    }
-}
 
-.confirm-overwrite-modal {
-    .confirm-overwrite-content {
-        .confirm-overwrite-warning {
+        .conflict-option {
             display: flex;
-            align-items: flex-start;
-            padding: 16px;
-            border: 1px solid rgba(var(--error-text-color-rgb), 0.24);
+            width: 100%;
+            align-items: center;
+            padding: 12px 16px;
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
             border-radius: 4px;
-            margin-bottom: 16px;
-            background-color: rgba(var(--error-text-color-rgb), 0.08);
+            background: transparent;
+            cursor: pointer;
             gap: 12px;
+            text-align: left;
+            transition: border-color 0.15s ease, background-color 0.15s ease;
 
-            i {
+            &:hover {
+                border-color: rgba(var(--center-channel-color-rgb), 0.32);
+            }
+
+            &.selected {
+                border-color: var(--button-bg);
+                background-color: rgba(var(--button-bg-rgb), 0.08);
+            }
+
+            &.danger {
+                .conflict-option-icon i {
+                    color: var(--error-text);
+                }
+
+                &.selected {
+                    border-color: var(--error-text);
+                    background-color: rgba(var(--error-text-color-rgb), 0.08);
+
+                    .conflict-option-check {
+                        background-color: var(--error-text);
+                    }
+                }
+            }
+
+            .conflict-option-icon {
+                display: flex;
+                width: 32px;
+                height: 32px;
                 flex-shrink: 0;
-                margin-top: 2px;
-                color: var(--error-text);
-                font-size: 20px;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                background-color: rgba(var(--center-channel-color-rgb), 0.08);
+
+                i {
+                    color: rgba(var(--center-channel-color-rgb), 0.64);
+                    font-size: 18px;
+                }
             }
-        }
 
-        .confirm-overwrite-info {
-            padding: 12px;
-            border-radius: 4px;
-            margin-top: 16px;
-            background-color: rgba(var(--center-channel-color-rgb), 0.04);
+            &.selected .conflict-option-icon {
+                background-color: rgba(var(--button-bg-rgb), 0.16);
 
-            strong {
-                font-weight: 600;
+                i {
+                    color: var(--button-bg);
+                }
             }
-        }
 
-        p {
-            margin-bottom: 12px;
+            .conflict-option-content {
+                display: flex;
+                min-width: 0;
+                flex: 1;
+                flex-direction: column;
 
-            &:last-of-type {
-                margin-bottom: 0;
+                .conflict-option-title {
+                    color: var(--center-channel-color);
+                    font-size: 14px;
+                    font-weight: 600;
+                    line-height: 20px;
+                }
+
+                .conflict-option-description {
+                    color: rgba(var(--center-channel-color-rgb), 0.64);
+                    font-size: 12px;
+                    line-height: 16px;
+                }
+            }
+
+            .conflict-option-check {
+                display: flex;
+                width: 20px;
+                height: 20px;
+                flex-shrink: 0;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                background-color: var(--button-bg);
+
+                i {
+                    color: var(--button-color);
+                    font-size: 14px;
+                }
             }
         }
     }

@@ -442,6 +442,7 @@ export async function openPageLinkModalViaButton(page: Page): Promise<Locator> {
 export async function createWikiThroughUI(page: Page, wikiName: string) {
     // # Wait for page to fully load after navigation
     await page.waitForLoadState('domcontentloaded');
+    await page.waitForLoadState('networkidle');
 
     // # Click the add content button in the unified channel tabs bar
     // First, check if we need to navigate to channel view
@@ -498,6 +499,10 @@ export async function createWikiThroughUI(page: Page, wikiName: string) {
     await expect(createButton).toBeEnabled({timeout: ELEMENT_TIMEOUT});
     await createButton.click();
 
+    // # Wait for modal to close before expecting navigation
+    const modal = page.locator('#text-input-modal-input');
+    await modal.waitFor({state: 'detached', timeout: ELEMENT_TIMEOUT});
+
     // # Wait for navigation to wiki page (not just network idle)
     await page.waitForURL(/\/wiki\/[^/]+\/[^/]+/, {timeout: HIERARCHY_TIMEOUT});
     await page.waitForLoadState('networkidle');
@@ -535,6 +540,14 @@ export async function createWikiThroughUI(page: Page, wikiName: string) {
 export async function waitForWikiViewLoad(page: Page, timeout = 60000) {
     const wikiView = page.locator('[data-testid="wiki-view"]');
 
+    // First, wait for the channel tab panel to be present (indicates route mounted)
+    const tabPanel = page.locator('.channel-tab-panel');
+    try {
+        await tabPanel.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
+    } catch {
+        // Tab panel not visible, continue to check wiki view anyway
+    }
+
     // Use expect with timeout for better retry behavior during route transitions.
     // This handles cases where the wiki-view briefly unmounts during navigation.
     try {
@@ -542,6 +555,14 @@ export async function waitForWikiViewLoad(page: Page, timeout = 60000) {
     } catch (error) {
         // On failure, gather diagnostic info before throwing
         const url = page.url();
+        const activeTabPanel = await page
+            .locator('.channel-tab-panel')
+            .getAttribute('id')
+            .catch(() => 'unknown');
+        const wikiTabContent = await page
+            .locator('.channel-tab-panel-content--wiki')
+            .count()
+            .catch(() => 0);
         const bodyContent = await page
             .locator('body')
             .innerHTML()
@@ -551,6 +572,8 @@ export async function waitForWikiViewLoad(page: Page, timeout = 60000) {
         throw new Error(
             `Wiki view not visible after ${timeout}ms. ` +
                 `URL: ${url}. ` +
+                `Active tab panel: ${activeTabPanel}. ` +
+                `Wiki tab content count: ${wikiTabContent}. ` +
                 `Body contains error text: ${hasError}. ` +
                 `Original error: ${error instanceof Error ? error.message : String(error)}`,
         );
@@ -2891,16 +2914,6 @@ export async function isFormattingButtonActive(formattingBar: Locator, buttonTit
     const button = formattingBar.locator(`button[title="${buttonTitle}"]`);
     const classes = (await button.getAttribute('class')) || '';
     return classes.includes('active');
-}
-
-/**
- * Verifies that a formatting button exists in the formatting bar
- * @param formattingBar - The formatting bar locator
- * @param iconClass - Icon class to look for (e.g., 'icon-format-bold')
- */
-export async function verifyFormattingButtonExists(formattingBar: Locator, iconClass: string): Promise<void> {
-    const button = formattingBar.locator(`button i.${iconClass}`);
-    await expect(button).toBeVisible();
 }
 
 /**

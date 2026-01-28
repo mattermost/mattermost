@@ -1561,6 +1561,37 @@ func testUpsertPageDraftContent(t *testing.T, rctx request.CTX, ss store.Store) 
 		assert.Equal(t, title2, updated.Title)
 		assert.Greater(t, updated.UpdateAt, created.UpdateAt)
 	})
+
+	t.Run("HasPublishedVersion is false for new page draft", func(t *testing.T) {
+		newPageId := model.NewId()
+		content := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"New page"}]}]}`
+
+		created, err := ss.Draft().UpsertPageDraftContent(newPageId, userId, wikiId, content, "New Page", 0)
+		require.NoError(t, err)
+		assert.False(t, created.HasPublishedVersion, "HasPublishedVersion should be false for draft of new page")
+	})
+
+	t.Run("HasPublishedVersion is true when published page exists", func(t *testing.T) {
+		publishedPageId := model.NewId()
+
+		// First create a published page (UserId = "" means published)
+		publishedContent := &model.PageContent{
+			PageId: publishedPageId,
+			UserId: "", // Empty UserId = published page
+			WikiId: wikiId,
+			Title:  "Published Page",
+		}
+		err := publishedContent.SetDocumentJSON(`{"type":"doc","content":[]}`)
+		require.NoError(t, err)
+		_, err = ss.Draft().CreatePageDraft(publishedContent)
+		require.NoError(t, err)
+
+		// Now create a draft for that published page
+		draftContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Editing published page"}]}]}`
+		draft, err := ss.Draft().UpsertPageDraftContent(publishedPageId, userId, wikiId, draftContent, "Editing Published", 0)
+		require.NoError(t, err)
+		assert.True(t, draft.HasPublishedVersion, "HasPublishedVersion should be true when editing existing published page")
+	})
 }
 
 func testDeletePageDraft(t *testing.T, rctx request.CTX, ss store.Store) {

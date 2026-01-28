@@ -60,7 +60,7 @@ const WikiPageEditor = ({
     wikiId,
     pageParentId,
     showAuthor = false,
-    isExistingPage = false,
+    isExistingPage,
     draftStatus,
     onDraftStatusChange,
     onTranslatedPageCreated,
@@ -182,7 +182,7 @@ const WikiPageEditor = ({
                             pageId={pageId}
                         />
                     )}
-                    {!isExistingPage && (
+                    {isExistingPage === false && (
                         <span
                             className='page-status badge'
                             data-testid='wiki-page-draft-badge'

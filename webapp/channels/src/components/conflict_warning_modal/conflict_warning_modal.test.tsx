@@ -41,68 +41,119 @@ describe('components/ConflictWarningModal', () => {
     const baseProps = {
         currentPage: mockPost,
         onViewChanges: jest.fn(),
-        onCopyContent: jest.fn(),
+        onContinueEditing: jest.fn(),
         onOverwrite: jest.fn(),
-        onCancel: jest.fn(),
+    };
+
+    const initialState = {
+        entities: {
+            users: {
+                profiles: {
+                    user123: {
+                        id: 'user123',
+                        username: 'testuser',
+                    },
+                },
+            },
+        },
     };
 
     beforeEach(() => {
         jest.clearAllMocks();
     });
 
-    test('should render modal when show is true', () => {
-        renderWithContext(<ConflictWarningModal {...baseProps}/>);
+    test('should render modal with correct title', () => {
+        renderWithContext(<ConflictWarningModal {...baseProps}/>, initialState);
 
         expect(screen.getByRole('dialog')).toBeInTheDocument();
-        expect(screen.getByText('Page Was Modified')).toBeInTheDocument();
-        expect(screen.getByText(/Someone else published this page first/)).toBeInTheDocument();
+        expect(screen.getByText('Page conflict')).toBeInTheDocument();
+        expect(screen.getByText(/Your changes are saved, but another team member updated this page/)).toBeInTheDocument();
     });
 
-    test('should display current page title and last modified time', () => {
-        renderWithContext(<ConflictWarningModal {...baseProps}/>);
+    test('should display current page title and modified by info', () => {
+        renderWithContext(<ConflictWarningModal {...baseProps}/>, initialState);
 
-        expect(screen.getByText(/Page: Test Page/)).toBeInTheDocument();
-        expect(screen.getByText(/Last modified:/)).toBeInTheDocument();
+        expect(screen.getByText('Test Page')).toBeInTheDocument();
+        expect(screen.getByText(/Page:/)).toBeInTheDocument();
+        expect(screen.getByText(/Modified:/)).toBeInTheDocument();
     });
 
-    test('should call onViewChanges when View Their Changes button is clicked', () => {
-        renderWithContext(<ConflictWarningModal {...baseProps}/>);
+    test('should show three options', () => {
+        renderWithContext(<ConflictWarningModal {...baseProps}/>, initialState);
 
-        const viewChangesButton = screen.getByText('View Their Changes');
-        fireEvent.click(viewChangesButton);
+        expect(screen.getByText('Review and merge changes')).toBeInTheDocument();
+        expect(screen.getByText('Continue editing my draft')).toBeInTheDocument();
+        expect(screen.getByText('Overwrite published version')).toBeInTheDocument();
+    });
+
+    test('should have Review changes option selected by default', () => {
+        renderWithContext(<ConflictWarningModal {...baseProps}/>, initialState);
+
+        expect(screen.getByText('Review changes')).toBeInTheDocument();
+    });
+
+    test('should call onViewChanges when Review changes is confirmed', () => {
+        renderWithContext(<ConflictWarningModal {...baseProps}/>, initialState);
+
+        const confirmButton = screen.getByText('Review changes');
+        fireEvent.click(confirmButton);
 
         expect(baseProps.onViewChanges).toHaveBeenCalledTimes(1);
     });
 
-    test('should call onCopyContent when Copy My Content button is clicked', () => {
-        renderWithContext(<ConflictWarningModal {...baseProps}/>);
+    test('should change confirm button when Continue editing option is selected', () => {
+        renderWithContext(<ConflictWarningModal {...baseProps}/>, initialState);
 
-        const copyContentButton = screen.getByText('Copy My Content');
-        fireEvent.click(copyContentButton);
+        const continueOption = screen.getByText('Continue editing my draft');
+        fireEvent.click(continueOption);
 
-        expect(baseProps.onCopyContent).toHaveBeenCalledTimes(1);
+        expect(screen.getByText('Continue editing')).toBeInTheDocument();
     });
 
-    test('should call onOverwrite when Overwrite Anyway button is clicked', () => {
-        renderWithContext(<ConflictWarningModal {...baseProps}/>);
+    test('should call onContinueEditing when Continue editing is confirmed', () => {
+        renderWithContext(<ConflictWarningModal {...baseProps}/>, initialState);
 
-        const overwriteButton = screen.getByText('Overwrite Anyway');
-        fireEvent.click(overwriteButton);
+        const continueOption = screen.getByText('Continue editing my draft');
+        fireEvent.click(continueOption);
+
+        const confirmButton = screen.getByText('Continue editing');
+        fireEvent.click(confirmButton);
+
+        expect(baseProps.onContinueEditing).toHaveBeenCalledTimes(1);
+    });
+
+    test('should change confirm button to red when Overwrite option is selected', () => {
+        renderWithContext(<ConflictWarningModal {...baseProps}/>, initialState);
+
+        const overwriteOption = screen.getByText('Overwrite published version');
+        fireEvent.click(overwriteOption);
+
+        expect(screen.getByText('Overwrite page')).toBeInTheDocument();
+    });
+
+    test('should call onOverwrite when Overwrite page is confirmed', () => {
+        renderWithContext(<ConflictWarningModal {...baseProps}/>, initialState);
+
+        const overwriteOption = screen.getByText('Overwrite published version');
+        fireEvent.click(overwriteOption);
+
+        const confirmButton = screen.getByText('Overwrite page');
+        fireEvent.click(confirmButton);
 
         expect(baseProps.onOverwrite).toHaveBeenCalledTimes(1);
     });
 
-    test('should call onCancel when Cancel button is clicked', () => {
-        renderWithContext(<ConflictWarningModal {...baseProps}/>);
+    test('should call onContinueEditing when Back to editing button is clicked', () => {
+        renderWithContext(<ConflictWarningModal {...baseProps}/>, initialState);
 
-        const cancelButton = screen.getByText('Cancel');
+        const cancelButton = screen.getByText('Back to editing');
         fireEvent.click(cancelButton);
 
-        expect(baseProps.onCancel).toHaveBeenCalledTimes(1);
+        expect(baseProps.onContinueEditing).toHaveBeenCalledTimes(1);
     });
 
     test('should render close button in header', () => {
-        renderWithContext(<ConflictWarningModal {...baseProps}/>);
+        renderWithContext(<ConflictWarningModal {...baseProps}/>, initialState);
 
         const closeButton = screen.getByRole('button', {name: /close/i});
         expect(closeButton).toBeInTheDocument();
@@ -117,17 +168,8 @@ describe('components/ConflictWarningModal', () => {
             },
         };
 
-        renderWithContext(<ConflictWarningModal {...propsWithoutTitle}/>);
+        renderWithContext(<ConflictWarningModal {...propsWithoutTitle}/>, initialState);
 
-        expect(screen.getByText(/Page: Untitled/)).toBeInTheDocument();
-    });
-
-    test('should display all action buttons', () => {
-        renderWithContext(<ConflictWarningModal {...baseProps}/>);
-
-        expect(screen.getByText('View Their Changes')).toBeInTheDocument();
-        expect(screen.getByText('Copy My Content')).toBeInTheDocument();
-        expect(screen.getByText('Overwrite Anyway')).toBeInTheDocument();
-        expect(screen.getByText('Cancel')).toBeInTheDocument();
+        expect(screen.getByText('Untitled')).toBeInTheDocument();
     });
 });

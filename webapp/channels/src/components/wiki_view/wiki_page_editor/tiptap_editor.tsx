@@ -90,6 +90,50 @@ import Video from './video_extension';
 import './tiptap_editor.scss';
 import 'components/advanced_text_editor/use_rewrite.scss';
 
+/**
+ * Checks if an image URL is external and needs to be re-hosted.
+ * Returns true for http/https URLs from different origins.
+ * Returns false for data URIs, Mattermost file URLs, relative paths, and same-origin URLs.
+ */
+function isExternalImageUrl(src: string | null | undefined): boolean {
+    if (!src || typeof src !== 'string') {
+        return false;
+    }
+    const trimmed = src.trim();
+    if (!trimmed) {
+        return false;
+    }
+
+    // Data URIs are not external
+    if (trimmed.startsWith('data:')) {
+        return false;
+    }
+
+    // Already hosted by Mattermost
+    if (trimmed.startsWith('/api/v4/files/')) {
+        return false;
+    }
+
+    // Relative paths are not external
+    if (trimmed.startsWith('/') || trimmed.startsWith('../')) {
+        return false;
+    }
+
+    try {
+        const url = new URL(trimmed);
+
+        // Same origin is not external
+        if (url.origin === window.location.origin) {
+            return false;
+        }
+
+        // Only http/https protocols
+        return url.protocol === 'http:' || url.protocol === 'https:';
+    } catch {
+        return false;
+    }
+}
+
 // Custom heading extension that stores ID as an attribute and renders it
 const HeadingWithId = Heading.extend({
     addAttributes() {
@@ -607,6 +651,27 @@ const TipTapEditor = ({
                                             }).
                                             run();
                                     },
+                                    onSelectUrl: (url: string, linkText: string) => {
+                                        const currentEditor = editorRef.current;
+                                        if (!currentEditor) {
+                                            return;
+                                        }
+                                        const {from: selFrom, to: selTo} = currentEditor.state.selection;
+                                        currentEditor.
+                                            chain().
+                                            focus().
+                                            deleteRange({from: selFrom, to: selTo}).
+                                            insertContent({
+                                                type: 'text',
+                                                text: linkText,
+                                                marks: [{type: 'link', attrs: {href: url}}],
+                                            }).
+                                            command(({tr}) => {
+                                                tr.removeStoredMark(currentEditor.schema.marks.link);
+                                                return true;
+                                            }).
+                                            run();
+                                    },
                                     onCancel: () => {},
                                     initialLinkText: text,
                                 },
@@ -657,13 +722,14 @@ const TipTapEditor = ({
                 },
             }),
             HeadingWithId.configure({
-                levels: [1, 2, 3],
+                levels: [1, 2, 3, 4, 5, 6],
             }),
             HeadingIdPlugin,
             ImageResize.configure({
                 HTMLAttributes: {
                     class: 'wiki-image',
                 },
+                allowBase64: true,
             }),
 
             // Standard Image extension for content compatibility with imports
@@ -672,6 +738,7 @@ const TipTapEditor = ({
                 HTMLAttributes: {
                     class: 'wiki-image',
                 },
+                allowBase64: true,
             }),
             Video.configure({
                 HTMLAttributes: {
@@ -727,6 +794,27 @@ const TipTapEditor = ({
                                     return;
                                 }
                                 const url = getWikiUrl(currentTeamRef.current?.name || 'team', channelIdRef.current || '', pageWikiId, pageId);
+                                const {from: selFrom, to: selTo} = currentEditor.state.selection;
+                                currentEditor.
+                                    chain().
+                                    focus().
+                                    deleteRange({from: selFrom, to: selTo}).
+                                    insertContent({
+                                        type: 'text',
+                                        text: linkText,
+                                        marks: [{type: 'link', attrs: {href: url}}],
+                                    }).
+                                    command(({tr}) => {
+                                        tr.removeStoredMark(currentEditor.schema.marks.link);
+                                        return true;
+                                    }).
+                                    run();
+                            },
+                            onSelectUrl: (url: string, linkText: string) => {
+                                const currentEditor = editorRef.current;
+                                if (!currentEditor) {
+                                    return;
+                                }
                                 const {from: selFrom, to: selTo} = currentEditor.state.selection;
                                 currentEditor.
                                     chain().
@@ -808,28 +896,106 @@ const TipTapEditor = ({
                                 props: {
                                     handleDOMEvents: {
                                         paste(view, event) {
-                                            const items = Array.from(event.clipboardData?.items || []);
+                                            const clipboardData = event.clipboardData;
+                                            if (!clipboardData) {
+                                                return false;
+                                            }
+
+                                            const items = Array.from(clipboardData.items || []);
 
                                             // Filter to file items, excluding text/uri-list to prevent auto-downloading URLs
                                             const fileItems = items.filter((item) =>
                                                 item.kind === 'file' && item.type !== 'text/uri-list',
                                             );
 
-                                            if (fileItems.length === 0) {
-                                                return false;
+                                            // Handle file blobs (existing behavior)
+                                            if (fileItems.length > 0) {
+                                                event.preventDefault();
+                                                event.stopPropagation();
+
+                                                fileItems.forEach((item) => {
+                                                    const file = item.getAsFile();
+                                                    if (file) {
+                                                        handleFileUpload(editor, file);
+                                                    }
+                                                });
+
+                                                return true;
                                             }
 
-                                            event.preventDefault();
-                                            event.stopPropagation();
+                                            // Check for HTML with external images (e.g., from Confluence)
+                                            const html = clipboardData.getData('text/html');
+                                            if (html && (/<img[^>]+src=/i).test(html)) {
+                                                // Let TipTap parse HTML first, then re-host external images
+                                                setTimeout(async () => {
+                                                    // Find all external image nodes
+                                                    const externalImages: Array<{src: string; pos: number}> = [];
+                                                    editor.state.doc.descendants((node, pos) => {
+                                                        const isImageNode = node.type.name === 'image' || node.type.name === 'imageResize';
+                                                        if (isImageNode && isExternalImageUrl(node.attrs.src)) {
+                                                            externalImages.push({src: node.attrs.src, pos});
+                                                        }
+                                                    });
 
-                                            fileItems.forEach((item) => {
-                                                const file = item.getAsFile();
-                                                if (file) {
-                                                    handleFileUpload(editor, file);
-                                                }
-                                            });
+                                                    if (externalImages.length === 0) {
+                                                        return;
+                                                    }
 
-                                            return true;
+                                                    // Helper function to re-host a single external image
+                                                    const rehostImage = async (img: {src: string; pos: number}) => {
+                                                        try {
+                                                            // Fetch via Mattermost image proxy (has SSRF protection)
+                                                            const proxyUrl = `/api/v4/image?url=${encodeURIComponent(img.src)}`;
+                                                            const resp = await fetch(proxyUrl, {credentials: 'same-origin'});
+                                                            if (!resp.ok) {
+                                                                return;
+                                                            }
+
+                                                            const blob = await resp.blob();
+
+                                                            // Block SVG (XSS risk)
+                                                            if (blob.type.includes('svg')) {
+                                                                return;
+                                                            }
+
+                                                            // Extract filename from URL
+                                                            const filename = img.src.split('/').pop()?.split('?')[0] || 'image.png';
+                                                            const file = new File([blob], filename, {type: blob.type});
+
+                                                            // Upload to Mattermost
+                                                            uploadMediaForEditor({
+                                                                file,
+                                                                channelId: channelId!,
+                                                                onSuccess: (result) => {
+                                                                    // Find node by original src and replace (node may have moved)
+                                                                    editor.state.doc.descendants((node, pos) => {
+                                                                        if (node.attrs.src === img.src) {
+                                                                            editor.chain().
+                                                                                command(({tr}) => {
+                                                                                    tr.setNodeMarkup(pos, undefined, {
+                                                                                        ...node.attrs,
+                                                                                        src: `/api/v4/files/${result.fileInfo.id}`,
+                                                                                    });
+                                                                                    return true;
+                                                                                }).
+                                                                                run();
+                                                                            return false; // Stop iteration
+                                                                        }
+                                                                        return true;
+                                                                    });
+                                                                },
+                                                            }, dispatch);
+                                                        } catch {
+                                                            // Silently continue - image remains with external URL
+                                                        }
+                                                    };
+
+                                                    // Re-host all external images in parallel
+                                                    Promise.allSettled(externalImages.map(rehostImage));
+                                                }, 100);
+                                            }
+
+                                            return false;
                                         },
                                         drop(view, event) {
                                             const files = Array.from(event.dataTransfer?.files || []);
@@ -1279,7 +1445,7 @@ const TipTapEditor = ({
                         const currentBasename = window.basename || '';
                         const isInternalLink = href.startsWith('/') ||
                             href.startsWith(currentOrigin) ||
-                            href.startsWith(currentBasename);
+                            (currentBasename !== '' && href.startsWith(currentBasename));
 
                         if (isInternalLink) {
                             event.preventDefault();
@@ -1295,6 +1461,11 @@ const TipTapEditor = ({
                             history.push(relativePath);
                             return;
                         }
+
+                        // External link - open in new tab with security attributes
+                        event.preventDefault();
+                        event.stopPropagation();
+                        window.open(href, '_blank', 'noopener,noreferrer');
                     }
                 }
             }
@@ -1415,6 +1586,29 @@ const TipTapEditor = ({
             run();
     }, [editor, currentTeam, channelId]);
 
+    const handleUrlSelect = useCallback((url: string, linkText: string) => {
+        if (!editor) {
+            return;
+        }
+
+        const {from, to} = editor.state.selection;
+
+        editor.
+            chain().
+            focus().
+            deleteRange({from, to}).
+            insertContent({
+                type: 'text',
+                text: linkText,
+                marks: [{type: 'link', attrs: {href: url}}],
+            }).
+            command(({tr}) => {
+                tr.removeStoredMark(editor.schema.marks.link);
+                return true;
+            }).
+            run();
+    }, [editor]);
+
     const openPageLinkModal = useCallback((initialText?: string) => {
         if (!pages) {
             return;
@@ -1426,11 +1620,12 @@ const TipTapEditor = ({
                 pages,
                 wikiId: wikiId || '',
                 onSelect: handlePageSelect,
+                onSelectUrl: handleUrlSelect,
                 onCancel: () => {},
                 initialLinkText: initialText,
             },
         }));
-    }, [dispatch, pages, wikiId, handlePageSelect]);
+    }, [dispatch, pages, wikiId, handlePageSelect, handleUrlSelect]);
 
     const openImageUrlModal = useCallback(() => {
         const currentEditor = editorRef.current;

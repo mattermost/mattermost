@@ -361,15 +361,17 @@ test.skip(
 
         // * With intelligent merging: Both changes should be preserved
         // Check if conflict modal appears (current behavior) or changes merged (expected behavior)
-        const conflictModal = user2Page
-            .locator('.conflict-warning-modal, .modal:has-text("Page Was Modified")')
-            .first();
+        const conflictModal = user2Page.locator('.conflict-warning-modal, .modal:has-text("Page conflict")').first();
         const hasConflict = await conflictModal.isVisible({timeout: WEBSOCKET_WAIT}).catch(() => false);
 
         if (hasConflict) {
             // Current behavior: Simple conflict detection shows conflict modal
             // User 2 should choose to overwrite to save their changes
-            const overwriteButton = conflictModal.getByRole('button', {name: /Overwrite/i});
+            const overwriteOption = conflictModal
+                .locator('button.conflict-option')
+                .filter({hasText: 'Overwrite published version'});
+            await overwriteOption.click();
+            const overwriteButton = conflictModal.getByRole('button', {name: /Overwrite page/i});
             await overwriteButton.click();
             await user2Page.waitForLoadState('networkidle');
         }
@@ -464,11 +466,17 @@ test(
         await page2.waitForTimeout(EDITOR_LOAD_WAIT);
 
         // # Check if conflict modal appeared and handle it
-        const conflictModal2 = page2.locator('.conflict-warning-modal, .modal:has-text("Page Was Modified")').first();
+        const conflictModal2 = page2.locator('.conflict-warning-modal, .modal:has-text("Page conflict")').first();
         const hasConflict = await conflictModal2.isVisible({timeout: WEBSOCKET_WAIT}).catch(() => false);
 
         if (hasConflict) {
-            const overwriteButton2 = conflictModal2.getByRole('button', {name: /Overwrite/i});
+            // Select "Overwrite published version" option
+            const overwriteOption2 = conflictModal2
+                .locator('button.conflict-option')
+                .filter({hasText: 'Overwrite published version'});
+            await overwriteOption2.click();
+            // Confirm by clicking "Overwrite page" button
+            const overwriteButton2 = conflictModal2.getByRole('button', {name: /Overwrite page/i});
             await overwriteButton2.click();
             await page2.waitForLoadState('networkidle');
         }
@@ -489,11 +497,11 @@ test(
         await page1.waitForTimeout(EDITOR_LOAD_WAIT);
 
         // * Verify conflict modal appears for User 1 (first-write-wins prevents automatic overwrite)
-        const conflictModal = page1.locator('.conflict-warning-modal, .modal:has-text("Page Was Modified")').first();
+        const conflictModal = page1.locator('.conflict-warning-modal, .modal:has-text("Page conflict")').first();
         await expect(conflictModal).toBeVisible({timeout: HIERARCHY_TIMEOUT});
 
-        // # User 1: Cancel the conflict to preserve first-write-wins behavior
-        const cancelButton = conflictModal.getByRole('button', {name: /Cancel/i});
+        // # User 1: Click Back to editing to preserve first-write-wins behavior
+        const cancelButton = conflictModal.getByRole('button', {name: /Back to editing/i});
         await cancelButton.click();
         await page1.waitForTimeout(SHORT_WAIT);
 
@@ -591,16 +599,17 @@ test(
         await page2.waitForLoadState('networkidle', {timeout: HIERARCHY_TIMEOUT});
 
         // # Handle conflict modal if it appears for User 2
-        const conflictModal2 = page2.locator('.conflict-warning-modal, .modal:has-text("Page Was Modified")').first();
+        const conflictModal2 = page2.locator('.conflict-warning-modal, .modal:has-text("Page conflict")').first();
         const hasConflict = await conflictModal2.isVisible({timeout: WEBSOCKET_WAIT}).catch(() => false);
         if (hasConflict) {
-            const overwriteButton2 = conflictModal2.getByRole('button', {name: /Overwrite/i});
+            // Select "Overwrite published version" option
+            const overwriteOption2 = conflictModal2
+                .locator('button.conflict-option')
+                .filter({hasText: 'Overwrite published version'});
+            await overwriteOption2.click();
+            // Confirm by clicking "Overwrite page" button
+            const overwriteButton2 = conflictModal2.getByRole('button', {name: /Overwrite page/i});
             await overwriteButton2.click();
-            const confirmModal2 = page2.locator('.confirm-overwrite-modal').first();
-            if (await confirmModal2.isVisible({timeout: WEBSOCKET_WAIT}).catch(() => false)) {
-                const confirmButton2 = confirmModal2.getByRole('button', {name: /Yes|Confirm|Overwrite/i});
-                await confirmButton2.click();
-            }
             await page2.waitForLoadState('networkidle');
         }
 
@@ -620,23 +629,19 @@ test(
         const conflictModal = page1.locator('[data-testid="conflict-warning-modal"]').first();
         await expect(conflictModal).toBeVisible({timeout: HIERARCHY_TIMEOUT});
 
-        // # User 1: Click Overwrite button (shows confirmation modal)
-        const overwriteButton = conflictModal.getByRole('button', {name: /Overwrite/i});
-        await overwriteButton.click();
+        // # User 1: Select "Overwrite published version" option
+        const overwriteOption = conflictModal
+            .locator('button.conflict-option')
+            .filter({hasText: 'Overwrite published version'});
+        await overwriteOption.click();
         await page1.waitForTimeout(SHORT_WAIT);
 
-        // * Verify confirmation modal appears
-        const confirmModal = page1.locator('.confirm-overwrite-modal').first();
-        await expect(confirmModal).toBeVisible({timeout: ELEMENT_TIMEOUT});
-        await expect(confirmModal).toContainText(/permanently replace|overwrite/i);
+        // * Verify "Overwrite page" button is now visible (red button)
+        const overwriteButton = conflictModal.getByRole('button', {name: /Overwrite page/i});
+        await expect(overwriteButton).toBeVisible();
 
-        // * Verify confirmation modal has action buttons
-        await expect(confirmModal.getByRole('button', {name: /Go Back|Cancel/i})).toBeVisible();
-        await expect(confirmModal.getByRole('button', {name: /Yes|Confirm|Overwrite/i})).toBeVisible();
-
-        // # User 1: Confirm overwrite
-        const confirmButton = confirmModal.getByRole('button', {name: /Yes|Confirm|Overwrite/i});
-        await confirmButton.click();
+        // # User 1: Click Overwrite page to confirm
+        await overwriteButton.click();
 
         // * Verify User 1's content now replaces User 2's (escape hatch worked)
         await page1.waitForLoadState('networkidle');
@@ -740,9 +745,7 @@ test.skip(
         await user2Page.waitForTimeout(EDITOR_LOAD_WAIT);
 
         // * Verify conflict modal appears
-        const conflictModal = user2Page
-            .locator('.conflict-warning-modal, .modal:has-text("Page Was Modified")')
-            .first();
+        const conflictModal = user2Page.locator('.conflict-warning-modal, .modal:has-text("Page conflict")').first();
         await pw.waitUntil(
             async () => {
                 return await conflictModal.isVisible();
@@ -774,13 +777,13 @@ test.skip(
 );
 
 /**
- * @objective Verify Copy Content button copies user's changes to clipboard during conflict
+ * @objective Verify Continue editing option keeps user in edit mode with their draft
  *
  * @precondition
  * Pages/Wiki feature is enabled on the server
  */
 test(
-    'copies content to clipboard when Copy Content clicked during conflict',
+    'continues editing draft when Continue editing option selected during conflict',
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
         const {team, user: user1, adminClient} = sharedPagesSetup;
@@ -792,7 +795,7 @@ test(
         await channelsPage1.toBeVisible();
 
         const wiki = await createWikiThroughUI(page1, `Test Wiki ${await pw.random.id()}`);
-        const pageTitle = 'Copy Content Test';
+        const pageTitle = 'Continue Editing Test';
         const originalContent = 'Original content';
         const createdPage = await createPageThroughUI(page1, pageTitle, originalContent);
 
@@ -832,10 +835,13 @@ test(
         await page1.waitForTimeout(AUTOSAVE_WAIT);
 
         // # User 2 makes different changes
-        const user2Content = 'Original content - User 2 unique changes';
         const editor2 = await getEditorAndWait(user2Page);
         await editor2.click();
-        await editor2.fill(user2Content);
+        // Use clear() and pressSequentially to ensure TipTap detects changes
+        await editor2.clear();
+        await editor2.pressSequentially('User 2 unique changes');
+        // Wait for autosave to complete
+        await user2Page.waitForTimeout(AUTOSAVE_WAIT);
 
         const publishButton2 = user2Page.locator('[data-testid="wiki-page-publish-button"]').first();
         await publishButton2.click();
@@ -843,9 +849,7 @@ test(
         await user2Page.waitForTimeout(EDITOR_LOAD_WAIT);
 
         // * Verify conflict modal appears
-        const conflictModal = user2Page
-            .locator('.conflict-warning-modal, .modal:has-text("Page Was Modified")')
-            .first();
+        const conflictModal = user2Page.locator('.conflict-warning-modal, .modal:has-text("Page conflict")').first();
         await pw.waitUntil(
             async () => {
                 return await conflictModal.isVisible();
@@ -853,121 +857,136 @@ test(
             {timeout: HIERARCHY_TIMEOUT},
         );
 
-        // # Grant clipboard permissions
-        await user2Page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
-
-        // # Click Copy Content button
-        const copyButton = conflictModal.getByRole('button', {name: /Copy.*Content/i});
-        await copyButton.click();
+        // # Select "Continue editing my draft" option
+        const continueOption = conflictModal
+            .locator('button.conflict-option')
+            .filter({hasText: 'Continue editing my draft'});
+        await continueOption.click();
         await user2Page.waitForTimeout(SHORT_WAIT);
 
-        // * Verify content was copied to clipboard
-        const clipboardText = await user2Page.evaluate(() => navigator.clipboard.readText());
-        expect(clipboardText).toContain('User 2 unique changes');
+        // # Click "Continue editing" confirm button (exact match to avoid matching the option)
+        const continueButton = conflictModal.getByRole('button', {name: 'Continue editing', exact: true});
+        await continueButton.click();
+        await user2Page.waitForTimeout(SHORT_WAIT);
+
+        // * Verify modal closes
+        await expect(conflictModal).not.toBeVisible();
+
+        // * Verify still in edit mode with changes preserved
+        const publishButtonStillVisible = user2Page.locator('[data-testid="wiki-page-publish-button"]').first();
+        await expect(publishButtonStillVisible).toBeVisible();
+
+        // * Verify User 2's changes are still in editor
+        const editorAfter = await getEditorAndWait(user2Page);
+        await expect(editorAfter).toContainText('User 2 unique changes');
 
         await user2Page.close();
     },
 );
 
 /**
- * @objective Verify Cancel button closes conflict modal and keeps user in edit mode
+ * @objective Verify Back to editing button closes conflict modal and keeps user in edit mode
  *
  * @precondition
  * Pages/Wiki feature is enabled on the server
  */
-test('stays in edit mode when Cancel clicked in conflict modal', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user: user1, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+test(
+    'stays in edit mode when Back to editing clicked in conflict modal',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user: user1, adminClient} = sharedPagesSetup;
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    // # User 1 creates wiki and page
-    const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
-    await channelsPage1.goto(team.name, channel.name);
-    await channelsPage1.toBeVisible();
+        // # User 1 creates wiki and page
+        const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
+        await channelsPage1.goto(team.name, channel.name);
+        await channelsPage1.toBeVisible();
 
-    const wiki = await createWikiThroughUI(page1, `Test Wiki ${await pw.random.id()}`);
-    const pageTitle = 'Cancel Conflict Test';
-    const originalContent = 'Original content to be edited';
-    const createdPage = await createPageThroughUI(page1, pageTitle, originalContent);
+        const wiki = await createWikiThroughUI(page1, `Test Wiki ${await pw.random.id()}`);
+        const pageTitle = 'Back to Editing Test';
+        const originalContent = 'Original content to be edited';
+        const createdPage = await createPageThroughUI(page1, pageTitle, originalContent);
 
-    // # User 1 enters edit mode
-    const hierarchyPanel = getHierarchyPanel(page1);
-    const pageNode = hierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle});
-    await pageNode.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
-    await pageNode.click();
-    await page1.waitForLoadState('networkidle');
-    await page1.waitForTimeout(EDITOR_LOAD_WAIT);
-    await enterEditMode(page1);
+        // # User 1 enters edit mode
+        const hierarchyPanel = getHierarchyPanel(page1);
+        const pageNode = hierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle});
+        await pageNode.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+        await pageNode.click();
+        await page1.waitForLoadState('networkidle');
+        await page1.waitForTimeout(EDITOR_LOAD_WAIT);
+        await enterEditMode(page1);
 
-    // # Create user2 and add to channel
-    const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
+        // # Create user2 and add to channel
+        const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
 
-    const {page: user2Page} = await pw.testBrowser.login(user2);
+        const {page: user2Page} = await pw.testBrowser.login(user2);
 
-    // # User 2 navigates to page and enters edit mode
-    const wikiPageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, createdPage.id);
-    await user2Page.goto(wikiPageUrl);
-    await user2Page.waitForLoadState('networkidle');
+        // # User 2 navigates to page and enters edit mode
+        const wikiPageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, createdPage.id);
+        await user2Page.goto(wikiPageUrl);
+        await user2Page.waitForLoadState('networkidle');
 
-    const user2HierarchyPanel = getHierarchyPanel(user2Page);
-    await user2HierarchyPanel.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
+        const user2HierarchyPanel = getHierarchyPanel(user2Page);
+        await user2HierarchyPanel.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
 
-    const pageNode2 = user2HierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle});
-    await pageNode2.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
-    await pageNode2.click();
-    await user2Page.waitForTimeout(EDITOR_LOAD_WAIT);
-    await enterEditMode(user2Page);
+        const pageNode2 = user2HierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle});
+        await pageNode2.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+        await pageNode2.click();
+        await user2Page.waitForTimeout(EDITOR_LOAD_WAIT);
+        await enterEditMode(user2Page);
 
-    // # User 1 makes changes and publishes
-    const editor1 = await getEditorAndWait(page1);
-    await editor1.click();
-    await editor1.pressSequentially(' - User 1 edit');
-    await publishPage(page1);
-    await page1.waitForTimeout(AUTOSAVE_WAIT);
+        // # User 1 makes changes and publishes
+        const editor1 = await getEditorAndWait(page1);
+        await editor1.click();
+        await editor1.pressSequentially(' - User 1 edit');
+        await publishPage(page1);
+        await page1.waitForTimeout(AUTOSAVE_WAIT);
 
-    // # User 2 makes different changes
-    const user2Changes = 'User 2 changes to preserve';
-    const editor2 = await getEditorAndWait(user2Page);
-    await editor2.click();
-    // Use pressSequentially instead of fill() to ensure TipTap detects the change
-    await editor2.clear();
-    await editor2.pressSequentially(user2Changes);
-    // Wait for autosave to complete (500ms debounce + buffer)
-    await user2Page.waitForTimeout(AUTOSAVE_WAIT);
+        // # User 2 makes different changes
+        const user2Changes = 'User 2 changes to preserve';
+        const editor2 = await getEditorAndWait(user2Page);
+        await editor2.click();
+        // Use pressSequentially instead of fill() to ensure TipTap detects the change
+        await editor2.clear();
+        await editor2.pressSequentially(user2Changes);
+        // Wait for autosave to complete (500ms debounce + buffer)
+        await user2Page.waitForTimeout(AUTOSAVE_WAIT);
 
-    const publishButton2 = user2Page.locator('[data-testid="wiki-page-publish-button"]').first();
-    await publishButton2.click();
-    await user2Page.waitForLoadState('networkidle');
-    await user2Page.waitForTimeout(EDITOR_LOAD_WAIT);
+        const publishButton2 = user2Page.locator('[data-testid="wiki-page-publish-button"]').first();
+        await publishButton2.click();
+        await user2Page.waitForLoadState('networkidle');
+        await user2Page.waitForTimeout(EDITOR_LOAD_WAIT);
 
-    // * Verify conflict modal appears
-    const conflictModal = user2Page.locator('.conflict-warning-modal, .modal:has-text("Page Was Modified")').first();
-    await pw.waitUntil(
-        async () => {
-            return await conflictModal.isVisible();
-        },
-        {timeout: HIERARCHY_TIMEOUT},
-    );
+        // * Verify conflict modal appears
+        const conflictModal = user2Page.locator('.conflict-warning-modal, .modal:has-text("Page conflict")').first();
+        await pw.waitUntil(
+            async () => {
+                return await conflictModal.isVisible();
+            },
+            {timeout: HIERARCHY_TIMEOUT},
+        );
 
-    // # Click Cancel button
-    const cancelButton = conflictModal.getByRole('button', {name: /Cancel/i});
-    await cancelButton.click();
-    await user2Page.waitForTimeout(SHORT_WAIT);
+        // # Click "Back to editing" button
+        const backButton = conflictModal.getByRole('button', {name: /Back to editing/i});
+        await backButton.click();
+        await user2Page.waitForTimeout(SHORT_WAIT);
 
-    // * Verify modal closes
-    await expect(conflictModal).not.toBeVisible();
+        // * Verify modal closes
+        await expect(conflictModal).not.toBeVisible();
 
-    // * Verify still in edit mode with changes preserved
-    const publishButtonStillVisible = user2Page.locator('[data-testid="wiki-page-publish-button"]').first();
-    await expect(publishButtonStillVisible).toBeVisible();
+        // * Verify still in edit mode with changes preserved
+        const publishButtonStillVisible = user2Page.locator('[data-testid="wiki-page-publish-button"]').first();
+        await expect(publishButtonStillVisible).toBeVisible();
 
-    // * Verify User 2's changes are still in editor
-    const editorAfter = await getEditorAndWait(user2Page);
-    await expect(editorAfter).toContainText('User 2 changes to preserve');
+        // * Verify User 2's changes are still in editor
+        const editorAfter = await getEditorAndWait(user2Page);
+        await expect(editorAfter).toContainText('User 2 changes to preserve');
 
-    // # User can continue editing
-    await editorAfter.click();
-    await editorAfter.pressSequentially(' - additional changes');
-    await expect(editorAfter).toContainText('additional changes');
+        // # User can continue editing
+        await editorAfter.click();
+        await editorAfter.pressSequentially(' - additional changes');
+        await expect(editorAfter).toContainText('additional changes');
 
-    await user2Page.close();
-});
+        await user2Page.close();
+    },
+);
