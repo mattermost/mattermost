@@ -130,7 +130,7 @@ async function checkUrl(url, retries = 2) {
     }
 }
 
-async function checkUrls(urls, concurrency = 5) {
+async function checkUrls(urls, concurrency = 5, silentProgress = false) {
     const results = [];
     const urlList = Array.from(urls.keys());
 
@@ -139,10 +139,14 @@ async function checkUrls(urls, concurrency = 5) {
         const batchResults = await Promise.all(batch.map((url) => checkUrl(url)));
         results.push(...batchResults);
 
-        const completed = Math.min(i + concurrency, urlList.length);
-        process.stdout.write(`\rChecking URLs: ${completed}/${urlList.length}`);
+        if (!silentProgress) {
+            const completed = Math.min(i + concurrency, urlList.length);
+            process.stderr.write(`\rChecking URLs: ${completed}/${urlList.length}`);
+        }
     }
-    console.log();
+    if (!silentProgress) {
+        process.stderr.write('\n');
+    }
 
     return results;
 }
@@ -241,7 +245,7 @@ async function main() {
         return 0;
     }
 
-    const results = await checkUrls(urlMap);
+    const results = await checkUrls(urlMap, 5, markdownOutput);
 
     if (markdownOutput) {
         console.log(generateMarkdownSummary(results, urlMap));

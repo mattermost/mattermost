@@ -59,6 +59,7 @@ jobs:
         uses: ./.github/actions/webapp-setup
       - name: ci/check-external-links
         run: |
+          set -o pipefail
           npm run check-external-links -- --markdown | tee -a $GITHUB_STEP_SUMMARY
 
   check-types:
