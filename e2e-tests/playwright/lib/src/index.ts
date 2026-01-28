@@ -68,3 +68,21 @@ export {
 } from './ui/components';
 
 export {TestArgs, ScreenshotOptions} from './types';
+
+// Testcontainers integration for isolated test environments
+export {
+    startTestEnvironment,
+    stopTestEnvironment,
+    getTestEnvironment,
+    getResolvedConfig,
+    getMmctl,
+    getServerUrl,
+    getConnectionInfo,
+    MattermostTestEnvironment,
+} from './testcontainers';
+export type {
+    EnvironmentConfig,
+    DependencyConnectionInfo,
+    MmctlClient,
+    ResolvedTestcontainersConfig,
+} from './testcontainers';

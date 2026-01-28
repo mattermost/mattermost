@@ -44,6 +44,7 @@
   "dependencies": {
     "@axe-core/playwright": "4.11.0",
     "@mattermost/client": "file:../../../webapp/platform/client",
+    "@mattermost/testcontainers": "file:../../testcontainers",
     "@mattermost/types": "file:../../../webapp/platform/types",
     "@percy/cli": "1.31.8",
     "@percy/playwright": "1.0.10",

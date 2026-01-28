@@ -1,0 +1,86 @@
+{
+    "name": "@mattermost/testcontainers",
+    "version": "0.1.0",
+    "description": "Testcontainers integration for Mattermost E2E testing with dynamic port allocation and isolated environments",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/mattermost/mattermost.git"
+    },
+    "author": "mattermost",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/mattermost/mattermost/issues"
+    },
+    "homepage": "https://github.com/mattermost/mattermost/tree/master/e2e-tests/testcontainers#readme",
+    "type": "commonjs",
+    "files": [
+        "dist"
+    ],
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "bin": {
+        "mm-tc": "./dist/cli.js"
+    },
+    "exports": {
+        ".": {
+            "import": "./dist/index.js",
+            "require": "./dist/index.js"
+        }
+    },
+    "keywords": [
+        "mattermost",
+        "e2e-test",
+        "testcontainers",
+        "docker",
+        "test-automation"
+    ],
+    "scripts": {
+        "postinstall": "npm run build",
+        "build": "rollup -c --bundleConfigAsCjs",
+        "postbuild": "chmod +x dist/cli.js",
+        "build:watch": "npm run build -- --watch",
+        "tsc": "tsc -b",
+        "lint": "eslint .",
+        "prettier": "prettier . --check",
+        "prettier:fix": "prettier --write .",
+        "check": "npm run lint && npm run prettier && npm run tsc",
+        "clean": "rm -rf dist node_modules *.tsbuildinfo",
+        "deps:start": "node dist/cli.js deps --keep-alive",
+        "deps:stop": "node dist/cli.js stop",
+        "start-env": "node dist/cli.js start --keep-alive",
+        "stop-env": "node dist/cli.js stop",
+        "prepublishOnly": "npm run check && npm run build",
+        "publish:dry-run": "npm publish --dry-run",
+        "publish:prerelease": "npm publish --tag next",
+        "publish:release": "npm publish"
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "dependencies": {
+        "@testcontainers/postgresql": "11.11.0",
+        "chalk": "5.6.2",
+        "commander": "14.0.2",
+        "dotenv": "17.2.3",
+        "jsonc-parser": "3.3.1",
+        "testcontainers": "11.11.0"
+    },
+    "devDependencies": {
+        "@eslint/eslintrc": "3.3.3",
+        "@eslint/js": "9.39.2",
+        "@rollup/plugin-commonjs": "29.0.0",
+        "@rollup/plugin-node-resolve": "16.0.3",
+        "@rollup/plugin-typescript": "12.3.0",
+        "@types/node": "25.0.10",
+        "@typescript-eslint/eslint-plugin": "8.54.0",
+        "@typescript-eslint/parser": "8.54.0",
+        "eslint": "9.39.2",
+        "eslint-import-resolver-typescript": "4.4.4",
+        "eslint-plugin-header": "3.1.1",
+        "eslint-plugin-import": "2.32.0",
+        "prettier": "3.8.1",
+        "rollup": "4.57.0",
+        "tslib": "2.8.1",
+        "typescript": "5.9.3"
+    }
+}

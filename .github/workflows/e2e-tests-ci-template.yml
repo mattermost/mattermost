@@ -339,7 +339,8 @@ jobs:
           node-version-file: ".nvmrc"
           cache: npm
           cache-dependency-path: ${{ needs.generate-build-variables.outputs.node-cache-dependency-path }}
-      - name: ci/e2e-test
+      - name: ci/e2e-test-cypress
+        if: inputs.TEST == 'cypress'
         run: |
           make cloud-init
           if [ -n "$ROLLING_RELEASE_SERVER_IMAGE" ]; then
@@ -365,6 +366,32 @@ jobs:
           fi
           make
           make cloud-teardown
+      - name: ci/e2e-test-playwright
+        if: inputs.TEST == 'playwright'
+        working-directory: e2e-tests/playwright
+        env:
+          PW_TC: "true"
+          TC_SERVER_IMAGE: "${{ inputs.SERVER_IMAGE }}"
+          PW_HEADLESS: "true"
+          PW_WORKERS: "1"
+          PW_SNAPSHOT_ENABLE: "true"
+        run: |
+          # Set TC_DEPENDENCIES (postgres and inbucket are always included by testcontainers)
+          if [ -n "${{ inputs.ENABLED_DOCKER_SERVICES }}" ]; then
+            export TC_DEPENDENCIES="${{ inputs.ENABLED_DOCKER_SERVICES }}"
+          fi
+
+          # Build webapp dependencies (required for playwright-lib)
+          cd ../../webapp && make node_modules && cd ../e2e-tests/playwright
+
+          # Install dependencies
+          npm ci
+
+          # Run Playwright tests with testcontainers
+          npm run test:ci -- ${{ inputs.TEST_FILTER }}
+
+          # Generate summary.json from results
+          jq '{passed: .stats.expected, failed: .stats.unexpected, failed_expected: (.stats.skipped + .stats.flaky)}' results/reporter/results.json > results/summary.json
       - name: ci/e2e-test-store-results
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
