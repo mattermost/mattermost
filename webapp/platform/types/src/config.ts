@@ -755,6 +755,7 @@ export type LocalizationSettings = {
 export type AutoTranslationSettings = {
     Enable: boolean;
     TargetLanguages: string[];
+    Workers: number;
     Provider: '' | 'libretranslate' | 'agents';
     LibreTranslate: {
         URL: string;
