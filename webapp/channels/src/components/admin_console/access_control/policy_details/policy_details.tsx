@@ -606,7 +606,6 @@ function PolicyDetails({
                         <div
                             key='no-private-channels'
                             className='no-channel-message'
-                            tabIndex={0}
                         >
                             <p className='primary-message'>
                                 <FormattedMessage
@@ -616,6 +615,7 @@ function PolicyDetails({
                             </p>
                         </div>
                     )}
+                    excludeGroupConstrained={true}
                 />
             )}
 

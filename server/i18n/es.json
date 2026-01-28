@@ -8600,10 +8600,6 @@
     "translation": "Servicio sólo disponible en Mattermost Enterprise edition"
   },
   {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "El servidor CWS falló al suscribirse al boletín informativo."
-  },
-  {
     "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
     "translation": "Sólo las publicaciones raíz tienen permitidas tener prioridad."
   },
