@@ -63,7 +63,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            server/dist/mattermost-team-${{ steps.version.outputs.version }}-linux-amd64.tar.gz
+            server/dist/mattermost-team-*.tar.gz
+            server/dist/mattermost-*.tar.gz
           draft: false
           prerelease: false
           generate_release_notes: true
