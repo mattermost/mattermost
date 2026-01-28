@@ -189,7 +189,7 @@ func (r infiniteReader) Read(p []byte) (n int, err error) {
 // properly limits response sizes to prevent OOM attacks
 func TestPostActionResponseSizeLimit(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	channel := th.BasicChannel
 	th.App.UpdateConfig(func(cfg *model.Config) {
