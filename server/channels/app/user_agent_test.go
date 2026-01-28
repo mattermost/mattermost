@@ -44,6 +44,11 @@ var testUserAgents = []testUserAgent{
 	{"iOS App (iPad 11 Pro)", "Mattermost Mobile/2.21.0+567 (iPadOS; 17.6.1; iPad Pro (11-inch) (1st generation))"},
 	{"Safari (iPad 11 Pro, default)", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Safari/605.1.15"},
 	{"Safari (iPad 11 Pro, requesting mobile site)", "Mozilla/5.0 (iPad; CPU OS 17_6_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Mobile/15E148 Safari/604.1"},
+	// MM-67274: User agents with empty version strings should not panic
+	{"Mobile App (no version)", "Mattermost Mobile/"},
+	{"Desktop App (no version)", "Mattermost/"},
+	{"mmctl (no version)", "mmctl/"},
+	{"Franz (no version)", "Franz/"},
 }
 
 func TestGetPlatformName(t *testing.T) {
@@ -76,6 +81,11 @@ func TestGetPlatformName(t *testing.T) {
 		"iPad",
 		"Macintosh", // By default, the iPad pretends to be a desktop Mac when opening web pages
 		"iPad",
+		// MM-67274: empty version strings
+		"Linux",   // Mattermost Mobile/ detected, no iPhone/iPad -> Linux
+		"Unknown", // uasurfer can't parse platform
+		"Unknown", // mmctl/ with no other info
+		"Unknown", // uasurfer can't parse platform
 	}
 
 	for i, userAgent := range testUserAgents {
@@ -118,6 +128,11 @@ func TestGetOSName(t *testing.T) {
 		"iOS",
 		"Mac OS", // By default, the iPad pretends to be a desktop Mac when opening web pages
 		"iOS",
+		// MM-67274: empty version strings
+		"Android", // Mattermost Mobile/ detected, no iPhone/iPad -> Android
+		"",        // uasurfer can't parse OS
+		"",        // mmctl/ with no other info
+		"",        // uasurfer can't parse OS
 	}
 
 	for i, userAgent := range testUserAgents {
@@ -160,6 +175,11 @@ func TestGetBrowserName(t *testing.T) {
 		"Mobile App",
 		"Safari",
 		"Safari",
+		// MM-67274: empty version strings
+		"Mobile App",  // Mattermost Mobile detected
+		"Desktop App", // Mattermost detected (not Mobile)
+		"mmctl",       // mmctl detected
+		"Unknown",     // Franz detected but no Electron
 	}
 
 	for i, userAgent := range testUserAgents {
@@ -202,6 +222,11 @@ func TestGetBrowserVersion(t *testing.T) {
 		"2.21.0+567",
 		"17.6",
 		"17.6",
+		// MM-67274: empty version strings fall back to UA parsing
+		"0.0", // uasurfer can't parse a version
+		"0.0", // uasurfer can't parse a version
+		"0.0", // uasurfer can't parse a version
+		"0.0", // uasurfer can't parse a version
 	}
 
 	for i, userAgent := range testUserAgents {
