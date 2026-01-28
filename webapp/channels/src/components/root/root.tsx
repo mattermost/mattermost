@@ -78,6 +78,7 @@ const AppBar = makeAsyncComponent('AppBar', lazy(() => import('components/app_ba
 const ComponentLibrary = makeAsyncComponent('ComponentLibrary', lazy(() => import('components/component_library')));
 const PopoutController = makeAsyncComponent('PopoutController', lazy(() => import('components/popout_controller')));
 const Help = makeAsyncComponent('Help', lazy(() => import('components/help')));
+const NewSearch = makeAsyncComponent('NewSearch', lazy(() => import('components/new_search/new_search')));
 
 const Pluggable = makeAsyncPluggableComponent();
 
@@ -425,6 +426,11 @@ export default class Root extends React.PureComponent<Props, State> {
                         <AnnouncementBarController/>
                         <SystemNotice/>
                         {!this.props.isProductSidebarEnabled && <GlobalHeader/>}
+                        {this.props.isProductSidebarEnabled && (
+                            <div style={{position: 'absolute', left: '-9999px', top: '-9999px', visibility: 'hidden'}}>
+                                <NewSearch/>
+                            </div>
+                        )}
                         <CloudEffects/>
                         <ProductSidebar/>
                         <TeamSidebar/>

@@ -42,8 +42,10 @@
         height: 100%;
         transform: translate3d(-56px, 0, 0);
         transition: transform 0.35s ease;
+        display: none; // Hidden by default on mobile (overrides _structure.scss)
 
         &.move--right {
+            display: flex; // Show when drawer opens
             transform: translate3d(0, 0, 0);
         }
     }
