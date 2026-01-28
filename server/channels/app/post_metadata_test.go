@@ -3226,7 +3226,7 @@ func TestPreparePostForClient_BurnOnReadSenderExpireAt(t *testing.T) {
 	require.NoError(t, err)
 
 	// Update temporary post with sender's expireAt (simulating all recipients revealed)
-	tmpPost, err := th.App.Srv().Store().TemporaryPost().Get(th.Context, post.Id)
+	tmpPost, err := th.App.Srv().Store().TemporaryPost().Get(th.Context, post.Id, true)
 	require.NoError(t, err)
 	tmpPost.ExpireAt = receipt.ExpireAt
 	_, err = th.App.Srv().Store().TemporaryPost().Save(th.Context, tmpPost)

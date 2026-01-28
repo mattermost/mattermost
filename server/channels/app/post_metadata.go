@@ -217,10 +217,8 @@ func (a *App) PreparePostForClient(rctx request.CTX, originalPost *model.Post, o
 		// This ensures the countdown timer persists after page reload.
 		if post.UserId == rctx.Session().UserId && post.Metadata.ExpireAt == 0 {
 			if unreadCount, err := a.Srv().Store().ReadReceipt().GetUnreadCountForPost(rctx, post); err == nil && unreadCount == 0 {
-				// Force cache invalidation before fetching to ensure fresh data in clustered environments
-				a.Srv().Store().TemporaryPost().InvalidateTemporaryPost(post.Id)
-
-				if tmpPost, err := a.Srv().Store().TemporaryPost().Get(rctx, post.Id); err == nil {
+				// Bypass cache to ensure fresh data from DB in clustered environments
+				if tmpPost, err := a.Srv().Store().TemporaryPost().Get(rctx, post.Id, false); err == nil {
 					post.Metadata.ExpireAt = tmpPost.ExpireAt
 				}
 			}
