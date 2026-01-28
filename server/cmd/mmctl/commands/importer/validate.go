@@ -740,7 +740,7 @@ func (v *Validator) validateBot(info ImportFileInfo, line imports.LineImportData
 		}
 
 		if data.Username != nil {
-			// e-mails are for bots are converted to the the username@localhost format
+			// e-mails are for bots are converted to the username@localhost format
 			// see model.BotFromUser
 			botMail := model.NormalizeEmail(fmt.Sprintf("%s@localhost", *data.Username))
 			if ive := v.checkDuplicateUser(info, *data.Username, botMail); ive != nil {

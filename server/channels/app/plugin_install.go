@@ -171,7 +171,7 @@ func (ch *Channels) removePluginFromClusterMessage(pluginID string) {
 	}
 }
 
-// InstallPlugin unpacks and installs a plugin but does not enable or activate it unless the the
+// InstallPlugin unpacks and installs a plugin but does not enable or activate it unless the
 // plugin was already enabled.
 func (a *App) InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
 	installationStrategy := installPluginLocallyOnlyIfNew
