@@ -118,7 +118,7 @@ export default function RewriteMenu({
             placeholderText = prompt;
         } else if (draftMessage.trim()) {
             placeholderText = formatMessage({
-                id: 'texteditor.rewrite.rewriting',
+                id: 'texteditor.rewrite.placeholder.rewriting',
                 defaultMessage: 'Rewriting...',
             });
         }

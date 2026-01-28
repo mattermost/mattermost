@@ -986,6 +986,26 @@ func (_m *Store) ReadReceipt() store.ReadReceiptStore {
 	return r0
 }
 
+// Recap provides a mock function with no fields
+func (_m *Store) Recap() store.RecapStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for Recap")
+	}
+
+	var r0 store.RecapStore
+	if rf, ok := ret.Get(0).(func() store.RecapStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.RecapStore)
+		}
+	}
+
+	return r0
+}
+
 // RecycleDBConnections provides a mock function with given fields: d
 func (_m *Store) RecycleDBConnections(d time.Duration) {
 	_m.Called(d)
