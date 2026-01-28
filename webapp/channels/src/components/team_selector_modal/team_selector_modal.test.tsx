@@ -12,7 +12,6 @@ import type {Props} from './team_selector_modal';
 
 describe('components/TeamSelectorModal', () => {
     const defaultProps: Props = {
-        currentSchemeId: 'xxx',
         alreadySelected: ['id1'],
         intl: {} as IntlShape,
         searchTerm: '',

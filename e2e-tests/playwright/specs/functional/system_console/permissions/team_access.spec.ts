@@ -173,5 +173,12 @@ test('MM-63378 System Manager without team access permissions cannot view team d
     await expect(teamStatsHeading).toBeVisible();
 
     // Verify the user has no API access to the otherTeam.
-    await expect(systemManagerClient.getTeam(otherTeam.id)).rejects.toThrow();
+    let apiError: Error | null = null;
+    try {
+        await systemManagerClient.getTeam(otherTeam.id);
+    } catch (error) {
+        apiError = error as Error;
+    }
+    expect(apiError).not.toBeNull();
+    expect(apiError?.message).toContain('You do not have the appropriate permissions');
 });

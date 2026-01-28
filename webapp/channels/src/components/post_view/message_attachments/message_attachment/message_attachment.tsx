@@ -4,6 +4,7 @@
 import truncate from 'lodash/truncate';
 import React from 'react';
 import type {KeyboardEvent, MouseEvent, CSSProperties} from 'react';
+import {FormattedMessage} from 'react-intl';
 
 import type {PostActionOption} from '@mattermost/types/integration_actions';
 import type {
@@ -66,6 +67,7 @@ type State = {
     checkOverflow: number;
     actionExecuting: boolean;
     actionExecutingMessage: string | null;
+    actionError: React.ReactNode | null;
 }
 
 export default class MessageAttachment extends React.PureComponent<Props, State> {
@@ -79,6 +81,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
             checkOverflow: 0,
             actionExecuting: false,
             actionExecutingMessage: null,
+            actionError: null,
         };
 
         this.imageProps = {
@@ -175,16 +178,26 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
         });
 
         return (
-            <div
-                className='attachment-actions'
-            >
-                {content}
+            <div>
+                <div
+                    className='attachment-actions'
+                >
+                    {content}
+                </div>
+                {this.state.actionError && (
+                    <div className='has-error'>
+                        <label className='control-label'>{this.state.actionError}</label>
+                    </div>
+                )}
             </div>
         );
     };
 
     handleAction = (e: React.MouseEvent, actionOptions?: PostActionOption[]) => {
         e.preventDefault();
+
+        // Clear any previous error
+        this.setState({actionError: null});
 
         const actionExecutingMessage = this.getActionOption(actionOptions, 'ActionExecutingMessage');
         if (actionExecutingMessage) {
@@ -194,11 +207,39 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
         const actionId = e.currentTarget.getAttribute('data-action-id') || '';
         const actionCookie = e.currentTarget.getAttribute('data-action-cookie') || '';
 
-        this.props.actions.doPostActionWithCookie(this.props.postId, actionId, actionCookie).then(() => {
+        this.props.actions.doPostActionWithCookie(this.props.postId, actionId, actionCookie).then((result) => {
+            if (result.error) {
+                // Handle errors returned in the result
+                this.setState({
+                    actionExecuting: false,
+                    actionExecutingMessage: null,
+                    actionError: result.error.message || (
+                        <FormattedMessage
+                            id='post.message_attachment.action_failed'
+                            defaultMessage='Action failed to execute'
+                        />
+                    ),
+                });
+                return;
+            }
+
+            // Success case
             this.handleCustomActions(actionOptions);
             if (actionExecutingMessage) {
                 this.setState({actionExecuting: false, actionExecutingMessage: null});
             }
+        }).catch((error) => {
+            // Handle promise rejection errors
+            this.setState({
+                actionExecuting: false,
+                actionExecutingMessage: null,
+                actionError: error.message || (
+                    <FormattedMessage
+                        id='post.message_attachment.action_failed'
+                        defaultMessage='Action failed to execute'
+                    />
+                ),
+            });
         });
     };
 
