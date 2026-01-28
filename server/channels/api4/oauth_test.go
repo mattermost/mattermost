@@ -5,6 +5,7 @@ package api4
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -854,11 +855,12 @@ func TestRegisterOAuthClientAudit(t *testing.T) {
 		require.NoError(t, err)
 		require.NotEmpty(t, data)
 
-		auditLog := string(data)
-		assert.Contains(t, auditLog, "registerOAuthClient")
-		assert.Contains(t, auditLog, clientName)
-		assert.Contains(t, auditLog, response.ClientID)
-		assert.Contains(t, auditLog, "success")
+		entry := FindAuditEntry(string(data), "registerOAuthClient", "")
+		require.NotNil(t, entry, "should find a registerOAuthClient audit entry")
+		assert.Equal(t, "success", entry.Status)
+		// Verify client details are in the raw entry
+		assert.Contains(t, fmt.Sprintf("%v", entry.Raw), clientName)
+		assert.Contains(t, fmt.Sprintf("%v", entry.Raw), response.ClientID)
 	})
 
 	t.Run("Failed DCR registration is audited", func(t *testing.T) {
@@ -886,8 +888,8 @@ func TestRegisterOAuthClientAudit(t *testing.T) {
 		require.NoError(t, err)
 		require.NotEmpty(t, data)
 
-		auditLog := string(data)
-		assert.Contains(t, auditLog, "registerOAuthClient")
-		assert.Contains(t, auditLog, "fail")
+		entry := FindAuditEntry(string(data), "registerOAuthClient", "")
+		require.NotNil(t, entry, "should find a registerOAuthClient audit entry")
+		assert.Equal(t, "fail", entry.Status)
 	})
 }
