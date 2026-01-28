@@ -66,21 +66,8 @@ func TestHookFileWillBeDownloaded(t *testing.T) {
 		info, appErr := th.App.GetFileInfo(th.Context, fileInfo.Id)
 		require.Nil(t, appErr)
 
-		// Create plugin context
-		pluginContext := &plugin.Context{
-			RequestId: th.Context.RequestId(),
-			SessionId: th.Context.Session().Id,
-		}
-
-		// Simulate calling the hook through RunMultiHook
-		var rejectionReason string
-		th.App.Channels().RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-			rejectionReason = hooks.FileWillBeDownloaded(pluginContext, info, th.BasicUser.Id, model.FileDownloadTypeFile)
-			if rejectionReason != "" {
-				return false // Stop execution if hook rejects
-			}
-			return true
-		}, plugin.FileWillBeDownloadedID)
+		// Call the hook through the app method
+		rejectionReason := th.App.RunFileWillBeDownloadedHook(th.Context, info, th.BasicUser.Id, model.FileDownloadTypeFile)
 
 		// Verify the file download was rejected
 		assert.NotEmpty(t, rejectionReason)
@@ -134,18 +121,8 @@ func TestHookFileWillBeDownloaded(t *testing.T) {
 		info, appErr := th.App.GetFileInfo(th.Context, fileInfo.Id)
 		require.Nil(t, appErr)
 
-		// Create plugin context
-		pluginContext := &plugin.Context{
-			RequestId: th.Context.RequestId(),
-			SessionId: th.Context.Session().Id,
-		}
-
-		// Call the hook
-		var rejectionReason string
-		th.App.Channels().RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-			rejectionReason = hooks.FileWillBeDownloaded(pluginContext, info, th.BasicUser.Id, model.FileDownloadTypeFile)
-			return rejectionReason == ""
-		}, plugin.FileWillBeDownloadedID)
+		// Call the hook through the app method
+		rejectionReason := th.App.RunFileWillBeDownloadedHook(th.Context, info, th.BasicUser.Id, model.FileDownloadTypeFile)
 
 		// Verify the file download was allowed
 		assert.Empty(t, rejectionReason)
@@ -222,20 +199,8 @@ func TestHookFileWillBeDownloaded(t *testing.T) {
 		info, appErr := th.App.GetFileInfo(th.Context, fileInfo.Id)
 		require.Nil(t, appErr)
 
-		pluginContext := &plugin.Context{
-			RequestId: th.Context.RequestId(),
-			SessionId: th.Context.Session().Id,
-		}
-
 		// Call hooks - first one should reject, second should not be called
-		var rejectionReason string
-		th.App.Channels().RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-			rejectionReason = hooks.FileWillBeDownloaded(pluginContext, info, th.BasicUser.Id, model.FileDownloadTypeFile)
-			if rejectionReason != "" {
-				return false // Stop execution
-			}
-			return true
-		}, plugin.FileWillBeDownloadedID)
+		rejectionReason := th.App.RunFileWillBeDownloadedHook(th.Context, info, th.BasicUser.Id, model.FileDownloadTypeFile)
 
 		assert.NotEmpty(t, rejectionReason)
 		assert.Contains(t, rejectionReason, "Rejected by first plugin")
@@ -257,16 +222,7 @@ func TestHookFileWillBeDownloaded(t *testing.T) {
 		info, appErr := th.App.GetFileInfo(th.Context, fileInfo.Id)
 		require.Nil(t, appErr)
 
-		pluginContext := &plugin.Context{
-			RequestId: th.Context.RequestId(),
-			SessionId: th.Context.Session().Id,
-		}
-
-		var rejectionReason string
-		th.App.Channels().RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-			rejectionReason = hooks.FileWillBeDownloaded(pluginContext, info, th.BasicUser.Id, model.FileDownloadTypeFile)
-			return rejectionReason == ""
-		}, plugin.FileWillBeDownloadedID)
+		rejectionReason := th.App.RunFileWillBeDownloadedHook(th.Context, info, th.BasicUser.Id, model.FileDownloadTypeFile)
 
 		// No plugins means no rejection
 		assert.Empty(t, rejectionReason)
@@ -323,21 +279,8 @@ func TestHookFileWillBeDownloadedHeadRequests(t *testing.T) {
 		info, appErr := th.App.GetFileInfo(th.Context, fileInfo.Id)
 		require.Nil(t, appErr)
 
-		// Create plugin context
-		pluginContext := &plugin.Context{
-			RequestId: th.Context.RequestId(),
-			SessionId: th.Context.Session().Id,
-		}
-
-		// Simulate calling the hook for a file download
-		var rejectionReason string
-		th.App.Channels().RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-			rejectionReason = hooks.FileWillBeDownloaded(pluginContext, info, th.BasicUser.Id, model.FileDownloadTypeFile)
-			if rejectionReason != "" {
-				return false // Stop execution if hook rejects
-			}
-			return true
-		}, plugin.FileWillBeDownloadedID)
+		// Call the hook through the app method
+		rejectionReason := th.App.RunFileWillBeDownloadedHook(th.Context, info, th.BasicUser.Id, model.FileDownloadTypeFile)
 
 		// Verify the file download was rejected
 		assert.NotEmpty(t, rejectionReason)
@@ -395,18 +338,8 @@ func TestHookFileWillBeDownloadedHeadRequests(t *testing.T) {
 		info, appErr := th.App.GetFileInfo(th.Context, fileInfo.Id)
 		require.Nil(t, appErr)
 
-		// Create plugin context
-		pluginContext := &plugin.Context{
-			RequestId: th.Context.RequestId(),
-			SessionId: th.Context.Session().Id,
-		}
-
-		// Call the hook for thumbnail download type
-		var rejectionReason string
-		th.App.Channels().RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-			rejectionReason = hooks.FileWillBeDownloaded(pluginContext, info, th.BasicUser.Id, model.FileDownloadTypeThumbnail)
-			return rejectionReason == ""
-		}, plugin.FileWillBeDownloadedID)
+		// Call the hook for thumbnail download type through the app method
+		rejectionReason := th.App.RunFileWillBeDownloadedHook(th.Context, info, th.BasicUser.Id, model.FileDownloadTypeThumbnail)
 
 		// Verify the thumbnail download was rejected
 		assert.NotEmpty(t, rejectionReason)
@@ -465,17 +398,8 @@ func TestHookFileWillBeDownloadedHeadRequests(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Create plugin context
-		pluginContext := &plugin.Context{
-			RequestId: th.Context.RequestId(),
-			SessionId: th.Context.Session().Id,
-		}
-
-		// Call the hook for preview download type
-		var rejectionReason string
-		th.App.Channels().RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-			rejectionReason = hooks.FileWillBeDownloaded(pluginContext, info, th.BasicUser.Id, model.FileDownloadTypePreview)
-			return rejectionReason == ""
-		}, plugin.FileWillBeDownloadedID)
+		// Call the hook for preview download type through the app method
+		rejectionReason := th.App.RunFileWillBeDownloadedHook(th.Context, info, th.BasicUser.Id, model.FileDownloadTypePreview)
 
 		// Verify the preview download was rejected
 		assert.NotEmpty(t, rejectionReason)
@@ -527,18 +451,8 @@ func TestHookFileWillBeDownloadedHeadRequests(t *testing.T) {
 		info, appErr := th.App.GetFileInfo(th.Context, fileInfo.Id)
 		require.Nil(t, appErr)
 
-		// Create plugin context
-		pluginContext := &plugin.Context{
-			RequestId: th.Context.RequestId(),
-			SessionId: th.Context.Session().Id,
-		}
-
-		// Call the hook
-		var rejectionReason string
-		th.App.Channels().RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-			rejectionReason = hooks.FileWillBeDownloaded(pluginContext, info, th.BasicUser.Id, model.FileDownloadTypeFile)
-			return rejectionReason == ""
-		}, plugin.FileWillBeDownloadedID)
+		// Call the hook through the app method
+		rejectionReason := th.App.RunFileWillBeDownloadedHook(th.Context, info, th.BasicUser.Id, model.FileDownloadTypeFile)
 
 		// Verify the file download was allowed
 		assert.Empty(t, rejectionReason)
@@ -595,29 +509,14 @@ func TestHookFileWillBeDownloadedHeadRequests(t *testing.T) {
 		info, appErr := th.App.GetFileInfo(th.Context, fileInfo.Id)
 		require.Nil(t, appErr)
 
-		pluginContext := &plugin.Context{
-			RequestId: th.Context.RequestId(),
-			SessionId: th.Context.Session().Id,
-		}
-
 		// Test File download type
-		var rejectionReason string
-		th.App.Channels().RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-			rejectionReason = hooks.FileWillBeDownloaded(pluginContext, info, th.BasicUser.Id, model.FileDownloadTypeFile)
-			return rejectionReason == ""
-		}, plugin.FileWillBeDownloadedID)
+		th.App.RunFileWillBeDownloadedHook(th.Context, info, th.BasicUser.Id, model.FileDownloadTypeFile)
 
 		// Test Thumbnail download type
-		th.App.Channels().RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-			rejectionReason = hooks.FileWillBeDownloaded(pluginContext, info, th.BasicUser.Id, model.FileDownloadTypeThumbnail)
-			return rejectionReason == ""
-		}, plugin.FileWillBeDownloadedID)
+		th.App.RunFileWillBeDownloadedHook(th.Context, info, th.BasicUser.Id, model.FileDownloadTypeThumbnail)
 
 		// Test Preview download type
-		th.App.Channels().RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-			rejectionReason = hooks.FileWillBeDownloaded(pluginContext, info, th.BasicUser.Id, model.FileDownloadTypePreview)
-			return rejectionReason == ""
-		}, plugin.FileWillBeDownloadedID)
+		th.App.RunFileWillBeDownloadedHook(th.Context, info, th.BasicUser.Id, model.FileDownloadTypePreview)
 
 		// Verify all three download types were received
 		assert.Len(t, downloadTypesReceived, 3)

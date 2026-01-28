@@ -5,7 +5,6 @@ package api4
 
 import (
 	"bytes"
-	"context"
 	"crypto/subtle"
 	"encoding/json"
 	"io"
@@ -13,11 +12,9 @@ import (
 	"mime/multipart"
 	"net/http"
 	"strconv"
-	"sync/atomic"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
@@ -32,78 +29,6 @@ const (
 )
 
 const maxMultipartFormDataBytes = 10 * 1024 // 10Kb
-
-// sendFileDownloadRejectedEvent sends a websocket event to notify the user that their file download was rejected
-func sendFileDownloadRejectedEvent(app *app.App, info *model.FileInfo, userID string, rejectionReason string, downloadType model.FileDownloadType) {
-	if userID == "" {
-		// Don't send event for public files (no user context)
-		app.Log().Debug("Skipping websocket event for public file download rejection")
-		return
-	}
-
-	message := model.NewWebSocketEvent(model.WebsocketEventFileDownloadRejected, "", info.ChannelId, userID, nil, "")
-	message.Add("file_id", info.Id)
-	message.Add("file_name", info.Name)
-	message.Add("rejection_reason", rejectionReason)
-	message.Add("channel_id", info.ChannelId)
-	message.Add("post_id", info.PostId)
-	message.Add("download_type", string(downloadType))
-	app.Publish(message)
-}
-
-// runFileWillBeDownloadedHook executes the FileWillBeDownloaded hook with a timeout
-// Returns empty string to allow download, or a rejection reason to block it.
-// If the hook times out, the download is blocked for security reasons.
-// downloadType should be one of model.FileDownloadType constants
-func runFileWillBeDownloadedHook(app *app.App, pluginContext *plugin.Context, fileInfo *model.FileInfo, userID string, downloadType model.FileDownloadType, translateFunc func(string, ...any) string) string {
-	// Use default timeout for file download hooks to prevent blocking user downloads
-	// and ensure security by blocking downloads if plugins are unresponsive
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(model.PluginSettingsDefaultHookTimeoutSeconds)*time.Second)
-	defer cancel()
-
-	var rejectionReason atomic.Value
-	done := make(chan struct{})
-
-	app.Srv().Go(func() {
-		defer close(done)
-		app.Channels().RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-			rejectionReasonFromHook := hooks.FileWillBeDownloaded(pluginContext, fileInfo, userID, downloadType)
-			rejectionReason.Store(rejectionReasonFromHook)
-			app.Log().Debug("FileWillBeDownloaded hook called",
-				mlog.String("file_id", fileInfo.Id),
-				mlog.String("user_id", userID),
-				mlog.String("download_type", string(downloadType)),
-				mlog.String("rejection_reason", rejectionReasonFromHook))
-			if rejectionReasonFromHook != "" {
-				return false // Stop execution if hook rejects
-			}
-			return true
-		}, plugin.FileWillBeDownloadedID)
-	})
-
-	select {
-	case <-done:
-		// Hook completed normally
-		rejectionReasonString := ""
-		if loaded := rejectionReason.Load(); loaded != nil {
-			rejectionReasonString = loaded.(string)
-		}
-		if rejectionReasonString != "" {
-			// Send websocket event to notify user of rejection
-			sendFileDownloadRejectedEvent(app, fileInfo, userID, rejectionReasonString, downloadType)
-		}
-		return rejectionReasonString
-	case <-ctx.Done():
-		// Hook timed out - reject download for security
-		timeoutMessage := translateFunc("api.file.get_file.plugin_hook_timeout")
-		app.Log().Warn("FileWillBeDownloaded hook timed out, blocking download",
-			mlog.String("file_id", fileInfo.Id),
-			mlog.String("user_id", userID))
-		// Send websocket event to notify user of timeout
-		sendFileDownloadRejectedEvent(app, fileInfo, userID, timeoutMessage, downloadType)
-		return timeoutMessage
-	}
-}
 
 func (api *API) InitFile() {
 	api.BaseRoutes.Files.Handle("", api.APISessionRequired(uploadFileStream, handlerParamFileAPI)).Methods(http.MethodPost)
@@ -659,14 +584,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Run plugin hook before file download
-	pluginContext := &plugin.Context{
-		RequestId:      c.AppContext.RequestId(),
-		SessionId:      c.AppContext.Session().Id,
-		IPAddress:      c.AppContext.IPAddress(),
-		AcceptLanguage: c.AppContext.AcceptLanguage(),
-		UserAgent:      c.AppContext.UserAgent(),
-	}
-	rejectionReason := runFileWillBeDownloadedHook(c.App, pluginContext, fileInfo, c.AppContext.Session().UserId, model.FileDownloadTypeFile, c.AppContext.T)
+	rejectionReason := c.App.RunFileWillBeDownloadedHook(c.AppContext, fileInfo, c.AppContext.Session().UserId, model.FileDownloadTypeFile)
 
 	if rejectionReason != "" {
 		w.Header().Set(model.HeaderRejectReason, rejectionReason)
@@ -724,14 +642,7 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Run plugin hook before file thumbnail download
-	pluginContext := &plugin.Context{
-		RequestId:      c.AppContext.RequestId(),
-		SessionId:      c.AppContext.Session().Id,
-		IPAddress:      c.AppContext.IPAddress(),
-		AcceptLanguage: c.AppContext.AcceptLanguage(),
-		UserAgent:      c.AppContext.UserAgent(),
-	}
-	rejectionReason := runFileWillBeDownloadedHook(c.App, pluginContext, info, c.AppContext.Session().UserId, model.FileDownloadTypeThumbnail, c.AppContext.T)
+	rejectionReason := c.App.RunFileWillBeDownloadedHook(c.AppContext, info, c.AppContext.Session().UserId, model.FileDownloadTypeThumbnail)
 
 	if rejectionReason != "" {
 		w.Header().Set(model.HeaderRejectReason, rejectionReason)
@@ -851,21 +762,14 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Run plugin hook before file preview download
-	pluginContext := &plugin.Context{
-		RequestId:      c.AppContext.RequestId(),
-		SessionId:      c.AppContext.Session().Id,
-		IPAddress:      c.AppContext.IPAddress(),
-		AcceptLanguage: c.AppContext.AcceptLanguage(),
-		UserAgent:      c.AppContext.UserAgent(),
-	}
 	// Check if preview exists before running hook (no point in running hook if there's no preview)
 	if info.PreviewPath == "" {
 		c.Err = model.NewAppError("getFilePreview", "api.file.get_file_preview.no_preview.app_error", nil, "file_id="+info.Id, http.StatusBadRequest)
 		return
 	}
 
-	rejectionReason := runFileWillBeDownloadedHook(c.App, pluginContext, info, c.AppContext.Session().UserId, model.FileDownloadTypePreview, c.AppContext.T)
+	// Run plugin hook before file preview download
+	rejectionReason := c.App.RunFileWillBeDownloadedHook(c.AppContext, info, c.AppContext.Session().UserId, model.FileDownloadTypePreview)
 
 	if rejectionReason != "" {
 		w.Header().Set(model.HeaderRejectReason, rejectionReason)
@@ -968,14 +872,7 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Run plugin hook before public file download (no user session for public files)
-	pluginContext := &plugin.Context{
-		RequestId:      c.AppContext.RequestId(),
-		SessionId:      "", // No session for public files
-		IPAddress:      c.AppContext.IPAddress(),
-		AcceptLanguage: c.AppContext.AcceptLanguage(),
-		UserAgent:      c.AppContext.UserAgent(),
-	}
-	rejectionReason := runFileWillBeDownloadedHook(c.App, pluginContext, info, "", model.FileDownloadTypePublic, c.AppContext.T) // Empty userID for public files
+	rejectionReason := c.App.RunFileWillBeDownloadedHook(c.AppContext, info, "", model.FileDownloadTypePublic)
 
 	if rejectionReason != "" {
 		w.Header().Set(model.HeaderRejectReason, rejectionReason)
