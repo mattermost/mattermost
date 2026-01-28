@@ -10,8 +10,6 @@ import chalk from 'chalk';
 
 const MATTERMOST_URL_PATTERN = /https?:\/\/[^"'\s<>()]*mattermost\.com[^"'\s<>()]*/g;
 
-const MAIN_DOMAIN_PATTERN = /^https?:\/\/(www\.)?mattermost\.com(\/|$)/;
-
 const PERMALINK_PATTERN = /^https?:\/\/(www\.)?mattermost\.com\/pl\//;
 
 const SOURCE_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx'];
@@ -94,22 +92,13 @@ function findAllMattermostUrls(rootDir, excludeTests = true) {
 }
 
 function validatePermalink(url) {
-    if (!MAIN_DOMAIN_PATTERN.test(url)) {
-        return {valid: true};
-    }
-
     if (PERMALINK_PATTERN.test(url)) {
-        return {valid: true};
-    }
-
-    const urlObj = new URL(url);
-    if (urlObj.pathname === '/' || urlObj.pathname === '') {
         return {valid: true};
     }
 
     return {
         valid: false,
-        reason: 'mattermost.com links must use /pl/ permalink format',
+        reason: 'All mattermost.com links must use https://mattermost.com/pl/ permalink format',
     };
 }
 
@@ -223,7 +212,7 @@ function printResults(results, urlMap, nonPermalinkUrls) {
 
     if (nonPermalinkUrls.length > 0) {
         console.log(chalk.red.bold('URLs not using permalink format:\n'));
-        console.log(chalk.gray('  mattermost.com links must use /pl/ prefix (e.g., https://mattermost.com/pl/pricing)\n'));
+        console.log(chalk.gray('  All mattermost.com links must route via https://mattermost.com/pl/\n'));
         for (const item of nonPermalinkUrls) {
             console.log(chalk.red(`  ${item.url}`));
             console.log(chalk.gray(`    Found in:`));
@@ -277,7 +266,7 @@ function generateMarkdownSummary(results, urlMap, nonPermalinkUrls) {
 
     if (nonPermalinkUrls.length > 0) {
         lines.push('### URLs Missing Permalink Format\n');
-        lines.push('> mattermost.com links must use `/pl/` prefix (e.g., `https://mattermost.com/pl/pricing`)\n');
+        lines.push('> All mattermost.com links must route via `https://mattermost.com/pl/`\n');
         lines.push('| URL | Files |');
         lines.push('|-----|-------|');
 
