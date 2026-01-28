@@ -177,29 +177,76 @@ function printResults(results, urlMap) {
     return 1;
 }
 
+function generateMarkdownSummary(results, urlMap) {
+    const broken = results.filter((r) => !r.ok);
+    const working = results.filter((r) => r.ok);
+
+    const lines = [];
+
+    lines.push('## External Link Check Results\n');
+
+    if (broken.length === 0) {
+        lines.push(`✅ **All ${working.length} mattermost.com URLs are accessible**\n`);
+        return lines.join('\n');
+    }
+
+    lines.push(`| Status | Count |`);
+    lines.push(`|--------|-------|`);
+    lines.push(`| ✅ Working | ${working.length} |`);
+    lines.push(`| ❌ Broken | ${broken.length} |`);
+    lines.push('');
+
+    lines.push('### Broken URLs\n');
+    lines.push('| URL | Status | Files |');
+    lines.push('|-----|--------|-------|');
+
+    for (const result of broken) {
+        const statusText = result.error ? `Error: ${result.error}` : `HTTP ${result.status}`;
+        const files = urlMap.get(result.url).map((f) => `\`${f}\``).join(', ');
+        lines.push(`| ${result.url} | ${statusText} | ${files} |`);
+    }
+
+    lines.push('');
+    return lines.join('\n');
+}
+
 async function main() {
     const args = process.argv.slice(2);
     const includeTests = args.includes('--include-tests');
     const jsonOutput = args.includes('--json');
+    const markdownOutput = args.includes('--markdown');
 
     const rootDir = process.cwd();
 
-    console.log(chalk.inverse.bold(' Checking mattermost.com links in webapp... ') + '\n');
+    if (!markdownOutput) {
+        console.log(chalk.inverse.bold(' Checking mattermost.com links in webapp... ') + '\n');
 
-    if (includeTests) {
-        console.log(chalk.yellow('Including test files in scan\n'));
+        if (includeTests) {
+            console.log(chalk.yellow('Including test files in scan\n'));
+        }
     }
 
     const urlMap = findAllMattermostUrls(rootDir, !includeTests);
 
-    console.log(`Found ${chalk.bold(urlMap.size)} unique mattermost.com URLs\n`);
+    if (!markdownOutput) {
+        console.log(`Found ${chalk.bold(urlMap.size)} unique mattermost.com URLs\n`);
+    }
 
     if (urlMap.size === 0) {
-        console.log(chalk.yellow('No URLs found to check'));
+        if (markdownOutput) {
+            console.log('## External Link Check Results\n\n⚠️ No URLs found to check');
+        } else {
+            console.log(chalk.yellow('No URLs found to check'));
+        }
         return 0;
     }
 
     const results = await checkUrls(urlMap);
+
+    if (markdownOutput) {
+        console.log(generateMarkdownSummary(results, urlMap));
+        return results.filter((r) => !r.ok).length > 0 ? 1 : 0;
+    }
 
     if (jsonOutput) {
         const output = {
