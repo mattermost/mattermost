@@ -8602,10 +8602,6 @@
     "translation": "Bir lisans yüklenirken bayt değeri geçersiz."
   },
   {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "Müşteri site sunucusu duyurulara abone olamadı."
-  },
-  {
     "id": "api.license.request-trial.bad-request.business-email",
     "translation": "Deneme için iş e-postası geçersiz"
   },

@@ -9076,10 +9076,6 @@
     "translation": "CWS 伺服器無法使用。"
   },
   {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "CWS 伺服器無法訂閱通知信。"
-  },
-  {
     "id": "api.server.hosted_signup_unavailable.error",
     "translation": "Portal 在自行架設的個體中不可使用。"
   },

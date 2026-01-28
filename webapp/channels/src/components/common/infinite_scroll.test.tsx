@@ -61,6 +61,7 @@ describe('/components/common/InfiniteScroll', () => {
         Object.defineProperty(scrollContainer, 'scrollTop', {value: 500, configurable: true});
 
         await act(async () => {
+            // Simulate scroll event - fireEvent used because userEvent doesn't support scroll events
             fireEvent.scroll(scrollContainer);
 
             // Wait for debounce (200ms) plus some buffer
