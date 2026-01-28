@@ -46,7 +46,8 @@ func TestBCryptHash(t *testing.T) {
 
 func TestBCryptCompareHashAndPassword(t *testing.T) {
 	passwordTooLong := make([]byte, PasswordMaxLengthBytes+1)
-	rand.Read(passwordTooLong)
+	_, err := rand.Read(passwordTooLong)
+	require.NoError(t, err)
 
 	testCases := []struct {
 		testName    string
