@@ -1605,7 +1605,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		Subsystem: MetricsSubsystemAutoTranslation,
 		Name:      "lingua_detection_duration_seconds",
 		Help:      "Duration of lingua-go language detection",
-		Buckets:   []float64{0.001, 0.01, 0.05, 0.1, 0.2, 0.5},
+		Buckets:   []float64{0.001, 0.005, 0.01, 0.05, 0.1, 0.25, 0.5, 1.0},
 	}))
 	m.Registry.MustRegister(m.AutoTranslateLinguaDetectionDuration)
 
@@ -1615,7 +1615,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Subsystem: MetricsSubsystemAutoTranslation,
 			Name:      "provider_call_duration_seconds",
 			Help:      "Duration of translation provider API calls",
-			Buckets:   []float64{0.1, 0.25, 0.5, 1, 2, 4, 8, 15},
+			Buckets:   []float64{0.1, 0.25, 0.5, 1, 2, 4, 8, 15, 30, 60},
 		}),
 		[]string{"provider", "result"},
 	)
@@ -1635,7 +1635,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		Subsystem: MetricsSubsystemAutoTranslation,
 		Name:      "worker_task_duration_seconds",
 		Help:      "Duration for workers to process individual translation tasks",
-		Buckets:   []float64{0.5, 1, 2, 5, 10, 30, 60},
+		Buckets:   []float64{0.1, 0.5, 1, 2, 5, 10, 30, 60},
 	}))
 	m.Registry.MustRegister(m.AutoTranslateWorkerTaskDuration)
 
