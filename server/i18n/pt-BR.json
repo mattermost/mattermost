@@ -8364,10 +8364,6 @@
     "translation": "Serviço disponível apenas na edição Mattermost Enterprise"
   },
   {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "O Servidor CWS falhou ao assinar o newsletter."
-  },
-  {
     "id": "api.team.invite_members.unable_to_send_email.app_error",
     "translation": "Erro ao enviar o e-mail"
   },
