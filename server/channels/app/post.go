@@ -3317,6 +3317,9 @@ func (a *App) updateTemporaryPostIfAllRead(rctx request.CTX, post *model.Post, r
 	}
 
 	// All recipients have read - update temporary post expiration to match receipt
+	// Invalidate cache first to ensure we don't get stale cached data
+	a.Srv().Store().TemporaryPost().InvalidateTemporaryPost(post.Id)
+
 	tmpPost, err := a.Srv().Store().TemporaryPost().Get(rctx, post.Id)
 	if err != nil {
 		return model.NewAppError("RevealPost", "app.post.get_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
