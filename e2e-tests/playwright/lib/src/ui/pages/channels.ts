@@ -30,6 +30,7 @@ export default class ChannelsPage {
     readonly teamSettingsModal;
     readonly scheduledDraftModal;
     readonly scheduleMessageModal;
+    readonly burnOnReadConfirmationModal;
 
     readonly postContainer;
     readonly postDotMenu;
@@ -60,6 +61,9 @@ export default class ChannelsPage {
         this.profileModal = new components.ProfileModal(page.getByRole('dialog', {name: 'Profile'}));
         this.settingsModal = new components.SettingsModal(page.getByRole('dialog', {name: 'Settings'}));
         this.teamSettingsModal = new components.TeamSettingsModal(page.getByRole('dialog', {name: 'Team Settings'}));
+        this.burnOnReadConfirmationModal = new components.BurnOnReadConfirmationModal(
+            page.getByRole('dialog').filter({hasText: /burn|delete/i}),
+        );
 
         // Menus
         this.postDotMenu = new components.PostDotMenu(page.getByRole('menu', {name: 'Post extra options'}));

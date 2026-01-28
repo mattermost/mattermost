@@ -100,9 +100,12 @@ export default class ChannelsCenterView {
     /**
      * Returns the Center post by post's id
      * @param postId Just the ID without the prefix
+     * Note: Handles both simple posts (post_id) and combined posts (post_id:timestamp)
      */
     async getPostById(id: string) {
-        const postById = this.container.locator(`[id="post_${id}"]`);
+        // Match either exact ID or ID with timestamp suffix (for combined posts)
+        // Use CSS selector that matches: post_id OR post_id:*
+        const postById = this.container.locator(`[id="post_${id}"], [id^="post_${id}:"]`).first();
         await postById.waitFor();
         return new ChannelsPost(postById);
     }
