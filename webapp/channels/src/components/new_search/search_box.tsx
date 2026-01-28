@@ -221,6 +221,9 @@ const SearchBox = forwardRef(
                     e.stopPropagation();
                     e.preventDefault();
 
+                    const trimmedTerms = searchTerms.trim();
+                    if(!trimmedTerms) return;
+
                     if (!hasResults(results) || selectedTerm === '') {
                         onSearch(searchType, searchTeam, searchTerms);
                     } else {

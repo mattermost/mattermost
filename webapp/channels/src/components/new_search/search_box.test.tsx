@@ -58,9 +58,21 @@ describe('components/new_search/SearchBox', () => {
     });
 
     test('should call search on enter keydown', () => {
-        renderWithContext(<SearchBox {...baseProps}/>);
+        renderWithContext(<SearchBox {...{...baseProps, initialSearchTerms: 'test'}}/>);
         fireEvent.keyDown(screen.getByPlaceholderText('Search messages'), {key: 'Enter', code: 'Enter'});
         expect(baseProps.onSearch).toHaveBeenCalledTimes(1);
+    });
+
+    test('should not call search if search terms is empty', () => {
+        renderWithContext(<SearchBox {...baseProps}/>);
+        fireEvent.keyDown(screen.getByPlaceholderText('Search messages'), {key: 'Enter', code: 'Enter'});
+        expect(baseProps.onSearch).not.toBeCalled();
+    });
+
+    test('should not call search if search terms contain only spaces', () => {
+        renderWithContext(<SearchBox {...{...baseProps, initialSearchTerms: '        '}}/>);
+        fireEvent.keyDown(screen.getByPlaceholderText('Search messages'), {key: 'Enter', code: 'Enter'});
+        expect(baseProps.onSearch).not.toBeCalled();
     });
 
     test('should be able to select with the up and down arrows', async () => {
