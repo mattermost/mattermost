@@ -120,8 +120,8 @@ func (a *App) migratePassword(user *model.User, password string) *model.AppError
 func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, userID string, password string, mfaToken string) *model.AppError {
 	// MM-37585
 	// Use locks to avoid concurrently checking AND updating the failed login attempts.
-	a.ch.emailLoginAttemptsMut.Lock()
-	defer a.ch.emailLoginAttemptsMut.Unlock()
+	a.ch.emailLoginAttempts.Lock(userID)
+	defer a.ch.emailLoginAttempts.Unlock(userID)
 
 	user, err := a.GetUser(userID)
 	if err != nil {
@@ -185,8 +185,12 @@ func (a *App) DoubleCheckPassword(rctx request.CTX, user *model.User, password s
 
 func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, user *model.User, password, mfaToken string) (*model.User, *model.AppError) {
 	// MM-37585: Use locks to avoid concurrently checking AND updating the failed login attempts.
-	a.ch.ldapLoginAttemptsMut.Lock()
-	defer a.ch.ldapLoginAttemptsMut.Unlock()
+	lockKey := user.Id
+	if lockKey == "" && user.AuthData != nil {
+		lockKey = "authdata:" + *user.AuthData
+	}
+	a.ch.ldapLoginAttempts.Lock(lockKey)
+	defer a.ch.ldapLoginAttempts.Unlock(lockKey)
 
 	// We need to get the latest value of the user from the database after we acquire the lock. user is nil for first-time LDAP users.
 	if user.Id != "" {
