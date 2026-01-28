@@ -12,10 +12,6 @@ import {TestHelper} from 'utils/test_helper';
 
 import ChannelPropertyRenderer from './channel_property_renderer';
 
-jest.mock('components/common/hooks/useChannel');
-
-const mockUseChannel = require('components/common/hooks/useChannel').useChannel as jest.MockedFunction<typeof import('components/common/hooks/useChannel').useChannel>;
-
 describe('ChannelPropertyRenderer', () => {
     const mockChannel: Channel = {
         ...TestHelper.getChannelMock({
@@ -30,34 +26,23 @@ describe('ChannelPropertyRenderer', () => {
     } as PropertyValue<string>;
 
     it('should render channel name and icon when channel exists', () => {
-        mockUseChannel.mockReturnValue(mockChannel);
-
         renderWithContext(
-            <ChannelPropertyRenderer value={mockValue}/>,
+            <ChannelPropertyRenderer
+                value={mockValue}
+                metadata={{channel: mockChannel}}
+            />,
         );
 
         expect(screen.getByTestId('channel-property')).toBeInTheDocument();
         expect(screen.getByText('Test Channel')).toBeInTheDocument();
-        expect(mockUseChannel).toHaveBeenCalledWith('channel-id-123');
     });
 
     it('should render deleted channel message when channel does not exist', () => {
-        mockUseChannel.mockReturnValue(undefined);
-
         renderWithContext(
-            <ChannelPropertyRenderer value={mockValue}/>,
-        );
-
-        expect(screen.getByTestId('channel-property')).toBeInTheDocument();
-        expect(screen.getByText(/Deleted channel ID: channel-id-123/)).toBeInTheDocument();
-        expect(mockUseChannel).toHaveBeenCalledWith('channel-id-123');
-    });
-
-    it('should render deleted channel message when channel is undefined', () => {
-        mockUseChannel.mockReturnValue(undefined);
-
-        renderWithContext(
-            <ChannelPropertyRenderer value={mockValue}/>,
+            <ChannelPropertyRenderer
+                value={mockValue}
+                metadata={{channel: undefined}}
+            />,
         );
 
         expect(screen.getByTestId('channel-property')).toBeInTheDocument();
@@ -70,10 +55,12 @@ describe('ChannelPropertyRenderer', () => {
             type: 'P' as const,
             display_name: 'Private Channel',
         };
-        mockUseChannel.mockReturnValue(privateChannel);
 
         renderWithContext(
-            <ChannelPropertyRenderer value={mockValue}/>,
+            <ChannelPropertyRenderer
+                value={mockValue}
+                metadata={{channel: privateChannel}}
+            />,
         );
 
         expect(screen.getByText('Private Channel')).toBeInTheDocument();
@@ -85,10 +72,12 @@ describe('ChannelPropertyRenderer', () => {
             type: 'D' as const,
             display_name: 'Direct Message',
         };
-        mockUseChannel.mockReturnValue(dmChannel);
 
         renderWithContext(
-            <ChannelPropertyRenderer value={mockValue}/>,
+            <ChannelPropertyRenderer
+                value={mockValue}
+                metadata={{channel: dmChannel}}
+            />,
         );
 
         expect(screen.getByText('Direct Message')).toBeInTheDocument();
