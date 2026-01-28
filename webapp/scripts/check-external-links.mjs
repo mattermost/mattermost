@@ -12,6 +12,10 @@ const MATTERMOST_URL_PATTERN = /https?:\/\/[^"'\s<>()]*mattermost\.com[^"'\s<>()
 
 const PERMALINK_PATTERN = /^https?:\/\/(www\.)?mattermost\.com\/pl\//;
 
+const PUSH_SERVER_PATTERN = /^https?:\/\/([a-z0-9-]+\.)?push\.mattermost\.com(\/|$)/;
+const HPNS_PATTERN = /^https?:\/\/hpns-[a-z]+\.mattermost\.com(\/|$)/;
+const ROOT_DOMAIN_PATTERN = /^https?:\/\/(www\.)?mattermost\.com\/?$/;
+
 const SOURCE_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx'];
 
 const DIRECTORIES_TO_SCAN = [
@@ -93,6 +97,14 @@ function findAllMattermostUrls(rootDir, excludeTests = true) {
 
 function validatePermalink(url) {
     if (PERMALINK_PATTERN.test(url)) {
+        return {valid: true};
+    }
+
+    if (ROOT_DOMAIN_PATTERN.test(url)) {
+        return {valid: true};
+    }
+
+    if (PUSH_SERVER_PATTERN.test(url) || HPNS_PATTERN.test(url)) {
         return {valid: true};
     }
 
