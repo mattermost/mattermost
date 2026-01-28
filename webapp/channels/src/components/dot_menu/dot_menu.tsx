@@ -156,7 +156,6 @@ type Props = {
     canDelete: boolean;
     userId: string;
     threadId: UserThread['id'];
-    isCollapsedThreadsEnabled: boolean;
     isFollowingThread?: boolean;
     isMentionedInRootPost?: boolean;
     threadReplyCount?: number;
@@ -576,13 +575,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         const showReply = !isSystemMessage && !isBurnOnReadPost && this.props.location === Locations.CENTER;
         const showForward = this.props.canForward;
         const showReactions = Boolean(isMobile && !isSystemMessage && !this.props.isReadOnly && this.props.enableEmojiPicker);
-        const showFollowPost = Boolean(
-            !isSystemMessage &&
-                !isBurnOnReadPost &&
-                this.props.isCollapsedThreadsEnabled &&
-                (this.props.location === Locations.CENTER ||
-                    this.props.location === Locations.RHS_ROOT ||
-                    this.props.location === Locations.RHS_COMMENT));
+        const showFollowPost = this.props.canFollowThread;
         const showMarkAsUnread = Boolean(!isSystemMessage && !this.props.channelIsArchived && this.props.location !== Locations.SEARCH);
         const showSave = !isSystemMessage && !this.props.isUnrevealedBurnOnReadPost;
         const showRemind = !isSystemMessage;

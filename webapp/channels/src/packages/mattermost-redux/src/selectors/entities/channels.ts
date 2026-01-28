@@ -68,6 +68,7 @@ import {
 } from 'mattermost-redux/utils/channel_utils';
 import {createIdsSelector} from 'mattermost-redux/utils/helpers';
 
+import {getCurrentUserLocale} from './i18n';
 import {isPostPriorityEnabled} from './posts';
 import {getThreadCounts, getThreadCountsIncludingDirect} from './threads';
 
@@ -1465,13 +1466,16 @@ export function getChannelAutotranslation(state: GlobalState, channelId: string)
 }
 
 export function getMyChannelAutotranslation(state: GlobalState, channelId: string): boolean {
+    const locale = getCurrentUserLocale(state);
     const channel = getChannel(state, channelId);
     const myChannelMember = getMyChannelMember(state, channelId);
     const config = getConfig(state);
+    const targetLanguages = config?.AutoTranslationLanguages?.split(',');
     return Boolean(
         config?.EnableAutoTranslation === 'true' &&
         channel?.autotranslation &&
-        myChannelMember?.autotranslation,
+        myChannelMember?.autotranslation &&
+        targetLanguages?.includes(locale),
     );
 }
 

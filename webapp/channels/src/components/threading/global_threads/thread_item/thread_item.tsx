@@ -194,7 +194,7 @@ function ThreadItem({
 
     const translation = getPostTranslation(post, locale);
     let message = post.message;
-    if (isChannelAutotranslated && translation?.state === 'ready') {
+    if (isChannelAutotranslated && post.type === '' && translation?.state === 'ready') {
         message = getPostTranslatedMessage(message, translation);
     }
 

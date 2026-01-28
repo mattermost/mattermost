@@ -1004,6 +1004,7 @@ describe('PostUtils.createAriaLabelForPost', () => {
         const testPost = TestHelper.getPostMock({
             message: 'test_message in Spanish',
             create_at: (new Date().getTime() / 1000) || 0,
+            type: '',
         });
         testPost.metadata.translations = {
             en: {
@@ -1030,6 +1031,7 @@ describe('PostUtils.createAriaLabelForPost', () => {
         const testPost = TestHelper.getPostMock({
             message: 'test_message in Spanish',
             create_at: (new Date().getTime() / 1000) || 0,
+            type: '',
         });
         testPost.metadata.translations = {
             en: {
@@ -1056,6 +1058,7 @@ describe('PostUtils.createAriaLabelForPost', () => {
         const testPost = TestHelper.getPostMock({
             message: 'test_message in Spanish',
             create_at: (new Date().getTime() / 1000) || 0,
+            type: '',
         });
         testPost.metadata.translations = {
             de: {
@@ -1074,6 +1077,61 @@ describe('PostUtils.createAriaLabelForPost', () => {
         expect(ariaLabel.indexOf('translated from')).toBe(-1);
         expect(ariaLabel.indexOf('test_message in Spanish')).not.toBe(-1);
         expect(ariaLabel.indexOf('test_message in German')).toBe(-1);
+    });
+
+    test('Should show original message if we pass autotranslated as false', () => {
+        const intl = createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'});
+
+        const testPost = TestHelper.getPostMock({
+            message: 'test_message in Spanish',
+            create_at: (new Date().getTime() / 1000) || 0,
+            type: '',
+        });
+        testPost.metadata.translations = {
+            en: {
+                object: {
+                    message: 'test_message in English',
+                },
+                state: 'ready',
+                source_lang: 'es',
+            },
+        };
+        const author = 'test_author';
+        const reactions = {};
+        const isFlagged = true;
+
+        const ariaLabel = PostUtils.createAriaLabelForPost(testPost, author, isFlagged, reactions, intl, emojiMap, users, 'nickname_full_name', false);
+        expect(ariaLabel.indexOf('translated from')).toBe(-1);
+        expect(ariaLabel.indexOf('test_message in Spanish')).not.toBe(-1);
+        expect(ariaLabel.indexOf('test_message in English')).toBe(-1);
+    });
+
+    test('Should show original message if the post type is not empty', () => {
+        const intl = createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'});
+
+        const testPost = TestHelper.getPostMock({
+            message: 'test_message in Spanish',
+            create_at: (new Date().getTime() / 1000) || 0,
+            type: 'system_autotranslation',
+        });
+        testPost.metadata.translations = {
+            en: {
+                object: {
+                    message: 'test_message in English',
+                },
+                state: 'ready',
+                source_lang: 'es',
+            },
+        };
+
+        const author = 'test_author';
+        const reactions = {};
+        const isFlagged = true;
+
+        const ariaLabel = PostUtils.createAriaLabelForPost(testPost, author, isFlagged, reactions, intl, emojiMap, users, 'nickname_full_name', false);
+        expect(ariaLabel.indexOf('translated from')).toBe(-1);
+        expect(ariaLabel.indexOf('test_message in Spanish')).not.toBe(-1);
+        expect(ariaLabel.indexOf('test_message in English')).toBe(-1);
     });
 });
 

@@ -15,6 +15,7 @@ import WithTooltip from 'components/with_tooltip';
 
 import CallButton from 'plugins/call_button';
 import ChannelHeaderPlug from 'plugins/channel_header_plug';
+import Pluggable from 'plugins/pluggable';
 import {
     Constants,
     NotificationLevels,
@@ -167,7 +168,7 @@ class ChannelHeader extends React.PureComponent<Props> {
             autotranslationMessage = (
                 <WithTooltip
                     title={this.props.intl.formatMessage({id: 'channel_header.autotranslationMessage.tooltip.title', defaultMessage: 'Auto-translation is enabled'})}
-                    hint={this.props.intl.formatMessage({id: 'channel_header.autotranslationMessage.tooltip.hint', defaultMessage: 'Message data is sent to an external service for translation'})}
+                    hint={this.props.intl.formatMessage({id: 'channel_header.autotranslationMessage.tooltip.hint', defaultMessage: 'This message is being automatically translated to your language'})}
                 >
                     <div className='autotranslation-header'>
                         <Tag
@@ -392,6 +393,11 @@ class ChannelHeader extends React.PureComponent<Props> {
                                             {channelFilesIcon}
                                         </HeaderIconWrapper>
                                     }
+                                    <Pluggable
+                                        pluggableName='ChannelHeaderIcon'
+                                        channel={channel}
+                                        channelMember={channelMember!}
+                                    />
                                 </div>
                                 <div
                                     id='channelHeaderDescription'

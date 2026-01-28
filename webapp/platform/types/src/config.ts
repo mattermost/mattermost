@@ -15,6 +15,7 @@ export type ClientConfig = {
     AppDownloadLink: string;
     AppsPluginEnabled: string;
     AsymmetricSigningPublicKey: string;
+    AutoTranslationLanguages: string;
     AvailableLocales: string;
     BannerColor: string;
     BannerText: string;
@@ -1112,13 +1113,6 @@ export type EnvironmentConfigSettings<T> = {
 export type EnvironmentConfig = {
     [P in keyof AdminConfig]: EnvironmentConfigSettings<AdminConfig[P]>;
 }
-
-export type WarnMetricStatus = {
-    id: string;
-    limit: number;
-    acked: boolean;
-    store_status: string;
-};
 
 export enum CollapsedThreads {
     DISABLED = 'disabled',

@@ -51,11 +51,6 @@ export type Props = {
     onExited: () => void;
 
     /**
-     * The id of the post the files are attached to
-     */
-    postId?: string;
-
-    /**
      * The post the files are attached to
      * Either postId or post can be passed to FilePreviewModal
      */

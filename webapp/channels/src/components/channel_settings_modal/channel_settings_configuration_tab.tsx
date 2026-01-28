@@ -34,7 +34,7 @@ type Props = {
     channel: Channel;
     setAreThereUnsavedChanges?: (unsaved: boolean) => void;
     showTabSwitchError?: boolean;
-    channelTranslationEnabled?: boolean;
+    canManageChannelTranslation?: boolean;
     canManageBanner?: boolean;
 }
 
@@ -42,7 +42,7 @@ function ChannelSettingsConfigurationTab({
     channel,
     setAreThereUnsavedChanges,
     showTabSwitchError,
-    channelTranslationEnabled,
+    canManageChannelTranslation,
     canManageBanner,
 }: Props) {
     const {formatMessage} = useIntl();
@@ -316,7 +316,7 @@ function ChannelSettingsConfigurationTab({
                 </>
             )}
 
-            {channelTranslationEnabled && (
+            {canManageChannelTranslation && (
                 <div className='channel_translation_header'>
                     <div className='channel_translation_header__text'>
                         <label

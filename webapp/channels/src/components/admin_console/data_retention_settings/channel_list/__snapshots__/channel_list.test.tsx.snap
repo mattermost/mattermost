@@ -99,7 +99,6 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
     loading={false}
     nextPage={[Function]}
     onSearch={[Function]}
-    page={0}
     previousPage={[Function]}
     rows={
       Array [
@@ -246,7 +245,6 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
     loading={false}
     nextPage={[Function]}
     onSearch={[Function]}
-    page={0}
     previousPage={[Function]}
     rows={
       Array [
