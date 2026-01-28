@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useState, useEffect, useCallback} from 'react';
 import {useIntl} from 'react-intl';
-import classNames from 'classnames';
 
 import MagnifyIcon from '@mattermost/compass-icons/components/magnify';
 
@@ -55,7 +55,7 @@ const SearchButton = (): JSX.Element => {
      */
     useEffect(() => {
         if (!isActive) {
-            return;
+            return undefined;
         }
 
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -64,7 +64,7 @@ const SearchButton = (): JSX.Element => {
             }
         };
 
-        const handleClickOutside = (e: MouseEvent) => {
+        const handleClickOutside = () => {
             // Small delay to allow the search modal click events to process
             // If search modal is closed by clicking outside, clear active state
             setTimeout(() => {
@@ -101,7 +101,7 @@ const SearchButton = (): JSX.Element => {
             isVertical={false}
         >
             <button
-                type="button"
+                type='button'
                 className={classNames('SearchButton', {
                     'SearchButton--active': isActive,
                 })}

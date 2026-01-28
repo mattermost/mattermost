@@ -17,12 +17,12 @@ import {loadRecentlyUsedCustomEmojis, migrateRecentEmojis} from 'actions/emoji_a
 import {isDevModeEnabled} from 'selectors/general';
 import {getShowLaunchingWorkspace} from 'selectors/onboarding';
 import {shouldShowAppBar} from 'selectors/plugins';
-import {isProductSidebarEnabled} from 'selectors/views/product_sidebar';
 import {
     getIsRhsExpanded,
     getIsRhsOpen,
     getRhsState,
 } from 'selectors/rhs';
+import {isProductSidebarEnabled} from 'selectors/views/product_sidebar';
 import LocalStorageStore from 'stores/local_storage_store';
 
 import {initializeProducts} from 'plugins/products';

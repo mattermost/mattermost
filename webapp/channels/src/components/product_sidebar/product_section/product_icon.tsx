@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import {Link} from 'react-router-dom';
-import classNames from 'classnames';
 
 import glyphMap from '@mattermost/compass-icons/components';
 import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
@@ -13,6 +13,7 @@ import WithTooltip from 'components/with_tooltip';
 import './product_icon.scss';
 
 export interface ProductIconProps {
+
     /**
      * Compass icon name from product.switcherIcon
      */

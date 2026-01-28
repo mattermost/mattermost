@@ -3,15 +3,15 @@
 
 .UserSection {
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
 
     // Override UserAccountMenu button styling for sidebar context
     .userAccountMenu_menuButton {
         padding: 4px;
+        border-radius: var(--radius-s, 4px);
         margin: 0;
         background: transparent;
-        border-radius: var(--radius-s, 4px);
 
         // Hover and expanded states
         &:hover,

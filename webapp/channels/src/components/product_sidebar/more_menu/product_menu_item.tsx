@@ -2,8 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
 import {useIntl} from 'react-intl';
+import {useDispatch, useSelector} from 'react-redux';
 
 import glyphMap, {CheckboxMarkedIcon, CheckboxBlankOutlineIcon} from '@mattermost/compass-icons/components';
 import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
@@ -51,9 +51,9 @@ const ProductMenuItem = ({productId, name, icon}: Props): JSX.Element => {
         },
         {
             name,
-            status: isPinned
-                ? formatMessage({id: 'product_sidebar.moreMenu.productItem.pinned', defaultMessage: 'pinned'})
-                : formatMessage({id: 'product_sidebar.moreMenu.productItem.unpinned', defaultMessage: 'unpinned'}),
+            status: isPinned ?
+                formatMessage({id: 'product_sidebar.moreMenu.productItem.pinned', defaultMessage: 'pinned'}) :
+                formatMessage({id: 'product_sidebar.moreMenu.productItem.unpinned', defaultMessage: 'unpinned'}),
         },
     );
 

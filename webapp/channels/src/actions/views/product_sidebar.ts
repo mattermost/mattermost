@@ -6,9 +6,9 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {getPinnedProductIds} from 'selectors/views/product_sidebar';
 
-import type {ActionFuncAsync} from 'types/store';
-
 import {Preferences} from 'utils/constants';
+
+import type {ActionFuncAsync} from 'types/store';
 
 /**
  * Toggles the pin state of a product in the sidebar.

@@ -4,10 +4,10 @@
 .SearchButton {
     position: relative;
     display: flex;
-    align-items: center;
-    justify-content: center;
     width: 40px;
     height: 40px;
+    align-items: center;
+    justify-content: center;
     border: none;
     border-radius: var(--radius-s, 4px);
     background: transparent;
@@ -35,14 +35,14 @@
 
         // Blue bar indicator positioned at sidebar edge
         &::before {
-            content: '';
             position: absolute;
-            left: -8px;
             top: 0;
+            left: -8px;
             width: 3px;
             height: 40px;
-            background-color: var(--button-bg);
             border-radius: 0 4px 4px 0;
+            background-color: var(--button-bg);
+            content: '';
         }
     }
 }

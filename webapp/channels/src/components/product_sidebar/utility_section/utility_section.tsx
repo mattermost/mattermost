@@ -3,8 +3,9 @@
 
 import React from 'react';
 
-import SavedButton from './saved_button';
 import MentionsButton from './mentions_button';
+import SavedButton from './saved_button';
+
 import SettingsButton from './index';
 
 import './utility_section.scss';
@@ -18,7 +19,7 @@ import './utility_section.scss';
  */
 export const UtilitySection = (): JSX.Element => {
     return (
-        <div className="UtilitySection">
+        <div className='UtilitySection'>
             <SavedButton/>
             <MentionsButton/>
             <SettingsButton/>

@@ -436,7 +436,7 @@ export default class Root extends React.PureComponent<Props, State> {
                                     pointerEvents: 'none',
                                     zIndex: -1,
                                 }}
-                                aria-hidden="true"
+                                aria-hidden='true'
                             >
                                 <NewSearch isCentered={true}/>
                             </div>

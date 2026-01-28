@@ -8,25 +8,25 @@
 
     // Menu button styling via Menu.Container
     .MoreMenuButton {
+        display: flex;
         width: 40px;
         height: 40px;
-        display: flex;
         align-items: center;
         justify-content: center;
         border: none;
-        background: transparent;
         border-radius: 8px;
-        cursor: pointer;
+        background: transparent;
         color: rgba(var(--sidebar-text-rgb), 0.72);
+        cursor: pointer;
 
         &:hover {
-            color: var(--sidebar-text);
             background: rgba(var(--sidebar-text-rgb), 0.08);
+            color: var(--sidebar-text);
         }
 
         &[aria-expanded="true"] {
-            color: var(--sidebar-text);
             background: rgba(var(--sidebar-text-rgb), 0.16);
+            color: var(--sidebar-text);
         }
     }
 }
@@ -49,8 +49,8 @@
         padding: 6px 16px;
         font-family: 'Open Sans', sans-serif;
         font-size: 14px;
-        line-height: 20px;
         gap: 6px;
+        line-height: 20px;
     }
 
     .MuiDivider-root {
@@ -60,10 +60,10 @@
     // System items have gray 16x16 icons in 24x24 container with 4px padding
     &__systemIcon {
         display: flex;
-        align-items: center;
-        justify-content: center;
         width: 24px;
         height: 24px;
+        align-items: center;
+        justify-content: center;
         padding: 4px;
         color: rgba(var(--center-channel-color-rgb), 1);
 

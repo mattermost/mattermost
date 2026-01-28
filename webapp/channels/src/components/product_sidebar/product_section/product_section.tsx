@@ -9,9 +9,9 @@ import {getPinnedProductIds} from 'selectors/views/product_sidebar';
 
 import {useProducts, useCurrentProductId, isChannels} from 'utils/products';
 
-import {MoreMenu} from '../more_menu';
-
 import ProductIcon from './product_icon';
+
+import {MoreMenu} from '../more_menu';
 
 import './product_section.scss';
 

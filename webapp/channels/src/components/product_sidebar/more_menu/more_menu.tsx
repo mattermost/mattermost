@@ -158,7 +158,7 @@ const MoreMenu = (): JSX.Element => {
                     <ProductMenuItem
                         key={product.id}
                         productId={product.id}
-                        name={product.switcherText}
+                        name={String(product.switcherText || '')}
                         icon={product.switcherIcon}
                     />
                 ))}

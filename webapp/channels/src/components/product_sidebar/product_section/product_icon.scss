@@ -4,10 +4,10 @@
 .ProductIcon {
     position: relative;
     display: flex;
-    align-items: center;
-    justify-content: center;
     width: 40px;
     height: 40px;
+    align-items: center;
+    justify-content: center;
     border-radius: var(--radius-s, 4px);
     cursor: pointer;
     transition: background-color 150ms ease;
@@ -15,10 +15,10 @@
     // Link reset - full coverage of the icon container
     a {
         display: flex;
-        align-items: center;
-        justify-content: center;
         width: 100%;
         height: 100%;
+        align-items: center;
+        justify-content: center;
         color: inherit;
         text-decoration: none;
     }
@@ -34,14 +34,14 @@
 
         // Blue bar indicator positioned at sidebar edge
         &::before {
-            content: '';
             position: absolute;
-            left: -8px;
             top: 0;
+            left: -8px;
             width: 3px;
             height: 40px;
-            background-color: var(--button-bg);
             border-radius: 0 4px 4px 0;
+            background-color: var(--button-bg);
+            content: '';
         }
     }
 }

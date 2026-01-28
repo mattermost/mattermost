@@ -49,16 +49,16 @@ const SettingsButton = (props: Props): JSX.Element => {
             isVertical={false}
         >
             <button
-                type="button"
-                id="sidebar_settings_button"
-                className="UtilityButton"
+                type='button'
+                id='sidebar_settings_button'
+                className='UtilityButton'
                 onClick={handleClick}
-                aria-haspopup="dialog"
+                aria-haspopup='dialog'
                 aria-label={formatMessage({id: 'global_header.productSettings', defaultMessage: 'Settings'})}
             >
                 <CogOutlineIcon
                     size={20}
-                    color="rgba(var(--sidebar-text-rgb), 0.64)"
+                    color='rgba(var(--sidebar-text-rgb), 0.64)'
                 />
             </button>
         </WithTooltip>

@@ -36,7 +36,7 @@ export const getPinnedProductIds = createSelector(
     (pinnedPreference: string, products): string[] => {
         // If preference exists and has a value, parse comma-separated IDs
         if (pinnedPreference && pinnedPreference.trim()) {
-            return pinnedPreference.split(',').map(id => id.trim()).filter(Boolean);
+            return pinnedPreference.split(',').map((id) => id.trim()).filter(Boolean);
         }
 
         // Default pinning logic for first-time users

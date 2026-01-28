@@ -3,50 +3,50 @@
 
 .TeamAvatar {
     position: relative;
+    overflow: visible;
     width: 40px;
     height: 40px;
     border-radius: 8px;
-    overflow: visible;
 
     // Override TeamIcon sizing to match design specs (40px, 8px radius)
     .TeamIcon {
         width: 40px;
-        height: 40px;
         min-width: 40px;
+        height: 40px;
         min-height: 40px;
-        border-radius: 8px;
         border: none;
+        border-radius: 8px;
         background: linear-gradient(rgba(var(--sidebar-text-rgb), 0.16), rgba(var(--sidebar-text-rgb), 0.16)), var(--sidebar-bg);
 
         .TeamIcon__content {
+            display: flex;
             width: 40px;
             height: 40px;
-            border-radius: 8px;
-            display: flex;
             align-items: center;
             justify-content: center;
+            border-radius: 8px;
         }
 
         .TeamIcon__image {
             width: 40px;
-            height: 40px;
             min-width: 40px;
+            height: 40px;
             min-height: 40px;
             border-radius: 8px;
         }
 
         .TeamIcon__initials {
-            width: 40px;
-            height: 40px;
-            min-width: 40px;
-            min-height: 40px;
-            border-radius: 8px;
-            font-size: 18px;
-            line-height: 40px;
             display: flex;
+            width: 40px;
+            min-width: 40px;
+            height: 40px;
+            min-height: 40px;
             align-items: center;
             justify-content: center;
+            border-radius: 8px;
             color: var(--sidebar-text);
+            font-size: 18px;
+            line-height: 40px;
         }
     }
 
@@ -70,28 +70,28 @@
     &--stacked {
         // First shadow layer (behind avatar)
         &::before {
-            content: '';
             position: absolute;
-            width: 32px;
-            height: 32px;
-            background-color: rgba(255, 255, 255, 0.16);
-            border-radius: 6px;
+            z-index: -1;
             bottom: -4px;
             left: 4px;
-            z-index: -1;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            background-color: rgba(255, 255, 255, 0.16);
+            content: '';
         }
 
         // Second shadow layer (furthest back)
         &::after {
-            content: '';
             position: absolute;
-            width: 24px;
-            height: 24px;
-            background-color: rgba(255, 255, 255, 0.08);
-            border-radius: 4px;
+            z-index: -2;
             bottom: -8px;
             left: 8px;
-            z-index: -2;
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            background-color: rgba(255, 255, 255, 0.08);
+            content: '';
         }
     }
 }

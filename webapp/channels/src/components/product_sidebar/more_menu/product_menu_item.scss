@@ -3,8 +3,8 @@
 
 .ProductMenuItem {
     display: flex;
-    align-items: center;
     height: 36px;
+    align-items: center;
     padding: 6px 16px;
     cursor: pointer;
     // 16px gap between checkbox and content per Figma
@@ -15,8 +15,8 @@
     }
 
     &:focus {
-        outline: none;
         background: rgba(var(--center-channel-color-rgb), 0.08);
+        outline: none;
     }
 
     &:focus-visible {
@@ -26,36 +26,36 @@
     // Content wrapper for icon + name with 6px gap
     &__content {
         display: flex;
+        flex: 1;
         align-items: center;
         gap: 6px;
-        flex: 1;
     }
 
     &__checkbox {
         display: flex;
-        align-items: center;
-        justify-content: center;
         width: 16px;
         height: 16px;
         flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
         color: rgba(var(--center-channel-color-rgb), 0.24);
     }
 
     &__icon {
         display: flex;
-        align-items: center;
-        justify-content: center;
         width: 24px;
         height: 24px;
         flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
     }
 
     &__name {
+        // Small left padding per Figma (px-[4px] on Top Row)
+        padding-left: 4px;
+        color: var(--center-channel-color);
         font-family: 'Open Sans', sans-serif;
         font-size: 14px;
         line-height: 20px;
-        color: var(--center-channel-color);
-        // Small left padding per Figma (px-[4px] on Top Row)
-        padding-left: 4px;
     }
 }

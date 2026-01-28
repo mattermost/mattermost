@@ -3,8 +3,8 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {useSelector} from 'react-redux';
 import {useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import {getIsLhsOpen} from 'selectors/lhs';
 import {getIsMobileView} from 'selectors/views/browser';
@@ -33,17 +33,17 @@ const ProductSidebar = (): JSX.Element | null => {
             className={classNames('ProductSidebar', {
                 'move--right': isLhsOpen && isMobileView,
             })}
-            role="navigation"
+            role='navigation'
             aria-label={formatMessage({id: 'product_sidebar.ariaLabel', defaultMessage: 'Product sidebar'})}
         >
-            <div className="ProductSidebar__topSection">
-                <TeamSection />
-                <SearchButton />
-                <ProductSection />
+            <div className='ProductSidebar__topSection'>
+                <TeamSection/>
+                <SearchButton/>
+                <ProductSection/>
             </div>
-            <div className="ProductSidebar__bottomSection">
-                <UtilitySection />
-                <UserSection />
+            <div className='ProductSidebar__bottomSection'>
+                <UtilitySection/>
+                <UserSection/>
             </div>
         </nav>
     );

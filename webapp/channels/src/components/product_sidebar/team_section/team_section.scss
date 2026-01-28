@@ -24,9 +24,9 @@
         background: transparent;
 
         &:focus-visible {
+            border-radius: 8px;
             outline: 2px solid var(--button-bg);
             outline-offset: 2px;
-            border-radius: 8px;
         }
     }
 
@@ -40,9 +40,9 @@
         // Override MuiPaper styling for the menu container
         &.MuiPopover-paper,
         .MuiPaper-root {
-            background: var(--center-channel-bg, white);
             border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
             border-radius: 4px;
+            background: var(--center-channel-bg, white);
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
         }
 
@@ -53,46 +53,46 @@
 
         // Menu item styling - override MUI defaults
         .MuiMenuItem-root {
+            min-height: unset;
             padding: 6px 16px;
             gap: 6px;
-            min-height: unset;
 
             // Leading element (team icon wrapper) - add left padding per Figma
             > .leading-element {
                 width: auto;
                 height: auto;
-                margin-inline-end: 0;
                 padding-left: 4px;
+                margin-inline-end: 0;
             }
 
             // Label styling - override MUI defaults
             > .label-elements {
+                padding: 2px 4px;
                 gap: 4px;
                 line-height: 20px;
-                padding: 2px 4px;
 
                 > :first-child,
                 > :only-child {
+                    color: var(--center-channel-color, #3f4350);
                     font-family: 'Open Sans', sans-serif;
                     font-size: 14px;
                     font-weight: 400;
                     line-height: 20px;
-                    color: var(--center-channel-color, #3f4350);
                 }
             }
 
             // Trailing element (checkmark) wrapper
             > .trailing-elements {
-                margin-inline-start: 0;
                 padding: 4px;
+                margin-inline-start: 0;
             }
         }
 
         // Team icon sizing within menu items (24px) - override base TeamIcon styles for menu context
         .TeamIcon {
             width: 24px !important;
-            height: 24px !important;
             min-width: 24px;
+            height: 24px !important;
             min-height: 24px;
             border: none !important;
             border-radius: 4px !important;
@@ -112,31 +112,31 @@
 
             .TeamIcon__image {
                 width: 24px;
-                height: 24px;
                 min-width: 24px;
+                height: 24px;
                 min-height: 24px;
                 border-radius: 4px;
             }
 
             .TeamIcon__initials {
                 width: 24px;
-                height: 24px;
                 min-width: 24px;
+                height: 24px;
                 min-height: 24px;
-                font-size: 11.2px;
-                line-height: 24px;
                 border-radius: 4px;
                 color: var(--center-channel-color, #3f4350);
                 font-family: 'Metropolis', sans-serif;
+                font-size: 11.2px;
                 font-weight: 600;
+                line-height: 24px;
             }
         }
     }
 
     // Checkmark icon for current team - blue color from Figma
     &__checkIcon {
-        color: rgba(28, 88, 217, 1);
         width: 16px;
         height: 16px;
+        color: rgba(28, 88, 217, 1);
     }
 }

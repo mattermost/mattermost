@@ -28,6 +28,7 @@ import type {PropsFromRedux} from './index';
 import './user_account_menu.scss';
 
 type Props = PropsFromRedux & {
+
     // Optional positioning props for different contexts (e.g., sidebar vs header)
     anchorOrigin?: {
         vertical: 'top' | 'bottom';
