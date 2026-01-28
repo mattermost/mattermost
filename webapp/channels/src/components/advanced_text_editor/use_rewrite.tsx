@@ -55,7 +55,7 @@ const useRewrite = (
             setLastAction(action);
         }
 
-        const promise = Client4.getAIRewrittenMessage(selectedAgentId, draft.message, action, prompt);
+        const promise = Client4.getAIRewrittenMessage(selectedAgentId, draft.message, action, prompt, draft.rootId);
         currentPromiseRef.current = promise;
 
         try {
@@ -83,12 +83,13 @@ const useRewrite = (
                 currentPromiseRef.current = undefined;
             }
         }
-    }, [draft, handleDraftChange, isProcessing, setServerError, selectedAgentId]);
+    }, [draft, handleDraftChange, isProcessing, selectedAgentId, setServerError]);
 
     const resetState = useCallback(() => {
         setOriginalMessage('');
         setLastAction(RewriteAction.CUSTOM);
         setPrompt('');
+        setLastPrompt('');
     }, []);
 
     const undoMessage = useCallback(() => {
@@ -98,7 +99,7 @@ const useRewrite = (
         }, {instant: true});
         focusTextbox();
         resetState();
-    }, [draft, handleDraftChange, originalMessage, focusTextbox, resetState]);
+    }, [draft, focusTextbox, handleDraftChange, originalMessage, resetState]);
 
     const regenerateMessage = useCallback(() => {
         setPrompt(lastPrompt);
@@ -109,7 +110,7 @@ const useRewrite = (
         if (lastAction) {
             handleRewrite(lastAction, lastAction === RewriteAction.CUSTOM ? lastPrompt : undefined);
         }
-    }, [draft, handleRewrite, originalMessage, lastAction, lastPrompt, handleDraftChange]);
+    }, [draft, handleDraftChange, handleRewrite, lastAction, lastPrompt, originalMessage]);
 
     const cancelProcessing = useCallback(() => {
         setIsProcessing(false);
@@ -147,12 +148,6 @@ const useRewrite = (
             customPromptRef.current?.focus();
         }
     }, [isMenuOpen, draft.message]);
-
-    useEffect(() => {
-        if (!isProcessing && draft.message.trim() && lastAction) {
-            resetState();
-        }
-    }, [draft.message]);
 
     // This adds an overlay to the textbox to
     // indicate that the AI is rewriting the message.
