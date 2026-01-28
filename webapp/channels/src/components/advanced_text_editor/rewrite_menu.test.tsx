@@ -57,12 +57,13 @@ jest.mock('components/common/agents/agent_dropdown', () => ({
 
 jest.mock('components/widgets/inputs/input/input', () => {
     const React = require('react');
-    const ForwardRefComponent = React.forwardRef(({placeholder, value, onChange, onKeyDown, disabled, inputPrefix}: any, ref: any) => (
+    const ForwardRefComponent = React.forwardRef(({placeholder, label, value, onChange, onKeyDown, disabled, inputPrefix}: any, ref: any) => (
         <div data-testid='prompt-input'>
             {inputPrefix}
             <input
                 ref={ref}
                 placeholder={placeholder}
+                data-label={label}
                 value={value}
                 onChange={onChange}
                 onKeyDown={onKeyDown}
@@ -304,6 +305,7 @@ describe('RewriteMenu', () => {
         );
         let input = screen.getByTestId('prompt-input-field');
         expect(input).toHaveAttribute('placeholder', 'Ask AI to edit message...');
+        expect(input).toHaveAttribute('data-label', 'Ask AI to edit message...');
 
         rerender(
             <RewriteMenu
@@ -313,6 +315,7 @@ describe('RewriteMenu', () => {
         );
         input = screen.getByTestId('prompt-input-field');
         expect(input).toHaveAttribute('placeholder', 'Create a new message...');
+        expect(input).toHaveAttribute('data-label', 'Create a new message...');
 
         rerender(
             <RewriteMenu
@@ -323,6 +326,7 @@ describe('RewriteMenu', () => {
         );
         input = screen.getByTestId('prompt-input-field');
         expect(input).toHaveAttribute('placeholder', 'What would you like AI to do next?');
+        expect(input).toHaveAttribute('data-label', 'What would you like AI to do next?');
     });
 
     test('should not render agent dropdown when processing', () => {
@@ -348,4 +352,3 @@ describe('RewriteMenu', () => {
         expect(setSelectedAgentId).toHaveBeenCalledWith('agent2');
     });
 });
-
