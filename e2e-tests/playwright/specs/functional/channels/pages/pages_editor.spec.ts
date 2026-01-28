@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import path from 'path';
+
 import {expect, test} from './pages_test_fixture';
 import {
     buildChannelUrl,
@@ -13,6 +15,7 @@ import {
     getPageViewerContent,
     openPageLinkModal,
     openPageLinkModalViaButton,
+    openSlashCommandMenu,
     waitForPageInHierarchy,
     fillCreatePageModal,
     typeInEditor,
@@ -21,6 +24,7 @@ import {
     selectTextInEditor,
     clickPageEditButton,
     loginAndNavigateToChannel,
+    AUTOSAVE_WAIT,
     SHORT_WAIT,
     EDITOR_LOAD_WAIT,
     ELEMENT_TIMEOUT,
@@ -2074,3 +2078,88 @@ test('hyperlinks selected text to external URL', {tag: '@pages'}, async ({pw, sh
     const href = await externalLink.getAttribute('href');
     expect(href).toBe('https://docs.mattermost.com');
 });
+
+const UPLOAD_TIMEOUT = 15000; // Timeout for image upload to complete
+
+/**
+ * @objective Verify image upload shows placeholder with spinner during upload, then replaces with actual image
+ */
+test(
+    'shows image placeholder during upload via slash command then replaces with image',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await createTestChannel(adminClient, team.id, `Image Upload Test ${await pw.random.id()}`);
+
+        const {page, channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
+
+        // # Create wiki and get into edit mode
+        await createWikiThroughUI(page, `Image Upload Wiki ${await pw.random.id()}`);
+
+        // # Wait for editor to be ready
+        const editor = await getEditorAndWait(page);
+
+        // # Focus editor
+        await editor.click();
+
+        // # Open slash command menu
+        const slashMenu = await openSlashCommandMenu(page);
+
+        // # Type to filter to image upload option
+        await page.keyboard.type('image');
+        await page.waitForTimeout(SHORT_WAIT);
+
+        // # Find the upload image option
+        const imageOption = slashMenu.locator('.slash-command-item').filter({hasText: 'Image'}).first();
+        await expect(imageOption).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+        // # Set up file chooser handler before clicking
+        const fileChooserPromise = page.waitForEvent('filechooser', {timeout: ELEMENT_TIMEOUT});
+
+        // # Click on Image option to trigger file picker
+        await imageOption.click();
+
+        // # Handle file chooser with the test image
+        const fileChooser = await fileChooserPromise;
+        const testImagePath = path.join(__dirname, '../../../../asset/mattermost-icon_128x128.png');
+        await fileChooser.setFiles(testImagePath);
+
+        // * Verify either placeholder or final image appears (upload may complete quickly)
+        const placeholder = editor.locator('.wiki-image-placeholder');
+        const uploadedImage = editor.locator('img[src*="/api/v4/files/"]');
+
+        // Wait for either placeholder or image to appear
+        await expect(placeholder.or(uploadedImage)).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+        // * If placeholder is visible, verify it has the expected structure
+        const placeholderVisible = await placeholder.isVisible();
+        if (placeholderVisible) {
+            // Verify placeholder has aspect-ratio style
+            const placeholderStyle = await placeholder.getAttribute('style');
+            expect(placeholderStyle).toContain('aspect-ratio');
+
+            // Wait for upload to complete and placeholder to be replaced
+            await expect(placeholder).not.toBeVisible({timeout: UPLOAD_TIMEOUT});
+        }
+
+        // * Verify actual image is now in the editor
+        await expect(uploadedImage).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+        // * Verify image has correct source (pointing to files API)
+        const imageSrc = await uploadedImage.getAttribute('src');
+        expect(imageSrc).toMatch(/\/api\/v4\/files\/[a-z0-9]+/i);
+
+        // # Wait for auto-save
+        await page.waitForTimeout(AUTOSAVE_WAIT);
+
+        // # Reload and verify image persisted
+        await page.reload();
+        await page.waitForLoadState('networkidle');
+
+        const editorAfterReload = await getEditorAndWait(page);
+        const imageAfterReload = editorAfterReload.locator('img[src*="/api/v4/files/"]');
+        await expect(imageAfterReload).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    },
+);

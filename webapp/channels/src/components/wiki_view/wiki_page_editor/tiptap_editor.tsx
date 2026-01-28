@@ -33,6 +33,7 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getAssociatedGroupsForReference} from 'mattermost-redux/selectors/entities/groups';
 import {getCurrentTeam, getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getEmojiName, isSystemEmoji} from 'mattermost-redux/utils/emoji_utils';
+import {getFileUrl} from 'mattermost-redux/utils/file_utils';
 
 import {autocompleteChannels} from 'actions/channel_actions';
 import {autocompleteUsersInChannel} from 'actions/views/channel';
@@ -79,6 +80,7 @@ import FileAttachment from './file_attachment_extension';
 import {uploadMediaForEditor, validateFile, isVideoFile, isMediaFile} from './file_upload_helper';
 import type {ImageAIAction} from './formatting_bar_bubble';
 import FormattingBarBubble from './formatting_bar_bubble';
+import ImagePlaceholder from './image_placeholder_extension';
 import InlineCommentExtension from './inline_comment_extension';
 import InlineCommentToolbar from './inline_comment_toolbar';
 import {createMMentionSuggestion} from './mention_mm_bridge';
@@ -89,6 +91,32 @@ import Video from './video_extension';
 
 import './tiptap_editor.scss';
 import 'components/advanced_text_editor/use_rewrite.scss';
+
+/**
+ * Gets the dimensions of an image file.
+ * Returns a promise that resolves to {width, height}.
+ * Falls back to default dimensions if the image cannot be loaded.
+ */
+const DEFAULT_IMAGE_WIDTH = 600;
+const DEFAULT_IMAGE_HEIGHT = 400;
+const DEFAULT_VIDEO_WIDTH = 640;
+const DEFAULT_VIDEO_HEIGHT = 360;
+
+function getImageDimensions(file: File): Promise<{width: number; height: number}> {
+    return new Promise((resolve) => {
+        const img = document.createElement('img');
+        const objectUrl = URL.createObjectURL(file);
+        img.onload = () => {
+            resolve({width: img.naturalWidth, height: img.naturalHeight});
+            URL.revokeObjectURL(objectUrl);
+        };
+        img.onerror = () => {
+            resolve({width: DEFAULT_IMAGE_WIDTH, height: DEFAULT_IMAGE_HEIGHT});
+            URL.revokeObjectURL(objectUrl);
+        };
+        img.src = objectUrl;
+    });
+}
 
 /**
  * Checks if an image URL is external and needs to be re-hosted.
@@ -480,47 +508,17 @@ const TipTapEditor = ({
             return;
         }
 
-        try {
-            await uploadMediaForEditor({
-                file,
-                channelId: channelId || '',
-                onSuccess: (result) => {
-                    const fileUrl = `/api/v4/files/${result.fileInfo.id}`;
+        const isVideo = isVideoFile(file);
+        const isImage = isMediaFile(file);
 
-                    if (isVideoFile(file)) {
-                        // Insert video node
-                        const videoAttrs = {
-                            src: fileUrl,
-                            title: file.name,
-                        };
-
-                        if (position === undefined) {
-                            currentEditor.chain().focus().setVideo(videoAttrs).run();
-                        } else {
-                            currentEditor.chain().insertContentAt(position, {
-                                type: 'video',
-                                attrs: videoAttrs,
-                            }).focus().run();
-                        }
-                    } else if (isMediaFile(file)) {
-                        // Insert image node
-                        const imageAttrs = {
-                            src: fileUrl,
-                            alt: file.name,
-                            title: file.name,
-                            filename: file.name,
-                        };
-
-                        if (position === undefined) {
-                            currentEditor.chain().focus().insertContent({type: 'imageResize', attrs: imageAttrs}).run();
-                        } else {
-                            currentEditor.chain().insertContentAt(position, {
-                                type: 'imageResize',
-                                attrs: imageAttrs,
-                            }).focus().run();
-                        }
-                    } else {
-                        // Insert file attachment node for non-media files
+        if (!isVideo && !isImage) {
+            // Non-media file: use existing file attachment flow (no placeholder needed)
+            try {
+                await uploadMediaForEditor({
+                    file,
+                    channelId: channelId || '',
+                    onSuccess: (result) => {
+                        const fileUrl = getFileUrl(result.fileInfo.id);
                         const fileAttrs = {
                             fileId: result.fileInfo.id,
                             fileName: result.fileInfo.name,
@@ -537,11 +535,61 @@ const TipTapEditor = ({
                                 attrs: fileAttrs,
                             }).focus().run();
                         }
-                    }
+                    },
+                }, dispatch);
+            } catch {
+                // Primary error handling is in uploadMediaForEditor
+            }
+            return;
+        }
+
+        // Media file (image/video): use placeholder during upload
+        const dimensions = isVideo ?
+            {width: DEFAULT_VIDEO_WIDTH, height: DEFAULT_VIDEO_HEIGHT} :
+            await getImageDimensions(file);
+
+        const uploadId = generateId();
+
+        const placeholderAttrs = {
+            ...dimensions,
+            uploadId,
+            fileName: file.name,
+            isVideo,
+        };
+
+        if (position === undefined) {
+            currentEditor.commands.insertImagePlaceholder(placeholderAttrs);
+        } else {
+            currentEditor.chain().insertContentAt(position, {
+                type: 'imagePlaceholder',
+                attrs: placeholderAttrs,
+            }).run();
+        }
+
+        try {
+            await uploadMediaForEditor({
+                file,
+                channelId: channelId || '',
+                onSuccess: (result) => {
+                    const fileUrl = getFileUrl(result.fileInfo.id);
+
+                    const newAttrs = isVideo ?
+                        {src: fileUrl, title: file.name} :
+                        {src: fileUrl, alt: file.name, title: file.name, filename: file.name};
+
+                    const newType = isVideo ? 'video' : 'imageResize';
+
+                    currentEditor.commands.replaceImagePlaceholder(uploadId, {
+                        type: newType,
+                        attrs: newAttrs,
+                    });
+                },
+                onError: () => {
+                    currentEditor.commands.removeImagePlaceholder(uploadId);
                 },
             }, dispatch);
         } catch {
-            // Primary error handling is in uploadMediaForEditor
+            currentEditor.commands.removeImagePlaceholder(uploadId);
         }
     }, [maxFileSize, intl, channelId, dispatch]);
 
@@ -748,6 +796,11 @@ const TipTapEditor = ({
             FileAttachment.configure({
                 HTMLAttributes: {
                     class: 'wiki-file-attachment',
+                },
+            }),
+            ImagePlaceholder.configure({
+                HTMLAttributes: {
+                    class: 'wiki-image-placeholder',
                 },
             }),
             InlineCommentExtension.configure({
@@ -974,7 +1027,7 @@ const TipTapEditor = ({
                                                                                 command(({tr}) => {
                                                                                     tr.setNodeMarkup(pos, undefined, {
                                                                                         ...node.attrs,
-                                                                                        src: `/api/v4/files/${result.fileInfo.id}`,
+                                                                                        src: getFileUrl(result.fileInfo.id),
                                                                                     });
                                                                                     return true;
                                                                                 }).

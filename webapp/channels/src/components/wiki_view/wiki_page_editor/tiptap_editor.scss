@@ -201,16 +201,16 @@
                 line-height: 1.4;
             }
 
-            // Content wrapper - reset margins for nested content
-            > * {
+            // Content wrapper - contains paragraphs stacked vertically
+            .callout-content {
                 min-width: 0;
                 flex: 1;
 
-                &:first-child {
+                > *:first-child {
                     margin-top: 0;
                 }
 
-                &:last-child {
+                > *:last-child {
                     margin-bottom: 0;
                 }
             }

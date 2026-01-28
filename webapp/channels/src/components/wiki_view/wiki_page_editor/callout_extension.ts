@@ -63,7 +63,7 @@ const Callout = Node.create({
             class: `callout callout-${type}`,
             role,
             'aria-label': CALLOUT_ARIA_LABELS[type],
-        }), 0];
+        }), ['div', {class: 'callout-content'}, 0]];
     },
 
     addCommands() {
