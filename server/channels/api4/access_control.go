@@ -382,9 +382,19 @@ func searchAccessControlPolicies(c *Context, w http.ResponseWriter, r *http.Requ
 	}
 }
 
+// updateActiveStatus updates the active status of a single access control policy.
+//
+// Deprecated: This endpoint is deprecated and will be removed in a future release.
+// Use PUT /api/v4/access_control/policies/activate instead, which supports batch updates.
 func updateActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
 	if c.Err != nil {
+		return
+	}
+
+	// CSRF barrier: only allow header-based auth (reject cookie-only sessions)
+	if r.Header.Get(model.HeaderAuth) == "" {
+		c.SetInvalidParam("Authorization")
 		return
 	}
 
@@ -416,7 +426,11 @@ func updateActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	model.AddEventParameterToAuditRec(auditRec, "active", activeBool)
 
-	appErr := c.App.UpdateAccessControlPolicyActive(c.AppContext, policyID, activeBool)
+	// Wrap single update in slice to use the batch update method
+	updates := []model.AccessControlPolicyActiveUpdate{
+		{ID: policyID, Active: activeBool},
+	}
+	_, appErr := c.App.UpdateAccessControlPoliciesActive(c.AppContext, updates)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -429,6 +443,9 @@ func updateActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		"status": "OK",
 	}
 
+	// Set deprecation header to inform clients
+	w.Header().Set("Deprecation", "true")
+	w.Header().Set("Link", "</api/v4/access_control/policies/activate>; rel=\"successor-version\"")
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -446,12 +463,13 @@ func setActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "requested", &list)
 
-	// Check if user has system admin permission OR channel-specific permission for this policy
+	// Check if user has system admin permission OR policy-specific permission
 	hasManageSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 	if !hasManageSystemPermission {
 		for _, entry := range list.Entries {
-			hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, entry.ID, model.PermissionManageChannelAccessRules)
-			if !hasChannelPermission {
+			// Validate policy access permission - this fetches the policy first to verify it exists
+			// and is a channel-type policy before checking channel permissions
+			if appErr := c.App.ValidateAccessControlPolicyPermission(c.AppContext, c.AppContext.Session().UserId, entry.ID); appErr != nil {
 				c.SetPermissionError(model.PermissionManageChannelAccessRules)
 				return
 			}
