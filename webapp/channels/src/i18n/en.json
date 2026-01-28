@@ -7240,6 +7240,8 @@
   "wiki.file_attachment.remove_attachment": "Remove attachment",
   "wiki.file_attachment.unknown": "Unknown file",
   "wiki.file_attachment.uploading": "Uploading...",
+  "wiki.image_placeholder.uploading_image": "Uploading image...",
+  "wiki.image_placeholder.uploading_video": "Uploading video...",
   "wiki.outline.no_headings": "No headings in this page",
   "wiki.page_title_label": "Page title",
   "wiki.page_title_placeholder": "Untitled page...",
