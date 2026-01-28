@@ -10,6 +10,10 @@ import chalk from 'chalk';
 
 const MATTERMOST_URL_PATTERN = /https?:\/\/[^"'\s<>()]*mattermost\.com[^"'\s<>()]*/g;
 
+const MAIN_DOMAIN_PATTERN = /^https?:\/\/(www\.)?mattermost\.com(\/|$)/;
+
+const PERMALINK_PATTERN = /^https?:\/\/(www\.)?mattermost\.com\/pl\//;
+
 const SOURCE_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx'];
 
 const DIRECTORIES_TO_SCAN = [
@@ -89,6 +93,37 @@ function findAllMattermostUrls(rootDir, excludeTests = true) {
     return urlMap;
 }
 
+function validatePermalink(url) {
+    if (!MAIN_DOMAIN_PATTERN.test(url)) {
+        return {valid: true};
+    }
+
+    if (PERMALINK_PATTERN.test(url)) {
+        return {valid: true};
+    }
+
+    const urlObj = new URL(url);
+    if (urlObj.pathname === '/' || urlObj.pathname === '') {
+        return {valid: true};
+    }
+
+    return {
+        valid: false,
+        reason: 'mattermost.com links must use /pl/ permalink format',
+    };
+}
+
+function findNonPermalinkUrls(urlMap) {
+    const invalid = [];
+    for (const [url, files] of urlMap) {
+        const result = validatePermalink(url);
+        if (!result.valid) {
+            invalid.push({url, files, reason: result.reason});
+        }
+    }
+    return invalid;
+}
+
 async function checkUrl(url, retries = 2) {
     for (let attempt = 0; attempt <= retries; attempt++) {
         try {
@@ -151,66 +186,108 @@ async function checkUrls(urls, concurrency = 5, silentProgress = false) {
     return results;
 }
 
-function printResults(results, urlMap) {
+function printResults(results, urlMap, nonPermalinkUrls) {
     const broken = results.filter((r) => !r.ok);
     const working = results.filter((r) => r.ok);
+    const hasErrors = broken.length > 0 || nonPermalinkUrls.length > 0;
 
     console.log('\n' + chalk.bold('=== External Link Check Results ===\n'));
 
-    if (broken.length === 0) {
-        console.log(chalk.green.bold(`✓ All ${working.length} mattermost.com URLs are accessible\n`));
+    if (!hasErrors) {
+        console.log(chalk.green.bold(`✓ All ${working.length} mattermost.com URLs are valid and accessible\n`));
         return 0;
     }
 
     console.log(chalk.green(`✓ ${working.length} URLs are accessible`));
-    console.log(chalk.red(`✗ ${broken.length} URLs are broken\n`));
+    if (broken.length > 0) {
+        console.log(chalk.red(`✗ ${broken.length} URLs are broken`));
+    }
+    if (nonPermalinkUrls.length > 0) {
+        console.log(chalk.red(`✗ ${nonPermalinkUrls.length} URLs are not using permalink format`));
+    }
+    console.log();
 
-    console.log(chalk.red.bold('Broken URLs:\n'));
-
-    for (const result of broken) {
-        const statusText = result.error ? `Error: ${result.error}` : `HTTP ${result.status}`;
-        console.log(chalk.red(`  ${result.url}`));
-        console.log(chalk.gray(`    Status: ${statusText}`));
-        console.log(chalk.gray(`    Found in:`));
-        for (const file of urlMap.get(result.url)) {
-            console.log(chalk.gray(`      - ${file}`));
+    if (broken.length > 0) {
+        console.log(chalk.red.bold('Broken URLs:\n'));
+        for (const result of broken) {
+            const statusText = result.error ? `Error: ${result.error}` : `HTTP ${result.status}`;
+            console.log(chalk.red(`  ${result.url}`));
+            console.log(chalk.gray(`    Status: ${statusText}`));
+            console.log(chalk.gray(`    Found in:`));
+            for (const file of urlMap.get(result.url)) {
+                console.log(chalk.gray(`      - ${file}`));
+            }
+            console.log();
         }
-        console.log();
+    }
+
+    if (nonPermalinkUrls.length > 0) {
+        console.log(chalk.red.bold('URLs not using permalink format:\n'));
+        console.log(chalk.gray('  mattermost.com links must use /pl/ prefix (e.g., https://mattermost.com/pl/pricing)\n'));
+        for (const item of nonPermalinkUrls) {
+            console.log(chalk.red(`  ${item.url}`));
+            console.log(chalk.gray(`    Found in:`));
+            for (const file of item.files) {
+                console.log(chalk.gray(`      - ${file}`));
+            }
+            console.log();
+        }
     }
 
     return 1;
 }
 
-function generateMarkdownSummary(results, urlMap) {
+function generateMarkdownSummary(results, urlMap, nonPermalinkUrls) {
     const broken = results.filter((r) => !r.ok);
     const working = results.filter((r) => r.ok);
+    const hasErrors = broken.length > 0 || nonPermalinkUrls.length > 0;
 
     const lines = [];
 
     lines.push('## External Link Check Results\n');
 
-    if (broken.length === 0) {
-        lines.push(`✅ **All ${working.length} mattermost.com URLs are accessible**\n`);
+    if (!hasErrors) {
+        lines.push(`✅ **All ${working.length} mattermost.com URLs are valid and accessible**\n`);
         return lines.join('\n');
     }
 
     lines.push(`| Status | Count |`);
     lines.push(`|--------|-------|`);
     lines.push(`| ✅ Working | ${working.length} |`);
-    lines.push(`| ❌ Broken | ${broken.length} |`);
+    if (broken.length > 0) {
+        lines.push(`| ❌ Broken | ${broken.length} |`);
+    }
+    if (nonPermalinkUrls.length > 0) {
+        lines.push(`| ⚠️ Missing /pl/ prefix | ${nonPermalinkUrls.length} |`);
+    }
     lines.push('');
 
-    lines.push('### Broken URLs\n');
-    lines.push('| URL | Status | Files |');
-    lines.push('|-----|--------|-------|');
+    if (broken.length > 0) {
+        lines.push('### Broken URLs\n');
+        lines.push('| URL | Status | Files |');
+        lines.push('|-----|--------|-------|');
 
-    for (const result of broken) {
-        const statusText = result.error ? `Error: ${result.error}` : `HTTP ${result.status}`;
-        const files = urlMap.get(result.url).map((f) => `\`${f}\``).join(', ');
-        lines.push(`| ${result.url} | ${statusText} | ${files} |`);
+        for (const result of broken) {
+            const statusText = result.error ? `Error: ${result.error}` : `HTTP ${result.status}`;
+            const files = urlMap.get(result.url).map((f) => `\`${f}\``).join(', ');
+            lines.push(`| ${result.url} | ${statusText} | ${files} |`);
+        }
+        lines.push('');
     }
 
-    lines.push('');
+    if (nonPermalinkUrls.length > 0) {
+        lines.push('### URLs Missing Permalink Format\n');
+        lines.push('> mattermost.com links must use `/pl/` prefix (e.g., `https://mattermost.com/pl/pricing`)\n');
+        lines.push('| URL | Files |');
+        lines.push('|-----|-------|');
+
+        for (const item of nonPermalinkUrls) {
+            const files = item.files.map((f) => `\`${f}\``).join(', ');
+            lines.push(`| ${item.url} | ${files} |`);
+        }
+        lines.push('');
+    }
+
     return lines.join('\n');
 }
 
@@ -245,11 +322,13 @@ async function main() {
         return 0;
     }
 
+    const nonPermalinkUrls = findNonPermalinkUrls(urlMap);
     const results = await checkUrls(urlMap, 5, markdownOutput);
+    const hasErrors = results.filter((r) => !r.ok).length > 0 || nonPermalinkUrls.length > 0;
 
     if (markdownOutput) {
-        console.log(generateMarkdownSummary(results, urlMap));
-        return results.filter((r) => !r.ok).length > 0 ? 1 : 0;
+        console.log(generateMarkdownSummary(results, urlMap, nonPermalinkUrls));
+        return hasErrors ? 1 : 0;
     }
 
     if (jsonOutput) {
@@ -262,12 +341,13 @@ async function main() {
                 error: r.error,
                 files: urlMap.get(r.url),
             })),
+            nonPermalink: nonPermalinkUrls,
         };
         console.log(JSON.stringify(output, null, 2));
-        return output.broken.length > 0 ? 1 : 0;
+        return hasErrors ? 1 : 0;
     }
 
-    return printResults(results, urlMap);
+    return printResults(results, urlMap, nonPermalinkUrls);
 }
 
 main().then((exitCode) => {
