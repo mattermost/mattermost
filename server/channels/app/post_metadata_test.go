@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/stretchr/testify/mock"
 
@@ -165,35 +166,42 @@ func TestPreparePostForClient(t *testing.T) {
 		assert.Equal(t, clientPost, post, "shouldn't have changed any metadata")
 	})
 
-	t.Run("priority preserved when not in database", func(t *testing.T) {
-		// Verifies priority is preserved when DB returns nil (replica lag scenario).
+	t.Run("priority read from master when context flag set", func(t *testing.T) {
+		// Verifies priority is read from master DB when master context flag is set
 		th := setup(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.PostPriority = true
 		})
 
-		// Post with priority but not in DB (simulates replica lag)
-		post := &model.Post{
-			Id:        model.NewId(),
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		// Create a real post with priority
+		post, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   "test message with priority",
-			CreateAt:  model.GetMillis(),
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
 					Priority:     model.NewPointer(model.PostPriorityUrgent),
 					RequestedAck: model.NewPointer(true),
 				},
 			},
-		}
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, err)
 
-		clientPost := th.App.PreparePostForClient(th.Context, post, &model.PreparePostForClientOpts{
+		// Clear metadata to simulate fresh fetch
+		postWithoutPriority := post.Clone()
+		postWithoutPriority.Metadata = &model.PostMetadata{}
+
+		// Use master context to ensure we read from master DB
+		masterCtx := sqlstore.RequestContextWithMaster(th.Context)
+		clientPost := th.App.PreparePostForClient(masterCtx, postWithoutPriority, &model.PreparePostForClientOpts{
 			IncludePriority: true,
 		})
 
 		require.NotNil(t, clientPost.Metadata)
-		require.NotNil(t, clientPost.Metadata.Priority, "priority should be preserved")
+		require.NotNil(t, clientPost.Metadata.Priority, "priority should be fetched from master DB")
 		assert.Equal(t, model.PostPriorityUrgent, *clientPost.Metadata.Priority.Priority)
 		assert.True(t, *clientPost.Metadata.Priority.RequestedAck)
 	})

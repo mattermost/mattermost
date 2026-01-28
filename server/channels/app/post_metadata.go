@@ -225,11 +225,10 @@ func (a *App) PreparePostForClient(rctx request.CTX, originalPost *model.Post, o
 	}
 
 	if opts.IncludePriority && a.IsPostPriorityEnabled() && post.RootId == "" {
-		// Only overwrite priority if DB returns non-nil to avoid losing existing metadata
-		// due to replica lag on newly created posts.
-		if priority, err := a.GetPriorityForPost(post.Id); err != nil {
+		// Use context-aware method to respect master/replica flag
+		if priority, err := a.GetPriorityForPostWithContext(rctx, post.Id); err != nil {
 			rctx.Logger().Warn("Failed to get post priority for a post", mlog.String("post_id", post.Id), mlog.Err(err))
-		} else if priority != nil {
+		} else {
 			post.Metadata.Priority = priority
 		}
 
