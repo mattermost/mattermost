@@ -269,6 +269,7 @@ github.com/google/go-querystring v1.0.0/go.mod h1:odCYkC5MyYFN7vkCjXpyrEuKhc/BUO
 github.com/google/gofuzz v1.0.0/go.mod h1:dBl0BpW6vV/+mYPU4Po3pmUjxk6FQPldtuIdl/M65Eg=
 github.com/google/jsonschema-go v0.2.3 h1:dkP3B96OtZKKFvdrUSaDkL+YDx8Uw9uC4Y+eukpCnmM=
 github.com/google/jsonschema-go v0.2.3/go.mod h1:r5quNTdLOYEz95Ru18zA0ydNbBuYoo9tgaYcxEYhJVE=
+github.com/google/jsonschema-go v0.3.0/go.mod h1:r5quNTdLOYEz95Ru18zA0ydNbBuYoo9tgaYcxEYhJVE=
 github.com/google/martian v2.1.0+incompatible/go.mod h1:9I4somxYTbIHy5NJKHRl3wXiIaQGbYVAs8BPL6v8lEs=
 github.com/google/pprof v0.0.0-20181206194817-3ea8567a2e57/go.mod h1:zfwlbNMJ+OItoe0UupaVj+oy1omPYYDuagoSzA8v9mc=
 github.com/google/pprof v0.0.0-20190515194954-54271f7e092f/go.mod h1:zfwlbNMJ+OItoe0UupaVj+oy1omPYYDuagoSzA8v9mc=
@@ -408,8 +409,11 @@ github.com/mattermost/logr/v2 v2.0.22 h1:npFkXlkAWR9J8payh8ftPcCZvLbHSI125mAM5/r
 github.com/mattermost/logr/v2 v2.0.22/go.mod h1:0sUKpO+XNMZApeumaid7PYaUZPBIydfuWZ0dqixXo+s=
 github.com/mattermost/mattermost-plugin-ai v1.5.0 h1:64P8CadbrglgiQMiYqE9kZngrvIb5Ze7Jv+iK832RbI=
 github.com/mattermost/mattermost-plugin-ai v1.5.0/go.mod h1:sgR9+nLFCjYSE9vlqxLZxHZ+6Kz2NJw9Qko+ywVX2k0=
+github.com/mattermost/mattermost-plugin-ai v1.7.3-0.20260128145904-ae362cf86c17 h1:Mz9ZbcFPF3OItbDtor/FGJRHNfi7QFnPESjgCmL876A=
+github.com/mattermost/mattermost-plugin-ai v1.7.3-0.20260128145904-ae362cf86c17/go.mod h1:giiKPJpaLV4qv/odeGMyO7ltkgaWZzsbUA92Wi7EMkA=
 github.com/mattermost/mattermost/server/public v0.1.20 h1:N39ZOyYvCVZXABetpb0tVrm/08Od3q7d/D45QZjJ63s=
 github.com/mattermost/mattermost/server/public v0.1.20/go.mod h1:ZSdLCHIFYDTmX5FNCJ7LoI2CLZ1rQqZcfJ3ZF81QadY=
+github.com/mattermost/mattermost/server/public v0.1.22-0.20251105210629-8bf4a00724e2/go.mod h1:X0RG3lk0XK0SFSH67JS/xporlz3TxItHEPlFIrsQIa8=
 github.com/mattermost/morph v1.1.0 h1:Q9vrJbeM3s2jfweGheq12EFIzdNp9a/6IovcbvOQ6Cw=
 github.com/mattermost/morph v1.1.0/go.mod h1:gD+EaqX2UMyyuzmF4PFh4r33XneQ8Nzi+0E8nXjMa3A=
 github.com/mattermost/msgpack/v5 v5.0.0-20260120151306-2f9c67d7e57f h1:tAXeRJSWo6EK7wDq1TcxMHIxHRyjrE62ihvsigdg4Q0=
