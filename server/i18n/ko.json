@@ -8178,10 +8178,6 @@
     "translation": "매터모스트 엔터프라이즈 에디션에서만 사용 가능한 서비스"
   },
   {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "CWS 서버에서 뉴스레터를 구독하지 못했습니다."
-  },
-  {
     "id": "api.server.hosted_signup_unavailable.error",
     "translation": "셀프 호스팅 가입 시 포털을 사용할 수 없습니다."
   },
