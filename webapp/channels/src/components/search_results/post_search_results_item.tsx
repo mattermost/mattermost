@@ -11,7 +11,6 @@ import {Locations} from 'utils/constants';
 
 type Props = {
     a11yIndex: number;
-    isFlaggedPosts: boolean;
     isMentionSearch: boolean;
     isPinnedPosts: boolean;
     matches: string[];
@@ -28,7 +27,7 @@ export default function PostSearchResultsItem(props: Props) {
             <PostComponent
                 post={props.post}
                 matches={props.matches}
-                term={(!props.isFlaggedPosts && !props.isPinnedPosts && !props.isMentionSearch) ? props.searchTerm : ''}
+                term={(!props.isPinnedPosts && !props.isMentionSearch) ? props.searchTerm : ''}
                 isMentionSearch={props.isMentionSearch}
                 a11yIndex={props.a11yIndex}
                 location={Locations.SEARCH}
