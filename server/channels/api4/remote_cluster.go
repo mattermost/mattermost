@@ -125,6 +125,8 @@ func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	auditRec.Success()
+
 	if _, err := w.Write(b); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -575,7 +577,10 @@ func generateRemoteClusterInvite(c *Context, w http.ResponseWriter, r *http.Requ
 	inviteCode, invErr := c.App.CreateRemoteClusterInvite(rc.RemoteId, url, rc.Token, password)
 	if invErr != nil {
 		c.Err = invErr
+		return
 	}
+
+	auditRec.Success()
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(inviteCode); err != nil {
