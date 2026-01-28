@@ -66,10 +66,6 @@ describe('ChannelSelector', () => {
         unreadChannels: mockUnreadChannels,
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     describe('Rendering', () => {
         it('should render the component with label', () => {
             renderWithContext(<ChannelSelector {...defaultProps}/>);
