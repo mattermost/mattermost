@@ -1852,7 +1852,7 @@ type UpdateChannelMemberAutotranslationProps struct {
 }
 
 func updateChannelMemberAutotranslation(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.AutoTranslation().IsFeatureAvailable() {
+	if c.App.AutoTranslation() == nil || !c.App.AutoTranslation().IsFeatureAvailable() {
 		c.Err = model.NewAppError("updateChannelMemberAutotranslation", "api.channel.update_channel_member_autotranslation.feature_not_available.app_error", nil, "", http.StatusForbidden)
 		return
 	}
