@@ -125,7 +125,7 @@ export default function RewriteMenu({
     } else if (!draftMessage.trim()) {
         placeholderText = formatMessage({
             id: 'texteditor.rewrite.create',
-            defaultMessage: 'Ask AI to create a message...',
+            defaultMessage: 'Create a new message...',
         });
     } else if (originalMessage) {
         placeholderText = formatMessage({

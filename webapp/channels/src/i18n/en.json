@@ -6071,7 +6071,7 @@
   "textbox.quote": ">quote",
   "textbox.strike": "strike",
   "texteditor.rewrite": "Rewrite",
-  "texteditor.rewrite.create": "Ask AI to create a message...",
+  "texteditor.rewrite.create": "Create a new message...",
   "texteditor.rewrite.discard": "Discard",
   "texteditor.rewrite.elaborate": "Elaborate",
   "texteditor.rewrite.fixSpelling": "Fix spelling and grammar",
