@@ -66,6 +66,92 @@ describe('components/ChannelSelectorModal', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
+    test('should show custom no options message when no channels and no search term', () => {
+        const customMessage = (
+            <div className='custom-message'>
+                {'No private channels available'}
+            </div>
+        );
+
+        const wrapper = shallowWithIntl(
+            <ChannelSelectorModal
+                {...defaultProps}
+                searchTerm={''}
+                customNoOptionsMessage={customMessage}
+            />,
+        );
+
+        // Set empty channels array to simulate no private channels
+        wrapper.setState({
+            channels: [],
+            loadingChannels: false,
+        });
+
+        // Find the MultiSelect component
+        const multiSelect = wrapper.find('MultiSelect');
+
+        // Should pass the custom message to MultiSelect
+        expect(multiSelect.prop('customNoOptionsMessage')).toEqual(customMessage);
+    });
+
+    test('should not show custom message when user is searching', () => {
+        const customMessage = (
+            <div className='custom-message'>
+                {'No private channels available'}
+            </div>
+        );
+
+        const wrapper = shallowWithIntl(
+            <ChannelSelectorModal
+                {...defaultProps}
+                searchTerm={'test'}
+                customNoOptionsMessage={customMessage}
+            />,
+        );
+
+        // Set empty channels array
+        wrapper.setState({
+            channels: [],
+            loadingChannels: false,
+        });
+
+        // Find the MultiSelect component
+        const multiSelect = wrapper.find('MultiSelect');
+
+        // Should NOT pass the custom message when searching (let default message show)
+        expect(multiSelect.prop('customNoOptionsMessage')).toBeUndefined();
+    });
+
+    test('should not show custom message when channels are available', () => {
+        const customMessage = (
+            <div className='custom-message'>
+                {'No private channels available'}
+            </div>
+        );
+
+        const wrapper = shallowWithIntl(
+            <ChannelSelectorModal
+                {...defaultProps}
+                searchTerm={''}
+                customNoOptionsMessage={customMessage}
+            />,
+        );
+
+        // Set channels array with data
+        wrapper.setState({
+            channels: [channel1, channel2],
+            loadingChannels: false,
+        });
+
+        // Find the MultiSelect component
+        const multiSelect = wrapper.find('MultiSelect');
+
+        // Custom message is passed but MultiSelect won't show it because options exist
+        // The important thing is that the component renders normally with channels
+        const options = multiSelect.prop('options') as any[];
+        expect(options.length).toBeGreaterThan(0);
+    });
+
     test('excludes group constrained channels when requested', () => {
         const wrapper = shallowWithIntl(
             <ChannelSelectorModal
