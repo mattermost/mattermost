@@ -236,6 +236,7 @@ func (s *SqlAutoTranslationStore) Get(objectID, dstLang string) (*model.Translat
 		State:      model.TranslationState(translation.State),
 		NormHash:   translation.NormHash,
 		Meta:       meta,
+		UpdateAt:   translation.UpdateAt,
 	}
 
 	if result.Type == model.TranslationTypeObject {

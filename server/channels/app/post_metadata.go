@@ -153,6 +153,9 @@ func (a *App) populatePostListTranslations(rctx request.CTX, list *model.PostLis
 			}
 
 			post.Metadata.Translations[t.Lang] = t.ToPostTranslation()
+			if t.UpdateAt > post.UpdateAt {
+				post.UpdateAt = t.UpdateAt
+			}
 		}
 	}
 }
@@ -796,6 +799,8 @@ func (a *App) getLinkMetadataForPermalink(rctx request.CTX, requestURL string) (
 		referencedPostWithMetadata := a.PreparePostForClientWithEmbedsAndImages(rctx, referencedPost, &model.PreparePostForClientOpts{})
 		permalink = &model.Permalink{PreviewPost: model.NewPreviewPost(referencedPostWithMetadata, referencedTeam, referencedChannel)}
 	}
+
+	a.populatePostListTranslations(rctx, &model.PostList{Posts: map[string]*model.Post{permalink.PreviewPost.Post.Id: permalink.PreviewPost.Post}})
 
 	return permalink, nil
 }

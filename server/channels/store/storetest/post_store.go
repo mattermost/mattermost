@@ -23,6 +23,7 @@ import (
 )
 
 func TestPostStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	t.Run("GetPostsSince", func(t *testing.T) { testPostStoreGetPostsSince(t, rctx, ss) })
 	t.Run("SaveMultiple", func(t *testing.T) { testPostStoreSaveMultiple(t, rctx, ss) })
 	t.Run("Save", func(t *testing.T) { testPostStoreSave(t, rctx, ss) })
 	t.Run("SaveAndUpdateChannelMsgCounts", func(t *testing.T) { testPostStoreSaveChannelMsgCounts(t, rctx, ss) })
@@ -36,7 +37,6 @@ func TestPostStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetWithChildren", func(t *testing.T) { testPostStoreGetWithChildren(t, rctx, ss) })
 	t.Run("GetPostsWithDetails", func(t *testing.T) { testPostStoreGetPostsWithDetails(t, rctx, ss) })
 	t.Run("GetPostsBeforeAfter", func(t *testing.T) { testPostStoreGetPostsBeforeAfter(t, rctx, ss) })
-	t.Run("GetPostsSince", func(t *testing.T) { testPostStoreGetPostsSince(t, rctx, ss) })
 	t.Run("GetPosts", func(t *testing.T) { testPostStoreGetPosts(t, rctx, ss) })
 	t.Run("GetPostBeforeAfter", func(t *testing.T) { testPostStoreGetPostBeforeAfter(t, rctx, ss) })
 	t.Run("UserCountsWithPostsByDay", func(t *testing.T) { testUserCountsWithPostsByDay(t, rctx, ss) })
@@ -2573,6 +2573,177 @@ func testPostStoreGetPostsSince(t *testing.T, rctx request.CTX, ss store.Store) 
 
 		assert.Len(t, postList.Posts, 1)
 		assert.NotNil(t, postList.Posts[post1.Id])
+	})
+
+	t.Run("should return posts with auto-translation updated after the given time", func(t *testing.T) {
+		teamID := model.NewId()
+		channel1, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "DisplayName1",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		channelID := channel1.Id
+		userID := model.NewId()
+
+		post1, err := ss.Post().Save(rctx, &model.Post{
+			ChannelId: channelID,
+			UserId:    userID,
+			Message:   "message",
+		})
+		require.NoError(t, err)
+		time.Sleep(time.Millisecond)
+
+		post2, err := ss.Post().Save(rctx, &model.Post{
+			ChannelId: channelID,
+			UserId:    userID,
+			Message:   "message",
+		})
+		require.NoError(t, err)
+		time.Sleep(time.Millisecond)
+
+		post3, err := ss.Post().Save(rctx, &model.Post{
+			ChannelId: channelID,
+			UserId:    userID,
+			Message:   "message",
+		})
+		require.NoError(t, err)
+		time.Sleep(time.Millisecond)
+
+		err = ss.AutoTranslation().Save(&model.Translation{
+			ObjectID:   post2.Id,
+			ObjectType: model.TranslationObjectTypePost,
+			Lang:       "en",
+			Text:       "message",
+			State:      model.TranslationStateReady,
+			Provider:   "agents",
+			Type:       model.TranslationTypeString,
+		})
+		require.NoError(t, err)
+
+		postList, err := ss.Post().GetPostsSince(rctx, model.GetPostsSinceOptions{ChannelId: channelID, Time: post1.CreateAt - 1, Language: "en", AutotranslationEnabled: true}, false, map[string]bool{})
+		require.NoError(t, err)
+
+		assert.Equal(t, []string{post3.Id, post2.Id, post1.Id}, postList.Order)
+		assert.Len(t, postList.Posts, 3)
+		assert.NotNil(t, postList.Posts[post1.Id])
+		assert.NotNil(t, postList.Posts[post2.Id])
+		assert.NotNil(t, postList.Posts[post3.Id])
+
+		postList, err = ss.Post().GetPostsSince(rctx, model.GetPostsSinceOptions{ChannelId: channelID, Time: post2.CreateAt - 1, Language: "en", AutotranslationEnabled: true}, false, map[string]bool{})
+		require.NoError(t, err)
+
+		assert.Equal(t, []string{post3.Id, post2.Id}, postList.Order)
+		assert.Len(t, postList.Posts, 2)
+		assert.NotNil(t, postList.Posts[post3.Id])
+
+		postList, err = ss.Post().GetPostsSince(rctx, model.GetPostsSinceOptions{ChannelId: channelID, Time: post3.CreateAt - 1, Language: "en", AutotranslationEnabled: true}, false, map[string]bool{})
+		require.NoError(t, err)
+
+		// The order doesn't include post2 because the post itself was not updated,
+		// only the translation.
+		assert.Equal(t, []string{post3.Id}, postList.Order)
+		assert.Len(t, postList.Posts, 2)
+		assert.NotNil(t, postList.Posts[post2.Id], "should return the post since the auto-translation was updated later")
+		assert.NotNil(t, postList.Posts[post3.Id])
+	})
+
+	t.Run("should handle properly CRT and non CRT with auto-translation", func(t *testing.T) {
+		teamID := model.NewId()
+		channel1, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "DisplayName1",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		channelID := channel1.Id
+		userID := model.NewId()
+
+		post1, err := ss.Post().Save(rctx, &model.Post{
+			ChannelId: channelID,
+			UserId:    userID,
+			Message:   "message",
+		})
+		require.NoError(t, err)
+		time.Sleep(time.Millisecond)
+
+		post2, err := ss.Post().Save(rctx, &model.Post{
+			ChannelId: channelID,
+			UserId:    userID,
+			Message:   "message",
+			RootId:    post1.Id,
+		})
+		require.NoError(t, err)
+		time.Sleep(time.Millisecond)
+
+		err = ss.AutoTranslation().Save(&model.Translation{
+			ObjectID:   post2.Id,
+			ObjectType: model.TranslationObjectTypePost,
+			Lang:       "en",
+			Text:       "message",
+			State:      model.TranslationStateReady,
+			Provider:   "agents",
+			Type:       model.TranslationTypeString,
+		})
+		require.NoError(t, err)
+		time.Sleep(time.Millisecond)
+
+		post3, err := ss.Post().Save(rctx, &model.Post{
+			ChannelId: channelID,
+			UserId:    userID,
+			Message:   "message",
+		})
+		require.NoError(t, err)
+		time.Sleep(time.Millisecond)
+
+		err = ss.AutoTranslation().Save(&model.Translation{
+			ObjectID:   post1.Id,
+			ObjectType: model.TranslationObjectTypePost,
+			Lang:       "en",
+			Text:       "message",
+			State:      model.TranslationStateReady,
+			Provider:   "agents",
+			Type:       model.TranslationTypeString,
+		})
+		require.NoError(t, err)
+
+		// Non CRT
+		postList, err := ss.Post().GetPostsSince(rctx, model.GetPostsSinceOptions{ChannelId: channelID, Time: post1.CreateAt - 1, Language: "en", AutotranslationEnabled: true}, false, map[string]bool{})
+		require.NoError(t, err)
+
+		assert.Equal(t, []string{post3.Id, post2.Id, post1.Id}, postList.Order)
+		assert.Len(t, postList.Posts, 3)
+		assert.NotNil(t, postList.Posts[post1.Id])
+		assert.NotNil(t, postList.Posts[post2.Id])
+		assert.NotNil(t, postList.Posts[post3.Id])
+
+		postList, err = ss.Post().GetPostsSince(rctx, model.GetPostsSinceOptions{ChannelId: channelID, Time: post3.CreateAt, Language: "en", AutotranslationEnabled: true}, false, map[string]bool{})
+		require.NoError(t, err)
+
+		assert.Equal(t, []string{}, postList.Order)
+		assert.Len(t, postList.Posts, 1)
+		assert.NotNil(t, postList.Posts[post1.Id])
+
+		// CRT
+		postList, err = ss.Post().GetPostsSince(rctx, model.GetPostsSinceOptions{ChannelId: channelID, Time: post1.CreateAt - 1, Language: "en", AutotranslationEnabled: true, CollapsedThreads: true}, false, map[string]bool{})
+		require.NoError(t, err)
+
+		assert.Equal(t, []string{post3.Id, post1.Id}, postList.Order)
+		assert.Len(t, postList.Posts, 2)
+		assert.NotNil(t, postList.Posts[post1.Id])
+		assert.NotNil(t, postList.Posts[post3.Id])
+
+		postList, err = ss.Post().GetPostsSince(rctx, model.GetPostsSinceOptions{ChannelId: channelID, Time: post2.CreateAt + 1, Language: "en", AutotranslationEnabled: true, CollapsedThreads: true}, false, map[string]bool{})
+		require.NoError(t, err)
+
+		assert.Equal(t, []string{post3.Id, post1.Id}, postList.Order)
+		assert.Len(t, postList.Posts, 2)
+		assert.NotNil(t, postList.Posts[post1.Id])
+		assert.NotNil(t, postList.Posts[post3.Id])
 	})
 }
 

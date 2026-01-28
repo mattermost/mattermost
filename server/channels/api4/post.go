@@ -226,6 +226,44 @@ func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 }
 
+func addAutotranslationOptions(c *Context, options *model.GetPostsSinceOptions) *model.AppError {
+	// Local sessions are unrestricted and should not be affected by auto-translation settings
+	if c.AppContext.Session().IsUnrestricted() {
+		return nil
+	}
+
+	if c.App.AutoTranslation() == nil || !c.App.AutoTranslation().IsFeatureAvailable() {
+		return nil
+	}
+	channelEnabled, checkChannelErr := c.App.AutoTranslation().IsChannelEnabled(options.ChannelId)
+	if checkChannelErr != nil {
+		return checkChannelErr
+	}
+	if !channelEnabled {
+		return nil
+	}
+	userEnabled, checkUserEnabledErr := c.App.AutoTranslation().IsUserEnabled(options.ChannelId, c.AppContext.Session().UserId)
+	if checkUserEnabledErr != nil {
+		return checkUserEnabledErr
+	}
+	if !userEnabled {
+		return nil
+	}
+	user, getUserErr := c.App.GetUser(c.AppContext.Session().UserId)
+	if getUserErr != nil {
+		return getUserErr
+	}
+
+	availableLanguages := *c.App.Config().AutoTranslationSettings.TargetLanguages
+	if !slices.Contains(availableLanguages, user.Locale) {
+		return nil
+	}
+
+	options.AutotranslationEnabled = true
+	options.Language = user.Locale
+	return nil
+}
+
 func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireChannelId()
 	if c.Err != nil {
@@ -282,7 +320,20 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	etag := ""
 
 	if since > 0 {
-		list, err = c.App.GetPostsSince(c.AppContext, model.GetPostsSinceOptions{ChannelId: channelId, Time: since, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId})
+		options := model.GetPostsSinceOptions{
+			ChannelId:                channelId,
+			Time:                     since,
+			SkipFetchThreads:         skipFetchThreads,
+			CollapsedThreads:         collapsedThreads,
+			CollapsedThreadsExtended: collapsedThreadsExtended,
+			UserId:                   c.AppContext.Session().UserId,
+		}
+		autoTranslationErr := addAutotranslationOptions(c, &options)
+		if autoTranslationErr != nil {
+			c.Err = autoTranslationErr
+			return
+		}
+		list, err = c.App.GetPostsSince(c.AppContext, options)
 	} else if afterPost != "" {
 		etag = c.App.GetPostsEtag(channelId, collapsedThreads)
 
