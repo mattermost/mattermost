@@ -316,8 +316,8 @@ describe('RewriteMenu', () => {
             />,
         );
         input = screen.getByTestId('prompt-input-field');
-        expect(input).toHaveAttribute('placeholder', 'Ask AI to create a message...');
-        expect(input).toHaveAttribute('data-label', 'Create a new message...);
+        expect(input).toHaveAttribute('placeholder', 'Create a new message...');
+        expect(input).toHaveAttribute('data-label', 'Create a new message...');
 
         rerender(
             <RewriteMenu
