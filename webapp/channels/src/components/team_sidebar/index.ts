@@ -22,6 +22,7 @@ import {
 import {switchTeam, updateTeamsOrderForUser} from 'actions/team_actions';
 import {getCurrentLocale} from 'selectors/i18n';
 import {getIsLhsOpen} from 'selectors/lhs';
+import {isProductSidebarEnabled} from 'selectors/views/product_sidebar';
 
 import {Preferences} from 'utils/constants';
 
@@ -53,6 +54,7 @@ function mapStateToProps(state: GlobalState) {
         mentionsInTeamMap,
         teamHasUrgentMap,
         enableWebSocketEventScope,
+        isProductSidebarEnabled: isProductSidebarEnabled(state),
     };
 }
 

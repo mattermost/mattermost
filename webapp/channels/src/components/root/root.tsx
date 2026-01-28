@@ -427,8 +427,18 @@ export default class Root extends React.PureComponent<Props, State> {
                         <SystemNotice/>
                         {!this.props.isProductSidebarEnabled && <GlobalHeader/>}
                         {this.props.isProductSidebarEnabled && (
-                            <div style={{position: 'absolute', left: '-9999px', top: '-9999px', visibility: 'hidden'}}>
-                                <NewSearch/>
+                            <div
+                                style={{
+                                    position: 'fixed',
+                                    top: 8,
+                                    left: 64,
+                                    opacity: 0,
+                                    pointerEvents: 'none',
+                                    zIndex: -1,
+                                }}
+                                aria-hidden="true"
+                            >
+                                <NewSearch isCentered={true}/>
                             </div>
                         )}
                         <CloudEffects/>

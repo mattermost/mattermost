@@ -1,16 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {CheckIcon} from '@mattermost/compass-icons/components';
 import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
-import {useSelector, useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
+import {CheckIcon} from '@mattermost/compass-icons/components';
 import type {Team} from '@mattermost/types/teams';
 
 import {getCurrentTeam, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 
 import {switchTeam} from 'actions/team_actions';
+
 import * as Menu from 'components/menu';
 import TeamIcon from 'components/widgets/team_icon/team_icon';
 import WithTooltip from 'components/with_tooltip';
@@ -98,7 +99,7 @@ const TeamSection = (): JSX.Element | null => {
                     }),
                     className: 'TeamSection__menu',
                 }}
-                anchorOrigin={{vertical: 'top', horizontal: 'right'}}
+                anchorOrigin={{vertical: 'bottom', horizontal: 'left'}}
                 transformOrigin={{vertical: 'top', horizontal: 'left'}}
             >
                 {myTeams.map((team) => (
@@ -139,11 +140,11 @@ const TeamMenuItem = ({team, isCurrentTeam, onSelect}: TeamMenuItemProps): JSX.E
                     size='xsm'
                 />
             )}
-            labels={team.display_name}
+            labels={<span>{team.display_name}</span>}
             trailingElements={
                 isCurrentTeam ? (
                     <CheckIcon
-                        size={18}
+                        size={16}
                         className='TeamSection__checkIcon'
                     />
                 ) : undefined

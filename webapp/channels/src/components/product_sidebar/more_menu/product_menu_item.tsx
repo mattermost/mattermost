@@ -77,13 +77,15 @@ const ProductMenuItem = ({productId, name, icon}: Props): JSX.Element => {
                     <CheckboxBlankOutlineIcon size={16}/>
                 )}
             </span>
-            <span className='ProductMenuItem__icon'>
-                <IconComponent
-                    size={24}
-                    color='var(--button-bg)'
-                />
+            <span className='ProductMenuItem__content'>
+                <span className='ProductMenuItem__icon'>
+                    <IconComponent
+                        size={24}
+                        color='var(--button-bg)'
+                    />
+                </span>
+                <span className='ProductMenuItem__name'>{name}</span>
             </span>
-            <span className='ProductMenuItem__name'>{name}</span>
         </div>
     );
 };

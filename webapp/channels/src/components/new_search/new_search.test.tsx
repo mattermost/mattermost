@@ -103,4 +103,18 @@ describe('components/new_search/NewSearch', () => {
 
         expect(screen.getByText('Messages')).toBeInTheDocument();
     });
+
+    test('should apply centered styles when isCentered prop is true', async () => {
+        renderWithContext(<NewSearch isCentered={true}/>);
+
+        await userEvent.click(screen.getByText('Search'));
+
+        const searchBox = screen.getByLabelText('Search box');
+        expect(searchBox).toHaveStyle({
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+        });
+    });
 });

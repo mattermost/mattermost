@@ -7,7 +7,8 @@
     height: 36px;
     padding: 6px 16px;
     cursor: pointer;
-    gap: 8px;
+    // 16px gap between checkbox and content per Figma
+    gap: 16px;
 
     &:hover {
         background: rgba(var(--center-channel-color-rgb), 0.08);
@@ -22,13 +23,22 @@
         box-shadow: 0 0 0 2px var(--sidebar-text-active-border) inset;
     }
 
+    // Content wrapper for icon + name with 6px gap
+    &__content {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex: 1;
+    }
+
     &__checkbox {
         display: flex;
         align-items: center;
         justify-content: center;
         width: 16px;
         height: 16px;
-        color: var(--center-channel-color-56);
+        flex-shrink: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.24);
     }
 
     &__icon {
@@ -37,6 +47,7 @@
         justify-content: center;
         width: 24px;
         height: 24px;
+        flex-shrink: 0;
     }
 
     &__name {
@@ -44,5 +55,7 @@
         font-size: 14px;
         line-height: 20px;
         color: var(--center-channel-color);
+        // Small left padding per Figma (px-[4px] on Top Row)
+        padding-left: 4px;
     }
 }

@@ -3,7 +3,8 @@
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
-import {get} from 'mattermost-redux/selectors/entities/preferences';
+import {getMyPreferences} from 'mattermost-redux/selectors/entities/preferences';
+import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
 import {selectProducts} from 'selectors/products';
 
@@ -26,12 +27,16 @@ const FIRST_PARTY_PRODUCT_IDS = ['boards', 'playbooks', 'copilot'];
  */
 export const getPinnedProductIds = createSelector(
     'getPinnedProductIds',
-    (state: GlobalState) => get(state, Preferences.PINNED_PRODUCTS_CATEGORY, Preferences.PINNED_PRODUCTS_NAME, ''),
+    (state: GlobalState) => {
+        // Check if preference exists in state (not just if value is truthy)
+        const pref = getMyPreferences(state)[getPreferenceKey(Preferences.PINNED_PRODUCTS_CATEGORY, Preferences.PINNED_PRODUCTS_NAME)];
+        return pref?.value ?? '';
+    },
     (state: GlobalState) => selectProducts(state),
     (pinnedPreference: string, products): string[] => {
-        // If preference exists, parse comma-separated IDs
-        if (pinnedPreference) {
-            return pinnedPreference.split(',').filter(Boolean);
+        // If preference exists and has a value, parse comma-separated IDs
+        if (pinnedPreference && pinnedPreference.trim()) {
+            return pinnedPreference.split(',').map(id => id.trim()).filter(Boolean);
         }
 
         // Default pinning logic for first-time users

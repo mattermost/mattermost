@@ -16,6 +16,7 @@
         min-height: 40px;
         border-radius: 8px;
         border: none;
+        background: linear-gradient(rgba(var(--sidebar-text-rgb), 0.16), rgba(var(--sidebar-text-rgb), 0.16)), var(--sidebar-bg);
 
         .TeamIcon__content {
             width: 40px;
