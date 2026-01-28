@@ -1158,8 +1158,6 @@ type AttributesStore interface {
 }
 
 type AutoTranslationStore interface {
-	IsChannelEnabled(channelID string) (bool, error)
-	SetChannelEnabled(channelID string, enabled bool) error
 	IsUserEnabled(userID, channelID string) (bool, error)
 	SetUserEnabled(userID, channelID string, enabled bool) error
 	GetUserLanguage(userID, channelID string) (string, error)

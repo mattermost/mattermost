@@ -46,6 +46,8 @@ var PermissionCreateDirectChannel *Permission
 var PermissionCreateGroupChannel *Permission
 var PermissionManagePublicChannelProperties *Permission
 var PermissionManagePrivateChannelProperties *Permission
+var PermissionManagePublicChannelAutoTranslation *Permission
+var PermissionManagePrivateChannelAutoTranslation *Permission
 var PermissionListPublicTeams *Permission
 var PermissionJoinPublicTeams *Permission
 var PermissionListPrivateTeams *Permission
@@ -542,6 +544,18 @@ func initializePermissions() {
 		"manage_private_channel_properties",
 		"authentication.permissions.manage_private_channel_properties.name",
 		"authentication.permissions.manage_private_channel_properties.description",
+		PermissionScopeChannel,
+	}
+	PermissionManagePublicChannelAutoTranslation = &Permission{
+		"manage_public_channel_auto_translation",
+		"authentication.permissions.manage_public_channel_auto_translation.name",
+		"authentication.permissions.manage_public_channel_auto_translation.description",
+		PermissionScopeChannel,
+	}
+	PermissionManagePrivateChannelAutoTranslation = &Permission{
+		"manage_private_channel_auto_translation",
+		"authentication.permissions.manage_private_channel_auto_translation.name",
+		"authentication.permissions.manage_private_channel_auto_translation.description",
 		PermissionScopeChannel,
 	}
 	PermissionListPublicTeams = &Permission{
@@ -2547,6 +2561,8 @@ func initializePermissions() {
 		PermissionManageChannelRoles,
 		PermissionManagePublicChannelProperties,
 		PermissionManagePrivateChannelProperties,
+		PermissionManagePublicChannelAutoTranslation,
+		PermissionManagePrivateChannelAutoTranslation,
 		PermissionConvertPublicChannelToPrivate,
 		PermissionConvertPrivateChannelToPublic,
 		PermissionDeletePublicChannel,

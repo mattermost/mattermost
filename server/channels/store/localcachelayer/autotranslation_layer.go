@@ -7,8 +7,6 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/pkg/errors"
-
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
@@ -43,31 +41,6 @@ func (s LocalCacheAutoTranslationStore) ClearCaches() {
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.userAutoTranslationCache.Name())
 	}
-}
-
-// IsChannelEnabled checks if auto-translation is enabled for a channel
-// Uses the existing Channel cache instead of maintaining a separate cache
-func (s LocalCacheAutoTranslationStore) IsChannelEnabled(channelID string) (bool, error) {
-	// Get channel from cache (with DB fallback)
-	channel, err := s.rootStore.Channel().Get(channelID, true)
-	if err != nil {
-		return false, errors.Wrapf(err, "failed to get channel for auto-translation check, channel_id=%s", channelID)
-	}
-
-	return channel.AutoTranslation, nil
-}
-
-// SetChannelEnabled sets auto-translation status for a channel and invalidates Channel cache
-func (s LocalCacheAutoTranslationStore) SetChannelEnabled(channelID string, enabled bool) error {
-	err := s.AutoTranslationStore.SetChannelEnabled(channelID, enabled)
-	if err != nil {
-		return err
-	}
-
-	// Invalidate the Channel cache since we modified channel.autotranslation
-	s.rootStore.Channel().InvalidateChannel(channelID)
-
-	return nil
 }
 
 // IsUserEnabled checks if auto-translation is enabled for a user in a channel (with caching)
