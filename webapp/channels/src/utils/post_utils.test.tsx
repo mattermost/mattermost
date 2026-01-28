@@ -1020,7 +1020,6 @@ describe('PostUtils.createAriaLabelForPost', () => {
         const isFlagged = true;
 
         const ariaLabel = PostUtils.createAriaLabelForPost(testPost, author, isFlagged, reactions, intl, emojiMap, users, 'nickname_full_name', true);
-        console.log('====================', ariaLabel);
         expect(ariaLabel.indexOf('translated from Spanish to English')).not.toBe(-1);
         expect(ariaLabel.indexOf('test_message in English')).not.toBe(-1);
         expect(ariaLabel.indexOf('test_message in Spanish')).toBe(-1);
