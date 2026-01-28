@@ -74,6 +74,7 @@ require (
 	golang.org/x/image v0.32.0
 	golang.org/x/net v0.47.0
 	golang.org/x/sync v0.18.0
+	golang.org/x/sys v0.38.0
 	golang.org/x/term v0.37.0
 	gopkg.in/mail.v2 v2.3.1
 )
@@ -205,7 +206,6 @@ require (
 	go4.org v0.0.0-20230225012048-214862532bf5 // indirect
 	golang.org/x/exp v0.0.0-20251009144603-d2f985daa21b // indirect
 	golang.org/x/mod v0.29.0 // indirect
-	golang.org/x/sys v0.38.0 // indirect
 	golang.org/x/text v0.31.0 // indirect
 	golang.org/x/tools v0.38.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251007200510-49b9836ed3ff // indirect
@@ -229,3 +229,6 @@ require (
 // There is a proposed PR to fix this for GoOse we should monitor:
 // https://github.com/advancedlogic/GoOse/pull/77
 replace github.com/olekukonko/tablewriter => github.com/olekukonko/tablewriter v0.0.5
+
+// See MM-66167 for more details.
+replace github.com/vmihailenco/msgpack/v5 => github.com/mattermost/msgpack/v5 v5.0.0-20260120151306-2f9c67d7e57f
