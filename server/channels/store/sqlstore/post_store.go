@@ -929,7 +929,6 @@ func (s *SqlPostStore) GetSingle(rctx request.CTX, id string, inclDeleted bool) 
 }
 
 type etagPosts struct {
-	Id       string
 	UpdateAt int64
 }
 
@@ -938,20 +937,41 @@ func (s *SqlPostStore) InvalidateLastPostTimeCache(channelId string) {
 }
 
 //nolint:unparam
-func (s *SqlPostStore) GetEtag(channelId string, allowFromCache, collapsedThreads bool) string {
-	q := s.getQueryBuilder().Select("Id", "UpdateAt").From("Posts").Where(sq.Eq{"ChannelId": channelId}).OrderBy("UpdateAt DESC").Limit(1)
-	if collapsedThreads {
-		q.Where(sq.Eq{"RootId": ""})
+func (s *SqlPostStore) GetEtag(channelId, language string, allowFromCache, collapsedThreads bool) string {
+	var q sq.SelectBuilder
+	if language != "" {
+		q = s.getQueryBuilder().
+			Select("MAX(GREATEST(Posts.UpdateAt, COALESCE(Translations.UpdatedAt, 0))) AS UpdateAt").
+			From("Posts").
+			LeftJoin("Translations ON Translations.PostId = Posts.Id AND Translations.Language = ?", language).
+			Where(sq.Eq{"Posts.ChannelId": channelId})
+	} else {
+		q = s.getQueryBuilder().
+			Select("UpdateAt").
+			From("Posts").
+			Where(sq.Eq{"ChannelId": channelId}).
+			OrderBy("UpdateAt DESC").Limit(1)
 	}
+
+	if collapsedThreads {
+		q.Where(sq.Eq{"Posts.RootId": ""})
+	}
+
 	sql, args := q.MustSql()
 
 	var et etagPosts
 	err := s.GetReplica().Get(&et, sql, args...)
-	var result string
+	var time int64
 	if err != nil {
-		result = fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
+		time = model.GetMillis()
 	} else {
-		result = fmt.Sprintf("%v.%v", model.CurrentVersion, et.UpdateAt)
+		time = et.UpdateAt
+	}
+	var result string
+	if language != "" {
+		result = fmt.Sprintf("%v.%v.%s", model.CurrentVersion, time, language)
+	} else {
+		result = fmt.Sprintf("%v.%v", model.CurrentVersion, time)
 	}
 
 	return result
