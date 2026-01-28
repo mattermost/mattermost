@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
@@ -13,6 +14,7 @@ import usePrefixedIds, {joinIds} from 'components/common/hooks/usePrefixedIds';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import SharedUserIndicator from 'components/shared_user_indicator';
 import StatusIcon from 'components/status_icon';
+import AgentTag from 'components/widgets/tag/agent_tag';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 import Tag from 'components/widgets/tag/tag';
@@ -25,6 +27,8 @@ import type {SuggestionProps} from '../suggestion';
 
 export interface Item extends UserProfile {
     isCurrentUser: boolean;
+    isAgent?: boolean;
+    isDefaultAgent?: boolean;
 }
 
 interface Group extends Item {
@@ -199,6 +203,7 @@ const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item
         <SuggestionContainer
             ref={ref}
             {...props}
+            className={classNames({'suggestion-list__item--default-agent': item.isDefaultAgent})}
             aria-labelledby={ids.atMention}
             aria-describedby={joinIds(ids.description, ids.youElement, ids.status, ids.botTag, ids.sharedIcon, ids.guestTag, ids.groupMembers)}
             data-testid={`mentionSuggestion_${itemname}`}
@@ -211,7 +216,7 @@ const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item
                 >
                     {'@' + itemname}
                 </span>
-                {item.is_bot && <span id={ids.botTag}><BotTag/></span>}
+                {item.is_bot && <span id={ids.botTag}>{item.isAgent ? <AgentTag/> : <BotTag/>}</span>}
                 {description && <span id={ids.description}>{description}</span>}
                 {youElement}
                 {customStatus}

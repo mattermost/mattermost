@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import AtMentionProvider, {groupsGroup, membersGroup, nonMembersGroup, otherMembersGroup, specialMentionsGroup, type Props} from 'components/suggestion/at_mention_provider/at_mention_provider';
+import AtMentionProvider, {groupsGroup, membersGroup, nonMembersGroup, otherMembersGroup, specialMentionsGroup, defaultAgentGroup, type Props} from 'components/suggestion/at_mention_provider/at_mention_provider';
 
 import {TestHelper} from 'utils/test_helper';
 
@@ -30,6 +30,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         useChannelMentions: true,
         searchAssociatedGroupsForReference: jest.fn().mockResolvedValue(false),
         priorityProfiles: [],
+        defaultAgent: undefined,
     };
 
     it('should ignore pretexts that are not at-mentions', () => {
@@ -141,6 +142,75 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
             expect(resultCallback).toHaveBeenNthCalledWith(3, {
                 matchedPretext,
                 groups: itemsCall3,
+            });
+        });
+    });
+
+    it('should suggest default agent for "@" when configured', async () => {
+        const pretext = '@';
+        const matchedPretext = '@';
+        const agentUser = TestHelper.getUserMock({id: 'agentId', username: 'ai-agent', first_name: 'AI', last_name: 'Agent', is_bot: true});
+        const defaultAgent = {
+            id: 'agentId',
+            username: 'ai-agent',
+            service_id: 'serviceId',
+            service_type: 'type',
+            is_default: true,
+        };
+
+        const itemsCall = [
+            defaultAgentGroup({...agentUser, isAgent: true, isDefaultAgent: true}),
+            membersGroup([
+                userid10,
+                userid3,
+                userid1,
+                userid2,
+                userid4,
+            ]),
+            groupsGroup([
+                groupid1,
+                groupid2,
+                groupid3,
+            ]),
+            specialMentionsGroup([
+                {username: 'here'},
+                {username: 'channel'},
+                {username: 'all'},
+            ]),
+            nonMembersGroup([
+                userid5,
+                userid6,
+            ]),
+        ];
+
+        const params = {
+            ...baseParams,
+            defaultAgent,
+            autocompleteUsersInChannel: jest.fn().mockImplementation(() => new Promise((resolve) => {
+                resolve({data: {
+                    users: [userid4],
+                    out_of_channel: [userid5, userid6],
+                    agents: [agentUser],
+                }});
+            })),
+            searchAssociatedGroupsForReference: jest.fn().mockImplementation(() => new Promise((resolve) => {
+                resolve({
+                    data: [groupid1, groupid2, groupid3],
+                });
+                provider.updateMatches(resultCallback, itemsCall, matchedPretext);
+            })),
+        };
+
+        const provider = new AtMentionProvider(params);
+        jest.spyOn(provider, 'getProfilesWithLastViewAtInChannel').mockImplementation(() => [userid10, userid3, userid1, userid2]);
+
+        const resultCallback = jest.fn();
+        expect(provider.handlePretextChanged(pretext, resultCallback)).toEqual(true);
+
+        await Promise.resolve().then(() => {
+            expect(resultCallback).toHaveBeenLastCalledWith({
+                matchedPretext,
+                groups: itemsCall,
             });
         });
     });
