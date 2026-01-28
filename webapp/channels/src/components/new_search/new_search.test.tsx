@@ -9,6 +9,7 @@ import {
     fireEvent,
     act,
     userEvent,
+    waitFor,
 } from 'tests/react_testing_utils';
 
 import NewSearch from './new_search';
@@ -56,7 +57,9 @@ describe('components/new_search/NewSearch', () => {
 
         await userEvent.click(screen.getByText('Outside'));
 
-        expect(screen.queryByText('Messages')).not.toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.queryByText('Messages')).not.toBeInTheDocument();
+        });
     });
 
     test('should close the search box on Esc key is pressed', async () => {
@@ -70,7 +73,9 @@ describe('components/new_search/NewSearch', () => {
 
         await userEvent.type(screen.getByPlaceholderText('Search messages'), '{escape}');
 
-        expect(screen.queryByText('Messages')).not.toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.queryByText('Messages')).not.toBeInTheDocument();
+        });
     });
 
     test('should close on search after calling dispatch', async () => {
@@ -84,7 +89,9 @@ describe('components/new_search/NewSearch', () => {
 
         await userEvent.type(screen.getByPlaceholderText('Search messages'), '{enter}');
 
-        expect(screen.queryByText('Messages')).not.toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.queryByText('Messages')).not.toBeInTheDocument();
+        });
         expect(mockDispatch).toHaveBeenCalledWith({searchType: 'messages', type: 'UPDATE_RHS_SEARCH_TYPE'});
         expect(mockDispatch).toHaveBeenCalledWith({terms: '', type: 'UPDATE_RHS_SEARCH_TERMS'});
         expect(mockDispatch).toHaveBeenCalledWith({teamId: '', type: 'UPDATE_RHS_SEARCH_TEAM'});
