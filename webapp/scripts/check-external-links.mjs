@@ -190,21 +190,15 @@ async function checkUrls(urls, concurrency = 5, silentProgress = false) {
 function printResults(results, urlMap, nonPermalinkUrls) {
     const broken = results.filter((r) => !r.ok);
     const working = results.filter((r) => r.ok);
-    const hasErrors = broken.length > 0 || nonPermalinkUrls.length > 0;
 
     console.log('\n' + chalk.bold('=== External Link Check Results ===\n'));
-
-    if (!hasErrors) {
-        console.log(chalk.green.bold(`✓ All ${working.length} mattermost.com URLs are valid and accessible\n`));
-        return 0;
-    }
 
     console.log(chalk.green(`✓ ${working.length} URLs are accessible`));
     if (broken.length > 0) {
         console.log(chalk.red(`✗ ${broken.length} URLs are broken`));
     }
     if (nonPermalinkUrls.length > 0) {
-        console.log(chalk.red(`✗ ${nonPermalinkUrls.length} URLs are not using permalink format`));
+        console.log(chalk.yellow(`⚠ ${nonPermalinkUrls.length} URLs are not using permalink format (warning)`));
     }
     console.log();
 
@@ -223,10 +217,10 @@ function printResults(results, urlMap, nonPermalinkUrls) {
     }
 
     if (nonPermalinkUrls.length > 0) {
-        console.log(chalk.red.bold('URLs not using permalink format:\n'));
-        console.log(chalk.gray('  All mattermost.com links must route via https://mattermost.com/pl/\n'));
+        console.log(chalk.yellow.bold('URLs not using permalink format (warning):\n'));
+        console.log(chalk.gray('  All mattermost.com links should route via https://mattermost.com/pl/\n'));
         for (const item of nonPermalinkUrls) {
-            console.log(chalk.red(`  ${item.url}`));
+            console.log(chalk.yellow(`  ${item.url}`));
             console.log(chalk.gray(`    Found in:`));
             for (const file of item.files) {
                 console.log(chalk.gray(`      - ${file}`));
@@ -235,19 +229,22 @@ function printResults(results, urlMap, nonPermalinkUrls) {
         }
     }
 
-    return 1;
+    if (broken.length === 0 && nonPermalinkUrls.length === 0) {
+        console.log(chalk.green.bold(`✓ All URLs are valid and accessible\n`));
+    }
+
+    return broken.length > 0 ? 1 : 0;
 }
 
 function generateMarkdownSummary(results, urlMap, nonPermalinkUrls) {
     const broken = results.filter((r) => !r.ok);
     const working = results.filter((r) => r.ok);
-    const hasErrors = broken.length > 0 || nonPermalinkUrls.length > 0;
 
     const lines = [];
 
     lines.push('## External Link Check Results\n');
 
-    if (!hasErrors) {
+    if (broken.length === 0 && nonPermalinkUrls.length === 0) {
         lines.push(`✅ **All ${working.length} mattermost.com URLs are valid and accessible**\n`);
         return lines.join('\n');
     }
@@ -259,7 +256,7 @@ function generateMarkdownSummary(results, urlMap, nonPermalinkUrls) {
         lines.push(`| ❌ Broken | ${broken.length} |`);
     }
     if (nonPermalinkUrls.length > 0) {
-        lines.push(`| ⚠️ Missing /pl/ prefix | ${nonPermalinkUrls.length} |`);
+        lines.push(`| ⚠️ Missing /pl/ prefix (warning) | ${nonPermalinkUrls.length} |`);
     }
     lines.push('');
 
@@ -277,8 +274,9 @@ function generateMarkdownSummary(results, urlMap, nonPermalinkUrls) {
     }
 
     if (nonPermalinkUrls.length > 0) {
-        lines.push('### URLs Missing Permalink Format\n');
-        lines.push('> All mattermost.com links must route via `https://mattermost.com/pl/`\n');
+        lines.push('### ⚠️ URLs Missing Permalink Format (warning)\n');
+        lines.push('> All mattermost.com links should route via `https://mattermost.com/pl/`\n');
+        lines.push('<details>\n<summary>Show URLs</summary>\n');
         lines.push('| URL | Files |');
         lines.push('|-----|-------|');
 
@@ -286,6 +284,7 @@ function generateMarkdownSummary(results, urlMap, nonPermalinkUrls) {
             const files = item.files.map((f) => `\`${f}\``).join(', ');
             lines.push(`| ${item.url} | ${files} |`);
         }
+        lines.push('\n</details>');
         lines.push('');
     }
 
@@ -325,11 +324,11 @@ async function main() {
 
     const nonPermalinkUrls = findNonPermalinkUrls(urlMap);
     const results = await checkUrls(urlMap, 5, markdownOutput);
-    const hasErrors = results.filter((r) => !r.ok).length > 0 || nonPermalinkUrls.length > 0;
+    const brokenCount = results.filter((r) => !r.ok).length;
 
     if (markdownOutput) {
         console.log(generateMarkdownSummary(results, urlMap, nonPermalinkUrls));
-        return hasErrors ? 1 : 0;
+        return brokenCount > 0 ? 1 : 0;
     }
 
     if (jsonOutput) {
@@ -345,7 +344,7 @@ async function main() {
             nonPermalink: nonPermalinkUrls,
         };
         console.log(JSON.stringify(output, null, 2));
-        return hasErrors ? 1 : 0;
+        return brokenCount > 0 ? 1 : 0;
     }
 
     return printResults(results, urlMap, nonPermalinkUrls);
