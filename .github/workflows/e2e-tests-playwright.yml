@@ -23,10 +23,6 @@ on:
     secrets:
       MM_LICENSE:
         required: false
-      AUTOMATION_DASHBOARD_URL:
-        required: false
-      AUTOMATION_DASHBOARD_TOKEN:
-        required: false
       REPORT_WEBHOOK_URL:
         required: false
       AWS_ACCESS_KEY_ID:
@@ -99,8 +95,6 @@ jobs:
       pr_number: ${{ inputs.pr_number }}
     secrets:
       MM_LICENSE: ${{ secrets.MM_LICENSE }}
-      AUTOMATION_DASHBOARD_URL: ${{ secrets.AUTOMATION_DASHBOARD_URL }}
-      AUTOMATION_DASHBOARD_TOKEN: ${{ secrets.AUTOMATION_DASHBOARD_TOKEN }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
@@ -129,8 +123,6 @@ jobs:
       context_name: "E2E Tests/playwright-full"
     secrets:
       MM_LICENSE: ${{ secrets.MM_LICENSE }}
-      AUTOMATION_DASHBOARD_URL: ${{ secrets.AUTOMATION_DASHBOARD_URL }}
-      AUTOMATION_DASHBOARD_TOKEN: ${{ secrets.AUTOMATION_DASHBOARD_TOKEN }}
       REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

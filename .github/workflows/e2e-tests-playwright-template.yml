@@ -83,10 +83,6 @@ on:
     secrets:
       MM_LICENSE:
         required: false
-      AUTOMATION_DASHBOARD_URL:
-        required: false
-      AUTOMATION_DASHBOARD_TOKEN:
-        required: false
       REPORT_WEBHOOK_URL:
         required: false
       AWS_ACCESS_KEY_ID:
@@ -144,8 +140,6 @@ jobs:
       run:
         working-directory: e2e-tests
     env:
-      AUTOMATION_DASHBOARD_URL: "${{ secrets.AUTOMATION_DASHBOARD_URL }}"
-      AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.AUTOMATION_DASHBOARD_TOKEN }}"
       SERVER: "${{ inputs.server }}"
       SERVER_IMAGE: "${{ inputs.server_image }}"
       MM_LICENSE: "${{ secrets.MM_LICENSE }}"
@@ -260,7 +254,6 @@ jobs:
           TEST: playwright
           SERVER: "${{ inputs.server }}"
           SERVER_IMAGE: "${{ inputs.server_image }}"
-          AUTOMATION_DASHBOARD_URL: "${{ secrets.AUTOMATION_DASHBOARD_URL }}"
           WEBHOOK_URL: "${{ secrets.REPORT_WEBHOOK_URL }}"
           BRANCH: "${{ inputs.branch }}-${{ inputs.test_type }}"
           BUILD_ID: "${{ inputs.build_id }}"
