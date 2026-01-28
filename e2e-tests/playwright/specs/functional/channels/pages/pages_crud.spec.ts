@@ -241,6 +241,9 @@ test('displays page metadata', {tag: '@pages'}, async ({pw, sharedPagesSetup}) =
     await expect(status).toContainText(DEFAULT_PAGE_STATUS);
 });
 
+/**
+ * @objective Verify that a page can be exported to PDF format
+ */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 test.skip('exports page to PDF', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     // Implementation TBD

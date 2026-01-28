@@ -43,6 +43,11 @@ async function pasteHtmlIntoEditor(page: any, html: string) {
  * - Image proxy is enabled (ImageProxySettings.Enable = true)
  */
 test.describe('External Image Paste', () => {
+    /**
+     * @objective Verify that external images in pasted HTML are automatically
+     * re-hosted to Mattermost file storage, replacing external URLs with
+     * internal /api/v4/files/ URLs
+     */
     test(
         're-hosts external images when pasting HTML with image URLs',
         {tag: '@pages'},
@@ -106,6 +111,10 @@ test.describe('External Image Paste', () => {
         },
     );
 
+    /**
+     * @objective Verify that text content surrounding images is preserved
+     * when pasting HTML that contains both text and external images
+     */
     test('preserves text content when pasting HTML with images', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
         const {team, user, adminClient} = sharedPagesSetup;
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
@@ -148,6 +157,10 @@ test.describe('External Image Paste', () => {
         expect(editorText).toContain('Conclusion paragraph');
     });
 
+    /**
+     * @objective Verify that multiple external images in a single paste
+     * operation are all re-hosted to Mattermost file storage
+     */
     test('handles multiple external images in single paste', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
         const {team, user, adminClient} = sharedPagesSetup;
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
@@ -199,6 +212,10 @@ test.describe('External Image Paste', () => {
         }
     });
 
+    /**
+     * @objective Verify that images already using Mattermost file URLs
+     * (/api/v4/files/) are not re-hosted, preserving the original URL
+     */
     test('ignores already-hosted Mattermost images', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
         const {team, user, adminClient} = sharedPagesSetup;
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
@@ -229,6 +246,10 @@ test.describe('External Image Paste', () => {
         expect(imageSrc).toBe(mmFileUrl);
     });
 
+    /**
+     * @objective Verify that data URI images (base64 encoded) are not
+     * re-hosted, preserving the original data URI format
+     */
     test('ignores data URI images', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
         const {team, user, adminClient} = sharedPagesSetup;
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
