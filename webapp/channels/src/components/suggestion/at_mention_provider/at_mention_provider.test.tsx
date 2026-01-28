@@ -152,6 +152,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         const agentUser = TestHelper.getUserMock({id: 'agentId', username: 'ai-agent', first_name: 'AI', last_name: 'Agent', is_bot: true});
         const defaultAgent = {
             id: 'agentId',
+            displayName: 'AI Agent',
             username: 'ai-agent',
             service_id: 'serviceId',
             service_type: 'type',
