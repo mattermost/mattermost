@@ -177,7 +177,7 @@ func TestPreparePostForClient(t *testing.T) {
 		th.Context.Session().UserId = th.BasicUser.Id
 
 		// Create a real post with priority
-		post, err := th.App.CreatePost(th.Context, &model.Post{
+		post, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   "test message with priority",
@@ -216,7 +216,7 @@ func TestPreparePostForClient(t *testing.T) {
 
 		th.Context.Session().UserId = th.BasicUser.Id
 
-		post, err := th.App.CreatePost(th.Context, &model.Post{
+		post, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   "test message with priority",
