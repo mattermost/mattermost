@@ -32,7 +32,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
-	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/channels/web"
 	"github.com/mattermost/mattermost/server/v8/channels/wsapi"
 	"github.com/mattermost/mattermost/server/v8/config"
@@ -108,11 +107,10 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, sqlSettings *model.SqlS
 		consoleLevel = mlog.LvlStdLog.Name
 	}
 	*memoryConfig.LogSettings.ConsoleLevel = consoleLevel
-	// Use a subdirectory within the mainHelper's logs directory (set up by testlib.SetupTestResources)
+	// Use a subdirectory within the logging root (from MM_LOG_PATH or default)
 	// to ensure the path is within the allowed logging root for security validation.
 	// Each test gets its own subdirectory based on the tempWorkspace name for isolation.
-	logsDir, _ := fileutils.FindDir("logs")
-	testLogsDir := filepath.Join(logsDir, filepath.Base(tempWorkspace))
+	testLogsDir := filepath.Join(config.GetLogRootPath(), filepath.Base(tempWorkspace))
 	err = os.MkdirAll(testLogsDir, 0700)
 	require.NoError(tb, err, "failed to create test logs directory")
 	*memoryConfig.LogSettings.FileLocation = testLogsDir
