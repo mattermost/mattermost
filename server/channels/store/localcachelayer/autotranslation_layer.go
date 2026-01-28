@@ -7,6 +7,8 @@ import (
 	"bytes"
 	"fmt"
 
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
@@ -45,22 +47,21 @@ func (s LocalCacheAutoTranslationStore) ClearCaches() {
 
 // IsChannelEnabled checks if auto-translation is enabled for a channel
 // Uses the existing Channel cache instead of maintaining a separate cache
-func (s LocalCacheAutoTranslationStore) IsChannelEnabled(channelID string) (bool, *model.AppError) {
+func (s LocalCacheAutoTranslationStore) IsChannelEnabled(channelID string) (bool, error) {
 	// Get channel from cache (with DB fallback)
 	channel, err := s.rootStore.Channel().Get(channelID, true)
 	if err != nil {
-		return false, model.NewAppError("LocalCacheAutoTranslationStore.IsChannelEnabled",
-			"store.sql_autotranslation.is_channel_enabled.app_error", nil, err.Error(), 500)
+		return false, errors.Wrapf(err, "failed to get channel for auto-translation check, channel_id=%s", channelID)
 	}
 
 	return channel.AutoTranslation, nil
 }
 
 // SetChannelEnabled sets auto-translation status for a channel and invalidates Channel cache
-func (s LocalCacheAutoTranslationStore) SetChannelEnabled(channelID string, enabled bool) *model.AppError {
-	appErr := s.AutoTranslationStore.SetChannelEnabled(channelID, enabled)
-	if appErr != nil {
-		return appErr
+func (s LocalCacheAutoTranslationStore) SetChannelEnabled(channelID string, enabled bool) error {
+	err := s.AutoTranslationStore.SetChannelEnabled(channelID, enabled)
+	if err != nil {
+		return err
 	}
 
 	// Invalidate the Channel cache since we modified channel.autotranslation
@@ -70,7 +71,7 @@ func (s LocalCacheAutoTranslationStore) SetChannelEnabled(channelID string, enab
 }
 
 // IsUserEnabled checks if auto-translation is enabled for a user in a channel (with caching)
-func (s LocalCacheAutoTranslationStore) IsUserEnabled(userID, channelID string) (bool, *model.AppError) {
+func (s LocalCacheAutoTranslationStore) IsUserEnabled(userID, channelID string) (bool, error) {
 	key := userAutoTranslationKey(userID, channelID)
 
 	var enabled bool
@@ -78,9 +79,9 @@ func (s LocalCacheAutoTranslationStore) IsUserEnabled(userID, channelID string) 
 		return enabled, nil
 	}
 
-	enabled, appErr := s.AutoTranslationStore.IsUserEnabled(userID, channelID)
-	if appErr != nil {
-		return false, appErr
+	enabled, err := s.AutoTranslationStore.IsUserEnabled(userID, channelID)
+	if err != nil {
+		return false, err
 	}
 
 	s.rootStore.doStandardAddToCache(s.rootStore.userAutoTranslationCache, key, enabled)
@@ -88,10 +89,10 @@ func (s LocalCacheAutoTranslationStore) IsUserEnabled(userID, channelID string) 
 }
 
 // SetUserEnabled sets auto-translation status for a user in a channel and invalidates cache
-func (s LocalCacheAutoTranslationStore) SetUserEnabled(userID, channelID string, enabled bool) *model.AppError {
-	appErr := s.AutoTranslationStore.SetUserEnabled(userID, channelID, enabled)
-	if appErr != nil {
-		return appErr
+func (s LocalCacheAutoTranslationStore) SetUserEnabled(userID, channelID string, enabled bool) error {
+	err := s.AutoTranslationStore.SetUserEnabled(userID, channelID, enabled)
+	if err != nil {
+		return err
 	}
 
 	// Invalidate user auto-translation cache
@@ -110,7 +111,7 @@ func (s LocalCacheAutoTranslationStore) SetUserEnabled(userID, channelID string,
 }
 
 // GetUserLanguage gets the user's language preference for a channel (with caching)
-func (s LocalCacheAutoTranslationStore) GetUserLanguage(userID, channelID string) (string, *model.AppError) {
+func (s LocalCacheAutoTranslationStore) GetUserLanguage(userID, channelID string) (string, error) {
 	key := userLanguageKey(userID, channelID)
 
 	var language string
@@ -118,9 +119,9 @@ func (s LocalCacheAutoTranslationStore) GetUserLanguage(userID, channelID string
 		return language, nil
 	}
 
-	language, appErr := s.AutoTranslationStore.GetUserLanguage(userID, channelID)
-	if appErr != nil {
-		return "", appErr
+	language, err := s.AutoTranslationStore.GetUserLanguage(userID, channelID)
+	if err != nil {
+		return "", err
 	}
 
 	// Only cache non-empty results

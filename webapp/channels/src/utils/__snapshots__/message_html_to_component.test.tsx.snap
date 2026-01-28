@@ -150,6 +150,32 @@ exports[`messageHtmlToComponent Remote at mention 2`] = `
 </p>
 `;
 
+exports[`messageHtmlToComponent citation links should not render normal links as InlineEntityLink 1`] = `
+<p>
+  <a
+    className="theme markdown__link"
+    href="http://localhost:8065/team/pl/postid"
+    rel="noreferrer"
+    target="_blank"
+  >
+    post
+  </a>
+</p>
+`;
+
+exports[`messageHtmlToComponent citation links should render citation link using InlineEntityLink 1`] = `
+<p>
+  <InlineEntityLink
+    text={
+      Array [
+        "post",
+      ]
+    }
+    url="http://localhost:8065/team/pl/postid?view=citation"
+  />
+</p>
+`;
+
 exports[`messageHtmlToComponent html 1`] = `
 <CodeBlock
   code="<div>This is a html div</div>"

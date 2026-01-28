@@ -60,8 +60,6 @@ type Props = {
     isRemote?: boolean;
     scrollIntoView?: boolean;
     containerClassName?: string;
-    dataTestId?: string;
-    dataPostId?: string;
 }
 
 const mockLastBlurAt = {current: 0};

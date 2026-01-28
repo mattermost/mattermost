@@ -20,7 +20,7 @@ func (_m *AutoTranslationStore) ClearCaches() {
 }
 
 // Get provides a mock function with given fields: objectID, dstLang
-func (_m *AutoTranslationStore) Get(objectID string, dstLang string) (*model.Translation, *model.AppError) {
+func (_m *AutoTranslationStore) Get(objectID string, dstLang string) (*model.Translation, error) {
 	ret := _m.Called(objectID, dstLang)
 
 	if len(ret) == 0 {
@@ -28,8 +28,8 @@ func (_m *AutoTranslationStore) Get(objectID string, dstLang string) (*model.Tra
 	}
 
 	var r0 *model.Translation
-	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, string) (*model.Translation, *model.AppError)); ok {
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string) (*model.Translation, error)); ok {
 		return rf(objectID, dstLang)
 	}
 	if rf, ok := ret.Get(0).(func(string, string) *model.Translation); ok {
@@ -40,19 +40,17 @@ func (_m *AutoTranslationStore) Get(objectID string, dstLang string) (*model.Tra
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(objectID, dstLang)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
 // GetActiveDestinationLanguages provides a mock function with given fields: channelID, excludeUserID, filterUserIDs
-func (_m *AutoTranslationStore) GetActiveDestinationLanguages(channelID string, excludeUserID string, filterUserIDs []string) ([]string, *model.AppError) {
+func (_m *AutoTranslationStore) GetActiveDestinationLanguages(channelID string, excludeUserID string, filterUserIDs []string) ([]string, error) {
 	ret := _m.Called(channelID, excludeUserID, filterUserIDs)
 
 	if len(ret) == 0 {
@@ -60,8 +58,8 @@ func (_m *AutoTranslationStore) GetActiveDestinationLanguages(channelID string, 
 	}
 
 	var r0 []string
-	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, string, []string) ([]string, *model.AppError)); ok {
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, []string) ([]string, error)); ok {
 		return rf(channelID, excludeUserID, filterUserIDs)
 	}
 	if rf, ok := ret.Get(0).(func(string, string, []string) []string); ok {
@@ -72,19 +70,137 @@ func (_m *AutoTranslationStore) GetActiveDestinationLanguages(channelID string, 
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string, []string) *model.AppError); ok {
+	if rf, ok := ret.Get(1).(func(string, string, []string) error); ok {
 		r1 = rf(channelID, excludeUserID, filterUserIDs)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetAllByStatePage provides a mock function with given fields: state, offset, limit
+func (_m *AutoTranslationStore) GetAllByStatePage(state model.TranslationState, offset int, limit int) ([]*model.Translation, error) {
+	ret := _m.Called(state, offset, limit)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAllByStatePage")
+	}
+
+	var r0 []*model.Translation
+	var r1 error
+	if rf, ok := ret.Get(0).(func(model.TranslationState, int, int) ([]*model.Translation, error)); ok {
+		return rf(state, offset, limit)
+	}
+	if rf, ok := ret.Get(0).(func(model.TranslationState, int, int) []*model.Translation); ok {
+		r0 = rf(state, offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Translation)
 		}
+	}
+
+	if rf, ok := ret.Get(1).(func(model.TranslationState, int, int) error); ok {
+		r1 = rf(state, offset, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetAllForObject provides a mock function with given fields: objectID
+func (_m *AutoTranslationStore) GetAllForObject(objectID string) ([]*model.Translation, error) {
+	ret := _m.Called(objectID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAllForObject")
+	}
+
+	var r0 []*model.Translation
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) ([]*model.Translation, error)); ok {
+		return rf(objectID)
+	}
+	if rf, ok := ret.Get(0).(func(string) []*model.Translation); ok {
+		r0 = rf(objectID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Translation)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(objectID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetBatch provides a mock function with given fields: objectIDs, dstLang
+func (_m *AutoTranslationStore) GetBatch(objectIDs []string, dstLang string) (map[string]*model.Translation, error) {
+	ret := _m.Called(objectIDs, dstLang)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetBatch")
+	}
+
+	var r0 map[string]*model.Translation
+	var r1 error
+	if rf, ok := ret.Get(0).(func([]string, string) (map[string]*model.Translation, error)); ok {
+		return rf(objectIDs, dstLang)
+	}
+	if rf, ok := ret.Get(0).(func([]string, string) map[string]*model.Translation); ok {
+		r0 = rf(objectIDs, dstLang)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]*model.Translation)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func([]string, string) error); ok {
+		r1 = rf(objectIDs, dstLang)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetByStateOlderThan provides a mock function with given fields: state, olderThanMillis, limit
+func (_m *AutoTranslationStore) GetByStateOlderThan(state model.TranslationState, olderThanMillis int64, limit int) ([]*model.Translation, error) {
+	ret := _m.Called(state, olderThanMillis, limit)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetByStateOlderThan")
+	}
+
+	var r0 []*model.Translation
+	var r1 error
+	if rf, ok := ret.Get(0).(func(model.TranslationState, int64, int) ([]*model.Translation, error)); ok {
+		return rf(state, olderThanMillis, limit)
+	}
+	if rf, ok := ret.Get(0).(func(model.TranslationState, int64, int) []*model.Translation); ok {
+		r0 = rf(state, olderThanMillis, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Translation)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(model.TranslationState, int64, int) error); ok {
+		r1 = rf(state, olderThanMillis, limit)
+	} else {
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
 // GetUserLanguage provides a mock function with given fields: userID, channelID
-func (_m *AutoTranslationStore) GetUserLanguage(userID string, channelID string) (string, *model.AppError) {
+func (_m *AutoTranslationStore) GetUserLanguage(userID string, channelID string) (string, error) {
 	ret := _m.Called(userID, channelID)
 
 	if len(ret) == 0 {
@@ -92,8 +208,8 @@ func (_m *AutoTranslationStore) GetUserLanguage(userID string, channelID string)
 	}
 
 	var r0 string
-	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, string) (string, *model.AppError)); ok {
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string) (string, error)); ok {
 		return rf(userID, channelID)
 	}
 	if rf, ok := ret.Get(0).(func(string, string) string); ok {
@@ -102,12 +218,10 @@ func (_m *AutoTranslationStore) GetUserLanguage(userID string, channelID string)
 		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(userID, channelID)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -124,7 +238,7 @@ func (_m *AutoTranslationStore) InvalidateUserLocaleCache(userID string) {
 }
 
 // IsChannelEnabled provides a mock function with given fields: channelID
-func (_m *AutoTranslationStore) IsChannelEnabled(channelID string) (bool, *model.AppError) {
+func (_m *AutoTranslationStore) IsChannelEnabled(channelID string) (bool, error) {
 	ret := _m.Called(channelID)
 
 	if len(ret) == 0 {
@@ -132,8 +246,8 @@ func (_m *AutoTranslationStore) IsChannelEnabled(channelID string) (bool, *model
 	}
 
 	var r0 bool
-	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) (bool, *model.AppError)); ok {
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (bool, error)); ok {
 		return rf(channelID)
 	}
 	if rf, ok := ret.Get(0).(func(string) bool); ok {
@@ -142,19 +256,17 @@ func (_m *AutoTranslationStore) IsChannelEnabled(channelID string) (bool, *model
 		r0 = ret.Get(0).(bool)
 	}
 
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(channelID)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
 // IsUserEnabled provides a mock function with given fields: userID, channelID
-func (_m *AutoTranslationStore) IsUserEnabled(userID string, channelID string) (bool, *model.AppError) {
+func (_m *AutoTranslationStore) IsUserEnabled(userID string, channelID string) (bool, error) {
 	ret := _m.Called(userID, channelID)
 
 	if len(ret) == 0 {
@@ -162,8 +274,8 @@ func (_m *AutoTranslationStore) IsUserEnabled(userID string, channelID string) (
 	}
 
 	var r0 bool
-	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, string) (bool, *model.AppError)); ok {
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string) (bool, error)); ok {
 		return rf(userID, channelID)
 	}
 	if rf, ok := ret.Get(0).(func(string, string) bool); ok {
@@ -172,72 +284,64 @@ func (_m *AutoTranslationStore) IsUserEnabled(userID string, channelID string) (
 		r0 = ret.Get(0).(bool)
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(userID, channelID)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
 // Save provides a mock function with given fields: translation
-func (_m *AutoTranslationStore) Save(translation *model.Translation) *model.AppError {
+func (_m *AutoTranslationStore) Save(translation *model.Translation) error {
 	ret := _m.Called(translation)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Save")
 	}
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(*model.Translation) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*model.Translation) error); ok {
 		r0 = rf(translation)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
 }
 
 // SetChannelEnabled provides a mock function with given fields: channelID, enabled
-func (_m *AutoTranslationStore) SetChannelEnabled(channelID string, enabled bool) *model.AppError {
+func (_m *AutoTranslationStore) SetChannelEnabled(channelID string, enabled bool) error {
 	ret := _m.Called(channelID, enabled)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SetChannelEnabled")
 	}
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, bool) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, bool) error); ok {
 		r0 = rf(channelID, enabled)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
 }
 
 // SetUserEnabled provides a mock function with given fields: userID, channelID, enabled
-func (_m *AutoTranslationStore) SetUserEnabled(userID string, channelID string, enabled bool) *model.AppError {
+func (_m *AutoTranslationStore) SetUserEnabled(userID string, channelID string, enabled bool) error {
 	ret := _m.Called(userID, channelID, enabled)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SetUserEnabled")
 	}
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, string, bool) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, bool) error); ok {
 		r0 = rf(userID, channelID, enabled)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0

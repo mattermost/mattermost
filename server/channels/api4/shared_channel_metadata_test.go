@@ -148,7 +148,7 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 		})
 
 		// Create a local post with priority metadata
-		originalPost, appErr := th.App.CreatePost(th.Context, &model.Post{
+		originalPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: testChannel.Id,
 			Message:   "Test post with priority metadata @" + th.BasicUser2.Username,
@@ -203,7 +203,7 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 		})
 
 		// Create post with acknowledgement request
-		originalPost, appErr := th.App.CreatePost(th.Context, &model.Post{
+		originalPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: testChannel.Id,
 			Message:   "Test post requesting acknowledgements @" + th.BasicUser2.Username,
@@ -273,7 +273,7 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 		})
 
 		// Create post with acknowledgement request
-		originalPost, appErr := th.App.CreatePost(th.Context, &model.Post{
+		originalPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: testChannel.Id,
 			Message:   "Test post for ack count sync @" + th.BasicUser2.Username,
@@ -369,7 +369,7 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 		})
 
 		// Create post with persistent notifications enabled
-		_, appErr := th.App.CreatePost(th.Context, &model.Post{
+		_, _, appErr := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: testChannel.Id,
 			Message:   "Test post with persistent notifications @" + th.BasicUser2.Username,
@@ -534,7 +534,7 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 
 		// STEP 1: Server A creates a post with acknowledgement request
 		t.Log("=== STEP 1: Server A creates post with ack request ===")
-		originalPost, appErr := th.App.CreatePost(th.Context, &model.Post{
+		originalPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: testChannel.Id,
 			Message:   "Cross-cluster ack test - please acknowledge",

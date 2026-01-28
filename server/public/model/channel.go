@@ -265,10 +265,6 @@ func (o *Channel) DeepCopy() *Channel {
 	return &cCopy
 }
 
-func (o *Channel) Etag() string {
-	return Etag(o.Id, o.UpdateAt)
-}
-
 func (o *Channel) IsValid() *AppError {
 	if !IsValidId(o.Id) {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.id.app_error", nil, "", http.StatusBadRequest)
