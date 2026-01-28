@@ -404,11 +404,6 @@ func (s *SqlAutoTranslationStore) Save(translation *model.Translation) error {
 		metaBytes = AppendBinaryFlag(metaBytes)
 	}
 
-	// Apply binary flag if enabled (required for PostgreSQL JSONB with binary_parameters=yes)
-	if s.IsBinaryParamEnabled() {
-		metaBytes = AppendBinaryFlag(metaBytes)
-	}
-
 	dstLang := translation.Lang
 	providerID := translation.Provider
 	confidence := translation.Confidence
