@@ -62,17 +62,17 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            server/dist/mattermost-team-*.tar.gz
-            server/dist/mattermost-*.tar.gz
+          files: server/dist/mattermost-team-*.tar.gz
           draft: false
           prerelease: false
+          fail_on_unmatched_files: true
           generate_release_notes: true
           body: |
             Custom Mattermost Team Edition v${{ steps.version.outputs.version }}
 
             ## Downloads
-            - **Linux amd64**: `mattermost-team-${{ steps.version.outputs.version }}-linux-amd64.tar.gz`
+            - **Linux amd64**: `mattermost-team-linux-amd64.tar.gz`
+            - **Linux arm64**: `mattermost-team-linux-arm64.tar.gz`
 
             ## Changes
             - Aggressive real-time status tracking for improved "Last Online" accuracy
