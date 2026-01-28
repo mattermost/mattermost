@@ -55,6 +55,7 @@ func TestMloggerConfigFromAuditConfig(t *testing.T) {
 
 func TestGetLogRootPath(t *testing.T) {
 	t.Run("returns MM_LOG_PATH when set", func(t *testing.T) {
+		// Create a temp directory to use as MM_LOG_PATH
 		dir, err := os.MkdirTemp("", "logroot")
 		require.NoError(t, err)
 		t.Cleanup(func() {
@@ -69,14 +70,37 @@ func TestGetLogRootPath(t *testing.T) {
 	})
 
 	t.Run("returns default logs directory when MM_LOG_PATH not set", func(t *testing.T) {
+		// Create a temp directory structure with a "logs" subdirectory
+		// so FindDir("logs") can find it
+		tempDir, err := os.MkdirTemp("", "logroottest")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			os.RemoveAll(tempDir)
+		})
+
+		logsDir := filepath.Join(tempDir, "logs")
+		err = os.Mkdir(logsDir, 0700)
+		require.NoError(t, err)
+
+		// Save current working directory and change to temp directory
+		originalWd, err := os.Getwd()
+		require.NoError(t, err)
+		err = os.Chdir(tempDir)
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			os.Chdir(originalWd)
+		})
+
 		// Ensure MM_LOG_PATH is not set
 		t.Setenv("MM_LOG_PATH", "")
 
 		result := GetLogRootPath()
 		// Should return a valid path (non-empty)
 		assert.NotEmpty(t, result, "GetLogRootPath should return a non-empty path")
-		// Should be an absolute path (either from FindDir or current working directory)
+		// Should be an absolute path
 		assert.True(t, filepath.IsAbs(result), "GetLogRootPath returned non-absolute path: %s", result)
+		// Should point to the logs directory we created
+		assert.Equal(t, logsDir, result)
 	})
 }
 
