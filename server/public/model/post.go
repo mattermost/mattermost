@@ -76,12 +76,9 @@ const (
 	PostPropsMaxRunes     = 800000
 	PostPropsMaxUserRunes = PostPropsMaxRunes - 40000 // Leave some room for system / pre-save modifications
 
-	PostPageMaxDepth        = 10            // Maximum depth for page hierarchies
-	MaxPageTitleLength      = 255           // Maximum length for page titles
-	MaxExportFilenameLength = 200           // Maximum length for export filenames
-	ExportAttachmentsDir    = "attachments" // Directory name for attachments in exports
-	DefaultFileExtension    = ".bin"        // Default file extension when unknown
-	PostEditHistoryLimit    = 10            // Maximum number of edit history versions to store
+	PostPageMaxDepth     = 10  // Maximum depth for page hierarchies
+	MaxPageTitleLength   = 255 // Maximum length for page titles
+	PostEditHistoryLimit = 10  // Maximum number of edit history versions to store
 
 	// Reporting API constants
 	MaxReportingPerPage        = 1000 // Maximum number of posts that can be requested per page in reporting endpoints

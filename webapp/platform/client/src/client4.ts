@@ -4735,10 +4735,29 @@ export default class Client4 {
         });
     };
 
-    extractImageText = (wikiId: string, agentId: string, fileId: string, action: 'extract_handwriting' | 'describe_image') => {
+    extractImageText = (
+        wikiId: string,
+        agentId: string,
+        fileId: string | null,
+        action: 'extract_handwriting' | 'describe_image',
+        imageUrl?: string,
+    ) => {
+        const body: Record<string, string> = {
+            agent_id: agentId,
+            action,
+        };
+
+        if (fileId) {
+            body.file_id = fileId;
+        }
+
+        if (imageUrl) {
+            body.image_url = imageUrl;
+        }
+
         return this.doFetch<{extracted_text: string}>(
             `${this.getWikiPagesRoute(wikiId)}/extract-image`,
-            {method: 'post', body: JSON.stringify({agent_id: agentId, file_id: fileId, action})},
+            {method: 'post', body: JSON.stringify(body)},
         ).then((response) => {
             if (!response || typeof response.extracted_text === 'undefined') {
                 throw new Error('Invalid response from image extraction API: missing extracted_text field');

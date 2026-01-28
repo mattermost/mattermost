@@ -124,6 +124,68 @@ export function createRichPageContent(heading: string, paragraph: string, bullet
 }
 
 /**
+ * Creates a TipTap text node with a link mark
+ * @param text - The visible text for the link
+ * @param href - The URL the link points to
+ * @returns TipTap text node with link mark
+ */
+export function createLinkTextNode(text: string, href: string) {
+    return {
+        type: 'text',
+        text,
+        marks: [
+            {
+                type: 'link',
+                attrs: {
+                    href,
+                    target: null,
+                    rel: 'noopener noreferrer nofollow',
+                    class: 'wiki-page-link',
+                },
+            },
+        ],
+    };
+}
+
+/**
+ * Creates a TipTap paragraph node containing a link
+ * @param beforeText - Text before the link
+ * @param linkText - The visible text for the link
+ * @param href - The URL the link points to
+ * @param afterText - Text after the link
+ * @returns TipTap paragraph node with link
+ */
+export function createParagraphWithLink(beforeText: string, linkText: string, href: string, afterText: string) {
+    const content = [];
+    if (beforeText) {
+        content.push({type: 'text', text: beforeText});
+    }
+    content.push(createLinkTextNode(linkText, href));
+    if (afterText) {
+        content.push({type: 'text', text: afterText});
+    }
+    return {
+        type: 'paragraph',
+        content,
+    };
+}
+
+/**
+ * Creates a TipTap document with a URL displayed as the link text.
+ * This is the scenario where URL protection is needed during AI translation.
+ * @param introText - Introductory text before the link
+ * @param url - The URL (used as both href and visible text)
+ * @param afterText - Text after the link
+ * @returns TipTap document structure with URL-as-link-text
+ */
+export function createContentWithUrlLink(introText: string, url: string, afterText: string) {
+    return {
+        type: 'doc' as const,
+        content: [createParagraphWithLink(introText, url, url, afterText)],
+    };
+}
+
+/**
  * Generates a unique name with a timestamp suffix.
  * Use this instead of `pw.random.id()` to avoid async/await issues.
  * @param prefix - The prefix for the name (e.g., 'Test Wiki', 'Test Channel')

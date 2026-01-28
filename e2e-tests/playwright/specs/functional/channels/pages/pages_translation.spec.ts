@@ -18,6 +18,7 @@ import {
     openAIToolsMenu,
     getAIToolsTranslateButton,
     ELEMENT_TIMEOUT,
+    PAGE_LOAD_TIMEOUT,
 } from './test_helpers';
 
 /**
@@ -356,3 +357,92 @@ test(
         await expect(translationIndicator).not.toBeVisible();
     },
 );
+
+/**
+ * @objective Verify URLs are preserved during page translation
+ *
+ * @precondition
+ * AI plugin is enabled and agents are configured (test will skip gracefully if not available)
+ *
+ * @description
+ * This test verifies that when a page contains a link where the visible text IS the URL itself
+ * (e.g., "See https://example.com/path for details"), the URL is not corrupted during translation.
+ * The URL protection feature replaces URLs with placeholders before sending to AI, then restores them.
+ */
+test('preserves URLs during page translation', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+
+    // # Configure AI plugin if enabled
+    if (!shouldSkipAITests()) {
+        await configureAIPlugin(adminClient);
+    }
+
+    const channel = await createTestChannel(adminClient, team.id, `URL Preservation Test ${await pw.random.id()}`);
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
+
+    // # Create wiki through UI
+    await createWikiThroughUI(page, `URL Preservation Wiki ${await pw.random.id()}`);
+
+    // # Create new page with content containing a URL as link text
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'URL Preservation Test Page');
+
+    // # Wait for editor to be visible
+    const editor = await getEditorAndWait(page);
+
+    // # Check if AI plugin is available
+    const hasAIPlugin = await checkAIPluginAvailability(page);
+    if (!hasAIPlugin) {
+        test.skip(true, 'AI plugin not configured - skipping URL preservation test');
+        return;
+    }
+
+    // # Type content with a URL - the URL will be auto-linked by TipTap
+    const testUrl = 'https://dashboard.stripe.com/invoices/in_1JqrhOI67GP2qpb4b2BTCBkz';
+    await editor.click();
+    await page.keyboard.type(`See this invoice: ${testUrl} for billing details.`);
+
+    // # Wait for TipTap to auto-link the URL
+    await page.waitForTimeout(500);
+
+    // # Open page actions menu and navigate to AI Tools submenu
+    await openAIToolsMenu(page);
+
+    // # Click Translate page option
+    const translatePageOption = getAIToolsTranslateButton(page);
+    await translatePageOption.click();
+
+    // # Wait for modal
+    const modal = page.locator('#translate-page-modal');
+    await expect(modal).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // # Select Spanish as target language
+    const spanishOption = modal.locator('[data-testid="translate-modal-es"]');
+    await spanishOption.click();
+
+    // # Click translate button
+    const translateButton = modal.getByRole('button', {name: /^translate$/i});
+    await translateButton.click();
+
+    // # Wait for translation to complete and navigate to translated page
+    // The translation creates a new draft page as a child
+    await page.waitForURL(/\/drafts\//, {timeout: PAGE_LOAD_TIMEOUT});
+
+    // # Wait for the translated content to load in the editor
+    const translatedEditor = await getEditorAndWait(page);
+    await expect(translatedEditor).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // * Verify the URL is preserved unchanged in the translated content
+    // The URL should appear as a link with the exact same href
+    const linkWithUrl = translatedEditor.locator(`a[href="${testUrl}"]`);
+    await expect(linkWithUrl).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // * Verify the link text contains the URL (not corrupted)
+    const linkText = await linkWithUrl.textContent();
+    expect(linkText).toContain('dashboard.stripe.com');
+    expect(linkText).toContain('in_1JqrhOI67GP2qpb4b2BTCBkz');
+});

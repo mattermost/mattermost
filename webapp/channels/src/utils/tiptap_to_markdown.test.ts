@@ -736,6 +736,103 @@ describe('tiptapToMarkdown', () => {
         });
     });
 
+    describe('preserveFileUrls option', () => {
+        it('should preserve file URLs when preserveFileUrls is true', () => {
+            const doc = {
+                type: 'doc',
+                content: [
+                    {
+                        type: 'paragraph',
+                        content: [
+                            {type: 'image', attrs: {src: '/api/v4/files/abc123', alt: 'test image'}},
+                        ],
+                    },
+                ],
+            };
+
+            const result = tiptapToMarkdown(doc, {preserveFileUrls: true});
+
+            expect(result.markdown).toContain('![test image](/api/v4/files/abc123)');
+            expect(result.files).toHaveLength(0);
+        });
+
+        it('should rewrite to attachments when preserveFileUrls is false', () => {
+            const doc = {
+                type: 'doc',
+                content: [
+                    {
+                        type: 'paragraph',
+                        content: [
+                            {type: 'image', attrs: {src: '/api/v4/files/abc123', alt: 'test image'}},
+                        ],
+                    },
+                ],
+            };
+
+            const result = tiptapToMarkdown(doc, {preserveFileUrls: false});
+
+            expect(result.markdown).toContain('attachments/');
+            expect(result.files).toHaveLength(1);
+        });
+
+        it('should preserve file URLs for video nodes when preserveFileUrls is true', () => {
+            const doc = {
+                type: 'doc',
+                content: [
+                    {
+                        type: 'video',
+                        attrs: {src: '/api/v4/files/video123', title: 'My Video'},
+                    },
+                ],
+            };
+
+            const result = tiptapToMarkdown(doc, {preserveFileUrls: true});
+
+            expect(result.markdown).toContain('[My Video](/api/v4/files/video123)');
+            expect(result.files).toHaveLength(0);
+        });
+
+        it('should preserve file URLs for file attachments when preserveFileUrls is true', () => {
+            const doc = {
+                type: 'doc',
+                content: [
+                    {
+                        type: 'fileAttachment',
+                        attrs: {
+                            fileId: 'doc123',
+                            fileName: 'report.pdf',
+                            src: '/api/v4/files/doc123',
+                        },
+                    },
+                ],
+            };
+
+            const result = tiptapToMarkdown(doc, {preserveFileUrls: true});
+
+            expect(result.markdown).toContain('[report.pdf](/api/v4/files/doc123)');
+            expect(result.files).toHaveLength(0);
+        });
+
+        it('should still handle external URLs normally when preserveFileUrls is true', () => {
+            const doc = {
+                type: 'doc',
+                content: [
+                    {
+                        type: 'paragraph',
+                        content: [
+                            {type: 'image', attrs: {src: 'https://example.com/image.png', alt: 'External image'}},
+                        ],
+                    },
+                ],
+            };
+
+            const result = tiptapToMarkdown(doc, {preserveFileUrls: true});
+
+            expect(result.markdown).toContain('![External image](https://example.com/image.png)');
+            expect(result.files).toHaveLength(0);
+        });
+    });
+
     describe('error handling', () => {
         it('should throw error for invalid document', () => {
             expect(() => tiptapToMarkdown(null)).toThrow('Invalid TipTap document structure');

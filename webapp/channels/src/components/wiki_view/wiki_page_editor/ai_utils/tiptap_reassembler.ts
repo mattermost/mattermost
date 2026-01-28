@@ -24,6 +24,7 @@ import type {
     TextChunk,
     PreservedMark,
     ReassemblyResult,
+    ProtectedUrl,
 } from './types';
 
 /**
@@ -104,6 +105,27 @@ function getNodeAtPath(doc: TipTapDoc, path: number[]): TipTapNode | null {
 }
 
 /**
+ * Restores protected URLs from placeholders in AI-processed text.
+ * Uses split/join to replace all occurrences (handles AI duplication).
+ *
+ * @param text - The AI-processed text with placeholders
+ * @param protectedUrls - The URL mappings from extraction
+ * @returns Text with URLs restored
+ */
+function restoreProtectedUrls(text: string, protectedUrls?: ProtectedUrl[]): string {
+    if (!protectedUrls?.length) {
+        return text;
+    }
+
+    let result = text;
+    for (const {placeholder, original} of protectedUrls) {
+        // Use split/join for ES5 compatibility (replaces all occurrences)
+        result = result.split(placeholder).join(original);
+    }
+    return result;
+}
+
+/**
  * Rebuilds a node's content array from AI-processed text.
  * Preserves marks and hard breaks from the original chunk.
  *
@@ -119,11 +141,14 @@ function rebuildNodeContent(aiText: string, chunk: TextChunk): TipTapNode[] {
         return content;
     }
 
+    // Restore protected URLs first
+    const restoredText = restoreProtectedUrls(aiText, chunk.protectedUrls);
+
     // Adjust mark positions if text length changed
-    const adjustedMarks = adjustMarkPositions(chunk.marks, chunk.text.length, aiText.length);
+    const adjustedMarks = adjustMarkPositions(chunk.marks, chunk.text.length, restoredText.length);
 
     // Split text by hard break positions and create nodes
-    const segments = splitByHardBreaks(aiText, chunk.hardBreakPositions);
+    const segments = splitByHardBreaks(restoredText, chunk.hardBreakPositions);
 
     for (let i = 0; i < segments.length; i++) {
         const segment = segments[i];

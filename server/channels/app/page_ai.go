@@ -4,10 +4,15 @@
 package app
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
+	"net/url"
+	"path/filepath"
 	"strings"
+	"time"
 
 	agentclient "github.com/mattermost/mattermost-plugin-ai/public/bridgeclient"
 	"github.com/mattermost/mattermost/server/public/model"
@@ -25,9 +30,10 @@ const (
 
 // PageImageExtractionRequest represents a request to extract text or describe an image for wiki pages
 type PageImageExtractionRequest struct {
-	AgentID string                    `json:"agent_id"`
-	FileID  string                    `json:"file_id"`
-	Action  PageImageExtractionAction `json:"action"`
+	AgentID  string                    `json:"agent_id"`
+	FileID   string                    `json:"file_id,omitempty"`
+	ImageURL string                    `json:"image_url,omitempty"`
+	Action   PageImageExtractionAction `json:"action"`
 }
 
 // PageImageExtractionResponse represents the response from page image extraction
@@ -131,23 +137,173 @@ OUTPUT RULES:
 - bold/italic/strike/code are MARKS on text nodes, NOT node types
 - No markdown, no code blocks, no explanations`
 
+const (
+	// maxExternalImageSize is the maximum size for external images (25MB)
+	maxExternalImageSize = 25 * 1024 * 1024
+)
+
+// FetchExternalImageAsFile fetches an external image via the image proxy and creates a temporary FileInfo.
+// Returns the FileInfo, a cleanup function to delete the temp file, and any error.
+// The cleanup function should be called in a defer after successful use.
+func (a *App) FetchExternalImageAsFile(rctx request.CTX, imageURL string, userID string) (*model.FileInfo, func(), *model.AppError) {
+	// Validate URL format
+	parsedURL, parseErr := url.Parse(imageURL)
+	if parseErr != nil {
+		return nil, nil, model.NewAppError("FetchExternalImageAsFile", "app.page.fetch_external_image.invalid_url", nil, "", http.StatusBadRequest).Wrap(parseErr)
+	}
+
+	// Security: Only allow http/https schemes
+	if parsedURL.Scheme != "http" && parsedURL.Scheme != "https" {
+		return nil, nil, model.NewAppError("FetchExternalImageAsFile", "app.page.fetch_external_image.invalid_scheme", nil, fmt.Sprintf("scheme: %s", parsedURL.Scheme), http.StatusBadRequest)
+	}
+
+	// Check if image proxy is enabled
+	if !*a.Config().ImageProxySettings.Enable {
+		return nil, nil, model.NewAppError("FetchExternalImageAsFile", "app.page.fetch_external_image.proxy_disabled", nil, "", http.StatusBadRequest)
+	}
+
+	rctx.Logger().Info("Fetching external image via proxy",
+		mlog.String("image_url", imageURL),
+		mlog.String("user_id", userID),
+	)
+
+	// Fetch image via image proxy (uses existing SSRF protections)
+	body, contentType, fetchErr := a.ImageProxy().GetImageDirect(imageURL)
+	if fetchErr != nil {
+		return nil, nil, model.NewAppError("FetchExternalImageAsFile", "app.page.fetch_external_image.fetch_failed", nil, "", http.StatusBadGateway).Wrap(fetchErr)
+	}
+	defer body.Close()
+
+	// Validate content-type is an image
+	if !strings.HasPrefix(contentType, "image/") {
+		return nil, nil, model.NewAppError("FetchExternalImageAsFile", "app.page.fetch_external_image.not_image", nil, fmt.Sprintf("content-type: %s", contentType), http.StatusBadRequest)
+	}
+
+	// Read image data with size limit
+	limitedReader := io.LimitReader(body, maxExternalImageSize+1)
+	imageData, readErr := io.ReadAll(limitedReader)
+	if readErr != nil {
+		return nil, nil, model.NewAppError("FetchExternalImageAsFile", "app.page.fetch_external_image.read_failed", nil, "", http.StatusInternalServerError).Wrap(readErr)
+	}
+
+	// Check size limit
+	if len(imageData) > maxExternalImageSize {
+		return nil, nil, model.NewAppError("FetchExternalImageAsFile", "app.page.fetch_external_image.too_large", map[string]any{"MaxSize": maxExternalImageSize}, "", http.StatusBadRequest)
+	}
+
+	// Extract filename from URL path, or use a default
+	filename := filepath.Base(parsedURL.Path)
+	if filename == "" || filename == "." || filename == "/" {
+		// Generate a filename based on content type
+		ext := ".jpg"
+		switch contentType {
+		case "image/png":
+			ext = ".png"
+		case "image/gif":
+			ext = ".gif"
+		case "image/webp":
+			ext = ".webp"
+		case "image/svg+xml":
+			ext = ".svg"
+		}
+		filename = fmt.Sprintf("external_image_%d%s", time.Now().UnixNano(), ext)
+	}
+
+	// Create a temporary file using the standard upload mechanism
+	// Use a special path prefix for AI temp files: ai_temp/{userId}/{date}/{filename}
+	now := time.Now()
+	datePrefix := now.Format("20060102")
+	tempPath := fmt.Sprintf("ai_temp/%s/%s/%s", userID, datePrefix, filename)
+
+	// Upload the file data
+	fileInfo, appErr := a.UploadFileX(
+		rctx,
+		"", // No channel ID for temp files
+		tempPath,
+		bytes.NewReader(imageData),
+		UploadFileSetUserId(userID),
+		UploadFileSetTimestamp(now),
+		UploadFileSetRaw(), // Don't process as we just need it for AI
+	)
+	if appErr != nil {
+		return nil, nil, model.NewAppError("FetchExternalImageAsFile", "app.page.fetch_external_image.upload_failed", nil, "", http.StatusInternalServerError).Wrap(appErr)
+	}
+
+	rctx.Logger().Info("External image uploaded as temp file",
+		mlog.String("file_id", fileInfo.Id),
+		mlog.String("path", fileInfo.Path),
+		mlog.Int("size", len(imageData)),
+	)
+
+	// Create cleanup function to delete the temp file after processing
+	cleanup := func() {
+		fileRemoved := true
+		if removeErr := a.RemoveFile(fileInfo.Path); removeErr != nil {
+			fileRemoved = false
+			rctx.Logger().Warn("Failed to remove temp file for AI image extraction",
+				mlog.String("file_id", fileInfo.Id),
+				mlog.String("path", fileInfo.Path),
+				mlog.Err(removeErr),
+			)
+		}
+		// Also delete the FileInfo from database
+		infoDeleted := true
+		if deleteErr := a.Srv().Store().FileInfo().PermanentDelete(rctx, fileInfo.Id); deleteErr != nil {
+			infoDeleted = false
+			rctx.Logger().Warn("Failed to delete temp FileInfo for AI image extraction",
+				mlog.String("file_id", fileInfo.Id),
+				mlog.Err(deleteErr),
+			)
+		}
+		if fileRemoved && infoDeleted {
+			rctx.Logger().Debug("Cleaned up temp file for AI image extraction",
+				mlog.String("file_id", fileInfo.Id),
+			)
+		}
+	}
+
+	return fileInfo, cleanup, nil
+}
+
 // ExtractPageImageText extracts text from an image using AI vision capabilities
-// and returns TipTap JSON format for wiki page rendering
+// and returns TipTap JSON format for wiki page rendering.
+// Either fileID or imageURL must be provided (mutually exclusive).
 func (a *App) ExtractPageImageText(
 	rctx request.CTX,
 	agentID string,
 	fileID string,
+	imageURL string,
 	action PageImageExtractionAction,
 ) (*PageImageExtractionResponse, *model.AppError) {
-	// Verify the file exists and get its info
-	fileInfo, err := a.GetFileInfo(rctx, fileID)
-	if err != nil {
-		return nil, model.NewAppError("ExtractPageImageText", "app.page.extract_image.file_not_found", nil, err.Error(), http.StatusNotFound)
+	// Check if AI plugin bridge is available
+	available, _ := a.GetAIPluginBridgeStatus(rctx)
+	if !available {
+		return nil, model.NewAppError("ExtractPageImageText", "app.page.extract_image.ai_not_available", nil, "AI plugin bridge is not available", http.StatusServiceUnavailable)
 	}
 
-	// Verify it's an image file
-	if !strings.HasPrefix(fileInfo.MimeType, "image/") {
-		return nil, model.NewAppError("ExtractPageImageText", "app.page.extract_image.not_image", nil, fmt.Sprintf("file type: %s", fileInfo.MimeType), http.StatusBadRequest)
+	var fileInfo *model.FileInfo
+	var err *model.AppError
+	var cleanup func()
+
+	// Handle external image URL by fetching and creating temp file
+	if imageURL != "" {
+		fileInfo, cleanup, err = a.FetchExternalImageAsFile(rctx, imageURL, rctx.Session().UserId)
+		if err != nil {
+			return nil, err
+		}
+		defer cleanup()
+		fileID = fileInfo.Id
+	} else {
+		// Verify the file exists and get its info
+		fileInfo, err = a.GetFileInfo(rctx, fileID)
+		if err != nil {
+			return nil, model.NewAppError("ExtractPageImageText", "app.page.extract_image.file_not_found", nil, "", http.StatusNotFound).Wrap(err)
+		}
+
+		// Verify it's an image file
+		if !strings.HasPrefix(fileInfo.MimeType, "image/") {
+			return nil, model.NewAppError("ExtractPageImageText", "app.page.extract_image.not_image", nil, fmt.Sprintf("file type: %s", fileInfo.MimeType), http.StatusBadRequest)
+		}
 	}
 
 	// Get agent and service details for logging
@@ -155,7 +311,9 @@ func (a *App) ExtractPageImageText(
 	var serviceName string
 
 	agents, agentsErr := a.GetAgents(rctx, rctx.Session().UserId)
-	if agentsErr == nil {
+	if agentsErr != nil {
+		rctx.Logger().Debug("Could not fetch agents for logging", mlog.Err(agentsErr))
+	} else {
 		for _, agent := range agents {
 			if agent.ID == agentID {
 				serviceType = agent.ServiceType
@@ -166,7 +324,9 @@ func (a *App) ExtractPageImageText(
 
 	// Get service details
 	services, servicesErr := a.GetLLMServices(rctx, rctx.Session().UserId)
-	if servicesErr == nil {
+	if servicesErr != nil {
+		rctx.Logger().Debug("Could not fetch services for logging", mlog.Err(servicesErr))
+	} else {
 		for _, service := range services {
 			if service.Type == serviceType {
 				serviceName = service.Name
@@ -215,7 +375,7 @@ func (a *App) ExtractPageImageText(
 			mlog.String("service_type", serviceType),
 			mlog.Err(completionErr),
 		)
-		return nil, model.NewAppError("ExtractPageImageText", "app.page.extract_image.agent_call_failed", nil, completionErr.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("ExtractPageImageText", "app.page.extract_image.agent_call_failed", nil, "", http.StatusInternalServerError).Wrap(completionErr)
 	}
 
 	rctx.Logger().Info("AI agent page image extraction succeeded",
@@ -251,12 +411,13 @@ func (a *App) ExtractPageImageText(
 		)
 	} else {
 		// Try to parse as {"extracted_text":"..."} format
-		if err := json.Unmarshal([]byte(cleanedCompletion), &response); err != nil || response.ExtractedText == "" {
+		if jsonErr := json.Unmarshal([]byte(cleanedCompletion), &response); jsonErr != nil || response.ExtractedText == "" {
 			// Either JSON parsing failed or no extracted_text field - use raw response
 			rctx.Logger().Warn("AI response was not expected format, using raw response",
 				mlog.String("agent_id", agentID),
 				mlog.String("file_id", fileID),
 				mlog.String("response_preview", trimmed[:min(100, len(trimmed))]),
+				mlog.Err(jsonErr),
 			)
 			response.ExtractedText = trimmed
 		}
@@ -572,7 +733,7 @@ func (a *App) SummarizeThreadToPage(rctx request.CTX, agentID, threadID, wikiID,
 	}
 	postList, threadErr := a.GetPostThread(rctx, threadID, opts, userID)
 	if threadErr != nil {
-		return "", model.NewAppError("SummarizeThreadToPage", "app.page.summarize_thread.fetch_thread_failed", nil, threadErr.Error(), http.StatusInternalServerError)
+		return "", model.NewAppError("SummarizeThreadToPage", "app.page.summarize_thread.fetch_thread_failed", nil, "", http.StatusInternalServerError).Wrap(threadErr)
 	}
 
 	if postList == nil || len(postList.Order) == 0 {
@@ -608,7 +769,7 @@ func (a *App) SummarizeThreadToPage(rctx request.CTX, agentID, threadID, wikiID,
 			mlog.String("thread_id", threadID),
 			mlog.Err(completionErr),
 		)
-		return "", model.NewAppError("SummarizeThreadToPage", "app.page.summarize_thread.agent_call_failed", nil, completionErr.Error(), http.StatusInternalServerError)
+		return "", model.NewAppError("SummarizeThreadToPage", "app.page.summarize_thread.agent_call_failed", nil, "", http.StatusInternalServerError).Wrap(completionErr)
 	}
 
 	rctx.Logger().Info("AI agent thread summarization succeeded",
@@ -649,7 +810,7 @@ func (a *App) SummarizeThreadToPage(rctx request.CTX, agentID, threadID, wikiID,
 	// Create a draft page with the summarized content (user can review before publishing)
 	draft, draftErr := a.SavePageDraftWithMetadata(rctx, userID, wikiID, pageID, sanitized, pageTitle, 0, nil)
 	if draftErr != nil {
-		return "", model.NewAppError("SummarizeThreadToPage", "app.page.summarize_thread.create_draft_failed", nil, draftErr.Error(), http.StatusInternalServerError)
+		return "", model.NewAppError("SummarizeThreadToPage", "app.page.summarize_thread.create_draft_failed", nil, "", http.StatusInternalServerError).Wrap(draftErr)
 	}
 
 	rctx.Logger().Info("Thread summarization draft created",
@@ -683,7 +844,12 @@ func (a *App) buildConversationText(rctx request.CTX, postList *model.PostList) 
 	usernameMap := make(map[string]string)
 	if len(userIDs) > 0 {
 		users, err := a.Srv().Store().User().GetProfileByIds(rctx, userIDs, nil, false)
-		if err == nil {
+		if err != nil {
+			rctx.Logger().Warn("Failed to fetch usernames for conversation, using user IDs",
+				mlog.Int("user_count", len(userIDs)),
+				mlog.Err(err),
+			)
+		} else {
 			for _, user := range users {
 				usernameMap[user.Id] = user.Username
 			}

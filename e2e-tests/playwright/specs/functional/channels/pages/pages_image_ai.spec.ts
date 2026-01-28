@@ -905,3 +905,320 @@ test(
         await expect(embeddedImage.first()).toBeVisible({timeout: ELEMENT_TIMEOUT});
     },
 );
+
+/**
+ * Helper to paste HTML content with a proxied image into the editor.
+ * This properly inserts content through TipTap's paste handler.
+ */
+async function pasteProxiedImageHtml(page: any, proxyUrl: string) {
+    const editor = page.locator('.tiptap-editor-content');
+    await editor.click();
+
+    const htmlWithImage = `<p>Before image</p><img src="${proxyUrl}" alt="Proxied image"><p>After image</p>`;
+
+    await page.evaluate((htmlContent: string) => {
+        const clipboardData = new DataTransfer();
+        clipboardData.setData('text/html', htmlContent);
+
+        const pasteEvent = new ClipboardEvent('paste', {
+            bubbles: true,
+            cancelable: true,
+            clipboardData,
+        });
+
+        document.activeElement?.dispatchEvent(pasteEvent);
+    }, htmlWithImage);
+}
+
+/**
+ * @objective Verify AI extraction works with proxied external images (e.g., from Confluence imports)
+ * These are images displayed via /api/v4/image?url=... that need to be fetched server-side
+ *
+ * @precondition
+ * - Image proxy is enabled
+ * - AI plugin is enabled with vision-capable agent
+ */
+test(
+    'supports AI extraction on proxied external images',
+    {tag: ['@pages', '@proxy-images']},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+
+        // # Ensure image proxy is enabled
+        const config = await adminClient.getConfig();
+        if (!config.ImageProxySettings?.Enable) {
+            await adminClient.patchConfig({
+                ImageProxySettings: {
+                    Enable: true,
+                    ImageProxyType: 'local',
+                },
+            });
+        }
+
+        // # Configure AI plugin if enabled
+        if (!shouldSkipAITests()) {
+            await configureAIPlugin(adminClient);
+        }
+
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+        // # Create wiki through UI
+        await createWikiThroughUI(page, `Proxy Image AI Wiki ${await pw.random.id()}`);
+
+        // # Create new page
+        const newPageButton = getNewPageButton(page);
+        await newPageButton.click();
+        await fillCreatePageModal(page, 'Proxy Image AI Test');
+
+        // # Wait for editor and check AI availability
+        const editor = await getEditorAndWait(page);
+        await editor.click();
+
+        const hasAIPlugin = await checkAIPluginAvailability(page);
+        if (!hasAIPlugin) {
+            test.skip(true, 'AI plugin not configured - skipping proxy image AI test');
+            return;
+        }
+
+        // # Insert a proxied external image via paste
+        // This simulates content imported from Confluence where images use /api/v4/image?url=...
+        const externalUrl =
+            'https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/PNG_transparency_demonstration_1.png/280px-PNG_transparency_demonstration_1.png';
+        const proxyUrl = `/api/v4/image?url=${encodeURIComponent(externalUrl)}`;
+
+        await pasteProxiedImageHtml(page, proxyUrl);
+        await page.waitForTimeout(2000);
+
+        // * Verify the image is visible
+        const imageInEditor = editor.locator('img').first();
+        await expect(imageInEditor).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+        // Note: The image may be re-hosted, so we check for either proxy URL or file URL
+        const imageSrc = await imageInEditor.getAttribute('src');
+        const isProxied = imageSrc?.includes('/api/v4/image?url=');
+        const isRehosted = imageSrc?.startsWith('/api/v4/files/');
+
+        // Image should be either proxied or re-hosted
+        expect(isProxied || isRehosted).toBe(true);
+
+        // # Select the image
+        await selectImageInEditor(page);
+        await page.waitForTimeout(UI_MICRO_WAIT * 3);
+
+        // * Verify Image AI bubble appears for the image
+        const imageAIBubble = getImageAIBubble(page);
+        await expect(imageAIBubble).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+        // # Click the AI menu button
+        const menuButton = getImageAIMenuButton(page);
+        await expect(menuButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+        // * Verify button is enabled (images should be supported)
+        await expect(menuButton).toBeEnabled();
+
+        // # Click to open menu
+        await menuButton.click();
+        await page.waitForTimeout(UI_MICRO_WAIT * 2);
+
+        // * Verify both AI options are available
+        const extractOption = page.locator('text=Extract handwriting');
+        const describeOption = page.locator('text=Describe image');
+
+        await expect(extractOption).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await expect(describeOption).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    },
+);
+
+/**
+ * @objective Verify AI extraction action can be triggered for images
+ * The describe image option should be clickable and trigger processing
+ *
+ * @precondition
+ * - Image proxy is enabled
+ * - AI plugin is enabled with vision-capable agent
+ */
+test(
+    'triggers AI describe action for images',
+    {tag: ['@pages', '@proxy-images', '@ai-integration']},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+
+        // # Ensure image proxy is enabled
+        const config = await adminClient.getConfig();
+        if (!config.ImageProxySettings?.Enable) {
+            await adminClient.patchConfig({
+                ImageProxySettings: {
+                    Enable: true,
+                    ImageProxyType: 'local',
+                },
+            });
+        }
+
+        // # Configure AI plugin if enabled
+        if (!shouldSkipAITests()) {
+            await configureAIPlugin(adminClient);
+        }
+
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+        // # Create wiki through UI
+        await createWikiThroughUI(page, `AI Process Test Wiki ${await pw.random.id()}`);
+
+        // # Create new page
+        const newPageButton = getNewPageButton(page);
+        await newPageButton.click();
+        await fillCreatePageModal(page, 'AI Process Test');
+
+        // # Wait for editor and check AI availability
+        const editor = await getEditorAndWait(page);
+        await editor.click();
+
+        const hasAIPlugin = await checkAIPluginAvailability(page);
+        if (!hasAIPlugin) {
+            test.skip(true, 'AI plugin not configured - skipping AI process test');
+            return;
+        }
+
+        // # Insert a proxied external image via paste (Wikipedia has reliable, fast images)
+        const externalUrl =
+            'https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/PNG_transparency_demonstration_1.png/280px-PNG_transparency_demonstration_1.png';
+        const proxyUrl = `/api/v4/image?url=${encodeURIComponent(externalUrl)}`;
+
+        await pasteProxiedImageHtml(page, proxyUrl);
+        await page.waitForTimeout(2000);
+
+        // * Verify the image is visible
+        const imageInEditor = editor.locator('img').first();
+        await expect(imageInEditor).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+        // # Select the image and open AI menu
+        await selectImageInEditor(page);
+        await page.waitForTimeout(UI_MICRO_WAIT * 3);
+
+        const menuButton = getImageAIMenuButton(page);
+        const isDisabled = await menuButton.isDisabled();
+        if (isDisabled) {
+            test.skip(true, 'Vision capability not available - skipping AI process test');
+            return;
+        }
+
+        await menuButton.click();
+        await page.waitForTimeout(UI_MICRO_WAIT * 2);
+
+        // # Click "Describe image" to trigger processing
+        const describeOption = page.locator('text=Describe image');
+        await expect(describeOption).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await describeOption.click();
+
+        // * Verify the menu closed (action was triggered)
+        await page.waitForTimeout(UI_MICRO_WAIT * 3);
+        const menuStillOpen = await describeOption.isVisible().catch(() => false);
+
+        // The menu should close after clicking the option
+        expect(menuStillOpen).toBe(false);
+
+        // * Verify editor is still functional after triggering action
+        await page.keyboard.press('Escape'); // Close any dialogs
+        await page.waitForTimeout(UI_MICRO_WAIT * 2);
+        await editor.click();
+        await page.keyboard.press('End');
+        await page.keyboard.type(' Action triggered successfully.');
+        await expect(editor).toContainText('Action triggered successfully.');
+    },
+);
+
+/**
+ * @objective Verify editor remains functional after AI image extraction
+ *
+ * @precondition
+ * AI plugin is enabled
+ */
+test(
+    'editor remains functional after AI image action',
+    {tag: ['@pages', '@proxy-images']},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+
+        // # Ensure image proxy is enabled
+        const config = await adminClient.getConfig();
+        if (!config.ImageProxySettings?.Enable) {
+            await adminClient.patchConfig({
+                ImageProxySettings: {
+                    Enable: true,
+                    ImageProxyType: 'local',
+                },
+            });
+        }
+
+        // # Configure AI plugin if enabled
+        if (!shouldSkipAITests()) {
+            await configureAIPlugin(adminClient);
+        }
+
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+        // # Create wiki through UI
+        await createWikiThroughUI(page, `Editor Functional Wiki ${await pw.random.id()}`);
+
+        // # Create new page
+        const newPageButton = getNewPageButton(page);
+        await newPageButton.click();
+        await fillCreatePageModal(page, 'Editor Functional Test');
+
+        // # Wait for editor
+        const editor = await getEditorAndWait(page);
+        await editor.click();
+
+        const hasAIPlugin = await checkAIPluginAvailability(page);
+        if (!hasAIPlugin) {
+            test.skip(true, 'AI plugin not configured - skipping editor functional test');
+            return;
+        }
+
+        // # Insert a proxied image via paste
+        const externalUrl =
+            'https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/PNG_transparency_demonstration_1.png/280px-PNG_transparency_demonstration_1.png';
+        const proxyUrl = `/api/v4/image?url=${encodeURIComponent(externalUrl)}`;
+
+        await pasteProxiedImageHtml(page, proxyUrl);
+        await page.waitForTimeout(2000);
+
+        // * Verify the image is visible
+        const imageInEditor = editor.locator('img').first();
+        await expect(imageInEditor).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+        // # Select the image
+        await selectImageInEditor(page);
+        await page.waitForTimeout(UI_MICRO_WAIT * 3);
+
+        // # Try to trigger AI action (may or may not succeed depending on vision availability)
+        const menuButton = getImageAIMenuButton(page);
+        if (await menuButton.isVisible()) {
+            if (!(await menuButton.isDisabled())) {
+                await menuButton.click();
+                await page.waitForTimeout(UI_MICRO_WAIT * 2);
+
+                const describeOption = page.locator('text=Describe image');
+                if (await describeOption.isVisible()) {
+                    await describeOption.click();
+
+                    // Wait briefly for action to trigger
+                    await page.waitForTimeout(WEBSOCKET_WAIT);
+                }
+            }
+        }
+
+        // # Press Escape to close any dialogs
+        await page.keyboard.press('Escape');
+        await page.waitForTimeout(UI_MICRO_WAIT * 2);
+
+        // * Editor should still be functional after AI action
+        await editor.click();
+        await page.keyboard.press('End');
+        await page.keyboard.type(' Editor still works after AI action.');
+        await expect(editor).toContainText('Editor still works after AI action.');
+    },
+);

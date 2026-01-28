@@ -163,10 +163,13 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 			}
 		}
 
-		// Mark export as downloadable
-		job.Data[model.WikiJobDataKeyIsDownloadable] = "true"
-		job.Data[model.WikiJobDataKeyExportDir] = exportDir
-		job.Data[model.WikiJobDataKeyExportFile] = exportFilename
+		// Only mark export as downloadable if pages were actually exported
+		pagesExported, _ := strconv.Atoi(job.Data[model.WikiJobDataKeyPagesExported])
+		if pagesExported > 0 {
+			job.Data[model.WikiJobDataKeyIsDownloadable] = "true"
+			job.Data[model.WikiJobDataKeyExportDir] = exportDir
+			job.Data[model.WikiJobDataKeyExportFile] = exportFilename
+		}
 
 		return nil
 	}

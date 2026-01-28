@@ -5,7 +5,6 @@ package api4
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -366,6 +365,11 @@ func extractPageImageText(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Audit logging for AI image extraction
+	auditRec := c.MakeAuditRecord("extractPageImageText", model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("wiki_id", c.Params.WikiId)
+
 	wiki, _, ok := c.GetWikiForRead()
 	if !ok {
 		return
@@ -382,14 +386,92 @@ func extractPageImageText(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.AddMeta("agent_id", req.AgentID)
+	auditRec.AddMeta("action", string(req.Action))
+
 	if !model.IsValidId(req.AgentID) {
 		c.SetInvalidParam("agent_id")
 		return
 	}
 
-	if !model.IsValidId(req.FileID) {
-		c.SetInvalidParam("file_id")
+	// Validate that exactly one of file_id or image_url is provided
+	hasFileID := req.FileID != ""
+	hasImageURL := req.ImageURL != ""
+
+	if hasFileID && hasImageURL {
+		c.Err = model.NewAppError("extractPageImageText", "api.wiki.extract_image.both_file_and_url.app_error", nil, "cannot provide both file_id and image_url", http.StatusBadRequest)
 		return
+	}
+
+	if !hasFileID && !hasImageURL {
+		c.Err = model.NewAppError("extractPageImageText", "api.wiki.extract_image.missing_file_or_url.app_error", nil, "must provide either file_id or image_url", http.StatusBadRequest)
+		return
+	}
+
+	if hasFileID {
+		if !model.IsValidId(req.FileID) {
+			c.SetInvalidParam("file_id")
+			return
+		}
+		auditRec.AddMeta("file_id", req.FileID)
+
+		// Verify user has permission to access the file
+		fileInfo, appErr := c.App.GetFileInfo(c.AppContext, req.FileID)
+		if appErr != nil {
+			c.Err = model.NewAppError("extractPageImageText", "api.wiki.extract_image.file_not_found.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
+			return
+		}
+
+		// Check if file belongs to a post the user can access
+		if fileInfo.PostId != "" {
+			post, postErr := c.App.GetSinglePost(c.AppContext, fileInfo.PostId, false)
+			if postErr != nil {
+				c.SetPermissionError(model.PermissionReadChannel)
+				return
+			}
+
+			// Defensive check: verify file's channel matches post's channel
+			if fileInfo.ChannelId != "" && fileInfo.ChannelId != post.ChannelId {
+				c.SetPermissionError(model.PermissionReadChannel)
+				return
+			}
+
+			// Verify user has read access to the channel
+			if hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionReadChannel); !hasPermission {
+				c.SetPermissionError(model.PermissionReadChannel)
+				return
+			}
+		} else {
+			// File not attached to post - verify user owns it
+			if fileInfo.CreatorId != c.AppContext.Session().UserId {
+				c.SetPermissionError(model.PermissionReadChannel)
+				return
+			}
+		}
+	}
+
+	if hasImageURL {
+		// Trim whitespace
+		req.ImageURL = strings.TrimSpace(req.ImageURL)
+		if req.ImageURL == "" {
+			c.Err = model.NewAppError("extractPageImageText", "api.wiki.extract_image.empty_image_url.app_error", nil, "image_url cannot be empty or whitespace", http.StatusBadRequest)
+			return
+		}
+
+		// Validate URL length
+		if len(req.ImageURL) > model.LinkMetadataMaxURLLength {
+			c.Err = model.NewAppError("extractPageImageText", "api.wiki.extract_image.url_too_long.app_error",
+				map[string]any{"MaxLength": model.LinkMetadataMaxURLLength}, "", http.StatusBadRequest)
+			return
+		}
+
+		// Validate URL format (http/https scheme, valid structure)
+		if !model.IsValidHTTPURL(req.ImageURL) {
+			c.SetInvalidParam("image_url")
+			return
+		}
+
+		auditRec.AddMeta("image_url", req.ImageURL)
 	}
 
 	if req.Action != app.PageImageExtractionExtractHandwriting && req.Action != app.PageImageExtractionDescribeImage {
@@ -401,12 +483,15 @@ func extractPageImageText(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.AppContext,
 		req.AgentID,
 		req.FileID,
+		req.ImageURL,
 		req.Action,
 	)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
+
+	auditRec.Success()
 
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(*response); err != nil {
@@ -489,65 +574,5 @@ func summarizeThreadToPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
-	}
-}
-
-// exportPageToMarkdown handles POST /api/v4/wiki/{wiki_id}/pages/{page_id}/export/markdown
-// Client sends markdown + file references, server bundles into ZIP with actual files
-func exportPageToMarkdown(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireWikiId()
-	c.RequirePageId()
-	if c.Err != nil {
-		return
-	}
-
-	// Validate page access (includes wiki permission check and page ownership validation)
-	_, _, _, ok := c.GetPageForRead()
-	if !ok {
-		return
-	}
-
-	// Parse request body
-	var req model.MarkdownExportRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		c.SetInvalidParamWithErr("body", err)
-		return
-	}
-
-	// Validate request (includes file reference validation)
-	if appErr := req.IsValid(); appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	// Security: Validate all files belong to this page before processing
-	// This prevents attackers from exfiltrating files from other pages
-	for _, fileRef := range req.Files {
-		fileInfo, appErr := c.App.GetFileInfo(c.AppContext, fileRef.FileId)
-		if appErr != nil {
-			c.Err = model.NewAppError("exportPageToMarkdown", "api.page.export.file_not_found.error",
-				map[string]any{"FileId": fileRef.FileId}, "", http.StatusBadRequest).Wrap(appErr)
-			return
-		}
-		if fileInfo.PostId != c.Params.PageId {
-			c.Err = model.NewAppError("exportPageToMarkdown", "api.page.export.file_not_owned.error",
-				map[string]any{"FileId": fileRef.FileId}, "", http.StatusForbidden)
-			return
-		}
-	}
-
-	// Generate ZIP with markdown + files
-	zipData, appErr := c.App.ExportPageToMarkdownZip(c.AppContext, c.Params.PageId, req)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	// Stream ZIP response
-	w.Header().Set("Content-Type", "application/zip")
-	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s.zip"`, req.Filename))
-	w.Header().Set("Content-Length", fmt.Sprintf("%d", len(zipData)))
-	if _, err := w.Write(zipData); err != nil {
-		c.Logger.Warn("Error writing ZIP response", mlog.Err(err))
 	}
 }

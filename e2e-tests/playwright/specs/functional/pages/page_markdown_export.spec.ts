@@ -4,8 +4,8 @@
 import {expect, test} from '../channels/pages/pages_test_fixture';
 import {buildWikiPageUrl, openPageActionsMenu, clickPageContextMenuItem} from '../channels/pages/test_helpers';
 
-test.describe('Page Markdown Export', () => {
-    test('MM-PAGE-EXPORT-MD-1 Export to Markdown menu item should be visible in page actions', async ({
+test.describe('Page Copy as Markdown', () => {
+    test('MM-PAGE-COPY-MD-1 Copy as Markdown menu item should be visible in page actions', async ({
         pw,
         sharedPagesSetup,
     }) => {
@@ -17,17 +17,17 @@ test.describe('Page Markdown Export', () => {
         // Create a wiki and page
         const wiki = await adminClient.createWiki({
             channel_id: channel.id,
-            title: `MD Export Test Wiki ${Date.now()}`,
+            title: `MD Copy Test Wiki ${Date.now()}`,
         });
 
         const pageContent = {
             type: 'doc' as const,
             content: [
                 {type: 'heading', attrs: {level: 1}, content: [{type: 'text', text: 'Test Page'}]},
-                {type: 'paragraph', content: [{type: 'text', text: 'This is test content for markdown export.'}]},
+                {type: 'paragraph', content: [{type: 'text', text: 'This is test content for markdown copy.'}]},
             ],
         };
-        const testPage = await pw.createPageViaDraft(adminClient, wiki.id, 'Export Test Page', pageContent);
+        const testPage = await pw.createPageViaDraft(adminClient, wiki.id, 'Copy Test Page', pageContent);
 
         // Login and navigate to the page
         const {page} = await pw.testBrowser.login(user);
@@ -38,27 +38,25 @@ test.describe('Page Markdown Export', () => {
         // Open the page actions menu
         await openPageActionsMenu(page);
 
-        // Verify Export to Markdown menu item is visible
-        const exportMarkdownItem = page.locator('[data-testid="page-context-menu-export-markdown"]');
-        await expect(exportMarkdownItem).toBeVisible();
+        // Verify Copy as Markdown menu item is visible
+        const copyMarkdownItem = page.locator('[data-testid="page-context-menu-copy-markdown"]');
+        await expect(copyMarkdownItem).toBeVisible();
     });
 
-    test('MM-PAGE-EXPORT-MD-2 Export to Markdown should call API and succeed', async ({pw, sharedPagesSetup}) => {
-        test.slow();
-
+    test('MM-PAGE-COPY-MD-2 Copy as Markdown should copy content to clipboard', async ({pw, sharedPagesSetup}) => {
         const {team, user, adminClient} = sharedPagesSetup;
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
         // Create wiki and page with various content
         const wiki = await adminClient.createWiki({
             channel_id: channel.id,
-            title: `MD Export Download ${Date.now()}`,
+            title: `MD Copy Clipboard ${Date.now()}`,
         });
 
         const pageContent = {
             type: 'doc' as const,
             content: [
-                {type: 'heading', attrs: {level: 1}, content: [{type: 'text', text: 'Markdown Export Test'}]},
+                {type: 'heading', attrs: {level: 1}, content: [{type: 'text', text: 'Markdown Copy Test'}]},
                 {
                     type: 'paragraph',
                     content: [
@@ -77,113 +75,92 @@ test.describe('Page Markdown Export', () => {
                 },
             ],
         };
-        const testPage = await pw.createPageViaDraft(adminClient, wiki.id, 'Download Test Page', pageContent);
+        const testPage = await pw.createPageViaDraft(adminClient, wiki.id, 'Clipboard Test Page', pageContent);
 
         // Login and navigate
         const {page} = await pw.testBrowser.login(user);
+
+        // Grant clipboard permissions
+        await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+
         const pageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, testPage.id);
         await page.goto(pageUrl);
         await page.waitForLoadState('networkidle');
 
-        // Set up network interception to verify API call succeeds
-        let apiCallSucceeded = false;
-        let apiResponse: {status: number; contentType: string | null} | null = null;
+        // Open actions menu and click Copy as Markdown
+        await openPageActionsMenu(page);
+        await clickPageContextMenuItem(page, 'copy-markdown');
 
-        page.on('response', (response) => {
-            if (response.url().includes('/export/markdown')) {
-                apiResponse = {
-                    status: response.status(),
-                    contentType: response.headers()['content-type'],
-                };
-                if (response.status() === 200) {
-                    apiCallSucceeded = true;
-                }
-            }
+        // Wait for the copy to complete
+        await page.waitForTimeout(500);
+
+        // Read clipboard content
+        const clipboardContent = await page.evaluate(async () => {
+            return navigator.clipboard.readText();
         });
 
-        // Open actions menu and click Export to Markdown
-        await openPageActionsMenu(page);
-        await clickPageContextMenuItem(page, 'export-markdown');
-
-        // Wait for the API call to complete
-        await page.waitForTimeout(5000);
-
-        // Verify the API call succeeded
-        expect(apiCallSucceeded).toBe(true);
-        expect(apiResponse).not.toBeNull();
-        expect(apiResponse!.status).toBe(200);
-        expect(apiResponse!.contentType).toBe('application/zip');
+        // Verify the markdown content
+        expect(clipboardContent).toContain('# Clipboard Test Page');
+        expect(clipboardContent).toContain('**bold**');
+        expect(clipboardContent).toContain('*italic*');
+        expect(clipboardContent).toContain('- Item 1');
+        expect(clipboardContent).toContain('- Item 2');
     });
 
-    test('MM-PAGE-EXPORT-MD-3 Export to Markdown API should return ZIP', async ({pw, sharedPagesSetup}) => {
-        const {team, adminClient} = sharedPagesSetup;
+    test('MM-PAGE-COPY-MD-3 Copy as Markdown should show Copied feedback', async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
         // Create wiki and page
         const wiki = await adminClient.createWiki({
             channel_id: channel.id,
-            title: `MD API Test ${Date.now()}`,
+            title: `MD Copy Feedback ${Date.now()}`,
         });
 
         const pageContent = {
             type: 'doc' as const,
             content: [
-                {type: 'heading', attrs: {level: 1}, content: [{type: 'text', text: 'API Test'}]},
+                {type: 'heading', attrs: {level: 1}, content: [{type: 'text', text: 'Feedback Test'}]},
                 {type: 'paragraph', content: [{type: 'text', text: 'Test content.'}]},
             ],
         };
-        const testPage = await pw.createPageViaDraft(adminClient, wiki.id, 'API Test Page', pageContent);
+        const testPage = await pw.createPageViaDraft(adminClient, wiki.id, 'Feedback Test Page', pageContent);
 
-        // Call the export API directly
-        const token = adminClient.getToken();
-        const response = await fetch(`${adminClient.getWikiPageRoute(wiki.id, testPage.id)}/export/markdown`, {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                markdown: '# API Test\n\nTest content.',
-                filename: 'api-test-page',
-                files: [],
-            }),
-        });
+        // Login and navigate
+        const {page} = await pw.testBrowser.login(user);
+        await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
 
-        expect(response.ok, `API Error: ${response.status} ${response.statusText}`).toBe(true);
-        expect(response.headers.get('content-type')).toBe('application/zip');
+        const pageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, testPage.id);
+        await page.goto(pageUrl);
+        await page.waitForLoadState('networkidle');
 
-        // Verify we got ZIP content
-        const blob = await response.blob();
-        expect(blob.size).toBeGreaterThan(0);
+        // Open actions menu and click Copy as Markdown
+        await openPageActionsMenu(page);
+        await clickPageContextMenuItem(page, 'copy-markdown');
+
+        // Re-open the menu to check the feedback state
+        await openPageActionsMenu(page);
+
+        // Verify the menu item shows "Copied!" feedback
+        const copyMarkdownItem = page.locator('[data-testid="page-context-menu-copy-markdown"]');
+        await expect(copyMarkdownItem).toContainText('Copied!');
     });
 
-    test('MM-PAGE-EXPORT-MD-4 Export to Markdown with image should include image in ZIP', async ({
-        pw,
-        sharedPagesSetup,
-    }) => {
-        test.slow();
-
-        const {team, adminClient} = sharedPagesSetup;
+    test('MM-PAGE-COPY-MD-4 Copy as Markdown with image should preserve file URLs', async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
         // Create wiki and page
         const wiki = await adminClient.createWiki({
             channel_id: channel.id,
-            title: `MD Image Export ${Date.now()}`,
+            title: `MD Image Copy ${Date.now()}`,
         });
 
-        // Create a page first
-        const initialContent = {
-            type: 'doc' as const,
-            content: [{type: 'paragraph', content: [{type: 'text', text: 'Page with image attachment.'}]}],
-        };
-        const testPage = await pw.createPageViaDraft(adminClient, wiki.id, 'Image Export Test Page', initialContent);
-
-        // Upload an image file to the channel
+        // Upload an image file to the channel first
         const imageBase64 =
             'iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVQYV2NkYGD4z0AEYBxVSF+FAG7xAbHSBPeEAAAAAElFTkSuQmCC';
         const imageBuffer = Buffer.from(imageBase64, 'base64');
-        const imageName = 'test-export-image.png';
+        const imageName = 'test-copy-image.png';
 
         const formData = new FormData();
         formData.set('channel_id', channel.id);
@@ -194,175 +171,53 @@ test.describe('Page Markdown Export', () => {
         expect(uploadResponse.file_infos.length).toBe(1);
         const fileId = uploadResponse.file_infos[0].id;
 
+        // Create page with image content that references the uploaded file
+        const contentWithImage = {
+            type: 'doc' as const,
+            content: [
+                {type: 'paragraph', content: [{type: 'text', text: 'Page with image.'}]},
+                {
+                    type: 'paragraph',
+                    content: [
+                        {
+                            type: 'image',
+                            attrs: {
+                                src: `/api/v4/files/${fileId}`,
+                                alt: imageName,
+                                filename: imageName,
+                            },
+                        },
+                    ],
+                },
+            ],
+        };
+        const testPage = await pw.createPageViaDraft(adminClient, wiki.id, 'Image Copy Test Page', contentWithImage);
+
         // Attach the file to the page
         await adminClient.patchPost({id: testPage.id, file_ids: [fileId]});
 
-        // Verify file is attached
-        const pageWithFile = await adminClient.getPage(wiki.id, testPage.id);
-        expect(pageWithFile.file_ids).toContain(fileId);
+        // Login and navigate
+        const {page} = await pw.testBrowser.login(user);
+        await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
 
-        // Call the export API with the file reference using original filename
-        const token = adminClient.getToken();
-        const markdownContent = `# Image Export Test Page
+        const pageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, testPage.id);
+        await page.goto(pageUrl);
+        await page.waitForLoadState('networkidle');
 
-Page with image attachment.
+        // Open actions menu and click Copy as Markdown
+        await openPageActionsMenu(page);
+        await clickPageContextMenuItem(page, 'copy-markdown');
 
-![${imageName}](attachments/${imageName})`;
+        // Wait for the copy to complete
+        await page.waitForTimeout(500);
 
-        const response = await fetch(`${adminClient.getWikiPageRoute(wiki.id, testPage.id)}/export/markdown`, {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                markdown: markdownContent,
-                filename: 'image-export-test-page',
-                files: [
-                    {
-                        file_id: fileId,
-                        local_path: `attachments/${imageName}`,
-                    },
-                ],
-            }),
+        // Read clipboard content
+        const clipboardContent = await page.evaluate(async () => {
+            return navigator.clipboard.readText();
         });
 
-        expect(response.ok, `API Error: ${response.status} ${response.statusText}`).toBe(true);
-        expect(response.headers.get('content-type')).toBe('application/zip');
-
-        // Get the ZIP content as ArrayBuffer
-        const zipData = await response.arrayBuffer();
-        const zipBytes = new Uint8Array(zipData);
-
-        // Verify ZIP magic bytes (PK\x03\x04)
-        expect(zipBytes[0]).toBe(0x50); // P
-        expect(zipBytes[1]).toBe(0x4b); // K
-
-        // Convert to string to search for file names in the ZIP central directory
-        const decoder = new TextDecoder('utf-8', {fatal: false});
-        const zipString = decoder.decode(zipBytes);
-
-        // Verify the ZIP contains the markdown file
-        expect(zipString).toContain('image-export-test-page.md');
-
-        // Verify the ZIP contains the attachments directory with the original image filename
-        expect(zipString).toContain(`attachments/${imageName}`);
-    });
-
-    test('MM-PAGE-EXPORT-MD-5 Export to Markdown with multiple files should include all files in ZIP', async ({
-        pw,
-        sharedPagesSetup,
-    }) => {
-        test.slow();
-
-        const {team, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
-
-        // Create wiki and page
-        const wiki = await adminClient.createWiki({
-            channel_id: channel.id,
-            title: `MD Multi-File Export ${Date.now()}`,
-        });
-
-        const initialContent = {
-            type: 'doc' as const,
-            content: [{type: 'paragraph', content: [{type: 'text', text: 'Page with multiple file attachments.'}]}],
-        };
-        const testPage = await pw.createPageViaDraft(
-            adminClient,
-            wiki.id,
-            'Multi-File Export Test Page',
-            initialContent,
-        );
-
-        // Upload first image
-        const image1Base64 =
-            'iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVQYV2NkYGD4z0AEYBxVSF+FAG7xAbHSBPeEAAAAAElFTkSuQmCC';
-        const image1Buffer = Buffer.from(image1Base64, 'base64');
-
-        const formData1 = new FormData();
-        formData1.set('channel_id', channel.id);
-        formData1.set('client_ids', await pw.random.id());
-        formData1.set('files', new Blob([image1Buffer], {type: 'image/png'}), 'first-image.png');
-
-        const upload1 = await adminClient.uploadFile(formData1);
-        const fileId1 = upload1.file_infos[0].id;
-
-        // Upload second file (PDF)
-        const pdfContent =
-            '%PDF-1.4\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n2 0 obj\n<< /Type /Pages /Kids [] /Count 0 >>\nendobj\ntrailer\n<< /Root 1 0 R >>\n%%EOF';
-        const pdfBuffer = Buffer.from(pdfContent);
-
-        const formData2 = new FormData();
-        formData2.set('channel_id', channel.id);
-        formData2.set('client_ids', await pw.random.id());
-        formData2.set('files', new Blob([pdfBuffer], {type: 'application/pdf'}), 'document.pdf');
-
-        const upload2 = await adminClient.uploadFile(formData2);
-        const fileId2 = upload2.file_infos[0].id;
-
-        // Attach both files to the page
-        await adminClient.patchPost({id: testPage.id, file_ids: [fileId1, fileId2]});
-
-        // Verify files are attached
-        const pageWithFiles = await adminClient.getPage(wiki.id, testPage.id);
-        expect(pageWithFiles.file_ids).toContain(fileId1);
-        expect(pageWithFiles.file_ids).toContain(fileId2);
-
-        // Call the export API with both file references using original filenames
-        const token = adminClient.getToken();
-        const image1Name = 'first-image.png';
-        const pdfName = 'document.pdf';
-        const markdownContent = `# Multi-File Export Test Page
-
-Page with multiple file attachments.
-
-![${image1Name}](attachments/${image1Name})
-
-[${pdfName}](attachments/${pdfName})`;
-
-        const response = await fetch(`${adminClient.getWikiPageRoute(wiki.id, testPage.id)}/export/markdown`, {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                markdown: markdownContent,
-                filename: 'multi-file-export-test',
-                files: [
-                    {
-                        file_id: fileId1,
-                        local_path: `attachments/${image1Name}`,
-                    },
-                    {
-                        file_id: fileId2,
-                        local_path: `attachments/${pdfName}`,
-                    },
-                ],
-            }),
-        });
-
-        expect(response.ok, `API Error: ${response.status} ${response.statusText}`).toBe(true);
-        expect(response.headers.get('content-type')).toBe('application/zip');
-
-        // Get the ZIP content
-        const zipData = await response.arrayBuffer();
-        const zipBytes = new Uint8Array(zipData);
-
-        // Verify ZIP magic bytes
-        expect(zipBytes[0]).toBe(0x50); // P
-        expect(zipBytes[1]).toBe(0x4b); // K
-
-        // Convert to string to search for file names
-        const decoder = new TextDecoder('utf-8', {fatal: false});
-        const zipString = decoder.decode(zipBytes);
-
-        // Verify the ZIP contains the markdown file
-        expect(zipString).toContain('multi-file-export-test.md');
-
-        // Verify the ZIP contains both attachments with original filenames
-        expect(zipString).toContain(`attachments/${image1Name}`);
-        expect(zipString).toContain(`attachments/${pdfName}`);
+        // Verify the markdown contains the preserved file URL (not attachments/ path)
+        expect(clipboardContent).toContain(`/api/v4/files/${fileId}`);
+        expect(clipboardContent).not.toContain('attachments/');
     });
 });

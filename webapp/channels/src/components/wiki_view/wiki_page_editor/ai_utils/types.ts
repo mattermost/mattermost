@@ -67,6 +67,15 @@ export interface PreservedMark {
 }
 
 /**
+ * Protected URL that was replaced with a placeholder before AI processing.
+ * Used to restore URLs that appear as visible link text.
+ */
+export interface ProtectedUrl {
+    placeholder: string; // e.g., "⟦URL:0⟧"
+    original: string; // e.g., "https://example.com/path"
+}
+
+/**
  * Represents a chunk of text extracted from a specific location in the document.
  * Contains all information needed to reassemble the text back into the original structure.
  */
@@ -78,7 +87,7 @@ export interface TextChunk {
     /** The node type this text came from (paragraph, heading, etc.) */
     nodeType: string;
 
-    /** The extracted text content */
+    /** The extracted text content (with URL placeholders if any) */
     text: string;
 
     /** Preserved marks with their positions */
@@ -89,6 +98,9 @@ export interface TextChunk {
 
     /** Original node attributes (for heading level, etc.) */
     nodeAttrs?: TipTapNodeAttrs;
+
+    /** URLs that were replaced with placeholders (for restoration after AI processing) */
+    protectedUrls?: ProtectedUrl[];
 }
 
 /**

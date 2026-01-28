@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useState} from 'react';
-import {useIntl} from 'react-intl';
+import React, {useCallback, useEffect, useState} from 'react';
+import {defineMessages, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import BookmarkOutlineIcon from '@mattermost/compass-icons/components/bookmark-outline';
@@ -21,11 +21,11 @@ import PencilOutlineIcon from '@mattermost/compass-icons/components/pencil-outli
 import PlusIcon from '@mattermost/compass-icons/components/plus';
 import TrashCanOutlineIcon from '@mattermost/compass-icons/components/trash-can-outline';
 
-import {Client4} from 'mattermost-redux/client';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 
 import {togglePageOutline} from 'actions/views/pages_hierarchy';
 
+import useCopyText from 'components/common/hooks/useCopyText';
 import * as Menu from 'components/menu';
 
 import {tiptapToMarkdown} from 'utils/tiptap_to_markdown';
@@ -55,6 +55,11 @@ type Props = {
     isAIProcessing?: boolean;
 };
 
+const messages = defineMessages({
+    copyMarkdown: {id: 'page_actions_menu.copy_as_markdown', defaultMessage: 'Copy as Markdown'},
+    copied: {id: 'page_actions_menu.copied', defaultMessage: 'Copied!'},
+});
+
 const PageActionsMenu = ({
     pageId,
     wikiId,
@@ -78,9 +83,37 @@ const PageActionsMenu = ({
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
-    const [isExporting, setIsExporting] = useState(false);
+    const [markdownText, setMarkdownText] = useState('');
 
     const page = useSelector((state: GlobalState) => getPost(state, pageId));
+
+    useEffect(() => {
+        const messageStr = typeof page?.message === 'string' ? page.message : '';
+        if (!messageStr || messageStr.trim() === '') {
+            setMarkdownText('');
+            return;
+        }
+        try {
+            const doc = JSON.parse(messageStr);
+            const rawTitle = page?.props?.title;
+            const title = (typeof rawTitle === 'string' && rawTitle.trim()) ? rawTitle.trim() : 'Untitled';
+            const result = tiptapToMarkdown(doc, {
+                title,
+                includeTitle: true,
+                preserveFileUrls: true,
+            });
+            setMarkdownText(result.markdown);
+        } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error('Failed to prepare markdown:', error);
+            setMarkdownText('');
+        }
+    }, [page?.message, page?.props?.title]);
+
+    const copyMarkdown = useCopyText({
+        text: markdownText,
+        successCopyTimeout: 2000,
+    });
 
     const isOutlineVisible = useSelector((state: GlobalState) =>
         state.views.pagesHierarchy.outlineExpandedNodes[pageId] || false,
@@ -110,94 +143,6 @@ const PageActionsMenu = ({
         window.print();
     }, []);
 
-    const handleExportMarkdown = useCallback(async () => {
-        if (!page?.message || !wikiId) {
-            return;
-        }
-
-        setIsExporting(true);
-        try {
-            const doc = typeof page.message === 'string' ?
-                JSON.parse(page.message) :
-                page.message;
-
-            const rawTitle = page.props?.title;
-            const title = typeof rawTitle === 'string' && rawTitle.trim() ?
-                rawTitle.trim() :
-                'Untitled';
-
-            // Convert to markdown and collect file references (client-side)
-            const result = tiptapToMarkdown(doc, {title, includeTitle: true});
-
-            // Sanitize filename - remove invalid chars including control characters (U+0000-U+001F)
-            const invalidCharsRegex = /[<>:"/\\|?*\u0000-\u001f]/g; // eslint-disable-line no-control-regex
-            const filename = title.
-                normalize('NFKD').
-                replace(invalidCharsRegex, '').
-                replace(/\s+/g, '-').
-                replace(/\.+$/, '').
-                slice(0, 100).
-                trim() || 'untitled';
-
-            // Call server to create ZIP with files
-            // Use Client4's getOptions to get proper auth headers including CSRF token
-            const fetchOptions = Client4.getOptions({
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    markdown: result.markdown,
-                    filename,
-                    files: result.files.map((f) => ({
-                        file_id: f.fileId,
-                        local_path: f.localPath,
-                    })),
-                }),
-            });
-            const response = await fetch(
-                `${Client4.getWikiPageRoute(wikiId, pageId)}/export/markdown`,
-                fetchOptions,
-            );
-
-            if (!response.ok) {
-                // Try to parse error message from response
-                let errorMessage = `Export failed with status ${response.status}`;
-                try {
-                    const errorData = await response.json();
-                    if (errorData.message) {
-                        errorMessage = errorData.message;
-                    }
-                } catch {
-                    // Ignore JSON parse errors, use default message
-                }
-                throw new Error(errorMessage);
-            }
-
-            // Download ZIP from response
-            const blob = await response.blob();
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${filename}.zip`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            setTimeout(() => URL.revokeObjectURL(url), 1000);
-        } catch (error) {
-            // Log error for debugging and show user-friendly message
-            // eslint-disable-next-line no-console
-            console.error('Export to Markdown failed:', error);
-
-            // Show alert with error message - could be replaced with toast notification
-            const message = error instanceof Error ? error.message : 'Export failed. Please try again.';
-            // eslint-disable-next-line no-alert
-            alert(message);
-        } finally {
-            setIsExporting(false);
-        }
-    }, [page, pageId, wikiId]);
-
     const moreActionsLabel = buttonLabel || formatMessage({id: 'page_actions_menu.more_actions', defaultMessage: 'More actions'});
     const newSubpageLabel = formatMessage({id: 'page_actions_menu.new_subpage', defaultMessage: 'New subpage'});
     const showOutlineLabel = formatMessage({id: 'page_actions_menu.show_outline', defaultMessage: 'Show outline'});
@@ -208,7 +153,6 @@ const PageActionsMenu = ({
     const bookmarkInChannelLabel = formatMessage({id: 'page_actions_menu.bookmark_in_channel', defaultMessage: 'Bookmark in channel...'});
     const duplicatePageLabel = formatMessage({id: 'page_actions_menu.duplicate_page', defaultMessage: 'Duplicate page'});
     const exportToPdfLabel = formatMessage({id: 'page_actions_menu.export_to_pdf', defaultMessage: 'Export to PDF'});
-    const exportToMarkdownLabel = formatMessage({id: 'page_actions_menu.export_to_markdown', defaultMessage: 'Export to Markdown'});
     const versionHistoryLabel = formatMessage({id: 'page_actions_menu.version_history', defaultMessage: 'Version history'});
     const deletePageLabel = formatMessage({id: 'page_actions_menu.delete_page', defaultMessage: 'Delete page'});
     const deleteDraftLabel = formatMessage({id: 'page_actions_menu.delete_draft', defaultMessage: 'Delete draft'});
@@ -300,12 +244,12 @@ const PageActionsMenu = ({
                 onClick={handleExportPDF}
             />
             <Menu.Item
-                id='page-menu-export-markdown'
-                data-testid='page-context-menu-export-markdown'
-                leadingElement={<FileTextOutlineIcon size={18}/>}
-                labels={<span>{exportToMarkdownLabel}</span>}
-                onClick={handleExportMarkdown}
-                disabled={isExporting}
+                id='page-menu-copy-markdown'
+                data-testid='page-context-menu-copy-markdown'
+                leadingElement={copyMarkdown.copiedRecently ? <CheckCircleOutlineIcon size={18}/> : <FileTextOutlineIcon size={18}/>}
+                labels={<span>{copyMarkdown.copiedRecently ? formatMessage(messages.copied) : formatMessage(messages.copyMarkdown)}</span>}
+                onClick={copyMarkdown.onClick}
+                disabled={!markdownText || copyMarkdown.copyError}
             />
             {hasAITools && (
                 <>

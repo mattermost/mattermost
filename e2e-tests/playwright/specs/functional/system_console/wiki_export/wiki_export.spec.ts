@@ -149,23 +149,37 @@ test.describe('Wiki Export/Import Admin Console', () => {
             title: 'Empty Wiki',
         });
 
+        // Create export job via API for only the empty channel (not all channels)
+        const exportJob = await adminClient.createJob({
+            type: 'wiki_export',
+            data: {
+                channel_ids: channel.id,
+            },
+        });
+
+        // Wait for export job to complete
+        let completedExportJob = await adminClient.getJob(exportJob.id);
+        for (let i = 0; i < 30; i++) {
+            await pw.wait(pw.duration.two_sec);
+            completedExportJob = await adminClient.getJob(exportJob.id);
+            if (completedExportJob.status === 'success' || completedExportJob.status === 'error') {
+                break;
+            }
+        }
+        expect(completedExportJob.status).toBe('success');
+        expect(completedExportJob.data?.pages_exported).toBe('0');
+        expect(completedExportJob.data?.is_downloadable).toBeUndefined();
+
         // Log in as admin and navigate to wiki export page
         const {page, systemConsolePage} = await pw.testBrowser.login(adminUser);
         await systemConsolePage.goto();
         await systemConsolePage.toBeVisible();
         await systemConsolePage.sidebar.goToItem('Wiki Export/Import');
 
-        // Click the export button
-        const exportPanel = page.locator('#wikiExportPanel');
-        const exportButton = exportPanel.getByRole('button', {name: 'Run Wiki Export Now'});
-        await exportButton.click();
-
-        // Wait for job to complete
-        const jobTable = exportPanel.locator('[data-testid="jobTable"]');
-        const successStatus = jobTable.locator('tbody tr').first().getByText('Success');
-        await expect(successStatus).toBeVisible({timeout: 60000});
-
+        // The most recent job (first row) should be our empty export
         // Verify download shows "--" since no pages were exported
+        const exportPanel = page.locator('#wikiExportPanel');
+        const jobTable = exportPanel.locator('[data-testid="jobTable"]');
         const downloadCell = jobTable.locator('tbody tr').first().locator('td').nth(3);
         await expect(downloadCell).toHaveText('--');
     });

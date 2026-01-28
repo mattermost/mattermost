@@ -37,6 +37,17 @@ interface UseImageAIReturn {
 }
 
 /**
+ * Represents the source of an image that can be analyzed by AI.
+ */
+type ImageSource = {
+    type: 'file';
+    value: string; // file ID
+} | {
+    type: 'proxy';
+    value: string; // decoded URL
+};
+
+/**
  * Extracts the Mattermost file ID from an image src URL.
  * Expected formats:
  * - /api/v4/files/{fileId}
@@ -57,6 +68,43 @@ function extractFileIdFromSrc(src: string): string | null {
 
     if (match && match[1]) {
         return match[1];
+    }
+
+    return null;
+}
+
+/**
+ * Extracts the image source from an image src URL.
+ * Detects:
+ * - Mattermost file URLs: /api/v4/files/{fileId} -> {type: 'file', value: fileId}
+ * - Image proxy URLs: /api/v4/image?url=... -> {type: 'proxy', value: decodedUrl}
+ *
+ * @param src - The image src attribute value
+ * @returns The image source info or null if unsupported format
+ */
+function extractImageSource(src: string): ImageSource | null {
+    if (!src) {
+        return null;
+    }
+
+    // Check for Mattermost file URL first
+    const fileId = extractFileIdFromSrc(src);
+    if (fileId) {
+        return {type: 'file', value: fileId};
+    }
+
+    // Check for image proxy URL: /api/v4/image?url=...
+    const proxyPattern = /\/api\/v4\/image\?url=([^&]+)/;
+    const proxyMatch = src.match(proxyPattern);
+
+    if (proxyMatch && proxyMatch[1]) {
+        try {
+            const decodedUrl = decodeURIComponent(proxyMatch[1]);
+            return {type: 'proxy', value: decodedUrl};
+        } catch {
+            // Invalid URL encoding
+            return null;
+        }
     }
 
     return null;
@@ -203,9 +251,10 @@ const useImageAI = (
 
     /**
      * Calls the AI API to extract text from an image.
+     * Supports both direct file IDs and external image URLs.
      */
-    const extractImageText = useCallback(async (
-        fileId: string,
+    const extractImageTextFromSource = useCallback(async (
+        source: ImageSource,
         action: ImageAIAction,
     ): Promise<string> => {
         if (!agentId) {
@@ -217,8 +266,12 @@ const useImageAI = (
             formatMessage({id: 'image_ai.progress.analyzing_image', defaultMessage: 'Analyzing image...'}),
         );
 
-        const extractedText = await Client4.extractImageText(wikiId, agentId, fileId, action);
-        return extractedText;
+        if (source.type === 'file') {
+            return Client4.extractImageText(wikiId, agentId, source.value, action);
+        }
+
+        // External image via proxy URL
+        return Client4.extractImageText(wikiId, agentId, null, action, source.value);
     }, [wikiId, agentId, formatMessage]);
 
     /**
@@ -237,15 +290,15 @@ const useImageAI = (
             return;
         }
 
-        // Extract file ID from the image src URL
-        const fileId = extractFileIdFromSrc(imageSrc);
-        if (!fileId) {
+        // Extract image source (file ID or proxy URL)
+        const imageSource = extractImageSource(imageSrc);
+        if (!imageSource) {
             const serverError: ServerError = {
                 message: formatMessage({
-                    id: 'image_ai.error.not_mattermost_file',
-                    defaultMessage: 'This image cannot be analyzed. Only images uploaded to Mattermost can be processed by AI.',
+                    id: 'image_ai.error.unsupported_image',
+                    defaultMessage: 'This image cannot be analyzed. Only Mattermost files or proxied external images can be processed by AI.',
                 }),
-                server_error_id: 'image_ai_not_mattermost_file',
+                server_error_id: 'image_ai_unsupported_image',
                 status_code: 400,
             };
             setServerError?.(serverError);
@@ -274,7 +327,7 @@ const useImageAI = (
 
         try {
             // Call the actual AI API to extract text from the image
-            const content = await extractImageText(fileId, action);
+            const content = await extractImageTextFromSource(imageSource, action);
 
             // Check if cancelled during processing
             if (isCancelledRef.current) {
@@ -363,7 +416,7 @@ const useImageAI = (
         isProcessing,
         dispatch,
         createPageContent,
-        extractImageText,
+        extractImageTextFromSource,
         setServerError,
         formatMessage,
     ]);
@@ -419,4 +472,5 @@ const useImageAI = (
 export default useImageAI;
 
 // Export for testing
-export {extractFileIdFromSrc};
+export {extractFileIdFromSrc, extractImageSource};
+export type {ImageSource};

@@ -28,6 +28,7 @@ export type MarkdownExportOptions = {
     title?: string;
     includeTitle?: boolean;
     schema?: Schema;
+    preserveFileUrls?: boolean;
 };
 
 // Build ProseMirror schema directly (avoids TipTap initialization issues in tests)
@@ -286,13 +287,23 @@ function escapeMarkdownText(text: string | undefined): string {
 }
 
 // Create serializer that collects MM-hosted files (images, videos, attachments)
-function createSerializer(fileRefs: FileRef[]) {
+function createSerializer(fileRefs: FileRef[], preserveFileUrls = false) {
     // Process image/video nodes
     const processMediaNode = (state: MarkdownSerializerState, node: Node, isVideo = false) => {
         const src = (node.attrs.src as string) || '';
         const alt = escapeMarkdownText(node.attrs.alt as string);
 
         if (isMattermostFileUrl(src)) {
+            if (preserveFileUrls) {
+                if (isVideo) {
+                    const label = alt || (node.attrs.title as string) || 'video';
+                    state.write(`[${label}](${src})`);
+                } else {
+                    state.write(`![${alt}](${src})`);
+                }
+                return;
+            }
+
             const fileId = extractFileId(src);
             if (fileId) {
                 const originalFilename = (node.attrs.filename as string) || (node.attrs.title as string);
@@ -337,6 +348,12 @@ function createSerializer(fileRefs: FileRef[]) {
         const originalFilename = (node.attrs.fileName as string) || (node.attrs.filename as string) || 'file';
 
         if (isMattermostFileUrl(src)) {
+            if (preserveFileUrls) {
+                state.write(`[${escapeMarkdownText(originalFilename)}](${src})`);
+                state.closeBlock(node);
+                return;
+            }
+
             const fileId = extractFileId(src);
             if (fileId) {
                 const exportFilename = sanitizeFilename(originalFilename);
@@ -497,7 +514,7 @@ export function tiptapToMarkdown(
     }
 
     const fileRefs: FileRef[] = [];
-    const serializer = createSerializer(fileRefs);
+    const serializer = createSerializer(fileRefs, options?.preserveFileUrls);
 
     const nodeSchema = options?.schema || getExportSchema();
     const node = Node.fromJSON(nodeSchema, doc);

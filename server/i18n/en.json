@@ -2649,14 +2649,6 @@
     "translation": "Page title is too long. Maximum length is {{.MaxLength}} characters."
   },
   {
-    "id": "api.page.export.file_not_found.error",
-    "translation": "File not found: {{.FileId}}"
-  },
-  {
-    "id": "api.page.export.file_not_owned.error",
-    "translation": "File does not belong to this page: {{.FileId}}"
-  },
-  {
     "id": "api.page.permission.guest_cannot_access",
     "translation": "Guests cannot access pages."
   },
@@ -4857,6 +4849,26 @@
   {
     "id": "api.wiki.create.deleted_channel.forbidden.app_error",
     "translation": "Cannot create wiki in archived channel."
+  },
+  {
+    "id": "api.wiki.extract_image.both_file_and_url.app_error",
+    "translation": "Cannot provide both file ID and image URL."
+  },
+  {
+    "id": "api.wiki.extract_image.empty_image_url.app_error",
+    "translation": "Image URL cannot be empty."
+  },
+  {
+    "id": "api.wiki.extract_image.file_not_found.app_error",
+    "translation": "File not found."
+  },
+  {
+    "id": "api.wiki.extract_image.missing_file_or_url.app_error",
+    "translation": "Must provide either file ID or image URL."
+  },
+  {
+    "id": "api.wiki.extract_image.url_too_long.app_error",
+    "translation": "Image URL exceeds maximum length."
   },
   {
     "id": "api.wiki.extract_image.wiki_deleted.app_error",
@@ -7459,6 +7471,10 @@
     "translation": "Failed to extract text from image using AI agent."
   },
   {
+    "id": "app.page.extract_image.ai_not_available",
+    "translation": "AI service is not available."
+  },
+  {
     "id": "app.page.extract_image.empty_response",
     "translation": "AI agent returned an empty response for image text extraction."
   },
@@ -7473,6 +7489,38 @@
   {
     "id": "app.page.extract_image.not_image",
     "translation": "File is not an image."
+  },
+  {
+    "id": "app.page.fetch_external_image.fetch_failed",
+    "translation": "Failed to fetch external image."
+  },
+  {
+    "id": "app.page.fetch_external_image.invalid_scheme",
+    "translation": "Invalid URL scheme. Only http and https URLs are supported."
+  },
+  {
+    "id": "app.page.fetch_external_image.invalid_url",
+    "translation": "Invalid image URL."
+  },
+  {
+    "id": "app.page.fetch_external_image.not_image",
+    "translation": "URL does not point to an image. Expected image content type."
+  },
+  {
+    "id": "app.page.fetch_external_image.proxy_disabled",
+    "translation": "Image proxy is disabled. Enable image proxy to fetch external images."
+  },
+  {
+    "id": "app.page.fetch_external_image.read_failed",
+    "translation": "Failed to read image data."
+  },
+  {
+    "id": "app.page.fetch_external_image.too_large",
+    "translation": "Image is too large."
+  },
+  {
+    "id": "app.page.fetch_external_image.upload_failed",
+    "translation": "Failed to upload fetched image."
   },
   {
     "id": "app.page.get.content.app_error",
@@ -7709,38 +7757,6 @@
   {
     "id": "app.page.validate_status.no_options",
     "translation": "No status options available."
-  },
-  {
-    "id": "app.page_export.close_zip.error",
-    "translation": "Failed to close export ZIP file."
-  },
-  {
-    "id": "app.page_export.copy_file.error",
-    "translation": "Failed to copy file to export."
-  },
-  {
-    "id": "app.page_export.create_md.error",
-    "translation": "Failed to create markdown file in export."
-  },
-  {
-    "id": "app.page_export.create_zip_entry.error",
-    "translation": "Failed to create file entry in export."
-  },
-  {
-    "id": "app.page_export.file_not_owned.error",
-    "translation": "File does not belong to this page."
-  },
-  {
-    "id": "app.page_export.get_file_info.error",
-    "translation": "Failed to get file info for page export."
-  },
-  {
-    "id": "app.page_export.read_file.error",
-    "translation": "Failed to read file for page export."
-  },
-  {
-    "id": "app.page_export.write_md.error",
-    "translation": "Failed to write markdown content to export."
   },
   {
     "id": "app.pap.access_control.channel_group_constrained",
@@ -12151,38 +12167,6 @@
   {
     "id": "model.page_draft.publish_options.wiki_id.app_error",
     "translation": "Invalid wiki ID in publish options."
-  },
-  {
-    "id": "model.page_export.file_id_invalid",
-    "translation": "Invalid file ID format."
-  },
-  {
-    "id": "model.page_export.file_id_required",
-    "translation": "File ID is required."
-  },
-  {
-    "id": "model.page_export.filename_invalid_chars",
-    "translation": "Filename contains invalid characters."
-  },
-  {
-    "id": "model.page_export.filename_required",
-    "translation": "Filename is required."
-  },
-  {
-    "id": "model.page_export.filename_too_long",
-    "translation": "Filename is too long."
-  },
-  {
-    "id": "model.page_export.local_path_invalid_prefix",
-    "translation": "Local path must start with attachments directory."
-  },
-  {
-    "id": "model.page_export.local_path_traversal",
-    "translation": "Local path contains invalid path traversal characters."
-  },
-  {
-    "id": "model.page_export.markdown_required",
-    "translation": "Markdown content is required."
   },
   {
     "id": "model.plugin_command.error.app_error",

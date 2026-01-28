@@ -22,6 +22,7 @@ import type {
     TextChunk,
     PreservedMark,
     ExtractionResult,
+    ProtectedUrl,
 } from './types';
 import {
     isExcludedNodeType,
@@ -85,6 +86,39 @@ export function extractTextChunks(doc: TipTapDoc): ExtractionResult {
 }
 
 /**
+ * Protects URLs that appear as link text from AI modification.
+ * Uses existing mark positions - no document-wide regex scanning needed.
+ *
+ * @param text - The extracted text
+ * @param marks - The preserved marks with positions
+ * @returns Protected text with placeholders and URL mappings
+ */
+function protectLinkUrls(
+    text: string,
+    marks: PreservedMark[],
+): { protectedText: string; protectedUrls: ProtectedUrl[] } {
+    const protectedUrls: ProtectedUrl[] = [];
+
+    // Find link marks where visible text is a URL (case-insensitive)
+    const urlMarks = marks.
+        filter((m) => m.type === 'link').
+        filter((m) => (/^https?:\/\//i).test(text.slice(m.from, m.to))).
+        sort((a, b) => b.from - a.from); // Process from end to preserve positions
+
+    let result = text;
+    for (const mark of urlMarks) {
+        const original = text.slice(mark.from, mark.to);
+
+        // Use unique sentinel unlikely to appear in content or be modified by AI
+        const placeholder = `⟦URL:${protectedUrls.length}⟧`;
+        protectedUrls.unshift({placeholder, original});
+        result = result.slice(0, mark.from) + placeholder + result.slice(mark.to);
+    }
+
+    return {protectedText: result, protectedUrls};
+}
+
+/**
  * Extracts a text chunk from a text container node (paragraph, heading, etc.)
  *
  * @param node - The text container node
@@ -137,13 +171,18 @@ function extractChunkFromNode(node: TipTapNode, path: number[]): TextChunk {
         // They are preserved in the original document
     }
 
+    // Consolidate marks and protect URLs that appear as link text
+    const consolidatedMarks = consolidateMarks(marks);
+    const {protectedText, protectedUrls} = protectLinkUrls(text, consolidatedMarks);
+
     return {
         path,
         nodeType: node.type,
-        text,
-        marks: consolidateMarks(marks),
+        text: protectedText,
+        marks: consolidatedMarks,
         hardBreakPositions,
         nodeAttrs: node.attrs,
+        protectedUrls: protectedUrls.length > 0 ? protectedUrls : undefined,
     };
 }
 

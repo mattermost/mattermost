@@ -8,7 +8,7 @@ import {Client4} from 'mattermost-redux/client';
 
 import * as PageActions from 'actions/pages';
 
-import useImageAI, {extractFileIdFromSrc} from './use_image_ai';
+import useImageAI, {extractFileIdFromSrc, extractImageSource} from './use_image_ai';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
@@ -91,6 +91,49 @@ describe('useImageAI', () => {
         });
     });
 
+    describe('extractImageSource', () => {
+        test('should return file source for standard file URL', () => {
+            const result = extractImageSource('/api/v4/files/abc123');
+            expect(result).toEqual({type: 'file', value: 'abc123'});
+        });
+
+        test('should return file source for preview URL', () => {
+            const result = extractImageSource('/api/v4/files/abc123/preview');
+            expect(result).toEqual({type: 'file', value: 'abc123'});
+        });
+
+        test('should return proxy source for image proxy URL', () => {
+            const externalUrl = 'https://example.com/image.png';
+            const proxyUrl = `/api/v4/image?url=${encodeURIComponent(externalUrl)}`;
+            const result = extractImageSource(proxyUrl);
+            expect(result).toEqual({type: 'proxy', value: externalUrl});
+        });
+
+        test('should decode URL-encoded proxy URLs', () => {
+            const externalUrl = 'https://example.com/path/to/image with spaces.png';
+            const proxyUrl = `/api/v4/image?url=${encodeURIComponent(externalUrl)}`;
+            const result = extractImageSource(proxyUrl);
+            expect(result).toEqual({type: 'proxy', value: externalUrl});
+        });
+
+        test('should return null for unsupported URLs', () => {
+            expect(extractImageSource('https://example.com/image.png')).toBeNull();
+        });
+
+        test('should return null for empty string', () => {
+            expect(extractImageSource('')).toBeNull();
+        });
+
+        test('should return null for data URLs', () => {
+            expect(extractImageSource('data:image/png;base64,abc123')).toBeNull();
+        });
+
+        test('should return null for invalid proxy URL encoding', () => {
+            const result = extractImageSource('/api/v4/image?url=%ZZ');
+            expect(result).toBeNull();
+        });
+    });
+
     describe('initial state', () => {
         test('should return initial state', () => {
             const {result} = renderHook(() => useImageAI(
@@ -149,7 +192,7 @@ describe('useImageAI', () => {
             expect(result.current.showExtractionDialog).toBe(false);
         });
 
-        test('should not process when image is not a Mattermost file', async () => {
+        test('should not process when image is unsupported (not a file or proxy URL)', async () => {
             const mockSetServerError = jest.fn();
             const {result} = renderHook(() => useImageAI(
                 defaultProps.wikiId,
@@ -161,6 +204,7 @@ describe('useImageAI', () => {
                 mockSetServerError,
             ));
 
+            // Direct external URL (not proxied) is not supported
             const mockImage = createMockImageElement('https://example.com/image.png');
 
             await act(async () => {
@@ -170,7 +214,33 @@ describe('useImageAI', () => {
             expect(result.current.showExtractionDialog).toBe(false);
             expect(mockSetServerError).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    server_error_id: 'image_ai_not_mattermost_file',
+                    server_error_id: 'image_ai_unsupported_image',
+                }),
+            );
+        });
+
+        test('should not process data URI images', async () => {
+            const mockSetServerError = jest.fn();
+            const {result} = renderHook(() => useImageAI(
+                defaultProps.wikiId,
+                defaultProps.currentPageId,
+                defaultProps.currentPageTitle,
+                defaultProps.agentId,
+                true,
+                undefined,
+                mockSetServerError,
+            ));
+
+            const mockImage = createMockImageElement('data:image/png;base64,abc123');
+
+            await act(async () => {
+                await result.current.handleImageAIAction('extract_handwriting', mockImage);
+            });
+
+            expect(result.current.showExtractionDialog).toBe(false);
+            expect(mockSetServerError).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    server_error_id: 'image_ai_unsupported_image',
                 }),
             );
         });
@@ -249,7 +319,7 @@ describe('useImageAI', () => {
             jest.useRealTimers();
         });
 
-        test('should call extractImageText API with correct parameters', async () => {
+        test('should call extractImageText API with file ID for Mattermost files', async () => {
             const {result} = renderHook(() => useImageAI(
                 defaultProps.wikiId,
                 defaultProps.currentPageId,
@@ -270,6 +340,58 @@ describe('useImageAI', () => {
                 'testfile123',
                 'extract_handwriting',
             );
+        });
+
+        test('should call extractImageText API with image URL for proxied external images', async () => {
+            const externalUrl = 'https://example.com/image.png';
+            const proxyUrl = `/api/v4/image?url=${encodeURIComponent(externalUrl)}`;
+
+            const {result} = renderHook(() => useImageAI(
+                defaultProps.wikiId,
+                defaultProps.currentPageId,
+                defaultProps.currentPageTitle,
+                defaultProps.agentId,
+                true,
+            ));
+
+            const mockImage = createMockImageElement(proxyUrl);
+
+            await act(async () => {
+                await result.current.handleImageAIAction('extract_handwriting', mockImage);
+            });
+
+            expect(mockExtractImageText).toHaveBeenCalledWith(
+                defaultProps.wikiId,
+                defaultProps.agentId,
+                null,
+                'extract_handwriting',
+                externalUrl,
+            );
+        });
+
+        test('should process proxied external images successfully', async () => {
+            const externalUrl = 'https://confluence.example.com/images/attachment.png';
+            const proxyUrl = `/api/v4/image?url=${encodeURIComponent(externalUrl)}`;
+
+            const {result} = renderHook(() => useImageAI(
+                defaultProps.wikiId,
+                defaultProps.currentPageId,
+                defaultProps.currentPageTitle,
+                defaultProps.agentId,
+                true,
+            ));
+
+            const mockImage = createMockImageElement(proxyUrl);
+
+            await act(async () => {
+                await result.current.handleImageAIAction('describe_image', mockImage);
+            });
+
+            expect(result.current.showExtractionDialog).toBe(false);
+            expect(result.current.showCompletionDialog).toBe(true);
+            expect(result.current.isProcessing).toBe(false);
+            expect(result.current.createdPageId).toBe('draft-123');
+            expect(result.current.createdPageTitle).toContain('Description');
         });
 
         test('should complete extraction and show completion dialog', async () => {

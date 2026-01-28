@@ -33,7 +33,6 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getAssociatedGroupsForReference} from 'mattermost-redux/selectors/entities/groups';
 import {getCurrentTeam, getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getEmojiName, isSystemEmoji} from 'mattermost-redux/utils/emoji_utils';
-import {getFileUrl} from 'mattermost-redux/utils/file_utils';
 
 import {autocompleteChannels} from 'actions/channel_actions';
 import {autocompleteUsersInChannel} from 'actions/views/channel';
@@ -518,13 +517,12 @@ const TipTapEditor = ({
                     file,
                     channelId: channelId || '',
                     onSuccess: (result) => {
-                        const fileUrl = getFileUrl(result.fileInfo.id);
                         const fileAttrs = {
                             fileId: result.fileInfo.id,
                             fileName: result.fileInfo.name,
                             fileSize: result.fileInfo.size,
                             mimeType: result.fileInfo.mime_type,
-                            src: fileUrl,
+                            src: `/api/v4/files/${result.fileInfo.id}`,
                         };
 
                         if (position === undefined) {
@@ -571,7 +569,7 @@ const TipTapEditor = ({
                 file,
                 channelId: channelId || '',
                 onSuccess: (result) => {
-                    const fileUrl = getFileUrl(result.fileInfo.id);
+                    const fileUrl = `/api/v4/files/${result.fileInfo.id}`;
 
                     const newAttrs = isVideo ?
                         {src: fileUrl, title: file.name} :
@@ -1027,7 +1025,7 @@ const TipTapEditor = ({
                                                                                 command(({tr}) => {
                                                                                     tr.setNodeMarkup(pos, undefined, {
                                                                                         ...node.attrs,
-                                                                                        src: getFileUrl(result.fileInfo.id),
+                                                                                        src: `/api/v4/files/${result.fileInfo.id}`,
                                                                                     });
                                                                                     return true;
                                                                                 }).
