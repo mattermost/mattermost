@@ -403,6 +403,92 @@ describe('tiptap_text_extractor', () => {
             expect(result.chunks[0].marks[0].from).toBe(0);
             expect(result.chunks[0].marks[0].to).toBe(12);
         });
+
+        it('should protect URLs and adjust link mark positions to match placeholder length', () => {
+            // This tests the fix for scrambled URLs in translation:
+            // When a URL is replaced with a placeholder, the link mark positions
+            // must be adjusted to match the placeholder text, not the original URL.
+            const doc: TipTapDoc = {
+                type: 'doc',
+                content: [
+                    {
+                        type: 'paragraph',
+                        content: [
+                            {type: 'text', text: 'Visit '},
+                            {
+                                type: 'text',
+                                text: 'https://example.com/path',
+                                marks: [{type: 'link', attrs: {href: 'https://example.com/path'}}],
+                            },
+                            {type: 'text', text: ' for more info'},
+                        ],
+                    },
+                ],
+            };
+
+            const result = extractTextChunks(doc);
+
+            // The URL should be replaced with a placeholder
+            expect(result.chunks[0].protectedUrls).toHaveLength(1);
+            expect(result.chunks[0].protectedUrls?.[0].original).toBe('https://example.com/path');
+            expect(result.chunks[0].protectedUrls?.[0].placeholder).toBe('⟦URL:0⟧');
+
+            // Text should contain the placeholder, not the URL
+            expect(result.chunks[0].text).toContain('⟦URL:0⟧');
+            expect(result.chunks[0].text).not.toContain('https://example.com');
+
+            // The link mark positions should match the placeholder in the text
+            const linkMark = result.chunks[0].marks.find((m) => m.type === 'link');
+            expect(linkMark).toBeDefined();
+
+            // Verify the mark positions cover exactly the placeholder
+            const placeholder = '⟦URL:0⟧';
+            const textBeforeUrl = 'Visit ';
+            expect(linkMark!.from).toBe(textBeforeUrl.length);
+            expect(linkMark!.to).toBe(textBeforeUrl.length + placeholder.length);
+
+            // Verify the text at the mark positions is the placeholder
+            const markedText = result.chunks[0].text.slice(linkMark!.from, linkMark!.to);
+            expect(markedText).toBe(placeholder);
+        });
+
+        it('should adjust mark positions for text after protected URL', () => {
+            // Tests that marks after the URL are correctly shifted
+            const doc: TipTapDoc = {
+                type: 'doc',
+                content: [
+                    {
+                        type: 'paragraph',
+                        content: [
+                            {type: 'text', text: 'See '},
+                            {
+                                type: 'text',
+                                text: 'https://example.com',
+                                marks: [{type: 'link', attrs: {href: 'https://example.com'}}],
+                            },
+                            {type: 'text', text: ' and '},
+                            {type: 'text', text: 'bold text', marks: [{type: 'bold'}]},
+                        ],
+                    },
+                ],
+            };
+
+            const result = extractTextChunks(doc);
+
+            // Find the bold mark
+            const boldMark = result.chunks[0].marks.find((m) => m.type === 'bold');
+            expect(boldMark).toBeDefined();
+
+            // The bold mark should be correctly positioned in the placeholder text
+            // Original: "See https://example.com and bold text"
+            // With placeholder: "See ⟦URL:0⟧ and bold text"
+            const expectedText = 'See ⟦URL:0⟧ and bold text';
+            expect(result.chunks[0].text).toBe(expectedText);
+
+            // The bold text starts at position after "See ⟦URL:0⟧ and "
+            const markedBoldText = result.chunks[0].text.slice(boldMark!.from, boldMark!.to);
+            expect(markedBoldText).toBe('bold text');
+        });
     });
 
     describe('combineChunksForAI', () => {

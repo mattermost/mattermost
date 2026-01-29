@@ -105,24 +105,118 @@ function getNodeAtPath(doc: TipTapDoc, path: number[]): TipTapNode | null {
 }
 
 /**
- * Restores protected URLs from placeholders in AI-processed text.
- * Uses split/join to replace all occurrences (handles AI duplication).
+ * Restores protected URLs from placeholders and adjusts mark positions.
+ * This function handles both operations together to correctly track position shifts.
  *
- * @param text - The AI-processed text with placeholders
+ * The key insight is that marks are relative to the ORIGINAL chunk text (with placeholders),
+ * but the AI may return different text with placeholders at different positions.
+ * We need to:
+ * 1. Find where each placeholder moved to in the AI text
+ * 2. Relocate the link mark to the new placeholder position
+ * 3. Restore the URL and expand the mark to cover the full URL
+ * 4. Shift all subsequent marks by the length difference
+ *
+ * @param aiText - The AI-processed text with placeholders
+ * @param originalText - The original chunk text (with placeholders)
+ * @param marks - The preserved marks with positions (relative to original text)
  * @param protectedUrls - The URL mappings from extraction
- * @returns Text with URLs restored
+ * @returns Object with restored text and adjusted marks
  */
-function restoreProtectedUrls(text: string, protectedUrls?: ProtectedUrl[]): string {
+function restoreProtectedUrlsAndAdjustMarks(
+    aiText: string,
+    originalText: string,
+    marks: PreservedMark[],
+    protectedUrls?: ProtectedUrl[],
+): { restoredText: string; adjustedMarks: PreservedMark[] } {
     if (!protectedUrls?.length) {
-        return text;
+        return {restoredText: aiText, adjustedMarks: marks};
     }
 
-    let result = text;
+    // First, find where each placeholder is in both original and AI text
+    const placeholderMappings: Array<{
+        placeholder: string;
+        original: string;
+        originalPos: number;
+        aiPos: number;
+    }> = [];
+
     for (const {placeholder, original} of protectedUrls) {
-        // Use split/join for ES5 compatibility (replaces all occurrences)
-        result = result.split(placeholder).join(original);
+        const originalPos = originalText.indexOf(placeholder);
+        const aiPos = aiText.indexOf(placeholder);
+
+        if (originalPos !== -1 && aiPos !== -1) {
+            placeholderMappings.push({placeholder, original, originalPos, aiPos});
+        }
     }
-    return result;
+
+    // Sort by AI position (ascending) for processing
+    placeholderMappings.sort((a, b) => a.aiPos - b.aiPos);
+
+    // Start with marks cloned and calculate position shift from original to AI text
+    // before any placeholder at that position
+    let adjustedMarks = marks.map((m) => ({...m}));
+
+    // For each mark, calculate its new position in the AI text based on where
+    // it was relative to placeholders in the original text
+    adjustedMarks = adjustedMarks.map((m) => {
+        const adjusted = {...m};
+
+        // Find if this mark corresponds to a placeholder (link mark)
+        const matchingPlaceholder = placeholderMappings.find(
+            (pm) => m.from === pm.originalPos && m.to === pm.originalPos + pm.placeholder.length,
+        );
+
+        if (matchingPlaceholder) {
+            // This is the link mark for a placeholder - move it to the AI position
+            adjusted.from = matchingPlaceholder.aiPos;
+            adjusted.to = matchingPlaceholder.aiPos + matchingPlaceholder.placeholder.length;
+        } else {
+            // For other marks, calculate shift based on text changes
+            // This is a simplified approach - adjust based on overall text ratio
+            const ratio = aiText.length / originalText.length;
+            if (ratio !== 1 && originalText.length > 0) {
+                adjusted.from = Math.round(m.from * ratio);
+                adjusted.to = Math.round(m.to * ratio);
+            }
+        }
+
+        return adjusted;
+    });
+
+    // Now restore URLs and adjust positions accordingly
+    let restoredText = aiText;
+    let cumulativeShift = 0;
+
+    for (const pm of placeholderMappings) {
+        const currentPos = pm.aiPos + cumulativeShift;
+        const lengthDiff = pm.original.length - pm.placeholder.length;
+
+        // Adjust all marks based on this restoration
+        adjustedMarks = adjustedMarks.map((m) => {
+            const adjusted = {...m};
+
+            if (m.from === currentPos && m.to === currentPos + pm.placeholder.length) {
+                // This is the link mark for this URL - expand to cover full URL
+                adjusted.to = currentPos + pm.original.length;
+            } else if (m.from >= currentPos + pm.placeholder.length) {
+                // Mark starts after the placeholder - shift both positions
+                adjusted.from += lengthDiff;
+                adjusted.to += lengthDiff;
+            } else if (m.from < currentPos && m.to > currentPos + pm.placeholder.length) {
+                // Mark spans across the placeholder - adjust end position
+                adjusted.to += lengthDiff;
+            }
+
+            return adjusted;
+        });
+
+        // Replace placeholder with original URL
+        restoredText = restoredText.slice(0, currentPos) + pm.original + restoredText.slice(currentPos + pm.placeholder.length);
+
+        cumulativeShift += lengthDiff;
+    }
+
+    return {restoredText, adjustedMarks};
 }
 
 /**
@@ -141,11 +235,19 @@ function rebuildNodeContent(aiText: string, chunk: TextChunk): TipTapNode[] {
         return content;
     }
 
-    // Restore protected URLs first
-    const restoredText = restoreProtectedUrls(aiText, chunk.protectedUrls);
+    // Restore protected URLs and adjust marks together
+    const {restoredText, adjustedMarks: marksAfterUrlRestore} = restoreProtectedUrlsAndAdjustMarks(
+        aiText,
+        chunk.text,
+        chunk.marks,
+        chunk.protectedUrls,
+    );
 
-    // Adjust mark positions if text length changed
-    const adjustedMarks = adjustMarkPositions(chunk.marks, chunk.text.length, restoredText.length);
+    // If there were no URL restorations, fall back to ratio-based adjustment
+    // for cases where AI changed text length without URLs
+    const adjustedMarks = chunk.protectedUrls?.length ?
+        marksAfterUrlRestore :
+        adjustMarkPositions(chunk.marks, chunk.text.length, restoredText.length);
 
     // Split text by hard break positions and create nodes
     const segments = splitByHardBreaks(restoredText, chunk.hardBreakPositions);

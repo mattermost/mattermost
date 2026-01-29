@@ -397,5 +397,107 @@ describe('tiptap_reassembler', () => {
             expect(result.doc.content[1].content?.[0].text).toBe('code()');
             expect(result.doc.content[2].attrs?.level).toBe(2);
         });
+
+        it('should correctly restore URL link after translation with different text length', () => {
+            // This is the main test for the translation URL scrambling bug fix.
+            // When translating text that contains a URL link, the URL should be
+            // preserved exactly and the link mark should cover the entire URL.
+            const doc: TipTapDoc = {
+                type: 'doc',
+                content: [
+                    {
+                        type: 'paragraph',
+                        content: [
+                            {type: 'text', text: 'Visit '},
+                            {
+                                type: 'text',
+                                text: 'https://example.com/path/to/page',
+                                marks: [{type: 'link', attrs: {href: 'https://example.com/path/to/page'}}],
+                            },
+                            {type: 'text', text: ' for more information'},
+                        ],
+                    },
+                ],
+            };
+
+            const {chunks} = extractTextChunks(doc);
+
+            // Verify extraction creates a placeholder
+            expect(chunks[0].text).toContain('⟦URL:0⟧');
+            expect(chunks[0].protectedUrls?.[0].original).toBe('https://example.com/path/to/page');
+
+            // Simulate AI translation (Spanish): shorter text before URL, different text after
+            // The placeholder should be preserved
+            const aiTexts = ['Visite ⟦URL:0⟧ para más información'];
+
+            const result = reassembleDocument(doc, chunks, aiTexts);
+
+            expect(result.success).toBe(true);
+
+            // Find the link node in the result
+            const content = result.doc.content[0].content;
+            expect(content).toBeDefined();
+
+            const linkNode = content?.find((node) =>
+                node.marks?.some((m) => m.type === 'link'),
+            );
+
+            // The URL should be fully restored, not scrambled
+            expect(linkNode).toBeDefined();
+            expect(linkNode?.text).toBe('https://example.com/path/to/page');
+            expect(linkNode?.marks?.[0].attrs?.href).toBe('https://example.com/path/to/page');
+
+            // Verify the surrounding text is correctly translated
+            const textNodes = content?.filter((node) => node.type === 'text') || [];
+            const fullText = textNodes.map((n) => n.text).join('');
+            expect(fullText).toBe('Visite https://example.com/path/to/page para más información');
+        });
+
+        it('should handle multiple URLs in translation', () => {
+            const doc: TipTapDoc = {
+                type: 'doc',
+                content: [
+                    {
+                        type: 'paragraph',
+                        content: [
+                            {type: 'text', text: 'Check '},
+                            {
+                                type: 'text',
+                                text: 'https://first.com',
+                                marks: [{type: 'link', attrs: {href: 'https://first.com'}}],
+                            },
+                            {type: 'text', text: ' and '},
+                            {
+                                type: 'text',
+                                text: 'https://second.com',
+                                marks: [{type: 'link', attrs: {href: 'https://second.com'}}],
+                            },
+                        ],
+                    },
+                ],
+            };
+
+            const {chunks} = extractTextChunks(doc);
+
+            // Both URLs should have placeholders
+            expect(chunks[0].protectedUrls?.length).toBe(2);
+
+            // Simulate translation preserving placeholders
+            const aiTexts = ['Consulte ⟦URL:0⟧ y ⟦URL:1⟧'];
+
+            const result = reassembleDocument(doc, chunks, aiTexts);
+
+            expect(result.success).toBe(true);
+
+            const content = result.doc.content[0].content;
+            const linkNodes = content?.filter((node) =>
+                node.marks?.some((m) => m.type === 'link'),
+            ) || [];
+
+            // Both URLs should be correctly restored
+            expect(linkNodes.length).toBe(2);
+            expect(linkNodes[0].text).toBe('https://first.com');
+            expect(linkNodes[1].text).toBe('https://second.com');
+        });
     });
 });

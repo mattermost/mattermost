@@ -88,34 +88,80 @@ export function extractTextChunks(doc: TipTapDoc): ExtractionResult {
 /**
  * Protects URLs that appear as link text from AI modification.
  * Uses existing mark positions - no document-wide regex scanning needed.
+ * Also adjusts mark positions to account for the length difference between
+ * original URLs and their placeholders.
  *
  * @param text - The extracted text
  * @param marks - The preserved marks with positions
- * @returns Protected text with placeholders and URL mappings
+ * @returns Protected text with placeholders, URL mappings, and adjusted marks
  */
 function protectLinkUrls(
     text: string,
     marks: PreservedMark[],
-): { protectedText: string; protectedUrls: ProtectedUrl[] } {
-    const protectedUrls: ProtectedUrl[] = [];
-
+): { protectedText: string; protectedUrls: ProtectedUrl[]; adjustedMarks: PreservedMark[] } {
     // Find link marks where visible text is a URL (case-insensitive)
     const urlMarks = marks.
         filter((m) => m.type === 'link').
-        filter((m) => (/^https?:\/\//i).test(text.slice(m.from, m.to))).
-        sort((a, b) => b.from - a.from); // Process from end to preserve positions
+        filter((m) => (/^https?:\/\//i).test(text.slice(m.from, m.to)));
 
-    let result = text;
-    for (const mark of urlMarks) {
-        const original = text.slice(mark.from, mark.to);
-
-        // Use unique sentinel unlikely to appear in content or be modified by AI
-        const placeholder = `⟦URL:${protectedUrls.length}⟧`;
-        protectedUrls.unshift({placeholder, original});
-        result = result.slice(0, mark.from) + placeholder + result.slice(mark.to);
+    if (urlMarks.length === 0) {
+        return {protectedText: text, protectedUrls: [], adjustedMarks: marks};
     }
 
-    return {protectedText: result, protectedUrls};
+    // Sort by position ascending to assign placeholder numbers in document order
+    const urlMarksSortedAsc = [...urlMarks].sort((a, b) => a.from - b.from);
+
+    // Pre-assign placeholder numbers based on document order
+    const placeholderMap = new Map<PreservedMark, { placeholder: string; original: string }>();
+    for (let i = 0; i < urlMarksSortedAsc.length; i++) {
+        const mark = urlMarksSortedAsc[i];
+        const original = text.slice(mark.from, mark.to);
+        const placeholder = `⟦URL:${i}⟧`;
+        placeholderMap.set(mark, {placeholder, original});
+    }
+
+    // Process from end to beginning to preserve earlier positions
+    const urlMarksSortedDesc = [...urlMarks].sort((a, b) => b.from - a.from);
+
+    // Clone marks so we can adjust positions
+    let adjustedMarks = marks.map((m) => ({...m}));
+
+    let result = text;
+    for (const mark of urlMarksSortedDesc) {
+        const {placeholder, original} = placeholderMap.get(mark)!;
+
+        result = result.slice(0, mark.from) + placeholder + result.slice(mark.to);
+
+        // Calculate the length difference
+        const lengthDiff = placeholder.length - original.length;
+
+        // Adjust mark positions to account for the replacement
+        adjustedMarks = adjustedMarks.map((m) => {
+            const adjusted = {...m};
+
+            if (m.from >= mark.to) {
+                // Mark starts after the replaced URL - shift both positions
+                adjusted.from += lengthDiff;
+                adjusted.to += lengthDiff;
+            } else if (m.from === mark.from && m.to === mark.to) {
+                // This is the URL link mark itself - adjust end to match placeholder
+                adjusted.to = m.from + placeholder.length;
+            } else if (m.from < mark.from && m.to > mark.to) {
+                // Mark spans across the URL - adjust the end position
+                adjusted.to += lengthDiff;
+            } else if (m.to > mark.from && m.to <= mark.to) {
+                // Mark ends within or at the URL - clamp to URL start
+                adjusted.to = Math.min(adjusted.to, mark.from + placeholder.length);
+            }
+
+            return adjusted;
+        });
+    }
+
+    // Build protectedUrls array in document order
+    const protectedUrls: ProtectedUrl[] = urlMarksSortedAsc.map((mark) => placeholderMap.get(mark)!);
+
+    return {protectedText: result, protectedUrls, adjustedMarks};
 }
 
 /**
@@ -173,13 +219,13 @@ function extractChunkFromNode(node: TipTapNode, path: number[]): TextChunk {
 
     // Consolidate marks and protect URLs that appear as link text
     const consolidatedMarks = consolidateMarks(marks);
-    const {protectedText, protectedUrls} = protectLinkUrls(text, consolidatedMarks);
+    const {protectedText, protectedUrls, adjustedMarks} = protectLinkUrls(text, consolidatedMarks);
 
     return {
         path,
         nodeType: node.type,
         text: protectedText,
-        marks: consolidatedMarks,
+        marks: adjustedMarks,
         hardBreakPositions,
         nodeAttrs: node.attrs,
         protectedUrls: protectedUrls.length > 0 ? protectedUrls : undefined,

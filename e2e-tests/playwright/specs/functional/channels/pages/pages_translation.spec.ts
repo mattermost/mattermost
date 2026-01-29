@@ -441,8 +441,12 @@ test('preserves URLs during page translation', {tag: '@pages'}, async ({pw, shar
     const linkWithUrl = translatedEditor.locator(`a[href="${testUrl}"]`);
     await expect(linkWithUrl).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
-    // * Verify the link text contains the URL (not corrupted)
+    // * Verify the link text IS the exact URL (not scrambled or shifted)
+    // This catches bugs where the link mark positions are miscalculated,
+    // causing the <a> tag to wrap the wrong portion of text
     const linkText = await linkWithUrl.textContent();
-    expect(linkText).toContain('dashboard.stripe.com');
-    expect(linkText).toContain('in_1JqrhOI67GP2qpb4b2BTCBkz');
+    expect(linkText).toBe(testUrl);
+
+    // * Also verify the link starts with https:// (catches position shift bugs)
+    expect(linkText).toMatch(/^https:\/\//);
 });
