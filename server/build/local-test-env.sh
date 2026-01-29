@@ -3,11 +3,20 @@
 export COMPOSE_PROJECT_NAME=localdev
 local_cmdname=${0##*/}
 
+# Get script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Read Go version from source file
+GO_VERSION=$(cat "${SCRIPT_DIR}/../.go-version" | tr -d '[:space:]')
+BUILD_IMAGE="mattermost/mattermost-build-server:go-${GO_VERSION}"
+
 usage()
 {
     cat << USAGE >&2
 Usage:
     $local_cmdname up/down
+
+Build image: ${BUILD_IMAGE}
 USAGE
     exit 1
 }
@@ -28,11 +37,11 @@ up()
         -v $GOPATH:/go \
         -w /go/src/github.com/mattermost/mattermost-server/ \
         --net ${COMPOSE_PROJECT_NAME}_mm-test \
-        --env-file=dotenv/test.env
+        --env-file=dotenv/test.env \
         -e GOPATH="/go" \
         -e MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10" \
-        -e MM_SQLSETTINGS_DRIVERNAME=postgres
-        mattermost/mattermost-build-server:20210810_golang-1.16.7 bash
+        -e MM_SQLSETTINGS_DRIVERNAME=postgres \
+        ${BUILD_IMAGE} bash
 }
 
 down()
