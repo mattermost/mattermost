@@ -841,3 +841,153 @@ func ValidateAttachmentImportData(data *AttachmentImportData) *model.AppError {
 
 	return nil
 }
+
+// ValidateWikiImportData validates wiki import data.
+func ValidateWikiImportData(data *WikiImportData) *model.AppError {
+	if data == nil {
+		return model.NewAppError("BulkImport", "app.import.validate_wiki_import_data.null_data.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.Team == nil || strings.TrimSpace(*data.Team) == "" {
+		return model.NewAppError("BulkImport", "app.import.validate_wiki_import_data.team_missing.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.Channel == nil || strings.TrimSpace(*data.Channel) == "" {
+		return model.NewAppError("BulkImport", "app.import.validate_wiki_import_data.channel_missing.error", nil, "", http.StatusBadRequest)
+	}
+
+	// Require import_source_id for idempotency - ensures correct wiki matching in multi-space imports
+	if err := validateImportSourceId(data.Props); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ValidatePageImportData validates page import data.
+func ValidatePageImportData(data *PageImportData) *model.AppError {
+	if data == nil {
+		return model.NewAppError("BulkImport", "app.import.validate_page_import_data.null_data.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.Team == nil || strings.TrimSpace(*data.Team) == "" {
+		return model.NewAppError("BulkImport", "app.import.validate_page_import_data.team_missing.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.Channel == nil || strings.TrimSpace(*data.Channel) == "" {
+		return model.NewAppError("BulkImport", "app.import.validate_page_import_data.channel_missing.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.User == nil || strings.TrimSpace(*data.User) == "" {
+		return model.NewAppError("BulkImport", "app.import.validate_page_import_data.user_missing.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.Title == nil || strings.TrimSpace(*data.Title) == "" {
+		return model.NewAppError("BulkImport", "app.import.validate_page_import_data.title_missing.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.Content == nil || strings.TrimSpace(*data.Content) == "" {
+		return model.NewAppError("BulkImport", "app.import.validate_page_import_data.content_missing.error", nil, "", http.StatusBadRequest)
+	}
+
+	// Require import_source_id for idempotency - prevents duplicates on re-import
+	if err := validateImportSourceId(data.Props); err != nil {
+		return err
+	}
+
+	// Validate attachments if present (path traversal prevention)
+	if data.Attachments != nil {
+		for _, attachment := range *data.Attachments {
+			if err := ValidateAttachmentImportData(&attachment); err != nil {
+				return model.NewAppError("BulkImport", "app.import.validate_page_import_data.attachment.error", nil, "", http.StatusBadRequest).Wrap(err)
+			}
+		}
+	}
+
+	// Validate nested comments if present
+	if data.Comments != nil {
+		for i := range *data.Comments {
+			// Skip PageImportSourceId validation for nested comments - it will be set by parent
+			comment := (*data.Comments)[i]
+			if comment.User == nil || strings.TrimSpace(*comment.User) == "" {
+				return model.NewAppError("BulkImport", "app.import.validate_page_comment_import_data.user_missing.error", nil, "", http.StatusBadRequest)
+			}
+			if comment.Content == nil || strings.TrimSpace(*comment.Content) == "" {
+				return model.NewAppError("BulkImport", "app.import.validate_page_comment_import_data.content_missing.error", nil, "", http.StatusBadRequest)
+			}
+		}
+	}
+
+	return nil
+}
+
+// ValidatePageCommentImportData validates page comment import data.
+func ValidatePageCommentImportData(data *PageCommentImportData) *model.AppError {
+	if data == nil {
+		return model.NewAppError("BulkImport", "app.import.validate_page_comment_import_data.null_data.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.PageImportSourceId == nil || strings.TrimSpace(*data.PageImportSourceId) == "" {
+		return model.NewAppError("BulkImport", "app.import.validate_page_comment_import_data.page_id_missing.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.User == nil || strings.TrimSpace(*data.User) == "" {
+		return model.NewAppError("BulkImport", "app.import.validate_page_comment_import_data.user_missing.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.Content == nil || strings.TrimSpace(*data.Content) == "" {
+		return model.NewAppError("BulkImport", "app.import.validate_page_comment_import_data.content_missing.error", nil, "", http.StatusBadRequest)
+	}
+
+	// Require import_source_id for idempotency - prevents duplicates on re-import
+	if err := validateImportSourceId(data.Props); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// validateImportSourceId checks that Props contains a valid import_source_id.
+// This is required for idempotency - without it, re-running imports creates duplicates.
+func validateImportSourceId(props *model.StringInterface) *model.AppError {
+	if props == nil {
+		return model.NewAppError("BulkImport", "app.import.validate_import_source_id.missing.error",
+			map[string]any{"Field": model.PostPropsImportSourceId}, "", http.StatusBadRequest)
+	}
+
+	value, ok := (*props)[model.PostPropsImportSourceId]
+	if !ok {
+		return model.NewAppError("BulkImport", "app.import.validate_import_source_id.missing.error",
+			map[string]any{"Field": model.PostPropsImportSourceId}, "", http.StatusBadRequest)
+	}
+
+	strValue, ok := value.(string)
+	if !ok {
+		return model.NewAppError("BulkImport", "app.import.validate_import_source_id.not_string.error",
+			map[string]any{"Field": model.PostPropsImportSourceId}, "", http.StatusBadRequest)
+	}
+
+	if strings.TrimSpace(strValue) == "" {
+		return model.NewAppError("BulkImport", "app.import.validate_import_source_id.empty.error",
+			map[string]any{"Field": model.PostPropsImportSourceId}, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+// ValidateResolveWikiPlaceholdersImportData validates resolve_wiki_placeholders import data.
+func ValidateResolveWikiPlaceholdersImportData(data *ResolveWikiPlaceholdersImportData) *model.AppError {
+	if data == nil {
+		return model.NewAppError("BulkImport", "app.import.validate_resolve_wiki_placeholders.null_data.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.Team == nil || strings.TrimSpace(*data.Team) == "" {
+		return model.NewAppError("BulkImport", "app.import.validate_resolve_wiki_placeholders.team_missing.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.Channel == nil || strings.TrimSpace(*data.Channel) == "" {
+		return model.NewAppError("BulkImport", "app.import.validate_resolve_wiki_placeholders.channel_missing.error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
+}

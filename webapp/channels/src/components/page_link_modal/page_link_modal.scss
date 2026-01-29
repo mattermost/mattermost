@@ -1,0 +1,163 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.PageLinkModal {
+    &__body {
+        padding: 16px 0;
+    }
+
+    &__tabs {
+        display: flex;
+        border-bottom: 1px solid var(--center-channel-color-16);
+        margin-bottom: 16px;
+        gap: 0;
+    }
+
+    &__tab {
+        display: flex;
+        align-items: center;
+        padding: 10px 16px;
+        border: none;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -1px;
+        background: none;
+        color: var(--center-channel-color-64);
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        gap: 8px;
+        transition: all 0.15s ease;
+
+        &:hover {
+            color: var(--center-channel-color);
+        }
+
+        &--active {
+            border-bottom-color: var(--button-bg);
+            color: var(--button-bg);
+        }
+
+        .icon {
+            font-size: 18px;
+        }
+    }
+
+    &__content {
+        min-height: 200px;
+    }
+
+    &__label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+    }
+
+    &__url-input {
+        width: 100%;
+        margin-bottom: 16px;
+
+        &.is-invalid {
+            border-color: var(--error-text);
+        }
+    }
+
+    &__error-text {
+        margin-top: -12px;
+        margin-bottom: 16px;
+        color: var(--error-text);
+        font-size: 12px;
+    }
+
+    &__search-wrapper {
+        position: relative;
+        margin-bottom: 16px;
+    }
+
+    &__search-icon {
+        position: absolute;
+        top: 50%;
+        left: 12px;
+        color: var(--center-channel-color-64);
+        font-size: 18px;
+        pointer-events: none;
+        transform: translateY(-50%);
+    }
+
+    &__search-input {
+        width: 100%;
+        padding-left: 40px;
+    }
+
+    &__results {
+        max-height: 300px;
+        border: 1px solid var(--center-channel-color-16);
+        border-radius: 4px;
+        margin-bottom: 16px;
+        overflow-y: auto;
+    }
+
+    &__empty-state {
+        padding: 32px;
+        color: var(--center-channel-color-64);
+        text-align: center;
+    }
+
+    &__empty-icon {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 48px;
+    }
+
+    &__page-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        border-left: 4px solid transparent;
+        background-color: transparent;
+        cursor: pointer;
+        font-weight: 400;
+        transition: all 0.1s;
+
+        &:not(:last-child) {
+            border-bottom: 1px solid var(--center-channel-color-08);
+        }
+
+        &--selected {
+            border-left-color: var(--button-bg);
+            background-color: rgba(var(--button-bg-rgb), 0.16);
+            font-weight: 600;
+        }
+    }
+
+    &__page-icon {
+        margin-right: 12px;
+        color: var(--center-channel-color-64);
+        font-size: 20px;
+    }
+
+    &__page-title {
+        flex: 1;
+    }
+
+    &__selected-icon {
+        color: var(--button-bg);
+        font-size: 18px;
+    }
+
+    &__link-input {
+        width: 100%;
+    }
+
+    &__help-text {
+        display: block;
+        margin-top: 8px;
+        color: var(--center-channel-color-64);
+    }
+
+    &__kbd {
+        padding: 2px 6px;
+        border-radius: 3px;
+        background-color: var(--center-channel-color-16);
+        font-size: 12px;
+    }
+}

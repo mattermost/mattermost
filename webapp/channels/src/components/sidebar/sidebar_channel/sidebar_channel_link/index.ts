@@ -53,8 +53,7 @@ function makeMapStateToProps() {
         const showChannelsTour = enableTutorial && tutorialStep === OnboardingTourSteps.CHANNELS_AND_DIRECT_MESSAGES;
         const showChannelsTutorialStep = showChannelsTour && channelTourTriggered && isOnboardingFlowEnabled === 'true';
 
-        const remoteNames = ownProps.channel?.shared ?
-            getRemoteNamesForChannel(state, ownProps.channel.id) : [];
+        const remoteNames = ownProps.channel?.shared ? getRemoteNamesForChannel(state, ownProps.channel.id) : [];
 
         return {
             unreadMentions: unreadCount.mentions,

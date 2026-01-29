@@ -58,6 +58,12 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/AppError"
+    Conflict:
+      description: Resource conflict
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AppError"
   schemas:
     User:
       type: object
@@ -4642,6 +4648,78 @@ components:
         active:
           type: boolean
           description: The active status of the policy.
+    Wiki:
+      type: object
+      properties:
+        id:
+          type: string
+        channel_id:
+          type: string
+          description: The ID of the channel this wiki belongs to
+        title:
+          type: string
+          description: The title of the wiki
+        description:
+          type: string
+          description: The description of the wiki
+        icon:
+          type: string
+          description: The icon emoji for the wiki
+        create_at:
+          description: The time in milliseconds a wiki was created
+          type: integer
+          format: int64
+        update_at:
+          description: The time in milliseconds a wiki was last updated
+          type: integer
+          format: int64
+        delete_at:
+          description: The time in milliseconds a wiki was deleted
+          type: integer
+          format: int64
+    Draft:
+      type: object
+      properties:
+        create_at:
+          description: The time in milliseconds a draft was created
+          type: integer
+          format: int64
+        update_at:
+          description: The time in milliseconds a draft was last updated
+          type: integer
+          format: int64
+        delete_at:
+          description: The time in milliseconds a draft was deleted (deprecated)
+          type: integer
+          format: int64
+        user_id:
+          type: string
+          description: The ID of the user who created this draft
+        channel_id:
+          type: string
+          description: The ID of the channel this draft belongs to
+        root_id:
+          type: string
+          description: The ID of the root post for threaded drafts
+        wiki_id:
+          type: string
+          description: For page drafts - stores the wiki ID
+        message:
+          type: string
+          description: The draft message content
+        props:
+          type: object
+          description: Additional draft properties
+        file_ids:
+          type: array
+          items:
+            type: string
+          description: File IDs attached to the draft
+        metadata:
+          $ref: "#/components/schemas/PostMetadata"
+        priority:
+          type: object
+          description: Priority information for the draft
     Recap:
       type: object
       properties:

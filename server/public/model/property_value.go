@@ -116,4 +116,5 @@ type PropertyValueSearchOpts struct {
 	Cursor         PropertyValueSearchCursor
 	PerPage        int
 	Value          json.RawMessage
+	UseMaster      bool // When true, read from master DB for read-after-write consistency
 }

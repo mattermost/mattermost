@@ -25,7 +25,7 @@ func (a *App) RestorePostVersion(rctx request.CTX, userID, postID, restoreVersio
 			statusCode = http.StatusInternalServerError
 		}
 
-		return nil, false, model.NewAppError("RestorePostVersion", "app.post.restore_post_version.get_single.app_error", nil, err.Error(), statusCode)
+		return nil, false, model.NewAppError("RestorePostVersion", "app.post.restore_post_version.get_single.app_error", nil, "", statusCode).Wrap(err)
 	}
 
 	// restoreVersionID needs to be an old version of postID
@@ -34,9 +34,9 @@ func (a *App) RestorePostVersion(rctx request.CTX, userID, postID, restoreVersio
 		return nil, false, model.NewAppError("RestorePostVersion", "app.post.restore_post_version.not_an_history_item.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	// the user needs to be the author of the post
-	// this is only a safeguard and this should never happen in practice.
-	if toRestorePostVersion.UserId != userID {
+	// For regular posts, the user needs to be the author.
+	// For pages, API layer already checked page permissions, so skip ownership check.
+	if !IsPagePost(toRestorePostVersion) && toRestorePostVersion.UserId != userID {
 		return nil, false, model.NewAppError("RestorePostVersion", "app.post.restore_post_version.not_allowed.app_error", nil, "", http.StatusForbidden)
 	}
 
@@ -45,6 +45,13 @@ func (a *App) RestorePostVersion(rctx request.CTX, userID, postID, restoreVersio
 		return nil, false, model.NewAppError("RestorePostVersion", "app.post.restore_post_version.not_valid_post_history_item.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	// Check if this is a page - pages require special handling for PageContents
+	if IsPagePost(toRestorePostVersion) {
+		restoredPost, err := a.RestorePageVersion(rctx, userID, postID, restoreVersionID, toRestorePostVersion)
+		return restoredPost, false, err
+	}
+
+	// Regular post restoration
 	postPatch := &model.PostPatch{
 		Message: &toRestorePostVersion.Message,
 		FileIds: &toRestorePostVersion.FileIds,

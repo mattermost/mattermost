@@ -46,7 +46,7 @@ export async function createRandomUser(prefix = 'user') {
     const user = {
         email: `${prefix}${randomId}@sample.mattermost.com`,
         username: `${prefix}${randomId}`,
-        password: 'passwd',
+        password: 'Password123!',
         first_name: `First${randomId}`,
         last_name: `Last${randomId}`,
         nickname: `Nickname${randomId}`,

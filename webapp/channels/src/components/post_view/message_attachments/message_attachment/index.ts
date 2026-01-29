@@ -8,15 +8,23 @@ import type {Dispatch} from 'redux';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {doPostActionWithCookie} from 'mattermost-redux/actions/posts';
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 
 import {openModal} from 'actions/views/modals';
 
 import MessageAttachment from './message_attachment';
 
-function mapStateToProps(state: GlobalState) {
+type OwnProps = {
+    postId: string;
+};
+
+function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
+    const post = getPost(state, ownProps.postId);
+
     return {
         currentRelativeTeamUrl: getCurrentRelativeTeamUrl(state),
+        post,
     };
 }
 

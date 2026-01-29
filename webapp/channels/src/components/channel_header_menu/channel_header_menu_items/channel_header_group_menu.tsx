@@ -19,7 +19,6 @@ import ChannelMoveToSubMenu from 'components/channel_move_to_sub_menu';
 import * as Menu from 'components/menu';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 
-import MenuItemChannelBookmarks from '../menu_items/channel_bookmarks_submenu';
 import CloseMessage from '../menu_items/close_message';
 import MenuItemConvertToPrivate from '../menu_items/convert_gm_to_private';
 import EditConversationHeader from '../menu_items/edit_conversation_header';
@@ -38,10 +37,9 @@ interface Props extends Menu.FirstMenuItemProps {
     isMobile: boolean;
     isFavorite: boolean;
     pluginItems: ReactNode[];
-    isChannelBookmarksEnabled: boolean;
 }
 
-const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, pluginItems, isChannelBookmarksEnabled, ...rest}: Props) => {
+const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, pluginItems, ...rest}: Props) => {
     const isGroupConstrained = channel?.group_constrained === true;
     const isArchived = channel.delete_at !== 0;
     const {formatMessage} = useIntl();
@@ -101,11 +99,6 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
                         channel={channel}
                     />
                 </Menu.SubMenu>
-            )}
-            {!isArchived && !isGuest(user.roles) && isChannelBookmarksEnabled && (
-                <MenuItemChannelBookmarks
-                    channel={channel}
-                />
             )}
             <Menu.Separator/>
             {(!isArchived && !isGroupConstrained) && (

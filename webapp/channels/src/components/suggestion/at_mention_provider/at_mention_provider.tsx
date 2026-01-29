@@ -447,6 +447,13 @@ export default class AtMentionProvider extends Provider {
         this.lastPrefixWithNoResults = '';
     }
 
+    // Called when suggestion popup is dismissed (e.g., by pressing Escape)
+    // to reset caching state so the next @ trigger gets fresh results
+    resetSuggestionState() {
+        this.lastPrefixWithNoResults = '';
+        this.lastCompletedWord = '';
+    }
+
     createFromProfile(profile: UserProfile | UserProfileWithLastViewAt): CreatedProfile {
         if (profile.id === this.currentUserId) {
             return {

@@ -1,0 +1,52 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.wiki-image-placeholder-wrapper {
+    display: block;
+    margin: 1em 0;
+}
+
+.wiki-image-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px dashed var(--center-channel-color-24);
+    border-radius: 4px;
+    background: var(--center-channel-color-04);
+
+    &__content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        color: var(--center-channel-color-56);
+        gap: 8px;
+
+        .icon-loading {
+            animation: image-placeholder-spin 1s linear infinite;
+            font-size: 24px;
+        }
+    }
+
+    &__text {
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    &__filename {
+        overflow: hidden;
+        max-width: 200px;
+        font-size: 12px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+@keyframes image-placeholder-spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}

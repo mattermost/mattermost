@@ -5,6 +5,8 @@ exports[`components/threading/global_threads/thread_list/virtualized_thread_list
   isFirstThreadInList={false}
   isSelected={false}
   key="2"
+  rowIndex={1}
+  setRowHeight={[MockFunction]}
   style={Object {}}
   threadId="2"
 />

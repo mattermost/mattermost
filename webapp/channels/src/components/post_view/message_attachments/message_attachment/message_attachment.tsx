@@ -10,7 +10,7 @@ import type {PostActionOption} from '@mattermost/types/integration_actions';
 import type {
     MessageAttachment as MessageAttachmentType,
 } from '@mattermost/types/message_attachments';
-import type {PostImage} from '@mattermost/types/posts';
+import type {Post, PostImage} from '@mattermost/types/posts';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {secureGetFromRecord} from 'mattermost-redux/utils/post_utils';
@@ -39,6 +39,11 @@ type Props = {
      * The post id
      */
     postId: string;
+
+    /**
+     * The post object
+     */
+    post?: Post;
 
     /**
      * The attachment to render

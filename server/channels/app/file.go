@@ -210,6 +210,14 @@ func (a *App) FileSize(path string) (int64, *model.AppError) {
 	return size, nil
 }
 
+func (a *App) ExportFileSize(path string) (int64, *model.AppError) {
+	size, nErr := a.ExportFileBackend().FileSize(path)
+	if nErr != nil {
+		return 0, model.NewAppError("ExportFileSize", "api.file.file_size.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+	}
+	return size, nil
+}
+
 func fileModTime(backend filestore.FileBackend, path string) (time.Time, *model.AppError) {
 	modTime, nErr := backend.FileModTime(path)
 	if nErr != nil {
