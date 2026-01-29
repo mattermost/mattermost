@@ -119,6 +119,7 @@ export function UserPropertiesTable({
                 },
                 cell: ({getValue, row}) => {
                     const toDelete = row.original.delete_at !== 0;
+                    const isProtected = Boolean(row.original.attrs?.protected);
                     const warningId = collection.warnings?.[row.original.id]?.name;
 
                     let warning;
@@ -156,6 +157,7 @@ export function UserPropertiesTable({
                                 value={getValue()}
                                 label={formatMessage({id: 'admin.system_properties.user_properties.table.property_name.input.name', defaultMessage: 'Attribute Name'})}
                                 deleted={toDelete}
+                                disabled={isProtected}
                                 borderless={!warning}
                                 testid='property-field-input'
                                 autoFocus={isCreatePending(row.original) && !supportsOptions(row.original)}
@@ -366,7 +368,7 @@ const EditCell = (props: EditCellProps) => {
                 type='text'
                 aria-label={props.label}
                 data-testid={props.testid}
-                disabled={props.disabled ?? props.deleted}
+                disabled={props.disabled || props.deleted}
                 $deleted={props.deleted}
                 $strong={props.strong}
                 maxLength={props.maxLength}
