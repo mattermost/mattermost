@@ -243,6 +243,57 @@ func TestPreparePostForClient(t *testing.T) {
 		assert.True(t, *clientPost.Metadata.Priority.RequestedAck)
 	})
 
+	t.Run("burn on read post priority read from master", func(t *testing.T) {
+		os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
+		t.Cleanup(func() {
+			os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
+		})
+
+		// Verifies BoR post priority is correctly fetched when using master context
+		th := setup(t)
+
+		// Enable BoR feature with license and config
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostPriority = true
+			*cfg.ServiceSettings.EnableBurnOnRead = true
+		})
+
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		// Create a burn-on-read post with priority
+		post, _, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "burn on read message with priority",
+			Type:      model.PostTypeBurnOnRead,
+			Metadata: &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority:     model.NewPointer(model.PostPriorityUrgent),
+					RequestedAck: model.NewPointer(true),
+				},
+			},
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, err)
+		require.Equal(t, model.PostTypeBurnOnRead, post.Type)
+
+		// Clear metadata to simulate websocket broadcast scenario
+		postWithoutPriority := post.Clone()
+		postWithoutPriority.Metadata = &model.PostMetadata{}
+
+		// Use master context (as processBroadcastHookForBurnOnRead does)
+		masterCtx := sqlstore.RequestContextWithMaster(th.Context)
+		clientPost := th.App.PreparePostForClient(masterCtx, postWithoutPriority, &model.PreparePostForClientOpts{
+			IncludePriority: true,
+			RetainContent:   true,
+		})
+
+		require.NotNil(t, clientPost.Metadata)
+		require.NotNil(t, clientPost.Metadata.Priority, "BoR post priority should be fetched from master DB")
+		assert.Equal(t, model.PostPriorityUrgent, *clientPost.Metadata.Priority.Priority)
+		assert.True(t, *clientPost.Metadata.Priority.RequestedAck)
+	})
+
 	t.Run("reactions", func(t *testing.T) {
 		th := setup(t)
 
