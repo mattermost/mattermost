@@ -232,7 +232,9 @@ jobs:
         run: |
           make cloud-init
           make
-          make cloud-teardown
+      - name: ci/cloud-teardown
+        if: always()
+        run: make cloud-teardown
       - name: ci/upload-results
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
@@ -301,16 +303,14 @@ jobs:
         uses: ./.github/actions/calculate-e2e-test-results
         with:
           results_path: e2e-tests/cypress/results
-          default_failed_count: ${{ inputs.test_type == 'smoke' && '1' || '0' }}
           check_ad_cycle: "${{ inputs.check_ad_cycle }}"
       - name: ci/assert-results
-        if: inputs.test_type == 'smoke'
         run: |
           [ "${{ steps.calculate-results.outputs.failed }}" = "0" ]
 
   update-success-status:
     runs-on: ubuntu-24.04
-    if: success()
+    if: always() && needs.report.result == 'success' && needs.generate-test-cycle.result == 'success'
     needs:
       - generate-test-cycle
       - report
@@ -328,7 +328,7 @@ jobs:
 
   update-failure-status:
     runs-on: ubuntu-24.04
-    if: failure()
+    if: always() && (needs.report.result != 'success' || needs.generate-test-cycle.result != 'success')
     needs:
       - generate-test-cycle
       - report

@@ -167,7 +167,9 @@ jobs:
         run: |
           make cloud-init
           make
-          make cloud-teardown
+      - name: ci/cloud-teardown
+        if: always()
+        run: make cloud-teardown
       - name: ci/upload-results
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
@@ -235,11 +237,6 @@ jobs:
             S3_PATH="server-commit-${COMMIT_SHA::7}/e2e-reports/playwright-${TEST_TYPE}/${RUN_ID}"
           fi
 
-          if [[ -d "$LOCAL_LOGS_PATH" ]]; then
-            aws s3 sync "$LOCAL_LOGS_PATH" "s3://${AWS_S3_BUCKET}/${S3_PATH}/logs/" \
-              --acl public-read --cache-control "no-cache"
-          fi
-
           if [[ -d "$LOCAL_RESULTS_PATH" ]]; then
             aws s3 sync "$LOCAL_RESULTS_PATH" "s3://${AWS_S3_BUCKET}/${S3_PATH}/results/" \
               --acl public-read --cache-control "no-cache"
@@ -264,15 +261,13 @@ jobs:
         uses: ./.github/actions/calculate-e2e-test-results
         with:
           results_path: e2e-tests/playwright/results
-          default_failed_count: ${{ inputs.test_type == 'smoke' && '1' || '0' }}
       - name: ci/assert-results
-        if: inputs.test_type == 'smoke'
         run: |
           [ "${{ steps.calculate-results.outputs.failed }}" = "0" ]
 
   update-success-status:
     runs-on: ubuntu-24.04
-    if: success()
+    if: always() && needs.report.result == 'success'
     needs:
       - report
     steps:
@@ -289,7 +284,7 @@ jobs:
 
   update-failure-status:
     runs-on: ubuntu-24.04
-    if: failure()
+    if: always() && needs.report.result != 'success'
     needs:
       - report
     steps:

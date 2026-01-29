@@ -6,10 +6,6 @@ inputs:
   results_path:
     description: Path to the results directory (e.g., cypress/results or playwright/results)
     required: true
-  default_failed_count:
-    description: Default failed count when summary file is missing (Cypress uses 1, Playwright uses 0)
-    required: false
-    default: "1"
   check_ad_cycle:
     description: Whether to check ad_cycle.json for results (Cypress full report)
     required: false
@@ -22,6 +18,12 @@ outputs:
   failed:
     description: Number of failed tests
     value: ${{ steps.calculate.outputs.failed }}
+  failed_expected:
+    description: Number of expected failures (known + flaky + skipped)
+    value: ${{ steps.calculate.outputs.failed_expected }}
+  pass_rate:
+    description: Pass rate percentage
+    value: ${{ steps.calculate.outputs.pass_rate }}
   smoke_passed:
     description: Whether smoke tests passed (true/false)
     value: ${{ steps.calculate.outputs.smoke_passed }}
@@ -39,29 +41,59 @@ runs:
         RESULTS_PATH="${{ inputs.results_path }}"
         SUMMARY_FILE="${RESULTS_PATH}/summary.json"
         AD_CYCLE_FILE="${RESULTS_PATH}/ad_cycle.json"
-        DEFAULT_FAILED="${{ inputs.default_failed_count }}"
         CHECK_AD_CYCLE="${{ inputs.check_ad_cycle }}"
-
-        PASSED=0
-        FAILED="$DEFAULT_FAILED"
 
         # Check ad_cycle.json first if enabled (Cypress full report uses this)
         if [ "$CHECK_AD_CYCLE" = "true" ] && [ -f "$AD_CYCLE_FILE" ]; then
+          echo "Using ad_cycle.json for results"
           PASSED=$(jq -r '.pass' "$AD_CYCLE_FILE")
           FAILED=$(jq -r '.fail' "$AD_CYCLE_FILE")
+          FAILED_EXPECTED=$(jq -r '.known + .flaky + .skipped' "$AD_CYCLE_FILE")
         elif [ -f "$SUMMARY_FILE" ]; then
+          echo "Using summary.json for results"
           PASSED=$(jq '.passed' "$SUMMARY_FILE")
           FAILED=$(jq '.failed' "$SUMMARY_FILE")
-        fi
-
-        echo "passed=${PASSED}" >> $GITHUB_OUTPUT
-        echo "failed=${FAILED}" >> $GITHUB_OUTPUT
-
-        # Determine smoke_passed
-        if [ "$FAILED" = "0" ]; then
-          echo "smoke_passed=true" >> $GITHUB_OUTPUT
-          echo "commit_status_message=All test cases passed" >> $GITHUB_OUTPUT
+          FAILED_EXPECTED=$(jq '.failed_expected // 0' "$SUMMARY_FILE")
         else
-          echo "smoke_passed=false" >> $GITHUB_OUTPUT
-          echo "commit_status_message=${FAILED} test cases failed" >> $GITHUB_OUTPUT
+          echo "No results file found, assuming failure"
+          PASSED=0
+          FAILED=1
+          FAILED_EXPECTED=0
         fi
+
+        # Calculate pass rate
+        TOTAL_SPECS=$(( PASSED + FAILED ))
+        if [ "$TOTAL_SPECS" -gt 0 ]; then
+          PASS_RATE=$(jq -r -n "$PASSED / $TOTAL_SPECS * 100" | xargs printf '%.2f')
+        else
+          PASS_RATE="0.00"
+        fi
+
+        # Determine smoke_passed and commit_status_message
+        if [ "$FAILED" = "0" ]; then
+          SMOKE_PASSED=true
+          COMMIT_STATUS_MESSAGE="All test cases passed"
+        else
+          SMOKE_PASSED=false
+          COMMIT_STATUS_MESSAGE="${FAILED} test cases failed"
+        fi
+
+        # Print results for inspection
+        echo "========================================"
+        echo "E2E Test Results:"
+        echo "  Passed: ${PASSED}"
+        echo "  Failed: ${FAILED}"
+        echo "  Failed Expected: ${FAILED_EXPECTED}"
+        echo "  Total Specs: ${TOTAL_SPECS}"
+        echo "  Pass Rate: ${PASS_RATE}%"
+        echo "  Smoke Passed: ${SMOKE_PASSED}"
+        echo "  Status Message: ${COMMIT_STATUS_MESSAGE}"
+        echo "========================================"
+
+        # Set outputs (using :? to fail if values are empty)
+        echo "passed=${PASSED:?}" >> $GITHUB_OUTPUT
+        echo "failed=${FAILED:?}" >> $GITHUB_OUTPUT
+        echo "failed_expected=${FAILED_EXPECTED:?}" >> $GITHUB_OUTPUT
+        echo "pass_rate=${PASS_RATE:?}%" >> $GITHUB_OUTPUT
+        echo "smoke_passed=${SMOKE_PASSED:?}" >> $GITHUB_OUTPUT
+        echo "commit_status_message=${COMMIT_STATUS_MESSAGE:?}" >> $GITHUB_OUTPUT

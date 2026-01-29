@@ -364,7 +364,9 @@ jobs:
             echo "RollingRelease: smoketest completed. Starting full E2E tests."
           fi
           make
-          make cloud-teardown
+      - name: ci/cloud-teardown
+        if: always()
+        run: make cloud-teardown
       - name: ci/e2e-test-store-results
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
@@ -469,12 +471,6 @@ jobs:
           S3_PATH="server-pr-${PR_NUMBER}/e2e-reports/${{ inputs.TEST }}/${RUN_ID}"
 
           echo "📤 Uploading to s3://${AWS_S3_BUCKET}/${S3_PATH}/"
-
-          if [[ -d "$LOCAL_LOGS_PATH" ]]; then
-            aws s3 sync "$LOCAL_LOGS_PATH" "s3://${AWS_S3_BUCKET}/${S3_PATH}/logs/" \
-              --acl public-read \
-              --cache-control "no-cache"
-          fi
 
           if [[ -d "$LOCAL_RESULTS_PATH" ]]; then
             aws s3 sync "$LOCAL_RESULTS_PATH" "s3://${AWS_S3_BUCKET}/${S3_PATH}/results/" \
