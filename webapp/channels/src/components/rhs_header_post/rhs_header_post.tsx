@@ -36,6 +36,9 @@ type Props = WrappedComponentProps & {
     goBack: () => void;
     closeRightHandSide: (e?: React.MouseEvent) => void;
     toggleRhsExpanded: (e: React.MouseEvent) => void;
+    activePanelId: string | null;
+    minimizeRhsPanel: (panelId?: string) => void;
+    closeRhsPanel: (panelId: string) => void;
     setThreadFollow: (userId: string, teamId: string, threadId: string, newState: boolean) => void;
     focusPost: (postId: string, returnTo: string, currentUserId: string, option?: {skipRedirectReplyPermalink: boolean}) => Promise<void>;
 };
@@ -87,6 +90,26 @@ class RhsHeaderPost extends React.PureComponent<Props> {
                 focusPost(postId, returnTo, currentUserId, {skipRedirectReplyPermalink: true});
             },
         );
+    };
+
+    handleMinimize = () => {
+        const {activePanelId, minimizeRhsPanel} = this.props;
+        if (activePanelId) {
+            minimizeRhsPanel(activePanelId);
+        } else {
+            // Fallback: minimize without specific panel ID
+            minimizeRhsPanel();
+        }
+    };
+
+    handleClose = () => {
+        const {activePanelId, closeRhsPanel, closeRightHandSide} = this.props;
+        if (activePanelId) {
+            closeRhsPanel(activePanelId);
+        } else {
+            // Fallback to legacy close
+            closeRightHandSide();
+        }
     };
 
     render() {
@@ -211,6 +234,25 @@ class RhsHeaderPost extends React.PureComponent<Props> {
                     ) : null}
                     <PopoutButton onClick={this.popout}/>
                     <WithTooltip
+                        title={
+                            <FormattedMessage
+                                id='rhs_header.minimizeSidebarTooltip'
+                                defaultMessage='Minimize'
+                            />
+                        }
+                    >
+                        <button
+                            type='button'
+                            className='sidebar--right__minimize btn btn-icon btn-sm'
+                            aria-label={formatMessage({id: 'rhs_header.minimizeSidebarTooltip.icon', defaultMessage: 'Minimize Sidebar Icon'})}
+                            onClick={this.handleMinimize}
+                        >
+                            <i
+                                className='icon icon-minus'
+                            />
+                        </button>
+                    </WithTooltip>
+                    <WithTooltip
                         title={rhsHeaderTooltipContent}
                     >
                         <button
@@ -236,7 +278,7 @@ class RhsHeaderPost extends React.PureComponent<Props> {
                             type='button'
                             className='sidebar--right__close btn btn-icon btn-sm'
                             aria-label='Close'
-                            onClick={this.props.closeRightHandSide}
+                            onClick={this.handleClose}
                         >
                             <i
                                 className='icon icon-close'

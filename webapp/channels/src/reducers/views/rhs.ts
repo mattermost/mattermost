@@ -16,6 +16,7 @@ import {ActionTypes, RHSStates, Threads} from 'utils/constants';
 
 import type {MMAction} from 'types/store';
 import type {RhsState} from 'types/store/rhs';
+import type {RhsPanelsState, RhsPanelState} from 'types/store/rhs_panel';
 
 function selectedPostId(state = '', action: MMAction) {
     switch (action.type) {
@@ -329,6 +330,15 @@ function isSidebarOpen(state = false, action: MMAction) {
         return false;
     case ActionTypes.OPEN_LHS:
         return false;
+    case ActionTypes.MINIMIZE_RHS_PANEL:
+        return false;
+    case ActionTypes.CLOSE_RHS_PANEL:
+        return false;
+    case ActionTypes.RESTORE_RHS_PANEL:
+        return true;
+    case ActionTypes.OPEN_RHS_PANEL:
+        // Don't open sidebar if panel is being restored as minimized
+        return action.panel?.minimized ? state : true;
 
     case UserTypes.LOGOUT_SUCCESS:
         return false;
@@ -423,6 +433,140 @@ function shouldFocusRHS(state = false, action: MMAction) {
     }
 }
 
+const defaultOpenPanelsState: RhsPanelsState = {
+    panels: {},
+    activePanelId: null,
+    panelOrder: [],
+};
+
+function openPanels(state: RhsPanelsState = defaultOpenPanelsState, action: MMAction): RhsPanelsState {
+    switch (action.type) {
+    case ActionTypes.OPEN_RHS_PANEL: {
+        const panel = action.panel as RhsPanelState;
+        const newPanels = {
+            ...state.panels,
+            [panel.id]: panel,
+        };
+        let newOrder = state.panelOrder;
+        if (!state.panelOrder.includes(panel.id)) {
+            newOrder = [...state.panelOrder, panel.id];
+        }
+
+        let newActivePanelId: string | null = panel.id;
+        if (panel.minimized) {
+            // Don't set active if panel is minimized (e.g., restoring from storage)
+            newActivePanelId = state.activePanelId;
+        }
+
+        return {
+            panels: newPanels,
+            activePanelId: newActivePanelId,
+            panelOrder: newOrder,
+        };
+    }
+
+    case ActionTypes.CLOSE_RHS_PANEL: {
+        const panelId = action.panelId as string;
+        const remainingPanels = Object.fromEntries(
+            Object.entries(state.panels).filter(([id]) => id !== panelId),
+        );
+        const newOrder = state.panelOrder.filter((id) => id !== panelId);
+
+        let newActiveId = state.activePanelId;
+        if (state.activePanelId === panelId) {
+            newActiveId = newOrder.length > 0 ? newOrder[newOrder.length - 1] : null;
+        }
+
+        return {
+            panels: remainingPanels,
+            activePanelId: newActiveId,
+            panelOrder: newOrder,
+        };
+    }
+
+    case ActionTypes.MINIMIZE_RHS_PANEL: {
+        const panelId = action.panelId as string;
+        const panel = state.panels[panelId];
+        if (!panel) {
+            return state;
+        }
+        return {
+            ...state,
+            panels: {
+                ...state.panels,
+                [panelId]: {...panel, minimized: true},
+            },
+            activePanelId: state.activePanelId === panelId ? null : state.activePanelId,
+        };
+    }
+
+    case ActionTypes.RESTORE_RHS_PANEL: {
+        const panelId = action.panelId as string;
+        const panel = state.panels[panelId];
+        if (!panel) {
+            return state;
+        }
+        return {
+            ...state,
+            panels: {
+                ...state.panels,
+                [panelId]: {...panel, minimized: false},
+            },
+            activePanelId: panelId,
+        };
+    }
+
+    case ActionTypes.SET_ACTIVE_PANEL: {
+        const panelId = action.panelId as string | null;
+        if (panelId && state.panels[panelId]?.minimized) {
+            // If switching to a minimized panel, also restore it
+            return {
+                ...state,
+                panels: {
+                    ...state.panels,
+                    [panelId]: {...state.panels[panelId], minimized: false},
+                },
+                activePanelId: panelId,
+            };
+        }
+        return {
+            ...state,
+            activePanelId: panelId,
+        };
+    }
+
+    case ActionTypes.UPDATE_PANEL_STATE: {
+        const panelId = action.panelId as string;
+        const updates = action.updates as Partial<RhsPanelState>;
+        const panel = state.panels[panelId];
+        if (!panel) {
+            return state;
+        }
+        return {
+            ...state,
+            panels: {
+                ...state.panels,
+                [panelId]: {...panel, ...updates},
+            },
+        };
+    }
+
+    case ActionTypes.REORDER_RHS_PANELS: {
+        const newOrder = action.panelOrder as string[];
+        return {
+            ...state,
+            panelOrder: newOrder,
+        };
+    }
+
+    case UserTypes.LOGOUT_SUCCESS:
+        return defaultOpenPanelsState;
+
+    default:
+        return state;
+    }
+}
+
 export default combineReducers({
     selectedPostId,
     selectedPostFocussedAt,
@@ -446,4 +590,5 @@ export default combineReducers({
     isMenuOpen,
     editChannelMembers,
     shouldFocusRHS,
+    openPanels,
 });
