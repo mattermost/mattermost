@@ -12,6 +12,12 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
+// preferenceRegularPostsFilter returns a SQL clause that excludes pages and page comments from preference cleanup queries.
+// Preferences pointing to pages should not be cleaned up as orphaned since pages have separate lifecycle.
+func preferenceRegularPostsFilter() string {
+	return "Preferences.Name NOT IN (SELECT Id FROM Posts WHERE Type IN (" + PageContentTypesSQL() + "))"
+}
+
 type SqlPreferenceStore struct {
 	*SqlStore
 	preferenceSelectQuery sq.SelectBuilder
@@ -224,11 +230,13 @@ func (s SqlPreferenceStore) DeleteCategoryAndName(category string, name string) 
 // DeleteOrphanedRows removes entries from Preferences (flagged post) when a
 // corresponding post no longer exists.
 func (s *SqlPreferenceStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
-	const query = `
+	query := `
 	DELETE FROM Preferences WHERE ctid IN (
 		SELECT Preferences.ctid FROM Preferences
 		LEFT JOIN Posts ON Preferences.Name = Posts.Id
-		WHERE Posts.Id IS NULL AND Category = $1
+		WHERE Posts.Id IS NULL
+		  AND Category = $1
+		  AND ` + preferenceRegularPostsFilter() + `
 		LIMIT $2
 	)`
 
@@ -253,6 +261,7 @@ func (s SqlPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
 				LeftJoin("Posts ON Preferences.Name = Posts.Id").
 				Where(sq.Eq{"Preferences.Category": model.PreferenceCategoryFlaggedPost}).
 				Where(sq.Eq{"Posts.Id": nil}).
+				Where(sq.Expr(preferenceRegularPostsFilter())).
 				Limit(uint64(limit)),
 			"t").
 		ToSql()

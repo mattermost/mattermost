@@ -3,8 +3,16 @@
 
 import type {GlobalState} from 'types/store';
 
+/**
+ * Returns the raw storage object from state.
+ * Use this selector when iterating over storage items by prefix.
+ */
+export const getStorage = (state: GlobalState): Record<string, any> => {
+    return state?.storage?.storage ?? {};
+};
+
 export const getGlobalItem = <T = any>(state: GlobalState, name: string, defaultValue: T) => {
-    const storage = state && state.storage && state.storage.storage;
+    const storage = getStorage(state);
 
     return getItemFromStorage<T>(storage, name, defaultValue);
 };

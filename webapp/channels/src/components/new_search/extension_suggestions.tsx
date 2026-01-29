@@ -117,9 +117,7 @@ SuggestionProps<ExtensionItem>
         }
     }, [optionClicked]);
 
-    const labelName = messages[item.type] ?
-        intl.formatMessage(messages[item.type]) :
-        item.type;
+    const labelName = messages[item.type] ? intl.formatMessage(messages[item.type]) : item.type;
 
     const ariaLabel = intl.formatMessage({
         id: 'search_file_extension_suggestion.aria_label',

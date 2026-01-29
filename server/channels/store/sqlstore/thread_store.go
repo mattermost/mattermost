@@ -1136,3 +1136,22 @@ func (s *SqlThreadStore) UpdateTeamIdForChannelThreads(channelId, teamId string)
 
 	return nil
 }
+
+func (s *SqlThreadStore) CreateThreadForPageComment(thread *model.Thread) error {
+	existingThread, err := s.Get(thread.PostId)
+	if err == nil && existingThread != nil {
+		return nil
+	}
+
+	query := `INSERT INTO Threads
+		(PostId, ChannelId, ReplyCount, LastReplyAt, Participants, ThreadTeamId)
+		VALUES
+		(:PostId, :ChannelId, :ReplyCount, :LastReplyAt, :Participants, :TeamId)`
+
+	_, execErr := s.GetMaster().NamedExec(query, thread)
+	if execErr != nil {
+		return errors.Wrap(execErr, "failed to insert thread entry for page comment")
+	}
+
+	return nil
+}

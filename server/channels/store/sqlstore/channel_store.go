@@ -2636,6 +2636,7 @@ func (s SqlChannelStore) CountPostsAfter(channelId string, timestamp int64, excl
 			sq.NotEq{"Type": joinLeavePostTypes},
 			sq.Eq{"DeleteAt": 0},
 		})
+	query = AddRegularPostsFilter(query, "")
 
 	if excludedUserID != "" {
 		query = query.Where(sq.NotEq{"UserId": excludedUserID})

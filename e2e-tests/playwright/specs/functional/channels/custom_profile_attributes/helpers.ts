@@ -286,9 +286,8 @@ export async function updateCustomProfileAttributeVisibility(
 
         // Update the fieldsMap with the updated field
         fieldsMap[updatedField.id] = updatedField;
-    } catch (error) {
-        // eslint-disable-next-line no-console
-        console.log(`Failed to update visibility for attribute ${attributeName}:`, error);
+    } catch {
+        // Failed to update visibility
     }
 }
 
@@ -345,10 +344,8 @@ export async function setupCustomProfileAttributeFields(
             }
             return fieldsMap;
         }
-    } catch (error) {
+    } catch {
         // If request fails, continue to create new fields
-        // eslint-disable-next-line no-console
-        console.log('Error getting existing custom profile fields, will create new ones', error);
     }
 
     // Create fields sequentially
@@ -356,9 +353,8 @@ export async function setupCustomProfileAttributeFields(
         try {
             const createdField = await adminClient.createCustomProfileAttributeField(field);
             fieldsMap[createdField.id] = createdField;
-        } catch (error) {
-            // eslint-disable-next-line no-console
-            console.log(`Failed to create field ${field.name}:`, error);
+        } catch {
+            // Failed to create field
         }
     }
 
@@ -400,9 +396,8 @@ export async function setupCustomProfileAttributeValues(
     if (Object.keys(valuesByFieldId).length > 0) {
         try {
             await userClient.updateCustomProfileAttributeValues(valuesByFieldId);
-        } catch (error) {
-            // eslint-disable-next-line no-console
-            console.log('Failed to set attribute values:', error);
+        } catch {
+            // Failed to set attribute values
         }
     }
 }
@@ -445,9 +440,8 @@ export async function setupCustomProfileAttributeValuesForUser(
         try {
             // Use the admin client method for updating other user's values
             await adminClient.updateUserCustomProfileAttributesValues(targetUserId, valuesByFieldId);
-        } catch (error) {
-            // eslint-disable-next-line no-console
-            console.log('Failed to set attribute values for user:', error);
+        } catch {
+            // Failed to set attribute values for user
         }
     }
 }
@@ -465,9 +459,8 @@ export async function deleteCustomProfileAttributes(
     for (const id of Object.keys(attributes)) {
         try {
             await adminClient.deleteCustomProfileAttributeField(id);
-        } catch (error) {
-            // eslint-disable-next-line no-console
-            console.log(`Failed to delete field ${id}:`, error);
+        } catch {
+            // Failed to delete field
         }
     }
 
@@ -475,11 +468,9 @@ export async function deleteCustomProfileAttributes(
     try {
         const response = await adminClient.getCustomProfileAttributeFields();
         if (response && response.length > 0) {
-            // eslint-disable-next-line no-console
-            console.log('Warning: Not all custom profile attributes were deleted');
+            // Not all custom profile attributes were deleted
         }
-    } catch (error) {
-        // eslint-disable-next-line no-console
-        console.log('Error checking if all fields were deleted:', error);
+    } catch {
+        // Error checking if all fields were deleted
     }
 }

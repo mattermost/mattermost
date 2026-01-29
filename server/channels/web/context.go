@@ -779,6 +779,391 @@ func (c *Context) RequireRecapId() *Context {
 	return c
 }
 
+func (c *Context) RequireWikiId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.WikiId) {
+		c.SetInvalidURLParam("wiki_id")
+	}
+	return c
+}
+
+func (c *Context) RequirePageId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.PageId) {
+		c.SetInvalidURLParam("page_id")
+	}
+	return c
+}
+
+func (c *Context) GetWikiForModify(callerContext string) (*model.Wiki, *model.Channel, bool) {
+	if c.Err != nil {
+		return nil, nil, false
+	}
+
+	wiki, err := c.App.GetWiki(c.AppContext, c.Params.WikiId)
+	if err != nil {
+		c.Err = err
+		return nil, nil, false
+	}
+
+	channel, err := c.App.GetChannel(c.AppContext, wiki.ChannelId)
+	if err != nil {
+		c.Err = err
+		return nil, nil, false
+	}
+
+	if !c.hasWikiModifyPermission(channel) {
+		return nil, nil, false
+	}
+
+	return wiki, channel, true
+}
+
+// hasWikiModifyPermission checks if the current user can modify a wiki in the given channel.
+// Sets c.Err and returns false if permission denied.
+func (c *Context) hasWikiModifyPermission(channel *model.Channel) bool {
+	session := c.AppContext.Session()
+
+	switch channel.Type {
+	case model.ChannelTypeOpen:
+		if hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *session, channel.Id, model.PermissionManagePublicChannelProperties); !hasPermission {
+			c.SetPermissionError(model.PermissionManagePublicChannelProperties)
+			return false
+		}
+	case model.ChannelTypePrivate:
+		if hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *session, channel.Id, model.PermissionManagePrivateChannelProperties); !hasPermission {
+			c.SetPermissionError(model.PermissionManagePrivateChannelProperties)
+			return false
+		}
+	case model.ChannelTypeGroup, model.ChannelTypeDirect:
+		if _, err := c.App.GetChannelMember(c.AppContext, channel.Id, session.UserId); err != nil {
+			c.Err = model.NewAppError("hasWikiModifyPermission", "api.wiki.permission.direct_or_group_channels.app_error", nil, err.Message, http.StatusForbidden)
+			return false
+		}
+		user, err := c.App.GetUser(session.UserId)
+		if err != nil {
+			c.Err = err
+			return false
+		}
+		if user.IsGuest() {
+			c.Err = model.NewAppError("hasWikiModifyPermission", "api.wiki.permission.direct_or_group_channels_by_guests.app_error", nil, "", http.StatusForbidden)
+			return false
+		}
+	default:
+		c.Err = model.NewAppError("hasWikiModifyPermission", "api.wiki.permission.forbidden.app_error", nil, "", http.StatusForbidden)
+		return false
+	}
+
+	return true
+}
+
+func (c *Context) GetWikiForRead() (*model.Wiki, *model.Channel, bool) {
+	if c.Err != nil {
+		return nil, nil, false
+	}
+
+	wiki, err := c.App.GetWiki(c.AppContext, c.Params.WikiId)
+	if err != nil {
+		c.Err = err
+		return nil, nil, false
+	}
+
+	channel, err := c.App.GetChannel(c.AppContext, wiki.ChannelId)
+	if err != nil {
+		c.Err = err
+		return nil, nil, false
+	}
+
+	if hasPermission, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel); !hasPermission {
+		c.SetPermissionError(model.PermissionReadChannelContent)
+		return nil, nil, false
+	}
+
+	// Guests cannot access wiki/pages in DM/Group channels
+	if channel.Type == model.ChannelTypeGroup || channel.Type == model.ChannelTypeDirect {
+		user, userErr := c.App.GetUser(c.AppContext.Session().UserId)
+		if userErr != nil {
+			c.Err = userErr
+			return nil, nil, false
+		}
+		if user.IsGuest() {
+			c.Err = model.NewAppError("GetWikiForRead", "api.page.permission.guest_cannot_access", nil, "", http.StatusForbidden)
+			return nil, nil, false
+		}
+	}
+
+	return wiki, channel, true
+}
+
+func (c *Context) ValidatePageBelongsToWiki() (*model.Post, bool) {
+	if c.Err != nil {
+		return nil, false
+	}
+
+	page, err := c.App.GetPage(c.AppContext, c.Params.PageId)
+	if err != nil {
+		c.Err = model.NewAppError("ValidatePageBelongsToWiki", "api.wiki.page_not_found",
+			nil, "", err.StatusCode).Wrap(err)
+		return nil, false
+	}
+
+	pageWikiId, ok := page.Props[model.PagePropsWikiID].(string)
+	if !ok || pageWikiId == "" {
+		// Fallback: get wiki_id from PropertyValues (source of truth)
+		var wikiErr *model.AppError
+		pageWikiId, wikiErr = c.App.GetWikiIdForPage(c.AppContext, c.Params.PageId)
+		if wikiErr != nil || pageWikiId == "" {
+			c.Err = model.NewAppError("ValidatePageBelongsToWiki", "api.wiki.page_wiki_not_set",
+				nil, "", http.StatusBadRequest)
+			return nil, false
+		}
+	}
+
+	if pageWikiId != c.Params.WikiId {
+		// Check if the wiki in the URL exists before returning a mismatch error
+		// If the wiki doesn't exist, return 404; if it exists but page doesn't belong to it, return 400
+		if _, wikiErr := c.App.GetWiki(c.AppContext, c.Params.WikiId); wikiErr != nil {
+			c.Err = model.NewAppError("ValidatePageBelongsToWiki", "api.wiki.not_found",
+				nil, "", wikiErr.StatusCode).Wrap(wikiErr)
+			return nil, false
+		}
+		c.Err = model.NewAppError("ValidatePageBelongsToWiki", "api.wiki.page_wiki_mismatch",
+			nil, "", http.StatusBadRequest)
+		return nil, false
+	}
+
+	return page, true
+}
+
 func (c *Context) GetRemoteID(r *http.Request) string {
 	return r.Header.Get(model.HeaderRemoteclusterId)
+}
+
+// GetPageForRead validates a page belongs to the wiki and user has read permission.
+// Returns page, wiki, and channel in a single operation to avoid redundant DB fetches.
+// Use this instead of calling ValidatePageBelongsToWiki() + GetWikiForRead() separately.
+func (c *Context) GetPageForRead() (*model.Post, *model.Wiki, *model.Channel, bool) {
+	if c.Err != nil {
+		return nil, nil, nil, false
+	}
+
+	// Get wiki and channel first (includes permission check)
+	wiki, channel, ok := c.GetWikiForRead()
+	if !ok {
+		return nil, nil, nil, false
+	}
+
+	// Get page
+	page, err := c.App.GetPage(c.AppContext, c.Params.PageId)
+	if err != nil {
+		c.Err = model.NewAppError("GetPageForRead", "api.wiki.page_not_found",
+			nil, "", err.StatusCode).Wrap(err)
+		return nil, nil, nil, false
+	}
+
+	// Validate page belongs to this wiki
+	pageWikiId, ok := page.Props[model.PagePropsWikiID].(string)
+	if !ok || pageWikiId == "" {
+		// Fallback: get wiki_id from PropertyValues (source of truth)
+		var wikiErr *model.AppError
+		pageWikiId, wikiErr = c.App.GetWikiIdForPage(c.AppContext, c.Params.PageId)
+		if wikiErr != nil || pageWikiId == "" {
+			c.Err = model.NewAppError("GetPageForRead", "api.wiki.page_wiki_not_set",
+				nil, "", http.StatusBadRequest)
+			return nil, nil, nil, false
+		}
+	}
+
+	if pageWikiId != c.Params.WikiId {
+		c.Err = model.NewAppError("GetPageForRead", "api.wiki.page_wiki_mismatch",
+			nil, "", http.StatusBadRequest)
+		return nil, nil, nil, false
+	}
+
+	// Validate channel match
+	if page.ChannelId != wiki.ChannelId {
+		c.Err = model.NewAppError("GetPageForRead", "api.wiki.page_channel_mismatch", nil, "", http.StatusBadRequest)
+		return nil, nil, nil, false
+	}
+
+	// Check page-level read permission
+	if !c.hasPagePermission(channel, page, app.PageOperationRead) {
+		return nil, nil, nil, false
+	}
+
+	return page, wiki, channel, true
+}
+
+// GetPageForModify validates a page can be modified by the current user.
+// It performs all permission checks needed for page modification operations:
+// 1. Validates page belongs to the wiki specified in the URL
+// 2. Checks wiki modify permission
+// 3. Checks page-level modify permission for the specified operation
+// 4. Validates page's channel matches wiki's channel
+// Returns wiki, page, channel, and success bool.
+func (c *Context) GetPageForModify(operation app.PageOperation, callerContext string) (*model.Wiki, *model.Post, *model.Channel, bool) {
+	if c.Err != nil {
+		return nil, nil, nil, false
+	}
+
+	// Get page and validate it belongs to this wiki
+	page, ok := c.ValidatePageBelongsToWiki()
+	if !ok {
+		return nil, nil, nil, false
+	}
+
+	// Check wiki modify permission
+	wiki, channel, ok := c.GetWikiForModify(callerContext)
+	if !ok {
+		return nil, nil, nil, false
+	}
+
+	// Check page-level modify permission
+	if !c.hasPagePermission(channel, page, operation) {
+		return nil, nil, nil, false
+	}
+
+	// Validate channel match
+	if page.ChannelId != wiki.ChannelId {
+		c.Err = model.NewAppError(callerContext, "api.wiki.page_channel_mismatch", nil, "", http.StatusBadRequest)
+		return nil, nil, nil, false
+	}
+
+	return wiki, page, channel, true
+}
+
+// hasPagePermission checks if the current user can perform an operation on a page.
+// Sets c.Err and returns false if permission denied.
+func (c *Context) hasPagePermission(channel *model.Channel, page *model.Post, operation app.PageOperation) bool {
+	session := c.AppContext.Session()
+
+	// Check base permission for the operation based on channel type
+	switch channel.Type {
+	case model.ChannelTypeOpen, model.ChannelTypePrivate:
+		permission := getPagePermission(operation)
+		if permission == nil {
+			c.Err = model.NewAppError("hasPagePermission", "api.page.permission.invalid_operation", nil, "", http.StatusForbidden)
+			return false
+		}
+		if hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *session, channel.Id, permission); !hasPermission {
+			c.SetPermissionError(permission)
+			return false
+		}
+
+	case model.ChannelTypeGroup, model.ChannelTypeDirect:
+		if _, err := c.App.GetChannelMember(c.AppContext, channel.Id, session.UserId); err != nil {
+			c.Err = model.NewAppError("hasPagePermission", "api.page.permission.no_channel_access", nil, "", http.StatusForbidden)
+			return false
+		}
+		user, err := c.App.GetUser(session.UserId)
+		if err != nil {
+			c.Err = err
+			return false
+		}
+		if user.IsGuest() {
+			c.Err = model.NewAppError("hasPagePermission", "api.page.permission.guest_cannot_modify", nil, "", http.StatusForbidden)
+			return false
+		}
+
+	default:
+		c.Err = model.NewAppError("hasPagePermission", "api.page.permission.invalid_channel_type", nil, "", http.StatusForbidden)
+		return false
+	}
+
+	// Additional ownership checks for existing pages
+	if page != nil {
+		// Open/Private channels: delete others' pages requires PermissionDeletePage
+		if channel.Type == model.ChannelTypeOpen || channel.Type == model.ChannelTypePrivate {
+			if operation == app.PageOperationDelete && page.UserId != session.UserId {
+				if hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *session, channel.Id, model.PermissionDeletePage); !hasPermission {
+					c.SetPermissionError(model.PermissionDeletePage)
+					return false
+				}
+			}
+		}
+
+		// DM/Group channels: edit/delete others' pages requires SchemeAdmin
+		if channel.Type == model.ChannelTypeGroup || channel.Type == model.ChannelTypeDirect {
+			if operation == app.PageOperationEdit || operation == app.PageOperationDelete {
+				if page.UserId != session.UserId {
+					member, memberErr := c.App.GetChannelMember(c.AppContext, channel.Id, session.UserId)
+					if memberErr != nil {
+						statusCode := http.StatusForbidden
+						if memberErr.StatusCode == http.StatusInternalServerError {
+							statusCode = http.StatusInternalServerError
+						}
+						c.Err = model.NewAppError("hasPagePermission", "api.page.permission.no_channel_access", nil, "", statusCode).Wrap(memberErr)
+						return false
+					}
+					if !member.SchemeAdmin {
+						c.Err = model.NewAppError("hasPagePermission", "api.context.permissions.app_error", nil, "", http.StatusForbidden)
+						return false
+					}
+				}
+			}
+		}
+	}
+
+	return true
+}
+
+// getPagePermission maps a PageOperation to its corresponding Permission.
+func getPagePermission(operation app.PageOperation) *model.Permission {
+	switch operation {
+	case app.PageOperationCreate:
+		return model.PermissionCreatePage
+	case app.PageOperationRead:
+		return model.PermissionReadPage
+	case app.PageOperationEdit:
+		return model.PermissionEditPage
+	case app.PageOperationDelete:
+		return model.PermissionDeleteOwnPage
+	default:
+		return nil
+	}
+}
+
+// CheckPagePermission checks if the current user can perform an operation on a page.
+// Use this when you have a page but are not going through wiki routes.
+// Sets c.Err and returns false if permission denied.
+func (c *Context) CheckPagePermission(page *model.Post, operation app.PageOperation) bool {
+	if c.Err != nil {
+		return false
+	}
+
+	channel, err := c.App.GetChannel(c.AppContext, page.ChannelId)
+	if err != nil {
+		c.Err = err
+		return false
+	}
+
+	return c.hasPagePermission(channel, page, operation)
+}
+
+// CheckChannelPagePermission checks if the current user can create pages in a channel.
+// Use this when checking permission to create a page (no page exists yet).
+// Sets c.Err and returns false if permission denied.
+func (c *Context) CheckChannelPagePermission(channel *model.Channel, operation app.PageOperation) bool {
+	if c.Err != nil {
+		return false
+	}
+
+	return c.hasPagePermission(channel, nil, operation)
+}
+
+// CheckWikiModifyPermission checks if the current user can modify wikis in a channel.
+// Use this when you have a channel object but are not going through wiki routes.
+// Sets c.Err and returns false if permission denied.
+func (c *Context) CheckWikiModifyPermission(channel *model.Channel) bool {
+	if c.Err != nil {
+		return false
+	}
+
+	return c.hasWikiModifyPermission(channel)
 }

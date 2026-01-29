@@ -1671,3 +1671,24 @@ func (api *apiTimerLayer) LogAuditRecWithLevel(rec *model.AuditRecord, level mlo
 	api.apiImpl.LogAuditRecWithLevel(rec, level)
 	api.recordTime(startTime, "LogAuditRecWithLevel", true)
 }
+
+func (api *apiTimerLayer) LinkPageToFirstWiki(pageID, channelID string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.LinkPageToFirstWiki(pageID, channelID)
+	api.recordTime(startTime, "LinkPageToFirstWiki", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) GetFirstWikiForChannel(channelID string) (string, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetFirstWikiForChannel(channelID)
+	api.recordTime(startTime, "GetFirstWikiForChannel", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) CreateWikiPage(wikiID, title, content, userID string) (*model.Post, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.CreateWikiPage(wikiID, title, content, userID)
+	api.recordTime(startTime, "CreateWikiPage", _returnsB == nil)
+	return _returnsA, _returnsB
+}

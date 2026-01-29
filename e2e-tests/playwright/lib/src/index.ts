@@ -7,6 +7,17 @@ export {baseGlobalSetup} from './global_setup';
 export {TestBrowser} from './browser_context';
 export {getBlobFromAsset, getFileFromAsset} from './file';
 export {duration, wait} from './util';
+export {
+    configureAIPlugin,
+    installAIPlugin,
+    shouldSkipAITests,
+    createPageViaDraft,
+    getAdminClient,
+    createRandomTeam,
+    createRandomUser,
+    getOnPremServerConfig,
+    makeClient,
+} from './server';
 
 export {
     ChannelsPage,

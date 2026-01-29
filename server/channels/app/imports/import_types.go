@@ -26,6 +26,12 @@ type LineImportData struct {
 	Emoji         *EmojiImportData         `json:"emoji,omitempty"`
 	Version       *int                     `json:"version,omitempty"`
 	Info          *VersionInfoImportData   `json:"info,omitempty"`
+
+	// Wiki/Pages import support (for Confluence migration)
+	Wiki                    *WikiImportData                    `json:"wiki,omitempty"`
+	Page                    *PageImportData                    `json:"page,omitempty"`
+	PageComment             *PageCommentImportData             `json:"page_comment,omitempty"`
+	ResolveWikiPlaceholders *ResolveWikiPlaceholdersImportData `json:"resolve_wiki_placeholders,omitempty"`
 }
 
 type VersionInfoImportData struct {
@@ -277,6 +283,8 @@ type LineImportWorkerError struct {
 type AttachmentImportData struct {
 	Path *string   `json:"path"`
 	Data *zip.File `json:"-"`
+	// Props for idempotency - may include "import_source_id" for wiki attachment link resolution
+	Props *model.StringInterface `json:"props,omitempty"`
 }
 
 type ComparablePreference struct {

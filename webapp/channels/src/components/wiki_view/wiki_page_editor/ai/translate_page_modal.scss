@@ -1,0 +1,116 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.translate-page-modal {
+    .modal-body {
+        padding: 0;
+    }
+}
+
+.translate-page-modal-content {
+    padding: 20px 24px;
+}
+
+.translate-page-modal-description {
+    margin-bottom: 20px;
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+    font-size: 14px;
+    line-height: 20px;
+}
+
+.translate-page-modal-error {
+    padding: 12px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    background-color: rgba(var(--error-text-color-rgb), 0.08);
+    color: var(--error-text);
+    font-size: 14px;
+}
+
+.translate-page-modal-language-section {
+    margin-bottom: 16px;
+}
+
+.translate-page-modal-label {
+    display: block;
+    margin-bottom: 12px;
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.translate-page-modal-language-grid {
+    display: grid;
+    max-height: 320px;
+    gap: 8px;
+    grid-template-columns: repeat(2, 1fr);
+    overflow-y: auto;
+}
+
+.translate-page-modal-language-option {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background-color: rgba(var(--center-channel-color-rgb), 0.04);
+    color: var(--center-channel-color);
+    cursor: pointer;
+    gap: 8px;
+    text-align: left;
+    transition: all 0.15s ease;
+
+    &:hover:not(:disabled) {
+        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+    }
+
+    &:focus {
+        box-shadow: 0 0 0 2px var(--button-bg);
+        outline: none;
+    }
+
+    &.selected {
+        border-color: var(--button-bg);
+        background-color: rgba(var(--button-bg-rgb), 0.08);
+
+        .translate-page-modal-language-name {
+            color: var(--button-bg);
+            font-weight: 600;
+        }
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+
+    svg {
+        flex-shrink: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+    }
+}
+
+.translate-page-modal-language-name {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.translate-page-modal-language-native {
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    font-size: 12px;
+}
+
+.translate-page-modal-processing {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    border-radius: 4px;
+    margin-top: 16px;
+    background-color: rgba(var(--button-bg-rgb), 0.08);
+    color: var(--button-bg);
+    font-size: 14px;
+    gap: 8px;
+}

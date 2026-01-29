@@ -30,6 +30,7 @@ import {isThreadOpen, makeGetThreadLastViewedAt} from 'selectors/views/threads';
 
 import WebSocketClient from 'client/web_websocket_client';
 import {ActionTypes} from 'utils/constants';
+import {pageInlineCommentHasAnchor} from 'utils/page_utils';
 
 import type {DispatchFunc, GetStateFunc, ActionFunc, ActionFuncAsync} from 'types/store';
 
@@ -49,6 +50,15 @@ export function completePostReceive(post: Post, websocketMessageProps: NewPostMe
                     WebSocketClient.acknowledgePostedNotification(post.id, 'error', 'missing_root_post', result.error);
                 }
                 return {error: result.error};
+            }
+        }
+
+        // Handle inline comments - they have empty root_id but need thread metadata
+        if (pageInlineCommentHasAnchor(post) && !post.root_id) {
+            // Fetch thread metadata for this inline comment (non-blocking)
+            const thread = getThread(state, post.id);
+            if (!thread) {
+                dispatch(PostActions.getPostThread(post.id));
             }
         }
         const actions: AnyAction[] = [];
@@ -99,7 +109,8 @@ export function setChannelReadAndViewed(dispatch: DispatchFunc, getState: GetSta
     const currentUserId = getCurrentUserId(state);
 
     // ignore system message posts, except when added to a team
-    if (shouldIgnorePost(post, currentUserId)) {
+    const shouldIgnore = shouldIgnorePost(post, currentUserId);
+    if (shouldIgnore) {
         return [];
     }
 

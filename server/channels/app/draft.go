@@ -39,26 +39,34 @@ func (a *App) UpsertDraft(rctx request.CTX, draft *model.Draft, connectionID str
 		return nil, model.NewAppError("CreateDraft", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 
-	// Check that channel exists and has not been deleted
-	channel, errCh := a.Srv().Store().Channel().Get(draft.ChannelId, true)
-	if errCh != nil {
-		err := model.NewAppError("CreateDraft", "api.context.invalid_param.app_error", map[string]any{"Name": "draft.channel_id"}, "", http.StatusBadRequest).Wrap(errCh)
-		return nil, err
-	}
+	if draft.IsPageDraft() {
+		_, err := a.GetWiki(rctx, draft.WikiId)
+		if err != nil {
+			return nil, model.NewAppError("CreateDraft", "api.context.invalid_param.app_error",
+				map[string]any{"Name": "draft.wiki_id"}, "", http.StatusBadRequest).Wrap(err)
+		}
+	} else {
+		// Check that channel exists and has not been deleted
+		channel, errCh := a.Srv().Store().Channel().Get(draft.ChannelId, true)
+		if errCh != nil {
+			err := model.NewAppError("CreateDraft", "api.context.invalid_param.app_error", map[string]any{"Name": "draft.channel_id"}, "", http.StatusBadRequest).Wrap(errCh)
+			return nil, err
+		}
 
-	if channel.DeleteAt != 0 {
-		err := model.NewAppError("CreateDraft", "api.draft.create_draft.can_not_draft_to_deleted.error", nil, "", http.StatusBadRequest)
-		return nil, err
-	}
+		if channel.DeleteAt != 0 {
+			err := model.NewAppError("CreateDraft", "api.draft.create_draft.can_not_draft_to_deleted.error", nil, "", http.StatusBadRequest)
+			return nil, err
+		}
 
-	restrictDM, err := a.CheckIfChannelIsRestrictedDM(rctx, channel)
-	if err != nil {
-		return nil, err
-	}
+		restrictDM, err := a.CheckIfChannelIsRestrictedDM(rctx, channel)
+		if err != nil {
+			return nil, err
+		}
 
-	if restrictDM {
-		err := model.NewAppError("CreateDraft", "api.draft.create_draft.can_not_draft_to_restricted_dm.error", nil, "", http.StatusBadRequest)
-		return nil, err
+		if restrictDM {
+			err := model.NewAppError("CreateDraft", "api.draft.create_draft.can_not_draft_to_restricted_dm.error", nil, "", http.StatusBadRequest)
+			return nil, err
+		}
 	}
 
 	_, nErr := a.Srv().Store().User().Get(context.Background(), draft.UserId)

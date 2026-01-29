@@ -1,0 +1,122 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.channel-tabs-container {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+    background-color: var(--center-channel-bg);
+    gap: 2px;
+
+    &__tab-group {
+        display: flex;
+        height: 100%;
+        align-items: stretch;
+        gap: 2px;
+    }
+
+    &__tab-wrapper {
+        display: flex;
+        overflow: hidden;
+
+        &--wiki {
+            position: relative;
+
+            &:hover {
+                .wiki-tab__menu {
+                    visibility: visible;
+                }
+
+                .channel-tab--active + .wiki-tab__menu {
+                    .wiki-tab__menu-button {
+                        background-color: var(--center-channel-bg);
+
+                        &:hover {
+                            background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                            color: rgba(var(--center-channel-color-rgb), 0.72);
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+
+    &__tab-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    &__action-button {
+        display: flex;
+        width: 24px;
+        height: 24px;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: none;
+        border-radius: 4px;
+        background-color: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        cursor: pointer;
+        transition: all 0.15s ease;
+
+        &:hover {
+            background-color: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+        }
+
+        &:active {
+            background-color: rgba(var(--center-channel-color-rgb), 0.16);
+        }
+
+        .icon {
+            font-size: 14px;
+        }
+    }
+}
+
+.wiki-tab__menu {
+    position: absolute;
+    top: 8px;
+    right: 1px;
+    display: flex;
+    overflow: hidden;
+    align-items: center;
+    border-radius: 4px;
+    background: linear-gradient(0deg, rgba(var(--center-channel-color-rgb), 0.08) 0%, rgba(var(--center-channel-color-rgb), 0.08) 100%), var(--center-channel-bg);
+    visibility: hidden;
+}
+
+.wiki-tab__menu-button {
+    display: flex;
+    width: 20px;
+    height: 20px;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border: none;
+    border-radius: 4px;
+    background: none;
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+    }
+
+    &:active {
+        background: rgba(var(--center-channel-color-rgb), 0.16);
+    }
+
+    &:focus {
+        outline: 2px solid var(--button-bg);
+        outline-offset: 2px;
+    }
+}

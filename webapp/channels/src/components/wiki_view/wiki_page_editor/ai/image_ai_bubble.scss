@@ -1,0 +1,54 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.image-ai-bubble-container {
+    display: flex;
+    align-items: center;
+    padding: 4px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    border-radius: 4px;
+    background: var(--center-channel-bg);
+    box-shadow: var(--elevation-5);
+}
+
+.image-ai-bubble-button {
+    display: flex;
+    align-items: center;
+    padding: 4px 8px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--button-bg);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    gap: 4px;
+    transition: background-color 0.15s ease;
+
+    &:hover:not(:disabled) {
+        background-color: rgba(var(--button-bg-rgb), 0.08);
+    }
+
+    &:active:not(:disabled) {
+        background-color: rgba(var(--button-bg-rgb), 0.16);
+    }
+
+    &:disabled,
+    &.disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+}
+
+.image-ai-bubble-button-text {
+    white-space: nowrap;
+}
+
+.image-ai-bubble-menu-header {
+    padding: 8px 16px;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}

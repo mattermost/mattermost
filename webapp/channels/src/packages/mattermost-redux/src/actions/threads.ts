@@ -5,7 +5,7 @@ import uniq from 'lodash/uniq';
 import {batchActions} from 'redux-batched-actions';
 
 import type {Post} from '@mattermost/types/posts';
-import type {UserThread, UserThreadList} from '@mattermost/types/threads';
+import type {UserThread, UserThreadList, UserThreadWithPost} from '@mattermost/types/threads';
 
 import {ThreadTypes, PostTypes, UserTypes} from 'mattermost-redux/action_types';
 import {getMissingFilesByPosts} from 'mattermost-redux/actions/files';
@@ -22,6 +22,7 @@ import type {DispatchFunc, GetStateFunc, ActionFunc, ActionFuncAsync} from 'matt
 
 import {logError} from './errors';
 import {forceLogoutIfNecessary} from './helpers';
+import {fetchMissingPagePosts} from './page_threads';
 import {getPostThread} from './posts';
 import {getMyTeamUnreads} from './teams';
 
@@ -71,10 +72,14 @@ export function getThreadsForCurrentTeam({before = '', after = '', unread = fals
         if (userThreadList?.threads?.length) {
             await dispatch(getMissingProfilesByIds(userThreadList.threads.map(({participants}) => participants.map(({id}) => id)).flat()));
 
+            const postsToDispatch = userThreadList.threads.map(({post}) => ({...post, update_at: 0}));
+
             dispatch({
                 type: PostTypes.RECEIVED_POSTS,
-                data: {posts: userThreadList.threads.map(({post}) => ({...post, update_at: 0}))},
+                data: {posts: postsToDispatch},
             });
+
+            await fetchMissingPagePosts(userThreadList.threads, dispatch);
 
             dispatch(getMissingFilesByPosts(uniq(userThreadList.threads.map(({post}) => post))));
         }
@@ -144,6 +149,8 @@ export function getCountsAndThreadsSince(userId: string, teamId: string, since?:
                 type: PostTypes.RECEIVED_POSTS,
                 data: {posts: userThreadList.threads.map(({post}) => ({...post, update_at: 0}))},
             });
+
+            await fetchMissingPagePosts(userThreadList.threads, dispatch);
         }
 
         actions.push({
@@ -191,6 +198,8 @@ export function handleThreadArrived(dispatch: DispatchFunc, getState: GetStateFu
         data: {...thread.post, update_at: 0},
         features: {crtEnabled},
     });
+
+    fetchMissingPagePosts([thread as UserThreadWithPost], dispatch);
 
     dispatch({
         type: ThreadTypes.RECEIVED_THREAD,
