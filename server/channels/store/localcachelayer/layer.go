@@ -56,8 +56,12 @@ const (
 
 	TermsOfServiceCacheSize = 20000
 	TermsOfServiceCacheSec  = 30 * 60
-	LastPostTimeCacheSize   = 25000
-	LastPostTimeCacheSec    = 15 * 60
+
+	UserTermsOfServiceCacheSize = 25000
+	UserTermsOfServiceCacheSec  = 30 * 60
+
+	LastPostTimeCacheSize = 25000
+	LastPostTimeCacheSec  = 15 * 60
 
 	UserProfileByIDCacheSize = 20000
 	UserProfileByIDSec       = 30 * 60
@@ -135,6 +139,9 @@ type LocalCacheStore struct {
 
 	termsOfService      LocalCacheTermsOfServiceStore
 	termsOfServiceCache cache.Cache
+
+	userTermsOfService      LocalCacheUserTermsOfServiceStore
+	userTermsOfServiceCache cache.Cache
 
 	autotranslation          LocalCacheAutoTranslationStore
 	userAutoTranslationCache cache.Cache
@@ -345,6 +352,17 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	}
 	localCacheStore.termsOfService = LocalCacheTermsOfServiceStore{TermsOfServiceStore: baseStore.TermsOfService(), rootStore: &localCacheStore}
 
+	// User TOS
+	if localCacheStore.userTermsOfServiceCache, err = cacheProvider.NewCache(&cache.CacheOptions{
+		Size:                   UserTermsOfServiceCacheSize,
+		Name:                   "UserTermsOfService",
+		DefaultExpiry:          UserTermsOfServiceCacheSec * time.Second,
+		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForUserTermsOfService,
+	}); err != nil {
+		return
+	}
+	localCacheStore.userTermsOfService = LocalCacheUserTermsOfServiceStore{UserTermsOfServiceStore: baseStore.UserTermsOfService(), rootStore: &localCacheStore}
+
 	// Users
 	if localCacheStore.allUserCache, err = cacheProvider.NewCache(&cache.CacheOptions{
 		Size:                   1,
@@ -457,6 +475,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForChannelByName, localCacheStore.channel.handleClusterInvalidateChannelByName)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForLastPosts, localCacheStore.post.handleClusterInvalidateLastPosts)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForTermsOfService, localCacheStore.termsOfService.handleClusterInvalidateTermsOfService)
+		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForUserTermsOfService, localCacheStore.userTermsOfService.handleClusterInvalidateUserTermsOfService)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForProfileByIds, localCacheStore.user.handleClusterInvalidateScheme)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForProfileInChannel, localCacheStore.user.handleClusterInvalidateProfilesInChannel)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForAllProfiles, localCacheStore.user.handleClusterInvalidateAllProfiles)
@@ -503,6 +522,10 @@ func (s LocalCacheStore) Post() store.PostStore {
 
 func (s LocalCacheStore) TermsOfService() store.TermsOfServiceStore {
 	return s.termsOfService
+}
+
+func (s LocalCacheStore) UserTermsOfService() store.UserTermsOfServiceStore {
+	return s.userTermsOfService
 }
 
 func (s LocalCacheStore) User() store.UserStore {
