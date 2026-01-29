@@ -545,6 +545,153 @@ describe('notification_actions', () => {
                 });
             });
         });
+
+        describe('BodyMentionResolve', () => {
+            function makeTestStore(nameFormat) {
+                const prefs = baseState.entities.preferences.myPreferences;
+                const existing = prefs['display_settings--name_format'];
+                if (existing) {
+                    existing.value = nameFormat;
+                } else {
+                    prefs['display_settings--name_format'] = {
+                        category: 'display_settings',
+                        name: 'name_format',
+                        value: nameFormat,
+                    };
+                }
+
+                baseState.entities.users.profiles.user_id = {
+                    ...baseState.entities.users.profiles.user_id,
+                    id: 'user_id',
+                    username: 'john',
+                    first_name: 'John',
+                    last_name: 'Doe',
+                    nickname: 'Johnny',
+                };
+                baseState.entities.users.profiles.mentioned_user_id = {
+                    id: 'mentioned_user_id',
+                    username: 'alice',
+                    first_name: 'Alice',
+                    last_name: 'Liddell',
+                    nickname: 'AliceNick',
+                    notify_props: {},
+                };
+
+                return testConfigureStore(baseState);
+            }
+
+            test('should keep raw @username when name_format is username', async () => {
+                const store = makeTestStore('username');
+                const localPost = {
+                    ...post,
+                    id: 'post_teammate_display_test',
+                    user_id: 'user_id',
+                    message: '@alice Hello',
+                };
+
+                await store.dispatch(sendDesktopNotification(localPost, msgProps));
+
+                expect(spy).toHaveBeenCalledWith(expect.objectContaining({
+                    body: '@john: @alice Hello',
+                }));
+            });
+
+            test('should use nickname when name_format is nickname_full_name', async () => {
+                const store = makeTestStore('nickname_full_name');
+                const localPost = {
+                    ...post,
+                    id: 'post_teammate_display_test',
+                    user_id: 'user_id',
+                    message: '@alice Hello',
+                };
+
+                await store.dispatch(sendDesktopNotification(localPost, msgProps));
+
+                expect(spy).toHaveBeenCalledWith(expect.objectContaining({
+                    body: '@Johnny: @AliceNick Hello',
+                }));
+            });
+
+            test('should use first and last names when name_format is full_name', async () => {
+                const store = makeTestStore('full_name');
+                const localPost = {
+                    ...post,
+                    id: 'post_teammate_display_test',
+                    user_id: 'user_id',
+                    message: '@alice Hello',
+                };
+
+                await store.dispatch(sendDesktopNotification(localPost, msgProps));
+
+                expect(spy).toHaveBeenCalledWith(expect.objectContaining({
+                    body: '@John Doe: @Alice Liddell Hello',
+                }));
+            });
+
+            test('should leave unknown user mention unchanged', async () => {
+                const store = makeTestStore('full_name');
+                const localPost = {
+                    ...post,
+                    id: 'post_teammate_display_test',
+                    user_id: 'user_id',
+                    message: '@ghost Ping',
+                };
+
+                await store.dispatch(sendDesktopNotification(localPost, msgProps));
+
+                expect(spy).toHaveBeenCalledWith(expect.objectContaining({
+                    body: '@John Doe: @ghost Ping',
+                }));
+            });
+
+            test('should not change special mentions while replacing user mention', async () => {
+                const store = makeTestStore('nickname_full_name');
+                const localPost = {
+                    ...post,
+                    id: 'post_teammate_display_test',
+                    user_id: 'user_id',
+                    message: '@alice @channel @here @all done',
+                };
+
+                await store.dispatch(sendDesktopNotification(localPost, msgProps));
+
+                expect(spy).toHaveBeenCalledWith(expect.objectContaining({
+                    body: '@Johnny: @AliceNick @channel @here @all done',
+                }));
+            });
+
+            test('should strip markdown after replacing mentions', async () => {
+                const store = makeTestStore('full_name');
+                const localPost = {
+                    ...post,
+                    id: 'post_teammate_display_test',
+                    user_id: 'user_id',
+                    message: '**Hi** @alice',
+                };
+
+                await store.dispatch(sendDesktopNotification(localPost, msgProps));
+
+                expect(spy).toHaveBeenCalledWith(expect.objectContaining({
+                    body: '@John Doe: Hi @Alice Liddell',
+                }));
+            });
+
+            test('should not convert characters to percent-encoded HTML entities', async () => {
+                const store = makeTestStore('full_name');
+                const localPost = {
+                    ...post,
+                    id: 'post_teammate_display_test',
+                    user_id: 'user_id',
+                    message: '**Hi** @alice, I\'m John',
+                };
+
+                await store.dispatch(sendDesktopNotification(localPost, msgProps));
+
+                expect(spy).toHaveBeenCalledWith(expect.objectContaining({
+                    body: '@John Doe: Hi @Alice Liddell, I\'m John',
+                }));
+            });
+        });
     });
 });
 
