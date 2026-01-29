@@ -276,6 +276,90 @@ func TestPropertyField_IsValid(t *testing.T) {
 		}
 		require.NoError(t, pf.IsValid())
 	})
+
+	t.Run("protected field validation", func(t *testing.T) {
+		baseField := func() *PropertyField {
+			return &PropertyField{
+				ID:       NewId(),
+				GroupID:  NewId(),
+				Name:     "test field",
+				Type:     PropertyFieldTypeText,
+				CreateAt: GetMillis(),
+				UpdateAt: GetMillis(),
+			}
+		}
+
+		t.Run("non-protected field without permissions is valid", func(t *testing.T) {
+			pf := baseField()
+			pf.Protected = false
+			pf.Permissions = nil
+			require.NoError(t, pf.IsValid())
+		})
+
+		t.Run("non-protected field with admin or member field permission is valid", func(t *testing.T) {
+			for _, level := range []PermissionLevel{PermissionLevelAdmin, PermissionLevelMember} {
+				pf := baseField()
+				pf.Protected = false
+				pf.Permissions = &PropertyFieldPermissions{
+					Field:   level,
+					Values:  PermissionLevelMember,
+					Options: PermissionLevelMember,
+				}
+				require.NoError(t, pf.IsValid(), "should be valid with field permission %s", level)
+			}
+		})
+
+		t.Run("non-protected field with field=none is invalid", func(t *testing.T) {
+			pf := baseField()
+			pf.Protected = false
+			pf.Permissions = &PropertyFieldPermissions{
+				Field:   PermissionLevelNone,
+				Values:  PermissionLevelMember,
+				Options: PermissionLevelMember,
+			}
+			require.Error(t, pf.IsValid())
+		})
+
+		t.Run("protected field with field=none is valid", func(t *testing.T) {
+			pf := baseField()
+			pf.Protected = true
+			pf.Permissions = &PropertyFieldPermissions{
+				Field:   PermissionLevelNone,
+				Values:  PermissionLevelMember,
+				Options: PermissionLevelAdmin,
+			}
+			require.NoError(t, pf.IsValid())
+		})
+
+		t.Run("protected field with nil permissions is invalid", func(t *testing.T) {
+			pf := baseField()
+			pf.Protected = true
+			pf.Permissions = nil
+			require.Error(t, pf.IsValid())
+		})
+
+		t.Run("protected field with field=admin is invalid", func(t *testing.T) {
+			pf := baseField()
+			pf.Protected = true
+			pf.Permissions = &PropertyFieldPermissions{
+				Field:   PermissionLevelAdmin,
+				Values:  PermissionLevelMember,
+				Options: PermissionLevelMember,
+			}
+			require.Error(t, pf.IsValid())
+		})
+
+		t.Run("protected field with field=member is invalid", func(t *testing.T) {
+			pf := baseField()
+			pf.Protected = true
+			pf.Permissions = &PropertyFieldPermissions{
+				Field:   PermissionLevelMember,
+				Values:  PermissionLevelMember,
+				Options: PermissionLevelMember,
+			}
+			require.Error(t, pf.IsValid())
+		})
+	})
 }
 
 func TestPropertyFieldPatch_IsValid(t *testing.T) {
@@ -651,5 +735,86 @@ func TestPluginPropertyOption(t *testing.T) {
 		assert.Equal(t, "id2", newOptions[1].GetID())
 		assert.Equal(t, "Option 2", newOptions[1].GetName())
 		assert.Equal(t, "low", newOptions[1].GetValue("priority"))
+	})
+}
+
+func TestDefaultPropertyFieldPermissions(t *testing.T) {
+	perms := DefaultPropertyFieldPermissions()
+	assert.Equal(t, PermissionLevelMember, perms.Field)
+	assert.Equal(t, PermissionLevelMember, perms.Values)
+	assert.Equal(t, PermissionLevelMember, perms.Options)
+}
+
+func TestPropertyFieldPermissions_JSON(t *testing.T) {
+	t.Run("marshal and unmarshal", func(t *testing.T) {
+		perms := &PropertyFieldPermissions{
+			Field:   PermissionLevelNone,
+			Values:  PermissionLevelMember,
+			Options: PermissionLevelAdmin,
+		}
+
+		data, err := json.Marshal(perms)
+		require.NoError(t, err)
+
+		var decoded PropertyFieldPermissions
+		err = json.Unmarshal(data, &decoded)
+		require.NoError(t, err)
+
+		assert.Equal(t, perms.Field, decoded.Field)
+		assert.Equal(t, perms.Values, decoded.Values)
+		assert.Equal(t, perms.Options, decoded.Options)
+	})
+
+	t.Run("PropertyField with permissions JSON round-trip", func(t *testing.T) {
+		pf := &PropertyField{
+			ID:        NewId(),
+			GroupID:   NewId(),
+			Name:      "test field",
+			Type:      PropertyFieldTypeSelect,
+			Protected: true,
+			Permissions: &PropertyFieldPermissions{
+				Field:   PermissionLevelNone,
+				Values:  PermissionLevelMember,
+				Options: PermissionLevelAdmin,
+			},
+			CreateAt: GetMillis(),
+			UpdateAt: GetMillis(),
+		}
+
+		data, err := json.Marshal(pf)
+		require.NoError(t, err)
+
+		var decoded PropertyField
+		err = json.Unmarshal(data, &decoded)
+		require.NoError(t, err)
+
+		assert.Equal(t, pf.Protected, decoded.Protected)
+		require.NotNil(t, decoded.Permissions)
+		assert.Equal(t, pf.Permissions.Field, decoded.Permissions.Field)
+		assert.Equal(t, pf.Permissions.Values, decoded.Permissions.Values)
+		assert.Equal(t, pf.Permissions.Options, decoded.Permissions.Options)
+	})
+
+	t.Run("PropertyField without permissions omits field in JSON", func(t *testing.T) {
+		pf := &PropertyField{
+			ID:          NewId(),
+			GroupID:     NewId(),
+			Name:        "test field",
+			Type:        PropertyFieldTypeText,
+			Protected:   false,
+			Permissions: nil,
+			CreateAt:    GetMillis(),
+			UpdateAt:    GetMillis(),
+		}
+
+		data, err := json.Marshal(pf)
+		require.NoError(t, err)
+
+		var jsonMap map[string]any
+		err = json.Unmarshal(data, &jsonMap)
+		require.NoError(t, err)
+
+		_, exists := jsonMap["permissions"]
+		assert.False(t, exists, "permissions should be omitted when nil")
 	})
 }

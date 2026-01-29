@@ -486,3 +486,119 @@ func (a *App) HasPermissionToChannelMemberCount(rctx request.CTX, userID string,
 
 	return false
 }
+
+// SessionHasPermissionToEditPropertyField checks if the session has permission to edit the field definition.
+// Returns false if the field is nil, protected, or if Permissions is nil (legacy fields).
+func (a *App) SessionHasPermissionToEditPropertyField(rctx request.CTX, session model.Session, field *model.PropertyField) bool {
+	if field == nil {
+		return false
+	}
+	if field.Protected {
+		return false
+	}
+	if field.Permissions == nil {
+		return false
+	}
+	if session.IsUnrestricted() {
+		return true
+	}
+	return a.hasPropertyFieldPermissionLevel(rctx, session.UserId, field, field.Permissions.Field)
+}
+
+// SessionHasPermissionToSetPropertyFieldValues checks if the session has permission to set values on objects.
+// Returns false if the field is nil or if Permissions is nil (legacy fields).
+func (a *App) SessionHasPermissionToSetPropertyFieldValues(rctx request.CTX, session model.Session, field *model.PropertyField) bool {
+	if field == nil {
+		return false
+	}
+	if field.Permissions == nil {
+		return false
+	}
+	if session.IsUnrestricted() {
+		return true
+	}
+	return a.hasPropertyFieldPermissionLevel(rctx, session.UserId, field, field.Permissions.Values)
+}
+
+// SessionHasPermissionToManagePropertyFieldOptions checks if the session has permission to manage field options.
+// Returns false if the field is nil or if Permissions is nil (legacy fields).
+func (a *App) SessionHasPermissionToManagePropertyFieldOptions(rctx request.CTX, session model.Session, field *model.PropertyField) bool {
+	if field == nil {
+		return false
+	}
+	if field.Permissions == nil {
+		return false
+	}
+	if session.IsUnrestricted() {
+		return true
+	}
+	return a.hasPropertyFieldPermissionLevel(rctx, session.UserId, field, field.Permissions.Options)
+}
+
+// HasPermissionToEditPropertyField checks if the user has permission to edit the field definition.
+// Returns false if the field is nil, protected, userID is empty, or if Permissions is nil (legacy fields).
+func (a *App) HasPermissionToEditPropertyField(rctx request.CTX, userID string, field *model.PropertyField) bool {
+	if field == nil || userID == "" {
+		return false
+	}
+	if field.Protected {
+		return false
+	}
+	if field.Permissions == nil {
+		return false
+	}
+	return a.hasPropertyFieldPermissionLevel(rctx, userID, field, field.Permissions.Field)
+}
+
+// HasPermissionToSetPropertyFieldValues checks if the user has permission to set values on objects.
+// Returns false if the field is nil, userID is empty, or if Permissions is nil (legacy fields).
+func (a *App) HasPermissionToSetPropertyFieldValues(rctx request.CTX, userID string, field *model.PropertyField) bool {
+	if field == nil || userID == "" {
+		return false
+	}
+	if field.Permissions == nil {
+		return false
+	}
+	return a.hasPropertyFieldPermissionLevel(rctx, userID, field, field.Permissions.Values)
+}
+
+// HasPermissionToManagePropertyFieldOptions checks if the user has permission to manage field options.
+// Returns false if the field is nil, userID is empty, or if Permissions is nil (legacy fields).
+func (a *App) HasPermissionToManagePropertyFieldOptions(rctx request.CTX, userID string, field *model.PropertyField) bool {
+	if field == nil || userID == "" {
+		return false
+	}
+	if field.Permissions == nil {
+		return false
+	}
+	return a.hasPropertyFieldPermissionLevel(rctx, userID, field, field.Permissions.Options)
+}
+
+// hasPropertyFieldPermissionLevel checks if the user has the specified permission level for the field.
+func (a *App) hasPropertyFieldPermissionLevel(rctx request.CTX, userID string, field *model.PropertyField, level model.PermissionLevel) bool {
+	switch level {
+	case model.PermissionLevelNone:
+		return false
+	case model.PermissionLevelAdmin:
+		return a.HasPermissionTo(userID, model.PermissionManageSystem)
+	case model.PermissionLevelMember:
+		return a.hasPropertyFieldScopeAccess(rctx, userID, field)
+	}
+	return false
+}
+
+// hasPropertyFieldScopeAccess checks if the user has access to the property field's scope.
+// For system-level properties (empty TargetType), any authenticated user has access.
+// For channel-level properties, the user must be a member of the channel.
+func (a *App) hasPropertyFieldScopeAccess(rctx request.CTX, userID string, field *model.PropertyField) bool {
+	switch field.TargetType {
+	case "":
+		// System-level property: any authenticated user
+		return true
+	case "channel":
+		// Channel-level property: must be channel member
+		member, err := a.Srv().Store().Channel().GetMember(rctx, field.TargetID, userID)
+		return err == nil && member != nil
+	}
+	return false
+}

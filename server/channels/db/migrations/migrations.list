@@ -299,3 +299,5 @@ channels/db/migrations/postgres/000150_add_user_tracking_to_properties.down.sql
 channels/db/migrations/postgres/000150_add_user_tracking_to_properties.up.sql
 channels/db/migrations/postgres/000151_add_object_type_to_property_fields.down.sql
 channels/db/migrations/postgres/000151_add_object_type_to_property_fields.up.sql
+channels/db/migrations/postgres/000152_add_protected_and_permissions_to_property_fields.down.sql
+channels/db/migrations/postgres/000152_add_protected_and_permissions_to_property_fields.up.sql
