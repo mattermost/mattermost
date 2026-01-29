@@ -90,4 +90,6 @@ export const enum WebSocketEvents {
     CPAValuesUpdated = 'custom_profile_attributes_values_updated',
     ContentFlaggingReportValueUpdated = 'content_flagging_report_value_updated',
     RecapUpdated = 'recap_updated',
+    FileDownloadRejected = 'file_download_rejected',
+    ShowToast = 'show_toast',
 }

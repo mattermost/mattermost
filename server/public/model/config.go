@@ -236,11 +236,12 @@ const (
 
 	OutgoingIntegrationRequestsDefaultTimeout = 30
 
-	PluginSettingsDefaultDirectory         = "./plugins"
-	PluginSettingsDefaultClientDirectory   = "./client/plugins"
-	PluginSettingsDefaultEnableMarketplace = true
-	PluginSettingsDefaultMarketplaceURL    = "https://api.integrations.mattermost.com"
-	PluginSettingsOldMarketplaceURL        = "https://marketplace.integrations.mattermost.com"
+	PluginSettingsDefaultDirectory          = "./plugins"
+	PluginSettingsDefaultClientDirectory    = "./client/plugins"
+	PluginSettingsDefaultEnableMarketplace  = true
+	PluginSettingsDefaultMarketplaceURL     = "https://api.integrations.mattermost.com"
+	PluginSettingsOldMarketplaceURL         = "https://marketplace.integrations.mattermost.com"
+	PluginSettingsDefaultHookTimeoutSeconds = 30
 
 	ComplianceExportDirectoryFormat                = "compliance-export-2006-01-02-15h04m"
 	ComplianceExportPath                           = "export"
