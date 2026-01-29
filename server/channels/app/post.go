@@ -615,11 +615,11 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 
 		// Get channel if not provided - needed for validation
 		if channel == nil {
-			var err error
-			channel, err = a.GetChannel(rctx, post.ChannelId)
+			ch, err := a.GetChannel(rctx, post.ChannelId)
 			if err != nil {
 				return model.NewAppError("FillInPostProps", "api.post.fill_in_post_props.burn_on_read.channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
+			channel = ch
 		}
 
 		// Burn-on-read is not allowed in self-DMs or DMs with bots (including AI agents, plugins)
@@ -633,10 +633,9 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 			// Check if the DM is with a bot (AI agents, plugins, etc.)
 			// Parse the other user ID from channel name (format: userId1__userId2)
 			var otherUserId string
-			if strings.HasPrefix(channel.Name, post.UserId+"__") {
-				otherUserId = strings.TrimPrefix(channel.Name, post.UserId+"__")
-			} else if strings.HasSuffix(channel.Name, "__"+post.UserId) {
-				otherUserId = strings.TrimSuffix(channel.Name, "__"+post.UserId)
+			var found bool
+			if otherUserId, found = strings.CutPrefix(channel.Name, post.UserId+"__"); !found {
+				otherUserId, _ = strings.CutSuffix(channel.Name, "__"+post.UserId)
 			}
 
 			if otherUserId != "" && otherUserId != post.UserId {
