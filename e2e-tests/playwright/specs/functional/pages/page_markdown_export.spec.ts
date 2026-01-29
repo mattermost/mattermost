@@ -107,45 +107,6 @@ test.describe('Page Copy as Markdown', () => {
         expect(clipboardContent).toContain('- Item 2');
     });
 
-    test('MM-PAGE-COPY-MD-3 Copy as Markdown should show Copied feedback', async ({pw, sharedPagesSetup}) => {
-        const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
-
-        // Create wiki and page
-        const wiki = await adminClient.createWiki({
-            channel_id: channel.id,
-            title: `MD Copy Feedback ${Date.now()}`,
-        });
-
-        const pageContent = {
-            type: 'doc' as const,
-            content: [
-                {type: 'heading', attrs: {level: 1}, content: [{type: 'text', text: 'Feedback Test'}]},
-                {type: 'paragraph', content: [{type: 'text', text: 'Test content.'}]},
-            ],
-        };
-        const testPage = await pw.createPageViaDraft(adminClient, wiki.id, 'Feedback Test Page', pageContent);
-
-        // Login and navigate
-        const {page} = await pw.testBrowser.login(user);
-        await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
-
-        const pageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, testPage.id);
-        await page.goto(pageUrl);
-        await page.waitForLoadState('networkidle');
-
-        // Open actions menu and click Copy as Markdown
-        await openPageActionsMenu(page);
-        await clickPageContextMenuItem(page, 'copy-markdown');
-
-        // Re-open the menu to check the feedback state
-        await openPageActionsMenu(page);
-
-        // Verify the menu item shows "Copied!" feedback
-        const copyMarkdownItem = page.locator('[data-testid="page-context-menu-copy-markdown"]');
-        await expect(copyMarkdownItem).toContainText('Copied!');
-    });
-
     test('MM-PAGE-COPY-MD-4 Copy as Markdown with image should preserve file URLs', async ({pw, sharedPagesSetup}) => {
         const {team, user, adminClient} = sharedPagesSetup;
         const channel = await adminClient.getChannelByName(team.id, 'town-square');

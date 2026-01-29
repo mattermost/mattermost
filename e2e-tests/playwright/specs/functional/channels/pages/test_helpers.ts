@@ -846,7 +846,20 @@ export async function createPageThroughUI(page: Page, pageTitle: string, pageCon
         throw new Error('Publish button is disabled - cannot publish');
     }
 
+    // Set up response listener BEFORE clicking to avoid race condition
+    const publishResponsePromise = page.waitForResponse(
+        (response) => response.url().includes('/publish') && response.request().method() === 'POST',
+        {timeout: PAGE_LOAD_TIMEOUT},
+    );
+
     await publishButton.click();
+
+    // Wait for publish API to complete and check for errors
+    const publishResponse = await publishResponsePromise;
+    if (!publishResponse.ok()) {
+        const responseText = await publishResponse.text().catch(() => 'Unable to read response');
+        throw new Error(`Publish API failed with status ${publishResponse.status()}: ${responseText}`);
+    }
 
     // # Wait for URL to change from draft to published page (navigation after publish)
     // URL pattern changes from: /wiki/{channelId}/{wikiId}/drafts/{draftId}
@@ -942,7 +955,20 @@ export async function createChildPageThroughContextMenu(
         throw new Error('Publish button is disabled - cannot publish');
     }
 
+    // Set up response listener BEFORE clicking to avoid race condition
+    const publishResponsePromise = page.waitForResponse(
+        (response) => response.url().includes('/publish') && response.request().method() === 'POST',
+        {timeout: PAGE_LOAD_TIMEOUT},
+    );
+
     await publishButton.click();
+
+    // Wait for publish API to complete and check for errors
+    const publishResponse = await publishResponsePromise;
+    if (!publishResponse.ok()) {
+        const responseText = await publishResponse.text().catch(() => 'Unable to read response');
+        throw new Error(`Publish API failed with status ${publishResponse.status()}: ${responseText}`);
+    }
 
     // # Wait for URL to change from draft to published page (navigation after publish)
     // URL pattern changes from: /wiki/{channelId}/{wikiId}/drafts/{draftId}

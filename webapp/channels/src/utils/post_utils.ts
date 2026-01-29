@@ -894,7 +894,7 @@ export function canEditPage(state: GlobalState, page: Post, channel: Channel): b
     return haveIChannelPermission(state, channel.team_id, channel.id, Permissions.EDIT_PAGE);
 }
 
-const DEFAULT_PAGE_TITLE = 'Untitled';
+export const DEFAULT_PAGE_TITLE = 'Untitled';
 
 /**
  * Gets the display title for a page post.

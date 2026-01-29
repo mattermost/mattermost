@@ -26,7 +26,7 @@ import PagesHierarchyPanel from 'components/pages_hierarchy_panel';
 import {usePageMenuHandlers} from 'components/pages_hierarchy_panel/hooks/usePageMenuHandlers';
 
 import {usePublishedDraftCleanup} from 'hooks/usePublishedDraftCleanup';
-import {isEditingExistingPage, getPublishedPageIdFromDraft} from 'utils/page_utils';
+import {isEditingExistingPage, getPublishedPageIdFromDraft, copyPageAsMarkdown} from 'utils/page_utils';
 import {canEditPage} from 'utils/post_utils';
 import {getWikiUrl, getTeamNameFromPath} from 'utils/url';
 
@@ -440,6 +440,12 @@ const WikiView = () => {
         }
     }, [headerProps?.pageId, handleVersionHistory]);
 
+    const handleCopyMarkdown = React.useCallback(() => {
+        const content = isDraft ? currentDraft?.message : currentPage?.message;
+        const title = isDraft ? currentDraft?.props?.title : currentPage?.props?.title;
+        copyPageAsMarkdown(content, typeof title === 'string' ? title : undefined);
+    }, [isDraft, currentDraft?.message, currentDraft?.props?.title, currentPage?.message, currentPage?.props?.title]);
+
     // Handler for when a translated/proofread draft is created - navigate to the new draft
     const handleTranslatedPageCreated = React.useCallback((newPageId: string) => {
         if (!wikiId || !channelId) {
@@ -562,6 +568,7 @@ const WikiView = () => {
                                 onProofread={aiToolsHandlers?.proofread}
                                 onTranslatePage={aiToolsHandlers?.openTranslateModal}
                                 isAIProcessing={aiToolsHandlers?.isProcessing}
+                                onCopyMarkdown={handleCopyMarkdown}
                             />
                         )}
                         <div
@@ -582,7 +589,7 @@ const WikiView = () => {
                                     onAIToolsReady={setAIToolsHandlers}
                                 />
                             )}
-                            {pageId && (currentPage || isLoading) && (
+                            {pageId && (
                                 <PageViewer
                                     key={pageId}
                                     pageId={pageId}

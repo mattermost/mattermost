@@ -272,6 +272,7 @@ const PagesHierarchyPanel = ({
                         onBookmarkInChannel={menuHandlers.handleBookmarkInChannel}
                         onDelete={menuHandlers.handleDelete}
                         onVersionHistory={onVersionHistory}
+                        onCopyMarkdown={menuHandlers.handleCopyMarkdown}
                         deletingPageId={menuHandlers.deletingPageId}
                         wikiId={wikiId}
                         channelId={channelId}

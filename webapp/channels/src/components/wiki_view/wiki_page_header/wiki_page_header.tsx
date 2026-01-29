@@ -44,6 +44,7 @@ type Props = {
     onProofread?: () => void;
     onTranslatePage?: () => void;
     isAIProcessing?: boolean;
+    onCopyMarkdown?: () => void;
 };
 
 const WikiPageHeader = ({
@@ -71,6 +72,7 @@ const WikiPageHeader = ({
     onProofread,
     onTranslatePage,
     isAIProcessing,
+    onCopyMarkdown,
 }: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
@@ -195,6 +197,7 @@ const WikiPageHeader = ({
                             onProofread={onProofread}
                             onTranslatePage={onTranslatePage}
                             isAIProcessing={isAIProcessing}
+                            onCopyMarkdown={onCopyMarkdown}
                         />
                     )}
                     {onToggleFullscreen && (

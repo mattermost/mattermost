@@ -33,6 +33,7 @@ type Props = {
     onBookmarkInChannel?: (pageId: string) => void;
     onDelete?: (pageId: string) => void;
     onVersionHistory?: (pageId: string) => void;
+    onCopyMarkdown?: (pageId: string) => void;
     isRenaming?: boolean;
     isDeleting?: boolean;
     wikiId?: string;
@@ -52,6 +53,7 @@ const PageTreeNode = ({
     onBookmarkInChannel,
     onDelete,
     onVersionHistory,
+    onCopyMarkdown,
     isRenaming,
     isDeleting,
     wikiId,
@@ -105,6 +107,7 @@ const PageTreeNode = ({
     const handleBookmarkInChannel = useCallback(() => onBookmarkInChannel?.(node.id), [onBookmarkInChannel, node.id]);
     const handleDelete = useCallback(() => onDelete?.(node.id), [onDelete, node.id]);
     const handleVersionHistory = useCallback(() => onVersionHistory?.(node.id), [onVersionHistory, node.id]);
+    const handleCopyMarkdown = useCallback(() => onCopyMarkdown?.(node.id), [onCopyMarkdown, node.id]);
 
     return (
         <div
@@ -200,6 +203,7 @@ const PageTreeNode = ({
                     onBookmarkInChannel={handleBookmarkInChannel}
                     onDelete={handleDelete}
                     onVersionHistory={handleVersionHistory}
+                    onCopyMarkdown={handleCopyMarkdown}
                     isDraft={node.page.type === PageDisplayTypes.PAGE_DRAFT}
                     canDuplicate={node.page.type !== PageDisplayTypes.PAGE_DRAFT || isEditingExistingPage(node.page)}
                     pageLink={pageLink}

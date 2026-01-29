@@ -216,6 +216,24 @@ function getExportSchema(): Schema {
                 },
                 parseDOM: [{tag: 'a[href]'}],
             },
+
+            // textStyle is used for font color/size/family - stripped in markdown export
+            textStyle: {
+                attrs: {
+                    color: {default: null},
+                    fontSize: {default: null},
+                    fontFamily: {default: null},
+                },
+                parseDOM: [{tag: 'span'}],
+            },
+
+            // commentAnchor is used for inline comments - stripped in markdown export
+            commentAnchor: {
+                attrs: {
+                    anchorId: {default: null},
+                },
+                parseDOM: [{tag: 'span[id]'}],
+            },
         },
     });
 
@@ -488,6 +506,12 @@ function createSerializer(fileRefs: FileRef[], preserveFileUrls = false) {
                     return href ? `](${href})` : ']()';
                 },
             },
+
+            // textStyle (font color/size/family) - stripped in markdown, just pass through content
+            textStyle: {open: '', close: '', mixable: true},
+
+            // commentAnchor (inline comments) - stripped in markdown, just pass through content
+            commentAnchor: {open: '', close: '', mixable: true},
         },
     );
 }

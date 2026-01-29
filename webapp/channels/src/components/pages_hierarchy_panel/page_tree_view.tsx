@@ -32,6 +32,7 @@ type NodeWrapperProps = {
     onBookmarkInChannel?: (pageId: string) => void;
     onDelete?: (pageId: string) => void;
     onVersionHistory?: (pageId: string) => void;
+    onCopyMarkdown?: (pageId: string) => void;
     isRenaming?: boolean;
     isDeleting?: boolean;
     wikiId?: string;
@@ -51,6 +52,7 @@ const PageTreeNodeWrapper = React.memo(({
     onBookmarkInChannel,
     onDelete,
     onVersionHistory,
+    onCopyMarkdown,
     isRenaming,
     isDeleting,
     wikiId,
@@ -77,6 +79,7 @@ const PageTreeNodeWrapper = React.memo(({
             onBookmarkInChannel={onBookmarkInChannel}
             onDelete={onDelete}
             onVersionHistory={onVersionHistory}
+            onCopyMarkdown={onCopyMarkdown}
             isRenaming={isRenaming}
             isDeleting={isDeleting}
             wikiId={wikiId}
@@ -99,6 +102,7 @@ type Props = {
     onBookmarkInChannel?: (pageId: string) => void;
     onDelete?: (pageId: string) => void;
     onVersionHistory?: (pageId: string) => void;
+    onCopyMarkdown?: (pageId: string) => void;
     deletingPageId?: string | null;
     wikiId?: string;
     channelId?: string;
@@ -117,6 +121,7 @@ const PageTreeView = ({
     onBookmarkInChannel,
     onDelete,
     onVersionHistory,
+    onCopyMarkdown,
     deletingPageId,
     wikiId,
     channelId,
@@ -258,6 +263,7 @@ const PageTreeView = ({
                                                     onBookmarkInChannel={onBookmarkInChannel}
                                                     onDelete={onDelete}
                                                     onVersionHistory={onVersionHistory}
+                                                    onCopyMarkdown={onCopyMarkdown}
                                                     isDeleting={deletingPageId === node.id}
                                                     wikiId={wikiId}
                                                     channelId={channelId}

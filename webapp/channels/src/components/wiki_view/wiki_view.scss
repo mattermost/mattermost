@@ -500,9 +500,7 @@ body.fullscreen-mode {
     }
 
     .PagesHierarchyPanel {
-        &.PagesHierarchyPanel--collapsed {
-            display: none;
-        }
+        display: none;
     }
 
     .WikiView {
@@ -518,6 +516,7 @@ body.fullscreen-mode {
     .PagePane {
         width: 100%;
         height: 100%;
+        margin-left: 0;
 
         &__header {
             position: fixed;

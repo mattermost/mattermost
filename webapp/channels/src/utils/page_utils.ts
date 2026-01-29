@@ -10,7 +10,9 @@ import {WikiTypes} from 'mattermost-redux/action_types';
 import {PostTypes} from 'mattermost-redux/constants';
 
 import {Locations, PagePropsKeys} from 'utils/constants';
-import {getPageTitle} from 'utils/post_utils';
+import {DEFAULT_PAGE_TITLE, getPageTitle} from 'utils/post_utils';
+import {tiptapToMarkdown} from 'utils/tiptap_to_markdown';
+import {copyToClipboard} from 'utils/utils';
 
 import type {PostDraft} from 'types/store/draft';
 
@@ -151,4 +153,28 @@ export function getPageReceiveActions(post: Post): AnyAction[] {
  */
 export function shouldShowPageCommentContext(post: Post | null | undefined, location: string): boolean {
     return isPageInlineComment(post) && location === Locations.RHS_ROOT;
+}
+
+/**
+ * Copies page content as markdown to the clipboard.
+ * Parses TipTap JSON content, converts to markdown, and copies to clipboard.
+ * @param content - TipTap JSON content string
+ * @param title - Page title (defaults to DEFAULT_PAGE_TITLE if empty)
+ */
+export function copyPageAsMarkdown(content: string | undefined, title: string | undefined): void {
+    if (!content || typeof content !== 'string' || !content.trim()) {
+        return;
+    }
+    try {
+        const doc = JSON.parse(content);
+        const titleStr = (typeof title === 'string' && title.trim()) ? title.trim() : DEFAULT_PAGE_TITLE;
+        const result = tiptapToMarkdown(doc, {
+            title: titleStr,
+            includeTitle: true,
+            preserveFileUrls: true,
+        });
+        copyToClipboard(result.markdown);
+    } catch {
+        // Silent fail - clipboard operations are fire-and-forget
+    }
 }

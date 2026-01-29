@@ -20,6 +20,7 @@ import MovePageModal from 'components/move_page_modal';
 import TextInputModal from 'components/text_input_modal';
 
 import {ModalIdentifiers, PageDisplayTypes} from 'utils/constants';
+import {copyPageAsMarkdown} from 'utils/page_utils';
 import {getPageTitle} from 'utils/post_utils';
 
 import type {PostDraft} from 'types/store/draft';
@@ -476,6 +477,14 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         setPageToBookmark(null);
     }, []);
 
+    const handleCopyMarkdown = useCallback((pageId: string) => {
+        const page = pageMapRef.current[pageId];
+        if (!page) {
+            return;
+        }
+        copyPageAsMarkdown(page.message, getPageTitle(page));
+    }, []);
+
     return {
 
         // Handlers
@@ -486,6 +495,7 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         handleMove,
         handleDelete,
         handleBookmarkInChannel,
+        handleCopyMarkdown,
 
         // Modal state (only bookmark remains inline)
         showBookmarkModal,

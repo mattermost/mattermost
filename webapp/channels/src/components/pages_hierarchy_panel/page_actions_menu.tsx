@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useState} from 'react';
-import {defineMessages, useIntl} from 'react-intl';
+import React, {useCallback} from 'react';
+import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import BookmarkOutlineIcon from '@mattermost/compass-icons/components/bookmark-outline';
@@ -21,14 +21,10 @@ import PencilOutlineIcon from '@mattermost/compass-icons/components/pencil-outli
 import PlusIcon from '@mattermost/compass-icons/components/plus';
 import TrashCanOutlineIcon from '@mattermost/compass-icons/components/trash-can-outline';
 
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
-
 import {togglePageOutline} from 'actions/views/pages_hierarchy';
 
-import useCopyText from 'components/common/hooks/useCopyText';
 import * as Menu from 'components/menu';
 
-import {tiptapToMarkdown} from 'utils/tiptap_to_markdown';
 import {getSiteURL} from 'utils/url';
 import {copyToClipboard} from 'utils/utils';
 
@@ -53,12 +49,8 @@ type Props = {
     onProofread?: () => void;
     onTranslatePage?: () => void;
     isAIProcessing?: boolean;
+    onCopyMarkdown?: () => void;
 };
-
-const messages = defineMessages({
-    copyMarkdown: {id: 'page_actions_menu.copy_as_markdown', defaultMessage: 'Copy as Markdown'},
-    copied: {id: 'page_actions_menu.copied', defaultMessage: 'Copied!'},
-});
 
 const PageActionsMenu = ({
     pageId,
@@ -79,41 +71,10 @@ const PageActionsMenu = ({
     onProofread,
     onTranslatePage,
     isAIProcessing = false,
+    onCopyMarkdown,
 }: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
-
-    const [markdownText, setMarkdownText] = useState('');
-
-    const page = useSelector((state: GlobalState) => getPost(state, pageId));
-
-    useEffect(() => {
-        const messageStr = typeof page?.message === 'string' ? page.message : '';
-        if (!messageStr || messageStr.trim() === '') {
-            setMarkdownText('');
-            return;
-        }
-        try {
-            const doc = JSON.parse(messageStr);
-            const rawTitle = page?.props?.title;
-            const title = (typeof rawTitle === 'string' && rawTitle.trim()) ? rawTitle.trim() : 'Untitled';
-            const result = tiptapToMarkdown(doc, {
-                title,
-                includeTitle: true,
-                preserveFileUrls: true,
-            });
-            setMarkdownText(result.markdown);
-        } catch (error) {
-            // eslint-disable-next-line no-console
-            console.error('Failed to prepare markdown:', error);
-            setMarkdownText('');
-        }
-    }, [page?.message, page?.props?.title]);
-
-    const copyMarkdown = useCopyText({
-        text: markdownText,
-        successCopyTimeout: 2000,
-    });
 
     const isOutlineVisible = useSelector((state: GlobalState) =>
         state.views.pagesHierarchy.outlineExpandedNodes[pageId] || false,
@@ -153,6 +114,7 @@ const PageActionsMenu = ({
     const bookmarkInChannelLabel = formatMessage({id: 'page_actions_menu.bookmark_in_channel', defaultMessage: 'Bookmark in channel...'});
     const duplicatePageLabel = formatMessage({id: 'page_actions_menu.duplicate_page', defaultMessage: 'Duplicate page'});
     const exportToPdfLabel = formatMessage({id: 'page_actions_menu.export_to_pdf', defaultMessage: 'Export to PDF'});
+    const copyMarkdownLabel = formatMessage({id: 'page_actions_menu.copy_as_markdown', defaultMessage: 'Copy as Markdown'});
     const versionHistoryLabel = formatMessage({id: 'page_actions_menu.version_history', defaultMessage: 'Version history'});
     const deletePageLabel = formatMessage({id: 'page_actions_menu.delete_page', defaultMessage: 'Delete page'});
     const deleteDraftLabel = formatMessage({id: 'page_actions_menu.delete_draft', defaultMessage: 'Delete draft'});
@@ -246,10 +208,10 @@ const PageActionsMenu = ({
             <Menu.Item
                 id='page-menu-copy-markdown'
                 data-testid='page-context-menu-copy-markdown'
-                leadingElement={copyMarkdown.copiedRecently ? <CheckCircleOutlineIcon size={18}/> : <FileTextOutlineIcon size={18}/>}
-                labels={<span>{copyMarkdown.copiedRecently ? formatMessage(messages.copied) : formatMessage(messages.copyMarkdown)}</span>}
-                onClick={copyMarkdown.onClick}
-                disabled={!markdownText || copyMarkdown.copyError}
+                leadingElement={<FileTextOutlineIcon size={18}/>}
+                labels={<span>{copyMarkdownLabel}</span>}
+                onClick={onCopyMarkdown}
+                disabled={!onCopyMarkdown}
             />
             {hasAITools && (
                 <>
