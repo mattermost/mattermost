@@ -26,6 +26,7 @@ import PlaybookType from './playbooks';
 import PluginTypes from './plugins';
 import PostTypes from './posts';
 import PreferenceTypes from './preferences';
+import RecapTypes from './recaps';
 import RoleTypes from './roles';
 import SchemeTypes from './schemes';
 import ScheduledPostTypes from './scheudled_posts';
@@ -34,6 +35,7 @@ import SharedChannelTypes from './shared_channels';
 import TeamTypes from './teams';
 import ThreadTypes from './threads';
 import UserTypes from './users';
+import WebSocketTypes from './websocket';
 
 export {
     ErrorTypes,
@@ -44,6 +46,7 @@ export {
     PostTypes,
     FileTypes,
     PreferenceTypes,
+    RecapTypes,
     IntegrationTypes,
     EmojiTypes,
     AdminTypes,
@@ -67,6 +70,7 @@ export {
     SharedChannelTypes,
     ContentFlaggingTypes,
     AgentTypes,
+    WebSocketTypes,
 };
 
 /**

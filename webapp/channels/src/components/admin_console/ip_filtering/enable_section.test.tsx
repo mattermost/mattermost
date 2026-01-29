@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, fireEvent} from '@testing-library/react';
 import React from 'react';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import EnableSectionContent from './enable_section';
 jest.mock('components/external_link', () => {
@@ -35,14 +34,14 @@ describe('EnableSectionContent', () => {
         expect(screen.getByRole('button', {pressed: true})).toBeInTheDocument();
     });
 
-    test('clicking the toggle calls setFilterToggle', () => {
+    test('clicking the toggle calls setFilterToggle', async () => {
         renderWithContext(
             <EnableSectionContent
                 {...baseProps}
             />,
         );
 
-        fireEvent.click(screen.getByTestId('filterToggle-button'));
+        await userEvent.click(screen.getByTestId('filterToggle-button'));
 
         expect(setFilterToggle).toHaveBeenCalledTimes(1);
         expect(setFilterToggle).toHaveBeenCalledWith(false);

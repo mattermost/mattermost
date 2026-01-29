@@ -191,11 +191,6 @@ export type ValidBusinessEmail = {
     is_valid: boolean;
 }
 
-export interface NewsletterRequestBody {
-    email: string;
-    subscribed_content: string;
-}
-
 export const areShippingDetailsValid = (address: Address | null | undefined): boolean => {
     if (!address) {
         return false;

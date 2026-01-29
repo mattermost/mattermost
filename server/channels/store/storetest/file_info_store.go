@@ -5,7 +5,6 @@ package storetest
 
 import (
 	"fmt"
-	"sort"
 	"testing"
 	"time"
 
@@ -422,12 +421,6 @@ func testFileInfoGetWithOptions(t *testing.T, rctx request.CTX, ss store.Store) 
 	}
 }
 
-type byFileInfoID []*model.FileInfo
-
-func (a byFileInfoID) Len() int           { return len(a) }
-func (a byFileInfoID) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a byFileInfoID) Less(i, j int) bool { return a[i].Id < a[j].Id }
-
 func testFileInfoAttachToPost(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("should attach files", func(t *testing.T) {
 		userID := model.NewId()
@@ -462,9 +455,7 @@ func testFileInfoAttachToPost(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 
 		expected := []*model.FileInfo{info1, info2}
-		sort.Sort(byFileInfoID(expected))
-		sort.Sort(byFileInfoID(data))
-		assert.EqualValues(t, expected, data)
+		assert.ElementsMatch(t, expected, data)
 	})
 
 	t.Run("should not attach files to multiple posts", func(t *testing.T) {
