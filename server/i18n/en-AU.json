@@ -8595,10 +8595,6 @@
     "translation": "Unable to remove OAuth data."
   },
   {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "CWS Server failed to subscribe to newsletter."
-  },
-  {
     "id": "api.license.request-trial.bad-request.business-email",
     "translation": "Invalid business email for trial"
   },

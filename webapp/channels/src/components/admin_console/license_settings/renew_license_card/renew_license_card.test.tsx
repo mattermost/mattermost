@@ -54,10 +54,6 @@ const actImmediate = (wrapper: ReactWrapper) =>
     );
 
 describe('components/RenewalLicenseCard', () => {
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
     const props = {
         license: {
             id: 'license_id',

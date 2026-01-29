@@ -1332,7 +1332,8 @@ export function handleLeaveTeamEvent(msg: WebSocketMessages.UserRemovedFromTeam)
     const currentUser = getCurrentUser(state);
 
     if (currentUser.id === msg.data.user_id) {
-        dispatch({type: TeamTypes.LEAVE_TEAM, data: {id: msg.data.team_id}});
+        // Include channel IDs so reducers can clean up posts/embeds for those channels
+        dispatch({type: TeamTypes.LEAVE_TEAM, data: {id: msg.data.team_id, channelIds: channels}});
 
         // if they are on the team being removed redirect them to default team
         if (getCurrentTeamId(state) === msg.data.team_id) {

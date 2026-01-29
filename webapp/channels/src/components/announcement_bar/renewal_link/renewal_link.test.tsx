@@ -54,10 +54,6 @@ const actImmediate = (wrapper: ReactWrapper) =>
     );
 
 describe('components/RenewalLink', () => {
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should show Contact sales button', async () => {
         const store = mockStore(initialState);
         const wrapper = mountWithIntl(<Provider store={store}><RenewalLink/></Provider>);

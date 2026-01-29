@@ -45,6 +45,7 @@ const (
 	MetricsSubsystemClientsDesktopApp  = "desktopapp"
 	MetricsSubsystemAccessControl      = "access_control"
 	MetricsSubsystemWiki               = "wiki"
+	MetricsSubsystemAutoTranslation    = "autotranslation"
 	MetricsCloudInstallationLabel      = "installationId"
 	MetricsCloudDatabaseClusterLabel   = "databaseClusterName"
 	MetricsCloudInstallationGroupLabel = "installationGroupId"
@@ -248,6 +249,15 @@ type MetricsInterfaceImpl struct {
 	WikiHierarchyDepth          prometheus.Histogram
 	WikiPagesPerChannel         prometheus.Histogram
 	WikiSearchDuration          prometheus.Histogram
+
+	// Auto-translation metrics
+	AutoTranslateTranslateDuration       *prometheus.HistogramVec
+	AutoTranslateLinguaDetectionDuration prometheus.Histogram
+	AutoTranslateProviderCallDuration    *prometheus.HistogramVec
+	AutoTranslateQueueDepth              prometheus.Gauge
+	AutoTranslateWorkerTaskDuration      prometheus.Histogram
+	AutoTranslateRecoveryStuckFound      prometheus.Counter
+	AutoTranslateNormHashCounter         *prometheus.CounterVec
 }
 
 func init() {
@@ -1677,6 +1687,79 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 	)
 	m.Registry.MustRegister(m.WikiSearchDuration)
 
+	// Auto-translation Subsystem
+	m.AutoTranslateTranslateDuration = prometheus.NewHistogramVec(
+		withLabels(prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemAutoTranslation,
+			Name:      "translate_duration_seconds",
+			Help:      "Duration of the Translate() function (latency impact on post create/edit)",
+			Buckets:   []float64{0.001, 0.005, 0.01, 0.05, 0.1, 0.25, 0.5, 1.0},
+		}),
+		[]string{"object_type"},
+	)
+	m.Registry.MustRegister(m.AutoTranslateTranslateDuration)
+
+	m.AutoTranslateLinguaDetectionDuration = prometheus.NewHistogram(withLabels(prometheus.HistogramOpts{
+		Namespace: MetricsNamespace,
+		Subsystem: MetricsSubsystemAutoTranslation,
+		Name:      "lingua_detection_duration_seconds",
+		Help:      "Duration of lingua-go language detection",
+		Buckets:   []float64{0.001, 0.005, 0.01, 0.05, 0.1, 0.25, 0.5, 1.0},
+	}))
+	m.Registry.MustRegister(m.AutoTranslateLinguaDetectionDuration)
+
+	m.AutoTranslateProviderCallDuration = prometheus.NewHistogramVec(
+		withLabels(prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemAutoTranslation,
+			Name:      "provider_call_duration_seconds",
+			Help:      "Duration of translation provider API calls",
+			Buckets:   []float64{0.1, 0.25, 0.5, 1, 2, 4, 8, 15, 30, 60},
+		}),
+		[]string{"provider", "result"},
+	)
+	m.Registry.MustRegister(m.AutoTranslateProviderCallDuration)
+
+	m.AutoTranslateQueueDepth = prometheus.NewGauge(prometheus.GaugeOpts{
+		Namespace:   MetricsNamespace,
+		Subsystem:   MetricsSubsystemAutoTranslation,
+		Name:        "queue_depth_total",
+		Help:        "Current number of translation tasks waiting in worker queue",
+		ConstLabels: additionalLabels,
+	})
+	m.Registry.MustRegister(m.AutoTranslateQueueDepth)
+
+	m.AutoTranslateWorkerTaskDuration = prometheus.NewHistogram(withLabels(prometheus.HistogramOpts{
+		Namespace: MetricsNamespace,
+		Subsystem: MetricsSubsystemAutoTranslation,
+		Name:      "worker_task_duration_seconds",
+		Help:      "Duration for workers to process individual translation tasks",
+		Buckets:   []float64{0.1, 0.5, 1, 2, 5, 10, 30, 60},
+	}))
+	m.Registry.MustRegister(m.AutoTranslateWorkerTaskDuration)
+
+	m.AutoTranslateRecoveryStuckFound = prometheus.NewCounter(prometheus.CounterOpts{
+		Namespace:   MetricsNamespace,
+		Subsystem:   MetricsSubsystemAutoTranslation,
+		Name:        "recovery_stuck_found_total",
+		Help:        "Total number of stuck translations found by recovery sweep",
+		ConstLabels: additionalLabels,
+	})
+	m.Registry.MustRegister(m.AutoTranslateRecoveryStuckFound)
+
+	m.AutoTranslateNormHashCounter = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemAutoTranslation,
+			Name:        "normhash_total",
+			Help:        "Translation reuse via normhash (hit=reused, miss=retranslated)",
+			ConstLabels: additionalLabels,
+		},
+		[]string{"result"},
+	)
+	m.Registry.MustRegister(m.AutoTranslateNormHashCounter)
+
 	return m
 }
 
@@ -2341,6 +2424,37 @@ func (mi *MetricsInterfaceImpl) ObserveWikiSearchDuration(elapsed float64) {
 	if mi.WikiSearchDuration != nil {
 		mi.WikiSearchDuration.Observe(elapsed)
 	}
+}
+
+func (mi *MetricsInterfaceImpl) ObserveAutoTranslateTranslateDuration(objectType string, elapsed float64) {
+	mi.AutoTranslateTranslateDuration.With(prometheus.Labels{"object_type": objectType}).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveAutoTranslateLinguaDetectionDuration(elapsed float64) {
+	mi.AutoTranslateLinguaDetectionDuration.Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveAutoTranslateProviderCallDuration(provider, result string, elapsed float64) {
+	mi.AutoTranslateProviderCallDuration.With(prometheus.Labels{
+		"provider": provider,
+		"result":   result,
+	}).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) SetAutoTranslateQueueDepth(depth float64) {
+	mi.AutoTranslateQueueDepth.Set(depth)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveAutoTranslateWorkerTaskDuration(elapsed float64) {
+	mi.AutoTranslateWorkerTaskDuration.Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) AddAutoTranslateRecoveryStuckFound(count float64) {
+	mi.AutoTranslateRecoveryStuckFound.Add(count)
+}
+
+func (mi *MetricsInterfaceImpl) IncrementAutoTranslateNormHash(result string) {
+	mi.AutoTranslateNormHashCounter.With(prometheus.Labels{"result": result}).Inc()
 }
 
 func (mi *MetricsInterfaceImpl) ClearMobileClientSessionMetadata() {
