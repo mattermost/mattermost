@@ -206,7 +206,11 @@ func testAutoTranslationIsUserEnabled(t *testing.T, rctx request.CTX, ss store.S
 		appErr := ss.AutoTranslation().SetChannelEnabled(channel.Id, true)
 		require.NoError(t, appErr)
 
-		// User autotranslation is disabled by default
+		// Disable user autotranslation (AutoTranslationDisabled = true means disabled)
+		member.AutoTranslationDisabled = true
+		_, appErr = ss.Channel().UpdateMember(rctx, member)
+		require.NoError(t, appErr)
+
 		enabled, appErr := ss.AutoTranslation().IsUserEnabled(user.Id, channel.Id)
 		require.NoError(t, appErr)
 		assert.False(t, enabled)
@@ -315,6 +319,11 @@ func testAutoTranslationGetUserLanguage(t *testing.T, rctx request.CTX, ss store
 
 	t.Run("returns empty when channel enabled but user disabled", func(t *testing.T) {
 		appErr := ss.AutoTranslation().SetChannelEnabled(channel.Id, true)
+		require.NoError(t, appErr)
+
+		// Disable user autotranslation (AutoTranslationDisabled = true means disabled)
+		members[userEN.Id].AutoTranslationDisabled = true
+		_, appErr = ss.Channel().UpdateMember(rctx, members[userEN.Id])
 		require.NoError(t, appErr)
 
 		locale, appErr := ss.AutoTranslation().GetUserLanguage(userEN.Id, channel.Id)
