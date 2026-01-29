@@ -6,13 +6,16 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import type {Channel} from '@mattermost/types/channels';
+import type {UsersState} from '@mattermost/types/users';
 
-import {getChannels, getArchivedChannels, joinChannel, getChannelsMemberCount, searchAllChannels} from 'mattermost-redux/actions/channels';
-import {RequestStatus} from 'mattermost-redux/constants';
+import {getChannels, getArchivedChannels, joinChannel, getChannelsMemberCount, searchAllChannels, getChannelMembers} from 'mattermost-redux/actions/channels';
+import {RequestStatus, General} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {getChannelsInCurrentTeam, getMyChannelMemberships, getChannelsMemberCount as getChannelsMemberCountSelector} from 'mattermost-redux/selectors/entities/channels';
+import {getChannelsInCurrentTeam, getMyChannelMemberships, getChannelsMemberCount as getChannelsMemberCountSelector, getAllChannels, getDirectChannelsSet, getChannelMembersInChannels} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeam, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentUserId, getUsers} from 'mattermost-redux/selectors/entities/users';
+import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
+import {completeDirectChannelInfo} from 'mattermost-redux/utils/channel_utils';
 
 import {setGlobalItem} from 'actions/storage';
 import {openModal, closeModal} from 'actions/views/modals';
@@ -44,6 +47,24 @@ const getPrivateChannelsSelector = createSelector(
     (channels: Channel[]) => channels && channels.filter((c) => c.type === Constants.PRIVATE_CHANNEL),
 );
 
+const getDirectMessageChannels = createSelector(
+    'getDirectMessageChannels',
+    getAllChannels,
+    getDirectChannelsSet,
+    (state: GlobalState): UsersState => state.entities.users,
+    getTeammateNameDisplaySetting,
+    (channels, channelSet: Set<string>, users: UsersState, teammateNameDisplay: string): Channel[] => {
+        const dmChannels: Channel[] = [];
+        channelSet.forEach((id) => {
+            const channel = channels[id];
+            if (channel && channel.type === General.DM_CHANNEL) {
+                dmChannels.push(completeDirectChannelInfo(users, teammateNameDisplay, channel));
+            }
+        });
+        return dmChannels;
+    },
+);
+
 function mapStateToProps(state: GlobalState) {
     const team = getCurrentTeam(state);
     const getGlobalItem = makeGetGlobalItem(StoragePrefixes.HIDE_JOINED_CHANNELS, 'false');
@@ -52,6 +73,7 @@ function mapStateToProps(state: GlobalState) {
         channels: getChannelsWithoutArchived(state) || [],
         archivedChannels: getArchivedOtherChannels(state) || [],
         privateChannels: getPrivateChannelsSelector(state) || [],
+        directMessageChannels: getDirectMessageChannels(state) || [],
         currentUserId: getCurrentUserId(state),
         teamId: getCurrentTeamId(state),
         teamName: team?.name,
@@ -61,6 +83,7 @@ function mapStateToProps(state: GlobalState) {
         rhsState: getRhsState(state),
         rhsOpen: getIsRhsOpen(state),
         channelsMemberCount: getChannelsMemberCountSelector(state),
+        channelMembers: getChannelMembersInChannels(state)
     };
 }
 
@@ -76,6 +99,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             setGlobalItem,
             closeRightHandSide,
             getChannelsMemberCount,
+            getChannelMembers,
         }, dispatch),
     };
 }
