@@ -602,6 +602,51 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 			return model.NewAppError("FillInPostProps", "api.post.fill_in_post_props.burn_on_read.config.app_error", nil, "", http.StatusNotImplemented)
 		}
 
+		// Get user to check if they're a bot
+		user, err := a.GetUser(post.UserId)
+		if err != nil {
+			return model.NewAppError("FillInPostProps", "api.post.fill_in_post_props.burn_on_read.user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		// Burn-on-read is not allowed for bot users
+		if user.IsBot {
+			return model.NewAppError("FillInPostProps", "api.post.fill_in_post_props.burn_on_read.bot.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		// Get channel if not provided - needed for validation
+		if channel == nil {
+			var err error
+			channel, err = a.GetChannel(rctx, post.ChannelId)
+			if err != nil {
+				return model.NewAppError("FillInPostProps", "api.post.fill_in_post_props.burn_on_read.channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+		}
+
+		// Burn-on-read is not allowed in self-DMs or DMs with bots (including AI agents, plugins)
+		if channel.Type == model.ChannelTypeDirect {
+			// Check if it's a self-DM by comparing the channel name with the expected self-DM name
+			selfDMName := model.GetDMNameFromIds(post.UserId, post.UserId)
+			if channel.Name == selfDMName {
+				return model.NewAppError("FillInPostProps", "api.post.fill_in_post_props.burn_on_read.self_dm.app_error", nil, "", http.StatusBadRequest)
+			}
+
+			// Check if the DM is with a bot (AI agents, plugins, etc.)
+			// Parse the other user ID from channel name (format: userId1__userId2)
+			var otherUserId string
+			if strings.HasPrefix(channel.Name, post.UserId+"__") {
+				otherUserId = strings.TrimPrefix(channel.Name, post.UserId+"__")
+			} else if strings.HasSuffix(channel.Name, "__"+post.UserId) {
+				otherUserId = strings.TrimSuffix(channel.Name, "__"+post.UserId)
+			}
+
+			if otherUserId != "" && otherUserId != post.UserId {
+				otherUser, err := a.GetUser(otherUserId)
+				if err == nil && otherUser.IsBot {
+					return model.NewAppError("FillInPostProps", "api.post.fill_in_post_props.burn_on_read.bot_dm.app_error", nil, "", http.StatusBadRequest)
+				}
+			}
+		}
+
 		// Apply burn-on-read expiration settings from configuration
 		maxTTLSeconds := int64(model.SafeDereference(a.Config().ServiceSettings.BurnOnReadMaximumTimeToLiveSeconds))
 		readDurationSeconds := int64(model.SafeDereference(a.Config().ServiceSettings.BurnOnReadDurationSeconds))

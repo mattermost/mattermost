@@ -2773,6 +2773,26 @@
     "translation": "Burn-on-read posts require an Enterprise Advanced license."
   },
   {
+    "id": "api.post.fill_in_post_props.burn_on_read.self_dm.app_error",
+    "translation": "Burn-on-read posts are not allowed when messaging yourself."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.bot.app_error",
+    "translation": "Bot users cannot send burn-on-read posts."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.bot_dm.app_error",
+    "translation": "Burn-on-read posts are not allowed in direct messages with bots or AI agents."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.channel.app_error",
+    "translation": "An error occurred while validating the channel for burn-on-read post."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.user.app_error",
+    "translation": "An error occurred while validating the user for burn-on-read post."
+  },
+  {
     "id": "api.post.fill_in_post_props.invalid_ai_generated_user.app_error",
     "translation": "The AI-generated user must be either the post creator or a bot."
   },
