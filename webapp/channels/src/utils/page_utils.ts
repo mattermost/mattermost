@@ -12,7 +12,6 @@ import {PostTypes} from 'mattermost-redux/constants';
 import {Locations, PagePropsKeys} from 'utils/constants';
 import {DEFAULT_PAGE_TITLE, getPageTitle} from 'utils/post_utils';
 import {tiptapToMarkdown} from 'utils/tiptap_to_markdown';
-import {copyToClipboard} from 'utils/utils';
 
 import type {PostDraft} from 'types/store/draft';
 
@@ -156,14 +155,48 @@ export function shouldShowPageCommentContext(post: Post | null | undefined, loca
 }
 
 /**
+ * Copies text to clipboard with proper promise handling.
+ * Similar to useCopyText hook but as a standalone async function.
+ */
+async function copyTextToClipboard(text: string): Promise<boolean> {
+    const clipboard = navigator.clipboard;
+    if (clipboard) {
+        try {
+            await clipboard.writeText(text);
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    // Fallback for older browsers
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.opacity = '0';
+    document.body.appendChild(textArea);
+    textArea.select();
+
+    try {
+        const success = document.execCommand('copy');
+        return success;
+    } catch {
+        return false;
+    } finally {
+        textArea.remove();
+    }
+}
+
+/**
  * Copies page content as markdown to the clipboard.
  * Parses TipTap JSON content, converts to markdown, and copies to clipboard.
  * @param content - TipTap JSON content string
  * @param title - Page title (defaults to DEFAULT_PAGE_TITLE if empty)
+ * @returns Promise<boolean> - true if copy succeeded, false otherwise
  */
-export function copyPageAsMarkdown(content: string | undefined, title: string | undefined): void {
+export async function copyPageAsMarkdown(content: string | undefined, title: string | undefined): Promise<boolean> {
     if (!content || typeof content !== 'string' || !content.trim()) {
-        return;
+        return false;
     }
     try {
         const doc = JSON.parse(content);
@@ -173,8 +206,8 @@ export function copyPageAsMarkdown(content: string | undefined, title: string | 
             includeTitle: true,
             preserveFileUrls: true,
         });
-        copyToClipboard(result.markdown);
+        return copyTextToClipboard(result.markdown);
     } catch {
-        // Silent fail - clipboard operations are fire-and-forget
+        return false;
     }
 }
