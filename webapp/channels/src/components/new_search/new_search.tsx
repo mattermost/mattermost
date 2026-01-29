@@ -10,7 +10,9 @@ import {
     useRole,
     FloatingFocusManager,
     FloatingPortal,
+    FloatingOverlay,
     offset,
+    useTransitionStyles,
 } from '@floating-ui/react';
 import React, {useEffect, useState, useRef, useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
@@ -110,7 +112,11 @@ const SearchBoxContainer = styled.div`
     z-index: 1050;
 `;
 
-const NewSearch = (): JSX.Element => {
+interface Props {
+    isCentered?: boolean;
+}
+
+const NewSearch = ({isCentered}: Props): JSX.Element => {
     const intl = useIntl();
     const currentChannelName = useSelector(getCurrentChannelNameForSearchShortcut);
     const searchTerms = useSelector(getSearchTerms) || '';
@@ -132,6 +138,9 @@ const NewSearch = (): JSX.Element => {
         whileElementsMounted: autoUpdate,
         placement: 'bottom',
         middleware: [offset({mainAxis: -28})],
+    });
+    const {isMounted, styles: transitionStyles} = useTransitionStyles(floatingContext, {
+        duration: 50,
     });
     const searchButtonRef = refs.reference as React.RefObject<HTMLDivElement>;
 
@@ -263,6 +272,32 @@ const NewSearch = (): JSX.Element => {
 
     const clearSearchType = useCallback(() => dispatch(updateSearchType('')), []);
 
+    const renderSearchBox = (additionalStyles?: React.CSSProperties) => (
+        <SearchBoxContainer
+            ref={refs.setFloating}
+            style={{
+                ...(isCentered ? {outline: 'none'} : floatingStyles),
+                ...additionalStyles,
+            }}
+            {...getFloatingProps()}
+            aria-label={intl.formatMessage({
+                id: 'search_bar.search_box',
+                defaultMessage: 'Search box',
+            })}
+        >
+            <SearchBox
+                ref={searchBoxRef}
+                onClose={closeSearchBox}
+                onSearch={runSearch}
+                initialSearchTerms={currentChannel ? `in:${currentChannel} ` : searchTerms}
+                initialSearchType={searchType}
+                initialSearchTeam={searchTeam}
+                crossTeamSearchEnabled={crossTeamSearchEnabled}
+                myTeams={myTeams}
+            />
+        </SearchBoxContainer>
+    );
+
     return (
         <>
             <NewSearchContainer
@@ -320,30 +355,29 @@ const NewSearch = (): JSX.Element => {
                 )}
             </NewSearchContainer>
 
-            {focused && (
+            {isMounted && (
                 <FloatingPortal id={RootHtmlPortalId}>
-                    <FloatingFocusManager context={floatingContext}>
-                        <SearchBoxContainer
-                            ref={refs.setFloating}
-                            style={floatingStyles}
-                            {...getFloatingProps()}
-                            aria-label={intl.formatMessage({
-                                id: 'search_bar.search_box',
-                                defaultMessage: 'Search box',
-                            })}
+                    {isCentered ? (
+                        <FloatingOverlay
+                            lockScroll={true}
+                            style={{
+                                background: 'rgba(0, 0, 0, 0.48)',
+                                display: 'grid',
+                                placeItems: 'start center',
+                                paddingTop: '15vh',
+                                zIndex: 1050,
+                                ...transitionStyles,
+                            }}
                         >
-                            <SearchBox
-                                ref={searchBoxRef}
-                                onClose={closeSearchBox}
-                                onSearch={runSearch}
-                                initialSearchTerms={currentChannel ? `in:${currentChannel} ` : searchTerms}
-                                initialSearchType={searchType}
-                                initialSearchTeam={searchTeam}
-                                crossTeamSearchEnabled={crossTeamSearchEnabled}
-                                myTeams={myTeams}
-                            />
-                        </SearchBoxContainer>
-                    </FloatingFocusManager>
+                            <FloatingFocusManager context={floatingContext}>
+                                {renderSearchBox()}
+                            </FloatingFocusManager>
+                        </FloatingOverlay>
+                    ) : (
+                        <FloatingFocusManager context={floatingContext}>
+                            {renderSearchBox(transitionStyles)}
+                        </FloatingFocusManager>
+                    )}
                 </FloatingPortal>
             )}
         </>

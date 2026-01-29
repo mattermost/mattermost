@@ -22,6 +22,7 @@ import {
     getIsRhsOpen,
     getRhsState,
 } from 'selectors/rhs';
+import {isProductSidebarEnabled} from 'selectors/views/product_sidebar';
 import LocalStorageStore from 'stores/local_storage_store';
 
 import {initializeProducts} from 'plugins/products';
@@ -69,6 +70,7 @@ function mapStateToProps(state: GlobalState) {
         shouldShowAppBar: shouldShowAppBar(state),
         isCloud: isCurrentLicenseCloud(state),
         isDevModeEnabled: isDevModeEnabled(state),
+        isProductSidebarEnabled: isProductSidebarEnabled(state),
     };
 }
 
