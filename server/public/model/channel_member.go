@@ -52,22 +52,22 @@ type ChannelUnreadAt struct {
 }
 
 type ChannelMember struct {
-	ChannelId          string    `json:"channel_id"`
-	UserId             string    `json:"user_id"`
-	Roles              string    `json:"roles"`
-	LastViewedAt       int64     `json:"last_viewed_at"`
-	MsgCount           int64     `json:"msg_count"`
-	MentionCount       int64     `json:"mention_count"`
-	MentionCountRoot   int64     `json:"mention_count_root"`
-	UrgentMentionCount int64     `json:"urgent_mention_count"`
-	MsgCountRoot       int64     `json:"msg_count_root"`
-	NotifyProps        StringMap `json:"notify_props"`
-	LastUpdateAt       int64     `json:"last_update_at"`
-	SchemeGuest        bool      `json:"scheme_guest"`
-	SchemeUser         bool      `json:"scheme_user"`
-	SchemeAdmin        bool      `json:"scheme_admin"`
-	ExplicitRoles      string    `json:"explicit_roles"`
-	AutoTranslation    bool      `json:"autotranslation"`
+	ChannelId               string    `json:"channel_id"`
+	UserId                  string    `json:"user_id"`
+	Roles                   string    `json:"roles"`
+	LastViewedAt            int64     `json:"last_viewed_at"`
+	MsgCount                int64     `json:"msg_count"`
+	MentionCount            int64     `json:"mention_count"`
+	MentionCountRoot        int64     `json:"mention_count_root"`
+	UrgentMentionCount      int64     `json:"urgent_mention_count"`
+	MsgCountRoot            int64     `json:"msg_count_root"`
+	NotifyProps             StringMap `json:"notify_props"`
+	LastUpdateAt            int64     `json:"last_update_at"`
+	SchemeGuest             bool      `json:"scheme_guest"`
+	SchemeUser              bool      `json:"scheme_user"`
+	SchemeAdmin             bool      `json:"scheme_admin"`
+	ExplicitRoles           string    `json:"explicit_roles"`
+	AutoTranslationDisabled bool      `json:"autotranslation_disabled"`
 }
 
 func (o *ChannelMember) Auditable() map[string]any {
