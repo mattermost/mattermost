@@ -28,7 +28,7 @@ const NUMERIC_ENTITY_DECODE_MAP: Record<string, string> = {
 };
 
 const NUMERIC_ENTITY_PATTERN = new RegExp(
-    Object.keys(NUMERIC_ENTITY_DECODE_MAP).map((key) => key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'),
+    Object.keys(NUMERIC_ENTITY_DECODE_MAP).map((key) => TextFormatting.escapeRegex(key)).join('|'),
     'g',
 );
 
