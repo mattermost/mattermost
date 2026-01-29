@@ -631,16 +631,20 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 			}
 
 			// Check if the DM is with a bot (AI agents, plugins, etc.)
-			// Parse the other user ID from channel name (format: userId1__userId2)
-			var otherUserId string
-			var found bool
-			if otherUserId, found = strings.CutPrefix(channel.Name, post.UserId+"__"); !found {
-				otherUserId, _ = strings.CutSuffix(channel.Name, "__"+post.UserId)
-			}
-
+			otherUserId := channel.GetOtherUserIdForDM(post.UserId)
 			if otherUserId != "" && otherUserId != post.UserId {
 				otherUser, err := a.GetUser(otherUserId)
-				if err == nil && otherUser.IsBot {
+				if err != nil {
+					// Be permissive: if we can't fetch the other user (e.g., deleted user, transient DB error),
+					// we allow the burn-on-read post rather than blocking legitimate messages.
+					// This is acceptable because:
+					// 1. The primary bot check (sender being a bot) already passed above
+					// 2. Deleted users are edge cases that shouldn't block functionality
+					// 3. Transient errors shouldn't prevent valid user actions
+					rctx.Logger().Warn("Failed to get other user in DM for burn-on-read validation, allowing post",
+						mlog.String("other_user_id", otherUserId),
+						mlog.Err(err))
+				} else if otherUser.IsBot {
 					return model.NewAppError("FillInPostProps", "api.post.fill_in_post_props.burn_on_read.bot_dm.app_error", nil, "", http.StatusBadRequest)
 				}
 			}
