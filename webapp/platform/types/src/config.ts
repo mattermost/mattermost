@@ -764,12 +764,7 @@ export type AutoTranslationSettings = {
     Agents?: {
         LLMServiceID: string;
     };
-    TimeoutsMs: {
-        Short: number;
-        Medium: number;
-        Long: number;
-        Notification: number;
-    };
+    TimeoutMs: number;
 };
 
 export type SamlSettings = {
