@@ -48,6 +48,7 @@ const useKeyHandler = (
     toggleEmojiPicker: () => void,
     isInEditMode?: boolean,
     onCancel?: () => void,
+    openLinkModal?: () => void,
 ): [
         (e: React.KeyboardEvent<TextboxElement>) => void,
         (e: React.KeyboardEvent<TextboxElement>) => void,
@@ -238,26 +239,18 @@ const useKeyHandler = (
                     selectionEnd,
                     message: value,
                 });
-            } else if (Utils.isTextSelectedInPostOrReply(e) && Keyboard.isKeyPressed(e, KeyCodes.K)) {
+            } else if (Keyboard.isKeyPressed(e, KeyCodes.K)) {
                 e.stopPropagation();
                 e.preventDefault();
-                applyMarkdown({
-                    markdownMode: 'link',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
+
+
+                openLinkModal?.();
             }
         } else if (ctrlAltCombo && !caretIsWithinCodeBlock) {
             if (Keyboard.isKeyPressed(e, KeyCodes.K)) {
                 e.stopPropagation();
                 e.preventDefault();
-                applyMarkdown({
-                    markdownMode: 'link',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
+                openLinkModal?.();
             } else if (Keyboard.isKeyPressed(e, KeyCodes.C)) {
                 e.stopPropagation();
                 e.preventDefault();
@@ -366,6 +359,7 @@ const useKeyHandler = (
         toggleShowPreview,
         isInEditMode,
         location,
+        openLinkModal,
     ]);
 
     // Register paste events
