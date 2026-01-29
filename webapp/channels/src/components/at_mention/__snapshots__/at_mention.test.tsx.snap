@@ -1,232 +1,186 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/AtMention should match snapshot when mentioning a group followed by punctuation 1`] = `
-<Fragment>
-  <UserGroupPopoverController
-    group={
-      Object {
-        "allow_reference": true,
-        "create_at": 1,
-        "delete_at": 0,
-        "description": "",
-        "display_name": "group_display_name",
-        "has_syncables": false,
-        "id": "qwerty1",
-        "member_count": 0,
-        "name": "developers",
-        "remote_id": "",
-        "scheme_admin": false,
-        "source": "",
-        "update_at": 1,
-      }
-    }
-    returnFocus={[Function]}
+<div>
+  <span
+    aria-expanded="false"
+    aria-haspopup="dialog"
   >
     <a
-      className="group-mention-link"
+      class="group-mention-link"
       role="button"
-      tabIndex={0}
+      tabindex="0"
     >
       @developers
     </a>
-  </UserGroupPopoverController>
+  </span>
   .
-</Fragment>
+</div>
 `;
 
 exports[`components/AtMention should match snapshot when mentioning a group that is allowed reference 1`] = `
-<Fragment>
-  <UserGroupPopoverController
-    group={
-      Object {
-        "allow_reference": true,
-        "create_at": 1,
-        "delete_at": 0,
-        "description": "",
-        "display_name": "group_display_name",
-        "has_syncables": false,
-        "id": "qwerty1",
-        "member_count": 0,
-        "name": "developers",
-        "remote_id": "",
-        "scheme_admin": false,
-        "source": "",
-        "update_at": 1,
-      }
-    }
-    returnFocus={[Function]}
+<div>
+  <span
+    aria-expanded="false"
+    aria-haspopup="dialog"
   >
     <a
-      className="group-mention-link"
+      class="group-mention-link"
       role="button"
-      tabIndex={0}
+      tabindex="0"
     >
       @developers
     </a>
-  </UserGroupPopoverController>
-</Fragment>
+  </span>
+</div>
 `;
 
 exports[`components/AtMention should match snapshot when mentioning a group that is allowed reference with group highlight disabled 1`] = `
-<Fragment>
+<div>
   (at)-developers
-</Fragment>
+</div>
 `;
 
 exports[`components/AtMention should match snapshot when mentioning a group that is not allowed reference 1`] = `
-<Fragment>
+<div>
   (at)-marketing
-</Fragment>
+</div>
 `;
 
 exports[`components/AtMention should match snapshot when mentioning all 1`] = `
-<Fragment>
+<div>
   (at)-all
-</Fragment>
+</div>
 `;
 
 exports[`components/AtMention should match snapshot when mentioning all with mixed case 1`] = `
-<Fragment>
+<div>
   (at)-aLL
-</Fragment>
+</div>
 `;
 
 exports[`components/AtMention should match snapshot when mentioning current user 1`] = `
-<Fragment>
-  <ProfilePopoverController
-    returnFocus={[Function]}
-    src="/api/v4/users/abc1/image"
-    triggerComponentAs="button"
-    triggerComponentClass="style--none mention--highlight"
-    userId="abc1"
+<div>
+  <button
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    class="style--none mention--highlight"
   >
     <span
-      className="mention-link"
+      class="mention-link"
     >
       @First Last
     </span>
-  </ProfilePopoverController>
-</Fragment>
+  </button>
+</div>
 `;
 
 exports[`components/AtMention should match snapshot when mentioning user 1`] = `
-<Fragment>
-  <ProfilePopoverController
-    returnFocus={[Function]}
-    src="/api/v4/users/abc2/image"
-    triggerComponentAs="button"
-    triggerComponentClass="style--none"
-    userId="abc2"
+<div>
+  <button
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    class="style--none"
   >
     <span
-      className="mention-link"
+      class="mention-link"
     >
       @Nick
     </span>
-  </ProfilePopoverController>
-</Fragment>
+  </button>
+</div>
 `;
 
 exports[`components/AtMention should match snapshot when mentioning user containing and followed by punctuation 1`] = `
-<Fragment>
-  <ProfilePopoverController
-    returnFocus={[Function]}
-    src="/api/v4/users/abc3/image"
-    triggerComponentAs="button"
-    triggerComponentClass="style--none"
-    userId="abc3"
+<div>
+  <button
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    class="style--none"
   >
     <span
-      className="mention-link"
+      class="mention-link"
     >
       @Dot Matrix
     </span>
-  </ProfilePopoverController>
+  </button>
   .
-</Fragment>
+</div>
 `;
 
 exports[`components/AtMention should match snapshot when mentioning user containing punctuation 1`] = `
-<Fragment>
-  <ProfilePopoverController
-    returnFocus={[Function]}
-    src="/api/v4/users/abc3/image"
-    triggerComponentAs="button"
-    triggerComponentClass="style--none"
-    userId="abc3"
+<div>
+  <button
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    class="style--none"
   >
     <span
-      className="mention-link"
+      class="mention-link"
     >
       @Dot Matrix
     </span>
-  </ProfilePopoverController>
-</Fragment>
+  </button>
+</div>
 `;
 
 exports[`components/AtMention should match snapshot when mentioning user followed by punctuation 1`] = `
-<Fragment>
-  <ProfilePopoverController
-    returnFocus={[Function]}
-    src="/api/v4/users/abc2/image"
-    triggerComponentAs="button"
-    triggerComponentClass="style--none"
-    userId="abc2"
+<div>
+  <button
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    class="style--none"
   >
     <span
-      className="mention-link"
+      class="mention-link"
     >
       @Nick
     </span>
-  </ProfilePopoverController>
+  </button>
   ...
-</Fragment>
+</div>
 `;
 
 exports[`components/AtMention should match snapshot when mentioning user with different teammate name display setting 1`] = `
-<Fragment>
-  <ProfilePopoverController
-    returnFocus={[Function]}
-    src="/api/v4/users/abc2/image"
-    triggerComponentAs="button"
-    triggerComponentClass="style--none"
-    userId="abc2"
+<div>
+  <button
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    class="style--none"
   >
     <span
-      className="mention-link"
+      class="mention-link"
     >
       @user1
     </span>
-  </ProfilePopoverController>
-</Fragment>
+  </button>
+</div>
 `;
 
 exports[`components/AtMention should match snapshot when mentioning user with mixed case 1`] = `
-<Fragment>
-  <ProfilePopoverController
-    returnFocus={[Function]}
-    src="/api/v4/users/abc2/image"
-    triggerComponentAs="button"
-    triggerComponentClass="style--none"
-    userId="abc2"
+<div>
+  <button
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    class="style--none"
   >
     <span
-      className="mention-link"
+      class="mention-link"
     >
       @Nick
     </span>
-  </ProfilePopoverController>
-</Fragment>
+  </button>
+</div>
 `;
 
 exports[`components/AtMention should match snapshot when not mentioning a user 1`] = `
-<Fragment>
+<div>
   (at)-notauser
-</Fragment>
+</div>
 `;
 
 exports[`components/AtMention should match snapshot when not mentioning a user with mixed case 1`] = `
-<Fragment>
+<div>
   (at)-NOTAuser
-</Fragment>
+</div>
 `;

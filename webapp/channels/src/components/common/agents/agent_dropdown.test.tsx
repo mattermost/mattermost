@@ -41,10 +41,6 @@ describe('AgentDropdown', () => {
         defaultBotId: 'bot1',
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should render with selected bot name', () => {
         renderWithContext(<AgentDropdown {...defaultProps}/>);
 

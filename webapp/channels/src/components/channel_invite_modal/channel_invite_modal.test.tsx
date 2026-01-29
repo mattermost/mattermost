@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, screen, waitFor} from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import {GenericModal} from '@mattermost/components';
@@ -17,7 +15,7 @@ import ChannelInviteModal from 'components/channel_invite_modal/channel_invite_m
 import type {Value} from 'components/multiselect/multiselect';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
-import {act, renderWithContext} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 type UserProfileValue = Value & UserProfile;
 
@@ -430,9 +428,8 @@ describe('components/channel_invite_modal', () => {
         const input = screen.getByRole('combobox', {name: /search for people/i});
 
         // Directly trigger the change event with a value that has spaces
-        act(() => {
-            fireEvent.change(input, {target: {value: ' something '}});
-        });
+        await userEvent.clear(input);
+        await userEvent.type(input, ' something ');
 
         // Verify the search was called with the trimmed term
         await waitFor(() => {

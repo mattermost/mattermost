@@ -4,18 +4,15 @@
 import React, {useState, useRef, useEffect} from 'react';
 import {FormattedMessage, defineMessages, injectIntl, type WrappedComponentProps} from 'react-intl';
 
-import {ArchiveOutlineIcon, GlobeIcon, LockOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
-
-import {isPrivateChannel} from 'mattermost-redux/utils/channel_utils';
 
 import MagnifyingGlassSVG from 'components/common/svg_images_components/magnifying_glass_svg';
 import LoadingScreen from 'components/loading_screen';
 import QuickInput from 'components/quick_input';
 
-import {isArchivedChannel} from 'utils/channel_utils';
+import {getChannelIconComponent} from 'utils/channel_utils';
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 
@@ -82,15 +79,9 @@ const SearchableSyncJobChannelList = (props: Props) => {
 
     const createChannelRow = (channel: Channel) => {
         const ariaLabel = `${channel.display_name}, ${channel.purpose}`.toLowerCase();
-        let channelTypeIcon;
 
-        if (isArchivedChannel(channel)) {
-            channelTypeIcon = <ArchiveOutlineIcon size={18}/>;
-        } else if (isPrivateChannel(channel)) {
-            channelTypeIcon = <LockOutlineIcon size={18}/>;
-        } else {
-            channelTypeIcon = <GlobeIcon size={18}/>;
-        }
+        const ChannelIcon = getChannelIconComponent(channel);
+        const channelTypeIcon = <ChannelIcon size={18}/>;
 
         const team = props.teams[channel.team_id];
 

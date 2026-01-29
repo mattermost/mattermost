@@ -645,7 +645,7 @@ func TestGetContentReviewChannels(t *testing.T) {
 
 		require.Nil(t, appErr)
 
-		_, appErr = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, model.TeamAdminRoleId)
+		_, appErr = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, model.TeamUserRoleId+" "+model.TeamAdminRoleId)
 		require.Nil(t, appErr)
 
 		contentReviewBot, appErr := th.App.getContentReviewBot(th.Context)
@@ -844,7 +844,7 @@ func TestGetReviewersForTeam(t *testing.T) {
 		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, teamAdmin.Id, "")
 		require.Nil(t, appErr)
 
-		_, appErr = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, model.TeamAdminRoleId)
+		_, appErr = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, model.TeamUserRoleId+" "+model.TeamAdminRoleId)
 		require.Nil(t, appErr)
 
 		reviewers, appErr := th.App.getReviewersForTeam(th.BasicTeam.Id, true)
@@ -1424,7 +1424,7 @@ func TestSearchReviewers(t *testing.T) {
 		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, teamAdmin.Id, "")
 		require.Nil(t, appErr)
 
-		_, appErr = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, model.TeamAdminRoleId)
+		_, appErr = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, model.TeamUserRoleId+" "+model.TeamAdminRoleId)
 		require.Nil(t, appErr)
 
 		// Search for team admin
@@ -1461,7 +1461,7 @@ func TestSearchReviewers(t *testing.T) {
 		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, teamAdmin.Id, "")
 		require.Nil(t, appErr)
 
-		_, appErr = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, model.TeamAdminRoleId)
+		_, appErr = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, model.TeamUserRoleId+" "+model.TeamAdminRoleId)
 		require.Nil(t, appErr)
 
 		// Search with empty term should return all reviewers
@@ -2446,7 +2446,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 
 		// Update post to include file IDs
 		post.FileIds = []string{fileInfo1.Id, fileInfo2.Id}
-		_, appErr := th.App.UpdatePost(th.Context, post, &model.UpdatePostOptions{})
+		_, _, appErr := th.App.UpdatePost(th.Context, post, &model.UpdatePostOptions{})
 		require.Nil(t, appErr)
 
 		// Flag the post
@@ -2487,7 +2487,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		editedPost.Message = "Edited message"
 		editedPost.EditAt = model.GetMillis()
 
-		_, appErr := th.App.UpdatePost(th.Context, editedPost, &model.UpdatePostOptions{})
+		_, _, appErr := th.App.UpdatePost(th.Context, editedPost, &model.UpdatePostOptions{})
 		require.Nil(t, appErr)
 
 		// Flag the post
