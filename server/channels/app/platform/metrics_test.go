@@ -89,3 +89,8 @@ func TestMetricsRouter(t *testing.T) {
 		})
 	}
 }
+
+// NOTE: Integration tests for HandleMetrics with plugin ServeMetrics hooks
+// are located in server/server/channels/app/plugin_hooks_test.go
+// Testing plugin hooks at the platform level requires complex mocking of plugin.Environment
+// which is better suited for integration tests in the app package
