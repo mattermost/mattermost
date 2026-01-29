@@ -1692,10 +1692,6 @@ func (a *App) DeletePost(rctx request.CTX, postID, deleteByID string) (*model.Po
 		return nil, model.NewAppError("DeletePost", "app.post.get.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	if post.Type == model.PostTypeBurnOnRead {
-		return nil, a.PermanentDeletePost(rctx, postID, deleteByID)
-	}
-
 	channel, appErr := a.GetChannel(rctx, post.ChannelId)
 	if appErr != nil {
 		return nil, appErr
@@ -3449,6 +3445,15 @@ func (a *App) enrichPostWithExpirationMetadata(post *model.Post, expireAt int64)
 func (a *App) getBurnOnReadPost(rctx request.CTX, post *model.Post) (*model.Post, *model.AppError) {
 	tmpPost, err := a.Srv().Store().TemporaryPost().Get(rctx, post.Id)
 	if err != nil {
+		// This condition is to handle deleted BoR posts for author.
+		// Since all read receipts for the BoR posts - including author's, is deleted
+		// when a BoR posts gets burned, the case of missing receipt for author becomes
+		// possible and expected.
+		// In this case, we simply don't modify the post and return it as it is.
+		if store.IsErrNotFound(err) {
+			return post, nil
+		}
+
 		return nil, model.NewAppError("getBurnOnReadPost", "app.post.get_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	clone := post.Clone()
@@ -3546,7 +3551,7 @@ func (a *App) BurnPost(rctx request.CTX, post *model.Post, userID string, connec
 
 	// If user is the author, permanently delete the post
 	if post.UserId == userID {
-		return a.PermanentDeletePost(rctx, post.Id, userID)
+		return a.PermanentDeletePostDataRetainStub(rctx, post, userID)
 	}
 
 	// If not the author, check read receipt
