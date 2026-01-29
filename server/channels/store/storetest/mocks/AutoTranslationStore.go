@@ -237,34 +237,6 @@ func (_m *AutoTranslationStore) InvalidateUserLocaleCache(userID string) {
 	_m.Called(userID)
 }
 
-// IsChannelEnabled provides a mock function with given fields: channelID
-func (_m *AutoTranslationStore) IsChannelEnabled(channelID string) (bool, error) {
-	ret := _m.Called(channelID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for IsChannelEnabled")
-	}
-
-	var r0 bool
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string) (bool, error)); ok {
-		return rf(channelID)
-	}
-	if rf, ok := ret.Get(0).(func(string) bool); ok {
-		r0 = rf(channelID)
-	} else {
-		r0 = ret.Get(0).(bool)
-	}
-
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(channelID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // IsUserEnabled provides a mock function with given fields: userID, channelID
 func (_m *AutoTranslationStore) IsUserEnabled(userID string, channelID string) (bool, error) {
 	ret := _m.Called(userID, channelID)
@@ -304,24 +276,6 @@ func (_m *AutoTranslationStore) Save(translation *model.Translation) error {
 	var r0 error
 	if rf, ok := ret.Get(0).(func(*model.Translation) error); ok {
 		r0 = rf(translation)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// SetChannelEnabled provides a mock function with given fields: channelID, enabled
-func (_m *AutoTranslationStore) SetChannelEnabled(channelID string, enabled bool) error {
-	ret := _m.Called(channelID, enabled)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SetChannelEnabled")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, bool) error); ok {
-		r0 = rf(channelID, enabled)
 	} else {
 		r0 = ret.Error(0)
 	}

@@ -238,6 +238,10 @@ export type ClientConfig = {
     EnableAttributeBasedAccessControl: string;
     EnableChannelScopeAccessControl: string;
     EnableUserManagedAttributes: string;
+
+    // Auto Translation Settings
+    EnableAutoTranslation: string;
+    RestrictDMAndGMAutotranslation: string;
 };
 
 export type License = {
@@ -769,6 +773,7 @@ export type AutoTranslationSettings = {
         Long: number;
         Notification: number;
     };
+    RestrictDMAndGM: boolean;
 };
 
 export type SamlSettings = {
