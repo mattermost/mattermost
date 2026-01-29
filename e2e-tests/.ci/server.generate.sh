@@ -17,7 +17,7 @@ enable_docker_service() {
 
 assert_docker_services_validity() {
   local SERVICES_TO_CHECK="$*"
-  local SERVICES_VALID="postgres minio inbucket openldap elasticsearch opensearch redis keycloak cypress webhook-interactions playwright"
+  local SERVICES_VALID="postgres minio inbucket openldap elasticsearch opensearch redis keycloak cypress webhook-interactions"
   local SERVICES_REQUIRED="postgres inbucket"
   for SERVICE_NAME in $SERVICES_TO_CHECK; do
     if ! mme2e_is_token_in_list "$SERVICE_NAME" "$SERVICES_VALID"; then
@@ -72,7 +72,7 @@ services:
 $(for service in $ENABLED_DOCKER_SERVICES; do
     # The server container will start only if all other dependent services are healthy
     # Skip creating the dependency for containers that don't need a healthcheck
-    if grep -qE "^(cypress|webhook-interactions|playwright)" <<<"$service"; then
+    if grep -qE "^(cypress|webhook-interactions)" <<<"$service"; then
       continue
     fi
     echo "      $service:"
@@ -275,48 +275,6 @@ $(if mme2e_is_token_in_list "webhook-interactions" "$ENABLED_DOCKER_SERVICES"; t
       - "../../e2e-tests/cypress/:/cypress:ro"'
   fi)
 
-$(if mme2e_is_token_in_list "playwright" "$ENABLED_DOCKER_SERVICES"; then
-    # shellcheck disable=SC2016
-    echo '
-  playwright:
-    image: mcr.microsoft.com/playwright:v1.57.0-noble
-    entrypoint: ["/bin/bash", "-c"]
-    command:
-      - |
-        # Install Node.js based on .nvmrc
-        NODE_VERSION=$$(cat /mattermost/.nvmrc)
-        echo "Installing Node.js $${NODE_VERSION}..."
-        curl -fsSL https://deb.nodesource.com/setup_$${NODE_VERSION%%.*}.x | bash -
-        apt-get install -y nodejs
-        echo "Node.js version: $$(node --version)"
-        # Wait for termination signal
-        until [ -f /var/run/mm_terminate ]; do sleep 5; done
-    env_file:
-      - "./.env.playwright"
-    environment:
-      CI: "true"
-      PLAYWRIGHT_SKIP_BROWSER_GC: 1
-      PW_BASE_URL: http://localhost:8065
-      PW_ADMIN_USERNAME: sysadmin
-      PW_ADMIN_PASSWORD: Sys@dmin-sample1
-      PW_ADMIN_EMAIL: sysadmin@sample.mattermost.com
-      PW_ENSURE_PLUGINS_INSTALLED: ""
-      PW_HA_CLUSTER_ENABLED: "false"
-      PW_RESET_BEFORE_TEST: "false"
-      PW_HEADLESS: "true"
-      PW_SLOWMO: 0
-      PW_WORKERS: 1
-      PW_SNAPSHOT_ENABLE: "false"
-      PW_PERCY_ENABLE: "false"
-    ulimits:
-      nofile:
-        soft: 8096
-        hard: 1048576
-    working_dir: /mattermost
-    network_mode: host
-    volumes:
-      - "../../:/mattermost"'
-  fi)
 EOL
 
   mme2e_log "docker-compose file generated."
@@ -413,13 +371,6 @@ generate_env_files() {
       cat >>.env.cypress <.env.dashboard
     fi
     ;;
-  playwright)
-    mme2e_log "Playwright: Generating .env.playwright"
-    mme2e_generate_envfile_from_var_names >.env.playwright <<-EOF
-	BRANCH
-	BUILD_ID
-	EOF
-    ;;
   none)
     mme2e_log "Requested TEST=$TEST. Skipping generation of test-specific env files."
     ;;
@@ -441,9 +392,6 @@ case $TEST in
 cypress)
   enable_docker_service cypress
   enable_docker_service webhook-interactions
-  ;;
-playwright)
-  enable_docker_service playwright
   ;;
 esac
 
