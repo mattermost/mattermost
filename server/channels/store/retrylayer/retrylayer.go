@@ -8783,6 +8783,27 @@ func (s *RetryLayerPostStore) PermanentDelete(rctx request.CTX, postID string) e
 
 }
 
+func (s *RetryLayerPostStore) PermanentDeleteAssociatedData(postIds []string) error {
+
+	tries := 0
+	for {
+		err := s.PostStore.PermanentDeleteAssociatedData(postIds)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 
 	tries := 0

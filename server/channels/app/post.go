@@ -1692,10 +1692,6 @@ func (a *App) DeletePost(rctx request.CTX, postID, deleteByID string) (*model.Po
 		return nil, model.NewAppError("DeletePost", "app.post.get.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	if post.Type == model.PostTypeBurnOnRead {
-		return nil, a.PermanentDeletePost(rctx, postID, deleteByID)
-	}
-
 	channel, appErr := a.GetChannel(rctx, post.ChannelId)
 	if appErr != nil {
 		return nil, appErr
@@ -2190,7 +2186,7 @@ func (a *App) countThreadMentions(rctx request.CTX, user *model.User, post *mode
 		user,
 		map[string]string{},
 		&model.Status{Status: model.StatusOnline}, // Assume the user is online since they would've triggered this
-		true, // Assume channel mentions are always allowed for simplicity
+		true,                                      // Assume channel mentions are always allowed for simplicity
 	)
 
 	posts, nErr := a.Srv().Store().Post().GetPostsByThread(post.Id, timestamp)
@@ -2275,7 +2271,7 @@ func (a *App) countMentionsFromPost(rctx request.CTX, user *model.User, post *mo
 		user,
 		members[user.Id],
 		&model.Status{Status: model.StatusOnline}, // Assume the user is online since they would've triggered this
-		true, // Assume channel mentions are always allowed for simplicity
+		true,                                      // Assume channel mentions are always allowed for simplicity
 	)
 	commentMentions := user.NotifyProps[model.CommentsNotifyProp]
 	checkForCommentMentions := commentMentions == model.CommentsNotifyRoot || commentMentions == model.CommentsNotifyAny
@@ -3546,7 +3542,7 @@ func (a *App) BurnPost(rctx request.CTX, post *model.Post, userID string, connec
 
 	// If user is the author, permanently delete the post
 	if post.UserId == userID {
-		return a.PermanentDeletePost(rctx, post.Id, userID)
+		return a.PermanentDeletePostDataRetainStub(rctx, post, userID)
 	}
 
 	// If not the author, check read receipt

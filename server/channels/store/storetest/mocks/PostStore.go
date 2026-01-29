@@ -1137,6 +1137,24 @@ func (_m *PostStore) PermanentDelete(rctx request.CTX, postID string) error {
 	return r0
 }
 
+// PermanentDeleteAssociatedData provides a mock function with given fields: postIds
+func (_m *PostStore) PermanentDeleteAssociatedData(postIds []string) error {
+	ret := _m.Called(postIds)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PermanentDeleteAssociatedData")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func([]string) error); ok {
+		r0 = rf(postIds)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // PermanentDeleteBatch provides a mock function with given fields: endTime, limit
 func (_m *PostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	ret := _m.Called(endTime, limit)
