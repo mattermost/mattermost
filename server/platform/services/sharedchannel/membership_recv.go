@@ -77,6 +77,18 @@ func (scs *Service) onReceiveMembershipChanges(syncMsg *model.SyncMsg, rc *model
 	var successCount, skipCount, failCount int
 
 	for _, change := range syncMsg.MembershipChanges {
+		// Validate that change.ChannelId matches the validated syncMsg.ChannelId
+		if change.ChannelId != syncMsg.ChannelId {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Membership change channel_id mismatch",
+				mlog.String("sync_msg_channel_id", syncMsg.ChannelId),
+				mlog.String("change_channel_id", change.ChannelId),
+				mlog.String("user_id", change.UserId),
+				mlog.String("remote_id", rc.RemoteId),
+			)
+			failCount++
+			continue
+		}
+
 		// Check for conflicts
 		shouldSkip, _ := scs.checkMembershipConflict(change.UserId, change.ChannelId, change.ChangeTime)
 		if shouldSkip {
@@ -99,7 +111,7 @@ func (scs *Service) onReceiveMembershipChanges(syncMsg *model.SyncMsg, rc *model
 				mlog.String("channel_id", change.ChannelId),
 				mlog.String("remote_id", rc.RemoteId),
 			)
-			processErr = scs.processMemberRemove(change, rc, maxChangeTime)
+			processErr = scs.processMemberRemove(change, channel, rc, maxChangeTime)
 		}
 
 		if processErr != nil {
@@ -175,35 +187,27 @@ func (scs *Service) processMemberAdd(change *model.MembershipChangeMsg, channel 
 }
 
 // processMemberRemove handles removing a user from a channel as part of batch processing
-func (scs *Service) processMemberRemove(change *model.MembershipChangeMsg, rc *model.RemoteCluster, maxChangeTime int64) error {
-	// Get channel so we can use app layer methods properly
-	channel, err := scs.server.GetStore().Channel().Get(change.ChannelId, true)
-	if err != nil {
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceWarn, "Cannot find channel for member removal",
-			mlog.String("channel_id", change.ChannelId),
-			mlog.String("user_id", change.UserId),
-			mlog.Err(err),
-		)
-		// Continue anyway to update sync status - the channel might be deleted
+func (scs *Service) processMemberRemove(change *model.MembershipChangeMsg, channel *model.Channel, rc *model.RemoteCluster, maxChangeTime int64) error {
+	// Use the validated channel parameter
+	if channel == nil {
+		return fmt.Errorf("cannot remove user from channel: channel is nil")
 	}
 
-	// Use the app layer's remove user method if channel still exists
-	if channel != nil {
-		rctx := request.EmptyContext(scs.server.Log())
-		// We use empty string for removerUserId to indicate system-initiated removal
-		// This also ensures we bypass permission checks intended for user-initiated removals
-		appErr := scs.app.RemoveUserFromChannel(rctx, change.UserId, "", channel)
-		if appErr != nil {
-			// Ignore "not found" errors - the user might already be removed
-			if !strings.Contains(appErr.Error(), "store.sql_channel.remove_member.missing.app_error") {
-				scs.server.Log().Log(mlog.LvlSharedChannelServiceWarn, "Error removing user from channel",
-					mlog.String("channel_id", change.ChannelId),
-					mlog.String("user_id", change.UserId),
-					mlog.Err(appErr),
-				)
-				// Continue anyway to update sync status - don't return error here
-				// to ensure sync status still gets updated
-			}
+	// Use the app layer's remove user method
+	rctx := request.EmptyContext(scs.server.Log())
+	// We use empty string for removerUserId to indicate system-initiated removal
+	// This also ensures we bypass permission checks intended for user-initiated removals
+	appErr := scs.app.RemoveUserFromChannel(rctx, change.UserId, "", channel)
+	if appErr != nil {
+		// Ignore "not found" errors - the user might already be removed
+		if !strings.Contains(appErr.Error(), "store.sql_channel.remove_member.missing.app_error") {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceWarn, "Error removing user from channel",
+				mlog.String("channel_id", change.ChannelId),
+				mlog.String("user_id", change.UserId),
+				mlog.Err(appErr),
+			)
+			// Continue anyway to update sync status - don't return error here
+			// to ensure sync status still gets updated
 		}
 	}
 
