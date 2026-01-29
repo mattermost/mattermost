@@ -42,7 +42,7 @@ func (o *IncomingWebhook) Auditable() map[string]any {
 		"display_name":   o.DisplayName,
 		"description":    o.Description,
 		"username":       o.Username,
-		"icon_url:":      o.IconURL,
+		"icon_url":      o.IconURL,
 		"channel_locked": o.ChannelLocked,
 	}
 }
