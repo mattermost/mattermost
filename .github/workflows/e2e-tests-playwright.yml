@@ -1,0 +1,128 @@
+---
+name: E2E Tests - Playwright
+on:
+  workflow_call:
+    inputs:
+      commit_sha:
+        type: string
+        required: true
+      enable_reporting:
+        type: boolean
+        required: false
+        default: false
+      server:
+        type: string
+        required: false
+        default: onprem
+      report_type:
+        type: string
+        required: false
+      pr_number:
+        type: string
+        required: false
+    secrets:
+      MM_LICENSE:
+        required: false
+      REPORT_WEBHOOK_URL:
+        required: false
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+
+jobs:
+  shell-check:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: e2e-tests
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ inputs.commit_sha }}
+          fetch-depth: 0
+      - name: ci/shell-check
+        run: make check-shell
+
+  generate-build-variables:
+    runs-on: ubuntu-24.04
+    outputs:
+      branch: "${{ steps.build-vars.outputs.branch }}"
+      build_id: "${{ steps.build-vars.outputs.build_id }}"
+      server_image: "${{ steps.build-vars.outputs.server_image }}"
+    steps:
+      - name: ci/generate-build-variables
+        id: build-vars
+        env:
+          COMMIT_SHA: ${{ inputs.commit_sha }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          SERVER_IMAGE_TAG="${COMMIT_SHA::7}"
+
+          # Generate branch name
+          if [ -n "$PR_NUMBER" ]; then
+            echo "branch=server-pr-${PR_NUMBER}" >> $GITHUB_OUTPUT
+          else
+            echo "branch=server-commit-${SERVER_IMAGE_TAG}" >> $GITHUB_OUTPUT
+          fi
+
+          # Generate build ID
+          echo "build_id=${RUN_ID}_${RUN_ATTEMPT}-${SERVER_IMAGE_TAG}-playwright-onprem-ent" >> $GITHUB_OUTPUT
+
+          # Generate server image
+          echo "server_image=mattermostdevelopment/mattermost-enterprise-edition:${SERVER_IMAGE_TAG}" >> $GITHUB_OUTPUT
+
+  playwright-smoke:
+    needs:
+      - shell-check
+      - generate-build-variables
+    uses: ./.github/workflows/e2e-tests-playwright-template.yml
+    with:
+      test_type: smoke
+      test_filter: "--grep @smoke"
+      timeout_minutes: 30
+      enabled_docker_services: "postgres inbucket"
+      commit_sha: ${{ inputs.commit_sha }}
+      branch: ${{ needs.generate-build-variables.outputs.branch }}
+      build_id: ${{ needs.generate-build-variables.outputs.build_id }}
+      server_image: ${{ needs.generate-build-variables.outputs.server_image }}
+      server: ${{ inputs.server }}
+      context_name: "E2E Tests/playwright-smoke"
+      run_playwright_check: true
+      pr_number: ${{ inputs.pr_number }}
+    secrets:
+      MM_LICENSE: ${{ secrets.MM_LICENSE }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # FULL TESTS (only if smoke passes and pr_number is provided)
+  # ════════════════════════════════════════════════════════════════════════════
+  playwright-full:
+    needs:
+      - playwright-smoke
+      - generate-build-variables
+    if: needs.playwright-smoke.outputs.smoke_passed == 'true' && inputs.pr_number != ''
+    uses: ./.github/workflows/e2e-tests-playwright-template.yml
+    with:
+      test_type: full
+      test_filter: '--grep-invert "@smoke|@visual"'
+      timeout_minutes: 120
+      enabled_docker_services: "postgres inbucket minio openldap elasticsearch keycloak"
+      commit_sha: ${{ inputs.commit_sha }}
+      branch: ${{ needs.generate-build-variables.outputs.branch }}
+      build_id: ${{ needs.generate-build-variables.outputs.build_id }}
+      server_image: ${{ needs.generate-build-variables.outputs.server_image }}
+      server: ${{ inputs.server }}
+      enable_reporting: ${{ inputs.enable_reporting }}
+      report_type: ${{ inputs.report_type }}
+      pr_number: ${{ inputs.pr_number }}
+      context_name: "E2E Tests/playwright-full"
+    secrets:
+      MM_LICENSE: ${{ secrets.MM_LICENSE }}
+      REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

@@ -14,13 +14,9 @@ cd "$(dirname "$0")"
 : ${WEBHOOK_URL:-}      # Optional. Mattermost webhook to post the report back to
 : ${RELEASE_DATE:-}     # Optional. If set, its value will be included in the report as the release date of the tested artifact
 if [ "$TYPE" = "PR" ]; then
-  # In this case, we expect the PR number to be present in the BRANCH variable
-  BRANCH_REGEX='^server-pr-[0-9]+$'
-  if ! grep -qE "${BRANCH_REGEX}" <<<"$BRANCH"; then
-    mme2e_log "Error: when using TYPE=PR, the BRANCH variable should respect regex '$BRANCH_REGEX'. Aborting." >&2
-    exit 1
-  fi
-  export PULL_REQUEST="https://github.com/mattermost/mattermost/pull/${BRANCH##*-}"
+  # PR_NUMBER must be provided as an environment variable
+  : ${PR_NUMBER:?PR_NUMBER is required when TYPE=PR}
+  export PULL_REQUEST="https://github.com/mattermost/mattermost/pull/${PR_NUMBER}"
 fi
 
 # Env vars used during the test. Their values will be included in the report
