@@ -296,8 +296,8 @@ func TestPropertyField_IsValid(t *testing.T) {
 			require.NoError(t, pf.IsValid())
 		})
 
-		t.Run("non-protected field with any field permission is valid", func(t *testing.T) {
-			for _, level := range []PermissionLevel{PermissionLevelNone, PermissionLevelAdmin, PermissionLevelMember} {
+		t.Run("non-protected field with admin or member field permission is valid", func(t *testing.T) {
+			for _, level := range []PermissionLevel{PermissionLevelAdmin, PermissionLevelMember} {
 				pf := baseField()
 				pf.Protected = false
 				pf.Permissions = &PropertyFieldPermissions{
@@ -307,6 +307,17 @@ func TestPropertyField_IsValid(t *testing.T) {
 				}
 				require.NoError(t, pf.IsValid(), "should be valid with field permission %s", level)
 			}
+		})
+
+		t.Run("non-protected field with field=none is invalid", func(t *testing.T) {
+			pf := baseField()
+			pf.Protected = false
+			pf.Permissions = &PropertyFieldPermissions{
+				Field:   PermissionLevelNone,
+				Values:  PermissionLevelMember,
+				Options: PermissionLevelMember,
+			}
+			require.Error(t, pf.IsValid())
 		})
 
 		t.Run("protected field with field=none is valid", func(t *testing.T) {

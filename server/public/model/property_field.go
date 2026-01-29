@@ -198,6 +198,11 @@ func (pf *PropertyField) IsValid() error {
 		}
 	}
 
+	// Cross-validation: non-protected fields cannot have field permission set to "none"
+	if !pf.Protected && pf.Permissions != nil && pf.Permissions.Field == PermissionLevelNone {
+		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permissions.field", "Reason": "non-protected fields cannot have field permission set to none"}, "id="+pf.ID, http.StatusBadRequest)
+	}
+
 	return nil
 }
 
