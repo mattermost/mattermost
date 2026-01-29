@@ -21,11 +21,10 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('react-intl', () => ({
+    ...jest.requireActual('react-intl'),
     useIntl: () => ({
         formatMessage: ({defaultMessage}: {defaultMessage: string}) => defaultMessage,
     }),
-    defineMessages: (messages: Record<string, unknown>) => messages,
-    defineMessage: (message: Record<string, unknown>) => message,
 }));
 
 jest.mock('actions/pages');
