@@ -196,6 +196,15 @@ export type DialogElement = {
         value: any;
     }>;
     refresh?: boolean;
+
+    // Date/datetime configuration
+    datetime_config?: {
+        time_interval?: number;
+        location_timezone?: string;
+        allow_manual_time_entry?: boolean;
+    };
+
+    // Simple date/datetime configuration (fallback when datetime_config not provided)
     min_date?: string;
     max_date?: string;
     time_interval?: number;
