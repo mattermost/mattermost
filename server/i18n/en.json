@@ -456,6 +456,10 @@
     "translation": "Cannot add a permission that is restricted by the team or system permission scheme."
   },
   {
+    "id": "api.channel.patch_update_channel.auto_translation_not_allowed.app_error",
+    "translation": "Auto translation feature is not available."
+  },
+  {
     "id": "api.channel.patch_update_channel.forbidden.app_error",
     "translation": "Failed to update the channel."
   },
@@ -470,6 +474,22 @@
   {
     "id": "api.channel.post_channel_privacy_message.error",
     "translation": "Failed to post channel privacy update message."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.create_post.error",
+    "translation": "Failed to post Auto-translation update message."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.disabled",
+    "translation": "@%s disabled Auto-translation for this channel. All new messages will appear in the original language."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.enabled",
+    "translation": "@%s enabled Auto-translation for this channel. All new messages will appear in your preferred language."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.retrieve_user.error",
+    "translation": "Failed to retrieve user while updating Auto-translation status"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",

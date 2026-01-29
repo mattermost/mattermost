@@ -37,6 +37,7 @@ import {DelayedDataLoader} from 'mattermost-redux/utils/data_loader';
 import {addChannelToInitialCategory, addChannelToCategory} from './channel_categories';
 import {logError} from './errors';
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
+import {resetReloadPostsInChannel} from './posts';
 import {savePreferences} from './preferences';
 import {loadRolesIfNeeded} from './roles';
 import {getMissingProfilesByIds} from './users';
@@ -260,6 +261,37 @@ export function patchChannel(channelId: string, patch: Partial<Channel>): Action
         onSuccess: [ChannelTypes.RECEIVED_CHANNEL],
         params: [channelId, patch],
     });
+}
+
+export function setMyChannelAutotranslation(channelId: string, enabled: boolean): ActionFuncAsync<boolean> {
+    return async (dispatch, getState) => {
+        const state = getState();
+        const myChannelMember = getMyChannelMemberSelector(state, channelId);
+        const wasEnabled = myChannelMember?.autotranslation;
+
+        try {
+            await Client4.setMyChannelAutotranslation(channelId, enabled);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {data: undefined, error};
+        }
+
+        dispatch({
+            type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBER,
+            data: {
+                ...myChannelMember,
+                autotranslation: enabled,
+            },
+        });
+
+        // If autotranslation changed, delete posts for this channel
+        if (wasEnabled !== enabled) {
+            await dispatch(resetReloadPostsInChannel(channelId));
+        }
+
+        return {data: true, error: undefined};
+    };
 }
 
 export function updateChannelPrivacy(channelId: string, privacy: string): ActionFuncAsync<Channel> {
