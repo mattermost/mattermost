@@ -18,7 +18,7 @@ jobs:
       SENTRY_PROJECT: ${{ secrets.MM_SERVER_SENTRY_PROJECT }}
     steps:
       - name: cd/Checkout mattermost project
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       - name: cd/Create Sentry release
-        uses: getsentry/action-release@00ed2a6cc2171514e031a0f5b4b3cdc586dc171a # v3.1.1
+        uses: getsentry/action-release@dab6548b3c03c4717878099e43782cf5be654289 # v3.5.0
 

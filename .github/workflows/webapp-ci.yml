@@ -23,7 +23,7 @@ jobs:
         working-directory: webapp
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       - name: ci/setup
         uses: ./.github/actions/webapp-setup
       - name: ci/lint
@@ -38,7 +38,7 @@ jobs:
         working-directory: webapp
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       - name: ci/setup
         uses: ./.github/actions/webapp-setup
       - name: ci/i18n-extract
@@ -54,7 +54,7 @@ jobs:
         working-directory: webapp
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       - name: ci/setup
         uses: ./.github/actions/webapp-setup
       - name: ci/lint
@@ -74,7 +74,7 @@ jobs:
         working-directory: webapp
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       - name: ci/setup
         uses: ./.github/actions/webapp-setup
       - name: ci/test
@@ -83,7 +83,7 @@ jobs:
         run: |
           npm run test-ci --workspace=platform/client --workspace=platform/components -- --coverage
       - name: ci/upload-coverage-artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: coverage-platform
           path: |
@@ -104,7 +104,7 @@ jobs:
         working-directory: webapp/channels
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       - name: ci/setup
         uses: ./.github/actions/webapp-setup
       - name: ci/test
@@ -113,7 +113,7 @@ jobs:
         run: |
           npm run test-ci -- --config jest.config.mattermost-redux.js
       - name: ci/upload-coverage-artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: coverage-mattermost-redux
           path: ./webapp/channels/coverage
@@ -136,7 +136,7 @@ jobs:
         working-directory: webapp/channels
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       - name: ci/setup
         uses: ./.github/actions/webapp-setup
       - name: ci/test
@@ -145,7 +145,7 @@ jobs:
         run: |
           npm run test-ci -- --config jest.config.channels.js --coverageDirectory=coverage/shard-${{ matrix.shard }} --shard=${{ matrix.shard }}/4
       - name: ci/upload-coverage-artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: coverage-channels-shard-${{ matrix.shard }}
           path: ./webapp/channels/coverage/shard-${{ matrix.shard }}
@@ -160,11 +160,11 @@ jobs:
         working-directory: webapp/channels
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       - name: ci/setup
         uses: ./.github/actions/webapp-setup
       - name: ci/download-coverage-artifacts
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           pattern: coverage-*
           path: webapp/channels/coverage-artifacts
@@ -215,7 +215,7 @@ jobs:
         working-directory: webapp
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       - name: ci/setup
         uses: ./.github/actions/webapp-setup
       - name: ci/build
