@@ -1643,3 +1643,37 @@ func TestCheckThreadsTeamsIntegrity(t *testing.T) {
 		})
 	})
 }
+
+func TestValidateDMChannelPattern(t *testing.T) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
+		store := ss.(*SqlStore)
+		dbmap := store.GetMaster()
+
+		t.Run("should generate a report with no records", func(t *testing.T) {
+			result := validateDMChannelPattern(store)
+
+			data := result[0].Data.(model.RelationalIntegrityCheckData)
+			require.NoError(t, result[0].Err)
+			require.Empty(t, data.Records)
+
+			names := result[1].Data.(model.NameIntegrityCheckData)
+			require.NoError(t, result[1].Err)
+			require.Empty(t, names.Names)
+		})
+
+		t.Run("should generate a report with one record", func(t *testing.T) {
+			dbmap.Exec(`INSERT INTO Channels (Id, Name, Type) VALUES ('fakeid', 'invalid__invalid', 'D');`)
+			result := validateDMChannelPattern(store)
+
+			dataRecords := result[0].Data.(model.RelationalIntegrityCheckData)
+			require.NoError(t, result[0].Err)
+			require.Len(t, dataRecords.Records, 1)
+
+			dataNames := result[1].Data.(model.NameIntegrityCheckData)
+			require.NoError(t, result[1].Err)
+			require.Len(t, dataNames.Names, 1)
+
+			dbmap.Exec(`DELETE FROM Channels Where Id = 'fakeid';`)
+		})
+	})
+}
