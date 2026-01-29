@@ -4273,7 +4273,7 @@
   },
   {
     "id": "api.channel.delete_channel.cannot.app_error",
-    "translation": "Privzetega kanala ni mogoče izbrisati {{.Channel}}"
+    "translation": "Privzetega kanala ni mogoče izbrisati {{.Channel}}."
   },
   {
     "id": "api.channel.delete_channel.archived",

@@ -85,7 +85,6 @@ describe('useRewrite', () => {
     };
 
     beforeEach(() => {
-        jest.clearAllMocks();
         MockedRewriteMenu.mockClear();
         document.body.innerHTML = '';
         try {

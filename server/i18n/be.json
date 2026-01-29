@@ -8556,10 +8556,6 @@
     "translation": "Паслуга даступная толькі ў выданні Mattermost Enterprise"
   },
   {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "Серверу CWS не ўдалося падпісацца на рассылку навін."
-  },
-  {
     "id": "api.system.logs.invalidFilter",
     "translation": "Няправільны фільтр часопіса"
   },

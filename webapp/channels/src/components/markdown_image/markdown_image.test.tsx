@@ -1,12 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
-import FilePreviewModal from 'components/file_preview_modal';
-import SizeAwareImage from 'components/size_aware_image';
-
+import {fireEvent, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 
 import MarkdownImage from './markdown_image';
@@ -36,221 +33,247 @@ describe('components/MarkdownImage', () => {
 
     test('should match snapshot', () => {
         const props = {...baseProps, src: '/images/logo.png'};
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <MarkdownImage {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot for broken link', () => {
-        const props = {...baseProps,
+        const props = {
+            ...baseProps,
             imageMetadata: {
                 format: 'png',
                 height: 10,
                 width: 10,
                 frameCount: 0,
             },
-            src: 'brokenLink'};
-        const wrapper = shallow(
+            src: 'brokenLink',
+        };
+        const {container} = renderWithContext(
             <MarkdownImage {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should handle load failure properly', () => {
-        const props = {...baseProps,
+        const props = {
+            ...baseProps,
             imageMetadata: {
                 format: 'png',
                 height: 10,
                 width: 10,
                 frameCount: 0,
-
             },
-            src: 'brokenLink'};
-        const wrapper = shallow(
+            src: 'brokenLink',
+        };
+        const {container} = renderWithContext(
             <MarkdownImage {...props}/>,
         );
 
-        expect(wrapper.state('loadFailed')).toBe(false);
+        const img = container.querySelector('img');
+        expect(img).toBeInTheDocument();
+        expect(img).not.toHaveClass('broken-image');
 
-        (wrapper.instance() as MarkdownImage).handleLoadFail();
+        // Simulate image error event - fireEvent used because userEvent doesn't support image loading events
+        fireEvent.error(img!);
 
-        expect(wrapper.state('loadFailed')).toBe(true);
+        // After load failure, image should have broken-image class
+        expect(container.querySelector('img')).toHaveClass('broken-image');
     });
 
     test('should reset loadFailed state after image source is updated', () => {
-        const props = {...baseProps,
+        const props = {
+            ...baseProps,
             imageMetadata: {
                 format: 'png',
                 height: 10,
                 width: 10,
                 frameCount: 0,
-
             },
-            src: 'brokenLink'};
-        const nextProps = {...baseProps, src: 'https://example.com/image.png'};
-        const wrapper = shallow(
+            src: 'brokenLink',
+        };
+        const {container, rerender} = renderWithContext(
             <MarkdownImage {...props}/>,
         );
 
-        wrapper.instance().setState({loadFailed: true});
+        const img = container.querySelector('img');
 
-        wrapper.setProps(nextProps);
+        fireEvent.error(img!);
+        expect(container.querySelector('img')).toHaveClass('broken-image');
 
-        expect(wrapper.state('loadFailed')).toBe(false);
+        // Update with new source
+        const nextProps = {...baseProps, src: 'https://example.com/image.png'};
+        rerender(<MarkdownImage {...nextProps}/>);
+
+        // After source update, broken-image class should be removed
+        expect(container.querySelector('img')).not.toHaveClass('broken-image');
     });
 
     test('should render a link if the source is unsafe', () => {
         const props = {...baseProps, src: ''};
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <MarkdownImage {...props}/>,
         );
-        expect(wrapper.find('img').props().alt).toBe(props.alt);
-        expect(wrapper.find('img').props().className).toBe(props.className + ' broken-image');
-        expect(wrapper).toMatchSnapshot();
+        const img = container.querySelector('img');
+        expect(img).toHaveAttribute('alt', props.alt);
+        expect(img).toHaveClass('broken-image');
+        expect(container).toMatchSnapshot();
     });
 
     test('should handle not loaded state properly', () => {
         const props = {...baseProps, src: 'https://example.com/image.png'};
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <MarkdownImage {...props}/>,
         );
 
-        expect(wrapper.state('loaded')).toBe(false);
-
-        const childrenNode = wrapper.props().children(props.src);
-
-        // using a div as a workaround because shallow doesn't support react fragments
-        const childrenWrapper = shallow(<div>{childrenNode}</div>);
-
-        expect(childrenWrapper.find(SizeAwareImage)).toHaveLength(1);
-        expect(childrenWrapper.find(SizeAwareImage).prop('className')).
-            toEqual(`${props.className} markdown-inline-img--loading`);
+        // Initially image should have loading class
+        const img = container.querySelector('img');
+        expect(img).toHaveClass('markdown-inline-img--loading');
     });
 
     test('should handle not loaded state properly in case of a header change system message', () => {
         const props = {...baseProps, src: 'https://example.com/image.png', postType: 'system_header_change'};
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <MarkdownImage {...props}/>,
         );
 
-        expect(wrapper.state('loaded')).toBe(false);
-
-        const childrenNode = wrapper.props().children(props.src);
-
-        // using a div as a workaround because shallow doesn't support react fragments
-        const childrenWrapper = shallow(<div>{childrenNode}</div>);
-
-        expect(childrenWrapper.find(SizeAwareImage)).toHaveLength(1);
-        expect(childrenWrapper.find(SizeAwareImage).prop('className')).
-            toEqual(`${props.className} markdown-inline-img--scaled-down-loading`);
+        // For header change system message, should have scaled-down-loading class
+        const img = container.querySelector('img');
+        expect(img).toHaveClass('markdown-inline-img--scaled-down-loading');
     });
 
     test('should set loaded state when img loads and call onImageLoaded prop', () => {
         const props = {...baseProps, src: 'https://example.com/image.png'};
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <MarkdownImage {...props}/>,
         );
-        const dimensions = {
-            height: props.imageMetadata.height,
-            width: props.imageMetadata.width,
-        };
 
-        expect(wrapper.state('loaded')).toBe(false);
+        const img = container.querySelector('img');
 
-        (wrapper.instance() as MarkdownImage).handleImageLoaded(dimensions);
+        // Initially should have loading class
+        expect(img).toHaveClass('markdown-inline-img--loading');
 
-        expect(wrapper.state('loaded')).toBe(true);
+        // Mock naturalHeight/naturalWidth for SizeAwareImage's onImageLoaded callback
+        Object.defineProperty(img, 'naturalHeight', {value: 90, configurable: true});
+        Object.defineProperty(img, 'naturalWidth', {value: 1041, configurable: true});
 
+        // Simulate image load event - fireEvent used because userEvent doesn't support image loading events
+        fireEvent.load(img!);
+
+        // After load, should not have loading class and onImageLoaded should be called
+        expect(img).not.toHaveClass('markdown-inline-img--loading');
         expect(props.onImageLoaded).toHaveBeenCalledTimes(1);
-        expect(props.onImageLoaded).toHaveBeenCalledWith(dimensions);
+        expect(props.onImageLoaded).toHaveBeenCalledWith({height: 90, width: 1041});
     });
 
     it('should match snapshot for SizeAwareImage dimensions', () => {
-        const props = {...baseProps,
+        const props = {
+            ...baseProps,
             imageMetadata: {format: 'jpg', frameCount: 0, width: 100, height: 90},
             src: 'path/image',
         };
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <MarkdownImage {...props}/>,
         );
 
-        wrapper.instance().setState({loaded: true});
+        const img = container.querySelector('img');
 
-        const childrenWrapper = wrapper.props().children('safeSrc');
-        expect(childrenWrapper).toMatchSnapshot();
+        // Mock naturalHeight/naturalWidth for SizeAwareImage's onImageLoaded callback
+        Object.defineProperty(img, 'naturalHeight', {value: 90, configurable: true});
+        Object.defineProperty(img, 'naturalWidth', {value: 100, configurable: true});
+
+        fireEvent.load(img!);
+
+        expect(container).toMatchSnapshot();
     });
 
     test('should render an image with preview modal if the source is safe', () => {
         const props = {...baseProps, src: 'https://example.com/image.png'};
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <MarkdownImage {...props}/>,
         );
-        wrapper.instance().setState({loaded: true});
 
-        const childrenNode = wrapper.props().children(props.src);
+        const img = container.querySelector('img');
 
-        // using a div as a workaround because shallow doesn't support react fragments
-        const childrenWrapper = shallow(<div>{childrenNode}</div>);
+        // Mock naturalHeight/naturalWidth for SizeAwareImage's onImageLoaded callback
+        Object.defineProperty(img, 'naturalHeight', {value: 90, configurable: true});
+        Object.defineProperty(img, 'naturalWidth', {value: 1041, configurable: true});
 
-        expect(childrenWrapper.find(SizeAwareImage)).toHaveLength(1);
-        expect(childrenWrapper.find(SizeAwareImage).prop('className')).
-            toEqual(`${props.className} markdown-inline-img--hover cursor--pointer a11y--active`);
-        expect(childrenWrapper).toMatchSnapshot();
+        fireEvent.load(img!);
+
+        // After load, should have hover and cursor classes for clickable preview
+        expect(img).toHaveClass('markdown-inline-img--hover');
+        expect(img).toHaveClass('cursor--pointer');
+        expect(img).toHaveClass('a11y--active');
+        expect(container).toMatchSnapshot();
     });
 
     test('should render an image with no preview if the source is safe and the image is a link', () => {
         const props = {...baseProps, src: 'https://example.com/image.png', imageIsLink: true};
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <MarkdownImage {...props}/>,
         );
-        wrapper.instance().setState({loaded: true});
 
-        const childrenNode = wrapper.props().children(props.src);
+        const img = container.querySelector('img');
 
-        // using a div as a workaround because shallow doesn't support react fragments
-        const childrenWrapper = shallow(<div>{childrenNode}</div>);
+        // Mock naturalHeight/naturalWidth for SizeAwareImage's onImageLoaded callback
+        Object.defineProperty(img, 'naturalHeight', {value: 90, configurable: true});
+        Object.defineProperty(img, 'naturalWidth', {value: 1041, configurable: true});
 
-        expect(childrenWrapper.find(SizeAwareImage)).toHaveLength(1);
-        expect(childrenWrapper.find(SizeAwareImage).prop('className')).
-            toEqual(`${props.className} markdown-inline-img--hover markdown-inline-img--no-border`);
-        expect(childrenWrapper.find(FilePreviewModal)).toHaveLength(0);
-        expect(childrenWrapper).toMatchSnapshot();
+        fireEvent.load(img!);
+
+        // When imageIsLink, should have no-border class and not cursor--pointer
+        expect(img).toHaveClass('markdown-inline-img--hover');
+        expect(img).toHaveClass('markdown-inline-img--no-border');
+        expect(img).not.toHaveClass('cursor--pointer');
+        expect(container).toMatchSnapshot();
     });
 
-    test('should call openModal when showModal is called', () => {
+    test('should call openModal when showModal is called', async () => {
         const props = {...baseProps, src: 'https://example.com/image.png'};
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <MarkdownImage {...props}/>,
         );
-        const mockEvent = {
-            preventDefault: () => {},
-        };
-        (wrapper.instance() as MarkdownImage).showModal(mockEvent as unknown as React.MouseEvent<HTMLImageElement>, 'https://example.com/image.png');
+
+        const img = container.querySelector('img');
+
+        // Mock naturalHeight/naturalWidth for SizeAwareImage's onImageLoaded callback
+        Object.defineProperty(img, 'naturalHeight', {value: 90, configurable: true});
+        Object.defineProperty(img, 'naturalWidth', {value: 1041, configurable: true});
+
+        fireEvent.load(img!);
+
+        // Click the image to trigger showModal
+        await userEvent.click(img!);
+
         expect(props.actions.openModal).toHaveBeenCalledTimes(1);
     });
 
     test('should properly scale down the image in case of a header change system message', () => {
         const props = {...baseProps, src: 'https://example.com/image.png', postType: 'system_header_change'};
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <MarkdownImage {...props}/>,
         );
-        wrapper.instance().setState({loaded: true});
 
-        const childrenNode = wrapper.props().children(props.src);
+        const img = container.querySelector('img');
 
-        // using a div as a workaround because shallow doesn't support react fragments
-        const childrenWrapper = shallow(<div>{childrenNode}</div>);
+        // Mock naturalHeight/naturalWidth for SizeAwareImage's onImageLoaded callback
+        Object.defineProperty(img, 'naturalHeight', {value: 90, configurable: true});
+        Object.defineProperty(img, 'naturalWidth', {value: 1041, configurable: true});
 
-        expect(childrenWrapper.find(SizeAwareImage)).toHaveLength(1);
-        expect(childrenWrapper.find(SizeAwareImage).prop('className')).
-            toEqual(`${props.className} markdown-inline-img--hover cursor--pointer a11y--active markdown-inline-img--scaled-down`);
+        fireEvent.load(img!);
+
+        // After load, should have scaled-down class
+        expect(img).toHaveClass('markdown-inline-img--scaled-down');
+        expect(img).not.toHaveClass('markdown-inline-img--scaled-down-loading');
     });
 
     test('should render image with title, height, width', () => {
         const props = {
+            ...baseProps,
             alt: 'test image',
             title: 'test title',
             className: 'markdown-inline-img',
@@ -259,32 +282,28 @@ describe('components/MarkdownImage', () => {
             imageIsLink: false,
             height: '76',
             width: '50',
-            actions: baseProps.actions,
         };
 
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <MarkdownImage {...props}/>,
         );
-        wrapper.instance().setState({loaded: true});
 
-        const childrenNode = wrapper.props().children(props.src);
+        const img = container.querySelector('img');
 
-        // using a div as a workaround because shallow doesn't support react fragments
-        const childrenWrapper = shallow(<div>{childrenNode}</div>);
+        // Mock naturalHeight/naturalWidth for SizeAwareImage's onImageLoaded callback
+        Object.defineProperty(img, 'naturalHeight', {value: 76, configurable: true});
+        Object.defineProperty(img, 'naturalWidth', {value: 50, configurable: true});
 
-        expect(childrenWrapper.find(SizeAwareImage)).toHaveLength(1);
-        expect(childrenWrapper.find(SizeAwareImage).prop('className')).
-            toEqual(`${props.className} markdown-inline-img--hover cursor--pointer a11y--active`);
+        fireEvent.load(img!);
 
-        // These props can be strings since they're passed directly through to HTML tags
-        expect(childrenWrapper.find(SizeAwareImage).prop('width')).toEqual('50');
-        expect(childrenWrapper.find(SizeAwareImage).prop('height')).toEqual('76');
-
-        expect(childrenWrapper.find(SizeAwareImage).prop('title')).toEqual('test title');
+        expect(img).toHaveAttribute('width', '50');
+        expect(img).toHaveAttribute('height', '76');
+        expect(img).toHaveAttribute('title', 'test title');
     });
 
     test(`should render image with MarkdownImageExpand if it is taller than ${Constants.EXPANDABLE_INLINE_IMAGE_MIN_HEIGHT}px`, () => {
         const props = {
+            ...baseProps,
             alt: 'test image',
             title: 'test title',
             className: 'markdown-inline-img',
@@ -293,23 +312,26 @@ describe('components/MarkdownImage', () => {
             imageIsLink: false,
             height: '250',
             width: '50',
-            actions: baseProps.actions,
         };
 
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <MarkdownImage {...props}/>,
         );
-        wrapper.instance().setState({loaded: true});
-        const childrenNode = wrapper.props().children(props.src);
 
-        // using a div as a workaround because shallow doesn't support react fragments
-        const childrenWrapper = shallow(<div>{childrenNode}</div>);
+        const img = container.querySelector('img');
 
-        expect(childrenWrapper).toMatchSnapshot();
+        // Mock naturalHeight/naturalWidth for SizeAwareImage's onImageLoaded callback
+        Object.defineProperty(img, 'naturalHeight', {value: 250, configurable: true});
+        Object.defineProperty(img, 'naturalWidth', {value: 50, configurable: true});
+
+        fireEvent.load(img!);
+
+        expect(container).toMatchSnapshot();
     });
 
     test('should provide image src as an alt text for MarkdownImageExpand if image has no own alt text', () => {
         const props = {
+            ...baseProps,
             alt: '',
             title: 'test title',
             className: 'markdown-inline-img',
@@ -318,26 +340,28 @@ describe('components/MarkdownImage', () => {
             imageIsLink: false,
             height: '250',
             width: '50',
-            actions: baseProps.actions,
         };
 
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <MarkdownImage {...props}/>,
         );
-        wrapper.instance().setState({loaded: true});
-        const childrenNode = wrapper.props().children(props.src);
 
-        // using a div as a workaround because shallow doesn't support react fragments
-        const childrenWrapper = shallow(<div>{childrenNode}</div>);
+        const img = container.querySelector('img');
 
-        expect(childrenWrapper).toMatchSnapshot();
+        // Mock naturalHeight/naturalWidth for SizeAwareImage's onImageLoaded callback
+        Object.defineProperty(img, 'naturalHeight', {value: 250, configurable: true});
+        Object.defineProperty(img, 'naturalWidth', {value: 50, configurable: true});
+
+        fireEvent.load(img!);
+
+        expect(container).toMatchSnapshot();
     });
 
     test('should render a alt text if the link is unsafe', () => {
         const props = {...baseProps, isUnsafeLinksPost: true};
-        const wrapper = shallow(
+        renderWithContext(
             <MarkdownImage {...props}/>,
         );
-        expect(wrapper.text()).toBe(props.alt);
+        expect(screen.getByText(props.alt)).toBeInTheDocument();
     });
 });

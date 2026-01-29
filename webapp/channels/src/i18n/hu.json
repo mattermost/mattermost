@@ -5,7 +5,7 @@
   "about.database": "Adatbázis:",
   "about.date": "Kiadás dátuma:",
   "about.dbversion": "Adatbázis séma verzió:",
-  "about.enterpriseEditionLearn": "Tudjon meg többet az Enterprise kiadásról: ",
+  "about.enterpriseEditionLearn": "Tudjon meg többet az Enterprise kiadásról a {link} linken",
   "about.enterpriseEditionSst": "Nagy megbízhatóságú üzenetküldés a vállalkozások számára",
   "about.enterpriseEditionSt": "Modern kommunikáció a tűzfalad mögül.",
   "about.hash": "Kiadás ujjlenyomata:",
