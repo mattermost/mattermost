@@ -64,7 +64,7 @@ func (*MuteProvider) DoCommand(a *app.App, rctx request.CTX, args *model.Command
 
 	channelMember, err := a.ToggleMuteChannel(rctx, channel.Id, args.UserId)
 	if err != nil {
-		return &model.CommandResponse{Text: args.T("api.command_mute.not_member.error", map[string]any{"Channel": channelName}), ResponseType: model.CommandResponseTypeEphemeral}
+		return &model.CommandResponse{Text: args.T("api.command_mute.error", map[string]any{"Channel": channelName}), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
 	// Direct and Group messages won't have a nice channel title, omit it
