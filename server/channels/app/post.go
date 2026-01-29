@@ -2186,7 +2186,7 @@ func (a *App) countThreadMentions(rctx request.CTX, user *model.User, post *mode
 		user,
 		map[string]string{},
 		&model.Status{Status: model.StatusOnline}, // Assume the user is online since they would've triggered this
-		true,                                      // Assume channel mentions are always allowed for simplicity
+		true, // Assume channel mentions are always allowed for simplicity
 	)
 
 	posts, nErr := a.Srv().Store().Post().GetPostsByThread(post.Id, timestamp)
@@ -2271,7 +2271,7 @@ func (a *App) countMentionsFromPost(rctx request.CTX, user *model.User, post *mo
 		user,
 		members[user.Id],
 		&model.Status{Status: model.StatusOnline}, // Assume the user is online since they would've triggered this
-		true,                                      // Assume channel mentions are always allowed for simplicity
+		true, // Assume channel mentions are always allowed for simplicity
 	)
 	commentMentions := user.NotifyProps[model.CommentsNotifyProp]
 	checkForCommentMentions := commentMentions == model.CommentsNotifyRoot || commentMentions == model.CommentsNotifyAny

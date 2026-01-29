@@ -1021,7 +1021,8 @@ func (s *SqlPostStore) permanentDelete(postIds []string) (err error) {
 	}
 	defer finalizeTransactionX(transaction, &err)
 
-	if err := s.permanentDeleteAssociatedData(transaction, postIds); err != nil {
+	err = s.permanentDeleteAssociatedData(transaction, postIds)
+	if err != nil {
 		return err
 	}
 
@@ -1047,7 +1048,8 @@ func (s *SqlPostStore) PermanentDeleteAssociatedData(postIds []string) error {
 	}
 	defer finalizeTransactionX(transaction, &err)
 
-	if err := s.permanentDeleteAssociatedData(transaction, postIds); err != nil {
+	err = s.permanentDeleteAssociatedData(transaction, postIds)
+	if err != nil {
 		return err
 	}
 
