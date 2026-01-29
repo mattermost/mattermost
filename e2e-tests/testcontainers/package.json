@@ -35,7 +35,6 @@
         "test-automation"
     ],
     "scripts": {
-        "postinstall": "npm run build",
         "build": "rollup -c --bundleConfigAsCjs",
         "postbuild": "chmod +x dist/cli.js",
         "build:watch": "npm run build -- --watch",
@@ -63,7 +62,8 @@
         "commander": "14.0.2",
         "dotenv": "17.2.3",
         "jsonc-parser": "3.3.1",
-        "testcontainers": "11.11.0"
+        "testcontainers": "11.11.0",
+        "zod": "4.3.6"
     },
     "devDependencies": {
         "@eslint/eslintrc": "3.3.3",

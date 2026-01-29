@@ -13,8 +13,7 @@ import * as dotenv from 'dotenv';
 // (default export is evaluated at bundle time which may be non-TTY)
 const chalk = new Chalk();
 
-import {MattermostTestEnvironment} from './environment';
-import {EnvironmentConfig} from './config/types';
+import {MattermostTestEnvironment, ServerMode} from './environment';
 import {
     MATTERMOST_EDITION_IMAGES,
     discoverAndLoadConfig,
@@ -316,19 +315,16 @@ const startCommand = program
                 console.log(chalk.blue(`Starting Mattermost test environment (service env: ${serviceEnvDisplay})`));
             }
 
-            // Build environment config for MattermostTestEnvironment
-            const envConfig: EnvironmentConfig = {
-                dependencies: config.dependencies,
-                serverImage: config.server.image,
-                serverEnv: Object.keys(serverEnv).length > 0 ? serverEnv : undefined,
-                serverConfig: config.server.config,
-                serverMode: options.depsOnly ? 'local' : 'container',
-                ha: config.server.ha,
-                subpath: config.server.subpath,
-                admin: config.admin,
+            // Merge built serverEnv into config.server.env (CLI overrides take precedence)
+            config.server.env = {
+                ...config.server.env,
+                ...serverEnv,
             };
 
-            const env = new MattermostTestEnvironment(envConfig);
+            // Determine server mode: 'local' for deps-only, 'container' otherwise
+            const serverMode: ServerMode = options.depsOnly ? 'local' : 'container';
+
+            const env = new MattermostTestEnvironment(config, serverMode);
             await env.start();
 
             const info = env.getConnectionInfo();

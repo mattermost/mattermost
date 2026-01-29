@@ -73,16 +73,9 @@ export {TestArgs, ScreenshotOptions} from './types';
 export {
     startTestEnvironment,
     stopTestEnvironment,
-    getTestEnvironment,
-    getResolvedConfig,
     getMmctl,
     getServerUrl,
     getConnectionInfo,
     MattermostTestEnvironment,
 } from './testcontainers';
-export type {
-    EnvironmentConfig,
-    DependencyConnectionInfo,
-    MmctlClient,
-    ResolvedTestcontainersConfig,
-} from './testcontainers';
+export type {DependencyConnectionInfo, MmctlClient, ResolvedTestcontainersConfig} from './testcontainers';

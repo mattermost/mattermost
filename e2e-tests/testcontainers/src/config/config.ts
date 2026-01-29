@@ -3,8 +3,10 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import {pathToFileURL} from 'url';
 
 import {parse as parseJsonc} from 'jsonc-parser';
+import {z} from 'zod';
 
 import {DEFAULT_IMAGES, IMAGE_ENV_VARS} from './defaults';
 
@@ -348,6 +350,87 @@ export const DEFAULT_CONFIG: ResolvedTestcontainersConfig = {
     outputDir: DEFAULT_OUTPUT_DIR,
 };
 
+let cachedConfigSchema: z.ZodType<TestcontainersConfig> | null = null;
+function getConfigSchema(): z.ZodType<TestcontainersConfig> {
+    if (cachedConfigSchema) {
+        return cachedConfigSchema;
+    }
+
+    const MattermostEditionSchema = z.enum(['enterprise', 'fips', 'team']);
+    const ServiceEnvironmentSchema = z.enum(['test', 'production', 'dev']);
+    const AdminConfigSchema = z
+        .object({
+            username: z.string().min(1, 'admin.username must be non-empty'),
+            password: z.string().optional(),
+        })
+        .strict();
+    const ServerConfigSchema = z
+        .object({
+            edition: MattermostEditionSchema.optional(),
+            tag: z.string().min(1).optional(),
+            serviceEnvironment: ServiceEnvironmentSchema.optional(),
+            env: z.record(z.string(), z.string()).optional(),
+            config: z.record(z.string(), z.unknown()).optional(),
+            imageMaxAgeHours: z.number().nonnegative().optional(),
+            ha: z.boolean().optional(),
+            subpath: z.boolean().optional(),
+        })
+        .strict();
+    const ImagesSchema = z
+        .object({
+            postgres: z.string(),
+            inbucket: z.string(),
+            openldap: z.string(),
+            keycloak: z.string(),
+            minio: z.string(),
+            elasticsearch: z.string(),
+            opensearch: z.string(),
+            redis: z.string(),
+            dejavu: z.string(),
+            prometheus: z.string(),
+            grafana: z.string(),
+            loki: z.string(),
+            promtail: z.string(),
+            nginx: z.string(),
+        })
+        .partial()
+        .strict();
+    cachedConfigSchema = z
+        .object({
+            server: ServerConfigSchema.optional(),
+            dependencies: z.array(z.string()).optional(),
+            images: ImagesSchema.optional(),
+            outputDir: z.string().optional(),
+            admin: AdminConfigSchema.optional(),
+        })
+        .strict();
+    return cachedConfigSchema;
+}
+
+function formatZodError(error: z.ZodError): string {
+    return error.issues
+        .map((issue) => {
+            const p = issue.path.length ? issue.path.join('.') : '<root>';
+            return `- ${p}: ${issue.message}`;
+        })
+        .join('\n');
+}
+
+function validateUserConfigOrThrow(config: unknown, sourcePath: string): TestcontainersConfig {
+    const schema = getConfigSchema();
+    const parsed = schema.safeParse(config);
+    if (!parsed.success) {
+        const timestamp = new Date().toISOString();
+        const details = formatZodError(parsed.error);
+        const msg =
+            `[${timestamp}] [tc] Invalid testcontainers config: ${sourcePath}\n` +
+            `${details}\n` +
+            'Fix the config file or remove it to fall back to defaults.';
+        throw new Error(msg);
+    }
+    return parsed.data as TestcontainersConfig;
+}
+
 /**
  * Helper to parse boolean from environment variable.
  */
@@ -529,26 +612,6 @@ export function resolveConfig(userConfig?: TestcontainersConfig): ResolvedTestco
 }
 
 /**
- * Apply resolved configuration to environment variables.
- * This ensures all parts of the testcontainers library pick up the config values.
- *
- * @param config Resolved configuration to apply
- */
-export function applyConfigToEnv(config: ResolvedTestcontainersConfig): void {
-    // Apply server image
-    process.env.TC_SERVER_IMAGE = config.server.image;
-
-    // Apply other images
-    const imageKeys = Object.keys(config.images) as Array<keyof TestcontainersImages>;
-    for (const key of imageKeys) {
-        const envVar = IMAGE_ENV_VARS[key];
-        if (envVar) {
-            process.env[envVar] = config.images[key];
-        }
-    }
-}
-
-/**
  * Log the resolved configuration.
  *
  * @param logger Function to log messages
@@ -585,7 +648,7 @@ export async function loadConfigFile(configPath: string): Promise<Testcontainers
         }
 
         // Default: treat as ES module (.mjs)
-        const module = await import(configPath);
+        const module = await import(pathToFileURL(configPath).href);
         return module.default || module;
     } catch {
         return undefined;
@@ -609,6 +672,33 @@ function findConfigFile(dir: string): string | undefined {
     return undefined;
 }
 
+/**
+ * Find the git repository root by walking up until a directory contains a .git entry.
+ * Returns undefined if no git root is found before reaching the filesystem root.
+ */
+function findGitRoot(startDir: string): string | undefined {
+    let currentDir = startDir;
+    // Guard: if startDir doesn't exist (edge case), bail out
+    if (!fs.existsSync(currentDir)) {
+        return undefined;
+    }
+    // Walk up to filesystem root
+    // Stop when .git exists (file or directory)
+    // If not found, return undefined
+
+    while (true) {
+        const gitPath = path.join(currentDir, '.git');
+        if (fs.existsSync(gitPath)) {
+            return currentDir;
+        }
+        const parentDir = path.dirname(currentDir);
+        if (parentDir === currentDir) {
+            return undefined;
+        }
+        currentDir = parentDir;
+    }
+}
+
 export interface DiscoverConfigOptions {
     /**
      * Explicit path to config file. If provided, skips auto-discovery.
@@ -628,8 +718,9 @@ export interface DiscoverConfigOptions {
  *
  * If configFile is provided, loads that specific file.
  * Otherwise, searches for a config file in the following locations (in order):
- * 1. Current working directory
- * 2. Parent directories (up to 5 levels)
+ * 1. Path provided via TC_CONFIG environment variable
+ * 2. Current working directory
+ * 3. Parent directories up to the repository root (detected via .git), otherwise up to filesystem root
  *
  * If no config file is found, returns resolved default configuration.
  *
@@ -653,15 +744,29 @@ export async function discoverAndLoadConfig(options?: DiscoverConfigOptions): Pr
         if (!fs.existsSync(configPath)) {
             throw new Error(`Config file not found: ${configPath}`);
         }
+    } else if (process.env.TC_CONFIG) {
+        // Environment override for config path
+        configPath = path.resolve(process.env.TC_CONFIG);
+        if (!fs.existsSync(configPath)) {
+            throw new Error(`Config file not found from TC_CONFIG: ${configPath}`);
+        }
+        const timestamp = new Date().toISOString();
+        process.stderr.write(`[${timestamp}] [tc] Using config from TC_CONFIG: ${configPath}\n`);
     } else {
         // Auto-discover config file
         const startDir = options?.searchDir || process.cwd();
         let currentDir = startDir;
+        const gitRoot = findGitRoot(startDir);
 
-        // Search current and parent directories (up to 5 levels)
-        for (let i = 0; i < 5; i++) {
+        // Search current and parent directories, stopping at git root (if found) or filesystem root
+
+        while (true) {
             configPath = findConfigFile(currentDir);
             if (configPath) {
+                break;
+            }
+            // Stop at git root boundary if detected
+            if (gitRoot && currentDir === gitRoot) {
                 break;
             }
             const parentDir = path.dirname(currentDir);
@@ -677,6 +782,14 @@ export async function discoverAndLoadConfig(options?: DiscoverConfigOptions): Pr
         const timestamp = new Date().toISOString();
         process.stderr.write(`[${timestamp}] [tc] Found config: ${configPath}\n`);
         userConfig = await loadConfigFile(configPath);
+        if (!userConfig) {
+            throw new Error(`Failed to load config: ${configPath}`);
+        }
+        // Validate schema for user-provided config
+        userConfig = validateUserConfigOrThrow(userConfig, configPath);
+    } else {
+        const timestamp = new Date().toISOString();
+        process.stderr.write(`[${timestamp}] [tc] No config found. Using defaults (env overrides may still apply).\n`);
     }
 
     return resolveConfig(userConfig);

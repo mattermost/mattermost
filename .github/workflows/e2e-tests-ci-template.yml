@@ -117,6 +117,37 @@ jobs:
           description: E2E tests for mattermost server app
           status: pending
 
+  testcontainers-check:
+    runs-on: ubuntu-24.04
+    needs:
+      - update-initial-status
+    defaults:
+      run:
+        working-directory: e2e-tests/testcontainers
+    steps:
+      - name: ci/checkout-repo
+        if: "${{ inputs.run_preflight_checks }}"
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ inputs.commit_sha }}
+          fetch-depth: 0
+      - name: ci/setup-node
+        if: "${{ inputs.run_preflight_checks }}"
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        id: setup_node
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+          cache-dependency-path: "e2e-tests/testcontainers/package-lock.json"
+      - name: ci/testcontainers/npm-install
+        if: "${{ inputs.run_preflight_checks }}"
+        run: |
+          npm ci
+      - name: ci/testcontainers/npm-check
+        if: "${{ inputs.run_preflight_checks }}"
+        run: |
+          npm run check
+
   cypress-check:
     runs-on: ubuntu-24.04
     needs:
@@ -152,6 +183,7 @@ jobs:
     runs-on: ubuntu-24.04
     needs:
       - update-initial-status
+      - testcontainers-check
     defaults:
       run:
         working-directory: e2e-tests/playwright
@@ -176,6 +208,12 @@ jobs:
         # requires build of client and types
         run: |
           make node_modules
+      - name: ci/testcontainers/npm-install-and-build
+        if: "${{ inputs.run_preflight_checks }}"
+        working-directory: e2e-tests/testcontainers
+        run: |
+          npm ci
+          npm run build
       - name: ci/playwright/npm-install
         if: "${{ inputs.run_preflight_checks }}"
         run: |
@@ -290,6 +328,7 @@ jobs:
     runs-on: "${{ matrix.os }}"
     timeout-minutes: 120
     needs:
+      - testcontainers-check
       - cypress-check
       - playwright-check
       - shell-check
@@ -372,6 +411,7 @@ jobs:
         env:
           PW_TC: "true"
           TC_SERVER_IMAGE: "${{ inputs.SERVER_IMAGE }}"
+          TC_OUTPUT_DIR: "."
           PW_HEADLESS: "true"
           PW_WORKERS: "1"
           PW_SNAPSHOT_ENABLE: "true"
@@ -384,7 +424,10 @@ jobs:
           # Build webapp dependencies (required for playwright-lib)
           cd ../../webapp && make node_modules && cd ../e2e-tests/playwright
 
-          # Install dependencies
+          # Build and install testcontainers
+          cd ../testcontainers && npm ci && npm run build && cd ../playwright
+
+          # Install playwright dependencies
           npm ci
 
           # Run Playwright tests with testcontainers
@@ -399,6 +442,7 @@ jobs:
           name: e2e-test-results-${{ inputs.TEST }}-${{ matrix.os }}-${{ matrix.worker_index }}
           path: |
             e2e-tests/${{ inputs.TEST }}/logs/
+            e2e-tests/${{ inputs.TEST }}/.tc.out
             e2e-tests/${{ inputs.TEST }}/results/
           retention-days: 1
 
@@ -436,6 +480,7 @@ jobs:
           name: e2e-test-results-${{ inputs.TEST }}
           path: |
             e2e-tests/${{ inputs.TEST }}/logs/
+            e2e-tests/${{ inputs.TEST }}/.tc.out
             e2e-tests/${{ inputs.TEST }}/results/
       - name: ci/setup-node
         if: "${{ inputs.enable_reporting }}"
@@ -469,6 +514,7 @@ jobs:
           name: e2e-test-results-${{ inputs.TEST }}
           path: |
             e2e-tests/${{ inputs.TEST }}/logs/
+            e2e-tests/${{ inputs.TEST }}/.tc.out
             e2e-tests/${{ inputs.TEST }}/results/
           overwrite: true
 

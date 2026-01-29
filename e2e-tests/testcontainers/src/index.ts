@@ -1,15 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// Main environment class
-export {MattermostTestEnvironment} from './environment';
+// Main environment class and types
+export {MattermostTestEnvironment, ServerMode} from './environment';
 
 // MmctlClient for executing mmctl commands
 export {MmctlClient, MmctlExecResult} from './mmctl';
 
 // Configuration types
 export {
-    EnvironmentConfig,
     PostgresConnectionInfo,
     InbucketConnectionInfo,
     OpenLdapConnectionInfo,
@@ -67,7 +66,6 @@ export {
     MATTERMOST_EDITION_IMAGES,
     // Functions
     resolveConfig,
-    applyConfigToEnv,
     logConfig,
     loadConfigFile,
     discoverAndLoadConfig,

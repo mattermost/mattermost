@@ -3,7 +3,6 @@
 
 import {
     MattermostTestEnvironment,
-    EnvironmentConfig,
     DependencyConnectionInfo,
     MmctlClient,
     discoverAndLoadConfig,
@@ -14,11 +13,6 @@ import {
 
 let environment: MattermostTestEnvironment | null = null;
 let resolvedConfig: ResolvedTestcontainersConfig | null = null;
-
-function log(message: string): void {
-    const timestamp = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
-    process.stderr.write(`[${timestamp}] [pw/tc] ${message}\n`);
-}
 
 /**
  * Check if testcontainers is enabled via environment variables.
@@ -54,7 +48,6 @@ export async function startTestEnvironment(): Promise<MattermostTestEnvironment 
     }
 
     if (environment) {
-        log('Test environment already started, reusing existing instance');
         return environment;
     }
 
@@ -64,20 +57,10 @@ export async function startTestEnvironment(): Promise<MattermostTestEnvironment 
     // Set the output directory for all testcontainers artifacts (logs, .env.tc, etc.)
     setOutputDir(resolvedConfig.outputDir);
 
-    // Build environment config from resolved testcontainers config
-    const envConfig: EnvironmentConfig = {
-        serverMode: 'container',
-        dependencies: resolvedConfig.dependencies,
-        serverImage: resolvedConfig.server.image,
-        serverEnv: resolvedConfig.server.env,
-        serverConfig: resolvedConfig.server.config,
-        imageMaxAgeMs: resolvedConfig.server.imageMaxAgeHours * 60 * 60 * 1000,
-        ha: resolvedConfig.server.ha,
-        subpath: resolvedConfig.server.subpath,
-        admin: resolvedConfig.admin,
-    };
-
-    environment = new MattermostTestEnvironment(envConfig);
+    // Create environment with resolved config
+    // MattermostTestEnvironment handles serverEnv with proper priority:
+    // defaults (serviceEnvironment) < MM_* env vars < user serverEnv
+    environment = new MattermostTestEnvironment(resolvedConfig);
     await environment.start();
 
     // Print connection info
@@ -89,14 +72,6 @@ export async function startTestEnvironment(): Promise<MattermostTestEnvironment 
     process.env.PW_BASE_URL = serverUrl;
 
     return environment;
-}
-
-/**
- * Get the resolved testcontainers configuration.
- * Returns null if startTestEnvironment hasn't been called.
- */
-export function getResolvedConfig(): ResolvedTestcontainersConfig | null {
-    return resolvedConfig;
 }
 
 /**
@@ -117,14 +92,6 @@ export async function stopTestEnvironment(): Promise<void> {
         environment = null;
         resolvedConfig = null;
     }
-}
-
-/**
- * Get the current test environment instance.
- * Returns null if not started.
- */
-export function getTestEnvironment(): MattermostTestEnvironment | null {
-    return environment;
 }
 
 /**
@@ -165,5 +132,5 @@ export function getConnectionInfo(): DependencyConnectionInfo | null {
 }
 
 // Re-export types for convenience
-export type {EnvironmentConfig, DependencyConnectionInfo, MmctlClient, ResolvedTestcontainersConfig};
+export type {DependencyConnectionInfo, MmctlClient, ResolvedTestcontainersConfig};
 export {MattermostTestEnvironment};

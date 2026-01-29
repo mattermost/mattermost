@@ -5,14 +5,16 @@
 // Containers should only be cleaned up via `mm-tc stop`.
 process.env.TESTCONTAINERS_RYUK_DISABLED = 'true';
 
-import http, {IncomingMessage} from 'http';
-
 import {Network, StartedNetwork, StartedTestContainer} from 'testcontainers';
 import {StartedPostgreSqlContainer} from '@testcontainers/postgresql';
 
 import {
-    EnvironmentConfig,
     DependencyConnectionInfo,
+    MattermostNodeConnectionInfo,
+    ContainerMetadata,
+    ContainerMetadataMap,
+    HAClusterConnectionInfo,
+    SubpathConnectionInfo,
     PostgresConnectionInfo,
     InbucketConnectionInfo,
     OpenLdapConnectionInfo,
@@ -22,17 +24,13 @@ import {
     KeycloakConnectionInfo,
     RedisConnectionInfo,
     MattermostConnectionInfo,
-    MattermostNodeConnectionInfo,
-    HAClusterConnectionInfo,
-    SubpathConnectionInfo,
     DejavuConnectionInfo,
     PrometheusConnectionInfo,
     GrafanaConnectionInfo,
     LokiConnectionInfo,
     PromtailConnectionInfo,
-    ContainerMetadata,
-    ContainerMetadataMap,
 } from './config/types';
+import {ResolvedTestcontainersConfig} from './config/config';
 import {createPostgresContainer, getPostgresConnectionInfo} from './containers/postgres';
 import {createInbucketContainer, getInbucketConnectionInfo} from './containers/inbucket';
 import {createOpenLdapContainer, getOpenLdapConnectionInfo} from './containers/openldap';
@@ -76,32 +74,26 @@ import {
 } from './config/defaults';
 import {MmctlClient} from './mmctl';
 import {imageExistsLocally} from './utils/docker';
+import {ServerMode, formatElapsed} from './environment/types';
+import {httpPost, httpGet, httpPut} from './environment/http';
+import {
+    buildBaseEnvOverrides,
+    configureServerViaMmctl as configureServerViaMmctlFn,
+    formatConfigValue,
+} from './environment/server-config';
+
+// Re-export ServerMode for external use
+export type {ServerMode};
 
 const DEFAULT_DEPENDENCIES = ['postgres', 'inbucket'];
-
-/**
- * Format elapsed time in a human-readable format.
- * Shows decimal if < 10s, whole seconds if < 60s, otherwise minutes and seconds.
- */
-function formatElapsed(ms: number): string {
-    const totalSeconds = ms / 1000;
-    if (totalSeconds < 10) {
-        return `${totalSeconds.toFixed(1)}s`;
-    }
-    if (totalSeconds < 60) {
-        return `${Math.round(totalSeconds)}s`;
-    }
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = Math.round(totalSeconds % 60);
-    return `${minutes}m ${seconds}s`;
-}
 
 /**
  * MattermostTestEnvironment orchestrates all test containers for E2E testing.
  * It manages the lifecycle of containers and provides connection information.
  */
 export class MattermostTestEnvironment {
-    private config: EnvironmentConfig;
+    private config: ResolvedTestcontainersConfig;
+    private serverMode: ServerMode;
     private network: StartedNetwork | null = null;
 
     // Container references
@@ -134,12 +126,14 @@ export class MattermostTestEnvironment {
     // Connection info cache
     private connectionInfo: Partial<DependencyConnectionInfo> = {};
 
-    constructor(config: EnvironmentConfig = {}) {
-        this.config = {
-            serverMode: 'container',
-            dependencies: DEFAULT_DEPENDENCIES,
-            ...config,
-        };
+    /**
+     * Create a new MattermostTestEnvironment.
+     * @param config Resolved testcontainers configuration
+     * @param serverMode Server mode: 'container' (default) or 'local'
+     */
+    constructor(config: ResolvedTestcontainersConfig, serverMode: ServerMode = 'container') {
+        this.config = config;
+        this.serverMode = serverMode;
     }
 
     /**
@@ -147,7 +141,7 @@ export class MattermostTestEnvironment {
      */
     async start(): Promise<void> {
         const startTime = Date.now();
-        if (this.config.serverMode === 'local') {
+        if (this.serverMode === 'local') {
             this.log('Starting Mattermost dependencies');
         } else {
             this.log('Starting Mattermost test environment');
@@ -217,7 +211,7 @@ export class MattermostTestEnvironment {
         }
 
         // Validate: HA mode requires a license with clustering support
-        if (this.config.ha && !process.env.MM_LICENSE) {
+        if (this.config.server.ha && !process.env.MM_LICENSE) {
             throw new Error(
                 'Cannot enable HA mode without MM_LICENSE. HA mode requires a Mattermost license with clustering support.',
             );
@@ -407,12 +401,12 @@ export class MattermostTestEnvironment {
         clearInterval(progressInterval);
 
         // Start Mattermost server (depends on postgres and optionally inbucket)
-        if (this.config.serverMode === 'container') {
-            if (this.config.subpath) {
+        if (this.serverMode === 'container') {
+            if (this.config.server.subpath) {
                 // Subpath mode: two servers behind nginx with /mattermost1 and /mattermost2
                 // Can be combined with HA mode (6 total nodes)
                 await this.startMattermostSubpath();
-            } else if (this.config.ha) {
+            } else if (this.config.server.ha) {
                 // HA mode: start multiple nodes + nginx load balancer
                 await this.startMattermostHA();
             } else {
@@ -559,7 +553,7 @@ export class MattermostTestEnvironment {
      */
     getMmctl(): MmctlClient {
         // In subpath mode, use server1
-        if (this.config.subpath) {
+        if (this.config.server.subpath) {
             // Subpath + HA mode: use server1 leader
             const server1Leader = this.server1Nodes.get('leader');
             if (server1Leader) {
@@ -590,7 +584,7 @@ export class MattermostTestEnvironment {
      * In subpath mode, returns the nginx URL (use getSubpathInfo() for server-specific URLs).
      */
     getServerUrl(): string {
-        if (this.config.serverMode === 'local') {
+        if (this.serverMode === 'local') {
             return 'http://localhost:8065';
         }
         // In subpath mode, return the load balancer URL
@@ -857,7 +851,7 @@ export class MattermostTestEnvironment {
             );
         }
         // Subpath + HA mode containers
-        const serverImage = this.config.serverImage ?? getMattermostImage();
+        const serverImage = this.config.server.image ?? getMattermostImage();
         for (const [nodeName, container] of this.server1Nodes) {
             metadata[`mattermost-server1-${nodeName}`] = this.getContainerMetadataFrom(container, serverImage);
         }
@@ -982,62 +976,17 @@ export class MattermostTestEnvironment {
             inbucket: this.connectionInfo.inbucket,
         };
 
-        // Build environment overrides for optional dependencies
-        const envOverrides: Record<string, string> = {};
+        // Build environment overrides (dependencies, service env, MM_* passthrough, user config)
+        const envOverrides = this.buildEnvOverrides();
 
-        // Note: LDAP settings are configured via mmctl after startup (not env vars)
-        // to ensure they persist in the database and can be changed in System Console
-
-        if (this.connectionInfo.minio) {
-            envOverrides.MM_FILESETTINGS_DRIVERNAME = 'amazons3';
-            envOverrides.MM_FILESETTINGS_AMAZONS3ACCESSKEYID = this.connectionInfo.minio.accessKey;
-            envOverrides.MM_FILESETTINGS_AMAZONS3SECRETACCESSKEY = this.connectionInfo.minio.secretKey;
-            envOverrides.MM_FILESETTINGS_AMAZONS3BUCKET = 'mattermost-test';
-            envOverrides.MM_FILESETTINGS_AMAZONS3ENDPOINT = 'minio:9000';
-            envOverrides.MM_FILESETTINGS_AMAZONS3SSL = 'false';
-        }
-
-        if (this.connectionInfo.elasticsearch) {
-            // Note: EnableIndexing/EnableSearching are set via mmctl after startup (not env var) so they can be changed in System Console
-            envOverrides.MM_ELASTICSEARCHSETTINGS_CONNECTIONURL = 'http://elasticsearch:9200';
-        }
-
-        if (this.connectionInfo.opensearch) {
-            // Note: EnableIndexing/EnableSearching are set via mmctl after startup (not env var) so they can be changed in System Console
-            envOverrides.MM_ELASTICSEARCHSETTINGS_CONNECTIONURL = 'http://opensearch:9200';
-            envOverrides.MM_ELASTICSEARCHSETTINGS_BACKEND = 'opensearch';
-        }
-
-        if (this.connectionInfo.redis) {
-            // Note: CacheType is set via mmctl after startup (not env var) so it can be changed in System Console
-            envOverrides.MM_CACHESETTINGS_REDISADDRESS = 'redis:6379';
-            envOverrides.MM_CACHESETTINGS_REDISDB = '0';
-        }
-
-        // Pass all MM_* environment variables from host to container
-        // (except SiteURL which is set via mmctl after startup to use the actual mapped port)
-        for (const [key, value] of Object.entries(process.env)) {
-            if (key.startsWith('MM_') && key !== 'MM_SERVICESETTINGS_SITEURL' && value !== undefined) {
-                envOverrides[key] = value;
-            }
-        }
-
-        // Apply user-provided server environment variables (highest priority)
-        // (except SiteURL which is set via mmctl after startup)
-        if (this.config.serverEnv) {
-            const {MM_SERVICESETTINGS_SITEURL: _siteUrl, ...restEnv} = this.config.serverEnv;
-            void _siteUrl; // Intentionally excluded - SiteURL is set via mmctl after startup
-            Object.assign(envOverrides, restEnv);
-        }
-
-        const serverImage = this.config.serverImage ?? getMattermostImage();
+        const serverImage = this.config.server.image ?? getMattermostImage();
         const mmStartTime = Date.now();
         this.log(`Starting Mattermost (${serverImage})`);
 
         this.mattermostContainer = await createMattermostContainer(this.network, deps, {
-            image: this.config.serverImage,
+            image: this.config.server.image,
             envOverrides,
-            imageMaxAgeMs: this.config.imageMaxAgeMs,
+            imageMaxAgeMs: this.config.server.imageMaxAgeHours * 60 * 60 * 1000,
         });
         this.connectionInfo.mattermost = getMattermostConnectionInfo(this.mattermostContainer, serverImage);
         const mmElapsed = formatElapsed(Date.now() - mmStartTime);
@@ -1052,81 +1001,8 @@ export class MattermostTestEnvironment {
             this.log(`⚠ Failed to set SiteURL: ${siteUrlResult.stdout || siteUrlResult.stderr}`);
         }
 
-        // Apply default test settings via mmctl (can be changed in System Console)
-        // These are applied first, then user's serverConfig can override them
-        // Priority: env var > command option > tc config file > defaults here
-        await this.applyDefaultTestSettings(mmctl);
-
-        // Configure LDAP settings if openldap is configured (via mmctl so they persist in DB)
-        if (this.connectionInfo.openldap) {
-            // Set LDAP attribute mappings first (required for enabling LDAP)
-            const ldapAttributes: Record<string, string> = {
-                'LdapSettings.LdapServer': 'openldap',
-                'LdapSettings.LdapPort': '389',
-                'LdapSettings.BaseDN': this.connectionInfo.openldap.baseDN,
-                'LdapSettings.BindUsername': this.connectionInfo.openldap.bindDN,
-                'LdapSettings.BindPassword': this.connectionInfo.openldap.bindPassword,
-                'LdapSettings.EmailAttribute': 'mail',
-                'LdapSettings.UsernameAttribute': 'uid',
-                'LdapSettings.IdAttribute': 'uid',
-                'LdapSettings.LoginIdAttribute': 'uid',
-                'LdapSettings.FirstNameAttribute': 'cn',
-                'LdapSettings.LastNameAttribute': 'sn',
-                'LdapSettings.NicknameAttribute': 'cn',
-                'LdapSettings.PositionAttribute': 'title',
-                'LdapSettings.GroupDisplayNameAttribute': 'cn',
-                'LdapSettings.GroupIdAttribute': 'entryUUID',
-            };
-            for (const [key, value] of Object.entries(ldapAttributes)) {
-                const result = await mmctl.exec(`config set ${key} "${value}"`);
-                if (result.exitCode !== 0) {
-                    this.log(`⚠ Failed to set ${key}: ${result.stdout || result.stderr}`);
-                }
-            }
-            // Now enable LDAP
-            const ldapResult = await mmctl.exec('config set LdapSettings.Enable true');
-            if (ldapResult.exitCode !== 0) {
-                this.log(`⚠ Failed to enable LDAP: ${ldapResult.stdout || ldapResult.stderr}`);
-            }
-
-            // Load LDAP test data
-            await this.loadLdapTestData();
-        }
-
-        // Enable Elasticsearch/OpenSearch if configured (via mmctl so it can be changed in System Console)
-        if (this.connectionInfo.elasticsearch || this.connectionInfo.opensearch) {
-            const indexingResult = await mmctl.exec('config set ElasticsearchSettings.EnableIndexing true');
-            if (indexingResult.exitCode !== 0) {
-                this.log(
-                    `⚠ Failed to enable Elasticsearch indexing: ${indexingResult.stdout || indexingResult.stderr}`,
-                );
-            }
-            const searchingResult = await mmctl.exec('config set ElasticsearchSettings.EnableSearching true');
-            if (searchingResult.exitCode !== 0) {
-                this.log(
-                    `⚠ Failed to enable Elasticsearch searching: ${searchingResult.stdout || searchingResult.stderr}`,
-                );
-            }
-        }
-
-        // Enable Redis cache if configured (via mmctl so it can be changed in System Console)
-        if (this.connectionInfo.redis) {
-            const redisResult = await mmctl.exec('config set CacheSettings.CacheType redis');
-            if (redisResult.exitCode !== 0) {
-                this.log(`⚠ Failed to set Redis cache type: ${redisResult.stdout || redisResult.stderr}`);
-            }
-        }
-
-        // Note: Keycloak SAML and OpenID settings are NOT pre-configured automatically
-        // because SAML requires certificate upload which doesn't work with database config.
-        // Users can configure SAML/OpenID manually via System Console or server.config in mm-tc.config.mjs.
-        // The Keycloak container has pre-configured clients: 'mattermost' (SAML) and 'mattermost-openid' (OpenID).
-        // See .env.tc output for example settings when keycloak is enabled.
-
-        // Apply server config patch via mmctl if provided (overrides defaults)
-        if (this.config.serverConfig) {
-            await this.patchServerConfig(this.config.serverConfig);
-        }
+        // Configure server via mmctl (LDAP, Elasticsearch, Redis, server config)
+        await this.configureServer(mmctl);
     }
 
     /**
@@ -1138,7 +1014,7 @@ export class MattermostTestEnvironment {
 
         const clusterName = DEFAULT_HA_SETTINGS.clusterName;
         const nodeNames = generateNodeNames(HA_NODE_COUNT);
-        const serverImage = this.config.serverImage ?? getMattermostImage();
+        const serverImage = this.config.server.image ?? getMattermostImage();
 
         this.log(`Starting Mattermost HA cluster (${HA_NODE_COUNT} nodes, cluster: ${clusterName})`);
 
@@ -1147,45 +1023,8 @@ export class MattermostTestEnvironment {
             inbucket: this.connectionInfo.inbucket,
         };
 
-        // Build environment overrides (same as single-node mode)
-        const envOverrides: Record<string, string> = {};
-
-        if (this.connectionInfo.minio) {
-            envOverrides.MM_FILESETTINGS_DRIVERNAME = 'amazons3';
-            envOverrides.MM_FILESETTINGS_AMAZONS3ACCESSKEYID = this.connectionInfo.minio.accessKey;
-            envOverrides.MM_FILESETTINGS_AMAZONS3SECRETACCESSKEY = this.connectionInfo.minio.secretKey;
-            envOverrides.MM_FILESETTINGS_AMAZONS3BUCKET = 'mattermost-test';
-            envOverrides.MM_FILESETTINGS_AMAZONS3ENDPOINT = 'minio:9000';
-            envOverrides.MM_FILESETTINGS_AMAZONS3SSL = 'false';
-        }
-
-        if (this.connectionInfo.elasticsearch) {
-            envOverrides.MM_ELASTICSEARCHSETTINGS_CONNECTIONURL = 'http://elasticsearch:9200';
-        }
-
-        if (this.connectionInfo.opensearch) {
-            envOverrides.MM_ELASTICSEARCHSETTINGS_CONNECTIONURL = 'http://opensearch:9200';
-            envOverrides.MM_ELASTICSEARCHSETTINGS_BACKEND = 'opensearch';
-        }
-
-        if (this.connectionInfo.redis) {
-            envOverrides.MM_CACHESETTINGS_REDISADDRESS = 'redis:6379';
-            envOverrides.MM_CACHESETTINGS_REDISDB = '0';
-        }
-
-        // Pass all MM_* environment variables from host
-        for (const [key, value] of Object.entries(process.env)) {
-            if (key.startsWith('MM_') && key !== 'MM_SERVICESETTINGS_SITEURL' && value !== undefined) {
-                envOverrides[key] = value;
-            }
-        }
-
-        // Apply user-provided server environment variables
-        if (this.config.serverEnv) {
-            const {MM_SERVICESETTINGS_SITEURL: _siteUrl, ...restEnv} = this.config.serverEnv;
-            void _siteUrl;
-            Object.assign(envOverrides, restEnv);
-        }
+        // Build environment overrides (dependencies, service env, MM_* passthrough, user config)
+        const envOverrides = this.buildEnvOverrides();
 
         // Start all Mattermost nodes in sequence (leader first, then followers)
         const nodeInfos: MattermostNodeConnectionInfo[] = [];
@@ -1196,9 +1035,9 @@ export class MattermostTestEnvironment {
             this.log(`Starting Mattermost ${nodeName}...`);
 
             const container = await createMattermostContainer(this.network, deps, {
-                image: this.config.serverImage,
+                image: this.config.server.image,
                 envOverrides,
-                imageMaxAgeMs: this.config.imageMaxAgeMs,
+                imageMaxAgeMs: this.config.server.imageMaxAgeHours * 60 * 60 * 1000,
                 cluster: {
                     enable: true,
                     clusterName,
@@ -1250,56 +1089,8 @@ export class MattermostTestEnvironment {
                 this.log(`⚠ Failed to set SiteURL: ${siteUrlResult.stdout || siteUrlResult.stderr}`);
             }
 
-            // Apply default test settings
-            await this.applyDefaultTestSettings(mmctl);
-
-            // Configure LDAP settings if openldap is configured
-            if (this.connectionInfo.openldap) {
-                const ldapAttributes: Record<string, string> = {
-                    'LdapSettings.LdapServer': 'openldap',
-                    'LdapSettings.LdapPort': '389',
-                    'LdapSettings.BaseDN': this.connectionInfo.openldap.baseDN,
-                    'LdapSettings.BindUsername': this.connectionInfo.openldap.bindDN,
-                    'LdapSettings.BindPassword': this.connectionInfo.openldap.bindPassword,
-                    'LdapSettings.EmailAttribute': 'mail',
-                    'LdapSettings.UsernameAttribute': 'uid',
-                    'LdapSettings.IdAttribute': 'uid',
-                    'LdapSettings.LoginIdAttribute': 'uid',
-                    'LdapSettings.FirstNameAttribute': 'cn',
-                    'LdapSettings.LastNameAttribute': 'sn',
-                    'LdapSettings.NicknameAttribute': 'cn',
-                    'LdapSettings.PositionAttribute': 'title',
-                    'LdapSettings.GroupDisplayNameAttribute': 'cn',
-                    'LdapSettings.GroupIdAttribute': 'entryUUID',
-                };
-                for (const [key, value] of Object.entries(ldapAttributes)) {
-                    const result = await mmctl.exec(`config set ${key} "${value}"`);
-                    if (result.exitCode !== 0) {
-                        this.log(`⚠ Failed to set ${key}: ${result.stdout || result.stderr}`);
-                    }
-                }
-                const ldapResult = await mmctl.exec('config set LdapSettings.Enable true');
-                if (ldapResult.exitCode !== 0) {
-                    this.log(`⚠ Failed to enable LDAP: ${ldapResult.stdout || ldapResult.stderr}`);
-                }
-                await this.loadLdapTestData();
-            }
-
-            // Enable Elasticsearch/OpenSearch if configured
-            if (this.connectionInfo.elasticsearch || this.connectionInfo.opensearch) {
-                await mmctl.exec('config set ElasticsearchSettings.EnableIndexing true');
-                await mmctl.exec('config set ElasticsearchSettings.EnableSearching true');
-            }
-
-            // Enable Redis cache if configured
-            if (this.connectionInfo.redis) {
-                await mmctl.exec('config set CacheSettings.CacheType redis');
-            }
-
-            // Apply server config patch via mmctl if provided
-            if (this.config.serverConfig) {
-                await this.patchServerConfigHA(this.config.serverConfig, mmctl);
-            }
+            // Configure server via mmctl (LDAP, Elasticsearch, Redis, server config)
+            await this.configureServer(mmctl);
         }
 
         this.log(`✓ Mattermost HA cluster ready (${HA_NODE_COUNT} nodes)`);
@@ -1313,8 +1104,8 @@ export class MattermostTestEnvironment {
         if (!this.network) throw new Error('Network not initialized');
         if (!this.connectionInfo.postgres) throw new Error('PostgreSQL must be started first');
 
-        const isHA = this.config.ha ?? false;
-        const serverImage = this.config.serverImage ?? getMattermostImage();
+        const isHA = this.config.server.ha ?? false;
+        const serverImage = this.config.server.image ?? getMattermostImage();
 
         if (isHA) {
             this.log('Starting Mattermost subpath + HA mode (2 servers x 3 nodes each)');
@@ -1325,8 +1116,8 @@ export class MattermostTestEnvironment {
         // Create second database for server2
         await this.createSubpathDatabase();
 
-        // Build environment overrides (same as single-node mode)
-        const baseEnvOverrides = this.buildSubpathEnvOverrides();
+        // Build environment overrides (dependencies, service env, MM_* passthrough, user config)
+        const baseEnvOverrides = this.buildEnvOverrides();
 
         // Server 1 and Server 2 configuration
         const servers = [
@@ -1376,14 +1167,14 @@ export class MattermostTestEnvironment {
                         this.network!,
                         this.buildSubpathDeps(server.database),
                         {
-                            image: this.config.serverImage,
+                            image: this.config.server.image,
                             envOverrides: {
                                 ...baseEnvOverrides,
                                 MM_CONFIG: dbUrl,
                                 MM_SQLSETTINGS_DATASOURCE: dbUrl,
                                 // SiteURL set via mmctl after nginx starts
                             },
-                            imageMaxAgeMs: this.config.imageMaxAgeMs,
+                            imageMaxAgeMs: this.config.server.imageMaxAgeHours * 60 * 60 * 1000,
                             cluster: {
                                 enable: true,
                                 clusterName: `${clusterName}_${server.name}`,
@@ -1419,14 +1210,14 @@ export class MattermostTestEnvironment {
                     this.network!,
                     this.buildSubpathDeps(server.database),
                     {
-                        image: this.config.serverImage,
+                        image: this.config.server.image,
                         envOverrides: {
                             ...baseEnvOverrides,
                             MM_CONFIG: dbUrl,
                             MM_SQLSETTINGS_DATASOURCE: dbUrl,
                             // SiteURL set via mmctl after nginx starts
                         },
-                        imageMaxAgeMs: this.config.imageMaxAgeMs,
+                        imageMaxAgeMs: this.config.server.imageMaxAgeHours * 60 * 60 * 1000,
                         cluster: {
                             enable: false,
                             clusterName: '',
@@ -1567,56 +1358,32 @@ export class MattermostTestEnvironment {
     }
 
     /**
-     * Build base environment overrides for subpath servers.
+     * Build base environment overrides for Mattermost containers.
+     * Delegates to the standalone buildBaseEnvOverrides function.
      */
-    private buildSubpathEnvOverrides(): Record<string, string> {
-        const envOverrides: Record<string, string> = {};
+    private buildEnvOverrides(): Record<string, string> {
+        return buildBaseEnvOverrides(this.connectionInfo, this.config, this.serverMode);
+    }
 
-        if (this.connectionInfo.minio) {
-            envOverrides.MM_FILESETTINGS_DRIVERNAME = 'amazons3';
-            envOverrides.MM_FILESETTINGS_AMAZONS3ACCESSKEYID = this.connectionInfo.minio.accessKey;
-            envOverrides.MM_FILESETTINGS_AMAZONS3SECRETACCESSKEY = this.connectionInfo.minio.secretKey;
-            envOverrides.MM_FILESETTINGS_AMAZONS3BUCKET = 'mattermost-test';
-            envOverrides.MM_FILESETTINGS_AMAZONS3ENDPOINT = 'minio:9000';
-            envOverrides.MM_FILESETTINGS_AMAZONS3SSL = 'false';
-        }
-
-        if (this.connectionInfo.elasticsearch) {
-            envOverrides.MM_ELASTICSEARCHSETTINGS_CONNECTIONURL = 'http://elasticsearch:9200';
-        }
-
-        if (this.connectionInfo.opensearch) {
-            envOverrides.MM_ELASTICSEARCHSETTINGS_CONNECTIONURL = 'http://opensearch:9200';
-            envOverrides.MM_ELASTICSEARCHSETTINGS_BACKEND = 'opensearch';
-        }
-
-        if (this.connectionInfo.redis) {
-            envOverrides.MM_CACHESETTINGS_REDISADDRESS = 'redis:6379';
-            envOverrides.MM_CACHESETTINGS_REDISDB = '0';
-        }
-
-        // Pass all MM_* environment variables from host
-        for (const [key, value] of Object.entries(process.env)) {
-            if (key.startsWith('MM_') && key !== 'MM_SERVICESETTINGS_SITEURL' && value !== undefined) {
-                envOverrides[key] = value;
-            }
-        }
-
-        // Apply user-provided server environment variables
-        if (this.config.serverEnv) {
-            const {MM_SERVICESETTINGS_SITEURL: _siteUrl, ...restEnv} = this.config.serverEnv;
-            void _siteUrl;
-            Object.assign(envOverrides, restEnv);
-        }
-
-        return envOverrides;
+    /**
+     * Configure server via mmctl after it's running.
+     * Delegates to the standalone configureServerViaMmctl function.
+     */
+    private async configureServer(mmctl: MmctlClient): Promise<void> {
+        await configureServerViaMmctlFn(
+            mmctl,
+            this.connectionInfo,
+            this.config,
+            (msg) => this.log(msg),
+            () => this.loadLdapTestData(),
+        );
     }
 
     /**
      * Configure a subpath server via mmctl.
      */
-    private async configureSubpathServer(serverName: string, nodeAliases: string[], nginxUrl: string): Promise<void> {
-        const isHA = this.config.ha ?? false;
+    private async configureSubpathServer(serverName: string, _nodeAliases: string[], nginxUrl: string): Promise<void> {
+        const isHA = this.config.server.ha ?? false;
         const subpath = serverName === 'server1' ? '/mattermost1' : '/mattermost2';
         const siteUrl = `${nginxUrl}${subpath}`;
 
@@ -1653,189 +1420,10 @@ export class MattermostTestEnvironment {
             }
         }
 
-        // Apply default test settings
-        await this.applyDefaultTestSettings(mmctl);
-
-        // Configure LDAP settings if openldap is configured
-        if (this.connectionInfo.openldap) {
-            const ldapAttributes: Record<string, string> = {
-                'LdapSettings.LdapServer': 'openldap',
-                'LdapSettings.LdapPort': '389',
-                'LdapSettings.BaseDN': this.connectionInfo.openldap.baseDN,
-                'LdapSettings.BindUsername': this.connectionInfo.openldap.bindDN,
-                'LdapSettings.BindPassword': this.connectionInfo.openldap.bindPassword,
-                'LdapSettings.EmailAttribute': 'mail',
-                'LdapSettings.UsernameAttribute': 'uid',
-                'LdapSettings.IdAttribute': 'uid',
-                'LdapSettings.LoginIdAttribute': 'uid',
-                'LdapSettings.FirstNameAttribute': 'cn',
-                'LdapSettings.LastNameAttribute': 'sn',
-                'LdapSettings.NicknameAttribute': 'cn',
-                'LdapSettings.PositionAttribute': 'title',
-                'LdapSettings.GroupDisplayNameAttribute': 'cn',
-                'LdapSettings.GroupIdAttribute': 'entryUUID',
-            };
-            for (const [key, value] of Object.entries(ldapAttributes)) {
-                await mmctl.exec(`config set ${key} "${value}"`);
-            }
-            await mmctl.exec('config set LdapSettings.Enable true');
-        }
-
-        // Enable Elasticsearch/OpenSearch if configured
-        if (this.connectionInfo.elasticsearch || this.connectionInfo.opensearch) {
-            await mmctl.exec('config set ElasticsearchSettings.EnableIndexing true');
-            await mmctl.exec('config set ElasticsearchSettings.EnableSearching true');
-        }
-
-        // Enable Redis cache if configured
-        if (this.connectionInfo.redis) {
-            await mmctl.exec('config set CacheSettings.CacheType redis');
-        }
-
-        // Apply server config patch via mmctl if provided
-        if (this.config.serverConfig) {
-            await this.patchServerConfigHA(this.config.serverConfig, mmctl);
-        }
+        // Configure server via mmctl (LDAP, Elasticsearch, Redis, server config)
+        await this.configureServer(mmctl);
 
         this.log(`✓ ${serverName} configured with SiteURL: ${siteUrl}`);
-    }
-
-    /**
-     * Patch server configuration via mmctl for HA mode.
-     * Uses the provided mmctl client (connected to leader node).
-     */
-    private async patchServerConfigHA(config: Record<string, unknown>, mmctl: MmctlClient): Promise<void> {
-        this.log('Patching server configuration via mmctl (HA mode)');
-
-        for (const [section, settings] of Object.entries(config)) {
-            if (typeof settings === 'object' && settings !== null) {
-                for (const [key, value] of Object.entries(settings as Record<string, unknown>)) {
-                    const configKey = `${section}.${key}`;
-                    const configValue = this.formatConfigValue(value);
-
-                    const result = await mmctl.exec(`config set ${configKey} ${configValue}`);
-                    if (result.exitCode !== 0) {
-                        this.log(`⚠ Failed to set ${configKey}: ${result.stdout || result.stderr}`);
-                    }
-                }
-            }
-        }
-
-        this.log('✓ Server configuration patched (HA mode)');
-    }
-
-    /**
-     * Apply default test settings via mmctl.
-     * These settings can be changed in System Console (not locked by env vars).
-     */
-    private async applyDefaultTestSettings(mmctl: MmctlClient): Promise<void> {
-        const defaults: Record<string, string | boolean> = {
-            // Service settings
-            'ServiceSettings.EnableLocalMode': true,
-            'ServiceSettings.EnableTesting': true,
-            'ServiceSettings.EnableDeveloper': true,
-            'ServiceSettings.AllowCorsFrom': '*',
-            'ServiceSettings.EnableSecurityFixAlert': false,
-            // Note: ServiceEnvironment is set via env var only (not mmctl), handled in startMattermost()
-            // Note: ClusterSettings.ReadOnlyConfig is set via env var to avoid cluster instability warnings
-
-            // Plugin settings
-            'PluginSettings.EnableUploads': true,
-            'PluginSettings.AutomaticPrepackagedPlugins': true,
-
-            // Log settings
-            'LogSettings.EnableConsole': true,
-            'LogSettings.ConsoleLevel': 'DEBUG',
-            'LogSettings.EnableDiagnostics': false,
-
-            // Team settings
-            'TeamSettings.EnableOpenServer': true,
-            'TeamSettings.MaxUsersPerTeam': '10000',
-
-            // Email settings (test defaults for inbucket)
-            'EmailSettings.EnableSMTPAuth': false,
-            'EmailSettings.SendEmailNotifications': true,
-            'EmailSettings.FeedbackEmail': 'test@localhost.com',
-            'EmailSettings.FeedbackName': 'Mattermost Test',
-            'EmailSettings.ReplyToAddress': 'test@localhost.com',
-        };
-
-        for (const [key, value] of Object.entries(defaults)) {
-            const formattedValue = this.formatConfigValue(value);
-            const result = await mmctl.exec(`config set ${key} ${formattedValue}`);
-            if (result.exitCode !== 0) {
-                this.log(`⚠ Failed to set ${key}: ${result.stdout || result.stderr}`);
-            }
-        }
-    }
-
-    /**
-     * Patch server configuration via mmctl.
-     * Follows mmctl config set documentation:
-     * - String values are double-quoted
-     * - Arrays are passed as multiple quoted arguments
-     * - Objects/complex values are JSON-stringified with single quotes
-     *
-     * @param config Partial config object to merge with the server's config
-     * @see https://docs.mattermost.com/manage/mmctl-command-line-tool.html#mmctl-config-set
-     */
-    private async patchServerConfig(config: Record<string, unknown>): Promise<void> {
-        this.log('Patching server configuration via mmctl');
-        const mmctl = this.getMmctl();
-
-        // Apply each top-level config section
-        for (const [section, settings] of Object.entries(config)) {
-            if (typeof settings === 'object' && settings !== null) {
-                for (const [key, value] of Object.entries(settings as Record<string, unknown>)) {
-                    const configKey = `${section}.${key}`;
-                    const configValue = this.formatConfigValue(value);
-
-                    const result = await mmctl.exec(`config set ${configKey} ${configValue}`);
-                    if (result.exitCode !== 0) {
-                        this.log(`⚠ Failed to set ${configKey}: ${result.stdout || result.stderr}`);
-                    }
-                }
-            }
-        }
-
-        this.log('✓ Server configuration patched');
-    }
-
-    /**
-     * Format a config value for mmctl config set command.
-     * - Strings: double-quoted (escaped internal quotes)
-     * - Numbers/booleans: as-is (mmctl handles these)
-     * - Arrays of strings: multiple double-quoted values
-     * - Objects/complex: single-quoted JSON string
-     */
-    private formatConfigValue(value: unknown): string {
-        if (typeof value === 'string') {
-            // Double-quote strings, escape internal double quotes
-            return `"${value.replace(/"/g, '\\"')}"`;
-        }
-
-        if (typeof value === 'number' || typeof value === 'boolean') {
-            // Numbers and booleans can be passed directly
-            return String(value);
-        }
-
-        if (Array.isArray(value)) {
-            // Arrays of primitives: pass as multiple quoted arguments
-            // e.g., mmctl config set Key "value1" "value2"
-            if (value.every((v) => typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean')) {
-                return value.map((v) => `"${String(v).replace(/"/g, '\\"')}"`).join(' ');
-            }
-            // Complex arrays: use JSON
-            return `'${JSON.stringify(value)}'`;
-        }
-
-        if (typeof value === 'object' && value !== null) {
-            // Objects: use single-quoted JSON string
-            return `'${JSON.stringify(value)}'`;
-        }
-
-        // Fallback for null/undefined
-        return '""';
     }
 
     /**
@@ -1993,7 +1581,7 @@ MIICozCCAYsCBgGNzWfMwjANBgkqhkiG9w0BAQsFADAVMRMwEQYDVQQDDAptYXR0ZXJtb3N0MB4XDTI0
         const apiHost = parsedUrl.hostname;
         const apiPort = parseInt(parsedUrl.port, 10) || 80;
 
-        const loginResult = await this.httpPost(
+        const loginResult = await httpPost(
             apiHost,
             apiPort,
             '/api/v4/users/login',
@@ -2010,7 +1598,7 @@ MIICozCCAYsCBgGNzWfMwjANBgkqhkiG9w0BAQsFADAVMRMwEQYDVQQDDAptYXR0ZXJtb3N0MB4XDTI0
         }
 
         // Step 3: Upload the certificate
-        const uploadResult = await this.httpPost(apiHost, apiPort, '/api/v4/saml/certificate/idp', certificate, {
+        const uploadResult = await httpPost(apiHost, apiPort, '/api/v4/saml/certificate/idp', certificate, {
             'Content-Type': 'application/x-pem-file',
             Authorization: `Bearer ${loginResult.token}`,
         });
@@ -2044,7 +1632,7 @@ MIICozCCAYsCBgGNzWfMwjANBgkqhkiG9w0BAQsFADAVMRMwEQYDVQQDDAptYXR0ZXJtb3N0MB4XDTI0
         };
 
         for (const [key, value] of Object.entries(samlSettings)) {
-            const formattedValue = this.formatConfigValue(value);
+            const formattedValue = formatConfigValue(value);
             await mmctl.exec(`config set ${key} ${formattedValue}`);
         }
 
@@ -2100,7 +1688,7 @@ MIICozCCAYsCBgGNzWfMwjANBgkqhkiG9w0BAQsFADAVMRMwEQYDVQQDDAptYXR0ZXJtb3N0MB4XDTI0
 
         try {
             // Get Keycloak admin token
-            const tokenResult = await this.httpPost(
+            const tokenResult = await httpPost(
                 host,
                 port,
                 '/realms/master/protocol/openid-connect/token',
@@ -2117,12 +1705,9 @@ MIICozCCAYsCBgGNzWfMwjANBgkqhkiG9w0BAQsFADAVMRMwEQYDVQQDDAptYXR0ZXJtb3N0MB4XDTI0
             const accessToken = tokenData.access_token;
 
             // Get the SAML client ID
-            const clientsResult = await this.httpGet(
-                host,
-                port,
-                '/admin/realms/mattermost/clients?clientId=mattermost',
-                {Authorization: `Bearer ${accessToken}`},
-            );
+            const clientsResult = await httpGet(host, port, '/admin/realms/mattermost/clients?clientId=mattermost', {
+                Authorization: `Bearer ${accessToken}`,
+            });
 
             if (!clientsResult.success || !clientsResult.body) {
                 this.log(`⚠ Failed to get Keycloak clients: ${clientsResult.error}`);
@@ -2151,7 +1736,7 @@ MIICozCCAYsCBgGNzWfMwjANBgkqhkiG9w0BAQsFADAVMRMwEQYDVQQDDAptYXR0ZXJtb3N0MB4XDTI0
                 webOrigins: [nginxUrl, server1Url, server2Url],
             };
 
-            const updateResult = await this.httpPut(
+            const updateResult = await httpPut(
                 host,
                 port,
                 `/admin/realms/mattermost/clients/${clientId}`,
@@ -2187,7 +1772,7 @@ MIICozCCAYsCBgGNzWfMwjANBgkqhkiG9w0BAQsFADAVMRMwEQYDVQQDDAptYXR0ZXJtb3N0MB4XDTI0
 
         try {
             // Step 1: Get Keycloak admin token
-            const tokenResult = await this.httpPost(
+            const tokenResult = await httpPost(
                 host,
                 port,
                 '/realms/master/protocol/openid-connect/token',
@@ -2204,12 +1789,9 @@ MIICozCCAYsCBgGNzWfMwjANBgkqhkiG9w0BAQsFADAVMRMwEQYDVQQDDAptYXR0ZXJtb3N0MB4XDTI0
             const accessToken = tokenData.access_token;
 
             // Step 2: Get the SAML client ID
-            const clientsResult = await this.httpGet(
-                host,
-                port,
-                '/admin/realms/mattermost/clients?clientId=mattermost',
-                {Authorization: `Bearer ${accessToken}`},
-            );
+            const clientsResult = await httpGet(host, port, '/admin/realms/mattermost/clients?clientId=mattermost', {
+                Authorization: `Bearer ${accessToken}`,
+            });
 
             if (!clientsResult.success || !clientsResult.body) {
                 this.log(`⚠ Failed to get Keycloak clients: ${clientsResult.error}`);
@@ -2233,7 +1815,7 @@ MIICozCCAYsCBgGNzWfMwjANBgkqhkiG9w0BAQsFADAVMRMwEQYDVQQDDAptYXR0ZXJtb3N0MB4XDTI0
                 webOrigins: [mattermostUrl],
             };
 
-            const updateResult = await this.httpPut(
+            const updateResult = await httpPut(
                 host,
                 port,
                 `/admin/realms/mattermost/clients/${clientId}`,
@@ -2253,156 +1835,5 @@ MIICozCCAYsCBgGNzWfMwjANBgkqhkiG9w0BAQsFADAVMRMwEQYDVQQDDAptYXR0ZXJtb3N0MB4XDTI0
         } catch (err) {
             this.log(`⚠ Failed to update Keycloak SAML client: ${err}`);
         }
-    }
-
-    /**
-     * Make an HTTP POST request.
-     * @param host Hostname
-     * @param port Port number
-     * @param path URL path
-     * @param body Request body
-     * @param headers Request headers
-     * @returns Result object with success status, response body, token (from header), and optional error
-     */
-    private httpPost(
-        host: string,
-        port: number,
-        path: string,
-        body: string,
-        headers: Record<string, string> = {},
-    ): Promise<{success: boolean; body?: string; token?: string; error?: string}> {
-        return new Promise((resolve) => {
-            const options = {
-                hostname: host,
-                port,
-                path,
-                method: 'POST',
-                headers: {
-                    'Content-Length': Buffer.byteLength(body),
-                    ...headers,
-                },
-            };
-
-            const req = http.request(options, (res: IncomingMessage) => {
-                let responseBody = '';
-                res.on('data', (chunk: Buffer) => {
-                    responseBody += chunk.toString();
-                });
-                res.on('end', () => {
-                    // Extract token from response header (used by login endpoint)
-                    const token = res.headers['token'] as string | undefined;
-
-                    if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
-                        resolve({success: true, body: responseBody, token});
-                    } else {
-                        resolve({
-                            success: false,
-                            body: responseBody,
-                            error: `HTTP ${res.statusCode}: ${responseBody}`,
-                        });
-                    }
-                });
-            });
-
-            req.on('error', (err: Error) => {
-                resolve({success: false, error: err.message});
-            });
-
-            req.write(body);
-            req.end();
-        });
-    }
-
-    /**
-     * Make an HTTP GET request.
-     */
-    private httpGet(
-        host: string,
-        port: number,
-        path: string,
-        headers: Record<string, string> = {},
-    ): Promise<{success: boolean; body?: string; error?: string}> {
-        return new Promise((resolve) => {
-            const options = {
-                hostname: host,
-                port,
-                path,
-                method: 'GET',
-                headers,
-            };
-
-            const req = http.request(options, (res: IncomingMessage) => {
-                let responseBody = '';
-                res.on('data', (chunk: Buffer) => {
-                    responseBody += chunk.toString();
-                });
-                res.on('end', () => {
-                    if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
-                        resolve({success: true, body: responseBody});
-                    } else {
-                        resolve({
-                            success: false,
-                            body: responseBody,
-                            error: `HTTP ${res.statusCode}: ${responseBody}`,
-                        });
-                    }
-                });
-            });
-
-            req.on('error', (err: Error) => {
-                resolve({success: false, error: err.message});
-            });
-
-            req.end();
-        });
-    }
-
-    /**
-     * Make an HTTP PUT request.
-     */
-    private httpPut(
-        host: string,
-        port: number,
-        path: string,
-        body: string,
-        headers: Record<string, string> = {},
-    ): Promise<{success: boolean; body?: string; error?: string}> {
-        return new Promise((resolve) => {
-            const options = {
-                hostname: host,
-                port,
-                path,
-                method: 'PUT',
-                headers: {
-                    'Content-Length': Buffer.byteLength(body),
-                    ...headers,
-                },
-            };
-
-            const req = http.request(options, (res: IncomingMessage) => {
-                let responseBody = '';
-                res.on('data', (chunk: Buffer) => {
-                    responseBody += chunk.toString();
-                });
-                res.on('end', () => {
-                    if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
-                        resolve({success: true, body: responseBody});
-                    } else {
-                        resolve({
-                            success: false,
-                            body: responseBody,
-                            error: `HTTP ${res.statusCode}: ${responseBody}`,
-                        });
-                    }
-                });
-            });
-
-            req.on('error', (err: Error) => {
-                resolve({success: false, error: err.message});
-            });
-
-            req.write(body);
-            req.end();
-        });
     }
 }
