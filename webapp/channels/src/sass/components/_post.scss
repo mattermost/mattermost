@@ -855,6 +855,11 @@
             max-height: 22px;
             padding: 0;
             margin-bottom: 0;
+            overflow: visible;
+        }
+
+        .badges-wrapper {
+            margin-right: 5px;
         }
 
         .post__body {
