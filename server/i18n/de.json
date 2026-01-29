@@ -8614,10 +8614,6 @@
     "translation": "Überspringe die Installation des Plugins {{.Id}}, da die vorhandene Version gleich oder neuer ist."
   },
   {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "CWS Server kann den Newsletter nicht abonnieren."
-  },
-  {
     "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
     "translation": "Das Prüfen einer dauerhaften Benachrichtigung ist fehlgeschlagen."
   },

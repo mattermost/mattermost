@@ -48,6 +48,7 @@ generate_docker_compose_file() {
 services:
   server:
     image: \${SERVER_IMAGE}
+    platform: linux/amd64
     restart: always
     env_file:
       - "./.env.server"

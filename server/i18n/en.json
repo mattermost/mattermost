@@ -3159,10 +3159,6 @@
     "translation": "Service only available in Mattermost Enterprise edition"
   },
   {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "CWS Server failed to subscribe to newsletter."
-  },
-  {
     "id": "api.server.hosted_signup_unavailable.error",
     "translation": "Portal unavailable for self-hosted signup."
   },
@@ -6923,10 +6919,6 @@
     "translation": "Could not update active status of access control policies."
   },
   {
-    "id": "app.pap.update_access_control_policy_active.app_error",
-    "translation": "Could not change active status of access control policy."
-  },
-  {
     "id": "app.pdp.access_evaluation.app_error",
     "translation": "Failed evaluate access control policy."
   },
@@ -9913,16 +9905,8 @@
     "translation": "Unsupported autotranslation provider."
   },
   {
-    "id": "model.config.is_valid.autotranslation.timeouts.long.app_error",
-    "translation": "Invalid long timeout for autotranslation settings. Must be a positive number."
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.medium.app_error",
-    "translation": "Invalid medium timeout for autotranslation settings. Must be a positive number."
-  },
-  {
-    "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
-    "translation": "Invalid notification timeout for autotranslation settings. Must be a positive number."
+    "id": "model.config.is_valid.autotranslation.timeout.app_error",
+    "translation": "Invalid timeout for autotranslation settings. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.autotranslation.timeouts.short.app_error",
