@@ -1,5 +1,5 @@
 .channel-bookmarks-container {
-    scrollbar-width: thin;
+    // Overflow is now handled by the overflow menu, not scrolling
 }
 
 .channelBookmarksMenuButton {
@@ -69,4 +69,30 @@
 #bookmark-create-file-input,
 #bookmark-create-file-input-in-modal {
     display: none;
+}
+
+// Overflow menu button styles
+.channelBookmarksOverflowButton {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    border: none;
+    background: transparent;
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 150ms ease;
+
+    &:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 1);
+    }
+
+    &[aria-expanded="true"] {
+        background: rgba(var(--button-bg-rgb), 0.08);
+        color: rgb(var(--button-bg-rgb));
+    }
 }

@@ -95,6 +95,9 @@
     "zen-observable": "0.10.0"
   },
   "devDependencies": {
+    "@dnd-kit/core": "6.3.1",
+    "@dnd-kit/sortable": "9.0.0",
+    "@dnd-kit/utilities": "3.2.2",
     "@cfaester/enzyme-adapter-react-18": "0.8.0",
     "@deanwhillier/jest-matchmedia-mock": "1.2.0",
     "@mattermost/calls-common": "0.27.0",
