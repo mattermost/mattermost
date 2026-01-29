@@ -70,7 +70,7 @@ func MloggerConfigFromAuditConfig(auditSettings model.ExperimentalAuditSettings,
 
 	// add the simple audit config
 	if *auditSettings.FileEnabled {
-		targetCfg, err = makeSimpleFileTarget(*auditSettings.FileName, "error", true)
+		targetCfg, err = makeFileTargetFromAudit(&auditSettings, "error", true)
 		if err != nil {
 			return nil, err
 		}
@@ -127,31 +127,27 @@ func makeSimpleConsoleTarget(level string, outputJSON bool, color bool) (mlog.Ta
 }
 
 func makeSimpleFileTarget(filename string, level string, json bool) (mlog.TargetCfg, error) {
-	levels, err := stdLevels(level)
+	// Keep the previous defaults for the “simple” file target
+	const (
+		maxSizeMB  = 100
+		maxAgeDays = 0
+		maxBackups = 0
+	)
+	compress := LogCompress
+
+	// Build base target via the unified helper
+	cfg, err := makeFileTarget(filename, level, json, maxSizeMB, maxAgeDays, maxBackups, compress)
 	if err != nil {
 		return mlog.TargetCfg{}, err
 	}
 
-	fileOpts, err := makeFileOptions(filename)
-	if err != nil {
-		return mlog.TargetCfg{}, fmt.Errorf("cannot encode file options: %w", err)
+	// Apply the same level parsing used by console
+	levels, err := stdLevels(level)
+	if err == nil && len(levels) > 0 {
+		cfg.Levels = levels
 	}
 
-	target := mlog.TargetCfg{
-		Type:         "file",
-		Levels:       levels,
-		Options:      fileOpts,
-		MaxQueueSize: 1000,
-	}
-
-	if json {
-		target.Format = "json"
-		target.FormatOptions = makeJSONFormatOptions()
-	} else {
-		target.Format = "plain"
-		target.FormatOptions = makePlainFormatOptions(false)
-	}
-	return target, nil
+	return cfg, nil
 }
 
 func stdLevels(level string) ([]mlog.Level, error) {
@@ -212,3 +208,5 @@ func makeFileOptions(filename string) (json.RawMessage, error) {
 
 	return json.RawMessage(b), nil
 }
+
+// Falls back to the regular logging defaults when fields are unset.
