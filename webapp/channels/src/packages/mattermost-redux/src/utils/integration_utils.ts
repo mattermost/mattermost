@@ -46,7 +46,7 @@ function validateDateTimeValue(value: string, elem: DialogElement): DialogError 
 }
 
 export function checkDialogElementForError(elem: DialogElement, value: any): DialogError | undefined | null {
-    // Check if value is empty (handles arrays for multiselect)
+    // Check if value is empty (handles arrays for multiselect and ranges)
     let isEmpty;
     if (value === 0) {
         isEmpty = false;
@@ -61,6 +61,16 @@ export function checkDialogElementForError(elem: DialogElement, value: any): Dia
             id: 'interactive_dialog.error.required',
             defaultMessage: 'This field is required.',
         });
+    }
+
+    // Check if range field has both start and end
+    if (!elem.optional && elem.datetime_config?.is_range) {
+        if (!Array.isArray(value) || value.length < 2) {
+            return defineMessage({
+                id: 'interactive_dialog.error.range_incomplete',
+                defaultMessage: 'Both start and end dates are required.',
+            });
+        }
     }
 
     const type = elem.type;

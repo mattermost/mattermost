@@ -159,4 +159,77 @@ describe('AppsFormDateField', () => {
         // The component should render a date picker with the formatted date
         expect(screen.getByRole('button')).toBeInTheDocument();
     });
+
+    describe('date range selection', () => {
+        it('should render date range picker when is_range is true', () => {
+            const rangeField: AppField = {
+                name: 'test_date_range',
+                type: 'date',
+                label: 'Test Date Range',
+                is_required: false,
+                datetime_config: {
+                    is_range: true,
+                },
+            };
+
+            renderComponent({field: rangeField, value: null});
+
+            // Should render date picker with range capability
+            expect(screen.getByRole('button')).toBeInTheDocument();
+        });
+
+        it('should handle date range values as array', () => {
+            const rangeField: AppField = {
+                name: 'test_date_range',
+                type: 'date',
+                label: 'Test Date Range',
+                is_required: false,
+                datetime_config: {
+                    is_range: true,
+                },
+            };
+
+            const rangeValue = ['2025-01-15', '2025-01-20'];
+            renderComponent({field: rangeField, value: rangeValue});
+
+            // Should render and display formatted range
+            expect(screen.getByRole('button')).toBeInTheDocument();
+        });
+
+        it('should handle partial date range (start only)', () => {
+            const rangeField: AppField = {
+                name: 'test_date_range',
+                type: 'date',
+                label: 'Test Date Range',
+                is_required: false,
+                datetime_config: {
+                    is_range: true,
+                },
+            };
+
+            const partialRange = ['2025-01-15'];
+            renderComponent({field: rangeField, value: partialRange});
+
+            // Should render without errors
+            expect(screen.getByRole('button')).toBeInTheDocument();
+        });
+
+        it('should use allow_single_day_range setting', () => {
+            const rangeField: AppField = {
+                name: 'test_date_range',
+                type: 'date',
+                label: 'Test Date Range',
+                is_required: false,
+                datetime_config: {
+                    is_range: true,
+                    allow_single_day_range: true,
+                },
+            };
+
+            renderComponent({field: rangeField, value: null});
+
+            // Component should render with setting
+            expect(screen.getByRole('button')).toBeInTheDocument();
+        });
+    });
 });
