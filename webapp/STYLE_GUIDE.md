@@ -87,7 +87,15 @@ The following guidelines should be applied to both new and existing code. Howeve
 - **Selectors**: Prefer using accessible RTL selectors to help ensure that components are accessible, roughly in this order: `getByRole` > `getByText`/`getByPlaceholderText` > `getByLabelText`/`getByAltText`/`getByTitle` > `getByTestId`. Usage of `getByTestId` should be rare.
 - **User Interactions**: Prefer `userEvent` over `fireEvent` for user interactions, and don't directly call methods on DOM elements to simulate events. RTL's `userEvent` simulates events the most realistically, and it ensures that component changes are properly wrapped in `act`.
     - **Async Interactions**: Always wait for all methods of `userEvent` as those methods are all asynchronous (e.g. `await userEvent.click(...)`).
-- **Usage of act**: `act` should only be used when performing any action that causes React to update and when that action does not alreadu go through a helper provided by RTL such as `userEvent`. Typically, most tests can be written without using `act` explicitly.
+    - **When fireEvent is acceptable**: Use `fireEvent` only in these specific cases where `userEvent` cannot be used:
+        - **Focus/Blur events**: `userEvent` doesn't have direct focus/blur methods. Use `fireEvent.focus()` and `fireEvent.blur()`.
+        - **Scroll events**: `userEvent` doesn't support scroll events. Use `fireEvent.scroll()`.
+        - **Image loading events**: `userEvent` doesn't support image loading events. Use `fireEvent.load()` and `fireEvent.error()`.
+        - **Document-level keyboard events**: `userEvent.keyboard()` requires element focus. Use `fireEvent.keyDown(document, ...)` for global keyboard shortcuts.
+        - **Fake timers**: `userEvent` doesn't work well with `jest.useFakeTimers()` and causes timeouts. Use `fireEvent.click()` when tests use fake timers.
+        - **Disabled elements**: `userEvent` respects CSS `pointer-events: none` on disabled elements. Use `fireEvent.click()` when testing that disabled element handlers are properly guarded.
+        - **MouseMove events**: `userEvent.hover()` only triggers mouseEnter/mouseOver, not mouseMove. Use `fireEvent.mouseMove()` when testing mouseMove handlers specifically.
+- **Usage of act**: `act` should only be used when performing any action that causes React to update and when that action does not already go through a helper provided by RTL such as `userEvent`. Typically, most tests can be written without using `act` explicitly.
 
 
 ### Dependencies & Packages
