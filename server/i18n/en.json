@@ -4863,6 +4863,14 @@
     "translation": "File not found."
   },
   {
+    "id": "api.wiki.extract_image.file_post_inaccessible.app_error",
+    "translation": "The post this file was attached to is not accessible."
+  },
+  {
+    "id": "api.wiki.extract_image.file_post_not_found.app_error",
+    "translation": "The post this file was attached to no longer exists."
+  },
+  {
     "id": "api.wiki.extract_image.missing_file_or_url.app_error",
     "translation": "Must provide either file ID or image URL."
   },

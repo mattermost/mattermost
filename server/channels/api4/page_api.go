@@ -426,7 +426,19 @@ func extractPageImageText(c *Context, w http.ResponseWriter, r *http.Request) {
 		if fileInfo.PostId != "" {
 			post, postErr := c.App.GetSinglePost(c.AppContext, fileInfo.PostId, false)
 			if postErr != nil {
-				c.SetPermissionError(model.PermissionReadChannel)
+				// Distinguish between post not found/deleted vs other errors
+				if postErr.StatusCode == http.StatusNotFound {
+					c.Err = model.NewAppError("extractPageImageText", "api.wiki.extract_image.file_post_not_found.app_error",
+						nil, "the post this file was attached to no longer exists", http.StatusNotFound).Wrap(postErr)
+					return
+				}
+				if postErr.StatusCode == http.StatusForbidden {
+					// Cloud message limits or other access restrictions
+					c.Err = model.NewAppError("extractPageImageText", "api.wiki.extract_image.file_post_inaccessible.app_error",
+						nil, "the post this file was attached to is not accessible", http.StatusForbidden).Wrap(postErr)
+					return
+				}
+				c.Err = postErr
 				return
 			}
 
@@ -442,10 +454,12 @@ func extractPageImageText(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		} else {
-			// File not attached to post - verify user owns it
+			// File not attached to post - verify user owns it or user is admin
 			if fileInfo.CreatorId != c.AppContext.Session().UserId {
-				c.SetPermissionError(model.PermissionReadChannel)
-				return
+				if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+					c.SetPermissionError(model.PermissionReadChannel)
+					return
+				}
 			}
 		}
 	}

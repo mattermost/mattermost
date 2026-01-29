@@ -499,5 +499,188 @@ describe('tiptap_reassembler', () => {
             expect(linkNodes[0].text).toBe('https://first.com');
             expect(linkNodes[1].text).toBe('https://second.com');
         });
+
+        it('should preserve href matching visible text for multiple wiki page links', () => {
+            // This tests the scenario where a page has links to multiple wiki pages.
+            // The visible text IS the URL (common pattern for internal wiki links).
+            // After translation, the href must match the visible text for each link.
+            const pageId1 = 'rhfqgbbb6jn5bmxryqano3t9dw';
+            const pageId2 = '1dojfhr8njyhzfthp7ungafhda';
+            const url1 = `https://wiki.example.com/page/${pageId1}`;
+            const url2 = `https://wiki.example.com/page/${pageId2}`;
+
+            const doc: TipTapDoc = {
+                type: 'doc',
+                content: [
+                    {
+                        type: 'paragraph',
+                        content: [
+                            {type: 'text', text: 'See '},
+                            {
+                                type: 'text',
+                                text: url1,
+                                marks: [{type: 'link', attrs: {href: url1}}],
+                            },
+                            {type: 'text', text: ' and also '},
+                            {
+                                type: 'text',
+                                text: url2,
+                                marks: [{type: 'link', attrs: {href: url2}}],
+                            },
+                            {type: 'text', text: ' for details.'},
+                        ],
+                    },
+                ],
+            };
+
+            const {chunks} = extractTextChunks(doc);
+
+            // Both URLs should be protected
+            expect(chunks[0].protectedUrls?.length).toBe(2);
+            expect(chunks[0].protectedUrls?.[0].original).toBe(url1);
+            expect(chunks[0].protectedUrls?.[1].original).toBe(url2);
+
+            // Simulate translation preserving placeholders in order
+            const aiTexts = ['Vea ⟦URL:0⟧ y también ⟦URL:1⟧ para más detalles.'];
+
+            const result = reassembleDocument(doc, chunks, aiTexts);
+
+            expect(result.success).toBe(true);
+
+            const content = result.doc.content[0].content || [];
+            const linkNodes = content.filter((node) =>
+                node.marks?.some((m) => m.type === 'link'),
+            );
+
+            // Both links should be restored
+            expect(linkNodes.length).toBe(2);
+
+            // CRITICAL: href must match visible text for each link
+            // This is the bug - clicking the link should go to the page shown in the text
+            for (const linkNode of linkNodes) {
+                const linkMark = linkNode.marks?.find((m) => m.type === 'link');
+                expect(linkMark?.attrs?.href).toBe(linkNode.text);
+            }
+
+            // Verify specific values
+            expect(linkNodes[0].text).toBe(url1);
+            expect(linkNodes[0].marks?.[0].attrs?.href).toBe(url1);
+            expect(linkNodes[1].text).toBe(url2);
+            expect(linkNodes[1].marks?.[0].attrs?.href).toBe(url2);
+        });
+
+        it('should protect text links like "Mattermost Cloud" not just URL links', () => {
+            // Real case: "Mattermost Cloud" link + URL link in same paragraph
+            // Both should be protected to preserve mark positions
+            const stripeUrl = 'https://dashboard.stripe.com/invoices/in_1JqrhOI67GP2qpb4b2BTCBkz';
+            const productUrl = 'https://dashboard.stripe.com/products/prod_HyiHEAVKW5bYG3';
+
+            const doc: TipTapDoc = {
+                type: 'doc',
+                content: [
+                    {
+                        type: 'paragraph',
+                        content: [
+                            {type: 'text', text: 'subscribed to the '},
+                            {
+                                type: 'text',
+                                text: 'Mattermost Cloud',
+                                marks: [{type: 'link', attrs: {href: productUrl}}],
+                            },
+                            {type: 'text', text: ' product. Invoice: '},
+                            {
+                                type: 'text',
+                                text: stripeUrl,
+                                marks: [{type: 'link', attrs: {href: stripeUrl}}],
+                            },
+                        ],
+                    },
+                ],
+            };
+
+            const {chunks} = extractTextChunks(doc);
+
+            // BOTH links should be protected now (not just the URL one)
+            expect(chunks[0].protectedUrls?.length).toBe(2);
+            expect(chunks[0].protectedUrls?.[0].original).toBe('Mattermost Cloud');
+            expect(chunks[0].protectedUrls?.[1].original).toBe(stripeUrl);
+
+            // AI translation with both placeholders preserved
+            const aiTexts = ['suscrito al ⟦URL:0⟧ producto. Factura: ⟦URL:1⟧'];
+
+            const result = reassembleDocument(doc, chunks, aiTexts);
+            expect(result.success).toBe(true);
+
+            const content = result.doc.content[0].content || [];
+            const linkNodes = content.filter((node) =>
+                node.marks?.some((m) => m.type === 'link'),
+            );
+
+            expect(linkNodes.length).toBe(2);
+
+            // First link: "Mattermost Cloud" with product URL href
+            expect(linkNodes[0].text).toBe('Mattermost Cloud');
+            expect(linkNodes[0].marks?.[0].attrs?.href).toBe(productUrl);
+
+            // Second link: stripe URL as both text and href
+            expect(linkNodes[1].text).toBe(stripeUrl);
+            expect(linkNodes[1].marks?.[0].attrs?.href).toBe(stripeUrl);
+        });
+
+        it('should handle AI swapping URL placeholder order during translation', () => {
+            // Some languages may naturally reorder elements during translation.
+            // Even if placeholders are swapped, each link's href must match its visible text.
+            const url1 = 'https://example.com/first-page';
+            const url2 = 'https://example.com/second-page';
+
+            const doc: TipTapDoc = {
+                type: 'doc',
+                content: [
+                    {
+                        type: 'paragraph',
+                        content: [
+                            {type: 'text', text: 'Link to '},
+                            {
+                                type: 'text',
+                                text: url1,
+                                marks: [{type: 'link', attrs: {href: url1}}],
+                            },
+                            {type: 'text', text: ' before '},
+                            {
+                                type: 'text',
+                                text: url2,
+                                marks: [{type: 'link', attrs: {href: url2}}],
+                            },
+                        ],
+                    },
+                ],
+            };
+
+            const {chunks} = extractTextChunks(doc);
+
+            // AI translation SWAPS the order of placeholders
+            // Original: "Link to ⟦URL:0⟧ before ⟦URL:1⟧"
+            // AI output: "⟦URL:1⟧ viene antes de ⟦URL:0⟧"
+            const aiTexts = ['⟦URL:1⟧ viene antes de ⟦URL:0⟧'];
+
+            const result = reassembleDocument(doc, chunks, aiTexts);
+
+            expect(result.success).toBe(true);
+
+            const content = result.doc.content[0].content || [];
+            const linkNodes = content.filter((node) =>
+                node.marks?.some((m) => m.type === 'link'),
+            );
+
+            expect(linkNodes.length).toBe(2);
+
+            // Even with swapped order, each link's href must match its visible text
+            // First link in output should be url2 (from ⟦URL:1⟧) with href url2
+            // Second link in output should be url1 (from ⟦URL:0⟧) with href url1
+            for (const linkNode of linkNodes) {
+                const linkMark = linkNode.marks?.find((m) => m.type === 'link');
+                expect(linkMark?.attrs?.href).toBe(linkNode.text);
+            }
+        });
     });
 });

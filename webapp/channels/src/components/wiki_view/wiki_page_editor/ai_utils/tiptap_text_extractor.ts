@@ -86,23 +86,24 @@ export function extractTextChunks(doc: TipTapDoc): ExtractionResult {
 }
 
 /**
- * Protects URLs that appear as link text from AI modification.
- * Uses existing mark positions - no document-wide regex scanning needed.
- * Also adjusts mark positions to account for the length difference between
- * original URLs and their placeholders.
+ * Protects ALL link text from AI modification.
+ * This ensures link marks are correctly positioned after translation,
+ * preventing href/text mismatches when AI changes surrounding text length.
+ *
+ * Previously only protected links where visible text was a URL, but this
+ * caused issues with links like "Mattermost Cloud" where the mark positions
+ * would get corrupted during ratio-based adjustment after translation.
  *
  * @param text - The extracted text
  * @param marks - The preserved marks with positions
- * @returns Protected text with placeholders, URL mappings, and adjusted marks
+ * @returns Protected text with placeholders, link mappings, and adjusted marks
  */
 function protectLinkUrls(
     text: string,
     marks: PreservedMark[],
 ): { protectedText: string; protectedUrls: ProtectedUrl[]; adjustedMarks: PreservedMark[] } {
-    // Find link marks where visible text is a URL (case-insensitive)
-    const urlMarks = marks.
-        filter((m) => m.type === 'link').
-        filter((m) => (/^https?:\/\//i).test(text.slice(m.from, m.to)));
+    // Find ALL link marks - protect all link text to preserve mark positions
+    const urlMarks = marks.filter((m) => m.type === 'link');
 
     if (urlMarks.length === 0) {
         return {protectedText: text, protectedUrls: [], adjustedMarks: marks};
