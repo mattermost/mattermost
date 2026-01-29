@@ -88,6 +88,9 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord(model.AuditEventGenerateSupportPacket, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+
 	// We support the existing API hence the logs are always included
 	// if nothing specified.
 	includeLogs := true
@@ -98,6 +101,9 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 		IncludeLogs:   includeLogs,
 		PluginPackets: r.Form["plugin_packets"],
 	}
+
+	auditRec.AddMeta("include_logs", supportPacketOptions.IncludeLogs)
+	auditRec.AddMeta("plugin_packets", supportPacketOptions.PluginPackets)
 
 	// Checking to see if the server has a e10 or e20 license (this feature is only permitted for servers with licenses)
 	if c.App.Channels().License() == nil {
@@ -131,6 +137,9 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fileBytesReader := bytes.NewReader(fileBytes)
+
+	auditRec.Success()
+	auditRec.AddMeta("filename", outputZipFilename)
 
 	// Prevent caching so support packets are always fresh
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")

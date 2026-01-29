@@ -37,6 +37,9 @@ func TestGenerateSupportPacket(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
+	// Set MM_LOG_PATH to allow log file reads from our temp directory
+	t.Setenv("MM_LOG_PATH", dir)
+
 	th.Service.UpdateConfig(func(cfg *model.Config) {
 		*cfg.LogSettings.FileLocation = dir
 		*cfg.NotificationLogSettings.FileLocation = dir

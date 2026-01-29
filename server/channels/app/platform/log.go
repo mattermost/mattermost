@@ -215,12 +215,22 @@ func (ps *PlatformService) GetLogsSkipSend(rctx request.CTX, page, perPage int, 
 	return lines, nil
 }
 
-func (ps *PlatformService) GetLogFile(_ request.CTX) (*model.FileData, error) {
+func (ps *PlatformService) GetLogFile(rctx request.CTX) (*model.FileData, error) {
 	if !*ps.Config().LogSettings.EnableFile {
 		return nil, errors.New("Unable to retrieve mattermost logs because LogSettings.EnableFile is set to false")
 	}
 
 	mattermostLog := config.GetLogFileLocation(*ps.Config().LogSettings.FileLocation)
+
+	// Validate the file path to prevent arbitrary file reads
+	if err := ps.validateLogFilePath(mattermostLog); err != nil {
+		rctx.Logger().Error("Blocked attempt to read log file outside allowed root",
+			mlog.String("path", mattermostLog),
+			mlog.String("config_section", "LogSettings.FileLocation"),
+			mlog.Err(err))
+		return nil, errors.Wrapf(err, "log file path %s is outside allowed logging directory", mattermostLog)
+	}
+
 	mattermostLogFileData, err := os.ReadFile(mattermostLog)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed read mattermost log file at path %s", mattermostLog)
@@ -232,12 +242,22 @@ func (ps *PlatformService) GetLogFile(_ request.CTX) (*model.FileData, error) {
 	}, nil
 }
 
-func (ps *PlatformService) GetNotificationLogFile(_ request.CTX) (*model.FileData, error) {
+func (ps *PlatformService) GetNotificationLogFile(rctx request.CTX) (*model.FileData, error) {
 	if !*ps.Config().NotificationLogSettings.EnableFile {
 		return nil, errors.New("Unable to retrieve notifications logs because NotificationLogSettings.EnableFile is set to false")
 	}
 
 	notificationsLog := config.GetNotificationsLogFileLocation(*ps.Config().NotificationLogSettings.FileLocation)
+
+	// Validate the file path to prevent arbitrary file reads
+	if err := ps.validateLogFilePath(notificationsLog); err != nil {
+		rctx.Logger().Error("Blocked attempt to read log file outside allowed root",
+			mlog.String("path", notificationsLog),
+			mlog.String("config_section", "NotificationLogSettings.FileLocation"),
+			mlog.Err(err))
+		return nil, errors.Wrapf(err, "log file path %s is outside allowed logging directory", notificationsLog)
+	}
+
 	notificationsLogFileData, err := os.ReadFile(notificationsLog)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed read notifcation log file at path %s", notificationsLog)
@@ -249,11 +269,25 @@ func (ps *PlatformService) GetNotificationLogFile(_ request.CTX) (*model.FileDat
 	}, nil
 }
 
-func (ps *PlatformService) GetAdvancedLogs(_ request.CTX) ([]*model.FileData, error) {
+// validateLogFilePath validates that a log file path is within the logging root directory.
+// This prevents arbitrary file read/write vulnerabilities in logging configuration.
+// The logging root is determined by MM_LOG_PATH environment variable or the default logs directory.
+// Currently used to validate paths when reading logs via GetAdvancedLogs.
+// In future versions, this will also be used to validate paths when saving logging config.
+func (ps *PlatformService) validateLogFilePath(filePath string) error {
+	// Get the logging root path (from env var or default logs directory)
+	loggingRoot := config.GetLogRootPath()
+
+	return config.ValidateLogFilePath(filePath, loggingRoot)
+}
+
+func (ps *PlatformService) GetAdvancedLogs(rctx request.CTX) ([]*model.FileData, error) {
 	var (
 		rErr *multierror.Error
 		ret  []*model.FileData
 	)
+
+	rctx.Logger().Debug("Advanced logs access requested")
 
 	for name, loggingJSON := range map[string]json.RawMessage{
 		"LogSettings.AdvancedLoggingJSON":               ps.Config().LogSettings.AdvancedLoggingJSON,
@@ -282,6 +316,18 @@ func (ps *PlatformService) GetAdvancedLogs(_ request.CTX) ([]*model.FileData, er
 				rErr = multierror.Append(rErr, errors.Wrapf(err, "error decoding file target options in %s", name))
 				continue
 			}
+
+			// Validate the file path to prevent arbitrary file reads
+			if err := ps.validateLogFilePath(fileOption.Filename); err != nil {
+				rctx.Logger().Error("Blocked attempt to read log file outside allowed root",
+					mlog.String("path", fileOption.Filename),
+					mlog.String("config_section", name),
+					mlog.String("user_id", rctx.Session().UserId),
+					mlog.Err(err))
+				rErr = multierror.Append(rErr, errors.Wrapf(err, "log file path %s in %s is outside allowed logging directory", fileOption.Filename, name))
+				continue
+			}
+
 			data, err := os.ReadFile(fileOption.Filename)
 			if err != nil {
 				rErr = multierror.Append(rErr, errors.Wrapf(err, "failed to read advanced log file at path %s in %s", fileOption.Filename, name))
@@ -296,7 +342,7 @@ func (ps *PlatformService) GetAdvancedLogs(_ request.CTX) ([]*model.FileData, er
 		}
 	}
 
-	return ret, nil
+	return ret, rErr.ErrorOrNil()
 }
 
 func isLogFilteredByLevel(logFilter *model.LogFilter, entry *model.LogEntry) bool {
