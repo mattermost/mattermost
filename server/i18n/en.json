@@ -7363,6 +7363,18 @@
     "translation": "Cannot update property to \"{{.Name}}\": a property with this name already exists at the {{.ConflictLevel}} level."
   },
   {
+    "id": "app.property_field.create.protected.app_error",
+    "translation": "Cannot create a protected property field."
+  },
+  {
+    "id": "app.property_field.update.protected.app_error",
+    "translation": "Cannot update a protected property field."
+  },
+  {
+    "id": "app.property_field.delete.protected.app_error",
+    "translation": "Cannot delete a protected property field."
+  },
+  {
     "id": "app.reaction.bulk_get_for_post_ids.app_error",
     "translation": "Unable to get reactions for post."
   },

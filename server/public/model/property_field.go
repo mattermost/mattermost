@@ -4,6 +4,7 @@
 package model
 
 import (
+	"database/sql/driver"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -50,6 +51,33 @@ func DefaultPropertyFieldPermissions() *PropertyFieldPermissions {
 		Values:  PermissionLevelMember,
 		Options: PermissionLevelMember,
 	}
+}
+
+// Scan implements sql.Scanner interface for database deserialization
+func (p *PropertyFieldPermissions) Scan(value any) error {
+	if value == nil {
+		return nil
+	}
+
+	b, ok := value.([]byte)
+	if !ok {
+		return fmt.Errorf("expected []byte, got %T", value)
+	}
+
+	return json.Unmarshal(b, p)
+}
+
+// Value implements driver.Valuer interface for database serialization
+func (p *PropertyFieldPermissions) Value() (driver.Value, error) {
+	if p == nil {
+		return nil, nil
+	}
+
+	j, err := json.Marshal(p)
+	if err != nil {
+		return nil, err
+	}
+	return string(j), nil
 }
 
 // PropertyFieldTargetLevel represents the hierarchy level of a property field.
