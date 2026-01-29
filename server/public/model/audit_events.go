@@ -319,6 +319,7 @@ const (
 	AuditEventCompleteOnboarding         = "completeOnboarding"         // complete system onboarding process
 	AuditEventDatabaseRecycle            = "databaseRecycle"            // closes active connections
 	AuditEventDownloadLogs               = "downloadLogs"               // download server log files
+	AuditEventGenerateSupportPacket      = "generateSupportPacket"      // generate support packet with server diagnostics and logs
 	AuditEventGetAppliedSchemaMigrations = "getAppliedSchemaMigrations" // get list of applied database schema migrations
 	AuditEventGetLogs                    = "getLogs"                    // get server log entries
 	AuditEventGetOnboarding              = "getOnboarding"              // get system onboarding status
