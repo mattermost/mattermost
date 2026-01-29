@@ -88,10 +88,6 @@ jest.mock('mattermost-redux/actions/shared_channels', () => ({
 describe('components/channel_header/ChannelHeaderTitle', () => {
     const mockStore = configureStore();
 
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should not fetch shared channels for non-shared channels', () => {
         // Mock non-shared channel
         const channel = {

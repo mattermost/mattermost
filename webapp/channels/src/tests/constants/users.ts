@@ -13,7 +13,6 @@ const emptyOtherUsersState: Omit<GlobalState['entities']['users'], 'profiles' | 
     myAudits: [],
     profilesInTeam: {},
     profilesNotInTeam: {},
-    profilesWithoutTeam: new Set(),
     profilesInChannel: {},
     profilesNotInChannel: {},
     profilesInGroup: {},

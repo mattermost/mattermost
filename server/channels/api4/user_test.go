@@ -7305,7 +7305,7 @@ func TestThreadSocketEvents(t *testing.T) {
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 
-	replyPost, appErr := th.App.CreatePostAsUser(th.Context, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply @" + th.BasicUser.Username, UserId: th.BasicUser2.Id, RootId: rpost.Id}, th.Context.Session().Id, false)
+	replyPost, _, appErr := th.App.CreatePostAsUser(th.Context, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply @" + th.BasicUser.Username, UserId: th.BasicUser2.Id, RootId: rpost.Id}, th.Context.Session().Id, false)
 	require.Nil(t, appErr)
 	defer func() {
 		err = th.App.Srv().Store().Post().PermanentDeleteByUser(th.Context, th.BasicUser.Id)
@@ -7482,7 +7482,7 @@ func TestThreadSocketEvents(t *testing.T) {
 
 		for _, tc := range testCases {
 			// post a reply on the thread
-			_, appErr = th.App.CreatePostAsUser(th.Context, tc.post, th.Context.Session().Id, false)
+			_, _, appErr = th.App.CreatePostAsUser(th.Context, tc.post, th.Context.Session().Id, false)
 			require.Nil(t, appErr)
 
 			var caught bool
@@ -7516,18 +7516,18 @@ func TestThreadSocketEvents(t *testing.T) {
 		rpost2 := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser2.Id, Message: "root post"}
 
 		var appErr *model.AppError
-		rpost2, appErr = th.App.CreatePostAsUser(th.Context, rpost2, th.Context.Session().Id, false)
+		rpost2, _, appErr = th.App.CreatePostAsUser(th.Context, rpost2, th.Context.Session().Id, false)
 		require.Nil(t, appErr)
 
 		reply1 := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser2.Id, Message: "reply 1", RootId: rpost2.Id}
 		reply2 := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser2.Id, Message: "reply 2", RootId: rpost2.Id}
 		reply3 := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser2.Id, Message: "mention @" + th.BasicUser.Username, RootId: rpost2.Id}
 
-		_, appErr = th.App.CreatePostAsUser(th.Context, reply1, th.Context.Session().Id, false)
+		_, _, appErr = th.App.CreatePostAsUser(th.Context, reply1, th.Context.Session().Id, false)
 		require.Nil(t, appErr)
-		_, appErr = th.App.CreatePostAsUser(th.Context, reply2, th.Context.Session().Id, false)
+		_, _, appErr = th.App.CreatePostAsUser(th.Context, reply2, th.Context.Session().Id, false)
 		require.Nil(t, appErr)
-		_, appErr = th.App.CreatePostAsUser(th.Context, reply3, th.Context.Session().Id, false)
+		_, _, appErr = th.App.CreatePostAsUser(th.Context, reply3, th.Context.Session().Id, false)
 		require.Nil(t, appErr)
 
 		count := 0

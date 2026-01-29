@@ -8600,10 +8600,6 @@
     "translation": "Невозможно удалить данные oauth."
   },
   {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "Серверу CWS не удалось подписаться на рассылку новостей."
-  },
-  {
     "id": "api.license.request-trial.bad-request.business-email",
     "translation": "Недействительный рабочий адрес электронной почты для пробной версии"
   },
