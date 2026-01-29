@@ -335,7 +335,7 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
 
         const channelId = action.data.id;
         return removePostsAndEmbedsForChannels(state, new Set([channelId]));
-            }
+    }
 
     case TeamTypes.LEAVE_TEAM: {
         const channelIds: string[] = action.data.channelIds || [];
