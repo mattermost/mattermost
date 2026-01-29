@@ -142,6 +142,12 @@ func SetupTestResources() (string, error) {
 		return "", errors.Wrapf(err, "failed to create client directory %s", clientDir)
 	}
 
+	logsDir := path.Join(tempDir, "logs")
+	err = os.Mkdir(logsDir, 0700)
+	if err != nil {
+		return "", errors.Wrapf(err, "failed to create logs directory %s", logsDir)
+	}
+
 	err = setupConfig(path.Join(tempDir, "config"))
 	if err != nil {
 		return "", errors.Wrap(err, "failed to setup config")
