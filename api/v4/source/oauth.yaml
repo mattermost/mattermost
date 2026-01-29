@@ -49,7 +49,7 @@
         required: true
       responses:
         "201":
-          description: App registration successful
+          description: App registered successfully
           content:
             application/json:
               schema:
@@ -88,7 +88,7 @@
             default: 60
       responses:
         "200":
-          description: OAuthApp list retrieval successful
+          description: OAuthApp list retrieved successfully
           content:
             application/json:
               schema:
@@ -124,7 +124,7 @@
             type: string
       responses:
         "200":
-          description: App retrieval successful
+          description: App retrieved successfully
           content:
             application/json:
               schema:
@@ -197,7 +197,7 @@
         required: true
       responses:
         "200":
-          description: App update successful
+          description: App updated successfully
           content:
             application/json:
               schema:
@@ -232,7 +232,7 @@
             type: string
       responses:
         "200":
-          description: App deletion successful
+          description: App deleted successfully
           content:
             application/json:
               schema:
@@ -269,7 +269,7 @@
             type: string
       responses:
         "200":
-          description: Secret regeneration successful
+          description: Secret regenerated successfully
           content:
             application/json:
               schema:
@@ -306,7 +306,7 @@
             type: string
       responses:
         "200":
-          description: App retrieval successful
+          description: App retrieved successfully
           content:
             application/json:
               schema:
@@ -343,7 +343,7 @@
       operationId: GetAuthorizationServerMetadata
       responses:
         "200":
-          description: Metadata retrieval successful
+          description: Metadata retrieved successfully
           content:
             application/json:
               schema:
@@ -385,7 +385,7 @@
         required: true
       responses:
         "201":
-          description: Client registration successful
+          description: Client registered successfully
           content:
             application/json:
               schema:
@@ -428,7 +428,7 @@
             default: 60
       responses:
         "200":
-          description: OAuthApp list retrieval successful
+          description: OAuthApp list retrieved successfully
           content:
             application/json:
               schema:

@@ -14,7 +14,7 @@ import Client4 from 'packages/client/src/client4.ts';
 import {UserProfile} from '../../types/src/users';
 ```
 
-Some tools have difficulty doing this on their own, but they often support import path aliases so that we can keep them consistent acrosss the code base. More details on how to do this will be provided in packages where this is necessary such as `types`.
+Some tools have difficulty doing this on their own, but they often support import path aliases so that we can keep them consistent across the code base. More details on how to do this will be provided in packages where this is necessary such as `types`.
 
 #### Importing one subpackage into another
 
@@ -23,7 +23,7 @@ When building packages that depend on each other, be careful to:
 1. Avoid import loops. While JavaScript lets us get away with these in most cases within a project, we cannot have two packages that depend directly with each other.
 1. Not compile one subpackage into another. We don't want the published libraries to include code from one subpackage into another. They should be set up so that they're peer dependencies in the `package.json`, and if a project wants to use multiple packages, they can install them each separately.
 
-As above, some tooling may need additional configuration to have one subpackage use code from another. For example, in packages compiled with the TypeScript compiler (tsc), you'll need to have the `tsconfig.json` from the dependent pacakge reference its dependency using the `references` field.
+As above, some tooling may need additional configuration to have one subpackage use code from another. For example, in packages compiled with the TypeScript compiler (tsc), you'll need to have the `tsconfig.json` from the dependent package reference its dependency using the `references` field.
 
 ### Versioning subpackages
 

@@ -32,7 +32,7 @@
             default: 0
       responses:
         "200":
-          description: Shared channels fetch successful. Result may be empty.
+          description: Shared channels fetched successfully. Result may be empty.
           content:
             application/json:
               schema:
@@ -102,7 +102,7 @@
             type: integer
       responses:
         "200":
-          description: Shared channel remotes fetch successful. Result might be empty.
+          description: Shared channel remotes fetched successfully. Result might be empty.
           content:
             application/json:
               schema:
@@ -137,7 +137,7 @@
             type: string
       responses:
         "200":
-          description: Remote cluster info retrieval successful
+          description: Remote cluster info retrieved successfully
           content:
             application/json:
               schema:
@@ -249,7 +249,7 @@
             type: string
       responses:
         "200":
-          description: Remote clusters retrieval successful
+          description: Remote clusters retrieved successfully
           content:
             application/json:
               schema:
@@ -294,7 +294,7 @@
             type: string
       responses:
         "200":
-          description: DM permission check successful
+          description: DM permission checked successfully
           content:
             application/json:
               schema:
