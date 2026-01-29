@@ -647,6 +647,39 @@ func TestCreatePropertyField_SourcePluginIDValidation(t *testing.T) {
 		require.NoError(t, err)
 		assert.NotNil(t, created)
 	})
+
+	t.Run("rejects protected attribute via CreatePropertyField", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID: groupID,
+			Name:    model.NewId(),
+			Type:    model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.PropertyAttrsProtected: true,
+			},
+		}
+
+		// Should be rejected - only plugins can set protected via CreatePropertyFieldForPlugin
+		created, err := th.App.PropertyAccessService().CreatePropertyField("user1", field)
+		require.Error(t, err)
+		assert.Nil(t, created)
+		assert.Contains(t, err.Error(), "protected can only be set by plugins")
+	})
+
+	t.Run("rejects protected attribute even when caller is empty", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID: groupID,
+			Name:    model.NewId(),
+			Type:    model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.PropertyAttrsProtected: true,
+			},
+		}
+
+		created, err := th.App.PropertyAccessService().CreatePropertyField("", field)
+		require.Error(t, err)
+		assert.Nil(t, created)
+		assert.Contains(t, err.Error(), "protected can only be set by plugins")
+	})
 }
 
 // TestCreatePropertyFieldForPlugin tests the plugin-specific field creation method

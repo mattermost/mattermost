@@ -70,6 +70,11 @@ func (pas *PropertyAccessService) CreatePropertyField(callerID string, field *mo
 		return nil, fmt.Errorf("CreatePropertyField: source_plugin_id cannot be set directly, it is only set automatically for plugin-created fields")
 	}
 
+	// Reject if protected is set - only plugins can set this via CreatePropertyFieldForPlugin
+	if model.IsPropertyFieldProtected(field) {
+		return nil, fmt.Errorf("CreatePropertyField: protected can only be set by plugins")
+	}
+
 	// Validate access mode
 	if err := model.ValidatePropertyFieldAccessMode(field); err != nil {
 		return nil, fmt.Errorf("CreatePropertyField: %w", err)
@@ -690,8 +695,7 @@ func (pas *PropertyAccessService) checkFieldWriteAccess(field *model.PropertyFie
 	// Protected fields can only be modified by the source plugin
 	sourcePluginID := pas.getSourcePluginID(field)
 	if sourcePluginID == "" {
-		// Protected field with no source plugin - allow modification
-		return nil
+		return fmt.Errorf("field %s is protected, but has no associated source plugin", field.ID)
 	}
 
 	if sourcePluginID != callerID {
