@@ -41,6 +41,18 @@
                 display: inline-block;
                 width: 100%;
                 max-width: 320px;
+
+                &.error {
+                    border-color: var(--error-text);
+                    box-shadow: 0 0 0 1px var(--error-text);
+                }
+            }
+
+            .field-error {
+                display: block;
+                margin-top: 4px;
+                color: var(--error-text);
+                font-size: 12px;
             }
 
             select[multiple] {
@@ -50,6 +62,23 @@
 
         .cpa-field {
             position: relative;
+        }
+
+        .cpa-section-divider {
+            display: flex;
+            align-items: center;
+            padding-top: 16px;
+            border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+            margin-top: 8px;
+            margin-bottom: 8px;
+
+            .cpa-section-header {
+                color: rgba(var(--center-channel-color-rgb), 0.72);
+                font-size: 12px;
+                font-weight: 600;
+                letter-spacing: 0.5px;
+                text-transform: uppercase;
+            }
         }
 
         .user-property-field-values__sync-indicator {
@@ -65,12 +94,6 @@
                 margin-right: 6px;
                 fill: rgba(var(--center-channel-color-rgb), 0.5);
             }
-        }
-
-        .auth-data-field {
-            padding-top: 20px;
-            border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.1);
-            margin-top: 20px;
         }
 
         svg {
@@ -112,6 +135,42 @@
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+#admin-userDetail-saveChangesModal {
+    .changes-list {
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+
+    .password-confirmation-section {
+        padding: 12px;
+        border-radius: 4px;
+        margin-top: 16px;
+        margin-bottom: 16px;
+        background-color: rgba(var(--center-channel-color-rgb), 0.04);
+
+        .password-input-wrapper {
+            margin-top: 12px;
+
+            input[type="password"] {
+                width: 100%;
+                max-width: 320px;
+
+                &.error {
+                    border-color: var(--error-text);
+                    box-shadow: 0 0 0 1px var(--error-text);
+                }
+            }
+
+            .field-error {
+                display: block;
+                margin-top: 8px;
+                color: var(--error-text);
+                font-size: 12px;
             }
         }
     }
