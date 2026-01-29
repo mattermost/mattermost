@@ -10,7 +10,7 @@ import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 
 export interface ProductMenuItemProps {
     destination: string;
-    icon: IconGlyphTypes;
+    icon: IconGlyphTypes | React.ReactNode;
     text: React.ReactNode;
     active: boolean;
     onClick: () => void;
@@ -54,7 +54,7 @@ const MenuItemTextContainer = styled.div`
 `;
 
 const ProductMenuItem = ({icon, destination, text, active, onClick, tourTip, id}: ProductMenuItemProps): JSX.Element => {
-    const ProductIcon = glyphMap[icon];
+    const ProductIcon = typeof icon === 'string' ? glyphMap[icon as IconGlyphTypes] : null;
 
     return (
         <MenuItem
@@ -63,10 +63,14 @@ const ProductMenuItem = ({icon, destination, text, active, onClick, tourTip, id}
             id={id}
             role='menuitem'
         >
-            <ProductIcon
-                size={24}
-                color={'var(--button-bg)'}
-            />
+            {ProductIcon ? (
+                <ProductIcon
+                    size={24}
+                    color={'var(--button-bg)'}
+                />
+            ) : (
+                icon
+            )}
             <MenuItemTextContainer>
                 {text}
             </MenuItemTextContainer>
