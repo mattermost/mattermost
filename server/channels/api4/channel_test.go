@@ -4141,22 +4141,22 @@ func TestUpdateChannelMemberAutotranslation(t *testing.T) {
 	_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser2, channel, false)
 	require.Nil(t, appErr)
 
-	t.Run("user can update own autotranslation to true", func(t *testing.T) {
+	t.Run("user can disable own autotranslation", func(t *testing.T) {
 		_, err := client.UpdateChannelMemberAutotranslation(context.Background(), channel.Id, th.BasicUser.Id, true)
 		require.NoError(t, err)
 
 		member, _, err := client.GetChannelMember(context.Background(), channel.Id, th.BasicUser.Id, "")
 		require.NoError(t, err)
-		require.True(t, member.AutoTranslation, "autotranslation should be true")
+		require.True(t, member.AutoTranslationDisabled, "autotranslation should be disabled")
 	})
 
-	t.Run("user can update own autotranslation to false", func(t *testing.T) {
+	t.Run("user can enable own autotranslation", func(t *testing.T) {
 		_, err := client.UpdateChannelMemberAutotranslation(context.Background(), channel.Id, th.BasicUser.Id, false)
 		require.NoError(t, err)
 
 		member, _, err := client.GetChannelMember(context.Background(), channel.Id, th.BasicUser.Id, "")
 		require.NoError(t, err)
-		require.False(t, member.AutoTranslation, "autotranslation should be false")
+		require.False(t, member.AutoTranslationDisabled, "autotranslation should be enabled")
 	})
 
 	t.Run("user cannot update other user autotranslation without permission", func(t *testing.T) {
@@ -4166,7 +4166,7 @@ func TestUpdateChannelMemberAutotranslation(t *testing.T) {
 
 		member, _, err := client.GetChannelMember(context.Background(), channel.Id, th.BasicUser2.Id, "")
 		require.NoError(t, err)
-		require.False(t, member.AutoTranslation, "autotranslation should remain false when update is forbidden")
+		require.False(t, member.AutoTranslationDisabled, "autotranslation should remain enabled when update is forbidden")
 	})
 
 	t.Run("user with PermissionEditOtherUsers can update other user autotranslation", func(t *testing.T) {
@@ -4175,7 +4175,7 @@ func TestUpdateChannelMemberAutotranslation(t *testing.T) {
 
 		member, _, err := th.SystemAdminClient.GetChannelMember(context.Background(), channel.Id, th.BasicUser2.Id, "")
 		require.NoError(t, err)
-		require.True(t, member.AutoTranslation, "autotranslation should be true")
+		require.True(t, member.AutoTranslationDisabled, "autotranslation should be disabled")
 	})
 
 	t.Run("feature is disabled returns forbidden response", func(t *testing.T) {

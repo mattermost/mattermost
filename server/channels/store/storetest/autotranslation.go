@@ -218,7 +218,7 @@ func testAutoTranslationIsUserEnabled(t *testing.T, rctx request.CTX, ss store.S
 		require.NoError(t, appErr)
 
 		// Enable user autotranslation
-		member.AutoTranslation = true
+		member.AutoTranslationDisabled = false
 		_, appErr = ss.Channel().UpdateMember(rctx, member)
 		require.NoError(t, appErr)
 
@@ -234,7 +234,7 @@ func testAutoTranslationIsUserEnabled(t *testing.T, rctx request.CTX, ss store.S
 		require.NoError(t, appErr)
 
 		// Disable user autotranslation
-		member.AutoTranslation = false
+		member.AutoTranslationDisabled = true
 		_, appErr = ss.Channel().UpdateMember(rctx, member)
 		require.NoError(t, appErr)
 
@@ -327,8 +327,8 @@ func testAutoTranslationGetUserLanguage(t *testing.T, rctx request.CTX, ss store
 		appErr := ss.AutoTranslation().SetChannelEnabled(channel.Id, true)
 		require.NoError(t, appErr)
 
-		// Enable user
-		members[userEN.Id].AutoTranslation = true
+		// Enable user (set AutoTranslationDisabled = false)
+		members[userEN.Id].AutoTranslationDisabled = false
 		_, appErr = ss.Channel().UpdateMember(rctx, members[userEN.Id])
 		require.NoError(t, appErr)
 
@@ -343,11 +343,11 @@ func testAutoTranslationGetUserLanguage(t *testing.T, rctx request.CTX, ss store
 		appErr := ss.AutoTranslation().SetChannelEnabled(channel.Id, true)
 		require.NoError(t, appErr)
 
-		// Enable both users
-		members[userEN.Id].AutoTranslation = true
+		// Enable both users (set AutoTranslationDisabled = false)
+		members[userEN.Id].AutoTranslationDisabled = false
 		_, appErr = ss.Channel().UpdateMember(rctx, members[userEN.Id])
 		require.NoError(t, appErr)
-		members[userES.Id].AutoTranslation = true
+		members[userES.Id].AutoTranslationDisabled = false
 		_, appErr = ss.Channel().UpdateMember(rctx, members[userES.Id])
 		require.NoError(t, appErr)
 
@@ -411,8 +411,8 @@ func testAutoTranslationGetActiveDestinationLanguages(t *testing.T, rctx request
 			UserId:      user.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		}
-		if i < 4 { // Enable autotranslation for first 4 users only
-			member.AutoTranslation = true
+		if i >= 4 { // Disable autotranslation for 5th user only
+			member.AutoTranslationDisabled = true
 		}
 		_, nErr = ss.Channel().SaveMember(rctx, member)
 		require.NoError(t, nErr)

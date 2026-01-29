@@ -1446,13 +1446,13 @@ func (a *App) UpdateChannelMemberNotifyProps(rctx request.CTX, data map[string]s
 	return member, nil
 }
 
-func (a *App) UpdateChannelMemberAutotranslation(rctx request.CTX, channelID string, userID string, autotranslation bool) (*model.ChannelMember, *model.AppError) {
+func (a *App) UpdateChannelMemberAutotranslation(rctx request.CTX, channelID string, userID string, autoTranslationDisabled bool) (*model.ChannelMember, *model.AppError) {
 	member, err := a.GetChannelMember(rctx, channelID, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	member.AutoTranslation = autotranslation
+	member.AutoTranslationDisabled = autoTranslationDisabled
 	member, err = a.updateChannelMember(rctx, member)
 	if err != nil {
 		return nil, err
