@@ -24,11 +24,13 @@ export default {
     external: [
         '@playwright/test',
         '@mattermost/client',
+        '@mattermost/testcontainers',
         '@mattermost/types/config',
         '@axe-core/playwright',
         '@percy/playwright',
         'dotenv',
         'luxon',
+        'path',
         'node:fs/promises',
         'node:path',
         'node:fs',

@@ -7,9 +7,6 @@ case $TEST in
 cypress)
   ./server.run_cypress.sh
   ;;
-playwright)
-  ./server.run_playwright.sh
-  ;;
 none)
   mme2e_log "Running with TEST=$TEST. No tests to run."
   exit 0
