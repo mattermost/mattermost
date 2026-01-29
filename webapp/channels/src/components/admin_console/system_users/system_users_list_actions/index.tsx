@@ -359,6 +359,8 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, e2e
 
     return (
         <Menu.Container
+            anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
+            transformOrigin={{vertical: 'top', horizontal: 'right'}}
             menuButton={{
                 id: menuButtonId,
                 class: classNames('btn btn-quaternary btn-sm', {
