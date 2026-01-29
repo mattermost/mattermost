@@ -172,7 +172,7 @@ PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.2.1
 # download the package from to work. This will no longer be needed when we unify
 # the way we pre-package FIPS and non-FIPS plugins.
 ifeq ($(FIPS_ENABLED),true)
-	PLUGIN_PACKAGES  = mattermost-plugin-playbooks-v2.6.1%2B0e01d28-fips
+	PLUGIN_PACKAGES  = mattermost-plugin-playbooks-v2.6.2%2Bb8f2bd9-fips
 	PLUGIN_PACKAGES += mattermost-plugin-agents-v1.6.3%2B4acccc8-fips
 	PLUGIN_PACKAGES += mattermost-plugin-boards-v9.2.2%2B4282c63-fips
 endif
