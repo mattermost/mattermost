@@ -7244,7 +7244,7 @@
   },
   {
     "id": "app.post.permanently_delete_retain_stub.app_error",
-    "translation": "Failed to override post when permanently deleting related data."
+    "translation": "Failed to overwrite post with scrubbed post when permanently deleting associated data."
   },
   {
     "id": "app.post.restore_post_version.get_single.app_error",
