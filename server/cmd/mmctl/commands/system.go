@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -69,12 +71,22 @@ var SystemStatusCmd = &cobra.Command{
 }
 
 var SystemSupportPacketCmd = &cobra.Command{
-	Use:     "supportpacket",
-	Short:   "Download a Support Packet",
-	Long:    "Generate and download a Support Packet of the server to share it with Mattermost Support",
-	Example: `  system supportpacket`,
-	Args:    cobra.NoArgs,
-	RunE:    withClient(systemSupportPacketCmdF),
+	Use:   "supportpacket",
+	Short: "Download a Support Packet",
+	Long: `Generate and download a Support Packet of the server to share it with Mattermost Support.
+
+By default, this command connects to the Mattermost server via API and generates a support packet.
+Use the --offline flag to collect diagnostics directly from the filesystem when the server is unavailable.`,
+	Example: `  # Download support packet from running server (API-based)
+  system supportpacket
+
+  # Collect diagnostics offline (filesystem-based, no server connection)
+  system supportpacket --offline
+
+  # Offline mode with custom Mattermost directory
+  system supportpacket --offline --directory /opt/mattermost`,
+	Args: cobra.NoArgs,
+	RunE: systemSupportPacketWrapperF,
 }
 
 func init() {
@@ -82,6 +94,9 @@ func init() {
 	_ = SystemSetBusyCmd.MarkFlagRequired("seconds")
 
 	SystemSupportPacketCmd.Flags().StringP("output-file", "o", "", "Define the output file name")
+	SystemSupportPacketCmd.Flags().Bool("offline", false, "Collect diagnostics from filesystem without connecting to server")
+	SystemSupportPacketCmd.Flags().String("directory", "/opt/mattermost", "Path to Mattermost installation directory (offline mode only)")
+	SystemSupportPacketCmd.Flags().Bool("no-obfuscate", false, "Disable obfuscation of sensitive config data (offline mode only)")
 
 	SystemCmd.AddCommand(
 		SystemGetBusyCmd,
@@ -183,6 +198,21 @@ Filestore Status: {{.filestore_status}}`, status)
 	return nil
 }
 
+// systemSupportPacketWrapperF routes to either online (API) or offline (filesystem) mode
+func systemSupportPacketWrapperF(cmd *cobra.Command, args []string) error {
+	offline, _ := cmd.Flags().GetBool("offline")
+
+	if offline {
+		// Offline mode - collect from filesystem
+		return systemSupportPacketOfflineCmdF(cmd, args)
+	}
+
+	// Online mode - use existing API-based collection
+	// We need to wrap this with withClient since it needs a server connection
+	return withClient(systemSupportPacketCmdF)(cmd, args)
+}
+
+// systemSupportPacketCmdF handles API-based support packet generation (existing behavior)
 func systemSupportPacketCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 	printer.SetSingle(true)
 
@@ -213,5 +243,79 @@ func systemSupportPacketCmdF(c client.Client, cmd *cobra.Command, _ []string) er
 	}
 
 	printer.PrintT("Downloaded Support Packet to {{ .filename }}", map[string]string{"filename": filename})
+	return nil
+}
+
+// systemSupportPacketOfflineCmdF handles filesystem-based support packet generation (new offline mode)
+func systemSupportPacketOfflineCmdF(cmd *cobra.Command, _ []string) error {
+	printer.SetSingle(true)
+
+	// Parse flags
+	mmDir, _ := cmd.Flags().GetString("directory")
+	outputFile, _ := cmd.Flags().GetString("output-file")
+	noObfuscate, _ := cmd.Flags().GetBool("no-obfuscate")
+	obfuscate := !noObfuscate
+
+	// Validate Mattermost directory
+	if err := validateMattermostDirectory(mmDir); err != nil {
+		return err
+	}
+
+	// Generate output path
+	var outputPath string
+	if outputFile != "" {
+		// User specified output file
+		outputPath = outputFile
+	} else {
+		// Generate default filename: support-packet_YYYYMMDD-HHMMSS.tar.gz
+		timestamp := time.Now().UTC().Format("20060102-150405")
+		outputPath = filepath.Join(".", fmt.Sprintf("support-packet_%s.tar.gz", timestamp))
+	}
+
+	// Create temp directory for collection
+	tempDir, err := os.MkdirTemp("", "mmctl-supportpacket-*")
+	if err != nil {
+		return fmt.Errorf("failed to create temporary directory: %w", err)
+	}
+
+	tempDirForErrorMsg := tempDir
+	defer func() {
+		if err := os.RemoveAll(tempDir); err != nil {
+			printer.PrintError(fmt.Sprintf("Warning: Failed to cleanup temporary directory: %s", tempDir))
+		}
+	}()
+
+	printer.Print("Collecting diagnostics from filesystem...")
+
+	// Collect Mattermost files
+	configPath := filepath.Join(mmDir, "config", "config.json")
+	filesCollected, err := collectMattermostFiles(mmDir, tempDir, obfuscate)
+	if err != nil {
+		return fmt.Errorf("config obfuscation failed - cannot safely archive: %w", err)
+	}
+
+	// Collect system diagnostics
+	diagCount, _ := collectSystemDiagnostics(tempDir, configPath)
+	filesCollected += diagCount
+
+	// Validate we collected something
+	if filesCollected == 0 {
+		return fmt.Errorf("collection failed completely - no files were collected")
+	}
+
+	if obfuscate {
+		printer.Print("Collection complete. Obfuscation applied to config.json.")
+	} else {
+		printer.Print("Collection complete. No obfuscation applied (--no-obfuscate flag used).")
+	}
+
+	// Create archive
+	if err := createTarGzArchive(tempDir, outputPath); err != nil {
+		printer.PrintError(fmt.Sprintf("Archive creation failed. Collected files are in: %s", tempDirForErrorMsg))
+		printer.PrintError("You can manually tar/zip this directory.")
+		return fmt.Errorf("failed to create archive: %w", err)
+	}
+
+	printer.PrintT("Support packet created successfully: {{.Path}}", map[string]string{"Path": outputPath})
 	return nil
 }
