@@ -119,29 +119,6 @@ func (s *SqlAutoTranslationStore) IsUserEnabled(userID, channelID string) (bool,
 	return enabled, nil
 }
 
-func (s *SqlAutoTranslationStore) SetUserEnabled(userID, channelID string, enabled bool) error {
-	query := s.getQueryBuilder().
-		Update("ChannelMembers").
-		Set("AutoTranslation", enabled).
-		Where(sq.Eq{"UserId": userID, "ChannelId": channelID})
-
-	result, err := s.GetMaster().ExecBuilder(query)
-	if err != nil {
-		return errors.Wrapf(err, "failed to set user enabled for user_id=%s, channel_id=%s", userID, channelID)
-	}
-
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return errors.Wrap(err, "failed to get rows affected for SetUserEnabled")
-	}
-
-	if rowsAffected == 0 {
-		return store.NewErrNotFound("ChannelMember", userID+":"+channelID)
-	}
-
-	return nil
-}
-
 func (s *SqlAutoTranslationStore) GetUserLanguage(userID, channelID string) (string, error) {
 	query := s.getQueryBuilder().
 		Select("u.Locale").
