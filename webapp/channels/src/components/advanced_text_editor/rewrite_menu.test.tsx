@@ -5,7 +5,7 @@ import React from 'react';
 
 import type {Agent} from '@mattermost/types/agents';
 
-import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import {RewriteAction} from './rewrite_action';
 import type {RewriteMenuProps} from './rewrite_menu';
@@ -115,10 +115,6 @@ describe('RewriteMenu', () => {
         customPromptRef: React.createRef<HTMLInputElement>(),
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should not render agent dropdown when no agents', () => {
         renderWithContext(
             <RewriteMenu
@@ -176,7 +172,7 @@ describe('RewriteMenu', () => {
         expect(screen.getByText('Stop generating')).toBeInTheDocument();
     });
 
-    test('should call onCancelProcessing when stop generating button is clicked', () => {
+    test('should call onCancelProcessing when stop generating button is clicked', async () => {
         const onCancelProcessing = jest.fn();
         renderWithContext(
             <RewriteMenu
@@ -185,7 +181,7 @@ describe('RewriteMenu', () => {
                 onCancelProcessing={onCancelProcessing}
             />,
         );
-        fireEvent.click(screen.getByText('Stop generating'));
+        await userEvent.click(screen.getByText('Stop generating'));
         expect(onCancelProcessing).toHaveBeenCalled();
     });
 
@@ -217,7 +213,7 @@ describe('RewriteMenu', () => {
         expect(screen.queryByTestId('menu-footer')).not.toBeInTheDocument();
     });
 
-    test('should call onUndoMessage when discard button is clicked', () => {
+    test('should call onUndoMessage when discard button is clicked', async () => {
         const onUndoMessage = jest.fn();
         renderWithContext(
             <RewriteMenu
@@ -228,11 +224,11 @@ describe('RewriteMenu', () => {
                 onUndoMessage={onUndoMessage}
             />,
         );
-        fireEvent.click(screen.getByText('Discard'));
+        await userEvent.click(screen.getByText('Discard'));
         expect(onUndoMessage).toHaveBeenCalled();
     });
 
-    test('should call onRegenerateMessage when regenerate button is clicked', () => {
+    test('should call onRegenerateMessage when regenerate button is clicked', async () => {
         const onRegenerateMessage = jest.fn();
         renderWithContext(
             <RewriteMenu
@@ -243,11 +239,11 @@ describe('RewriteMenu', () => {
                 onRegenerateMessage={onRegenerateMessage}
             />,
         );
-        fireEvent.click(screen.getByText('Regenerate'));
+        await userEvent.click(screen.getByText('Regenerate'));
         expect(onRegenerateMessage).toHaveBeenCalled();
     });
 
-    test('should call onMenuAction when menu item is clicked', () => {
+    test('should call onMenuAction when menu item is clicked', async () => {
         const onMenuAction = jest.fn(() => () => {});
         renderWithContext(
             <RewriteMenu
@@ -257,11 +253,11 @@ describe('RewriteMenu', () => {
             />,
         );
         const menuItems = screen.getAllByTestId('menu-item');
-        fireEvent.click(menuItems[0]);
+        await userEvent.click(menuItems[0]);
         expect(onMenuAction).toHaveBeenCalled();
     });
 
-    test('should call setPrompt when prompt input changes', () => {
+    test('should call setPrompt when prompt input changes', async () => {
         const setPrompt = jest.fn();
         renderWithContext(
             <RewriteMenu
@@ -270,11 +266,12 @@ describe('RewriteMenu', () => {
             />,
         );
         const input = screen.getByTestId('prompt-input-field');
-        fireEvent.change(input, {target: {value: 'New prompt'}});
+        await userEvent.clear(input);
+        await userEvent.type(input, 'New prompt');
         expect(setPrompt).toHaveBeenCalled();
     });
 
-    test('should call onCustomPromptKeyDown when key is pressed in prompt input', () => {
+    test('should call onCustomPromptKeyDown when key is pressed in prompt input', async () => {
         const onCustomPromptKeyDown = jest.fn();
         renderWithContext(
             <RewriteMenu
@@ -283,7 +280,8 @@ describe('RewriteMenu', () => {
             />,
         );
         const input = screen.getByTestId('prompt-input-field');
-        fireEvent.keyDown(input, {key: 'Enter'});
+        input.focus();
+        await userEvent.keyboard('{Enter}');
         expect(onCustomPromptKeyDown).toHaveBeenCalled();
     });
 
@@ -337,7 +335,7 @@ describe('RewriteMenu', () => {
         expect(screen.queryByTestId('agent-dropdown')).not.toBeInTheDocument();
     });
 
-    test('should call setSelectedAgentId when agent is selected', () => {
+    test('should call setSelectedAgentId when agent is selected', async () => {
         const setSelectedAgentId = jest.fn();
         renderWithContext(
             <RewriteMenu
@@ -346,7 +344,7 @@ describe('RewriteMenu', () => {
             />,
         );
         const select = screen.getByTestId('agent-select');
-        fireEvent.change(select, {target: {value: 'agent2'}});
+        await userEvent.selectOptions(select, 'agent2');
         expect(setSelectedAgentId).toHaveBeenCalledWith('agent2');
     });
 });
