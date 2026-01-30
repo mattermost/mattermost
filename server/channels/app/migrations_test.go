@@ -18,12 +18,12 @@ func TestDoSetupContentFlaggingProperties(t *testing.T) {
 		//settings, setting up the store and initializing services used in store such as property services.
 		th := Setup(t)
 
-		group, err := th.Server.propertyService.GetPropertyGroup(model.ContentFlaggingGroupName)
+		group, err := th.Server.propertyAccessService.GetPropertyGroup(model.ContentFlaggingGroupName)
 		require.NoError(t, err)
 		require.NotNil(t, group)
 		require.Equal(t, model.ContentFlaggingGroupName, group.Name)
 
-		propertyFields, err := th.Server.propertyService.SearchPropertyFields(group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		propertyFields, err := th.Server.propertyAccessService.SearchPropertyFields(anonymousCallerId, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
 		require.NoError(t, err)
 		require.Len(t, propertyFields, 11)
 
@@ -43,11 +43,11 @@ func TestDoSetupContentFlaggingProperties(t *testing.T) {
 		err = th.Server.doSetupContentFlaggingProperties()
 		require.NoError(t, err)
 
-		group, err := th.Server.propertyService.GetPropertyGroup(model.ContentFlaggingGroupName)
+		group, err := th.Server.propertyAccessService.GetPropertyGroup(model.ContentFlaggingGroupName)
 		require.NoError(t, err)
 		require.Equal(t, model.ContentFlaggingGroupName, group.Name)
 
-		propertyFields, err := th.Server.propertyService.SearchPropertyFields(group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		propertyFields, err := th.Server.propertyAccessService.SearchPropertyFields(anonymousCallerId, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
 		require.NoError(t, err)
 		require.Len(t, propertyFields, 11)
 
