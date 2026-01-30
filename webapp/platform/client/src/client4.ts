@@ -4527,7 +4527,7 @@ export default class Client4 {
     updateAccessControlPolicyActive = (policyId: string, active: boolean) => {
         return this.doFetch<StatusOK>(
             `${this.getBaseRoute()}/access_control_policies/${policyId}/activate?active=${active}`,
-            {method: 'get'},
+            {method: 'post'},
         );
     };
 

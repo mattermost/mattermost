@@ -27,7 +27,8 @@ func (api *API) InitAccessControlPolicy() {
 
 	api.BaseRoutes.AccessControlPolicy.Handle("", api.APISessionRequired(getAccessControlPolicy)).Methods(http.MethodGet)
 	api.BaseRoutes.AccessControlPolicy.Handle("", api.APISessionRequired(deleteAccessControlPolicy)).Methods(http.MethodDelete)
-	api.BaseRoutes.AccessControlPolicy.Handle("/activate", api.APISessionRequired(updateActiveStatus)).Methods(http.MethodGet)
+	api.BaseRoutes.AccessControlPolicy.Handle("/activate", api.APISessionRequired(updateActiveStatusDeprecated)).Methods(http.MethodGet)
+	api.BaseRoutes.AccessControlPolicy.Handle("/activate", api.APISessionRequired(updateActiveStatus)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicy.Handle("/assign", api.APISessionRequired(assignAccessPolicy)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicy.Handle("/unassign", api.APISessionRequired(unassignAccessPolicy)).Methods(http.MethodDelete)
 	api.BaseRoutes.AccessControlPolicy.Handle("/resources/channels", api.APISessionRequired(getChannelsForAccessControlPolicy)).Methods(http.MethodGet)
@@ -230,6 +231,12 @@ func searchAccessControlPolicies(c *Context, w http.ResponseWriter, r *http.Requ
 	if _, err := w.Write(js); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+func updateActiveStatusDeprecated(c *Context, w http.ResponseWriter, r *http.Request) {
+	// Set deprecation header to inform clients
+	w.Header().Set("Deprecation", "true")
+	c.Err = model.NewAppError("updateActiveStatusDeprecated", "api.access_control_policy.update_active_status.deprecated", nil, "", http.StatusMethodNotAllowed)
 }
 
 func updateActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {

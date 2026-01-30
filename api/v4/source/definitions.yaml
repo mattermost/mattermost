@@ -28,6 +28,12 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/AppError"
+    MethodNotAllowed:
+      description: Method not allowed
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AppError"
     TooLarge:
       description: Content too large
       content:
