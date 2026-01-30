@@ -806,7 +806,7 @@ function PostComponent(props: Props) {
                                         postAuthorId={post.user_id}
                                     />
                                 )}
-                                {!isModal && !hideProfilePicture && props.isChannelAutotranslated && !isSystemMessage && (
+                                {!isModal && !props.isConsecutivePost && props.isChannelAutotranslated && (
                                     <PostHeaderTranslateIcon
                                         postId={post.id}
                                         translationState={translation?.state}
