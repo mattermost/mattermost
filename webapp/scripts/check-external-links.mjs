@@ -125,33 +125,33 @@ function findNonPermalinkUrls(urlMap) {
     return invalid;
 }
 
+const FETCH_HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (compatible; MattermostLinkChecker/1.0; +https://github.com/mattermost/mattermost)',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept-Language': 'en-US,en;q=0.5',
+};
+
 async function checkUrl(url, retries = 2) {
     for (let attempt = 0; attempt <= retries; attempt++) {
         try {
             const response = await fetch(url, {
                 method: 'HEAD',
-                redirect: 'follow',
+                redirect: 'manual',
+                headers: FETCH_HEADERS,
                 signal: AbortSignal.timeout(10000),
             });
 
             if (response.status === 405) {
                 const getResponse = await fetch(url, {
                     method: 'GET',
-                    redirect: 'follow',
+                    redirect: 'manual',
+                    headers: FETCH_HEADERS,
                     signal: AbortSignal.timeout(10000),
                 });
-                return {
-                    url,
-                    status: getResponse.status,
-                    ok: getResponse.ok,
-                };
+                return processResponse(url, getResponse);
             }
 
-            return {
-                url,
-                status: response.status,
-                ok: response.ok,
-            };
+            return processResponse(url, response);
         } catch (error) {
             if (attempt === retries) {
                 return {
@@ -166,9 +166,48 @@ async function checkUrl(url, retries = 2) {
     }
 }
 
+function processResponse(url, response) {
+    if (response.status >= 300 && response.status < 400) {
+        return {
+            url,
+            status: response.status,
+            ok: true,
+        };
+    }
+
+    if (response.ok) {
+        return {
+            url,
+            status: response.status,
+            ok: true,
+        };
+    }
+
+    if (response.status === 403 || response.status === 503) {
+        const cfHeader = response.headers.get('cf-mitigated');
+        if (cfHeader) {
+            return {
+                url,
+                status: response.status,
+                ok: true,
+            };
+        }
+    }
+
+    return {
+        url,
+        status: response.status,
+        ok: false,
+    };
+}
+
+function shouldSkipUrlCheck(url) {
+    return PUSH_SERVER_PATTERN.test(url) || HPNS_PATTERN.test(url);
+}
+
 async function checkUrls(urls, concurrency = 5, silentProgress = false) {
     const results = [];
-    const urlList = Array.from(urls.keys());
+    const urlList = Array.from(urls.keys()).filter((url) => !shouldSkipUrlCheck(url));
 
     for (let i = 0; i < urlList.length; i += concurrency) {
         const batch = urlList.slice(i, i + concurrency);
