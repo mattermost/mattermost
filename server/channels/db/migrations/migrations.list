@@ -295,7 +295,9 @@ channels/db/migrations/postgres/000148_add_burn_on_read_messages.down.sql
 channels/db/migrations/postgres/000148_add_burn_on_read_messages.up.sql
 channels/db/migrations/postgres/000149_create_recaps.down.sql
 channels/db/migrations/postgres/000149_create_recaps.up.sql
-channels/db/migrations/postgres/000150_add_user_tracking_to_properties.down.sql
-channels/db/migrations/postgres/000150_add_user_tracking_to_properties.up.sql
-channels/db/migrations/postgres/000151_add_object_type_to_property_fields.down.sql
-channels/db/migrations/postgres/000151_add_object_type_to_property_fields.up.sql
+channels/db/migrations/postgres/000150_add_translation_state.down.sql
+channels/db/migrations/postgres/000150_add_translation_state.up.sql
+channels/db/migrations/postgres/000151_add_user_tracking_to_properties.down.sql
+channels/db/migrations/postgres/000151_add_user_tracking_to_properties.up.sql
+channels/db/migrations/postgres/000152_add_object_type_to_property_fields.down.sql
+channels/db/migrations/postgres/000152_add_object_type_to_property_fields.up.sql

@@ -2649,9 +2649,7 @@ func TestAutoTranslationSettingsDefaults(t *testing.T) {
 
 		require.False(t, *c.AutoTranslationSettings.Enable)
 		require.Equal(t, "", *c.AutoTranslationSettings.Provider)
-		require.Equal(t, 800, *c.AutoTranslationSettings.TimeoutsMs.NewPost)
-		require.Equal(t, 2000, *c.AutoTranslationSettings.TimeoutsMs.Fetch)
-		require.Equal(t, 300, *c.AutoTranslationSettings.TimeoutsMs.Notification)
+		require.Equal(t, 5000, *c.AutoTranslationSettings.TimeoutMs)
 		require.Equal(t, "", *c.AutoTranslationSettings.LibreTranslate.URL)
 		require.Equal(t, "", *c.AutoTranslationSettings.LibreTranslate.APIKey)
 		// TODO: Enable Agents provider in future release

@@ -121,10 +121,6 @@ describe('ChannelLevelAccessRules', () => {
         isDisabled: false,
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     it('should render the component with correct title and subtitle', () => {
         renderWithContext(<ChannelLevelAccessRules {...defaultProps}/>);
 

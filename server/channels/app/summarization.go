@@ -58,7 +58,7 @@ Your response must be compacted valid JSON only, with no additional text, format
 	if session := rctx.Session(); session != nil {
 		sessionUserID = session.UserId
 	}
-	client := a.getBridgeClient(sessionUserID)
+	client := a.GetBridgeClient(sessionUserID)
 
 	completionRequest := agentclient.CompletionRequest{
 		Posts: []agentclient.Post{
