@@ -3688,7 +3688,7 @@
   "channel_header.autotranslation.language_not_supported.subtitle": "Your language is not supported",
   "channel_header.autotranslation.language_not_supported.title": "Auto-translation",
   "channel_header.autotranslationMessage": "Auto-translated",
-  "channel_header.autotranslationMessage.tooltip.hint": "This message is being automatically translated to your language",
+  "channel_header.autotranslationMessage.tooltip.hint": "This channel is being automatically translated to your language",
   "channel_header.autotranslationMessage.tooltip.title": "Auto-translation is enabled",
   "channel_header.back": "Back to channel",
   "channel_header.channel_settings": "Channel Settings",
