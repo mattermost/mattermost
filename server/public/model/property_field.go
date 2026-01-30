@@ -90,7 +90,7 @@ func (pf *PropertyField) EnsureOptionIDs() error {
 
 	var options []map[string]any
 	if err := json.Unmarshal(optionsBytes, &options); err != nil {
-		return fmt.Errorf("failed to unmarshal options for field ID %s: %w", pf.ID, err)
+		return fmt.Errorf("invalid options format for field ID %s: %w", pf.ID, err)
 	}
 
 	for _, optMap := range options {
@@ -99,7 +99,12 @@ func (pf *PropertyField) EnsureOptionIDs() error {
 		}
 	}
 
-	pf.Attrs[PropertyFieldAttributeOptions] = options
+	// Convert back to []any to maintain type compatibility
+	optionsAny := make([]any, len(options))
+	for i, opt := range options {
+		optionsAny[i] = opt
+	}
+	pf.Attrs[PropertyFieldAttributeOptions] = optionsAny
 
 	return nil
 }

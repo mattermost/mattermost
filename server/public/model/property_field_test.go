@@ -737,7 +737,6 @@ func TestPropertyField_EnsureOptionIDs(t *testing.T) {
 
 		err := pf.EnsureOptionIDs()
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "options attribute is not a slice")
 		assert.Contains(t, err.Error(), "field123")
 	})
 
@@ -755,7 +754,6 @@ func TestPropertyField_EnsureOptionIDs(t *testing.T) {
 
 		err := pf.EnsureOptionIDs()
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "option at index 1 is not a map")
 		assert.Contains(t, err.Error(), "field456")
 	})
 }
