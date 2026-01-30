@@ -15,14 +15,15 @@ import LoadingScreen from 'components/loading_screen';
 
 import Constants from 'utils/constants';
 
-import {AdminConsoleListTable} from '../../Work/mattermost/master/webapp/channels/src/components/admin_console/list_table';
-import {DangerText, BorderlessInput, LinkButton} from '../../Work/mattermost/master/webapp/channels/src/components/admin_console/system_properties/controls';
-import type {SectionHook} from '../../Work/mattermost/master/webapp/channels/src/components/admin_console/system_properties/section_utils';
-import DotMenu from '../../Work/mattermost/master/webapp/channels/src/components/admin_console/system_properties/user_properties_dot_menu';
-import SelectType from '../../Work/mattermost/master/webapp/channels/src/components/admin_console/system_properties/user_properties_type_menu';
-import type {UserPropertyFields} from '../../Work/mattermost/master/webapp/channels/src/components/admin_console/system_properties/user_properties_utils';
-import {isCreatePending, useUserPropertyFields, ValidationWarningNameRequired, ValidationWarningNameTaken, ValidationWarningNameUnique} from '../../Work/mattermost/master/webapp/channels/src/components/admin_console/system_properties/user_properties_utils';
-import UserPropertyValues from '../../Work/mattermost/master/webapp/channels/src/components/admin_console/system_properties/user_properties_values';
+import {DangerText, BorderlessInput, LinkButton} from './controls';
+import type {SectionHook} from './section_utils';
+import DotMenu from './user_properties_dot_menu';
+import SelectType from './user_properties_type_menu';
+import type {UserPropertyFields} from './user_properties_utils';
+import {isCreatePending, useUserPropertyFields, ValidationWarningNameRequired, ValidationWarningNameTaken, ValidationWarningNameUnique} from './user_properties_utils';
+import UserPropertyValues from './user_properties_values';
+
+import {AdminConsoleListTable} from '../list_table';
 
 type FieldActions = {
     createField: (field: UserPropertyField) => void;
@@ -33,7 +34,7 @@ type FieldActions = {
 
 export const useUserPropertiesTable = (): SectionHook => {
     const [userPropertyFields, readIO, pendingIO, itemOps] = useUserPropertyFields();
-    const nonDeletedCount = Object.values(userPropertyFields.data).filter((f) => f.delete_at === 0).length;
+    const nonDeletedCount = Object.values(userPropertyFields.data).filter((f: UserPropertyField) => f.delete_at === 0).length;
 
     const canCreate = nonDeletedCount < Constants.MAX_CUSTOM_ATTRIBUTES;
 
@@ -247,7 +248,7 @@ export function UserPropertiesTable({
         ];
     }, [createField, updateField, deleteField, collection.warnings, canCreate]);
 
-    const table = useReactTable({
+    const table = useReactTable<UserPropertyField>({
         data,
         columns,
         getCoreRowModel: getCoreRowModel<UserPropertyField>(),
@@ -370,13 +371,13 @@ const EditCell = (props: EditCellProps) => {
                 $strong={props.strong}
                 maxLength={props.maxLength}
                 autoFocus={props.autoFocus}
-                onFocus={(e) => {
+                onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
                     if (props.autoFocus) {
                         e.target.select();
                     }
                 }}
                 value={value}
-                onChange={(e) => {
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     setValue(e.target.value);
                 }}
                 onBlur={() => {
