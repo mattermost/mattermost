@@ -238,6 +238,13 @@ func (api *apiTimerLayer) GetSession(sessionID string) (*model.Session, *model.A
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) GetSessionPublicKeys(userIDs []string) (map[string]string, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetSessionPublicKeys(userIDs)
+	api.recordTime(startTime, "GetSessionPublicKeys", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) CreateSession(session *model.Session) (*model.Session, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.CreateSession(session)

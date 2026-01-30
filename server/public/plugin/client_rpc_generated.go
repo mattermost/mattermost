@@ -2061,6 +2061,35 @@ func (s *apiRPCServer) GetSession(args *Z_GetSessionArgs, returns *Z_GetSessionR
 	return nil
 }
 
+type Z_GetSessionPublicKeysArgs struct {
+	A []string
+}
+
+type Z_GetSessionPublicKeysReturns struct {
+	A map[string]string
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetSessionPublicKeys(userIDs []string) (map[string]string, *model.AppError) {
+	_args := &Z_GetSessionPublicKeysArgs{userIDs}
+	_returns := &Z_GetSessionPublicKeysReturns{}
+	if err := g.client.Call("Plugin.GetSessionPublicKeys", _args, _returns); err != nil {
+		log.Printf("RPC call to GetSessionPublicKeys API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetSessionPublicKeys(args *Z_GetSessionPublicKeysArgs, returns *Z_GetSessionPublicKeysReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetSessionPublicKeys(userIDs []string) (map[string]string, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetSessionPublicKeys(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetSessionPublicKeys called but not implemented."))
+	}
+	return nil
+}
+
 type Z_CreateSessionArgs struct {
 	A *model.Session
 }
