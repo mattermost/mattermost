@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package searchtest
 
 import (
@@ -18,7 +21,7 @@ func TestSearchPostStoreEnabledCJK(t *testing.T, s store.Store) {
 	require.NoError(t, err)
 	defer th.CleanFixtures()
 
-	t.Run("Korean searchs using nori analyzer", func(t *testing.T) {
+	t.Run("Korean searches using nori analyzer", func(t *testing.T) {
 		t.Run("should be able to search with wildcard and exact search", func(t *testing.T) {
 			p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "한글", "", model.PostTypeDefault, 0, false)
 			require.NoError(t, err)
@@ -217,6 +220,7 @@ func TestSearchPostStoreEnabledCJK(t *testing.T, s store.Store) {
 			// Two characters (unquoted): SimpleQueryString matches any analyzed token (你 OR 好), so both posts match
 			params = &model.SearchParams{Terms: "你好"}
 			results, err = th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
 			require.Len(t, results.Posts, 2)
 			th.checkPostInSearchResults(t, pNi.Id, results.Posts)
 			th.checkPostInSearchResults(t, pNiHao.Id, results.Posts)
