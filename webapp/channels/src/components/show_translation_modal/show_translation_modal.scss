@@ -41,8 +41,8 @@
 // On narrow screens, use as much of the viewport as possible
 @media screen and (max-width: 1000px) {
     .ShowTranslationModal {
-        min-width: unset;
         width: calc(100vw - 40px);
+        min-width: unset;
         max-width: calc(100vw - 40px);
     }
 }
