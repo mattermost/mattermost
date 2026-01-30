@@ -34,7 +34,7 @@ type FieldActions = {
 
 export const useUserPropertiesTable = (): SectionHook => {
     const [userPropertyFields, readIO, pendingIO, itemOps] = useUserPropertyFields();
-    const nonDeletedCount = Object.values(userPropertyFields.data).filter((f) => f.delete_at === 0).length;
+    const nonDeletedCount = Object.values(userPropertyFields.data).filter((f: UserPropertyField) => f.delete_at === 0).length;
 
     const canCreate = nonDeletedCount < Constants.MAX_CUSTOM_ATTRIBUTES;
 
@@ -119,6 +119,7 @@ export function UserPropertiesTable({
                 },
                 cell: ({getValue, row}) => {
                     const toDelete = row.original.delete_at !== 0;
+                    const isProtected = Boolean(row.original.attrs?.protected);
                     const warningId = collection.warnings?.[row.original.id]?.name;
 
                     let warning;
@@ -156,6 +157,7 @@ export function UserPropertiesTable({
                                 value={getValue()}
                                 label={formatMessage({id: 'admin.system_properties.user_properties.table.property_name.input.name', defaultMessage: 'Attribute Name'})}
                                 deleted={toDelete}
+                                disabled={isProtected}
                                 testid='property-field-input'
                                 autoFocus={isCreatePending(row.original) && !supportsOptions(row.original)}
                                 setValue={(value: string) => {
@@ -246,7 +248,7 @@ export function UserPropertiesTable({
         ];
     }, [createField, updateField, deleteField, collection.warnings, canCreate]);
 
-    const table = useReactTable({
+    const table = useReactTable<UserPropertyField>({
         data,
         columns,
         getCoreRowModel: getCoreRowModel<UserPropertyField>(),
@@ -364,18 +366,18 @@ const EditCell = (props: EditCellProps) => {
                 type='text'
                 aria-label={props.label}
                 data-testid={props.testid}
-                disabled={props.disabled ?? props.deleted}
+                disabled={props.disabled || props.deleted}
                 $deleted={props.deleted}
                 $strong={props.strong}
                 maxLength={props.maxLength}
                 autoFocus={props.autoFocus}
-                onFocus={(e) => {
+                onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
                     if (props.autoFocus) {
                         e.target.select();
                     }
                 }}
                 value={value}
-                onChange={(e) => {
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     setValue(e.target.value);
                 }}
                 onBlur={() => {
