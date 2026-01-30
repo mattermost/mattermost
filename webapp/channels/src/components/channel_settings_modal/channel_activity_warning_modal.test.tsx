@@ -1,11 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen} from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import React from 'react';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import ChannelActivityWarningModal from './channel_activity_warning_modal';
 
@@ -16,10 +14,6 @@ describe('ChannelActivityWarningModal', () => {
         onConfirm: jest.fn(),
         channelName: 'test-channel',
     };
-
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
 
     test('should render modal when isOpen is true', () => {
         renderWithContext(
