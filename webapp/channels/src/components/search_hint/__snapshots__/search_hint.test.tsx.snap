@@ -1,620 +1,462 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/SearchHint should match snapshot, with searchType 1`] = `
-<Fragment>
+<div>
   <ul
-    className="search-hint__suggestions-list"
+    class="search-hint__suggestions-list"
     role="list"
   >
     <li
-      className="search-hint__suggestions-list__option"
-      key="From:"
-      onMouseDown={[Function]}
-      onMouseOver={[Function]}
-      onTouchEnd={[Function]}
+      class="search-hint__suggestions-list__option"
     >
       <div
-        className="search-hint__suggestion-list__flex-wrap"
+        class="search-hint__suggestion-list__flex-wrap"
       >
         <span
-          className="search-hint__suggestion-list__label"
+          class="search-hint__suggestion-list__label"
         >
           From:
         </span>
       </div>
       <div
-        className="search-hint__suggestion-list__value"
+        class="search-hint__suggestion-list__value"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Messages from a user"
-          id="search_list_option.from"
-        />
+        Messages from a user
       </div>
     </li>
     <li
-      className="search-hint__suggestions-list__option"
-      key="In:"
-      onMouseDown={[Function]}
-      onMouseOver={[Function]}
-      onTouchEnd={[Function]}
+      class="search-hint__suggestions-list__option"
     >
       <div
-        className="search-hint__suggestion-list__flex-wrap"
+        class="search-hint__suggestion-list__flex-wrap"
       >
         <span
-          className="search-hint__suggestion-list__label"
+          class="search-hint__suggestion-list__label"
         >
           In:
         </span>
       </div>
       <div
-        className="search-hint__suggestion-list__value"
+        class="search-hint__suggestion-list__value"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Messages in a channel"
-          id="search_list_option.in"
-        />
+        Messages in a channel
       </div>
     </li>
     <li
-      className="search-hint__suggestions-list__option"
-      key="On:"
-      onMouseDown={[Function]}
-      onMouseOver={[Function]}
-      onTouchEnd={[Function]}
+      class="search-hint__suggestions-list__option"
     >
       <div
-        className="search-hint__suggestion-list__flex-wrap"
+        class="search-hint__suggestion-list__flex-wrap"
       >
         <span
-          className="search-hint__suggestion-list__label"
+          class="search-hint__suggestion-list__label"
         >
           On:
         </span>
       </div>
       <div
-        className="search-hint__suggestion-list__value"
+        class="search-hint__suggestion-list__value"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Messages on a date"
-          id="search_list_option.on"
-        />
+        Messages on a date
       </div>
     </li>
     <li
-      className="search-hint__suggestions-list__option"
-      key="Before:"
-      onMouseDown={[Function]}
-      onMouseOver={[Function]}
-      onTouchEnd={[Function]}
+      class="search-hint__suggestions-list__option"
     >
       <div
-        className="search-hint__suggestion-list__flex-wrap"
+        class="search-hint__suggestion-list__flex-wrap"
       >
         <span
-          className="search-hint__suggestion-list__label"
+          class="search-hint__suggestion-list__label"
         >
           Before:
         </span>
       </div>
       <div
-        className="search-hint__suggestion-list__value"
+        class="search-hint__suggestion-list__value"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Messages before a date"
-          id="search_list_option.before"
-        />
+        Messages before a date
       </div>
     </li>
     <li
-      className="search-hint__suggestions-list__option"
-      key="After:"
-      onMouseDown={[Function]}
-      onMouseOver={[Function]}
-      onTouchEnd={[Function]}
+      class="search-hint__suggestions-list__option"
     >
       <div
-        className="search-hint__suggestion-list__flex-wrap"
+        class="search-hint__suggestion-list__flex-wrap"
       >
         <span
-          className="search-hint__suggestion-list__label"
+          class="search-hint__suggestion-list__label"
         >
           After:
         </span>
       </div>
       <div
-        className="search-hint__suggestion-list__value"
+        class="search-hint__suggestion-list__value"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Messages after a date"
-          id="search_list_option.after"
-        />
+        Messages after a date
       </div>
     </li>
     <li
-      className="search-hint__suggestions-list__option"
-      key="-"
-      onMouseDown={[Function]}
-      onMouseOver={[Function]}
-      onTouchEnd={[Function]}
+      class="search-hint__suggestions-list__option"
     >
       <div
-        className="search-hint__suggestion-list__flex-wrap"
+        class="search-hint__suggestion-list__flex-wrap"
       >
         <span
-          className="search-hint__suggestion-list__label"
+          class="search-hint__suggestion-list__label"
         >
           —
         </span>
       </div>
       <div
-        className="search-hint__suggestion-list__value"
+        class="search-hint__suggestion-list__value"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Exclude search terms"
-          id="search_list_option.exclude"
-        />
+        Exclude search terms
       </div>
     </li>
     <li
-      className="search-hint__suggestions-list__option"
-      key="\\"\\""
-      onMouseDown={[Function]}
-      onMouseOver={[Function]}
-      onTouchEnd={[Function]}
+      class="search-hint__suggestions-list__option"
     >
       <div
-        className="search-hint__suggestion-list__flex-wrap"
+        class="search-hint__suggestion-list__flex-wrap"
       >
         <span
-          className="search-hint__suggestion-list__label"
+          class="search-hint__suggestion-list__label"
         >
           ""
         </span>
       </div>
       <div
-        className="search-hint__suggestion-list__value"
+        class="search-hint__suggestion-list__value"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Messages with phrases"
-          id="search_list_option.phrases"
-        />
+        Messages with phrases
       </div>
     </li>
   </ul>
-</Fragment>
+</div>
 `;
 
 exports[`components/SearchHint should match snapshot, with title 1`] = `
-<Fragment>
+<div>
   <h4
-    className="search-hint__title"
+    class="search-hint__title"
   >
-    <MemoizedFormattedMessage
-      defaultMessage="Search options"
-      id="search_bar.usage.title"
-    />
+    Search options
   </h4>
   <ul
-    className="search-hint__suggestions-list"
+    class="search-hint__suggestions-list"
     role="list"
   >
     <li
-      className="search-hint__suggestions-list__option"
-      key="From:"
-      onMouseDown={[Function]}
-      onMouseOver={[Function]}
-      onTouchEnd={[Function]}
+      class="search-hint__suggestions-list__option"
     >
       <div
-        className="search-hint__suggestion-list__flex-wrap"
+        class="search-hint__suggestion-list__flex-wrap"
       >
         <span
-          className="search-hint__suggestion-list__label"
+          class="search-hint__suggestion-list__label"
         >
           From:
         </span>
       </div>
       <div
-        className="search-hint__suggestion-list__value"
+        class="search-hint__suggestion-list__value"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Messages from a user"
-          id="search_list_option.from"
-        />
+        Messages from a user
       </div>
     </li>
     <li
-      className="search-hint__suggestions-list__option"
-      key="In:"
-      onMouseDown={[Function]}
-      onMouseOver={[Function]}
-      onTouchEnd={[Function]}
+      class="search-hint__suggestions-list__option"
     >
       <div
-        className="search-hint__suggestion-list__flex-wrap"
+        class="search-hint__suggestion-list__flex-wrap"
       >
         <span
-          className="search-hint__suggestion-list__label"
+          class="search-hint__suggestion-list__label"
         >
           In:
         </span>
       </div>
       <div
-        className="search-hint__suggestion-list__value"
+        class="search-hint__suggestion-list__value"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Messages in a channel"
-          id="search_list_option.in"
-        />
+        Messages in a channel
       </div>
     </li>
     <li
-      className="search-hint__suggestions-list__option"
-      key="On:"
-      onMouseDown={[Function]}
-      onMouseOver={[Function]}
-      onTouchEnd={[Function]}
+      class="search-hint__suggestions-list__option"
     >
       <div
-        className="search-hint__suggestion-list__flex-wrap"
+        class="search-hint__suggestion-list__flex-wrap"
       >
         <span
-          className="search-hint__suggestion-list__label"
+          class="search-hint__suggestion-list__label"
         >
           On:
         </span>
       </div>
       <div
-        className="search-hint__suggestion-list__value"
+        class="search-hint__suggestion-list__value"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Messages on a date"
-          id="search_list_option.on"
-        />
+        Messages on a date
       </div>
     </li>
     <li
-      className="search-hint__suggestions-list__option"
-      key="Before:"
-      onMouseDown={[Function]}
-      onMouseOver={[Function]}
-      onTouchEnd={[Function]}
+      class="search-hint__suggestions-list__option"
     >
       <div
-        className="search-hint__suggestion-list__flex-wrap"
+        class="search-hint__suggestion-list__flex-wrap"
       >
         <span
-          className="search-hint__suggestion-list__label"
+          class="search-hint__suggestion-list__label"
         >
           Before:
         </span>
       </div>
       <div
-        className="search-hint__suggestion-list__value"
+        class="search-hint__suggestion-list__value"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Messages before a date"
-          id="search_list_option.before"
-        />
+        Messages before a date
       </div>
     </li>
     <li
-      className="search-hint__suggestions-list__option"
-      key="After:"
-      onMouseDown={[Function]}
-      onMouseOver={[Function]}
-      onTouchEnd={[Function]}
+      class="search-hint__suggestions-list__option"
     >
       <div
-        className="search-hint__suggestion-list__flex-wrap"
+        class="search-hint__suggestion-list__flex-wrap"
       >
         <span
-          className="search-hint__suggestion-list__label"
+          class="search-hint__suggestion-list__label"
         >
           After:
         </span>
       </div>
       <div
-        className="search-hint__suggestion-list__value"
+        class="search-hint__suggestion-list__value"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Messages after a date"
-          id="search_list_option.after"
-        />
+        Messages after a date
       </div>
     </li>
     <li
-      className="search-hint__suggestions-list__option"
-      key="-"
-      onMouseDown={[Function]}
-      onMouseOver={[Function]}
-      onTouchEnd={[Function]}
+      class="search-hint__suggestions-list__option"
     >
       <div
-        className="search-hint__suggestion-list__flex-wrap"
+        class="search-hint__suggestion-list__flex-wrap"
       >
         <span
-          className="search-hint__suggestion-list__label"
+          class="search-hint__suggestion-list__label"
         >
           —
         </span>
       </div>
       <div
-        className="search-hint__suggestion-list__value"
+        class="search-hint__suggestion-list__value"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Exclude search terms"
-          id="search_list_option.exclude"
-        />
+        Exclude search terms
       </div>
     </li>
     <li
-      className="search-hint__suggestions-list__option"
-      key="\\"\\""
-      onMouseDown={[Function]}
-      onMouseOver={[Function]}
-      onTouchEnd={[Function]}
+      class="search-hint__suggestions-list__option"
     >
       <div
-        className="search-hint__suggestion-list__flex-wrap"
+        class="search-hint__suggestion-list__flex-wrap"
       >
         <span
-          className="search-hint__suggestion-list__label"
+          class="search-hint__suggestion-list__label"
         >
           ""
         </span>
       </div>
       <div
-        className="search-hint__suggestion-list__value"
+        class="search-hint__suggestion-list__value"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Messages with phrases"
-          id="search_list_option.phrases"
-        />
+        Messages with phrases
       </div>
     </li>
   </ul>
-</Fragment>
+</div>
 `;
 
 exports[`components/SearchHint should match snapshot, without searchType 1`] = `
-<div
-  className="search-hint__search-type-selector"
->
+<div>
   <div
-    className="search-hint_text-container"
+    class="search-hint__search-type-selector"
   >
-    <MemoizedFormattedMessage
-      defaultMessage="What are you searching for?"
-      id="search_bar.usage.search_type_question"
-    />
-    <MemoizedFormattedMessage
-      defaultMessage="<a>Learn about search</a>"
-      id="search_bar.usage.searchLearn"
-      values={
-        Object {
-          "a": [Function],
-        }
-      }
-    />
-  </div>
-  <div
-    className="button-container"
-  >
-    <button
-      className=""
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
+    <div
+      class="search-hint_text-container"
     >
-      <i
-        className="icon icon-message-text-outline"
-      />
-      <MemoizedFormattedMessage
-        defaultMessage="Messages"
-        id="search_bar.usage.search_type_messages"
-      />
-    </button>
-    <button
-      className=""
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
+      What are you searching for?
+      <a
+        class="search-hint_learn-search"
+        href="https://mattermost.com/pl/mattermost-academy-search-training?utm_source=mattermost&utm_medium=in-product&utm_content=search_hint&uid=currentUserId&sid=&edition=team&server_version="
+        location="search_hint"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        <span>
+          Learn about search
+        </span>
+        <i
+          class="icon icon-lightbulb-outline"
+        />
+      </a>
+    </div>
+    <div
+      class="button-container"
     >
-      <i
-        className="icon icon-file-text-outline"
-      />
-      <MemoizedFormattedMessage
-        defaultMessage="Files"
-        id="search_bar.usage.search_type_files"
-      />
-    </button>
+      <button
+        class=""
+      >
+        <i
+          class="icon icon-message-text-outline"
+        />
+        Messages
+      </button>
+      <button
+        class=""
+      >
+        <i
+          class="icon icon-file-text-outline"
+        />
+        Files
+      </button>
+    </div>
   </div>
 </div>
 `;
 
 exports[`components/SearchHint should match snapshot, without title 1`] = `
-<Fragment>
+<div>
   <ul
-    className="search-hint__suggestions-list"
+    class="search-hint__suggestions-list"
     role="list"
   >
     <li
-      className="search-hint__suggestions-list__option"
-      key="From:"
-      onMouseDown={[Function]}
-      onMouseOver={[Function]}
-      onTouchEnd={[Function]}
+      class="search-hint__suggestions-list__option"
     >
       <div
-        className="search-hint__suggestion-list__flex-wrap"
+        class="search-hint__suggestion-list__flex-wrap"
       >
         <span
-          className="search-hint__suggestion-list__label"
+          class="search-hint__suggestion-list__label"
         >
           From:
         </span>
       </div>
       <div
-        className="search-hint__suggestion-list__value"
+        class="search-hint__suggestion-list__value"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Messages from a user"
-          id="search_list_option.from"
-        />
+        Messages from a user
       </div>
     </li>
     <li
-      className="search-hint__suggestions-list__option"
-      key="In:"
-      onMouseDown={[Function]}
-      onMouseOver={[Function]}
-      onTouchEnd={[Function]}
+      class="search-hint__suggestions-list__option"
     >
       <div
-        className="search-hint__suggestion-list__flex-wrap"
+        class="search-hint__suggestion-list__flex-wrap"
       >
         <span
-          className="search-hint__suggestion-list__label"
+          class="search-hint__suggestion-list__label"
         >
           In:
         </span>
       </div>
       <div
-        className="search-hint__suggestion-list__value"
+        class="search-hint__suggestion-list__value"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Messages in a channel"
-          id="search_list_option.in"
-        />
+        Messages in a channel
       </div>
     </li>
     <li
-      className="search-hint__suggestions-list__option"
-      key="On:"
-      onMouseDown={[Function]}
-      onMouseOver={[Function]}
-      onTouchEnd={[Function]}
+      class="search-hint__suggestions-list__option"
     >
       <div
-        className="search-hint__suggestion-list__flex-wrap"
+        class="search-hint__suggestion-list__flex-wrap"
       >
         <span
-          className="search-hint__suggestion-list__label"
+          class="search-hint__suggestion-list__label"
         >
           On:
         </span>
       </div>
       <div
-        className="search-hint__suggestion-list__value"
+        class="search-hint__suggestion-list__value"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Messages on a date"
-          id="search_list_option.on"
-        />
+        Messages on a date
       </div>
     </li>
     <li
-      className="search-hint__suggestions-list__option"
-      key="Before:"
-      onMouseDown={[Function]}
-      onMouseOver={[Function]}
-      onTouchEnd={[Function]}
+      class="search-hint__suggestions-list__option"
     >
       <div
-        className="search-hint__suggestion-list__flex-wrap"
+        class="search-hint__suggestion-list__flex-wrap"
       >
         <span
-          className="search-hint__suggestion-list__label"
+          class="search-hint__suggestion-list__label"
         >
           Before:
         </span>
       </div>
       <div
-        className="search-hint__suggestion-list__value"
+        class="search-hint__suggestion-list__value"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Messages before a date"
-          id="search_list_option.before"
-        />
+        Messages before a date
       </div>
     </li>
     <li
-      className="search-hint__suggestions-list__option"
-      key="After:"
-      onMouseDown={[Function]}
-      onMouseOver={[Function]}
-      onTouchEnd={[Function]}
+      class="search-hint__suggestions-list__option"
     >
       <div
-        className="search-hint__suggestion-list__flex-wrap"
+        class="search-hint__suggestion-list__flex-wrap"
       >
         <span
-          className="search-hint__suggestion-list__label"
+          class="search-hint__suggestion-list__label"
         >
           After:
         </span>
       </div>
       <div
-        className="search-hint__suggestion-list__value"
+        class="search-hint__suggestion-list__value"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Messages after a date"
-          id="search_list_option.after"
-        />
+        Messages after a date
       </div>
     </li>
     <li
-      className="search-hint__suggestions-list__option"
-      key="-"
-      onMouseDown={[Function]}
-      onMouseOver={[Function]}
-      onTouchEnd={[Function]}
+      class="search-hint__suggestions-list__option"
     >
       <div
-        className="search-hint__suggestion-list__flex-wrap"
+        class="search-hint__suggestion-list__flex-wrap"
       >
         <span
-          className="search-hint__suggestion-list__label"
+          class="search-hint__suggestion-list__label"
         >
           —
         </span>
       </div>
       <div
-        className="search-hint__suggestion-list__value"
+        class="search-hint__suggestion-list__value"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Exclude search terms"
-          id="search_list_option.exclude"
-        />
+        Exclude search terms
       </div>
     </li>
     <li
-      className="search-hint__suggestions-list__option"
-      key="\\"\\""
-      onMouseDown={[Function]}
-      onMouseOver={[Function]}
-      onTouchEnd={[Function]}
+      class="search-hint__suggestions-list__option"
     >
       <div
-        className="search-hint__suggestion-list__flex-wrap"
+        class="search-hint__suggestion-list__flex-wrap"
       >
         <span
-          className="search-hint__suggestion-list__label"
+          class="search-hint__suggestion-list__label"
         >
           ""
         </span>
       </div>
       <div
-        className="search-hint__suggestion-list__value"
+        class="search-hint__suggestion-list__value"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Messages with phrases"
-          id="search_list_option.phrases"
-        />
+        Messages with phrases
       </div>
     </li>
   </ul>
-</Fragment>
+</div>
 `;

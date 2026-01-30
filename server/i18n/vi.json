@@ -5798,10 +5798,6 @@
     "translation": "Dịch vụ chỉ có ở phiên bản Matter Extreme Enterprise"
   },
   {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "Máy chủ CWS không thể đăng ký nhận bản tin."
-  },
-  {
     "id": "api.server.hosted_signup_unavailable.error",
     "translation": "Cổng thông tin không có sẵn để đăng ký tự lưu trữ."
   },

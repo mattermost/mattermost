@@ -2784,29 +2784,23 @@ func (s *LocalizationSettings) SetDefaults() {
 }
 
 type AutoTranslationSettings struct {
-	Enable         *bool                           `access:"site_localization,cloud_restrictable"`
-	Provider       *string                         `access:"site_localization,cloud_restrictable"`
-	TimeoutsMs     *AutoTranslationTimeoutsInMs    `access:"site_localization,cloud_restrictable"`
-	LibreTranslate *LibreTranslateProviderSettings `access:"site_localization,cloud_restrictable"`
-	// TODO: Enable Agents provider in future release
-	// Agents         *AgentsProviderSettings         `access:"site_localization,cloud_restrictable"`
+	Enable          *bool                           `access:"site_localization,cloud_restrictable"`
+	Provider        *string                         `access:"site_localization,cloud_restrictable"`
+	TargetLanguages *[]string                       `access:"site_localization,cloud_restrictable"`
+	TimeoutMs       *int                            `access:"site_localization,cloud_restrictable"`
+	LibreTranslate  *LibreTranslateProviderSettings `access:"site_localization,cloud_restrictable"`
+	Agents          *AgentsProviderSettings         `access:"site_localization,cloud_restrictable"`
 }
 
-type AutoTranslationTimeoutsInMs struct {
-	NewPost      *int `access:"site_localization,cloud_restrictable"`
-	Fetch        *int `access:"site_localization,cloud_restrictable"`
-	Notification *int `access:"site_localization,cloud_restrictable"`
-}
-
+// LibreTranslateProviderSettings configures the LibreTranslate translation provider.
 type LibreTranslateProviderSettings struct {
-	URL    *string `access:"site_localization,cloud_restrictable"`
-	APIKey *string `access:"site_localization,cloud_restrictable"`
+	URL    *string `access:"site_localization,cloud_restrictable"` // LibreTranslate server URL
+	APIKey *string `access:"site_localization,cloud_restrictable"` // Optional API key for authenticated requests
 }
 
-// TODO: Enable Agents provider in future release
-// type AgentsProviderSettings struct {
-// 	BotUserId *string `access:"site_localization,cloud_restrictable"`
-// }
+type AgentsProviderSettings struct {
+	LLMServiceID *string `access:"site_localization,cloud_restrictable"`
+}
 
 func (s *AutoTranslationSettings) SetDefaults() {
 	if s.Enable == nil {
@@ -2817,35 +2811,23 @@ func (s *AutoTranslationSettings) SetDefaults() {
 		s.Provider = NewPointer("")
 	}
 
-	if s.TimeoutsMs == nil {
-		s.TimeoutsMs = &AutoTranslationTimeoutsInMs{}
+	if s.TargetLanguages == nil {
+		s.TargetLanguages = &[]string{"en"}
 	}
-	s.TimeoutsMs.SetDefaults()
+
+	if s.TimeoutMs == nil {
+		s.TimeoutMs = NewPointer(5000)
+	}
 
 	if s.LibreTranslate == nil {
 		s.LibreTranslate = &LibreTranslateProviderSettings{}
 	}
 	s.LibreTranslate.SetDefaults()
 
-	// TODO: Enable Agents provider in future release
-	// if s.Agents == nil {
-	// 	s.Agents = &AgentsProviderSettings{}
-	// }
-	// s.Agents.SetDefaults()
-}
-
-func (s *AutoTranslationTimeoutsInMs) SetDefaults() {
-	if s.NewPost == nil {
-		s.NewPost = NewPointer(800)
+	if s.Agents == nil {
+		s.Agents = &AgentsProviderSettings{}
 	}
-
-	if s.Fetch == nil {
-		s.Fetch = NewPointer(2000)
-	}
-
-	if s.Notification == nil {
-		s.Notification = NewPointer(300)
-	}
+	s.Agents.SetDefaults()
 }
 
 func (s *LibreTranslateProviderSettings) SetDefaults() {
@@ -2858,12 +2840,11 @@ func (s *LibreTranslateProviderSettings) SetDefaults() {
 	}
 }
 
-// TODO: Enable Agents provider in future release
-// func (s *AgentsProviderSettings) SetDefaults() {
-// 	if s.BotUserId == nil {
-// 		s.BotUserId = NewPointer("")
-// 	}
-// }
+func (s *AgentsProviderSettings) SetDefaults() {
+	if s.LLMServiceID == nil {
+		s.LLMServiceID = NewPointer("")
+	}
+}
 
 type SamlSettings struct {
 	// Basic
@@ -4829,26 +4810,17 @@ func (s *AutoTranslationSettings) isValid() *AppError {
 		if s.LibreTranslate == nil || s.LibreTranslate.URL == nil || *s.LibreTranslate.URL == "" || !IsValidHTTPURL(*s.LibreTranslate.URL) {
 			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.libretranslate.url.app_error", nil, "", http.StatusBadRequest)
 		}
-	// TODO: Enable Agents provider in future release
-	// case "agents":
-	// 	if s.Agents == nil || s.Agents.BotUserId == nil || *s.Agents.BotUserId == "" {
-	// 		return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.agents.bot_user_id.app_error", nil, "", http.StatusBadRequest)
-	// 	}
+	case "agents":
+		if s.Agents == nil || s.Agents.LLMServiceID == nil || *s.Agents.LLMServiceID == "" {
+			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.agents.llm_service_id.app_error", nil, "", http.StatusBadRequest)
+		}
 	default:
 		return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.provider.unsupported.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	// Validate timeouts if set
-	if s.TimeoutsMs != nil {
-		if s.TimeoutsMs.NewPost != nil && *s.TimeoutsMs.NewPost <= 0 {
-			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.new_post.app_error", nil, "", http.StatusBadRequest)
-		}
-		if s.TimeoutsMs.Fetch != nil && *s.TimeoutsMs.Fetch <= 0 {
-			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.fetch.app_error", nil, "", http.StatusBadRequest)
-		}
-		if s.TimeoutsMs.Notification != nil && *s.TimeoutsMs.Notification <= 0 {
-			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.notification.app_error", nil, "", http.StatusBadRequest)
-		}
+	// Validate timeout if set (must be positive)
+	if s.TimeoutMs != nil && *s.TimeoutMs <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeout.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
