@@ -202,18 +202,26 @@ export class MattermostTestEnvironment {
             );
         }
 
-        // Validate: redis requires a license with clustering support
+        // Validate: redis requires a license with clustering support (not available in team edition)
         const hasRedis = dependencies.includes('redis');
-        if (hasRedis && !process.env.MM_LICENSE) {
+        const isTeamEdition = this.config.server.edition === 'team';
+        if (hasRedis && (isTeamEdition || !process.env.MM_LICENSE)) {
             throw new Error(
-                'Cannot enable redis without MM_LICENSE. Redis requires a Mattermost license with clustering support.',
+                'Cannot enable redis without MM_LICENSE. Redis requires a Mattermost license with clustering support (not available in team edition).',
             );
         }
 
-        // Validate: HA mode requires a license with clustering support
-        if (this.config.server.ha && !process.env.MM_LICENSE) {
+        // Validate: HA mode requires a license with clustering support (not available in team edition)
+        if (this.config.server.ha && (isTeamEdition || !process.env.MM_LICENSE)) {
             throw new Error(
-                'Cannot enable HA mode without MM_LICENSE. HA mode requires a Mattermost license with clustering support.',
+                'Cannot enable HA mode without MM_LICENSE. HA mode requires a Mattermost license with clustering support (not available in team edition).',
+            );
+        }
+
+        // Validate: Entry tier is only applicable to enterprise and fips editions (not team edition)
+        if (this.config.server.entry && isTeamEdition) {
+            throw new Error(
+                'Cannot use --entry (or TC_ENTRY=true) with team edition. Entry tier is only applicable to enterprise and fips editions.',
             );
         }
 

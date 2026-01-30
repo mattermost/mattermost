@@ -10,6 +10,10 @@ import {
     ensureLicense,
     ensurePluginsLoaded,
     ensureServerDeployment,
+    requireEdition,
+    requireTeamEdition,
+    requireLicense,
+    requireNoLicense,
     shouldHaveCallsEnabled,
     shouldHaveFeatureFlag,
     shouldRunInLinux,
@@ -79,6 +83,10 @@ export class PlaywrightExtended {
     readonly shouldRunInLinux;
     readonly ensureLicense;
     readonly ensureServerDeployment;
+    readonly requireEdition;
+    readonly requireTeamEdition;
+    readonly requireLicense;
+    readonly requireNoLicense;
     readonly skipIfNoLicense;
     readonly skipIfFeatureFlagNotSet;
 
@@ -140,6 +148,10 @@ export class PlaywrightExtended {
         this.shouldRunInLinux = shouldRunInLinux;
         this.ensureLicense = ensureLicense;
         this.ensureServerDeployment = ensureServerDeployment;
+        this.requireEdition = requireEdition;
+        this.requireTeamEdition = requireTeamEdition;
+        this.requireLicense = requireLicense;
+        this.requireNoLicense = requireNoLicense;
         this.skipIfNoLicense = skipIfNoLicense;
         this.skipIfFeatureFlagNotSet = skipIfFeatureFlagNotSet;
 

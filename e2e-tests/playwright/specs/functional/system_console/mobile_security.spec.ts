@@ -3,15 +3,10 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-test('should be able to enable mobile security settings when licensed', async ({pw}) => {
-    const {adminUser, adminClient} = await pw.initSetup();
-
-    const license = await adminClient.getClientLicenseOld();
-
-    test.skip(
-        license.SkuShortName !== 'enterprise' || license.short_sku_name !== 'advanced',
-        'Skipping test - server has no enterprise or enterprise advanced license',
-    );
+test('should be able to enable mobile security settings when licensed', {tag: ['@entry_tier']}, async ({pw}) => {
+    await pw.ensureLicense();
+    await pw.requireLicense('entry', 'advanced');
+    const {adminUser} = await pw.initSetup();
 
     if (!adminUser) {
         throw new Error('Failed to create admin user');
@@ -100,72 +95,65 @@ test('should be able to enable mobile security settings when licensed', async ({
     expect(await systemConsolePage.mobileSecurity.preventScreenCaptureToggleTrue.isChecked()).toBe(true);
     expect(await systemConsolePage.mobileSecurity.jailbreakProtectionToggleTrue.isChecked()).toBe(true);
 
-    if (license.SkuShortName === 'advanced') {
-        // # Enable Secure File Preview
-        await systemConsolePage.mobileSecurity.clickEnableSecureFilePreviewToggleTrue();
+    // # Enable Secure File Preview
+    await systemConsolePage.mobileSecurity.clickEnableSecureFilePreviewToggleTrue();
 
-        // * Verify all toggles are enabled
-        expect(await systemConsolePage.mobileSecurity.enableBiometricAuthenticationToggleTrue.isChecked()).toBe(true);
-        expect(await systemConsolePage.mobileSecurity.preventScreenCaptureToggleTrue.isChecked()).toBe(true);
-        expect(await systemConsolePage.mobileSecurity.jailbreakProtectionToggleTrue.isChecked()).toBe(true);
-        expect(await systemConsolePage.mobileSecurity.enableSecureFilePreviewToggleTrue.isChecked()).toBe(true);
-        expect(await systemConsolePage.mobileSecurity.allowPdfLinkNavigationToggleTrue.isChecked()).toBe(false);
+    // * Verify all toggles are enabled
+    expect(await systemConsolePage.mobileSecurity.enableBiometricAuthenticationToggleTrue.isChecked()).toBe(true);
+    expect(await systemConsolePage.mobileSecurity.preventScreenCaptureToggleTrue.isChecked()).toBe(true);
+    expect(await systemConsolePage.mobileSecurity.jailbreakProtectionToggleTrue.isChecked()).toBe(true);
+    expect(await systemConsolePage.mobileSecurity.enableSecureFilePreviewToggleTrue.isChecked()).toBe(true);
+    expect(await systemConsolePage.mobileSecurity.allowPdfLinkNavigationToggleTrue.isChecked()).toBe(false);
 
-        // # Save settings
-        await systemConsolePage.mobileSecurity.clickSaveButton();
-        // # Wait until the save button has settled
-        await pw.waitUntil(async () => (await systemConsolePage.mobileSecurity.saveButton.textContent()) === 'Save');
+    // # Save settings
+    await systemConsolePage.mobileSecurity.clickSaveButton();
+    // # Wait until the save button has settled
+    await pw.waitUntil(async () => (await systemConsolePage.mobileSecurity.saveButton.textContent()) === 'Save');
 
-        // # Go to any other section and come back to Mobile Security
-        await systemConsolePage.sidebar.goToItem('Users');
-        await systemConsolePage.systemUsers.toBeVisible();
-        await systemConsolePage.sidebar.goToItem('Mobile Security');
+    // # Go to any other section and come back to Mobile Security
+    await systemConsolePage.sidebar.goToItem('Users');
+    await systemConsolePage.systemUsers.toBeVisible();
+    await systemConsolePage.sidebar.goToItem('Mobile Security');
 
-        // * Verify all toggles are still enabled
-        expect(await systemConsolePage.mobileSecurity.enableBiometricAuthenticationToggleTrue.isChecked()).toBe(true);
-        expect(await systemConsolePage.mobileSecurity.preventScreenCaptureToggleTrue.isChecked()).toBe(true);
-        expect(await systemConsolePage.mobileSecurity.jailbreakProtectionToggleTrue.isChecked()).toBe(true);
-        expect(await systemConsolePage.mobileSecurity.enableSecureFilePreviewToggleTrue.isChecked()).toBe(true);
-        expect(await systemConsolePage.mobileSecurity.allowPdfLinkNavigationToggleTrue.isChecked()).toBe(false);
+    // * Verify all toggles are still enabled
+    expect(await systemConsolePage.mobileSecurity.enableBiometricAuthenticationToggleTrue.isChecked()).toBe(true);
+    expect(await systemConsolePage.mobileSecurity.preventScreenCaptureToggleTrue.isChecked()).toBe(true);
+    expect(await systemConsolePage.mobileSecurity.jailbreakProtectionToggleTrue.isChecked()).toBe(true);
+    expect(await systemConsolePage.mobileSecurity.enableSecureFilePreviewToggleTrue.isChecked()).toBe(true);
+    expect(await systemConsolePage.mobileSecurity.allowPdfLinkNavigationToggleTrue.isChecked()).toBe(false);
 
-        // # Enable Allow PDF Link Navigation
-        await systemConsolePage.mobileSecurity.clickAllowPdfLinkNavigationToggleTrue();
+    // # Enable Allow PDF Link Navigation
+    await systemConsolePage.mobileSecurity.clickAllowPdfLinkNavigationToggleTrue();
 
-        // * Verify all toggles are enabled
-        expect(await systemConsolePage.mobileSecurity.enableBiometricAuthenticationToggleTrue.isChecked()).toBe(true);
-        expect(await systemConsolePage.mobileSecurity.preventScreenCaptureToggleTrue.isChecked()).toBe(true);
-        expect(await systemConsolePage.mobileSecurity.jailbreakProtectionToggleTrue.isChecked()).toBe(true);
-        expect(await systemConsolePage.mobileSecurity.enableSecureFilePreviewToggleTrue.isChecked()).toBe(true);
-        expect(await systemConsolePage.mobileSecurity.allowPdfLinkNavigationToggleTrue.isChecked()).toBe(true);
+    // * Verify all toggles are enabled
+    expect(await systemConsolePage.mobileSecurity.enableBiometricAuthenticationToggleTrue.isChecked()).toBe(true);
+    expect(await systemConsolePage.mobileSecurity.preventScreenCaptureToggleTrue.isChecked()).toBe(true);
+    expect(await systemConsolePage.mobileSecurity.jailbreakProtectionToggleTrue.isChecked()).toBe(true);
+    expect(await systemConsolePage.mobileSecurity.enableSecureFilePreviewToggleTrue.isChecked()).toBe(true);
+    expect(await systemConsolePage.mobileSecurity.allowPdfLinkNavigationToggleTrue.isChecked()).toBe(true);
 
-        // # Save settings
-        await systemConsolePage.mobileSecurity.clickSaveButton();
-        // # Wait until the save button has settled
-        await pw.waitUntil(async () => (await systemConsolePage.mobileSecurity.saveButton.textContent()) === 'Save');
+    // # Save settings
+    await systemConsolePage.mobileSecurity.clickSaveButton();
+    // # Wait until the save button has settled
+    await pw.waitUntil(async () => (await systemConsolePage.mobileSecurity.saveButton.textContent()) === 'Save');
 
-        // # Go to any other section and come back to Mobile Security
-        await systemConsolePage.sidebar.goToItem('Users');
-        await systemConsolePage.systemUsers.toBeVisible();
-        await systemConsolePage.sidebar.goToItem('Mobile Security');
+    // # Go to any other section and come back to Mobile Security
+    await systemConsolePage.sidebar.goToItem('Users');
+    await systemConsolePage.systemUsers.toBeVisible();
+    await systemConsolePage.sidebar.goToItem('Mobile Security');
 
-        // * Verify all toggles are still enabled
-        expect(await systemConsolePage.mobileSecurity.enableBiometricAuthenticationToggleTrue.isChecked()).toBe(true);
-        expect(await systemConsolePage.mobileSecurity.preventScreenCaptureToggleTrue.isChecked()).toBe(true);
-        expect(await systemConsolePage.mobileSecurity.jailbreakProtectionToggleTrue.isChecked()).toBe(true);
-        expect(await systemConsolePage.mobileSecurity.enableSecureFilePreviewToggleTrue.isChecked()).toBe(true);
-        expect(await systemConsolePage.mobileSecurity.allowPdfLinkNavigationToggleTrue.isChecked()).toBe(true);
-    }
+    // * Verify all toggles are still enabled
+    expect(await systemConsolePage.mobileSecurity.enableBiometricAuthenticationToggleTrue.isChecked()).toBe(true);
+    expect(await systemConsolePage.mobileSecurity.preventScreenCaptureToggleTrue.isChecked()).toBe(true);
+    expect(await systemConsolePage.mobileSecurity.jailbreakProtectionToggleTrue.isChecked()).toBe(true);
+    expect(await systemConsolePage.mobileSecurity.enableSecureFilePreviewToggleTrue.isChecked()).toBe(true);
+    expect(await systemConsolePage.mobileSecurity.allowPdfLinkNavigationToggleTrue.isChecked()).toBe(true);
 });
 
-test('should show mobile security upsell when not licensed', async ({pw}) => {
-    const {adminUser, adminClient} = await pw.initSetup();
-
-    const license = await adminClient.getClientLicenseOld();
-
-    test.skip(
-        license.SkuShortName !== 'enterprise' || license.short_sku_name !== 'advanced',
-        'Skipping test - server has no enterprise or enterprise advanced license',
-    );
+test('should show mobile security upsell when not licensed', {tag: ['@team_edition']}, async ({pw}) => {
+    await pw.requireNoLicense();
+    await pw.requireTeamEdition();
+    const {adminUser} = await pw.initSetup();
 
     if (!adminUser) {
         throw new Error('Failed to create admin user');
@@ -186,73 +174,73 @@ test('should show mobile security upsell when not licensed', async ({pw}) => {
     await systemConsolePage.featureDiscovery.toHaveTitle('Enhance mobile app security with Mattermost Enterprise');
 });
 
-test('should show and enable Intune MAM when Enterprise Advanced licensed and Office365 configured', async ({pw}) => {
+test(
+    'should show and enable Intune MAM when Enterprise Advanced licensed and Office365 configured',
+    {tag: ['@advanced_tier', '@entry_tier']},
+    async ({pw}) => {
+        const {adminUser, adminClient} = await pw.initSetup();
+        await pw.ensureLicense();
+        await pw.requireLicense('entry', 'advanced');
+
+        if (!adminUser) {
+            throw new Error('Failed to create admin user');
+        }
+
+        // # Configure Office365 settings
+        const config = await adminClient.getConfig();
+        config.Office365Settings.Enable = true;
+        config.Office365Settings.Id = 'test-client-id';
+        config.Office365Settings.Secret = 'test-client-secret';
+        config.Office365Settings.DirectoryId = 'test-directory-id';
+        await adminClient.updateConfig(config);
+
+        // # Log in as admin
+        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+
+        // # Visit system console
+        await systemConsolePage.goto();
+        await systemConsolePage.toBeVisible();
+
+        // # Go to Mobile Security section
+        await systemConsolePage.sidebar.goToItem('Mobile Security');
+
+        // * Verify Intune MAM toggle is visible
+        await expect(systemConsolePage.mobileSecurity.enableIntuneMAMToggleTrue).toBeVisible();
+        await expect(systemConsolePage.mobileSecurity.enableIntuneMAMToggleFalse).toBeVisible();
+
+        // # Enable Intune MAM
+        await systemConsolePage.mobileSecurity.clickEnableIntuneMAMToggleTrue();
+
+        // * Verify Intune MAM is enabled
+        await expect(await systemConsolePage.mobileSecurity.enableIntuneMAMToggleTrue.isChecked()).toBe(true);
+
+        await systemConsolePage.mobileSecurity.selectIntuneAuthService('office365');
+
+        // # Fill in Intune configuration
+        await systemConsolePage.mobileSecurity.fillIntuneTenantId('12345678-1234-1234-1234-123456789012');
+        await systemConsolePage.mobileSecurity.fillIntuneClientId('87654321-4321-4321-4321-210987654321');
+
+        // # Save settings
+        await systemConsolePage.mobileSecurity.clickSaveButton();
+
+        // # Wait until the save button has settled
+        await pw.waitUntil(async () => (await systemConsolePage.mobileSecurity.saveButton.textContent()) === 'Save');
+
+        // # Go to any other section and come back to Mobile Security
+        await systemConsolePage.sidebar.goToItem('Users');
+        await systemConsolePage.systemUsers.toBeVisible();
+
+        await systemConsolePage.sidebar.goToItem('Mobile Security');
+
+        // * Verify Intune MAM is still enabled
+        await expect(await systemConsolePage.mobileSecurity.enableIntuneMAMToggleTrue.isChecked()).toBe(true);
+    },
+);
+
+test('should hide Intune MAM when Office365 is not configured', {tag: ['@entry_tier']}, async ({pw}) => {
+    await pw.ensureLicense();
+    await pw.requireLicense('entry', 'advanced');
     const {adminUser, adminClient} = await pw.initSetup();
-
-    const license = await adminClient.getClientLicenseOld();
-
-    test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have enterprise advanced license');
-
-    if (!adminUser) {
-        throw new Error('Failed to create admin user');
-    }
-
-    // # Configure Office365 settings
-    const config = await adminClient.getConfig();
-    config.Office365Settings.Enable = true;
-    config.Office365Settings.Id = 'test-client-id';
-    config.Office365Settings.Secret = 'test-client-secret';
-    config.Office365Settings.DirectoryId = 'test-directory-id';
-    await adminClient.updateConfig(config);
-
-    // # Log in as admin
-    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-
-    // # Visit system console
-    await systemConsolePage.goto();
-    await systemConsolePage.toBeVisible();
-
-    // # Go to Mobile Security section
-    await systemConsolePage.sidebar.goToItem('Mobile Security');
-
-    // * Verify Intune MAM toggle is visible
-    await expect(systemConsolePage.mobileSecurity.enableIntuneMAMToggleTrue).toBeVisible();
-    await expect(systemConsolePage.mobileSecurity.enableIntuneMAMToggleFalse).toBeVisible();
-
-    // # Enable Intune MAM
-    await systemConsolePage.mobileSecurity.clickEnableIntuneMAMToggleTrue();
-
-    // * Verify Intune MAM is enabled
-    await expect(await systemConsolePage.mobileSecurity.enableIntuneMAMToggleTrue.isChecked()).toBe(true);
-
-    await systemConsolePage.mobileSecurity.selectIntuneAuthService('office365');
-
-    // # Fill in Intune configuration
-    await systemConsolePage.mobileSecurity.fillIntuneTenantId('12345678-1234-1234-1234-123456789012');
-    await systemConsolePage.mobileSecurity.fillIntuneClientId('87654321-4321-4321-4321-210987654321');
-
-    // # Save settings
-    await systemConsolePage.mobileSecurity.clickSaveButton();
-
-    // # Wait until the save button has settled
-    await pw.waitUntil(async () => (await systemConsolePage.mobileSecurity.saveButton.textContent()) === 'Save');
-
-    // # Go to any other section and come back to Mobile Security
-    await systemConsolePage.sidebar.goToItem('Users');
-    await systemConsolePage.systemUsers.toBeVisible();
-
-    await systemConsolePage.sidebar.goToItem('Mobile Security');
-
-    // * Verify Intune MAM is still enabled
-    await expect(await systemConsolePage.mobileSecurity.enableIntuneMAMToggleTrue.isChecked()).toBe(true);
-});
-
-test('should hide Intune MAM when Office365 is not configured', async ({pw}) => {
-    const {adminUser, adminClient} = await pw.initSetup();
-
-    const license = await adminClient.getClientLicenseOld();
-
-    test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have enterprise advanced license');
 
     if (!adminUser) {
         throw new Error('Failed to create admin user');
@@ -280,11 +268,9 @@ test('should hide Intune MAM when Office365 is not configured', async ({pw}) => 
 });
 
 test('should configure new IntuneSettings with Office365 auth provider', async ({pw}) => {
+    await pw.ensureLicense();
+    await pw.requireLicense('entry', 'advanced');
     const {adminUser, adminClient} = await pw.initSetup();
-
-    const license = await adminClient.getClientLicenseOld();
-
-    test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have enterprise advanced license');
 
     if (!adminUser) {
         throw new Error('Failed to create admin user');
@@ -349,44 +335,24 @@ test('should configure new IntuneSettings with Office365 auth provider', async (
 });
 
 test('should configure new IntuneSettings with SAML auth provider', async ({pw}) => {
-    // # Configure SAML settings
+    await pw.ensureLicense();
+    await pw.requireLicense('entry', 'advanced');
     const {adminUser, adminClient} = await pw.initSetup();
     const config = await adminClient.getConfig();
-
-    const license = await adminClient.getClientLicenseOld();
-
-    test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have enterprise advanced license');
 
     if (!adminUser) {
         throw new Error('Failed to create admin user');
     }
 
-    // # Set server URL for fetch calls
-    const serverUrl = process.env.MM_SERVER_URL || 'http://localhost:8065';
-
-    // # Upload a valid SAML IdP certificate using fetch
+    // # Upload SAML certificates using admin client
     const idpCert = `-----BEGIN CERTIFICATE-----\nMIIDXTCCAkWgAwIBAgIJAKC1r6Qw3v6OMA0GCSqGSIb3DQEBCwUAMEUxCzAJBgNVBAYTAlVTMRYwFAYDVQQIDA1Tb21lLVN0YXRlMRYwFAYDVQQKDA1FeGFtcGxlIEluYy4wHhcNMTkwMTAxMDAwMDAwWhcNMjkwMTAxMDAwMDAwWjBFMQswCQYDVQQGEwJVUzEWMBQGA1UECAwNU29tZS1TdGF0ZTEWMBQGA1UECgwNRXhhbXBsZSBJbmMuMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAu6Qw3v6OMC1r6Qw3v6OMC1r6Qw3v6OMC1r6Qw3v6OMC1r6Qw3v6OMC1r6Qw3v6OMC1r6Qw3v6OMC1r6Qw3v6OMC1r6Qw3v6OMC1r6Qw3v6OMC1r6Qw3v6OMC1r6Qw3v6OMC1r6Qw3v6OMC1r6Qw3v6OMC1r6Qw3v6OMC1r6Qw3v6OMC1r6Qw3v6OMC1r6Qw3v6OMC1r6QwIDAQABo1AwTjAdBgNVHQ4EFgQU6Qw3v6OMC1r6Qw3v6OMC1r6Qw3v6OMAwGA1UdEwQFMAMBAf8wHwYDVR0jBBgwFoAU6Qw3v6OMC1r6Qw3v6OMC1r6Qw3v6OMAwGA1UdEwQFMAMBAf8wDQYJKoZIhvcNAQELBQADggEBAKQw3v6OMC1r6Qw3v6OMC1r6Qw3v6OMC1r6Qw3v6OMC1r6Qw3v6OMC1r6Qw3v6OMC1r6Qw3v6OMC1r6Qw3v6OMC1r6Qw3v6OMC1r6Qw3v6OMC1r6Qw3v6OMC1r6Qw3v6OMC1r6Qw3v6OMC1r6Qw3v6OMC1r6Qw3v6OMC1r6Qw3v6OMC1r6Qw3v6OMC1r6Qw3v6OMC1r6Qw=\n-----END CERTIFICATE-----\n`;
-    const idpFormData = new FormData();
-    idpFormData.append(
-        'certificate',
-        new Blob([idpCert], {type: 'application/x-x509-ca-cert'}),
-        'Intune SAML Test.cer',
-    );
-    await fetch(`${serverUrl}/api/v4/saml/certificate/idp`, {
-        method: 'POST',
-        body: idpFormData,
-        credentials: 'include',
-    });
-
-    // # Upload a minimal, valid SP public certificate (PEM-encoded)
     const spCert = `-----BEGIN CERTIFICATE-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArv1Qw4v7OMC2r7Qw4v7OMC2r7Qw4v7OMC2r7QwIDAQAB\n-----END CERTIFICATE-----\n`;
-    const spFormData = new FormData();
-    spFormData.append('certificate', new Blob([spCert], {type: 'application/x-x509-ca-cert'}), 'saml-public-cert.pem');
-    await fetch(`${serverUrl}/api/v4/saml/certificate/public`, {
-        method: 'POST',
-        body: spFormData,
-        credentials: 'include',
-    });
+
+    const idpCertFile = new File([idpCert], 'saml-idp.crt', {type: 'application/x-pem-file'});
+    const spCertFile = new File([spCert], 'saml-public.crt', {type: 'application/x-pem-file'});
+
+    await adminClient.uploadIdpSamlCertificate(idpCertFile);
+    await adminClient.uploadPublicSamlCertificate(spCertFile);
 
     // # Configure SAML settings
     config.SamlSettings.Enable = true;
@@ -451,11 +417,9 @@ test('should configure new IntuneSettings with SAML auth provider', async ({pw})
 });
 
 test('should disable Intune inputs when toggle is off', async ({pw}) => {
+    await pw.ensureLicense();
+    await pw.requireLicense('entry', 'advanced');
     const {adminUser, adminClient} = await pw.initSetup();
-
-    const license = await adminClient.getClientLicenseOld();
-
-    test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have enterprise advanced license');
 
     if (!adminUser) {
         throw new Error('Failed to create admin user');

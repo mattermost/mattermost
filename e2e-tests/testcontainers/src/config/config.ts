@@ -65,6 +65,14 @@ export interface MattermostImageConfig {
     edition?: MattermostEdition;
 
     /**
+     * Use Mattermost Entry tier (ignores MM_LICENSE, enables EnableMattermostEntry flag).
+     * Only applicable to enterprise and fips editions (not team edition).
+     * @default false
+     * @env TC_ENTRY
+     */
+    entry?: boolean;
+
+    /**
      * Image tag (e.g., 'master', 'release-11.4').
      * @default 'master'
      * @env TC_SERVER_TAG
@@ -239,6 +247,7 @@ export interface ResolvedMattermostServer {
     config?: Record<string, unknown>;
     ha: boolean;
     subpath: boolean;
+    entry: boolean;
 }
 
 /**
@@ -329,6 +338,7 @@ export const DEFAULT_CONFIG: ResolvedTestcontainersConfig = {
         imageMaxAgeHours: DEFAULT_IMAGE_MAX_AGE_HOURS,
         ha: false,
         subpath: false,
+        entry: false,
     },
     dependencies: ['postgres', 'inbucket'],
     images: {
@@ -367,6 +377,7 @@ function getConfigSchema(): z.ZodType<TestcontainersConfig> {
     const ServerConfigSchema = z
         .object({
             edition: MattermostEditionSchema.optional(),
+            entry: z.boolean().optional(),
             tag: z.string().min(1).optional(),
             serviceEnvironment: ServiceEnvironmentSchema.optional(),
             env: z.record(z.string(), z.string()).optional(),
@@ -488,6 +499,9 @@ export function resolveConfig(userConfig?: TestcontainersConfig): ResolvedTestco
             if (userConfig.server.subpath !== undefined) {
                 resolved.server.subpath = userConfig.server.subpath;
             }
+            if (userConfig.server.entry !== undefined) {
+                resolved.server.entry = userConfig.server.entry;
+            }
         }
 
         // Dependencies
@@ -565,6 +579,12 @@ export function resolveConfig(userConfig?: TestcontainersConfig): ResolvedTestco
     const subpathEnv = parseBoolEnv(process.env.TC_SUBPATH);
     if (subpathEnv !== undefined) {
         resolved.server.subpath = subpathEnv;
+    }
+
+    // Entry tier mode
+    const entryEnv = parseBoolEnv(process.env.TC_ENTRY);
+    if (entryEnv !== undefined) {
+        resolved.server.entry = entryEnv;
     }
 
     // Admin config from environment

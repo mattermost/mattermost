@@ -18,6 +18,7 @@ export default defineConfig({
     // Mattermost server configuration
     server: {
         // edition: 'enterprise', // 'enterprise', 'fips', or 'team' (@env TC_EDITION, @default 'enterprise')
+        // entry: false, // Entry tier mode, enterprise/fips only (@env TC_ENTRY, @default false)
         // tag: 'master', // e.g., 'master', 'release-11.4' (@env TC_SERVER_TAG, @default 'master')
         // serviceEnvironment: 'test', // 'test', 'production', or 'dev' (@env MM_SERVICEENVIRONMENT, @default 'test')
         // imageMaxAgeHours: 24, // Pull fresh images if older than N hours (@env TC_IMAGE_MAX_AGE_HOURS, @default 24)

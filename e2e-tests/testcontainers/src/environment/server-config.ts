@@ -171,11 +171,22 @@ export function buildBaseEnvOverrides(
     const defaultServiceEnv = serverMode === 'local' ? 'dev' : 'test';
     envOverrides.MM_SERVICEENVIRONMENT = config.server.serviceEnvironment || defaultServiceEnv;
 
-    // Pass all MM_* environment variables from host (includes MM_LICENSE)
+    // Pass all MM_* environment variables from host (includes MM_LICENSE, except for team edition or entry tier)
+    const isTeamEdition = config.server.edition === 'team';
+    const isEntryTier = config.server.entry;
     for (const [key, value] of Object.entries(process.env)) {
+        // Skip MM_LICENSE for team edition or entry tier (entry uses built-in Entry license)
+        if (key === 'MM_LICENSE' && (isTeamEdition || isEntryTier)) {
+            continue;
+        }
         if (key.startsWith('MM_') && key !== 'MM_SERVICESETTINGS_SITEURL' && value !== undefined) {
             envOverrides[key] = value;
         }
+    }
+
+    // For entry tier, force enable the Mattermost Entry feature flag
+    if (isEntryTier) {
+        envOverrides.MM_FEATUREFLAGS_ENABLEMATTERMOSTENTRY = 'true';
     }
 
     // Apply user-provided server environment variables (highest priority)

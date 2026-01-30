@@ -99,6 +99,7 @@ function applyCliOverrides(
         outputDir?: string;
         ha?: boolean;
         subpath?: boolean;
+        entry?: boolean;
         admin?: boolean | string;
         adminPassword?: string;
         env?: string[];
@@ -152,6 +153,11 @@ function applyCliOverrides(
     // Subpath mode (CLI flag)
     if (options.subpath !== undefined) {
         result.server.subpath = options.subpath;
+    }
+
+    // Entry tier (CLI flag)
+    if (options.entry) {
+        result.server.entry = true;
     }
 
     // Admin user (CLI flag)
@@ -247,6 +253,7 @@ const startCommand = program
     .option('--deps-only', 'Start dependencies only (no Mattermost container)')
     .option('--ha', 'Run in high-availability mode (3-node cluster with nginx load balancer)')
     .option('--subpath', 'Run two Mattermost servers behind nginx with subpaths (/mattermost1, /mattermost2)')
+    .option('--entry', 'Use Mattermost Entry tier (enterprise/fips only, ignores MM_LICENSE)')
     .option(
         '--admin [username]',
         'Create admin user (default username: sysadmin, email: <username>@sample.mattermost.com)',
@@ -631,6 +638,7 @@ program
         console.log('  TC_OUTPUT_DIR          - Output directory');
         console.log('  TC_HA                  - HA mode (true/false)');
         console.log('  TC_SUBPATH             - Subpath mode (true/false)');
+        console.log('  TC_ENTRY               - Entry tier mode (true/false) - enterprise/fips only');
         console.log('  TC_ADMIN_USERNAME      - Admin username (email: <username>@sample.mattermost.com)');
         console.log('  TC_ADMIN_PASSWORD      - Admin password');
         console.log('  TC_IMAGE_MAX_AGE_HOURS - Max age before pulling fresh image');
@@ -645,12 +653,13 @@ program
         console.log('  export default defineConfig({');
         console.log('    server: {');
         console.log('      edition: "enterprise",');
+        console.log('      entry: false,  // true for Mattermost Entry tier');
         console.log('      tag: "master",');
         console.log('      serviceEnvironment: "test",');
         console.log('      imageMaxAgeHours: 24,');
         console.log('      ha: false,');
         console.log('      subpath: false,');
-        console.log('      env: { MM_FEATUREFLAGS_SOMETHING: "true" },');
+        console.log('      env: { MM_FEATUREFLAGS_TESTFEATURE: "true" },');
         console.log('      config: { ServiceSettings: { EnableOpenServer: false } },');
         console.log('    },');
         console.log('    dependencies: ["postgres", "inbucket", "minio"],');
@@ -672,7 +681,7 @@ program
         console.log('      "imageMaxAgeHours": 24,');
         console.log('      "ha": false,');
         console.log('      "subpath": false,');
-        console.log('      "env": { "MM_FEATUREFLAGS_SOMETHING": "true" },');
+        console.log('      "env": { "MM_FEATUREFLAGS_TESTFEATURE": "true" },');
         console.log('      "config": { "ServiceSettings": { "EnableOpenServer": false } }');
         console.log('    },');
         console.log('    "dependencies": ["postgres", "inbucket", "minio"],');
@@ -706,6 +715,7 @@ program
         console.log('  mm-tc start -e fips                   # FIPS edition');
         console.log('  mm-tc start --ha                      # HA cluster');
         console.log('  mm-tc start --subpath                 # Subpath mode');
+        console.log('  mm-tc start --entry                   # Entry tier (ignores MM_LICENSE)');
         console.log('  mm-tc start --admin                   # Create admin user');
         console.log('  mm-tc start --deps-only               # Dependencies only');
         console.log('  mm-tc start -S production             # Production env');

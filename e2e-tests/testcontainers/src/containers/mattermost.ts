@@ -206,8 +206,10 @@ function buildMattermostEnv(deps: MattermostDependencies, config: MattermostConf
         env.MM_EMAILSETTINGS_SMTPPORT = String(INTERNAL_PORTS.inbucket.smtp);
     }
 
-    // Add license if provided via environment variable
-    if (process.env.MM_LICENSE) {
+    // Add license if provided via environment variable (skip for team edition or entry tier)
+    const edition = process.env.TC_EDITION?.toLowerCase();
+    const entry = process.env.TC_ENTRY?.toLowerCase() === 'true';
+    if (process.env.MM_LICENSE && edition !== 'team' && !entry) {
         env.MM_LICENSE = process.env.MM_LICENSE;
     }
 

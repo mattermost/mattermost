@@ -431,7 +431,8 @@ jobs:
           npm ci
 
           # Run Playwright tests with testcontainers
-          npm run test:ci -- ${{ inputs.TEST_FILTER }}
+          # Use || true to continue even if tests fail, so results can be uploaded
+          npm run test:ci -- ${{ inputs.TEST_FILTER }} || true
 
           # Generate summary.json from results
           jq '{passed: .stats.expected, failed: .stats.unexpected, failed_expected: (.stats.skipped + .stats.flaky)}' results/reporter/results.json > results/summary.json
