@@ -41,6 +41,32 @@ export function runMessageWillBePostedHooks(originalPost: Post): ActionFuncAsync
     };
 }
 
+/**
+ * Runs MessageWillBeReceived hooks on received posts (mattermost-extended)
+ * @param {Post} originalPost
+ * @returns {ActionFuncAsync<Post>}
+ */
+export function runMessageWillBeReceivedHooks(originalPost: Post): ActionFuncAsync<Post> {
+    return async (dispatch, getState) => {
+        const hooks = getState().plugins.components.MessageWillBeReceived;
+        if (!hooks || hooks.length === 0) {
+            return {data: originalPost};
+        }
+
+        let post = originalPost;
+
+        for (const hook of hooks) {
+            const result = await hook.hook?.(post); // eslint-disable-line no-await-in-loop
+
+            if (result && result.post) {
+                post = result.post;
+            }
+        }
+
+        return {data: post};
+    };
+}
+
 export function runSlashCommandWillBePostedHooks(originalMessage: string, originalArgs: CommandArgs): ActionFuncAsync<{message: string; args: CommandArgs}> {
     return async (dispatch, getState) => {
         const hooks = getState().plugins.components.SlashCommandWillBePosted;

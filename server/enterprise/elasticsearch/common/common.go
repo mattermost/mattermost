@@ -106,13 +106,19 @@ func ESPostFromPost(post *model.Post, teamId string) (*ESPost, error) {
 }
 
 func ESPostFromPostForIndexing(post *model.PostForIndexing) *ESPost {
+	// For encrypted posts, use placeholder text instead of ciphertext (mattermost-extended)
+	message := post.Message
+	if post.IsEncrypted {
+		message = "[Encrypted Message]"
+	}
+
 	searchPost := ESPost{
 		Id:        post.Id,
 		TeamId:    post.TeamId,
 		ChannelId: post.ChannelId,
 		UserId:    post.UserId,
 		CreateAt:  post.CreateAt,
-		Message:   post.Message,
+		Message:   message,
 		Type:      post.Type,
 		Hashtags:  strings.Fields(post.Hashtags),
 	}

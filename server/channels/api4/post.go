@@ -110,7 +110,22 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	rp, err := c.App.CreatePostAsUser(c.AppContext, c.App.PostWithProxyRemovedFromImageURLs(&post), c.AppContext.Session().Id, setOnlineBool)
+	// Execute PreSend middlewares (mattermost-extended)
+	session := c.AppContext.Session()
+	processedPost := c.App.PostWithProxyRemovedFromImageURLs(&post)
+	middlewarePost, middlewareErr := c.App.ExecuteMessagePreSendMiddlewares(processedPost, session)
+	if middlewareErr != nil {
+		c.SetInvalidParam("middleware")
+		return
+	}
+	if middlewarePost == nil {
+		// Middleware blocked the message
+		c.SetInvalidParam("post")
+		return
+	}
+	processedPost = middlewarePost
+
+	rp, err := c.App.CreatePostAsUser(c.AppContext, processedPost, session.Id, setOnlineBool)
 	if err != nil {
 		c.Err = err
 		return

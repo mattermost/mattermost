@@ -593,3 +593,32 @@ func (a *App) SearchUserAccessTokens(term string) ([]*model.UserAccessToken, *mo
 	}
 	return tokens, nil
 }
+
+// GetSessionPublicKeys retrieves encryption public keys for multiple users (mattermost-extended).
+// Returns a map of userId -> publicKey for users with active sessions and public keys set.
+func (a *App) GetSessionPublicKeys(userIds []string) (map[string]string, *model.AppError) {
+	result := make(map[string]string)
+
+	for _, userId := range userIds {
+		// Get active sessions for this user
+		sessions, err := a.GetSessions(userId)
+		if err != nil {
+			continue // Skip users with session errors
+		}
+
+		// Find the most recent session with a public key
+		for _, session := range sessions {
+			if session.EncryptionPublicKey != "" {
+				result[userId] = session.EncryptionPublicKey
+				break // Use the first session we find with a key
+			}
+		}
+
+		// If no key found, include empty string
+		if _, exists := result[userId]; !exists {
+			result[userId] = ""
+		}
+	}
+
+	return result, nil
+}

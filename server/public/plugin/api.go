@@ -965,6 +965,46 @@ type API interface {
 	// Minimum server version: 5.6
 	KVList(page, perPage int) ([]string, *model.AppError)
 
+	// Session-scoped KV Store Section (mattermost-extended)
+	// Session-scoped storage automatically cleans up when the session disconnects
+
+	// SessionKVSet stores a key-value pair scoped to a specific session.
+	// The data is automatically deleted when the session disconnects or expires.
+	//
+	// @tag KeyValueStore
+	// Minimum server version: 9.5.0-extended
+	SessionKVSet(sessionId, key string, value []byte) *model.AppError
+
+	// SessionKVGet retrieves a value based on the key, scoped to a specific session.
+	// Returns nil for non-existent keys or disconnected sessions.
+	//
+	// @tag KeyValueStore
+	// Minimum server version: 9.5.0-extended
+	SessionKVGet(sessionId, key string) ([]byte, *model.AppError)
+
+	// SessionKVDelete removes a session-scoped key-value pair.
+	//
+	// @tag KeyValueStore
+	// Minimum server version: 9.5.0-extended
+	SessionKVDelete(sessionId, key string) *model.AppError
+
+	// GetSessionPublicKeys retrieves encryption public keys for multiple users in bulk.
+	// Returns a map of userId -> publicKey for users with active sessions.
+	// Returns empty strings for users without public keys.
+	//
+	// @tag Session
+	// Minimum server version: 9.5.0-extended
+	GetSessionPublicKeys(userIds []string) (map[string]string, *model.AppError)
+
+	// RegisterMessageMiddleware registers middleware hooks for transforming messages.
+	// PreSend is called before a message is saved to the database.
+	// PostReceive is called after a message is received but before being sent to clients.
+	// Return nil from PreSend to block the message.
+	//
+	// @tag Post
+	// Minimum server version: 9.5.0-extended
+	RegisterMessageMiddleware(middleware MessageMiddleware) error
+
 	// PublishWebSocketEvent sends an event to WebSocket connections.
 	// event is the type and will be prepended with "custom_<pluginid>_".
 	// payload is the data sent with the event. Interface values must be primitive Go types or mattermost-server/model types.
@@ -1564,6 +1604,21 @@ type API interface {
 	// @tag Audit
 	// Minimum server version: 10.10
 	LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level)
+}
+
+// MessageMiddleware provides hooks for transforming messages (mattermost-extended).
+// Plugins can register middleware to encrypt, modify, or filter messages.
+type MessageMiddleware interface {
+	// PreSend is called before a message is saved to the database.
+	// Return the modified post, or nil to block the message.
+	// Return error to fail the operation with an error message.
+	PreSend(post *model.Post, session *model.Session) (*model.Post, error)
+
+	// PostReceive is called after a message is received from the database
+	// but before being sent to clients via WebSocket.
+	// Return the modified post to change what clients see.
+	// Return error to fail the operation with an error message.
+	PostReceive(post *model.Post, session *model.Session) (*model.Post, error)
 }
 
 var handshake = plugin.HandshakeConfig{

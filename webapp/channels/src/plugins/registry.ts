@@ -57,6 +57,7 @@ import type {
     PostWillRenderEmbedComponent,
     FilesWillUploadHook,
     MessageWillBePostedHook,
+    MessageWillBeReceivedHook,
     SlashCommandWillBePostedHook,
     MessageWillFormatHook,
     FilePreviewComponent,
@@ -867,6 +868,27 @@ export default class PluginRegistry {
         const id = generateId();
 
         dispatchPluginComponentWithData('MessageWillBePosted', {
+            id,
+            pluginId: this.id,
+            hook,
+        });
+
+        return id;
+    });
+
+    /**
+     * Register a hook that will be called when a post is received from the server before it
+     * is displayed to the user. This can be used to decrypt, modify, or transform messages.
+     * Accepts a function that receives the post object and returns the modified post.
+     * Returns a unique identifier.
+     * (mattermost-extended)
+     */
+    registerMessageWillBeReceivedHook = reArg(['hook'], ({hook}: {
+        hook: MessageWillBeReceivedHook['hook'];
+    }) => {
+        const id = generateId();
+
+        dispatchPluginComponentWithData('MessageWillBeReceived', {
             id,
             pluginId: this.id,
             hook,

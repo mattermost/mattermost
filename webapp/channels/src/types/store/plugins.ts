@@ -71,6 +71,7 @@ export type PluginsState = {
         DesktopNotificationHooks: DesktopNotificationHook[];
         MessageWillFormat: MessageWillFormatHook[];
         MessageWillBePosted: MessageWillBePostedHook[];
+        MessageWillBeReceived: MessageWillBeReceivedHook[];
         SlashCommandWillBePosted: SlashCommandWillBePostedHook[];
         MessageWillBeUpdated: MessageWillBeUpdatedHook[];
         SystemConsoleGroupTable: SystemConsoleGroupTableComponent[];
@@ -456,6 +457,10 @@ export type MessageWillFormatHook = PluginComponent & {
 
 export type MessageWillBePostedHook = PluginComponent & {
     hook: (post: Post) => Promise<{error: {message: string}} | {post: Post}>;
+};
+
+export type MessageWillBeReceivedHook = PluginComponent & {
+    hook: (post: Post) => Promise<{post: Post}>;
 };
 
 export type SlashCommandWillBePostedHook = PluginComponent & {

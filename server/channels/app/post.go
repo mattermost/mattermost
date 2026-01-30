@@ -893,6 +893,15 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 }
 
 func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, message *model.WebSocketEvent) *model.AppError {
+	// Execute PostReceive middlewares (mattermost-extended)
+	// Note: Session is nil here since this is a broadcast. Per-user transformations
+	// should be handled by webapp middleware. This allows global post transformations.
+	processedPost, middlewareErr := a.ExecuteMessagePostReceiveMiddlewares(post, nil)
+	if middlewareErr != nil {
+		return model.NewAppError("publishWebsocketEventForPost", "app.post.middleware.app_error", nil, "", http.StatusInternalServerError).Wrap(middlewareErr)
+	}
+	post = processedPost
+
 	var postJSON string
 	var jsonErr error
 	if post.Type == model.PostTypeBurnOnRead {

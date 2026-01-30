@@ -142,6 +142,11 @@ type Post struct {
 	Participants []*User       `json:"participants"`
 	IsFollowing  *bool         `json:"is_following,omitempty"` // for root posts in collapsed thread mode indicates if the current user is following this thread
 	Metadata     *PostMetadata `json:"metadata,omitempty"`
+
+	// End-to-end encryption support (mattermost-extended)
+	IsEncrypted       bool              `json:"is_encrypted,omitempty"`
+	EncryptionVersion string            `json:"encryption_version,omitempty"`
+	EncryptedFor      map[string]string `json:"encrypted_for,omitempty"` // map[userId]encryptedKey
 }
 
 func (o *Post) Auditable() map[string]any {
@@ -151,25 +156,28 @@ func (o *Post) Auditable() map[string]any {
 	}
 
 	return map[string]any{
-		"id":              o.Id,
-		"create_at":       o.CreateAt,
-		"update_at":       o.UpdateAt,
-		"edit_at":         o.EditAt,
-		"delete_at":       o.DeleteAt,
-		"is_pinned":       o.IsPinned,
-		"user_id":         o.UserId,
-		"channel_id":      o.ChannelId,
-		"root_id":         o.RootId,
-		"original_id":     o.OriginalId,
-		"type":            o.Type,
-		"props":           o.GetProps(),
-		"file_ids":        o.FileIds,
-		"pending_post_id": o.PendingPostId,
-		"remote_id":       o.RemoteId,
-		"reply_count":     o.ReplyCount,
-		"last_reply_at":   o.LastReplyAt,
-		"is_following":    o.IsFollowing,
-		"metadata":        metaData,
+		"id":                 o.Id,
+		"create_at":          o.CreateAt,
+		"update_at":          o.UpdateAt,
+		"edit_at":            o.EditAt,
+		"delete_at":          o.DeleteAt,
+		"is_pinned":          o.IsPinned,
+		"user_id":            o.UserId,
+		"channel_id":         o.ChannelId,
+		"root_id":            o.RootId,
+		"original_id":        o.OriginalId,
+		"type":               o.Type,
+		"props":              o.GetProps(),
+		"file_ids":           o.FileIds,
+		"pending_post_id":    o.PendingPostId,
+		"remote_id":          o.RemoteId,
+		"reply_count":        o.ReplyCount,
+		"last_reply_at":      o.LastReplyAt,
+		"is_following":       o.IsFollowing,
+		"metadata":           metaData,
+		"is_encrypted":       o.IsEncrypted,
+		"encryption_version": o.EncryptionVersion,
+		"encrypted_for":      o.EncryptedFor,
 	}
 }
 

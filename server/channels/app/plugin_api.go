@@ -1089,6 +1089,27 @@ func (api *PluginAPI) KVList(page, perPage int) ([]string, *model.AppError) {
 	return api.app.ListPluginKeys(api.id, page, perPage)
 }
 
+// Session-scoped KV Store (mattermost-extended)
+func (api *PluginAPI) SessionKVSet(sessionId, key string, value []byte) *model.AppError {
+	return api.app.SetPluginSessionKey(api.id, sessionId, key, value)
+}
+
+func (api *PluginAPI) SessionKVGet(sessionId, key string) ([]byte, *model.AppError) {
+	return api.app.GetPluginSessionKey(api.id, sessionId, key)
+}
+
+func (api *PluginAPI) SessionKVDelete(sessionId, key string) *model.AppError {
+	return api.app.DeletePluginSessionKey(api.id, sessionId, key)
+}
+
+func (api *PluginAPI) GetSessionPublicKeys(userIds []string) (map[string]string, *model.AppError) {
+	return api.app.GetSessionPublicKeys(userIds)
+}
+
+func (api *PluginAPI) RegisterMessageMiddleware(middleware plugin.MessageMiddleware) error {
+	return api.app.RegisterPluginMessageMiddleware(api.id, middleware)
+}
+
 func (api *PluginAPI) PublishWebSocketEvent(event string, payload map[string]any, broadcast *model.WebsocketBroadcast) {
 	ev := model.NewWebSocketEvent(model.WebsocketEventType(fmt.Sprintf("custom_%v_%v", api.id, event)), "", "", "", nil, "")
 	ev = ev.SetBroadcast(broadcast).SetData(payload)

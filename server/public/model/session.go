@@ -66,20 +66,26 @@ type Session struct {
 	Props          StringMap     `json:"props"`
 	TeamMembers    []*TeamMember `json:"team_members" db:"-"`
 	Local          bool          `json:"local" db:"-"`
+
+	// End-to-end encryption support (mattermost-extended)
+	EncryptionPublicKey string `json:"encryption_public_key,omitempty" db:"-"`
+	EncryptionKeyExpiry int64  `json:"encryption_key_expiry,omitempty" db:"-"`
 }
 
 func (s *Session) Auditable() map[string]any {
 	return map[string]any{
-		"id":               s.Id,
-		"create_at":        s.CreateAt,
-		"expires_at":       s.ExpiresAt,
-		"last_activity_at": s.LastActivityAt,
-		"user_id":          s.UserId,
-		"device_id":        s.DeviceId,
-		"roles":            s.Roles,
-		"is_oauth":         s.IsOAuth,
-		"expired_notify":   s.ExpiredNotify,
-		"local":            s.Local,
+		"id":                     s.Id,
+		"create_at":              s.CreateAt,
+		"expires_at":             s.ExpiresAt,
+		"last_activity_at":       s.LastActivityAt,
+		"user_id":                s.UserId,
+		"device_id":              s.DeviceId,
+		"roles":                  s.Roles,
+		"is_oauth":               s.IsOAuth,
+		"expired_notify":         s.ExpiredNotify,
+		"local":                  s.Local,
+		"encryption_public_key":  s.EncryptionPublicKey,
+		"encryption_key_expiry":  s.EncryptionKeyExpiry,
 	}
 }
 

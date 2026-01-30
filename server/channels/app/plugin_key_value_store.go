@@ -124,3 +124,57 @@ func (a *App) DeleteAllExpiredPluginKeys() *model.AppError {
 func (a *App) ListPluginKeys(pluginID string, page, perPage int) ([]string, *model.AppError) {
 	return a.Srv().Platform().ListPluginKeys(pluginID, page, perPage)
 }
+
+// Session-scoped KV Store (mattermost-extended)
+
+func (a *App) SetPluginSessionKey(pluginID, sessionID, key string, value []byte) *model.AppError {
+	// Get session to determine expiry
+	session, err := a.GetSession(sessionID)
+	if err != nil {
+		return err
+	}
+
+	// Calculate TTL based on session expiry
+	now := model.GetMillis()
+	ttlMs := session.ExpiresAt - now
+	if ttlMs <= 0 {
+		return model.NewAppError("SetPluginSessionKey", "app.plugin_store.session_expired", nil, "", http.StatusBadRequest)
+	}
+	ttlSeconds := ttlMs / 1000
+
+	// Store with session prefix
+	sessionKey := "session:" + sessionID + ":" + key
+	return a.SetPluginKeyWithExpiry(pluginID, sessionKey, value, ttlSeconds)
+}
+
+func (a *App) GetPluginSessionKey(pluginID, sessionID, key string) ([]byte, *model.AppError) {
+	sessionKey := "session:" + sessionID + ":" + key
+	return a.GetPluginKey(pluginID, sessionKey)
+}
+
+func (a *App) DeletePluginSessionKey(pluginID, sessionID, key string) *model.AppError {
+	sessionKey := "session:" + sessionID + ":" + key
+	return a.DeletePluginKey(pluginID, sessionKey)
+}
+
+func (a *App) DeleteAllSessionKeysForPlugin(pluginID, sessionID string) *model.AppError {
+	// List all keys for this session
+	prefix := "session:" + sessionID + ":"
+
+	// Note: This is a simple implementation. For production, we'd want to add
+	// a store method to delete by prefix pattern
+	keys, err := a.ListPluginKeys(pluginID, 0, 10000)
+	if err != nil {
+		return err
+	}
+
+	for _, key := range keys {
+		if len(key) > len(prefix) && key[:len(prefix)] == prefix {
+			if delErr := a.DeletePluginKey(pluginID, key); delErr != nil {
+				mlog.Warn("Failed to delete session key", mlog.String("key", key), mlog.Err(delErr))
+			}
+		}
+	}
+
+	return nil
+}

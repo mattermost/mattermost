@@ -221,6 +221,7 @@ const initialComponents: PluginsState['components'] = {
     SidebarChannelLinkLabel: [],
     SidebarBrowseOrAddChannelMenu: [],
     MessageWillBePosted: [],
+    MessageWillBeReceived: [],
     MessageWillBeUpdated: [],
     SlashCommandWillBePosted: [],
     SystemConsoleGroupTable: [],
