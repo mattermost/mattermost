@@ -491,3 +491,19 @@ func ExampleClient4_UpdateChannelScheme() {
 		log.Fatal(err)
 	}
 }
+
+func ExampleClient4_GetGroupMessageMembersCommonTeams() {
+	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"))
+	client.SetToken(os.Getenv("MM_AUTHTOKEN"))
+
+	channelID := "gm_channel_id"
+	teams, _, err := client.GetGroupMessageMembersCommonTeams(context.Background(), channelID)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Found %d common teams for members of channel %s\n", len(teams), channelID)
+	for _, team := range teams {
+		fmt.Printf("  - %s (%s)\n", team.DisplayName, team.Name)
+	}
+}

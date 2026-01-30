@@ -105,7 +105,7 @@ export function isMobileApp(): boolean {
     return isMobile() && !isIosWeb() && !isAndroidWeb();
 }
 
-// Returns true if and only if the user is using Mattermost from either the mobile app or the web browser on a mobile device.
+// Returns true if and only if the user is using Mattermost from the web browser on a mobile device.
 export function isMobile(): boolean {
     return isIos() || isAndroid();
 }

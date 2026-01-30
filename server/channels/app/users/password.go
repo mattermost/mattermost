@@ -25,6 +25,10 @@ func ComparePassword(hash string, password string) error {
 		return errors.New("empty password or hash")
 	}
 
+	if len(password) > model.PasswordMaximumLength {
+		return NewErrInvalidPassword("model.user.is_valid.pwd_max_length.app_error")
+	}
+
 	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 }
 

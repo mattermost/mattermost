@@ -10,7 +10,7 @@ import (
 
 func userCreatePostPermissionCheckWithContext(c *Context, channelId string) {
 	hasPermission := false
-	if c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionCreatePost) {
+	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionCreatePost); ok {
 		hasPermission = true
 	} else if channel, err := c.App.GetChannel(c.AppContext, channelId); err == nil {
 		// Temporary permission check method until advanced permissions, please do not copy
@@ -39,5 +39,33 @@ func postPriorityCheckWithContext(where string, c *Context, priority *model.Post
 	if appErr != nil {
 		appErr.Where = where
 		c.Err = appErr
+	}
+}
+
+// checkUploadFilePermissionForNewFiles checks upload_file permission only when
+// adding new files to a post, preventing permission bypass via cross-channel file attachments.
+func checkUploadFilePermissionForNewFiles(c *Context, newFileIds []string, originalPost *model.Post) {
+	if len(newFileIds) == 0 {
+		return
+	}
+
+	originalFileIDsMap := make(map[string]bool, len(originalPost.FileIds))
+	for _, fileID := range originalPost.FileIds {
+		originalFileIDsMap[fileID] = true
+	}
+
+	hasNewFiles := false
+	for _, fileID := range newFileIds {
+		if !originalFileIDsMap[fileID] {
+			hasNewFiles = true
+			break
+		}
+	}
+
+	if hasNewFiles {
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionUploadFile); !ok {
+			c.SetPermissionError(model.PermissionUploadFile)
+			return
+		}
 	}
 }

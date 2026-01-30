@@ -112,7 +112,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			Message:   "message_",
 			CreateAt:  model.GetMillis() - 10000,
 		}
-		_, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		_, _, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		if assert.NotNil(t, err) {
 			assert.Equal(t, "Post rejected by plugin. rejected", err.Message)
 		}
@@ -154,7 +154,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			Message:   "message_",
 			CreateAt:  model.GetMillis() - 10000,
 		}
-		_, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		_, _, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		if assert.NotNil(t, err) {
 			assert.Equal(t, "Post rejected by plugin. rejected", err.Message)
 		}
@@ -195,7 +195,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			Message:   "message",
 			CreateAt:  model.GetMillis() - 10000,
 		}
-		post, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		post, _, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
 		assert.Equal(t, "message", post.Message)
@@ -240,7 +240,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			Message:   "message",
 			CreateAt:  model.GetMillis() - 10000,
 		}
-		post, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		post, _, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
 		assert.Equal(t, "message_fromplugin", post.Message)
@@ -307,7 +307,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			Message:   "message",
 			CreateAt:  model.GetMillis() - 10000,
 		}
-		post, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		post, _, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 		assert.Equal(t, "prefix_message_suffix", post.Message)
 	})
@@ -353,7 +353,7 @@ func TestHookMessageHasBeenPosted(t *testing.T) {
 		Message:   "message",
 		CreateAt:  model.GetMillis() - 10000,
 	}
-	_, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+	_, _, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, err)
 }
 
@@ -394,11 +394,11 @@ func TestHookMessageWillBeUpdated(t *testing.T) {
 		Message:   "message_",
 		CreateAt:  model.GetMillis() - 10000,
 	}
-	post, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+	post, _, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, err)
 	assert.Equal(t, "message_", post.Message)
 	post.Message = post.Message + "edited_"
-	post, err = th.App.UpdatePost(th.Context, post, &model.UpdatePostOptions{SafeUpdate: true})
+	post, _, err = th.App.UpdatePost(th.Context, post, &model.UpdatePostOptions{SafeUpdate: true})
 	require.Nil(t, err)
 	assert.Equal(t, "message_edited_fromplugin", post.Message)
 }
@@ -444,11 +444,11 @@ func TestHookMessageHasBeenUpdated(t *testing.T) {
 		Message:   "message_",
 		CreateAt:  model.GetMillis() - 10000,
 	}
-	post, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+	post, _, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, err)
 	assert.Equal(t, "message_", post.Message)
 	post.Message = post.Message + "edited"
-	_, err = th.App.UpdatePost(th.Context, post, &model.UpdatePostOptions{SafeUpdate: true})
+	_, _, err = th.App.UpdatePost(th.Context, post, &model.UpdatePostOptions{SafeUpdate: true})
 	require.Nil(t, err)
 }
 
@@ -492,7 +492,7 @@ func TestHookMessageHasBeenDeleted(t *testing.T) {
 		Message:   "message",
 		CreateAt:  model.GetMillis() - 10000,
 	}
-	_, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+	_, _, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, err)
 	_, err = th.App.DeletePost(th.Context, post.Id, th.BasicUser.Id)
 	require.Nil(t, err)
@@ -1081,7 +1081,7 @@ func TestHookContext(t *testing.T) {
 		Message:   "not this",
 		CreateAt:  model.GetMillis() - 10000,
 	}
-	_, err := th.App.CreatePost(ctx, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+	_, _, err := th.App.CreatePost(ctx, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, err)
 }
 
@@ -1670,7 +1670,7 @@ func TestHookMessagesWillBeConsumed(t *testing.T) {
 			Message:   "message",
 			CreateAt:  model.GetMillis() - 10000,
 		}
-		_, err := th.App.CreatePost(th.Context, newPost, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		_, _, err := th.App.CreatePost(th.Context, newPost, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
 		post, err := th.App.GetSinglePost(th.Context, newPost.Id, true)
@@ -1695,7 +1695,7 @@ func TestHookMessagesWillBeConsumed(t *testing.T) {
 			Message:   "message",
 			CreateAt:  model.GetMillis() - 10000,
 		}
-		_, err := th.App.CreatePost(th.Context, newPost, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		_, _, err := th.App.CreatePost(th.Context, newPost, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
 		post, err := th.App.GetSinglePost(th.Context, newPost.Id, true)

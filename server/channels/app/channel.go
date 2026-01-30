@@ -847,7 +847,7 @@ func (a *App) postChannelPrivacyMessage(c request.CTX, user *model.User, channel
 		},
 	}
 
-	if _, err := a.CreatePost(c, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+	if _, _, err := a.CreatePost(c, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		return model.NewAppError("postChannelPrivacyMessage", "api.channel.post_channel_privacy_message.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -902,7 +902,7 @@ func (a *App) RestoreChannel(c request.CTX, channel *model.Channel, userID strin
 			},
 		}
 
-		if _, err := a.CreatePost(c, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+		if _, _, err := a.CreatePost(c, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 			c.Logger().Warn("Failed to post unarchive message", mlog.Err(err))
 		}
 	} else {
@@ -923,7 +923,7 @@ func (a *App) RestoreChannel(c request.CTX, channel *model.Channel, userID strin
 				},
 			}
 
-			if _, err := a.CreatePost(c, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+			if _, _, err := a.CreatePost(c, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 				c.Logger().Error("Failed to post unarchive message", mlog.Err(err))
 			}
 		})
@@ -1560,7 +1560,7 @@ func (a *App) DeleteChannel(c request.CTX, channel *model.Channel, userID string
 			},
 		}
 
-		if _, err := a.CreatePost(c, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+		if _, _, err := a.CreatePost(c, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 			c.Logger().Warn("Failed to post archive message", mlog.Err(err))
 		}
 	} else {
@@ -1578,7 +1578,7 @@ func (a *App) DeleteChannel(c request.CTX, channel *model.Channel, userID string
 				},
 			}
 
-			if _, err := a.CreatePost(c, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+			if _, _, err := a.CreatePost(c, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 				c.Logger().Warn("Failed to post archive message", mlog.Err(err))
 			}
 		}
@@ -1900,7 +1900,7 @@ func (a *App) PostUpdateChannelHeaderMessage(c request.CTX, userID string, chann
 		},
 	}
 
-	if _, err := a.CreatePost(c, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+	if _, _, err := a.CreatePost(c, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		return model.NewAppError("", "api.channel.post_update_channel_header_message_and_forget.post.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -1933,7 +1933,7 @@ func (a *App) PostUpdateChannelPurposeMessage(c request.CTX, userID string, chan
 			"new_purpose": newChannelPurpose,
 		},
 	}
-	if _, err := a.CreatePost(c, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+	if _, _, err := a.CreatePost(c, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		return model.NewAppError("", "app.channel.post_update_channel_purpose_message.post.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -1960,7 +1960,7 @@ func (a *App) PostUpdateChannelDisplayNameMessage(c request.CTX, userID string, 
 		},
 	}
 
-	if _, err := a.CreatePost(c, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+	if _, _, err := a.CreatePost(c, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		return model.NewAppError("PostUpdateChannelDisplayNameMessage", "api.channel.post_update_channel_displayname_message_and_forget.create_post.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -2477,7 +2477,7 @@ func (a *App) postJoinChannelMessage(c request.CTX, user *model.User, channel *m
 		},
 	}
 
-	if _, err := a.CreatePost(c, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+	if _, _, err := a.CreatePost(c, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		return model.NewAppError("postJoinChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -2495,7 +2495,7 @@ func (a *App) postJoinTeamMessage(c request.CTX, user *model.User, channel *mode
 		},
 	}
 
-	if _, err := a.CreatePost(c, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+	if _, _, err := a.CreatePost(c, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		return model.NewAppError("postJoinTeamMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -2578,7 +2578,7 @@ func (a *App) postLeaveChannelMessage(c request.CTX, user *model.User, channel *
 		},
 	}
 
-	if _, err := a.CreatePost(c, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+	if _, _, err := a.CreatePost(c, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		return model.NewAppError("postLeaveChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -2607,7 +2607,7 @@ func (a *App) PostAddToChannelMessage(c request.CTX, user *model.User, addedUser
 		},
 	}
 
-	if _, err := a.CreatePost(c, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+	if _, _, err := a.CreatePost(c, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		return model.NewAppError("postAddToChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -2629,7 +2629,7 @@ func (a *App) postAddToTeamMessage(c request.CTX, user *model.User, addedUser *m
 		},
 	}
 
-	if _, err := a.CreatePost(c, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+	if _, _, err := a.CreatePost(c, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		return model.NewAppError("postAddToTeamMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -2661,7 +2661,7 @@ func (a *App) postRemoveFromChannelMessage(c request.CTX, removerUserId string, 
 		},
 	}
 
-	if _, err := a.CreatePost(c, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+	if _, _, err := a.CreatePost(c, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		return model.NewAppError("postRemoveFromChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -2894,9 +2894,16 @@ func (a *App) ValidateUserPermissionsOnChannels(c request.CTX, userId string, ch
 			continue
 		}
 
-		if channel.Type == model.ChannelTypePrivate && a.HasPermissionToChannel(c, userId, channelId, model.PermissionManagePrivateChannelMembers) {
-			allowedChannelIds = append(allowedChannelIds, channelId)
-		} else if channel.Type == model.ChannelTypeOpen && a.HasPermissionToChannel(c, userId, channelId, model.PermissionManagePublicChannelMembers) {
+		allowedPrivate := false
+		if channel.Type == model.ChannelTypePrivate {
+			allowedPrivate, _ = a.HasPermissionToChannel(c, userId, channelId, model.PermissionManagePrivateChannelMembers)
+		}
+		allowedPublic := false
+		if channel.Type == model.ChannelTypeOpen {
+			allowedPublic, _ = a.HasPermissionToChannel(c, userId, channelId, model.PermissionManagePublicChannelMembers)
+		}
+
+		if allowedPrivate || allowedPublic {
 			allowedChannelIds = append(allowedChannelIds, channelId)
 		} else {
 			c.Logger().Info("Invite users to team - no permission to add members to that channel. UserId: " + userId + " ChannelId: " + channelId)
@@ -3453,7 +3460,7 @@ func (a *App) postChannelMoveMessage(c request.CTX, user *model.User, channel *m
 		},
 	}
 
-	if _, err := a.CreatePost(c, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+	if _, _, err := a.CreatePost(c, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		return model.NewAppError("postChannelMoveMessage", "api.team.move_channel.post.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -3725,8 +3732,26 @@ func (a *App) getDirectChannel(c request.CTX, userID, otherUserID string) (*mode
 	return a.Srv().getDirectChannel(c, userID, otherUserID)
 }
 
-func (a *App) GetGroupMessageMembersCommonTeams(c request.CTX, channelID string) ([]*model.Team, *model.AppError) {
-	channel, appErr := a.GetChannel(c, channelID)
+// GetGroupMessageMembersCommonTeamsAsUser is a variant of GetGroupMessageMembersCommonTeams
+// that returns results relative to the requesting user from the session in the request context.
+func (a *App) GetGroupMessageMembersCommonTeamsAsUser(rctx request.CTX, channelID string) ([]*model.Team, *model.AppError) {
+	return a.getGroupMessageMembersCommonTeams(rctx, rctx.Session().UserId, channelID)
+}
+
+// GetGroupMessageMembersCommonTeams returns the set of teams in common for the members of the given GM channel.
+//
+// Prefer GetGroupMessageMembersCommonTeamsAsUser unless the request context is independent of any given user.
+func (a *App) GetGroupMessageMembersCommonTeams(rctx request.CTX, channelID string) ([]*model.Team, *model.AppError) {
+	return a.getGroupMessageMembersCommonTeams(rctx, "", channelID)
+}
+
+// getGroupMessageMembersCommonTeams returns the set of teams common to the members of the given GM channel.
+//
+// If a requesting user id is specified, but the user isn't an active member of the channel, we return an empty
+// set of channels. We don't just exclude all inactive users to offer more flexibility to the remaining users
+// on where to create the replacement channel.
+func (a *App) getGroupMessageMembersCommonTeams(rctx request.CTX, requestingUserID, channelID string) ([]*model.Team, *model.AppError) {
+	channel, appErr := a.GetChannel(rctx, channelID)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -3742,10 +3767,20 @@ func (a *App) GetGroupMessageMembersCommonTeams(c request.CTX, channelID string)
 		Inactive:    false,
 		Active:      true,
 	})
+	if appErr != nil {
+		return nil, appErr
+	}
 
 	userIDs := make([]string, len(users))
 	for i := 0; i < len(users); i++ {
 		userIDs[i] = users[i].Id
+	}
+
+	// If a requesting user is specified, but we don't find them above as an active member
+	// of the channel, just short-circuit and return an empty set. We don't return an error
+	// as this is a valid result for some callers.
+	if requestingUserID != "" && !slices.Contains(userIDs, requestingUserID) {
+		return nil, nil
 	}
 
 	commonTeamIDs, err := a.Srv().Store().Team().GetCommonTeamIDsForMultipleUsers(userIDs)
@@ -3939,7 +3974,7 @@ func (a *App) postMessageForConvertGroupMessageToChannel(c request.CTX, channelI
 		return appErr
 	}
 
-	if _, appErr := a.CreatePost(c, post, channel, model.CreatePostFlags{SetOnline: true}); appErr != nil {
+	if _, _, appErr := a.CreatePost(c, post, channel, model.CreatePostFlags{SetOnline: true}); appErr != nil {
 		c.Logger().Error("Failed to create post for notifying about GM converted to private channel", mlog.Err(appErr))
 
 		return model.NewAppError(

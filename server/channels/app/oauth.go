@@ -1018,6 +1018,10 @@ func (a *App) SwitchOAuthToEmail(c request.CTX, email, password, requesterId str
 		return "", model.NewAppError("SwitchOAuthToEmail", "api.user.oauth_to_email.context.app_error", nil, "", http.StatusForbidden)
 	}
 
+	if !user.IsOAuthUser() && !user.IsSAMLUser() {
+		return "", model.NewAppError("SwitchOAuthToEmail", "api.user.oauth_to_email.not_oauth_user.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if err := a.UpdatePassword(c, user, password); err != nil {
 		return "", err
 	}

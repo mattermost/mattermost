@@ -61,8 +61,18 @@ func (ms *mockSuite) UserCanSeeOtherUser(c request.CTX, userID string, otherUser
 	return true, nil
 }
 
-func (ms *mockSuite) HasPermissionToReadChannel(c request.CTX, userID string, channel *model.Channel) bool {
-	return true
+func (ms *mockSuite) HasPermissionToReadChannel(rctx request.CTX, userID string, channel *model.Channel) (bool, bool) {
+	return true, true
+}
+
+func (ms *mockSuite) MakeAuditRecord(rctx request.CTX, event string, initialStatus string) *model.AuditRecord {
+	return &model.AuditRecord{
+		Status:    initialStatus,
+		EventName: event,
+	}
+}
+
+func (ms *mockSuite) LogAuditRec(rctx request.CTX, auditRec *model.AuditRecord, err error) {
 }
 
 func setupDBStore(tb testing.TB) (store.Store, *model.SqlSettings) {

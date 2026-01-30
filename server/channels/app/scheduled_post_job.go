@@ -195,7 +195,7 @@ func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 		TriggerWebhooks: true,
 		SetOnline:       false,
 	}
-	_, appErr = a.CreatePost(rctx, post, channel, createPostFlags)
+	_, _, appErr = a.CreatePost(rctx, post, channel, createPostFlags)
 	if appErr != nil {
 		rctx.Logger().Error(
 			"App.processScheduledPostBatch: failed to post scheduled post",
@@ -454,7 +454,7 @@ func (a *App) notifyUser(rctx request.CTX, userId string, userFailedMessages []*
 		UserId:    systemBot.UserId,
 	}
 
-	if _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+	if _, _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		rctx.Logger().Error("Failed to post notification about failed scheduled messages", mlog.Err(err))
 	}
 }

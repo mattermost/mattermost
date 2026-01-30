@@ -739,7 +739,9 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		// Return post data only when PostId is passed.
 		if ack.PostId != "" && ack.NotificationType == model.PushTypeMessage {
-			if _, appErr := c.App.GetPostIfAuthorized(c.AppContext, ack.PostId, c.AppContext.Session(), false); appErr != nil {
+			var isMember bool
+			var appErr *model.AppError
+			if _, appErr, isMember = c.App.GetPostIfAuthorized(c.AppContext, ack.PostId, c.AppContext.Session(), false); appErr != nil {
 				c.Err = appErr
 				return
 			}
@@ -758,6 +760,14 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 			if err2 := json.NewEncoder(w).Encode(msg); err2 != nil {
 				c.Logger.Warn("Error while writing response", mlog.Err(err2))
+			}
+
+			auditRec := c.MakeAuditRecord("notificationAck", model.AuditStatusSuccess)
+			defer c.LogAuditRec(auditRec)
+			model.AddEventParameterToAuditRec(auditRec, "post_id", ack.PostId)
+
+			if !isMember {
+				model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 			}
 		}
 

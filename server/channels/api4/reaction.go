@@ -57,7 +57,7 @@ func getReactions(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionReadChannelContent) {
+	if ok, _ := c.App.SessionHasPermissionToReadPost(c.AppContext, *c.AppContext.Session(), c.Params.PostId); !ok {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
@@ -117,7 +117,7 @@ func getBulkReactions(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	for _, postId := range postIds {
-		if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), postId, model.PermissionReadChannelContent) {
+		if ok, _ := c.App.SessionHasPermissionToReadPost(c.AppContext, *c.AppContext.Session(), postId); !ok {
 			c.SetPermissionError(model.PermissionReadChannelContent)
 			return
 		}

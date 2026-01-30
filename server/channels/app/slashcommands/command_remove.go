@@ -75,14 +75,14 @@ func doCommand(a *app.App, c request.CTX, args *model.CommandArgs, message strin
 
 	switch channel.Type {
 	case model.ChannelTypeOpen:
-		if !a.HasPermissionToChannel(c, args.UserId, args.ChannelId, model.PermissionManagePublicChannelMembers) {
+		if ok, _ := a.HasPermissionToChannel(c, args.UserId, args.ChannelId, model.PermissionManagePublicChannelMembers); !ok {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_remove.permission.app_error"),
 				ResponseType: model.CommandResponseTypeEphemeral,
 			}
 		}
 	case model.ChannelTypePrivate:
-		if !a.HasPermissionToChannel(c, args.UserId, args.ChannelId, model.PermissionManagePrivateChannelMembers) {
+		if ok, _ := a.HasPermissionToChannel(c, args.UserId, args.ChannelId, model.PermissionManagePrivateChannelMembers); !ok {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_remove.permission.app_error"),
 				ResponseType: model.CommandResponseTypeEphemeral,

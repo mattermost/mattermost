@@ -49,7 +49,6 @@ require (
 	github.com/mholt/archives v0.1.5
 	github.com/microcosm-cc/bluemonday v1.0.27
 	github.com/minio/minio-go/v7 v7.0.91
-	github.com/oov/psd v0.0.0-20220121172623-5db5eafcecbb
 	github.com/opensearch-project/opensearch-go/v4 v4.4.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.22.0
@@ -138,7 +137,6 @@ require (
 	github.com/gomodule/redigo v2.0.0+incompatible // indirect
 	github.com/google/btree v1.1.3 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/gopherjs/gopherjs v1.17.2 // indirect
 	github.com/gorilla/css v1.0.1 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-hclog v1.6.3 // indirect
@@ -189,8 +187,8 @@ require (
 	github.com/prometheus/procfs v0.16.1 // indirect
 	github.com/redis/go-redis/v9 v9.8.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
-	github.com/richardlehane/mscfb v1.0.4 // indirect
-	github.com/richardlehane/msoleps v1.0.4 // indirect
+	github.com/richardlehane/mscfb v1.0.6 // indirect
+	github.com/richardlehane/msoleps v1.0.5 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rs/xid v1.6.0 // indirect
 	github.com/russellhaering/goxmldsig v1.5.0 // indirect
@@ -258,3 +256,6 @@ replace github.com/ledongthuc/pdf => github.com/ledongthuc/pdf v0.0.0-2024020113
 // jaytaylor/html2text does not have a go.mod file which makes it bump to the latest
 // version always. Tablewriter has made breaking changes to its latest release.
 replace github.com/olekukonko/tablewriter => github.com/olekukonko/tablewriter v0.0.5
+
+// See MM-66167 for more details.
+replace github.com/vmihailenco/msgpack/v5 => github.com/mattermost/msgpack/v5 v5.0.0-20260120151306-2f9c67d7e57f

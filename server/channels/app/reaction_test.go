@@ -111,7 +111,7 @@ func TestSharedChannelSyncForReactionActions(t *testing.T) {
 
 		channel := th.CreateChannel(th.Context, th.BasicTeam, WithShared(true))
 
-		post, err := th.App.CreatePost(th.Context, &model.Post{
+		post, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user.Id,
 			ChannelId: channel.Id,
 			Message:   "Hello folks",
@@ -146,7 +146,7 @@ func TestSharedChannelSyncForReactionActions(t *testing.T) {
 
 		channel := th.CreateChannel(th.Context, th.BasicTeam, WithShared(true))
 
-		post, err := th.App.CreatePost(th.Context, &model.Post{
+		post, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user.Id,
 			ChannelId: channel.Id,
 			Message:   "Hello folks",

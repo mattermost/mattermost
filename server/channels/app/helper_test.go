@@ -518,7 +518,7 @@ func (th *TestHelper) CreatePost(channel *model.Channel, postOptions ...PostOpti
 	}
 
 	var err *model.AppError
-	if post, err = th.App.CreatePost(th.Context, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+	if post, _, err = th.App.CreatePost(th.Context, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		panic(err)
 	}
 	return post
@@ -533,7 +533,7 @@ func (th *TestHelper) CreateMessagePost(channel *model.Channel, message string) 
 	}
 
 	var err *model.AppError
-	if post, err = th.App.CreatePost(th.Context, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+	if post, _, err = th.App.CreatePost(th.Context, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		panic(err)
 	}
 	return post
@@ -553,7 +553,7 @@ func (th *TestHelper) CreatePostReply(root *model.Post) *model.Post {
 	if err != nil {
 		panic(err)
 	}
-	if post, err = th.App.CreatePost(th.Context, post, ch, model.CreatePostFlags{SetOnline: true}); err != nil {
+	if post, _, err = th.App.CreatePost(th.Context, post, ch, model.CreatePostFlags{SetOnline: true}); err != nil {
 		panic(err)
 	}
 	return post
@@ -861,7 +861,7 @@ func (th *TestHelper) PostPatch(post *model.Post, message string, options ...Pos
 		optionFunc(postPatch)
 	}
 
-	updatedPost, appErr := th.App.PatchPost(th.Context, post.Id, postPatch, nil)
+	updatedPost, _, appErr := th.App.PatchPost(th.Context, post.Id, postPatch, nil)
 	if appErr != nil {
 		panic(appErr)
 	}

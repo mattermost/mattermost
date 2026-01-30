@@ -392,7 +392,7 @@ const Search = ({
             filterFilesSearchByExt(['py', 'go', 'java', 'kt', 'c', 'cpp', 'h', 'html', 'js', 'ts', 'cs', 'vb', 'php', 'pl', 'r', 'rb', 'sql', 'swift', 'json']);
             break;
         case 'images':
-            filterFilesSearchByExt(['png', 'jpg', 'jpeg', 'bmp', 'tiff', 'svg', 'psd', 'xcf']);
+            filterFilesSearchByExt(['png', 'jpg', 'jpeg', 'bmp', 'tiff', 'svg', 'xcf']);
             break;
         case 'audio':
             filterFilesSearchByExt(['ogg', 'mp3', 'wav', 'flac']);

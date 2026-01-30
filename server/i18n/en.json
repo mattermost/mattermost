@@ -4271,6 +4271,10 @@
     "translation": "Authentication Transfer not configured or available on this server."
   },
   {
+    "id": "api.user.oauth_to_email.not_oauth_user.app_error",
+    "translation": "Unable to switch to email authentication because user is not using OAuth or SAML authentication."
+  },
+  {
     "id": "api.user.patch_user.login_provider_attribute_set.app_error",
     "translation": "Field '{{.Field}}' must be set through user's login provider."
   },
@@ -7367,6 +7371,10 @@
   {
     "id": "app.update_error",
     "translation": "update error"
+  },
+  {
+    "id": "app.update_scheduled_post.convert_to_post.error",
+    "translation": "Unable to convert scheduled post to post format."
   },
   {
     "id": "app.update_scheduled_post.existing_scheduled_post.not_exist",

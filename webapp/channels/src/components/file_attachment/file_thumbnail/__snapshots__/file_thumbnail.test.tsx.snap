@@ -30,6 +30,12 @@ exports[`FileThumbnail should render an icon for a PDF 1`] = `
 />
 `;
 
+exports[`FileThumbnail should render an icon for a PSD (MM-67077) 1`] = `
+<div
+  className="file-icon generic"
+/>
+`;
+
 exports[`FileThumbnail should render an icon for an SVG when SVG previews are disabled 1`] = `
 <div
   className="file-icon generic"

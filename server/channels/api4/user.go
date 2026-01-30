@@ -933,7 +933,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		profiles, appErr = c.App.GetUsersWithoutTeamPage(userGetOptions, c.IsSystemAdmin())
 	} else if notInChannelId != "" {
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), notInChannelId, model.PermissionReadChannel) {
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), notInChannelId, model.PermissionReadChannel); !ok {
 			c.SetPermissionError(model.PermissionReadChannel)
 			return
 		}
@@ -975,7 +975,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			profiles, appErr = c.App.GetUsersInTeamPage(userGetOptions, c.IsSystemAdmin())
 		}
 	} else if inChannelId != "" {
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), inChannelId, model.PermissionReadChannel) {
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), inChannelId, model.PermissionReadChannel); !ok {
 			c.SetPermissionError(model.PermissionReadChannel)
 			return
 		}
@@ -1182,14 +1182,18 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if props.InChannelId != "" && !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), props.InChannelId, model.PermissionReadChannel) {
-		c.SetPermissionError(model.PermissionReadChannel)
-		return
+	if props.InChannelId != "" {
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), props.InChannelId, model.PermissionReadChannel); !ok {
+			c.SetPermissionError(model.PermissionReadChannel)
+			return
+		}
 	}
 
-	if props.NotInChannelId != "" && !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), props.NotInChannelId, model.PermissionReadChannel) {
-		c.SetPermissionError(model.PermissionReadChannel)
-		return
+	if props.NotInChannelId != "" {
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), props.NotInChannelId, model.PermissionReadChannel); !ok {
+			c.SetPermissionError(model.PermissionReadChannel)
+			return
+		}
 	}
 
 	if props.TeamId != "" && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), props.TeamId, model.PermissionViewTeam) {
@@ -1275,7 +1279,7 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if channelId != "" {
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionReadChannel) {
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionReadChannel); !ok {
 			c.SetPermissionError(model.PermissionReadChannel)
 			return
 		}
@@ -3084,7 +3088,7 @@ func publishUserTyping(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.HasPermissionToChannel(c.AppContext, c.Params.UserId, typingRequest.ChannelId, model.PermissionCreatePost) {
+	if ok, _ := c.App.HasPermissionToChannel(c.AppContext, c.Params.UserId, typingRequest.ChannelId, model.PermissionCreatePost); !ok {
 		c.SetPermissionError(model.PermissionCreatePost)
 		return
 	}
@@ -3411,7 +3415,8 @@ func getThreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.ThreadId, model.PermissionReadChannelContent) {
+	ok, isMember := c.App.SessionHasPermissionToReadPost(c.AppContext, *c.AppContext.Session(), c.Params.ThreadId)
+	if !ok {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
@@ -3432,6 +3437,14 @@ func getThreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewEncoder(w).Encode(thread); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+
+	auditRec := c.MakeAuditRecord("getThreadForUser", model.AuditStatusSuccess)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "thread_id", c.Params.ThreadId)
+
+	if !isMember {
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 	}
 }
 
@@ -3528,9 +3541,14 @@ func updateReadStateThreadByUser(c *Context, w http.ResponseWriter, r *http.Requ
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.ThreadId, model.PermissionReadChannelContent) {
+	ok, isMember := c.App.SessionHasPermissionToReadPost(c.AppContext, *c.AppContext.Session(), c.Params.ThreadId)
+	if !ok {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
+	}
+
+	if !isMember {
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 	}
 
 	thread, err := c.App.UpdateThreadReadForUser(c.AppContext, c.AppContext.Session().Id, c.Params.UserId, c.Params.TeamId, c.Params.ThreadId, c.Params.Timestamp)
@@ -3564,9 +3582,13 @@ func setUnreadThreadByPostId(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.ThreadId, model.PermissionReadChannelContent) {
+	ok, isMember := c.App.SessionHasPermissionToReadPost(c.AppContext, *c.AppContext.Session(), c.Params.ThreadId)
+	if !ok {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
+	}
+	if !isMember {
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 	}
 
 	// We want to make sure the thread is followed when marking as unread
@@ -3606,7 +3628,7 @@ func unfollowThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.ThreadId, model.PermissionReadChannelContent) {
+	if ok, _ := c.App.SessionHasPermissionToReadPost(c.AppContext, *c.AppContext.Session(), c.Params.ThreadId); !ok {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
@@ -3639,7 +3661,7 @@ func followThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.ThreadId, model.PermissionReadChannelContent) {
+	if ok, _ := c.App.SessionHasPermissionToReadPost(c.AppContext, *c.AppContext.Session(), c.Params.ThreadId); !ok {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}

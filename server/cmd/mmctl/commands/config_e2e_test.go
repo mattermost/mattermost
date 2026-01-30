@@ -163,6 +163,34 @@ func (s *MmctlE2ETestSuite) TestConfigSetCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
+
+	s.Run("ImportSettings.Directory cannot be set via API but can via local mode", func() {
+		printer.Clean()
+		originalDir := *s.th.App.Config().ImportSettings.Directory
+
+		args := []string{"ImportSettings.Directory", "./api-blocked-import"}
+		err := configSetCmdF(s.th.SystemAdminClient, &cobra.Command{}, args)
+		s.Require().NotNil(err)
+		s.Require().Contains(err.Error(), "not allowed due to security reasons")
+		s.Require().Len(printer.GetLines(), 0)
+
+		// Verify value didn't change
+		s.Require().Equal(originalDir, *s.th.App.Config().ImportSettings.Directory)
+
+		printer.Clean()
+		args = []string{"ImportSettings.Directory", "./local-allowed-import"}
+		err = configSetCmdF(s.th.LocalClient, &cobra.Command{}, args)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		config, ok := printer.GetLines()[0].(*model.Config)
+		s.Require().True(ok)
+		s.Require().Equal("./local-allowed-import", *config.ImportSettings.Directory)
+
+		// Reset to original
+		s.th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ImportSettings.Directory = &originalDir
+		})
+	})
 }
 
 func (s *MmctlE2ETestSuite) TestConfigEditCmd() {

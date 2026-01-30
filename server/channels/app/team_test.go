@@ -1187,12 +1187,14 @@ func TestAppUpdateTeamScheme(t *testing.T) {
 		},
 	}
 	// ensure user can update channel properties before applying the scheme
-	require.True(t, th.App.SessionHasPermissionToChannel(th.Context, session, channel.Id, model.PermissionManagePublicChannelProperties))
+	ok, _ := th.App.SessionHasPermissionToChannel(th.Context, session, channel.Id, model.PermissionManagePublicChannelProperties)
+	require.True(t, ok)
 	// apply the team scheme
 	team2.SchemeId = &team2Scheme.Id
 	_, appErr = th.App.UpdateTeamScheme(team2)
 	require.Nil(t, appErr)
-	require.False(t, th.App.SessionHasPermissionToChannel(th.Context, session, channel.Id, model.PermissionManagePublicChannelProperties))
+	ok, _ = th.App.SessionHasPermissionToChannel(th.Context, session, channel.Id, model.PermissionManagePublicChannelProperties)
+	require.False(t, ok)
 }
 
 func TestGetTeamMembers(t *testing.T) {

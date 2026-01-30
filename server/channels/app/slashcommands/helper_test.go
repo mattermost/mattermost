@@ -344,7 +344,7 @@ func (th *TestHelper) createPost(tb testing.TB, channel *model.Channel) *model.P
 		CreateAt:  model.GetMillis() - 10000,
 	}
 
-	post, appErr := th.App.CreatePost(th.Context, post, channel, model.CreatePostFlags{SetOnline: true})
+	post, _, appErr := th.App.CreatePost(th.Context, post, channel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(tb, appErr)
 	return post
 }

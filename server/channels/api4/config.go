@@ -159,6 +159,9 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	// modifications to the slice.
 	cfg.PluginSettings.SignaturePublicKeyFiles = appCfg.PluginSettings.SignaturePublicKeyFiles
 
+	// Do not allow import directory to be changed through the API
+	*cfg.ImportSettings.Directory = *appCfg.ImportSettings.Directory
+
 	// Do not allow marketplace URL to be toggled through the API if EnableUploads are disabled.
 	if cfg.PluginSettings.EnableUploads != nil && !*appCfg.PluginSettings.EnableUploads {
 		*cfg.PluginSettings.MarketplaceURL = *appCfg.PluginSettings.MarketplaceURL
@@ -314,6 +317,12 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Do not allow plugin uploads to be toggled through the API
 	if cfg.PluginSettings.EnableUploads != nil && *cfg.PluginSettings.EnableUploads != *appCfg.PluginSettings.EnableUploads {
 		c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]any{"Name": "PluginSettings.EnableUploads"}, "", http.StatusForbidden)
+		return
+	}
+
+	// Do not allow import directory to be changed through the API
+	if cfg.ImportSettings.Directory != nil && *cfg.ImportSettings.Directory != *appCfg.ImportSettings.Directory {
+		c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]any{"Name": "ImportSettings.Directory"}, "", http.StatusForbidden)
 		return
 	}
 

@@ -19,11 +19,12 @@ type IndentedCode struct {
 	RawCode []IndentedCodeLine
 }
 
-func (b *IndentedCode) Code() (result string) {
+func (b *IndentedCode) Code() string {
+	var resultSb strings.Builder
 	for _, code := range b.RawCode {
-		result += strings.Repeat(" ", code.Indentation) + b.markdown[code.Range.Position:code.Range.End]
+		resultSb.WriteString(strings.Repeat(" ", code.Indentation) + b.markdown[code.Range.Position:code.Range.End])
 	}
-	return
+	return resultSb.String()
 }
 
 func (b *IndentedCode) Continuation(indentation int, r Range) *continuation {

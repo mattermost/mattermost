@@ -30,6 +30,7 @@ export type Props = {
     team?: Team;
     urlError?: string;
     readOnly?: boolean;
+    isEditingExistingChannel?: boolean;
 }
 
 import './channel_name_form_field.scss';
@@ -101,8 +102,8 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
         displayName.current = updatedDisplayName;
         props.onDisplayNameChange(updatedDisplayName);
 
-        if (!urlModified.current) {
-            // if URL isn't explicitly modified, it's derived from the display name
+        if (!urlModified.current && !props.isEditingExistingChannel) {
+            // Only auto-generate URL for new channels, not when editing existing ones
             const cleanURL = cleanUpUrlable(updatedDisplayName);
             setURL(cleanURL);
             setURLError('');
