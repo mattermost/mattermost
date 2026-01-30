@@ -79,6 +79,7 @@ function ShowTranslationModal({postId, onExited, onHide}: Props) {
                             post={post}
                             isChannelAutotranslated={false}
                             location={Locations.MODAL}
+                            preventClickInteraction={true}
                         />
                     </div>
                 </div>
@@ -103,6 +104,7 @@ function ShowTranslationModal({postId, onExited, onHide}: Props) {
                             post={post}
                             isChannelAutotranslated={true}
                             location={Locations.MODAL}
+                            preventClickInteraction={true}
                         />
                     </div>
                 </div>

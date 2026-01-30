@@ -52,6 +52,7 @@ type OwnProps = {
     postId?: string;
     shouldHighlight?: boolean;
     location: keyof typeof Locations;
+    preventClickInteraction?: boolean;
 };
 
 function isFirstReply(post: Post, previousPost?: Post | null): boolean {

@@ -133,7 +133,10 @@ export type Props = {
     shouldDisplayBurnOnReadConcealed?: boolean;
     burnOnReadDurationMinutes: number;
     burnOnReadSkipConfirmation?: boolean;
+    preventClickInteraction?: boolean;
 };
+
+const preventInteractionStyle: React.CSSProperties = {pointerEvents: 'none'};
 
 function PostComponent(props: Props) {
     const {post, shouldHighlight, togglePostMenu} = props;
@@ -714,6 +717,7 @@ function PostComponent(props: Props) {
                 data-testid={postAriaLabelDivTestId}
                 post={post}
                 className={getClassName()}
+                style={props.preventClickInteraction ? preventInteractionStyle : undefined}
                 onClick={handlePostClick}
                 onMouseOver={handleMouseOver}
                 onMouseLeave={handleMouseLeave}
