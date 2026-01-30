@@ -1,14 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {screen} from '@testing-library/dom';
 import React from 'react';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
-import * as userAgentUtils from 'utils/user_agent';
+import TooltipShortcut from './tooltip_shortcut';
 
-import TooltipShortcut, {ShortcutKeys} from './tooltip_shortcut';
+import {renderWithContext} from '../../testing';
+import * as userAgentUtils from '../../utils/user_agent';
+import {ShortcutKeys} from '../shortcut_key';
 
-jest.mock('utils/user_agent', () => ({
+jest.mock('../../utils/user_agent', () => ({
     isMac: jest.fn(),
 }));
 
