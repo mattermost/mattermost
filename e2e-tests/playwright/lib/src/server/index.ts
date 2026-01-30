@@ -20,10 +20,5 @@ export {
     runSyncJob,
     verifyUserInChannel,
     verifyUserNotInChannel,
-    createPrivateChannelForABAC,
     updateUserAttributes,
-    verifyPolicyExists,
-    verifyPolicyNotExists,
-    getPolicyRow,
-    verifyPolicyDeleteDisabled,
 } from './abac_helpers';

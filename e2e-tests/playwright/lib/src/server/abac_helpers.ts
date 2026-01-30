@@ -303,24 +303,6 @@ export async function verifyUserNotInChannel(
 }
 
 /**
- * Create a private channel for ABAC testing
- */
-export async function createPrivateChannelForABAC(
-    client: Client4,
-    teamId: string,
-    displayName?: string,
-): Promise<Channel> {
-    const randomId = await getRandomId();
-    const channel = await client.createChannel({
-        team_id: teamId,
-        name: `abac-test-${randomId}`,
-        display_name: displayName || `ABAC Test Channel ${randomId}`,
-        type: 'P',
-    });
-    return channel;
-}
-
-/**
  * Update user's custom profile attributes
  * Converts attribute names to field IDs and uses the correct API
  */
@@ -346,43 +328,4 @@ export async function updateUserAttributes(
     if (Object.keys(valuesByFieldId).length > 0) {
         await client.updateUserCustomProfileAttributesValues(userId, valuesByFieldId);
     }
-}
-
-/**
- * Verify policy appears in policy list
- */
-export async function verifyPolicyExists(page: Page, policyName: string): Promise<boolean> {
-    const policyElement = page.locator('.policy-name').filter({hasText: policyName});
-    return await policyElement.isVisible({timeout: 2000});
-}
-
-/**
- * Verify policy does NOT appear in policy list
- */
-export async function verifyPolicyNotExists(page: Page, policyName: string): Promise<boolean> {
-    return !(await verifyPolicyExists(page, policyName));
-}
-
-/**
- * Get policy row element
- */
-export function getPolicyRow(page: Page, policyName: string) {
-    return page.locator('.policy-name').filter({hasText: policyName}).locator('..').locator('..');
-}
-
-/**
- * Verify delete button is disabled for policy
- */
-export async function verifyPolicyDeleteDisabled(page: Page, policyName: string): Promise<boolean> {
-    const policyRow = getPolicyRow(page, policyName);
-    const menuButton = policyRow.locator('button[id*="policy-menu"]');
-    await menuButton.click();
-
-    const deleteButton = page.getByRole('menuitem', {name: 'Delete'});
-    const isDisabled = await deleteButton.isDisabled();
-
-    // Close menu
-    await page.keyboard.press('Escape');
-
-    return isDisabled;
 }
