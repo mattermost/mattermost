@@ -2,12 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {defineMessage} from 'react-intl';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import * as userAgentUtils from 'utils/user_agent';
 
-import TooltipShortcut from './tooltip_shortcut';
+import TooltipShortcut, {ShortcutKeys} from './tooltip_shortcut';
 
 jest.mock('utils/user_agent', () => ({
     isMac: jest.fn(),
@@ -58,10 +57,7 @@ describe('TooltipShortcut', () => {
     test('show shortcut with message descriptor', () => {
         const shortcut = {
             default: [
-                defineMessage({
-                    id: 'shortcuts.generic.enter',
-                    defaultMessage: 'Enter',
-                }),
+                ShortcutKeys.enter,
             ],
         };
 

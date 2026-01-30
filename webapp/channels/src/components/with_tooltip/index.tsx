@@ -22,7 +22,6 @@ import classNames from 'classnames';
 import React, {useRef, useState, useMemo, cloneElement, isValidElement} from 'react';
 import type {ReactElement, ReactNode} from 'react';
 import type {MessageDescriptor} from 'react-intl';
-import {defineMessage} from 'react-intl';
 
 import {OverlayArrow, OverlaysTimings, OverlayTransitionStyles, RootHtmlPortalId} from 'utils/constants';
 
@@ -30,27 +29,6 @@ import TooltipContent from './tooltip_content';
 import type {ShortcutDefinition} from './tooltip_shortcut';
 
 import './with_tooltip.scss';
-
-/**
- * Shortcut keys map to translations that can be used in the tooltip
- * when shortcut definition is provided
- */
-export const ShortcutKeys = {
-    alt: defineMessage({
-        id: 'shortcuts.generic.alt',
-        defaultMessage: 'Alt',
-    }),
-    cmd: '⌘',
-    ctrl: defineMessage({
-        id: 'shortcuts.generic.ctrl',
-        defaultMessage: 'Ctrl',
-    }),
-    option: '⌥',
-    shift: defineMessage({
-        id: 'shortcuts.generic.shift',
-        defaultMessage: 'Shift',
-    }),
-};
 
 interface Props {
     title: string | ReactNode | MessageDescriptor;

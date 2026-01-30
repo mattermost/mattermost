@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React, {memo, useCallback, useMemo} from 'react';
-import {defineMessage, useIntl} from 'react-intl';
+import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {SendIcon} from '@mattermost/compass-icons/components';
@@ -41,16 +41,10 @@ const SendButton = ({disabled, handleSubmit, channelId}: SendButtonProps) => {
     const sendNowKeyboardShortcutDescriptor = useMemo<ShortcutDefinition>(() => {
         const shortcutDefinition: ShortcutDefinition = {
             default: [
-                defineMessage({
-                    id: 'shortcuts.generic.enter',
-                    defaultMessage: 'Enter',
-                }),
+                ShortcutKeys.enter,
             ],
             mac: [
-                defineMessage({
-                    id: 'shortcuts.generic.enter',
-                    defaultMessage: 'Enter',
-                }),
+                ShortcutKeys.enter,
             ],
         };
 

@@ -2,4 +2,4 @@
 // See LICENSE.txt for license information.
 
 export type {ShortcutKeyProps} from '@mattermost/shared/components/shortcut_key';
-export {ShortcutKey, ShortcutKeyVariant} from '@mattermost/shared/components/shortcut_key';
+export {ShortcutKey, ShortcutKeys, ShortcutKeyVariant} from '@mattermost/shared/components/shortcut_key';
