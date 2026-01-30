@@ -22,6 +22,7 @@ import mockStore from 'tests/test_store';
 import {WebSocketContext} from 'utils/use_websocket';
 
 import type {GlobalState} from 'types/store';
+
 export * from '@testing-library/react';
 export {userEvent};
 
