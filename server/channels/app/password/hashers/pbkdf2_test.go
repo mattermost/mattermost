@@ -48,7 +48,8 @@ func TestPBKDF2Hash(t *testing.T) {
 
 func TestPBKDF2CompareHashAndPassword(t *testing.T) {
 	passwordTooLong := make([]byte, PasswordMaxLengthBytes+1)
-	rand.Read(passwordTooLong)
+	_, err := rand.Read(passwordTooLong)
+	require.NoError(t, err)
 
 	testCases := []struct {
 		testName    string
