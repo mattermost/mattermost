@@ -131,27 +131,12 @@ const FETCH_HEADERS = {
     'Accept-Language': 'en-US,en;q=0.5',
 };
 
+const MAX_REDIRECTS = 10;
+
 async function checkUrl(url, retries = 2) {
     for (let attempt = 0; attempt <= retries; attempt++) {
         try {
-            const response = await fetch(url, {
-                method: 'HEAD',
-                redirect: 'manual',
-                headers: FETCH_HEADERS,
-                signal: AbortSignal.timeout(10000),
-            });
-
-            if (response.status === 405) {
-                const getResponse = await fetch(url, {
-                    method: 'GET',
-                    redirect: 'manual',
-                    headers: FETCH_HEADERS,
-                    signal: AbortSignal.timeout(10000),
-                });
-                return processResponse(url, getResponse);
-            }
-
-            return processResponse(url, response);
+            return await checkUrlWithRedirects(url);
         } catch (error) {
             if (attempt === retries) {
                 return {
@@ -166,28 +151,84 @@ async function checkUrl(url, retries = 2) {
     }
 }
 
-function processResponse(url, response) {
+async function checkUrlWithRedirects(originalUrl) {
+    let currentUrl = originalUrl;
+
+    for (let redirectCount = 0; redirectCount <= MAX_REDIRECTS; redirectCount++) {
+        const response = await fetch(currentUrl, {
+            method: 'HEAD',
+            redirect: 'manual',
+            headers: FETCH_HEADERS,
+            signal: AbortSignal.timeout(10000),
+        });
+
+        if (response.status === 405) {
+            const getResponse = await fetch(currentUrl, {
+                method: 'GET',
+                redirect: 'manual',
+                headers: FETCH_HEADERS,
+                signal: AbortSignal.timeout(10000),
+            });
+            return processResponse(originalUrl, getResponse);
+        }
+
+        const result = processResponse(originalUrl, response);
+
+        if (!result.redirect) {
+            return result;
+        }
+
+        const location = response.headers.get('location');
+        if (!location) {
+            return {
+                url: originalUrl,
+                status: response.status,
+                ok: false,
+                error: 'Redirect without Location header',
+            };
+        }
+
+        currentUrl = new URL(location, currentUrl).href;
+    }
+
+    return {
+        url: originalUrl,
+        status: 0,
+        ok: false,
+        error: 'Too many redirects',
+    };
+}
+
+function processResponse(originalUrl, response) {
+    const cfHeader = response.headers.get('cf-mitigated');
+
     if (response.status >= 300 && response.status < 400) {
+        if (cfHeader) {
+            return {
+                url: originalUrl,
+                status: response.status,
+                ok: true,
+            };
+        }
         return {
-            url,
+            url: originalUrl,
             status: response.status,
-            ok: true,
+            redirect: true,
         };
     }
 
     if (response.ok) {
         return {
-            url,
+            url: originalUrl,
             status: response.status,
             ok: true,
         };
     }
 
     if (response.status === 403 || response.status === 503) {
-        const cfHeader = response.headers.get('cf-mitigated');
         if (cfHeader) {
             return {
-                url,
+                url: originalUrl,
                 status: response.status,
                 ok: true,
             };
@@ -195,7 +236,7 @@ function processResponse(url, response) {
     }
 
     return {
-        url,
+        url: originalUrl,
         status: response.status,
         ok: false,
     };
