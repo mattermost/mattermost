@@ -65,6 +65,18 @@ const ShortcutKey = ({shortcutKey: shortcut}: ShortcutKeyProps) => (
     </span>
 );
 
+function getMessageToCopy(post: Post, isChannelAutotranslated: boolean, locale: string): string {
+    const originalMessage = post.message_source || post.message;
+    if (!isChannelAutotranslated || post.type !== '') {
+        return originalMessage;
+    }
+    const translation = PostUtils.getPostTranslation(post, locale);
+    if (!translation || translation.state !== 'ready') {
+        return originalMessage;
+    }
+    return PostUtils.getPostTranslatedMessage(originalMessage, translation);
+}
+
 type Props = {
     intl: IntlShape;
     post: Post;
@@ -245,7 +257,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
     };
 
     copyText = () => {
-        Utils.copyToClipboard(this.props.post.message_source || this.props.post.message);
+        Utils.copyToClipboard(getMessageToCopy(this.props.post, this.props.isChannelAutotranslated, this.props.intl.locale));
     };
 
     handlePinMenuItemActivated = (): void => {
