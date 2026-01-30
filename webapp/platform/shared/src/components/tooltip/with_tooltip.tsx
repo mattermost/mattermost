@@ -28,7 +28,7 @@ import {OverlayArrow, OverlaysTimings, OverlayTransitionStyles, RootHtmlPortalId
 import TooltipContent from './tooltip_content';
 import type {ShortcutDefinition} from './tooltip_shortcut';
 
-import './with_tooltip.scss';
+import './with_tooltip.css';
 
 interface Props {
     title: string | ReactNode | MessageDescriptor;
