@@ -898,7 +898,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         renderWithContext(<UserSettingsGeneral {...props}/>);
         expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
         expect(screen.queryByRole('textbox', {name: protectedAttribute.name})).not.toBeInTheDocument();
-        expect(await screen.findByText('This field is managed by a plugin and cannot be edited.')).toBeInTheDocument();
+        expect(await screen.findByText(/This field is managed by a plugin and cannot be edited\./)).toBeInTheDocument();
     });
 
     test('should show custom attribute input field when field is not protected', async () => {
