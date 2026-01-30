@@ -58,8 +58,6 @@ func TestGetAllSharedChannels(t *testing.T) {
 		require.NoError(t, err)
 		savedIds = append(savedIds, channel.Id)
 	}
-	sort.Strings(savedIds)
-
 	t.Run("get shared channels paginated", func(t *testing.T) {
 		channelIds := make([]string, 0, 21)
 		for i := range pages {
@@ -67,10 +65,9 @@ func TestGetAllSharedChannels(t *testing.T) {
 			require.NoError(t, err)
 			channelIds = append(channelIds, getIds(channels)...)
 		}
-		sort.Strings(channelIds)
 
 		// ids lists should now match
-		assert.Equal(t, savedIds, channelIds, "id lists should match")
+		assert.ElementsMatch(t, savedIds, channelIds, "id lists should match")
 	})
 
 	t.Run("get shared channels for invalid team", func(t *testing.T) {

@@ -183,13 +183,13 @@ func TestGetPropertyFieldReadAccess(t *testing.T) {
 				},
 			},
 		}
-		created, err := pas.CreatePropertyField("", field)
+		created, err := pas.CreatePropertyFieldForPlugin("test-plugin", field)
 		require.NoError(t, err)
 
 		// Create values for the caller (userID has opt1 and opt2)
 		value1, err := json.Marshal([]string{"opt1", "opt2"})
 		require.NoError(t, err)
-		_, err = pas.CreatePropertyValue("", &model.PropertyValue{
+		_, err = pas.CreatePropertyValue("test-plugin", &model.PropertyValue{
 			GroupID:    group.ID,
 			FieldID:    created.ID,
 			TargetType: "user",
@@ -231,7 +231,7 @@ func TestGetPropertyFieldReadAccess(t *testing.T) {
 				},
 			},
 		}
-		created, err := pas.CreatePropertyField("", field)
+		created, err := pas.CreatePropertyFieldForPlugin("test-plugin", field)
 		require.NoError(t, err)
 
 		// User has no values for this field
@@ -383,13 +383,13 @@ func TestGetPropertyFieldsReadAccess(t *testing.T) {
 			},
 		},
 	}
-	sharedOnlyField, err = pas.CreatePropertyField("", sharedOnlyField)
+	sharedOnlyField, err = pas.CreatePropertyFieldForPlugin("test-plugin", sharedOnlyField)
 	require.NoError(t, err)
 
 	// Create a value for userID on the shared field (opt1)
 	value, err := json.Marshal([]string{"opt1"})
 	require.NoError(t, err)
-	_, err = pas.CreatePropertyValue("", &model.PropertyValue{
+	_, err = pas.CreatePropertyValue("test-plugin", &model.PropertyValue{
 		GroupID:    group.ID,
 		FieldID:    sharedOnlyField.ID,
 		TargetType: "user",
@@ -485,13 +485,13 @@ func TestSearchPropertyFieldsReadAccess(t *testing.T) {
 			},
 		},
 	}
-	sharedOnlyField, err = pas.CreatePropertyField("", sharedOnlyField)
+	sharedOnlyField, err = pas.CreatePropertyFieldForPlugin("test-plugin", sharedOnlyField)
 	require.NoError(t, err)
 
 	// Create value for userID (opt1)
 	value, err := json.Marshal([]string{"opt1"})
 	require.NoError(t, err)
-	_, err = pas.CreatePropertyValue("", &model.PropertyValue{
+	_, err = pas.CreatePropertyValue("test-plugin", &model.PropertyValue{
 		GroupID:    group.ID,
 		FieldID:    sharedOnlyField.ID,
 		TargetType: "user",
@@ -646,6 +646,39 @@ func TestCreatePropertyField_SourcePluginIDValidation(t *testing.T) {
 		created, err := th.App.PropertyAccessService().CreatePropertyField("", field)
 		require.NoError(t, err)
 		assert.NotNil(t, created)
+	})
+
+	t.Run("rejects protected attribute via CreatePropertyField", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID: groupID,
+			Name:    model.NewId(),
+			Type:    model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.PropertyAttrsProtected: true,
+			},
+		}
+
+		// Should be rejected - only plugins can set protected via CreatePropertyFieldForPlugin
+		created, err := th.App.PropertyAccessService().CreatePropertyField("user1", field)
+		require.Error(t, err)
+		assert.Nil(t, created)
+		assert.Contains(t, err.Error(), "protected can only be set by plugins")
+	})
+
+	t.Run("rejects protected attribute even when caller is empty", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID: groupID,
+			Name:    model.NewId(),
+			Type:    model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.PropertyAttrsProtected: true,
+			},
+		}
+
+		created, err := th.App.PropertyAccessService().CreatePropertyField("", field)
+		require.Error(t, err)
+		assert.Nil(t, created)
+		assert.Contains(t, err.Error(), "protected can only be set by plugins")
 	})
 }
 
@@ -1298,7 +1331,7 @@ func TestGetPropertyValueReadAccess(t *testing.T) {
 				},
 			},
 		}
-		field, err := pas.CreatePropertyField("", field)
+		field, err := pas.CreatePropertyFieldForPlugin("test-plugin", field)
 		require.NoError(t, err)
 
 		// User 1 has opt1
@@ -1311,7 +1344,7 @@ func TestGetPropertyValueReadAccess(t *testing.T) {
 			TargetID:   userID1,
 			Value:      user1Value,
 		}
-		value1, err = pas.CreatePropertyValue("", value1)
+		value1, err = pas.CreatePropertyValue("test-plugin", value1)
 		require.NoError(t, err)
 
 		// User 2 also has opt1
@@ -1324,7 +1357,7 @@ func TestGetPropertyValueReadAccess(t *testing.T) {
 			TargetID:   userID2,
 			Value:      user2Value,
 		}
-		_, err = pas.CreatePropertyValue("", value2)
+		_, err = pas.CreatePropertyValue("test-plugin", value2)
 		require.NoError(t, err)
 
 		// User 2 can see user 1's value (both have opt1)
@@ -1345,7 +1378,7 @@ func TestGetPropertyValueReadAccess(t *testing.T) {
 			TargetID:   userID3,
 			Value:      user3Value,
 		}
-		_, err = pas.CreatePropertyValue("", value3)
+		_, err = pas.CreatePropertyValue("test-plugin", value3)
 		require.NoError(t, err)
 
 		// User 3 cannot see user 1's value (different options, no intersection)
@@ -1371,7 +1404,7 @@ func TestGetPropertyValueReadAccess(t *testing.T) {
 				},
 			},
 		}
-		field, err := pas.CreatePropertyField("", field)
+		field, err := pas.CreatePropertyFieldForPlugin("test-plugin", field)
 		require.NoError(t, err)
 
 		// Alice has ["opt1", "opt2"] (hiking, cooking)
@@ -1385,7 +1418,7 @@ func TestGetPropertyValueReadAccess(t *testing.T) {
 			TargetID:   aliceID,
 			Value:      aliceValue,
 		}
-		alicePropertyValue, err = pas.CreatePropertyValue("", alicePropertyValue)
+		alicePropertyValue, err = pas.CreatePropertyValue("test-plugin", alicePropertyValue)
 		require.NoError(t, err)
 
 		// Bob has ["opt1", "opt3"] (hiking, gaming)
@@ -1399,7 +1432,7 @@ func TestGetPropertyValueReadAccess(t *testing.T) {
 			TargetID:   bobID,
 			Value:      bobValue,
 		}
-		_, err = pas.CreatePropertyValue("", bobPropertyValue)
+		_, err = pas.CreatePropertyValue("test-plugin", bobPropertyValue)
 		require.NoError(t, err)
 
 		// Bob views Alice - should only see ["opt1"] (intersection)
@@ -1425,7 +1458,7 @@ func TestGetPropertyValueReadAccess(t *testing.T) {
 			TargetID:   charlieID,
 			Value:      charlieValue,
 		}
-		_, err = pas.CreatePropertyValue("", charliePropertyValue)
+		_, err = pas.CreatePropertyValue("test-plugin", charliePropertyValue)
 		require.NoError(t, err)
 
 		// Charlie views Alice - should get nil (no intersection)
@@ -1449,7 +1482,7 @@ func TestGetPropertyValueReadAccess(t *testing.T) {
 				},
 			},
 		}
-		field, err := pas.CreatePropertyField("", field)
+		field, err := pas.CreatePropertyFieldForPlugin("test-plugin", field)
 		require.NoError(t, err)
 
 		// Create value for user 1
@@ -1462,7 +1495,7 @@ func TestGetPropertyValueReadAccess(t *testing.T) {
 			TargetID:   userID1,
 			Value:      user1Value,
 		}
-		value, err = pas.CreatePropertyValue("", value)
+		value, err = pas.CreatePropertyValue("test-plugin", value)
 		require.NoError(t, err)
 
 		// User 2 has no values for this field
@@ -1657,13 +1690,13 @@ func TestSearchPropertyValuesReadAccess(t *testing.T) {
 				},
 			},
 		}
-		sharedField, err := pas.CreatePropertyField("", sharedField)
+		sharedField, err := pas.CreatePropertyFieldForPlugin("test-plugin", sharedField)
 		require.NoError(t, err)
 
 		// User 1 has ["opt1", "opt2"]
 		user1Value, err := json.Marshal([]string{"opt1", "opt2"})
 		require.NoError(t, err)
-		_, err = pas.CreatePropertyValue("", &model.PropertyValue{
+		_, err = pas.CreatePropertyValue("test-plugin", &model.PropertyValue{
 			GroupID:    group.ID,
 			FieldID:    sharedField.ID,
 			TargetType: "user",
@@ -1675,7 +1708,7 @@ func TestSearchPropertyValuesReadAccess(t *testing.T) {
 		// User 2 has ["opt1", "opt3"]
 		user2Value, err := json.Marshal([]string{"opt1", "opt3"})
 		require.NoError(t, err)
-		_, err = pas.CreatePropertyValue("", &model.PropertyValue{
+		_, err = pas.CreatePropertyValue("test-plugin", &model.PropertyValue{
 			GroupID:    group.ID,
 			FieldID:    sharedField.ID,
 			TargetType: "user",

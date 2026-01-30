@@ -11,7 +11,7 @@ import * as channelActions from 'actions/views/channel';
 
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
-import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {Constants} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -80,7 +80,7 @@ describe('components/ChannelHeaderMenu/MenuItems/CloseMessage', () => {
         jest.clearAllMocks();
     });
 
-    test('renders the component correctly for group channel', () => {
+    test('renders the component correctly for group channel', async () => {
         renderWithContext(
             <WithTestMenuContext>
                 <CloseMessage
@@ -93,7 +93,7 @@ describe('components/ChannelHeaderMenu/MenuItems/CloseMessage', () => {
         const menuItem = screen.getByText('Close Group Message');
         expect(menuItem).toBeInTheDocument();
 
-        fireEvent.click(menuItem); // Simulate click on the menu item
+        await userEvent.click(menuItem); // Simulate click on the menu item
         expect(channelActions.leaveDirectChannel).toHaveBeenCalledTimes(1); // Ensure dispatch was called
         expect(channelActions.leaveDirectChannel).toHaveBeenCalledWith(groupChannel.name);
 
@@ -104,7 +104,7 @@ describe('components/ChannelHeaderMenu/MenuItems/CloseMessage', () => {
         );
     });
 
-    test('renders the component correctly for direct channel', () => {
+    test('renders the component correctly for direct channel', async () => {
         renderWithContext(
             <WithTestMenuContext>
                 <CloseMessage
@@ -117,7 +117,7 @@ describe('components/ChannelHeaderMenu/MenuItems/CloseMessage', () => {
         const menuItem = screen.getByText('Close Direct Message');
         expect(menuItem).toBeInTheDocument();
 
-        fireEvent.click(menuItem); // Simulate click on the menu item
+        await userEvent.click(menuItem); // Simulate click on the menu item
         expect(channelActions.leaveDirectChannel).toHaveBeenCalledTimes(1); // Ensure dispatch was called
         expect(channelActions.leaveDirectChannel).toHaveBeenCalledWith(directChannel.name);
 
