@@ -5461,6 +5461,34 @@ func TestBurnOnReadRestrictionsForDMsAndBots(t *testing.T) {
 		require.Equal(t, "api.post.fill_in_post_props.burn_on_read.bot_dm.app_error", err.Id)
 	})
 
+	t.Run("should reject burn-on-read posts in DMs with deleted users", func(t *testing.T) {
+		// Create a user that we'll delete
+		userToDelete := th.CreateUser(t)
+		th.LinkUserToTeam(t, userToDelete, th.BasicTeam)
+
+		// Create a DM channel between the regular user and the user we'll delete
+		dmChannel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, userToDelete.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, model.ChannelTypeDirect, dmChannel.Type)
+
+		// Delete the user
+		appErr = th.App.PermanentDeleteUser(th.Context, userToDelete)
+		require.Nil(t, appErr)
+
+		// Try to create a burn-on-read post in DM with deleted user
+		post := &model.Post{
+			ChannelId: dmChannel.Id,
+			Message:   "This is a burn-on-read message to deleted user",
+			UserId:    th.BasicUser.Id,
+			Type:      model.PostTypeBurnOnRead,
+		}
+
+		// This should fail because we can't validate the other user (deleted)
+		_, _, err := th.App.CreatePost(th.Context, post, dmChannel, model.CreatePostFlags{SetOnline: true})
+		require.NotNil(t, err)
+		require.Equal(t, "api.post.fill_in_post_props.burn_on_read.user.app_error", err.Id)
+	})
+
 	t.Run("should allow burn-on-read posts in public channels", func(t *testing.T) {
 		// This should succeed - public channel, regular user
 		require.Equal(t, model.ChannelTypeOpen, th.BasicChannel.Type)
