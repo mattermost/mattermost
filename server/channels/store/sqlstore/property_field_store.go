@@ -213,8 +213,8 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 
 	for i, field := range fields {
 		field.UpdateAt = updateTime
-		if err := field.EnsureOptionIDs(); err != nil {
-			return nil, errors.Wrap(err, "property_field_update_ensure_option_ids")
+		if ensureErr := field.EnsureOptionIDs(); ensureErr != nil {
+			return nil, errors.Wrap(ensureErr, "property_field_update_ensure_option_ids")
 		}
 		if vErr := field.IsValid(); vErr != nil {
 			return nil, errors.Wrap(vErr, "property_field_update_isvalid")

@@ -82,22 +82,24 @@ func (pf *PropertyField) EnsureOptionIDs() error {
 		return nil
 	}
 
-	options, ok := optionsRaw.([]any)
-	if !ok {
-		return fmt.Errorf("options attribute is not a slice for field ID: %s", pf.ID)
+	// Normalize with JSON to handle any slice type
+	optionsBytes, err := json.Marshal(optionsRaw)
+	if err != nil {
+		return fmt.Errorf("failed to marshal options for field ID %s: %w", pf.ID, err)
 	}
 
-	for i, optRaw := range options {
-		optMap, ok := optRaw.(map[string]any)
-		if !ok {
-			return fmt.Errorf("option at index %d is not a map for field ID: %s", i, pf.ID)
-		}
+	var options []map[string]any
+	if err := json.Unmarshal(optionsBytes, &options); err != nil {
+		return fmt.Errorf("failed to unmarshal options for field ID %s: %w", pf.ID, err)
+	}
 
-		// Generate ID if missing or empty
+	for _, optMap := range options {
 		if id, ok := optMap["id"].(string); !ok || id == "" {
 			optMap["id"] = NewId()
 		}
 	}
+
+	pf.Attrs[PropertyFieldAttributeOptions] = options
 
 	return nil
 }
