@@ -253,10 +253,6 @@ describe('actions/integration_actions', () => {
     describe('lookupInteractiveDialog', () => {
         const {getDialogArguments} = require('mattermost-redux/selectors/entities/integrations');
 
-        beforeEach(() => {
-            jest.clearAllMocks();
-        });
-
         test('lookupInteractiveDialog with current channel', async () => {
             const testState = {
                 ...initialState,
@@ -341,10 +337,6 @@ describe('actions/integration_actions', () => {
     });
 
     describe('loadIncomingHooksAndProfilesForTeam', () => {
-        beforeEach(() => {
-            jest.clearAllMocks();
-        });
-
         test('should load hooks and profiles', async () => {
             const testStore = mockStore(initialState);
             await testStore.dispatch(Actions.loadIncomingHooksAndProfilesForTeam('team_id1', 0, 50, false));
@@ -368,10 +360,6 @@ describe('actions/integration_actions', () => {
     });
 
     describe('loadOutgoingHooksAndProfilesForTeam', () => {
-        beforeEach(() => {
-            jest.clearAllMocks();
-        });
-
         test('should load outgoing hooks and profiles', async () => {
             const testStore = mockStore(initialState);
             await testStore.dispatch(Actions.loadOutgoingHooksAndProfilesForTeam('team_id1', 1, 25));
@@ -388,10 +376,6 @@ describe('actions/integration_actions', () => {
     });
 
     describe('loadCommandsAndProfilesForTeam', () => {
-        beforeEach(() => {
-            jest.clearAllMocks();
-        });
-
         test('should load commands and profiles', async () => {
             const testStore = mockStore(initialState);
             await testStore.dispatch(Actions.loadCommandsAndProfilesForTeam('team_id1'));
@@ -408,10 +392,6 @@ describe('actions/integration_actions', () => {
     });
 
     describe('loadOAuthAppsAndProfiles', () => {
-        beforeEach(() => {
-            jest.clearAllMocks();
-        });
-
         test('should load OAuth apps with custom parameters', async () => {
             const testStore = mockStore(initialState);
             await testStore.dispatch(Actions.loadOAuthAppsAndProfiles(2, 30));
@@ -435,10 +415,6 @@ describe('actions/integration_actions', () => {
     });
 
     describe('loadOutgoingOAuthConnectionsAndProfiles', () => {
-        beforeEach(() => {
-            jest.clearAllMocks();
-        });
-
         test('should load outgoing OAuth connections', async () => {
             const testStore = mockStore(initialState);
             await testStore.dispatch(Actions.loadOutgoingOAuthConnectionsAndProfiles('team_id1', 1, 50));

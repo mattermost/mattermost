@@ -603,6 +603,7 @@ function PolicyDetails({
                     groupID={''}
                     alreadySelected={Object.values(channelChanges.added).map((channel) => channel.id)}
                     excludeTypes={['O', 'D', 'G']}
+                    excludeGroupConstrained={true}
                 />
             )}
 

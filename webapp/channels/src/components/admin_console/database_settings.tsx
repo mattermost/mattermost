@@ -44,7 +44,7 @@ interface State extends BaseState {
 }
 
 const messages = defineMessages({
-    title: {id: 'admin.database.title', defaultMessage: 'Database Settings'},
+    title: {id: 'admin.database.title', defaultMessage: 'Database'},
     recycleDescription: {id: 'admin.recycle.recycleDescription', defaultMessage: 'Deployments using multiple databases can switch from one master database to another without restarting the Mattermost server by updating "config.json" to the new desired configuration and using the {reloadConfiguration} feature to load the new settings while the server is running. The administrator should then use {featureName} feature to recycle the database connections based on the new settings.'},
     featureName: {id: 'admin.recycle.recycleDescription.featureName', defaultMessage: 'Recycle Database Connections'},
     reloadConfiguration: {id: 'admin.recycle.recycleDescription.reloadConfiguration', defaultMessage: 'Environment > Web Server > Reload Configuration from Disk'},
@@ -67,7 +67,7 @@ const messages = defineMessages({
     connMaxIdleTimeTitle: {id: 'admin.sql.connMaxIdleTimeTitle', defaultMessage: 'Maximum Connection Idle Time:'},
     connMaxIdleTimeDescription: {id: 'admin.sql.connMaxIdleTimeDescription', defaultMessage: 'Maximum idle time for a connection to the database in milliseconds.'},
     minimumHashtagLengthTitle: {id: 'admin.service.minimumHashtagLengthTitle', defaultMessage: 'Minimum Hashtag Length:'},
-    minimumHashtagLengthDescription: {id: 'admin.service.minimumHashtagLengthDescription', defaultMessage: 'Minimum number of characters in a hashtag. This must be greater than or equal to 2. MySQL databases must be configured to support searching strings shorter than three characters, <link>see documentation</link>.'},
+    minimumHashtagLengthDescription: {id: 'admin.service.minimumHashtagLengthDescription', defaultMessage: 'Minimum number of characters in a hashtag. This must be greater than or equal to 2.'},
     traceTitle: {id: 'admin.sql.traceTitle', defaultMessage: 'SQL Statement Logging: '},
     traceDescription: {id: 'admin.sql.traceDescription', defaultMessage: '(Development Mode) When true, executing SQL statements are written to the log.'},
 });
@@ -187,6 +187,7 @@ export default class DatabaseSettings extends OLDAdminSettings<Props, State> {
                     showSuccessMessage={false}
                     errorMessage={defineMessage({
                         id: 'admin.recycle.reloadFail',
+                        // eslint-disable-next-line formatjs/enforce-placeholders -- error provided by RequestButton
                         defaultMessage: 'Recycling unsuccessful: {error}',
                     })}
                     includeDetailedError={true}
@@ -320,19 +321,7 @@ export default class DatabaseSettings extends OLDAdminSettings<Props, State> {
                     }
                     placeholder={defineMessage({id: 'admin.service.minimumHashtagLengthExample', defaultMessage: 'E.g.: "3"'})}
                     helpText={
-                        <FormattedMessage
-                            {...messages.minimumHashtagLengthDescription}
-                            values={{
-                                link: (msg) => (
-                                    <ExternalLink
-                                        location='database_settings'
-                                        href='https://dev.mysql.com/doc/refman/8.0/en/fulltext-fine-tuning.html'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            }}
-                        />
+                        <FormattedMessage {...messages.minimumHashtagLengthDescription}/>
                     }
                     value={this.state.minimumHashtagLength}
                     onChange={this.handleChange}

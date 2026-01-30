@@ -70,7 +70,7 @@ const holders = defineMessages({
     },
     validImage: {
         id: 'user.settings.general.validImage',
-        defaultMessage: 'Only BMP, JPG, JPEG, or PNG images may be used for profile pictures',
+        defaultMessage: 'Only BMP, JPG or PNG images may be used for profile pictures',
     },
     imageTooLarge: {
         id: 'user.settings.general.imageTooLarge',
@@ -761,7 +761,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         <div className='setting-list__hint pb-3'>
                             <FormattedMessage
                                 id='user.settings.general.emailGoogleCantUpdate'
-                                defaultMessage='Login occurs through Google Apps. Email cannot be updated. Email address used for notifications is {email}.'
+                                defaultMessage='Login occurs through Google. Email cannot be updated. Email address used for notifications is {email}.'
                                 values={{
                                     email: this.state.originalEmail,
                                 }}
@@ -878,7 +878,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             describe = (
                 <FormattedMessage
                     id='user.settings.general.loginGoogle'
-                    defaultMessage='Login done through Google Apps ({email})'
+                    defaultMessage='Login done through Google ({email})'
                     values={{
                         email: this.state.originalEmail,
                     }}
@@ -1735,7 +1735,6 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     onFileChange={this.updatePicture}
                     submitActive={this.submitActive}
                     loadingPicture={this.state.loadingPicture}
-                    maxFileSize={this.props.maxFileSize}
                     helpText={helpText}
                 />
             );
@@ -1832,7 +1831,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     text={
                         <FormattedMessage
                             id='user.settings.modal.profile'
-                            defaultMessage='Profile'
+                            defaultMessage='Profile Settings'
                         />
                     }
                 />
@@ -1842,7 +1841,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         text={
                             <FormattedMessage
                                 id='user.settings.modal.profile'
-                                defaultMessage='Profile'
+                                defaultMessage='Profile Settings'
                             />
                         }
                     />

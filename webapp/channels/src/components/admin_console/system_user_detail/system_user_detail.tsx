@@ -896,7 +896,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                         <WithTooltip
                                             title={defineMessage({
                                                 id: 'generic.enterprise_feature',
-                                                defaultMessage: 'Enterprise feature',
+                                                defaultMessage: 'Enterprise Feature',
                                             })}
                                             hint={defineMessage({
                                                 id: 'admin.user_item.manageSettings.disabled_tooltip',
@@ -1004,7 +1004,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     message={
                         <div>
                             <FormattedMessage
-                                id='deactivate_member_modal.desc'
+                                id='deactivate_member_modal.desc_with_confirmation'
                                 defaultMessage='This action deactivates {username}. They will be logged out and not have access to any teams or channels on this system. Are you sure you want to deactivate {username}?'
                                 values={{
                                     username: this.state.user?.username ?? '',

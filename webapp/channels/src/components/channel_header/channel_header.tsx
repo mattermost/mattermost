@@ -14,6 +14,7 @@ import WithTooltip from 'components/with_tooltip';
 
 import CallButton from 'plugins/call_button';
 import ChannelHeaderPlug from 'plugins/channel_header_plug';
+import Pluggable from 'plugins/pluggable';
 import {
     Constants,
     NotificationLevels,
@@ -202,7 +203,7 @@ class ChannelHeader extends React.PureComponent<Props> {
                         <span className='last-active__text'>
                             <FormattedMessage
                                 id='channel_header.lastActive'
-                                defaultMessage='Active {timestamp}'
+                                defaultMessage='Last online {timestamp}'
                                 values={{
                                     timestamp: (
                                         <Timestamp
@@ -372,6 +373,11 @@ class ChannelHeader extends React.PureComponent<Props> {
                                             {channelFilesIcon}
                                         </HeaderIconWrapper>
                                     }
+                                    <Pluggable
+                                        pluggableName='ChannelHeaderIcon'
+                                        channel={channel}
+                                        channelMember={channelMember!}
+                                    />
                                 </div>
                                 <div
                                     id='channelHeaderDescription'

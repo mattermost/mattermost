@@ -15,15 +15,15 @@ import LoadingScreen from 'components/loading_screen';
 
 import Constants from 'utils/constants';
 
-import {DangerText, BorderlessInput, LinkButton} from './controls';
-import type {SectionHook} from './section_utils';
-import DotMenu from './user_properties_dot_menu';
-import SelectType from './user_properties_type_menu';
-import type {UserPropertyFields} from './user_properties_utils';
-import {isCreatePending, useUserPropertyFields, ValidationWarningNameRequired, ValidationWarningNameTaken, ValidationWarningNameUnique} from './user_properties_utils';
-import UserPropertyValues from './user_properties_values';
+import {DangerText, BorderlessInput, LinkButton} from '../../Work/mattermost/master/webapp/channels/src/components/admin_console/system_properties/controls';
+import type {SectionHook} from '../../Work/mattermost/master/webapp/channels/src/components/admin_console/system_properties/section_utils';
+import DotMenu from '../../Work/mattermost/master/webapp/channels/src/components/admin_console/system_properties/user_properties_dot_menu';
+import SelectType from '../../Work/mattermost/master/webapp/channels/src/components/admin_console/system_properties/user_properties_type_menu';
+import type {UserPropertyFields} from '../../Work/mattermost/master/webapp/channels/src/components/admin_console/system_properties/user_properties_utils';
+import {isCreatePending, useUserPropertyFields, ValidationWarningNameRequired, ValidationWarningNameTaken, ValidationWarningNameUnique} from '../../Work/mattermost/master/webapp/channels/src/components/admin_console/system_properties/user_properties_utils';
+import UserPropertyValues from '../../Work/mattermost/master/webapp/channels/src/components/admin_console/system_properties/user_properties_values';
 
-import {AdminConsoleListTable} from '../list_table';
+import {AdminConsoleListTable} from '../../Work/mattermost/master/webapp/channels/src/components/admin_console/list_table';
 
 type FieldActions = {
     createField: (field: UserPropertyField) => void;
@@ -158,7 +158,6 @@ export function UserPropertiesTable({
                                 label={formatMessage({id: 'admin.system_properties.user_properties.table.property_name.input.name', defaultMessage: 'Attribute Name'})}
                                 deleted={toDelete}
                                 disabled={isProtected}
-                                borderless={!warning}
                                 testid='property-field-input'
                                 autoFocus={isCreatePending(row.original) && !supportsOptions(row.original)}
                                 setValue={(value: string) => {
@@ -353,7 +352,6 @@ type EditCellProps = {
     footer?: ReactNode;
     strong?: boolean;
     maxLength?: number;
-    borderless?: boolean;
 };
 const EditCell = (props: EditCellProps) => {
     const [value, setValue] = useState(props.value);

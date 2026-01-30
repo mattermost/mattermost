@@ -11,9 +11,11 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {loadStatusesByIds} from 'actions/status_actions';
 
+import HelpPopout from 'components/help_popout';
 import LoggedIn from 'components/logged_in';
 import ModalController from 'components/modal_controller';
 import RhsPopout from 'components/rhs_popout';
+import {useUserTheme} from 'components/theme_provider';
 import ThreadPopout from 'components/thread_popout';
 
 import Pluggable from 'plugins/pluggable';
@@ -25,7 +27,10 @@ import './popout_controller.scss';
 const PopoutController: React.FC<RouteComponentProps> = (routeProps) => {
     const dispatch = useDispatch();
     const currentUserId = useSelector(getCurrentUserId);
+
     useBrowserPopout();
+    useUserTheme();
+
     useEffect(() => {
         document.body.classList.add('app__body', 'popout');
         dispatch(getMe());
@@ -49,6 +54,10 @@ const PopoutController: React.FC<RouteComponentProps> = (routeProps) => {
                 <Route
                     path={`/_popout/rhs/:team(${TEAM_NAME_PATH_PATTERN})/:identifier(${IDENTIFIER_PATH_PATTERN})`}
                     component={RhsPopout}
+                />
+                <Route
+                    path='/_popout/help/:page?'
+                    component={HelpPopout}
                 />
             </Switch>
         </LoggedIn>

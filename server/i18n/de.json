@@ -7175,7 +7175,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
+    "translation": "© 2015 - {{ .CurrentYear }} Mattermost, Inc. 2100 Geng Road, Suite 210, Palo Alto, CA, 94303"
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
@@ -8612,10 +8612,6 @@
   {
     "id": "app.plugin.skip_installation.app_error",
     "translation": "Überspringe die Installation des Plugins {{.Id}}, da die vorhandene Version gleich oder neuer ist."
-  },
-  {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "CWS Server kann den Newsletter nicht abonnieren."
   },
   {
     "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
@@ -11682,5 +11678,9 @@
   {
     "id": "model.config.is_valid.guest_accounts.cannot_enforce_multifactor_authentication_when_guest_magic_link_is_enabled.app_error",
     "translation": "Du kannst keine Multifaktor-Authentifizierung für Gastkonten erzwingen, wenn die Authentifizierung über einen magischen Link aktiviert ist."
+  },
+  {
+    "id": "app.update_scheduled_post.convert_to_post.error",
+    "translation": "Geplante Nachricht kann nicht in das Nachrichtenformat konvertiert werden."
   }
 ]
