@@ -15,6 +15,7 @@ import LoadingScreen from 'components/loading_screen';
 
 import Constants from 'utils/constants';
 
+import {AdminConsoleListTable} from '../../Work/mattermost/master/webapp/channels/src/components/admin_console/list_table';
 import {DangerText, BorderlessInput, LinkButton} from '../../Work/mattermost/master/webapp/channels/src/components/admin_console/system_properties/controls';
 import type {SectionHook} from '../../Work/mattermost/master/webapp/channels/src/components/admin_console/system_properties/section_utils';
 import DotMenu from '../../Work/mattermost/master/webapp/channels/src/components/admin_console/system_properties/user_properties_dot_menu';
@@ -22,8 +23,6 @@ import SelectType from '../../Work/mattermost/master/webapp/channels/src/compone
 import type {UserPropertyFields} from '../../Work/mattermost/master/webapp/channels/src/components/admin_console/system_properties/user_properties_utils';
 import {isCreatePending, useUserPropertyFields, ValidationWarningNameRequired, ValidationWarningNameTaken, ValidationWarningNameUnique} from '../../Work/mattermost/master/webapp/channels/src/components/admin_console/system_properties/user_properties_utils';
 import UserPropertyValues from '../../Work/mattermost/master/webapp/channels/src/components/admin_console/system_properties/user_properties_values';
-
-import {AdminConsoleListTable} from '../../Work/mattermost/master/webapp/channels/src/components/admin_console/list_table';
 
 type FieldActions = {
     createField: (field: UserPropertyField) => void;
