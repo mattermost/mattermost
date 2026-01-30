@@ -5,9 +5,9 @@ import React, {memo} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
-import {isMessageDescriptor} from 'utils/i18n';
 import {isMac} from 'utils/user_agent';
 
+import {isMessageDescriptor} from '../../utils/i18n';
 import {ShortcutKey, ShortcutKeys, ShortcutKeyVariant} from '../shortcut_key';
 
 export {ShortcutKeys};
@@ -25,7 +25,7 @@ type Props = {
 
 function TooltipShortcut(props: Props) {
     let shortcut = props.shortcut.default;
-    if (props.shortcut.mac && isMac()) {
+    if (props.shortcut.mac/* && isMac()*/) {
         shortcut = props.shortcut.mac;
     }
 

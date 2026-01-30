@@ -7,11 +7,10 @@ import React, {memo} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {useIntl} from 'react-intl';
 
-import {isMessageDescriptor} from 'utils/i18n';
-
 import TooltipShortcut from './tooltip_shortcut';
 import {type ShortcutDefinition} from './tooltip_shortcut';
 
+import {isMessageDescriptor} from '../../utils/i18n';
 import {Emoji} from '../emoji';
 
 const TOOLTIP_EMOTICON_SIZE = 16;
