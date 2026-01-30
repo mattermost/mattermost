@@ -42,6 +42,13 @@ func (api *apiTimerLayer) RegisterCommand(command *model.Command) error {
 	return _returnsA
 }
 
+func (api *apiTimerLayer) RegisterMessageMiddleware(middleware MessageMiddleware) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RegisterMessageMiddleware(middleware)
+	api.recordTime(startTime, "RegisterMessageMiddleware", _returnsA == nil)
+	return _returnsA
+}
+
 func (api *apiTimerLayer) UnregisterCommand(teamID, trigger string) error {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.UnregisterCommand(teamID, trigger)

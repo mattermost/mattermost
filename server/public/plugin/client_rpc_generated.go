@@ -1263,6 +1263,23 @@ func (s *apiRPCServer) RegisterCommand(args *Z_RegisterCommandArgs, returns *Z_R
 	return nil
 }
 
+type Z_RegisterMessageMiddlewareArgs struct {
+}
+
+type Z_RegisterMessageMiddlewareReturns struct {
+	A error
+}
+
+func (g *apiRPCClient) RegisterMessageMiddleware(middleware MessageMiddleware) error {
+	// MessageMiddleware cannot be serialized over RPC. This is only supported for in-process plugins.
+	return fmt.Errorf("RegisterMessageMiddleware is not supported for RPC-based plugins")
+}
+
+func (s *apiRPCServer) RegisterMessageMiddleware(args *Z_RegisterMessageMiddlewareArgs, returns *Z_RegisterMessageMiddlewareReturns) error {
+	// MessageMiddleware cannot be serialized over RPC.
+	return encodableError(fmt.Errorf("API RegisterMessageMiddleware is not supported for RPC-based plugins."))
+}
+
 type Z_UnregisterCommandArgs struct {
 	A string
 	B string
