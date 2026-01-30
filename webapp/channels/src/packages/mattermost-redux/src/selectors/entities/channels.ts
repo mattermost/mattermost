@@ -1482,3 +1482,13 @@ export function getMyChannelAutotranslation(state: GlobalState, channelId: strin
 export function isChannelAutotranslated(state: GlobalState, channelId: string): boolean {
     return getMyChannelAutotranslation(state, channelId);
 }
+
+export function isUserLanguageSupportedForAutotranslation(state: GlobalState): boolean {
+    const locale = getCurrentUserLocale(state);
+    const config = getConfig(state);
+    if (config?.EnableAutoTranslation !== 'true') {
+        return false;
+    }
+    const targetLanguages = config?.AutoTranslationLanguages?.split(',').map((l) => l.trim()).filter(Boolean);
+    return Boolean(targetLanguages?.length && targetLanguages.includes(locale));
+}

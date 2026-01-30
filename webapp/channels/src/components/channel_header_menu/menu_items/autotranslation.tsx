@@ -9,7 +9,7 @@ import {TranslateIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 
 import {setMyChannelAutotranslation} from 'mattermost-redux/actions/channels';
-import {isChannelAutotranslated} from 'mattermost-redux/selectors/entities/channels';
+import {isChannelAutotranslated, isUserLanguageSupportedForAutotranslation} from 'mattermost-redux/selectors/entities/channels';
 
 import {openModal} from 'actions/views/modals';
 
@@ -27,10 +27,14 @@ interface Props extends Menu.FirstMenuItemProps {
 const Autotranslation = ({channel, ...rest}: Props): JSX.Element => {
     const dispatch = useDispatch();
 
-    const config = useSelector((state: GlobalState) => isChannelAutotranslated(state, channel.id));
+    const isAutotranslated = useSelector((state: GlobalState) => isChannelAutotranslated(state, channel.id));
+    const isLanguageSupported = useSelector(isUserLanguageSupportedForAutotranslation);
 
     const handleAutotranslationToggle = useCallback(() => {
-        if (config) {
+        if (!isLanguageSupported) {
+            return;
+        }
+        if (isAutotranslated) {
             // Show confirmation modal when disabling
             dispatch(
                 openModal({
@@ -45,21 +49,40 @@ const Autotranslation = ({channel, ...rest}: Props): JSX.Element => {
             // Enable directly without confirmation
             dispatch(setMyChannelAutotranslation(channel.id, true));
         }
-    }, [channel, config, dispatch]);
+    }, [channel, isAutotranslated, isLanguageSupported, dispatch]);
 
     const icon = useMemo(() => <TranslateIcon size='18px'/>, []);
 
-    const labels = useMemo(() => (config ? (
-        <FormattedMessage
-            id='channel_header.autotranslation.disable'
-            defaultMessage='Disable autotranslation'
-        />
-    ) : (
-        <FormattedMessage
-            id='channel_header.autotranslation.enable'
-            defaultMessage='Enable autotranslation'
-        />
-    )), [config]);
+    const labels = useMemo(() => {
+        if (!isLanguageSupported) {
+            return (
+                <>
+                    <FormattedMessage
+                        id='channel_header.autotranslation.language_not_supported.title'
+                        defaultMessage='Auto-translation'
+                    />
+                    <FormattedMessage
+                        id='channel_header.autotranslation.language_not_supported.subtitle'
+                        defaultMessage='Your language is not supported'
+                    />
+                </>
+            );
+        }
+        if (isAutotranslated) {
+            return (
+                <FormattedMessage
+                    id='channel_header.autotranslation.disable'
+                    defaultMessage='Disable autotranslation'
+                />
+            );
+        }
+        return (
+            <FormattedMessage
+                id='channel_header.autotranslation.enable'
+                defaultMessage='Enable autotranslation'
+            />
+        );
+    }, [isAutotranslated, isLanguageSupported]);
 
     return (
         <Menu.Item
@@ -67,6 +90,7 @@ const Autotranslation = ({channel, ...rest}: Props): JSX.Element => {
             id='channelNotificationPreferences'
             onClick={handleAutotranslationToggle}
             labels={labels}
+            disabled={!isLanguageSupported}
             {...rest}
         />
     );
