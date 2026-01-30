@@ -1263,23 +1263,6 @@ func (s *apiRPCServer) RegisterCommand(args *Z_RegisterCommandArgs, returns *Z_R
 	return nil
 }
 
-type Z_RegisterMessageMiddlewareArgs struct {
-}
-
-type Z_RegisterMessageMiddlewareReturns struct {
-	A error
-}
-
-func (g *apiRPCClient) RegisterMessageMiddleware(middleware MessageMiddleware) error {
-	// MessageMiddleware cannot be serialized over RPC. This is only supported for in-process plugins.
-	return fmt.Errorf("RegisterMessageMiddleware is not supported for RPC-based plugins")
-}
-
-func (s *apiRPCServer) RegisterMessageMiddleware(args *Z_RegisterMessageMiddlewareArgs, returns *Z_RegisterMessageMiddlewareReturns) error {
-	// MessageMiddleware cannot be serialized over RPC.
-	return encodableError(fmt.Errorf("API RegisterMessageMiddleware is not supported for RPC-based plugins."))
-}
-
 type Z_UnregisterCommandArgs struct {
 	A string
 	B string
@@ -2074,35 +2057,6 @@ func (s *apiRPCServer) GetSession(args *Z_GetSessionArgs, returns *Z_GetSessionR
 		returns.A, returns.B = hook.GetSession(args.A)
 	} else {
 		return encodableError(fmt.Errorf("API GetSession called but not implemented."))
-	}
-	return nil
-}
-
-type Z_GetSessionPublicKeysArgs struct {
-	A []string
-}
-
-type Z_GetSessionPublicKeysReturns struct {
-	A map[string]string
-	B *model.AppError
-}
-
-func (g *apiRPCClient) GetSessionPublicKeys(userIDs []string) (map[string]string, *model.AppError) {
-	_args := &Z_GetSessionPublicKeysArgs{userIDs}
-	_returns := &Z_GetSessionPublicKeysReturns{}
-	if err := g.client.Call("Plugin.GetSessionPublicKeys", _args, _returns); err != nil {
-		log.Printf("RPC call to GetSessionPublicKeys API failed: %s", err.Error())
-	}
-	return _returns.A, _returns.B
-}
-
-func (s *apiRPCServer) GetSessionPublicKeys(args *Z_GetSessionPublicKeysArgs, returns *Z_GetSessionPublicKeysReturns) error {
-	if hook, ok := s.impl.(interface {
-		GetSessionPublicKeys(userIDs []string) (map[string]string, *model.AppError)
-	}); ok {
-		returns.A, returns.B = hook.GetSessionPublicKeys(args.A)
-	} else {
-		return encodableError(fmt.Errorf("API GetSessionPublicKeys called but not implemented."))
 	}
 	return nil
 }
@@ -5439,6 +5393,153 @@ func (s *apiRPCServer) KVList(args *Z_KVListArgs, returns *Z_KVListReturns) erro
 		returns.A, returns.B = hook.KVList(args.A, args.B)
 	} else {
 		return encodableError(fmt.Errorf("API KVList called but not implemented."))
+	}
+	return nil
+}
+
+type Z_SessionKVSetArgs struct {
+	A string
+	B string
+	C []byte
+}
+
+type Z_SessionKVSetReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) SessionKVSet(sessionId, key string, value []byte) *model.AppError {
+	_args := &Z_SessionKVSetArgs{sessionId, key, value}
+	_returns := &Z_SessionKVSetReturns{}
+	if err := g.client.Call("Plugin.SessionKVSet", _args, _returns); err != nil {
+		log.Printf("RPC call to SessionKVSet API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) SessionKVSet(args *Z_SessionKVSetArgs, returns *Z_SessionKVSetReturns) error {
+	if hook, ok := s.impl.(interface {
+		SessionKVSet(sessionId, key string, value []byte) *model.AppError
+	}); ok {
+		returns.A = hook.SessionKVSet(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API SessionKVSet called but not implemented."))
+	}
+	return nil
+}
+
+type Z_SessionKVGetArgs struct {
+	A string
+	B string
+}
+
+type Z_SessionKVGetReturns struct {
+	A []byte
+	B *model.AppError
+}
+
+func (g *apiRPCClient) SessionKVGet(sessionId, key string) ([]byte, *model.AppError) {
+	_args := &Z_SessionKVGetArgs{sessionId, key}
+	_returns := &Z_SessionKVGetReturns{}
+	if err := g.client.Call("Plugin.SessionKVGet", _args, _returns); err != nil {
+		log.Printf("RPC call to SessionKVGet API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) SessionKVGet(args *Z_SessionKVGetArgs, returns *Z_SessionKVGetReturns) error {
+	if hook, ok := s.impl.(interface {
+		SessionKVGet(sessionId, key string) ([]byte, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.SessionKVGet(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API SessionKVGet called but not implemented."))
+	}
+	return nil
+}
+
+type Z_SessionKVDeleteArgs struct {
+	A string
+	B string
+}
+
+type Z_SessionKVDeleteReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) SessionKVDelete(sessionId, key string) *model.AppError {
+	_args := &Z_SessionKVDeleteArgs{sessionId, key}
+	_returns := &Z_SessionKVDeleteReturns{}
+	if err := g.client.Call("Plugin.SessionKVDelete", _args, _returns); err != nil {
+		log.Printf("RPC call to SessionKVDelete API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) SessionKVDelete(args *Z_SessionKVDeleteArgs, returns *Z_SessionKVDeleteReturns) error {
+	if hook, ok := s.impl.(interface {
+		SessionKVDelete(sessionId, key string) *model.AppError
+	}); ok {
+		returns.A = hook.SessionKVDelete(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API SessionKVDelete called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetSessionPublicKeysArgs struct {
+	A []string
+}
+
+type Z_GetSessionPublicKeysReturns struct {
+	A map[string]string
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetSessionPublicKeys(userIds []string) (map[string]string, *model.AppError) {
+	_args := &Z_GetSessionPublicKeysArgs{userIds}
+	_returns := &Z_GetSessionPublicKeysReturns{}
+	if err := g.client.Call("Plugin.GetSessionPublicKeys", _args, _returns); err != nil {
+		log.Printf("RPC call to GetSessionPublicKeys API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetSessionPublicKeys(args *Z_GetSessionPublicKeysArgs, returns *Z_GetSessionPublicKeysReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetSessionPublicKeys(userIds []string) (map[string]string, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetSessionPublicKeys(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetSessionPublicKeys called but not implemented."))
+	}
+	return nil
+}
+
+type Z_RegisterMessageMiddlewareArgs struct {
+	A MessageMiddleware
+}
+
+type Z_RegisterMessageMiddlewareReturns struct {
+	A error
+}
+
+func (g *apiRPCClient) RegisterMessageMiddleware(middleware MessageMiddleware) error {
+	_args := &Z_RegisterMessageMiddlewareArgs{middleware}
+	_returns := &Z_RegisterMessageMiddlewareReturns{}
+	if err := g.client.Call("Plugin.RegisterMessageMiddleware", _args, _returns); err != nil {
+		log.Printf("RPC call to RegisterMessageMiddleware API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) RegisterMessageMiddleware(args *Z_RegisterMessageMiddlewareArgs, returns *Z_RegisterMessageMiddlewareReturns) error {
+	if hook, ok := s.impl.(interface {
+		RegisterMessageMiddleware(middleware MessageMiddleware) error
+	}); ok {
+		returns.A = hook.RegisterMessageMiddleware(args.A)
+		returns.A = encodableError(returns.A)
+	} else {
+		return encodableError(fmt.Errorf("API RegisterMessageMiddleware called but not implemented."))
 	}
 	return nil
 }
