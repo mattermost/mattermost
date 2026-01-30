@@ -37,18 +37,30 @@ const (
 	anonymousCallerId = ""
 )
 
+// PluginChecker is a function type that checks if a plugin is installed.
+// Returns true if the plugin exists and is installed, false otherwise.
+type PluginChecker func(pluginID string) bool
+
 // PropertyAccessService is a decorator around PropertyService that enforces
 // access control based on caller identity. All property operations go through
 // this service to ensure consistent access control enforcement.
 type PropertyAccessService struct {
 	propertyService *properties.PropertyService
+	pluginChecker   PluginChecker
 }
 
 // NewPropertyAccessService creates a new PropertyAccessService wrapping the given PropertyService.
-func NewPropertyAccessService(ps *properties.PropertyService) *PropertyAccessService {
+// The pluginChecker function is used to verify plugin installation status when checking access
+// to protected fields. Pass nil if plugin checking is not needed (e.g., in tests).
+func NewPropertyAccessService(ps *properties.PropertyService, pluginChecker PluginChecker) *PropertyAccessService {
 	return &PropertyAccessService{
 		propertyService: ps,
+		pluginChecker:   pluginChecker,
 	}
+}
+
+func (pas *PropertyAccessService) setPluginCheckerForTests(pluginChecker PluginChecker) {
+	pas.pluginChecker = pluginChecker
 }
 
 // Property Group Methods
@@ -270,7 +282,7 @@ func (pas *PropertyAccessService) UpdatePropertyFields(callerID string, groupID 
 }
 
 // DeletePropertyField deletes a property field and all its values.
-// Checks write access before allowing deletion.
+// Checks delete access before allowing deletion.
 func (pas *PropertyAccessService) DeletePropertyField(callerID string, groupID, id string) error {
 	// Get existing field to check access
 	existingField, err := pas.propertyService.GetPropertyField(groupID, id)
@@ -278,8 +290,8 @@ func (pas *PropertyAccessService) DeletePropertyField(callerID string, groupID, 
 		return fmt.Errorf("DeletePropertyField: %w", err)
 	}
 
-	// Check write access
-	if err := pas.checkFieldWriteAccess(existingField, callerID); err != nil {
+	// Check delete access
+	if err := pas.checkFieldDeleteAccess(existingField, callerID); err != nil {
 		return fmt.Errorf("DeletePropertyField: %w", err)
 	}
 
@@ -699,6 +711,35 @@ func (pas *PropertyAccessService) checkFieldWriteAccess(field *model.PropertyFie
 	sourcePluginID := pas.getSourcePluginID(field)
 	if sourcePluginID == "" {
 		return fmt.Errorf("field %s is protected, but has no associated source plugin", field.ID)
+	}
+
+	if sourcePluginID != callerID {
+		return fmt.Errorf("field %s is protected and can only be modified by source plugin '%s'", field.ID, sourcePluginID)
+	}
+
+	return nil
+}
+
+// checkFieldDeleteAccess checks if the given caller can delete a PropertyField.
+// IMPORTANT: Always pass the existing field fetched from the database, not a field provided by the caller.
+// Returns nil if deletion is allowed, or an error if denied.
+func (pas *PropertyAccessService) checkFieldDeleteAccess(field *model.PropertyField, callerID string) error {
+	// Check if field is protected
+	if !model.IsPropertyFieldProtected(field) {
+		return nil
+	}
+
+	// Protected fields can only be deleted by the source plugin
+	sourcePluginID := pas.getSourcePluginID(field)
+	if sourcePluginID == "" {
+		// Protected field with no source plugin - allow deletion
+		return nil
+	}
+
+	// Check if the source plugin is still installed
+	if pas.pluginChecker != nil && !pas.pluginChecker(sourcePluginID) {
+		// Plugin has been uninstalled - allow deletion of orphaned field
+		return nil
 	}
 
 	if sourcePluginID != callerID {
