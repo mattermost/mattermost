@@ -2812,8 +2812,8 @@ func (c *Client4) CreateGroupChannel(ctx context.Context, userIds []string) (*Ch
 }
 
 // GetChannel returns a channel based on the provided channel id string.
-func (c *Client4) GetChannel(ctx context.Context, channelId string) (*Channel, *Response, error) {
-	r, err := c.doAPIGet(ctx, c.channelRoute(channelId), "")
+func (c *Client4) GetChannel(ctx context.Context, channelId string, etag string) (*Channel, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.channelRoute(channelId), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
