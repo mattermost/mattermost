@@ -2,4 +2,5 @@
 // See LICENSE.txt for license information.
 
 export {ShortcutKey} from './shortcut_key';
+export {ShortcutKeys} from './keys';
 export type {ShortcutKeyProps, ShortcutKeyVariant} from './shortcut_key';

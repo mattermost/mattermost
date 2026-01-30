@@ -3,30 +3,15 @@
 
 import React, {memo} from 'react';
 import type {MessageDescriptor} from 'react-intl';
-import {defineMessage, FormattedMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 import {isMac} from '@mattermost/shared/utils/user_agent';
 
-import {ShortcutKey, ShortcutKeyVariant} from 'components/shortcut_key';
+import {ShortcutKey, ShortcutKeys, ShortcutKeyVariant} from 'components/shortcut_key';
 
 import {isMessageDescriptor} from 'utils/i18n';
 
-export const ShortcutKeys = {
-    alt: defineMessage({
-        id: 'shortcuts.generic.alt',
-        defaultMessage: 'Alt',
-    }),
-    cmd: '⌘',
-    ctrl: defineMessage({
-        id: 'shortcuts.generic.ctrl',
-        defaultMessage: 'Ctrl',
-    }),
-    option: '⌥',
-    shift: defineMessage({
-        id: 'shortcuts.generic.shift',
-        defaultMessage: 'Shift',
-    }),
-};
+export {ShortcutKeys};
 
 type ShortcutKeyDescriptor = string | MessageDescriptor;
 
