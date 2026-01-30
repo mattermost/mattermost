@@ -38,6 +38,12 @@ type Props = {
     canManageBanner?: boolean;
 }
 
+function bannerHasChanges(originalBannerInfo: Channel['banner_info'], updatedBannerInfo: Channel['banner_info']): boolean {
+    return (originalBannerInfo?.text?.trim() || '') !== (updatedBannerInfo?.text?.trim() || '') ||
+        (originalBannerInfo?.background_color?.trim() || '') !== (updatedBannerInfo?.background_color?.trim() || '') ||
+        originalBannerInfo?.enabled !== updatedBannerInfo?.enabled;
+}
+
 function ChannelSettingsConfigurationTab({
     channel,
     setAreThereUnsavedChanges,
@@ -132,9 +138,7 @@ function ChannelSettingsConfigurationTab({
         setIsChannelAutotranslated((prev) => !prev);
     }, []);
 
-    const hasUnsavedChanges = (updatedChannelBanner.text?.trim() || '') !== (initialBannerInfo?.text?.trim() || '') ||
-        (updatedChannelBanner.background_color?.trim() || '') !== (initialBannerInfo?.background_color?.trim() || '') ||
-        updatedChannelBanner.enabled !== initialBannerInfo?.enabled ||
+    const hasUnsavedChanges = bannerHasChanges(initialBannerInfo, updatedChannelBanner) ||
         isChannelAutotranslated !== initialIsChannelAutotranslated;
 
     useEffect(() => {
@@ -168,17 +172,19 @@ function ChannelSettingsConfigurationTab({
             return false;
         }
 
-        const updated: Channel = {
-            ...channel,
-        };
+        const updated: Partial<Channel> = {};
 
-        updated.banner_info = {
-            text: updatedChannelBanner.text?.trim() || '',
-            background_color: updatedChannelBanner.background_color?.trim() || '',
-            enabled: updatedChannelBanner.enabled,
-        };
+        if (bannerHasChanges(initialBannerInfo, updatedChannelBanner)) {
+            updated.banner_info = {
+                text: updatedChannelBanner.text?.trim() || '',
+                background_color: updatedChannelBanner.background_color?.trim() || '',
+                enabled: updatedChannelBanner.enabled,
+            };
+        }
 
-        updated.autotranslation = isChannelAutotranslated;
+        if (isChannelAutotranslated !== initialIsChannelAutotranslated) {
+            updated.autotranslation = isChannelAutotranslated;
+        }
 
         const {error} = await dispatch(patchChannel(channel.id, updated));
         if (error) {
@@ -187,7 +193,7 @@ function ChannelSettingsConfigurationTab({
         }
 
         return true;
-    }, [channel, dispatch, formatMessage, handleServerError, isChannelAutotranslated, updatedChannelBanner.background_color, updatedChannelBanner.enabled, updatedChannelBanner.text]);
+    }, [channel, dispatch, formatMessage, handleServerError, initialBannerInfo, initialIsChannelAutotranslated, isChannelAutotranslated, updatedChannelBanner]);
 
     const handleSaveChanges = useCallback(async () => {
         const success = await handleSave();
