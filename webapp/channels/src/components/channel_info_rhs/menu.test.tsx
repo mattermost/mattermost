@@ -7,9 +7,9 @@ import type {Channel, ChannelStats} from '@mattermost/types/channels';
 
 import {
     act,
-    fireEvent,
     renderWithContext,
     screen,
+    userEvent,
 } from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 
@@ -54,7 +54,7 @@ describe('channel_info_rhs/menu', () => {
         });
 
         expect(screen.getByText('Notification Preferences')).toBeInTheDocument();
-        fireEvent.click(screen.getByText('Notification Preferences'));
+        await userEvent.click(screen.getByText('Notification Preferences'));
 
         expect(props.actions.openNotificationSettings).toHaveBeenCalled();
     });
@@ -115,7 +115,7 @@ describe('channel_info_rhs/menu', () => {
         expect(fileItem).toBeInTheDocument();
         expect(fileItem.parentElement).toHaveTextContent('3');
 
-        fireEvent.click(fileItem);
+        await userEvent.click(fileItem);
         expect(props.actions.showChannelFiles).toHaveBeenCalled();
     });
 
@@ -137,7 +137,7 @@ describe('channel_info_rhs/menu', () => {
         expect(fileItem).toBeInTheDocument();
         expect(fileItem.parentElement).toHaveTextContent('12');
 
-        fireEvent.click(fileItem);
+        await userEvent.click(fileItem);
         expect(props.actions.showPinnedPosts).toHaveBeenCalled();
     });
 
@@ -159,7 +159,7 @@ describe('channel_info_rhs/menu', () => {
         expect(membersItem).toBeInTheDocument();
         expect(membersItem.parentElement).toHaveTextContent('32');
 
-        fireEvent.click(membersItem);
+        await userEvent.click(membersItem);
         expect(props.actions.showChannelMembers).toHaveBeenCalled();
     });
 
