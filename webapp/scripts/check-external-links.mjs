@@ -12,8 +12,7 @@ const MATTERMOST_URL_PATTERN = /https?:\/\/[^"'\s<>()]*mattermost\.com[^"'\s<>()
 
 const PERMALINK_PATTERN = /^https?:\/\/(www\.)?mattermost\.com\/pl\//;
 
-const PUSH_SERVER_PATTERN = /^https?:\/\/([a-z0-9-]+\.)?push\.mattermost\.com(\/|$)/;
-const HPNS_PATTERN = /^https?:\/\/hpns-[a-z]+\.mattermost\.com(\/|$)/;
+const PUSH_SERVER_PATTERN = /^https?:\/\/(([a-z0-9-]+\.)?push|hpns-[a-z]+)\.mattermost\.com(\/|$)/;
 const ROOT_DOMAIN_PATTERN = /^https?:\/\/(www\.)?mattermost\.com\/?$/;
 
 const SOURCE_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx'];
@@ -95,31 +94,17 @@ function findAllMattermostUrls(rootDir, excludeTests = true) {
     return urlMap;
 }
 
-function validatePermalink(url) {
-    if (PERMALINK_PATTERN.test(url)) {
-        return {valid: true};
-    }
-
-    if (ROOT_DOMAIN_PATTERN.test(url)) {
-        return {valid: true};
-    }
-
-    if (PUSH_SERVER_PATTERN.test(url) || HPNS_PATTERN.test(url)) {
-        return {valid: true};
-    }
-
-    return {
-        valid: false,
-        reason: 'All mattermost.com links must use https://mattermost.com/pl/ permalink format',
-    };
+function isValidPermalink(url) {
+    return PERMALINK_PATTERN.test(url) ||
+        ROOT_DOMAIN_PATTERN.test(url) ||
+        PUSH_SERVER_PATTERN.test(url);
 }
 
 function findNonPermalinkUrls(urlMap) {
     const invalid = [];
     for (const [url, files] of urlMap) {
-        const result = validatePermalink(url);
-        if (!result.valid) {
-            invalid.push({url, files, reason: result.reason});
+        if (!isValidPermalink(url)) {
+            invalid.push({url, files});
         }
     }
     return invalid;
@@ -200,50 +185,27 @@ async function checkUrlWithRedirects(originalUrl) {
 }
 
 function processResponse(originalUrl, response) {
+    const {status} = response;
     const cfHeader = response.headers.get('cf-mitigated');
+    const isRedirect = status >= 300 && status < 400;
 
-    if (response.status >= 300 && response.status < 400) {
-        if (cfHeader) {
-            return {
-                url: originalUrl,
-                status: response.status,
-                ok: true,
-            };
-        }
-        return {
-            url: originalUrl,
-            status: response.status,
-            redirect: true,
-        };
+    if (cfHeader && (isRedirect || status === 403 || status === 503)) {
+        return {url: originalUrl, status, ok: true};
+    }
+
+    if (isRedirect) {
+        return {url: originalUrl, status, redirect: true};
     }
 
     if (response.ok) {
-        return {
-            url: originalUrl,
-            status: response.status,
-            ok: true,
-        };
+        return {url: originalUrl, status, ok: true};
     }
 
-    if (response.status === 403 || response.status === 503) {
-        if (cfHeader) {
-            return {
-                url: originalUrl,
-                status: response.status,
-                ok: true,
-            };
-        }
-    }
-
-    return {
-        url: originalUrl,
-        status: response.status,
-        ok: false,
-    };
+    return {url: originalUrl, status, ok: false};
 }
 
 function shouldSkipUrlCheck(url) {
-    return PUSH_SERVER_PATTERN.test(url) || HPNS_PATTERN.test(url);
+    return PUSH_SERVER_PATTERN.test(url);
 }
 
 async function checkUrls(urls, concurrency = 5, silentProgress = false) {
